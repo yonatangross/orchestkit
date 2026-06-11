@@ -4,9 +4,13 @@
 /**
  * Spawn-depth registry (CC 2.1.172 — nested sub-agents up to 5 levels)
  *
- * SubagentStart inputs carry `agent_id` + `parent_agent_id` (CC 2.1.139),
- * but NOT the chain depth — so we derive it: record each agent's depth at
- * SubagentStart and resolve a child's depth as parent's + 1.
+ * DORMANT until upstream ships agent context in hook payloads
+ * (anthropics/claude-code#16424): the live SubagentStart payload on
+ * CC 2.1.173 carries only {session_id, transcript_path, cwd, agent_id,
+ * agent_type, hook_event_name} — no `parent_agent_id` — so depth resolves
+ * to 1 for every spawn today. The registry design (record each agent's
+ * depth at SubagentStart, child = parent + 1) lights up automatically
+ * once a parent id arrives.
  *
  * Why a dedicated registry instead of subagent-spawns.jsonl: that log is
  * written at PreToolUse(Task) time, where CC may not have assigned

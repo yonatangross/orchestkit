@@ -16,7 +16,7 @@ description: "Generate emulate seed configs for stateful API emulation. Wraps Ve
 
 Generate and manage seed configs for [emulate](https://github.com/vercel-labs/emulate) (Apache-2.0) — Vercel Labs' stateful API emulation tool. Each category has individual rule files in `rules/` loaded on-demand.
 
-> **Paired agent:** This skill pairs with the [`emulate-engineer`](../../agents/emulate-engineer.md) subagent (`subagent_type: "emulate-engineer"`). When a task involves generating a full emulate config from scratch, webhook HMAC setup, CI pipeline integration, or parallel-worker port isolation, spawn the agent rather than handling it inline — it has the full 12-emulator service-port matrix and seed-rules in context.
+> **Paired agent:** This skill pairs with the [`emulate-engineer`](../../agents/emulate-engineer.md) subagent (`subagent_type: "ork:emulate-engineer"`). When a task involves generating a full emulate config from scratch, webhook HMAC setup, CI pipeline integration, or parallel-worker port isolation, spawn the agent rather than handling it inline — it has the full 12-emulator service-port matrix and seed-rules in context.
 
 **Not mocks.** Emulate provides full state machines with cascading deletes, cursor pagination, webhook delivery, and HMAC signature verification. Create a PR via the API and it appears in `GET /repos/:owner/:repo/pulls`. Delete a repo and its issues, PRs, and webhooks cascade-delete.
 

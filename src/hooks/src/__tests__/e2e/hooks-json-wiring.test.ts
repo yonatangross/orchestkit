@@ -220,7 +220,12 @@ describe('hooks.json wiring E2E', () => {
       // 211 -> 210: #2335 — WorktreeCreate chain rebuilt: worktree-lifecycle-logger
       //                          (Create side) + worktree/enter-registrar replaced by ONE
       //                          sync worktree/worktree-provisioner that owns provisioning.
-      expect(hooksConfig.description).toContain('210 total');
+      // 210 -> 211: #2371 — pretool/task/spawn-intent-logger (PreToolUse[Task]
+      //                          via sync-task-dispatcher) — spawn descriptions
+      //                          must be captured at PreToolUse; the SubagentStart
+      //                          payload carries neither description nor prompt
+      //                          (live-verified CC 2.1.173).
+      expect(hooksConfig.description).toContain('211 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

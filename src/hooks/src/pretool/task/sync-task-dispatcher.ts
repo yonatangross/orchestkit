@@ -25,6 +25,7 @@ import { teamSizeGate } from './team-size-gate.js';
 import { fableSpendConsent } from './fable-spend-consent.js';
 import { taskExistenceGate } from './task-existence-gate.js';
 import { taskAgentAdvisor } from './task-agent-advisor.js';
+import { spawnIntentLogger } from './spawn-intent-logger.js';
 import { toolInvocationLinter } from '../tool-invocation-linter.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
@@ -49,6 +50,10 @@ const TASK_HOOKS: TaskHookConfig[] = [
   { name: 'task-existence-gate', fn: taskExistenceGate },
   // task-agent-advisor: suggests curated ork agents for ad-hoc names (#706).
   { name: 'task-agent-advisor', fn: taskAgentAdvisor },
+  // spawn-intent-logger: records subagent_type + description to the spawn
+  // log — PreToolUse is the only event that carries them (SubagentStart
+  // payload has neither; live-verified CC 2.1.173). Append-only, never blocks.
+  { name: 'spawn-intent-logger', fn: spawnIntentLogger },
   // tool-invocation-linter: registry-driven advisory for known-bad invocations
   // (e.g. Agent isolation:'worktree' — #1883). Runs LAST in the chain because
   // it's purely informational; never blocks at the warn/info severities.

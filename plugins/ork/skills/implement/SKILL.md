@@ -321,7 +321,7 @@ Monitor(pid=build_task_id)
 # Each stdout line arrives as a notification — no polling needed
 
 # For background agents with test suites:
-Agent(subagent_type="test-generator", run_in_background=true, ...)
+Agent(subagent_type="ork:test-generator", run_in_background=true, ...)
 # Monitor agent progress via task notifications (CC 2.1.98 partial progress)
 ```
 

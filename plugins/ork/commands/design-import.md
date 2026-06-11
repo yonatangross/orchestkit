@@ -93,7 +93,7 @@ Delegate to the orchestrator agent. The agent fetches, extracts the tarball, rea
 
 ````python
 Agent(
-  subagent_type="claude-design-orchestrator",
+  subagent_type="ork:claude-design-orchestrator",
   description="Parse and normalize handoff bundle",
   prompt=f"""Parse the Claude Design handoff bundle at {bundle_input}.
 
@@ -171,7 +171,7 @@ for component in payload["components"]:
     if component["decision"] in ("scaffold", "adapt"):
         # Compose, don't reimplement — design-to-code owns the EXTRACT/MATCH/ADAPT/RENDER pipeline
         Agent(
-          subagent_type="frontend-ui-developer",
+          subagent_type="ork:frontend-ui-developer",
           description=f"Scaffold {component['name']} from bundle",
           prompt=f"""Use the design-to-code skill to scaffold this component.
 

@@ -62,6 +62,12 @@ const cfg = Array.isArray(RAW)
 const SHARDS =
 	Array.isArray(cfg.shards) && cfg.shards.length ? cfg.shards : ["src"];
 const MODE = cfg.mode || "full"; // full | security | architecture | dependencies
+// Specialist routing (#2371 follow-up): security-mode stages have an obvious
+// owner — run them as ork:security-auditor (curated red-team prompt) instead
+// of the generic workflow subagent. Mixed modes stay generic on purpose:
+// forcing a specialist onto a cross-domain task is worse than the default.
+const STAGE_AGENT =
+	MODE === "security" ? { agentType: "ork:security-auditor" } : {};
 const EFFORT = cfg.effort || "high"; // high → single advisory refuters; xhigh → quorum
 const REFUTER_CEILING = 24; // engine §8 global spawn ceiling
 
@@ -145,6 +151,7 @@ deterministic=true ONLY for ground truth (a CVE/CVSS match, a failing build/test
 — everything else (reachability/exploitability claims, design judgments) is deterministic=false.
 Cite file:line with a SHORT evidence slice. Report only real findings; do not pad.`,
 					{
+						...STAGE_AGENT,
 						label: `shard:${shard}`,
 						phase: "Shard-audit",
 						schema: SHARD_RESULT,
@@ -233,6 +240,7 @@ if you cannot reproduce the issue from the cited location. If the finding assert
 spans files you cannot see, return upheld (do not refute what you simply couldn't trace).
 Return your independent severity, whether the citation checks out, and the outcome.`,
 							{
+								...STAGE_AGENT,
 								label: `refute:${f.file}#${i + 1}`,
 								phase: "Refute",
 								schema: VERDICT,

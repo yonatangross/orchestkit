@@ -17,8 +17,8 @@ tools:
   - Edit
   - Grep
   - Glob
-  - Agent(llm-integrator)
-  - Agent(data-pipeline-engineer)
+  - Agent(ork:llm-integrator)
+  - Agent(ork:data-pipeline-engineer)
   - TeamCreate
   - SendMessage
   - TaskCreate
@@ -317,12 +317,12 @@ Task: "Design a multi-agent analysis pipeline for URL content"
 
 ## Delegation (CC 2.1.172+)
 
-You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3). Spawn them by REGISTRY name exactly as written below (`ork:`-prefixed) — bare names fail to resolve at dispatch. The declared list is advisory (CC does not enforce it); stay within it anyway, plus read-only builtins like Explore.
 
 | Sub-agent | Delegate when |
 |---|---|
-| `llm-integrator` | Workflow nodes need actual LLM call implementations — prompt templates, function calling, streaming wiring — you design the graph, not the calls |
-| `data-pipeline-engineer` | The RAG pipeline needs embeddings, chunking, or vector index preparation before retrieval nodes can execute |
+| `ork:llm-integrator` | Workflow nodes need actual LLM call implementations — prompt templates, function calling, streaming wiring — you design the graph, not the calls |
+| `ork:data-pipeline-engineer` | The RAG pipeline needs embeddings, chunking, or vector index preparation before retrieval nodes can execute |
 
 Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
 

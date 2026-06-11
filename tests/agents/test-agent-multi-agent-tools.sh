@@ -34,7 +34,7 @@ for agent_file in "$AGENTS_DIR"/*.md; do
   esac
 
   # All Agent(<name>) references declared in this agent.
-  mapfile -t refs < <(grep -oE 'Agent\([a-zA-Z0-9_-]+\)' "$agent_file" \
+  mapfile -t refs < <(grep -oE 'Agent\([a-zA-Z0-9:_-]+\)' "$agent_file" \
     | sed -E 's/Agent\(([^)]+)\)/\1/' | sort -u)
 
   [ "${#refs[@]}" -eq 0 ] && continue
@@ -45,8 +45,9 @@ for agent_file in "$AGENTS_DIR"/*.md; do
   fi
 
   for ref in "${refs[@]}"; do
-    if [ ! -f "$AGENTS_DIR/$ref.md" ]; then
-      echo "FAIL: $agent_name references Agent($ref) but $ref.md does not exist in src/agents/"
+    ref_file="${ref##*:}"  # strip plugin namespace (ork:database-engineer -> database-engineer)
+    if [ ! -f "$AGENTS_DIR/$ref_file.md" ]; then
+      echo "FAIL: $agent_name references Agent($ref) but $ref_file.md does not exist in src/agents/"
       FAILED=1
     fi
   done

@@ -890,7 +890,7 @@ describe('subagentValidator', () => {
       });
     }
 
-    test('top-level spawn logs depth 1 with no lineage fields', () => {
+    test('spawn without parent lineage omits spawn_depth (CC sends no parent_agent_id — #2371)', () => {
       const input = createToolInput({
         tool_input: { subagent_type: 'general-purpose', description: 'Task' },
       });
@@ -898,7 +898,7 @@ describe('subagentValidator', () => {
       subagentValidator(input);
 
       const entry = getSpawnEntry();
-      expect(entry.spawn_depth).toBe(1);
+      expect(entry).not.toHaveProperty('spawn_depth');
       expect(entry).not.toHaveProperty('agent_id');
       expect(entry).not.toHaveProperty('parent_agent_id');
     });
@@ -1066,6 +1066,50 @@ describe('subagentValidator', () => {
       // Assert
       expect(result.hookSpecificOutput!.additionalContext).toContain('named-agent');
       expect(result.hookSpecificOutput!.additionalContext).toContain('Agent Permission Profile');
+    });
+  });
+
+  describe('honest depth telemetry (#2371 finding 3)', () => {
+    /** Find the spawn-log JSONL entry appended during the call */
+    function loggedEntry(): Record<string, unknown> {
+      const call = (appendFileSync as ReturnType<typeof vi.fn>).mock.calls.find(
+        (c: unknown[]) => typeof c[0] === 'string' && c[0].includes('subagent-spawns.jsonl')
+      );
+      expect(call).toBeDefined();
+      return JSON.parse(call![1].toString().trim());
+    }
+
+    test('omits spawn_depth when CC sends no parent_agent_id (real SubagentStart shape)', () => {
+      const input = createToolInput({
+        agent_id: 'achild111',
+        tool_input: { subagent_type: 'Explore', description: '' },
+      });
+
+      subagentValidator(input);
+
+      const entry = loggedEntry();
+      expect(entry).not.toHaveProperty('spawn_depth');
+      expect(entry).not.toHaveProperty('parent_agent_id');
+      expect(entry.source).toBe('start');
+    });
+
+    test('emits spawn_depth only with real parent lineage', () => {
+      const input = createToolInput({
+        agent_id: 'achild222',
+        parent_agent_id: 'aparent999',
+        tool_input: { subagent_type: 'Explore', description: '' },
+      });
+
+      subagentValidator(input);
+
+      const entry = loggedEntry();
+      expect(entry.parent_agent_id).toBe('aparent999');
+      expect(entry.spawn_depth).toBe(2); // parent unknown in log → nested fallback
+    });
+
+    test('tags entries with source:start', () => {
+      subagentValidator(createToolInput());
+      expect(loggedEntry().source).toBe('start');
     });
   });
 });

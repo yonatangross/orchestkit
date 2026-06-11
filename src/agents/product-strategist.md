@@ -16,7 +16,7 @@ tools:
   - Grep
   - Glob
   - Bash
-  - Agent(market-intelligence)
+  - Agent(ork:market-intelligence)
   - TeamCreate
   - SendMessage
   - TaskCreate
@@ -247,11 +247,11 @@ Task: "Should we build a visual workflow builder?"
 
 ## Delegation (CC 2.1.172+)
 
-You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3). Spawn them by REGISTRY name exactly as written below (`ork:`-prefixed) — bare names fail to resolve at dispatch. The declared list is advisory (CC does not enforce it); stay within it anyway, plus read-only builtins like Explore.
 
 | Sub-agent | Delegate when |
 |---|---|
-| `market-intelligence` | The assessment needs fresh competitive landscape, TAM/SAM/SOM sizing, or market trend data not already covered by a prior market-intelligence report |
+| `ork:market-intelligence` | The assessment needs fresh competitive landscape, TAM/SAM/SOM sizing, or market trend data not already covered by a prior market-intelligence report |
 
 Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
 

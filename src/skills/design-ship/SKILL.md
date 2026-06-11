@@ -151,7 +151,7 @@ Run `/ork:cover` scoped to the components written by phase 1:
 component_paths = [c["path"] for c in import_result["components"] if c["decision"] != "reuse"]
 
 Agent(
-  subagent_type="test-generator",
+  subagent_type="ork:test-generator",
   description="Cover the freshly-imported components",
   prompt=f"""Use the cover skill to generate tests for these components (scoped — do not regenerate suites for unrelated files):
   {component_paths}
@@ -170,7 +170,7 @@ Run `/ork:expect` to do diff-aware browser verification. This produces the scree
 
 ```python
 Agent(
-  subagent_type="expect-agent",
+  subagent_type="ork:expect-agent",
   description="Diff-aware verification of imported components",
   prompt=f"""Use the expect skill on the current diff.
 

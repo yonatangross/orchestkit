@@ -56,6 +56,25 @@ refuters → `haiku`, the synthesis → `opus`. Don't over-optimize — a wrong-
 that misses a structural dependency costs more than the tokens it saved (the version-matrix
 verdict needed a careful read, not a cheap grep).
 
+## Per-agent types (`agentType`)
+
+Same logic for WHO runs the stage. Telemetry across 424 spawns showed workflow fan-outs were
+the single biggest generic bucket (148 spawns, all default workflow subagent) while curated
+specialists sat unused. In `agent()`, set `opts.agentType` when a stage has an OBVIOUS
+specialist owner — and only then:
+
+| Stage shape | agentType |
+|-------------|-----------|
+| Security findings: produce or adversarially verify | `ork:security-auditor` |
+| Test generation / coverage-gap passes | `ork:test-generator` |
+| Code-review dimensions over a diff | `ork:code-quality-reviewer` |
+| Web/competitive research fan-out | `ork:web-research-analyst` |
+| Cross-domain, mixed, or glue stages | omit — generic IS correct here |
+
+Use the namespaced registry name (`ork:x`) — bare names fail to resolve at dispatch (#2371).
+Committed example: `audit-full-mapreduce.mjs` routes its shard-audit and refute stages to
+`ork:security-auditor` when `mode === "security"`, and stays generic for mixed modes.
+
 ## Use directly vs ship-as-template
 
 The "don't wrap" memory and the article's "ship workflows as Skills" reconcile cleanly:

@@ -17,8 +17,8 @@ description: "Python performance: profiling, memory optimization, async performa
 - `Bash`
 - `Grep`
 - `Glob`
-- `Agent(test-generator)`
-- `Agent(database-engineer)`
+- `Agent(ork:test-generator)`
+- `Agent(ork:database-engineer)`
 - `TeamCreate`
 - `SendMessage`
 - `TaskCreate`
@@ -362,12 +362,12 @@ Task: "The /api/v1/orders endpoint is slow"
 
 ## Delegation (CC 2.1.172+)
 
-You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3). Spawn them by REGISTRY name exactly as written below (`ork:`-prefixed) — bare names fail to resolve at dispatch. The declared list is advisory (CC does not enforce it); stay within it anyway, plus read-only builtins like Explore.
 
 | Sub-agent | Delegate when |
 |---|---|
-| `test-generator` | An optimization needs regression tests or benchmark fixtures to lock in the gains — unit test authoring is outside your boundary |
-| `database-engineer` | Profiling points to schema-level fixes — new indexes via migration, partitioning, or query-plan work beyond ORM-level eager loading |
+| `ork:test-generator` | An optimization needs regression tests or benchmark fixtures to lock in the gains — unit test authoring is outside your boundary |
+| `ork:database-engineer` | Profiling points to schema-level fixes — new indexes via migration, partitioning, or query-plan work beyond ORM-level eager loading |
 
 Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
 
