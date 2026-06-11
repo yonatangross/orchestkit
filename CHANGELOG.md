@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.38.0](https://github.com/yonatangross/orchestkit/compare/v8.37.1...v8.38.0) (2026-06-11)
+
+
+### Features
+
+* **docs-site:** surface MCP stdio package, policy, SDKs to checkers ([#2390](https://github.com/yonatangross/orchestkit/issues/2390)) ([80985df](https://github.com/yonatangross/orchestkit/commit/80985df9e433909f7299f95c3c1177337620d746))
+
 ## [8.37.1](https://github.com/yonatangross/orchestkit/compare/v8.37.0...v8.37.1) (2026-06-11)
 
 
