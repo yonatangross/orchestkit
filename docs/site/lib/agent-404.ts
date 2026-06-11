@@ -28,6 +28,7 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	"/terms",
 	// Top-level route files (markdown twins, feeds, sitemaps, OG image).
 	"/auth.md",
+	"/api-policy.md",
 	"/pricing.md",
 	"/llms.txt",
 	"/llms-full.txt",

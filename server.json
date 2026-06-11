@@ -18,9 +18,7 @@
   "packages": [
     {
       "registryType": "oci",
-      "registryBaseUrl": "https://ghcr.io",
       "identifier": "ghcr.io/yonatangross/orchestkit-docs-mcp",
-      "version": "8.36.2",
       "runtimeHint": "docker",
       "transport": {
         "type": "stdio"

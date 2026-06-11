@@ -1,0 +1,6 @@
+# The Docs MCP image only needs src/mcp-server — keep the build context tiny
+# (the repo checkout is hundreds of MB with .git/, plugins/, docs/).
+*
+!src/mcp-server
+src/mcp-server/node_modules
+src/mcp-server/dist

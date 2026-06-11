@@ -21,7 +21,7 @@
     "validate:pre-push": "bash bin/validate-counts.sh && bash tests/skills/test-skill-length.sh && bash tests/performance/test-token-overhead.sh",
     "test:skills:functional": "bash tests/skills/functional/test-rule-traceability.sh && bash tests/skills/functional/test-eval-completeness.sh && bash tests/skills/functional/test-cache-safety.sh && bash tests/skills/functional/skill-efficiency-scorecard.sh",
     "test:agents": "bash tests/agents/test-agent-frontmatter.sh",
-    "test:manifests": "bash tests/manifests/test-skill-uniqueness.sh && bash tests/manifests/test-manifest-dependencies.sh && bash tests/manifests/test-marketplace-ordering.sh && bash tests/manifests/test-plugin-orphan-skills.sh && node tests/manifests/test-skill-activation-channels.mjs",
+    "test:manifests": "bash tests/manifests/test-skill-uniqueness.sh && bash tests/manifests/test-manifest-dependencies.sh && bash tests/manifests/test-marketplace-ordering.sh && bash tests/manifests/test-plugin-orphan-skills.sh && node tests/manifests/test-skill-activation-channels.mjs && bash tests/manifests/test-server-json.sh",
     "test:manifests:channels": "node tests/manifests/test-skill-activation-channels.mjs",
     "test:manifests:uniqueness": "bash tests/manifests/test-skill-uniqueness.sh",
     "test:manifests:deps": "bash tests/manifests/test-manifest-dependencies.sh",

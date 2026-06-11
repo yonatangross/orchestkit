@@ -147,17 +147,30 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+        with:
+          fetch-tags: true
 
-      - name: Build and push image
+      - name: Build and push multi-arch image
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${GITHUB_REF#refs/tags/v}"
           IMAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER}/orchestkit-docs-mcp"
           echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          docker build -t "$IMAGE:$VERSION" -t "$IMAGE:latest" .
-          docker push "$IMAGE:$VERSION"
-          docker push "$IMAGE:latest"
+          # arm64 emulation for cross-build (actionless binfmt; build is just
+          # npm ci + esbuild so QEMU cost is trivial)
+          docker run --privileged --rm tonistiigi/binfmt --install arm64
+          docker buildx create --use
+          # :latest only when this tag is the highest — re-running an old tag's
+          # workflow (or a backport tag) must not move :latest backwards.
+          HIGHEST="$(git tag -l 'v*' | sed 's/^v//' | sort -V | tail -1)"
+          TAGS=(-t "$IMAGE:$VERSION")
+          if [ "$VERSION" = "$HIGHEST" ]; then
+            TAGS+=(-t "$IMAGE:latest")
+          else
+            echo "::notice::$VERSION is not the highest tag ($HIGHEST) — skipping :latest"
+          fi
+          docker buildx build --platform linux/amd64,linux/arm64 "${TAGS[@]}" --push .
 
   # Republish server.json to the official MCP registry on every release so the
   # registry version never drifts from the live site (orank scores the
@@ -182,13 +195,49 @@ jobs:
         run: |
           VERSION="${GITHUB_REF#refs/tags/v}"
           SERVER_VERSION="$(jq -r '.version' server.json)"
-          PKG_VERSION="$(jq -r '.packages[0].version // empty' server.json)"
           if [ "$SERVER_VERSION" != "$VERSION" ]; then
             echo "::error::server.json version ($SERVER_VERSION) != tag ($VERSION). release-please should have bumped it — refusing to publish a stale version to the registry."
             exit 1
           fi
-          if [ -n "$PKG_VERSION" ] && [ "$PKG_VERSION" != "$VERSION" ]; then
-            echo "::error::server.json packages[0].version ($PKG_VERSION) != tag ($VERSION) — the OCI image tag would not match the published package. Check the release-please extra-files jsonpath."
+
+      # The registry's OCI validator requires the canonical tagged-reference
+      # format: the tag lives INSIDE identifier (ghcr.io/...:X.Y.Z) and the
+      # registryBaseUrl/version fields are rejected ("old format"). release-please
+      # cannot bump a substring, so the repo keeps identifier untagged and the
+      # tag is stamped here from the release tag — single source of truth.
+      - name: Stamp OCI identifier with release tag
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          IDENTIFIER="$(jq -r '.packages[0].identifier // empty' server.json)"
+          if [ -z "$IDENTIFIER" ]; then
+            echo "::notice::no packages[0] in server.json — publishing remotes only"
+            exit 0
+          fi
+          case "$IDENTIFIER" in
+            *:*) echo "::error::packages[0].identifier ($IDENTIFIER) already carries a tag — the repo copy must stay untagged (tests/manifests/test-server-json.sh enforces this)."; exit 1 ;;
+          esac
+          jq --arg v "$VERSION" '.packages[0].identifier += ":" + $v' server.json > server.json.tmp
+          mv server.json.tmp server.json
+          echo "stamped: $(jq -r '.packages[0].identifier' server.json)"
+
+      # Fail fast with an actionable message instead of an opaque registry
+      # error. The registry validates the OCI image by ANONYMOUS pull — a
+      # first-ever push creates the GHCR package PRIVATE (no API exists to
+      # flip visibility; it is web-UI only), so this preflight tells the
+      # operator exactly what to do, and "re-run failed jobs" recovers
+      # without a new tag.
+      - name: Preflight - image anonymously pullable
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          IDENTIFIER="$(jq -r '.packages[0].identifier // empty' server.json)"
+          [ -z "$IDENTIFIER" ] && exit 0
+          REPO_PATH="${IDENTIFIER#ghcr.io/}"; REPO_PATH="${REPO_PATH%%:*}"
+          TOKEN="$(curl -fsSL "https://ghcr.io/token?scope=repository:${REPO_PATH}:pull" | jq -r .token)"
+          if ! curl -fsSL -o /dev/null \
+               -H "Authorization: Bearer $TOKEN" \
+               -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.docker.distribution.manifest.v2+json" \
+               "https://ghcr.io/v2/${REPO_PATH}/manifests/${VERSION}"; then
+            echo "::error::ghcr.io/${REPO_PATH}:${VERSION} is not anonymously pullable. If this is the first release, the package was created PRIVATE — flip it to Public in the GHCR package settings (web UI; no API exists), then re-run this job. No new tag needed."
             exit 1
           fi
 

@@ -110,6 +110,22 @@ describe("SERVED_EXACT covers the (home) route group", () => {
 		}
 	});
 
+	it("every top-level dotted route-file dir in app/ is allowlisted", () => {
+		// auth.md/, llms.txt/, api-policy.md/, ... — route handlers whose dir name
+		// contains a dot serve an exact path. The extension fallback in
+		// isServedPath() masks omissions in production, so this guard keeps the
+		// hand-maintained list honest (caught /api-policy.md drifting in #2385).
+		const appDir = resolve(__dirname, "../app");
+		for (const entry of readdirSync(appDir, { withFileTypes: true })) {
+			if (!entry.isDirectory() || !entry.name.includes(".")) continue;
+			if (!existsSync(resolve(appDir, entry.name, "route.ts"))) continue;
+			expect(
+				SERVED_EXACT.has(`/${entry.name}`),
+				`route dir not allowlisted: /${entry.name}`,
+			).toBe(true);
+		}
+	});
+
 	it("every /.well-known rewrite in next.config is allowlisted", () => {
 		const cfg = readFileSync(resolve(__dirname, "../next.config.mjs"), "utf8");
 		const sources = [...cfg.matchAll(/source:\s*"(\/\.well-known[^"]*)"/g)].map(

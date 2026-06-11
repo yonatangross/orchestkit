@@ -19,6 +19,10 @@ RUN npm run build
 FROM node:22-alpine
 # MCP registry ownership validation — must match server.json "name"
 LABEL io.modelcontextprotocol.server.name="io.github.yonatangross/orchestkit"
+# Auto-links the GHCR package to this repo (grants Actions GITHUB_TOKEN write
+# access to the package and surfaces the repo README on the package page).
+LABEL org.opencontainers.image.source="https://github.com/yonatangross/orchestkit"
+LABEL org.opencontainers.image.description="OrchestKit Docs MCP server (stdio) — docs search + Markdown fetch. linux/amd64 + linux/arm64."
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /app/dist/docs-server.mjs ./docs-server.mjs
