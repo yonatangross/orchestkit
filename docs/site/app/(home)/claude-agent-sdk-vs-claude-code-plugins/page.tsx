@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPage } from "@/components/content-page";
 import { COUNTS, SITE } from "@/lib/constants";
+import {
+	StructuredData,
+	organizationNode,
+	personNode,
+	techArticleNode,
+	breadcrumbNode,
+} from "@/components/structured-data";
 
 // Category explainer targeting "claude agent sdk vs claude code plugins" — the
 // two are different layers, not competitors; this page says so honestly and
@@ -22,6 +29,22 @@ export default function SdkVsPluginsPage() {
 			path="/claude-agent-sdk-vs-claude-code-plugins"
 			lead="They are not competitors — they are different layers of the same stack. The Agent SDK is for building your own agent products in code; plugins extend the Claude Code CLI you already use. Many teams end up using both."
 		>
+			<StructuredData
+				nodes={[
+					organizationNode(),
+					personNode(),
+					techArticleNode({
+						headline: "Claude Agent SDK vs Claude Code plugins — when you need which",
+						description: "The Claude Agent SDK is a programmatic layer for building your own agents; Claude Code plugins extend Anthropic's coding CLI. They are complementary layers, not competitors. Here is how to choose.",
+						path: "/claude-agent-sdk-vs-claude-code-plugins",
+						datePublished: "2026-06-11",
+					}),
+					breadcrumbNode([
+						{ name: "OrchestKit", url: SITE.domain },
+						{ name: "Claude Agent SDK vs Plugins", url: `${SITE.domain}/claude-agent-sdk-vs-claude-code-plugins` },
+					]),
+				]}
+			/>
 			<h2>The two layers</h2>
 			<p>
 				The <strong>Claude Agent SDK</strong> (TypeScript and Python) is

@@ -522,12 +522,21 @@ export default async function HomePage() {
               Claude Design
             </a>
           </span>
-          <nav aria-label="Footer" className="flex gap-5">
+          <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
             <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="hover:text-fd-foreground">
               GitHub
             </a>
             <Link href="/docs/getting-started/installation" className="hover:text-fd-foreground">
               Docs
+            </Link>
+            <Link href="/developers" className="hover:text-fd-foreground">
+              Developers
+            </Link>
+            <Link href="/best-claude-code-plugins" className="hover:text-fd-foreground">
+              Best Plugins
+            </Link>
+            <Link href="/claude-agent-sdk-vs-claude-code-plugins" className="hover:text-fd-foreground">
+              vs Agent SDK
             </Link>
             <Link href="/compare" className="hover:text-fd-foreground">
               Compare

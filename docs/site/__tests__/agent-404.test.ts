@@ -32,6 +32,16 @@ describe("isServedPath", () => {
 		expect(isServedPath("/thumbnails/x.png")).toBe(true);
 	});
 
+	it("unknown .json paths are NOT served (agents get a JSON 404)", () => {
+		// /product_feed.json is an Agentic-Commerce probe; an HTML 404 there is the
+		// lone content-negotiation leak (#2316 class). Real .json is in SERVED_EXACT.
+		expect(isServedPath("/product_feed.json")).toBe(false);
+		expect(shouldJsonError("GET", "/product_feed.json", "*/*")).toBe(true);
+		// served .json (rewritten handler) is still never hijacked
+		expect(isServedPath("/.well-known/agent-card.json")).toBe(true);
+		expect(isServedPath("/_next/data/x.json")).toBe(true);
+	});
+
 	it("unknown root paths are NOT served (true 404s)", () => {
 		for (const p of [
 			"/checkout_sessions",
