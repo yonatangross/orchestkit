@@ -249,8 +249,11 @@ jobs:
       # Step 4c — staleness alarm (#2412). cc-release-watch.mjs emits
       # stale=true when the upstream CHANGELOG head is >2 releases ahead of
       # cc-support.json latest_known — the gap that let 2.1.174/175 sit
-      # uncaptured. Keyed on the upstream head (not the date) so a persisting
-      # lag files ONE issue per stuck head instead of one per cron tick.
+      # uncaptured. Keyed on latest_known (not the upstream head, not the
+      # date): during a persisting lag the upstream head advances every
+      # release, so an upstream-keyed alarm would file a fresh issue per cron
+      # tick. latest_known stays fixed until the lag heals — ONE issue total,
+      # and a recurrence after healing gets a fresh key.
       - name: Staleness alarm
         if: ${{ steps.watch.outputs.stale == 'true' }}
         env:
@@ -260,7 +263,7 @@ jobs:
           UPSTREAM="${{ steps.watch.outputs.stale_upstream }}"
           BEHIND="${{ steps.watch.outputs.stale_latest_known }}"
           COUNT="${{ steps.watch.outputs.stale_count }}"
-          KEY="staleness+$UPSTREAM"
+          KEY="staleness+$BEHIND"
           # Dedup via exact body marker (label-scoped + in:body), same as Step 4.
           EXISTING=$(gh issue list --label cc-adoption --state open \
             --search "\"Key: \\\`$KEY\\\`\" in:body" \
