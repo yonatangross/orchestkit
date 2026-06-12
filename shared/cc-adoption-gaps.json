@@ -2,19 +2,68 @@
   {
     "version": "2.1.174",
     "parse_failed": false,
-    "features": [],
-    "raw_bullets_count": 13
+    "features": [
+      {
+        "feature_slug": "bg_session_provider_env_isolation",
+        "category": "breaking",
+        "description": "Background sessions no longer inherit ANTHROPIC_* provider env vars from the daemon-starting shell.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "chain-patterns",
+          "bare-eval"
+        ],
+        "reference_changelog_line": "Fixed background sessions inheriting another session's `ANTHROPIC_*` provider env (gateway URL, custom headers, `/model` aliases) from the shell that started the background daemon"
+      },
+      {
+        "feature_slug": "advisor_allowlist_enforced",
+        "category": "breaking",
+        "description": "/advisor dialog no longer pre-selects a saved advisor model blocked by the availableModels allowlist.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed the `/advisor` dialog pre-selecting a saved advisor model that is blocked by the `availableModels` allowlist"
+      },
+      {
+        "feature_slug": "wheel_scroll_accel_setting",
+        "category": "new_field",
+        "description": "New wheelScrollAccelerationEnabled setting disables mouse-wheel scroll acceleration in fullscreen mode.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added `wheelScrollAccelerationEnabled` setting to disable mouse-wheel scroll acceleration in fullscreen mode"
+      }
+    ],
+    "raw_bullets_count": 13,
+    "issues_filed_at": "2026-06-12T06:07:00Z"
   },
   {
     "version": "2.1.175",
     "parse_failed": false,
-    "features": [],
-    "raw_bullets_count": 1
+    "features": [
+      {
+        "feature_slug": "enforce_available_models",
+        "category": "new_field",
+        "description": "New `enforceAvailableModels` managed setting constrains Default model to allowlist and prevents widening by user/project",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "update-config",
+          "upgrade-assessment"
+        ],
+        "reference_changelog_line": "Added `enforceAvailableModels` managed setting — when enabled, the `availableModels` allowlist also constrains the Default model (a Default that would resolve to a disallowed model now falls back to the first allowed model), and user or project settings can no longer widen a managed `availableModels` list"
+      }
+    ],
+    "raw_bullets_count": 1,
+    "issues_filed_at": "2026-06-12T06:07:00Z"
   },
   {
     "version": "2.1.173",
     "features": [],
     "raw_bullets_count": 2,
-    "featureless": true
+    "featureless": true,
+    "issues_filed_at": "2026-06-12T06:07:00Z"
   }
 ]
