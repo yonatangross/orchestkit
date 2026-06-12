@@ -246,6 +246,40 @@ jobs:
             echo "Token-rotation issue already exists for $KEY."
           fi
 
+      # Step 4c — staleness alarm (#2412). cc-release-watch.mjs emits
+      # stale=true when the upstream CHANGELOG head is >2 releases ahead of
+      # cc-support.json latest_known — the gap that let 2.1.174/175 sit
+      # uncaptured. Keyed on the upstream head (not the date) so a persisting
+      # lag files ONE issue per stuck head instead of one per cron tick.
+      - name: Staleness alarm
+        if: ${{ steps.watch.outputs.stale == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          UPSTREAM="${{ steps.watch.outputs.stale_upstream }}"
+          BEHIND="${{ steps.watch.outputs.stale_latest_known }}"
+          COUNT="${{ steps.watch.outputs.stale_count }}"
+          KEY="staleness+$UPSTREAM"
+          # Dedup via exact body marker (label-scoped + in:body), same as Step 4.
+          EXISTING=$(gh issue list --label cc-adoption --state open \
+            --search "\"Key: \\\`$KEY\\\`\" in:body" \
+            --json number --jq 'length')
+          if [ "$EXISTING" -eq 0 ]; then
+            MS="CC adoption"
+            if [ -s shared/gh-issue-args.json ]; then
+              MS=$(jq -r '.milestone // "CC adoption"' shared/gh-issue-args.json)
+            fi
+            gh issue create \
+              --title "cc-watch: adoption lag — upstream $UPSTREAM is $COUNT releases past latest_known $BEHIND" \
+              --body "The cc-watch pipeline's adoption coverage (\`latest_known\` in \`shared/cc-support.json\`) trails the upstream CC CHANGELOG head by more than 2 releases. Key: \`$KEY\`. Usually self-heals on the next cron snapshot+triage; if it persists, check the watch/triage step logs and advance \`latest_known\` once the trailing versions are triaged (floor policy unaffected)." \
+              --label cc-adoption,automation \
+              --milestone "$MS"
+            echo "Filed staleness issue for $KEY."
+          else
+            echo "Staleness issue already exists for $KEY."
+          fi
+
       # Step 5 — open PR with new snapshot files. Earlier version pushed
       # directly to main, which is rejected by branch protection (exit 1
       # with "GH006: Protected branch update failed"). Switching to the

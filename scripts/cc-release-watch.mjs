@@ -18,7 +18,7 @@
  *
  * Issue: #1486 (M130)
  */
-import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync, appendFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -120,6 +120,32 @@ function compareSemver(a, b) {
   return 0;
 }
 
+const STALENESS_THRESHOLD = 2; // releases ahead, counted by position in the parsed CHANGELOG (#2412)
+
+function emitStaleness(versions, latestKnown) {
+  // Upstream CHANGELOG is newest-first, so the index of latestKnown in the
+  // parsed list IS the number of releases published since it. No semver math.
+  // findIndex === -1 (latest_known absent from the changelog entirely) counts
+  // the whole list — fail-loud by design: an unfindable anchor is itself stale.
+  const idx = versions.findIndex((v) => v.version === latestKnown);
+  const ahead = idx === -1 ? versions.length : idx;
+  if (ahead <= STALENESS_THRESHOLD) return;
+  const upstream = versions[0].version;
+  console.error(
+    `cc-release-watch: 🚨 STALE: upstream head ${upstream} is ${ahead} releases ahead of latest_known ${latestKnown} (threshold ${STALENESS_THRESHOLD})`,
+  );
+  if (process.env.GITHUB_OUTPUT) {
+    try {
+      appendFileSync(
+        process.env.GITHUB_OUTPUT,
+        `stale=true\nstale_upstream=${upstream}\nstale_latest_known=${latestKnown}\nstale_count=${ahead}\n`,
+      );
+    } catch (err) {
+      console.error(`cc-release-watch: could not write GITHUB_OUTPUT: ${err.message}`);
+    }
+  }
+}
+
 function main() {
   if (!existsSync(SNAPSHOT_DIR)) mkdirSync(SNAPSHOT_DIR, { recursive: true });
 
@@ -140,6 +166,10 @@ function main() {
     console.error('No versions parsed — CHANGELOG.md format may have changed.');
     process.exit(1);
   }
+
+  // #2412 — staleness alarm. latest_known is the adoption head (distinct from
+  // `latest`, the support-window head); read it with `latest` as fallback.
+  emitStaleness(versions, support.latest_known || knownLatest);
 
   // Already-snapshotted versions = files in SNAPSHOT_DIR that match X.Y.Z.md.
   const snapshotted = new Set(

@@ -49,7 +49,7 @@ jq '.modelUsage | to_entries | map({model: .key, input: .value.inputTokens, outp
 
 **`session`** — Follow the 4-step process in `Read("$\{CLAUDE_SKILL_DIR\}/references/session-replay.md")`: locate session file, resolve reference (latest/partial/full ID), parse JSONL, present timeline.
 
-**`cost`** — Apply model-specific pricing from `Read("$\{CLAUDE_SKILL_DIR\}/references/cost-estimation.md")` to CC's stats-cache.json. Show per-model breakdown, totals, and cache savings.
+**`cost`** — Apply model-specific pricing from `Read("$\{CLAUDE_SKILL_DIR\}/references/cost-estimation.md")` to CC's stats-cache.json. Show per-model breakdown, totals, and cache savings. On CC >= 2.1.174, cross-check against CC-native `/usage` per-component attribution (see 'CC-Native /usage Attribution' below).
 
 **`trends`** — Follow the 4-step process in `Read("$\{CLAUDE_SKILL_DIR\}/references/trends-analysis.md")`: daily activity, model delegation, peak hours, all-time stats.
 
@@ -102,6 +102,12 @@ Each category has individual rule files in `rules/` loaded on-demand:
 - Rotated files: `&lt;name&gt;.&lt;YYYY-MM&gt;.jsonl` — include for historical queries
 - `team` field only present during team/swarm sessions
 - `pid` is a 12-char SHA256 hash — irreversible, for grouping only
+
+## CC-Native /usage Attribution (2.1.174+)
+
+CC 2.1.174 added per-component attribution to `/usage`: cache misses, long-context usage, subagent costs, and per-skill / per-agent / per-plugin / per-MCP cost breakdowns over the last 24h / 7d. It currently surfaces in the VSCode "Account & usage" dialog; in the terminal, run `/usage`.
+
+When the user asks "which skill/agent actually costs the most" or questions ork's local estimates, direct them to `/usage` as the authoritative source — CC's own attribution supersedes ork's heuristic `cost` estimates for the windows it covers. Use ork's `cost`/`otel` views for history beyond CC's 7-day window and for cross-project slicing; use `/usage` for ground truth on the last 24h/7d.
 
 ## Output Format
 

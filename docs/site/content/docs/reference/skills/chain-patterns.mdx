@@ -230,6 +230,35 @@ Agent(subagent_type="ork:backend-system-architect",
 
 **Depth budget:** treat 3 as the practical ceiling. Depth telemetry is currently DORMANT: CC sends no `parent_agent_id` at SubagentStart (live-verified 2026-06-11), so `spawn_depth` is logged only when lineage is real and the validator's depth ≥ 4 warning cannot fire until upstream exposes agent context in hook payloads (anthropics/claude-code#16424). Until then the budget is enforced by THIS guidance, not by hooks — respect it.
 
+**Worked example — depth-3 infra chain** (grants live in `src/agents/`):
+
+```python
+# Depth 1 — main loop dispatches the architect:
+Agent(subagent_type="ork:infrastructure-architect",
+      prompt="Design staging infra for the API: Terraform module for ECS + RDS.
+              Delegate pipeline wiring to ork:ci-cd-engineer, and have IT
+              delegate the rollout plan to ork:deployment-manager.")
+
+# Depth 2 — infrastructure-architect, mid-run, spawns its declared specialist:
+Agent(subagent_type="ork:ci-cd-engineer",
+      prompt="Wire GitHub Actions deploy for the Terraform module at infra/staging/:
+              plan on PR, apply on merge to main, OIDC to AWS — no long-lived keys.
+              Delegate the production rollout strategy to ork:deployment-manager.")
+
+# Depth 3 — ci-cd-engineer spawns ITS declared specialist:
+Agent(subagent_type="ork:deployment-manager",
+      prompt="Given the apply-on-merge pipeline above, produce the rollout plan:
+              blue-green for the ECS service, health-check gates, and the exact
+              rollback sequence if p99 regresses post-cutover.")
+```
+
+**What flows back up** — each level synthesizes, never forwards raw transcripts:
+- deployment-manager → ci-cd-engineer: rollout plan + rollback commands (final text result)
+- ci-cd-engineer → infrastructure-architect: workflow files written, rollout plan folded into the deploy job
+- infrastructure-architect → main loop: ONE report — module paths, pipeline summary, rollout strategy. The main loop never sees depths 2-3 directly.
+
+Grant chain: `infrastructure-architect` declares `Agent(ork:ci-cd-engineer)` + `Agent(ork:deployment-manager)`; `ci-cd-engineer` declares `Agent(ork:deployment-manager)`; `deployment-manager` declares no `Agent(...)` grants — the natural leaf, so the chain can't drift past depth 3.
+
 > **Compatibility:** chains deeper than 2 require CC 2.1.172+. On older CC, nested `Agent(...)` calls fail at dispatch — design chains to degrade (intermediate agent does the work inline) rather than assume the specialist ran.
 
 ## Rules

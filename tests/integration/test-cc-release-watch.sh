@@ -442,6 +442,77 @@ else
 fi
 rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 
+# ============================================================================
+# Test 13: staleness alarm (#2412) — upstream head >2 releases ahead of
+# latest_known emits console STALE line + stale=true GITHUB_OUTPUT signal,
+# while still exiting 0 and snapshotting normally.
+# ============================================================================
+rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+mkdir -p shared/cc-snapshots
+LK=$(jq -r '.latest_known // .latest' shared/cc-support.json)
+STALE_FIXTURE=$(mktemp /tmp/cc-stale-fixture.XXXXXX)
+printf '# Changelog\n\n## 9.9.903\n\n- synthetic newest\n\n## 9.9.902\n\n- synthetic\n\n## 9.9.901\n\n- synthetic\n\n## %s\n\n- latest_known anchor\n' "$LK" > "$STALE_FIXTURE"
+GHOUT=$(mktemp)
+EXIT=0
+CC_RELEASE_WATCH_FIXTURE="$STALE_FIXTURE" GITHUB_OUTPUT="$GHOUT" \
+  node scripts/cc-release-watch.mjs > /tmp/watch-stale.txt 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && grep -qF "STALE: upstream head 9.9.903 is 3 releases ahead of latest_known $LK" /tmp/watch-stale.txt; then
+  log_pass "staleness: console STALE line emitted, exit 0 preserved"
+else
+  log_fail "staleness console" "expected STALE line + exit 0, got exit=$EXIT (see /tmp/watch-stale.txt)"
+fi
+if grep -qF "stale=true" "$GHOUT" && grep -qF "stale_count=3" "$GHOUT" && grep -qF "stale_latest_known=$LK" "$GHOUT"; then
+  log_pass "staleness: GITHUB_OUTPUT signal (stale=true, count=3, latest_known)"
+else
+  log_fail "staleness signal" "expected stale=true/stale_count=3 in GITHUB_OUTPUT, got: $(cat "$GHOUT")"
+fi
+rm -f "$STALE_FIXTURE" "$GHOUT" shared/cc-snapshots/9.9.90*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+
+# ============================================================================
+# Test 14: staleness boundary — EXACTLY 2 ahead must NOT alarm (threshold is
+# >2, not >=2). Normal snapshotting must still happen (alarm absence doesn't
+# suppress work).
+# ============================================================================
+rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+mkdir -p shared/cc-snapshots
+LK=$(jq -r '.latest_known // .latest' shared/cc-support.json)
+STALE_FIXTURE=$(mktemp /tmp/cc-stale-fixture.XXXXXX)
+printf '# Changelog\n\n## 9.9.902\n\n- synthetic newest\n\n## 9.9.901\n\n- synthetic\n\n## %s\n\n- latest_known anchor\n' "$LK" > "$STALE_FIXTURE"
+GHOUT=$(mktemp)
+EXIT=0
+CC_RELEASE_WATCH_FIXTURE="$STALE_FIXTURE" GITHUB_OUTPUT="$GHOUT" \
+  node scripts/cc-release-watch.mjs > /tmp/watch-stale2.txt 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && ! grep -qF "stale=true" "$GHOUT" && ! grep -qF "STALE:" /tmp/watch-stale2.txt; then
+  log_pass "staleness boundary: exactly 2 ahead does NOT alarm (threshold is >2)"
+else
+  log_fail "staleness boundary" "expected no alarm at exactly 2 ahead, got exit=$EXIT GHOUT=$(cat "$GHOUT") (see /tmp/watch-stale2.txt)"
+fi
+if [ -f shared/cc-snapshots/9.9.902.md ]; then
+  log_pass "staleness boundary: normal snapshotting still happens (9.9.902.md written)"
+else
+  log_fail "staleness boundary snapshot" "expected shared/cc-snapshots/9.9.902.md (see /tmp/watch-stale2.txt)"
+fi
+rm -f "$STALE_FIXTURE" "$GHOUT" shared/cc-snapshots/9.9.90*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+
+# ============================================================================
+# Test 15: latest_known absent from changelog → fail-loud (count = full list).
+# An unfindable anchor is itself stale; findIndex === -1 counts every entry.
+# ============================================================================
+rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+mkdir -p shared/cc-snapshots
+STALE_FIXTURE=$(mktemp /tmp/cc-stale-fixture.XXXXXX)
+printf '# Changelog\n\n## 9.9.904\n\n- synthetic newest\n\n## 9.9.903\n\n- synthetic\n\n## 9.9.902\n\n- synthetic\n\n## 9.9.901\n\n- synthetic\n' > "$STALE_FIXTURE"
+GHOUT=$(mktemp)
+EXIT=0
+CC_RELEASE_WATCH_FIXTURE="$STALE_FIXTURE" GITHUB_OUTPUT="$GHOUT" \
+  node scripts/cc-release-watch.mjs > /tmp/watch-stale3.txt 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && grep -qF "stale=true" "$GHOUT" && grep -qF "stale_count=4" "$GHOUT"; then
+  log_pass "staleness fail-loud: absent latest_known counts the whole list (stale_count=4)"
+else
+  log_fail "staleness fail-loud" "expected stale=true + stale_count=4, got exit=$EXIT GHOUT=$(cat "$GHOUT") (see /tmp/watch-stale3.txt)"
+fi
+rm -f "$STALE_FIXTURE" "$GHOUT" shared/cc-snapshots/9.9.90*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+
 echo ""
 echo "==================================="
 echo "  Results: $PASS passed, $FAIL failed"
