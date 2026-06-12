@@ -1,20 +1,12 @@
 import type { MetadataRoute } from "next";
 import { source } from "@/lib/source";
 import { SITE } from "@/lib/constants";
+import { STATIC_PAGES } from "@/lib/static-pages";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const staticPages = [
-    "/about",
-    "/contact",
-    "/privacy",
-    "/pricing",
-    "/compare",
-    "/alternatives",
-    "/status",
-  ];
   return [
     { url: SITE.domain, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
-    ...staticPages.map((path) => ({
+    ...STATIC_PAGES.map((path) => ({
       url: `${SITE.domain}${path}`,
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
