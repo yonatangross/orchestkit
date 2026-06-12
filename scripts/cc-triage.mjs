@@ -331,8 +331,14 @@ function parseSnapshotBullets(snapshotText) {
 // the existing M134 empty-array guard (integration Test 7). We never graduate a
 // snapshot as featureless on a maybe — at worst a rare ambiguous fix stays on the
 // retry path (status quo), never the reverse.
+// `enabl\w*` excludes passive forms ("when sandbox WAS ENABLED in settings" is a
+// conditional clause describing pre-existing state, not a capability announcement)
+// — that false positive routed 2.1.173 (two pure bugfix bullets) to the LLM, which
+// correctly returned [], tripping the M134 empty-array guard into a permanent
+// parse_failed loop. Active announcements ("enabled by default", "enables X")
+// still match.
 const FEATURE_HINT_RE =
-  /\b(add(?:ed|s)?|new|introduc\w*|you can now|can now|now \w+s|support(?:s|ed)?|enabl\w*|deprecat\w*)\b/i;
+  /\b(add(?:ed|s)?|new|introduc\w*|you can now|can now|now \w+s|support(?:s|ed)?|(?<!\b(?:was|is|are|were|been)\s)enabl\w*|deprecat\w*)\b/i;
 
 // #2267: true when a snapshot describes no adoptable surface (no bullet matches
 // FEATURE_HINT_RE). Empty bullet list also counts as featureless.
