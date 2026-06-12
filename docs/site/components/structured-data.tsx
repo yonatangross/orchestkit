@@ -42,6 +42,16 @@ export function organizationNode(): JsonLdNode {
 		logo: `${SITE.domain}/favicon.svg`,
 		description: SUMMARY,
 		sameAs: [...SAME_AS],
+		// Machine-resolvable cross-registry IDs — a strong Identity signal that
+		// reconciles this entity against authoritative knowledge graphs.
+		identifier: [
+			{ "@type": "PropertyValue", propertyID: "Wikidata", value: "Q140128295" },
+			{
+				"@type": "PropertyValue",
+				propertyID: "MCP Registry",
+				value: "io.github.yonatangross/orchestkit",
+			},
+		],
 		founder: { "@id": PERSON_ID },
 		contactPoint: {
 			"@type": "ContactPoint",
@@ -129,6 +139,36 @@ export function softwareApplicationNode(starCount?: number | null): JsonLdNode {
 			userInteractionCount: starCount,
 		};
 	}
+	return node;
+}
+
+// TechArticle for a content/marketing page — wires the page into the entity
+// graph by @id (author → Person, publisher → Organization, about → the
+// SoftwareApplication) so orank's agent reviewer sees authored, attributed
+// developer resources rather than orphan HTML.
+export function techArticleNode(args: {
+	headline: string;
+	description: string;
+	path: string;
+	datePublished?: string;
+	dateModified?: string;
+}): JsonLdNode {
+	const url = `${SITE.domain}${args.path}`;
+	const node: JsonLdNode = {
+		"@type": "TechArticle",
+		"@id": `${url}#article`,
+		headline: args.headline,
+		description: args.description,
+		url,
+		mainEntityOfPage: url,
+		inLanguage: "en",
+		author: { "@id": PERSON_ID },
+		publisher: { "@id": ORG_ID },
+		about: { "@id": SOFTWARE_ID },
+		isPartOf: { "@id": WEBSITE_ID },
+	};
+	if (args.datePublished) node.datePublished = args.datePublished;
+	if (args.dateModified) node.dateModified = args.dateModified;
 	return node;
 }
 

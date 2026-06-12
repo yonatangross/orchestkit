@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPage } from "@/components/content-page";
 import { COUNTS, SITE } from "@/lib/constants";
+import {
+	StructuredData,
+	organizationNode,
+	personNode,
+	techArticleNode,
+	breadcrumbNode,
+} from "@/components/structured-data";
 
 // Honest category roundup — every entry verified live (June 2026), star counts
 // approximate at time of writing. We maintain OrchestKit and say so up top;
@@ -119,6 +126,22 @@ export default function BestPluginsPage() {
 			path="/best-claude-code-plugins"
 			lead="The Claude Code plugin ecosystem, honestly surveyed: Anthropic's official catalogs, the biggest community marketplaces, and where our own plugin fits."
 		>
+			<StructuredData
+				nodes={[
+					organizationNode(),
+					personNode(),
+					techArticleNode({
+						headline: "Best Claude Code plugins and marketplaces (2026)",
+						description: "An honest roundup of Claude Code plugins and plugin marketplaces — Anthropic's official catalogs, the biggest community marketplaces, and where OrchestKit fits. Maintainer-disclosed.",
+						path: "/best-claude-code-plugins",
+						datePublished: "2026-06-11",
+					}),
+					breadcrumbNode([
+						{ name: "OrchestKit", url: SITE.domain },
+						{ name: "Best Claude Code Plugins", url: `${SITE.domain}/best-claude-code-plugins` },
+					]),
+				]}
+			/>
 			<p>
 				<strong>Disclosure:</strong> this page lives on the {SITE.name} docs
 				site and we maintain {SITE.name}, one of the entries below. Every other
