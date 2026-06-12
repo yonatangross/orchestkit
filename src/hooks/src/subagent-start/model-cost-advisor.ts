@@ -20,6 +20,95 @@ import modelsVocab from '../lib/models.vocab.json';
 // reproduces the previously hardcoded 40% (low) / 30% (medium) figures.
 const PREMIUM_TIERS = new Set(['opus', 'fable']);
 
+// CC 2.1.172 applies `availableModels` to subagent model overrides; 2.1.175
+// adds `enforceAvailableModels` (managed) which also constrains Default. An
+// agent pinning an excluded tier silently falls back — for capability-pinned
+// agents (security-auditor, system-design-reviewer) that's a correctness trap,
+// not a cost saving, so it must surface visibly (#2408).
+const MANAGED_SETTINGS_PATHS = [
+  '/Library/Application Support/ClaudeCode/managed-settings.json',
+  '/etc/claude-code/managed-settings.json',
+  'C:\\ProgramData\\ClaudeCode\\managed-settings.json',
+];
+
+interface AvailableModelsConfig {
+  /** Allowlist entries (aliases or full IDs), or null when unrestricted. */
+  models: string[] | null;
+  /** True when a managed settings file sets enforceAvailableModels. */
+  enforced: boolean;
+  /** Which settings layer defined the allowlist (for the warning text). */
+  source: string;
+}
+
+function readJsonSettings(path: string): Record<string, unknown> | null {
+  if (!existsSync(path)) return null;
+  try {
+    const parsed: unknown = JSON.parse(readFileSync(path, 'utf8'));
+    return typeof parsed === 'object' && parsed !== null
+      ? (parsed as Record<string, unknown>)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function extractModelList(settings: Record<string, unknown>): string[] | null {
+  const raw = settings.availableModels;
+  if (!Array.isArray(raw)) return null;
+  const models = raw.filter((m): m is string => typeof m === 'string');
+  return models.length > 0 ? models : null;
+}
+
+/**
+ * Resolve the effective `availableModels` allowlist, mirroring CC precedence:
+ * managed settings win; otherwise the first of user → project-local → project
+ * that defines the list. No caching — the hook is one process per invocation.
+ */
+function getAvailableModelsConfig(): AvailableModelsConfig {
+  for (const path of MANAGED_SETTINGS_PATHS) {
+    const settings = readJsonSettings(path);
+    if (!settings) continue;
+    const models = extractModelList(settings);
+    if (models) {
+      return { models, enforced: settings.enforceAvailableModels === true, source: 'managed settings' };
+    }
+  }
+
+  const home = process.env.HOME || process.env.USERPROFILE || '';
+  const projectDir = process.env.CLAUDE_PROJECT_DIR || '';
+  const layers: Array<[string, string]> = [
+    [join(home, '.claude', 'settings.json'), 'user settings'],
+    [join(projectDir, '.claude', 'settings.local.json'), 'project settings.local'],
+    [join(projectDir, '.claude', 'settings.json'), 'project settings'],
+  ];
+  for (const [path, source] of layers) {
+    if (!home && source === 'user settings') continue;
+    if (!projectDir && source.startsWith('project')) continue;
+    const settings = readJsonSettings(path);
+    if (!settings) continue;
+    const models = extractModelList(settings);
+    if (models) return { models, enforced: false, source };
+  }
+
+  return { models: null, enforced: false, source: 'none' };
+}
+
+/**
+ * Whether a short-name tier (opus/sonnet/haiku/fable) survives the allowlist.
+ * Entries may be bare aliases, vocab full IDs, version-specific IDs, or carry
+ * a [1m] suffix (normalized away — CC 2.1.173 strips it for Fable anyway).
+ */
+function isTierAvailable(tier: string, models: string[] | null): boolean {
+  if (!models) return true;
+  const aliases = modelsVocab.aliases as Record<string, string>;
+  const fullId = (aliases[tier] || '').toLowerCase();
+  const want = tier.toLowerCase();
+  return models.some((entry) => {
+    const e = entry.toLowerCase().replace(/\[1m\]$/, '').trim();
+    return e === want || (fullId !== '' && e === fullId) || e.startsWith(`claude-${want}-`);
+  });
+}
+
 /** % output-price saving moving short-name tier `from` to `to` (vocab pricing). */
 function tierSavingsPercent(from: string, to: string): number {
   const aliases = modelsVocab.aliases as Record<string, string>;
@@ -251,7 +340,35 @@ export function modelCostAdvisor(input: HookInput, ctx: HookContext = NOOP_CTX):
 
   const complexity = analyzeComplexity(agentType, description);
   const currentModel = resolveEffectiveModel(agentType);
-  const advice = getModelAdvice(agentType, description);
+
+  // #2408: a pinned tier excluded by availableModels is a correctness problem,
+  // not a cost one — CC silently substitutes an allowed model, so a security
+  // auditor pinned to opus can quietly run on a weaker tier. Warn VISIBLY and
+  // skip cost advice (recommendations are meaningless under substitution).
+  const availability = getAvailableModelsConfig();
+  const pinnedModel = getAgentModel(agentType);
+  if (pinnedModel !== 'inherit' && !isTierAvailable(pinnedModel, availability.models)) {
+    ctx.log('model-cost-advisor',
+      `${agentType}: pinned "${pinnedModel}" excluded by availableModels (${availability.source})`,
+      'info'
+    );
+    return outputWarning(
+      `Model availability: ${agentType} pins "${pinnedModel}" but the availableModels allowlist ` +
+      `(${availability.source}) excludes that tier — CC silently falls back to an allowed model` +
+      `${availability.enforced ? ' (enforceAvailableModels is ON, Default is constrained too)' : ''}. ` +
+      `Capability-pinned agents may degrade without error; re-pin to an allowed tier or update the allowlist.`
+    );
+  }
+
+  let advice = getModelAdvice(agentType, description);
+
+  // Never recommend a model the allowlist excludes.
+  if (advice && !isTierAvailable(advice.recommended, availability.models)) {
+    ctx.log('model-cost-advisor',
+      `${agentType}: suppressing "${advice.recommended}" advice — tier excluded by availableModels (${availability.source})`
+    );
+    advice = null;
+  }
 
   if (!advice) {
     ctx.log('model-cost-advisor', `${agentType}: ${currentModel} appropriate for ${complexity} task`);

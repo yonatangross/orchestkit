@@ -78,10 +78,21 @@ function setupFs(cfg: {
   agentModel?: string; agentSkills?: string[];
   skillComplexities?: Record<string, string>;
   agentExists?: boolean;
+  /** Map of settings-file path suffix → JSON content (#2408). e.g.
+   *  { '/test/project/.claude/settings.json': '{"availableModels":["sonnet"]}' } */
+  settingsFiles?: Record<string, string>;
 }): void {
+  const settingsFor = (p: string): string | undefined => {
+    if (!cfg.settingsFiles) return undefined;
+    for (const [suffix, content] of Object.entries(cfg.settingsFiles)) {
+      if (p.endsWith(norm(suffix))) return content;
+    }
+    return undefined;
+  };
   (existsSync as ReturnType<typeof vi.fn>).mockImplementation((raw: string) => {
     if (typeof raw !== 'string') return false;
     const p = norm(raw);
+    if (settingsFor(p) !== undefined) return true;
     if (p.endsWith('.md') && p.includes('/agents/')) return cfg.agentExists !== false;
     if (p.includes('/skills/') && p.endsWith('SKILL.md')) {
       const name = p.split('/skills/')[1]?.split('/')[0];
@@ -92,6 +103,8 @@ function setupFs(cfg: {
   (readFileSync as ReturnType<typeof vi.fn>).mockImplementation((raw: string) => {
     if (typeof raw !== 'string') return '';
     const p = norm(raw);
+    const settings = settingsFor(p);
+    if (settings !== undefined) return settings;
     if (p.endsWith('.md') && p.includes('/agents/'))
       return agentMd(cfg.agentModel, cfg.agentSkills);
     if (p.includes('/skills/') && p.endsWith('SKILL.md')) {
@@ -327,7 +340,85 @@ describe('modelCostAdvisor', () => {
     });
   });
 
-  // 9. Edge cases
+  // 9. availableModels awareness (#2408 — CC 2.1.172/2.1.175)
+  describe('availableModels awareness (#2408)', () => {
+    test('pinned opus excluded by project allowlist → VISIBLE warning, not silence', () => {
+      setupFs({
+        agentModel: 'opus',
+        settingsFiles: {
+          '/test/project/.claude/settings.json': '{"availableModels": ["sonnet", "haiku"]}',
+        },
+      });
+      const r = modelCostAdvisor(mkInput('avail-pin-opus', 'security audit'));
+      expect(r.continue).toBe(true);
+      expect(r.systemMessage).toBeDefined();
+      expect(r.systemMessage).toContain('avail-pin-opus');
+      expect(r.systemMessage).toContain('availableModels');
+      expect(r.systemMessage).toContain('opus');
+    });
+
+    test('pinned opus allowed via version-specific full ID → no warning', () => {
+      setupFs({
+        agentModel: 'opus',
+        settingsFiles: {
+          '/test/project/.claude/settings.json': '{"availableModels": ["claude-opus-4-8", "sonnet"]}',
+        },
+      });
+      const r = modelCostAdvisor(mkInput('avail-fullid-opus', 'security audit vulnerability'));
+      expect(r.continue).toBe(true);
+      expect(r.systemMessage).toBeUndefined();
+    });
+
+    test('allowlist entry with [1m] suffix still matches its tier', () => {
+      setupFs({
+        agentModel: 'opus',
+        settingsFiles: {
+          '/test/project/.claude/settings.json': '{"availableModels": ["claude-opus-4-8[1m]"]}',
+        },
+      });
+      const r = modelCostAdvisor(mkInput('avail-1m-opus', 'security audit vulnerability'));
+      expect(r.continue).toBe(true);
+      expect(r.systemMessage).toBeUndefined();
+    });
+
+    test('downgrade advice suppressed when sonnet itself is excluded', () => {
+      setupFs({
+        agentExists: false,
+        settingsFiles: {
+          '/test/project/.claude/settings.json': '{"availableModels": ["opus", "haiku"]}',
+        },
+      });
+      process.env.CLAUDE_MODEL = 'opus';
+      // inherited opus + low complexity would normally emit the 40% sonnet
+      // warning — but sonnet is not in the allowlist, so stay silent.
+      const r = modelCostAdvisor(mkInput('avail-no-sonnet', 'list files check status summary'));
+      expect(r.continue).toBe(true);
+      expect(r.systemMessage).toBeUndefined();
+    });
+
+    test('no allowlist configured → behavior unchanged (40% downgrade fires)', () => {
+      setupFs({ agentExists: false });
+      process.env.CLAUDE_MODEL = 'opus';
+      const r = modelCostAdvisor(mkInput('avail-unrestricted', 'list files check status summary'));
+      expect(r.continue).toBe(true);
+      expect(r.systemMessage).toBeDefined();
+      expect(r.systemMessage).toContain('40%');
+    });
+
+    test('malformed settings JSON → treated as unrestricted, never throws', () => {
+      setupFs({
+        agentModel: 'opus',
+        settingsFiles: {
+          '/test/project/.claude/settings.json': '{not valid json',
+        },
+      });
+      const r = modelCostAdvisor(mkInput('avail-malformed', 'security audit vulnerability'));
+      expect(r.continue).toBe(true);
+      expect(r.systemMessage).toBeUndefined();
+    });
+  });
+
+  // 10. Edge cases
   describe('edge cases', () => {
     test('agent file with no frontmatter', () => {
       (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
