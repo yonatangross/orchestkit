@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPage } from "@/components/content-page";
 import { COUNTS, SITE } from "@/lib/constants";
+import {
+	StructuredData,
+	organizationNode,
+	personNode,
+	techArticleNode,
+	breadcrumbNode,
+} from "@/components/structured-data";
 
 // /developers — the developer-resource hub at a predictable, name-based URL.
 // Everything listed here already exists; this page is the single index that
@@ -91,6 +98,22 @@ export default function DevelopersPage() {
 			path="/developers"
 			lead="Every developer-facing surface of OrchestKit by Yonyon in one place: documentation, OpenAPI spec, MCP servers, SDK packages, and the auth and API policies. All public, all free, no account required."
 		>
+			<StructuredData
+				nodes={[
+					organizationNode(),
+					personNode(),
+					techArticleNode({
+						headline: "OrchestKit developer resources",
+						description: "OrchestKit by Yonyon developer resources: API docs, OpenAPI spec, MCP server (hosted + Docker), SDK packages on npm and PyPI, auth and API policy.",
+						path: "/developers",
+						datePublished: "2026-06-11",
+					}),
+					breadcrumbNode([
+						{ name: "OrchestKit", url: SITE.domain },
+						{ name: "Developer Resources", url: `${SITE.domain}/developers` },
+					]),
+				]}
+			/>
 			<h2>Resources</h2>
 			<ul>
 				{RESOURCES.map((r) => (

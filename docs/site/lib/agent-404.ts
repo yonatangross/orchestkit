@@ -74,7 +74,11 @@ export function isServedPath(pathname: string): boolean {
 	}
 	// Static assets (anything with a file extension) — let Next serve or 404 them
 	// natively rather than synthesizing a JSON error for a missing image/font.
-	if (/\.[a-z0-9]+$/i.test(pathname)) return true;
+	// EXCEPTION: .json is a data format agents probe (e.g. /product_feed.json, an
+	// Agentic-Commerce feed) — an unknown one should get a structured JSON 404,
+	// not an HTML page. Every .json we actually serve is in SERVED_EXACT above, so
+	// excluding it here only reroutes genuine 404s to the machine-readable answer.
+	if (/\.[a-z0-9]+$/i.test(pathname) && !pathname.endsWith(".json")) return true;
 	return false;
 }
 
