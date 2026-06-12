@@ -1,99 +1,20 @@
 [
   {
-    "version": "2.1.172",
+    "version": "2.1.174",
     "parse_failed": false,
-    "features": [
-      {
-        "feature_slug": "availablemodels_subagent_advisor_enforce",
-        "category": "breaking",
-        "description": "availableModels restrictions now apply to subagent overrides, agent dispatch picker, and advisor model",
-        "gap_score": 20,
-        "affected_skills": [
-          "agent-orchestration",
-          "configure",
-          "upgrade-assessment"
-        ],
-        "reference_changelog_line": "Fixed `availableModels` restrictions not being applied to subagent model overrides, the agent dispatch model picker, and the advisor model"
-      },
-      {
-        "feature_slug": "webfetch_wildcard_domain_match",
-        "category": "breaking",
-        "description": "WebFetch wildcard domain rules and mid-pattern file permission wildcards now match correctly",
-        "gap_score": 20,
-        "affected_skills": [
-          "security-patterns",
-          "configure",
-          "web-research-workflow"
-        ],
-        "reference_changelog_line": "Fixed `WebFetch(domain:*.example.com)` wildcard domain rules never matching subdomains in allow, deny, and ask position, and file permission rules with mid-pattern wildcards (e.g. `Read(secrets-*/config.json)`) being rejected at startup"
-      },
-      {
-        "feature_slug": "background_agent_settings_isolation",
-        "category": "breaking",
-        "description": "Background agents no longer read another directory's project settings (.mcp.json approvals, trust) on pre-warmed workers",
-        "gap_score": 20,
-        "affected_skills": [
-          "agent-orchestration",
-          "security-patterns",
-          "mcp-patterns"
-        ],
-        "reference_changelog_line": "Fixed background agents potentially reading another directory's project settings (`.mcp.json` approvals, trust) when dispatched onto a pre-warmed worker"
-      },
-      {
-        "feature_slug": "plugin_marketplace_search_bar",
-        "category": "new_command",
-        "description": "Added a search bar when browsing a marketplace's plugins in /plugin",
-        "gap_score": 15,
-        "affected_skills": [
-          "help",
-          "configure"
-        ],
-        "reference_changelog_line": "Added a search bar when browsing a marketplace's plugins in `/plugin`"
-      },
-      {
-        "feature_slug": "nested_subagent_spawning",
-        "category": "new_perm",
-        "description": "Sub-agents can now spawn their own sub-agents up to 5 levels deep",
-        "gap_score": 12,
-        "affected_skills": [
-          "agent-orchestration",
-          "task-dependency-patterns",
-          "chain-patterns"
-        ],
-        "reference_changelog_line": "Sub-agents can now spawn their own sub-agents (up to 5 levels deep)"
-      },
-      {
-        "feature_slug": "lines_of_code_model_attr",
-        "category": "new_attr",
-        "description": "Added model attribute to the claude_code.lines_of_code.count OTEL metric",
-        "gap_score": 5,
-        "affected_skills": [
-          "monitoring-observability",
-          "telemetry-inspect",
-          "analytics"
-        ],
-        "reference_changelog_line": "Added `model` attribute to the `claude_code.lines_of_code.count` OTEL metric"
-      },
-      {
-        "feature_slug": "bedrock_aws_region_resolution",
-        "category": "new_field",
-        "description": "Amazon Bedrock reads AWS region from ~/.aws config; /status shows source",
-        "gap_score": 5,
-        "affected_skills": [
-          "configure",
-          "devops-deployment"
-        ],
-        "reference_changelog_line": "Amazon Bedrock now reads the AWS region from `~/.aws` config files when `AWS_REGION` isn't set, matching AWS SDK precedence; `/status` shows where the region came from"
-      }
-    ],
-    "raw_bullets_count": 30,
-    "issues_filed_at": "2026-06-11T15:12:21Z"
+    "features": [],
+    "raw_bullets_count": 13
+  },
+  {
+    "version": "2.1.175",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1
   },
   {
     "version": "2.1.173",
-    "parse_failed": true,
     "features": [],
     "raw_bullets_count": 2,
-    "failed_at": "2026-06-11T15:12:05.524Z"
+    "featureless": true
   }
 ]
