@@ -1,1 +1,86 @@
-[]
+[
+  {
+    "version": "2.1.176",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "bedrock_cred_cache_until_expiration",
+        "category": "breaking",
+        "description": "Bedrock credentials from awsCredentialExport are now cached until their Expiration instead of a fixed 1 hour.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Improved Bedrock credential caching: credentials from `awsCredentialExport` are now cached until their `Expiration` instead of a fixed 1 hour"
+      },
+      {
+        "feature_slug": "available_models_env_bypass_fix",
+        "category": "breaking",
+        "description": "availableModels allowlist now blocks ANTHROPIC_DEFAULT_*_MODEL env redirects and refuses /fast switches outside the allo",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "configure",
+          "upgrade-assessment"
+        ],
+        "reference_changelog_line": "Fixed `availableModels` enforcement: alias model picks can no longer be redirected to a blocked model via `ANTHROPIC_DEFAULT_*_MODEL` environment variables, and `/fast` now refuses to toggle when it would switch to a model outside the allowlist"
+      },
+      {
+        "feature_slug": "hook_if_tool_path_match_fix",
+        "category": "breaking",
+        "description": "Hook `if` conditions now correctly match documented tool path patterns like Edit(src/**), Read(~/.ssh/**), Read(.env).",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed hook `if` conditions for Read/Edit/Write tool paths: documented patterns like `Edit(src/**)`, `Read(~/.ssh/**)`, and `Read(.env)` now match correctly"
+      },
+      {
+        "feature_slug": "remote_control_silent_model_switch_fix",
+        "category": "breaking",
+        "description": "Remote Control connections from web/mobile no longer silently switch the session's active model.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed Remote Control connecting from web/mobile silently switching the session's model"
+      },
+      {
+        "feature_slug": "remote_control_signout_disconnect_fix",
+        "category": "breaking",
+        "description": "Remote Control sessions now disconnect when you sign in to a different account.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed Remote Control sessions not disconnecting when you sign in to a different account"
+      },
+      {
+        "feature_slug": "language_setting_for_session_titles",
+        "category": "new_field",
+        "description": "Session titles generated in conversation language; new `language` setting pins a specific language.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "i18n-date-patterns"
+        ],
+        "reference_changelog_line": "Session titles are now generated in the language of your conversation (set the `language` setting to pin a specific language)"
+      },
+      {
+        "feature_slug": "footer_links_regexes_setting",
+        "category": "new_field",
+        "description": "Added `footerLinksRegexes` setting for regex-matched link badges in the footer row, set via user or managed settings.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added `footerLinksRegexes` setting for regex-matched link badges in the footer row, configurable via user or managed settings"
+      }
+    ],
+    "raw_bullets_count": 22,
+    "issues_filed_at": "2026-06-13T20:55:57Z"
+  }
+]
