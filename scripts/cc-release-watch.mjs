@@ -146,6 +146,48 @@ function emitStaleness(versions, latestKnown) {
   }
 }
 
+// #2442 — binary-vs-changelog visibility. cc-watch is changelog-gated: it can
+// only snapshot versions present in CHANGELOG.md. But the CC binary / npm
+// package can ship AHEAD of its published notes (seen 2026-06-13: published
+// 2.1.177 while the changelog topped at 2.1.176). That gap is otherwise SILENT
+// — the pipeline can't see the newer version and nobody is told why. Read the
+// published version (npm dist-tag, with a CC_PUBLISHED_VERSION test override)
+// best-effort; offline/no-npm returns null and the note self-skips.
+function getPublishedCcVersion() {
+  if (process.env.CC_PUBLISHED_VERSION) return process.env.CC_PUBLISHED_VERSION;
+  // In fixture/test mode, never hit the network — the synthetic changelog has
+  // no relation to the real published version, and every integration test runs
+  // with a fixture. Only the explicit CC_PUBLISHED_VERSION override applies.
+  if (FIXTURE_PATH) return null;
+  try {
+    const out = execSync('npm view @anthropic-ai/claude-code version', {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    const m = out.match(/^\d+\.\d+\.\d+/);
+    return m ? m[0] : null;
+  } catch {
+    return null; // visibility is best-effort — never fail the watcher over it
+  }
+}
+
+// Pure VISIBILITY: a console note, NOT an issue and NOT a GITHUB_OUTPUT signal
+// (contrast emitStaleness). There is nothing actionable when the binary outran
+// its notes — you cannot adopt features whose changelog isn't published yet —
+// so this only exists so the gap stops being a silent surprise.
+function emitBinaryGapNote(versions) {
+  const published = getPublishedCcVersion();
+  if (!published) return;
+  const newestChangelogged = versions[0].version;
+  if (compareSemver(published, newestChangelogged) <= 0) return;
+  console.error(
+    `cc-release-watch: NOTE: published CC ${published} is ahead of the newest ` +
+      `changelogged version ${newestChangelogged} — upstream shipped the binary ` +
+      `before its release notes. cc-watch is changelog-gated, so adoption of ` +
+      `${published} waits until its notes publish (nothing to triage yet).`,
+  );
+}
+
 function main() {
   if (!existsSync(SNAPSHOT_DIR)) mkdirSync(SNAPSHOT_DIR, { recursive: true });
 
@@ -170,6 +212,9 @@ function main() {
   // #2412 — staleness alarm. latest_known is the adoption head (distinct from
   // `latest`, the support-window head); read it with `latest` as fallback.
   emitStaleness(versions, support.latest_known || knownLatest);
+
+  // #2442 — surface a binary that outran its changelog notes (visibility only).
+  emitBinaryGapNote(versions);
 
   // Already-snapshotted versions = files in SNAPSHOT_DIR that match X.Y.Z.md.
   const snapshotted = new Set(

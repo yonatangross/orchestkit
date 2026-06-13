@@ -513,6 +513,50 @@ else
 fi
 rm -f "$STALE_FIXTURE" "$GHOUT" shared/cc-snapshots/9.9.90*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 
+# ============================================================================
+# Test 16: binary-vs-changelog NOTE (#2442) — when the published CC version
+# (CC_PUBLISHED_VERSION override) is AHEAD of the newest changelogged version,
+# emit a visibility NOTE on stderr — but NO stale=true signal (it is not the
+# staleness alarm; purely informational, nothing to triage).
+# ============================================================================
+rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+mkdir -p shared/cc-snapshots
+GAP_FIXTURE=$(mktemp /tmp/cc-gap-fixture.XXXXXX)
+printf '# Changelog\n\n## 2.1.176\n\n- synthetic newest changelogged\n' > "$GAP_FIXTURE"
+GHOUT=$(mktemp)
+EXIT=0
+CC_RELEASE_WATCH_FIXTURE="$GAP_FIXTURE" CC_PUBLISHED_VERSION=2.1.177 GITHUB_OUTPUT="$GHOUT" \
+  node scripts/cc-release-watch.mjs > /tmp/watch-gap.txt 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && grep -qF "published CC 2.1.177 is ahead of the newest changelogged version 2.1.176" /tmp/watch-gap.txt; then
+  log_pass "binary-gap: NOTE emitted when published 2.1.177 > changelog 2.1.176"
+else
+  log_fail "binary-gap note" "expected the ahead-of-changelog NOTE + exit 0, got exit=$EXIT (see /tmp/watch-gap.txt)"
+fi
+if ! grep -qF "stale=true" "$GHOUT"; then
+  log_pass "binary-gap: NOTE does NOT emit a stale signal (visibility only, not the alarm)"
+else
+  log_fail "binary-gap signal leak" "the binary-gap NOTE must not write stale=true to GITHUB_OUTPUT"
+fi
+rm -f "$GAP_FIXTURE" "$GHOUT" shared/cc-snapshots/2.1.17*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+
+# ============================================================================
+# Test 17: binary-gap NOTE silent when published == newest changelogged (the
+# normal, caught-up state). Boundary: equal must NOT fire (only strictly ahead).
+# ============================================================================
+rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+mkdir -p shared/cc-snapshots
+GAP_FIXTURE=$(mktemp /tmp/cc-gap-fixture.XXXXXX)
+printf '# Changelog\n\n## 2.1.176\n\n- synthetic newest changelogged\n' > "$GAP_FIXTURE"
+EXIT=0
+CC_RELEASE_WATCH_FIXTURE="$GAP_FIXTURE" CC_PUBLISHED_VERSION=2.1.176 \
+  node scripts/cc-release-watch.mjs > /tmp/watch-gap2.txt 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && ! grep -qF "is ahead of the newest changelogged" /tmp/watch-gap2.txt; then
+  log_pass "binary-gap: silent when published == newest changelogged (caught up)"
+else
+  log_fail "binary-gap boundary" "expected no NOTE when equal, got exit=$EXIT (see /tmp/watch-gap2.txt)"
+fi
+rm -f "$GAP_FIXTURE" shared/cc-snapshots/2.1.17*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+
 echo ""
 echo "==================================="
 echo "  Results: $PASS passed, $FAIL failed"
