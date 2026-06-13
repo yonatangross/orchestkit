@@ -1,1 +1,86 @@
-[]
+[
+  {
+    "version": "2.1.176",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "available_models_enforcement_fix",
+        "category": "breaking",
+        "description": "availableModels allowlist now enforced against ANTHROPIC_DEFAULT_*_MODEL env vars and /fast model switches",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "configure",
+          "bare-eval"
+        ],
+        "reference_changelog_line": "Fixed `availableModels` enforcement: alias model picks can no longer be redirected to a blocked model via `ANTHROPIC_DEFAULT_*_MODEL` environment variables, and `/fast` now refuses to toggle when it would switch to a model outside the allowlist"
+      },
+      {
+        "feature_slug": "remote_control_model_switch_fix",
+        "category": "breaking",
+        "description": "Remote Control web/mobile connections no longer silently switch the session's model",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed Remote Control connecting from web/mobile silently switching the session's model"
+      },
+      {
+        "feature_slug": "linux_sandbox_symlink_fix",
+        "category": "breaking",
+        "description": "Linux sandbox now starts when .claude/settings.json is a symlink with an absolute target",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed Linux sandbox failing to start when `.claude/settings.json` is a symlink with an absolute target"
+      },
+      {
+        "feature_slug": "footer_links_regexes",
+        "category": "new_field",
+        "description": "Adds footerLinksRegexes setting for regex-matched link badges in the footer row",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added `footerLinksRegexes` setting for regex-matched link badges in the footer row, configurable via user or managed settings"
+      },
+      {
+        "feature_slug": "session_title_language",
+        "category": "new_field",
+        "description": "Session titles generated in conversation language; pin via new language setting",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Session titles are now generated in the language of your conversation (set the `language` setting to pin a specific language)"
+      },
+      {
+        "feature_slug": "bedrock_credential_expiration_caching",
+        "category": "new_attr",
+        "description": "Bedrock awsCredentialExport credentials cached until Expiration instead of fixed 1 hour",
+        "gap_score": 5,
+        "affected_skills": [
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Improved Bedrock credential caching: credentials from `awsCredentialExport` are now cached until their `Expiration` instead of a fixed 1 hour"
+      },
+      {
+        "feature_slug": "hook_if_path_pattern_match_fix",
+        "category": "new_attr",
+        "description": "Hook if conditions like Edit(src/**), Read(~/.ssh/**), Read(.env) now match Read/Edit/Write paths correctly",
+        "gap_score": 5,
+        "affected_skills": [
+          "update-config",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed hook `if` conditions for Read/Edit/Write tool paths: documented patterns like `Edit(src/**)`, `Read(~/.ssh/**)`, and `Read(.env)` now match correctly"
+      }
+    ],
+    "raw_bullets_count": 22,
+    "issues_filed_at": "2026-06-13T14:44:56Z"
+  }
+]
