@@ -40,6 +40,24 @@ export const ORG = {
   country: "IL",
 } as const;
 
+// Yonyon — the independent software studio that publishes OrchestKit. The apex
+// brand "Yonyon" (from the domain orchestkit.yonyon.ai) collides with an
+// unrelated musician in search/training corpora. Modeling Yonyon as a
+// first-class Organization (parent of OrchestKit) with its own /yonyon page and
+// a disambiguatingDescription gives a "yonyon"-keyed crawler or LLM a canonical
+// resolution target that points back at this product — honestly, without
+// claiming any identity we don't hold.
+export const YONYON = {
+  name: "Yonyon",
+  description:
+    "Yonyon is an independent software studio building developer tooling for AI-assisted engineering. It is the publisher of OrchestKit, a free, open-source plugin for Claude Code.",
+  // Plain-language collision note, surfaced as schema.org disambiguatingDescription.
+  disambiguation:
+    "Yonyon here is a software studio (the publisher of OrchestKit) — not the musician of the same name.",
+  // Canonical page we control that resolves the studio brand to this product.
+  url: `${SITE.domain}/yonyon`,
+} as const;
+
 // Authoritative external references for the OrchestKit entity. Reused verbatim
 // in every Organization JSON-LD block so the entity graph never sees conflicting
 // identifiers (a documented anti-pattern).

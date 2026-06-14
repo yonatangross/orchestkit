@@ -19,4 +19,5 @@ export const STATIC_PAGES = [
   "/privacy",
   "/status",
   "/terms",
+  "/yonyon",
 ] as const;

@@ -7,12 +7,13 @@
 // identifiers. Ratings are NEVER fabricated — GitHub stars are surfaced as an
 // honest InteractionCounter, not a fake aggregateRating.
 
-import { COUNTS, ORG, PERSON, SAME_AS, SITE } from "@/lib/constants";
+import { COUNTS, ORG, PERSON, SAME_AS, SITE, YONYON } from "@/lib/constants";
 
 const ORG_ID = `${SITE.domain}/#organization`;
 const WEBSITE_ID = `${SITE.domain}/#website`;
 const SOFTWARE_ID = `${SITE.domain}/#software`;
 const PERSON_ID = `${PERSON.url}#person`;
+const YONYON_ORG_ID = `${SITE.domain}/#yonyon`;
 
 const SUMMARY = `OrchestKit is a free, open-source plugin for Claude Code. It bundles ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks with built-in security patterns and quality gates.`;
 
@@ -52,6 +53,9 @@ export function organizationNode(): JsonLdNode {
 				value: "io.github.yonatangross/orchestkit",
 			},
 		],
+		// Studio relationship: OrchestKit is published by the Yonyon studio. The
+		// reciprocal subOrganization edge lives on the Yonyon node.
+		parentOrganization: { "@id": YONYON_ORG_ID },
 		founder: { "@id": PERSON_ID },
 		contactPoint: {
 			"@type": "ContactPoint",
@@ -60,6 +64,30 @@ export function organizationNode(): JsonLdNode {
 		},
 		// Country-level address — the maintainer's country (honest; no registered
 		// business street address for a solo open-source project).
+		address: {
+			"@type": "PostalAddress",
+			addressCountry: ORG.country,
+		},
+	};
+}
+
+// Yonyon — the publisher studio as a first-class Organization. OrchestKit is its
+// subOrganization (the reciprocal parentOrganization edge lives on the org node).
+// disambiguatingDescription separates the studio from the unrelated musician so a
+// "yonyon"-keyed query resolves to this product rather than the name collision.
+// No sameAs yet — the Wikidata entity Q140128295 belongs to OrchestKit, not the
+// studio; a Yonyon-specific external ID is added here once it exists (follow-up).
+export function yonyonOrganizationNode(): JsonLdNode {
+	return {
+		"@type": "Organization",
+		"@id": YONYON_ORG_ID,
+		name: YONYON.name,
+		description: YONYON.description,
+		disambiguatingDescription: YONYON.disambiguation,
+		url: YONYON.url,
+		mainEntityOfPage: YONYON.url,
+		founder: { "@id": PERSON_ID },
+		subOrganization: { "@id": ORG_ID },
 		address: {
 			"@type": "PostalAddress",
 			addressCountry: ORG.country,
@@ -239,6 +267,11 @@ export const HOME_FAQS: Faq[] = [
 			"Claude Code is Anthropic's agentic command-line coding tool. OrchestKit is a plugin that extends it with curated skills, specialized agents, and lifecycle hooks.",
 	},
 	{
+		question: "Who builds OrchestKit, and what is Yonyon?",
+		answer:
+			"OrchestKit is built and published by Yonyon, an independent software studio founded by Yonatan Gross. Yonyon is the studio behind the product — the docs live at orchestkit.yonyon.ai — and is not affiliated with the musician of the same name.",
+	},
+	{
 		question: "How does OrchestKit compare to GitHub Copilot or Cursor?",
 		answer:
 			"OrchestKit operates at a different layer. Copilot and Cursor are general-purpose AI coding assistants in the editor; OrchestKit is a curated toolkit of skills, agents, and quality-gate hooks built specifically for the Claude Code agent.",
@@ -256,6 +289,7 @@ export function HomepageStructuredData({
 		"@context": "https://schema.org",
 		"@graph": [
 			organizationNode(),
+			yonyonOrganizationNode(),
 			personNode(),
 			websiteNode(),
 			homeWebPageNode(),

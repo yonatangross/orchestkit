@@ -42,6 +42,14 @@ vi.mock("..//lib/constants", () => ({
     "https://github.com/yonatangross/orchestkit",
     "https://github.com/yonatangross",
   ],
+  YONYON: {
+    name: "Yonyon",
+    description:
+      "Yonyon is an independent software studio building developer tooling for AI-assisted engineering.",
+    disambiguation:
+      "Yonyon here is a software studio (the publisher of OrchestKit) — not the musician of the same name.",
+    url: "https://orchestkit.yonyon.ai/yonyon",
+  },
 }));
 
 vi.mock("..//lib/generated/compositions-data", () => ({
