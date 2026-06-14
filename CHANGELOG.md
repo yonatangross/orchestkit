@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.46.0](https://github.com/yonatangross/orchestkit/compare/v8.45.0...v8.46.0) (2026-06-14)
+
+
+### Features
+
+* **docs-site:** add /yonyon page + Yonyon entity for brand-keying ([#2453](https://github.com/yonatangross/orchestkit/issues/2453)) ([f795dd0](https://github.com/yonatangross/orchestkit/commit/f795dd0431eb61d367dcdf4b7c823777c4e4c63a))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.176) ([#2454](https://github.com/yonatangross/orchestkit/issues/2454)) ([1b036ec](https://github.com/yonatangross/orchestkit/commit/1b036ec6b6fe356b847c0482248495c1717a5608))
+
 ## [8.45.0](https://github.com/yonatangross/orchestkit/compare/v8.44.1...v8.45.0) (2026-06-14)
 
 
