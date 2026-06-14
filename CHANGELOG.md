@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.45.0](https://github.com/yonatangross/orchestkit/compare/v8.44.1...v8.45.0) (2026-06-14)
+
+
+### Features
+
+* **hooks:** haiku-powered session auto-rename + auto-color ([#2449](https://github.com/yonatangross/orchestkit/issues/2449)) ([df86117](https://github.com/yonatangross/orchestkit/commit/df8611734900f2f953dde7b6603e469f1e871d32))
+
+
+### Bug Fixes
+
+* **hooks:** respect CC language setting in session-title prompt ([#2452](https://github.com/yonatangross/orchestkit/issues/2452)) ([f901335](https://github.com/yonatangross/orchestkit/commit/f9013356b5149d2b072066b5a34d85a818c15477))
+
+
+### Documentation
+
+* **configure:** catalog CC 2.1.172-176 settings ([#2451](https://github.com/yonatangross/orchestkit/issues/2451)) ([e0d8e81](https://github.com/yonatangross/orchestkit/commit/e0d8e8165903a19eea72637111ff6c23195b543d))
+
 ## [8.44.1](https://github.com/yonatangross/orchestkit/compare/v8.44.0...v8.44.1) (2026-06-14)
 
 
