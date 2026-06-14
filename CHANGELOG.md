@@ -5,6 +5,32 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.44.0](https://github.com/yonatangross/orchestkit/compare/v8.43.0...v8.44.0) (2026-06-14)
+
+
+### Features
+
+* **cc-watch:** note when CC binary ships ahead of its changelog notes ([#2444](https://github.com/yonatangross/orchestkit/issues/2444)) ([1dc5d4c](https://github.com/yonatangross/orchestkit/commit/1dc5d4c16a68d2c187ebf9911f1a4668d8a85789)), closes [#2442](https://github.com/yonatangross/orchestkit/issues/2442)
+
+
+### Bug Fixes
+
+* **cc-watch:** key staleness alarm on latest_known, not upstream head ([#2427](https://github.com/yonatangross/orchestkit/issues/2427)) ([a0d2489](https://github.com/yonatangross/orchestkit/commit/a0d24895e20385d750a333cf8112b0b4be33963c))
+
+
+### Miscellaneous
+
+* **cc-adoption:** advance latest_known to 2.1.176 ([#2445](https://github.com/yonatangross/orchestkit/issues/2445)) ([5b1d6be](https://github.com/yonatangross/orchestkit/commit/5b1d6be10df050e7ecb4b437daa3badb42841377))
+* **cc-adoption:** groom 6 no-surface 2.1.176 issues ([#2446](https://github.com/yonatangross/orchestkit/issues/2446)) ([c7b07be](https://github.com/yonatangross/orchestkit/commit/c7b07becf635128f6b8781a2c4f9446ff0a123d6))
+* **cc-adoption:** zero the milestone backlog with close verdicts ([#2425](https://github.com/yonatangross/orchestkit/issues/2425)) ([7ce8cae](https://github.com/yonatangross/orchestkit/commit/7ce8cae79c29ae15998974cce6479aea1e991199)), closes [#2199](https://github.com/yonatangross/orchestkit/issues/2199)
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.175) ([#2428](https://github.com/yonatangross/orchestkit/issues/2428)) ([8d99b2d](https://github.com/yonatangross/orchestkit/commit/8d99b2d9e4863283b081a29f32c702af09fdeae2))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.176) ([#2441](https://github.com/yonatangross/orchestkit/issues/2441)) ([d4bbc05](https://github.com/yonatangross/orchestkit/commit/d4bbc052e58fbba55b38621dd381b18d24cfe313))
+
+
+### Documentation
+
+* **models:** mark claude-fable-5 unavailable, access suspended ([#2436](https://github.com/yonatangross/orchestkit/issues/2436)) ([48f1c53](https://github.com/yonatangross/orchestkit/commit/48f1c530510f0b34084db8f29b083be5414ff0a4))
+
 ## [8.43.0](https://github.com/yonatangross/orchestkit/compare/v8.42.2...v8.43.0) (2026-06-12)
 
 
