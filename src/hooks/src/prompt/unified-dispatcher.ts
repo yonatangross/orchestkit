@@ -45,6 +45,8 @@ import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.j
 import { detectEffortLevel, effortTokenBudget, DEFAULT_EFFORT_LEVEL } from '../lib/effort-detector.js';
 import { trackTokenUsage } from '../lib/token-tracker.js';
 import { getSessionStorageDir } from '../lib/paths.js';
+import { manageSessionIdentity } from '../lib/session-identity-state.js';
+import { mergeIdentityTitle } from '../lib/session-identity.js';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -397,7 +399,16 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   // Pin to the session's first-seen branch so concurrent-session branch thrash
   // (shared working tree) can't flip the title turn-to-turn or clobber /rename.
   const titleBranch = getPinnedBranch(ctx.branch, sessionId, projectDir);
-  const sessionTitle = buildSessionTitle(titleBranch, effort, ctx.isWorktree);
+  const branchTitle = buildSessionTitle(titleBranch, effort, ctx.isWorktree);
+
+  // Session identity (haiku auto-rename + auto-color): turn 1 spawns a
+  // detached `claude -p --model haiku` and appends a hash-based agent-color
+  // record to the transcript; later turns harvest the generated title and
+  // merge it in front of the branch title. Fails open to branch-only title.
+  const aiTitle = sessionId
+    ? manageSessionIdentity(input, ctx, getPromptSessionDir(sessionId, projectDir), projectDir)
+    : null;
+  const sessionTitle = aiTitle ? mergeIdentityTitle(aiTitle, branchTitle) : branchTitle;
   const emitTitle = shouldEmitSessionTitle(sessionTitle, sessionId, projectDir);
 
   // No context produced — still try to set the title if we have one
