@@ -1342,6 +1342,60 @@ When the primary model is not found (e.g. a pinned model ID that no longer resol
 
 > **Related 2.1.152 items** (full table in `$\{CLAUDE_SKILL_DIR\}/../doctor/references/version-compatibility.md`): `permissionMode: "auto"` no longer needs opt-in consent; the sandbox-enabled warning now shows in condensed startup; and a new `MessageDisplay` hook event can transform/hide assistant text (ork ships no MessageDisplay hook — recognized in the `HookEvent` union for future use).
 
+## CC 2.1.172–176 Settings
+
+Settings introduced since the 2.1.152 entries above, current to the floor's adoption head (`latest_known` 2.1.176). Bugfix-only releases (2.1.171/173/177) add no settings.
+
+### `availableModels` Enforcement Tightened (2.1.172 / 2.1.176)
+
+`availableModels` (an allowlist of model IDs/aliases) existed earlier, but its enforcement hardened: CC 2.1.172 applies the allowlist to **subagent model overrides, the agent-dispatch picker, and the advisor model**; CC 2.1.176 closes two bypasses — alias picks can **no longer be redirected to a blocked model via `ANTHROPIC_DEFAULT_*_MODEL`** env vars, and `/fast` **refuses to toggle** when it would switch to a model outside the allowlist.
+
+```json
+{ "availableModels": ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5-20251001"] }
+```
+
+**Action for OrchestKit**: ork's `model-cost-advisor` hook is allowlist-aware (PR #2420) — when an agent's pinned tier is excluded it emits a **visible warning** instead of letting CC silently substitute a weaker model (a correctness trap for capability-pinned agents like `security-auditor`). ork agents use bare aliases, so they survive the picker fix; no frontmatter change needed.
+
+### `enforceAvailableModels` Managed Setting (2.1.175)
+
+A **managed** setting (managed-settings.json only): when enabled, the `availableModels` allowlist also constrains the **Default** model (a Default that would resolve to a disallowed model falls back to the first allowed model), and user/project settings can **no longer widen** a managed `availableModels` list.
+
+```json
+{ "enforceAvailableModels": true }
+```
+
+**Action for OrchestKit**: handled by the same `model-cost-advisor` hardening (PR #2420) — the advisor detects `enforceAvailableModels` and notes Default is constrained too. No plugin-side change required; relevant to orgs that centrally restrict tiers.
+
+### `wheelScrollAccelerationEnabled` (2.1.174)
+
+Disables mouse-wheel scroll acceleration in fullscreen (`tui: fullscreen`) mode for users who find accelerated scroll jumpy.
+
+```json
+{ "wheelScrollAccelerationEnabled": false }
+```
+
+**Action for OrchestKit**: UX-only, no plugin surface. Mention for users on fullscreen TUI.
+
+### `language` — Session-Title Localization (2.1.176)
+
+CC 2.1.176 generates session titles in the **language of the conversation**; set `language` to pin a specific language for titles.
+
+```json
+{ "language": "ja" }
+```
+
+**Action for OrchestKit**: ork's haiku session auto-rename hook (`session-identity.ts`, PR #2449) builds an English title prompt; issue #2443 will thread this `language` setting into `buildGeneratorPrompt` so the prompt-bar title matches CC's localized session-list title. Until then, set `language` and expect a minor English/localized mismatch in the prompt bar.
+
+### `footerLinksRegexes` (2.1.176)
+
+Regex-matched link badges in the footer row, configurable via user or managed settings — turns matching tokens in the footer into clickable link badges.
+
+```json
+{ "footerLinksRegexes": [{ "pattern": "ORK-\\d+", "url": "https://github.com/yonatangross/orchestkit/issues/$1" }] }
+```
+
+**Action for OrchestKit**: ork ships no footer/statusline surface, so nothing to integrate — informational. Users can wire issue/PR badges themselves.
+
 
 ### Http Hooks
 
