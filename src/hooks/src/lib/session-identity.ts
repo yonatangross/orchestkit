@@ -18,7 +18,8 @@
  *   no external setter.
  */
 
-import { openSync } from 'node:fs';
+import { existsSync, openSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { spawn } from 'node:child_process';
 import type { HookContext } from '../types.js';
 
@@ -63,12 +64,39 @@ export function hashColor(sessionId: string): SessionColor {
   return SESSION_COLOR_PALETTE[(hash >>> 0) % SESSION_COLOR_PALETTE.length];
 }
 
-export function buildGeneratorPrompt(firstPrompt: string, branch: string): string {
+/**
+ * Effective `language` setting (CC 2.1.176) from .claude/settings.json — project
+ * settings win, then user settings; defaults to 'en' when absent/unreadable.
+ * Safe on the floor (2.1.170): a missing key just yields 'en'. Lets ork's haiku
+ * title match CC's native localized session-list title (#2443).
+ */
+export function readEffectiveLanguage(projectDir: string | undefined): string {
+  const candidates: string[] = [];
+  if (projectDir) candidates.push(join(projectDir, '.claude', 'settings.json'));
+  const home = process.env.HOME || process.env.USERPROFILE;
+  if (home) candidates.push(join(home, '.claude', 'settings.json'));
+  for (const p of candidates) {
+    try {
+      if (!existsSync(p)) continue;
+      const parsed: unknown = JSON.parse(readFileSync(p, 'utf8'));
+      if (typeof parsed === 'object' && parsed !== null) {
+        const lang = (parsed as Record<string, unknown>).language;
+        if (typeof lang === 'string' && lang.trim()) return lang.trim();
+      }
+    } catch {
+      /* unreadable/malformed settings — try next candidate, else default */
+    }
+  }
+  return 'en';
+}
+
+export function buildGeneratorPrompt(firstPrompt: string, branch: string, language = 'en'): string {
   const excerpt = firstPrompt.replace(/\s+/g, ' ').trim().slice(0, PROMPT_EXCERPT_MAX);
   return [
     'You name coding sessions. Given the first user prompt of a session, output STRICT JSON only — no prose, no code fences:',
     `{"title":"<3-6 word topic title>","color":"<one of: ${SESSION_COLOR_PALETTE.join(', ')}>"}`,
     'Pick the color that best matches the work (red=bugfix/incident, green=feature, blue=docs/research, yellow=refactor, purple=infra/CI, orange=perf, pink=design/UX, cyan=testing).',
+    language && language.toLowerCase() !== 'en' ? `Write the title in this language: ${language}` : '',
     branch ? `Git branch: ${branch}` : '',
     `First prompt: ${excerpt}`,
   ]
@@ -90,9 +118,11 @@ export function spawnIdentityGenerator(
   firstPrompt: string,
   branch: string,
   rawOutPath: string,
+  projectDir: string | undefined,
   ctx?: HookContext,
 ): boolean {
   try {
+    const language = readEffectiveLanguage(projectDir);
     const outFd = openSync(rawOutPath, 'w');
     const child = spawn(
       'claude',
@@ -102,7 +132,7 @@ export function spawnIdentityGenerator(
         'haiku',
         '--settings',
         '{"disableAllHooks":true}',
-        buildGeneratorPrompt(firstPrompt, branch),
+        buildGeneratorPrompt(firstPrompt, branch, language),
       ],
       {
         detached: true,

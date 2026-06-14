@@ -147,7 +147,7 @@ export function manageSessionIdentity(
     if (!existsSync(sessionDir)) mkdirSync(sessionDir, { recursive: true });
     const fallback = hashColor(input.session_id);
     applyColorOnce(input, projectDir, fallback, colorAppliedPath, ctx);
-    if (input.prompt && spawnIdentityGenerator(input.prompt, ctx.branch || '', rawPath, ctx)) {
+    if (input.prompt && spawnIdentityGenerator(input.prompt, ctx.branch || '', rawPath, projectDir, ctx)) {
       writeFileSync(spawnedPath, new Date().toISOString(), 'utf8');
     }
     return null;

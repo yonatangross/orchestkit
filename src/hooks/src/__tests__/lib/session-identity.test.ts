@@ -11,7 +11,10 @@
  * - buildGeneratorPrompt content
  */
 
-import { describe, it, expect } from 'vitest';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   SESSION_COLOR_PALETTE,
   AI_TITLE_MAX,
@@ -19,6 +22,7 @@ import {
   parseIdentityOutput,
   mergeIdentityTitle,
   buildGeneratorPrompt,
+  readEffectiveLanguage,
 } from '../../lib/session-identity.js';
 
 describe('hashColor', () => {
@@ -103,5 +107,62 @@ describe('buildGeneratorPrompt', () => {
     const p = buildGeneratorPrompt('y'.repeat(5000), '');
     expect(p.length).toBeLessThan(1500);
     expect(p).not.toContain('Git branch:');
+  });
+
+  // #2443 — respect the CC 2.1.176 `language` setting so the haiku title
+  // matches CC's native localized session-list title.
+  it('injects a language instruction for a non-English language', () => {
+    const p = buildGeneratorPrompt('fix the login bug', 'fix/login', 'ja');
+    expect(p).toContain('Write the title in this language: ja');
+  });
+
+  it('omits the language instruction for English / default', () => {
+    expect(buildGeneratorPrompt('x', 'b', 'en')).not.toContain('Write the title in this language');
+    expect(buildGeneratorPrompt('x', 'b')).not.toContain('Write the title in this language');
+  });
+});
+
+describe('readEffectiveLanguage (#2443)', () => {
+  // Isolate HOME so the user-settings fallback can't leak the real machine's
+  // ~/.claude/settings.json into the default/malformed assertions.
+  const savedHome = process.env.HOME;
+  const savedUserProfile = process.env.USERPROFILE;
+  let emptyHome: string;
+  beforeEach(() => {
+    emptyHome = mkdtempSync(join(tmpdir(), 'ork-home-'));
+    process.env.HOME = emptyHome;
+    process.env.USERPROFILE = emptyHome;
+  });
+  afterEach(() => {
+    process.env.HOME = savedHome;
+    process.env.USERPROFILE = savedUserProfile;
+    rmSync(emptyHome, { recursive: true, force: true });
+  });
+
+  it('defaults to en when no projectDir / settings', () => {
+    expect(readEffectiveLanguage(undefined)).toBe('en');
+    expect(readEffectiveLanguage(join(tmpdir(), 'ork-no-such-dir-xyz'))).toBe('en');
+  });
+
+  it('reads language from project .claude/settings.json', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ork-lang-'));
+    try {
+      mkdirSync(join(dir, '.claude'), { recursive: true });
+      writeFileSync(join(dir, '.claude', 'settings.json'), JSON.stringify({ language: 'fr' }), 'utf8');
+      expect(readEffectiveLanguage(dir)).toBe('fr');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('defaults to en on malformed settings (fails open)', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ork-lang-bad-'));
+    try {
+      mkdirSync(join(dir, '.claude'), { recursive: true });
+      writeFileSync(join(dir, '.claude', 'settings.json'), '{not json', 'utf8');
+      expect(readEffectiveLanguage(dir)).toBe('en');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
