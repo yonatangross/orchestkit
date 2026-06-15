@@ -6,7 +6,7 @@
  * InstructionsLoaded Dispatcher — CC 2.1.69
  *
  * Fires after Claude Code loads instruction files (CLAUDE.md, .claude/rules/*.md, plugin instructions).
- * Pre-reads file contents once, then runs 6 handlers sequentially with shared content cache.
+ * Pre-reads file contents once, then runs 7 handlers sequentially with shared content cache.
  *
  * Handlers:
  * 1. Token Budget    — count instruction tokens, warn on budget overrun (no I/O — uses byte_size)
@@ -15,6 +15,7 @@
  * 4. Content Dedup   — detect overlapping content across instruction files
  * 5. Rule Conflicts  — data-driven conflict detection
  * 6. Smart Suggest   — suggest missing rules based on project signals (own I/O for project checks)
+ * 7. Deferred Debt   — surface ork-debt markers as a ledger at session start (own I/O — repo grep)
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
@@ -27,6 +28,7 @@ import { driftDetection } from './drift-detection.js';
 import { contentDedupScanner } from './content-dedup.js';
 import { ruleConflictDetector } from './rule-conflicts.js';
 import { smartRuleSuggestions } from './smart-suggestions.js';
+import { debtSurfacer } from './debt-surfacer.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'instructions-loaded-dispatcher';
@@ -41,6 +43,7 @@ const HANDLERS: Array<{ name: string; fn: Handler }> = [
   { name: 'Content Dedup', fn: contentDedupScanner },
   { name: 'Rule Conflicts', fn: ruleConflictDetector },
   { name: 'Smart Suggestions', fn: smartRuleSuggestions },
+  { name: 'Deferred Debt', fn: debtSurfacer },
 ];
 
 function isValidLoadedFile(item: unknown): item is LoadedFile {

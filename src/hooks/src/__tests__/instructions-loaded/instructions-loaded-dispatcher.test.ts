@@ -3,20 +3,21 @@
 
 /**
  * Unit tests for instructions-loaded-dispatcher.ts
- * Main dispatcher: validates input, pre-reads content, wires 6 handlers, merges additionalContext
+ * Main dispatcher: validates input, pre-reads content, wires 7 handlers, merges additionalContext
  */
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import type { HookInput } from '../../types.js';
 import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-// Mock all 6 handlers so dispatcher logic is tested in isolation
+// Mock all 7 handlers so dispatcher logic is tested in isolation
 const mockTokenBudget = vi.fn();
 const mockPriorityMap = vi.fn();
 const mockDriftDetection = vi.fn();
 const mockContentDedup = vi.fn();
 const mockRuleConflicts = vi.fn();
 const mockSmartSuggestions = vi.fn();
+const mockDebtSurfacer = vi.fn();
 
 vi.mock('node:fs', () => ({
   readFileSync: (p: string) => `content of ${p}`,
@@ -39,6 +40,9 @@ vi.mock('../../instructions-loaded/rule-conflicts.js', () => ({
 }));
 vi.mock('../../instructions-loaded/smart-suggestions.js', () => ({
   smartRuleSuggestions: (...args: unknown[]) => mockSmartSuggestions(...args),
+}));
+vi.mock('../../instructions-loaded/debt-surfacer.js', () => ({
+  debtSurfacer: (...args: unknown[]) => mockDebtSurfacer(...args),
 }));
 
 vi.mock('../../lib/common.js', () => mockCommonBasic());
@@ -67,6 +71,7 @@ beforeEach(() => {
   mockContentDedup.mockReturnValue(null);
   mockRuleConflicts.mockReturnValue(null);
   mockSmartSuggestions.mockReturnValue(null);
+  mockDebtSurfacer.mockReturnValue(null);
 });
 
 describe('instructionsLoadedDispatcher', () => {
@@ -105,14 +110,14 @@ describe('instructionsLoadedDispatcher', () => {
   });
 
   describe('all handlers silent', () => {
-    test('returns silent success when all 6 handlers return null', () => {
+    test('returns silent success when all 7 handlers return null', () => {
       const input = makeInput([{ path: '/project/CLAUDE.md', byte_size: 1000 }]);
       const result = instructionsLoadedDispatcher(input, testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('calls all 6 handlers exactly once', () => {
+    test('calls all 7 handlers exactly once', () => {
       const input = makeInput([{ path: '/project/CLAUDE.md', byte_size: 500 }]);
       instructionsLoadedDispatcher(input, testCtx);
       expect(mockTokenBudget).toHaveBeenCalledOnce();
@@ -121,6 +126,7 @@ describe('instructionsLoadedDispatcher', () => {
       expect(mockContentDedup).toHaveBeenCalledOnce();
       expect(mockRuleConflicts).toHaveBeenCalledOnce();
       expect(mockSmartSuggestions).toHaveBeenCalledOnce();
+      expect(mockDebtSurfacer).toHaveBeenCalledOnce();
     });
 
     test('passes files and content cache to each handler', () => {
@@ -190,6 +196,7 @@ describe('instructionsLoadedDispatcher', () => {
       mockContentDedup.mockImplementation(boom);
       mockRuleConflicts.mockImplementation(boom);
       mockSmartSuggestions.mockImplementation(boom);
+      mockDebtSurfacer.mockImplementation(boom);
 
       const input = makeInput([{ path: '/project/CLAUDE.md', byte_size: 1000 }]);
       expect(() => instructionsLoadedDispatcher(input, testCtx)).not.toThrow();
