@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.47.1](https://github.com/yonatangross/orchestkit/compare/v8.47.0...v8.47.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* **hooks:** unify debt-scan extensions to stop capture/surface drift ([#2463](https://github.com/yonatangross/orchestkit/issues/2463)) ([9dd1dbb](https://github.com/yonatangross/orchestkit/commit/9dd1dbbdf3054f2973c15d0e9f479183a6adce0f))
+
 ## [8.47.0](https://github.com/yonatangross/orchestkit/compare/v8.46.0...v8.47.0) (2026-06-15)
 
 
