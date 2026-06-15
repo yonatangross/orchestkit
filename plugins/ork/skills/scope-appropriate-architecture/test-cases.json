@@ -25,6 +25,28 @@
       ]
     },
     {
+      "id": "debt-marker-mvp-map-cache-redis",
+      "rule": "deferred-debt-marker",
+      "query": "Building an MVP, just one Node process for now. I'm caching session lookups in a plain in-process Map since it's dead simple. I know the second we run more than one instance this falls apart and we'll need Redis or something shared. I don't want to build Redis now but I also don't want to forget this. How should I record that decision so it comes back to bite me at the right time, not silently?",
+      "expectedBehavior": [
+        "Suggests dropping an inline marker in the form `// ork-debt: in-process Map cache, upgrade to Redis (shared cache), when scaling beyond one process` (choice + upgrade path + when-<trigger>)",
+        "Explains the `when <trigger>` clause is what makes it a revisitable ledger entry rather than a forgettable TODO",
+        "Does NOT recommend building Redis / a shared cache now — endorses the Map as tier-appropriate for a single-process MVP",
+        "Frames the marker as the counterpart to the YAGNI gate: it records deliberate too-little so it resurfaces exactly when the multi-process trigger is met"
+      ]
+    },
+    {
+      "id": "debt-marker-session-cookies-over-jwt-until-second-service",
+      "rule": "deferred-debt-marker",
+      "query": "We're a single backend monolith right now so I just went with plain server-side session cookies for auth instead of JWT — felt like overkill to do stateless tokens for one service. But I know the day we spin up a second service, sessions across services get painful and I'll want to move to JWT. How do I make sure future-me actually remembers to revisit this when that happens instead of it rotting as a TODO?",
+      "expectedBehavior": [
+        "Suggests an inline `// ork-debt:` marker capturing the choice (session cookies), the upgrade path (JWT / stateless tokens), and a `when <trigger>` clause tied to adding a second service (e.g. `// ork-debt: session cookies, upgrade to JWT, when a second service is added`)",
+        "Explains that the `when <trigger>` clause is what makes it a revisitable ledger entry rather than a forgettable TODO, since it resurfaces precisely when the trigger condition is met",
+        "Does NOT recommend implementing JWT/stateless auth now — affirms session cookies are the tier-appropriate choice for a single-service monolith",
+        "Frames the marker as the counterpart to the YAGNI/over-engineering gate: it records the deliberate too-little so it surfaces at the trigger rather than building too much today"
+      ]
+    },
+    {
       "id": "negative-fix-the-null-pointer",
       "rule": "",
       "query": "Fix the null pointer exception in our UserService.java on line 42",
