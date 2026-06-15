@@ -394,7 +394,9 @@ describe('Cross-Bundle Consistency', () => {
     //              (WorktreeRemove), pretool/settings-override-resolver (PreToolUse).
     // 245 -> 244: #2217 drift cleanup — removed stop/goal-convergence-emitter
     //              (Shadow of CC-native goal-current.json).
-    expect(totalHooks).toBe(244);
+    // 244 -> 245: posttool/write/debt-marker-tracker — deferred-debt capture
+    //             (PostToolUse Write/Edit advisory, counterpart to the YAGNI gate).
+    expect(totalHooks).toBe(245);
   });
 });
 

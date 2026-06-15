@@ -20,11 +20,12 @@ import { skillEditTracker } from '../posttool/skill-edit-tracker.js';
 import { dirtyFileTracker } from '../posttool/dirty-file-tracker.js';
 import { unifiedDispatcher } from '../posttool/unified-dispatcher.js';
 
-// PostTool/Write hooks (3) — #922: removed dead entries; #1280 added stale-import-detector
+// PostTool/Write hooks (4) — #922: removed dead entries; #1280 added stale-import-detector; debt-marker-tracker added
 import { codeStyleLearner } from '../posttool/write/code-style-learner.js';
 import { namingConventionLearner } from '../posttool/write/naming-convention-learner.js';
 import { staleImportDetector } from '../posttool/write/stale-import-detector.js';
 import { editHistoryTracker } from '../posttool/write/edit-history-tracker.js';
+import { debtMarkerTracker } from '../posttool/write/debt-marker-tracker.js';
 // PostTool/Bash hooks (4) — #1436 added gh-rate-limit-tracker
 import { issueProgressCommenter } from '../posttool/bash/issue-progress-commenter.js';
 import { issueSubtaskUpdater } from '../posttool/bash/issue-subtask-updater.js';
@@ -102,11 +103,12 @@ export const hooks: Record<string, HookFn> = {
   'posttool/context-crossing-warn': contextCrossingWarn,
   'posttool/metrics-dispatcher': metricsDispatcher,
 
-  // PostTool/Write hooks (3) — #922 removed coverage-predictor/readme-sync; #1280 added stale-import-detector
+  // PostTool/Write hooks (4) — #922 removed coverage-predictor/readme-sync; #1280 added stale-import-detector; debt-marker-tracker added
   'posttool/write/code-style-learner': codeStyleLearner,
   'posttool/write/naming-convention-learner': namingConventionLearner,
   'posttool/write/stale-import-detector': staleImportDetector,
   'posttool/write/edit-history-tracker': editHistoryTracker,
+  'posttool/write/debt-marker-tracker': debtMarkerTracker,
 
   // PostTool/Bash hooks (4) — #1436 added gh-rate-limit-tracker
   'posttool/bash/issue-progress-commenter': issueProgressCommenter,

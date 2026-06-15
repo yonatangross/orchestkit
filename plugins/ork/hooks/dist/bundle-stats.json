@@ -12,8 +12,8 @@
       "exports": 81
     },
     "posttool": {
-      "size": 129484,
-      "sizeKB": "126.45",
+      "size": 131435,
+      "sizeKB": "128.35",
       "exports": 64
     },
     "prompt": {
@@ -22,8 +22,8 @@
       "exports": 106
     },
     "lifecycle": {
-      "size": 139227,
-      "sizeKB": "135.96",
+      "size": 141560,
+      "sizeKB": "138.24",
       "exports": 64
     },
     "stop": {
@@ -63,8 +63,8 @@
       "unified": true
     }
   },
-  "totalSize": 763499,
-  "totalSizeKB": "745.60",
-  "inputs": 110,
-  "avgBundleSizeKB": "67.78"
+  "totalSize": 767783,
+  "totalSizeKB": "749.79",
+  "inputs": 112,
+  "avgBundleSizeKB": "68.16"
 }

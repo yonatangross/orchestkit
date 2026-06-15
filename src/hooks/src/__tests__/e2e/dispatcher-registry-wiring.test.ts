@@ -330,7 +330,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 99 -> 98: #2335 — worktree/enter-registrar (async) absorbed into the SYNC
       //           worktree/worktree-provisioner (CC's WorktreeCreate contract consumes
       //           the hook's stdout as the provisioned path — provisioning can't be async).
-      expect(asyncHooks.length, 'Should have exactly 98 async hooks').toBe(98);
+      // 98 -> 99: posttool/write/debt-marker-tracker (PostToolUse Write/Edit, async, 5s).
+      expect(asyncHooks.length, 'Should have exactly 99 async hooks').toBe(99);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -452,7 +453,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
             // 99 -> 98: #2335 — worktree/enter-registrar (async) absorbed into the SYNC
       //           worktree/worktree-provisioner (CC's WorktreeCreate contract consumes
       //           the hook's stdout as the provisioned path — provisioning can't be async).
-      expect(asyncCount).toBe(98);
+      // 98 -> 99: posttool/write/debt-marker-tracker (PostToolUse Write/Edit, async, 5s).
+      expect(asyncCount).toBe(99);
     });
 
     it('should have hooks for all critical security operations', () => {
