@@ -233,7 +233,9 @@ describe('hooks.json wiring E2E', () => {
       //                          two conventions and drifted from every stamped
       //                          surface. Dispatcher children are counted by
       //                          dispatcher-registry tests, not here.
-      expect(hooksConfig.description).toContain('210 total');
+      // 210 -> 211: posttool/write/debt-marker-tracker — a real hooks.json WIRING
+      //                          ENTRY (PostToolUse Write/Edit), counted by count-hooks.sh.
+      expect(hooksConfig.description).toContain('211 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {
