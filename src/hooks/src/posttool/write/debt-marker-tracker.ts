@@ -23,13 +23,14 @@ import { isAbsolute, resolve, basename } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, getField } from '../../lib/common.js';
 import { NOOP_CTX } from '../../lib/context.js';
-import { scanTextForDebt, formatDebtMarker } from '../../lib/debt-markers.js';
+import { scanTextForDebt, formatDebtMarker, DEBT_SCAN_EXTENSIONS } from '../../lib/debt-markers.js';
 
 const HOOK_NAME = 'posttool/write/debt-marker-tracker';
 
-// File types whose comments can carry markers.
-const CODE_EXT_RE =
-  /\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|java|rb|kt|kts|swift|c|h|cc|cpp|hpp|cs|php|scala|sh|bash|zsh|sql)$/;
+// File types whose comments can carry markers — derived from the shared
+// DEBT_SCAN_EXTENSIONS so this never drifts from the surfacer's include list.
+// Safe to build unescaped: the guard test pins every entry to /^[a-z0-9]+$/.
+const CODE_EXT_RE = new RegExp(`\\.(${DEBT_SCAN_EXTENSIONS.join('|')})$`);
 
 // Cap markers listed in a single advisory to avoid context bloat.
 const MAX_LIST = 5;

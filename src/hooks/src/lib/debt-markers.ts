@@ -30,6 +30,21 @@ const LEADER = String.raw`(?:\/\/|#|--|;|\/\*|\*)`;
 /** Matches a single marker comment; capture group 1 is everything after the colon. */
 export const DEBT_MARKER_RE = new RegExp(`${LEADER}\\s*${DEBT_TOKEN}:\\s*(.+)`, 'i');
 
+/**
+ * Single source of truth for which file extensions can carry debt markers.
+ * BOTH consumers derive their own FORMAT from this one list at module load —
+ * the capture hook compiles a regex (CODE_EXT_RE), the surfacer maps it to
+ * grep `--include` flags — so the two can never drift again (the drift this
+ * replaces: the surfacer silently omitted kts/hpp/bash/zsh/sql).
+ * Keep it sorted, deduped, lowercase, no leading dot, and regex-metachar-free
+ * (the tracker builds an unescaped alternation from it — see the guard test).
+ */
+export const DEBT_SCAN_EXTENSIONS: readonly string[] = [
+  'bash', 'c', 'cc', 'cjs', 'cpp', 'cs', 'go', 'h', 'hpp', 'java',
+  'js', 'jsx', 'kt', 'kts', 'mjs', 'php', 'py', 'rb', 'rs', 'scala',
+  'sh', 'sql', 'swift', 'ts', 'tsx', 'zsh',
+];
+
 export interface DebtMarker {
   /** The deliberate simplification that was chosen. */
   choice: string;

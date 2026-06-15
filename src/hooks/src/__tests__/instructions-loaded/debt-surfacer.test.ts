@@ -69,6 +69,22 @@ describe('debtSurfacer', () => {
     expect(debtSurfacer([], new Map())).toBeNull();
   });
 
+  it('skips a grep line that does not match the file:line:content shape', () => {
+    // distinct from the test above: that line is well-formed (file:line:content)
+    // but fails parseDebtComment on CONTENT; this line has no colons at all, so
+    // it fails the /^(.+?):(\d+):(.*)$/ shape and hits the `continue` branch.
+    mockExecSync.mockReturnValue(
+      [
+        'garbage-no-colons',
+        `/proj/src/ok.ts:12:// ${T}: session cookies, upgrade to JWT, when a 2nd service is added`,
+      ].join('\n'),
+    );
+    const out = debtSurfacer([], new Map()) ?? '';
+    expect(out).toContain('1 deliberate shortcut(s) tracked across 1 file(s)');
+    expect(out).toContain('src/ok.ts:12');
+    expect(out).not.toContain('garbage');
+  });
+
   it('respects the opt-out env var', () => {
     process.env.ORK_DISABLE_DEBT_SURFACER = '1';
     mockExecSync.mockReturnValue(`/proj/src/a.ts:1:// ${T}: x, upgrade to y, when z`);
