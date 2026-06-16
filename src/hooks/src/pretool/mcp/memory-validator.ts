@@ -117,7 +117,7 @@ function logMemoryConsult(toolName: string, input: HookInput): void {
     session: input.session_id || 'unknown',
     tool: toolName.replace('mcp__memory__', ''),
     ...(typeof ti.query === 'string' ? { query: ti.query.slice(0, 500) } : {}),
-    ...(names && names.length ? { names } : {}),
+    ...(names?.length ? { names } : {}),
   });
 }
 
