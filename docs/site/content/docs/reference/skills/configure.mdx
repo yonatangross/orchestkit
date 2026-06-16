@@ -1688,7 +1688,7 @@ Edit `.mcp.json` and set `"disabled": true` or `false` for each MCP:
     "memory": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
-      "env": { "MEMORY_FILE": ".claude/memory/memory.json" },
+      "env": { "MEMORY_FILE_PATH": "${CLAUDE_PROJECT_DIR:-.}/.claude/memory/memory.json" },
       "disabled": false
     },
     "tavily": {
