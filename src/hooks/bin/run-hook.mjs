@@ -60,6 +60,12 @@ function getBundleName(hookName) {
     'task-created': 'lifecycle',
     'task-completed': 'lifecycle',
     worktree: 'lifecycle',
+    // #1264 fix: these event handlers live in the lifecycle bundle but had no
+    // prefix mapping, so run-hook.mjs silent-exited and they NEVER ran (born
+    // dead ~3mo). Guarded by hooks-json-wiring.test.ts forward drift-check.
+    'instructions-loaded': 'lifecycle',
+    elicitation: 'lifecycle',
+    'config-change': 'lifecycle',
     notification: 'notification',
     'permission-denied': 'permission',
     setup: 'setup',
