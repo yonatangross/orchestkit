@@ -247,4 +247,104 @@ describe('hooks.json wiring E2E', () => {
       }
     });
   });
+
+  // ===========================================================================
+  // Registry ↔ hooks.json drift (#1264)
+  //
+  // run-hook.mjs resolves a hooks.json command entry via `bundle.hooks[hookName]`
+  // (where hookName is args[1]) and SILENTLY no-ops if the key is missing
+  // (run-hook.mjs:328-333 → silentExit()). So a typo'd, renamed, or removed
+  // handler does not fail loudly — the hook just never runs. This drift-CHECK
+  // asserts every command-wired hookName resolves to a real handler function in
+  // the bundle the runner would load. It reports the full list of drifted
+  // entries (a diff, not a boolean) so a failure names exactly what broke.
+  //
+  // Decision (#1264): a drift-CHECK, not a registry→hooks.json GENERATOR. The two
+  // are distinct datasets (hooks.json carries matchers/timeouts/if-guards the
+  // entries map lacks; ~10 entries are dispatchers that fan out internally), so
+  // generation would be a CI landmine across the count cascade for little gain.
+  // "Duplication is cheaper than the wrong abstraction" — assert, don't generate.
+  // ===========================================================================
+  describe('registry ↔ hooks.json drift (#1264)', () => {
+    // Mirror run-hook.mjs getBundleName(): hookName prefix → entries bundle file.
+    const BUNDLE_MAP: Record<string, string> = {
+      permission: 'permission',
+      pretool: 'pretool',
+      posttool: 'posttool',
+      prompt: 'prompt',
+      lifecycle: 'lifecycle',
+      stop: 'stop',
+      'subagent-start': 'subagent',
+      'subagent-stop': 'subagent',
+      'teammate-idle': 'lifecycle',
+      'task-created': 'lifecycle',
+      'task-completed': 'lifecycle',
+      worktree: 'lifecycle',
+      notification: 'notification',
+      'permission-denied': 'permission',
+      setup: 'setup',
+      skill: 'skill',
+      agent: 'agent',
+    };
+
+    it('every command-wired hookName resolves to a real handler (no silent no-ops)', { timeout: 60000 }, async () => {
+      // 1. Collect every command-type hook arg from hooks.json (skip type:http).
+      const wired: string[] = [];
+      for (const groups of Object.values(hooksConfig.hooks) as Array<Array<{ hooks?: Array<{ type?: string; args?: string[] }> }>>) {
+        for (const group of groups) {
+          for (const h of group.hooks ?? []) {
+            if (h.type !== 'command' || !Array.isArray(h.args)) continue;
+            const runHookIdx = h.args.findIndex(a => a.includes('run-hook.mjs'));
+            if (runHookIdx === -1) continue;
+            const hookName = h.args[runHookIdx + 1];
+            if (hookName) wired.push(hookName);
+          }
+        }
+      }
+      expect(wired.length).toBeGreaterThan(0);
+
+      // 2. Resolve each distinct hookName against the bundle the runner would load.
+      //    Static import thunks — vite cannot resolve a fully-variable dynamic import.
+      type Bundle = { hooks?: Record<string, unknown> };
+      const BUNDLE_IMPORTERS: Record<string, () => Promise<Bundle>> = {
+        permission: () => import('../../entries/permission.js'),
+        pretool: () => import('../../entries/pretool.js'),
+        posttool: () => import('../../entries/posttool.js'),
+        prompt: () => import('../../entries/prompt.js'),
+        lifecycle: () => import('../../entries/lifecycle.js'),
+        stop: () => import('../../entries/stop.js'),
+        subagent: () => import('../../entries/subagent.js'),
+        notification: () => import('../../entries/notification.js'),
+        setup: () => import('../../entries/setup.js'),
+        skill: () => import('../../entries/skill.js'),
+        agent: () => import('../../entries/agent.js'),
+      };
+      const bundleCache = new Map<string, Bundle>();
+      const loadBundle = async (name: string) => {
+        if (!bundleCache.has(name)) bundleCache.set(name, await BUNDLE_IMPORTERS[name]());
+        return bundleCache.get(name)!;
+      };
+
+      const unresolved: string[] = [];
+      for (const hookName of [...new Set(wired)]) {
+        const prefix = hookName.split('/')[0];
+        const bundleName = BUNDLE_MAP[prefix];
+        if (!bundleName) {
+          unresolved.push(`${hookName}  (no bundle maps prefix "${prefix}")`);
+          continue;
+        }
+        const bundle = await loadBundle(bundleName);
+        const fn = bundle.hooks?.[hookName];
+        if (typeof fn !== 'function') {
+          unresolved.push(`${hookName}  →  ${bundleName}.hooks["${hookName}"] is ${typeof fn} (run-hook.mjs would silent-exit)`);
+        }
+      }
+
+      // 3. Diff output, not a boolean — name every drifted entry on failure.
+      expect(
+        unresolved,
+        `hooks.json command entries with no resolvable handler (silent no-op drift):\n  ${unresolved.join('\n  ')}`,
+      ).toEqual([]);
+    });
+  });
 });
