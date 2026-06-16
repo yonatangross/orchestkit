@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.48.1](https://github.com/yonatangross/orchestkit/compare/v8.48.0...v8.48.1) (2026-06-16)
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.178) ([#2484](https://github.com/yonatangross/orchestkit/issues/2484)) ([36af4bb](https://github.com/yonatangross/orchestkit/commit/36af4bb3935ddc989e61a489fd8432aa9d3f3bd4))
+
+
+### CI/CD
+
+* bump hono ([#2488](https://github.com/yonatangross/orchestkit/issues/2488)) ([7517300](https://github.com/yonatangross/orchestkit/commit/75173008b71e4bb3efcec8441b7a0b5867776869))
+
 ## [8.48.0](https://github.com/yonatangross/orchestkit/compare/v8.47.3...v8.48.0) (2026-06-16)
 
 
