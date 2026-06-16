@@ -41,5 +41,10 @@
     "esm",
     "orchestkit"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "overrides": {
+    "vite": "8.0.16",
+    "js-yaml": "4.2.0",
+    "launch-editor": "2.14.1"
+  }
 }
