@@ -11,6 +11,7 @@ import {
   outputWarning,
 } from '../../lib/common.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { appendEventLog } from '../../lib/event-logger.js';
 // ---------------------------------------------------------------------------
 // Size limits (OWASP ASI06 — prevent memory poisoning)
 // ---------------------------------------------------------------------------
@@ -89,6 +90,38 @@ function validateObservationSizes(observationsInput: Array<Record<string, unknow
 }
 
 /**
+ * #2351 — consult instrumentation (the "VERIFY loop" record half).
+ * The knowledge-graph READ tools (search/open/read). Logging when these fire
+ * records that memory was *consulted*, so dream's prune step can avoid deleting
+ * recently-consulted memories. PreToolUse fires for mcp__* (gate-confirmed), and
+ * open_nodes/search_nodes args carry exactly what was consulted.
+ */
+const MEMORY_READ_TOOLS = new Set([
+  'mcp__memory__search_nodes',
+  'mcp__memory__open_nodes',
+  'mcp__memory__read_graph',
+]);
+
+/**
+ * Append a consult record to .claude/logs/memory-consult.jsonl. Observe-only,
+ * $0, best-effort (appendEventLog swallows write errors); never affects validation.
+ */
+function logMemoryConsult(toolName: string, input: HookInput): void {
+  if (!MEMORY_READ_TOOLS.has(toolName)) return;
+  const ti = (input.tool_input ?? {}) as Record<string, unknown>;
+  const names = Array.isArray(ti.names)
+    ? ti.names.filter((n): n is string => typeof n === 'string').slice(0, 50)
+    : undefined;
+  appendEventLog('memory-consult.jsonl', {
+    ts: new Date().toISOString(),
+    session: input.session_id || 'unknown',
+    tool: toolName.replace('mcp__memory__', ''),
+    ...(typeof ti.query === 'string' ? { query: ti.query.slice(0, 500) } : {}),
+    ...(names && names.length ? { names } : {}),
+  });
+}
+
+/**
  * Memory validator - validates memory operations
  */
 export function memoryValidator(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
@@ -98,6 +131,9 @@ export function memoryValidator(input: HookInput, ctx: HookContext = NOOP_CTX): 
   if (!toolName.startsWith('mcp__memory__')) {
     return outputSilentSuccess();
   }
+
+  // #2351: record graph consults (reads) for the VERIFY loop — observe-only.
+  logMemoryConsult(toolName, input);
 
   switch (toolName) {
     case 'mcp__memory__delete_entities': {

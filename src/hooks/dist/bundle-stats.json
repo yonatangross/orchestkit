@@ -7,8 +7,8 @@
       "exports": 66
     },
     "pretool": {
-      "size": 124937,
-      "sizeKB": "122.01",
+      "size": 125689,
+      "sizeKB": "122.74",
       "exports": 81
     },
     "posttool": {
@@ -57,14 +57,14 @@
       "exports": 66
     },
     "hooks": {
-      "size": 387063,
-      "sizeKB": "377.99",
+      "size": 387524,
+      "sizeKB": "378.44",
       "exports": 164,
       "unified": true
     }
   },
-  "totalSize": 767319,
-  "totalSizeKB": "749.33",
+  "totalSize": 768071,
+  "totalSizeKB": "750.07",
   "inputs": 112,
-  "avgBundleSizeKB": "68.12"
+  "avgBundleSizeKB": "68.19"
 }
