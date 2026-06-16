@@ -5,6 +5,30 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.47.2](https://github.com/yonatangross/orchestkit/compare/v8.47.1...v8.47.2) (2026-06-16)
+
+
+### Bug Fixes
+
+* **security:** unblock security-tests gate (audit + stat fix) ([#2470](https://github.com/yonatangross/orchestkit/issues/2470)) ([32fd3cb](https://github.com/yonatangross/orchestkit/commit/32fd3cba8f043e0683bc3a98cf91a1aecbcf1bb5))
+
+
+### Miscellaneous
+
+* **deps:** Bump the npm_and_yarn group across 2 directories with 5 updates ([#2472](https://github.com/yonatangross/orchestkit/issues/2472)) ([8df1cd1](https://github.com/yonatangross/orchestkit/commit/8df1cd117f3844d98ff2858748c18bc6e367c731))
+* **labs:** bump upstream-version-tested pins for drifted skills ([#2461](https://github.com/yonatangross/orchestkit/issues/2461)) ([5f86cff](https://github.com/yonatangross/orchestkit/commit/5f86cfff2a4900b63f6ff6dca10d38c5fef0c04e))
+* **triage:** close 29 verified done/obsolete issues (wave 0) ([#2468](https://github.com/yonatangross/orchestkit/issues/2468)) ([cae3158](https://github.com/yonatangross/orchestkit/commit/cae3158cbcab089220dd6fc357b2a1f59b5957ff))
+
+
+### Documentation
+
+* add README hero banner + preview playground ([#2467](https://github.com/yonatangross/orchestkit/issues/2467)) ([fb80d1a](https://github.com/yonatangross/orchestkit/commit/fb80d1a048ed16bb15645785d57f4e6c31d4e558))
+
+
+### CI/CD
+
+* bump anthropics/claude-code-action from 1.0.140 to 1.0.148 ([#2456](https://github.com/yonatangross/orchestkit/issues/2456)) ([951af4b](https://github.com/yonatangross/orchestkit/commit/951af4b739583253260abf6ec6afc18268cfb7cf))
+
 ## [8.47.1](https://github.com/yonatangross/orchestkit/compare/v8.47.0...v8.47.1) (2026-06-15)
 
 
