@@ -20,7 +20,7 @@ import { relative } from 'node:path';
 import { logHook } from '../lib/common.js';
 import { getProjectDir } from '../lib/paths.js';
 import { assertSafeShellArg } from '../lib/sanitize-shell.js';
-import { parseDebtComment, formatDebtMarker, DEBT_TOKEN } from '../lib/debt-markers.js';
+import { parseDebtComment, formatDebtMarker, DEBT_TOKEN, DEBT_SCAN_EXTENSIONS } from '../lib/debt-markers.js';
 import type { LoadedFile } from './types.js';
 
 const HOOK_NAME = 'instructions-loaded/debt-surfacer';
@@ -30,12 +30,9 @@ const MAX_LIST = 5;
 // Total grep hits scanned (backstop for huge repos).
 const SCAN_CAP = 50;
 
-const INCLUDES = [
-  'ts', 'tsx', 'js', 'jsx', 'mjs', 'cjs', 'py', 'go', 'rs', 'java',
-  'rb', 'kt', 'swift', 'c', 'h', 'cc', 'cpp', 'cs', 'php', 'scala', 'sh',
-]
-  .map(ext => `--include='*.${ext}'`)
-  .join(' ');
+// Derived from the shared DEBT_SCAN_EXTENSIONS so the surfacer's scan set can
+// never drift from the capture hook's (previously it omitted kts/hpp/bash/zsh/sql).
+const INCLUDES = DEBT_SCAN_EXTENSIONS.map(ext => `--include='*.${ext}'`).join(' ');
 
 const EXCLUDE_DIRS = ['node_modules', 'dist', '.git', '.worktrees', 'build', 'vendor', '__tests__']
   .map(d => `--exclude-dir=${d}`)

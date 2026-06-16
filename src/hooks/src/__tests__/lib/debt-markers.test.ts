@@ -7,6 +7,7 @@ import {
   scanTextForDebt,
   formatDebtMarker,
   DEBT_TOKEN,
+  DEBT_SCAN_EXTENSIONS,
 } from '../../lib/debt-markers.js';
 
 // The literal marker token, assembled here too so this test file never
@@ -89,5 +90,29 @@ describe('formatDebtMarker', () => {
 
   it('flags a missing trigger as just a TODO', () => {
     expect(formatDebtMarker({ choice: 'X', upgrade: 'Y', raw: '' })).toBe('X -> Y (no trigger: just a TODO)');
+  });
+
+  it('renders a no-upgrade marker that HAS a trigger as "<choice> (when <trigger>)" with no arrow', () => {
+    const out = formatDebtMarker({ choice: 'sqlite', trigger: 'row count > 1M', raw: '' });
+    expect(out).toBe('sqlite (when row count > 1M)');
+    expect(out).not.toContain('->');
+  });
+});
+
+describe('DEBT_SCAN_EXTENSIONS', () => {
+  it('is sorted, deduped, lowercase and dot-free (drift + regex-safety guard)', () => {
+    expect([...DEBT_SCAN_EXTENSIONS].sort()).toEqual([...DEBT_SCAN_EXTENSIONS]);
+    expect(new Set(DEBT_SCAN_EXTENSIONS).size).toBe(DEBT_SCAN_EXTENSIONS.length);
+    // lowercase, no leading dot, no regex metachars — the tracker builds an
+    // unescaped alternation from this list, so this guard keeps it escape-free.
+    for (const ext of DEBT_SCAN_EXTENSIONS) {
+      expect(ext).toMatch(/^[a-z0-9]+$/);
+    }
+  });
+
+  it('includes the extensions the surfacer previously dropped (the drift this fixed)', () => {
+    for (const ext of ['sql', 'zsh', 'kts', 'hpp', 'bash']) {
+      expect(DEBT_SCAN_EXTENSIONS).toContain(ext);
+    }
   });
 });
