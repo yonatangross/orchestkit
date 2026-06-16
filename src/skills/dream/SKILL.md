@@ -122,6 +122,44 @@ for symbol in symbol_refs:
 
 Only memories classified as FULLY_STALE are auto-pruned. PARTIALLY_STALE memories are reported but kept — the user decides.
 
+### STEP 2.5: Consult-gate (#2351) — never prune a memory that's still being used
+
+Closing the VERIFY loop: a deletion must survive the question *"was this actually consulted?"*. A memory whose external refs all vanished (FULLY_STALE) but that the agent keeps looking up is still load-bearing — its **refs** are stale, its **knowledge** is live. So before pruning, read `.claude/logs/memory-consult.jsonl` (written by `memory-validator` on every `mcp__memory__search_nodes`/`open_nodes`/`read_graph`) and **downgrade any recently-consulted FULLY_STALE memory to PARTIALLY_STALE** (kept + flagged, not auto-deleted).
+
+```python
+import json, time
+from pathlib import Path
+
+def recently_consulted_terms(days=14):
+    log = Path(".claude/logs/memory-consult.jsonl")
+    if not log.exists():
+        return set()
+    cutoff = time.time() - days * 86400
+    terms = set()
+    for line in log.read_text().splitlines():
+        try:
+            e = json.loads(line)
+        except ValueError:
+            continue  # best-effort: skip malformed lines
+        # open_nodes carries exact entity names; search carries a query string
+        terms.update(n.lower() for n in e.get("names", []))
+        if e.get("query"):
+            terms.update(w.lower() for w in e["query"].split() if len(w) > 2)
+    return terms
+
+consulted = recently_consulted_terms()
+for m in list(fully_stale_files):
+    slug = Path(m["path"]).stem.lower()
+    name = (m.get("name") or "").lower()
+    if name in consulted or any(c in slug or slug in c for c in consulted):
+        m["classification"] = "PARTIALLY_STALE"
+        m["kept_reason"] = "consult-gate: looked up in the last 14 days (#2351)"
+        fully_stale_files.remove(m)
+        partially_stale_files.append(m)
+```
+
+This is conservative by design — fuzzy term matching errs toward **keeping** a maybe-consulted memory rather than deleting a live one. The Step 6 report records each consult-gated keep (the "did it matter?" audit the loop was missing). If the log is absent (consult instrumentation not yet exercised), the gate is a no-op and pruning proceeds as before.
+
 ---
 
 ## STEP 3: Detect Duplicates
