@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# npm audit gate — blocks on moderate+ CVEs across the three package.json
+# npm audit gate — blocks on moderate+ CVEs across the four package.json
 # files in the repo. Part of the security-tests suite because a CVE in
 # a dev dependency is still shipping code we would not want to ignore.
 #
 # Scope:
-#   - package.json               (root)
-#   - docs/site/package.json     (Next.js docs site)
-#   - src/hooks/package.json     (TypeScript hooks bundle)
+#   - package.json                 (root)
+#   - docs/site/package.json       (Next.js docs site)
+#   - src/hooks/package.json       (TypeScript hooks bundle)
+#   - src/mcp-server/package.json  (@orchestkit/mcp-server, npm package)
 #
 # Severity threshold: moderate (default). Override with NPM_AUDIT_LEVEL=low
 # for stricter runs, or high to relax.
@@ -127,10 +128,11 @@ audit_project() {
   echo ""
 }
 
-# ─── run across the three package.json paths ────────────────────────
-audit_project "root"       "$PROJECT_ROOT"
-audit_project "docs/site"  "$PROJECT_ROOT/docs/site"
-audit_project "src/hooks"  "$PROJECT_ROOT/src/hooks"
+# ─── run across the four package.json paths ─────────────────────────
+audit_project "root"           "$PROJECT_ROOT"
+audit_project "docs/site"      "$PROJECT_ROOT/docs/site"
+audit_project "src/hooks"      "$PROJECT_ROOT/src/hooks"
+audit_project "src/mcp-server" "$PROJECT_ROOT/src/mcp-server"
 
 # ─── summary ───────────────────────────────────────────────────────
 echo "════════════════════════════════════════════════════════════════"
