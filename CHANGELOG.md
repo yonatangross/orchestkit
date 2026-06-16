@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.48.0](https://github.com/yonatangross/orchestkit/compare/v8.47.3...v8.48.0) (2026-06-16)
+
+
+### Features
+
+* **memory:** close the VERIFY loop — consult log + dream gate ([#2351](https://github.com/yonatangross/orchestkit/issues/2351)) ([#2486](https://github.com/yonatangross/orchestkit/issues/2486)) ([a16c4a5](https://github.com/yonatangross/orchestkit/commit/a16c4a53118ad399240fed543e53f2b0917c05a4))
+
+
+### Bug Fixes
+
+* **mcp:** write memory KG to repo via MEMORY_FILE_PATH ([#2474](https://github.com/yonatangross/orchestkit/issues/2474)) ([#2485](https://github.com/yonatangross/orchestkit/issues/2485)) ([dd3f873](https://github.com/yonatangross/orchestkit/commit/dd3f873a5a9eb681992e7085548cdee2d0edeb28))
+
 ## [8.47.3](https://github.com/yonatangross/orchestkit/compare/v8.47.2...v8.47.3) (2026-06-16)
 
 
