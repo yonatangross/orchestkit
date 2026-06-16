@@ -1,9 +1,7 @@
 <!-- markdownlint-disable MD033 MD041 -->
 <div align="center">
 
-# OrchestKit
-
-### Stop explaining your stack. Start shipping.
+<img src="docs/banner.png" alt="OrchestKit - Stop explaining your stack. Start shipping." width="100%" />
 
 **<!--ork:skills-->111<!--/ork--> skills · <!--ork:agents-->37<!--/ork--> agents · <!--ork:hooks-->211<!--/ork--> hooks**
 
