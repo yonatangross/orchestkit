@@ -304,7 +304,14 @@ if [ "${goto_next:-false}" != "true" ]; then
     }
 
     get_link_count() {
-        stat -f %l "$1" 2>/dev/null || stat -c %h "$1" 2>/dev/null || echo "1"
+        # GNU/Linux (CI) uses `stat -c %h`; BSD/macOS uses `stat -f %l`.
+        # Try GNU first: on Linux `stat -f %l` is filesystem-status mode and
+        # emits non-integer output that breaks the `-gt` comparison below.
+        local c
+        # silent: provider-chain-fallback (stat flavour differs per platform; chain falls through)
+        c=$(stat -c %h "$1" 2>/dev/null) || c=$(stat -f %l "$1" 2>/dev/null) || c=1
+        [[ "$c" =~ ^[0-9]+$ ]] || c=1
+        echo "$c"
     }
 
     original_inode=$(get_inode "$TEST_TEMP_DIR/original.txt")
