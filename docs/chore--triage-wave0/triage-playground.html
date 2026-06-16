@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Triage — 98 Open Issues</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --border:#30363d;
+    --txt:#e6edf3; --dim:#8b949e; --mut:#6e7681;
+    --done:#3fb950; --valid:#58a6ff; --stale:#d29922; --obsolete:#f85149; --rolling:#a371f7;
+    --p1:#f85149; --p2:#d29922; --p3:#6e7681;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sys:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:var(--sys);font-size:13px;line-height:1.5}
+  a{color:var(--valid);text-decoration:none}
+  a:hover{text-decoration:underline}
+  header{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  header h1{font-size:17px;font-weight:650;letter-spacing:.2px}
+  header .meta{color:var(--dim);font-size:12px}
+  .layout{display:grid;grid-template-columns:268px 1fr;min-height:calc(100vh - 58px)}
+  /* sidebar */
+  aside{border-right:1px solid var(--border);padding:16px;overflow-y:auto;background:var(--panel)}
+  .grp{margin-bottom:18px}
+  .grp h3{font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--mut);margin-bottom:8px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-family:var(--mono);font-size:11px;padding:4px 9px;border:1px solid var(--border);border-radius:20px;
+    background:var(--panel2);color:var(--dim);cursor:pointer;user-select:none;transition:.12s;display:flex;align-items:center;gap:5px}
+  .chip:hover{border-color:var(--mut);color:var(--txt)}
+  .chip.on{background:#1f6feb22;border-color:var(--valid);color:var(--txt)}
+  .chip .dot{width:8px;height:8px;border-radius:50%}
+  .chip .ct{color:var(--mut);font-size:10px}
+  select,input[type=text]{width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--txt);
+    border-radius:6px;padding:7px 9px;font-family:var(--sys);font-size:12px}
+  .views{display:flex;gap:0;border:1px solid var(--border);border-radius:7px;overflow:hidden;margin-bottom:18px}
+  .views button{flex:1;background:var(--panel2);border:0;color:var(--dim);padding:8px 4px;font-size:11.5px;cursor:pointer;font-family:var(--sys)}
+  .views button.on{background:var(--valid);color:#fff;font-weight:600}
+  .reset{width:100%;background:transparent;border:1px solid var(--border);color:var(--dim);padding:7px;border-radius:6px;cursor:pointer;font-size:11.5px}
+  .reset:hover{border-color:var(--obsolete);color:var(--obsolete)}
+  /* main */
+  main{padding:18px 22px;overflow-y:auto}
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px}
+  .kpi{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:11px 13px}
+  .kpi .n{font-size:22px;font-weight:700;font-family:var(--mono)}
+  .kpi .l{font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  .kpi.flag{border-color:#3fb95055}
+  /* stacked bar */
+  .stack{display:flex;height:34px;border-radius:7px;overflow:hidden;border:1px solid var(--border);margin-bottom:6px;cursor:default}
+  .stack .seg{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:650;color:#06090f;transition:.15s}
+  .stack .seg.dim{opacity:.18}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--dim);margin-bottom:20px}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+  h2.sec{font-size:13px;font-weight:650;margin:22px 0 11px;display:flex;align-items:center;gap:9px}
+  h2.sec .tag{font-family:var(--mono);font-size:10px;color:var(--mut);font-weight:400}
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding:7px 9px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg)}
+  td{padding:8px 9px;border-bottom:1px solid #21262d;vertical-align:top}
+  tr:hover td{background:var(--panel)}
+  .badge{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:5px;white-space:nowrap;font-weight:600}
+  .num{font-family:var(--mono);font-weight:650}
+  .pri{font-family:var(--mono);font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px}
+  .eff{font-family:var(--mono);font-size:10px;color:var(--mut)}
+  .ev{color:var(--dim);font-size:11px;max-width:340px}
+  .act{font-size:11px;max-width:240px}
+  .msc{font-family:var(--mono);font-size:10px;color:var(--mut)}
+  /* milestones */
+  .msrow{display:grid;grid-template-columns:230px 1fr 56px;gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid #21262d}
+  .msrow .nm{font-size:12px}
+  .msrow .nm small{color:var(--mut);font-family:var(--mono);font-size:10px}
+  .msbar{display:flex;height:18px;border-radius:5px;overflow:hidden;background:var(--panel2)}
+  .msbar .s{height:100%}
+  .msrow .pct{font-family:var(--mono);font-size:11px;text-align:right;color:var(--dim)}
+  .due{color:var(--obsolete);font-size:10px;font-weight:600}
+  /* roadmap */
+  .wave{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:13px}
+  .wave .wh{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .wave .wnum{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;color:var(--valid)}
+  .wave .wt{font-size:13px;font-weight:650}
+  .wave .wd{color:var(--dim);font-size:11px;margin-bottom:10px}
+  .wave .wct{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--mut)}
+  .pills{display:flex;flex-wrap:wrap;gap:7px}
+  .pill{display:flex;flex-direction:column;gap:2px;background:var(--panel2);border:1px solid var(--border);border-left-width:3px;border-radius:7px;padding:7px 10px;min-width:128px;max-width:230px;cursor:pointer;transition:.12s}
+  .pill:hover{border-color:var(--mut);transform:translateY(-1px)}
+  .pill .pt{font-size:11px;line-height:1.35;color:var(--txt)}
+  .pill .pm{display:flex;gap:6px;align-items:center;font-family:var(--mono);font-size:9.5px;color:var(--mut)}
+  .pill .arrow{color:var(--mut);font-size:10px}
+  .wave.clear{border-color:#3fb95044}
+  .wave.video{border-color:#d2992244}
+  .wave.rolling{border-color:#a371f744}
+  /* prompt */
+  .promptbar{position:sticky;bottom:0;background:linear-gradient(0deg,var(--bg) 70%,transparent);padding:14px 0 4px;margin-top:8px}
+  .promptbox{background:#010409;border:1px solid var(--border);border-radius:9px;padding:13px 15px;font-family:var(--mono);font-size:11.5px;color:#c9d1d9;white-space:pre-wrap;line-height:1.55;max-height:190px;overflow-y:auto}
+  .pcopy{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+  .pcopy h3{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--mut)}
+  .pcopy button{background:var(--valid);color:#fff;border:0;border-radius:6px;padding:6px 14px;font-size:11.5px;cursor:pointer;font-weight:600}
+  .pcopy button:hover{background:#1f6feb}
+  .hide{display:none!important}
+  .empty{color:var(--mut);text-align:center;padding:40px;font-size:12px}
+  .note{background:#d2992216;border:1px solid #d2992244;border-radius:8px;padding:10px 13px;font-size:11.5px;color:#e3b341;margin-bottom:16px}
+  .note b{color:#f0c674}
+  .banner0{background:#3fb95018;border:1px solid #3fb95055;border-radius:8px;padding:11px 14px;font-size:12px;color:#56d364;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .banner0 b{color:#7ee787}
+  .banner0 a{color:#7ee787;font-weight:600}
+  .pill.closing,tr.closing td{opacity:.5}
+  .pill.closing .pt{text-decoration:line-through;text-decoration-color:#3fb95088}
+  .pill.closing .pt::before,tr.closing .num::before{content:"✅ "}
+  tr.closing .num::before{content:"✅"}
+  .scrollwrap{max-height:none}
+  code{font-family:var(--mono);background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:11px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🗂️ OrchestKit Triage</h1>
+  <span class="meta">98 open issues · 16 milestones · verified against repo @ 8.46.0 · 2026-06-16</span>
+  <span class="meta" id="filterstat" style="margin-left:auto"></span>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="views" id="viewtabs">
+      <button data-v="roadmap" class="on">🛣️ Roadmap</button>
+      <button data-v="milestones">📊 Milestones</button>
+      <button data-v="table">📋 Table</button>
+    </div>
+
+    <div class="grp">
+      <h3>Classification</h3>
+      <div class="chips" id="clsChips"></div>
+    </div>
+    <div class="grp">
+      <h3>Priority</h3>
+      <div class="chips" id="priChips"></div>
+    </div>
+    <div class="grp">
+      <h3>Milestone</h3>
+      <select id="msSel"><option value="">All milestones</option></select>
+    </div>
+    <div class="grp">
+      <h3>Search title / evidence</h3>
+      <input type="text" id="search" placeholder="e.g. headroom, memory, video…">
+    </div>
+    <button class="reset" id="reset">↺ Reset filters</button>
+  </aside>
+
+  <main>
+    <!-- KPIs -->
+    <div class="kpis" id="kpis"></div>
+
+    <!-- wave-0 execution banner -->
+    <div id="wave0banner"></div>
+
+    <!-- always-on classification bar -->
+    <div class="stack" id="stack"></div>
+    <div class="legend" id="legend"></div>
+
+    <div class="note" id="headline">
+      <b>Root cause of the bloat:</b> the <code>Closes #N</code> keyword bug. Merged PRs (esp. #1604) closed issues in
+      <b>prose</b> with no per-issue <code>closes #N</code> keyword → GitHub never auto-closed them.
+      <b>19 issues are DONE in code but still open.</b> Wave 0 closes these + 10 obsolete = <b>29 issues (30%) cleared</b> (1 obsolete, #2376, kept as an upstream-blocked tracker).
+    </div>
+
+    <!-- ROADMAP VIEW -->
+    <div id="view-roadmap">
+      <div id="waves"></div>
+    </div>
+
+    <!-- MILESTONES VIEW -->
+    <div id="view-milestones" class="hide">
+      <h2 class="sec">Milestone burndown <span class="tag">post-triage: green = clearable now, blue = valid work, amber = reconsider</span></h2>
+      <div id="msList"></div>
+    </div>
+
+    <!-- TABLE VIEW -->
+    <div id="view-table" class="hide">
+      <div class="scrollwrap">
+        <table>
+          <thead><tr>
+            <th>#</th><th>Title</th><th>Class</th><th>Pri</th><th>Eff</th><th>MS</th><th>Evidence</th><th>Action</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PROMPT -->
+    <div class="promptbar">
+      <div class="pcopy">
+        <h3>📋 Actionable prompt for current selection</h3>
+        <button id="copyBtn">Copy prompt</button>
+      </div>
+      <div class="promptbox" id="prompt"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ---- classification + milestone metadata ----
+const CLS = {
+  DONE:    {label:'✅ Done-but-open', color:'var(--done)',     hex:'#3fb950'},
+  VALID:   {label:'🟢 Valid',         color:'var(--valid)',    hex:'#58a6ff'},
+  STALE:   {label:'🟡 Stale',         color:'var(--stale)',    hex:'#d29922'},
+  OBSOLETE:{label:'🚫 Obsolete',      color:'var(--obsolete)', hex:'#f85149'},
+  ROLLING: {label:'🔄 Rolling',       color:'var(--rolling)',  hex:'#a371f7'},
+};
+const PRI = {P1:'#f85149',P2:'#d29922',P3:'#6e7681','—':'#30363d'};
+const MS = {
+  M76:{name:'Video Gallery & Demos',due:'2026-06-30'}, M74:{name:'Analytics & Observability'},
+  M95:{name:'Docs & Discoverability'}, M97:{name:'Memory System Hardening'},
+  M104:{name:'Hook & Agent Quality'}, M109:{name:'v8.0.0 Architecture'},
+  M119:{name:'Usage hygiene'}, M123:{name:'Claude Design Drift (Bet B)'},
+  M127:{name:'Vercel Labs adoption'}, M141:{name:'@orchestkit/hook-contract'},
+  M146:{name:'CC 2.1.143 hardening'}, M150:{name:'M168 Coordination Redesign'},
+  M154:{name:'CC adoption'}, M156:{name:'Eval v2'}, M158:{name:'Context Compression'},
+  M159:{name:'Fable 5 loop-design'}, none:{name:'⟂ Unmilestoned'},
+};
+// ---- waves (roadmap) ----
+const WAVES = [
+  {id:0, key:'clear',   t:'Clear the decks',           d:'Close now — 19 done-in-code + 11 obsolete. Done → housekeeping PR (closes #N per issue). Obsolete → wontfix + close.'},
+  {id:1, key:'p1',      t:'P1 keystones',              d:'Highest-leverage valid work. Memory auto-persist, skill outcome scoring, the memory VERIFY loop, hooks.json generator, headroom defer decision.'},
+  {id:2, key:'',        t:'Quick unblocked wins',      d:'Small, freshly-unblocked, well-specified. Mostly S effort — ship in a day each.'},
+  {id:3, key:'',        t:'Memory & analytics depth',  d:'P2/M valid work that compounds: relevance injection, error aggregation, debt v2, config sprawl.'},
+  {id:4, key:'video',   t:'Video milestone — descope', d:'M76 due 2026-06-30 NOT achievable. Critical path 733→730→731→732; 730 unstarted, CDN regressed 1/14. Ship "TerminalFlow reusable" (733+735) now; SLIP video production.'},
+  {id:5, key:'',        t:'Design Bet B chain',        d:'Drift-detection loop, entirely unbuilt. Sequence 1393→1395→1391, then docs/dogfood. ~research label = no commitment yet.'},
+  {id:6, key:'',        t:'Reconsider / icebox',       d:'31 stale items — old premises, speculative, or superseded-different. Need a keep/close/rescope decision, not active work.'},
+  {id:'R',key:'rolling',t:'Rolling trackers — keep',   d:'Intentionally open. Do not close. #1881 unfed ~4wk (revive?); #2435 Fable demote trigger not met (~4 days in).'},
+];
+
+// ---- the 98 issues ----
+const D = [
+// ===== Cluster A: Hooks / Memory / CC (M104,M97,M154,M146) =====
+{n:2460,ms:'M104',cls:'VALID',pri:'P2',eff:'L',w:3,t:'ork-debt v2: on-demand DUE eval, cached store, CI gate',ev:'debt v1 shipped (PR #2457); no src/skills/debt/ skill yet',act:'Build /ork:debt --check (on-demand, $0 idle)'},
+{n:1902,ms:'M104',cls:'VALID',pri:'P2',eff:'M',w:3,t:'/ork:safe-spawn skill',ev:'skill MISSING; linter rule points at docs only',act:'Build skill: worktree pre-create + spawn + tracking'},
+{n:1892,ms:'M104',cls:'DONE',pri:'—',eff:'—',w:0,t:'round-2 yg-mcp-core consumers',ev:'all 3 scripts exist (PR #1898); owner "safe to close"',act:'Close-with-evidence'},
+{n:1875,ms:'M104',cls:'DONE',pri:'—',eff:'—',w:0,t:'mcp_core.client in brainstorm/assess/memory',ev:'all 3 scripts exist (PR #1889); owner "safe to close"',act:'Close-with-evidence'},
+{n:1873,ms:'M104',cls:'DONE',pri:'—',eff:'—',w:0,t:'/ork:cover manual-worktree pattern',ev:'cover/SKILL.md L259-324 warning+example (PR #1835)',act:'Close-with-evidence'},
+{n:1868,ms:'M104',cls:'VALID',pri:'P2',eff:'M',w:2,t:'assess --dimensions custom-list flag',ev:'no --dimensions flag; blocks hq-ext#132',act:'Add override + JSON-render same-shape output'},
+{n:1326,ms:'M104',cls:'VALID',pri:'P2',eff:'S',w:2,t:'context % writer for session governor',ev:'warner READS file but no hook WRITES it',act:'Write a hook that emits context fill %'},
+{n:1246,ms:'M104',cls:'DONE',pri:'—',eff:'—',w:0,t:'delete-code audit per CC version bump',ev:'cc-version-bump.yml + CONTRIBUTING §checklist exist',act:'Close-with-evidence (prose-closed)'},
+{n:1239,ms:'M104',cls:'DONE',pri:'—',eff:'—',w:0,t:'adopt CLAUDE_ENV_FILE pattern',ev:'README section + settings-reload.ts getEnvFile()',act:'Close-with-evidence'},
+{n:1236,ms:'M104',cls:'STALE',pri:'P3',eff:'M',w:6,t:'carry token budget across PostCompact',ev:'likely covered by token-budget-tracker; overlaps #1326',act:'Verify survival before investing; maybe fold into #1326'},
+{n:1234,ms:'M104',cls:'STALE',pri:'P3',eff:'M',w:6,t:'audit volatile vs cached context injection',ev:'audit DONE (PR-A shipped); PR-B..E not done',act:'Close as "audit complete", spin PR-B..E fresh'},
+{n:1144,ms:'M97',cls:'STALE',pri:'P3',eff:'L',w:6,t:'team memory namespace via SHA256(remote)',ev:'not impl; Mar supermemory premise; prio:low',act:'Confirm demand before building (speculative)'},
+{n:1143,ms:'M97',cls:'STALE',pri:'P3',eff:'L',w:6,t:'Stop hook transcript auto-extract',ev:'not impl; Mar supermemory premise; prio:low',act:'Pair-decision with #1139/#1142'},
+{n:1142,ms:'M97',cls:'VALID',pri:'P2',eff:'M',w:3,t:'relevance-ranked profile injection at start',ev:'injectors exist but no branch-keyword→search_nodes rank',act:'branch-keyword → search_nodes → top-5 inject'},
+{n:1141,ms:'M97',cls:'VALID',pri:'P2',eff:'M',w:3,t:'silent-failure alerting for memory hooks',ev:'no outputDegradedSuccess; 7 hooks bare-catch-silent',act:'Add helper + wire /ork:doctor + SessionStart warn'},
+{n:1140,ms:'M97',cls:'VALID',pri:'P2',eff:'M',w:3,t:'memory health dashboard via /ork:memory status',ev:'no learning-hook-activity section; depends on #1141',act:'Surface learning-hook activity/stats'},
+{n:1139,ms:'M97',cls:'VALID',pri:'P1',eff:'M',w:1,t:'auto-persist high-confidence decisions to KG',ev:'decision-processor computes confidence, only suggests (~90% ignored)',act:'≥0.7 → auto create_entities/add_observations'},
+{n:2376,ms:'M154',cls:'OBSOLETE',pri:'P3',eff:'M',w:0,t:'SubagentStart payload contract',ev:'parent_agent_id still absent thru CC 2.1.177 (upstream #16424)',act:'Keep as upstream-blocked tracker (label blocked)'},
+{n:1848,ms:'M146',cls:'VALID',pri:'P2',eff:'S',w:2,t:'wire claude agents --cwd <worktree> into /ork:dev',ev:'CC 2.1.141 feature live; flag-wiring needed',act:'Detect branch worktree, pass --cwd + receipt line'},
+{n:1847,ms:'M146',cls:'OBSOLETE',pri:'P3',eff:'—',w:0,t:'migrate notification → terminalSequence',ev:'proven regression (OSC silent in Terminal/VSCode/tmux)',act:'Close won\'t-do; osascript is justified KEEP'},
+{n:1846,ms:'M146',cls:'VALID',pri:'P2',eff:'S',w:2,t:'surface projected context cost in marketplace docs',ev:'docs-only; no Footprint panel in README/overview',act:'Run plugin details, add Footprint panel'},
+{n:1845,ms:'M146',cls:'STALE',pri:'P3',eff:'S',w:6,t:'declare plugin dependencies: in manifests',ev:'zero payoff until M141 downstream consumers exist',act:'Defer until M141 lands, or doc "no deps"'},
+{n:1844,ms:'M146',cls:'STALE',pri:'P3',eff:'S',w:6,t:'adopt worktree.bgIsolation:"none" decision',ev:'decision-only; body says "default fine"',act:'One-paragraph trade-off doc then close'},
+// ===== Cluster B: Arch / Eval / Compression / Fable / Coordination =====
+{n:1289,ms:'M109',cls:'DONE',pri:'—',eff:'—',w:0,t:'bump to v8.0.0 — architecture overhaul',ev:'v8 shipped 2026-05-22; now 8.46.0',act:'Close-with-evidence (umbrella satisfied)'},
+{n:1254,ms:'M109',cls:'DONE',pri:'—',eff:'—',w:0,t:'SQLite state backend',ev:'shipped #1920; session-registry.ts node:sqlite',act:'Close-with-evidence'},
+{n:1264,ms:'M109',cls:'VALID',pri:'P1',eff:'M',w:1,t:'registry-driven hooks.json generation',ev:'entries/*.ts registry exists; hooks.json hand-edited',act:'Build the generator step (count-cascade aware)'},
+{n:1273,ms:'M109',cls:'VALID',pri:'P2',eff:'M',w:3,t:'consolidate .claude/ config path sprawl (22→5)',ev:'9+ scattered namespaces; no cleanup sweep',act:'Scope a path-consolidation sweep'},
+{n:1460,ms:'M109',cls:'STALE',pri:'P1',eff:'M',w:6,t:'consolidate two-layer version-enforcement dup',ev:'regex dup in pre-push + version-check.yml; PR #1458 deferred A/B/C',act:'Pick consolidation option or close wontfix'},
+{n:1270,ms:'M109',cls:'STALE',pri:'P2',eff:'S',w:6,t:'userConfig webhook URL/token (keychain)',ev:'manifest declares userConfig; read-side blocked on CC env mechanism',act:'Re-verify CC ≥2.1.170 mechanism, wire or close'},
+{n:1290,ms:'M109',cls:'OBSOLETE',pri:'P2',eff:'L',w:0,t:'reorganize lib/ into 7 modules (54→41)',ev:'lib/ now 79 files; superseded by entries/ map',act:'Close: abandoned direction'},
+{n:1287,ms:'M109',cls:'OBSOLETE',pri:'P2',eff:'M',w:0,t:'extract shared sync chain core/dispatcher.ts',ev:'no such file; dispatcher is legacy/dead',act:'Close: replaced by entries/ registry'},
+{n:1255,ms:'M109',cls:'OBSOLETE',pri:'P0',eff:'L',w:0,t:'persistent daemon — eliminate 99% spawn overhead',ev:'conflicts "no native deps"; node:sqlite chosen instead',act:'Close: direction not pursued'},
+{n:2195,ms:'M156',cls:'VALID',pri:'P2',eff:'M',w:3,t:'wire DeepEval/RAGAS (re-scoped to on-demand)',ev:'collector hook correctly $0; grading → run-full-eval.sh',act:'Keep; re-title — grading lives in run-full-eval.sh'},
+{n:2194,ms:'M156',cls:'STALE',pri:'P2',eff:'L',w:6,t:'aggregate quality index + wire regression gate',ev:'check-eval-regression.sh exists but UNWIRED; no baseline',act:'Complete + wire as on-demand/CI gate'},
+{n:2192,ms:'M156',cls:'STALE',pri:'P3',eff:'L',w:6,t:'walk-all auto-eval — close coverage gap',ev:'gap real but counts stale; re-scoped on-demand-only',act:'Rescope to on-demand walk-all runner'},
+{n:1327,ms:'M156',cls:'OBSOLETE',pri:'P3',eff:'M',w:0,t:'execute pressure tests RED-GREEN baseline',ev:'runner+scenarios exist; results/ never created; abandoned',act:'Close or fold baseline need into #2194'},
+{n:2302,ms:'M158',cls:'VALID',pri:'P1',eff:'S',w:1,t:'headroom inert — defer-not-remove + criteria',ev:'0 transforms in 4 restarts; CC won\'t fire PostToolUse for mcp__*',act:'Record defer decision + graduation criteria, then close'},
+{n:2264,ms:'M158',cls:'STALE',pri:'P2',eff:'M',w:6,t:'reversible output compression 2K-50K band',ev:'code SHIPPED but DORMANT live (blocked on CC #1794)',act:'Keep blocked-on-external; graduate when CC fixes'},
+{n:2265,ms:'M158',cls:'OBSOLETE',pri:'P3',eff:'L',w:0,t:'failure-mining into proposed rules',ev:'no code; depends on #2264 working live (it doesn\'t)',act:'Close: blocked-on-feature-that-doesnt-fire'},
+{n:2266,ms:'M158',cls:'OBSOLETE',pri:'P3',eff:'L',w:0,t:'compression-quality gate (answer-equivalence)',ev:'no code; gates a CC-layer-blocked feature',act:'Close: precondition unmet'},
+{n:2354,ms:'M159',cls:'VALID',pri:'P2',eff:'S',w:2,t:'loop-until-rubric ref doc',ev:'grep=0 in chain-patterns; all 3 blockers now CLOSED',act:'Newly unblocked — write the pattern ref'},
+{n:2353,ms:'M159',cls:'VALID',pri:'P2',eff:'M',w:3,t:'auto-inject prior-decision search vs reminders',ev:'loader PRINTS "search memory…" instead of running it',act:'Run search_nodes, relevance-gate, inject'},
+{n:2352,ms:'M159',cls:'STALE',pri:'P2',eff:'M',w:6,t:'regen recent-decisions.md + experiment journal',ev:'file mangled, no owning writer; journal spec unwired',act:'Assign dream as owner; wire journal to brainstorm'},
+{n:2351,ms:'M159',cls:'VALID',pri:'P1',eff:'M',w:1,t:'close memory VERIFY loop (staleness + consult)',ev:'staleness reports have ZERO consumers; memory 4.4/10',act:'Weekly staleness-diff PR + consult instrumentation'},
+{n:2006,ms:'M150',cls:'VALID',pri:'P2',eff:'M',w:3,t:'[umbrella] M168 skill analytics',ev:'50% done: usage #2010 closed; adoption #2011 deferred',act:'Track remaining #2011 or close both together'},
+{n:2011,ms:'M150',cls:'STALE',pri:'P2',eff:'L',w:6,t:'M168 skill recommender + adoption rate',ev:'deferred (assess C- 4.5/10); no consumer for metric',act:'Close as YAGNI unless consumer materializes'},
+{n:2243,ms:'M150',cls:'STALE',pri:'P2',eff:'L',w:6,t:'read git not GitHub — /ork:sessions + ref cache',ev:'no git helpers, no /ork:sessions skill, no ref cache',act:'Scope or defer; no shipped components'},
+// ===== Cluster C: Docs / Analytics =====
+{n:2303,ms:'M95',cls:'STALE',pri:'P3',eff:'M',w:6,t:'warm/persist Orama index to kill cold TTFB',ev:'already labeled wontfix; Win-1 withdrawn by author',act:'Close wontfix or document acceptance'},
+{n:2289,ms:'M95',cls:'OBSOLETE',pri:'P3',eff:'L',w:0,t:'off-site: Wikipedia article',ev:'web-research: PREMATURE, defer 12-24mo (WP:NSOFTWARE)',act:'Close or convert to long-horizon note'},
+{n:2288,ms:'M95',cls:'DONE',pri:'P2',eff:'L',w:0,t:'off-site: category share-of-voice',ev:'on-site /compare+/alternatives shipped (#2323)',act:'Close ork issue; off-site in platform repo'},
+{n:2287,ms:'M95',cls:'DONE',pri:'P2',eff:'L',w:0,t:'off-site: seed citation corpus',ev:'drafts staged; distribution → platform#4519',act:'Close in ork; tracked in platform'},
+{n:2286,ms:'M95',cls:'DONE',pri:'P2',eff:'M',w:0,t:'list in GPT Store + MCP registries',ev:'SAME_AS lists Smithery/mcp.so/skills.sh; only GPT Store manual',act:'Close registry portion; spin GPT-Store follow-up'},
+{n:2284,ms:'M95',cls:'DONE',pri:'P2',eff:'S',w:0,t:'Wikidata entity + P856 official website',ev:'Q140128295 wired into SAME_AS, verified live',act:'Close-with-evidence'},
+{n:2283,ms:'M95',cls:'STALE',pri:'P3',eff:'L',w:6,t:'optional build-time semantic/hybrid search layer',ev:'gated on telemetry; lexical Orama deemed sufficient',act:'Icebox; don\'t action without telemetry trigger'},
+{n:1088,ms:'M95',cls:'VALID',pri:'P3',eff:'L',w:3,t:'record 4 additional priority demo videos',ev:'gallery infra shipped; zero .mp4/.cast produced',act:'Re-scope: produce, or close as infra-superseded'},
+{n:1087,ms:'M95',cls:'STALE',pri:'P3',eff:'M',w:6,t:'SyncedColumns two-column concept layout',ev:'component never built; fumadocs layout used',act:'Reconsider — fumadocs may make unnecessary'},
+{n:1086,ms:'M95',cls:'STALE',pri:'P3',eff:'L',w:6,t:'comparison playground vanilla CC vs ork',ev:'static /compare shipped, not interactive split-screen',act:'Re-scope or close — static pages may satisfy'},
+{n:1085,ms:'M95',cls:'STALE',pri:'P3',eff:'L',w:6,t:'HookFlowVisualizer hook-chain animation',ev:'never built; hook count in issue already stale',act:'Reconsider value vs effort; low priority'},
+{n:1083,ms:'M95',cls:'DONE',pri:'P2',eff:'—',w:0,t:'SearchWithIntent (Cmd+K semantic)',ev:'superseded by unified Orama search (#2278)',act:'Close — superseded'},
+{n:1081,ms:'M95',cls:'STALE',pri:'P3',eff:'M',w:6,t:'stack picker tabs on First-10-Minutes',ev:'no StackPicker; plain code fences + Cards',act:'Reconsider — nice-to-have, low priority'},
+{n:1078,ms:'M95',cls:'VALID',pri:'P3',eff:'M',w:3,t:'replace First-10-Min code blocks w/ recordings',ev:'still static fences; no TerminalRecording component',act:'Valid; pairs w/ #1077/#1088 video work'},
+{n:1077,ms:'M95',cls:'VALID',pri:'P2',eff:'M',w:3,t:'record 60-second hero video for homepage',ev:'homepage has text hero, no embedded video',act:'Top video item (above-fold trust) if pursued'},
+{n:1017,ms:'M74',cls:'VALID',pri:'P1',eff:'L',w:1,t:'automatic skill outcome scoring',ev:'keystone gap; no outcome writer; pure-JS (rule-compatible)',act:'Build skill-outcome.jsonl + tracker'},
+{n:697,ms:'M74',cls:'VALID',pri:'P2',eff:'M',w:3,t:'error rate tracking and aggregation',ev:'handler only ctx.logs; OTEL error_rate partial',act:'Build JSONL writer + /ork:analytics errors'},
+{n:696,ms:'M74',cls:'OBSOLETE',pri:'P3',eff:'—',w:0,t:'per-tool execution timing',ev:'superseded by CC-native OTEL duration_ms (Panel 4)',act:'Close — CC OTEL covers it better'},
+{n:690,ms:'M74',cls:'DONE',pri:'P1',eff:'—',w:0,t:'model delegation tracking hook',ev:'model field @ unified-dispatcher.ts:292; analytics reads it',act:'Close-with-evidence'},
+// ===== Cluster D: Design / Vercel / Video / hook-contract =====
+{n:1393,ms:'M123',cls:'VALID',pri:'P2',eff:'L',w:5,t:'skill ork:design-iterate — drift refinement',ev:'not built; foundational — others depend on it',act:'Build first; gate rest of Bet B on it',dep:1395},
+{n:1395,ms:'M123',cls:'VALID',pri:'P2',eff:'M',w:5,t:'agent design-drift-detector (visual diff)',ev:'not built; composes with #1393',act:'Build after/with #1393',dep:1391},
+{n:1391,ms:'M123',cls:'VALID',pri:'P3',eff:'M',w:5,t:'hook design-review PR hook',ev:'not built; depends on #1393+#1395',act:'Build last in Bet B chain'},
+{n:1394,ms:'M123',cls:'STALE',pri:'P3',eff:'S',w:5,t:'docs drift-sync cookbook',ev:'docs for unbuilt feature',act:'Defer until #1393 ships'},
+{n:1397,ms:'M123',cls:'STALE',pri:'P3',eff:'M',w:5,t:'dogfood monthly drift report',ev:'depends on whole Bet B chain',act:'Defer; proof of unbuilt work'},
+{n:1561,ms:'M127',cls:'DONE',pri:'P1',eff:'—',w:0,t:'/ork:dev --share via portless --tailscale',ev:'dev/SKILL.md L41,53-57 (PR #1604, prose-closed)',act:'Close-with-evidence'},
+{n:1562,ms:'M127',cls:'DONE',pri:'P2',eff:'—',w:0,t:'portless zero-config monorepo wiring',ev:'dev/SKILL.md L59-61 (PR #1604)',act:'Close-with-evidence'},
+{n:1563,ms:'M127',cls:'DONE',pri:'P2',eff:'—',w:0,t:'Clerk emulator in fresh-machine setup',ev:'emulate-seed/SKILL.md L100,115 (PR #1604)',act:'Close-with-evidence'},
+{n:1565,ms:'M127',cls:'DONE',pri:'P2',eff:'—',w:0,t:'/ork:demo-producer --live via funnel',ev:'demo-producer/SKILL.md L44-66 (PR #1604)',act:'Close-with-evidence'},
+{n:1557,ms:'M127',cls:'DONE',pri:'P3',eff:'—',w:0,t:'wterm decision (defer/track/build)',ev:'track-only; check-labs-versions.mjs TRACK_ONLY tier',act:'Close-with-evidence'},
+{n:1566,ms:'M127',cls:'OBSOLETE',pri:'P3',eff:'L',w:0,t:'wterm inline live demos (build-skill path)',ev:'requires #1557=build, but it resolved track-only',act:'Close obsolete; reopen on real demand'},
+{n:1564,ms:'M127',cls:'VALID',pri:'P2',eff:'L',w:3,t:'spec-aware tests (json-render + agent-browser)',ev:'not in #1604 (held for research); biggest payoff',act:'Research spike → /ork:test-spec or extend /ork:expect'},
+{n:729,ms:'M76',cls:'DONE',pri:'P1',eff:'—',w:0,t:'Phase 1: fix gallery UX',ev:'spinner gone, video-gated, off homepage (2026-06-10)',act:'Close-with-evidence'},
+{n:733,ms:'M76',cls:'VALID',pri:'P1',eff:'M',w:4,t:'fix TerminalFlow reusability bugs',ev:'TerminalFlow.tsx:215 hardcodes verify text; blocks 734/735',act:'Fix — the dependency unlock for M76',dep:735},
+{n:734,ms:'M76',cls:'STALE',pri:'P2',eff:'M',w:4,t:'TerminalFlow configs for 4 skills',ev:'*-demo.ts exist but not schema-driven *-terminal-flow.ts',act:'Re-scope; depends on #733'},
+{n:735,ms:'M76',cls:'VALID',pri:'P2',eff:'M',w:4,t:'TerminalFlow vertical(9:16)+square(1:1)',ev:'no -Vertical/-Square variants; depends on #733',act:'Build after #733'},
+{n:730,ms:'M76',cls:'VALID',pri:'P1',eff:'L',w:4,t:'Phase 2: batch-produce 6 core skill videos',ev:'only 1/14 has videoCdn (regressed); not produced',act:'SLIP — biggest lift, unstarted',dep:731},
+{n:731,ms:'M76',cls:'STALE',pri:'P3',eff:'L',w:4,t:'Phase 3: hero montage + homepage polish',ev:'depends on #730 source videos',act:'Defer behind #730'},
+{n:732,ms:'M76',cls:'STALE',pri:'P2',eff:'L',w:4,t:'Phase 4: automate video gen in CI',ev:'release-video.yml exists (partial); depends 730+731',act:'Audit workflow vs AC; likely partial-done'},
+{n:404,ms:'M76',cls:'STALE',pri:'P3',eff:'M',w:6,t:'docs-site a11y remaining items',ev:'16/18 fixed (Feb); rest = runtime-verify toil',act:'Reconsider scope; not M76-blocking'},
+{n:1806,ms:'M141',cls:'VALID',pri:'P2',eff:'M',w:2,t:'M141-5: OpenAPI 3.1 spec for HTTP sink',ev:'no sink.yaml; blocked-by #1805 (now DONE)',act:'Build — unblocked, clean scope'},
+{n:1808,ms:'M141',cls:'VALID',pri:'P2',eff:'S',w:2,t:'M141-7: generic-client export sample',ev:'no examples/; unblocked; ~80-line Express+supertest',act:'Build — smallest, proves portability'},
+{n:1809,ms:'M141',cls:'STALE',pri:'P2',eff:'L',w:6,t:'M141-8: migrate platform to package',ev:'cross-repo; 41 event values not 19; paused w/ handoff',act:'Re-scope; resume from handoff (not closeable here)'},
+{n:1861,ms:'M141',cls:'STALE',pri:'P3',eff:'M',w:6,t:'deprecate generate:http-hooks once canonical',ev:'blocked-by #1806+#1809',act:'Keep blocked; revisit after #1809'},
+// ===== Cluster E: Usage hygiene + unmilestoned =====
+{n:1473,ms:'M119',cls:'STALE',pri:'P3',eff:'S',w:6,t:'subagent spawn-count warning at N=5/10',ev:'spawn log exists; CC 2.1.152 native /usage reduces value',act:'Reassess vs native /usage; likely close'},
+{n:1471,ms:'M119',cls:'STALE',pri:'P3',eff:'M',w:6,t:'auto-suggest /clear on topic-cluster shift',ev:'capacity /clear already ships; own comment = defer',act:'Defer/close per own decision-gate'},
+{n:924,ms:'M119',cls:'VALID',pri:'P2',eff:'S',w:2,t:'ci: dispatcher budget test, index size, counts',ev:'task1 done; tasks 2/3 partial (warn not fail)',act:'Trim to: index.json hard-fail + desc reconciliation'},
+{n:2435,ms:'none',cls:'ROLLING',pri:'P3',eff:'M',w:'R',t:'Fable structural demote (when permanent)',ev:'Fable suspended not discontinued; trigger NOT met (~4d)',act:'KEEP OPEN deferred — do not action'},
+{n:2430,ms:'none',cls:'VALID',pri:'P2',eff:'S',w:2,t:'add ORK_NO_NOTIFY env flag',ev:'no ORK_NO_NOTIFY; desktop.ts ungated; well-specified',act:'Gate in unified-dispatcher → suggest MS #104'},
+{n:2375,ms:'none',cls:'STALE',pri:'P2',eff:'S',w:6,t:'Glama Server listing + badge',ev:'awesome-mcp PR 7611 CLOSED; rest manual/external',act:'Manual steps or close blocked → suggest MS #95'},
+{n:1881,ms:'none',cls:'ROLLING',pri:'P2',eff:'—',w:'R',t:'consumer friction from yonatan-hq dogfood',ev:'intentional rolling epic; unfed ~4 weeks',act:'KEEP OPEN; revive or "still live?" prompt'},
+{n:1514,ms:'none',cls:'VALID',pri:'P2',eff:'M',w:2,t:'multimodal: support OpenAI GPT Image 2',ev:'multimodal-specialist has no Image Generation table',act:'Add Image table + Images API pattern → MS #104'},
+];
+
+// ---- WAVE 0 EXECUTION: 29 issues (19 done + 10 obsolete) being closed by the housekeeping PR.
+// #2376 deliberately EXCLUDED — kept open as an upstream-blocked tracker (anthropics/claude-code#16424).
+const CLOSING = new Set([1892,1875,1873,1246,1239,1289,1254,690,1083,2284,2286,2287,2288,1561,1562,1563,1565,1557,729,1847,1290,1287,1255,1327,2265,2266,696,2289,1566]);
+const WAVE0_PR = null; // filled with the PR number once opened
+
+// ===== state =====
+const DEF = {cls:new Set(), pri:new Set(), ms:'', q:'', view:'roadmap'};
+const state = {cls:new Set(), pri:new Set(), ms:'', q:'', view:'roadmap'};
+
+// ===== build sidebar chips =====
+function countBy(field){const m={};D.forEach(d=>m[d[field]]=(m[d[field]]||0)+1);return m;}
+const clsCounts=countBy('cls'), priCounts=countBy('pri');
+const clsBox=document.getElementById('clsChips');
+['DONE','VALID','STALE','OBSOLETE','ROLLING'].forEach(k=>{
+  const c=document.createElement('div');c.className='chip';c.dataset.cls=k;
+  c.innerHTML=`<span class="dot" style="background:${CLS[k].hex}"></span>${CLS[k].label.replace(/^.. /,'')}<span class="ct">${clsCounts[k]||0}</span>`;
+  c.onclick=()=>{state.cls.has(k)?state.cls.delete(k):state.cls.add(k);c.classList.toggle('on');render();};
+  clsBox.appendChild(c);
+});
+const priBox=document.getElementById('priChips');
+['P1','P2','P3'].forEach(k=>{
+  const c=document.createElement('div');c.className='chip';c.dataset.pri=k;
+  c.innerHTML=`<span class="dot" style="background:${PRI[k]}"></span>${k}<span class="ct">${priCounts[k]||0}</span>`;
+  c.onclick=()=>{state.pri.has(k)?state.pri.delete(k):state.pri.add(k);c.classList.toggle('on');render();};
+  priBox.appendChild(c);
+});
+const msSel=document.getElementById('msSel');
+Object.keys(MS).forEach(k=>{
+  const ct=D.filter(d=>d.ms===k).length; if(!ct)return;
+  const o=document.createElement('option');o.value=k;o.textContent=`${k==='none'?'⟂ Unmilestoned':k} — ${MS[k].name} (${ct})`;
+  msSel.appendChild(o);
+});
+msSel.onchange=()=>{state.ms=msSel.value;render();};
+document.getElementById('search').oninput=e=>{state.q=e.target.value.toLowerCase();render();};
+document.getElementById('reset').onclick=()=>{
+  state.cls.clear();state.pri.clear();state.ms='';state.q='';
+  document.querySelectorAll('.chip.on').forEach(c=>c.classList.remove('on'));
+  msSel.value='';document.getElementById('search').value='';render();
+};
+document.querySelectorAll('#viewtabs button').forEach(b=>{
+  b.onclick=()=>{state.view=b.dataset.v;
+    document.querySelectorAll('#viewtabs button').forEach(x=>x.classList.toggle('on',x===b));
+    ['roadmap','milestones','table'].forEach(v=>document.getElementById('view-'+v).classList.toggle('hide',v!==state.view));
+    render();};
+});
+
+// ===== filter =====
+function pass(d){
+  if(state.cls.size&&!state.cls.has(d.cls))return false;
+  if(state.pri.size&&!state.pri.has(d.pri))return false;
+  if(state.ms&&d.ms!==state.ms)return false;
+  if(state.q){const h=(d.t+' '+d.ev+' '+d.act+' #'+d.n).toLowerCase();if(!h.includes(state.q))return false;}
+  return true;
+}
+
+// ===== render =====
+function badge(cls){return `<span class="badge" style="background:${CLS[cls].hex}22;color:${CLS[cls].hex};border:1px solid ${CLS[cls].hex}55">${CLS[cls].label}</span>`;}
+function priBadge(p){return p==='—'?'<span class="eff">—</span>':`<span class="pri" style="background:${PRI[p]}22;color:${PRI[p]}">${p}</span>`;}
+const ghUrl=n=>`https://github.com/yonatangross/orchestkit/issues/${n}`;
+
+function render(){
+  const rows=D.filter(pass);
+  // KPIs (always full-dataset for the headline, but reflect filter in stat)
+  const all={DONE:0,VALID:0,STALE:0,OBSOLETE:0,ROLLING:0};D.forEach(d=>all[d.cls]++);
+  document.getElementById('kpis').innerHTML=
+    `<div class="kpi flag"><div class="n" style="color:var(--done)">${CLOSING.size}</div><div class="l">Closing — Wave 0</div></div>`+
+    `<div class="kpi"><div class="n" style="color:var(--done)">${all.DONE}</div><div class="l">Done-but-open</div></div>`+
+    `<div class="kpi"><div class="n" style="color:var(--valid)">${all.VALID}</div><div class="l">Valid work</div></div>`+
+    `<div class="kpi"><div class="n" style="color:var(--stale)">${all.STALE}</div><div class="l">Stale / reconsider</div></div>`+
+    `<div class="kpi"><div class="n" style="color:var(--obsolete)">${all.OBSOLETE}</div><div class="l">Obsolete</div></div>`+
+    `<div class="kpi"><div class="n" style="color:var(--rolling)">${all.ROLLING}</div><div class="l">Rolling (keep)</div></div>`;
+  // stacked bar — reflects filtered set
+  const fc={DONE:0,VALID:0,STALE:0,OBSOLETE:0,ROLLING:0};rows.forEach(d=>fc[d.cls]++);
+  const tot=rows.length||1;const stack=document.getElementById('stack');stack.innerHTML='';
+  ['DONE','VALID','STALE','OBSOLETE','ROLLING'].forEach(k=>{
+    if(!fc[k])return;const seg=document.createElement('div');seg.className='seg';
+    seg.style.width=(fc[k]/tot*100)+'%';seg.style.background=CLS[k].hex;
+    seg.textContent=fc[k];seg.title=`${CLS[k].label}: ${fc[k]}`;stack.appendChild(seg);
+  });
+  document.getElementById('legend').innerHTML=['DONE','VALID','STALE','OBSOLETE','ROLLING']
+    .map(k=>`<span><i style="background:${CLS[k].hex}"></i>${CLS[k].label} · ${fc[k]}</span>`).join('');
+  document.getElementById('filterstat').textContent=
+    `showing ${rows.length} / 98`+(state.cls.size||state.pri.size||state.ms||state.q?' (filtered)':'');
+  // wave-0 banner
+  const prLink=WAVE0_PR?`<a href="${ghUrl(WAVE0_PR).replace('/issues/','/pull/')}" target="_blank">PR #${WAVE0_PR}</a>`:'the housekeeping PR (opening…)';
+  document.getElementById('wave0banner').innerHTML=
+    `🚀 <span><b>Wave 0 executed</b> — ${CLOSING.size} verified done/obsolete issues are closing via ${prLink} `+
+    `(19 shipped-in-code + 10 obsolete; <code>closes #N</code> per issue). #2376 kept open as an upstream-blocked tracker. `+
+    `Closed issues show <b style="color:#7ee787">✅ + strikethrough</b> below.</span>`;
+
+  if(state.view==='table')renderTable(rows);
+  if(state.view==='milestones')renderMs(rows);
+  if(state.view==='roadmap')renderRoadmap(rows);
+  updatePrompt(rows);
+}
+
+function renderTable(rows){
+  const tb=document.getElementById('tbody');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="8" class="empty">No issues match these filters.</td></tr>';return;}
+  rows.sort((a,b)=>{const o={P1:0,P2:1,P3:2,'—':3};return (o[a.pri]-o[b.pri])||(a.n-b.n);});
+  tb.innerHTML=rows.map(d=>`<tr class="${CLOSING.has(d.n)?'closing':''}">
+    <td><a class="num" href="${ghUrl(d.n)}" target="_blank">${d.n}</a></td>
+    <td>${d.t}</td>
+    <td>${badge(d.cls)}</td>
+    <td>${priBadge(d.pri)}</td>
+    <td class="eff">${d.eff}</td>
+    <td class="msc">${d.ms==='none'?'⟂':d.ms}</td>
+    <td class="ev">${d.ev}</td>
+    <td class="act">${d.act}</td>
+  </tr>`).join('');
+}
+
+function renderMs(rows){
+  const list=document.getElementById('msList');
+  const byMs={};rows.forEach(d=>{(byMs[d.ms]=byMs[d.ms]||[]).push(d);});
+  const order=Object.keys(MS).filter(k=>byMs[k]);
+  // sort: most clearable first
+  order.sort((a,b)=>{
+    const clr=g=>byMs[g].filter(d=>d.cls==='DONE'||d.cls==='OBSOLETE').length/byMs[g].length;
+    return clr(b)-clr(a);
+  });
+  if(!order.length){list.innerHTML='<div class="empty">No issues match these filters.</div>';return;}
+  list.innerHTML=order.map(k=>{
+    const items=byMs[k];const t=items.length;
+    const c={DONE:0,VALID:0,STALE:0,OBSOLETE:0,ROLLING:0};items.forEach(d=>c[d.cls]++);
+    const clr=c.DONE+c.OBSOLETE;
+    const seg=k2=>c[k2]?`<div class="s" style="width:${c[k2]/t*100}%;background:${CLS[k2].hex}" title="${CLS[k2].label}: ${c[k2]}"></div>`:'';
+    const due=MS[k].due?`<span class="due">⏰ due ${MS[k].due}</span>`:'';
+    return `<div class="msrow">
+      <div class="nm">${k==='none'?'⟂ Unmilestoned':k} · ${MS[k].name} ${due}<br><small>${t} open · ${clr} clearable</small></div>
+      <div class="msbar">${seg('DONE')}${seg('OBSOLETE')}${seg('VALID')}${seg('ROLLING')}${seg('STALE')}</div>
+      <div class="pct">${Math.round(clr/t*100)}%<br><small style="color:var(--mut)">clr</small></div>
+    </div>`;
+  }).join('');
+}
+
+function renderRoadmap(rows){
+  const wrap=document.getElementById('waves');
+  const byW={};rows.forEach(d=>{(byW[d.w]=byW[d.w]||[]).push(d);});
+  let html='';
+  WAVES.forEach(w=>{
+    const items=(byW[w.id]||[]).slice();
+    if(!items.length)return;
+    items.sort((a,b)=>{const o={P1:0,P2:1,P3:2,'—':3};return (o[a.pri]-o[b.pri])||(a.n-b.n);});
+    const pills=items.map(d=>{
+      const arrow=d.dep?` <span class="arrow">→ #${d.dep}</span>`:'';
+      return `<div class="pill${CLOSING.has(d.n)?' closing':''}" style="border-left-color:${CLS[d.cls].hex}" onclick="window.open('${ghUrl(d.n)}','_blank')">
+        <div class="pt"><b class="num">#${d.n}</b> ${d.t}${arrow}</div>
+        <div class="pm">${badge(d.cls)} ${priBadge(d.pri)} <span>${d.eff!=='—'?d.eff:''}</span> <span>${d.ms==='none'?'⟂':d.ms}</span></div>
+      </div>`;
+    }).join('');
+    html+=`<div class="wave ${w.key}">
+      <div class="wh"><span class="wnum">${w.id==='R'?'KEEP':'WAVE '+w.id}</span><span class="wt">${w.t}</span><span class="wct">${items.length} issue${items.length>1?'s':''}</span></div>
+      <div class="wd">${w.d}</div>
+      <div class="pills">${pills}</div>
+    </div>`;
+  });
+  wrap.innerHTML=html||'<div class="empty">No issues match these filters.</div>';
+}
+
+// ===== prompt output =====
+function updatePrompt(rows){
+  const el=document.getElementById('prompt');
+  const f=state.cls.size||state.pri.size||state.ms||state.q;
+  const list=arr=>arr.map(d=>'closes #'+d.n).join(', ');
+  const numlist=arr=>arr.map(d=>'#'+d.n).join(', ');
+
+  if(!f){
+    const done=D.filter(d=>d.cls==='DONE'), obs=D.filter(d=>d.cls==='OBSOLETE');
+    el.textContent=
+`OrchestKit issue triage — 98 open, verified against repo @ 8.46.0.
+
+WAVE 0 — clear 30 issues (31% of backlog):
+• 19 DONE-but-open (shipped, never auto-closed via the "closes #N" keyword bug). Open ONE
+  housekeeping PR whose body repeats the keyword per issue (repo gotcha: "closes #X, #Y"
+  only closes #X), so CI auto-closes all 19 on merge:
+  ${list(done)}
+• 11 OBSOLETE — add the wontfix label + a one-line evidence comment, then close:
+  ${numlist(obs)}
+  (NOTE: keep #2376 open as an upstream-blocked tracker; close the rest.)
+
+Then start WAVE 1 (P1 keystones): #1139 KG auto-persist, #1017 skill outcome scoring,
+#2351 memory VERIFY loop, #1264 hooks.json generator, #2302 record headroom defer decision.
+
+Milestone decision: M76 "Video Gallery" (due 2026-06-30) is NOT achievable — descope to a
+"TerminalFlow reusable" mini-milestone (#733+#735) now and slip video production (#730/731/732).`;
+    return;
+  }
+
+  // filtered prompt
+  if(!rows.length){el.textContent='No issues match the current filters — widen the selection.';return;}
+  const parts=[];
+  if(state.ms)parts.push(`milestone ${state.ms} (${MS[state.ms].name})`);
+  if(state.cls.size)parts.push([...state.cls].map(c=>CLS[c].label.replace(/^.. /,'')).join('/'));
+  if(state.pri.size)parts.push([...state.pri].join('/'));
+  if(state.q)parts.push(`matching "${state.q}"`);
+  const allDone=rows.every(d=>d.cls==='DONE');
+  const allObs=rows.every(d=>d.cls==='OBSOLETE');
+  let head=`Work the ${rows.length} OrchestKit issue${rows.length>1?'s':''} ${parts.length?'('+parts.join(', ')+')':''}:`;
+  let body;
+  if(allDone){
+    body=`These are DONE in code but still open. Open one housekeeping PR closing them all (repeat the keyword per issue):\n  ${list(rows)}`;
+  }else if(allObs){
+    body=`These are obsolete. Add wontfix + evidence comment, then close:\n  ${rows.map(d=>'#'+d.n+' — '+d.act).join('\n  ')}`;
+  }else{
+    body=rows.slice(0,14).map(d=>`#${d.n} [${d.cls} ${d.pri}] ${d.t}\n   → ${d.act}`).join('\n')+(rows.length>14?`\n…and ${rows.length-14} more.`:'');
+  }
+  el.textContent=head+'\n\n'+body;
+}
+
+document.getElementById('copyBtn').onclick=()=>{
+  navigator.clipboard.writeText(document.getElementById('prompt').textContent).then(()=>{
+    const b=document.getElementById('copyBtn');const o=b.textContent;b.textContent='Copied!';setTimeout(()=>b.textContent=o,1200);
+  });
+};
+
+render();
+</script>
+</body>
+</html>
