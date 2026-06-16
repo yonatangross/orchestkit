@@ -3,36 +3,26 @@
 
 /**
  * ElicitationResult Logger — Tracks elicitation outcomes for analytics
- * CC 2.1.76+: Fires after user responds to an MCP elicitation dialog.
+ * Fires on the CC `ElicitationResult` event (after the user responds).
  *
- * - Logs accept/decline/cancel outcomes
- * - On decline: injects context suggesting alternatives
+ * Reads CC's documented payload: { server_name, user_response: { action, content } }.
+ * Log-only: CC does NOT read additionalContext on ElicitationResult (it is stripped,
+ * #1794), so the prior decline-suggestion injection was dead — removed (#1264 Phase 3).
  *
- * Version: 1.0.0
+ * Version: 1.1.0
  */
 
-import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
+import type { HookInput, HookResult, HookContext } from '../types.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 export function elicitationResultLogger(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
-  const action = input.elicitation_action || 'unknown';
-  const server = input.mcp_server_name || 'unknown';
-  const mode = input.elicitation_mode || 'unknown';
+  const action = input.user_response?.action || 'unknown';
+  const server = input.server_name || 'unknown';
 
   ctx.log('elicitation-result-logger',
-    `Elicitation ${action} — server: ${server}, mode: ${mode}`
+    `Elicitation ${action} — server: ${server}`
   );
-
-  // On decline, suggest alternatives
-  if (action === 'decline') {
-    return outputWithContext(
-      `[ELICITATION DECLINED] User declined ${mode}-mode input from MCP server "${server}". ` +
-      `Consider: (1) proceeding without this input if optional, ` +
-      `(2) offering alternative configuration via command-line args or env vars, ` +
-      `(3) using sensible defaults.`
-    );
-  }
 
   return outputSilentSuccess();
 }

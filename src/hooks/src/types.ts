@@ -144,23 +144,28 @@ export interface HookInput {
   /** Estimated context size after compaction (tokens) */
   context_size_after?: number;
 
-  // Elicitation specific fields (CC 2.1.76)
-  /** Elicitation mode: form (JSON Schema dialog) or url (external browser flow) */
-  elicitation_mode?: 'form' | 'url';
-  /** Human-readable message shown in the elicitation dialog */
-  elicitation_message?: string;
-  /** JSON Schema for form-mode fields (flat object, primitive properties only) */
-  elicitation_schema?: Record<string, unknown>;
-  /** URL for url-mode elicitation (external auth, OAuth, payments) */
-  elicitation_url?: string;
+  // Elicitation event (CC documented payload). NOTE: there is no `elicitation_mode`
+  // / `elicitation_schema` / `mcp_server_name` — those were invented field names
+  // and made the elicitation hooks born-dead vs real CC payloads (#1264 Phase 3).
   /** MCP server name that requested the elicitation */
-  mcp_server_name?: string;
+  server_name?: string;
+  /** JSON Schema for the elicitation form fields (top-level `properties`) */
+  form_schema?: Record<string, unknown>;
 
-  // ElicitationResult specific fields (CC 2.1.76)
-  /** User action on the elicitation: accept, decline, or cancel */
-  elicitation_action?: 'accept' | 'decline' | 'cancel';
-  /** Form field values submitted by the user (form mode, accept only) */
-  elicitation_content?: Record<string, unknown>;
+  // ElicitationResult event: fires after the user responds.
+  /** The user's response — action + submitted field values */
+  user_response?: {
+    action?: 'accept' | 'decline' | 'cancel';
+    content?: Record<string, unknown>;
+  };
+
+  // ConfigChange event (CC documented payload).
+  /** Which settings layer changed */
+  config_source?: 'user_settings' | 'project_settings' | 'local_settings' | 'policy_settings' | 'skills';
+  /** Path to the config file that changed */
+  config_file_path?: string;
+  /** The changed fields (hooks, permissions, …) */
+  changes?: Record<string, unknown>;
 
   // PostToolUseFailure specific fields (CC 2.1.69)
   /** Whether the tool failure was caused by a user interrupt */

@@ -13,7 +13,7 @@
 import { readFileSync, existsSync, appendFileSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { logHook, outputSilentSuccess, outputBlock, outputWarning, outputPromptContext, getEnvFile } from '../lib/common.js';
+import { logHook, outputSilentSuccess, outputBlock, outputWarning, getEnvFile } from '../lib/common.js';
 import { safeProjectDir } from '../lib/paths.js';
 import { safeMkdirSync } from '../lib/safe-fs.js';
 import { NOOP_CTX } from '../lib/context.js';
@@ -167,6 +167,16 @@ export function settingsReload(input: HookInput, ctx: HookContext = NOOP_CTX): H
   // Sync debug mode with CC's /debug toggle (CC 2.1.71)
   syncDebugMode();
 
+  // CC `config_source`: a hook's block/warn is meaningless for `policy_settings`
+  // (managed policy always takes effect — CC ignores the block) and `skills`
+  // (not a settings file). Audit + silent-success for those. (#1264 Phase 3:
+  // the hook previously ignored config_source and rescanned both files every fire.)
+  const configSource = input.config_source;
+  if (configSource === 'policy_settings' || configSource === 'skills') {
+    writeAuditEntry(projectDir, { session: sessionId, action: 'skip', details: [configSource] });
+    return outputSilentSuccess();
+  }
+
   try {
     // Scan both project and user settings
     const projectSettings = join(projectDir, '.claude', 'settings.json');
@@ -197,13 +207,11 @@ export function settingsReload(input: HookInput, ctx: HookContext = NOOP_CTX): H
       return outputWarning(warningMsg);
     }
 
-    // SAFE: no issues
+    // SAFE: no issues. CC does NOT read additionalContext on ConfigChange (#1794),
+    // so the prior advisory string was silently stripped — the audit row is the
+    // record. (#1264 Phase 3: was a dead outputPromptContext.)
     writeAuditEntry(projectDir, { session: sessionId, action: 'pass', details: [] });
-    return outputPromptContext(
-      '[ConfigChange] Project or user settings were modified during this session. ' +
-      'Permission rules, hook configurations, or plugin settings may have changed. ' +
-      'If a permission was just granted or revoked, it takes effect immediately.'
-    );
+    return outputSilentSuccess();
   } catch (err) {
     // Never crash on config read errors — fall back to advisory
     ctx.log('config-change', `Error scanning config: ${(err as Error).message}`, 'error');

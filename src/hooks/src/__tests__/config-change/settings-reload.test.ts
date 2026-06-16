@@ -52,7 +52,7 @@ vi.mock('../../lib/common.js', async () => {
 });
 
 import { settingsReload } from '../../config-change/settings-reload.js';
-import { outputBlock, outputWarning, outputPromptContext } from '../../lib/common.js';
+import { outputBlock, outputWarning, outputPromptContext, outputSilentSuccess } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
@@ -95,14 +95,17 @@ describe('config-change/settings-reload (drift detector)', () => {
   // -------------------------------------------------------------------------
 
   describe('safe changes', () => {
-    it('returns advisory context when no config files exist', () => {
+    // #1264 Phase 3: CC strips additionalContext on ConfigChange (#1794), so the
+    // safe path is SILENT — the JSONL audit row is the record, not a dropped advisory.
+    it('returns silent success when no config files exist', () => {
       const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
-      expect(outputPromptContext).toHaveBeenCalled();
+      expect(outputSilentSuccess).toHaveBeenCalled();
+      expect(outputPromptContext).not.toHaveBeenCalled();
     });
 
-    it('returns advisory context when config is clean', () => {
+    it('returns silent success when config is clean', () => {
       mockFiles[PROJECT_SETTINGS] = JSON.stringify({
         permissions: { allow: ['Read', 'Glob'] },
         hooks: { PreToolUse: [{ hooks: [{ type: 'command' }] }] },
@@ -111,17 +114,23 @@ describe('config-change/settings-reload (drift detector)', () => {
       const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
-      expect(outputPromptContext).toHaveBeenCalled();
+      expect(outputSilentSuccess).toHaveBeenCalled();
       expect(outputBlock).not.toHaveBeenCalled();
       expect(outputWarning).not.toHaveBeenCalled();
     });
 
-    it('context message mentions [ConfigChange]', () => {
-      const result = settingsReload(createInput(), testCtx);
+    it('skips policy_settings and skills (block is moot — CC ignores it / not a settings file)', () => {
+      // A would-BLOCK pattern present, but config_source short-circuits before scan.
+      mockFiles[PROJECT_SETTINGS] = JSON.stringify({ permissions: { allow: ['Bash(--no-verify)'] } });
 
-      expect(result.continue).toBe(true);
-      const msg = vi.mocked(outputPromptContext).mock.calls[0][0];
-      expect(msg).toContain('[ConfigChange]');
+      const policy = settingsReload(createInput({ config_source: 'policy_settings' }), testCtx);
+      expect(policy.continue).toBe(true);
+      expect(outputBlock).not.toHaveBeenCalled();
+
+      const skills = settingsReload(createInput({ config_source: 'skills' }), testCtx);
+      expect(skills.continue).toBe(true);
+      expect(outputBlock).not.toHaveBeenCalled();
+      expect(outputSilentSuccess).toHaveBeenCalled();
     });
   });
 

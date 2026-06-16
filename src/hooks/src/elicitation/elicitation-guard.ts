@@ -2,13 +2,13 @@
 // Created: 2026-03-14
 
 /**
- * Elicitation Guard — Blocks form-mode requests for secrets
- * CC 2.1.76+: Intercepts MCP elicitation requests before display.
+ * Elicitation Guard — Blocks MCP elicitation forms that request secrets
+ * Fires on the CC `Elicitation` event (before the form is shown to the user).
  *
- * - Blocks form-mode elicitations that request fields matching secret patterns
- * - Logs all elicitation requests for analytics
+ * - Blocks elicitations whose form_schema requests fields matching secret patterns
+ * - Reads CC's documented payload: { server_name, tool_name, form_schema }
  *
- * Version: 1.0.0
+ * Version: 1.1.0 (#1264 Phase 3: read real CC fields; was born-dead vs real payload)
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
@@ -45,28 +45,30 @@ function containsSecretField(schema: Record<string, unknown> | undefined): strin
 }
 
 export function elicitationGuard(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
-  const mode = input.elicitation_mode;
-  const server = input.mcp_server_name || 'unknown';
+  // CC's documented Elicitation payload is { server_name, tool_name, form_schema }.
+  // There is NO `elicitation_mode` field — every Elicitation IS an MCP form-input
+  // request, so we scan its schema unconditionally. (The original code gated on a
+  // non-existent `elicitation_mode === 'form'` and read `elicitation_schema` /
+  // `mcp_server_name`, so against a real payload it never scanned and allowed
+  // secret forms through — a born-dead security hole, see #1264 Phase 3.)
+  const server = input.server_name || 'unknown';
 
-  // Only gate form-mode — URL mode is already secure (browser-based)
-  if (mode !== 'form') {
-    ctx.log('elicitation-guard', `Allowing ${mode || 'unknown'}-mode elicitation from ${server}`);
-    return outputSilentSuccess();
-  }
-
-  // Check for secret fields in the schema
-  const secretField = containsSecretField(input.elicitation_schema);
+  const secretField = containsSecretField(input.form_schema);
   if (secretField) {
     ctx.log('elicitation-guard',
-      `BLOCKED: form-mode elicitation from ${server} requests secret field "${secretField}"`,
+      `BLOCKED: elicitation from ${server} requests secret field "${secretField}"`,
       'warn'
     );
+    // outputBlock → { continue:false, stopReason }: survives sanitizeOutput and
+    // halts before the secret-bearing form is processed. (Elicitation is not in
+    // the hookEventName allowlist, so the documented action:"decline" shape would
+    // have its hookEventName stripped — continue:false is the robust block here.)
     return outputBlock(
-      `Blocked: MCP server "${server}" attempted to collect "${secretField}" via form mode. ` +
-      `Secrets must use URL mode (browser-based flow) to avoid exposing credentials to the LLM context.`
+      `Blocked: MCP server "${server}" attempted to collect "${secretField}" via an ` +
+      `elicitation form. Secrets must not be entered into form fields exposed to the LLM context.`
     );
   }
 
-  ctx.log('elicitation-guard', `Allowed form-mode elicitation from ${server}`);
+  ctx.log('elicitation-guard', `Allowed elicitation from ${server}`);
   return outputSilentSuccess();
 }
