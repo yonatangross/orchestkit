@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.47.3](https://github.com/yonatangross/orchestkit/compare/v8.47.2...v8.47.3) (2026-06-16)
+
+
+### Bug Fixes
+
+* **deps:** bump hono to 4.12.25 (5 high CVEs) ([#2487](https://github.com/yonatangross/orchestkit/issues/2487)) ([5cf5a48](https://github.com/yonatangross/orchestkit/commit/5cf5a482dcc0aebe6c0752fc456cd90c69bbc8d0))
+* **hooks:** Wave 1 — revive 3 born-dead CC event hooks + [#1264](https://github.com/yonatangross/orchestkit/issues/1264) drift-check ([#2476](https://github.com/yonatangross/orchestkit/issues/2476)) ([71a72b8](https://github.com/yonatangross/orchestkit/commit/71a72b8111ba45c063598ac7c52affc6a3b120c7))
+
 ## [8.47.2](https://github.com/yonatangross/orchestkit/compare/v8.47.1...v8.47.2) (2026-06-16)
 
 
