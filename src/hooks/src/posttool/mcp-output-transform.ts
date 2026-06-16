@@ -5,13 +5,24 @@
  * MCP Output Transform — PostToolUse hook for MCP tool results
  * Issue #1240: Proof-of-concept for updatedMCPToolOutput
  *
- * ⚠️ EXPERIMENTAL / KNOWN-INERT LIVE (#2302, ref CC #1794): as of CC 2.1.168,
- * Claude Code does NOT apply `updatedMCPToolOutput` from a plugin PostToolUse
- * `mcp__*` hook — so this hook (and #2264's reversible-stash path) never fires on
- * live MCP outputs (verified 0 transforms across 4 restarts). The code is correct
- * and unit-tested; it is DORMANT pending CC support, not removed. See #2302 for
- * the defer-not-remove decision + the criteria for graduating vs removing it. Do
- * not invest further here until CC closes the gap.
+ * ⚠️ EXPERIMENTAL / KNOWN-INERT LIVE — DEFER-NOT-REMOVE decision (#2302).
+ * As of CC 2.1.168, Claude Code does NOT apply `updatedMCPToolOutput` returned
+ * from a plugin PostToolUse `mcp__*` hook — so this hook (and #2264's reversible
+ * stash path) never fires on live MCP outputs (verified: 0 transforms logged
+ * across 4 CC restarts). The code is correct and unit-tested; it is kept DORMANT,
+ * not deleted, because the unblocking condition is concrete and external:
+ *   • Tracking issue:  #2302 (this decision of record).
+ *   • GRADUATE (re-activate) when: a CC release applies plugin `updatedMCPToolOutput`
+ *     on `mcp__*` PostToolUse. Self-verify $0 — a live tool call then produces an
+ *     `mcp-transforms.jsonl` row with a non-empty `session_id` (the manual pipe-test
+ *     row has an empty session_id, so the two are distinguishable).
+ *   • REMOVE (delete the dead path) if: CC confirms this is wontfix-by-design, OR
+ *     the dormant code blocks a hooks refactor, OR by the backstop date 2026-12-16
+ *     if upstream support has not landed (re-evaluate at the next CC-floor bump).
+ *   • Upstream gap is real but has NO confirmed public CC issue number — do not cite
+ *     "CC #1794" (that is an unrelated, closed ORK WorktreeCreate bug; prior ref was
+ *     wrong). Track upstream by behavior (the self-verify above), not a number.
+ * Do not invest further here until the GRADUATE condition is met.
  *
  * Transforms MCP tool outputs before Claude sees them:
  * 1. Token-saving truncation: large results are head+tail truncated
