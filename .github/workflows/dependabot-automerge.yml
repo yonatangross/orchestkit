@@ -18,6 +18,10 @@
 # pattern for granting Dependabot PRs a privileged token without exposing it to
 # untrusted PR code. Dependabot-controlled metadata is passed via env, never
 # interpolated into a run-step shell body.
+#
+# Least privilege: top-level grants nothing (contents: read); the write token
+# the automerge job needs is scoped to that job only (Scorecard Token-Permissions
+# #212 — top-level write leaks to every future job added to this workflow).
 
 name: Dependabot auto-merge
 
@@ -26,8 +30,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   automerge:
@@ -35,6 +38,9 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' }}
     timeout-minutes: 5
+    permissions:
+      contents: write       # gh pr merge --auto
+      pull-requests: write  # enable auto-merge, label/comment held majors
     steps:
       - name: Fetch Dependabot metadata
         id: meta

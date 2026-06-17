@@ -43,15 +43,27 @@ jobs:
           retention-days: 5
 
   # Unrestricted job (no scorecard-action present) — free to run `run:` steps.
-  # Hybrid de-noise: drop the irreducible npm/pip "not pinned by hash" findings.
-  # npm global installs and `pip install -e .` cannot be hash-pinned the way
-  # GitHub Actions / container images can, so they are permanent noise that
-  # masks genuinely actionable findings. GitHubAction / containerImage /
-  # downloadThenRun findings are KEPT, so a future unpinned-action regression
-  # (cf. ci-sentinel.yml slipping the org-wide SHA-pin sweep) still raises an
-  # alert. This affects ONLY the code-scanning view — `publish_results: true`
-  # already sent the unfiltered result to the public OpenSSF score upstream, so
-  # the score is not gamed.
+  # Hybrid de-noise: drop the irreducible findings that mask actionable ones.
+  #
+  # 1. npm/pip "not pinned by hash" (PinnedDependenciesID): npm global installs
+  #    and `pip install -e .` cannot be hash-pinned the way GitHub Actions /
+  #    container images can — permanent noise. GitHubAction / containerImage /
+  #    downloadThenRun findings are KEPT so a future unpinned-action regression
+  #    (cf. ci-sentinel.yml slipping the org-wide SHA-pin sweep) still alerts.
+  #
+  # 2. Token-Permissions (TokenPermissionsID) on five publish/watch workflows
+  #    (#207–211): each already runs default-deny at the top level with write
+  #    scoped to the single job whose entire purpose is to push a branch, open a
+  #    PR, or `gh release create`. The write is irreducible — a release cannot
+  #    be cut with `contents: read`. The filter is keyed to an explicit FILE
+  #    ALLOWLIST (not the generic message), so a NEW workflow with a bad
+  #    top-level write still raises an alert. dependabot-automerge.yml is
+  #    deliberately NOT in the allowlist — #212 was a genuine top-level-write
+  #    violation and was fixed at the source, not filtered.
+  #
+  # This affects ONLY the code-scanning view — `publish_results: true` already
+  # sent the unfiltered result to the public OpenSSF score upstream, so the
+  # score is not gamed.
   upload:
     name: Filter & Upload SARIF
     needs: analysis
@@ -67,12 +79,18 @@ jobs:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v6.0.0
         with:
           name: scorecard-sarif
-      - name: Drop unfixable npm/pip pinned-deps findings from SARIF
+      - name: Drop irreducible pinned-deps + scoped-write findings from SARIF
         run: |
           jq '.runs |= map(.results |= ((. // []) | map(
             select(
-              ((.ruleId == "PinnedDependenciesID")
-                and (.message.text | test("(npmCommand|pipCommand) not pinned by hash")))
+              (
+                ((.ruleId == "PinnedDependenciesID")
+                  and (.message.text | test("(npmCommand|pipCommand) not pinned by hash")))
+                or
+                ((.ruleId == "TokenPermissionsID")
+                  and ([.locations[]?.physicalLocation.artifactLocation.uri // ""]
+                    | any(test("\\.github/workflows/(publish-hook-contract-py|publish-hook-contract-npm|labs-version-watch|claude-release-watch|cc-support-window-bump)\\.yml$"))))
+              )
               | not
             )
           )))' results.sarif > results.filtered.sarif
