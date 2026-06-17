@@ -37,7 +37,7 @@ export const PIPELINE_ENTRIES: PipelineEntry[] = [
     description: "Transformed a static portfolio hero into an animated component with badge, gradient text, and dual CTAs.",
     input: {
       type: "url",
-      value: "https://yonatangross.dev",
+      value: "https://yonyon.ai",
     },
     stages: {
       extract: "Extracted 8 colors (oklch), Geist font family, 4xl-6xl type scale, gradient mesh + orb background pattern, dual CTA layout",
