@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.2",
-    "@types/node": "^24.0.0",
+    "@types/node": "^25.9.3",
     "@vitest/coverage-v8": "^4.0.18",
     "esbuild": "^0.28.0",
     "fast-check": "^4.7.0",
