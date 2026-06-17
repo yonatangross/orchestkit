@@ -1,0 +1,5 @@
+{
+  "generated_at": "2026-06-17T05:19:09.716410+00:00",
+  "real_ungraded_count": 12,
+  "note": "Monotone ratchet ceiling consumed by tests/skills/functional/test-eval-completeness.sh (Test 7). real_ungraded_count = count of recommend=gap entries in .eval-census-exemptions.txt. Test FAILS if the live gap exceeds this; lower it (never raise) as skills get graded."
+}
