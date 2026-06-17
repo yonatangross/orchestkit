@@ -5,6 +5,44 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.48.2](https://github.com/yonatangross/orchestkit/compare/v8.48.1...v8.48.2) (2026-06-17)
+
+
+### Bug Fixes
+
+* **ci:** remediate 6 Scorecard Token-Permissions alerts (fix [#212](https://github.com/yonatangross/orchestkit/issues/212), filter [#207](https://github.com/yonatangross/orchestkit/issues/207)-211) ([#2512](https://github.com/yonatangross/orchestkit/issues/2512)) ([199b7fb](https://github.com/yonatangross/orchestkit/commit/199b7fb8a13f2cf03ace8e4f8a3a5ca59c899d06))
+
+
+### Miscellaneous
+
+* **cc:** adopt CC 2.1.179 (latest_known 2.1.176 → 2.1.179) ([#2510](https://github.com/yonatangross/orchestkit/issues/2510)) ([8fe436d](https://github.com/yonatangross/orchestkit/commit/8fe436d172c1fa79ce17bcc4a217559eb4347568))
+* **deps-dev:** bump @types/node from 24.12.4 to 25.9.3 ([#2497](https://github.com/yonatangross/orchestkit/issues/2497)) ([95709a6](https://github.com/yonatangross/orchestkit/commit/95709a6349e7d010ba8464d3f0230d52f56c9f58))
+* **deps-dev:** bump @types/node from 24.12.4 to 25.9.3 in /docs/site ([#2507](https://github.com/yonatangross/orchestkit/issues/2507)) ([65c007a](https://github.com/yonatangross/orchestkit/commit/65c007a6e8b7daeffb0550b63d4e8bbacac651f9))
+* **deps-dev:** bump @types/node from 24.12.4 to 25.9.3 in /src/hooks ([#2500](https://github.com/yonatangross/orchestkit/issues/2500)) ([b807ba9](https://github.com/yonatangross/orchestkit/commit/b807ba91ba37dae1b4b8be1032d10522d7850789))
+* **deps-dev:** bump @types/node in /src/mcp-server ([#2496](https://github.com/yonatangross/orchestkit/issues/2496)) ([83b79ad](https://github.com/yonatangross/orchestkit/commit/83b79ad3600663e3f91d014578301fa7aa689141))
+* **deps-dev:** bump agentation from 2.3.3 to 3.0.2 in /docs/site ([#2504](https://github.com/yonatangross/orchestkit/issues/2504)) ([c8972cd](https://github.com/yonatangross/orchestkit/commit/c8972cd4822dd9a5854f51004c6add05594b4f01))
+* **deps-dev:** bump the npm-minor-patch group across 1 directory with 4 updates ([#2499](https://github.com/yonatangross/orchestkit/issues/2499)) ([6ca0035](https://github.com/yonatangross/orchestkit/commit/6ca0035335b0b9861c3adaaed9d8581498800e81))
+* **deps-dev:** bump typescript from 5.9.3 to 6.0.3 ([#2498](https://github.com/yonatangross/orchestkit/issues/2498)) ([d2e39ef](https://github.com/yonatangross/orchestkit/commit/d2e39ef8101187f0e794bee44a775d67fd831f55))
+* **deps-dev:** bump typescript from 5.9.3 to 6.0.3 in /docs/site ([#2506](https://github.com/yonatangross/orchestkit/issues/2506)) ([348cfb1](https://github.com/yonatangross/orchestkit/commit/348cfb13fe7d96d15ae111154466087a191aa0db))
+* **deps-dev:** bump typescript from 5.9.3 to 6.0.3 in /src/hooks ([#2501](https://github.com/yonatangross/orchestkit/issues/2501)) ([1f7a170](https://github.com/yonatangross/orchestkit/commit/1f7a17037b8618253e47a523ccf34b9e25be461b))
+* **deps-dev:** bump typescript from 5.9.3 to 6.0.3 in /src/mcp-server ([#2494](https://github.com/yonatangross/orchestkit/issues/2494)) ([ef868f4](https://github.com/yonatangross/orchestkit/commit/ef868f45e7ab8811d67a6ab63acf9e5150b126a6))
+* **deps-dev:** bump vitest ([#2495](https://github.com/yonatangross/orchestkit/issues/2495)) ([25069fb](https://github.com/yonatangross/orchestkit/commit/25069fb9759f73f10534fe175e9f7fde627d490d))
+* **deps:** bump @vercel/analytics from 1.6.1 to 2.0.1 in /docs/site ([#2503](https://github.com/yonatangross/orchestkit/issues/2503)) ([d49242d](https://github.com/yonatangross/orchestkit/commit/d49242d8f4953e76a8236ddca1f0111ec630c199))
+* **deps:** bump the npm-minor-patch group ([#2502](https://github.com/yonatangross/orchestkit/issues/2502)) ([a0b05b0](https://github.com/yonatangross/orchestkit/commit/a0b05b0b68a4372c0bea7d840795e09137bcb135))
+* **infra:** migrate stale yonatangross.dev refs to yonyon.ai ([#2513](https://github.com/yonatangross/orchestkit/issues/2513)) ([4bccc6a](https://github.com/yonatangross/orchestkit/commit/4bccc6a42839b2932e106b62ade9e63d6c0b1ab0))
+
+
+### Documentation
+
+* **readme:** add Ask DeepWiki documentation badge ([#2509](https://github.com/yonatangross/orchestkit/issues/2509)) ([6c8599d](https://github.com/yonatangross/orchestkit/commit/6c8599d42d977471af08f09d31cd6daa6b08f315))
+
+
+### CI/CD
+
+* bump anthropics/claude-code-action ([#2505](https://github.com/yonatangross/orchestkit/issues/2505)) ([ed4cf33](https://github.com/yonatangross/orchestkit/commit/ed4cf337c664582661e05687de320ae4439abcd4))
+* **deps:** grouped Dependabot + auto-merge across all npm trees ([#2492](https://github.com/yonatangross/orchestkit/issues/2492)) ([1490ea6](https://github.com/yonatangross/orchestkit/commit/1490ea648176e27a25ebda53f762d696646049b8)), closes [#2490](https://github.com/yonatangross/orchestkit/issues/2490)
+* hold Dependabot majors from auto-merge (semver gate) ([#2508](https://github.com/yonatangross/orchestkit/issues/2508)) ([02f2442](https://github.com/yonatangross/orchestkit/commit/02f24424e297795fa753499af8f4982bebb2fe01))
+
 ## [8.48.1](https://github.com/yonatangross/orchestkit/compare/v8.48.0...v8.48.1) (2026-06-16)
 
 
