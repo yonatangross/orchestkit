@@ -3,6 +3,7 @@
     "target": "ES2022",
     "module": "CommonJS",
     "lib": ["ES2022"],
+    "types": ["node"],
     "outDir": "./dist/cjs",
     "rootDir": "./src",
     "declaration": false,
