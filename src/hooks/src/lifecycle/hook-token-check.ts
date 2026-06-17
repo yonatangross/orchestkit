@@ -75,7 +75,7 @@ function scanSettingsFile(path: string): ScanResult | null {
   for (const entries of Object.values(parsed.hooks)) {
     if (!Array.isArray(entries)) continue;
     for (const entry of entries) {
-      if (!entry || entry.type !== 'http') continue;
+      if (entry?.type !== 'http') continue;
       const headerValues = entry.headers ? Object.values(entry.headers) : [];
       const headerRefs = headerValues.some(
         (v) => typeof v === 'string' && v.includes(TOKEN_REFERENCE)
