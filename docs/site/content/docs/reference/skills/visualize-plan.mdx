@@ -221,11 +221,17 @@ Render the selected sections into the `FORMATS` chosen in STEP 0.5. **ASCII alwa
 | Format | Action |
 |--------|--------|
 | ASCII | Native render (above) — always, the floor |
-| Playground | Hand the plan brief to the `playground` skill → write `docs/&lt;branch-dir&gt;/plan-viz.html`, link it |
+| Playground | Classify the archetype (below), then hand the plan brief to the `playground` skill → write `docs/&lt;branch-dir&gt;/plan-viz.html`, link it |
 | Infographic | Run the `notebooklm` `studio_create(artifact_type=infographic\|slides)` flow — **fire-and-notify**, poll `studio_status`, never await |
 | All | ASCII inline now + the rest linked as they finish |
 
 `&lt;branch-dir&gt;` = branch with `/` → `--` (same path the PR Playground gate checks).
+
+> **Playground archetype:** a plan visualization is usually a **DASHBOARD** (current behavior — fine).
+> But if the plan demonstrates a *user-facing flow* or a *prioritization/decision*, route to the
+> **user-story-player** or **decision-board** archetype instead of a flat card grid. Apply the §0 routing
+> rule in `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rules/playground-visual-standard.md")` and adapt the
+> matching exemplar under `skills/shared/assets/playground-exemplars/`.
 
 ---
 
@@ -1022,11 +1028,17 @@ Hide unavailable options from the AskUserQuestion list and add a one-line instal
 | Format | How | Output | Blocks? |
 |--------|-----|--------|---------|
 | ASCII + emojis | Native — render sections per `rules/section-rendering.md` | In chat | n/a (always first) |
-| Interactive playground | Build the plan brief, hand to the `playground` skill | `docs/&lt;branch-dir&gt;/plan-viz.html` | No — write then link |
+| Interactive playground | Classify archetype (§0 of the visual standard), build the plan brief, hand to the `playground` skill | `docs/&lt;branch-dir&gt;/plan-viz.html` | No — write then link |
 | NotebookLM infographic/slides | Build a source doc, run the notebooklm `studio_create(artifact_type=infographic\|slides)` flow | `.png`/slides artifact | **No — fire-and-notify** |
 | All available | Fan out: ASCII inline now + the others as they finish | all of the above | No |
 
 `&lt;branch-dir&gt;` = current branch with `/` → `--` (matches the PR Playground CI gate path, so the playground also satisfies that gate for free).
+
+> **Archetype before generation.** Most plan visualizations are a **DASHBOARD** (the default card grid).
+> But a plan that demonstrates a *user-facing flow* or a *prioritization/decision* should be a
+> **user-story-player** or **decision-board** — `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rules/playground-visual-standard.md")`
+> for the §0 routing rule, the token/glass/motion spec, and the exemplars to adapt
+> (`skills/shared/assets/playground-exemplars/`). Brief the `playground` skill with archetype + persona, not raw HTML.
 
 ## The plan brief (shared interchange, v1)
 

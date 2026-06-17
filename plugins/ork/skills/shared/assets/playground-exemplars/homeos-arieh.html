@@ -1,0 +1,830 @@
+<!--
+  ════════════════════════════════════════════════════════════════════════
+  CANONICAL GOLD-STANDARD REFERENCE — "HomeOS · App UI Explorer"
+  Designed by Arieh. Committed verbatim as the quality bar for OrchestKit
+  visual playgrounds. Do not edit — study it.
+
+  Why it is the bar (see skills/shared/rules/playground-visual-standard.md):
+   • USER-STORY PLAYER archetype: high-fidelity device mockups (WhatsApp phone
+     w/ notch + chat bubbles + typing dots, kitchen tablet, kanban).
+   • Plays a user story with a transport (play / prev / next).
+   • Cause→effect flow arrow: a forwarded message becomes a calendar-event card.
+   • Warm-glass persona: gradient mesh, backdrop-filter, two-part shadows.
+   • RTL Hebrew first-class via logical properties. 1-click copy-prompt bar.
+  ════════════════════════════════════════════════════════════════════════
+-->
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HomeOS · App UI Explorer</title>
+<style>
+  /* ───────────────────────────────────────────────────────────────
+     HomeOS — App UI & User-Story Explorer
+     Single-file, no external deps. RTL Hebrew first-class.
+     Aesthetic: warm "family tech" — emerald (WhatsApp nod) + amber,
+     glass chrome over a gradient mesh, parchment kitchen-tablet surface.
+     ─────────────────────────────────────────────────────────────── */
+  :root {
+    --bg: #0c1014;
+    --ink: #e9eef1;
+    --muted: #93a1ab;
+    --faint: #66727c;
+    --line: rgba(255,255,255,.09);
+    --glass: rgba(255,255,255,.045);
+    --glass-2: rgba(255,255,255,.07);
+    --emerald: #25d366;       /* WhatsApp green */
+    --emerald-deep: #0e7c66;
+    --amber: #f5a623;
+    --rose: #e8748a;
+    --sky: #5aa9e6;
+    --teal: #2dd4bf;
+    --radius: 18px;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,.7);
+    --font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI",
+            "Assistant", "Heebo", "Rubik", system-ui, sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", "Fira Code", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    color: var(--ink);
+    background:
+      radial-gradient(900px 600px at 88% -8%, rgba(37,211,102,.16), transparent 60%),
+      radial-gradient(800px 620px at 6% 108%, rgba(245,166,35,.13), transparent 58%),
+      radial-gradient(700px 500px at 50% 50%, rgba(45,212,191,.06), transparent 70%),
+      var(--bg);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  .app {
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 18px;
+    padding: 18px;
+  }
+
+  /* ── Controls panel ───────────────────────────────────────────── */
+  .panel {
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .controls {
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand .logo {
+    width: 42px; height: 42px; border-radius: 13px; flex: none;
+    background: linear-gradient(145deg, var(--emerald), var(--emerald-deep));
+    display: grid; place-items: center;
+    box-shadow: 0 8px 22px -8px rgba(37,211,102,.7), inset 0 1px 0 rgba(255,255,255,.4);
+    font-size: 22px;
+  }
+  .brand h1 { margin: 0; font-size: 18px; letter-spacing: -.2px; }
+  .brand p { margin: 2px 0 0; font-size: 11.5px; color: var(--muted); letter-spacing: .2px; }
+
+  .group { display: flex; flex-direction: column; gap: 10px; }
+  .group > .label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.4px;
+    color: var(--faint); font-weight: 600; display:flex; justify-content:space-between; align-items:center;
+  }
+
+  /* scenario cards */
+  .scn {
+    text-align: start; width: 100%; cursor: pointer;
+    background: var(--glass); border: 1px solid var(--line);
+    border-radius: 14px; padding: 12px 13px; color: var(--ink);
+    display: flex; gap: 11px; align-items: flex-start;
+    transition: transform .18s ease, border-color .18s, background .18s, box-shadow .18s;
+    font-family: inherit;
+  }
+  .scn:hover { transform: translateY(-2px); background: var(--glass-2); border-color: rgba(255,255,255,.18); }
+  .scn[aria-pressed="true"] {
+    border-color: rgba(37,211,102,.6);
+    background: linear-gradient(180deg, rgba(37,211,102,.14), rgba(37,211,102,.04));
+    box-shadow: 0 10px 30px -16px rgba(37,211,102,.6);
+  }
+  .scn .ico { font-size: 20px; line-height: 1; margin-top: 1px; }
+  .scn .tt { font-size: 13.5px; font-weight: 650; letter-spacing: -.1px; }
+  .scn .sb { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.45; }
+  .scn .soon {
+    font-size: 9.5px; font-weight: 700; letter-spacing: .5px; color: #0c1014;
+    background: var(--amber); border-radius: 999px; padding: 2px 7px; margin-inline-start: auto; align-self:center;
+  }
+
+  /* segmented control */
+  .seg { display: flex; background: rgba(0,0,0,.28); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
+  .seg button {
+    flex: 1; border: 0; background: transparent; color: var(--muted);
+    font-family: inherit; font-size: 12.5px; font-weight: 600; padding: 9px 6px; border-radius: 9px;
+    cursor: pointer; transition: .16s; letter-spacing: -.1px;
+  }
+  .seg button:hover { color: var(--ink); }
+  .seg button[aria-pressed="true"] {
+    background: linear-gradient(180deg, var(--glass-2), rgba(255,255,255,.03));
+    color: var(--ink); box-shadow: 0 2px 10px -4px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.12);
+  }
+
+  /* family chips */
+  .fam { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+    background: var(--glass); border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 11px 5px 6px; font-size: 12.5px; color: var(--ink); transition: .16s; font-family: inherit;
+  }
+  .chip[aria-pressed="false"] { opacity: .4; filter: grayscale(.6); }
+  .chip:hover { border-color: rgba(255,255,255,.22); }
+  .av {
+    width: 22px; height: 22px; border-radius: 999px; display: grid; place-items: center;
+    font-size: 11px; font-weight: 800; color: #0c1014;
+  }
+
+  /* transport */
+  .transport { display: flex; gap: 8px; }
+  .btn {
+    flex: 1; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 650;
+    border-radius: 11px; padding: 11px; border: 1px solid var(--line);
+    background: var(--glass); color: var(--ink); transition: .16s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  }
+  .btn:hover { background: var(--glass-2); transform: translateY(-1px); }
+  .btn.primary {
+    background: linear-gradient(145deg, var(--emerald), var(--emerald-deep));
+    border-color: transparent; color: #05140d;
+    box-shadow: 0 10px 26px -12px rgba(37,211,102,.8);
+  }
+  .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+  .hint { font-size: 11.5px; color: var(--faint); line-height: 1.5; }
+  .hint b { color: var(--muted); font-weight: 650; }
+
+  /* ── Stage ────────────────────────────────────────────────────── */
+  .stage { display: grid; grid-template-rows: auto 1fr auto; gap: 16px; min-width: 0; }
+  .stage-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .stage-title { min-width: 0; }
+  .stage-title h2 { margin: 0; font-size: 19px; letter-spacing: -.3px; }
+  .stage-title p { margin: 3px 0 0; font-size: 12.5px; color: var(--muted); }
+  .view-switch { flex: none; width: 360px; max-width: 42vw; }
+
+  .stage-body {
+    background: var(--glass); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 26px; overflow: auto; display: grid; place-items: center; position: relative;
+  }
+  .stage-body::before {
+    content: ""; position: absolute; inset: 0; border-radius: var(--radius); pointer-events: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  }
+
+  /* ── WhatsApp phone view ──────────────────────────────────────── */
+  .wa-wrap { display: flex; gap: 34px; align-items: center; flex-wrap: wrap; justify-content: center; }
+
+  .phone {
+    width: 330px; height: 660px; border-radius: 42px; padding: 12px;
+    background: linear-gradient(160deg, #1c2530, #0b0f14);
+    box-shadow: var(--shadow), inset 0 0 0 2px rgba(255,255,255,.06);
+    flex: none; position: relative;
+  }
+  .phone::after { /* notch */
+    content: ""; position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 26px; background: #05080b; border-radius: 0 0 16px 16px; z-index: 5;
+  }
+  .screen {
+    height: 100%; border-radius: 31px; overflow: hidden; display: flex; flex-direction: column;
+    background: #0b141a;
+  }
+  .wa-head {
+    background: #1f2c34; padding: 16px 14px 12px; display: flex; align-items: center; gap: 11px;
+    border-bottom: 1px solid rgba(0,0,0,.4);
+  }
+  .wa-head .bot-av {
+    width: 38px; height: 38px; border-radius: 999px; flex: none; display: grid; place-items: center;
+    background: linear-gradient(145deg, var(--emerald), var(--emerald-deep)); font-size: 19px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
+  }
+  .wa-head .nm { font-size: 14.5px; font-weight: 650; color: #e9eef1; }
+  .wa-head .st { font-size: 11px; color: #8aa0ad; margin-top: 1px; }
+  .wa-head .dots { margin-inline-start: auto; color: #8aa0ad; font-size: 18px; letter-spacing: 1px; }
+
+  .wa-body {
+    flex: 1; overflow-y: auto; padding: 16px 12px; display: flex; flex-direction: column; gap: 8px;
+    background-color: #0b141a;
+    background-image:
+      radial-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+      radial-gradient(rgba(255,255,255,.022) 1px, transparent 1px);
+    background-size: 26px 26px, 26px 26px;
+    background-position: 0 0, 13px 13px;
+  }
+  .wa-body::-webkit-scrollbar { width: 0; }
+  .day-pill {
+    align-self: center; font-size: 10.5px; color: #c9d6dd; background: #1f2c34;
+    padding: 4px 12px; border-radius: 8px; margin-bottom: 4px; box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  }
+
+  .bubble {
+    max-width: 80%; padding: 7px 10px 6px; border-radius: 11px; font-size: 13.5px; line-height: 1.5;
+    position: relative; white-space: pre-wrap; word-break: break-word;
+    animation: pop .34s cubic-bezier(.2,.8,.25,1) both; box-shadow: 0 1px 1px rgba(0,0,0,.3);
+  }
+  .bubble .meta { font-size: 9.5px; color: rgba(255,255,255,.5); margin-top: 3px; text-align: start; display:flex; gap:4px; align-items:center; justify-content:flex-start; }
+  .bubble.out { align-self: flex-end; background: #056452; color: #eafff4; border-top-right-radius: 3px; }
+  .bubble.in  { align-self: flex-start; background: #202d35; color: #e9eef1; border-top-left-radius: 3px; }
+  .bubble.bot { align-self: flex-start; background: linear-gradient(180deg,#10231b,#0f1d18); color: #eafff4; border: 1px solid rgba(37,211,102,.35); border-top-left-radius: 3px; }
+  .bubble.bot .botbadge { font-size: 9px; font-weight: 800; letter-spacing:.4px; color: var(--emerald); margin-bottom: 3px; display:flex; gap:5px; align-items:center; }
+  .bubble .fwd { font-size: 10.5px; color: rgba(255,255,255,.55); font-style: italic; margin-bottom: 3px; display:flex; gap:4px; align-items:center;}
+  .tick { color: #5ad7ff; }
+  .removed { opacity: .55; }
+  .removed .body { text-decoration: line-through; text-decoration-color: rgba(255,255,255,.5); }
+
+  .typing { align-self: flex-start; background: #202d35; padding: 11px 13px; border-radius: 11px; border-top-left-radius: 3px; display: inline-flex; gap: 4px; }
+  .typing span { width: 7px; height: 7px; border-radius: 999px; background: #6b7d88; animation: blink 1.2s infinite both; }
+  .typing span:nth-child(2){ animation-delay: .2s; } .typing span:nth-child(3){ animation-delay: .4s; }
+
+  .wa-input {
+    background: #1f2c34; padding: 9px 12px; display: flex; align-items: center; gap: 10px;
+  }
+  .wa-input .box { flex: 1; background: #2a3942; border-radius: 999px; padding: 9px 14px; font-size: 12.5px; color: #6b7d88; }
+  .wa-input .send { width: 38px; height: 38px; border-radius: 999px; background: var(--emerald); display: grid; place-items: center; font-size: 17px; color:#05140d; }
+
+  /* arrow + resulting card */
+  .flow-arrow { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--muted); }
+  .flow-arrow .ar { font-size: 30px; color: var(--emerald); animation: nudge 1.8s ease-in-out infinite; }
+  .flow-arrow .cap { font-size: 11px; max-width: 130px; text-align: center; line-height: 1.5; }
+  .flow-arrow .cap b { color: var(--ink); }
+
+  .card-stage { display: flex; flex-direction: column; gap: 14px; width: 280px; }
+  .card-stage > .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 1.4px; color: var(--faint); font-weight: 600; }
+  .ecard {
+    background: #ffffff; color: #1b2430; border-radius: 16px; padding: 16px; position: relative;
+    box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,.06); overflow: hidden;
+    animation: cardin .5s cubic-bezier(.2,.85,.25,1) both;
+  }
+  .ecard.gone { animation: cardout .45s ease forwards; }
+  .ecard .stripe { position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 5px; }
+  .ecard .kind { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 700; letter-spacing: .3px; color: #6a7686; text-transform: uppercase; }
+  .ecard h3 { margin: 7px 0 9px; font-size: 18px; letter-spacing: -.3px; }
+  .ecard .row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #38424f; margin-top: 6px; }
+  .ecard .row .gl { font-size: 14px; width: 18px; text-align: center; }
+  .ecard .foot { margin-top: 13px; padding-top: 12px; border-top: 1px dashed #e2e6ec; display: flex; align-items: center; justify-content: space-between; }
+  .ecard .added { font-size: 11px; color: var(--emerald-deep); font-weight: 700; display:flex; gap:5px; align-items:center;}
+  .pill-cap {
+    background: linear-gradient(180deg,#2a1408,#1a0d05); border:1px solid rgba(245,166,35,.4); color:#ffd9a0;
+    border-radius: 14px; padding: 14px 16px; font-size: 12.5px; line-height:1.6; width: 280px; box-shadow: var(--shadow);
+    animation: cardin .5s cubic-bezier(.2,.85,.25,1) both;
+  }
+  .pill-cap b { color: var(--amber); }
+
+  /* ── Kitchen tablet dashboard ─────────────────────────────────── */
+  .tablet {
+    width: min(940px, 100%); aspect-ratio: 16 / 10; border-radius: 26px; padding: 14px;
+    background: linear-gradient(160deg, #20262e, #0a0d11);
+    box-shadow: var(--shadow), inset 0 0 0 2px rgba(255,255,255,.05); flex: none;
+  }
+  .tboard {
+    height: 100%; border-radius: 16px; overflow: hidden; color: #20262e;
+    background: linear-gradient(180deg, #fbf7f0, #f1ece2);
+    display: grid; grid-template-rows: auto 1fr auto; gap: 0;
+    font-size: 13px;
+  }
+  .tbar { display: flex; align-items: center; gap: 16px; padding: 16px 20px 13px; border-bottom: 1px solid #e7e0d4; }
+  .tbar .greet { font-size: 21px; font-weight: 750; letter-spacing: -.4px; }
+  .tbar .greet small { display:block; font-size: 12px; font-weight: 600; color: #8a8276; letter-spacing: 0; margin-top: 2px; }
+  .tbar .hcal {
+    margin-inline-start: auto; text-align: end; font-size: 12.5px; color: #6f6757; line-height: 1.5;
+  }
+  .tbar .hcal b { color: #2c5e4f; }
+  .tbar .clock { font-size: 30px; font-weight: 800; letter-spacing: -1px; color:#20262e; font-variant-numeric: tabular-nums; }
+
+  .tgrid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 0; min-height: 0; }
+  .col { padding: 14px 18px; overflow: auto; }
+  .col + .col { border-inline-start: 1px solid #e7e0d4; background: rgba(255,255,255,.4); }
+  .col h4 { margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px; color: #9a917f; display:flex; align-items:center; gap:7px; }
+  .col h4 .n { background:#e7e0d4; color:#6f6757; border-radius:999px; font-size:10px; padding:1px 7px; font-weight:700; letter-spacing:0;}
+
+  .appt { display: flex; gap: 12px; align-items: stretch; padding: 9px 0; }
+  .appt .time { font-size: 13px; font-weight: 800; color: #2c5e4f; width: 46px; flex: none; font-variant-numeric: tabular-nums; padding-top:2px; }
+  .appt .bar { width: 3px; border-radius: 3px; flex: none; background: #cfc8ba; }
+  .appt .ct { flex: 1; }
+  .appt .ct .t { font-weight: 650; font-size: 14px; }
+  .appt .ct .m { font-size: 11.5px; color: #897f6e; margin-top: 2px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .appt.glow .ct { position: relative; }
+  .appt.glow { background: linear-gradient(90deg, rgba(37,211,102,.16), transparent); border-radius: 10px; margin: 0 -8px; padding: 9px 8px; box-shadow: inset 0 0 0 1px rgba(37,211,102,.3); }
+  .justadded { font-size: 9.5px; font-weight: 800; color: #0c1014; background: var(--emerald); border-radius: 999px; padding: 1px 7px; letter-spacing:.3px;}
+
+  .mini-av { width: 19px; height: 19px; border-radius:999px; display:inline-grid; place-items:center; font-size:9.5px; font-weight:800; color:#0c1014; }
+  .tag { font-size: 10.5px; color:#6f6757; background:#efe9dd; border-radius:6px; padding:1px 7px; }
+
+  .remind { display:flex; gap:9px; align-items:center; padding:7px 0; font-size:13px; }
+  .remind .bx { width:16px; height:16px; border-radius:5px; border:2px solid #c3bbac; flex:none; }
+  .remind.done .bx { background:#2c5e4f; border-color:#2c5e4f; position:relative; }
+  .remind.done .bx::after { content:"✓"; color:#fff; font-size:11px; position:absolute; inset:0; display:grid; place-items:center; }
+  .remind.done span { text-decoration: line-through; color:#a59c8b; }
+
+  .tfoot { padding: 11px 20px; background: linear-gradient(90deg, #2c5e4f, #21483c); color: #eafff4; display:flex; align-items:center; gap:12px; font-size: 13px; }
+  .tfoot .shab { margin-inline-start:auto; font-size:12.5px; opacity:.92; }
+  .tfoot .weather { display:flex; align-items:center; gap:7px; opacity:.95; }
+
+  /* ── Task board (monday-style) ────────────────────────────────── */
+  .kanban { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; width: min(960px, 100%); }
+  .kcol { background: var(--glass); border: 1px solid var(--line); border-radius: 16px; padding: 14px; min-height: 320px; }
+  .kcol .kh { display:flex; align-items:center; gap:8px; margin-bottom: 12px; font-size: 13px; font-weight: 700; }
+  .kcol .kh .dot { width:9px; height:9px; border-radius:999px; }
+  .kcol .kh .n { margin-inline-start:auto; font-size:11px; color: var(--faint); background: rgba(0,0,0,.25); border-radius:999px; padding:1px 8px; }
+  .task { background: #fff; color:#1b2430; border-radius:12px; padding: 12px; margin-bottom: 10px; box-shadow: 0 8px 22px -16px rgba(0,0,0,.8); border:1px solid rgba(0,0,0,.05); cursor: default; transition: transform .15s; animation: cardin .4s both; }
+  .task:hover { transform: translateY(-2px); }
+  .task .tt { font-size: 13.5px; font-weight: 650; }
+  .task .tm { display:flex; align-items:center; justify-content: space-between; margin-top: 10px; }
+  .task .status { font-size: 10px; font-weight: 700; border-radius: 6px; padding: 2px 8px; }
+
+  /* ── Prompt bar ───────────────────────────────────────────────── */
+  .promptbar {
+    background: var(--glass); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 14px 16px; display: flex; align-items: center; gap: 14px;
+  }
+  .promptbar .pt {
+    flex: 1; font-family: var(--mono); font-size: 12px; line-height: 1.6; color: #c7d2da;
+    max-height: 84px; overflow-y: auto;
+  }
+  .promptbar .pt b { color: var(--emerald); font-weight: 600; }
+  .copy {
+    flex: none; cursor: pointer; font-family: inherit; font-weight: 650; font-size: 12.5px;
+    border-radius: 11px; padding: 11px 16px; border: 1px solid transparent; color: #05140d;
+    background: linear-gradient(145deg, var(--emerald), var(--emerald-deep));
+    box-shadow: 0 10px 26px -12px rgba(37,211,102,.8); transition: .16s;
+  }
+  .copy:hover { transform: translateY(-1px); }
+  .copy.done { background: var(--glass-2); color: var(--ink); box-shadow:none; border-color: var(--line); }
+
+  /* ── animations ───────────────────────────────────────────────── */
+  @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.96); } to { opacity: 1; transform: none; } }
+  @keyframes cardin { from { opacity: 0; transform: translateY(14px) scale(.94); } to { opacity: 1; transform: none; } }
+  @keyframes cardout { to { opacity: 0; transform: translateY(8px) scale(.9); } }
+  @keyframes blink { 0%, 60%, 100% { opacity: .3; transform: translateY(0);} 30% { opacity: 1; transform: translateY(-3px);} }
+  @keyframes nudge { 0%,100% { transform: translateY(0);} 50% { transform: translateY(6px);} }
+
+  @media (max-width: 1080px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; overflow:auto; height:auto; min-height:100vh; }
+    body { overflow: auto; }
+    .view-switch { width: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ── CONTROLS ─────────────────────────────────────────────── -->
+  <aside class="panel controls">
+    <div class="brand">
+      <div class="logo">🏠</div>
+      <div>
+        <h1>HomeOS · מגרש משחקים</h1>
+        <p>סיפורי משתמש + תצוגת UI · WhatsApp-first · עברית RTL</p>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="label"><span>סיפור משתמש</span><span>User story</span></div>
+      <div id="scnList"></div>
+    </div>
+
+    <div class="group">
+      <div class="label"><span>תצוגה</span><span>View</span></div>
+      <div class="seg" id="viewSeg">
+        <button data-view="whatsapp" aria-pressed="true">💬 WhatsApp</button>
+        <button data-view="tablet" aria-pressed="false">📺 לוח מטבח</button>
+        <button data-view="tasks" aria-pressed="false">✅ משימות</button>
+      </div>
+    </div>
+
+    <div class="group" id="transportGroup">
+      <div class="label"><span>הדגמת השיחה</span><span>Playback</span></div>
+      <div class="transport">
+        <button class="btn" id="prevBtn">‹ אחורה</button>
+        <button class="btn primary" id="playBtn">▶ הדגמה</button>
+        <button class="btn" id="nextBtn">קדימה ›</button>
+      </div>
+      <div class="hint" id="stepHint"></div>
+    </div>
+
+    <div class="group">
+      <div class="label"><span>בני המשפחה</span><span>Family</span></div>
+      <div class="fam" id="famChips"></div>
+    </div>
+
+    <div class="hint" style="margin-top:auto">
+      💡 בחרו סיפור, נגנו את ההדגמה, והחליפו ל<b>לוח המטבח</b> כדי לראות איך הפריט נוחת על הלוח.
+      העתיקו את ההנחיה למטה כדי לבנות את ה‑UI האמיתי.
+    </div>
+  </aside>
+
+  <!-- ── STAGE ────────────────────────────────────────────────── -->
+  <main class="stage">
+    <div class="stage-head">
+      <div class="stage-title">
+        <h2 id="stTitle"></h2>
+        <p id="stSub"></p>
+      </div>
+      <div class="view-switch"></div>
+    </div>
+
+    <section class="stage-body" id="stage"></section>
+
+    <div class="promptbar">
+      <div class="pt" id="promptOut"></div>
+      <button class="copy" id="copyBtn">📋 העתק הנחיה</button>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ── Family roster ─────────────────────────────────────────────── */
+const FAM = {
+  aba:  { he:"אבא",  init:"א", color:"#5aa9e6" },
+  ima:  { he:"אמא",  init:"א", color:"#e8748a" },
+  yoav: { he:"יואב", init:"י", color:"#f5a623" },
+  noa:  { he:"נועה", init:"נ", color:"#2dd4bf" },
+};
+const av = (k, big) => {
+  const f = FAM[k]; if (!f) return "";
+  const cls = big ? "mini-av" : "mini-av";
+  return `<span class="${cls}" style="background:${f.color}">${f.init}</span>`;
+};
+
+/* ── Scenarios ─────────────────────────────────────────────────── */
+const SCN = {
+  "forward-school": {
+    ico:"🏫", tt:"העברת הודעה מבית הספר", sb:"הורה מעביר הודעת WhatsApp מהגן → אירוע על הלוח",
+    title:"מעבירים הודעה — היא הופכת לאירוע",
+    sub:"הזרימה היחידה שצריך ללמד את המשפחה: forward → אישור בעברית.",
+    chat:[
+      { kind:"out", fwd:"הועבר", body:"הורים יקרים 🌿 אסיפת הורים תתקיים ביום חמישי 18/6 בשעה 17:00 בגן רימון. נא לאשר הגעה. תודה, צוות הגן", time:"21:34" },
+      { kind:"typing" },
+      { kind:"bot", body:"הוספתי ליומן ✓\nאסיפת הורים · יום חמישי, 18 ביוני · 17:00 — גן רימון", time:"21:34" },
+    ],
+    cardAtStep:2,
+    card:{ kindHe:"אירוע", glyph:"📅", color:"#5aa9e6", title:"אסיפת הורים",
+      rows:[["📍","גן רימון"],["🗓️","יום חמישי, 18 ביוני"],["⏰","17:00"]], who:"ima" },
+  },
+  "direct-command": {
+    ico:"🗣️", tt:"פקודה בשפה חופשית", sb:"לא רק העברה — לכתוב ישירות לבוט בגוף ראשון",
+    title:"פקודה ישירה — גוף ראשון הופך לאחראי",
+    sub:"\"יש לי…\" → ה‑assignee הוא השולח (מתוך מפת MEMBERS, server-supplied).",
+    chat:[
+      { kind:"out", body:"יש לי פיזיותרפיה ביום שני, תכניס ליומן", time:"08:12" },
+      { kind:"typing" },
+      { kind:"bot", body:"הוספתי ליומן ✓\nפיזיותרפיה · יום שני, 22 ביוני — אבא", time:"08:12" },
+    ],
+    cardAtStep:2,
+    card:{ kindHe:"משימה", glyph:"🩺", color:"#f5a623", title:"פיזיותרפיה",
+      rows:[["🗓️","יום שני, 22 ביוני"],["👤","אבא (השולח)"]], who:"aba" },
+  },
+  "undo": {
+    ico:"↩️", tt:"ביטול (Undo)", sb:"טעות בפענוח? מילה אחת מחזירה את המצב",
+    title:"ביטול — שחזור מטעות בלחיצה אחת",
+    sub:"\"ביטול\" נתפס לפני המודל — מוחק את אירועי ההודעה האחרונה.",
+    chat:[
+      { kind:"out", body:"אסיפת הורים מחר ב-17:00", time:"21:40" },
+      { kind:"bot", body:"הוספתי ליומן ✓\nאסיפת הורים · יום חמישי, 18 ביוני · 17:00", time:"21:40" },
+      { kind:"out", body:"ביטול", time:"21:41" },
+      { kind:"bot", body:"בוטל ✓", time:"21:41" },
+    ],
+    cardAtStep:1, cardRemovedAtStep:3,
+    card:{ kindHe:"אירוע", glyph:"📅", color:"#5aa9e6", title:"אסיפת הורים",
+      rows:[["🗓️","יום חמישי, 18 ביוני"],["⏰","17:00"]], who:"ima" },
+  },
+  "daily-cap": {
+    ico:"🛡️", tt:"מכסת הודעות יומית (G16)", sb:"גבול עלות לכל שולח — שומר על ≤$100 לחודש",
+    title:"מכסה יומית לכל שולח — בלם עלות",
+    sub:"allowlist מגביל מי, גבול אורך מגביל גודל, וזה מגביל קצב — לפני כל קריאה ל‑Claude.",
+    chat:[
+      { kind:"out", body:"תזכורת לחלב 🥛", time:"23:01" },
+      { kind:"out", body:"וגם ביצים", time:"23:01" },
+      { kind:"out", body:"... (הודעה 51 היום)", time:"23:02" },
+      { kind:"typing" },
+      { kind:"bot", body:"הגעת למכסת ההודעות היומית 🙏 נמשיך מחר.", time:"23:02" },
+    ],
+    cardAtStep:4, capCard:true,
+  },
+  "gmail-calendar": {
+    ico:"📧", ph:"5", tt:"סנכרון Gmail + יומן Google", sb:"מקורות נוספים מעבר ל‑WhatsApp",
+    title:"Phase 5 — Gmail + Google Calendar",
+    sub:"מייל מהגן → אירוע; סנכרון דו‑כיווני ליומן Google. כלי נוסף שמתחבר ל‑registry של הסוכן.",
+    chat:[
+      { kind:"in", body:"✉️ Gmail · גן רימון\nנושא: טיול שנתי — יום ג׳ 23/6, להביא כובע ומים", time:"09:00" },
+      { kind:"typing" },
+      { kind:"bot", body:"הוספתי ליומן ✓ (מ‑Gmail)\nטיול שנתי · יום שלישי, 23 ביוני 🎒\nסונכרן ל‑Google Calendar ↗", time:"09:00" },
+    ],
+    cardAtStep:2, soon:true,
+    card:{ kindHe:"אירוע · Gmail", glyph:"🎒", color:"#2dd4bf", title:"טיול שנתי",
+      rows:[["🗓️","יום שלישי, 23 ביוני"],["🎒","כובע + מים"],["↗","סונכרן ליומן Google"]], who:"yoav" },
+  },
+};
+const SCN_ORDER = ["forward-school","direct-command","undo","daily-cap","gmail-calendar"];
+
+/* ── Board data (kitchen tablet) ───────────────────────────────── */
+const APPTS = [
+  { time:"08:00", t:"הסעה לבית הספר", who:["yoav"], tag:"אבא מסיע", color:"#5aa9e6" },
+  { time:"14:30", t:"איסוף מהצהרון", who:["noa"], tag:"אמא אוספת", color:"#e8748a" },
+  { time:"17:00", t:"אסיפת הורים", who:["ima"], tag:"גן רימון", color:"#5aa9e6", scn:"forward-school" },
+  { time:"18:00", t:"פיזיותרפיה", who:["aba"], tag:"", color:"#f5a623", scn:"direct-command" },
+  { time:"19:00", t:"חוג כדורגל", who:["yoav"], tag:"", color:"#2dd4bf" },
+];
+const REMIND = [
+  { t:"לשלם תשלום לבית הספר", done:false, who:["aba"] },
+  { t:"לחדש מרשם לרופא", done:false, who:["ima"] },
+  { t:"לקנות מתנה ליום הולדת של נועה", done:true, who:["ima"] },
+];
+const TASKS = {
+  todo:[ {t:"קניות לשבת", who:"ima"}, {t:"תשלום ארנונה", who:"aba"} ],
+  doing:[ {t:"לתאם רופא שיניים ליואב", who:"ima"} ],
+  done:[ {t:"להזמין שולחן למסעדה", who:"aba"} ],
+};
+
+/* ── State ─────────────────────────────────────────────────────── */
+const state = {
+  scn: "forward-school",
+  view: "whatsapp",
+  step: 0,
+  fam: { aba:true, ima:true, yoav:true, noa:true },
+  playing: false,
+};
+let playTimer = null;
+
+/* ── Build controls ────────────────────────────────────────────── */
+const scnList = document.getElementById("scnList");
+scnList.innerHTML = SCN_ORDER.map(id => {
+  const s = SCN[id];
+  return `<button class="scn" data-scn="${id}" aria-pressed="${id===state.scn}" style="margin-bottom:8px">
+    <span class="ico">${s.ico}</span>
+    <span style="flex:1">
+      <span class="tt">${s.tt}</span>
+      <span class="sb">${s.sb}</span>
+    </span>
+    ${s.soon ? '<span class="soon">בקרוב</span>' : ''}
+  </button>`;
+}).join("");
+
+const famChips = document.getElementById("famChips");
+famChips.innerHTML = Object.keys(FAM).map(k =>
+  `<button class="chip" data-fam="${k}" aria-pressed="true">
+    <span class="av" style="background:${FAM[k].color}">${FAM[k].init}</span>${FAM[k].he}
+  </button>`
+).join("");
+
+/* ── Renderers ─────────────────────────────────────────────────── */
+const stage = document.getElementById("stage");
+
+function maxStep() { return SCN[state.scn].chat.length - 1; }
+
+function renderHead() {
+  const s = SCN[state.scn];
+  document.getElementById("stTitle").textContent = s.title;
+  document.getElementById("stSub").textContent = s.sub;
+  document.getElementById("transportGroup").style.display = state.view === "whatsapp" ? "" : "none";
+  const last = maxStep();
+  document.getElementById("stepHint").innerHTML =
+    `שלב <b>${Math.min(state.step+1, last+1)}</b> מתוך <b>${last+1}</b>`;
+  document.getElementById("prevBtn").disabled = state.step <= 0;
+  document.getElementById("nextBtn").disabled = state.step >= last;
+}
+
+function chatBubble(m) {
+  if (m.kind === "typing") return `<div class="typing"><span></span><span></span><span></span></div>`;
+  if (m.kind === "bot") return `<div class="bubble bot">
+      <div class="botbadge">🏠 HomeOS</div><div class="body">${esc(m.body)}</div>
+      <div class="meta">${m.time||""} ✓✓</div></div>`;
+  if (m.kind === "in") return `<div class="bubble in"><div class="body">${esc(m.body)}</div><div class="meta">${m.time||""}</div></div>`;
+  // out
+  return `<div class="bubble out">
+    ${m.fwd ? `<div class="fwd">↪ ${m.fwd}</div>` : ""}
+    <div class="body">${esc(m.body)}</div>
+    <div class="meta">${m.time||""} <span class="tick">✓✓</span></div></div>`;
+}
+
+function renderWhatsApp() {
+  const s = SCN[state.scn];
+  const shown = s.chat.slice(0, state.step + 1);
+  const bubbles = shown.map(chatBubble).join("");
+
+  // resulting card logic
+  let cardHtml = `<div class="flow-arrow" style="opacity:.4"><div class="cap">נגנו את ההדגמה כדי לראות את התוצאה ◀</div></div>`;
+  const reached = state.step >= (s.cardAtStep ?? 99);
+  if (reached && s.capCard) {
+    cardHtml = `<div class="pill-cap">🛡️ <b>מכסת הודעות יומית (G16)</b><br>
+      ה‑allowlist מגביל <b>מי</b>, גבול האורך מגביל <b>גודל</b>, וזה מגביל <b>קצב</b>.<br>
+      ההודעה ה‑51 לא נשלחת ל‑Claude — מענה שקט בעברית, ואיפוס בחצות (Asia/Jerusalem).</div>`;
+  } else if (reached && s.card) {
+    const c = s.card;
+    const removed = s.cardRemovedAtStep != null && state.step >= s.cardRemovedAtStep;
+    cardHtml = `<div class="card-stage">
+      <div class="lbl">הכרטיס שנוצר על הלוח</div>
+      <div class="ecard ${removed ? 'gone' : ''}">
+        <div class="stripe" style="background:${c.color}"></div>
+        <div class="kind">${c.glyph} ${c.kindHe}</div>
+        <h3>${c.title}</h3>
+        ${c.rows.map(r=>`<div class="row"><span class="gl">${r[0]}</span>${esc(r[1])}</div>`).join("")}
+        <div class="foot">
+          <span class="added">${removed ? '↩️ בוטל' : '✓ נוסף ליומן'}</span>
+          ${c.who ? `<span style="display:flex;gap:6px;align-items:center;font-size:12px;color:#56616f">${av(c.who)} ${FAM[c.who].he}</span>`:''}
+        </div>
+      </div>
+      ${removed ? `<div class="hint" style="color:#e8748a">מילת ה‑"ביטול" מחקה את אירועי ההודעה האחרונה — לפני שהיא נשלחת ל‑Claude.</div>`:''}
+    </div>`;
+  }
+
+  stage.innerHTML = `<div class="wa-wrap">
+    <div class="phone"><div class="screen">
+      <div class="wa-head">
+        <div class="bot-av">🏠</div>
+        <div><div class="nm">HomeOS</div><div class="st">בוט משפחתי · מקוון</div></div>
+        <div class="dots">⋮</div>
+      </div>
+      <div class="wa-body" id="waBody">
+        <div class="day-pill">היום</div>
+        ${bubbles}
+      </div>
+      <div class="wa-input">
+        <div class="box">הקלידו הודעה…</div>
+        <div class="send">➤</div>
+      </div>
+    </div></div>
+    ${cardHtml}
+  </div>`;
+  const body = document.getElementById("waBody");
+  if (body) body.scrollTop = body.scrollHeight;
+}
+
+function famOn(list){ return !list || list.some(k => state.fam[k]); }
+
+function renderTablet() {
+  const activeScn = SCN[state.scn];
+  const justAdded = activeScn && activeScn.card ? state.scn : null;
+
+  const appts = APPTS.filter(a => famOn(a.who)).map(a => {
+    const glow = a.scn && a.scn === justAdded;
+    return `<div class="appt ${glow?'glow':''}">
+      <div class="time">${a.time}</div>
+      <div class="bar" style="background:${a.color}"></div>
+      <div class="ct">
+        <div class="t">${a.t}</div>
+        <div class="m">
+          ${a.who.map(w=>`<span style="display:inline-flex;gap:5px;align-items:center">${av(w)}${FAM[w].he}</span>`).join("")}
+          ${a.tag?`<span class="tag">${a.tag}</span>`:""}
+          ${glow?`<span class="justadded">נוסף עכשיו</span>`:""}
+        </div>
+      </div>
+    </div>`;
+  }).join("") || `<div class="hint" style="color:#a59c8b">אין פריטים לבני המשפחה שנבחרו</div>`;
+
+  const reminders = REMIND.filter(r=>famOn(r.who)).map(r =>
+    `<div class="remind ${r.done?'done':''}"><div class="bx"></div><span>${r.t}</span></div>`
+  ).join("");
+
+  stage.innerHTML = `<div class="tablet"><div class="tboard">
+    <div class="tbar">
+      <div class="greet">בוקר טוב, משפחת לוי 🌅<small>יום רביעי, 17 ביוני 2026</small></div>
+      <div class="clock">07:42</div>
+      <div class="hcal"><b>כ״ב בְּסִיוָן תשפ״ו</b><br>פרשת שלח · 3 ימים לשבת</div>
+    </div>
+    <div class="tgrid">
+      <div class="col">
+        <h4>📅 היום <span class="n">${APPTS.filter(a=>famOn(a.who)).length}</span></h4>
+        ${appts}
+      </div>
+      <div class="col">
+        <h4>🔔 תזכורות <span class="n">${REMIND.filter(r=>famOn(r.who)).length}</span></h4>
+        ${reminders}
+        <h4 style="margin-top:18px">👨‍👩‍👧‍👦 מי אוסף</h4>
+        <div class="remind"><span style="display:inline-flex;gap:6px;align-items:center">${av('aba')} אבא</span> <span class="tag">יואב · 08:00</span></div>
+        <div class="remind"><span style="display:inline-flex;gap:6px;align-items:center">${av('ima')} אמא</span> <span class="tag">נועה · 14:30</span></div>
+      </div>
+    </div>
+    <div class="tfoot">
+      <span class="weather">☀️ 29°C · תל אביב</span>
+      <span class="shab">🕯️ כניסת שבת 19:34 · שבת שלום</span>
+    </div>
+  </div></div>`;
+}
+
+function renderTasks() {
+  const justTitle = SCN[state.scn]?.card?.title;
+  const colDef = [
+    { key:"todo",  he:"לעשות",   dot:"#f5a623", st:"#fff7ec", stc:"#b97e12" },
+    { key:"doing", he:"בתהליך",  dot:"#5aa9e6", st:"#eaf4ff", stc:"#2f6fb0" },
+    { key:"done",  he:"הושלם",   dot:"#2c5e4f", st:"#e9f7f0", stc:"#1f7a5e" },
+  ];
+  const cols = colDef.map(c => {
+    const items = TASKS[c.key].filter(t => state.fam[t.who]);
+    return `<div class="kcol">
+      <div class="kh"><span class="dot" style="background:${c.dot}"></span>${c.he}<span class="n">${items.length}</span></div>
+      ${items.map(t=>`<div class="task">
+        <div class="tt">${t.t}</div>
+        <div class="tm">
+          <span style="display:flex;gap:6px;align-items:center;font-size:12px;color:#56616f">${av(t.who)} ${FAM[t.who].he}</span>
+          <span class="status" style="background:${c.st};color:${c.stc}">${c.he}</span>
+        </div>
+      </div>`).join("") || `<div class="hint" style="opacity:.5">—</div>`}
+    </div>`;
+  }).join("");
+  stage.innerHTML = `<div style="width:100%;max-width:980px">
+    <div class="hint" style="margin-bottom:14px">לוח משימות משפחתי — "monday.com לבית": משימה לכל אחד, סטטוס, אחראי. כל פריט שנוצר בוואטסאפ נוחת כאן או בלוח "היום".</div>
+    <div class="kanban">${cols}</div>
+  </div>`;
+}
+
+function render() {
+  renderHead();
+  if (state.view === "whatsapp") renderWhatsApp();
+  else if (state.view === "tablet") renderTablet();
+  else renderTasks();
+  updatePrompt();
+}
+
+/* ── Playback ──────────────────────────────────────────────────── */
+function stopPlay(){ state.playing=false; clearTimeout(playTimer); document.getElementById("playBtn").innerHTML="▶ הדגמה"; }
+function play() {
+  if (state.playing) { stopPlay(); return; }
+  state.playing = true;
+  document.getElementById("playBtn").innerHTML = "⏸ עצור";
+  state.step = -1;
+  const tick = () => {
+    if (!state.playing) return;
+    if (state.step >= maxStep()) { stopPlay(); return; }
+    state.step++;
+    render();
+    const cur = SCN[state.scn].chat[state.step];
+    playTimer = setTimeout(tick, cur && cur.kind === "typing" ? 1100 : 1500);
+  };
+  tick();
+}
+
+/* ── Prompt output ─────────────────────────────────────────────── */
+function updatePrompt() {
+  const s = SCN[state.scn];
+  const viewHe = { whatsapp:"מסך WhatsApp (טלפון) עם כרטיס האירוע שנוצר",
+                   tablet:"לוח המטבח האמביינטי (טאבלט נחיתה) — תצוגת 'היום'",
+                   tasks:"לוח המשימות המשפחתי (קנבן בסגנון monday.com)" }[state.view];
+  const on = Object.keys(state.fam).filter(k=>state.fam[k]).map(k=>FAM[k].he);
+  const famTxt = on.length === 4 ? "כל המשפחה" : on.join(", ") || "אף אחד";
+  const parts = [];
+  parts.push(`בנה את ה‑UI של <b>HomeOS</b> — ${viewHe}`);
+  parts.push(`עבור סיפור המשתמש "<b>${s.tt}</b>": ${s.sub}`);
+  if (state.view === "whatsapp") parts.push(`הצג את שרשור ה‑WhatsApp (RTL) ולצדו את כרטיס האירוע שנוצר, עם אנימציית הופעה`);
+  if (state.view !== "whatsapp") parts.push(`מסונן ל: ${famTxt}`);
+  parts.push(`עברית RTL כשפה ראשונה, הקשר משפחה ישראלית (אבא/אמא/ילדים), אסתטיקה חמה (אמרלד+ענבר), זכוכית/צללים רכים, ≤$100 לחודש (Haiku), מובייל‑first`);
+  document.getElementById("promptOut").innerHTML = parts.join(". ") + ".";
+}
+
+/* ── Events ────────────────────────────────────────────────────── */
+scnList.addEventListener("click", e => {
+  const b = e.target.closest("[data-scn]"); if (!b) return;
+  stopPlay();
+  state.scn = b.dataset.scn; state.step = 0;
+  scnList.querySelectorAll(".scn").forEach(x => x.setAttribute("aria-pressed", x.dataset.scn === state.scn));
+  render();
+});
+document.getElementById("viewSeg").addEventListener("click", e => {
+  const b = e.target.closest("[data-view]"); if (!b) return;
+  state.view = b.dataset.view;
+  document.querySelectorAll("#viewSeg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.view === state.view));
+  render();
+});
+famChips.addEventListener("click", e => {
+  const b = e.target.closest("[data-fam]"); if (!b) return;
+  const k = b.dataset.fam; state.fam[k] = !state.fam[k];
+  b.setAttribute("aria-pressed", state.fam[k]);
+  render();
+});
+document.getElementById("playBtn").addEventListener("click", play);
+document.getElementById("prevBtn").addEventListener("click", () => { stopPlay(); state.step = Math.max(0, state.step-1); render(); });
+document.getElementById("nextBtn").addEventListener("click", () => { stopPlay(); state.step = Math.min(maxStep(), state.step+1); render(); });
+
+document.getElementById("copyBtn").addEventListener("click", () => {
+  const txt = document.getElementById("promptOut").textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    const b = document.getElementById("copyBtn");
+    b.textContent = "✓ הועתק!"; b.classList.add("done");
+    setTimeout(() => { b.textContent = "📋 העתק הנחיה"; b.classList.remove("done"); }, 1600);
+  });
+});
+
+function esc(s){ return String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+
+/* ── Boot ──────────────────────────────────────────────────────── */
+render();
+</script>
+</body>
+</html>

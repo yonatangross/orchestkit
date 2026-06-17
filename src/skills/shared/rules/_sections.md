@@ -30,3 +30,11 @@ Prompt-injection defense for skills that read untrusted GitHub/CI content (ci-se
 fix-issue, review-pr) — separate the agent that reads untrusted text from the one that acts.
 
 - `untrusted-input-quarantine.md` — reader/actor split, structured-facts contract, per-skill bindings
+
+## 5. Playground Visual Quality (playground) — HIGH — 1 rule
+
+Falsifiable design standard for the *visual* playgrounds OrchestKit emits (create-pr gate,
+visualize-plan) — device-mockup user-story players and drag-and-drop decision boards. Exemplars
+live in `../assets/playground-exemplars/`.
+
+- `playground-visual-standard.md` — §0 archetype routing, HSL tokens, glass do/don't, motion budget, drag-and-drop accessibility, RTL, anti-generic checklist

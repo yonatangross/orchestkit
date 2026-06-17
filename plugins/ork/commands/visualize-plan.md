@@ -207,11 +207,17 @@ Render the selected sections into the `FORMATS` chosen in STEP 0.5. **ASCII alwa
 | Format | Action |
 |--------|--------|
 | ASCII | Native render (above) — always, the floor |
-| Playground | Hand the plan brief to the `playground` skill → write `docs/<branch-dir>/plan-viz.html`, link it |
+| Playground | Classify the archetype (below), then hand the plan brief to the `playground` skill → write `docs/<branch-dir>/plan-viz.html`, link it |
 | Infographic | Run the `notebooklm` `studio_create(artifact_type=infographic\|slides)` flow — **fire-and-notify**, poll `studio_status`, never await |
 | All | ASCII inline now + the rest linked as they finish |
 
 `<branch-dir>` = branch with `/` → `--` (same path the PR Playground gate checks).
+
+> **Playground archetype:** a plan visualization is usually a **DASHBOARD** (current behavior — fine).
+> But if the plan demonstrates a *user-facing flow* or a *prioritization/decision*, route to the
+> **user-story-player** or **decision-board** archetype instead of a flat card grid. Apply the §0 routing
+> rule in `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/playground-visual-standard.md")` and adapt the
+> matching exemplar under `skills/shared/assets/playground-exemplars/`.
 
 
 ## STEP 5: Offer Actions

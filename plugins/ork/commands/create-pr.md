@@ -234,16 +234,29 @@ Generate an interactive HTML playground visualizing the PR's changes. CI validat
 
 > **Requires** the `playground` plugin (external): `/plugin marketplace add anthropics/claude-plugins-official && /plugin install playground`
 
+**First classify the archetype** — a feature PR must not ship as a flat dashboard.
+`Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/playground-visual-standard.md")` and apply its §0 routing rule:
+
+- **Visual PR** (adds/changes a user-facing feature, flow, or a prioritization/decision surface) →
+  **USER-STORY PLAYER** or **DECISION BOARD**. Build to the standard: adapt the matching exemplar at
+  `${CLAUDE_PLUGIN_ROOT}/skills/shared/assets/playground-exemplars/` (`user-story-player.template.html`
+  or `decision-board.template.html`), and bring full design firepower (the `frontend-design` skill /
+  the `ork:frontend-ui-developer` agent). When delegating to `playground:playground`, brief it with the
+  **archetype + persona + tokens** — never hand it a pre-built HTML blob.
+- **Non-visual PR** (infra/CI/refactor/config/docs) → **DASHBOARD** — the default summary below is fine.
+
 ```python
 BRANCH=$(git branch --show-current)
 BRANCH_DIR = BRANCH.replace("/", "--")  # feat/foo → feat--foo
 
-# Invoke the playground skill with a summary of the PR changes
+# Invoke the playground skill with a summary of the PR changes.
+# For a VISUAL PR, set archetype/persona/exemplar per playground-visual-standard.md instead of this default.
 Skill("playground:playground", args=f"""
   {PR_TITLE} — visualize the key changes in this PR.
-  Show: architecture/data flow, before/after, key components changed.
-  Include presets for the main change areas.
-  Dark theme with purple/violet OrchestKit brand colors.
+  Archetype: <user-story-player | decision-board | dashboard> per playground-visual-standard.md §0.
+  For visual archetypes: follow that standard's tokens/glass/motion and adapt the matching exemplar.
+  Show: architecture/data flow, before/after, key components changed; presets for the main change areas.
+  Dark glass theme, OrchestKit brand accents.
 """)
 
 # The playground skill writes to a temp path — move it to the correct location

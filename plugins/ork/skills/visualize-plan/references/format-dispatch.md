@@ -35,11 +35,17 @@ Hide unavailable options from the AskUserQuestion list and add a one-line instal
 | Format | How | Output | Blocks? |
 |--------|-----|--------|---------|
 | ASCII + emojis | Native — render sections per `rules/section-rendering.md` | In chat | n/a (always first) |
-| Interactive playground | Build the plan brief, hand to the `playground` skill | `docs/<branch-dir>/plan-viz.html` | No — write then link |
+| Interactive playground | Classify archetype (§0 of the visual standard), build the plan brief, hand to the `playground` skill | `docs/<branch-dir>/plan-viz.html` | No — write then link |
 | NotebookLM infographic/slides | Build a source doc, run the notebooklm `studio_create(artifact_type=infographic\|slides)` flow | `.png`/slides artifact | **No — fire-and-notify** |
 | All available | Fan out: ASCII inline now + the others as they finish | all of the above | No |
 
 `<branch-dir>` = current branch with `/` → `--` (matches the PR Playground CI gate path, so the playground also satisfies that gate for free).
+
+> **Archetype before generation.** Most plan visualizations are a **DASHBOARD** (the default card grid).
+> But a plan that demonstrates a *user-facing flow* or a *prioritization/decision* should be a
+> **user-story-player** or **decision-board** — `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/playground-visual-standard.md")`
+> for the §0 routing rule, the token/glass/motion spec, and the exemplars to adapt
+> (`skills/shared/assets/playground-exemplars/`). Brief the `playground` skill with archetype + persona, not raw HTML.
 
 ## The plan brief (shared interchange, v1)
 
