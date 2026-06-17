@@ -13,6 +13,9 @@
 # 3. .eval.json should_not entries must not appear as instructions in rules/
 # 4. test-cases.json IDs must be unique within each skill
 # 5. expectedBehavior strings must be specific (>5 words, not generic)
+# 6. .eval.json files must reference existing skills (no orphans)
+# 7. Eval-coverage census: every real skill (SKILL.md) is graded or exempt;
+#    closes the membership hole and ratchets the ungraded backlog monotonically.
 #
 # Usage: ./test-eval-completeness.sh [--verbose]
 # Exit codes: 0 = all pass, 1 = failures found
@@ -435,6 +438,145 @@ done
 
 if [[ $orphaned_evals -eq 0 ]]; then
     pass "All .eval.json files reference existing skills"
+fi
+echo ""
+
+# ============================================================================
+# Test 7: Eval-Coverage Census (Approach B — membership hole + monotone ratchet)
+# ============================================================================
+# Tests 1-6 are OPT-IN: they only iterate skills that already shipped a
+# .eval.json or a test-cases.json, so a brand-new skill with NO graded eval is
+# invisible. This census closes that membership hole via set-difference:
+#
+#   { src/skills/<name>/ with SKILL.md }
+#     MINUS { tests/evaluations/<name>.eval.json }
+#     MINUS { curated exemptions }
+#   = ungraded REAL skills.
+#
+# Two guarantees:
+#   (a) NON-EMPTINESS FLOOR — a skill counts as "graded" only if its .eval.json
+#       has >=1 expected_behavior with >5 words and non-generic phrasing (reuses
+#       the Test 5 specificity logic). A stub eval does NOT buy coverage.
+#   (b) MONOTONE RATCHET — the current backlog of ungraded real skills is the
+#       CEILING. The test PASSES at the ceiling but FAILS the moment a NEW
+#       unexempted skill ships without a real graded eval (gap GROWS).
+# ============================================================================
+echo -e "${CYAN}Test 7: Eval-Coverage Census${NC}"
+echo "----------------------------------------------------------------------------"
+
+EXEMPTIONS_FILE="$PROJECT_ROOT/tests/skills/.eval-census-exemptions.txt"
+SNAPSHOT_FILE="$PROJECT_ROOT/tests/skills/.eval-census-snapshot.json"
+
+# A .eval.json earns "graded" status only if it clears the non-emptiness floor:
+# at least one expected_behavior that is specific (>5 words AND not generic).
+is_graded() {
+    local eval_file="$1"
+    [[ -f "$eval_file" ]] || return 1
+    jq empty "$eval_file" 2>/dev/null || return 1  # silent: best-effort — invalid JSON = not graded
+
+    local behavior word_count
+    while IFS= read -r behavior; do
+        [[ -n "$behavior" ]] || continue
+        word_count=$(echo "$behavior" | wc -w | tr -d ' ')
+        if [[ "$word_count" -gt 5 ]] && ! is_generic "$behavior"; then
+            return 0
+        fi
+    # silent: best-effort — malformed eval yields no behaviors => not graded
+    done < <(jq -r '.evaluations[].expected_behavior[]?' "$eval_file" 2>/dev/null)
+    return 1
+}
+
+# Build the exemption set (skill names with recommend=exempt OR recommend=gap —
+# both are "known/accounted-for"; only the gap subset counts toward the floor).
+declare -A EXEMPT_KNOWN
+gap_count=0
+if [[ -f "$EXEMPTIONS_FILE" ]]; then
+    while IFS= read -r line; do
+        # Strip comments and blank lines
+        line="${line%%#*}"
+        [[ "$line" =~ ^[[:space:]]*$ ]] && continue
+        name=$(echo "$line" | awk -F'|' '{gsub(/[[:space:]]/,"",$1); print $1}')
+        verdict=$(echo "$line" | awk -F'|' '{gsub(/[[:space:]]/,"",$2); print $2}')
+        [[ -n "$name" ]] || continue
+        EXEMPT_KNOWN["$name"]=1
+        [[ "$verdict" == "gap" ]] && gap_count=$((gap_count + 1))
+    done < "$EXEMPTIONS_FILE"
+else
+    fail "Census: exemption file missing at $EXEMPTIONS_FILE"
+fi
+
+# Set-difference: every skill dir with a SKILL.md that lacks a graded eval.
+ungraded=()
+skills_scanned=0
+for skill_dir in "$SKILLS_DIR"/*/; do
+    [[ -f "$skill_dir/SKILL.md" ]] || continue   # non-skill dirs (e.g. shared/) excluded
+    skill_name=$(basename "$skill_dir")
+    skills_scanned=$((skills_scanned + 1))
+
+    if is_graded "$EVALS_DIR/$skill_name.eval.json"; then
+        info "$skill_name: has a graded eval"
+        continue
+    fi
+    ungraded+=("$skill_name")
+done
+
+# Partition the ungraded set into known (in exemption file) vs new (unaccounted).
+new_ungraded=()
+for skill_name in "${ungraded[@]}"; do
+    if [[ -z "${EXEMPT_KNOWN[$skill_name]+_}" ]]; then
+        new_ungraded+=("$skill_name")
+    fi
+done
+
+# Monotone ceiling = real backlog count recorded in the snapshot (the floor we
+# lock today). Derive the live "gap" count = ungraded skills that ARE classified
+# gap in the exemption file (i.e. real behavioral skills still awaiting evals).
+ceiling=0
+# silent: best-effort — absent/invalid snapshot => ceiling 0 (strictest ratchet)
+if [[ -f "$SNAPSHOT_FILE" ]] && jq empty "$SNAPSHOT_FILE" 2>/dev/null; then
+    ceiling=$(jq -r '.real_ungraded_count' "$SNAPSHOT_FILE")
+fi
+
+live_gap=0
+for skill_name in "${ungraded[@]}"; do
+    if [[ -n "${EXEMPT_KNOWN[$skill_name]+_}" ]]; then
+        verdict=$(grep -E "^[[:space:]]*${skill_name}[[:space:]]*\|" "$EXEMPTIONS_FILE" \
+            | head -1 | awk -F'|' '{gsub(/[[:space:]]/,"",$2); print $2}')
+        [[ "$verdict" == "gap" ]] && live_gap=$((live_gap + 1))
+    fi
+done
+
+echo ""
+echo "  Skills scanned (have SKILL.md):    $skills_scanned"
+echo "  Ungraded (no graded eval):         ${#ungraded[@]}"
+echo "  Exemption-file gap entries:        $gap_count"
+echo "  Live real-gap (ungraded + gap):    $live_gap"
+echo "  Ratchet ceiling (snapshot floor):  $ceiling"
+echo "  New/unaccounted ungraded skills:   ${#new_ungraded[@]}"
+echo ""
+
+census_failed=0
+
+# Failure 1: a NEW skill ships ungraded and is not in the exemption file.
+if [[ ${#new_ungraded[@]} -gt 0 ]]; then
+    for skill_name in "${new_ungraded[@]}"; do
+        fail "Census: '$skill_name' has SKILL.md but no graded eval and is not in .eval-census-exemptions.txt"
+    done
+    echo ""
+    echo "  To fix: add a real .eval.json under tests/evaluations/, OR classify the"
+    echo "  skill in tests/skills/.eval-census-exemptions.txt (gap|exempt + reason)."
+    census_failed=1
+fi
+
+# Failure 2: the real backlog GREW beyond the locked ceiling (ratchet broken).
+if [[ "$live_gap" -gt "$ceiling" ]]; then
+    fail "Census: ungraded real-skill backlog grew to $live_gap (ceiling $ceiling) — the gap may only shrink"
+    echo "  After grading skills, lower .real_ungraded_count in .eval-census-snapshot.json to ratchet down."
+    census_failed=1
+fi
+
+if [[ $census_failed -eq 0 ]]; then
+    pass "Eval-coverage census: every real skill is graded or exempt (gap $live_gap <= ceiling $ceiling)"
 fi
 echo ""
 

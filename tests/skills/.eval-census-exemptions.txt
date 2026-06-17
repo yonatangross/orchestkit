@@ -1,0 +1,30 @@
+# Eval Census Exemptions
+# Format: skill_name | recommend (gap|exempt) | reason
+#
+# This file lists skills that lack .eval.json files and classifies them:
+# - gap: Real behavioral skills that should eventually be graded
+# - exempt: Reference docs, internal tools, or non-skill dirs (no eval needed)
+#
+# MONOTONE RATCHET PRINCIPLE: Once a skill is in this file with a status,
+# the count of ungraded real skills (recommend=gap) becomes the FLOOR.
+# The test FAILS only when NEW ungraded skills appear.
+
+bare-eval | exempt | internal-tool (user-invocable: false)
+emulate-seed | exempt | internal-tool (user-invocable: false)
+json-render-catalog | exempt | reference-documentation (user-invocable: false)
+mcp-visual-output | exempt | reference-documentation (user-invocable: false)
+multi-surface-render | exempt | reference-documentation (user-invocable: false)
+portless | exempt | reference-documentation (user-invocable: false)
+
+ci-debug | gap | user-invocable behavioral skill
+ci-sentinel | gap | user-invocable behavioral skill (autonomous)
+cover | gap | user-invocable behavioral skill
+design-import | gap | user-invocable behavioral skill
+design-ship | gap | user-invocable behavioral skill
+dev | gap | user-invocable behavioral skill
+dream | gap | user-invocable behavioral skill
+expect | gap | user-invocable behavioral skill
+prd-to-goal | gap | user-invocable behavioral skill
+release-sync | gap | user-invocable behavioral skill (automation)
+swarm-migrate | gap | user-invocable behavioral skill (cross-repo)
+telemetry-inspect | gap | user-invocable behavioral skill
