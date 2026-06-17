@@ -1342,9 +1342,9 @@ When the primary model is not found (e.g. a pinned model ID that no longer resol
 
 > **Related 2.1.152 items** (full table in `$\{CLAUDE_SKILL_DIR\}/../doctor/references/version-compatibility.md`): `permissionMode: "auto"` no longer needs opt-in consent; the sandbox-enabled warning now shows in condensed startup; and a new `MessageDisplay` hook event can transform/hide assistant text (ork ships no MessageDisplay hook — recognized in the `HookEvent` union for future use).
 
-## CC 2.1.172–176 Settings
+## CC 2.1.172–179 Settings
 
-Settings introduced since the 2.1.152 entries above, current to the floor's adoption head (`latest_known` 2.1.176). Bugfix-only releases (2.1.171/173/177) add no settings.
+Settings introduced since the 2.1.152 entries above, current to the adoption head (`latest_known` 2.1.179). Bugfix-only releases (2.1.171/173/177/179) add no settings.
 
 ### `availableModels` Enforcement Tightened (2.1.172 / 2.1.176)
 
@@ -1395,6 +1395,39 @@ Regex-matched link badges in the footer row, configurable via user or managed se
 ```
 
 **Action for OrchestKit**: ork ships no footer/statusline surface, so nothing to integrate — informational. Users can wire issue/PR badges themselves.
+
+### `Tool(param:value)` Permission Rules (2.1.178)
+
+Permission rules now match a tool's **input parameters** (not just its name), with `*` wildcard support. Syntax: `Tool(param:value)`. The canonical example from the changelog is `Agent(model:opus)` to block any subagent spawned with Opus.
+
+```json
+{ "permissions": { "deny": ["Agent(model:opus)", "Agent(model:fable)"] } }
+```
+
+**Action for OrchestKit**: ork stays **docs-only** here — it does NOT add param-deny rules to the committed `src/settings/ork.settings.json` (a publicly distributed plugin must not silently constrain a user's model choice). Critically, this native syntax does **not** replace ork's model hooks: `Tool(param:value)` is a *static* allow/deny gate, whereas `subagent-start/model-cost-advisor.ts` reads agent frontmatter at runtime + warns when a pinned tier is excluded by `availableModels`, and `pretool/task/fable-spend-consent.ts` issues an interactive consent prompt with an `ORK_FABLE_OK` bypass. The 2.1.178 subtraction pass (`shared/rules/cc-native-first.md`) confirmed both as **KEEP** — orthogonal, not redundant. Users wanting a hard block (no prompt) can add `Agent(model:…)` deny rules in their own settings.
+
+### MCP `disallowedTools` Enforced in Subagents (2.1.178)
+
+CC 2.1.178 fixes a bug where MCP server-level specs (`mcp__server`, `mcp__server__*`, `mcp__*`) listed in an agent's `disallowedTools` were **silently ignored** when the agent ran as a subagent. They are now enforced at spawn.
+
+```yaml
+# agent frontmatter — now actually blocks all Tavily tools in the subagent
+disallowedTools: [mcp__tavily, mcp__tavily__*]
+```
+
+**Action for OrchestKit**: agent authors can now rely on `disallowedTools: [mcp__*]` to scope MCP access in spawned subagents (e.g. deny expensive/untrusted MCP servers to a background agent). ork had **no workaround** for the old bug, so nothing is retired — see `.claude/rules/agent-authoring.md`.
+
+### Nested `.claude/skills` + Closest-Wins Precedence (2.1.178)
+
+Skills in nested `.claude/skills/` directories now load when you work on files there; on a name clash the nested skill appears as `&lt;dir&gt;:&lt;name&gt;` so both stay reachable. More broadly, the agent / workflow / output-style **closest to the working directory wins** on a name collision, and project-scope workflow saves now target the closest existing `.claude/workflows/`.
+
+**Action for OrchestKit**: informational for monorepo users — a package can host its own `packages/api/.claude/skills/` without colliding with the root. ork ships its skills via the `ork` plugin, not `.claude/skills`, so no packaging change.
+
+### Workflow Keyword Now Explicit-Phrase Only (2.1.178)
+
+The dynamic-workflow trigger now fires **only** on explicit phrases like "run a workflow" or "workflow:" (with a purple-shimmer highlight) — a bare mention of the word "workflow" no longer launches one.
+
+**Action for OrchestKit**: removes accidental triggers from skill descriptions and docs that merely mention "workflow". Complements the 2.1.157 keyword-trigger toggle; no plugin change needed. (Also in 2.1.178: auto-mode now runs the classifier on a subagent spawn *before* launch, closing a gap where a subagent could request a blocked action without review — a platform safety improvement, no frontmatter change.)
 
 
 ### Http Hooks
