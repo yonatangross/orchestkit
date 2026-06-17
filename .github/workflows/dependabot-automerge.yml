@@ -3,17 +3,21 @@
 
 # Dependabot auto-merge (#2490)
 #
-# Enables GitHub's native auto-merge on every Dependabot PR. The merge only
+# Enables GitHub's native auto-merge on every Dependabot PR EXCEPT major
+# version bumps, which are held for a human (semver gate). The merge only
 # happens once ALL required status checks pass -- main requires 0 approving
-# reviews, so a bump that breaks CI simply stays open for a human. This kills
-# the recurring npm-audit Security-gate toil: combined with the grouped npm
-# streams in dependabot.yml, advisory bumps now land hands-off before a human
-# PR ever hits the gate.
+# reviews, so a non-major bump that breaks CI simply stays open for a human.
+# Combined with the grouped npm streams in dependabot.yml, minor/patch + security
+# advisory bumps land hands-off before a human PR ever hits the npm-audit gate,
+# while majors (which carry breaking changes) are routed to review instead of
+# merging unreviewed just because CI happens to be green.
 #
 # Security: pull_request_target runs in the BASE-repo context with a write
 # token, but this job never checks out or executes PR code -- it only calls
-# `gh pr merge --auto`. That is the GitHub-recommended pattern for granting
-# Dependabot PRs a privileged token without exposing it to untrusted code.
+# `gh pr merge --auto` / `gh pr edit|comment`. That is the GitHub-recommended
+# pattern for granting Dependabot PRs a privileged token without exposing it to
+# untrusted PR code. Dependabot-controlled metadata is passed via env, never
+# interpolated into a run-step shell body.
 
 name: Dependabot auto-merge
 
@@ -32,8 +36,37 @@ jobs:
     if: ${{ github.actor == 'dependabot[bot]' }}
     timeout-minutes: 5
     steps:
-      - name: Enable squash auto-merge
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98  # v3.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Minor / patch / grouped (update-type is empty for groups, which are
+      # minor+patch-only per dependabot.yml) -> auto-merge when green.
+      - name: Auto-merge non-major updates
+        if: ${{ steps.meta.outputs.update-type != 'version-update:semver-major' }}
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge --auto --squash "$PR_URL"
+
+      # Major bumps -> hold for human review (label on every event; idempotent).
+      - name: Label major bumps as held
+        if: ${{ steps.meta.outputs.update-type == 'version-update:semver-major' }}
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr edit "$PR_URL" --add-label dependabot-major-held
+
+      # One-time explanatory comment, only when the PR is first opened.
+      - name: Comment on newly-opened held majors
+        if: ${{ steps.meta.outputs.update-type == 'version-update:semver-major' && github.event.action == 'opened' }}
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEP_NAMES: ${{ steps.meta.outputs.dependency-names }}
+          PREV: ${{ steps.meta.outputs.previous-version }}
+          NEW: ${{ steps.meta.outputs.new-version }}
+        run: |
+          gh pr comment "$PR_URL" --body "Held for human review: major bump (\`$DEP_NAMES\` $PREV -> $NEW). Auto-merge is gated on semver level (#2490) — major versions carry breaking changes, so review and merge manually, or drop the \`dependabot-major-held\` label to let it auto-merge."

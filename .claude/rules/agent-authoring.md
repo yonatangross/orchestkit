@@ -19,6 +19,7 @@ paths:
 - `maxTurns: N` — conversation turn limit
 - `critical_system_reminder: "..."` — persistent guardrail injected at spawn via context-stager
 - `required_mcp_servers: [name1, name2]` — warns if MCP servers unavailable at spawn
+- `disallowedTools: [...]` — deny-list. CC 2.1.178 **fixed** MCP server-level specs (`mcp__server`, `mcp__server__*`, `mcp__*`) being silently ignored in subagents; they now enforce at spawn. Use `disallowedTools: [mcp__*]` to scope MCP access for a background/untrusted subagent.
 
 ## Agent-scoped `hooks:` (CC ≥ 2.1.116)
 Hooks declared in agent frontmatter fire in both contexts: spawned-as-subagent (Task tool) AND main-thread (`claude --agent <name>`). Write hooks context-agnostic — validate `tool_input`, apply policy, log with `CLAUDE_AGENT_ID` (defaults to `'unknown'`). Do not branch on "am I a subagent?".

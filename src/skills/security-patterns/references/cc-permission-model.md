@@ -79,6 +79,25 @@ that reach the path via `$HOME`.
 - Pairs with the 2.1.166 managed-settings enforcement fix (see SKILL.md "Managed Hook
   Hierarchy") — one invalid entry no longer voids the rest of the policy.
 
+## 6. Permission rules can match tool input parameters (2.1.178)
+
+Rules now match against a tool's **input parameters**, not just its name, with `*`
+wildcard support. Syntax: `Tool(param:value)`. The headline use is gating subagent
+spawns by model — `Agent(model:opus)` in a deny rule blocks any subagent attempted
+with Opus; `Agent(model:*)` denies all model-pinned subagent spawns.
+
+```jsonc
+{ "permissions": { "deny": ["Agent(model:opus)", "Bash(rm:*)"] } }
+```
+
+- **Use it for:** a *hard* block on expensive or capability-risky subagent models, or
+  parameter-level gates (e.g. specific `Bash` subcommands) that tool-name rules can't
+  express. Combine with tool-name + file-path rules for defense-in-depth.
+- **It is static** — a permission rule cannot run logic, read state, output advisory
+  context, or prompt the user. For *advisory* model control (warn-don't-block, cost
+  estimates, consent prompts) ork keeps its `model-cost-advisor` and
+  `fable-spend-consent` hooks; the two are orthogonal (see `shared/rules/cc-native-first.md`).
+
 ## Recommended baseline posture
 
 ```jsonc
