@@ -1,101 +1,22 @@
 [
   {
-    "version": "2.1.178",
+    "version": "2.1.179",
     "parse_failed": false,
     "features": [
       {
-        "feature_slug": "nested_claude_dir_closest_wins",
+        "feature_slug": "sandbox_glob_bash_description_fix",
         "category": "breaking",
-        "description": "Nested .claude/ agent/workflow/output-style closest to working directory now wins on name collision.",
+        "description": "Sandbox denyRead/allowRead glob over large directory tree no longer bloats Bash tool description on Linux.",
         "gap_score": 20,
         "affected_skills": [
-          "agent-orchestration",
-          "configure",
-          "chain-patterns"
-        ],
-        "reference_changelog_line": "Nested `.claude/` directories: the agent, workflow, and output-style closest to the working directory now wins when names collide; project-scope workflow saves now target the closest existing `.claude/workflows/`"
-      },
-      {
-        "feature_slug": "auto_mode_subagent_classifier",
-        "category": "breaking",
-        "description": "Auto mode now evaluates subagent spawns through the classifier before launch, closing a permission bypass gap.",
-        "gap_score": 20,
-        "affected_skills": [
-          "agent-orchestration",
-          "security-patterns"
-        ],
-        "reference_changelog_line": "Improved auto mode: subagent spawns are now evaluated by the classifier before launch, closing a gap where a subagent could request a blocked action without review"
-      },
-      {
-        "feature_slug": "workflow_keyword_explicit_trigger",
-        "category": "breaking",
-        "description": "Workflow prompt keyword now triggers only on explicit phrases like 'run a workflow' or 'workflow:', not any mention.",
-        "gap_score": 20,
-        "affected_skills": [
-          "chain-patterns",
-          "agent-orchestration"
-        ],
-        "reference_changelog_line": "Changed the workflow prompt keyword to use a purple shimmer highlight and trigger only on explicit phrases like \"run a workflow\" or \"workflow:\", not on any mention of the word"
-      },
-      {
-        "feature_slug": "bug_requires_description",
-        "category": "breaking",
-        "description": "/bug now requires a description before submitting and no longer uses model-refusal text as the issue title.",
-        "gap_score": 20,
-        "affected_skills": [
-          "github-operations"
-        ],
-        "reference_changelog_line": "`/bug` now requires a description before submitting, and no longer uses model-refusal text as the GitHub issue title"
-      },
-      {
-        "feature_slug": "mcp_disallowed_tools_honored",
-        "category": "breaking",
-        "description": "MCP server-level specs in subagent disallowedTools are now honored instead of being silently ignored (permission bypass ",
-        "gap_score": 20,
-        "affected_skills": [
-          "mcp-patterns",
+          "browser-tools",
           "security-patterns",
-          "agent-orchestration"
+          "mcp-patterns"
         ],
-        "reference_changelog_line": "Fixed MCP server-level specs (`mcp__server`, `mcp__server__*`, `mcp__*`) in subagent `disallowedTools` being silently ignored"
-      },
-      {
-        "feature_slug": "tool_param_value_permission_syntax",
-        "category": "new_perm",
-        "description": "New Tool(param:value) permission syntax with wildcard support, e.g. Agent(model:opus) to block Opus subagents.",
-        "gap_score": 12,
-        "affected_skills": [
-          "configure",
-          "security-patterns",
-          "agent-orchestration"
-        ],
-        "reference_changelog_line": "Added `Tool(param:value)` syntax for permission rules to match a tool's input parameters (with `*` wildcard), e.g. `Agent(model:opus)` to block Opus subagents"
-      },
-      {
-        "feature_slug": "nested_skills_dir_qualified_names",
-        "category": "new_attr",
-        "description": "Nested .claude/skills now load contextually with <dir>:<name> qualifier on name clash to keep both available.",
-        "gap_score": 5,
-        "affected_skills": [
-          "help",
-          "configure",
-          "audit-skills"
-        ],
-        "reference_changelog_line": "Skills in nested `.claude/skills` directories now load when working on files there; on a name clash, the nested skill appears as `<dir>:<name>` so both stay available"
-      },
-      {
-        "feature_slug": "skill_truncation_warning_count",
-        "category": "new_attr",
-        "description": "Skill listing truncation warning now reports how many skill descriptions are affected.",
-        "gap_score": 5,
-        "affected_skills": [
-          "help",
-          "audit-skills"
-        ],
-        "reference_changelog_line": "Improved the skill listing truncation warning to show how many skill descriptions are affected"
+        "reference_changelog_line": "Fixed a sandbox `denyRead`/`allowRead` glob over a large directory tree making the Bash tool description enormous and the session unusable on Linux"
       }
     ],
-    "raw_bullets_count": 22,
-    "issues_filed_at": "2026-06-16T15:41:36Z"
+    "raw_bullets_count": 9,
+    "issues_filed_at": "2026-06-17T15:06:04Z"
   }
 ]
