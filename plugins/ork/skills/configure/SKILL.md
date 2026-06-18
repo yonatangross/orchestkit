@@ -134,6 +134,8 @@ Categories available:
 
 > **CC 2.1.166 — `fallbackModel` setting (up to 3 models):** the `fallbackModel` setting now accepts up to three models, tried in order when the primary is overloaded or unavailable, and `--fallback-model` now also applies to **interactive** sessions (not just headless). Set it for long `ork:implement` / `ork:brainstorm` runs so an overloaded primary degrades to the next model instead of stalling the run. Extends the 2.1.152 fallback note in `references/cc-version-settings.md`.
 
+> **CC 2.1.181 — `/config key=value` for one-off settings:** set any single setting straight from the prompt — `/config thinking=false`, `/config model=opus` — without opening the `/config` menu or hand-editing a settings file. Works in interactive, `-p`, and Remote Control. This is the fast path for a **one-off, ad-hoc** setting change. It does **not** replace durable automation: a "whenever X, do Y" behavior still requires a **hook in `settings.json`** (the harness executes hooks; `/config` only writes a setting value). Use `/config key=value` to flip a setting now; use this skill's hook flow when the change must fire automatically every session. See `references/cc-version-settings.md` § CC 2.1.181.
+
 ## Step 5: Configure MCPs (Optional)
 
 All 5 MCPs ship **enabled by default**. Tavily requires an API key; agentation requires a local package install.
