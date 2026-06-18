@@ -1,0 +1,228 @@
+<!doctype html>
+<!--
+  OrchestKit × Claude Code — ADOPTION BEFORE / AFTER explorer
+  Per CC version (2.1.179 adopted · 2.1.181 pending), what ork's behavior was
+  BEFORE vs AFTER adopting it, with honest status. Cool-glass (#2516 tokens),
+  single file, zero deps. §0 routing: this is an adoption STATE view (compare),
+  not a player flow — operable via version toggle + status filter.
+  Status is honest: 2.1.179 = adopted (#2510); 2.1.181 = pending (snapshot only).
+-->
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Adoption Before / After · Claude Code 2.1.179 + 2.1.181</title>
+<style>
+  :root{
+    --pg-bg: hsl(232 27% 6%);
+    --pg-ink: hsl(220 18% 94%);
+    --pg-muted: hsl(222 12% 64%);
+    --pg-faint: hsl(222 10% 46%);
+    --pg-line: hsl(0 0% 100% / .10);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .085);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(250 86% 70%);
+    --pg-accent-deep: hsl(256 70% 50%);
+    --pg-teal: hsl(174 66% 52%);
+    --pg-green: hsl(150 60% 54%);
+    --pg-amber: hsl(40 92% 60%);
+    --pg-rose: hsl(346 78% 66%);
+    --r-sm:9px; --r-md:16px; --r-lg:24px;
+    --sh:0 20px 60px -22px hsl(250 60% 2% / .72), 0 4px 12px -6px hsl(250 60% 2% / .5);
+    --ease:cubic-bezier(.2,.8,.25,1);
+    --font: -apple-system,BlinkMacSystemFont,"Segoe UI","Inter",system-ui,sans-serif;
+    --mono: "SF Mono","JetBrains Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box} html,body{margin:0}
+  body{min-height:100vh;font-family:var(--font);color:var(--pg-ink);-webkit-font-smoothing:antialiased;
+    background:radial-gradient(900px 600px at 88% -8%, hsl(250 86% 68% / .16), transparent 60%),
+               radial-gradient(820px 620px at 4% 110%, hsl(262 78% 64% / .12), transparent 58%), var(--pg-bg);
+    background-attachment:fixed; padding:24px 16px 64px;}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .wrap{max-width:1040px;margin-inline:auto;display:flex;flex-direction:column;gap:16px}
+  .head{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+  .logo{width:46px;height:46px;border-radius:14px;flex:none;display:grid;place-items:center;font-size:22px;
+    background:linear-gradient(145deg,var(--pg-accent),var(--pg-accent-deep));box-shadow:0 8px 24px -8px hsl(250 70% 50% / .7),inset 0 1px 0 hsl(0 0% 100% / .4)}
+  h1{margin:0;font-size:21px;letter-spacing:-.3px} .head p{margin:3px 0 0;font-size:13px;color:var(--pg-muted);max-width:70ch;line-height:1.5}
+
+  .panel{background:var(--pg-glass);border:1px solid var(--pg-line);border-radius:var(--r-lg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:var(--sh)}
+  .controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:12px 16px}
+  .seg{display:inline-flex;gap:3px;background:hsl(0 0% 100% / .04);border:1px solid var(--pg-line);border-radius:999px;padding:3px}
+  .seg button{border:0;background:none;color:var(--pg-muted);font:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:999px;cursor:pointer;font-variant-numeric:tabular-nums}
+  .seg button[aria-pressed=true]{background:var(--pg-accent);color:hsl(232 40% 8%)}
+  .seg button:focus-visible{outline:2px solid var(--pg-accent);outline-offset:2px}
+  .filters{display:flex;gap:6px;flex-wrap:wrap;margin-inline-start:auto}
+  .fb{border:1px solid var(--pg-line);background:hsl(0 0% 100% / .04);color:var(--pg-muted);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer}
+  .fb.on{border-color:var(--pg-accent);color:var(--pg-ink);background:hsl(250 86% 70% / .12)}
+  .fb:focus-visible{outline:2px solid var(--pg-accent);outline-offset:2px}
+
+  .vsum{padding:11px 16px;font-size:12.5px;color:var(--pg-muted)} .vsum b{color:var(--pg-ink)}
+  .vsum .st{font-weight:700} .vsum .adopted{color:var(--pg-green)} .vsum .pending{color:var(--pg-amber)}
+
+  .grid{display:flex;flex-direction:column;gap:12px}
+  .card{border-radius:var(--r-md);border:1px solid var(--pg-line);background:var(--pg-glass);padding:14px 16px;animation:rise var(--pg-dur,300ms) var(--ease) both}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}   /* §6 the one signature moment: version-switch reveal */
+  .card .top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .chip{font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border-radius:999px;padding:4px 8px}
+  .chip.feat{color:hsl(250 90% 88%);background:hsl(250 86% 70% / .2)}
+  .chip.fix{color:hsl(220 16% 82%);background:hsl(0 0% 100% / .08)}
+  .chip.perf{color:hsl(174 80% 82%);background:hsl(174 66% 52% / .16)}
+  .chip.matrix{color:hsl(250 90% 90%);background:hsl(250 86% 70% / .34)}
+  .card h3{margin:0;font-size:14.5px;font-weight:700;letter-spacing:-.2px;flex:1}
+  .status{font-size:10.5px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;border-radius:999px;padding:4px 10px;white-space:nowrap}
+  .status.adopted{color:var(--pg-green);background:hsl(150 60% 54% / .14)}
+  .status.passive{color:var(--pg-teal);background:hsl(174 66% 52% / .14)}
+  .status.pending{color:var(--pg-amber);background:hsl(40 92% 60% / .14)}
+  .status.notyet{color:var(--pg-rose);background:hsl(346 78% 66% / .14)}
+
+  .ba{display:grid;grid-template-columns:1fr 28px 1fr;gap:10px;align-items:stretch}
+  @media(max-width:640px){.ba{grid-template-columns:1fr;gap:8px}.ba .arr{transform:rotate(90deg);justify-self:center}}
+  .ba .pane{border-radius:var(--r-sm);padding:10px 12px;font-size:12.5px;line-height:1.5;border:1px solid var(--pg-line)}
+  .ba .before{background:hsl(0 0% 100% / .03);color:var(--pg-muted)}
+  .ba .after{background:hsl(250 86% 70% / .07);border-color:hsl(250 86% 70% / .25);color:var(--pg-ink)}
+  .ba .lbl{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--pg-faint);margin-bottom:4px;display:block}
+  .ba .before .lbl{color:var(--pg-faint)} .ba .after .lbl{color:var(--pg-accent)}
+  .ba .arr{display:grid;place-items:center;color:var(--pg-accent);font-size:20px}
+  [dir=rtl] .ba .arr{transform:scaleX(-1)}
+  .note{margin-top:9px;font-size:11.5px;color:var(--pg-faint);line-height:1.45}
+  .note b{color:var(--pg-amber)}
+
+  .promptbar{display:flex;gap:14px;align-items:center;padding:14px 16px}
+  .promptbar .pt{flex:1;font-family:var(--mono);font-size:12px;line-height:1.55;color:hsl(220 16% 80%)} .promptbar .pt b{color:var(--pg-accent)}
+  .copy{flex:none;cursor:pointer;font:inherit;font-weight:700;font-size:12.5px;color:hsl(248 40% 96%);border-radius:12px;padding:11px 16px;border:1px solid transparent;background:linear-gradient(145deg,var(--pg-accent),var(--pg-accent-deep));box-shadow:0 10px 26px -12px hsl(250 70% 50% / .8)}
+  .copy:focus-visible{outline:2px solid var(--pg-accent);outline-offset:2px} .copy.done{background:var(--pg-glass-2);color:var(--pg-ink);box-shadow:none;border-color:var(--pg-line)}
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div class="logo">🔭</div>
+    <div>
+      <h1>OrchestKit × Claude Code — Adoption Before / After</h1>
+      <p>What changed in OrchestKit when we adopted each CC version. Toggle the version; filter by status. <b>2.1.179</b> is adopted; <b>2.1.181</b> is pending (snapshot captured, adoption not yet run).</p>
+    </div>
+  </header>
+
+  <div class="panel controls">
+    <div class="seg" role="group" aria-label="CC version">
+      <button id="v179" aria-pressed="true">2.1.179</button>
+      <button id="v181" aria-pressed="false">2.1.181</button>
+    </div>
+    <div class="filters" id="filters" role="group" aria-label="Filter by status">
+      <button class="fb on" data-f="all">All</button>
+      <button class="fb" data-f="adopted">Adopted ✓</button>
+      <button class="fb" data-f="pending">Pending ⏳</button>
+      <button class="fb" data-f="passive">Passive</button>
+    </div>
+  </div>
+
+  <div class="panel vsum" id="vsum"></div>
+  <div class="grid" id="grid"></div>
+
+  <div class="panel promptbar">
+    <div class="pt" id="promptOut"></div>
+    <button class="copy" id="copyBtn" aria-label="Copy adoption summary prompt">📋 Copy</button>
+  </div>
+</div>
+<div class="sr-only" aria-live="polite" id="live"></div>
+
+<script>
+/* Honest adoption data. status: adopted | passive | pending | notyet
+   "passive" = ork benefits from a CC fix with no ork change. */
+const DATA = {
+  "2.1.179": {
+    headline: "adopted",
+    summary: 'Adopted via <b>#2510</b> — bugfix patch, so adoption was the version bump; ork inherits the fixes with no guidance changes.',
+    items: [
+      { tag:"matrix", title:"Version matrix / latest_known", status:"adopted",
+        before:"latest_known = 2.1.176", after:"latest_known = 2.1.179 (matrix entries added, #2510)" },
+      { tag:"fix", title:"Mid-stream connection drops", status:"passive",
+        before:"A dropped connection showed a raw error; spinner stuck at “running tool”",
+        after:"Partial response preserved; spinner clears — ork sessions just benefit, no code change" },
+      { tag:"perf", title:"Plugin loading in remote sessions", status:"passive",
+        before:"Plugins stalled remote-session boot", after:"Faster remote boot — ork's plugin loads inherit it" },
+      { tag:"fix", title:"Sandbox glob froze the Bash tool (Linux)", status:"passive",
+        before:"Large allow/deny globs bloated the Bash tool, freezing Linux sessions",
+        after:"Fixed upstream — ork's sandbox.network rules + Bash hooks stay usable on big configs" },
+    ],
+  },
+  "2.1.181": {
+    headline: "pending",
+    summary: 'Snapshot captured this session (<b>shared/cc-snapshots/2.1.181.md</b>); <b>latest_known still 2.1.179</b>. The items below are the adoption deltas to action — before = current ork state, after = post-adoption.',
+    items: [
+      { tag:"feat", title:"AskUserQuestion: preview word-wrap + multi-select “Other”", status:"pending",
+        before:"ork rule: avoid `preview` — dead ↑/↓ nav + content cut off (memory 2026-05-28); multi-select dropped typed “Other”",
+        after:"2.1.181 fixes the cut-off (word-wraps) + keeps “Other” free-text",
+        note:"<b>Re-verify before relaxing the rule:</b> the dead-nav bug is a SEPARATE issue from the cut-off — may still stand." },
+      { tag:"fix", title:"Foreground subagents enforce the 5-level depth cap", status:"pending",
+        before:"chain-patterns documents ≤3 nested depth; foreground subagents could spawn unbounded chains",
+        after:"CC now caps foreground at 5 levels (= background)",
+        note:"Update chain-patterns guidance to reflect the enforced cap." },
+      { tag:"feat", title:"/config key=value from the prompt", status:"pending",
+        before:"update-config skill edits settings.json files directly",
+        after:"2.1.181 adds `/config key=value` (interactive, -p, Remote Control)",
+        note:"update-config can reference the new syntax for one-off setting changes." },
+      { tag:"fix", title:"ExitWorktree clean-removal (Windows)", status:"passive",
+        before:"ExitWorktree could refuse a clean worktree: “could not verify worktree state” when bare git unresolved",
+        after:"Fixed upstream — ork's worktree flows (WorktreeCreate/ExitWorktree) are more robust" },
+      { tag:"matrix", title:"Version matrix / latest_known", status:"notyet",
+        before:"latest_known = 2.1.179", after:"latest_known = 2.1.181 (pending the adoption pass)" },
+    ],
+  },
+};
+const TAGLABEL = { feat:"Feature", fix:"Fix", perf:"Perf", matrix:"Matrix" };
+const STLABEL = { adopted:"Adopted ✓", passive:"Passive ✓", pending:"Pending ⏳", notyet:"Not yet" };
+
+const state = { ver: "2.1.179", filter: "all" };
+const grid = document.getElementById("grid");
+const live = document.getElementById("live");
+const esc = s => String(s).replace(/[&<>]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;" }[c]));
+
+function render() {
+  const d = DATA[state.ver];
+  document.getElementById("vsum").innerHTML =
+    `<span class="st ${d.headline==='adopted'?'adopted':'pending'}">${d.headline==='adopted'?'ADOPTED':'PENDING'}</span> · ${d.summary}`;
+  const items = d.items.filter(i => state.filter === "all" || i.status === state.filter);
+  grid.innerHTML = items.length ? items.map((it, n) => `
+    <article class="card" style="--pg-dur:${260 + n*60}ms">
+      <div class="top">
+        <span class="chip ${it.tag}">${esc(TAGLABEL[it.tag])}</span>
+        <h3>${esc(it.title)}</h3>
+        <span class="status ${it.status}">${STLABEL[it.status]}</span>
+      </div>
+      <div class="ba">
+        <div class="pane before"><span class="lbl">before</span>${esc(it.before)}</div>
+        <div class="arr" aria-hidden="true">➜</div>
+        <div class="pane after"><span class="lbl">after</span>${esc(it.after)}</div>
+      </div>
+      ${it.note ? `<div class="note">${it.note}</div>` : ""}
+    </article>`).join("")
+    : `<div class="card" style="text-align:center;color:var(--pg-faint)">No ${esc(state.filter)} items in ${esc(state.ver)}.</div>`;
+
+  document.getElementById("v179").setAttribute("aria-pressed", state.ver === "2.1.179");
+  document.getElementById("v181").setAttribute("aria-pressed", state.ver === "2.1.181");
+  document.querySelectorAll(".fb").forEach(b => b.classList.toggle("on", b.dataset.f === state.filter));
+  const counts = d.items.reduce((a,i)=>(a[i.status]=(a[i.status]||0)+1,a),{});
+  live.textContent = `${state.ver}: ${items.length} ${state.filter==='all'?'':state.filter+' '}items shown`;
+  document.getElementById("promptOut").innerHTML =
+    `Adopt <b>Claude Code ${esc(state.ver)}</b> into OrchestKit: action the pending items `
+    + `(AskUserQuestion re-verify, subagent depth guidance, /config), add version-matrix entries, `
+    + `and bump latest_known. Snapshot: shared/cc-snapshots/${esc(state.ver)}.md.`;
+}
+
+document.getElementById("v179").addEventListener("click", () => { state.ver = "2.1.179"; render(); });
+document.getElementById("v181").addEventListener("click", () => { state.ver = "2.1.181"; render(); });
+document.getElementById("filters").addEventListener("click", e => { const b = e.target.closest(".fb"); if (b) { state.filter = b.dataset.f; render(); } });
+document.getElementById("copyBtn").addEventListener("click", () => {
+  const txt = document.getElementById("promptOut").textContent;
+  const done = () => { const b = document.getElementById("copyBtn"); b.textContent = "✓ Copied"; b.classList.add("done"); setTimeout(() => { b.textContent = "📋 Copy"; b.classList.remove("done"); }, 1500); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done).catch(()=>fb(txt,done)); else fb(txt,done);
+});
+function fb(t,done){const ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy");done();}catch(e){}ta.remove();}
+
+render();
+</script>
+</body>
+</html>
