@@ -22,6 +22,9 @@ Reference exemplars (read the one matching your archetype before building):
 - `homeos-arieh.html` — canonical gold standard (user-story player, RTL Hebrew). Study the bar.
 - `user-story-player.template.html` — generalized player scaffold (device mockup + transport + flow).
 - `decision-board.template.html` — drag-and-drop prioritization toolkit (the decision archetype).
+- `release-notes-player.template.html` — player *recipe* for release / changelog notes (release-feed
+  chrome + per-step impact card). A specialization of the player archetype, not a new one: route
+  release / "what's new" notes here; route adoption / triage / verdict views to a **dashboard** (§0).
 
 ---
 
@@ -73,7 +76,10 @@ shade from `hsl(248 84% 68%)` by hand; you cannot from `#7c6cf0`. Every color ca
 | `--pg-accent` (+`-deep`) | `hsl(248 84% 68%)` | Primary action / active state / flow arrow |
 | `--pg-warm` | `hsl(38 95% 60%)` | Secondary accent |
 
-- **Spacing:** only `4 · 8 · 12 · 16 · 24 · 48 · 96`. No `13px`, no `22px`.
+- **Spacing:** layout rhythm — section gaps, stacks, card padding — snaps to `4 · 8 · 12 · 16 · 24 · 48 · 96`.
+  Small component-chrome insets (chip / pill / button padding) may take intermediate values, but use
+  **one value per role**. The failure mode this targets is *arbitrary, inconsistent* spacing (`13px`
+  here and `15px` there for the same element), not the existence of an `11px` button inset.
 - **Radius:** `sm 9px · md 16px · lg 24px · device-bezel 40px · device-outer 54px`. Glass cards ≥16px.
 - **Shadow (two-part, §5):** ambient `0 20px 60px -22px hsl(… / .7)` + tight `0 4px 12px -6px hsl(… / .5)`.
 - **Motion:** exactly four durations — `100 / 200 / 300 / 500ms`, ease `cubic-bezier(.2,.8,.25,1)` (§6).
@@ -171,7 +177,7 @@ Glass reads as glass only against a dark, contrasted backdrop with a visible edg
 3. No two elements at equal visual weight (§3).
 4. No glow-halo cards (§5).
 5. More than one signature animation → cut to one (§6).
-6. Arbitrary spacing (`13px`, `22px`) → snap to the §2 scale.
+6. *Arbitrary, inconsistent* spacing (`13px` and `15px` for one role) → one value per role; layout rhythm on the §2 scale.
 7. Hex colors in tokens → convert to HSL.
 8. Native `draggable="true"` DnD → replace with the §7 pointer+keyboard engine.
 9. Physical `left`/`right` CSS in a playground that may be RTL → logical properties.
