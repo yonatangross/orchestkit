@@ -25,6 +25,9 @@ Reference exemplars (read the one matching your archetype before building):
 - `release-notes-player.template.html` — player *recipe* for release / changelog notes (release-feed
   chrome + per-step impact card). A specialization of the player archetype, not a new one: route
   release / "what's new" notes here; route adoption / triage / verdict views to a **dashboard** (§0).
+- `decision-router.template.html` — execution-router variant of the decision board: triage (Now/Next/Later)
+  **plus** routing each card to an ork strategy (single/workflow/nested/teams/swarm) + a plan-only
+  invocation. Used by `visualize-plan` for backlogs the user must prioritize and dispatch.
 
 ---
 

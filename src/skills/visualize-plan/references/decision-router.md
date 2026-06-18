@@ -14,9 +14,8 @@ both prioritize and dispatch** — issues to triage, PRD phases to schedule, a w
 Plain prioritization with no execution step → use `decision-board.template.html`. A single linear
 flow → `user-story-player`. <2 decision signals → dashboard (the standard doesn't apply).
 
-Reference artifact to copy + reseed: `docs/<branch-dir>/decision-router-board.html` (committed
-example). Swap the `CARDS` array; keep the engine. (Promoting this to a pristine, de-branded
-`decision-router.template.html` in `playground-exemplars/` is a clean follow-up.)
+Copyable exemplar: `${CLAUDE_PLUGIN_ROOT}/skills/shared/assets/playground-exemplars/decision-router.template.html`
+— swap the `CARDS` array, keep the engine. Real-data example: `docs/<branch-dir>/decision-router-board.html`.
 
 ## STEP A — seed CARDS from real data
 
