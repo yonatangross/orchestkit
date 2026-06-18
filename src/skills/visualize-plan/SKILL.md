@@ -250,6 +250,10 @@ Render the selected sections into the `FORMATS` chosen in STEP 0.5. **ASCII alwa
 > **user-story-player** or **decision-board** archetype instead of a flat card grid. Apply the §0 routing
 > rule in `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/playground-visual-standard.md")` and adapt the
 > matching exemplar under `skills/shared/assets/playground-exemplars/`.
+>
+> **Backlog to dispatch?** If the plan is a backlog the user must prioritize **and route to execution**,
+> use the **decision-router** variant — each card routes to an ork strategy and emits a plan-only
+> invocation: `Read("${CLAUDE_SKILL_DIR}/references/decision-router.md")`.
 
 ---
 
