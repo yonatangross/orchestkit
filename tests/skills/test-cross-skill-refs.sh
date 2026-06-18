@@ -25,6 +25,14 @@ for d in "$SKILLS_DIR"/*/; do
   VALID_SKILLS["$(basename "$d")"]=1; TOTAL_SKILLS=$((TOTAL_SKILLS + 1))
 done
 
+# Valid agent names — a body `ork:<name>` reference may point to an agent
+# (agents are spawned as `ork:<agent>` via the Agent tool), not only a skill.
+declare -A VALID_AGENTS
+for f in "$AGENTS_DIR"/*.md; do
+  [[ -f "$f" ]] || continue
+  VALID_AGENTS["$(basename "$f" .md)"]=1
+done
+
 log() { [[ "$VERBOSE" == "--verbose" ]] && echo "  INFO $1" || true; }
 
 # Parse skills: array (inline [a,b] or multi-line - a) from YAML frontmatter
@@ -50,6 +58,14 @@ check_ref() { # $1=source $2=ref $3=label
   else log "$1 -> $2 (ok)"; fi
 }
 
+# Body `ork:<name>` refs may name a skill OR an agent — accept either.
+check_body_ref() { # $1=source $2=ref $3=label
+  TOTAL_REFS=$((TOTAL_REFS + 1)); REFERENCED_BY["$2"]=1
+  if [[ -z "${VALID_SKILLS[$2]:-}" && -z "${VALID_AGENTS[$2]:-}" ]]; then
+    echo "  FAIL $1 references non-existent skill/agent '$3'" ; BROKEN=$((BROKEN + 1))
+  else log "$1 -> $2 (ok)"; fi
+}
+
 echo "============================================================================"
 echo "  Cross-Skill Reference Validation"
 echo "============================================================================"
@@ -72,7 +88,7 @@ for f in "$SKILLS_DIR"/*/SKILL.md; do
   # Extract body, strip fenced code blocks to avoid false positives from ASCII art
   body=$(sed '1,/^---$/d' "$f" | sed '1,/^---$/d' | sed '/^```/,/^```/d')
   for ref in $(echo "$body" | grep -oE 'ork:[a-zA-Z][a-zA-Z0-9_-]*[a-zA-Z0-9]' | sed 's/^ork://' | sort -u); do
-    [[ -n "$ref" && "$ref" != "$s" ]] && check_ref "$s" "$ref" "ork:$ref (body)"
+    [[ -n "$ref" && "$ref" != "$s" ]] && check_body_ref "$s" "$ref" "ork:$ref (body)"
   done
 done
 
