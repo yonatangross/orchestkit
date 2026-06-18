@@ -135,6 +135,10 @@
   .card .meta { margin-top: 7px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 10.5px; color: var(--pg-muted); }
   .chip { font-size: 10px; font-weight: 650; border-radius: 999px; padding: 2px 8px; background: hsl(0 0% 100% / 0.06); color: var(--pg-muted); }
   .chip.rice { background: hsl(248 84% 68% / 0.16); color: hsl(248 84% 82%); font-family: var(--pg-mono); }
+  .chip.q-qw { background: hsl(160 68% 45% / 0.18); color: hsl(160 68% 72%); }
+  .chip.q-bb { background: hsl(248 84% 68% / 0.18); color: hsl(248 84% 82%); }
+  .chip.q-fi { background: hsl(206 85% 62% / 0.16); color: hsl(206 85% 76%); }
+  .chip.q-ts { background: hsl(345 76% 63% / 0.16); color: hsl(345 76% 78%); }
   .card .grip { position: absolute; inset-inline-end: 9px; top: 9px; color: var(--pg-faint); font-size: 13px; letter-spacing: 1px; line-height: 1; }
 
   /* dragging states */
@@ -220,7 +224,7 @@
       <h1>Decision Board</h1>
       <p>The decision-making parts of a playground should let you <b>act on the decision</b>, not just read it.
          Drag a card to set its impact &amp; effort, reorder the backlog, or sort it into buckets — the
-         <b>RICE score</b> and the copy-out prompt update live. Mouse, touch, and keyboard all work
+         <b>scores</b> and the copy-out prompt update live. Mouse, touch, and keyboard all work
          (<span class="kbd">Tab</span> a card, then <span class="kbd">← ↑ ↓ →</span>).</p>
     </div>
     <div class="right">
@@ -253,14 +257,14 @@
    Swap ITEMS for your own to reuse the template.
    ═══════════════════════════════════════════════════════════════════════ */
 const ITEMS = [
-  { id:"a", title:"One-click onboarding wizard",      reach:900, impact:3,   confidence:0.8,  effort:3 },
-  { id:"b", title:"Dark mode",                          reach:1200,impact:1,   confidence:0.95, effort:1 },
-  { id:"c", title:"SSO / SAML for enterprise",          reach:140, impact:3,   confidence:0.7,  effort:5 },
-  { id:"d", title:"Inline AI code review",              reach:600, impact:3,   confidence:0.6,  effort:4 },
-  { id:"e", title:"Mobile app",                         reach:2000,impact:2,   confidence:0.4,  effort:5 },
-  { id:"f", title:"Keyboard shortcuts",                 reach:500, impact:1,   confidence:0.9,  effort:1 },
-  { id:"g", title:"Usage analytics dashboard",          reach:350, impact:2,   confidence:0.8,  effort:3 },
-  { id:"h", title:"Slack notifications",                reach:700, impact:1,   confidence:0.85, effort:2 },
+  { id:"i2475", title:"#2475 Re-architect InstructionsLoaded hooks", reach:800, impact:5, confidence:0.7,  effort:3 }, // quick win
+  { id:"i2353", title:"#2353 Auto-inject prior-decision search",     reach:600, impact:4, confidence:0.7,  effort:2 }, // quick win
+  { id:"i2430", title:"#2430 ORK_NO_NOTIFY flag (disable banners)",  reach:300, impact:2, confidence:0.9,  effort:1 }, // fill-in
+  { id:"i2375", title:"#2375 Glama listing + score badge",           reach:150, impact:2, confidence:0.8,  effort:2 }, // fill-in
+  { id:"i2192", title:"#2192 Walk-all auto-eval coverage",           reach:500, impact:5, confidence:0.6,  effort:4 }, // big bet
+  { id:"i2195", title:"#2195 DeepEval/RAGAS eval pipeline",          reach:450, impact:4, confidence:0.6,  effort:5 }, // big bet
+  { id:"i2011", title:"#2011 M168 skill recommender",               reach:700, impact:4, confidence:0.65, effort:4 }, // big bet
+  { id:"i2264", title:"#2264 Reversible output compression",         reach:400, impact:2, confidence:0.5,  effort:4 }, // time sink
 ];
 
 const BUCKET_SCHEMES = {
@@ -298,19 +302,40 @@ const live  = document.getElementById("live");
 const announce = msg => { live.textContent = ""; requestAnimationFrame(() => live.textContent = msg); };
 
 /* ── card markup ─────────────────────────────────────────────────────── */
+// Impact×Effort quadrant (split at the plane midpoint, impact/effort = 3).
+function quadrant(it) {
+  const hiI = it.impact > 3, hiE = it.effort > 3;
+  if (hiI && !hiE) return { key: "qw", label: "Quick win" };
+  if (hiI && hiE)  return { key: "bb", label: "Big bet" };
+  if (!hiI && !hiE) return { key: "fi", label: "Fill-in" };
+  return { key: "ts", label: "Time sink" };
+}
+// Chips are VIEW-AWARE: the matrix shows quadrant (position-consistent, no RICE),
+// the ranked list shows the full RICE breakdown (where reach/confidence are visible).
+function cardChips(it) {
+  if (state.view === "matrix") {
+    const q = quadrant(it);
+    return `<span class="chip q-${q.key}">${q.label}</span><span class="chip">I ${it.impact} · E ${it.effort}</span>`;
+  }
+  if (state.view === "list") {
+    return `<span class="chip rice">RICE ${rice(it)}</span><span class="chip">reach ${it.reach}</span>`
+         + `<span class="chip">impact ${it.impact}</span><span class="chip">conf ${Math.round(it.confidence * 100)}%</span><span class="chip">effort ${it.effort}</span>`;
+  }
+  return `<span class="chip">I ${it.impact} · E ${it.effort}</span>`;
+}
+function cardLabel(it) {
+  if (state.view === "matrix") return `${esc(it.title)}. ${quadrant(it).label}, impact ${it.impact}, effort ${it.effort}.`;
+  if (state.view === "list")   return `${esc(it.title)}. RICE ${rice(it)}.`;
+  return `${esc(it.title)}.`;
+}
 function cardHTML(it, extra = "") {
   return `<div class="card" data-id="${it.id}" tabindex="0" role="button"
             aria-roledescription="draggable card"
-            aria-label="${esc(it.title)}. RICE ${rice(it)}. ${kbdHint()}">
+            aria-label="${cardLabel(it)} ${kbdHint()}">
       <span class="grip" aria-hidden="true">⠿</span>
       ${extra}
       <div class="ct">${esc(it.title)}</div>
-      <div class="meta">
-        <span class="chip rice">RICE ${rice(it)}</span>
-        <span class="chip">reach ${it.reach}</span>
-        <span class="chip">impact ${it.impact}</span>
-        <span class="chip">effort ${it.effort}</span>
-      </div>
+      <div class="meta">${cardChips(it)}</div>
     </div>`;
 }
 function kbdHint() {
@@ -340,8 +365,9 @@ function renderList() {
 function renderMatrix() {
   const pct = v => 12 + ((v - 1) / 4) * 76;    // 1..5 → 12..88 (padded so cards never clip the edge)
   stage.innerHTML = `
-    <p class="scheme-note">Drop a card on the plane — its position <b>sets impact &amp; effort</b>, and RICE recomputes.
-       Focus a card and use <span class="kbd">←→</span> effort · <span class="kbd">↑↓</span> impact.</p>
+    <p class="scheme-note">Drop a card on the plane — its position <b>sets impact &amp; effort</b>, and its quadrant updates.
+       Focus a card and use <span class="kbd">←→</span> effort · <span class="kbd">↑↓</span> impact.
+       <span style="color:var(--pg-faint)">(full RICE score lives in the Ranked-list view)</span></p>
     <div class="matrix-wrap">
       <div class="axis-y" aria-hidden="true">Impact →</div>
       <div class="plane" id="plane">
@@ -454,7 +480,7 @@ function commitDrop(under, e) {
       const it = byId(drag.id);
       it.effort = clamp15(Math.round(fx * 4 + 1));
       it.impact = clamp15(Math.round(fy * 4 + 1));
-      render(); announce(`${it.title}: impact ${it.impact}, effort ${it.effort}, RICE ${rice(it)}.`);
+      render(); announce(`${it.title}: impact ${it.impact}, effort ${it.effort} — ${quadrant(it).label}.`);
     }
   } else if (state.view === "list") {
     const list = document.getElementById("v-list");
@@ -491,7 +517,7 @@ stage.addEventListener("keydown", e => {
     const dir = state.rtl ? -1 : 1;
     if (e.key === "ArrowRight") it.effort = clamp15(it.effort + dir);
     if (e.key === "ArrowLeft")  it.effort = clamp15(it.effort - dir);
-    refocus(id, `${it.title}: impact ${it.impact}, effort ${it.effort}, RICE ${rice(it)}.`);
+    refocus(id, `${it.title}: impact ${it.impact}, effort ${it.effort} — ${quadrant(it).label}.`);
   } else {
     const sch = BUCKET_SCHEMES[state.bucketScheme], order = sch.defs.map(d => d.key);
     const cur = order.indexOf(state.bucket[id]);
@@ -514,11 +540,11 @@ function refocus(id, msg) {
 function updatePrompt() {
   let txt = "";
   if (state.view === "matrix") {
-    const sorted = [...ITEMS].sort((a,b) => rice(b) - rice(a));
-    const top = sorted.slice(0,3).map(i => i.title);
-    const sink = sorted[sorted.length-1];
-    txt = `Prioritize the backlog by <b>RICE</b>. Top: <b>${esc(top.join(", "))}</b>. `
-        + `Deprioritize <span class="warm">${esc(sink.title)}</span> (RICE ${rice(sink)} — low impact for the effort).`;
+    const g = k => ITEMS.filter(i => quadrant(i).key === k).map(i => i.title);
+    const seg = (label, names) => `${label}: ${names.length ? esc(names.join(", ")) : "—"}`;
+    txt = `Prioritize by impact vs effort. `
+        + `<b>${seg("Do first (quick wins)", g("qw"))}</b>  ·  ${seg("Plan (big bets)", g("bb"))}  ·  `
+        + `${seg("Maybe (fill-ins)", g("fi"))}  ·  <span class="warm">${seg("Avoid (time sinks)", g("ts"))}</span>.`;
   } else if (state.view === "list") {
     const o = state.order.map((id,i) => `${i+1}. ${byId(id).title}`);
     txt = `Work the backlog in this <b>explicit order</b>: ${esc(o.join("  ·  "))}.`;
