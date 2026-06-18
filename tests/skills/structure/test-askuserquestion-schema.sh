@@ -19,6 +19,14 @@
 # These tests intentionally do NOT forbid `preview` — the schema permits it; we
 # just stopped authoring it. Rules below stay as schema-conformance gates.
 #
+# CC 2.1.181 update — preview fixes do NOT lift this guidance: 2.1.181 fixed
+# (a) preview content being cut off at the dialog edge (now word-wraps) and
+# (b) multiSelect questions silently dropping a typed "Other" free-text answer
+# on submit. Neither addresses the dead up/down-arrow nav bug above — that bug
+# is NOT in the 2.1.181 changelog and cannot be live-verified from a headless
+# agent (no way to drive the interactive TUI picker). So the "avoid preview"
+# guidance STANDS; skills continue to use plain label + description.
+#
 # Rules enforced (per https://code.claude.com/docs/en/agent-sdk/user-input):
 #   1. Each question has 2-4 options          (minItems 2, maxItems 4)
 #   2. Each call has 1-4 questions             (maxItems 4)

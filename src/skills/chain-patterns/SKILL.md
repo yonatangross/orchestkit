@@ -232,6 +232,8 @@ Agent(subagent_type="ork:backend-system-architect",
 
 **Depth budget:** treat 3 as the practical ceiling. Depth telemetry is currently DORMANT: CC sends no `parent_agent_id` at SubagentStart (live-verified 2026-06-11), so `spawn_depth` is logged only when lineage is real and the validator's depth ≥ 4 warning cannot fire until upstream exposes agent context in hook payloads (anthropics/claude-code#16424). Until then the budget is enforced by THIS guidance, not by hooks — respect it.
 
+> **CC 2.1.181 — foreground depth cap now enforced:** foreground subagents previously spawned unbounded nested chains; CC now rejects spawns past 5 levels deep, the same limit background subagents always had. This is CC's INTERNAL spawn-time rejection — distinct from ork's hook-based depth-≥4 warning above, which stays dormant (2.1.181 did not expose `parent_agent_id`). ork's ≤3 convention sits safely under the enforced 5-cap; the failure mode authors now hit is a hard depth-limit rejection, not silent unbounded growth.
+
 **Worked example — depth-3 infra chain** (grants live in `src/agents/`):
 
 ```python
