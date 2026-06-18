@@ -954,3 +954,20 @@ Skills in nested `.claude/skills/` directories now load when you work on files t
 The dynamic-workflow trigger now fires **only** on explicit phrases like "run a workflow" or "workflow:" (with a purple-shimmer highlight) — a bare mention of the word "workflow" no longer launches one.
 
 **Action for OrchestKit**: removes accidental triggers from skill descriptions and docs that merely mention "workflow". Complements the 2.1.157 keyword-trigger toggle; no plugin change needed. (Also in 2.1.178: auto-mode now runs the classifier on a subagent spawn *before* launch, closing a gap where a subagent could request a blocked action without review — a platform safety improvement, no frontmatter change.)
+
+## CC 2.1.181 Settings
+
+### `/config key=value` — Set Any Setting From the Prompt
+
+CC 2.1.181 adds `/config key=value` syntax to set any setting directly from the prompt, without opening the `/config` menu or editing a settings file by hand:
+
+```
+/config thinking=false
+/config model=opus
+```
+
+Works in **interactive**, **`-p`** (headless), and **Remote Control**.
+
+**One-off vs. durable — the distinction OrchestKit must preserve:** `/config key=value` writes a single setting value. It is the fast path for an **ad-hoc, one-off** change. It does **not** create automation. A durable "whenever X happens, do Y" behavior still requires a **hook in `settings.json`** — the harness executes hooks, the model does not, so a setting value can't stand in for one. When a user asks to flip one setting now, reach for `/config key=value`; when they ask for a recurring on-event behavior, route to the hook flow in the `configure` (update-config) skill.
+
+**Action for OrchestKit**: docs-only. No change to the committed `src/settings/ork.settings.json` — this is a user-facing convenience, not a plugin surface. Mention it in `update-config` as the quick path for single ad-hoc settings, while keeping hook-based automation as the answer for "from now on / each time / whenever" requests.

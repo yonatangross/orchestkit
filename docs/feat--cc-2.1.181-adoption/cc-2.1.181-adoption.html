@@ -1,0 +1,238 @@
+<!doctype html>
+<!--
+  OrchestKit × Claude Code 2.1.181 — ADOPTION OUTCOMES explorer
+  What ork ACTUALLY changed adopting CC 2.1.181 (issues #2519/#2520/#2521 + matrix),
+  before vs after, with honest status — incl. #2519 UPHELD (rule not relaxed).
+  Second view ("Method") tells how it was shipped: worktree isolation + a
+  draft→adversarial-verify workflow (6 agents) + the gate sweep.
+  Cool-glass (#2516 tokens), single file, zero deps. §0 routing: adoption STATE
+  view (compare) with a method narrative — operable via view toggle + status filter.
+-->
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Adoption Outcomes · Claude Code 2.1.181 · OrchestKit</title>
+<style>
+  :root{
+    --pg-bg: hsl(232 27% 6%);
+    --pg-ink: hsl(220 18% 94%);
+    --pg-muted: hsl(222 12% 64%);
+    --pg-faint: hsl(222 10% 46%);
+    --pg-line: hsl(0 0% 100% / .10);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .085);
+    --pg-accent: hsl(250 86% 70%);
+    --pg-accent-deep: hsl(256 70% 50%);
+    --pg-teal: hsl(174 66% 52%);
+    --pg-green: hsl(150 60% 54%);
+    --pg-amber: hsl(40 92% 60%);
+    --pg-rose: hsl(346 78% 66%);
+    --r-sm:9px; --r-md:16px; --r-lg:24px;
+    --sh:0 20px 60px -22px hsl(250 60% 2% / .72), 0 4px 12px -6px hsl(250 60% 2% / .5);
+    --ease:cubic-bezier(.2,.8,.25,1);
+    --font: -apple-system,BlinkMacSystemFont,"Segoe UI","Inter",system-ui,sans-serif;
+    --mono: "SF Mono","JetBrains Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box} html,body{margin:0}
+  body{min-height:100vh;font-family:var(--font);color:var(--pg-ink);-webkit-font-smoothing:antialiased;
+    background:radial-gradient(900px 600px at 88% -8%, hsl(250 86% 68% / .16), transparent 60%),
+               radial-gradient(820px 620px at 4% 110%, hsl(262 78% 64% / .12), transparent 58%), var(--pg-bg);
+    background-attachment:fixed; padding:24px 16px 64px;}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .wrap{max-width:1040px;margin-inline:auto;display:flex;flex-direction:column;gap:16px}
+  .head{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+  .logo{width:46px;height:46px;border-radius:14px;flex:none;display:grid;place-items:center;font-size:22px;
+    background:linear-gradient(145deg,var(--pg-accent),var(--pg-accent-deep));box-shadow:0 8px 24px -8px hsl(250 70% 50% / .7),inset 0 1px 0 hsl(0 0% 100% / .4)}
+  h1{margin:0;font-size:21px;letter-spacing:-.3px} .head p{margin:3px 0 0;font-size:13px;color:var(--pg-muted);max-width:72ch;line-height:1.5}
+
+  .panel{background:var(--pg-glass);border:1px solid var(--pg-line);border-radius:var(--r-lg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:var(--sh)}
+  .controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:12px 16px}
+  .seg{display:inline-flex;gap:3px;background:hsl(0 0% 100% / .04);border:1px solid var(--pg-line);border-radius:999px;padding:3px}
+  .seg button{border:0;background:none;color:var(--pg-muted);font:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:999px;cursor:pointer;font-variant-numeric:tabular-nums}
+  .seg button[aria-pressed=true]{background:var(--pg-accent);color:hsl(232 40% 8%)}
+  .seg button:focus-visible{outline:2px solid var(--pg-accent);outline-offset:2px}
+  .filters{display:flex;gap:6px;flex-wrap:wrap;margin-inline-start:auto}
+  .filters[hidden]{display:none}
+  .fb{border:1px solid var(--pg-line);background:hsl(0 0% 100% / .04);color:var(--pg-muted);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer}
+  .fb.on{border-color:var(--pg-accent);color:var(--pg-ink);background:hsl(250 86% 70% / .12)}
+  .fb:focus-visible{outline:2px solid var(--pg-accent);outline-offset:2px}
+
+  .vsum{padding:11px 16px;font-size:12.5px;color:var(--pg-muted)} .vsum b{color:var(--pg-ink)}
+  .vsum .st{font-weight:700;color:var(--pg-green)}
+
+  .grid{display:flex;flex-direction:column;gap:12px}
+  .card{border-radius:var(--r-md);border:1px solid var(--pg-line);background:var(--pg-glass);padding:14px 16px;animation:rise var(--pg-dur,300ms) var(--ease) both}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}   /* §6 signature moment: view-switch reveal */
+  .card .top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .chip{font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border-radius:999px;padding:4px 8px}
+  .chip.feat{color:hsl(250 90% 88%);background:hsl(250 86% 70% / .2)}
+  .chip.fix{color:hsl(220 16% 82%);background:hsl(0 0% 100% / .08)}
+  .chip.matrix{color:hsl(250 90% 90%);background:hsl(250 86% 70% / .34)}
+  .chip.step{color:hsl(174 80% 82%);background:hsl(174 66% 52% / .16)}
+  .card h3{margin:0;font-size:14.5px;font-weight:700;letter-spacing:-.2px;flex:1}
+  .issue{font-family:var(--mono);font-size:11px;color:var(--pg-faint)}
+  .status{font-size:10.5px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;border-radius:999px;padding:4px 10px;white-space:nowrap}
+  .status.adopted{color:var(--pg-green);background:hsl(150 60% 54% / .14)}
+  .status.upheld{color:var(--pg-accent);background:hsl(250 86% 70% / .18)}
+
+  .ba{display:grid;grid-template-columns:1fr 28px 1fr;gap:10px;align-items:stretch}
+  @media(max-width:640px){.ba{grid-template-columns:1fr;gap:8px}.ba .arr{transform:rotate(90deg);justify-self:center}}
+  .ba .pane{border-radius:var(--r-sm);padding:10px 12px;font-size:12.5px;line-height:1.5;border:1px solid var(--pg-line)}
+  .ba .before{background:hsl(0 0% 100% / .03);color:var(--pg-muted)}
+  .ba .after{background:hsl(250 86% 70% / .07);border-color:hsl(250 86% 70% / .25);color:var(--pg-ink)}
+  .ba .lbl{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--pg-faint);margin-bottom:4px;display:block}
+  .ba .after .lbl{color:var(--pg-accent)}
+  .ba .arr{display:grid;place-items:center;color:var(--pg-accent);font-size:20px}
+  [dir=rtl] .ba .arr{transform:scaleX(-1)}
+  code{font-family:var(--mono);font-size:.92em;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+  .note{margin-top:9px;font-size:11.5px;color:var(--pg-faint);line-height:1.45}
+  .note b{color:var(--pg-amber)}
+  .note.verdict{color:var(--pg-ink);background:hsl(250 86% 70% / .08);border:1px solid hsl(250 86% 70% / .22);border-radius:var(--r-sm);padding:9px 11px}
+  .note.verdict b{color:var(--pg-accent)}
+
+  .step{display:flex;gap:12px;align-items:flex-start}
+  .step .n{flex:none;width:26px;height:26px;border-radius:999px;display:grid;place-items:center;font-weight:800;font-size:12px;color:hsl(232 40% 8%);background:linear-gradient(145deg,var(--pg-accent),var(--pg-accent-deep))}
+  .step .body{font-size:12.5px;line-height:1.55;color:var(--pg-ink)} .step .body b{color:var(--pg-teal)}
+
+  .promptbar{display:flex;gap:14px;align-items:center;padding:14px 16px}
+  .promptbar .pt{flex:1;font-family:var(--mono);font-size:12px;line-height:1.55;color:hsl(220 16% 80%)} .promptbar .pt b{color:var(--pg-accent)}
+  .copy{flex:none;cursor:pointer;font:inherit;font-weight:700;font-size:12.5px;color:hsl(248 40% 96%);border-radius:12px;padding:11px 16px;border:1px solid transparent;background:linear-gradient(145deg,var(--pg-accent),var(--pg-accent-deep));box-shadow:0 10px 26px -12px hsl(250 70% 50% / .8)}
+  .copy:focus-visible{outline:2px solid var(--pg-accent);outline-offset:2px} .copy.done{background:var(--pg-glass-2);color:var(--pg-ink);box-shadow:none;border-color:var(--pg-line)}
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div class="logo">🔭</div>
+    <div>
+      <h1>OrchestKit × Claude Code 2.1.181 — Adoption Outcomes</h1>
+      <p>What ork changed adopting CC 2.1.181 — issues <b>#2519 / #2520 / #2521</b> plus the version matrix. Honest status: three adopted, one rule <b>upheld</b> (not relaxed). Switch to <b>Method</b> to see how it shipped — worktree isolation + a draft→adversarial-verify workflow.</p>
+    </div>
+  </header>
+
+  <div class="panel controls">
+    <div class="seg" role="group" aria-label="View">
+      <button id="vOut" aria-pressed="true">Outcomes</button>
+      <button id="vMethod" aria-pressed="false">Method</button>
+    </div>
+    <div class="filters" id="filters" role="group" aria-label="Filter by status">
+      <button class="fb on" data-f="all">All</button>
+      <button class="fb" data-f="adopted">Adopted ✓</button>
+      <button class="fb" data-f="upheld">Upheld</button>
+      <button class="fb" data-f="matrix">Matrix</button>
+    </div>
+  </div>
+
+  <div class="panel vsum" id="vsum"></div>
+  <div class="grid" id="grid"></div>
+
+  <div class="panel promptbar">
+    <div class="pt" id="promptOut"></div>
+    <button class="copy" id="copyBtn" aria-label="Copy adoption summary prompt">📋 Copy</button>
+  </div>
+</div>
+<div class="sr-only" aria-live="polite" id="live"></div>
+
+<script>
+/* status: adopted | upheld (rule kept after re-verify) | matrix (filter tag = matrix) */
+const OUTCOMES = [
+  { tag:"feat", fk:"adopted", issue:"#2521", title:"/config key=value from the prompt", status:"adopted",
+    before:"configure (update-config) skill documented harness config ONLY as settings.json file edits",
+    after:"SKILL.md + cc-version-settings.md now teach <code>/config key=value</code> for one-off settings (interactive · -p · Remote Control)",
+    note:"Distinction preserved: a <b>one-off</b> tweak → <code>/config key=value</code>; a durable “whenever X” behavior still needs a <b>hook in settings.json</b> (the harness runs hooks, not the model)." },
+
+  { tag:"fix", fk:"adopted", issue:"#2520", title:"Foreground subagents enforce the 5-level depth cap", status:"adopted",
+    before:"chain-patterns Pattern 9 said ≤ 3 by convention; foreground subagents could spawn unbounded nested chains",
+    after:"Pattern 9 notes CC 2.1.181 hard-enforces the 5-level cap on foreground (= background); ork’s ≤ 3 sits safely under it",
+    note:"CC’s spawn-time <b>rejection</b> is distinct from ork’s hook depth-warning, which stays dormant (no parent_agent_id, #16424). Failure mode is now a hard depth-limit rejection, not silent runaway." },
+
+  { tag:"feat", fk:"upheld", issue:"#2519", title:"AskUserQuestion preview — re-verify", status:"upheld",
+    before:"ork rule: avoid <code>preview</code> — dead ↑/↓ nav + content cut off (confirmed 2026-05-28)",
+    after:"2.1.181 fixed the cut-off (word-wrap) + the multi-select “Other” drop — but NOT the dead nav",
+    verdict:"Rule <b>UPHELD — not relaxed.</b> The dead-nav bug is absent from the 2.1.181 changelog and can’t be live-verified from a headless agent. Skills keep plain label + description; the schema test’s rationale comment records the partial fix." },
+
+  { tag:"matrix", fk:"matrix", issue:"matrix", title:"Version matrix / latest_known", status:"adopted",
+    before:"<code>LATEST_KNOWN_CC = 2.1.179</code>",
+    after:"<code>LATEST_KNOWN_CC = 2.1.181</code> — cc-version-matrix.ts, rebuilt hooks bundle, plugins mirror in sync",
+    note:"The SessionStart version-check hook stops nudging until CC &gt; 2.1.181." },
+];
+
+const METHOD = [
+  { n:1, html:"<b>Isolated first.</b> A concurrent session was live on the shared working tree, so all edits landed in a dedicated git worktree (<code>feat/cc-2.1.181-adoption</code> off origin/main) — the shared tree was never touched." },
+  { n:2, html:"<b>Scouted the real surfaces.</b> The issues pointed at <code>src/skills/update-config/</code> (doesn’t exist) — the live skill is <code>src/skills/configure/</code>; the matrix is one constant in <code>cc-version-matrix.ts</code>. No snapshot vendoring needed (no test couples it)." },
+  { n:3, html:"<b>Draft → adversarial-verify workflow.</b> 6 agents (a drafter + a skeptic per issue) checked every edit verbatim against the file and against the authoritative 2.1.181 changelog. 0 problems returned." },
+  { n:4, html:"<b>The skeptic held the line on #2519.</b> It upheld the conservative call: don’t relax a rule whose root-cause bug isn’t in the changelog and can’t be headless-verified. Three adopted, one upheld." },
+  { n:5, html:"<b>Gate sweep, all green.</b> typecheck · biome · matrix unit test (10/10) · test:skills · test:manifests · test:security. Built + plugins mirror + gated docs in sync." },
+];
+
+const TAGLABEL = { feat:"Feature", fix:"Behavior", matrix:"Matrix" };
+const STLABEL  = { adopted:"Adopted ✓", upheld:"Upheld" };
+
+const state = { view:"outcomes", filter:"all" };
+const grid = document.getElementById("grid");
+const live = document.getElementById("live");
+const filtersEl = document.getElementById("filters");
+
+function renderOutcomes(){
+  const adopted = OUTCOMES.filter(i=>i.status==="adopted").length;
+  document.getElementById("vsum").innerHTML =
+    `<span class="st">ADOPTED</span> · ${adopted} changes shipped + 1 rule <b>upheld</b> after re-verify. Before = ork before this PR; after = what landed. Verified via a draft→adversarial-verify workflow.`;
+  const items = OUTCOMES.filter(i => state.filter === "all" || i.fk === state.filter);
+  grid.innerHTML = items.length ? items.map((it,n)=>`
+    <article class="card" style="--pg-dur:${260 + n*60}ms">
+      <div class="top">
+        <span class="chip ${it.tag}">${TAGLABEL[it.tag]}</span>
+        <h3>${it.title}</h3>
+        <span class="issue">${it.issue}</span>
+        <span class="status ${it.status}">${STLABEL[it.status]}</span>
+      </div>
+      <div class="ba">
+        <div class="pane before"><span class="lbl">before</span>${it.before}</div>
+        <div class="arr" aria-hidden="true">➜</div>
+        <div class="pane after"><span class="lbl">after</span>${it.after}</div>
+      </div>
+      ${it.verdict ? `<div class="note verdict">${it.verdict}</div>` : ""}
+      ${it.note ? `<div class="note">${it.note}</div>` : ""}
+    </article>`).join("")
+    : `<div class="card" style="text-align:center;color:var(--pg-faint)">No items with that status.</div>`;
+  live.textContent = `Outcomes: ${items.length} item(s) shown`;
+}
+
+function renderMethod(){
+  document.getElementById("vsum").innerHTML =
+    `<span class="st">METHOD</span> · how the adoption shipped — isolation, an adversarial-verify workflow, and the gate sweep.`;
+  grid.innerHTML = METHOD.map((s,n)=>`
+    <article class="card step" style="--pg-dur:${260 + n*60}ms">
+      <div class="n">${s.n}</div>
+      <div class="body">${s.html}</div>
+    </article>`).join("");
+  live.textContent = `Method: ${METHOD.length} steps`;
+}
+
+function render(){
+  const out = state.view === "outcomes";
+  filtersEl.hidden = !out;
+  document.getElementById("vOut").setAttribute("aria-pressed", out);
+  document.getElementById("vMethod").setAttribute("aria-pressed", !out);
+  if (out) renderOutcomes(); else renderMethod();
+  document.querySelectorAll(".fb").forEach(b => b.classList.toggle("on", b.dataset.f === state.filter));
+  document.getElementById("promptOut").innerHTML =
+    `Adopt <b>Claude Code 2.1.181</b> into OrchestKit — done: <code>/config key=value</code> docs, foreground 5-level depth-cap note, AskUserQuestion preview re-verify (rule upheld), latest_known→2.1.181. Closes #2519, #2520, #2521.`;
+}
+
+document.getElementById("vOut").addEventListener("click", () => { state.view="outcomes"; render(); });
+document.getElementById("vMethod").addEventListener("click", () => { state.view="method"; render(); });
+filtersEl.addEventListener("click", e => { const b=e.target.closest(".fb"); if(b){ state.filter=b.dataset.f; render(); } });
+document.getElementById("copyBtn").addEventListener("click", () => {
+  const txt = document.getElementById("promptOut").textContent;
+  const done = () => { const b=document.getElementById("copyBtn"); b.textContent="✓ Copied"; b.classList.add("done"); setTimeout(()=>{ b.textContent="📋 Copy"; b.classList.remove("done"); },1500); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done).catch(()=>fb(txt,done)); else fb(txt,done);
+});
+function fb(t,done){const ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy");done();}catch(e){}ta.remove();}
+
+render();
+</script>
+</body>
+</html>
