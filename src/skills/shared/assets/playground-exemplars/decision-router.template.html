@@ -19,9 +19,7 @@
     2. Replace ORK_SLUGS if your registry differs (kept current here).
     3. Keep the engine. Run the §10 self-audit before shipping.
 
-  KNOWN DEVIATION: the topology preview loads mermaid from a CDN (one external
-  dep) — §10 wants zero external deps. Inline-SVG the five strategy shapes to
-  make it fully self-contained.
+  Zero external deps: the topology preview is drawn with inline SVG (no mermaid).
   ════════════════════════════════════════════════════════════════════════
 -->
 <html lang="en" dir="ltr">
@@ -191,7 +189,6 @@
   .diaglbl{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--pg-faint);margin:12px 0 0}
   @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -446,8 +443,7 @@ document.getElementById('cmtlist').addEventListener('click',e=>{const d=e.target
 
 /* ── §swarm-route · execution-strategy selector (plan-only, deterministic, $0) ── */
 const ORK_SLUGS=['ork:accessibility-specialist','ork:ai-safety-auditor','ork:backend-system-architect','ork:ci-cd-engineer','ork:claude-design-orchestrator','ork:code-quality-reviewer','ork:component-curator','ork:data-pipeline-engineer','ork:database-engineer','ork:debug-investigator','ork:demo-producer','ork:deployment-manager','ork:design-context-extractor','ork:design-system-architect','ork:emulate-engineer','ork:eval-runner','ork:event-driven-architect','ork:expect-agent','ork:frontend-performance-engineer','ork:frontend-ui-developer','ork:genui-architect','ork:git-operations-engineer','ork:infrastructure-architect','ork:llm-integrator','ork:market-intelligence','ork:monitoring-engineer','ork:multimodal-specialist','ork:product-strategist','ork:python-performance-engineer','ork:release-engineer','ork:security-auditor','ork:security-layer-auditor','ork:system-design-reviewer','ork:test-generator','ork:ui-feedback','ork:web-research-analyst','ork:workflow-architect']; // full ork registry (37 agents, from src/agents/)
-let mdgN=0;
-mermaid.initialize({startOnLoad:false,theme:'dark',securityLevel:'loose',suppressErrorRendering:true,maxEdges:2000,themeVariables:{fontSize:'12px',lineColor:'#8b86ff',primaryColor:'#1b2233',primaryBorderColor:'#5b52c9',primaryTextColor:'#e6edf3',secondaryColor:'#14322f',tertiaryColor:'#3a2740'}});
+// topology preview is drawn with inline SVG (zero-dep) — see topoSVG() below
 // ORK-ONLY: every strategy runs ork skills/specialists — no generic option.
 const STRATS={
   single:{ico:'🛠️',name:'Single ork skill',rel:'~85–95%',relPct:90,cost:'1×',blurb:'/ork:* one-shot (fans out ork agents internally)'},
@@ -551,32 +547,58 @@ function emitExec(id){
 }
 function assertNever(x){return '# unhandled strategy: '+x}
 function nn(s){return (s||'ork agent').replace('ork:','').replace(/[^a-zA-Z0-9 _-]/g,'')}
-function mmDef(){
-  const sp=[...EX.specialists];
-  if(EX.strategy==='single'){return `flowchart LR\n  U([you]) --> S["${EX.skill}"]\n  S -.fans out.-> A["ork agents"]\n  S --> P[/inspect plan/]`;}
-  if(EX.strategy==='workflow'){
-    if(EX.topology==='pipeline'){const n=sp.length?sp:['ork agent'];let d='flowchart LR\n  U([task])';
-      n.forEach((a,i)=>{d+=`\n  ${i===0?'U':'N'+(i-1)} --> N${i}["${nn(a)}"]`;});return d+`\n  N${n.length-1} --> M[/merge/]`;}
-    let d='flowchart TD\n  O([orchestrator])';(sp.length?sp:['ork agent']).forEach((a,i)=>{d+=`\n  O --> W${i}["${nn(a)}"]\n  W${i} -.result.-> O`;});return d;
+/* ── zero-dep inline-SVG topology renderer (replaces mermaid) ── */
+function dgEsc(s){return String(s).replace(/[&<>]/g,c=>c==='&'?'&amp;':c==='<'?'&lt;':'&gt;');}
+function dgW(l){return Math.max(72,Math.min(168,String(l).length*6.4+18));}
+function dgNode(x,y,l,k){const w=dgW(l),h=26;
+  const f=k==='lead'?'hsl(248 84% 68% / .22)':k==='acc'?'hsl(176 66% 46% / .18)':'hsl(0 0% 100% / .05)';
+  const s=k==='lead'?'hsl(248 84% 68% / .6)':k==='acc'?'hsl(176 66% 52% / .5)':'hsl(0 0% 100% / .2)';
+  return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="7" fill="${f}" stroke="${s}"/><text x="${x+w/2}" y="${y+17}" text-anchor="middle" font-size="11" fill="hsl(220 18% 90%)">${dgEsc(l)}</text></g>`;}
+function dgEdge(x1,y1,x2,y2,d){return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="hsl(248 60% 62%)" stroke-width="1.4"${d?' stroke-dasharray="4 3" opacity=".55"':''} marker-end="url(#arr)"/>`;}
+function dgSvg(w,h,b){w=Math.ceil(w);h=Math.ceil(h);return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" style="max-width:100%;height:auto" role="img" aria-label="topology preview"><defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="hsl(248 60% 62%)"/></marker></defs>${b}</svg>`;}
+function dgRow(labels,y,kinds){let x=8,p=[],s=[];labels.forEach((l,i)=>{const w=dgW(l);p.push(dgNode(x,y,l,kinds&&kinds[i]));s.push({x,cx:x+w/2,r:x+w});x+=w+18;});return{svg:p.join(''),slots:s,w:x-18+8};}
+function dgCenter(l,y,totalW,k){const w=dgW(l),x=Math.max(8,totalW/2-w/2);return{svg:dgNode(x,y,l,k),cx:x+w/2,bot:y+26};}
+function topoSVG(){
+  const sp=[...EX.specialists].map(nn);
+  if(EX.strategy==='single'){
+    const labels=['you',EX.skill,'ork agents'],r=dgRow(labels,26,['base','lead','acc']);
+    let e='';for(let i=0;i<r.slots.length-1;i++)e+=dgEdge(r.slots[i].r,39,r.slots[i+1].cx-dgW(labels[i+1])/2,39,i===1);
+    return dgSvg(r.w,72,e+r.svg);
   }
-  if(EX.strategy==='nested'){const sp2=sp.length?sp:['ork lead'];const subs=sp2.slice(1);let d='flowchart TD\n  L(["'+nn(sp2[0])+' · L1 lead"])';
-    if(subs.length)subs.forEach((a,i)=>d+=`\n  L --> N${i}["${nn(a)}"]`);
-    else d+=`\n  L --> N0["ork sub-agent"]`;
-    let prev='N0';for(let lvl=2;lvl<=EX.depth;lvl++){d+=`\n  ${prev} -."L${lvl} recurse".-> R${lvl}(["sub-agent · L${lvl}"])`;prev='R'+lvl;}
-    return d;}
-  if(EX.strategy==='teams'){const p=sp.length?sp:['ork a','ork b'];let d='flowchart TD\n  Lead([team lead])';
-    p.forEach((a,i)=>d+=`\n  Lead --- T${i}["${nn(a)}"]`);
-    for(let i=0;i<p.length;i++)for(let j=i+1;j<p.length;j++)d+=`\n  T${i} <--> T${j}`;return d;}
-  if(EX.strategy==='swarm'){const p=sp.length?sp:['ork a','ork b','ork c'];let d='flowchart TD';
-    p.forEach((a,i)=>d+=`\n  Q([question]) --> P${i}["${nn(a)}"]`);
-    p.forEach((a,i)=>d+=`\n  P${i} --> R{blind review}`);return d+`\n  R --> C["chairman: synthesize"]`;}
-  return 'flowchart LR\n  X[—]';
+  if(EX.strategy==='workflow'&&EX.topology==='pipeline'){
+    const labels=['task',...(sp.length?sp:['ork agent']),'merge'],r=dgRow(labels,26);
+    let e='';for(let i=0;i<r.slots.length-1;i++)e+=dgEdge(r.slots[i].r,39,r.slots[i+1].cx-dgW(labels[i+1])/2,39);
+    return dgSvg(r.w,72,e+r.svg);
+  }
+  if(EX.strategy==='workflow'){
+    const wk=dgRow(sp.length?sp:['ork agent'],84),o=dgCenter('orchestrator',12,wk.w,'lead');
+    let e='';wk.slots.forEach(s=>e+=dgEdge(o.cx,38,s.cx,84));
+    return dgSvg(Math.max(o.cx*2,wk.w),126,e+o.svg+wk.svg);
+  }
+  if(EX.strategy==='nested'){
+    const lead=(sp.length?sp[0]:'ork lead')+' · lead',subs=sp.slice(1).length?sp.slice(1):['ork sub-agent'];
+    const sr=dgRow(subs,84),ld=dgCenter(lead,12,sr.w,'lead');
+    let e='';sr.slots.forEach(s=>e+=dgEdge(ld.cx,38,s.cx,84));
+    let spine='',col=sr.slots[0].cx,prevBot=110;
+    for(let lvl=2;lvl<=EX.depth;lvl++){const lbl='L'+lvl+' sub',w=dgW(lbl),ny=prevBot+22;e+=dgEdge(col,prevBot,col,ny,true);spine+=dgNode(col-w/2,ny,lbl,'acc');prevBot=ny+26;}
+    return dgSvg(Math.max(ld.cx*2,sr.w),prevBot+12,e+ld.svg+sr.svg+spine);
+  }
+  if(EX.strategy==='teams'){
+    const p=sp.length?sp:['ork a','ork b'],n=p.length,R=Math.max(58,n*15),cx=R+92,cy=R+24,pos=[];
+    p.forEach((l,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;pos.push({x:cx+R*Math.cos(a),y:cy+R*Math.sin(a),l});});
+    let e='';for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)e+=`<line x1="${pos[i].x.toFixed(1)}" y1="${pos[i].y.toFixed(1)}" x2="${pos[j].x.toFixed(1)}" y2="${pos[j].y.toFixed(1)}" stroke="hsl(248 60% 62%)" stroke-width="1" opacity=".35"/>`;
+    let nodes='';pos.forEach(pp=>{const w=dgW(pp.l);nodes+=dgNode(pp.x-w/2,pp.y-13,pp.l);});
+    return dgSvg(cx+R+92,cy+R+24,e+nodes);
+  }
+  if(EX.strategy==='swarm'){
+    const p=sp.length?sp:['ork a','ork b','ork c'],pr=dgRow(p,86);
+    const q=dgCenter('question',12,pr.w,'lead'),rv=dgCenter('blind review',150,pr.w,'acc'),ch=dgCenter('chairman synthesizes',216,pr.w,'lead');
+    let e='';pr.slots.forEach(s=>{e+=dgEdge(q.cx,38,s.cx,86);e+=dgEdge(s.cx,112,rv.cx,150);});e+=dgEdge(rv.cx,176,ch.cx,216);
+    return dgSvg(pr.w,258,e+q.svg+pr.svg+rv.svg+ch.svg);
+  }
+  return dgSvg(80,40,dgNode(8,8,'—'));
 }
-async function renderDiagram(){
-  const el=document.getElementById('execdiag');if(!el||typeof mermaid==='undefined')return;
-  try{const {svg}=await mermaid.render('mdg'+(++mdgN),mmDef());el.innerHTML=svg;}
-  catch(e){el.innerHTML='<div class="muted" style="padding:8px">diagram unavailable (offline?)</div>';}
-}
+function renderDiagram(){const el=document.getElementById('execdiag');if(el)el.innerHTML=topoSVG();}
 document.getElementById('execcopy').addEventListener('click',()=>{
   const txt=document.getElementById('execout').textContent;
   const done=()=>{const b=document.getElementById('execcopy');b.textContent='✓ Copied';setTimeout(()=>b.textContent='📋 Copy invocation',1500);live.textContent='invocation copied';};
