@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.49.0](https://github.com/yonatangross/orchestkit/compare/v8.48.2...v8.49.0) (2026-06-18)
+
+
+### Features
+
+* adopt CC 2.1.181 (config, fg depth-cap, AskUserQuestion) ([#2523](https://github.com/yonatangross/orchestkit/issues/2523)) ([6a672af](https://github.com/yonatangross/orchestkit/commit/6a672afff7a7072b08da922960bb5cad89807ce3))
+* **playground:** Arieh-grade visual standard + decision boards ([#2516](https://github.com/yonatangross/orchestkit/issues/2516)) ([e386dd2](https://github.com/yonatangross/orchestkit/commit/e386dd2b9e1cd756f79f0237c0ab1fbf67855520))
+* **playground:** CC release-notes generator + adoption playgrounds ([#2522](https://github.com/yonatangross/orchestkit/issues/2522)) ([5639c01](https://github.com/yonatangross/orchestkit/commit/5639c01f43044755fe2f86ae5ec92bebea743a49))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.179) ([#2515](https://github.com/yonatangross/orchestkit/issues/2515)) ([2e5b227](https://github.com/yonatangross/orchestkit/commit/2e5b22749b47c8b3ee51f32358d15d9805436a56))
+
 ## [8.48.2](https://github.com/yonatangross/orchestkit/compare/v8.48.1...v8.48.2) (2026-06-17)
 
 
