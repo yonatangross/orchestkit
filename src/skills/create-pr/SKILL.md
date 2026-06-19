@@ -200,6 +200,8 @@ If it exists, generate agent attribution sections for the PR body:
 
 If the ledger doesn't exist or is empty, skip this step — create PR normally.
 
+> **CC 2.1.183 — `attribution.sessionUrl`:** Web and Remote Control sessions append a claude.ai session link to the PR body. For public repos where that link should not be exposed, set `attribution.sessionUrl: false` (`/config attribution.sessionUrl=false`) before creating the PR. ork's agent-attribution sections above are independent of this setting.
+
 ### Phase 4: Create PR
 
 Follow `Read("${CLAUDE_SKILL_DIR}/rules/pr-title-format.md")` and `Read("${CLAUDE_SKILL_DIR}/rules/pr-body-structure.md")`. Use HEREDOC pattern from `Read("${CLAUDE_SKILL_DIR}/references/pr-body-templates.md")`.

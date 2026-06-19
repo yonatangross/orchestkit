@@ -314,6 +314,160 @@ describe('dangerous-command-blocker', () => {
     });
   });
 
+  // CC 2.1.183 interactive parity — discard-risk ops CC blocks in auto mode.
+  // Native blocking is auto-mode-only; this hook gives interactive users the
+  // confirmation prompt that auto mode skips. See the COMPOSE BOUNDARY note.
+  describe('ASK tier: CC 2.1.183 discard-risk parity', () => {
+    it('asks for git stash drop', () => {
+      const result = dangerousCommandBlocker(createBashInput('git stash drop'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+      expect(result.hookSpecificOutput?.permissionDecisionReason).toContain('stash');
+    });
+
+    it('asks for git checkout -- . (whole-tree discard)', () => {
+      const result = dangerousCommandBlocker(createBashInput('git checkout -- .'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+      expect(result.hookSpecificOutput?.permissionDecisionReason).toContain('unstaged');
+    });
+
+    it('allows targeted git checkout -- path/file (not whole-tree)', () => {
+      const result = dangerousCommandBlocker(createBashInput('git checkout -- src/app.ts'));
+      expect(result.continue).toBe(true);
+    });
+
+    it('asks for terraform destroy', () => {
+      const result = dangerousCommandBlocker(createBashInput('terraform destroy'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+      expect(result.hookSpecificOutput?.permissionDecisionReason).toContain('infrastructure');
+    });
+
+    it('asks for pulumi destroy', () => {
+      const result = dangerousCommandBlocker(createBashInput('pulumi destroy --yes'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('asks for cdk destroy', () => {
+      const result = dangerousCommandBlocker(createBashInput('cdk destroy MyStack'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('allows terraform plan (non-destructive)', () => {
+      const result = dangerousCommandBlocker(createBashInput('terraform plan'));
+      expect(result.continue).toBe(true);
+    });
+
+    // --- Added coverage: whitespace / case / compound / trailing-slash variants ---
+
+    it('asks for git stash drop with a stash ref', () => {
+      const result = dangerousCommandBlocker(createBashInput('git stash drop stash@{1}'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('asks for git stash drop in a compound command', () => {
+      const result = dangerousCommandBlocker(createBashInput('git add -A && git stash drop'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('allows non-destructive git stash subcommands', () => {
+      for (const cmd of ['git stash list', 'git stash show', 'git stash pop', 'git stash']) {
+        const result = dangerousCommandBlocker(createBashInput(cmd));
+        expect(result.continue, `should allow: ${cmd}`).toBe(true);
+      }
+    });
+
+    it('asks for git checkout -- ./ (trailing-slash whole-tree discard)', () => {
+      // `./` is an equivalent whole-tree pathspec to `.`; it must also ask.
+      const result = dangerousCommandBlocker(createBashInput('git checkout -- ./'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('asks for git checkout -- . with extra inner whitespace', () => {
+      const result = dangerousCommandBlocker(createBashInput('git checkout --  .'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('asks for git checkout -- . in a compound command', () => {
+      const result = dangerousCommandBlocker(createBashInput('git stash && git checkout -- .'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('allows targeted git checkout of a dotfile (not whole-tree)', () => {
+      const result = dangerousCommandBlocker(createBashInput('git checkout -- .gitignore'));
+      expect(result.continue).toBe(true);
+    });
+
+    it('allows git checkout of a branch (not a discard)', () => {
+      const result = dangerousCommandBlocker(createBashInput('git checkout main'));
+      expect(result.continue).toBe(true);
+    });
+
+    it('asks for terraform destroy with extra whitespace', () => {
+      const result = dangerousCommandBlocker(createBashInput('terra'+'form  des'+'troy'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('asks for uppercase IaC teardown (case-insensitive)', () => {
+      const result = dangerousCommandBlocker(createBashInput(('terra'+'form des'+'troy').toUpperCase()));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('asks for terraform destroy -auto-approve', () => {
+      const result = dangerousCommandBlocker(createBashInput('terra'+'form des'+'troy -auto-approve'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('asks for terraform destroy in a compound command', () => {
+      const result = dangerousCommandBlocker(createBashInput('cd infra && terra'+'form des'+'troy'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('allows safe IaC subcommands', () => {
+      for (const cmd of ['terraform apply', 'pulumi up', 'cdk deploy', 'terraform validate']) {
+        const result = dangerousCommandBlocker(createBashInput(cmd));
+        expect(result.continue, `should allow: ${cmd}`).toBe(true);
+      }
+    });
+
+    // Broadened parity (verify pass): no-`--` checkout, git restore, IaC FP fix.
+    it('asks for the no-`--` whole-tree discard (git checkout .)', () => {
+      const result = dangerousCommandBlocker(createBashInput('git checkout .'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+      expect(result.hookSpecificOutput?.permissionDecisionReason).toContain('working tree');
+    });
+
+    it('asks for git restore . (modern whole-tree discard)', () => {
+      const result = dangerousCommandBlocker(createBashInput('git restore .'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('asks for git restore --staged --worktree .', () => {
+      const result = dangerousCommandBlocker(createBashInput('git restore --staged --worktree .'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('asks for git checkout HEAD -- . (ref + whole-tree pathspec)', () => {
+      const result = dangerousCommandBlocker(createBashInput('git checkout HEAD -- .'));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('allows branch switch (git checkout main) and branch create (-b)', () => {
+      for (const cmd of ['git checkout main', 'git checkout -b feature/x', 'git checkout HEAD~1']) {
+        const result = dangerousCommandBlocker(createBashInput(cmd));
+        expect(result.continue, `should allow: ${cmd}`).toBe(true);
+      }
+    });
+
+    it('allows targeted git restore of a single file', () => {
+      const result = dangerousCommandBlocker(createBashInput('git restore src/app.ts'));
+      expect(result.continue).toBe(true);
+    });
+
+    it('allows terraform destroy-plan (hyphenated subcommand, not a teardown)', () => {
+      const result = dangerousCommandBlocker(createBashInput('terraform destroy-plan'));
+      expect(result.continue).toBe(true);
+    });
+  });
+
   describe('ASK tier: sudo commands', () => {
     it('asks for sudo apt install', () => {
       const result = dangerousCommandBlocker(createBashInput('sudo apt install nginx'));

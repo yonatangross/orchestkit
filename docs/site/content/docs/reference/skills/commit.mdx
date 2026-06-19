@@ -146,6 +146,8 @@ Co-Authored-By: ork:security-auditor <noreply@orchestkit.dev>"
 git log -1 --stat
 ```
 
+> **CC 2.1.183 — `attribution.sessionUrl`:** In web and Remote Control sessions, CC appends a claude.ai session link to commit/PR attribution. Set `attribution.sessionUrl: false` (`/config attribution.sessionUrl=false`) to omit it — useful for public repos where the session link should not leak. The `Co-Authored-By` trailers above are unaffected.
+
 ### Handoff File
 
 After successful commit, write handoff:
