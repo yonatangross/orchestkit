@@ -279,6 +279,8 @@ Output results **incrementally** after each phase — don't batch everything unt
 
 When agents run with `run_in_background=true`, output each agent's findings **as soon as it returns** — don't wait for all agents to finish. This gives users ~60% faster perceived feedback and enables early intervention if an agent's approach diverges from the plan.
 
+> **Teammate background tasks survive turn-end (CC 2.1.183):** A `run_in_background` task started by a teammate is no longer killed when that teammate finishes its turn. A parallel architecture/test teammate can launch a long build and let it outlive its own turn; the lead collects the result later. Pre-2.1.183 the lead had to own every background task to keep it alive.
+
 ### Monitor Tool for Background Streaming (CC 2.1.98)
 
 Use `Monitor` to stream real-time events from background build/test scripts instead of polling output files:
@@ -286,10 +288,8 @@ Use `Monitor` to stream real-time events from background build/test scripts inst
 ```python
 # Start a long-running build in background
 Bash(command="npm run build 2>&1", run_in_background=true)
-
-# Stream its output line-by-line as notifications
+# Stream its output line-by-line as notifications (no polling)
 Monitor(pid=build_task_id)
-# Each stdout line arrives as a notification — no polling needed
 
 # For background agents with test suites:
 Agent(subagent_type="ork:test-generator", run_in_background=true, ...)

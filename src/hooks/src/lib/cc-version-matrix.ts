@@ -22,7 +22,7 @@ export const MIN_CC_VERSION = '2.1.170';
  * Claude to look for new features when the running CC exceeds this. Bump this one line per
  * adoption cycle (replaces the old "append rows to the matrix" ritual).
  */
-export const LATEST_KNOWN_CC = '2.1.181';
+export const LATEST_KNOWN_CC = '2.1.183';
 
 /**
  * Compare two semver-like CC version strings (e.g. "2.1.47").

@@ -381,6 +381,8 @@ ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
 
 > **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-stop remaining background agents. Note: `/clear` (CC 2.1.72+) preserves background agents — only foreground tasks are cleared.
 
+> **Teammate background tasks survive turn-end (CC 2.1.183):** A background task started *by a teammate* is no longer killed when that teammate finishes its turn. Phase-2 teammates may safely kick off a long `run_in_background` task (e.g. a feasibility build) and let it outlive their own turn — the result is still collectable at synthesis. Pre-2.1.183 this required the lead to own the background task.
+
 
 ## Key Principles
 

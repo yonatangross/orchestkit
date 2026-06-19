@@ -98,3 +98,10 @@ else:
 - **300s delay**: Exactly at cache boundary — pays cache miss without useful wait
 - **Fixed intervals for variable tasks**: If build takes 2-8min, don't use fixed 5min — check elapsed and adapt
 - **ScheduleWakeup for persistent monitors**: Use CronCreate for things that should survive session end
+
+## CC 2.1.183 — scheduled deliveries are task notifications, not keystrokes
+
+Scheduled-task and webhook trigger deliveries (the CronCreate / `/schedule` and webhook paths) now classify as **task notifications** rather than keyboard input. Two consequences for chain authors:
+
+- In **auto mode**, a wakeup/cron delivery can no longer approve a pending action or set the session title — it can only resume work. Design persistent monitors to *propose* and let a human approve; do not rely on a scheduled tick to auto-confirm a gated prompt.
+- This removes the old "phantom user message" footgun where a delivery was treated as if the user typed it. A wakeup prompt now reliably resumes the loop body instead of racing the approval UI.

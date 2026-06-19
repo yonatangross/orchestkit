@@ -158,6 +158,8 @@ At ~$15/MTok (Sonnet input/output blended), that's roughly **$10-12/month per re
 
 The hourly run itself does **not** invoke this skill — the workflow calls `claude -p` against `/ci-debug` directly (headless mode — not `--bare`, which was dropped because it ignores `ANTHROPIC_API_KEY`; see "Why no --bare" above). This skill is for the human admin actions around the sentinel.
 
+> **CC 2.1.183 hardens propose-don't-apply:** Scheduled-task and webhook trigger deliveries now classify as **task notifications**, not keyboard input — so a delivery can no longer approve a pending action or set the session title in auto mode. If you ever run the sentinel inside a live auto-mode session (rather than the headless `-p` cron), a triggered re-run can no longer auto-approve a fix prompt. The propose-don't-apply guarantee now holds at the harness layer, not just by convention.
+
 ## Why this design wins (one paragraph)
 
 You already have 10 encoded CI failure patterns in `/ci-debug` and 632 ScheduleWakeup invocations in your history — you trust async, and you trust pattern-matched classifications when they cite the memory entry. The CI sentinel is composition, not invention: a GitHub Actions cron triggers headless `/ci-debug` against every open red PR, posts a collapsed verdict, and respects propose-don't-apply. Worst case is a noisy comment. Best case is 21 sessions/month of recurring CI archaeology reclaimed. Build effort: hours. Payback: immediate.

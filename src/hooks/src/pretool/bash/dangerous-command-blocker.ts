@@ -66,6 +66,18 @@ const DENY_REGEX_PATTERNS: { pattern: RegExp; label: string }[] = [
 // NOTE (CC 2.1.101): permissions.deny rules now override our 'ask' decision.
 // If a user has a deny rule matching these commands, CC blocks them outright
 // instead of prompting. This is correct behavior — deny > ask > allow.
+//
+// COMPOSE BOUNDARY (CC 2.1.183): CC now natively BLOCKS destructive git
+// (`reset --hard`, `checkout -- .`, `clean -fd`, `stash drop`), non-agent
+// `commit --amend`, and `terraform`/`pulumi`/`cdk destroy` — but ONLY in auto
+// mode, as an unattended backstop. This hook fires in EVERY permission mode at
+// PreToolUse, so the two compose: native auto-mode block is the headless safety
+// net; this ASK tier gives interactive users the confirmation prompt native
+// auto-mode skips. We mirror CC's discard-risk set below for interactive parity
+// (and keep force-push/sudo/kill, which native auto-mode blocking does not cover).
+// `commit --amend` is intentionally NOT mirrored: a stateless PreToolUse hook
+// can't tell "made by the agent this session" from a legitimate amend, so it is
+// left to native auto-mode block to avoid false-prompting every rebase/amend.
 // =============================================================================
 
 /**
@@ -74,6 +86,8 @@ const DENY_REGEX_PATTERNS: { pattern: RegExp; label: string }[] = [
 const ASK_PATTERNS: { pattern: string; reason: string }[] = [
   { pattern: 'git reset --hard', reason: 'Discards all uncommitted changes. Are you sure?' },
   { pattern: 'git clean -fd', reason: 'Permanently removes untracked files. Are you sure?' },
+  // CC 2.1.183 interactive parity — discard-risk ops CC blocks in auto mode.
+  { pattern: 'git stash drop', reason: 'Permanently deletes a stashed change set. Are you sure?' },
 ];
 
 /**
@@ -83,6 +97,24 @@ const ASK_REGEX_PATTERNS: { pattern: RegExp; reason: string }[] = [
   {
     pattern: /git\s+push\s+.*(-f|--force)\b/i,
     reason: 'Force-push rewrites remote history. Are you sure?',
+  },
+  // CC 2.1.183 interactive parity — whole-tree working-copy discard.
+  // CC blocks `git checkout -- .` in auto mode; ork gates every equivalent
+  // full-tree discard: any whole-tree pathspec (`.`, `./`, `*`, `:/`), the
+  // no-`--` form (`git checkout .`), and the modern `git restore .` default.
+  // The pathspec must be a BARE token preceded by whitespace, so targeted paths
+  // (`-- src/x`, `-- .gitignore`, `README.md`, `*.ts`) still allow. `[^&|;]*`
+  // scopes the scan to the checkout/restore segment of a compound command.
+  {
+    pattern: /git\s+(checkout|restore)\b[^&|;]*\s(\.\/?|:\/|\*)(\s|$)/i,
+    reason: 'Discards all unstaged changes in the working tree. Are you sure?',
+  },
+  // CC 2.1.183 interactive parity — IaC stack teardown (auto mode blocks these).
+  // `destroy(\s|$)` not `\bdestroy\b`: the word boundary let `destroy-plan`
+  // (a read-only wrapper subcommand) over-match, since `-` is a non-word char.
+  {
+    pattern: /\b(terraform|pulumi|cdk)\s+destroy(\s|$)/i,
+    reason: 'Tears down infrastructure resources. Are you sure?',
   },
   {
     pattern: /\bsudo\s+/i,
