@@ -40,10 +40,14 @@ echo ""
 # ============================================================================
 # Function: Generate command file from user-invocable skill
 # ============================================================================
-# Workaround for CC bug: https://github.com/anthropics/claude-code/issues/20802
-# CC doesn't discover skills with user-invocable: true, only commands/*.md
-# TOKEN COST: This duplication loads 17 skills twice in context (~1.4k wasted tokens/session).
-# Remove when CC fixes prefix discovery: #20935, #25651 — tracked in orchestkit #889
+# Workaround for CC bug: skills with `user-invocable: true` aren't discovered as
+# slash commands — CC only surfaces commands/*.md. Canonical upstream issue:
+# https://github.com/anthropics/claude-code/issues/18949 (still OPEN as of CC 2.1.183).
+# (#20802 / #20935 / #25651 were all closed as DUPLICATES of #18949 — not fixes;
+#  ork #889 closed blocked-on-upstream.) Verified still required 2026-06-19.
+# TOKEN COST: duplicates each user-invocable skill into commands/ — 31 wrappers
+# today (~2.8k wasted tokens/session, ~doubled from the original 17). See #2528.
+# Remove generate_command_from_skill + all commands/ generation when #18949 ships.
 generate_command_from_skill() {
     local skill_md="$1"
     local command_file="$2"
@@ -217,11 +221,12 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     fi
 
     # Generate commands from user-invocable skills
-    # WORKAROUND: CC bug #20802 — skills/ don't get plugin namespace prefix in autocomplete.
-    # Duplicating as commands/ gives users "ork:skillname" but wastes ~1.4k tokens/session
-    # (17 skills x 2 entries x ~40 tokens each = 34 entries instead of 17).
-    # Remove this block when CC fixes: #20802, #20935, #25651
-    # Tracking: https://github.com/anthropics/claude-code/issues/20802
+    # WORKAROUND: skills/ don't get the plugin namespace prefix in autocomplete.
+    # Duplicating as commands/ gives users "ork:skillname" but doubles their load:
+    # 31 user-invocable skills x 2 entries today (~2.8k wasted tokens/session). See #2528.
+    # Remove this block when the canonical upstream issue ships a fix:
+    # https://github.com/anthropics/claude-code/issues/18949 (OPEN; #20802/#20935/#25651
+    # were closed as duplicates of it, not fixes).
     if [[ -d "$PLUGIN_DIR/skills" ]]; then
         for skill_md in "$PLUGIN_DIR/skills"/*/SKILL.md; do
             [[ ! -f "$skill_md" ]] && continue
