@@ -8,6 +8,7 @@ effort: high
 context: fork
 color: magenta
 memory: project
+isolation: worktree
 tools:
   - Read
   - Write
@@ -21,6 +22,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - ExitWorktree
 skills:
   - design-to-code
   - design-import

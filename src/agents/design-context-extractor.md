@@ -8,6 +8,7 @@ effort: low
 context: fork
 color: cyan
 memory: project
+isolation: worktree
 tools:
   - Read
   - Write
@@ -20,6 +21,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  - ExitWorktree
 skills:
   - design-context-extract
   - design-system-tokens
