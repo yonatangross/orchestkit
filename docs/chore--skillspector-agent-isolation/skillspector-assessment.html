@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SkillSpector × OrchestKit — Security Assessment Playground</title>
+<style>
+  :root{
+    /* §2 cool-glass tokens (HSL, roles) */
+    --pg-bg: hsl(232 30% 7%);
+    --pg-ink: hsl(220 22% 93%);
+    --pg-muted: hsl(220 14% 64%);
+    --pg-faint: hsl(220 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .16);
+    --pg-accent: hsl(250 84% 70%);
+    --pg-accent-deep: hsl(250 70% 56%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-ok: hsl(154 62% 52%);
+    --pg-bad: hsl(2 78% 62%);
+    --pg-hot: hsl(20 88% 60%);
+    --pg-mid: hsl(44 92% 58%);
+    --r-sm:9px; --r-md:16px; --r-lg:24px;
+    --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-6:24px; --sp-8:48px; --sp-12:96px;
+    --ease: cubic-bezier(.2,.8,.25,1);
+    --shadow-amb: 0 20px 60px -22px hsl(250 60% 4% / .7);
+    --shadow-tight: 0 4px 12px -6px hsl(250 60% 4% / .5);
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:var(--sans);
+    color:var(--pg-ink);
+    background:
+      radial-gradient(60% 50% at 12% 4%, hsl(250 70% 22% / .55), transparent 60%),
+      radial-gradient(55% 45% at 92% 0%, hsl(228 72% 26% / .45), transparent 60%),
+      radial-gradient(70% 60% at 50% 110%, hsl(264 60% 18% / .40), transparent 60%),
+      var(--pg-bg);
+    background-attachment: fixed;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding:var(--sp-6) clamp(var(--sp-4), 4vw, var(--sp-8)) var(--sp-12);
+  }
+  .wrap{max-width:1120px; margin-inline:auto}
+  h1,h2,h3{letter-spacing:-.3px; margin:0}
+  .mono{font-family:var(--mono)}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  /* glass card §5 */
+  .glass{
+    background:var(--pg-glass);
+    border:1px solid var(--pg-glass-edge);
+    border-radius:var(--r-md);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / .12), var(--shadow-amb), var(--shadow-tight);
+  }
+
+  /* header */
+  header.top{display:flex; flex-wrap:wrap; gap:var(--sp-4); align-items:flex-end; justify-content:space-between; margin-bottom:var(--sp-6)}
+  .eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.5px; color:var(--pg-accent); text-transform:uppercase}
+  header.top h1{font-size:clamp(22px, 3.4vw, 34px); font-weight:700; margin-top:var(--sp-2)}
+  header.top p.sub{color:var(--pg-muted); margin:var(--sp-2) 0 0; max-width:62ch; font-size:14px}
+  .scope{display:flex; flex-wrap:wrap; gap:var(--sp-2); margin-top:var(--sp-3)}
+  .chip{font-family:var(--mono); font-size:11.5px; color:var(--pg-muted); padding:5px 10px; border-radius:999px;
+    background:var(--pg-glass); border:1px solid var(--pg-glass-edge)}
+  .chip b{color:var(--pg-ink); font-weight:600}
+
+  /* segmented toggle (signature control) */
+  .seg{display:inline-flex; padding:5px; gap:4px; border-radius:999px}
+  .seg button{
+    font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.3px;
+    color:var(--pg-muted); background:transparent; border:0; cursor:pointer;
+    padding:9px 18px; border-radius:999px; transition:color .2s var(--ease), background .2s var(--ease);
+  }
+  .seg button[aria-pressed="true"]{color:hsl(232 40% 9%); background:var(--pg-accent)}
+  .seg button.v[aria-pressed="true"]{background:var(--pg-ok)}
+  .seg button:focus-visible{outline:2px solid var(--pg-accent); outline-offset:2px}
+
+  /* verdict hero */
+  .hero{display:grid; grid-template-columns:1.15fr 1fr; gap:var(--sp-4); margin-bottom:var(--sp-6)}
+  @media (max-width:780px){.hero{grid-template-columns:1fr}}
+  .verdict{padding:var(--sp-6); position:relative; overflow:hidden}
+  .verdict .state-label{font-family:var(--mono); font-size:12px; letter-spacing:.5px; text-transform:uppercase; color:var(--pg-faint)}
+  .verdict .big{font-size:clamp(40px,7vw,68px); font-weight:700; line-height:1; margin-top:var(--sp-3); transition:color .3s var(--ease)}
+  .verdict .big small{font-size:.34em; font-weight:600; color:var(--pg-muted); letter-spacing:-.2px}
+  .verdict .rec{display:inline-flex; align-items:center; gap:8px; margin-top:var(--sp-4); padding:8px 14px; border-radius:999px;
+    font-family:var(--mono); font-size:13px; font-weight:600; transition:all .3s var(--ease)}
+  .verdict .rec.bad{background:hsl(2 78% 62% / .14); color:var(--pg-bad); border:1px solid hsl(2 78% 62% / .35)}
+  .verdict .rec.ok{background:hsl(154 62% 52% / .14); color:var(--pg-ok); border:1px solid hsl(154 62% 52% / .35)}
+  .verdict p.note{color:var(--pg-muted); font-size:13.5px; margin:var(--sp-4) 0 0; max-width:46ch}
+  .stat-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:var(--sp-3)}
+  .stat{padding:var(--sp-4)}
+  .stat .k{font-family:var(--mono); font-size:11px; letter-spacing:.4px; text-transform:uppercase; color:var(--pg-faint)}
+  .stat .v{font-size:30px; font-weight:700; margin-top:6px; transition:color .3s var(--ease)}
+  .stat .d{font-size:12px; color:var(--pg-muted); margin-top:2px}
+
+  section{margin-top:var(--sp-8)}
+  .sec-head{display:flex; align-items:baseline; gap:var(--sp-3); margin-bottom:var(--sp-4)}
+  .sec-head h2{font-size:19px; font-weight:700}
+  .sec-head .lead{color:var(--pg-faint); font-size:13px}
+
+  /* funnel */
+  .funnel{display:grid; grid-template-columns:1fr auto 1fr auto 1fr; align-items:stretch; gap:var(--sp-3)}
+  @media (max-width:780px){.funnel{grid-template-columns:1fr}}
+  .fstep{padding:var(--sp-4); text-align:center}
+  .fstep .fn{font-size:34px; font-weight:700; line-height:1}
+  .fstep .fl{font-size:12.5px; color:var(--pg-muted); margin-top:6px}
+  .farrow{display:flex; align-items:center; justify-content:center; color:var(--pg-accent); font-size:24px}
+  @media (max-width:780px){.farrow{transform:rotate(90deg)}}
+  [dir="rtl"] .farrow{transform:scaleX(-1)}
+  [dir="rtl"] .farrow.v{transform:scaleX(-1)}
+
+  /* component map */
+  .maptools{display:flex; flex-wrap:wrap; gap:var(--sp-2); margin-bottom:var(--sp-4); align-items:center}
+  .filt{font-family:var(--mono); font-size:12px; color:var(--pg-muted); background:var(--pg-glass); border:1px solid var(--pg-glass-edge);
+    padding:7px 13px; border-radius:999px; cursor:pointer; transition:color .2s var(--ease), border-color .2s var(--ease)}
+  .filt[aria-pressed="true"]{color:var(--pg-ink); border-color:var(--pg-accent)}
+  .filt:focus-visible{outline:2px solid var(--pg-accent); outline-offset:2px}
+  .grid-wrap{display:grid; grid-template-columns:1fr 300px; gap:var(--sp-4)}
+  @media (max-width:880px){.grid-wrap{grid-template-columns:1fr}}
+  .dotgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(20px,1fr)); gap:7px; align-content:start}
+  .dot{aspect-ratio:1; border-radius:6px; border:1px solid hsl(0 0% 100% / .1); cursor:pointer; padding:0;
+    transition:transform .1s var(--ease), background .3s var(--ease), opacity .2s var(--ease)}
+  .dot:hover{transform:scale(1.18)}
+  .dot:focus-visible{outline:2px solid var(--pg-ink); outline-offset:2px}
+  .dot.hidden{opacity:.12; pointer-events:none}
+  .dot[data-sel="1"]{transform:scale(1.18); box-shadow:0 0 0 2px var(--pg-ink)}
+  .detail{padding:var(--sp-4); align-self:start; position:sticky; top:var(--sp-4); min-height:220px}
+  .detail .dname{font-size:17px; font-weight:700; word-break:break-word}
+  .detail .dmeta{font-family:var(--mono); font-size:12px; color:var(--pg-muted); margin-top:6px}
+  .detail .dband{display:inline-block; font-family:var(--mono); font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px; margin-top:var(--sp-3)}
+  .detail .dverdict{margin-top:var(--sp-3); padding:var(--sp-3); border-radius:var(--r-sm); background:var(--pg-glass-2); font-size:13px; color:var(--pg-muted)}
+  .legend{display:flex; flex-wrap:wrap; gap:var(--sp-3); margin-top:var(--sp-4); font-size:12px; color:var(--pg-muted)}
+  .legend span{display:inline-flex; align-items:center; gap:6px}
+  .swatch{width:12px; height:12px; border-radius:4px; display:inline-block}
+
+  /* category bars */
+  .catrow{display:grid; grid-template-columns:200px 1fr 96px; gap:var(--sp-3); align-items:center; padding:9px 0; border-bottom:1px solid hsl(0 0% 100% / .06)}
+  @media (max-width:680px){.catrow{grid-template-columns:1fr; gap:4px}}
+  .catrow .cname{font-size:13.5px}
+  .catrow .cname .cids{font-family:var(--mono); font-size:11px; color:var(--pg-faint)}
+  .bar{height:14px; border-radius:999px; background:hsl(0 0% 100% / .06); overflow:hidden}
+  .bar > i{display:block; height:100%; border-radius:999px; background:linear-gradient(90deg, var(--pg-accent-deep), var(--pg-accent)); transition:width .5s var(--ease)}
+  .catrow .cv{font-family:var(--mono); font-size:12.5px; text-align:end; color:var(--pg-muted)}
+  .catrow .cv b{color:var(--pg-ink)}
+  .fp-tag{font-family:var(--mono); font-size:10.5px; font-weight:700; color:var(--pg-ok); background:hsl(154 62% 52% / .14); padding:2px 7px; border-radius:6px}
+
+  /* finding cards */
+  .cards{display:grid; grid-template-columns:repeat(2,1fr); gap:var(--sp-3)}
+  @media (max-width:780px){.cards{grid-template-columns:1fr}}
+  .fcard{padding:var(--sp-4); cursor:pointer}
+  .fcard summary{list-style:none; display:flex; gap:var(--sp-3); align-items:flex-start}
+  .fcard summary::-webkit-details-marker{display:none}
+  .fcard .vtag{flex:none; font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.3px; padding:4px 8px; border-radius:6px; margin-top:2px}
+  .vtag.fp{background:hsl(154 62% 52% / .15); color:var(--pg-ok)}
+  .vtag.bd{background:hsl(250 84% 70% / .15); color:var(--pg-accent)}
+  .fcard h3{font-size:14.5px; font-weight:650}
+  .fcard .floc{font-family:var(--mono); font-size:11.5px; color:var(--pg-faint); margin-top:3px; word-break:break-all}
+  .fcard .ev{font-size:13px; color:var(--pg-muted); margin-top:var(--sp-3); padding-top:var(--sp-3); border-top:1px solid hsl(0 0% 100% / .08);
+    max-height:0; overflow:hidden; opacity:0; transition:max-height .3s var(--ease), opacity .2s var(--ease), padding .3s var(--ease)}
+  .fcard[open] .ev{max-height:520px; opacity:1}
+  .fcard .toggle{margin-inline-start:auto; color:var(--pg-faint); font-family:var(--mono); font-size:18px; flex:none; transition:transform .2s var(--ease)}
+  .fcard[open] .toggle{transform:rotate(45deg)}
+  .fcard:focus-within{border-color:hsl(0 0% 100% / .3)}
+
+  /* mirror / structural */
+  .mirror{display:grid; grid-template-columns:repeat(3,1fr); gap:var(--sp-3)}
+  @media (max-width:880px){.mirror{grid-template-columns:1fr 1fr}}
+  @media (max-width:560px){.mirror{grid-template-columns:1fr}}
+  .mcard{padding:var(--sp-4)}
+  .mcard .mt{font-family:var(--mono); font-size:11px; color:var(--pg-bad); font-weight:700}
+  .mcard h3{font-size:14px; font-weight:650; margin-top:6px}
+  .mcard p{font-size:12.5px; color:var(--pg-muted); margin:var(--sp-2) 0 0}
+  .mcard .flip{margin-top:var(--sp-3); font-size:12px; color:var(--pg-ok); font-family:var(--mono)}
+
+  .twocol{display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-3)}
+  @media (max-width:780px){.twocol{grid-template-columns:1fr}}
+  .scard{padding:var(--sp-4)}
+  .scard .verdict-pill{font-family:var(--mono); font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px}
+  .vp-no{background:hsl(2 78% 62% / .14); color:var(--pg-bad)}
+  .vp-low{background:hsl(38 95% 60% / .15); color:var(--pg-warm)}
+  .scard h3{font-size:15px; font-weight:650; margin-top:var(--sp-2)}
+  .scard ul{margin:var(--sp-3) 0 0; padding-inline-start:18px; color:var(--pg-muted); font-size:13px}
+  .scard li{margin-bottom:6px}
+  .scard li b{color:var(--pg-ink); font-weight:600}
+
+  /* actions checklist */
+  .acts{display:grid; gap:var(--sp-2)}
+  .act{display:flex; gap:var(--sp-3); padding:var(--sp-3) var(--sp-4); align-items:flex-start}
+  .act .pri{font-family:var(--mono); font-size:10px; font-weight:700; padding:4px 8px; border-radius:6px; flex:none; margin-top:1px}
+  .pri.low{background:hsl(38 95% 60% / .15); color:var(--pg-warm)}
+  .pri.cos{background:hsl(220 12% 46% / .2); color:var(--pg-muted)}
+  .pri.key{background:hsl(250 84% 70% / .16); color:var(--pg-accent)}
+  .act .atxt{font-size:13.5px; color:var(--pg-ink)}
+  .act .atxt small{display:block; color:var(--pg-muted); font-size:12px; margin-top:2px}
+
+  /* copy-prompt bar (tertiary §3) */
+  .copybar{display:flex; gap:var(--sp-3); align-items:center; padding:var(--sp-3) var(--sp-4); margin-top:var(--sp-6)}
+  .copybar .ct{font-family:var(--mono); font-size:12px; color:var(--pg-muted); flex:1; min-width:0}
+  .copybar button{font-family:var(--mono); font-size:12.5px; font-weight:600; color:hsl(232 40% 9%); background:var(--pg-accent);
+    border:0; border-radius:var(--r-sm); padding:9px 16px; cursor:pointer; flex:none; transition:background .1s var(--ease)}
+  .copybar button:focus-visible{outline:2px solid var(--pg-ink); outline-offset:2px}
+  footer{margin-top:var(--sp-8); color:var(--pg-faint); font-size:11.5px; font-family:var(--mono); text-align:center}
+  footer a{color:var(--pg-muted)}
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <div class="eyebrow">NVIDIA SkillSpector v2.2.3 · static / <span class="mono">--no-llm</span></div>
+      <h1>OrchestKit — Agent-Skill Security Assessment</h1>
+      <p class="sub">Ran NVIDIA's malware/vulnerability scanner against every shipped component, then fanned out an 11-agent swarm to adversarially triage every finding. Flip the switch to see the scanner's raw verdict collapse under verification.</p>
+      <div class="scope">
+        <span class="chip"><b>149</b> components</span>
+        <span class="chip"><b>112</b> skills + <b>37</b> agents</span>
+        <span class="chip"><b>555</b> raw findings</span>
+        <span class="chip"><b>64</b> vuln patterns</span>
+        <span class="chip">hooks scanned separately</span>
+      </div>
+    </div>
+    <div class="glass seg" role="group" aria-label="Toggle scanner view">
+      <button id="btnRaw" aria-pressed="true">SCANNER RAW</button>
+      <button id="btnVer" class="v" aria-pressed="false">AFTER TRIAGE</button>
+    </div>
+  </header>
+
+  <!-- VERDICT HERO -->
+  <div class="hero">
+    <div class="glass verdict">
+      <div class="state-label" id="heroState">SkillSpector says</div>
+      <div class="big" id="heroBig"></div>
+      <div id="heroRec" class="rec bad"></div>
+      <p class="note" id="heroNote"></p>
+    </div>
+    <div class="stat-grid">
+      <div class="glass stat"><div class="k">Do-not-install</div><div class="v" id="s1v"></div><div class="d" id="s1d"></div></div>
+      <div class="glass stat"><div class="k">CRITICAL band</div><div class="v" id="s2v"></div><div class="d" id="s2d"></div></div>
+      <div class="glass stat"><div class="k">True positives</div><div class="v" id="s3v"></div><div class="d" id="s3d"></div></div>
+      <div class="glass stat"><div class="k">Findings in docs</div><div class="v" id="s4v"></div><div class="d" id="s4d"></div></div>
+    </div>
+  </div>
+
+  <!-- FUNNEL -->
+  <section>
+    <div class="sec-head"><h2>How 555 findings become 0 threats</h2><span class="lead">the documentation false-positive collapse</span></div>
+    <div class="funnel">
+      <div class="glass fstep"><div class="fn tnum">555</div><div class="fl">raw findings flagged by the scanner</div></div>
+      <div class="farrow" aria-hidden="true">→</div>
+      <div class="glass fstep"><div class="fn tnum" style="color:var(--pg-warm)">488</div><div class="fl">live in <b>.md</b> docs / examples (88%) — never executed</div></div>
+      <div class="farrow" aria-hidden="true">→</div>
+      <div class="glass fstep"><div class="fn tnum" style="color:var(--pg-ok)">0</div><div class="fl">genuine vulnerabilities after swarm verification</div></div>
+    </div>
+  </section>
+
+  <!-- COMPONENT MAP -->
+  <section>
+    <div class="sec-head"><h2>149-component risk map</h2><span class="lead">click any cell — recolours on toggle</span></div>
+    <div class="maptools" role="group" aria-label="Filter components">
+      <button class="filt" data-f="all" aria-pressed="true">All 149</button>
+      <button class="filt" data-f="skill" aria-pressed="false">Skills</button>
+      <button class="filt" data-f="agent" aria-pressed="false">Agents</button>
+      <button class="filt" data-f="exec" aria-pressed="false">Ships a script (×1.3)</button>
+      <button class="filt" data-f="crit" aria-pressed="false">Scanner CRITICAL</button>
+    </div>
+    <div class="grid-wrap">
+      <div>
+        <div class="dotgrid" id="dotgrid" role="list" aria-label="Components"></div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="glass detail" id="detail" aria-live="polite">
+        <div class="dname">Pick a component</div>
+        <div class="dmeta">Each cell is one skill or agent. Colour = SkillSpector band (RAW) or triage verdict (TRIAGE).</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORY TRIAGE -->
+  <section>
+    <div class="sec-head"><h2>Findings by vulnerability category</h2><span class="lead">bar = raw count · tag = verified false-positive rate</span></div>
+    <div class="glass" style="padding:var(--sp-4) var(--sp-6)" id="cats"></div>
+  </section>
+
+  <!-- SCARY FINDINGS -->
+  <section>
+    <div class="sec-head"><h2>The findings that looked scary</h2><span class="lead">every CRITICAL/HIGH real-code hit — read end-to-end, all refuted</span></div>
+    <div class="cards" id="scary"></div>
+  </section>
+
+  <!-- HALL OF MIRRORS -->
+  <section>
+    <div class="sec-head"><h2>Hall of mirrors — the defense flagged as the threat</h2><span class="lead">OrchestKit's strongest-security components scored worst</span></div>
+    <div class="mirror" id="mirror"></div>
+  </section>
+
+  <!-- STRUCTURAL -->
+  <section>
+    <div class="sec-head"><h2>Is SkillSpector right about anything structural?</h2><span class="lead">where a static scanner could have a real point</span></div>
+    <div class="twocol" id="struct"></div>
+  </section>
+
+  <!-- ACTIONS -->
+  <section>
+    <div class="sec-head"><h2>What's actually worth doing</h2><span class="lead">0 security fixes required · 2 low-severity hygiene · the rest cosmetic</span></div>
+    <div class="acts" id="acts"></div>
+  </section>
+
+  <!-- COPY PROMPT -->
+  <div class="glass copybar">
+    <div class="ct" id="promptText"></div>
+    <button id="copyBtn" aria-label="Copy the recommendation as a prompt">Copy verdict ⧉</button>
+  </div>
+
+  <footer>
+    Built by an 11-agent OrchestKit swarm · SkillSpector run <span class="tnum">2026-06-19</span>, <span class="mono">--no-llm</span> static pass ·
+    verdicts are scoped to the skill+agent surface (hook TypeScript needs its own pass).
+  </footer>
+</div>
+
+<script>
+const COMPONENTS = [{"type":"skill","name":"agent-orchestration","score":100,"sev":"CRITICAL","n":15,"exec":true,"top":["Data Exfiltration","Output Handling"]},{"type":"skill","name":"api-design","score":100,"sev":"CRITICAL","n":65,"exec":true,"top":["Data Exfiltration","Tool Misuse"]},{"type":"skill","name":"architecture-decision-record","score":100,"sev":"CRITICAL","n":6,"exec":true,"top":["Memory Poisoning","Dangerous Code Execution"]},{"type":"skill","name":"async-jobs","score":100,"sev":"CRITICAL","n":11,"exec":false,"top":["Data Exfiltration","YARA Match"]},{"type":"skill","name":"bare-eval","score":100,"sev":"CRITICAL","n":7,"exec":false,"top":["Privilege Escalation","Excessive Agency"]},{"type":"skill","name":"brainstorm","score":100,"sev":"CRITICAL","n":8,"exec":true,"top":["Excessive Agency","Data Flow"]},{"type":"skill","name":"browser-tools","score":100,"sev":"CRITICAL","n":20,"exec":false,"top":["Privilege Escalation","Tool Misuse"]},{"type":"skill","name":"code-review-playbook","score":100,"sev":"CRITICAL","n":18,"exec":true,"top":["Prompt Injection","Data Exfiltration"]},{"type":"skill","name":"commit","score":100,"sev":"CRITICAL","n":5,"exec":true,"top":["Tool Misuse"]},{"type":"skill","name":"configure","score":100,"sev":"CRITICAL","n":20,"exec":false,"top":["Rogue Agent","Tool Misuse"]},{"type":"skill","name":"database-patterns","score":100,"sev":"CRITICAL","n":8,"exec":true,"top":["Dangerous Code Execution","Excessive Agency"]},{"type":"skill","name":"devops-deployment","score":100,"sev":"CRITICAL","n":9,"exec":false,"top":["Privilege Escalation","Tool Misuse"]},{"type":"skill","name":"distributed-systems","score":100,"sev":"CRITICAL","n":12,"exec":true,"top":["Data Exfiltration","Excessive Agency"]},{"type":"skill","name":"doctor","score":100,"sev":"CRITICAL","n":16,"exec":true,"top":["Excessive Agency","Privilege Escalation"]},{"type":"skill","name":"emulate-seed","score":100,"sev":"CRITICAL","n":14,"exec":true,"top":["Data Exfiltration","Tool Misuse"]},{"type":"skill","name":"feedback","score":100,"sev":"CRITICAL","n":15,"exec":false,"top":["Tool Misuse","Excessive Agency"]},{"type":"skill","name":"golden-dataset","score":100,"sev":"CRITICAL","n":6,"exec":true,"top":["Data Exfiltration","Privilege Escalation"]},{"type":"skill","name":"llm-integration","score":100,"sev":"CRITICAL","n":6,"exec":true,"top":["MCP Least Privilege","Data Exfiltration"]},{"type":"skill","name":"mcp-patterns","score":100,"sev":"CRITICAL","n":8,"exec":false,"top":["Privilege Escalation","Excessive Agency"]},{"type":"skill","name":"monitoring-observability","score":100,"sev":"CRITICAL","n":13,"exec":true,"top":["Data Exfiltration","Memory Poisoning"]},{"type":"skill","name":"performance","score":100,"sev":"CRITICAL","n":10,"exec":true,"top":["Data Exfiltration","Output Handling"]},{"type":"skill","name":"python-backend","score":100,"sev":"CRITICAL","n":12,"exec":true,"top":["Data Exfiltration","Privilege Escalation"]},{"type":"skill","name":"react-server-components-framework","score":100,"sev":"CRITICAL","n":12,"exec":true,"top":["Data Exfiltration","Excessive Agency"]},{"type":"skill","name":"release-management","score":100,"sev":"CRITICAL","n":5,"exec":true,"top":["Dangerous Code Execution","MCP Least Privilege"]},{"type":"skill","name":"security-patterns","score":100,"sev":"CRITICAL","n":49,"exec":true,"top":["Data Exfiltration","Privilege Escalation"]},{"type":"skill","name":"setup","score":100,"sev":"CRITICAL","n":8,"exec":false,"top":["Excessive Agency","Rogue Agent"]},{"type":"skill","name":"shared","score":100,"sev":"CRITICAL","n":8,"exec":false,"top":["Prompt Injection","Privilege Escalation"]},{"type":"skill","name":"web-research-workflow","score":100,"sev":"CRITICAL","n":17,"exec":false,"top":["Data Exfiltration","Supply Chain"]},{"type":"agent","name":"git-operations-engineer","score":100,"sev":"CRITICAL","n":5,"exec":false,"top":["Tool Misuse"]},{"type":"skill","name":"dev","score":97,"sev":"CRITICAL","n":3,"exec":true,"top":["Tool Misuse","Memory Poisoning"]},{"type":"skill","name":"vite-advanced","score":78,"sev":"HIGH","n":3,"exec":true,"top":["MCP Least Privilege","Prompt Injection"]},{"type":"skill","name":"langgraph","score":75,"sev":"HIGH","n":6,"exec":false,"top":["Excessive Agency","Data Exfiltration"]},{"type":"skill","name":"verify","score":75,"sev":"HIGH","n":3,"exec":false,"top":["Prompt Injection"]},{"type":"skill","name":"rag-retrieval","score":71,"sev":"HIGH","n":4,"exec":true,"top":["Memory Poisoning","MCP Least Privilege"]},{"type":"skill","name":"documentation-patterns","score":70,"sev":"HIGH","n":4,"exec":false,"top":["Data Exfiltration","Privilege Escalation"]},{"type":"skill","name":"expect","score":65,"sev":"HIGH","n":2,"exec":true,"top":["Rogue Agent"]},{"type":"skill","name":"chain-patterns","score":60,"sev":"HIGH","n":3,"exec":false,"top":["Excessive Agency","Memory Poisoning"]},{"type":"skill","name":"mcp-visual-output","score":60,"sev":"HIGH","n":3,"exec":false,"top":["Excessive Agency","Prompt Injection"]},{"type":"skill","name":"portless","score":60,"sev":"HIGH","n":6,"exec":false,"top":["Data Exfiltration","Privilege Escalation"]},{"type":"skill","name":"memory","score":58,"sev":"HIGH","n":3,"exec":true,"top":["MCP Least Privilege","Data Exfiltration"]},{"type":"skill","name":"figma-design-handoff","score":55,"sev":"HIGH","n":4,"exec":false,"top":["Data Exfiltration","Supply Chain"]},{"type":"skill","name":"json-render-catalog","score":55,"sev":"HIGH","n":4,"exec":false,"top":["Data Exfiltration","Excessive Agency"]},{"type":"skill","name":"i18n-date-patterns","score":50,"sev":"MEDIUM","n":2,"exec":false,"top":["Output Handling"]},{"type":"skill","name":"multimodal-llm","score":50,"sev":"MEDIUM","n":5,"exec":false,"top":["Data Exfiltration"]},{"type":"skill","name":"upgrade-assessment","score":50,"sev":"MEDIUM","n":5,"exec":false,"top":["Excessive Agency"]},{"type":"agent","name":"ai-safety-auditor","score":50,"sev":"MEDIUM","n":2,"exec":false,"top":["Prompt Injection","System Prompt Leakage"]},{"type":"skill","name":"assess","score":45,"sev":"MEDIUM","n":2,"exec":true,"top":["MCP Least Privilege","Prompt Injection"]},{"type":"skill","name":"quality-gates","score":45,"sev":"MEDIUM","n":2,"exec":true,"top":["MCP Least Privilege","Supply Chain"]},{"type":"skill","name":"ci-sentinel","score":35,"sev":"MEDIUM","n":2,"exec":false,"top":["Excessive Agency","Prompt Injection"]},{"type":"skill","name":"errors","score":35,"sev":"MEDIUM","n":2,"exec":false,"top":["Privilege Escalation","System Prompt Leakage"]},{"type":"skill","name":"testing-integration","score":35,"sev":"MEDIUM","n":2,"exec":false,"top":["Data Exfiltration"]},{"type":"skill","name":"testing-llm","score":35,"sev":"MEDIUM","n":2,"exec":false,"top":["Excessive Agency","Prompt Injection"]},{"type":"skill","name":"architecture-patterns","score":32,"sev":"MEDIUM","n":1,"exec":true,"top":["Prompt Injection"]},{"type":"skill","name":"checkpoint-resume","score":32,"sev":"MEDIUM","n":1,"exec":true,"top":["Memory Poisoning"]},{"type":"skill","name":"implement","score":32,"sev":"MEDIUM","n":1,"exec":true,"top":["Data Exfiltration"]},{"type":"skill","name":"accessibility","score":30,"sev":"MEDIUM","n":3,"exec":false,"top":["Excessive Agency"]},{"type":"skill","name":"testing-e2e","score":30,"sev":"MEDIUM","n":3,"exec":false,"top":["Excessive Agency"]},{"type":"skill","name":"testing-unit","score":30,"sev":"MEDIUM","n":3,"exec":false,"top":["Data Exfiltration"]},{"type":"agent","name":"backend-system-architect","score":30,"sev":"MEDIUM","n":3,"exec":false,"top":["Data Exfiltration","Rogue Agent"]},{"type":"agent","name":"ci-cd-engineer","score":30,"sev":"MEDIUM","n":3,"exec":false,"top":["Excessive Agency","Rogue Agent"]},{"type":"skill","name":"skill-evolution","score":25,"sev":"MEDIUM","n":1,"exec":false,"top":["Rogue Agent"]},{"type":"agent","name":"eval-runner","score":25,"sev":"MEDIUM","n":1,"exec":false,"top":["Rogue Agent"]},{"type":"agent","name":"frontend-ui-developer","score":25,"sev":"MEDIUM","n":1,"exec":false,"top":["Privilege Escalation"]},{"type":"agent","name":"ui-feedback","score":25,"sev":"MEDIUM","n":1,"exec":false,"top":["Privilege Escalation"]},{"type":"skill","name":"analytics","score":20,"sev":"LOW","n":2,"exec":false,"top":["Rogue Agent"]},{"type":"skill","name":"design-to-code","score":20,"sev":"LOW","n":2,"exec":false,"top":["Excessive Agency"]},{"type":"skill","name":"notebooklm","score":20,"sev":"LOW","n":2,"exec":false,"top":["Excessive Agency","Output Handling"]},{"type":"skill","name":"remember","score":20,"sev":"LOW","n":2,"exec":false,"top":["Excessive Agency","Rogue Agent"]},{"type":"agent","name":"infrastructure-architect","score":20,"sev":"LOW","n":2,"exec":false,"top":["Excessive Agency"]},{"type":"skill","name":"audit-full","score":13,"sev":"LOW","n":1,"exec":true,"top":["Excessive Agency"]},{"type":"skill","name":"demo-producer","score":13,"sev":"LOW","n":1,"exec":true,"top":["MCP Least Privilege"]},{"type":"skill","name":"explore","score":13,"sev":"LOW","n":1,"exec":true,"top":["MCP Least Privilege"]},{"type":"skill","name":"fix-issue","score":13,"sev":"LOW","n":1,"exec":true,"top":["MCP Least Privilege"]},{"type":"skill","name":"release-checklist","score":13,"sev":"LOW","n":1,"exec":true,"top":["Excessive Agency"]},{"type":"skill","name":"review-pr","score":13,"sev":"LOW","n":1,"exec":true,"top":["MCP Least Privilege"]},{"type":"skill","name":"zustand-patterns","score":13,"sev":"LOW","n":1,"exec":true,"top":["MCP Least Privilege"]},{"type":"skill","name":"cover","score":10,"sev":"LOW","n":1,"exec":false,"top":["Excessive Agency"]},{"type":"skill","name":"dream","score":10,"sev":"LOW","n":1,"exec":false,"top":["Excessive Agency"]},{"type":"skill","name":"github-operations","score":10,"sev":"LOW","n":1,"exec":false,"top":["Rogue Agent"]},{"type":"skill","name":"interaction-patterns","score":10,"sev":"LOW","n":1,"exec":false,"top":["Excessive Agency"]},{"type":"skill","name":"memory-fabric","score":10,"sev":"LOW","n":1,"exec":false,"top":["Excessive Agency"]},{"type":"skill","name":"scope-appropriate-architecture","score":10,"sev":"LOW","n":1,"exec":false,"top":["Prompt Injection"]},{"type":"skill","name":"telemetry-inspect","score":10,"sev":"LOW","n":1,"exec":false,"top":["Rogue Agent"]},{"type":"agent","name":"claude-design-orchestrator","score":10,"sev":"LOW","n":1,"exec":false,"top":["Data Exfiltration"]},{"type":"agent","name":"data-pipeline-engineer","score":10,"sev":"LOW","n":1,"exec":false,"top":["Excessive Agency"]},{"type":"agent","name":"database-engineer","score":10,"sev":"LOW","n":1,"exec":false,"top":["Excessive Agency"]},{"type":"agent","name":"debug-investigator","score":10,"sev":"LOW","n":1,"exec":false,"top":["Data Exfiltration"]},{"type":"agent","name":"expect-agent","score":10,"sev":"LOW","n":1,"exec":false,"top":["Prompt Injection"]},{"type":"agent","name":"genui-architect","score":10,"sev":"LOW","n":1,"exec":false,"top":["Data Exfiltration"]},{"type":"agent","name":"llm-integrator","score":10,"sev":"LOW","n":1,"exec":false,"top":["Data Exfiltration"]},{"type":"agent","name":"system-design-reviewer","score":10,"sev":"LOW","n":1,"exec":false,"top":["Excessive Agency"]},{"type":"agent","name":"test-generator","score":10,"sev":"LOW","n":1,"exec":false,"top":["Data Exfiltration"]},{"type":"agent","name":"web-research-analyst","score":10,"sev":"LOW","n":1,"exec":false,"top":["Data Exfiltration"]},{"type":"skill","name":"domain-driven-design","score":6,"sev":"LOW","n":1,"exec":true,"top":["Dangerous Code Execution"]},{"type":"skill","name":"ai-ui-generation","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"animation-motion-design","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"ascii-visualizer","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"audit-skills","score":0,"sev":"LOW","n":0,"exec":true,"top":[]},{"type":"skill","name":"business-case","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"ci-debug","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"competitive-analysis","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"component-search","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"create-pr","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"design-context-extract","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"design-import","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"design-ship","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"design-system-tokens","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"help","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"issue-progress-tracking","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"market-sizing","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"multi-surface-render","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"okr-design","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"prd-to-goal","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"presentation-builder","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"prioritization","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"product-analytics","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"product-frameworks","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"release-sync","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"responsive-patterns","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"storybook-mcp-integration","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"storybook-testing","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"swarm-migrate","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"task-dependency-patterns","score":0,"sev":"LOW","n":0,"exec":true,"top":[]},{"type":"skill","name":"testing-patterns","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"testing-perf","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"ui-components","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"user-research","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"skill","name":"validate-counts","score":0,"sev":"LOW","n":0,"exec":true,"top":[]},{"type":"skill","name":"visualize-plan","score":0,"sev":"LOW","n":0,"exec":true,"top":[]},{"type":"skill","name":"write-prd","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"accessibility-specialist","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"code-quality-reviewer","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"component-curator","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"demo-producer","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"deployment-manager","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"design-context-extractor","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"design-system-architect","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"emulate-engineer","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"event-driven-architect","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"frontend-performance-engineer","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"market-intelligence","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"monitoring-engineer","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"multimodal-specialist","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"product-strategist","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"python-performance-engineer","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"release-engineer","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"security-auditor","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"security-layer-auditor","score":0,"sev":"LOW","n":0,"exec":false,"top":[]},{"type":"agent","name":"workflow-architect","score":0,"sev":"LOW","n":0,"exec":false,"top":[]}];
+
+const CATS = [
+  {name:"Data Exfiltration", ids:"E1–E4", n:176, fp:100},
+  {name:"Excessive Agency", ids:"EA1–4", n:78, fp:100},
+  {name:"Tool Misuse", ids:"TM1–3", n:62, fp:98},
+  {name:"Privilege Escalation", ids:"PE1–3", n:57, fp:100},
+  {name:"Prompt Injection", ids:"P1–8", n:37, fp:100},
+  {name:"Rogue Agent", ids:"RA1–2", n:33, fp:100},
+  {name:"MCP Least-Privilege", ids:"LP1–4", n:24, fp:100},
+  {name:"Output Handling", ids:"OH1–3", n:20, fp:100},
+  {name:"Memory Poisoning", ids:"MP1–3", n:16, fp:100},
+  {name:"System Prompt Leak", ids:"P6–8", n:12, fp:100},
+  {name:"Supply Chain", ids:"SC1–6", n:12, fp:100},
+  {name:"Dangerous Code Exec", ids:"AST1–8", n:9, fp:100},
+  {name:"YARA malware match", ids:"YR1–4", n:2, fp:100},
+];
+
+const SCARY = [
+  {v:"fp", t:"TT3 — the only CRITICAL: env var → urllib.urlopen",
+   loc:"brainstorm/scripts/post_synth_podcast.py",
+   ev:"Read all 292 lines. The taint tracker claimed a credential flows to the network. It doesn't: the env var is <code>ORK_PODCAST_MCP_SERVER='hq-content'</code> — a server-<i>name</i> string, never a URL. The URL passed to <code>urlopen()</code> comes from the NotebookLM MCP tool's own podcast result and is a GET <b>download</b> of the .m4a you asked it to create. Nothing is sent; no credential is in the request. The two facts were causally unconnected."},
+  {v:"fp", t:"YARA 'backdoor_persistence' [malware] ×2",
+   loc:"async-jobs/SKILL.md · references/scheduled-tasks.md",
+   ev:"The single most serious possible hit — a malware signature. Both fired on the word <b>“Crontab”</b> in Celery scheduling documentation (a decision-table cell and a <code>## Crontab Reference</code> heading above <code>from celery.schedules import crontab</code>). No shell payload, no SSH-key injection, no hidden root user. The rule keys on cron vocabulary and matched non-executable markdown."},
+  {v:"fp", t:"AST4 — subprocess 'dangerous code execution' ×8",
+   loc:"adr-manager · run-pr-checks · detect-model-changes · vllm-server · version-manager",
+   ev:"Every call uses a <b>fixed argv list with shell=False</b> — <code>git config user.name</code>, <code>gh pr diff &lt;int&gt;</code>, <code>alembic current</code>, <code>python -m vllm…</code>. The one int arg is <code>argparse type=int</code> (can't inject). Standard local dev tooling. Repo-wide grep for <code>shell=True / os.system / eval / exec</code> on untrusted input returned <b>zero</b> real hits."},
+  {v:"bd", t:"SC2 — 'external script fetching' (curl | bash) ×11",
+   loc:"configure/references/cc-version-settings.md + vendor API docs",
+   ev:"The configure hit is the irony of the scan: <code>Bash(curl * | sh)</code> is an entry in a <b>hard_deny BLOCKLIST</b> that <i>prevents</i> the command from running. The scanner scored the security control as the threat. The rest are documented Tavily/Figma/Ollama API examples in fenced code blocks — never piped to a shell, never run at install time."},
+  {v:"fp", t:"eval() / exec() / shell=True across the script corpus",
+   loc:"code-review-playbook/scripts/run-pr-checks.py + others",
+   ev:"The only <code>eval/exec/shell=True</code> tokens in the whole codebase are (1) <b>regex patterns inside a linter</b> that <i>detects</i> these antipatterns in code under review, (2) Redis <code>EVAL</code> (Lua, atomic locks), and (3) PyTorch <code>model.eval()</code> (inference mode). No dynamic execution of untrusted strings exists anywhere."},
+  {v:"bd", t:"Executable-script corpus (the ×1.3 multiplier)",
+   loc:"~91 scripts across ~20 skills",
+   ev:"Independently hard-verified, ignoring the scanner: 100% of the 32 shell scripts use <code>set -euo pipefail</code>; zero contain <code>mkfs/dd/chmod 777</code>, recursive deletes, reverse shells, or obfuscation. Git mutations are gated behind clean-tree checks + interactive confirms and only touch your own repo. <code>rm -f</code> targets specific state-files; <code>kill</code> is gated by a <code>kill -0</code> liveness check."},
+];
+
+const MIRROR = [
+  {tag:"100 / CRITICAL", h:"commit", p:"Flagged for <code>git push --force origin main&nbsp;# NEVER DO THIS</code> — an explicit anti-example — and a <code>git reset --hard</code> in a recovery doc.", flip:"→ teaches safe git, executes none of it"},
+  {tag:"100 / CRITICAL", h:"configure", p:"Scored for shipping a <code>hard_deny</code> denylist of <code>rm -rf /*</code>, force-push, and <code>curl|sh</code>.", flip:"→ the denylist BLOCKS those commands"},
+  {tag:"100 / CRITICAL", h:"security-patterns", p:"49 hits for documenting the OWASP <code># VULNERABLE</code> patterns it pairs with <code># SAFE</code> fixes.", flip:"→ the security-teaching skill itself"},
+  {tag:"50 / CAUTION", h:"ai-safety-auditor", p:"Its <code>INJECTION_TESTS = ['Ignore previous instructions…']</code> red-team corpus read as prompt injection.", flip:"→ a report-only auditor (Write disallowed)"},
+  {tag:"25 / RA1", h:"eval-runner", p:"Flagged for self-modification because <code>Edit</code>/<code>MultiEdit</code> appear under <code>disallowedTools</code>.", flip:"→ the frontmatter FORBIDS editing"},
+  {tag:"100 / CRITICAL", h:"hooks (separate scan)", p:"712 files, 950 hits — driven by security test fixtures (<code>dd if=/dev/zero…</code>, <code>curl|bash</code>) + <code>dangerous-command-blocker.ts</code>.", flip:"→ the layer that BLOCKS those attacks"},
+];
+
+const STRUCT = [
+  {dim:"Excessive Agency & Least-Privilege", pill:"vp-no", pillT:"SCANNER WRONG · 1 LOW",
+   items:[
+     "All <b>37/37 agents</b> declare a scoped <code>tools:</code> allowlist (6–20 entries) — zero wildcards, zero blanket grants. security-auditor is read-only.",
+     "Every EA2 'autonomous decision' hit matched <b>“without approval”</b> inside a <code>Forbidden:</code> guardrail — a least-privilege control read as its absence.",
+     "<b>24 of 27</b> Bash+Write agents run under <code>isolation: worktree</code>; git-operations-engineer wires 4 PreToolUse hooks (live <code>git-validator</code>: 14 matchers + force-push block in <code>dist/pretool.mjs</code>).",
+     "<b>Real LOW finding:</b> 4 Bash+Write agents (claude-design-orchestrator, design-context-extractor, product-strategist, web-research-analyst) lack worktree isolation — a consistency tweak, not a hole."],
+  },
+  {dim:"Trigger Abuse", pill:"vp-low", pillT:"NO DETECTOR · LOW",
+   items:[
+     "SkillSpector emits <b>zero</b> TR1/TR2/TR3 findings — it doesn't implement trigger-abuse detection at all. Its silence is a coverage gap, confirmed clean only by manual review.",
+     "<b>111/111</b> descriptions use explicit <i>“Use when…”</i> scoping; none use bare <code>Triggers on: a,b,c</code> keyword-baiting.",
+     "<b>56/111</b> skills are slash-only (<code>disable-model-invocation</code>) — and that set deliberately covers the mutating skills (commit, create-pr, implement, doctor, setup, swarm-migrate).",
+     "<b>Optional:</b> 5 names collide with built-ins (commit/help/doctor/memory/setup) but are blunted by <code>/ork:</code> namespacing; only generic <code>help</code>/<code>memory</code> auto-trigger — consider gating them."],
+  },
+];
+
+const ACTS = [
+  {pri:"key", t:"Don't gate installs on this --no-llm report.", d:"42 DO_NOT_INSTALL verdicts are documentation/teaching false positives. Re-run with the semantic LLM stage (ANTHROPIC_API_KEY) or whitelist teaching skills before treating any verdict as actionable."},
+  {pri:"low", t:"Add isolation: worktree to 4 Bash+Write agents.", d:"claude-design-orchestrator, design-context-extractor, product-strategist, web-research-analyst — for consistency with the other 24 isolated agents. Low severity."},
+  {pri:"low", t:"Gate the auto-triggerable generic skill names.", d:"Set disable-model-invocation (or rename) on help / memory to remove the last theoretical built-in shadow. Low severity."},
+  {pri:"cos", t:"Cosmetic scanner-appeasement (optional).", d:"Annotate devops-deployment's example postgres:postgres as dev-only; pin brainstorm's urlopen to https + allowlist; add a permissions: field so third-party scanners read least-privilege intent."},
+  {pri:"cos", t:"Upstream a polarity fix to SkillSpector.", d:"A denylist / DON'T-list / disallowedTools / labeled anti-example is the inverse of a vulnerability. Teaching its existence to the scanner would erase most of OrchestKit's false positives."},
+];
+
+// ---- band helpers ----
+function rawColor(s){
+  if(s>=81) return "var(--pg-bad)";
+  if(s>=51) return "var(--pg-hot)";
+  if(s>=21) return "var(--pg-mid)";
+  if(s>=1)  return "hsl(154 50% 42%)";
+  return "hsl(220 14% 34%)";
+}
+function rawBand(s){
+  if(s>=81) return ["CRITICAL","DO_NOT_INSTALL"];
+  if(s>=51) return ["HIGH","DO_NOT_INSTALL"];
+  if(s>=21) return ["MEDIUM","CAUTION"];
+  if(s>=1)  return ["LOW","SAFE"];
+  return ["CLEAN","SAFE"];
+}
+const GENUINE_LOW = new Set(["claude-design-orchestrator","design-context-extractor","product-strategist","web-research-analyst","help","memory"]);
+function verColor(c){ return GENUINE_LOW.has(c.name) ? "var(--pg-warm)" : "var(--pg-ok)"; }
+function verVerdict(c){
+  return GENUINE_LOW.has(c.name)
+    ? "LOW hygiene — verified false-positive on security grounds, flagged only for a consistency/trigger tweak."
+    : "Verified FALSE POSITIVE — no behavior that would cause harm when invoked. The score is teaching content × the script multiplier.";
+}
+
+let mode = "raw";   // raw | ver
+let filt = "all";
+let selected = null;
+
+// ---- render hero/stats ----
+function renderHero(){
+  const raw = mode==="raw";
+  document.getElementById("heroState").textContent = raw ? "SkillSpector says" : "After 11-agent swarm triage";
+  const big = document.getElementById("heroBig");
+  const rec = document.getElementById("heroRec");
+  const note = document.getElementById("heroNote");
+  if(raw){
+    big.innerHTML = '42<small> / 149 do-not-install</small>';
+    big.style.color = "var(--pg-bad)";
+    rec.className = "rec bad"; rec.textContent = "⛔ 30 CRITICAL · scanner recommends: DO NOT INSTALL";
+    note.textContent = "The raw --no-llm pass: a sum-of-severities score ×1.3 if a component ships any script, capped at 100. It flags a dangerous string whether the skill executes it or merely documents it.";
+  } else {
+    big.innerHTML = '0<small> true positives · SAFE TO INSTALL</small>';
+    big.style.color = "var(--pg-ok)";
+    rec.className = "rec ok"; rec.textContent = "✅ no genuine threat · 2 low-severity hygiene items";
+    note.textContent = "Every CRITICAL & HIGH hit read end-to-end. 100% are teaching content, anti-examples, denylists, defensive code, or HTML comments. The defense was flagged as the threat.";
+  }
+  set("s1v", raw?"42":"0", raw?"var(--pg-bad)":"var(--pg-ok)"); set("s1d", raw?"12 HIGH + 30 CRITICAL":"none honoured");
+  set("s2v", raw?"30":"0", raw?"var(--pg-bad)":"var(--pg-ok)"); set("s2d", raw?"of 149 components":"after verification");
+  set("s3v", "0", "var(--pg-ok)"); set("s3d", raw?"(not yet triaged)":"across all 149");
+  set("s4v", "88%", "var(--pg-warm)"); set("s4d", "488 / 555 in .md docs");
+}
+function set(id,v,col){ const e=document.getElementById(id); e.textContent=v; if(col)e.style.color=col; }
+
+// ---- dot grid ----
+function buildGrid(){
+  const g = document.getElementById("dotgrid");
+  g.innerHTML = "";
+  COMPONENTS.forEach((c,i)=>{
+    const b = document.createElement("button");
+    b.className="dot"; b.setAttribute("role","listitem");
+    b.dataset.i=i; b.dataset.type=c.type; b.dataset.exec=c.exec?"1":"0";
+    b.dataset.crit=c.score>=81?"1":"0";
+    b.title = c.name+" · "+c.score;
+    b.setAttribute("aria-label", c.name+", "+c.type+", score "+c.score);
+    b.addEventListener("click",()=>selectDot(i));
+    g.appendChild(b);
+  });
+  paintGrid();
+  applyFilter();
+  // legend
+  const L = document.getElementById("legend");
+  if(mode==="raw"){
+    L.innerHTML = leg("var(--pg-bad)","CRITICAL 81-100")+leg("var(--pg-hot)","HIGH 51-80")+leg("var(--pg-mid)","MEDIUM 21-50")+leg("hsl(154 50% 42%)","LOW 1-20")+leg("hsl(220 14% 34%)","clean 0");
+  } else {
+    L.innerHTML = leg("var(--pg-ok)","verified false positive")+leg("var(--pg-warm)","low-severity hygiene");
+  }
+}
+function leg(c,t){ return '<span><i class="swatch" style="background:'+c+'"></i>'+t+'</span>'; }
+function paintGrid(){
+  document.querySelectorAll(".dot").forEach(d=>{
+    const c = COMPONENTS[+d.dataset.i];
+    d.style.background = mode==="raw" ? rawColor(c.score) : verColor(c);
+  });
+}
+function applyFilter(){
+  document.querySelectorAll(".dot").forEach(d=>{
+    const c = COMPONENTS[+d.dataset.i];
+    let show = true;
+    if(filt==="skill") show = c.type==="skill";
+    else if(filt==="agent") show = c.type==="agent";
+    else if(filt==="exec") show = c.exec;
+    else if(filt==="crit") show = c.score>=81;
+    d.classList.toggle("hidden", !show);
+  });
+}
+function selectDot(i){
+  selected=i;
+  document.querySelectorAll(".dot").forEach(d=>d.dataset.sel = (+d.dataset.i===i)?"1":"0");
+  const c = COMPONENTS[i];
+  const [band, rec] = rawBand(c.score);
+  const det = document.getElementById("detail");
+  const bandCol = rawColor(c.score);
+  det.innerHTML =
+    '<div class="dname">'+c.name+'</div>'+
+    '<div class="dmeta">'+c.type+(c.exec?' · ships script (×1.3)':'')+' · '+c.n+' raw finding'+(c.n===1?'':'s')+
+       (c.top.length?' · '+c.top.join(', '):'')+'</div>'+
+    '<div class="dband" style="background:'+bandCol+'22;color:'+bandCol+'">SCANNER: '+c.score+'/100 '+band+' · '+rec+'</div>'+
+    '<div class="dverdict">'+ (mode==="ver"
+        ? verVerdict(c)
+        : (c.score===0 ? "Clean even on the raw pass — no findings at all."
+            : "Toggle to AFTER TRIAGE to see the verified verdict.")) +'</div>';
+}
+
+// ---- categories ----
+function buildCats(){
+  const max = Math.max(...CATS.map(c=>c.n));
+  document.getElementById("cats").innerHTML = CATS.map(c=>{
+    const w = Math.round(c.n/max*100);
+    const tag = mode==="ver" ? '<span class="fp-tag">'+c.fp+'% FP · 0 TP</span>' : '<b>'+c.n+'</b> hits';
+    return '<div class="catrow"><div class="cname">'+c.name+' <span class="cids">'+c.ids+'</span></div>'+
+      '<div class="bar"><i style="width:'+(mode==="ver"?Math.max(4,Math.round(w*(100-c.fp)/100)):w)+'%'+
+        (mode==="ver"?';background:linear-gradient(90deg,hsl(154 55% 38%),var(--pg-ok))':'')+'"></i></div>'+
+      '<div class="cv">'+tag+'</div></div>';
+  }).join("");
+}
+
+// ---- scary cards ----
+function buildScary(){
+  document.getElementById("scary").innerHTML = SCARY.map(f=>
+    '<details class="glass fcard"><summary>'+
+      '<span class="vtag '+f.v+'">'+(f.v==="fp"?"FALSE POSITIVE":"BENIGN BY DESIGN")+'</span>'+
+      '<div><h3>'+f.t+'</h3><div class="floc">'+f.loc+'</div></div>'+
+      '<span class="toggle" aria-hidden="true">+</span>'+
+      '</summary><div class="ev">'+f.ev+'</div></details>').join("");
+}
+
+// ---- mirror ----
+function buildMirror(){
+  document.getElementById("mirror").innerHTML = MIRROR.map(m=>
+    '<div class="glass mcard"><div class="mt">'+m.tag+'</div><h3>'+m.h+'</h3><p>'+m.p+'</p><div class="flip">'+m.flip+'</div></div>').join("");
+}
+
+// ---- structural ----
+function buildStruct(){
+  document.getElementById("struct").innerHTML = STRUCT.map(s=>
+    '<div class="glass scard"><span class="verdict-pill '+s.pill+'">'+s.pillT+'</span><h3>'+s.dim+'</h3>'+
+    '<ul>'+s.items.map(i=>'<li>'+i+'</li>').join("")+'</ul></div>').join("");
+}
+
+// ---- actions ----
+function buildActs(){
+  const lab={key:"READ ME",low:"LOW",cos:"OPTIONAL"};
+  document.getElementById("acts").innerHTML = ACTS.map(a=>
+    '<div class="glass act"><span class="pri '+a.pri+'">'+lab[a.pri]+'</span><div class="atxt">'+a.t+'<small>'+a.d+'</small></div></div>').join("");
+}
+
+// ---- copy prompt ----
+const PROMPT = "Treat the NVIDIA SkillSpector --no-llm report on OrchestKit as advisory only — do not gate installs on its 42 DO_NOT_INSTALL verdicts; an 11-agent triage confirmed 0 true positives (every CRITICAL/HIGH hit was teaching content, an anti-example, a denylist, or defensive code). Then do the two low-severity hygiene tweaks: add `isolation: worktree` to the 4 Bash+Write agents that lack it, and gate the auto-triggerable `help` and `memory` skill names. Re-run SkillSpector with the semantic LLM stage before any future install gating.";
+function initCopy(){
+  document.getElementById("promptText").textContent = PROMPT;
+  const btn = document.getElementById("copyBtn");
+  btn.addEventListener("click", async ()=>{
+    try{ await navigator.clipboard.writeText(PROMPT); }catch(e){
+      const ta=document.createElement("textarea"); ta.value=PROMPT; document.body.appendChild(ta); ta.select();
+      try{document.execCommand("copy");}catch(_){} ta.remove();
+    }
+    btn.textContent="Copied ✓";
+    setTimeout(()=>{btn.textContent="Copy verdict ⧉";},1500);
+  });
+}
+
+// ---- toggles ----
+function setMode(m){
+  mode=m;
+  document.getElementById("btnRaw").setAttribute("aria-pressed", m==="raw");
+  document.getElementById("btnVer").setAttribute("aria-pressed", m==="ver");
+  renderHero(); paintGrid(); buildCats();
+  // legend swap
+  const L=document.getElementById("legend");
+  if(m==="raw") L.innerHTML = leg("var(--pg-bad)","CRITICAL 81-100")+leg("var(--pg-hot)","HIGH 51-80")+leg("var(--pg-mid)","MEDIUM 21-50")+leg("hsl(154 50% 42%)","LOW 1-20")+leg("hsl(220 14% 34%)","clean 0");
+  else L.innerHTML = leg("var(--pg-ok)","verified false positive")+leg("var(--pg-warm)","low-severity hygiene");
+  if(selected!==null) selectDot(selected);
+}
+
+document.getElementById("btnRaw").addEventListener("click",()=>setMode("raw"));
+document.getElementById("btnVer").addEventListener("click",()=>setMode("ver"));
+document.querySelectorAll(".filt").forEach(b=>b.addEventListener("click",()=>{
+  filt=b.dataset.f;
+  document.querySelectorAll(".filt").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  applyFilter();
+}));
+
+// init
+buildGrid(); renderHero(); buildCats(); buildScary(); buildMirror(); buildStruct(); buildActs(); initCopy();
+</script>
+</body>
+</html>
