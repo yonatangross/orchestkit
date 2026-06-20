@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.55.0](https://github.com/yonatangross/orchestkit/compare/v8.54.0...v8.55.0) (2026-06-20)
+
+
+### Features
+
+* **skill-evolution:** make holdout gate executable for assess ([#2562](https://github.com/yonatangross/orchestkit/issues/2562)) ([7031857](https://github.com/yonatangross/orchestkit/commit/7031857da2ee660e428edd7b5250988b198756e3))
+
+
+### Bug Fixes
+
+* **hooks:** stop mcp-health-check false-positive on op-read keys ([#2563](https://github.com/yonatangross/orchestkit/issues/2563)) ([e345c79](https://github.com/yonatangross/orchestkit/commit/e345c79b1ccf1a94b3789f0bd86d27bc09ed3980))
+
 ## [8.54.0](https://github.com/yonatangross/orchestkit/compare/v8.53.0...v8.54.0) (2026-06-20)
 
 
