@@ -308,6 +308,10 @@ blocker, 2 for HIGH).
 Load the protocol + review-pr bindings: `Read("${CLAUDE_SKILL_DIR}/references/adversarial-refutation.md")`
 (which loads the shared engine `${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/adversarial-refutation.md`).
 
+### Cross-model refuter (optional, provenance-labeled, cost-gated)
+
+By default refuters are same-model Claude — variance reduction, not bias correction (N Claude agents share blind spots). When `ORK_ALT_MODEL_CMD` is configured AND effort is `high`/`xhigh`, one quorum slot per decision-bearing finding (request-changes blocker / CRITICAL / HIGH) can route to a different model family (Codex/GPT) for genuinely diverse failure modes. **Off by default**; the cross-model refuter SUBSTITUTES one same-model slot (never inflates the count or the §8 ceiling), is bound by the same blindness + citation-verify gates, stamps `refuter_model` for provenance, and CANNOT flip `request-changes`→`approve` on its own (engine §7). The skill owns no credentials and opens no egress — it shells out to the user-configured command (matches the egress guard #2533); absent command or down CLI → silent degrade to the same-model lane. Cost-capped by `ORK_CROSS_MODEL_MAX` (default 4); `ORK_CROSS_MODEL=0` kills it. Load the operational doc: `Read("${CLAUDE_SKILL_DIR}/references/cross-model-refuter.md")`.
+
 Runs after Phase 3 findings (and any Phase 3.5 ultrareview merge) and Phase 4 validation,
 before the Phase 5 synthesis and Phase 6 verdict. Refuters are ALWAYS isolated `Agent(...)`
 spawns with no `team_name`. Refutation alone may demote a finding's bucket but may **NOT**
@@ -426,6 +430,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `review-template.md` | Review checklist template |
 | `review-report-template.md` | Structured review report |
 | `adversarial-refutation.md` | Blind-refuter bindings (Phase 4.5) — loads the shared engine |
+| `cross-model-refuter.md` | Optional non-Claude refuter lane (provenance + cost gate) |
 | `ultrareview-gate.md` | Phase 3.5 /ultrareview trigger eval, prompt, opt-out |
 | `orchestration-mode-selection.md` | Task tool vs Agent Teams |
 | `validation-commands.md` | Build/test/lint commands |

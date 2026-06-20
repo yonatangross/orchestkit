@@ -99,6 +99,10 @@ Persist per finding so wrong KEEPs AND wrong KILLs are auditable cross-session:
   "confidence": "high|low", "original_value": "...", "revised_value": "..." }
 ```
 
+## 11. Cross-model diversity (optional provenance lane)
+
+An optional lane may route ONE quorum slot per decision-bearing finding to a **different model family** (Codex/GPT) for a genuinely different failure surface. It SUBSTITUTES a same-model slot (no count or §8 inflation), inherits §1 blindness + §3 citation-verify + §4 quorum + §7 no-auto-flip unchanged, and stamps `refuter_model`/`refuter_lane` for provenance (best-effort attribution from an untrusted command, **not** a trust boundary). The skill MUST NOT own credentials or open egress — it shells out to a user-configured command; an absent command degrades to the same-model lane, never to "no refutation". Operational detail: `${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/cross-model-refuter.md`.
+
 ## Known residual bias (state it, don't hide it)
 
 A one-sided "your job is to REFUTE" pass raises **false negatives** — for a merge gate or

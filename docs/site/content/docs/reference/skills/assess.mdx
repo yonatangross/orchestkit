@@ -258,6 +258,10 @@ single refuters (advisory, no auto-swing); `xhigh` runs 3-refuter majority with 
 Load the protocol + assess bindings: `Read("$\{CLAUDE_SKILL_DIR\}/references/adversarial-refutation.md")`
 (which loads the shared engine `$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rules/adversarial-refutation.md`).
 
+### Cross-model refuter (optional, provenance-labeled, cost-gated)
+
+When `ORK_ALT_MODEL_CMD` is configured and effort is `high`/`xhigh`, one quorum slot per high-weight or boundary-adjacent dimension score can route to a non-Claude model (Codex/GPT) for diverse failure modes. Off by default; substitutes one same-model slot, stamps `refuter_model` for provenance, cannot silently raise the grade (engine §7), owns no credentials/egress (shells out via `ORK_ALT_MODEL_CMD`, matches the egress guard #2533), and degrades to same-model on an absent command. Shares the review-pr operational doc: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/review-pr/references/cross-model-refuter.md")`.
+
 Runs after Phase 2 returns, before the composite/grade and Phases 3-7. Refuters are ALWAYS
 isolated `Agent(...)` Task spawns (never team members, even in Agent Teams mode) fed only the
 serialized claim — no producer score, identity, or prose. Revised scores recompute the
@@ -429,7 +433,7 @@ Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/quality-gates/references/unified-scor
 
 ---
 
-**Version:** 1.7.0 (April 2026) — `$\{CLAUDE_EFFORT\}` env var as primary effort signal (CC 2.1.120, #1540)
+**Version:** 1.8.0 (June 2026) — optional cross-model adversarial refuter lane (provenance + cost gate, #2542)
 
 
 ---
