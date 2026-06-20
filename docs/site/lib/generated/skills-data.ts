@@ -3622,7 +3622,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "prd-to-goal",
     "description": "Decomposes a PRD, issue, or spec into a copy-pasteable `/goal until ... abort-if ...` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions.",
     "version": "0.1.0",
-    "sha256": "ca2dd83c05431e28c90a3fe59281655e490d672cc30e95301818716d926e29f7",
+    "sha256": "591f9af114f019ccebff7198a79dd4e8d901e012bc6ac1c1a4158b676d16904c",
     "author": "OrchestKit",
     "tags": [
       "/goal",
@@ -5329,7 +5329,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security scanning, and type checking. Runs coverage analysis, detects regressions, and validates against project conventions. Reports pass/fail with detailed findings and coverage deltas. Use when verifying implementations, validating changes after /ork:implement, or running pre-merge quality gates.",
     "version": "4.4.0",
-    "sha256": "0c6613699909d3b8f40b0874afe8374708d3f2e7ae976e6b0c6ad51821d2647e",
+    "sha256": "5207bb39b4e9db2ca3951986071f1768aff25ed811ea8d9e0cd76f33f00a95ea",
     "author": "OrchestKit",
     "tags": [
       "verification",

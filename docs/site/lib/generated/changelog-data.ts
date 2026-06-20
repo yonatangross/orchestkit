@@ -17,6 +17,37 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.53.0",
+    "date": "2026-06-20",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**doctor:** add sandbox-posture check + /sandbox nudge ([#2534](https://github.com/yonatangross/orchestkit/issues/2534)) ([#2546](https://github.com/yonatangross/orchestkit/issues/2546)) ([ee78d41](https://github.com/yonatangross/orchestkit/commit/ee78d41ed06bf2f448f765d3d94863dad90478e7))",
+          "**hooks:** revive CCR output compression via updatedToolOutput ([#2302](https://github.com/yonatangross/orchestkit/issues/2302)) ([#2552](https://github.com/yonatangross/orchestkit/issues/2552)) ([4fd8163](https://github.com/yonatangross/orchestkit/commit/4fd816314c448991439410ae3d76af91678056e8))",
+          "**prd-to-goal:** loop recipe library of 8 pre-built /goal loops ([#2544](https://github.com/yonatangross/orchestkit/issues/2544)) ([433ba33](https://github.com/yonatangross/orchestkit/commit/433ba334613c9b8fe1dae74b2ff469202a91454a))",
+          "**review-pr:** add cross-model refuter lane ([#2551](https://github.com/yonatangross/orchestkit/issues/2551)) ([2d14b7c](https://github.com/yonatangross/orchestkit/commit/2d14b7c87c4b8787de269228eda9c2cb1687e886))",
+          "**skill-evolution:** add holdout-promotion gate ([#2549](https://github.com/yonatangross/orchestkit/issues/2549)) ([fae40b3](https://github.com/yonatangross/orchestkit/commit/fae40b355f93e9132862fbc250c678ec84d3a79b))",
+          "**verify:** --streak=N consecutive-pass gate ([#2540](https://github.com/yonatangross/orchestkit/issues/2540)) ([#2547](https://github.com/yonatangross/orchestkit/issues/2547)) ([250e247](https://github.com/yonatangross/orchestkit/commit/250e247867a0d84d74795c96108de059a47078dd))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** route CLAUDE_PLUGIN_ROOT off the user-facing banner ([#2543](https://github.com/yonatangross/orchestkit/issues/2543)) ([848da6b](https://github.com/yonatangross/orchestkit/commit/848da6b81cb30c978a8bd747bc3b58556f6eba64))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**security:** add zizmor GitHub Actions security gate ([#2535](https://github.com/yonatangross/orchestkit/issues/2535)) ([#2548](https://github.com/yonatangross/orchestkit/issues/2548)) ([d0ab0b4](https://github.com/yonatangross/orchestkit/commit/d0ab0b4e3583f9456a664637a71ea34ffcf405a9))",
+          "**security:** gate docs.yml NPM_TOKEN to push events ([#2536](https://github.com/yonatangross/orchestkit/issues/2536)) ([#2550](https://github.com/yonatangross/orchestkit/issues/2550)) ([8a445e9](https://github.com/yonatangross/orchestkit/commit/8a445e9000b109c488dfacc3d47d5a1d6cadd07c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.52.0",
     "date": "2026-06-20",
     "compareUrl": "",
