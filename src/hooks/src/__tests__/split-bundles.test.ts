@@ -396,7 +396,10 @@ describe('Cross-Bundle Consistency', () => {
     //              (Shadow of CC-native goal-current.json).
     // 244 -> 245: posttool/write/debt-marker-tracker — deferred-debt capture
     //             (PostToolUse Write/Edit advisory, counterpart to the YAGNI gate).
-    expect(totalHooks).toBe(245);
+    // 245 -> 246: pretool/bash/network-egress-guard (#2533) — outbound network
+    //             governance in the sync-bash blocking lane (DENY remote-exec,
+    //             ASK exfil). Registered in HANDLERS so run-hook.mjs resolves it.
+    expect(totalHooks).toBe(246);
   });
 });
 
