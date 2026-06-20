@@ -11,8 +11,9 @@ export * from '../lib/common.js';
 export * from '../lib/git.js';
 export * from '../lib/guards.js';
 
-// PreTool/Bash hooks (20)
+// PreTool/Bash hooks (21)
 import { dangerousCommandBlocker } from '../pretool/bash/dangerous-command-blocker.js';
+import { networkEgressGuard } from '../pretool/bash/network-egress-guard.js';
 import { gitValidator } from '../pretool/bash/git-validator.js';
 import { compoundCommandValidator } from '../pretool/bash/compound-command-validator.js';
 import { defaultTimeoutSetter } from '../pretool/bash/default-timeout-setter.js';
@@ -89,8 +90,9 @@ import type { HookFn } from '../types.js';
  * PreTool hooks registry
  */
 export const hooks: Record<string, HookFn> = {
-  // PreTool/Bash hooks (20)
+  // PreTool/Bash hooks (21)
   'pretool/bash/dangerous-command-blocker': dangerousCommandBlocker,
+  'pretool/bash/network-egress-guard': networkEgressGuard,
   'pretool/bash/git-validator': gitValidator,
   'pretool/bash/compound-command-validator': compoundCommandValidator,
   'pretool/bash/default-timeout-setter': defaultTimeoutSetter,

@@ -22,6 +22,7 @@ import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } 
 // Import consolidated hook implementations
 import { dangerousCommandBlocker } from './dangerous-command-blocker.js';
 import { compoundCommandValidator } from './compound-command-validator.js';
+import { networkEgressGuard } from './network-egress-guard.js';
 import { unifiedBashAdvisoryDispatcher } from './unified-advisory-dispatcher.js';
 
 // Phase 0: Headless deferral (merged from separate hooks.json group — #optimization)
@@ -65,6 +66,8 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   // Phase 1: Security
   { name: 'dangerous-command-blocker', fn: dangerousCommandBlocker },
   { name: 'compound-command-validator', fn: compoundCommandValidator },
+  // Network egress: DENY remote-code-exec (bash <(curl)), ASK exfil/staged-run
+  { name: 'network-egress-guard', fn: networkEgressGuard },
   // Phase 2: Git/GH enforcement (previously separate process spawns + new)
   { name: 'git-validator', fn: gitValidator },
   { name: 'issue-reference-checker', fn: issueReferenceChecker },
