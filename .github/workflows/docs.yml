@@ -91,12 +91,14 @@ jobs:
       - name: Install docs dependencies
         working-directory: docs/site
         shell: bash
-        # NPM_TOKEN grants access to private @yonatan-hq GitHub Packages. On
-        # push to main/dev the token has full scope. On pull_request from
-        # other branches the secret is substituted but with reduced scope —
-        # npm ci hits 401 Unauthorized. Detect that specific failure and fall
-        # back to the local stub under docs/stubs/analytics-stub/. Production
-        # builds on main still use the real package (npm ci succeeds there).
+        # NPM_TOKEN grants access to private @yonatan-hq GitHub Packages, so it is
+        # gated to `push` events (env below, #2536) — NEVER present on a
+        # pull_request run, fork OR same-repo. Previously same-repo PRs ran
+        # PR-author code (npm ci + a postinstall) with the token live in env; that
+        # exposure is now removed. On push to main/dev the token has full scope and
+        # npm ci installs the real package; on every PR the token is '' → npm ci
+        # hits 401 Unauthorized, which we detect and fall back to the local stub
+        # under docs/stubs/analytics-stub/.
         #
         # Use PIPESTATUS to capture npm's real exit code — `npm ci | tee`
         # would otherwise return tee's exit (always 0), masking npm failures
@@ -134,7 +136,9 @@ jobs:
             exit $npm_exit
           fi
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Gated to `push` (#2536): NEVER present on a pull_request run, fork OR
+          # same-repo. On PRs this resolves to '' → npm ci hits 401 → stub fallback.
+          NPM_TOKEN: ${{ github.event_name == 'push' && secrets.NPM_TOKEN || '' }}
       - name: Build docs site
         working-directory: docs/site
         run: npm run build
