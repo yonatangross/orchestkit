@@ -115,23 +115,30 @@ export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_
     }
   }
 
-  // Inject resolved CLAUDE_PLUGIN_ROOT so skills can reference files by absolute path.
+  // Resolve CLAUDE_PLUGIN_ROOT so skills can reference plugin files by absolute
+  // path. This is MODEL-facing data — the model's Bash env does NOT carry
+  // CLAUDE_PLUGIN_ROOT (only hook runtimes do), so the model has no other way to
+  // learn the path. It therefore belongs on additionalContext (the model-facing
+  // channel), NOT systemMessage (the user-facing banner) where it previously
+  // surfaced as a confusing "SessionStart:startup says: CLAUDE_PLUGIN_ROOT=…" line.
   // run-hook.mjs computes this from its own __dirname (two levels up from hooks/bin/).
-  if (input.plugin_root) {
-    messages.push(`CLAUDE_PLUGIN_ROOT=${input.plugin_root}`);
-    ctx.log(HOOK_NAME, `Injected plugin_root: ${input.plugin_root}`);
+  const pluginRootContext = input.plugin_root ? `CLAUDE_PLUGIN_ROOT=${input.plugin_root}` : '';
+  if (pluginRootContext) {
+    ctx.log(HOOK_NAME, `Injected plugin_root (additionalContext): ${input.plugin_root}`);
   }
 
-  if (messages.length === 0) {
+  if (messages.length === 0 && !pluginRootContext) {
     ctx.log(HOOK_NAME, `All sync hooks silent (${Date.now() - startMs}ms)`);
     return outputSilentSuccess();
   }
 
-  const merged = messages.join('\n');
-  ctx.log(HOOK_NAME, `Merged ${messages.length} messages from sync hooks (${Date.now() - startMs}ms)`);
-
-  return {
-    continue: true,
-    systemMessage: merged,
-  };
+  const result: HookResult = { continue: true };
+  if (messages.length > 0) {
+    result.systemMessage = messages.join('\n');
+    ctx.log(HOOK_NAME, `Merged ${messages.length} messages from sync hooks (${Date.now() - startMs}ms)`);
+  }
+  if (pluginRootContext) {
+    result.hookSpecificOutput = { hookEventName: 'SessionStart', additionalContext: pluginRootContext };
+  }
+  return result;
 }

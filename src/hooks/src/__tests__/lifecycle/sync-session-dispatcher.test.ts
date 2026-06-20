@@ -329,11 +329,13 @@ describe('lifecycle/sync-session-dispatcher', () => {
   // -------------------------------------------------------------------------
 
   describe('plugin root injection', () => {
-    it('injects CLAUDE_PLUGIN_ROOT into systemMessage when plugin_root is set', () => {
+    it('injects CLAUDE_PLUGIN_ROOT into additionalContext, not the visible banner', () => {
       const input = createSessionStartInput({ plugin_root: '/path/to/plugin' } as Partial<HookInput>);
       const result = syncSessionDispatcher(input, testCtx);
 
-      expect(result.systemMessage).toContain('CLAUDE_PLUGIN_ROOT=/path/to/plugin');
+      // Model-facing channel (additionalContext), NOT the user-facing systemMessage banner.
+      expect(result.systemMessage ?? '').not.toContain('CLAUDE_PLUGIN_ROOT');
+      expect(result.hookSpecificOutput?.additionalContext).toContain('CLAUDE_PLUGIN_ROOT=/path/to/plugin');
     });
 
     it('does not inject when plugin_root is absent', () => {
@@ -341,6 +343,7 @@ describe('lifecycle/sync-session-dispatcher', () => {
       const result = syncSessionDispatcher(input, testCtx);
 
       expect(result.systemMessage ?? '').not.toContain('CLAUDE_PLUGIN_ROOT');
+      expect(result.hookSpecificOutput?.additionalContext ?? '').not.toContain('CLAUDE_PLUGIN_ROOT');
     });
   });
 
