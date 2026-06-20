@@ -21,7 +21,8 @@ on:
         type: boolean
         default: true
 
-permissions: read-all
+permissions:
+  contents: read
 
 env:
   CLAUDE_PROJECT_DIR: ${{ github.workspace }}
@@ -44,17 +45,21 @@ jobs:
         with:
           app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
           private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: orchestkit
+          permission-contents: write
+          permission-pull-requests: write
 
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3  # zizmor: ignore[artipacked] git push steps require the persisted App-token credential
         with:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Determine sync branches
         id: branches
+        env:
+          DIRECTION: ${{ github.event.inputs.direction }}
         run: |
-          DIRECTION="${{ github.event.inputs.direction }}"
-
           case "$DIRECTION" in
             beta-to-main)
               echo "source=beta" >> "$GITHUB_OUTPUT"
@@ -174,6 +179,8 @@ jobs:
           echo "::notice::Synced $SOURCE → $TARGET"
 
       - name: Report results
+        env:
+          CREATE_PR: ${{ github.event.inputs.create-pr }}
         run: |
           SOURCE="${{ steps.branches.outputs.source }}"
           TARGET="${{ steps.branches.outputs.target }}"
@@ -187,7 +194,7 @@ jobs:
 
           EOF
 
-          if [ "${{ github.event.inputs.create-pr }}" == "true" ]; then
+          if [ "$CREATE_PR" == "true" ]; then
             cat >> $GITHUB_STEP_SUMMARY << EOF
           - **PR:** ${{ steps.create-pr.outputs.pr_url }}
           - **Action:** Awaiting review and merge

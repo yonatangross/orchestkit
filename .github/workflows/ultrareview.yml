@@ -36,6 +36,7 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
         with:
           fetch-depth: 0  # need full history for diff targets
+          persist-credentials: false  # gh steps use GH_TOKEN, not the git credential helper
 
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6.4.0
@@ -76,13 +77,14 @@ jobs:
           # API spend on multi-agent passes by ~60%. Safe in CI: review agents
           # have <500-word prompts, no custom model, no worktree.
           CLAUDE_CODE_FORK_SUBAGENT: '1'
+          REVIEW_TARGET: ${{ github.event.inputs.target || github.event.pull_request.number }}
         run: |
           # claude ultrareview accepts: a PR number, a branch name, or no
           # argument (reviews current branch). It does NOT accept git diff
           # ranges like `origin/main..HEAD` — passing one fails fast with
           # "is not a branch in this repo" before any API call. In PR
           # context, pass the PR number; the CLI fetches the diff itself.
-          TARGET="${{ github.event.inputs.target || github.event.pull_request.number }}"
+          TARGET="$REVIEW_TARGET"
           echo "Reviewing PR/branch: $TARGET"
           claude ultrareview "$TARGET" --json > review.json 2> review.err || true
           echo "exit=$?" >> "$GITHUB_OUTPUT"

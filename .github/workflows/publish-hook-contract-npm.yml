@@ -66,18 +66,21 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
+          persist-credentials: false
 
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6  # zizmor: ignore[cache-poisoning] — deps via npm ci, no cache restored
         with:
           node-version: "20"
 
       - name: Parse tag + assert lockstep version parity
         id: parse
         shell: bash
+        env:
+          TAG_INPUT: ${{ inputs.tag }}
         run: |
           set -euo pipefail
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            TAG_REF="refs/tags/${{ inputs.tag }}"
+            TAG_REF="refs/tags/$TAG_INPUT"
           else
             TAG_REF="$GITHUB_REF"
           fi
@@ -124,8 +127,9 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
+          persist-credentials: false
 
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6  # zizmor: ignore[cache-poisoning] — deps via npm ci, no cache restored
         with:
           node-version: "20"
 
@@ -169,8 +173,9 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
+          persist-credentials: false
 
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6  # zizmor: ignore[cache-poisoning] — deps via npm ci, no cache restored
         with:
           node-version: "20"
 
@@ -187,7 +192,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6  # zizmor: ignore[cache-poisoning] — deps via npm ci, no cache restored
         with:
           node-version: "20"
 
@@ -228,7 +233,7 @@ jobs:
     permissions:
       id-token: write   # OIDC trusted publishing — no NPM_TOKEN secret
     steps:
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6  # zizmor: ignore[cache-poisoning] — deps via npm ci, no cache restored
         with:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
@@ -267,6 +272,7 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
+          persist-credentials: false
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v6.0.0
         with:
@@ -280,10 +286,10 @@ jobs:
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.preflight.outputs.tag }}
+          VERSION: ${{ needs.preflight.outputs.version }}
         shell: bash
         run: |
-          TAG="${{ needs.preflight.outputs.tag }}"
-          VERSION="${{ needs.preflight.outputs.version }}"
           gh release create "$TAG" \
             dist/*.tgz dist/SHA256SUMS \
             --title "@orchestkit/hook-contract v$VERSION" \

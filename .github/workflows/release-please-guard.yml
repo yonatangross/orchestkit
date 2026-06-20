@@ -32,6 +32,7 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Allow bot PRs and labeled overrides to proceed
         id: bot-check
@@ -86,9 +87,11 @@ jobs:
       - name: Diff PR against base
         if: steps.bot-check.outputs.skip == 'false'
         id: diff
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          git fetch origin "${{ github.base_ref }}" --depth=1
-          git diff --name-only "origin/${{ github.base_ref }}"...HEAD > /tmp/changed.txt
+          git fetch origin "$BASE_REF" --depth=1
+          git diff --name-only "origin/$BASE_REF"...HEAD > /tmp/changed.txt
           echo "Changed files in PR:"
           cat /tmp/changed.txt
 

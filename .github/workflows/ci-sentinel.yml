@@ -62,6 +62,7 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
         with:
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Set up Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6.4.0
@@ -153,11 +154,13 @@ jobs:
           echo "today=$(date -u +%Y-%m-%d)"    >> "$GITHUB_OUTPUT"
 
       - name: Load yesterday's ledger (if any)
+        env:
+          TODAY: ${{ steps.ctx.outputs.today }}
         run: |
           mkdir -p .sentinel
           # Idempotent — empty file is fine.
           touch .sentinel/ledger.jsonl
-          today_tokens=$(awk -v d="${{ steps.ctx.outputs.today }}" -F'"' '
+          today_tokens=$(awk -v d="$TODAY" -F'"' '
             $0 ~ d { for (i=1; i<=NF; i++) if ($i == "tokens") { sum += $(i+2) } }
             END { print (sum ? sum : 0) }
           ' .sentinel/ledger.jsonl)
@@ -171,15 +174,18 @@ jobs:
         id: prs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAX_PRS: ${{ inputs.max_prs }}
+          OWNER: ${{ steps.ctx.outputs.owner }}
+          REPO: ${{ steps.ctx.outputs.repo }}
         run: |
-          MAX="${{ inputs.max_prs }}"
+          MAX="$MAX_PRS"
           MAX="${MAX:-10}"
 
           # Open PRs that have at least one failing required check.
           # We filter further per-PR in the analyze step (some failures are
           # in non-required checks we don't care about).
           gh pr list \
-            --repo "${{ steps.ctx.outputs.owner }}/${{ steps.ctx.outputs.repo }}" \
+            --repo "${OWNER}/${REPO}" \
             --state open \
             --limit 50 \
             --json number,headRefOid,statusCheckRollup,author \
@@ -203,6 +209,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           DRY_RUN: ${{ inputs.dry_run }}
+          OWNER: ${{ steps.ctx.outputs.owner }}
+          REPO: ${{ steps.ctx.outputs.repo }}
         run: |
           set -uo pipefail
 
@@ -218,7 +226,7 @@ jobs:
 
             # Skip if we already commented on this exact SHA (idempotent).
             existing=$(gh pr view "$number" \
-              --repo "${{ steps.ctx.outputs.owner }}/${{ steps.ctx.outputs.repo }}" \
+              --repo "${OWNER}/${REPO}" \
               --json comments \
               --jq "[ .comments[]
                        | select(.body | startswith(\"${MARKER_PREFIX} sha=${sha}\"))
@@ -256,7 +264,7 @@ jobs:
                 --max-turns 4 \
                 --output-format json \
                 --no-session-persistence \
-                "Run /ci-debug on PR ${number} in repo ${{ steps.ctx.outputs.owner }}/${{ steps.ctx.outputs.repo }}. Use only the gh CLI. Output the report markdown only — no preamble." \
+                "Run /ci-debug on PR ${number} in repo ${OWNER}/${REPO}. Use only the gh CLI. Output the report markdown only — no preamble." \
               > "${tmpdir}/verdict.json" 2> "${tmpdir}/err.log" \
               || {
                 echo "::warning::claude run failed for #${number} — error output follows"
@@ -284,7 +292,7 @@ jobs:
               echo "$body" | sed 's/^/    /'
             else
               echo "$body" | gh pr comment "$number" \
-                --repo "${{ steps.ctx.outputs.owner }}/${{ steps.ctx.outputs.repo }}" \
+                --repo "${OWNER}/${REPO}" \
                 --body-file -
               echo "  ↪ comment posted"
             fi
@@ -302,15 +310,17 @@ jobs:
 
       - name: Surface daily ledger as job summary
         if: always()
+        env:
+          TODAY: ${{ steps.ctx.outputs.today }}
         run: |
           {
-            echo "## 🛰️ CI Sentinel — $(date -u +%Y-%m-%d) ${{ steps.ctx.outputs.today }}"
+            echo "## 🛰️ CI Sentinel — $(date -u +%Y-%m-%d) ${TODAY}"
             echo ""
             count=$(jq 'length' .sentinel/queue.json 2>/dev/null || echo 0)
             echo "**PRs scanned this run:** ${count}"
             echo ""
             if [ -s .sentinel/ledger.jsonl ]; then
-              today_tokens=$(awk -v d="${{ steps.ctx.outputs.today }}" -F'"' '
+              today_tokens=$(awk -v d="$TODAY" -F'"' '
                 $0 ~ d { for (i=1; i<=NF; i++) if ($i == "tokens") { sum += $(i+2) } }
                 END { print (sum ? sum : 0) }
               ' .sentinel/ledger.jsonl)

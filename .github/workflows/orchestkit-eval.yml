@@ -30,6 +30,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6
@@ -99,31 +101,43 @@ jobs:
         id: skill-eval
         run: |
           chmod +x scripts/run-eval.sh
-          scripts/run-eval.sh --scope "${{ inputs.scope || 'full' }}" 2>&1 | tee eval-output.txt
+          scripts/run-eval.sh --scope "$EVAL_SCOPE" 2>&1 | tee eval-output.txt
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EVAL_SCOPE: ${{ inputs.scope || 'full' }}
         continue-on-error: true
 
       - name: Compile eval results
+        env:
+          EVAL_SCOPE: ${{ inputs.scope || 'full' }}
+          GIT_SHA: ${{ github.sha }}
+          GIT_REF: ${{ github.ref }}
+          UNIT_TESTS_OUTCOME: ${{ steps.unit-tests.outcome }}
+          SECURITY_TESTS_OUTCOME: ${{ steps.security-tests.outcome }}
+          TYPECHECK_OUTCOME: ${{ steps.typecheck.outcome }}
+          SKILL_VALIDATION_OUTCOME: ${{ steps.skill-validation.outcome }}
+          AGENT_VALIDATION_OUTCOME: ${{ steps.agent-validation.outcome }}
+          MANIFEST_CHECKS_OUTCOME: ${{ steps.manifest-checks.outcome }}
+          SKILL_EVAL_OUTCOME: ${{ steps.skill-eval.outcome }}
         run: |
           node -e "
           const fs = require('fs');
           const read = f => { try { return fs.readFileSync(f, 'utf8'); } catch { return 'N/A'; } };
           const results = {
             timestamp: new Date().toISOString(),
-            scope: '${{ inputs.scope || 'full' }}',
-            git_sha: '${{ github.sha }}',
-            git_ref: '${{ github.ref }}',
+            scope: process.env.EVAL_SCOPE,
+            git_sha: process.env.GIT_SHA,
+            git_ref: process.env.GIT_REF,
             suites: {
-              unit_tests: { status: '${{ steps.unit-tests.outcome }}', output: read('test-output.txt').slice(-2000) },
-              security_tests: { status: '${{ steps.security-tests.outcome }}', output: read('security-output.txt').slice(-2000) },
-              typecheck: { status: '${{ steps.typecheck.outcome }}', output: read('typecheck-output.txt').slice(-2000) },
-              skill_validation: { status: '${{ steps.skill-validation.outcome }}', output: read('skills-output.txt').slice(-2000) },
-              agent_validation: { status: '${{ steps.agent-validation.outcome }}', output: read('agents-output.txt').slice(-2000) },
-              manifest_checks: { status: '${{ steps.manifest-checks.outcome }}', output: read('manifests-output.txt').slice(-2000) },
-              skill_eval: { status: '${{ steps.skill-eval.outcome }}', output: read('eval-output.txt').slice(-2000) }
+              unit_tests: { status: process.env.UNIT_TESTS_OUTCOME, output: read('test-output.txt').slice(-2000) },
+              security_tests: { status: process.env.SECURITY_TESTS_OUTCOME, output: read('security-output.txt').slice(-2000) },
+              typecheck: { status: process.env.TYPECHECK_OUTCOME, output: read('typecheck-output.txt').slice(-2000) },
+              skill_validation: { status: process.env.SKILL_VALIDATION_OUTCOME, output: read('skills-output.txt').slice(-2000) },
+              agent_validation: { status: process.env.AGENT_VALIDATION_OUTCOME, output: read('agents-output.txt').slice(-2000) },
+              manifest_checks: { status: process.env.MANIFEST_CHECKS_OUTCOME, output: read('manifests-output.txt').slice(-2000) },
+              skill_eval: { status: process.env.SKILL_EVAL_OUTCOME, output: read('eval-output.txt').slice(-2000) }
             },
-            pass_count: ['${{ steps.unit-tests.outcome }}','${{ steps.security-tests.outcome }}','${{ steps.typecheck.outcome }}','${{ steps.skill-validation.outcome }}','${{ steps.agent-validation.outcome }}','${{ steps.manifest-checks.outcome }}'].filter(s => s === 'success').length,
+            pass_count: [process.env.UNIT_TESTS_OUTCOME, process.env.SECURITY_TESTS_OUTCOME, process.env.TYPECHECK_OUTCOME, process.env.SKILL_VALIDATION_OUTCOME, process.env.AGENT_VALIDATION_OUTCOME, process.env.MANIFEST_CHECKS_OUTCOME].filter(s => s === 'success').length,
             total_count: 6
           };
           fs.writeFileSync('eval-results.json', JSON.stringify(results, null, 2));
@@ -146,12 +160,15 @@ jobs:
           retention-days: 90
 
       - name: Fail if critical suites failed
+        env:
+          SECURITY_TESTS_OUTCOME: ${{ steps.security-tests.outcome }}
+          UNIT_TESTS_OUTCOME: ${{ steps.unit-tests.outcome }}
         run: |
-          if [ "${{ steps.security-tests.outcome }}" = "failure" ]; then
+          if [ "$SECURITY_TESTS_OUTCOME" = "failure" ]; then
             echo "::error::Security tests FAILED — blocking"
             exit 1
           fi
-          if [ "${{ steps.unit-tests.outcome }}" = "failure" ]; then
+          if [ "$UNIT_TESTS_OUTCOME" = "failure" ]; then
             echo "::error::Unit tests FAILED"
             exit 1
           fi

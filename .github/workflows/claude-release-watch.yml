@@ -258,11 +258,14 @@ jobs:
         if: ${{ steps.watch.outputs.stale == 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STALE_UPSTREAM: ${{ steps.watch.outputs.stale_upstream }}
+          STALE_LATEST_KNOWN: ${{ steps.watch.outputs.stale_latest_known }}
+          STALE_COUNT: ${{ steps.watch.outputs.stale_count }}
         run: |
           set -euo pipefail
-          UPSTREAM="${{ steps.watch.outputs.stale_upstream }}"
-          BEHIND="${{ steps.watch.outputs.stale_latest_known }}"
-          COUNT="${{ steps.watch.outputs.stale_count }}"
+          UPSTREAM="$STALE_UPSTREAM"
+          BEHIND="$STALE_LATEST_KNOWN"
+          COUNT="$STALE_COUNT"
           KEY="staleness+$BEHIND"
           # Dedup via exact body marker (label-scoped + in:body), same as Step 4.
           EXISTING=$(gh issue list --label cc-adoption --state open \
@@ -336,6 +339,13 @@ jobs:
         with:
           app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
           private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: orchestkit
+          # Scoped to what peter-evans/create-pull-request uses: push the
+          # snapshot branch/commit (contents) and open the labeled PR
+          # (pull-requests). Nothing else uses this token.
+          permission-contents: write
+          permission-pull-requests: write
 
       - name: Open snapshot PR
         id: cpr
@@ -383,9 +393,10 @@ jobs:
         if: success() && steps.cpr.outputs.pull-request-number
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
         run: |
           set -euo pipefail
-          gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" \
+          gh pr merge "$PR_NUMBER" \
             --repo "${{ github.repository }}" \
             --auto \
             --squash \

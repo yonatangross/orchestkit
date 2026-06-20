@@ -35,6 +35,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+        with:
+          persist-credentials: false
 
       - name: Setup environment
         uses: ./.github/actions/setup
@@ -65,6 +67,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+        with:
+          persist-credentials: false
 
       - name: Setup environment
         uses: ./.github/actions/setup
@@ -92,6 +96,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+        with:
+          persist-credentials: false
 
       - name: Setup environment
         uses: ./.github/actions/setup
@@ -126,16 +132,20 @@ jobs:
         with:
           app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
           private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: orchestkit
+          permission-contents: write
 
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3  # zizmor: ignore[artipacked] git push (tag + HEAD) requires the persisted App-token credential
         with:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Determine branch
         id: branch
+        env:
+          BRANCH: ${{ github.event.inputs.branch || github.ref_name }}
         run: |
-          BRANCH="${{ github.event.inputs.branch || github.ref_name }}"
           echo "name=$BRANCH" >> "$GITHUB_OUTPUT"
 
       - name: Read base version
