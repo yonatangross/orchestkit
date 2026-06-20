@@ -252,7 +252,7 @@
       { label: "CC floor", before: "2.1.170", after: "2.1.183", unit: "", bClass: "bad", aClass: "good", bTrend: "13 minors behind latest", aTrend: "= latest (strict pin)" },
       { label: "Deprecated tool grants", before: "29", after: "0", unit: "refs", bClass: "bad", aClass: "good", bTrend: "14 agents · 15 skills", aTrend: "TeamCreate + bare Task gone" },
       { label: "Dead API calls in skill bodies", before: "5", after: "0", unit: "calls", bClass: "bad", aClass: "good", bTrend: "TeamCreate()/TeamDelete()", aTrend: "→ implicit-team Agent(name)" },
-      { label: "New 2.1.x capabilities wired", before: "0", after: "9", unit: "", bClass: "bad", aClass: "good", bTrend: "none adopted", aTrend: "everything-thorough scope" }
+      { label: "New caps wired", before: "0", after: "3", unit: "", bClass: "bad", aClass: "good", bTrend: "none adopted", aTrend: "implicit-team · env-flag · disallowed-tools (+6 documented)" }
     ],
     surfaces: [
       {
@@ -286,8 +286,9 @@
           after: [
             { mk: "ok", t: "<code>TeamCreate</code> removed from all 14 agents", cite: "" },
             { mk: "new", t: "teammates via <code>Agent(name=…)</code> — one implicit team / session", cite: "2.1.178" },
-            { mk: "new", t: "<code>Tool(param:value)</code> permission rules adopted", cite: "2.1.178" },
-            { mk: "new", t: "5-deep nested-subagent delegation documented", cite: "2.1.172" }
+            { mk: "new", t: "<code>Tool(param:value)</code> permission rules documented", cite: "2.1.178" },
+            { mk: "new", t: "5-deep nested-subagent delegation documented", cite: "2.1.172" },
+            { mk: "ok", t: "team-size-gate kept; <code>team_name</code> retained as its key", cite: "follow-up: verify count source vs 2.1.178" }
           ]
         }
       },
