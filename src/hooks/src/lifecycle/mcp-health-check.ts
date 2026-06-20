@@ -7,7 +7,8 @@
  * CC 2.1.7 Compliant
  *
  * Checks .mcp.json for enabled MCPs and validates their requirements:
- * - tavily: TAVILY_API_KEY must be set
+ * - tavily: TAVILY_API_KEY available via env, the server's "env" block, or a
+ *   secret-manager fetch (e.g. `op read`) in the launch command
  * - agentation: agentation-mcp must be installed
  */
 
@@ -21,6 +22,7 @@ interface McpServerEntry {
   disabled?: boolean;
   command?: string;
   args?: string[];
+  env?: Record<string, string>;
   [key: string]: unknown;
 }
 
@@ -29,12 +31,36 @@ interface McpConfig {
 }
 
 /**
+ * Recognized launch-time secret injection: 1Password (`op read`/`op run`/`op://`),
+ * HashiCorp Vault, AWS Secrets Manager, gcloud secrets. When a server's launch
+ * command uses one of these, the API key is supplied at launch rather than via
+ * process.env — so a missing env var is not a misconfiguration.
+ */
+const SECRET_MANAGER_RE = /\bop\s+(?:read|run)\b|op:\/\/|\bvault\s+(?:read|kv)\b|secretsmanager|gcloud\s+secrets/i;
+
+/**
+ * True when the server entry supplies `keyName` itself rather than relying on
+ * process.env — via an `env` block, an inline `KEY=...` in command/args, or a
+ * recognized secret-manager fetch. Prevents false-positive "key not set"
+ * warnings for the common 1Password (`op read`) pattern.
+ */
+function keyProvidedByConfig(entry: McpServerEntry, keyName: string): boolean {
+  const envValue = entry.env?.[keyName];
+  if (typeof envValue === 'string' && envValue.length > 0) return true;
+
+  const cmdline = [entry.command ?? '', ...(entry.args ?? [])].join(' ');
+  if (cmdline.includes(keyName)) return true; // e.g. TAVILY_API_KEY=$(op read ...)
+  return SECRET_MANAGER_RE.test(cmdline);
+}
+
+/**
  * Check a single enabled MCP server for missing requirements.
  * Returns a warning string or null if the server is properly configured.
  */
-function checkServer(name: string, projectDir: string): string | null {
-  if (name === 'tavily' && !process.env.TAVILY_API_KEY) {
-    return `- tavily is enabled but TAVILY_API_KEY is not set\n  Fix: export TAVILY_API_KEY="tvly-..." in ~/.zshrc, then set "disabled": false in .mcp.json`;
+function checkServer(name: string, entry: McpServerEntry, projectDir: string): string | null {
+  if (name === 'tavily') {
+    if (process.env.TAVILY_API_KEY || keyProvidedByConfig(entry, 'TAVILY_API_KEY')) return null;
+    return `- tavily is enabled but TAVILY_API_KEY is not available\n  Fix: export TAVILY_API_KEY="tvly-..." in ~/.zshrc, add it to the server's "env" block in .mcp.json, or fetch it via a secret manager (e.g. op read)`;
   }
 
   if (name === 'agentation') {
@@ -81,7 +107,7 @@ export function mcpHealthCheck(input: HookInput, ctx: HookContext = NOOP_CTX): H
   const warnings: string[] = [];
   for (const [name, entry] of Object.entries(servers)) {
     if (entry.disabled === true) continue;
-    const warning = checkServer(name, projectDir);
+    const warning = checkServer(name, entry, projectDir);
     if (warning) warnings.push(warning);
   }
 
