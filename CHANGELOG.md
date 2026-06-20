@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.52.0](https://github.com/yonatangross/orchestkit/compare/v8.51.0...v8.52.0) (2026-06-20)
+
+
+### Features
+
+* **hooks:** network-egress guard — remote-exec + exfil ([#2533](https://github.com/yonatangross/orchestkit/issues/2533)) ([#2537](https://github.com/yonatangross/orchestkit/issues/2537)) ([3e2c43a](https://github.com/yonatangross/orchestkit/commit/3e2c43a7206f66e0f0b482cb16414eebce05612b))
+
 ## [8.51.0](https://github.com/yonatangross/orchestkit/compare/v8.50.0...v8.51.0) (2026-06-19)
 
 
