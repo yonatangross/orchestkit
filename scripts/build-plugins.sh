@@ -220,6 +220,15 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         done < <(jq -r '.skills[]?' "$manifest")
     fi
 
+    # Strip per-skill eval datasets — they are dev/CI-only. The bake-off harness
+    # (tests/evals/scripts/run-skill-eval.sh, itself not shipped) reads evals/
+    # from src/; the installed plugin ships no harness to consume them. Not
+    # shipping them keeps plugins lean AND keeps the packaging security allowlist
+    # strict (no .jsonl carve-out needed in test-packaging-leaks.sh). #2555
+    if [[ -d "$PLUGIN_DIR/skills" ]]; then
+        find "$PLUGIN_DIR/skills" -type d -name evals -prune -exec rm -rf {} +
+    fi
+
     # Generate commands from user-invocable skills
     # WORKAROUND: skills/ don't get the plugin namespace prefix in autocomplete.
     # Duplicating as commands/ gives users "ork:skillname" but doubles their load:

@@ -1,0 +1,11 @@
+{
+  "schema": "ork-holdout/1.0",
+  "rubric": "src/skills/assess/rubric.json",
+  "hash": "sha256:a84112128cbf1c0697182c689a9c2020bd8f1072d13b4c555cc9e6b501d8d31b",
+  "n": 7,
+  "min_pass": 7.0,
+  "margin": 0.5,
+  "frozen_at": "2026-06-20",
+  "sealed_with": "LC_ALL=C sort holdout.jsonl | sha256",
+  "note": "STARTER holdout for the assess bake-off (#2555). Cases are difficulty-balanced (2 easy / 3 medium / 2 hard) and dimension-diverse, but their expected composite ranges are first-pass labels that need human review before this gate is trusted for real promotions. min_pass 7.0 is intentionally stricter than the rubric's day-to-day 5.5 floor — the sealed lock is the authoritative promotion bar."
+}

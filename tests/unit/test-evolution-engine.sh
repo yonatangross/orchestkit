@@ -702,6 +702,111 @@ test_handles_missing_patterns_file() {
 }
 
 # ============================================================================
+# GENERATOR-ISOLATION TESTS (#2555)
+# ============================================================================
+# Invariant (holdout-promotion-gate.md, "Generator isolation"):
+#   The challenger generator MUST NOT read a skill's evals/holdout.jsonl.
+#   If it did, the generator could overfit the edit to the holdout cases
+#   (train-on-test), defeating the bake-off gate. The engine script is the
+#   real read-surface, so we assert isolation two ways for defense-in-depth:
+#     (a) STATIC  — the engine source contains zero 'holdout' references.
+#     (b) CANARY  — a scratch skill's evals/holdout.jsonl carries a unique
+#                   token; after running the generator (suggest + apply),
+#                   that token must appear NOWHERE in any engine output or
+#                   suggestion artifact.
+
+describe "Evolution Engine: Generator Isolation (#2555)"
+
+# (a) Static: the engine script must never reference the holdout path/word.
+test_generator_never_references_holdout_statically() {
+    # The engine script is the canonical generator surface. A single 'holdout'
+    # token (read, glob, or path concat) is enough to risk train-on-test.
+    if grep -nF "holdout" "$EVOLUTION_ENGINE"; then  # silent: best-effort
+        local hits
+        hits=$(grep -nF "holdout" "$EVOLUTION_ENGINE" | head -5)
+        fail "evolution-engine.sh must not reference 'holdout' (generator isolation). Hits:
+$hits"
+    fi
+    # Also reject the directory form 'evals/holdout' explicitly.
+    if grep -nF "evals/holdout" "$EVOLUTION_ENGINE"; then  # silent: best-effort
+        fail "evolution-engine.sh must not reference 'evals/holdout' (generator isolation)"
+    fi
+    return 0
+}
+
+# (b) Runtime canary: plant a unique token in evals/holdout.jsonl, run the
+#     generator, and assert the token never leaks into output or artifacts.
+test_generator_does_not_leak_holdout_canary_at_runtime() {
+    local test_dir
+    test_dir=$(setup_evolution_env)
+
+    # Unique, unguessable canary so a match can only come from reading the file.
+    local canary="HOLDOUT_CANARY_$(random_string 24)"
+
+    # find_skill_dir walks "$SKILLS_DIR/*/<skill-id>", so the scratch skill must
+    # live one category-level deep for the apply path to resolve it.
+    local skill_id="canary-skill"
+    local skill_dir="$test_dir/skills/cat/$skill_id"
+    mkdir -p "$skill_dir/evals"
+    cat > "$skill_dir/SKILL.md" << 'EOF'
+---
+name: canary-skill
+version: 1.0.0
+description: Scratch skill for generator-isolation canary test
+tags: [testing]
+---
+
+# Canary Skill
+EOF
+
+    # The holdout the generator must NEVER read. Token appears only here.
+    cat > "$skill_dir/evals/holdout.jsonl" << EOF
+{"id":"h1","input":"$canary","expected":"$canary"}
+{"id":"h2","input":"$canary","expected":"$canary"}
+EOF
+
+    # Drive the generator with normal training signals (metrics + edit-patterns),
+    # none of which contain the canary.
+    create_mock_metrics "$test_dir" "$skill_id" 10 8
+    create_mock_patterns "$test_dir" "$skill_id" "add_error_handling" 8
+
+    # Run the generator path(s): suggest produces the suggestion artifact.
+    # Engine may exit non-zero in a minimal test env; the assertions below are
+    # the real check, so a non-zero generator exit must not abort the test.
+    local suggest_output
+    CLAUDE_PROJECT_DIR="$test_dir" suggest_output=$("$EVOLUTION_ENGINE" suggest "$skill_id" 2>&1) || true  # silent: best-effort
+
+    # Also exercise apply (the other path that touches the skill dir) so a leak
+    # via the apply codepath is covered too.
+    local registry="$test_dir/.claude/feedback/evolution-registry.json"
+    local apply_output=""
+    if [[ -f "$registry" ]]; then
+        local sug_id
+        # silent: best-effort — absent/empty suggestion just skips the apply leg
+        sug_id=$(jq -r '.skills["canary-skill"].suggestions[0].id // ""' "$registry" 2>/dev/null || echo "")
+        if [[ -n "$sug_id" && "$sug_id" != "null" ]]; then
+            CLAUDE_PROJECT_DIR="$test_dir" apply_output=$("$EVOLUTION_ENGINE" apply "$skill_id" "$sug_id" 2>&1) || true  # silent: best-effort
+        fi
+    fi
+
+    # 1) The canary must not appear in any engine stdout/stderr.
+    assert_not_contains "$suggest_output" "$canary"
+    assert_not_contains "$apply_output" "$canary"
+
+    # 2) The canary must not have leaked into the suggestion artifact (registry).
+    # silent: best-effort — grep -q here is a presence probe, not error handling
+    if [[ -f "$registry" ]] && grep -qF "$canary" "$registry" 2>/dev/null; then
+        fail "Holdout canary leaked into evolution-registry.json — generator read holdout.jsonl"
+    fi
+
+    # 3) Sanity: confirm the canary really is present in the holdout file, so a
+    #    silent setup failure can't make this test pass vacuously.
+    assert_file_contains "$skill_dir/evals/holdout.jsonl" "$canary"
+
+    return 0
+}
+
+# ============================================================================
 # RUN TESTS
 # ============================================================================
 
