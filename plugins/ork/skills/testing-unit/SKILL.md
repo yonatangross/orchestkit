@@ -1,7 +1,7 @@
 ---
 name: testing-unit
 license: MIT
-compatibility: "Claude Code 2.1.170+."
+compatibility: "Claude Code 2.1.183+."
 description: Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests (test.each, @pytest.mark.parametrize), fixture scoping (function/module/session), mocking with MSW/VCR at network level, and test data management with factories (FactoryBoy, faker-js). Use when writing unit tests, setting up mocks, structuring test data, optimizing test speed, choosing fixture scope, or reducing test boilerplate. Covers Vitest, Jest, pytest.
 tags: [testing, unit, mocking, msw, vcr, fixtures, factories, vitest-4, aroundEach]
 context: fork

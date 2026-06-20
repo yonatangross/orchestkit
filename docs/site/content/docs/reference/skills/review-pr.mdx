@@ -497,7 +497,9 @@ Every agent MUST return a JSON block (fenced with ```json```) at the end of thei
 # Capture scope from Phase 1
 CHANGED_FILES = "$(gh pr diff $PR_NUMBER --name-only)"
 
-TeamCreate(team_name="review-pr-$PR_NUMBER", description="Review PR #$PR_NUMBER")
+# CC 2.1.178+: one implicit team per session — no TeamCreate.
+# Spawn teammates directly via Agent(name=...). Requires
+# CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
 
 Agent(subagent_type="ork:code-quality-reviewer", name="quality-reviewer",
      team_name="review-pr-$PR_NUMBER",
@@ -587,28 +589,18 @@ Agent(subagent_type="ork:frontend-ui-developer", name="frontend-reviewer",
 **Team teardown** after synthesis (only shut down agents that were actually spawned):
 ```python
 # After collecting all findings and producing the review
-# TeamDelete() shuts down all teammates — no manual shutdown_request needed
-TeamDelete()
+# CC 2.1.178+: no TeamDelete — teammates wind down at turn end
+# (press Ctrl+F twice to stop lingering background teammates).
 
 # Worktree cleanup (CC 2.1.72)
 ExitWorktree(action="keep")
 ```
 
-**Incorrect — No team teardown:**
-```python
-# Agents keep running indefinitely
-Agent(subagent_type="ork:code-quality-reviewer", team_name="review-pr-$PR_NUMBER")
-Agent(subagent_type="ork:security-auditor", team_name="review-pr-$PR_NUMBER")
-# No teardown — agents keep running (needs TeamDelete(), below)
-```
-
-**Correct — Proper team teardown:**
-```python
-# After review synthesis complete
-# TeamDelete() shuts down all teammates — no manual shutdown_request needed
-TeamDelete()  # Clean shutdown
-ExitWorktree(action="keep")
-```
+**Teammate lifecycle (CC 2.1.178+):** No explicit teardown — teammates wind down
+when their turn ends. A teammate's `run_in_background` task now survives its own
+turn-end too (CC 2.1.183), so a long check can outlive the teammate and still be
+collected at synthesis. To force-stop a teammate left spinning on a background
+task, press `Ctrl+F` twice (foreground/Stop).
 
 > **Fallback:** If team formation fails, use standard Task tool spawns from [agent-prompts-task-tool.md](agent-prompts-task-tool.md).
 

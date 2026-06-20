@@ -472,7 +472,7 @@ AskUserQuestion(questions=[{
 
 Skills that spawn background agents or teams **must** include cleanup guidance:
 
-- After `TeamDelete()`, add: "Press **Ctrl+F** twice to force-kill any orphaned background agents"
+- For teammate cleanup (CC 2.1.178+ implicit team, no TeamDelete), add: "Teammates wind down at turn end; press **Ctrl+F** twice to force-stop any orphaned background agents"
 - Skills using `run_in_background=True` should document the cleanup path
 
 ### Background Agents

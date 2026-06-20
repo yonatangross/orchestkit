@@ -1,6 +1,6 @@
 ---
 description: "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Use when opening PRs or submitting code for review."
-allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
+allowed-tools: [AskUserQuestion, Bash, Agent, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
 ---
 
 # Auto-generated from skills/create-pr/SKILL.md

@@ -17,7 +17,6 @@ tools:
   - Glob
   - Bash
   - Agent(ork:market-intelligence)
-  - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate

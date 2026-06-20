@@ -7,13 +7,13 @@ export const TOTALS: Totals = {
   "plugins": 1,
   "skills": 111,
   "agents": 37,
-  "hooks": 210,
+  "hooks": 211,
   "commands": 31,
   "compositions": 14
 };
 
 // Extracted from src/hooks/src/lib/cc-version-matrix.ts
-export const MIN_CC_VERSION = "2.1.170";
+export const MIN_CC_VERSION = "2.1.183";
 
 export const AGENTS: AgentSummary[] = [
   {

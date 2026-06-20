@@ -386,7 +386,7 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("$\{CLAUDE_SKI
 - **Detect scope creep** (phase 7) — score 0-10, split PR if significant
 - **Real services when available** — if docker-compose/testcontainers exist, use them in Phase 6
 - **Reflect and capture lessons** (phase 10) — persist to memory graph
-- **Clean up agents** — use `TeamDelete()` after completion; press `Ctrl+F` twice as manual fallback. Note: `/clear` (CC 2.1.72+) preserves background agents
+- **Clean up agents** — teammates wind down at turn end (CC 2.1.178+ implicit team); press `Ctrl+F` twice to stop lingering background agents. Note: `/clear` (CC 2.1.72+) preserves background agents
 - **Exit worktrees** — call `ExitWorktree(action: "keep")` in Phase 10 if worktree was entered in Step 0; never leave orphaned worktrees
 
 ---
@@ -1407,7 +1407,7 @@ Agent(
 
 ### Phase 6 — Teams Mode
 
-In Agent Teams mode, the code-reviewer has been reviewing continuously during Phase 5. Integration validation is lighter: the lead merges worktrees, runs integration tests, and collects the code-reviewer's final APPROVE/REJECT verdict. After Phase 6, the lead tears down the team with `TeamDelete()` (which gracefully shuts down all teammates — no manual `shutdown_request` needed; CC discourages originating it and `TeamDelete` supersedes it) + worktree cleanup.
+In Agent Teams mode, the code-reviewer has been reviewing continuously during Phase 5. Integration validation is lighter: the lead merges worktrees, runs integration tests, and collects the code-reviewer's final APPROVE/REJECT verdict. After Phase 6, the team winds down on its own (CC 2.1.178+ implicit team — no `TeamDelete`; teammates end with their turn, `Ctrl+F` twice to stop any lingering background agent) + worktree cleanup.
 
 ---
 
@@ -1765,8 +1765,8 @@ After all teammates complete (or when all tasks are done):
 
 5. **Shut down team:**
    ```
-   # TeamDelete() shuts down all teammates — no manual shutdown_request needed
-   TeamDelete()
+   # CC 2.1.178+: no TeamDelete — teammates wind down at turn end
+   # (press Ctrl+F twice to stop lingering background teammates).
 
    # Worktree cleanup (CC 2.1.72)
    ExitWorktree(action="keep")  # Keep branch for PR
@@ -1815,7 +1815,9 @@ This reference consolidates Agent Teams mode instructions for Phases 4, 5, 6, an
 In Agent Teams mode, form a team instead of spawning 5 independent Tasks. Teammates message architecture decisions to each other in real-time:
 
 ```python
-TeamCreate(team_name="implement-{feature-slug}", description="Architecture for {feature}")
+# CC 2.1.178+: one implicit team per session — no TeamCreate.
+# Spawn teammates directly via Agent(name=...). Requires
+# CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
 
 # Spawn 4 teammates (5th role — UX — is lead-managed or optional)
 Agent(subagent_type="ork:backend-system-architect", name="backend-architect",
@@ -1906,13 +1908,13 @@ git merge --squash feat/{feature}/tests && git commit -m "test({feature}): test 
 ### 2. Shut Down Teammates
 
 ```python
-# TeamDelete() shuts down all teammates — no manual shutdown_request needed
 ```
 
 ### 3. Clean Up
 
 ```python
-TeamDelete()  # Remove team and shared task list
+# CC 2.1.178+: no TeamDelete — teammates wind down at turn end
+# (press Ctrl+F twice to stop lingering background teammates).
 
 # Worktree cleanup (CC 2.1.72)
 ExitWorktree(action="keep")  # Keep branch for PR

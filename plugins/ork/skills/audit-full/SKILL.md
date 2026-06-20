@@ -1,7 +1,7 @@
 ---
 name: audit-full
 license: MIT
-compatibility: "Claude Code 2.1.170+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.183+. Requires memory MCP server."
 description: "Single-pass codebase analysis leveraging Opus 4.8 1M context for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews."
 argument-hint: "[scope]"
 context: fork
@@ -9,7 +9,7 @@ version: 1.2.0
 author: OrchestKit
 tags: [security, architecture, audit, dependencies, 1m-context, cross-file]
 user-invocable: false
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskUpdate, TaskList, Workflow, PushNotification, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Agent, TaskCreate, TaskUpdate, TaskList, Workflow, PushNotification, mcp__memory__search_nodes]
 skills: [security-patterns, architecture-patterns, quality-gates]
 complexity: max
 persuasion-type: discipline

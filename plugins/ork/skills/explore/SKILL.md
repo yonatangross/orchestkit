@@ -1,7 +1,7 @@
 ---
 name: explore
 license: MIT
-compatibility: "Claude Code 2.1.170+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.183+. Requires memory MCP server."
 description: "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns."
 argument-hint: "[topic-or-feature] [--render=markdown|json-render|both] [--effort=low|medium|high]"
 context: fork
@@ -9,7 +9,7 @@ version: 2.6.0
 author: OrchestKit
 tags: [exploration, code-search, architecture, codebase, health-assessment]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, Bash, ToolSearch]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, Bash, ToolSearch]
 skills: [ascii-visualizer, architecture-decision-record, memory, architecture-patterns, chain-patterns]
 complexity: high
 persuasion-type: guidance

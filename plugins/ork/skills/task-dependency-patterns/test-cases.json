@@ -21,7 +21,7 @@
       "expectedBehavior": [
         "Claude evaluates the criteria table: cross-cutting changes, agents need to communicate",
         "Recommends Agent Teams over Task tool for this scenario due to mesh communication needs",
-        "Explains TeamCreate, peer-to-peer SendMessage, and shared task list patterns",
+        "Explains the implicit team (Agent(name=...)), peer-to-peer SendMessage, and shared task list patterns",
         "Warns about the higher cost (~2.5x) of Agent Teams vs Task tool subagents"
       ]
     },

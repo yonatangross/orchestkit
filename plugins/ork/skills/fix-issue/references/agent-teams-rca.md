@@ -3,7 +3,9 @@
 In Agent Teams mode, form an investigation team where RCA agents share hypotheses and evidence in real-time:
 
 ```python
-TeamCreate(team_name="fix-issue-{number}", description="RCA for issue #{number}")
+# CC 2.1.178+: one implicit team per session — no TeamCreate.
+# Spawn teammates directly via Agent(name=...). Requires
+# CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
 
 Agent(subagent_type="ork:debug-investigator", name="root-cause-tracer",
      team_name="fix-issue-{number}",
@@ -44,8 +46,8 @@ Agent(subagent_type="ork:test-generator", name="test-planner",
 
 **Team teardown** after fix is implemented and validated:
 ```python
-# TeamDelete() shuts down all teammates — no manual shutdown_request needed
-TeamDelete()
+# CC 2.1.178+: no TeamDelete — teammates wind down at turn end
+# (press Ctrl+F twice to stop lingering background teammates).
 
 # Worktree cleanup (CC 2.1.72)
 ExitWorktree(action="keep")

@@ -1,6 +1,6 @@
 ---
 description: "Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security scanning, and type checking. Runs coverage analysis, detects regressions, and validates against project conventions. Reports pass/fail with detailed findings and coverage deltas. Use when verifying implementations, validating changes after /ork:implement, or running pre-merge quality gates."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskStop, mcp__memory__search_nodes, mcp__agentation__agentation_get_all_pending, mcp__agentation__agentation_acknowledge, mcp__agentation__agentation_resolve, mcp__agentation__agentation_watch_annotations, ToolSearch, CronCreate, CronDelete, Monitor, PushNotification]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, TaskStop, mcp__memory__search_nodes, mcp__agentation__agentation_get_all_pending, mcp__agentation__agentation_acknowledge, mcp__agentation__agentation_resolve, mcp__agentation__agentation_watch_annotations, ToolSearch, CronCreate, CronDelete, Monitor, PushNotification]
 ---
 
 # Auto-generated from skills/verify/SKILL.md

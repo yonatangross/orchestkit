@@ -1,7 +1,7 @@
 ---
 name: monitoring-observability
 license: MIT
-compatibility: "Claude Code 2.1.170+."
+compatibility: "Claude Code 2.1.183+."
 description: Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse v4 LLM tracing (as_type, score_current_span, should_export_span, LangfuseMedia), and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring.
 tags: [monitoring, observability, prometheus, grafana, langfuse, tracing, metrics, drift-detection, logging]
 context: fork

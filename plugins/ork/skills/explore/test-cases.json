@@ -51,10 +51,10 @@
       "rule": "agent-teams-mode",
       "query": "Explore the payment system using agent teams with coordinated discovery sharing between explorers.",
       "expectedBehavior": [
-        "Creates an exploration team using TeamCreate with a descriptive team name",
+        "Spawns exploration teammates via Agent(name=...) in the implicit team (CC 2.1.178+)",
         "Launches multiple named agents with team_name for coordinated parallel exploration",
         "Agents share discoveries in real-time by messaging each other with found entry points",
-        "Tears down the team with TeamDelete() after report generation (no manual shutdown_request)",
+        "Lets teammates wind down at turn end after report generation (no TeamDelete; CC 2.1.178+)",
         "Falls back to standard Task tool spawns if team formation fails"
       ]
     },

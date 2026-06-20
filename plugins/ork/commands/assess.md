@@ -1,6 +1,6 @@
 ---
 description: "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches."
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, ToolSearch, mcp__memory__search_nodes, Bash]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, ToolSearch, mcp__memory__search_nodes, Bash]
 ---
 
 # Auto-generated from skills/assess/SKILL.md

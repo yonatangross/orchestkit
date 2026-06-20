@@ -1,7 +1,7 @@
 ---
 name: fix-issue
 license: MIT
-compatibility: "Claude Code 2.1.170+. Requires memory MCP server, context7 MCP server, gh CLI."
+compatibility: "Claude Code 2.1.183+. Requires memory MCP server, context7 MCP server, gh CLI."
 description: "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues."
 argument-hint: "[issue-number]"
 context: fork
@@ -9,7 +9,7 @@ version: 2.5.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging, rca, prevention]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, TaskStop, Grep, Glob, ToolSearch, CronCreate, CronDelete, PushNotification, mcp__memory__search_nodes, mcp__context7__get_library_docs]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Agent, TaskCreate, TaskUpdate, TaskStop, Grep, Glob, ToolSearch, CronCreate, CronDelete, PushNotification, mcp__memory__search_nodes, mcp__context7__get_library_docs]
 skills: [commit, explore, verify, memory, remember, chain-patterns]
 complexity: medium
 persuasion-type: guidance

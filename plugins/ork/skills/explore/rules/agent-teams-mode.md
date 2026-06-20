@@ -10,7 +10,9 @@ tags: agent-teams, orchestration, explore
 In Agent Teams mode, form an exploration team where explorers share discoveries in real-time:
 
 ```python
-TeamCreate(team_name="explore-{topic}", description="Explore {topic}")
+# CC 2.1.178+: one implicit team per session — no TeamCreate.
+# Spawn teammates directly via Agent(name=...). Requires
+# CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
 
 Agent(subagent_type="Explore", name="structure-explorer",
      team_name="explore-{topic}",
@@ -47,8 +49,8 @@ Agent(subagent_type="ork:frontend-ui-developer", name="frontend-explorer",
 After report generation:
 
 ```python
-# TeamDelete() shuts down all teammates — no manual shutdown_request needed
-TeamDelete()
+# CC 2.1.178+: no TeamDelete — teammates wind down at turn end
+# (press Ctrl+F twice to stop lingering background teammates).
 
 # Worktree cleanup (CC 2.1.72)
 ExitWorktree(action="keep")
@@ -66,7 +68,9 @@ Agent(subagent_type="Explore", prompt="Trace auth data flow")
 
 **Correct — Team mode with real-time discovery sharing:**
 ```python
-TeamCreate(team_name="explore-auth")
+# CC 2.1.178+: one implicit team per session — no TeamCreate.
+# Spawn teammates directly via Agent(name=...). Requires
+# CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
 Agent(subagent_type="Explore", name="structure-explorer",
      team_name="explore-auth",
      prompt="Find auth files. Message data-flow-explorer with entry points.")

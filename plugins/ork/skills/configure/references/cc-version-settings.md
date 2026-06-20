@@ -543,7 +543,7 @@ The `claude_code.pull_request.count` OTel metric counted PRs/MRs created via the
 Before 2.1.132, the `--permission-mode` flag was silently ignored when resuming a plan-mode session via `-p --continue` or `--resume`, and `ExitPlanMode` did not re-apply plan mode for the rest of the same session. Both gaps closed the wrong way (more permissive than declared), so this is a security-relevant fix, not just UX.
 
 ```bash
-# At our floor (CC ≥ 2.1.170): plan mode survives resume as declared
+# At our floor (CC ≥ 2.1.183): plan mode survives resume as declared
 claude --resume <session-id> --permission-mode plan
 ```
 
@@ -568,7 +568,7 @@ $ claude  /mcp
 
 Before 2.1.133, when multiple CC sessions shared the same credentials and a refresh-token rotation fired in one session, the other sessions could race against it and end up using the now-invalidated token — all of them dead-ending at `401 Unauthorized` simultaneously. CC 2.1.133 serializes the rotation so concurrent sessions see the same fresh token.
 
-**Impact for OrchestKit**: OrchestKit's worktree-isolation workflow (see `chain-patterns/references/worktree-agent-pattern.md`) routinely runs concurrent CC sessions against the same machine credentials — one per worktree per agent. Before 2.1.133, a single refresh-token race could 401 every session at once mid-run, killing in-flight `/ork:implement`, `/ork:cover`, and `/ork:verify` chains. No setting change required — the floor in `engines.claudeCode` (≥ 2.1.170) already guarantees the fix is active.
+**Impact for OrchestKit**: OrchestKit's worktree-isolation workflow (see `chain-patterns/references/worktree-agent-pattern.md`) routinely runs concurrent CC sessions against the same machine credentials — one per worktree per agent. Before 2.1.133, a single refresh-token race could 401 every session at once mid-run, killing in-flight `/ork:implement`, `/ork:cover`, and `/ork:verify` chains. No setting change required — the floor in `engines.claudeCode` (≥ 2.1.183) already guarantees the fix is active.
 
 If you ever do hit a "all sessions 401 at the same moment" symptom on a supported floor, the cause is no longer this race — see `${CLAUDE_SKILL_DIR}/../doctor/references/remediation-guide.md` for recovery steps.
 
@@ -608,7 +608,7 @@ Before 2.1.133, passing a Windows **mapped network drive** path (e.g., `Z:\\shar
 claude --add-dir Z:\share\project
 # Read tool on Z:\share\project\file.ts → "path not in allowed directories"
 
-# At our floor (CC ≥ 2.1.170) — works as documented
+# At our floor (CC ≥ 2.1.183) — works as documented
 claude --add-dir Z:\share\project
 # Read/Write/Edit succeed
 ```
@@ -641,7 +641,7 @@ This is a regression for OrchestKit users. From CC 2.1.128 through 2.1.132, `Ent
 
 **Choose `"fresh"` only if** you intentionally want every new worktree to start from `origin/<default>` (e.g., clean-room agent runs that should never inherit local WIP). For the common OrchestKit flow — spawn an agent in a worktree to do work on top of an in-progress local branch — `"head"` is the only correct value.
 
-**Impact for OrchestKit**: All of `ork:implement`, `ork:cover`, `ork:fix-issue`, `ork:verify`, and any custom skill that calls `Task(... isolation: "worktree")` is affected. Without `worktree.baseRef: "head"`, agents start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, tests will run against stale source, and PRs will appear empty of your in-progress work. `ork:doctor` flags this — see `${CLAUDE_SKILL_DIR}/../doctor/references/remediation-guide.md` ("EnterWorktree drops my unpushed commits").
+**Impact for OrchestKit**: All of `ork:implement`, `ork:cover`, `ork:fix-issue`, `ork:verify`, and any custom skill that calls `Agent(... isolation: "worktree")` is affected. Without `worktree.baseRef: "head"`, agents start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, tests will run against stale source, and PRs will appear empty of your in-progress work. `ork:doctor` flags this — see `${CLAUDE_SKILL_DIR}/../doctor/references/remediation-guide.md` ("EnterWorktree drops my unpushed commits").
 
 ### `sandbox.bwrapPath` / `sandbox.socatPath` Managed Settings (Linux/WSL)
 
@@ -736,7 +736,7 @@ fi
 - **`ci-debug`**, **`assess`**, and **`verify`** chains can scale the number of parallel agents spawned with effort level.
 - **`pre-commit`** style gates can downgrade strict checks to advisory at `low` and enforce blocking at `high`.
 
-No setting change required — the JSON field and env var are always present at our floor (CC ≥ 2.1.170). Hook authors should treat absence as `medium` for forward compat.
+No setting change required — the JSON field and env var are always present at our floor (CC ≥ 2.1.183). Hook authors should treat absence as `medium` for forward compat.
 
 ### `/effort` Now Session-Scoped (No Cross-Session Leak)
 
@@ -754,7 +754,7 @@ CC 2.1.133 makes `/effort` session-local: each session has its own effort state,
 # → Session B is now low; Session A stays at xhigh (was previously also forced to low)
 ```
 
-**Impact for OrchestKit**: Direct hit on OrchestKit's worktree-isolation workflow — running parallel `/ork:implement` and `/ork:verify` in separate worktrees with different effort levels (e.g., `xhigh` for the implement run, `medium` for verify) now works as expected. Before 2.1.133, the second `/effort` call would silently retarget the first session, defeating the whole point of per-task effort tuning. Combined with the new `effort.level` hook input (#1702), this makes effort-aware hooks safe to deploy without worrying about cross-session contamination. No setting change required; the floor in `engines.claudeCode` (≥ 2.1.170) already guarantees the fix.
+**Impact for OrchestKit**: Direct hit on OrchestKit's worktree-isolation workflow — running parallel `/ork:implement` and `/ork:verify` in separate worktrees with different effort levels (e.g., `xhigh` for the implement run, `medium` for verify) now works as expected. Before 2.1.133, the second `/effort` call would silently retarget the first session, defeating the whole point of per-task effort tuning. Combined with the new `effort.level` hook input (#1702), this makes effort-aware hooks safe to deploy without worrying about cross-session contamination. No setting change required; the floor in `engines.claudeCode` (≥ 2.1.183) already guarantees the fix.
 
 ### Subagents Now Discover Project/User/Plugin Skills
 
@@ -765,7 +765,7 @@ CC 2.1.133 restores documented behavior: subagents inherit the full skill regist
 ```typescript
 // Inside a subagent body (e.g., src/agents/backend-system-architect.md):
 // Before 2.1.133: this would fail — Skill not found
-// At our floor (CC ≥ 2.1.170): works as documented
+// At our floor (CC ≥ 2.1.183): works as documented
 Skill({ name: 'ork:architecture-patterns' });
 ```
 
@@ -814,12 +814,12 @@ CC 2.1.136 fixes the bypass: plan mode now blocks writes regardless of allow rul
 claude --permission-mode plan
 # Edit on src/foo.ts → silently allowed by the Edit(src/**) rule
 
-# At our floor (CC ≥ 2.1.170, includes 2.1.136 fix): plan mode blocks writes
+# At our floor (CC ≥ 2.1.183, includes 2.1.136 fix): plan mode blocks writes
 claude --permission-mode plan
 # Edit on src/foo.ts → blocked by plan mode (allow rule has no effect)
 ```
 
-**Impact for OrchestKit**: Security-relevant fix, not just UX. Skills that drive plan-mode workflows (`ork:implement`, `ork:fix-issue`, `ork:brainstorm`) can now rely on plan mode actually being read-only — pre-2.1.136 a session-scoped `Edit(...)` allow rule could turn a "let me think first" into "let me silently rewrite". No setting change required at our floor (≥ 2.1.170). If a skill or agent body has language saying "Edit allow rules bypass plan mode" (a workaround documented for the broken behavior), that text is now wrong and should be removed — `ExitPlanMode` is the only path to writes in plan mode.
+**Impact for OrchestKit**: Security-relevant fix, not just UX. Skills that drive plan-mode workflows (`ork:implement`, `ork:fix-issue`, `ork:brainstorm`) can now rely on plan mode actually being read-only — pre-2.1.136 a session-scoped `Edit(...)` allow rule could turn a "let me think first" into "let me silently rewrite". No setting change required at our floor (≥ 2.1.183). If a skill or agent body has language saying "Edit allow rules bypass plan mode" (a workaround documented for the broken behavior), that text is now wrong and should be removed — `ExitPlanMode` is the only path to writes in plan mode.
 
 ### `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL` — Re-Enable Session Quality Survey for OTEL Capture
 
@@ -839,7 +839,7 @@ claude
 Before 2.1.136, `AskUserQuestion` with `multiSelect: true` silently **discarded** the answer when the runtime supplied it as an array (the documented shape). The question dispatched, the user clicked their selections, but the agent received no usable answer — effectively a soft hang on multi-select questions. CC 2.1.136 fixes the array path so multi-select answers are preserved end-to-end.
 
 ```typescript
-// Multi-select question that now works at our floor (CC ≥ 2.1.170)
+// Multi-select question that now works at our floor (CC ≥ 2.1.183)
 AskUserQuestion({
   questions: [{
     question: 'Which test tiers should I generate?',

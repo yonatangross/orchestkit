@@ -1,7 +1,7 @@
 ---
 name: review-pr
 license: MIT
-compatibility: "Claude Code 2.1.170+. Requires memory MCP server, gh CLI."
+compatibility: "Claude Code 2.1.183+. Requires memory MCP server, gh CLI."
 description: "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge."
 argument-hint: "[pr-number-or-branch]"
 context: fork
@@ -9,7 +9,7 @@ version: 1.9.0
 author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, ToolSearch, Monitor]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, ToolSearch, Monitor]
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-integration, memory, chain-patterns]
 complexity: medium
 persuasion-type: discipline

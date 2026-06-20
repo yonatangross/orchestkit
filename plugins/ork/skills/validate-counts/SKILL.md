@@ -1,6 +1,6 @@
 ---
 name: validate-counts
-compatibility: "Claude Code 2.1.170+"
+compatibility: "Claude Code 2.1.183+"
 description: Validates hook, skill, and agent counts are consistent across CLAUDE.md, hooks.json, manifests, and source directories. Use when counts may be stale after adding or removing components, before releases, or when CLAUDE.md Project Overview looks wrong.
 tags: [validation, consistency, orchestkit]
 version: 2.0.0

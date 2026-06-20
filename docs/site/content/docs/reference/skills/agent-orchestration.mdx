@@ -1449,7 +1449,9 @@ Complexity Assessment:
 
 ```
 # 1. Create team with shared task list
-TeamCreate(team_name="feature-auth", description="User auth implementation")
+# CC 2.1.178+: one implicit team per session — no TeamCreate.
+# Spawn teammates directly via Agent(name=...). Requires
+# CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
 
 # 2. Create tasks in shared list
 TaskCreate(subject="Design API schema", description="...")

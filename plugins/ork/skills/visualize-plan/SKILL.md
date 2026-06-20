@@ -1,7 +1,7 @@
 ---
 name: visualize-plan
 license: MIT
-compatibility: "Claude Code 2.1.170+."
+compatibility: "Claude Code 2.1.183+."
 description: "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation."
 argument-hint: "[plan-or-issue]"
 context: fork
@@ -11,7 +11,7 @@ version: 2.1.0
 author: OrchestKit
 tags: [visualization, planning, before-after, architecture, diff, risk, impact, migration, playground, infographic, multi-format]
 user-invocable: true
-allowed-tools: [Read, Grep, Glob, Task, TaskCreate, TaskUpdate, AskUserQuestion, Bash, Write, mcp__memory__search_nodes, mcp__memory__create_entities, ToolSearch]
+allowed-tools: [Read, Grep, Glob, Agent, TaskCreate, TaskUpdate, AskUserQuestion, Bash, Write, mcp__memory__search_nodes, mcp__memory__create_entities, ToolSearch]
 skills: [ascii-visualizer, explore, architecture-decision-record, memory, remember]
 complexity: medium
 persuasion-type: guidance
