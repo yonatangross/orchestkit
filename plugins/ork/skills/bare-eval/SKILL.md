@@ -3,7 +3,7 @@ name: bare-eval
 compatibility: "Claude Code 2.1.170+"
 description: "Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill evaluation, trigger testing, and LLM grading without plugin/hook interference. Use when running eval pipelines, grading skill outputs, benchmarking prompt quality, or testing trigger accuracy in isolation."
 tags: [eval, bare, grading, pipeline, testing, ci]
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit
 user-invocable: false
 complexity: medium
@@ -171,6 +171,10 @@ Workflow({ scriptPath: "${CLAUDE_SKILL_DIR}/workflows/skill-fitness.mjs",
 ```
 
 Treat it as a **template**, not a verbatim script — adapt the `SKILLS` list and rubric per use. Cost is real (~50k tokens/skill; scoring all ~112 is ~6M tokens), so pass an explicit batch via `args`. Static-first: run `conformance-check.mjs` (zero tokens) to pre-filter, then this harness for the judgment grep can't make.
+
+## Holdout Bake-Off Grading (skill-evolution)
+
+`skill-evolution`'s holdout-promotion gate grades a **champion** and a **challenger** SKILL.md over the same sealed holdout via bare-mode forked graders — the canonical consumer of the determinism contract above: identical grader + identical `ork-rubric/1.0` + identical sealed set, with `CLAUDE_CODE_FORK_SUBAGENT=1` so the only variable is the version under test. Both `--bare` constraints apply (requires `ANTHROPIC_API_KEY`, bills tokens directly → on-demand / CI only). See `Read("${CLAUDE_PLUGIN_ROOT}/skills/skill-evolution/references/holdout-promotion-gate.md")`.
 
 ## Related
 
