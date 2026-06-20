@@ -1036,7 +1036,7 @@ cross_model_enabled =
   AND under_cross_model_budget()                     # see Cost gate
 ```
 
-If any clause is false → run the **same-model** lane exactly as today (engine §4 quorum). Cross-model NEVER replaces the same-model pass — it is an *additional* blind refuter slot, so a misconfigured or down alternate model degrades to today's behavior, never to "no refutation".
+If any clause is false → run the **same-model** lane exactly as today (engine §4 quorum). Cross-model never runs ALONE — there is always ≥1 same-model refuter; it **substitutes one slot** of the existing quorum (total count unchanged, §8 ceiling intact), so a misconfigured or down alternate degrades to the pure same-model quorum, never to "no refutation".
 
 ### `alt_model_cmd_present()` — transport (no credentials in-process)
 

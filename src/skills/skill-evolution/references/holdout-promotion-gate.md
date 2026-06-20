@@ -156,7 +156,7 @@ On `rejected`, `promoted_to_version` is `null` and `reason` names the failing cl
 # run /ork:skill-evolution promote assess each turn; abort if SKILL.md never changes (challenger never won)
 ```
 
-**As a CI gate** — `npm run eval:skill --holdout-promote` runs the bake-off headless and exits non-zero on `rejected`, so a PR editing a skill can't merge unless its challenger beat the champion. The sealed-hash check runs first; a PR touching `holdout.jsonl` without re-freezing `holdout.lock.json` fails fast with `holdout hash mismatch`.
+**As a CI gate (planned — not yet wired)** — once `run-skill-eval.sh` grows a `--holdout-promote` path, it will run the bake-off headless and exit non-zero on `rejected`, so a PR editing a skill can't merge unless its challenger beat the champion; the sealed-hash check would run first (`holdout hash mismatch` on an un-re-frozen edit). Until that path ships, run the bake-off on-demand via the `promote` subcommand.
 
 **Agents too:** the same loop applies to `src/agents/<name>.md` — holdout cases are tasks, the grader scores the agent's transcript. `bare-eval` honors agent `tools:`/`permissionMode` under `--print` (CC 2.1.119), so the agent is graded with its real tool surface.
 
@@ -167,7 +167,7 @@ On `rejected`, `promoted_to_version` is `null` and `reason` names the failing cl
 **The checks that block it:**
 
 1. **Hash seal** (step 2 + CI), computed `LC_ALL=C` so it's deterministic. Any holdout change without a reviewed re-freeze → `holdout hash mismatch`, fail-closed, no promotion.
-2. **Generator isolation** — `evolution-engine.sh`'s input allowlist excludes `evals/holdout.jsonl`. Enforced by a test asserting the engine's read-set never includes the holdout path (not a generic markdown grep — the engine script is the real surface).
+2. **Generator isolation** — `evolution-engine.sh`'s input allowlist must exclude `evals/holdout.jsonl`. To be enforced (planned) by a test asserting the engine's read-set never includes the holdout path — the engine script is the real surface, not a generic markdown grep. Until that test ships, isolation is a documented invariant the `promote` flow must honor.
 3. **Tie-loses + per-dimension blocker** — even a higher composite can't promote if it tanks any dimension below `min_blocker`, so you can't trade a correctness regression for a verbosity win to clear the margin.
 
 ## Anti-patterns

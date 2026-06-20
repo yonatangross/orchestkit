@@ -281,7 +281,7 @@ A single green is not proof — flaky and order-dependent suites pass once and f
 - The gate sits **above** the verdict — it never loosens a blocker, it only withholds "done" until the streak is met. Each run re-executes the *actual* tests (no cached passes — that independence is the whole point).
 - Reset rule: **any** non-`READY FOR MERGE` verdict (tripped blocker, failing test, or IMPROVEMENTS RECOMMENDED) zeroes the count. No partial credit.
 - The verdict surfaces the count: `STREAK 2/3 — one more green to merge`, or `streak reset to 0/3 (security 3.2 < 4.0)`.
-- This is the native mechanism the `prd-to-goal` quality-streak recipe (#2539) leans on; pairs with `/goal until jq -e '.met==true' .claude/chain/verify-streak.json`.
+- This is the native mechanism the `prd-to-goal` quality-streak recipe (#2539) leans on. Pair it with a `/goal` loop, but **`rm` the ledger first** — `/goal` reads `until` before the turn's verify, so a stale `met:true` exits with zero runs (see streak-gate.md "Stale-ledger guard").
 
 Full protocol — ledger schema, run loop, `/goal` wiring, and `/ork:cover` reuse: `Read("${CLAUDE_SKILL_DIR}/references/streak-gate.md")`.
 

@@ -295,7 +295,7 @@ A single green is not proof — flaky and order-dependent suites pass once and f
 - The gate sits **above** the verdict — it never loosens a blocker, it only withholds "done" until the streak is met. Each run re-executes the *actual* tests (no cached passes — that independence is the whole point).
 - Reset rule: **any** non-`READY FOR MERGE` verdict (tripped blocker, failing test, or IMPROVEMENTS RECOMMENDED) zeroes the count. No partial credit.
 - The verdict surfaces the count: `STREAK 2/3 — one more green to merge`, or `streak reset to 0/3 (security 3.2 &lt; 4.0)`.
-- This is the native mechanism the `prd-to-goal` quality-streak recipe (#2539) leans on; pairs with `/goal until jq -e '.met==true' .claude/chain/verify-streak.json`.
+- This is the native mechanism the `prd-to-goal` quality-streak recipe (#2539) leans on. Pair it with a `/goal` loop, but **`rm` the ledger first** — `/goal` reads `until` before the turn's verify, so a stale `met:true` exits with zero runs (see streak-gate.md "Stale-ledger guard").
 
 Full protocol — ledger schema, run loop, `/goal` wiring, and `/ork:cover` reuse: `Read("$\{CLAUDE_SKILL_DIR\}/references/streak-gate.md")`.
 
@@ -1359,11 +1359,14 @@ Always surface the count: `STREAK 2/3 — one more green to merge` or `streak re
 The streak gate is what makes the quality-streak recipe converge. The `until`-clause reads the ledger; each loop turn runs verify:
 
 ```
-/goal until jq -e '.met == true' .claude/chain/verify-streak.json   # then run /ork:verify --streak=3 each turn
+rm -f .claude/chain/verify-streak.json   # reset first — see Stale-ledger guard below
+/goal until jq -e '.met==true' .claude/chain/verify-streak.json   # run /ork:verify --streak=3 each turn
 /goal abort-if turns > 15 OR tokens > 150000 OR no_progress_for_4_turns
 ```
 
 `no_progress_for_4_turns` is deliberately generous: a streak that keeps resetting *is* progress information (it's surfacing real flakiness), so give it room before aborting.
+
+**Stale-ledger guard (the first-run race).** `/goal` evaluates the `until`-clause at the *top* of each turn — before that turn's verify runs. If a previous completed streak for the same scope left `met:true` in the ledger, the loop exits on turn 1 having run **zero** fresh verifications. Defense: `rm` the ledger before entering the loop (shown above) so it always starts cold. A more robust form (tracked under streak hardening) stamps a `last_run_ts` per run and honors `met` only when the ledger was written this loop — never trust a `met:true` you didn't just produce.
 
 ## Reuse in `/ork:cover`
 
