@@ -7,7 +7,9 @@ This reference consolidates Agent Teams mode instructions for Phases 4, 5, 6, an
 In Agent Teams mode, form a team instead of spawning 5 independent Tasks. Teammates message architecture decisions to each other in real-time:
 
 ```python
-TeamCreate(team_name="implement-{feature-slug}", description="Architecture for {feature}")
+# CC 2.1.178+: one implicit team per session — no TeamCreate.
+# Spawn teammates directly via Agent(name=...). Requires
+# CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
 
 # Spawn 4 teammates (5th role — UX — is lead-managed or optional)
 Agent(subagent_type="ork:backend-system-architect", name="backend-architect",
@@ -98,13 +100,13 @@ git merge --squash feat/{feature}/tests && git commit -m "test({feature}): test 
 ### 2. Shut Down Teammates
 
 ```python
-# TeamDelete() shuts down all teammates — no manual shutdown_request needed
 ```
 
 ### 3. Clean Up
 
 ```python
-TeamDelete()  # Remove team and shared task list
+# CC 2.1.178+: no TeamDelete — teammates wind down at turn end
+# (press Ctrl+F twice to stop lingering background teammates).
 
 # Worktree cleanup (CC 2.1.72)
 ExitWorktree(action="keep")  # Keep branch for PR

@@ -8,7 +8,7 @@ version: 1.8.0
 author: OrchestKit
 tags: [assessment, evaluation, quality, comparison, pros-cons, rating]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, ToolSearch, mcp__memory__search_nodes, Bash]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, ToolSearch, mcp__memory__search_nodes, Bash]
 skills: [code-review-playbook, quality-gates, architecture-decision-record, memory, chain-patterns]
 argument-hint: "[code-path-or-topic] [--render=markdown|json-render|both] [--effort=low|medium|high|xhigh]"
 complexity: high

@@ -19,7 +19,6 @@ tools:
   - Glob
   - Agent(ork:test-generator)
   - Agent(ork:database-engineer)
-  - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate

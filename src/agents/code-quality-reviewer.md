@@ -15,7 +15,6 @@ tools:
   - Glob
   - Agent(ork:test-generator)
   - Agent(ork:security-auditor)
-  - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate

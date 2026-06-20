@@ -17,7 +17,6 @@ tools:
   - Grep
   - Glob
   - Agent(ork:frontend-ui-developer)
-  - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate

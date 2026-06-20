@@ -19,7 +19,6 @@ tools:
   - Glob
   - Agent(ork:llm-integrator)
   - Agent(ork:data-pipeline-engineer)
-  - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate

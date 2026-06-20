@@ -10,7 +10,7 @@ version: 4.10.0
 disable-model-invocation: true  # M127 A/S5: slash-only — explicit /ork:brainstorm only
 author: OrchestKit
 user-invocable: true
-allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, PushNotification, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Agent, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, PushNotification, mcp__memory__search_nodes]
 skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-unit, testing-integration, chain-patterns, design-to-code, component-search, design-context-extract, security-patterns, database-patterns, performance, devops-deployment, competitive-analysis, user-research, browser-tools]
 complexity: medium
 persuasion-type: collaborative
@@ -341,7 +341,9 @@ Skip brainstorming when:
 In Agent Teams mode, form a brainstorming team where agents debate ideas in real-time. Dynamically select teammates based on topic analysis (Phase 0):
 
 ```python
-TeamCreate(team_name="brainstorm-{topic-slug}", description="Brainstorm {topic}")
+# CC 2.1.178+: one implicit team per session — no TeamCreate.
+# Spawn teammates directly via Agent(name=...). Requires
+# CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
 
 # Always include the system design lead
 Agent(subagent_type="ork:workflow-architect", name="system-designer",
@@ -393,10 +395,8 @@ Agent(subagent_type="ork:test-generator", name="testability-assessor",
 **Team teardown** after synthesis:
 ```python
 # After Phase 5 synthesis and design presentation
-# TeamDelete() gracefully shuts down all teammates — no manual shutdown_request
-# needed. (SendMessage params are {to, message, summary}; CC discourages
-# originating shutdown_request, and TeamDelete supersedes it.)
-TeamDelete()
+# CC 2.1.178+: no TeamDelete — teammates wind down at turn end
+# (press Ctrl+F twice to stop lingering background teammates).
 
 # Worktree cleanup (CC 2.1.72) — for Tier 3+ projects that entered a worktree
 # If EnterWorktree was called during brainstorm (e.g., Plan first → worktree), exit it
@@ -417,7 +417,7 @@ ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
 >
 > **Lighter alternative (CC 2.1.141+):** Hooks can emit desktop notifications, window titles, and bells natively via the `terminalSequence` field in hook JSON output — no Remote Control required, no Anthropic round-trip. See #1847 for the migration of ork's existing notification hooks.
 
-> **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-stop remaining background agents. Note: `/clear` (CC 2.1.72+) preserves background agents — only foreground tasks are cleared.
+> **Manual cleanup:** To stop lingering background teammates, press `Ctrl+F` twice (foreground/Stop). Note: `/clear` (CC 2.1.72+) preserves background agents — only foreground tasks are cleared.
 
 > **Teammate background tasks survive turn-end (CC 2.1.183):** A background task started *by a teammate* is no longer killed when that teammate finishes its turn. Phase-2 teammates may safely kick off a long `run_in_background` task (e.g. a feasibility build) and let it outlive their own turn — the result is still collectable at synthesis. Pre-2.1.183 this required the lead to own the background task.
 

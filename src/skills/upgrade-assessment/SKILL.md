@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [upgrade, assessment, platform, compatibility, migration]
 user-invocable: false
 disable-model-invocation: true
-allowed-tools: [AskUserQuestion, Bash, Read, Grep, Glob, Task, WebSearch, WebFetch]
+allowed-tools: [AskUserQuestion, Bash, Read, Grep, Glob, Agent, WebSearch, WebFetch]
 skills: [explore, verify, remember, memory]
 complexity: max
 persuasion-type: guidance

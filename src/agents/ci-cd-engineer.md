@@ -17,7 +17,6 @@ tools:
   - Grep
   - Glob
   - Agent(ork:deployment-manager)
-  - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate

@@ -3,7 +3,9 @@
 In Agent Teams mode, form an assessment team where dimension assessors cross-validate scores and discuss disagreements:
 
 ```python
-TeamCreate(team_name="assess-{target-slug}", description="Assess {target}")
+# CC 2.1.178+: one implicit team per session — no TeamCreate.
+# Spawn teammates directly via Agent(name=...). Requires
+# CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
 
 # SCOPE CONSTRAINT (injected into every agent prompt):
 SCOPE_INSTRUCTIONS = f"""
@@ -51,8 +53,8 @@ Agent(subagent_type="ork:test-generator", name="test-assessor",
 
 **Team teardown** after report compilation:
 ```python
-# TeamDelete() shuts down all teammates — no manual shutdown_request needed
-TeamDelete()
+# CC 2.1.178+: no TeamDelete — teammates wind down at turn end
+# (press Ctrl+F twice to stop lingering background teammates).
 
 # Worktree cleanup (CC 2.1.72)
 ExitWorktree(action="keep")

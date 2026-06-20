@@ -6,7 +6,7 @@ description: "Creates zero-dependency, animation-rich HTML presentations from sc
 argument-hint: "[topic-or-description]"
 user-invocable: false
 disable-model-invocation: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent]
 context: fork
 version: 1.0.0
 author: OrchestKit

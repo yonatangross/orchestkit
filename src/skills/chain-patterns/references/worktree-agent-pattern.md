@@ -58,7 +58,7 @@ CC 2.1.133 reintroduced a `worktree.baseRef` setting whose default `"fresh"` bra
 }
 ```
 
-Add this to `.claude/settings.json` (project) or `~/.claude/settings.json` (user). Without it, agents spawned via `Task(... isolation: "worktree")` start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, and tests will run against stale source.
+Add this to `.claude/settings.json` (project) or `~/.claude/settings.json` (user). Without it, agents spawned via `Agent(... isolation: "worktree")` start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, and tests will run against stale source.
 
 ## Branch base (CC 2.1.128–2.1.132 default, CC 2.1.133+ with `baseRef: "head"`)
 

@@ -18,7 +18,6 @@ tools:
   - Grep
   - Glob
   - Agent(ork:database-engineer)
-  - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate

@@ -277,8 +277,8 @@ After all teammates complete (or when all tasks are done):
 
 5. **Shut down team:**
    ```
-   # TeamDelete() shuts down all teammates — no manual shutdown_request needed
-   TeamDelete()
+   # CC 2.1.178+: no TeamDelete — teammates wind down at turn end
+   # (press Ctrl+F twice to stop lingering background teammates).
 
    # Worktree cleanup (CC 2.1.72)
    ExitWorktree(action="keep")  # Keep branch for PR

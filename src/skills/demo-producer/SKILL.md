@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.183+."
 description: "Universal demo video creator for skills, agents, plugins, tutorials, CLI commands, and code walkthroughs. Generates scripts, storyboards, VHS terminal recordings, and Remotion video compositions with task-tracked production phases. Use when producing video showcases, marketing content, or terminal recordings."
 argument-hint: "[topic-or-feature]"
 user-invocable: false
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, PushNotification]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, PushNotification]
 context: inherit
 version: 1.1.0
 author: OrchestKit

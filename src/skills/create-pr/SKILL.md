@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
 disable-model-invocation: true
-allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
+allowed-tools: [AskUserQuestion, Bash, Agent, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
 skills: [commit, review-pr, memory, chain-patterns]
 complexity: medium
 persuasion-type: guidance

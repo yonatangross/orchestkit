@@ -20,7 +20,6 @@ tools:
   - Glob
   - Agent(ork:database-engineer)
   - Agent(ork:test-generator)
-  - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate

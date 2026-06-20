@@ -5,7 +5,9 @@
  * Team Member Start - PostToolUse[Task] Hook
  *
  * Links spawned teammates to the team activity log after successful spawn.
- * Only fires for team-scoped Task spawns (tool_input.team_name present).
+ * Only fires for team-scoped spawns (tool_input.team_name present). Since
+ * CC 2.1.178 (implicit team, no TeamCreate) `team_name` is accepted-but-ignored
+ * by CC; ork skills still pass it as the team key this hook records.
  *
  * @hook PostToolUse[Task]
  * @since CC 2.1.33

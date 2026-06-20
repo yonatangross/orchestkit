@@ -9,6 +9,12 @@
  * - Max 3 Opus-model members (budget guard)
  * - Passthrough for non-team Task spawns (regular subagents)
  *
+ * CC 2.1.178 removed the TeamCreate/TeamDelete tools (one implicit team per
+ * session now). `team_name` on the Agent/Task spawn is CC-accepted-but-ignored
+ * and is retained by ork skills as the team key this gate reads. Follow-up: the
+ * member-count source (~/.claude/teams/<name>/config.json via getTeamMembers)
+ * predates implicit teams and should be re-verified against CC 2.1.178+.
+ *
  * @hook PreToolUse[Task]
  * @since CC 2.1.33
  */
@@ -30,10 +36,10 @@ export function teamSizeGate(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
     return outputSilentSuccess();
   }
 
-  // Auto-clean stale team if TeamCreate would conflict (#447)
+  // Auto-clean a stale team config left by a prior run (#447)
   if (isStaleTeam(teamName)) {
     cleanupTeam(teamName);
-    ctx.log('team-size-gate', `Auto-cleaned stale team "${teamName}" before TeamCreate`);
+    ctx.log('team-size-gate', `Auto-cleaned stale team "${teamName}" before re-spawn`);
   }
 
   const model = (toolInput.model as string) || '';

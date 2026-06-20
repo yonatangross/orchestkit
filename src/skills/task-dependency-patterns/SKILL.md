@@ -122,12 +122,12 @@ Agent Teams provides multi-agent coordination with shared task lists and peer-to
 ### Team Workflow
 
 ```
-1. TeamCreate("my-feature")           → Creates team + shared task list
+1. (implicit team — CC 2.1.178+)       → one team per session; no TeamCreate
 2. TaskCreate(subject, description)    → Add tasks to shared list
-3. Agent(prompt, team_name, name)       → Spawn teammates
+3. Agent(name, team_name, prompt)      → Spawn teammates into the implicit team
 4. TaskUpdate(owner: "teammate-name")  → Assign tasks
 5. SendMessage(to, message, summary)   → Direct teammate communication
-6. TeamDelete()                          → Graceful team shutdown
+6. (turn / background ends)            → teammates wind down; Ctrl+F x2 for bg
 ```
 
 ### When to Use Teams vs Task Tool

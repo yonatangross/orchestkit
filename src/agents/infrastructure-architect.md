@@ -19,7 +19,6 @@ tools:
   - Glob
   - Agent(ork:ci-cd-engineer)
   - Agent(ork:deployment-manager)
-  - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate

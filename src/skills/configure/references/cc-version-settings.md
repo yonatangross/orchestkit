@@ -641,7 +641,7 @@ This is a regression for OrchestKit users. From CC 2.1.128 through 2.1.132, `Ent
 
 **Choose `"fresh"` only if** you intentionally want every new worktree to start from `origin/<default>` (e.g., clean-room agent runs that should never inherit local WIP). For the common OrchestKit flow — spawn an agent in a worktree to do work on top of an in-progress local branch — `"head"` is the only correct value.
 
-**Impact for OrchestKit**: All of `ork:implement`, `ork:cover`, `ork:fix-issue`, `ork:verify`, and any custom skill that calls `Task(... isolation: "worktree")` is affected. Without `worktree.baseRef: "head"`, agents start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, tests will run against stale source, and PRs will appear empty of your in-progress work. `ork:doctor` flags this — see `${CLAUDE_SKILL_DIR}/../doctor/references/remediation-guide.md` ("EnterWorktree drops my unpushed commits").
+**Impact for OrchestKit**: All of `ork:implement`, `ork:cover`, `ork:fix-issue`, `ork:verify`, and any custom skill that calls `Agent(... isolation: "worktree")` is affected. Without `worktree.baseRef: "head"`, agents start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, tests will run against stale source, and PRs will appear empty of your in-progress work. `ork:doctor` flags this — see `${CLAUDE_SKILL_DIR}/../doctor/references/remediation-guide.md` ("EnterWorktree drops my unpushed commits").
 
 ### `sandbox.bwrapPath` / `sandbox.socatPath` Managed Settings (Linux/WSL)
 

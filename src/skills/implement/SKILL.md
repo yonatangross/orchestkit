@@ -10,7 +10,7 @@ disable-model-invocation: true  # M127 A/S5: slash-only — explicit /ork:implem
 author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskStop, ToolSearch, CronCreate, CronDelete, Monitor, PushNotification, mcp__context7__query_docs, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, ToolSearch, CronCreate, CronDelete, Monitor, PushNotification, mcp__context7__query_docs, mcp__memory__search_nodes]
 skills: [api-design, react-server-components-framework, testing-unit, testing-e2e, testing-integration, explore, verify, memory, scope-appropriate-architecture, chain-patterns]
 complexity: medium
 persuasion-type: guidance
@@ -415,7 +415,7 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("${CLAUDE_SKIL
 - **Detect scope creep** (phase 7) — score 0-10, split PR if significant
 - **Real services when available** — if docker-compose/testcontainers exist, use them in Phase 6
 - **Reflect and capture lessons** (phase 10) — persist to memory graph
-- **Clean up agents** — use `TeamDelete()` after completion; press `Ctrl+F` twice as manual fallback. Note: `/clear` (CC 2.1.72+) preserves background agents
+- **Clean up agents** — teammates wind down at turn end (CC 2.1.178+ implicit team); press `Ctrl+F` twice to stop lingering background agents. Note: `/clear` (CC 2.1.72+) preserves background agents
 - **Exit worktrees** — call `ExitWorktree(action: "keep")` in Phase 10 if worktree was entered in Step 0; never leave orphaned worktrees
 
 ---

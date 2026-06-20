@@ -51,7 +51,7 @@ mapping is the whole point:
 | single | `/ork:<skill>` (fans out ork agents internally) | ~85–95% · 1× |
 | workflow | the **Workflow** tool — `pipeline` or `orchestrator-worker` | ~80–90% · 1× |
 | nested | an ork lead agent → sub-agents (Task/Agent), recurse ≤depth | ~70–80% · ~1.5× |
-| teams | **Agent Teams** — `TeamCreate` + `SendMessage` mesh | ~60–70% · ~3× |
+| teams | **Agent Teams** — implicit team, `Agent(name=)` + `SendMessage` mesh | ~60–70% · ~3× |
 | swarm | LLM council — parallel → blind review → chairman | ~50–65% · ~3–4× |
 
 Specialist picker = the **full 37-agent ork registry** (`all`/`none` bulk select). Caps are
