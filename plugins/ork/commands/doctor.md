@@ -33,7 +33,7 @@ AskUserQuestion(questions=[{
   "question": "What should doctor check?",
   "header": "Scope",
   "options": [
-    {"label": "Everything (default)", "description": "Full system health — ~20s; runs all 14 categories"},
+    {"label": "Everything (default)", "description": "Full system health — ~20s; runs all 15 categories"},
     {"label": "CC version & features only", "description": "Categories 10 + 13 + 14; ~3s — for 'is my CC up to date?'"},
     {"label": "MCP servers only", "description": "Category 12 (incl. pinning sub-check); ~5s — for 'are MCPs working?'"},
     {"label": "Plugin health only", "description": "Categories 0-3 + 5 (skills, agents, hooks, build); ~8s — for 'after npm run build'"}
@@ -45,7 +45,7 @@ Skip the prompt entirely when the scope is unambiguous from the invocation. The 
 
 ## Overview
 
-The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 14 categories:
+The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 15 categories:
 
 1. **Installed Plugins** - Detects ork plugin
 2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
@@ -121,7 +121,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | **8. Coordination** | Multi-worktree lock health, stale locks, sparse paths config |
 | **9. Context Budget** | Token usage against budget |
 
-### Categories 10-14: Environment
+### Categories 10-15: Environment
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
@@ -130,6 +130,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | **12. MCP Status** | Enabled/disabled state, credential checks, **HIGH-tier `@latest` pinning warn** | load `${CLAUDE_SKILL_DIR}/rules/mcp-status-checks.md` + `${CLAUDE_SKILL_DIR}/references/mcp-pinning-check.md` |
 | **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
 | **14. Effort/Model** | Detects `xhigh` effort configured without Opus 4.8 — see below | inline |
+| **15. Sandbox Posture** | CC Bash-sandbox on/off + `/sandbox` nudge (opt-in, Bash-only; info-level) | load `${CLAUDE_SKILL_DIR}/references/sandbox-posture.md` |
 
 ### Category 14: Effort/Model Compatibility (CC 2.1.111+)
 
