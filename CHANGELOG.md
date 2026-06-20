@@ -5,6 +5,24 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.54.0](https://github.com/yonatangross/orchestkit/compare/v8.53.0...v8.54.0) (2026-06-20)
+
+
+### Features
+
+* **cc:** modernize to 2.1.183 (drop TeamCreate/Task, bump floor) ([#2559](https://github.com/yonatangross/orchestkit/issues/2559)) ([5700399](https://github.com/yonatangross/orchestkit/commit/57003991e8ed2f3b73801d87deae3451dae4d668))
+
+
+### Bug Fixes
+
+* **hooks:** CCR reads tool_response, the field CC actually sends ([#2552](https://github.com/yonatangross/orchestkit/issues/2552)) ([#2553](https://github.com/yonatangross/orchestkit/issues/2553)) ([e3ae43d](https://github.com/yonatangross/orchestkit/commit/e3ae43de9a027aacef5c1c64be25275d6e30b87c))
+* **skills:** soften overclaims and fix streak goal race ([#2554](https://github.com/yonatangross/orchestkit/issues/2554)) ([d05782f](https://github.com/yonatangross/orchestkit/commit/d05782f00f66a7654371732cdfb8e7318552d3de))
+
+
+### CI/CD
+
+* **security:** resolve all 109 zizmor code-scanning alerts ([#2560](https://github.com/yonatangross/orchestkit/issues/2560)) ([0f1694b](https://github.com/yonatangross/orchestkit/commit/0f1694bcabddc06320fc47877412172b0edfef90))
+
 ## [8.53.0](https://github.com/yonatangross/orchestkit/compare/v8.52.0...v8.53.0) (2026-06-20)
 
 
