@@ -49,7 +49,9 @@ export interface HookInput {
   session_id: string;
   /** Tool-specific input parameters */
   tool_input: ToolInput;
-  /** Tool output (PostToolUse only) */
+  /** Tool result the model received (PostToolUse only) — the field CC actually sends */
+  tool_response?: unknown;
+  /** Tool output (PostToolUse only) — legacy alias for tool_response */
   tool_output?: unknown;
   /** Tool error message if any */
   tool_error?: string;

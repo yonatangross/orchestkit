@@ -300,7 +300,10 @@ export function mcpOutputTransform(input: HookInput, ctx: HookContext = NOOP_CTX
   }
 
   // Get the tool output
-  const rawOutput = input.tool_output ?? input.tool_result;
+  // CC sends the result in `tool_response` (verified on CC 2.1.183). The legacy
+  // `tool_output`/`tool_result` are kept as fallbacks — reading only those is why
+  // this hook never fired on live MCP outputs even after the field-name fix (#2552).
+  const rawOutput = input.tool_response ?? input.tool_output ?? input.tool_result;
   const outputStr = stringifyOutput(rawOutput);
 
   // Nothing to transform

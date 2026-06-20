@@ -85,6 +85,38 @@ describe('posttool/mcp-output-transform', () => {
   });
 
   // ===========================================================================
+  // Real CC field contract — CC delivers the result in `tool_response`
+  // (regression guard: reading only tool_output/tool_result is why the hook
+  // never fired on live MCP outputs even after the #2552 field-name fix)
+  // ===========================================================================
+
+  describe('reads tool_response (the field CC actually sends)', () => {
+    test('transforms a large result delivered in tool_response', () => {
+      const big = 'x'.repeat(30000);
+      const result = mcpOutputTransform(createInput({ tool_response: big }), testCtx);
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+      expect(output).toBeDefined();
+      expect(output.length).toBeLessThan(big.length);
+    });
+
+    test('prefers tool_response over the legacy tool_output when both present', () => {
+      const result = mcpOutputTransform(createInput({
+        tool_response: 'live result with user@example.com',
+        tool_output: 'stale legacy content',
+      }), testCtx);
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+      expect(output).toContain('[REDACTED_EMAIL]');
+      expect(output).not.toContain('stale legacy content');
+    });
+
+    test('still honors legacy tool_output when tool_response is absent', () => {
+      const result = mcpOutputTransform(createInput({ tool_output: 'legacy@example.com' }), testCtx);
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+      expect(output).toContain('[REDACTED_EMAIL]');
+    });
+  });
+
+  // ===========================================================================
   // PII redaction
   // ===========================================================================
 
