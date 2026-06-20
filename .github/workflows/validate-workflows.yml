@@ -59,3 +59,60 @@ jobs:
           # practice). Enabling shellcheck would block every PR until those
           # are hand-fixed. Re-enable later as a hardening step.
           ./actionlint -shellcheck= .github/workflows/*.yml
+
+  # actionlint catches GHA *bugs*; zizmor catches GHA *security* issues that
+  # actionlint does not — pull_request_target + checkout of untrusted code,
+  # template injection of `${{ github.event.* }}` into run-bodies, credential
+  # persistence, cache poisoning. Origin: the pull_request_target fork-exfil
+  # audit (milestone #160). Policy: ALL medium+ findings are uploaded to
+  # code-scanning as advisory; only NEW `dangerous-triggers` hard-block (the
+  # regression class this gate exists to prevent). Audited-safe exceptions live
+  # in .github/zizmor.yml with written justification.
+  zizmor:
+    name: zizmor (GHA security)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      security-events: write  # github/codeql-action/upload-sarif → code-scanning
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Install zizmor
+        run: |
+          set -euo pipefail
+          # Version-pinned (mirrors the actionlint pin above); bump in dep sweeps.
+          pipx install zizmor==1.25.2
+          zizmor --version
+
+      - name: Run zizmor (SARIF)
+        run: |
+          set -euo pipefail
+          # `--format sarif` exits 0 even with findings, so this step never blocks;
+          # the hard-block is the dangerous-triggers gate below. --offline keeps it
+          # deterministic (no token, no network flake) for the workflow static audits.
+          zizmor --offline --config .github/zizmor.yml --min-severity medium \
+            --format sarif .github/workflows/ > zizmor.sarif
+
+      - name: Upload SARIF to code-scanning
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e  # v4
+        with:
+          sarif_file: zizmor.sarif
+          category: zizmor
+
+      - name: Gate — block new dangerous-triggers (pull_request_target regressions)
+        run: |
+          set -euo pipefail
+          # Hard-fail ONLY on un-ignored `dangerous-triggers` (a fresh
+          # pull_request_target / workflow_run). Audited-safe existing ones are
+          # ignored in .github/zizmor.yml. The broad medium/high backlog is
+          # surfaced advisory-only via the SARIF upload above (no silent cap).
+          count="$(jq '[.runs[].results[] | select(.ruleId=="zizmor/dangerous-triggers")] | length' zizmor.sarif)"
+          if [ "$count" != "0" ]; then
+            echo "::error::zizmor found ${count} un-ignored dangerous-triggers finding(s) — a new insecure workflow trigger (e.g. pull_request_target) was introduced. Audit it; if genuinely safe, add a justified ignore to .github/zizmor.yml."
+            jq -r '.runs[].results[] | select(.ruleId=="zizmor/dangerous-triggers") | .locations[].physicalLocation.artifactLocation.uri' zizmor.sarif
+            exit 1
+          fi
+          echo "No new dangerous-triggers — gate clean."
