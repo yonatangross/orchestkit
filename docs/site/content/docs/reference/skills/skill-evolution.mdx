@@ -743,6 +743,18 @@ ELSE reject
 
 Ties (delta &lt; margin) reject — **the incumbent wins ties.** New work must clear the bar, not merely match it; this biases toward stability and stops score-noise from churning versions.
 
+### Precedence: LOCK `min_pass` vs RUBRIC `min_blocker`
+
+Two `min_pass`-flavored thresholds exist. They are **not** in conflict — they govern different axes, so both apply and neither overrides the other:
+
+| Source | Governs | Effect |
+|---|---|---|
+| **LOCK** `holdout.lock.json.min_pass` (`ork-holdout/1.0`) | the **composite** (whole-bake-off eligibility) | challenger's weighted composite must be `>= min_pass` to be promotable — the bake-off's pass bar |
+| **RUBRIC** per-dimension `min_blocker` (`ork-rubric/1.0`) | each **single dimension** | any one dimension below its `min_blocker` is a hard blocker, regardless of composite |
+| **RUBRIC** `composite.min_pass` (`ork-rubric/1.0`) | the rubric's **own** composite floor | the skill's standalone grading gate (e.g. assess's 5.5 implement gate); the bake-off uses the stricter LOCK value as its composite bar |
+
+So the LOCK's `min_pass` is the authoritative **composite** gate for promotion (it's holdout-specific and can be set stricter than the rubric's general-purpose floor — `7.0` vs `5.5` for `assess`), while `min_blocker` is the per-dimension floor that a high composite can never buy back. The rubric's own `composite.min_pass` is the skill's day-to-day grading gate and is **not** consulted by the Decision Rule. (The schema's `min_blocker &lt;= min_pass` invariant is per-dimension and unrelated to the LOCK composite.)
+
 ## The promotion ledger
 
 Every bake-off appends one immutable record (both outcomes) to `src/skills/&lt;skill&gt;/evals/promotion-ledger.jsonl` (`ork-promotion/1.0`):
@@ -796,7 +808,7 @@ On `rejected`, `promoted_to_version` is `null` and `reason` names the failing cl
 # run /ork:skill-evolution promote assess each turn; abort if SKILL.md never changes (challenger never won)
 ```
 
-**As a CI gate (planned — not yet wired)** — once `run-skill-eval.sh` grows a `--holdout-promote` path, it will run the bake-off headless and exit non-zero on `rejected`, so a PR editing a skill can't merge unless its challenger beat the champion; the sealed-hash check would run first (`holdout hash mismatch` on an un-re-frozen edit). Until that path ships, run the bake-off on-demand via the `promote` subcommand.
+**As a CI gate (wired — `assess` is the first instance)** — `run-skill-eval.sh --holdout-promote &lt;skill&gt;` runs the bake-off headless and exits non-zero on `rejected`, so a PR editing a skill can't merge unless its challenger beat the champion; the sealed-hash check runs first (`holdout hash mismatch`, exit 3, on an un-re-frozen edit). Today only `assess` is seeded (`src/skills/assess/evals/` — a *starter* holdout whose expected labels still need human review before real promotions are trusted); other skills fail closed (exit 2, "holdout eval set not found") until seeded. Run it on-demand or in CI; `--dry-run` validates the seal + rubric with zero grader spend.
 
 **Agents too:** the same loop applies to `src/agents/&lt;name&gt;.md` — holdout cases are tasks, the grader scores the agent's transcript. `bare-eval` honors agent `tools:`/`permissionMode` under `--print` (CC 2.1.119), so the agent is graded with its real tool surface.
 
@@ -807,7 +819,7 @@ On `rejected`, `promoted_to_version` is `null` and `reason` names the failing cl
 **The checks that block it:**
 
 1. **Hash seal** (step 2 + CI), computed `LC_ALL=C` so it's deterministic. Any holdout change without a reviewed re-freeze → `holdout hash mismatch`, fail-closed, no promotion.
-2. **Generator isolation** — `evolution-engine.sh`'s input allowlist must exclude `evals/holdout.jsonl`. To be enforced (planned) by a test asserting the engine's read-set never includes the holdout path — the engine script is the real surface, not a generic markdown grep. Until that test ships, isolation is a documented invariant the `promote` flow must honor.
+2. **Generator isolation** — `evolution-engine.sh`'s input allowlist must exclude `evals/holdout.jsonl`. Enforced by `tests/unit/test-evolution-engine.sh` (two assertions: the engine source statically references no holdout path, and a planted holdout canary token never leaks into a generated challenger) — the engine script is the real surface, not a generic markdown grep.
 3. **Tie-loses + per-dimension blocker** — even a higher composite can't promote if it tanks any dimension below `min_blocker`, so you can't trade a correctness regression for a verbosity win to clear the margin.
 
 ## Anti-patterns
