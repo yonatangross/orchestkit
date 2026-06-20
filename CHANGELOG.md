@@ -5,6 +5,28 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.51.0](https://github.com/yonatangross/orchestkit/compare/v8.50.0...v8.51.0) (2026-06-19)
+
+
+### Features
+
+* adopt CC 2.1.183 (git/IaC guard parity + capability docs) ([#2529](https://github.com/yonatangross/orchestkit/issues/2529)) ([f02bb72](https://github.com/yonatangross/orchestkit/commit/f02bb72cf5c5c53547c5cfdcd1ade25a2de27381))
+
+
+### Bug Fixes
+
+* **agents:** add worktree isolation to 2 frontend Bash+Write agents ([#2530](https://github.com/yonatangross/orchestkit/issues/2530)) ([5905f9b](https://github.com/yonatangross/orchestkit/commit/5905f9b2fc65ade1b50a8b1ce5cbaf44e356f91e))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.179) ([#2526](https://github.com/yonatangross/orchestkit/issues/2526)) ([995f309](https://github.com/yonatangross/orchestkit/commit/995f309c3b79e7996a328de76c2b8d5aafb025c1))
+
+
+### CI/CD
+
+* auto-heal skill build drift on src-only PRs ([#2528](https://github.com/yonatangross/orchestkit/issues/2528)) ([#2532](https://github.com/yonatangross/orchestkit/issues/2532)) ([793aa66](https://github.com/yonatangross/orchestkit/commit/793aa668b5abcdeaae250753ce497ac3bdd80f74))
+
 ## [8.50.0](https://github.com/yonatangross/orchestkit/compare/v8.49.0...v8.50.0) (2026-06-18)
 
 
