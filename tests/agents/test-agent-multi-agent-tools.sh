@@ -9,7 +9,7 @@
 #   Pre-2.1.147, plugin agents declaring MORE THAN ONE Agent(...) type in
 #   tools: had all but the LAST entry silently dropped during frontmatter
 #   parsing — quietly breaking multi-agent dispatch. The fix landed in
-#   2.1.147 (repo floor is now 2.1.170). This test pins the expectation:
+#   2.1.147 (repo floor is now 2.1.183). This test pins the expectation:
 #   all declared Agent(...) types — especially on multi-Agent agents — are
 #   present and resolvable, so a future parser regression OR a stale/typo'd
 #   reference fails CI instead of failing silently at dispatch time.
