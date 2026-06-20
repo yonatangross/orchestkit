@@ -3,26 +3,22 @@
 
 /**
  * MCP Output Transform — PostToolUse hook for MCP tool results
- * Issue #1240: Proof-of-concept for updatedMCPToolOutput
+ * Issues: #1240 (PoC) · #2264 (reversible compression) · #2302 (graduation → updatedToolOutput)
  *
- * ⚠️ EXPERIMENTAL / KNOWN-INERT LIVE — DEFER-NOT-REMOVE decision (#2302).
- * As of CC 2.1.168, Claude Code does NOT apply `updatedMCPToolOutput` returned
- * from a plugin PostToolUse `mcp__*` hook — so this hook (and #2264's reversible
- * stash path) never fires on live MCP outputs (verified: 0 transforms logged
- * across 4 CC restarts). The code is correct and unit-tested; it is kept DORMANT,
- * not deleted, because the unblocking condition is concrete and external:
- *   • Tracking issue:  #2302 (this decision of record).
- *   • GRADUATE (re-activate) when: a CC release applies plugin `updatedMCPToolOutput`
- *     on `mcp__*` PostToolUse. Self-verify $0 — a live tool call then produces an
- *     `mcp-transforms.jsonl` row with a non-empty `session_id` (the manual pipe-test
- *     row has an empty session_id, so the two are distinguishable).
- *   • REMOVE (delete the dead path) if: CC confirms this is wontfix-by-design, OR
- *     the dormant code blocks a hooks refactor, OR by the backstop date 2026-12-16
- *     if upstream support has not landed (re-evaluate at the next CC-floor bump).
- *   • Upstream gap is real but has NO confirmed public CC issue number — do not cite
- *     "CC #1794" (that is an unrelated, closed ORK WorktreeCreate bug; prior ref was
- *     wrong). Track upstream by behavior (the self-verify above), not a number.
- * Do not invest further here until the GRADUATE condition is met.
+ * ✅ LIVE (2026-06-20) — #2264 GRADUATED; formerly KNOWN-INERT under #2302.
+ * Root cause of the old dormancy: this hook emitted the DEPRECATED field
+ * `updatedMCPToolOutput`, which CC silently ignores (verified: 0 live transforms
+ * across CC ≤ 2.1.183). The CC hooks docs document `updatedToolOutput` as the
+ * CURRENT field that replaces a tool result BEFORE Claude reads it, for ALL tools
+ * (MCP output passes through without schema validation). Switching to that field
+ * activates #2264's compress-on-arrival path. Because it fires PRE-cache (before the
+ * result enters the cached context) it does NOT bust the prompt cache — unlike a
+ * post-cache compression proxy. Verified LIVE on CC 2.1.183 with a headless hook
+ * test that replaced both a real Bash result (schema-matched dict) and a real
+ * `mcp__*` result (string passthrough). Self-verify ($0): a live `mcp__*` call now
+ * writes an `mcp-transforms.jsonl` row with a non-empty `session_id`. #2302 remains
+ * the decision-of-record; its GRADUATE condition is now met.
+ * Lesson: `updatedMCPToolOutput` is a deprecated synonym — prefer `updatedToolOutput`.
  *
  * Transforms MCP tool outputs before Claude sees them:
  * 1. Token-saving truncation: large results are head+tail truncated
@@ -39,10 +35,11 @@
  * PII redaction always runs regardless of size.
  * Best-effort _meta extraction kept as fallback (costs nothing if absent).
  *
- * Returns updatedMCPToolOutput (CC 2.1.69) to replace the original result.
+ * Returns `updatedToolOutput` to replace the original result (the deprecated
+ * synonym `updatedMCPToolOutput`, added in CC 2.1.69, is silently ignored now).
  *
  * This hook is registered as a SYNC PostToolUse hook (not async) because
- * updatedMCPToolOutput must be applied before Claude processes the result.
+ * `updatedToolOutput` must be applied before Claude processes the result.
  */
 
 import type { HookInput, HookResult, HookMeta , HookContext} from '../types.js';
@@ -359,13 +356,15 @@ export function mcpOutputTransform(input: HookInput, ctx: HookContext = NOOP_CTX
     truncated || redactionCount > 0 ? 'info' : 'debug',
   );
 
-  // Return updatedMCPToolOutput to replace what Claude sees
+  // Return updatedToolOutput to replace what Claude sees (the deprecated synonym
+  // updatedMCPToolOutput is silently ignored on CC ≤2.1.183 — see header). For MCP
+  // tools the string `final` passes through without schema validation (verified live).
   return {
     continue: true,
     suppressOutput: true,
     hookSpecificOutput: {
       hookEventName: 'PostToolUse',
-      updatedMCPToolOutput: final,
+      updatedToolOutput: final,
     },
   };
 }

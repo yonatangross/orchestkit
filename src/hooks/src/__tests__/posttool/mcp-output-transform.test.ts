@@ -55,7 +55,7 @@ describe('posttool/mcp-output-transform', () => {
       const result = mcpOutputTransform(createInput({ tool_name: 'Bash' }), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
-      expect(result.hookSpecificOutput?.updatedMCPToolOutput).toBeUndefined();
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
     });
 
     test('skips empty tool_name', () => {
@@ -66,13 +66,13 @@ describe('posttool/mcp-output-transform', () => {
     test('skips null output', () => {
       const result = mcpOutputTransform(createInput({ tool_output: null }), testCtx);
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.updatedMCPToolOutput).toBeUndefined();
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
     });
 
     test('skips empty string output', () => {
       const result = mcpOutputTransform(createInput({ tool_output: '' }), testCtx);
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.updatedMCPToolOutput).toBeUndefined();
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
     });
 
     test('returns silent when no transformation needed', () => {
@@ -80,7 +80,7 @@ describe('posttool/mcp-output-transform', () => {
         tool_output: 'Short clean result with no PII.',
       }), testCtx);
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.updatedMCPToolOutput).toBeUndefined();
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
     });
   });
 
@@ -93,7 +93,7 @@ describe('posttool/mcp-output-transform', () => {
       const result = mcpOutputTransform(createInput({
         tool_output: 'Contact user@example.com for details',
       }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output).toContain('[REDACTED_EMAIL]');
       expect(output).not.toContain('user@example.com');
     });
@@ -102,7 +102,7 @@ describe('posttool/mcp-output-transform', () => {
       const result = mcpOutputTransform(createInput({
         tool_output: 'From alice@foo.com to bob@bar.org about project',
       }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output).not.toContain('alice@foo.com');
       expect(output).not.toContain('bob@bar.org');
     });
@@ -111,7 +111,7 @@ describe('posttool/mcp-output-transform', () => {
       const result = mcpOutputTransform(createInput({
         tool_output: 'Call 234-567-8901 for support',
       }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output).toContain('[REDACTED_PHONE]');
       expect(output).not.toContain('234-567-8901');
     });
@@ -120,7 +120,7 @@ describe('posttool/mcp-output-transform', () => {
       const result = mcpOutputTransform(createInput({
         tool_output: 'International: +1-234-567-8901 please call',
       }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output).toContain('[REDACTED_PHONE]');
     });
 
@@ -128,7 +128,7 @@ describe('posttool/mcp-output-transform', () => {
       const result = mcpOutputTransform(createInput({
         tool_output: 'Office: (234) 567-8901 ext 100',
       }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output).toContain('[REDACTED_PHONE]');
     });
 
@@ -137,14 +137,14 @@ describe('posttool/mcp-output-transform', () => {
         tool_output: 'Error code: 123-456 in module 789',
       }), testCtx);
       // Short numbers should not trigger phone redaction
-      expect(result.hookSpecificOutput?.updatedMCPToolOutput).toBeUndefined();
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
     });
 
     test('redacts both email and phone in same text', () => {
       const result = mcpOutputTransform(createInput({
         tool_output: 'Reach user@test.com or (555) 123-4567 for help',
       }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output).toContain('[REDACTED_EMAIL]');
       expect(output).toContain('[REDACTED_PHONE]');
     });
@@ -153,7 +153,7 @@ describe('posttool/mcp-output-transform', () => {
       const result = mcpOutputTransform(createInput({
         tool_output: 'Before user@example.com After',
       }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output).toContain('Before');
       expect(output).toContain('After');
     });
@@ -168,13 +168,13 @@ describe('posttool/mcp-output-transform', () => {
       const shortOutput = 'x'.repeat(1999);
       const result = mcpOutputTransform(createInput({ tool_output: shortOutput }), testCtx);
       // Under 2000 chars + no PII = no transformation
-      expect(result.hookSpecificOutput?.updatedMCPToolOutput).toBeUndefined();
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
     });
 
     test('truncates output over threshold', () => {
       const longOutput = 'A'.repeat(5000);
       const result = mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output.length).toBeLessThan(5000);
       expect(output).toContain('[Result truncated');
     });
@@ -186,7 +186,7 @@ describe('posttool/mcp-output-transform', () => {
       const longOutput = head + middle + tail;
 
       const result = mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output).toContain('HEAD_MARKER_');
       expect(output).toContain('_TAIL_MARKER');
       expect(output).not.toContain('m'.repeat(100));
@@ -195,7 +195,7 @@ describe('posttool/mcp-output-transform', () => {
     test('truncation notice includes original and final length', () => {
       const longOutput = 'z'.repeat(5000);
       const result = mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output).toContain('5000 chars');
       expect(output).toContain('1800 chars');
     });
@@ -227,7 +227,7 @@ describe('posttool/mcp-output-transform', () => {
     test('emits a Read pointer instead of the lossy notice', () => {
       const longOutput = 'A'.repeat(12000);
       const result = mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
 
       expect(output).toContain('Full output: Read ');
       expect(output).toContain('.txt');
@@ -258,7 +258,7 @@ describe('posttool/mcp-output-transform', () => {
       delete process.env.ORK_HEADROOM_REVERSIBLE;
       const longOutput = 'D'.repeat(12000);
       const result = mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
 
       expect(output).toContain('[Result truncated');
       expect(output).not.toContain('Full output: Read ');
@@ -280,7 +280,7 @@ describe('posttool/mcp-output-transform', () => {
       const huge = 'F'.repeat(60000);
       const result = mcpOutputTransform(createInput({ tool_output: huge }), testCtx);
       // Guard short-circuits truncation entirely — no pointer, no stash.
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput;
+      const output = result.hookSpecificOutput?.updatedToolOutput;
       if (typeof output === 'string') expect(output).not.toContain('Full output: Read ');
       expect(existsSync(headroomDir())).toBe(false);
     });
@@ -290,7 +290,7 @@ describe('posttool/mcp-output-transform', () => {
       const secret = 'AKIAIOSFODNN7EXAMPLE';
       const longOutput = `${'G'.repeat(6000)} ${secret} ${'H'.repeat(6000)}`;
       const result = mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
 
       // No stash written, no pointer — degraded to the lossy notice.
       expect(existsSync(headroomDir())).toBe(false);
@@ -343,7 +343,7 @@ describe('posttool/mcp-output-transform', () => {
       const result = mcpOutputTransform(createInput({
         tool_output: 'Contact admin@corp.com now',
       }), testCtx);
-      expect(result.hookSpecificOutput?.updatedMCPToolOutput).toContain('[REDACTED_EMAIL]');
+      expect(result.hookSpecificOutput?.updatedToolOutput).toContain('[REDACTED_EMAIL]');
     });
 
     test('handles MCP content block array', () => {
@@ -353,7 +353,7 @@ describe('posttool/mcp-output-transform', () => {
           { type: 'text', text: 'More content here' },
         ],
       }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output).toContain('[REDACTED_EMAIL]');
     });
 
@@ -361,7 +361,7 @@ describe('posttool/mcp-output-transform', () => {
       const result = mcpOutputTransform(createInput({
         tool_output: { data: 'Contact support@help.com', count: 42 },
       }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output).toContain('[REDACTED_EMAIL]');
     });
 
@@ -370,7 +370,7 @@ describe('posttool/mcp-output-transform', () => {
         tool_output: undefined,
         tool_result: 'Fallback result with admin@test.com inside',
       }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output).toContain('[REDACTED_EMAIL]');
     });
   });
@@ -380,12 +380,12 @@ describe('posttool/mcp-output-transform', () => {
   // ===========================================================================
 
   describe('output format', () => {
-    test('returns updatedMCPToolOutput when transformed', () => {
+    test('returns updatedToolOutput when transformed', () => {
       const result = mcpOutputTransform(createInput({
         tool_output: 'Email user@test.com please',
       }), testCtx);
       expect(result.hookSpecificOutput?.hookEventName).toBe('PostToolUse');
-      expect(result.hookSpecificOutput?.updatedMCPToolOutput).toBeDefined();
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeDefined();
     });
 
     test('always continues execution', () => {
@@ -399,7 +399,7 @@ describe('posttool/mcp-output-transform', () => {
       // Email near the end of a long output — should be redacted even if truncated
       const longOutput = `${'x'.repeat(4500)} secret@corp.com ${'y'.repeat(400)}`;
       const result = mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       // The email is in the tail section (last 600 chars)
       expect(output).not.toContain('secret@corp.com');
     });
@@ -415,13 +415,13 @@ describe('posttool/mcp-output-transform', () => {
       const largeOutput = 'A'.repeat(60_000);
       const result = mcpOutputTransform(createInput({ tool_output: largeOutput }), testCtx);
       // No transformation needed (no PII, and truncation skipped)
-      expect(result.hookSpecificOutput?.updatedMCPToolOutput).toBeUndefined();
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
     });
 
     test('still truncates results in the 2K–50K range', () => {
       const midOutput = 'B'.repeat(10_000);
       const result = mcpOutputTransform(createInput({ tool_output: midOutput }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output.length).toBeLessThan(10_000);
       expect(output).toContain('[Result truncated');
     });
@@ -429,7 +429,7 @@ describe('posttool/mcp-output-transform', () => {
     test('PII redaction still runs on large results > 50K', () => {
       const largeWithPII = `${'x'.repeat(55_000)} admin@corp.com ${'y'.repeat(5000)}`;
       const result = mcpOutputTransform(createInput({ tool_output: largeWithPII }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output).toContain('[REDACTED_EMAIL]');
       expect(output).not.toContain('admin@corp.com');
       // Result should NOT be truncated (> 50K threshold)
@@ -445,8 +445,8 @@ describe('posttool/mcp-output-transform', () => {
       };
       const result = mcpOutputTransform(createInput({ tool_output: outputWithMeta }), testCtx);
       // _meta found → skip truncation even though stringified size may be small
-      // Since PII-free, result has no updatedMCPToolOutput
-      expect(result.hookSpecificOutput?.updatedMCPToolOutput).toBeUndefined();
+      // Since PII-free, result has no updatedToolOutput
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
     });
 
     test('respects _meta and still redacts PII', () => {
@@ -455,7 +455,7 @@ describe('posttool/mcp-output-transform', () => {
         data: 'Contact admin@secret.com for the schema',
       };
       const result = mcpOutputTransform(createInput({ tool_output: outputWithMeta }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       expect(output).toContain('[REDACTED_EMAIL]');
       expect(output).not.toContain('[Result truncated');
     });
@@ -476,7 +476,7 @@ describe('posttool/mcp-output-transform', () => {
         data: 'A'.repeat(5000),
       };
       const result = mcpOutputTransform(createInput({ tool_output: outputWithBadMeta }), testCtx);
-      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
       // Invalid _meta → falls back to normal truncation
       expect(output).toContain('[Result truncated');
     });
