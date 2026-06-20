@@ -78,7 +78,7 @@ When the user wants graded feedback beyond pass/fail booleans, the skill MAY als
 
 Scores are 0–10 (`min_pass` = soft floor, `min_blocker` = hard blocker regardless of composite); dimension weights MUST sum to 1.0 — see the schema for the full contract.
 
-The file is deliberately **user-editable before the `/goal` run** — that is the point. Adjusting weights and `min_pass` thresholds is how the user injects judgement into the loop without rewriting assertions (rubric-as-environment-feedback, Lance Martin 2026-06-09). The post-timeout grader (§7) treats the rubric, if present, as the user's intent — senior to the literal assertion text.
+The file is deliberately **user-editable before the `/goal` run** — that is the point. Adjusting weights and `min_pass` thresholds is how the user injects judgement into the loop without rewriting assertions (rubric-as-environment-feedback, Lance Martin 2026-06-09). The post-timeout grader (§8) treats the rubric, if present, as the user's intent — senior to the literal assertion text.
 
 ## 5. Worked examples
 
@@ -149,7 +149,24 @@ Output:
 
 Rationale: the LOC bound is the convergent signal — without it, `/goal` can keep "improving" forever. File-existence checks pin the structural decomposition; tests + lint guard correctness. Higher budget because refactors run longer than bug fixes.
 
-## 6. Anti-patterns
+## 6. Recipe Library — pre-built loops
+
+Where §3–5 *generate* a custom `/goal` line from a spec, the recipe library *ships* ready-made ones for the recurring autonomous loops. Each is a loop shape wrapped around an ork worker skill, following the same convergent / falsifiable / budgeted rules as a generated line.
+
+| Recipe | Use when | Worker |
+|---|---|---|
+| 🧪 Coverage climb | raise coverage to a target, meaningfully | `/ork:cover` |
+| 🔴 Production error sweep | clear a backlog of actionable errors | `/ork:fix-issue` |
+| 📚 Docs-drift sweep | docs / reference drifted from code | `/ork:audit-full` |
+| ⚡ Page-load budget | a page exceeds its latency budget | `/ork:performance` |
+| 🧹 Repository cleanup | stale memory / state accumulated | `/ork:dream` |
+| ✅ Quality streak | don't trust a single green (flaky suite) | `/ork:verify` |
+| 🎫 Ticket → PR-ready | drive an issue to a CI-green PR | `/ork:fix-issue` → `/ork:create-pr` |
+| 🧼 Type/lint zero | clear a type/lint backlog without suppressions | fixer agent |
+
+Full recipes — the exact `/goal until … abort-if …` lines, convergent signal, and per-recipe guardrail: `references/recipe-library.md`. That file is the in-repo source for the `ork-loops` pack published to skills.sh (the channel Forward Future's Loop Library uses), so the loop *recipes* travel while ork supplies the *machinery* each pass runs on.
+
+## 7. Anti-patterns
 
 | Bad | Why it fails | Good |
 |---|---|---|
@@ -157,7 +174,7 @@ Rationale: the LOC bound is the convergent signal — without it, `/goal` can ke
 | `/goal until the code looks clean` | Not falsifiable. The agent cannot check "looks clean" — it will either declare victory immediately or never. | `/goal until pnpm lint passes AND [ $(wc -l < src/auth.ts) -lt 200 ]` |
 | `/goal until done` | Unbounded. There is no terminating condition; combined with a generous `abort-if turns > 50` this is how runs eat 500K tokens overnight. | Pick 3–5 observable assertions. If you cannot, the PRD is not ready — go to `/ork:write-prd`. |
 
-## 7. Post-timeout assertion grader
+## 8. Post-timeout assertion grader
 
 If the `/goal` loop hits `abort-if` (turn/token cap or no-progress stall), do NOT retry the same line and do NOT let the looping agent critique its own assertions. Spawn a FRESH-context grader that audits the assertion set itself:
 
@@ -179,7 +196,7 @@ Grading must happen in an independent context window — never self-critique (ve
 
 Full pattern (prompt template, independence rules, worked example): `chain-patterns/references/assertion-grader.md`.
 
-## 8. Related skills
+## 9. Related skills
 
 - `ork:write-prd` — if the input has no acceptance criteria, run this first.
 - `ork:brainstorm` — useful when the PRD itself is contested and you want options before writing the goal.

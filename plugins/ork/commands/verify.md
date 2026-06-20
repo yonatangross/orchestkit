@@ -32,6 +32,14 @@ for token in "$ARGUMENTS".split():
     if token.startswith("--model="):
         MODEL_OVERRIDE = token.split("=", 1)[1]  # "opus", "sonnet", "haiku"
         SCOPE = SCOPE.replace(token, "").strip()
+
+# Streak gate detection (#2540) — consecutive-pass mode
+STREAK_TARGET = None
+for token in "$ARGUMENTS".split():
+    if token.startswith("--streak="):
+        STREAK_TARGET = int(token.split("=", 1)[1])  # N consecutive READY verdicts required (N >= 2)
+        SCOPE = SCOPE.replace(token, "").strip()
+# When set, apply the Streak Gate (see below). Full protocol: references/streak-gate.md
 ```
 
 Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`) or full IDs (`claude-opus-4-8`) per CC 2.1.74.
@@ -265,6 +273,19 @@ Composite is necessary but not sufficient — a strong composite can average awa
 Threshold bands and reporting format: `references/grading-rubric.md` ("Dimension-Level Blockers" section).
 
 
+## Streak Gate (consecutive-pass mode)
+
+A single green is not proof — flaky and order-dependent suites pass once and fail the next run. With `--streak=N`, verify declares **READY FOR MERGE only after N consecutive passing runs**, resetting the count to 0 on any non-ready verdict. The count persists across independent runs in `.claude/chain/verify-streak.json`, keyed by scope.
+
+- `--streak=N` (N ≥ 2; 3 is the sensible default). Absent ⇒ today's single pass/fail behavior, unchanged. Target may also come from `.claude/policies/verification-policy.json` (`"streak_target"`); the flag wins.
+- The gate sits **above** the verdict — it never loosens a blocker, it only withholds "done" until the streak is met. Each run re-executes the *actual* tests (no cached passes — that independence is the whole point).
+- Reset rule: **any** non-`READY FOR MERGE` verdict (tripped blocker, failing test, or IMPROVEMENTS RECOMMENDED) zeroes the count. No partial credit.
+- The verdict surfaces the count: `STREAK 2/3 — one more green to merge`, or `streak reset to 0/3 (security 3.2 < 4.0)`.
+- This is the native mechanism the `prd-to-goal` quality-streak recipe (#2539) leans on; pairs with `/goal until jq -e '.met==true' .claude/chain/verify-streak.json`.
+
+Full protocol — ledger schema, run loop, `/goal` wiring, and `/ork:cover` reuse: `Read("${CLAUDE_SKILL_DIR}/references/streak-gate.md")`.
+
+
 ## Evidence & Test Execution
 
 Load details: `Read("${CLAUDE_SKILL_DIR}/rules/evidence-collection.md")` for git commands, test execution patterns, metrics tracking, and post-verification feedback.
@@ -301,6 +322,8 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/report-template.md")` for fu
 
 ## Verdict
 **[READY FOR MERGE | IMPROVEMENTS RECOMMENDED | BLOCKED]**
+
+[--streak=N mode only: **STREAK [current]/[target]** — READY FOR MERGE requires the full target; any non-ready run resets to 0.]
 ```
 
 > **Push notifications (CC 2.1.110+):** Verify runs for >5 min are common on complex changes. When the final verdict is ready, call `PushNotification` to alert the user — they likely walked away from the terminal. Requires Remote Control with "Push when Claude decides" config; fails silently for users without it.
@@ -328,6 +351,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `orchestration-mode.md` | Agent Teams vs Task Tool |
 | `policy-as-code.md` | Verification policy configuration |
 | `verification-checklist.md` | Pre-flight checklist |
+| `streak-gate.md` | `--streak=N` consecutive-pass gate: ledger schema, reset rule, `/goal` wiring, cover reuse |
 
 ## Rules
 
@@ -383,4 +407,4 @@ TaskUpdate(taskId=commit_id, addBlockedBy=[verify_task_id])
 - `browser-tools` - Browser automation for visual capture
 
 
-**Version:** 4.3.0 (June 2026) — Added progressive output for incremental agent scores
+**Version:** 4.4.0 (June 2026) — Added `--streak=N` consecutive-pass gate (#2540)
