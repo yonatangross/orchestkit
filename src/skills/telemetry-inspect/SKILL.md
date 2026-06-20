@@ -10,6 +10,7 @@ version: 1.0.0
 tags: [telemetry, observability, diagnostics, metrics, session, health, schema, inspection]
 user-invocable: true
 allowed-tools: [Bash, Read, Grep, Glob]
+disallowed-tools: [Write, Edit, MultiEdit, NotebookEdit]
 complexity: low
 persuasion-type: collaborative
 effort: low

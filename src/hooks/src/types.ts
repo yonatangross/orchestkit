@@ -1,7 +1,7 @@
 /**
  * TypeScript type definitions for Claude Code hooks
- * Reviewed through CC 2.1.170 (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.83 CwdChanged/FileChanged, 2.1.84 TaskCreated/WorktreeCreate HTTP, 2.1.88 PermissionDenied + auto permission mode, 2.1.89 defer permission, 2.1.94 sessionTitle on UserPromptSubmit, 2.1.152 MessageDisplay event, 2.1.163 Stop/SubagentStop may return additionalContext — ork opts out, see stop/unified-dispatcher.ts).
- * No new hook input/output/event fields landed in 2.1.153–2.1.170 (2.1.169's post-session hook is self-hosted-runner lifecycle, not a hooks.json event; 2.1.170 is model-access only) (the 2.1.163 change is a read-semantics change on the existing additionalContext field, already modeled below), so these types are unchanged.
+ * Reviewed through CC 2.1.183 (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.83 CwdChanged/FileChanged, 2.1.84 TaskCreated/WorktreeCreate HTTP, 2.1.88 PermissionDenied + auto permission mode, 2.1.89 defer permission, 2.1.94 sessionTitle on UserPromptSubmit, 2.1.152 MessageDisplay event, 2.1.163 Stop/SubagentStop may return additionalContext — ork opts out, see stop/unified-dispatcher.ts, 2.1.173 reloadSkills + sessionTitle on SessionStart, 2.1.177 continueOnBlock PostToolUse config).
+ * 2.1.171–2.1.183 added NO new hook output JSON field that ork consumes: 2.1.173 `reloadSkills` (SessionStart) is unused — ork installs no skills mid-session; 2.1.173 `sessionTitle` on SessionStart is the existing field on a new event (the hookEventName union already permits SessionStart); 2.1.177 `continueOnBlock` is a hooks.json registration flag, not an output field (used by goal-budget-guard/goal-tracker/check-plugins-drift); 2.1.177 Stop/SubagentStop additionalContext — ork still opts out (stop/unified-dispatcher.ts); 2.1.178 removed the TeamCreate/TeamDelete TOOLS (not hooks.json events) and added Tool(param:value) permission rules; 2.1.183 lets a teammate's background task outlive its turn (no hooks-contract change). So these types are unchanged.
  */
 
 /**
@@ -287,7 +287,7 @@ export interface HookSpecificOutput {
   retry?: boolean;
   /** Paths to watch for changes (CwdChanged, CC 2.1.89) */
   watchPaths?: string[];
-  /** Session title (UserPromptSubmit, CC 2.1.94) — sets the display name shown in the prompt bar and remote sessions */
+  /** Session title (UserPromptSubmit CC 2.1.94; also SessionStart CC 2.1.173) — sets the display name shown in the prompt bar and remote sessions */
   sessionTitle?: string;
 }
 
