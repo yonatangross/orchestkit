@@ -4,7 +4,7 @@ Pre-written, battle-tested `/goal until … abort-if …` recipes for the recurr
 
 Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (the work each pass does). They follow the same rules as a generated line: AND-joined observable assertions in the `until`, a real `abort-if` budget, and a convergent signal so the loop terminates.
 
-> **Distribution:** this library is the in-repo source for the `ork-loops` pack published to skills.sh — the same channel Forward Future's Loop Library uses (`npx skills add`). Interop, not competition: we ship the loop *recipes*; ork supplies the *machinery* (rubric gates, 211 safety hooks, parallel agents) each pass runs on.
+> **Distribution (planned):** this library is the in-repo source intended for an `ork-loops` pack on skills.sh — the same channel Forward Future's Loop Library uses (`npx skills add`). The pack itself is not built yet; today the recipes live here. Interop, not competition: we ship the loop *recipes*; ork supplies the *machinery* (rubric gates, 211 safety hooks, parallel agents) each pass runs on.
 
 ## How to use a recipe
 
@@ -94,11 +94,13 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 **Backs each pass:** `/ork:verify` · **Convergent signal:** a consecutive-pass counter reaches N.
 
 ```
-/goal until <VERIFY_CMD> passes 3 times in a row
+rm -f .claude/chain/verify-streak.json   # reset: a stale met:true would exit the loop with 0 fresh runs
+/goal until jq -e '.met==true' .claude/chain/verify-streak.json   # run /ork:verify --streak=3 each turn
 /goal abort-if turns > 15 OR tokens > 150000 OR no_progress_for_4_turns
 ```
 
-**Guardrail:** this recipe needs the **native streak gate (#2540)**. Until that lands, `/goal` can't count consecutive passes — approximate it in the `until`-check with `<VERIFY_CMD> && <VERIFY_CMD> && <VERIFY_CMD>` (slower, but honest). This recipe is exactly *why* #2540 exists.
+**Worker:** `/ork:verify --streak=3` — the native streak gate (#2540, now shipped) re-runs the real suite each turn, increments on READY, and zeroes on any red.
+**Guardrail:** `/goal` reads the `until`-clause at the *top* of each turn, before that turn's verify — so a `met:true` left by a *previous* completed streak (same scope) would exit immediately with zero fresh runs. The `rm` first line resets the ledger so the loop starts cold. Full race write-up: `verify/references/streak-gate.md` ("Stale-ledger guard").
 
 ## 🎫 Ticket → PR-ready
 

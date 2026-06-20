@@ -181,7 +181,7 @@ Where §3–5 *generate* a custom `/goal` line from a spec, the recipe library *
 | 🎫 Ticket → PR-ready | drive an issue to a CI-green PR | `/ork:fix-issue` → `/ork:create-pr` |
 | 🧼 Type/lint zero | clear a type/lint backlog without suppressions | fixer agent |
 
-Full recipes — the exact `/goal until … abort-if …` lines, convergent signal, and per-recipe guardrail: `references/recipe-library.md`. That file is the in-repo source for the `ork-loops` pack published to skills.sh (the channel Forward Future's Loop Library uses), so the loop *recipes* travel while ork supplies the *machinery* each pass runs on.
+Full recipes — the exact `/goal until … abort-if …` lines, convergent signal, and per-recipe guardrail: `references/recipe-library.md`. That file is the in-repo source intended for an `ork-loops` pack on skills.sh (not yet built; the channel Forward Future's Loop Library uses), so the loop *recipes* can travel while ork supplies the *machinery* each pass runs on.
 
 ## 7. Anti-patterns
 
@@ -211,7 +211,7 @@ The grader receives the `/goal` line, `.claude/rubric.json` (if emitted), a comp
 
 Grading must happen in an independent context window — never self-critique (verifier sub-agents outperform self-critique because the grader does not share the producer's context; Lance Martin, 2026-06-09). Budget: one grader call per timeout, and the grader never loops itself.
 
-Full pattern (prompt template, independence rules, worked example): `chain-patterns/references/assertion-grader.md`.
+Full pattern (prompt template, independence rules, worked example): `${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/assertion-grader.md`.
 
 ## 9. Related skills
 
