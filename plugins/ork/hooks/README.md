@@ -539,7 +539,8 @@ interface HookResult {
     permissionDecisionReason?: string;             // Why allowed/denied
     additionalContext?: string;                    // CC 2.1.9: inject context
     hookEventName?: 'PreToolUse' | 'PostToolUse' | ...; // Required for additionalContext
-    updatedMCPToolOutput?: unknown;                // Replace MCP tool output (CC 2.1.69)
+    updatedToolOutput?: unknown;                   // Replace a tool result (current; all tools)
+    updatedMCPToolOutput?: unknown;                // Deprecated synonym — ignored on CC <=2.1.183
     updatedPermissions?: Record<string, unknown>;  // Apply permission rules (CC 2.1.69)
   };
 }
