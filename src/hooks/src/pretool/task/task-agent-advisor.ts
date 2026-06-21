@@ -8,6 +8,10 @@
  * Analytics shows 250+ ad-hoc names being spawned instead of curated agents.
  * This hook nudges users toward the right agent via additionalContext.
  *
+ * Also nudges general-purpose/untyped spawns that merely RUN tests/build/lint
+ * back toward Bash — deterministic commands don't need an LLM subagent (one
+ * observed swarm burned ~1.35M tokens running test batches through agents).
+ *
  * Non-blocking: always returns "continue".
  *
  * @hook PreToolUse[Task]
@@ -91,9 +95,52 @@ export function matchSpecialistDomain(description: string, prompt: string): stri
   return match ? match.agent : null;
 }
 
+/**
+ * Deterministic-command detector. A `general-purpose` (or untyped) spawn whose task
+ * merely RUNS tests/build/lint belongs in Bash, not an LLM subagent: running a suite
+ * needs zero reasoning, yet each general-purpose agent loads ~400k+ tokens just to
+ * report pass/fail. Observed 2026-06-21: three such agents burned ~1.35M tokens / wave.
+ *
+ * Two arms: an explicit run/runner phrase (`run … tests`, `pytest`), OR a bare test-noun
+ * task (`dashboard tests`) — but NOT when the task carries a reasoning/authoring verb
+ * (write/fix/debug/explore/audit/coverage…), which is legitimate agent work (writing
+ * tests → ork:test-generator; debugging a failure → ork:debug-investigator). Suffixes
+ * are bounded so `fix(ing)` suppresses but `fixture`/`address` do not. Exported for tests.
+ */
+export const RUN_CMD_PATTERN =
+  /\b(run|execute|kick off)\b.{0,30}\b(tests?|test suite|build|lint|typecheck|ci)\b|\b(npm test|pytest|vitest|jest|go test|cargo test|npm run build)\b/i;
+export const TEST_NOUN_PATTERN = /\btests?\b|\btest suite\b|\bspecs?\b/i;
+export const REASONING_VERB_PATTERN =
+  /\b(?:writ\w*|wrote|generat\w*|creat\w*|updat\w*|debug\w*|investigat\w*|analy[sz]\w*|review\w*|explain\w*|root.?cause|fail\w*|coverage|refactor\w*|explor\w*|understand\w*|audit\w*|document\w*|flak\w*|design\w*)\b|\b(?:add(?:s|ed|ing)?|fix(?:es|ed|ing)?|why)\b/i;
+
+/** True when a task merely RUNS a deterministic command (→ Bash, not an LLM subagent). */
+export function isDeterministicRunTask(description: string, prompt: string): boolean {
+  const text = `${description}\n${prompt.slice(0, NUDGE_SCAN_MAX_CHARS)}`;
+  if (REASONING_VERB_PATTERN.test(text)) return false;
+  return RUN_CMD_PATTERN.test(text) || TEST_NOUN_PATTERN.test(text);
+}
+
 export function taskAgentAdvisor(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolInput = input.tool_input || {};
   const agentType = (toolInput.subagent_type as string) || '';
+
+  // Deterministic-command guard: a general-purpose (or untyped) spawn whose task is to
+  // RUN tests/build/lint should run in Bash, not an LLM agent. Checked BEFORE the
+  // empty-type early-return so untyped spawns (which default to general-purpose) are
+  // covered too. Advisory only — never blocks.
+  if (agentType === 'general-purpose' || agentType === '') {
+    const description = (toolInput.description as string) || '';
+    const prompt = (toolInput.prompt as string) || '';
+    if (isDeterministicRunTask(description, prompt)) {
+      ctx.log(HOOK_NAME, 'deterministic test/build/lint task on general-purpose — nudging to Bash');
+      return outputAllowWithContext(
+        'Running tests/build/lint is deterministic — run it in Bash in this loop, not an LLM agent ' +
+          '(each general-purpose agent burns ~400k+ tokens for a pass/fail). ' +
+          'Parallelize at the runner: `pytest -n auto`, `vitest --shard`. ' +
+          'Spawn `ork:debug-investigator` only to fix the FAILING subset.',
+      );
+    }
+  }
 
   if (!agentType) {
     return outputSilentSuccess();
