@@ -337,8 +337,17 @@ function parseSnapshotBullets(snapshotText) {
 // correctly returned [], tripping the M134 empty-array guard into a permanent
 // parse_failed loop. Active announcements ("enabled by default", "enables X")
 // still match.
+// `now \w+s` excludes pure presentational/message verbs (reads|shows|displays|
+// renders|says|prints) — "the stream-stall hint now READS 'X' instead of 'Y'"
+// (2.1.185, a one-line message reword) is not an adoptable surface, but tripped
+// `now \w+s` via "now reads" → routed to the LLM, whose correct [] hit the M134
+// empty-array guard and filed a spurious "manual triage needed" issue (#2568).
+// This denylist is incomplete on purpose: a reword using a verb NOT listed (e.g.
+// "now wraps") simply falls through to the LLM — the status-quo conservative
+// path, never a regression. Capability "now <verb>s" forms ("now ACCEPTS --scope",
+// "now CACHES results") are not presentational, so they still hint.
 const FEATURE_HINT_RE =
-  /\b(add(?:ed|s)?|new|introduc\w*|you can now|can now|now \w+s|support(?:s|ed)?|(?<!\b(?:was|is|are|were|been)\s)enabl\w*|deprecat\w*)\b/i;
+  /\b(add(?:ed|s)?|new|introduc\w*|you can now|can now|now (?!(?:reads|shows|displays|renders|says|prints)\b)\w+s|support(?:s|ed)?|(?<!\b(?:was|is|are|were|been)\s)enabl\w*|deprecat\w*)\b/i;
 
 // #2267: true when a snapshot describes no adoptable surface (no bullet matches
 // FEATURE_HINT_RE). Empty bullet list also counts as featureless.

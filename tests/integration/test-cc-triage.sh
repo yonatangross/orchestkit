@@ -809,6 +809,47 @@ else
 fi
 
 # ============================================================================
+# Test 15c: presentational reword "now reads '<msg>' instead of '<msg>'" is NOT a
+# feature hint (the 2.1.185 trap, #2568). CC 2.1.185 shipped a single bullet — a
+# stream-stall hint message reword — that tripped FEATURE_HINT_RE via the `now
+# \w+s` branch ("now reads"), routing a featureless snapshot to the LLM; the LLM's
+# correct [] hit the M134 empty-array guard and filed a spurious "manual triage
+# needed" issue. The presentational-verb carve-out (reads|shows|displays|renders|
+# says|prints) graduates this shape deterministically, no LLM call. A capability
+# "now <verb>s" ("now accepts --scope") is not presentational and still hints.
+# ============================================================================
+cat > shared/cc-snapshots/2.1.996.md <<'EOF'
+# Claude Code 2.1.996
+
+- The stream-stall hint now reads "Waiting for API response · will retry in …" instead of "No response from API · Retrying in …", and triggers after 20s of silence instead of 10s
+EOF
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  { "version": "2.1.996", "parse_failed": true, "failed_at": "2026-06-21T07:39:37.234Z", "features": [], "raw_bullets_count": 1 }
+]
+EOF
+
+EXIT=0
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+
+REWORD_FL=$(jq -r '.[0].featureless' shared/cc-adoption-gaps.json)
+REWORD_PF=$(jq -r '.[0].parse_failed // false' shared/cc-adoption-gaps.json)
+if [ "$EXIT" = "0" ] && [ "$REWORD_FL" = "true" ] && [ "$REWORD_PF" = "false" ]; then
+  log_pass "#2568 15c: presentational 'now reads … instead of …' reword graduates featureless + clears stuck parse_failed"
+else
+  log_fail "#2568 15c reword hint" "expected featureless=true parse_failed=false exit=0, got featureless='$REWORD_FL' parse_failed='$REWORD_PF' exit=$EXIT"
+fi
+
+# Prove the LLM was bypassed (deterministic graduation, not an LLM round-trip).
+if grep -qF "extracting features from 2.1.996" /tmp/cc-triage-out.txt; then
+  log_fail "#2568 15c LLM bypass" "LLM was called for a presentational-reword snapshot (cat /tmp/cc-triage-out.txt)"
+else
+  log_pass "#2568 15c: reword graduates without an LLM call"
+fi
+
+# ============================================================================
 # Test 16: #2267 — a STUCK parse_failed featureless sentinel SELF-HEALS on a
 # normal run (no --retry-failed). This is the exact state of 2.1.156/159/165/167:
 # previously marked parse_failed by the empty-array overload, they must clear
