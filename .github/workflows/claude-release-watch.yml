@@ -11,7 +11,10 @@ on:
         required: false
         default: ''
   schedule:
-    - cron: '0 14 * * *'
+    # 03:00 UTC = 06:00 Israel (IDT, UTC+3) — triage ready at the start of the IL workday.
+    # CC releases cluster in the evening UTC, so 03:00 catches them ~8-11h sooner than 14:00.
+    # GitHub cron is fixed UTC; revisit to 04:00 UTC if IL switches to standard time (UTC+2).
+    - cron: '0 3 * * *'
 
 # Serialize so two cron fires (or cron + manual) can't race on the snapshot commit.
 concurrency:
