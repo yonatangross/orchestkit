@@ -1,5 +1,5 @@
 ---
-description: "Diagnose a failing CI run against a 10-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command — but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific)."
+description: "Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command — but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific)."
 allowed-tools: [Bash, Read, Grep, Glob]
 ---
 
@@ -9,7 +9,7 @@ allowed-tools: [Bash, Read, Grep, Glob]
 
 # /ci-debug — classify a failing CI run
 
-Direct response to the recurring CI-debug pattern surfaced by `/insights`: ~12 sessions in 3 weeks doing the same classification dance. This skill encodes the 10 patterns so the dance becomes a lookup.
+Direct response to the recurring CI-debug pattern surfaced by `/insights`: ~12 sessions in 3 weeks doing the same classification dance. This skill encodes the 11 patterns so the dance becomes a lookup.
 
 ## Input
 
@@ -37,6 +37,8 @@ gh api repos/<owner>/<repo>/actions/runs/<run-id>/jobs \
 
 If multiple jobs failed, pick the one with the **shortest duration** — root cause is usually the first failure; later jobs cascade.
 
+**No job in the `fail` bucket but a check won't settle?** If `gh pr checks` shows zero `fail`-bucket entries yet a status sits in `pending` that never resolves (and `gh pr view --json mergeStateStatus` returns `UNSTABLE` while `mergeable=MERGEABLE`), this is a *stuck external status*, not a failure — jump straight to **Pattern #11**. There is no failing log to fetch; classify on the commit-status metadata (`gh api repos/<o>/<r>/commits/<sha>/status`).
+
 ### 2. Fetch the failing log
 
 ```bash
@@ -63,6 +65,7 @@ Walk the patterns in order. **First match wins.**
 | 8 | **Runner pnpm Rosetta arch drift** | pnpm install fails with "wrong-arch native bin" / dlopen error on a self-hosted runner | `runner-pnpm-rosetta-arch-drift.md` | Restart the affected runner pool; root cause is node x64↔arm64 flips storing wrong-arch native bins in shared cache. |
 | 9 | **Shallow clone false divergence** | `git status` reports diverged but PR was actually merged | `shallow-clone-false-divergence.md` | `git fetch origin <branch> --unshallow` then `gh pr view --merge-commit` to verify. |
 | 10 | **Publish run cancelled** | Publish-tag workflow run shows `conclusion=cancelled`; artifact never lands | `publish-runs-cancelled-need-redrive.md` | Re-fire via `gh workflow run publish-python.yml -f tag=<tag>` (adjust for your publish workflow). |
+| 11 | **Vercel status orphaned (path-skip)** | No job in the `fail` bucket, but `Vercel` appears as a *commit status* (not a check-run) stuck `state=pending` with `created_at == updated_at` and no terminal update; all GitHub Actions checks green; `mergeStateStatus=UNSTABLE` + `mergeable=MERGEABLE` on an unprotected base branch | `vercel-pending-orphaned-on-path-skip.md` | Not a failure — cosmetic. Vercel posted a `pending` status then **skipped** the build (project-root path filter, e.g. a docs-only change that never touches `apps/web`), orphaning the status. Safe to merge: `gh pr merge <n> --repo <owner>/<repo> --squash`. Permanent fix: the Vercel project's **Ignored Build Step** must exit `0` AND report success for skipped paths so the status flips instead of dangling. |
 
 The memory references point at user-curated memory files (`~/.claude/projects/<project>/memory/*.md`). If your memory doesn't have them yet, the signature column is enough to classify — the memory citation is a nice-to-have, not required.
 
@@ -100,7 +103,7 @@ For an **UNMATCHED** failure:
 <top 10 distinct error lines>
 \`\`\`
 
-This doesn't match any of the 10 playbook patterns. Surfacing the raw
+This doesn't match any of the 11 playbook patterns. Surfacing the raw
 evidence for your read. Once you identify the root cause, consider
 adding it to the playbook (in this SKILL.md) so the next run catches
 it automatically.
