@@ -17,6 +17,7 @@ import type { HookInput } from '../../types.js';
 import {
   taskAgentAdvisor,
   matchSpecialistDomain,
+  isDeterministicRunTask,
   ORK_AGENT_SYNONYMS,
   SPECIALIST_DOMAINS,
 } from '../../pretool/task/task-agent-advisor.js';
@@ -98,6 +99,60 @@ describe('taskAgentAdvisor general-purpose nudge', () => {
       makeInput({ subagent_type: 'Explore', description: 'write unit tests for x' }),
     );
     expect(contextOf(result)).toBe('');
+  });
+});
+
+describe('taskAgentAdvisor deterministic-run nudge (tests/build → Bash)', () => {
+  test.each([
+    'knowledge/marketing tests',
+    'dashboard tests',
+    'misc tests',
+    'Run the test suite and report results',
+  ])('nudges general-purpose "%s" toward Bash', (description) => {
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description }));
+    expect(result.continue).toBe(true);
+    expect(contextOf(result)).toContain('Bash');
+    expect(contextOf(result)).toContain('pytest');
+  });
+
+  test('fires for untyped (empty subagent_type) spawn — the default general-purpose path', () => {
+    const result = taskAgentAdvisor(makeInput({ subagent_type: '', description: 'misc tests' }));
+    expect(contextOf(result)).toContain('Bash');
+  });
+
+  test('does NOT nudge a writing-tests task (that is ork:test-generator)', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'write unit tests for the parser' }),
+    );
+    expect(contextOf(result)).toContain('ork:test-generator');
+    expect(contextOf(result)).not.toContain('run it in Bash');
+  });
+
+  test('does NOT nudge a triage task (fix the failing tests stays an agent job)', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'fix the failing dashboard tests' }),
+    );
+    expect(contextOf(result)).not.toContain('run it in Bash');
+  });
+
+  test('never blocks (advisory only)', () => {
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: 'misc tests' }));
+    expect(result.continue).toBe(true);
+  });
+
+  test('isDeterministicRunTask matrix (incl. sub-match edge cases)', () => {
+    // fires — pure run/noun tasks
+    expect(isDeterministicRunTask('dashboard tests', '')).toBe(true);
+    expect(isDeterministicRunTask('Run the test suite', '')).toBe(true);
+    expect(isDeterministicRunTask('run tests for the address module', '')).toBe(true); // add≠address
+    expect(isDeterministicRunTask('run the fixture tests', '')).toBe(true); // fix≠fixture
+    // silent — reasoning/authoring tasks
+    expect(isDeterministicRunTask('fix the failing dashboard tests', '')).toBe(false);
+    expect(isDeterministicRunTask('fixing the dashboard tests', '')).toBe(false);
+    expect(isDeterministicRunTask('write integration tests', '')).toBe(false);
+    expect(isDeterministicRunTask('explore how tests are structured', '')).toBe(false);
+    expect(isDeterministicRunTask('audit the test coverage gaps', '')).toBe(false);
+    expect(isDeterministicRunTask('summarize these logs', '')).toBe(false);
   });
 });
 
