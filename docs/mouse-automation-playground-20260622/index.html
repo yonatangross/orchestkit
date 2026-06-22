@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MX Master 4 — Day-to-Day Automation Loadout (built from your real usage)</title>
+<style>
+  :root{
+    --bg:#0c0e12; --panel:#14181f; --panel2:#1b212b; --line:#28303c;
+    --ink:#e8edf4; --dim:#8b97a8; --accent:#4fd1c5; --accent2:#7c9cff;
+    --hot:#ffb454; --good:#5ad17f; --bad:#ff6b6b; --chip:#222b37;
+    --r:14px; --shadow:0 8px 30px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif}
+  a{color:var(--accent2)}
+  .wrap{max-width:1240px;margin:0 auto;padding:26px 20px 80px}
+  header h1{font-size:25px;margin:0 0 4px;letter-spacing:.2px}
+  header p{margin:0;color:var(--dim);font-size:14px}
+  .pill{display:inline-block;background:var(--chip);border:1px solid var(--line);
+    border-radius:999px;padding:2px 10px;font-size:12px;color:var(--dim);margin-left:6px}
+
+  /* evidence */
+  .evidence{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:10px;margin:20px 0 8px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 13px}
+  .stat .n{font-size:20px;font-weight:700}
+  .stat .n small{font-size:12px;color:var(--dim);font-weight:500}
+  .stat .l{font-size:12px;color:var(--dim);margin-top:2px}
+  .stat .bar{height:5px;border-radius:4px;background:var(--panel2);margin-top:8px;overflow:hidden}
+  .stat .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  .note{color:var(--dim);font-size:12.5px;margin:4px 2px 0}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:20px 0 14px}
+  button.btn{background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+    border-radius:10px;padding:9px 14px;font-size:13.5px;cursor:pointer;font-weight:600}
+  button.btn:hover{border-color:var(--accent)}
+  button.btn.primary{background:linear-gradient(90deg,#2a6f68,#34527f);border-color:transparent}
+  button.btn.ghost{background:transparent}
+  .hint{color:var(--dim);font-size:12.5px;margin-left:auto}
+
+  .grid{display:grid;grid-template-columns:330px 1fr 360px;gap:16px;align-items:start}
+  @media(max-width:1100px){.grid{grid-template-columns:1fr}}
+  .col h2{font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);
+    margin:0 0 10px}
+
+  /* palette */
+  .palette{display:flex;flex-direction:column;gap:8px;max-height:760px;overflow:auto;padding-right:4px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:10px 12px;cursor:grab;position:relative;transition:.12s}
+  .card:hover{border-color:var(--accent2);transform:translateY(-1px)}
+  .card.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(79,209,197,.25)}
+  .card.placed{opacity:.45}
+  .card .top{display:flex;align-items:center;gap:8px}
+  .card .emoji{font-size:18px}
+  .card .name{font-weight:650;font-size:14px}
+  .card .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+  .tag{font-size:11px;border-radius:6px;padding:1px 7px;border:1px solid var(--line);color:var(--dim);background:var(--chip)}
+  .tag.freq{color:var(--hot);border-color:#4a3a23}
+  .tag.type{color:var(--accent);border-color:#234a47}
+  .stars{color:var(--hot);font-size:12px;letter-spacing:1px}
+  .card .act{font-size:12px;color:var(--dim);margin-top:6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  /* mouse mockup */
+  .stage{background:radial-gradient(120% 120% at 50% 0%,#161c26,#0e1218);
+    border:1px solid var(--line);border-radius:18px;padding:18px;position:relative;min-height:560px}
+  .mouse{position:relative;width:300px;height:470px;margin:6px auto 0}
+  .body{position:absolute;inset:0;border-radius:150px 150px 130px 130px/200px 200px 150px 150px;
+    background:linear-gradient(160deg,#cfd6df,#9aa6b4 60%,#7e8a99);
+    box-shadow:inset 0 8px 26px rgba(255,255,255,.45),inset 0 -28px 50px rgba(0,0,0,.3),var(--shadow)}
+  .seam{position:absolute;top:8px;left:50%;width:2px;height:150px;background:rgba(0,0,0,.18);transform:translateX(-50%)}
+  .logo{position:absolute;top:205px;left:50%;transform:translateX(-50%);color:#5b6675;font-size:12px;font-weight:700;letter-spacing:1px}
+  /* hotspots */
+  .slot{position:absolute;transform:translate(-50%,-50%);min-width:34px;min-height:34px;
+    border-radius:10px;border:2px dashed rgba(40,48,60,.55);background:rgba(20,24,31,.78);
+    color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;
+    font-size:18px;backdrop-filter:blur(2px);transition:.12s;text-align:center;padding:4px}
+  .slot:hover{border-color:var(--accent);transform:translate(-50%,-50%) scale(1.06)}
+  .slot.filled{border-style:solid;border-color:var(--accent);background:rgba(34,52,80,.9)}
+  .slot.target{border-color:var(--good);box-shadow:0 0 0 3px rgba(90,209,127,.3)}
+  .slot .lab{position:absolute;white-space:nowrap;font-size:10.5px;color:var(--dim);
+    top:-16px;left:50%;transform:translateX(-50%);pointer-events:none}
+  .slot.filled .lab{color:var(--accent)}
+  /* slot positions (top view) */
+  #s-middle{top:60px;left:50%}
+  #s-shiftwheel{top:120px;left:50%}
+  #s-thumbwheel{top:150px;left:23%}
+  #s-gesture{top:120px;left:14%}
+  #s-forward{top:200px;left:11%}
+  #s-back{top:250px;left:11%}
+  #s-ring{top:330px;left:50%;min-width:120px;border-radius:14px;font-size:13px;flex-direction:column}
+  #s-ring .lab{top:-18px}
+  .ringgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:4px;width:160px}
+  .ringseg{font-size:10px;border:1px solid var(--line);border-radius:7px;padding:5px 2px;
+    background:rgba(20,24,31,.8);cursor:pointer;min-height:30px;display:flex;align-items:center;justify-content:center;text-align:center}
+  .ringseg.filled{border-color:var(--accent2);background:rgba(40,52,80,.9);color:#cfe0ff}
+  .ringseg:hover{border-color:var(--accent)}
+  .ringwrap{margin-top:14px}
+  .ringwrap h3{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--dim);margin:0 0 6px;text-align:center}
+
+  /* config sheet */
+  .sheet{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;max-height:760px;overflow:auto}
+  .row{border-bottom:1px solid var(--line);padding:9px 0}
+  .row:last-child{border-bottom:none}
+  .row .k{font-size:12px;color:var(--accent);font-weight:700}
+  .row .v{font-size:13px;margin-top:2px}
+  .row .p{font-size:11.5px;color:var(--dim);margin-top:3px;font-family:ui-monospace,Menlo,monospace}
+  .empty{color:var(--dim);font-size:13px;padding:14px;text-align:center}
+  .clr{float:right;color:var(--bad);cursor:pointer;font-size:11px;border:1px solid #4a2a2a;border-radius:6px;padding:1px 6px}
+  pre{background:#0a0d11;border:1px solid var(--line);border-radius:10px;padding:12px;
+    font-size:11.5px;overflow:auto;color:#cdd6e2;white-space:pre-wrap}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  footer{color:var(--dim);font-size:12px;margin-top:30px;border-top:1px solid var(--line);padding-top:14px}
+  kbd{background:#0a0d11;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;font-size:11px;font-family:ui-monospace,Menlo,monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🖱️ MX&nbsp;Master&nbsp;4 — Day-to-Day Automation Loadout <span class="pill">built from your real usage</span></h1>
+    <p>Drag (or click) an action onto a mouse control. Each one carries the exact Logi&nbsp;Options+ click-path + the keystroke/macro it sends. Frequencies are from your shell history + rtk telemetry.</p>
+  </header>
+
+  <!-- EVIDENCE -->
+  <section class="evidence" aria-label="Real usage data">
+    <div class="stat"><div class="n">~8<small>/session</small></div><div class="l">📸 Screenshot → Claude</div><div class="bar"><i style="width:100%"></i></div></div>
+    <div class="stat"><div class="n">382<small>×</small></div><div class="l">⌨️ <code>cc</code> launch/focus CC</div><div class="bar"><i style="width:92%"></i></div></div>
+    <div class="stat"><div class="n">237<small>×</small></div><div class="l">🧪 vitest run</div><div class="bar"><i style="width:70%"></i></div></div>
+    <div class="stat"><div class="n">224<small>×</small></div><div class="l">📁 <code>cd</code> switch project</div><div class="bar"><i style="width:66%"></i></div></div>
+    <div class="stat"><div class="n">65<small>×</small></div><div class="l">🧹 <code>clear</code></div><div class="bar"><i style="width:30%"></i></div></div>
+    <div class="stat"><div class="n">59<small>×</small></div><div class="l">🔐 <code>op</code> 1Password</div><div class="bar"><i style="width:28%"></i></div></div>
+    <div class="stat"><div class="n">36<small>×</small></div><div class="l">🌐 <code>ssh</code> Hetzner</div><div class="bar"><i style="width:20%"></i></div></div>
+    <div class="stat"><div class="n">23<small>×</small></div><div class="l">🐳 docker compose</div><div class="bar"><i style="width:16%"></i></div></div>
+  </section>
+  <p class="note">Source: <code>~/.zsh_history</code> (1,610 lines) + <code>rtk gain</code> (21,740 commands, 29.2M tokens saved) + observed behavior this session. The screenshot count is direct observation — you sent one nearly every turn.</p>
+
+  <div class="toolbar">
+    <button class="btn primary" id="preset">✨ Apply recommended loadout</button>
+    <button class="btn ghost" id="reset">↺ Reset</button>
+    <button class="btn ghost" id="copy">⧉ Copy config sheet</button>
+    <span class="hint">Tip: click an action, then click a control — or drag it. Click a filled control to clear it.</span>
+  </div>
+
+  <div class="grid">
+    <!-- PALETTE -->
+    <div class="col">
+      <h2>Actions (ranked by your frequency)</h2>
+      <div class="palette" id="palette" role="listbox" aria-label="Available automations"></div>
+    </div>
+
+    <!-- MOUSE -->
+    <div class="col">
+      <h2>Your MX Master 4 — assign controls</h2>
+      <div class="stage">
+        <div class="mouse" aria-label="MX Master 4 control map">
+          <div class="body"></div><div class="seam"></div><div class="logo">logi</div>
+          <div class="slot" id="s-middle" data-slot="middle" tabindex="0" role="button"><span class="lab">Middle</span><span class="ic">＋</span></div>
+          <div class="slot" id="s-shiftwheel" data-slot="shiftwheel" tabindex="0" role="button"><span class="lab">Shift-wheel</span><span class="ic">↕</span></div>
+          <div class="slot" id="s-thumbwheel" data-slot="thumbwheel" tabindex="0" role="button"><span class="lab">Thumb-wheel ⏺</span><span class="ic">◷</span></div>
+          <div class="slot" id="s-gesture" data-slot="gesture" tabindex="0" role="button"><span class="lab">Gesture (5-way)</span><span class="ic">✥</span></div>
+          <div class="slot" id="s-forward" data-slot="forward" tabindex="0" role="button"><span class="lab">Forward</span><span class="ic">▸</span></div>
+          <div class="slot" id="s-back" data-slot="back" tabindex="0" role="button"><span class="lab">Back</span><span class="ic">◂</span></div>
+        </div>
+        <div class="ringwrap">
+          <h3>◎ Actions Ring — 6 segments (pop via a button/gesture)</h3>
+          <div class="ringgrid" id="ringgrid" style="margin:0 auto;width:280px;grid-template-columns:repeat(3,1fr)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHEET -->
+    <div class="col">
+      <h2>Config sheet (Logi Options+ recipe)</h2>
+      <div class="sheet" id="sheet"><div class="empty">Nothing assigned yet.<br>Click <b>Apply recommended loadout</b> to autofill.</div></div>
+    </div>
+  </div>
+
+  <footer>
+    <b>How to apply:</b> open <b>Logi Options+ → BUTTONS</b>, click the control named in each row, then follow its path.
+    Keystroke = record the shown shortcut. Smart Action (Text) = paste the command incl. the trailing ⏎.
+    Leave <b>Shift-wheel-mode</b> alone — it's your free-spin toggle from today's scroll fix.
+    <br>Generated 2026-06-22 · single file, no network · OrchestKit playground standard.
+  </footer>
+</div>
+
+<div class="sr" aria-live="polite" id="live"></div>
+
+<script>
+const TASKS = [
+  {id:'screenshot', emoji:'📸', name:'Screenshot → share with Claude', freq:'every turn', type:'Keystroke', stars:5,
+   act:'⌘⇧4 (region) · or ⌘⇧⌃4 → clipboard', path:'BUTTONS → [control] → Keystroke → record ⌘⇧4', rec:'forward'},
+  {id:'wispr', emoji:'🗣️', name:'Wispr dictation (hold-to-talk)', freq:'high', type:'Keystroke', stars:5,
+   act:'send Wispr activation hotkey', path:'BUTTONS → [control] → Keystroke → record your Wispr key', rec:'gesture'},
+  {id:'cc', emoji:'⌨️', name:'Launch / focus Claude Code (cmux)', freq:'382×', type:'Launch App', stars:4,
+   act:'open/focus cmux (or ⌘Tab)', path:'BUTTONS → [control] → Launch Application → cmux', rec:'middle'},
+  {id:'jump', emoji:'⤓', name:'Jump to live / bottom of CC', freq:'high', type:'Keystroke', stars:4,
+   act:'⌃Fn→  (= Ctrl+End)', path:'BUTTONS → [control] → Keystroke → ⌃Fn→', rec:'thumbwheel'},
+  {id:'panenav', emoji:'🪟', name:'cmux pane navigation L/R', freq:'high', type:'Gesture', stars:4,
+   act:'gesture ←/→ → cmux pane keys', path:'Gestures → assign Left/Right → cmux pane shortcuts', rec:'gesture'},
+  {id:'switch', emoji:'🔀', name:'App switch (Claude/Chrome/cmux)', freq:'constant', type:'Gesture', stars:3,
+   act:'Mission Control / App Exposé', path:'Gestures → Up → Mission Control', rec:'gesture'},
+  {id:'test', emoji:'🧪', name:'Run tests', freq:'237×', type:'Smart Action', stars:4,
+   act:'type  npm test⏎', path:'Actions Ring → segment → Smart Action → Text', rec:'ring'},
+  {id:'build', emoji:'🔨', name:'Build', freq:'high', type:'Smart Action', stars:3,
+   act:'type  npm run build⏎', path:'Actions Ring → segment → Smart Action → Text', rec:'ring'},
+  {id:'gitst', emoji:'🔧', name:'git status / diff', freq:'high', type:'Smart Action', stars:3,
+   act:'type  git status⏎', path:'Actions Ring → segment → Smart Action → Text', rec:'ring'},
+  {id:'prweb', emoji:'🐙', name:'Open PR in browser', freq:'gh pr', type:'Smart Action', stars:3,
+   act:'type  gh pr view --web⏎', path:'Actions Ring → segment → Smart Action → Text', rec:'ring'},
+  {id:'op', emoji:'🔐', name:'1Password quick access', freq:'59×', type:'Keystroke', stars:3,
+   act:'⌘⇧Space (1Password QA)', path:'Actions Ring → segment → Keystroke', rec:'ring'},
+  {id:'clear', emoji:'🧹', name:'Clear terminal', freq:'65×', type:'Keystroke', stars:3,
+   act:'⌘K', path:'Actions Ring → segment → Keystroke → ⌘K', rec:'ring'},
+  {id:'docker', emoji:'🐳', name:'docker compose up -d', freq:'23×', type:'Smart Action', stars:2,
+   act:'type  docker compose up -d⏎', path:'Actions Ring → segment → Smart Action → Text', rec:'ring'},
+  {id:'ssh', emoji:'🌐', name:'SSH to Hetzner', freq:'36×', type:'Smart Action', stars:2,
+   act:'type  ssh <host>⏎', path:'Actions Ring → segment → Smart Action → Text', rec:'ring'},
+];
+
+const SLOTS = {middle:null, shiftwheel:null, thumbwheel:null, gesture:null, forward:null, back:null};
+const RING = [null,null,null,null,null,null];
+const RECOMMEND = { // preset
+  forward:'screenshot', gesture:'wispr', middle:'cc', thumbwheel:'jump', back:null, shiftwheel:'__keep__',
+  ring:['test','build','gitst','prweb','op','clear']
+};
+
+const byId = id => TASKS.find(t=>t.id===id);
+let selected = null;
+
+// ---- build palette
+const pal = document.getElementById('palette');
+function star(n){return '★'.repeat(n)+'☆'.repeat(5-n);}
+function renderPalette(){
+  pal.innerHTML='';
+  TASKS.forEach(t=>{
+    const placed = Object.values(SLOTS).includes(t.id) || RING.includes(t.id);
+    const el=document.createElement('div');
+    el.className='card'+(selected===t.id?' sel':'')+(placed?' placed':'');
+    el.setAttribute('draggable','true'); el.dataset.id=t.id; el.setAttribute('role','option');
+    el.setAttribute('aria-selected', selected===t.id?'true':'false');
+    el.innerHTML=`<div class="top"><span class="emoji">${t.emoji}</span><span class="name">${t.name}</span></div>
+      <div class="meta"><span class="tag freq">${t.freq}</span><span class="tag type">${t.type}</span><span class="stars" title="priority">${star(t.stars)}</span></div>
+      <div class="act">${t.act}</div>`;
+    el.addEventListener('click',()=>{ selected = selected===t.id?null:t.id; renderAll();
+      live(selected?`Selected ${t.name}. Now click a control to assign.`:'Cleared selection.'); });
+    el.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/plain',t.id); selected=t.id; });
+    pal.appendChild(el);
+  });
+}
+
+// ---- slots
+function assignSlot(slot, id){
+  // remove id from anywhere else first
+  Object.keys(SLOTS).forEach(k=>{ if(SLOTS[k]===id) SLOTS[k]=null; });
+  RING.forEach((v,i)=>{ if(v===id) RING[i]=null; });
+  SLOTS[slot]=id; renderAll();
+}
+function assignRing(i, id){
+  Object.keys(SLOTS).forEach(k=>{ if(SLOTS[k]===id) SLOTS[k]=null; });
+  RING.forEach((v,j)=>{ if(v===id) RING[j]=null; });
+  RING[i]=id; renderAll();
+}
+function clearSlot(slot){ SLOTS[slot]=null; renderAll(); }
+function clearRing(i){ RING[i]=null; renderAll(); }
+
+document.querySelectorAll('.slot[data-slot]').forEach(s=>{
+  const slot=s.dataset.slot;
+  s.addEventListener('click',()=>{
+    if(slot==='shiftwheel' && !selected){ live('Shift-wheel-mode is reserved for free-spin toggle.'); return; }
+    if(selected){ assignSlot(slot,selected); live(`Assigned ${byId(selected).name} → ${slot}.`); selected=null; }
+    else if(SLOTS[slot]){ const n=byId(SLOTS[slot]).name; clearSlot(slot); live(`Cleared ${slot} (${n}).`); }
+  });
+  s.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();s.click();} });
+  s.addEventListener('dragover',e=>{e.preventDefault();s.classList.add('target');});
+  s.addEventListener('dragleave',()=>s.classList.remove('target'));
+  s.addEventListener('drop',e=>{e.preventDefault();s.classList.remove('target');
+    const id=e.dataTransfer.getData('text/plain'); if(id){assignSlot(slot,id);live(`Assigned ${byId(id).name} → ${slot}.`);selected=null;}});
+});
+
+// ring grid
+const ringgrid=document.getElementById('ringgrid');
+function renderRing(){
+  ringgrid.innerHTML='';
+  for(let i=0;i<6;i++){
+    const id=RING[i]; const t=id?byId(id):null;
+    const seg=document.createElement('div');
+    seg.className='ringseg'+(id?' filled':''); seg.tabIndex=0; seg.setAttribute('role','button');
+    seg.innerHTML = t?`${t.emoji} ${t.name.split(' ')[0]}`:`◌ slot ${i+1}`;
+    seg.title = t?`${t.name} — ${t.act}`:`Ring segment ${i+1}`;
+    seg.addEventListener('click',()=>{
+      if(selected){ assignRing(i,selected); live(`Assigned ${byId(selected).name} → ring ${i+1}.`); selected=null; }
+      else if(id){ const n=t.name; clearRing(i); live(`Cleared ring ${i+1} (${n}).`); }
+    });
+    seg.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();seg.click();}});
+    seg.addEventListener('dragover',e=>{e.preventDefault();seg.style.borderColor='var(--good)';});
+    seg.addEventListener('dragleave',()=>seg.style.borderColor='');
+    seg.addEventListener('drop',e=>{e.preventDefault();seg.style.borderColor='';
+      const d=e.dataTransfer.getData('text/plain'); if(d){assignRing(i,d);live(`Assigned ${byId(d).name} → ring ${i+1}.`);selected=null;}});
+    ringgrid.appendChild(seg);
+  }
+}
+
+function renderSlots(){
+  document.querySelectorAll('.slot[data-slot]').forEach(s=>{
+    const slot=s.dataset.slot; const ic=s.querySelector('.ic');
+    if(slot==='shiftwheel' && SLOTS[slot]==='__keep__'){
+      s.classList.add('filled'); ic.textContent='↕'; s.querySelector('.lab').textContent='Shift-wheel (free-spin)'; return;
+    }
+    const id=SLOTS[slot]; const t=id?byId(id):null;
+    s.classList.toggle('filled', !!t);
+    ic.textContent = t? t.emoji : ({middle:'＋',thumbwheel:'◷',gesture:'✥',forward:'▸',back:'◂',shiftwheel:'↕'})[slot];
+    const base={middle:'Middle',thumbwheel:'Thumb-wheel ⏺',gesture:'Gesture (5-way)',forward:'Forward',back:'Back',shiftwheel:'Shift-wheel'}[slot];
+    s.querySelector('.lab').textContent = t? t.name.split(/[ (]/)[0] : base;
+    s.title = t? `${t.name} — ${t.act}` : base;
+  });
+}
+
+// ---- config sheet
+function renderSheet(){
+  const sheet=document.getElementById('sheet');
+  const rows=[];
+  const order=[['middle','Middle button'],['forward','Forward (thumb)'],['back','Back (thumb)'],
+    ['gesture','Gesture button'],['thumbwheel','Thumb-wheel click'],['shiftwheel','Shift-wheel-mode']];
+  order.forEach(([slot,label])=>{
+    if(slot==='shiftwheel' && SLOTS[slot]==='__keep__'){
+      rows.push(`<div class="row"><div class="k">${label}</div><div class="v">↕ Keep as free-spin toggle <i style="color:var(--dim)">(today's scroll fix — don't reassign)</i></div></div>`);
+      return;
+    }
+    const id=SLOTS[slot]; if(!id) return; const t=byId(id);
+    rows.push(`<div class="row"><span class="clr" data-clr="${slot}">clear</span><div class="k">${label} → ${t.type}</div>
+      <div class="v">${t.emoji} ${t.name}<br><span style="color:var(--accent2)">${t.act}</span></div>
+      <div class="p">${t.path.replace('[control]',label)}</div></div>`);
+  });
+  RING.forEach((id,i)=>{ if(!id) return; const t=byId(id);
+    rows.push(`<div class="row"><span class="clr" data-clrr="${i}">clear</span><div class="k">Actions Ring · seg ${i+1} → ${t.type}</div>
+      <div class="v">${t.emoji} ${t.name}<br><span style="color:var(--accent2)">${t.act}</span></div>
+      <div class="p">${t.path}</div></div>`);
+  });
+  sheet.innerHTML = rows.length? rows.join('') : '<div class="empty">Nothing assigned yet.<br>Click <b>Apply recommended loadout</b> to autofill.</div>';
+  sheet.querySelectorAll('[data-clr]').forEach(b=>b.addEventListener('click',()=>{clearSlot(b.dataset.clr);}));
+  sheet.querySelectorAll('[data-clrr]').forEach(b=>b.addEventListener('click',()=>{clearRing(+b.dataset.clrr);}));
+}
+
+function renderAll(){ renderPalette(); renderSlots(); renderRing(); renderSheet(); }
+function live(msg){ document.getElementById('live').textContent=msg; }
+
+// ---- buttons
+document.getElementById('preset').addEventListener('click',()=>{
+  Object.keys(SLOTS).forEach(k=>SLOTS[k]=null); for(let i=0;i<6;i++)RING[i]=null;
+  SLOTS.forward=RECOMMEND.forward; SLOTS.gesture=RECOMMEND.gesture; SLOTS.middle=RECOMMEND.middle;
+  SLOTS.thumbwheel=RECOMMEND.thumbwheel; SLOTS.shiftwheel='__keep__';
+  RECOMMEND.ring.forEach((id,i)=>RING[i]=id);
+  selected=null; renderAll(); live('Recommended loadout applied — 11 actions mapped.');
+});
+document.getElementById('reset').addEventListener('click',()=>{
+  Object.keys(SLOTS).forEach(k=>SLOTS[k]=null); for(let i=0;i<6;i++)RING[i]=null; selected=null; renderAll(); live('Cleared.');
+});
+document.getElementById('copy').addEventListener('click',async()=>{
+  const lines=['MX Master 4 — automation loadout (from real usage)',''];
+  const order=[['middle','Middle'],['forward','Forward'],['back','Back'],['gesture','Gesture'],['thumbwheel','Thumb-wheel'],['shiftwheel','Shift-wheel']];
+  order.forEach(([s,l])=>{ if(s==='shiftwheel'&&SLOTS[s]==='__keep__'){lines.push(`${l}: keep free-spin toggle`);return;}
+    const id=SLOTS[s]; if(id){const t=byId(id);lines.push(`${l}: ${t.name}  [${t.type}]  ${t.act}  | ${t.path.replace('[control]',l)}`);} });
+  RING.forEach((id,i)=>{ if(id){const t=byId(id);lines.push(`Ring ${i+1}: ${t.name}  [${t.type}]  ${t.act}`);} });
+  try{ await navigator.clipboard.writeText(lines.join('\n')); live('Config copied to clipboard.'); }
+  catch(e){ live('Copy failed — select the config sheet manually.'); }
+});
+
+renderAll();
+</script>
+</body>
+</html>
