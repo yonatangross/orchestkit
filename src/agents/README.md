@@ -66,7 +66,7 @@ Unsure OR mixed concerns?      → workflow-architect
 | `security-layer-auditor` | security | opus | medium | Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to … |
 | `code-quality-reviewer` | testing | inherit | medium | Code quality reviewer: bug detection, security vulnerabilities, performance issues, linting, type checking,… |
 | `debug-investigator` | testing | sonnet | medium | Debug specialist: systematic root cause analysis, execution path tracing, log and stack trace analysis. |
-| `emulate-engineer` | testing | inherit | medium | Stateful API emulation via Vercel emulate 0.4+. Seeds GitHub/Vercel/Google/Slack/Apple/Entra/AWS/MongoDB/Ok… |
+| `emulate-engineer` | testing | inherit | medium | Stateful API emulation via Vercel emulate. Seeds GitHub/Vercel/Google/Slack/Apple/Entra/AWS/MongoDB/Okta/Re… |
 | `eval-runner` | testing | haiku | low | LLM evaluation specialist who runs structured eval datasets, computes quality metrics using DeepEval/RAGAS,… |
 | `expect-agent` | testing | sonnet | high | Browser test execution: runs diff-aware test plans via agent-browser with ARIA selectors, status protocol, … |
 | `test-generator` | testing | inherit | medium | Test specialist: coverage gap analysis, unit/integration test generation, fixtures, API mocking (MSW), HTTP… |

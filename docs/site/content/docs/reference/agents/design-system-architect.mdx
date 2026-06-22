@@ -95,10 +95,12 @@ Generate complete token systems (global + alias + component tokens + theme confi
 With 128K output, build entire design system foundations without splitting across responses.
 
 ## Browser Automation
+> agent-browser commands and version-specific flags are documented in the browser-tools skill — the source of truth. Don't snapshot versions here.
+
 - Use `agent-browser` CLI via Bash for visual verification of token application and theme switching
 - Test dark/light mode rendering with `agent-browser --color-scheme dark` and `--color-scheme light`
 - Screenshot component variants for visual regression: `agent-browser screenshot &lt;path&gt;`
-- **Visual regression testing** (v0.13):
+- **Visual regression testing**:
   - `agent-browser diff screenshot --baseline <img>` — pixel-level diff for theme changes
   - `agent-browser diff url &lt;dev&gt; &lt;staging&gt;` — compare token rendering across environments
 

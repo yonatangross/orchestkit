@@ -71,6 +71,8 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## Browser Automation
 
+> agent-browser commands and version-specific flags are documented in the browser-tools skill — the source of truth. Don't snapshot versions here.
+
 ### Decision Tree (3-Tier)
 
 ```
@@ -166,7 +168,7 @@ agent-browser upload @e1 ./report.pdf   # File upload
 agent-browser drag @e1 @e2              # Drag and drop
 ```
 
-### Network Control (v0.13)
+### Network Control
 
 ```bash
 # Block analytics/trackers for clean content extraction
@@ -184,7 +186,7 @@ agent-browser network requests --filter "api"
 agent-browser network unroute
 ```
 
-### Storage (v0.13)
+### Storage
 
 ```bash
 # Read app state
@@ -197,7 +199,7 @@ agent-browser storage local set "feature_flag" "true"
 agent-browser storage local clear       # Reset
 ```
 
-### Cookie & Session Management (v0.13-v0.15)
+### Cookie & Session Management
 
 ```bash
 # Named sessions (replaces --session flag)
@@ -216,26 +218,26 @@ agent-browser state show competitor-research  # Inspect specific state
 agent-browser state clean --older-than 7      # Clean up old states
 ```
 
-### Auth Vault & Domain Control (v0.15-v0.29)
+### Auth Vault & Domain Control
 
 ```bash
-# Encrypted credential persistence (v0.15)
+# Encrypted credential persistence
 agent-browser vault store competitor-auth   # Save encrypted auth state
 agent-browser vault load competitor-auth    # Restore for next research session
 agent-browser vault list                    # List stored vault entries
 
-# Domain restriction for focused crawling (v0.16)
+# Domain restriction for focused crawling
 agent-browser --allowed-domains docs.example.com,api.example.com open https://docs.example.com
 # Prevents accidental navigation to unrelated sites during research
 
-# Proxy for geo-restricted content (v0.16)
+# Proxy for geo-restricted content
 agent-browser --proxy http://proxy.example.com:8080 open https://regional-site.com
 
-# Output size control (v0.16)
+# Output size control
 agent-browser --max-output 50000 get text body  # Cap output to prevent context blowup
 ```
 
-### Semantic Locators (v0.16+)
+### Semantic Locators
 
 ```bash
 # Find elements by visible text (more stable than @refs across page loads)
@@ -244,16 +246,16 @@ agent-browser find --role link "Documentation"  # Find link by ARIA role + text
 agent-browser highlight @e5                     # Visually verify element
 ```
 
-### React Introspection & MCP Server (v0.27-v0.29)
+### React Introspection & MCP Server
 
 ```bash
-# Inspect React component tree + props/state (v0.27) — pinpoint which
+# Inspect React component tree + props/state — pinpoint which
 # component rendered an element without reading source
 agent-browser react tree                        # Dump component hierarchy
 agent-browser react props @e5                   # Inspect a component's props
 agent-browser react state @e5                   # Inspect a component's state
 
-# Run agent-browser as an MCP server (v0.28) so other tools/agents can
+# Run agent-browser as an MCP server so other tools/agents can
 # drive the same browser session over the MCP protocol
 agent-browser mcp serve                         # Expose browser as MCP tools
 ```
@@ -406,7 +408,7 @@ agent-browser network route "*analytics*" --abort
 agent-browser network route "*tracking*" --abort
 ```
 
-### Diff & Change Detection (v0.13)
+### Diff & Change Detection
 
 ```bash
 # Verify page state after interaction

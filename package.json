@@ -15,7 +15,7 @@
     "test": "bash tests/run-all-tests.sh",
     "test:security": "bash tests/security/run-security-tests.sh",
     "test:packaging": "bash tests/security/test-packaging-leaks.sh",
-    "test:skills": "bash tests/skills/structure/test-skill-md.sh && bash tests/skills/structure/test-rule-validation.sh && bash tests/skills/structure/test-askuserquestion-schema.sh && bash tests/skills/structure/test-tool-call-signatures.sh && bash tests/skills/structure/test-rubric-schema.sh && node tests/skills/structure/test-upstream-version-drift.mjs",
+    "test:skills": "bash tests/skills/structure/test-skill-md.sh && bash tests/skills/structure/test-rule-validation.sh && bash tests/skills/structure/test-askuserquestion-schema.sh && bash tests/skills/structure/test-tool-call-signatures.sh && bash tests/skills/structure/test-rubric-schema.sh && node tests/skills/structure/test-upstream-version-drift.mjs && node tests/skills/structure/test-agent-no-version-snapshot.mjs",
     "test:skills:directive-density": "bash tests/skills/structure/test-directive-density.sh",
     "test:skills:tokens": "bash tests/skills/structure/test-skill-tokens.sh",
     "validate:pre-push": "bash bin/validate-counts.sh && bash tests/skills/test-skill-length.sh && bash tests/performance/test-token-overhead.sh",

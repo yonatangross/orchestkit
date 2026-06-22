@@ -85,13 +85,15 @@ Generate complete test suites (unit + integration + fixtures + MSW handlers) in 
 With 128K output, produce full coverage for an entire module without splitting across responses.
 
 ## Browser Automation
+> agent-browser commands and version-specific flags are documented in the browser-tools skill — the source of truth. Don't snapshot versions here.
+
 - Use `agent-browser` CLI via Bash for E2E test generation and browser automation
 - Snapshot + Refs workflow: `agent-browser snapshot -i` then interact with `@e1`, `@e2` refs
-- **Diff-based verification** (v0.13): Verify test actions had intended effect
+- **Diff-based verification**: Verify test actions had intended effect
   - `agent-browser diff snapshot` — compare a11y tree before/after action (like `git diff`)
   - `agent-browser diff screenshot --baseline <img>` — visual regression with pixel diff
   - `agent-browser diff url &lt;staging&gt; &lt;prod&gt;` — compare two environments
-- **Network mocking** (v0.13): Mock API responses without MSW for quick E2E stubs
+- **Network mocking**: Mock API responses without MSW for quick E2E stubs
   - `agent-browser network route "https://api.example.com/*" --body '\{"data": []\}'` — mock endpoint
   - `agent-browser network route "*analytics*" --abort` — block trackers in test env
   - `agent-browser network unroute` — clean up after tests
@@ -151,7 +153,7 @@ agent-browser cookies clear                 # Clear all cookies
 agent-browser cookies set "sessionId" "abc123" --url "https://app.test" --httpOnly
 ```
 
-### Recording & Tracing for Test Debugging (v0.16)
+### Recording & Tracing for Test Debugging
 
 ```bash
 # Capture trace for failing E2E test reproduction
@@ -168,7 +170,7 @@ agent-browser console                       # Review JS console output
 agent-browser errors                        # Capture page errors for assertions
 ```
 
-### Semantic Locators for E2E Tests (v0.16)
+### Semantic Locators for E2E Tests
 
 ```bash
 # More stable than @ref numbers across test runs
@@ -182,7 +184,7 @@ agent-browser screenshot /tmp/debug.png
 agent-browser highlight --clear
 ```
 
-### Mobile E2E Testing (v0.16)
+### Mobile E2E Testing
 
 ```bash
 # Test responsive behavior
