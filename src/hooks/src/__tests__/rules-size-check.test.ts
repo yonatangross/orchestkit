@@ -7,7 +7,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { rulesSizeCheck, _internals } from '../lifecycle/rules-size-check.js';
 import { NOOP_CTX } from '../lib/context.js';
@@ -39,6 +39,13 @@ describe('lifecycle/rules-size-check (#1815)', () => {
     const rulesDir = join(tmp, '.claude', 'rules');
     mkdirSync(rulesDir, { recursive: true });
     writeFileSync(join(rulesDir, name), 'x'.repeat(sizeBytes), 'utf8');
+  }
+
+  /** Write a rule file at an arbitrary sub-path under .claude/rules/ (e.g. 'decisions/a.md'). */
+  function writeNestedRule(subpath: string, sizeBytes: number) {
+    const filePath = join(tmp, '.claude', 'rules', subpath);
+    mkdirSync(dirname(filePath), { recursive: true });
+    writeFileSync(filePath, 'x'.repeat(sizeBytes), 'utf8');
   }
 
   // ---- thresholds (sanity) ----
@@ -106,10 +113,12 @@ describe('lifecycle/rules-size-check (#1815)', () => {
     writeRule('medium-warn.md', _internals.WARN_THRESHOLD + 500);
     rulesSizeCheck(inputFor(tmp), NOOP_CTX);
     const call = stderrSpy.mock.calls[0][0] as string;
-    const lines = call.trim().split('\n');
-    expect(lines).toHaveLength(2);
-    expect(lines[0]).toContain('biggest.md');     // largest first
-    expect(lines[1]).toContain('medium-warn.md');
+    // Per-file lines come first, largest first; an aggregate line follows
+    // because the two files together exceed the aggregate budget.
+    const perFileLines = call.trim().split('\n').filter((l) => !l.includes('totals'));
+    expect(perFileLines).toHaveLength(2);
+    expect(perFileLines[0]).toContain('biggest.md');     // largest first
+    expect(perFileLines[1]).toContain('medium-warn.md');
   });
 
   it('only flags *.md files (ignores other extensions)', () => {
@@ -147,5 +156,61 @@ describe('lifecycle/rules-size-check (#1815)', () => {
     const call = stderrSpy.mock.calls[0][0] as string;
     expect(call).toContain('storage-patterns');
     expect(call).toContain('CONTRIBUTING-SKILLS.md');
+  });
+
+  // ---- recursion + aggregate (#2589) ----
+  it('exposes aggregate thresholds: AGGREGATE_WARN < AGGREGATE_CRITICAL', () => {
+    expect(_internals.AGGREGATE_WARN).toBeLessThan(_internals.AGGREGATE_CRITICAL);
+    expect(_internals.WARN_THRESHOLD).toBeLessThan(_internals.AGGREGATE_WARN);
+  });
+
+  it('detects an oversized file nested under .claude/rules/decisions/ (recursive)', () => {
+    writeNestedRule(join('decisions', 'big.md'), _internals.WARN_THRESHOLD + 100);
+    rulesSizeCheck(inputFor(tmp), NOOP_CTX);
+    expect(stderrSpy).toHaveBeenCalledTimes(1);
+    const call = stderrSpy.mock.calls[0][0] as string;
+    expect(call).toContain('decisions');
+    expect(call).toContain('big.md');
+  });
+
+  it('warns on aggregate when many small files each stay under the per-file threshold', () => {
+    // 10 × 6,000 = 60,000 chars: each well under WARN (35k), sum over AGGREGATE_WARN (50k).
+    for (let i = 0; i < 10; i++) writeNestedRule(join('decisions', `e${i}.md`), 6_000);
+    rulesSizeCheck(inputFor(tmp), NOOP_CTX);
+    expect(stderrSpy).toHaveBeenCalledTimes(1);
+    const call = stderrSpy.mock.calls[0][0] as string;
+    const lines = call.trim().split('\n');
+    // No per-file line (none exceed WARN) — only the aggregate line.
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toContain('.claude/rules/** totals');
+    expect(lines[0]).toContain('WARN');
+    expect(lines[0]).not.toContain('CRITICAL');
+    expect(lines[0]).toContain('10 files');
+  });
+
+  it('escalates the aggregate to CRITICAL past AGGREGATE_CRITICAL', () => {
+    // 12 × 6,000 = 72,000 chars > AGGREGATE_CRITICAL (64k).
+    for (let i = 0; i < 12; i++) writeNestedRule(join('decisions', `e${i}.md`), 6_000);
+    rulesSizeCheck(inputFor(tmp), NOOP_CTX);
+    const call = stderrSpy.mock.calls[0][0] as string;
+    expect(call).toContain('.claude/rules/** totals');
+    expect(call).toContain('CRITICAL');
+  });
+
+  it('suppresses the aggregate line for a single file (per-file check already covers it)', () => {
+    // One file over the aggregate budget — but a lone file, so no redundant aggregate line.
+    writeRule('one-big.md', _internals.AGGREGATE_WARN + 1_000);
+    rulesSizeCheck(inputFor(tmp), NOOP_CTX);
+    const call = stderrSpy.mock.calls[0][0] as string;
+    expect(call).toContain('one-big.md');
+    expect(call).not.toContain('totals'); // aggregate suppressed for a single file
+  });
+
+  it('stays silent when many small files sum UNDER the aggregate budget', () => {
+    // 5 × 8,000 = 40,000 < AGGREGATE_WARN (50k); each under WARN too.
+    for (let i = 0; i < 5; i++) writeNestedRule(join('decisions', `e${i}.md`), 8_000);
+    const result = rulesSizeCheck(inputFor(tmp), NOOP_CTX);
+    expect(result).toEqual({ continue: true, suppressOutput: true });
+    expect(stderrSpy).not.toHaveBeenCalled();
   });
 });
