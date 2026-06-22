@@ -2,31 +2,43 @@
 // Created: 2026-05-13
 
 /**
- * Rules Size Check — SessionStart Hook (#1815)
+ * Rules Size Check — SessionStart Hook (#1815, hardened #2589)
  *
- * Claude Code's project-instruction loader globs `.claude/rules/*.md` (and
- * the equivalent in plugin trees) and concatenates every match into the
- * <system-reminder> claudeMd content on UserPromptSubmit. When a single
- * file crosses CC's 40,000-char threshold, CC emits a yellow runtime warning
- * — by then context burn is already material.
+ * Claude Code's project-instruction loader globs `.claude/rules/**\/*.md`
+ * RECURSIVELY (every file at any depth, not just the top level) and
+ * concatenates every match into the <system-reminder> claudeMd content on
+ * UserPromptSubmit. Two distinct failure modes follow:
  *
- * This hook warns BEFORE the cliff:
- *   - WARN_THRESHOLD = 35,000 chars  (12.5% safety margin)
- *   - CRITICAL_THRESHOLD = 38,000 chars (5% margin)
+ *   1. A single file crosses CC's 40,000-char threshold → CC emits a yellow
+ *      runtime warning. We warn earlier, per-file:
+ *        - WARN_THRESHOLD     = 35,000 chars (12.5% safety margin)
+ *        - CRITICAL_THRESHOLD = 38,000 chars (5% margin)
+ *
+ *   2. Many small per-entry files (e.g. `.claude/rules/decisions/*.md`) each
+ *      stay under the per-file threshold, but their SUM is loaded into every
+ *      prompt. This is the #2589 bug: index-per-entry done *inside* the
+ *      auto-load zone multiplies the loaded surface. We warn on the aggregate:
+ *        - AGGREGATE_WARN     = 50,000 chars
+ *        - AGGREGATE_CRITICAL = 64,000 chars (matches yonatan-hq/platform#5468)
+ *
+ * The aggregate covers `.claude/rules/` only (the confirmed recursive zone).
+ * Plugin trees are scanned top-level, per-file (their nested .md is not all
+ * auto-loaded, so recursing them would false-positive).
  *
  * Output goes to stderr (not the model) — operator-facing signal. Skills
- * authors get the prevention pattern in `skill-creator/references/
- * storage-patterns.md` (#1816 — rolling logbook vs index-per-entry).
+ * authors get the prevention pattern in `skill-evolution/references/
+ * storage-patterns.md` (#1816 — rolling logbook vs index-per-entry, and keep
+ * per-entry files OUT of `.claude/rules/`).
  *
- * Cost: one readdirSync of .claude/rules/ + stat per file, ~5-10ms on SSD.
+ * Cost: recursive readdir of .claude/rules/ + stat per file, ~5-15ms on SSD.
  * Async: yes — non-blocking on SessionStart.
  *
  * Hook event: SessionStart
- * Concrete trigger case: hq-ext platform recent-decisions.md ballooned to
- * 53.8k chars (1.3× cliff) without operator visibility.
+ * Concrete trigger cases: hq-ext platform recent-decisions.md → 53.8k chars
+ * (single-file, 1.3× cliff); platform decisions/ → 95 files ≈ 200k aggregate.
  */
 
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, statSync, type Dirent } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
@@ -34,74 +46,112 @@ import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'lifecycle/rules-size-check';
 
-/** Chars above which CC may flag the file slow/expensive (5% under CC's 40k). */
+/** Chars above which CC may flag a single file slow/expensive (5% under CC's 40k). */
 const CRITICAL_THRESHOLD = 38_000;
 
-/** Chars above which we proactively warn the operator (12.5% safety margin). */
+/** Chars above which we proactively warn on a single file (12.5% safety margin). */
 const WARN_THRESHOLD = 35_000;
 
-/** Directories to scan, relative to projectDir. */
-const RULES_DIRS = [
-  join('.claude', 'rules'),
-  // Plugin trees may also house auto-loaded rules under their own .claude/
-  join('.claude', 'plugins'),
-];
+/** Total chars across `.claude/rules/**` above which we warn (aggregate auto-load). */
+const AGGREGATE_WARN = 50_000;
 
-interface RuleFile {
+/** Total chars across `.claude/rules/**` above which we escalate (≈ platform#5468 64 KB). */
+const AGGREGATE_CRITICAL = 64_000;
+
+/** The recursively-auto-loaded rules root, relative to projectDir. */
+const RULES_ROOT = join('.claude', 'rules');
+
+/**
+ * Plugin trees may house auto-loaded rules under their own `.claude/`. Scanned
+ * top-level only — recursing would flag plugin reference .md that CC never
+ * auto-loads. Listed for per-file checks; excluded from the aggregate budget.
+ */
+const PLUGIN_DIRS = [join('.claude', 'plugins')];
+
+interface MdFile {
   path: string;
   size: number;
+}
+
+interface Offender extends MdFile {
   severity: 'warn' | 'critical';
 }
 
 /**
- * Walk a single directory (no recursion) and return *.md files exceeding
- * WARN_THRESHOLD with their severity classification.
+ * List `*.md` files under `dir` with their sizes. Recurses into subdirectories
+ * when `recursive` is true (mirrors CC's recursive glob of `.claude/rules/`).
  */
-function scanDir(dir: string, projectDir: string): RuleFile[] {
+function listMarkdown(dir: string, projectDir: string, recursive: boolean): MdFile[] {
   const full = join(projectDir, dir);
   if (!existsSync(full)) return [];
 
-  const out: RuleFile[] = [];
+  const out: MdFile[] = [];
+  let entries: Dirent[];
   try {
-    const entries = readdirSync(full, { withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isFile() || !entry.name.endsWith('.md')) continue;
-      const filePath = join(full, entry.name);
-      try {
-        const { size } = statSync(filePath);
-        if (size >= WARN_THRESHOLD) {
-          out.push({
-            path: join(dir, entry.name),
-            size,
-            severity: size >= CRITICAL_THRESHOLD ? 'critical' : 'warn',
-          });
-        }
-      } catch {
-        // stat failed for this file — skip it
-      }
-    }
+    entries = readdirSync(full, { withFileTypes: true });
   } catch {
-    // readdir failed — directory unreadable, skip
+    return out; // directory unreadable — skip
+  }
+
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      if (recursive) out.push(...listMarkdown(join(dir, entry.name), projectDir, true));
+      continue;
+    }
+    if (!entry.isFile() || !entry.name.endsWith('.md')) continue;
+    try {
+      const { size } = statSync(join(full, entry.name));
+      out.push({ path: join(dir, entry.name), size });
+    } catch {
+      // stat failed for this file — skip it
+    }
   }
   return out;
 }
 
-/**
- * Compose a single-line stderr warning per offending file. Suggests the
- * fix (storage-patterns.md) so operators have a path forward, not just an alarm.
- */
-function formatWarning(files: RuleFile[]): string {
-  const lines: string[] = [];
+/** Classify per-file offenders (files at or above WARN_THRESHOLD). */
+function findOffenders(files: MdFile[]): Offender[] {
+  const out: Offender[] = [];
   for (const f of files) {
+    if (f.size >= WARN_THRESHOLD) {
+      out.push({ ...f, severity: f.size >= CRITICAL_THRESHOLD ? 'critical' : 'warn' });
+    }
+  }
+  return out;
+}
+
+const FIX_HINT =
+  'Consider splitting via the index-per-entry pattern with entries OUTSIDE ' +
+  '.claude/rules/ (see src/skills/CONTRIBUTING-SKILLS.md#storage-patterns or ' +
+  'skill-evolution/references/storage-patterns.md).';
+
+/** One stderr line per single-file offender. */
+function formatPerFile(files: Offender[]): string[] {
+  return files.map((f) => {
     const kb = (f.size / 1024).toFixed(1);
     const tag = f.severity === 'critical' ? 'CRITICAL' : 'WARN';
-    lines.push(
+    return (
       `[orchestkit] ${tag}: ${f.path} is ${kb} KiB (${f.size.toLocaleString()} chars) — ` +
-        'auto-loaded into every prompt. CC warns at 40k. Consider splitting via ' +
-        'index-per-entry pattern (see src/skills/CONTRIBUTING-SKILLS.md#storage-patterns ' +
-        'or skill-evolution/references/storage-patterns.md).',
+      `auto-loaded into every prompt. CC warns at 40k. ${FIX_HINT}`
     );
-  }
+  });
+}
+
+/** One stderr line for the `.claude/rules/**` aggregate when it exceeds budget. */
+function formatAggregate(totalChars: number, fileCount: number): string {
+  const kb = (totalChars / 1024).toFixed(1);
+  const tag = totalChars >= AGGREGATE_CRITICAL ? 'CRITICAL' : 'WARN';
+  return (
+    `[orchestkit] ${tag}: .claude/rules/** totals ${kb} KiB ` +
+    `(${totalChars.toLocaleString()} chars) across ${fileCount} files — ` +
+    `ALL auto-loaded into every prompt (CC globs the tree recursively). ${FIX_HINT}`
+  );
+}
+
+/** Compose the full warning (per-file lines first, aggregate line last). */
+function formatWarning(perFile: Offender[], aggregateLine: string | null): string {
+  const lines = formatPerFile(perFile);
+  if (aggregateLine) lines.push(aggregateLine);
   return lines.join('\n');
 }
 
@@ -113,20 +163,33 @@ export function rulesSizeCheck(
   const projectDir = input.project_dir || ctx.projectDir;
   if (!projectDir) return outputSilentSuccess();
 
-  const offenders: RuleFile[] = [];
-  for (const dir of RULES_DIRS) {
-    offenders.push(...scanDir(dir, projectDir));
-  }
+  // Rules root is auto-loaded recursively → scan it recursively + budget it.
+  const rulesFiles = listMarkdown(RULES_ROOT, projectDir, true);
+  // Plugin dirs: top-level, per-file only (conservative — not all auto-loaded).
+  const pluginFiles = PLUGIN_DIRS.flatMap((d) => listMarkdown(d, projectDir, false));
 
-  if (offenders.length === 0) return outputSilentSuccess();
-
-  // Sort largest first so the worst offender prints at the top of the warning.
+  // (1) Per-file offenders across both, sorted largest first.
+  const offenders = findOffenders([...rulesFiles, ...pluginFiles]);
   offenders.sort((a, b) => b.size - a.size);
 
-  const warning = formatWarning(offenders);
+  // (2) Aggregate budget — `.claude/rules/**` only. Suppressed for a single
+  // file (the per-file check already covers it; avoids a redundant double-alarm).
+  const rulesTotal = rulesFiles.reduce((sum, f) => sum + f.size, 0);
+  const aggregateLine =
+    rulesFiles.length >= 2 && rulesTotal >= AGGREGATE_WARN
+      ? formatAggregate(rulesTotal, rulesFiles.length)
+      : null;
+
+  if (offenders.length === 0 && !aggregateLine) return outputSilentSuccess();
+
+  const warning = formatWarning(offenders, aggregateLine);
   // Stderr so the operator sees it on every session start without burning model context.
   process.stderr.write(`${warning}\n`);
-  ctx.log(HOOK_NAME, `Flagged ${offenders.length} rules file(s) above ${WARN_THRESHOLD} chars`);
+  ctx.log(
+    HOOK_NAME,
+    `Flagged ${offenders.length} oversized file(s)` +
+      (aggregateLine ? ` + aggregate ${rulesTotal.toLocaleString()} chars` : ''),
+  );
 
   return outputSilentSuccess();
 }
@@ -135,7 +198,11 @@ export function rulesSizeCheck(
 export const _internals = {
   CRITICAL_THRESHOLD,
   WARN_THRESHOLD,
-  RULES_DIRS,
-  scanDir,
+  AGGREGATE_WARN,
+  AGGREGATE_CRITICAL,
+  RULES_ROOT,
+  PLUGIN_DIRS,
+  listMarkdown,
+  findOffenders,
   formatWarning,
 };

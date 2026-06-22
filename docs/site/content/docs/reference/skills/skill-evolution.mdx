@@ -950,9 +950,12 @@ When a rolling logbook crosses the 30k-char mark, migrate proactively. The entri
 
 ## Detection
 
-The `lifecycle/rules-size-check` hook (#1815) warns at 35k chars (WARN) and 38k chars (CRITICAL) for any **single** auto-loaded file at the top level of `.claude/rules/`. Operator-facing stderr signal on every SessionStart.
+The `lifecycle/rules-size-check` hook (#1815, hardened in #2589) runs on SessionStart and emits an operator-facing stderr warning on two independent signals:
 
-**Caveat — the hook does NOT catch the #2589 failure mode.** As of this writing it scans only the top level of `.claude/rules/` (no recursion) and checks each file's size *individually*, not the aggregate. So 95 per-entry files of ~7k each under `.claude/rules/decisions/` — summing to ~200k loaded chars — slip past it entirely: each file is under 35k, and the subdirectory is never scanned. CC, however, loads them all. That asymmetry is a second, independent reason to keep per-entry files in `docs/decisions/`: there is no detection safety net for bloat hidden in `.claude/rules/` subdirectories. (Hardening the hook to recurse and sum the aggregate against a `.claude/rules/**` budget — as `yonatan-hq/platform#5468` did with `check-rules-autoload-budget.py` — is the durable fix; tracked separately.)
+- **Per-file** — any single auto-loaded file ≥ 35k chars (WARN) / 38k (CRITICAL), just under CC's 40k cliff. The scan is **recursive**, so a large file nested under `.claude/rules/decisions/` is caught too, not just top-level files.
+- **Aggregate** — the SUM of every `*.md` under `.claude/rules/**` ≥ 50k chars (WARN) / 64k (CRITICAL, matching `yonatan-hq/platform#5468`'s budget). This catches the #2589 failure mode that per-file checks miss: 95 per-entry files of ~7k each individually pass the per-file gate, but their ~200k aggregate loads into every prompt.
+
+If the aggregate warning ever fires, the fix is exactly this doc's prescription: move the per-entry files to `docs/decisions/` and keep only the slim index in `.claude/rules/`.
 
 ## When the rolling pattern is still right
 
