@@ -119,6 +119,10 @@ All available in a single `/plugin install ork`. Skills load on-demand. Hooks wo
 
 The setup wizard (`/ork:setup`) will recommend MCPs based on your stack.
 
+### Customizing skills
+
+Skills install as files on your disk, but **don't hand-edit the installed copy** — it gets overwritten on update and silently diverges from the canonical playbook. The supported ways to extend (user-level skills, project skills, upstream PRs, or disabling a bundled skill) are in [docs/extending-skills.md](docs/extending-skills.md).
+
 ---
 
 ## Install
