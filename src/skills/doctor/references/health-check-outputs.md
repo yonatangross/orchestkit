@@ -31,7 +31,7 @@ Channel: alpha (v7.0.0-alpha.1)
 
 ```
 Installed Plugins: 1
-- ork: 111 skills, 37 agents, 173 hook entries
+- ork: 111 skills, 37 agents, 211 hook entries
 ```
 
 ## Skills Validation

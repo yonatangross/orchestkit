@@ -374,6 +374,14 @@ jobs:
         shell: bash
         run: ./bin/validate-counts.sh
 
+      # Direct enforcement of every stamped count surface (CLAUDE.md, README,
+      # marketplace.json, pyproject.toml, docs MDX). Complements the transitive
+      # plugins/ drift gate: a stale stamped surface now fails CI explicitly
+      # rather than only when a count change also touches plugins/.
+      - name: Check stamped counts are fresh
+        shell: bash
+        run: bash scripts/stamp-counts.sh --check
+
   # Job 7: Skills Validation (flat structure)
   skills-validation:
     name: Skills Validation
