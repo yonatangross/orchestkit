@@ -5,6 +5,38 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.56.0](https://github.com/yonatangross/orchestkit/compare/v8.55.2...v8.56.0) (2026-06-22)
+
+
+### Features
+
+* **hooks:** nudge general-purpose test-run spawns toward Bash ([#2576](https://github.com/yonatangross/orchestkit/issues/2576)) ([ed73464](https://github.com/yonatangross/orchestkit/commit/ed73464bf80e5f8b7b5599a2f48aa5c53183caae))
+* **hooks:** reliable session auto-rename + content-emoji color ([#2593](https://github.com/yonatangross/orchestkit/issues/2593)) ([2e4da25](https://github.com/yonatangross/orchestkit/commit/2e4da258db474f44e59a3cccf84e73d89a1ec68e))
+
+
+### Bug Fixes
+
+* **skill-evolution:** store per-entry decisions outside .claude/rules/ ([#2592](https://github.com/yonatangross/orchestkit/issues/2592)) ([9facc9a](https://github.com/yonatangross/orchestkit/commit/9facc9a8478f761b78038a80fc57346aa59cf4f8))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.185) ([#2587](https://github.com/yonatangross/orchestkit/issues/2587)) ([5087b3f](https://github.com/yonatangross/orchestkit/commit/5087b3f2a93898eebc8270084b4642a67f317e24))
+* **deps-dev:** bump @types/node from 25.9.3 to 26.0.0 ([#2579](https://github.com/yonatangross/orchestkit/issues/2579)) ([7586104](https://github.com/yonatangross/orchestkit/commit/7586104dbe8eb614db5a5fbaf1b5c65caf951ab6))
+* **deps-dev:** bump @types/node from 25.9.3 to 26.0.0 in /docs/site ([#2582](https://github.com/yonatangross/orchestkit/issues/2582)) ([3a8a399](https://github.com/yonatangross/orchestkit/commit/3a8a39962ce88748f8220679e762fac4d7f3548d))
+* **deps-dev:** bump @types/node from 25.9.3 to 26.0.0 in /src/hooks ([#2580](https://github.com/yonatangross/orchestkit/issues/2580)) ([604454c](https://github.com/yonatangross/orchestkit/commit/604454c1b4837569d22492c4587d139f3369ec56))
+* **deps-dev:** bump @types/node in /src/mcp-server ([#2578](https://github.com/yonatangross/orchestkit/issues/2578)) ([fdb84a8](https://github.com/yonatangross/orchestkit/commit/fdb84a8f5dc1d6c917019d7c3aad739736f9400e))
+* **deps-dev:** bump @vitejs/plugin-react in /docs/site ([#2584](https://github.com/yonatangross/orchestkit/issues/2584)) ([43565fd](https://github.com/yonatangross/orchestkit/commit/43565fd17947512a32f5bb9a49d888bb089e278b))
+* **deps-dev:** bump js-yaml from 4.2.0 to 5.0.0 ([#2577](https://github.com/yonatangross/orchestkit/issues/2577)) ([99398c9](https://github.com/yonatangross/orchestkit/commit/99398c9e9b82cda8a91108a1bc38d5d307af41a1))
+* **deps:** bump @dagrejs/dagre from 2.0.4 to 3.0.0 in /docs/site ([#2585](https://github.com/yonatangross/orchestkit/issues/2585)) ([f00d65a](https://github.com/yonatangross/orchestkit/commit/f00d65a27f1ed9508631775722a1ba6a1bf61d28))
+* **deps:** bump @vercel/speed-insights in /docs/site ([#2583](https://github.com/yonatangross/orchestkit/issues/2583)) ([a453ccb](https://github.com/yonatangross/orchestkit/commit/a453ccb1f0999f006c673236033e429d1b6396b1))
+* **deps:** bump the npm-minor-patch group in /docs/site with 4 updates ([#2581](https://github.com/yonatangross/orchestkit/issues/2581)) ([36d5d4d](https://github.com/yonatangross/orchestkit/commit/36d5d4dc0a8e7d9d880df93df84d301d291da167))
+
+
+### CI/CD
+
+* bump the github-actions group across 1 directory with 2 updates ([#2586](https://github.com/yonatangross/orchestkit/issues/2586)) ([2db8005](https://github.com/yonatangross/orchestkit/commit/2db800528ebf8b729feaa4c8a931f58d00c9b991))
+
 ## [8.55.2](https://github.com/yonatangross/orchestkit/compare/v8.55.1...v8.55.2) (2026-06-21)
 
 
