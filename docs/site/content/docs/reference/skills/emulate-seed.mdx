@@ -16,7 +16,7 @@ description: "Generate emulate seed configs for stateful API emulation. Wraps Ve
 
 Generate and manage seed configs for [emulate](https://github.com/vercel-labs/emulate) (Apache-2.0) — Vercel Labs' stateful API emulation tool. Each category has individual rule files in `rules/` loaded on-demand.
 
-> **Paired agent:** This skill pairs with the [`emulate-engineer`](../../agents/emulate-engineer.md) subagent (`subagent_type: "ork:emulate-engineer"`). When a task involves generating a full emulate config from scratch, webhook HMAC setup, CI pipeline integration, or parallel-worker port isolation, spawn the agent rather than handling it inline — it has the full 12-emulator service-port matrix and seed-rules in context.
+> **Paired agent:** This skill pairs with the [`emulate-engineer`](../../agents/emulate-engineer.md) subagent (`subagent_type: "ork:emulate-engineer"`). When a task involves generating a full emulate config from scratch, webhook HMAC setup, CI pipeline integration, or parallel-worker port isolation, spawn the agent rather than handling it inline — it has the full 13-emulator service-port matrix and seed-rules in context.
 
 **Not mocks.** Emulate provides full state machines with cascading deletes, cursor pagination, webhook delivery, and HMAC signature verification. Create a PR via the API and it appears in `GET /repos/:owner/:repo/pulls`. Delete a repo and its issues, PRs, and webhooks cascade-delete.
 
@@ -90,9 +90,15 @@ npx emulate --service github,stripe --seed ./emulate.config.yaml
 npx emulate init --service github
 ```
 
-## Services (0.5.0 — 13 emulators)
+## Services (0.7.0 — 13 emulators)
 
-> **New in 0.5.0 (Apr 2026):** Clerk emulator (auth/sessions), portless integration (embedded emulators without dedicated ports), Google OAuth `hd` claim support, Stripe Checkout + Resend magic link examples, AWS S3 emulator now matches the official SDK wire format. Backwards-compatible.
+> **New across releases:**
+> - **0.5.0** — added Clerk, MongoDB Atlas, Stripe, Resend, and Okta emulators; portless integration (embedded emulators without dedicated ports); Google OAuth `hd` claim support; Stripe Checkout + Resend magic link examples; AWS S3 emulator now matches the official SDK wire format.
+> - **0.6.0** — expanded Slack (OAuth v2 consent UI, conversations/reactions).
+> - **0.6.1** — Vercel Blob store.
+> - **0.7.0** — added Linear (13th provider): stateful orgs/teams/issues/cycles + webhooks.
+>
+> All backwards-compatible.
 
 | Service | Default Port | Coverage |
 |---------|-------------|----------|
@@ -107,7 +113,8 @@ npx emulate init --service github
 | **Okta** *(0.4+)* | `:4008` | OIDC discovery, JWKS, authorize/token/userinfo/revoke/introspect, Users/Groups/Apps CRUD |
 | **Resend** *(0.4+)* | `:4009` | Send + batch (100/req), list/retrieve/cancel, domains, API keys, audiences, contacts, **local inbox** (`GET /inbox`) |
 | **Stripe** *(0.4+)* | `:4010` | Customers, payment methods, customer sessions, payment intents, charges, products, prices, **hosted checkout session** w/ webhook delivery |
-| **Clerk** | (on-demand) | Users, sessions, organizations |
+| **Clerk** *(0.5+)* | (on-demand) | Users, sessions, organizations |
+| **Linear** *(0.7+)* | (on-demand) | Orgs, teams, issues, cycles, webhooks |
 
 See `references/api-coverage.md` for full endpoint lists.
 
@@ -277,14 +284,14 @@ See `rules/parallel-ci.md` for full parallel isolation patterns.
 
 | Tool | When to Use | Stateful? | Platforms |
 |------|------------|-----------|-----------|
-| **emulate** (FIRST CHOICE) | GitHub/Vercel/Google/Slack/Apple/Entra/AWS/Okta/Resend/Stripe/MongoDB testing | YES | All 12 services |
+| **emulate** (FIRST CHOICE) | GitHub/Vercel/Google/Slack/Apple/Entra/AWS/Okta/Resend/Stripe/MongoDB/Clerk/Linear testing | YES | All 13 services |
 | Pact | Contract verification between services | No | Any |
 | MSW | In-browser/Node HTTP mocking | No | Any |
 | Nock | Node.js HTTP intercept | No | Any |
 | WireMock | HTTP stub server | Partial | Any |
 
 **Use emulate when:**
-- Testing code that calls GitHub, Vercel, Google, Slack, Apple, Entra, AWS, Okta, Resend, Stripe, or MongoDB Atlas
+- Testing code that calls GitHub, Vercel, Google, Slack, Apple, Entra, AWS, Okta, Resend, Stripe, MongoDB Atlas, Clerk, or Linear
 - You need state persistence across multiple API calls in a test
 - You want webhook delivery with real HMAC signatures (GitHub, Stripe)
 - You need cascading side-effects (delete repo -> PRs cascade-delete)

@@ -9,7 +9,7 @@ OAuth providers validate redirect URIs against domain rules. `.localhost` subdom
 
 ## The Problem
 
-When portless uses the default `.localhost` TLD, OAuth providers reject redirect URIs like `http://myapp.localhost:1355/callback`:
+When portless uses the default `.localhost` TLD, OAuth providers reject redirect URIs like `https://myapp.localhost/callback`:
 
 | Provider  | `localhost` | `.localhost` subdomains | Reason                         |
 | --------- | ----------- | ----------------------- | ------------------------------ |

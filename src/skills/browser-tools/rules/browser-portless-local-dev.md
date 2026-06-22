@@ -8,7 +8,7 @@ tags: [portless, localhost, browser, debugging, local-dev]
 
 ## Browser: Portless Local Dev URLs
 
-Use Portless named `.localhost:1355` URLs instead of guessing port numbers. Named URLs are stable across restarts, self-documenting, and eliminate the #1 source of local dev connection failures.
+Use Portless named `.localhost` URLs instead of guessing port numbers. Named URLs are stable across restarts, self-documenting, and eliminate the #1 source of local dev connection failures.
 
 **Incorrect:**
 ```bash
@@ -26,25 +26,25 @@ agent-browser network log                         # on which port?
 ```bash
 # Discover services first
 portless list
-# api    → api.localhost:1355    (port 8080)
-# app    → app.localhost:1355    (port 3000)
-# docs   → docs.localhost:1355   (port 3001)
+# api    → api.localhost    (port 8080)
+# app    → app.localhost    (port 3000)
+# docs   → docs.localhost   (port 3001)
 
 # Use named URLs — stable, self-documenting
-agent-browser open "http://app.localhost:1355"
+agent-browser open "https://app.localhost"
 agent-browser screenshot /tmp/app-bug.png
 
 # API calls with named URLs
-curl http://api.localhost:1355/api/health
+curl https://api.localhost/api/health
 
 # Visual debugging with agent-browser + Portless
-agent-browser open "http://app.localhost:1355/settings"
+agent-browser open "https://app.localhost/settings"
 agent-browser console                             # check JS errors
 agent-browser network log                         # inspect API calls
 agent-browser screenshot /tmp/settings-broken.png # evidence for report
 
 # E2E testing with stable base URL
-PLAYWRIGHT_BASE_URL="http://app.localhost:1355" npx playwright test
+PLAYWRIGHT_BASE_URL="https://app.localhost" npx playwright test
 ```
 
 ## Portless v0.5+ Features
@@ -58,18 +58,18 @@ portless run npm run dev
 portless alias redis 6379
 
 # portless get — retrieve the URL for a named service
-portless get app  # → http://app.localhost:1355
+portless get app  # → https://app.localhost
 
 # PORTLESS_URL env var — injected automatically in portless run
 # Your app can read process.env.PORTLESS_URL to know its own named URL
 
-# HTTPS support (v0.4+) — auto-generated TLS certs
-# Portless can serve HTTPS on port 443 with HTTP/2
+# HTTPS by default (since v0.10) — auto-generated TLS certs, served on port 443 with HTTP/2
+# Named URLs are https://<name>.localhost (no port). Pre-0.10 used http://<name>.localhost:1355
 ```
 
 **Key rules:**
 - Always run `portless list` before constructing any localhost URL
-- Use `*.localhost:1355` URLs in all agent-browser commands, curl calls, and test configs
+- Use `*.localhost` URLs in all agent-browser commands, curl calls, and test configs
 - Include the Portless service name in screenshots and debug reports for clarity
 - Prefer `portless run` (v0.5+) over manual port management — it injects `--port` and `PORTLESS_URL` automatically
 - Use `portless alias` (v0.5+) for services not started by portless (databases, queues)

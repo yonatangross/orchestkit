@@ -87,7 +87,7 @@ The full annotated walkthrough: `references/boot-sequence.md`.
   "bootedAt": "2026-04-27T12:34:56Z",
   "branch": "feat/m125-lane-b",
   "subdomain": "feat-m125-lane-b.localhost",
-  "baseUrl": "https://feat-m125-lane-b.localhost:1355",
+  "baseUrl": "https://feat-m125-lane-b.localhost",
   "mode": "single",
   "processes": {
     "portlessWrapper": {
@@ -148,7 +148,7 @@ $ /ork:dev status
 ork:dev — feat/m125-lane-b
   ✓ portlessWrapper    portless feat-m125-lane-b pnpm run dev
   ✓ agentBrowser       feat-m125-lane-b
-  base url:  https://feat-m125-lane-b.localhost:1355
+  base url:  https://feat-m125-lane-b.localhost
   booted:    2026-04-27T19:36:54Z
   portless:  route registered ✓
 

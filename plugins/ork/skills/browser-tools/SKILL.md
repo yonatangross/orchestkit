@@ -43,17 +43,23 @@ OrchestKit security wrapper for `agent-browser`. **For command reference and usa
 
 ## Local Dev URLs
 
-Use **Portless** (`npm i -g portless`) for stable local dev URLs instead of guessing ports. When Portless is running, navigate to `myapp.localhost:1355` instead of `localhost:3000`. Our safety hook already allows `*.localhost` subdomains via `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST`.
+Use **Portless** (`npm i -g portless`) for stable local dev URLs instead of guessing ports. When Portless is running, navigate to `myapp.localhost` instead of `localhost:3000`. Our safety hook already allows `*.localhost` subdomains via `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST`.
 
 ```bash
 # With Portless: stable, named URLs
-agent-browser open "http://myapp.localhost:1355"
+agent-browser open "https://myapp.localhost"
 
 # Without: fragile port guessing
 agent-browser open "http://localhost:3000"  # which app is this?
 ```
 
-## New in 2026-04 → 2026-05 (agent-browser 0.23 → 0.27.0)
+## New in 2026-04 → 2026-06 (agent-browser 0.23 → 0.29.1)
+
+**Sandbox helpers (0.29):**
+- **`@agent-browser/sandbox`** — companion helper package for running agent-browser headless inside a Vercel Sandbox / eve ephemeral env (provisions Chrome + the native daemon for you, no host browser needed). Hook's URL/rate/robots checks still apply to whatever the sandboxed session navigates to.
+
+**Built-in MCP server (0.28):**
+- **`agent-browser --mcp`** — runs agent-browser as a Model Context Protocol server over stdio, exposing typed tools (open/snapshot/find/click/extract/...) with paginated capability discovery. Lets you wire browser automation MCP-native — directly into an MCP client — without going through the CLI Bash wrapper. Note: MCP-native sessions bypass the `agent-browser-safety` PreToolUse Bash hook (the hook only intercepts `agent-browser` Bash commands), so apply URL/rate/robots policy at the MCP-client layer when using this path.
 
 **React introspection + perf observability (0.27):**
 - **`react tree` / `react inspect <fiberId>` / `react renders start|stop` / `react suspense`** — first-class React DevTools integration via a vendored MIT-licensed hook embedded in the binary (zero runtime deps). Component-tree visibility, per-fiber props/hooks/state inspection, render profiling with mount/re-render counts and change details, Suspense boundary classification with root-cause grouping. Hook treats fiber state dumps as sensitive — gitignore captures.
@@ -137,10 +143,11 @@ agent-browser open "http://localhost:3000"  # which app is this?
 | `--enable <feature>` (repeatable) | global | v0.27 (built-in: `react-devtools`) |
 | `--resource-type <csv>` | network route | v0.27 |
 | `--curl <file>` | cookies set | v0.27 (auto-detects JSON/cURL/Cookie-header) |
+| `--mcp` | global | v0.28 (run as a stdio MCP server with typed tools) |
 
 **Platform support:** Brave auto-discovery (v0.20.7), Alpine Linux musl (v0.20.2), Lightpanda engine (v0.17), Browserless.io provider (v0.19), cross-origin iframe traversal (v0.22), AWS Bedrock AgentCore (v0.25).
 
-**Performance (v0.20):** 99x smaller install (710→7 MB), 18x less memory (143→8 MB), 1.6x faster cold start.
+**Native Rust rewrite (v0.20):** agent-browser is now 100% native Rust — the old Node.js/Playwright daemon (the "sidecar") is **gone**. It drives Chrome directly over CDP, so there is **no Node runtime, no Playwright, and no separate browser-driver process** to install or keep alive. Result: 99x smaller install (710→7 MB), 18x less memory (143→8 MB), 1.6x faster cold start.
 
 ## Safety Guardrails (7 rules + 11-check hook)
 

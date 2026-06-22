@@ -19,7 +19,7 @@ metadata:
   category: testing
   milestone: M99
   upstream-package: agent-browser
-  upstream-version-tested: "0.25.4"
+  upstream-version-tested: "0.29.1"
 triggers:
   keywords: [expect, "test my changes", "browser test", "diff test", "test what I changed", "test the UI", "visual regression", "check my changes"]
   examples:
@@ -237,7 +237,10 @@ Load: `Read("${CLAUDE_SKILL_DIR}/references/test-plan.md")`
 
 ## Phase 5: Execution
 
-### agent-browser 0.25.x Quick Primer
+### agent-browser Quick Primer
+
+> Floor is `>= 0.25.0`; current tested release is **0.29.x** (see `upstream-version-tested`). Commands below hold across this range.
+
 
 | Area | Command | Notes |
 |------|---------|-------|

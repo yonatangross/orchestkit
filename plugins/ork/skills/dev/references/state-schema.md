@@ -11,7 +11,7 @@ interface DevStackState {
   subdomain: string;             // e.g. "feat-m125-lane-b.localhost"
   baseUrl: string;               // canonical URL from `portless get <slug>` —
                                  // includes the proxy's actual port if non-default
-                                 // (e.g. "https://feat-m125-lane-b.localhost:1355")
+                                 // (e.g. "https://feat-m125-lane-b.localhost")
 
   processes: {
     portlessWrapper: {           // ALWAYS present after a successful boot.
@@ -70,7 +70,7 @@ Each git worktree has its own `.claude/state/` directory and its own dev-stack.j
   "bootedAt": "2026-04-27T19:36:54Z",
   "branch": "feat/m125-lane-b-dev-skill-properly-structured",
   "subdomain": "feat-m125-lane-b-dev-skill-properly-structured.localhost",
-  "baseUrl": "https://feat-m125-lane-b-dev-skill-properly-structured.localhost:1355",
+  "baseUrl": "https://feat-m125-lane-b-dev-skill-properly-structured.localhost",
   "processes": {
     "portlessWrapper": {
       "pid": 86104,

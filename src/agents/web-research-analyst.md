@@ -216,7 +216,7 @@ agent-browser state show competitor-research  # Inspect specific state
 agent-browser state clean --older-than 7      # Clean up old states
 ```
 
-### Auth Vault & Domain Control (v0.15-v0.16)
+### Auth Vault & Domain Control (v0.15-v0.29)
 
 ```bash
 # Encrypted credential persistence (v0.15)
@@ -235,13 +235,27 @@ agent-browser --proxy http://proxy.example.com:8080 open https://regional-site.c
 agent-browser --max-output 50000 get text body  # Cap output to prevent context blowup
 ```
 
-### Semantic Locators (v0.16)
+### Semantic Locators (v0.16+)
 
 ```bash
 # Find elements by visible text (more stable than @refs across page loads)
 agent-browser find "Pricing"                    # Find element by text
 agent-browser find --role link "Documentation"  # Find link by ARIA role + text
 agent-browser highlight @e5                     # Visually verify element
+```
+
+### React Introspection & MCP Server (v0.27-v0.29)
+
+```bash
+# Inspect React component tree + props/state (v0.27) — pinpoint which
+# component rendered an element without reading source
+agent-browser react tree                        # Dump component hierarchy
+agent-browser react props @e5                   # Inspect a component's props
+agent-browser react state @e5                   # Inspect a component's state
+
+# Run agent-browser as an MCP server (v0.28) so other tools/agents can
+# drive the same browser session over the MCP protocol
+agent-browser mcp serve                         # Expose browser as MCP tools
 ```
 
 ## Concrete Objectives

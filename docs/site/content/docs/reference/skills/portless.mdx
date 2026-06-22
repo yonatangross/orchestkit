@@ -1,6 +1,6 @@
 ---
 title: "Portless"
-description: "Named HTTPS .localhost URLs for local development with portless (v0.13.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration."
+description: "Named HTTPS .localhost URLs for local development with portless (v0.14.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
@@ -9,7 +9,7 @@ description: "Named HTTPS .localhost URLs for local development with portless (v
 
 <ContextualSkillSidebar slug="portless" />
 
-> **Portless** Named HTTPS .localhost URLs for local development with portless (v0.13.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence.
+> **Portless** Named HTTPS .localhost URLs for local development with portless (v0.14.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence.
 
 
 # Portless Integration
@@ -18,8 +18,11 @@ Named `.localhost` URLs for local development. Replaces `localhost:3000` with `h
 
 > **Full CLI reference**: Load `Read("$\{CLAUDE_SKILL_DIR\}/references/upstream.md")` for complete command docs.
 
-## New in 2026-04 → 2026-05 (portless 0.10.x → 0.13.x)
+## New in 2026-04 → 2026-06 (portless 0.10.x → 0.14.0)
 
+- **`--ngrok` flag (0.14.0)** — share an app publicly via ngrok while local access keeps its `.localhost` URL. Pair with the existing Tailscale/Funnel options when you need a public URL without giving up the named-subdomain dev experience.
+- **Node.js 24+ required (0.13.1, BREAKING)** — the proxy and CLI now require Node.js 24 or newer; older runtimes are unsupported. This release also hardens startup-service persistence so `.localhost` URLs survive reboot reliably.
+- **State directory moved to `~/.portless` (0.11, BREAKING)** — state relocated from scattered/temp locations to `~/.portless`; override with `PORTLESS_STATE_DIR`. Old state from pre-0.11 installs is not migrated automatically.
 - **OS startup service (0.13.0)** — `portless service install` / `service status` / `service uninstall` register a native startup service for the HTTPS proxy across macOS launchd, Linux systemd, and Windows Task Scheduler. `.localhost` URLs survive reboot without a manual `portless proxy start`. `portless clean` removes the service alongside CA + hosts cleanup.
 - **Tailscale readiness preflight (0.13.0)** — `--tailscale` and `--funnel` now validate Tailscale HTTPS + Funnel prerequisites before starting the child process, surfacing actionable errors instead of hanging during registration.
 - **Tailscale integration (0.12.0)** — `--tailscale` shares your app over your tailnet with automatic HTTPS on port 443; `--funnel` exposes it publicly via Tailscale Funnel. Apps receive `PORTLESS_TAILSCALE_URL` so they can reference their own public address. `portless list` now shows tailnet URLs.
@@ -74,7 +77,7 @@ portless service status
 portless service uninstall
 ```
 
-> **0.10.x breaking change:** default switched from `http://app.localhost:1355` to `https://app.localhost` on port 443. Use `--no-tls` to revert. `NODE_EXTRA_CA_CERTS` is injected into child processes automatically (0.10.2) — no manual cert setup. `/etc/hosts` is synced automatically for Safari; disable with `PORTLESS_SYNC_HOSTS=0`.
+> **0.10.x breaking change:** default switched from `https://app.localhost` to `https://app.localhost` on port 443. Use `--no-tls` to revert. `NODE_EXTRA_CA_CERTS` is injected into child processes automatically (0.10.2) — no manual cert setup. `/etc/hosts` is synced automatically for Safari; disable with `PORTLESS_SYNC_HOSTS=0`.
 
 ## Framework-Specific Setup
 
@@ -385,7 +388,7 @@ OAuth providers validate redirect URIs against domain rules. `.localhost` subdom
 
 ## The Problem
 
-When portless uses the default `.localhost` TLD, OAuth providers reject redirect URIs like `http://myapp.localhost:1355/callback`:
+When portless uses the default `.localhost` TLD, OAuth providers reject redirect URIs like `https://myapp.localhost/callback`:
 
 | Provider  | `localhost` | `.localhost` subdomains | Reason                         |
 | --------- | ----------- | ----------------------- | ------------------------------ |
@@ -588,11 +591,11 @@ portless proxy start
 
 # Run your app (auto-starts the proxy if needed)
 portless run next dev
-# -> http://<project>.localhost:1355
+# -> https://<project>.localhost
 
 # Or with an explicit name
 portless myapp next dev
-# -> http://myapp.localhost:1355
+# -> https://myapp.localhost
 ```
 
 The proxy auto-starts when you run an app. You can also start it explicitly with `portless proxy start`.
@@ -614,12 +617,12 @@ The proxy auto-starts when you run an app. Or start it explicitly: `portless pro
 ### Multi-app setups with subdomains
 
 ```bash
-portless myapp next dev          # http://myapp.localhost:1355
-portless api.myapp pnpm start    # http://api.myapp.localhost:1355
-portless docs.myapp next dev     # http://docs.myapp.localhost:1355
+portless myapp next dev          # https://myapp.localhost
+portless api.myapp pnpm start    # https://api.myapp.localhost
+portless docs.myapp next dev     # https://docs.myapp.localhost
 ```
 
-By default, only explicitly registered subdomains are routed (strict mode). Start the proxy with `--wildcard` to allow any subdomain of a registered route to fall back to that app (e.g. `tenant1.myapp.localhost:1355` routes to the `myapp` app without extra registration). Exact matches always take priority over wildcards.
+By default, only explicitly registered subdomains are routed (strict mode). Start the proxy with `--wildcard` to allow any subdomain of a registered route to fall back to that app (e.g. `tenant1.myapp.localhost` routes to the `myapp` app without extra registration). Exact matches always take priority over wildcards.
 
 ### Git worktrees
 
@@ -627,10 +630,10 @@ By default, only explicitly registered subdomains are routed (strict mode). Star
 
 ```bash
 # Main worktree -- no prefix
-portless run next dev   # -> http://myapp.localhost:1355
+portless run next dev   # -> https://myapp.localhost
 
 # Linked worktree on branch "fix-ui"
-portless run next dev   # -> http://fix-ui.myapp.localhost:1355
+portless run next dev   # -> https://fix-ui.myapp.localhost
 ```
 
 No config changes needed. Put `portless run` in `package.json` once and it works in all worktrees.
@@ -647,7 +650,7 @@ PORTLESS=0 pnpm dev   # Bypasses proxy, uses default port
 
 1. `portless proxy start` starts an HTTP reverse proxy on port 1355 as a background daemon (configurable with `-p` / `--port` or the `PORTLESS_PORT` env var). The proxy also auto-starts when you run an app.
 2. `portless &lt;name&gt; &lt;cmd&gt;` assigns a random free port (4000-4999) via the `PORT` env var and registers the app with the proxy
-3. The browser hits `http://&lt;name&gt;.localhost:1355` on the proxy port; the proxy forwards to the app's assigned port
+3. The browser hits `https://&lt;name&gt;.localhost` on the proxy port; the proxy forwards to the app's assigned port
 
 `.localhost` domains resolve to `127.0.0.1` natively in Chrome, Firefox, and Edge. Safari relies on the system DNS resolver, which may not handle `.localhost` subdomains on all configurations. Run `sudo portless hosts sync` to add entries to `/etc/hosts` if needed.
 
@@ -696,7 +699,7 @@ On Linux, `portless trust` supports Debian/Ubuntu, Arch, Fedora/RHEL/CentOS, and
 | -------------------------------------- | ------------------------------------------------------------- |
 | `portless run &lt;cmd&gt; [args...]`         | Infer name from project, run through proxy (auto-starts)      |
 | `portless run --name &lt;name&gt; &lt;cmd&gt;`     | Override inferred base name (worktree prefix still applies)   |
-| `portless &lt;name&gt; &lt;cmd&gt; [args...]`      | Run app at `http://&lt;name&gt;.localhost:1355` (auto-starts proxy) |
+| `portless &lt;name&gt; &lt;cmd&gt; [args...]`      | Run app at `https://&lt;name&gt;.localhost` (auto-starts proxy) |
 | `portless get &lt;name&gt;`                  | Print URL for a service (for cross-service wiring)            |
 | `portless get &lt;name&gt; --no-worktree`    | Print URL without worktree prefix                             |
 | `portless list`                        | Show active routes                                            |
@@ -785,7 +788,7 @@ This adds the portless local CA to your system trust store. After that, restart 
 
 ### Proxy loop (508 Loop Detected)
 
-If your dev server proxies requests to another portless app (e.g. Vite proxying `/api` to `api.myapp.localhost:1355`), the proxy must rewrite the `Host` header. Without this, portless routes the request back to the original app, creating an infinite loop.
+If your dev server proxies requests to another portless app (e.g. Vite proxying `/api` to `api.myapp.localhost`), the proxy must rewrite the `Host` header. Without this, portless routes the request back to the original app, creating an infinite loop.
 
 Fix: set `changeOrigin: true` in the proxy config (Vite, webpack-dev-server, etc.):
 
@@ -793,7 +796,7 @@ Fix: set `changeOrigin: true` in the proxy config (Vite, webpack-dev-server, etc
 // vite.config.ts
 proxy: {
   "/api": {
-    target: "http://api.myapp.localhost:1355",
+    target: "https://api.myapp.localhost",
     changeOrigin: true,
     ws: true,
   },

@@ -1,7 +1,7 @@
 ---
 name: portless
 compatibility: "Claude Code 2.1.183+"
-description: "Named HTTPS .localhost URLs for local development with portless (v0.13.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration."
+description: "Named HTTPS .localhost URLs for local development with portless (v0.14.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration."
 tags:
   - dev-server
   - localhost
@@ -27,8 +27,11 @@ Named `.localhost` URLs for local development. Replaces `localhost:3000` with `h
 
 > **Full CLI reference**: Load `Read("${CLAUDE_SKILL_DIR}/references/upstream.md")` for complete command docs.
 
-## New in 2026-04 → 2026-05 (portless 0.10.x → 0.13.x)
+## New in 2026-04 → 2026-06 (portless 0.10.x → 0.14.0)
 
+- **`--ngrok` flag (0.14.0)** — share an app publicly via ngrok while local access keeps its `.localhost` URL. Pair with the existing Tailscale/Funnel options when you need a public URL without giving up the named-subdomain dev experience.
+- **Node.js 24+ required (0.13.1, BREAKING)** — the proxy and CLI now require Node.js 24 or newer; older runtimes are unsupported. This release also hardens startup-service persistence so `.localhost` URLs survive reboot reliably.
+- **State directory moved to `~/.portless` (0.11, BREAKING)** — state relocated from scattered/temp locations to `~/.portless`; override with `PORTLESS_STATE_DIR`. Old state from pre-0.11 installs is not migrated automatically.
 - **OS startup service (0.13.0)** — `portless service install` / `service status` / `service uninstall` register a native startup service for the HTTPS proxy across macOS launchd, Linux systemd, and Windows Task Scheduler. `.localhost` URLs survive reboot without a manual `portless proxy start`. `portless clean` removes the service alongside CA + hosts cleanup.
 - **Tailscale readiness preflight (0.13.0)** — `--tailscale` and `--funnel` now validate Tailscale HTTPS + Funnel prerequisites before starting the child process, surfacing actionable errors instead of hanging during registration.
 - **Tailscale integration (0.12.0)** — `--tailscale` shares your app over your tailnet with automatic HTTPS on port 443; `--funnel` exposes it publicly via Tailscale Funnel. Apps receive `PORTLESS_TAILSCALE_URL` so they can reference their own public address. `portless list` now shows tailnet URLs.
@@ -83,7 +86,7 @@ portless service status
 portless service uninstall
 ```
 
-> **0.10.x breaking change:** default switched from `http://app.localhost:1355` to `https://app.localhost` on port 443. Use `--no-tls` to revert. `NODE_EXTRA_CA_CERTS` is injected into child processes automatically (0.10.2) — no manual cert setup. `/etc/hosts` is synced automatically for Safari; disable with `PORTLESS_SYNC_HOSTS=0`.
+> **0.10.x breaking change:** default switched from `https://app.localhost` to `https://app.localhost` on port 443. Use `--no-tls` to revert. `NODE_EXTRA_CA_CERTS` is injected into child processes automatically (0.10.2) — no manual cert setup. `/etc/hosts` is synced automatically for Safari; disable with `PORTLESS_SYNC_HOSTS=0`.
 
 ## Framework-Specific Setup
 

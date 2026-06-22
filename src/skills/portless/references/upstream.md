@@ -40,11 +40,11 @@ portless proxy start
 
 # Run your app (auto-starts the proxy if needed)
 portless run next dev
-# -> http://<project>.localhost:1355
+# -> https://<project>.localhost
 
 # Or with an explicit name
 portless myapp next dev
-# -> http://myapp.localhost:1355
+# -> https://myapp.localhost
 ```
 
 The proxy auto-starts when you run an app. You can also start it explicitly with `portless proxy start`.
@@ -66,12 +66,12 @@ The proxy auto-starts when you run an app. Or start it explicitly: `portless pro
 ### Multi-app setups with subdomains
 
 ```bash
-portless myapp next dev          # http://myapp.localhost:1355
-portless api.myapp pnpm start    # http://api.myapp.localhost:1355
-portless docs.myapp next dev     # http://docs.myapp.localhost:1355
+portless myapp next dev          # https://myapp.localhost
+portless api.myapp pnpm start    # https://api.myapp.localhost
+portless docs.myapp next dev     # https://docs.myapp.localhost
 ```
 
-By default, only explicitly registered subdomains are routed (strict mode). Start the proxy with `--wildcard` to allow any subdomain of a registered route to fall back to that app (e.g. `tenant1.myapp.localhost:1355` routes to the `myapp` app without extra registration). Exact matches always take priority over wildcards.
+By default, only explicitly registered subdomains are routed (strict mode). Start the proxy with `--wildcard` to allow any subdomain of a registered route to fall back to that app (e.g. `tenant1.myapp.localhost` routes to the `myapp` app without extra registration). Exact matches always take priority over wildcards.
 
 ### Git worktrees
 
@@ -79,10 +79,10 @@ By default, only explicitly registered subdomains are routed (strict mode). Star
 
 ```bash
 # Main worktree -- no prefix
-portless run next dev   # -> http://myapp.localhost:1355
+portless run next dev   # -> https://myapp.localhost
 
 # Linked worktree on branch "fix-ui"
-portless run next dev   # -> http://fix-ui.myapp.localhost:1355
+portless run next dev   # -> https://fix-ui.myapp.localhost
 ```
 
 No config changes needed. Put `portless run` in `package.json` once and it works in all worktrees.
@@ -99,7 +99,7 @@ PORTLESS=0 pnpm dev   # Bypasses proxy, uses default port
 
 1. `portless proxy start` starts an HTTP reverse proxy on port 1355 as a background daemon (configurable with `-p` / `--port` or the `PORTLESS_PORT` env var). The proxy also auto-starts when you run an app.
 2. `portless <name> <cmd>` assigns a random free port (4000-4999) via the `PORT` env var and registers the app with the proxy
-3. The browser hits `http://<name>.localhost:1355` on the proxy port; the proxy forwards to the app's assigned port
+3. The browser hits `https://<name>.localhost` on the proxy port; the proxy forwards to the app's assigned port
 
 `.localhost` domains resolve to `127.0.0.1` natively in Chrome, Firefox, and Edge. Safari relies on the system DNS resolver, which may not handle `.localhost` subdomains on all configurations. Run `sudo portless hosts sync` to add entries to `/etc/hosts` if needed.
 
@@ -148,7 +148,7 @@ On Linux, `portless trust` supports Debian/Ubuntu, Arch, Fedora/RHEL/CentOS, and
 | -------------------------------------- | ------------------------------------------------------------- |
 | `portless run <cmd> [args...]`         | Infer name from project, run through proxy (auto-starts)      |
 | `portless run --name <name> <cmd>`     | Override inferred base name (worktree prefix still applies)   |
-| `portless <name> <cmd> [args...]`      | Run app at `http://<name>.localhost:1355` (auto-starts proxy) |
+| `portless <name> <cmd> [args...]`      | Run app at `https://<name>.localhost` (auto-starts proxy) |
 | `portless get <name>`                  | Print URL for a service (for cross-service wiring)            |
 | `portless get <name> --no-worktree`    | Print URL without worktree prefix                             |
 | `portless list`                        | Show active routes                                            |
@@ -237,7 +237,7 @@ This adds the portless local CA to your system trust store. After that, restart 
 
 ### Proxy loop (508 Loop Detected)
 
-If your dev server proxies requests to another portless app (e.g. Vite proxying `/api` to `api.myapp.localhost:1355`), the proxy must rewrite the `Host` header. Without this, portless routes the request back to the original app, creating an infinite loop.
+If your dev server proxies requests to another portless app (e.g. Vite proxying `/api` to `api.myapp.localhost`), the proxy must rewrite the `Host` header. Without this, portless routes the request back to the original app, creating an infinite loop.
 
 Fix: set `changeOrigin: true` in the proxy config (Vite, webpack-dev-server, etc.):
 
@@ -245,7 +245,7 @@ Fix: set `changeOrigin: true` in the proxy config (Vite, webpack-dev-server, etc
 // vite.config.ts
 proxy: {
   "/api": {
-    target: "http://api.myapp.localhost:1355",
+    target: "https://api.myapp.localhost",
     changeOrigin: true,
     ws: true,
   },

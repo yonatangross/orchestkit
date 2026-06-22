@@ -21,6 +21,9 @@ const TARGETS = [
   { skill: 'src/skills/portless/SKILL.md',             pkg: 'portless' },
   { skill: 'src/skills/browser-tools/SKILL.md',        pkg: 'agent-browser' },
   { skill: 'src/skills/json-render-catalog/SKILL.md',  pkg: '@json-render/core' },
+  { skill: 'src/skills/multi-surface-render/SKILL.md', pkg: '@json-render/core' },
+  { skill: 'src/skills/mcp-visual-output/SKILL.md',    pkg: '@json-render/mcp' },
+  { skill: 'src/skills/expect/SKILL.md',               pkg: 'agent-browser' },
 ];
 
 // Track-only tier (M127 #1557 wterm decision).

@@ -165,17 +165,17 @@ Return structured investigation report:
 When the bug involves a running web app, API, or frontend:
 ```bash
 # Prefer Portless named URLs over raw port numbers
-portless list 2>/dev/null && echo "Use *.localhost:1355 URLs"
+portless list 2>/dev/null && echo "Use https://*.localhost URLs"
 # Fallback: discover ports from process list
 lsof -iTCP -sTCP:LISTEN -nP | grep -E 'node|python|java|ruby|go'
 ```
-Use `myapp.localhost:1355` instead of `localhost:PORT` — named URLs are stable across restarts and self-documenting in investigation reports.
+Use `https://myapp.localhost` instead of `localhost:PORT` — named URLs are stable across restarts and self-documenting in investigation reports (portless serves HTTPS on 443, no port needed).
 
 ### 1c. Visual Inspection with agent-browser
 For UI bugs, rendering issues, or frontend state problems, use `agent-browser` to visually inspect the running app:
 ```bash
 # Open the app at its Portless URL
-agent-browser open "http://myapp.localhost:1355"
+agent-browser open "https://myapp.localhost"
 # Screenshot the broken state as evidence
 agent-browser screenshot /tmp/bug-before.png
 # Check console for JS errors
@@ -240,16 +240,16 @@ Task: "SSE progress events not showing in frontend"
 **1. Discover services:**
 ```bash
 portless list
-# api → api.localhost:1355 (port 8500)
-# app → app.localhost:1355 (port 5173)
+# api → https://api.localhost (port 8500)
+# app → https://app.localhost (port 5173)
 ```
 
 **1b. Reproduce:**
 ```bash
 # Use Portless named URLs — stable and self-documenting
-curl -X POST http://api.localhost:1355/api/v1/analyses -d '{"url": "https://example.com"}'
+curl -X POST https://api.localhost/api/v1/analyses -d '{"url": "https://example.com"}'
 # Open the frontend via agent-browser
-agent-browser open "http://app.localhost:1355"
+agent-browser open "https://app.localhost"
 agent-browser screenshot /tmp/sse-bug-before.png  # progress stays at 0%
 agent-browser console  # check for JS errors
 ```
@@ -330,7 +330,7 @@ The debug-investigator agent complements `/debug` by:
 - `debug-investigator` - Systematic RCA for application bugs
 
 ## Local Dev Tools
-- **Portless** (`npm i -g portless`): Use named `.localhost:1355` URLs instead of raw port numbers. Run `portless list` to discover available services before constructing any localhost URLs.
+- **Portless** (`npm i -g portless`): Use named `https://*.localhost` URLs (HTTPS on 443, no port) instead of raw port numbers. Run `portless list` to discover available services before constructing any localhost URLs.
 - **agent-browser**: Use for visual inspection, screenshots, console logs, and network monitoring. Essential for UI bugs — don't guess what the user sees, look at it yourself.
 
 ## Integration

@@ -137,7 +137,7 @@ Generated env var: `ORCHESTKIT_COMMIT_SCOPE=<value>`
 
 ```python
 AskUserQuestion(questions=[{
-  "question": "Should agents be allowed to browse *.localhost URLs (e.g. hq-web.localhost:1355)?",
+  "question": "Should agents be allowed to browse *.localhost URLs (e.g. hq-web.localhost)?",
   "header": "Localhost browser",
   "options": [
     {
@@ -237,7 +237,7 @@ AskUserQuestion(questions=[{
       "description": "Yonatan HQ production API"
     },
     {
-      "label": "https://hq-api.localhost:1355/api/hooks",
+      "label": "https://hq-api.localhost/api/hooks",
       "description": "Local dev API (Portless)"
     },
     {

@@ -244,21 +244,21 @@ When the issue involves a running web app, API, or UI bug, discover services and
 ```bash
 # 1. Discover services via Portless (preferred)
 portless list 2>/dev/null
-# api → api.localhost:1355   (port 8080)
-# app → app.localhost:1355   (port 3000)
+# api → api.localhost   (port 8080)
+# app → app.localhost   (port 3000)
 
 # 2. Fallback: discover ports manually
 lsof -iTCP -sTCP:LISTEN -nP | grep -E 'node|python|java'
 
 # 3. Visual inspection with agent-browser
-agent-browser open "http://app.localhost:1355"
+agent-browser open "https://app.localhost"
 agent-browser screenshot /tmp/issue-before.png     # capture broken state
 agent-browser console                              # check for JS errors
 agent-browser network log                          # inspect failed API calls
 agent-browser get text @error-banner               # extract error messages
 ```
 
-Use Portless named URLs (`*.localhost:1355`) in all investigation steps — they're stable, self-documenting, and eliminate port-guessing failures. Install with `npm i -g portless`.
+Use Portless named URLs (`*.localhost`) in all investigation steps — they're stable, self-documenting, and eliminate port-guessing failures. Install with `npm i -g portless`.
 
 ## Workflow Overview
 
