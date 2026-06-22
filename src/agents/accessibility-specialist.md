@@ -68,10 +68,12 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - `mcp__context7__*` - Up-to-date documentation for React, ARIA patterns
 
 ## Browser Automation
+> agent-browser commands and version-specific flags are documented in the browser-tools skill — the source of truth. Don't snapshot versions here.
+
 - Use `agent-browser` CLI via Bash for automated accessibility testing
 - Capture page for a11y audit: `agent-browser open <url> && agent-browser snapshot -i`
 - Run axe-core via browser: `agent-browser eval "axe.run()"`
-- **A11y tree diffing** (v0.13): Track accessibility changes over time
+- **A11y tree diffing**: Track accessibility changes over time
   - `agent-browser diff snapshot` — detect a11y tree regressions after code changes
   - `agent-browser diff snapshot --baseline before-fix.txt` — verify fix improved a11y tree
   - `agent-browser diff screenshot --baseline <img>` — catch visual regressions affecting a11y
@@ -103,7 +105,7 @@ agent-browser storage local "reduced_motion" # Check motion preferences
 agent-browser storage local set "high_contrast" "true"  # Test contrast mode
 ```
 
-### Semantic Locators for A11y Audits (v0.16)
+### Semantic Locators for A11y Audits
 ```bash
 # Find elements by ARIA roles — verify correct role assignment
 agent-browser find --role button "Submit"        # Verify button role
@@ -116,7 +118,7 @@ agent-browser screenshot --annotate              # Capture with numbered labels
 agent-browser highlight --clear
 ```
 
-### Color Scheme & Device Testing (v0.16)
+### Color Scheme & Device Testing
 ```bash
 # Test dark/light mode contrast compliance
 agent-browser --color-scheme dark open https://app.example.com

@@ -95,11 +95,13 @@ Generate complete component families (components + hooks + schemas + tests + sto
 With 128K output, build entire feature pages without splitting across responses.
 
 ## Browser Automation
+> agent-browser commands and version-specific flags are documented in the browser-tools skill — the source of truth. Don't snapshot versions here.
+
 - **Default-on auto-expect (M125 #2):** when `/ork:dev` is live, saving a `.tsx`/`.css` file emits a one-line nudge to run `/ork:expect &lt;route&gt;`. Honor it for any non-trivial UI change. Skip it for typo fixes or commented-out code by writing `SKIP` to `.claude/state/expect-skip.&lt;sessionId&gt;` for the session, or set `ORK_EXPECT_AUTO=0` to disable globally.
 - Use `agent-browser` CLI via Bash for component visual testing and E2E test generation
 - Snapshot + Refs workflow: `agent-browser snapshot -i` then interact with `@e1`, `@e2` refs
 - Screenshots: `agent-browser screenshot &lt;path&gt;` for visual verification
-- **Visual regression testing** (v0.13):
+- **Visual regression testing**:
   - `agent-browser diff screenshot --baseline <img>` — pixel-level diff with mismatch percentage
   - `agent-browser diff snapshot` — verify DOM changes after component updates
   - `agent-browser diff url &lt;dev&gt; &lt;staging&gt;` — compare component rendering across environments
@@ -145,7 +147,7 @@ agent-browser storage local set "feature_new_nav" "enabled"
 agent-browser storage local clear            # Reset to defaults
 ```
 
-### Recording for Bug Reports (v0.16)
+### Recording for Bug Reports
 ```bash
 # Capture trace for component bug reproduction
 agent-browser trace start /tmp/component-trace.zip
@@ -156,7 +158,7 @@ agent-browser trace stop
 # Open trace in Playwright Trace Viewer for debugging
 ```
 
-### Semantic Locators & Highlight (v0.16)
+### Semantic Locators & Highlight
 ```bash
 # Find components by visible text (stable across re-renders)
 agent-browser find "Save Changes"            # Find by text
@@ -165,7 +167,7 @@ agent-browser highlight @e1                  # Visually verify element
 agent-browser highlight --clear
 ```
 
-### Color Scheme & Mouse Control (v0.16)
+### Color Scheme & Mouse Control
 ```bash
 # Test dark/light mode rendering
 agent-browser --color-scheme dark open http://localhost:3000
