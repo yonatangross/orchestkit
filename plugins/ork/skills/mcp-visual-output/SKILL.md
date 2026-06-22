@@ -125,7 +125,7 @@ registerJsonRenderTool(server, {
 registerJsonRenderResource(server, { resourceUri, html: bundledHtml })
 ```
 
-`registerJsonRenderResource()` was added in 0.15 to separate **tool registration** from **UI resource serving** — useful when the host caches the bundled HTML (clients: Claude, ChatGPT, Cursor, VS Code Copilot, Goose, Postman). Transports: stdio **and** Streamable HTTP (Express) both supported.
+`registerJsonRenderResource()` was added in 0.15 to separate **tool registration** from **UI resource serving** — useful when the host caches the bundled HTML (clients: Claude, ChatGPT, Cursor, VS Code Copilot, Goose, Postman). Transports: stdio **and** Streamable HTTP (Express) both supported. This skill is verified against `@json-render/mcp` **0.19.0**.
 
 ## Client-Side Iframe App
 
