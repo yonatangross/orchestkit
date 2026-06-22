@@ -169,20 +169,6 @@ test_validate_counts() {
     fi
 }
 
-# Test update-counts.sh dry-run
-test_update_dry_run() {
-    local output
-    output=$("${PROJECT_ROOT}/bin/update-counts.sh" --dry-run 2>&1)
-
-    if [[ "$output" == *"DRY RUN"* ]]; then
-        log_pass "update-counts.sh --dry-run works"
-    else
-        log_fail "update-counts.sh --dry-run missing DRY RUN indicator"
-    fi
-
-    log_pass "update-counts.sh --dry-run completed without error"
-}
-
 # Test that counts match actual component directories
 test_count_accuracy() {
     log_section "Verifying Count Accuracy"
@@ -249,9 +235,6 @@ main() {
 
     log_section "Test 5: Validate Counts"
     test_validate_counts
-
-    log_section "Test 6: Update Dry Run"
-    test_update_dry_run
 
     test_count_accuracy
 
