@@ -176,7 +176,11 @@ function setOnceFlagDone(hookName: string, sessionId: string, projectDir: string
  */
 function buildSessionTitle(branch: string, effort: string, isWorktree = false): string {
   const cleanBranch = (branch || '').trim().replace(/[\r\n]+/g, ' ');
-  if (!cleanBranch) return '';
+  // 'unknown' is git.ts's fallback sentinel when branch detection fails (not a
+  // git repo / detached / git missing). It must NOT leak into the prompt-bar
+  // title as a "… · unknown" suffix — treat it as no branch so the title is
+  // just the AI topic (or empty). Seen in the wild: "SDLC Roadmap · unknown".
+  if (!cleanBranch || cleanBranch === 'unknown') return '';
   // Strip common branch prefixes to save characters in the title bar
   const shortBranch = cleanBranch
     .replace(/^(refs\/heads\/|origin\/)/, '')
@@ -263,8 +267,10 @@ function getPinnedBranch(
       const pinned = readFileSync(file, 'utf8').trim();
       if (pinned) return pinned;
     }
-    // First turn for this session: pin whatever branch we see now.
-    if (!liveBranch) return liveBranch;
+    // First turn for this session: pin whatever branch we see now. Don't pin
+    // the 'unknown' fallback (git.ts) — git may not be ready on turn 1; leaving
+    // it unpinned lets a later turn pin the real branch instead.
+    if (!liveBranch || liveBranch === 'unknown') return liveBranch;
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
     writeFileSync(file, liveBranch, 'utf8');
     return liveBranch;
@@ -402,9 +408,12 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   const branchTitle = buildSessionTitle(titleBranch, effort, ctx.isWorktree);
 
   // Session identity (haiku auto-rename + auto-color): turn 1 spawns a
-  // detached `claude -p --model haiku` and appends a hash-based agent-color
-  // record to the transcript; later turns harvest the generated title and
-  // merge it in front of the branch title. Fails open to branch-only title.
+  // detached, context-stripped `claude -p --model haiku` (RC2) and appends a
+  // hash-based agent-color record to the transcript; the generated title is
+  // adopted on turn 1 (opt-in inline wait, RC1) or the next turn, carrying the
+  // color as an emoji prefix (RC3, since hooks can't set live color). The
+  // returned string is already emoji-prefixed; we merge it in front of the
+  // branch title. Fails open to branch-only title.
   const aiTitle = sessionId
     ? manageSessionIdentity(input, ctx, getPromptSessionDir(sessionId, projectDir), projectDir)
     : null;

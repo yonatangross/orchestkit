@@ -156,6 +156,17 @@ describe('prompt/unified-dispatcher — sessionTitle (CC 2.1.94)', () => {
     expect(result.hookSpecificOutput?.sessionTitle).toBeUndefined();
   });
 
+  // Regression: git.ts returns the sentinel 'unknown' when branch detection
+  // fails (not a repo / git missing). It must NOT surface as a "… · unknown"
+  // title suffix (seen in the wild: "SDLC Roadmap · unknown").
+  test("treats the 'unknown' git fallback as no branch", () => {
+    testCtx = createTestContext({ branch: 'unknown' });
+    const input = createPromptInput('hi');
+    const result = unifiedPromptDispatcher(input, testCtx);
+    const title = result.hookSpecificOutput?.sessionTitle;
+    expect(title ?? '').not.toContain('unknown');
+  });
+
   test('strips newlines from branch (defense against weird git state)', () => {
     testCtx = createTestContext({ branch: 'feature\nauth' });
     const input = createPromptInput('hi');

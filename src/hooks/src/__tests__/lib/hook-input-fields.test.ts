@@ -86,16 +86,26 @@ describe('HookInput field contracts (CC 2.1.47+)', () => {
       '../../../..' // up from __tests__/lib → src/hooks/src
     );
 
-    it('no hook source file references enabledPlugins', () => {
+    it('no hook source reads enabledPlugins as a hook input field', () => {
       const tsFiles = collectTsFiles(hooksSourceDir).filter(
         // Exclude the test files themselves
         (f) => !f.includes('__tests__')
       );
 
+      // Contract: enabledPlugins must never be READ as a HOOK INPUT FIELD
+      // (input.enabledPlugins) — it is CC-internal, not a hook field.
+      //
+      // EXCEPTION: session-identity.ts passes "enabledPlugins":{} inside a child
+      // `claude -p --settings` JSON payload (RC2 — stripping the spawned child's
+      // plugin surface so it stays under the context limit). That is a
+      // child-process SETTING, not a hook-input read. So we flag only member
+      // access (`.enabledPlugins`), which is how a hook field would be read —
+      // not quoted JSON keys in a --settings payload, nor comment mentions.
+      const FIELD_USE = /\.enabledPlugins\b/;
       const offenders: string[] = [];
       for (const file of tsFiles) {
         const content = readFileSync(file, 'utf-8');
-        if (content.includes('enabledPlugins')) {
+        if (FIELD_USE.test(content)) {
           offenders.push(file);
         }
       }

@@ -7,7 +7,7 @@
  * output parsing, title merge. Orchestration lives in
  * session-identity-state.ts (driven by prompt/unified-dispatcher).
  *
- * Delivery channels (verified against the CC 2.1.175 binary):
+ * Delivery channels (verified against the CC 2.1.175 binary; re-verified 2.1.185):
  * - TITLE: `hookSpecificOutput.sessionTitle` (UserPromptSubmit, CC 2.1.94+)
  *   updates the live prompt bar — fully supported hook surface.
  * - COLOR: no hook surface exists. `/color` persists by appending
@@ -15,11 +15,30 @@
  *   session transcript jsonl; the session list / resume picker rebuilds from
  *   the LAST such record. We append the same shape. Limitation: the live
  *   prompt bar only shows it after resume — CC's in-memory accent color has
- *   no external setter.
+ *   no external setter. So we ALSO carry the color as a semantic emoji prefix
+ *   on the title (`colorEmoji`) — the one live channel a hook owns (RC3).
+ *
+ * 2026-06-22 diagnosis (687 real sessions): the haiku titler produced a valid
+ * name 81% of the time, but only 7.3% of sessions adopted it. Two delivery
+ * bugs, both fixed here:
+ * - RC2 (context blowout, 13% hard-fail): the child `claude -p` inherited the
+ *   project cwd → loaded `.mcp.json` (8 MCP servers) + plugin skills/agents →
+ *   ~213K tokens > the 200K limit → "Prompt is too long". `disableAllHooks`
+ *   disables hooks, NOT MCP/skills. Fixed by `spawnIdentityGenerator` below:
+ *   neutral cwd (`tmpdir`) + `--strict-mcp-config --mcp-config '{"mcpServers":{}}'`
+ *   + `--disable-slash-commands` + `enabledPlugins:{}`. Verified: the child
+ *   returns valid JSON in ~6-7s instead of overflowing.
+ * - RC1 (harvest-miss, the dominant loss): the title was pulled only on the
+ *   NEXT UserPromptSubmit, but the detached child finishes ~6-7s later and
+ *   short sessions never send another prompt in time. Mitigated by the opt-in
+ *   inline wait in session-identity-state.ts (default off — 6-7s is too slow
+ *   to block every first prompt) plus the existing lazy next-turn pull, which
+ *   now succeeds reliably because the child no longer errors.
  */
 
 import { existsSync, openSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { spawn } from 'node:child_process';
 import type { HookContext } from '../types.js';
 
@@ -40,7 +59,103 @@ export type SessionColor = (typeof SESSION_COLOR_PALETTE)[number];
 export interface SessionIdentity {
   title: string;
   color: SessionColor;
+  /**
+   * A content emoji the generator picked to represent the work (a lock for auth,
+   * a bug for a fix, a rocket for a release). Decoupled from `color`: the emoji
+   * is the LIVE title signal (unlimited), while `color` is the 8-palette session
+   * color for the /resume swatch + statusline dot. Absent when the model gave
+   * nothing usable — callers fall back to the color glyph.
+   */
+  emoji?: string;
 }
+
+/**
+ * Semantic color glyph for each palette entry (RC3). Hooks cannot set the live
+ * session accent color, so we prefix the title with a color emoji — the live
+ * prompt bar DOES render the title, giving an at-a-glance color signal even
+ * before resume. Six colors map to the exact color circles; pink/cyan have no
+ * color circle, so they use the growing-heart / diamond-with-dot, which both
+ * read clearly as their color and (like the circles) are Unicode 6.0 — maximal
+ * terminal support. Built from code points (not literal glyphs) to satisfy the
+ * visual-style lint, which forbids emoji on the code surface.
+ */
+export const SESSION_COLOR_EMOJI: Record<SessionColor, string> = {
+  red: String.fromCodePoint(0x1f534), // large red circle
+  blue: String.fromCodePoint(0x1f535), // large blue circle
+  green: String.fromCodePoint(0x1f7e2), // large green circle
+  yellow: String.fromCodePoint(0x1f7e1), // large yellow circle
+  purple: String.fromCodePoint(0x1f7e3), // large purple circle
+  orange: String.fromCodePoint(0x1f7e0), // large orange circle
+  pink: String.fromCodePoint(0x1f497), // growing heart — reads pink (design)
+  cyan: String.fromCodePoint(0x1f4a0), // diamond with a dot — reads cyan (testing)
+};
+
+/** Color glyph for a palette entry; empty string for anything unexpected. */
+export function colorEmoji(color: SessionColor): string {
+  return SESSION_COLOR_EMOJI[color] ?? '';
+}
+
+/**
+ * Display title with a leading glyph: `<glyph> <title>`. Prefers the content
+ * emoji the generator chose (expressive, unlimited); falls back to the color
+ * circle when none is usable. This is what the dispatcher merges with the
+ * branch title and emits as `sessionTitle`.
+ */
+export function titleWithColor(identity: SessionIdentity): string {
+  const glyph = identity.emoji || colorEmoji(identity.color);
+  return glyph ? `${glyph} ${identity.title}` : identity.title;
+}
+
+/**
+ * Match a single emoji grapheme — a base pictographic char plus any trailing
+ * variation selectors / ZWJ-joined pictographics (so ZWJ sequences like a
+ * person-role emoji and presentation selectors survive intact). Built from
+ * Unicode property escapes and code-point escapes only (no literal emoji on
+ * the code surface).
+ */
+const EMOJI_RE = /\p{Extended_Pictographic}(?:\u{FE0F}|\u{200D}\p{Extended_Pictographic})*/u;
+
+/**
+ * Extract the first usable emoji grapheme from the generator's `emoji` field.
+ * Returns undefined when the field is absent or has no pictographic char (the
+ * model returned prose or nothing) — callers then fall back to the color glyph.
+ */
+export function extractEmoji(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const match = value.match(EMOJI_RE);
+  return match ? match[0] : undefined;
+}
+
+/**
+ * Work categories the generator classifies into. We ask haiku for a CATEGORY
+ * (a classification task LLMs do reliably) and map it to a color in code —
+ * deterministic and meaningful, vs asking the model to free-pick a color (which
+ * clustered: two unrelated sessions both went pink). Order matches the palette.
+ */
+export const WORK_CATEGORIES = [
+  'bugfix',
+  'feature',
+  'docs',
+  'refactor',
+  'infra',
+  'perf',
+  'design',
+  'testing',
+] as const;
+
+export type WorkCategory = (typeof WORK_CATEGORIES)[number];
+
+/** Deterministic category → session color. */
+export const CATEGORY_COLOR: Record<WorkCategory, SessionColor> = {
+  bugfix: 'red',
+  feature: 'green',
+  docs: 'blue',
+  refactor: 'yellow',
+  infra: 'purple',
+  perf: 'orange',
+  design: 'pink',
+  testing: 'cyan',
+};
 
 /** Recursion guard env marker for the child `claude -p` call. */
 export const CHILD_ENV_MARKER = 'ORK_SESSION_IDENTITY_CHILD';
@@ -94,8 +209,9 @@ export function buildGeneratorPrompt(firstPrompt: string, branch: string, langua
   const excerpt = firstPrompt.replace(/\s+/g, ' ').trim().slice(0, PROMPT_EXCERPT_MAX);
   return [
     'You name coding sessions. Given the first user prompt of a session, output STRICT JSON only — no prose, no code fences:',
-    `{"title":"<3-6 word topic title>","color":"<one of: ${SESSION_COLOR_PALETTE.join(', ')}>"}`,
-    'Pick the color that best matches the work (red=bugfix/incident, green=feature, blue=docs/research, yellow=refactor, purple=infra/CI, orange=perf, pink=design/UX, cyan=testing).',
+    `{"title":"<3-6 word topic title>","category":"<one of: ${WORK_CATEGORIES.join(', ')}>","emoji":"<one emoji>"}`,
+    'Choose the SINGLE category that best fits the work: bugfix (fixing a bug or incident), feature (new capability), docs (documentation or research), refactor (restructuring with no behavior change), infra (CI, build, deploy, tooling), perf (performance), design (UI, UX, visual), testing (tests or QA).',
+    'For emoji, pick ONE emoji that best represents the specific work (e.g. a lock for auth, a bug for a fix, a credit card for payments, a rocket for a release, a test tube for tests). Exactly one emoji character.',
     language && language.toLowerCase() !== 'en' ? `Write the title in this language: ${language}` : '',
     branch ? `Git branch: ${branch}` : '',
     `First prompt: ${excerpt}`,
@@ -108,11 +224,23 @@ export function buildGeneratorPrompt(firstPrompt: string, branch: string, langua
  * Spawn a detached `claude -p` (haiku) that writes its stdout to rawOutPath.
  * Fire-and-forget: never blocks the hook, never throws.
  *
- * - `--settings '{"disableAllHooks":true}'` keeps the child cheap and stops
- *   this hook from running inside it (recursion guard #1).
- * - CHILD_ENV_MARKER is recursion guard #2 in case settings are ignored.
- * - Plain `claude -p` (NOT --bare — broken auth) so subscription auth works;
- *   no API key required.
+ * RC2 — minimal child context (the fix for "Prompt is too long"): the child
+ * must NOT inherit this project's tool surface, or its system prompt blows past
+ * the 200K limit before it sees the naming prompt. Levers (verified 2.1.185 —
+ * child returns valid JSON in ~6-7s instead of overflowing):
+ * - `cwd: tmpdir()` — neutral dir, so no project `.claude/` skills/agents,
+ *   no project `.mcp.json`, no project CLAUDE.md. (rawOutPath is absolute, so
+ *   the redirected stdout still lands in the session dir.)
+ * - `--strict-mcp-config --mcp-config '{"mcpServers":{}}'` — ignore every
+ *   file-based MCP source and load ZERO servers (the biggest chunk: 8 servers'
+ *   tool schemas). The `{}` form is rejected — the `mcpServers` envelope is
+ *   required.
+ * - `--disable-slash-commands` + `--settings enabledPlugins:{}` — drop skills /
+ *   plugin surface from the child.
+ * - `--settings disableAllHooks:true` keeps the child cheap and stops this hook
+ *   running inside it (recursion guard #1). CHILD_ENV_MARKER is guard #2.
+ * - Plain `claude -p` (NOT --bare — --bare breaks subscription auth, see
+ *   cc-bare-auth-broken) so subscription auth works; no API key required.
  */
 export function spawnIdentityGenerator(
   firstPrompt: string,
@@ -130,11 +258,18 @@ export function spawnIdentityGenerator(
         '-p',
         '--model',
         'haiku',
+        // RC2: strip MCP, plugins, and skills from the child's system prompt.
+        '--strict-mcp-config',
+        '--mcp-config',
+        '{"mcpServers":{}}',
+        '--disable-slash-commands',
         '--settings',
-        '{"disableAllHooks":true}',
+        '{"disableAllHooks":true,"enabledPlugins":{}}',
         buildGeneratorPrompt(firstPrompt, branch, language),
       ],
       {
+        // Neutral cwd so the child loads no project config (RC2).
+        cwd: tmpdir(),
         detached: true,
         stdio: ['ignore', outFd, 'ignore'],
         env: { ...process.env, [CHILD_ENV_MARKER]: '1' },
@@ -165,13 +300,33 @@ export function parseIdentityOutput(raw: string): SessionIdentity | null {
     if (typeof parsed !== 'object' || parsed === null) return null;
     const obj = parsed as Record<string, unknown>;
     const title = typeof obj.title === 'string' ? obj.title.replace(/\s+/g, ' ').trim() : '';
-    const color = typeof obj.color === 'string' ? obj.color.toLowerCase().trim() : '';
     if (!title || title.length < 3) return null;
-    if (!(SESSION_COLOR_PALETTE as readonly string[]).includes(color)) return null;
-    return { title: title.slice(0, AI_TITLE_MAX), color: color as SessionColor };
+    const color = resolveIdentityColor(obj);
+    if (!color) return null;
+    const emoji = extractEmoji(obj.emoji);
+    return { title: title.slice(0, AI_TITLE_MAX), color, ...(emoji ? { emoji } : {}) };
   } catch {
     return null;
   }
+}
+
+/**
+ * Resolve the session color from a parsed generator object. Prefer a work
+ * `category` (the generator's output shape — classification mapped to color in
+ * code, deterministic). Fall back to a direct `color` field for tolerance: the
+ * round-tripped `.json` stores `{title,color}`, and a model that ignored the
+ * category instruction may still emit a color. Returns null if neither resolves.
+ */
+function resolveIdentityColor(obj: Record<string, unknown>): SessionColor | null {
+  const category = typeof obj.category === 'string' ? obj.category.toLowerCase().trim() : '';
+  if ((WORK_CATEGORIES as readonly string[]).includes(category)) {
+    return CATEGORY_COLOR[category as WorkCategory];
+  }
+  const color = typeof obj.color === 'string' ? obj.color.toLowerCase().trim() : '';
+  if ((SESSION_COLOR_PALETTE as readonly string[]).includes(color)) {
+    return color as SessionColor;
+  }
+  return null;
 }
 
 /**

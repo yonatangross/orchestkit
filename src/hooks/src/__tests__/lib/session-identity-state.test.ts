@@ -30,7 +30,7 @@ import {
   resolveTranscriptPath,
   manageSessionIdentity,
 } from '../../lib/session-identity-state.js';
-import { hashColor, spawnIdentityGenerator } from '../../lib/session-identity.js';
+import { hashColor, spawnIdentityGenerator, colorEmoji } from '../../lib/session-identity.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 const SESSION_ID = 'aaaabbbb-cccc-dddd-eeee-ffff00001111';
@@ -61,6 +61,7 @@ beforeEach(() => {
   vi.mocked(spawnIdentityGenerator).mockReturnValue(true);
   delete process.env.ORK_SESSION_IDENTITY;
   delete process.env.ORK_SESSION_IDENTITY_CHILD;
+  delete process.env.ORK_SESSION_IDENTITY_WAIT_MS;
 });
 
 afterEach(() => {
@@ -141,7 +142,8 @@ describe('manageSessionIdentity', () => {
     );
 
     const title = manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
-    expect(title).toBe('Fix login redirect');
+    // RC3: the returned title carries the color as an emoji prefix.
+    expect(title).toBe(`${colorEmoji(haikuPick)} Fix login redirect`);
     expect(fs.existsSync(path.join(sessionDir, 'session-identity.json'))).toBe(true);
 
     const records = transcriptColorRecords();
@@ -149,8 +151,43 @@ describe('manageSessionIdentity', () => {
     expect(records[1].agentColor).toBe(haikuPick);
 
     // Subsequent turns reuse the parsed identity without re-appending color.
-    expect(manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir)).toBe('Fix login redirect');
+    expect(manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir)).toBe(
+      `${colorEmoji(haikuPick)} Fix login redirect`,
+    );
     expect(transcriptColorRecords()).toHaveLength(2);
+  });
+
+  it('opt-in inline wait adopts the title on turn 1 when the raw is ready', () => {
+    process.env.ORK_SESSION_IDENTITY_WAIT_MS = '2000';
+    // Pre-stage the generator output so the inline poll finds it on turn 1.
+    // (spawnIdentityGenerator is mocked, so it won't write the raw itself.)
+    fs.mkdirSync(sessionDir, { recursive: true });
+    const hashPick = hashColor(SESSION_ID);
+    const haikuPick = hashPick === 'green' ? 'blue' : 'green';
+    fs.writeFileSync(
+      path.join(sessionDir, 'session-identity.raw'),
+      `{"title":"Fix login redirect","color":"${haikuPick}"}`,
+      'utf8',
+    );
+
+    const title = manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    expect(title).toBe(`${colorEmoji(haikuPick)} Fix login redirect`);
+    expect(fs.existsSync(path.join(sessionDir, 'session-identity.json'))).toBe(true);
+    // Color upgraded to the haiku pick on the same turn (hash + haiku records).
+    const records = transcriptColorRecords();
+    expect(records[records.length - 1].agentColor).toBe(haikuPick);
+  });
+
+  it('does NOT inline-wait by default (no env) — title lands on a later turn', () => {
+    // No ORK_SESSION_IDENTITY_WAIT_MS: turn 1 returns null even if raw is ready.
+    fs.mkdirSync(sessionDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(sessionDir, 'session-identity.raw'),
+      '{"title":"Fix login redirect","color":"green"}',
+      'utf8',
+    );
+    expect(manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir)).toBeNull();
+    expect(fs.existsSync(path.join(sessionDir, 'session-identity.json'))).toBe(false);
   });
 
   it('tombstones stale unparseable output and stops retrying', () => {

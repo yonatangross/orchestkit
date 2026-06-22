@@ -14,16 +14,30 @@
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { spawn } from 'node:child_process';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   SESSION_COLOR_PALETTE,
+  SESSION_COLOR_EMOJI,
   AI_TITLE_MAX,
+  WORK_CATEGORIES,
+  CATEGORY_COLOR,
   hashColor,
   parseIdentityOutput,
   mergeIdentityTitle,
   buildGeneratorPrompt,
   readEffectiveLanguage,
+  colorEmoji,
+  titleWithColor,
+  extractEmoji,
+  spawnIdentityGenerator,
 } from '../../lib/session-identity.js';
+
+// RC2 spawn-args tests mock child_process so no real `claude` runs. Harmless to
+// the pure-helper tests above (they never spawn).
+vi.mock('node:child_process', () => ({
+  spawn: vi.fn(() => ({ on: vi.fn(), unref: vi.fn() })),
+}));
 
 describe('hashColor', () => {
   it('is deterministic for the same session id', () => {
@@ -74,6 +88,46 @@ describe('parseIdentityOutput', () => {
     const out = parseIdentityOutput(`{"title":"${long}","color":"green"}`);
     expect(out?.title.length).toBe(AI_TITLE_MAX);
   });
+
+  // RC3 accuracy: the generator now returns a work CATEGORY, mapped to a color
+  // deterministically in code (so colors are meaningful, not arbitrary).
+  it('derives color from a work category', () => {
+    expect(parseIdentityOutput('{"title":"Add retry logic","category":"feature"}')).toEqual({
+      title: 'Add retry logic',
+      color: 'green',
+    });
+    expect(parseIdentityOutput('{"title":"Fix the crash","category":"bugfix"}')).toEqual({
+      title: 'Fix the crash',
+      color: 'red',
+    });
+  });
+
+  it('prefers category over a conflicting direct color', () => {
+    expect(
+      parseIdentityOutput('{"title":"Cover the parser","category":"testing","color":"red"}'),
+    ).toEqual({ title: 'Cover the parser', color: 'cyan' });
+  });
+
+  it('falls back to a direct color when category is missing or invalid', () => {
+    expect(parseIdentityOutput('{"title":"Some work","category":"nonsense","color":"blue"}')).toEqual(
+      { title: 'Some work', color: 'blue' },
+    );
+    expect(parseIdentityOutput('{"title":"Some work","color":"purple"}')).toEqual({
+      title: 'Some work',
+      color: 'purple',
+    });
+  });
+
+  it('rejects when neither a valid category nor color resolves', () => {
+    expect(parseIdentityOutput('{"title":"Some work","category":"nonsense"}')).toBeNull();
+    expect(parseIdentityOutput('{"title":"Some work"}')).toBeNull();
+  });
+
+  it('CATEGORY_COLOR maps every category to a palette color', () => {
+    for (const cat of WORK_CATEGORIES) {
+      expect(SESSION_COLOR_PALETTE).toContain(CATEGORY_COLOR[cat]);
+    }
+  });
 });
 
 describe('mergeIdentityTitle', () => {
@@ -94,13 +148,17 @@ describe('mergeIdentityTitle', () => {
 });
 
 describe('buildGeneratorPrompt', () => {
-  it('includes the prompt excerpt, palette, and branch', () => {
+  it('includes the prompt excerpt, every work category, and branch', () => {
     const p = buildGeneratorPrompt('fix the login bug\nplease', 'fix/login');
     expect(p).toContain('fix the login bug please');
     expect(p).toContain('Git branch: fix/login');
-    for (const color of SESSION_COLOR_PALETTE) {
-      expect(p).toContain(color);
+    // The generator classifies into a category (mapped to color in code), so
+    // the prompt enumerates categories, not colors.
+    for (const cat of WORK_CATEGORIES) {
+      expect(p).toContain(cat);
     }
+    // …and asks for a content emoji (the expressive, decoupled title signal).
+    expect(p).toContain('emoji');
   });
 
   it('caps the excerpt length', () => {
@@ -119,6 +177,105 @@ describe('buildGeneratorPrompt', () => {
   it('omits the language instruction for English / default', () => {
     expect(buildGeneratorPrompt('x', 'b', 'en')).not.toContain('Write the title in this language');
     expect(buildGeneratorPrompt('x', 'b')).not.toContain('Write the title in this language');
+  });
+});
+
+describe('colorEmoji / titleWithColor (RC3 — color carried live in the title)', () => {
+  it('maps every palette color to a non-empty glyph', () => {
+    for (const c of SESSION_COLOR_PALETTE) {
+      expect(colorEmoji(c).length).toBeGreaterThan(0);
+      expect(SESSION_COLOR_EMOJI[c]).toBe(colorEmoji(c));
+    }
+  });
+
+  it('all palette glyphs are distinct', () => {
+    const glyphs = SESSION_COLOR_PALETTE.map((c) => colorEmoji(c));
+    expect(new Set(glyphs).size).toBe(SESSION_COLOR_PALETTE.length);
+  });
+
+  it('prefixes the title with the color glyph', () => {
+    expect(titleWithColor({ title: 'Fix auth', color: 'red' })).toBe(`${colorEmoji('red')} Fix auth`);
+    expect(titleWithColor({ title: 'Ship docs', color: 'blue' })).toBe(
+      `${colorEmoji('blue')} Ship docs`,
+    );
+  });
+});
+
+describe('content emoji (RC3 expressiveness — decoupled from color)', () => {
+  // Built from code points so no literal emoji trips the visual-style lint.
+  const LOCK = String.fromCodePoint(0x1f512);
+  const ROCKET = String.fromCodePoint(0x1f680);
+  const ZWJ_SEQ = String.fromCodePoint(0x1f468, 0x200d, 0x1f4bb); // person + ZWJ + laptop
+
+  it('extracts a single emoji, including ZWJ sequences', () => {
+    expect(extractEmoji(LOCK)).toBe(LOCK);
+    expect(extractEmoji(ZWJ_SEQ)).toBe(ZWJ_SEQ);
+  });
+
+  it('extracts the first emoji from surrounding text', () => {
+    expect(extractEmoji(`${ROCKET} ship it`)).toBe(ROCKET);
+  });
+
+  it('returns undefined for non-emoji or non-string input', () => {
+    expect(extractEmoji('auth')).toBeUndefined();
+    expect(extractEmoji('')).toBeUndefined();
+    expect(extractEmoji(undefined)).toBeUndefined();
+    expect(extractEmoji(42)).toBeUndefined();
+  });
+
+  it('parseIdentityOutput captures the content emoji and keeps the category color', () => {
+    expect(
+      parseIdentityOutput(`{"title":"Auth middleware fix","category":"bugfix","emoji":"${LOCK}"}`),
+    ).toEqual({ title: 'Auth middleware fix', color: 'red', emoji: LOCK });
+  });
+
+  it('parseIdentityOutput omits emoji when the model gives none usable', () => {
+    expect(parseIdentityOutput('{"title":"Add a feature","category":"feature","emoji":"none"}')).toEqual(
+      { title: 'Add a feature', color: 'green' },
+    );
+  });
+
+  it('titleWithColor prefers the content emoji, falls back to the color glyph', () => {
+    expect(titleWithColor({ title: 'Ship release', color: 'green', emoji: ROCKET })).toBe(
+      `${ROCKET} Ship release`,
+    );
+    expect(titleWithColor({ title: 'Ship release', color: 'green' })).toBe(
+      `${colorEmoji('green')} Ship release`,
+    );
+  });
+});
+
+describe('spawnIdentityGenerator (RC2 — minimal child context)', () => {
+  let dir: string;
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'ork-spawn-'));
+    vi.mocked(spawn).mockClear();
+  });
+  afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+  it('strips MCP/plugins/skills and spawns from a neutral cwd', () => {
+    const ok = spawnIdentityGenerator('do a thing', 'feat/x', join(dir, 'out.raw'), dir);
+    expect(ok).toBe(true);
+    expect(spawn).toHaveBeenCalledOnce();
+
+    const [bin, args, opts] = vi.mocked(spawn).mock.calls[0] as [
+      string,
+      string[],
+      { cwd?: string; detached?: boolean },
+    ];
+    expect(bin).toBe('claude');
+    // Drop all 8 MCP servers (the dominant context chunk).
+    expect(args).toContain('--strict-mcp-config');
+    expect(args).toContain('--mcp-config');
+    expect(args).toContain('{"mcpServers":{}}');
+    // Drop skills + plugins.
+    expect(args).toContain('--disable-slash-commands');
+    expect(args.join(' ')).toContain('enabledPlugins');
+    // NEVER --bare: it breaks subscription auth (cc-bare-auth-broken).
+    expect(args).not.toContain('--bare');
+    // Neutral, detached child so it loads no project config and never blocks.
+    expect(opts?.cwd).toBe(tmpdir());
+    expect(opts?.detached).toBe(true);
   });
 });
 

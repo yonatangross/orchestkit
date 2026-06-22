@@ -7,9 +7,18 @@
  *
  * Flow:
  *   turn 1: append deterministic hash-based agent-color record (instant
- *           visual distinction), spawn the detached haiku generator
+ *           visual distinction), spawn the detached haiku generator, then
+ *           OPTIONALLY block briefly for its result (RC1, opt-in — see below)
  *   turn N: when the generator's JSON lands, adopt its title (prompt bar)
  *           and upgrade the color record if haiku chose a different one
+ *
+ * RC1 (harvest-miss): the title is normally pulled on the NEXT turn, but the
+ * detached child finishes ~6-7s later and short sessions never send another
+ * prompt in time (only 7.3% of sessions adopted the title before this fix).
+ * Set ORK_SESSION_IDENTITY_WAIT_MS=<ms> to make turn 1 block up to that long
+ * for the result so it lands on the first turn. Default 0 (off) — 6-7s is too
+ * slow to block every first prompt; with the RC2 child fix the lazy next-turn
+ * pull now succeeds reliably on its own for multi-turn sessions.
  *
  * Everything fails open: a dead `claude` binary, auth failure, malformed
  * JSON, or unwritable transcript only means the session keeps its branch
@@ -32,11 +41,27 @@ import {
   hashColor,
   parseIdentityOutput,
   spawnIdentityGenerator,
+  titleWithColor,
   type SessionColor,
+  type SessionIdentity,
 } from './session-identity.js';
 
 /** Env kill-switch. Set ORK_SESSION_IDENTITY=0 to disable entirely. */
 const ENV_KILL_SWITCH = 'ORK_SESSION_IDENTITY';
+
+/**
+ * Opt-in inline wait (RC1). Set to a millisecond budget to block turn 1 for the
+ * generator so the title lands on the FIRST prompt instead of a later one.
+ * Default 0/unset = no wait. Capped at INLINE_WAIT_CEILING_MS to stay under the
+ * dispatcher's hook timeout.
+ */
+const ENV_INLINE_WAIT_MS = 'ORK_SESSION_IDENTITY_WAIT_MS';
+
+/** Hard ceiling for the opt-in inline wait, below the dispatcher hook timeout. */
+const INLINE_WAIT_CEILING_MS = 10_000;
+
+/** Poll interval while inline-waiting for the generator's output. */
+const INLINE_WAIT_POLL_MS = 250;
 
 /** Give the generator this long before declaring its output unusable. */
 const GENERATOR_STALE_MS = 120_000;
@@ -114,7 +139,7 @@ export function manageSessionIdentity(
       const identity = parseIdentityOutput(readFileSync(parsedPath, 'utf8'));
       if (!identity) return null;
       applyColorOnce(input, projectDir, identity.color, colorAppliedPath, ctx);
-      return identity.title;
+      return titleWithColor(identity);
     }
 
     if (existsSync(tombstonePath)) return null;
@@ -128,7 +153,7 @@ export function manageSessionIdentity(
         writeFileSync(parsedPath, JSON.stringify(identity), 'utf8');
         applyColorOnce(input, projectDir, identity.color, colorAppliedPath, ctx);
         ctx.log('session-identity', `haiku identity ready: "${identity.title}" (${identity.color})`);
-        return identity.title;
+        return titleWithColor(identity);
       }
       // Unparseable + stale → stop checking every turn.
       try {
@@ -149,12 +174,57 @@ export function manageSessionIdentity(
     applyColorOnce(input, projectDir, fallback, colorAppliedPath, ctx);
     if (input.prompt && spawnIdentityGenerator(input.prompt, ctx.branch || '', rawPath, projectDir, ctx)) {
       writeFileSync(spawnedPath, new Date().toISOString(), 'utf8');
+      // RC1 (opt-in): block briefly so the title can land on THIS turn.
+      const inline = inlineHarvest(rawPath, parsedPath, colorAppliedPath, input, projectDir, ctx);
+      if (inline) return inline;
     }
     return null;
   } catch (error) {
     ctx.log('session-identity', `failed open: ${error}`, 'warn');
     return null;
   }
+}
+
+/**
+ * Synchronous sleep (no busy-loop) — the hook process does nothing else while
+ * waiting, so blocking is fine. Uses Atomics.wait on a throwaway buffer.
+ */
+function sleepSync(ms: number): void {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+/**
+ * Opt-in (RC1): poll the generator's raw output for up to
+ * ORK_SESSION_IDENTITY_WAIT_MS (capped) and adopt the identity on turn 1 if it
+ * lands. Returns the emoji-prefixed title, or null when disabled / timed out
+ * (the caller then falls back to the lazy next-turn pull). Fail-open.
+ */
+function inlineHarvest(
+  rawPath: string,
+  parsedPath: string,
+  colorAppliedPath: string,
+  input: HookInput,
+  projectDir: string | undefined,
+  ctx: HookContext,
+): string | null {
+  const requested = Number(process.env[ENV_INLINE_WAIT_MS] ?? '0');
+  if (!Number.isFinite(requested) || requested <= 0) return null;
+  const deadline = Date.now() + Math.min(requested, INLINE_WAIT_CEILING_MS);
+  try {
+    while (Date.now() < deadline) {
+      sleepSync(INLINE_WAIT_POLL_MS);
+      if (!existsSync(rawPath)) continue;
+      const identity: SessionIdentity | null = parseIdentityOutput(readFileSync(rawPath, 'utf8'));
+      if (!identity) continue;
+      writeFileSync(parsedPath, JSON.stringify(identity), 'utf8');
+      applyColorOnce(input, projectDir, identity.color, colorAppliedPath, ctx);
+      ctx.log('session-identity', `haiku identity ready (inline): "${identity.title}" (${identity.color})`);
+      return titleWithColor(identity);
+    }
+  } catch {
+    /* fail open — fall back to the lazy next-turn pull */
+  }
+  return null;
 }
 
 /**
