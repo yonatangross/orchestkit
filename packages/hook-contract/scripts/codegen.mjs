@@ -30,7 +30,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PKG_DIR = join(__dirname, '..');
