@@ -107,6 +107,28 @@ stamp_marketplace_json() {
     "s/[0-9]+ skills, [0-9]+ agents, [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, ${HOOKS} hooks/g" "$file"
 }
 
+# ── pyproject.toml description (count tuple, pattern-based) ──────────────────
+# sync_versions() owns the `version = "..."` line; this owns the component-count
+# tuple in the `description` string. It was the one count string no stamper
+# touched, so it silently drifted (105/180 vs actual). The build runs this, and
+# the plugins/ drift gate transitively enforces it: any count change also
+# changes plugins/, forcing a rebuild that re-stamps this. Single phrasing only.
+stamp_pyproject_description() {
+  local file="$PROJECT_ROOT/pyproject.toml"
+  if [[ ! -f "$file" ]]; then return; fi
+
+  local sed_in
+  if [[ "$(uname)" == "Darwin" ]]; then
+    sed_in=(sed -i '' -E)
+  else
+    sed_in=(sed -i -E)
+  fi
+
+  # "with N skills, M agents, and K hooks"
+  "${sed_in[@]}" \
+    "s/[0-9]+ skills, [0-9]+ agents, and [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, and ${HOOKS} hooks/g" "$file"
+}
+
 # ── docs/site MDX (pattern-based, no markers) ───────────────────────────────
 # MDX renders HTML comments literally, so the marker approach used for
 # README/CLAUDE.md doesn't work here. Instead we replace explicit, safe
@@ -281,6 +303,23 @@ if [[ "${1:-}" == "--check" ]]; then
     rm "$TMP"
   fi
 
+  # Check pyproject.toml description count tuple
+  PYPROJECT="$PROJECT_ROOT/pyproject.toml"
+  if [[ -f "$PYPROJECT" ]]; then
+    TMP=$(mktemp)
+    cp "$PYPROJECT" "$TMP"
+    if [[ "$(uname)" == "Darwin" ]]; then
+      sed -i '' -E "s/[0-9]+ skills, [0-9]+ agents, and [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, and ${HOOKS} hooks/g" "$TMP"
+    else
+      sed -i -E "s/[0-9]+ skills, [0-9]+ agents, and [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, and ${HOOKS} hooks/g" "$TMP"
+    fi
+    if ! diff -q "$PYPROJECT" "$TMP" >/dev/null 2>&1; then
+      echo "STALE: $PYPROJECT"
+      STALE=1
+    fi
+    rm "$TMP"
+  fi
+
   # Check docs/site MDX
   DOCS_DIR="$PROJECT_ROOT/docs/site/content"
   if [[ -d "$DOCS_DIR" ]]; then
@@ -312,6 +351,8 @@ for file in "${MARKER_FILES[@]}"; do
 done
 
 stamp_marketplace_json
+
+stamp_pyproject_description
 
 stamp_docs_mdx
 
