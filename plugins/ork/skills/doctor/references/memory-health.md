@@ -69,39 +69,49 @@ done < .claude/memory/decisions.jsonl
 ## Auto-Memory Index Budget
 
 Separate from the graph store above: the harness injects a per-project
-**auto-memory index** (`MEMORY.md`) into context every session. If its index
-lines grow unbounded it both wastes tokens and — because it changes when
-memories are written — busts the prompt cache. CC ships a generic over-budget
-warning; this check makes it actionable by pointing at the fix (`/ork:dream`).
+**auto-memory index** (`MEMORY.md`) into context every session. CC loads only
+the **first 200 lines OR first 25 KB, whichever comes first** — anything past
+either limit is silently dropped (per code.claude.com/docs/memory). CC gives no
+warning as you approach those caps; this check makes it actionable by pointing
+at the fix (`/ork:dream`). A growing index also busts the prompt cache, since it
+changes whenever a memory is written.
 
-The index lives under `~/.claude/projects/<encoded-cwd>/memory/MEMORY.md`
-(the harness encodes the project path by replacing `/` with `-`).
+The index lives under `~/.claude/projects/<encoded-cwd>/memory/MEMORY.md` — the
+harness encodes the project path by replacing both `/` and `.` with `-`.
 
 ```bash
-# Auto-memory index budget check
-MEM_DIR="$HOME/.claude/projects/$(echo "$PWD" | sed 's|/|-|g')/memory"
-MEM_INDEX="$MEM_DIR/MEMORY.md"
-BUDGET=24986   # 24.4 KB — the harness's index budget
+# Auto-memory index budget check (CC caps at 200 lines OR 25 KB, whichever first).
+# ORK_MEM_INDEX override is for the unit test; default derives the per-project index.
+MEM_INDEX="${ORK_MEM_INDEX:-$HOME/.claude/projects/$(echo "$PWD" | sed 's|[/.]|-|g')/memory/MEMORY.md}"
+BUDGET_BYTES=24986   # 24.4 KB — conservative vs CC's 25 KB load cap
+BUDGET_LINES=200     # CC loads the first 200 lines OR 25 KB, whichever comes first
 
 if [ -f "$MEM_INDEX" ]; then
   bytes=$(wc -c < "$MEM_INDEX" | tr -d ' ')
+  lines=$(wc -l < "$MEM_INDEX" | tr -d ' ')
   # index lines over ~200 chars are the usual re-bloat cause
   long=$(awk 'length > 200 && /^- \[/' "$MEM_INDEX" | wc -l | tr -d ' ')
-  if [ "$bytes" -gt "$BUDGET" ]; then
-    echo "WARN: MEMORY.md index ${bytes}B > ${BUDGET}B budget — run /ork:dream to consolidate"
+  if [ "$bytes" -gt "$BUDGET_BYTES" ]; then
+    echo "WARN: MEMORY.md index ${bytes}B > ${BUDGET_BYTES}B budget — run /ork:dream to consolidate"
+  elif [ "$lines" -gt "$BUDGET_LINES" ]; then
+    echo "WARN: MEMORY.md index ${lines} lines > ${BUDGET_LINES} (CC drops the rest) — run /ork:dream"
   elif [ "$long" -gt 0 ]; then
     echo "WARN: ${long} index line(s) > 200 chars — run /ork:dream (re-bloat risk)"
   else
-    echo "OK: MEMORY.md index within budget (${bytes}B)"
+    echo "OK: MEMORY.md index within budget (${bytes}B, ${lines} lines)"
   fi
 fi
 ```
 
+> `/context` shows what's currently loaded into the window (CC's native view);
+> this check is the budget **warning** CC doesn't provide on its own.
+
 ### Health Indicators
 
-- Index size ≤ 24.4 KB (the harness budget)
+- Index size ≤ 24.4 KB (conservative vs CC's 25 KB load cap)
+- Index ≤ 200 lines total (CC loads the first 200 lines OR 25 KB, whichever first)
 - Every index line ≤ ~200 chars (detail belongs in the linked topic file, not the index)
-- Fix for both: `/ork:dream` rebuilds the index, capping line length and pruning stale entries
+- Fix for all three: `/ork:dream` rebuilds the index, capping line length and pruning stale entries
 
 ## Troubleshooting
 
