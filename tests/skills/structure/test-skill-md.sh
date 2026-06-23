@@ -510,7 +510,7 @@ echo "────────────────────────�
 
 # Expected counts
 EXPECTED_USER_INVOCABLE=31  # -1 from 32 after killing /ork:agents-view (#1890 — superseded by docs/parallel-primitives.md)
-EXPECTED_INTERNAL=80
+EXPECTED_INTERNAL=81  # +1: audit-activation (agent-side activation audit, non-invocable)
 
 missing_user_invocable=()
 user_invocable_true=()

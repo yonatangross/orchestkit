@@ -1,0 +1,200 @@
+---
+title: "Audit Activation"
+description: "Audits OrchestKit sub-agent activation from real spawn telemetry — computes the generic-vs-specialist spawn split, flags dormant agents (never fired), and classifies each as fires/mis-triggered/niche. The agent-side analogue of audit-skills. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="audit-activation" />
+
+> **Audit Activation** Audits OrchestKit sub-agent activation from real spawn telemetry — computes the generic-vs-specialist spawn split, flags dormant agents (never fired), and classifies each as fires/mis-triggered/niche. The agent-side analogue of audit-skills. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths.
+
+
+# audit-activation
+
+Reports whether OrchestKit's specialized sub-agents are actually being activated, from **real spawn telemetry** — not vibes. The agent-side analogue of `audit-skills` (which audits skill *quality*; this audits agent *activation*).
+
+It answers: "Do my specialized agents get spawned, or does the model default to generic Explore/general-purpose?" Read-only — it never edits agents.
+
+> **Why this exists:** a 2026-06 audit found only ~14% of agent spawns hit the 37-agent catalog vs ~74% generic, with 17/37 agents dormant — and that agents fire ~1:1 with how often a high-traffic skill names them via `subagent_type=`. Description rewrites ("use proactively") were A/B-tested and gave Δ0, so this skill measures **wiring + usage**, not description prose. See `docs/feat--activation-audit/`.
+
+## Quick Reference
+
+| Category | File | Impact | When to Use |
+|----------|------|--------|-------------|
+| Activation Checks | `$\{CLAUDE_SKILL_DIR\}/rules/activation-checks.md` | HIGH | What to compute per agent |
+| Classification | `$\{CLAUDE_SKILL_DIR\}/rules/activation-status.md` | HIGH | fires / mis-triggered / niche / dead buckets |
+| Output Format | `$\{CLAUDE_SKILL_DIR\}/references/output-format.md` | MEDIUM | Report layout + the spawn-split summary |
+
+## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+```python
+TaskCreate(subject="Audit activation: agent spawn analysis",
+  description="Computing generic-vs-specialist split + dormancy from spawn telemetry",
+  activeForm="Auditing agent activation")
+TaskCreate(subject="Read spawn telemetry", activeForm="Reading subagent-spawns.jsonl")
+TaskCreate(subject="Compute split + dormancy", activeForm="Computing split and dormant agents")
+TaskCreate(subject="Classify & render", activeForm="Classifying agents and rendering report")
+TaskUpdate(taskId="3", addBlockedBy=["2"])
+TaskUpdate(taskId="4", addBlockedBy=["3"])
+```
+
+## Workflow
+
+1. **Inventory** — Glob `src/agents/*.md` (exclude README/INDEX/CONTRIBUTING) for the catalog.
+2. **Read telemetry** — the FRESH stream is `.claude/logs/subagent-spawns.jsonl` (writers: `pretool/task/spawn-intent-logger` + `subagent-start/subagent-validator`). The legacy `~/.claude/analytics/agent-usage.jsonl` is dead (orphaned in a refactor) — see edge cases.
+3. **Compute** — run all checks from `Read("$\{CLAUDE_SKILL_DIR\}/rules/activation-checks.md")`: spawn split (generic / ork-catalog / other-plugin), per-agent fire counts, never-fired set, concentration (top-5 %).
+4. **Classify** — apply `Read("$\{CLAUDE_SKILL_DIR\}/rules/activation-status.md")`: each dormant agent → mis-triggered (wired but no real spawn path) / niche (legit rare) / dead (no references anywhere).
+5. **Render** — output using `Read("$\{CLAUDE_SKILL_DIR\}/references/output-format.md")`.
+
+## Quick Start
+
+```bash
+bash "${CLAUDE_SKILL_DIR}/scripts/run-activation-audit.sh"
+```
+
+The script reads the spawn telemetry, joins it against `src/agents/`, and prints the split, top agents, never-fired list, and concentration. Then apply the classification rules to bucket the dormant agents (this step needs the model: it greps skills/agents for each dormant agent's real spawn path).
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Telemetry source | Use `.claude/logs/subagent-spawns.jsonl` (fresh); ignore the dead `agent-usage.jsonl` |
+| "never fired" caveat | Absence in the telemetry window is a strong signal, NOT proof of zero — state the window |
+| Fix direction | Dormancy ⇒ wire a `subagent_type=` spawn from a high-traffic skill; do NOT rewrite descriptions (A/B Δ0) |
+| Prune threshold | Only "dead" (no references in any skill/agent) is a prune candidate; niche stays |
+
+## Chain
+
+After this audit, run the deeper experiment if you suspect descriptions: `docs/feat--activation-audit/agent-routing-experiment.mjs` (isolated A/B selection harness).
+
+## Related Skills
+
+- `audit-skills` — quality audit for skills (this skill's sibling, agent-side)
+- `telemetry-inspect` — validates the telemetry data-plane this skill reads from
+- `analytics` — raw usage queries across projects
+- `doctor` — broader plugin health (manifests, hooks, memory budget)
+
+
+---
+
+## Rules (2)
+
+### Activation Checks — HIGH
+
+
+# Activation Checks
+
+What to compute for the activation audit. All counts come from the FRESH spawn stream `.claude/logs/subagent-spawns.jsonl` (NOT the dead `~/.claude/analytics/agent-usage.jsonl`).
+
+## 1. Spawn split (the headline)
+
+Classify every spawn's `subagent_type` into one of three buckets:
+
+- **generic CC** — `Explore`, `general-purpose`, `Plan`, `workflow-subagent`, `statusline-setup`
+- **ork catalog** — name (minus any `ork:` prefix) matches a file in `src/agents/`
+- **other-plugin** — anything else (`candlekeep-cloud:*`, `claude-code-guide`, `hq-ext:*`)
+
+Report each as count + % of total. A healthy catalog is NOT dominated by generic.
+
+**Incorrect** — counting only ork spawns and reporting "20 agents fired" with no denominator (looks fine; hides that generic did 74%).
+
+**Correct** — `generic 690 (74%) · ork 130 (14%) · other 107 (11%)` — the ratio is the finding.
+
+## 2. Per-agent fire counts + never-fired set
+
+Tally ork-catalog spawns by agent. Then `never-fired = inventory − fired`. List both.
+
+## 3. Concentration
+
+`top-5 agents / total spawns` as a %. High concentration (e.g. top-5 = 83%) means a few agents carry the catalog and the rest are dead weight or mis-wired.
+
+## 4. Skill-naming cross-check (the root-cause signal)
+
+For each agent, count how many `src/skills/**/SKILL.md` reference it via `subagent_type="ork:&lt;name&gt;"` or `agent: &lt;name&gt;`. Agents fire ~1:1 with this count — an agent named by 0-1 skills will be dormant regardless of its description. This is what distinguishes "mis-triggered" from "niche".
+
+```bash
+grep -rl "subagent_type=\"ork:${name}\"\|subagent_type: ork:${name}" src/skills/ | wc -l
+```
+
+
+### Activation Status Classification — HIGH
+
+
+# Activation Status Classification
+
+Bucket each agent. Fired agents are `ACTIVE`. Every dormant (never-fired in the window) agent goes into exactly one of the buckets below — decided by its **references**, not its description.
+
+## Buckets
+
+| Bucket | Condition | Action |
+|--------|-----------|--------|
+| **ACTIVE** | fired ≥1× in the telemetry window | none — it works |
+| **MIS-TRIGGERED** | dormant, BUT only referenced as a table row / narrative mention / deep-team member — has a real `subagent_type=` spawn in 0-1 high-traffic skills | wire a spawn from a busy skill (fix) |
+| **NICHE** | dormant, legitimately specialized + rarely-needed domain (design, multimodal, perf, IaC, security-LLM), and is wired into at least one relevant skill | keep — low use is expected |
+| **DEAD** | dormant AND no references in ANY skill or agent (truly unreachable) | prune candidate |
+
+## Decision procedure (per dormant agent)
+
+1. `grep -rl "ork:&lt;name&gt;" src/skills/ src/agents/` — any real spawn path?
+2. If 0 references anywhere → **DEAD**.
+3. If referenced only in tables/teams/narrative (no `subagent_type=` from a busy skill) → **MIS-TRIGGERED**.
+4. Else if the domain is inherently rare and it IS wired → **NICHE**.
+
+## Hard rules
+
+- **Never bucket on description quality.** A/B testing showed description rewrites give Δ0 routing benefit — dormancy is a wiring problem, not a prose problem.
+- **"Never fired" = absent from the available telemetry window**, which may have gaps. State the window; treat as strong signal, not proof of zero.
+- **Watch near-duplicates** — two agents covering the same domain (e.g. `security-layer-auditor` vs `security-auditor`) trend toward DEAD; flag for consolidation before pruning.
+
+**Incorrect** — "ai-safety-auditor never fired and its description is terse → prune."
+
+**Correct** — "ai-safety-auditor never fired BUT is wired into the security-audit team and LLM-safety is a rare task → NICHE, keep."
+
+
+
+---
+
+## References (1)
+
+### Output Format
+
+# Output Format
+
+Render the activation audit as ASCII + semantic emojis (per OrchestKit visual style). Three sections.
+
+## 1. Spawn split (headline)
+
+```
+📊 AGENT SPAWNS (N total · <window>)
+  generic CC    ████████████████████████████████████░░  74%  🔴
+  ork catalog   ███████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  14%  ⚠️
+  other-plugin  ██████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  11%
+```
+
+## 2. Catalog table
+
+```
+AGENT                          FIRES  SKILL-REFS  STATUS
+web-research-analyst             26       4        ✅ ACTIVE
+monitoring-engineer               0       1        🔧 MIS-TRIGGERED
+ai-safety-auditor                 0       1        🟦 NICHE
+<dead-example>                    0       0        💀 DEAD
+```
+
+Sort: ACTIVE (by fires desc), then MIS-TRIGGERED, NICHE, DEAD.
+
+## 3. Verdict line + concentration
+
+```
+  fired: 20/37 · dormant: 17 (fix 6 · niche 11 · dead 0) · top-5 = 83% of spawns
+  ▶ Next: wire MIS-TRIGGERED agents into a high-traffic skill (subagent_type=).
+    Do NOT rewrite descriptions (A/B Δ0). Prune only DEAD.
+```
+
+## --json mode
+
+When invoked with `--json`, emit `\{ window, totals:\{generic,ork,other\}, agents:[\{name,fires,skillRefs,status\}], dormant:\{fix,niche,dead\} \}` and skip the ASCII. Useful for chaining into a dashboard.
+
