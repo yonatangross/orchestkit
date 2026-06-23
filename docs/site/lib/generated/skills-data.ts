@@ -599,6 +599,46 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
+  "audit-activation": {
+    "name": "audit-activation",
+    "description": "Audits OrchestKit sub-agent activation from real spawn telemetry — computes the generic-vs-specialist spawn split, flags dormant agents (never fired), and classifies each as fires/mis-triggered/niche. The agent-side analogue of audit-skills. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths.",
+    "version": "1.0.0",
+    "sha256": "a8de90cde1d88188cc4ccd71a72b09282214d140c3f3be640f454f2461c2bac8",
+    "author": "OrchestKit",
+    "tags": [
+      "audit",
+      "agents",
+      "activation",
+      "telemetry",
+      "orchestkit"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "output-format.md"
+      ],
+      "scripts": [
+        "run-activation-audit.sh"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "audit-full": {
     "name": "audit-full",
     "description": "Single-pass codebase analysis leveraging Opus 4.8 1M context for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews.",
@@ -826,7 +866,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "browser-tools",
     "description": "OrchestKit security wrapper for browser automation. Adds URL blocklisting, rate limiting, robots.txt enforcement, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows that need safety guardrails.",
     "version": "5.0.0",
-    "sha256": "e576cf184e89c3b9f3e6631eea8b1f559be74ea73bfd9846e3c0fc65fb25d7a9",
+    "sha256": "27770fdb5d8b2b31c643fc535e6157dbad1bf92c5475268cb3e11069174f285f",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -995,9 +1035,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ci-debug": {
     "name": "ci-debug",
-    "description": "Diagnose a failing CI run against a 10-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command — but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific).",
+    "description": "Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command — but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific).",
     "version": "0.2.0",
-    "sha256": "6872c3354d87a75093e497b22de68c833089e52316f8d083373bb6efca2e292c",
+    "sha256": "6b417b0064c5b738f1ae6e34f1e4cc7d9c6c053f7e7c137ca75ec372b7d66cb3",
     "author": "OrchestKit",
     "tags": [
       "ci",
@@ -1753,7 +1793,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "dev",
     "description": "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session — all using the current git branch as the namespace key. Replaces the 4-terminal manual setup with a single `/ork:dev` invocation. Use when starting a new feature branch, switching worktrees, or returning to a project after a break. Skip silently when prerequisite binaries (portless, emulate, agent-browser) are missing — emits install hints.",
     "version": "1.1.0",
-    "sha256": "feeaab405ba2d33961b12726a7909526d54aa6d23d02b727a760954e26b4cf7d",
+    "sha256": "2af2ea17d36a754141534c0e80386a1295bb327ff38cb5d72605781d7bd35a94",
     "author": "OrchestKit",
     "tags": [
       "dev-loop",
@@ -1938,7 +1978,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.2.0",
-    "sha256": "ae88ad161441a66b17612295047a9097dd63dce9361bbb19b7085d77fda0ad3c",
+    "sha256": "45a58b312156d04f5afcb4972687307a55f471c56ae6fac8ef6cfd607724e32c",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -2105,7 +2145,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "emulate-seed",
     "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list, send-an-email-and-retrieve-from-local-inbox. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
     "version": "1.3.0",
-    "sha256": "41090fe9edf405c16b7e1456f9e81561d33308098a703769c8e1dbaff5ee5239",
+    "sha256": "3705f57e5086e44bbc71b0ace054939751e6fe6ce5873fa61eefdfff6bf56a8b",
     "author": "OrchestKit",
     "tags": [
       "emulate",
@@ -2155,7 +2195,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "errors",
     "description": "Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, memory, permission) with known resolution patterns, searches memory for prior occurrences, and suggests recovery steps. Delegates to debug-investigator agent for complex root cause analysis. Use when handling errors, fixing failures, or troubleshooting session issues.",
     "version": "1.0.0",
-    "sha256": "d4927d7e37044e69452c825c7fc6633294c648b8417c035c6da72e7d8b18d75e",
+    "sha256": "197b250a514e96945b5ef433eba324574e36c117989ef0863bad642147b70742",
     "author": "OrchestKit",
     "tags": [
       "errors",
@@ -2185,7 +2225,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser (Rust daemon + CDP, ARIA-tree-first). Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience.",
     "version": "1.1.0",
-    "sha256": "4c9cbdb3a4eeaa70e4fb64436abdb11e5c606bde7b1a9bf70c2bbcc6df3f1ffa",
+    "sha256": "514064c2808c5191c97e5c6342217ee76c5476f718721ae9bd2c58b27c171645",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2407,7 +2447,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.5.0",
-    "sha256": "8ffaf38d05a8a3003e4155f99ee58499c9d4fa271151e05d6679e7f534e20c0e",
+    "sha256": "dadc3c55cabbd740e1c203dd14f6c970026471242d2d6a9c7346c3c89dbaf381",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -3077,7 +3117,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "mcp-visual-output",
     "description": "Interactive MCP visual output via @json-render/mcp. Upgrade plain JSON tool responses to interactive dashboards rendered in sandboxed iframes inside Claude, Cursor, ChatGPT, VS Code Copilot, Goose, and Postman conversations. Covers createMcpApp(), registerJsonRenderTool(), registerJsonRenderResource(), CSP config, JSON Patch streaming, and dashboard component patterns. Use when building MCP servers that return visual output, upgrading existing MCP tools with interactive UI, or creating eval/monitoring dashboards.",
     "version": "1.1.0",
-    "sha256": "328ccc24b61a7a7344ada6548056a509f2ed702a9f4cbebdeba39aa3cffc3744",
+    "sha256": "18ac7f2aab39420e80a0e2fe2851a107eb82b063a2bf86a951580db1df72f8f0",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -3324,7 +3364,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multi-surface-render",
     "description": "Multi-surface rendering with json-render — same JSON spec produces React web, Next.js apps, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform-specific APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for multiple platforms, creating PDF reports, email templates, demo videos, or social media images from a single component spec.",
     "version": "1.1.0",
-    "sha256": "90b1d81631af1bbf5a14e912d72fc2b77fe955108a63b4af31a490002f79c69e",
+    "sha256": "f14d3e185311cac50749623e78867321b3b5f6510f9c1e78ff1ac4e7ed16c060",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -3483,7 +3523,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "performance",
     "description": "Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, LLM inference, and sustainability UX. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, deploying LLMs efficiently, or reducing digital carbon footprint.",
     "version": "2.1.0",
-    "sha256": "8e66c2c4e7d84c101b9206a06a0e5ac7aa121bce047719e4c89490f68568a6ca",
+    "sha256": "d0c1f33283f8343df143b10b832e18ada618d13fe77fda1055f5e07d36e10693",
     "author": "OrchestKit",
     "tags": [
       "performance",
@@ -3584,9 +3624,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "portless": {
     "name": "portless",
-    "description": "Named HTTPS .localhost URLs for local development with portless (v0.13.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration.",
+    "description": "Named HTTPS .localhost URLs for local development with portless (v0.14.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration.",
     "version": "1.2.0",
-    "sha256": "3d6d46f0cd5d42524f8aa385fa19a48a3d565acd8925cf8ea3b35155e11b5fc8",
+    "sha256": "a28ea5cd1bda22c587ca3c57a0d4e2530ef7f33ba93e801b04d88420c1196e8c",
     "author": "OrchestKit",
     "tags": [
       "dev-server",

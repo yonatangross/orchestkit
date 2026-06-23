@@ -1,11 +1,11 @@
 ---
 title: Skills Reference
-description: "Complete reference for all 111 OrchestKit skills."
+description: "Complete reference for all 112 OrchestKit skills."
 ---
 
 # Skills Reference
 
-OrchestKit includes **111 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
+OrchestKit includes **112 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
@@ -20,6 +20,7 @@ OrchestKit includes **111 skills** — reusable knowledge modules that provide p
 | [Ascii Visualizer](/docs/reference/skills/ascii-visualizer) | Reference | low | ASCII diagram patterns for architecture, workflows, file trees, and data visualizations. Use when creating terminal-rendered diagrams, box-drawing layouts, progress bars, swimlanes, or blast radius visualizations. |
 | [Assess](/docs/reference/skills/assess) | Command | high | Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches. |
 | [Async Jobs](/docs/reference/skills/async-jobs) | Reference | medium | Async job processing patterns for background tasks, Celery workflows, task scheduling, retry strategies, and distributed task execution. Use when implementing background job processing, task queues, or scheduled task systems. |
+| [Audit Activation](/docs/reference/skills/audit-activation) | Reference | medium | Audits OrchestKit sub-agent activation from real spawn telemetry — computes the generic-vs-specialist spawn split, flags dormant agents (never fired), and classifies each as fires/mis-triggered/niche. The agent-side analogue of audit-skills. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths. |
 | [Audit Full](/docs/reference/skills/audit-full) | Reference | max | Single-pass codebase analysis leveraging Opus 4.8 1M context for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews. |
 | [Audit Skills](/docs/reference/skills/audit-skills) | Reference | medium | Audits all OrchestKit skills for quality, completeness, and compliance with authoring standards. Use when checking skill health, before releases, or after bulk skill edits to surface SKILL.md files that are too long, have missing frontmatter, lack rules/references, or are unregistered in manifests. |
 | [Bare Eval](/docs/reference/skills/bare-eval) | Reference | medium | Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill evaluation, trigger testing, and LLM grading without plugin/hook interference. Use when running eval pipelines, grading skill outputs, benchmarking prompt quality, or testing trigger accuracy in isolation. |

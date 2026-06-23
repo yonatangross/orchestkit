@@ -13,6 +13,7 @@
     "ascii-visualizer",
     "assess",
     "async-jobs",
+    "audit-activation",
     "audit-full",
     "audit-skills",
     "bare-eval",

@@ -173,6 +173,7 @@ if [[ "$RUN_UNIT" == "true" ]]; then
     run_test "MDX Compile Guard" "$SCRIPT_DIR/unit/test-mdx-compile.sh" || true
     run_test "Version Sync Round-Trip" "$SCRIPT_DIR/unit/test-sync-versions.sh" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
     run_test "Memory Index Budget Check" "$SCRIPT_DIR/unit/test-memory-index-budget.sh" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
+    run_test "Audit-Activation Script" "$SCRIPT_DIR/unit/test-audit-activation.sh" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
     run_test "Handoff Bundle Schema" "$SCRIPT_DIR/unit/test-handoff-bundle-schema.sh" || true
     run_test "Stub Fallback Integration" "$SCRIPT_DIR/unit/test-stub-fallback.sh" || true  # silent: known-noise
     run_test "M127 Boot Helpers + Clerk Mapping" "$SCRIPT_DIR/unit/test-m127-boot-helpers.sh" || true  # silent: known-noise

@@ -510,7 +510,7 @@ export const AGENTS: Agent[] = [
   {
     "id": "emulate-engineer",
     "name": "Emulate Engineer",
-    "description": "Stateful API emulation via Vercel emulate 0.4+. Seeds GitHub/Vercel/Google/Slack/Apple/Entra/AWS/MongoDB/Okta/Resend/Stripe, webhooks, port isolation, Next.js adapter. Use to replace flaky API mocks.",
+    "description": "Stateful API emulation via Vercel emulate. Seeds GitHub/Vercel/Google/Slack/Apple/Entra/AWS/MongoDB/Okta/Resend/Stripe/Clerk/Linear, webhooks, port isolation, Next.js adapter. Use to replace flaky API mocks.",
     "category": "testing",
     "model": "inherit",
     "taskTypes": [

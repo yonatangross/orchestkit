@@ -1,0 +1,45 @@
+id: audit-activation
+name: "Agent activation audit evaluation"
+skill_path: src/skills/audit-activation/SKILL.md
+plugin_dir: plugins/ork
+
+quality_evals:
+  - prompt: |
+      Our specialized OrchestKit sub-agents feel under-used and the model
+      keeps defaulting to generic Explore/general-purpose. Audit which agents
+      actually get spawned vs the generic ones.
+    assertions:
+      - name: "reads spawn telemetry"
+        check: "reads .claude/logs/subagent-spawns.jsonl (the fresh stream), not the dead agent-usage.jsonl"
+      - name: "spawn split"
+        check: "reports the generic-vs-ork-catalog-vs-other spawn split as counts and percentages"
+      - name: "names dormant agents"
+        check: "lists the agents that never fired in the telemetry window"
+      - name: "does not recommend description rewrites"
+        check: "does NOT recommend rewriting agent descriptions; attributes dormancy to skill-wiring (subagent_type= references), per the skill's hard rule"
+
+  - prompt: |
+      Classify our dormant agents — which should we prune, which need their
+      triggers fixed, and which are just niche?
+    assertions:
+      - name: "uses reference count"
+        check: "classifies each dormant agent by its real skill-reference count (greps src/skills for subagent_type=ork:<name>), not by description quality"
+      - name: "four buckets"
+        check: "buckets agents into active / mis-triggered / niche / dead per rules/activation-status.md"
+      - name: "dead requires zero refs"
+        check: "only marks an agent DEAD (prune candidate) when it has zero references in any skill or agent"
+      - name: "fix is wiring"
+        check: "for mis-triggered agents, recommends adding a subagent_type= spawn from a high-traffic skill"
+
+  - prompt: |
+      Give me a one-shot activation health report for the agent catalog
+      before we decide whether to trim it.
+    assertions:
+      - name: "runs the script"
+        check: "runs or references scripts/run-activation-audit.sh to gather the deterministic data"
+      - name: "concentration"
+        check: "reports concentration (top-5 agents as a share of catalog spawns)"
+      - name: "window caveat"
+        check: "states that never-fired means absent from the telemetry window, a strong signal but not proof of zero"
+
+tags: [audit-activation, agents, activation, background]

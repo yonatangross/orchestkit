@@ -1,0 +1,50 @@
+{
+  "skill": "audit-activation",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "full-activation-audit",
+      "rule": null,
+      "query": "Audit which OrchestKit agents actually get spawned vs generic ones",
+      "expectedBehavior": [
+        "Reads .claude/logs/subagent-spawns.jsonl (fresh stream), not the dead agent-usage.jsonl",
+        "Computes the generic-vs-ork-catalog-vs-other spawn split as counts + percentages",
+        "Lists agents that fired and agents that never fired in the window",
+        "Reports concentration (top-5 share of catalog spawns)"
+      ]
+    },
+    {
+      "id": "classify-dormant",
+      "rule": "activation-status",
+      "query": "Classify our dormant agents — prune, fix triggers, or niche?",
+      "expectedBehavior": [
+        "Classifies each dormant agent by its real skill-reference count, not description quality",
+        "Buckets into active / mis-triggered / niche / dead",
+        "Marks DEAD only when an agent has zero references in any skill or agent",
+        "For mis-triggered agents, recommends a subagent_type= spawn from a high-traffic skill"
+      ]
+    },
+    {
+      "id": "no-description-rewrite",
+      "rule": "activation-status",
+      "query": "Should we rewrite agent descriptions to fix low activation?",
+      "expectedBehavior": [
+        "Does NOT recommend rewriting descriptions to add 'use proactively'",
+        "Cites that an A/B test showed description rewrites give zero routing benefit",
+        "Redirects the fix to skill-wiring and telemetry",
+        "Notes the per-agent description byte budget constraint"
+      ]
+    },
+    {
+      "id": "telemetry-window-honesty",
+      "rule": "activation-checks",
+      "query": "Run an activation health report before trimming the catalog",
+      "expectedBehavior": [
+        "Runs or references scripts/run-activation-audit.sh for the deterministic data",
+        "States the telemetry window dates",
+        "Caveats that never-fired means absent from the window — strong signal, not proof of zero",
+        "Recommends pruning only DEAD (zero-reference) agents"
+      ]
+    }
+  ]
+}

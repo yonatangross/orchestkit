@@ -17,6 +17,159 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.57.0",
+    "date": "2026-06-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**doctor:** add auto-memory MEMORY.md index budget check ([#2610](https://github.com/yonatangross/orchestkit/issues/2610)) ([bcb5820](https://github.com/yonatangross/orchestkit/commit/bcb582027050d87b3e244806d39ac519c4762fb8))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**counts:** stamp pyproject description so counts can't drift ([#2604](https://github.com/yonatangross/orchestkit/issues/2604)) ([28cbbd4](https://github.com/yonatangross/orchestkit/commit/28cbbd4889643f04e206a4d45e5d0fa182403f8f))",
+          "**labs:** refresh stale Vercel Labs docs + extend watcher TARGETS ([#2605](https://github.com/yonatangross/orchestkit/issues/2605)) ([d5c47a3](https://github.com/yonatangross/orchestkit/commit/d5c47a3ebdc542acec7c680376a5b96ed886bf43))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.186) ([#2622](https://github.com/yonatangross/orchestkit/issues/2622)) ([79ca903](https://github.com/yonatangross/orchestkit/commit/79ca903c57f86d2e6e9de6e1f8324940c2a76d72))",
+          "**counts:** retire update-counts.sh + enforce stamped counts in CI ([#2606](https://github.com/yonatangross/orchestkit/issues/2606)) ([3e85b90](https://github.com/yonatangross/orchestkit/commit/3e85b909d64d6ece8ed8730b20afc88e1c208684))",
+          "**labs:** bump upstream-version-tested pins for drifted skills ([#2594](https://github.com/yonatangross/orchestkit/issues/2594)) ([24a6208](https://github.com/yonatangross/orchestkit/commit/24a62082e74ec3883df446d505cc6994fe513f9a))",
+          "**rules:** remove dead recent-decisions.md from auto-loaded context ([#2609](https://github.com/yonatangross/orchestkit/issues/2609)) ([4e3a4ca](https://github.com/yonatangross/orchestkit/commit/4e3a4ca1d07cd5a463518bc308311195aca4a300))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**ci-debug:** add pattern [#11](https://github.com/yonatangross/orchestkit/issues/11) (vercel status orphaned on path-skip) ([#2595](https://github.com/yonatangross/orchestkit/issues/2595)) ([544a022](https://github.com/yonatangross/orchestkit/commit/544a022f40aefa91a0fb7c7bdb5565d68a55883e))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**agents:** defer Labs versions to the skill, add guard ([#2608](https://github.com/yonatangross/orchestkit/issues/2608)) ([4617e5f](https://github.com/yonatangross/orchestkit/commit/4617e5fe97a965db49bf41faafe6f378750d56f8)), closes [#2600](https://github.com/yonatangross/orchestkit/issues/2600)"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.56.0",
+    "date": "2026-06-22",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** nudge general-purpose test-run spawns toward Bash ([#2576](https://github.com/yonatangross/orchestkit/issues/2576)) ([ed73464](https://github.com/yonatangross/orchestkit/commit/ed73464bf80e5f8b7b5599a2f48aa5c53183caae))",
+          "**hooks:** reliable session auto-rename + content-emoji color ([#2593](https://github.com/yonatangross/orchestkit/issues/2593)) ([2e4da25](https://github.com/yonatangross/orchestkit/commit/2e4da258db474f44e59a3cccf84e73d89a1ec68e))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**skill-evolution:** store per-entry decisions outside .claude/rules/ ([#2592](https://github.com/yonatangross/orchestkit/issues/2592)) ([9facc9a](https://github.com/yonatangross/orchestkit/commit/9facc9a8478f761b78038a80fc57346aa59cf4f8))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.185) ([#2587](https://github.com/yonatangross/orchestkit/issues/2587)) ([5087b3f](https://github.com/yonatangross/orchestkit/commit/5087b3f2a93898eebc8270084b4642a67f317e24))",
+          "**deps-dev:** bump @types/node from 25.9.3 to 26.0.0 ([#2579](https://github.com/yonatangross/orchestkit/issues/2579)) ([7586104](https://github.com/yonatangross/orchestkit/commit/7586104dbe8eb614db5a5fbaf1b5c65caf951ab6))",
+          "**deps-dev:** bump @types/node from 25.9.3 to 26.0.0 in /docs/site ([#2582](https://github.com/yonatangross/orchestkit/issues/2582)) ([3a8a399](https://github.com/yonatangross/orchestkit/commit/3a8a39962ce88748f8220679e762fac4d7f3548d))",
+          "**deps-dev:** bump @types/node from 25.9.3 to 26.0.0 in /src/hooks ([#2580](https://github.com/yonatangross/orchestkit/issues/2580)) ([604454c](https://github.com/yonatangross/orchestkit/commit/604454c1b4837569d22492c4587d139f3369ec56))",
+          "**deps-dev:** bump @types/node in /src/mcp-server ([#2578](https://github.com/yonatangross/orchestkit/issues/2578)) ([fdb84a8](https://github.com/yonatangross/orchestkit/commit/fdb84a8f5dc1d6c917019d7c3aad739736f9400e))",
+          "**deps-dev:** bump @vitejs/plugin-react in /docs/site ([#2584](https://github.com/yonatangross/orchestkit/issues/2584)) ([43565fd](https://github.com/yonatangross/orchestkit/commit/43565fd17947512a32f5bb9a49d888bb089e278b))",
+          "**deps-dev:** bump js-yaml from 4.2.0 to 5.0.0 ([#2577](https://github.com/yonatangross/orchestkit/issues/2577)) ([99398c9](https://github.com/yonatangross/orchestkit/commit/99398c9e9b82cda8a91108a1bc38d5d307af41a1))",
+          "**deps:** bump @dagrejs/dagre from 2.0.4 to 3.0.0 in /docs/site ([#2585](https://github.com/yonatangross/orchestkit/issues/2585)) ([f00d65a](https://github.com/yonatangross/orchestkit/commit/f00d65a27f1ed9508631775722a1ba6a1bf61d28))",
+          "**deps:** bump @vercel/speed-insights in /docs/site ([#2583](https://github.com/yonatangross/orchestkit/issues/2583)) ([a453ccb](https://github.com/yonatangross/orchestkit/commit/a453ccb1f0999f006c673236033e429d1b6396b1))",
+          "**deps:** bump the npm-minor-patch group in /docs/site with 4 updates ([#2581](https://github.com/yonatangross/orchestkit/issues/2581)) ([36d5d4d](https://github.com/yonatangross/orchestkit/commit/36d5d4dc0a8e7d9d880df93df84d301d291da167))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "bump the github-actions group across 1 directory with 2 updates ([#2586](https://github.com/yonatangross/orchestkit/issues/2586)) ([2db8005](https://github.com/yonatangross/orchestkit/commit/2db800528ebf8b729feaa4c8a931f58d00c9b991))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.55.2",
+    "date": "2026-06-21",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc-triage:** exclude presentational rewords from the now-&lt;verb&gt;s hint ([#2570](https://github.com/yonatangross/orchestkit/issues/2570)) ([745f9b9](https://github.com/yonatangross/orchestkit/commit/745f9b9670ac407b48b70b0eb9b98a76783c233f))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.55.1",
+    "date": "2026-06-21",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** move release-watch cron to 06:00 IL (03:00 UTC) ([#2566](https://github.com/yonatangross/orchestkit/issues/2566)) ([512dd62](https://github.com/yonatangross/orchestkit/commit/512dd625abcc3f41e1669d3a1547f58990c9a83e))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.55.0",
+    "date": "2026-06-20",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**skill-evolution:** make holdout gate executable for assess ([#2562](https://github.com/yonatangross/orchestkit/issues/2562)) ([7031857](https://github.com/yonatangross/orchestkit/commit/7031857da2ee660e428edd7b5250988b198756e3))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** stop mcp-health-check false-positive on op-read keys ([#2563](https://github.com/yonatangross/orchestkit/issues/2563)) ([e345c79](https://github.com/yonatangross/orchestkit/commit/e345c79b1ccf1a94b3789f0bd86d27bc09ed3980))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.54.0",
+    "date": "2026-06-20",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**cc:** modernize to 2.1.183 (drop TeamCreate/Task, bump floor) ([#2559](https://github.com/yonatangross/orchestkit/issues/2559)) ([5700399](https://github.com/yonatangross/orchestkit/commit/57003991e8ed2f3b73801d87deae3451dae4d668))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** CCR reads tool_response, the field CC actually sends ([#2552](https://github.com/yonatangross/orchestkit/issues/2552)) ([#2553](https://github.com/yonatangross/orchestkit/issues/2553)) ([e3ae43d](https://github.com/yonatangross/orchestkit/commit/e3ae43de9a027aacef5c1c64be25275d6e30b87c))",
+          "**skills:** soften overclaims and fix streak goal race ([#2554](https://github.com/yonatangross/orchestkit/issues/2554)) ([d05782f](https://github.com/yonatangross/orchestkit/commit/d05782f00f66a7654371732cdfb8e7318552d3de))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**security:** resolve all 109 zizmor code-scanning alerts ([#2560](https://github.com/yonatangross/orchestkit/issues/2560)) ([0f1694b](https://github.com/yonatangross/orchestkit/commit/0f1694bcabddc06320fc47877412172b0edfef90))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.53.0",
     "date": "2026-06-20",
     "compareUrl": "",

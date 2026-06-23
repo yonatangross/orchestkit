@@ -129,6 +129,35 @@ stamp_pyproject_description() {
     "s/[0-9]+ skills, [0-9]+ agents, and [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, and ${HOOKS} hooks/g" "$file"
 }
 
+# ── manifests/ork.json description (count tuple) ────────────────────────────
+# build-plugins.sh copies this .description verbatim into the generated
+# plugins/ork/.claude-plugin/plugin.json, which bin/validate-counts.sh reads.
+# Retiring bin/update-counts.sh (#2606) removed the only stamper of this string,
+# leaving it to drift until the first count change (adding a skill) exposed it.
+stamp_ork_manifest_description() {
+  local file="$PROJECT_ROOT/manifests/ork.json"
+  if [[ ! -f "$file" ]]; then return; fi
+  local desc
+  desc=$(jq -r '.description' "$file")
+  # "N skills, M agents, K hooks" (no "and") — the marketplace/plugin phrasing
+  local new
+  new=$(printf '%s' "$desc" | sed -E "s/[0-9]+ skills, [0-9]+ agents, [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, ${HOOKS} hooks/g")
+  if [[ "$new" != "$desc" ]]; then
+    jq --arg d "$new" '.description = $d' "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
+  fi
+}
+
+# ── CLAUDE.md plain directory-structure count comment ───────────────────────
+# Line: "skills/<name>/SKILL.md    # N skills (YAML ...)" — plain text, not a
+# marker, so stamp_file() misses it. Tight anchor avoids unrelated numbers.
+stamp_claudemd_plain_count() {
+  local file="$PROJECT_ROOT/CLAUDE.md"
+  if [[ ! -f "$file" ]]; then return; fi
+  local sed_in
+  if [[ "$(uname)" == "Darwin" ]]; then sed_in=(sed -i '' -E); else sed_in=(sed -i -E); fi
+  "${sed_in[@]}" "s/# [0-9]+ skills \\(YAML/# ${SKILLS} skills (YAML/g" "$file"
+}
+
 # ── docs/site MDX (pattern-based, no markers) ───────────────────────────────
 # MDX renders HTML comments literally, so the marker approach used for
 # README/CLAUDE.md doesn't work here. Instead we replace explicit, safe
@@ -320,6 +349,34 @@ if [[ "${1:-}" == "--check" ]]; then
     rm "$TMP"
   fi
 
+  # Check manifests/ork.json description count tuple
+  ORK_MANIFEST="$PROJECT_ROOT/manifests/ork.json"
+  if [[ -f "$ORK_MANIFEST" ]]; then
+    CUR_DESC=$(jq -r '.description' "$ORK_MANIFEST")
+    EXP_DESC=$(printf '%s' "$CUR_DESC" | sed -E "s/[0-9]+ skills, [0-9]+ agents, [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, ${HOOKS} hooks/g")
+    if [[ "$CUR_DESC" != "$EXP_DESC" ]]; then
+      echo "STALE: $ORK_MANIFEST (description count)"
+      STALE=1
+    fi
+  fi
+
+  # Check CLAUDE.md plain directory-structure count comment
+  CLAUDE_MD_F="$PROJECT_ROOT/CLAUDE.md"
+  if [[ -f "$CLAUDE_MD_F" ]]; then
+    TMP=$(mktemp)
+    cp "$CLAUDE_MD_F" "$TMP"
+    if [[ "$(uname)" == "Darwin" ]]; then
+      sed -i '' -E "s/# [0-9]+ skills \\(YAML/# ${SKILLS} skills (YAML/g" "$TMP"
+    else
+      sed -i -E "s/# [0-9]+ skills \\(YAML/# ${SKILLS} skills (YAML/g" "$TMP"
+    fi
+    if ! diff -q "$CLAUDE_MD_F" "$TMP" >/dev/null 2>&1; then
+      echo "STALE: $CLAUDE_MD_F (plain skills count)"
+      STALE=1
+    fi
+    rm "$TMP"
+  fi
+
   # Check docs/site MDX
   DOCS_DIR="$PROJECT_ROOT/docs/site/content"
   if [[ -d "$DOCS_DIR" ]]; then
@@ -353,6 +410,10 @@ done
 stamp_marketplace_json
 
 stamp_pyproject_description
+
+stamp_ork_manifest_description
+
+stamp_claudemd_plain_count
 
 stamp_docs_mdx
 

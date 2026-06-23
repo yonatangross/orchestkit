@@ -5,7 +5,7 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 111,
+  "skills": 112,
   "agents": 37,
   "hooks": 211,
   "commands": 31,
@@ -144,7 +144,7 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "emulate-engineer",
-    "description": "Stateful API emulation via Vercel emulate 0.4+. Seeds GitHub/Vercel/Google/Slack/Apple/Entra/AWS/MongoDB/Okta/Resend/Stripe, webhooks, port isolation, Next.js adapter. Use to replace flaky API mocks.",
+    "description": "Stateful API emulation via Vercel emulate. Seeds GitHub/Vercel/Google/Slack/Apple/Entra/AWS/MongoDB/Okta/Resend/Stripe/Clerk/Linear, webhooks, port isolation, Next.js adapter. Use to replace flaky API mocks.",
     "plugins": [
       "ork"
     ],
