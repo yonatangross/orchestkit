@@ -1,0 +1,59 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "audit-activation",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "full-activation-audit",
+      "query": "Audit which OrchestKit agents actually get spawned vs generic ones",
+      "expected_behavior": [
+        "Reads .claude/logs/subagent-spawns.jsonl (the fresh stream), not the dead agent-usage.jsonl",
+        "Computes the generic-vs-ork-catalog-vs-other spawn split as counts and percentages",
+        "Lists agents that fired and agents that never fired in the window",
+        "Reports concentration (top-5 agents as a share of catalog spawns)"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "classify-dormant",
+      "query": "Classify our dormant agents — prune, fix triggers, or niche?",
+      "expected_behavior": [
+        "Classifies each dormant agent by its real skill-reference count, not description quality",
+        "Buckets agents into active, mis-triggered, niche, or dead per rules/activation-status.md",
+        "Marks an agent DEAD only when it has zero references in any skill or agent",
+        "For mis-triggered agents, recommends adding a subagent_type= spawn from a high-traffic skill"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "no-description-rewrite",
+      "query": "Should we rewrite agent descriptions to fix low activation?",
+      "expected_behavior": [
+        "Does NOT recommend rewriting descriptions to add 'use proactively'",
+        "Cites that an A/B test showed description rewrites give zero routing benefit",
+        "Redirects the fix to skill-wiring and telemetry",
+        "Notes the per-agent description byte budget constraint"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "telemetry-window-honesty",
+      "query": "Run an activation health report before trimming the catalog",
+      "expected_behavior": [
+        "Runs or references scripts/run-activation-audit.sh for the deterministic data",
+        "States the telemetry window dates",
+        "Caveats that never-fired means absent from the window, a strong signal but not proof of zero",
+        "Recommends pruning only DEAD (zero-reference) agents"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    }
+  ]
+}
