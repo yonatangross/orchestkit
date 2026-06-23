@@ -268,7 +268,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 | **1. Discovery** | Research best practices, Context7 docs, break into tasks | — |
 | **2. Micro-Planning** | Detailed plan per task (load `${CLAUDE_SKILL_DIR}/references/micro-planning-guide.md`) | — |
 | **3. Worktree** | Isolate in git worktree for 5+ file features (load `${CLAUDE_SKILL_DIR}/references/worktree-workflow.md`) | — |
-| **4. Architecture** | 4 parallel background agents | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator |
+| **4. Architecture** | 4 parallel background agents (+ event-driven-architect when event/CQRS/queue-shaped) | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator |
 | **5. Implementation + Tests** | Parallel agents, single-pass artifacts with mandatory tests | backend-system-architect, frontend-ui-developer, llm-integrator, test-generator |
 | **6. Integration Verification** | Code review + real-service integration tests | backend, frontend, code-quality-reviewer, security-auditor |
 | **7. Scope Creep** | Compare planned vs actual (load `${CLAUDE_SKILL_DIR}/references/scope-creep-detection.md`) | workflow-architect |

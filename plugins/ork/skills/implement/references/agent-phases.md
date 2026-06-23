@@ -145,6 +145,37 @@ Agent(
 )
 ```
 
+### Agent 5: Event-Driven Architect (conditional)
+
+Spawn ONLY when the feature is event-sourcing / CQRS / message-queue / outbox-shaped
+(e.g. order pipelines, real-time notifications, async fan-out, audit logs). Skip for
+plain CRUD — like Agent 4, it self-justifies and returns "No event-driven design needed".
+
+```python
+Agent(
+  subagent_type="ork:event-driven-architect",
+  model=MODEL_OVERRIDE,
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
+  EVENT-DRIVEN ARCHITECTURE ANALYSIS — SINGLE PASS
+
+  First decide: is this feature event-driven-shaped? (justify yes/no). If no,
+  return "No event-driven design needed" and stop. If yes, produce in one response:
+  1. Event model (event types, schemas, versioning)
+  2. Event store / log choice (Kafka, Redis Streams, RabbitMQ, FastStream) with rationale
+  3. Topic / partition / consumer-group topology
+  4. Saga / process-manager design for multi-step workflows
+  5. Outbox pattern for transactional event publishing
+  6. Idempotency + dead-letter-queue (DLQ) handling
+  7. Ordering and exactly-once vs at-least-once trade-offs
+
+  Coordinate with the backend architect's schema; cite file paths.
+  Output: Complete event-driven spec or "No event-driven design needed".
+
+  Feature: $ARGUMENTS""",
+  run_in_background=true
+)
+```
+
 ### Phase 4 — Teams Mode
 
 In Agent Teams mode, 4 teammates form a team (`implement-{feature-slug}`) instead of independent Task spawns. The workflow-architect role is handled by the lead or omitted for simpler features. Teammates message architecture decisions to each other in real-time.

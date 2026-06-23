@@ -239,7 +239,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 | **1. Discovery** | Research best practices, Context7 docs, break into tasks | — |
 | **2. Micro-Planning** | Detailed plan per task (load `$\{CLAUDE_SKILL_DIR\}/references/micro-planning-guide.md`) | — |
 | **3. Worktree** | Isolate in git worktree for 5+ file features (load `$\{CLAUDE_SKILL_DIR\}/references/worktree-workflow.md`) | — |
-| **4. Architecture** | 4 parallel background agents | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator |
+| **4. Architecture** | 4 parallel background agents (+ event-driven-architect when event/CQRS/queue-shaped) | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator |
 | **5. Implementation + Tests** | Parallel agents, single-pass artifacts with mandatory tests | backend-system-architect, frontend-ui-developer, llm-integrator, test-generator |
 | **6. Integration Verification** | Code review + real-service integration tests | backend, frontend, code-quality-reviewer, security-auditor |
 | **7. Scope Creep** | Compare planned vs actual (load `$\{CLAUDE_SKILL_DIR\}/references/scope-creep-detection.md`) | workflow-architect |
@@ -1096,6 +1096,37 @@ Agent(
   8. Fallback chain configuration
 
   Output: Complete AI integration spec or "No AI needed" with justification.
+
+  Feature: $ARGUMENTS""",
+  run_in_background=true
+)
+```
+
+### Agent 5: Event-Driven Architect (conditional)
+
+Spawn ONLY when the feature is event-sourcing / CQRS / message-queue / outbox-shaped
+(e.g. order pipelines, real-time notifications, async fan-out, audit logs). Skip for
+plain CRUD — like Agent 4, it self-justifies and returns "No event-driven design needed".
+
+```python
+Agent(
+  subagent_type="ork:event-driven-architect",
+  model=MODEL_OVERRIDE,
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
+  EVENT-DRIVEN ARCHITECTURE ANALYSIS — SINGLE PASS
+
+  First decide: is this feature event-driven-shaped? (justify yes/no). If no,
+  return "No event-driven design needed" and stop. If yes, produce in one response:
+  1. Event model (event types, schemas, versioning)
+  2. Event store / log choice (Kafka, Redis Streams, RabbitMQ, FastStream) with rationale
+  3. Topic / partition / consumer-group topology
+  4. Saga / process-manager design for multi-step workflows
+  5. Outbox pattern for transactional event publishing
+  6. Idempotency + dead-letter-queue (DLQ) handling
+  7. Ordering and exactly-once vs at-least-once trade-offs
+
+  Coordinate with the backend architect's schema; cite file paths.
+  Output: Complete event-driven spec or "No event-driven design needed".
 
   Feature: $ARGUMENTS""",
   run_in_background=true
