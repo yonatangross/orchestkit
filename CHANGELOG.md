@@ -5,6 +5,22 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.58.0](https://github.com/yonatangross/orchestkit/compare/v8.57.0...v8.58.0) (2026-06-23)
+
+
+### Features
+
+* **cc-watch:** add precision+recall verify gate to cc-triage ([#2626](https://github.com/yonatangross/orchestkit/issues/2626)) ([2b20c3f](https://github.com/yonatangross/orchestkit/commit/2b20c3fbda2142e032a321458dc2b6c7ca280d29))
+* **doctor:** complete MEMORY.md budget check (line cap + path fix) ([#2623](https://github.com/yonatangross/orchestkit/issues/2623)) ([bd01b2f](https://github.com/yonatangross/orchestkit/commit/bd01b2f3a6b8942c894cb0b280100f0e8898ac9b))
+* **hooks:** advisor asks to redirect generic spawns to specialists ([#2632](https://github.com/yonatangross/orchestkit/issues/2632)) ([3998bac](https://github.com/yonatangross/orchestkit/commit/3998bac5e425300553909c68f86cd768dc9cf5ce))
+* **implement:** wire event-driven-architect into Phase 4 spawn block ([#2630](https://github.com/yonatangross/orchestkit/issues/2630)) ([a4bee99](https://github.com/yonatangross/orchestkit/commit/a4bee996281560320743d28b5d51752eadfbeaa9))
+* **skills:** add audit-activation (agent-side activation audit) ([#2628](https://github.com/yonatangross/orchestkit/issues/2628)) ([701609e](https://github.com/yonatangross/orchestkit/commit/701609e4d626f0c1bbc0118e1040c77a065da186))
+
+
+### Documentation
+
+* **cc-watch:** release-integration SOP + cc-support SoT schema ([#2627](https://github.com/yonatangross/orchestkit/issues/2627)) ([592533c](https://github.com/yonatangross/orchestkit/commit/592533c87cf8fc36febd8e3c4783cc2be851c5a1))
+
 ## [8.57.0](https://github.com/yonatangross/orchestkit/compare/v8.56.0...v8.57.0) (2026-06-23)
 
 
