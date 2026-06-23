@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrchestKit CC support window (single source of truth)",
+  "description": "Schema for shared/cc-support.json. Resolves the previously-dangling ./cc-support.schema.json $ref. Authored from the documented contract, NOT a single snapshot: latest_known MAY diverge below latest while a manual_override freezes the floor, and MAY converge in steady state — both are valid.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["latest", "latest_known", "supported_floor", "policy"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "latest": {
+      "$ref": "#/definitions/semver",
+      "description": "Support-window head (newest supported CC)."
+    },
+    "latest_known": {
+      "$ref": "#/definitions/semver",
+      "description": "Highest CC version ork's adoption is known to cover. Distinct from `latest` — may sit BELOW it while a manual_override freezes the floor."
+    },
+    "supported_floor": {
+      "$ref": "#/definitions/semver",
+      "description": "Minimum supported CC version."
+    },
+    "drop_after": { "$ref": "#/definitions/semver" },
+    "policy": {
+      "type": "string",
+      "description": "Steady-state window policy, e.g. 'latest + 3 previous minors'."
+    },
+    "policy_doc": { "type": "string" },
+    "manual_override": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["reason", "expires"],
+      "properties": {
+        "reason": { "type": "string" },
+        "expires": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "ISO date (YYYY-MM-DD) after which the auto-bump policy resumes."
+        }
+      }
+    },
+    "comment": { "type": "string" }
+  },
+  "definitions": {
+    "semver": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    }
+  }
+}

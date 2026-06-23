@@ -38,6 +38,13 @@ function contextOf(result: ReturnType<typeof taskAgentAdvisor>): string {
   return (result.hookSpecificOutput?.additionalContext as string) || '';
 }
 
+function reasonOf(result: ReturnType<typeof taskAgentAdvisor>): string {
+  return (result.hookSpecificOutput?.permissionDecisionReason as string) || '';
+}
+function decisionOf(result: ReturnType<typeof taskAgentAdvisor>): string {
+  return (result.hookSpecificOutput?.permissionDecision as string) || '';
+}
+
 describe('matchSpecialistDomain', () => {
   test.each([
     ['investigate the failure in the deploy job and find the root cause', 'ork:debug-investigator'],
@@ -65,7 +72,7 @@ describe('matchSpecialistDomain', () => {
 });
 
 describe('taskAgentAdvisor general-purpose nudge', () => {
-  test('nudges specialist for domain-shaped general-purpose task', () => {
+  test('ASKS to redirect a domain-shaped general-purpose task to the specialist', () => {
     const result = taskAgentAdvisor(
       makeInput({
         subagent_type: 'general-purpose',
@@ -73,9 +80,12 @@ describe('taskAgentAdvisor general-purpose nudge', () => {
       }),
     );
 
+    // Enforce, not whisper: permissionDecision 'ask' surfaces the specialist
+    // as an active choice. Still continue:true — never a hard deny.
     expect(result.continue).toBe(true);
-    expect(contextOf(result)).toContain('ork:debug-investigator');
-    expect(contextOf(result)).toContain('general-purpose');
+    expect(decisionOf(result)).toBe('ask');
+    expect(reasonOf(result)).toContain('ork:debug-investigator');
+    expect(reasonOf(result)).toContain('general-purpose');
   });
 
   test('stays silent for general-purpose without a domain match', () => {
@@ -84,14 +94,17 @@ describe('taskAgentAdvisor general-purpose nudge', () => {
     );
 
     expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
     expect(contextOf(result)).toBe('');
   });
 
-  test('never blocks (advisory only)', () => {
+  test('asks (does not hard-block) on a clear specialist domain match', () => {
     const result = taskAgentAdvisor(
-      makeInput({ subagent_type: 'general-purpose', description: 'security audit of everything' }),
+      makeInput({ subagent_type: 'general-purpose', description: 'run a security audit on the upload endpoint' }),
     );
-    expect(result.continue).toBe(true);
+    expect(result.continue).toBe(true);          // never deny
+    expect(decisionOf(result)).toBe('ask');
+    expect(reasonOf(result)).toContain('ork:security-auditor');
   });
 
   test('other builtins (Explore) remain silent even with domain text', () => {
@@ -120,12 +133,13 @@ describe('taskAgentAdvisor deterministic-run nudge (tests/build → Bash)', () =
     expect(contextOf(result)).toContain('Bash');
   });
 
-  test('does NOT nudge a writing-tests task (that is ork:test-generator)', () => {
+  test('routes a writing-tests task to ork:test-generator (ask), not the Bash nudge', () => {
     const result = taskAgentAdvisor(
       makeInput({ subagent_type: 'general-purpose', description: 'write unit tests for the parser' }),
     );
-    expect(contextOf(result)).toContain('ork:test-generator');
-    expect(contextOf(result)).not.toContain('run it in Bash');
+    expect(decisionOf(result)).toBe('ask');
+    expect(reasonOf(result)).toContain('ork:test-generator');
+    expect(reasonOf(result)).not.toContain('run it in Bash');
   });
 
   test('does NOT nudge a triage task (fix the failing tests stays an agent job)', () => {
