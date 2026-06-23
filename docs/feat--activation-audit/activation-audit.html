@@ -93,6 +93,7 @@ code{font-family:'JetBrains Mono',monospace;background:var(--bg-surface);padding
   <button class="tab" data-t="telemetry">Telemetry gaps</button>
   <button class="tab" data-t="dormant">Dormant catalog</button>
   <button class="tab" data-t="root">Root causes</button>
+  <button class="tab" data-t="fixpreview">Fix preview</button>
   <button class="tab" data-t="options">Options</button>
 </div>
 
@@ -169,6 +170,14 @@ code{font-family:'JetBrains Mono',monospace;background:var(--bg-surface);padding
 <div class="panel" id="root">
   <h2>Root causes (code audit, with evidence)</h2>
   <div id="rootCards"></div>
+</div>
+
+<!-- FIX PREVIEW -->
+<div class="panel" id="fixpreview">
+  <h2>Phase-1 preview — descriptions rewritten to the CC standard</h2>
+  <p class="lede">The documented lever (<code>docs/en/subagents.md</code>): <em>"to encourage proactive delegation, include phrases like 'use proactively' in your subagent's description field."</em> All 37 ork agents currently omit it. Here are 5 real before→after rewrites — the actual change Phase 1 would make.</p>
+  <div class="callout">Format: <code>&lt;role&gt;: &lt;capabilities&gt;. Use proactively when &lt;concrete triggers&gt;.</code> — capabilities kept verbatim; only the trigger clause is added.</div>
+  <div id="fixCards"></div>
 </div>
 
 <!-- OPTIONS -->
@@ -271,6 +280,41 @@ document.getElementById('optList').innerHTML=opts.map(o=>{
   const ec=o.effort==='LOW'?C.green:o.effort==='MED'?C.yellow:C.red;
   return `<div class="opt"><div class="opt-head"><div class="opt-title"><span class="mono" style="color:var(--text-muted)">#${o.n}</span> ${o.t}</div><div class="kv"><span style="color:${ic}">impact ${o.impact}</span><span style="color:${ec}">effort ${o.effort}</span></div></div><p class="note" style="color:var(--text-secondary);margin-top:8px">${o.d}</p></div>`;
 }).join('');
+
+// fix preview — real before→after description rewrites
+const fixAgents=[
+ {n:'backend-system-architect',status:'fires 13×',sc:C.green,
+  before:'Backend architect: REST/GraphQL APIs, database schemas, microservice boundaries, distributed systems, clean architecture.',
+  after:'Backend architect: REST/GraphQL APIs, database schemas, microservice boundaries, distributed systems, clean architecture. ',
+  trig:'Use proactively when designing or reviewing an API surface, modeling a DB schema, splitting a service, or weighing a distributed-systems trade-off.'},
+ {n:'monitoring-engineer',status:'dormant · mis-triggered',sc:C.orange,
+  before:'Observability and monitoring specialist. Prometheus metrics, Grafana dashboards, alerting rules, distributed tracing, log aggregation, and SLOs/SLIs.',
+  after:'Observability & monitoring specialist: Prometheus metrics, Grafana dashboards, alerting rules, distributed tracing, log aggregation, SLOs/SLIs. ',
+  trig:'Use proactively when adding metrics or dashboards, writing alert rules, defining SLOs, or debugging a production incident from traces/logs.'},
+ {n:'git-operations-engineer',status:'dormant · mis-triggered',sc:C.orange,
+  before:'Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history.',
+  after:'Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history. ',
+  trig:'Use proactively when a rebase/merge conflicts, recovering lost commits via reflog, untangling stacked PRs, or rewriting messy history before a PR.'},
+ {n:'ai-safety-auditor',status:'dormant · niche',sc:C.blue,
+  before:'AI safety and security auditor for LLM systems. Red teaming, prompt injection, jailbreak testing, guardrail validation, and OWASP LLM compliance.',
+  after:'AI safety & security auditor for LLM systems: red teaming, prompt-injection & jailbreak testing, guardrail validation, OWASP LLM compliance. ',
+  trig:'Use proactively when shipping an LLM feature, reviewing the prompts/tools an agent can reach, or hardening against prompt injection.'},
+ {n:'frontend-performance-engineer',status:'dormant · niche',sc:C.blue,
+  before:'Performance engineer who optimizes Core Web Vitals, analyzes bundles, profiles render performance, and sets up RUM.',
+  after:'Frontend performance engineer: Core Web Vitals, bundle analysis, render profiling, RUM setup. ',
+  trig:'Use proactively when a page is slow (LCP/INP/CLS regressions), a bundle grows, or before shipping a perf-sensitive UI change.'},
+];
+document.getElementById('fixCards').innerHTML=fixAgents.map(a=>`
+ <div class="card" style="margin-bottom:14px">
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+     <span class="mono" style="font-weight:700;font-size:14px">ork:${a.n}</span>
+     <span class="pill" style="border-color:${a.sc};color:${a.sc};background:rgba(0,0,0,.18)">${a.status}</span>
+   </div>
+   <div style="font-size:11px;color:var(--red);font-weight:700;letter-spacing:.04em;margin-bottom:3px">BEFORE — terse, no delegation signal</div>
+   <div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:6px;padding:9px 11px;font-size:12.5px;color:var(--text-secondary)">${a.before}</div>
+   <div style="font-size:11px;color:var(--green);font-weight:700;letter-spacing:.04em;margin:11px 0 3px">AFTER — CC standard (added clause in green)</div>
+   <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:6px;padding:9px 11px;font-size:12.5px">${a.after}<strong style="color:var(--green)">${a.trig}</strong></div>
+ </div>`).join('');
 </script>
 </body>
 </html>
