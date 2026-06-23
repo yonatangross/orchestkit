@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.57.1] - 2026-06-23
+
+### Added
+
+- cc-watch: precision+recall verify gate for cc-triage — downgrades end-user-only changes mis-tagged `breaking` below the issue-filer floor (never drops), recall-boosts sub-floor items mapping to a predating skill, and adds a FILE_FLOOR coupling guard. Plus a prompt rule so extraction stops defaulting end-user polish to `breaking`.
+
+---
+
 ## [8.57.0](https://github.com/yonatangross/orchestkit/compare/v8.56.0...v8.57.0) (2026-06-23)
 
 
