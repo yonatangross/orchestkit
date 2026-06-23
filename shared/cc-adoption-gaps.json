@@ -1,9 +1,197 @@
 [
   {
-    "version": "2.1.185",
-    "features": [],
-    "raw_bullets_count": 1,
-    "featureless": true,
-    "issues_filed_at": "2026-06-22T04:33:44Z"
+    "version": "2.1.186",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "agent_deny_rules_enforcement",
+        "category": "breaking",
+        "description": "Agent(type) deny rules and Agent(x,y) allowed-types restrictions now enforced for named subagent spawns.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "security-patterns",
+          "mcp-patterns"
+        ],
+        "reference_changelog_line": "Fixed `Agent(type)` deny rules and `Agent(x,y)` allowed-types restrictions not being enforced for named subagent spawns"
+      },
+      {
+        "feature_slug": "tools_flag_cold_launch_gate",
+        "category": "breaking",
+        "description": "--tools no longer permits feature-gated tools to slip through before flags load on cold first launch.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed `--tools` allowing feature-gated tools to slip through before flags loaded on a cold first launch"
+      },
+      {
+        "feature_slug": "chrome_tab_group_isolation",
+        "category": "breaking",
+        "description": "Chrome tab-group isolation now applies even when in-product permissions gate is off for concurrent CLI sessions.",
+        "gap_score": 20,
+        "affected_skills": [
+          "browser-tools",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed Chrome tab-group isolation not applying when the in-product permissions gate is off for concurrent CLI sessions"
+      },
+      {
+        "feature_slug": "respond_to_bash_commands_default",
+        "category": "breaking",
+        "description": "! bash commands now auto-trigger Claude responses; set respondToBashCommands:false to preserve old context-only behavior",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "update-config"
+        ],
+        "reference_changelog_line": "`!` bash commands now trigger Claude to respond to the output automatically; set `\"respondToBashCommands\": false` in settings.json to keep the previous context-only behavior"
+      },
+      {
+        "feature_slug": "background_subagent_perm_prompts",
+        "category": "breaking",
+        "description": "Background subagents surface permission prompts in main session instead of auto-denying; Esc denies just that tool.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Changed background subagents to surface permission prompts in the main session instead of auto-denying; the dialog shows which agent is asking, and Esc denies just that tool"
+      },
+      {
+        "feature_slug": "review_pr_engine_unified",
+        "category": "breaking",
+        "description": "/review <pr> now uses the same review engine as /code-review medium.",
+        "gap_score": 20,
+        "affected_skills": [
+          "review-pr",
+          "code-review-playbook"
+        ],
+        "reference_changelog_line": "Changed `/review <pr>` to use the same review engine as `/code-review medium`"
+      },
+      {
+        "feature_slug": "max_retries_cap_15",
+        "category": "breaking",
+        "description": "CLAUDE_CODE_MAX_RETRIES now capped at 15; use CLAUDE_CODE_RETRY_WATCHDOG for unattended sessions.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "checkpoint-resume"
+        ],
+        "reference_changelog_line": "Changed `CLAUDE_CODE_MAX_RETRIES` to cap at 15; for unattended sessions, use `CLAUDE_CODE_RETRY_WATCHDOG` instead"
+      },
+      {
+        "feature_slug": "workflow_schema_validation_abort",
+        "category": "breaking",
+        "description": "Workflow agent({schema}) subagents now abort after 5 schema validation failures instead of looping forever.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "langgraph"
+        ],
+        "reference_changelog_line": "Fixed Workflow `agent({schema})` subagents looping forever on repeated schema validation failures instead of aborting after 5 attempts"
+      },
+      {
+        "feature_slug": "mcp_login_logout",
+        "category": "new_command",
+        "description": "New claude mcp login/logout CLI commands authenticate MCP servers without the interactive /mcp menu; supports --no-brows",
+        "gap_score": 15,
+        "affected_skills": [
+          "mcp-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Added `claude mcp login <name>` and `claude mcp logout <name>` to authenticate MCP servers from the CLI without opening the interactive `/mcp` menu, with `--no-browser` stdin redirect support for completing over SSH"
+      },
+      {
+        "feature_slug": "workflows_status_filter",
+        "category": "new_command",
+        "description": "Press f to filter by status in the /workflows agent detail view.",
+        "gap_score": 15,
+        "affected_skills": [
+          "agent-orchestration"
+        ],
+        "reference_changelog_line": "Added status filtering (press `f`) to the `/workflows` agent detail view"
+      },
+      {
+        "feature_slug": "aws_refresh_credentials_login",
+        "category": "new_command",
+        "description": "/login now offers a Claude Platform on AWS refresh credentials option when awsAuthRefresh is configured.",
+        "gap_score": 15,
+        "affected_skills": [
+          "configure",
+          "devops-deployment"
+        ],
+        "reference_changelog_line": "Added \"Claude Platform on AWS - refresh credentials\" option to `/login` when `awsAuthRefresh` is configured"
+      },
+      {
+        "feature_slug": "teammate_mode_iterm2",
+        "category": "new_field",
+        "description": "New teammateMode:iterm2 setting with warning when auto mode cannot find the it2 CLI.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "update-config"
+        ],
+        "reference_changelog_line": "Added `teammateMode: \"iterm2\"` setting with a warning when auto mode cannot find the `it2` CLI"
+      },
+      {
+        "feature_slug": "plugin_installed_skills_section",
+        "category": "new_field",
+        "description": "/plugin Installed tab now shows a Skills section.",
+        "gap_score": 5,
+        "affected_skills": [
+          "help",
+          "configure"
+        ],
+        "reference_changelog_line": "Added a \"Skills\" section to the `/plugin` Installed tab"
+      },
+      {
+        "feature_slug": "skill_frontmatter_case_flex",
+        "category": "new_attr",
+        "description": "Skill frontmatter keys display-name, default-enabled, fallback, metadata.* now accept kebab/snake/camelCase.",
+        "gap_score": 5,
+        "affected_skills": [
+          "audit-skills",
+          "doctor"
+        ],
+        "reference_changelog_line": "Improved skill frontmatter: `display-name`, `default-enabled`, `fallback`, and `metadata.*` keys now accept kebab-case, snake_case, and camelCase"
+      },
+      {
+        "feature_slug": "malformed_skill_yaml_loads",
+        "category": "new_attr",
+        "description": "Malformed SKILL.md YAML frontmatter now loads the skill body with empty metadata instead of failing silently.",
+        "gap_score": 5,
+        "affected_skills": [
+          "audit-skills",
+          "doctor"
+        ],
+        "reference_changelog_line": "Improved malformed `SKILL.md` YAML frontmatter handling: loads the skill body with empty metadata instead of failing silently"
+      },
+      {
+        "feature_slug": "agent_teams_effort_inherit",
+        "category": "new_attr",
+        "description": "Teammates spawned via tmux/pane backends now inherit the leader's --effort level.",
+        "gap_score": 5,
+        "affected_skills": [
+          "agent-orchestration"
+        ],
+        "reference_changelog_line": "Fixed agent teams: teammates spawned via tmux/pane backends now inherit the leader's `--effort` level"
+      },
+      {
+        "feature_slug": "memory_index_compaction_reminder",
+        "category": "new_attr",
+        "description": "Agent now reminded to compact MEMORY.md index when nearing the size limit.",
+        "gap_score": 5,
+        "affected_skills": [
+          "memory",
+          "memory-fabric",
+          "remember"
+        ],
+        "reference_changelog_line": "Improved memory: the agent is now reminded to compact its `MEMORY.md` index when nearing the size limit"
+      }
+    ],
+    "raw_bullets_count": 33,
+    "issues_filed_at": "2026-06-23T04:25:44Z"
   }
 ]
