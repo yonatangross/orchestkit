@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit — Phase 2 Agent Wiring</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f172a;--card:#1e293b;--bd:#334155;--tx:#f1f5f9;--mut:#94a3b8;--dim:#64748b;
+--grn:#22c55e;--grnb:rgba(34,197,94,.1);--red:#ef4444;--redb:rgba(239,68,68,.1);--yel:#eab308;--blu:#3b82f6;--blub:rgba(59,130,246,.1)}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);line-height:1.6;padding:32px;max-width:1080px;margin:0 auto}
+.mono{font-family:'JetBrains Mono',monospace}
+h1{font-size:22px;font-weight:800;margin-bottom:4px}
+h1 span{color:var(--grn)}
+.sub{color:var(--mut);font-size:14px;margin-bottom:24px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);margin:26px 0 10px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:18px;margin-bottom:14px}
+.stat{display:inline-block;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px 18px;margin:0 10px 10px 0}
+.stat .n{font-size:26px;font-weight:800;font-family:'JetBrains Mono',monospace}
+.stat .l{font-size:12px;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #1e293b;vertical-align:top}
+th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid;white-space:nowrap}
+.p-wire{background:var(--grnb);border-color:var(--grn);color:#86efac}
+.p-drop{background:var(--redb);border-color:var(--red);color:#fca5a5}
+.p-defer{background:var(--blub);border-color:var(--blu);color:#93c5fd}
+code{font-family:'JetBrains Mono',monospace;background:#162032;padding:1px 6px;border-radius:4px;font-size:.88em;color:#cbd5e1}
+.callout{border-left:3px solid var(--grn);background:var(--grnb);padding:12px 14px;border-radius:0 8px 8px 0;font-size:13px;margin:14px 0}
+.callout.y{border-color:var(--yel);background:rgba(234,179,8,.08)}
+pre{background:#162032;border:1px solid var(--bd);border-radius:8px;padding:14px;overflow:auto;font-size:12px;font-family:'JetBrains Mono',monospace;color:#cbd5e1;margin-top:8px}
+</style>
+</head>
+<body>
+<h1>🎛️ Phase 2 — <span>Wiring specialists into firing surfaces</span></h1>
+<div class="sub">Goal: convert dormant specialist agents into ones that actually spawn. Method: a 6-agent adversarial proposal workflow — propose a real <code>subagent_type=</code> spawn per mis-triggered agent, then skeptically verify it's not a forced/cosmetic fit. <strong>Forcing a spawn that never fires is worse than leaving the agent dormant.</strong></div>
+
+<div>
+  <div class="stat"><div class="n" style="color:var(--grn)">1</div><div class="l">wired (real firing surface)</div></div>
+  <div class="stat"><div class="n" style="color:var(--blu)">2</div><div class="l">deferred (need new spawn surface)</div></div>
+  <div class="stat"><div class="n" style="color:var(--red)">3</div><div class="l">dropped (forced / already wired)</div></div>
+  <div class="stat"><div class="n" style="color:var(--yel)">5/6</div><div class="l">NOT force-wired — by design</div></div>
+</div>
+
+<h2>Per-agent disposition</h2>
+<div class="card"><table>
+<thead><tr><th>Agent</th><th>Verdict</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td class="mono">event-driven-architect</td><td><span class="pill p-wire">WIRED ✅</span></td><td>Clean home: conditional Agent 5 in <code>implement/references/agent-phases.md</code> Phase 4 (the REAL spawn block), guarded by event/CQRS/queue feature shape. Self-justifies like the LLM agent.</td></tr>
+<tr><td class="mono">monitoring-engineer</td><td><span class="pill p-defer">DEFER</span></td><td>Natural home is <code>devops-deployment</code> observability — but that skill spawns NOTHING today (guidance-only). Wiring needs a new spawn surface; design decision deferred.</td></tr>
+<tr><td class="mono">git-operations-engineer</td><td><span class="pill p-defer">DEFER</span></td><td><code>create-pr</code>'s agent surface (<code>parallel-validation.md</code>) is for diff <em>validation</em>; its git handling is deterministic bash. Git-ops here would be a forced fit.</td></tr>
+<tr><td class="mono">security-layer-auditor</td><td><span class="pill p-drop">DROP</span></td><td>Already wired — it's in <code>implement/references/agent-teams-security-audit.md</code> (Phase 4/6 mesh team). Not actually dormant in the wiring sense; a second spawn would duplicate.</td></tr>
+<tr><td class="mono">component-curator</td><td><span class="pill p-drop">DROP</span></td><td>Only fit (<code>design-to-code</code>) is MCP-gated + not high-traffic, and a fire-and-forget pre-pass feeding a synchronous gated stage is an async/sync mismatch — wouldn't meaningfully fire.</td></tr>
+<tr><td class="mono">design-system-architect</td><td><span class="pill p-drop">DROP</span></td><td>The <code>design-to-code</code> "no token system" trigger is the greenfield single-component case — spawning a heavyweight 3-tier OKLCH foundation there derails the task. Contrived.</td></tr>
+</tbody>
+</table></div>
+
+<h2>The one real wire</h2>
+<div class="callout">✅ <strong>event-driven-architect</strong> lands in the <em>firing</em> surface (<code>agent-phases.md</code>), not the descriptive SKILL.md table. The verifier caught that a SKILL.md-prose edit "would never fire" — the actual <code>Agent(subagent_type=...)</code> calls live in <code>references/agent-phases.md</code>. This is the whole-session discipline: <strong>does it actually fire?</strong></div>
+<pre>### Agent 5: Event-Driven Architect (conditional)
+Spawn ONLY when the feature is event-sourcing / CQRS / message-queue / outbox-shaped.
+
+Agent(
+  subagent_type="ork:event-driven-architect",
+  model=MODEL_OVERRIDE,
+  prompt="""... First decide: is this feature event-driven-shaped? (justify yes/no) ...""",
+  run_in_background=true
+)</pre>
+
+<h2>The honest finding</h2>
+<div class="callout y">⚠️ Phase 2's real surface is <strong>narrower than "wire all 6."</strong> Most "mis-triggered" agents are either already-wired (security-layer), async-incompatible (component-curator), or would need a brand-new spawn surface introduced into a guidance skill (monitoring, git-ops, design-system). The adversarial pass prevented 5 cosmetic wires. The remaining activation lever is Phase 4 (advisor enforce + prompt nudge) and accepting that some agents are legitimately low-use.</div>
+
+<div class="sub" style="margin-top:24px">OrchestKit · branch <code>feat/activation-phase2-wiring</code> · scoped by a 12-agent propose+verify workflow · playground</div>
+</body>
+</html>
