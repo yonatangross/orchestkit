@@ -926,6 +926,117 @@ else
   log_fail "#2267 token-free logs" "expected both 'skipping LLM extraction' and 'featureless snapshot' (cat /tmp/cc-triage-out.txt)"
 fi
 
+# ============================================================================
+# Test 18: verify gate — precision downgrade + recall boost, no false-drop.
+# Token-free pass over pre-populated features (the cron's real no-token path).
+# Fixes the cc-adoption over-fire diagnosed for CC 2.1.186. The mix exercises
+# every branch + the #2619 ('claude mcp login --no-browser') false-drop guard.
+# ============================================================================
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  {
+    "version": "2.1.995",
+    "parse_failed": false,
+    "features": [
+      {"feature_slug": "chrome_tab_iso", "category": "breaking", "description": "Chrome tab-group isolation now applies for concurrent CLI sessions", "gap_score": 20, "affected_skills": ["accessibility"], "reference_changelog_line": "Fixed Chrome tab-group isolation not applying"},
+      {"feature_slug": "mcp_login", "category": "new_command", "description": "claude mcp login authenticates MCP servers, with --no-browser stdin", "gap_score": 15, "affected_skills": ["configure"], "reference_changelog_line": "Added claude mcp login with --no-browser"},
+      {"feature_slug": "tools_flag_internal", "category": "breaking", "description": "--tools no longer permits feature-gated tools to slip through on a cold launch", "gap_score": 20, "affected_skills": ["configure"], "reference_changelog_line": "Fixed --tools cold launch gate"},
+      {"feature_slug": "recall_attr", "category": "new_attr", "description": "new hook attribute that ork skills could adopt", "gap_score": 5, "affected_skills": ["accessibility"], "reference_changelog_line": "new hook attribute"},
+      {"feature_slug": "orphan_attr", "category": "new_attr", "description": "low-value attribute mapping to no real skill", "gap_score": 5, "affected_skills": [], "reference_changelog_line": "orphan attribute"}
+    ]
+  }
+]
+EOF
+
+EXIT=0
+# silent: known-noise (unset of an unset var is a no-op)
+unset CLAUDE_CODE_OAUTH_TOKEN || true
+node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+
+if [ "$EXIT" = "0" ]; then
+  log_pass "gate: token-free run exits 0"
+else
+  log_fail "gate exit" "expected 0, got $EXIT (cat /tmp/cc-triage-out.txt)"
+fi
+
+# No feature dropped — all 5 survive (downgrade/boost never remove).
+GATE_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
+if [ "$GATE_COUNT" = "5" ]; then
+  log_pass "gate: no false-drop — all 5 features retained"
+else
+  log_fail "gate false-drop" "expected 5 features, got $GATE_COUNT"
+fi
+
+# PRECISION: end-user UI breaking item downgraded below floor, marked, kept.
+CHROME_SCORE=$(jq -r '.[0].features[] | select(.feature_slug=="chrome_tab_iso") | .gap_score' shared/cc-adoption-gaps.json)
+CHROME_REL=$(jq -r '.[0].features[] | select(.feature_slug=="chrome_tab_iso") | .relevance' shared/cc-adoption-gaps.json)
+CHROME_FROM=$(jq -r '.[0].features[] | select(.feature_slug=="chrome_tab_iso") | .downgraded_from' shared/cc-adoption-gaps.json)
+if [ "$CHROME_SCORE" = "5" ] && [ "$CHROME_REL" = "end-user" ] && [ "$CHROME_FROM" = "20" ]; then
+  log_pass "gate PRECISION: end-user 'chrome' breaking downgraded ${CHROME_FROM}→${CHROME_SCORE} (below floor), marked end-user"
+else
+  log_fail "gate precision" "chrome: score=$CHROME_SCORE rel=$CHROME_REL from=$CHROME_FROM (expected 5, end-user, 20)"
+fi
+
+# FALSE-DROP GUARD: #2619-class ('claude mcp login --no-browser') NOT downgraded.
+MCP_SCORE=$(jq -r '.[0].features[] | select(.feature_slug=="mcp_login") | .gap_score' shared/cc-adoption-gaps.json)
+if [ "$MCP_SCORE" = "15" ]; then
+  log_pass "gate GUARD: 'claude mcp login --no-browser' protected (stays 15, not false-dropped)"
+else
+  log_fail "gate false-drop guard" "mcp_login score=$MCP_SCORE (expected 15 — the #2619 canonical victim)"
+fi
+
+# CONSERVATIVE: ambiguous CC-internal '--tools' breaking stays filed (no downgrade).
+TOOLS_SCORE=$(jq -r '.[0].features[] | select(.feature_slug=="tools_flag_internal") | .gap_score' shared/cc-adoption-gaps.json)
+if [ "$TOOLS_SCORE" = "20" ]; then
+  log_pass "gate CONSERVATIVE: ambiguous '--tools' internal stays filed (20, over-file beats false-drop)"
+else
+  log_fail "gate conservative" "tools_flag score=$TOOLS_SCORE (expected 20 unchanged)"
+fi
+
+# RECALL: sub-floor plugin item mapping to a predating real skill boosted to floor.
+RECALL_SCORE=$(jq -r '.[0].features[] | select(.feature_slug=="recall_attr") | .gap_score' shared/cc-adoption-gaps.json)
+RECALL_FROM=$(jq -r '.[0].features[] | select(.feature_slug=="recall_attr") | .recall_boosted_from' shared/cc-adoption-gaps.json)
+if [ "$RECALL_SCORE" = "10" ] && [ "$RECALL_FROM" = "5" ]; then
+  log_pass "gate RECALL: sub-floor item mapping to a predating skill boosted ${RECALL_FROM}→${RECALL_SCORE} (now files)"
+else
+  log_fail "gate recall" "recall_attr score=$RECALL_SCORE from=$RECALL_FROM (expected 10, 5)"
+fi
+
+# RECALL precision: a sub-floor item with NO predating skill is NOT boosted.
+ORPHAN_SCORE=$(jq -r '.[0].features[] | select(.feature_slug=="orphan_attr") | .gap_score' shared/cc-adoption-gaps.json)
+if [ "$ORPHAN_SCORE" = "5" ]; then
+  log_pass "gate RECALL precision: sub-floor item with no predating skill left untouched (5)"
+else
+  log_fail "gate recall precision" "orphan_attr score=$ORPHAN_SCORE (expected 5 unchanged)"
+fi
+
+# IDEMPOTENCY: a second run must not change any score (relevance already set).
+RERUN_EXIT=0
+node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || RERUN_EXIT=$?
+CHROME_SCORE2=$(jq -r '.[0].features[] | select(.feature_slug=="chrome_tab_iso") | .gap_score' shared/cc-adoption-gaps.json)
+RECALL_SCORE2=$(jq -r '.[0].features[] | select(.feature_slug=="recall_attr") | .gap_score' shared/cc-adoption-gaps.json)
+if [ "$RERUN_EXIT" = "0" ] && [ "$CHROME_SCORE2" = "$CHROME_SCORE" ] && [ "$RECALL_SCORE2" = "$RECALL_SCORE" ]; then
+  log_pass "gate IDEMPOTENT: second run leaves downgraded/boosted scores unchanged"
+else
+  log_fail "gate idempotency" "rerun exit=$RERUN_EXIT, scores chrome ${CHROME_SCORE}→${CHROME_SCORE2}, recall ${RECALL_SCORE}→${RECALL_SCORE2}"
+fi
+
+# ============================================================================
+# Test 19: FILE_FLOOR coupling guard. The verify gate's recall-boost target
+# (cc-triage.mjs FILE_FLOOR) MUST equal the issue filer's floor
+# (cc-file-adoption-issues.sh MIN_GAP_SCORE default) — otherwise boosted items
+# silently stop crossing the filer floor (the gate's own silent-failure class).
+# ============================================================================
+# -a (treat-as-text): cc-triage.mjs carries emoji/box-drawing UTF-8, which grep
+# flags as "binary" under a non-UTF-8 locale → -oE would emit nothing without -a.
+GATE_FLOOR=$(grep -a -oE 'FILE_FLOOR = [0-9]+' scripts/cc-triage.mjs | grep -oE '[0-9]+' | head -1 || true)  # silent: known-noise (emptiness asserted below)
+FILER_FLOOR=$(grep -a -oE 'MIN_GAP_SCORE:-[0-9]+' scripts/cc-file-adoption-issues.sh | grep -oE '[0-9]+' | head -1 || true)  # silent: known-noise (emptiness asserted below)
+if [ -n "$GATE_FLOOR" ] && [ -n "$FILER_FLOOR" ] && [ "$GATE_FLOOR" = "$FILER_FLOOR" ]; then
+  log_pass "coupling: gate FILE_FLOOR ($GATE_FLOOR) == filer MIN_GAP_SCORE default ($FILER_FLOOR)"
+else
+  log_fail "FILE_FLOOR coupling drift" "gate='$GATE_FLOOR' filer='$FILER_FLOOR' (must match or recall-boosts stop filing)"
+fi
+
 echo ""
 echo "==================================="
 echo "  Results: $PASS passed, $FAIL failed"

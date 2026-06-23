@@ -60,6 +60,34 @@ const SCORE_BY_CATEGORY = {
   new_command: 15, new_perm: 12, breaking: 20, deprecation: 8,
 };
 
+// ── Verify gate (precision + recall) ───────────────────────────────────────
+// Fixes the over-fire diagnosed in docs/audits/cc-adoption-2.1.186-triage-2026-06-23.md:
+// the LLM tags end-user-only changes as `breaking` (auto gap_score 20), so they
+// cross the filer floor and file noise issues; meanwhile genuinely plugin-relevant
+// sub-floor items never file (the recall half). This token-free gate runs over the
+// already-scored features and adjusts gap_score WITHOUT ever dropping an entry.
+//
+// FILE_FLOOR mirrors cc-file-adoption-issues.sh's MIN_GAP_SCORE default. If an
+// operator overrides MIN_GAP_SCORE the boost target can mismatch — documented,
+// acceptable (the gate only ever moves items relative to the default floor).
+const FILE_FLOOR = 10;
+const END_USER_CAP = 5; // below floor → not filed, still in features[] (greppable, re-promotable)
+
+// End-user-only UI/UX surfaces. A `breaking` change here CANNOT affect plugin
+// authoring. TIGHT on purpose: ambiguous CC-internal changes (e.g. `--tools`,
+// retry caps, `/review` engine) are deliberately ABSENT, so they stay filed —
+// over-file beats false-drop (adversarial pre-mortem, wf_72e27314-4fc). Note
+// "browser" is intentionally excluded so `claude mcp login --no-browser` (a real
+// adoption) is never matched.
+const END_USER_SURFACE_RE =
+  /\b(chrome|tab[- ]?group|scroll(?:bar|ing)?|dark[- ]?theme|theme flash|cursor|mouse|text selection|highlight|animation|spinner|tooltip|strikethrough|window title|markdown rendering|rendering|stream[- ]?stall|streaming request|dialog flash)\b/i;
+
+// Plugin-authoring allowlist — PROTECTS a feature from downgrade even if it brushes
+// an end-user word. Pairs with the category guard (new_command/new_perm/new_event
+// are inherently plugin/CLI surfaces).
+const PLUGIN_SURFACE_RE =
+  /\b(hook|SKILL\.md|frontmatter|sub-?agent|settings\.json|Agent\(|MCP|mcp |slash command|plugin|\.claude|skill |permission rule|deny rule|allowed-types)\b/i;
+
 // Mirror of cc-release-watch.mjs:compareSemver. Inlined here to avoid coupling
 // the two scripts via a shared module — both files are tiny and the function
 // is trivial. Returns negative if a < b, zero if equal, positive if a > b.
@@ -123,6 +151,7 @@ Extract CCFeature objects from the Claude Code changelog version ${version}.
 
 1. Skip any bullet that begins with "Fixed" UNLESS it fixes a security-relevant behaviour (e.g. permission bypass, credential exposure, sandbox escape). Those security-fix bullets are category "breaking".
 2. Skip Windows-only, IDE-only (JetBrains/VS Code GUI), and cosmetic/animation items.
+2b. Use category "breaking" ONLY when the change affects plugin-authoring surfaces (hooks, skills, agents, settings.json, permissions, MCP, subagent spawning, or documented CLI/slash-command contracts). End-user-only behaviour changes — UI/rendering, streaming, browser/Chrome, themes, retry caps, scroll, /login or /review presentation — are NOT "breaking"; skip them per rule 1/2 unless they introduce a genuinely new adoptable surface (then use the precise category). Do not default end-user polish to "breaking".
 3. For each qualifying bullet, output one object with these exact fields:
 
 {
@@ -495,6 +524,7 @@ function computeSkillGaps(gaps) {
     if (typeof entry.version !== 'string' || !/^\d+\.\d+\.\d+$/.test(entry.version)) continue;
     for (const feat of entry.features) {
       if (!GAP_RELEVANT_CATEGORIES.has(feat.category)) continue;
+      if (feat.relevance === 'end-user') continue; // verify gate downgraded it — not an adoption candidate
       const affected = Array.isArray(feat.affected_skills) ? feat.affected_skills : [];
       for (const rawSkill of affected) {
         const skill = String(rawSkill).replace(/^ork:/, '').trim();
@@ -526,6 +556,67 @@ function computeSkillGaps(gaps) {
 function writeSkillGaps(candidates) {
   writeFileSync(SKILL_GAPS_PATH, JSON.stringify(candidates, null, 2) + '\n');
   console.log(`cc-triage: wrote ${candidates.length} skill-feature gap candidate(s) to ${SKILL_GAPS_PATH}`);
+}
+
+// True if any of the feature's affected_skills resolves to a real skill whose
+// compatibility floor STRICTLY PREDATES the introducing version — the same proven
+// signal computeSkillGaps() uses (no new heuristic). Used by the recall boost.
+function mapsToPredatingSkill(feature, version) {
+  const affected = Array.isArray(feature.affected_skills) ? feature.affected_skills : [];
+  for (const raw of affected) {
+    // parseSkillFloor already strips `ork:`, trims, caches, and returns null for
+    // empty/unresolvable names — no need to re-normalize here.
+    const floor = parseSkillFloor(raw);
+    if (floor && compareSemver(floor, version) < 0) return true; // skill predates the feature
+  }
+  return false;
+}
+
+// Verify gate: token-free precision + recall pass over already-scored features.
+// PRECISION — a clear end-user-only item that would otherwise file (>= FILE_FLOOR)
+//   is capped to END_USER_CAP and marked `relevance:"end-user"` + `downgraded_from`.
+// RECALL — a plugin-relevant sub-floor item (< FILE_FLOOR) that maps to a predating
+//   real skill is boosted to FILE_FLOOR and marked `recall_boosted_from`.
+// NEVER drops an entry; every feature is labelled `relevance` so re-runs are
+// idempotent (already-labelled features are skipped). Mutates `gaps` in place;
+// returns the number of features whose relevance was newly set.
+function applyRelevanceGate(gaps) {
+  let changed = 0;
+  for (const entry of gaps) {
+    if (!Array.isArray(entry.features) || entry.features.length === 0) continue;
+    if (typeof entry.version !== 'string' || !/^\d+\.\d+\.\d+$/.test(entry.version)) continue;
+    for (const f of entry.features) {
+      if (f.relevance) continue; // idempotent: already gated on a prior run
+      const text = `${f.description || ''} ${f.reference_changelog_line || ''}`;
+      const pluginSurface =
+        PLUGIN_SURFACE_RE.test(text) ||
+        f.category === 'new_command' ||
+        f.category === 'new_perm' ||
+        f.category === 'new_event';
+      const endUserOnly = END_USER_SURFACE_RE.test(text) && !pluginSurface;
+
+      if (endUserOnly && f.gap_score >= FILE_FLOOR) {
+        f.relevance = 'end-user';
+        f.downgraded_from = f.gap_score;
+        f.gap_score = END_USER_CAP;
+        console.log(`cc-triage: gate DOWNGRADE ${entry.version}/${f.feature_slug} (end-user) ${f.downgraded_from}→${END_USER_CAP}`);
+      } else if (
+        GAP_RELEVANT_CATEGORIES.has(f.category) &&
+        f.gap_score < FILE_FLOOR &&
+        mapsToPredatingSkill(f, entry.version)
+      ) {
+        f.relevance = 'plugin';
+        f.recall_boosted_from = f.gap_score;
+        f.gap_score = FILE_FLOOR;
+        console.log(`cc-triage: gate RECALL-BOOST ${entry.version}/${f.feature_slug} (predating skill) ${f.recall_boosted_from}→${FILE_FLOOR}`);
+      } else {
+        f.relevance = endUserOnly ? 'end-user' : 'plugin';
+      }
+      changed++;
+    }
+  }
+  if (changed > 0) console.log(`cc-triage: verify gate labelled ${changed} feature(s).`);
+  return changed;
 }
 
 // #2267 follow-up — deterministic, TOKEN-FREE reconciliation. Resolves the two
@@ -683,6 +774,11 @@ function main() {
   } else {
     console.log('cc-triage: CLAUDE_CODE_OAUTH_TOKEN not set — skipping LLM extraction.');
   }
+
+  // Verify gate (precision + recall) — token-free, runs ALWAYS over the (possibly
+  // freshly-extracted) features, BEFORE the single write and the skill-gap pass so
+  // downgraded/boosted scores propagate to cc-adoption-gaps.json AND cc-skill-gaps.json.
+  updated += applyRelevanceGate(gaps);
 
   // Single GAPS_PATH write for both passes (#2267 follow-up: the write moved out
   // of runExtraction() so the deterministic pass persists even with no token).
