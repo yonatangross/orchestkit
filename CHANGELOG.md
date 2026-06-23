@@ -5,6 +5,37 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.57.0](https://github.com/yonatangross/orchestkit/compare/v8.56.0...v8.57.0) (2026-06-23)
+
+
+### Features
+
+* **doctor:** add auto-memory MEMORY.md index budget check ([#2610](https://github.com/yonatangross/orchestkit/issues/2610)) ([bcb5820](https://github.com/yonatangross/orchestkit/commit/bcb582027050d87b3e244806d39ac519c4762fb8))
+
+
+### Bug Fixes
+
+* **counts:** stamp pyproject description so counts can't drift ([#2604](https://github.com/yonatangross/orchestkit/issues/2604)) ([28cbbd4](https://github.com/yonatangross/orchestkit/commit/28cbbd4889643f04e206a4d45e5d0fa182403f8f))
+* **labs:** refresh stale Vercel Labs docs + extend watcher TARGETS ([#2605](https://github.com/yonatangross/orchestkit/issues/2605)) ([d5c47a3](https://github.com/yonatangross/orchestkit/commit/d5c47a3ebdc542acec7c680376a5b96ed886bf43))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.186) ([#2622](https://github.com/yonatangross/orchestkit/issues/2622)) ([79ca903](https://github.com/yonatangross/orchestkit/commit/79ca903c57f86d2e6e9de6e1f8324940c2a76d72))
+* **counts:** retire update-counts.sh + enforce stamped counts in CI ([#2606](https://github.com/yonatangross/orchestkit/issues/2606)) ([3e85b90](https://github.com/yonatangross/orchestkit/commit/3e85b909d64d6ece8ed8730b20afc88e1c208684))
+* **labs:** bump upstream-version-tested pins for drifted skills ([#2594](https://github.com/yonatangross/orchestkit/issues/2594)) ([24a6208](https://github.com/yonatangross/orchestkit/commit/24a62082e74ec3883df446d505cc6994fe513f9a))
+* **rules:** remove dead recent-decisions.md from auto-loaded context ([#2609](https://github.com/yonatangross/orchestkit/issues/2609)) ([4e3a4ca](https://github.com/yonatangross/orchestkit/commit/4e3a4ca1d07cd5a463518bc308311195aca4a300))
+
+
+### Documentation
+
+* **ci-debug:** add pattern [#11](https://github.com/yonatangross/orchestkit/issues/11) (vercel status orphaned on path-skip) ([#2595](https://github.com/yonatangross/orchestkit/issues/2595)) ([544a022](https://github.com/yonatangross/orchestkit/commit/544a022f40aefa91a0fb7c7bdb5565d68a55883e))
+
+
+### Code Refactoring
+
+* **agents:** defer Labs versions to the skill, add guard ([#2608](https://github.com/yonatangross/orchestkit/issues/2608)) ([4617e5f](https://github.com/yonatangross/orchestkit/commit/4617e5fe97a965db49bf41faafe6f378750d56f8)), closes [#2600](https://github.com/yonatangross/orchestkit/issues/2600)
+
 ## [8.56.0](https://github.com/yonatangross/orchestkit/compare/v8.55.2...v8.56.0) (2026-06-22)
 
 
