@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit — Sub-Agent &amp; Skill Activation Audit</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f172a;--bg-card:#1e293b;--bg-surface:#162032;--border:#334155;--border-subtle:#1e293b;
+  --text:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#64748b;
+  --red:#ef4444;--red-bg:rgba(239,68,68,.10);--red-border:rgba(239,68,68,.30);
+  --orange:#f97316;--orange-bg:rgba(249,115,22,.10);--orange-border:rgba(249,115,22,.30);
+  --yellow:#eab308;--yellow-bg:rgba(234,179,8,.10);--yellow-border:rgba(234,179,8,.30);
+  --blue:#3b82f6;--blue-bg:rgba(59,130,246,.10);--blue-border:rgba(59,130,246,.30);
+  --green:#22c55e;--green-bg:rgba(34,197,94,.10);--green-border:rgba(34,197,94,.30);
+  --purple:#a855f7;--purple-bg:rgba(168,85,247,.10);--purple-border:rgba(168,85,247,.30);
+  --gray:#64748b;--gray-bg:rgba(100,116,139,.10);--gray-border:rgba(100,116,139,.30);
+}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+.mono{font-family:'JetBrains Mono',monospace}
+.header{background:linear-gradient(135deg,#0f172a 0%,#1a1e3a 50%,#0f172a 100%);border-bottom:1px solid var(--border);padding:22px 32px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.header-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.header h1{font-size:21px;font-weight:800;letter-spacing:-.02em}
+.header h1 span{color:var(--orange)}
+.header-meta{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap}
+.badge{padding:4px 11px;border-radius:20px;font-weight:600;font-size:11px;font-family:'JetBrains Mono',monospace;border:1px solid}
+.b-blue{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue)}
+.b-red{background:var(--red-bg);border-color:var(--red-border);color:var(--red)}
+.b-green{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+.tabs{max-width:1280px;margin:0 auto;padding:0 32px;display:flex;gap:4px;border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{background:none;border:none;color:var(--text-secondary);padding:14px 16px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:.15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--orange)}
+.wrap{max-width:1280px;margin:0 auto;padding:28px 32px 80px}
+.panel{display:none}.panel.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+h2{font-size:18px;font-weight:700;margin:6px 0 4px;letter-spacing:-.01em}
+h3{font-size:14px;font-weight:700;margin:22px 0 10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.04em}
+p.lede{color:var(--text-secondary);font-size:14px;margin-bottom:8px;max-width:80ch}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px}
+.stat{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.stat .n{font-size:30px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-.02em}
+.stat .l{font-size:12px;color:var(--text-secondary);margin-top:2px}
+.stat .s{font-size:11px;color:var(--text-muted);margin-top:6px}
+.bar{height:26px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:12px;font-weight:600;color:#fff;white-space:nowrap;min-width:34px}
+.barrow{display:grid;grid-template-columns:230px 1fr 56px;gap:12px;align-items:center;margin:7px 0;font-size:13px}
+.barrow .lbl{color:var(--text-secondary);text-align:right;font-size:12px}
+.barrow .val{font-family:'JetBrains Mono',monospace;color:var(--text-muted);font-size:12px}
+.track{background:var(--bg-surface);border-radius:6px;overflow:hidden}
+.chip{display:inline-block;font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:6px;margin:3px 4px 3px 0;border:1px solid}
+.c-dead{background:var(--red-bg);border-color:var(--red-border);color:#fca5a5}
+.c-fix{background:var(--orange-bg);border-color:var(--orange-border);color:#fdba74}
+.c-keep{background:var(--green-bg);border-color:var(--green-border);color:#86efac}
+.c-mut{background:var(--gray-bg);border-color:var(--gray-border);color:var(--text-secondary)}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border-subtle);vertical-align:top}
+th{color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+td .mono{font-size:12px}
+.pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid;text-transform:uppercase;letter-spacing:.03em}
+.tl{display:grid;grid-template-columns:170px 1fr;gap:6px 12px;align-items:center;margin:6px 0;font-size:12px}
+.tl .seg{height:22px;border-radius:5px;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:600;color:#fff}
+.note{font-size:12px;color:var(--text-muted);margin-top:6px}
+.callout{border-left:3px solid var(--orange);background:var(--orange-bg);padding:12px 14px;border-radius:0 8px 8px 0;font-size:13px;margin:12px 0}
+.callout.red{border-color:var(--red);background:var(--red-bg)}
+.callout.green{border-color:var(--green);background:var(--green-bg)}
+.opt{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px}
+.opt-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.opt-title{font-weight:700;font-size:14px}
+.kv{display:flex;gap:14px;font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;flex-wrap:wrap}
+.foot{max-width:1280px;margin:0 auto;padding:0 32px 40px;color:var(--text-muted);font-size:12px}
+code{font-family:'JetBrains Mono',monospace;background:var(--bg-surface);padding:1px 6px;border-radius:4px;font-size:.9em;color:#cbd5e1}
+</style>
+</head>
+<body>
+<div class="header"><div class="header-inner">
+  <h1>🎛️ OrchestKit — Sub-Agent &amp; Skill <span>Activation Audit</span></h1>
+  <div class="header-meta">
+    <span class="badge b-blue mono">ork 8.57.0</span>
+    <span class="badge b-red mono">verdict: under-activated</span>
+    <span>real telemetry · agents Jun23 (30d) · skills →Mar6 (stale)</span>
+  </div>
+</div></div>
+
+<div class="tabs">
+  <button class="tab active" data-t="overview">Overview</button>
+  <button class="tab" data-t="work">Where work goes</button>
+  <button class="tab" data-t="telemetry">Telemetry gaps</button>
+  <button class="tab" data-t="dormant">Dormant catalog</button>
+  <button class="tab" data-t="root">Root causes</button>
+  <button class="tab" data-t="options">Options</button>
+</div>
+
+<div class="wrap">
+
+<!-- OVERVIEW -->
+<div class="panel active" id="overview">
+  <h2>Your instinct was right — the specialized catalog is under-activated</h2>
+  <p class="lede">Audited on real data: 937 agent spawns (last 30 days) + skill counts through Mar 6 + a 3-agent code audit of routing, telemetry, and lifecycle. The catalog is fully <em>reachable</em> (0 structural islands) but rarely <em>selected</em>.</p>
+  <div class="grid g4" style="margin-top:16px">
+    <div class="stat"><div class="n" style="color:var(--red)">14%</div><div class="l">of agent spawns hit your 37-agent catalog</div><div class="s">vs 74% generic CC agents</div></div>
+    <div class="stat"><div class="n" style="color:var(--orange)">17/37</div><div class="l">agents never fired in 30 days</div><div class="s">20 fired · top one only 26×</div></div>
+    <div class="stat"><div class="n" style="color:var(--red)">2 of 4</div><div class="l">activation telemetry streams are dead</div><div class="s">+ the "canonical" skill stream is empty here</div></div>
+    <div class="stat"><div class="n" style="color:var(--green)">0</div><div class="l">structural islands</div><div class="s">all 31 user-invocable skills reachable</div></div>
+  </div>
+  <div class="callout red"><strong>The one-line cause:</strong> agents fire ~1:1 with how often a high-traffic skill names them via <code>subagent_type=</code>. Two independent audit agents found this separately. The "routing index" that should fix it is non-functional, and the telemetry that should reveal it is half-dead.</div>
+  <h3>The three compounding problems (not one)</h3>
+  <div class="grid g3">
+    <div class="card"><div style="font-weight:700;color:var(--red)">🧲 1 · Selection</div><p class="note" style="color:var(--text-secondary)">Skills hardcode generic agents (15× <code>Explore</code>, 4× <code>general-purpose</code>); specialists are named ≤1× each. The routing index meant to fix this is garbage keywords + advisory-only.</p></div>
+    <div class="card"><div style="font-weight:700;color:var(--orange)">🔭 2 · Visibility</div><p class="note" style="color:var(--text-secondary)">4 telemetry streams, 2 scopes, 4 events, 2 formats. 2 writers orphaned in refactors; the "canonical" skill stream writes nothing here. You couldn't see activation — so you couldn't fix it.</p></div>
+    <div class="card"><div style="font-weight:700;color:var(--yellow)">🗑️ 3 · Lifecycle</div><p class="note" style="color:var(--text-secondary)">0 true orphans (a cleanup pass ran), but 6 agents are mis-triggered (table-rows / deep-team only, no real spawn path) and 11 are legit-but-niche. No <code>audit:lifecycle</code> tool exists.</p></div>
+  </div>
+  <div class="callout green"><strong>Good news:</strong> this is not broken wiring (0 islands) and not bad descriptions (refuted by the audit — dormant agents have fine descriptions). It's <em>discoverability + skill-wiring</em>, which is directly fixable.</div>
+</div>
+
+<!-- WHERE WORK GOES -->
+<div class="panel" id="work">
+  <h2>Where agent work actually goes</h2>
+  <p class="lede">937 spawns, <code>.claude/logs/subagent-spawns.jsonl</code>, May 23 → Jun 23 (fresh).</p>
+  <div id="workBars"></div>
+  <div class="callout">Generic CC agents (Explore / general-purpose / workflow-subagent) do <strong>74%</strong> of agent work. Your purpose-built 37-agent catalog: <strong>14%</strong>. Even other plugins (candlekeep / cc-guide) out-spawn your catalog.</div>
+
+  <h3>ork-catalog agents that fired (20 of 37)</h3>
+  <div id="orkBars"></div>
+
+  <h3>Skill invocations (through Mar 6 — telemetry stale since)</h3>
+  <p class="note">Source: <code>.claude/feedback/skill-usage.json</code>. Top-5 ≈ 67% of all use; long tail dormant. (Live skill stream is empty — see Telemetry tab.)</p>
+  <div id="skillBars"></div>
+</div>
+
+<!-- TELEMETRY -->
+<div class="panel" id="telemetry">
+  <h2>Why you can't see activation: 4 fragmented streams, half dead</h2>
+  <p class="lede">No single source of truth. Coverage has real gaps (agents blind Apr 8 → May 23; skills near-blind since Mar).</p>
+  <h3>Coverage timeline (Jan → Jun 2026)</h3>
+  <div id="timeline"></div>
+  <h3>Writer map</h3>
+  <table>
+    <thead><tr><th>File</th><th>Writer hook</th><th>Event</th><th>Status</th></tr></thead>
+    <tbody id="writerRows"></tbody>
+  </table>
+  <div class="callout red"><strong>Worse than it looks:</strong> the "canonical" skill stream <code>.claude/logs/skill-channels.jsonl</code> is <strong>missing/empty in this project</strong> — so skill activation is effectively unmeasured right now. <code>agent-usage.jsonl</code>'s writer was orphaned out of <code>hooks.json</code> in a consolidation refactor (dead code still in <code>src/</code>); <code>skill-usage.jsonl</code>'s writer was deleted in #959 and only ever caught user-typed slash commands.</div>
+  <div class="callout green"><strong>Fix shape:</strong> one <code>.claude/logs/activations.jsonl</code>, one <code>recordActivation()</code> lib, a discriminated-union schema (<code>kind: agent|skill</code>, <code>channel: main|subagent|auto</code>), schema-locked so drift-CI catches a dead writer — fan-in from the hooks that already exist + one new scan for auto-activated skills.</div>
+</div>
+
+<!-- DORMANT -->
+<div class="panel" id="dormant">
+  <h2>The dormant catalog — classified</h2>
+  <p class="lede">17 agents never fired in 30 days. Per-agent code audit: <strong>0 to prune</strong>, <strong>6 mis-triggered</strong> (fixable), <strong>11 niche</strong> (keep). Dormancy = "wired but rarely the right tool," not dead.</p>
+  <div class="grid g3" style="margin:8px 0 4px">
+    <div class="stat"><div class="n" style="color:var(--green)">0</div><div class="l">DEAD / prune</div><div class="s">a prior orphan pass already ran</div></div>
+    <div class="stat"><div class="n" style="color:var(--orange)">6</div><div class="l">MIS-TRIGGERED — fix</div><div class="s">no real spawn path from a busy skill</div></div>
+    <div class="stat"><div class="n" style="color:var(--blue)">11</div><div class="l">NICHE — keep</div><div class="s">design / multimodal / perf / IaC / security-LLM</div></div>
+  </div>
+  <h3>🔧 Fix triggers (6) — wire a real <code>subagent_type=</code> spawn from a high-traffic skill</h3>
+  <div id="fixChips"></div>
+  <h3>✅ Keep / niche (11) — rare by nature, leave</h3>
+  <div id="keepChips"></div>
+  <div class="callout">Watch two near-duplicates before they rot: <code>security-layer-auditor</code> vs <code>security-auditor</code> (active), and <code>component-curator</code> vs the <code>component-search</code> skill — consolidation may beat re-triggering.</div>
+  <div class="note">Tooling gap: the expected <code>npm run audit:lifecycle</code> does <strong>not exist</strong>; <code>audit-skills</code> covers skills only. Natural home to extend: <code>scripts/list-invocable-agents.mjs</code>.</div>
+</div>
+
+<!-- ROOT CAUSES -->
+<div class="panel" id="root">
+  <h2>Root causes (code audit, with evidence)</h2>
+  <div id="rootCards"></div>
+</div>
+
+<!-- OPTIONS -->
+<div class="panel" id="options">
+  <h2>Options — ranked by impact ÷ effort</h2>
+  <p class="lede">Recommended sequence: <strong>#1 first</strong> (you must be able to measure), then <strong>#2</strong> (the biggest activation lever), then #3–#5.</p>
+  <div id="optList"></div>
+  <div class="callout"><strong>Honest caveat:</strong> "never fired" = absent from the available telemetry windows, which have real gaps — a strong signal, not absolute proof of zero. The 74/14 split and 17/37 dormant hold across a full fresh month of agent data.</div>
+</div>
+
+</div>
+
+<div class="foot">Generated from real local telemetry + a 3-agent code audit · OrchestKit 8.57.0 · branch <code>feat/activation-audit</code> · interactive playground</div>
+
+<script>
+const C={red:'#ef4444',orange:'#f97316',yellow:'#eab308',blue:'#3b82f6',green:'#22c55e',purple:'#a855f7',gray:'#64748b'};
+// tabs
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');document.getElementById(t.dataset.t).classList.add('active');
+});
+function bars(el,rows,max,color){
+  el.innerHTML=rows.map(r=>{
+    const c=r.color||color;const w=Math.max(2,Math.round(r.v/max*100));
+    return `<div class="barrow"><div class="lbl">${r.l}</div><div class="track"><div class="bar" style="width:${w}%;background:${c}">${r.tag||''}</div></div><div class="val">${r.v}${r.pct?' ('+r.pct+'%)':''}</div></div>`;
+  }).join('');
+}
+// where work goes
+bars(document.getElementById('workBars'),[
+  {l:'generic CC (Explore/gen-purpose/workflow)',v:690,pct:74,color:C.red},
+  {l:'ork specialized catalog (37 agents)',v:130,pct:14,color:C.orange},
+  {l:'other-plugin (candlekeep/cc-guide)',v:107,pct:11,color:C.gray},
+  {l:'unknown / blank',v:10,pct:1,color:C.gray},
+],690);
+bars(document.getElementById('orkBars'),[
+  {l:'web-research-analyst',v:26},{l:'security-auditor',v:15},{l:'backend-system-architect',v:13},
+  {l:'code-quality-reviewer',v:12},{l:'test-generator',v:10},{l:'product-strategist',v:9},
+  {l:'debug-investigator',v:8},{l:'system-design-reviewer',v:7},{l:'workflow-architect',v:6},
+  {l:'frontend-ui-developer',v:5},{l:'+ 10 more (≤3 each)',v:13,color:C.gray},
+],26,C.blue);
+bars(document.getElementById('skillBars'),[
+  {l:'brainstorm',v:133},{l:'assess',v:94},{l:'verify',v:34},{l:'implement',v:21},
+  {l:'playground',v:12},{l:'frontend-design',v:10},{l:'explore',v:8},{l:'commit',v:8},
+  {l:'review-pr',v:8},{l:'+ long tail (≈98 skills unseen)',v:6,color:C.gray},
+],133,C.purple);
+
+// timeline (months Jan..Jun -> columns); seg start/end as month fractions 0..6
+function tl(el,streams){
+  el.innerHTML=`<div class="tl" style="grid-template-columns:170px 1fr"><div class="note">stream</div><div class="note mono">Jan&nbsp;&nbsp;&nbsp;&nbsp;Feb&nbsp;&nbsp;&nbsp;&nbsp;Mar&nbsp;&nbsp;&nbsp;&nbsp;Apr&nbsp;&nbsp;&nbsp;&nbsp;May&nbsp;&nbsp;&nbsp;&nbsp;Jun</div></div>`
+  + streams.map(s=>{
+    const left=s.a/6*100, w=(s.b-s.a)/6*100;
+    return `<div class="tl"><div class="lbl" style="color:var(--text-secondary)">${s.l}</div>
+      <div style="position:relative;height:22px;background:var(--bg-surface);border-radius:5px">
+        <div class="seg" style="position:absolute;left:${left}%;width:${w}%;background:${s.dead?C.red:C.green}">${s.dead?'dead':'fresh'}</div>
+      </div></div>`;
+  }).join('');
+}
+tl(document.getElementById('timeline'),[
+  {l:'agent-usage (global)',a:2.0,b:3.2,dead:true},
+  {l:'subagent-spawns (proj)',a:4.7,b:6.0,dead:false},
+  {l:'skill-analytics (proj)',a:0.0,b:2.1,dead:true},
+  {l:'skill-usage (global, sparse)',a:2.0,b:5.9,dead:true},
+  {l:'skill-channels (canonical)',a:5.0,b:5.0,dead:true},
+]);
+document.getElementById('writerRows').innerHTML=[
+  ['subagent-spawns.jsonl','spawn-intent-logger + subagent-validator','PreToolUse[Task] + SubagentStart','FRESH','green'],
+  ['agent-usage.jsonl','unified-dispatcher (unbound in hooks.json)','SubagentStop','DEAD — orphaned in refactor','red'],
+  ['skill-usage.jsonl','removed in #959','PreToolUse[Skill] only','DEAD — missed auto+subagent','red'],
+  ['skill-analytics.jsonl','no writer in src/','—','DEAD — replaced','red'],
+  ['skill-channels.jsonl','recordSkillChannel','PreToolUse[Skill] + SubagentStop','EMPTY here','orange'],
+].map(r=>`<tr><td class="mono">${r[0]}</td><td class="mono" style="color:var(--text-secondary)">${r[1]}</td><td class="mono" style="font-size:11px;color:var(--text-muted)">${r[2]}</td><td><span class="pill" style="border-color:var(--${r[4]}-border);background:var(--${r[4]}-bg);color:var(--${r[4]})">${r[3]}</span></td></tr>`).join('');
+
+// dormant chips
+const fix=['component-curator','design-system-architect','event-driven-architect','git-operations-engineer','monitoring-engineer','security-layer-auditor'];
+const keep=['ai-safety-auditor','claude-design-orchestrator','deployment-manager','design-context-extractor','emulate-engineer','expect-agent','frontend-performance-engineer','infrastructure-architect','multimodal-specialist','python-performance-engineer','ui-feedback'];
+document.getElementById('fixChips').innerHTML=fix.map(a=>`<span class="chip c-fix">${a}</span>`).join('');
+document.getElementById('keepChips').innerHTML=keep.map(a=>`<span class="chip c-keep">${a}</span>`).join('');
+
+// root causes
+const roots=[
+  {n:1,c:C.red,t:'Routing-index keywords are auto-generated garbage',d:'The extractor (<code>generate-indexes.js:95-141</code>) only matches "Activates for / Use for / Use when" phrasing — 1 of 37 agents uses it. The other 36 fall through to a capitalized-word grabber, yielding noise like <code>backend→"Backend"</code>, <code>event-driven→"CQRS,Focuses,Kafka"</code> ("Focuses" is a parser artifact). The index can\'t match a task to an agent.'},
+  {n:2,c:C.red,t:'The routing index is advisory prose, not enforced',d:'<code>plugins/ork/CLAUDE.md:3-5</code> is three plea lines ("prefer retrieval-led reasoning…"). No hook, no tool-def change, no gate forces selection. CC is free to ignore it — and a one-word keyword is a weaker signal than CC\'s trusted built-in <code>general-purpose</code>/<code>Explore</code>.'},
+  {n:3,c:C.orange,t:'ork\'s own skills teach the model to spawn GENERIC agents',d:'Self-inflicted, and the biggest lever: 15× <code>subagent_type="Explore"</code> + 4× <code>"general-purpose"</code> hardcoded across skills; <code>prd-to-goal</code> and <code>visualize-plan</code> are generic-only. Agents fire ~1:1 with how often skills name them — <code>backend-system-architect</code> (37 refs) fires; every "never fires" agent is referenced ≤1×.'},
+  {n:4,c:C.gray,t:'Description quality is NOT the cause (hypothesis refuted)',d:'Both cohorts use the same terse "Role: kw, kw" format; <code>ai-safety-auditor</code>\'s description is arguably richer than the <code>security-auditor</code> that fires. Dormant agents have fine descriptions. The levers are discoverability + skill-wiring, not prose.'},
+  {n:5,c:C.orange,t:'The one real routing hook only whispers',d:'<code>task-agent-advisor.ts</code> is correctly wired and even documents this exact problem (its comment cites "17% general-purpose vs 10% specialists"), but every branch returns <code>outputAllowWithContext()</code> — advisory text, never a block. And it fires only after a Task spawn, so it can\'t help when the model never reaches for Task.'},
+];
+document.getElementById('rootCards').innerHTML=roots.map(r=>`<div class="card" style="border-left:3px solid ${r.c};margin-bottom:12px"><div style="font-weight:700;font-size:14px;margin-bottom:4px"><span class="mono" style="color:${r.c}">RC${r.n}</span> &nbsp;${r.t}</div><p class="note" style="color:var(--text-secondary)">${r.d}</p></div>`).join('');
+
+// options
+const opts=[
+  {n:1,t:'🔭 Unify activation telemetry',impact:'HIGH',effort:'MED',d:'One <code>activations.jsonl</code> + <code>recordActivation()</code>, discriminated-union schema, schema-locked. Fan-in from existing hooks; decommission the 2 orphans + the empty stream. <em>Without this you cannot tell if any other fix worked.</em>'},
+  {n:2,t:'🧲 Re-wire skills to name specialists',impact:'HIGH',effort:'MED',d:'The biggest activation lever. Replace generic <code>Explore</code>/<code>general-purpose</code> hardcodes where a specialist fits, and give each of the 6 mis-triggered agents a real <code>subagent_type=</code> spawn from a high-traffic skill (e.g. monitoring-engineer ← devops-deployment, git-operations-engineer ← commit/create-pr, security-layer-auditor → review-pr security pass). Usage tracks naming ~1:1.'},
+  {n:3,t:'🛠️ Fix the routing-index extractor',impact:'MED',effort:'LOW',d:'Add a <code>routingKeywords:</code> (or <code>useWhen:</code>) frontmatter field per agent and have <code>generate-indexes.js</code> read it directly instead of the capitalized-word fallback. One-file change that repairs the index for all 37 at once.'},
+  {n:4,t:'⛔ Make the advisor enforce (clear-cut only)',impact:'MED',effort:'MED',d:'Upgrade <code>task-agent-advisor</code> from advisory to <code>permissionDecision:"ask"</code> when <code>matchSpecialistDomain()</code> is confident for a generic spawn. Keep advisory for mixed tasks. Add a UserPromptSubmit nudge so specialists surface <em>before</em> the model picks a tool.'},
+  {n:5,t:'🧹 Add audit:lifecycle + consolidate near-dupes',impact:'LOW',effort:'LOW',d:'Extend <code>scripts/list-invocable-agents.mjs</code> into a real dormancy/reference-count report (the expected <code>audit:lifecycle</code> doesn\'t exist). Evaluate folding <code>security-layer-auditor</code>→<code>security-auditor</code> and <code>component-curator</code>→<code>component-search</code>.'},
+];
+document.getElementById('optList').innerHTML=opts.map(o=>{
+  const ic=o.impact==='HIGH'?C.green:o.impact==='MED'?C.yellow:C.gray;
+  const ec=o.effort==='LOW'?C.green:o.effort==='MED'?C.yellow:C.red;
+  return `<div class="opt"><div class="opt-head"><div class="opt-title"><span class="mono" style="color:var(--text-muted)">#${o.n}</span> ${o.t}</div><div class="kv"><span style="color:${ic}">impact ${o.impact}</span><span style="color:${ec}">effort ${o.effort}</span></div></div><p class="note" style="color:var(--text-secondary);margin-top:8px">${o.d}</p></div>`;
+}).join('');
+</script>
+</body>
+</html>
