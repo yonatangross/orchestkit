@@ -12,14 +12,17 @@
  * back toward Bash — deterministic commands don't need an LLM subagent (one
  * observed swarm burned ~1.35M tokens running test batches through agents).
  *
- * Non-blocking: always returns "continue".
+ * Mostly advisory (additionalContext). ONE branch enforces: a `general-purpose`
+ * spawn whose task clearly matches a specialist domain returns `permissionDecision:
+ * "ask"` so CC surfaces the specialist as an active choice instead of an ignorable
+ * note. Still `continue: true` — never a hard `deny`.
  *
  * @hook PreToolUse[Task]
  * @see https://github.com/yonatangross/orchestkit/issues/706
  */
 
 import type { HookInput, HookResult , HookContext} from '../../types.js';
-import { outputSilentSuccess, outputAllowWithContext } from '../../lib/common.js';
+import { outputSilentSuccess, outputAllowWithContext, outputAsk } from '../../lib/common.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'task-agent-advisor';
@@ -154,9 +157,18 @@ export function taskAgentAdvisor(input: HookInput, ctx: HookContext = NOOP_CTX):
     const prompt = (toolInput.prompt as string) || '';
     const specialist = matchSpecialistDomain(description, prompt);
     if (specialist) {
-      ctx.log(HOOK_NAME, `general-purpose task matches ${specialist} domain — nudging`);
-      return outputAllowWithContext(
-        `This task looks like \`${specialist}\`'s domain — consider it over \`general-purpose\` (curated system prompt + scoped tools). Keep \`general-purpose\` if the task genuinely spans multiple domains.`,
+      ctx.log(HOOK_NAME, `general-purpose task matches ${specialist} domain — asking to redirect`);
+      // ENFORCE (not just whisper): the advisory note was provably ignored
+      // (telemetry: 14% specialist vs 74% generic). `ask` turns it into an
+      // active permission decision — CC surfaces the specialist as a real
+      // choice and redirects on confirm. The domain regexes are deliberately
+      // narrow, so genuinely multi-domain tasks don't match and never reach
+      // here; if a match is a false positive, the user simply approves
+      // general-purpose. Never a hard `deny` — keeps the human in the loop.
+      return outputAsk(
+        `This task matches \`${specialist}\`'s domain — prefer it over \`general-purpose\` ` +
+          `(curated system prompt + scoped tools spawn the right specialist). ` +
+          `Approve \`general-purpose\` only if the task genuinely spans multiple domains.`,
       );
     }
     return outputSilentSuccess();
