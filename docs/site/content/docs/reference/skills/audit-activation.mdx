@@ -113,7 +113,7 @@ Tally ork-catalog spawns by agent. Then `never-fired = inventory − fired`. Lis
 
 ## 4. Skill-naming cross-check (the root-cause signal)
 
-For each agent, count how many `src/skills/**/SKILL.md` reference it via `subagent_type="ork:&lt;name&gt;"` or `agent: &lt;name&gt;`. Agents fire ~1:1 with this count — an agent named by 0-1 skills will be dormant regardless of its description. This is what distinguishes "mis-triggered" from "niche".
+For each agent, count how many `src/skills/**/SKILL.md` reference it via a `subagent_type=` spawn for `ork:&lt;name&gt;` (or an `agent: &lt;name&gt;` field). Agents fire ~1:1 with this count — an agent named by 0-1 skills will be dormant regardless of its description. This is what distinguishes "mis-triggered" from "niche".
 
 ```bash
 grep -rl "subagent_type=\"ork:${name}\"\|subagent_type: ork:${name}" src/skills/ | wc -l
