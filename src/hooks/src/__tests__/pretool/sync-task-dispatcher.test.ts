@@ -77,7 +77,7 @@ describe('syncTaskDispatcher — spawn-intent-logger registration', () => {
 });
 
 describe('syncTaskDispatcher — task-agent-advisor registration', () => {
-  test('general-purpose + debug-shaped input propagates the specialist nudge', () => {
+  test('general-purpose + debug-shaped input propagates the specialist ask', () => {
     const result = syncTaskDispatcher(
       makeInput({
         subagent_type: 'general-purpose',
@@ -86,9 +86,11 @@ describe('syncTaskDispatcher — task-agent-advisor registration', () => {
       }),
     );
 
+    // The advisor now ENFORCES via permissionDecision 'ask' (still continue:true).
     expect(result.continue).toBe(true);
-    const context = (result.hookSpecificOutput?.additionalContext as string) || '';
-    expect(context).toContain('ork:debug-investigator');
-    expect(context).toContain('general-purpose');
+    expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    const reason = (result.hookSpecificOutput?.permissionDecisionReason as string) || '';
+    expect(reason).toContain('ork:debug-investigator');
+    expect(reason).toContain('general-purpose');
   });
 });
