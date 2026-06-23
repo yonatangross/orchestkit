@@ -18,12 +18,20 @@ Bucket each agent. Fired agents are `ACTIVE`. Every dormant (never-fired in the 
 | **NICHE** | dormant, legitimately specialized + rarely-needed domain (design, multimodal, perf, IaC, security-LLM), and is wired into at least one relevant skill | keep — low use is expected |
 | **DEAD** | dormant AND no references in ANY skill or agent (truly unreachable) | prune candidate |
 
-## Decision procedure (per dormant agent)
+## Definitions (apply before the procedure)
 
-1. `grep -rl "ork:<name>" src/skills/ src/agents/` — any real spawn path?
-2. If 0 references anywhere → **DEAD**.
-3. If referenced only in tables/teams/narrative (no `subagent_type=` from a busy skill) → **MIS-TRIGGERED**.
-4. Else if the domain is inherently rare and it IS wired → **NICHE**.
+- **RARE-DOMAIN set** (low use is inherently expected): design (system/context/tokens), multimodal/media, frontend-perf, IaC/infra, deployment, security-LLM/AI-safety, demo, UI-annotation. An agent whose primary domain is in this set is a NICHE candidate.
+- **WIRED** = referenced by ANY skill or agent in a way that can surface it: a real `subagent_type=`/`agent:` spawn, **OR** membership in an agent-team / agent-selection map / escalation table. Narrative-only prose mentions do NOT count as wired.
+- **REAL BUSY-SKILL SPAWN** = a `subagent_type=ork:<name>` (or `agent: <name>`) issued by a *dispatchable* skill — NOT one whose frontmatter is `user-invocable: false` + `disable-model-invocation: true` (a doc skill can't dispatch).
+
+## Decision procedure (per dormant agent — STOP at the first match)
+
+1. Count references: `grep -rl "ork:<name>\|<name>" src/skills/ src/agents/`. If **0 references anywhere → DEAD** (prune candidate).
+2. **Is its domain in the RARE-DOMAIN set AND is it WIRED?** → **NICHE** (keep — low use expected). Check this BEFORE step 3: a rare-domain agent is niche even if its only wiring is team/selection-map membership, not a busy-skill spawn.
+3. Otherwise (non-rare domain) — has refs but **no REAL BUSY-SKILL SPAWN** → **MIS-TRIGGERED** (wire one from a high-traffic skill).
+4. Otherwise (non-rare domain WITH a real busy-skill spawn but still dormant) → **MIS-TRIGGERED** if the spawn path is itself rarely-run; note the path.
+
+> Ordering matters: step 2 (rare-domain NICHE) is checked before the mis-triggered test, so niche-domain agents (IaC, multimodal, security-LLM, frontend-perf) are not mislabeled mis-triggered just because they lack a busy-skill spawn.
 
 ## Hard rules
 
