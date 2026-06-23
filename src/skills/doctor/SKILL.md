@@ -134,7 +134,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **4. Memory** | .claude/memory/ exists, decisions.jsonl integrity, queue depth | load `${CLAUDE_SKILL_DIR}/references/memory-health.md` |
+| **4. Memory** | .claude/memory/ graph integrity + queue depth; **auto-memory MEMORY.md index budget (≤24.4 KB; warns + recommends /ork:dream on re-bloat)** | load `${CLAUDE_SKILL_DIR}/references/memory-health.md` |
 | **5. Build** | plugins/ sync with src/, manifest counts, orphans | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
 
 ### Categories 6-9: Infrastructure

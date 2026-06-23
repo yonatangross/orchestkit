@@ -66,6 +66,43 @@ done < .claude/memory/decisions.jsonl
 - **High queue depth**: >50 pending graph operations (sync backlog)
 - **Missing directory**: Graph memory never initialized
 
+## Auto-Memory Index Budget
+
+Separate from the graph store above: the harness injects a per-project
+**auto-memory index** (`MEMORY.md`) into context every session. If its index
+lines grow unbounded it both wastes tokens and — because it changes when
+memories are written — busts the prompt cache. CC ships a generic over-budget
+warning; this check makes it actionable by pointing at the fix (`/ork:dream`).
+
+The index lives under `~/.claude/projects/<encoded-cwd>/memory/MEMORY.md`
+(the harness encodes the project path by replacing `/` with `-`).
+
+```bash
+# Auto-memory index budget check
+MEM_DIR="$HOME/.claude/projects/$(echo "$PWD" | sed 's|/|-|g')/memory"
+MEM_INDEX="$MEM_DIR/MEMORY.md"
+BUDGET=24986   # 24.4 KB — the harness's index budget
+
+if [ -f "$MEM_INDEX" ]; then
+  bytes=$(wc -c < "$MEM_INDEX" | tr -d ' ')
+  # index lines over ~200 chars are the usual re-bloat cause
+  long=$(awk 'length > 200 && /^- \[/' "$MEM_INDEX" | wc -l | tr -d ' ')
+  if [ "$bytes" -gt "$BUDGET" ]; then
+    echo "WARN: MEMORY.md index ${bytes}B > ${BUDGET}B budget — run /ork:dream to consolidate"
+  elif [ "$long" -gt 0 ]; then
+    echo "WARN: ${long} index line(s) > 200 chars — run /ork:dream (re-bloat risk)"
+  else
+    echo "OK: MEMORY.md index within budget (${bytes}B)"
+  fi
+fi
+```
+
+### Health Indicators
+
+- Index size ≤ 24.4 KB (the harness budget)
+- Every index line ≤ ~200 chars (detail belongs in the linked topic file, not the index)
+- Fix for both: `/ork:dream` rebuilds the index, capping line length and pruning stale entries
+
 ## Troubleshooting
 
 ### Graph memory missing
