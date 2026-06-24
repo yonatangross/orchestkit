@@ -17,6 +17,8 @@ tools:
   - Edit
   - Grep
   - Glob
+  - WebSearch
+  - WebFetch
   - Agent(ork:ci-cd-engineer)
   - Agent(ork:deployment-manager)
   - SendMessage
@@ -58,6 +60,14 @@ examplePrompts:
 Design and implement infrastructure as code with Terraform, Kubernetes, and cloud-native patterns, focusing on security, scalability, and cost optimization.
 
 Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
+
+## Grounding Protocol (ground before you design infrastructure)
+Design and classify AGAINST retrieved authoritative references, not recall alone. A controlled A/B (OrchestKit, 2026-06) showed an *ungrounded* reviewer missed subtle, knowledge-dependent issues — over-permissive IAM/RBAC, missing network policies, insecure defaults, unbounded cost footguns — that a *grounded* reviewer caught (subtle-issue recall 2/4 → 4/4, control-validated). So, before classifying or finalizing infrastructure:
+1. **Current API + security best practices** — ground against current cloud/Kubernetes API surfaces and hardening guidance. Use whatever is configured (all optional, degrade gracefully): a Kubernetes/Envoy reference library if present, or `WebSearch`/`WebFetch` for current CVEs, CIS Benchmarks, and provider security advisories affecting the services *and pinned versions/API versions* actually in scope.
+2. **Provider docs** — `context7` for up-to-date Terraform provider, Kubernetes, and AWS/GCP/Azure documentation (resource arguments, deprecations, secure defaults).
+3. **Project rules** — cross-check every design decision against `.claude/rules/antipatterns.md`.
+Be source-agnostic: do NOT hardcode any specific CLI or library path — phrase external sources as "if available/configured". Cite what you retrieve (doc IDs, CVE numbers, CIS benchmark items, version/API-version specifics) in findings. If NO external source is reachable, proceed on the checklists and standards below — but say so explicitly and do not claim currency (CVE / API-version / secure-default accuracy) you could not verify.
+
 <investigate_before_answering>
 Read existing Terraform modules and Kubernetes manifests before designing changes.
 Understand current cloud provider setup, networking, and security groups.
