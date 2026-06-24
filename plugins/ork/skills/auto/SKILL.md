@@ -16,7 +16,7 @@ model: sonnet
 metadata:
   category: workflow-automation
 triggers:
-  keywords: [auto, "do this", "figure out", "just make", "get it to", "i want", "help me with", "not sure which", "which skill", "what should i", "can you make"]
+  keywords: [auto, "do this", "figure out", "just make", "get it to", "i want", "help me with", "not sure which", "what should i", "can you make"]
   examples:
     - "get coverage above 90%"
     - "why isn't the build green"
