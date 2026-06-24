@@ -1,23 +1,11 @@
 ---
-name: upgrade-assessment
-license: MIT
-compatibility: "Claude Code 2.1.183+. Requires network access."
 description: "Evaluates platform upgrade readiness across Claude model versions, CC releases, and OrchestKit updates with 6-dimensional assessment. Researches target versions, detects current environment, produces structured migration plan with risk scores. Use when planning major version transitions or evaluating upgrade impact."
-argument-hint: "[--json]"
-context: fork
-version: 1.0.0
-author: OrchestKit
-tags: [upgrade, assessment, platform, compatibility, migration]
-user-invocable: true
-disable-model-invocation: true
 allowed-tools: [AskUserQuestion, Bash, Read, Grep, Glob, Agent, WebSearch, WebFetch]
-skills: [explore, verify, remember, memory]
-complexity: max
-persuasion-type: guidance
-effort: high
-metadata:
-  category: document-asset-creation
 ---
+
+# Auto-generated from skills/upgrade-assessment/SKILL.md
+# Source: https://github.com/yonatangross/orchestkit
+
 
 # Upgrade Assessment
 
@@ -38,7 +26,6 @@ Evaluate platform upgrade readiness for Claude model transitions, Claude Code ve
 /ork:upgrade-assessment --json    # Machine-readable output
 ```
 
----
 
 ## 6-Phase Workflow
 
@@ -56,7 +43,6 @@ Determine the assessment scope before scanning. Ask the user:
 
 Record the scope and target versions. If the user does not specify target versions, research the latest available in Phase 2.
 
----
 
 ### Phase 1: Detection
 
@@ -64,7 +50,6 @@ Record the scope and target versions. If the user does not specify target versio
 
 Run precondition checks and environment detection. Load details: `Read("${CLAUDE_SKILL_DIR}/rules/detection-checks.md")` for verification scripts and expected output format.
 
----
 
 ### Phase 2: Research
 
@@ -83,7 +68,6 @@ Research the target versions for new capabilities and breaking changes:
 "Claude {target_model} vs {current_model} differences"
 ```
 
----
 
 ### Phase 3: Codebase Scan
 
@@ -91,25 +75,21 @@ Research the target versions for new capabilities and breaking changes:
 
 Scan the codebase for patterns affected by the upgrade. Load details: `Read("${CLAUDE_SKILL_DIR}/rules/codebase-scan-patterns.md")` for grep patterns and severity classification.
 
----
 
 ### Phase 4: Scoring
 
 Rate readiness 0-10 across 6 dimensions using the scoring rubric from `platform-upgrade-knowledge`. Load details: `Read("${CLAUDE_SKILL_DIR}/references/scoring-rubric.md")` for per-dimension thresholds, weights, and score interpretation.
 
----
 
 ### Phase 5: Recommendations
 
 Generate prioritized action items based on Phase 3 findings and Phase 4 scores. Load details: `Read("${CLAUDE_SKILL_DIR}/references/recommendation-format.md")` for priority assignment algorithm, effort estimation, and recommendation structure.
 
----
 
 ## Output Format
 
 The assessment produces a structured JSON report. Load details: `Read("${CLAUDE_SKILL_DIR}/references/output-format.md")` for the full schema and example.
 
----
 
 ## Execution Notes
 
@@ -133,7 +113,6 @@ Focus on plugin structure:
 - Skill/agent rename or removal
 - Hook source reorganization
 
----
 
 ## Rules Quick Reference
 

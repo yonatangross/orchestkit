@@ -180,13 +180,15 @@ WARNING: xhigh effort requires Opus 4.8.
 
 ## Chain: Deeper Audit
 
-> After a clean health report, audit the observability pipeline itself:
+> After a clean health report, go deeper into the planes structure can't see:
 >
 > ```
 > /ork:telemetry-inspect
+> /ork:audit-activation
+> /ork:upgrade-assessment
 > ```
 >
-> `doctor` validates structure (manifests, hooks, skills, agents); `/ork:telemetry-inspect` validates the *data plane* — every telemetry writer's row count, schema lock, growth trend, and orphaned analytics files that structural checks don't cover.
+> `doctor` validates structure (manifests, hooks, skills, agents); `/ork:telemetry-inspect` validates the *data plane* — every telemetry writer's row count, schema lock, growth trend, and orphaned analytics files that structural checks don't cover. `/ork:audit-activation` validates the *agent-activation plane* — which sub-agents actually fire from spawn telemetry vs sit dormant. `/ork:upgrade-assessment` checks version/upgrade readiness across Claude models, CC releases, and OrchestKit updates.
 
 ## Related Skills
 

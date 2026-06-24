@@ -3,9 +3,11 @@ title: "Audit Activation"
 description: "Audits OrchestKit sub-agent activation from real spawn telemetry — computes the generic-vs-specialist spawn split, flags dormant agents (never fired), and classifies each as fires/mis-triggered/niche. The agent-side analogue of audit-skills. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths."
 ---
 
-<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+<span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+```bash title="Invoke"
+/ork:audit-activation
+```
 
 <ContextualSkillSidebar slug="audit-activation" />
 

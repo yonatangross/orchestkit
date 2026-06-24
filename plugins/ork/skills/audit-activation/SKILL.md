@@ -5,7 +5,8 @@ description: Audits OrchestKit sub-agent activation from real spawn telemetry â€
 tags: [audit, agents, activation, telemetry, orchestkit]
 version: 1.0.0
 author: OrchestKit
-user-invocable: false
+user-invocable: true
+argument-hint: "[--json]"
 disable-model-invocation: true
 context: fork
 complexity: medium
