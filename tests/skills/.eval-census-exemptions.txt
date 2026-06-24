@@ -16,6 +16,7 @@ mcp-visual-output | exempt | reference-documentation (user-invocable: false)
 multi-surface-render | exempt | reference-documentation (user-invocable: false)
 portless | exempt | reference-documentation (user-invocable: false)
 
+auto | gap | user-invocable behavioral skill (intent router; routing-benchmark.json seeds the future graded eval)
 ci-debug | gap | user-invocable behavioral skill
 ci-sentinel | gap | user-invocable behavioral skill (autonomous)
 cover | gap | user-invocable behavioral skill
