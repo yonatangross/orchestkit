@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.60.0](https://github.com/yonatangross/orchestkit/compare/v8.59.0...v8.60.0) (2026-06-24)
+
+
+### Features
+
+* **skills:** add /ork:auto intent router (+ telemetry breaker fix) ([#2645](https://github.com/yonatangross/orchestkit/issues/2645)) ([252ce9d](https://github.com/yonatangross/orchestkit/commit/252ce9dbccec6507eaeb3dd22a5ec70bf4023708))
+
 ## [8.59.0](https://github.com/yonatangross/orchestkit/compare/v8.58.0...v8.59.0) (2026-06-24)
 
 
