@@ -34,7 +34,10 @@ HOOKS_AGENT=$AGENT
 HOOKS_SKILL=$SKILL
 
 # User-invocable skills count
+# silent: best-effort  (grep over skill files; a read error yields a smaller count, never wrong-high)
 INVOCABLE=$(grep -rl '^user-invocable: true' "$PROJECT_ROOT/src/skills/" --include='SKILL.md' 2>/dev/null | wc -l | tr -d ' ')
+# Reference (non-invocable) skills = total SKILL.md dirs minus user-invocable commands
+REFERENCE=$(( SKILLS - INVOCABLE ))
 
 # ── Marker replacement ──────────────────────────────────────────────────────
 
@@ -66,6 +69,7 @@ stamp_file() {
   stamp_marker "$file" "hooks-agent" "$HOOKS_AGENT"
   stamp_marker "$file" "hooks-skill" "$HOOKS_SKILL"
   stamp_marker "$file" "invocable" "$INVOCABLE"
+  stamp_marker "$file" "skills-reference" "$REFERENCE"
 }
 
 # ── Files with markers ──────────────────────────────────────────────────────

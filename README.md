@@ -76,9 +76,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->112<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **<!--ork:skills-->112<!--/ork--> Skills** | <!--ork:invocable-->33<!--/ork--> typeable `/ork:` commands + <!--ork:skills-reference-->79<!--/ork--> reference skills (RAG patterns, FastAPI, React 19, testing, security, database design, ML) — loaded on-demand, zero overhead |
 | **<!--ork:agents-->37<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
-| **<!--ork:hooks-->212<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
+| **<!--ork:hooks-->212<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — 212 registrations across 12 split bundles, ship with confidence |
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
