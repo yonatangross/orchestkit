@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.59.0](https://github.com/yonatangross/orchestkit/compare/v8.58.0...v8.59.0) (2026-06-24)
+
+
+### Features
+
+* **agents:** ground 14 specialists + wire monitoring-engineer ([#2641](https://github.com/yonatangross/orchestkit/issues/2641)) ([67cad0c](https://github.com/yonatangross/orchestkit/commit/67cad0cd100b888902db8a61194c9070bfaa9df8))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.187) ([#2640](https://github.com/yonatangross/orchestkit/issues/2640)) ([7efb950](https://github.com/yonatangross/orchestkit/commit/7efb950684b5810bffb7768e92a87811ed5d63e5))
+
 ## [8.58.0](https://github.com/yonatangross/orchestkit/compare/v8.57.0...v8.58.0) (2026-06-23)
 
 

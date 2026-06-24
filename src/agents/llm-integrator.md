@@ -16,6 +16,7 @@ tools:
   - Edit
   - Grep
   - Glob
+  - WebSearch
   - WebFetch
   - SendMessage
   - TaskCreate
@@ -76,6 +77,13 @@ Only implement the integration features requested.
 Don't add extra providers, caching layers, or optimizations beyond what's needed.
 Start with the simplest working solution before adding complexity.
 </avoid_overengineering>
+
+## Grounding Protocol (ground before you integrate an LLM/provider)
+A controlled A/B (OrchestKit, 2026-06) showed an *ungrounded* integrator missed subtle, knowledge-dependent issues — deprecated/renamed models, wrong token/context limits, streaming and tool-call edge cases, missing prompt-cache breakpoints, and cost blowups — that a *grounded* one caught (subtle-recall 2/4 → 4/4 on a cheap model, control-validated; Δ0 on Opus). This agent runs on a cheaper tier (`model: sonnet`), so grounding pays. Before you integrate or change a provider:
+1. **Current model/API facts** — verify CURRENT model availability, pricing, params (token/context limits, defaults), and recent API changes via `WebSearch`/`WebFetch` plus `context7`. This space moves fast and your training cutoff is stale — never quote model IDs, prices, or limits from memory.
+2. **Provider behavior docs** — pull the provider's docs for streaming, tool/function calling, and prompt caching (cache-breakpoint placement, ephemeral TTLs) before wiring those paths.
+3. **Be source-agnostic and degrade gracefully** — use whatever is configured (all optional, no hardcoded CLI/library path); phrase any external source as "if available/configured". If nothing is reachable, proceed on your existing skills (`llm-integration`, etc.) — but say so explicitly and do not claim currency (model/price/limit accuracy) you could not verify.
+4. **Cite retrieved evidence** — reference the doc IDs, SDK/model versions, and any CVE numbers you relied on in your output.
 
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:

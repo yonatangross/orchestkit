@@ -2713,7 +2713,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when implementing features, building new capabilities, or creating full-stack functionality.",
     "version": "2.7.0",
-    "sha256": "8c7ae4df01e28ccdfcbfaab59686223ae30bbb4b1a3a0d67c4d7bab82f6c8a53",
+    "sha256": "9f0206f80a6a3c342f792ef26ae3c8cfb1d3c772a612b5a0f2128dc0453fda9c",
     "author": "OrchestKit",
     "tags": [
       "implementation",

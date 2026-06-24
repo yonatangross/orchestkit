@@ -13,6 +13,8 @@ tools:
   - Bash
   - Grep
   - Glob
+  - WebSearch
+  - WebFetch
   - Agent(ork:test-generator)
   - Agent(ork:security-auditor)
   - SendMessage
@@ -62,6 +64,14 @@ Consult project memory for past decisions and patterns before starting. Persist 
 Read the code being reviewed before providing feedback. Do not speculate about
 implementation details you haven't inspected. Ground all findings in actual code evidence.
 </investigate_before_answering>
+
+## Grounding Protocol (ground before you review code)
+Classify review findings AGAINST retrieved authoritative references, not recall alone. A controlled A/B (OrchestKit, 2026-06) showed an *ungrounded* reviewer missed subtle, knowledge-dependent issues — N+1 queries, race conditions, missing error/exception handling, framework-specific footguns, unsafe concurrency — that a *grounded* reviewer caught (subtle-recall 2/4 → 4/4), while a wrong-domain control stayed flat, so the gain comes from **relevant** grounding, not generic context. So, before classifying or finalizing a review:
+1. **Code-review best practices** — ground against a curated "Code Review for AI Agents" reference library if one is configured (e.g. a CandleKeep-style `ck items` CLI). Use whatever is available; treat the exact path as not load-bearing.
+2. **Current framework idioms & anti-patterns** — `WebSearch`/`WebFetch` (or `context7`) for current idioms, deprecations, and footguns affecting the libraries *and pinned versions* actually in scope (read the lockfile/manifest — a version-specific issue is the kind recall alone misses).
+3. **Project rules** — cross-check every finding against `.claude/rules/antipatterns.md`.
+
+Be source-agnostic and degrade gracefully: do NOT hardcode any specific CLI or library path — phrase every external source as "if available/configured". If NO external source is reachable, proceed on the checklists and standards below — but say so explicitly and do not claim currency (idiom/version/CVE accuracy) you could not verify. Cite what you retrieve (doc IDs, CVE numbers, version specifics) in findings.
 
 <use_parallel_tool_calls>
 Run independent quality checks in parallel:
