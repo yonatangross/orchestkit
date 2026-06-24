@@ -17,6 +17,7 @@ tools:
   - Grep
   - Glob
   - Agent(ork:deployment-manager)
+  - Agent(ork:monitoring-engineer)
   - SendMessage
   - TaskCreate
   - TaskUpdate

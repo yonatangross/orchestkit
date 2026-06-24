@@ -17,6 +17,7 @@ tools:
   - Grep
   - Glob
   - Agent(ork:frontend-ui-developer)
+  - Agent(ork:multimodal-specialist)
   - SendMessage
   - TaskCreate
   - TaskUpdate
