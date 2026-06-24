@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.59.0",
+    "date": "2026-06-24",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**agents:** ground 14 specialists + wire monitoring-engineer ([#2641](https://github.com/yonatangross/orchestkit/issues/2641)) ([67cad0c](https://github.com/yonatangross/orchestkit/commit/67cad0cd100b888902db8a61194c9070bfaa9df8))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.187) ([#2640](https://github.com/yonatangross/orchestkit/issues/2640)) ([7efb950](https://github.com/yonatangross/orchestkit/commit/7efb950684b5810bffb7768e92a87811ed5d63e5))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.58.0",
     "date": "2026-06-23",
     "compareUrl": "",

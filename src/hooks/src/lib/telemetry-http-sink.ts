@@ -152,14 +152,20 @@ export function isCircuitOpen(now = Date.now()): boolean {
   return true;
 }
 
-function recordSuccess(): void {
+export function recordSuccess(): void {
   saveCircuitState({ consecutiveFailures: 0, openedAt: null });
 }
 
-function recordFailure(): void {
+export function recordFailure(): void {
   const state = loadCircuitState();
   state.consecutiveFailures += 1;
-  if (state.consecutiveFailures >= FAILURE_THRESHOLD && state.openedAt === null) {
+  // Re-arm the cooldown on EVERY failure at/above the threshold — including a
+  // failed half-open probe. The previous `&& openedAt === null` guard set
+  // openedAt only once, so after the first cooldown elapsed the breaker stayed
+  // permanently half-open: it probed (and failed) on every subsequent event,
+  // letting consecutiveFailures climb unbounded (observed: 1786 since May 28)
+  // instead of backing off for COOLDOWN_MS between probes.
+  if (state.consecutiveFailures >= FAILURE_THRESHOLD) {
     state.openedAt = Date.now();
   }
   saveCircuitState(state);

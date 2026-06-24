@@ -745,6 +745,43 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "auto": {
+    "name": "auto",
+    "description": "Intent-classified router — the front door to OrchestKit. Takes a plain-English goal, classifies it into one intent category, and routes to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:brainstorm, /ork:implement, /ork:review-pr, /ork:verify, a /goal optimization loop, or the skill-evolution gate). Use when you describe a goal not a method, when the right skill is unclear, or when you want the agent to pick the approach. Triggers on: auto, do this, figure out, just make, get it to, I want, help me, not sure which.",
+    "version": "1.0.0",
+    "sha256": "4e0459a207df2849210c4295f1f67a39c9118c059d78845b8c15201764198ac5",
+    "author": "OrchestKit",
+    "tags": [
+      "router",
+      "intent",
+      "orchestration",
+      "discovery",
+      "meta",
+      "front-door"
+    ],
+    "userInvocable": true,
+    "context": "inherit",
+    "allowedTools": [
+      "AskUserQuestion",
+      "Read",
+      "Grep",
+      "Glob",
+      "Skill",
+      "Task"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "routing-rules.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "bare-eval": {
     "name": "bare-eval",
     "description": "Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill evaluation, trigger testing, and LLM grading without plugin/hook interference. Use when running eval pipelines, grading skill outputs, benchmarking prompt quality, or testing trigger accuracy in isolation.",

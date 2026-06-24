@@ -18,6 +18,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { readFileSync, writeFileSync } from 'node:fs';
 
 vi.mock('../../lib/paths.js', () => ({
   getHomeDir: vi.fn(() => '/mock/home'),
@@ -40,6 +41,9 @@ import {
   resolveSinkToken,
   fileToEventName,
   postAnalyticsToSink,
+  isCircuitOpen,
+  recordFailure,
+  recordSuccess,
 } from '../../lib/telemetry-http-sink.js';
 
 describe('telemetry-http-sink', () => {
@@ -203,6 +207,66 @@ describe('telemetry-http-sink', () => {
       expect(() =>
         postAnalyticsToSink('skill-usage.jsonl', { skill: 'demo' }),
       ).not.toThrow();
+    });
+  });
+
+  // ─── circuit breaker re-open (regression for the openedAt re-arm bug) ──────
+  // Before the fix, openedAt was set only once (`&& openedAt === null`), so after
+  // the first cooldown elapsed the breaker stayed permanently half-open and
+  // probed (and failed) on every event — consecutiveFailures climbed unbounded
+  // (observed 1786 since May 28) instead of backing off COOLDOWN_MS per probe.
+  describe('circuit breaker', () => {
+    const COOLDOWN = 5 * 60 * 1000;
+    let circuitJson: string | undefined;
+
+    beforeEach(() => {
+      circuitJson = undefined;
+      vi.mocked(readFileSync).mockImplementation(((p: string) => {
+        if (typeof p === 'string' && p.endsWith('circuit.json')) {
+          if (circuitJson === undefined) throw new Error('ENOENT');
+          return circuitJson;
+        }
+        throw new Error('ENOENT');
+      }) as typeof readFileSync);
+      vi.mocked(writeFileSync).mockImplementation(((p: string, data: string) => {
+        if (typeof p === 'string' && p.endsWith('circuit.json')) circuitJson = data;
+      }) as typeof writeFileSync);
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('re-opens after a failed half-open probe instead of probing every event', () => {
+      const T0 = 1_000_000_000_000;
+      vi.setSystemTime(T0);
+
+      // 3 consecutive failures trip the breaker open
+      recordFailure();
+      recordFailure();
+      recordFailure();
+      expect(isCircuitOpen(T0)).toBe(true);
+
+      // After the cooldown the breaker is half-open: one probe is allowed through
+      expect(isCircuitOpen(T0 + COOLDOWN + 1)).toBe(false);
+
+      // …and that probe fails too. The fix re-arms openedAt, so the breaker
+      // re-opens (the bug left it false here — probing forever).
+      vi.setSystemTime(T0 + COOLDOWN + 1);
+      recordFailure();
+      expect(isCircuitOpen(T0 + COOLDOWN + 1)).toBe(true);
+    });
+
+    it('recordSuccess closes the breaker', () => {
+      const T0 = 2_000_000_000_000;
+      vi.setSystemTime(T0);
+      recordFailure();
+      recordFailure();
+      recordFailure();
+      expect(isCircuitOpen(T0)).toBe(true);
+      recordSuccess();
+      expect(isCircuitOpen(T0)).toBe(false);
     });
   });
 });
