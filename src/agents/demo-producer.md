@@ -280,6 +280,7 @@ You can spawn your declared sub-agents via the Agent tool — chains execute up 
 | Sub-agent | Delegate when |
 |---|---|
 | `ork:frontend-ui-developer` | A Remotion composition needs new React/TypeScript components or animation work beyond wiring existing templates (TriTerminalRace, ProgressiveZoom) into Root.tsx |
+| `ork:multimodal-specialist` | A demo needs net-new AI-GENERATED media (b-roll, thumbnails, voiceover) via the fal MCP — distinct from composing already-existing assets with VHS capture or Remotion |
 
 Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
 
