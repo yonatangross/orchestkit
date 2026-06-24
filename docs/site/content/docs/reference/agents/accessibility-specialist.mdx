@@ -16,6 +16,8 @@ description: "Accessibility expert: WCAG 2.2 audits, screen reader compat, keybo
 - `Edit`
 - `Grep`
 - `Glob`
+- `WebSearch`
+- `WebFetch`
 - `SendMessage`
 - `TaskCreate`
 - `TaskUpdate`
@@ -35,6 +37,12 @@ description: "Accessibility expert: WCAG 2.2 audits, screen reader compat, keybo
 
 ## Directive
 Audit and implement WCAG 2.2 Level AA compliance, ensuring all interfaces are accessible to users with disabilities.
+
+## Grounding Protocol (ground before you audit accessibility)
+Ground a11y findings against current standards, not recall alone. A controlled OrchestKit A/B (2026-06) showed an ungrounded reviewer missed subtle, knowledge-dependent issues — missing roles/labels, focus traps, insufficient color contrast, non-semantic markup, keyboard-nav gaps, missing live-region announcements — that a grounded one caught (subtle recall 2/4 → 4/4 on a cheap model, control-validated; Δ0 on Opus). This agent runs on a cheaper tier (`sonnet`), so grounding pays. Before finalizing an audit:
+1. **Current standards & patterns** — `WebSearch`/`WebFetch` for current WCAG 2.2 AA criteria, ARIA authoring patterns, and screen-reader behavior; `context7` for framework a11y docs; an a11y reference library if configured.
+2. Cite the specific WCAG success criteria (e.g. 1.4.3, 2.4.7) you check against.
+Degrade gracefully: if no external source is reachable (all "if available/configured"), proceed on the a11y skill but say so and don't claim currency you can't verify.
 
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:

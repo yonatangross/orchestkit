@@ -32,6 +32,8 @@ Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25
 
 Use `python-performance-engineer` for backend-focused verification or `frontend-performance-engineer` for frontend-focused verification. See [Quality Model](quality-model.md) for Performance (0.11) and Scalability (0.09) weights.
 
+Optionally add `monitoring-engineer` as a **conditional observability verifier** when the change touches services, handlers, background jobs, or infra (skip for pure UI/docs). It scores whether the new code is *operable in production* — structured logging on critical paths, metrics/SLIs, error/alert coverage — not just correct.
+
 See [Grading Rubric](grading-rubric.md) for detailed scoring criteria.
 
 ### Task Tool Mode (Default)
@@ -104,6 +106,20 @@ Agent(
   Return: score (0-10), bottlenecks found, optimization suggestions.
   Feature: {feature}. Scope: ONLY review files in {scope_files}.""",
   run_in_background=True, max_turns=25
+)
+# Conditional 7th agent — observability completeness. Spawn ONLY when the change
+# touches services/handlers, background jobs, or infra (skip for pure UI/docs).
+Agent(
+  subagent_type="ork:monitoring-engineer",
+  model=MODEL_OVERRIDE,
+  prompt="""# Cache-optimized: stable content first (CC 2.1.72)
+  Verify observability completeness. Score 0-10.
+  Check: structured logging on critical paths, metrics/SLIs for the new surface,
+  error and alert coverage, trace propagation. Skip pure UI/docs changes.
+  Budget: 12 tool calls max.
+  Return: score (0-10), observability gaps, instrumentation suggestions.
+  Feature: {feature}. Scope: ONLY review files in {scope_files}.""",
+  run_in_background=True, max_turns=20
 )
 ```
 
