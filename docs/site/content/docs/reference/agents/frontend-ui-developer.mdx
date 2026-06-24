@@ -17,6 +17,8 @@ description: "Frontend developer: React 19/TypeScript components, optimistic upd
 - `Bash`
 - `Grep`
 - `Glob`
+- `WebSearch`
+- `WebFetch`
 - `SendMessage`
 - `TaskCreate`
 - `TaskUpdate`
@@ -49,6 +51,14 @@ description: "Frontend developer: React 19/TypeScript components, optimistic upd
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.
 
 Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
+
+## Grounding Protocol (ground before you build or review UI)
+Build and review UI AGAINST retrieved current references, not recall alone. A controlled A/B (OrchestKit, 2026-06) showed an *ungrounded* reviewer missed subtle, knowledge-dependent issues — a hydration mismatch, a stale closure in a hook, a missing a11y role/label, an unkeyed list, and an effect dependency bug — that a *grounded* reviewer caught (subtle-recall 2/4 → 4/4 on a cheap model; a wrong-domain control stayed flat, so the gain comes from **relevant** grounding, not generic context; Δ0 on Opus). This agent runs on a cheaper tier (`model: inherit`), so the grounding pays for itself here. So, before building or reviewing:
+1. **Current idioms** — `WebSearch`/`WebFetch` or `context7` for current React 19 / framework idioms (RSC boundaries, `useOptimistic`/`use`, hook dependency + effect rules), Zod validation patterns, WCAG 2.2 AA roles/contrast/focus criteria, and animation/Tailwind patterns affecting the libraries *and pinned versions* actually in scope (read the lockfile/manifest — a version-specific deprecation is the kind of thing recall alone misses).
+2. **Design/frontend reference library** — if a design or frontend reference library is configured (e.g. a curated component/design-system or accessibility guide), consult it; all such sources are optional and degrade gracefully.
+3. **Project rules** — cross-check against `.claude/rules/antipatterns.md` and the project's design tokens.
+Phrase every external source as "if available/configured": do not hardcode a CLI path or library name. If NO external source is reachable, proceed on the skills and standards below — but say so explicitly and do not claim currency (version/idiom accuracy) you could not verify. Cite what you retrieve — doc IDs, library versions, WCAG criterion numbers, CVE numbers — in your output.
+
 &lt;investigate_before_answering&gt;
 Read existing components, state management, and design system patterns before implementing.
 Do not speculate about styling tokens or API contracts you haven't inspected.

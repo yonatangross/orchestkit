@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why are OrchestKit's specialists under-used? — mechanism explainer</title>
+<style>
+  :root{
+    --bg:#0c0e12; --panel:#13161c; --panel2:#181c24; --line:#262b36;
+    --ink:#e7ebf2; --dim:#8b94a6; --faint:#5b6475;
+    --ork:#34d399; --gp:#f59e0b; --wf:#ef4444; --ex:#60a5fa; --other:#a78bfa;
+    --good:#34d399; --warn:#f59e0b; --bad:#ef4444;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --ui:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:14.5px;line-height:1.6}
+  .page{max-width:1080px;margin:0 auto;padding:28px 22px 80px}
+  header h1{font-size:23px;margin:0 0 6px;font-weight:700;letter-spacing:.2px}
+  header .sub{color:var(--dim);font-size:13px}
+  .hero{background:linear-gradient(135deg,#0f2e22,#102031);border:1px solid #1f5e44;border-radius:16px;padding:22px 24px;margin:22px 0}
+  .hero .claim{font-size:18px;font-weight:650;line-height:1.45}
+  .hero .claim b{color:var(--ork)}
+  .hero .tldr{color:var(--dim);font-size:13.5px;margin-top:10px}
+
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:1.6px;color:var(--faint);margin:34px 0 4px;font-weight:700}
+  .lead{color:var(--dim);font-size:13.5px;margin:0 0 14px}
+
+  /* step nav */
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 18px}
+  .stepbtn{font-size:12.5px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);padding:7px 12px;border-radius:8px;cursor:pointer;transition:.12s}
+  .stepbtn:hover{border-color:var(--ork);color:var(--ink)}
+  .stepbtn.active{background:#0f2e22;border-color:var(--ork);color:var(--ork);font-weight:600}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:16px}
+  .card h3{margin:0 0 6px;font-size:16px;font-weight:650}
+  .card p{margin:8px 0;color:var(--ink)}
+  .card .small{color:var(--dim);font-size:13px}
+  code{font-family:var(--mono);font-size:12.5px;background:var(--panel2);padding:2px 6px;border-radius:5px;color:#cbd5e1}
+  .hl-ork{color:var(--ork);font-weight:600}.hl-gp{color:var(--gp);font-weight:600}
+  .hl-wf{color:var(--wf);font-weight:600}.hl-ex{color:var(--ex);font-weight:600}
+
+  /* decision tree */
+  .tree{display:flex;flex-direction:column;gap:0;font-family:var(--mono);font-size:13px}
+  .tnode{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;transition:.15s;border:1px solid transparent}
+  .tnode:hover{background:var(--panel2)}
+  .tnode.sel{background:var(--panel2);border-color:var(--ork)}
+  .tnode .pre{color:var(--faint);white-space:pre}
+  .tnode .lab{flex:1}
+  .tnode .badge{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700;white-space:nowrap}
+  .b-bad{background:#3a1414;color:#fecaca}.b-warn{background:#3a2a0a;color:#fde68a}
+  .b-good{background:#0f2e22;color:#d1fae5}.b-blue{background:#0e2742;color:#bfdbfe}
+  .why{margin-top:10px;padding:13px 15px;background:#0a1420;border-left:3px solid var(--ork);border-radius:0 9px 9px 0;font-size:13.5px;color:var(--ink);display:none}
+  .why.show{display:block}
+  .why b{color:var(--ork)}
+
+  /* gravity well */
+  .well{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .wellbox{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .wellbox h4{margin:0 0 8px;font-size:14px}
+  .wellbox ul{margin:6px 0 0;padding-left:18px;color:var(--dim);font-size:13px}
+  .wellbox.generic{border-color:#7f5510}.wellbox.spec{border-color:#1f5e44}
+
+  /* 1:1 chart */
+  .barrow{display:grid;grid-template-columns:200px 1fr 46px;align-items:center;gap:10px;margin:5px 0;font-size:12.5px}
+  .barrow .nm{font-family:var(--mono);color:var(--dim);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .barrow .track{background:var(--panel2);border-radius:5px;height:16px;overflow:hidden;position:relative}
+  .barrow .fill{height:100%;border-radius:5px}
+  .barrow .ct{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+  .barrow.active .fill{background:var(--ork)} .barrow.active .nm{color:var(--ink)}
+  .barrow.dorm .fill{background:var(--wf);opacity:.5}
+
+  /* myth cards */
+  .myths{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .myth{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:0;cursor:pointer;overflow:hidden;transition:.15s}
+  .myth:hover{border-color:var(--ork)}
+  .myth .q{padding:14px 16px;font-weight:600;font-size:14px;display:flex;gap:9px;align-items:flex-start}
+  .myth .q .x{color:var(--bad);font-weight:800}
+  .myth .a{padding:0 16px 14px;color:var(--dim);font-size:13px;display:none}
+  .myth .a b{color:var(--ork)}
+  .myth.open .a{display:block}
+  .myth.open .q{color:var(--ork)}
+
+  .prompt{position:sticky;bottom:14px;background:#0a1f17;border:1px solid #1f5e44;border-radius:14px;padding:16px 18px;margin-top:24px}
+  .prompt .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+  .prompt .hd b{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ork)}
+  .copy{font-size:12.5px;background:var(--ork);color:#062018;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:650}
+  .copy:active{transform:scale(.96)}
+  select{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:5px 9px;font-family:var(--ui);font-size:12.5px}
+  #ptext{font-size:13.5px}
+  .foot{color:var(--faint);font-size:12px;margin-top:10px;text-align:center}
+  @media(max-width:780px){.well,.myths{grid-template-columns:1fr}.barrow{grid-template-columns:130px 1fr 40px}}
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <h1>🧠 Why are OrchestKit's specialists under-used?</h1>
+  <div class="sub">A mechanism explainer · baseline 2026-06-23 · 1040 spawns · 37 agents · ork 8.58.0</div>
+</header>
+
+<div class="hero">
+  <div class="claim"><b>Activation is a function of wiring, not merit.</b> Every default spawn path routes <i>around</i> the specialist catalog — so an agent fires only when something explicitly forces traffic to it. Quality and descriptions barely move the needle.</div>
+  <div class="tldr">The catalog isn't broken. It's <b style="color:var(--ink)">under-reached</b>. 6 buttons below walk the causal chain.</div>
+</div>
+
+<div class="steps" id="steps"></div>
+
+<div id="stage"></div>
+
+<div class="prompt">
+  <div class="hd"><b>📋 Dig deeper → paste back to Claude</b><button class="copy" id="copyBtn">Copy</button></div>
+  <div style="margin-bottom:8px"><select id="topic"></select></div>
+  <div id="ptext"></div>
+</div>
+<div class="foot">Pair with the simulator playground (<code>activation-improvement-playground.html</code>) to model the fixes.</div>
+</div>
+
+<script>
+// ---------- data ----------
+const FIRED = [
+  ["web-research-analyst",26],["security-auditor",15],["backend-system-architect",13],
+  ["code-quality-reviewer",12],["test-generator",10],["product-strategist",9],
+  ["debug-investigator",8],["system-design-reviewer",7],["workflow-architect",6],["frontend-ui-developer",5]
+];
+const DORMANT = ["ai-safety-auditor","claude-design-orchestrator","component-curator","deployment-manager",
+  "design-context-extractor","design-system-architect","emulate-engineer","event-driven-architect",
+  "expect-agent","frontend-performance-engineer","git-operations-engineer","infrastructure-architect",
+  "monitoring-engineer","multimodal-specialist","python-performance-engineer","security-layer-auditor","ui-feedback"];
+
+// ---------- steps ----------
+const STEPS = [
+  {key:"paths",   t:"① Two spawn paths"},
+  {key:"gravity", t:"② The gravity well"},
+  {key:"law",     t:"③ The wiring law"},
+  {key:"workflow",t:"④ Why workflows are blind"},
+  {key:"myths",   t:"⑤ Myth-busting"},
+  {key:"fix",     t:"⑥ The fix follows the cause"},
+];
+
+const TREE = [
+  {pre:"┌─", lab:"A task needs a sub-agent", badge:"", cls:"", why:"Every spawn starts here. There are exactly TWO ways the spawn gets created — and they behave completely differently."},
+  {pre:"├─ PATH A ▶", lab:"The model picks a tool itself (Task)", badge:"", cls:"", why:"Here the model freely chooses the <code>subagent_type</code>. It can pick a specialist — but only if it <b>recalls one exists and matches the task</b>. There's no menu in front of it at decision time."},
+  {pre:"│    ├─", lab:"read-only investigation → Explore", badge:"233 · 22%", cls:"b-blue", why:"<b class='hl-ex'>Explore (233)</b> is the right call for 'map the security surface' / 'inventory hooks'. This is mostly <b>correct routing</b>, not a miss."},
+  {pre:"│    ├─", lab:"catch-all → general-purpose", badge:"164 · 16%", cls:"b-warn", why:"<b class='hl-gp'>general-purpose (164)</b> is always available and always valid. ~⅔ of these (Triage/Assess clusters) are genuinely multi-domain. But ~35% were domain-shaped ('investigate CI failure' → debug-investigator) — <b>that ~57-spawn slice is the real misroute</b>."},
+  {pre:"│    └─", lab:"names a specialist → ork catalog", badge:"130 · 13%", cls:"b-good", why:"<b class='hl-ork'>ork catalog (130)</b>. This only happens when a skill <b>hardcoded</b> <code>subagent_type=ork:&lt;name&gt;</code>, or the model spontaneously recalled the agent. Spontaneous recall is weak → most catalog hits come from skill wiring."},
+  {pre:"└─ PATH B ▶", lab:"A Workflow() stage spawns it", badge:"394 · 38%", cls:"b-bad", why:"<b class='hl-wf'>workflow-subagent (394)</b> — the BIGGEST channel. <code>agent()</code> inside a workflow defaults to a generic worker unless the author passes <code>agentType:'ork:&lt;name&gt;'</code>. Almost no scripts do. So this entire 38% is <b>structurally blind to the catalog</b>."},
+];
+
+// ---------- render ----------
+const $=id=>document.getElementById(id);
+let cur="paths";
+
+function stageHTML(k){
+  if(k==="paths") return `
+    <h2>① The two spawn paths</h2>
+    <p class="lead">Click each node. Only ONE of the two paths can even reach the catalog — and it needs help to do so.</p>
+    <div class="card"><div class="tree" id="tree"></div></div>`;
+  if(k==="gravity") return `
+    <h2>② The gravity well</h2>
+    <p class="lead">Why does the generic catch-all win when nothing forces a specialist? Asymmetric cost.</p>
+    <div class="card">
+      <div class="well">
+        <div class="wellbox generic"><h4>🕳️ <span class="hl-gp">Generic</span> (general-purpose / Explore)</h4>
+          <ul><li>Always in the tool list — zero recall needed</li><li>Always a <i>valid</i> answer for any task</li><li>No domain-match decision required</li><li>The default gravity well — the ball rolls here</li></ul></div>
+        <div class="wellbox spec"><h4>🎯 <span class="hl-ork">Specialist</span> (37 ork agents)</h4>
+          <ul><li>Model must <b>know it exists</b></li><li>Must <b>match</b> task → agent</li><li>Must <b>prefer</b> it over the always-there generic</li><li>Needs a <b>forcing function</b> or it loses by default</li></ul></div>
+      </div>
+      <p class="small" style="margin-top:14px">This asymmetry is the whole story of <span class="hl-gp">general-purpose 164</span> &gt; <span class="hl-ork">ork 130</span>. The catch-all isn't winning on merit — it's winning on <b>path of least resistance</b>. Three things act as forcing functions: skill wiring, typed workflows, and the advisor (#2632). Absent all three, gravity wins.</p>
+    </div>`;
+  if(k==="law") return `
+    <h2>③ The wiring law</h2>
+    <p class="lead">Agents fire in proportion to how often an <b>actually-run</b> skill names them. Not their quality. Not their description.</p>
+    <div class="card">
+      <div id="chart"></div>
+      <p class="small" style="margin-top:14px"><b style="color:var(--ink)">Read it:</b> the green agents are wired into skills that run often (or, like <span class="hl-ork">web-research-analyst</span>, into a heavily-used workflow). The 17 red bars are flat zero — wired into 0–1 skills, or only into <i>cold</i> skills that rarely run. Same catalog, same descriptions — the discriminator is <b>traffic-weighted wiring</b>.</p>
+    </div>`;
+  if(k==="workflow") return `
+    <h2>④ Why workflows are blind</h2>
+    <p class="lead">The single biggest channel (394) ignores all 37 specialists — and it's not a bug, it's a default.</p>
+    <div class="card">
+      <p>Inside a <code>Workflow</code> script, you spawn work like this:</p>
+      <pre style="background:var(--panel2);padding:13px 15px;border-radius:9px;font-family:var(--mono);font-size:12.5px;overflow-x:auto;color:#cbd5e1"><span style="color:var(--faint)">// what almost every workflow does today →</span> spawns <span class="hl-wf">workflow-subagent</span>
+agent("Review the auth changes for security holes")
+
+<span style="color:var(--faint)">// what it COULD do →</span> spawns the <span class="hl-ork">specialist</span>
+agent("Review the auth changes for security holes",
+      { <b style="color:var(--ork)">agentType: 'ork:security-auditor'</b> })</pre>
+      <p>The first form is zero-config, so it's what gets written. Typing requires the author to (1) know the specialist exists, (2) know <code>agentType</code> is a parameter, (3) pick the right one per stage — extra work, <b>no enforcement</b>. Same root cause as the gravity well: least resistance.</p>
+      <p class="small">This is why the just-shipped advisor (#2632) — which only watches <span class="hl-gp">general-purpose</span> — structurally <b>cannot</b> touch the biggest bucket. It's aiming at 164 while 394 sails past.</p>
+    </div>`;
+  if(k==="myths") return `
+    <h2>⑤ Myth-busting</h2>
+    <p class="lead">Click each. The intuitive fixes are mostly wrong — which is why this took telemetry to see.</p>
+    <div class="myths" id="myths"></div>`;
+  if(k==="fix") return `
+    <h2>⑥ The fix follows the cause</h2>
+    <p class="lead">If activation = forcing functions, you fix it by adding forcing functions — in order of leverage.</p>
+    <div class="card">
+      <div class="barrow" style="grid-template-columns:230px 1fr 80px"><div class="nm" style="text-align:left;color:var(--wf)">① Type Workflow stages</div><div class="track"><div class="fill" style="width:100%;background:var(--wf)"></div></div><div class="ct">+236</div></div>
+      <div class="barrow" style="grid-template-columns:230px 1fr 80px"><div class="nm" style="text-align:left;color:var(--ork)">② Wire 7 mis-triggered</div><div class="track"><div class="fill" style="width:30%;background:var(--ork)"></div></div><div class="ct">1:1</div></div>
+      <div class="barrow" style="grid-template-columns:230px 1fr 80px"><div class="nm" style="text-align:left;color:var(--gp)">③ Advisor (shipped)</div><div class="track"><div class="fill" style="width:24%;background:var(--gp)"></div></div><div class="ct">+57</div></div>
+      <div class="barrow" style="grid-template-columns:230px 1fr 80px"><div class="nm" style="text-align:left;color:var(--ex)">④ Explore → specialist</div><div class="track"><div class="fill" style="width:12%;background:var(--ex)"></div></div><div class="ct">marginal</div></div>
+      <p class="small" style="margin-top:14px">Notice the fix mirrors the cause exactly: the biggest blind channel (workflows) is the biggest fix; descriptions appear <b>nowhere</b> (A/B Δ0). The advisor is real but small because it targets the smaller, partly-legitimate bucket. <b style="color:var(--ink)">Conclusion: this is a distribution problem, not a quality problem</b> — the good kind, fixable by an <code>agentType=</code> authoring pass, not a redesign.</p>
+    </div>`;
+}
+
+function paint(){
+  $("stage").innerHTML = stageHTML(cur);
+  document.querySelectorAll(".stepbtn").forEach(b=>b.classList.toggle("active", b.dataset.k===cur));
+  if(cur==="paths") buildTree();
+  if(cur==="law") buildChart();
+  if(cur==="myths") buildMyths();
+}
+function buildTree(){
+  const t=$("tree"); t.innerHTML="";
+  TREE.forEach((n,i)=>{
+    const row=document.createElement("div"); row.className="tnode";
+    row.innerHTML=`<span class="pre">${n.pre}</span><span class="lab">${n.lab}</span>${n.badge?`<span class="badge ${n.cls}">${n.badge}</span>`:""}`;
+    const why=document.createElement("div"); why.className="why"; why.innerHTML=n.why;
+    row.onclick=()=>{ const open=why.classList.contains("show"); document.querySelectorAll(".why").forEach(w=>w.classList.remove("show")); document.querySelectorAll(".tnode").forEach(x=>x.classList.remove("sel")); if(!open){why.classList.add("show");row.classList.add("sel");} };
+    t.appendChild(row); t.appendChild(why);
+  });
+}
+function buildChart(){
+  const c=$("chart"); c.innerHTML=""; const max=26;
+  FIRED.forEach(([n,v])=>{ const r=document.createElement("div"); r.className="barrow active"; r.innerHTML=`<div class="nm">${n}</div><div class="track"><div class="fill" style="width:${v/max*100}%"></div></div><div class="ct">${v}🔥</div>`; c.appendChild(r); });
+  const sep=document.createElement("div"); sep.style.cssText="margin:10px 0 6px;color:var(--faint);font-size:11.5px;font-family:var(--mono)"; sep.textContent="── 17 dormant (fires = 0) ──"; c.appendChild(sep);
+  DORMANT.slice(0,8).forEach(n=>{ const r=document.createElement("div"); r.className="barrow dorm"; r.innerHTML=`<div class="nm">${n}</div><div class="track"><div class="fill" style="width:2%"></div></div><div class="ct">0</div>`; c.appendChild(r); });
+  const more=document.createElement("div"); more.style.cssText="color:var(--faint);font-size:11.5px;margin-top:4px"; more.textContent="… +9 more dormant"; c.appendChild(more);
+}
+const MYTHS=[
+  ["“Just write better agent descriptions.”","Δ0. An isolated A/B (terse vs Anthropic-style 'use proactively', full 37-agent catalog) scored <b>18/18 both variants</b> across clear + indirect prompts. It also blew the 6000-byte description cap (+560 tok/session). The model isn't choosing from descriptions — it follows wiring or defaults to generic."],
+  ["“76% generic means the model is failing.”","No. 394 of that is <b>workflow orchestration</b> (deliberate) and 233 is <b>Explore</b> (read-only, usually correct). The actual 'should've been a specialist but wasn't' rate is <b>~5%</b> (~57/1040), not 64%."],
+  ["“Dormant agents are bad agents — prune them.”","<b>0 are dead.</b> 10 of the 17 are legit NICHE (design, IaC, multimodal — rare by nature, correctly kept). Only 7 are mis-wired. Activation ≠ quality; a great agent no skill names still fires zero."],
+  ["“The model should just know which agent to use.”","It does — <b>when it consults the catalog</b> (18/18 A/B). The gap is it rarely <i>reaches</i> for the catalog unprompted. Knowing ≠ defaulting; the always-there generic wins without a forcing function."],
+];
+function buildMyths(){
+  const m=$("myths"); m.innerHTML="";
+  MYTHS.forEach(([q,a])=>{ const d=document.createElement("div"); d.className="myth"; d.innerHTML=`<div class="q"><span class="x">✗</span><span>${q}</span></div><div class="a">${a}</div>`; d.onclick=()=>d.classList.toggle("open"); m.appendChild(d); });
+}
+
+// steps nav
+const sc=$("steps");
+STEPS.forEach(s=>{ const b=document.createElement("button"); b.className="stepbtn"; b.dataset.k=s.key; b.textContent=s.t; b.onclick=()=>{cur=s.key;paint();}; sc.appendChild(b); });
+
+// prompt
+const TOPICS={
+  "the two spawn paths (Path A model-pick vs Path B Workflow)":"Explain in depth how OrchestKit sub-agent spawns split between Path A (model picks subagent_type via the Task tool) and Path B (Workflow() stages spawning workflow-subagent), and why only Path A can reach the specialist catalog without help.",
+  "the gravity well (why generic wins by default)":"Explain why generic agents (general-purpose/Explore) out-compete OrchestKit specialists by default — the asymmetric cost of recall/match/prefer vs always-available-and-valid — and what 'forcing functions' overcome it.",
+  "the wiring law (fires ∝ traffic-weighted skill refs)":"Explain the empirical law that OrchestKit agents fire in proportion to how often an actually-run skill names them via subagent_type=, with the fired-vs-dormant evidence, and why this means activation is a wiring problem.",
+  "why workflows are blind to the catalog":"Explain why Workflow() stages spawn generic workflow-subagent instead of ork specialists (the agentType= default), why it's the biggest channel at 394 spawns, and why the advisor (#2632) structurally cannot fix it.",
+  "the myths (descriptions, 76%, pruning, model-should-know)":"Walk through why the four intuitive fixes for low agent activation are wrong: rewriting descriptions (A/B Δ0), treating 76% generic as failure (~5% real misroute), pruning dormant agents (0 dead, 10 niche), and 'the model should just know'.",
+  "the fix plan (agentType= authoring pass, ranked levers)":"Lay out the ranked fix for OrchestKit agent activation: ① type Workflow stages via agentType=, ② wire the 7 mis-triggered agents, ③ advisor (shipped), ④ Explore redirect — with why it's a distribution problem not a quality one.",
+  "EVERYTHING (full mechanism + baseline + fix)":"Give me the complete picture of OrchestKit sub-agent activation: the 2026-06-23 baseline (1040 spawns, ork 12.5%, ork:gp 0.79), the root-cause mechanism (two spawn paths, the gravity well, the wiring law, blind workflows), the myth-busting, and the ranked fix plan."
+};
+const ts=$("topic");
+Object.keys(TOPICS).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=k;ts.appendChild(o);});
+ts.value="EVERYTHING (full mechanism + baseline + fix)";
+function updPrompt(){ $("ptext").textContent=TOPICS[ts.value]; }
+ts.onchange=updPrompt;
+$("copyBtn").onclick=()=>{navigator.clipboard.writeText($("ptext").textContent).then(()=>{const b=$("copyBtn"),t=b.textContent;b.textContent="Copied!";setTimeout(()=>b.textContent=t,1100);});};
+
+// init
+cur="paths"; paint(); updPrompt();
+</script>
+</body>
+</html>
