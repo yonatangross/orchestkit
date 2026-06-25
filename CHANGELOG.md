@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.61.0](https://github.com/yonatangross/orchestkit/compare/v8.60.1...v8.61.0) (2026-06-25)
+
+
+### Features
+
+* **agents:** wire 7 under-activated agents/skills (P2) ([#2644](https://github.com/yonatangross/orchestkit/issues/2644)) ([f2bf2d2](https://github.com/yonatangross/orchestkit/commit/f2bf2d2cae29bafe566489a795c7d47ecd1bc923))
+
+
+### Bug Fixes
+
+* **hooks:** pre-commit runner treats timeouts as skips, not failures ([#2658](https://github.com/yonatangross/orchestkit/issues/2658)) ([456f582](https://github.com/yonatangross/orchestkit/commit/456f58281212288f5a80c8d4bf8d076061b6a708))
+* **skills:** salvage standalone fixes from superseded [#2643](https://github.com/yonatangross/orchestkit/issues/2643) ([#2657](https://github.com/yonatangross/orchestkit/issues/2657)) ([e169b2e](https://github.com/yonatangross/orchestkit/commit/e169b2ef2789c399c561c88a85f173c6557aa2bc))
+
 ## [8.60.1](https://github.com/yonatangross/orchestkit/compare/v8.60.0...v8.60.1) (2026-06-25)
 
 
