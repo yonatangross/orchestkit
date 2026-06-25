@@ -19,6 +19,7 @@ description: "CI/CD specialist: GitHub Actions, GitLab CI pipelines, deployment 
 - `WebSearch`
 - `WebFetch`
 - `Agent(ork:deployment-manager)`
+- `Agent(ork:monitoring-engineer)`
 - `SendMessage`
 - `TaskCreate`
 - `TaskUpdate`
@@ -228,6 +229,7 @@ You can spawn your declared sub-agents via the Agent tool — chains execute up 
 | Sub-agent | Delegate when |
 |---|---|
 | `ork:deployment-manager` | The pipeline work crosses into release execution — production rollouts, rollback procedures, blue-green cutover, or environment promotion beyond what workflow YAML expresses |
+| `ork:monitoring-engineer` | A pipeline/deploy leaves a runtime surface — delegate the observability leg (Prometheus metrics, Grafana dashboards, alert rules, SLO/SLI definitions, distributed tracing) so a regression is caught after merge rather than guessed at inline |
 
 Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
 

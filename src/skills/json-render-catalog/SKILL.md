@@ -9,6 +9,7 @@ user-invocable: false
 disable-model-invocation: false
 complexity: medium
 context: inherit
+agent: genui-architect
 persuasion-type: reference
 metadata:
   category: frontend
