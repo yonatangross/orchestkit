@@ -9,6 +9,7 @@ user-invocable: true
 argument-hint: "[version]"
 complexity: low
 context: inherit
+agent: release-engineer
 persuasion-type: collaborative
 triggers:
   keywords: [release-sync, sync release, update notebooklm, sync kb, push release content]

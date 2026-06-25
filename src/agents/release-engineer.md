@@ -28,6 +28,7 @@ skills:
   - release-management
   - release-sync
   - github-operations
+  - documentation-patterns
   - task-dependency-patterns
   - remember
   - memory
