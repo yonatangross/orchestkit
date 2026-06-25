@@ -159,7 +159,8 @@ describe('Async Hooks Registry', () => {
       //           worktree/worktree-provisioner (CC's WorktreeCreate contract consumes
       //           the hook's stdout as the provisioned path — provisioning can't be async).
       // 98 -> 99: posttool/write/debt-marker-tracker (PostToolUse Write/Edit, async, 5s).
-      expect(asyncHooks.length, 'Should have exactly 99 async hooks').toBe(99);
+      // 99 -> 100: re-registered subagent-stop/unified-dispatcher (#1206 orphan fix).
+      expect(asyncHooks.length, 'Should have exactly 100 async hooks').toBe(100);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
