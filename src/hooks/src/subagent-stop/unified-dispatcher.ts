@@ -2,9 +2,18 @@
  * Unified SubagentStop Dispatcher
  * Issue #235: Hook Architecture Refactor
  *
- * Consolidates 2 async SubagentStop hooks into a single dispatcher.
- * Reduces "Async hook SubagentStop completed" messages to 1.
- * Analytics hooks (context-publisher, agent-memory-store) removed in #897 — now handled by HQ.
+ * Consolidates SubagentStop processing into a single dispatcher AND writes the
+ * local activation analytics: agent-usage.jsonl (per-agent activation + usage
+ * metrics) and subagent-quality.jsonl (transcript quality scoring).
+ *
+ * The context-publisher and agent-memory-store hooks were removed in #897 (HQ
+ * owns the local context file + the cc_sessions.agents JSONB store) — local
+ * analytics writing stayed here and is NOT delegated to HQ.
+ *
+ * History: this dispatcher was orphaned (unregistered in hooks.json) from
+ * v7.30.0 until #2653 re-registered it on SubagentStop — which left
+ * agent-usage.jsonl frozen for ~78 days. The registry-wiring e2e test now
+ * asserts the registration so it cannot silently regress again.
  *
  * CC 2.1.19 Compliant: Single async hook with internal routing
  */
@@ -17,8 +26,9 @@ import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.j
 import { appendLedgerEntry, resolveAgentContext } from '../lib/agent-attribution.js';
 import { loadAccumState, saveAccumState } from '../lib/session-token-accum.js';
 
-// Import individual hook implementations
-// Analytics hooks removed — now handled by HQ (#897):
+// Import individual hook implementations.
+// Removed in #897 (HQ owns these concerns) — the local agent-usage /
+// subagent-quality analytics writes below are unaffected by that removal:
 // - context-publisher (local context file rarely read)
 // - agent-memory-store (HQ stores in cc_sessions.agents JSONB)
 import { handoffPreparer } from './handoff-preparer.js';
