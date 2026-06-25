@@ -19,6 +19,7 @@ vi.mock('node:fs', () => ({
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { ccVersionCheck } from '../../lifecycle/cc-version-check.js';
+import { LATEST_KNOWN_CC } from '../../lib/cc-version-matrix.js';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
@@ -78,15 +79,10 @@ describe('cc-version-check', () => {
   });
 
   it('silent success when running CC is exactly the matrix latest', () => {
-    // Pick a version that exists in the current matrix snapshot and is
-    // >= the support floor. Updating both values is required when floor
-    // or latest moves: M128 set 2.1.122 floor, M131 set 2.1.125 floor /
-    // 2.1.128 latest, 2026-05-07 bolder bump set 2.1.132 floor / latest,
-    // M134 W4 closeout (2026-05-10) bumped to 2.1.138 floor / latest,
-    // M137 (2026-05-12) bumped to 2.1.139 floor / latest,
-    // #1945 (2026-05-24) ladder capstone bumped to 2.1.148 floor / latest.
-    // 2026-06-10 owner decision: strict floor=latest=latest_known=2.1.183.
-    process.env.CLAUDE_CODE_VERSION = '2.1.183';
+    // Drive off the stamped constant so this stays correct across latest_known
+    // bumps: running == LATEST_KNOWN_CC is neither below-floor nor above-latest,
+    // so the hook stays silent (no warning, no adoption nudge).
+    process.env.CLAUDE_CODE_VERSION = LATEST_KNOWN_CC;
     const result = ccVersionCheck(makeInput('in-range-test'), createTestContext());
     expect(result.continue).toBe(true);
     expect(result.systemMessage).toBeUndefined();

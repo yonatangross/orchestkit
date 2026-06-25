@@ -1,13 +1,13 @@
 {
   "$schema": "./cc-support.schema.json",
   "latest": "2.1.183",
-  "latest_known": "2.1.183",
+  "latest_known": "2.1.191",
   "supported_floor": "2.1.183",
   "drop_after": "2.1.182",
   "policy": "latest + 3 previous minors",
   "policy_doc": "shared/rules/cc-support-policy.md",
   "manual_override": {
-    "reason": "Deliberate owner decision (2026-06-20) to set floor=latest=latest_known=2.1.183 — support only the newest CC, renewing the 2026-06-10 strict bump (which pinned 2.1.170). This STRICT bump removes the now-dead TeamCreate/TeamDelete tools (hard-removed in CC 2.1.178) and adopts the 2.1.171-2.1.183 capability set. Continues to override the #1945 capstone freeze per explicit owner request; auto-bump policy resumes after expires. NOTE: this DELIBERATELY DEVIATES from the steady-state policy field (latest + 3 previous minors) — floor is pinned to latest+0 here. The policy field is intentionally left unchanged because cc-support-window-bump.yml reads it to recompute the floor once this override expires; the policy resumes then.",
+    "reason": "Deliberate owner decision (2026-06-20) to set floor=latest=latest_known=2.1.183 — support only the newest CC, renewing the 2026-06-10 strict bump (which pinned 2.1.170). This STRICT bump removes the now-dead TeamCreate/TeamDelete tools (hard-removed in CC 2.1.178) and adopts the 2.1.171-2.1.183 capability set. Continues to override the #1945 capstone freeze per explicit owner request; auto-bump policy resumes after expires. NOTE: this DELIBERATELY DEVIATES from the steady-state policy field (latest + 3 previous minors) — floor is pinned to latest+0 here. The policy field is intentionally left unchanged because cc-support-window-bump.yml reads it to recompute the floor once this override expires; the policy resumes then. (2026-06-25, #2639: latest_known advanced from 2.1.183 to 2.1.191 to clear the per-session adoption-lag nudge — floor/latest stay frozen at 2.1.183 by design (latest_known diverges from latest while the floor is frozen); all of 2.1.184-2.1.191 verified no-op for ork.)",
     "expires": "2026-09-20"
   },
   "comment": "Single source of truth for OrchestKit's CC support window. All other floor declarations (CLAUDE.md, src/hooks/src/lib/cc-version-matrix.ts MIN_CC_VERSION, manifests/ork.json) derive from this via scripts/stamp-cc-support.mjs. `latest_known` (the highest CC version ork's adoption covers — distinct from `latest`, the support-window head; they diverge while a manual_override freezes the floor) stamps LATEST_KNOWN_CC, the version-check adoption-nudge threshold. Updated by .github/workflows/cc-support-window-bump.yml."
