@@ -2,8 +2,11 @@ name: "Validate: Version"
 
 on:
   pull_request:
+    # reopened included so a required check re-reports on PR reopen — without it,
+    # close/reopen (a common CI re-trigger) leaves this required context absent on
+    # the new HEAD and the PR stays BLOCKED on a status that never runs.
     branches: [main]
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
   merge_group:
 
 permissions: {}
