@@ -127,6 +127,25 @@ describe('Dispatcher Registry Wiring E2E', () => {
       }
     });
 
+    it('should register subagent-stop/unified-dispatcher on SubagentStop (regression guard for #2653)', () => {
+      // The unified-dispatcher is the writer for agent-usage.jsonl (activation
+      // telemetry) + subagent-quality.jsonl. It was orphaned — present in source
+      // but unregistered in hooks.json — from v7.30.0 until #2653 re-registered
+      // it, freezing agent-usage.jsonl for ~78 days while this suite stayed
+      // green (the flattened-entries test above did not assert this entry).
+      // Asserting the registration directly is the guard that closes that gap.
+      const subagentStopGroups = hooksConfig.hooks.SubagentStop || [];
+      const subagentStopHooks = subagentStopGroups.flatMap(g => g.hooks);
+      const dispatcher = subagentStopHooks.find(h =>
+        commandPath(h).includes('subagent-stop/unified-dispatcher'),
+      );
+      expect(
+        dispatcher,
+        'SubagentStop MUST register subagent-stop/unified-dispatcher (agent-usage.jsonl writer)',
+      ).toBeDefined();
+      expect(dispatcher?.async, 'unified-dispatcher should be async: true').toBe(true);
+    });
+
     it('should have Stop using async dispatcher and uncommitted check (Issue #653)', () => {
       // Stop hooks run cleanup tasks that should NOT block session exit.
       // Now uses native async: true instead of fire-and-forget spawn.

@@ -1315,7 +1315,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "configure",
     "description": "Interactive configuration wizard for OrchestKit plugin settings including MCP server enablement, hook permissions, keybindings, and installation presets (Complete/Standard/Lite). Supports preset shortcuts, per-category skill customization, and webhook configuration. Use when customizing plugin behavior or managing settings.",
     "version": "1.0.1",
-    "sha256": "43e302e3b874f3ad55c4142c087a8f864a30ea8f8cefc75b0fc6d615f86cb22c",
+    "sha256": "40a2f9f2be8505dd6021ddbc50bf8a462f4c05d8865b96504e89d2dbbccbdb22",
     "author": "OrchestKit",
     "tags": [
       "configuration",
@@ -2872,7 +2872,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "frontend-ui-developer"
+    ]
   },
   "issue-progress-tracking": {
     "name": "issue-progress-tracking",
