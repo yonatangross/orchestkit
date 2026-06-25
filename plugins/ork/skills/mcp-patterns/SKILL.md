@@ -185,6 +185,7 @@ async def search(query: str) -> str:
 2. Missing input validation on tool arguments
 3. Returning secrets in tool output (API keys, credentials)
    - CC 2.1.161 mitigates this at the CLI layer: `claude mcp list/get/add` no longer expands `${VAR}` references and redacts credential headers and URL secrets in terminal output — but server code must still never return secrets in tool *results*. `/mcp` also collapses never-signed-in connectors behind a "Show unused connectors" row.
+   - CC 2.1.186 adds `claude mcp login <name>` / `claude mcp logout <name>` for OAuth-backed servers (HTTP/SSE/connector). Pass `--no-browser` to print the authorization URL instead of opening a browser — the supported path for SSH/headless/remote sessions (paste the redirect URL back when prompted), so interactive-only auth never blocks automated setup.
 4. Unbounded response sizes without `_meta` annotation — use `_meta["anthropic/maxResultSizeChars"]` to declare intentionally large results (DB schemas, API specs) so clients/hooks don't truncate them
 5. Trusting tool descriptions without sanitization (injection risk)
 6. No hash verification on tool invocations (rug pull vulnerability)

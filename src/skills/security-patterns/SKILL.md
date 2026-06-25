@@ -132,6 +132,21 @@ Network-layer blocklist enforced before Bash/WebFetch egress — pair with the h
 
 Wildcards supported (`*.example.com`, `evil.com/*/malicious/*`). Plugins ship a baseline list in `src/settings/ork.settings.json`; project settings can extend it. Use for: prompt-injection exfil sinks, known-bad registries, paste services that bypass audit.
 
+### `sandbox.credentials` (CC 2.1.187+)
+
+Blocks sandboxed Bash from reading credential **files** and secret **env vars** — defense-in-depth beside `sandbox.filesystem.denyRead`. Deny-only and merged across scopes (any scope can add, none can remove); older CC ignores the key. Settings example:
+
+```json
+"sandbox": {
+  "credentials": {
+    "files": [{ "path": "~/.aws/credentials", "mode": "deny" }],
+    "envVars": [{ "name": "GITHUB_TOKEN", "mode": "deny" }]
+  }
+}
+```
+
+Plugins ship a baseline in `src/settings/ork.settings.json` (denies `~/.aws/credentials`, `~/.ssh`, `~/.gnupg`, `~/.netrc`, `~/.npmrc` plus the token env vars that can hijack git-push auth). Pair with `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` to scrub all subprocess credentials regardless of sandboxing.
+
 ## Input Validation
 
 Validate and sanitize all untrusted input using Zod v4 and Pydantic.
