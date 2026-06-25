@@ -1,0 +1,44 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "swarm-migrate",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "cross-repo-bump",
+      "query": "Bump the shared logging library to v3 across all our service repos",
+      "expected_behavior": [
+        "Spawns one coordinator plus N parallel subagents, one per target repo",
+        "Each subagent works in an isolated worktree, opens a PR, and waits for CI",
+        "Reports results to a shared JSON ledger and stops on a novel failure"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "three-repo-threshold",
+      "query": "Roll out the same GitHub Actions workflow change to 5 repos",
+      "expected_behavior": [
+        "Confirms the same-shape transformation targets 3 or more repos",
+        "Treats the rollout as a swarm migration rather than sequential manual edits"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "negative-single-repo",
+      "query": "Refactor the auth module in this one repo",
+      "expected_behavior": [
+        "Recognizes single-repo work is out of scope for the swarm",
+        "Routes to /ork:implement instead of spawning per-repo subagents"
+      ],
+      "tags": ["negative"]
+    },
+    {
+      "id": "negative-exploration",
+      "query": "Explore a few possible approaches for migrating our monorepo layout",
+      "expected_behavior": [
+        "Recognizes this is open-ended exploration, not a fixed transformation",
+        "Routes to /ork:brainstorm rather than launching a migration swarm"
+      ],
+      "tags": ["negative"]
+    }
+  ]
+}

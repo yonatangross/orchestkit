@@ -1,0 +1,35 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "release-sync",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "propagate-release-knowledge",
+      "query": "We just tagged 8.61.0 — propagate the release knowledge to the knowledge base",
+      "expected_behavior": [
+        "Reads the CHANGELOG, CLAUDE.md, and hook README as the release source material",
+        "Updates the NotebookLM notebook sources with the new release content",
+        "Ingests the release digest into the HQ Knowledge Base"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "optional-podcast",
+      "query": "After syncing the release, can you also produce an audio summary?",
+      "expected_behavior": [
+        "Optionally generates a podcast from the updated knowledge base",
+        "Treats the podcast as an opt-in step rather than a required part of the sync"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "negative-before-tag",
+      "query": "Sync the release knowledge for work that hasn't been version-tagged yet",
+      "expected_behavior": [
+        "Recognizes the skill runs after version tagging, not before",
+        "Declines to sync until a release tag exists"
+      ],
+      "tags": ["negative"]
+    }
+  ]
+}

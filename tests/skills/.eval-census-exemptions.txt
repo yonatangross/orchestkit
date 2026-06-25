@@ -13,12 +13,7 @@
 #  multi-surface-render now have graded .eval.json files — removed from exemptions)
 portless | exempt | reference-documentation (user-invocable: false)
 
-ci-debug | gap | user-invocable behavioral skill
-ci-sentinel | gap | user-invocable behavioral skill (autonomous)
-design-import | gap | user-invocable behavioral skill
-design-ship | gap | user-invocable behavioral skill
-dream | gap | user-invocable behavioral skill
-prd-to-goal | gap | user-invocable behavioral skill
-release-sync | gap | user-invocable behavioral skill (automation)
-swarm-migrate | gap | user-invocable behavioral skill (cross-repo)
-telemetry-inspect | gap | user-invocable behavioral skill
+# (2026-06-25) all former recommend=gap skills now carry hand-authored graded
+# .eval.json files — gap backlog is zero. ci-debug, ci-sentinel, design-import,
+# design-ship, dream, prd-to-goal, release-sync, swarm-migrate, telemetry-inspect.
+# A NEW ungraded behavioral skill must be graded or re-listed here (ratchet floor 0).

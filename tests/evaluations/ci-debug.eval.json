@@ -1,0 +1,45 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "ci-debug",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "diagnose-failing-check",
+      "query": "PR #123's lint check is failing — what's actually wrong?",
+      "expected_behavior": [
+        "Classifies the failure against the 11-pattern CI playbook rather than guessing",
+        "Cites the specific Yonatan-HQ memory entry that matches the failure class",
+        "Proposes the exact fix command but does NOT apply it without explicit user approval"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "stuck-external-status",
+      "query": "gh pr checks shows zero failing jobs but a status sits pending forever, and mergeStateStatus is UNSTABLE while mergeable is MERGEABLE",
+      "expected_behavior": [
+        "Recognizes a stuck external status (Pattern #11), not a real job failure",
+        "Classifies from commit-status metadata via gh api commits/<sha>/status instead of hunting for a failing log",
+        "Does not waste effort fetching a log that does not exist"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "negative-org-wide-sweep",
+      "query": "Audit CI status across all 12 of my repos",
+      "expected_behavior": [
+        "Recognizes this is an org-wide sweep, which is out of scope for ci-debug",
+        "Routes the user to /status instead of running the single-run playbook"
+      ],
+      "tags": ["negative"]
+    },
+    {
+      "id": "negative-app-test-failure",
+      "query": "My unit test assertion in the app keeps failing locally",
+      "expected_behavior": [
+        "Recognizes an app-level test failure is outside the CI-infrastructure playbook",
+        "Declines to apply the infra-specific patterns and points at app-level debugging instead"
+      ],
+      "tags": ["negative"]
+    }
+  ]
+}

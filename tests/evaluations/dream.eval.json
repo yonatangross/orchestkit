@@ -1,0 +1,44 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "dream",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "consolidate-memory",
+      "query": "My memory files have piled up over many sessions — clean them up",
+      "expected_behavior": [
+        "Prunes stale entries, merges duplicates, and resolves contradictions across memory files",
+        "Rebuilds the MEMORY.md index after consolidation",
+        "Operates on accumulated memory, not on a single new fact"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "consult-gate-protects-active",
+      "query": "Run consolidation when one stale-looking memory is still referenced by a recent session",
+      "expected_behavior": [
+        "Applies the consult-gate and does not prune a memory that is still being used",
+        "Distinguishes truly-orphaned entries from referenced ones before deleting"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "negative-store-decision",
+      "query": "Remember that we chose cursor-based pagination for the feed",
+      "expected_behavior": [
+        "Recognizes this is storing a new decision, not consolidating existing memory",
+        "Routes to /ork:remember instead of running the dream consolidation"
+      ],
+      "tags": ["negative"]
+    },
+    {
+      "id": "negative-search-memory",
+      "query": "What did we decide about the auth token rotation?",
+      "expected_behavior": [
+        "Recognizes this is a memory search, not a cleanup task",
+        "Routes to /ork:memory rather than invoking consolidation"
+      ],
+      "tags": ["negative"]
+    }
+  ]
+}

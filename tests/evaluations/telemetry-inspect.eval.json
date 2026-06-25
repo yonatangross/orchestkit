@@ -1,0 +1,35 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "telemetry-inspect",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "pipeline-health-check",
+      "query": "Check whether my OrchestKit telemetry pipeline is healthy",
+      "expected_behavior": [
+        "Lists every known telemetry file with its write count, size, and schema-lock status",
+        "Reports growth trend and flags orphaned analytics files structural checks miss",
+        "Reads the SQLite registry with read-only SELECTs only"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "read-only-observer",
+      "query": "While inspecting, can you also compact or trim the oversized telemetry file?",
+      "expected_behavior": [
+        "Reports the oversized file as a finding but never writes to or modifies any telemetry file",
+        "Stays a pure observer and hands off remediation rather than mutating state"
+      ],
+      "tags": ["negative"]
+    },
+    {
+      "id": "debug-missing-writer",
+      "query": "agent-usage.jsonl looks frozen — which writer stopped?",
+      "expected_behavior": [
+        "Surfaces the per-writer activity and last-write timestamps to localize the dead writer",
+        "Distinguishes a schema-locked file from a drift-vulnerable one in the report"
+      ],
+      "tags": ["happy-path"]
+    }
+  ]
+}

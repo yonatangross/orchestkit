@@ -1,0 +1,44 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "design-import",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "import-and-dedup",
+      "query": "Import this claude.ai/design handoff bundle and scaffold the components",
+      "expected_behavior": [
+        "Delegates parsing to the orchestrator agent rather than reimplementing the tarball schema",
+        "Deduplicates proposed components against the existing codebase via component-search",
+        "Writes provenance metadata so future imports can detect drift between design versions"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "partial-bundle-graceful",
+      "query": "The handoff bundle is missing an answer to one of its chat questions",
+      "expected_behavior": [
+        "Surfaces the last unanswered question and what the user should do",
+        "Does not crash on the incomplete bundle"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "asset-references-kept",
+      "query": "Import a bundle whose prototypes reference remote images and stylesheets",
+      "expected_behavior": [
+        "Keeps <link> and <img> asset references as URLs",
+        "Does not download the referenced assets during import"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "negative-no-bundle",
+      "query": "Build me a new dashboard component from scratch",
+      "expected_behavior": [
+        "Recognizes there is no claude.ai/design handoff bundle to import",
+        "Does not invoke the import pipeline and points to component generation instead"
+      ],
+      "tags": ["negative"]
+    }
+  ]
+}

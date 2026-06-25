@@ -1,0 +1,44 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "design-ship",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "design-url-to-pr",
+      "query": "Here's a claude.ai/design URL — give me a reviewable PR back",
+      "expected_behavior": [
+        "Imports the handoff bundle, then generates Storybook stories and Playwright tests",
+        "Runs diff-aware browser verification on the scaffolded components",
+        "Opens a PR with the bundle URL, before/after screenshots, and a coverage delta in the body"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "import-failure-stops",
+      "query": "Ship this design but the bundle import fails partway through",
+      "expected_behavior": [
+        "Stops and does NOT proceed to test generation against partially-imported components",
+        "Reports the import failure rather than producing a half-built PR"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "verification-failure-non-blocking",
+      "query": "The browser verification step finds visual diffs during ship",
+      "expected_behavior": [
+        "Does not block the PR on verification findings",
+        "Reports the findings and continues to open the reviewable PR"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "negative-import-only",
+      "query": "Just scaffold the components from this bundle, I don't want tests or a PR yet",
+      "expected_behavior": [
+        "Recognizes this is import-and-scaffold only, not the full ship-to-PR workflow",
+        "Routes to design-import rather than running the end-to-end pipeline"
+      ],
+      "tags": ["negative"]
+    }
+  ]
+}

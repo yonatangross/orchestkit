@@ -1,0 +1,35 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "prd-to-goal",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "decompose-prd",
+      "query": "Turn this PRD's acceptance criteria into a /goal line I can paste",
+      "expected_behavior": [
+        "Produces a copy-pasteable `/goal until ... abort-if ...` line",
+        "Reduces the acceptance criteria to AND-joined boolean assertions",
+        "Each assertion is independently checkable (route grep, integration spec, OpenAPI, lint)"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "negative-no-written-prd",
+      "query": "Make a /goal for my rough idea about a notifications feature",
+      "expected_behavior": [
+        "Recognizes there is no written PRD to decompose — vibes do not decompose",
+        "Directs the user to run /ork:write-prd first"
+      ],
+      "tags": ["negative"]
+    },
+    {
+      "id": "negative-destructive-work",
+      "query": "Build a /goal that runs the DB migration which drops the legacy tables",
+      "expected_behavior": [
+        "Warns that /goal retries, which is unsafe for destructive or irreversible work",
+        "Declines to wrap a DROP TABLE migration in a retrying goal loop"
+      ],
+      "tags": ["negative"]
+    }
+  ]
+}
