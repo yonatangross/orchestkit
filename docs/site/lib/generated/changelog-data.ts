@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.60.0",
+    "date": "2026-06-24",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**skills:** add /ork:auto intent router (+ telemetry breaker fix) ([#2645](https://github.com/yonatangross/orchestkit/issues/2645)) ([252ce9d](https://github.com/yonatangross/orchestkit/commit/252ce9dbccec6507eaeb3dd22a5ec70bf4023708))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.59.0",
     "date": "2026-06-24",
     "compareUrl": "",
