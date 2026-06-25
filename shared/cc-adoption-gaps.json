@@ -1,85 +1,77 @@
 [
   {
-    "version": "2.1.187",
+    "version": "2.1.190",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "featureless": true,
+    "issues_filed_at": "2026-06-25T04:27:20Z"
+  },
+  {
+    "version": "2.1.191",
     "parse_failed": false,
     "features": [
       {
-        "feature_slug": "mcp_tool_idle_timeout",
+        "feature_slug": "permissions_denial_approval_persists",
         "category": "breaking",
-        "description": "Remote MCP tool calls now abort after 5 min idle; override via CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT env var.",
+        "description": "Approving a previously-denied permission in /permissions Recently-denied tab now persists instead of being discarded.",
         "gap_score": 20,
-        "affected_skills": [
-          "mcp-patterns",
-          "mcp-visual-output"
-        ],
-        "reference_changelog_line": "Fixed remote MCP tool calls that hang with no response for 5 minutes — they now abort with an error instead of blocking indefinitely (override with `CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT`)",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "subagent_depth_tracking",
-        "category": "breaking",
-        "description": "Resumed subagents restore original spawn depth and forked subagents now count toward the depth cap.",
-        "gap_score": 20,
-        "affected_skills": [
-          "agent-orchestration",
-          "audit-activation",
-          "chain-patterns"
-        ],
-        "reference_changelog_line": "Fixed subagent depth tracking: resumed subagents now restore their original spawn depth, and forked subagents now count toward the depth cap",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "agent_worktree_cleanup",
-        "category": "breaking",
-        "description": "Locked .git/worktrees entries from killed agents are now cleaned up automatically.",
-        "gap_score": 20,
-        "affected_skills": [
-          "chain-patterns",
-          "swarm-migrate",
-          "agent-orchestration"
-        ],
-        "reference_changelog_line": "Fixed leaked agent worktree registrations: locked `.git/worktrees/` entries from killed agents are now cleaned up automatically",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "install_github_app_workflow_optional",
-        "category": "breaking",
-        "description": "/install-github-app now allows skipping GitHub Actions workflow/secret setup and installing only the App.",
-        "gap_score": 20,
-        "affected_skills": [
-          "github-operations",
-          "devops-deployment"
-        ],
-        "reference_changelog_line": "Improved `/install-github-app`: GitHub Actions workflow setup is now optional — you can install just the GitHub App and skip the workflow/secret steps",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "sandbox_credentials_setting",
-        "category": "new_perm",
-        "description": "New sandbox.credentials setting blocks sandboxed commands from reading credential files and secret env vars.",
-        "gap_score": 12,
         "affected_skills": [
           "security-patterns",
           "configure"
         ],
-        "reference_changelog_line": "Added `sandbox.credentials` setting to block sandboxed commands from reading credential files and secret environment variables",
+        "reference_changelog_line": "Fixed `/permissions` Recently-denied tab: approving a denial now persists on close instead of being silently discarded",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "org_model_restrictions",
-        "category": "new_field",
-        "description": "Org-configured model restrictions apply to model picker, --model, /model, and ANTHROPIC_MODEL with explanatory message.",
-        "gap_score": 10,
+        "feature_slug": "force_remote_settings_refresh_mdm",
+        "category": "breaking",
+        "description": "forceRemoteSettingsRefresh now applies via MDM/file policy and sends Cache-Control: no-cache to avoid stale proxies.",
+        "gap_score": 20,
         "affected_skills": [
           "configure",
-          "upgrade-assessment"
+          "mcp-patterns"
         ],
-        "reference_changelog_line": "Added org-configured model restrictions to the model picker, `--model`, `/model`, and `ANTHROPIC_MODEL`, with a \"restricted by your organization's settings\" message when a restricted model is selected",
-        "relevance": "plugin",
-        "recall_boosted_from": 5
+        "reference_changelog_line": "Fixed managed settings: `forceRemoteSettingsRefresh` now takes effect when set via MDM or file policy, and the fetch sends `Cache-Control: no-cache` to prevent proxies from serving stale responses",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "mcp_oauth_headless_paste_url",
+        "category": "breaking",
+        "description": "MCP OAuth retries once on transient errors; headless envs skip the browser popup and go directly to paste-the-URL.",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns"
+        ],
+        "reference_changelog_line": "Improved MCP OAuth: discovery and token requests now retry once after transient network errors, and headless environments skip the browser popup and go straight to the paste-the-URL prompt",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "rewind_resume_before_clear",
+        "category": "new_command",
+        "description": "/rewind can now resume a conversation from before a /clear was run.",
+        "gap_score": 15,
+        "affected_skills": [
+          "chain-patterns",
+          "checkpoint-resume"
+        ],
+        "reference_changelog_line": "Added `/rewind` support for resuming a conversation from before `/clear` was run",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "sandbox_network_session_allowlist",
+        "category": "new_perm",
+        "description": "Sandbox network dialog now remembers hosts allowed with Yes for the rest of the session instead of re-prompting.",
+        "gap_score": 12,
+        "affected_skills": [
+          "security-patterns",
+          "browser-tools"
+        ],
+        "reference_changelog_line": "Improved sandbox network permission dialog: hosts you allow with \"Yes\" are now remembered for the rest of the session instead of re-prompting on every connection",
+        "relevance": "plugin"
       }
     ],
-    "raw_bullets_count": 21,
-    "issues_filed_at": "2026-06-24T04:27:44Z"
+    "raw_bullets_count": 20,
+    "issues_filed_at": "2026-06-25T04:27:20Z"
   }
 ]
