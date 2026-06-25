@@ -9,6 +9,7 @@ tags: [vision, audio, video, multimodal, image, speech, transcription, tts, klin
 user-invocable: false
 disable-model-invocation: true
 context: fork
+agent: multimodal-specialist
 complexity: high
 persuasion-type: reference
 effort: high
