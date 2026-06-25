@@ -798,6 +798,76 @@ describe('pre-commit-quality-runner', () => {
   });
 
   // -----------------------------------------------------------------------
+  // 11b. Timeout is a non-blocking skip, not a failure (cold-start regression)
+  // -----------------------------------------------------------------------
+
+  describe('timeout handling (non-blocking)', () => {
+    // A check killed by its timeout produced no verdict — it must NOT block the
+    // commit. The git pre-commit hook + CI run the authoritative untimed gate.
+    const arrangeTimeout = (toolError: Record<string, unknown>) => {
+      vi.mocked(execSync).mockImplementation((cmd: string) =>
+        cmd === 'git diff --cached --name-only --diff-filter=ACMR' ? 'src/index.ts' : '',
+      );
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/index.ts';
+        throw Object.assign(new Error('killed'), toolError);
+      });
+      vi.mocked(existsSync).mockImplementation((p: unknown) => {
+        const path = String(p);
+        return path.endsWith('package.json') || path.endsWith('tsconfig.json');
+      });
+    };
+
+    it('does NOT block the commit when a check is killed by its timeout', () => {
+      // execFileSync sets killed:true + signal:'SIGTERM' on timeout
+      arrangeTimeout({ killed: true, signal: 'SIGTERM', code: 'ETIMEDOUT' });
+
+      const result = preCommitQualityRunner(createBashInput('git commit -m "feat: x"'), testCtx);
+
+      expect(result.continue).toBe(true);
+      expect(outputBlock).not.toHaveBeenCalled();
+      expect(result.hookSpecificOutput?.additionalContext).toContain('skipped on timeout');
+    });
+
+    it('logs the timeout skip at warn level', () => {
+      arrangeTimeout({ killed: true, signal: 'SIGTERM' });
+
+      preCommitQualityRunner(createBashInput('git commit -m "feat: x"'), testCtx);
+
+      const warnLog = vi.mocked(testCtx.log).mock.calls.find(([, , level]) => level === 'warn');
+      expect(warnLog).toBeDefined();
+      expect(String(warnLog?.[1])).toContain('timeout');
+    });
+
+    it('still BLOCKS on a real failure even when another check timed out', () => {
+      // tsc times out (no verdict); eslint fails for real → only the real one blocks
+      vi.mocked(execSync).mockImplementation((cmd: string) =>
+        cmd === 'git diff --cached --name-only --diff-filter=ACMR' ? 'src/index.ts' : '',
+      );
+      vi.mocked(execFileSync).mockImplementation((_cmd: unknown, args?: readonly string[]) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/index.ts';
+        if (args?.includes('tsc')) throw Object.assign(new Error('timeout'), { killed: true, signal: 'SIGTERM' });
+        throw Object.assign(new Error('eslint'), { stdout: '2 errors found' });
+      });
+      vi.mocked(existsSync).mockImplementation((p: unknown) => {
+        const path = String(p);
+        return path.endsWith('package.json') || path.endsWith('tsconfig.json') || path.endsWith('eslint.config.js');
+      });
+
+      const result = preCommitQualityRunner(createBashInput('git commit -m "wip"'), testCtx);
+
+      expect(result.continue).toBe(false);
+      const blockReason = vi.mocked(outputBlock).mock.calls[0][0];
+      expect(blockReason).toContain('lint');
+      // timed-out tsc is excluded from the failure count: 1 real failure of 2 checks
+      expect(blockReason).toMatch(/1\/2/);
+      expect(blockReason).not.toContain('typecheck');
+    });
+  });
+
+  // -----------------------------------------------------------------------
   // 12. Multiple failures → all failures in report
   // -----------------------------------------------------------------------
 

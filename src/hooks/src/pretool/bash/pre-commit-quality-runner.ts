@@ -25,11 +25,22 @@ import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'pre-commit-quality-runner';
 
+// Per-check budget. Cold-start of `tsc`/`vitest`/`eslint` via `npx` is ~5.6s in
+// this repo, so the old 5000ms cap SIGKILLed a passing run mid-startup and the
+// kill was misreported as a test failure — false-blocking essentially every
+// source commit. 8000ms gives cold-start headroom, and a timeout is now treated
+// as a non-blocking skip (see runCheckWithArgs + the failures filter), since the
+// git pre-commit hook and CI run the authoritative, untimed versions of these
+// same gates. This hook is a fast advisory pre-flight, not the source of truth.
+const CHECK_TIMEOUT_MS = 8000;
+
 interface CheckResult {
   name: string;
   passed: boolean;
   output: string;
   durationMs: number;
+  /** True when the check was killed by its timeout instead of producing a real verdict. */
+  timedOut: boolean;
 }
 
 function isCommitCommand(command: string): boolean {
@@ -64,9 +75,24 @@ function runCheckWithArgs(name: string, cmd: string, args: string[], projectDir:
       timeout: timeoutMs,
       stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
-    return { name, passed: true, output: '', durationMs: Date.now() - start };
+    return { name, passed: true, output: '', durationMs: Date.now() - start, timedOut: false };
   } catch (err: unknown) {
-    return { name, passed: false, output: String(getExecOutput(err)).slice(0, 500), durationMs: Date.now() - start };
+    // execFileSync sets `killed: true` + `signal: 'SIGTERM'` (and on some Node
+    // versions `code: 'ETIMEDOUT'`) when the `timeout` fires. A killed check did
+    // NOT produce a verdict — it's "couldn't finish in time", not "code is bad" —
+    // so it must not block the commit. Real verdicts (non-zero exit with output)
+    // still surface as failures below.
+    const e = err as { killed?: boolean; signal?: string; code?: string };
+    const timedOut = e?.killed === true || e?.signal === 'SIGTERM' || e?.code === 'ETIMEDOUT';
+    return {
+      name,
+      passed: false,
+      timedOut,
+      output: timedOut
+        ? `did not finish within ${timeoutMs}ms — skipped (cold start, not a failure). The git pre-commit hook and CI run the authoritative gate.`
+        : String(getExecOutput(err)).slice(0, 500),
+      durationMs: Date.now() - start,
+    };
   }
 }
 
@@ -105,7 +131,7 @@ export function preCommitQualityRunner(input: HookInput, ctx: HookContext = NOOP
   if (hasTypeScriptFiles(stagedFiles)) {
     const hasTsConfig = existsSync(join(projectDir, 'tsconfig.json'));
     if (hasTsConfig) {
-      checks.push(runCheckWithArgs('typecheck', 'npx', ['tsc', '--noEmit'], projectDir, 5000));
+      checks.push(runCheckWithArgs('typecheck', 'npx', ['tsc', '--noEmit'], projectDir, CHECK_TIMEOUT_MS));
     }
   }
 
@@ -119,7 +145,7 @@ export function preCommitQualityRunner(input: HookInput, ctx: HookContext = NOOP
     if (hasEslint) {
       const lintFiles = stagedFiles.filter(f => /\.(ts|tsx|js|jsx)$/.test(f));
       if (lintFiles.length > 0) {
-        checks.push(runCheckWithArgs('lint', 'npx', ['eslint', '--cache', ...lintFiles], projectDir, 5000));
+        checks.push(runCheckWithArgs('lint', 'npx', ['eslint', '--cache', ...lintFiles], projectDir, CHECK_TIMEOUT_MS));
       }
     }
   }
@@ -139,17 +165,28 @@ export function preCommitQualityRunner(input: HookInput, ctx: HookContext = NOOP
         // `related` is a vitest SUBCOMMAND, not a flag — `vitest run --related`
         // throws CACError "Unknown option `--related`" and fails every commit
         // that stages source files.
-        checks.push(runCheckWithArgs('related-tests', 'npx', ['vitest', 'related', ...sourceFiles, '--run', '--passWithNoTests'], projectDir, 5000));
+        checks.push(runCheckWithArgs('related-tests', 'npx', ['vitest', 'related', ...sourceFiles, '--run', '--passWithNoTests'], projectDir, CHECK_TIMEOUT_MS));
       } else if (hasJest) {
-        checks.push(runCheckWithArgs('related-tests', 'npx', ['jest', '--findRelatedTests', ...sourceFiles, '--passWithNoTests'], projectDir, 5000));
+        checks.push(runCheckWithArgs('related-tests', 'npx', ['jest', '--findRelatedTests', ...sourceFiles, '--passWithNoTests'], projectDir, CHECK_TIMEOUT_MS));
       }
     }
   }
 
   if (checks.length === 0) return outputSilentSuccess();
 
-  const failures = checks.filter(c => !c.passed);
+  // A timed-out check produced no verdict — it's advisory-skipped, never blocking.
+  // Only checks that actually RAN and reported errors block the commit.
+  const failures = checks.filter(c => !c.passed && !c.timedOut);
+  const skipped = checks.filter(c => c.timedOut);
   const totalMs = checks.reduce((sum, c) => sum + c.durationMs, 0);
+
+  if (skipped.length > 0) {
+    ctx.log(
+      HOOK_NAME,
+      `${skipped.length}/${checks.length} checks skipped on timeout (${skipped.map(c => c.name).join(', ')}) — git pre-commit hook + CI cover these`,
+      'warn',
+    );
+  }
 
   if (failures.length > 0) {
     const failureReport = failures.map(f =>
@@ -163,16 +200,20 @@ export function preCommitQualityRunner(input: HookInput, ctx: HookContext = NOOP
     );
   }
 
-  ctx.log(HOOK_NAME, `All ${checks.length} checks passed in ${totalMs}ms`);
+  const ranNames = checks.filter(c => c.passed).map(c => `${c.name} (${c.durationMs}ms)`).join(', ');
+  ctx.log(HOOK_NAME, `${checks.length - skipped.length}/${checks.length} checks passed in ${totalMs}ms`);
 
-  // All passed — inject confirmation context
-  const checkNames = checks.map(c => `${c.name} (${c.durationMs}ms)`).join(', ');
+  // Nothing blocking — inject confirmation context. Preserve the clean all-pass
+  // wording when nothing was skipped; only diverge to flag advisory timeouts.
+  const additionalContext = skipped.length > 0
+    ? `[Pre-Commit] No blocking issues — passed: ${ranNames || 'none'} · skipped on timeout (advisory, covered by git-hook + CI): ${skipped.map(c => c.name).join(', ')}`
+    : `[Pre-Commit] All quality checks passed: ${ranNames}`;
   return {
     continue: true,
     suppressOutput: true,
     hookSpecificOutput: {
       hookEventName: 'PreToolUse' as const,
-      additionalContext: `[Pre-Commit] All quality checks passed: ${checkNames}`,
+      additionalContext,
     },
   };
 }
