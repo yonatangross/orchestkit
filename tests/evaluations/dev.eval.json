@@ -1,0 +1,135 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "dev",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "trigger-bare",
+      "query": "/ork:dev",
+      "expected_behavior": [
+        "Triggers the dev skill, not portless or emulate-seed alone",
+        "Calls scripts/boot.sh",
+        "Detects package manager from lockfile (pnpm > yarn > bun > npm)",
+        "Resolves subdomain from current git branch slug",
+        "Verifies portless + emulate + agent-browser binaries before any side effects"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "trigger-stop",
+      "query": "/ork:dev stop",
+      "expected_behavior": [
+        "Calls scripts/stop.sh",
+        "Reads .claude/state/dev-stack.json for tracked PIDs",
+        "Sends SIGTERM in reverse boot order: agent-browser, dev server, emulate, portless",
+        "Falls back to SIGKILL after 5 seconds for unresponsive processes",
+        "Removes the state file last"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "trigger-status",
+      "query": "/ork:dev status",
+      "expected_behavior": [
+        "Calls scripts/status.sh",
+        "Probes each tracked PID with kill -0",
+        "Prints booted-at, branch, baseUrl, and per-process live/dead",
+        "Exit code 0 if at least one PID is alive, 1 if all dead or no state file"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "rule-prereq-missing",
+      "query": "/ork:dev (with portless not installed)",
+      "expected_behavior": [
+        "Detects missing portless binary",
+        "Prints `✗ portless not found.   Install: npm i -g portless`",
+        "Does NOT start emulate, dev server, or agent-browser",
+        "Exits 0 (graceful skip, not an error)"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "rule-idempotent-rerun",
+      "query": "/ork:dev (when stack is already live)",
+      "expected_behavior": [
+        "Reads existing .claude/state/dev-stack.json",
+        "Probes PIDs via kill -0 to confirm at least one is alive",
+        "Prints 'already running' message and exits 0",
+        "Does NOT spawn duplicate processes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "rule-stale-state",
+      "query": "/ork:dev (state file exists but all PIDs dead)",
+      "expected_behavior": [
+        "Detects stale state via liveness probe failure",
+        "Removes .claude/state/dev-stack.json",
+        "Proceeds with full boot sequence"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "rule-subdomain-slug",
+      "query": "/ork:dev (on branch feat/m125-Lane-B with mixed case + slash)",
+      "expected_behavior": [
+        "Slug becomes feat-m125-lane-b (slashes → dashes, lowercased)",
+        "DNS hostname is feat-m125-lane-b.localhost",
+        "Capped at 63 characters",
+        "agent-browser session name == feat-m125-lane-b"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "ci-escape-hatch",
+      "query": "/ork:dev (with CI=1 env)",
+      "expected_behavior": [
+        "Detects CI environment",
+        "Prints 'CI=1, skipping boot.'",
+        "Exits 0 immediately, before any prerequisite checks"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "compose-with-emulate-seed",
+      "query": "/ork:dev (with no emulate.config.yaml)",
+      "expected_behavior": [
+        "Skips emulate up step (no config file present)",
+        "Suggests running /ork:emulate-seed --auto first",
+        "Continues to boot portless, dev server, agent-browser without emulators"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "compose-with-expect",
+      "query": "/ork:expect (after /ork:dev has booted)",
+      "expected_behavior": [
+        "Reads .claude/state/dev-stack.json to find baseUrl + agent-browser session",
+        "Reuses existing session named after the branch slug (no second handshake)",
+        "If posttool/ui-change-detector fired before, picks up the route hint"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,166 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "expect",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "trigger-basic",
+      "query": "test my changes",
+      "expected_behavior": [
+        "Triggers the expect skill, not cover or verify",
+        "Defaults to --target unstaged (git diff)",
+        "Runs the 6-phase pipeline: fingerprint, diff scan, route map, plan, execute, report"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "trigger-explicit",
+      "query": "/ork:expect -m \"test the login flow\"",
+      "expected_behavior": [
+        "Parses -m flag and sets INSTRUCTION to 'test the login flow'",
+        "Scopes test plan to login-related pages",
+        "Includes the instruction in the AI test plan generation prompt"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "target-branch",
+      "query": "/ork:expect --target branch",
+      "expected_behavior": [
+        "Uses git diff main...HEAD instead of git diff",
+        "Scans all changes on the current branch vs main",
+        "Maps all branch changes to affected pages"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "saved-flow-replay",
+      "query": "/ork:expect --flow login",
+      "expected_behavior": [
+        "Loads .expect/flows/login.yaml instead of generating a new plan",
+        "Replays the saved test steps via agent-browser",
+        "Reports pass/fail for each step in the flow"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "skip-review",
+      "query": "/ork:expect -y",
+      "expected_behavior": [
+        "Skips the plan review AskUserQuestion prompt",
+        "Proceeds directly from plan generation to execution",
+        "Still shows the test plan in output before executing"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "fingerprint-skip",
+      "query": "/ork:expect (no changes since last run)",
+      "expected_behavior": [
+        "Reads .expect/fingerprints.json and compares SHA-256 hashes",
+        "Detects no changes since last test run",
+        "Reports 'No changes since last test run' and exits without testing"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "no-route-map-inference",
+      "query": "/ork:expect (no .expect/config.yaml)",
+      "expected_behavior": [
+        "Detects missing .expect/config.yaml",
+        "Infers route map from Next.js App Router or Pages Router conventions",
+        "Falls back to testing base_url root if no framework detected"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "anti-trigger-cover",
+      "query": "generate unit tests for the auth module",
+      "expected_behavior": [
+        "Does NOT trigger expect — this is a cover/test-generation task",
+        "Should trigger the cover skill instead"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "anti-trigger-verify",
+      "query": "verify the implementation works",
+      "expected_behavior": [
+        "Does NOT trigger expect — this is a verify task",
+        "Should trigger the verify skill instead"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "diff-classification",
+      "query": "/ork:expect (changed src/components/Button.tsx)",
+      "expected_behavior": [
+        "Classifies Button.tsx as Direct (level 1)",
+        "Finds files that import Button as Imported (level 2)",
+        "Finds pages that render those files as Routed (level 3)",
+        "Tests all 3 levels with appropriate depth"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "report-format",
+      "query": "/ork:expect (after execution completes)",
+      "expected_behavior": [
+        "Produces structured report with pass/fail per page",
+        "Saves report to .expect/reports/ with ISO timestamp filename",
+        "Saves failure screenshots to .expect/screenshots/",
+        "Updates .expect/fingerprints.json with current hashes",
+        "Returns non-zero exit suggestion if any tests failed"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "task-tracking",
+      "query": "/ork:expect -m \"test the dashboard\"",
+      "expected_behavior": [
+        "Creates a main TaskCreate for the expect run",
+        "Updates task status progressively through each phase",
+        "Shows activeForm spinner during execution"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "monitor-agent-browser-streaming",
+      "query": "Run a long agent-browser plan against staging; surface step failures early",
+      "expected_behavior": [
+        "Spawns agent-browser with run_in_background=true",
+        "Uses Monitor(pid=expect_task.agent_id) to stream step output",
+        "Catches a failing step as it happens rather than waiting for full plan completion",
+        "Does NOT use the deprecated TaskOutput(block=true) variant",
+        "References chain-patterns/references/monitor-patterns.md"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

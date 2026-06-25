@@ -1,0 +1,84 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "cover",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "full-coverage-generation",
+      "query": "Generate tests for the authentication service",
+      "expected_behavior": [
+        "Asks user to select test tiers (unit, integration, e2e) and healing strategy",
+        "Runs 6-phase workflow: discovery, coverage analysis, generation, execution, heal, report",
+        "Spawns parallel test-generator agents per selected tier",
+        "Produces a coverage report with before/after delta comparison"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "tier-flag-override",
+      "query": "Cover the payment module with --tier=unit,integration tests",
+      "expected_behavior": [
+        "Parses --tier flag and limits generation to unit and integration only",
+        "Skips the tier selection prompt since --tier flag is explicit",
+        "Launches 2 parallel agents (unit + integration), not 3",
+        "Reports coverage for unit and integration tiers only"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "real-services-detection",
+      "query": "Cover the checkout pipeline with --real-services",
+      "expected_behavior": [
+        "Scans for docker-compose.yml or testcontainers in dependencies",
+        "Uses real database and services for integration tests when infrastructure found",
+        "Errors with clear message if --real-services flag used but no docker/testcontainers found",
+        "Reports which real services were used in the final coverage report"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "heal-loop-boundary",
+      "query": "Generate tests for the user service, auto-heal failures",
+      "expected_behavior": [
+        "Runs generated tests and identifies failures",
+        "Heals failing tests up to 3 iterations maximum",
+        "Fixes only test code, never modifies production source code",
+        "Reports remaining failures if not resolved within 3 iterations"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-verify-request",
+      "query": "Verify my existing tests are good quality",
+      "expected_behavior": [
+        "Should NOT generate new tests for a verify/grade request",
+        "Should redirect to the verify skill for grading existing tests",
+        "Does not run the 6-phase cover workflow for verification tasks"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "monitor-test-execution-streaming",
+      "query": "Run the full test suite with coverage and show me progress as it goes",
+      "expected_behavior": [
+        "Runs npm test (or equivalent) with run_in_background=true",
+        "Uses Monitor(pid=...) to stream each line as a notification",
+        "Does NOT wait synchronously and dump the full output at the end",
+        "Does NOT poll TaskOutput in a loop"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

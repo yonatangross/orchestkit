@@ -1,0 +1,87 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "json-render-catalog",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "define-dashboard-catalog",
+      "query": "Define a json-render catalog for a dashboard with cards, stat grids, and buttons",
+      "expected_behavior": [
+        "Uses defineCatalog() from @json-render/core with Zod schemas for each component",
+        "Defines Card with children: true for layout composition",
+        "Adds z.enum() for bounded variant props on Button instead of bare z.string()",
+        "Sets z.array().max() on StatGrid items to prevent unbounded lists",
+        "Exports the catalog type for use in component implementations"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "shadcn-components-available",
+      "query": "What components are available in json-render for building a settings page?",
+      "expected_behavior": [
+        "References @json-render/shadcn package with its 29 pre-built components",
+        "Recommends relevant shadcn components: Card, Switch, Select, Input, Button, Tabs",
+        "Suggests using shadcnCatalog as-is rather than rebuilding standard components",
+        "Shows mergeCatalogs() pattern for adding custom domain-specific components"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "optimize-tokens-yaml",
+      "query": "How do I optimize json-render specs to use fewer tokens?",
+      "expected_behavior": [
+        "Recommends YAML mode for standalone generation with ~30% token savings",
+        "Explains that JSON is required for inline/streaming (JSON Patch RFC 6902 over JSONL)",
+        "Shows parseYamlSpec() import from @json-render/yaml",
+        "Provides the decision rule: inline/streaming → JSON, standalone → YAML"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "add-interactivity",
+      "query": "Add interactivity to a json-render spec — button clicks, data loading, and state",
+      "expected_behavior": [
+        "Uses on field for event handlers (press, change) instead of onClick props",
+        "Uses watch field for reactive data fetching tied to state path changes",
+        "Defines top-level state tree with JSON Pointer paths",
+        "Shows setState action for state mutations and load_data for API fetches",
+        "References state adapters (Zustand, Redux, Jotai, XState) for integration"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-static-ui",
+      "query": "Build a React component for a navigation bar with links to Home, About, and Contact pages",
+      "expected_behavior": [
+        "Does NOT activate json-render-catalog because this is static developer-authored UI",
+        "Handles as a standard React component task without catalog or spec patterns",
+        "Does NOT suggest defineCatalog or json-render for a simple static navigation bar"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "constrain-props-safety",
+      "query": "How do I prevent AI from generating invalid or dangerous props in json-render catalogs?",
+      "expected_behavior": [
+        "Shows z.enum() instead of z.string() for bounded choices like variant and status",
+        "Adds z.string().max() constraints to prevent unbounded text generation",
+        "Warns against z.any() and z.unknown() as they defeat catalog safety",
+        "Sets z.array().max() to cap list sizes and prevent layout overflow",
+        "Demonstrates z.number().min().max() for numeric bounds"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

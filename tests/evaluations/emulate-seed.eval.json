@@ -1,0 +1,87 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "emulate-seed",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "setup-github-testing",
+      "query": "Set up GitHub API testing for my project with repos, PRs, and issues",
+      "expected_behavior": [
+        "Recommends emulate as first choice over MSW/Nock for GitHub API testing",
+        "Generates an emulate.config.yaml with tokens, users, and repos sections",
+        "Includes seeded tokens mapped to emulated user logins instead of real credentials",
+        "Shows how to start emulate with --service github --seed flag",
+        "Sets GITHUB_API_BASE env var to point tests at the emulated API"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "parallel-ci-isolation",
+      "query": "How to run tests in parallel in CI without port collisions?",
+      "expected_behavior": [
+        "Assigns each worker a unique port using base port + VITEST_WORKER_ID offset",
+        "Creates a separate emulator instance per worker to avoid shared state",
+        "Calls github.reset() or github.close() in afterAll to clean up resources",
+        "Does not use a single shared emulator port across parallel workers"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "webhook-delivery-testing",
+      "query": "Test webhook delivery with signature verification",
+      "expected_behavior": [
+        "Configures a webhook receiver endpoint in the test to accept POST callbacks",
+        "Verifies HMAC-SHA256 signature using crypto.timingSafeEqual for constant-time comparison",
+        "Uses a shared webhook secret between the emulator config and the receiver",
+        "Does not skip signature verification even in test environments"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "generate-emulate-config",
+      "query": "Generate an emulate config for my project that uses GitHub and Vercel APIs",
+      "expected_behavior": [
+        "Produces a valid emulate.config.yaml with tokens, github, and vercel sections",
+        "Tokens section maps token names to login and scopes rather than hardcoding real tokens",
+        "GitHub section includes users and repos with owner, name, and default_branch",
+        "Vercel section includes users with username/email and projects with name/framework",
+        "Recommends placing the config in a .emulate/ directory or project root"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "offline-development",
+      "query": "I want to develop offline without hitting real GitHub APIs",
+      "expected_behavior": [
+        "Recommends emulate for offline GitHub API development",
+        "Shows npx emulate --service github to start the local emulator",
+        "Explains that state is fully local and persists across API calls",
+        "Mentions that GITHUB_API_BASE env var redirects SDK/CLI calls to localhost"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "token-seeding-patterns",
+      "query": "How should I handle authentication tokens in my emulated test environment?",
+      "expected_behavior": [
+        "Seeds tokens in emulate.config.yaml mapped to emulated user logins",
+        "Never uses real production tokens or credentials in test configs",
+        "Shows that seeded tokens have configurable scopes for permission testing",
+        "Demonstrates using different tokens (dev_token, ci_token) for different permission levels"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

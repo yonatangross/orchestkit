@@ -1,0 +1,54 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "bare-eval",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "bare-grading-pattern",
+      "query": "I need to grade LLM output against assertions in my eval pipeline",
+      "expected_behavior": [
+        "Recommends a `claude -p --bare` invocation for the isolated grading call",
+        "Includes `--max-turns 1` so the grader cannot drift across multiple turns",
+        "Frames the command around deterministic grading of the stated assertions"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "bare-trigger-pattern",
+      "query": "Test which skill a prompt triggers without loading all plugins",
+      "expected_behavior": [
+        "Recommends `--bare` to classify trigger routing without plugin or hook interference",
+        "Uses `--json-schema` to constrain the classification result to structured output",
+        "Explains that isolation keeps the trigger test independent of the full plugin set"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "bare-not-for-plugins",
+      "query": "Test skill routing with a plugin loaded to verify agent spawning",
+      "expected_behavior": [
+        "Recommends `--plugin-dir` because the test genuinely needs the plugin loaded",
+        "Does NOT recommend `--bare` when plugin or agent-spawning behavior must be verified"
+      ],
+      "tags": ["negative"]
+    },
+    {
+      "id": "bare-api-key-check",
+      "query": "Set up --bare mode for my CI pipeline",
+      "expected_behavior": [
+        "States that `--bare` mode requires `ANTHROPIC_API_KEY` to be exported in the environment",
+        "Mentions the `BARE_MODE` configuration switch when wiring it into CI"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "non-eval-task",
+      "query": "Fix the login bug in the auth middleware",
+      "expected_behavior": [
+        "Does not engage the bare-eval skill for an ordinary bug-fixing task",
+        "Recognizes that middleware debugging is unrelated to isolated eval or grading invocations"
+      ],
+      "tags": ["negative"]
+    }
+  ]
+}
