@@ -33,6 +33,7 @@ skills:
   - animation-motion-design
   - design-system-tokens
   - responsive-patterns
+  - interaction-patterns
   - performance
   - code-review-playbook
   - zustand-patterns

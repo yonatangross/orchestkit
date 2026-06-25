@@ -179,10 +179,16 @@ if [[ "$RENDER_FINAL" == "true" ]]; then
     COMP_NAME="${SKILL_NAME^}CinematicDemo"  # Capitalize first letter
 
     log "Rendering ${COMP_NAME}..."
-    npx remotion render "$COMP_NAME" "out/${SKILL_NAME}-cinematic-final.mp4" || \
-        error "Remotion render failed"
-
-    success "Final video: out/${SKILL_NAME}-cinematic-final.mp4"
+    # Guard: skip gracefully if Remotion is not resolvable (mirrors the Manim guard in Phase 2).
+    # Remotion is a project dep invoked via npx, so probe with --no-install instead of `command -v`.
+    if npx --no-install remotion --version &> /dev/null; then
+        npx remotion render "$COMP_NAME" "out/${SKILL_NAME}-cinematic-final.mp4" || \
+            error "Remotion render failed"
+        success "Final video: out/${SKILL_NAME}-cinematic-final.mp4"
+    else
+        warn "Remotion not installed - skipping final video composition"
+        echo "  Install with: npm install remotion  (project dep), then re-run with --render"
+    fi
     echo ""
 fi
 
