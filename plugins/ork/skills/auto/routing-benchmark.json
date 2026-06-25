@@ -1,0 +1,66 @@
+{
+  "schema": "ork-routing-benchmark/1.0",
+  "description": "Labeled goal->category pairs for /ork:auto classification accuracy. Target >=95%. Mix of easy and genuinely-ambiguous cases (strong evals require real ambiguity, not happy-path).",
+  "target_accuracy": 0.95,
+  "cases": [
+    { "id": "fix-01", "goal": "fix the flaky test in auth", "category": "fix", "route": "/ork:fix-issue" },
+    { "id": "fix-02", "goal": "the password reset endpoint is broken", "category": "fix", "route": "/ork:fix-issue" },
+    { "id": "fix-03", "goal": "resolve the 500 errors on /api/users", "category": "fix", "route": "/ork:fix-issue" },
+    { "id": "fix-04", "goal": "fix issue #234", "category": "fix", "route": "/ork:fix-issue" },
+    { "id": "fix-05", "goal": "there's a regression in the checkout flow", "category": "fix", "route": "/ork:fix-issue" },
+    { "id": "fix-06", "goal": "fix the slow query in the orders handler", "category": "fix", "route": "/ork:fix-issue", "note": "explicit verb 'fix' wins over 'slow' (optimize)" },
+    { "id": "fix-07", "goal": "the tests are red, repair them", "category": "fix", "route": "/ork:fix-issue", "note": "repair broken tests, not add coverage" },
+
+    { "id": "diag-01", "goal": "why isn't the build green", "category": "diagnose", "route": "/ork:fix-issue" },
+    { "id": "diag-02", "goal": "why does the API return 500 on large payloads", "category": "diagnose", "route": "/ork:fix-issue" },
+    { "id": "diag-03", "goal": "why can't users log in with SSO", "category": "diagnose", "route": "/ork:fix-issue" },
+    { "id": "diag-04", "goal": "investigate why memory keeps climbing", "category": "diagnose", "route": "/ork:fix-issue" },
+    { "id": "diag-05", "goal": "why is the test suite so slow", "category": "diagnose", "route": "/ork:fix-issue", "note": "'why' question form beats optimize" },
+
+    { "id": "opt-01", "goal": "reduce p95 API latency below 200ms", "category": "optimize", "route": "/goal" },
+    { "id": "opt-02", "goal": "I want the API faster", "category": "optimize", "route": "/goal" },
+    { "id": "opt-03", "goal": "minimize the bundle size", "category": "optimize", "route": "/goal" },
+    { "id": "opt-04", "goal": "get the Lighthouse performance score above 95", "category": "optimize", "route": "/goal" },
+    { "id": "opt-05", "goal": "cut cold-start time in half", "category": "optimize", "route": "/goal" },
+    { "id": "opt-06", "goal": "make the build under 2 minutes", "category": "optimize", "route": "/goal" },
+
+    { "id": "cov-01", "goal": "get coverage above 90%", "category": "cover", "route": "/ork:cover" },
+    { "id": "cov-02", "goal": "bring test coverage to 85% on the auth module", "category": "cover", "route": "/ork:cover" },
+    { "id": "cov-03", "goal": "the payments service is untested, fix that", "category": "cover", "route": "/ork:cover" },
+    { "id": "cov-04", "goal": "I need 80% coverage before release", "category": "cover", "route": "/ork:cover" },
+
+    { "id": "des-01", "goal": "design an event-driven notification system", "category": "design", "route": "/ork:brainstorm" },
+    { "id": "des-02", "goal": "how should we structure the caching layer", "category": "design", "route": "/ork:brainstorm" },
+    { "id": "des-03", "goal": "explore options for multi-tenant data isolation", "category": "design", "route": "/ork:brainstorm" },
+    { "id": "des-04", "goal": "I have an idea about a plugin architecture, let's think it through", "category": "design", "route": "/ork:brainstorm" },
+    { "id": "des-05", "goal": "compare REST vs GraphQL for our public API", "category": "design", "route": "/ork:brainstorm" },
+
+    { "id": "bld-01", "goal": "build the user preferences page", "category": "build", "route": "/ork:implement" },
+    { "id": "bld-02", "goal": "implement PROJ-142", "category": "build", "route": "/ork:implement" },
+    { "id": "bld-03", "goal": "create a webhook ingestion endpoint", "category": "build", "route": "/ork:implement" },
+    { "id": "bld-04", "goal": "add dark mode to the settings screen", "category": "build", "route": "/ork:implement" },
+    { "id": "bld-05", "goal": "implement the design from the last brainstorm", "category": "build", "route": "/ork:implement", "note": "check for brainstorm state first" },
+
+    { "id": "rev-01", "goal": "review PR #2644", "category": "review", "route": "/ork:review-pr" },
+    { "id": "rev-02", "goal": "look at MR !42", "category": "review", "route": "/ork:review-pr" },
+    { "id": "rev-03", "goal": "review the auth changes on this branch", "category": "review", "route": "/ork:review-pr" },
+    { "id": "rev-04", "goal": "can you check my pull request for security issues", "category": "review", "route": "/ork:review-pr" },
+
+    { "id": "ver-01", "goal": "make sure everything passes", "category": "verify", "route": "/ork:verify" },
+    { "id": "ver-02", "goal": "verify the changes before I push", "category": "verify", "route": "/ork:verify" },
+    { "id": "ver-03", "goal": "check that tests, lint, and types are green", "category": "verify", "route": "/ork:verify" },
+    { "id": "ver-04", "goal": "validate the build is clean", "category": "verify", "route": "/ork:verify" },
+
+    { "id": "imp-01", "goal": "improve the code-review-playbook skill", "category": "improve-skill", "route": "evolution-gate" },
+    { "id": "imp-02", "goal": "optimize the prompt for the security-auditor skill", "category": "improve-skill", "route": "evolution-gate" },
+    { "id": "imp-03", "goal": "make the brainstorm SKILL.md produce better ideas", "category": "improve-skill", "route": "evolution-gate", "note": "needs benchmark + holdout first" },
+
+    { "id": "amb-01", "goal": "fix performance on the dashboard", "category": "fallback", "route": "clarify", "note": "fix-a-bug vs optimize-a-metric — ask one question" },
+    { "id": "amb-02", "goal": "the queries are slow and maybe vulnerable to injection", "category": "fallback", "route": "clarify", "note": "optimize vs security/fix — ask which first" },
+    { "id": "amb-03", "goal": "review my code", "category": "fallback", "route": "clarify", "note": "no PR named — ask which PR/branch" },
+    { "id": "amb-04", "goal": "test the new feature", "category": "fallback", "route": "clarify", "note": "functional tests (build/verify) vs coverage (cover)" },
+    { "id": "amb-05", "goal": "make it better", "category": "fallback", "route": "clarify", "note": "no metric, no target, no artifact" },
+    { "id": "amb-06", "goal": "design and build the notifications feature end to end", "category": "design", "route": "/ork:brainstorm", "note": "start design, offer build after" },
+    { "id": "edge-01", "goal": "optimize my prompt for the summarizer", "category": "optimize", "route": "/goal", "note": "a prompt, not a SKILL.md -> optimize not improve-skill" }
+  ]
+}

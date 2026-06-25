@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto-Research → OrchestKit · Adoption Explorer</title>
+<style>
+  :root{
+    --bg:#0a0e14; --bg2:#0d1117; --panel:#161b22; --panel2:#1c2230;
+    --line:#26303d; --ink:#e6edf3; --dim:#8b98a9; --faint:#5b6675;
+    --accent:#a371f7; --accent2:#2dd4bf; --accentdim:#2a2440;
+    --have:#3fb950; --partial:#d29922; --gap:#f778ba;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:
+     radial-gradient(1200px 600px at 80% -10%, #1a1330 0%, transparent 55%),
+     radial-gradient(900px 500px at -10% 10%, #0c2026 0%, transparent 50%),
+     var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  a{color:var(--accent2);text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 22px 80px}
+  header h1{margin:0;font-size:25px;letter-spacing:-.4px}
+  header h1 .sub{color:var(--accent)}
+  header p{margin:7px 0 0;color:var(--dim);font-size:14px;max-width:760px;line-height:1.55}
+  .pill{display:inline-block;font:600 11px/1 var(--mono);padding:5px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim);background:var(--panel);margin:14px 6px 0 0}
+  .pill b{color:var(--accent2)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:14px;padding:18px}
+  .card h2{margin:0 0 3px;font-size:15px;display:flex;align-items:center;gap:8px}
+  .card h2 .tag{font:600 10px/1 var(--mono);color:var(--faint)}
+  .card .lede{color:var(--dim);font-size:12.5px;margin:0 0 14px;line-height:1.5}
+
+  /* router simulator */
+  .sim input{width:100%;background:#0a0f16;border:1px solid var(--line);border-radius:10px;color:var(--ink);
+     font:14px var(--sans);padding:12px 14px;outline:none}
+  .sim input:focus{border-color:var(--accent)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:11px 0 4px}
+  .chip{font:11px var(--mono);color:var(--dim);background:var(--panel2);border:1px solid var(--line);
+     border-radius:7px;padding:5px 8px;cursor:pointer;transition:.12s}
+  .chip:hover{border-color:var(--accent);color:var(--ink)}
+  .route{margin-top:14px;border-top:1px dashed var(--line);padding-top:14px;min-height:120px}
+  .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:12px var(--mono)}
+  .node{padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:#0a0f16}
+  .node.cat{border-color:var(--accent);color:#d7c2ff;background:var(--accentdim)}
+  .node.skill{border-color:var(--accent2);color:#9febdf;background:#0d2925}
+  .arrow{color:var(--faint)}
+  .verdict{margin-top:12px;font-size:12.5px;line-height:1.55}
+  .verdict .lbl{font:600 10px/1 var(--mono);padding:3px 7px;border-radius:6px;margin-right:7px}
+  .lbl.have{background:rgba(63,185,80,.14);color:var(--have);border:1px solid rgba(63,185,80,.35)}
+  .lbl.partial{background:rgba(210,153,34,.14);color:var(--partial);border:1px solid rgba(210,153,34,.35)}
+  .lbl.gap{background:rgba(247,120,186,.14);color:var(--gap);border:1px solid rgba(247,120,186,.35)}
+  .conf{height:6px;border-radius:4px;background:#0a0f16;border:1px solid var(--line);margin-top:9px;overflow:hidden}
+  .conf > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+
+  /* learnings list */
+  .filters{display:flex;gap:6px;margin:0 0 12px}
+  .filters button{font:600 11px var(--mono);color:var(--dim);background:var(--panel2);border:1px solid var(--line);
+     border-radius:8px;padding:6px 10px;cursor:pointer}
+  .filters button.on{color:var(--ink);border-color:var(--accent);background:var(--accentdim)}
+  .lrn{border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin-bottom:9px;cursor:pointer;
+     background:var(--bg2);transition:.12s;display:flex;gap:11px;align-items:flex-start}
+  .lrn:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .lrn.sel{border-color:var(--accent2);background:var(--panel2)}
+  .lrn .num{font:700 13px var(--mono);color:var(--faint);min-width:20px}
+  .lrn .body{flex:1}
+  .lrn .t{font-size:13.5px;font-weight:600}
+  .lrn .m{font-size:11.5px;color:var(--dim);margin-top:3px;line-height:1.45}
+  .lrn .meta{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .dot{font:600 9.5px/1 var(--mono);padding:3px 6px;border-radius:5px;border:1px solid var(--line);color:var(--dim)}
+  .dot.have{color:var(--have)} .dot.partial{color:var(--partial)} .dot.gap{color:var(--gap)}
+  .dot.imp{color:var(--accent2)} .dot.eff{color:var(--accent)}
+
+  /* detail */
+  #detail{position:sticky;top:18px}
+  #detail .empty{color:var(--faint);font-size:13px;padding:30px 6px;text-align:center}
+  #detail h3{margin:0 0 4px;font-size:16px}
+  #detail .sec{margin-top:13px}
+  #detail .sec .k{font:600 10px/1 var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
+  #detail .sec .v{font-size:13px;color:var(--ink);margin-top:5px;line-height:1.55}
+  #detail pre{background:#0a0f16;border:1px solid var(--line);border-radius:9px;padding:11px;overflow:auto;
+     font:11.5px/1.5 var(--mono);color:#bcd2e6;margin:6px 0 0}
+  .scorebar{display:flex;gap:14px;margin-top:6px}
+  .scorebar .s{flex:1}
+  .scorebar .s .lab{font:600 10px var(--mono);color:var(--faint)}
+  .scorebar .s .track{height:7px;border-radius:5px;background:#0a0f16;border:1px solid var(--line);margin-top:5px;overflow:hidden}
+  .scorebar .s .track > i{display:block;height:100%}
+  .track > i.i{background:linear-gradient(90deg,#0d9488,var(--accent2))}
+  .track > i.e{background:linear-gradient(90deg,#7c3aed,var(--accent))}
+
+  /* synthesis */
+  .syn{margin-top:26px}
+  .synrow{display:grid;grid-template-columns:46px 1fr;gap:14px;border:1px solid var(--line);border-left:3px solid var(--accent);
+     border-radius:12px;padding:14px 16px;margin-bottom:11px;background:linear-gradient(180deg,var(--panel),var(--bg2))}
+  .synrow .rank{font:800 22px var(--mono);color:var(--accent)}
+  .synrow h4{margin:0;font-size:14.5px}
+  .synrow .deps{font:11px var(--mono);color:var(--faint);margin:3px 0 7px}
+  .synrow p{margin:0;color:var(--dim);font-size:12.5px;line-height:1.55}
+  .synrow .comp{float:right;font:700 13px var(--mono);color:var(--accent2)}
+  .actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+  .btn{font:600 12.5px var(--sans);color:#0a0e14;background:linear-gradient(90deg,var(--accent),var(--accent2));
+     border:0;border-radius:9px;padding:10px 16px;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .note{color:var(--faint);font-size:11.5px;margin-top:18px;line-height:1.5;border-top:1px solid var(--line);padding-top:14px}
+  textarea#out{display:none;width:100%;height:200px;margin-top:12px;background:#0a0f16;border:1px solid var(--line);
+     border-radius:9px;color:#bcd2e6;font:11.5px/1.5 var(--mono);padding:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Auto-Research <span class="sub">→ OrchestKit</span> · Adoption Explorer</h1>
+    <p>What <code>ArieGoldkin/claude-dev-kit</code>'s <b>etk:auto-research</b> does, and what OrchestKit can lift from it.
+       Auto-research is a <b>router + Karpathy loop</b> layer: one plain-English goal → intent classifier → one of 7 specialized skills → modify·measure·keep/discard → report.
+       OrchestKit already owns richer specialists — but has <b>no front door</b> and no first-class metric loop. Explore the 10 learnings, then read the synthesis.</p>
+    <span class="pill">source: <b>etk v2.7.6</b> · engineering-toolkit</span>
+    <span class="pill"><b>8</b> intent categories</span>
+    <span class="pill"><b>7</b> route targets</span>
+    <span class="pill">inspiration: <b>Karpathy autoresearch</b></span>
+  </header>
+
+  <div class="grid">
+    <!-- LEFT: router simulator -->
+    <div class="card sim">
+      <h2>🧭 Router simulator <span class="tag">// learning #1, live</span></h2>
+      <p class="lede">Type a goal the way a human would. The classifier (a tiny keyword model, exactly etk's approach) picks an intent and routes to the <b>real ork skill</b> that would handle it — and flags where ork has a gap.</p>
+      <input id="goal" placeholder="e.g. get coverage above 90%  ·  why isn't the build green  ·  reduce p95 latency below 200ms" autocomplete="off">
+      <div class="chips" id="chips"></div>
+      <div class="route" id="route">
+        <div style="color:var(--faint);font-size:12.5px">Awaiting a goal… try a chip above.</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: detail panel -->
+    <div class="card">
+      <div id="detail"><div class="empty">◂ Select a learning to inspect its mechanics, ork's current state, and the recommended adoption.</div></div>
+    </div>
+  </div>
+
+  <!-- learnings -->
+  <div class="card" style="margin-top:18px">
+    <h2>📚 The 10 learnings <span class="tag">// click to inspect</span></h2>
+    <div class="filters" id="filters">
+      <button data-f="all" class="on">All 10</button>
+      <button data-f="gap">🔴 Gaps</button>
+      <button data-f="partial">🟡 Partial</button>
+      <button data-f="have">🟢 Have</button>
+    </div>
+    <div id="list"></div>
+  </div>
+
+  <!-- synthesis -->
+  <div class="syn">
+    <h2 style="font-size:16px;margin:0 0 4px">🎯 Synthesis — top 3, devil's-advocate scored</h2>
+    <p style="color:var(--dim);font-size:13px;margin:0 0 14px;max-width:780px;line-height:1.55">
+      Composite = mean of impact, leverage, and feasibility minus risk (0–10). Sequenced by dependency: the engine underpins both the router's <code>optimize</code> route and the self-improvement loop.</p>
+    <div id="syn"></div>
+    <div class="actions">
+      <button class="btn" id="planBtn">📋 Copy adoption plan (markdown)</button>
+      <button class="btn ghost" id="allBtn">Show full backlog</button>
+    </div>
+    <textarea id="out" readonly></textarea>
+    <div class="note">
+      <b>Reality check baked in:</b> auto-research explicitly credits ork's <code>ci-sentinel</code>, <code>ScheduleWakeup</code> cadence, and the no-paid-background-LLM rule — so this is mutual borrowing, not one-way. ork's specialists (37 agents, 112 skills) are deeper than etk's 7 route targets; the gap is the <i>unifying layer</i>, not the parts. Don't build the router before the engine — its strongest route (<code>optimize</code>) routes into the loop that doesn't exist yet.
+    </div>
+  </div>
+</div>
+
+<script>
+const LEARNINGS = [
+  {n:1,t:"Intent-classified router",state:"gap",imp:9,eff:5,lev:9,risk:3,
+   m:"One entry point — /auto-research <plain goal> — classifies into 8 categories and routes to the right skill. \"Human writes intent, agent figures out execution.\"",
+   how:"8 keyword categories (fix/optimize/cover/design/build/review/verify/diagnose) → routing table → confirm plan → execute. Disambiguation: explicit verb wins; metric→optimize; %→cover; question→design.",
+   ork:"GAP. ork has 112 skills but the user must know which /ork:<skill> to type. /ork:help is a static directory; the advisor hook nudges spawns but there is no user-facing 'describe a goal, I route you' skill.",
+   rec:"Ship /ork:auto (or /ork:do) — a thin router over existing specialists. Highest-leverage UX win: it turns 112 skills into one front door.",
+   code:"/ork:auto get coverage to 90%\n  → classify: cover\n  → route:    /ork:cover --target 90\n  → confirm → execute → report"},
+  {n:2,t:"General experiment loop (Karpathy)",state:"partial",imp:9,eff:5,lev:8,risk:4,
+   m:"modify → measure a numeric metric → keep if improved, git-reset if regressed → repeat. Works for ANY metric/direction (latency, bundle, lighthouse).",
+   how:"8 phases: setup·baseline·hypothesize·modify·evaluate·decide·log·iterate. Commit-before-evaluate guarantees clean revert. Results to .experiment/results/<name>.tsv. Stuck-detection = 5 consecutive discards.",
+   ork:"PARTIAL. ork has an 'iterative optimization (autoresearch-style)' MODE buried inside /ork:brainstorm, plus eval-runner for LLM evals — but no standalone, git-safe, any-metric loop.",
+   rec:"Promote it to a first-class /ork:experiment. This is the engine the router's 'optimize' route and the self-improve loop both stand on.",
+   code:"/ork:experiment src/api --metric \"npm run bench\" \\\n   --minimize --goal 200 --unit ms\n# commit each try; reset on regression; never keep a worse number"},
+  {n:3,t:"Triple-ceiling budget",state:"partial",imp:6,eff:2,lev:6,risk:2,
+   m:"Every loop carries iterations / minutes / tokens limits; whichever hits first stops the run. The token ceiling is what makes unattended runs cost-safe.",
+   how:"defaults 10 iter / 30 min / 200k tok; max 100 / 480 / 2M. In unattended mode the token cap hardens into a mid-run cutoff.",
+   ork:"PARTIAL. /goal has completion conditions and Workflow exposes budget.total/spent(), but there's no single triple-ceiling vocabulary shared across loop skills.",
+   rec:"Standardize a {iters,minutes,tokens} ceiling across any ork loop skill. Cheap, and it's the safety rail for everything else.",
+   code:"Budget: 10 iter / 30 min / 200k tok\n→ stops at the FIRST limit hit"},
+  {n:4,t:"Stop-conditions + 'only fresh runs count'",state:"gap",imp:8,eff:3,lev:7,risk:2,
+   m:"Composable stop-conditions: goal · streak=N · holdout-wins · budget. Integrity law: a stop may NEVER be satisfied by a stale/cached/skipped result — re-run the check.",
+   how:"streak=N requires N consecutive FRESH passes (the false-green class etk fixed in 2.7.4). holdout-wins = a change beats champion on an unseen set.",
+   ork:"GAP/PARTIAL. /ork:verify exists but has no streak/holdout vocabulary. ork already KNOWS this failure mode (memory: 'npm test | tail returns exit 0 even when the suite FAILED').",
+   rec:"Add stop-condition vocab + the fresh-run integrity law to /ork:verify and /ork:cover. Pure correctness win, almost no surface area.",
+   code:"--until streak=3   # 3 fresh green runs in a row\n--until holdout-wins\n# cached 'pass' with 0 fresh runs = NEVER satisfies"},
+  {n:5,t:"Recipe presets",state:"gap",imp:6,eff:2,lev:5,risk:1,
+   m:"Named goal+stop templates so common loops need no hand-authored params: coverage-90, perf-p95-200ms, flake-hunt, error-sweep, docs-drift.",
+   how:"--recipe coverage-90 expands to /cover --target=90% --streak=2. Presets ride the existing engine, not new machinery; any field overridable.",
+   ork:"GAP. No preset layer for ork's loops.",
+   rec:"Ship a small recipe catalog once /ork:experiment + /ork:cover exist. Discoverability multiplier for non-experts.",
+   code:"/ork:auto --recipe flake-hunt\n  → /ork:verify --streak=5   # surface intermittent failures"},
+  {n:6,t:"Unattended propose-don't-apply watcher",state:"have",imp:7,eff:5,lev:6,risk:4,
+   m:"Background watcher that self-schedules, re-checks state fresh each wake, and only ever appends to a findings ledger — never mutates/commits/pushes.",
+   how:"4 rails: propose-don't-apply · hard token cutoff · user-initiated only · bounded lifetime (--max-wakeups / --deadline). Self-schedules via ScheduleWakeup/CronCreate.",
+   ork:"HAVE — auto-research literally says 'This is ork's ci-sentinel capability in our idiom.' ork already ships ci-sentinel as a propose-don't-apply background classifier.",
+   rec:"Generalize ci-sentinel beyond CI: same rails, but watch tests/perf/coverage drift, not just red checks. ork pioneered the pattern; widen it.",
+   code:"ci-sentinel (today): watch red PRs → ledger\n→ generalize: watch ANY metric drift → ledger"},
+  {n:7,t:"--replay teaching mode",state:"gap",imp:4,eff:2,lev:4,risk:1,
+   m:"Narrate what the loop WOULD do at each iteration — no code changes, no risk. For learning the loop, previewing an approach, or demoing to a teammate.",
+   how:"classify+plan as normal, skip confirm (nothing mutates), walk the hypothetical heartbeat timeline, produce an estimated report.",
+   ork:"GAP. /ork:visualize-plan is adjacent (it renders a plan) but doesn't dry-run-narrate a loop's reasoning.",
+   rec:"Add --replay / --dry-run narration to loop skills. Low effort, strong onboarding & trust value.",
+   code:"/ork:experiment ... --replay\n→ \"I'd index the WHERE clause first because it's the hot path…\""},
+  {n:8,t:"Skill self-improvement loop",state:"partial",imp:9,eff:8,lev:9,risk:6,
+   m:"Point /experiment at a SKILL.md and optimize the instructions themselves against a benchmark, with a holdout set to catch overfitting.",
+   how:"Karpathy 3-file: program.md(intent)+SKILL.md(mutated)+score(metric). Mutation boundaries (never touch frontmatter/safety), +20% growth cap, holdout-regression gate, human review, branch-only.",
+   ork:"PARTIAL — ork has every PIECE: bare-eval, eval-runner, audit-activation A/B, .skill-tokens-baseline.json — but no CLOSED loop that mutates a skill against a benchmark with overfitting protection.",
+   rec:"Wire the pieces into /ork:improve-skill. ork IS a skill library — a self-optimizing loop is meta-leverage no app repo can match. Highest ceiling, highest risk.",
+   code:"/ork:improve-skill review-pr\n  baseline 6.2 → iterate ≤5 → 8.1\n  holdout 7.9 (no regress) → branch for review"},
+  {n:9,t:"program.md intent convention",state:"partial",imp:4,eff:2,lev:4,risk:1,
+   m:"A persistent human-intent file pairing with agent-modified code + a metric — Karpathy's three-file separation of intent / mechanism / measurement.",
+   how:"optional program.md captures the goal as a durable record before a loop runs; survives across sessions.",
+   ork:"PARTIAL. ork has the experiment-journal + memory graph, which overlap. Mostly a naming/convention question.",
+   rec:"Fold the intent record into ork's existing memory/journal rather than a new file — adopt the concept, not the file.",
+   code:"program.md = the WHY\ntarget files = the WHAT (agent edits)\nmetric = the JUDGE"},
+  {n:10,t:"Intent-classification benchmark",state:"partial",imp:7,eff:5,lev:6,risk:2,
+   m:"50+ known goal→category pairs with a 95%+ accuracy bar — so the router's classifier can be validated and regression-tested after edits.",
+   how:"intent-benchmark.json drives a check after any change to the routing table; treats classification accuracy as a measurable, gateable number.",
+   ork:"PARTIAL. ork has bare-eval for isolated trigger testing — the substrate exists, but no router benchmark (because no router yet).",
+   rec:"If #1 ships, ship its benchmark with it. Gates routing accuracy and lets the router self-improve via #8. Hard dependency of a trustworthy router.",
+   code:"routing-benchmark.json → bare-eval → accuracy %\n\"fix the slow query\" → fix (not optimize) ✓"},
+];
+
+const SYN = [
+  {rank:"B",t:"First-class /ork:experiment loop + integrity laws",deps:"learnings #2 + #3 + #4 + #5 · comp 8.4",
+   p:"The engine. Promote brainstorm's buried 'iterative optimization' to a standalone git-safe any-metric loop, and bolt on the triple ceiling + the 'only fresh runs count' integrity law. Closes a real correctness gap (false-green) and is the foundation the other two stand on. FIRST because router.optimize and improve-skill both route into it."},
+  {rank:"A",t:"/ork:auto intent router (+ routing benchmark)",deps:"learnings #1 + #10 · comp 8.1",
+   p:"The front door. A thin classifier over ork's existing specialists turns 112 skills into one plain-English entry point — the single biggest UX win available. Ship the benchmark (#10) alongside so routing accuracy is gateable. SECOND: most of its routes already exist; only 'optimize' needs the engine from B."},
+  {rank:"C",t:"/ork:improve-skill self-optimization loop",deps:"learnings #8 + #9 · comp 7.6",
+   p:"The meta-play. ork is literally a skill library, so a closed loop that optimizes SKILL.md against a benchmark with holdout gating is leverage no product repo has. Highest ceiling, highest risk (mutating your own instructions). THIRD: depends on the engine (B) and is most valuable once the benchmark muscle (#10) from A exists."},
+];
+
+// ---------- router simulator ----------
+const ROUTES = [
+  {cat:"fix",     kw:["fix","debug","flaky","broken","failing","fails","error","crash","regression","timeout","bug"], skill:"/ork:fix-issue", state:"have",  note:"ork ships /ork:fix-issue — parallel root-cause analysis + regression detection."},
+  {cat:"diagnose",kw:["why","why isn't","why not","why does","why can't","investigate"], skill:"/ork:fix-issue (investigation-first)", state:"partial", note:"Routes to fix-issue but should frame as observe→hypothesize→propose before acting. Gentler entry."},
+  {cat:"optimize",kw:["optimize","faster","reduce","latency","performance","minimize","maximize","below","bundle","speed","p95","throughput"], skill:"/ork:experiment  ⟂ proposed", state:"gap", note:"GAP — no first-class metric loop. Closest today: /ork:performance (advice, not a loop). This is learning #2."},
+  {cat:"cover",   kw:["coverage","cover","untested","% coverage","80%","85%","90%","95%"], skill:"/ork:cover", state:"have", note:"ork ships /ork:cover — generates + heals tests toward a target."},
+  {cat:"design",  kw:["design","architect","brainstorm","explore","how should","idea","approach","compare"], skill:"/ork:brainstorm", state:"have", note:"ork ships /ork:brainstorm — 7-phase parallel-agent ideation (you're inside it now)."},
+  {cat:"build",   kw:["build","implement","create","add feature","develop","feature","scaffold"], skill:"/ork:implement", state:"have", note:"ork ships /ork:implement — full-power parallel backend/frontend/test build."},
+  {cat:"review",  kw:["review","pr ","mr ","pull request","merge request","#"], skill:"/ork:review-pr", state:"have", note:"ork ships /ork:review-pr — parallel quality/security/test/arch review."},
+  {cat:"verify",  kw:["verify","check","validate","ensure","passes","pass","green","make sure"], skill:"/ork:verify", state:"have", note:"ork ships /ork:verify — parallel unit/integration/e2e/security gate."},
+  {cat:"improve-skill",kw:["improve the","optimize the prompt","skill.md","better instructions","improve skill","prompt for"], skill:"/ork:improve-skill  ⟂ proposed", state:"gap", note:"GAP — closed self-improvement loop. Pieces exist (bare-eval, eval-runner). Learning #8."},
+];
+const EXAMPLES = ["get coverage above 90%","why isn't the build green","reduce p95 latency below 200ms","design an event-driven notification system","review PR #2644","make sure everything passes","fix the flaky auth test","improve the security-auditor skill","build the user preferences page"];
+
+function classify(text){
+  const s=" "+text.toLowerCase()+" ";
+  let best=null,bestScore=0;
+  for(const r of ROUTES){
+    let sc=0;
+    for(const k of r.kw){ if(s.includes(" "+k) || s.includes(k+" ") || s.includes(k)) sc += k.length>4?2:1; }
+    // disambiguation nudges
+    if(r.cat==="diagnose" && /\bwhy\b/.test(s)) sc+=3;
+    if(r.cat==="optimize" && /\b(below|above|under|<|ms|%)\b/.test(s) && /\b(latency|p95|size|time|speed|perf)/.test(s)) sc+=2;
+    if(r.cat==="cover" && /\d+\s?%/.test(s) && /cover/.test(s)) sc+=3;
+    if(r.cat==="fix" && /\bfix\b/.test(s)) sc+=2;
+    if(sc>bestScore){bestScore=sc;best=r;}
+  }
+  return {r:best,score:bestScore};
+}
+function renderRoute(text){
+  const el=document.getElementById("route");
+  if(!text.trim()){el.innerHTML='<div style="color:var(--faint);font-size:12.5px">Awaiting a goal… try a chip above.</div>';return;}
+  const {r,score}=classify(text);
+  if(!r||score===0){el.innerHTML='<div style="color:var(--gap);font-size:12.5px">No confident route. etk would fall back to <b>connected MCP + web search → summarize</b>, or ask one clarifying question.</div>';return;}
+  const conf=Math.min(100, 40+score*16);
+  el.innerHTML=`
+    <div class="flow">
+      <span class="node">"${text.replace(/</g,'&lt;').slice(0,42)}${text.length>42?'…':''}"</span>
+      <span class="arrow">→</span>
+      <span class="node cat">${r.cat}</span>
+      <span class="arrow">→</span>
+      <span class="node skill">${r.skill}</span>
+    </div>
+    <div class="conf"><i style="width:${conf}%"></i></div>
+    <div class="verdict"><span class="lbl ${r.state}">${r.state.toUpperCase()}</span>${r.note}</div>`;
+}
+const goalIn=document.getElementById("goal");
+goalIn.addEventListener("input",e=>renderRoute(e.target.value));
+const chips=document.getElementById("chips");
+EXAMPLES.forEach(x=>{const c=document.createElement("span");c.className="chip";c.textContent=x;
+  c.onclick=()=>{goalIn.value=x;renderRoute(x);goalIn.focus();};chips.appendChild(c);});
+
+// ---------- learnings list + detail ----------
+let filter="all", selected=null;
+const list=document.getElementById("list");
+function stateLabel(s){return s==="have"?"🟢 ork has":s==="partial"?"🟡 partial":"🔴 gap";}
+function renderList(){
+  list.innerHTML="";
+  LEARNINGS.filter(l=>filter==="all"||l.state===filter).forEach(l=>{
+    const d=document.createElement("div");
+    d.className="lrn"+(selected===l.n?" sel":"");
+    d.innerHTML=`<div class="num">${l.n}</div><div class="body">
+      <div class="t">${l.t}</div><div class="m">${l.m}</div>
+      <div class="meta">
+        <span class="dot ${l.state}">${stateLabel(l.state)}</span>
+        <span class="dot imp">impact ${l.imp}</span>
+        <span class="dot eff">effort ${l.eff}</span>
+      </div></div>`;
+    d.onclick=()=>{selected=l.n;renderList();renderDetail(l);};
+    list.appendChild(d);
+  });
+}
+function renderDetail(l){
+  const el=document.getElementById("detail");
+  el.innerHTML=`
+    <h3>${l.n}. ${l.t}</h3>
+    <span class="dot ${l.state}" style="font-size:11px">${stateLabel(l.state)}</span>
+    <div class="sec"><div class="k">How it works (etk)</div><div class="v">${l.how}</div></div>
+    <div class="sec"><div class="k">OrchestKit today</div><div class="v">${l.ork}</div></div>
+    <div class="sec"><div class="k">Recommended adoption</div><div class="v">${l.rec}</div></div>
+    <div class="sec"><div class="k">Shape</div><pre>${l.code}</pre></div>
+    <div class="sec"><div class="k">Scores</div>
+      <div class="scorebar">
+        <div class="s"><div class="lab">IMPACT ${l.imp}/10</div><div class="track"><i class="i" style="width:${l.imp*10}%"></i></div></div>
+        <div class="s"><div class="lab">LEVERAGE ${l.lev}/10</div><div class="track"><i class="i" style="width:${l.lev*10}%"></i></div></div>
+        <div class="s"><div class="lab">EFFORT ${l.eff}/10</div><div class="track"><i class="e" style="width:${l.eff*10}%"></i></div></div>
+      </div>
+    </div>`;
+}
+document.querySelectorAll("#filters button").forEach(b=>{
+  b.onclick=()=>{document.querySelectorAll("#filters button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");filter=b.dataset.f;renderList();};
+});
+
+// ---------- synthesis ----------
+const syn=document.getElementById("syn");
+SYN.forEach(s=>{const d=document.createElement("div");d.className="synrow";
+  d.innerHTML=`<div class="rank">${s.rank}</div><div>
+     <h4>${s.t}</h4><div class="deps">${s.deps}</div><p>${s.p}</p></div>`;syn.appendChild(d);});
+
+// ---------- copy plan ----------
+function buildPlan(){
+  let md="# OrchestKit ← Auto-Research: Adoption Plan\n\n";
+  md+="_Distilled from ArieGoldkin/claude-dev-kit etk:auto-research (v2.7.6)._\n\n";
+  md+="## Recommended sequence (by dependency)\n\n";
+  SYN.forEach((s,i)=>{md+=`${i+1}. **[${s.rank}] ${s.t}** — ${s.deps}\n   ${s.p}\n\n`;});
+  md+="## Full backlog (10 learnings)\n\n| # | Learning | ork state | impact | effort | recommendation |\n|---|---|---|---|---|---|\n";
+  LEARNINGS.forEach(l=>{md+=`| ${l.n} | ${l.t} | ${stateLabel(l.state)} | ${l.imp} | ${l.eff} | ${l.rec.replace(/\|/g,'/')} |\n`;});
+  md+="\n> ork already owns the watcher pattern (ci-sentinel) and the no-paid-background-LLM rail — auto-research borrows them. The gap is the **unifying router + metric-loop layer**, not the specialists.\n";
+  return md;
+}
+document.getElementById("planBtn").onclick=()=>{
+  const ta=document.getElementById("out");ta.value=buildPlan();ta.style.display="block";ta.select();
+  try{document.execCommand("copy");document.getElementById("planBtn").textContent="✅ Copied to clipboard";
+    setTimeout(()=>document.getElementById("planBtn").textContent="📋 Copy adoption plan (markdown)",1800);}catch(e){}
+};
+document.getElementById("allBtn").onclick=()=>{filter="all";
+  document.querySelectorAll("#filters button").forEach(x=>x.classList.remove("on"));
+  document.querySelector('#filters button[data-f="all"]').classList.add("on");renderList();
+  document.getElementById("list").scrollIntoView({behavior:"smooth"});};
+
+// init
+renderList();
+renderDetail(LEARNINGS[0]);selected=1;renderList();
+</script>
+</body>
+</html>

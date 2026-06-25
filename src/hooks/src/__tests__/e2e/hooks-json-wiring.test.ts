@@ -235,7 +235,8 @@ describe('hooks.json wiring E2E', () => {
       //                          dispatcher-registry tests, not here.
       // 210 -> 211: posttool/write/debt-marker-tracker — a real hooks.json WIRING
       //                          ENTRY (PostToolUse Write/Edit), counted by count-hooks.sh.
-      expect(hooksConfig.description).toContain('211 total');
+      // 211 -> 212: re-registered subagent-stop/unified-dispatcher (#1206 orphan fix).
+      expect(hooksConfig.description).toContain('212 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

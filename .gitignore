@@ -169,9 +169,11 @@ orchestkit-demos/build/
 .claude/.satisfaction-counter
 .setup-complete
 
-# Node modules (all locations)
-node_modules/
-hooks/node_modules/
+# Node modules (all locations) — no trailing slash so symlink FILES named
+# node_modules are ignored too (a trailing-slash pattern matches only real
+# dirs, which let a worktree node_modules symlink slip into #2645 → 8.60.0).
+node_modules
+**/node_modules
 
 # Generated plugin builds (now committed for marketplace distribution)
 # Run `npm run build` before committing to ensure plugins/ is up-to-date

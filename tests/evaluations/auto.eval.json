@@ -1,0 +1,57 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "auto",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "basic-route-cover",
+      "query": "/ork:auto get coverage above 90%",
+      "expected_behavior": [
+        "Classifies the goal as the cover intent category",
+        "Routes to /ork:cover with a target of 90 percent",
+        "Confirms the chosen route with the user before handing off",
+        "Does not perform the coverage work itself; the router only classifies and dispatches"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "route-optimize-goal",
+      "query": "/ork:auto reduce p95 latency below 200ms",
+      "expected_behavior": [
+        "Classifies the goal as the optimize intent category from the metric and direction",
+        "Routes to a /goal optimization loop rather than a dedicated experiment skill",
+        "States plainly that OrchestKit has no /ork:experiment skill and uses a /goal loop instead",
+        "Confirms the route before handing off"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-general-question",
+      "query": "What is the capital of France?",
+      "expected_behavior": [
+        "Does NOT invoke the auto router or treat it as a development goal",
+        "Answers the general question directly",
+        "The router is only for routing development goals to OrchestKit skills, not general queries"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "fallback-ambiguous",
+      "query": "/ork:auto make it better",
+      "expected_behavior": [
+        "Recognizes the goal is too ambiguous to classify confidently",
+        "Asks exactly one clarifying question instead of guessing a route",
+        "Does not hand off to a specialist skill until the intent is clarified"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    }
+  ]
+}
