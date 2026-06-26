@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.62.1](https://github.com/yonatangross/orchestkit/compare/v8.62.0...v8.62.1) (2026-06-26)
+
+
+### Bug Fixes
+
+* **mcp:** resolve memory KG path at runtime so the graph persists ([#2674](https://github.com/yonatangross/orchestkit/issues/2674)) ([d7322be](https://github.com/yonatangross/orchestkit/commit/d7322bea5466291988270e0de6a494b476c148cc)), closes [#2631](https://github.com/yonatangross/orchestkit/issues/2631)
+
 ## [8.62.0](https://github.com/yonatangross/orchestkit/compare/v8.61.0...v8.62.0) (2026-06-26)
 
 
