@@ -778,6 +778,42 @@ question.
 > drift-register re-audit (caught a 60%-wrong audit) and the adversarial-verify design
 > (found all 3 designs unsound on first pass).
 
+## Parse-safety: write it as plain JS (the 3 killers)
+
+The script is a **plain-JS string**, and agent prompts are full of the exact characters JS uses
+to delimit/interpolate strings — so prompt content fights the syntax. Almost every "Invalid
+workflow script / Unexpected token (L:C)" is one of three collisions; the `(line:col)` in the
+error points at the exact character.
+
+```text
+1. BACKTICK COLLISION  (the #1 cause)
+   BAD   agent(`review the `op inject` command`)   <- 2nd backtick CLOSES the template early
+   OK    agent('review the op inject command')     <- single-quote (or .join for multi-line)
+   Any inline-code backtick inside a backtick-delimited prompt detonates the parse.
+
+2. ${...} INTERPOLATION
+   BAD   agent(`set ${CLAUDE_PROJECT_DIR}/x`)       <- JS evaluates CLAUDE_PROJECT_DIR as a var
+   OK    agent('set $CLAUDE_PROJECT_DIR/x')         <- bare $VAR is plain text
+
+3. TYPESCRIPT MUSCLE MEMORY
+   BAD   const xs: string[] = []   interface Foo {}   fn<T>()   as const
+   OK    const xs = []                              <- no type annotations, ever
+```
+
+**The rule that kills all three:** inside any `agent()` / `log()` string — no backticks, no
+`$\{...\}`, no TS syntax. For multi-line prompts, concatenate single-quoted lines instead of
+reaching for a backtick template:
+
+```js
+agent(['Do X.', 'Then Y.', 'Return JSON only.'].join('\n'))   // backtick-free, immune
+```
+
+**When it keeps parse-failing:** stop re-sending the whole 180-line blob and guessing. Every
+`Workflow` run persists its script to a file — `Write`/`Edit` that `.js` (where a stray backtick
+is visible) and re-run with `Workflow(\{scriptPath\})`. Two more parse traps: `meta` must be a
+pure literal (no vars/calls/spreads), and `Date.now()` / `Math.random()` / argless `new Date()`
+throw at runtime — pass timestamps in via `args`.
+
 ## The 6 patterns → ork map
 
 > These six are **ork's own taxonomy** for naming multi-agent shapes — not a Claude Code
