@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.63.0](https://github.com/yonatangross/orchestkit/compare/v8.62.1...v8.63.0) (2026-06-26)
+
+
+### Features
+
+* **ci:** draft release announcements via HQ platform marketing ([#2677](https://github.com/yonatangross/orchestkit/issues/2677)) ([d3ba41e](https://github.com/yonatangross/orchestkit/commit/d3ba41e9bba910ba17ac598ab298c7f665884070))
+
+
+### Bug Fixes
+
+* **site:** make OpenAPI/NLWeb discoverable at probed paths (orank) ([#2676](https://github.com/yonatangross/orchestkit/issues/2676)) ([4bb40d8](https://github.com/yonatangross/orchestkit/commit/4bb40d84c557ff60dd37c44899618a8e77896e14))
+
 ## [8.62.1](https://github.com/yonatangross/orchestkit/compare/v8.62.0...v8.62.1) (2026-06-26)
 
 
