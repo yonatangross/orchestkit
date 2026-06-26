@@ -143,6 +143,11 @@ export default async function HomePage() {
               data-speakable-headline
               className="text-fluid-h1 font-semibold leading-[1.02] tracking-[-0.025em] text-fd-foreground"
             >
+              {/* Brand in the H1 itself (SSR, no JS) so AI crawlers + agent-readiness
+                  scanners read the product name in the top heading — accessible name
+                  becomes "OrchestKit — Stop explaining your stack. Start shipping."
+                  without altering the visual hero. */}
+              <span className="sr-only">OrchestKit — </span>
               <span
                 className="bg-clip-text text-transparent"
                 style={{
