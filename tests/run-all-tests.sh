@@ -166,6 +166,7 @@ if [[ "$RUN_UNIT" == "true" ]]; then
     run_test "Shell Syntax Validation" "$SCRIPT_DIR/unit/test-shell-syntax.sh" || true  # silent: known-noise
     run_test "Build Install Preflight (#1899)" "$SCRIPT_DIR/build/test-check-install.sh" || true  # silent: known-noise
     run_test "Build mcp-server Fresh-Deps Guard (#1796)" "$SCRIPT_DIR/unit/test-build-mcp-deps-fresh.sh" || true  # silent: known-noise
+    run_test "MCP Memory Persistence Guard (#2631)" "$SCRIPT_DIR/unit/test-mcp-memory-path.sh" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
     run_test "JSON Validity Check" "$SCRIPT_DIR/unit/test-json-validity.sh" || true
     run_test "Hook Executability" "$SCRIPT_DIR/unit/test-hook-executability.sh" || true
     run_test "Context Schema Validation" "$SCRIPT_DIR/unit/test-context-schemas.sh" || true

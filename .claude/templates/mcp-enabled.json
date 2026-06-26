@@ -14,10 +14,9 @@
       "auto": "60"
     },
     "memory": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"],
-      "env": { "MEMORY_FILE_PATH": "${CLAUDE_PROJECT_DIR:-.}/.claude/memory/memory.json" },
-      "description": "Knowledge graph memory (PRIMARY) - zero-config, always available",
+      "command": "sh",
+      "args": ["-c", "DIR=\"$CLAUDE_PROJECT_DIR\"; [ -n \"$DIR\" ] || DIR=\"$PWD\"; export MEMORY_FILE_PATH=\"$DIR/.claude/memory/memory.json\"; mkdir -p \"$DIR/.claude/memory\"; exec npx -y @modelcontextprotocol/server-memory"],
+      "description": "Knowledge graph memory (PRIMARY) - resolves an absolute MEMORY_FILE_PATH at runtime so the graph persists (#2631)",
       "auto": "90"
     },
     "tavily": {

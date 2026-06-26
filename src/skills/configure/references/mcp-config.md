@@ -122,9 +122,8 @@ Edit `.mcp.json` and set `"disabled": true` or `false` for each MCP:
       "disabled": false
     },
     "memory": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"],
-      "env": { "MEMORY_FILE_PATH": "${CLAUDE_PROJECT_DIR:-.}/.claude/memory/memory.json" },
+      "command": "sh",
+      "args": ["-c", "DIR=\"$CLAUDE_PROJECT_DIR\"; [ -n \"$DIR\" ] || DIR=\"$PWD\"; export MEMORY_FILE_PATH=\"$DIR/.claude/memory/memory.json\"; mkdir -p \"$DIR/.claude/memory\"; exec npx -y @modelcontextprotocol/server-memory"],
       "disabled": false
     },
     "tavily": {
