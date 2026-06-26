@@ -400,6 +400,7 @@ skill is no longer marked `experimental:` in its frontmatter.
 | OTEL resource-attr metric labels | 2.1.161 | `OTEL_RESOURCE_ATTRIBUTES` attached as labels on metric datapoints for slicing by team/repo; noted in `monitoring-observability`, `telemetry-inspect` | No custom-dimension slicing of usage metrics |
 | `claude agents` done/total | 2.1.161 | `claude agents` rows show `done/total` for fanned-out work; peek shows the longest-running item | No fan-out progress in the agents list |
 | `/mcp` collapse unused connectors | 2.1.161 | `/mcp` collapses claude.ai connectors never signed in to behind a "Show unused connectors" row | Long connector list with dead entries |
+| `OTEL_LOG_ASSISTANT_RESPONSES` | 2.1.193 | New `claude_code.assistant_response` OTEL log event carries the model's response text. **Redacted unless `OTEL_LOG_ASSISTANT_RESPONSES=1`; when unset it follows `OTEL_LOG_USER_PROMPTS`** — deployments already logging prompts START logging response content on upgrade. Set `=0` to keep prompts-only. Same secret-leak class as `OTEL_LOG_RAW_API_BODIES` (2.1.111) | No response-text log event; prompt logging never implied response logging |
 
 ## Prompt Caching Recommendation
 
