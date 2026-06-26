@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.62.0](https://github.com/yonatangross/orchestkit/compare/v8.61.0...v8.62.0) (2026-06-26)
+
+
+### Features
+
+* **adoption:** 3 CC security/hygiene wins + triage sweep of 17 tickets ([#2661](https://github.com/yonatangross/orchestkit/issues/2661)) ([f102bd6](https://github.com/yonatangross/orchestkit/commit/f102bd627a0c4717b789965e1c05776a96e445e1))
+* **cc-support:** bump latest_known 2.1.183 to 2.1.191 ([#2663](https://github.com/yonatangross/orchestkit/issues/2663)) ([36284ee](https://github.com/yonatangross/orchestkit/commit/36284ee03fba424c51c49e11dfa9ad31d80a68bb))
+* **cc-support:** bump latest_known 2.1.183 to 2.1.193 ([#2673](https://github.com/yonatangross/orchestkit/issues/2673)) ([147726a](https://github.com/yonatangross/orchestkit/commit/147726aa7579ef128ad0c97f1359eca77806f6be))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.193) ([#2671](https://github.com/yonatangross/orchestkit/issues/2671)) ([6fd3b63](https://github.com/yonatangross/orchestkit/commit/6fd3b6363d5b40192b3131ca8dfe557ccf6c9cdd))
+
 ## [8.61.0](https://github.com/yonatangross/orchestkit/compare/v8.60.1...v8.61.0) (2026-06-25)
 
 
