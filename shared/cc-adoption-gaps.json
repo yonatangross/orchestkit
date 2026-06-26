@@ -1,77 +1,95 @@
 [
   {
-    "version": "2.1.190",
-    "parse_failed": false,
-    "features": [],
-    "raw_bullets_count": 1,
-    "featureless": true,
-    "issues_filed_at": "2026-06-25T04:27:20Z"
-  },
-  {
-    "version": "2.1.191",
+    "version": "2.1.193",
     "parse_failed": false,
     "features": [
       {
-        "feature_slug": "permissions_denial_approval_persists",
+        "feature_slug": "bg_shell_memory_pressure_reap",
         "category": "breaking",
-        "description": "Approving a previously-denied permission in /permissions Recently-denied tab now persists instead of being discarded.",
+        "description": "Idle background shell commands now auto-reaped under memory pressure; disable via CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_",
         "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "async-jobs",
+          "configure"
+        ],
+        "reference_changelog_line": "Added automatic memory-pressure reaping for idle background shell commands (disable with `CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1`)",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "bg_agent_launch_no_end_response",
+        "category": "breaking",
+        "description": "Background agent launch result no longer instructs Claude to end its response, letting it continue other work concurrent",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "task-dependency-patterns"
+        ],
+        "reference_changelog_line": "Improved background agents: the launch result no longer instructs Claude to \"end your response\" — it keeps working on other tasks while the agent runs",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "mcp_headers_helper_auto_reauth",
+        "category": "breaking",
+        "description": "MCP headersHelper now re-runs and reconnects automatically when a tool call returns 401/403.",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns"
+        ],
+        "reference_changelog_line": "Improved MCP `headersHelper` auth: the helper now re-runs and reconnects automatically when a tool call returns 401/403",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "plugin_auto_rename_marketplace",
+        "category": "breaking",
+        "description": "Marketplace `renames` maps are now followed automatically, updating user settings to the new plugin name.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "release-management"
+        ],
+        "reference_changelog_line": "Improved plugin auto-rename: marketplace `renames` maps are now followed automatically, updating your settings to the new name",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "otel_assistant_response_event",
+        "category": "new_event",
+        "description": "New claude_code.assistant_response OTel log event; redacted unless OTEL_LOG_ASSISTANT_RESPONSES=1 or prompt logging is o",
+        "gap_score": 10,
+        "affected_skills": [
+          "monitoring-observability",
+          "telemetry-inspect"
+        ],
+        "reference_changelog_line": "Added `claude_code.assistant_response` OpenTelemetry log event containing the model's response text. Redacted unless `OTEL_LOG_ASSISTANT_RESPONSES=1`; when that var is unset it follows `OTEL_LOG_USER_PROMPTS`, so deployments that already log prompt content will start receiving response content on upgrade — set `OTEL_LOG_ASSISTANT_RESPONSES=0` to keep prompts-only.",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "automode_classify_all_shell_setting",
+        "category": "new_field",
+        "description": "New autoMode.classifyAllShell setting routes every Bash/PowerShell command through the auto-mode classifier.",
+        "gap_score": 10,
         "affected_skills": [
           "security-patterns",
           "configure"
         ],
-        "reference_changelog_line": "Fixed `/permissions` Recently-denied tab: approving a denial now persists on close instead of being silently discarded",
-        "relevance": "plugin"
+        "reference_changelog_line": "Added `autoMode.classifyAllShell` setting to route all Bash/PowerShell commands through the auto-mode classifier instead of only arbitrary-code-execution patterns",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
       },
       {
-        "feature_slug": "force_remote_settings_refresh_mdm",
-        "category": "breaking",
-        "description": "forceRemoteSettingsRefresh now applies via MDM/file policy and sends Cache-Control: no-cache to avoid stale proxies.",
-        "gap_score": 20,
+        "feature_slug": "automode_denial_reasons_surface",
+        "category": "new_attr",
+        "description": "Auto-mode denial reasons now surface in the transcript, denial toast, and /permissions recent denials list.",
+        "gap_score": 10,
         "affected_skills": [
-          "configure",
-          "mcp-patterns"
+          "security-patterns"
         ],
-        "reference_changelog_line": "Fixed managed settings: `forceRemoteSettingsRefresh` now takes effect when set via MDM or file policy, and the fetch sends `Cache-Control: no-cache` to prevent proxies from serving stale responses",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "mcp_oauth_headless_paste_url",
-        "category": "breaking",
-        "description": "MCP OAuth retries once on transient errors; headless envs skip the browser popup and go directly to paste-the-URL.",
-        "gap_score": 20,
-        "affected_skills": [
-          "mcp-patterns"
-        ],
-        "reference_changelog_line": "Improved MCP OAuth: discovery and token requests now retry once after transient network errors, and headless environments skip the browser popup and go straight to the paste-the-URL prompt",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "rewind_resume_before_clear",
-        "category": "new_command",
-        "description": "/rewind can now resume a conversation from before a /clear was run.",
-        "gap_score": 15,
-        "affected_skills": [
-          "chain-patterns",
-          "checkpoint-resume"
-        ],
-        "reference_changelog_line": "Added `/rewind` support for resuming a conversation from before `/clear` was run",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "sandbox_network_session_allowlist",
-        "category": "new_perm",
-        "description": "Sandbox network dialog now remembers hosts allowed with Yes for the rest of the session instead of re-prompting.",
-        "gap_score": 12,
-        "affected_skills": [
-          "security-patterns",
-          "browser-tools"
-        ],
-        "reference_changelog_line": "Improved sandbox network permission dialog: hosts you allow with \"Yes\" are now remembered for the rest of the session instead of re-prompting on every connection",
-        "relevance": "plugin"
+        "reference_changelog_line": "Added auto-mode denial reasons to the transcript, the denial toast, and `/permissions` recent denials",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
       }
     ],
-    "raw_bullets_count": 20,
-    "issues_filed_at": "2026-06-25T04:27:20Z"
+    "raw_bullets_count": 15,
+    "issues_filed_at": "2026-06-26T04:30:31Z"
   }
 ]
