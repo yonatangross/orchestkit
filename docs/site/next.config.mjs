@@ -79,6 +79,22 @@ const config = {
 			source: "/api/v1/:path*",
 			destination: "/api/:path*",
 		},
+		{
+			// OpenAPI spec at the canonical agent-probed path. The spec is served
+			// by app/api/openapi; agents + scanners (ora.ai) look for /openapi.json.
+			source: "/openapi.json",
+			destination: "/api/openapi",
+		},
+		{
+			// Same spec under the conventional /api/openapi.json filename.
+			source: "/api/openapi.json",
+			destination: "/api/openapi",
+		},
+		{
+			// YAML twin at the .yaml path OpenAPI tooling probes by exact name.
+			source: "/api/openapi.yaml",
+			destination: "/api/openapi-yaml",
+		},
 	],
 	redirects: async () => [
 		{

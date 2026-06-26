@@ -11,7 +11,8 @@ import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 // `_meta` block. Follows the NLWeb reference implementation's request
 // contract: GET with ?query= (aliases: q, question), POST with a JSON or
 // form-encoded body, `mode` (list | summarize | generate), and streaming via
-// `?streaming=true`, `prefer.streaming: true`, or `Accept: text/event-stream`.
+// `?streaming=true`, `prefer.streaming: true`, the RFC 7240 `Prefer: streaming`
+// (or `respond-async`) header, or `Accept: text/event-stream`.
 // Spec: https://github.com/microsoft/NLWeb
 export const dynamic = "force-dynamic";
 
@@ -97,8 +98,14 @@ function truthy(value: string | null | undefined): boolean {
 
 async function readQuery(req: Request): Promise<ParsedAsk | null> {
 	const accept = req.headers.get("accept") ?? "";
+	// RFC 7240 Prefer header — agents/scanners signal streaming with
+	// `Prefer: streaming` or the standard `Prefer: respond-async`.
+	const prefer = req.headers.get("prefer") ?? "";
 	const params = new URL(req.url).searchParams;
-	let streaming = accept.includes("text/event-stream") || truthy(params.get("streaming"));
+	let streaming =
+		accept.includes("text/event-stream") ||
+		/\b(streaming|respond-async)\b/i.test(prefer) ||
+		truthy(params.get("streaming"));
 	let query = params.get("query") ?? params.get("q") ?? params.get("question") ?? "";
 	let mode = params.get("mode") ?? "list";
 

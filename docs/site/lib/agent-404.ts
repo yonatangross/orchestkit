@@ -44,6 +44,7 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	// next.config rewrites that land on real handlers.
 	"/ask",
 	"/mcp.json",
+	"/openapi.json",
 	// Specific /.well-known/* paths we actually rewrite to handlers. Listed
 	// individually (not as a prefix) so UNKNOWN well-known probes — e.g.
 	// /.well-known/oauth-authorization-server, which we don't serve (no

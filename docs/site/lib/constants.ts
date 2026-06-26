@@ -77,6 +77,9 @@ export const SAME_AS = [
   // `npx skills add yonatangross/orchestkit`). Bi-directional verification for
   // the docs ⇄ skills.sh directory.
   "https://www.skills.sh/yonatangross/orchestkit",
+  // PyPI package (the published hook-contract SDK). Links the entity to its
+  // real package registry — honest SDK surface (there is no public npm SDK).
+  "https://pypi.org/project/orchestkit-hook-contract/",
 ] as const;
 
 export const BANNER_TEXT = `OrchestKit v${SITE.version} — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · Claude Code ${SITE.ccVersion}`;
