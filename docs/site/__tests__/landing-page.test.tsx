@@ -67,8 +67,8 @@ describe("getStarCount", () => {
       json: () => Promise.resolve({ stargazers_count: 120 }),
     });
 
-    // Import fresh to use mocked fetch
-    const mod = await import("../app/(home)/page");
+    // Import fresh to use mocked fetch (side-effect only)
+    await import("../app/(home)/page");
     // getStarCount is not exported, so we test it via the component
     // Instead, test the fetch URL pattern
     expect(global.fetch).not.toHaveBeenCalled();

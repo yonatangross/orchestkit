@@ -276,7 +276,7 @@ export default async function HomePage() {
             </h2>
           </div>
           <div className="grid grid-cols-1 overflow-hidden rounded-xl border border-fd-border bg-[var(--color-fd-surface-raised)] md:grid-cols-3">
-            {PERSONAS.map((p, i) => (
+            {PERSONAS.map((p) => (
               <Link
                 key={p.href}
                 href={p.href}
