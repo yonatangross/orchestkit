@@ -13,7 +13,7 @@ vi.mock("@/lib/doc-search", () => ({
 	],
 }));
 
-import { POST } from "@/app/api/ask/route";
+import { GET, POST } from "@/app/api/ask/route";
 
 function askReq(headers: Record<string, string>): Request {
 	return new Request("https://orchestkit.yonyon.ai/ask", {
@@ -40,5 +40,50 @@ describe("/ask streaming triggers", () => {
 		const body = await res.json();
 		expect(body._meta).toBeTruthy();
 		expect(body._meta.version).toBeDefined();
+	});
+});
+
+// A bare probe (no `query`) must return a 200 NLWeb envelope, not a 400 — a 400
+// reads to agent-readiness scanners as "no NLWeb endpoint here".
+describe("/ask no-query probe → 200 NLWeb envelope", () => {
+	it("GET /ask with no query → 200, empty results, usage hint", async () => {
+		const res = await GET(new Request("https://orchestkit.yonyon.ai/ask"));
+		expect(res.status).toBe(200);
+		expect(res.headers.get("Content-Type")).toContain("application/json");
+		const body = await res.json();
+		expect(body.results).toEqual([]);
+		expect(body._meta.response_type).toBe("list");
+		expect(body._meta.version).toBeDefined();
+		expect(body._meta.count).toBe(0);
+		expect(typeof body._meta.usage).toBe("string");
+		expect(body._meta.usage.length).toBeGreaterThan(0);
+	});
+
+	it("POST /ask with empty query → 200, empty results", async () => {
+		const res = await POST(
+			new Request("https://orchestkit.yonyon.ai/ask", {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify({ query: "   " }),
+			}),
+		);
+		expect(res.status).toBe(200);
+		const body = await res.json();
+		expect(body.results).toEqual([]);
+		expect(body._meta.count).toBe(0);
+		expect(typeof body._meta.usage).toBe("string");
+	});
+
+	it("POST /ask with an unreadable body → 200 envelope, not 400", async () => {
+		const res = await POST(
+			new Request("https://orchestkit.yonyon.ai/ask", {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: "{ not json",
+			}),
+		);
+		expect(res.status).toBe(200);
+		const body = await res.json();
+		expect(body.results).toEqual([]);
 	});
 });

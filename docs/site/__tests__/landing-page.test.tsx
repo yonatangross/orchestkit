@@ -67,8 +67,8 @@ describe("getStarCount", () => {
       json: () => Promise.resolve({ stargazers_count: 120 }),
     });
 
-    // Import fresh to use mocked fetch
-    const mod = await import("../app/(home)/page");
+    // Import fresh to use mocked fetch (side-effect only)
+    await import("../app/(home)/page");
     // getStarCount is not exported, so we test it via the component
     // Instead, test the fetch URL pattern
     expect(global.fetch).not.toHaveBeenCalled();
@@ -188,6 +188,31 @@ describe("landing page content", () => {
     expect(stargazersLink?.getAttribute("href")).toBe(
       "https://github.com/yonatangross/orchestkit/stargazers",
     );
+  });
+
+  it("has a single H1 and a clean H1→H2→H3 heading outline (no level skips)", async () => {
+    const HomePage = (await import("../app/(home)/page")).default;
+    const result = await HomePage();
+    const { container } = render(result);
+
+    // Exactly one H1 (the hero) anchors the document outline.
+    expect(container.querySelectorAll("h1").length).toBe(1);
+
+    // Every section title is a real heading and the levels never jump by more
+    // than one (the orank "FLAT heading structure" defect): sections must use
+    // H2/H3, not <div>/<span> stand-ins. Walk headings in document order and
+    // assert no descent skips a level.
+    const levels = Array.from(
+      container.querySelectorAll("h1, h2, h3, h4, h5, h6"),
+    ).map((el) => Number(el.tagName[1]));
+    expect(levels[0]).toBe(1);
+    for (let i = 1; i < levels.length; i++) {
+      expect(levels[i] - levels[i - 1]).toBeLessThanOrEqual(1);
+    }
+
+    // The value-prop strip is labelled by a real <h2>, not a <span>.
+    const personasHeading = container.querySelector("#personas-heading");
+    expect(personasHeading?.tagName).toBe("H2");
   });
 
   it("does NOT contain hardcoded clone counts or unverifiable claims", async () => {

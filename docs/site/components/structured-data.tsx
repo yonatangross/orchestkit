@@ -296,6 +296,10 @@ export function HomepageStructuredData({
 			softwareApplicationNode(starCount),
 			serviceNode(),
 			faqPageNode(HOME_FAQS),
+			// Root BreadcrumbList — broadens the homepage schema graph and gives
+			// search/agent crawlers the canonical site root in the same crumb shape
+			// every interior page emits, so the trail is consistent sitewide.
+			breadcrumbNode([{ name: "Home", url: SITE.domain }]),
 		],
 	};
 	return <JsonLd data={graph} />;
