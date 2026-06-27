@@ -19,6 +19,13 @@ export const dynamic = "force-dynamic";
 const NLWEB_VERSION = "0.1";
 const NLWEB_MODES = new Set(["list", "summarize", "generate"]);
 
+// A bare probe (GET /ask or POST /ask with no `query`) is how agent-readiness
+// scanners confirm the endpoint exists. Return a valid, empty NLWeb envelope
+// (200, results: []) plus a short usage hint rather than a 400 — a 400 reads as
+// "no NLWeb endpoint here" to those scanners.
+const USAGE_HINT =
+	"Provide a `query` to search the docs — GET /ask?query=... or POST { \"query\": \"...\" }. Modes: list | summarize | generate. Stream with ?streaming=true or `Prefer: streaming`.";
+
 // NLWeb-canonical result shape: `name`, `site`, `score`, `description` are
 // what NLWeb clients consume; `id`, `title`, `url`, `content` are kept for
 // existing consumers of this endpoint.
@@ -32,12 +39,27 @@ function toNlwebResult(hit: DocHit, index: number, total: number) {
 	};
 }
 
-function meta(mode: string, count?: number) {
+function meta(mode: string, count?: number, usage?: string) {
 	return {
 		response_type: mode,
 		version: NLWEB_VERSION,
 		...(count === undefined ? {} : { count }),
+		...(usage ? { usage } : {}),
 	};
+}
+
+// 200 NLWeb envelope for a no-query probe: empty results + a usage hint so a
+// scanner sees a live, well-formed endpoint instead of a 400.
+function noQueryResponse(headers: Record<string, string>): Response {
+	return Response.json(
+		{
+			query_id: crypto.randomUUID(),
+			query: "",
+			results: [],
+			_meta: meta("list", 0, USAGE_HINT),
+		},
+		{ headers },
+	);
 }
 
 function jsonResponse(
@@ -165,27 +187,15 @@ async function handle(req: Request): Promise<Response> {
 	};
 
 	const parsed = await readQuery(req);
+	// A bare probe — no readable query at all — gets a 200 NLWeb envelope with a
+	// usage hint, not a 400. Scanners treat a 400 as "no endpoint here".
 	if (!parsed) {
-		return problemResponse(
-			{
-				title: "Invalid request body",
-				status: 400,
-				detail: 'Expected a JSON body of the form { "query": "..." } or a ?query= parameter.',
-			},
-			headers,
-		);
+		return noQueryResponse(headers);
 	}
 
 	const query = parsed.query.trim();
 	if (!query) {
-		return problemResponse(
-			{
-				title: "Missing query",
-				status: 400,
-				detail: "Provide a non-empty `query` (in the JSON body or as a ?query= parameter).",
-			},
-			headers,
-		);
+		return noQueryResponse(headers);
 	}
 
 	const hits = searchDocs(query);
