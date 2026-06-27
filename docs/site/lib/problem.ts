@@ -37,3 +37,25 @@ export function problemResponse(
 		},
 	});
 }
+
+// RFC 8594 deprecation signalling. Nothing is deprecated today; this is the
+// mechanism the OpenAPI deprecation policy (info.description) promises, ready
+// to spread into any endpoint's response headers when an endpoint is actually
+// retired. `deprecation` is the date the endpoint became deprecated and
+// `sunset` is the date it stops working (both serialized as IMF-fixdate, the
+// HTTP-date format both RFC 8594 headers require). `migrationDocsUrl` adds the
+// RFC 8288 `Link: rel="deprecation"` pointer to the migration notes.
+export function deprecationHeaders(opts: {
+	deprecation: Date;
+	sunset?: Date;
+	migrationDocsUrl?: string;
+}): Record<string, string> {
+	const headers: Record<string, string> = {
+		Deprecation: opts.deprecation.toUTCString(),
+	};
+	if (opts.sunset) headers.Sunset = opts.sunset.toUTCString();
+	if (opts.migrationDocsUrl) {
+		headers.Link = `<${opts.migrationDocsUrl}>; rel="deprecation"; type="text/html"`;
+	}
+	return headers;
+}
