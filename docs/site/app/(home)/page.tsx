@@ -271,9 +271,9 @@ export default async function HomePage() {
               <span aria-hidden="true" className="h-px w-2.5 bg-fd-muted-foreground opacity-50" />
               Paths / 03
             </span>
-            <span id="personas-heading" className="font-mono text-[13px] text-fd-muted-foreground">
+            <h2 id="personas-heading" className="font-mono text-[13px] font-normal text-fd-muted-foreground">
               Pick your entry point
-            </span>
+            </h2>
           </div>
           <div className="grid grid-cols-1 overflow-hidden rounded-xl border border-fd-border bg-[var(--color-fd-surface-raised)] md:grid-cols-3">
             {PERSONAS.map((p, i) => (
@@ -285,9 +285,9 @@ export default async function HomePage() {
                 <div className="mb-2.5 font-mono text-[11px] uppercase tracking-[0.04em] text-fd-muted-foreground">
                   {p.eyebrow}
                 </div>
-                <div className="mb-1.5 text-base font-semibold tracking-[-0.01em] text-fd-foreground">
+                <h3 className="mb-1.5 text-base font-semibold tracking-[-0.01em] text-fd-foreground">
                   {p.title}
-                </div>
+                </h3>
                 <p className="mb-3.5 min-h-10 text-[13.5px] leading-[1.5] text-fd-muted-foreground">{p.desc}</p>
                 <span className="inline-flex items-center gap-1.5 font-mono text-[12.5px] font-medium text-fd-primary">
                   {p.cta}
@@ -397,9 +397,9 @@ export default async function HomePage() {
                     </span>
                   ) : null}
                 </div>
-                <div className="mb-2 text-[15px] font-semibold leading-[1.3] tracking-[-0.01em] text-fd-foreground">
+                <h3 className="mb-2 text-[15px] font-semibold leading-[1.3] tracking-[-0.01em] text-fd-foreground">
                   {r.title}
-                </div>
+                </h3>
                 <div className="flex-1 text-[13px] leading-[1.5] text-fd-muted-foreground">{r.tag}</div>
                 <div className="mt-3.5 flex items-center justify-between border-t border-dashed border-fd-border pt-3 font-mono text-[11.5px] text-fd-muted-foreground">
                   <span className="text-fd-foreground">{r.cmd}</span>
