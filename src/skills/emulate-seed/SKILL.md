@@ -14,7 +14,7 @@ agent: emulate-engineer
 metadata:
   category: testing
   upstream-package: emulate
-  upstream-version-tested: "0.7.0"
+  upstream-version-tested: "0.8.0"
 ---
 
 # Emulate Seed Configs

@@ -15,7 +15,7 @@ persuasion-type: discipline
 metadata:
   category: mcp-enhancement
   upstream-skill: agent-browser
-  upstream-version-tested: "0.29.1"
+  upstream-version-tested: "0.31.1"
 allowed-tools:
   - Read
   - Glob
