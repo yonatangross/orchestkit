@@ -488,13 +488,18 @@ function AccessibleChart({ data, title }: { data: ChartData[]; title: string }) 
 
 Estimate token costs from CC's `~/.claude/stats-cache.json` using model-specific pricing.
 
-## Pricing Table (Feb 2026)
+## Pricing Table (Jun 2026)
+
+Authoritative source: `src/hooks/src/lib/models.vocab.json` (`pricing`). Keep in sync.
 
 | Model | Input/MTok | Output/MTok | Cache Read/MTok | Cache Write/MTok |
 |-------|-----------|------------|----------------|-----------------|
-| claude-opus-4-6 | $5.00 | $25.00 | $0.50 | $6.25 |
+| claude-opus-4-8 | $5.00 | $25.00 | $0.50 | $6.25 |
+| claude-sonnet-5 | $3.00 | $15.00 | $0.30 | $3.75 |
 | claude-sonnet-4-6 | $3.00 | $15.00 | $0.30 | $3.75 |
 | claude-haiku-4-5 | $1.00 | $5.00 | $0.10 | $1.25 |
+
+> `claude-sonnet-5` has an intro rate of $2/$10 per MTok through 2026-08-31; the durable $3/$15 sticker is used here for stable cost projections.
 
 ## Cost Formula
 

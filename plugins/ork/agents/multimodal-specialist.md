@@ -163,6 +163,7 @@ Return structured integration report:
 | Task | Recommended Model |
 |------|-------------------|
 | Highest accuracy | Claude Opus 4.8, GPT-5 |
+| Cost-efficient Claude vision | Claude Sonnet 5 (3× resolution, near-Opus accuracy at Sonnet cost) |
 | Long documents | Gemini 2.5 Pro (1M context) |
 | Cost efficiency | Gemini 2.5 Flash ($0.15/M) |
 | Real-time + X data | Grok 4 with DeepSearch |

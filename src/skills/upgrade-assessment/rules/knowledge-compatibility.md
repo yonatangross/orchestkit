@@ -23,7 +23,8 @@ Model ID format changed from `claude-{version}-{variant}` to `claude-{variant}-{
 | `claude-opus-4-6` | `claude-opus-4-7` | Opus 4.7 — xhigh effort (CC 2.1.111+), 3× vision resolution (2,576 px), substantially better filesystem memory + instruction following, updated tokenizer (same pricing as 4.6) |
 | `claude-opus-4-7` | `claude-opus-4-8` | Opus 4.8 (current latest Opus) — defaults to high effort, xhigh for hardest tasks, lean system prompt (CC 2.1.154) |
 | `claude-opus-4-8` | _(none — stay on Opus 4.8)_ | `claude-fable-5` launched 2026-06-09 (frontier tier above Opus) but access was **suspended for all customers on 2026-06-12** per a US export-control directive; `claude-fable-5` / `claude-fable-5[1m]` are unavailable — do not migrate. Opus 4.8 remains the current top tier |
-| `claude-sonnet-4-5-20250929` | `claude-sonnet-4-6` | Sonnet 4.6 (current latest Sonnet — aliases to this automatically) |
+| `claude-sonnet-4-5-20250929` | `claude-sonnet-4-6` | Sonnet 4.6 — adaptive thinking, 1M context |
+| `claude-sonnet-4-6` | `claude-sonnet-5` | Sonnet 5 (current latest Sonnet — `sonnet` aliases to this automatically) — adaptive thinking on by default, `xhigh` effort, near-Opus coding/agentic quality, new tokenizer (~30% more tokens), 3× vision resolution |
 
 ### Common Breaking Changes
 
