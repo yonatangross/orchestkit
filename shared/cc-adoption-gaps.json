@@ -1,1 +1,101 @@
-[]
+[
+  {
+    "version": "2.1.196",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "mcp_list_get_no_spawn_untrusted",
+        "category": "breaking",
+        "description": "claude mcp list/get no longer spawn .mcp.json servers self-approved by committed .claude/settings.json; pending approval",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Security: `claude mcp list`/`get` no longer spawn `.mcp.json` servers that a repo self-approved via a committed `.claude/settings.json`; untrusted workspaces show `⏸ Pending approval`",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "claude_agents_bypass_flag_fix",
+        "category": "breaking",
+        "description": "claude agents --dangerously-skip-permissions now correctly applies bypass mode to spawned agents instead of silent auto-",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed `claude agents --dangerously-skip-permissions` silently falling back to auto mode instead of showing the bypass disclaimer and applying bypass mode to spawned agents",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "background_session_process_survival",
+        "category": "breaking",
+        "description": "Background sessions now survive process stop/restart/update on all platforms including Windows handoff of background she",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "async-jobs",
+          "chain-patterns"
+        ],
+        "reference_changelog_line": "Improved background session reliability: long-running commands and workflows now survive the session's process being stopped, restarted, or updated — including on Windows, where background shells are handed off instead of being killed",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "background_agent_auto_resume",
+        "category": "breaking",
+        "description": "Background agent workers killed by daemon restart now auto-resume from last checkpoint when agents view next opens.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "checkpoint-resume"
+        ],
+        "reference_changelog_line": "Improved background agents: workers killed by a daemon restart are now automatically resumed from where they left off the next time the agents view opens",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "remote_control_disabled_non_anthropic_ba",
+        "category": "breaking",
+        "description": "Remote Control disabled when ANTHROPIC_BASE_URL targets a non-Anthropic host, matching Bedrock/Vertex/Foundry behavior.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "configure",
+          "mcp-patterns"
+        ],
+        "reference_changelog_line": "Remote Control is now disabled when `ANTHROPIC_BASE_URL` points at a non-Anthropic host, matching the existing behavior under `CLAUDE_CODE_USE_BEDROCK`/`_VERTEX`/`_FOUNDRY`",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "org_default_model",
+        "category": "new_field",
+        "description": "Org/role default model set in admin console surfaces in /model as 'Org default' or 'Role default' when user has no pick.",
+        "gap_score": 10,
+        "affected_skills": [
+          "configure",
+          "setup",
+          "upgrade-assessment"
+        ],
+        "reference_changelog_line": "Added support for organization default models — admins set it in the org console; it shows as \"Org default\" (or \"Role default\") in `/model` when you haven't picked one yourself",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
+      },
+      {
+        "feature_slug": "stream_watchdog_default_env",
+        "category": "new_field",
+        "description": "Streaming idle watchdog enabled by default for all providers; CLAUDE_ENABLE_STREAM_WATCHDOG=0 disables the 5-minute abor",
+        "gap_score": 10,
+        "affected_skills": [
+          "llm-integration",
+          "claude-api",
+          "configure"
+        ],
+        "reference_changelog_line": "The streaming idle watchdog is now on by default for all providers — it aborts and retries when a response stream produces no events for 5 minutes. Set `CLAUDE_ENABLE_STREAM_WATCHDOG=0` to disable.",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
+      }
+    ],
+    "raw_bullets_count": 27,
+    "issues_filed_at": "2026-06-30T04:27:49Z"
+  }
+]
