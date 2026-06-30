@@ -2071,7 +2071,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "documentation-patterns",
     "description": "Technical documentation patterns for READMEs, ADRs, API docs (OpenAPI 3.1), changelogs, and writing style guides. Use when creating project documentation, writing architecture decisions, documenting APIs, or maintaining changelogs.",
     "version": "1.0.0",
-    "sha256": "50015ead0a48d2fa681440b88cbe49ddc3d885b815d1391762a78d9a41b027df",
+    "sha256": "fd6c705b56cd62114a5168b42d5206a2e819f22234fb9b63cd279ec4421cd214",
     "author": "OrchestKit",
     "tags": [
       "documentation",
@@ -2091,13 +2091,15 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Grep"
     ],
     "skills": [],
-    "agent": null,
+    "agent": "release-engineer",
     "complexity": "low",
     "structure": {},
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "release-engineer"
+    ]
   },
   "domain-driven-design": {
     "name": "domain-driven-design",
@@ -2909,7 +2911,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "json-render-catalog",
     "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects.",
     "version": "1.3.0",
-    "sha256": "6a40187e75757b7345d265820711f411eaeb21f8907c549d1b8659bea8172505",
+    "sha256": "c433357cb4c25b4b92bd098df710773e858b3b46ab580c32e59398042d9abd69",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -2925,7 +2927,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "context": "inherit",
     "allowedTools": [],
     "skills": [],
-    "agent": null,
+    "agent": "genui-architect",
     "complexity": "medium",
     "structure": {
       "references": [
@@ -3107,7 +3109,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "mcp-patterns",
     "description": "MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, adding authentication, creating interactive UIs, hardening MCP security, or debugging MCP integrations.",
     "version": "3.1.0",
-    "sha256": "a6f2807dc52377aae386f32d9ce2637f80b99342c981e26e207831ebe97f28cf",
+    "sha256": "bc7902de4503abd1d6d588fc9d9eb0012158adb0ce3716006669f94292a7dd16",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -3445,7 +3447,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multimodal-llm",
     "description": "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines.",
     "version": "2.1.1",
-    "sha256": "e81037511036faa1f7091011408c1133b771e23d75c0f02845e79e12809a5137",
+    "sha256": "3213e5f44fe7a4ec2d9971736d8050cb478fcdf381708ca1d5de6ad9e3b997d0",
     "author": "OrchestKit",
     "tags": [
       "vision",
@@ -3471,7 +3473,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "WebSearch"
     ],
     "skills": [],
-    "agent": null,
+    "agent": "multimodal-specialist",
     "complexity": "high",
     "structure": {},
     "plugins": [
@@ -4254,7 +4256,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "release-sync",
     "description": "Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging. Reads CHANGELOG, CLAUDE.md, and hook README, updates notebook sources, and ingests release digest. Optionally generates podcast from updated knowledge base. Use after tagging a new version to propagate release knowledge.",
     "version": "1.0.0",
-    "sha256": "259cbc5bccb74f36558f2e9c89502390f22ddbf10de1189569355bdeebb1550e",
+    "sha256": "6244f2aac286d7048b72393ce9c6a1e0d13900e889e3649a38983056860efdfe",
     "author": "OrchestKit",
     "tags": [
       "release",
@@ -4267,7 +4269,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "context": "inherit",
     "allowedTools": [],
     "skills": [],
-    "agent": null,
+    "agent": "release-engineer",
     "complexity": "low",
     "structure": {},
     "plugins": [
@@ -4515,7 +4517,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "security-patterns",
     "description": "Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.",
     "version": "2.0.0",
-    "sha256": "faaae57a0112ada933524bdd45b178997f3913036a0cd6de5a6eba061deccfba",
+    "sha256": "5dba81426d5fc12e4e4a5960cd3c7a1f63b863c369fdcaf27eb262c8916a4687",
     "author": "OrchestKit",
     "tags": [
       "security",

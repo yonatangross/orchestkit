@@ -354,6 +354,7 @@ class CostCircuitBreaker:
     def _calculate_cost(self, input_tokens: int, output_tokens: int, model: str) -> float:
         """Calculate cost based on model pricing (Dec 2025)."""
         PRICING = {
+            "claude-sonnet-5": {"input": 3.0, "output": 15.0},
             "claude-sonnet-4-6": {"input": 3.0, "output": 15.0},
             "gpt-5.5": {"input": 2.5, "output": 10.0},
             "gpt-5-mini": {"input": 0.15, "output": 0.60},

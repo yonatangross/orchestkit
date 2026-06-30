@@ -17,6 +17,111 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.63.1",
+    "date": "2026-06-26",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**chain-patterns:** add Workflow parse-safety section (the 3 killers) ([#2679](https://github.com/yonatangross/orchestkit/issues/2679)) ([1ae5d75](https://github.com/yonatangross/orchestkit/commit/1ae5d7588856689d496c09a56be144b72d1b65b1))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.63.0",
+    "date": "2026-06-26",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**ci:** draft release announcements via HQ platform marketing ([#2677](https://github.com/yonatangross/orchestkit/issues/2677)) ([d3ba41e](https://github.com/yonatangross/orchestkit/commit/d3ba41e9bba910ba17ac598ab298c7f665884070))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**site:** make OpenAPI/NLWeb discoverable at probed paths (orank) ([#2676](https://github.com/yonatangross/orchestkit/issues/2676)) ([4bb40d8](https://github.com/yonatangross/orchestkit/commit/4bb40d84c557ff60dd37c44899618a8e77896e14))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.62.1",
+    "date": "2026-06-26",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**mcp:** resolve memory KG path at runtime so the graph persists ([#2674](https://github.com/yonatangross/orchestkit/issues/2674)) ([d7322be](https://github.com/yonatangross/orchestkit/commit/d7322bea5466291988270e0de6a494b476c148cc)), closes [#2631](https://github.com/yonatangross/orchestkit/issues/2631)"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.62.0",
+    "date": "2026-06-26",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**adoption:** 3 CC security/hygiene wins + triage sweep of 17 tickets ([#2661](https://github.com/yonatangross/orchestkit/issues/2661)) ([f102bd6](https://github.com/yonatangross/orchestkit/commit/f102bd627a0c4717b789965e1c05776a96e445e1))",
+          "**cc-support:** bump latest_known 2.1.183 to 2.1.191 ([#2663](https://github.com/yonatangross/orchestkit/issues/2663)) ([36284ee](https://github.com/yonatangross/orchestkit/commit/36284ee03fba424c51c49e11dfa9ad31d80a68bb))",
+          "**cc-support:** bump latest_known 2.1.183 to 2.1.193 ([#2673](https://github.com/yonatangross/orchestkit/issues/2673)) ([147726a](https://github.com/yonatangross/orchestkit/commit/147726aa7579ef128ad0c97f1359eca77806f6be))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.193) ([#2671](https://github.com/yonatangross/orchestkit/issues/2671)) ([6fd3b63](https://github.com/yonatangross/orchestkit/commit/6fd3b6363d5b40192b3131ca8dfe557ccf6c9cdd))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.61.0",
+    "date": "2026-06-25",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**agents:** wire 7 under-activated agents/skills (P2) ([#2644](https://github.com/yonatangross/orchestkit/issues/2644)) ([f2bf2d2](https://github.com/yonatangross/orchestkit/commit/f2bf2d2cae29bafe566489a795c7d47ecd1bc923))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** pre-commit runner treats timeouts as skips, not failures ([#2658](https://github.com/yonatangross/orchestkit/issues/2658)) ([456f582](https://github.com/yonatangross/orchestkit/commit/456f58281212288f5a80c8d4bf8d076061b6a708))",
+          "**skills:** salvage standalone fixes from superseded [#2643](https://github.com/yonatangross/orchestkit/issues/2643) ([#2657](https://github.com/yonatangross/orchestkit/issues/2657)) ([e169b2e](https://github.com/yonatangross/orchestkit/commit/e169b2ef2789c399c561c88a85f173c6557aa2bc))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.60.1",
+    "date": "2026-06-25",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "untrack node_modules symlink + rewire activation telemetry ([#2653](https://github.com/yonatangross/orchestkit/issues/2653)) ([ac3a86b](https://github.com/yonatangross/orchestkit/commit/ac3a86be887ce6caa2bb2086264ad6519a9001ab))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.191) ([#2652](https://github.com/yonatangross/orchestkit/issues/2652)) ([623b726](https://github.com/yonatangross/orchestkit/commit/623b726d45c349b52417f52e81d51d36a68eb371))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.60.0",
     "date": "2026-06-24",
     "compareUrl": "",
