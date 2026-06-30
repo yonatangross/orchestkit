@@ -109,6 +109,54 @@ function isTierAvailable(tier: string, models: string[] | null): boolean {
   });
 }
 
+/**
+ * Coerce a model string (short alias, full ID, or `[1m]` variant) to a short
+ * tier (opus/sonnet/haiku/fable). Unknown strings pass through unchanged so
+ * downstream PREMIUM_TIERS checks simply don't fire.
+ */
+function toShortTier(model: string): string {
+  const m = model.toLowerCase().replace(/\[1m\]$/, '').trim();
+  const aliases = modelsVocab.aliases as Record<string, string>;
+  for (const sn of modelsVocab.shortNames) {
+    if (sn === 'inherit') continue;
+    if (m === sn) return sn;
+    if (m === (aliases[sn] || '').toLowerCase()) return sn;
+    if (m.startsWith(`claude-${sn}-`)) return sn;
+  }
+  return model;
+}
+
+/**
+ * CC's hook-readable default model (`model` field, managed → user → project),
+ * the effective model an `inherit` agent runs when the session hasn't picked
+ * one explicitly. Mirrors the precedence of getAvailableModelsConfig.
+ *
+ * NOTE (#2706): CC 2.1.196 added an org-console "Org default" model, but that
+ * is resolved SERVER-SIDE and is not exposed to hooks (no HookInput field, not
+ * written to any local settings file). The local `model` setting below is the
+ * closest hook-readable proxy; when only an org default is set, this returns
+ * null and we fall back to CLAUDE_MODEL / 'sonnet' — advice stays best-effort.
+ */
+function getConfiguredDefaultModel(): string | null {
+  for (const path of MANAGED_SETTINGS_PATHS) {
+    const settings = readJsonSettings(path);
+    if (settings && typeof settings.model === 'string') return settings.model;
+  }
+  const home = process.env.HOME || process.env.USERPROFILE || '';
+  const projectDir = process.env.CLAUDE_PROJECT_DIR || '';
+  const layers = [
+    home ? join(home, '.claude', 'settings.json') : '',
+    projectDir ? join(projectDir, '.claude', 'settings.local.json') : '',
+    projectDir ? join(projectDir, '.claude', 'settings.json') : '',
+  ];
+  for (const path of layers) {
+    if (!path) continue;
+    const settings = readJsonSettings(path);
+    if (settings && typeof settings.model === 'string') return settings.model;
+  }
+  return null;
+}
+
 /** % output-price saving moving short-name tier `from` to `to` (vocab pricing). */
 function tierSavingsPercent(from: string, to: string): number {
   const aliases = modelsVocab.aliases as Record<string, string>;
@@ -280,7 +328,10 @@ function analyzeComplexity(agentType: string, description: string): 'low' | 'med
 function resolveEffectiveModel(agentType: string): string {
   const model = getAgentModel(agentType);
   if (model === 'inherit') {
-    return process.env.CLAUDE_MODEL || 'sonnet';
+    // Prefer the hook-readable configured default (settings `model`), then the
+    // session env, then the historical 'sonnet' assumption. See #2706.
+    const raw = getConfiguredDefaultModel() || process.env.CLAUDE_MODEL || 'sonnet';
+    return toShortTier(raw);
   }
   return model;
 }

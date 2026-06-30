@@ -321,6 +321,32 @@ describe('modelCostAdvisor', () => {
       expect(r.continue).toBe(true);
       expect(r.suppressOutput).toBe(true);
     });
+
+    // #2706: settings `model` (managed → user → project) is the hook-readable
+    // default for inherit agents — preferred over the 'sonnet' assumption.
+    test('inherit reads settings.json `model` over the sonnet default', () => {
+      delete process.env.CLAUDE_MODEL;
+      setupFs({
+        agentExists: false,
+        settingsFiles: { '/test/project/.claude/settings.json': '{"model":"opus"}' },
+      });
+      // low-complexity task → if effective model resolved to opus, expect the
+      // 40% downgrade warning (would be silent if it had defaulted to sonnet).
+      const r = modelCostAdvisor(mkInput('inherit-settings-model', 'list files check status summary'));
+      expect(r.suppressOutput).toBeFalsy();
+      expect(r.systemMessage).toContain('sonnet');
+    });
+
+    test('inherit normalizes a full model ID from settings to its tier', () => {
+      delete process.env.CLAUDE_MODEL;
+      setupFs({
+        agentExists: false,
+        settingsFiles: { '/test/project/.claude/settings.json': '{"model":"claude-opus-4-8"}' },
+      });
+      const r = modelCostAdvisor(mkInput('inherit-settings-fullid', 'list files check status summary'));
+      expect(r.suppressOutput).toBeFalsy();
+      expect(r.systemMessage).toContain('sonnet');
+    });
   });
 
   // 8. Explicit vs inherited opus for medium task
