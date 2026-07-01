@@ -90,7 +90,13 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
-          git fetch origin "$BASE_REF" --depth=1
+          # Fetch the FULL base history (not --depth=1): the three-dot diff below
+          # needs a merge base, and a shallow single-commit base produces
+          # "fatal: origin/<base>...HEAD: no merge base" for any PR forked before
+          # that commit (recurring on stale/long-lived branches, e.g. held
+          # Dependabot majors). checkout already uses fetch-depth: 0, so the repo
+          # is complete and this fetch is cheap.
+          git fetch origin "$BASE_REF"
           git diff --name-only "origin/$BASE_REF"...HEAD > /tmp/changed.txt
           echo "Changed files in PR:"
           cat /tmp/changed.txt
