@@ -150,6 +150,21 @@ stamp('src/skills/doctor/references/version-compatibility.md', [
   },
 ]);
 
+stamp('README.md', [
+  {
+    label: 'Claude Code shields.io badge floor',
+    pattern: /(Claude_Code-≥)\d+\.\d+\.\d+/,
+    replacement: `$1${supported_floor}`,
+    expectedMatches: 1,
+  },
+  {
+    label: 'Requires floor prose',
+    pattern: /(Requires \*\*≥)\d+\.\d+\.\d+(\*\*)/,
+    replacement: `$1${supported_floor}$2`,
+    expectedMatches: 1,
+  },
+]);
+
 console.log(mutations === 0
   ? 'stamp-cc-support: no changes needed (already in sync)'
   : `stamp-cc-support: ${mutations} mutation(s) applied`);
