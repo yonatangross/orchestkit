@@ -377,7 +377,7 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("$\{CLAUDE_SKI
 
 ## Key Principles
 
-- **Verification gate** — before claiming ANY task done, apply the 5-step gate: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rules/verification-gate.md")`. "Should work now" is not evidence.
+- **Verification gate (terminal, mandatory)** — before declaring ANY task done you MUST `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rules/verification-gate.md")` and satisfy EVERY check: every changed file verified, tests green, scope-creep scored. A partial pass is NOT done; "should work now" is not evidence.
 - **Agent status protocol** — all subagents report DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT per `Read("$\{CLAUDE_PLUGIN_ROOT\}/agents/shared/status-protocol.md")`
 - **Tests are NOT optional** — each task includes its tests, matched to change type (see matrix above)
 - **Parallel when independent** — use `run_in_background: true`, launch all agents in ONE message

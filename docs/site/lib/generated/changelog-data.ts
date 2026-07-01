@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.63.2",
+    "date": "2026-06-27",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.195) ([#2686](https://github.com/yonatangross/orchestkit/issues/2686)) ([754c986](https://github.com/yonatangross/orchestkit/commit/754c986b71efb6bdfbd1300808c0d0e7a7f0530b))",
+          "**release:** exclude docs/ from plugin version bumps ([#2687](https://github.com/yonatangross/orchestkit/issues/2687)) ([b4d1f74](https://github.com/yonatangross/orchestkit/commit/b4d1f7402ca40946138ecb8dd0717828d2156a4b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.63.1",
     "date": "2026-06-26",
     "compareUrl": "",

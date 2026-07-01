@@ -424,7 +424,7 @@ After fix is applied: `TaskCreate(subject="Verify fix")` then `TaskUpdate(taskId
 
 ### Verification Gate
 
-Before claiming any fix is complete, apply the 5-step verification gate: `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")`. "Should work now" is not evidence — run the test, read the output, cite the result.
+Before declaring ANY fix done you MUST `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")` and satisfy EVERY one of its checks — done means every changed file verified, the previously-failing test now green, and no regressions; a partial pass is NOT done. "Should work now" is not evidence — run the test, read the output, cite the result.
 
 ### Response Protocol
 

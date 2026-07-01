@@ -1,0 +1,49 @@
+# =============================================================================
+# OrchestKit Routing-Accuracy PR Gate (/ork:auto)
+# =============================================================================
+# Runs the deterministic rule-based classifier in scripts/eval/route-check.mjs
+# against src/skills/auto/routing-benchmark.json and compares accuracy to the
+# committed baseline (scripts/eval/route-baseline.json).
+#
+# This is a RATCHET, not an aspirational gate:
+#   - It does NOT hard-fail on the 0.95 target_accuracy.
+#   - It fails ONLY if routing accuracy regresses > 2 points below the committed
+#     baseline — i.e. only when a change to the benchmark or the disambiguation
+#     rules makes the router demonstrably worse than the last committed run.
+#
+# Zero-dependency: pure Node, no npm install, no build — reads src/ directly.
+# =============================================================================
+
+name: "Eval: Routing Accuracy"
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'src/skills/auto/**'
+      - 'scripts/eval/route-check.mjs'
+      - 'scripts/eval/route-baseline.json'
+  merge_group:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  route-check:
+    name: Routing Accuracy Ratchet
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6
+        with:
+          node-version: '20'
+
+      - name: Run routing-accuracy ratchet
+        run: node scripts/eval/route-check.mjs --check
