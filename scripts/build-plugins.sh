@@ -490,6 +490,12 @@ else
     echo -e "${YELLOW}  generate-docs-data.js not found, skipping${NC}"
 fi
 
+# Lightweight docs search index (keeps NLWeb /ask + MCP searchDocs off the heavy
+# Fumadocs source so the /ask function cold-starts sub-second).
+if [[ -f "$SCRIPT_DIR/gen-docs-search-index.js" ]]; then
+    node "$SCRIPT_DIR/gen-docs-search-index.js" || echo -e "${YELLOW}  gen-docs-search-index.js failed${NC}"
+fi
+
 echo ""
 
 # ============================================================================

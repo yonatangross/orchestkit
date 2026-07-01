@@ -1,5 +1,6 @@
 import { SITE } from "@/lib/constants";
-import { getDocMarkdown, searchDocs } from "@/lib/doc-search";
+import { getDocMarkdown } from "@/lib/doc-markdown";
+import { searchDocs } from "@/lib/doc-search";
 import { SEARCH_RESULTS_HTML, UI_SEARCH_RESULTS } from "@/lib/mcp-ui";
 
 // Stateless MCP server over Streamable HTTP (JSON-RPC 2.0 on POST). Dependency-
