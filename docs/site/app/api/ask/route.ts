@@ -141,14 +141,20 @@ async function readQuery(req: Request): Promise<ParsedAsk | null> {
 				if (truthy(form.get("streaming"))) streaming = true;
 			} else {
 				const body = (await req.json()) as {
-					query?: string;
+					query?: string | { text?: string };
 					q?: string;
 					question?: string;
 					mode?: string;
 					streaming?: boolean | string;
 					prefer?: { streaming?: boolean };
 				};
-				query = body?.query ?? body?.q ?? body?.question ?? query;
+				// NLWeb's canonical request body is { query: { text: "..." } }; also
+				// accept a bare string query and the q/question aliases. (Treating
+				// `query` as a string previously 500'd on the NLWeb object form, which
+				// agent-readiness scanners send — reading it as "no /ask endpoint".)
+				const bodyQuery =
+					typeof body?.query === "string" ? body.query : body?.query?.text;
+				query = bodyQuery ?? body?.q ?? body?.question ?? query;
 				mode = body?.mode ?? mode;
 				if (body?.prefer?.streaming || body?.streaming === true || truthy(String(body?.streaming))) {
 					streaming = true;
