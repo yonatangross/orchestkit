@@ -6,7 +6,7 @@ description: Unified decision tree for web research and competitive monitoring. 
 context: inherit
 agent: web-research-analyst
 version: 1.3.0
-author: OrchestKit AI Agent Hub
+author: OrchestKit
 tags: [research, browser, webfetch, tavily, automation, scraping, content-extraction, competitive-intelligence, monitoring]
 user-invocable: false
 disable-model-invocation: true

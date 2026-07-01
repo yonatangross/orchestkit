@@ -334,8 +334,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "architecture-decision-record",
     "description": "Use this skill when documenting significant architectural decisions. Provides ADR templates following the Nygard format with sections for context, decision, consequences, and alternatives. Use when writing ADRs, recording decisions, or evaluating options.",
     "version": "2.0.0",
-    "sha256": "9ddcab0c8183a3f8c3b9639217946b95166b749269470eccc774c5c3a368591c",
-    "author": "AI Agent Hub",
+    "sha256": "a4c6f76ded57a0d22dcefb919ad6300fc04ce7517699400e425b1a1a261afb29",
+    "author": "OrchestKit",
     "tags": [
       "architecture",
       "documentation",
@@ -749,7 +749,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router — the front door to OrchestKit. Takes a plain-English goal, classifies it into one intent category, and routes to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:brainstorm, /ork:implement, /ork:review-pr, /ork:verify, a /goal optimization loop, or the skill-evolution gate). Use when you describe a goal not a method, when the right skill is unclear, or when you want the agent to pick the approach. Triggers on: auto, do this, figure out, just make, get it to, I want, help me, not sure which.",
     "version": "1.0.0",
-    "sha256": "86822a378e0337e557c9b19920fa5ba7629abb06c06dd91baffb347fabb70e64",
+    "sha256": "9b2d7ce56d8f1fc14a70969014dd1b34f72d05c3f965b1e7431dc1331f35a4ff",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -1144,8 +1144,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "code-review-playbook",
     "description": "Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices.",
     "version": "2.0.0",
-    "sha256": "ac7c1e5effca757a3be83db9566ebc87f30069adc0b278be50861596187110a6",
-    "author": "AI Agent Hub",
+    "sha256": "12f9097e6c443a85072428583766fcf62e85a9aa58c11babc1463ae05ad5a260",
+    "author": "OrchestKit",
     "tags": [
       "code-review",
       "quality",
@@ -2486,7 +2486,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.5.0",
-    "sha256": "dadc3c55cabbd740e1c203dd14f6c970026471242d2d6a9c7346c3c89dbaf381",
+    "sha256": "bde9a155e030a300ce40b4a4e85e403dc3cad8989c2b7a77202d7a835de8454a",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2752,7 +2752,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when implementing features, building new capabilities, or creating full-stack functionality.",
     "version": "2.7.0",
-    "sha256": "9f0206f80a6a3c342f792ef26ae3c8cfb1d3c772a612b5a0f2128dc0453fda9c",
+    "sha256": "90ba63f32165d75b259536d284b48d4cb641614ec7c18f65b17df0103efc4aed",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -3997,8 +3997,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "quality-gates",
     "description": "Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing code against best practices. Provides quality-gates scoring (1-5), escalation workflows, and pattern library management.",
     "version": "1.3.0",
-    "sha256": "01da0d609c6e43c038d73cc1e3b9e2e60bb03e1c1e4ce5c13b54334d5c98c762",
-    "author": "OrchestKit AI Agent Hub",
+    "sha256": "42002fbec248f61d2cf7d9e3594ebdc348755625150cb83e97adfecb32b82d19",
+    "author": "OrchestKit",
     "tags": [
       "quality",
       "complexity",
@@ -4108,8 +4108,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "react-server-components-framework",
     "description": "Use when building Next.js 16+ apps with React Server Components. Covers App Router, Cache Components (replacing experimental_ppr), streaming SSR, Server Actions, and React 19 patterns for server-first architecture.",
     "version": "1.5.0",
-    "sha256": "a264792997b38d61006e5ad58eb6215ba8ab1645c12749847b0bd42543da8027",
-    "author": "AI Agent Hub",
+    "sha256": "15d17c789f4499b2716b840b07d79e968f8c7342e8d9805bfcc763672e1f578b",
+    "author": "OrchestKit",
     "tags": [
       "frontend",
       "react",
@@ -5622,8 +5622,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "web-research-workflow",
     "description": "Unified decision tree for web research and competitive monitoring. Auto-selects WebFetch, Tavily, or agent-browser based on target site characteristics and available API keys. Includes competitor page tracking, snapshot diffing, and change alerting. Use when researching web content, scraping, extracting raw markdown, capturing documentation, or monitoring competitor changes.",
     "version": "1.3.0",
-    "sha256": "710bda71e1e8eb1e545391c18508183829713b4f0e00ea765900e139d8388648",
-    "author": "OrchestKit AI Agent Hub",
+    "sha256": "32fc3446bdaf58eb355155dca7f9bfb296dcfb160c78d28a1ab2a1dcdd493b18",
+    "author": "OrchestKit",
     "tags": [
       "research",
       "browser",

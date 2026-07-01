@@ -6,7 +6,7 @@ description: Use when building Next.js 16+ apps with React Server Components. Co
 context: fork
 agent: frontend-ui-developer
 version: 1.5.0
-author: AI Agent Hub
+author: OrchestKit
 tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components, turbopack]
 user-invocable: false
 disable-model-invocation: false

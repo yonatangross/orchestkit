@@ -1,0 +1,68 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "portless",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "multi-service-named-https",
+      "query": "I'm running an API and a frontend locally and keep hitting port collisions — how can I give each a stable HTTPS URL?",
+      "expected_behavior": [
+        "Recommends portless to replace localhost:PORT with named .localhost URLs",
+        "Uses `portless run --name api` and `portless run --name web` so each service gets its own subdomain (https://api.localhost, https://web.localhost)",
+        "Notes portless serves HTTPS on port 443 by default with a valid cert and no manual setup",
+        "Points tests/agents at the injected PORTLESS_URL env var instead of a hardcoded port"
+      ],
+      "success_criteria": [
+        "Solution eliminates port collisions between the two services",
+        "URLs are stable and named rather than random ephemeral ports"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "phone-lan-testing",
+      "query": "I want to open my local dev site on my phone over the same wifi without editing router config or /etc/hosts",
+      "expected_behavior": [
+        "Recommends portless --lan mode, which exposes an mDNS .local hostname reachable across the local network",
+        "Explains this needs no router configuration or /etc/hosts editing",
+        "Mentions Tailscale sharing (--tailscale / --funnel) as the option when the device is not on the same wifi"
+      ],
+      "success_criteria": [
+        "The phone can reach the dev server via a named URL over the LAN"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "negative-production-dns",
+      "query": "How do I configure DNS records and provision TLS certificates for my production deployment?",
+      "expected_behavior": [
+        "Does NOT invoke portless — it is a local-development tool, not for production or DNS/hosting configuration",
+        "Answers the production DNS and certificate question directly (real DNS provider records, a public CA / ACME such as Let's Encrypt)"
+      ],
+      "should_not": [
+        "Suggests portless or .localhost URLs for a production deployment",
+        "Treats a public DNS/TLS task as a local dev-server setup"
+      ],
+      "tags": [
+        "negative"
+      ]
+    },
+    {
+      "id": "negative-ci-pipeline",
+      "query": "My dev server startup is flaky inside the CI pipeline — how should I run it there?",
+      "expected_behavior": [
+        "Does NOT set up portless in CI; CI is an explicit non-use environment for it",
+        "Recommends setting PORTLESS=0 to bypass portless and use direct port access in CI"
+      ],
+      "should_not": [
+        "Enables portless (named .localhost URLs, proxy, LAN/Tailscale) inside the CI job"
+      ],
+      "tags": [
+        "negative"
+      ]
+    }
+  ]
+}

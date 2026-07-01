@@ -4,7 +4,7 @@ license: MIT
 compatibility: "Claude Code 2.1.183+."
 description: Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices.
 version: 2.0.0
-author: AI Agent Hub
+author: OrchestKit
 tags: [code-review, quality, collaboration, best-practices]
 context: inherit
 agent: code-quality-reviewer
@@ -219,7 +219,7 @@ Use the built-ins for fast diff-scoped passes; use `ork:review-pr` for the multi
 
 **Skill Version**: 2.0.0
 **Last Updated**: 2026-01-08
-**Maintained by**: AI Agent Hub Team
+**Maintained by**: OrchestKit
 
 ## Related Skills
 

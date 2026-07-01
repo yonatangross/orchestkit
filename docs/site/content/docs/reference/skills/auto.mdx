@@ -61,14 +61,7 @@ Full per-category parameter extraction + edge cases: `references/routing-rules.m
 
 State your reasoning **before** committing to a route — this triggers chain-of-thought and is the single biggest accuracy lever (Anthropic, *Writing Effective Tools for Agents*). Example: *"'get latency under 200ms' names a metric + a direction → optimize, not fix."*
 
-Apply the disambiguation rules (most specific wins; explicit verb beats inferred intent):
-
-1. **Explicit verb wins.** "Fix the slow query" → `fix` (not `optimize`).
-2. **Metric + direction → optimize.** "Get p95 below 200ms" → `optimize`.
-3. **Percentage in a test context → cover.** "Get to 90%" → `cover`.
-4. **Question form → design or diagnose.** "How should we…" → `design`; "Why isn't…" → `diagnose`.
-5. **PR/MR/#N reference → review.**
-6. **Ticket reference → build.**
+Apply the disambiguation rules (most specific wins; explicit verb beats inferred intent). **The load-bearing one: explicit verb wins** — "Fix the slow query" → `fix`, not `optimize`. For the full ordered ruleset (all 7, including the truly-ambiguous fallback), `references/routing-rules.md` is canonical.
 
 ### 2. Confirm (low ceremony)
 

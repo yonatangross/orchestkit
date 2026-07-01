@@ -6,7 +6,7 @@ description: Use when assessing task complexity, before starting complex tasks, 
 context: fork
 agent: code-quality-reviewer
 version: 1.3.0
-author: OrchestKit AI Agent Hub
+author: OrchestKit
 tags: [quality, complexity, planning, escalation, blocking, best-practices, patterns, yagni, over-engineering]
 skills: [scope-appropriate-architecture]
 user-invocable: false

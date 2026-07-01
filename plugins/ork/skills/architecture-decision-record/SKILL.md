@@ -4,7 +4,7 @@ license: MIT
 compatibility: "Claude Code 2.1.183+."
 description: Use this skill when documenting significant architectural decisions. Provides ADR templates following the Nygard format with sections for context, decision, consequences, and alternatives. Use when writing ADRs, recording decisions, or evaluating options.
 version: 2.0.0
-author: AI Agent Hub
+author: OrchestKit
 tags: [architecture, documentation, decision-making, backend]
 context: fork
 agent: backend-system-architect
@@ -205,7 +205,7 @@ Keep ADRs in version control alongside code:
 
 **Skill Version**: 2.0.0
 **Last Updated**: 2026-01-08
-**Maintained by**: AI Agent Hub Team
+**Maintained by**: OrchestKit
 
 ## Capability Details
 
