@@ -13,7 +13,7 @@
  * - Empty branch → no title → falls back to outputSilentSuccess/outputPromptContext
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mockCommonReal } from '../fixtures/mock-common.js';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
@@ -50,6 +50,26 @@ function createPromptInput(prompt: string, overrides: Partial<HookInput> = {}): 
     ...overrides,
   };
 }
+
+// Hermetic env — the session-title effort suffix comes from detectEffortLevel(),
+// which falls back to process.env.CLAUDE_EFFORT. An ambient `CLAUDE_EFFORT=low`
+// in a dev shell appends a ` · low` suffix and breaks the title assertions
+// (CI runs with it unset, so this only bit locally). Neutralize effort/model
+// env for every test in this file; restore afterward.
+const SAVED_TITLE_ENV = {
+  CLAUDE_EFFORT: process.env.CLAUDE_EFFORT,
+  CLAUDE_MODEL: process.env.CLAUDE_MODEL,
+};
+beforeEach(() => {
+  delete process.env.CLAUDE_EFFORT;
+  delete process.env.CLAUDE_MODEL;
+});
+afterEach(() => {
+  for (const [k, v] of Object.entries(SAVED_TITLE_ENV)) {
+    if (v === undefined) delete process.env[k];
+    else process.env[k] = v;
+  }
+});
 
 describe('lib/output — outputPromptContextWithTitle (CC 2.1.94)', () => {
   test('sets both additionalContext and sessionTitle when ctx + title provided', () => {

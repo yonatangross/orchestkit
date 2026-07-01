@@ -20,7 +20,9 @@
     "lint:biome": "biome check src/",
     "lint:biome:fix": "biome check --write src/",
     "clean": "rm -rf dist coverage",
-    "validate": "node scripts/validate-registry.mjs"
+    "validate": "node scripts/validate-registry.mjs",
+    "prebuild": "node scripts/preflight-deps.mjs",
+    "pretest": "node scripts/preflight-deps.mjs"
   },
   "engines": {
     "node": ">=22.5.0"

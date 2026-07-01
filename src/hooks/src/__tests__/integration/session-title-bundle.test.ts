@@ -30,8 +30,18 @@ describe('integration — sessionTitle delta-detect (built bundle)', () => {
   let dispatch: DispatchFn;
   let tmpProj: string;
   const sessionId = 'integration-smoke-001';
+  // The title's effort suffix derives from process.env.CLAUDE_EFFORT (via the
+  // bundled effort-detector). An ambient `CLAUDE_EFFORT=low` in a dev shell
+  // would append ` · low` and break the 'feature-auth' assertions — CI runs it
+  // unset. Neutralize for hermeticity; restore afterward.
+  const savedEnv = {
+    CLAUDE_EFFORT: process.env.CLAUDE_EFFORT,
+    CLAUDE_MODEL: process.env.CLAUDE_MODEL,
+  };
 
   beforeEach(async () => {
+    delete process.env.CLAUDE_EFFORT;
+    delete process.env.CLAUDE_MODEL;
     if (!existsSync(BUNDLE)) {
       throw new Error(
         `Built bundle missing at ${BUNDLE}. Run \`npm run build\` in src/hooks/ first.`,
@@ -51,6 +61,10 @@ describe('integration — sessionTitle delta-detect (built bundle)', () => {
 
   afterEach(() => {
     if (tmpProj) rmSync(tmpProj, { recursive: true, force: true });
+    for (const [k, v] of Object.entries(savedEnv)) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
   });
 
   function input(prompt: string) {
