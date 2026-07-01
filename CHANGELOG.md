@@ -5,6 +5,36 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.64.0](https://github.com/yonatangross/orchestkit/compare/v8.63.2...v8.64.0) (2026-07-01)
+
+
+### Features
+
+* **hooks:** advisor reads configured default model for inherit ([#2710](https://github.com/yonatangross/orchestkit/issues/2710)) ([716ffd1](https://github.com/yonatangross/orchestkit/commit/716ffd1f91c649b3b3c95dd16b30ee701056e8c0))
+* **skills:** audit-driven quality + eval hardening ([#2715](https://github.com/yonatangross/orchestkit/issues/2715)) ([dfb4c53](https://github.com/yonatangross/orchestkit/commit/dfb4c5341da22d02f463756f017125ad3a5d83d3))
+
+
+### Bug Fixes
+
+* **ci:** release-please guard fetches full base history ([#2711](https://github.com/yonatangross/orchestkit/issues/2711)) ([356fb66](https://github.com/yonatangross/orchestkit/commit/356fb663372f91ccd0fc31ae1c6e3c0b629a54f1))
+* **docs-site:** prebuilt search index cuts NLWeb /ask cold-start ([#2719](https://github.com/yonatangross/orchestkit/issues/2719)) ([7059bc8](https://github.com/yonatangross/orchestkit/commit/7059bc815578989a50d68eef3869a5f0a1bda5b7))
+* **docs:** stamp README CC support floor (≥2.1.148 → ≥2.1.183) ([#2717](https://github.com/yonatangross/orchestkit/issues/2717)) ([42b372c](https://github.com/yonatangross/orchestkit/commit/42b372cc8f4528266ebbb5aaedbe12d8407fc478))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.195) ([#2688](https://github.com/yonatangross/orchestkit/issues/2688)) ([d6dbadc](https://github.com/yonatangross/orchestkit/commit/d6dbadc34856fdfe393f2658a7c63d9f4641f1bb))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.196) ([#2708](https://github.com/yonatangross/orchestkit/issues/2708)) ([2dafe24](https://github.com/yonatangross/orchestkit/commit/2dafe24f14570a37516be12cb2eed191a86dac3b))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.197) ([#2713](https://github.com/yonatangross/orchestkit/issues/2713)) ([77d81ed](https://github.com/yonatangross/orchestkit/commit/77d81ed4264377f386975db9e415a91fcd23651b))
+* **cc:** adopt Claude Sonnet 5 + CC 2.1.197 ([#2709](https://github.com/yonatangross/orchestkit/issues/2709)) ([4c9f6ef](https://github.com/yonatangross/orchestkit/commit/4c9f6effd415ec4d4c38ca572af2838315bc44bf))
+* **deps-dev:** bump @types/node ([#2689](https://github.com/yonatangross/orchestkit/issues/2689)) ([4aa5fad](https://github.com/yonatangross/orchestkit/commit/4aa5fad40f8bda995c9f8d03821af7ef1f2e955d))
+* **repo:** stamp GitHub About + untrack overcut/ orphan ([#2718](https://github.com/yonatangross/orchestkit/issues/2718)) ([6fe0b2c](https://github.com/yonatangross/orchestkit/commit/6fe0b2ccdfa47f1f494cc00053396f159701a2e6))
+
+
+### CI/CD
+
+* bump the github-actions group across 1 directory with 3 updates ([#2693](https://github.com/yonatangross/orchestkit/issues/2693)) ([bd0ea33](https://github.com/yonatangross/orchestkit/commit/bd0ea33d12df22d16740a21637845367ab0cce2e))
+
 ## [8.63.2](https://github.com/yonatangross/orchestkit/compare/v8.63.1...v8.63.2) (2026-06-27)
 
 
