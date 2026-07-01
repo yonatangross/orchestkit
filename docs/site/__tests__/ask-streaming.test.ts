@@ -87,3 +87,34 @@ describe("/ask no-query probe → 200 NLWeb envelope", () => {
 		expect(body.results).toEqual([]);
 	});
 });
+
+// NLWeb's canonical request body is { query: { text: "..." } } — the shape
+// agent-readiness scanners (orank) actually probe with. The route previously
+// read `query` as a string and 500'd on the object form, which the scanner read
+// as "no /ask endpoint found".
+describe("/ask NLWeb canonical body { query: { text } }", () => {
+	function nlwebReq(headers: Record<string, string> = {}): Request {
+		return new Request("https://orchestkit.yonyon.ai/ask", {
+			method: "POST",
+			headers: { "content-type": "application/json", ...headers },
+			body: JSON.stringify({ query: { text: "what is orchestkit" } }),
+		});
+	}
+
+	it("POST with query.text → 200 JSON with _meta + results (not 500)", async () => {
+		const res = await POST(nlwebReq());
+		expect(res.status).toBe(200);
+		expect(res.headers.get("Content-Type")).toContain("application/json");
+		const body = await res.json();
+		expect(body._meta.response_type).toBeDefined();
+		expect(body._meta.version).toBeDefined();
+		expect(body.results.length).toBeGreaterThan(0);
+	});
+
+	it("query.text + Accept: text/event-stream → SSE (streaming check)", async () => {
+		const res = await POST(nlwebReq({ accept: "text/event-stream" }));
+		expect(res.headers.get("Content-Type")).toBe(
+			"text/event-stream; charset=utf-8",
+		);
+	});
+});
