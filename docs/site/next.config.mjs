@@ -64,6 +64,13 @@ const config = {
 			destination: "/api/well-known/oauth-protected-resource",
 		},
 		{
+			// Web Bot Auth key directory (RFC 9421 HTTP Message Signatures) —
+			// publishes an Ed25519 verification key so signed agents are
+			// distinguishable from spoofers.
+			source: "/.well-known/http-message-signatures-directory",
+			destination: "/api/well-known/http-message-signatures-directory",
+		},
+		{
 			// NLWeb natural-language query endpoint.
 			source: "/ask",
 			destination: "/api/ask",

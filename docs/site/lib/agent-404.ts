@@ -53,6 +53,7 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	// agent-404.test.ts.
 	"/.well-known/agent-skills/index.json",
 	"/.well-known/oauth-protected-resource",
+	"/.well-known/http-message-signatures-directory",
 	"/.well-known/api-catalog",
 	"/.well-known/agent-card.json",
 	"/.well-known/mcp",
