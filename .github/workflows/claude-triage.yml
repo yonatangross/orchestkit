@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
         with:
           persist-credentials: false
-      - uses: anthropics/claude-code-action@2fee15510437d71399d9139ed60433470484a8fb  # v1
+      - uses: anthropics/claude-code-action@fad22eb3fa582b7357fc0ea48af6645851b884fd  # v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
