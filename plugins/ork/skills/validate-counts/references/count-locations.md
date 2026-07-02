@@ -8,15 +8,15 @@ Overview of every place counts appear and what they represent.
 
 | What | Path | How to Count |
 |------|------|-------------|
-| Skills | `src/skills/*/` | Subdirectory count |
-| Agents | `src/agents/*.md` | `.md` file count |
+| Skills | `src/skills/*/SKILL.md` | `SKILL.md` file count (`src/skills/shared/` has no SKILL.md and is not a skill) |
+| Agents | `src/agents/*.md` | `.md` file count excluding `README.md` |
 | Hooks | `src/hooks/hooks.json` → `.hooks[]` | Array length |
 
 ### Derived Counts (must stay in sync)
 
 | File | Field | Example |
 |------|-------|---------|
-| `CLAUDE.md` | Project Overview line | "111 skills, 37 agents, 211 hooks" |
+| `CLAUDE.md` | Project Overview line | "113 skills, 37 agents, 212 hooks" |
 | `CLAUDE.md` | Version section | "55 entries (17 event types, 12 dispatchers, 9 native async)" |
 | `src/hooks/hooks.json` | top-level `description` | May embed hook count |
 | `manifests/ork.json` | `skills[]` length, `agents[]` length | Counted from arrays |

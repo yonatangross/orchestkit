@@ -2,14 +2,14 @@
 
 ## Overview
 
-OrchestKit includes 111 skills validated against frontmatter requirements and content standards.
+OrchestKit includes 113 skills validated against frontmatter requirements and content standards.
 
 ## Skill Types
 
 | Type | Count | Frontmatter |
 |------|-------|-------------|
-| User-invocable | 18 | `user-invocable: true` |
-| Internal | 61 | `user-invocable: false` |
+| User-invocable | 32 | `user-invocable: true` |
+| Internal | 81 | `user-invocable: false` |
 
 ## Validation Checks
 

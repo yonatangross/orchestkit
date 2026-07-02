@@ -71,6 +71,8 @@ jobs:
             echo "$errors MDX files missing frontmatter"
             exit 1
           fi
+      - name: Check docs facts (CC floor + component counts)
+        run: node scripts/check-docs-facts.mjs
 
   build:
     name: Docs Site Build

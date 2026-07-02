@@ -150,6 +150,17 @@ stamp('src/skills/doctor/references/version-compatibility.md', [
   },
 ]);
 
+stamp('docs/site/content/docs/troubleshooting/index.mdx', [
+  {
+    // Fenced code block — prose in docs uses <MinCC /> from @/components/count,
+    // but code blocks can't interpolate, so this literal is stamped instead.
+    label: 'code-block floor comment',
+    pattern: /(# Check Claude Code version \(requires >= )\d+\.\d+\.\d+(\))/,
+    replacement: `$1${supported_floor}$2`,
+    expectedMatches: 1,
+  },
+]);
+
 stamp('README.md', [
   {
     label: 'Claude Code shields.io badge floor',

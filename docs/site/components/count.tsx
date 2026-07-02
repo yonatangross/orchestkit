@@ -1,4 +1,4 @@
-import { TOTALS } from "@/lib/generated/shared-data";
+import { MIN_CC_VERSION, TOTALS } from "@/lib/generated/shared-data";
 import { PLUGINS } from "@/lib/generated/plugins-data";
 
 const counts: Record<string, number> = {
@@ -12,4 +12,8 @@ const counts: Record<string, number> = {
 
 export function Count({ k }: { k: keyof typeof counts }) {
   return <>{counts[k]}</>;
+}
+
+export function MinCC() {
+  return <>{MIN_CC_VERSION}</>;
 }

@@ -5,6 +5,7 @@ description: Turn a claude.ai/design handoff bundle into a reviewable GitHub PR 
 
 import { Callout } from 'fumadocs-ui/components/callout';
 import { Files, Folder, File } from 'fumadocs-ui/components/files';
+import { MinCC } from '@/components/count';
 
 [Claude Design](https://claude.ai/design) generates prototypes, mockups, slides, and one-pagers from natural-language prompts. Once a design is ready to build, it ships a **handoff bundle** that Claude Code can consume directly. OrchestKit's `/ork:design-ship` workflow turns that bundle into a reviewable pull request — with components scaffolded against your existing codebase, Storybook stories generated, browser verification run, and a PR opened with screenshots embedded.
 
@@ -32,7 +33,7 @@ Claude Design is in research preview. The handoff bundle schema is provisional �
 ## Prerequisites
 
 1. **Connect your repo to Claude Design** — in claude.ai/design, link the GitHub repo so Claude reads your design tokens, Tailwind config, and existing components. Generated visuals will then stay on-brand automatically.
-2. **OrchestKit installed** — `ork` plugin enabled in Claude Code 2.1.148 or later.
+2. **OrchestKit installed** — `ork` plugin enabled in Claude Code <MinCC /> or later.
 3. **`gh` CLI authenticated** — required for the PR-opening step.
 
 ---

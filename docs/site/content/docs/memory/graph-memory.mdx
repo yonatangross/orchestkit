@@ -5,7 +5,7 @@ description: "The zero-config knowledge graph that stores entities and typed rel
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-Graph memory is Tier 1 -- the **primary** storage layer in OrchestKit's memory architecture. It uses the `@anthropic/memory-mcp-server` to maintain a knowledge graph of entities and their relationships. It requires zero configuration and is always available.
+Graph memory is Tier 1 -- the **primary** storage layer in OrchestKit's memory architecture. It uses the `@modelcontextprotocol/server-memory` MCP server to maintain a knowledge graph of entities and their relationships. It requires zero configuration and is always available.
 
 ## How It Works
 
@@ -155,7 +155,6 @@ The memory writer infers entity types from the content of your text:
 |---|---|---|
 | `memory-context` | `prompt` | Searches graph for entities matching prompt keywords; injects search hints into Claude's context |
 | `memory-context-loader` | `prompt` (once) | Loads recent decisions from local JSONL on session start |
-| `memory-fabric-init` | `pretool` (once) | Lazy initialization of memory directories and session registration on first memory MCP call |
 
 ## Hooks That Write to the Graph
 
@@ -222,7 +221,7 @@ The knowledge graph MCP server is configured automatically by Claude Code. If yo
   "mcpServers": {
     "memory": {
       "command": "npx",
-      "args": ["-y", "@anthropic/memory-mcp-server"]
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
     }
   }
 }

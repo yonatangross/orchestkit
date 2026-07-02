@@ -60,7 +60,7 @@ This is the primary local backup. Every decision captured by the memory writer i
 
 ### How It Gets Written
 
-The `storeDecision` function in `memory-writer.ts` always writes to `decisions.jsonl` as its first action (step 1 of 4). This ensures the decision is durably stored before any network or MCP operations attempt to process it.
+Memory hooks (such as `pre-compact-saver` and `context-exhaustion-warner`) append to `decisions.jsonl` as their first action. This ensures the decision is durably stored on disk before any graph or MCP operation attempts to process it.
 
 ### How It Gets Read
 
@@ -87,58 +87,6 @@ Example injected context:
 
 _For deeper graph traversal: use mcp__memory__search_nodes or mcp__memory__open_nodes_
 ```
-
-## `graph-queue.jsonl` -- Pending Graph Operations
-
-When the memory writer captures a decision, it builds graph operations (entity creation, relation creation, observation additions) and appends them to this queue. Each line represents a single operation to be processed.
-
-### Record Structure
-
-```json
-{
-  "type": "create_entities",
-  "payload": {
-    "entities": [
-      {
-        "name": "decision-m1abc-x7y2z3",
-        "entityType": "Decision",
-        "observations": [
-          "What: Use cursor-based pagination for all list endpoints",
-          "Rationale: Better performance for large datasets",
-          "Alternatives considered: offset-based pagination",
-          "Category: pagination",
-          "Confidence: 85%",
-          "Source: user_prompt",
-          "Project: orchestkit",
-          "Timestamp: 2026-02-06T10:30:00.000Z"
-        ]
-      },
-      {
-        "name": "cursor-pagination",
-        "entityType": "Pattern",
-        "observations": [
-          "Mentioned in decision: Use cursor-based pagination for all list endpoints"
-        ]
-      }
-    ]
-  },
-  "timestamp": "2026-02-06T10:30:00.001Z"
-}
-```
-
-A single decision typically generates two queued operations: one `create_entities` and one `create_relations`. The `buildGraphOperations` function in `memory-writer.ts` produces these operations, including:
-
-- A main entity for the decision itself
-- Entities for each mentioned technology/pattern
-- `CHOSE` or `PREFERS` relations from the decision to its entities
-- `CHOSE_OVER` relations for rejected alternatives
-- `CONSTRAINT` relations for limiting factors
-- `TRADEOFF` relations for accepted costs
-- `RELATES_TO` cross-links between co-occurring entities
-
-### Processing
-
-Graph queue operations are designed to be processed when the MCP memory server is available. The hook system reads pending operations and issues the corresponding `mcp__memory__create_entities` and `mcp__memory__create_relations` calls.
 
 ## `open-problems.jsonl` -- Problem Tracking
 

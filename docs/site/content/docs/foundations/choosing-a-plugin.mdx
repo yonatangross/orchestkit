@@ -3,6 +3,8 @@ title: Plugin Architecture
 description: "OrchestKit ships as one unified plugin — everything loads on-demand with zero overhead."
 ---
 
+import { Count } from '@/components/count';
+
 ## One Plugin, Everything Included
 
 OrchestKit ships as a single plugin: **ork**.
@@ -11,7 +13,7 @@ OrchestKit ships as a single plugin: **ork**.
 claude install orchestkit/ork
 ```
 
-No choices, no configuration required. All 113 skills, 37 agents, and 212 hooks install together.
+No choices, no configuration required. All <Count k="skills" /> skills, <Count k="agents" /> agents, and <Count k="hooks" /> hooks install together.
 
 ## What Loads When
 

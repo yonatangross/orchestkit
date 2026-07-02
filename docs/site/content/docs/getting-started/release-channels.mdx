@@ -5,6 +5,7 @@ description: Install OrchestKit from stable, beta, or alpha release channels usi
 
 import { Card, Cards } from 'fumadocs-ui/components/card';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
+import { MinCC } from '@/components/count';
 
 OrchestKit offers three release channels. Each channel is a **separate git branch** that Claude Code resolves via the marketplace `@ref` syntax. The **stable** channel (default) is recommended for most users.
 
@@ -54,7 +55,7 @@ Look for: `Plugin: ork v7.2.0 (stable)`
 **What you get:**
 - Fully tested features across macOS, Ubuntu, Windows
 - Regular bug fixes and security patches
-- Compatible with Claude Code >= 2.1.148
+- Compatible with Claude Code >= <MinCC />
 
 **Update frequency:** Weekly or as needed for bug fixes.
 
@@ -166,7 +167,7 @@ Plugin:     ork v7.2.0-alpha.42 (alpha)
 ## Compatibility
 
 All three channels require:
-- Claude Code >= 2.1.148
+- Claude Code >= <MinCC />
 - Node.js >= 18 (for hooks)
 - Git (for commit/PR workflows)
 
