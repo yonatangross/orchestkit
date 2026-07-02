@@ -5,6 +5,48 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.64.0](https://github.com/yonatangross/orchestkit/compare/v8.63.2...v8.64.0) (2026-07-02)
+
+
+### Features
+
+* **auto:** tune routing rules from measured LLM misses + eval harness ([#2731](https://github.com/yonatangross/orchestkit/issues/2731)) ([878c7a5](https://github.com/yonatangross/orchestkit/commit/878c7a52cd31cf18134edd2e4c78d44772db2960))
+* **hooks:** advisor reads configured default model for inherit ([#2710](https://github.com/yonatangross/orchestkit/issues/2710)) ([716ffd1](https://github.com/yonatangross/orchestkit/commit/716ffd1f91c649b3b3c95dd16b30ee701056e8c0))
+* **skills:** audit-driven quality + eval hardening ([#2715](https://github.com/yonatangross/orchestkit/issues/2715)) ([dfb4c53](https://github.com/yonatangross/orchestkit/commit/dfb4c5341da22d02f463756f017125ad3a5d83d3))
+* **skills:** visualize-plan rents CC /dataviz for validated chart marks ([#2732](https://github.com/yonatangross/orchestkit/issues/2732)) ([dd2299c](https://github.com/yonatangross/orchestkit/commit/dd2299cd9dbc66deb7454b0edf5b44dc399bfa82))
+
+
+### Bug Fixes
+
+* **ci:** release-please guard fetches full base history ([#2711](https://github.com/yonatangross/orchestkit/issues/2711)) ([356fb66](https://github.com/yonatangross/orchestkit/commit/356fb663372f91ccd0fc31ae1c6e3c0b629a54f1))
+* **docs-site:** prebuilt search index cuts NLWeb /ask cold-start ([#2719](https://github.com/yonatangross/orchestkit/issues/2719)) ([7059bc8](https://github.com/yonatangross/orchestkit/commit/7059bc815578989a50d68eef3869a5f0a1bda5b7))
+* **docs:** stamp README CC support floor (≥2.1.148 → ≥2.1.183) ([#2717](https://github.com/yonatangross/orchestkit/issues/2717)) ([42b372c](https://github.com/yonatangross/orchestkit/commit/42b372cc8f4528266ebbb5aaedbe12d8407fc478))
+* **git-hooks:** pre-push mirrors dependabot/release-please skip ([#2733](https://github.com/yonatangross/orchestkit/issues/2733)) ([9e70423](https://github.com/yonatangross/orchestkit/commit/9e70423664b2339a4d7553ed67858e283337f048))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.195) ([#2688](https://github.com/yonatangross/orchestkit/issues/2688)) ([d6dbadc](https://github.com/yonatangross/orchestkit/commit/d6dbadc34856fdfe393f2658a7c63d9f4641f1bb))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.196) ([#2708](https://github.com/yonatangross/orchestkit/issues/2708)) ([2dafe24](https://github.com/yonatangross/orchestkit/commit/2dafe24f14570a37516be12cb2eed191a86dac3b))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.197) ([#2713](https://github.com/yonatangross/orchestkit/issues/2713)) ([77d81ed](https://github.com/yonatangross/orchestkit/commit/77d81ed4264377f386975db9e415a91fcd23651b))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.198) ([#2730](https://github.com/yonatangross/orchestkit/issues/2730)) ([5e821f2](https://github.com/yonatangross/orchestkit/commit/5e821f2bdc994b7d527af50178c005f018c0dc95))
+* **cc:** adopt Claude Sonnet 5 + CC 2.1.197 ([#2709](https://github.com/yonatangross/orchestkit/issues/2709)) ([4c9f6ef](https://github.com/yonatangross/orchestkit/commit/4c9f6effd415ec4d4c38ca572af2838315bc44bf))
+* **deps-dev:** bump @sanity/client in /orchestkit-demos ([#2696](https://github.com/yonatangross/orchestkit/issues/2696)) ([9de8861](https://github.com/yonatangross/orchestkit/commit/9de8861fd2b53dd0e95e62fef326004331a31b2d))
+* **deps-dev:** bump @types/node ([#2689](https://github.com/yonatangross/orchestkit/issues/2689)) ([4aa5fad](https://github.com/yonatangross/orchestkit/commit/4aa5fad40f8bda995c9f8d03821af7ef1f2e955d))
+* **deps-dev:** bump @types/node in /orchestkit-demos ([#2698](https://github.com/yonatangross/orchestkit/issues/2698)) ([55c1e42](https://github.com/yonatangross/orchestkit/commit/55c1e4261028811cadb51946527401d8c75c6f78))
+* **deps-dev:** bump eslint from 9.39.4 to 10.6.0 in /orchestkit-demos ([#2697](https://github.com/yonatangross/orchestkit/issues/2697)) ([7426122](https://github.com/yonatangross/orchestkit/commit/7426122d34a14510728bbf3bfedc5c17538bfa30))
+* **deps-dev:** bump jsdom from 27.4.0 to 29.1.1 in /orchestkit-demos ([#2695](https://github.com/yonatangross/orchestkit/issues/2695)) ([9d2314f](https://github.com/yonatangross/orchestkit/commit/9d2314f55ba023c01f31d6940e68cba389ae8e52))
+* **deps-dev:** bump the npm-minor-patch group across 1 directory with 2 updates ([#2691](https://github.com/yonatangross/orchestkit/issues/2691)) ([d2c6985](https://github.com/yonatangross/orchestkit/commit/d2c69853ab5fd0d9cb518eedf2afb199d4f37c83))
+* **deps-dev:** bump the npm-minor-patch group with 2 updates ([#2690](https://github.com/yonatangross/orchestkit/issues/2690)) ([5f5b977](https://github.com/yonatangross/orchestkit/commit/5f5b97764a2a7027916459067e98b63e364e437f))
+* **deps:** bump the npm-minor-patch group across 1 directory with 33 updates ([#2734](https://github.com/yonatangross/orchestkit/issues/2734)) ([d96f41c](https://github.com/yonatangross/orchestkit/commit/d96f41cebc08a1162e3cb7654167e407470e78e9))
+* **labs:** weekly upstream pin sync ([#2699](https://github.com/yonatangross/orchestkit/issues/2699)) ([2c45312](https://github.com/yonatangross/orchestkit/commit/2c45312c697269e002964f63fae6f5fd6f0d6120))
+* **repo:** stamp GitHub About + untrack overcut/ orphan ([#2718](https://github.com/yonatangross/orchestkit/issues/2718)) ([6fe0b2c](https://github.com/yonatangross/orchestkit/commit/6fe0b2ccdfa47f1f494cc00053396f159701a2e6))
+
+
+### CI/CD
+
+* bump the github-actions group across 1 directory with 3 updates ([#2693](https://github.com/yonatangross/orchestkit/issues/2693)) ([bd0ea33](https://github.com/yonatangross/orchestkit/commit/bd0ea33d12df22d16740a21637845367ab0cce2e))
+
 ## [8.63.2](https://github.com/yonatangross/orchestkit/compare/v8.63.1...v8.63.2) (2026-06-27)
 
 
