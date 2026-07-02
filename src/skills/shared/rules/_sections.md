@@ -38,3 +38,12 @@ visualize-plan) — device-mockup user-story players and drag-and-drop decision 
 live in `../assets/playground-exemplars/`.
 
 - `playground-visual-standard.md` — §0 archetype routing, HSL tokens, glass do/don't, motion budget, drag-and-drop accessibility, RTL, anti-generic checklist
+
+## 6. Chart Encoding (visualization) — HIGH — 1 rule
+
+Defers the DATA-MARK layer of every ork chart (playground, dashboard, infographic, MCP visual,
+multi-surface) to CC's bundled `/dataviz` skill — form heuristic, six-check color formula, and the
+runnable palette validator. ork owns the domain + chrome; `/dataviz` owns the marks. Capability-gated:
+absent or FAIL → ASCII-card fallback, never a hard require.
+
+- `chart-encoding-standard.md` — defer marks to /dataviz, chrome↔marks boundary, `validate_palette.js` gate, capability-gate fallback

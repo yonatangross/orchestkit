@@ -104,9 +104,12 @@ Use the established MCP-probe pattern — `Read("${CLAUDE_SKILL_DIR}/../chain-pa
 ```python
 # infographic is available IFF the notebooklm studio tool resolves:
 ToolSearch(query="select:mcp__notebooklm-mcp__studio_create")
+# chart-encoding is available IFF the bundled /dataviz skill resolves
+# (CC >= 2.1.198, disableBundledSkills off). It is a MARK-layer upgrade
+# applied WITHIN a format, not a 4th format — see chart-encoding-standard.md.
 ```
 
-Gate the options: **ascii** always (the floor); **playground** if the `playground` skill is installed (ships with ork); **infographic** if `studio_create` resolved above (server reachable + `nlm login` done). If only ASCII is available, skip the question.
+Gate the options: **ascii** always (the floor); **playground** if the `playground` skill is installed (ships with ork); **infographic** if `studio_create` resolved above (server reachable + `nlm login` done). If only ASCII is available, skip the question. Orthogonally, if the **`/dataviz`** skill resolved, upgrade the chart *marks* in the non-ASCII formats via its form-heuristic + validated palette; if it did not resolve, charts stay ASCII-card (today's behavior) — dataviz is never required.
 
 If only ASCII is available, **skip the question** and render ASCII. Otherwise ask (hide ungated options, surface a one-line install/auth hint instead):
 
@@ -210,6 +213,7 @@ Render the selected sections into the `FORMATS` chosen in STEP 0.5. **ASCII alwa
 | Playground | Classify the archetype (below), then hand the plan brief to the `playground` skill → write `docs/<branch-dir>/plan-viz.html`, link it |
 | Infographic | Run the `notebooklm` `studio_create(artifact_type=infographic\|slides)` flow — **fire-and-notify**, poll `studio_status`, never await |
 | All | ASCII inline now + the rest linked as they finish |
+| Charts (marks *within* Playground / Infographic) | For sections with quantitative marks — **[3] Risk, [5] Impact, [6] Blast Radius** — pick the form via `/dataviz` (`choosing-a-form`) and the palette via its 6-check formula, then run `validate_palette.js`. On validator FAIL **or** `/dataviz` absent, fall back to the ASCII-card layout. Chrome stays ork tokens (§2 of `playground-visual-standard.md`); only the data marks come from the validated palette. See `${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/chart-encoding-standard.md`. |
 
 `<branch-dir>` = branch with `/` → `--` (same path the PR Playground gate checks).
 
