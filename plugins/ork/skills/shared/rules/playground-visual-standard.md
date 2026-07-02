@@ -44,7 +44,10 @@ PLAYGROUND (apply this standard) if ≥2 are true:
 Then pick ONE archetype:
   • USER-STORY PLAYER  → the playground plays a flow over ≥2 steps/screens
   • DECISION BOARD     → the core is prioritization/management via drag-and-drop
-  • (neither, <2 signals) → DASHBOARD → this standard does NOT apply; keep today's behavior
+  • (neither, <2 signals) → DASHBOARD → not a full playground, but no longer a free pass:
+        chrome = §2 tokens · data marks follow the CHART-ENCODING standard
+        (/dataviz validated palette + table-view twin — chart-encoding-standard.md).
+        ASCII-card layout is the fallback only when /dataviz is unavailable.
 ```
 
 ---
@@ -200,3 +203,4 @@ Glass reads as glass only against a dark, contrasted backdrop with a visible edg
 - [ ] RTL: toggle `dir="rtl"` — layout + arrows mirror correctly (§8).
 - [ ] Single file, zero external deps; copy-prompt is 1-click and natural-language.
 - [ ] Ran the §9 checklist; zero hits.
+- [ ] If the output contains any chart: its palette passed `validate_palette.js` (exit 0), or the ASCII-card fallback was used — no eyeballed chart colors shipped (`chart-encoding-standard.md`).
