@@ -54,7 +54,7 @@ phase('Score')
 const scored = await pipeline(
   SKILLS,
   (s) => agent(
-    `Read src/skills/${s}/SKILL.md (repo-relative to your cwd) and score this ONE skill's fitness for current Claude Code (mid-2026, floor 2.1.148, current model Opus 4.8).
+    `Read src/skills/${s}/SKILL.md (repo-relative to your cwd) and score this ONE skill's fitness for current Claude Code (mid-2026, floor 2.1.183, current model Opus 4.8).
 
 Score 0-10 each:
 - freshness: no stale model IDs (Opus 4.6/4.7 cited as current), no CC version requirement below the floor, no drifting hardcoded counts

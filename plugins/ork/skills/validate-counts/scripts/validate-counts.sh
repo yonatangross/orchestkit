@@ -31,8 +31,10 @@ fi
 # ACTUAL COUNTS (authoritative — from src/)
 # =============================================================================
 
-ACTUAL_SKILLS=$(find "$REPO_ROOT/src/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
-ACTUAL_AGENTS=$(find "$REPO_ROOT/src/agents" -maxdepth 1 -name "*.md" | wc -l | tr -d ' ')
+# Skills = dirs containing a SKILL.md (src/skills/shared/ holds shared rules, not a skill)
+ACTUAL_SKILLS=$(find "$REPO_ROOT/src/skills" -mindepth 2 -maxdepth 2 -name "SKILL.md" | wc -l | tr -d ' ')
+# Agents = definition files only (README.md is not an agent)
+ACTUAL_AGENTS=$(find "$REPO_ROOT/src/agents" -maxdepth 1 -name "*.md" ! -name "README.md" | wc -l | tr -d ' ')
 # hooks.json .hooks is an object keyed by event type → array of entries → each has .hooks array of commands
 # Count = total commands across all entries across all event types
 ACTUAL_HOOKS=$(jq '[.hooks | to_entries[] | .value[] | .hooks | length] | add' "$REPO_ROOT/src/hooks/hooks.json")
@@ -43,7 +45,7 @@ ACTUAL_HOOKS=$(jq '[.hooks | to_entries[] | .value[] | .hooks | length] | add' "
 
 CLAUDE_MD="$REPO_ROOT/CLAUDE.md"
 
-# Project Overview line: "111 skills, 37 agents, 211 hooks"
+# Project Overview line: "113 skills, 37 agents, 212 hooks"
 CLAUDE_OVERVIEW=$(grep -m1 'skills.*agents.*hooks' "$CLAUDE_MD" || true)
 CLAUDE_OV_SKILLS=$(echo "$CLAUDE_OVERVIEW" | grep -oE '[0-9]+ skills?' | grep -oE '[0-9]+' || echo "?")
 CLAUDE_OV_AGENTS=$(echo "$CLAUDE_OVERVIEW" | grep -oE '[0-9]+ agents?' | grep -oE '[0-9]+' || echo "?")

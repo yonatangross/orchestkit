@@ -20,30 +20,9 @@ This means anything written to MEMORY.md is visible to Claude in every conversat
 
 ## Auto-Promotion: Graph to MEMORY.md
 
-OrchestKit bridges its own memory system to CC Native through **auto-promotion**. The `storeDecision` function in `memory-writer.ts` evaluates every captured decision:
+OrchestKit bridges its own memory system to CC Native through **auto-promotion**: high-signal decisions captured during a session get persisted into `MEMORY.md`, where Claude Code injects them into every future session.
 
-```
-if (decision.metadata.confidence >= 0.7 && isCCNativeMemoryAvailable()) {
-    storeToCCNativeMemory(decision);
-}
-```
-
-The two conditions for auto-promotion:
-
-1. **Confidence >= 0.7** -- the decision must be high-confidence (see scoring below)
-2. **CC Native memory directory exists** -- Claude Code must have created the project directory (it does this automatically when you first open a project)
-
-### Confidence Scoring
-
-| Factor | Effect on Confidence |
-|---|---|
-| User explicitly states a decision ("we decided...", "always use...") | Higher (typically 0.8+) |
-| Decision includes rationale ("because...") | Higher |
-| User states a preference directly | Higher |
-| Pattern inferred from tool output | Lower (typically 0.4-0.6) |
-| Observation from agent completion | Lower |
-
-Only decisions with clear intent and strong signal cross the 0.7 threshold. This keeps MEMORY.md focused and concise.
+Promotion is performed by Claude itself, prompted by OrchestKit's session hooks (`session-summary`, `auto-remember-continuity`): at session end, Claude reviews what was decided and writes durable, high-confidence decisions to MEMORY.md. Low-signal material -- patterns inferred from tool output, transient observations -- stays in the session-local JSONL files instead. This keeps MEMORY.md focused and concise.
 
 ## What Gets Written
 
@@ -72,7 +51,7 @@ Each entry includes:
 
 ## Deduplication
 
-Before writing a new entry, the memory writer checks if the first 50 characters of the decision text already appear in the existing MEMORY.md content. If found, the write is skipped to avoid duplicate entries. This prevents the same decision from appearing multiple times if it is captured by multiple hooks in the same session.
+Before adding an entry, existing MEMORY.md content is checked for the same decision so it is not recorded twice, even when multiple hooks capture it in the same session.
 
 ## Ordering: Most Recent First
 

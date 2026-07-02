@@ -4,12 +4,13 @@ description: Frequently asked questions about OrchestKit.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
+import { Count, MinCC } from '@/components/count';
 
 ## General
 
 ### What version of Claude Code do I need?
 
-OrchestKit requires Claude Code 2.1.148 or later. Check your version:
+OrchestKit requires Claude Code <MinCC /> or later. Check your version:
 
 ```bash
 claude --version
@@ -23,7 +24,7 @@ npm install -g @anthropic-ai/claude-code@latest
 
 ### How do I install OrchestKit?
 
-OrchestKit is a single plugin: **ork** — 113 skills, 37 agents, 212 hooks. Install with `claude install orchestkit/ork`.
+OrchestKit is a single plugin: **ork** — <Count k="skills" /> skills, <Count k="agents" /> agents, <Count k="hooks" /> hooks. Install with `claude install orchestkit/ork`.
 
 ### Can I use OrchestKit with other Claude Code plugins?
 
@@ -43,7 +44,7 @@ This is opt-in via an environment variable. Without it, OrchestKit operates enti
 
 ### How many skills are there?
 
-111 total: 32 command skills (user-invocable via `/ork:skillname`) and 80 reference skills (knowledge modules auto-injected by agents and hooks).
+<Count k="skills" /> total: <Count k="commands" /> command skills (user-invocable via `/ork:skillname`) and <Count k="references" /> reference skills (knowledge modules auto-injected by agents and hooks).
 
 ### What does `complexity: low|medium|high|max` mean?
 

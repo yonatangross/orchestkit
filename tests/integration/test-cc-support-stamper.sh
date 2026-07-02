@@ -25,6 +25,11 @@ ORIG_SUPPORT=$(cat shared/cc-support.json)
 ORIG_CLAUDE_MD=$(cat CLAUDE.md)
 ORIG_MATRIX=$(cat src/hooks/src/lib/cc-version-matrix.ts)
 ORIG_DOC=$(cat src/skills/doctor/references/version-compatibility.md)
+# Every stamp target must be snapshotted, or a bumped-floor test run leaves
+# fixture values (2.1.999) in the working tree — README.md was missing here
+# long before the docs target existed.
+ORIG_README=$(cat README.md)
+ORIG_TROUBLESHOOTING=$(cat docs/site/content/docs/troubleshooting/index.mdx)
 
 # Extract the current MIN_CC_VERSION value so monotonic-guard assertions stay
 # resilient to floor bumps (was hardcoded "2.1.122" pre-M131).
@@ -39,6 +44,8 @@ restore() {
   echo "$ORIG_CLAUDE_MD" > CLAUDE.md
   echo "$ORIG_MATRIX" > src/hooks/src/lib/cc-version-matrix.ts
   echo "$ORIG_DOC" > src/skills/doctor/references/version-compatibility.md
+  echo "$ORIG_README" > README.md
+  echo "$ORIG_TROUBLESHOOTING" > docs/site/content/docs/troubleshooting/index.mdx
 }
 trap restore EXIT
 

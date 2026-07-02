@@ -6,6 +6,7 @@ description: Install OrchestKit in Claude Code — marketplace, CLI, or manual s
 import { Card, Cards } from 'fumadocs-ui/components/card';
 import { Callout } from 'fumadocs-ui/components/callout';
 import { LazySetupWizard } from '@/components/lazy';
+import { Count, MinCC } from '@/components/count';
 
 ## From Claude Code Marketplace (Recommended)
 
@@ -13,7 +14,7 @@ import { LazySetupWizard } from '@/components/lazy';
 claude install orchestkit/ork
 ```
 
-This installs all 113 skills, 37 agents, and 212 hooks.
+This installs all <Count k="skills" /> skills, <Count k="agents" /> agents, and <Count k="hooks" /> hooks.
 
 ## Interactive Setup
 
@@ -32,8 +33,8 @@ Expected output:
 ```
 OrchestKit Health Check
 =======================
-Plugin:     ork v7.43.0
-Skills:     111 loaded (31 commands, 80 reference)
+Plugin:     ork v8.63.2
+Skills:     113 loaded (32 commands, 81 reference)
 Agents:     37 registered
 Hooks:      212 active (144 global, 46 agent, 22 skill-scoped)
 Memory:     Graph ✓  Local ✓  CC Native ✓
@@ -84,7 +85,7 @@ Without Tavily, web research falls back to WebFetch → agent-browser automatica
 
 ## Requirements
 
-- **Claude Code** >= 2.1.148
+- **Claude Code** >= <MinCC />
 - **Node.js** >= 18 (for hooks)
 - **Git** (for commit/PR workflows)
 

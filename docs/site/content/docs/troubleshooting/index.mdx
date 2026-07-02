@@ -4,6 +4,7 @@ description: Solutions for the 10 most common OrchestKit issues.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
+import { MinCC } from '@/components/count';
 
 This page covers the most frequent issues OrchestKit users encounter, ordered by how often they come up. For hook-specific debugging, see [Hook Debugging](/docs/troubleshooting/hook-debugging). For broader questions about how OrchestKit works, see the [FAQ](/docs/troubleshooting/faq).
 
@@ -129,7 +130,7 @@ The memory system has 3 tiers. If Tier 1 (Graph) is not configured, decisions fa
 **Fix:**
 
 ```bash
-# Check Claude Code version (requires >= 2.1.148)
+# Check Claude Code version (requires >= 2.1.183)
 claude --version
 
 # Verify agent definition exists
@@ -142,7 +143,7 @@ npm run test:agents
 npm run build
 ```
 
-If the Claude Code version is below 2.1.148, upgrade:
+If the Claude Code version is below <MinCC />, upgrade:
 
 ```bash
 npm install -g @anthropic-ai/claude-code@latest
@@ -205,7 +206,7 @@ Only use `--no-verify` for changes you are confident about. For substantial code
 
 ## 8. Count Drift After Adding Skills or Hooks
 
-**Symptom:** Tests fail with "expected 111 skills, found 73" or similar count mismatches.
+**Symptom:** Tests fail with "expected 113 skills, found 73" or similar count mismatches.
 
 **Cause:** Adding a skill or hook updates the source files but not the count references scattered across the codebase.
 
