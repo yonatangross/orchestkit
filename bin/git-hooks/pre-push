@@ -25,6 +25,18 @@ if [[ "$BRANCH" =~ ^(docs|chore|ci|style|test|feat|fix|perf|refactor|issue|bug)/
   exit 0
 fi
 
+# Skip release-please PRs (automated versioning) — mirrors version-check.yml L67-72
+if [[ "$BRANCH" =~ ^release-please ]]; then
+  echo "  ✓ Skipping version check for release-please PR (automated)"
+  exit 0
+fi
+
+# Skip Dependabot PRs (dependency updates, no version bump needed) — mirrors version-check.yml L74-79
+if [[ "$BRANCH" =~ ^dependabot/ ]]; then
+  echo "  ✓ Skipping version check for Dependabot PR (automated dependency update)"
+  exit 0
+fi
+
 # ===== Check if only non-code files changed =====
 CHANGED_FILES=$(git diff --name-only origin/main...HEAD 2>/dev/null || git diff --name-only HEAD~1...HEAD)
 CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -vE '\.(md|txt)$|^docs/' || true)
