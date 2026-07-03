@@ -1,131 +1,55 @@
 [
   {
-    "version": "2.1.198",
+    "version": "2.1.199",
     "parse_failed": false,
     "features": [
       {
-        "feature_slug": "bg_agents_auto_commit_push_pr",
+        "feature_slug": "stacked_slash_skill_invocations",
         "category": "breaking",
-        "description": "Background agents from `claude agents` now auto-commit, push, and open a draft PR after worktree work instead of pausing",
+        "description": "Stacked slash-skill invocations now load up to 5 leading skills instead of only the first.",
         "gap_score": 20,
         "affected_skills": [
-          "create-pr",
-          "github-operations",
-          "commit",
-          "agent-orchestration"
+          "auto",
+          "help",
+          "skill-evolution",
+          "audit-skills"
         ],
-        "reference_changelog_line": "Background agents launched from `claude agents` now commit, push, and open a draft PR when they finish code work in a worktree, instead of stopping to ask",
+        "reference_changelog_line": "Stacked slash-skill invocations like `/skill-a /skill-b do XYZ` now load all leading skills (up to 5), not just the first",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "explore_agent_inherits_model",
+        "feature_slug": "dangerous_skip_perms_daemon_fix",
         "category": "breaking",
-        "description": "Built-in Explore agent now inherits the main session's model (capped at opus) instead of always running on haiku.",
+        "description": "claude --dangerously-skip-permissions daemon <subcommand> now runs the subcommand instead of being treated as a chat pro",
         "gap_score": 20,
         "affected_skills": [
-          "explore",
-          "agent-orchestration",
-          "audit-activation"
-        ],
-        "reference_changelog_line": "The built-in Explore agent now inherits the main session's model (capped at opus) instead of running on haiku",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "subagent_inherits_extended_thinking",
-        "category": "breaking",
-        "description": "Subagents and context compaction now inherit the session's extended thinking configuration for delegated tasks.",
-        "gap_score": 20,
-        "affected_skills": [
-          "agent-orchestration",
-          "chain-patterns",
-          "checkpoint-resume"
-        ],
-        "reference_changelog_line": "Subagents and context compaction now inherit the session's extended thinking configuration, improving output quality on delegated tasks",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "bg_print_flags_rejected",
-        "category": "breaking",
-        "description": "`claude --bg` combined with `--print`/`-p` is now rejected up front instead of silently creating an unattachable session",
-        "gap_score": 20,
-        "affected_skills": [
-          "bare-eval",
-          "chain-patterns"
-        ],
-        "reference_changelog_line": "Fixed `claude --bg` silently creating an unattachable session when combined with `--print`/`-p`; the conflicting flags are now rejected up front",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "subagent_parent_msg_task_direction",
-        "category": "breaking",
-        "description": "Subagents now treat messages from their launching agent as normal task direction, though never as user approval.",
-        "gap_score": 20,
-        "affected_skills": [
-          "agent-orchestration",
-          "chain-patterns"
-        ],
-        "reference_changelog_line": "Subagents now treat messages from the agent that launched them as normal task direction; an agent's message is still never treated as the user's approval",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "dataviz_skill",
-        "category": "new_command",
-        "description": "New `/dataviz` skill for chart and dashboard design guidance with a runnable color-palette validator.",
-        "gap_score": 15,
-        "affected_skills": [
-          "ascii-visualizer",
-          "visualize-plan",
-          "presentation-builder"
-        ],
-        "reference_changelog_line": "Added `/dataviz` skill for chart and dashboard design guidance with a runnable color-palette validator",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "notification_hook_agent_events",
-        "category": "new_event",
-        "description": "Notification hook now fires `agent_needs_input` and `agent_completed` events for background agents in `claude agents`.",
-        "gap_score": 10,
-        "affected_skills": [
-          "agent-orchestration",
-          "configure"
-        ],
-        "reference_changelog_line": "Added background agent notifications in `claude agents` — sessions that need input or finish now fire the `Notification` hook (`agent_needs_input` / `agent_completed`)",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "agents_wizard_removed",
-        "category": "deprecation",
-        "description": "Removed the `/agents` wizard; manage subagents by asking Claude or editing `.claude/agents/` directly.",
-        "gap_score": 8,
-        "affected_skills": [
-          "agent-orchestration",
           "configure",
-          "setup"
+          "doctor"
         ],
-        "reference_changelog_line": "Removed the `/agents` wizard; ask Claude to create or manage subagents, or edit `.claude/agents/` directly",
+        "reference_changelog_line": "Fixed `claude --dangerously-skip-permissions daemon <subcommand>` being treated as a chat prompt instead of running the subcommand",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "gateway_anthropic_aws_provider",
-        "category": "new_field",
-        "description": "Gateway adds `anthropicAws` (Claude Platform on AWS) as upstream provider; model-not-found responses advance the failove",
-        "gap_score": 10,
+        "feature_slug": "plan_mode_browser_state_prompt",
+        "category": "breaking",
+        "description": "Plan mode now prompts for state-changing browser tool calls; read-only browser_batch calls are auto-allowed.",
+        "gap_score": 20,
         "affected_skills": [
-          "llm-integration"
+          "browser-tools",
+          "security-patterns"
         ],
-        "reference_changelog_line": "Gateway: added Claude Platform on AWS (anthropicAws) as an upstream provider; model-not-found responses now advance the failover chain",
-        "relevance": "plugin",
-        "recall_boosted_from": 5
+        "reference_changelog_line": "Fixed plan mode not prompting for state-changing browser tool calls; read-only `browser_batch` calls are now correctly auto-allowed",
+        "relevance": "plugin"
       }
     ],
-    "raw_bullets_count": 32,
-    "issues_filed_at": "2026-07-02T04:26:17Z"
+    "raw_bullets_count": 24,
+    "issues_filed_at": "2026-07-03T04:19:09Z"
   },
   {
     "version": "2.1.197",
     "features": [],
     "raw_bullets_count": 1,
     "parse_failed": true,
-    "failed_at": "2026-07-02T04:26:05.833Z"
+    "failed_at": "2026-07-03T04:19:02.197Z"
   }
 ]
