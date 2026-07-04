@@ -1,55 +1,76 @@
 [
   {
-    "version": "2.1.199",
+    "version": "2.1.200",
     "parse_failed": false,
     "features": [
       {
-        "feature_slug": "stacked_slash_skill_invocations",
+        "feature_slug": "askuserquestion_no_autocontinue",
         "category": "breaking",
-        "description": "Stacked slash-skill invocations now load up to 5 leading skills instead of only the first.",
+        "description": "AskUserQuestion dialogs no longer auto-continue by default; idle timeout is now opt-in via /config.",
         "gap_score": 20,
         "affected_skills": [
-          "auto",
-          "help",
-          "skill-evolution",
-          "audit-skills"
+          "agent-orchestration",
+          "configure",
+          "task-dependency-patterns"
         ],
-        "reference_changelog_line": "Stacked slash-skill invocations like `/skill-a /skill-b do XYZ` now load all leading skills (up to 5), not just the first",
+        "reference_changelog_line": "Changed `AskUserQuestion` dialogs to no longer auto-continue by default; opt into an idle timeout via `/config`",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "dangerous_skip_perms_daemon_fix",
+        "feature_slug": "default_permission_mode_manual",
         "category": "breaking",
-        "description": "claude --dangerously-skip-permissions daemon <subcommand> now runs the subcommand instead of being treated as a chat pro",
+        "description": "Default permission mode renamed to Manual across CLI/flags; --permission-mode manual and defaultMode manual accepted.",
         "gap_score": 20,
         "affected_skills": [
+          "security-patterns",
           "configure",
+          "setup",
           "doctor"
         ],
-        "reference_changelog_line": "Fixed `claude --dangerously-skip-permissions daemon <subcommand>` being treated as a chat prompt instead of running the subcommand",
+        "reference_changelog_line": "Changed the \"default\" permission mode to \"Manual\" across the CLI, `--help`, VS Code, and JetBrains; `--permission-mode manual` and `\"defaultMode\": \"manual\"` are accepted alongside `default`",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "plan_mode_browser_state_prompt",
+        "feature_slug": "daemon_handover_build_timestamp",
         "category": "breaking",
-        "description": "Plan mode now prompts for state-changing browser tool calls; read-only browser_batch calls are auto-allowed.",
+        "description": "Background-agent daemon handover now judges build recency via embedded build timestamp, blocking older-build takeover.",
         "gap_score": 20,
         "affected_skills": [
-          "browser-tools",
+          "agent-orchestration",
           "security-patterns"
         ],
-        "reference_changelog_line": "Fixed plan mode not prompting for state-changing browser tool calls; read-only `browser_batch` calls are now correctly auto-allowed",
+        "reference_changelog_line": "Fixed background-agent daemon handover so a reinstalled older build can no longer take over the daemon; build recency is now judged by the version's embedded build timestamp",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "background_agent_socket_auth_tokens",
+        "category": "breaking",
+        "description": "Fixed background-agent roster corruption, field preservation across versions, and socket auth tokens stripped on restart",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed background-agent roster issues: transient corruption permanently disabling orphan cleanup, older binaries not preserving fields written by newer versions, and socket auth tokens being stripped during daemon restarts",
         "relevance": "plugin"
       }
     ],
-    "raw_bullets_count": 24,
-    "issues_filed_at": "2026-07-03T04:19:09Z"
+    "raw_bullets_count": 17,
+    "issues_filed_at": "2026-07-04T04:16:41Z"
+  },
+  {
+    "version": "2.1.201",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "featureless": true,
+    "issues_filed_at": "2026-07-04T04:16:41Z"
   },
   {
     "version": "2.1.197",
     "features": [],
     "raw_bullets_count": 1,
     "parse_failed": true,
-    "failed_at": "2026-07-03T04:19:02.197Z"
+    "failed_at": "2026-07-04T04:16:29.464Z"
   }
 ]
