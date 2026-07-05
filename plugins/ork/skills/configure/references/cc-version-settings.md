@@ -971,3 +971,26 @@ Works in **interactive**, **`-p`** (headless), and **Remote Control**.
 **One-off vs. durable — the distinction OrchestKit must preserve:** `/config key=value` writes a single setting value. It is the fast path for an **ad-hoc, one-off** change. It does **not** create automation. A durable "whenever X happens, do Y" behavior still requires a **hook in `settings.json`** — the harness executes hooks, the model does not, so a setting value can't stand in for one. When a user asks to flip one setting now, reach for `/config key=value`; when they ask for a recurring on-event behavior, route to the hook flow in the `configure` (update-config) skill.
 
 **Action for OrchestKit**: docs-only. No change to the committed `src/settings/ork.settings.json` — this is a user-facing convenience, not a plugin surface. Mention it in `update-config` as the quick path for single ad-hoc settings, while keeping hook-based automation as the answer for "from now on / each time / whenever" requests.
+
+## CC 2.1.200 Settings
+
+### AskUserQuestion no longer auto-continues
+
+CC 2.1.200 removes the default auto-continue on `AskUserQuestion` dialogs — an unanswered question now
+waits indefinitely unless the user opts into an idle timeout via `/config`. ork's skills use
+`AskUserQuestion` as **blocking intent gates** (mode selection, scope confirmation), so nothing in the
+plugin relied on auto-continue; the `ORK_ASK_FALLBACK=text` fallback path is likewise unaffected.
+
+**Action for OrchestKit**: none in settings. For unattended/headless flows that must not stall on a
+question, prefer passing the decision as skill args (or a `/goal` condition) over expecting a dialog
+to time out.
+
+### Permission mode "default" displays as "Manual"
+
+The "default" permission mode is renamed to **"Manual"** in the CLI, `--help`, VS Code, and JetBrains.
+`--permission-mode manual` and `"defaultMode": "manual"` are accepted as aliases; `default` remains
+valid — no deprecation.
+
+**Action for OrchestKit**: none. ork's committed settings define no `defaultMode`, and skill-issued
+flags use explicit mode values (`acceptEdits`, `dontAsk`, `plan`). When *describing* the no-mode state
+in docs or prompts, prefer the new "Manual" label.

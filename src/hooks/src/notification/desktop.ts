@@ -79,6 +79,9 @@ function buildTitle(repoName: string, notificationType: string): string {
   if (notificationType === 'permission_prompt') {
     return `${repoName} needs approval`;
   }
+  if (notificationType === 'agent_needs_input') {
+    return `${repoName}: background agent needs input`;
+  }
   return `${repoName} is waiting for you`;
 }
 
@@ -102,6 +105,9 @@ function buildMessage(message: string, notificationType: string): string {
   // Fallback to actionable default
   if (notificationType === 'permission_prompt') {
     return 'A tool needs your permission to proceed.';
+  }
+  if (notificationType === 'agent_needs_input') {
+    return 'A background agent is waiting for your input.';
   }
   return 'Claude is idle and waiting for your response.';
 }
@@ -163,8 +169,14 @@ export async function desktopNotification(input: HookInput, ctx: HookContext = N
 
   ctx.log('desktop', `Notification: [${notificationType}] ${message.substring(0, 100)}`);
 
-  // Only show for permission prompts and idle prompts
-  if (notificationType !== 'permission_prompt' && notificationType !== 'idle_prompt') {
+  // Only show for actionable prompts: permission, idle, and background-agent
+  // input requests (CC 2.1.198+). agent_completed stays sound-only (sound.ts)
+  // so a fleet of finishing agents doesn't spam banners.
+  if (
+    notificationType !== 'permission_prompt'
+    && notificationType !== 'idle_prompt'
+    && notificationType !== 'agent_needs_input'
+  ) {
     return outputSilentSuccess();
   }
 

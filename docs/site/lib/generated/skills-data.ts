@@ -749,7 +749,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router — the front door to OrchestKit. Takes a plain-English goal, classifies it into one intent category, and routes to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:brainstorm, /ork:implement, /ork:review-pr, /ork:verify, a /goal optimization loop, or the skill-evolution gate). Use when you describe a goal not a method, when the right skill is unclear, or when you want the agent to pick the approach. Triggers on: auto, do this, figure out, just make, get it to, I want, help me, not sure which.",
     "version": "1.0.0",
-    "sha256": "9b2d7ce56d8f1fc14a70969014dd1b34f72d05c3f965b1e7431dc1331f35a4ff",
+    "sha256": "ff99fe38a9ef1f482c4531504c18f5b7e889f9522439396cdd579ec4d4adcf5a",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -786,7 +786,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "bare-eval",
     "description": "Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill evaluation, trigger testing, and LLM grading without plugin/hook interference. Use when running eval pipelines, grading skill outputs, benchmarking prompt quality, or testing trigger accuracy in isolation.",
     "version": "1.1.0",
-    "sha256": "391c6024ca37c35af1bf7644d363e8e75b10a55430ede26358c0b637e24699fe",
+    "sha256": "f84a5ac96a615ffee604873318b2f296a399ed590534d565222207134ea7d7a2",
     "author": "OrchestKit",
     "tags": [
       "eval",
@@ -903,7 +903,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "browser-tools",
     "description": "OrchestKit security wrapper for browser automation. Adds URL blocklisting, rate limiting, robots.txt enforcement, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows that need safety guardrails.",
     "version": "5.0.0",
-    "sha256": "27770fdb5d8b2b31c643fc535e6157dbad1bf92c5475268cb3e11069174f285f",
+    "sha256": "8d6bc4dd19394a6c63f1ff0657609335ff901a47cfd9e14eaef6dc02df34839f",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -984,7 +984,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "chain-patterns",
     "description": "Chain patterns for CC 2.1.71 pipelines — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building multi-phase pipeline skills. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable.",
     "version": "1.0.0",
-    "sha256": "ec2723f7cf259f3168eb138cf228b1d2374db2e0399627c99c766928ae1cfb97",
+    "sha256": "329a73ce422092abf290ea04f2d68f0d61df9dc42ff6e5612b24ee5267c534dc",
     "author": "OrchestKit",
     "tags": [
       "pipeline",
@@ -2184,7 +2184,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "emulate-seed",
     "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list, send-an-email-and-retrieve-from-local-inbox. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
     "version": "1.3.0",
-    "sha256": "3705f57e5086e44bbc71b0ace054939751e6fe6ce5873fa61eefdfff6bf56a8b",
+    "sha256": "59111595b15aec2c4fd1535b06983106912fa7fdc8c30011087ea7bd9be8acde",
     "author": "OrchestKit",
     "tags": [
       "emulate",
@@ -2264,7 +2264,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser (Rust daemon + CDP, ARIA-tree-first). Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience.",
     "version": "1.1.0",
-    "sha256": "514064c2808c5191c97e5c6342217ee76c5476f718721ae9bd2c58b27c171645",
+    "sha256": "a908b44a6ae1252dd41d4e628caefe3afd17eb51e1619cad3e261f97fb93b833",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2339,7 +2339,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "explore",
     "description": "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns.",
     "version": "2.6.0",
-    "sha256": "8121487ef1a95ae1b3ce5f427ce8e8214988fa34e9f5ffb038b0b52b1aaa73cb",
+    "sha256": "1496fd62852cee6437965d95edd0783eacb363ba3da4dc90b70cb1e8ddcbfd3e",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -3667,7 +3667,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "portless",
     "description": "Named HTTPS .localhost URLs for local development with portless (v0.14.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration.",
     "version": "1.2.0",
-    "sha256": "a28ea5cd1bda22c587ca3c57a0d4e2530ef7f33ba93e801b04d88420c1196e8c",
+    "sha256": "179a28bacad31484c97a502a588f1b7f1751fb0bf129d5edd14649c967a6f735",
     "author": "OrchestKit",
     "tags": [
       "dev-server",

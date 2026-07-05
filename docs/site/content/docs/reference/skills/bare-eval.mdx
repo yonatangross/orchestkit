@@ -52,6 +52,8 @@ claude --version  # Must be >= 2.1.81
 | Force-skill | `claude -p "$prompt" --bare --print --append-system-prompt "$content"` |
 | @-file in prompt | `claude -p "grade @fixtures/case-1.md against rubric" --bare` (CC 2.1.113 Remote Control autocomplete) |
 
+> **Long harness runs (CC 2.1.199+):** set `CLAUDE_CODE_RETRY_WATCHDOG=1` for unattended eval batches — it raises the default retry count for non-capacity transient errors to 300 and lifts the cap of 15 on `CLAUDE_CODE_MAX_RETRIES`, so an overnight grading run survives transient API blips instead of dying mid-batch.
+
 ### `--output-format stream-json`
 
 Newline-delimited JSON events (one per token/tool-call) — lets a runner score partial output or abort early on a failing probe without waiting for the full response.
