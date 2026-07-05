@@ -23,6 +23,20 @@ Copy this template and fill in results from parallel agent verification.
 
 ---
 
+## Verification Manifest
+
+> Provenance of every load-bearing claim. Any 🟡 CLAIMED or ⬜ UNCHECKED row caps the
+> status below READY FOR MERGE until it is ✅ VERIFIED or ⚪ WAIVED. See
+> `references/verification-manifest.md`.
+
+| # | Load-bearing claim | Asserted by | Provenance | Evidence (cmd · exit · key line) |
+|---|--------------------|-------------|------------|----------------------------------|
+| 1 | [e.g. Types check clean] | [agent/tool/doc] | ✅ VERIFIED / 🟡 CLAIMED / ⬜ UNCHECKED / ⚪ WAIVED | [`cmd` · exit 0 · key line, or reason] |
+
+**Manifest impact**: [none — all load-bearing claims VERIFIED] / [verdict capped at IMPROVEMENTS RECOMMENDED — rows [N] unverified]
+
+---
+
 ## Agent Results
 
 ### 1. Code Quality (code-quality-reviewer)
