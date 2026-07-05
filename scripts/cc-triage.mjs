@@ -384,6 +384,32 @@ function isFeaturelessSnapshot(bullets) {
   return !bullets.some((b) => FEATURE_HINT_RE.test(b));
 }
 
+// #2757: a THIN changelog that positively reads as a product/model/pricing
+// ANNOUNCEMENT — e.g. 2.1.197 "Introducing Claude Sonnet 5 … native 1M-token
+// context … promotional pricing". It is real news, but nothing a plugin adopts.
+// isFeaturelessSnapshot() misses it because "Introducing" trips FEATURE_HINT_RE,
+// so it routed to the LLM, which correctly returned [] — and the M134 empty-array
+// guard then sentineled it `parse_failed`, re-filing a "manual triage needed" issue
+// every (token-free) cron run (#2729/#2742/#2748/#2751/#2712). Graduating it here,
+// token-free, stops the churn at the source.
+//
+// Gated on THREE conservative axes so it never swallows a real feature:
+//   (1) capped at THIN_CHANGELOG_BULLETS — a multi-feature release still hits the LLM;
+//   (2) requires a POSITIVE announcement signal (ANNOUNCEMENT_RE), so an ordinary
+//       thin CLI release ("claude project purge …", "New --max-turns flag") — which
+//       carries a generic hint word but no announcement language — routes to the LLM;
+//   (3) a plugin-surface term (hook/SKILL.md/settings/MCP/…) in ANY bullet disqualifies
+//       it, so "Added the SubagentStop hook" still routes to the LLM.
+// On any miss it falls through to the existing LLM path — never a regression.
+const THIN_CHANGELOG_BULLETS = 2;
+const ANNOUNCEMENT_RE =
+  /\b(introducing|generally available|now the default model|new default model|promotional pricing|per\s*mtok)\b/i;
+function isThinAnnouncement(bullets) {
+  if (bullets.length === 0 || bullets.length > THIN_CHANGELOG_BULLETS) return false;
+  if (bullets.some((b) => PLUGIN_SURFACE_RE.test(b))) return false; // any plugin surface → route to LLM
+  return bullets.some((b) => ANNOUNCEMENT_RE.test(b)); // must positively read as an announcement
+}
+
 // Normalization for MATCHING only (not the dedup hash — that stays in the shell
 // normalize_ref). Lowercase, drop a leading bullet, strip md emphasis, collapse
 // whitespace. Aggressive on purpose so a reworded ref still lands on its bullet.
@@ -692,6 +718,32 @@ function reconcileDeterministic(gaps) {
         );
         updated++;
       }
+      continue;
+    }
+
+    // #2757: thin product/model announcement (hint word, no plugin surface) →
+    // graduate token-free instead of letting the LLM's correct [] get sentineled.
+    if (isThinAnnouncement(bullets)) {
+      let changed = false;
+      if (!entry.thin_announcement) {
+        entry.thin_announcement = true;
+        changed = true;
+      }
+      if (!Array.isArray(entry.features) || entry.features.length !== 0) {
+        entry.features = [];
+        changed = true;
+      }
+      if (entry.parse_failed) {
+        delete entry.parse_failed;
+        delete entry.failed_at;
+        changed = true;
+      }
+      if (changed) {
+        console.log(
+          `cc-triage: ${entry.version} — thin announcement (${bullets.length} bullet(s), no plugin surface), graduating without LLM.`,
+        );
+        updated++;
+      }
     }
   }
   return updated;
@@ -713,6 +765,7 @@ function runExtraction(gaps, retryFailed) {
     if (entry.features?.length > 0) continue;
     if (entry.below_floor) continue; // resolved by reconcileDeterministic()
     if (entry.featureless) continue; // resolved by reconcileDeterministic()
+    if (entry.thin_announcement) continue; // #2757: resolved by reconcileDeterministic()
 
     // Respect the sentinel skip unless --retry-failed (a genuine extraction
     // failure on a capability-bearing snapshot stays parked here).

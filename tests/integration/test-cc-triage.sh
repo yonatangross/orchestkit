@@ -1037,6 +1037,62 @@ else
   log_fail "FILE_FLOOR coupling drift" "gate='$GATE_FLOOR' filer='$FILER_FLOOR' (must match or recall-boosts stop filing)"
 fi
 
+# ============================================================================
+# Test 20: #2757 thin announcement graduates token-free (thin_announcement),
+# NOT parse_failed. A single product/model-announcement bullet ("Introducing
+# Claude Sonnet 5 …") trips FEATURE_HINT_RE via "Introducing", so #2267's
+# featureless pass misses it; pre-fix it routed to the LLM, returned [], and the
+# M134 empty-array guard sentineled it — re-filing manual-triage issues every
+# token-free cron (#2729/#2742/#2748/#2751/#2712). Reproduces the real 2.1.197.
+# ============================================================================
+cat > shared/cc-snapshots/2.1.997.md <<'EOF'
+# Claude Code 2.1.997
+
+- Introducing Claude Sonnet 5: now the default model in Claude Code, with a native 1M-token context window and promotional pricing of $2/$10 per Mtok.
+EOF
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  { "version": "2.1.997", "parse_failed": true, "failed_at": "2026-07-01T00:00:00Z", "features": [], "raw_bullets_count": 1 }
+]
+EOF
+unset CLAUDE_CODE_OAUTH_TOKEN || true  # silent: known-noise (unset of an unset var is a no-op)
+EXIT=0
+node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+THIN=$(jq -r '.[0].thin_announcement // empty' shared/cc-adoption-gaps.json)
+PF=$(jq -r '.[0].parse_failed // empty' shared/cc-adoption-gaps.json)
+if [ "$EXIT" = "0" ] && [ "$THIN" = "true" ] && [ -z "$PF" ]; then
+  log_pass "#2757 thin announcement: graduated token-free (thin_announcement=true, parse_failed cleared)"
+else
+  log_fail "#2757 thin announcement graduation" "exit=$EXIT thin='$THIN' parse_failed='$PF' (expected thin=true, no parse_failed)"
+fi
+
+# ============================================================================
+# Test 21: #2757 negative guard — a THIN changelog that names a plugin surface
+# (hook/SKILL.md/settings/MCP) must NOT be graduated; it still routes to the LLM.
+# Token-free here → stays unresolved (no thin_announcement, no featureless), i.e.
+# the guard never swallows a thin-but-real adoptable feature.
+# ============================================================================
+cat > shared/cc-snapshots/2.1.996.md <<'EOF'
+# Claude Code 2.1.996
+
+- Added the SubagentStop hook so plugins can run cleanup after a subagent finishes.
+EOF
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  { "version": "2.1.996", "parse_failed": false, "features": [], "raw_bullets_count": 1 }
+]
+EOF
+unset CLAUDE_CODE_OAUTH_TOKEN || true  # silent: known-noise (unset of an unset var is a no-op)
+EXIT=0
+node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+THIN2=$(jq -r '.[0].thin_announcement // empty' shared/cc-adoption-gaps.json)
+FEATURELESS2=$(jq -r '.[0].featureless // empty' shared/cc-adoption-gaps.json)
+if [ "$EXIT" = "0" ] && [ -z "$THIN2" ] && [ -z "$FEATURELESS2" ]; then
+  log_pass "#2757 thin+plugin-surface: NOT graduated (routes to LLM — hook bullet preserved)"
+else
+  log_fail "#2757 thin plugin-surface guard" "exit=$EXIT thin='$THIN2' featureless='$FEATURELESS2' (expected neither)"
+fi
+
 echo ""
 echo "==================================="
 echo "  Results: $PASS passed, $FAIL failed"
