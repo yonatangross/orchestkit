@@ -116,6 +116,8 @@ Choose **Agent Teams** (mesh) or **Task tool** (star):
 
 > **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining exploration.
 
+> **Model cost (CC 2.1.198+):** the built-in Explore agent inherits the session model **capped at Opus** — it no longer runs on haiku. From a premium-model session (Opus, Fable), budget Explore fan-outs at Opus rates; there is no knob to pin the built-in Explore back to haiku. ork's own explorer agents can still pin a cheaper model via frontmatter.
+
 
 ## 🚨 Task Management (MANDATORY)
 

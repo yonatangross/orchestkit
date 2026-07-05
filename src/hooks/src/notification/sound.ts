@@ -24,6 +24,9 @@ const SOUND_MAP: Record<string, string> = {
   task_complete: '/System/Library/Sounds/Glass.aiff',
   error: '/System/Library/Sounds/Basso.aiff',
   warning: '/System/Library/Sounds/Funk.aiff',
+  // Background agent events (CC 2.1.198+)
+  agent_needs_input: '/System/Library/Sounds/Ping.aiff',
+  agent_completed: '/System/Library/Sounds/Glass.aiff',
 };
 
 // -----------------------------------------------------------------------------
@@ -77,6 +80,9 @@ const LINUX_SOUND_MAP: Record<string, string> = {
   task_complete: '/usr/share/sounds/freedesktop/stereo/complete.oga',
   error: '/usr/share/sounds/freedesktop/stereo/dialog-error.oga',
   warning: '/usr/share/sounds/freedesktop/stereo/dialog-warning.oga',
+  // Background agent events (CC 2.1.198+)
+  agent_needs_input: '/usr/share/sounds/freedesktop/stereo/message-new-instant.oga',
+  agent_completed: '/usr/share/sounds/freedesktop/stereo/complete.oga',
 };
 
 function playSound(player: string, soundFile: string): void {

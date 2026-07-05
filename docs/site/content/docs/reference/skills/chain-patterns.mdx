@@ -140,6 +140,8 @@ Load patterns: `Read("$\{CLAUDE_SKILL_DIR\}/references/cron-monitoring.md")`
 
 Launch agents with `run_in_background=true` and output results as each returns — don't wait for all agents to finish. Gives ~60% faster perceived feedback.
 
+> **Background by default (CC 2.1.198+):** Agent-tool subagents launch in the background even when `run_in_background` is omitted. Pass `run_in_background: false` only when a stage must block on the result before continuing (e.g. a verdict gate ahead of a destructive step). The `Notification` hook fires `agent_needs_input` / `agent_completed` as background agents progress — ork's notification hooks surface both.
+
 ```python
 # Launch all agents in ONE message with run_in_background=true
 Agent(subagent_type="ork:backend-system-architect",

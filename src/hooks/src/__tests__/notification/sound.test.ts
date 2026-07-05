@@ -116,6 +116,8 @@ describe('notification/sound', () => {
       ['task_complete', '/System/Library/Sounds/Glass.aiff'],
       ['error', '/System/Library/Sounds/Basso.aiff'],
       ['warning', '/System/Library/Sounds/Funk.aiff'],
+      ['agent_needs_input', '/System/Library/Sounds/Ping.aiff'],
+      ['agent_completed', '/System/Library/Sounds/Glass.aiff'],
     ])('maps %s to %s', (notificationType, expectedPath) => {
       // Arrange
       const input = createSoundInput(notificationType);
@@ -668,6 +670,24 @@ describe('notification/sound', () => {
       expect(mockSpawn).toHaveBeenCalledWith(
         'pw-play',
         ['/usr/share/sounds/freedesktop/stereo/complete.oga'],
+        expect.objectContaining({ stdio: 'ignore', detached: true }),
+      );
+    });
+
+    test.each([
+      ['agent_needs_input', '/usr/share/sounds/freedesktop/stereo/message-new-instant.oga'],
+      ['agent_completed', '/usr/share/sounds/freedesktop/stereo/complete.oga'],
+    ])('plays freedesktop sound for %s on Linux (CC 2.1.198+)', (notificationType, expectedPath) => {
+      // Arrange
+      const input = createSoundInput(notificationType);
+
+      // Act
+      soundNotification(input, testCtx);
+
+      // Assert
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'pw-play',
+        [expectedPath],
         expect.objectContaining({ stdio: 'ignore', detached: true }),
       );
     });

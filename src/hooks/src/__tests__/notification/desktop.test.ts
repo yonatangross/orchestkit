@@ -134,8 +134,17 @@ describe('notification/desktop', () => {
       expect(mockSpawn).toHaveBeenCalled();
     });
 
+    test('triggers notification for agent_needs_input (CC 2.1.198+)', async () => {
+      const input = createNotificationInput('agent_needs_input');
+      const result = await desktopNotification(input, testCtx);
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+      expect(mockSpawn).toHaveBeenCalled();
+      expect(osascriptScript()).toContain('background agent needs input');
+    });
+
     test.each([
-      'auth_success', 'task_complete', 'error', 'info', 'warning', '',
+      'auth_success', 'task_complete', 'error', 'info', 'warning', 'agent_completed', '',
     ])('silently passes through for notification_type=%s', async (notificationType) => {
       const input = createNotificationInput(notificationType);
       const result = await desktopNotification(input, testCtx);
