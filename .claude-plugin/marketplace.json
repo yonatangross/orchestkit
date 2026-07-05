@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "orchestkit",
-  "version": "8.64.1",
+  "version": "8.65.0",
   "engine": ">=2.1.148",
   "description": "The Complete AI Development Toolkit - 113 skills, 37 agents, 32 commands, 212 hooks for full-stack development",
   "owner": {
@@ -15,7 +15,7 @@
   "plugins": [
     {
       "name": "ork",
-      "version": "8.64.1",
+      "version": "8.65.0",
       "description": "Complete AI development toolkit with 113 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 37 specialized agents, 32 commands, and 212 lifecycle hooks.",
       "author": {
         "name": "Yonatan Gross",

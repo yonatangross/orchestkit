@@ -5,6 +5,30 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.65.0](https://github.com/yonatangross/orchestkit/compare/v8.64.1...v8.65.0) (2026-07-05)
+
+
+### Features
+
+* **cc-adoption:** adopt CC 2.1.198-2.1.201 ([#2756](https://github.com/yonatangross/orchestkit/issues/2756)) ([6416db9](https://github.com/yonatangross/orchestkit/commit/6416db9a1581e99b225ae38a494d8c86cb7d1f1f))
+* **fix-issue:** add Phase 4-5 blast-radius clarification gate ([#2758](https://github.com/yonatangross/orchestkit/issues/2758)) ([2347e64](https://github.com/yonatangross/orchestkit/commit/2347e64b5d47ac4b709f0cdb42612d6cc46cf7a6))
+* **implement:** add Step 0b blast-radius clarification interview ([#2754](https://github.com/yonatangross/orchestkit/issues/2754)) ([5227e4f](https://github.com/yonatangross/orchestkit/commit/5227e4f717d26f6463c255ba342e7fdf09eba72d))
+* **verify:** add Verification Manifest (VERIFIED vs CLAIMED) gate ([#2753](https://github.com/yonatangross/orchestkit/issues/2753)) ([70ad7f5](https://github.com/yonatangross/orchestkit/commit/70ad7f5cce2d26aeafe5741d8cd216e2df386e28))
+
+
+### Bug Fixes
+
+* **cc-triage:** graduate thin product announcements token-free ([#2760](https://github.com/yonatangross/orchestkit/issues/2760)) ([0bd5c1d](https://github.com/yonatangross/orchestkit/commit/0bd5c1d0cf6ea124a7ac72f297f11a78de7036a3))
+* **skills:** heal labs skill version drift + close CI gap ([#2759](https://github.com/yonatangross/orchestkit/issues/2759)) ([541d5cc](https://github.com/yonatangross/orchestkit/commit/541d5cc98a2aa8f03fe3a01d46271c68473ed428))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.199) ([#2743](https://github.com/yonatangross/orchestkit/issues/2743)) ([9adf6dc](https://github.com/yonatangross/orchestkit/commit/9adf6dcb5b2075489e2b720a630940fafa359873))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.201) ([#2750](https://github.com/yonatangross/orchestkit/issues/2750)) ([d2677cc](https://github.com/yonatangross/orchestkit/commit/d2677cc1c5803fc3c01a325a93daa9b65c8a792a))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.201) ([#2752](https://github.com/yonatangross/orchestkit/issues/2752)) ([3eadc90](https://github.com/yonatangross/orchestkit/commit/3eadc9061a8db33a45f2ae578b8faa522b800d44))
+* gitignore session-state artifacts ([#2762](https://github.com/yonatangross/orchestkit/issues/2762)) ([5e155f1](https://github.com/yonatangross/orchestkit/commit/5e155f1e08d2c64983c58e60871335722db10241))
+
 ## [8.64.1](https://github.com/yonatangross/orchestkit/compare/v8.64.0...v8.64.1) (2026-07-02)
 
 
