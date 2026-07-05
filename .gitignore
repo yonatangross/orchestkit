@@ -203,3 +203,7 @@ cellebrite-tech-stack.html
 .claude/state/ork-metrics-*.json
 .claude/scheduled_tasks.lock
 .claude/state/
+
+# session-state artifacts (machine-written per session)
+.claude/HANDOFF.md.consumed
+.claude/chain/
