@@ -179,6 +179,11 @@ If worktree selected:
 Load worktree details: `Read("${CLAUDE_SKILL_DIR}/references/worktree-isolation-mode.md")`
 
 
+## Step 0b: Blast-Radius Clarification (ask "what" before "how")
+
+Before Phase 1, resolve the unknowns whose answers would **change the architecture**, in blast-radius order — schema/migration → auth → API contract → perf/scale → cosmetics (last). Grep first, then `AskUserQuestion` one at a time (highest first, cap ~5, skip the obvious). Each answer becomes a row in a Decisions table written to `.claude/chain/decisions.json` and the PR body, feeding Phase 4 (Architecture) as constraints. Do NOT start Phase 1 with an unresolved schema/auth question; skip in `low` effort. Full protocol: `Read("${CLAUDE_SKILL_DIR}/references/blast-radius-clarification.md")`.
+
+
 ## Task Management (MANDATORY)
 
 **BEFORE doing ANYTHING else, create tasks to track progress:**
@@ -285,24 +290,7 @@ Agent(subagent_type="ork:test-generator", run_in_background=true, ...)
 
 Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, partial-result salvage, anti-patterns): `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/monitor-patterns.md")`.
 
-**Partial results (CC 2.1.98):** Background agents that fail now report partial progress to the parent. If a worktree-isolated agent crashes mid-implementation, synthesize its partial output instead of re-spawning:
-
-```python
-# After collecting agent results:
-for agent_result in agent_results:
-    if "[PARTIAL RESULT]" in agent_result.output:
-        # Agent crashed mid-work — salvage what it produced
-        partial_files = Bash(command="git diff --name-only", cwd=agent_result.worktree)
-        if partial_files:
-            # Merge partial work — commit what's usable, flag incomplete items
-            TaskUpdate(taskId=agent_task_id, status="completed",
-                       description=f"Partial: {len(partial_files)} files from crashed agent")
-        # Do NOT re-spawn — partial progress > wasted tokens re-doing work
-    elif agent_result.status == "BLOCKED":
-        # Agent hit a genuine blocker — escalate to user
-        TaskUpdate(taskId=agent_task_id, status="in_progress",
-                   description=f"BLOCKED: {agent_result.concerns[0]}")
-```
+**Partial results (CC 2.1.98):** if a worktree-isolated agent crashes mid-implementation, salvage its partial output — `git diff --name-only` in its worktree, commit what's usable, flag incomplete items — instead of re-spawning; escalate a `BLOCKED` agent to the user. Full salvage logic: the monitor-patterns reference above.
 
 ### Worktree-Isolated Implementation (CC 2.1.50)
 
@@ -461,6 +449,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `agent-phases.md` | Agent prompts and spawn templates |
 | `agent-teams-phases.md` | Agent Teams mode phases |
 | `interview-mode.md` | Interview/take-home constraints |
+| `blast-radius-clarification.md` | Step 0b: ask-what-before-how blast-radius interview + decisions table |
 | `orchestration-modes.md` | Task tool vs Agent Teams selection |
 | `feedback-loop.md` | Checkpoint triggers and actions |
 | `cc-enhancements.md` | CC version-specific features |
