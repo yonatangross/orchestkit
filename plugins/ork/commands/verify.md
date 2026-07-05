@@ -311,6 +311,15 @@ Define verification rules in `.claude/policies/verification-policy.json`:
 ```
 
 
+## Verification Manifest (VERIFIED vs CLAIMED)
+
+Agent scores, tool summaries, and every "X is clean / passing / fixed" sentence are **claims** until the lead re-runs the proof. Before the verdict, build a **Verification Manifest** marking every *load-bearing* claim ✅ VERIFIED (lead ran it fresh — cites `command · exit · key line`), 🟡 CLAIMED (an agent/tool/doc asserted it, not re-run), ⬜ UNCHECKED, or ⚪ WAIVED (accepted non-blocking, with a reason). An agent's "PASS" copied into the report is still CLAIMED — VERIFIED means *the lead* ran it; a sub-agent's number (price, model-id, count) is CLAIMED until checked against source.
+
+> **Verdict rule:** any load-bearing claim still 🟡 CLAIMED or ⬜ UNCHECKED **caps the verdict at IMPROVEMENTS RECOMMENDED** (never READY FOR MERGE) until it is ✅ VERIFIED or ⚪ WAIVED — this stacks with the dimension-level blockers (both must clear), and under `--streak=N` it resets the streak.
+
+Protocol — claim sources, build step, template, and anti-patterns (laundering, optimism-marking, omission): `Read("${CLAUDE_SKILL_DIR}/references/verification-manifest.md")`.
+
+
 ## Report Format
 
 Load details: `Read("${CLAUDE_SKILL_DIR}/references/report-template.md")` for full format. Summary:
@@ -324,6 +333,10 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/report-template.md")` for fu
 **[READY FOR MERGE | IMPROVEMENTS RECOMMENDED | BLOCKED]**
 
 [--streak=N mode only: **STREAK [current]/[target]** — READY FOR MERGE requires the full target; any non-ready run resets to 0.]
+
+## Verification Manifest
+[✅ VERIFIED · 🟡 CLAIMED · ⬜ UNCHECKED · ⚪ WAIVED — any load-bearing 🟡/⬜ caps the verdict below READY FOR MERGE]
+| # | Load-bearing claim | Asserted by | Provenance | Evidence (cmd · exit · key line) |
 ```
 
 > **Push notifications (CC 2.1.110+):** Verify runs for >5 min are common on complex changes. When the final verdict is ready, call `PushNotification` to alert the user — they likely walked away from the terminal. Requires Remote Control with "Push when Claude decides" config; fails silently for users without it.
@@ -347,6 +360,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `quality-model.md` | Scoring dimensions and weights (8 unified) |
 | `grading-rubric.md` | Per-agent scoring criteria |
 | `report-template.md` | Full report format with visual evidence section |
+| `verification-manifest.md` | VERIFIED‑vs‑CLAIMED provenance ledger: states, verdict rule, claim sources, template, anti‑patterns |
 | `alternative-comparison.md` | Approach comparison template |
 | `orchestration-mode.md` | Agent Teams vs Task Tool |
 | `policy-as-code.md` | Verification policy configuration |
@@ -407,4 +421,5 @@ TaskUpdate(taskId=commit_id, addBlockedBy=[verify_task_id])
 - `browser-tools` - Browser automation for visual capture
 
 
+**Version:** 4.5.0 (July 2026) — Added the Verification Manifest (VERIFIED vs CLAIMED) — a load-bearing-claim provenance ledger that caps the verdict below READY FOR MERGE until unverified claims are re-run or waived
 **Version:** 4.4.0 (June 2026) — Added `--streak=N` consecutive-pass gate (#2540)
