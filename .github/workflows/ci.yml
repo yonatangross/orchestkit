@@ -488,6 +488,17 @@ jobs:
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash scripts/ci/run-tests.sh tests/skills --verbose
 
+      # run-tests.sh globs only `test-*.sh`, so the .mjs structure tests below
+      # never ran in this blocking job — they lived only in the advisory,
+      # continue-on-error eval workflow. That gap let a labs pin bump (#2699)
+      # merge with skill bodies lagging their upstream-version-tested pin.
+      # Run them here so upstream drift blocks merges.
+      - name: Run skill structure tests (.mjs)
+        shell: bash
+        run: |
+          node tests/skills/structure/test-upstream-version-drift.mjs
+          node tests/skills/structure/test-agent-no-version-snapshot.mjs
+
       - name: Run subagent definition tests
         shell: bash
         run: |

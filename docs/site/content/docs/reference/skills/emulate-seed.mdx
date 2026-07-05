@@ -90,13 +90,14 @@ npx emulate --service github,stripe --seed ./emulate.config.yaml
 npx emulate init --service github
 ```
 
-## Services (0.7.0 — 13 emulators)
+## Services (0.8.0 — 14 emulators)
 
 > **New across releases:**
 > - **0.5.0** — added Clerk, MongoDB Atlas, Stripe, Resend, and Okta emulators; portless integration (embedded emulators without dedicated ports); Google OAuth `hd` claim support; Stripe Checkout + Resend magic link examples; AWS S3 emulator now matches the official SDK wire format.
 > - **0.6.0** — expanded Slack (OAuth v2 consent UI, conversations/reactions).
 > - **0.6.1** — Vercel Blob store.
 > - **0.7.0** — added Linear (13th provider): stateful orgs/teams/issues/cycles + webhooks.
+> - **0.8.0** — added Twilio (14th provider): accounts, phone numbers, messages, calls, conversations, messaging services, Verify flows, and simulator endpoints, with a Next.js SMS-verification example.
 >
 > All backwards-compatible.
 
@@ -115,6 +116,7 @@ npx emulate init --service github
 | **Stripe** *(0.4+)* | `:4010` | Customers, payment methods, customer sessions, payment intents, charges, products, prices, **hosted checkout session** w/ webhook delivery |
 | **Clerk** *(0.5+)* | (on-demand) | Users, sessions, organizations |
 | **Linear** *(0.7+)* | (on-demand) | Orgs, teams, issues, cycles, webhooks |
+| **Twilio** *(0.8+)* | (on-demand) | Accounts, phone numbers, messages, calls, conversations, messaging services, Verify flows, simulator endpoints |
 
 See `references/api-coverage.md` for full endpoint lists.
 

@@ -53,7 +53,13 @@ agent-browser open "https://myapp.localhost"
 agent-browser open "http://localhost:3000"  # which app is this?
 ```
 
-## New in 2026-04 → 2026-06 (agent-browser 0.23 → 0.29.1)
+## New in 2026-04 → 2026-07 (agent-browser 0.23 → 0.31.1)
+
+**Session restore + read (0.30 → 0.31.1):**
+- **`agent-browser read [url]` (0.30.0)** — agent-readable text extraction as a CLI command and MCP tool. URL reads prefer Markdown (try `.md` and nearby `llms.txt`), support outlines, filters, raw and JSON output, headers, and domain/output safeguards; omit the URL to read the rendered active-tab DOM with current browser state.
+- **Restore workflow (0.31.0)** — `--restore` / `--restore-save`, restore-validation flags, worktree-scoped `session id` / `session info`, and `--namespace` give agent runs stable, isolated, auto-restored browser state without hand-managing state files. Session lifecycle hardened with daemon/browser compatibility checks and safer auto-save that won't overwrite good state after a failed restore.
+- **`wait --url` glob patterns (0.30.1)** — `wait --url` / `waitforurl` honor globs like `**/dashboard` against the full active URL.
+- **React renderer fix (0.31.1)** — the `react` commands now pick the react-dom renderer instead of hardcoding renderer id 1, fixing an empty tree read on Next.js 16.3 Turbopack.
 
 **Sandbox helpers (0.29):**
 - **`@agent-browser/sandbox`** — companion helper package for running agent-browser headless inside a Vercel Sandbox / eve ephemeral env (provisions Chrome + the native daemon for you, no host browser needed). Hook's URL/rate/robots checks still apply to whatever the sandboxed session navigates to.

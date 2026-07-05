@@ -1,7 +1,7 @@
 ---
 name: portless
 compatibility: "Claude Code 2.1.183+"
-description: "Named HTTPS .localhost URLs for local development with portless (v0.14.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration."
+description: "Named HTTPS .localhost URLs for local development with portless (v0.15.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration."
 tags:
   - dev-server
   - localhost
@@ -27,8 +27,10 @@ Named `.localhost` URLs for local development. Replaces `localhost:3000` with `h
 
 > **Full CLI reference**: Load `Read("${CLAUDE_SKILL_DIR}/references/upstream.md")` for complete command docs.
 
-## New in 2026-04 → 2026-06 (portless 0.10.x → 0.14.0)
+## New in 2026-04 → 2026-07 (portless 0.10.x → 0.15.0)
 
+- **`portless doctor` (0.15.0)** — read-only diagnostics that check Node.js, the state directory, proxy liveness, route entries, hostname resolution, HTTPS CA trust, and LAN prerequisites, then print suggested fixes. Run it before filing an issue or when a `.localhost` URL won't resolve.
+- **HTTP/2 Host forwarding fix (0.15.0)** — the proxy now forwards the HTTP/2 `:authority` as `Host` to HTTP/1.1 backends, fixing apps that read `Host` and previously saw `127.0.0.1` for browser traffic. `--force` takeover cleanup now removes only routes still owned by the exiting process, so a forced takeover no longer deregisters the new owner's route.
 - **`--ngrok` flag (0.14.0)** — share an app publicly via ngrok while local access keeps its `.localhost` URL. Pair with the existing Tailscale/Funnel options when you need a public URL without giving up the named-subdomain dev experience.
 - **Node.js 24+ required (0.13.1, BREAKING)** — the proxy and CLI now require Node.js 24 or newer; older runtimes are unsupported. This release also hardens startup-service persistence so `.localhost` URLs survive reboot reliably.
 - **State directory moved to `~/.portless` (0.11, BREAKING)** — state relocated from scattered/temp locations to `~/.portless`; override with `PORTLESS_STATE_DIR`. Old state from pre-0.11 installs is not migrated automatically.

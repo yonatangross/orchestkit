@@ -903,7 +903,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "browser-tools",
     "description": "OrchestKit security wrapper for browser automation. Adds URL blocklisting, rate limiting, robots.txt enforcement, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows that need safety guardrails.",
     "version": "5.0.0",
-    "sha256": "8d6bc4dd19394a6c63f1ff0657609335ff901a47cfd9e14eaef6dc02df34839f",
+    "sha256": "20d9a094fcab36ded4305bf566b0431e2d004197eaefbfdcbe6e2bb93a5c2200",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -2184,7 +2184,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "emulate-seed",
     "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list, send-an-email-and-retrieve-from-local-inbox. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
     "version": "1.3.0",
-    "sha256": "59111595b15aec2c4fd1535b06983106912fa7fdc8c30011087ea7bd9be8acde",
+    "sha256": "74b63912808e2ef65b2b0701b38fa18fcbcf087d32acd613023eb97cfb9e1668",
     "author": "OrchestKit",
     "tags": [
       "emulate",
@@ -2264,7 +2264,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser (Rust daemon + CDP, ARIA-tree-first). Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience.",
     "version": "1.1.0",
-    "sha256": "a908b44a6ae1252dd41d4e628caefe3afd17eb51e1619cad3e261f97fb93b833",
+    "sha256": "3cb0f23e8e0e54580319fe036d7da7d0c522feed751eeace6c86bf5e7236ea17",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2485,8 +2485,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "fix-issue": {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
-    "version": "2.5.0",
-    "sha256": "bde9a155e030a300ce40b4a4e85e403dc3cad8989c2b7a77202d7a835de8454a",
+    "version": "2.6.0",
+    "sha256": "5592b80095df57eab0b40779bc63c7b1748dc2810934c640a288c51728b4d702",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2532,6 +2532,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "agent-selection.md",
         "agent-teams-rca.md",
         "cc-enhancements.md",
+        "fix-blast-radius.md",
         "fix-phases.md",
         "hypothesis-rca.md",
         "prevention-patterns.md",
@@ -2751,8 +2752,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "implement": {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when implementing features, building new capabilities, or creating full-stack functionality.",
-    "version": "2.7.0",
-    "sha256": "90ba63f32165d75b259536d284b48d4cb641614ec7c18f65b17df0103efc4aed",
+    "version": "2.8.0",
+    "sha256": "7381ab3bec8e48f994ff22a297f91048b3e6fbb8c7131f85f7e68a79a7631b29",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -2804,6 +2805,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "agent-teams-full-stack.md",
         "agent-teams-phases.md",
         "agent-teams-security-audit.md",
+        "blast-radius-clarification.md",
         "cc-enhancements.md",
         "e2e-verification.md",
         "feedback-loop.md",
@@ -3665,9 +3667,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "portless": {
     "name": "portless",
-    "description": "Named HTTPS .localhost URLs for local development with portless (v0.14.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration.",
+    "description": "Named HTTPS .localhost URLs for local development with portless (v0.15.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration.",
     "version": "1.2.0",
-    "sha256": "179a28bacad31484c97a502a588f1b7f1751fb0bf129d5edd14649c967a6f735",
+    "sha256": "1e5a016ded55640f847ade010bc5869693d52d9799638b06b838c7b0833978fe",
     "author": "OrchestKit",
     "tags": [
       "dev-server",
@@ -5409,8 +5411,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "verify": {
     "name": "verify",
     "description": "Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security scanning, and type checking. Runs coverage analysis, detects regressions, and validates against project conventions. Reports pass/fail with detailed findings and coverage deltas. Use when verifying implementations, validating changes after /ork:implement, or running pre-merge quality gates.",
-    "version": "4.4.0",
-    "sha256": "5207bb39b4e9db2ca3951986071f1768aff25ed811ea8d9e0cd76f33f00a95ea",
+    "version": "4.5.0",
+    "sha256": "6ea5c4cd708ca6c07017acec9bc37f3a60207da20dd06fdf06a41c93d1317d76",
     "author": "OrchestKit",
     "tags": [
       "verification",
@@ -5470,6 +5472,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "report-template.md",
         "streak-gate.md",
         "verification-checklist.md",
+        "verification-manifest.md",
         "verification-phases.md",
         "visual-capture.md"
       ],
