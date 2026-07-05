@@ -79,6 +79,10 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 - **`optimize` has no dedicated skill (yet).** OrchestKit's metric-driven optimization runs as a **`/goal` loop** using the loop recipe library (`/ork:prd-to-goal` → `references/recipe-library.md`). Route `optimize` there and say so plainly — don't pretend a `/ork:experiment` skill exists.
 - **`improve-skill` routes to the evolution gate.** Self-optimizing a `SKILL.md` goes through the champion/challenger **holdout-promotion gate** (`/ork:assess` evals + `evolution-engine`), not a one-shot edit. It requires a benchmark + holdout set first.
 
+## Stacked invocation (CC 2.1.199+)
+
+`/skill-a /skill-b <goal>` loads all leading skills (up to 5) into context at once; the trailing args belong to the whole stack. So `/ork:auto /ork:brainstorm <goal>` pre-loads the specialist alongside the router — useful when the user already knows part of the route. The router still owns classification and handoff; a pre-loaded specialist does not bypass the confirm step.
+
 ## Guardrails
 
 - **No recursion.** `/ork:auto` must not route to itself, directly or via a spawned agent.

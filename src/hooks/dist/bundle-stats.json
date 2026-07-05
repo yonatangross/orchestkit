@@ -37,8 +37,8 @@
       "exports": 82
     },
     "notification": {
-      "size": 10752,
-      "sizeKB": "10.50",
+      "size": 11164,
+      "sizeKB": "10.90",
       "exports": 4
     },
     "setup": {
@@ -57,14 +57,14 @@
       "exports": 66
     },
     "hooks": {
-      "size": 394286,
-      "sizeKB": "385.04",
+      "size": 394698,
+      "sizeKB": "385.45",
       "exports": 164,
       "unified": true
     }
   },
-  "totalSize": 777531,
-  "totalSizeKB": "759.31",
+  "totalSize": 777943,
+  "totalSizeKB": "759.71",
   "inputs": 112,
-  "avgBundleSizeKB": "69.03"
+  "avgBundleSizeKB": "69.06"
 }
