@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.183+. Requires memory MCP server, context7 MCP s
 description: "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues."
 argument-hint: "[issue-number]"
 context: fork
-version: 2.5.0
+version: 2.6.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging, rca, prevention]
 user-invocable: true
@@ -361,6 +361,10 @@ if capabilities.memory:
 - **Prevention required** -- at least one of: automated test, validation rule, or process check
 - Make minimal, focused changes; DO NOT over-engineer
 
+### Clarify the Fix's Blast-Radius (Phase 4 → 5 gate)
+
+Once RCA confirms the cause and BEFORE Phase 5 (Fix Design), run two checks: (1) **root cause vs symptom** — is this the real fix, or a `# type: ignore` / retag / downgrade patch of a symptom? (2) the fix's **blast-radius** via ordered `AskUserQuestion` (schema/migration → auth → public contract/breaking → backfill/scale; skip cosmetic, cap ~4). Each answer becomes a row in `.claude/chain/decisions.json` and the PR body, feeding Phase 5 and the regression test. Skip for **Hotfix** / `low` effort. Full protocol: `Read("${CLAUDE_SKILL_DIR}/references/fix-blast-radius.md")`.
+
 ## CC 2.1.49 Enhancements
 
 > Load `Read("${CLAUDE_SKILL_DIR}/references/cc-enhancements.md")` for session resume, task metrics, tool guidance, worktree isolation, and adaptive thinking.
@@ -458,7 +462,9 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `agent-teams-rca.md` | Agent Teams RCA workflow |
 | `prevention-patterns.md` | Recurrence prevention patterns |
 | `cc-enhancements.md` | CC 2.1.49 session resume, task metrics, adaptive thinking |
+| `fix-blast-radius.md` | Phase 4→5 gate: root-cause-vs-symptom + ordered blast-radius clarification, decisions table |
 
 ---
 
+**Version:** 2.6.0 (July 2026) — Added Phase 4→5 blast-radius clarification gate (root-cause-vs-symptom check + ordered fix-scope AskUserQuestion → decisions table), companion to the /ork:implement Step 0b interview
 **Version:** 2.4.0 (March 2026) — Rich elicitation with options for fix approach, progressive output for incremental phase results
