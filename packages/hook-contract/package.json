@@ -58,8 +58,8 @@
     "node": ">=20.0.0"
   },
   "devDependencies": {
-    "@types/node": "^26.0.1",
-    "js-yaml": "^5.2.0",
+    "@types/node": "^26.1.0",
+    "js-yaml": "^5.2.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"
   },
