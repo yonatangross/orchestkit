@@ -1,10 +1,1 @@
-[
-  {
-    "version": "2.1.197",
-    "features": [],
-    "raw_bullets_count": 1,
-    "parse_failed": false,
-    "issues_filed_at": "2026-07-05T05:50:00.000Z",
-    "manual_resolution": "Cleared by the 2.1.198-201 adoption audit (docs/audits/cc-adoption-2.1.198-201-triage-2026-07-05.md): 2.1.197 is the single-bullet Sonnet 5 GA release, adopted 2026-06-30 in models.vocab.json per cc-support.json manual_override note. cc-triage repeatedly parse_failed on it (single-bullet body), causing every subsequent manual-triage issue (#2729, #2742, #2748) to re-list it. parse_failed=false + issues_filed_at set so the next watch run prunes this entry."
-  }
-]
+[]
