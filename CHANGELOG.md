@@ -5,6 +5,22 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.65.2](https://github.com/yonatangross/orchestkit/compare/v8.65.1...v8.65.2) (2026-07-06)
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.201) ([#2771](https://github.com/yonatangross/orchestkit/issues/2771)) ([95e468e](https://github.com/yonatangross/orchestkit/commit/95e468ef9165bde7a022b607fee2ef1b75c5e83e))
+* **deps-dev:** bump the npm-minor-patch group across 1 directory with 3 updates ([#2774](https://github.com/yonatangross/orchestkit/issues/2774)) ([0b9b330](https://github.com/yonatangross/orchestkit/commit/0b9b3307b303af02485c046a2c16a1aa111bab2e))
+* **deps-dev:** bump tsx ([#2766](https://github.com/yonatangross/orchestkit/issues/2766)) ([ee8f29e](https://github.com/yonatangross/orchestkit/commit/ee8f29e9113d98dfa10f908b2d45ebc07c5c5ba7))
+* **deps:** bump dotenv from 16.6.1 to 17.4.2 in /orchestkit-demos ([#2767](https://github.com/yonatangross/orchestkit/issues/2767)) ([32d5355](https://github.com/yonatangross/orchestkit/commit/32d535527f9aa3573cdd6b1f5f3c6b3fca7b586d))
+* **labs:** bump upstream-version-tested pins for drifted skills ([#2772](https://github.com/yonatangross/orchestkit/issues/2772)) ([2cdf179](https://github.com/yonatangross/orchestkit/commit/2cdf1794aa751b2e02d8072e371eee66d5acaf0a))
+
+
+### CI/CD
+
+* bump the github-actions group with 5 updates ([#2770](https://github.com/yonatangross/orchestkit/issues/2770)) ([1324ad6](https://github.com/yonatangross/orchestkit/commit/1324ad67f8af9b1da4c3e1e6c9cd91b16bf89102))
+
 ## [8.65.1](https://github.com/yonatangross/orchestkit/compare/v8.65.0...v8.65.1) (2026-07-06)
 
 
