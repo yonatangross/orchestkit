@@ -135,9 +135,18 @@ console.log(JSON.stringify({ status: res.status, ...data }, null, 2));
 output(`review_url=${data.review_url || ""}`);
 output(`draft_count=${draftCount}`);
 output(`skipped=${data.skipped === true}`);
+output(`queued=${data.queued === true}`);
 
 if (data.skipped) {
   summary(`### 📣 Release announce\nAlready drafted for ${REPO} ${RELEASE_VERSION} — skipped (idempotent).`);
+} else if (data.queued) {
+  // The platform now generates drafts in a background task and returns 202
+  // (async since it 524'd inline behind Cloudflare). Drafts land in the review
+  // queue shortly; draft_ids aren't known synchronously.
+  summary(
+    `### 📣 Release announce\nQueued drafting for ${REPO} ${RELEASE_VERSION} — posts will appear in the review queue shortly.\n` +
+      (data.review_url ? `\n👉 Review + approve: ${data.review_url}` : ""),
+  );
 } else {
   summary(
     `### 📣 Release announce\nDrafted **${draftCount}** post(s) for ${REPO} ${RELEASE_VERSION}.\n` +
