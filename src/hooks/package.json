@@ -28,8 +28,8 @@
     "node": ">=22.5.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.1",
-    "@types/node": "^26.0.1",
+    "@biomejs/biome": "^2.5.2",
+    "@types/node": "^26.1.0",
     "@vitest/coverage-v8": "^4.1.9",
     "esbuild": "^0.28.0",
     "fast-check": "^4.8.0",
