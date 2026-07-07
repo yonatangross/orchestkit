@@ -2184,7 +2184,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "emulate-seed",
     "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list, send-an-email-and-retrieve-from-local-inbox. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
     "version": "1.3.0",
-    "sha256": "74b63912808e2ef65b2b0701b38fa18fcbcf087d32acd613023eb97cfb9e1668",
+    "sha256": "b13644a8ce37ce9350a2a0365ababe940c9671a4f6d0f72152fda45f733ee97a",
     "author": "OrchestKit",
     "tags": [
       "emulate",
@@ -3669,7 +3669,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "portless",
     "description": "Named HTTPS .localhost URLs for local development with portless (v0.15.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration.",
     "version": "1.2.0",
-    "sha256": "1e5a016ded55640f847ade010bc5869693d52d9799638b06b838c7b0833978fe",
+    "sha256": "f586968fec8071f2849b27b5b48cf3744130a3490b92d899452296c4c6199243",
     "author": "OrchestKit",
     "tags": [
       "dev-server",
@@ -4419,7 +4419,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "de246f57ce98681e8ce425b01f83e630fedea18c5058694b6f7eaf80b786e02f",
+    "sha256": "46a9646156b08afc6832ecdca71ca7f6dbcfa3be01c63f2d877ab2c7fd5ff2b3",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4779,7 +4779,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "swarm-migrate",
     "description": "Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work — that's /ork:implement.",
     "version": "0.1.0",
-    "sha256": "afc9618b4c88f911dfc58718e652ffb8bea4b19539392abc5e47105c54dc6ec9",
+    "sha256": "44ac3d7be58d44e52bc43b3d1418cfc594a473be04ce3afbf48ea7e183dc2cf7",
     "author": "OrchestKit",
     "tags": [
       "migration",
@@ -4895,7 +4895,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "telemetry-inspect",
     "description": "Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. Use when verifying the observability pipeline is healthy, debugging a missing writer, or auditing which files have schema locks vs. which are drift-vulnerable. Read-only — never modifies telemetry files.",
     "version": "1.0.0",
-    "sha256": "153930509a58589ca04c18d52d6e02dea6ec1e542b1ab43abf3a6437e38e8177",
+    "sha256": "c5deb9d2138762d79a255834847a0e97e509bd292b7cfb8a8d7b19b8a3000e16",
     "author": "OrchestKit",
     "tags": [
       "telemetry",

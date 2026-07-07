@@ -1013,7 +1013,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/portless",
     "title": "Portless",
-    "description": "Named HTTPS .localhost URLs for local development with portless (v0.14.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration."
+    "description": "Named HTTPS .localhost URLs for local development with portless (v0.15.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration."
   },
   {
     "url": "/docs/reference/skills/prd-to-goal",

@@ -415,6 +415,8 @@ skill is no longer marked `experimental:` in its frontmatter.
 | AskUserQuestion no auto-continue | 2.1.200 | AUQ dialogs no longer auto-continue by default; an idle timeout is opt-in via `/config`. ork uses AUQ as blocking intent gates and never relied on auto-continue (noted in `configure`) | Dialogs auto-continued after idle |
 | worktree plugin loading fix | 2.1.200 | Project-scoped plugins now load correctly from git worktrees of the same repository — unblocks worktree-based plugin dev loops. Also fixes `claude agents --plugin-dir` flag placement | Plugins missing when working from a worktree |
 | Sonnet 5 harness-reminder delivery | 2.1.201 | Sonnet 5 sessions stop using the mid-conversation system role for harness reminders. CC-internal; hook `additionalContext` delivery unchanged, no ork surface | — |
+| Resume speed in many-worktree repos | 2.1.202 | Resuming a session by name or opening the resume picker no longer takes minutes / high memory in repos with many git worktrees — directly relevant to ork's worktree-heavy model (agents `isolation: worktree`, `/ork:implement`, `/ork:dev` branch-named worktrees, `hq-ext:start-issue`) | Multi-minute, high-memory session resume in worktree-heavy repos |
+| MCP config `url` without `type` | 2.1.202 | A remote MCP server entry in `.mcp.json` with a `url` but no `type` now errors with a suggestion to add `"type": "http"`. Doctor MCP diagnostics should echo this: a url-only entry is a **missing `type` field**, not a malformed command — tell the user to add `"type": "http"` (or `"sse"` for SSE transport) | Pre-2.1.202 the same misconfig surfaced as the cryptic `command: expected string`, misdirecting users toward `command`/`args` |
 
 ## Prompt Caching Recommendation
 

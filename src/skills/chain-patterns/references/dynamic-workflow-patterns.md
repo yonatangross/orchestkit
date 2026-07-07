@@ -49,6 +49,8 @@ is visible) and re-run with `Workflow({scriptPath})`. Two more parse traps: `met
 pure literal (no vars/calls/spreads), and `Date.now()` / `Math.random()` / argless `new Date()`
 throw at runtime — pass timestamps in via `args`.
 
+> **Fixed in CC 2.1.202.** Two long-standing traps here got fixed: (1) workflow scripts with unicode quote escapes (smart/curly quotes) are no longer corrupted *before* parsing, so a smart quote pasted into a prompt string no longer detonates the parse silently; and (2) parse errors now point at the offending line instead of always blaming TypeScript. Practically: the `(line:col)` is now trustworthy — read that exact line — and a genuine "TypeScript" mention in the error is now a real signal (trap #3 above), not the default scapegoat.
+
 ## The 6 patterns → ork map
 
 > These six are **ork's own taxonomy** for naming multi-agent shapes — not a Claude Code

@@ -17,6 +17,74 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.65.2",
+    "date": "2026-07-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.201) ([#2771](https://github.com/yonatangross/orchestkit/issues/2771)) ([95e468e](https://github.com/yonatangross/orchestkit/commit/95e468ef9165bde7a022b607fee2ef1b75c5e83e))",
+          "**deps-dev:** bump the npm-minor-patch group across 1 directory with 3 updates ([#2774](https://github.com/yonatangross/orchestkit/issues/2774)) ([0b9b330](https://github.com/yonatangross/orchestkit/commit/0b9b3307b303af02485c046a2c16a1aa111bab2e))",
+          "**deps-dev:** bump tsx ([#2766](https://github.com/yonatangross/orchestkit/issues/2766)) ([ee8f29e](https://github.com/yonatangross/orchestkit/commit/ee8f29e9113d98dfa10f908b2d45ebc07c5c5ba7))",
+          "**deps:** bump dotenv from 16.6.1 to 17.4.2 in /orchestkit-demos ([#2767](https://github.com/yonatangross/orchestkit/issues/2767)) ([32d5355](https://github.com/yonatangross/orchestkit/commit/32d535527f9aa3573cdd6b1f5f3c6b3fca7b586d))",
+          "**labs:** bump upstream-version-tested pins for drifted skills ([#2772](https://github.com/yonatangross/orchestkit/issues/2772)) ([2cdf179](https://github.com/yonatangross/orchestkit/commit/2cdf1794aa751b2e02d8072e371eee66d5acaf0a))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "bump the github-actions group with 5 updates ([#2770](https://github.com/yonatangross/orchestkit/issues/2770)) ([1324ad6](https://github.com/yonatangross/orchestkit/commit/1324ad67f8af9b1da4c3e1e6c9cd91b16bf89102))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.65.1",
+    "date": "2026-07-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**deps-dev:** bump @types/node ([#2764](https://github.com/yonatangross/orchestkit/issues/2764)) ([ebc4505](https://github.com/yonatangross/orchestkit/commit/ebc45053f033fe123c7ef58f6cdf99224d3c66a9))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.65.0",
+    "date": "2026-07-05",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**cc-adoption:** adopt CC 2.1.198-2.1.201 ([#2756](https://github.com/yonatangross/orchestkit/issues/2756)) ([6416db9](https://github.com/yonatangross/orchestkit/commit/6416db9a1581e99b225ae38a494d8c86cb7d1f1f))",
+          "**fix-issue:** add Phase 4-5 blast-radius clarification gate ([#2758](https://github.com/yonatangross/orchestkit/issues/2758)) ([2347e64](https://github.com/yonatangross/orchestkit/commit/2347e64b5d47ac4b709f0cdb42612d6cc46cf7a6))",
+          "**implement:** add Step 0b blast-radius clarification interview ([#2754](https://github.com/yonatangross/orchestkit/issues/2754)) ([5227e4f](https://github.com/yonatangross/orchestkit/commit/5227e4f717d26f6463c255ba342e7fdf09eba72d))",
+          "**verify:** add Verification Manifest (VERIFIED vs CLAIMED) gate ([#2753](https://github.com/yonatangross/orchestkit/issues/2753)) ([70ad7f5](https://github.com/yonatangross/orchestkit/commit/70ad7f5cce2d26aeafe5741d8cd216e2df386e28))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**cc-triage:** graduate thin product announcements token-free ([#2760](https://github.com/yonatangross/orchestkit/issues/2760)) ([0bd5c1d](https://github.com/yonatangross/orchestkit/commit/0bd5c1d0cf6ea124a7ac72f297f11a78de7036a3))",
+          "**skills:** heal labs skill version drift + close CI gap ([#2759](https://github.com/yonatangross/orchestkit/issues/2759)) ([541d5cc](https://github.com/yonatangross/orchestkit/commit/541d5cc98a2aa8f03fe3a01d46271c68473ed428))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.199) ([#2743](https://github.com/yonatangross/orchestkit/issues/2743)) ([9adf6dc](https://github.com/yonatangross/orchestkit/commit/9adf6dcb5b2075489e2b720a630940fafa359873))",
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.201) ([#2750](https://github.com/yonatangross/orchestkit/issues/2750)) ([d2677cc](https://github.com/yonatangross/orchestkit/commit/d2677cc1c5803fc3c01a325a93daa9b65c8a792a))",
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.201) ([#2752](https://github.com/yonatangross/orchestkit/issues/2752)) ([3eadc90](https://github.com/yonatangross/orchestkit/commit/3eadc9061a8db33a45f2ae578b8faa522b800d44))",
+          "gitignore session-state artifacts ([#2762](https://github.com/yonatangross/orchestkit/issues/2762)) ([5e155f1](https://github.com/yonatangross/orchestkit/commit/5e155f1e08d2c64983c58e60871335722db10241))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.64.1",
     "date": "2026-07-02",
     "compareUrl": "",
