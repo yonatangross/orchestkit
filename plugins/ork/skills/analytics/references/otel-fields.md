@@ -34,6 +34,15 @@ OpenTelemetry attributes shipped in CC 2.1.117 (3 fields), CC 2.1.119 (3 more), 
 |---|---|---|---|
 | `invocation_trigger` | `claude_code.skill_activated` | `user-slash` \| `claude-proactive` \| `nested-skill` | Disambiguates how a skill was activated: user typed `/ork:foo`, model auto-invoked it via Skill tool, or another skill chained into it. Critical for measuring "is the model finding our skills" vs "are users using them". The event now also fires for user-typed slash commands (it previously fired only for proactive activations). |
 
+### From 2.1.202 (workflow-run correlation)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| `workflow.run_id` | any event emitted by a workflow-spawned agent | string (per-run id) | Correlates every span/log a single `/workflows` run produced. Lets a whole dynamic-workflow run's activity be reconstructed from OTel data — group all agent events by `workflow.run_id` to see the fan-out of one run. |
+| `workflow.name` | any event emitted by a workflow-spawned agent | string (workflow name) | Which named workflow the emitting agent belonged to. Slices cost/latency/skill-activation panels **by workflow**, not just by session or command. |
+
+Both attributes are attached only to telemetry from **workflow-spawned** agents (a `/workflows` run); ordinary session events lack them, so every `group_by(.["workflow.run_id"])` query must `select(... != null)` first. Emitted in CC 2.1.202. **HQ note:** these two attributes are the last unwired input for the Langfuse OTEL trigger bridge (Yonatan-HQ/platform#6631) — with `workflow.run_id`/`workflow.name` on the wire, HQ can reconstruct a run trace end-to-end. Tracked there as an HQ observability track; nothing to build in ork beyond documenting the fields for `/ork:analytics` consumers.
+
 Exports land in `~/.claude/otel/` (when OTEL export is enabled in `settings.json`) and in the same JSONL streams this skill already reads if OTEL-to-JSONL bridging is on.
 
 ## Data location

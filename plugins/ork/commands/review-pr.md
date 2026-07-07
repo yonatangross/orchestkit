@@ -78,7 +78,7 @@ The CLI runs the same multi-agent review (`code-quality`, `security-auditor`, `t
 
 This keeps the skill thin: built-in CLI wins for "ultra" depth; the OrchestKit skill wins for `--render`-style customization, focused review modes (security-only, perf-only), and offline scenarios.
 
-> **vs built-in `/code-review --comment` (CC 2.1.147):** CC renamed `/simplify` → `/code-review` — a single-pass correctness-bug review whose `--comment` posts inline PR comments, overlapping this skill. They are **not** redundant: use built-in `/code-review` for a fast single-pass bug sweep; use `/ork:review-pr` for the deep multi-dimensional audit (6-7 parallel specialized agents — security, tests, architecture, performance — memory-KG context, domain-aware selection, synthesized approve/comment/request-changes verdict). Quick pass → built-in; high-stakes audit → ork. (#1940)
+> **vs built-in `/review` and `/code-review` (CC 2.1.202):** the built-in `/review` is a **fast single-pass** correctness-bug review of a PR; the **multi-agent** review is now `/code-review <level> <pr#>` (CC's own parallel-agent pass at higher levels, with `--comment` to post findings as inline PR comments). Neither is redundant with this skill: reach for built-in `/review` for a quick single-pass bug sweep, or `/code-review <level> <pr#>` for CC's built-in multi-agent pass; use `/ork:review-pr` for the deep multi-dimensional audit (6-7 parallel specialized agents — security, tests, architecture, performance — memory-KG context, domain-aware selection, adversarial refutation, synthesized approve/comment/request-changes verdict + KG writeback). Quick pass → built-in `/review`; high-stakes project-aware audit → ork. (#1940)
 
 
 ## STEP 0b: Select Orchestration Mode
@@ -415,11 +415,11 @@ For complex PRs (> 500 lines, 3+ domains), use mesh topology so reviewers can ch
 - `ork:create-pr`: Create PRs for review
 - `slack-integration`: Team notifications for review events
 
-### vs. the built-in `/code-review` (CC 2.1.146+)
+### vs. the built-in `/review` and `/code-review` (CC 2.1.202+)
 
-CC bundles `/code-review` (renamed from `/simplify`): a **single-pass** correctness-bug check at a chosen effort level, with `--comment` to post findings as inline PR comments. Use it for a fast, focused "are there bugs in this diff?" pass.
+CC 2.1.202 reverted `/review` to a **fast single-pass** review — a quick "are there bugs in this diff?" gate. The built-in **multi-agent** review now lives at `/code-review <level> <pr#>`. Use `/review` for a fast single-pass review, or `/code-review <level> <pr#>` when you want CC's own multi-agent sweep at a chosen effort level.
 
-Reach for `/ork:review-pr` instead when you want the **full multi-agent review** — parallel code-quality, security, testing, architecture, and performance passes synthesized into conventional comments with an approve / request-changes verdict. They are complementary, not redundant: `/code-review` is the quick correctness gate; `/ork:review-pr` is the thorough pre-merge audit.
+Reach for `/ork:review-pr` instead when you want the **full OrchestKit audit** — parallel code-quality, security, testing, architecture, and performance passes with memory-KG project context, domain-aware agent selection, adversarial refutation, and a synthesized approve / request-changes verdict written back to the knowledge graph. They are complementary: built-in `/review` is the quick correctness gate, built-in `/code-review <level> <pr#>` is CC's multi-agent pass, and `/ork:review-pr` is the thorough project-aware pre-merge audit.
 
 ## References
 

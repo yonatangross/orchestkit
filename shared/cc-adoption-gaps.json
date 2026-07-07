@@ -1,9 +1,11 @@
 [
   {
     "version": "2.1.202",
-    "parse_failed": true,
+    "parse_failed": false,
     "features": [],
     "raw_bullets_count": 18,
-    "failed_at": "2026-07-07T04:22:07.244Z"
+    "failed_at": "2026-07-07T04:22:07.244Z",
+    "issues_filed_at": "2026-07-07T00:00:00.000Z",
+    "manual_resolution": "Triaged manually in docs/audits/cc-adoption-2.1.202-triage-2026-07-07.md (the automated cc-triage parse_failed on this 18-bullet release). 6 doc adoptions shipped: workflow.run_id/name OTEL attrs (b2), Dynamic workflow size /config setting (b1), workflow unicode-quote parse fix (b10), worktree-resume speed (b13, critic catch), MCP url-without-type error message (b17), /review single-pass vs /code-review positioning (b18). Remaining 12 bullets CC-internal no-ops (skill re-invoke dedup b15 had no stale ork surface to relax). latest_known advanced 2.1.201 -> 2.1.202 via scripts/stamp-cc-support.mjs."
   }
 ]
