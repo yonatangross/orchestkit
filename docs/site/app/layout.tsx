@@ -6,8 +6,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import { AgentationWrapper } from "@/components/agentation-wrapper";
+import { ClientErrorReporter } from "@/components/client-error-reporter";
 import CustomSearchDialog from "@/components/search-dialog";
 import { WebMcpProvider } from "@/components/webmcp-provider";
+import { WebVitalsReporter } from "@/components/web-vitals-reporter";
 import { BANNER_TEXT, COUNTS, SITE } from "@/lib/constants";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
@@ -58,6 +60,8 @@ export default function Layout({ children }: { children: ReactNode }) {
 					<div id="main-content">{children}</div>
 				</RootProvider>
 				<HQAnalytics projectId="orchestkit" />
+				<WebVitalsReporter />
+				<ClientErrorReporter />
 				<AgentationWrapper />
 				<WebMcpProvider />
 			</body>
