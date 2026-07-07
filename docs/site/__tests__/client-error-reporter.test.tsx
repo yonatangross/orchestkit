@@ -78,6 +78,62 @@ describe("client-error-reporter", () => {
 		expect(fetchMock.mock.calls.length).toBeGreaterThan(0);
 	});
 
+	it("sends exactly 25 distinct errors then drops the 26th (per-session cap)", async () => {
+		const { reportClientError } = await load();
+		for (let i = 0; i < 25; i++) reportClientError(new Error(`distinct-${i}`));
+		expect(fetchMock).toHaveBeenCalledTimes(25);
+
+		// The 26th distinct error must be dropped — no 26th send.
+		reportClientError(new Error("distinct-25"));
+		expect(fetchMock).toHaveBeenCalledTimes(25);
+
+		// Further distinct errors stay dropped for the rest of the session.
+		reportClientError(new Error("distinct-26"));
+		expect(fetchMock).toHaveBeenCalledTimes(25);
+	});
+
+	it("uses sendBeacon instead of fetch when navigator.sendBeacon is available", async () => {
+		const sendBeacon = vi.fn().mockReturnValue(true);
+		Object.defineProperty(navigator, "sendBeacon", {
+			value: sendBeacon,
+			configurable: true,
+		});
+		const { reportClientError } = await load();
+		reportClientError(new Error("beacon-path"));
+
+		expect(sendBeacon).toHaveBeenCalledTimes(1);
+		expect(fetchMock).not.toHaveBeenCalled();
+		const [endpoint, blob] = sendBeacon.mock.calls[0] as [string, Blob];
+		expect(endpoint).toBe("/api/analytics");
+		expect(blob).toBeInstanceOf(Blob);
+		expect(blob.type).toBe("application/json");
+	});
+
+	it("falls back to keepalive fetch when navigator.sendBeacon is absent", async () => {
+		Object.defineProperty(navigator, "sendBeacon", { value: undefined, configurable: true });
+		const { reportClientError } = await load();
+		reportClientError(new Error("fetch-fallback-path"));
+
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+		const [endpoint, init] = fetchMock.mock.calls[0] as [
+			string,
+			RequestInit & { keepalive?: boolean },
+		];
+		expect(endpoint).toBe("/api/analytics");
+		expect(init.method).toBe("POST");
+		expect(init.keepalive).toBe(true);
+	});
+
+	it("emits a payload shaped with project_id 'orchestkit' and event name <= 50 chars", async () => {
+		const { reportClientError } = await load();
+		reportClientError(new Error("shape-check"));
+
+		const body = lastBody(fetchMock);
+		expect(body.project_id).toBe("orchestkit");
+		expect(body.events[0].name).toBe("error");
+		expect(body.events[0].name.length).toBeLessThanOrEqual(50);
+	});
+
 	it("ClientErrorReporter beacons uncaught window error events", async () => {
 		const { ClientErrorReporter } = await load();
 		render(<ClientErrorReporter />);

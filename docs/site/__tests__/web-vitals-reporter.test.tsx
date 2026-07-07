@@ -174,4 +174,66 @@ describe("WebVitalsReporter", () => {
 		expect(init.method).toBe("POST");
 		expect(init.keepalive).toBe(true);
 	});
+
+	describe("10% per-session sampling gate", () => {
+		it("samples in when Math.random() rolls just below the 0.1 threshold", () => {
+			vi.spyOn(Math, "random").mockReturnValue(0.099999);
+			render(<WebVitalsReporter />);
+			expect(window.sessionStorage.getItem("hq-cwv-sampled")).toBe("1");
+
+			emit(LCP);
+			fireVisibilityHidden();
+			expect(sendBeacon).toHaveBeenCalledTimes(1);
+		});
+
+		it("samples out when Math.random() rolls exactly at the 0.1 threshold", () => {
+			vi.spyOn(Math, "random").mockReturnValue(0.1);
+			render(<WebVitalsReporter />);
+			expect(window.sessionStorage.getItem("hq-cwv-sampled")).toBe("0");
+
+			emit(LCP);
+			fireVisibilityHidden();
+			expect(sendBeacon).not.toHaveBeenCalled();
+		});
+
+		it("samples out when Math.random() rolls above the 0.1 threshold", () => {
+			vi.spyOn(Math, "random").mockReturnValue(0.5);
+			render(<WebVitalsReporter />);
+			expect(window.sessionStorage.getItem("hq-cwv-sampled")).toBe("0");
+
+			emit(LCP);
+			fireVisibilityHidden();
+			expect(sendBeacon).not.toHaveBeenCalled();
+		});
+	});
+
+	it("never writes a sampling decision or sends when sessionStorage access throws", () => {
+		// isSampled() must fail open (return false) if sessionStorage is unavailable —
+		// simulate a browser that throws on storage access (private mode / quota).
+		const getItemSpy = vi
+			.spyOn(window.sessionStorage, "getItem")
+			.mockImplementation(() => {
+				throw new Error("SecurityError: storage disabled");
+			});
+
+		render(<WebVitalsReporter />);
+		emit(LCP);
+		fireVisibilityHidden();
+		expect(sendBeacon).not.toHaveBeenCalled();
+
+		getItemSpy.mockRestore();
+	});
+
+	it("emits a payload shaped with project_id 'orchestkit' and an event name <= 50 chars", () => {
+		render(<WebVitalsReporter />);
+		emit(LCP);
+		fireVisibilityHidden();
+
+		const [, blob] = sendBeacon.mock.calls[0] as [string, Blob];
+		return blob.text().then((text: string) => {
+			const body = JSON.parse(text);
+			expect(body.project_id).toBe("orchestkit");
+			expect(body.events[0].name.length).toBeLessThanOrEqual(50);
+		});
+	});
 });
