@@ -4,8 +4,13 @@
 #
 # On a published release (or manual dispatch), POST the release facts to the
 # Yonatan-HQ platform marketing intake (POST /api/marketing/release-announce),
-# which drafts per-channel posts (Twitter/X, LinkedIn, Dev.to, Hashnode, ...).
-# Drafts are HUMAN-GATED on the platform — nothing publishes from here.
+# which drafts per-channel posts for the GROWTH channels (Twitter/X, Dev.to,
+# Hashnode, Substack, Threads). Drafts are HUMAN-GATED on the platform —
+# nothing publishes from here.
+#
+# LinkedIn is deliberately NOT auto-drafted — it is a curated, hand-written
+# channel. Instagram joins ANNOUNCE_CHANNELS once Meta Business Verification
+# clears (needs instagram_content_publish).
 #
 # Cadence: minor/major (X.Y.0) releases only; patch bumps are skipped to keep
 # the review queue clean. workflow_dispatch overrides for any version.
@@ -97,6 +102,9 @@ jobs:
           RELEASE_URL: ${{ github.event.release.html_url || format('https://github.com/{0}/releases/tag/v{1}', github.repository, steps.meta.outputs.version) }}
           RELEASE_NOTES: ${{ github.event.release.body }}
           REPO: ${{ github.repository }}
+          # Growth channels only — LinkedIn is curated/hand-written (never auto).
+          # Instagram joins once Meta Business Verification clears.
+          ANNOUNCE_CHANNELS: twitter,devto,hashnode,substack,threads
           HQ_API_URL: ${{ secrets.HQ_API_URL }}
           HQ_API_TOKEN: ${{ secrets.HQ_API_TOKEN }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}

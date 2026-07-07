@@ -12,7 +12,10 @@
  *   RELEASE_URL       canonical link for the announcement     [required]
  *   RELEASE_NOTES     release body markdown                   [optional]
  *   REPO              owner/name (default yonatangross/orchestkit)
- *   ANNOUNCE_CHANNELS comma list (default twitter,linkedin,devto,hashnode)
+ *   ANNOUNCE_CHANNELS comma list (default twitter,devto,hashnode,substack,threads)
+ *                     — LinkedIn is intentionally excluded: it is a curated,
+ *                     hand-written channel, never auto-drafted. Instagram joins
+ *                     once Meta Business Verification clears.
  *   HQ_API_URL        platform API base                       [enables live POST]
  *   HQ_API_TOKEN      platform API_STATIC_TOKEN               [enables live POST]
  *   DRY_RUN           "true" to compose without posting
@@ -34,7 +37,7 @@ const {
   RELEASE_URL,
   RELEASE_NOTES = "",
   REPO = "yonatangross/orchestkit",
-  ANNOUNCE_CHANNELS = "twitter,linkedin,devto,hashnode",
+  ANNOUNCE_CHANNELS = "twitter,devto,hashnode,substack,threads",
   HQ_API_URL,
   HQ_API_TOKEN,
   DRY_RUN = "false",
