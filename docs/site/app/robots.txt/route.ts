@@ -1,16 +1,21 @@
 import { SITE } from "@/lib/constants";
 
 // Custom robots.txt route (replaces the app/robots.ts metadata convention, which
-// cannot emit arbitrary directives). Permissive stance: OrchestKit is an
-// open-source project that WANTS agents to discover, search, train on, and learn
-// from its docs — so named AI crawlers are explicitly allowed (and ai-train=yes
-// is kept) rather than blocked. The schemamap directive points at the NLWeb
-// Schema Feeds map.
+// cannot emit arbitrary directives). Tiered stance (2026-07-08, orank fix
+// applied): OrchestKit WANTS named, accountable AI companies with a real
+// product (search, assistant, or opt-in model training) to crawl and train on
+// its docs — those stay explicitly allowed with ai-train=yes, including
+// crawlers whose sole purpose IS training (GPTBot, Google-Extended,
+// Applebot-Extended). What's blocked is different in kind, not degree:
+// third-party bulk-scrape aggregators with no accountable product behind them
+// (CCBot = Common Crawl, resold to unknown downstream buyers; Bytespider =
+// ByteDance's crawler, widely blocked for ignoring crawl-rate limits). The
+// schemamap directive points at the NLWeb Schema Feeds map.
 export const revalidate = false;
 
-// AI crawlers we explicitly welcome. Listing them by name (each with Allow: /)
-// is the discoverability signal orank rewards, and it documents intent: nothing
-// here is blocked.
+// Named AI crawlers we explicitly welcome — search, assistant, or opt-in
+// training, all from an accountable company with a real product. Listing them
+// by name (each with Allow: /) is the discoverability signal orank rewards.
 const AI_BOTS = [
 	"GPTBot",
 	"ChatGPT-User",
@@ -21,22 +26,37 @@ const AI_BOTS = [
 	"Google-Extended",
 	"PerplexityBot",
 	"Perplexity-User",
-	"CCBot",
 	"Applebot-Extended",
-	"Bytespider",
 	"meta-externalagent",
 ];
+
+// Third-party bulk-scrape aggregators — blocked, not welcomed. Distinct from
+// AI_BOTS above; do not merge the two lists.
+const BLOCKED_BOTS = ["CCBot", "Bytespider"];
 
 export function GET() {
 	const lines: string[] = [
 		"User-agent: *",
 		"Allow: /",
 		"",
-		"# OrchestKit is open source (MIT) and welcomes AI crawlers explicitly.",
+		"# OrchestKit is open source (MIT) and welcomes named AI crawlers explicitly.",
 	];
 
 	for (const bot of AI_BOTS) {
 		lines.push("", `User-agent: ${bot}`, "Allow: /");
+	}
+
+	lines.push(
+		"",
+		"# Third-party bulk-scrape aggregators are blocked, not welcomed.",
+	);
+	for (const bot of BLOCKED_BOTS) {
+		lines.push(
+			"",
+			`User-agent: ${bot}`,
+			"Disallow: /",
+			"Content-Signal: ai-train=no, search=no, ai-input=no",
+		);
 	}
 
 	lines.push(
