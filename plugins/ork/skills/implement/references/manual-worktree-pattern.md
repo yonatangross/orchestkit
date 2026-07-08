@@ -1,13 +1,17 @@
 # Manual Pre-Create Worktree Pattern
 
-> **⚠ SUPERSEDED by CC 2.1.154.** Upstream fixed the root cause: *"subagents in
-> background sessions bypassing the worktree-isolation guard and writing to the
-> shared checkout"* (CC 2.1.154 changelog). On CC ≥ 2.1.154 you can use
-> `Agent(isolation="worktree")` directly — parallel spawns each get a real
+> **⚠ SUPERSEDED — CC 2.1.154, completed in CC 2.1.203.** Upstream fixed the root
+> cause: *"subagents in background sessions bypassing the worktree-isolation guard
+> and writing to the shared checkout"* (CC 2.1.154 changelog). On CC ≥ 2.1.154 you
+> can use `Agent(isolation="worktree")` directly — parallel spawns each get a real
 > isolated worktree, no HEAD thrash. 2.1.154 also fixed `worktree.baseRef:"head"`
 > resolving to the main checkout's HEAD instead of the current worktree's when
-> spawning from inside a linked worktree. **Prefer `isolation="worktree"` now;**
-> the manual pre-create pattern below is retained only for CC ≤ 2.1.153 and as a
+> spawning from inside a linked worktree. **The 2.1.154 fix was partial:** a
+> residual leak — isolated subagents *sometimes running shell commands in the
+> parent checkout* (the exact symptom in "The bug" below: `git checkout` firing on
+> the primary tree) — persisted through CC 2.1.202 and was closed in **CC 2.1.203**.
+> **Prefer `isolation="worktree"` now;** the manual pre-create pattern below is
+> retained for CC ≤ 2.1.153, as a partial mitigation on 2.1.154–2.1.202, and as a
 > record of the original failure.
 
 **Original context — workaround for the broken `Agent(isolation="worktree")`
