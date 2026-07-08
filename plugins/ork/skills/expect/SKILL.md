@@ -363,6 +363,16 @@ For the snapshot recorder to fire, the expect run output must contain `RUN_COMPL
 - **Docs-only changes** — unless you want to verify docs site rendering
 
 
+## Quality Bar
+
+Done means all of these hold:
+- Test-plan scope is derived from the git diff for the chosen `--target` — no unaffected page appears in the plan.
+- Every changed file maps to at least one tested route (via `.expect/config.yaml` or inferred convention) OR is explicitly excluded as API-only, generated, or docs-only.
+- Fingerprint check runs first; a diff unchanged since the last run skips execution instead of re-testing.
+- Unless `-y` is passed, the plan is presented for review before any browser action runs.
+- Each executed step reports PASS or FAIL with evidence (screenshot on failure), and the report's pass/fail totals match the steps actually run.
+- The report's exit code is non-zero whenever any step failed.
+
 ## Related Skills
 
 - `agent-browser` — Browser automation engine (required dependency)

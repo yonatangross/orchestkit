@@ -340,6 +340,16 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/assets/&lt;file&gt;")`:
 | `impact-dashboard.md` | Impact table template |
 | `tier1-header.md` | 5-line summary template |
 
+## Quality Bar
+
+Done means all of these hold:
+- The Tier 1 header always renders with every field populated — risk, confidence, reversibility, branch, and file/line counts.
+- File and line counts come from `scripts/analyze-impact.sh`, not estimated or guessed.
+- Every rendered section answers its reviewer question; a section with no content is skipped with a one-line reason, never padded.
+- Section [0] Before/After maps base (`git show origin/main:&lt;path&gt;`) against head (working tree), marking each node `[+]`/`[~]`/`[-]`, and is skipped with a note when nothing structural changed.
+- ASCII renders first/inline regardless of chosen format; any async format (infographic) is fired-and-notified, never awaited.
+- The plan summary is stored to the memory knowledge graph for cross-session comparison.
+
 ## Related Skills
 
 - `ork:implement` - Execute planned changes

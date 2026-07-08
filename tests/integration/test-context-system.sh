@@ -94,10 +94,13 @@ elif [[ -f "$CONTEXT_DIR/session/state.template.json" ]]; then
     echo -e "${GREEN}TEMPLATE EXISTS${NC}"
     PASSED=$((PASSED + 1))
 else
-    # Create minimal state for testing (not tracked)
+    # Create minimal state for testing (not tracked). Must carry the $schema
+    # field test-context-schemas.sh validates, and must be removed on exit —
+    # a leaked fixture fails Context Schema Validation on the NEXT suite run.
     mkdir -p "$CONTEXT_DIR/session"
     cat > "$CONTEXT_DIR/session/state.json" << 'EOF'
 {
+  "$schema": "context://session/v1",
   "_meta": {
     "position": "END",
     "token_budget": 500,
@@ -109,7 +112,8 @@ else
   "blockers": []
 }
 EOF
-    echo -e "${YELLOW}CREATED${NC} (temp for test)"
+    trap 'rm -f "$CONTEXT_DIR/session/state.json"' EXIT
+    echo -e "${YELLOW}CREATED${NC} (temp for test, removed on exit)"
     PASSED=$((PASSED + 1))
 fi
 

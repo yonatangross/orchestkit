@@ -355,6 +355,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "design-stylecards",
+    "label": "Design Stylecards",
+    "type": "command",
+    "complexity": "low",
+    "category": "frontend",
+    "hasDeps": true,
+    "depCount": 1,
+    "usedByCount": 0
+  },
+  {
     "id": "design-system-tokens",
     "label": "Design System Tokens",
     "type": "reference",
@@ -362,7 +372,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "frontend",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 3
+    "usedByCount": 4
   },
   {
     "id": "design-to-code",
@@ -1376,6 +1386,10 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "design-ship",
     "target": "memory"
+  },
+  {
+    "source": "design-stylecards",
+    "target": "design-system-tokens"
   },
   {
     "source": "design-to-code",

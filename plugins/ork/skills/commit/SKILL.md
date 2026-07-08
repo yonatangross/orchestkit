@@ -214,6 +214,16 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 Before committing, apply the 5-step gate: `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")`. Run tests fresh. Read the output. Only commit if tests pass. "Should be fine" is not evidence.
 
+## Quality Bar
+
+Done means all of these hold:
+- Commit landed on a feature branch, never dev/main/master (Phase 1 guard held)
+- Subject uses a conventional type (feat/fix/docs/refactor/test/chore) matching the diff content, <=72 chars
+- Issue reference (#N) present in the message whenever HEAD is on an issue branch
+- Local validation for the touched stack (lint/type/test) ran and passed before the commit
+- `Co-Authored-By: Claude` trailer present; per-agent trailers added only when the activity ledger has post-last-commit entries
+- `git log -1 --stat` shows exactly the intended files, no secrets and no generated-only-noise commit
+
 ## Related Skills
 - `ork:create-pr`: Create pull requests from commits
 - `ork:review-pr`: Review changes before committing

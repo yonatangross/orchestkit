@@ -349,6 +349,16 @@ Write(".claude/chain/pr-created.json", JSON.stringify({
 
 Before claiming PR is ready, apply: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rules/verification-gate.md")`. All tests must pass with fresh evidence. All CI checks green. No "should be fine."
 
+## Quality Bar
+
+Done means all of these hold:
+- PR opened from a feature branch with a clean working tree against the correct base (dev, or the detected host equivalent)
+- Title uses conventional `type(#issue): ...` format matching the change
+- Body carries Summary, Changes, and Test Plan sections; every closed issue has its own `Closes #N` keyword
+- Pre-flight validation for the chosen PR type passed locally before creation (skipped only for the Quick type)
+- Playground HTML exists at docs/\{branch-dir\}/*.html and the body links it (required for non-bot PRs)
+- `gh pr view --json url` returns the created PR URL
+
 ## Related Skills
 
 - `ork:commit` — Create commits before PRs

@@ -509,7 +509,7 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=32  # +1: /ork:auto intent router (front door over the skill library)
+EXPECTED_USER_INVOCABLE=33  # +1: /ork:design-stylecards declarative aesthetic recipe catalog
 EXPECTED_INTERNAL=81  # +1: audit-activation (agent-side activation audit, non-invocable)
 
 missing_user_invocable=()

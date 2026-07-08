@@ -2,8 +2,8 @@
 name: design-context-extract
 license: MIT
 compatibility: "Claude Code 2.1.183+. Optional: stitch (official Google Stitch) MCP server."
-description: "Extract design DNA from existing app screenshots or live URLs using Google Stitch. Produces color palettes, typography specs, spacing tokens, and component patterns as design-tokens.json or Tailwind config. Use when auditing an existing design, creating a design system from a live app, or ensuring new pages match an established visual identity."
-argument-hint: "[screenshot-path | url | 'current project']"
+description: "Extract design DNA from existing app screenshots, live URLs, or screen recordings using Google Stitch. Produces color palettes, typography specs, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user provides, uploads, links, or points to a screenshot, URL, or video and asks to extract the design, analyze the animations or scroll behavior, audit an existing design, create a design system from a live app, or ensure new pages match an established visual identity."
+argument-hint: "[screenshot-path | video-path | url | 'current project']"
 tags: [design-context, design-tokens, stitch, extraction, colors, typography, audit, visual-identity]
 context: fork
 version: 1.0.1
@@ -32,11 +32,12 @@ metadata:
   category: document-asset-creation
   mcp-server: stitch
 triggers:
-  keywords: ["extract design", "design tokens", "color palette", "typography", "design dna", "visual identity", "design system from"]
+  keywords: ["extract design", "design tokens", "color palette", "typography", "design dna", "visual identity", "design system from", "screen recording", "motion spec", "analyze this video"]
   examples:
     - "extract the design tokens from this screenshot"
     - "what colors and fonts does this app use"
     - "create a design system from this live URL"
+    - "analyze the animations in this screen recording"
   anti-triggers: [implement, build, component, explore, brainstorm]
 ---
 
@@ -46,6 +47,7 @@ Extract the "Design DNA" from existing applications — colors, typography, spac
 
 ```bash
 /ork:design-context-extract /tmp/screenshot.png       # From screenshot
+/ork:design-context-extract /tmp/recording.mp4         # From screen recording (motion spec)
 /ork:design-context-extract https://example.com        # From live URL
 /ork:design-context-extract current project            # Scan project's existing styles
 ```
@@ -110,6 +112,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 # Determine input type
 # "/path/to/file.png" → screenshot
+# "/path/to/file.mp4|.mov|.webm|.gif" → screen recording (video pipeline)
 # "http..." → URL
 # "current project" → scan project styles
 ```
@@ -135,6 +138,33 @@ Glob("**/*.css")  # Look for design token files
 Glob("**/theme.*")
 # Read and analyze existing style definitions
 ```
+
+**For screen recordings (video):** the only input mode that carries motion — easing, scroll
+choreography, transitions. Requires `ffmpeg`/`ffprobe` (skip with an install hint if missing).
+
+```bash
+# 1. Probe: duration, dimensions, frame rate
+ffprobe -v error -show_entries format=duration,size:stream=width,height,r_frame_rate -of json "$VIDEO"
+
+# 2. Extract frames at timeline beats — NOT uniform thumbnails.
+#    Pass A: 1fps sweep to locate transitions; Pass B: re-extract around detected beats.
+mkdir -p "$SCRATCHPAD/video-frames"
+ffmpeg -y -i "$VIDEO" -vf fps=1 "$SCRATCHPAD/video-frames/frame-%03d.jpg"
+# For scroll-heavy or long videos also grab start / middle / end explicitly.
+```
+
+Then Read the extracted frames (multimodal) and analyze in layers:
+
+| Layer | What to capture |
+|-------|-----------------|
+| Layout | viewport framing, grids, sticky zones, section order |
+| Motion | reveal timing, easing curves, parallax, pinned/scrubbed sections, hover states, loops |
+| Visual | same token extraction as screenshots (colors, type, spacing) |
+| Rebuild | name the mechanism: CSS transition, IntersectionObserver, GSAP ScrollTrigger, `video.currentTime` scrub, WebGL |
+
+Video inputs additionally emit a **motion-spec.md** alongside the token output: per-interaction
+durations (ms), easing, trigger (scroll/hover/load), and a reduced-motion fallback for each entry.
+Never describe motion as "smooth" or "nice" — convert taste into mechanism + numbers.
 
 ## Step 2: Extract Design Context
 
@@ -239,6 +269,15 @@ STYLE_MAP = {
 - **NEVER** guess colors without analyzing the actual source — use precise extraction
 - **NEVER** skip the oklch conversion — all colors must have oklch equivalents
 - **NEVER** output flat token structures — use three-tier hierarchy (global/alias/component)
+
+## Quality Bar
+
+Done means all of these hold:
+- Every color was sampled from the actual source, has an oklch equivalent, and carries a role name
+- Typography includes family, weight, and the observed size scale — not "modern sans-serif"
+- Output file written in the chosen format and verified to parse (JSON/TS/CSS)
+- Video inputs: motion-spec.md names mechanism + duration + easing + reduced-motion fallback per interaction
+- If the project already had tokens, the diff of new-vs-existing was shown
 
 ## Related Skills
 

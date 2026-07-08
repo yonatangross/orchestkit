@@ -311,6 +311,16 @@ The skill ALWAYS produces output regardless of MCP availability. Storybook MCP a
 - **NEVER** generate without checking existing project patterns first
 - **NEVER** ignore the project's existing component library structure
 
+## Quality Bar
+
+Done means all of these hold:
+- Generated components carry no hardcoded colors or literal spacing — every visual value resolves through project design tokens.
+- Every prop is TypeScript-typed; data-bearing props carry Zod validation.
+- Stage 2 checked existing components (Storybook, then 21st.dev, then filesystem) before generating from scratch, and the chosen match source is named.
+- When storybook-mcp is available, the component passes `run-story-tests` (component + a11y) before handoff, self-healing within at most 3 attempts.
+- Output follows the `\{ComponentName\}/` structure — component, test, and barrel export.
+- Each skipped stage (json-render catalog, Storybook verify) is taken ONLY when its dependency is absent, and the skip is stated with its reason.
+
 ## Related Skills
 
 - `storybook-mcp-integration` — Storybook MCP tools: component discovery, testing, previews

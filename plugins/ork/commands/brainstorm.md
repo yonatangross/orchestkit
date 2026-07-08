@@ -411,6 +411,15 @@ Set a completion condition with `/goal` (CC 2.1.139+, **2.1.143+ recommended for
 Stops when: 2+ ranked design options presented and the user selects one (or after Phase 6 if running unattended via -p). Compatible with claude.ai Remote Control runs.
 
 
+## Quality Bar
+
+Done means all of these hold:
+- Phase 2 produced >=10 distinct ideas BEFORE any filtering, each surfaced as its agent returned
+- Every idea past the keep/discard gate carries a one-line keep/discard/crash verdict
+- Each surviving idea scores 0-10 on all 7 dimensions (simplicity included) plus one devil's-advocate challenge
+- Synthesis narrows to 2-3 approaches with a trade-off table AND a per-approach test strategy
+- Output ends with ranked options the user chooses from (or Phase 6 completes when running unattended via -p)
+
 ## 📜 Related Skills
 
 - `ork:architecture-decision-record` - Document key decisions made during brainstorming

@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.67.0",
+    "date": "2026-07-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**cc-adoption:** adopt CC 2.1.203 + 2.1.204 ([#2792](https://github.com/yonatangross/orchestkit/issues/2792)) ([21a97cf](https://github.com/yonatangross/orchestkit/commit/21a97cf011499be5cf65472b1c08f21ebf16653d))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**skills:** document fable symbolic model name in --model plumbing ([#2791](https://github.com/yonatangross/orchestkit/issues/2791)) ([8dba6fb](https://github.com/yonatangross/orchestkit/commit/8dba6fb29e6903c5ed8d2c7a15a9b5343c493cd6))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.66.0",
     "date": "2026-07-08",
     "compareUrl": "",

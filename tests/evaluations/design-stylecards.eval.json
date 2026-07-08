@@ -1,0 +1,59 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "design-stylecards",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "elevation-recipe-lookup",
+      "query": "Give the dashboard cards a polished layered shadow",
+      "expected_behavior": [
+        "Reads references/stylecards.md before choosing any values",
+        "Resolves the request to elevation/md by its Use-When line (cards, panels, popovers)",
+        "Applies the catalog shadow values byte-identical, adapting only Tailwind vs CSS syntax",
+        "Does not stack the recipe with default Tailwind shadow scale classes"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    },
+    {
+      "id": "glass-on-light-background-refused",
+      "query": "Apply the glass card treatment to this white-background settings page",
+      "expected_behavior": [
+        "Recognizes glass/dark requires a dark contrasted backdrop per its Avoid block",
+        "Flags the Avoid-rule violation explicitly instead of silently applying the recipe",
+        "Offers the closest applicable alternative such as elevation/sm or elevation/md",
+        "Never freehands substitute glass values outside the catalog"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "no-matching-recipe",
+      "query": "Add a neon cyberpunk glow effect around the hero section",
+      "expected_behavior": [
+        "States no catalog recipe matches the requested aesthetic",
+        "Offers the two closest recipes rather than inventing exact values",
+        "Notes glow halos are an explicit Avoid in glass/dark before proposing alternatives",
+        "Suggests authoring a new stylecard with the Use-When, values, and Avoid contract"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "motion-budget-constraint",
+      "query": "Animate all the cards and buttons on this landing page tastefully",
+      "expected_behavior": [
+        "Applies the motion/budget recipe with its four fixed durations and single ease",
+        "Limits the page to one signature animation moment",
+        "Ships the prefers-reduced-motion gate exactly as specified in the recipe",
+        "Refuses to introduce a fifth duration value outside the budget"
+      ],
+      "tags": [
+        "happy-path"
+      ]
+    }
+  ]
+}

@@ -128,7 +128,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code — 113 skills, 37 agents, 212 hooks working together."
+    "description": "The complete AI development toolkit for Claude Code — 114 skills, 37 agents, 212 hooks working together."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -643,7 +643,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference",
     "title": "Reference",
-    "description": "Complete reference for all 113 skills, 37 agents, and 212 hooks."
+    "description": "Complete reference for all 114 skills, 37 agents, and 212 hooks."
   },
   {
     "url": "/docs/reference/skills/accessibility",
@@ -808,7 +808,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/design-context-extract",
     "title": "Design Context Extract",
-    "description": "Extract design DNA from existing app screenshots or live URLs using Google Stitch. Produces color palettes, typography specs, spacing tokens, and component patterns as design-tokens.json or Tailwind config. Use when auditing an existing design, creating a design system from a live app, or ensuring new pages match an established visual identity."
+    "description": "Extract design DNA from existing app screenshots, live URLs, or screen recordings using Google Stitch. Produces color palettes, typography specs, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user provides, uploads, links, or points to a screenshot, URL, or video and asks to extract the design, analyze the animations or scroll behavior, audit an existing design, create a design system from a live app, or ensure new pages match an established visual identity."
   },
   {
     "url": "/docs/reference/skills/design-import",
@@ -819,6 +819,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference/skills/design-ship",
     "title": "Design Ship",
     "description": "End-to-end Claude Design handoff to pull request: imports a handoff bundle from claude.ai/design, generates Storybook stories and Playwright tests, runs diff-aware browser verification, and opens a PR with the bundle URL, before/after screenshots, and coverage delta embedded in the body. The one-shot 'design URL in, reviewable PR out' workflow. Use when a designer or PM hands you a Claude Design URL and you want a PR back without intermediate steps."
+  },
+  {
+    "url": "/docs/reference/skills/design-stylecards",
+    "title": "Design Stylecards",
+    "description": "Declarative catalog of named aesthetic recipes — exact shadow stacks, glass surfaces, gradient treatments, and type scales as copy-paste values with Use-When and Avoid rules. Use when the user asks for polished elevation, glassmorphism, a border gradient, a mesh background, or any 'make it look like X' request where taste should come from a versioned recipe instead of being reinvented per session."
   },
   {
     "url": "/docs/reference/skills/design-system-tokens",
@@ -928,7 +933,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills",
     "title": "Skills Reference",
-    "description": "Complete reference for all 113 OrchestKit skills."
+    "description": "Complete reference for all 114 OrchestKit skills."
   },
   {
     "url": "/docs/reference/skills/interaction-patterns",
@@ -1268,7 +1273,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/dependency-graph",
     "title": "Skill Dependency Graph",
-    "description": "Interactive visualization of how OrchestKit's 113 skills connect through dependency relationships."
+    "description": "Interactive visualization of how OrchestKit's 114 skills connect through dependency relationships."
   },
   {
     "url": "/docs/skills/overview",

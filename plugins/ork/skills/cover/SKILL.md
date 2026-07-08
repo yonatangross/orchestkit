@@ -463,6 +463,15 @@ Before claiming coverage is complete, apply: `Read("${CLAUDE_PLUGIN_ROOT}/skills
 
 All test-generator agents report using: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`. BLOCKED if tests can't be written due to missing interfaces. NEEDS_CONTEXT if test expectations are unclear.
 
+## Quality Bar
+
+Done means all of these hold:
+- coverage report shows the before→after delta from the actual coverage command output, not an estimate
+- every generated test file was executed; final pass/fail counts pasted from the runner
+- no production source modified — only test files created; a source bug is reported, never silently patched
+- failures healed within the iteration budget (≤3, effort-scaled) or reported explicitly with the remaining-failure count
+- each requested tier (unit/integration/e2e) either produced tests or has a stated reason it was skipped
+
 ## Related Skills
 
 - `ork:implement` — generates tests during implementation (Phase 5); use `/ork:cover` after for deeper coverage

@@ -299,6 +299,15 @@ Set a completion condition with `/goal` (CC 2.1.139+) and this skill will keep w
 
 Stops when: codebase architecture diagram is generated and at least 5 design patterns have been classified. Compatible with claude.ai Remote Control runs.
 
+## Quality Bar
+
+Done means all of these hold:
+- Every architectural or data-flow claim cites concrete evidence (file:line or a file path), not prose assertion
+- Code health is reported as 0-10 scores with a per-dimension breakdown, not a bare number
+- Dependency hotspots / coupling are named along with the files that drive them
+- The report includes an architecture or structure visualization for the explored scope
+- If a json-render spec is emitted, it passes `render-spec.mjs --check`; on failure fall back to markdown-only and never write a partial spec
+
 ## 📜 Related Skills
 - `ork:implement`: Implement after exploration
 

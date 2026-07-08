@@ -425,6 +425,16 @@ Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/quality-gates/references/unified-scor
 | complexity-metrics (load `$\{CLAUDE_SKILL_DIR\}/rules/complexity-metrics.md`) | HIGH | 7-criterion scoring (1-5), complexity levels, thresholds |
 | complexity-breakdown (load `$\{CLAUDE_SKILL_DIR\}/rules/complexity-breakdown.md`) | HIGH | Task decomposition strategies, risk assessment |
 
+## Quality Bar
+
+Done means all of these hold:
+- Every in-scope dimension scored 0-10 with evidence (file:line) backing the score, not vibes
+- Composite is the weighted average of the scored dimensions and the grade maps from that composite
+- At `high`/`xhigh` effort, decision-bearing scores passed the adversarial refutation lane before entering the composite
+- `.claude/chain/assess-verdict.json` written with verdict pass/fail and a blockers[] entry for every dimension below its min_blocker
+- Any dimension scoring below 4/10 is flagged immediately as a priority concern
+- If a json-render spec is emitted, it passes `render-spec.mjs --check` and carries the required composite + grade fields
+
 ## 📜 Related Skills
 
 - `ork:verify` - Post-implementation verification

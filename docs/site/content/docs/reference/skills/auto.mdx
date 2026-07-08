@@ -112,6 +112,16 @@ Target ≥95% category accuracy; track the fallback rate as a degradation alarm 
 - `references/routing-rules.md` — per-category parameter extraction, edge cases, disambiguation
 - `routing-benchmark.json` — 50 labeled goal→category pairs for accuracy validation
 
+## Quality Bar
+
+Done means all of these hold:
+- Classification reasoning is stated out loud BEFORE a route is committed, naming the chosen intent category and the signal words that triggered it.
+- The confirm block names one of the taxonomy's intent categories, its target skill or `/goal` loop, and the extracted args — on one line.
+- No target skill is invoked without an explicit nod (or `-y`); handoff never precedes confirmation.
+- When two categories are equally plausible, exactly ONE clarifying question is asked — the fallback is never silently guessed.
+- `optimize` routes to a `/goal` loop and `improve-skill` to the evolution gate; neither claims a dedicated skill that does not exist.
+- The router does none of the target work itself and never routes to `/ork:auto` (no recursion).
+
 ## Related skills
 
 - `/ork:help` — static categorized directory (browse, don't route)

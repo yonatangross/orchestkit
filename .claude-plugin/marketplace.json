@@ -3,7 +3,7 @@
   "name": "orchestkit",
   "version": "8.67.0",
   "engine": ">=2.1.148",
-  "description": "The Complete AI Development Toolkit - 113 skills, 37 agents, 32 commands, 212 hooks for full-stack development",
+  "description": "The Complete AI Development Toolkit - 114 skills, 37 agents, 33 commands, 212 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
     "email": "yonaigross@gmail.com"
@@ -16,7 +16,7 @@
     {
       "name": "ork",
       "version": "8.67.0",
-      "description": "Complete AI development toolkit with 113 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 37 specialized agents, 32 commands, and 212 lifecycle hooks.",
+      "description": "Complete AI development toolkit with 114 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 37 specialized agents, 33 commands, and 212 lifecycle hooks.",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonaigross@gmail.com"

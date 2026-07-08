@@ -432,6 +432,15 @@ TaskUpdate(taskId=commit_id, addBlockedBy=[verify_task_id])
 
 > **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 
+## Quality Bar
+
+Done means all of these hold:
+- verdict is exactly one of READY FOR MERGE / IMPROVEMENTS RECOMMENDED / BLOCKED, with the composite and every dimension score cited
+- every load-bearing "passing/clean/fixed" claim sits in the Verification Manifest marked VERIFIED (lead re-ran, cites command · exit · key line), CLAIMED, UNCHECKED, or WAIVED
+- test evidence is the actual runner summary line (command, exit code, pass count) — never paraphrase
+- any dimension below its `min_blocker` is reported BLOCKED regardless of composite
+- READY FOR MERGE only when no load-bearing claim is still CLAIMED/UNCHECKED (and under `--streak=N`, the full streak is met)
+
 ## Related Skills
 
 - `ork:implement` - Full implementation with verification

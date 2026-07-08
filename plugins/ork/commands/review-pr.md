@@ -410,6 +410,15 @@ For complex PRs (> 500 lines, 3+ domains), use mesh topology so reviewers can ch
 # Load: Read("${CLAUDE_SKILL_DIR}/rules/agent-prompts-agent-teams.md")
 ```
 
+## Quality Bar
+
+Done means all of these hold:
+- verdict is exactly one of approve / comment / request-changes
+- every finding cites file:line and a conventional-comment prefix (praise/nitpick/suggestion/issue/question)
+- each request-changes blocker names the specific diff line and the fix that clears it
+- only domains present in the diff were reviewed; agents skipped for absent domains are named
+- CI/test/lint ground truth is checked not refuted; a red required check caps the verdict at request-changes
+
 ## Related Skills
 - `ork:commit`: Create commits after review
 - `ork:create-pr`: Create PRs for review

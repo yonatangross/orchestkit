@@ -434,6 +434,14 @@ TaskUpdate(taskId=verify_id, addBlockedBy=[impl_task_id])
 
 > **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context. Combined with `.claude/chain/state.json` checkpoint-resume, this enables full recovery of multi-phase implement sessions. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 
+## Quality Bar
+
+Done means all of these hold:
+- every changed file verified per the terminal verification gate — never "should work"
+- each Phase 5 task ships its tests matched to change type; the suite ran green with the summary line cited
+- scope creep scored 0-10 in Phase 7; PR split when the delta is significant
+- worktrees entered in Step 0 are exited via ExitWorktree — no orphans
+
 ## Related Skills
 
 - `ork:explore`: Explore codebase before implementing
