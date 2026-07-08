@@ -5,6 +5,32 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.66.0](https://github.com/yonatangross/orchestkit/compare/v8.65.2...v8.66.0) (2026-07-08)
+
+
+### Features
+
+* **cc-adoption:** adopt CC 2.1.202 ([2669c62](https://github.com/yonatangross/orchestkit/commit/2669c6242708008997d40b654f8974583c820976))
+
+
+### Bug Fixes
+
+* **emulate-seed:** mention emulate 0.9.0 (Nuxt adapter) in skill body ([#2778](https://github.com/yonatangross/orchestkit/issues/2778)) ([347b2a5](https://github.com/yonatangross/orchestkit/commit/347b2a58c00da20fc4410ec215a8298290d95759))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.202) ([#2777](https://github.com/yonatangross/orchestkit/issues/2777)) ([79761bb](https://github.com/yonatangross/orchestkit/commit/79761bb7b4edb993e64405d5d4065662a10fa736))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.204) ([#2789](https://github.com/yonatangross/orchestkit/issues/2789)) ([37cb450](https://github.com/yonatangross/orchestkit/commit/37cb450c46f3addaeb1eda71ef607f34a2adf416))
+* **deps-dev:** bump typescript in /orchestkit-demos ([#2768](https://github.com/yonatangross/orchestkit/issues/2768)) ([89b5072](https://github.com/yonatangross/orchestkit/commit/89b50723610e2eaa4cb8e7b839c5a0cf3bdb48da))
+
+
+### CI/CD
+
+* **auth:** move 4 Claude workflows to OAuth, throttle sentinel to daily ([#2790](https://github.com/yonatangross/orchestkit/issues/2790)) ([81f449a](https://github.com/yonatangross/orchestkit/commit/81f449ad5ed5c6723df2bee4255169d362ee1df7))
+* **release-announce:** growth channels, no LinkedIn ([#2781](https://github.com/yonatangross/orchestkit/issues/2781)) ([2f6a1d1](https://github.com/yonatangross/orchestkit/commit/2f6a1d12e96ef101c871d667f8fae9ebb1b1ae94))
+* **release-announce:** handle 202 queued response ([#2782](https://github.com/yonatangross/orchestkit/issues/2782)) ([59d67e6](https://github.com/yonatangross/orchestkit/commit/59d67e6fc789e89b0ad70e1386e2a9ac9b0673db))
+
 ## [8.65.2](https://github.com/yonatangross/orchestkit/compare/v8.65.1...v8.65.2) (2026-07-06)
 
 
