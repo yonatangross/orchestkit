@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fix CI without spending a dollar — Decision Pic</title>
+<style>
+  :root{
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(220 14% 64%);
+    --pg-faint: hsl(220 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-accent-deep: hsl(248 70% 52%);
+    --pg-teal: hsl(190 80% 60%);
+    --pg-ok: hsl(152 60% 55%);
+    --pg-err: hsl(0 72% 62%);
+    --pg-warn: hsl(38 95% 60%);
+    --r-sm: 9px; --r-md: 16px; --r-lg: 24px;
+    --ease: cubic-bezier(.2,.8,.25,1);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background: var(--pg-bg);
+    background-image:
+      radial-gradient(1100px 600px at 12% -8%, hsl(248 60% 22% / .55), transparent 60%),
+      radial-gradient(900px 520px at 95% 8%, hsl(190 55% 18% / .45), transparent 55%),
+      radial-gradient(800px 700px at 50% 112%, hsl(255 50% 16% / .45), transparent 60%);
+    background-attachment: fixed;
+    color: var(--pg-ink);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height:100%; display:flex; flex-direction:column;
+  }
+  .mono{font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;}
+  header{padding:24px 24px 10px;}
+  header h1{font-size:23px; font-weight:700; letter-spacing:-.4px;}
+  header .sub{color:var(--pg-muted); font-size:13.5px; margin-block-start:5px; max-inline-size:70ch;}
+  header .zero{color:var(--pg-ok); font-weight:700;}
+  header .badge{
+    display:inline-block; font-size:11.5px; font-weight:600; padding:2px 9px; border-radius:99px;
+    border:1px solid var(--pg-glass-edge); background:var(--pg-glass); color:var(--pg-muted);
+    margin-inline-start:8px; vertical-align:2px;
+  }
+  main{
+    flex:1; display:grid; grid-template-columns: 320px 1fr; gap:16px;
+    padding:10px 24px 16px; align-items:start;
+  }
+  @media (max-width: 980px){ main{grid-template-columns:1fr;} }
+
+  .glass{
+    background:var(--pg-glass); border:1px solid var(--pg-glass-edge); border-radius:var(--r-md);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 20px 60px -22px hsl(232 40% 3% / .7), 0 4px 12px -6px hsl(232 40% 3% / .5),
+                inset 0 1px 0 hsl(0 0% 100% / .12);
+  }
+
+  /* choice column (secondary tier) */
+  .controls{padding:16px; display:flex; flex-direction:column; gap:14px;}
+  .controls h2{font-size:11.5px; text-transform:uppercase; letter-spacing:.12em; color:var(--pg-faint); font-weight:600;}
+  .path{
+    display:flex; gap:11px; align-items:flex-start; padding:12px 13px;
+    border:1px solid var(--pg-glass-edge); border-radius:var(--r-md); background:var(--pg-glass);
+    cursor:pointer; transition:border-color 100ms var(--ease), background 100ms var(--ease);
+  }
+  .path:hover{background:var(--pg-glass-2);}
+  .path.sel{border-color:var(--pg-accent); background:hsl(248 84% 68% / .1);}
+  .path .ic{font-size:19px; line-height:1.2; flex:none;}
+  .path .t{font-weight:600; font-size:14px;}
+  .path .d{color:var(--pg-faint); font-size:12px; line-height:1.42; margin-block-start:2px;}
+  .path .star{color:var(--pg-warn); font-weight:600; font-size:11px; margin-inline-start:4px;}
+
+  .toggle{
+    display:flex; align-items:center; gap:10px; padding:11px 13px; margin-block-start:2px;
+    border:1px solid var(--pg-glass-edge); border-radius:var(--r-md); background:var(--pg-glass);
+    cursor:pointer; transition:opacity 200ms var(--ease);
+  }
+  .toggle.off{opacity:.4; pointer-events:none;}
+  .toggle .sw{
+    inline-size:38px; block-size:22px; border-radius:99px; background:var(--pg-glass-2);
+    border:1px solid var(--pg-glass-edge); position:relative; flex:none; transition:background 200ms var(--ease);
+  }
+  .toggle.on .sw{background:var(--pg-ok);}
+  .toggle .sw::after{
+    content:""; position:absolute; inset-block-start:2px; inset-inline-start:2px;
+    inline-size:16px; block-size:16px; border-radius:50%; background:var(--pg-ink);
+    transition:inset-inline-start 200ms var(--ease);
+  }
+  .toggle.on .sw::after{inset-inline-start:18px;}
+  .toggle .lab{font-size:12.5px;}
+  .toggle .lab b{font-weight:600; font-size:13px; display:block;}
+  .toggle .lab span{color:var(--pg-faint); font-size:11.5px;}
+
+  /* preview (primary tier) */
+  .preview{display:flex; flex-direction:column; gap:16px;}
+  .card{padding:16px;}
+  .card h3{font-size:12px; text-transform:uppercase; letter-spacing:.12em; color:var(--pg-faint); font-weight:600; margin-block-end:12px;}
+
+  /* wallet swap */
+  .wallets{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .wallet{
+    flex:1 1 200px; min-inline-size:200px; padding:13px 14px; border-radius:var(--r-md);
+    border:1px solid var(--pg-glass-edge); background:var(--pg-glass);
+  }
+  .wallet .top{display:flex; align-items:center; gap:9px; font-weight:600; font-size:14px;}
+  .wallet .em{font-size:20px;}
+  .wallet .rows{margin-block-start:9px; display:flex; flex-direction:column; gap:5px;}
+  .wallet .r{display:flex; justify-content:space-between; font-size:12px; color:var(--pg-muted);}
+  .wallet.dead{border-color:hsl(0 72% 62% / .4);}
+  .wallet.dead .r b{color:var(--pg-err);}
+  .wallet.live{border-color:hsl(152 60% 55% / .45); background:hsl(152 60% 55% / .07);}
+  .wallet.live .r b{color:var(--pg-ok);}
+  .swap-arrow{font-size:24px; color:var(--pg-accent); font-weight:700; flex:none;}
+  [dir="rtl"] .swap-arrow{transform:scaleX(-1);}
+
+  /* blast radius */
+  .wf-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:9px;}
+  .wf{
+    padding:11px 13px; border-radius:var(--r-md); font-size:12.5px;
+    border:1px solid var(--pg-glass-edge); background:var(--pg-glass);
+    transition:opacity 200ms var(--ease), border-color 200ms var(--ease);
+  }
+  .wf .hd{display:flex; align-items:center; gap:8px; font-weight:600; font-size:13px;}
+  .wf .em{font-size:15px; flex:none;}
+  .wf .tag{
+    margin-inline-start:auto; font-weight:600; font-size:10px; color:var(--pg-muted);
+    border:1px solid var(--pg-glass-edge); border-radius:99px; padding:2px 8px; font-family:ui-monospace,monospace;
+  }
+  .wf .state{font-size:11.5px; line-height:1.45; margin-block-start:5px; color:var(--pg-muted);}
+  .wf.ok{border-color:hsl(152 60% 55% / .35);} .wf.ok .state{color:var(--pg-ok);}
+  .wf.throttle{border-color:hsl(38 95% 60% / .35);} .wf.throttle .state{color:var(--pg-warn);}
+  .wf.dormant{opacity:.5;} .wf.dormant .state{color:var(--pg-faint);}
+  .wf.off{opacity:.42;} .wf.off .state{color:var(--pg-faint);}
+
+  /* code-diff (fewer lines) */
+  .diff{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  @media (max-width:640px){.diff{grid-template-columns:1fr;}}
+  .diff .col{padding:11px 12px; border-radius:var(--r-md); border:1px solid var(--pg-glass-edge); background:var(--pg-glass); font-size:12px;}
+  .diff .col h4{font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--pg-faint); margin-block-end:7px;}
+  .diff .line{font-family:ui-monospace,monospace; font-size:11.5px; line-height:1.65; color:var(--pg-muted);}
+  .diff .del{color:var(--pg-err); text-decoration:line-through; opacity:.8;}
+  .diff .keep{color:var(--pg-ok);}
+
+  /* meters */
+  .meters{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:640px){.meters{grid-template-columns:1fr;}}
+  .meter .lab{display:flex; justify-content:space-between; align-items:baseline; margin-block-end:7px;}
+  .meter .lab .big{font-size:24px; font-weight:700; letter-spacing:-.3px;}
+  .meter .lab .big.zero{color:var(--pg-ok);}
+  .meter .lab .u{font-size:12px; color:var(--pg-faint);}
+  .bars{display:flex; gap:5px;}
+  .bars .b{flex:1; block-size:12px; border-radius:4px; background:var(--pg-glass-2); border:1px solid var(--pg-glass-edge);}
+  .bars .b.on{background:linear-gradient(90deg,var(--pg-teal),var(--pg-accent));}
+  .bars .b.warn{background:linear-gradient(90deg,var(--pg-warn),var(--pg-err));}
+  .meter .note{font-size:12px; color:var(--pg-faint); margin-block-start:8px; line-height:1.45;}
+  .meter .note.warn{color:var(--pg-warn);}
+
+  /* prompt bar (tertiary) */
+  .promptbar{margin:0 24px 20px; padding:14px 16px; border-radius:var(--r-md); display:flex; gap:12px; align-items:flex-start;}
+  .promptbar pre{
+    flex:1; white-space:pre-wrap; word-break:break-word;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:12.5px; color:var(--pg-muted); line-height:1.55;
+  }
+  .promptbar button{
+    flex:none; font:600 13px/1 inherit; font-family:inherit; color:hsl(220 18% 96%);
+    background:var(--pg-accent-deep); border:0; border-radius:var(--r-sm); padding:10px 16px; cursor:pointer;
+    transition:background 100ms var(--ease);
+  }
+  .promptbar button:hover{background:var(--pg-accent);}
+  :focus-visible{outline:2px solid var(--pg-accent); outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Fix CI for <span class="zero">$0</span> <span class="badge">console credits at $0 · 6 workflows 🔴</span></h1>
+  <div class="sub">
+    You said: no more money on this. Good news — the fix isn't <em>spend less</em>, it's <em>pay a different
+    wallet</em>. The <span class="mono">🎟️ OAuth token</span> (your Max plan, already paid) replaces the
+    <span class="mono">💳 console credit card</span> that just hit $0. Pick a $0 path on the left; the pic
+    updates live.
+  </div>
+</header>
+
+<main>
+  <!-- ============ CHOICE ============ -->
+  <section class="controls glass" aria-label="Choose a zero-dollar path">
+    <h2>Pick a $0 path</h2>
+    <div id="paths"></div>
+    <div class="toggle" id="throttle" role="switch" tabindex="0" aria-checked="true">
+      <div class="sw"></div>
+      <div class="lab"><b>😴→📉 Throttle sentinel to daily</b><span>hourly is 90% of the Max-quota drain</span></div>
+    </div>
+  </section>
+
+  <!-- ============ PREVIEW ============ -->
+  <section class="preview" aria-label="Live pic">
+
+    <div class="card glass">
+      <h3>🔑 The whole fix: swap the wallet</h3>
+      <div class="wallets">
+        <div class="wallet dead">
+          <div class="top"><span class="em">💳</span> ANTHROPIC_API_KEY</div>
+          <div class="rows">
+            <div class="r"><span>pays with</span><b>metered $ / token</b></div>
+            <div class="r"><span>balance</span><b>$0 — declined 🔴</b></div>
+            <div class="r"><span>rides it</span><b>6 workflows</b></div>
+          </div>
+        </div>
+        <div class="swap-arrow" aria-hidden="true">→</div>
+        <div class="wallet live">
+          <div class="top"><span class="em">🎟️</span> CLAUDE_CODE_OAUTH_TOKEN</div>
+          <div class="rows">
+            <div class="r"><span>pays with</span><b>your Max plan ✅</b></div>
+            <div class="r"><span>balance</span><b>already paid · $0 more</b></div>
+            <div class="r"><span>rides it today</span><b>1 (release-watch 🟢)</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="meter note" style="margin-block-start:12px">
+        The secret already exists (set 2026-05-27) and <span class="mono">claude-release-watch</span> has been
+        green on it the whole time — proof it works on runners. Nothing new to provision.
+      </div>
+    </div>
+
+    <div class="card glass">
+      <h3>💥 Blast radius — what each robot does after this path</h3>
+      <div class="wf-grid" id="wfGrid"></div>
+    </div>
+
+    <div class="card glass" id="diffCard">
+      <h3>🔧 Bonus: the OAuth path is <em>fewer</em> lines, not more</h3>
+      <div class="diff">
+        <div class="col">
+          <h4>💳 API-key way (what's failing)</h4>
+          <div class="line del">write key → ~/.claude/.api-key</div>
+          <div class="line del">write settings.json apiKeyHelper</div>
+          <div class="line del">api-key-helper.sh shim</div>
+          <div class="line del">auth smoke test 💥 400</div>
+        </div>
+        <div class="col">
+          <h4>🎟️ OAuth way (green)</h4>
+          <div class="line keep">env: CLAUDE_CODE_OAUTH_TOKEN</div>
+          <div class="line" style="color:var(--pg-faint)">↳ claude -p reads it natively</div>
+          <div class="line keep">…that's the whole step ✅</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card glass">
+      <h3>📊 The two meters that matter now</h3>
+      <div class="meters">
+        <div class="meter">
+          <div class="lab"><span class="big zero" id="dollars">$0</span><span class="u">new dollars / mo</span></div>
+          <div class="bars"><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div></div>
+          <div class="note" id="dollarNote">Every path here spends $0 metered. That's the whole point.</div>
+        </div>
+        <div class="meter">
+          <div class="lab"><span class="big" id="quota">🔋</span><span class="u">Max-quota draw</span></div>
+          <div class="bars" id="quotaBars"><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div></div>
+          <div class="note" id="quotaNote"></div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<!-- ============ PROMPT BAR ============ -->
+<div class="promptbar glass">
+  <pre id="prompt" aria-live="polite"></pre>
+  <button id="copy">Copy</button>
+</div>
+
+<script>
+const PATHS = {
+  OAUTH_ALL: {ic:"🅰️", t:"OAuth — all 6", star:"",
+    d:"Point every workflow at the Max token. All green, $0 metered. Draws the most Max quota (that's what the throttle is for)."},
+  SELECTIVE: {ic:"⭐", t:"Selective", star:"recommended",
+    d:"OAuth the cheap high-signal ones (triage, review) + sentinel; leave ultrareview & eval manual (already $0 until triggered)."},
+  DISABLE:   {ic:"🅱️", t:"Disable them", star:"",
+    d:"True zero — no dollars, no quota. Turn the robots off. Red stops now; you lose auto-review / triage / sentinel."}
+};
+
+// state per path per workflow: "oauth" | "throttle" | "dormant" | "off"
+const WFS = [
+  {n:"ci-sentinel", em:"🔍", tag:"hourly cron", role:"sentinel",
+   job:"Hourly: diagnoses your red PRs with /ci-debug, comments the verdict. Propose-only."},
+  {n:"claude-review", em:"👀", tag:"on PR", role:"event",
+   job:"AI code review — reads the diff, posts bugs/security/suggestions on the PR."},
+  {n:"claude-triage", em:"🏷️", tag:"on issue", role:"event",
+   job:"Labels & classifies every new issue so the backlog stays sorted."},
+  {n:"claude-health", em:"🩺", tag:"nightly", role:"nightly",
+   job:"Nightly repo health brief."},
+  {n:"orchestkit-eval", em:"🧪", tag:"manual", role:"manual",
+   job:"Graded skill/hook eval pipeline. Runs only when you dispatch it."},
+  {n:"ultrareview", em:"🛡️", tag:"manual label", role:"manual",
+   job:"Multi-agent deep review. Runs only when you label a PR."}
+];
+
+const state = { path:"SELECTIVE", throttle:true };
+const $ = id => document.getElementById(id);
+
+/* build path cards */
+const pathsEl = $("paths");
+Object.entries(PATHS).forEach(([k,p])=>{
+  const el = document.createElement("div");
+  el.className = "path"; el.dataset.k = k; el.setAttribute("role","button"); el.tabIndex = 0;
+  el.innerHTML = `<span class="ic">${p.ic}</span><div><div class="t">${p.t}`
+    + (p.star?`<span class="star">${p.star}</span>`:``) + `</div><div class="d">${p.d}</div></div>`;
+  const pick = ()=>{ state.path = k; updateAll(); };
+  el.addEventListener("click", pick);
+  el.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pick(); }});
+  pathsEl.appendChild(el);
+});
+
+/* throttle toggle */
+const thEl = $("throttle");
+const flip = ()=>{ if(state.path==="DISABLE") return; state.throttle = !state.throttle; updateAll(); };
+thEl.addEventListener("click", flip);
+thEl.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); flip(); }});
+
+/* what happens to each workflow under the chosen path */
+function wfStateFor(w){
+  if(state.path==="DISABLE"){
+    if(w.role==="sentinel"||w.role==="nightly") return {cls:"off", em:"🔌", txt:"Disabled — cron turned off. $0, no quota."};
+    return {cls:"dormant", em:"💤", txt:"Left dormant — fires nothing until you re-enable it."};
+  }
+  if(state.path==="SELECTIVE"){
+    if(w.role==="event") return {cls:"ok", em:"🎟️", txt:"On OAuth 🟢 — cheap, high-signal, kept live."};
+    if(w.role==="sentinel") return state.throttle
+      ? {cls:"throttle", em:"📉", txt:"On OAuth 🟢 + throttled to daily — low quota draw."}
+      : {cls:"ok", em:"🎟️", txt:"On OAuth 🟢, still hourly — heavier quota draw."};
+    if(w.role==="nightly") return {cls:"ok", em:"🎟️", txt:"On OAuth 🟢 — nightly, negligible draw."};
+    return {cls:"dormant", em:"💤", txt:"Left manual — $0 until you trigger it. No migration needed."};
+  }
+  // OAUTH_ALL
+  if(w.role==="sentinel") return state.throttle
+    ? {cls:"throttle", em:"📉", txt:"On OAuth 🟢 + throttled to daily — low quota draw."}
+    : {cls:"ok", em:"🎟️", txt:"On OAuth 🟢, hourly — biggest quota draw of the six."};
+  return {cls:"ok", em:"🎟️", txt:"On OAuth 🟢 — migrated off the dead credit card."};
+}
+
+function renderPaths(){
+  pathsEl.querySelectorAll(".path").forEach(el=> el.classList.toggle("sel", el.dataset.k===state.path));
+}
+function renderToggle(){
+  const disabled = state.path==="DISABLE";
+  thEl.classList.toggle("off", disabled);
+  thEl.classList.toggle("on", state.throttle && !disabled);
+  thEl.setAttribute("aria-checked", String(state.throttle && !disabled));
+}
+function renderWfs(){
+  const grid = $("wfGrid"); grid.innerHTML = "";
+  WFS.forEach(w=>{
+    const s = wfStateFor(w);
+    const div = document.createElement("div");
+    div.className = "wf " + s.cls;
+    div.innerHTML =
+      `<div class="hd"><span class="em">${s.em}</span><span>${w.n}</span><span class="tag">${w.tag}</span></div>`+
+      `<div class="state">${s.txt}</div>`;
+    grid.appendChild(div);
+  });
+  // release-watch, always green reference
+  const ref = document.createElement("div");
+  ref.className = "wf ok";
+  ref.innerHTML = `<div class="hd"><span class="em">🎟️</span><span>claude-release-watch</span><span class="tag">daily</span></div>`+
+    `<div class="state">Already on OAuth 🟢 — untouched. The template every other card copies.</div>`;
+  grid.appendChild(ref);
+}
+function renderMeters(){
+  $("diffCard").style.display = state.path==="DISABLE" ? "none" : "";
+  // dollars — always zero
+  $("dollarNote").textContent = state.path==="DISABLE"
+    ? "Disabled: $0 dollars AND $0 quota. The absolute-zero option."
+    : "$0 metered — it's billed against the Max plan you already pay for, not the console credit card.";
+  // quota
+  let level, note;
+  if(state.path==="DISABLE"){ level=0; note="No robots running → no Max quota used at all."; }
+  else if(state.path==="SELECTIVE"){ level = state.throttle?1:2;
+    note = state.throttle
+      ? "Light — 2 event-driven bots + a daily sentinel. Barely touches your interactive limits."
+      : "Moderate — hourly sentinel bumps it up. Flip the throttle to cut it."; }
+  else { level = state.throttle?2:4;
+    note = state.throttle
+      ? "Moderate — all 6 on OAuth, but the sentinel is throttled to daily."
+      : "HIGH — all 6 + hourly sentinel. This can throttle your own Claude Code sessions. Throttle it. 📉"; }
+  const bars = $("quotaBars").children;
+  for(let i=0;i<bars.length;i++){
+    bars[i].className = "b" + (i<level ? (level>=4 && !state.throttle && state.path==="OAUTH_ALL" ? " warn":" on") : "");
+  }
+  $("quota").textContent = level===0 ? "—" : "🔋".repeat(Math.max(1,Math.ceil(level/1.5)));
+  const qn = $("quotaNote"); qn.textContent = note;
+  qn.className = "note" + (level>=4 && !state.throttle ? " warn" : "");
+}
+
+function updatePrompt(){
+  const p = [];
+  const thr = state.throttle;
+  if(state.path==="OAUTH_ALL"){
+    p.push("Migrate all 6 OrchestKit CI workflows off ANTHROPIC_API_KEY onto CLAUDE_CODE_OAUTH_TOKEN (the secret is already set), following the claude-release-watch pattern:");
+    p.push("• ci-sentinel, claude-review, claude-triage, claude-health, orchestkit-eval, ultrareview — replace the apiKeyHelper file-write step with a job-level env: CLAUDE_CODE_OAUTH_TOKEN, and drop the ANTHROPIC_API_KEY smoke test.");
+    if(thr) p.push("• Also throttle the ci-sentinel cron from hourly (17 * * * *) to daily to protect my Max quota.");
+    p.push("This spends $0 metered (billed to my Max plan). Open it as a workflow-only PR; no secrets to touch.");
+    p.push("Add a 401-detection canary so an expired OAuth token pages me instead of failing silently (per the cc-triage parse_failed=expired-token memory).");
+  } else if(state.path==="SELECTIVE"){
+    p.push("Migrate the cost-effective OrchestKit CI workflows onto CLAUDE_CODE_OAUTH_TOKEN (already set), leaving the manual ones alone:");
+    p.push("• OAuth-migrate: claude-triage, claude-review, claude-health, and ci-sentinel — swap the apiKeyHelper step for a job-level env: CLAUDE_CODE_OAUTH_TOKEN, following claude-release-watch.");
+    if(thr) p.push("• Throttle ci-sentinel from hourly to daily in the same PR.");
+    p.push("• Leave orchestkit-eval and ultrareview as-is — they're manual-dispatch, so they cost $0 until I trigger them; they can move to OAuth later.");
+    p.push("$0 metered (Max plan). Workflow-only PR, no secret changes. Add a 401-expiry canary for the OAuth token.");
+  } else {
+    p.push("Stop all OrchestKit CI Claude spend with zero dollars and zero quota — disable the cron workflows:");
+    p.push("• gh workflow disable ci-sentinel.yml -R yonatangross/orchestkit");
+    p.push("• gh workflow disable claude-health.yml -R yonatangross/orchestkit");
+    p.push("Leave claude-review / claude-triage / orchestkit-eval / ultrareview in place but dormant (they only fire on PR/issue/manual events). Don't touch any secret. Note in the PR/commit that this is a freeze, not a fix — re-enable by switching them to CLAUDE_CODE_OAUTH_TOKEN when ready.");
+  }
+  $("prompt").textContent = p.join("\n");
+}
+
+function updateAll(){ renderPaths(); renderToggle(); renderWfs(); renderMeters(); updatePrompt(); }
+
+$("copy").addEventListener("click", async ()=>{
+  try{ await navigator.clipboard.writeText($("prompt").textContent); }catch(e){
+    const r=document.createRange(); r.selectNodeContents($("prompt"));
+    const s=getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand("copy"); s.removeAllRanges();
+  }
+  const b=$("copy"); b.textContent="✓ Copied"; setTimeout(()=>b.textContent="Copy",1500);
+});
+
+updateAll();
+</script>
+</body>
+</html>
