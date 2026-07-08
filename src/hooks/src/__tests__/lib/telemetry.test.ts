@@ -123,6 +123,15 @@ describe('Telemetry Emitter', () => {
       expect(event.data.tool_name).toBeUndefined();
       expect(event.data.agent_type).toBeUndefined();
     });
+
+    it('falls back to "unknown" for an empty-string hook_event, not a blank event field', () => {
+      // Regression test for #2590: `??` only catches null/undefined, not ''.
+      // A caller that bypasses run-hook.mjs's normalizeInput (which now
+      // guarantees a non-empty string) must still not produce event:''.
+      const event = buildEvent({ tool_input: {}, hook_event: '' } as any);
+      expect(event.event).toBe('unknown');
+      expect(event.event).not.toBe('');
+    });
   });
 
   describe('emit', () => {

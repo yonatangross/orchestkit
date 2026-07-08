@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.68.0",
+    "date": "2026-07-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**skills:** adopt MengTo/Skills quality-bar + stylecard patterns ([#2794](https://github.com/yonatangross/orchestkit/issues/2794)) ([f1104d4](https://github.com/yonatangross/orchestkit/commit/f1104d4dfcf3e2d99ca54170ebc04e31c2159f17))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.67.0",
     "date": "2026-07-08",
     "compareUrl": "",

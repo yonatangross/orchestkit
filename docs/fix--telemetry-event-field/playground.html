@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telemetry event field fix — OrchestKit</title>
+<style>
+  :root {
+    --pg-bg: hsl(232 26% 7%); --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(220 14% 64%); --pg-faint: hsl(220 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05); --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%); --pg-accent-deep: hsl(248 70% 54%);
+    --pg-ok: hsl(160 60% 55%); --pg-risk: hsl(8 75% 62%);
+    --pg-radius-md: 16px; --pg-ease: cubic-bezier(.2,.8,.25,1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--pg-bg);
+    background-image: radial-gradient(1100px 620px at 12% -8%, hsl(248 60% 22% / .55), transparent 60%),
+      radial-gradient(900px 560px at 105% 12%, hsl(262 55% 20% / .45), transparent 55%);
+    background-attachment: fixed; color: var(--pg-ink);
+    font-family: -apple-system, "SF Pro Display", "Segoe UI", Inter, sans-serif;
+    min-height: 100vh; padding: 48px 24px 96px; line-height: 1.55;
+  }
+  .wrap { max-width: 980px; margin-inline: auto; }
+  .mono { font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace; }
+  .eyebrow { color: var(--pg-accent); font-size: 13px; font-weight: 600; letter-spacing: 1.6px; text-transform: uppercase; }
+  h1 { font-size: 30px; font-weight: 700; letter-spacing: -.3px; margin-block: 8px 12px; }
+  .sub { color: var(--pg-muted); max-width: 70ch; }
+
+  .lane { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-block: 32px; }
+  .lane .step { background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: 12px;
+    padding: 10px 14px; font-size: 13px; font-weight: 600; }
+  .lane .step.bug { color: var(--pg-risk); border-color: hsl(8 75% 62% / .4); }
+  .lane .arrow { color: var(--pg-accent); font-weight: 700; }
+
+  .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-block-end: 32px; }
+  @media (max-width: 780px) { .ba { grid-template-columns: 1fr; } }
+  .pane { background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--pg-radius-md);
+    overflow: hidden; }
+  .pane-bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-block-end: 1px solid hsl(0 0% 100% / .08); }
+  .pane-bar .tag { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
+  .pane.before .tag { color: var(--pg-risk); } .pane.after .tag { color: var(--pg-ok); }
+  .pane-bar .fname { color: var(--pg-faint); font-size: 12px; margin-inline-start: auto; }
+  .code { padding: 16px; font-size: 12.5px; line-height: 1.7; white-space: pre; overflow-x: auto; }
+  .code .del { color: var(--pg-risk); } .code .add { color: var(--pg-ok); } .code .cm { color: var(--pg-faint); }
+
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-block-end: 32px; }
+  .tile { background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--pg-radius-md);
+    padding: 16px; }
+  .tile .v { font-size: 24px; font-weight: 700; } .tile .l { color: var(--pg-faint); font-size: 12px; margin-block-start: 4px; }
+
+  section.block { margin-block-start: 40px; }
+  section.block h2 { font-size: 17px; font-weight: 700; margin-block-end: 12px; }
+  .row { padding: 12px 0; border-block-end: 1px solid hsl(0 0% 100% / .08); font-size: 13.5px; color: var(--pg-muted); }
+  .row b { color: var(--pg-ink); }
+
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">OrchestKit · Bug Fix</div>
+  <h1>Telemetry event field: '' instead of the real hook name</h1>
+  <p class="sub">Two independent nullish-coalescing gaps compounded into a silent hole: 91% of local
+  telemetry rows carried <span class="mono">event:""</span> instead of a real hook name — invisible
+  to any sink with a non-empty allowlist. Root-caused via CC's official docs
+  (<span class="mono">hook_event_name</span> is guaranteed on every invocation), not guessed.</p>
+
+  <div class="lane">
+    <span class="step">CC sends hook_event_name</span><span class="arrow">→</span>
+    <span class="step bug">normalizeInput() fallback: ''</span><span class="arrow">→</span>
+    <span class="step bug">buildEvent()'s ?? never catches ''</span><span class="arrow">→</span>
+    <span class="step bug">events.jsonl: event:""</span>
+  </div>
+
+  <div class="tiles">
+    <div class="tile"><div class="v">2</div><div class="l">independent bugs, both fixed</div></div>
+    <div class="tile"><div class="v">2</div><div class="l">regression tests added</div></div>
+    <div class="tile"><div class="v">174</div><div class="l">hooks-package tests pass</div></div>
+    <div class="tile"><div class="v">60/0</div><div class="l">full suite pass/fail</div></div>
+  </div>
+
+  <div class="ba">
+    <div class="pane before">
+      <div class="pane-bar"><span class="tag">Before</span><span class="fname mono">run-hook.mjs</span></div>
+      <div class="code mono">input.hook_event = input.hook_event
+  || input.hook_event_name
+  <span class="del">|| '';</span>
+<span class="cm"># '' is the terminal fallback —
+# not diagnosable, not caught downstream</span></div>
+    </div>
+    <div class="pane after">
+      <div class="pane-bar"><span class="tag">After</span><span class="fname mono">run-hook.mjs</span></div>
+      <div class="code mono">input.hook_event = input.hook_event
+  || input.hook_event_name
+  <span class="add">|| 'unknown';</span>
+<span class="cm"># single source of truth for
+# "no event name available"</span></div>
+    </div>
+  </div>
+
+  <div class="ba">
+    <div class="pane before">
+      <div class="pane-bar"><span class="tag">Before</span><span class="fname mono">telemetry.ts</span></div>
+      <div class="code mono">event: input.hook_event <span class="del">??</span> 'unknown',
+<span class="cm"># ?? only catches null/undefined —
+# '' passes straight through, dead code</span></div>
+    </div>
+    <div class="pane after">
+      <div class="pane-bar"><span class="tag">After</span><span class="fname mono">telemetry.ts</span></div>
+      <div class="code mono">event: input.hook_event <span class="add">||</span> 'unknown',
+<span class="cm"># defense in depth — guards '' even if
+# a caller bypasses normalizeInput</span></div>
+    </div>
+  </div>
+
+  <section class="block">
+    <h2>Verification trail</h2>
+    <div class="row"><b>Root cause confirmed, not assumed</b> — consulted the official CC hooks docs
+    via a specialist agent: <span class="mono">hook_event_name</span> is a guaranteed field on
+    every hook invocation, all event types. Ruled out "CC doesn't always send it" before writing
+    any fix.</div>
+    <div class="row"><b>Live-capture attempt made and abandoned</b> — instrumented the actual
+    installed hook dispatcher for a raw-payload capture (same technique as prior SubagentStart
+    investigations), hit repeated environment issues (sandboxed /tmp, async/await syntax risk to a
+    live session), and reverted cleanly (byte-identical MD5 to the pre-edit backup) once the safer
+    documentation-based path confirmed the answer.</div>
+    <div class="row"><b>Existing test gap identified</b> — prior tests covered the
+    <span class="mono">undefined</span> case only (which <span class="mono">??</span> correctly
+    catches), never the empty-string case — exactly the gap that let this ship unnoticed. Both new
+    tests assert <span class="mono">!== ''</span> explicitly, not just <span class="mono">=== 'unknown'</span>.</div>
+  </section>
+</div>
+</body>
+</html>

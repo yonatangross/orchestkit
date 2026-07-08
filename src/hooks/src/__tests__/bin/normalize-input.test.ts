@@ -52,7 +52,7 @@ function normalizeInput(input: Record<string, unknown>): Record<string, unknown>
 
   input.tool_name = input.tool_name || input.toolName || '';
   input.session_id = input.session_id || input.sessionId || '';
-  input.hook_event = input.hook_event || input.hook_event_name || '';
+  input.hook_event = input.hook_event || input.hook_event_name || 'unknown';
 
   const candidates = [input.project_dir, input.projectDir, input.cwd];
   input.project_dir = candidates.find(isValidPath) || '.';
@@ -293,6 +293,15 @@ describe('normalizeInput', () => {
     it('falls back to hook_event_name', () => {
       const result = normalizeInput({ hook_event_name: 'PostToolUse' });
       expect(result.hook_event).toBe('PostToolUse');
+    });
+
+    it('falls back to "unknown" — never an empty string — when neither is present', () => {
+      // Regression test for #2590: '' is falsy but not nullish, so a
+      // downstream `??` check silently never catches it, and a non-empty
+      // supportedEvents allowlist silently drops the event.
+      const result = normalizeInput({});
+      expect(result.hook_event).toBe('unknown');
+      expect(result.hook_event).not.toBe('');
     });
   });
 

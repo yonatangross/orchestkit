@@ -109,7 +109,12 @@ export function _resetSinksForTesting(): void {
  */
 export function buildEvent(input: HookInput): TelemetryEvent {
   return {
-    event: input.hook_event ?? 'unknown',
+    // `||` not `??`: normalizeInput() guarantees a non-empty string today,
+    // but this must independently guard '' too — a caller that bypasses
+    // run-hook.mjs's normalization (a direct test, a future entry point)
+    // would otherwise produce event:'' here, which is falsy but not
+    // nullish, so `??` silently lets it through unfixed. See #2590.
+    event: input.hook_event || 'unknown',
     session_id: input.session_id || getSessionId(),
     project: getProjectSlug(input),
     timestamp: new Date().toISOString(),
