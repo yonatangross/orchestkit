@@ -37,7 +37,7 @@ SCOPE_TOKEN = "$ARGUMENTS[0]"  # First token for flag detection (e.g., "--scope=
 MODEL_OVERRIDE = None
 for token in "$ARGUMENTS".split():
     if token.startswith("--model="):
-        MODEL_OVERRIDE = token.split("=", 1)[1]  # "opus", "sonnet", "haiku"
+        MODEL_OVERRIDE = token.split("=", 1)[1]  # "opus", "sonnet", "haiku", "fable"
         SCOPE = SCOPE.replace(token, "").strip()
 
 # Streak gate detection (#2540) — consecutive-pass mode
@@ -49,7 +49,7 @@ for token in "$ARGUMENTS".split():
 # When set, apply the Streak Gate (see below). Full protocol: references/streak-gate.md
 ```
 
-Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`) or full IDs (`claude-opus-4-8`) per CC 2.1.74.
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`, `fable` on harnesses whose Agent tool lists it; note fable is premium API spend after 2026-07-12) or full IDs (`claude-opus-4-8`) per CC 2.1.74.
 
 > **Opus 4.8**: Agents use native adaptive thinking (no MCP sequential-thinking needed); defaults to `high` effort (CC 2.1.154+). Extended 128K output supports comprehensive verification reports.
 

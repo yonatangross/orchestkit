@@ -41,11 +41,11 @@ TARGET = "$ARGUMENTS"  # Full argument string, e.g., "backend/app/services/auth.
 MODEL_OVERRIDE = None
 for token in "$ARGUMENTS".split():
     if token.startswith("--model="):
-        MODEL_OVERRIDE = token.split("=", 1)[1]  # "opus", "sonnet", "haiku"
+        MODEL_OVERRIDE = token.split("=", 1)[1]  # "opus", "sonnet", "haiku", "fable"
         TARGET = TARGET.replace(token, "").strip()
 ```
 
-Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`) or full IDs (`claude-opus-4-8`) per CC 2.1.74.
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`, `fable` on harnesses whose Agent tool lists it; note fable is premium API spend after 2026-07-12) or full IDs (`claude-opus-4-8`) per CC 2.1.74.
 
 > **Switching to Opus via `/model` (CC 2.1.144+):** `/model` now changes the model for the current session only, so picking Opus for an assess run no longer persists past it. Press `d` in the picker only to set a default for new sessions.
 

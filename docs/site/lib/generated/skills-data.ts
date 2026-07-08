@@ -481,7 +481,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches.",
     "version": "1.8.0",
-    "sha256": "cf47c4ec6292a2afe96de60389c446fef084b5e27b69fbe78c705c180e8fe450",
+    "sha256": "c9dade3b44ff744036bed2d031315cbb78e1ef5bd714cdb78f1b9ee12b962aca",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -2753,7 +2753,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when implementing features, building new capabilities, or creating full-stack functionality.",
     "version": "2.8.0",
-    "sha256": "7381ab3bec8e48f994ff22a297f91048b3e6fbb8c7131f85f7e68a79a7631b29",
+    "sha256": "becf279fc2962d6e2b3bb55f3983836ecc1f0884a4d69c086cbfc425d9bccdbb",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -5412,7 +5412,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security scanning, and type checking. Runs coverage analysis, detects regressions, and validates against project conventions. Reports pass/fail with detailed findings and coverage deltas. Use when verifying implementations, validating changes after /ork:implement, or running pre-merge quality gates.",
     "version": "4.5.0",
-    "sha256": "6ea5c4cd708ca6c07017acec9bc37f3a60207da20dd06fdf06a41c93d1317d76",
+    "sha256": "efa683023b5fd4a80b6abb4981c6dedb5820fea7dc649d5bb3f76341dd26483e",
     "author": "OrchestKit",
     "tags": [
       "verification",
