@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.67.0](https://github.com/yonatangross/orchestkit/compare/v8.66.0...v8.67.0) (2026-07-08)
+
+
+### Features
+
+* **cc-adoption:** adopt CC 2.1.203 + 2.1.204 ([#2792](https://github.com/yonatangross/orchestkit/issues/2792)) ([21a97cf](https://github.com/yonatangross/orchestkit/commit/21a97cf011499be5cf65472b1c08f21ebf16653d))
+
+
+### Documentation
+
+* **skills:** document fable symbolic model name in --model plumbing ([#2791](https://github.com/yonatangross/orchestkit/issues/2791)) ([8dba6fb](https://github.com/yonatangross/orchestkit/commit/8dba6fb29e6903c5ed8d2c7a15a9b5343c493cd6))
+
 ## [8.66.0](https://github.com/yonatangross/orchestkit/compare/v8.65.2...v8.66.0) (2026-07-08)
 
 
