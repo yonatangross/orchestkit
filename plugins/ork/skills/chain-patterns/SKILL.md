@@ -236,6 +236,8 @@ Agent(subagent_type="ork:backend-system-architect",
 
 > **CC 2.1.181 — foreground depth cap now enforced:** foreground subagents previously spawned unbounded nested chains; CC now rejects spawns past 5 levels deep, the same limit background subagents always had. This is CC's INTERNAL spawn-time rejection — distinct from ork's hook-based depth-≥4 warning above, which stays dormant (2.1.181 did not expose `parent_agent_id`). ork's ≤3 convention sits safely under the enforced 5-cap; the failure mode authors now hit is a hard depth-limit rejection, not silent unbounded growth.
 
+> **CC 2.1.203 — subagents less likely to re-delegate their whole task:** upstream tuned subagent behavior so an agent no longer hands its ENTIRE task to another subagent instead of doing the work itself. This reinforces the "each level synthesizes, never forwards" contract below — with accidental full-task handoff suppressed, the remaining depth pressure is the deliberate-nesting cost this budget already governs.
+
 **Worked example — depth-3 infra chain** (grants live in `src/agents/`):
 
 ```python
