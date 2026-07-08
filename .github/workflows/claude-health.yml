@@ -37,8 +37,13 @@ jobs:
           claude --version
 
       - name: Run health assessment
+        # Auth via the Max-plan OAuth token instead of metered console credits
+        # ($0 spend). `claude -p` reads CLAUDE_CODE_OAUTH_TOKEN from the env
+        # natively — no apiKeyHelper needed (proven by claude-release-watch.yml).
+        # Rotate with `claude setup-token` + `gh secret set CLAUDE_CODE_OAUTH_TOKEN`
+        # if this 401s.
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           claude -p "

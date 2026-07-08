@@ -3,10 +3,10 @@
 
 name: CI Sentinel
 
-# /ork:ci-sentinel v1 — hourly classifier for failing PRs.
+# /ork:ci-sentinel v1 — daily classifier for failing PRs.
 #
 # Behaviour (v1 = read-only, propose-don't-apply):
-#   1. Hourly cron + manual dispatch
+#   1. Daily cron + manual dispatch
 #   2. List own open PRs with at least one failing required check
 #   3. For each: invoke `claude -p --bare` against the /ci-debug skill
 #   4. Post the verdict as a PR comment (collapsed group, idempotent)
@@ -19,8 +19,12 @@ name: CI Sentinel
 
 on:
   schedule:
-    # Hourly at :17 to avoid colliding with everyone's :00 cron storm.
-    - cron: "17 * * * *"
+    # Daily at 08:17 UTC. Throttled from hourly (2026-07) alongside the
+    # OAuth-token migration: the token is billed against the Max plan, and
+    # an hourly sweep would draw on the same interactive quota. Daily keeps
+    # red-PR diagnosis timely without eating that quota. `:17` minute offset
+    # kept to dodge the top-of-hour cron storm.
+    - cron: "17 8 * * *"
   workflow_dispatch:
     inputs:
       max_prs:
@@ -45,9 +49,9 @@ concurrency:
 env:
   # Daily token ceiling. Sentinel pauses for the calendar day once exceeded.
   # Bumped 500k → 1M on 2026-05-18 after dropping `--bare` (full CC load
-  # raises per-PR cost from ~4k to ~10k tokens). Hourly cron × 3 PRs × 10k
-  # ≈ 720k/day, so 1M gives headroom for spike days. Cost projection:
-  # ~$10-12/month per repo at Sonnet blended rates.
+  # raises per-PR cost from ~4k to ~10k tokens). Now that auth is the Max-plan
+  # OAuth token (not metered credits) this ceiling is a runaway-loop guard,
+  # not a dollar cap — a daily sweep of a few PRs sits well under it.
   ORK_SENTINEL_DAILY_TOKEN_BUDGET: "1000000"
   # Per-PR analysis timeout (wall clock). Sentinel skips a PR that times out.
   ORK_SENTINEL_PER_PR_TIMEOUT_S: "300"
@@ -56,6 +60,12 @@ jobs:
   sweep:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Hoist CLAUDE_CODE_OAUTH_TOKEN to JOB-LEVEL env so every `claude -p`
+    # step (auth smoke + per-PR analysis) reads it natively. Migrated off
+    # ANTHROPIC_API_KEY (metered credits) → Max-plan OAuth token = $0 spend.
+    # Proven on runners by claude-release-watch.yml.
+    env:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
     steps:
       - name: Checkout (for the skill registry only)
@@ -78,51 +88,27 @@ jobs:
           npm install -g @anthropic-ai/claude-code@2.1.148
           claude --version
 
-      - name: Configure Claude apiKeyHelper
-        # Critical (#1857 postmortem): `claude -p` does NOT authenticate
-        # via ANTHROPIC_API_KEY env var alone in a fresh-HOME environment.
-        # Verified locally on 2026-05-18 (CC 2.1.143) — empty HOME + env
-        # var returns "Not logged in" even though --help says it should
-        # work. The only documented path that DOES work in headless mode
-        # is `apiKeyHelper` in `~/.claude/settings.json` — a shell command
-        # whose stdout is the API key. Putting the actual key in a tiny
-        # helper script keeps it out of settings.json (which CC may log).
-        # See shared/rules/cc-bare-auth-gotcha.md and feedback memory
-        # entry for the full reproducer.
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Verify Claude auth (OAuth 401 canary)
+        # Migrated off ANTHROPIC_API_KEY + the apiKeyHelper file dance to the
+        # Max-plan OAuth token. Unlike ANTHROPIC_API_KEY (which `claude -p`
+        # would not read from the env in a fresh HOME — #1857), the OAuth
+        # token IS read natively from CLAUDE_CODE_OAUTH_TOKEN (job-level env
+        # above), so no helper script is needed. Proven on runners by
+        # claude-release-watch.yml.
+        #
+        # 401 canary: an expired/revoked OAuth token surfaces as an auth
+        # error HERE, before a sweep burns any quota. Fail loudly with the
+        # exact one-copy-paste rotate command so a stale token is a 30-second
+        # fix, not a silent daily red run.
         run: |
-          if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
-            echo "::error::ANTHROPIC_API_KEY secret is not set — add it under Settings → Secrets and variables → Actions"
+          if [ -z "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN secret is not set. Fix: run 'claude setup-token' locally, then 'gh secret set CLAUDE_CODE_OAUTH_TOKEN -R ${GITHUB_REPOSITORY}'."
             exit 1
           fi
-          mkdir -p ~/.claude
-          # Write the key to a 600-mode file. The helper script reads from
-          # this file rather than from $ANTHROPIC_API_KEY because CC spawns
-          # the helper with a stripped environment — env vars from the
-          # parent step are NOT inherited (verified locally 2026-05-18:
-          # "apiKeyHelper failed: did not return a value"). The runner is
-          # ephemeral; file is gone at job end.
-          umask 077
-          printf '%s' "$ANTHROPIC_API_KEY" > ~/.claude/.api-key
-          chmod 600 ~/.claude/.api-key
-          printf '#!/bin/sh\ncat %s/.claude/.api-key\n' "$HOME" > ~/.claude/api-key-helper.sh
-          chmod +x ~/.claude/api-key-helper.sh
-          printf '{"apiKeyHelper":"%s/.claude/api-key-helper.sh"}\n' "$HOME" > ~/.claude/settings.json
-          echo "settings.json contents (helper path):"
-          cat ~/.claude/settings.json
-          echo "helper script:"
-          cat ~/.claude/api-key-helper.sh
-          echo "key file: $(wc -c < ~/.claude/.api-key) bytes, mode $(stat -c %a ~/.claude/.api-key 2>/dev/null || stat -f %A ~/.claude/.api-key 2>/dev/null)"
 
-          # Smoke test: confirm auth actually works before we burn budget
-          # on N failed PR analyses. Fails the job loudly if auth is broken.
-          #
-          # IMPORTANT (#1858 → #1859 follow-up): bash `-e` propagates the exit
-          # code of a command substitution. `claude -p` exits 1 on any auth
-          # failure, which under `set -e` silently kills the step BEFORE we
-          # can log the error. Disable -e around the smoke and capture both
-          # stdout and exit explicitly so the failure mode is visible.
+          # bash `-e` would propagate the command-substitution exit code and
+          # kill the step before we can classify the failure — disable it
+          # around the smoke and capture stdout + exit explicitly.
           set +e
           smoke=$(claude -p --max-turns 1 --output-format json --no-session-persistence \
             "respond with the single word OK" 2>&1)
@@ -134,13 +120,16 @@ jobs:
           printf '%s\n' "$smoke" | head -c 400
           echo
 
-          if [ "$smoke_exit" -ne 0 ]; then
-            echo "::error::Auth smoke test exited $smoke_exit — see output above"
-            exit 1
-          fi
-          if printf '%s' "$smoke" | jq -e '.is_error == true' >/dev/null 2>&1; then
-            result=$(printf '%s' "$smoke" | jq -r '.result // "<no result>"' | head -c 200)
-            echo "::error::Auth smoke test reported is_error=true: $result"
+          # claude -p reports auth failures as is_error=true JSON on stdout
+          # AND a non-zero exit. Either signals a bad token.
+          if [ "$smoke_exit" -ne 0 ] || printf '%s' "$smoke" | jq -e '.is_error == true' >/dev/null 2>&1; then
+            msg=$(printf '%s' "$smoke" | jq -r '.result // .error // empty' 2>/dev/null | head -c 300)
+            case "${msg}${smoke}" in
+              *[Aa]uthentication*|*401*|*"Not logged in"*|*nvalid*bearer*|*OAuth*|*xpired*)
+                echo "::error::CLAUDE_CODE_OAUTH_TOKEN invalid or expired (401). Rotate it: run 'claude setup-token', then 'gh secret set CLAUDE_CODE_OAUTH_TOKEN -R ${GITHUB_REPOSITORY}'. Sentinel is skipping this run." ;;
+              *)
+                echo "::error::Auth smoke test failed (exit ${smoke_exit}): ${msg:-see output above}" ;;
+            esac
             exit 1
           fi
           tokens=$(printf '%s' "$smoke" | jq -r '.usage.total_tokens // 0')
@@ -207,7 +196,7 @@ jobs:
         if: steps.prs.outputs.queue_count != '0'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Claude auth comes from the job-level CLAUDE_CODE_OAUTH_TOKEN env.
           DRY_RUN: ${{ inputs.dry_run }}
           OWNER: ${{ steps.ctx.outputs.owner }}
           REPO: ${{ steps.ctx.outputs.repo }}
