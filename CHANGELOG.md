@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.68.0](https://github.com/yonatangross/orchestkit/compare/v8.67.0...v8.68.0) (2026-07-08)
+
+
+### Features
+
+* **skills:** adopt MengTo/Skills quality-bar + stylecard patterns ([#2794](https://github.com/yonatangross/orchestkit/issues/2794)) ([f1104d4](https://github.com/yonatangross/orchestkit/commit/f1104d4dfcf3e2d99ca54170ebc04e31c2159f17))
+
 ## [8.67.0](https://github.com/yonatangross/orchestkit/compare/v8.66.0...v8.67.0) (2026-07-08)
 
 
