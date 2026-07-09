@@ -1,86 +1,136 @@
 [
   {
-    "version": "2.1.203",
+    "version": "2.1.205",
     "parse_failed": false,
     "features": [
       {
-        "feature_slug": "anthropic_base_url_leak_fix",
+        "feature_slug": "auto_mode_transcript_tamper_block",
         "category": "breaking",
-        "description": "Background and agent-view sessions now honor shell-exported ANTHROPIC_BASE_URL instead of leaking API keys to the defaul",
+        "description": "Auto mode rule blocks tampering with session transcript files.",
         "gap_score": 20,
         "affected_skills": [
-          "security-patterns",
-          "mcp-patterns",
-          "agent-orchestration"
-        ],
-        "reference_changelog_line": "Fixed background and agent-view sessions dropping a shell-exported `ANTHROPIC_BASE_URL`, which sent API keys to the default endpoint and failed with 401",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "worktree_subagent_isolation_fix",
-        "category": "breaking",
-        "description": "Worktree-isolated subagents no longer escape isolation by running shell commands in the parent checkout.",
-        "gap_score": 20,
-        "affected_skills": [
-          "agent-orchestration",
-          "chain-patterns",
-          "swarm-migrate",
+          "auto",
           "security-patterns"
         ],
-        "reference_changelog_line": "Fixed worktree-isolated subagents sometimes running shell commands in the parent checkout instead of their own worktree",
+        "reference_changelog_line": "Added an auto mode rule that blocks tampering with session transcript files",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "subagent_redelegation_reduced",
+        "feature_slug": "reserved_mcp_server_names",
         "category": "breaking",
-        "description": "Subagents are now less likely to re-delegate their entire task to another subagent, changing orchestration behavior.",
+        "description": "Reserved 'Claude Browser' and 'Claude Preview' MCP server names; user servers can no longer register under either.",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
+          "browser-tools",
+          "mcp-visual-output"
+        ],
+        "reference_changelog_line": "Reserved the \"Claude Browser\" MCP server name (alongside \"Claude Preview\") ahead of the Claude Desktop pane rename; user-configured MCP servers can no longer register under either name",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "auto_mode_rm_rf_var_prompt",
+        "category": "breaking",
+        "description": "Auto mode now asks before running rm -rf on a variable it cannot resolve from context.",
+        "gap_score": 20,
+        "affected_skills": [
+          "auto",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Improved auto mode to ask before running `rm -rf` on a variable it can't resolve from context",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "background_task_notif_no_human",
+        "category": "breaking",
+        "description": "Background task notifications explicitly state no human input occurred, preventing fabricated approvals from being acted",
         "gap_score": 20,
         "affected_skills": [
           "agent-orchestration",
-          "audit-activation",
-          "explore",
-          "brainstorm",
-          "implement"
+          "task-dependency-patterns",
+          "security-patterns"
         ],
-        "reference_changelog_line": "Improved subagent behavior: agents are now less likely to re-delegate their entire task to another subagent",
+        "reference_changelog_line": "Background task notifications now explicitly state that no human input has occurred, preventing fabricated in-transcript approvals from being acted on",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "doctor_status_claude_warnings",
+        "feature_slug": "plugin_lsp_fallback_isolation",
         "category": "breaking",
-        "description": "Startup 'claude command missing or broken' warnings moved from launch to /doctor and /status output.",
+        "description": "A failing plugin LSP server no longer prevents another plugin's valid LSP from handling the same file extension.",
         "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed a plugin LSP server that fails to initialize preventing a valid LSP server from another plugin handling the same file extension",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "mcp_add_from_desktop_invalid_names",
+        "category": "breaking",
+        "description": "claude mcp add-from-claude-desktop reports invalid server names and continues importing the rest instead of hanging.",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed `claude mcp add-from-claude-desktop` getting stuck when a server name contains unsupported characters; invalid names are now reported and remaining servers still import",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "project_verify_skill_rewrite_gate",
+        "category": "breaking",
+        "description": "Project verify skills are only rewritten when a documented command changes, not on every session.",
+        "gap_score": 20,
+        "affected_skills": [
+          "verify",
+          "setup"
+        ],
+        "reference_changelog_line": "Fixed project verify skills being rewritten on every session instead of only when a documented command changed",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "doctor_full_setup_checkup",
+        "category": "new_command",
+        "description": "/doctor is now a full setup checkup that diagnoses and fixes issues; /checkup is an alias.",
+        "gap_score": 15,
         "affected_skills": [
           "doctor",
           "setup",
           "configure"
         ],
-        "reference_changelog_line": "Removed the startup \"claude command missing or broken\" warnings — they now appear in `/doctor` and `/status` instead",
+        "reference_changelog_line": "`/doctor` is now a full setup checkup that can diagnose and fix issues; `/checkup` is its alias",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "mcp_roots_list_changed_event",
-        "category": "new_event",
-        "description": "MCP roots/list now includes session additional working directories and emits notifications/roots/list_changed on set cha",
+        "feature_slug": "agent_view_pr_link_on_edits",
+        "category": "new_attr",
+        "description": "Agent view links an existing PR when sessions edit, merge, comment on, or push to it.",
         "gap_score": 10,
         "affected_skills": [
-          "mcp-patterns",
-          "mcp-visual-output",
-          "chain-patterns"
+          "agent-orchestration",
+          "create-pr",
+          "github-operations"
         ],
-        "reference_changelog_line": "Added the session's additional working directories to MCP `roots/list`, with `notifications/roots/list_changed` sent when the set changes",
-        "relevance": "plugin"
+        "reference_changelog_line": "Improved agent view: sessions that edit, merge, comment on, or push to an existing PR now link it in `claude agents`",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
+      },
+      {
+        "feature_slug": "agent_view_state_headline_peek",
+        "category": "new_attr",
+        "description": "Agent rows show colored state word and classifier headline; peek shows full status including exact ask for blocked sessi",
+        "gap_score": 10,
+        "affected_skills": [
+          "agent-orchestration",
+          "task-dependency-patterns"
+        ],
+        "reference_changelog_line": "Improved agent view: rows now show a colored state word and a classifier-written headline instead of raw tool call text, and the peek opens with full status including the exact ask for blocked sessions",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
       }
     ],
-    "raw_bullets_count": 37,
-    "issues_filed_at": "2026-07-08T04:04:16Z"
-  },
-  {
-    "version": "2.1.204",
-    "parse_failed": false,
-    "features": [],
-    "raw_bullets_count": 1,
-    "featureless": true,
-    "issues_filed_at": "2026-07-08T04:04:16Z"
+    "raw_bullets_count": 23,
+    "issues_filed_at": "2026-07-09T04:20:59Z"
   }
 ]
