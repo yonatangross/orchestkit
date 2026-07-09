@@ -6,9 +6,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-const { mockAppendFileSync, mockRecordInvocation } = vi.hoisted(() => ({
+const { mockAppendFileSync, mockRecordInvocation, mockRotateLogFile } = vi.hoisted(() => ({
   mockAppendFileSync: vi.fn(),
   mockRecordInvocation: vi.fn(),
+  mockRotateLogFile: vi.fn(),
 }));
 
 // Mock dependencies before imports
@@ -19,6 +20,12 @@ vi.mock('../../lib/analytics-buffer.js', () => ({
   flush: vi.fn(),
   pendingCount: vi.fn(() => 0),
   _resetForTesting: vi.fn(),
+}));
+
+// #959-regression fix (2026-07-09): verify the rotation guard added when this
+// hook's dispatch was restored (see security review finding: unbounded growth).
+vi.mock('../../lib/log.js', () => ({
+  rotateLogFile: (...args: unknown[]) => mockRotateLogFile(...args),
 }));
 
 vi.mock('../../lib/common.js', () => mockCommonBasic());
@@ -129,5 +136,16 @@ describe('skill-tracker', () => {
     );
 
     expect(mockRecordInvocation).not.toHaveBeenCalled();
+  });
+
+  it('rotates skill-usage.log before appending (unbounded-growth guard)', () => {
+    skillTracker(createSkillInput('unit-testing'), testCtx);
+
+    // rotateLogFile is called once per sink: skill-usage.log (this hook's own
+    // appendSafe) and skill-channels.jsonl (via the recordSkillChannel call it makes).
+    expect(mockRotateLogFile).toHaveBeenCalledTimes(2);
+    const usageRotateCall = mockRotateLogFile.mock.calls.find((c) => String(c[0]).includes('skill-usage.log'));
+    expect(usageRotateCall).toBeDefined();
+    expect(usageRotateCall?.[1]).toBe(200 * 1024);
   });
 });

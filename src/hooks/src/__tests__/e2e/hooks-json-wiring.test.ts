@@ -236,7 +236,14 @@ describe('hooks.json wiring E2E', () => {
       // 210 -> 211: posttool/write/debt-marker-tracker — a real hooks.json WIRING
       //                          ENTRY (PostToolUse Write/Edit), counted by count-hooks.sh.
       // 211 -> 212: re-registered subagent-stop/unified-dispatcher (#1206 orphan fix).
-      expect(hooksConfig.description).toContain('212 total');
+      // 212 -> 214: #959-regression fix — restored the PreToolUse "Skill" matcher
+      //                          block dropped by #959's hooks.json rework:
+      //                          pretool/skill/skill-tracker (async) + its
+      //                          lifecycle/webhook-forwarder entry. Revives
+      //                          skill-usage.log, sessions.db skill_invocation
+      //                          (M168's only feeder), and skill-channels.jsonl
+      //                          main channel (#2154).
+      expect(hooksConfig.description).toContain('214 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

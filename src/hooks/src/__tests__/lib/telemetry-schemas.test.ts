@@ -373,8 +373,8 @@ describe('SkillChannelEntry shape lock (activation channels)', () => {
 });
 
 describe('SCHEMA_LOCKED inventory (M121 #1490)', () => {
-  it('contains all 8 schema-locked file paths', () => {
-    expect(SCHEMA_LOCKED.length).toBe(8);
+  it('contains all 7 schema-locked file paths', () => {
+    expect(SCHEMA_LOCKED.length).toBe(7);
   });
 
   it('includes the activation-channel telemetry file', () => {
@@ -395,12 +395,20 @@ describe('SCHEMA_LOCKED inventory (M121 #1490)', () => {
     expect(paths).toContain('.claude/telemetry/pre-compact-decisions.jsonl');
   });
 
-  it('includes the 5 new (M121) files', () => {
+  it('includes the 4 remaining (M121) files', () => {
     const paths = SCHEMA_LOCKED.map(e => e.path);
     expect(paths).toContain('.claude/logs/decisions.jsonl');
     expect(paths).toContain('.claude/logs/subagent-spawns.jsonl');
     expect(paths).toContain('.claude/state/edit-history.jsonl');
     expect(paths).toContain('.claude/state/ork-metrics-*.json');
-    expect(paths).toContain('.claude/feedback/skill-usage.json');
+  });
+
+  // Delisted 2026-07-09: skill-usage.json removed from SCHEMA_LOCKED because its
+  // writer has been unwired since #959 (2026-03-06). The validator is retained
+  // for back-compat (see 'SkillUsageFile shape lock' describe block) but the
+  // path is no longer schema-locked, so telemetry-inspect treats the frozen
+  // file as an orphan rather than an expected writer.
+  it('no longer schema-locks the deprecated skill-usage.json file', () => {
+    expect(SCHEMA_LOCKED.map(e => e.path)).not.toContain('.claude/feedback/skill-usage.json');
   });
 });

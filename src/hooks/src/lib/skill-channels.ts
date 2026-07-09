@@ -16,9 +16,14 @@
 import { existsSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { bufferWrite } from './analytics-buffer.js';
+import { rotateLogFile } from './log.js';
 import type { SkillChannel } from './telemetry-schemas.js';
 
 export const SKILL_CHANNELS_FILE = join('.claude', 'logs', 'skill-channels.jsonl');
+
+// Main-channel writer re-enabled 2026-07-09 after #959 dropped its dispatch
+// (subagent channel stayed live the whole time) — cap growth up front.
+const SKILL_CHANNELS_MAX_SIZE = 200 * 1024; // 200KB, matches lib/log.ts's LOG_ROTATION_MAX_SIZE
 
 export interface RecordSkillChannelInput {
   skill: string;
@@ -37,6 +42,7 @@ export function recordSkillChannel(projectDir: string, entry: RecordSkillChannel
     const file = join(projectDir, SKILL_CHANNELS_FILE);
     const dir = dirname(file);
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    rotateLogFile(file, SKILL_CHANNELS_MAX_SIZE);
     const row: Record<string, unknown> = {
       ts: new Date().toISOString(),
       skill: entry.skill,

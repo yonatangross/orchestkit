@@ -311,8 +311,14 @@ export function isValidOrkMetricsSnapshot(raw: unknown): raw is OrkMetricsSnapsh
 
 // ---------------------------------------------------------------------------
 // SkillUsageFile — .claude/feedback/skill-usage.json (M121 #1490)
-// Written by posttool/skill/skill-usage-optimizer. Single-object file.
-// Read by same optimizer on next session for consolidation suggestions.
+// DEPRECATED 2026-07-09: the writer (posttool/skill/skill-usage-optimizer) has
+// been unwired since commit e3e99b2ff (#959, "PostToolUse: 17→3 sub-hooks",
+// 2026-03-06). The function + dispatch-map entry survive but no hooks.json
+// entry invokes the key, so the file froze on 2026-03-06 and is superseded by
+// the M168 (#2015) skill_invocation SQLite table. This path was removed from
+// SCHEMA_LOCKED (below) so telemetry-inspect flags the frozen file as an
+// orphan. The validator/canonical/interface are retained for back-compat
+// shape-checking only.
 // ---------------------------------------------------------------------------
 
 export interface SkillUsageFile {
@@ -434,6 +440,8 @@ export const SCHEMA_LOCKED: ReadonlyArray<{
   { path: '.claude/logs/subagent-spawns.jsonl',            validator: 'isValidSubagentSpawnEntry',       canonical: 'CANONICAL_SUBAGENT_SPAWN_ENTRY' },
   { path: '.claude/state/edit-history.jsonl',              validator: 'isValidEditHistoryEntry',         canonical: 'CANONICAL_EDIT_HISTORY_ENTRY' },
   { path: '.claude/state/ork-metrics-*.json',              validator: 'isValidOrkMetricsSnapshot',       canonical: 'CANONICAL_ORK_METRICS_SNAPSHOT' },
-  { path: '.claude/feedback/skill-usage.json',             validator: 'isValidSkillUsageFile',           canonical: 'CANONICAL_SKILL_USAGE_FILE' },
   { path: '.claude/logs/skill-channels.jsonl',             validator: 'isValidSkillChannelEntry',        canonical: 'CANONICAL_SKILL_CHANNEL_ENTRY' },
+  // Delisted 2026-07-09: .claude/feedback/skill-usage.json — writer unwired
+  // since #959 (2026-03-06), superseded by M168 skill_invocation table.
+  // isValidSkillUsageFile + CANONICAL_SKILL_USAGE_FILE retained for back-compat.
 ];

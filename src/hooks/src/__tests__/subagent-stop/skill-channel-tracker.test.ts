@@ -2,7 +2,7 @@
 // Tests for activation-channel skill telemetry (subagent channel + writer + schema)
 
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, rmSync, existsSync, readdirSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { skillsInLine, skillChannelTracker } from '../../subagent-stop/skill-channel-tracker.js';
@@ -70,6 +70,25 @@ describe('recordSkillChannel — writer + schema round-trip', () => {
     recordSkillChannel(tmp, { skill: '', channel: 'main' });
     flush();
     expect(existsSync(join(tmp, SKILL_CHANNELS_FILE))).toBe(false);
+  });
+
+  // #959-regression fix (2026-07-09): main-channel dispatch (skill-tracker.ts)
+  // was dead for ~4 months, so this file never grew. Now that both channels
+  // write it again, verify the unbounded-growth guard actually rotates.
+  test('rotates the file once it exceeds the size budget', () => {
+    const file = join(tmp, SKILL_CHANNELS_FILE);
+    mkdirSync(join(tmp, '.claude', 'logs'), { recursive: true });
+    writeFileSync(file, `${'x'.repeat(200 * 1024 + 1)}\n`, 'utf8');
+
+    recordSkillChannel(tmp, { skill: 'ork:cover', channel: 'subagent', sessionId: 's1' });
+    flush();
+
+    const names = readdirSync(join(tmp, '.claude', 'logs'));
+    expect(names.some((n: string) => n.startsWith('skill-channels.jsonl.old.'))).toBe(true);
+    // the active file was recreated fresh with just the new row, not appended to the oversized one
+    const rows = readFileSync(file, 'utf8').trim().split('\n').map((l: string) => JSON.parse(l));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].skill).toBe('ork:cover');
   });
 });
 

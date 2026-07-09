@@ -352,7 +352,9 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 98 -> 99: posttool/write/debt-marker-tracker (PostToolUse Write/Edit, async, 5s).
       // 99 -> 100: re-registered subagent-stop/unified-dispatcher (agent-usage +
       //            subagent-quality analytics writer, orphaned since v7.30.0/#1206).
-      expect(asyncHooks.length, 'Should have exactly 100 async hooks').toBe(100);
+      // 100 -> 102: #959-regression fix — restored PreToolUse Skill matcher:
+      //             pretool/skill/skill-tracker + lifecycle/webhook-forwarder (both async).
+      expect(asyncHooks.length, 'Should have exactly 102 async hooks').toBe(102);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -476,7 +478,9 @@ describe('Dispatcher Registry Wiring E2E', () => {
       //           the hook's stdout as the provisioned path — provisioning can't be async).
       // 98 -> 99: posttool/write/debt-marker-tracker (PostToolUse Write/Edit, async, 5s).
       // 99 -> 100: re-registered subagent-stop/unified-dispatcher (#1206 orphan fix).
-      expect(asyncCount).toBe(100);
+      // 100 -> 102: #959-regression fix — restored PreToolUse Skill matcher:
+      //             pretool/skill/skill-tracker + lifecycle/webhook-forwarder (both async).
+      expect(asyncCount).toBe(102);
     });
 
     it('should have hooks for all critical security operations', () => {

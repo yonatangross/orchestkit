@@ -53,25 +53,25 @@ Default mode: terminal-friendly ASCII report. `--json` emits a structured result
 ## Output shape (ASCII mode)
 
 ```
-Telemetry Health — 2026-04-23 13:45
+Telemetry Health — 2026-07-09 11:50
 ────────────────────────────────────
 
 Schema-locked files (7)
   .claude/telemetry/pre-compact-decisions.jsonl  ◆ 3 lines  1.1 KB  ✓ healthy
   .claude/telemetry/image-responses.jsonl        ◆ 0 lines  —       ✗ no writes
-  .claude/logs/decisions.jsonl                   ◆ 18 lines 12 KB   ✓ healthy
+  .claude/logs/decisions.jsonl                   ◆ 0 lines  —       ✗ no writes
   .claude/logs/subagent-spawns.jsonl             ◆ 6 lines  3 KB    ✓ healthy
   .claude/state/edit-history.jsonl               ◆ 94 lines 412 KB  ⚠ rotate
   .claude/state/ork-metrics-*.json               ◆ (N/A)    2.1 KB  ✓ healthy
-  .claude/feedback/skill-usage.json              ◆ (N/A)    1.2 KB  ✓ healthy
+  .claude/logs/skill-channels.jsonl              ◆ 12 lines 4 KB    ✓ healthy
 
 Unlocked telemetry files (14)
   .claude/feedback/changelog-decisions.json      ○ 4 KB    ✗ no schema
   .claude/feedback/code-style-profile.json       ○ 8 KB    ✗ no schema
   (...14 more...)
 
-Orphan files (0)
-  (none detected)
+Orphan files (1)
+  .claude/feedback/skill-usage.json  — delisted, writer unwired since #959
 
 Summary
   Pipeline health:  GREEN  (21/21 expected writers active)

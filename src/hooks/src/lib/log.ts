@@ -19,9 +19,12 @@ const LOG_ROTATION_MAX_SIZE = 200 * 1024; // 200KB
 const PERMISSION_LOG_MAX_SIZE = 100 * 1024; // 100KB
 
 /**
- * Rotate log file if it exceeds size limit
+ * Rotate log file if it exceeds size limit. Exported for reuse by other
+ * append-only telemetry writers (e.g. skill-tracker, skill-channels) that
+ * don't go through logHook()/logPermissionFeedback() but need the same
+ * unbounded-growth guard.
  */
-function rotateLogFile(logFile: string, maxSize: number): void {
+export function rotateLogFile(logFile: string, maxSize: number): void {
   if (!existsSync(logFile)) return;
 
   try {

@@ -160,7 +160,9 @@ describe('Async Hooks Registry', () => {
       //           the hook's stdout as the provisioned path — provisioning can't be async).
       // 98 -> 99: posttool/write/debt-marker-tracker (PostToolUse Write/Edit, async, 5s).
       // 99 -> 100: re-registered subagent-stop/unified-dispatcher (#1206 orphan fix).
-      expect(asyncHooks.length, 'Should have exactly 100 async hooks').toBe(100);
+      // 100 -> 102: #959-regression fix — restored PreToolUse Skill matcher:
+      //             pretool/skill/skill-tracker + lifecycle/webhook-forwarder (both async).
+      expect(asyncHooks.length, 'Should have exactly 102 async hooks').toBe(102);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
