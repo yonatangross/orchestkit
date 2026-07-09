@@ -719,7 +719,7 @@ The generator now fails closed: `--write` refuses to persist entries when `$ORCH
 1. Pick a token:           your CC plugin server expects a bearer string.
 2. Export it in the shell: export ORCHESTKIT_HOOK_TOKEN=<token>
 3. Persist it:             echo 'export ORCHESTKIT_HOOK_TOKEN=...' >> ~/.zshrc
-   - OR 1Password ref:     op read 'op://Private/orchestkit/hook-token'
+   - OR 1Password ref:     op read 'op://<vault>/orchestkit/hook-token'
 4. Run the generator:      npm run generate:http-hooks -- <url> --write
 5. Restart the CC session  so the new settings.local.json takes effect.
 ```

@@ -1767,7 +1767,7 @@ Edit `.mcp.json` and set `"disabled": true` or `false` for each MCP:
     },
     "tavily": {
       "command": "sh",
-      "args": ["-c", "TAVILY_API_KEY=$(op read 'op://Private/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
+      "args": ["-c", "TAVILY_API_KEY=$(op read 'op://<vault>/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
       "disabled": false
     },
     "agentation": {
@@ -1821,7 +1821,7 @@ When `TAVILY_API_KEY` is set and the Tavily MCP is enabled, agents gain access t
 
 > **Note:** Claude Code's MCP `env` block only resolves `$\{ENV_VAR\}` syntax, not `op://` references directly. Use the `sh -c "TAVILY_API_KEY=$(op read '...') exec npx ..."` wrapper pattern to read from 1Password at startup.
 
-> **Vault assumption:** `op://Private/...` targets your default 1Password vault (named `Private` for individual accounts). If you keep keys in a different vault — a team/org vault, or a renamed personal vault — change the first path segment accordingly (e.g. `op://YourTeam/Tavily-API-Key/credential`).
+> **`&lt;vault&gt;` placeholder:** replace the `&lt;vault&gt;` segment above with your 1Password vault name. For individual accounts the default vault is named `Private`; for team/org accounts use your vault name (e.g. `op://YourTeam/Tavily API Key/API Key`).
 
 **Option B: Remote MCP (hosted, no npx)**
 
@@ -1846,7 +1846,7 @@ Agents fall back to WebFetch (Haiku-summarized) → agent-browser (full headless
 | context7 | None |
 | sequential-thinking | None |
 | memory | None (creates `.claude/memory/` automatically) |
-| tavily | 1Password: `op read 'op://Private/Tavily API Key/API Key'` (free: https://app.tavily.com) |
+| tavily | 1Password: `op read 'op://&lt;vault&gt;/Tavily API Key/API Key'` (free: https://app.tavily.com) |
 | agentation | `npm install -D agentation-mcp` in project |
 | notebooklm-mcp | `uv tool install notebooklm-mcp-cli` + `nlm login` + `nlm setup add claude-code` |
 | stitch | API key from [stitch.withgoogle.com/settings](https://stitch.withgoogle.com/settings). Add via: `claude mcp add stitch --transport http https://stitch.googleapis.com/mcp --header "X-Goog-Api-Key: YOUR-KEY" -s user` |

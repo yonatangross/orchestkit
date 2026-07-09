@@ -6,8 +6,12 @@ Tag-driven release flow. Tags matching `hook-contract-py/v<version>` trigger `.g
 
 | Registry | Username | Credential stored in |
 |---|---|---|
-| https://pypi.org | `yonyonai` | 1Password: `op://Personal/PyPI - yonyonai` (tag: `pypi,orchestkit,trusted-publisher`) |
-| https://test.pypi.org | `yonyonai` (register if not yet) | Same 1Password entry |
+| https://pypi.org | `<your-pypi-username>` | 1Password: `op://<vault>/PyPI` (tag: `pypi,orchestkit,trusted-publisher`) |
+| https://test.pypi.org | `<your-pypi-username>` (register if not yet) | Same 1Password entry |
+
+<!-- Real account handle + vault path are intentionally NOT committed to this public repo (recon hardening). The maintainer's actual values live in 1Password; substitute your own when following this runbook. PyPI project ownership is already visible on pypi.org, so no functional detail is lost. -->
+
+> The PyPI package's maintainers are visible on the pypi.org project page — this table names the *role*, not a specific person.
 
 > No API token stored in GitHub Actions secrets — OIDC trusted publishing handles auth via short-lived tokens minted per-run.
 
@@ -17,8 +21,8 @@ Register this repo as a Trusted Publisher on PyPI so the workflow can publish wi
 
 ### TestPyPI
 
-1. Log in as `yonyonai` at https://test.pypi.org/manage/account/publishing/
-2. (If you haven't registered `yonyonai` on TestPyPI yet, register the account first — same email recommended.)
+1. Log in as `<your-pypi-username>` at https://test.pypi.org/manage/account/publishing/
+2. (If you haven't registered `<your-pypi-username>` on TestPyPI yet, register the account first — same email recommended.)
 3. Click "Add a new pending publisher"
 4. Fill in:
    - **PyPI project name**: `orchestkit-hook-contract`
@@ -30,7 +34,7 @@ Register this repo as a Trusted Publisher on PyPI so the workflow can publish wi
 
 ### PyPI (production)
 
-Log in as `yonyonai` at https://pypi.org/manage/account/publishing/ and repeat the same form with:
+Log in as `<your-pypi-username>` at https://pypi.org/manage/account/publishing/ and repeat the same form with:
    - **Environment name**: `pypi`
 
 ## Cut a release

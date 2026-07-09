@@ -191,7 +191,7 @@ Examples:
             `Fix one of these and re-run:\n` +
             `  export ${TOKEN_ENV_VAR}=<your-token>     # this shell\n` +
             `  echo 'export ${TOKEN_ENV_VAR}=...' >> ~/.zshrc   # persist\n` +
-            `  op read 'op://Private/orchestkit/hook-token'  # 1Password ref\n` +
+            `  op read 'op://<vault>/orchestkit/hook-token'  # 1Password ref\n` +
             `\n` +
             `Override (only if you intend to set the token elsewhere before\n` +
             `the next CC session): rerun with --allow-missing-token.`
