@@ -9,10 +9,11 @@
 # it as a workflow artifact — operators decide whether to commit results
 # back to main.
 #
-# HQ-only: requires yg-mcp-core>=0.3.0 (on private pypi.yonyon.ai) +
-# YG_PYPI_PASSWORD secret + memory MCP reachable from the runner. On
-# forks without those, the script self-skips cleanly with WARN — the
-# workflow still succeeds.
+# HQ-only: requires yg-mcp-core>=0.3.0 from a private index +
+# the YG_PYPI_INDEX_URL secret (the full authenticated --extra-index-url,
+# so the host/username/scheme stay server-side, not in this public file) +
+# memory MCP reachable from the runner. On forks without those, the
+# script self-skips cleanly with WARN — the workflow still succeeds.
 
 name: Memory KG staleness sweep
 
@@ -55,16 +56,18 @@ jobs:
 
       - name: Install yg-mcp-core (HQ-only — self-skips on forks)
         env:
-          YG_PYPI_PASSWORD: ${{ secrets.YG_PYPI_PASSWORD }}
+          # Full authenticated private-index URL (https://<user>:<pw>@<host>/simple/)
+          # kept entirely in one secret — no host/username/scheme in this public file.
+          YG_PYPI_INDEX_URL: ${{ secrets.YG_PYPI_INDEX_URL }}
         run: |
           set -euo pipefail
-          if [ -z "${YG_PYPI_PASSWORD:-}" ]; then
-            echo "::warning::YG_PYPI_PASSWORD not set — yg-mcp-core won't install; sweep will self-skip with WARN."
+          if [ -z "${YG_PYPI_INDEX_URL:-}" ]; then
+            echo "::warning::YG_PYPI_INDEX_URL not set — yg-mcp-core won't install; sweep will self-skip with WARN."
             exit 0
           fi
           python -m pip install --upgrade pip
           python -m pip install \
-            --extra-index-url "https://ci:${YG_PYPI_PASSWORD}@pypi.yonyon.ai/simple/" \
+            --extra-index-url "${YG_PYPI_INDEX_URL}" \
             "yg-mcp-core>=0.3.0"
 
       - name: Run staleness sweep
