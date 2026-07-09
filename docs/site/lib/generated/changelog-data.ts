@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.68.1",
+    "date": "2026-07-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**agent-readiness:** orank gap triage - block scrape bots, fix PyPI homepage ([#2797](https://github.com/yonatangross/orchestkit/issues/2797)) ([b0526a6](https://github.com/yonatangross/orchestkit/commit/b0526a61167aba885a53169c28714a292a634f01))",
+          "**hooks:** telemetry event field falls back to '' instead of 'unknown' ([#2800](https://github.com/yonatangross/orchestkit/issues/2800)) ([81f8563](https://github.com/yonatangross/orchestkit/commit/81f85639c6e0092b6f5816ef3b5a5e4c684e3a6b)), closes [#2799](https://github.com/yonatangross/orchestkit/issues/2799)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.68.0",
     "date": "2026-07-08",
     "compareUrl": "",
