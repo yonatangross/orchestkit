@@ -6,7 +6,7 @@ Tag-driven release flow. Tags matching `hook-contract-py/v<version>` trigger `.g
 
 | Registry | Username | Credential stored in |
 |---|---|---|
-| https://pypi.org | `yonyonai` | 1Password: `op://Personal/PyPI - yonyonai` (tag: `pypi,orchestkit,trusted-publisher`) |
+| https://pypi.org | `yonyonai` | 1Password: `op://HQ-Infra/PyPI - yonyonai` (tag: `pypi,orchestkit,trusted-publisher`) |
 | https://test.pypi.org | `yonyonai` (register if not yet) | Same 1Password entry |
 
 > No API token stored in GitHub Actions secrets — OIDC trusted publishing handles auth via short-lived tokens minted per-run.

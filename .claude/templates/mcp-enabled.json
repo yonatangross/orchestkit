@@ -21,7 +21,7 @@
     },
     "tavily": {
       "command": "sh",
-      "args": ["-c", "TAVILY_API_KEY=$(op read 'op://Private/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
+      "args": ["-c", "TAVILY_API_KEY=$(op read 'op://Personal/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
       "description": "Web search, extract, crawl, and deep research",
       "auto": "70"
     },
