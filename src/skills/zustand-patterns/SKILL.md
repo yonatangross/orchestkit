@@ -1,7 +1,7 @@
 ---
 name: zustand-patterns
 license: MIT
-compatibility: "Claude Code 2.1.183+."
+compatibility: "Claude Code 2.1.206+."
 description: "Reference for Zustand 5.x state management including slices, middleware, Immer, useShallow, persistence, selectors, and devtools integration. Documents 7 core patterns with TypeScript examples and anti-patterns. Use when building React state management with Zustand instead of Redux."
 tags: [zustand, state-management, react, immer, middleware, persistence, slices]
 context: inherit

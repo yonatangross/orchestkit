@@ -1,6 +1,6 @@
 ---
 name: audit-activation
-compatibility: "Claude Code 2.1.183+"
+compatibility: "Claude Code 2.1.206+"
 description: Audits OrchestKit sub-agent activation from real spawn telemetry — computes the generic-vs-specialist spawn split, flags dormant agents (never fired), and classifies each as fires/mis-triggered/niche. The agent-side analogue of audit-skills. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths.
 tags: [audit, agents, activation, telemetry, orchestkit]
 version: 1.0.0

@@ -1,7 +1,7 @@
 ---
 name: design-stylecards
 license: MIT
-compatibility: "Claude Code 2.1.183+"
+compatibility: "Claude Code 2.1.206+"
 description: "Declarative catalog of named aesthetic recipes — exact shadow stacks, glass surfaces, gradient treatments, and type scales as copy-paste values with Use-When and Avoid rules. Use when the user asks for polished elevation, glassmorphism, a border gradient, a mesh background, or any 'make it look like X' request where taste should come from a versioned recipe instead of being reinvented per session."
 argument-hint: "[list | <recipe-name> | apply <recipe> to <file>]"
 tags: [design, stylecards, shadows, glass, gradients, typography, tailwind, css, aesthetics]

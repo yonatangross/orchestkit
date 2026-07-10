@@ -243,7 +243,7 @@ For browser automation and testing, use the `agent-browser` skill instead of an 
 
 ## CC 2.1.128/129 changes that affect `.mcp.json` and plugin manifests
 
-We floor at `2.1.183`, so all of these apply by default.
+We floor at `2.1.206`, so all of these apply by default.
 
 ### Reserved server name: `workspace` (CC 2.1.128)
 

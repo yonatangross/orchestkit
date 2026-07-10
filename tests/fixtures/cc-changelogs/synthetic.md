@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.1.183
+## 2.1.206
 
 - `EnterWorktree` now creates the new branch from local HEAD instead of `origin/<default-branch>`, so unpushed commits are no longer dropped (synthetic placeholder; the real upstream behaviour landed in 2.1.128 — kept here as the test fixture's "new version" detection + equal-version recovery target, pinned to track cc-support.json.latest, currently 2.1.183)
 - `--plugin-dir` now accepts `.zip` plugin archives, enabling offline distribution alongside directory-based loads

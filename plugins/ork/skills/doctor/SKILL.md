@@ -1,7 +1,7 @@
 ---
 name: doctor
 license: MIT
-compatibility: "Claude Code 2.1.183+ for xhigh effort warning (Category 14); earlier versions skip that check."
+compatibility: "Claude Code 2.1.206+ for xhigh effort warning (Category 14); earlier versions skip that check."
 description: "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks."
 argument-hint: "[--verbose]"
 context: inherit
@@ -81,7 +81,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version & Channel** - Validates CC >= 2.1.183 (supported floor), detects release channel (stable/beta/alpha), recommends 2.1.154+ for Opus 4.8 / `xhigh` effort, `/ultrareview`, stream-json `plugin_errors`
+10. **Claude Code Version & Channel** - Validates CC >= 2.1.206 (supported floor), detects release channel (stable/beta/alpha), recommends 2.1.154+ for Opus 4.8 / `xhigh` effort, `/ultrareview`, stream-json `plugin_errors`
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes. Sub-check warns when HIGH-tier servers resolve to `@latest` in `.mcp.json` (closes #1462)
 13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)

@@ -1,7 +1,7 @@
 ---
 name: auto
 license: MIT
-compatibility: "Claude Code 2.1.183+."
+compatibility: "Claude Code 2.1.206+."
 description: "Intent-classified router — the front door to OrchestKit. Takes a plain-English goal, classifies it into one intent category, and routes to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:brainstorm, /ork:implement, /ork:review-pr, /ork:verify, a /goal optimization loop, or the skill-evolution gate). Use when you describe a goal not a method, when the right skill is unclear, or when you want the agent to pick the approach. Triggers on: auto, do this, figure out, just make, get it to, I want, help me, not sure which."
 argument-hint: "[plain-english goal]"
 context: inherit

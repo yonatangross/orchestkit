@@ -15,7 +15,7 @@
  */
 
 /** Minimum CC version OrchestKit supports (the floor). Stamped from shared/cc-support.json. */
-export const MIN_CC_VERSION = '2.1.183';
+export const MIN_CC_VERSION = '2.1.206';
 
 /**
  * Highest CC version OrchestKit's adoption is known to cover. The version-check hook nudges
