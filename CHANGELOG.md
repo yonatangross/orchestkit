@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.69.0](https://github.com/yonatangross/orchestkit/compare/v8.68.3...v8.69.0) (2026-07-10)
+
+
+### Features
+
+* **cc:** bump support floor 2.1.183 → 2.1.206 (renew strict pin) ([#2830](https://github.com/yonatangross/orchestkit/issues/2830)) ([10a2d30](https://github.com/yonatangross/orchestkit/commit/10a2d30e8fd4bfaaad45e385f7e3aa4eaa6afd32))
+
+
+### Bug Fixes
+
+* **hooks:** re-architect InstructionsLoaded to real single-file payload ([#2832](https://github.com/yonatangross/orchestkit/issues/2832)) ([7061fcb](https://github.com/yonatangross/orchestkit/commit/7061fcb1a0d744301822b35e6ab97e099f8b318c)), closes [#2475](https://github.com/yonatangross/orchestkit/issues/2475)
+
 ## [8.68.3](https://github.com/yonatangross/orchestkit/compare/v8.68.2...v8.68.3) (2026-07-10)
 
 
