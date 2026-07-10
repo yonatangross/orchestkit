@@ -163,7 +163,8 @@ describe('Async Hooks Registry', () => {
       // 100 -> 102: #959-regression fix — restored PreToolUse Skill matcher:
       //             pretool/skill/skill-tracker + lifecycle/webhook-forwarder (both async).
       // 102 -> 103: #2590 — lifecycle/telemetry-dark-check (SessionStart, async 5s).
-      expect(asyncHooks.length, 'Should have exactly 103 async hooks').toBe(103);
+      // 103 -> 104: #2475 — instructions-loaded/session-rules-audit (SessionStart, async 5s).
+      expect(asyncHooks.length, 'Should have exactly 104 async hooks').toBe(104);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

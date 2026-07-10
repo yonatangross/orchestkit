@@ -231,7 +231,10 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
       PermissionRequest: ['permission', 'lifecycle'],
       PermissionDenied: ['permission-denied', 'lifecycle'],
       UserPromptSubmit: ['prompt', 'lifecycle'],
-      SessionStart: ['lifecycle'],
+      // SessionStart also allows 'instructions-loaded': that prefix routes to the
+      // lifecycle bundle per run-hook.mjs bundleMap (#1264); #2475 moved the
+      // cross-file session-rules-audit handler onto SessionStart.
+      SessionStart: ['lifecycle', 'instructions-loaded'],
       SessionEnd: ['lifecycle'],
       // v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
       Stop: ['stop', 'lifecycle', 'skill'],

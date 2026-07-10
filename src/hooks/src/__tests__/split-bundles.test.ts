@@ -405,7 +405,10 @@ describe('Cross-Bundle Consistency', () => {
     // 245 -> 246: #2590 — added lifecycle/telemetry-dark-check (SessionStart) —
     //             warns when $ORCHESTKIT_HOOK_TOKEN is set but $ORCHESTKIT_HOOK_URL
     //             is unset and telemetry is accumulating (fail-silent closer).
-    expect(totalHooks).toBe(246);
+    // 246 -> 247: #2475 — added instructions-loaded/session-rules-audit (SessionStart) —
+    //             whole-set instruction handlers moved off the single-file
+    //             InstructionsLoaded event (which had a fabricated files_loaded shape).
+    expect(totalHooks).toBe(247);
   });
 });
 

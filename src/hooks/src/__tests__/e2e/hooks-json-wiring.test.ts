@@ -244,7 +244,10 @@ describe('hooks.json wiring E2E', () => {
       //                          (M168's only feeder), and skill-channels.jsonl
       //                          main channel (#2154).
       // 214 -> 215: #2590 added lifecycle/telemetry-dark-check (SessionStart).
-      expect(hooksConfig.description).toContain('215 total');
+      // 215 -> 216: #2475 added instructions-loaded/session-rules-audit (SessionStart) —
+      //             whole-set instruction handlers moved off the single-file
+      //             InstructionsLoaded event to SessionStart.
+      expect(hooksConfig.description).toContain('216 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

@@ -423,6 +423,28 @@ export function isReadInput(input: ToolInput): input is ReadToolInput {
   return typeof input.file_path === 'string' && input.content === undefined;
 }
 
+/**
+ * InstructionsLoaded event input (#2475).
+ *
+ * The real CC InstructionsLoaded payload is SINGLE-FILE — one event fires per
+ * loaded instruction file. There is NO `files_loaded` array (that shape was
+ * fabricated and silently disabled every handler until #2475).
+ */
+export interface InstructionsLoadedInput extends HookInput {
+  /** Absolute path of the instruction file that was just loaded */
+  file_path: string;
+  /** Memory tier the file belongs to (e.g. project, user, local) */
+  memory_type?: string;
+  /** Why CC loaded the file (e.g. startup, changed) */
+  load_reason?: string;
+}
+
+/** Type guard for the real single-file InstructionsLoaded payload (#2475). */
+export function isInstructionsLoadedInput(input: HookInput): input is InstructionsLoadedInput {
+  const fp = (input as unknown as Record<string, unknown>).file_path;
+  return typeof fp === 'string' && fp.length > 0;
+}
+
 // -----------------------------------------------------------------------------
 // Hook Context — Dependency Injection (v7.29.0 Phase 4)
 // -----------------------------------------------------------------------------

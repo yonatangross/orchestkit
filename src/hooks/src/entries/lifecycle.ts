@@ -59,8 +59,12 @@ import { worktreeLifecycleLogger } from '../worktree/worktree-lifecycle-logger.j
 // ConfigChange hooks (CC 2.1.50)
 import { settingsReload } from '../config-change/settings-reload.js';
 
-// InstructionsLoaded hooks (CC 2.1.69)
+// InstructionsLoaded hooks (CC 2.1.69; #2475: single-file payload — per-file handlers only)
 import { instructionsLoadedDispatcher } from '../instructions-loaded/instructions-loaded-dispatcher.js';
+// #2475: whole-set instruction handlers (priority-map, content-dedup, rule-conflicts,
+// drift-detection, debt-surfacer) moved to SessionStart, where the full rule set
+// exists on disk AND additionalContext is honored.
+import { sessionRulesAudit } from '../instructions-loaded/session-rules-audit.js';
 
 // PostCompact hooks (CC 2.1.76)
 import { postCompactRecovery } from '../lifecycle/post-compact-recovery.js';
@@ -184,8 +188,10 @@ export const hooks: Record<string, HookFn> = {
   // ConfigChange hooks (CC 2.1.50)
   'config-change/settings-reload': settingsReload,
 
-  // InstructionsLoaded hooks (CC 2.1.69)
+  // InstructionsLoaded hooks (CC 2.1.69; #2475: per-file handlers only)
   'instructions-loaded/instructions-loaded-dispatcher': instructionsLoadedDispatcher,
+  // #2475: whole-set instruction audit moved to SessionStart
+  'instructions-loaded/session-rules-audit': sessionRulesAudit,
 
   // Cache management
   'lifecycle/stale-cache-cleanup': staleCacheCleanup,
