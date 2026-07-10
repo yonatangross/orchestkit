@@ -1,136 +1,111 @@
 [
   {
-    "version": "2.1.205",
+    "version": "2.1.206",
     "parse_failed": false,
     "features": [
       {
-        "feature_slug": "auto_mode_transcript_tamper_block",
+        "feature_slug": "commit_push_pr_auto_pushdefault",
         "category": "breaking",
-        "description": "Auto mode rule blocks tampering with session transcript files.",
+        "description": "/commit-push-pr auto-allows git push to remote.pushDefault or the sole configured remote, in addition to origin.",
         "gap_score": 20,
         "affected_skills": [
-          "auto",
-          "security-patterns"
+          "commit",
+          "create-pr",
+          "release-management"
         ],
-        "reference_changelog_line": "Added an auto mode rule that blocks tampering with session transcript files",
+        "reference_changelog_line": "`/commit-push-pr` now auto-allows `git push` to the repo's configured push remote (`remote.pushDefault`, or the sole remote when only one is configured) in addition to `origin`",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "reserved_mcp_server_names",
+        "feature_slug": "enter_worktree_outside_confirmation",
         "category": "breaking",
-        "description": "Reserved 'Claude Browser' and 'Claude Preview' MCP server names; user servers can no longer register under either.",
+        "description": "EnterWorktree now prompts for confirmation before entering a worktree outside .claude/worktrees/.",
+        "gap_score": 20,
+        "affected_skills": [
+          "chain-patterns",
+          "agent-orchestration",
+          "swarm-migrate"
+        ],
+        "reference_changelog_line": "`EnterWorktree` now asks for confirmation before entering a git worktree outside the project's `.claude/worktrees/` directory",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "mcp_per_server_request_timeout",
+        "category": "breaking",
+        "description": "Per-server request_timeout_ms in --mcp-config and .mcp.json is now honored instead of defaulting to 60s.",
         "gap_score": 20,
         "affected_skills": [
           "mcp-patterns",
-          "browser-tools",
-          "mcp-visual-output"
+          "mcp-visual-output",
+          "storybook-mcp-integration"
         ],
-        "reference_changelog_line": "Reserved the \"Claude Browser\" MCP server name (alongside \"Claude Preview\") ahead of the Claude Desktop pane rename; user-configured MCP servers can no longer register under either name",
+        "reference_changelog_line": "Fixed MCP servers configured via `--mcp-config` or `.mcp.json` ignoring a per-server `request_timeout_ms`, which caused long-running MCP tool calls to time out at the 60s default in fresh sessions",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "auto_mode_rm_rf_var_prompt",
+        "feature_slug": "extra_body_propagates_to_bg_workers",
         "category": "breaking",
-        "description": "Auto mode now asks before running rm -rf on a variable it cannot resolve from context.",
+        "description": "CLAUDE_CODE_EXTRA_BODY now propagates from the dispatching session to claude agents and --bg background workers.",
         "gap_score": 20,
         "affected_skills": [
-          "auto",
-          "security-patterns"
+          "bare-eval",
+          "agent-orchestration",
+          "chain-patterns"
         ],
-        "reference_changelog_line": "Improved auto mode to ask before running `rm -rf` on a variable it can't resolve from context",
+        "reference_changelog_line": "Fixed `CLAUDE_CODE_EXTRA_BODY` being silently ignored by `claude agents` / `--bg` background workers; the shell-exported override now follows the dispatching session",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "background_task_notif_no_human",
+        "feature_slug": "permission_prompt_tool_mcp_coldstart",
         "category": "breaking",
-        "description": "Background task notifications explicitly state no human input occurred, preventing fabricated approvals from being acted",
+        "description": "--permission-prompt-tool pointing at an MCP server no longer crashes with 'MCP tool not found' on cold start.",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed `--permission-prompt-tool` pointing at an MCP server crashing with \"MCP tool not found\" on cold start before the server finishes connecting",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "claude_rm_daemon_roster_cleanup",
+        "category": "breaking",
+        "description": "claude rm now removes the job from the daemon roster so it no longer reappears in claude agents.",
         "gap_score": 20,
         "affected_skills": [
           "agent-orchestration",
-          "task-dependency-patterns",
-          "security-patterns"
+          "chain-patterns"
         ],
-        "reference_changelog_line": "Background task notifications now explicitly state that no human input has occurred, preventing fabricated in-transcript approvals from being acted on",
+        "reference_changelog_line": "Fixed `claude rm` leaving the removed job in the daemon roster, causing the row to reappear in `claude agents`",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "plugin_lsp_fallback_isolation",
-        "category": "breaking",
-        "description": "A failing plugin LSP server no longer prevents another plugin's valid LSP from handling the same file extension.",
-        "gap_score": 20,
-        "affected_skills": [
-          "mcp-patterns",
-          "doctor"
-        ],
-        "reference_changelog_line": "Fixed a plugin LSP server that fails to initialize preventing a valid LSP server from another plugin handling the same file extension",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "mcp_add_from_desktop_invalid_names",
-        "category": "breaking",
-        "description": "claude mcp add-from-claude-desktop reports invalid server names and continues importing the rest instead of hanging.",
-        "gap_score": 20,
-        "affected_skills": [
-          "mcp-patterns",
-          "configure"
-        ],
-        "reference_changelog_line": "Fixed `claude mcp add-from-claude-desktop` getting stuck when a server name contains unsupported characters; invalid names are now reported and remaining servers still import",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "project_verify_skill_rewrite_gate",
-        "category": "breaking",
-        "description": "Project verify skills are only rewritten when a documented command changes, not on every session.",
-        "gap_score": 20,
-        "affected_skills": [
-          "verify",
-          "setup"
-        ],
-        "reference_changelog_line": "Fixed project verify skills being rewritten on every session instead of only when a documented command changed",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "doctor_full_setup_checkup",
+        "feature_slug": "cd_directory_path_suggestions",
         "category": "new_command",
-        "description": "/doctor is now a full setup checkup that diagnoses and fixes issues; /checkup is an alias.",
+        "description": "/cd now offers directory path suggestions, matching /add-dir behavior.",
+        "gap_score": 15,
+        "affected_skills": [
+          "dev",
+          "portless"
+        ],
+        "reference_changelog_line": "Added directory path suggestions to `/cd`, matching `/add-dir` behavior",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "doctor_claude_md_trim_check",
+        "category": "new_command",
+        "description": "/doctor gains a check proposing to trim checked-in CLAUDE.md content that Claude could derive from the codebase.",
         "gap_score": 15,
         "affected_skills": [
           "doctor",
-          "setup",
-          "configure"
+          "init"
         ],
-        "reference_changelog_line": "`/doctor` is now a full setup checkup that can diagnose and fix issues; `/checkup` is its alias",
+        "reference_changelog_line": "Added a `/doctor` check that proposes trimming checked-in `CLAUDE.md` files by cutting content Claude could derive from the codebase",
         "relevance": "plugin"
-      },
-      {
-        "feature_slug": "agent_view_pr_link_on_edits",
-        "category": "new_attr",
-        "description": "Agent view links an existing PR when sessions edit, merge, comment on, or push to it.",
-        "gap_score": 10,
-        "affected_skills": [
-          "agent-orchestration",
-          "create-pr",
-          "github-operations"
-        ],
-        "reference_changelog_line": "Improved agent view: sessions that edit, merge, comment on, or push to an existing PR now link it in `claude agents`",
-        "relevance": "plugin",
-        "recall_boosted_from": 5
-      },
-      {
-        "feature_slug": "agent_view_state_headline_peek",
-        "category": "new_attr",
-        "description": "Agent rows show colored state word and classifier headline; peek shows full status including exact ask for blocked sessi",
-        "gap_score": 10,
-        "affected_skills": [
-          "agent-orchestration",
-          "task-dependency-patterns"
-        ],
-        "reference_changelog_line": "Improved agent view: rows now show a colored state word and a classifier-written headline instead of raw tool call text, and the peek opens with full status including the exact ask for blocked sessions",
-        "relevance": "plugin",
-        "recall_boosted_from": 5
       }
     ],
-    "raw_bullets_count": 23,
-    "issues_filed_at": "2026-07-09T04:20:59Z"
+    "raw_bullets_count": 27,
+    "issues_filed_at": "2026-07-10T04:22:53Z"
   }
 ]
