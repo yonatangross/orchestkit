@@ -162,7 +162,8 @@ describe('Async Hooks Registry', () => {
       // 99 -> 100: re-registered subagent-stop/unified-dispatcher (#1206 orphan fix).
       // 100 -> 102: #959-regression fix — restored PreToolUse Skill matcher:
       //             pretool/skill/skill-tracker + lifecycle/webhook-forwarder (both async).
-      expect(asyncHooks.length, 'Should have exactly 102 async hooks').toBe(102);
+      // 102 -> 103: #2590 — lifecycle/telemetry-dark-check (SessionStart, async 5s).
+      expect(asyncHooks.length, 'Should have exactly 103 async hooks').toBe(103);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
