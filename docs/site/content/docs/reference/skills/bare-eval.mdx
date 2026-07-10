@@ -536,6 +536,13 @@ claude -p "$prompt" \
 > in a single session. The StructuredOutput schema cache bug (~50% failure rate)
 > has been fixed. You can safely chain `--json-schema` calls across batch grading,
 > trigger classification, quality scoring, and baseline comparison.
+>
+> **CC 2.1.205**: An invalid `--json-schema` now **hard-errors** instead of silently
+> producing unstructured output — a malformed grading/trigger/quality schema fails
+> loudly at invocation rather than yielding un-parseable results downstream. Validate
+> schemas before batch runs. The `format` keyword is now accepted; ork's grading
+> schemas use `format` only as a property name (not the JSON-Schema keyword), so this
+> is a no-op for existing schemas but safe to adopt.
 
 ## Flag Compatibility Matrix
 

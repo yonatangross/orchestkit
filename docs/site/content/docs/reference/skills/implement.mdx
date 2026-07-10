@@ -2448,6 +2448,11 @@ To make the pattern reliable:
   spawns. Use the manual pattern anyway for consistency.
 - **EnterWorktree (operator-level):** This is the model-managed,
   not-agent-managed worktree tool. It works fine and is unrelated.
+  **CC 2.1.206:** `EnterWorktree` now asks for confirmation before entering a
+  worktree OUTSIDE `.claude/worktrees/`. This `../\{slug\}-\{branch\}` convention is
+  always outside that directory, so expect a one-time confirmation prompt per
+  external worktree. Headless/non-interactive flows that can't answer the prompt
+  should place worktrees under `.claude/worktrees/` instead.
 - **The root-cause CC bug:** Filed as `#3224 Path A` if a fix is found
   upstream, this whole reference becomes deletable.
 
