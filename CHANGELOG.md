@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.68.3](https://github.com/yonatangross/orchestkit/compare/v8.68.2...v8.68.3) (2026-07-10)
+
+
+### Bug Fixes
+
+* bug-triage sweep — eval-runner grounding, telemetry dark-check, orphaned stager, autobuild re-trigger ([#2828](https://github.com/yonatangross/orchestkit/issues/2828)) ([8426e45](https://github.com/yonatangross/orchestkit/commit/8426e4591045921eb560118e6994917b96210668))
+
 ## [8.68.2](https://github.com/yonatangross/orchestkit/compare/v8.68.1...v8.68.2) (2026-07-10)
 
 
