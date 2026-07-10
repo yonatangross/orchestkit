@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.68.3",
+    "date": "2026-07-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "bug-triage sweep — eval-runner grounding, telemetry dark-check, orphaned stager, autobuild re-trigger ([#2828](https://github.com/yonatangross/orchestkit/issues/2828)) ([8426e45](https://github.com/yonatangross/orchestkit/commit/8426e4591045921eb560118e6994917b96210668))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.68.2",
     "date": "2026-07-10",
     "compareUrl": "",

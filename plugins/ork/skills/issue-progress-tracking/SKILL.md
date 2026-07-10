@@ -1,7 +1,7 @@
 ---
 name: issue-progress-tracking
 license: MIT
-compatibility: "Claude Code 2.1.183+."
+compatibility: "Claude Code 2.1.206+."
 description: "GitHub issue workflow ceremony using gh CLI — labels issues as in-progress, creates feature branches (issue/N-description), commits with issue references, posts progress comments, and links PRs with Closes #N. Keeps issues in sync with development work. Use when starting work on an issue, tracking progress, or completing work with a PR."
 context: inherit
 version: 1.0.0

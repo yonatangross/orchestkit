@@ -19,11 +19,12 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.183', () => {
-      // 2026-06-10 owner decision: strict floor=latest=latest_known=2.1.183
-      // (support only the newest CC), overriding the #1945 capstone (2.1.148).
+    test('is 2.1.206', () => {
+      // 2026-07-10 owner decision: RENEW the strict pin at the current head —
+      // floor=latest=latest_known=2.1.206 (support only the newest CC),
+      // continuing the 2026-06-20 strict-floor precedent (2.1.183).
       // Stamped from shared/cc-support.json by scripts/stamp-cc-support.mjs.
-      expect(MIN_CC_VERSION).toBe('2.1.183');
+      expect(MIN_CC_VERSION).toBe('2.1.206');
     });
 
     test('is a valid semver-like string', () => {

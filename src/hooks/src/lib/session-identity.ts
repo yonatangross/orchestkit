@@ -182,7 +182,7 @@ export function hashColor(sessionId: string): SessionColor {
 /**
  * Effective `language` setting (CC 2.1.176) from .claude/settings.json — project
  * settings win, then user settings; defaults to 'en' when absent/unreadable.
- * Safe on the floor (2.1.183): a missing key just yields 'en'. Lets ork's haiku
+ * Safe on the floor (2.1.206): a missing key just yields 'en'. Lets ork's haiku
  * title match CC's native localized session-list title (#2443).
  */
 export function readEffectiveLanguage(projectDir: string | undefined): string {

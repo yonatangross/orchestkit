@@ -1,6 +1,6 @@
 ---
 name: audit-skills
-compatibility: "Claude Code 2.1.183+"
+compatibility: "Claude Code 2.1.206+"
 description: Audits all OrchestKit skills for quality, completeness, and compliance with authoring standards. Use when checking skill health, before releases, or after bulk skill edits to surface SKILL.md files that are too long, have missing frontmatter, lack rules/references, or are unregistered in manifests.
 tags: [audit, quality, skills, orchestkit]
 version: 2.0.0
