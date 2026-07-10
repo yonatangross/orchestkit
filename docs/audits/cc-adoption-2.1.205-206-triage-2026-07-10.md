@@ -89,3 +89,33 @@ as a *property name*, not the JSON-Schema `format` keyword.
 - `src/skills/chain-patterns/references/worktree-agent-pattern.md` — 2.1.206 EnterWorktree note
 - Stamp-derived: `CLAUDE.md`, `src/hooks/src/lib/cc-version-matrix.ts` (LATEST_KNOWN_CC)
 - `plugins/**` — rebuilt mirror
+
+## Auto-filed issue reconciliation (#2802–#2824)
+
+`cc-release-watch` auto-filed 18 `cc-adoption` issues for the 2.1.205/206 features.
+The adoption PR (#2826) resolved every one but omitted the `Closes` keywords, so they
+were reconciled in a follow-up (mirroring PR #2792 for the 2.1.203 batch). Each verdict
+below was re-verified against the issue's changelog reference before closing.
+
+| Issue | Feature | Verdict | Evidence |
+|---|---|---|---|
+| #2809 | `doctor_full_setup_checkup` | ADOPTED | matrix row — native `/doctor` checkup + `/checkup` alias, distinct from `/ork:doctor` |
+| #2817 | `commit_push_pr_auto_pushdefault` | ADOPTED | matrix row — ork pushes to `origin` only, no permission-surface change |
+| #2818 | `enter_worktree_outside_confirmation` | ADOPTED (strong) | 2 worktree docs + matrix row — ork's `../<repo>-<task>` is outside `.claude/worktrees/` |
+| #2819 | `mcp_per_server_request_timeout` | ADOPTED | matrix row — ork sets no per-server timeout today, now available |
+| #2824 | `doctor_claude_md_trim_check` | ADOPTED | matrix row — complements ork's ≤4800B byte-budget hook |
+| #2802 | `auto_mode_transcript_tamper_block` | NO-OP | CC auto-mode rule; ork has no transcript-file surface (`auto`/`security-patterns` = keyword collisions) |
+| #2803 | `reserved_mcp_server_names` | NO-OP | ork's MCP servers use neither "Claude Browser" nor "Claude Preview" |
+| #2804 | `auto_mode_rm_rf_var_prompt` | NO-OP | CC auto-mode safety prompt; no ork surface |
+| #2805 | `background_task_notif_no_human` | NO-OP | CC-internal notification text (anti-fabrication is CC-side) |
+| #2806 | `plugin_lsp_fallback_isolation` | NO-OP | ork ships zero LSP servers |
+| #2807 | `mcp_add_from_desktop_invalid_names` | NO-OP | CC import CLI behavior; ork doesn't script `add-from-claude-desktop` |
+| #2808 | `project_verify_skill_rewrite_gate` | NO-OP | CC's auto-generated `.claude/skills/verify`, not ork's hand-authored `/ork:verify` |
+| #2810 | `agent_view_pr_link_on_edits` | NO-OP | CC `claude agents` view UI |
+| #2811 | `agent_view_state_headline_peek` | NO-OP | CC `claude agents` view UI |
+| #2820 | `extra_body_propagates_to_bg_workers` | NO-OP | ork sets no `CLAUDE_CODE_EXTRA_BODY` |
+| #2821 | `permission_prompt_tool_mcp_coldstart` | NO-OP | ork doesn't route `--permission-prompt-tool` at an MCP server |
+| #2822 | `claude_rm_daemon_roster_cleanup` | NO-OP | CC daemon roster UI |
+| #2823 | `cd_directory_path_suggestions` | NO-OP | CC built-in `/cd` |
+
+Net: 5 adopted, 13 verified no-op. All closed via the reconciliation PR's `Closes` keywords.
