@@ -17,6 +17,29 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.68.2",
+    "date": "2026-07-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** restore [#959](https://github.com/yonatangross/orchestkit/issues/959)-dropped PreToolUse Skill dispatch ([#2813](https://github.com/yonatangross/orchestkit/issues/2813)) ([c069e27](https://github.com/yonatangross/orchestkit/commit/c069e27b7f5d4b1dface60bdf007eec2930d376e))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**1p:** genericize committed op:// refs in public repo ([#2814](https://github.com/yonatangross/orchestkit/issues/2814)) ([d70a23e](https://github.com/yonatangross/orchestkit/commit/d70a23ebf08b47ffd68461dce689c48b77fc4a0e))",
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.205) ([#2812](https://github.com/yonatangross/orchestkit/issues/2812)) ([2b062f3](https://github.com/yonatangross/orchestkit/commit/2b062f3ff07822b410a3efe3907425e8b6ef83f0))",
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.206) ([#2825](https://github.com/yonatangross/orchestkit/issues/2825)) ([9a7f501](https://github.com/yonatangross/orchestkit/commit/9a7f501517f432ad7351fc00c2d4f7f6ffaf0f56))",
+          "**cc:** adopt 2.1.205-206 (latest_known 2.1.204→2.1.206) ([#2826](https://github.com/yonatangross/orchestkit/issues/2826)) ([8cb6884](https://github.com/yonatangross/orchestkit/commit/8cb6884de243d5d7df8586b8059d8b1c3af94de2))",
+          "**ci:** move private-index URL into one secret (recon hardening) ([#2815](https://github.com/yonatangross/orchestkit/issues/2815)) ([11770e9](https://github.com/yonatangross/orchestkit/commit/11770e9c28b846d5a451d1bee20fe9629a1e9967))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.68.1",
     "date": "2026-07-08",
     "compareUrl": "",

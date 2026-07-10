@@ -109,7 +109,6 @@ import { pipelineDetector } from './prompt/pipeline-detector.js';
 
 // SubagentStart hooks (4)
 import { contextGate } from './subagent-start/context-gate.js';
-import { subagentContextStager } from './subagent-start/subagent-context-stager.js';
 import { subagentValidator } from './subagent-start/subagent-validator.js';
 import { modelCostAdvisor } from './subagent-start/model-cost-advisor.js';
 
@@ -280,7 +279,6 @@ export const hooks: Record<string, HookFn> = {
 
   // SubagentStart hooks (4)
   'subagent-start/context-gate': contextGate,
-  'subagent-start/subagent-context-stager': subagentContextStager,
   'subagent-start/subagent-validator': subagentValidator,
   'subagent-start/model-cost-advisor': modelCostAdvisor,
 

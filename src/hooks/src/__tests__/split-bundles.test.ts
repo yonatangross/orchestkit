@@ -399,6 +399,12 @@ describe('Cross-Bundle Consistency', () => {
     // 245 -> 246: pretool/bash/network-egress-guard (#2533) — outbound network
     //             governance in the sync-bash blocking lane (DENY remote-exec,
     //             ASK exfil). Registered in HANDLERS so run-hook.mjs resolves it.
+    // 246 -> 245: #2376 — removed orphaned subagent-start/subagent-context-stager
+    //             (importable but never in hooks.json, so never dispatched; its
+    //             unwritten depth registry was the issue's one real defect).
+    // 245 -> 246: #2590 — added lifecycle/telemetry-dark-check (SessionStart) —
+    //             warns when $ORCHESTKIT_HOOK_TOKEN is set but $ORCHESTKIT_HOOK_URL
+    //             is unset and telemetry is accumulating (fail-silent closer).
     expect(totalHooks).toBe(246);
   });
 });

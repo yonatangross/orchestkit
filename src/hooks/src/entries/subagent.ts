@@ -16,7 +16,6 @@ export * from '../lib/retry-manager.js';
 
 // SubagentStart hooks (6 — #1783 added agent-view-titler)
 import { contextGate } from '../subagent-start/context-gate.js';
-import { subagentContextStager } from '../subagent-start/subagent-context-stager.js';
 import { subagentValidator } from '../subagent-start/subagent-validator.js';
 import { modelCostAdvisor } from '../subagent-start/model-cost-advisor.js';
 import { issueContextInjector } from '../subagent-start/issue-context-injector.js';
@@ -45,7 +44,6 @@ import type { HookFn } from '../types.js';
 export const hooks: Record<string, HookFn> = {
   // SubagentStart hooks (6 — #1783 added agent-view-titler)
   'subagent-start/context-gate': contextGate,
-  'subagent-start/subagent-context-stager': subagentContextStager,
   'subagent-start/subagent-validator': subagentValidator,
   'subagent-start/model-cost-advisor': modelCostAdvisor,
   'subagent-start/issue-context-injector': issueContextInjector,

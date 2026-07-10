@@ -22,8 +22,8 @@
       "exports": 106
     },
     "lifecycle": {
-      "size": 142079,
-      "sizeKB": "138.75",
+      "size": 143661,
+      "sizeKB": "140.29",
       "exports": 64
     },
     "stop": {
@@ -32,8 +32,8 @@
       "exports": 49
     },
     "subagent": {
-      "size": 92692,
-      "sizeKB": "90.52",
+      "size": 86679,
+      "sizeKB": "84.65",
       "exports": 82
     },
     "notification": {
@@ -57,14 +57,14 @@
       "exports": 66
     },
     "hooks": {
-      "size": 394744,
-      "sizeKB": "385.49",
+      "size": 388730,
+      "sizeKB": "379.62",
       "exports": 164,
       "unified": true
     }
   },
-  "totalSize": 778010,
-  "totalSizeKB": "759.78",
-  "inputs": 112,
-  "avgBundleSizeKB": "69.07"
+  "totalSize": 773579,
+  "totalSizeKB": "755.45",
+  "inputs": 113,
+  "avgBundleSizeKB": "68.68"
 }
