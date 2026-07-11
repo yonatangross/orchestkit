@@ -1,111 +1,87 @@
 [
   {
-    "version": "2.1.206",
+    "version": "2.1.207",
     "parse_failed": false,
     "features": [
       {
-        "feature_slug": "commit_push_pr_auto_pushdefault",
+        "feature_slug": "remote_managed_settings_consent_bypass_f",
         "category": "breaking",
-        "description": "/commit-push-pr auto-allows git push to remote.pushDefault or the sole configured remote, in addition to origin.",
+        "description": "Non-interactive runs (claude -p, SDK) no longer silently record managed-settings consent without the dialog",
         "gap_score": 20,
         "affected_skills": [
-          "commit",
-          "create-pr",
-          "release-management"
+          "security-patterns",
+          "configure",
+          "bare-eval"
         ],
-        "reference_changelog_line": "`/commit-push-pr` now auto-allows `git push` to the repo's configured push remote (`remote.pushDefault`, or the sole remote when only one is configured) in addition to `origin`",
+        "reference_changelog_line": "Fixed remote managed settings from a non-interactive run (`claude -p`, the SDK) being permanently recorded as consented without ever showing the security consent dialog",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "enter_worktree_outside_confirmation",
+        "feature_slug": "bedrock_vertex_default_opus_48",
         "category": "breaking",
-        "description": "EnterWorktree now prompts for confirmation before entering a worktree outside .claude/worktrees/.",
+        "description": "Bedrock, Vertex, and Claude Platform on AWS now default to Claude Opus 4.8",
         "gap_score": 20,
         "affected_skills": [
-          "chain-patterns",
-          "agent-orchestration",
-          "swarm-migrate"
+          "upgrade-assessment",
+          "configure",
+          "setup"
         ],
-        "reference_changelog_line": "`EnterWorktree` now asks for confirmation before entering a git worktree outside the project's `.claude/worktrees/` directory",
+        "reference_changelog_line": "Changed Bedrock, Vertex, and Claude Platform on AWS to default to Claude Opus 4.8",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "mcp_per_server_request_timeout",
+        "feature_slug": "automode_no_repo_settings_local",
         "category": "breaking",
-        "description": "Per-server request_timeout_ms in --mcp-config and .mcp.json is now honored instead of defaulting to 60s.",
+        "description": "autoMode setting no longer read from repo-resident .claude/settings.local.json; use user settings.json",
         "gap_score": 20,
         "affected_skills": [
-          "mcp-patterns",
-          "mcp-visual-output",
-          "storybook-mcp-integration"
+          "configure",
+          "setup"
         ],
-        "reference_changelog_line": "Fixed MCP servers configured via `--mcp-config` or `.mcp.json` ignoring a per-server `request_timeout_ms`, which caused long-running MCP tool calls to time out at the 60s default in fresh sessions",
+        "reference_changelog_line": "Changed auto mode to no longer read `autoMode` from `.claude/settings.local.json` (repo-resident); use `~/.claude/settings.json` instead",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "extra_body_propagates_to_bg_workers",
+        "feature_slug": "plugin_user_config_shell_form_rejected",
         "category": "breaking",
-        "description": "CLAUDE_CODE_EXTRA_BODY now propagates from the dispatching session to claude agents and --bg background workers.",
-        "gap_score": 20,
-        "affected_skills": [
-          "bare-eval",
-          "agent-orchestration",
-          "chain-patterns"
-        ],
-        "reference_changelog_line": "Fixed `CLAUDE_CODE_EXTRA_BODY` being silently ignored by `claude agents` / `--bg` background workers; the shell-exported override now follows the dispatching session",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "permission_prompt_tool_mcp_coldstart",
-        "category": "breaking",
-        "description": "--permission-prompt-tool pointing at an MCP server no longer crashes with 'MCP tool not found' on cold start.",
+        "description": "${user_config.*} in shell-form plugin hooks/monitors/MCP headersHelper commands rejected as shell-injection risk",
         "gap_score": 20,
         "affected_skills": [
           "mcp-patterns",
           "security-patterns",
           "configure"
         ],
-        "reference_changelog_line": "Fixed `--permission-prompt-tool` pointing at an MCP server crashing with \"MCP tool not found\" on cold start before the server finishes connecting",
+        "reference_changelog_line": "Plugin hooks/monitors/MCP headersHelper: `${user_config.*}` in shell-form commands is now rejected (shell-injection fix). Hooks: use exec form (`args` array) or `$CLAUDE_PLUGIN_OPTION_<KEY>`; monitors and headersHelper: read the value inside the script (config file or the server's `env` block).",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "claude_rm_daemon_roster_cleanup",
+        "feature_slug": "plugin_configs_no_project_settings",
         "category": "breaking",
-        "description": "claude rm now removes the job from the daemon roster so it no longer reappears in claude agents.",
+        "description": "pluginConfigs values no longer honored from project .claude/settings.json; only user, --settings, and managed",
         "gap_score": 20,
         "affected_skills": [
-          "agent-orchestration",
-          "chain-patterns"
+          "configure",
+          "setup",
+          "mcp-patterns"
         ],
-        "reference_changelog_line": "Fixed `claude rm` leaving the removed job in the daemon roster, causing the row to reappear in `claude agents`",
+        "reference_changelog_line": "Plugin option values (`pluginConfigs`) are no longer read from project-level `.claude/settings.json`; only user, `--settings`, and managed settings are honored",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "cd_directory_path_suggestions",
-        "category": "new_command",
-        "description": "/cd now offers directory path suggestions, matching /add-dir behavior.",
-        "gap_score": 15,
+        "feature_slug": "disable_auto_mode_setting",
+        "category": "new_field",
+        "description": "Auto mode enabled by default on Bedrock/Vertex/Foundry; disable via new disableAutoMode setting",
+        "gap_score": 10,
         "affected_skills": [
-          "dev",
-          "portless"
+          "configure",
+          "setup"
         ],
-        "reference_changelog_line": "Added directory path suggestions to `/cd`, matching `/add-dir` behavior",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "doctor_claude_md_trim_check",
-        "category": "new_command",
-        "description": "/doctor gains a check proposing to trim checked-in CLAUDE.md content that Claude could derive from the codebase.",
-        "gap_score": 15,
-        "affected_skills": [
-          "doctor",
-          "init"
-        ],
-        "reference_changelog_line": "Added a `/doctor` check that proposes trimming checked-in `CLAUDE.md` files by cutting content Claude could derive from the codebase",
-        "relevance": "plugin"
+        "reference_changelog_line": "Auto mode is now available without `CLAUDE_CODE_ENABLE_AUTO_MODE` opt-in on Bedrock, Vertex AI, and Foundry; disable via `disableAutoMode` in settings",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
       }
     ],
-    "raw_bullets_count": 27,
-    "issues_filed_at": "2026-07-10T04:22:53Z"
+    "raw_bullets_count": 24,
+    "issues_filed_at": "2026-07-11T04:03:52Z"
   }
 ]
