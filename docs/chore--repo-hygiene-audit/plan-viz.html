@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OrchestKit — Repo Hygiene Audit</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2430; --border:#30363d;
+    --fg:#e6edf3; --muted:#8b949e; --accent:#58a6ff;
+    --red:#f85149; --orange:#e3922e; --yellow:#d4b13a; --green:#3fb950; --violet:#a371f7;
+    --mono:'SFMono-Regular',ui-monospace,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  html[data-theme="light"]{
+    --bg:#f6f8fa; --panel:#fff; --panel2:#eef1f5; --border:#d0d7de;
+    --fg:#1f2328; --muted:#57606a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.5}
+  .wrap{max-width:1160px;margin:0 auto;padding:28px 20px 80px}
+  header.top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:18px;margin-bottom:24px}
+  h1{font-size:24px;margin:0;letter-spacing:-.4px}
+  h1 .sub{color:var(--muted);font-weight:400;font-size:15px}
+  .theme-btn{background:var(--panel);border:1px solid var(--border);color:var(--fg);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px}
+  .theme-btn:hover{border-color:var(--accent)}
+
+  /* scorecard */
+  .grade-row{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:26px}
+  .grade-card{flex:0 0 auto;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px 22px;min-width:160px}
+  .grade-card .big{font-size:44px;font-weight:700;line-height:1;letter-spacing:-1px}
+  .grade-card .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px;margin-top:6px}
+  .dims{flex:1 1 420px;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px 20px}
+  .dim{display:grid;grid-template-columns:150px 1fr 34px;align-items:center;gap:10px;margin:8px 0;font-size:13px}
+  .dim .name{color:var(--muted)}
+  .bar{height:9px;border-radius:6px;background:var(--panel2);overflow:hidden}
+  .bar > i{display:block;height:100%;border-radius:6px}
+  .dim .val{font-family:var(--mono);text-align:right;font-size:12px}
+
+  .callout{background:linear-gradient(90deg,rgba(88,166,255,.10),transparent);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:14px 18px;margin-bottom:28px;font-size:14px}
+  .callout b{color:var(--accent)}
+
+  /* controls */
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
+  .chip{background:var(--panel);border:1px solid var(--border);color:var(--fg);border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer;user-select:none}
+  .chip[aria-pressed="true"]{border-color:var(--accent);background:rgba(88,166,255,.14);color:var(--accent)}
+  .chip .n{opacity:.6;font-family:var(--mono);font-size:11px;margin-left:5px}
+  .spacer{flex:1}
+  .toggle{display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .toggle button{background:var(--panel);color:var(--muted);border:0;padding:7px 14px;cursor:pointer;font-size:13px}
+  .toggle button.on{background:var(--panel2);color:var(--fg)}
+
+  /* items */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+  .item{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:15px 16px;position:relative;transition:.15s border-color}
+  .item:hover{border-color:var(--accent)}
+  .item.sev-red{border-left:4px solid var(--red)}
+  .item.sev-orange{border-left:4px solid var(--orange)}
+  .item.sev-yellow{border-left:4px solid var(--yellow)}
+  .item.sev-green{border-left:4px solid var(--green)}
+  .item h3{margin:0 0 4px;font-size:14px;font-family:var(--mono);word-break:break-all}
+  .badges{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .badge{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+  .badge.red{color:var(--red);border-color:var(--red)}
+  .badge.orange{color:var(--orange);border-color:var(--orange)}
+  .badge.yellow{color:var(--yellow);border-color:var(--yellow)}
+  .badge.green{color:var(--green);border-color:var(--green)}
+  .item p{margin:6px 0 0;font-size:12.5px;color:var(--muted)}
+  .move{margin-top:10px;font-size:12px;font-family:var(--mono);display:flex;align-items:center;gap:8px}
+  .move .from{color:var(--muted);text-decoration:line-through;opacity:.7}
+  .move .arw{color:var(--accent)}
+  .move .to{color:var(--green)}
+
+  /* before/after trees */
+  .trees{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+  @media(max-width:760px){.trees{grid-template-columns:1fr}}
+  .tree{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+  .tree h4{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  pre.tr{margin:0;font-family:var(--mono);font-size:12px;line-height:1.55;white-space:pre;overflow-x:auto}
+  .tr .rm{color:var(--red)}
+  .tr .add{color:var(--green)}
+  .tr .keep{color:var(--muted)}
+
+  /* command box */
+  .cmdbox{background:#000;border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-top:28px;position:relative}
+  .cmdbox h4{margin:0 0 10px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  pre.cmd{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;color:#c9d1d9;white-space:pre-wrap}
+  pre.cmd .c{color:#6a737d}
+  pre.cmd .g{color:var(--green)}
+  .copy{position:absolute;top:14px;right:14px;background:var(--panel);border:1px solid var(--border);color:var(--fg);border-radius:7px;padding:5px 12px;font-size:12px;cursor:pointer}
+  .copy:hover{border-color:var(--accent)}
+  footer{color:var(--muted);font-size:12px;margin-top:34px;border-top:1px solid var(--border);padding-top:14px}
+  .disclaimer{color:var(--yellow);font-size:11.5px;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>🧹 OrchestKit — Repo Hygiene Audit<br><span class="sub">Grounded in <code>git ls-files</code> @ main · 2026-07-11 · /ork:assess + /ork:visualize-plan</span></h1>
+    <button class="theme-btn" onclick="toggleTheme()">☀︎ / ☾ theme</button>
+  </header>
+
+  <!-- SCORECARD -->
+  <div class="grade-row">
+    <div class="grade-card">
+      <div class="big" style="color:var(--yellow)">C-</div>
+      <div class="lbl">Composite 4.6 / 10</div>
+    </div>
+    <div class="dims" id="dims"></div>
+  </div>
+
+  <div class="callout">
+    <b>The honest finding:</b> your local <code>ls</code> shows <b>68 entries</b>, but a fresh <code>git clone</code> shows <b>~44</b>.
+    The <code>.DS_Store</code>, <code>.env</code>, three <code>*_cache/</code> dirs, <code>logs/</code>, <code>.instance/</code>,
+    <code>overcut/</code>, <code>cellebrite-tech-stack.html</code>, <code>playground-*.html</code> and <code>node_modules/</code> are
+    <b>all correctly gitignored</b> — invisible to anyone who clones. The repo is <i>less</i> unprofessional than the disk looks.
+    The genuinely committed problems are the <b>10 items below</b>.
+  </div>
+
+  <!-- BEFORE / AFTER -->
+  <div class="trees">
+    <div class="tree">
+      <h4>Root today (tracked) — cluttered</h4>
+      <pre class="tr" id="treeBefore"></pre>
+    </div>
+    <div class="tree">
+      <h4>Root after cleanup — tidy</h4>
+      <pre class="tr" id="treeAfter"></pre>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls" id="controls">
+    <span class="chip" data-f="all" aria-pressed="true">All <span class="n" id="cAll"></span></span>
+    <span class="chip" data-f="red" aria-pressed="false">🔴 Critical <span class="n" id="cRed"></span></span>
+    <span class="chip" data-f="orange" aria-pressed="false">🟠 Misplaced <span class="n" id="cOrange"></span></span>
+    <span class="chip" data-f="yellow" aria-pressed="false">🟡 Orphan dirs <span class="n" id="cYellow"></span></span>
+    <span class="chip" data-f="green" aria-pressed="false">🟢 Already good <span class="n" id="cGreen"></span></span>
+    <span class="spacer"></span>
+    <div class="toggle" id="sortToggle">
+      <button data-s="sev" class="on">by severity</button>
+      <button data-s="size">by size</button>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <!-- CLEANUP COMMAND -->
+  <div class="cmdbox">
+    <button class="copy" onclick="copyCmd()">⧉ copy</button>
+    <h4>Proposed cleanup — review before running</h4>
+    <pre class="cmd" id="cmd"></pre>
+    <div class="disclaimer">⚠ Preview only — no destination dirs are auto-created and git-lfs migration for Logo.png needs a separate <code>git lfs migrate</code>. Run in a <code>chore/repo-hygiene</code> branch, rebuild, then <code>npm test</code>.</div>
+  </div>
+
+  <footer>
+    Evidence: <code>git ls-files</code>, <code>git check-ignore</code>, <code>git cat-file -s</code>. Sizes are on-disk / in-git bytes.
+    Playground written to <code>docs/chore--repo-hygiene-audit/plan-viz.html</code>.
+  </footer>
+</div>
+
+<script>
+/* ---------- data ---------- */
+const DIMS = [
+  {name:"Organization",      score:4, color:"var(--orange)"},
+  {name:"Professionalism",   score:4, color:"var(--orange)"},
+  {name:"Maintainability",   score:5, color:"var(--yellow)"},
+  {name:"Repo weight",       score:5, color:"var(--yellow)"},
+  {name:"gitignore hygiene", score:8, color:"var(--green)"},
+];
+
+const ITEMS = [
+  {name:"orchestkit-demos/coverage/", sev:"red", tags:["artifact-leak","29 files"], sizeKb:0,
+   desc:"A generated HTML coverage report committed to git. Regenerated on every test run — pure churn, never reviewed.",
+   from:"orchestkit-demos/coverage/", to:"gitignore + git rm --cached"},
+  {name:"Logo.png", sev:"red", tags:["bloat","4.7 MB"], sizeKb:4832,
+   desc:"A 4.7 MB PNG at repo root, tracked in git. Bloats every clone forever; a logo should be a fraction of this.",
+   from:"/Logo.png", to:".github/assets/ (+ optimize / LFS)"},
+  {name:"ADR-caching-strategy.md", sev:"orange", tags:["misplaced"], sizeKb:7,
+   desc:"An ADR dumped at root — despite the repo shipping a full architecture-decision-record skill and a docs/adr convention.",
+   from:"/ADR-caching-strategy.md", to:"docs/adr/"},
+  {name:"ADR-database-selection.md", sev:"orange", tags:["misplaced"], sizeKb:5,
+   desc:"Second root ADR. Same convention mismatch — inconsistent with the project's own documented pattern.",
+   from:"/ADR-database-selection.md", to:"docs/adr/"},
+  {name:"DEMO_PRODUCTION.md", sev:"orange", tags:["misplaced"], sizeKb:5,
+   desc:"Demo-production notes at root. Belongs beside the demos it describes or under docs/.",
+   from:"/DEMO_PRODUCTION.md", to:"orchestkit-demos/ or docs/"},
+  {name:"demo-orchestkit-cli.ts", sev:"orange", tags:["stray-source"], sizeKb:3,
+   desc:"A stray TypeScript file at root with no build wiring — reads as a leftover scratch file.",
+   from:"/demo-orchestkit-cli.ts", to:"orchestkit-demos/scripts/"},
+  {name:"spec/", sev:"yellow", tags:["orphan-dir","1 file"], sizeKb:1,
+   desc:"Top-level dir holding a single hook-events.spec.yml. Not worth its own root entry.",
+   from:"spec/hook-events.spec.yml", to:"tests/ or shared/"},
+  {name:"designs/", sev:"yellow", tags:["orphan-dir","1 file"], sizeKb:1,
+   desc:"One file: ascii-design-system.md. Note: /ork:visualize-plan itself writes here, so keep the dir but the lone doc belongs in docs/.",
+   from:"designs/ascii-design-system.md", to:"docs/ or shared/rules/"},
+  {name:"swarm-specs/", sev:"yellow", tags:["orphan-dir","4 files"], sizeKb:4,
+   desc:"Four example swarm spec files at root. Examples belong under docs/examples/, not a top-level dir.",
+   from:"swarm-specs/examples/*", to:"docs/examples/swarm-specs/"},
+  {name:"vendor/", sev:"yellow", tags:["orphan-dir","2 files"], sizeKb:2,
+   desc:"Two vercel-skills manifest files. Defensible as-is, but 'vendor' at root is ambiguous — consider third_party/ or a comment.",
+   from:"vendor/vercel-skills/", to:"leave (low priority) or third_party/"},
+  {name:"gitignore coverage ✅", sev:"green", tags:["already-good"], sizeKb:0,
+   desc:".env, .DS_Store, .mypy_cache, .pytest_cache, .ruff_cache, logs/, .instance/, overcut/, playground-*.html, cellebrite-*.html, node_modules — all correctly ignored. Keep it.",
+   from:"(local noise)", to:"correctly excluded from clones"},
+];
+
+/* ---------- scorecard ---------- */
+const dimEl = document.getElementById("dims");
+DIMS.forEach(d=>{
+  const row=document.createElement("div");row.className="dim";
+  row.innerHTML=`<span class="name">${d.name}</span>
+    <span class="bar"><i style="width:${d.score*10}%;background:${d.color}"></i></span>
+    <span class="val">${d.score}/10</span>`;
+  dimEl.appendChild(row);
+});
+
+/* ---------- before / after trees ---------- */
+document.getElementById("treeBefore").innerHTML =
+`<span class="keep">orchestkit/</span>
+├─ <span class="rm">ADR-caching-strategy.md</span>      <span class="keep">← root</span>
+├─ <span class="rm">ADR-database-selection.md</span>    <span class="keep">← root</span>
+├─ <span class="rm">DEMO_PRODUCTION.md</span>           <span class="keep">← root</span>
+├─ <span class="rm">demo-orchestkit-cli.ts</span>       <span class="keep">← stray</span>
+├─ <span class="rm">Logo.png</span>  <span class="keep">4.7MB</span>
+├─ <span class="rm">spec/</span>          <span class="keep">1 file</span>
+├─ <span class="rm">designs/</span>       <span class="keep">1 file</span>
+├─ <span class="rm">swarm-specs/</span>   <span class="keep">4 files</span>
+├─ <span class="rm">vendor/</span>        <span class="keep">2 files</span>
+├─ orchestkit-demos/
+│  └─ <span class="rm">coverage/</span>  <span class="keep">29 tracked HTML ⚠</span>
+├─ <span class="keep">src/ docs/ tests/ shared/ …</span>
+└─ <span class="keep">README CHANGELOG package.json …</span>`;
+
+document.getElementById("treeAfter").innerHTML =
+`<span class="keep">orchestkit/</span>
+├─ .github/assets/<span class="add">Logo.png</span>   <span class="keep">(+LFS)</span>
+├─ docs/
+│  ├─ adr/<span class="add">caching-strategy.md</span>
+│  ├─ adr/<span class="add">database-selection.md</span>
+│  ├─ <span class="add">DEMO_PRODUCTION.md</span>
+│  └─ examples/<span class="add">swarm-specs/</span>
+├─ orchestkit-demos/
+│  ├─ scripts/<span class="add">demo-cli.ts</span>
+│  └─ <span class="keep">(coverage/ now gitignored)</span>
+├─ tests/<span class="add">hook-events.spec.yml</span>
+├─ <span class="keep">src/ docs/ tests/ shared/ …</span>
+└─ <span class="keep">README CHANGELOG package.json …</span>
+<span class="add">   → ~9 fewer root entries, 0 tracked artifacts</span>`;
+
+/* ---------- items render ---------- */
+let filter="all", sort="sev";
+const sevRank={red:0,orange:1,yellow:2,green:3};
+const grid=document.getElementById("grid");
+function render(){
+  let list=ITEMS.filter(i=>filter==="all"||i.sev===filter);
+  list.sort((a,b)=> sort==="sev" ? sevRank[a.sev]-sevRank[b.sev] : b.sizeKb-a.sizeKb);
+  grid.innerHTML="";
+  list.forEach(i=>{
+    const el=document.createElement("div");el.className="item sev-"+i.sev;
+    el.innerHTML=`<h3>${i.name}</h3>
+      <div class="badges">${i.tags.map(t=>`<span class="badge ${i.sev}">${t}</span>`).join("")}</div>
+      <p>${i.desc}</p>
+      <div class="move"><span class="from">${i.from}</span><span class="arw">→</span><span class="to">${i.to}</span></div>`;
+    grid.appendChild(el);
+  });
+}
+document.getElementById("cAll").textContent=ITEMS.length;
+document.getElementById("cRed").textContent=ITEMS.filter(i=>i.sev==="red").length;
+document.getElementById("cOrange").textContent=ITEMS.filter(i=>i.sev==="orange").length;
+document.getElementById("cYellow").textContent=ITEMS.filter(i=>i.sev==="yellow").length;
+document.getElementById("cGreen").textContent=ITEMS.filter(i=>i.sev==="green").length;
+
+document.getElementById("controls").addEventListener("click",e=>{
+  const chip=e.target.closest(".chip");if(!chip)return;
+  document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed","false"));
+  chip.setAttribute("aria-pressed","true");filter=chip.dataset.f;render();
+});
+document.getElementById("sortToggle").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll("#sortToggle button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");sort=b.dataset.s;render();
+});
+render();
+
+/* ---------- cleanup command ---------- */
+const CMD=
+`<span class="c"># chore/repo-hygiene — review each line</span>
+git switch -c chore/repo-hygiene
+
+<span class="c"># 1. stop tracking the generated coverage report</span>
+git rm -r --cached orchestkit-demos/coverage
+echo <span class="g">"orchestkit-demos/coverage/"</span> >> .gitignore
+
+<span class="c"># 2. relocate the 4.7MB logo (optimize or LFS-migrate separately)</span>
+mkdir -p .github/assets && git mv Logo.png .github/assets/Logo.png
+
+<span class="c"># 3. move the two root ADRs into the documented convention</span>
+mkdir -p docs/adr
+git mv ADR-caching-strategy.md   docs/adr/caching-strategy.md
+git mv ADR-database-selection.md docs/adr/database-selection.md
+
+<span class="c"># 4. root docs / stray source</span>
+git mv DEMO_PRODUCTION.md    docs/DEMO_PRODUCTION.md
+git mv demo-orchestkit-cli.ts orchestkit-demos/scripts/demo-cli.ts
+
+<span class="c"># 5. collapse orphan top-level dirs</span>
+git mv spec/hook-events.spec.yml tests/hook-events.spec.yml && rmdir spec
+mkdir -p docs/examples && git mv swarm-specs docs/examples/swarm-specs
+git mv designs/ascii-design-system.md docs/ascii-design-system.md
+
+<span class="c"># grep for references to moved paths BEFORE committing</span>
+grep -rn <span class="g">"ADR-caching-strategy\\|demo-orchestkit-cli\\|swarm-specs/"</span> src docs scripts
+npm run build && npm test`;
+document.getElementById("cmd").innerHTML=CMD;
+function copyCmd(){
+  const plain=document.getElementById("cmd").innerText;
+  navigator.clipboard.writeText(plain).then(()=>{
+    const b=document.querySelector(".copy");b.textContent="✓ copied";setTimeout(()=>b.textContent="⧉ copy",1400);
+  });
+}
+
+/* ---------- theme ---------- */
+function toggleTheme(){
+  const h=document.documentElement;
+  h.dataset.theme = h.dataset.theme==="dark" ? "light":"dark";
+}
+</script>
+</body>
+</html>
