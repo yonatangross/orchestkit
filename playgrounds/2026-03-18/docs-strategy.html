@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Docs Strategy Playground</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d1117; --bg2: #161b22; --bg3: #1c2128; --border: #30363d;
+    --text: #e6edf3; --text2: #8b949e; --text3: #6e7681;
+    --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+    --red: #f85149; --purple: #bc8cff; --pink: #f778ba;
+    --radius: 8px; --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  }
+
+  body {
+    font-family: var(--font); background: var(--bg); color: var(--text);
+    line-height: 1.5; min-height: 100vh;
+  }
+
+  header {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header .tag {
+    font-size: 11px; padding: 2px 8px; border-radius: 12px;
+    background: var(--bg3); color: var(--text2); border: 1px solid var(--border);
+  }
+  header .stats { margin-left: auto; display: flex; gap: 12px; font-size: 12px; color: var(--text2); }
+  header .stats span { font-weight: 600; color: var(--text); }
+
+  .tabs {
+    display: flex; border-bottom: 1px solid var(--border); padding: 0 24px;
+    gap: 0; overflow-x: auto;
+  }
+  .tab {
+    padding: 10px 16px; font-size: 13px; cursor: pointer; color: var(--text2);
+    border-bottom: 2px solid transparent; background: none; border-top: none;
+    border-left: none; border-right: none; font-family: var(--font);
+    white-space: nowrap; transition: color 0.15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  .content { padding: 24px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Controls bar */
+  .controls {
+    display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;
+  }
+  .control-group { display: flex; align-items: center; gap: 6px; }
+  .control-group label { font-size: 12px; color: var(--text2); }
+
+  .toggle {
+    position: relative; width: 36px; height: 20px; cursor: pointer;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle .slider {
+    position: absolute; inset: 0; background: var(--bg3); border-radius: 10px;
+    border: 1px solid var(--border); transition: background 0.2s;
+  }
+  .toggle .slider::before {
+    content: ''; position: absolute; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--text2); left: 2px; top: 2px;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .toggle input:checked + .slider { background: var(--accent); border-color: var(--accent); }
+  .toggle input:checked + .slider::before { transform: translateX(16px); background: #fff; }
+
+  select, button {
+    font-family: var(--font); font-size: 12px; padding: 5px 10px;
+    background: var(--bg3); color: var(--text); border: 1px solid var(--border);
+    border-radius: var(--radius); cursor: pointer;
+  }
+  select:hover, button:hover { border-color: var(--text3); }
+  button.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+  button.primary:hover { opacity: 0.9; }
+
+  /* Matrix view */
+  .matrix-container { position: relative; }
+  .matrix {
+    position: relative; width: 100%; height: 480px;
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .matrix-axis-x, .matrix-axis-y {
+    position: absolute; font-size: 11px; color: var(--text3); text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .matrix-axis-x { bottom: 8px; left: 50%; transform: translateX(-50%); }
+  .matrix-axis-y {
+    top: 50%; left: 8px; transform: translateY(-50%) rotate(-90deg);
+    transform-origin: center;
+  }
+  .matrix-quadrant {
+    position: absolute; font-size: 10px; color: var(--text3); opacity: 0.5;
+    pointer-events: none;
+  }
+  .matrix .gridline {
+    position: absolute; background: var(--border); opacity: 0.3;
+  }
+  .matrix .gridline.h { width: 100%; height: 1px; left: 0; top: 50%; }
+  .matrix .gridline.v { height: 100%; width: 1px; top: 0; left: 50%; }
+
+  .issue-dot {
+    position: absolute; width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    transform: translate(-50%, -50%);
+    border: 2px solid rgba(255,255,255,0.15);
+  }
+  .issue-dot:hover {
+    transform: translate(-50%, -50%) scale(1.3);
+    box-shadow: 0 0 16px rgba(88,166,255,0.4);
+    z-index: 10;
+  }
+  .issue-dot.dimmed { opacity: 0.2; pointer-events: none; }
+  .issue-dot.selected { border-color: var(--accent); box-shadow: 0 0 12px rgba(88,166,255,0.5); }
+
+  .tooltip {
+    position: fixed; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px 14px; font-size: 12px;
+    max-width: 320px; z-index: 100; pointer-events: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: none;
+  }
+  .tooltip .tt-title { font-weight: 600; margin-bottom: 4px; }
+  .tooltip .tt-meta { color: var(--text2); font-size: 11px; }
+  .tooltip .tt-verdict { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 11px; }
+  .tooltip .tt-verdict.do { color: var(--accent2); }
+  .tooltip .tt-verdict.defer { color: var(--accent3); }
+  .tooltip .tt-verdict.challenge { color: var(--red); }
+
+  /* Issue list */
+  .issue-list { display: flex; flex-direction: column; gap: 8px; }
+  .issue-card {
+    display: grid; grid-template-columns: 32px 1fr auto auto auto;
+    align-items: center; gap: 12px; padding: 10px 14px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); transition: border-color 0.15s;
+    cursor: pointer;
+  }
+  .issue-card:hover { border-color: var(--text3); }
+  .issue-card.dimmed { opacity: 0.25; }
+  .issue-card .issue-num { font-family: var(--mono); font-size: 12px; color: var(--text3); }
+  .issue-card .issue-title { font-size: 13px; font-weight: 500; }
+  .issue-card .issue-title small { color: var(--text2); font-weight: 400; }
+
+  .badge {
+    font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .badge.p0 { background: rgba(63,185,80,0.15); color: var(--accent2); }
+  .badge.p1 { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .badge.p2 { background: rgba(210,153,34,0.15); color: var(--accent3); }
+  .badge.defer { background: rgba(248,81,73,0.15); color: var(--red); }
+  .badge.effort-low { background: rgba(63,185,80,0.1); color: var(--accent2); }
+  .badge.effort-med { background: rgba(210,153,34,0.1); color: var(--accent3); }
+  .badge.effort-high { background: rgba(248,81,73,0.1); color: var(--red); }
+
+  .phase-badge {
+    font-size: 10px; padding: 2px 8px; border-radius: 10px;
+    font-weight: 600; border: 1px solid;
+  }
+  .phase-badge.p1 { border-color: var(--accent2); color: var(--accent2); }
+  .phase-badge.p2 { border-color: var(--accent); color: var(--accent); }
+  .phase-badge.p3 { border-color: var(--accent3); color: var(--accent3); }
+  .phase-badge.p4 { border-color: var(--text3); color: var(--text3); }
+  .phase-badge.new { border-color: var(--purple); color: var(--purple); }
+
+  /* Timeline */
+  .timeline { margin-top: 16px; }
+  .phase-row {
+    display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;
+  }
+  .phase-label {
+    min-width: 120px; font-size: 13px; font-weight: 600;
+    padding-top: 8px; flex-shrink: 0;
+  }
+  .phase-cards { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+  .phase-card {
+    padding: 8px 12px; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); font-size: 12px; min-width: 180px;
+    flex: 1; max-width: 260px;
+  }
+  .phase-card .pc-title { font-weight: 600; margin-bottom: 4px; }
+  .phase-card .pc-effort { font-size: 11px; color: var(--text2); }
+  .phase-card .pc-bar {
+    height: 3px; border-radius: 2px; margin-top: 6px;
+  }
+
+  /* Dep graph */
+  .dep-graph {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; min-height: 400px; position: relative;
+  }
+  .dep-node {
+    position: absolute; padding: 6px 12px; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    font-size: 11px; font-weight: 500; cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    white-space: nowrap;
+  }
+  .dep-node:hover { border-color: var(--accent); box-shadow: 0 0 8px rgba(88,166,255,0.2); }
+  .dep-node.dimmed { opacity: 0.2; }
+
+  svg.dep-lines {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  svg.dep-lines line { stroke: var(--border); stroke-width: 1.5; }
+  svg.dep-lines line.highlight { stroke: var(--accent); stroke-width: 2; }
+
+  /* Prompt output */
+  .prompt-section {
+    margin-top: 24px; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  .prompt-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    font-size: 12px; color: var(--text2);
+  }
+  .prompt-body {
+    padding: 14px; font-family: var(--mono); font-size: 12px;
+    line-height: 1.6; white-space: pre-wrap; max-height: 400px;
+    overflow-y: auto; color: var(--text);
+  }
+
+  /* Detail panel */
+  .detail-panel {
+    position: fixed; right: -420px; top: 0; width: 400px; height: 100vh;
+    background: var(--bg2); border-left: 1px solid var(--border);
+    z-index: 50; transition: right 0.25s ease; overflow-y: auto;
+    padding: 20px; box-shadow: -4px 0 24px rgba(0,0,0,0.3);
+  }
+  .detail-panel.open { right: 0; }
+  .detail-panel .close-btn {
+    position: absolute; top: 12px; right: 12px; background: none;
+    border: none; color: var(--text2); cursor: pointer; font-size: 18px;
+  }
+  .detail-panel h3 { font-size: 16px; margin-bottom: 12px; padding-right: 30px; }
+  .detail-panel .detail-meta { font-size: 12px; color: var(--text2); margin-bottom: 16px; }
+  .detail-panel .detail-verdict {
+    padding: 12px; background: var(--bg3); border-radius: var(--radius);
+    font-size: 13px; line-height: 1.6; margin-bottom: 16px;
+  }
+  .detail-panel .detail-section { margin-bottom: 16px; }
+  .detail-panel .detail-section h4 { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .detail-panel .detail-section p { font-size: 13px; line-height: 1.5; }
+
+  /* Summary bar */
+  .summary-bar {
+    display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .summary-card {
+    flex: 1; min-width: 140px; padding: 12px 16px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .summary-card .sc-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+  .summary-card .sc-value { font-size: 24px; font-weight: 700; margin-top: 4px; }
+  .summary-card .sc-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* Existing assets */
+  .asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-top: 12px; }
+  .asset-item {
+    padding: 8px 12px; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); font-size: 12px;
+  }
+  .asset-item .ai-label { color: var(--text2); font-size: 10px; text-transform: uppercase; }
+  .asset-item .ai-value { font-weight: 500; margin-top: 2px; }
+
+  .legend { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text2); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  @media (max-width: 768px) {
+    .issue-card { grid-template-columns: 32px 1fr; }
+    .phase-row { flex-direction: column; }
+    .matrix { height: 360px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>OrchestKit Docs Strategy</h1>
+  <span class="tag">Milestone #95</span>
+  <span class="tag">Fumadocs + Next.js 16</span>
+  <span class="tag">Vercel</span>
+  <div class="stats">
+    <div><span id="stat-active">0</span> active issues</div>
+    <div><span id="stat-effort">0</span> days est.</div>
+    <div><span id="stat-pages">212</span> pages exist</div>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" data-tab="matrix">Impact / Effort</button>
+  <button class="tab" data-tab="issues">Issue List</button>
+  <button class="tab" data-tab="timeline">Phasing</button>
+  <button class="tab" data-tab="deps">Dependencies</button>
+  <button class="tab" data-tab="existing">Current State</button>
+</div>
+
+<div class="content">
+  <!-- Controls -->
+  <div class="controls">
+    <div class="control-group">
+      <label>Include videos</label>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-videos" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="control-group">
+      <label>Show</label>
+      <select id="filter-verdict">
+        <option value="all">All issues</option>
+        <option value="do">DO only</option>
+        <option value="challenge">Challenged</option>
+        <option value="defer">Deferred</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <select id="preset">
+        <option value="">Custom</option>
+        <option value="no-video-sprint">No-Video Sprint</option>
+        <option value="full-milestone">Full Milestone</option>
+        <option value="quick-wins">Quick Wins Only</option>
+        <option value="interactive-focus">Interactive Components</option>
+      </select>
+    </div>
+    <button class="primary" onclick="copyPrompt()">Copy Plan</button>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-bar">
+    <div class="summary-card">
+      <div class="sc-label">Scope</div>
+      <div class="sc-value" id="sum-issues">12</div>
+      <div class="sc-sub">issues in scope</div>
+    </div>
+    <div class="summary-card">
+      <div class="sc-label">Effort</div>
+      <div class="sc-value" id="sum-days">0</div>
+      <div class="sc-sub">estimated days</div>
+    </div>
+    <div class="summary-card">
+      <div class="sc-label">New Pages</div>
+      <div class="sc-value" id="sum-pages">0</div>
+      <div class="sc-sub">pages added</div>
+    </div>
+    <div class="summary-card">
+      <div class="sc-label">Components</div>
+      <div class="sc-value" id="sum-components">0</div>
+      <div class="sc-sub">new React components</div>
+    </div>
+  </div>
+
+  <!-- Matrix Panel -->
+  <div class="panel active" id="panel-matrix">
+    <div class="matrix-container">
+      <div class="matrix" id="matrix">
+        <div class="gridline h"></div>
+        <div class="gridline v"></div>
+        <div class="matrix-quadrant" style="top:12px;right:12px">HIGH IMPACT / LOW EFFORT</div>
+        <div class="matrix-quadrant" style="top:12px;left:12px">HIGH IMPACT / HIGH EFFORT</div>
+        <div class="matrix-quadrant" style="bottom:12px;right:12px">LOW IMPACT / LOW EFFORT</div>
+        <div class="matrix-quadrant" style="bottom:12px;left:12px">LOW IMPACT / HIGH EFFORT</div>
+        <div class="matrix-axis-x">Effort &rarr;</div>
+        <div class="matrix-axis-y">Impact &rarr;</div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div> P0 — Do First</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> P1 — High Value</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent3)"></div> P2 — Defer</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> New (not in milestone)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Issues Panel -->
+  <div class="panel" id="panel-issues">
+    <div class="issue-list" id="issue-list"></div>
+  </div>
+
+  <!-- Timeline Panel -->
+  <div class="panel" id="panel-timeline">
+    <div class="timeline" id="timeline"></div>
+  </div>
+
+  <!-- Deps Panel -->
+  <div class="panel" id="panel-deps">
+    <div class="dep-graph" id="dep-graph"></div>
+  </div>
+
+  <!-- Existing State Panel -->
+  <div class="panel" id="panel-existing">
+    <h3 style="font-size:14px;margin-bottom:16px;color:var(--text2)">What Already Exists (don't rebuild these)</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <h4 style="font-size:12px;color:var(--text3);margin-bottom:8px">CONTENT (212 pages)</h4>
+        <div class="asset-grid" style="grid-template-columns:1fr">
+          <div class="asset-item"><div class="ai-label">Hand-written</div><div class="ai-value">59 MDX pages</div></div>
+          <div class="asset-item"><div class="ai-label">Auto-generated</div><div class="ai-value">93 skill + 33 agent + 24 hook ref pages</div></div>
+          <div class="asset-item"><div class="ai-label">Sections</div><div class="ai-value">12 nav sections with icons</div></div>
+          <div class="asset-item"><div class="ai-label">Cookbook</div><div class="ai-value">6 role guides + 6 workflow recipes</div></div>
+          <div class="asset-item"><div class="ai-label">Spotlights</div><div class="ai-value">5 skill + 8 hook deep-dives</div></div>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:12px;color:var(--text3);margin-bottom:8px">INTERACTIVE COMPONENTS (8 built)</h4>
+        <div class="asset-grid" style="grid-template-columns:1fr">
+          <div class="asset-item"><div class="ai-value">SkillBrowser</div><div class="ai-label">Search + tag filter</div></div>
+          <div class="asset-item"><div class="ai-value">AgentSelector</div><div class="ai-label">Agent chooser</div></div>
+          <div class="asset-item"><div class="ai-value">DemoGallery</div><div class="ai-label">Video demos</div></div>
+          <div class="asset-item"><div class="ai-value">SetupWizard</div><div class="ai-label">Onboarding flow</div></div>
+          <div class="asset-item"><div class="ai-value">ChangelogTimeline</div><div class="ai-label">Release history</div></div>
+          <div class="asset-item"><div class="ai-value">AnalyticsDashboard</div><div class="ai-label">Usage charts</div></div>
+          <div class="asset-item"><div class="ai-value">PipelineGallery</div><div class="ai-label">Workflow showcase</div></div>
+          <div class="asset-item"><div class="ai-value">ComponentDNA</div><div class="ai-label">Design tokens</div></div>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:12px;color:var(--text3);margin-bottom:8px">INFRASTRUCTURE</h4>
+        <div class="asset-grid" style="grid-template-columns:1fr">
+          <div class="asset-item"><div class="ai-value">Fumadocs 16.5</div><div class="ai-label">Framework</div></div>
+          <div class="asset-item"><div class="ai-value">Next.js 16 + React 19</div><div class="ai-label">Runtime</div></div>
+          <div class="asset-item"><div class="ai-value">Tailwind v4</div><div class="ai-label">Styling</div></div>
+          <div class="asset-item"><div class="ai-value">Orama WASM</div><div class="ai-label">Search</div></div>
+          <div class="asset-item"><div class="ai-value">Vercel</div><div class="ai-label">Hosting</div></div>
+          <div class="asset-item"><div class="ai-value">Vitest</div><div class="ai-label">Tests (4 suites)</div></div>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:12px;color:var(--text3);margin-bottom:8px">BUILD PIPELINE</h4>
+        <div class="asset-grid" style="grid-template-columns:1fr">
+          <div class="asset-item"><div class="ai-value">build-docs.sh</div><div class="ai-label">Orchestrator script</div></div>
+          <div class="asset-item"><div class="ai-value">_build-docs-generate.py</div><div class="ai-label">SKILL.md → MDX generator</div></div>
+          <div class="asset-item"><div class="ai-value">generate-docs-data.js</div><div class="ai-label">Source → TypeScript data</div></div>
+          <div class="asset-item"><div class="ai-value">llms.txt route</div><div class="ai-label">LLM-friendly index</div></div>
+          <div class="asset-item"><div class="ai-value">OG image generation</div><div class="ai-label">Dynamic social cards</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prompt Output -->
+  <div class="prompt-section">
+    <div class="prompt-header">
+      <span>Implementation Plan</span>
+      <button onclick="copyPrompt()">Copy</button>
+    </div>
+    <div class="prompt-body" id="prompt-output"></div>
+  </div>
+</div>
+
+<!-- Detail Sidebar -->
+<div class="detail-panel" id="detail-panel">
+  <button class="close-btn" onclick="closeDetail()">&times;</button>
+  <div id="detail-content"></div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const ISSUES = [
+  {
+    num: 1077, title: "Record 60-second hero video",
+    effort: 1.5, impact: 8, video: true, priority: "p0",
+    verdict: "do", verdictNote: "Change approach: VHS .tape → GIF/WebM, not produced video",
+    phase: 1, effortLabel: "1-2 days",
+    desc: "VHS terminal recording showing: install → /ork:implement → multi-agent swarm → commit. Embed above fold.",
+    components: 0, pages: 0, color: "var(--accent2)",
+    deps: [],
+    stealFrom: "Cursor's looping demo GIF"
+  },
+  {
+    num: 1078, title: "Replace First 10 Minutes with terminal recordings",
+    effort: 1.5, impact: 9, video: true, priority: "p0",
+    verdict: "do", verdictNote: "Highest-impact 'show don't tell' win",
+    phase: 1, effortLabel: "1-2 days",
+    desc: "VHS .tape files for each step of the getting-started flow. CI auto-regenerates on release.",
+    components: 0, pages: 0, color: "var(--accent2)",
+    deps: [1077],
+    stealFrom: "Vercel deploy flow GIFs"
+  },
+  {
+    num: 1079, title: "Build SkillRecommender quiz",
+    effort: 1.5, impact: 7, video: false, priority: "p1",
+    verdict: "do", verdictNote: "3-4 question guided flow on top of existing SkillBrowser",
+    phase: 2, effortLabel: "1-2 days",
+    desc: "Role → task → framework → recommended skill set. Solves 'I don't know what I don't know' problem.",
+    components: 1, pages: 1, color: "var(--accent)",
+    deps: [],
+    stealFrom: "Novel — no good example exists"
+  },
+  {
+    num: 1080, title: "Add ContextualSkillSidebar to reference pages",
+    effort: 1.5, impact: 8, video: false, priority: "p0",
+    verdict: "do", verdictNote: "Data already exists in frontmatter. High ROI.",
+    phase: 2, effortLabel: "1-2 days",
+    desc: "Right sidebar on each skill/agent reference page: related skills, 'used by', same category, dependency links.",
+    components: 1, pages: 0, color: "var(--accent2)",
+    deps: [],
+    stealFrom: "Stripe's related endpoints sidebar"
+  },
+  {
+    num: 1081, title: "Add stack picker tabs to First 10 Minutes",
+    effort: 0.5, impact: 3, video: false, priority: "p2",
+    verdict: "defer", verdictNote: "OrchestKit is language-agnostic. Cookbook roles/ already covers this.",
+    phase: 4, effortLabel: "4-8 hours",
+    desc: "Stack-specific onboarding tabs (Python, TypeScript, etc). Low value since skills auto-detect context.",
+    components: 0, pages: 0, color: "var(--accent3)",
+    deps: [],
+    stealFrom: "Stripe's language tabs"
+  },
+  {
+    num: 1082, title: "Add 'Open in Claude Code' CTA on skill pages",
+    effort: 0.3, impact: 8, video: false, priority: "p0",
+    verdict: "do", verdictNote: "Trivial — modify Python generator to inject copy button",
+    phase: 1, effortLabel: "2-4 hours",
+    desc: "Copy-to-clipboard button with /ork:skillname on every auto-generated reference page. Modify _build-docs-generate.py.",
+    components: 0, pages: 0, color: "var(--accent2)",
+    deps: [],
+    stealFrom: "shadcn 'npx shadcn add' button"
+  },
+  {
+    num: 1083, title: "Build SearchWithIntent (Cmd+K semantic)",
+    effort: 4, impact: 4, video: false, priority: "p2",
+    verdict: "challenge", verdictNote: "Orama keyword search works fine for 212 pages. Don't build custom vector search.",
+    phase: 4, effortLabel: "3-5 days",
+    desc: "Semantic search requires Orama Cloud (paid) or custom embeddings. Marginal improvement over keyword for this scale.",
+    components: 1, pages: 0, color: "var(--red)",
+    deps: [],
+    stealFrom: "Algolia NeuralSearch"
+  },
+  {
+    num: 1084, title: "Build SkillDependencyGraph visualization",
+    effort: 2.5, impact: 9, video: false, priority: "p1",
+    verdict: "do", verdictNote: "Unique differentiator. 30+ skills declare dependencies. Data already extractable.",
+    phase: 2, effortLabel: "2-3 days",
+    desc: "React Flow or d3-force graph. Nodes colored by category, click to navigate. Data from skills: frontmatter.",
+    components: 1, pages: 1, color: "var(--accent)",
+    deps: [1080],
+    stealFrom: "Turborepo task graph visualization"
+  },
+  {
+    num: 1085, title: "Build HookFlowVisualizer — animated hook chain",
+    effort: 4, impact: 5, video: false, priority: "p2",
+    verdict: "challenge", verdictNote: "Start with Mermaid diagram. Animated React component is 10x effort for 20% more value.",
+    phase: 4, effortLabel: "3-5 days",
+    desc: "Scenario-based animation: user types command → PreToolUse → dispatcher → permission → PostToolUse. Hard to maintain.",
+    components: 1, pages: 1, color: "var(--red)",
+    deps: [],
+    stealFrom: "No good precedent"
+  },
+  {
+    num: 1086, title: "Build comparison playground: CC vs OrchestKit",
+    effort: 1.5, impact: 7, video: true, priority: "p1",
+    verdict: "do", verdictNote: "Side-by-side VHS recordings, not a live playground (unsolved problem).",
+    phase: 3, effortLabel: "1-2 days",
+    desc: "3-4 scenarios: implement, review-pr, security-audit, debug. Left: raw CC. Right: with OrchestKit.",
+    components: 1, pages: 1, color: "var(--accent)",
+    deps: [1077],
+    stealFrom: "Railway competitor comparison pages"
+  },
+  {
+    num: 1087, title: "Add synced two-column layout for concept pages",
+    effort: 2.5, impact: 3, video: false, priority: "p2",
+    verdict: "challenge", verdictNote: "Fumadocs single-column + TOC is enough. Synced scroll is hard to maintain.",
+    phase: 4, effortLabel: "2-3 days",
+    desc: "Stripe-style three-column with synced prose/code scroll. Not worth complexity for conceptual docs.",
+    components: 1, pages: 0, color: "var(--red)",
+    deps: [],
+    stealFrom: "Stripe docs three-column"
+  },
+  {
+    num: 1088, title: "Record 4 additional priority demo videos",
+    effort: 2.5, impact: 7, video: true, priority: "p1",
+    verdict: "do", verdictNote: "implement, review-pr, cover, hook-safety. VHS tapes, CI-regenerated.",
+    phase: 1, effortLabel: "2-3 days",
+    desc: "Priority demos for the 4 most-used workflows. VHS .tape files checked into docs/demos/.",
+    components: 0, pages: 0, color: "var(--accent)",
+    deps: [1077],
+    stealFrom: "VHS by Charmbracelet"
+  },
+  // New issues not in milestone
+  {
+    num: 9001, title: "Submit to plugin marketplaces",
+    effort: 0.2, impact: 9, video: false, priority: "p0", isNew: true,
+    verdict: "do", verdictNote: "Highest ROI — OrchestKit is invisible to plugin browsers right now.",
+    phase: 1, effortLabel: "1-2 hours",
+    desc: "Submit to buildwithclaude.com (490+ extensions) and claude-plugins.dev. Free, immediate discoverability.",
+    components: 0, pages: 0, color: "var(--purple)",
+    deps: [],
+    stealFrom: "buildwithclaude.com, claude-plugins.dev"
+  },
+  {
+    num: 9002, title: "Add per-page feedback widget",
+    effort: 0.3, impact: 5, video: false, priority: "p1", isNew: true,
+    verdict: "do", verdictNote: "'Was this helpful?' signals which docs need work.",
+    phase: 3, effortLabel: "2-4 hours",
+    desc: "Thumbs up/down on every page. Track in analytics. Identify docs that need improvement.",
+    components: 1, pages: 0, color: "var(--purple)",
+    deps: [],
+    stealFrom: "Deno docs feedback widget"
+  },
+  {
+    num: 9003, title: "Generate category index pages",
+    effort: 1, impact: 7, video: false, priority: "p0", isNew: true,
+    verdict: "do", verdictNote: "Biggest discoverability gap. 8 category pages from tag data.",
+    phase: 1, effortLabel: "half day",
+    desc: "Extend _build-docs-generate.py to produce /skills/by-category/backend, testing, security, etc. from tags.",
+    components: 1, pages: 8, color: "var(--purple)",
+    deps: [],
+    stealFrom: "shadcn component categories"
+  }
+];
+
+const PHASES = [
+  { id: 1, name: "Show Don't Tell", color: "var(--accent2)", desc: "CTA buttons, category pages, marketplace" },
+  { id: 2, name: "Navigate & Discover", color: "var(--accent)", desc: "Sidebar, dep graph, quiz" },
+  { id: 3, name: "Convince", color: "var(--accent3)", desc: "Comparison, feedback" },
+  { id: 4, name: "Polish (if needed)", color: "var(--text3)", desc: "Semantic search, animations, layout" },
+];
+
+let state = {
+  includeVideos: true,
+  verdictFilter: 'all',
+  selectedIssue: null,
+};
+
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// Controls
+document.getElementById('toggle-videos').addEventListener('change', e => {
+  state.includeVideos = e.target.checked;
+  document.getElementById('preset').value = '';
+  updateAll();
+});
+
+document.getElementById('filter-verdict').addEventListener('change', e => {
+  state.verdictFilter = e.target.value;
+  document.getElementById('preset').value = '';
+  updateAll();
+});
+
+document.getElementById('preset').addEventListener('change', e => {
+  const v = e.target.value;
+  if (v === 'no-video-sprint') {
+    state.includeVideos = false;
+    state.verdictFilter = 'do';
+  } else if (v === 'full-milestone') {
+    state.includeVideos = true;
+    state.verdictFilter = 'all';
+  } else if (v === 'quick-wins') {
+    state.includeVideos = false;
+    state.verdictFilter = 'do';
+  } else if (v === 'interactive-focus') {
+    state.includeVideos = false;
+    state.verdictFilter = 'all';
+  }
+  document.getElementById('toggle-videos').checked = state.includeVideos;
+  document.getElementById('filter-verdict').value = state.verdictFilter;
+  updateAll();
+});
+
+function isVisible(issue) {
+  if (!state.includeVideos && issue.video) return false;
+  if (state.verdictFilter !== 'all' && issue.verdict !== state.verdictFilter) return false;
+  return true;
+}
+
+function getVisibleIssues() {
+  return ISSUES.filter(isVisible);
+}
+
+// Matrix
+function renderMatrix() {
+  const matrix = document.getElementById('matrix');
+  matrix.querySelectorAll('.issue-dot').forEach(d => d.remove());
+
+  const w = matrix.offsetWidth;
+  const h = matrix.offsetHeight;
+  const pad = 40;
+
+  ISSUES.forEach(issue => {
+    const dot = document.createElement('div');
+    dot.className = 'issue-dot' + (isVisible(issue) ? '' : ' dimmed');
+    if (state.selectedIssue === issue.num) dot.classList.add('selected');
+
+    // effort on X (inverted: low effort = right), impact on Y (high = top)
+    const x = pad + ((5 - issue.effort) / 5) * (w - 2 * pad);
+    const y = pad + ((10 - issue.impact) / 10) * (h - 2 * pad);
+    dot.style.left = x + 'px';
+    dot.style.top = y + 'px';
+    dot.style.background = issue.color;
+
+    const label = issue.isNew ? '★' : '#' + (issue.num % 100);
+    dot.textContent = label;
+    dot.title = issue.title;
+
+    dot.addEventListener('mouseenter', e => showTooltip(e, issue));
+    dot.addEventListener('mouseleave', hideTooltip);
+    dot.addEventListener('click', () => openDetail(issue));
+
+    matrix.appendChild(dot);
+  });
+}
+
+// Tooltip
+function showTooltip(e, issue) {
+  const tt = document.getElementById('tooltip');
+  tt.innerHTML = `
+    <div class="tt-title">${issue.isNew ? '★ ' : '#' + issue.num + ' '}${issue.title}</div>
+    <div class="tt-meta">Effort: ${issue.effortLabel} · Impact: ${issue.impact}/10 · Phase ${issue.phase}</div>
+    <div class="tt-verdict ${issue.verdict}">${issue.verdict.toUpperCase()}: ${issue.verdictNote}</div>
+  `;
+  tt.style.display = 'block';
+  const rect = tt.getBoundingClientRect();
+  let left = e.clientX + 12;
+  let top = e.clientY + 12;
+  if (left + rect.width > window.innerWidth - 20) left = e.clientX - rect.width - 12;
+  if (top + rect.height > window.innerHeight - 20) top = e.clientY - rect.height - 12;
+  tt.style.left = left + 'px';
+  tt.style.top = top + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').style.display = 'none';
+}
+
+// Issue list
+function renderIssueList() {
+  const list = document.getElementById('issue-list');
+  list.innerHTML = '';
+
+  const sorted = [...ISSUES].sort((a, b) => {
+    const po = { p0: 0, p1: 1, p2: 2 };
+    return (po[a.priority] || 9) - (po[b.priority] || 9);
+  });
+
+  sorted.forEach(issue => {
+    const card = document.createElement('div');
+    card.className = 'issue-card' + (isVisible(issue) ? '' : ' dimmed');
+    card.onclick = () => openDetail(issue);
+
+    const numLabel = issue.isNew ? '★' : '#' + issue.num;
+    const pClass = issue.priority;
+    const eClass = issue.effort <= 0.5 ? 'effort-low' : issue.effort <= 2 ? 'effort-med' : 'effort-high';
+    const phaseClass = 'p' + issue.phase;
+
+    card.innerHTML = `
+      <div class="issue-num">${numLabel}</div>
+      <div class="issue-title">${issue.title} ${issue.video ? '<small>📹</small>' : ''}</div>
+      <span class="badge ${pClass}">${pClass}</span>
+      <span class="badge ${eClass}">${issue.effortLabel}</span>
+      <span class="phase-badge ${issue.isNew ? 'new' : phaseClass}">Phase ${issue.phase}</span>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// Timeline
+function renderTimeline() {
+  const timeline = document.getElementById('timeline');
+  timeline.innerHTML = '';
+
+  PHASES.forEach(phase => {
+    const issues = ISSUES.filter(i => i.phase === phase.id && isVisible(i));
+    if (issues.length === 0 && state.verdictFilter !== 'all') return;
+
+    const row = document.createElement('div');
+    row.className = 'phase-row';
+
+    const totalDays = issues.reduce((s, i) => s + i.effort, 0);
+
+    row.innerHTML = `
+      <div class="phase-label" style="color:${phase.color}">
+        Phase ${phase.id}<br>
+        <span style="font-size:11px;color:var(--text2);font-weight:400">${phase.desc}</span><br>
+        <span style="font-size:11px;color:var(--text3);font-weight:400">${totalDays.toFixed(1)} days</span>
+      </div>
+      <div class="phase-cards">
+        ${issues.map(i => `
+          <div class="phase-card" onclick="openDetail(ISSUES.find(x=>x.num===${i.num}))" style="border-left:3px solid ${i.color};cursor:pointer">
+            <div class="pc-title">${i.isNew ? '★ ' : '#' + i.num + ' '}${i.title}</div>
+            <div class="pc-effort">${i.effortLabel} · ${i.verdict.toUpperCase()}</div>
+            <div class="pc-bar" style="background:${i.color};width:${Math.min(100, i.effort / 5 * 100)}%"></div>
+          </div>
+        `).join('')}
+        ${issues.length === 0 ? '<div style="color:var(--text3);font-size:12px;padding:8px">No issues in scope</div>' : ''}
+      </div>
+    `;
+    timeline.appendChild(row);
+  });
+}
+
+// Dependency graph
+function renderDepGraph() {
+  const container = document.getElementById('dep-graph');
+  container.innerHTML = '';
+
+  const visible = getVisibleIssues();
+  const visNums = new Set(visible.map(i => i.num));
+
+  // Layout: organize by phase, then within phase by position
+  const phaseX = { 1: 60, 2: 320, 3: 580, 4: 780 };
+  const phaseCounts = {};
+
+  const nodes = [];
+  ISSUES.forEach(issue => {
+    const p = issue.phase;
+    if (!phaseCounts[p]) phaseCounts[p] = 0;
+    const y = 40 + phaseCounts[p] * 50;
+    phaseCounts[p]++;
+    nodes.push({
+      ...issue,
+      x: phaseX[p] + (issue.isNew ? 20 : 0),
+      y: y,
+      vis: visNums.has(issue.num)
+    });
+  });
+
+  // SVG for lines
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.classList.add('dep-lines');
+  svg.setAttribute('width', '100%');
+  svg.setAttribute('height', '100%');
+
+  nodes.forEach(node => {
+    (node.deps || []).forEach(depNum => {
+      const dep = nodes.find(n => n.num === depNum);
+      if (!dep) return;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', dep.x + 80);
+      line.setAttribute('y1', dep.y + 14);
+      line.setAttribute('x2', node.x);
+      line.setAttribute('y2', node.y + 14);
+      if (node.vis && dep.vis) line.classList.add('highlight');
+      svg.appendChild(line);
+    });
+  });
+
+  container.appendChild(svg);
+
+  // Phase labels
+  Object.entries(phaseX).forEach(([p, x]) => {
+    const label = document.createElement('div');
+    label.style.cssText = `position:absolute;top:10px;left:${x}px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px`;
+    label.textContent = 'Phase ' + p;
+    container.appendChild(label);
+  });
+
+  // Nodes
+  nodes.forEach(node => {
+    const el = document.createElement('div');
+    el.className = 'dep-node' + (node.vis ? '' : ' dimmed');
+    el.style.left = node.x + 'px';
+    el.style.top = node.y + 'px';
+    el.style.borderLeftColor = node.color;
+    el.style.borderLeftWidth = '3px';
+    el.innerHTML = `${node.isNew ? '★' : '#' + node.num} ${node.title.substring(0, 28)}${node.title.length > 28 ? '...' : ''}`;
+    el.onclick = () => openDetail(node);
+    container.appendChild(el);
+  });
+
+  container.style.minHeight = (Math.max(...Object.values(phaseCounts)) * 50 + 80) + 'px';
+}
+
+// Detail panel
+function openDetail(issue) {
+  state.selectedIssue = issue.num;
+  const panel = document.getElementById('detail-panel');
+  const content = document.getElementById('detail-content');
+
+  const verdictColor = { do: 'var(--accent2)', challenge: 'var(--red)', defer: 'var(--accent3)' };
+  const deps = issue.deps.map(d => ISSUES.find(i => i.num === d)).filter(Boolean);
+  const usedBy = ISSUES.filter(i => (i.deps || []).includes(issue.num));
+
+  content.innerHTML = `
+    <h3>${issue.isNew ? '★ NEW — ' : '#' + issue.num + ' — '}${issue.title}</h3>
+    <div class="detail-meta">
+      <span class="badge ${issue.priority}">${issue.priority.toUpperCase()}</span>
+      <span class="phase-badge ${issue.isNew ? 'new' : 'p' + issue.phase}">Phase ${issue.phase}</span>
+      ${issue.video ? '<span class="badge" style="background:rgba(247,120,186,0.15);color:var(--pink)">VIDEO</span>' : ''}
+      <span style="margin-left:8px">Effort: ${issue.effortLabel}</span>
+      <span style="margin-left:8px">Impact: ${issue.impact}/10</span>
+    </div>
+
+    <div class="detail-verdict" style="border-left:3px solid ${verdictColor[issue.verdict]}">
+      <strong style="color:${verdictColor[issue.verdict]}">${issue.verdict.toUpperCase()}</strong>: ${issue.verdictNote}
+    </div>
+
+    <div class="detail-section">
+      <h4>Description</h4>
+      <p>${issue.desc}</p>
+    </div>
+
+    ${issue.stealFrom ? `<div class="detail-section"><h4>Steal From</h4><p>${issue.stealFrom}</p></div>` : ''}
+
+    ${issue.components > 0 || issue.pages > 0 ? `
+    <div class="detail-section">
+      <h4>Deliverables</h4>
+      <p>${issue.components > 0 ? issue.components + ' new React component(s)' : ''}${issue.components > 0 && issue.pages > 0 ? ' + ' : ''}${issue.pages > 0 ? issue.pages + ' new page(s)' : ''}</p>
+    </div>` : ''}
+
+    ${deps.length > 0 ? `
+    <div class="detail-section">
+      <h4>Depends On</h4>
+      ${deps.map(d => `<div style="font-size:12px;margin-bottom:4px;cursor:pointer;color:var(--accent)" onclick="openDetail(ISSUES.find(i=>i.num===${d.num}))">#${d.num} ${d.title}</div>`).join('')}
+    </div>` : ''}
+
+    ${usedBy.length > 0 ? `
+    <div class="detail-section">
+      <h4>Blocks</h4>
+      ${usedBy.map(d => `<div style="font-size:12px;margin-bottom:4px;cursor:pointer;color:var(--accent)" onclick="openDetail(ISSUES.find(i=>i.num===${d.num}))">#${d.num} ${d.title}</div>`).join('')}
+    </div>` : ''}
+  `;
+
+  panel.classList.add('open');
+  renderMatrix();
+}
+
+function closeDetail() {
+  state.selectedIssue = null;
+  document.getElementById('detail-panel').classList.remove('open');
+  renderMatrix();
+}
+
+// Summary
+function updateSummary() {
+  const vis = getVisibleIssues();
+  document.getElementById('sum-issues').textContent = vis.length;
+  document.getElementById('sum-days').textContent = vis.reduce((s, i) => s + i.effort, 0).toFixed(1);
+  document.getElementById('sum-pages').textContent = vis.reduce((s, i) => s + i.pages, 0);
+  document.getElementById('sum-components').textContent = vis.reduce((s, i) => s + i.components, 0);
+  document.getElementById('stat-active').textContent = vis.length;
+  document.getElementById('stat-effort').textContent = vis.reduce((s, i) => s + i.effort, 0).toFixed(1);
+}
+
+// Prompt
+function updatePrompt() {
+  const vis = getVisibleIssues();
+  if (vis.length === 0) {
+    document.getElementById('prompt-output').textContent = 'No issues in scope. Adjust filters above.';
+    return;
+  }
+
+  const parts = [];
+  parts.push(`## OrchestKit Docs Site — Implementation Plan`);
+  parts.push(`Milestone #95 · ${vis.length} issues · ~${vis.reduce((s,i) => s + i.effort, 0).toFixed(1)} days estimated\n`);
+
+  if (!state.includeVideos) parts.push(`> Videos excluded from scope\n`);
+
+  const byPhase = {};
+  vis.forEach(i => {
+    if (!byPhase[i.phase]) byPhase[i.phase] = [];
+    byPhase[i.phase].push(i);
+  });
+
+  Object.entries(byPhase).sort(([a],[b]) => a - b).forEach(([phase, issues]) => {
+    const p = PHASES.find(p => p.id === parseInt(phase));
+    const days = issues.reduce((s, i) => s + i.effort, 0);
+    parts.push(`### Phase ${phase}: ${p.name} (~${days.toFixed(1)} days)`);
+    issues.forEach(i => {
+      const tag = i.isNew ? '[NEW]' : `#${i.num}`;
+      parts.push(`- ${tag} **${i.title}** (${i.effortLabel})`);
+      parts.push(`  ${i.desc}`);
+    });
+    parts.push('');
+  });
+
+  // GitHub issue list
+  parts.push(`---`);
+  parts.push(`### GitHub Issues to Create\n`);
+  vis.filter(i => i.isNew).forEach(i => {
+    parts.push(`- [ ] **${i.title}** — ${i.desc} (${i.effortLabel})`);
+  });
+
+  if (vis.some(i => i.verdict === 'challenge')) {
+    parts.push(`\n### Challenged Issues (reconsider)\n`);
+    vis.filter(i => i.verdict === 'challenge').forEach(i => {
+      parts.push(`- #${i.num} ${i.title}: ${i.verdictNote}`);
+    });
+  }
+
+  parts.push(`\n### Existing Infrastructure (don't rebuild)`);
+  parts.push(`- Fumadocs 16.5 + Next.js 16 + React 19 + Tailwind v4`);
+  parts.push(`- 212 pages (59 hand-written + 153 auto-generated)`);
+  parts.push(`- 8 interactive components (SkillBrowser, AgentSelector, etc.)`);
+  parts.push(`- Build pipeline: build-docs.sh → Python generator → MDX`);
+  parts.push(`- Vercel hosting configured, Orama WASM search, llms.txt route`);
+
+  document.getElementById('prompt-output').textContent = parts.join('\n');
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.prompt-header button');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+function updateAll() {
+  renderMatrix();
+  renderIssueList();
+  renderTimeline();
+  renderDepGraph();
+  updateSummary();
+  updatePrompt();
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDetail();
+});
+
+// Init
+updateAll();
+
+// Resize handler for matrix
+window.addEventListener('resize', () => renderMatrix());
+</script>
+</body>
+</html>

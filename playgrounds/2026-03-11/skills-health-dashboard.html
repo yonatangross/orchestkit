@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Skills Health Dashboard — v7.3.2 (2026-03-11)</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+    --text: #e6edf3; --text2: #8b949e; --accent: #58a6ff; --green: #3fb950;
+    --yellow: #d29922; --red: #f85149; --orange: #db6d28; --purple: #bc8cff;
+    --radius: 8px;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; min-height: 100vh; }
+  .layout { display: grid; grid-template-columns: 320px 1fr; grid-template-rows: auto 1fr auto; height: 100vh; }
+  header { grid-column: 1 / -1; padding: 16px 24px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header .version { font-size: 12px; color: var(--accent); background: rgba(88,166,255,0.1); padding: 2px 8px; border-radius: 10px; }
+  header .stats { display: flex; gap: 16px; margin-left: auto; font-size: 13px; color: var(--text2); flex-wrap: wrap; }
+  header .stats .stat { display: flex; align-items: center; gap: 6px; }
+  header .stats .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .sidebar { grid-row: 2; overflow-y: auto; padding: 16px; border-right: 1px solid var(--border); background: var(--surface); }
+  .sidebar h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text2); margin-bottom: 8px; }
+  .sidebar section { margin-bottom: 20px; }
+  .filter-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .filter-btn { padding: 4px 10px; font-size: 12px; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); border-radius: 12px; cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .preset-btn { display: block; width: 100%; padding: 8px 12px; margin-bottom: 6px; font-size: 13px; text-align: left; border: 1px solid var(--border); background: var(--surface2); color: var(--text); border-radius: var(--radius); cursor: pointer; transition: all 0.15s; }
+  .preset-btn:hover { border-color: var(--accent); background: #1c2333; }
+  .preset-btn.active { border-color: var(--accent); background: rgba(88,166,255,0.1); }
+  .preset-btn small { color: var(--text2); display: block; font-size: 11px; margin-top: 2px; }
+  .main { grid-row: 2; overflow-y: auto; padding: 24px; }
+  .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab { padding: 8px 16px; font-size: 13px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); border-radius: var(--radius); cursor: pointer; transition: all 0.15s; }
+  .tab:hover { color: var(--text); }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .skill-card { padding: 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); cursor: pointer; transition: all 0.2s; position: relative; }
+  .skill-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .skill-card.selected { border-color: var(--accent); background: rgba(88,166,255,0.05); }
+  .skill-card .name { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .skill-card .desc { font-size: 12px; color: var(--text2); margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .skill-card .metrics { display: flex; gap: 12px; font-size: 11px; color: var(--text2); }
+  .skill-card .metrics span { display: flex; align-items: center; gap: 4px; }
+  .badge { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+  .badge-critical { background: rgba(248,81,73,0.15); color: var(--red); }
+  .badge-moderate { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .badge-good { background: rgba(63,185,80,0.15); color: var(--green); }
+  .badge-invocable { background: rgba(188,140,255,0.15); color: var(--purple); }
+  .health-bar { height: 3px; border-radius: 2px; background: var(--surface2); margin-top: 8px; overflow: hidden; }
+  .health-bar .fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+  .priority-list { display: flex; flex-direction: column; gap: 10px; }
+  .priority-item { padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; }
+  .priority-rank { font-size: 20px; font-weight: 700; color: var(--accent); text-align: center; }
+  .priority-title { font-size: 14px; font-weight: 600; }
+  .priority-detail { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .priority-impact { text-align: right; }
+  .impact-label { font-size: 11px; color: var(--text2); }
+  .impact-value { font-size: 16px; font-weight: 700; }
+  .overlap-cards { display: flex; flex-direction: column; gap: 12px; }
+  .overlap-card { padding: 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+  .overlap-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .overlap-pair { font-size: 15px; font-weight: 600; }
+  .overlap-verdict { font-size: 12px; padding: 3px 10px; border-radius: 10px; font-weight: 600; }
+  .overlap-ok { background: rgba(63,185,80,0.15); color: var(--green); }
+  .overlap-warn { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .overlap-danger { background: rgba(248,81,73,0.15); color: var(--red); }
+  .overlap-body { font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .overlap-body strong { color: var(--text); }
+  .gap-card { padding: 20px; border: 2px dashed var(--border); border-radius: var(--radius); background: var(--surface); margin-bottom: 16px; }
+  .gap-card h3 { font-size: 16px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .gap-card p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .gap-card .gap-deps { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .gap-dep { padding: 3px 8px; font-size: 11px; border: 1px solid var(--border); border-radius: 6px; color: var(--text2); }
+  .cat-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-bottom: 16px; }
+  .cat-stat { padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); text-align: center; }
+  .cat-stat .cat-name { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.03em; }
+  .cat-stat .cat-count { font-size: 22px; font-weight: 700; color: var(--accent); }
+  .detail-overlay { display: none; position: fixed; top: 0; right: 0; bottom: 0; width: 480px; background: var(--surface); border-left: 1px solid var(--border); z-index: 100; overflow-y: auto; padding: 24px; box-shadow: -4px 0 20px rgba(0,0,0,0.4); }
+  .detail-overlay.open { display: block; }
+  .detail-close { position: absolute; top: 12px; right: 12px; background: var(--surface2); border: 1px solid var(--border); color: var(--text); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .detail-name { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .detail-desc { font-size: 13px; color: var(--text2); margin-bottom: 16px; }
+  .detail-section { margin-bottom: 16px; }
+  .detail-section h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text2); margin-bottom: 8px; }
+  .detail-metric { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .detail-metric .label { color: var(--text2); }
+  .detail-suggestions { list-style: none; }
+  .detail-suggestions li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .detail-suggestions li::before { content: "-> "; color: var(--accent); }
+  .detail-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .detail-tag { padding: 2px 6px; font-size: 10px; border: 1px solid var(--border); border-radius: 4px; color: var(--text2); }
+  .prompt-bar { grid-column: 1 / -1; padding: 12px 24px; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .prompt-bar textarea { flex: 1; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: var(--radius); font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; resize: none; height: 48px; line-height: 1.4; }
+  .copy-btn { padding: 8px 16px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+  .copy-btn:hover { opacity: 0.9; }
+  .copy-btn.copied { background: var(--green); }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text2); }
+  .sort-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .sort-row select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 4px 8px; border-radius: 6px; font-size: 12px; }
+  .search-input { width: 100%; padding: 6px 10px; font-size: 12px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); border-radius: var(--radius); margin-bottom: 12px; }
+  .search-input::placeholder { color: var(--text2); }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <header>
+    <h1>OrchestKit Skills Health Dashboard</h1>
+    <span class="version">v7.3.2 | 2026-03-11</span>
+    <div class="stats">
+      <div class="stat"><div class="dot" style="background:var(--green)"></div><span id="stat-good">0</span> Good</div>
+      <div class="stat"><div class="dot" style="background:var(--yellow)"></div><span id="stat-moderate">0</span> Moderate</div>
+      <div class="stat"><div class="dot" style="background:var(--red)"></div><span id="stat-critical">0</span> Critical</div>
+      <div class="stat" style="margin-left:12px">Total: <strong id="stat-total" style="color:var(--accent)">89</strong></div>
+      <div class="stat">Invocable: <strong id="stat-invocable" style="color:var(--purple)">16</strong></div>
+      <div class="stat">Score: <strong id="stat-score" style="color:var(--accent)">0/10</strong></div>
+    </div>
+  </header>
+
+  <aside class="sidebar">
+    <section>
+      <h3>Search</h3>
+      <input type="text" class="search-input" id="search-input" placeholder="Filter skills by name or tag...">
+    </section>
+    <section>
+      <h3>Views</h3>
+      <div id="presets">
+        <button class="preset-btn active" data-preset="all">All 89 Skills<small>Complete overview</small></button>
+        <button class="preset-btn" data-preset="invocable">User-Invocable (16)<small>Skills with /ork: prefix</small></button>
+        <button class="preset-btn" data-preset="critical">Needs Attention<small>Critical + moderate issues</small></button>
+        <button class="preset-btn" data-preset="bloated">Over 300 Lines<small>Exceed best practice limit</small></button>
+        <button class="preset-btn" data-preset="no-rules">Missing Rules<small>Zero rule files</small></button>
+        <button class="preset-btn" data-preset="no-refs">Missing References<small>Zero reference files</small></button>
+      </div>
+    </section>
+    <section>
+      <h3>Filter by Category</h3>
+      <div class="filter-group" id="cat-filters"></div>
+    </section>
+    <section>
+      <h3>Filter by Status</h3>
+      <div class="filter-group" id="status-filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="critical">Critical</button>
+        <button class="filter-btn" data-filter="moderate">Moderate</button>
+        <button class="filter-btn" data-filter="good">Good</button>
+      </div>
+    </section>
+    <section>
+      <h3>Sort By</h3>
+      <div class="sort-row">
+        <select id="sort-select">
+          <option value="health-asc">Health (worst first)</option>
+          <option value="health-desc">Health (best first)</option>
+          <option value="lines-desc">Lines (largest first)</option>
+          <option value="lines-asc">Lines (smallest first)</option>
+          <option value="alpha">Alphabetical</option>
+          <option value="rules-desc">Rules (most first)</option>
+          <option value="refs-desc">References (most first)</option>
+        </select>
+      </div>
+    </section>
+    <section>
+      <h3>Legend</h3>
+      <div style="font-size:12px; color:var(--text2); line-height:2">
+        <div><span style="color:var(--green)">&#9679;</span> Good (8+) — No action needed</div>
+        <div><span style="color:var(--yellow)">&#9679;</span> Moderate (5-7.9) — Improvements optional</div>
+        <div><span style="color:var(--red)">&#9679;</span> Critical (&lt;5) — Action recommended</div>
+        <div><span style="color:var(--purple)">&#9679;</span> User-invocable skill</div>
+        <div style="margin-top:8px; font-size:11px">R = Rules &middot; Ref = References &middot; L = Lines</div>
+      </div>
+    </section>
+  </aside>
+
+  <main class="main">
+    <div class="tab-bar">
+      <button class="tab active" data-tab="grid">Skills Grid</button>
+      <button class="tab" data-tab="categories">Categories</button>
+      <button class="tab" data-tab="priorities">Top Priorities</button>
+      <button class="tab" data-tab="overlaps">Overlap Analysis</button>
+      <button class="tab" data-tab="gaps">Missing Skills</button>
+    </div>
+
+    <div id="tab-grid" class="tab-content active">
+      <div class="skills-grid" id="skills-grid"></div>
+    </div>
+
+    <div id="tab-categories" class="tab-content">
+      <div class="cat-stats" id="cat-stats"></div>
+    </div>
+
+    <div id="tab-priorities" class="tab-content">
+      <div class="priority-list" id="priority-list"></div>
+    </div>
+
+    <div id="tab-overlaps" class="tab-content">
+      <div class="overlap-cards" id="overlap-cards"></div>
+    </div>
+
+    <div id="tab-gaps" class="tab-content">
+      <div id="gaps-container"></div>
+    </div>
+  </main>
+
+  <div class="prompt-bar">
+    <textarea id="prompt-output" readonly></textarea>
+    <button class="copy-btn" id="copy-btn">Copy Prompt</button>
+  </div>
+</div>
+
+<div class="detail-overlay" id="detail-panel">
+  <button class="detail-close" id="detail-close">&times;</button>
+  <div id="detail-content"></div>
+</div>
+
+<script>
+// Health scoring: lines>300 penalized, rules=0 penalized, refs=0 penalized
+// Formula: base 7 + rules bonus (0-1.5) + refs bonus (0-1) - line penalty (0-2) - missing penalty
+function calcHealth(s) {
+  let h = 7;
+  // Rules bonus: 0=penalty, 1-3=small, 4-8=good, 9+=great
+  if (s.rules === 0) h -= 1.5;
+  else if (s.rules >= 9) h += 1.5;
+  else if (s.rules >= 4) h += 1;
+  else h += 0.5;
+  // Refs bonus
+  if (s.refs === 0 && s.rules === 0) h -= 1;
+  else if (s.refs >= 6) h += 1;
+  else if (s.refs >= 2) h += 0.5;
+  // Line penalty
+  if (s.lines > 350) h -= 1.5;
+  else if (s.lines > 300) h -= 1;
+  else if (s.lines > 250) h -= 0.3;
+  // Bonus for being concise + well-structured
+  if (s.lines <= 200 && s.rules >= 4 && s.refs >= 2) h += 0.5;
+  return Math.max(1, Math.min(10, Math.round(h * 10) / 10));
+}
+
+function calcStatus(health) {
+  if (health >= 8) return 'good';
+  if (health >= 5) return 'moderate';
+  return 'critical';
+}
+
+// All 89 skills with real audit data from src/skills/ (2026-03-11)
+const RAW = [
+  {name:"accessibility",lines:163,rules:16,refs:4,invocable:false,desc:"WCAG, a11y, focus management, keyboard navigation, screen reader, ARIA",category:"frontend",tags:["accessibility","a11y","wcag","react-aria"]},
+  {name:"agent-orchestration",lines:186,rules:12,refs:11,invocable:false,desc:"Multi-agent coordination, CrewAI, AutoGen, swarm patterns",category:"ai",tags:["agents","orchestration","multi-agent","crewai"]},
+  {name:"ai-ui-generation",lines:146,rules:9,refs:3,invocable:false,desc:"AI UI generation with v0, Bolt, prompt engineering, design tokens",category:"ai",tags:["ai-ui","v0","bolt","code-generation"]},
+  {name:"analytics",lines:115,rules:7,refs:5,invocable:false,desc:"Query cross-project usage analytics",category:"meta",tags:["analytics","metrics","usage","dashboard"]},
+  {name:"animation-motion-design",lines:200,rules:8,refs:3,invocable:false,desc:"Framer Motion, view transitions, micro-interactions, spring physics",category:"frontend",tags:["animation","motion","framer-motion"]},
+  {name:"api-design",lines:232,rules:19,refs:13,invocable:false,desc:"REST/GraphQL framework design, versioning, RFC 9457 error handling",category:"backend",tags:["api-design","rest","graphql","openapi"]},
+  {name:"architecture-decision-record",lines:240,rules:5,refs:1,invocable:false,desc:"Architecture Decision Records documentation",category:"architecture",tags:["architecture","documentation","adr"]},
+  {name:"architecture-patterns",lines:244,rules:15,refs:16,invocable:false,desc:"Clean architecture, validation, structure enforcement, right-sizing",category:"architecture",tags:["architecture","clean-architecture","validation"]},
+  {name:"ascii-visualizer",lines:167,rules:3,refs:0,invocable:false,desc:"ASCII diagrams, box-drawing, architecture visualization",category:"content",tags:["ascii","diagrams","visualization","terminal"]},
+  {name:"assess",lines:216,rules:4,refs:9,invocable:true,desc:"Assesses and rates quality 0-10 with pros/cons analysis",category:"quality",tags:["assessment","evaluation","quality","rating"]},
+  {name:"async-jobs",lines:320,rules:8,refs:10,invocable:false,desc:"Celery, background tasks, scheduling, queues",category:"backend",tags:["async","jobs","celery","queues"]},
+  {name:"audit-full",lines:319,rules:0,refs:4,invocable:false,desc:"Full-codebase audit using 1M context window",category:"quality",tags:["security","audit","dependencies","1m-context"]},
+  {name:"audit-skills",lines:65,rules:4,refs:2,invocable:false,desc:"Audits all OrchestKit skills for quality and completeness",category:"meta",tags:["audit","quality","skills","orchestkit"]},
+  {name:"brainstorm",lines:363,rules:0,refs:8,invocable:true,desc:"Design exploration with parallel agents",category:"planning",tags:["planning","ideation","creativity","design"]},
+  {name:"browser-tools",lines:307,rules:8,refs:0,invocable:false,desc:"Playwright, Puppeteer, scraping, content capture",category:"tooling",tags:["browser","playwright","puppeteer","scraping"]},
+  {name:"business-case",lines:157,rules:3,refs:2,invocable:false,desc:"ROI, NPV, IRR, TCO, build-vs-buy analysis",category:"business",tags:["roi","npv","irr","tco","financial-analysis"]},
+  {name:"chain-patterns",lines:161,rules:4,refs:6,invocable:false,desc:"Pipeline resilience, checkpoint, MCP patterns",category:"workflow",tags:["pipeline","resilience","checkpoint","mcp"]},
+  {name:"checkpoint-resume",lines:73,rules:5,refs:3,invocable:false,desc:"Rate-limit-resilient pipeline with checkpoint/resume",category:"workflow",tags:["resilience","checkpoint","pipeline"]},
+  {name:"code-review-playbook",lines:365,rules:7,refs:1,invocable:false,desc:"Code review patterns, quality, collaboration",category:"quality",tags:["code-review","quality","best-practices"]},
+  {name:"commit",lines:176,rules:11,refs:2,invocable:true,desc:"Creates commits with conventional format and validation",category:"git",tags:["git","commit","conventional-commits"]},
+  {name:"competitive-analysis",lines:172,rules:2,refs:1,invocable:false,desc:"Porter Five Forces, SWOT, competitive landscape",category:"business",tags:["porter","swot","competitive","five-forces"]},
+  {name:"configure",lines:241,rules:0,refs:5,invocable:false,desc:"Configures OrchestKit settings, MCP servers, hooks",category:"meta",tags:["configuration","setup","wizard"]},
+  {name:"create-pr",lines:195,rules:7,refs:4,invocable:true,desc:"Creates GitHub pull requests with validation",category:"git",tags:["git","github","pull-request","pr"]},
+  {name:"database-patterns",lines:166,rules:14,refs:11,invocable:false,desc:"Alembic migrations, schema design (SQL/NoSQL), versioning",category:"backend",tags:["database","migrations","alembic","postgresql"]},
+  {name:"demo-producer",lines:171,rules:6,refs:8,invocable:false,desc:"Creates polished demo videos for skills and tutorials",category:"content",tags:["demo","video","marketing","vhs","remotion"]},
+  {name:"design-system-tokens",lines:228,rules:10,refs:3,invocable:false,desc:"W3C design tokens, OKLCH, Style Dictionary, theming",category:"frontend",tags:["design-tokens","oklch","theming","css-variables"]},
+  {name:"devops-deployment",lines:319,rules:8,refs:9,invocable:false,desc:"CI/CD, Docker, Kubernetes, Terraform",category:"devops",tags:["devops","ci-cd","docker","kubernetes"]},
+  {name:"distributed-systems",lines:198,rules:18,refs:10,invocable:false,desc:"Distributed locks, resilience, circuit breaker, CQRS, saga",category:"backend",tags:["distributed-systems","circuit-breaker","event-sourcing"]},
+  {name:"doctor",lines:150,rules:3,refs:10,invocable:true,desc:"OrchestKit doctor for health diagnostics",category:"meta",tags:["health-check","diagnostics","validation"]},
+  {name:"documentation-patterns",lines:93,rules:7,refs:0,invocable:false,desc:"README, ADR, API docs, OpenAPI, changelog, technical writing",category:"content",tags:["documentation","readme","api-docs","openapi"]},
+  {name:"domain-driven-design",lines:192,rules:5,refs:4,invocable:false,desc:"DDD, entities, value objects, bounded contexts",category:"architecture",tags:["ddd","domain-modeling","bounded-contexts"]},
+  {name:"errors",lines:108,rules:0,refs:0,invocable:false,desc:"Error pattern analysis and troubleshooting",category:"meta",tags:["errors","debugging","troubleshooting"]},
+  {name:"explore",lines:202,rules:6,refs:4,invocable:true,desc:"Deep codebase exploration with parallel agents",category:"analysis",tags:["exploration","code-search","architecture"]},
+  {name:"feedback",lines:83,rules:2,refs:4,invocable:false,desc:"Manages OrchestKit feedback and learning system",category:"meta",tags:["feedback","learning","privacy","consent"]},
+  {name:"figma-design-handoff",lines:218,rules:7,refs:3,invocable:false,desc:"Figma-to-code, design handoff, visual regression",category:"frontend",tags:["figma","design-handoff","visual-regression"]},
+  {name:"fix-issue",lines:196,rules:6,refs:7,invocable:true,desc:"Fixes GitHub issues with parallel analysis",category:"workflow",tags:["issue","bug-fix","github","debugging"]},
+  {name:"github-operations",lines:221,rules:4,refs:6,invocable:false,desc:"GitHub CLI for issues, PRs, milestones, Projects v2",category:"git",tags:["github","gh","cli","milestones"]},
+  {name:"golden-dataset",lines:167,rules:12,refs:8,invocable:false,desc:"Golden dataset curation, validation, LLM testing",category:"ai",tags:["golden-dataset","evaluation","dataset-curation"]},
+  {name:"help",lines:162,rules:0,refs:1,invocable:true,desc:"OrchestKit skill directory and discovery",category:"meta",tags:["help","documentation","skills","discovery"]},
+  {name:"i18n-date-patterns",lines:279,rules:5,refs:3,invocable:false,desc:"i18n, Day.js, react-i18next, RTL, ICU message format",category:"frontend",tags:["i18n","dayjs","localization","rtl"]},
+  {name:"implement",lines:314,rules:0,refs:14,invocable:true,desc:"Full-power feature implementation with parallel subagents",category:"workflow",tags:["implementation","feature","full-stack","parallel-agents"]},
+  {name:"interaction-patterns",lines:217,rules:12,refs:3,invocable:false,desc:"Skeleton loading, infinite scroll, progressive disclosure, drag-drop",category:"frontend",tags:["interaction-design","skeleton-loading","ux-patterns"]},
+  {name:"issue-progress-tracking",lines:148,rules:3,refs:0,invocable:false,desc:"Auto-updates GitHub issues with commit progress",category:"git",tags:["git","github","issues","tracking"]},
+  {name:"langgraph",lines:241,rules:38,refs:0,invocable:false,desc:"LangGraph workflow, state, routing, parallel, supervisor",category:"ai",tags:["langgraph","workflow","state","routing"]},
+  {name:"llm-integration",lines:206,rules:22,refs:6,invocable:false,desc:"OpenAI/Anthropic/Ollama APIs, function calling, streaming",category:"ai",tags:["llm","function-calling","streaming","ollama"]},
+  {name:"market-sizing",lines:148,rules:2,refs:1,invocable:false,desc:"TAM, SAM, SOM market sizing",category:"business",tags:["tam","sam","som","market-size"]},
+  {name:"mcp-patterns",lines:167,rules:16,refs:0,invocable:false,desc:"MCP server, tools, resources, security, OAuth",category:"tooling",tags:["mcp","server","tools","oauth"]},
+  {name:"memory-fabric",lines:275,rules:0,refs:2,invocable:false,desc:"Graph-first memory orchestration, deduplication",category:"knowledge",tags:["memory","graph","unified-search","deduplication"]},
+  {name:"memory",lines:127,rules:3,refs:3,invocable:true,desc:"Read-side memory operations: search, recall, load, sync",category:"knowledge",tags:["memory","graph","session","context"]},
+  {name:"monitoring-observability",lines:139,rules:14,refs:25,invocable:false,desc:"Prometheus, Grafana, Langfuse, tracing, drift detection",category:"devops",tags:["monitoring","observability","prometheus","grafana"]},
+  {name:"multimodal-llm",lines:173,rules:11,refs:0,invocable:false,desc:"Vision, audio, video, multimodal processing",category:"ai",tags:["vision","audio","video","multimodal"]},
+  {name:"notebooklm",lines:170,rules:10,refs:0,invocable:false,desc:"NotebookLM MCP integration, RAG, research",category:"ai",tags:["notebooklm","mcp","rag","research"]},
+  {name:"okr-design",lines:224,rules:6,refs:1,invocable:false,desc:"OKR trees, KPI dashboards, North Star Metric",category:"business",tags:["okr","kpi","north-star","metrics"]},
+  {name:"performance",lines:287,rules:26,refs:18,invocable:false,desc:"Core Web Vitals, React optimization, caching, inference",category:"frontend",tags:["performance","core-web-vitals","caching","optimization"]},
+  {name:"presentation-builder",lines:289,rules:3,refs:2,invocable:false,desc:"Creates zero-dependency HTML presentations",category:"content",tags:["presentation","slides","html","animation"]},
+  {name:"prioritization",lines:184,rules:4,refs:2,invocable:false,desc:"RICE, WSJF, ICE, MoSCoW scoring",category:"business",tags:["rice","wsjf","ice","moscow"]},
+  {name:"product-analytics",lines:160,rules:5,refs:1,invocable:false,desc:"A/B test evaluation, cohort retention, funnel metrics",category:"business",tags:["ab-test","cohort","retention","funnel"]},
+  {name:"product-frameworks",lines:104,rules:20,refs:12,invocable:false,desc:"Product strategy, business case, market analysis, PRD",category:"business",tags:["product","strategy","prd","user-research"]},
+  {name:"python-backend",lines:170,rules:14,refs:7,invocable:false,desc:"asyncio, FastAPI, SQLAlchemy 2.0 async, connection pooling",category:"backend",tags:["python","asyncio","fastapi","sqlalchemy"]},
+  {name:"quality-gates",lines:301,rules:5,refs:5,invocable:false,desc:"Complexity assessment, escalation, YAGNI, over-engineering",category:"quality",tags:["quality","complexity","planning","best-practices"]},
+  {name:"rag-retrieval",lines:268,rules:32,refs:0,invocable:false,desc:"RAG, retrieval, embeddings, HyDE, reranking, pgvector",category:"ai",tags:["rag","retrieval","embeddings","pgvector"]},
+  {name:"react-server-components-framework",lines:310,rules:7,refs:12,invocable:false,desc:"React 19.2, Next.js 16, Server Components, Cache Components",category:"frontend",tags:["react","nextjs","server-components","streaming"]},
+  {name:"release-checklist",lines:81,rules:6,refs:1,invocable:false,desc:"OrchestKit release checklist with gating",category:"meta",tags:["release","checklist","orchestkit"]},
+  {name:"release-management",lines:348,rules:0,refs:1,invocable:false,desc:"GitHub releases, versioning, changelog automation",category:"git",tags:["git","releases","versioning","changelog"]},
+  {name:"remember",lines:306,rules:0,refs:1,invocable:true,desc:"Stores decisions and patterns in knowledge graph",category:"knowledge",tags:["memory","decisions","patterns","graph-memory"]},
+  {name:"responsive-patterns",lines:214,rules:12,refs:2,invocable:false,desc:"Container queries, fluid typography, mobile-first, PWA",category:"frontend",tags:["responsive","container-queries","pwa","mobile-first"]},
+  {name:"review-pr",lines:316,rules:4,refs:5,invocable:true,desc:"PR review with parallel specialized agents",category:"quality",tags:["code-review","pull-request","quality","security"]},
+  {name:"scope-appropriate-architecture",lines:166,rules:0,refs:4,invocable:false,desc:"YAGNI, over-engineering prevention, scope patterns",category:"architecture",tags:["architecture","yagni","over-engineering"]},
+  {name:"security-patterns",lines:296,rules:20,refs:15,invocable:false,desc:"Auth, defense-in-depth, OWASP, input validation, PII masking",category:"security",tags:["security","owasp","authentication","jwt"]},
+  {name:"setup",lines:375,rules:0,refs:8,invocable:true,desc:"Personalized setup and onboarding wizard",category:"meta",tags:["onboarding","setup","wizard","configuration"]},
+  {name:"skill-evolution",lines:140,rules:4,refs:3,invocable:false,desc:"Evolves skills based on usage patterns and versioning",category:"meta",tags:["skill-management","evolution","versioning"]},
+  {name:"storybook-testing",lines:165,rules:9,refs:3,invocable:false,desc:"Storybook, Vitest, CSF3, Chromatic, visual regression",category:"testing",tags:["storybook","vitest","chromatic","visual-regression"]},
+  {name:"task-dependency-patterns",lines:205,rules:5,refs:3,invocable:false,desc:"Task management, dependencies, CC 2.1.16 orchestration",category:"workflow",tags:["task-management","dependencies","orchestration"]},
+  {name:"testing-e2e",lines:199,rules:7,refs:4,invocable:false,desc:"Playwright, accessibility, visual regression, page objects",category:"testing",tags:["testing","e2e","playwright","accessibility"]},
+  {name:"testing-integration",lines:163,rules:8,refs:4,invocable:false,desc:"API endpoint tests, Pact contract, property-based",category:"testing",tags:["testing","integration","contract","pact"]},
+  {name:"testing-llm",lines:182,rules:3,refs:4,invocable:false,desc:"LLM mocking, DeepEval/RAGAS, structured output validation",category:"testing",tags:["testing","llm","deepeval","ragas"]},
+  {name:"testing-patterns",lines:42,rules:0,refs:0,invocable:false,desc:"Testing redirect (deprecated)",category:"testing",tags:["testing","redirect","deprecated"]},
+  {name:"testing-perf",lines:150,rules:7,refs:3,invocable:false,desc:"k6 load tests, Locust, pytest optimization",category:"testing",tags:["testing","performance","k6","locust"]},
+  {name:"testing-unit",lines:192,rules:9,refs:4,invocable:false,desc:"AAA pattern, parametrized tests, MSW, VCR, factories",category:"testing",tags:["testing","unit","mocking","msw"]},
+  {name:"ui-components",lines:193,rules:22,refs:10,invocable:false,desc:"shadcn/ui, Radix, component library, forms, Zod validation",category:"frontend",tags:["ui-components","shadcn","radix","react-hook-form"]},
+  {name:"upgrade-assessment",lines:166,rules:6,refs:4,invocable:false,desc:"Claude model and CC version upgrade readiness assessment",category:"meta",tags:["upgrade","assessment","compatibility"]},
+  {name:"user-research",lines:180,rules:4,refs:3,invocable:false,desc:"Personas, journey maps, interviews, usability testing",category:"business",tags:["persona","journey-map","usability","jtbd"]},
+  {name:"validate-counts",lines:64,rules:4,refs:1,invocable:false,desc:"Validates hook, skill, and agent counts are consistent",category:"meta",tags:["validation","consistency","orchestkit"]},
+  {name:"verify",lines:284,rules:3,refs:9,invocable:true,desc:"Comprehensive verification with parallel test agents",category:"quality",tags:["verification","testing","quality","grading"]},
+  {name:"visualize-plan",lines:264,rules:3,refs:7,invocable:true,desc:"Visualize planned changes before implementation",category:"planning",tags:["visualization","planning","architecture","diff"]},
+  {name:"vite-advanced",lines:346,rules:6,refs:5,invocable:false,desc:"Vite build, plugins, SSR, library mode, environment API",category:"tooling",tags:["vite","build","bundler","ssr"]},
+  {name:"web-research-workflow",lines:113,rules:6,refs:1,invocable:false,desc:"Browser automation, Tavily, competitive intelligence",category:"tooling",tags:["research","browser","tavily","scraping"]},
+  {name:"write-prd",lines:373,rules:4,refs:2,invocable:true,desc:"Product Requirements Documents with structured templates",category:"planning",tags:["prd","requirements","user-story","acceptance-criteria"]},
+  {name:"zustand-patterns",lines:352,rules:5,refs:1,invocable:false,desc:"Zustand state management, Immer, middleware, persistence",category:"frontend",tags:["zustand","state-management","react","immer"]},
+];
+
+// Compute health scores
+const SKILLS = RAW.map(s => {
+  const health = calcHealth(s);
+  return { ...s, health, status: calcStatus(health) };
+});
+
+const OVERLAPS = [
+  {pair:"memory vs remember",verdict:"ok",label:"Well-Differentiated",
+   body:"<strong>Read/write separation pattern.</strong> memory = read FROM graph (search, load, viz). remember = write TO graph (store, tag). Complementary pair. <strong>Keep as-is.</strong>"},
+  {pair:"assess vs verify",verdict:"warn",label:"Partial Overlap",
+   body:"Both use 0-10 scoring and spawn parallel agents. <strong>assess</strong> = evaluate existing state (pre-work), <strong>verify</strong> = validate after implementation (post-work). Shared agent definitions could be extracted to a common reference."},
+  {pair:"audit-full vs audit-skills",verdict:"warn",label:"Naming Confusion",
+   body:"Functionally distinct (codebase audits vs skill catalog audits) but naming misleads. <strong>Consider:</strong> Rename <code>audit-skills</code> to <code>validate-skills</code>."},
+  {pair:"architecture-patterns vs scope-appropriate-architecture",verdict:"warn",label:"Complementary but Confusing",
+   body:"<strong>architecture-patterns</strong> = clean architecture enforcement (15 rules, 16 refs). <strong>scope-appropriate-architecture</strong> = YAGNI/right-sizing (0 rules, 4 refs). The latter needs rules and clearer differentiation."},
+  {pair:"commit vs git-workflow vs github-operations",verdict:"ok",label:"Well-Scoped Trio",
+   body:"<strong>commit</strong> = create ONE commit. <strong>git-workflow</strong> = branching/recovery strategy. <strong>github-operations</strong> = gh CLI patterns. Three distinct scopes."},
+  {pair:"quality-gates vs code-review-playbook",verdict:"ok",label:"Different Phases",
+   body:"<strong>quality-gates</strong> = pre-implementation complexity gating. <strong>code-review-playbook</strong> = during-review patterns. Sequential, not overlapping."},
+  {pair:"testing-* family (5 skills)",verdict:"ok",label:"Well-Split Pyramid",
+   body:"unit/integration/e2e/perf/llm — each covers a distinct testing layer. testing-patterns is deprecated redirect. <strong>Clean separation.</strong>"},
+];
+
+const GAPS = [
+  {name:"Deploy / Migration Skill",severity:"high",icon:"&#128640;",
+   desc:"Users can create PRs and review them, but no skill for deploying merged code. release-checklist is passive (checklist-based). Would include pre-deploy checks, smoke tests, health monitoring, rollback.",
+   deps:["verify","audit-full","devops-deployment"]},
+  {name:"Onboard / Project Bootstrap",severity:"medium",icon:"&#128218;",
+   desc:"doctor checks existing projects but doesn't bootstrap new ones. Would initialize .claude/ structure, CLAUDE.md, CI/CD, memory system, and stack-specific skills.",
+   deps:["setup","configure","validate-counts"]},
+  {name:"Dependency Management Skill",severity:"medium",icon:"&#128230;",
+   desc:"No skill for managing dependency updates, audit, and Dependabot/Renovate integration. Would handle CVE triage, upgrade strategies, and lockfile maintenance.",
+   deps:["security-patterns","devops-deployment"]},
+];
+
+const PRIORITIES = [
+  {rank:1,skill:"errors",action:"Zero rules AND zero references. Needs structured troubleshooting patterns.",effort:2,impact:4},
+  {rank:2,skill:"testing-patterns",action:"Deprecated stub (42 lines, 0 rules/refs). Remove or convert to redirect.",effort:1,impact:2},
+  {rank:3,skill:"setup",action:"375 lines, zero rules. Extract wizard steps to references, add rules.",effort:3,impact:5},
+  {rank:4,skill:"write-prd",action:"373 lines. Compress by extracting template sections to references.",effort:2,impact:3},
+  {rank:5,skill:"brainstorm",action:"363 lines, zero rules. Add creativity/divergence rules, compress body.",effort:2,impact:4},
+  {rank:6,skill:"code-review-playbook",action:"365 lines. Extract review criteria to references.",effort:2,impact:3},
+  {rank:7,skill:"zustand-patterns",action:"352 lines. Extract advanced patterns to references.",effort:1,impact:2},
+  {rank:8,skill:"release-management",action:"348 lines, zero rules. Add release rules, compress body.",effort:2,impact:3},
+  {rank:9,skill:"vite-advanced",action:"346 lines. Extract plugin authoring guide to references.",effort:1,impact:2},
+  {rank:10,skill:"implement",action:"314 lines, zero rules. Critical invocable skill needs implementation rules.",effort:3,impact:5},
+  {rank:11,skill:"configure + help",action:"Both zero rules. Add decision trees and category mapping.",effort:2,impact:3},
+  {rank:12,skill:"scope-appropriate-architecture",action:"Zero rules. Add YAGNI decision framework as rules.",effort:2,impact:3},
+  {rank:13,skill:"memory-fabric + remember",action:"Both zero rules. Add entity extraction and dedup rules.",effort:2,impact:3},
+];
+
+// State
+const state = { filter:'all', sort:'health-asc', preset:'all', tab:'grid', selected:null, search:'', catFilter:'all' };
+
+function getHealthColor(h) {
+  if (h >= 8) return 'var(--green)';
+  if (h >= 5) return 'var(--yellow)';
+  return 'var(--red)';
+}
+
+function getStatusBadge(s) {
+  const cls = s === 'critical' ? 'badge-critical' : s === 'moderate' ? 'badge-moderate' : 'badge-good';
+  return '<span class="badge '+cls+'">'+s+'</span>';
+}
+
+function filterSkills() {
+  let filtered = [...SKILLS];
+  if (state.search) {
+    const q = state.search.toLowerCase();
+    filtered = filtered.filter(s => s.name.includes(q) || s.desc.toLowerCase().includes(q) || s.tags.some(t => t.includes(q)));
+  }
+  if (state.filter !== 'all') filtered = filtered.filter(s => s.status === state.filter);
+  if (state.catFilter !== 'all') filtered = filtered.filter(s => s.category === state.catFilter);
+  if (state.preset === 'invocable') filtered = filtered.filter(s => s.invocable);
+  if (state.preset === 'critical') filtered = filtered.filter(s => s.status !== 'good');
+  if (state.preset === 'bloated') filtered = filtered.filter(s => s.lines > 300);
+  if (state.preset === 'no-rules') filtered = filtered.filter(s => s.rules === 0);
+  if (state.preset === 'no-refs') filtered = filtered.filter(s => s.refs === 0);
+
+  const sorts = {
+    'health-asc': (a,b) => a.health - b.health,
+    'health-desc': (a,b) => b.health - a.health,
+    'lines-desc': (a,b) => b.lines - a.lines,
+    'lines-asc': (a,b) => a.lines - b.lines,
+    'alpha': (a,b) => a.name.localeCompare(b.name),
+    'rules-desc': (a,b) => b.rules - a.rules || b.refs - a.refs,
+    'refs-desc': (a,b) => b.refs - a.refs || b.rules - a.rules,
+  };
+  filtered.sort(sorts[state.sort] || sorts['health-asc']);
+  return filtered;
+}
+
+function renderGrid() {
+  const grid = document.getElementById('skills-grid');
+  const skills = filterSkills();
+  grid.innerHTML = skills.map(s =>
+    '<div class="skill-card '+(state.selected === s.name ? 'selected' : '')+'" data-skill="'+s.name+'">'+
+      '<div class="name">'+s.name+' '+getStatusBadge(s.status)+(s.invocable ? ' <span class="badge badge-invocable">invocable</span>' : '')+'</div>'+
+      '<div class="desc">'+s.desc+'</div>'+
+      '<div class="metrics">'+
+        '<span>R:'+s.rules+'</span>'+
+        '<span>Ref:'+s.refs+'</span>'+
+        '<span>L:'+s.lines+(s.lines > 300 ? ' !!' : '')+'</span>'+
+        '<span style="color:'+getHealthColor(s.health)+'">'+s.health+'/10</span>'+
+      '</div>'+
+      '<div class="health-bar"><div class="fill" style="width:'+s.health*10+'%;background:'+getHealthColor(s.health)+'"></div></div>'+
+    '</div>'
+  ).join('');
+
+  grid.querySelectorAll('.skill-card').forEach(card => {
+    card.addEventListener('click', () => openDetail(card.dataset.skill));
+  });
+}
+
+function renderCategories() {
+  const cats = {};
+  SKILLS.forEach(s => { cats[s.category] = (cats[s.category] || 0) + 1; });
+  const sorted = Object.entries(cats).sort((a,b) => b[1] - a[1]);
+  document.getElementById('cat-stats').innerHTML = sorted.map(([cat, count]) => {
+    const catSkills = SKILLS.filter(s => s.category === cat);
+    const avgHealth = (catSkills.reduce((a,s) => a + s.health, 0) / catSkills.length).toFixed(1);
+    return '<div class="cat-stat"><div class="cat-name">'+cat+'</div><div class="cat-count">'+count+'</div><div style="font-size:11px;color:'+getHealthColor(avgHealth)+'">avg '+avgHealth+'/10</div></div>';
+  }).join('');
+
+  // Also build category filter buttons
+  const catFilters = document.getElementById('cat-filters');
+  catFilters.innerHTML = '<button class="filter-btn '+(state.catFilter === 'all' ? 'active' : '')+'" data-cat="all">All</button>' +
+    sorted.map(([cat]) => '<button class="filter-btn '+(state.catFilter === cat ? 'active' : '')+'" data-cat="'+cat+'">'+cat+' ('+cats[cat]+')</button>').join('');
+  catFilters.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      catFilters.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.catFilter = btn.dataset.cat;
+      updateAll();
+    });
+  });
+}
+
+function renderPriorities() {
+  document.getElementById('priority-list').innerHTML = PRIORITIES.map(p =>
+    '<div class="priority-item">'+
+      '<div class="priority-rank">#'+p.rank+'</div>'+
+      '<div><div class="priority-title">'+p.skill+'</div><div class="priority-detail">'+p.action+'</div></div>'+
+      '<div class="priority-impact"><div class="impact-label">Effort/Impact</div>'+
+        '<div class="impact-value" style="color:'+(p.impact >= 4 ? 'var(--green)' : p.impact >= 3 ? 'var(--yellow)' : 'var(--text2)')+'">'+p.effort+'/'+p.impact+'</div></div>'+
+    '</div>'
+  ).join('');
+}
+
+function renderOverlaps() {
+  document.getElementById('overlap-cards').innerHTML = OVERLAPS.map(o =>
+    '<div class="overlap-card"><div class="overlap-header">'+
+      '<span class="overlap-pair">'+o.pair+'</span>'+
+      '<span class="overlap-verdict overlap-'+o.verdict+'">'+o.label+'</span>'+
+    '</div><div class="overlap-body">'+o.body+'</div></div>'
+  ).join('');
+}
+
+function renderGaps() {
+  document.getElementById('gaps-container').innerHTML = GAPS.map(g =>
+    '<div class="gap-card"><h3>'+g.icon+' '+g.name+' <span class="badge '+(g.severity === 'high' ? 'badge-critical' : 'badge-moderate')+'">'+g.severity+' priority</span></h3>'+
+    '<p>'+g.desc+'</p>'+
+    '<div class="gap-deps"><span style="font-size:11px;color:var(--text2);margin-right:4px">Integrates with:</span>'+
+    g.deps.map(d => '<span class="gap-dep">'+d+'</span>').join('')+'</div></div>'
+  ).join('');
+}
+
+function openDetail(name) {
+  const s = SKILLS.find(sk => sk.name === name);
+  if (!s) return;
+  state.selected = name;
+  renderGrid();
+
+  const suggestions = [];
+  if (s.lines > 300) suggestions.push('Over 300 lines ('+s.lines+') — compress by extracting to references');
+  if (s.rules === 0) suggestions.push('Zero rule files — extract decision criteria as rules');
+  if (s.refs === 0) suggestions.push('Zero reference files — add supporting references');
+  if (s.lines > 350) suggestions.push('Severely bloated ('+s.lines+' lines) — target 50% compression');
+
+  const panel = document.getElementById('detail-panel');
+  document.getElementById('detail-content').innerHTML =
+    '<div class="detail-name">'+s.name+(s.invocable ? ' <span class="badge badge-invocable">invocable</span>' : '')+'</div>'+
+    '<div class="detail-desc">'+s.desc+'</div>'+
+    '<div class="detail-section"><h4>Metrics</h4>'+
+      '<div class="detail-metric"><span class="label">Health Score</span><span style="color:'+getHealthColor(s.health)+';font-weight:700">'+s.health+'/10</span></div>'+
+      '<div class="detail-metric"><span class="label">Status</span>'+getStatusBadge(s.status)+'</div>'+
+      '<div class="detail-metric"><span class="label">SKILL.md Lines</span><span'+(s.lines>300?' style="color:var(--red)"':'')+'>'+s.lines+(s.lines>300?' (over limit)':'')+'</span></div>'+
+      '<div class="detail-metric"><span class="label">Rule Files</span><span'+(s.rules===0?' style="color:var(--red)"':'')+'>'+s.rules+(s.rules===0?' (missing)':'')+'</span></div>'+
+      '<div class="detail-metric"><span class="label">Reference Files</span><span'+(s.refs===0?' style="color:var(--red)"':'')+'>'+s.refs+(s.refs===0?' (missing)':'')+'</span></div>'+
+      '<div class="detail-metric"><span class="label">Category</span><span>'+s.category+'</span></div>'+
+      '<div class="detail-metric"><span class="label">User-Invocable</span><span style="color:'+(s.invocable?'var(--purple)':'var(--text2)')+'">'+(s.invocable?'Yes':'No')+'</span></div>'+
+    '</div>'+
+    '<div class="detail-section"><h4>Tags</h4><div class="detail-tags">'+s.tags.map(t => '<span class="detail-tag">'+t+'</span>').join('')+'</div></div>'+
+    (suggestions.length ?
+      '<div class="detail-section"><h4>Improvement Suggestions</h4><ul class="detail-suggestions">'+suggestions.map(sg => '<li>'+sg+'</li>').join('')+'</ul></div>' :
+      '<div class="detail-section"><h4>Status</h4><p style="color:var(--green);font-size:13px">No issues found. This skill is in good shape.</p></div>'
+    );
+  panel.classList.add('open');
+  updatePrompt();
+}
+
+function updatePrompt() {
+  const prompt = document.getElementById('prompt-output');
+  if (state.selected) {
+    const s = SKILLS.find(sk => sk.name === state.selected);
+    if (s) {
+      const issues = [];
+      if (s.lines > 300) issues.push('compress from '+s.lines+' lines');
+      if (s.rules === 0) issues.push('add rule files');
+      if (s.refs === 0) issues.push('add references');
+      prompt.value = issues.length ?
+        'Improve /ork:'+s.name+' ('+s.lines+' lines, '+s.rules+' rules, '+s.refs+' refs, health '+s.health+'/10): '+issues.join(', ') :
+        '/ork:'+s.name+' is healthy ('+s.health+'/10). No action needed.';
+    }
+  } else {
+    const critical = SKILLS.filter(s => s.status === 'critical');
+    const bloated = SKILLS.filter(s => s.lines > 300);
+    const noRules = SKILLS.filter(s => s.rules === 0);
+    prompt.value = 'OrchestKit v7.3.2: '+SKILLS.length+' skills, '+critical.length+' critical, '+bloated.length+' over 300 lines, '+noRules.length+' missing rules. Top priorities: '+PRIORITIES.slice(0,5).map(p => p.skill).join(', ');
+  }
+}
+
+function updateStats() {
+  const good = SKILLS.filter(s => s.status === 'good').length;
+  const moderate = SKILLS.filter(s => s.status === 'moderate').length;
+  const critical = SKILLS.filter(s => s.status === 'critical').length;
+  const avg = (SKILLS.reduce((a,s) => a + s.health, 0) / SKILLS.length).toFixed(1);
+  document.getElementById('stat-good').textContent = good;
+  document.getElementById('stat-moderate').textContent = moderate;
+  document.getElementById('stat-critical').textContent = critical;
+  document.getElementById('stat-total').textContent = SKILLS.length;
+  document.getElementById('stat-invocable').textContent = SKILLS.filter(s => s.invocable).length;
+  document.getElementById('stat-score').textContent = avg + '/10';
+}
+
+function updateAll() { renderGrid(); updatePrompt(); }
+
+// Event listeners
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.preset = btn.dataset.preset;
+    state.selected = null;
+    document.getElementById('detail-panel').classList.remove('open');
+    updateAll();
+  });
+});
+
+document.querySelectorAll('#status-filters .filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#status-filters .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.filter = btn.dataset.filter;
+    updateAll();
+  });
+});
+
+document.getElementById('sort-select').addEventListener('change', e => { state.sort = e.target.value; updateAll(); });
+
+document.getElementById('search-input').addEventListener('input', e => { state.search = e.target.value; updateAll(); });
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    state.tab = tab.dataset.tab;
+    state.selected = null;
+    document.getElementById('detail-panel').classList.remove('open');
+    updatePrompt();
+  });
+});
+
+document.getElementById('detail-close').addEventListener('click', () => {
+  document.getElementById('detail-panel').classList.remove('open');
+  state.selected = null;
+  renderGrid();
+  updatePrompt();
+});
+
+document.getElementById('copy-btn').addEventListener('click', () => {
+  const btn = document.getElementById('copy-btn');
+  navigator.clipboard.writeText(document.getElementById('prompt-output').value).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy Prompt'; btn.classList.remove('copied'); }, 1500);
+  });
+});
+
+// Init
+updateStats();
+renderGrid();
+renderCategories();
+renderPriorities();
+renderOverlaps();
+renderGaps();
+updatePrompt();
+</script>
+</body>
+</html>

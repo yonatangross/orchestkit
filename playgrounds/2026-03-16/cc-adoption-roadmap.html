@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CC 2.1.77 Adoption Roadmap — OrchestKit</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+    --text: #e6edf3; --text2: #8b949e; --accent: #58a6ff; --green: #3fb950;
+    --yellow: #d29922; --red: #f85149; --purple: #bc8cff; --orange: #f0883e;
+    --radius: 8px; --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'SF Mono', 'Fira Code', monospace;
+  }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .layout { display: grid; grid-template-columns: 360px 1fr; grid-template-rows: auto 1fr auto; height: 100vh; }
+  .header { grid-column: 1 / -1; padding: 16px 24px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .header h1 { font-size: 18px; font-weight: 600; }
+  .header .badge { padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+  .header .badge-new { background: var(--green); color: var(--bg); }
+  .header .badge-ork { background: var(--accent); color: var(--bg); }
+  .header .version { color: var(--text2); font-size: 13px; margin-left: auto; }
+  .header .changelog-link { font-size: 12px; color: var(--accent); text-decoration: none; }
+  .header .changelog-link:hover { text-decoration: underline; }
+
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; padding: 16px; }
+  .preview { overflow-y: auto; padding: 24px; }
+  .prompt-bar { grid-column: 1 / -1; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 24px; }
+
+  .section { margin-bottom: 20px; }
+  .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); margin-bottom: 10px; font-weight: 600; }
+
+  .gap-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s; }
+  .gap-card:hover { border-color: var(--accent); }
+  .gap-card.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .gap-card .gap-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .gap-card .gap-icon { font-size: 16px; }
+  .gap-card .gap-name { font-size: 13px; font-weight: 600; flex: 1; }
+  .gap-card .gap-priority { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .gap-card .gap-priority.p1 { background: rgba(248,81,73,0.15); color: var(--red); }
+  .gap-card .gap-priority.p2 { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .gap-card .gap-priority.p3 { background: rgba(63,185,80,0.15); color: var(--green); }
+  .gap-card .gap-priority.p4 { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .gap-card .gap-meta { font-size: 12px; color: var(--text2); display: flex; gap: 12px; }
+  .gap-card .gap-status { display: flex; align-items: center; gap: 4px; }
+  .gap-card .gap-desc { font-size: 11px; color: var(--text2); margin-top: 6px; line-height: 1.4; }
+  .gap-card .gap-origin { font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 600; }
+  .gap-card .gap-origin.new { background: rgba(63,185,80,0.15); color: var(--green); }
+  .gap-card .gap-origin.carry-over { background: rgba(240,136,62,0.15); color: var(--orange); }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+  .toggle-row label { font-size: 13px; color: var(--text); }
+  .toggle { position: relative; width: 36px; height: 20px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle .slider { position: absolute; inset: 0; background: var(--surface2); border-radius: 10px; cursor: pointer; transition: 0.2s; border: 1px solid var(--border); }
+  .toggle .slider::before { content: ''; position: absolute; width: 14px; height: 14px; left: 2px; top: 2px; background: var(--text2); border-radius: 50%; transition: 0.2s; }
+  .toggle input:checked + .slider { background: var(--accent); border-color: var(--accent); }
+  .toggle input:checked + .slider::before { transform: translateX(16px); background: white; }
+
+  select { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 13px; width: 100%; font-family: var(--font); }
+
+  .roadmap { max-width: 900px; margin: 0 auto; }
+
+  .changelog-banner { background: linear-gradient(135deg, rgba(88,166,255,0.08), rgba(188,140,255,0.08)); border: 1px solid rgba(88,166,255,0.2); border-radius: var(--radius); padding: 16px; margin-bottom: 24px; }
+  .changelog-banner h2 { font-size: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .changelog-banner .highlights { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .changelog-banner .hl { font-size: 12px; color: var(--text2); padding: 4px 0; display: flex; align-items: center; gap: 6px; }
+  .changelog-banner .hl .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .changelog-banner .hl .dot.feat { background: var(--green); }
+  .changelog-banner .hl .dot.fix { background: var(--yellow); }
+  .changelog-banner .hl .dot.perf { background: var(--purple); }
+  .changelog-banner .hl .dot.break { background: var(--red); }
+
+  .progress-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
+  .progress-bar h2 { font-size: 14px; color: var(--text2); margin-bottom: 12px; }
+  .progress-track { height: 24px; background: var(--surface2); border-radius: 12px; overflow: hidden; display: flex; position: relative; }
+  .progress-fill { height: 100%; transition: width 0.4s ease; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  .progress-fill.done { background: var(--green); }
+  .progress-fill.wip { background: var(--yellow); }
+  .progress-labels { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--text2); }
+
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before { content: ''; position: absolute; left: 11px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+
+  .milestone { position: relative; margin-bottom: 28px; }
+  .milestone .dot { position: absolute; left: -32px; top: 4px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; z-index: 1; }
+  .milestone .dot.done { background: var(--green); color: var(--bg); }
+  .milestone .dot.wip { background: var(--yellow); color: var(--bg); }
+  .milestone .dot.todo { background: var(--surface2); border: 2px solid var(--border); color: var(--text2); }
+  .milestone .dot.skip { background: var(--surface2); border: 2px dashed var(--border); color: var(--text2); }
+  .milestone .dot.break { background: var(--red); color: white; }
+
+  .milestone-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; transition: all 0.2s; }
+  .milestone-card.active { border-color: var(--accent); }
+  .milestone-card.breaking { border-color: var(--red); }
+  .milestone-card.skipped { opacity: 0.4; }
+  .milestone-card h3 { font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .milestone-card .ms-meta { font-size: 12px; color: var(--text2); margin-bottom: 10px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .milestone-card .ms-desc { font-size: 13px; color: var(--text2); line-height: 1.5; margin-bottom: 10px; }
+
+  .task-list { list-style: none; }
+  .task-list li { font-size: 13px; padding: 4px 0; display: flex; align-items: flex-start; gap: 6px; }
+  .task-list li::before { content: '○'; color: var(--text2); font-size: 11px; margin-top: 2px; flex-shrink: 0; }
+  .task-list li.done::before { content: '●'; color: var(--green); }
+
+  .file-list { margin-top: 8px; padding: 8px; background: var(--surface2); border-radius: 6px; }
+  .file-list code { font-size: 11px; font-family: var(--mono); color: var(--orange); display: block; padding: 1px 0; }
+
+  .skills-affected { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .skill-tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: rgba(88,166,255,0.1); color: var(--accent); font-family: var(--mono); }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; }
+  .stat-card .stat-val { font-size: 24px; font-weight: 700; font-family: var(--mono); }
+  .stat-card .stat-label { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+  .prompt-content { display: flex; gap: 12px; align-items: flex-start; }
+  .prompt-text { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; font-size: 13px; line-height: 1.5; max-height: 140px; overflow-y: auto; font-family: var(--mono); white-space: pre-wrap; }
+  .copy-btn { background: var(--accent); color: var(--bg); border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; font-family: var(--font); }
+  .copy-btn:hover { opacity: 0.9; }
+  .copy-btn.copied { background: var(--green); }
+
+  .preset-btn { width: 100%; margin-bottom: 6px; padding: 8px 10px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 12px; font-family: var(--font); text-align: left; transition: all 0.15s; }
+  .preset-btn:hover { border-color: var(--accent); }
+  .preset-btn .preset-time { float: right; color: var(--text2); font-family: var(--mono); }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="header">
+    <h1>CC 2.1.77 Adoption Roadmap</h1>
+    <span class="badge badge-new">NEW</span>
+    <span class="badge badge-ork">OrchestKit v7.11.1</span>
+    <span class="version">2.1.76 &rarr; 2.1.77</span>
+  </div>
+
+  <div class="sidebar">
+    <div class="section">
+      <div class="section-title">Upgrade Gaps (toggle to plan)</div>
+      <div id="gap-cards"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Options</div>
+      <div class="toggle-row">
+        <label>Create GH Issues</label>
+        <label class="toggle"><input type="checkbox" id="opt-issues" checked onchange="updateAll()"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <label>Open Milestone</label>
+        <label class="toggle"><input type="checkbox" id="opt-milestone" checked onchange="updateAll()"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <label>Include tests</label>
+        <label class="toggle"><input type="checkbox" id="opt-tests" checked onchange="updateAll()"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <label>Bump MIN_CC_VERSION</label>
+        <label class="toggle"><input type="checkbox" id="opt-bump" checked onchange="updateAll()"><span class="slider"></span></label>
+      </div>
+      <div style="margin-top: 12px;">
+        <label style="font-size: 13px; display: block; margin-bottom: 6px;">Branch strategy</label>
+        <select id="opt-branch" onchange="updateAll()">
+          <option value="single" selected>Single branch (all gaps)</option>
+          <option value="per-gap">One branch per gap</option>
+          <option value="milestone">Milestone branch</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Presets</div>
+      <button class="preset-btn" onclick="applyPreset('breaking')">P1 Critical Only <span class="preset-time">3.25h</span></button>
+      <button class="preset-btn" onclick="applyPreset('new-only')">2.1.77 New Only <span class="preset-time">4h</span></button>
+      <button class="preset-btn" onclick="applyPreset('carryover')">Carry-over Only <span class="preset-time">5.5h</span></button>
+      <button class="preset-btn" onclick="applyPreset('quick')">Quick &mdash; P1+P2 <span class="preset-time">5.25h</span></button>
+      <button class="preset-btn" onclick="applyPreset('full')">Full &mdash; all 11 gaps <span class="preset-time">9.5h</span></button>
+      <button class="preset-btn" onclick="applyPreset('ci')">CI + Version Only <span class="preset-time">1.5h</span></button>
+    </div>
+  </div>
+
+  <div class="preview">
+    <div class="roadmap" id="roadmap"></div>
+  </div>
+
+  <div class="prompt-bar">
+    <div class="prompt-content">
+      <div class="prompt-text" id="prompt-output"></div>
+      <button class="copy-btn" id="copy-btn" onclick="copyPrompt()">Copy</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CHANGELOG_HIGHLIGHTS = [
+  { type: 'feat', text: '64k default / 128k max output tokens for Opus 4.6' },
+  { type: 'feat', text: 'allowRead sandbox setting (re-allow within denyRead)' },
+  { type: 'feat', text: 'claude plugin validate checks frontmatter + hooks.json' },
+  { type: 'feat', text: 'SendMessage auto-resumes stopped agents' },
+  { type: 'break', text: 'Agent tool no longer accepts resume parameter' },
+  { type: 'feat', text: 'Background bash tasks killed at 5GB output' },
+  { type: 'feat', text: '/fork renamed to /branch (/fork still alias)' },
+  { type: 'perf', text: '~60ms faster macOS startup (parallel keychain)' },
+  { type: 'perf', text: '45% faster --resume, ~100-150MB less peak memory' },
+  { type: 'fix', text: 'PreToolUse "allow" no longer bypasses deny rules' },
+  { type: 'fix', text: 'Stale-worktree cleanup race condition fixed' },
+  { type: 'fix', text: 'Memory growth from progress messages in long sessions' },
+];
+
+const GAPS = [
+  // ── 2.1.77 NEW: Security & Breaking ──────────────────────────────
+  {
+    id: 'pretooluse-deny-fix', name: 'PreToolUse Allow/Deny Audit', icon: '🛡️', priority: 'P1', priorityClass: 'p1',
+    effort: '45m', impact: 'High', category: '2.1.77 security', origin: 'new',
+    desc: 'CC 2.1.77 fixed PreToolUse hooks returning "allow" bypassing deny permission rules. Audit OrchestKit hooks that return allow — ensure none relied on the old (buggy) bypass behavior.',
+    skills: ['security-auditor', 'doctor'],
+    files: [
+      'src/hooks/src/pretool/',
+      'src/hooks/src/__tests__/',
+    ],
+    tasks: [
+      'Audit all PreToolUse hooks that return { continue: true } with allow-like semantics',
+      'Verify: outputAllowWithContext() hooks still work correctly (allow + context, not bypass)',
+      'Check: hooks using permissionDecision — confirm none relied on allow-bypasses-deny',
+      'Run npm run test:security to confirm no regressions',
+      'Test: create a deny rule + allow hook, verify deny wins (new correct behavior)',
+    ],
+    enabled: true
+  },
+  {
+    id: 'version-matrix', name: 'Version Matrix + MIN_CC_VERSION', icon: '🔧', priority: 'P1', priorityClass: 'p1',
+    effort: '30m', impact: 'High', category: '2.1.77 compat', origin: 'new',
+    desc: 'Add 2.1.77 features to cc-version-matrix.ts, update version-compatibility.md, bump MIN_CC_VERSION if desired. Required for doctor skill accuracy.',
+    skills: ['doctor', 'version-compatibility'],
+    files: [
+      'src/hooks/src/lib/cc-version-matrix.ts',
+      'src/skills/doctor/references/version-compatibility.md',
+    ],
+    tasks: [
+      'Add 2.1.77 entries to CC_FEATURE_MATRIX: opus_64k_default, allow_read_sandbox, plugin_validate_frontmatter, sendmessage_auto_resume, agent_resume_removed, bg_bash_5gb_limit, fork_renamed_branch, pretooluse_allow_deny_fix, worktree_race_fix',
+      'Update version-compatibility.md: add >= 2.1.77 row to Compatibility Levels table',
+      'Add OrchestKit Version History row: v7.12.x | 2.1.77',
+      'Optionally bump MIN_CC_VERSION from 2.1.76 to 2.1.77',
+      'Update CLAUDE.md CC version requirement comment',
+    ],
+    enabled: true
+  },
+
+  // ── 2.1.76 CARRY-OVER: Never implemented ─────────────────────────
+  {
+    id: 'cron', name: 'CronCreate Monitoring', icon: '⏰', priority: 'P1', priorityClass: 'p1',
+    effort: '2h', impact: 'High', category: 'carry-over (2.1.71)', origin: 'carry-over',
+    desc: 'Wire CronCreate into verify, cover, and create-pr for automated post-merge quality monitoring. Templates already exist in skill pseudocode — need real implementation.',
+    skills: ['verify', 'cover', 'create-pr', 'implement', 'fix-issue'],
+    files: [
+      'src/skills/verify/SKILL.md',
+      'src/skills/cover/SKILL.md',
+      'src/skills/create-pr/SKILL.md',
+    ],
+    tasks: [
+      'Add CronCreate call to /ork:verify after Phase 8 (daily regression, 7-pass auto-delete)',
+      'Add CronCreate call to /ork:cover for weekly coverage drift check',
+      'Add CronCreate call to /ork:create-pr for PR checks monitoring until green',
+      'Add CLAUDE_CODE_DISABLE_CRON guard to all CronCreate calls',
+      'Add CronDelete cleanup in Stop hooks for session end',
+      'Test: verify cron schedules are valid cron expressions',
+    ],
+    enabled: true
+  },
+  {
+    id: 'plan', name: 'EnterPlanMode Branching', icon: '📋', priority: 'P2', priorityClass: 'p2',
+    effort: '1h', impact: 'Medium', category: 'carry-over (2.1.72)', origin: 'carry-over',
+    desc: 'Add real if/elif control flow for "Plan first" option in AskUserQuestion. Currently shows the option but doesn\'t implement the EnterPlanMode \u2192 research \u2192 ExitPlanMode \u2192 execute flow.',
+    skills: ['implement', 'brainstorm', 'fix-issue'],
+    files: [
+      'src/skills/implement/SKILL.md',
+      'src/skills/brainstorm/SKILL.md',
+      'src/skills/fix-issue/SKILL.md',
+    ],
+    tasks: [
+      'Add conditional branch in implement: if "Plan first" \u2192 EnterPlanMode(FEATURE_DESC)',
+      'Add read-only research phase (Read/Grep/Glob only, no Write/Edit)',
+      'Add ExitPlanMode with plan summary for user approval',
+      'Mirror pattern in brainstorm and fix-issue skills',
+      'Test: plan mode produces plan without writing files',
+    ],
+    enabled: true
+  },
+
+  // ── 2.1.77 NEW: Features ─────────────────────────────────────────
+  {
+    id: 'plugin-validate', name: 'CI: claude plugin validate', icon: '🔍', priority: 'P2', priorityClass: 'p2',
+    effort: '1h', impact: 'High', category: '2.1.77 ci', origin: 'new',
+    desc: 'CC 2.1.77 added official `claude plugin validate` that checks skill/agent/command frontmatter + hooks.json schema. Add to CI pipeline alongside existing custom validation.',
+    skills: ['doctor', 'ci-cd-engineer'],
+    files: [
+      '.github/workflows/plugin-validation.yml',
+    ],
+    tasks: [
+      'Add `claude plugin validate` step to plugin-validation.yml after build step',
+      'Run in parallel with existing custom validators (not replacement \u2014 belt+suspenders)',
+      'Ensure CI runner has CC 2.1.77+ installed (add version check step)',
+      'Add fallback: skip validate step gracefully if CC not available on runner',
+      'Test: validate catches intentionally broken frontmatter in test fixtures',
+    ],
+    enabled: true
+  },
+  {
+    id: 'output-limits', name: '64k/128k Output Token Limits', icon: '📐', priority: 'P2', priorityClass: 'p2',
+    effort: '45m', impact: 'Medium', category: '2.1.77 feature', origin: 'new',
+    desc: 'Opus 4.6 now defaults to 64k output tokens (up from 32k), with 128k upper bound. Update agent definitions and skill guidance that reference output limits.',
+    skills: ['multimodal-llm', 'workflow-architect', 'llm-integrator', 'audit-full'],
+    files: [
+      'src/agents/workflow-architect.md',
+      'src/skills/multimodal-llm/rules/vision-image-analysis.md',
+      'src/skills/chain-patterns/SKILL.md',
+    ],
+    tasks: [
+      'Audit agent prompts referencing "32k" or "max_tokens" \u2014 update to reflect new 64k default',
+      'Update workflow-architect.md line ~297: "Higher max_tokens (32000)" \u2192 note 64k default for Opus 4.6',
+      'Update llm-integrator patterns: document 128k upper bound for long-form generation',
+      'Add version-matrix entry: opus_64k_default (2.1.77)',
+      'Document in chain-patterns: large output tasks (full codebase audit) now feasible in single pass',
+    ],
+    enabled: true
+  },
+
+  // ── 2.1.76 CARRY-OVER continued ──────────────────────────────────
+  {
+    id: 'progressive', name: 'Progressive Output Docs', icon: '📄', priority: 'P3', priorityClass: 'p3',
+    effort: '30m', impact: 'Low', category: 'carry-over (2.1.76)', origin: 'carry-over',
+    desc: 'Document run_in_background=true as the official "progressive output" pattern. Add as Pattern 6 in chain-patterns skill. Currently works but isn\'t named or discoverable.',
+    skills: ['chain-patterns', 'CONTRIBUTING-SKILLS.md'],
+    files: [
+      'src/skills/chain-patterns/SKILL.md',
+      'src/skills/chain-patterns/references/',
+      'src/skills/CONTRIBUTING-SKILLS.md',
+    ],
+    tasks: [
+      'Add Pattern 6: Progressive Output to chain-patterns/references/',
+      'Document: launch agents with run_in_background=true, output as each returns',
+      'Add to CONTRIBUTING-SKILLS.md prompt-cache-friendly section',
+      'Cross-reference from implement, verify, cover, brainstorm skills',
+    ],
+    enabled: true
+  },
+  {
+    id: 'sendmessage-resume', name: 'SendMessage Auto-Resume', icon: '💬', priority: 'P3', priorityClass: 'p3',
+    effort: '30m', impact: 'Medium', category: '2.1.77 feature', origin: 'new',
+    desc: 'SendMessage now auto-resumes stopped agents instead of returning an error. Agent tool no longer accepts resume parameter. Update skill orchestration docs.',
+    skills: ['chain-patterns', 'implement', 'review-pr', 'brainstorm'],
+    files: [
+      'src/skills/task-dependency-patterns/SKILL.md',
+      'src/skills/chain-patterns/SKILL.md',
+      'src/skills/review-pr/rules/agent-prompts-agent-teams.md',
+    ],
+    tasks: [
+      'Audit skills for any Agent(resume=...) patterns \u2014 none found, but document the removal',
+      'Update chain-patterns: SendMessage to stopped agent now auto-resumes (no error handling needed)',
+      'Update task-dependency-patterns: simplify retry/resume examples',
+      'Add to CONTRIBUTING-SKILLS.md: "Use SendMessage({to: agentId}) to continue agents, never Agent(resume)"',
+    ],
+    enabled: true
+  },
+  {
+    id: 'bg-bash-limit', name: 'Background Bash 5GB Guard', icon: '⚠️', priority: 'P3', priorityClass: 'p3',
+    effort: '30m', impact: 'Low', category: '2.1.77 feature', origin: 'new',
+    desc: 'CC 2.1.77 kills background bash tasks exceeding 5GB output. Document this limit and add guardrails to skills that spawn long-running background commands.',
+    skills: ['cover', 'verify', 'implement', 'fix-issue'],
+    files: [
+      'src/skills/CONTRIBUTING-SKILLS.md',
+      'src/skills/cover/SKILL.md',
+      'src/skills/verify/SKILL.md',
+    ],
+    tasks: [
+      'Document 5GB limit in CONTRIBUTING-SKILLS.md background task section',
+      'Add guidance: pipe verbose output to file instead of capturing in CC',
+      'Review cover/verify skills for potential 5GB-risk commands (large test suites with verbose output)',
+      'Add version-matrix entry: bg_bash_5gb_limit (2.1.77)',
+    ],
+    enabled: true
+  },
+
+  // ── Lower priority ────────────────────────────────────────────────
+  {
+    id: 'cache', name: 'Prompt Cache Enforcement Tests', icon: '🧪', priority: 'P4', priorityClass: 'p4',
+    effort: '2h', impact: 'Medium', category: 'carry-over (2.1.76)', origin: 'carry-over',
+    desc: 'Add test scripts that enforce prompt caching rules from CONTRIBUTING-SKILLS.md. Catch cache-busting regressions before they ship.',
+    skills: ['tests/unit/', 'tests/skills/'],
+    files: [
+      'tests/unit/',
+      'tests/skills/',
+      '.github/workflows/plugin-validation.yml',
+    ],
+    tasks: [
+      'Test: no skill dynamically changes allowed-tools mid-session',
+      'Test: agent prompts have stable/shared content before variable content',
+      'Test: no model changes suggested in skill instructions',
+      'Test: no MCP server additions in skill body (only frontmatter)',
+      'Add to CI pipeline as test:cache-safety',
+    ],
+    enabled: true
+  },
+  {
+    id: 'allow-read-sandbox', name: 'allowRead Sandbox Setting', icon: '🔒', priority: 'P4', priorityClass: 'p4',
+    effort: '30m', impact: 'Low', category: '2.1.77 feature', origin: 'new',
+    desc: 'New allowRead sandbox setting can re-allow read access within denyRead regions. Review OrchestKit sandbox config for opportunities to use this for more granular security.',
+    skills: ['security-patterns', 'doctor'],
+    files: [
+      'src/settings/ork.settings.json',
+      'src/skills/doctor/references/version-compatibility.md',
+    ],
+    tasks: [
+      'Review current denyRead config: ~/.aws/credentials, ~/.ssh/*, ~/.gnupg/*',
+      'Evaluate: any legitimate read-only paths within denied regions? (e.g., ~/.ssh/config for host aliases)',
+      'Add allowRead example to security-patterns skill if useful',
+      'Add version-matrix entry: allow_read_sandbox (2.1.77)',
+    ],
+    enabled: false
+  },
+];
+
+const state = { gaps: GAPS.map(g => ({...g})) };
+
+function renderGapCards() {
+  const container = document.getElementById('gap-cards');
+  container.innerHTML = state.gaps.map((g, i) => `
+    <div class="gap-card ${g.enabled ? 'selected' : ''}" onclick="toggleGap(${i})">
+      <div class="gap-header">
+        <span class="gap-icon">${g.icon}</span>
+        <span class="gap-name">${g.name}</span>
+        <span class="gap-priority ${g.priorityClass}">${g.priority}</span>
+      </div>
+      <div class="gap-meta">
+        <span>${g.effort}</span>
+        <span class="gap-origin ${g.origin}">${g.origin === 'new' ? '2.1.77' : 'carry-over'}</span>
+        <span class="gap-status">${g.enabled ? 'Planned' : 'Skipped'}</span>
+      </div>
+      <div class="gap-desc">${g.desc.substring(0, 80)}${g.desc.length > 80 ? '...' : ''}</div>
+    </div>
+  `).join('');
+}
+
+function toggleGap(i) {
+  state.gaps[i].enabled = !state.gaps[i].enabled;
+  updateAll();
+}
+
+function applyPreset(name) {
+  if (name === 'breaking') {
+    state.gaps.forEach(g => g.enabled = (g.priorityClass === 'p1'));
+  } else if (name === 'new-only') {
+    state.gaps.forEach(g => g.enabled = (g.origin === 'new'));
+  } else if (name === 'carryover') {
+    state.gaps.forEach(g => g.enabled = (g.origin === 'carry-over'));
+  } else if (name === 'quick') {
+    state.gaps.forEach(g => g.enabled = (g.priorityClass === 'p1' || g.priorityClass === 'p2'));
+  } else if (name === 'full') {
+    state.gaps.forEach(g => g.enabled = true);
+  } else if (name === 'ci') {
+    state.gaps.forEach(g => g.enabled = (g.id === 'plugin-validate' || g.id === 'version-matrix'));
+  }
+  updateAll();
+}
+
+function renderRoadmap() {
+  const enabled = state.gaps.filter(g => g.enabled);
+  const skipped = state.gaps.filter(g => !g.enabled);
+  const totalMinutes = enabled.reduce((s, g) => {
+    const m = g.effort.includes('h') ? parseFloat(g.effort) * 60 : parseFloat(g.effort);
+    return s + m;
+  }, 0);
+  const totalHours = (totalMinutes / 60).toFixed(1);
+  const totalTasks = enabled.reduce((s, g) => s + g.tasks.length, 0);
+  const totalFiles = [...new Set(enabled.flatMap(g => g.files))].length;
+  const p1Count = enabled.filter(g => g.priorityClass === 'p1').length;
+  const newCount = enabled.filter(g => g.origin === 'new').length;
+  const carryCount = enabled.filter(g => g.origin === 'carry-over').length;
+
+  const container = document.getElementById('roadmap');
+  container.innerHTML = `
+    <div class="changelog-banner">
+      <h2>CC 2.1.77 Changelog Highlights</h2>
+      <div class="highlights">
+        ${CHANGELOG_HIGHLIGHTS.map(h => `
+          <div class="hl"><span class="dot ${h.type}"></span> ${h.text}</div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="stat-card"><div class="stat-val" style="color:var(--red)">${p1Count}</div><div class="stat-label">P1 Critical</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--green)">${newCount}</div><div class="stat-label">2.1.77 New</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--orange)">${carryCount}</div><div class="stat-label">Carry-over</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--accent)">${totalHours}h</div><div class="stat-label">Total effort</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--yellow)">${totalTasks}</div><div class="stat-label">Tasks</div></div>
+    </div>
+
+    <div class="progress-bar">
+      <h2>CC 2.1.77 Adoption Progress</h2>
+      <div class="progress-track">
+        <div class="progress-fill done" style="width:${Math.round(100 * skipped.length / state.gaps.length)}%">${skipped.length > 0 ? 'existing' : ''}</div>
+        <div class="progress-fill wip" style="width:${Math.round(100 * enabled.length / state.gaps.length)}%">${enabled.length}/${state.gaps.length} planned</div>
+      </div>
+      <div class="progress-labels">
+        <span>${skipped.length} skipped / already compatible</span>
+        <span>${enabled.length} gaps selected</span>
+      </div>
+    </div>
+
+    <div class="timeline">
+      ${enabled.map((g, i) => `
+        <div class="milestone">
+          <div class="dot ${g.priorityClass === 'p1' ? 'break' : 'wip'}">${i + 1}</div>
+          <div class="milestone-card ${g.priorityClass === 'p1' ? 'breaking' : 'active'}">
+            <h3>${g.icon} ${g.name} <span class="gap-priority ${g.priorityClass}" style="font-size:11px">${g.priority}</span></h3>
+            <div class="ms-meta">
+              <span>${g.effort}</span>
+              <span>${g.impact} impact</span>
+              <span>${g.tasks.length} tasks</span>
+              <span>${g.category}</span>
+              <span style="color:${g.origin === 'new' ? 'var(--green)' : 'var(--orange)'}">${g.origin === 'new' ? 'NEW' : 'CARRY-OVER'}</span>
+            </div>
+            <div class="ms-desc">${g.desc}</div>
+            <ul class="task-list">
+              ${g.tasks.map(t => `<li>${t}</li>`).join('')}
+            </ul>
+            <div class="file-list">
+              ${g.files.map(f => `<code>${f}</code>`).join('')}
+            </div>
+            <div class="skills-affected">
+              ${g.skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('')}
+
+      ${skipped.length > 0 ? `
+        <div class="milestone">
+          <div class="dot skip">&mdash;</div>
+          <div class="milestone-card skipped">
+            <h3>Skipped</h3>
+            <div class="ms-desc">${skipped.map(g => `${g.icon} ${g.name}`).join(' &middot; ')}</div>
+          </div>
+        </div>
+      ` : ''}
+
+      <div class="milestone">
+        <div class="dot ${enabled.length === state.gaps.length ? 'done' : 'todo'}">&#10003;</div>
+        <div class="milestone-card">
+          <h3>Milestone Complete</h3>
+          <div class="ms-meta"><span>CC 2.1.77 fully adopted</span></div>
+          <div class="ms-desc">All selected gaps closed. Run <code>npm run build && npm test</code>, then <code>/ork:commit</code>. Release as v7.12.0.</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function updatePrompt() {
+  const enabled = state.gaps.filter(g => g.enabled);
+  const withIssues = document.getElementById('opt-issues').checked;
+  const withMilestone = document.getElementById('opt-milestone').checked;
+  const branchStrategy = document.getElementById('opt-branch').value;
+  const withTests = document.getElementById('opt-tests').checked;
+  const withBump = document.getElementById('opt-bump').checked;
+
+  if (enabled.length === 0) {
+    document.getElementById('prompt-output').textContent = 'Select at least one gap to generate a plan.';
+    return;
+  }
+
+  const parts = [];
+  parts.push('Upgrade OrchestKit for CC 2.1.77 compatibility.\n');
+
+  if (withMilestone) {
+    parts.push('Create a GitHub milestone "CC 2.1.77 Adoption" with due date 2026-03-24.');
+  }
+
+  if (withIssues) {
+    parts.push(`\nOpen ${enabled.length} GitHub issues (one per gap):`);
+    enabled.forEach((g, i) => {
+      parts.push(`  ${i + 1}. "${g.name}" [${g.priority}] — ${g.effort}, affects: ${g.skills.join(', ')}`);
+    });
+  }
+
+  if (branchStrategy === 'per-gap') {
+    parts.push(`\nCreate one branch per gap: ${enabled.map(g => `feat/cc277-${g.id}`).join(', ')}.`);
+  } else if (branchStrategy === 'single') {
+    parts.push('\nWork in a single branch: feat/cc-2177-adoption.');
+  } else {
+    parts.push('\nCreate milestone branch: feat/cc-2177-adoption.');
+  }
+
+  if (withBump) {
+    parts.push('\nBump MIN_CC_VERSION from 2.1.76 to 2.1.77 in cc-version-matrix.ts.');
+  }
+
+  parts.push('\nImplementation order (P1 first, then P2, P3, P4):');
+  const sorted = [...enabled].sort((a, b) => {
+    const order = { p1: 0, p2: 1, p3: 2, p4: 3 };
+    return order[a.priorityClass] - order[b.priorityClass];
+  });
+  sorted.forEach((g, i) => {
+    parts.push(`\n  ${i + 1}. ${g.icon} ${g.name} (${g.effort})`);
+    parts.push(`     Files: ${g.files.join(', ')}`);
+    g.tasks.forEach(t => parts.push(`     - ${t}`));
+  });
+
+  if (withTests) {
+    parts.push('\nAfter each gap: npm run test:skills && npm run test:security');
+  }
+
+  parts.push('\nAfter all gaps: npm run build && npm test, update CLAUDE.md, /ork:commit.');
+
+  document.getElementById('prompt-output').textContent = parts.join('\n');
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-output').textContent;
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById('copy-btn');
+  btn.textContent = 'Copied!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+}
+
+function updateAll() {
+  renderGapCards();
+  renderRoadmap();
+  updatePrompt();
+}
+
+updateAll();
+</script>
+</body>
+</html>

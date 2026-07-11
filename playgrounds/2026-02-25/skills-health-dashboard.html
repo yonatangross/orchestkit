@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Skills Health Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+    --text: #e6edf3; --text2: #8b949e; --accent: #58a6ff; --green: #3fb950;
+    --yellow: #d29922; --red: #f85149; --orange: #db6d28; --purple: #bc8cff;
+    --radius: 8px;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; min-height: 100vh; }
+
+  .layout { display: grid; grid-template-columns: 320px 1fr; grid-template-rows: auto 1fr auto; height: 100vh; }
+
+  header { grid-column: 1 / -1; padding: 16px 24px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header .stats { display: flex; gap: 16px; margin-left: auto; font-size: 13px; color: var(--text2); }
+  header .stats .stat { display: flex; align-items: center; gap: 6px; }
+  header .stats .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .sidebar { grid-row: 2; overflow-y: auto; padding: 16px; border-right: 1px solid var(--border); background: var(--surface); }
+  .sidebar h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text2); margin-bottom: 8px; }
+  .sidebar section { margin-bottom: 20px; }
+
+  .filter-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .filter-btn { padding: 4px 10px; font-size: 12px; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); border-radius: 12px; cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .preset-btn { display: block; width: 100%; padding: 8px 12px; margin-bottom: 6px; font-size: 13px; text-align: left; border: 1px solid var(--border); background: var(--surface2); color: var(--text); border-radius: var(--radius); cursor: pointer; transition: all 0.15s; }
+  .preset-btn:hover { border-color: var(--accent); background: #1c2333; }
+  .preset-btn.active { border-color: var(--accent); background: rgba(88,166,255,0.1); }
+  .preset-btn small { color: var(--text2); display: block; font-size: 11px; margin-top: 2px; }
+
+  .main { grid-row: 2; overflow-y: auto; padding: 24px; }
+
+  .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; }
+  .tab { padding: 8px 16px; font-size: 13px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); border-radius: var(--radius); cursor: pointer; transition: all 0.15s; }
+  .tab:hover { color: var(--text); }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Grid View */
+  .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .skill-card { padding: 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); cursor: pointer; transition: all 0.2s; position: relative; }
+  .skill-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .skill-card.selected { border-color: var(--accent); background: rgba(88,166,255,0.05); }
+  .skill-card .name { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .skill-card .desc { font-size: 12px; color: var(--text2); margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .skill-card .metrics { display: flex; gap: 12px; font-size: 11px; color: var(--text2); }
+  .skill-card .metrics span { display: flex; align-items: center; gap: 4px; }
+  .badge { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+  .badge-critical { background: rgba(248,81,73,0.15); color: var(--red); }
+  .badge-moderate { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .badge-good { background: rgba(63,185,80,0.15); color: var(--green); }
+  .health-bar { height: 3px; border-radius: 2px; background: var(--surface2); margin-top: 8px; overflow: hidden; }
+  .health-bar .fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+  /* Priority View */
+  .priority-list { display: flex; flex-direction: column; gap: 10px; }
+  .priority-item { padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; }
+  .priority-rank { font-size: 20px; font-weight: 700; color: var(--accent); text-align: center; }
+  .priority-title { font-size: 14px; font-weight: 600; }
+  .priority-detail { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .priority-impact { text-align: right; }
+  .impact-label { font-size: 11px; color: var(--text2); }
+  .impact-value { font-size: 16px; font-weight: 700; }
+
+  /* Overlap View */
+  .overlap-cards { display: flex; flex-direction: column; gap: 12px; }
+  .overlap-card { padding: 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+  .overlap-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .overlap-pair { font-size: 15px; font-weight: 600; }
+  .overlap-verdict { font-size: 12px; padding: 3px 10px; border-radius: 10px; font-weight: 600; }
+  .overlap-ok { background: rgba(63,185,80,0.15); color: var(--green); }
+  .overlap-warn { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .overlap-danger { background: rgba(248,81,73,0.15); color: var(--red); }
+  .overlap-body { font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .overlap-body strong { color: var(--text); }
+  .overlap-table { width: 100%; margin-top: 10px; font-size: 12px; border-collapse: collapse; }
+  .overlap-table th, .overlap-table td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  .overlap-table th { color: var(--text2); font-weight: 500; }
+
+  /* Gaps View */
+  .gap-card { padding: 20px; border: 2px dashed var(--border); border-radius: var(--radius); background: var(--surface); margin-bottom: 16px; }
+  .gap-card h3 { font-size: 16px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .gap-card p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .gap-card .gap-deps { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .gap-dep { padding: 3px 8px; font-size: 11px; border: 1px solid var(--border); border-radius: 6px; color: var(--text2); }
+
+  /* Detail Panel */
+  .detail-overlay { display: none; position: fixed; top: 0; right: 0; bottom: 0; width: 480px; background: var(--surface); border-left: 1px solid var(--border); z-index: 100; overflow-y: auto; padding: 24px; box-shadow: -4px 0 20px rgba(0,0,0,0.4); }
+  .detail-overlay.open { display: block; }
+  .detail-close { position: absolute; top: 12px; right: 12px; background: var(--surface2); border: 1px solid var(--border); color: var(--text); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .detail-name { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .detail-desc { font-size: 13px; color: var(--text2); margin-bottom: 16px; }
+  .detail-section { margin-bottom: 16px; }
+  .detail-section h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text2); margin-bottom: 8px; }
+  .detail-metric { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .detail-metric .label { color: var(--text2); }
+  .detail-suggestions { list-style: none; }
+  .detail-suggestions li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .detail-suggestions li::before { content: "→ "; color: var(--accent); }
+
+  /* Prompt Output */
+  .prompt-bar { grid-column: 1 / -1; padding: 12px 24px; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .prompt-bar textarea { flex: 1; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: var(--radius); font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; resize: none; height: 48px; line-height: 1.4; }
+  .copy-btn { padding: 8px 16px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+  .copy-btn:hover { opacity: 0.9; }
+  .copy-btn.copied { background: var(--green); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text2); }
+
+  /* Sort control */
+  .sort-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .sort-row label { font-size: 12px; color: var(--text2); }
+  .sort-row select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 4px 8px; border-radius: 6px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <header>
+    <h1>OrchestKit Skills Health Dashboard</h1>
+    <div class="stats">
+      <div class="stat"><div class="dot" style="background:var(--green)"></div><span id="stat-good">0</span> Good</div>
+      <div class="stat"><div class="dot" style="background:var(--yellow)"></div><span id="stat-moderate">0</span> Moderate</div>
+      <div class="stat"><div class="dot" style="background:var(--red)"></div><span id="stat-critical">0</span> Critical</div>
+      <div class="stat" style="margin-left:12px">Ecosystem Score: <strong id="stat-score" style="color:var(--accent)">7.6/10</strong></div>
+    </div>
+  </header>
+
+  <aside class="sidebar">
+    <section>
+      <h3>Views</h3>
+      <div id="presets">
+        <button class="preset-btn active" data-preset="all">All 28 Skills<small>Complete overview</small></button>
+        <button class="preset-btn" data-preset="critical">Needs Attention<small>Critical + moderate issues</small></button>
+        <button class="preset-btn" data-preset="bloated">Over 300 Lines<small>Exceed Anthropic best practice</small></button>
+        <button class="preset-btn" data-preset="no-rules">Missing Rules<small>Zero rule files</small></button>
+        <button class="preset-btn" data-preset="desc-weak">Weak Descriptions<small>Poor discoverability</small></button>
+      </div>
+    </section>
+
+    <section>
+      <h3>Filter by Status</h3>
+      <div class="filter-group" id="status-filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="critical">Critical</button>
+        <button class="filter-btn" data-filter="moderate">Moderate</button>
+        <button class="filter-btn" data-filter="good">Good</button>
+      </div>
+    </section>
+
+    <section>
+      <h3>Sort By</h3>
+      <div class="sort-row">
+        <select id="sort-select">
+          <option value="health-asc">Health (worst first)</option>
+          <option value="health-desc">Health (best first)</option>
+          <option value="lines-desc">Lines (largest first)</option>
+          <option value="lines-asc">Lines (smallest first)</option>
+          <option value="alpha">Alphabetical</option>
+          <option value="priority">Priority Score</option>
+        </select>
+      </div>
+    </section>
+
+    <section>
+      <h3>Legend</h3>
+      <div style="font-size:12px; color:var(--text2); line-height:2">
+        <div><span style="color:var(--green)">&#9679;</span> Good — No action needed</div>
+        <div><span style="color:var(--yellow)">&#9679;</span> Moderate — Improvements optional</div>
+        <div><span style="color:var(--red)">&#9679;</span> Critical — Action recommended</div>
+        <div style="margin-top:8px; font-size:11px">
+          R = Rules &middot; Ref = References &middot; L = Lines
+        </div>
+      </div>
+    </section>
+  </aside>
+
+  <main class="main">
+    <div class="tab-bar">
+      <button class="tab active" data-tab="grid">Skills Grid</button>
+      <button class="tab" data-tab="priorities">Top Priorities</button>
+      <button class="tab" data-tab="overlaps">Overlap Analysis</button>
+      <button class="tab" data-tab="gaps">Missing Skills</button>
+    </div>
+
+    <div id="tab-grid" class="tab-content active">
+      <div class="skills-grid" id="skills-grid"></div>
+    </div>
+
+    <div id="tab-priorities" class="tab-content">
+      <div class="priority-list" id="priority-list"></div>
+    </div>
+
+    <div id="tab-overlaps" class="tab-content">
+      <div class="overlap-cards" id="overlap-cards"></div>
+    </div>
+
+    <div id="tab-gaps" class="tab-content">
+      <div id="gaps-container"></div>
+    </div>
+  </main>
+
+  <div class="prompt-bar">
+    <textarea id="prompt-output" readonly></textarea>
+    <button class="copy-btn" id="copy-btn">Copy Prompt</button>
+  </div>
+</div>
+
+<div class="detail-overlay" id="detail-panel">
+  <button class="detail-close" id="detail-close">&times;</button>
+  <div id="detail-content"></div>
+</div>
+
+<script>
+const SKILLS = [
+  { name:"analytics", lines:115, rules:7, refs:5, scripts:0, status:"good", descQuality:"good", health:9,
+    desc:"Query cross-project usage analytics", suggestions:[], category:"meta" },
+  { name:"assess", lines:310, rules:4, refs:6, scripts:0, status:"moderate", descQuality:"good", health:6.5,
+    desc:"Assesses and rates quality 0-10 with pros/cons analysis",
+    suggestions:["Extract dimension rubrics to references/assessment-rubric.md","Over 300 lines — compress body by ~100 lines","High overlap with verify — extract shared agent definitions"],
+    category:"quality" },
+  { name:"audit-full", lines:315, rules:0, refs:4, scripts:1, status:"moderate", descQuality:"good", health:6,
+    desc:"Full-codebase audit using 1M context window",
+    suggestions:["Extract token estimation logic to references/token-budget-guide.md","Add rule files for audit criteria","Over 300 lines — compress body"],
+    category:"quality" },
+  { name:"audit-skills", lines:53, rules:4, refs:2, scripts:1, status:"good", descQuality:"good", health:8.5,
+    desc:"Audits all OrchestKit skills for quality and completeness",
+    suggestions:["Consider renaming to validate-skills to avoid confusion with audit-full"],
+    category:"meta" },
+  { name:"brainstorming", lines:298, rules:0, refs:8, scripts:0, status:"good", descQuality:"good", health:8,
+    desc:"Design exploration with parallel agents", suggestions:[], category:"planning" },
+  { name:"checkpoint-resume", lines:67, rules:5, refs:2, scripts:2, status:"good", descQuality:"good", health:9,
+    desc:"Rate-limit-resilient pipeline with checkpoint/resume", suggestions:[], category:"workflow" },
+  { name:"commit", lines:139, rules:6, refs:2, scripts:1, status:"good", descQuality:"good", health:9.5,
+    desc:"Creates commits with conventional format and validation", suggestions:[], category:"git" },
+  { name:"configure", lines:340, rules:0, refs:2, scripts:0, status:"critical", descQuality:"needs-work", health:4,
+    desc:"Configures OrchestKit settings",
+    suggestions:["Zero rules — extract 6-8 rule files for decision trees","Over 300 lines — move steps 1-10 to references/setup-wizard.md","Description too generic — add specific trigger scenarios","Target: 340→180 lines"],
+    category:"meta" },
+  { name:"create-pr", lines:274, rules:0, refs:0, scripts:0, status:"critical", descQuality:"good", health:3.5,
+    desc:"Creates GitHub pull requests with validation",
+    suggestions:["Zero rules AND zero references — extract 6 rules + 4 references","References non-existent pr-template.md","Extract pre-flight checks, validation gates, phase criteria"],
+    category:"git" },
+  { name:"demo-producer", lines:390, rules:5, refs:5, scripts:2, status:"moderate", descQuality:"good", health:6,
+    desc:"Creates polished demo videos for skills and tutorials",
+    suggestions:["Over 300 lines (390!) — move pipeline architecture to references/demo-pipeline.md","Target: 390→250 lines"],
+    category:"content" },
+  { name:"doctor", lines:373, rules:0, refs:8, scripts:1, status:"moderate", descQuality:"good", health:6.5,
+    desc:"OrchestKit doctor for health diagnostics",
+    suggestions:["Over 300 lines — compress body (has 8 refs, use them)","Zero rules despite diagnostic patterns"],
+    category:"meta" },
+  { name:"explore", lines:167, rules:6, refs:4, scripts:1, status:"good", descQuality:"good", health:9,
+    desc:"Deep codebase exploration with parallel agents", suggestions:[], category:"analysis" },
+  { name:"feedback", lines:77, rules:2, refs:3, scripts:0, status:"good", descQuality:"needs-work", health:7.5,
+    desc:"Manages OrchestKit feedback system",
+    suggestions:["Description too vague — clarify: 'Use when reviewing usage patterns, pausing learning, or managing privacy/consent settings'"],
+    category:"meta" },
+  { name:"fix-issue", lines:371, rules:5, refs:5, scripts:1, status:"moderate", descQuality:"good", health:6,
+    desc:"Fixes GitHub issues with parallel analysis",
+    suggestions:["Over 300 lines (371) — extract 11-phase workflow to references/fix-phases.md","Target: 371→220 lines"],
+    category:"workflow" },
+  { name:"git-workflow", lines:219, rules:11, refs:4, scripts:0, status:"good", descQuality:"good", health:9.5,
+    desc:"Complete git workflow patterns including branching and recovery", suggestions:[], category:"git" },
+  { name:"help", lines:198, rules:0, refs:1, scripts:0, status:"moderate", descQuality:"needs-work", health:5.5,
+    desc:"OrchestKit skill directory",
+    suggestions:["Zero rules — extract category selection tree","Description is self-referential — rewrite: 'Use when discovering skills for your task or finding the right tool'","Add skill-to-category mapping reference"],
+    category:"meta" },
+  { name:"implement", lines:200, rules:0, refs:14, scripts:1, status:"good", descQuality:"good", health:8.5,
+    desc:"Full-power feature implementation with parallel subagents",
+    suggestions:[],
+    category:"workflow" },
+  { name:"issue-progress-tracking", lines:146, rules:3, refs:0, scripts:0, status:"moderate", descQuality:"good", health:7,
+    desc:"Auto-updates GitHub issues with commit progress",
+    suggestions:["Add 1-2 reference files for workflow examples"],
+    category:"git" },
+  { name:"memory", lines:317, rules:0, refs:1, scripts:3, status:"moderate", descQuality:"good", health:6.5,
+    desc:"Read-side memory operations: search, recall, load, sync, history",
+    suggestions:["Over 300 lines — compress by 50+ lines","Zero rules despite complex operations"],
+    category:"knowledge" },
+  { name:"plan-viz", lines:379, rules:2, refs:5, scripts:2, status:"moderate", descQuality:"good", health:6,
+    desc:"Visualize planned changes before implementation",
+    suggestions:["Over 300 lines (379) — extract tier renderers to references/visualization-tiers.md","Target: 379→230 lines"],
+    category:"planning" },
+  { name:"presentation-builder", lines:282, rules:3, refs:2, scripts:0, status:"good", descQuality:"good", health:8,
+    desc:"Creates zero-dependency HTML presentations", suggestions:[], category:"content" },
+  { name:"release-checklist", lines:73, rules:6, refs:1, scripts:1, status:"good", descQuality:"needs-work", health:8,
+    desc:"Walks through the OrchestKit release checklist",
+    suggestions:["Improve description: emphasize gating aspect, not just sequencing"],
+    category:"meta" },
+  { name:"remember", lines:296, rules:0, refs:1, scripts:0, status:"moderate", descQuality:"good", health:6,
+    desc:"Stores decisions and patterns in knowledge graph",
+    suggestions:["Zero rules — add entity-extraction and dedup rules","Approaching 300 lines — consider extracting"],
+    category:"knowledge" },
+  { name:"review-pr", lines:255, rules:4, refs:5, scripts:0, status:"good", descQuality:"good", health:8.5,
+    desc:"PR review with parallel specialized agents", suggestions:[], category:"quality" },
+  { name:"skill-evolution", lines:341, rules:0, refs:2, scripts:0, status:"moderate", descQuality:"needs-work", health:5.5,
+    desc:"Evolves skills based on usage patterns",
+    suggestions:["Over 300 lines — extract 5 subcommands to references/evolution-commands.md","Zero rules","Description unclear — rewrite: 'Use when analyzing skill usage, reviewing auto-suggested improvements, or rolling back versions'"],
+    category:"meta" },
+  { name:"upgrade-assessment", lines:158, rules:6, refs:4, scripts:0, status:"good", descQuality:"good", health:9,
+    desc:"Assess platform upgrade readiness for Claude model and CC version changes", suggestions:[], category:"meta" },
+  { name:"validate-counts", lines:56, rules:4, refs:1, scripts:2, status:"good", descQuality:"good", health:9.5,
+    desc:"Validates hook, skill, and agent counts are consistent", suggestions:[], category:"meta" },
+  { name:"verify", lines:339, rules:0, refs:7, scripts:0, status:"moderate", descQuality:"good", health:6,
+    desc:"Comprehensive verification with parallel test agents",
+    suggestions:["Over 300 lines — extract 8-phase workflow to references/verification-phases.md","Zero rules despite complex workflow","High overlap with assess — extract shared agent definitions"],
+    category:"quality" }
+];
+
+const OVERLAPS = [
+  { pair:"memory vs remember", verdict:"ok", label:"Well-Differentiated",
+    body:"<strong>Read/write separation pattern.</strong> memory = read FROM graph (search, load, viz). remember = write TO graph (store, tag). Complementary pair, no overlap. <strong>Keep as-is.</strong>" },
+  { pair:"analytics vs feedback", verdict:"ok", label:"Distinct Purposes",
+    body:"<strong>analytics</strong> = data visibility (query metrics). <strong>feedback</strong> = system configuration (manage learning/privacy). Different dimensions of instrumentation. <strong>Keep as-is.</strong>" },
+  { pair:"commit vs git-workflow", verdict:"ok", label:"Tool vs Guide",
+    body:"<strong>commit</strong> = tactical tool (create ONE commit). <strong>git-workflow</strong> = strategic reference (branching, recovery, reflog). Correctly cross-referenced. <strong>Keep as-is.</strong>" },
+  { pair:"audit-full vs audit-skills", verdict:"warn", label:"Naming Confusion",
+    body:"Functionally distinct (codebase audits vs skill catalog audits) but naming misleads users. <strong>Recommendation:</strong> Rename <code>audit-skills</code> to <code>validate-skills</code> to eliminate confusion." },
+  { pair:"assess vs verify", verdict:"danger", label:"Significant Overlap",
+    body:"<strong>40%+ shared logic.</strong> Both use 0-10 scoring, spawn 4-6 agents (code-quality-reviewer, security-auditor, performance-engineer), produce quality reports with improvement suggestions. Differentiation exists (assess = pre-implementation, verify = post-implementation) but is unclear to users.<br><br><strong>Recommendation:</strong> Extract shared agent definitions to common reference, clarify use cases in descriptions and CLAUDE.md decision tree." }
+];
+
+const GAPS = [
+  { name:"Deploy / Migration Skill", severity:"high", icon:"&#128640;",
+    desc:"Users can create PRs and review them, but no skill for deploying merged code. release-checklist is passive (checklist-based), not active deployment automation. Would include pre-deployment checks, smoke tests, health monitoring, and rollback.",
+    deps:["verify","audit-full","issue-progress-tracking"] },
+  { name:"Onboard / Project Setup Skill", severity:"medium", icon:"&#128218;",
+    desc:"No automated setup for new projects. doctor checks existing projects but doesn't bootstrap. Would initialize .claude/ structure, CLAUDE.md, CI/CD pipeline, memory system, and stack-specific skills.",
+    deps:["memory","configure","validate-counts"] }
+];
+
+const PRIORITIES = [
+  { rank:1, skill:"create-pr", action:"Extract 6 rules + 4 references (0 of each currently)", effort:2, impact:5 },
+  { rank:2, skill:"configure", action:"Extract 10-step wizard to reference, add 6-8 rules, fix description", effort:3, impact:4 },
+  { rank:3, skill:"assess + verify", action:"Extract shared agent defs, add decision tree, reduce overlap", effort:3, impact:5 },
+  { rank:4, skill:"demo-producer", action:"Compress 390→250 lines by extracting pipeline to references", effort:1, impact:3 },
+  { rank:5, skill:"fix-issue", action:"Extract 11-phase workflow to references (371→220 lines)", effort:1, impact:3 },
+  { rank:6, skill:"plan-viz", action:"Extract tier renderers to references (379→230 lines)", effort:1, impact:3 },
+  { rank:7, skill:"skill-evolution", action:"Extract 5 subcommands to references, improve description", effort:2, impact:3 },
+  { rank:8, skill:"help", action:"Add category rules, fix self-referential description", effort:1, impact:2 },
+  { rank:9, skill:"5 descriptions", action:"Improve trigger phrases for: configure, feedback, help, release-checklist, skill-evolution", effort:1, impact:3 },
+  { rank:10, skill:"audit-skills", action:"Rename to validate-skills to eliminate audit-* naming confusion", effort:1, impact:2 },
+  { rank:11, skill:"NEW: deploy", action:"Create deployment automation skill (gap)", effort:4, impact:5 },
+  { rank:12, skill:"NEW: onboard", action:"Create project setup/bootstrap skill (gap)", effort:3, impact:3 },
+  { rank:13, skill:"remember + memory", action:"Add rules for entity extraction and dedup patterns", effort:2, impact:2 }
+];
+
+// State
+const state = { filter: 'all', sort: 'health-asc', preset: 'all', tab: 'grid', selected: null };
+
+function getHealthColor(h) {
+  if (h >= 8) return 'var(--green)';
+  if (h >= 6) return 'var(--yellow)';
+  return 'var(--red)';
+}
+
+function getStatusBadge(s) {
+  const cls = s === 'critical' ? 'badge-critical' : s === 'moderate' ? 'badge-moderate' : 'badge-good';
+  return `<span class="badge ${cls}">${s}</span>`;
+}
+
+function filterSkills() {
+  let filtered = [...SKILLS];
+  if (state.filter !== 'all') filtered = filtered.filter(s => s.status === state.filter);
+  if (state.preset === 'critical') filtered = filtered.filter(s => s.status !== 'good');
+  if (state.preset === 'bloated') filtered = filtered.filter(s => s.lines > 300);
+  if (state.preset === 'no-rules') filtered = filtered.filter(s => s.rules === 0);
+  if (state.preset === 'desc-weak') filtered = filtered.filter(s => s.descQuality === 'needs-work');
+
+  const sorts = {
+    'health-asc': (a,b) => a.health - b.health,
+    'health-desc': (a,b) => b.health - a.health,
+    'lines-desc': (a,b) => b.lines - a.lines,
+    'lines-asc': (a,b) => a.lines - b.lines,
+    'alpha': (a,b) => a.name.localeCompare(b.name),
+    'priority': (a,b) => a.health - b.health || b.lines - a.lines
+  };
+  filtered.sort(sorts[state.sort] || sorts['health-asc']);
+  return filtered;
+}
+
+function renderGrid() {
+  const grid = document.getElementById('skills-grid');
+  const skills = filterSkills();
+  grid.innerHTML = skills.map(s => `
+    <div class="skill-card ${state.selected === s.name ? 'selected' : ''}" data-skill="${s.name}">
+      <div class="name">${s.name} ${getStatusBadge(s.status)}</div>
+      <div class="desc">${s.desc}</div>
+      <div class="metrics">
+        <span>R:${s.rules}</span>
+        <span>Ref:${s.refs}</span>
+        <span>L:${s.lines}${s.lines > 300 ? ' ⚠' : ''}</span>
+        <span style="color:${getHealthColor(s.health)}">${s.health}/10</span>
+      </div>
+      <div class="health-bar"><div class="fill" style="width:${s.health*10}%;background:${getHealthColor(s.health)}"></div></div>
+    </div>
+  `).join('');
+
+  grid.querySelectorAll('.skill-card').forEach(card => {
+    card.addEventListener('click', () => openDetail(card.dataset.skill));
+  });
+}
+
+function renderPriorities() {
+  const list = document.getElementById('priority-list');
+  list.innerHTML = PRIORITIES.map(p => `
+    <div class="priority-item">
+      <div class="priority-rank">#${p.rank}</div>
+      <div>
+        <div class="priority-title">${p.skill}</div>
+        <div class="priority-detail">${p.action}</div>
+      </div>
+      <div class="priority-impact">
+        <div class="impact-label">Effort/Impact</div>
+        <div class="impact-value" style="color:${p.impact >= 4 ? 'var(--green)' : p.impact >= 3 ? 'var(--yellow)' : 'var(--text2)'}">${p.effort}/${p.impact}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderOverlaps() {
+  const container = document.getElementById('overlap-cards');
+  container.innerHTML = OVERLAPS.map(o => `
+    <div class="overlap-card">
+      <div class="overlap-header">
+        <span class="overlap-pair">${o.pair}</span>
+        <span class="overlap-verdict overlap-${o.verdict}">${o.label}</span>
+      </div>
+      <div class="overlap-body">${o.body}</div>
+    </div>
+  `).join('');
+}
+
+function renderGaps() {
+  const container = document.getElementById('gaps-container');
+  container.innerHTML = GAPS.map(g => `
+    <div class="gap-card">
+      <h3>${g.icon} ${g.name} <span class="badge ${g.severity === 'high' ? 'badge-critical' : 'badge-moderate'}">${g.severity} priority</span></h3>
+      <p>${g.desc}</p>
+      <div class="gap-deps">
+        <span style="font-size:11px;color:var(--text2);margin-right:4px">Integrates with:</span>
+        ${g.deps.map(d => `<span class="gap-dep">${d}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function openDetail(name) {
+  const s = SKILLS.find(sk => sk.name === name);
+  if (!s) return;
+  state.selected = name;
+  renderGrid();
+
+  const panel = document.getElementById('detail-panel');
+  const content = document.getElementById('detail-content');
+  content.innerHTML = `
+    <div class="detail-name">${s.name}</div>
+    <div class="detail-desc">${s.desc}</div>
+    <div class="detail-section">
+      <h4>Metrics</h4>
+      <div class="detail-metric"><span class="label">Health Score</span><span style="color:${getHealthColor(s.health)};font-weight:700">${s.health}/10</span></div>
+      <div class="detail-metric"><span class="label">Status</span>${getStatusBadge(s.status)}</div>
+      <div class="detail-metric"><span class="label">SKILL.md Lines</span><span${s.lines > 300 ? ' style="color:var(--red)"' : ''}>${s.lines}${s.lines > 300 ? ' (over 300 limit)' : ''}</span></div>
+      <div class="detail-metric"><span class="label">Rule Files</span><span${s.rules === 0 ? ' style="color:var(--red)"' : ''}>${s.rules}${s.rules === 0 ? ' (missing!)' : ''}</span></div>
+      <div class="detail-metric"><span class="label">Reference Files</span><span${s.refs === 0 ? ' style="color:var(--red)"' : ''}>${s.refs}${s.refs === 0 ? ' (missing!)' : ''}</span></div>
+      <div class="detail-metric"><span class="label">Description Quality</span><span style="color:${s.descQuality === 'good' ? 'var(--green)' : 'var(--yellow)'}">${s.descQuality}</span></div>
+      <div class="detail-metric"><span class="label">Category</span><span>${s.category}</span></div>
+    </div>
+    ${s.suggestions.length ? `
+    <div class="detail-section">
+      <h4>Improvement Suggestions</h4>
+      <ul class="detail-suggestions">
+        ${s.suggestions.map(sg => `<li>${sg}</li>`).join('')}
+      </ul>
+    </div>` : '<div class="detail-section"><h4>Status</h4><p style="color:var(--green);font-size:13px">No issues found. This skill is in good shape.</p></div>'}
+  `;
+  panel.classList.add('open');
+  updatePrompt();
+}
+
+function updatePrompt() {
+  const prompt = document.getElementById('prompt-output');
+
+  if (state.selected) {
+    const s = SKILLS.find(sk => sk.name === state.selected);
+    if (s && s.suggestions.length > 0) {
+      const actions = s.suggestions.map((sg,i) => `${i+1}. ${sg}`).join('\n');
+      prompt.value = `Improve the /ork:${s.name} skill (currently ${s.lines} lines, ${s.rules} rules, ${s.refs} refs, health ${s.health}/10):\n${actions}`;
+    } else {
+      prompt.value = `The /ork:${s.name} skill is in good shape (${s.health}/10). No improvements needed.`;
+    }
+  } else {
+    const critical = SKILLS.filter(s => s.status === 'critical');
+    const moderate = SKILLS.filter(s => s.status === 'moderate');
+    prompt.value = `Improve OrchestKit user-invocable skills. ${critical.length} critical (${critical.map(s=>s.name).join(', ')}), ${moderate.length} moderate. Top priorities: 1) create-pr needs rules+refs, 2) configure needs extraction, 3) assess/verify need shared agent refactor, 4) compress bloated skills >300 lines.`;
+  }
+}
+
+function updateStats() {
+  document.getElementById('stat-good').textContent = SKILLS.filter(s => s.status === 'good').length;
+  document.getElementById('stat-moderate').textContent = SKILLS.filter(s => s.status === 'moderate').length;
+  document.getElementById('stat-critical').textContent = SKILLS.filter(s => s.status === 'critical').length;
+}
+
+function updateAll() {
+  renderGrid();
+  updatePrompt();
+}
+
+// Event listeners
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.preset = btn.dataset.preset;
+    state.selected = null;
+    document.getElementById('detail-panel').classList.remove('open');
+    updateAll();
+  });
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.filter = btn.dataset.filter;
+    updateAll();
+  });
+});
+
+document.getElementById('sort-select').addEventListener('change', e => {
+  state.sort = e.target.value;
+  updateAll();
+});
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    state.tab = tab.dataset.tab;
+    state.selected = null;
+    document.getElementById('detail-panel').classList.remove('open');
+    updatePrompt();
+  });
+});
+
+document.getElementById('detail-close').addEventListener('click', () => {
+  document.getElementById('detail-panel').classList.remove('open');
+  state.selected = null;
+  renderGrid();
+  updatePrompt();
+});
+
+document.getElementById('copy-btn').addEventListener('click', () => {
+  const btn = document.getElementById('copy-btn');
+  const text = document.getElementById('prompt-output').value;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy Prompt'; btn.classList.remove('copied'); }, 1500);
+  });
+});
+
+// Init
+updateStats();
+renderGrid();
+renderPriorities();
+renderOverlaps();
+renderGaps();
+updatePrompt();
+</script>
+</body>
+</html>
