@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Session Identity — why auto-rename &amp; color don't land</title>
+<style>
+  /* ─────────────────────────────────────────────────────────────
+     Persona: cool-glass (technical precision). HSL tokens, roles.
+     ───────────────────────────────────────────────────────────── */
+  :root {
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(220 12% 64%);
+    --pg-faint: hsl(220 10% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-accent-deep: hsl(252 70% 56%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-ok: hsl(150 64% 52%);
+    --pg-bad: hsl(2 78% 62%);
+    /* CC named palette → HSL (for the agent-color mockups) */
+    --c-red: hsl(2 78% 62%);
+    --c-blue: hsl(214 90% 62%);
+    --c-green: hsl(150 64% 50%);
+    --c-yellow: hsl(46 95% 58%);
+    --c-purple: hsl(268 78% 70%);
+    --c-orange: hsl(28 92% 60%);
+    --c-pink: hsl(330 82% 70%);
+    --c-cyan: hsl(186 80% 56%);
+
+    --r-sm: 9px; --r-md: 16px; --r-lg: 24px;
+    --ease: cubic-bezier(.2,.8,.25,1);
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+    --display: "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: var(--display);
+    color: var(--pg-ink);
+    background: var(--pg-bg);
+    background-image:
+      radial-gradient(60% 50% at 15% 0%, hsl(248 84% 30% / .38), transparent 70%),
+      radial-gradient(55% 45% at 92% 8%, hsl(268 70% 32% / .30), transparent 70%),
+      radial-gradient(50% 60% at 50% 100%, hsl(238 80% 24% / .28), transparent 70%);
+    background-attachment: fixed;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding: 48px 24px 96px;
+  }
+  .wrap { max-width: 1120px; margin-inline: auto; }
+
+  h1, h2, h3 { letter-spacing: -.3px; margin: 0; }
+  h1 { font-size: clamp(26px, 4vw, 40px); font-weight: 700; }
+  .sub { color: var(--pg-muted); font-size: 16px; margin-block-start: 8px; max-width: 70ch; }
+  .tabnum { font-variant-numeric: tabular-nums; }
+  .mono { font-family: var(--mono); }
+
+  /* glass surface */
+  .glass {
+    background: var(--pg-glass);
+    border: 1px solid var(--pg-glass-edge);
+    border-radius: var(--r-lg);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 20px 60px -22px hsl(248 60% 4% / .7), 0 4px 12px -6px hsl(248 60% 4% / .5),
+                inset 0 1px 0 hsl(0 0% 100% / .12);
+  }
+
+  header.hero { margin-block-end: 48px; }
+  .kicker {
+    display: inline-block; font-family: var(--mono); font-size: 12px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--pg-accent);
+    padding: 4px 10px; border: 1px solid hsl(248 84% 68% / .35); border-radius: 999px;
+    margin-block-end: 16px;
+  }
+  .headline-stat {
+    margin-block-start: 24px; display: flex; gap: 16px; flex-wrap: wrap; align-items: stretch;
+  }
+  .stat {
+    flex: 1 1 180px; padding: 16px 20px; border-radius: var(--r-md);
+    background: var(--pg-glass); border: 1px solid hsl(0 0% 100% / .1);
+  }
+  .stat .big { font-size: 32px; font-weight: 700; letter-spacing: -.5px; }
+  .stat .lbl { color: var(--pg-faint); font-size: 13px; margin-block-start: 2px; }
+  .stat.bad .big { color: var(--pg-bad); }
+  .stat.ok .big { color: var(--pg-ok); }
+
+  /* ── Funnel ───────────────────────────────────────────────── */
+  section { margin-block-start: 48px; }
+  .sec-title { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--pg-faint);
+               font-family: var(--mono); margin-block-end: 16px; }
+  .funnel { padding: 24px; }
+  .frow { display: grid; grid-template-columns: 230px 1fr 64px; align-items: center; gap: 12px;
+          padding-block: 8px; }
+  .frow .flabel { font-size: 14px; color: var(--pg-muted); }
+  .frow .flabel b { color: var(--pg-ink); font-weight: 600; }
+  .bar { height: 22px; border-radius: 6px; background: hsl(0 0% 100% / .06); overflow: hidden; position: relative; }
+  .bar > i {
+    display: block; height: 100%; border-radius: 6px;
+    background: linear-gradient(90deg, var(--pg-accent-deep), var(--pg-accent));
+    transition: width 500ms var(--ease);
+  }
+  .bar.leak > i { background: linear-gradient(90deg, hsl(2 60% 40%), var(--pg-bad)); }
+  .bar.win > i { background: linear-gradient(90deg, hsl(150 50% 38%), var(--pg-ok)); }
+  .fpct { font-family: var(--mono); font-size: 14px; text-align: end; color: var(--pg-muted); }
+  .frow.win .fpct { color: var(--pg-ok); } .frow.leak .fpct { color: var(--pg-bad); }
+  .leak-note { font-size: 13px; color: var(--pg-faint); margin-block-start: 12px; padding-inline-start: 230px; }
+  @media (max-width: 720px){ .frow{ grid-template-columns: 1fr; } .leak-note{ padding-inline-start: 0; } .frow .bar{order:2} }
+
+  /* ── Player layout ────────────────────────────────────────── */
+  .player-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 24px; align-items: start; }
+  @media (max-width: 880px){ .player-grid { grid-template-columns: 1fr; } }
+
+  .stage { padding: 24px; min-height: 520px; display: flex; flex-direction: column; }
+  .stage-top { display:flex; justify-content: space-between; align-items: center; margin-block-end: 20px; gap: 12px; flex-wrap: wrap;}
+  .lane-toggle { display: inline-flex; background: hsl(0 0% 100% / .05); border-radius: 999px; padding: 4px; border: 1px solid hsl(0 0% 100% / .1);}
+  .lane-toggle button {
+    font-family: var(--mono); font-size: 12.5px; letter-spacing: .3px; border: 0; cursor: pointer;
+    padding: 7px 14px; border-radius: 999px; background: transparent; color: var(--pg-muted);
+    transition: background 100ms var(--ease), color 100ms var(--ease);
+  }
+  .lane-toggle button.on { color: hsl(232 30% 10%); font-weight: 700; }
+  .lane-toggle button.on.today { background: var(--pg-warm); }
+  .lane-toggle button.on.fixed { background: var(--pg-ok); }
+
+  /* the "app frame" — a CC prompt bar + resume picker mock */
+  .device {
+    border: 1px solid hsl(0 0% 100% / .14); border-radius: var(--r-md);
+    background: hsl(232 24% 9% / .9); overflow: hidden; flex: 1;
+    box-shadow: 0 18px 40px -24px hsl(248 60% 2% / .8); display:flex; flex-direction:column;
+  }
+  .device-chrome { display:flex; align-items:center; gap:7px; padding: 10px 14px; border-block-end: 1px solid hsl(0 0% 100% / .08);
+                   background: hsl(232 24% 11%); }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot.r{background:hsl(2 70% 60%)} .dot.y{background:hsl(46 80% 58%)} .dot.g{background:hsl(150 50% 50%)}
+  .chrome-title { margin-inline-start: 8px; font-family: var(--mono); font-size: 12px; color: var(--pg-faint); }
+
+  .term { padding: 16px; font-family: var(--mono); font-size: 12.5px; flex: 1; display:flex; flex-direction:column; gap: 8px; }
+  .term .row { color: var(--pg-muted); }
+  .term .row.dim { color: var(--pg-faint); }
+  .term .you { color: var(--pg-ink); }
+  .term .ok { color: var(--pg-ok); } .term .bad { color: var(--pg-bad); } .term .warn { color: var(--pg-warm); }
+  .term .spawn { color: var(--c-cyan); }
+
+  /* the live prompt bar (bottom) */
+  .promptbar {
+    margin-block-start: auto; border-block-start: 1px solid hsl(0 0% 100% / .08);
+    padding: 12px 14px; display:flex; align-items:center; gap: 10px; background: hsl(232 24% 11%);
+  }
+  .pb-accent { width: 4px; align-self: stretch; border-radius: 4px; background: var(--pg-faint); transition: background 300ms var(--ease); min-height: 34px;}
+  .pb-body { flex:1; }
+  .pb-title { font-family: var(--mono); font-size: 13px; color: var(--pg-ink); transition: color 200ms var(--ease); }
+  .pb-meta { font-size: 11px; color: var(--pg-faint); }
+  .pb-caret { color: var(--pg-accent); }
+
+  /* resume picker mock */
+  .picker { padding: 14px 16px; }
+  .picker .ptitle { font-family: var(--mono); font-size: 11px; color: var(--pg-faint); text-transform: uppercase; letter-spacing: 1px; margin-block-end: 10px; }
+  .pitem { display:flex; align-items:center; gap: 10px; padding: 9px 10px; border-radius: var(--r-sm); }
+  .pitem.sel { background: hsl(248 84% 68% / .12); border: 1px solid hsl(248 84% 68% / .3); }
+  .pswatch { width: 10px; height: 10px; border-radius: 50%; background: var(--pg-faint); flex: none; }
+  .pit-title { font-size: 13px; color: var(--pg-ink); }
+  .pit-sub { font-size: 11px; color: var(--pg-faint); font-family: var(--mono); }
+
+  /* right rail: narration + transport */
+  .rail { display:flex; flex-direction: column; gap: 20px; }
+  .narr { padding: 22px; }
+  .step-badge { font-family: var(--mono); font-size: 12px; color: var(--pg-accent); letter-spacing: .5px; }
+  .narr h3 { font-size: 19px; margin-block: 8px 10px; }
+  .narr p { color: var(--pg-muted); font-size: 14.5px; margin: 0 0 10px; }
+  .verdict { margin-block-start: 8px; font-size: 13.5px; font-family: var(--mono); padding: 10px 12px; border-radius: var(--r-sm);
+             border: 1px solid transparent; }
+  .verdict.lose { color: var(--pg-bad); background: hsl(2 78% 62% / .08); border-color: hsl(2 78% 62% / .25); }
+  .verdict.win { color: var(--pg-ok); background: hsl(150 64% 52% / .08); border-color: hsl(150 64% 52% / .25); }
+  .verdict.neutral { color: var(--pg-muted); background: hsl(0 0% 100% / .04); border-color: hsl(0 0% 100% / .1); }
+
+  .transport { display:flex; align-items:center; gap: 10px; padding: 14px 16px; }
+  .transport button {
+    font-family: var(--mono); border: 1px solid hsl(0 0% 100% / .14); background: hsl(0 0% 100% / .04);
+    color: var(--pg-ink); border-radius: var(--r-sm); padding: 9px 14px; cursor: pointer; font-size: 13px;
+    transition: background 100ms var(--ease), transform 100ms var(--ease);
+  }
+  .transport button:hover:not(:disabled){ background: hsl(0 0% 100% / .09); }
+  .transport button:active:not(:disabled){ transform: translateY(1px); }
+  .transport button:disabled { opacity: .35; cursor: default; }
+  .transport .play { background: var(--pg-accent); border-color: var(--pg-accent); color: hsl(232 30% 10%); font-weight: 700; }
+  .step-hint { margin-inline-start: auto; font-family: var(--mono); font-size: 12px; color: var(--pg-faint); }
+
+  .dots { display:flex; gap: 6px; padding-inline: 16px; }
+  .pdot { width: 7px; height: 7px; border-radius: 50%; background: hsl(0 0% 100% / .15); transition: background 200ms var(--ease), width 200ms var(--ease); }
+  .pdot.on { background: var(--pg-accent); width: 20px; border-radius: 4px; }
+
+  /* session selector */
+  .session-sel { display:flex; gap: 8px; flex-wrap: wrap; margin-block-start: 14px; }
+  .session-sel button {
+    font-family: var(--mono); font-size: 11.5px; padding: 6px 11px; border-radius: 999px; cursor: pointer;
+    background: hsl(0 0% 100% / .04); border: 1px solid hsl(0 0% 100% / .1); color: var(--pg-muted);
+    transition: border-color 100ms var(--ease), color 100ms var(--ease);
+  }
+  .session-sel button.on { color: var(--pg-ink); border-color: var(--pg-accent); }
+  .session-sel .swatch { display:inline-block; width: 8px; height:8px; border-radius:50%; margin-inline-end: 6px; vertical-align: middle; }
+
+  /* ── Fix-option cards ─────────────────────────────────────── */
+  .cards { display:grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 880px){ .cards { grid-template-columns: 1fr; } }
+  .card { padding: 20px; display:flex; flex-direction: column; gap: 10px; }
+  .card .rc { font-family: var(--mono); font-size: 11px; letter-spacing: .5px; color: var(--pg-accent); }
+  .card h3 { font-size: 17px; }
+  .card .desc { font-size: 13.5px; color: var(--pg-muted); }
+  .card ul { margin: 4px 0 0; padding-inline-start: 18px; }
+  .card li { font-size: 13px; color: var(--pg-muted); margin-block-end: 5px; }
+  .card .tradeoff { font-size: 12.5px; color: var(--pg-faint); font-family: var(--mono); margin-block-start: auto; padding-block-start: 10px; }
+  .pill { display:inline-block; font-family: var(--mono); font-size: 10.5px; padding: 3px 8px; border-radius: 999px; }
+  .pill.recommend { background: hsl(150 64% 52% / .15); color: var(--pg-ok); border: 1px solid hsl(150 64% 52% / .3); }
+  .pill.struct { background: hsl(38 95% 60% / .14); color: var(--pg-warm); border: 1px solid hsl(38 95% 60% / .3); }
+
+  /* ── Copy-prompt bar ──────────────────────────────────────── */
+  .copybar { margin-block-start: 48px; padding: 18px 20px; display:flex; align-items:center; gap: 16px; flex-wrap: wrap; }
+  .copybar .ctext { flex: 1 1 420px; font-family: var(--mono); font-size: 12.5px; color: var(--pg-muted); line-height: 1.6; }
+  .copybar button {
+    font-family: var(--mono); font-size: 13px; padding: 11px 18px; border-radius: var(--r-sm); cursor: pointer;
+    background: var(--pg-accent); border: 0; color: hsl(232 30% 10%); font-weight: 700; white-space: nowrap;
+    transition: transform 100ms var(--ease);
+  }
+  .copybar button:active { transform: translateY(1px); }
+
+  footer { margin-block-start: 48px; color: var(--pg-faint); font-size: 12.5px; font-family: var(--mono); text-align: center; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ─── HERO ─────────────────────────────────────────────── -->
+  <header class="hero">
+    <span class="kicker">ork · session-identity diagnosis</span>
+    <h1>Auto-rename &amp; color don't land — and the data says why</h1>
+    <p class="sub">The haiku titler <b>works</b>: it produces a good name 81% of the time. But the result
+      is pulled lazily on the <i>next</i> prompt — which usually never comes in time — so only 7% of sessions
+      ever wear it. Color was never live-settable from a hook at all. Numbers below are real, from 687
+      sessions since 2026-06-12.</p>
+
+    <div class="headline-stat">
+      <div class="stat bad"><div class="big tabnum">7.3%</div><div class="lbl">sessions that actually got their AI title</div></div>
+      <div class="stat"><div class="big tabnum">81%</div><div class="lbl">haiku produced a valid title (the AI works)</div></div>
+      <div class="stat bad"><div class="big tabnum">506</div><div class="lbl">good titles thrown away by the lazy pull</div></div>
+      <div class="stat"><div class="big tabnum">0</div><div class="lbl">hook fields that can set live color</div></div>
+    </div>
+  </header>
+
+  <!-- ─── FUNNEL ───────────────────────────────────────────── -->
+  <section>
+    <div class="sec-title">§ The funnel — where 687 sessions leak</div>
+    <div class="funnel glass">
+      <div class="frow"><div class="flabel"><b>Generator spawned</b></div><div class="bar"><i style="width:100%"></i></div><div class="fpct">687</div></div>
+      <div class="frow win"><div class="flabel">haiku returned a valid <span class="mono">{title}</span></div><div class="bar win"><i style="width:81%"></i></div><div class="fpct">556</div></div>
+      <div class="frow leak"><div class="flabel">hard-failed <span class="mono">"Prompt is too long"</span></div><div class="bar leak"><i style="width:13%"></i></div><div class="fpct">86</div></div>
+      <div class="frow win"><div class="flabel"><b>title adopted into the session</b></div><div class="bar win"><i style="width:7.3%"></i></div><div class="fpct">50</div></div>
+      <div class="frow"><div class="flabel">color record persisted (resume only)</div><div class="bar"><i style="width:10.2%"></i></div><div class="fpct">70</div></div>
+      <div class="leak-note">⚠ The gap between <b>556 produced</b> and <b>50 adopted</b> is the disease:
+        <b>506 perfectly good titles</b> sit in <span class="mono">session-identity.raw</span> and are never pulled,
+        because the harvest waits for a next prompt that the session never sends.</div>
+    </div>
+  </section>
+
+  <!-- ─── PLAYER ───────────────────────────────────────────── -->
+  <section>
+    <div class="sec-title">§ Replay a real session — toggle Today vs the Fix</div>
+    <div class="session-sel" id="sessionSel"></div>
+
+    <div class="player-grid" style="margin-block-start:18px">
+      <!-- stage -->
+      <div class="stage glass">
+        <div class="stage-top">
+          <div class="lane-toggle" role="tablist" aria-label="behavior lane">
+            <button id="laneToday" class="on today" role="tab" aria-selected="true">Today (broken)</button>
+            <button id="laneFixed" class="fixed" role="tab" aria-selected="false">Proposed fix</button>
+          </div>
+          <span class="step-hint" id="laneCaption">how it behaves now</span>
+        </div>
+
+        <div class="device">
+          <div class="device-chrome">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="chrome-title" id="chromeTitle">claude — orchestkit</span>
+          </div>
+
+          <!-- terminal log OR resume picker swaps in here -->
+          <div id="screen" class="term"></div>
+
+          <!-- live prompt bar -->
+          <div class="promptbar" id="promptbar">
+            <span class="pb-accent" id="pbAccent"></span>
+            <div class="pb-body">
+              <div class="pb-title" id="pbTitle">(untitled session)</div>
+              <div class="pb-meta" id="pbMeta">live prompt bar</div>
+            </div>
+            <span class="pb-caret">▌</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- rail -->
+      <div class="rail">
+        <div class="narr glass">
+          <div class="step-badge" id="stepBadge">STEP 1 / 4</div>
+          <h3 id="stepTitle">First prompt submitted</h3>
+          <p id="stepBody">…</p>
+          <div class="verdict neutral" id="stepVerdict">…</div>
+        </div>
+
+        <div class="glass">
+          <div class="dots" id="dots"></div>
+          <div class="transport">
+            <button id="prevBtn">‹ prev</button>
+            <button id="playBtn" class="play">▶ play</button>
+            <button id="nextBtn">next ›</button>
+            <span class="step-hint" id="transHint">step 1 of 4</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FIX OPTIONS ──────────────────────────────────────── -->
+  <section>
+    <div class="sec-title">§ Fix options — pick the combination</div>
+    <div class="cards">
+      <div class="card glass">
+        <div class="rc">RC2 · context blowout</div>
+        <h3>Strip the child's context <span class="pill recommend">do first</span></h3>
+        <div class="desc">Spawn the haiku titler so it loads <i>nothing</i> from the project — no MCP, no skills, no agents.</div>
+        <ul>
+          <li><span class="mono">cwd: os.tmpdir()</span> → no project <span class="mono">.claude/</span> or <span class="mono">.mcp.json</span></li>
+          <li><span class="mono">--strict-mcp-config --mcp-config '{}'</span> → 0 MCP servers</li>
+          <li>Child drops from ~213K → &lt;2K tokens; finishes in ~1–2s</li>
+        </ul>
+        <div class="tradeoff">cost: low · kills the 13% hard-fail outright</div>
+      </div>
+
+      <div class="card glass">
+        <div class="rc">RC1 · harvest-miss (the big one)</div>
+        <h3>Adopt on turn 1, not "next turn" <span class="pill recommend">biggest win</span></h3>
+        <div class="desc">Stop relying on the next prompt to pull the result. Once the child is cheap (RC2), close the gap.</div>
+        <ul>
+          <li><b>A —</b> bounded inline wait on turn 1 (≤2s, fail-open) then emit the title that same turn</li>
+          <li><b>B —</b> harvest in the <span class="mono">Stop</span> hook to pre-stage, so turn 2 adopts instantly</li>
+          <li>keep the lazy pull as a safety net under both</li>
+        </ul>
+        <div class="tradeoff">cost: A adds ≤2s to first prompt · lifts 7% → ~80%</div>
+      </div>
+
+      <div class="card glass">
+        <div class="rc">RC3 · color is live-impossible</div>
+        <h3>Carry color in the title <span class="pill struct">structural limit</span></h3>
+        <div class="desc">No hook field sets live color — ever. So put the signal in the one live channel we own: the title.</div>
+        <ul>
+          <li>prefix a semantic emoji: 🔴 fix · 🟢 feat · 🔵 docs · 🟣 infra</li>
+          <li>keep the <span class="mono">agent-color</span> jsonl append for the /resume picker</li>
+          <li>fix path-resolution so persistence beats today's 3.8%</li>
+        </ul>
+        <div class="tradeoff">cost: low · honest: live accent stays CC-owned</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── COPY-PROMPT ──────────────────────────────────────── -->
+  <div class="copybar glass">
+    <div class="ctext" id="copyText"></div>
+    <button id="copyBtn">⧉ copy the fix prompt</button>
+  </div>
+
+  <footer>
+    Real data: 687 sessions · ~/.claude/plugins/data/ork-orchestkit/sessions · CC 2.1.185 ·
+    src/hooks/src/lib/session-identity{,-state}.ts
+  </footer>
+</div>
+
+<script>
+"use strict";
+/* ── Real sessions harvested from session-identity.raw / .json ───────────── */
+const COLORS = {
+  red:"var(--c-red)", blue:"var(--c-blue)", green:"var(--c-green)", yellow:"var(--c-yellow)",
+  purple:"var(--c-purple)", orange:"var(--c-orange)", pink:"var(--c-pink)", cyan:"var(--c-cyan)"
+};
+const EMOJI = { red:"🔴", blue:"🔵", green:"🟢", yellow:"🟡", purple:"🟣", orange:"🟠", pink:"💗", cyan:"💠" };
+
+const SESSIONS = [
+  { title:"Loop-library assessment and adoption", short:"Loop-library assessment", color:"blue",
+    branch:"feat/loop-design", prompt:"assess whether we should adopt the loop library for ork…", multiTurn:false },
+  { title:"OrchestKit skillspector audit", short:"OrchestKit skillspector audit", color:"cyan",
+    branch:"chore/skillspector", prompt:"audit all skills + subagents against latest CC standards…", multiTurn:true },
+  { title:"WAHA Keepalive Ops Alert", short:"WAHA Keepalive Ops Alert", color:"purple",
+    branch:"fix/waha-keepalive", prompt:"the WAHA keepalive is paging — investigate the alert…", multiTurn:false },
+  { title:"Marketing UX Slice Implementation", short:"Marketing UX slice", color:"pink",
+    branch:"feat/mkt-ux", prompt:"implement the marketing UX slice from the design handoff…", multiTurn:false },
+  { title:"Assess streamable HTTP transport", short:"Streamable HTTP transport", color:"orange",
+    branch:"spike/http-stream", prompt:"assess streamable HTTP transport for the MCP server…", multiTurn:true },
+];
+
+/* the real context-blowout error (verbatim, trimmed) */
+const TOOLONG = 'Prompt is too long · the request is ~213742 tokens (limit 200000) but this\n  conversation is only ~18254 tokens — the rest is system prompt, tool\n  definitions, and attachment content.';
+
+let sIdx = 0;       // selected session
+let lane = "today"; // today | fixed
+let step = 0;       // 0..3
+let playTimer = null;
+
+const $ = (id) => document.getElementById(id);
+
+/* ── Step model: returns the screen + prompt-bar + narration for (session, lane, step) ── */
+function frame(sess, lane, step) {
+  const c = sess.color, em = EMOJI[c], swatch = COLORS[c];
+  const branchTitle = sess.branch.replace("/", "-").slice(0, 22);
+  const aiLive = `${em} ${sess.short} · ${branchTitle}`;
+
+  // default prompt bar (branch only, faint accent)
+  let bar = { title: branchTitle, meta: "branch title · no AI name yet", accent: "var(--pg-faint)" };
+  let screen = { kind: "term", rows: [] };
+  let narr = {};
+
+  if (step === 0) {
+    screen.rows = [
+      { c:"dim", t:"$ claude" },
+      { c:"you", t:`› ${sess.prompt}` },
+      { c:"dim", t:"UserPromptSubmit → ork unified-dispatcher" },
+      { c:"row", t:`branch title pinned: ${branchTitle}` },
+      { c:"spawn", t:`spawn: claude -p --model haiku  (detached)${lane==="fixed" ? "  +cwd=/tmp +strict-mcp" : ""}` },
+    ];
+    narr = {
+      badge:"STEP 1 / 4 · turn 1",
+      title:"First prompt submitted",
+      body: lane==="today"
+        ? "The dispatcher pins the branch title and fires a detached haiku call to name the session. The child inherits the project cwd — so it loads .mcp.json (8 servers) + 111 skills."
+        : "Same kick-off, but the child is spawned in /tmp with --strict-mcp-config — it loads nothing from the project, so it can't blow past the 200K limit.",
+      verdict: { cls:"neutral", t: lane==="today" ? "bar shows branch title only — AI name pending" : "child will return in ~1–2s, not time out" }
+    };
+  }
+
+  else if (step === 1) {
+    // RC2 demo: session #4 (orange, multiTurn) and #0 happen to show both paths;
+    // we show the blowout in lane=today for the two heavy sessions, success otherwise.
+    const blowout = lane === "today" && (sIdx === 1 || sIdx === 4); // heavy MCP sessions
+    if (blowout) {
+      screen.rows = [
+        { c:"dim", t:"haiku child writing → session-identity.raw" },
+        { c:"bad", t: TOOLONG },
+        { c:"dim", t:"parse → null · no title, no color upgrade" },
+      ];
+      narr = {
+        badge:"STEP 2 / 4 · ~1s later",
+        title:"RC2 — context blowout",
+        body:"This session has heavy MCP context. The child loaded all of it before it ever saw the naming prompt, and errored. 86 of 687 real sessions died exactly here.",
+        verdict:{ cls:"lose", t:"AI title never generated · 13% of sessions" }
+      };
+    } else {
+      screen.rows = [
+        { c:"dim", t:"haiku child writing → session-identity.raw" },
+        { c:"ok", t:`{"title":"${sess.short}","color":"${c}"}` },
+        lane==="today"
+          ? { c:"warn", t:"…but nothing pulls it. harvest waits for the NEXT prompt." }
+          : { c:"ok", t:"dispatcher waits ≤2s inline → harvests immediately" },
+      ];
+      narr = {
+        badge:"STEP 2 / 4 · ~1.5s later",
+        title: lane==="today" ? "Haiku succeeds — into the void" : "Haiku succeeds — adopted now",
+        body: lane==="today"
+          ? "The titler produced a great name. It's written to disk. But the architecture only reads it back on the next UserPromptSubmit — and the clock is running."
+          : "Because the child is cheap, the bounded inline wait catches the result on this same turn and emits it as sessionTitle right away.",
+        verdict: lane==="today"
+          ? { cls:"neutral", t:"valid title sits in .raw · not yet shown" }
+          : { cls:"win", t:"sessionTitle emitted on turn 1 ✓" }
+      };
+      if (lane === "fixed") {
+        bar = { title: aiLive, meta: "AI title · emitted this turn", accent: swatch };
+      }
+    }
+  }
+
+  else if (step === 2) {
+    const blowout = lane === "today" && (sIdx === 1 || sIdx === 4);
+    if (lane === "fixed") {
+      bar = { title: aiLive, meta:"AI title live · agent-color queued", accent: swatch };
+      screen.rows = [
+        { c:"row", t:"assistant working… (this turn does real work)" },
+        { c:"ok", t:`prompt bar now reads:  ${aiLive}` },
+        { c:"spawn", t:`append → {"type":"agent-color","agentColor":"${c}","sessionId":"…"}` },
+      ];
+      narr = {
+        badge:"STEP 3 / 4 · during the turn",
+        title:"The title is already on the bar",
+        body:"No next-turn dependency. The semantic emoji carries the color live (the one channel hooks own), and the agent-color record is queued for the resume picker.",
+        verdict:{ cls:"win", t:"live title + emoji color, turn 1" }
+      };
+    } else {
+      // today: either still branch-only, or blown out
+      bar = { title: branchTitle, meta: blowout ? "no AI title (errored)" : "still branch title · AI name stranded", accent: "var(--pg-faint)" };
+      screen.rows = blowout
+        ? [ { c:"dim", t:"session-identity.failed written (tombstone)" },
+            { c:"bad", t:"giving up on this session" },
+            { c:"row", t:`bar stuck at: ${branchTitle}` } ]
+        : [ { c:"row", t:"assistant working…" },
+            { c:"warn", t:`.raw still holds "${sess.short}" — unharvested` },
+            { c:"dim", t: sess.multiTurn ? "a 2nd prompt MIGHT pull it… if it comes in time" : "single-turn session — no 2nd prompt is coming" } ];
+      narr = {
+        badge:"STEP 3 / 4 · during the turn",
+        title: blowout ? "Tombstoned" : "The title is stranded",
+        body: blowout
+          ? "After 120s of unparseable output the state machine tombstones the session and stops trying. The bar keeps the branch name forever."
+          : (sess.multiTurn
+              ? "Multi-turn sessions sometimes get lucky — a later prompt happens to fire after the child finished. That's the only reason 50 sessions ever succeeded."
+              : "This is a single-turn session. There will never be a next UserPromptSubmit, so the perfectly good title can never be adopted."),
+        verdict:{ cls:"lose", t: blowout ? "permanent branch title" : (sess.multiTurn ? "depends on luck / timing" : "title lost for good") }
+      };
+    }
+  }
+
+  else if (step === 3) {
+    // resume picker view — both lanes
+    screen = { kind:"picker" };
+    const blowout = lane === "today" && (sIdx === 1 || sIdx === 4);
+    const shownTitle = lane === "fixed" ? aiLive : branchTitle;
+    bar = lane === "fixed"
+      ? { title: aiLive, meta:"persists across resume", accent: swatch }
+      : { title: branchTitle, meta:"resume shows branch title", accent: blowout ? "var(--pg-faint)" : swatch };
+    narr = {
+      badge:"STEP 4 / 4 · /resume later",
+      title: lane==="fixed" ? "Found instantly in the picker" : "Indistinguishable in the picker",
+      body: lane==="fixed"
+        ? "The AI title + the agent-color swatch both render in /resume and `claude agents`. You can tell this session apart at a glance — live AND on resume."
+        : (blowout
+            ? "No title, no color upgrade — it looks like every other branch session. This is the experience you're seeing today."
+            : "Best case today: the deterministic hash color may show, but the AI title is gone. The session reads as its branch, like all the others."),
+      verdict: lane==="fixed"
+        ? { cls:"win", t:"distinct title + color, live + resume ✓" }
+        : { cls:"lose", t:"branch title · ~7% ever differ" }
+    };
+    screen.picker = buildPicker(sess, lane, blowout, shownTitle, swatch);
+  }
+
+  return { bar, screen, narr };
+}
+
+function buildPicker(sess, lane, blowout, shownTitle, swatch) {
+  // the selected session + a couple of decoys to show "distinguishability"
+  const sw = (lane === "fixed") ? swatch : (blowout ? "var(--pg-faint)" : swatch);
+  const items = [
+    { sel:true, color: sw, title: shownTitle, sub: `${sess.branch} · 2m ago` },
+    { sel:false, color:"var(--pg-faint)", title:"feat-2575-advisor-test-run-nudge", sub:"feat/2575-… · 1h ago" },
+    { sel:false, color:"var(--pg-faint)", title:"feat-2575-advisor-test-run-nudge", sub:"feat/2575-… · 3h ago" },
+  ];
+  if (lane === "today" && !blowout) items[1].title = "feat-loop-design";
+  return items;
+}
+
+/* ── Render ───────────────────────────────────────────────── */
+function render() {
+  const sess = SESSIONS[sIdx];
+  const f = frame(sess, lane, step);
+
+  // prompt bar
+  $("pbTitle").textContent = f.bar.title;
+  $("pbMeta").textContent = f.bar.meta;
+  $("pbAccent").style.background = f.bar.accent;
+  $("chromeTitle").textContent = `claude — ${sess.branch}`;
+
+  // screen
+  const scr = $("screen");
+  if (f.screen.kind === "picker") {
+    scr.className = "picker";
+    scr.innerHTML = `<div class="ptitle">/resume — pick a session</div>` +
+      f.screen.picker.map(it => `
+        <div class="pitem ${it.sel?'sel':''}">
+          <span class="pswatch" style="background:${it.color}"></span>
+          <div><div class="pit-title">${it.title}</div><div class="pit-sub">${it.sub}</div></div>
+        </div>`).join("");
+  } else {
+    scr.className = "term";
+    scr.innerHTML = f.screen.rows.map(r => `<div class="row ${r.c}">${escapeHtml(r.t)}</div>`).join("");
+  }
+
+  // narration
+  $("stepBadge").textContent = f.narr.badge;
+  $("stepTitle").textContent = f.narr.title;
+  $("stepBody").textContent = f.narr.body;
+  const v = $("stepVerdict");
+  v.className = "verdict " + f.narr.verdict.cls;
+  v.textContent = f.narr.verdict.t;
+
+  // transport state
+  $("prevBtn").disabled = step === 0;
+  $("nextBtn").disabled = step === 3;
+  $("transHint").textContent = `step ${step+1} of 4`;
+  $("laneCaption").textContent = lane === "today" ? "how it behaves now" : "with RC1+RC2+RC3 applied";
+
+  // dots
+  $("dots").innerHTML = [0,1,2,3].map(i => `<span class="pdot ${i===step?'on':''}"></span>`).join("");
+
+  // lane toggle visual
+  $("laneToday").classList.toggle("on", lane==="today");
+  $("laneToday").setAttribute("aria-selected", lane==="today");
+  $("laneFixed").classList.toggle("on", lane==="fixed");
+  $("laneFixed").setAttribute("aria-selected", lane==="fixed");
+
+  // session selector visual
+  document.querySelectorAll("#sessionSel button").forEach((b,i)=> b.classList.toggle("on", i===sIdx));
+}
+
+function escapeHtml(s){ return s.replace(/[&<>]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch])); }
+
+/* ── Controls ─────────────────────────────────────────────── */
+function go(n){ step = Math.max(0, Math.min(3, n)); render(); }
+function setLane(l){ lane = l; render(); }
+function setSession(i){ sIdx = i; render(); }
+
+function play() {
+  if (playTimer) { stopPlay(); return; }
+  $("playBtn").textContent = "❚❚ pause";
+  if (step === 3) step = 0;
+  playTimer = setInterval(() => {
+    if (step >= 3) { stopPlay(); return; }
+    go(step + 1);
+  }, 1600);
+}
+function stopPlay(){ clearInterval(playTimer); playTimer = null; $("playBtn").textContent = "▶ play"; }
+
+/* ── Wire up ──────────────────────────────────────────────── */
+$("prevBtn").onclick = () => { stopPlay(); go(step - 1); };
+$("nextBtn").onclick = () => { stopPlay(); go(step + 1); };
+$("playBtn").onclick = play;
+$("laneToday").onclick = () => { stopPlay(); setLane("today"); };
+$("laneFixed").onclick = () => { stopPlay(); setLane("fixed"); };
+
+// session selector buttons
+$("sessionSel").innerHTML = SESSIONS.map((s,i) =>
+  `<button data-i="${i}"><span class="swatch" style="background:${COLORS[s.color]}"></span>${s.short}</button>`
+).join("");
+document.querySelectorAll("#sessionSel button").forEach(b =>
+  b.onclick = () => { stopPlay(); step = 0; setSession(+b.dataset.i); });
+
+// keyboard
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight") { stopPlay(); go(step+1); }
+  else if (e.key === "ArrowLeft") { stopPlay(); go(step-1); }
+  else if (e.key === " ") { e.preventDefault(); play(); }
+});
+
+/* ── Copy-prompt (natural language, only non-default choices) ── */
+const COPY_PROMPT =
+`Fix ork's session-identity hook (src/hooks/src/lib/session-identity{,-state}.ts) so auto-rename and color actually land:
+1. RC2 — spawn the haiku titler in os.tmpdir() with --strict-mcp-config --mcp-config '{}' so the child loads no project MCP/skills/agents and stops blowing past the 200K context limit.
+2. RC1 — adopt the title on turn 1: do a bounded inline wait (≤2s, fail-open) on the cheap child and emit sessionTitle that same turn; keep the lazy next-turn pull as a fallback.
+3. RC3 — accept that hooks can't set live color; prefix a semantic emoji onto the title for a live signal and keep the agent-color jsonl append for the /resume picker (and fix its transcript-path resolution).
+Add tests for the inline-harvest path and the tmpdir/strict-mcp spawn args.`;
+
+$("copyText").textContent = COPY_PROMPT;
+$("copyBtn").onclick = () => {
+  navigator.clipboard.writeText(COPY_PROMPT).then(() => {
+    const b = $("copyBtn"); const old = b.textContent;
+    b.textContent = "✓ copied";
+    setTimeout(() => b.textContent = old, 1500);
+  });
+};
+
+render();
+</script>
+</body>
+</html>

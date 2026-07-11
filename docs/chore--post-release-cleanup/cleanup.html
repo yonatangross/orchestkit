@@ -1,0 +1,21 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/><title>Post-release cleanup</title>
+<style>body{background:#0d1117;color:#e6edf3;font:14px/1.5 system-ui;padding:24px;max-width:900px;margin:0 auto}code{font-family:Menlo,monospace;color:#58a6ff}.ok{color:#3fb950}.warn{color:#d29922}table{width:100%;border-collapse:collapse;margin-top:8px}td,th{padding:6px 10px;border-bottom:1px solid #30363d;text-align:left}</style>
+</head><body>
+<h1>Post-release cleanup · #1434 + #1437 arc</h1>
+<p>Drift-fix PR. No behavior changes.</p>
+<h2>What shipped</h2>
+<table><thead><tr><th>Change</th><th>Was</th><th>Now</th></tr></thead>
+<tbody>
+<tr><td><code>scripts/generate-docs-data.js</code> skill counter</td><td>counts DIRS in <code>src/skills/</code></td><td>counts SKILL.md FILES</td></tr>
+<tr><td>Site homepage skill count</td><td class="warn">106 (wrong)</td><td class="ok">105 (matches CLAUDE.md + filesystem)</td></tr>
+<tr><td><code>README.md</code> What's New</td><td class="warn">v7.38.0 (3 months stale)</td><td class="ok">v7.63.0 summary</td></tr>
+</tbody></table>
+<h2>Root cause</h2>
+<p><code>src/skills/shared/</code> is a rules-only library referenced by 7 skills for anti-sycophancy/status-protocol — it is not a skill. The generator counted all directories, overcounting by 1.</p>
+<h2>Follow-ups filed</h2>
+<ul>
+<li><a href="https://github.com/yonatangross/orchestkit/issues/1440">#1440</a> — remove CHANGELOG <code>[7.62.0]</code> ghost entry</li>
+<li><a href="https://github.com/yonatangross/orchestkit/issues/1441">#1441</a> — CC 2.1.117 adoption (latest CC version, we're one behind)</li>
+</ul>
+</body></html>

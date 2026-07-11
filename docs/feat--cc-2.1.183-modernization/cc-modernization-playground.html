@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OrchestKit × Claude Code — Deprecation Audit Console</title>
+<style>
+  /* ============ §2 design tokens — cool-glass (technical precision) ============ */
+  :root {
+    --pg-bg:        hsl(232 26% 7%);
+    --pg-ink:       hsl(220 18% 93%);
+    --pg-muted:     hsl(220 12% 64%);
+    --pg-faint:     hsl(220 10% 46%);
+    --pg-glass:     hsl(0 0% 100% / .05);
+    --pg-glass-2:   hsl(0 0% 100% / .08);
+    --pg-glass-edge:hsl(0 0% 100% / .16);
+    --pg-accent:    hsl(248 84% 68%);
+    --pg-accent-deep: hsl(248 70% 56%);
+    --pg-warm:      hsl(38 95% 60%);
+    --pg-danger:    hsl(2 78% 64%);
+    --pg-amber:     hsl(38 95% 60%);
+    --pg-ok:        hsl(150 58% 52%);
+    --pg-danger-dim:hsl(2 60% 64% / .14);
+    --pg-amber-dim: hsl(38 80% 60% / .14);
+    --pg-ok-dim:    hsl(150 50% 52% / .14);
+    --r-sm: 9px; --r-md: 16px; --r-lg: 24px;
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-6: 24px; --sp-12: 48px;
+    --ease: cubic-bezier(.2,.8,.25,1);
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: var(--font);
+    color: var(--pg-ink);
+    background: var(--pg-bg);
+    /* §2 gradient mesh — hue span ≤30° (235–262), attachment fixed */
+    background-image:
+      radial-gradient(60% 50% at 18% 8%,  hsl(248 70% 40% / .30), transparent 70%),
+      radial-gradient(55% 55% at 88% 12%, hsl(262 65% 42% / .24), transparent 72%),
+      radial-gradient(70% 60% at 50% 108%, hsl(235 70% 38% / .26), transparent 70%);
+    background-attachment: fixed;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-block-size: 100vh;
+    padding: var(--sp-12) clamp(16px, 5vw, 64px) 96px;
+  }
+
+  .wrap { max-inline-size: 1120px; margin-inline: auto; }
+
+  /* ============ header (Tertiary chrome, restrained) ============ */
+  header { margin-block-end: var(--sp-6); }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--pg-faint);
+    display: flex; align-items: center; gap: var(--sp-2);
+  }
+  .eyebrow .dot { inline-size: 7px; block-size: 7px; border-radius: 50%; background: var(--pg-ok); box-shadow: 0 0 0 4px var(--pg-ok-dim); }
+  h1 {
+    font-size: clamp(26px, 4vw, 40px);
+    letter-spacing: -.3px; font-weight: 700; margin: var(--sp-3) 0 var(--sp-2);
+    line-height: 1.08;
+  }
+  h1 .accent { color: var(--pg-accent); }
+  .sub { color: var(--pg-muted); max-inline-size: 64ch; font-size: 15px; margin: 0; }
+
+  /* ============ master toggle (Primary control — §3 dominant) ============ */
+  .control {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4);
+    margin-block: var(--sp-6);
+  }
+  .seg {
+    display: inline-flex; padding: var(--sp-1); gap: var(--sp-1);
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+    border-radius: 999px;
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 4px 12px -6px hsl(232 40% 3% / .5);
+  }
+  .seg button {
+    appearance: none; border: 0; cursor: pointer;
+    font-family: var(--mono); font-size: 13px; font-weight: 600; letter-spacing: .02em;
+    padding: 10px 22px; border-radius: 999px;
+    color: var(--pg-muted); background: transparent;
+    transition: color 100ms var(--ease), background 200ms var(--ease);
+  }
+  .seg button[aria-pressed="true"] { color: hsl(0 0% 100%); }
+  .seg button.before[aria-pressed="true"] { background: linear-gradient(135deg, var(--pg-danger), hsl(14 80% 56%)); }
+  .seg button.after[aria-pressed="true"]  { background: linear-gradient(135deg, var(--pg-accent), var(--pg-accent-deep)); }
+  .seg button:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+  .state-tag {
+    font-family: var(--mono); font-size: 12.5px; color: var(--pg-faint);
+  }
+  .state-tag b { color: var(--pg-ink); font-weight: 600; }
+
+  /* ============ scorecard (Secondary) ============ */
+  .scores {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: var(--sp-3); margin-block-end: var(--sp-6);
+  }
+  .score {
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+    border-radius: var(--r-md); padding: var(--sp-4) var(--sp-4) var(--sp-3);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / .08), 0 20px 60px -28px hsl(232 50% 2% / .8);
+  }
+  .score .label { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--pg-faint); }
+  .score .val {
+    font-family: var(--mono); font-weight: 700; font-variant-numeric: tabular-nums;
+    font-size: 30px; letter-spacing: -.5px; margin-block-start: var(--sp-2);
+    display: flex; align-items: baseline; gap: var(--sp-2);
+    transition: transform 300ms var(--ease), opacity 300ms var(--ease);
+  }
+  .score .val .unit { font-size: 13px; color: var(--pg-faint); font-weight: 500; }
+  .score.good .val { color: var(--pg-ok); }
+  .score.bad  .val { color: var(--pg-danger); }
+  .score .trend { font-family: var(--mono); font-size: 12px; color: var(--pg-faint); margin-block-start: 6px; }
+
+  /* flip signature — applied briefly on view change */
+  .flip .score .val { transform: translateY(6px); opacity: 0; }
+
+  /* ============ surface board (Primary content) ============ */
+  .board-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-block-end: var(--sp-3); gap: var(--sp-4);
+  }
+  .board-head h2 { font-size: 15px; font-weight: 600; letter-spacing: .02em; margin: 0; color: var(--pg-ink); }
+  .board-head .hint { font-size: 12.5px; color: var(--pg-faint); }
+  .board { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: var(--sp-3); }
+  @media (min-width: 760px) { .board { grid-template-columns: 1fr 1fr; } }
+
+  .card {
+    text-align: start; inline-size: 100%; cursor: pointer;
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+    border-radius: var(--r-md); padding: var(--sp-4);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / .07), 0 20px 60px -30px hsl(232 50% 2% / .75);
+    transition: border-color 200ms var(--ease), transform 200ms var(--ease), background 300ms var(--ease);
+    appearance: none; color: inherit; font-family: inherit;
+  }
+  .card:hover { border-color: hsl(0 0% 100% / .26); transform: translateY(-2px); }
+  .card:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 3px; }
+  .card-top { display: flex; align-items: center; gap: var(--sp-3); }
+  .card-top .ico {
+    inline-size: 38px; block-size: 38px; flex: none; display: grid; place-items: center;
+    border-radius: var(--r-sm); font-size: 19px;
+    background: var(--pg-glass-2); border: 1px solid var(--pg-glass-edge);
+  }
+  .card-top .name { font-weight: 600; font-size: 15px; }
+  .card-top .meta { font-size: 12px; color: var(--pg-faint); font-family: var(--mono); }
+  .pill {
+    margin-inline-start: auto; font-family: var(--mono); font-size: 11.5px; font-weight: 600;
+    padding: 5px 11px; border-radius: 999px; white-space: nowrap;
+    transition: background 300ms var(--ease), color 300ms var(--ease);
+  }
+  .pill.ok    { background: var(--pg-ok-dim);     color: var(--pg-ok); }
+  .pill.bad   { background: var(--pg-danger-dim); color: var(--pg-danger); }
+  .pill.warn  { background: var(--pg-amber-dim);  color: var(--pg-amber); }
+
+  .headline { margin-block-start: var(--sp-3); font-size: 13.5px; color: var(--pg-muted); min-block-size: 38px; }
+  .headline b { color: var(--pg-ink); font-weight: 600; }
+
+  /* finding rows — the cause→effect flow */
+  .findings { margin-block-start: var(--sp-3); display: none; }
+  .card[aria-expanded="true"] .findings { display: block; animation: fade 200ms var(--ease); }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .finding {
+    display: grid; grid-template-columns: 18px 1fr; gap: var(--sp-2);
+    padding-block: 8px; border-block-start: 1px solid hsl(0 0% 100% / .06);
+    font-size: 13px;
+  }
+  .finding .mk { font-family: var(--mono); font-weight: 700; }
+  .finding .mk.bad { color: var(--pg-danger); }
+  .finding .mk.ok  { color: var(--pg-ok); }
+  .finding .mk.new { color: var(--pg-accent); }
+  .finding code { font-family: var(--mono); font-size: 12px; background: hsl(0 0% 100% / .06); padding: 1px 5px; border-radius: 5px; color: var(--pg-ink); }
+  .finding .cite { color: var(--pg-faint); font-size: 11.5px; font-family: var(--mono); }
+  .expand-hint { margin-block-start: var(--sp-3); font-size: 11.5px; color: var(--pg-faint); font-family: var(--mono); }
+  .card[aria-expanded="true"] .expand-hint { display: none; }
+
+  /* ============ copy-prompt bar (Tertiary, §7) ============ */
+  .prompt {
+    margin-block-start: var(--sp-6);
+    display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+    border-radius: var(--r-md); padding: var(--sp-3) var(--sp-4);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  }
+  .prompt .txt { font-family: var(--mono); font-size: 12.5px; color: var(--pg-muted); flex: 1; min-inline-size: 240px; }
+  .prompt button {
+    appearance: none; border: 1px solid var(--pg-glass-edge); cursor: pointer;
+    background: linear-gradient(135deg, var(--pg-accent), var(--pg-accent-deep)); color: hsl(0 0% 100%);
+    font-family: var(--mono); font-size: 12.5px; font-weight: 600;
+    padding: 9px 16px; border-radius: var(--r-sm);
+    transition: transform 100ms var(--ease);
+  }
+  .prompt button:active { transform: scale(.96); }
+  .prompt button:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+
+  footer { margin-block-start: var(--sp-6); color: var(--pg-faint); font-size: 12px; font-family: var(--mono); }
+  footer a { color: var(--pg-muted); }
+
+  /* §6 reduced-motion gate — verbatim */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow"><span class="dot"></span> verified audit · claude-code-guide + live tool-surface + changelog</div>
+    <h1>OrchestKit <span class="accent">×</span> Claude Code — deprecation audit</h1>
+    <p class="sub">Every flag below is verified against the official changelog and this session's live tool surface — not inferred. Flip the console to compare the stale state against the 2.1.183 modernization.</p>
+  </header>
+
+  <div class="control">
+    <div class="seg" role="group" aria-label="Audit state">
+      <button class="before" data-view="before" aria-pressed="true">◂ BEFORE · 2.1.170</button>
+      <button class="after"  data-view="after"  aria-pressed="false">AFTER · 2.1.183 ▸</button>
+    </div>
+    <div class="state-tag" id="stateTag"></div>
+  </div>
+
+  <section class="scores" id="scores" aria-live="polite"></section>
+
+  <div class="board-head">
+    <h2>Surface-by-surface</h2>
+    <span class="hint">click a card to expand the verified findings</span>
+  </div>
+  <section class="board" id="board"></section>
+
+  <div class="prompt">
+    <span class="txt" id="promptTxt"></span>
+    <button id="copyBtn" aria-label="Copy migration instruction to clipboard">Copy prompt</button>
+  </div>
+
+  <footer>
+    Latest CC: 2.1.183 (2026-06-19) · floor pinned by owner override (2026-06-10, renews to 2.1.183).
+    Sources: <a href="https://code.claude.com/docs/en/changelog.md">CC changelog</a> ·
+    TeamCreate/TeamDelete removed 2.1.178 · counts from grep over src/.
+  </footer>
+</div>
+
+<script>
+(function () {
+  // ---- verified audit data ---------------------------------------------------
+  var DATA = {
+    scores: [
+      { label: "CC floor", before: "2.1.170", after: "2.1.183", unit: "", bClass: "bad", aClass: "good", bTrend: "13 minors behind latest", aTrend: "= latest (strict pin)" },
+      { label: "Deprecated tool grants", before: "29", after: "0", unit: "refs", bClass: "bad", aClass: "good", bTrend: "14 agents · 15 skills", aTrend: "TeamCreate + bare Task gone" },
+      { label: "Dead API calls in skill bodies", before: "5", after: "0", unit: "calls", bClass: "bad", aClass: "good", bTrend: "TeamCreate()/TeamDelete()", aTrend: "→ implicit-team Agent(name)" },
+      { label: "New caps wired", before: "0", after: "3", unit: "", bClass: "bad", aClass: "good", bTrend: "none adopted", aTrend: "implicit-team · env-flag · disallowed-tools (+6 documented)" }
+    ],
+    surfaces: [
+      {
+        key: "hooks", ico: "🪝", name: "Hooks", meta: "27 events · output fields",
+        before: { pill: "ok", pillText: "CLEAN", head: "<b>No deprecations.</b> All 27 registered events valid in 2.1.183's 31-event set; output fields current." },
+        after:  { pill: "ok", pillText: "CLEAN + 4 NEW", head: "<b>Clean, plus 4 adopted.</b> New feedback + display events wired in." },
+        findings: {
+          before: [
+            { mk: "ok", t: "27 events registered, all valid (<code>PreToolUse</code> … <code>FileChanged</code>)", cite: "2.1.183: 31 valid" },
+            { mk: "ok", t: "<code>additionalContext</code> / <code>permissionDecision</code> output fields current", cite: "" },
+            { mk: "bad", t: "not using <code>continueOnBlock</code>, <code>MessageDisplay</code>, <code>reloadSkills</code>", cite: "2.1.173/177" }
+          ],
+          after: [
+            { mk: "new", t: "<code>continueOnBlock</code> on PostToolUse — feed rejection back, keep turn", cite: "2.1.177" },
+            { mk: "new", t: "Stop / SubagentStop return <code>additionalContext</code> feedback", cite: "2.1.177" },
+            { mk: "new", t: "<code>MessageDisplay</code> hook to transform/hide assistant text", cite: "2.1.173" },
+            { mk: "new", t: "SessionStart <code>reloadSkills: true</code> to re-scan dirs", cite: "2.1.173" }
+          ]
+        }
+      },
+      {
+        key: "agents", ico: "🤖", name: "Agents", meta: "37 agents",
+        before: { pill: "bad", pillText: "14 DEAD GRANTS", head: "<b>14 agents grant <code>TeamCreate</code></b> — a tool HARD-REMOVED in 2.1.178. The grant resolves to nothing." },
+        after:  { pill: "ok", pillText: "MIGRATED", head: "<b>Implicit-team model.</b> TeamCreate stripped; teammates spawned via <code>Agent(name=…)</code>." },
+        findings: {
+          before: [
+            { mk: "bad", t: "14× <code>TeamCreate</code> in tools (ci-cd, backend-architect, workflow-architect …)", cite: "removed 2.1.178" },
+            { mk: "ok", t: "model values use short aliases (inherit/sonnet/opus/haiku) — still valid", cite: "" },
+            { mk: "bad", t: "no <code>Tool(param:value)</code> permission rules (e.g. <code>Agent(model:opus)</code>)", cite: "2.1.178" }
+          ],
+          after: [
+            { mk: "ok", t: "<code>TeamCreate</code> removed from all 14 agents", cite: "" },
+            { mk: "new", t: "teammates via <code>Agent(name=…)</code> — one implicit team / session", cite: "2.1.178" },
+            { mk: "new", t: "<code>Tool(param:value)</code> permission rules documented", cite: "2.1.178" },
+            { mk: "new", t: "5-deep nested-subagent delegation documented", cite: "2.1.172" },
+            { mk: "ok", t: "team-size-gate kept; <code>team_name</code> retained as its key", cite: "follow-up: verify count source vs 2.1.178" }
+          ]
+        }
+      },
+      {
+        key: "skills", ico: "🧩", name: "Skills", meta: "111 skills",
+        before: { pill: "bad", pillText: "15 STALE + 111 PIN", head: "<b>15 skills list bare <code>Task</code></b> (replaced by <code>Agent</code>); 111 compat strings pinned to 2.1.170." },
+        after:  { pill: "ok", pillText: "MODERNIZED", head: "<b>Task→Agent, compat→2.1.183</b>, and <code>disallowed-tools</code> adopted where skills restrict access." },
+        findings: {
+          before: [
+            { mk: "bad", t: "bare <code>Task</code> in allowed-tools × 15 (assess, brainstorm, implement …)", cite: "→ Agent" },
+            { mk: "bad", t: "<code>compatibility: \"Claude Code 2.1.170+\"</code> × 111", cite: "stale floor" },
+            { mk: "bad", t: "no skill uses <code>disallowed-tools</code> frontmatter", cite: "2.1.178" }
+          ],
+          after: [
+            { mk: "ok", t: "bare <code>Task</code> → <code>Agent</code> across 15 skills", cite: "" },
+            { mk: "ok", t: "compat strings → <code>2.1.183+</code> (stamped)", cite: "" },
+            { mk: "new", t: "<code>disallowed-tools</code> in frontmatter to scope active toolset", cite: "2.1.178" }
+          ]
+        }
+      },
+      {
+        key: "settings", ico: "⚙️", name: "Settings", meta: "ork.settings.json",
+        before: { pill: "warn", pillText: "TEAMS GAP", head: "<b>No <code>CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1</code></b> — required for teams after the 2.1.178 restructure." },
+        after:  { pill: "ok", pillText: "ENABLED", head: "<b>Teams env flag added</b>; attribution + new managed keys surveyed." },
+        findings: {
+          before: [
+            { mk: "ok", t: "<code>includeCoAuthoredBy</code> not used (soft-deprecated) — clean", cite: "" },
+            { mk: "bad", t: "missing teams enablement env var", cite: "2.1.178" },
+            { mk: "ok", t: "permissions allow/deny schema current", cite: "" }
+          ],
+          after: [
+            { mk: "new", t: "<code>CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1</code> added to env", cite: "2.1.178" },
+            { mk: "new", t: "<code>attribution.sessionUrl</code> evaluated for web/RC commits", cite: "2.1.177" }
+          ]
+        }
+      },
+      {
+        key: "mcp", ico: "🔌", name: "MCP", meta: ".mcp.json · server.json",
+        before: { pill: "ok", pillText: "ALREADY MODERN", head: "<b>No deprecated transports.</b> stdio + streamable-http; zero <code>sse</code> usage." },
+        after:  { pill: "ok", pillText: "MODERN", head: "<b>Unchanged.</b> Already on current transports; subagent MCP disallow-specs noted." },
+        findings: {
+          before: [
+            { mk: "ok", t: "remotes use <code>streamable-http</code>; packages use <code>stdio</code>", cite: "" },
+            { mk: "ok", t: "0× <code>sse</code> transport (soft-deprecated) anywhere", cite: "" }
+          ],
+          after: [
+            { mk: "ok", t: "no migration needed — already current", cite: "" },
+            { mk: "new", t: "subagent <code>disallowedTools</code> MCP server-specs fix noted", cite: "2.1.178" }
+          ]
+        }
+      }
+    ]
+  };
+
+  var view = "before";
+  var scoresEl = document.getElementById("scores");
+  var boardEl  = document.getElementById("board");
+  var stateTag = document.getElementById("stateTag");
+  var promptTxt = document.getElementById("promptTxt");
+
+  function renderScores() {
+    scoresEl.innerHTML = DATA.scores.map(function (s) {
+      var val = view === "before" ? s.before : s.after;
+      var cls = view === "before" ? s.bClass : s.aClass;
+      var trend = view === "before" ? s.bTrend : s.aTrend;
+      return '<div class="score ' + cls + '">' +
+        '<div class="label">' + s.label + '</div>' +
+        '<div class="val">' + val + (s.unit ? ' <span class="unit">' + s.unit + '</span>' : '') + '</div>' +
+        '<div class="trend">' + trend + '</div>' +
+      '</div>';
+    }).join("");
+  }
+
+  function renderBoard() {
+    boardEl.innerHTML = DATA.surfaces.map(function (sf) {
+      var st = sf[view];
+      var f = sf.findings[view];
+      var rows = f.map(function (r) {
+        return '<div class="finding"><span class="mk ' + r.mk + '">' +
+          (r.mk === "bad" ? "✕" : r.mk === "new" ? "＋" : "✓") + '</span>' +
+          '<span>' + r.t + (r.cite ? ' <span class="cite">' + r.cite + '</span>' : '') + '</span></div>';
+      }).join("");
+      return '<button class="card" data-key="' + sf.key + '" aria-expanded="false">' +
+        '<div class="card-top">' +
+          '<span class="ico">' + sf.ico + '</span>' +
+          '<span><span class="name">' + sf.name + '</span><br><span class="meta">' + sf.meta + '</span></span>' +
+          '<span class="pill ' + st.pill + '">' + st.pillText + '</span>' +
+        '</div>' +
+        '<div class="headline">' + st.head + '</div>' +
+        '<div class="findings">' + rows + '</div>' +
+        '<div class="expand-hint">▾ expand</div>' +
+      '</button>';
+    }).join("");
+    // re-bind expand
+    Array.prototype.forEach.call(boardEl.querySelectorAll(".card"), function (c) {
+      c.addEventListener("click", function () {
+        var open = c.getAttribute("aria-expanded") === "true";
+        c.setAttribute("aria-expanded", open ? "false" : "true");
+      });
+    });
+  }
+
+  function renderStateTag() {
+    if (view === "before") {
+      stateTag.innerHTML = '<b>13 versions stale.</b> 29 deprecated grants + 5 dead calls live in source.';
+      promptTxt.textContent = '$ grep -rl TeamCreate src/agents  # 14 dead grants to migrate';
+    } else {
+      stateTag.innerHTML = '<b>On 2.1.183.</b> 0 deprecations · implicit-team model · 9 new capabilities wired.';
+      promptTxt.textContent = 'Modernize OrchestKit to Claude Code 2.1.183: remove TeamCreate/TeamDelete and bare Task, adopt the implicit-team Agent(name) model, and wire the new 2.1.171–2.1.183 hook/skill/settings capabilities.';
+    }
+  }
+
+  function setView(v) {
+    if (v === view) return;
+    view = v;
+    Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.view === v));
+    });
+    // §6 signature moment — the flip
+    scoresEl.classList.add("flip");
+    setTimeout(function () {
+      renderScores(); renderBoard(); renderStateTag();
+      scoresEl.classList.remove("flip");
+    }, 160);
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (b) {
+    b.addEventListener("click", function () { setView(b.dataset.view); });
+  });
+
+  document.getElementById("copyBtn").addEventListener("click", function () {
+    var btn = this;
+    navigator.clipboard.writeText(promptTxt.textContent).then(function () {
+      var old = btn.textContent; btn.textContent = "✓ Copied";
+      setTimeout(function () { btn.textContent = old; }, 1500);
+    });
+  });
+
+  renderScores(); renderBoard(); renderStateTag();
+})();
+</script>
+</body>
+</html>

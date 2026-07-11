@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OrchestKit · Sonnet 5 + CC 2.1.197 Adoption</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --line: #30363d;
+    --fg: #e6edf3; --dim: #8b949e; --accent: #d2a8ff; --ok: #3fb950; --warn: #d29922;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2rem; background: var(--bg); color: var(--fg);
+    font: 15px/1.55 ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 .25rem; }
+  .sub { color: var(--dim); margin: 0 0 1.5rem; }
+  .grid { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.25rem; }
+  .card h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); margin: 0 0 .75rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  th, td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid var(--line); }
+  th { color: var(--dim); font-weight: 600; }
+  .tag { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .72rem; }
+  .tag.new { background: rgba(63,185,80,.15); color: var(--ok); }
+  .tag.kept { background: rgba(139,148,158,.15); color: var(--dim); }
+  .tag.frozen { background: rgba(210,153,34,.15); color: var(--warn); }
+  ul { margin: .5rem 0 0; padding-left: 1.2rem; }
+  li { margin: .25rem 0; }
+  code { color: var(--accent); }
+  .full { grid-column: 1 / -1; }
+  footer { color: var(--dim); font-size: .75rem; margin-top: 1.5rem; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Sonnet 5 + CC 2.1.197 Adoption</h1>
+  <p class="sub">OrchestKit model-vocab &amp; CC support-window refresh · 2026-06-30 · interactive playground</p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Model vocabulary</h2>
+      <table>
+        <tr><th>Alias</th><th>Resolves to</th><th></th></tr>
+        <tr><td><code>sonnet</code></td><td><code>claude-sonnet-5</code></td><td><span class="tag new">new</span></td></tr>
+        <tr><td><code>opus</code></td><td><code>claude-opus-4-8</code></td><td><span class="tag kept">kept</span></td></tr>
+        <tr><td><code>haiku</code></td><td><code>claude-haiku-4-5</code></td><td><span class="tag kept">kept</span></td></tr>
+      </table>
+      <ul>
+        <li><code>claude-sonnet-4-6</code> stays in <code>fullIds</code> — still an active model.</li>
+        <li>SoT: <code>src/hooks/src/lib/models.vocab.json</code></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Sonnet 5 pricing · per MTok</h2>
+      <table>
+        <tr><th>Channel</th><th>USD</th></tr>
+        <tr><td>Input</td><td>$3.00 <span class="tag new">$2 intro→Aug 31</span></td></tr>
+        <tr><td>Output</td><td>$15.00 <span class="tag new">$10 intro</span></td></tr>
+        <tr><td>Cache read</td><td>$0.30</td></tr>
+        <tr><td>Cache write</td><td>$3.75</td></tr>
+      </table>
+      <ul><li>Durable $3/$15 sticker stamped for stable cost reports.</li></ul>
+    </div>
+
+    <div class="card">
+      <h2>CC support window</h2>
+      <table>
+        <tr><td>floor / latest</td><td><code>2.1.183</code> <span class="tag frozen">frozen</span></td></tr>
+        <tr><td>latest_known</td><td><code>2.1.197</code> <span class="tag new">bumped</span></td></tr>
+        <tr><td>override expires</td><td><code>2026-09-20</code></td></tr>
+      </table>
+      <ul><li>2.1.184–197 verified no-op for ork (matchers, hooks contract).</li></ul>
+    </div>
+
+    <div class="card">
+      <h2>Agent tier review</h2>
+      <ul>
+        <li>11 <code>sonnet</code>-aliased agents → now run Sonnet 5 automatically.</li>
+        <li>6 <code>opus</code> agents (security / architecture / orchestration) <span class="tag kept">keep Opus</span> — correctness-critical; no blind cost downgrade.</li>
+        <li>A real opus→sonnet-5 move needs eval-runner A/B (API spend, consent-gated).</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h2>CC 2.1.195 / 196 adoption-issue triage</h2>
+      <table>
+        <tr><th>Issue</th><th>Feature</th><th>Verdict</th></tr>
+        <tr><td>#2683</td><td>hook_matcher_exact_match</td><td>no-op — ork matchers have no hyphens</td></tr>
+        <tr><td>#2684</td><td>plugin_install_consent_enforced</td><td>no-op — ork doesn't enable plugins via project settings</td></tr>
+        <tr><td>#2685 #2707</td><td>mouse/stream-watchdog env vars</td><td>no-op — cosmetic</td></tr>
+        <tr><td>#2701</td><td>mcp_list_get_no_spawn_untrusted</td><td>no-op — already covered by 2.1.169 managed-MCP notes</td></tr>
+        <tr><td>#2702–05</td><td>background-agent / claude-agents fixes</td><td>no-op — no ork surface</td></tr>
+        <tr><td>#2706</td><td>org_default_model</td><td><b>keep open</b> — genuine enhancement for model-cost-advisor</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <footer>OrchestKit · branch <code>chore/adopt-sonnet5-cc2197</code></footer>
+</div>
+</body>
+</html>

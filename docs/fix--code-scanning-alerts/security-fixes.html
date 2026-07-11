@@ -1,0 +1,13 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Code Scanning Fixes</title>
+<style>body{font-family:system-ui;background:#0d1117;color:#e6edf3;padding:24px;max-width:800px;margin:0 auto}
+h1{font-size:20px}code{background:#21262d;padding:2px 6px;border-radius:3px;font-family:'SF Mono',monospace;font-size:13px}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th{text-align:left;padding:8px 12px;background:#21262d;border:1px solid #30363d;font-size:11px;text-transform:uppercase;color:#8b949e}
+td{padding:8px 12px;border:1px solid #30363d}</style></head>
+<body><h1>Code Scanning Fixes — 4 Alerts Resolved</h1>
+<table><tr><th>Alert</th><th>Tool</th><th>File</th><th>Fix</th></tr>
+<tr><td>#138</td><td>CodeQL</td><td>pool-setup-template.py:221</td><td>Wrap health endpoint in try/except</td></tr>
+<tr><td>#139</td><td>CodeQL</td><td>pool-setup-template.py:221</td><td>Same (plugins copy)</td></tr>
+<tr><td>#143</td><td>Scorecard</td><td>orchestkit-eval.yml:76</td><td>Pin claude-code@2.1.101 + --ignore-scripts</td></tr>
+<tr><td>#144</td><td>Scorecard</td><td>plugin-validation.yml:293</td><td>Bump 2.1.90 → 2.1.101</td></tr>
+</table></body></html>

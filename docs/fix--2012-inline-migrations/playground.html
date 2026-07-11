@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Why migrations didn't run in the shipped plugin — #2012</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--p2:#1c2230;--bd:#30363d;--fg:#e6edf3;--mut:#9da7b3;--ac:#58a6ff;--ok:#3fb950;--err:#f85149;--warn:#d29922;--mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:32px 20px 64px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--mut);margin:0 0 24px;font-size:14px;max-width:78ch}
+  .grid{display:grid;grid-template-columns:300px 1fr;gap:20px}
+  @media(max-width:780px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--bd);border-radius:10px;padding:18px}
+  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:0 0 12px}
+  .opt{display:flex;align-items:center;gap:10px;padding:9px 0}
+  .opt label{font-size:14px;flex:1}
+  .opt label small{color:var(--mut);font-size:12px;display:block}
+  .switch{position:relative;width:40px;height:22px;flex:0 0 auto}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;inset:0;background:var(--p2);border:1px solid var(--bd);border-radius:22px;cursor:pointer;transition:.15s}
+  .slider:before{content:"";position:absolute;height:14px;width:14px;left:3px;top:3px;background:var(--mut);border-radius:50%;transition:.15s}
+  input:checked + .slider{background:rgba(63,185,80,.25);border-color:var(--ok)}
+  input:checked + .slider:before{transform:translateX(18px);background:var(--ok)}
+  .pipe{display:flex;flex-direction:column;gap:0;font:12px var(--mono)}
+  .stage{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--bd);border-radius:8px;background:var(--p2)}
+  .stage .lbl{flex:1}
+  .stage .has{font-size:11px}
+  .arrow{color:var(--mut);text-align:center;padding:2px 0}
+  .stage.ok{border-color:rgba(63,185,80,.4)}
+  .stage.bad{border-color:rgba(248,81,73,.45);background:rgba(248,81,73,.07)}
+  .verdict{font:13px var(--mono);padding:11px 13px;border-radius:8px;margin:0 0 14px;border:1px solid var(--bd)}
+  .v-ok{background:rgba(63,185,80,.1);border-color:rgba(63,185,80,.4);color:var(--ok)}
+  .v-bad{background:rgba(248,81,73,.1);border-color:rgba(248,81,73,.5);color:var(--err)}
+  .why{color:var(--mut);font-size:13.5px;border-left:2px solid var(--bd);padding-left:12px;margin-top:12px}
+  pre{background:#010409;border:1px solid var(--bd);border-radius:8px;padding:12px;font:12px/1.5 var(--mono);overflow:auto;margin:10px 0 0}
+  code{font-family:var(--mono);color:#cfe6ff}
+  footer{color:var(--mut);font-size:12px;margin-top:26px;text-align:center}
+  b.ok{color:var(--ok)}b.err{color:var(--err)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🚚 Why SQLite migrations didn't run in the shipped plugin</h1>
+  <p class="sub">The M168 session registry reads its <code>NNN-*.sql</code> migrations from disk at runtime — from the bundle's own directory (<code>dist/</code>). But <code>rsync</code> excludes <code>src/</code> where the <code>.sql</code> live, and esbuild doesn't inline them. So in the <b>distributed</b> plugin the runner found zero files and created <b>no tables</b> — silently. Tests stayed green because vitest runs the <i>source</i> tree. Toggle the build step and trace it. (#2012)</p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>build pipeline</h2>
+      <div class="opt"><label><code>esbuild</code> inlines the SQL<small>(it doesn't — runtime readFileSync)</small></label>
+        <span class="switch"><input type="checkbox" id="inline"><span class="slider"></span></span></div>
+      <div class="opt"><label><code>rsync</code> ships <code>src/</code><small>build-plugins.sh: --exclude='src'</small></label>
+        <span class="switch"><input type="checkbox" id="rsyncSrc"><span class="slider"></span></span></div>
+      <div class="opt"><label><b>copyMigrations()</b> → dist/<small>the #2012 fix</small></label>
+        <span class="switch"><input type="checkbox" id="fix" checked><span class="slider"></span></span></div>
+      <p class="why">At runtime <code>MIGRATIONS_DIR = dirname(import.meta.url)</code> = <code>dist/</code>, and <code>run-hook.mjs</code> imports bundles from <code>dist/</code>. So the <code>.sql</code> must exist in <code>dist/</code> — by being inlined, shipped via <code>src/</code>, or copied in.</p>
+    </div>
+
+    <div class="card">
+      <h2>does the installed plugin create tables?</h2>
+      <div class="verdict" id="verdict"></div>
+      <div class="pipe">
+        <div class="stage" id="s1"><span class="lbl">src/lib/sqlite-migrations/001-initial.sql</span><span class="has">📄 source</span></div>
+        <div class="arrow">│ build</div>
+        <div class="stage" id="s2"><span class="lbl">src/hooks/dist/ (bundles + assets)</span><span class="has" id="s2h"></span></div>
+        <div class="arrow">│ rsync → plugin</div>
+        <div class="stage" id="s3"><span class="lbl">plugins/ork/hooks/dist/</span><span class="has" id="s3h"></span></div>
+        <div class="arrow">│ runtime readdirSync(__dirname)</div>
+        <div class="stage" id="s4"><span class="lbl">runMigrations() applies</span><span class="has" id="s4h"></span></div>
+      </div>
+      <pre id="code"></pre>
+    </div>
+  </div>
+
+  <footer>OrchestKit · #2012 · fix mirrors <code>src/hooks/esbuild.config.mjs</code> copyMigrations() + <code>tests/hooks/test-migrations-shipped.sh</code> · self-contained, no network 🔒</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(s){return document.querySelector(s);};
+  function compute(){
+    var inline=$('#inline').checked, rsyncSrc=$('#rsyncSrc').checked, fix=$('#fix').checked;
+    // .sql reachable at runtime (dist/) if: inlined into JS, OR shipped via src, OR copied by the fix.
+    var inDist = inline || fix;                 // what lands in dist/ next to the bundle
+    var inPluginDist = inDist;                  // rsync ships dist/ verbatim
+    var srcShipped = rsyncSrc;                  // src/ path (excluded by default)
+    var runnerFinds = inline || inPluginDist || srcShipped;
+    var tables = runnerFinds;
+
+    function mark(el, ok, txt){ el.className='stage '+(ok?'ok':'bad'); if(txt!=null) el.innerHTML=el.innerHTML.replace(/<span class="has".*?<\/span>/, '<span class="has">'+txt+'</span>'); }
+    $('#s2h').textContent = inDist ? '✅ has .sql' : '❌ no .sql';
+    $('#s2').className = 'stage '+(inDist?'ok':'bad');
+    $('#s3h').textContent = inPluginDist ? '✅ has .sql' : '❌ no .sql';
+    $('#s3').className = 'stage '+(inPluginDist?'ok':'bad');
+    $('#s4h').textContent = tables ? '✅ tables' : '❌ 0 found';
+    $('#s4').className = 'stage '+(tables?'ok':'bad');
+
+    var v=$('#verdict');
+    if(tables){
+      v.className='verdict v-ok';
+      v.textContent = '✅ tables created — sessions / locks / settings_overrides / worktree_links'+(fix&&!inline?' (via copyMigrations → dist/)':'');
+    } else {
+      v.className='verdict v-bad';
+      v.textContent = '❌ NO TABLES — runMigrations() found 0 .sql in dist/. Registry writes silently fail. (this was prod before #2012)';
+    }
+    $('#code').textContent =
+"// runtime, inside the bundled migration runner\n"+
+"const MIGRATIONS_DIR = dirname(fileURLToPath(import.meta.url)); // → dist/\n"+
+"const files = readdirSync(MIGRATIONS_DIR).filter(f => /^\\d{3}-.+\\.sql$/.test(f));\n"+
+"// files = "+(tables?'[\"001-initial.sql\"]  → runMigrations applies → user_version=1':'[]  → runMigrations() returns 0  → no tables');
+  }
+  ['#inline','#rsyncSrc','#fix'].forEach(function(s){ $(s).onchange=compute; });
+  compute();
+})();
+</script>
+</body>
+</html>

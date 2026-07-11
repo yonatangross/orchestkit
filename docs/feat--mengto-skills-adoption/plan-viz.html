@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MengTo/Skills Adoption Plan — OrchestKit</title>
+<style>
+  :root {
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(220 14% 64%);
+    --pg-faint: hsl(220 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-accent-deep: hsl(248 70% 54%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-ok: hsl(160 60% 55%);
+    --pg-risk-hi: hsl(8 75% 62%);
+    --pg-radius-sm: 9px; --pg-radius-md: 16px; --pg-radius-lg: 24px;
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--pg-bg);
+    background-image:
+      radial-gradient(1100px 620px at 12% -8%, hsl(248 60% 22% / .55), transparent 60%),
+      radial-gradient(900px 560px at 105% 12%, hsl(262 55% 20% / .45), transparent 55%);
+    background-attachment: fixed;
+    color: var(--pg-ink);
+    font-family: "SF Pro Display", -apple-system, "Segoe UI", Inter, sans-serif;
+    min-height: 100vh;
+    padding: 48px 24px 96px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 1080px; margin-inline: auto; }
+  .mono { font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace; }
+
+  /* ── Header ─────────────────────────────── */
+  header { margin-block-end: 48px; }
+  .eyebrow { color: var(--pg-accent); font-size: 13px; font-weight: 600; letter-spacing: 1.6px; text-transform: uppercase; }
+  h1 { font-size: 34px; font-weight: 700; letter-spacing: -.3px; margin-block: 8px 12px; }
+  .sub { color: var(--pg-muted); max-width: 68ch; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-block-start: 24px; }
+  .chip {
+    font-size: 12.5px; font-weight: 600; padding: 4px 12px; border-radius: 999px;
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+  }
+  .chip b { font-variant-numeric: tabular-nums; }
+  .chip.ok b { color: var(--pg-ok); } .chip.warn b { color: var(--pg-warm); }
+
+  /* ── Stat tiles ─────────────────────────── */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-block-end: 48px; }
+  .tile {
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--pg-radius-md);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / .12), 0 20px 60px -22px hsl(232 40% 3% / .7), 0 4px 12px -6px hsl(232 40% 3% / .5);
+    padding: 16px;
+  }
+  .tile .v { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .tile .l { color: var(--pg-faint); font-size: 12.5px; margin-block-start: 4px; }
+
+  /* ── Workstream tabs ────────────────────── */
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-block-end: 24px; }
+  .tab {
+    font: inherit; font-size: 13.5px; font-weight: 600; color: var(--pg-muted);
+    background: var(--pg-glass); border: 1px solid transparent; border-radius: 999px;
+    padding: 8px 16px; cursor: pointer; transition: color 100ms var(--pg-ease), background 100ms var(--pg-ease);
+  }
+  .tab:hover { color: var(--pg-ink); }
+  .tab[aria-selected="true"] { background: var(--pg-accent-deep); color: hsl(0 0% 100%); }
+  .tab:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: rise 300ms var(--pg-ease); }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .ws-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-block-end: 8px; }
+  .ws-head h2 { font-size: 21px; font-weight: 700; letter-spacing: -.2px; }
+  .ws-why { color: var(--pg-muted); font-size: 14.5px; max-width: 76ch; margin-block-end: 24px; }
+
+  /* ── Before / After mockups ─────────────── */
+  .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 780px) { .ba { grid-template-columns: 1fr; } }
+  .pane {
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--pg-radius-md);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / .1), 0 4px 12px -6px hsl(232 40% 3% / .5);
+    overflow: hidden;
+  }
+  .pane-bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-block-end: 1px solid hsl(0 0% 100% / .08); }
+  .pane-bar .tag { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
+  .pane.before .tag { color: var(--pg-faint); }
+  .pane.after .tag { color: var(--pg-ok); }
+  .pane-bar .fname { color: var(--pg-faint); font-size: 12px; margin-inline-start: auto; }
+  .pane.before { opacity: .62; }
+  .code { padding: 16px; font-size: 12.5px; line-height: 1.7; white-space: pre; overflow-x: auto; tab-size: 2; }
+  .code .add { color: var(--pg-ok); background: hsl(160 60% 55% / .08); display: inline-block; inline-size: 100%; }
+  .code .del { color: var(--pg-risk-hi); text-decoration: line-through; opacity: .75; }
+  .code .cm { color: var(--pg-faint); }
+  .code .kw { color: var(--pg-accent); }
+  .code .hd { color: var(--pg-warm); font-weight: 600; }
+
+  /* ── Sections ───────────────────────────── */
+  section.block { margin-block-start: 48px; }
+  section.block > h2 { font-size: 18px; font-weight: 700; letter-spacing: -.2px; margin-block-end: 16px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--pg-radius-md);
+    padding: 16px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  }
+  .card h3 { font-size: 14px; font-weight: 600; margin-block-end: 4px; }
+  .card p { color: var(--pg-muted); font-size: 13px; }
+  .sev { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+  .sev.low { color: var(--pg-ok); background: hsl(160 60% 55% / .12); }
+  .sev.med { color: var(--pg-warm); background: hsl(38 95% 60% / .12); }
+  .sev.hi { color: var(--pg-risk-hi); background: hsl(8 75% 62% / .12); }
+
+  .lane { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .lane .step {
+    background: var(--pg-glass-2); border: 1px solid var(--pg-glass-edge); border-radius: var(--pg-radius-sm);
+    padding: 8px 12px; font-size: 13px; font-weight: 600;
+  }
+  .lane .arrow { color: var(--pg-accent); font-weight: 700; }
+  .lane .par { color: var(--pg-faint); font-size: 12px; }
+
+  /* ── Copy prompt bar ────────────────────── */
+  .promptbar {
+    position: sticky; inset-block-end: 16px; margin-block-start: 48px;
+    display: flex; align-items: center; gap: 12px;
+    background: hsl(232 26% 10% / .92); border: 1px solid var(--pg-glass-edge); border-radius: var(--pg-radius-md);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 20px 60px -22px hsl(232 40% 3% / .7);
+    padding: 12px 16px; opacity: .92;
+  }
+  .promptbar .txt { font-size: 12.5px; color: var(--pg-muted); flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .promptbar button {
+    font: inherit; font-size: 13px; font-weight: 600; color: hsl(0 0% 100%);
+    background: var(--pg-accent-deep); border: none; border-radius: var(--pg-radius-sm);
+    padding: 8px 16px; cursor: pointer; transition: background 100ms var(--pg-ease);
+  }
+  .promptbar button:hover { background: var(--pg-accent); }
+  .promptbar button:focus-visible { outline: 2px solid var(--pg-ink); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">OrchestKit · Adoption Plan</div>
+  <h1>Learning from MengTo/Skills</h1>
+  <p class="sub">Four content patterns from Meng To's 75-skill design library (737★), adapted to OrchestKit's
+  infra. The playground shows each workstream as a <b>before → after</b> mockup of the actual artifact that changes.</p>
+  <div class="meta-row">
+    <span class="chip">Branch <b class="mono">feat/mengto-skills-adoption</b></span>
+    <span class="chip ok">Risk <b>LOW</b></span>
+    <span class="chip ok">Confidence <b>HIGH</b></span>
+    <span class="chip warn">Reversible <b>until merge</b></span>
+  </div>
+</header>
+
+<div class="tiles">
+  <div class="tile"><div class="v">4</div><div class="l">workstreams</div></div>
+  <div class="tile"><div class="v">~15</div><div class="l">skills gain a Quality Bar rubric</div></div>
+  <div class="tile"><div class="v">1</div><div class="l">new skill (design-stylecards)</div></div>
+  <div class="tile"><div class="v">1</div><div class="l">new CI gate (quality-bar presence)</div></div>
+  <div class="tile"><div class="v">4 → ?</div><div class="l">Eval scorecard axis (was 4/10)</div></div>
+</div>
+
+<!-- ── Workstream tabs ── -->
+<div class="tabs" role="tablist" aria-label="Workstreams">
+  <button class="tab" role="tab" aria-selected="true" aria-controls="ws1" id="t1">1 · Quality Bar</button>
+  <button class="tab" role="tab" aria-selected="false" aria-controls="ws2" id="t2">2 · Video → Superprompt</button>
+  <button class="tab" role="tab" aria-selected="false" aria-controls="ws3" id="t3">3 · Stylecards</button>
+  <button class="tab" role="tab" aria-selected="false" aria-controls="ws4" id="t4">4 · CI Gate</button>
+</div>
+
+<div class="panel active" id="ws1" role="tabpanel" aria-labelledby="t1">
+  <div class="ws-head"><h2>Quality Bar sections</h2><span class="sev low">effort S · impact XL</span></div>
+  <p class="ws-why">MengTo's flagship skill ends with falsifiable acceptance criteria. Ours end with link lists.
+  Adding an explicit rubric to the top ~15 skills gives graders and <span class="mono">/ork:verify</span> something to score against —
+  a direct attack on the weakest scorecard axis (Eval, 4/10).</p>
+  <div class="ba">
+    <div class="pane before">
+      <div class="pane-bar"><span class="tag">Before</span><span class="fname mono">src/skills/cover/SKILL.md</span></div>
+      <div class="code mono"><span class="hd">## Related Skills</span>
+
+- <span class="kw">ork:verify</span> — grade the generated tests
+- <span class="kw">ork:implement</span> — the step before this one
+
+<span class="cm">(file ends — no acceptance criteria;
+ "done" is whatever the model felt like)</span></div>
+    </div>
+    <div class="pane after">
+      <div class="pane-bar"><span class="tag">After</span><span class="fname mono">src/skills/cover/SKILL.md</span></div>
+      <div class="code mono"><span class="add"><span class="hd">## Quality Bar</span></span>
+<span class="add"></span>
+<span class="add">Done means all of these hold — not "tests were written":</span>
+<span class="add">- Every public function touched by the diff has ≥1 test</span>
+<span class="add">- Failure paths tested, not just happy paths</span>
+<span class="add">- Suite passes locally: paste the summary line as proof</span>
+<span class="add">- No test asserts on implementation details (mocks of internals)</span>
+<span class="add">- Coverage delta reported vs base branch</span>
+
+<span class="hd">## Related Skills</span>
+- <span class="kw">ork:verify</span> — grade the generated tests</div>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="ws2" role="tabpanel" aria-labelledby="t2">
+  <div class="ws-head"><h2>Video input mode for design-context-extract</h2><span class="sev med">effort M · impact L</span></div>
+  <p class="ws-why">Confirmed gap: the skill accepts screenshots and URLs only — zero video coverage. Motion
+  (easing, scroll behavior, transitions) is exactly what a screenshot can't carry. MengTo's
+  <span class="mono">video-to-superprompt</span> pipeline maps cleanly onto our ffmpeg-capable Bash + multimodal Read.</p>
+  <div class="ba">
+    <div class="pane before">
+      <div class="pane-bar"><span class="tag">Before</span><span class="fname mono">design-context-extract</span></div>
+      <div class="code mono"><span class="kw">/ork:design-context-extract</span> /tmp/shot.png
+<span class="kw">/ork:design-context-extract</span> https://example.com
+<span class="kw">/ork:design-context-extract</span> current project
+
+<span class="cm"># Input types: screenshot | URL | project</span>
+<span class="cm"># A screen RECORDING? → unsupported.</span>
+<span class="cm"># Motion, easing, scroll choreography: lost.</span></div>
+    </div>
+    <div class="pane after">
+      <div class="pane-bar"><span class="tag">After</span><span class="fname mono">design-context-extract</span></div>
+      <div class="code mono"><span class="add"><span class="kw">/ork:design-context-extract</span> /tmp/recording.mp4</span>
+<span class="add"></span>
+<span class="add"><span class="cm"># New: video pipeline</span></span>
+<span class="add">ffprobe → duration, fps, dimensions</span>
+<span class="add">ffmpeg  → frames at timeline beats (not uniform)</span>
+<span class="add">analyze → layout / motion / visual layers</span>
+<span class="add">output  → tokens + motion-spec.md</span>
+<span class="add">          (durations, easing, scroll triggers,</span>
+<span class="add">           reduced-motion fallbacks)</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="ws3" role="tabpanel" aria-labelledby="t3">
+  <div class="ws-head"><h2>design-stylecards skill</h2><span class="sev med">effort M · impact L</span></div>
+  <p class="ws-why">"Specs beat vibes." MengTo encodes each aesthetic as literal copy-paste values with
+  Use-When and Avoid blocks. Our design skills are procedural (how to run a pipeline) — none are declarative taste
+  assets. One skill + a <span class="mono">references/</span> catalog of named recipes gives
+  <span class="mono">design-to-code</span> a reusable vocabulary.</p>
+  <div class="ba">
+    <div class="pane before">
+      <div class="pane-bar"><span class="tag">Before</span><span class="fname mono">src/skills/</span></div>
+      <div class="code mono">design-context-extract/   <span class="cm"># pipeline</span>
+design-to-code/           <span class="cm"># pipeline</span>
+design-system-tokens/     <span class="cm"># architecture</span>
+
+<span class="cm"># Ask for "polished elevation" and the
+# model invents shadows from vibes —
+# different every session.</span></div>
+    </div>
+    <div class="pane after">
+      <div class="pane-bar"><span class="tag">After</span><span class="fname mono">design-stylecards/references/</span></div>
+      <div class="code mono"><span class="add"><span class="hd">### Layered neutral elevation — md</span></span>
+<span class="add">Use when: cards, panels, popovers.</span>
+<span class="add"></span>
+<span class="add">shadow-[0px_0px_0px_1px_rgba(0,0,0,.06),</span>
+<span class="add">  0px_3px_3px_-1.5px_rgba(0,0,0,.06),</span>
+<span class="add">  0px_12px_12px_-6px_rgba(0,0,0,.06)]</span>
+<span class="add"></span>
+<span class="add">Avoid: mixing with default shadow scale;</span>
+<span class="add">colored tints; stacking on one element.</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="ws4" role="tabpanel" aria-labelledby="t4">
+  <div class="ws-head"><h2>CI gate: quality-bar presence</h2><span class="sev low">effort S · impact M</span></div>
+  <p class="ws-why">Scope pivot after checking the repo: a trigger-phrase description lint
+  <b>already exists</b> (<span class="mono">test-description-triggers.sh</span>), and MengTo's links-only-references rule
+  doesn't map — ork's <span class="mono">references/</span> are progressive-disclosure docs by design. The genuinely missing gate:
+  once the top skills carry a Quality Bar, nothing stops a refactor from silently dropping it.</p>
+  <div class="ba">
+    <div class="pane before">
+      <div class="pane-bar"><span class="tag">Before</span><span class="fname mono">tests/skills/</span></div>
+      <div class="code mono">test-description-triggers.sh  <span class="cm"># exists ✓</span>
+test-skill-length.sh          <span class="cm"># 520 cap ✓</span>
+test-rubric-schema.sh         <span class="cm"># rubric.json ✓</span>
+
+<span class="cm"># Nothing asserts a skill keeps its
+# Quality Bar section after edits.</span></div>
+    </div>
+    <div class="pane after">
+      <div class="pane-bar"><span class="tag">After</span><span class="fname mono">tests/skills/structure/</span></div>
+      <div class="code mono"><span class="add">test-quality-bar.sh</span>
+<span class="add"></span>
+<span class="add"><span class="cm"># For each skill in the covered list:</span></span>
+<span class="add">grep -q <span class="kw">"^## Quality Bar"</span> SKILL.md</span>
+<span class="add">  || FAIL <span class="cm">"rubric dropped"</span></span>
+<span class="add"></span>
+<span class="add"><span class="cm"># List grows as more skills adopt it.</span></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Execution order ── -->
+<section class="block">
+  <h2>Execution order</h2>
+  <div class="lane">
+    <span class="step">Playground</span><span class="arrow">→</span>
+    <span class="step">WS1 · 15 skills <span class="par">(3 parallel agents)</span></span>
+    <span class="par">∥</span>
+    <span class="step">WS2 · video mode</span>
+    <span class="par">∥</span>
+    <span class="step">WS3 · stylecards</span>
+    <span class="arrow">→</span>
+    <span class="step">WS4 · CI gate</span><span class="arrow">→</span>
+    <span class="step">build · test · PR</span>
+  </div>
+  <p class="ws-why" style="margin-block-start:12px">WS4 depends on WS1 (the gate asserts what WS1 adds). WS1–WS3 touch disjoint files and run in parallel.</p>
+</section>
+
+<!-- ── Risks ── -->
+<section class="block">
+  <h2>Risks &amp; pre-mortems</h2>
+  <div class="cards">
+    <div class="card"><span class="sev med">medium</span><h3>Line-cap collision</h3>
+      <p><span class="mono">implement</span> is at 510/520 lines. Its Quality Bar must be ≤8 lines or trim elsewhere first. Mitigation: per-skill wc&nbsp;-l check after each edit.</p></div>
+    <div class="card"><span class="sev low">low</span><h3>Generic rubrics</h3>
+      <p>A copy-pasted Quality Bar is worse than none. Mitigation: each rubric written against the skill's own output contract; reviewed in one diff.</p></div>
+    <div class="card"><span class="sev low">low</span><h3>Token ceiling</h3>
+      <p>Skills near the 8000-token ceiling could tip over. Mitigation: <span class="mono">test-skill-tokens.sh</span> runs in the same suite — failure is loud, pre-push.</p></div>
+  </div>
+</section>
+
+<!-- ── Decisions ── -->
+<section class="block">
+  <h2>Decisions taken</h2>
+  <div class="cards">
+    <div class="card"><h3>Links-only references: rejected</h3><p>ork's references/ are load-on-demand docs, not link lists. Imposing MengTo's rule would break progressive disclosure. Documented, not adopted.</p></div>
+    <div class="card"><h3>Trigger lint: already exists</h3><p>test-description-triggers.sh covers it. WS4 re-scoped to the quality-bar presence gate instead of duplicating.</p></div>
+    <div class="card"><h3>One stylecards skill, not 20</h3><p>MengTo ships ~20 mood micro-skills. We ship one skill with a references/ catalog — same taste density, no manifest sprawl.</p></div>
+  </div>
+</section>
+
+<div class="promptbar">
+  <span class="txt mono" id="prompt-text">Apply the MengTo/Skills adoption plan: add Quality Bar rubrics to the top 15 ork skills, a video input mode to design-context-extract, a design-stylecards skill with an exact-value recipe catalog, and a CI gate asserting Quality Bar presence.</span>
+  <button id="copy-btn" type="button">Copy prompt</button>
+</div>
+
+</div>
+<script>
+  const tabs = [...document.querySelectorAll('.tab')];
+  const panels = [...document.querySelectorAll('.panel')];
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => activate(i));
+    tab.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight') activate((i + 1) % tabs.length, true);
+      if (e.key === 'ArrowLeft') activate((i - 1 + tabs.length) % tabs.length, true);
+    });
+  });
+  function activate(i, focus) {
+    tabs.forEach((t, j) => t.setAttribute('aria-selected', String(i === j)));
+    panels.forEach((p, j) => p.classList.toggle('active', i === j));
+    if (focus) tabs[i].focus();
+  }
+  const btn = document.getElementById('copy-btn');
+  btn.addEventListener('click', async () => {
+    await navigator.clipboard.writeText(document.getElementById('prompt-text').textContent.trim());
+    const old = btn.textContent; btn.textContent = '✓ Copied';
+    setTimeout(() => { btn.textContent = old; }, 1500);
+  });
+</script>
+</body>
+</html>

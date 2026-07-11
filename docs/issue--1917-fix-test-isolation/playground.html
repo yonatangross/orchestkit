@@ -1,0 +1,1030 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OrchestKit Coordination — v7.94 Design (2026-05-21) · Issue #1908</title>
+<style>
+  :root {
+    --bg: #0b0d0e; --bg-2: #131618; --bg-3: #1a1f22; --bg-4: #232a2e; --bg-5: #2d353a;
+    --fg: #c8d1d3; --fg-dim: #6b7679; --fg-vdim: #444;
+    --green: #50fa7b; --amber: #f1fa8c; --red: #ff5555; --blue: #8be9fd;
+    --purple: #bd93f9; --pink: #ff79c6; --orange: #ffb86c; --border: #2a3035;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; font-size: 13px; line-height: 1.5; }
+  code, pre, .mono { font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+
+  header {
+    padding: 12px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(180deg, #15191c, #0e1113);
+  }
+  header h1 { margin: 0; font-size: 14px; font-weight: 600; }
+  header .meta { color: var(--fg-dim); font-size: 11px; }
+  header .meta .tag { color: var(--green); }
+  header .meta a { color: var(--blue); text-decoration: none; }
+
+  .mode-bar {
+    display: flex; gap: 0; background: var(--bg-2);
+    border-bottom: 1px solid var(--border); padding: 0 20px; overflow-x: auto;
+  }
+  .mode-tab {
+    padding: 10px 16px; background: transparent; border: none;
+    border-bottom: 2px solid transparent; color: var(--fg-dim);
+    cursor: pointer; font-family: inherit; font-size: 12px;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .mode-tab:hover { color: var(--fg); }
+  .mode-tab.active { color: var(--green); border-bottom-color: var(--green); font-weight: 600; }
+  .mode-tab .badge {
+    background: var(--bg-4); color: var(--fg-dim);
+    padding: 1px 6px; border-radius: 8px; font-size: 10px; margin-left: 6px;
+  }
+  .mode-body { display: none; } .mode-body.active { display: block; }
+
+  /* FLOWS */
+  .flow-bar { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 20px; background: var(--bg-2); border-bottom: 1px solid var(--border); }
+  .flow-btn { background: var(--bg-3); border: 1px solid var(--border); color: var(--fg); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: inherit; transition: all 0.15s; }
+  .flow-btn:hover { border-color: var(--green); color: var(--green); }
+  .flow-btn.active { background: var(--green); color: var(--bg); border-color: var(--green); font-weight: 600; }
+  main.flows { display: grid; grid-template-columns: 240px 1fr 360px; gap: 0; min-height: calc(100vh - 160px); }
+  aside.controls { border-right: 1px solid var(--border); background: var(--bg-2); padding: 16px; overflow-y: auto; }
+  .step-meta { background: var(--bg-3); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; margin-bottom: 12px; }
+  .step-meta .step-num { color: var(--amber); font-family: ui-monospace, monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+  .step-meta .step-title { font-weight: 600; color: var(--fg); margin: 4px 0 6px; }
+  .step-meta .step-desc { color: var(--fg-dim); font-size: 12px; }
+  .step-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+  .step-btn { background: var(--bg-3); border: 1px solid var(--border); color: var(--fg); padding: 7px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: inherit; transition: all 0.15s; }
+  .step-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .step-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .step-btn.play { grid-column: span 2; background: var(--green); color: var(--bg); border-color: var(--green); font-weight: 600; }
+  .step-btn.play:hover { filter: brightness(1.1); }
+  .step-btn.play.playing { background: var(--amber); border-color: var(--amber); }
+  .desc-box { background: var(--bg-3); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; font-size: 12px; color: var(--fg-dim); line-height: 1.55; }
+  .desc-box b { color: var(--fg); }
+  section.stage { padding: 18px 22px; overflow-y: auto; background: var(--bg); }
+  .scene { background: var(--bg-2); border: 1px solid var(--border); border-radius: 4px; padding: 16px; min-height: 280px; display: flex; flex-direction: column; gap: 14px; }
+  .scene-title { color: var(--fg-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px dashed var(--border); padding-bottom: 6px; }
+  .sessions-row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .session { background: var(--bg-3); border: 1px solid var(--border); border-radius: 4px; padding: 8px 12px; font-family: ui-monospace, monospace; font-size: 11px; min-width: 160px; transition: all 0.4s; animation: pop 0.3s ease-out; }
+  @keyframes pop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  .session.acting { border-color: var(--amber); box-shadow: 0 0 0 1px var(--amber), 0 0 16px rgba(241, 250, 140, 0.4); }
+  .session.crashed { border-color: var(--red); opacity: 0.6; }
+  .session.ended { opacity: 0.4; border-color: var(--fg-vdim); }
+  .session.parent { background: linear-gradient(180deg, #1a1f2a, #131618); border-color: var(--purple); }
+  .session.worktree { background: linear-gradient(180deg, #1f1a2a, #131618); border-color: var(--pink); }
+  .session .sid { color: var(--blue); font-weight: 600; font-size: 12px; }
+  .session .repo { color: var(--fg-dim); font-size: 10px; margin-top: 2px; }
+  .session .state { color: var(--amber); font-size: 10px; margin-top: 4px; }
+  .session .badge { display: inline-block; padding: 1px 5px; border-radius: 2px; background: var(--bg-4); color: var(--fg-dim); font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; }
+  .session .badge.running { background: rgba(80, 250, 123, 0.15); color: var(--green); }
+  .session .badge.completed { background: rgba(139, 233, 253, 0.1); color: var(--blue); }
+  .session .badge.crashed { background: rgba(255, 85, 85, 0.15); color: var(--red); }
+  .session .badge.acting { background: rgba(241, 250, 140, 0.2); color: var(--amber); }
+  .event-stream { background: #0a0c0d; border: 1px solid var(--border); border-radius: 3px; padding: 10px 14px; font-family: ui-monospace, monospace; font-size: 11px; min-height: 60px; max-height: 200px; overflow-y: auto; }
+  .event-stream .ev-line { padding: 2px 0; color: var(--fg); animation: fadeInLeft 0.3s; }
+  @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
+  .event-stream .ev-ts { color: var(--fg-dim); }
+  .event-stream .ev-type-goal_converged { color: var(--green); }
+  .event-stream .ev-type-chain_stale { color: var(--amber); }
+  .event-stream .ev-type-session_end { color: var(--fg-dim); }
+  .event-stream .ev-type-worktree_done { color: var(--pink); }
+  .event-stream .ev-type-chain_phase_changed { color: var(--blue); }
+  .event-stream .ev-empty { color: var(--fg-vdim); font-style: italic; }
+  aside.db { border-left: 1px solid var(--border); background: var(--bg-2); padding: 16px; overflow-y: auto; }
+  .db-title { color: var(--fg-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px dashed var(--border); }
+  .db-title .path { color: var(--green); text-transform: none; letter-spacing: 0; font-family: ui-monospace, monospace; font-size: 10px; }
+  .table-wrap { margin-bottom: 14px; }
+  .table-name { font-family: ui-monospace, monospace; font-size: 11px; color: var(--blue); margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; font-family: ui-monospace, monospace; font-size: 10px; background: #0a0c0d; border-radius: 3px; overflow: hidden; border: 1px solid var(--border); }
+  th { background: var(--bg-4); color: var(--fg-dim); padding: 4px 6px; text-align: left; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; font-size: 9px; }
+  td { padding: 4px 6px; border-top: 1px solid var(--border); color: var(--fg); }
+  td.green { color: var(--green); } td.amber { color: var(--amber); } td.red { color: var(--red); }
+  td.blue { color: var(--blue); } td.dim { color: var(--fg-dim); } td.pink { color: var(--pink); }
+  .empty-row td { color: var(--fg-vdim); text-align: center; font-style: italic; }
+  .code-block { background: #0a0c0d; border: 1px solid var(--border); border-radius: 3px; padding: 10px 12px; font-family: ui-monospace, monospace; font-size: 10.5px; color: var(--fg); white-space: pre-wrap; overflow-x: auto; line-height: 1.5; }
+
+  /* ROADMAP */
+  .roadmap-wrap { padding: 18px 22px; min-height: calc(100vh - 110px); }
+  .breaking-banner { background: linear-gradient(90deg, rgba(255,85,85,0.15), rgba(255,85,85,0.05)); border: 1px solid var(--red); border-radius: 4px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: var(--fg); }
+  .breaking-banner b { color: var(--red); letter-spacing: 0.5px; }
+  .summary-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 16px; }
+  .summary-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; }
+  .summary-card .v { font-family: ui-monospace, monospace; font-size: 22px; font-weight: 700; }
+  .summary-card .l { color: var(--fg-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+  .summary-card.green .v { color: var(--green); }
+  .summary-card.amber .v { color: var(--amber); }
+  .summary-card.blue .v { color: var(--blue); }
+  .summary-card.red .v { color: var(--red); }
+  .summary-card.purple .v { color: var(--purple); }
+  .summary-card.orange .v { color: var(--orange); }
+  .gantt-wrap { margin-bottom: 16px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; }
+  .gantt-title { color: var(--fg-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 10px; }
+  .gantt-row { display: grid; grid-template-columns: 130px 1fr; align-items: center; margin: 6px 0; font-size: 11px; }
+  .gantt-row .gname { color: var(--fg); font-family: ui-monospace, monospace; }
+  .gantt-track { position: relative; height: 16px; background: var(--bg-3); border-radius: 2px; }
+  .gantt-bar { position: absolute; top: 0; bottom: 0; border-radius: 2px; display: flex; align-items: center; justify-content: center; color: var(--bg); font-size: 9px; font-weight: 700; font-family: ui-monospace, monospace; }
+  .gantt-bar.cat-delete { background: var(--red); }
+  .gantt-bar.cat-foundation { background: var(--blue); }
+  .gantt-bar.cat-extension { background: var(--green); }
+  .gantt-bar.cat-docs { background: var(--purple); }
+  .gantt-bar.cat-release { background: var(--orange); }
+  .gantt-bar.cat-prep { background: var(--amber); }
+  .gantt-scale { display: grid; grid-template-columns: 130px 1fr; margin-top: 8px; font-size: 9px; color: var(--fg-dim); font-family: ui-monospace, monospace; }
+  .gantt-ticks { display: grid; grid-template-columns: repeat(11, 1fr); }
+  .gantt-tick { text-align: center; border-left: 1px solid var(--border); padding-left: 4px; }
+  .gantt-tick:first-child { border-left: none; }
+  .timeline { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .phase-chip { flex-shrink: 0; min-width: 130px; background: var(--bg-2); border: 1px solid var(--border); border-left: 3px solid var(--fg-dim); border-radius: 4px; padding: 8px 10px; cursor: pointer; transition: all 0.15s; }
+  .phase-chip:hover { background: var(--bg-3); }
+  .phase-chip.active { background: var(--bg-3); box-shadow: 0 0 0 1px var(--green); }
+  .phase-chip.cat-delete { border-left-color: var(--red); }
+  .phase-chip.cat-foundation { border-left-color: var(--blue); }
+  .phase-chip.cat-extension { border-left-color: var(--green); }
+  .phase-chip.cat-docs { border-left-color: var(--purple); }
+  .phase-chip.cat-release { border-left-color: var(--orange); }
+  .phase-chip.cat-prep { border-left-color: var(--amber); }
+  .phase-chip .ph-num { font-family: ui-monospace, monospace; color: var(--fg-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+  .phase-chip .ph-title { font-weight: 600; font-size: 12px; color: var(--fg); margin-top: 2px; }
+  .phase-chip .ph-day { color: var(--fg-dim); font-size: 10px; margin-top: 4px; font-family: ui-monospace, monospace; }
+  .phase-detail { background: var(--bg-2); border: 1px solid var(--border); border-radius: 4px; padding: 18px 20px; }
+  .phase-detail .ph-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+  .phase-detail h2 { margin: 0; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .phase-detail h2 .ph-tag { font-size: 10px; padding: 2px 8px; background: var(--bg-4); color: var(--fg-dim); border-radius: 3px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  .phase-detail h2 .ph-tag.cat-delete { background: rgba(255,85,85,0.15); color: var(--red); }
+  .phase-detail h2 .ph-tag.cat-foundation { background: rgba(139,233,253,0.15); color: var(--blue); }
+  .phase-detail h2 .ph-tag.cat-extension { background: rgba(80,250,123,0.15); color: var(--green); }
+  .phase-detail h2 .ph-tag.cat-docs { background: rgba(189,147,249,0.15); color: var(--purple); }
+  .phase-detail h2 .ph-tag.cat-release { background: rgba(255,184,108,0.15); color: var(--orange); }
+  .phase-detail h2 .ph-tag.cat-prep { background: rgba(241,250,140,0.15); color: var(--amber); }
+  .phase-detail .ph-meta { display: flex; gap: 14px; color: var(--fg-dim); font-size: 11px; font-family: ui-monospace, monospace; }
+  .phase-detail .ph-meta b { color: var(--fg); }
+  .phase-detail .ph-goal { background: var(--bg-3); border-left: 2px solid var(--green); padding: 8px 12px; border-radius: 3px; font-style: italic; color: var(--fg); margin-bottom: 14px; }
+  .phase-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .phase-section { background: var(--bg-3); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; }
+  .phase-section h3 { margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--fg-dim); border-bottom: 1px dashed var(--border); padding-bottom: 4px; }
+  .phase-section ul { margin: 0; padding-left: 18px; font-size: 12px; }
+  .phase-section li { margin: 4px 0; color: var(--fg); }
+  .phase-section li code { background: #0a0c0d; padding: 0 4px; border-radius: 2px; color: var(--amber); font-size: 11px; }
+  .phase-section li.del code { color: var(--red); text-decoration: line-through; }
+  .phase-section li.add code { color: var(--green); }
+  .phase-section li.mod code { color: var(--amber); }
+  .ph-deps { margin-top: 14px; padding: 8px 12px; background: var(--bg-3); border-radius: 4px; font-family: ui-monospace, monospace; font-size: 11px; color: var(--fg-dim); }
+  .ph-deps b { color: var(--fg); }
+  .ph-deps .dep-tag { display: inline-block; padding: 1px 6px; margin: 0 2px; background: var(--bg-4); color: var(--blue); border-radius: 2px; font-size: 10px; }
+  .ph-accept { margin-top: 12px; padding: 10px 12px; background: rgba(80,250,123,0.05); border-left: 2px solid var(--green); border-radius: 3px; font-size: 12px; }
+  .ph-accept b { color: var(--green); }
+  .ph-accept ul { margin: 6px 0 0; padding-left: 18px; }
+  .ph-risk { margin-top: 8px; padding: 10px 12px; background: rgba(255,85,85,0.05); border-left: 2px solid var(--red); border-radius: 3px; font-size: 12px; color: var(--fg); }
+  .ph-risk b { color: var(--red); }
+
+  /* HOOKS */
+  .hooks-wrap { padding: 18px 22px; }
+  .hook-filters { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .hook-filter { background: var(--bg-3); border: 1px solid var(--border); color: var(--fg-dim); padding: 4px 10px; border-radius: 12px; font-size: 11px; cursor: pointer; }
+  .hook-filter.active { background: var(--green); color: var(--bg); border-color: var(--green); font-weight: 600; }
+  .hook-filter:hover { color: var(--fg); }
+  .hook-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .hook-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .hook-card.status-DELETE { border-left: 3px solid var(--red); }
+  .hook-card.status-NEW { border-left: 3px solid var(--green); }
+  .hook-card.status-KEEP { border-left: 3px solid var(--blue); }
+  .hook-card.status-MOVED { border-left: 3px solid var(--amber); }
+  .hook-card .hk-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .hook-card .hk-name { font-family: ui-monospace, monospace; font-weight: 600; color: var(--fg); font-size: 12px; }
+  .hook-card .hk-tag { font-size: 9px; padding: 2px 7px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; }
+  .hook-card .hk-tag.status-DELETE { background: rgba(255,85,85,0.2); color: var(--red); }
+  .hook-card .hk-tag.status-NEW { background: rgba(80,250,123,0.2); color: var(--green); }
+  .hook-card .hk-tag.status-KEEP { background: rgba(139,233,253,0.15); color: var(--blue); }
+  .hook-card .hk-tag.status-MOVED { background: rgba(241,250,140,0.2); color: var(--amber); }
+  .hook-card .hk-meta { display: flex; gap: 12px; color: var(--fg-dim); font-size: 10px; font-family: ui-monospace, monospace; }
+  .hook-card .hk-meta b { color: var(--fg); }
+  .hook-card .hk-path { font-family: ui-monospace, monospace; font-size: 10px; color: var(--purple); background: var(--bg-3); padding: 4px 8px; border-radius: 3px; }
+  .hook-card .hk-path.deleted { text-decoration: line-through; color: var(--red); }
+  .hook-card .hk-ba { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .hook-card .hk-ba .ba-col { background: var(--bg-3); border-radius: 3px; padding: 8px 10px; font-size: 11px; line-height: 1.45; }
+  .hook-card .hk-ba .ba-col .ba-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--fg-dim); margin-bottom: 4px; }
+  .hook-card .hk-ba .ba-col.before { border-top: 2px solid var(--red); }
+  .hook-card .hk-ba .ba-col.after { border-top: 2px solid var(--green); }
+  .hook-card .hk-fires { font-size: 11px; color: var(--fg-dim); font-family: ui-monospace, monospace; }
+  .hook-card .hk-fires b { color: var(--amber); }
+
+  /* FOLDER */
+  .folder-wrap { padding: 18px 22px; }
+  .folder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .folder-pane { background: var(--bg-2); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; }
+  .folder-pane .pane-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed var(--border); }
+  .folder-pane .pane-head h3 { margin: 0; font-size: 13px; font-weight: 700; }
+  .folder-pane.before .pane-head h3 { color: var(--red); }
+  .folder-pane.after .pane-head h3 { color: var(--green); }
+  .folder-pane .pane-stats { color: var(--fg-dim); font-size: 11px; font-family: ui-monospace, monospace; }
+  .tree { font-family: ui-monospace, monospace; font-size: 11.5px; line-height: 1.6; white-space: pre; color: var(--fg); }
+  .tree .t-dir { color: var(--blue); }
+  .tree .t-file { color: var(--fg); }
+  .tree .t-del { color: var(--red); text-decoration: line-through; }
+  .tree .t-new { color: var(--green); }
+  .tree .t-keep { color: var(--fg-dim); }
+  .tree .t-mod { color: var(--amber); }
+  .tree .annotation { color: var(--fg-vdim); font-style: italic; font-size: 10.5px; }
+  .legend { display: flex; gap: 14px; margin-bottom: 14px; font-size: 11px; }
+  .legend .lg { display: flex; align-items: center; gap: 6px; color: var(--fg-dim); }
+  .legend .lg .swatch { width: 12px; height: 12px; border-radius: 2px; }
+  .legend .lg.del .swatch { background: var(--red); }
+  .legend .lg.new .swatch { background: var(--green); }
+  .legend .lg.keep .swatch { background: var(--fg-dim); }
+  .legend .lg.mod .swatch { background: var(--amber); }
+
+  /* TRACING */
+  .trace-wrap { padding: 18px 22px; }
+  .trace-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .trace-action { background: var(--bg-3); border: 1px solid var(--border); color: var(--fg); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: inherit; }
+  .trace-action:hover { border-color: var(--green); color: var(--green); }
+  .trace-action.active { background: var(--green); color: var(--bg); border-color: var(--green); font-weight: 600; }
+  .trace-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .trace-pane { background: var(--bg-2); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; }
+  .trace-pane.before { border-top: 3px solid var(--red); }
+  .trace-pane.after { border-top: 3px solid var(--green); }
+  .trace-pane h3 { margin: 0 0 10px; font-size: 13px; }
+  .trace-pane.before h3 { color: var(--red); }
+  .trace-pane.after h3 { color: var(--green); }
+  .trace-step { background: var(--bg-3); border-left: 2px solid var(--fg-dim); padding: 6px 10px; margin: 6px 0; border-radius: 3px; font-family: ui-monospace, monospace; font-size: 11px; line-height: 1.5; transition: all 0.2s; }
+  .trace-step.active { border-left-color: var(--amber); box-shadow: 0 0 8px rgba(241,250,140,0.2); background: var(--bg-4); }
+  .trace-step .hk { color: var(--amber); font-weight: 600; }
+  .trace-step .layer { display: inline-block; padding: 1px 5px; border-radius: 2px; background: var(--bg-4); color: var(--blue); font-size: 9px; margin-left: 6px; }
+  .trace-step .desc { color: var(--fg-dim); margin-top: 2px; font-family: ui-sans-serif, system-ui, sans-serif; }
+  .trace-step.zombie { border-left-color: var(--red); }
+  .trace-step.zombie .hk { color: var(--red); }
+  .trace-step.absent { color: var(--fg-vdim); font-style: italic; }
+  .trace-controls { display: flex; gap: 8px; margin: 12px 0; align-items: center; }
+  .trace-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+  .trace-stat { background: var(--bg-3); border: 1px solid var(--border); border-radius: 4px; padding: 8px 10px; }
+  .trace-stat .v { font-family: ui-monospace, monospace; font-size: 18px; font-weight: 700; }
+  .trace-stat .l { color: var(--fg-dim); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; }
+  .trace-stat.red .v { color: var(--red); }
+  .trace-stat.green .v { color: var(--green); }
+  .trace-stat.blue .v { color: var(--blue); }
+
+  footer { padding: 10px 20px; color: var(--fg-dim); font-size: 11px; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🗄️ OrchestKit Coordination — v7.94 Design <span class="meta">— <span class="tag">2026-05-21</span> · <a href="https://github.com/yonatangross/orchestkit/issues/1908" target="_blank">issue #1908</a></span></h1>
+  <div class="meta">5 views · no backwards compat · 4-layer arch · 11-day ship</div>
+</header>
+
+<div class="mode-bar">
+  <button class="mode-tab active" data-mode="flows">User Flows <span class="badge">8</span></button>
+  <button class="mode-tab" data-mode="roadmap">Roadmap <span class="badge">8 phases · 11d</span></button>
+  <button class="mode-tab" data-mode="hooks">Hooks <span class="badge">16</span></button>
+  <button class="mode-tab" data-mode="folder">Folder Δ <span class="badge">before / after</span></button>
+  <button class="mode-tab" data-mode="trace">Tracing <span class="badge">6 actions</span></button>
+</div>
+
+<!-- ─── FLOWS ─── -->
+<div class="mode-body active" id="mode_flows">
+  <div class="flow-bar" id="flowBar"></div>
+  <main class="flows">
+    <aside class="controls">
+      <div class="step-meta">
+        <div class="step-num" id="step_num">STEP 0 / 0</div>
+        <div class="step-title" id="step_title">Pick a flow</div>
+        <div class="step-desc" id="step_desc">Select a flow above to start.</div>
+      </div>
+      <div class="step-controls">
+        <button class="step-btn" id="prev_btn">◀ Prev</button>
+        <button class="step-btn" id="next_btn">Next ▶</button>
+        <button class="step-btn play" id="play_btn">▶ Auto-play</button>
+        <button class="step-btn" id="reset_btn">⟲ Reset</button>
+      </div>
+      <div class="desc-box" id="long_desc">Each flow animates one observable change — a SQLite row, an event, a state transition.</div>
+    </aside>
+    <section class="stage">
+      <div class="scene">
+        <div class="scene-title">Sessions (Layer 1 + Layer 2)</div>
+        <div class="sessions-row" id="sessions_row"></div>
+        <div class="scene-title" style="margin-top: 4px">Event stream — Layer 3 (events.jsonl)</div>
+        <div class="event-stream" id="event_stream"></div>
+        <div class="scene-title" style="margin-top: 4px">Step executing</div>
+        <pre class="code-block" id="step_code">// Pick a flow to start</pre>
+      </div>
+    </section>
+    <aside class="db">
+      <div class="db-title">SQLite WAL <span class="path">~/.local/state/orchestkit/sessions.db</span></div>
+      <div class="table-wrap"><div class="table-name">sessions</div><table id="t_sessions"><thead><tr><th>sid</th><th>repo</th><th>status</th><th>hb</th></tr></thead><tbody></tbody></table></div>
+      <div class="table-wrap"><div class="table-name">locks</div><table id="t_locks"><thead><tr><th>name</th><th>holder</th><th>exp</th></tr></thead><tbody></tbody></table></div>
+      <div class="table-wrap"><div class="table-name">settings_overrides</div><table id="t_settings"><thead><tr><th>sid</th><th>key</th><th>value</th></tr></thead><tbody></tbody></table></div>
+      <div class="table-wrap"><div class="table-name">worktree_links</div><table id="t_worktree"><thead><tr><th>child</th><th>parent</th><th>status</th></tr></thead><tbody></tbody></table></div>
+    </aside>
+  </main>
+</div>
+
+<!-- ─── ROADMAP ─── -->
+<div class="mode-body" id="mode_roadmap">
+  <div class="roadmap-wrap">
+    <div class="breaking-banner"><b>⚠ BREAKING CHANGE — no backwards compatibility:</b> v7.94.0 deletes <code>src/monitors/monitors.json</code> entirely. No deprecation period. No env-var escape hatch. Phase 1 deletes the monitors on day 1; SQLite-based coordination fully replaces them by Phase 4.</div>
+    <div class="summary-strip">
+      <div class="summary-card green"><div class="v">11</div><div class="l">working days</div></div>
+      <div class="summary-card blue"><div class="v">8</div><div class="l">pull requests</div></div>
+      <div class="summary-card amber"><div class="v">+18</div><div class="l">files added</div></div>
+      <div class="summary-card red"><div class="v">-6</div><div class="l">files deleted</div></div>
+      <div class="summary-card purple"><div class="v">+44</div><div class="l">new tests</div></div>
+      <div class="summary-card orange"><div class="v">+430</div><div class="l">net LOC (-50 shell)</div></div>
+    </div>
+    <div class="gantt-wrap">
+      <div class="gantt-title">Timeline (working days)</div>
+      <div id="gantt_rows"></div>
+      <div class="gantt-scale"><div></div><div class="gantt-ticks"><div class="gantt-tick">D0</div><div class="gantt-tick">D1</div><div class="gantt-tick">D2</div><div class="gantt-tick">D3</div><div class="gantt-tick">D4</div><div class="gantt-tick">D5</div><div class="gantt-tick">D6</div><div class="gantt-tick">D7</div><div class="gantt-tick">D8</div><div class="gantt-tick">D9</div><div class="gantt-tick">D10+</div></div></div>
+    </div>
+    <div class="timeline" id="timeline"></div>
+    <div class="phase-detail" id="phase_detail"></div>
+  </div>
+</div>
+
+<!-- ─── HOOKS ─── -->
+<div class="mode-body" id="mode_hooks">
+  <div class="hooks-wrap">
+    <div class="legend">
+      <div class="lg new"><span class="swatch"></span> NEW (added in v7.94)</div>
+      <div class="lg del"><span class="swatch"></span> DELETED (replaced)</div>
+      <div class="lg keep"><span class="swatch"></span> KEPT (unchanged)</div>
+      <div class="lg mod"><span class="swatch"></span> MOVED/MODIFIED</div>
+    </div>
+    <div class="hook-filters" id="hook_filters">
+      <button class="hook-filter active" data-filter="all">All (16)</button>
+      <button class="hook-filter" data-filter="NEW">New</button>
+      <button class="hook-filter" data-filter="DELETE">Deleted</button>
+      <button class="hook-filter" data-filter="KEEP">Kept</button>
+      <button class="hook-filter" data-filter="Layer 1">Layer 1 (SQLite)</button>
+      <button class="hook-filter" data-filter="Layer 2">Layer 2 (file bus)</button>
+      <button class="hook-filter" data-filter="Layer 3">Layer 3 (events)</button>
+      <button class="hook-filter" data-filter="Layer 4">Layer 4 (worktree)</button>
+    </div>
+    <div class="hook-grid" id="hook_grid"></div>
+  </div>
+</div>
+
+<!-- ─── FOLDER STRUCTURE ─── -->
+<div class="mode-body" id="mode_folder">
+  <div class="folder-wrap">
+    <div class="legend">
+      <div class="lg new"><span class="swatch"></span> NEW</div>
+      <div class="lg del"><span class="swatch"></span> DELETED</div>
+      <div class="lg keep"><span class="swatch"></span> UNCHANGED</div>
+      <div class="lg mod"><span class="swatch"></span> MODIFIED</div>
+    </div>
+    <div class="folder-grid">
+      <div class="folder-pane before">
+        <div class="pane-head"><h3>📁 BEFORE — v7.93.0</h3><div class="pane-stats">monitors.json · polling shells · 35 zombies</div></div>
+        <div class="tree" id="tree_before"></div>
+      </div>
+      <div class="folder-pane after">
+        <div class="pane-head"><h3>📁 AFTER — v7.94.0</h3><div class="pane-stats">SQLite · events.jsonl · 0 zombies</div></div>
+        <div class="tree" id="tree_after"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TRACING ─── -->
+<div class="mode-body" id="mode_trace">
+  <div class="trace-wrap">
+    <div class="trace-actions" id="trace_actions"></div>
+    <div class="trace-controls">
+      <button class="step-btn" id="trace_prev">◀ Prev</button>
+      <button class="step-btn" id="trace_next">Next ▶</button>
+      <button class="step-btn play" id="trace_play" style="grid-column: auto; width: auto; padding: 7px 14px">▶ Play trace</button>
+      <button class="step-btn" id="trace_reset">⟲ Reset</button>
+      <div style="flex: 1"></div>
+      <div class="trace-stats" style="margin-bottom: 0">
+        <div class="trace-stat red"><div class="v" id="ts_before_count">0</div><div class="l">before steps</div></div>
+        <div class="trace-stat green"><div class="v" id="ts_after_count">0</div><div class="l">after steps</div></div>
+        <div class="trace-stat blue"><div class="v" id="ts_zombies">0</div><div class="l">zombies left running</div></div>
+      </div>
+    </div>
+    <div class="trace-grid">
+      <div class="trace-pane before"><h3>🧟 BEFORE — v7.93 (monitors.json era)</h3><div id="trace_before"></div></div>
+      <div class="trace-pane after"><h3>✅ AFTER — v7.94 (4-layer arch)</h3><div id="trace_after"></div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Issue: <a href="https://github.com/yonatangross/orchestkit/issues/1908">#1908</a> · NotebookLM: <a href="https://notebooklm.google.com/notebook/925a1d77-f6cc-49c7-81ff-bbe0661e061e">925a1d77</a> · Design: <code>/tmp/ork-coordination-design-2026-05-21.md</code>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// FLOWS DATA (condensed)
+// ═══════════════════════════════════════════════════════════════════════
+const FLOWS = {
+  solo: { title:"Flow 1 · Solo session", desc:"Boring case.", steps:[
+    {title:"09:00 — Session A starts", desc:"SessionStart fires.", code:"INSERT INTO sessions VALUES ('A', 4711, '~/coding/ork', 'H1', 'running', ...);", apply: s => { s.sessions.A={sid:'A',repo:'ork',status:'running',hb:'09:00',acting:true}; }},
+    {title:"09:15 — /goal converges", desc:"Stop hook appends event.", code:"appendEvent({type:'goal_converged', sid:'A', turn_count:14});", apply: s => { s.sessions.A.state='post /goal'; s.sessions.A.acting=true; s.events.push({ts:'09:15:02',type:'goal_converged',payload:'sid=A turns=14'}); }},
+    {title:"09:30 — User closes CC", desc:"SessionEnd marks completed.", code:"UPDATE sessions SET status='completed', ended_at=strftime('%s','now') WHERE sid='A';", apply: s => { s.sessions.A.status='completed'; s.sessions.A.acting=false; s.events.push({ts:'09:30:01',type:'session_end',payload:'sid=A'}); }}
+  ]},
+  two: { title:"Flow 2 · Two sessions same repo", desc:"Discovery via SQLite, lock via PK.", steps:[
+    {title:"A starts", desc:"First session.", code:"INSERT INTO sessions VALUES ('A', ..., 'H1', 'running');", apply: s => { s.sessions.A={sid:'A',repo:'ork',status:'running',hb:'09:00',acting:true}; }},
+    {title:"B starts, discovers A", desc:"SELECT WHERE repo_hash='H1'.", code:"SELECT sid FROM sessions WHERE repo_hash='H1' AND sid != 'B';\n-- A | running", apply: s => { s.sessions.B={sid:'B',repo:'ork',status:'running',hb:'09:05',acting:true}; s.sessions.A.acting=false; }},
+    {title:"A acquires lock", desc:"Holds chain-watcher.", code:"INSERT INTO locks VALUES ('chain-watcher:H1', 'A', ..., +1800);", apply: s => { s.locks['chain-watcher:H1']={name:'chain-watcher:H1',holder:'A',exp:'09:35'}; s.sessions.A.acting=true; s.sessions.B.acting=false; }},
+    {title:"B tries same — yields", desc:"PK conflict.", code:"-- SQLITE_CONSTRAINT_PRIMARYKEY\n// B yields", apply: s => { s.sessions.B.state='yielded to A'; s.sessions.B.acting=true; s.sessions.A.acting=false; }},
+    {title:"A ends, CASCADE", desc:"Lock released.", code:"UPDATE sessions SET status='completed' WHERE sid='A';\n-- CASCADE: DELETE FROM locks WHERE holder_sid='A';", apply: s => { s.sessions.A.status='completed'; s.sessions.A.acting=false; delete s.locks['chain-watcher:H1']; s.sessions.B.acting=true; s.events.push({ts:'09:30',type:'session_end',payload:'sid=A'}); }}
+  ]},
+  multirepo: { title:"Flow 3 · Multi-repo", desc:"repo_hash isolation.", steps:[
+    {title:"S1 in ork (H1)", desc:"", code:"INSERT INTO sessions VALUES ('S1', ..., 'H1', ...);", apply: s => { s.sessions.S1={sid:'S1',repo:'ork',status:'running',hb:'09:00',acting:true}; }},
+    {title:"S2 in platform (H2)", desc:"No siblings (different repo).", code:"SELECT * WHERE repo_hash='H2' AND sid!='S2';\n-- 0 rows", apply: s => { s.sessions.S2={sid:'S2',repo:'platform',status:'running',hb:'09:01',acting:true}; s.sessions.S1.acting=false; }},
+    {title:"S1 fires goal — repo-scoped", desc:"event.repo_hash='H1'.", code:"appendEvent({type:'goal_converged', sid:'S1', repo_hash:'H1'});", apply: s => { s.events.push({ts:'09:10',type:'goal_converged',payload:'sid=S1 repo=H1'}); s.sessions.S1.acting=true; s.sessions.S2.acting=false; }},
+    {title:"S2 wakes, filters out", desc:"event.repo_hash!=H2.", code:"if (event.repo_hash !== this.repo_hash) return;", apply: s => { s.sessions.S2.state='filtered'; s.sessions.S2.acting=true; s.sessions.S1.acting=false; }},
+    {title:"Per-repo locks coexist", desc:"H1 + H2.", code:"INSERT INTO locks VALUES ('chain-watcher:H2', 'S2', ...);", apply: s => { s.locks['chain-watcher:H1']={name:'chain-watcher:H1',holder:'S1',exp:'09:35'}; s.locks['chain-watcher:H2']={name:'chain-watcher:H2',holder:'S2',exp:'09:40'}; s.sessions.S2.acting=true; }}
+  ]},
+  worktree: { title:"Flow 4 · Worktree spawn", desc:"Parent↔child via Layer 4.", steps:[
+    {title:"Parent P", desc:"Primary tree.", code:"INSERT INTO sessions VALUES ('P', ..., 'H1', ...);", apply: s => { s.sessions.P={sid:'P',repo:'ork',status:'running',hb:'09:00',acting:true,role:'parent'}; }},
+    {title:"P → /ork:implement", desc:"EnterWorktree registers.", code:"INSERT INTO worktree_links (parent_sid, purpose, ...);", apply: s => { s.sessions.P.state='spawning'; s.sessions.P.acting=true; }},
+    {title:"Child C starts", desc:"Links to parent.", code:"INSERT INTO sessions VALUES ('C', ..., worktree_path='/tmp/X', parent_sid='P');\nUPDATE worktree_links SET child_sid='C' WHERE parent_sid='P';", apply: s => { s.sessions.C={sid:'C',repo:'ork (wt)',status:'running',hb:'09:05',acting:true,role:'worktree',branch:'feat/X'}; s.worktree_links.C={child:'C',parent:'P',status:'running'}; s.sessions.P.acting=false; }},
+    {title:"C writes children/C.json", desc:"Layer 4 file.", code:"fs.writeFileSync('~/coding/ork/.claude/state/children/C.json', ...);", apply: s => { s.sessions.C.acting=true; }},
+    {title:"P sees child badge", desc:"PostToolUse polls children/.", code:"SELECT * FROM worktree_links WHERE parent_sid='P';", apply: s => { s.sessions.P.state='sees 1 child'; s.sessions.P.acting=true; s.sessions.C.acting=false; }},
+    {title:"C merges PR", desc:"Updates link, emits event.", code:"UPDATE worktree_links SET result_status='merged', result_payload='{\"pr\":1912}';\nappendEvent({type:'worktree_done', child:'C', pr:1912});", apply: s => { s.worktree_links.C.status='merged'; s.sessions.C.status='completed'; s.sessions.C.acting=false; s.events.push({ts:'09:25',type:'worktree_done',payload:'child=C pr=1912'}); s.sessions.P.acting=true; s.sessions.P.state='child merged'; }}
+  ]},
+  effort: { title:"Flow 5 · Session /effort", desc:"Fixes CC #49166.", steps:[
+    {title:"Both default", desc:"", code:"INSERT INTO sessions VALUES ('A'), ('B');", apply: s => { s.sessions.A={sid:'A',repo:'ork',status:'running',hb:'09:00',acting:true}; s.sessions.B={sid:'B',repo:'ork',status:'running',hb:'09:01',acting:true}; }},
+    {title:"A sets /effort high", desc:"Per-session row.", code:"INSERT INTO settings_overrides VALUES ('A', 'effort', '\"high\"', ...);", apply: s => { s.settings.A_effort={sid:'A',key:'effort',value:'\"high\"'}; s.sessions.A.state='effort=high'; s.sessions.A.acting=true; s.sessions.B.acting=false; }},
+    {title:"B unchanged", desc:"Reads its own row.", code:"SELECT value FROM settings_overrides WHERE sid='B' AND key='effort';\n-- 0 rows → default", apply: s => { s.sessions.B.state='effort=default'; s.sessions.B.acting=true; s.sessions.A.acting=false; }},
+    {title:"A ends, CASCADE cleans", desc:"No contamination.", code:"UPDATE sessions SET status='completed' WHERE sid='A';\n-- CASCADE: DELETE FROM settings_overrides WHERE sid='A';", apply: s => { s.sessions.A.status='completed'; s.sessions.A.acting=false; delete s.settings.A_effort; }}
+  ]},
+  crash: { title:"Flow 6 · Crash recovery", desc:"TTL sweep.", steps:[
+    {title:"A running, holds lock", desc:"", code:"UPDATE last_heartbeat;\nINSERT INTO locks ('chain-watcher:H1', 'A', exp +1800);", apply: s => { s.sessions.A={sid:'A',repo:'ork',status:'running',hb:'09:30',acting:true}; s.locks['chain-watcher:H1']={name:'chain-watcher:H1',holder:'A',exp:'10:00'}; }},
+    {title:"kill -9", desc:"Row stale.", code:"// row LIES: sid=A status=running hb=09:35", apply: s => { s.sessions.A.acting=false; s.sessions.A.state='killed'; s.sessions.A.crashed=true; }},
+    {title:"24h pass...", desc:"", code:"-- stale row + expired lock sit", apply: s => {}},
+    {title:"B starts, sweep runs", desc:"SessionStart cleans.", code:"UPDATE sessions SET status='crashed' WHERE last_heartbeat < now-86400;\nDELETE FROM locks WHERE expires_at < now;", apply: s => { s.sessions.A.status='crashed'; delete s.locks['chain-watcher:H1']; s.sessions.B={sid:'B',repo:'ork',status:'running',hb:'09:36',acting:true}; }}
+  ]},
+  chain: { title:"Flow 7 · Chain staleness", desc:"PostToolUse inline check.", steps:[
+    {title:"/ork:implement starts", desc:"chain state.json written.", code:"// chain/state.json = {phase:1, updated:'10:00'}", apply: s => { s.sessions.A={sid:'A',repo:'ork',status:'running',hb:'10:00',acting:true,state:'p1'}; s.events.push({ts:'10:00',type:'chain_phase_changed',payload:'phase=1'}); }},
+    {title:"Phases advance fresh", desc:"PostToolUse checks inline.", code:"if (age < 30) return;", apply: s => { s.sessions.A.state='p3'; s.sessions.A.acting=true; }},
+    {title:"Skill hangs", desc:"mtime frozen.", code:"// age=35min > 30", apply: s => { s.sessions.A.hb='10:35'; s.sessions.A.state='p3 (stale!)'; s.sessions.A.acting=true; }},
+    {title:"Stale event emitted", desc:"", code:"appendEvent({type:'chain_stale', sid:'A', stale_for_min:35});", apply: s => { s.events.push({ts:'10:35',type:'chain_stale',payload:'sid=A stale=35min'}); }}
+  ]},
+  goal: { title:"Flow 8 · /goal converges", desc:"Event-driven.", steps:[
+    {title:"/goal starts", desc:"", code:"// goal-current.json = {sid:'A', condition:'tests_pass'}", apply: s => { s.sessions.A={sid:'A',repo:'ork',status:'running',hb:'11:00',acting:true,state:'/goal running'}; }},
+    {title:"Turns 1-13", desc:"Heartbeats tick.", code:"UPDATE last_heartbeat;", apply: s => { s.sessions.A.hb='11:30'; s.sessions.A.acting=true; }},
+    {title:"Turn 14 — converged", desc:"Stop hook fires.", code:"appendEvent({type:'goal_converged', sid:'A', turn_count:14, duration_sec:1840});", apply: s => { s.sessions.A.acting=true; s.sessions.A.state='CONVERGED'; s.events.push({ts:'11:30:40',type:'goal_converged',payload:'sid=A turns=14'}); }},
+    {title:"Siblings wake (fsnotify)", desc:"Zero polling fan-out.", code:"// fsnotify wakes session B → reads new line", apply: s => { s.events.push({ts:'11:30:41',type:'goal_converged',payload:'observed by siblings'}); }}
+  ]}
+};
+
+// ═══════════════════════════════════════════════════════════════════════
+// ROADMAP DATA
+// ═══════════════════════════════════════════════════════════════════════
+const ROADMAP = [
+  { id:0, num:'Phase 0', cat:'prep', title:'Prep + design issue', day_start:0, day_end:0.5, goal:'Lock the design publicly.', pr:0, files_add:[], files_del:[], files_mod:['github issue #1908 created'], tests:[], deps:[], accept:['GH issue exists with all artifact links','Milestone M168 created','NotebookLM slide deck public'], risk:'Bikeshedding delays kickoff. Cap review to 48h.', time:'30 min' },
+  { id:1, num:'Phase 1', cat:'delete', title:'Hard-delete monitors.json', day_start:0.5, day_end:1, goal:'Stop the bleeding. Zero monitor shells spawned ever again.', pr:1, files_del:['src/monitors/monitors.json','src/monitors/__tests__/monitors.test.ts','docs/monitor-authoring.md'], files_mod:['manifests/ork.json (remove monitors registration)','CLAUDE.md (remove Monitors section)','.claude-plugin/plugin.json (remove monitors entry)'], files_add:[], tests:['removed monitor tests; remaining suites verify no monitor refs'], deps:[], accept:['<code>find src/monitors -type f</code> returns 0','<code>grep -r monitors manifests/</code> returns 0','<code>npm test</code> passes','Fresh CC session shows 0 background processes from ork'], risk:'User muscle memory for a reminder. Mitigation: changelog banner + commit-nudge.ts still fires.', time:'1h' },
+  { id:2, num:'Phase 2', cat:'foundation', title:'SQLite Layer 1', day_start:1, day_end:3, goal:'Install SQLite foundation: sessions + locks + settings + worktree_links.', pr:2, files_add:['src/hooks/src/lib/session-registry.ts (~180 LOC)','src/hooks/src/lib/sqlite-migrations/index.ts','src/hooks/src/lib/sqlite-migrations/001-initial.sql','src/hooks/src/lifecycle/session-registrar.ts (~60 LOC)','src/hooks/src/stop/session-finalizer.ts (~40 LOC)','src/hooks/src/posttool/heartbeat.ts (~30 LOC)'], files_mod:['src/hooks/hooks.json (+3 hooks)','src/hooks/package.json (+better-sqlite3)','manifests/ork.json (count)','CLAUDE.md (Version count)'], files_del:[], tests:['sqlite-concurrency.test.ts (50 writers, no SQLITE_BUSY escape)','sqlite-crash-recovery.test.ts','sqlite-migration.test.ts (idempotent)','sqlite-integrity.test.ts (corruption quarantine)','session-registrar.test.ts','heartbeat.test.ts'], deps:['Phase 1'], accept:['<code>sessions.db</code> exists after first hook','SELECT shows row per running session','Sweep clears rows older than 24h','Sweep deletes expired locks','Concurrent SessionStart writers serialize cleanly','Migration idempotent'], risk:'better-sqlite3 native compile fails. Mitigation: pre-built binaries, document fallback degraded mode.', time:'2 days' },
+  { id:3, num:'Phase 3', cat:'extension', title:'Layer 3 events + replacements', day_start:3, day_end:5, goal:'Restore goal-convergence + chain-staleness as hooks, not polling.', pr:3, files_add:['src/hooks/src/lib/event-log.ts (~120 LOC)','src/hooks/src/posttool/chain-staleness-checker.ts (~40 LOC)','src/hooks/src/stop/goal-convergence-emitter.ts (~30 LOC)'], files_mod:['src/hooks/hooks.json (+2 hooks)','manifests/ork.json','CLAUDE.md'], files_del:[], tests:['event-log-append-atomic.test.ts (1000 appends, no torn writes)','event-log-fsnotify.test.ts (sibling reactive read)','event-log-rotation.test.ts (10MB rotation)','chain-staleness.test.ts (30min frozen mtime fires)','goal-convergence-emitter.test.ts'], deps:['Phase 2'], accept:['/goal completion writes one event line','Chain stale fires after 30min frozen','Siblings see events <50ms','events.jsonl rotates at 10MB'], risk:'fsnotify handle leak. Mitigation: single watcher per session, cleaned in SessionEnd.', time:'2 days' },
+  { id:4, num:'Phase 4', cat:'extension', title:'Worktree + per-session overrides', day_start:5, day_end:7, goal:'Layer 4 + fix CC #49166/#27658/#20745 cross-session contamination.', pr:4, files_add:['src/hooks/src/lib/children-bus.ts (~60 LOC)','src/hooks/src/worktree/enter-registrar.ts (~40 LOC)','src/hooks/src/worktree/exit-finalizer.ts (~40 LOC)','src/hooks/src/lib/settings-override.ts (~50 LOC)','src/hooks/src/pretool/settings-override-resolver.ts (~30 LOC)'], files_mod:['src/hooks/hooks.json (+5 hooks)','manifests/ork.json','CLAUDE.md'], files_del:[], tests:['worktree-enter-registrar.test.ts','worktree-exit-finalizer.test.ts','children-bus-orphan-sweep.test.ts','settings-override-isolation.test.ts (A doesnt leak to B)','settings-override-cascade.test.ts'], deps:['Phase 2'], accept:['EnterWorktree writes link row + children/&lt;sid&gt;.json','ExitWorktree updates row + removes children/ file','/effort high in A leaves B at default','Cascade delete cleans overrides','Parent sees children/ badge in next prompt'], risk:'children/ dir accumulates orphans on kill -9. Mitigation: SessionStart sweep removes by SID lookup.', time:'2 days' },
+  { id:5, num:'Phase 5', cat:'extension', title:'Telemetry wiring', day_start:7, day_end:8, goal:'Wire new layers into existing telemetry pipeline.', pr:5, files_add:['src/hooks/src/lib/metrics-emitter.ts (~40 LOC)'], files_mod:['src/skills/telemetry-inspect/SKILL.md','docs/observability.md'], files_del:[], tests:['telemetry-inspect-sessions-db.test.ts','metrics-emitter.test.ts'], deps:['Phase 2','Phase 3','Phase 4'], accept:['<code>/ork:telemetry-inspect</code> surfaces session/lock/event counts','Metrics emit on every write','No new background process'], risk:'Telemetry write contention. Mitigation: emit async via setImmediate.', time:'1 day' },
+  { id:6, num:'Phase 6', cat:'docs', title:'Documentation + ADR', day_start:8, day_end:9, goal:'Land canonical architecture doc + ADR. Remove every monitor reference.', pr:6, files_add:['docs/coordination-architecture.md','docs/sqlite-coordination-deep-dive.md','docs/user-flows.md','docs/adr/0042-replace-monitors-with-sqlite.md'], files_mod:['CLAUDE.md (Coordination section)','README.md (if applicable)','src/skills/CONTRIBUTING-SKILLS.md','all SKILL.md referencing monitors'], files_del:[], tests:['scripts/check-docs-links.sh','grep verification: 0 "monitors.json" references'], deps:['Phase 4'], accept:['Fresh contributor onboards from docs','ADR linked from CHANGELOG','Zero occurrences of "monitors.json" anywhere'], risk:'Stale refs resurface. Mitigation: <code>npm run test:docs</code> CI check.', time:'1 day' },
+  { id:7, num:'Phase 7', cat:'release', title:'v7.94.0 cut + announce', day_start:9, day_end:10, goal:'Cut release, mark BREAKING, push to KB.', pr:7, files_add:[], files_mod:['CHANGELOG.md (BREAKING banner)','CLAUDE.md (Version → 7.94.0)','package.json','.release-please-manifest.json'], files_del:['src/monitors/ (whole dir verified empty)'], tests:['release-please dry run','CHANGELOG has BREAKING marker'], deps:['Phase 6'], accept:['v7.94.0 tagged + GH release','CHANGELOG BREAKING banner','<code>/ork:release-sync</code> pushed to KB','Release podcast generated'], risk:'release-please may not flag BREAKING auto. Mitigation: use <code>feat!:</code> in PR 1.', time:'0.5 day' }
+];
+
+// ═══════════════════════════════════════════════════════════════════════
+// HOOKS DATA — every hook touched (16)
+// ═══════════════════════════════════════════════════════════════════════
+const HOOKS = [
+  // ── DELETED (3 monitor shells) ──
+  { name: 'chain-state-watcher', type: 'monitor (shell)', layer: 'none', status: 'DELETE', path_before: 'src/monitors/monitors.json:1', path_after: '(deleted)', fires: 'spawned by CC at session-start; while-true sleep 300',
+    before: 'Polled .claude/chain/state.json every 5min. Shell + grep + date parsing across BSD/GNU. No off-switch.',
+    after: 'Replaced by chain-staleness-checker.ts (PostToolUse hook, inline check, no polling).' },
+  { name: 'goal-convergence', type: 'monitor (shell)', layer: 'none', status: 'DELETE', path_before: 'src/monitors/monitors.json:7', path_after: '(deleted)', fires: 'spawned by CC at session-start; while-true sleep 60',
+    before: 'Polled .claude/state/goal-history.jsonl every 60s. awk string slicing for stats.',
+    after: 'Replaced by goal-convergence-emitter.ts (Stop hook, fires once on /goal convergence).' },
+  { name: 'uncommitted-work-reminder', type: 'monitor (shell)', layer: 'none', status: 'DELETE', path_before: 'src/monitors/monitors.json:13', path_after: '(deleted, no replacement)', fires: 'spawned by CC at session-start; while-true sleep 900',
+    before: 'Polled git diff every 15min, suppressed for 5min after commit. Magic constants, no per-repo scoping.',
+    after: 'DELETED with no replacement — commit-nudge.ts (PostToolUse) already covers this functionality with event-driven scheduling.' },
+
+  // ── KEPT (existing hooks) ──
+  { name: 'commit-nudge.ts', type: 'PostToolUse[Bash]', layer: 'none', status: 'KEEP', path_before: 'src/hooks/src/posttool/commit-nudge.ts', path_after: 'src/hooks/src/posttool/commit-nudge.ts', fires: 'after every Bash tool call',
+    before: 'Existing. Fires after each Bash; tracks last-commit timestamp; nudges when uncommitted-files > threshold.',
+    after: 'Unchanged. Already fires correctly — the monitor was a duplicate.' },
+  { name: 'session-state.ts (lib)', type: 'lib', layer: 'Layer 2', status: 'KEEP', path_before: 'src/hooks/src/lib/session-state.ts (#1906)', path_after: 'src/hooks/src/lib/session-state.ts', fires: 'invoked by heartbeat-publisher + finalizer',
+    before: 'Per-session atomic snapshot writer (PR #1906). tmp+rename. Schema includes CommitRef, PushRef, PrRef.',
+    after: 'Unchanged. This IS Layer 2. Read-friendly via plain fs Read.' },
+  { name: 'session-heartbeat-publisher.ts', type: 'PostToolUse[Bash]', layer: 'Layer 2', status: 'KEEP', path_before: 'src/hooks/src/posttool/bash/session-heartbeat-publisher.ts', path_after: 'src/hooks/src/posttool/bash/session-heartbeat-publisher.ts', fires: 'after git commit / push / gh pr create|merge|ready',
+    before: 'Classifies command, parses output, atomically rewrites <sid>.json (#1906).',
+    after: 'Unchanged. Layer 2 writer.' },
+  { name: 'session-heartbeat-finalizer.ts', type: 'Stop', layer: 'Layer 2', status: 'KEEP', path_before: 'src/hooks/src/stop/session-heartbeat-finalizer.ts', path_after: 'src/hooks/src/stop/session-heartbeat-finalizer.ts', fires: 'on SessionEnd (via sync-session-end-dispatcher)',
+    before: 'Marks status=completed in Layer 2 snapshot.',
+    after: 'Unchanged. Sibling to new session-finalizer.ts which handles Layer 1.' },
+
+  // ── NEW Layer 1 (SQLite) ──
+  { name: 'session-registry.ts (lib)', type: 'lib', layer: 'Layer 1', status: 'NEW', path_before: '(did not exist)', path_after: 'src/hooks/src/lib/session-registry.ts', fires: 'imported by all Layer 1 hooks',
+    before: '—',
+    after: 'better-sqlite3 wrapper. WAL pragmas, writeWithRetry, schema migrations. Single connection per process.' },
+  { name: 'session-registrar.ts', type: 'SessionStart', layer: 'Layer 1', status: 'NEW', path_before: '(did not exist)', path_after: 'src/hooks/src/lifecycle/session-registrar.ts', fires: 'SessionStart',
+    before: '—',
+    after: 'INSERT INTO sessions; sweep stale rows (>24h); delete expired locks; PRAGMA integrity_check.' },
+  { name: 'session-finalizer.ts', type: 'SessionEnd', layer: 'Layer 1', status: 'NEW', path_before: '(did not exist)', path_after: 'src/hooks/src/stop/session-finalizer.ts', fires: 'SessionEnd',
+    before: '—',
+    after: 'UPDATE sessions SET status=completed, ended_at=now; CASCADE deletes settings_overrides + locks.' },
+  { name: 'heartbeat.ts', type: 'PostToolUse', layer: 'Layer 1', status: 'NEW', path_before: '(did not exist)', path_after: 'src/hooks/src/posttool/heartbeat.ts', fires: 'every Nth PostToolUse (rate-limited)',
+    before: '—',
+    after: 'UPDATE sessions SET last_heartbeat=now WHERE sid=?. Throttled to <1Hz to avoid SQLite hot loop.' },
+  { name: 'settings-override-resolver.ts', type: 'PreToolUse', layer: 'Layer 1', status: 'NEW', path_before: '(did not exist)', path_after: 'src/hooks/src/pretool/settings-override-resolver.ts', fires: 'PreToolUse',
+    before: '—',
+    after: 'SELECT value FROM settings_overrides WHERE sid=? AND key=?. Applies per-session /effort, /model. Fixes CC #49166.' },
+
+  // ── NEW Layer 3 (Events) ──
+  { name: 'event-log.ts (lib)', type: 'lib', layer: 'Layer 3', status: 'NEW', path_before: '(did not exist)', path_after: 'src/hooks/src/lib/event-log.ts', fires: 'imported by chain-staleness + goal-emitter; tail watcher in session-registrar',
+    before: '—',
+    after: 'POSIX O_APPEND atomic writes to events.jsonl. fsnotify reader for live tail. 10MB rotation.' },
+  { name: 'chain-staleness-checker.ts', type: 'PostToolUse', layer: 'Layer 3', status: 'NEW', path_before: '(did not exist)', path_after: 'src/hooks/src/posttool/chain-staleness-checker.ts', fires: 'every PostToolUse (rate-limited)',
+    before: '—',
+    after: 'Reads .claude/chain/state.json mtime inline. If age > 30min, appends chain_stale event. Replaces chain-state-watcher monitor.' },
+  { name: 'goal-convergence-emitter.ts', type: 'Stop', layer: 'Layer 3', status: 'NEW', path_before: '(did not exist)', path_after: 'src/hooks/src/stop/goal-convergence-emitter.ts', fires: 'Stop hook when /goal converges',
+    before: '—',
+    after: 'Appends goal_converged event to events.jsonl + goal-history.jsonl. Fires ONCE per goal. Replaces goal-convergence monitor.' },
+
+  // ── NEW Layer 4 (Worktree) ──
+  { name: 'children-bus.ts (lib)', type: 'lib', layer: 'Layer 4', status: 'NEW', path_before: '(did not exist)', path_after: 'src/hooks/src/lib/children-bus.ts', fires: 'imported by worktree enter/exit',
+    before: '—',
+    after: 'Writes <parent>/.claude/state/children/<sid>.json (atomic tmp+rename). Parent reads on PostToolUse.' },
+  { name: 'enter-registrar.ts', type: 'WorktreeCreate', layer: 'Layer 1+4', status: 'NEW', path_before: '(did not exist)', path_after: 'src/hooks/src/worktree/enter-registrar.ts', fires: 'EnterWorktree',
+    before: '—',
+    after: 'INSERT worktree_links (parent_sid, purpose). Init children/ dir. Layer 1 + 4 dual write.' },
+  { name: 'exit-finalizer.ts', type: 'WorktreeRemove', layer: 'Layer 1+4', status: 'NEW', path_before: '(did not exist)', path_after: 'src/hooks/src/worktree/exit-finalizer.ts', fires: 'ExitWorktree',
+    before: '—',
+    after: 'UPDATE worktree_links SET result_status, result_payload. Delete children/<sid>.json. Emit worktree_done event.' }
+];
+
+// ═══════════════════════════════════════════════════════════════════════
+// FOLDER STRUCTURE
+// ═══════════════════════════════════════════════════════════════════════
+const TREE_BEFORE = [
+  ['src/', 'dir'],
+  ['├── monitors/', 'dir-del'],
+  ['│   ├── monitors.json                      ', 'del', '⚠ 3 polling shells, 50 LOC'],
+  ['│   ├── __tests__/', 'dir-del'],
+  ['│   │   └── monitors.test.ts               ', 'del', ''],
+  ['│   ├── README.md                          ', 'del', ''],
+  ['│   └── goal-convergence.json              ', 'del', ''],
+  ['│', ''],
+  ['├── hooks/', 'dir'],
+  ['│   ├── src/', 'dir'],
+  ['│   │   ├── lib/', 'dir'],
+  ['│   │   │   └── session-state.ts           ', 'keep', '#1906 — Layer 2 (kept)'],
+  ['│   │   ├── lifecycle/', 'dir'],
+  ['│   │   │   ├── (no session-registrar)     ', 'gap', ''],
+  ['│   │   │   └── sync-session-end-dispatcher.ts', 'keep', ''],
+  ['│   │   ├── posttool/', 'dir'],
+  ['│   │   │   ├── commit-nudge.ts            ', 'keep', '✓ kept (dup of monitor)'],
+  ['│   │   │   ├── bash/', 'dir'],
+  ['│   │   │   │   └── session-heartbeat-publisher.ts', 'keep', ''],
+  ['│   │   │   └── (no chain-staleness)       ', 'gap', ''],
+  ['│   │   ├── pretool/', 'dir'],
+  ['│   │   │   └── (no settings-override)     ', 'gap', ''],
+  ['│   │   ├── stop/', 'dir'],
+  ['│   │   │   ├── session-heartbeat-finalizer.ts', 'keep', ''],
+  ['│   │   │   └── (no goal-emitter)          ', 'gap', ''],
+  ['│   │   └── worktree/', 'dir'],
+  ['│   │       └── (no enter/exit hooks)      ', 'gap', ''],
+  ['│', ''],
+  ['├── skills/', 'dir'],
+  ['│   └── ...', 'keep'],
+  ['└── (no docs/adr/0042)                     ', 'gap', ''],
+  ['', ''],
+  ['manifests/ork.json:', 'mod', '"monitors": "./monitors/monitors.json"'],
+  ['CLAUDE.md:', 'mod', 'has ## Monitors section'],
+  ['docs/monitor-authoring.md                  ', 'del', ''],
+];
+
+const TREE_AFTER = [
+  ['src/', 'dir'],
+  ['├── monitors/                            ', 'gone', '✓ DIR DELETED'],
+  ['│', ''],
+  ['├── hooks/', 'dir'],
+  ['│   ├── src/', 'dir'],
+  ['│   │   ├── lib/', 'dir'],
+  ['│   │   │   ├── session-state.ts           ', 'keep', 'Layer 2 (kept)'],
+  ['│   │   │   ├── session-registry.ts        ', 'new', '✨ Layer 1 SQLite wrapper'],
+  ['│   │   │   ├── event-log.ts               ', 'new', '✨ Layer 3 events.jsonl'],
+  ['│   │   │   ├── children-bus.ts            ', 'new', '✨ Layer 4 children/'],
+  ['│   │   │   ├── settings-override.ts       ', 'new', '✨ session-scoped /effort'],
+  ['│   │   │   ├── metrics-emitter.ts         ', 'new', '✨ Layer 5 observability'],
+  ['│   │   │   └── sqlite-migrations/', 'dir-new'],
+  ['│   │   │       ├── index.ts               ', 'new', ''],
+  ['│   │   │       └── 001-initial.sql        ', 'new', ''],
+  ['│   │   ├── lifecycle/', 'dir'],
+  ['│   │   │   ├── session-registrar.ts       ', 'new', '✨ SessionStart → SQLite'],
+  ['│   │   │   └── sync-session-end-dispatcher.ts', 'keep', ''],
+  ['│   │   ├── posttool/', 'dir'],
+  ['│   │   │   ├── commit-nudge.ts            ', 'keep', '✓ kept'],
+  ['│   │   │   ├── chain-staleness-checker.ts ', 'new', '✨ inline check, no poll'],
+  ['│   │   │   ├── heartbeat.ts               ', 'new', '✨ rate-limited UPDATE'],
+  ['│   │   │   └── bash/', 'dir'],
+  ['│   │   │       └── session-heartbeat-publisher.ts', 'keep', ''],
+  ['│   │   ├── pretool/', 'dir'],
+  ['│   │   │   └── settings-override-resolver.ts', 'new', '✨ fixes CC #49166'],
+  ['│   │   ├── stop/', 'dir'],
+  ['│   │   │   ├── session-heartbeat-finalizer.ts', 'keep', ''],
+  ['│   │   │   ├── session-finalizer.ts       ', 'new', '✨ Layer 1 SessionEnd'],
+  ['│   │   │   └── goal-convergence-emitter.ts', 'new', '✨ once-fire event'],
+  ['│   │   └── worktree/', 'dir'],
+  ['│   │       ├── enter-registrar.ts         ', 'new', '✨ links parent↔child'],
+  ['│   │       └── exit-finalizer.ts          ', 'new', '✨ emits worktree_done'],
+  ['│', ''],
+  ['├── skills/', 'dir'],
+  ['│   └── ...                                ', 'keep'],
+  ['└── docs/adr/0042-replace-monitors-with-sqlite.md', 'new', '✨ ADR'],
+  ['', ''],
+  ['manifests/ork.json:', 'mod', 'no "monitors" key'],
+  ['CLAUDE.md:', 'mod', 'no ## Monitors section'],
+  ['docs/coordination-architecture.md          ', 'new', '✨ canonical doc'],
+];
+
+// ═══════════════════════════════════════════════════════════════════════
+// TRACING — 6 actions, before/after hook chains
+// ═══════════════════════════════════════════════════════════════════════
+const TRACES = {
+  open_session: {
+    title: '🚪 User opens new CC session in a repo',
+    before: [
+      { hk:'(CC spawns monitor.json shells)', layer:'monitors', zombie:true, desc:'3 background while-loops spawned (goal-convergence, chain-state-watcher, uncommitted-work). They will never die unless killed manually.' },
+      { hk:'session-heartbeat-publisher', layer:'PostToolUse', desc:'initialized but only writes on Bash invocations' }
+    ],
+    after: [
+      { hk:'session-registrar', layer:'SessionStart', desc:'INSERT INTO sessions VALUES (sid, pid, cwd, repo_hash, ...). Sweep stale rows (>24h). Delete expired locks. PRAGMA integrity_check.' },
+      { hk:'session-state.ts (lib init)', layer:'Layer 2', desc:'open per-session bus file at ~/.claude/state/orchestkit/<repo>/<sid>.json' },
+      { hk:'event-log.ts (subscriber init)', layer:'Layer 3', desc:'open fsnotify watcher on events.jsonl, read from last_cursor stored in session bus file' },
+      { hk:'children-bus.ts (check)', layer:'Layer 4', desc:'scan .claude/state/children/ for orphan child files (cleanup)' }
+    ]
+  },
+  goal_run: {
+    title: '🎯 User runs /goal until tests_pass',
+    before: [
+      { hk:'(monitor poll happens to land within 60s)', layer:'monitors', desc:'goal-convergence shell reads goal-history.jsonl, prints stats line', zombie:true },
+      { hk:'(many irrelevant polls before)', layer:'monitors', desc:'~14 polls of empty file before goal even ran. ~840 seconds of wasted shell ticks.', zombie:true }
+    ],
+    after: [
+      { hk:'heartbeat', layer:'PostToolUse', desc:'on each tool call during the goal, UPDATE sessions SET last_heartbeat (throttled)' },
+      { hk:'(goal converges — Turn 14)', layer:'CC core', desc:'goal condition evaluated true' },
+      { hk:'goal-convergence-emitter', layer:'Stop', desc:'appendEvent({type:goal_converged, sid:A, turn_count:14}). appendLine to goal-history.jsonl. Fires ONCE.' },
+      { hk:'(sibling sessions in repo)', layer:'fsnotify', desc:'wake within 50ms via events.jsonl watcher → surface "Sibling A converged /goal" in their next response' }
+    ]
+  },
+  set_effort: {
+    title: '⚙ User types /effort high in session A',
+    before: [
+      { hk:'CC writes ~/.claude/settings.json', layer:'CC core', zombie:true, desc:'GLOBAL FILE. Other sessions read the same file → silently inherit /effort high. This is CC bug #49166.' }
+    ],
+    after: [
+      { hk:'(slash-command handler invokes hook)', layer:'CC core', desc:'/effort high command intercepted' },
+      { hk:'settings-override (lib write)', layer:'Layer 1', desc:'INSERT INTO settings_overrides (sid=A, key=effort, value="high", set_at=now). Per-session.' },
+      { hk:'settings-override-resolver', layer:'PreToolUse', desc:'on next tool call in session A: SELECT value FROM settings_overrides WHERE sid=A AND key=effort → "high"' },
+      { hk:'(session B unchanged)', layer:'Layer 1', desc:'B reads its own row: 0 results → fallback to default. ZERO contamination.' }
+    ]
+  },
+  open_worktree: {
+    title: '🌳 User invokes /ork:implement (opens worktree)',
+    before: [
+      { hk:'WorktreeCreate fires', layer:'lifecycle', zombie:true, desc:'no hook registered. Worktree advisory deferred to UserPromptSubmit (ugly workaround). Parent has no signal.' }
+    ],
+    after: [
+      { hk:'enter-registrar', layer:'WorktreeCreate', desc:'INSERT worktree_links (parent_sid=P, purpose=implement). children/ dir initialized.' },
+      { hk:'(child session C starts in worktree)', layer:'SessionStart', desc:'session-registrar runs in C: INSERT sessions row with worktree_path + parent_sid=P. UPDATE worktree_links SET child_sid=C.' },
+      { hk:'children-bus (in C)', layer:'Layer 4', desc:'C writes <parent>/.claude/state/children/C.json with {status:running, branch:feat/X}' },
+      { hk:'(parent next PostToolUse)', layer:'PostToolUse', desc:'parent reads worktree_links + children/ dir → surfaces badge "1 child worktree running: feat/X"' },
+      { hk:'exit-finalizer (when C finishes)', layer:'WorktreeRemove', desc:'UPDATE worktree_links SET result_status=merged, result_payload={pr:1912}. Delete children/C.json. Emit worktree_done event.' },
+      { hk:'(parent fsnotify)', layer:'Layer 3', desc:'parent wakes from event → surfaces "Child worktree merged PR #1912"' }
+    ]
+  },
+  force_kill: {
+    title: '💀 User force-kills CC terminal (kill -9)',
+    before: [
+      { hk:'(no SessionEnd fires)', layer:'lifecycle', zombie:true, desc:'process gone, no cleanup. Monitor shells continue running as orphans, polling files in a directory that may not exist.' },
+      { hk:'(orphan monitor shells)', layer:'monitors', zombie:true, desc:'3 zombie shells continue forever. Next 12 CC opens add 3 more each → 36+ zombies in days.' }
+    ],
+    after: [
+      { hk:'(no SessionEnd fires)', layer:'lifecycle', desc:'process gone, just like before' },
+      { hk:'sessions row left status=running', layer:'Layer 1', desc:'last_heartbeat frozen at time-of-death. Visible as crashed candidate.' },
+      { hk:'(next session start, anywhere)', layer:'SessionStart', desc:'session-registrar sweep: UPDATE sessions SET status=crashed WHERE last_heartbeat < now-86400. DELETE expired locks.' },
+      { hk:'(result)', layer:'effect', desc:'Stale row preserved for forensics. Lock released. Next session can acquire. ZERO orphan processes ever.' }
+    ]
+  },
+  two_sessions_commit: {
+    title: '🤝 Session A commits while session B watches',
+    before: [
+      { hk:'session-heartbeat-publisher (A)', layer:'PostToolUse[Bash]', desc:'after git commit: parse output, write CommitRef to A.json (#1906 bus)' },
+      { hk:'(B has no signal)', layer:'monitors', zombie:true, desc:'B does not know A committed. B would have to manually Read A.json to discover. No reactive path.' }
+    ],
+    after: [
+      { hk:'session-heartbeat-publisher (A)', layer:'Layer 2', desc:'writes CommitRef to A.json (#1906 unchanged)' },
+      { hk:'event-log.append (A)', layer:'Layer 3', desc:'appendEvent({type:commit, sid:A, sha:abc123, repo_hash:H1})' },
+      { hk:'(B fsnotify wakes)', layer:'Layer 3', desc:'within 50ms, B reads new line, filters by repo_hash → matches' },
+      { hk:'(B surfaces in next prompt)', layer:'render', desc:'"Sibling A just committed: abc123 on feat/X"' }
+    ]
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════
+// MODE TAB SWITCHING
+// ═══════════════════════════════════════════════════════════════════════
+document.querySelectorAll('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.toggle('active', t === tab));
+    document.querySelectorAll('.mode-body').forEach(b => b.classList.remove('active'));
+    document.getElementById('mode_' + tab.dataset.mode).classList.add('active');
+    if (tab.dataset.mode === 'roadmap') { buildGantt(); buildTimeline(); selectPhase(1); }
+    if (tab.dataset.mode === 'hooks') { renderHooks(); }
+    if (tab.dataset.mode === 'folder') { renderTrees(); }
+    if (tab.dataset.mode === 'trace') { buildTraceActions(); selectTrace('open_session'); }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// ROADMAP RENDER
+// ═══════════════════════════════════════════════════════════════════════
+const GANTT_DAYS = 10;
+function buildGantt() {
+  const wrap = document.getElementById('gantt_rows'); wrap.innerHTML = '';
+  ROADMAP.forEach(p => {
+    const row = document.createElement('div'); row.className = 'gantt-row';
+    const startPct = (p.day_start / GANTT_DAYS) * 100;
+    const widthPct = ((p.day_end - p.day_start) / GANTT_DAYS) * 100;
+    row.innerHTML = `<div class="gname">${p.num}</div><div class="gantt-track"><div class="gantt-bar cat-${p.cat}" style="left: ${startPct}%; width: ${widthPct}%;">${p.title.split(' ')[0]}</div></div>`;
+    wrap.appendChild(row);
+  });
+}
+function buildTimeline() {
+  const tl = document.getElementById('timeline'); tl.innerHTML = '';
+  ROADMAP.forEach((p, i) => {
+    const chip = document.createElement('div'); chip.className = `phase-chip cat-${p.cat}`;
+    chip.innerHTML = `<div class="ph-num">${p.num}</div><div class="ph-title">${p.title}</div><div class="ph-day">D${p.day_start}–D${p.day_end} · ${p.time}</div>`;
+    chip.addEventListener('click', () => selectPhase(i));
+    tl.appendChild(chip);
+  });
+}
+function selectPhase(idx) {
+  document.querySelectorAll('.phase-chip').forEach((c, i) => c.classList.toggle('active', i === idx));
+  renderPhaseDetail(ROADMAP[idx]);
+}
+function renderPhaseDetail(p) {
+  const d = document.getElementById('phase_detail');
+  let html = `<div class="ph-head"><h2><span class="ph-tag cat-${p.cat}">${p.cat.toUpperCase()}</span>${p.num} · ${p.title}</h2><div class="ph-meta"><span>📅 <b>D${p.day_start}–D${p.day_end}</b></span><span>⏱ <b>${p.time}</b></span><span>🔀 <b>PR #${p.pr}</b></span></div></div><div class="ph-goal">🎯 ${p.goal}</div><div class="phase-grid">`;
+  if (p.files_add.length) { html += `<div class="phase-section"><h3>✨ Files added (${p.files_add.length})</h3><ul>`; p.files_add.forEach(f => html += `<li class="add"><code>${f}</code></li>`); html += `</ul></div>`; }
+  if (p.files_del.length) { html += `<div class="phase-section"><h3>🗑 Files deleted (${p.files_del.length})</h3><ul>`; p.files_del.forEach(f => html += `<li class="del"><code>${f}</code></li>`); html += `</ul></div>`; }
+  if (p.files_mod.length) { html += `<div class="phase-section"><h3>📝 Files modified (${p.files_mod.length})</h3><ul>`; p.files_mod.forEach(f => html += `<li class="mod"><code>${f}</code></li>`); html += `</ul></div>`; }
+  if (p.tests.length) { html += `<div class="phase-section"><h3>🧪 Tests (${p.tests.length})</h3><ul>`; p.tests.forEach(t => html += `<li><code>${t}</code></li>`); html += `</ul></div>`; }
+  html += `</div>`;
+  if (p.deps.length) { html += `<div class="ph-deps"><b>Depends on:</b> `; p.deps.forEach(dep => html += `<span class="dep-tag">${dep}</span>`); html += `</div>`; }
+  else html += `<div class="ph-deps"><b>Depends on:</b> <span style="color:var(--green)">none — can start immediately</span></div>`;
+  html += `<div class="ph-accept"><b>✓ Acceptance criteria:</b><ul>`; p.accept.forEach(a => html += `<li>${a}</li>`); html += `</ul></div>`;
+  if (p.risk) html += `<div class="ph-risk"><b>⚠ Risk:</b> ${p.risk}</div>`;
+  d.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// HOOKS RENDER
+// ═══════════════════════════════════════════════════════════════════════
+let hookFilter = 'all';
+document.querySelectorAll('#hook_filters .hook-filter').forEach(b => {
+  b.addEventListener('click', () => {
+    hookFilter = b.dataset.filter;
+    document.querySelectorAll('#hook_filters .hook-filter').forEach(x => x.classList.toggle('active', x === b));
+    renderHooks();
+  });
+});
+function renderHooks() {
+  const grid = document.getElementById('hook_grid'); grid.innerHTML = '';
+  HOOKS.filter(h => {
+    if (hookFilter === 'all') return true;
+    if (hookFilter.startsWith('Layer')) return h.layer === hookFilter;
+    return h.status === hookFilter;
+  }).forEach(h => {
+    const c = document.createElement('div'); c.className = `hook-card status-${h.status}`;
+    c.innerHTML = `
+      <div class="hk-head">
+        <div class="hk-name">${h.name}</div>
+        <div class="hk-tag status-${h.status}">${h.status}</div>
+      </div>
+      <div class="hk-meta">
+        <span>📍 <b>${h.type}</b></span>
+        <span>🏷 <b>${h.layer}</b></span>
+      </div>
+      <div class="hk-fires"><b>fires:</b> ${h.fires}</div>
+      <div class="hk-path ${h.status === 'DELETE' ? 'deleted' : ''}">${h.status === 'NEW' ? '✨ ' : ''}${h.path_after}</div>
+      <div class="hk-ba">
+        <div class="ba-col before"><div class="ba-label">BEFORE (v7.93)</div>${h.before}</div>
+        <div class="ba-col after"><div class="ba-label">AFTER (v7.94)</div>${h.after}</div>
+      </div>
+    `;
+    grid.appendChild(c);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// FOLDER RENDER
+// ═══════════════════════════════════════════════════════════════════════
+function renderTrees() {
+  const fmt = (tree, target) => {
+    const el = document.getElementById(target); el.innerHTML = '';
+    tree.forEach(row => {
+      const [content, kind, annot] = row;
+      if (!content) { el.innerHTML += '\n'; return; }
+      let cls = 't-file';
+      if (kind === 'dir' || kind === 'dir-new' || kind === 'dir-del') cls = 't-dir';
+      if (kind === 'del' || kind === 'dir-del' || kind === 'gone') cls = 't-del';
+      if (kind === 'new' || kind === 'dir-new') cls = 't-new';
+      if (kind === 'keep') cls = 't-keep';
+      if (kind === 'mod') cls = 't-mod';
+      if (kind === 'gap') cls = 't-del';
+      const ann = annot ? `<span class="annotation">  ← ${annot}</span>` : '';
+      el.innerHTML += `<span class="${cls}">${content}</span>${ann}\n`;
+    });
+  };
+  fmt(TREE_BEFORE, 'tree_before');
+  fmt(TREE_AFTER, 'tree_after');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TRACE RENDER
+// ═══════════════════════════════════════════════════════════════════════
+let currentTrace = null;
+let traceStep = 0;
+let tracePlayInterval = null;
+function buildTraceActions() {
+  const wrap = document.getElementById('trace_actions'); wrap.innerHTML = '';
+  Object.keys(TRACES).forEach(k => {
+    const b = document.createElement('button'); b.className = 'trace-action'; b.dataset.tk = k;
+    b.textContent = TRACES[k].title;
+    b.addEventListener('click', () => selectTrace(k));
+    wrap.appendChild(b);
+  });
+}
+function selectTrace(k) {
+  currentTrace = k; traceStep = 0;
+  document.querySelectorAll('.trace-action').forEach(b => b.classList.toggle('active', b.dataset.tk === k));
+  renderTrace();
+}
+function renderTrace() {
+  if (!currentTrace) return;
+  const t = TRACES[currentTrace];
+  document.getElementById('ts_before_count').textContent = t.before.length;
+  document.getElementById('ts_after_count').textContent = t.after.length;
+  document.getElementById('ts_zombies').textContent = t.before.filter(s => s.zombie).length;
+  const renderSide = (steps, target) => {
+    const wrap = document.getElementById(target); wrap.innerHTML = '';
+    steps.forEach((s, i) => {
+      const d = document.createElement('div');
+      let cls = 'trace-step';
+      if (s.zombie) cls += ' zombie';
+      if (i === traceStep && traceStep < Math.max(t.before.length, t.after.length)) cls += ' active';
+      d.className = cls;
+      d.innerHTML = `<span class="hk">${s.hk}</span><span class="layer">${s.layer}</span><div class="desc">${s.desc}</div>`;
+      wrap.appendChild(d);
+    });
+  };
+  renderSide(t.before, 'trace_before');
+  renderSide(t.after, 'trace_after');
+}
+document.getElementById('trace_prev').addEventListener('click', () => { if (traceStep > 0) { traceStep--; renderTrace(); } });
+document.getElementById('trace_next').addEventListener('click', () => {
+  if (!currentTrace) return;
+  const maxLen = Math.max(TRACES[currentTrace].before.length, TRACES[currentTrace].after.length);
+  if (traceStep < maxLen - 1) { traceStep++; renderTrace(); }
+});
+document.getElementById('trace_reset').addEventListener('click', () => { traceStep = 0; renderTrace(); });
+document.getElementById('trace_play').addEventListener('click', function() {
+  if (!currentTrace) return;
+  if (tracePlayInterval) {
+    clearInterval(tracePlayInterval); tracePlayInterval = null;
+    this.textContent = '▶ Play trace'; this.classList.remove('playing');
+    return;
+  }
+  this.textContent = '⏸ Pause'; this.classList.add('playing');
+  const maxLen = Math.max(TRACES[currentTrace].before.length, TRACES[currentTrace].after.length);
+  tracePlayInterval = setInterval(() => {
+    if (traceStep >= maxLen - 1) {
+      clearInterval(tracePlayInterval); tracePlayInterval = null;
+      document.getElementById('trace_play').textContent = '▶ Play trace';
+      document.getElementById('trace_play').classList.remove('playing');
+      return;
+    }
+    traceStep++; renderTrace();
+  }, 1500);
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// FLOWS RENDER (condensed from earlier)
+// ═══════════════════════════════════════════════════════════════════════
+let currentFlow = null, stepIdx = 0, playInterval = null;
+const baseState = () => ({ sessions:{}, locks:{}, settings:{}, worktree_links:{}, events:[] });
+let scene = baseState();
+
+const flowBar = document.getElementById('flowBar');
+Object.keys(FLOWS).forEach(k => {
+  const btn = document.createElement('button'); btn.className = 'flow-btn';
+  btn.textContent = FLOWS[k].title.split('·')[0].trim();
+  btn.dataset.flow = k;
+  btn.addEventListener('click', () => selectFlow(k));
+  flowBar.appendChild(btn);
+});
+function selectFlow(k) {
+  currentFlow = k; stepIdx = 0; scene = baseState();
+  document.querySelectorAll('.flow-btn').forEach(b => b.classList.toggle('active', b.dataset.flow === k));
+  document.getElementById('long_desc').innerHTML = `<b>${FLOWS[k].title}</b><br>${FLOWS[k].desc}`;
+  applyStep(); render();
+}
+function applyStep() {
+  if (!currentFlow) return; scene = baseState();
+  for (let i = 0; i <= stepIdx && i < FLOWS[currentFlow].steps.length; i++) {
+    Object.values(scene.sessions).forEach(s => s.acting = false);
+    FLOWS[currentFlow].steps[i].apply(scene);
+  }
+}
+function render() {
+  if (!currentFlow) {
+    document.getElementById('step_num').textContent = 'STEP 0 / 0';
+    document.getElementById('step_title').textContent = 'Pick a flow';
+    document.getElementById('step_desc').textContent = 'Select a flow above.';
+    document.getElementById('step_code').textContent = '// Pick a flow';
+    renderTables(); renderSessions(); renderEvents();
+    return;
+  }
+  const flow = FLOWS[currentFlow]; const step = flow.steps[stepIdx];
+  document.getElementById('step_num').textContent = `STEP ${stepIdx + 1} / ${flow.steps.length}`;
+  document.getElementById('step_title').textContent = step.title;
+  document.getElementById('step_desc').textContent = step.desc;
+  document.getElementById('step_code').textContent = step.code;
+  document.getElementById('prev_btn').disabled = stepIdx === 0;
+  document.getElementById('next_btn').disabled = stepIdx >= flow.steps.length - 1;
+  renderSessions(); renderEvents(); renderTables();
+}
+function renderSessions() {
+  const row = document.getElementById('sessions_row'); row.innerHTML = '';
+  const ids = Object.keys(scene.sessions);
+  if (ids.length === 0) { row.innerHTML = '<div style="color:var(--fg-vdim); font-style:italic; font-size:12px">no sessions yet</div>'; return; }
+  ids.forEach(id => {
+    const s = scene.sessions[id]; const div = document.createElement('div');
+    let cls = 'session';
+    if (s.acting) cls += ' acting';
+    if (s.crashed || s.status === 'crashed') cls += ' crashed';
+    else if (s.status === 'completed') cls += ' ended';
+    if (s.role === 'parent') cls += ' parent';
+    if (s.role === 'worktree') cls += ' worktree';
+    div.className = cls;
+    let html = `<div class="sid">session ${s.sid}</div><div class="repo">${s.repo}${s.branch ? ' · ' + s.branch : ''}</div>`;
+    if (s.state) html += `<div class="state">→ ${s.state}</div>`;
+    html += `<span class="badge ${s.acting ? 'acting' : s.status}">${s.acting ? 'acting' : s.status}</span>`;
+    html += `<span class="badge" style="margin-left:4px">hb ${s.hb}</span>`;
+    div.innerHTML = html; row.appendChild(div);
+  });
+}
+function renderEvents() {
+  const stream = document.getElementById('event_stream'); stream.innerHTML = '';
+  if (scene.events.length === 0) { stream.innerHTML = '<div class="ev-empty">(no events yet)</div>'; return; }
+  scene.events.forEach(ev => {
+    const div = document.createElement('div'); div.className = `ev-line ev-type-${ev.type}`;
+    div.innerHTML = `<span class="ev-ts">${ev.ts}</span>  <b>${ev.type}</b>  <span style="color:var(--fg-dim)">${ev.payload}</span>`;
+    stream.appendChild(div);
+  });
+}
+function renderTables() {
+  const tb = document.querySelector('#t_sessions tbody'); tb.innerHTML = '';
+  const sk = Object.keys(scene.sessions);
+  if (sk.length === 0) tb.innerHTML = '<tr class="empty-row"><td colspan="4">(empty)</td></tr>';
+  else sk.forEach(k => { const s = scene.sessions[k]; const stCls = s.status === 'completed' ? 'dim' : s.status === 'crashed' ? 'red' : 'green';
+    tb.innerHTML += `<tr><td class="blue">${s.sid}</td><td>${s.repo}</td><td class="${stCls}">${s.status}</td><td class="dim">${s.hb}</td></tr>`; });
+  const tl = document.querySelector('#t_locks tbody'); tl.innerHTML = '';
+  const lk = Object.keys(scene.locks);
+  if (lk.length === 0) tl.innerHTML = '<tr class="empty-row"><td colspan="3">(empty)</td></tr>';
+  else lk.forEach(k => { const l = scene.locks[k]; tl.innerHTML += `<tr><td class="amber">${l.name}</td><td class="blue">${l.holder}</td><td class="dim">${l.exp}</td></tr>`; });
+  const ts = document.querySelector('#t_settings tbody'); ts.innerHTML = '';
+  const sek = Object.keys(scene.settings);
+  if (sek.length === 0) ts.innerHTML = '<tr class="empty-row"><td colspan="3">(empty)</td></tr>';
+  else sek.forEach(k => { const s = scene.settings[k]; ts.innerHTML += `<tr><td class="blue">${s.sid}</td><td class="amber">${s.key}</td><td>${s.value}</td></tr>`; });
+  const tw = document.querySelector('#t_worktree tbody'); tw.innerHTML = '';
+  const wk = Object.keys(scene.worktree_links);
+  if (wk.length === 0) tw.innerHTML = '<tr class="empty-row"><td colspan="3">(empty)</td></tr>';
+  else wk.forEach(k => { const w = scene.worktree_links[k]; const stCls = w.status === 'merged' ? 'green' : 'amber'; tw.innerHTML += `<tr><td class="pink">${w.child}</td><td class="blue">${w.parent}</td><td class="${stCls}">${w.status}</td></tr>`; });
+}
+document.getElementById('prev_btn').addEventListener('click', () => { if (stepIdx > 0) { stepIdx--; applyStep(); render(); } });
+document.getElementById('next_btn').addEventListener('click', () => { if (!currentFlow) return; if (stepIdx < FLOWS[currentFlow].steps.length - 1) { stepIdx++; applyStep(); render(); } });
+document.getElementById('reset_btn').addEventListener('click', () => { if (currentFlow) { stepIdx = 0; applyStep(); render(); } });
+document.getElementById('play_btn').addEventListener('click', function() {
+  if (!currentFlow) return;
+  if (playInterval) { clearInterval(playInterval); playInterval = null; this.textContent = '▶ Auto-play'; this.classList.remove('playing'); return; }
+  this.textContent = '⏸ Pause'; this.classList.add('playing');
+  playInterval = setInterval(() => {
+    if (stepIdx >= FLOWS[currentFlow].steps.length - 1) { clearInterval(playInterval); playInterval = null; document.getElementById('play_btn').textContent = '▶ Auto-play'; document.getElementById('play_btn').classList.remove('playing'); return; }
+    stepIdx++; applyStep(); render();
+  }, 1700);
+});
+
+// init
+selectFlow('solo');
+buildGantt(); buildTimeline(); selectPhase(1);
+renderHooks();
+renderTrees();
+buildTraceActions(); selectTrace('open_session');
+</script>
+</body>
+</html>

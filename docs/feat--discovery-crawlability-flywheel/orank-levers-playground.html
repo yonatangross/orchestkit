@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>orank Lever Explorer — OrchestKit Discovery</title>
+<style>
+  :root{--bg:#0d1117;--card:#161b22;--bd:#30363d;--fg:#e6edf3;--mut:#8b949e;
+    --ok:#3fb950;--warn:#d29922;--bad:#f85149;--acc:#58a6ff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:15px/1.55 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 20px 60px}
+  h1{font-size:24px;margin:0 0 4px}
+  .sub{color:var(--mut);margin:0 0 20px}
+  .ceiling{background:rgba(210,153,34,.12);border:1px solid var(--warn);
+    border-radius:10px;padding:12px 14px;margin:0 0 22px;font-size:13.5px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:18px}
+  .card h2{font-size:15px;margin:0 0 12px;letter-spacing:.02em}
+  .score{font-size:40px;font-weight:700;line-height:1}
+  .score small{font-size:15px;color:var(--mut);font-weight:400}
+  .delta{font-size:13px;color:var(--ok);margin-left:8px}
+  .layer{margin:10px 0}
+  .layer .lab{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+  .bar{height:8px;background:#21262d;border-radius:5px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--acc);border-radius:5px;
+    transition:width .35s ease}
+  .bar i.gain{background:linear-gradient(90deg,var(--acc),var(--ok))}
+  .bundles{margin:22px 0 0}
+  .bundle{border:1px solid var(--bd);border-radius:10px;padding:14px 16px;margin:10px 0;
+    background:var(--card)}
+  .bundle header{display:flex;align-items:center;gap:10px;cursor:pointer}
+  .bundle header input{width:18px;height:18px;accent-color:var(--acc)}
+  .bundle header .t{font-weight:600}
+  .bundle header .tag{margin-left:auto;font-size:11.5px;color:var(--mut);
+    border:1px solid var(--bd);border-radius:20px;padding:2px 9px}
+  .bundle ul{margin:10px 0 0;padding-left:20px;color:var(--mut);font-size:13px}
+  .bundle li{margin:3px 0}
+  .bundle li b{color:var(--fg);font-weight:600}
+  .ship{color:var(--ok)}.gate{color:var(--warn)}
+  .legend{font-size:12px;color:var(--mut);margin-top:18px}
+  code{background:#21262d;padding:1px 5px;border-radius:4px;font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>orank Lever Explorer 🧭</h1>
+  <p class="sub">orchestkit.yonyon.ai · baseline <b>82/B</b> (#51 of 11,945) · toggle the bundles to see honest projected impact</p>
+
+  <div class="ceiling">
+    ⚠️ <b>Structural ceiling:</b> orank keys brand discovery off the apex domain
+    <code>yonyon</code> (collides with a DJ artist). With no rebrand (declined,
+    final), Discovery stays capped below 20. These levers recover <i>withheld</i>
+    points + tighten the entity graph — realistic target <b>82 → high-80s</b>,
+    Discovery <b>8 → ~13–15</b> over weeks, not a leap to 100. Projections below
+    are estimates, not promises.
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>PROJECTED SCORE</h2>
+      <div><span class="score" id="total">82</span><span class="delta" id="delta"></span></div>
+      <div id="layers"></div>
+    </div>
+    <div class="card">
+      <h2>WHAT THE SCAN FLAGGED</h2>
+      <ul style="margin:0;padding-left:18px;color:var(--mut);font-size:13px">
+        <li>"Developer resources invisible to web search" — <span class="ship">TRUE &amp; ours: 3 pages live-200 but absent from sitemap + orphaned → fixed (A)</span></li>
+        <li>"ACP endpoints 404" — honest (free MIT), but <code>/product_feed.json</code> leaked HTML-404 → JSON-404 (A)</li>
+        <li>"No Wikipedia/Wikidata" — Wikidata entity exists &amp; healthy; orank searches "yonyon" → structural</li>
+        <li>"Not in ChatGPT app directory" — GPT Store deferred (no OpenAI account)</li>
+        <li>Identity / Agent-Integration 2-pt gaps — TechArticle + identifiers (B)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="bundles" id="bundles"></div>
+
+  <p class="legend">
+    <span class="ship">●</span> shipped in this PR &nbsp;·&nbsp;
+    <span class="gate">●</span> owner-gated / outward-facing (see <code>off-site-prep-pack.md</code>)
+  </p>
+</div>
+
+<script>
+// Honest, conservative per-layer estimates. max per layer fixed by orank.
+const LAYERS = {
+  Discovery:{cur:8,max:20}, Identity:{cur:18,max:20},
+  "Auth & Access":{cur:28,max:30}, "Agent Integration":{cur:18,max:20},
+  "User Experience":{cur:10,max:10}
+};
+const BUNDLES = [
+  {id:"A",name:"Crawlability Sprint",tag:"shipped · on-site",ship:true,
+   gain:{ "Agent Integration":1, Discovery:1 },
+   items:[
+     ['ship','sitemap += 3 content pages (+ /terms) + drift-guard test'],
+     ['ship','homepage footer links the 3 orphan pages (flex-wrap)'],
+     ['ship','/product_feed.json → structured JSON-404 (content-negotiation)'],
+   ]},
+  {id:"B",name:"Entity-Graph Hardening",tag:"shipped · on-site",ship:true,
+   gain:{ Identity:1, "Agent Integration":1 },
+   items:[
+     ['ship','TechArticle JSON-LD on all 3 pages (author/publisher/about by @id)'],
+     ['ship','Organization identifiers: Wikidata Q140128295 + MCP Registry id'],
+     ['ship','BreadcrumbList per page'],
+   ]},
+  {id:"C",name:"Off-site Flywheel",tag:"owner-gated · weeks",ship:false,
+   gain:{ Discovery:4 },
+   items:[
+     ['gate','GitHub topics: claude-code-plugin, agent-orchestration, developer-tools…'],
+     ['gate','awesome-claude-code PR (46k★) — wait for its ToC reorg'],
+     ['gate','ComposioHQ/awesome-claude-plugins PR (no blocker)'],
+     ['gate','Show HN + Dev.to + Reddit under the "OrchestKit" name'],
+   ]},
+];
+
+const on = {A:true,B:true,C:false};
+
+function render(){
+  // score
+  let total=0; const proj={};
+  for(const k in LAYERS){ proj[k]=LAYERS[k].cur; }
+  for(const b of BUNDLES){ if(!on[b.id]) continue;
+    for(const k in b.gain){ proj[k]=Math.min(LAYERS[k].max, proj[k]+b.gain[k]); } }
+  for(const k in proj){ total+=proj[k]; }
+  const base=Object.values(LAYERS).reduce((s,l)=>s+l.cur,0);
+  document.getElementById('total').textContent=total;
+  const d=total-base;
+  document.getElementById('delta').textContent = d>0? '+'+d+' pts (est.)':'';
+  // layers
+  const L=document.getElementById('layers'); L.innerHTML='';
+  for(const k in LAYERS){
+    const cur=LAYERS[k].cur, mx=LAYERS[k].max, pj=proj[k];
+    const div=document.createElement('div'); div.className='layer';
+    div.innerHTML=`<div class="lab"><span>${k}</span><span>${pj}/${mx}${pj>cur?' ▲':''}</span></div>
+      <div class="bar"><i class="${pj>cur?'gain':''}" style="width:${pj/mx*100}%"></i></div>`;
+    L.appendChild(div);
+  }
+}
+function renderBundles(){
+  const C=document.getElementById('bundles'); C.innerHTML='';
+  for(const b of BUNDLES){
+    const el=document.createElement('div'); el.className='bundle';
+    el.innerHTML=`<header><input type="checkbox" ${on[b.id]?'checked':''} data-id="${b.id}">
+      <span class="t">Bundle ${b.id} · ${b.name}</span><span class="tag">${b.tag}</span></header>
+      <ul>${b.items.map(([c,t])=>`<li class="${c}">${c==='ship'?'✅':'🔸'} ${t}</li>`).join('')}</ul>`;
+    C.appendChild(el);
+  }
+  C.querySelectorAll('input').forEach(i=>i.addEventListener('change',e=>{
+    on[e.target.dataset.id]=e.target.checked; render();
+  }));
+}
+renderBundles(); render();
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Hook Count Drift — Playground</title>
+<style>body{background:#0d1117;color:#e6edf3;font-family:ui-monospace,Menlo,monospace;padding:2rem;line-height:1.6;max-width:820px}.ok{color:#3fb950}.bad{color:#f85149}.dim{color:#8b949e}pre{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:1rem;font-size:.84rem}</style>
+</head>
+<body>
+<h1>🔢 hooks.json count drift: 211 → 210</h1>
+<pre>canonical:  bin/count-hooks.sh → GLOBAL=142 AGENT=46 SKILL=22 <span class="ok">TOTAL=210</span>
+README:     <span class="ok">210 ✅</span> (stamped markers)
+hooks.json: <span class="bad">"143 global + … = 211 total" ❌</span> → <span class="ok">"142 global + … = 210 total"</span></pre>
+<p class="dim">Root cause: scripts/stamp-counts.sh --check validates the &lt;!--ork:KEY--&gt; markers but NOT the hand-written breakdown prose in the hooks.json description — so it said "All counts up to date" while the description drifted. Found by the launch-kit drafting agent reading both files. Both copies fixed (src + plugins bundle).</p>
+</body>
+</html>

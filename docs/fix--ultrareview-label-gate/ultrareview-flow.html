@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ultrareview Workflow — Before & After (#1569)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+    --text:#e6edf3;--text2:#8b949e;--accent:#58a6ff;
+    --green:#3fb950;--red:#f85149;--orange:#d29922;--purple:#bc8cff;
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --mono:'SF Mono','Fira Code','Consolas',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+  header{padding:24px 32px;border-bottom:1px solid var(--border);background:var(--bg2)}
+  header h1{font-size:20px;font-weight:600}
+  header p{font-size:13px;color:var(--text2);margin-top:6px;max-width:760px}
+  header a{color:var(--accent);text-decoration:none}
+  main{padding:24px 32px;max-width:1100px;margin:0 auto}
+  .controls{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+  .ctrl-btn{padding:10px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:13px;cursor:pointer;transition:all 0.15s}
+  .ctrl-btn:hover{background:var(--bg3);border-color:var(--accent)}
+  .ctrl-btn.active{background:var(--accent);color:white;border-color:var(--accent)}
+  .scenario{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:18px}
+  .scenario h2{font-size:15px;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .scenario h2 .badge{font-size:10px;padding:3px 8px;border-radius:10px;background:var(--bg3);color:var(--text2);font-weight:500;letter-spacing:0.5px}
+  .flow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .col{padding:14px 16px;border-radius:8px;background:var(--bg);border:1px solid var(--border);font-family:var(--mono);font-size:12px}
+  .col.before{border-left:3px solid var(--red)}
+  .col.after{border-left:3px solid var(--green)}
+  .col h3{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;font-family:var(--font)}
+  .col h3.r{color:var(--red)}
+  .col h3.g{color:var(--green)}
+  .step{margin:6px 0;padding-left:14px;position:relative}
+  .step::before{content:'›';position:absolute;left:0;color:var(--text2)}
+  .step.bad{color:var(--red)}
+  .step.good{color:var(--green)}
+  .step .x{color:var(--red);font-weight:600}
+  .step .ok{color:var(--green);font-weight:600}
+  .summary{background:linear-gradient(135deg, rgba(63,185,80,0.06), rgba(88,166,255,0.04));border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-top:18px}
+  .summary h2{font-size:14px;margin-bottom:12px}
+  .summary table{width:100%;border-collapse:collapse;font-size:13px}
+  .summary td{padding:6px 8px;border-bottom:1px solid var(--border)}
+  .summary td:first-child{color:var(--text2);width:40%}
+  .pill{display:inline-block;padding:2px 8px;font-size:11px;border-radius:10px;font-family:var(--mono)}
+  .pill.r{background:rgba(248,81,73,0.15);color:var(--red)}
+  .pill.g{background:rgba(63,185,80,0.15);color:var(--green)}
+  .pill.b{background:rgba(88,166,255,0.15);color:var(--accent)}
+  footer{padding:24px 32px;color:var(--text2);font-size:12px;text-align:center;border-top:1px solid var(--border);margin-top:40px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Ultrareview workflow — before vs. after (PR <a href="https://github.com/yonatangross/orchestkit/pull/1569">#1569</a>)</h1>
+  <p>Interactive walkthrough of the three bugs in <code>.github/workflows/ultrareview.yml</code> and the patch. Pick a scenario to see how the workflow behaved before and how it behaves now.</p>
+</header>
+
+<main>
+  <div class="controls">
+    <button class="ctrl-btn active" onclick="show('s1', this)">1. PR opened (no label)</button>
+    <button class="ctrl-btn" onclick="show('s2', this)">2. PR opened, labeled <code>ultrareview</code></button>
+    <button class="ctrl-btn" onclick="show('s3', this)">3. Empty review output</button>
+  </div>
+
+  <div id="s1" class="scenario">
+    <h2>Scenario 1 — PR opened, no <code>ultrareview</code> label <span class="badge">most common path</span></h2>
+    <div class="flow">
+      <div class="col before">
+        <h3 class="r">Before #1569</h3>
+        <div class="step bad"><span class="x">✗</span> Workflow triggers on <code>opened</code> event</div>
+        <div class="step bad"><span class="x">✗</span> Installs Claude Code (~6s CI)</div>
+        <div class="step bad"><span class="x">✗</span> Calls <code>claude ultrareview "origin/main..HEAD"</code></div>
+        <div class="step bad"><span class="x">✗</span> CLI rejects in 400ms: "is not a branch in this repo"</div>
+        <div class="step bad"><span class="x">✗</span> Empty <code>review.json</code> → fallback writes <code>{"verdict":"skipped"}</code></div>
+        <div class="step bad"><span class="x">✗</span> Posts a "verdict: skipped · 0s" PR comment</div>
+        <div class="step bad" style="margin-top:10px">cost: <span class="pill r">~15s CI minutes + 1 spam comment per PR</span></div>
+      </div>
+      <div class="col after">
+        <h3 class="g">After #1569</h3>
+        <div class="step good"><span class="ok">✓</span> Workflow gate: <code>label.name == 'ultrareview'</code> is false</div>
+        <div class="step good"><span class="ok">✓</span> Job skipped immediately — no checkout, no install, no API</div>
+        <div class="step good" style="margin-top:10px">cost: <span class="pill g">~0 CI minutes, 0 comments</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="s2" class="scenario" style="display:none">
+    <h2>Scenario 2 — PR labeled <code>ultrareview</code> <span class="badge">opt-in path</span></h2>
+    <div class="flow">
+      <div class="col before">
+        <h3 class="r">Before #1569</h3>
+        <div class="step bad"><span class="x">✗</span> Same broken arg path as Scenario 1</div>
+        <div class="step bad"><span class="x">✗</span> Reviewer adds label hoping for a real review</div>
+        <div class="step bad"><span class="x">✗</span> Workflow runs, CLI rejects arg, posts "skipped"</div>
+        <div class="step bad"><span class="x">✗</span> Reviewer confused — was a review run? Was it empty?</div>
+      </div>
+      <div class="col after">
+        <h3 class="g">After #1569</h3>
+        <div class="step good"><span class="ok">✓</span> Workflow gate fires (label match)</div>
+        <div class="step good"><span class="ok">✓</span> Calls <code>claude ultrareview ${{ pr.number }}</code> — valid arg</div>
+        <div class="step good"><span class="ok">✓</span> CLI fetches diff itself, runs review, returns JSON</div>
+        <div class="step good"><span class="ok">✓</span> Comment step gates on <code>verdict != 'skipped'</code> → posts real findings</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="s3" class="scenario" style="display:none">
+    <h2>Scenario 3 — Review legitimately empty (no findings) <span class="badge">edge case</span></h2>
+    <div class="flow">
+      <div class="col before">
+        <h3 class="r">Before #1569</h3>
+        <div class="step bad"><span class="x">✗</span> Comment step had no <code>verdict</code> awareness</div>
+        <div class="step bad"><span class="x">✗</span> Always posted a comment, even empty/skipped ones</div>
+        <div class="step bad"><span class="x">✗</span> Indistinguishable from "broken arg" failure mode</div>
+      </div>
+      <div class="col after">
+        <h3 class="g">After #1569</h3>
+        <div class="step good"><span class="ok">✓</span> Run step extracts <code>verdict</code> via <code>jq -r '.verdict'</code> as step output</div>
+        <div class="step good"><span class="ok">✓</span> Comment step <code>if:</code> includes <code>steps.review.outputs.verdict != 'skipped'</code></div>
+        <div class="step good"><span class="ok">✓</span> Empty/skipped runs stay silent, real findings get posted</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary">
+    <h2>Net impact</h2>
+    <table>
+      <tr><td>Past API spend on auto-runs</td><td><span class="pill g">$0</span> CLI rejected args before any API call</td></tr>
+      <tr><td>Past CI minutes wasted</td><td><span class="pill r">~15s × every PR</span> since #1542 merged</td></tr>
+      <tr><td>Past comment spam</td><td><span class="pill r">1 useless comment per PR</span></td></tr>
+      <tr><td>After #1569</td><td><span class="pill g">opt-in only</span> · real reviews when triggered · no spam when skipped</td></tr>
+      <tr><td>Trigger today</td><td>Add the <span class="pill b">ultrareview</span> label to any PR</td></tr>
+    </table>
+  </div>
+</main>
+
+<footer>
+  Playground for PR #1569 · branch <code>fix/ultrareview-label-gate</code> · OrchestKit
+</footer>
+
+<script>
+function show(id, btn){
+  document.querySelectorAll('.scenario').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).style.display = 'block';
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

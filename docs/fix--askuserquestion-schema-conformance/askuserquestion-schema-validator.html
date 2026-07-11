@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AskUserQuestion Schema Validator — OrchestKit</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --panel2: #11161d; --border: #30363d;
+    --fg: #c9d1d9; --dim: #8b949e; --accent: #58a6ff; --mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --ok: #3fb950; --okbg: #0f2417; --bad: #f85149; --badbg: #2a1316; --warn: #d29922;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font-family: var(--mono); font-size: 13px; line-height: 1.5;
+  }
+  header {
+    border-bottom: 1px solid var(--border); padding: 16px 22px; background: var(--panel2);
+  }
+  header h1 { margin: 0; font-size: 15px; color: var(--accent); letter-spacing: .5px; }
+  header .sub { color: var(--dim); font-size: 12px; margin-top: 4px; white-space: pre; }
+  .wrap { display: grid; grid-template-columns: 340px 1fr; gap: 0; min-height: calc(100vh - 74px); }
+  .controls { border-right: 1px solid var(--border); padding: 18px 20px; background: var(--panel); }
+  .preview { padding: 18px 22px; overflow: auto; }
+  .group { margin-bottom: 22px; }
+  .group h2 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--dim);
+    margin: 0 0 10px; border-bottom: 1px dashed var(--border); padding-bottom: 5px;
+  }
+  label.row { display: flex; justify-content: space-between; align-items: center; margin: 9px 0; gap: 10px; }
+  label.row span.k { color: var(--fg); }
+  label.row span.v { color: var(--accent); min-width: 28px; text-align: right; }
+  input[type=range] { width: 150px; accent-color: var(--accent); }
+  .toggle { display: flex; gap: 6px; margin-top: 6px; }
+  .toggle button {
+    flex: 1; background: var(--panel2); color: var(--dim); border: 1px solid var(--border);
+    padding: 6px 4px; cursor: pointer; font-family: var(--mono); font-size: 12px; border-radius: 4px;
+  }
+  .toggle button.on { color: var(--bg); font-weight: 700; }
+  .toggle button.on.good { background: var(--ok); border-color: var(--ok); }
+  .toggle button.on.bad  { background: var(--bad); border-color: var(--bad); }
+  label.check { display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 8px; }
+  label.check input { accent-color: var(--accent); width: 15px; height: 15px; }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; }
+  .presets button {
+    background: var(--panel2); color: var(--accent); border: 1px solid var(--border);
+    padding: 5px 9px; cursor: pointer; font-family: var(--mono); font-size: 11px; border-radius: 4px;
+  }
+  .presets button:hover { border-color: var(--accent); }
+  /* verdict */
+  .verdict { border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; margin-bottom: 18px; }
+  .verdict.ok  { border-color: var(--ok);  background: var(--okbg); }
+  .verdict.bad { border-color: var(--bad); background: var(--badbg); }
+  .verdict .tag { font-size: 16px; font-weight: 700; letter-spacing: 1px; }
+  .verdict.ok  .tag { color: var(--ok); }
+  .verdict.bad .tag { color: var(--bad); }
+  .verdict ul { margin: 10px 0 0; padding-left: 0; list-style: none; }
+  .verdict li { padding: 3px 0 3px 20px; position: relative; color: var(--fg); }
+  .verdict li::before { content: "✗"; position: absolute; left: 0; color: var(--bad); }
+  .verdict li.pass::before { content: "✓"; color: var(--ok); }
+  /* mock picker */
+  .picker { border: 1px solid var(--border); border-radius: 6px; background: var(--panel2); margin-bottom: 16px; overflow: hidden; }
+  .picker .q { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--accent); }
+  .picker .q .hdr { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+  .picker .opts { display: flex; }
+  .picker .opts.split .list { width: 46%; border-right: 1px solid var(--border); }
+  .picker .opts .list { width: 100%; }
+  .picker .opt { padding: 8px 14px; border-bottom: 1px solid #1f262e; display: flex; gap: 8px; }
+  .picker .opt:last-child { border-bottom: none; }
+  .picker .opt .mark { color: var(--dim); }
+  .picker .opt.invalid .mark { color: var(--bad); }
+  .picker .opt .lbl { color: var(--fg); }
+  .picker .opt .desc { color: var(--dim); font-size: 11px; }
+  .picker .prevpane { width: 54%; padding: 10px 14px; color: var(--dim); white-space: pre; font-size: 11px; }
+  .picker .prevpane.dead { color: var(--bad); }
+  .footer-note { color: var(--dim); font-size: 11px; margin: 4px 0 16px; }
+  .explainer {
+    border-left: 3px solid var(--warn); background: #1a1710; padding: 10px 14px; margin-bottom: 18px;
+    color: var(--fg); font-size: 12px;
+  }
+  .explainer b { color: var(--warn); }
+  /* code output */
+  .codebox { position: relative; }
+  pre {
+    background: #010409; border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px;
+    overflow: auto; margin: 0; color: var(--fg); font-size: 12px;
+  }
+  pre .key { color: var(--accent); } pre .str { color: var(--ok); }
+  pre .badkey { color: var(--bad); text-decoration: underline wavy var(--bad); }
+  pre .bool { color: var(--warn); }
+  .copy {
+    position: absolute; top: 10px; right: 10px; background: var(--panel); color: var(--accent);
+    border: 1px solid var(--border); padding: 5px 11px; cursor: pointer; font-family: var(--mono);
+    font-size: 11px; border-radius: 4px;
+  }
+  .copy:hover { border-color: var(--accent); }
+  h3.section { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin: 0 0 8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>▚ AskUserQuestion Schema Validator</h1>
+  <div class="sub">OrchestKit · CC 2.1.152 tool schema · fix/askuserquestion-schema-conformance</div>
+</header>
+
+<div class="wrap">
+  <!-- ───────────── CONTROLS ───────────── -->
+  <div class="controls">
+    <div class="group">
+      <h2>Presets</h2>
+      <div class="presets" id="presets"></div>
+    </div>
+
+    <div class="group">
+      <h2>Call shape</h2>
+      <label class="row">
+        <span class="k">Questions in call</span>
+        <input type="range" id="nq" min="1" max="6" step="1">
+        <span class="v" id="nqv"></span>
+      </label>
+      <div class="footer-note">schema: 1–4 allowed (maxItems 4)</div>
+
+      <label class="row">
+        <span class="k">Options / question</span>
+        <input type="range" id="no" min="1" max="6" step="1">
+        <span class="v" id="nov"></span>
+      </label>
+      <div class="footer-note">schema: 2–4 allowed (minItems 2, maxItems 4)</div>
+    </div>
+
+    <div class="group">
+      <h2>Option preview field</h2>
+      <div class="toggle" id="fieldToggle">
+        <button data-field="preview">"preview"</button>
+        <button data-field="markdown">"markdown"</button>
+      </div>
+      <div class="footer-note">only <code>preview</code> is valid; <code>additionalProperties:false</code> rejects anything else (the legacy <code>markdown</code> key)</div>
+      <label class="check"><input type="checkbox" id="hasPreview"> include the preview field on options</label>
+    </div>
+
+    <div class="group">
+      <h2>Selection</h2>
+      <label class="check"><input type="checkbox" id="multi"> multiSelect</label>
+      <div class="footer-note">previews render on single-select only — a preview on a multiSelect question is invalid</div>
+    </div>
+  </div>
+
+  <!-- ───────────── PREVIEW ───────────── -->
+  <div class="preview">
+    <div class="explainer">
+      <b>Why this exists.</b> orchestkit#1795 reported the AskUserQuestion picker rendering but
+      never accepting input — diagnosed at the time as a "CC 2.1.139 input bug." It was actually a
+      <b>schema break</b>: questions with &gt;4 options or a <code>markdown</code> field fail validation,
+      so the picker never renders. Toggle the controls and watch the verdict flip.
+    </div>
+
+    <div id="verdict" class="verdict"></div>
+
+    <h3 class="section">Mock picker render</h3>
+    <div id="picker" class="picker"></div>
+
+    <h3 class="section">Corrected AskUserQuestion (current settings)</h3>
+    <div class="codebox">
+      <button class="copy" id="copyBtn">Copy</button>
+      <pre id="code"></pre>
+    </div>
+    <div class="footer-note" id="copynote"></div>
+  </div>
+</div>
+
+<script>
+const DEFAULTS = { nq: 1, no: 4, field: "preview", hasPreview: true, multi: false };
+const state = { ...DEFAULTS };
+
+const PRESETS = {
+  "✓ Valid (fixed brainstorm)": { nq: 3, no: 4, field: "preview", hasPreview: true, multi: false },
+  "✗ #1795 brainstorm (6 opts)": { nq: 1, no: 6, field: "preview", hasPreview: true, multi: false },
+  "✗ legacy markdown field": { nq: 1, no: 4, field: "markdown", hasPreview: true, multi: false },
+  "✗ help (8 options)": { nq: 1, no: 6, field: "preview", hasPreview: true, multi: false },
+  "✗ multiSelect + preview": { nq: 1, no: 4, field: "preview", hasPreview: true, multi: true },
+  "✓ multiSelect (no preview)": { nq: 1, no: 4, field: "preview", hasPreview: false, multi: true },
+};
+
+// ── elements
+const el = id => document.getElementById(id);
+const nq = el("nq"), no = el("no"), nqv = el("nqv"), nov = el("nov");
+const hasPreview = el("hasPreview"), multi = el("multi");
+
+// ── presets
+const presetsBox = el("presets");
+Object.keys(PRESETS).forEach(name => {
+  const b = document.createElement("button");
+  b.textContent = name;
+  b.onclick = () => { Object.assign(state, PRESETS[name]); syncControls(); updateAll(); };
+  presetsBox.appendChild(b);
+});
+
+// ── field toggle
+document.querySelectorAll("#fieldToggle button").forEach(btn => {
+  btn.onclick = () => { state.field = btn.dataset.field; updateAll(); };
+});
+
+// ── wiring
+nq.oninput = () => { state.nq = +nq.value; updateAll(); };
+no.oninput = () => { state.no = +no.value; updateAll(); };
+hasPreview.onchange = () => { state.hasPreview = hasPreview.checked; updateAll(); };
+multi.onchange = () => { state.multi = multi.checked; updateAll(); };
+
+function syncControls() {
+  nq.value = state.nq; no.value = state.no;
+  hasPreview.checked = state.hasPreview; multi.checked = state.multi;
+}
+
+// ── validation
+function validate() {
+  const rules = [];
+  rules.push({ ok: state.nq >= 1 && state.nq <= 4,
+    msg: `Questions per call = ${state.nq} (must be 1–4, maxItems 4)` });
+  rules.push({ ok: state.no >= 2 && state.no <= 4,
+    msg: `Options per question = ${state.no} (must be 2–4: minItems 2, maxItems 4)` });
+  const fieldOk = !state.hasPreview || state.field === "preview";
+  rules.push({ ok: fieldOk,
+    msg: state.hasPreview
+      ? `Option field "${state.field}" ${fieldOk ? "is allowed" : "is rejected — additionalProperties:false; use \"preview\""}`
+      : `No extra option field (label/description only)` });
+  const multiOk = !(state.multi && state.hasPreview);
+  rules.push({ ok: multiOk,
+    msg: state.multi
+      ? (multiOk ? "multiSelect with no preview (ok)" : "preview on a multiSelect question — previews are single-select only")
+      : "single-select (previews allowed)" });
+  return rules;
+}
+
+// ── render verdict
+function renderVerdict(rules) {
+  const bad = rules.filter(r => !r.ok);
+  const v = el("verdict");
+  v.className = "verdict " + (bad.length ? "bad" : "ok");
+  const tag = bad.length ? `INVALID · ${bad.length} violation${bad.length>1?"s":""}` : "VALID";
+  v.innerHTML = `<div class="tag">${bad.length ? "■" : "▣"} ${tag}</div>`
+    + `<ul>${rules.map(r => `<li class="${r.ok ? "pass":""}">${r.msg}</li>`).join("")}</ul>`
+    + (bad.length ? `<div style="margin-top:8px;color:var(--bad)">→ harness raises InputValidationError; the picker never renders ("stuck").</div>`
+                  : `<div style="margin-top:8px;color:var(--ok)">→ picker renders and accepts input.</div>`);
+}
+
+// ── render mock picker (first question)
+function renderPicker(rules) {
+  const p = el("picker");
+  const optCount = state.no;
+  const usePreview = state.hasPreview && state.field === "preview" && !state.multi; // only valid previews render
+  const labels = ["Open exploration", "Comparison", "Quick ideation", "Iterative optimization", "Plan first", "Constrained"];
+  const tooMany = optCount > 4 || optCount < 2;
+  const fieldRejected = state.hasPreview && state.field !== "preview";
+
+  let opts = "";
+  for (let i = 0; i < optCount; i++) {
+    const invalid = (i >= 4) || (i < 0);
+    opts += `<div class="opt ${invalid?'invalid':''}"><span class="mark">${state.multi?'[ ]':(i===0?'(•)':'( )')}</span>`
+      + `<span><span class="lbl">${labels[i] || 'Option '+(i+1)}</span>`
+      + `<div class="desc">${invalid ? '⚠ exceeds maxItems 4' : 'description text…'}</div></span></div>`;
+  }
+
+  let body;
+  if (tooMany || fieldRejected || (state.multi && state.hasPreview)) {
+    body = `<div class="opts"><div class="prevpane dead" style="width:100%">`
+      + `╔══════════════════════════════╗\n`
+      + `║  picker failed to render      ║\n`
+      + `║  InputValidationError         ║\n`
+      + `╚══════════════════════════════╝\n\n`
+      + `selection input never binds →\n"User declined to answer questions"</div></div>`;
+  } else if (usePreview) {
+    body = `<div class="opts split"><div class="list">${opts}</div>`
+      + `<div class="prevpane">┌────────────────────┐\n│  preview panel      │\n│  (side-by-side)     │\n│                     │\n│  ░ ASCII diagram ░  │\n└────────────────────┘</div></div>`;
+  } else {
+    body = `<div class="opts"><div class="list">${opts}</div></div>`;
+  }
+
+  p.innerHTML = `<div class="q"><div class="hdr">Mode</div>What type of design exploration?</div>${body}`;
+}
+
+// ── render code snippet (always shows a *valid* corrected call)
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function renderCode() {
+  const validOpts = Math.min(4, Math.max(2, state.no));
+  const validQ = Math.min(4, Math.max(1, state.nq));
+  const includePrev = state.hasPreview && !state.multi; // corrected: drop preview if multiSelect
+  const labels = ["Open exploration (Recommended)", "Comparison", "Quick ideation", "Iterative optimization"];
+  const optLines = [];
+  for (let i = 0; i < validOpts; i++) {
+    let o = `      {<span class="key">"label"</span>: <span class="str">"${labels[i]||'Option '+(i+1)}"</span>, `
+      + `<span class="key">"description"</span>: <span class="str">"…"</span>`;
+    if (includePrev) o += `, <span class="key">"preview"</span>: <span class="str">"\`\`\`\\n…ASCII…\\n\`\`\`"</span>`;
+    o += `}`;
+    optLines.push(o);
+  }
+  const qBlocks = [];
+  for (let q = 0; q < validQ; q++) {
+    qBlocks.push(
+      `    {\n`
+      + `      <span class="key">"question"</span>: <span class="str">"Question ${q+1}?"</span>,\n`
+      + `      <span class="key">"header"</span>: <span class="str">"Mode"</span>,\n`
+      + `      <span class="key">"options"</span>: [\n${optLines.join(",\n")}\n      ],\n`
+      + `      <span class="key">"multiSelect"</span>: <span class="bool">${state.multi}</span>\n`
+      + `    }`);
+  }
+  const html = `AskUserQuestion(\n  questions=[\n${qBlocks.join(",\n")}\n  ]\n)`;
+  el("code").innerHTML = html;
+
+  // raw (no html) for clipboard
+  el("code").dataset.raw = el("code").textContent;
+
+  const note = [];
+  if (state.no > 4) note.push(`clamped ${state.no}→4 options`);
+  if (state.no < 2) note.push(`raised ${state.no}→2 options`);
+  if (state.nq > 4) note.push(`clamped ${state.nq}→4 questions`);
+  if (state.hasPreview && state.field === "markdown") note.push(`renamed markdown→preview`);
+  if (state.multi && state.hasPreview) note.push(`dropped preview (multiSelect)`);
+  el("copynote").textContent = note.length ? "Corrections applied: " + note.join(" · ") : "Current settings are already schema-valid.";
+}
+
+function updateAll() {
+  nqv.textContent = state.nq; nov.textContent = state.no;
+  document.querySelectorAll("#fieldToggle button").forEach(b => {
+    const on = b.dataset.field === state.field;
+    b.className = on ? ("on " + (state.field === "preview" ? "good" : "bad")) : "";
+  });
+  const rules = validate();
+  renderVerdict(rules);
+  renderPicker(rules);
+  renderCode();
+}
+
+el("copyBtn").onclick = () => {
+  navigator.clipboard.writeText(el("code").dataset.raw || el("code").textContent).then(() => {
+    const b = el("copyBtn"); b.textContent = "Copied!"; setTimeout(() => b.textContent = "Copy", 1200);
+  });
+};
+
+syncControls();
+updateAll();
+</script>
+</body>
+</html>

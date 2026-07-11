@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Version Matrix THIN — 478 rows → 2 constants · OrchestKit</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--txt:#e6edf3;--dim:#8b949e;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--redhi:#ff7b72;--purple:#bc8cff;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--mono);font-size:14px;line-height:1.55;padding:28px 20px 80px}
+  .wrap{max-width:980px;margin:0 auto}h1{font-size:21px;margin:0 0 4px}
+  h2{font-size:14px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin:30px 0 12px;border-bottom:1px solid var(--border);padding-bottom:6px}
+  .sub{color:var(--dim);margin:0 0 6px}.tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);color:var(--dim)}
+  .dash{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+  .metric{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center}
+  .metric .n{font-size:24px;font-weight:700}.metric .l{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+  .ba{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin-top:14px}
+  .box{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12.5px}
+  .arr{font-size:22px;color:var(--accent);text-align:center}.strike{text-decoration:line-through;color:var(--redhi);opacity:.7}
+  table{width:100%;border-collapse:collapse;margin-top:8px}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:top}th{color:var(--dim);font-size:11px;text-transform:uppercase}
+  code{color:var(--purple);background:rgba(188,140,255,.08);padding:1px 5px;border-radius:4px}
+  .green{color:var(--green)}.red{color:var(--redhi)}
+  .note{font-size:12px;color:var(--dim);margin-top:10px}.note b{color:var(--amber)}
+  .outbox{background:#0a0d12;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-top:10px;white-space:pre-wrap;font-size:12.5px;position:relative}
+  .copy{position:absolute;top:10px;right:10px;background:var(--panel2);border:1px solid var(--border);color:var(--txt);border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:11px;cursor:pointer}.copy:hover{border-color:var(--accent);color:var(--accent)}.copy.done{color:var(--green);border-color:var(--green)}
+</style></head><body><div class="wrap">
+  <h1>✂️ Version Matrix THIN</h1>
+  <p class="sub">#2229 · the one genuine drift that survived the adversarial re-audit · 478 catalogue rows → 2 constants</p>
+  <span class="tag">verified by reading consumers, not grepping — the lesson, applied</span>
+
+  <h2>📊 The cut</h2>
+  <div class="dash">
+    <div class="metric"><div class="n red">−573</div><div class="l">lines removed</div></div>
+    <div class="metric"><div class="n red">−478</div><div class="l">catalogue rows</div></div>
+    <div class="metric"><div class="n" style="color:var(--amber)">−77 KB</div><div class="l">hook bundle</div></div>
+    <div class="metric"><div class="n green">0</div><div class="l">behavior change</div></div>
+  </div>
+
+  <h2>🔻 Before → After</h2>
+  <div class="ba">
+    <div class="box"><b class="red">615 lines</b><br><br>
+      <code>MIN_CC_VERSION</code><br>
+      <span class="strike">CCFeatureEntry interface</span><br>
+      <span class="strike">CC_FEATURE_MATRIX (478 rows)</span><br>
+      <span class="strike">CCFeature type</span><br>
+      <span class="strike">getAvailableFeatures()</span><br>
+      <span class="strike">getMissingFeatures()</span><br>
+      <span class="strike">hasFeature()</span><br>
+      <code>compareCCVersions()</code>
+    </div>
+    <div class="arr">→</div>
+    <div class="box"><b class="green">42 lines</b><br><br>
+      <code>MIN_CC_VERSION</code> = '2.1.148'<br>
+      <code>LATEST_KNOWN_CC</code> = '2.1.162' <span class="green">(new — 1 line/cycle, not 5 rows)</span><br>
+      <code>compareCCVersions()</code><br><br>
+      <span class="green">that's the entire surface anything read.</span>
+    </div>
+  </div>
+
+  <h2>🔬 Why it's safe (the consumers, read not grepped)</h2>
+  <table><thead><tr><th>consumer</th><th>what it needed</th><th>verdict</th></tr></thead><tbody>
+    <tr><td><code>cc-version-check.ts:42</code></td><td>iterated the matrix only for the MAX version (a scalar)</td><td class="green">→ now reads <code>LATEST_KNOWN_CC</code></td></tr>
+    <tr><td><code>generate-docs-data.js</code></td><td>regex-extracts <code>MIN_CC_VERSION</code> (a scalar)</td><td class="green">unaffected</td></tr>
+    <tr><td><code>stamp-cc-support.mjs</code></td><td><code>MIN_CC_VERSION</code></td><td class="green">unaffected</td></tr>
+    <tr><td><code>hasFeature</code> + friends</td><td>called ONLY by tests (0 production)</td><td class="red">removed</td></tr>
+    <tr><td><code>cc-file-adoption-issues.sh</code></td><td>grep said "consumer" — reads <code>cc-adoption-gaps.json</code>, NOT the matrix</td><td class="green">never a consumer</td></tr>
+  </tbody></table>
+
+  <h2>✅ Verification</h2>
+  <p class="note">Full hooks suite <b>8502 passed, 0 failed</b> · Biome + tsc clean · bundle 799→722 KB · rewrote the matrix test (10 pass) — covers the 2 constants + comparator; dropped the catalogue/helper tests with the code they tested.</p>
+
+  <h2>📦 What lands</h2>
+  <div class="outbox"><button class="copy" id="cp">copy</button><span id="out"></span></div>
+  <p class="note" style="margin-top:22px">The cc-watch "catalogue in matrix" ritual is gone — bump <code>LATEST_KNOWN_CC</code> one line per adoption cycle instead of appending ~5 rows. Refs #2217 (the re-audit that confirmed this) · rule: <code>shared/rules/cc-native-first.md</code></p>
+</div><script>
+const out=["#2229 — thin cc-version-matrix (478 rows -> 2 constants)","",
+"EDIT src/hooks/src/lib/cc-version-matrix.ts   615 -> 42 ln (keep MIN_CC_VERSION + LATEST_KNOWN_CC + compareCCVersions)",
+"EDIT src/hooks/src/lifecycle/cc-version-check.ts   latestMatrixVersion() iteration -> LATEST_KNOWN_CC constant",
+"EDIT src/hooks/src/__tests__/lib/cc-version-matrix.test.ts   rewritten: 2 constants + comparator (10 tests)",
+"EDIT src/skills/upgrade-assessment/.../cc-2.1.47-upgrade-guide.md   drop stale hasFeature API reference","",
+"Removed: 478 catalogue rows + CCFeatureEntry + CCFeature type + 3 zero-caller helpers.",
+"Behavior: unchanged. Bundle: -77 KB. The one real drift from the cc-native-first audit, shipped."].join("\n");
+document.getElementById('out').textContent=out;
+document.getElementById('cp').addEventListener('click',e=>{navigator.clipboard.writeText(out).then(()=>{e.target.textContent='copied ✓';e.target.classList.add('done');setTimeout(()=>{e.target.textContent='copy';e.target.classList.remove('done');},1400);});});
+</script></body></html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>#1795 fix playground — AskUserQuestion text fallback</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+code { background: #f4f4f4; padding: 1px 4px; border-radius: 3px; }
+pre { background: #f4f4f4; padding: 0.75rem; overflow-x: auto; border-radius: 4px; }
+h2 { margin-top: 2rem; }
+</style>
+</head>
+<body>
+<h1>#1795 — AskUserQuestion picker fallback (ORK_ASK_FALLBACK=text)</h1>
+
+<h2>Symptom</h2>
+<p>CC 2.1.139 picker UI renders but does not accept keystrokes. Every <code>AskUserQuestion</code> auto-resolves to <code>User declined to answer questions</code>, silently breaking the 33 OrchestKit skills that depend on it (<code>brainstorm</code>, <code>fix-issue</code>, <code>create-pr</code>, <code>assess</code>, <code>verify</code>, …).</p>
+
+<h2>Mitigation</h2>
+<p>Set <code>ORK_ASK_FALLBACK=text</code> before starting CC. The new <code>prompt/ask-fallback-injector</code> hook injects a <code>system-reminder</code> on every <code>UserPromptSubmit</code> telling the assistant to use inline numbered prompts instead.</p>
+
+<h2>Scope</h2>
+<ul>
+  <li><strong>1 new hook</strong>: <code>src/hooks/src/prompt/ask-fallback-injector.ts</code> — one env-var check, no I/O</li>
+  <li><strong>3 SKILL.md edits</strong>: <code>brainstorm</code>, <code>fix-issue</code>, <code>create-pr</code> — 3-line "Picker fallback" section each</li>
+  <li><strong>1 docs page</strong>: <code>docs/site/content/docs/guides/ask-fallback.mdx</code></li>
+  <li><strong>1 unit test</strong>: <code>src/hooks/src/__tests__/ask-fallback-injector.test.ts</code> — 5/5 pass</li>
+</ul>
+
+<h2>Why a hook (not per-skill edits)</h2>
+<p>33 SKILL.md files use <code>AskUserQuestion</code>. Editing each would balloon the PR and drift. One <code>UserPromptSubmit</code> hook propagates the signal globally without touching skills.</p>
+
+<h2>Verified</h2>
+<pre> Test Files  1 passed (1)
+      Tests  5 passed (5)</pre>
+
+<p>Refs #1795. Closes #1795 once the user confirms the fallback works in their session.</p>
+</body>
+</html>

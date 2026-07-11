@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Install-Path Portability — fix + static gate</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2230;--border:#30363d;--fg:#e6edf3;--muted:#8b949e;--green:#3fb950;--amber:#d29922;--red:#f85149;--blue:#58a6ff;--accent:#bc8cff;}
+  *{box-sizing:border-box;} body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,"Segoe UI",system-ui,sans-serif;}
+  .wrap{max-width:1000px;margin:0 auto;padding:32px 20px 80px;}
+  h1{font-size:23px;margin:0 0 3px;} .sub{color:var(--muted);margin:0 0 20px;}
+  h2{font-size:16px;margin:26px 0 10px;border-bottom:1px solid var(--border);padding-bottom:6px;}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:12px;font-family:"SF Mono",ui-monospace,Menlo,monospace;color:var(--accent);}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:18px 0;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:13px;text-align:center;}
+  .card .n{font-size:24px;font-weight:700;} .card .l{color:var(--muted);font-size:11px;text-transform:uppercase;}
+  .card.r .n{color:var(--red);} .card.g .n{color:var(--green);} .card.a .n{color:var(--amber);} .card.b .n{color:var(--blue);}
+  .flow{background:#0a0e14;border:1px solid var(--border);border-radius:10px;padding:15px 17px;font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.7;overflow-x:auto;}
+  .flow .e{color:var(--green);} .flow .dim{color:var(--muted);} .flow .r{color:var(--red);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top;}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;} .mono{font-family:"SF Mono",ui-monospace,monospace;}
+  .note{background:var(--panel);border-left:3px solid var(--green);border-radius:0 8px 8px 0;padding:12px 16px;margin:14px 0;font-size:13.5px;}
+  .note.a{border-left-color:var(--amber);} .note.b{border-left-color:var(--blue);}
+  .foot{color:var(--muted);font-size:12px;margin-top:30px;border-top:1px solid var(--border);padding-top:14px;}
+  @media(max-width:720px){.cards{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔌 Install-Path Portability — fix + permanent gate</h1>
+  <p class="sub">cheap-static-first: the workflow found 3 by judgment; a 0-token grep finds + gates the whole class · 2026-06-05</p>
+
+  <div class="cards">
+    <div class="card g"><div class="n">14</div><div class="l">Install paths fixed</div></div>
+    <div class="card b"><div class="n">C3</div><div class="l">Static gate added</div></div>
+    <div class="card a"><div class="n">20</div><div class="l">False-positives guarded</div></div>
+    <div class="card a"><div class="n">40</div><div class="l">golden-dataset (follow-up)</div></div>
+  </div>
+
+  <div class="note">
+    The skill-fitness workflow flagged a hardcoded <code>/Users/…</code> path in <code>verify</code> (install-breaking).
+    This is the systemic version: a <b>static</b> install-path check (C3, in <code>conformance-check.mjs</code>) finds the
+    <b>whole class</b> at 0 tokens and gates it forever — exactly the session principle: <b>cheap-static-first, expensive-workflow for judgment only.</b>
+  </div>
+
+  <h2>Fixed (14 — install-breaking skill-load paths)</h2>
+  <table>
+    <tr><th>Pattern</th><th>Fix</th><th>Skills</th></tr>
+    <tr><td class="mono">Read("/Users/yonatangross/…/skills/X/…")</td><td class="mono">→ ${CLAUDE_PLUGIN_ROOT}/skills/X/…</td><td>demo-producer, audit-full, implement×2, expect, cover×3</td></tr>
+    <tr><td class="mono">plugins/ork/skills/&lt;self&gt;/scripts/…</td><td class="mono">→ ${CLAUDE_SKILL_DIR}/scripts/…</td><td>memory, brainstorm, explore, assess, review-pr, fix-issue</td></tr>
+    <tr><td class="mono">assess "7-dimension" (hyphen)</td><td class="mono">→ "6-dimension"</td><td>assess (my earlier-miss residual)</td></tr>
+  </table>
+
+  <h2>The C3 check — and its own false-positive self-fix</h2>
+  <div class="flow">
+<span class="dim">conformance-check.mjs · C3-install-path (advisory WARN, 0 tokens):</span>
+  flag <span class="r">/Users/&lt;name&gt;/</span>  (case-SENSITIVE — /Users/ is home, /users/ is a REST resource)
+  flag <span class="r">plugins/ork/skills/&lt;name&gt;/</span>  (not the *-glob)
+  guards: ${CLAUDE_*} already-portable · placeholder names (foo/dev/john/me/you) · counting glob
+
+<span class="dim">dogfooded the checker on itself — 60 raw flags → 40 real:</span>
+  <span class="r">11</span> REST <span class="dim">/users/123/orders</span> (api-design, emulate-seed)  → killed by case-sensitivity
+  <span class="r">9</span>  placeholder <span class="dim">/Users/foo</span>, schema data, docs-about-paths  → killed by placeholder guard
+  <span class="e">14</span> real install-breaking skill paths  → FIXED
+  <span class="a">40</span> golden-dataset OrchestKit/backend ops paths  → deferred (different repo/concern)
+  </div>
+
+  <div class="note a">
+    <b>Deferred:</b> golden-dataset's 40 are operational backup-restore commands referencing a different repo
+    (<code>OrchestKit/backend</code>) — non-portable but a separate ops concern, not skill-load instructions.
+    C3 (advisory) keeps surfacing them as tracked debt until cleaned.
+  </div>
+
+  <div class="note b">
+    <b>Why this beats chasing the workflow score:</b> the skill-fitness workflow found install-paths 3-at-a-time at
+    ~50k tokens each. C3 finds all 60 instantly, fixes 14, and <b>blocks the 61st forever</b> — turning a found-by-expensive-judgment
+    class into a cheap deterministic gate. The flywheel discipline, applied.
+  </div>
+
+  <div class="foot">Eval v2 #156 · improvement #1 of the "all go" list. PR playground gate artifact.</div>
+</div>
+</body>
+</html>

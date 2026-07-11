@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Release-Please Version Drift — Diagnosis &amp; Fix</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --fg: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --ok: #3fb950;
+    --warn: #d29922;
+    --bad: #f85149;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font-family: var(--mono); font-size: 14px; line-height: 1.55;
+    padding: 24px; max-width: 1100px; margin: 0 auto;
+  }
+  h1 { font-size: 22px; margin: 0 0 8px; }
+  h2 { font-size: 16px; margin: 32px 0 12px; color: var(--accent); }
+  .lead { color: var(--muted); margin: 0 0 24px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .col {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 16px;
+  }
+  .col h3 { margin: 0 0 12px; font-size: 14px; }
+  .col.bad h3 { color: var(--bad); }
+  .col.ok h3 { color: var(--ok); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; }
+  td.ver { color: var(--accent); }
+  td.bad { color: var(--bad); }
+  td.ok { color: var(--ok); }
+  pre {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 12px; overflow-x: auto;
+    margin: 8px 0; font-size: 12px; line-height: 1.45;
+  }
+  .arrow { text-align: center; font-size: 28px; color: var(--muted); padding: 24px 0; }
+  .step {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px 16px; margin: 8px 0;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .step .num {
+    flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--bad); color: var(--bg); font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+  .step.fix .num { background: var(--ok); }
+  .step .body { flex: 1; }
+  .step .body strong { color: var(--fg); }
+  .step .body code { background: var(--bg); padding: 1px 6px; border-radius: 3px; color: var(--accent); }
+  footer {
+    margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 12px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🚨 Release-Please Version Drift — Diagnosis &amp; Fix</h1>
+<p class="lead">
+PR <a href="https://github.com/yonatangross/orchestkit/pull/1946">#1946</a> proposed
+a 9.0.0 release. This page walks through why it happened and what this fix PR does.
+</p>
+
+<h2>State of version-tracked files</h2>
+<div class="grid">
+  <div class="col bad">
+    <h3>❌ Before this fix (origin/main)</h3>
+    <table>
+      <thead><tr><th>File</th><th>Version</th></tr></thead>
+      <tbody>
+        <tr><td>.release-please-manifest.json</td><td class="bad">8.1.0</td></tr>
+        <tr><td>version.txt</td><td class="bad">8.1.0</td></tr>
+        <tr><td>package.json</td><td class="bad">8.1.0</td></tr>
+        <tr><td>pyproject.toml</td><td class="bad">8.1.0</td></tr>
+        <tr><td>.claude-plugin/marketplace.json (×2)</td><td class="bad">8.1.0</td></tr>
+        <tr><td>manifests/ork.json</td><td class="bad">8.1.0</td></tr>
+        <tr><td>CLAUDE.md (x-release-please tag)</td><td class="bad">8.1.0</td></tr>
+        <tr><td>CHANGELOG.md (hand-written sections)</td><td class="bad">8.1.0 + 7.96.0 drift</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col ok">
+    <h3>✅ After this fix</h3>
+    <table>
+      <thead><tr><th>File</th><th>Version</th></tr></thead>
+      <tbody>
+        <tr><td>.release-please-manifest.json</td><td class="ok">8.0.0</td></tr>
+        <tr><td>version.txt</td><td class="ok">8.0.0</td></tr>
+        <tr><td>package.json</td><td class="ok">8.0.0</td></tr>
+        <tr><td>pyproject.toml</td><td class="ok">8.0.0</td></tr>
+        <tr><td>.claude-plugin/marketplace.json (×2)</td><td class="ok">8.0.0</td></tr>
+        <tr><td>manifests/ork.json</td><td class="ok">8.0.0</td></tr>
+        <tr><td>CLAUDE.md (x-release-please tag)</td><td class="ok">8.0.0</td></tr>
+        <tr><td>CHANGELOG.md</td><td class="ok">drift sections removed</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<h2>How the drift happened</h2>
+<div class="step">
+  <div class="num">1</div>
+  <div class="body">
+    <strong>v8.0.0 released cleanly</strong> via release-please PR <a href="https://github.com/yonatangross/orchestkit/pull/1922">#1922</a>.
+    Tag <code>v8.0.0</code> created. Manifest sat at <code>8.0.0</code>. ✅
+  </div>
+</div>
+<div class="step">
+  <div class="num">2</div>
+  <div class="body">
+    <strong>PR <a href="https://github.com/yonatangross/orchestkit/pull/1920">#1920</a> (SQLite Layer 1)</strong>
+    was squashed and contained an inner commit <code>chore: bump to v8.1.0 + populate CHANGELOG</code>
+    that manually edited release-please's source-of-truth files. release-please <em>owns</em> these
+    via <code>.release-please-config.json</code> <code>extra-files</code> — manual edits desync its state machine.
+  </div>
+</div>
+<div class="step">
+  <div class="num">3</div>
+  <div class="body">
+    <strong>release-please ran on the next push</strong> and saw:
+    manifest=<code>8.1.0</code>, no <code>v8.1.0</code> tag exists, so it fell back to bootstrap-sha
+    and re-scanned the full history. It re-encountered <code>feat!: hard-delete monitors.json (#1919)</code>
+    (already shipped in v8.0.0) and the <code>!</code> triggered a MAJOR bump.
+    <pre>compare/v8.1.0...v9.0.0   ← release-please's draft
+                ↑ no such tag exists</pre>
+  </div>
+</div>
+
+<h2>The fix</h2>
+<div class="step fix">
+  <div class="num">1</div>
+  <div class="body">
+    Revert all 9 extra-files from <code>8.1.0</code> back to <code>8.0.0</code> (their state at the
+    <code>v8.0.0</code> tag). Remove hand-written <code>[8.1.0]</code> and <code>[7.96.0]</code>
+    sections from CHANGELOG.md — release-please will regenerate them from commit messages.
+  </div>
+</div>
+<div class="step fix">
+  <div class="num">2</div>
+  <div class="body">
+    Rebuild <code>plugins/</code> so generated files (<code>plugin.json</code>,
+    <code>stop-uncommitted-check.mjs</code>, <code>plugins-data.ts</code>, <code>changelog-data.ts</code>)
+    pick up the corrected version.
+  </div>
+</div>
+<div class="step fix">
+  <div class="num">3</div>
+  <div class="body">
+    After merge, release-please will:
+    <ul>
+      <li>Anchor on manifest=<code>8.0.0</code> matching tag <code>v8.0.0</code></li>
+      <li>Scan only commits <em>since</em> v8.0.0: <code>#1920 (feat:)</code> + <code>#1939 (docs:)</code></li>
+      <li>Propose correct minor bump → <code>8.1.0</code></li>
+    </ul>
+    <strong>Close PR <a href="https://github.com/yonatangross/orchestkit/pull/1946">#1946</a></strong>;
+    release-please will open a corrected version.
+  </div>
+</div>
+
+<h2>Prevention</h2>
+<div class="step fix">
+  <div class="num">!</div>
+  <div class="body">
+    Saved a feedback memory: <strong>never manually edit release-please extra-files in feature PRs</strong>.
+    The list of governed files lives in <code>.release-please-config.json</code> under
+    <code>extra-files</code> — any version bump there is release-please's job alone.
+    Worth adding a pre-commit / CI guard that blocks PRs touching those files unless
+    authored by <code>orchestkit-release-bot[bot]</code>.
+  </div>
+</div>
+
+<footer>
+This playground satisfies the OrchestKit PR Playground gate for the fix branch.
+Source playground spec: <a href="https://github.com/yonatangross/orchestkit/blob/main/src/rules/visual-style.md">visual-style.md</a>.
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Adversarial Refutation Rollout — OrchestKit</title>
+    <style>
+      :root {
+        --bg:#0b0e14; --panel:#141925; --panel2:#1b2233; --ink:#e6edf3; --mut:#94a3b8;
+        --cyan:#06b6d4; --green:#22c55e; --amber:#f59e0b; --red:#ef4444; --line:#243049;
+      }
+      *{box-sizing:border-box}
+      body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+      header{padding:26px 22px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#101521,#0b0e14)}
+      h1{margin:0 0 6px;font-size:21px}
+      .sub{color:var(--mut);font-size:14px}
+      main{max-width:1020px;margin:0 auto;padding:22px}
+      h2{font-size:16px;border-left:3px solid var(--cyan);padding-left:10px;margin-top:30px}
+      .tabs{display:flex;gap:8px;margin:14px 0}
+      .tab{padding:8px 16px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;font-weight:600;font-size:13px}
+      .tab.active{background:var(--cyan);color:#04222a;border-color:var(--cyan)}
+      .tab .done{color:var(--green);font-size:11px}
+      table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13.5px}
+      th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+      th{color:var(--mut);font-weight:600;width:200px}
+      code{font-family:ui-monospace,Menlo,monospace;background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:12.5px}
+      .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px 18px 16px}
+      .rules{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));margin-top:12px}
+      .rule{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+      .rule b{color:var(--cyan)}
+      .rule p{margin:6px 0 0;color:var(--mut);font-size:13px}
+      .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+      .ship{background:rgba(34,197,94,.15);color:var(--green)}
+      .matrix td{font-size:13px}
+      .matrix .skip{color:var(--mut)} .matrix .adv{color:var(--amber)} .matrix .quo{color:var(--green)}
+      .legend{color:var(--mut);font-size:12.5px;margin-top:10px}
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🧪 Adversarial Refutation — rollout across evaluative skills</h1>
+      <div class="sub">A <b>blind refuter</b> verifies a skill's own decision-bearing findings — the structural fix for self-preferential bias (a producer can't be its own fair judge). Closes <code>#2231</code>.</div>
+    </header>
+    <main>
+      <h2>Rollout status</h2>
+      <div class="card">
+        <p style="margin-top:14px">
+          <span class="pill ship">SHIPPED</span> <code>assess</code> (#2235 pilot) &nbsp;·&nbsp;
+          <span class="pill ship">THIS PR</span> <code>review-pr</code> &nbsp;·&nbsp;
+          <span class="pill ship">THIS PR</span> <code>audit-full</code>
+        </p>
+        <p class="legend">One shared engine (<code>shared/rules/adversarial-refutation.md</code>) + a thin per-skill adapter that binds it. All three evaluative skills now refute before they emit a headline score / merge verdict / severity report.</p>
+      </div>
+
+      <h2>Per-skill bindings</h2>
+      <div class="tabs" id="tabs"></div>
+      <div class="card"><table id="bind"></table></div>
+
+      <h2>Effort gate (when refutation runs)</h2>
+      <div class="card">
+        <table class="matrix">
+          <tr><th>/effort</th><td>assess (Phase 2.5)</td><td>review-pr (Phase 4.5)</td><td>audit-full (STEP 3.5)</td></tr>
+          <tr><td>low / medium</td><td class="skip">skip</td><td class="skip">skip</td><td class="skip">skip</td></tr>
+          <tr><td>high</td><td class="adv">≤4 single, advisory</td><td class="adv">≤6 single, advisory</td><td class="adv">single, advisory</td></tr>
+          <tr><td>xhigh</td><td class="quo">3-vote majority</td><td class="quo">3 blocker / 2 HIGH</td><td class="quo">3 CRITICAL / 2 HIGH</td></tr>
+        </table>
+        <p class="legend">Advisory = surfaced, never auto-applied. Quorum = majority with VERIFIED counter-evidence. A 1-of-N dissent never revises (records a caveat, drops confidence to low).</p>
+      </div>
+
+      <h2>The shared engine's 10 guardrails</h2>
+      <div class="rules" id="rules"></div>
+    </main>
+
+    <script>
+      const skills = {
+        "review-pr": {
+          phase: "Phase 4.5 (after findings + validation, before the verdict)",
+          rows: [
+            ["finding", "a Phase-3 conventional comment classified <code>issue</code> (esp. a request-changes blocker)"],
+            ["rubric", "code-review-playbook + the producing agent's domain rubric"],
+            ["refuter", "the same <code>subagent_type</code> that raised it, spawned blind, no team_name"],
+            ["artifact", "the CHANGED_FILES diff slice — refuter re-reads it itself"],
+            ["ledger", "<code>refutation-ledger.json</code>"],
+            ["guardrail", "refutation may NOT flip request-changes→approve without user confirm"],
+          ],
+        },
+        "audit-full": {
+          phase: "STEP 3.5 (after analysis, before the report)",
+          rows: [
+            ["finding", "a severity-ranked STEP-3 finding (CRITICAL/HIGH)"],
+            ["rubric", "the relevant audit guide + severity-matrix"],
+            ["refuter", "blind <code>Agent()</code> by domain — audit-full's ONLY sub-agent spawns"],
+            ["artifact", "the cited file:line slice (narrow — cross-file stays UPHELD)"],
+            ["ledger", "<code>refutation-ledger.json</code>"],
+            ["guardrail", "CVE/CVSS/build/test are ground truth — never refuted; only reachability claims are"],
+          ],
+        },
+        "assess": {
+          phase: "Phase 2.5 (after scoring, before the composite/grade) — shipped in #2235",
+          rows: [
+            ["finding", "a per-dimension 0-10 score"],
+            ["rubric", "unified-scoring-framework + quality-model"],
+            ["refuter", "the same scorer subagent, spawned blind"],
+            ["artifact", "the scoped file list + ≤12-tool-call budget"],
+            ["ledger", "<code>02b-refutation.json</code>"],
+            ["guardrail", "publishes producer-basis AND post-refutation score; never silently raises the grade"],
+          ],
+        },
+      };
+      const rules = [
+        ["1 · Blindness contract","Refuter never sees the producer's number, prose, evidence list, or identity — only category + location + raw code."],
+        ["2 · Independent-score-first","Refuter forms its OWN band from the rubric; the orchestrator (not the refuter) decides SURVIVES/OVERTURNED."],
+        ["3 · Citation-verify gate","Every KILL/DOWNGRADE re-opens the cited file:line; unverifiable citation → UPHELD."],
+        ["4 · Quorum","Top findings need 3 refuters (majority), mid need 2; a lone judge never flips a verdict."],
+        ["5 · Cross-file UPHELD-default","A narrow-context refuter that 'can't reproduce' a traced flow UPHOLDS — never kills what it couldn't see."],
+        ["6 · Deterministic exemption","Build/test/lint output, CVE/CVSS matches, type errors are never refuted — only claims layered on them."],
+        ["7 · No-auto-flip","Refutation alone can't flip a human-facing block→approve nor silently raise a headline score."],
+        ["8 · Global spawn ceiling","Dedup to root-cause, cap total refuters (default 24), rank by severity×boundary-distance, flag the overflow."],
+        ["9 · Always-isolated spawn","Refuters are always plain Agent() with no team_name — joining a mesh leaks producer reasoning."],
+        ["10 · Refutation ledger","Persist votes + verified citations + outcome per finding, so wrong KEEPs AND wrong KILLs are auditable."],
+      ];
+
+      const tabs = document.getElementById("tabs");
+      const order = ["review-pr","audit-full","assess"];
+      order.forEach((k,i)=>{
+        const b=document.createElement("button");
+        b.className="tab"+(i===0?" active":"");
+        b.innerHTML=k+(k==="assess"?' <span class="done">✓ #2235</span>':'');
+        b.onclick=()=>{document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));b.classList.add("active");render(k)};
+        tabs.appendChild(b);
+      });
+      function render(k){
+        const s=skills[k];
+        document.getElementById("bind").innerHTML =
+          `<tr><th>placement</th><td>${s.phase}</td></tr>`+
+          s.rows.map(([a,b])=>`<tr><th>${a}</th><td>${b}</td></tr>`).join("");
+      }
+      document.getElementById("rules").innerHTML = rules.map(([t,d])=>`<div class="rule"><b>${t}</b><p>${d}</p></div>`).join("");
+      render("review-pr");
+    </script>
+  </body>
+</html>

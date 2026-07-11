@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>isProtectedBranch — empty-string semantics</title>
+<style>
+  :root {
+    --bg: #0c0f14; --panel: #1a2030; --border: #1e293b;
+    --text: #e2e8f0; --dim: #94a3b8; --faint: #64748b;
+    --primary: #7c3aed; --accent: #d97757;
+    --green: #4ade80; --red: #f87171; --amber: #fbbf24;
+    --mono: ui-monospace,Menlo,Consolas,monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text); font: 14px/1.55 system-ui,sans-serif;
+    padding: 40px 24px 80px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 99px;
+    background: rgba(124,58,237,0.18); border: 1px solid var(--primary);
+    color: var(--primary); font: 11px var(--mono); margin-bottom: 14px;
+  }
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.02em; }
+  h1 .bug { color: var(--red); }
+  h1 .fix { color: var(--green); }
+  .subtitle { color: var(--dim); font: 12px var(--mono); margin-bottom: 24px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  pre {
+    background: #0f131a; border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px;
+    font: 11.5px/1.5 var(--mono); overflow-x: auto; color: var(--dim);
+  }
+  pre .kw { color: var(--primary); font-weight: 500; }
+  pre .str { color: var(--accent); }
+  pre .c { color: var(--faint); font-style: italic; }
+  pre .bad { color: var(--red); }
+  pre .good { color: var(--green); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .cell .label { font: 10px var(--mono); color: var(--faint); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .cell pre { margin: 0; }
+  .flow {
+    font: 11.5px/1.6 var(--mono); color: var(--dim);
+    background: #0f131a; border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px; white-space: pre;
+  }
+</style></head><body><div class="wrap">
+
+<span class="pill">fix/git-validator-empty-branch · #1425</span>
+<h1>isProtectedBranch(<span class="bug">''</span>) <span class="fix">→ false</span></h1>
+<div class="subtitle">Fixing 8 silently-broken git-validator tests on main since #1412</div>
+
+<div class="card">
+  <h2>The bug — falsy fallback</h2>
+  <div class="row">
+    <div class="cell"><div class="label">Before</div>
+<pre><span class="kw">export function</span> isProtectedBranch(branch?: <span class="kw">string</span>) {
+  <span class="c">// '' is falsy → falls through to real git!</span>
+  <span class="kw">const</span> currentBranch = branch <span class="bad">||</span> getCurrentBranch();
+  <span class="kw">return</span> getProtectedBranches().includes(currentBranch);
+}</pre></div>
+    <div class="cell"><div class="label">After</div>
+<pre><span class="kw">export function</span> isProtectedBranch(branch?: <span class="kw">string</span>) {
+  <span class="kw">const</span> currentBranch = branch <span class="good">=== undefined</span>
+    ? getCurrentBranch() : branch;
+  <span class="kw">if</span> (!currentBranch) <span class="kw">return</span> <span class="good">false</span>;
+  <span class="kw">return</span> getProtectedBranches().includes(currentBranch);
+}</pre></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Why the test suite was silently green on feature branches</h2>
+<div class="flow">test: gitValidator(input) on <span style="color:var(--amber)">feat/road-to-10</span>
+            │
+            ▼
+   ctx.branch = <span style="color:var(--accent)">''</span>  (NOOP_CTX default)
+            │
+            ▼
+   isProtectedBranch(<span style="color:var(--accent)">''</span>)
+            │
+   '' <span style="color:var(--red)">||</span> getCurrentBranch()   ← <span style="color:var(--red)">bug</span>: '' is falsy
+            │
+            ▼
+   getCurrentBranch() = <span style="color:var(--amber)">'feat/road-to-10'</span>
+            │
+   not in ['main','master']
+            │
+            ▼
+   <span style="color:var(--green)">returns false</span> → test validates commit format ✓
+
+test: gitValidator(input) on <span style="color:var(--red)">main</span>   ← CI post-merge
+            │
+            ▼
+   ctx.branch = <span style="color:var(--accent)">''</span>
+            │
+            ▼
+   getCurrentBranch() = <span style="color:var(--red)">'main'</span>
+            │
+            ▼
+   <span style="color:var(--red)">returns true</span> → test hits branch protection ✗
+                   (never reaches the thing it was testing)</div>
+</div>
+
+<div class="card">
+  <h2>Semantics after fix</h2>
+<pre>isProtectedBranch(<span class="kw">undefined</span>)  → read current branch  <span class="c">// prod default, unchanged</span>
+isProtectedBranch(<span class="str">''</span>)         → <span class="good">false</span>  <span class="c">// "unknown, don't protect" (tests + git failures)</span>
+isProtectedBranch(<span class="str">'main'</span>)     → <span class="bad">true</span>   <span class="c">// protected</span>
+isProtectedBranch(<span class="str">'dev'</span>)      → <span class="good">false</span>  <span class="c">// not in default protected list</span>
+isProtectedBranch(<span class="str">'feat/x'</span>)   → <span class="good">false</span>  <span class="c">// unchanged</span></pre>
+</div>
+
+<div class="card">
+  <h2>Test impact</h2>
+<pre><span class="c">Before fix (on main):</span>
+  src/__tests__/pretool/git-validator.test.ts       <span class="bad">8 failed</span> / 61 passed
+  src/__tests__/security-critical-hooks.test.ts     226 passed
+
+<span class="c">After fix:</span>
+  src/__tests__/pretool/git-validator.test.ts       <span class="good">69 passed</span>
+  src/__tests__/security-critical-hooks.test.ts     <span class="good">226 passed</span></pre>
+</div>
+
+</div></body></html>

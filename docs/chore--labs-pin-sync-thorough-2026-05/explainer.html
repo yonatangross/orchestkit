@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vercel Labs Pin Sync — 2026-05 (thorough)</title>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --panel: #121519;
+    --panel-2: #1a1f25;
+    --text: #e8ecf1;
+    --muted: #98a2b3;
+    --accent: #5eead4;
+    --warn: #fbbf24;
+    --break: #f87171;
+    --border: #232a32;
+    font-family: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", Helvetica, Arial, sans-serif;
+  }
+  body { margin: 0; background: var(--bg); color: var(--text); }
+  header { padding: 32px 48px 12px; border-bottom: 1px solid var(--border); }
+  h1 { font-size: 22px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  main { padding: 24px 48px 64px; display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+  .card h2 { font-size: 15px; margin: 0 0 4px; color: var(--accent); letter-spacing: 0; }
+  .card .pin { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .card ul { padding-left: 18px; margin: 8px 0 0; }
+  .card li { margin: 6px 0; font-size: 13.5px; line-height: 1.5; }
+  .tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; vertical-align: middle; margin-right: 4px; }
+  .tag.new { background: rgba(94, 234, 212, 0.12); color: var(--accent); }
+  .tag.fix { background: rgba(251, 191, 36, 0.12); color: var(--warn); }
+  .tag.break { background: rgba(248, 113, 113, 0.14); color: var(--break); }
+  .controls { padding: 14px 48px; background: var(--panel-2); border-bottom: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; }
+  .controls label { color: var(--muted); margin-right: 6px; }
+  .controls button { background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 12px; }
+  .controls button.active { background: var(--accent); color: #04211c; border-color: var(--accent); }
+  .footer { padding: 8px 48px 32px; color: var(--muted); font-size: 12px; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; background: rgba(255,255,255,0.04); padding: 1px 5px; border-radius: 3px; }
+  .delta { color: var(--muted); font-size: 11.5px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Vercel Labs pin sync — thorough (2026-05)</h1>
+  <p>What changed upstream for the three Labs packages, and what landed in the OrchestKit skill bodies. Supersedes the auto-filed pin-only PR #1751 — this playground is the “why each bump matters” companion.</p>
+</header>
+<div class="controls">
+  <label>Filter:</label>
+  <button data-filter="all" class="active">All</button>
+  <button data-filter="new">New features</button>
+  <button data-filter="fix">Fixes</button>
+  <button data-filter="break">Breaking</button>
+</div>
+<main id="cards">
+  <section class="card" data-kinds="new fix">
+    <h2>agent-browser</h2>
+    <div class="pin">0.26.0 → 0.27.0 · released 2026-05-07</div>
+    <ul>
+      <li><span class="tag new">new</span><code>react tree / inspect / renders / suspense</code> — first-class React DevTools introspection (vendored hook, zero runtime deps).</li>
+      <li><span class="tag new">new</span><code>vitals [url]</code> — Core Web Vitals (LCP, CLS, TTFB, FCP, INP) + React hydration phases.</li>
+      <li><span class="tag new">new</span><code>pushstate &lt;url&gt;</code> — SPA client-side navigation without full reload.</li>
+      <li><span class="tag new">new</span><code>--init-script &lt;path&gt;</code> + <code>--enable react-devtools</code> — pre-navigation script injection &amp; feature flags.</li>
+      <li><span class="tag new">new</span><code>network route --resource-type &lt;csv&gt;</code> — filter intercepts by CDP resource type.</li>
+      <li><span class="tag new">new</span><code>cookies set --curl &lt;file&gt;</code> — bulk import auto-detects JSON / cURL / Cookie-header.</li>
+      <li><span class="tag new">new</span>Observability dashboard now works behind reverse proxies (same-origin proxy).</li>
+      <li><span class="tag fix">fix</span><code>doctor</code> no longer generates duplicate check IDs on repeated invocation.</li>
+    </ul>
+    <div class="delta">Skill body delta: 0.27 bullets added at top of “New in 2026-04 → 2026-05” section; commands &amp; flags tables extended; safety hook table picks up <code>init scripts</code> and <code>react fiber dumps</code> warns.</div>
+  </section>
+
+  <section class="card" data-kinds="new">
+    <h2>json-render</h2>
+    <div class="pin">0.18.0 → 0.19.0 · CHANGELOG.md HEAD (npm published)</div>
+    <ul>
+      <li><span class="tag new">new</span><code>defineDirective</code> in <code>@json-render/core</code> — declare custom JSON shapes (<code>$format</code>, <code>$math</code>) that resolve at render time. Composes by nesting; all four renderers (React/Vue/Svelte/Solid) resolve directives.</li>
+      <li><span class="tag new">new</span><code>@json-render/directives</code> package — seven prebuilt directives: <code>$format</code> (Intl date/currency/number/percent), <code>$math</code>, <code>$concat</code>, <code>$count</code>, <code>$truncate</code>, <code>$pluralize</code>, <code>$join</code>. Plus <code>createI18nDirective</code> for <code>$t</code> with <code>{{param}}</code> interpolation and <code>standardDirectives</code> one-liner.</li>
+      <li><span class="tag new">new</span>Example READMEs added for chat, dashboard, game-engine, no-ai examples.</li>
+    </ul>
+    <div class="delta">Skill body delta: directives bullets added at top of “New in 2026-04 → 2026-05” header; ecosystem list extended with <code>@json-render/directives</code> and <code>@json-render/devtools</code> rows. <strong>Why it matters for AI-safe GenUI:</strong> directives are the escape hatch that lets AI emit computed values without forcing the catalog to widen to <code>z.any()</code>.</div>
+  </section>
+
+  <section class="card" data-kinds="new fix">
+    <h2>portless</h2>
+    <div class="pin">0.12.0 → 0.13.0 · released 2026-05-08</div>
+    <ul>
+      <li><span class="tag new">new</span><code>portless service install / status / uninstall</code> — native startup service across macOS launchd, Linux systemd, Windows Task Scheduler. <code>.localhost</code> URLs survive reboot; <code>portless clean</code> removes the service alongside CA + hosts cleanup.</li>
+      <li><span class="tag fix">fix</span>Tailscale readiness preflight — <code>--tailscale</code> / <code>--funnel</code> now validate prerequisites before forking the child process, surfacing actionable errors instead of hanging during registration.</li>
+    </ul>
+    <div class="delta">Skill body delta: frontmatter <code>description</code> bumped <code>v0.10.x</code> → <code>v0.13.x</code> and reorganized to mention Tailscale + service install. Quick Start block gained a boot-persistence example. No breaking changes in 0.13.0.</div>
+  </section>
+</main>
+<div class="footer">
+  Playground for PR <code>chore/labs-pin-sync-thorough-2026-05</code>. Supersedes <a href="https://github.com/yonatangross/orchestkit/pull/1751" style="color: var(--accent);">#1751</a>. Sources: <a href="https://github.com/vercel-labs/agent-browser/releases" style="color: var(--accent);">agent-browser releases</a>, <a href="https://github.com/vercel-labs/json-render/blob/main/CHANGELOG.md" style="color: var(--accent);">json-render CHANGELOG</a>, <a href="https://github.com/vercel-labs/portless/releases" style="color: var(--accent);">portless releases</a>.
+</div>
+<script>
+  const buttons = document.querySelectorAll('.controls button');
+  const cards = document.querySelectorAll('.card');
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      buttons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.filter;
+      cards.forEach((c) => {
+        const kinds = (c.dataset.kinds || '').split(/\s+/);
+        c.style.display = (f === 'all' || kinds.includes(f)) ? '' : 'none';
+      });
+    });
+  });
+</script>
+</body>
+</html>

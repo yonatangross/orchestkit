@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OrchestKit · Agent-Readiness Gap Explorer</title>
+<style>
+  :root{
+    --bg:#0a0f1c;--panel:#111a2e;--panel2:#0e1626;--border:#1e2b45;--fg:#e9eef7;--muted:#8da2c0;
+    --emerald:#34d399;--emerald-dim:#0f3b30;--amber:#fbbf24;--red:#f87171;--blue:#60a5fa;--violet:#a78bfa;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5;font-size:14px}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 90px}
+  h1{font-size:1.7rem;margin:0 0 4px;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:0 0 18px;max-width:780px}
+  .updated{font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:0 0 22px}
+  .score{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 18px}
+  .pill{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 16px;min-width:124px}
+  .pill .k{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}
+  .pill .v{font-size:1.35rem;font-weight:650;margin-top:3px}
+  .pill .v.up{color:var(--emerald)} .pill .v.warn{color:var(--amber)}
+  .bar{height:8px;border-radius:99px;background:var(--panel2);overflow:hidden;margin-top:8px;border:1px solid var(--border)}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--emerald-dim),var(--emerald))}
+  .callout{background:linear-gradient(180deg,rgba(52,211,153,.08),transparent);border:1px solid var(--emerald-dim);border-radius:12px;padding:12px 16px;margin:0 0 22px;font-size:.9rem}
+  .callout b{color:var(--emerald)}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 16px}
+  .controls .lbl{color:var(--muted);font-size:.78rem;margin-right:2px}
+  .chip{background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:99px;padding:5px 12px;cursor:pointer;font-size:.82rem;user-select:none}
+  .chip.on[data-v="me"]{background:var(--emerald);border-color:var(--emerald);color:var(--bg);font-weight:650}
+  .chip.on[data-v="both"]{background:var(--blue);border-color:var(--blue);color:var(--bg);font-weight:650}
+  .chip.on[data-v="owner"]{background:var(--violet);border-color:var(--violet);color:var(--bg);font-weight:650}
+  .chip.on[data-v="all"]{background:#cbd5e1;border-color:#cbd5e1;color:var(--bg);font-weight:650}
+  .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .col{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:12px}
+  .col h2{font-size:.82rem;text-transform:uppercase;letter-spacing:.05em;margin:2px 0 10px;display:flex;align-items:center;gap:7px}
+  .col h2 .n{margin-left:auto;color:var(--muted);font-family:var(--mono);font-size:.78rem}
+  .dot{width:9px;height:9px;border-radius:99px;display:inline-block}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:9px;cursor:pointer;transition:border-color .15s}
+  .card:hover{border-color:var(--emerald)}
+  .card .t{font-weight:600;font-size:.9rem}
+  .card .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;align-items:center}
+  .tag{font-family:var(--mono);font-size:.68rem;padding:2px 7px;border-radius:5px;background:var(--panel2);border:1px solid var(--border);color:var(--muted)}
+  .tag.me{color:var(--emerald);border-color:var(--emerald-dim)}
+  .tag.both{color:var(--blue);border-color:#1e3a5f}
+  .tag.owner{color:var(--violet);border-color:#3b2f5f}
+  .tag.pts{color:var(--amber)}
+  .impact{display:flex;gap:2px}
+  .impact i{width:6px;height:11px;border-radius:1px;background:var(--border)}
+  .impact i.on{background:var(--emerald)}
+  .card .why{display:none;margin-top:9px;padding-top:9px;border-top:1px solid var(--border);color:var(--muted);font-size:.83rem}
+  .card.open .why{display:block}
+  .card .why b{color:var(--fg)}
+  .card .act{margin-top:7px;font-family:var(--mono);font-size:.76rem;color:var(--emerald)}
+  h3.sec{margin:34px 0 12px;font-size:1.05rem}
+  .road{display:grid;gap:10px}
+  .step{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+  .step .num{width:34px;height:34px;border-radius:99px;display:grid;place-items:center;font-family:var(--mono);font-weight:700;background:var(--emerald-dim);color:var(--emerald);border:1px solid var(--emerald)}
+  .step.done .num{background:#13233a;color:var(--muted);border-color:var(--border)}
+  .step .b{color:var(--fg)} .step .m{color:var(--muted);font-size:.85rem;margin-top:3px}
+  .legend{color:var(--muted);font-size:.8rem;margin-top:10px}
+  .foot{color:var(--muted);font-size:.8rem;margin-top:30px;border-top:1px solid var(--border);padding-top:14px}
+  a{color:var(--emerald)} code{font-family:var(--mono);background:var(--panel2);padding:1px 5px;border-radius:4px;color:var(--fg);font-size:.85em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>OrchestKit · Agent-Readiness Gap Explorer</h1>
+  <p class="sub">Live state of the push to take <code>orchestkit.yonyon.ai</code> up the <a href="https://ora.ai/score/orchestkit.yonyon.ai">orank</a> agent-readiness rubric. Click a card for what/who/next-action. Filter by who can do it.</p>
+  <p class="updated">updated 2026-06-08 · live orank re-read 76/B · PRs #2279 #2292 #2305 #2308 #2309 #2312 merged · #2315 #7611 open</p>
+
+  <div class="score">
+    <div class="pill"><div class="k">Start (C)</div><div class="v">55</div></div>
+    <div class="pill"><div class="k">Live now (B)</div><div class="v up">76</div><div class="bar"><i style="width:76%"></i></div></div>
+    <div class="pill"><div class="k">Discovery (bottleneck)</div><div class="v warn">7 / 20</div><div class="bar"><i style="width:35%;background:linear-gradient(90deg,#3b1f1f,#f87171)"></i></div></div>
+    <div class="pill"><div class="k">PRs merged</div><div class="v up">6</div></div>
+  </div>
+  <p class="updated" style="margin-top:-12px">category read: Identity 18/20 · Auth&amp;Access 29/30 · Agent-Integration 14/20 · UX 7/10 · Discovery 7/20 — the ~85/A ceiling needs an orank <b>re-scan</b> (on-site is live + verified) <i>plus</i> off-site Discovery work. No category scores 0.</p>
+
+  <div class="callout">
+    <b>Correction: on-site was NOT fully exhausted.</b> The live Jun-8 re-scan (76/B) flagged two more fixable on-site gaps that survived #2308/#2312 — <b>JSON error responses</b> (root-level 404s returned HTML, not problem+json) and <b>MCP App-view CSP</b> (the ui:// resource shipped no CSP, and the global one blocked embedding). Both fixed honestly in <a href="https://github.com/yonatangross/orchestkit/pull/2316">PR #2316</a> (+8 → ~84). After that the remainder is genuinely off-site: <b>Discovery 7/20</b> (citations, registries, Wikipedia) — dragged down by the <code>yonyon</code> brand collision, since orank keys the apex domain not the product. The honest ceiling without a domain/brand move is ~A-minus.
+  </div>
+
+  <div class="controls">
+    <span class="lbl">Who can do it:</span>
+    <span class="chip on" data-v="all">All</span>
+    <span class="chip" data-v="me">🟢 Me (agent)</span>
+    <span class="chip" data-v="both">🔵 I prep · you submit</span>
+    <span class="chip" data-v="owner">🟣 You / external</span>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <h3 class="sec">🎯 Roadmap — what's done, what's next</h3>
+  <div class="road" id="road"></div>
+  <p class="legend">The citation flywheel (Reddit→stars→awesome-lists→Dev.to/HN) is the only thing that moves Discovery + eventual Wikipedia notability — and it's a multi-week owner grind. Per research: Reddit = 46.7% of Perplexity's top sources; Product Hunt is ~useless for AI-citation; Wikipedia needs 3+ independent press sources (~12-24mo).</p>
+
+  <p class="foot">Generated by <code>/ork:brainstorm</code> + 2 web-research agents, kept current. Issues: #2284–#2289 (off-site), #2308/#2309 (shipped). Platform side-quest: Yonatan-HQ/platform#4464.</p>
+</div>
+
+<script>
+const ME="me", BOTH="both", OWNER="owner";
+const COLS = [
+  {id:"closed",  name:"✅ Shipped (merged)",         color:"#34d399"},
+  {id:"reg",     name:"📡 Registries (in flight)",   color:"#60a5fa"},
+  {id:"content", name:"✍️ Citation flywheel (weeks)",color:"#a78bfa"},
+  {id:"stuck",   name:"🪨 orank-stuck (don't chase)",color:"#64748b"},
+  {id:"defer",   name:"🛑 Deferred / N-A",           color:"#f87171"},
+];
+const ITEMS = [
+  // shipped
+  {col:"closed",owner:ME,t:"Structured data + llms + MCP + NLWeb",imp:5,eff:"#2279",pts:"+30",why:"Homepage JSON-LD @graph, llms.txt family, markdown negotiation, dependency-free MCP server + cards, /ask NLWeb, RFC9457 errors. <b>Merged.</b>",act:"shipped"},
+  {col:"closed",owner:ME,t:"CORS for cross-origin agents",imp:3,eff:"#2292",pts:"+2",why:"ACAO:* + OPTIONS preflight + extra MCP paths. <b>Merged.</b>",act:"shipped"},
+  {col:"closed",owner:ME,t:"Wikidata entity Q140128295 + sameAs",imp:5,eff:"#2305",pts:"+5",why:"Created the entity (P856, instance-of, repo, license, lang, OS) + wired into homepage sameAs. Disambiguates from the musician 'YonYon'. <b>Live + banked (55→68→72).</b>",act:"shipped"},
+  {col:"closed",owner:ME,t:"API standards · schema · MCP annotations",imp:5,eff:"#2308",pts:"~+15",why:"JSON errors (problem+json), /api/v1 versioning, pagination, enriched llms.txt + /api/llms.txt, readOnlyHint annotations + server-card branding, Org PostalAddress + Service, auth.md error table, SSR What-is section. <b>Merged — drives 72→~85 on next re-scan.</b>",act:"trigger a clean orank re-scan to bank it"},
+  {col:"closed",owner:ME,t:"MCP-registry server.json",imp:3,eff:"#2309",pts:"reg",why:"Adds <code>server.json</code> (io.github.yonatangross/orchestkit, streamable-http → /api/mcp) for <code>mcp-publisher</code>. <b>Merged.</b>",act:"owner: mcp-publisher login github + publish"},
+  {col:"closed",owner:ME,t:"MCP Apps + JSON /api index",imp:4,eff:"#2312",pts:"+8",why:"Bare <code>GET /api</code> was HTML 404 → added a JSON API index (fixes 'JSON error responses' +4, was a false 'stuck'). Added MCP Apps: <code>ui://orchestkit/search-results</code> resource + resources/list/read + <code>_meta.ui.resourceUri</code> + structuredContent so hosts render search hits inline (+4 UX bonus). <b>Merged — drives 77→~85.</b>",act:"re-scan to bank it"},
+  // registries
+  {col:"reg",owner:ME,t:"awesome-mcp-servers PR",imp:3,eff:"open",pts:"reg",why:"<a href='https://github.com/punkpeye/awesome-mcp-servers/pull/7611'>punkpeye/awesome-mcp-servers#7611</a> — OrchestKit → Developer Tools. DoFollow GitHub link feeds LLM corpora. <b>PR open; awaiting maintainer merge.</b>",act:"done — track the PR"},
+  {col:"reg",owner:OWNER,t:"Official MCP registry publish",imp:4,eff:"CLI",pts:"+2",why:"server.json is merged (#2309). The publish needs your GitHub-namespace auth: <code>mcp-publisher login github</code> → <code>mcp-publisher publish</code>. Canonical directory others pull from.",act:"you run the 2 CLI commands"},
+  {col:"reg",owner:OWNER,t:"Smithery listing",imp:3,eff:"form",pts:"reg",why:"orank counts a verified Smithery listing with non-zero usage. smithery.ai/new → paste /api/mcp (auto-scans the server-card) → log in → publish.",act:"you (login required); fields in #2286"},
+  {col:"reg",owner:OWNER,t:"mcp.so listing",imp:2,eff:"form",pts:"reg",why:"Self-service form. All field values drafted in #2286 (name, URL, transport, tools, desc).",act:"you paste the drafted fields at mcp.so/submit"},
+  {col:"reg",owner:BOTH,t:"skills.sh publish (#2285)",imp:3,eff:"PR open",pts:"+3",why:"<b>Verified resolvable</b> via <code>.claude-plugin/marketplace.json</code> → <code>plugins/ork/skills/&lt;name&gt;/SKILL.md</code>; all 111 pass name==dir + charset gates; extra frontmatter is tolerated (only name+desc required). README install line + findings → <a href='https://github.com/yonatangross/orchestkit/pull/2315'>PR #2315</a>.",act:"PR #2315 awaiting merge; then you announce npx skills add"},
+  // content flywheel
+  {col:"content",owner:OWNER,t:"Reddit seeding (r/ClaudeAI, r/LocalLLaMA)",imp:5,eff:"weeks",pts:"#2287/8",why:"Reddit = 46.7% of Perplexity's top-10 sources, cited in 92.8% of AI searches, indexed in 2-7 days. Authentic 'I built/used this' posts under <b>your</b> identity — the fastest AI-citation path.",act:"you post; I can draft the threads"},
+  {col:"content",owner:BOTH,t:"Publish the 2 staged drafts (Dev.to + LinkedIn)",imp:4,eff:"review",pts:"#2287",why:"Already written + staged in platform prod (status=draft). Dev.to comparison feeds the citation corpus; canonical → the site.",act:"you eyeball copy → I publish via the platform"},
+  {col:"content",owner:OWNER,t:"GitHub awesome-claude-code lists (#2288)",imp:4,eff:"PR+stars",pts:"#2288",why:"Highest ROI/hr for AI-citation — BUT lists auto-reject <100 stars. Gated on the Reddit/HN flywheel first.",act:"after stars climb, I open the list PRs"},
+  {col:"content",owner:OWNER,t:"Show HN (timed to a release)",imp:3,eff:"1 post",pts:"#2287",why:"One front-page thread > 10 blog posts; HN comments scraped into LLM corpora. Time to a notable version.",act:"you submit on the next milestone; I draft"},
+  {col:"content",owner:OWNER,t:"YouTube demo",imp:2,eff:"high",pts:"GAIO",why:"Transcripts cited by Google AI Overviews (18.8%). High production cost — defer until cheaper levers exhausted.",act:"defer"},
+  // stuck
+  {col:"stuck",owner:ME,t:"NLWeb /ask · MCP discovery · multi-surface",imp:2,eff:"n/a",pts:"~6",why:"Endpoints are live + spec-correct + CORS-open (verified by curl), yet orank scores them 0 — contradicts its own MCP-manifest check passing. orank-side caching/probe, not our code. <b>Note: #2308 should fix JSON-errors (+4) — those weren't truly stuck.</b>",act:"leave it; re-scan occasionally"},
+  // deferred
+  {col:"defer",owner:OWNER,t:"Wikipedia article (#2289)",imp:3,eff:"12-24mo",pts:"0/4",why:"<b>Research verdict: PREMATURE — near-certain deletion if attempted now.</b> WP:NSOFTWARE needs 3+ independent reliable secondary sources (TechCrunch/Ars/InfoQ/New Stack). Wikidata ≠ notability. The flywheel <i>creates</i> the conditions; revisit after real press.",act:"reclassified deferred; flywheel is the prerequisite"},
+  {col:"defer",owner:OWNER,t:"ChatGPT GPT Store / Apps",imp:1,eff:"8-16h",pts:"+2",why:"Wrong audience (ChatGPT users, not CC devs), needs privacy policy + screenshots + org verification + per-tool annotation audit. ROI doesn't justify it.",act:"skip"},
+  {col:"defer",owner:ME,t:"Payments · OAuth · SDK · CLI gaps",imp:1,eff:"skip",pts:"−31",why:"UCP/ACP/MPP/x402 (no commerce), OAuth PRM / Web-Bot-Auth (no auth), CLI / multi-lang SDK / webhooks / async / idempotency (none exist). Implementing = fabricating capabilities. <b>Correctly skipped.</b>",act:"never — honesty over points"},
+];
+
+let active="all";
+function render(){
+  const board=document.getElementById("board"); board.innerHTML="";
+  COLS.forEach(c=>{
+    const items=ITEMS.filter(i=>i.col===c.id && (active==="all"||i.owner===active));
+    const col=document.createElement("div"); col.className="col";
+    col.innerHTML=`<h2><span class="dot" style="background:${c.color}"></span>${c.name}<span class="n">${items.length}</span></h2>`;
+    if(!items.length){ const e=document.createElement("div"); e.style.cssText="color:#475569;font-size:.8rem;padding:6px 2px"; e.textContent="—"; col.appendChild(e); }
+    items.forEach(i=>{
+      const card=document.createElement("div"); card.className="card";
+      const imp=Array.from({length:5},(_,k)=>`<i class="${k<i.imp?'on':''}"></i>`).join("");
+      const ot={me:"🟢 me",both:"🔵 prep+submit",owner:"🟣 you"}[i.owner];
+      card.innerHTML=`<div class="t">${i.t}</div>
+        <div class="meta"><span class="impact" title="impact">${imp}</span>
+          <span class="tag">${i.eff}</span><span class="tag ${i.owner}">${ot}</span><span class="tag pts">${i.pts}</span></div>
+        <div class="why">${i.why}<div class="act">▸ ${i.act}</div></div>`;
+      card.querySelector || 0; card.onclick=()=>card.classList.toggle("open");
+      col.appendChild(card);
+    });
+    board.appendChild(col);
+  });
+}
+document.querySelectorAll(".chip").forEach(ch=>ch.onclick=()=>{
+  document.querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));
+  ch.classList.add("on"); active=ch.dataset.v; render();
+});
+const ROAD=[
+  {d:1,n:"✓",b:"On-site agent-readiness — DONE (5 PRs merged)",m:"Structured data, llms, MCP/NLWeb, CORS, Wikidata, API standards, server.json. 55 → 72(B) → ~85(A) on next re-scan."},
+  {d:0,n:"1",b:"Re-scan orank to bank #2308's ~+15",m:"30 sec. The B→A work is merged + deploying; the cache predates it. (me)"},
+  {d:0,n:"2",b:"Finish registries — your logins",m:"mcp-publisher publish (CLI), Smithery + mcp.so (forms). All fields/steps in #2286. awesome-mcp PR #7611 is already open. (you / I prepped)"},
+  {d:0,n:"3",b:"Publish the 2 drafts + start Reddit",m:"You eyeball the copy → I publish Dev.to/LinkedIn; you seed r/ClaudeAI authentically. Starts the citation flywheel. (both → you)"},
+  {d:0,n:"4",b:"Let stars accrue → awesome-lists → Show HN",m:"Once stars clear ~100, list inclusion + a timed Show HN compound the corpus. Weeks. (you, I draft)"},
+  {d:0,n:"—",b:"Defer Wikipedia + ChatGPT Apps; ignore orank-stuck; never fabricate payments/auth/SDK",m:"Wikipedia is 12-24mo (notability); the rest is wrong-audience, orank-side, or capabilities that don't exist."},
+];
+const road=document.getElementById("road");
+ROAD.forEach(s=>{const d=document.createElement("div");d.className="step"+(s.d?" done":"");d.innerHTML=`<div class="num">${s.n}</div><div><div class="b">${s.b}</div><div class="m">${s.m}</div></div>`;road.appendChild(d);});
+render();
+</script>
+</body>
+</html>

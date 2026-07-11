@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WorktreeCreate envelope fix — #1990 before/after</title>
+<style>
+  :root{--bg:#0b0d0e;--bg2:#131618;--bg3:#1a1f22;--fg:#c8d1d3;--dim:#6b7679;--vdim:#3a4045;
+    --green:#50fa7b;--amber:#f1fa8c;--red:#ff5555;--blue:#8be9fd;--purple:#bd93f9;--orange:#ffb86c;--border:#2a3035;
+    --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 ui-sans-serif,system-ui,-apple-system,sans-serif}
+  header{padding:12px 20px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#15191c,#0e1113);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+  header h1{margin:0;font-size:14px} header .meta{color:var(--dim);font-size:11px} header .meta a{color:var(--blue);text-decoration:none}
+  main{max-width:1060px;margin:0 auto;padding:20px 20px 70px}
+  .lead{color:var(--dim);max-width:780px;margin:0 0 18px} .lead code{color:var(--blue);font-family:var(--mono)}
+  .controls{display:flex;gap:20px;flex-wrap:wrap;margin:0 0 20px}
+  .seg-wrap{display:flex;flex-direction:column;gap:4px}
+  .seg-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
+  .seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .seg button{background:var(--bg2);color:var(--dim);border:0;padding:7px 13px;font-size:12px;cursor:pointer;font-family:var(--mono)}
+  .seg button.on{background:var(--purple);color:#0d0716;font-weight:700}
+  .seg button.on.fix{background:var(--green);color:#00210c}
+  .cols{display:grid;grid-template-columns:1fr 400px;gap:18px}
+  @media(max-width:880px){.cols{grid-template-columns:1fr}}
+  .pipe{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+  .pipe h2,.diff h2{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin:0 0 14px}
+  .step{border:1px solid var(--border);border-radius:8px;padding:9px 12px;margin-bottom:8px;background:#0d1014;transition:.2s}
+  .step.pass{border-color:var(--green)} .step.fail{border-color:var(--red)} .step.skip{opacity:.4}
+  .step .t{font-family:var(--mono);font-size:12.5px} .step .d{font-size:11px;color:var(--dim);margin-top:2px}
+  .arrow{text-align:center;color:var(--vdim);font-size:12px;margin:-2px 0}
+  .out{margin-top:12px;border-radius:9px;padding:14px 16px;border:1px solid var(--border);font-size:13px}
+  .out.bad{border-color:var(--red);background:rgba(255,85,85,.09)} .out.bad .h{color:var(--red)}
+  .out.good{border-color:var(--green);background:rgba(80,250,123,.08)} .out.good .h{color:var(--green)}
+  .out .h{font-family:var(--mono);font-weight:700} .out p{margin:6px 0 0;font-size:12.5px}
+  .diff{background:#07090a;border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-family:var(--mono);font-size:12px;overflow:auto}
+  .diff .file{color:var(--purple);margin:8px 0 4px} .add{color:var(--green)} .del{color:var(--red)} .ctx{color:var(--dim)}
+  footer{color:var(--vdim);font-size:11px;margin-top:24px;text-align:center} footer a{color:var(--blue)}
+</style>
+</head>
+<body>
+<header>
+  <h1>WorktreeCreate envelope fix — #1990 before / after</h1>
+  <div class="meta">orchestkit · <code>run-hook.mjs</code> · <a href="https://github.com/yonatangross/orchestkit/issues/1990">#1990</a></div>
+</header>
+<main>
+  <p class="lead">Spawn a worktree-isolated agent. CC reads a command-type <code>WorktreeCreate</code> hook's
+    <strong>stdout as the worktree directory path</strong>. OrchestKit's logger is observability-only — it has no path
+    to give. Toggle <b>before/fix</b> and the hook's <b>output</b> to see the envelope get misread as a path (before)
+    vs empty stdout letting CC use its default (fix).</p>
+
+  <div class="controls">
+    <div class="seg-wrap"><span class="seg-lbl">version</span>
+      <div class="seg" id="ver"><button data-v="fix" class="on">fix (#1990)</button><button data-v="before">before</button></div></div>
+    <div class="seg-wrap"><span class="seg-lbl">hook output</span>
+      <div class="seg" id="hk"><button data-h="logger" class="on">observability logger (command)</button><button data-h="http">http (sets worktreePath)</button></div></div>
+  </div>
+
+  <div class="cols">
+    <div class="pipe"><h2>Agent(isolation:"worktree") spawn</h2>
+      <div id="steps"></div>
+      <div class="out" id="out"></div>
+    </div>
+    <div class="diff"><h2>the fix — diff</h2>
+      <div class="file">src/hooks/bin/run-hook.mjs</div>
+<span class="ctx"> // early exits (event not parsed yet → key on hook NAME)</span>
+<span class="add">+ const IS_WORKTREE_PATH_HOOK = hookName.startsWith('worktree/');</span>
+<span class="add">+ function silentExit(){ if(!IS_WORKTREE_PATH_HOOK) console.log(SILENT_OK); process.exit(0); }</span>
+<span class="del">- if(!hookFn){ console.log(SILENT_OK); process.exit(0); }</span>
+<span class="add">+ if(!hookFn){ silentExit(); }</span>
+
+<span class="ctx"> // run path (event known → key on hook_event)</span>
+<span class="add">+ function emitHookResult(result, ev){</span>
+<span class="add">+   if(WORKTREE_PATH_EVENTS.has(ev) && !result?.hookSpecificOutput?.worktreePath) return;</span>
+<span class="add">+   console.log(JSON.stringify(sanitizeOutput(result, ev)));</span>
+<span class="add">+ }</span>
+<span class="del">- console.log(JSON.stringify(sanitizeOutput(result, firingEvent)));</span>
+<span class="add">+ emitHookResult(result, firingEvent);</span>
+    </div>
+  </div>
+  <footer>Self-contained — no network. Mirrors the real dispatcher fix. Recurrence of #1794/#1797 (envelope family #1250/#1826/#1985).</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let ver="fix", hk="logger";
+function seg(id,key,set){ $(id).querySelectorAll("button").forEach(b=>b.onclick=()=>{
+  $(id).querySelectorAll("button").forEach(x=>x.classList.remove("on","fix"));
+  b.classList.add("on"); if(b.dataset[key]==="fix")b.classList.add("fix"); set(b.dataset[key]); render();
+});}
+seg("ver","v",v=>ver=v); seg("hk","h",v=>hk=v);
+$("ver").querySelector('[data-v="fix"]').classList.add("fix");
+function run(){
+  const steps=[]; const add=(t,d,s)=>steps.push({t,d,s});
+  add("①  CC fires WorktreeCreate","run-hook.mjs worktree/worktree-lifecycle-logger","pass");
+  if(hk==="http"){
+    add("②  hook returns worktreePath","hookSpecificOutput.worktreePath = .worktrees/feat","pass");
+    add("③  CC reads the path","valid directory path ✓","pass");
+    return {steps, out:{cls:"good",h:"✓ WORKTREE CREATED (custom path)",p:"http-type hooks legitimately provide a path — emitted in both before & after. Unaffected by the fix."}};
+  }
+  // observability logger (command)
+  if(ver==="before"){
+    add("②  run-hook prints SILENT_OK",'stdout = {"continue":true,"suppressOutput":true}',"fail");
+    add("③  CC reads stdout AS THE PATH",'path = {"continue":true,…} → not a directory',"fail");
+    return {steps, out:{cls:"bad",h:"💥 SPAWN ABORTED",p:'"WorktreeCreate hook returned a path that is not a directory." The observability hook had no path to give, but the dispatcher printed the envelope anyway → CC misread it. Every worktree-isolated agent dies here.'}};
+  }
+  add("②  run-hook emits EMPTY stdout","worktree/* hook + no worktreePath → print nothing","pass");
+  add("③  CC uses its default path","provisions .worktrees/<slug> itself ✓","pass");
+  return {steps, out:{cls:"good",h:"✓ WORKTREE CREATED (default path)",p:"The observability hook contributes no path; CC provisions the worktree at its own default. The logger's side-effects (advisory file) still run. Agent spawns again."}};
+}
+function render(){
+  const r=run();
+  $("steps").innerHTML=r.steps.map((s,i)=>`<div class="step ${s.s}"><div class="t">${s.t}</div><div class="d">${s.d}</div></div>`+(i<r.steps.length-1?'<div class="arrow">▼</div>':'')).join("");
+  const o=$("out"); o.className="out "+r.out.cls; o.innerHTML=`<span class="h">${r.out.h}</span><p>${r.out.p}</p>`;
+}
+render();
+</script>
+</body>
+</html>

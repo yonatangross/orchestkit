@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reference Skills page — rot → generated (#2120)</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--fg:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--amber:#d29922;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{padding:26px 24px 16px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#11161d,var(--bg))}
+  h1{margin:0 0 6px;font-size:21px}
+  .sub{color:var(--muted);font-size:14px}
+  main{max-width:960px;margin:0 auto;padding:24px}
+  section{margin-bottom:30px}
+  h2{font-size:16px;border-left:3px solid var(--accent);padding-left:10px;margin:0 0 14px}
+  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.cmp{grid-template-columns:1fr}}
+  .col{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px}
+  .col.bad{border-color:rgba(248,81,73,.4)}
+  .col.good{border-color:rgba(63,185,80,.4)}
+  .col h3{margin:0 0 10px;font-size:14px;display:flex;align-items:center;gap:8px}
+  .tag{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:20px}
+  .tag.b{background:rgba(248,81,73,.15);color:var(--red)}
+  .tag.g{background:rgba(63,185,80,.15);color:var(--green)}
+  .stat{font-family:var(--mono);font-size:13px;margin:6px 0;color:var(--muted)}
+  .stat b{color:var(--fg)}
+  .big{font-size:30px;font-weight:700;font-family:var(--mono)}
+  .red{color:var(--red)}.grn{color:var(--green)}
+  pre{background:#0a0e14;border:1px solid var(--border);border-radius:8px;padding:12px;overflow-x:auto;font-family:var(--mono);font-size:12px;margin:8px 0;white-space:pre-wrap}
+  .del{color:var(--red)}.add{color:var(--green)}.file{color:#bc8cff}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .metric{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center}
+  .metric .l{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+  .note{background:rgba(88,166,255,.07);border:1px solid rgba(88,166,255,.25);border-radius:8px;padding:12px 14px;color:var(--muted);font-size:13px}
+  footer{color:var(--muted);font-size:12px;border-top:1px solid var(--border);padding:16px 24px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>Reference Skills page: rot → generated</h1>
+  <div class="sub">Issue #2120 — the hand-authored <code>docs/site/content/docs/skills/reference-skills.mdx</code> drifted three ways. Now generated from skill frontmatter so it can never rot again.</div>
+</header>
+<main>
+
+  <section>
+    <h2>The rot (verified on main @ 8.12.4)</h2>
+    <div class="grid3">
+      <div class="metric"><div class="l">Claimed in title</div><div class="big">61</div></div>
+      <div class="metric"><div class="l">Slugs actually listed</div><div class="big red">160</div></div>
+      <div class="metric"><div class="l">…that are real refs</div><div class="big red">16</div></div>
+      <div class="metric"><div class="l">Real reference skills</div><div class="big grn">80</div></div>
+    </div>
+    <p class="note">The page claimed "61", its tables listed <b>160 distinct slugs</b> (more than the 111 skills that even exist), and only <b>16</b> matched a real <code>user-invocable: false</code> skill — the rest were renamed or removed (e.g. <code>api-design-framework</code> → the real <code>api-design</code>). A number-swap would have papered over it; this regenerates the page from source instead.</p>
+  </section>
+
+  <section>
+    <h2>Before → After</h2>
+    <div class="cmp">
+      <div class="col bad">
+        <h3><span class="tag b">BEFORE</span> hand-authored, rotted</h3>
+        <div class="stat">title: <b class="red">"61 Skills That Power Agents"</b></div>
+        <div class="stat">slugs: <b class="red">160</b> (144 phantom)</div>
+        <div class="stat">grouping: 14 hand-curated tables, stale</div>
+        <div class="stat">maintenance: manual → drifts every release</div>
+      </div>
+      <div class="col good">
+        <h3><span class="tag g">AFTER</span> generated from frontmatter</h3>
+        <div class="stat">title: <b class="grn">"Reference Skills"</b> (no count to rot)</div>
+        <div class="stat">slugs: <b class="grn">80</b> (0 phantom)</div>
+        <div class="stat">grouping: 17 agent sections + Cross-Cutting (auto)</div>
+        <div class="stat">maintenance: zero — rebuilds from <code>agent:</code> field</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <pre><span class="file">scripts/_build-docs-generate.py</span>  (+ build-docs.sh wiring)
+
+<span class="add">+ def generate_reference_skills(skills_src, out_file):</span>
+<span class="add">+     # every SKILL.md with user-invocable: false, grouped by `agent:`</span>
+<span class="add">+     for skill_dir in sorted(skills_dir):</span>
+<span class="add">+         if meta.get("user-invocable"): continue   # command skill, skip</span>
+<span class="add">+         agent = meta.get("agent")                  # group key</span>
+<span class="add">+         (by_agent[agent] or cross_cutting).append((slug, desc))</span>
+<span class="add">+     count = 80   # computed, never hardcoded</span>
+
+Generator output: <span class="grn">"80 reference skills (17 agents + 31 cross-cutting)"</span></pre>
+    <p class="note">Membership comes entirely from frontmatter, so a new reference skill auto-appears under its agent and the count auto-updates. A small agent→title map only prettifies headings (unknown agents fall back to <code>title_case</code>).</p>
+  </section>
+
+  <section>
+    <h2>Sections generated</h2>
+    <pre>Accessibility · Backend &amp; Distributed Systems · CI/CD · Code Quality
+Data Pipelines &amp; RAG · Database · Debugging · API Emulation
+Frontend Performance · Frontend &amp; UI · LLM, RAG &amp; AI · Product &amp; Strategy
+Python Performance · Security · Testing · Web Research · LangGraph &amp; Workflows
++ Cross-Cutting Skills (31)</pre>
+  </section>
+
+</main>
+<footer>OrchestKit · fix/generate-reference-skills · closes #2120 · self-contained playground (no external deps)</footer>
+</body>
+</html>

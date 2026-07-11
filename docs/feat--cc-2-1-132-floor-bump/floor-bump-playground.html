@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CC 2.1.132 floor bump — playground</title>
+<style>
+  :root {
+    --bg:#0d1117; --bg2:#161b22; --bg3:#21262d; --border:#30363d;
+    --text:#e6edf3; --text2:#8b949e; --accent:#58a6ff;
+    --green:#3fb950; --red:#f85149; --orange:#d29922; --yellow:#e3b341;
+    --mono:'SF Mono','Fira Code',Consolas,monospace;
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  body { font-family:var(--font); background:var(--bg); color:var(--text); padding:32px; max-width:1100px; margin:0 auto; line-height:1.5 }
+  h1 { font-size:22px; margin-bottom:6px }
+  .lead { color:var(--text2); font-size:14px; margin-bottom:24px }
+  .timeline { display:flex; align-items:center; gap:8px; margin:24px 0; padding:14px; background:var(--bg2); border:1px solid var(--border); border-radius:8px; flex-wrap:wrap }
+  .pill { padding:6px 12px; border-radius:20px; background:var(--bg3); font-family:var(--mono); font-size:12px; color:var(--text2); border:1px solid var(--border) }
+  .pill.old { opacity:0.5 }
+  .pill.new { background:var(--accent); color:#0d1117; font-weight:700; border-color:var(--accent); box-shadow:0 0 12px rgba(88,166,255,0.5) }
+  .arrow { color:var(--text2); font-family:var(--mono) }
+  .hero { display:block; width:100%; max-width:1080px; border:1px solid var(--border); border-radius:8px; margin:18px 0 28px }
+  .panel { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:18px; margin-bottom:18px }
+  .panel h2 { font-size:16px; margin-bottom:12px; display:flex; align-items:center; gap:8px }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-family:var(--mono); background:var(--bg3); color:var(--text2) }
+  .badge.green { background:rgba(63,185,80,0.15); color:var(--green) }
+  .badge.blue  { background:rgba(88,166,255,0.15); color:var(--accent) }
+  .badge.orange{ background:rgba(210,153,34,0.15); color:var(--orange) }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top }
+  th { color:var(--text2); font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:0.5px }
+  td.ver { font-family:var(--mono); color:var(--text2); white-space:nowrap }
+  pre { font-family:var(--mono); font-size:12px; background:#000; padding:12px; border-radius:4px; overflow-x:auto; line-height:1.55; color:var(--text) }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px }
+  .card { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:14px }
+  .card h3 { font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; color:var(--text2); display:flex; gap:8px; align-items:center }
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block }
+  .dot.green{ background:var(--green)} .dot.blue{ background:var(--accent)} .dot.orange{ background:var(--orange)}
+  .footer { color:var(--text2); font-size:12px; margin-top:24px; padding-top:18px; border-top:1px solid var(--border) }
+  a { color:var(--accent); text-decoration:none }
+  details { margin-top:12px; background:var(--bg3); border:1px solid var(--border); border-radius:4px; padding:8px 12px }
+  summary { cursor:pointer; font-size:12px; color:var(--text2); font-family:var(--mono) }
+  details[open] summary { color:var(--text); margin-bottom:8px }
+</style>
+</head>
+<body>
+
+<h1>CC 2.1.132 floor bump — bolder than policy</h1>
+<p class="lead">Tightens OrchestKit's support window from <code>latest + 3 minors</code> to <code>latest only</code> via a 12-week <code>manual_override</code>. Recorded in <code>shared/cc-support.json</code>; auto-bump policy resumes after expires.</p>
+
+<div class="timeline">
+  <span class="pill old">2.1.125</span><span class="arrow">→</span>
+  <span class="pill old">2.1.126</span>
+  <span class="pill old">2.1.127</span>
+  <span class="pill old">2.1.128</span>
+  <span class="pill old">2.1.129</span>
+  <span class="pill old">2.1.131</span>
+  <span class="arrow">→</span>
+  <span class="pill new">2.1.132 · NEW FLOOR</span>
+</div>
+
+<img class="hero" src="cc132-roadmap.png" alt="OrchestKit × Claude Code 2.1.132 adoption roadmap — Imagen 4 generated" />
+
+<div class="panel">
+  <h2>What changes <span class="badge">12 files · 20 new feature entries</span></h2>
+  <table>
+    <thead><tr><th>File</th><th>Change</th></tr></thead>
+    <tbody>
+      <tr><td><code>shared/cc-support.json</code></td><td>latest, supported_floor, drop_after → <code>2.1.132</code> · adds <code>manual_override</code> with 2026-08-07 expiry</td></tr>
+      <tr><td><code>src/hooks/src/lib/cc-version-matrix.ts</code></td><td>MIN_CC_VERSION → 2.1.132 (stamper) · 20 new feature entries (3 supplemental 2.1.128, 9 new 2.1.129, 8 new 2.1.132)</td></tr>
+      <tr><td><code>CLAUDE.md</code></td><td>Version section CC floor → 2.1.132 (stamper)</td></tr>
+      <tr><td><code>src/skills/doctor/references/version-compatibility.md</code></td><td>Overview line → 2.1.132 (stamper)</td></tr>
+      <tr><td><code>tests/fixtures/cc-changelogs/synthetic.md</code></td><td>Adds 2.1.132 + 2.1.133 sections so cc-release-watch test stays valid</td></tr>
+      <tr><td><code>tests/integration/test-cc-release-watch.sh</code></td><td>Pins recovery test to <code>jq -r .latest cc-support.json</code> for resilience to future bumps</td></tr>
+      <tr><td><code>src/hooks/src/__tests__/lib/cc-version-matrix.test.ts</code></td><td>Counts updated: 372 → 392, missing-from-X bumped by 20</td></tr>
+      <tr><td><code>src/hooks/src/__tests__/lifecycle/cc-version-check.test.ts</code></td><td>"matrix latest" probe → 2.1.132</td></tr>
+      <tr><td><code>plugins/ork/...</code> + <code>docs/site/...</code></td><td>Auto-generated by <code>npm run build</code> from src/</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <h2>The override</h2>
+  <pre>{
+  "latest": "2.1.132",
+  "supported_floor": "2.1.132",
+  "drop_after": "2.1.131",
+  "manual_override": {
+    "reason": "Bolder bump per 2026-05-07 decision — gates on
+       CLAUDE_CODE_SESSION_ID (2.1.132) so hook utilities can correlate
+       Bash subprocesses to the parent session without minting their own
+       UUIDs, plus the parallel-shell-fanout fix and ~3x sub-agent
+       prompt-cache reduction (both 2.1.128). Tightens the support
+       window vs. the 'latest + 3' policy for ~12 weeks; auto-bump
+       policy resumes after expires.",
+    "expires": "2026-08-07"
+  }
+}</pre>
+  <p class="lead" style="margin-top:12px">The auto-bump workflow (<code>cc-support-window-bump.yml</code>) honors unexpired <code>manual_override</code> blocks and opens an info-only PR instead of forcing a policy floor recompute.</p>
+</div>
+
+<div class="panel">
+  <h2>Why these features earn the bump</h2>
+  <div class="grid">
+    <div class="card">
+      <h3><span class="dot green"></span>FREE WIN · 2.1.128</h3>
+      <strong>Parallel shell fanout</strong>
+      <p style="font-size:13px;color:var(--text2);margin-top:6px">A failing read-only command (grep, git diff, ls) no longer cancels sibling parallel tool calls. Every fan-out skill — ork:explore, ork:cover, ork:review-pr — gets reliability with no code change.</p>
+    </div>
+    <div class="card">
+      <h3><span class="dot green"></span>FREE WIN · 2.1.128</h3>
+      <strong>Sub-agent progress cache</strong>
+      <p style="font-size:13px;color:var(--text2);margin-top:6px">Sub-agent progress summaries hit the prompt cache. ~3× reduction in cache_creation. Compounds across ork:brainstorm + ork:implement + ork:review-pr fan-outs.</p>
+    </div>
+    <div class="card">
+      <h3><span class="dot blue"></span>WIRE IT UP · 2.1.132</h3>
+      <strong>CLAUDE_CODE_SESSION_ID</strong>
+      <p style="font-size:13px;color:var(--text2);margin-top:6px">Bash subprocesses now inherit the same session_id passed to hooks. Hook utilities can read this env var directly instead of minting UUIDs — unifies analytics traces.</p>
+    </div>
+    <div class="card">
+      <h3><span class="dot blue"></span>WIRE IT UP · 2.1.129</h3>
+      <strong>monitors → experimental</strong>
+      <p style="font-size:13px;color:var(--text2);margin-top:6px">Plugin manifests should declare <code>monitors</code> under <code>experimental: { ... }</code>. Top-level still works but <code>claude plugin validate</code> warns. OrchestKit hits this directly.</p>
+    </div>
+    <div class="card">
+      <h3><span class="dot orange"></span>VERIFY · 2.1.128</h3>
+      <strong>EnterWorktree from HEAD</strong>
+      <p style="font-size:13px;color:var(--text2);margin-top:6px">Worktree branches now created from local HEAD instead of origin/main. Behavior change. Onboarding docs that describe worktree creation need updating.</p>
+    </div>
+    <div class="card">
+      <h3><span class="dot blue"></span>WIRE IT UP · 2.1.129</h3>
+      <strong>skillOverrides knob</strong>
+      <p style="font-size:13px;color:var(--text2);margin-top:6px">User-side off / user-invocable-only / name-only setting. Pairs with our <code>disable-model-invocation: true</code> skills. Document in CLAUDE.md.</p>
+    </div>
+  </div>
+</div>
+
+<details>
+  <summary>Risk: who breaks?</summary>
+  <p style="font-size:13px;color:var(--text2);margin-top:8px">Anyone running CC 2.1.131 or earlier sees the doctor warning <code>Claude Code X.Y.Z is below OrchestKit's supported floor (2.1.132)</code>. Hooks that depend on CLAUDE_CODE_SESSION_ID would no-op gracefully (they fall back to UUID minting). The 12-week window means auto-bump catches up by mid-August, restoring the standard <code>latest + 3</code> policy without further manual intent.</p>
+</details>
+
+<p class="footer">
+  Depends on <a href="https://github.com/yonatangross/orchestkit/pull/1622">PR #1622</a> (cc-watch native binary install) merging first so the next cron run produces clean adoption issues for these new features.
+</p>
+
+</body>
+</html>

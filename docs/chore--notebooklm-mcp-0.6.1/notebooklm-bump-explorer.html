@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>notebooklm-mcp-cli 0.5.25 → 0.6.1</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+    --text:#e6edf3;--text2:#8b949e;--accent:#58a6ff;
+    --green:#3fb950;--red:#f85149;--orange:#d29922;--purple:#bc8cff;
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --mono:'SF Mono','Fira Code','Consolas',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+  header{padding:24px 32px;border-bottom:1px solid var(--border);background:var(--bg2)}
+  header h1{font-size:20px;font-weight:600}
+  header p{font-size:13px;color:var(--text2);margin-top:6px;max-width:760px}
+  main{padding:24px 32px;max-width:1100px;margin:0 auto}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 22px}
+  .card.before{border-left:3px solid var(--text2)}
+  .card.after{border-left:3px solid var(--green)}
+  .card h3{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text2);margin-bottom:10px}
+  .card.after h3{color:var(--green)}
+  .ver{font-size:32px;font-weight:600;font-family:var(--mono);color:var(--accent);margin-bottom:4px}
+  .date{font-size:11px;color:var(--text2);font-family:var(--mono);margin-bottom:12px}
+  .new-feat{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-bottom:18px}
+  .new-feat h2{font-size:14px;color:var(--accent);margin-bottom:14px}
+  .new-feat .feat-row{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start}
+  .new-feat .feat-row:last-child{border-bottom:none}
+  .feat-row .ver-tag{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:10px;background:var(--bg3);color:var(--accent);min-width:54px;text-align:center;height:fit-content}
+  .feat-row .desc strong{color:var(--text)}
+  .feat-row .desc{color:var(--text2)}
+  pre{background:#000;border:1px solid var(--border);border-radius:6px;padding:14px;font-family:var(--mono);font-size:11px;color:var(--green);overflow-x:auto;line-height:1.6;margin:10px 0}
+  pre .c{color:var(--text2)}
+  pre .k{color:var(--accent)}
+  pre .v{color:var(--orange)}
+  .warning{background:rgba(210,153,34,0.06);border:1px solid var(--orange);border-radius:6px;padding:14px 18px;margin:18px 0;font-size:13px}
+  .warning b{color:var(--orange)}
+  .warning code{background:var(--bg3);padding:1px 6px;border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--orange)}
+  footer{padding:24px 32px;color:var(--text2);font-size:12px;text-align:center;border-top:1px solid var(--border);margin-top:40px}
+</style>
+</head>
+<body>
+<header>
+  <h1>notebooklm-mcp-cli — 0.5.25 → 0.6.1 bump (2026-04-28)</h1>
+  <p>Bumps the local PyPI install of <code>notebooklm-mcp-cli</code> (which ships both the <code>nlm</code> CLI and the <code>notebooklm-mcp</code> MCP server) plus all OrchestKit doc references. The npm <code>notebooklm-mcp@1.2.1</code> is a different, stale package — explicitly called out in the version matrix as do-not-use.</p>
+</header>
+
+<main>
+  <div class="grid">
+    <div class="card before">
+      <h3>Before</h3>
+      <div class="ver">0.5.25</div>
+      <div class="date">released 2026-04-16</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.7">
+        Already had: video formats, audio length, PPTX export, bulk source ops, studio rename, async large queries, multi-browser auth, enterprise base URL, security hardening.
+      </div>
+    </div>
+    <div class="card after">
+      <h3>After</h3>
+      <div class="ver">0.6.1</div>
+      <div class="date">released 2026-04-28</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.7">
+        Adds: <strong style="color:var(--green)">source labels</strong> (thematic categorization via new <code style="color:var(--accent)">label</code> MCP tool) and <strong style="color:var(--green)">label reorganize</strong> (force AI re-categorization with all-sources or unlabeled-only modes).
+      </div>
+    </div>
+  </div>
+
+  <div class="new-feat">
+    <h2>New since 0.5.25 (April 16 → April 28)</h2>
+    <div class="feat-row">
+      <span class="ver-tag">v0.6.0</span>
+      <div class="desc"><strong>Source label management</strong> — Organize notebook sources into thematic categories. New <code style="color:var(--accent)">label</code> MCP tool + <code style="color:var(--accent)">nlm label</code> CLI: <em>auto</em> (AI generates from sources, requires 5+), <em>list</em>, <em>create</em>, <em>rename</em>, <em>delete</em>, <em>assign</em>, <em>unassign</em>. Surfaces in NotebookLM web UI source filter.</div>
+    </div>
+    <div class="feat-row">
+      <span class="ver-tag">v0.6.1</span>
+      <div class="desc"><strong>Label reorganize</strong> — When labels already exist, force AI re-categorization. Two modes: all-sources replace (requires <code style="color:var(--accent)">--confirm</code>) and unlabeled-only (preserves existing labels). Same shape on the <code style="color:var(--accent)">label</code> MCP tool with <code style="color:var(--accent)">action="reorganize"</code>.</div>
+    </div>
+    <div class="feat-row">
+      <span class="ver-tag">v0.5.31</span>
+      <div class="desc"><strong>Polish</strong> — incremental improvements (changelog: full list at github.com/jacob-bd/notebooklm-mcp-cli/releases).</div>
+    </div>
+  </div>
+
+  <div class="warning">
+    <b>Common confusion: the npm package is NOT the one we use.</b><br>
+    <code>npm install notebooklm-mcp</code> resolves to a DIFFERENT, stale package — last release <code>1.2.1</code> on 2025-12-27. The MCP version matrix doc previously pointed at this. The actual MCP server in <code>~/.claude.json</code> binds to the PyPI <code>notebooklm-mcp-cli</code> binary (<code>~/.local/bin/notebooklm-mcp</code>), installed via <code>uv tool</code>. This PR makes the matrix point at the right package.
+  </div>
+
+  <h2 style="font-size:14px;color:var(--accent);margin-bottom:8px">Upgrade command</h2>
+  <pre><span class="c"># single command, also bumps deps (typer, uvicorn, sse-starlette)</span>
+uv tool upgrade notebooklm-mcp-cli
+
+<span class="c"># after upgrade, restart Claude Code so MCP server picks up the new binary</span>
+nlm <span class="k">--version</span>  <span class="c"># expect: nlm version 0.6.1</span>
+notebooklm-mcp <span class="k">--version</span>  <span class="c"># expect: 0.6.1</span></pre>
+
+  <h2 style="font-size:14px;color:var(--accent);margin:18px 0 8px">Files updated</h2>
+  <pre><span class="c"># Version pin references (5 files in src/, 5 mirrors in plugins/)</span>
+src/skills/notebooklm/SKILL.md                                <span class="v"># v0.5.25+ → v0.6.1+, "What's New" section, +labels (3 places)</span>
+src/skills/notebooklm/rules/_sections.md                      <span class="v"># annotate labels v0.6.0+</span>
+src/skills/notebooklm/rules/workflow-batch-pipelines.md       <span class="v"># bump pin</span>
+src/skills/mcp-patterns/references/mcp-version-matrix.md      <span class="v"># clarify PyPI vs npm; do-not-use note on stale npm</span>
+
+<span class="c"># Auto-regenerated by build</span>
+plugins/ork/skills/notebooklm/*                               <span class="v"># mirrors</span>
+docs/site/content/docs/reference/skills/notebooklm.mdx        <span class="v"># auto-generated docs site</span></pre>
+</main>
+
+<footer>
+  Playground for <code>chore/notebooklm-mcp-0.6.1</code> · OrchestKit
+</footer>
+</body>
+</html>

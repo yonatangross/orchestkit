@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vercel Labs Integration — Wrap-vs-Build &amp; Drift-Kill Plan</title>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#121724; --panel2:#161c2c; --line:#232c42;
+    --ink:#e6edf3; --mut:#8b97ad; --acc:#4fa3ff; --good:#3fb950; --warn:#d29922; --bad:#f85149;
+    --chip:#1d2740; --rust:#dd6b20;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5}
+  .wrap{max-width:1120px;margin:0 auto;padding:28px 20px 80px}
+  h1{font-size:23px;margin:0 0 4px}
+  .sub{color:var(--mut);font-size:14px;margin-bottom:18px}
+  .verdict{background:linear-gradient(135deg,#13233b,#121724);border:1px solid var(--line);
+    border-radius:12px;padding:16px 18px;margin-bottom:20px}
+  .verdict b{color:var(--acc)}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+  .tab{background:var(--panel);border:1px solid var(--line);color:var(--mut);padding:8px 14px;
+    border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;user-select:none}
+  .tab.active{color:var(--ink);border-color:var(--acc);background:var(--panel2)}
+  .panel{display:none}
+  .panel.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .grid{display:grid;gap:12px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:760px){.g2,.g3{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .card h3{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px;justify-content:space-between}
+  .pill{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--line);color:var(--mut)}
+  .pill.good{color:var(--good);border-color:#1d3a26;background:#0e1f15}
+  .pill.warn{color:var(--warn);border-color:#3a3017;background:#1f1808}
+  .pill.bad{color:var(--bad);border-color:#3a1d1d;background:#1f0e0e}
+  .drift{margin:10px 0 4px}
+  .drift .bar{height:8px;background:var(--chip);border-radius:6px;overflow:hidden;margin-top:6px}
+  .drift .fill{height:100%;border-radius:6px}
+  .row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--mut)}
+  .mono{font-family:var(--mono)}
+  small.note{color:var(--mut);font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  td.mono{font-family:var(--mono);font-size:12px}
+  .k{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--chip);
+    padding:1px 6px;border-radius:5px;color:var(--ink)}
+  .models{display:grid;gap:12px;grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.models{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.models{grid-template-columns:1fr}}
+  .model{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;cursor:pointer;transition:.15s}
+  .model:hover{border-color:var(--acc)}
+  .model.sel{border-color:var(--acc);background:var(--panel2);box-shadow:0 0 0 1px var(--acc) inset}
+  .model h4{margin:0 0 6px;font-size:14px}
+  .model .verdict-line{font-size:12px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+  .pro{color:var(--good)} .con{color:var(--bad)}
+  .phase{display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+  .pnum{flex:0 0 auto;width:42px;height:42px;border-radius:10px;display:grid;place-items:center;
+    font-family:var(--mono);font-weight:700;border:1px solid var(--line)}
+  .p0{background:#1f0e0e;color:var(--bad);border-color:#3a1d1d}
+  .p1{background:#1f1808;color:var(--warn);border-color:#3a3017}
+  .p2{background:#0e1f15;color:var(--good);border-color:#1d3a26}
+  .p3{background:#101a2e;color:var(--acc);border-color:#22365c}
+  .p4{background:#1a1226;color:#bf7af0;border-color:#33244a}
+  .phase .body{flex:1}
+  .phase .body b{font-size:14px}
+  .effbadge{font-family:var(--mono);font-size:11px;color:var(--mut)}
+  .opp{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+  .rank{flex:0 0 auto;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;
+    font-family:var(--mono);font-weight:700;background:var(--chip);font-size:13px}
+  .fit{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:20px}
+  .fit.direct{color:#bf7af0;background:#1a1226;border:1px solid #33244a}
+  .fit.high{color:var(--good);background:#0e1f15;border:1px solid #1d3a26}
+  .fit.med{color:var(--warn);background:#1f1808;border:1px solid #3a3017}
+  .fit.watch{color:var(--mut);background:var(--chip);border:1px solid var(--line)}
+  .legend{font-size:12px;color:var(--mut);margin-top:10px}
+  footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(--line);padding-top:14px}
+  code{font-family:var(--mono);background:var(--chip);padding:1px 5px;border-radius:5px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧩 Vercel Labs Integration — Wrap-vs-Build &amp; Drift-Kill Plan</h1>
+  <div class="sub">OrchestKit · audit 2026-06-22 · 3 parallel agents (pin inventory · watcher coverage · live ecosystem scan)</div>
+
+  <div class="verdict">
+    <b>Are we reinventing the wheel?</b> No. <b>100% wrap, 0% reinvent</b> — no skill reimplements a tool;
+    they're <i>guidance + orchestration</i> wrappers (compose 3 CLIs in <code>/ork:dev</code>, add guardrails like
+    <code>expect</code> forbidding <code>agent-browser chat</code>). <b>The catch:</b> each wrapper <i>snapshots</i>
+    version-specific prose into the skill body, and the snapshot is <b>already stale</b> — agent-browser <span class="mono">0.27→0.29.1</span>
+    (missed the v0.28 MCP server + v0.20 Rust rewrite), emulate <span class="mono">0.6.1→0.7.0</span>. The plan kills the snapshot tax.
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-t="verdict">① Verdict &amp; Drift</div>
+    <div class="tab" data-t="models">② Maintenance model</div>
+    <div class="tab" data-t="gaps">③ Coverage gaps</div>
+    <div class="tab" data-t="plan">④ Phased fix plan</div>
+    <div class="tab" data-t="opp">⑤ Opportunities</div>
+  </div>
+
+  <!-- VERDICT -->
+  <section class="panel active" data-p="verdict">
+    <div class="grid g2" id="integGrid"></div>
+    <div class="legend">Drift bar = how far our pinned version trails current npm latest (longer + redder = more behind). Click a card for what we missed.</div>
+  </section>
+
+  <!-- MODELS -->
+  <section class="panel" data-p="models">
+    <p class="sub">The real decision isn't wrap-vs-build (we already wrap) — it's <b>how thin the wrapper should be</b>. Pick a target model per integration; the trade-off updates below.</p>
+    <div class="models" id="models"></div>
+    <div class="card" id="modelDetail" style="margin-top:14px"></div>
+  </section>
+
+  <!-- GAPS -->
+  <section class="panel" data-p="gaps">
+    <div class="card" style="margin-bottom:12px">
+      <h3>🔭 What the watcher sees <span class="pill">scripts/check-labs-versions.mjs</span></h3>
+      <small class="note">Hardcoded <code>TARGETS</code> = 4 skills only. The mechanism is sound (it rebuilds <code>plugins/</code> + opens a bot PR weekly Mon 08:00 UTC) — coverage is the problem.</small>
+    </div>
+    <table>
+      <thead><tr><th>Gap</th><th>Detail</th><th>Severity</th></tr></thead>
+      <tbody id="gapRows"></tbody>
+    </table>
+  </section>
+
+  <!-- PLAN -->
+  <section class="panel" data-p="plan">
+    <p class="sub">Phased so each step is independently shippable. P0–P1 are additive &amp; low-risk; P3–P4 are the structural drift-kill.</p>
+    <div id="phases"></div>
+  </section>
+
+  <!-- OPP -->
+  <section class="panel" data-p="opp">
+    <p class="sub">Live <code>npm view</code> scan of the <code>vercel-labs</code> org (Jun 2026). Beyond catching up, here's what's <i>new</i> worth wrapping.</p>
+    <div id="opps"></div>
+    <div class="legend">Fit = how naturally it slots into an AI-coding plugin. <span class="fit direct">DIRECT</span> overlaps ork's own format · <span class="fit high">HIGH</span> · <span class="fit med">MED</span> · <span class="fit watch">WATCH</span></div>
+  </section>
+
+  <footer>
+    Self-contained, no-CDN playground · generated by <code>/ork:visualize-plan</code> (decision-board archetype) ·
+    sources: live <code>npm view</code> (agent-browser 0.29.1 · emulate 0.7.0 · portless 0.14.0), vercel-labs GitHub releases, repo audit.
+  </footer>
+</div>
+
+<script>
+const INTEG = [
+  {name:"agent-browser", pkg:"agent-browser", wrappers:"browser-tools (0.27.3) · expect (0.25.4)",
+   pin:"0.27.3 / 0.25.4", npm:"0.29.1", drift:0.9, status:"bad",
+   missed:["v0.28 built-in MCP server (--mcp) — undocumented in ork","v0.20 100% Rust rewrite (Node/Playwright daemon GONE, 710MB→7MB) — agents may assume a Node sidecar","v0.22 deprecated -C/--cursor — ork snippets may still pass it","v0.27 react tree/inspect/renders + vitals — undocumented","TWO divergent pins for ONE package (browser-tools 0.27.3 vs expect 0.25.4)"]},
+  {name:"emulate", pkg:"emulate (+@emulators/*)", wrappers:"emulate-seed (0.6.1)",
+   pin:"0.6.1", npm:"0.7.0", drift:0.45, status:"warn",
+   missed:["v0.7.0 Linear emulator = 13th provider","skill body tops out at 0.5.0 / says '12 emulators' (count drift)","emulate-engineer AGENT hardcodes 'v0.4.1 — 12 emulators' (3 minors + 1 provider stale)"]},
+  {name:"portless", pkg:"portless", wrappers:"portless (0.14.0) · dev (no pin)",
+   pin:"0.14.0", npm:"0.14.0", drift:0.0, status:"good",
+   missed:["✅ frontmatter pin current","but body description still says 'v0.13.x' (frontmatter-only updates leave body stale)","v0.13.1 needs Node 24+ / v0.11 moved state to ~/.portless — not noted","debug-investigator agent still shows pre-0.10 http localhost:1355 URLs"]},
+  {name:"json-render", pkg:"@json-render/core · /mcp", wrappers:"json-render-catalog · multi-surface-render · mcp-visual-output",
+   pin:"0.19.0 (×3)", npm:"— (3 skills, only 1 watched)", drift:0.6, status:"warn",
+   missed:["multi-surface-render (@json-render/core) NOT in TARGETS — silent","mcp-visual-output (@json-render/mcp) NOT in TARGETS — @json-render/mcp queried by NOTHING","sibling pkgs (/react-pdf /react-email /directives) tracked only via the /core proxy"]},
+];
+const MODELS = [
+  {id:"thick", name:"Thick snapshot", tag:"current", desc:"Embed version-specific detail (providers, flags, counts) in the skill body.",
+   pro:["Rich offline guidance","Reads great in one file"], con:["Rots on every upstream release","Needs the watcher + manual body review","Already stale across 3 of 4 integrations"],
+   verdict:"Where we are. The tax you're feeling."},
+  {id:"thin", name:"Thin pointer", tag:"drift-proof", desc:"Keep ork's value-add (composition + guardrails); defer version-specific detail to upstream at runtime (--help, doctor, Context7).",
+   pro:["Drift-proof — no version prose to rot","Smallest token footprint"], con:["Needs network/CLI at runtime","Loses curated offline examples"],
+   verdict:"Best for fast-moving CLIs (agent-browser ships ~weekly)."},
+  {id:"gen", name:"Build-time generated", tag:"synced+offline", desc:"Derive the version-specific sections from upstream CHANGELOG/--help during npm run build.",
+   pro:["Synced AND offline","Single source of truth"], con:["Build complexity","Upstream format changes break codegen"],
+   verdict:"Best for stable detail (emulate provider list)."},
+  {id:"skillsh", name:"Consume skills.sh", tag:"new option", desc:"Vercel now ships official SKILL.md for these tools (vercel-labs/agent-skills). Wrap THEIR skill, or publish ork to the skills.sh directory.",
+   pro:["Upstream maintains the version prose","Same SKILL.md format ork uses"], con:["Cedes control of guidance","Coupling to Vercel's cadence"],
+   verdict:"Reframes the question: don't hand-maintain — point at the canonical skill."},
+];
+const GAPS = [
+  {g:"3 pinned skills UNWATCHED", d:"multi-surface-render, mcp-visual-output, expect have upstream-version-tested pins but are absent from TARGETS — drift never even detected.", s:"bad"},
+  {g:"@json-render/mcp queried by nothing", d:"mcp-visual-output is its only consumer and it's unwatched → that package family has zero coverage.", s:"bad"},
+  {g:"Same pkg, 2 divergent pins", d:"expect pins agent-browser@0.25.4, browser-tools@0.27.3 — only one is watched.", s:"bad"},
+  {g:"Agents have NO pin mechanism", d:"10 agents hardcode Labs versions (emulate-engineer 'v0.4.1/12 emulators', web-research-analyst stuck at v0.13–v0.16) that rot invisibly.", s:"bad"},
+  {g:"Body text rots", d:"Bot rewrites only the one frontmatter line; body prose + description frontmatter (regex-invisible) drift silently.", s:"warn"},
+  {g:"Skills with no pin at all", d:"dev, testing-integration, testing-e2e reference Labs packages with no upstream-version-tested — bot has nothing to update.", s:"warn"},
+];
+const PHASES = [
+  {n:"P0", cls:"p0", t:"Catch up the stale pins (do now)", eff:"~1h · low risk",
+   items:["Bump agent-browser → 0.29.1, emulate → 0.7.0 (portless already current)","Remove deprecated -C/--cursor from agent-browser snippets","Document --mcp server mode (v0.28) + Rust-daemon reality (v0.20) in browser-tools","Fix emulate-engineer agent: 'v0.4.1 / 12 emulators' → 0.7.0 / 13 providers"]},
+  {n:"P1", cls:"p1", t:"Extend watcher coverage", eff:"~30m · additive",
+   items:["Add 3 rows to TARGETS in check-labs-versions.mjs: multi-surface-render→@json-render/core, mcp-visual-output→@json-render/mcp, expect→agent-browser","No YAML change needed (git add glob already broad)"]},
+  {n:"P2", cls:"p2", t:"Body-text drift linter", eff:"~2h · test",
+   items:["New test: fail when any body/description version mention < the frontmatter pin","Catches the silent rot the bot's frontmatter-only update leaves behind","Wire into npm run test:skills"]},
+  {n:"P3", cls:"p3", t:"Agent version-anchor strategy", eff:"~half day",
+   items:["Agents can't pin → stop hardcoding versions in agents","Agents reference the skill ('see browser-tools skill for current flags') instead of snapshotting","Or add an agent-pin field + extend the watcher to agents"]},
+  {n:"P4", cls:"p4", t:"Thin-the-wrapper / skills.sh (strategic)", eff:"spike",
+   items:["Pilot the 'thin pointer' model on agent-browser (fastest-moving CLI)","Evaluate consuming vercel-labs/agent-skills as upstream-of-truth","Evaluate publishing ork to skills.sh directory for discovery"]},
+];
+const OPPS = [
+  {r:1, name:"skills (skills.sh)", fit:"direct", v:"1.5.12", why:"Vercel's open SKILL.md ecosystem — same format ork uses. Publish ork to appear in the public directory; consume official vercel-labs skills as upstream-of-truth."},
+  {r:2, name:"dev3000 (d3k)", fit:"high", v:"0.0.177", why:"Unified dev timeline (server logs + browser events + network + screenshots) into one AI-readable log. An ork SessionStart hook could auto-start it and inject the log path into additionalContext."},
+  {r:3, name:"@vercel/agent-eval", fit:"high", v:"1.1.1", why:"Evaluates AI coding agents on framework tasks. ork could ship an eval set measuring its OWN skills — directly answers 'does adding this skill improve pass rate?'"},
+  {r:4, name:"just-bash", fit:"med", v:"3.0.2", why:"Simulated Bash + virtual FS + threat model for safe agent shell execution. Relevant if ork wants to sandbox skill-run Bash without full system access."},
+  {r:5, name:"deepsec", fit:"med", v:"2.1.2", why:"Agent-powered vuln scanner, already SKILL.md-driven. A /ork:deepsec wrapper is a natural security-gate fit."},
+  {r:6, name:"eve", fit:"watch", v:"0.12.2", why:"Filesystem-first TS agent framework (durable exec, Slack/Discord/GitHub channels). Launched Jun 2026 — too new to commit, complementary to ork's session/hook model."},
+];
+
+// render
+const grid=document.getElementById('integGrid');
+INTEG.forEach((it,i)=>{
+  const c=document.createElement('div');c.className='card';
+  const col=it.status==='bad'?'var(--bad)':it.status==='warn'?'var(--warn)':'var(--good)';
+  c.innerHTML=`<h3>${it.name}<span class="pill ${it.status}">${it.npm}</span></h3>
+    <small class="note">${it.wrappers}</small>
+    <div class="drift"><div class="row"><span>pin ${it.pin}</span><span>npm ${it.npm}</span></div>
+      <div class="bar"><div class="fill" style="width:${Math.max(6,it.drift*100)}%;background:${col}"></div></div></div>
+    <div class="missed" style="display:none;margin-top:8px"></div>
+    <small class="note" style="cursor:pointer;color:var(--acc)" data-toggle>▸ what we missed</small>`;
+  const m=c.querySelector('.missed'), tg=c.querySelector('[data-toggle]');
+  m.innerHTML='<ul style="margin:6px 0 0;padding-left:18px;font-size:12px;color:var(--mut)">'+it.missed.map(x=>`<li>${x}</li>`).join('')+'</ul>';
+  tg.onclick=()=>{const o=m.style.display==='none';m.style.display=o?'block':'none';tg.textContent=(o?'▾':'▸')+' what we missed';};
+  grid.appendChild(c);
+});
+
+const modelsEl=document.getElementById('models'), detail=document.getElementById('modelDetail');
+function showModel(mo){
+  detail.innerHTML=`<h3>${mo.name} <span class="pill">${mo.tag}</span></h3><p style="margin:4px 0 10px">${mo.desc}</p>
+    <div class="grid g2">
+      <div><b class="pro">▲ Pros</b><ul style="margin:6px 0;padding-left:18px;font-size:13px">${mo.pro.map(p=>`<li>${p}</li>`).join('')}</ul></div>
+      <div><b class="con">▼ Cons</b><ul style="margin:6px 0;padding-left:18px;font-size:13px">${mo.con.map(p=>`<li>${p}</li>`).join('')}</ul></div>
+    </div><div class="verdict-line"><b>When:</b> ${mo.verdict}</div>`;
+}
+MODELS.forEach((mo,i)=>{
+  const d=document.createElement('div');d.className='model'+(i===0?' sel':'');
+  d.innerHTML=`<h4>${mo.name}</h4><span class="pill">${mo.tag}</span><div class="verdict-line">${mo.verdict}</div>`;
+  d.onclick=()=>{document.querySelectorAll('.model').forEach(x=>x.classList.remove('sel'));d.classList.add('sel');showModel(mo);};
+  modelsEl.appendChild(d);
+});
+showModel(MODELS[0]);
+
+const gr=document.getElementById('gapRows');
+GAPS.forEach(g=>{const tr=document.createElement('tr');
+  tr.innerHTML=`<td><b>${g.g}</b></td><td>${g.d}</td><td><span class="pill ${g.s}">${g.s==='bad'?'silent drift':'documented'}</span></td>`;gr.appendChild(tr);});
+
+const ph=document.getElementById('phases');
+PHASES.forEach(p=>{const d=document.createElement('div');d.className='phase';
+  d.innerHTML=`<div class="pnum ${p.cls}">${p.n}</div><div class="body"><b>${p.t}</b> <span class="effbadge">· ${p.eff}</span>
+    <ul style="margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--mut)">${p.items.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;ph.appendChild(d);});
+
+const op=document.getElementById('opps');
+OPPS.forEach(o=>{const d=document.createElement('div');d.className='opp';
+  d.innerHTML=`<div class="rank">${o.r}</div><div style="flex:1"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <b>${o.name}</b><span class="k">${o.v}</span><span class="fit ${o.fit}">${o.fit.toUpperCase()}</span></div>
+    <small class="note">${o.why}</small></div>`;op.appendChild(d);});
+
+// tabs
+document.getElementById('tabs').addEventListener('click',e=>{
+  const t=e.target.closest('.tab');if(!t)return;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.dataset.p===t.dataset.t));
+});
+</script>
+</body>
+</html>

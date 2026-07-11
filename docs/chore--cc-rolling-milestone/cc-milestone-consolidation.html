@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CC Milestone Consolidation — Sprawl → Rolling Umbrella</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d; --ink: #e6edf3;
+    --muted: #8b949e; --accent: #58a6ff; --good: #3fb950; --warn: #d29922;
+    --bad: #f85149; --umbrella: #a371f7;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans);
+         line-height: 1.5; padding: 2rem 1rem 4rem; }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 .25rem; }
+  h1 .em { color: var(--umbrella); }
+  .sub { color: var(--muted); margin: 0 0 1.5rem; font-size: .95rem; }
+  .controls { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+              padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; flex-wrap: wrap;
+              gap: 1.5rem; align-items: center; }
+  .control label { display: block; font-size: .75rem; text-transform: uppercase;
+                   letter-spacing: .06em; color: var(--muted); margin-bottom: .35rem; }
+  input[type=range] { width: 260px; accent-color: var(--umbrella); }
+  .val { font-family: var(--mono); color: var(--accent); font-size: 1.1rem; }
+  button { background: var(--umbrella); color: #fff; border: 0; border-radius: 7px;
+           padding: .6rem 1rem; font-weight: 600; cursor: pointer; font-size: .9rem; }
+  button:hover { filter: brightness(1.1); }
+  button.ghost { background: transparent; border: 1px solid var(--border); color: var(--ink); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .col { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+         padding: 1rem 1.1rem; min-height: 260px; }
+  .col h2 { font-size: .95rem; margin: 0 0 .15rem; display: flex; justify-content: space-between; }
+  .col .tag { font-family: var(--mono); font-size: .8rem; }
+  .col.before h2 .tag { color: var(--bad); }
+  .col.after h2 .tag { color: var(--good); }
+  .colhint { color: var(--muted); font-size: .78rem; margin: 0 0 .8rem; }
+  .ms { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .chip { font-family: var(--mono); font-size: .72rem; padding: .25rem .5rem; border-radius: 6px;
+          border: 1px solid var(--border); background: #1c2128; color: var(--muted);
+          transition: transform .35s ease, opacity .35s ease; }
+  .chip.umb { background: rgba(163,113,247,.15); border-color: var(--umbrella);
+              color: var(--umbrella); font-weight: 600; font-size: .8rem; }
+  .chip.bundle { border-color: var(--accent); color: var(--accent); }
+  .chip.collapsing { transform: translateY(-8px) scale(.85); opacity: 0; }
+  .meter { font-family: var(--mono); margin-top: .9rem; font-size: .82rem; }
+  .meter .n { font-size: 1.6rem; font-weight: 700; }
+  .before .meter .n { color: var(--bad); }
+  .after .meter .n { color: var(--good); }
+  .note { background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--umbrella);
+          border-radius: 8px; padding: .85rem 1rem; margin-top: 1.5rem; font-size: .88rem; }
+  .note code, .pre code { font-family: var(--mono); color: var(--accent); }
+  .pre { background: #010409; border: 1px solid var(--border); border-radius: 8px;
+         padding: .9rem 1rem; font-family: var(--mono); font-size: .8rem; overflow-x: auto;
+         white-space: pre; color: var(--ink); margin-top: 1rem; }
+  .copybar { display: flex; gap: .6rem; align-items: center; margin-top: 1rem; }
+  .copied { color: var(--good); font-size: .8rem; font-family: var(--mono); opacity: 0; transition: opacity .2s; }
+  .copied.show { opacity: 1; }
+  .legend { color: var(--muted); font-size: .75rem; margin-top: 1.2rem; }
+  .legend b { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>CC Milestone Consolidation — Sprawl → <span class="em">Rolling Umbrella</span></h1>
+  <p class="sub">OrchestKit's cc-watch cron filed one GitHub milestone per upstream CC version.
+     This explorer shows why that sprawls, and how a single rolling <code>CC adoption</code> umbrella
+     (plus an idempotent self-heal sweep) fixes it — without losing per-version traceability.</p>
+
+  <div class="controls">
+    <div class="control">
+      <label for="versions">Upstream CC versions filed</label>
+      <input type="range" id="versions" min="1" max="40" value="8" />
+    </div>
+    <div class="control">
+      <span class="val" id="vcount">8</span> versions
+    </div>
+    <div class="control">
+      <button id="sweep">▶ Run consolidation sweep</button>
+      <button id="reset" class="ghost">Reset</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="col before">
+      <h2>OLD model <span class="tag">one milestone / version</span></h2>
+      <p class="colhint">Each version → a new <code>CC X.Y.Z adoption</code> milestone, most with 1–2 issues.</p>
+      <div class="ms" id="before-ms"></div>
+      <div class="meter">milestones: <span class="n" id="before-n">8</span></div>
+    </div>
+    <div class="col after">
+      <h2>NEW model <span class="tag">one rolling umbrella</span></h2>
+      <p class="colhint">All versions file into one permanent <code>CC adoption</code>; real bundles graduate to <code>M###</code>.</p>
+      <div class="ms" id="after-ms"></div>
+      <div class="meter">milestones: <span class="n" id="after-n">1</span></div>
+    </div>
+  </div>
+
+  <div class="note" id="savings"></div>
+
+  <div class="note">
+    <b>Traceability is preserved.</b> Collapsing milestones loses nothing — dedup &amp; per-version
+    history live <i>outside</i> the milestone:
+    <br/>• <code>Key: &lt;slug&gt;+&lt;version&gt;</code> body marker (the filer dedups on this, not the milestone)
+    <br/>• <code>shared/cc-snapshots/&lt;version&gt;.md</code> (raw per-version changelog bullets)
+    <br/>• <code>latest_new_version</code> in <code>gh-issue-args.json</code> (keeps snapshot-PR titles unique)
+  </div>
+
+  <h2 style="font-size:1rem;margin:1.6rem 0 .2rem">The change, in one diff + one sweep</h2>
+  <div class="pre" id="diff"></div>
+
+  <div class="copybar">
+    <button id="copy" class="ghost">⧉ Copy migration commands</button>
+    <span class="copied" id="copied">copied ✓</span>
+  </div>
+
+  <p class="legend">
+    <b>Legend:</b> <span style="color:var(--umbrella)">■</span> rolling umbrella ·
+    <span style="color:var(--accent)">■</span> graduated <code>M###</code> human bundle ·
+    <span style="color:var(--muted)">■</span> per-version sprawl milestone (swept &amp; closed).
+    &nbsp;Sweep is idempotent: a steady state is a no-op.
+  </p>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const slider = $("versions");
+  const beforeMs = $("before-ms"), afterMs = $("after-ms");
+  let swept = false;
+
+  const MIGRATION = [
+    "# 1. graduate the real bundle out of the sweep pattern (one-time)",
+    'gh api -X PATCH repos/yonatangross/orchestkit/milestones/<143-num> -f title="M146 — CC 2.1.143 hardening"',
+    "",
+    "# 2. dry-run the sweep, then run it for real",
+    "DRY_RUN=1 GH_REPO=yonatangross/orchestkit bash scripts/cc-consolidate-milestones.sh",
+    "GH_REPO=yonatangross/orchestkit bash scripts/cc-consolidate-milestones.sh",
+  ].join("\n");
+
+  function baseVersion(i) { return "CC 2.1." + (139 + i) + " adoption"; }
+
+  function render() {
+    const n = +slider.value;
+    $("vcount").textContent = n;
+
+    // BEFORE: n per-version milestones (one graduated to a bundle when n>=5).
+    beforeMs.innerHTML = "";
+    const graduated = n >= 5 ? 1 : 0;
+    for (let i = 1; i <= n; i++) {
+      const c = document.createElement("span");
+      const isBundle = graduated && i === 5;
+      c.className = "chip" + (isBundle ? " bundle" : "");
+      c.textContent = isBundle ? "M146 — CC 2.1.143 hardening" : baseVersion(i);
+      beforeMs.appendChild(c);
+    }
+    $("before-n").textContent = n;
+
+    // AFTER: 1 umbrella + the graduated bundle(s).
+    afterMs.innerHTML = "";
+    const umb = document.createElement("span");
+    umb.className = "chip umb";
+    umb.textContent = "📥 CC adoption (rolling · " + n + " versions inside)";
+    afterMs.appendChild(umb);
+    if (graduated) {
+      const b = document.createElement("span");
+      b.className = "chip bundle";
+      b.textContent = "🎯 M146 — CC 2.1.143 hardening";
+      afterMs.appendChild(b);
+    }
+    $("after-n").textContent = 1 + graduated;
+
+    const saved = n - (1 + graduated);
+    $("savings").innerHTML = "<b>Net:</b> " + n + " sprawl milestone" + (n === 1 ? "" : "s") +
+      " → <b>" + (1 + graduated) + "</b> (" + (graduated ? "1 umbrella + 1 graduated bundle" : "1 umbrella") +
+      "). <b style='color:var(--good)'>" + Math.max(0, saved) + " fewer</b> milestones to track" +
+      (n >= 9 ? " — and the next version no longer spawns a new one." : ".");
+    swept = false;
+  }
+
+  function runSweep() {
+    if (swept) return;
+    const chips = [...beforeMs.querySelectorAll(".chip:not(.bundle)")];
+    chips.forEach((c, idx) => setTimeout(() => c.classList.add("collapsing"), idx * 80));
+    setTimeout(() => { swept = true; }, chips.length * 80 + 400);
+  }
+
+  $("diff").textContent =
+`scripts/cc-release-watch.mjs
+- const milestoneTitle = \`CC \${latestNew} adoption\`;   // per-version
++ const milestoneTitle = 'CC adoption';                 // rolling umbrella
+
+.github/workflows/claude-release-watch.yml  (+ Step 3b)
++ - name: Consolidate CC milestones
++   run: bash scripts/cc-consolidate-milestones.sh        // idempotent self-heal`;
+
+  slider.addEventListener("input", render);
+  $("sweep").addEventListener("click", runSweep);
+  $("reset").addEventListener("click", render);
+  $("copy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(MIGRATION); } catch (e) { /* clipboard blocked */ }
+    const c = $("copied"); c.classList.add("show"); setTimeout(() => c.classList.remove("show"), 1400);
+  });
+
+  render();
+</script>
+</body>
+</html>

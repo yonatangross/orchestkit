@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>JSON-leak guard playground · OrchestKit</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #161a22;
+    --border: #2a313d;
+    --text: #d8dee9;
+    --muted: #8c95a4;
+    --ok: #4ade80;
+    --bad: #f87171;
+    --accent: #60a5fa;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px;
+    background: var(--bg); color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, sans-serif;
+  }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .lead { color: var(--muted); margin: 0 0 24px; max-width: 680px; }
+  .grid { display: grid; gap: 16px; max-width: 880px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  label { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+  input[type=text] {
+    width: 100%;
+    background: #0a0c11;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font: 14px var(--mono);
+  }
+  input[type=text]:focus { outline: none; border-color: var(--accent); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .chip {
+    background: #1f2632; color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 10px; font: 12px var(--mono);
+    cursor: pointer; user-select: none;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .out {
+    margin-top: 16px;
+    background: #0a0c11;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+    font: 13px/1.55 var(--mono);
+    white-space: pre-wrap; word-break: break-all;
+  }
+  .verdict { font-weight: 600; }
+  .verdict.ok { color: var(--ok); }
+  .verdict.bad { color: var(--bad); }
+  .step { display: flex; gap: 10px; margin: 6px 0; }
+  .step .k { color: var(--muted); width: 110px; flex-shrink: 0; }
+  .step .v { color: var(--text); }
+  .step .v.bad { color: var(--bad); }
+  .step .v.ok  { color: var(--ok); }
+  details { margin-top: 18px; }
+  summary { cursor: pointer; color: var(--accent); }
+  pre { font: 12px var(--mono); color: var(--muted); margin: 8px 0 0; white-space: pre-wrap; }
+  .footer { margin-top: 24px; color: var(--muted); font-size: 12px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <h1>JSON-leak guard playground</h1>
+  <p class="lead">
+    Type a value for <code>CLAUDE_PROJECT_DIR</code>. The simulator runs the
+    same checks the real OrchestKit hooks now do — <code>safeProjectDir()</code>
+    in <code>src/hooks/src/lib/paths.ts</code> and <code>safeMkdirSync()</code>
+    in <code>src/hooks/src/lib/safe-fs.ts</code>. The bug from
+    <a href="https://github.com/yonatangross/orchestkit/pull/1606">this PR</a>
+    was that hook stdout JSON ended up in this env var and got passed straight
+    to <code>fs.mkdirSync</code>, creating a literal
+    <code>{"continue":true,"suppressOutput":true}/</code> directory at the
+    project root.
+  </p>
+
+  <div class="grid">
+    <div class="card">
+      <label for="env">CLAUDE_PROJECT_DIR =</label>
+      <input id="env" type="text" autocomplete="off" spellcheck="false"
+             value='{"continue":true,"suppressOutput":true}' />
+      <div class="row">
+        <span class="chip" data-v='{"continue":true,"suppressOutput":true}'>JSON leak (the bug)</span>
+        <span class="chip" data-v='[1,2,3]'>JSON array</span>
+        <span class="chip" data-v='/Users/yonatan/coding/myproject'>real path</span>
+        <span class="chip" data-v=''>empty</span>
+        <span class="chip" data-v='./relative/path'>relative</span>
+      </div>
+
+      <div class="out" id="out"></div>
+
+      <details>
+        <summary>What is happening?</summary>
+        <pre id="trace"></pre>
+      </details>
+    </div>
+
+    <div class="card">
+      <label>Real source (excerpt)</label>
+      <pre>// src/hooks/src/lib/paths.ts
+function stripJsonLeak(value, fallback = '.') {
+  if (!value) return fallback;
+  if (value.startsWith('{') || value.startsWith('[')) return fallback;
+  return value;
+}
+
+export function safeProjectDir(candidate) {
+  if (candidate && !candidate.startsWith('{') && !candidate.startsWith('[')) {
+    return candidate;
+  }
+  const env = stripJsonLeak(process.env.CLAUDE_PROJECT_DIR, '');
+  return env || process.cwd();
+}
+
+// src/hooks/src/lib/safe-fs.ts — last-line defence
+export function safeMkdirSync(path, options) {
+  if (!looksLikePath(path)) {
+    process.stderr.write(`[orchestkit] safeMkdirSync refused: ${JSON.stringify(path)}\n`);
+    return undefined; // fail closed, do NOT create the directory
+  }
+  return mkdirSync(path, options);
+}</pre>
+      </details>
+    </div>
+  </div>
+
+  <p class="footer">
+    Branch <code>fix/hook-json-path-leak</code> · related to
+    <a href="https://github.com/yonatangross/orchestkit/issues/1250">#1250</a>
+    (recurrence). All hook tests pass (7800 unit + manifest + security gate).
+  </p>
+
+<script>
+const fakeCwd = '/Users/you/repo';
+
+function stripJsonLeak(value, fallback) {
+  if (!value) return fallback;
+  if (value.startsWith('{') || value.startsWith('[')) return fallback;
+  return value;
+}
+
+function safeProjectDir(envValue) {
+  const env = stripJsonLeak(envValue, '');
+  return env || fakeCwd;
+}
+
+function looksLikePath(p) {
+  if (typeof p !== 'string' || p.length === 0) return false;
+  if (p.startsWith('{') || p.startsWith('[')) return false;
+  if (p.includes('\0')) return false;
+  return true;
+}
+
+const $env = document.getElementById('env');
+const $out = document.getElementById('out');
+const $trace = document.getElementById('trace');
+
+function escape(s) {
+  return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+}
+
+function render() {
+  const raw = $env.value;
+  const resolved = safeProjectDir(raw);
+  const target = resolved + '/.instance';
+  const safe = looksLikePath(resolved);
+
+  const verdict = safe
+    ? `<span class="verdict ok">SAFE — would mkdir ${escape(target)}</span>`
+    : `<span class="verdict bad">REJECTED — safeMkdirSync refuses this path</span>`;
+
+  $out.innerHTML = [
+    `<div class="step"><span class="k">env raw</span><span class="v ${raw && (raw.startsWith('{') || raw.startsWith('[')) ? 'bad' : ''}">${escape(raw || '<unset>')}</span></div>`,
+    `<div class="step"><span class="k">stripped</span><span class="v">${escape(stripJsonLeak(raw, ''))}</span></div>`,
+    `<div class="step"><span class="k">resolved</span><span class="v ok">${escape(resolved)}</span></div>`,
+    `<div class="step"><span class="k">target dir</span><span class="v">${escape(target)}</span></div>`,
+    `<div class="step"><span class="k">verdict</span>${verdict}</div>`,
+  ].join('');
+
+  $trace.textContent = [
+    `1. CLAUDE_PROJECT_DIR = ${JSON.stringify(raw)}`,
+    `2. stripJsonLeak(...) → ${JSON.stringify(stripJsonLeak(raw, ''))}`,
+    `3. safeProjectDir() → ${JSON.stringify(resolved)}`,
+    `4. cacheSessionId() builds: ${JSON.stringify(target)}`,
+    `5. safeMkdirSync(${JSON.stringify(target)}) → ${safe ? 'mkdirs the directory' : 'REFUSED, returns undefined'}`,
+  ].join('\n');
+}
+
+document.querySelectorAll('.chip').forEach(c => {
+  c.addEventListener('click', () => {
+    $env.value = c.dataset.v;
+    render();
+    $env.focus();
+  });
+});
+
+$env.addEventListener('input', render);
+render();
+</script>
+</body>
+</html>

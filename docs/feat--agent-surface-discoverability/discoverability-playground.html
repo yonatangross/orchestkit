@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Agent Surface Discoverability — Playground</title>
+<style>body{background:#0d1117;color:#e6edf3;font-family:ui-monospace,Menlo,monospace;padding:2rem;line-height:1.6;max-width:980px}.ok{color:#3fb950}.bad{color:#f85149}.dim{color:#8b949e}pre{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:1rem;font-size:.82rem;overflow-x:auto}td,th{padding:.3rem .5rem;border-bottom:1px solid #30363d;text-align:left;font-size:.85rem}</style>
+</head>
+<body>
+<h1>🎯 Make the fixes visible where the checker looks</h1>
+<p class="dim">Probe-verified diagnosis: orank reads the ON-SITE surfaces, not the registry. The 8.37.0 fixes existed but were invisible to it.</p>
+<table>
+<tr><th>Check (still failing)</th><th>Where checker looks</th><th>Fix</th></tr>
+<tr><td>mcp-multi-surface 0/2</td><td>/.well-known/mcp/server-card.json — listed ONE remote</td><td class="ok">card now carries packages[] (OCI stdio) + transports[]</td></tr>
+<tr><td>api-versioning-policy 2/3</td><td>API headers + discoverable pages</td><td class="ok">Link: &lt;/api-policy.md&gt;; rel="deprecation" on every response + api-catalog item</td></tr>
+<tr><td>rest-sdk-packages 1/3</td><td>OpenAPI + docs surfaces</td><td class="ok">OpenAPI description: pip install orchestkit-hook-contract + docker run; api-catalog PyPI item</td></tr>
+<tr><td>oauth-protected-resource 0/2 + walkthrough 0/2 + agent-auth-discovery 0/3</td><td>/.well-known/oauth-protected-resource — was an intentional 404</td><td class="ok">anonymous-only RFC 9728 PRM: resource + EMPTY authorization_servers/bearer_methods (truthful — no AS exists, no token read); auth.md Discover rewritten with live sample payloads; walkthrough declared N/A by design</td></tr>
+<tr><td>nlweb-ask 0/1</td><td class="dim">checker bug — /ask verified live: bare 400 Problem, query/question/q aliases all 200, SSE works</td><td class="dim">feedback #68/#69 filed, no code change</td></tr>
+</table>
+<pre><span class="dim"># server-card.json before → after</span>
+  "remotes": [{ "type": "streamable-http", ... }]
+<span class="ok">+ "packages": [{ "registryType": "oci", "identifier": "ghcr.io/yonatangross/orchestkit-docs-mcp",
++                "runtimeHint": "docker", "transport": { "type": "stdio" } }]
++ "transports": ["streamable-http", "stdio"]</span></pre>
+</body>
+</html>

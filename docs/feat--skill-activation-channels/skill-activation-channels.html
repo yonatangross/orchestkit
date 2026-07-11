@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OrchestKit · Skill Activation-Channel Playground</title>
+<style>
+  :root{
+    --bg:#0a0c10; --panel:#12161d; --panel2:#161b24; --line:#222a36;
+    --ink:#e7edf5; --dim:#8a97a8; --faint:#5a6577;
+    --direct:#5b8cff; --chain:#39d98a; --sub:#a877ff; --bg4:#f5b14c;
+    --lit:#39d98a; --dark:#ff5d6c;
+    --mono:"SF Mono",ui-monospace,"Cascadia Code",Menlo,Consolas,monospace;
+    --sans:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:30px 22px 90px}
+  header h1{font-size:26px;margin:0 0 4px;letter-spacing:-.02em}
+  header h1 .g{background:linear-gradient(90deg,var(--direct),var(--sub));-webkit-background-clip:text;background-clip:text;color:transparent}
+  header p.sub{color:var(--dim);margin:0;font-size:14px;max-width:840px;line-height:1.5}
+  .meta{margin-top:10px;font-family:var(--mono);font-size:11.5px;color:var(--faint);display:flex;gap:16px;flex-wrap:wrap}
+  .meta b{color:var(--dim);font-weight:600}
+
+  .correction{margin:20px 0 4px;background:linear-gradient(180deg,#161b24,#12161d);border:1px solid var(--line);border-left:3px solid var(--bg4);border-radius:12px;padding:16px 18px}
+  .correction .row{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+  .correction .x{font-size:13.5px;color:var(--dim)}
+  .correction .x b.bad{color:var(--dark)} .correction .x b.good{color:var(--lit)}
+  .correction code{font-family:var(--mono);font-size:12px;background:var(--panel2);padding:1px 6px;border-radius:5px;color:var(--ink)}
+
+  .modebar{display:flex;align-items:center;gap:10px;margin:18px 0 2px}
+  .modebar .ml{font-family:var(--mono);font-size:12px;color:var(--faint)}
+  .modebar .mode{font-family:var(--mono);font-size:12.5px;font-weight:600;background:var(--panel2);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:6px 14px;cursor:pointer;transition:.15s}
+  .modebar .mode.active{color:#fff;border-color:transparent}
+  .modebar .mode[data-m=before].active{background:#5a2330}
+  .modebar .mode[data-m=after].active{background:linear-gradient(90deg,#1c6b45,#2a7d52)}
+  .modebar .mh{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin-left:4px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:8px 0 8px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
+  .kpi .lbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+  .kpi .big{font-size:30px;font-weight:700;letter-spacing:-.02em;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+  .kpi .note{font-size:12px;color:var(--dim)}
+  .kpi.bad .big{color:var(--dark)} .kpi.good .big{color:var(--lit)} .kpi.sub .big{color:var(--sub)}
+  @media(max-width:880px){.kpis{grid-template-columns:repeat(2,1fr)}}
+
+  section{margin-top:30px}
+  h2{font-size:16px;margin:0 0 4px;letter-spacing:-.01em}
+  h2 .tag{font-family:var(--mono);font-size:11px;color:var(--faint);font-weight:400;margin-left:8px}
+  .lede{color:var(--dim);font-size:13.5px;margin:0 0 14px;max-width:860px;line-height:1.55}
+  .lede code{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+
+  /* blackout toggles */
+  .toggles{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .tg{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel2);border-radius:30px;padding:8px 14px;cursor:pointer;user-select:none;font-size:13px;font-family:var(--mono);transition:.15s}
+  .tg .d{width:11px;height:11px;border-radius:50%}
+  .tg.off{opacity:.4;text-decoration:line-through}
+  .tg[data-c=direct] .d{background:var(--direct)} .tg[data-c=chain] .d{background:var(--chain)}
+  .tg[data-c=sub] .d{background:var(--sub)} .tg[data-c=bg] .d{background:var(--bg4)}
+  .tg .cnt{color:var(--faint);font-size:11px}
+  .litbar{display:flex;height:34px;border-radius:9px;overflow:hidden;border:1px solid var(--line);margin:4px 0 6px;font-family:var(--mono);font-size:12px;font-weight:600}
+  .litbar .seg{display:flex;align-items:center;justify-content:center;color:#06210f;transition:width .45s cubic-bezier(.2,.8,.2,1)}
+  .litbar .seg.lit{background:var(--lit)} .litbar .seg.dark{background:var(--dark);color:#2a0a0e}
+  .scenario{font-size:12.5px;color:var(--dim);font-family:var(--mono);margin-top:2px}
+  .scenario b{color:var(--ink)}
+
+  /* matrix */
+  .matrix{display:grid;grid-template-columns:160px repeat(4,1fr) 46px;gap:0;font-size:12px}
+  .matrix .hd{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);padding:6px 6px;border-bottom:1px solid var(--line);text-align:center}
+  .matrix .hd.l{text-align:right}
+  .matrix .rn{font-family:var(--mono);color:var(--dim);text-align:right;padding:5px 8px 5px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid #161b24}
+  .matrix .cell{margin:2px;border-radius:5px;height:22px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10.5px;color:#0a0c10;font-weight:700;border-bottom:1px solid transparent;transition:.2s}
+  .matrix .cell.empty{background:#0e1218;color:var(--faint);font-weight:400;border:1px dashed #1c2430}
+  .matrix .cov{font-family:var(--mono);text-align:center;padding:5px 0;border-bottom:1px solid #161b24}
+  .matrix .rn.orphan{color:var(--dark)}
+  .cov .b{display:inline-block;min-width:22px;border-radius:5px;padding:1px 4px;font-size:11px}
+  .cov.c0 .b{background:#341318;color:var(--dark)} .cov.c1 .b{background:#3a2a12;color:var(--bg4)}
+  .cov.c2 .b{background:#16263a;color:#7fb0ff} .cov.c3 .b{background:#142d20;color:var(--lit)} .cov.c4 .b{background:#1e2d18;color:#b6f25a}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--dim);margin:10px 0 0;font-family:var(--mono)}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .sw{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+  /* worklist */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:880px){.grid2{grid-template-columns:1fr}}
+  .fix{border:1px solid var(--line);border-radius:11px;padding:13px 15px;margin-bottom:10px;background:var(--panel2)}
+  .fix h3{margin:0 0 3px;font-size:14px;font-family:var(--mono)}
+  .fix h3 .badge{font-size:10px;padding:2px 7px;border-radius:20px;margin-left:8px;font-weight:600;letter-spacing:.04em}
+  .badge.orphan{background:#341318;color:var(--dark)} .badge.thin{background:#3a2a12;color:var(--bg4)} .badge.done{background:#11301f;color:var(--lit)}
+  .matrix .cell.new{box-shadow:0 0 0 2px var(--lit), 0 0 10px rgba(57,217,138,.5);position:relative}
+  .matrix .rn.wired{color:var(--lit)}
+  .fix.done{border-left:3px solid var(--lit)}
+  .fix p{margin:4px 0 0;font-size:12.5px;color:var(--dim);line-height:1.5}
+  .fix .add{display:inline-flex;gap:6px;align-items:center;margin-top:7px;flex-wrap:wrap}
+  .pill{font-family:var(--mono);font-size:11px;padding:2px 9px;border-radius:20px;border:1px solid var(--line)}
+  .pill.chain{border-color:#1c4d36;color:var(--chain)} .pill.sub{border-color:#42295e;color:var(--sub)} .pill.bg{border-color:#5c4318;color:var(--bg4)} .pill.direct{border-color:#1e3a6b;color:var(--direct)}
+  .fix code{font-family:var(--mono);font-size:11.5px;color:var(--ink);background:#0c1117;padding:1px 5px;border-radius:4px}
+
+  .copybtn{margin-top:16px;background:linear-gradient(90deg,var(--direct),var(--sub));color:#fff;border:0;border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;cursor:pointer}
+  .copybtn:active{transform:translateY(1px)}
+  footer{margin-top:40px;color:var(--faint);font-size:11.5px;font-family:var(--mono);line-height:1.7;border-top:1px solid var(--line);padding-top:16px}
+  .tip{position:fixed;pointer-events:none;background:#05070b;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:11.5px;color:var(--ink);font-family:var(--mono);opacity:0;transition:.1s;z-index:9;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>OrchestKit · <span class="g">Skill Activation Channels</span></h1>
+    <p class="sub">A skill isn't "dead" if nobody types its slash command — it's dead only if <em>no channel</em> can fire it. Skills activate four ways: a user types <code style="font-family:var(--mono)">/ork:x</code> (direct), another skill chains it, a subagent is granted it, or it runs in the background. The goal isn't fewer skills — it's <b style="color:var(--ink)">full channel coverage</b>.</p>
+    <div class="meta">
+      <span><b>supply</b> 31 user-invocable · 80 internal · 38 agents</span>
+      <span><b>direct</b> skill-usage.jsonl + skill-analytics.jsonl · Jan 17→Mar 06</span>
+      <span><b>chain/subagent</b> static analysis of src/skills + src/agents frontmatter</span>
+      <span><b>built</b> 2026-06-01</span>
+    </div>
+  </header>
+
+  <div class="correction">
+    <div class="row">
+      <div class="x">⚠️ <b>Why the telemetry lied:</b> <code>skill-tracker</code> binds to the <code>PreToolUse · Skill</code> matcher in the main session — it logs only the <b style="color:var(--direct)">direct</b> channel. Subagent calls (isolated context), prose-chained steps, and headless/background runs are <b>never counted</b>. Read one channel and you see <b class="bad">20/31 "dead."</b> Count all four and only <b class="good">2 were truly orphaned</b> — now <b class="good">0</b>, wired this session.</div>
+    </div>
+  </div>
+
+  <div class="modebar">
+    <span class="ml">View:</span>
+    <button class="mode" data-m="before">◀ BEFORE</button>
+    <button class="mode active" data-m="after">AFTER ▶</button>
+    <span class="mh" id="modeHint"></span>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <!-- BLACKOUT -->
+  <section>
+    <h2>Blackout simulator <span class="tag">toggle channels · watch skills light up</span></h2>
+    <p class="lede">This is the whole point. Turn off every channel except <b style="color:var(--direct)">direct</b> and you reproduce the scary number — 20 skills go dark. Switch the other three back on and they light up: they were firing all along, through channels the telemetry can't see. Counts reflect the <b>AFTER</b> state — flip the BEFORE/AFTER switch above to compare.</p>
+    <div class="panel">
+      <div class="toggles" id="toggles"></div>
+      <div class="litbar" id="litbar"></div>
+      <div class="scenario" id="scenario"></div>
+    </div>
+  </section>
+
+  <!-- MATRIX -->
+  <section>
+    <h2>The 4-channel matrix <span class="tag">31 skills × how each one fires</span></h2>
+    <p class="lede">Cell number = strength of that channel (direct = invocations · chain = skills referencing it · subagent = agents granted it · bg = autonomous marker). Dashed cell = channel absent. The rightmost column is total coverage — the only honest "alive" metric. Sorted weakest-first: the gaps float to the top.</p>
+    <div class="panel" style="overflow-x:auto">
+      <div class="matrix" id="matrix"></div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--direct)"></i> direct (user types)</span>
+        <span><i class="sw" style="background:var(--chain)"></i> chained (skill→skill)</span>
+        <span><i class="sw" style="background:var(--sub)"></i> subagent (agent granted)</span>
+        <span><i class="sw" style="background:var(--bg4)"></i> background (autonomous)</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHANGELOG -->
+  <section>
+    <h2>Wiring changelog <span class="tag">✅ shipped this session — 9 skills, 0 deletions</span></h2>
+    <p class="lede">Each skill below got a <em>new trigger</em>, never a tombstone — via <code>skills:</code> frontmatter grants in <code>src/agents/</code> and chain refs in <code>src/skills/</code>. The two orphans got a home; the rest got a second wire so a refactor of one parent can't dark them. Flip to <b style="color:var(--dark)">◀ BEFORE</b> up top to watch them light up.</p>
+    <div class="grid2">
+      <div id="worklistA"></div>
+      <div id="worklistB"></div>
+    </div>
+    <button class="copybtn" id="copy">⧉ Copy wiring summary</button>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const BEFORE = [{"name":"prd-to-goal","direct":0,"chained_by":0,"subagent":0,"background":false,"channels":0},{"name":"telemetry-inspect","direct":0,"chained_by":0,"subagent":0,"background":false,"channels":0},{"name":"design-import","direct":0,"chained_by":1,"subagent":0,"background":false,"channels":1},{"name":"design-ship","direct":0,"chained_by":1,"subagent":0,"background":false,"channels":1},{"name":"dev","direct":0,"chained_by":12,"subagent":0,"background":false,"channels":1},{"name":"doctor","direct":0,"chained_by":6,"subagent":0,"background":false,"channels":1},{"name":"release-sync","direct":0,"chained_by":0,"subagent":0,"background":true,"channels":1},{"name":"setup","direct":0,"chained_by":1,"subagent":0,"background":false,"channels":1},{"name":"swarm-migrate","direct":0,"chained_by":1,"subagent":0,"background":false,"channels":1},{"name":"write-prd","direct":0,"chained_by":1,"subagent":0,"background":false,"channels":1},{"name":"ci-debug","direct":0,"chained_by":2,"subagent":0,"background":true,"channels":2},{"name":"ci-sentinel","direct":0,"chained_by":2,"subagent":0,"background":true,"channels":2},{"name":"component-search","direct":0,"chained_by":3,"subagent":5,"background":false,"channels":2},{"name":"cover","direct":0,"chained_by":4,"subagent":0,"background":true,"channels":2},{"name":"design-context-extract","direct":0,"chained_by":3,"subagent":4,"background":false,"channels":2},{"name":"design-to-code","direct":0,"chained_by":2,"subagent":2,"background":false,"channels":2},{"name":"dream","direct":0,"chained_by":1,"subagent":0,"background":true,"channels":2},{"name":"expect","direct":0,"chained_by":3,"subagent":1,"background":false,"channels":2},{"name":"visualize-plan","direct":0,"chained_by":2,"subagent":1,"background":false,"channels":2},{"name":"help","direct":1,"chained_by":1,"subagent":0,"background":false,"channels":2},{"name":"explore","direct":25,"chained_by":8,"subagent":0,"background":false,"channels":2},{"name":"review-pr","direct":40,"chained_by":3,"subagent":0,"background":false,"channels":2},{"name":"assess","direct":108,"chained_by":2,"subagent":0,"background":false,"channels":2},{"name":"memory","direct":0,"chained_by":22,"subagent":34,"background":true,"channels":3},{"name":"create-pr","direct":2,"chained_by":3,"subagent":0,"background":true,"channels":3},{"name":"remember","direct":3,"chained_by":11,"subagent":34,"background":false,"channels":3},{"name":"implement","direct":25,"chained_by":11,"subagent":0,"background":true,"channels":3},{"name":"commit","direct":45,"chained_by":5,"subagent":1,"background":false,"channels":3},{"name":"verify","direct":62,"chained_by":7,"subagent":0,"background":true,"channels":3},{"name":"brainstorm","direct":189,"chained_by":2,"subagent":1,"background":false,"channels":3},{"name":"fix-issue","direct":1,"chained_by":2,"subagent":2,"background":true,"channels":4}];
+
+const AFTER = [{"name":"setup","direct":0,"chained_by":1,"subagent":0,"background":false,"channels":1},{"name":"ci-debug","direct":0,"chained_by":2,"subagent":0,"background":true,"channels":2},{"name":"ci-sentinel","direct":0,"chained_by":2,"subagent":0,"background":true,"channels":2},{"name":"component-search","direct":0,"chained_by":3,"subagent":5,"background":false,"channels":2},{"name":"cover","direct":0,"chained_by":4,"subagent":0,"background":true,"channels":2},{"name":"design-context-extract","direct":0,"chained_by":3,"subagent":4,"background":false,"channels":2},{"name":"design-import","direct":0,"chained_by":1,"subagent":1,"background":false,"channels":2},{"name":"design-ship","direct":0,"chained_by":1,"subagent":1,"background":false,"channels":2},{"name":"design-to-code","direct":0,"chained_by":2,"subagent":2,"background":false,"channels":2},{"name":"dev","direct":0,"chained_by":12,"subagent":1,"background":false,"channels":2},{"name":"doctor","direct":0,"chained_by":6,"subagent":1,"background":false,"channels":2},{"name":"dream","direct":0,"chained_by":1,"subagent":0,"background":true,"channels":2},{"name":"expect","direct":0,"chained_by":3,"subagent":1,"background":false,"channels":2},{"name":"prd-to-goal","direct":0,"chained_by":1,"subagent":1,"background":false,"channels":2},{"name":"release-sync","direct":0,"chained_by":0,"subagent":1,"background":true,"channels":2},{"name":"swarm-migrate","direct":0,"chained_by":1,"subagent":1,"background":false,"channels":2},{"name":"telemetry-inspect","direct":0,"chained_by":1,"subagent":1,"background":false,"channels":2},{"name":"visualize-plan","direct":0,"chained_by":2,"subagent":1,"background":false,"channels":2},{"name":"help","direct":1,"chained_by":1,"subagent":0,"background":false,"channels":2},{"name":"explore","direct":25,"chained_by":8,"subagent":0,"background":false,"channels":2},{"name":"review-pr","direct":40,"chained_by":3,"subagent":0,"background":false,"channels":2},{"name":"assess","direct":108,"chained_by":2,"subagent":0,"background":false,"channels":2},{"name":"memory","direct":0,"chained_by":22,"subagent":34,"background":true,"channels":3},{"name":"write-prd","direct":0,"chained_by":1,"subagent":1,"background":true,"channels":3},{"name":"create-pr","direct":2,"chained_by":3,"subagent":0,"background":true,"channels":3},{"name":"remember","direct":3,"chained_by":11,"subagent":34,"background":false,"channels":3},{"name":"implement","direct":25,"chained_by":11,"subagent":0,"background":true,"channels":3},{"name":"commit","direct":45,"chained_by":5,"subagent":1,"background":false,"channels":3},{"name":"verify","direct":62,"chained_by":7,"subagent":0,"background":true,"channels":3},{"name":"brainstorm","direct":189,"chained_by":2,"subagent":1,"background":false,"channels":3},{"name":"fix-issue","direct":1,"chained_by":2,"subagent":2,"background":true,"channels":4}];
+
+// newly-wired this session: before-channel count + what was added + where
+const WIRED = {
+  "prd-to-goal":{cb:0,add:["chain","sub"],from:"write-prd chain + product-strategist"},
+  "telemetry-inspect":{cb:0,add:["chain","sub"],from:"doctor chain + monitoring-engineer"},
+  "release-sync":{cb:1,add:["sub"],from:"release-engineer agent"},
+  "design-import":{cb:1,add:["sub"],from:"claude-design-orchestrator"},
+  "design-ship":{cb:1,add:["sub"],from:"claude-design-orchestrator"},
+  "swarm-migrate":{cb:1,add:["sub"],from:"git-operations-engineer"},
+  "write-prd":{cb:1,add:["sub"],from:"product-strategist (+ prd-to-goal chain-back)"},
+  "doctor":{cb:1,add:["sub"],from:"monitoring-engineer agent"},
+  "dev":{cb:1,add:["sub"],from:"emulate-engineer agent"},
+};
+let MODE = "after";
+let DATA = AFTER;
+
+const CH = [
+  {k:"direct", field:"direct",     label:"direct"},
+  {k:"chain",  field:"chained_by", label:"chain"},
+  {k:"sub",    field:"subagent",   label:"subagent"},
+  {k:"bg",     field:"background",  label:"background"},
+];
+const on = {direct:true, chain:true, sub:true, bg:true};
+const has = (d,c)=> c.field==="background" ? !!d.background : d[c.field]>0;
+const tip = document.getElementById("tip");
+
+// ---- BLACKOUT ----
+const togWrap = document.getElementById("toggles");
+CH.forEach(c=>{
+  const lit = DATA.filter(d=>has(d,c)).length;
+  const el=document.createElement("div");
+  el.className="tg"; el.dataset.c=c.k;
+  el.innerHTML=`<span class="d"></span>${c.label} <span class="cnt">${lit} skills</span>`;
+  el.onclick=()=>{on[c.k]=!on[c.k]; el.classList.toggle("off",!on[c.k]); renderBlackout();};
+  togWrap.appendChild(el);
+});
+function isLit(d){ return CH.some(c=> on[c.k] && has(d,c)); }
+function renderBlackout(){
+  const lit=DATA.filter(isLit).length, dark=DATA.length-lit;
+  const bar=document.getElementById("litbar");
+  const lp=Math.round(lit/DATA.length*100), dp=100-lp;
+  bar.innerHTML=
+    `<div class="seg lit" style="width:${lp}%">${lit} lit</div>`+
+    (dark? `<div class="seg dark" style="width:${dp}%">${dark} dark</div>`:``);
+  const active=CH.filter(c=>on[c.k]).map(c=>c.label);
+  let msg;
+  if(active.length===1 && on.direct) msg=`<b>Direct-only view</b> — this is what skill-usage.jsonl sees. ${dark} skills look "dead." They aren't; you've just blindfolded 3 channels.`;
+  else if(active.length===4) msg=`<b>Full coverage</b> — every channel on. Only ${dark} skills (${DATA.filter(d=>!isLit(d)).map(d=>d.name).join(", ")}) have nowhere to fire from. That's the real worklist.`;
+  else if(active.length===0) msg=`All channels off — nothing can fire. (Obviously.)`;
+  else msg=`Channels on: <b>${active.join(" · ")}</b> → ${lit} reachable, ${dark} dark.`;
+  document.getElementById("scenario").innerHTML=msg;
+}
+renderBlackout();
+
+// ---- MATRIX ----
+const mx=document.getElementById("matrix");
+const maxByField={direct:189,chained_by:22,subagent:34};
+function shade(field,v){
+  if(field==="background") return v?{bg:"var(--bg4)",t:"●"}:null;
+  if(v<=0) return null;
+  const m=maxByField[field]||1; const a=0.28+0.72*Math.sqrt(v/m);
+  const base={direct:"91,140,255",chained_by:"57,217,138",subagent:"168,119,255"}[field];
+  return {bg:`rgba(${base},${a})`, t:String(v)};
+}
+function renderMatrix(){
+  const rows=DATA.slice().sort((a,b)=>a.channels-b.channels || a.direct-b.direct);
+  let html=`<div class="hd l">skill</div>`+CH.map(c=>`<div class="hd">${c.label}</div>`).join("")+`<div class="hd">cov</div>`;
+  rows.forEach(d=>{
+    const w = (MODE==="after" && WIRED[d.name]) ? " wired" : "";
+    html+=`<div class="rn ${d.channels===0?'orphan':''}${w}">${w?'✅ ':''}${d.name}</div>`;
+    CH.forEach(c=>{
+      const v = c.field==="background" ? (d.background?1:0) : d[c.field];
+      const s = shade(c.field,v);
+      const isNew = MODE==="after" && WIRED[d.name] && WIRED[d.name].add.includes(c.k) && v>0;
+      if(s) html+=`<div class="cell${isNew?' new':''}" style="background:${s.bg}" data-n="${d.name}" data-c="${c.label}" data-v="${c.field==='background'?'autonomous':v}">${s.t}</div>`;
+      else  html+=`<div class="cell empty">·</div>`;
+    });
+    html+=`<div class="cov c${d.channels}"><span class="b">${d.channels}</span></div>`;
+  });
+  mx.innerHTML=html;
+  mx.querySelectorAll(".cell[data-n]").forEach(c=>{
+    c.onmousemove=e=>{tip.style.opacity=1;tip.style.left=(e.clientX+12)+"px";tip.style.top=(e.clientY+12)+"px";tip.innerHTML=`${c.dataset.n} · ${c.dataset.c}: ${c.dataset.v}`;};
+    c.onmouseleave=()=>tip.style.opacity=0;
+  });
+}
+renderMatrix();
+
+// ---- CHANGELOG (what was wired this session) ----
+const CHANGES = {
+  "prd-to-goal":   {add:["chain","sub"], how:"chained from <code>write-prd</code> + granted to <code>product-strategist</code> — the PRD agent now emits the /goal line automatically."},
+  "telemetry-inspect":{add:["chain","sub"], how:"chained from <code>doctor</code> (structure → data-plane) + granted to <code>monitoring-engineer</code>."},
+  "release-sync":  {add:["sub"], how:"granted to <code>release-engineer</code> (a background agent) — fires on the release path, no human trigger."},
+  "design-import": {add:["sub"], how:"granted to <code>claude-design-orchestrator</code> — the agent that parses handoff bundles now owns the import."},
+  "design-ship":   {add:["sub"], how:"granted to <code>claude-design-orchestrator</code> so the design agent can launch the full handoff→PR flow."},
+  "swarm-migrate": {add:["sub"], how:"granted to <code>git-operations-engineer</code> — second trigger beyond <code>ci-sentinel</code>."},
+  "write-prd":     {add:["sub"], how:"granted to <code>product-strategist</code>; gained a chain-back from <code>prd-to-goal</code>."},
+  "doctor":        {add:["sub"], how:"granted to <code>monitoring-engineer</code> — the health/observability agent can self-diagnose."},
+  "dev":           {add:["sub"], how:"granted to <code>emulate-engineer</code> — the agent owning the emulate layer <code>/ork:dev</code> boots."},
+};
+function pills(arr){return arr.map(t=>`<span class="pill ${t}">+ ${t}</span>`).join(" ");}
+const colA=document.getElementById("worklistA"), colB=document.getElementById("worklistB");
+const beforeCh=Object.fromEntries(BEFORE.map(d=>[d.name,d.channels]));
+const afterCh=Object.fromEntries(AFTER.map(d=>[d.name,d.channels]));
+Object.entries(CHANGES).forEach(([name,f],i)=>{
+  const cb=beforeCh[name], ca=afterCh[name];
+  const el=document.createElement("div"); el.className="fix done";
+  el.innerHTML=`<h3>✅ ${name}<span class="badge done">${cb} → ${ca} ch</span></h3>`+
+    `<p style="color:var(--ink)">${f.how}</p><div class="add">${pills(f.add)}</div>`;
+  (i%2?colB:colA).appendChild(el);
+});
+
+document.getElementById("copy").onclick=()=>{
+  const lines=Object.entries(CHANGES).map(([n,f])=>`  • ${n}: ${beforeCh[n]}→${afterCh[n]} ch — ${f.how.replace(/<[^>]+>/g,'')}`);
+  const txt=
+`OrchestKit skill activation-channel wiring — SHIPPED this session (no deletions, no user-invocable:false).
+
+Result: orphans 2→0 · single-channel 8→1 · multi-wired 21→30. Telemetry only logs the DIRECT channel, so these skills were always reachable via chain/subagent/background — now every one has >=2 trigger paths.
+
+Files: 5 src/agents/*.md (skills: frontmatter grants) + 2 src/skills/*/SKILL.md (chain refs). Validated: build + test:agents + test:skills.
+
+Wired:
+${lines.join("\n")}
+
+Only remaining single-channel: setup — a user-first onboarding command where direct+chain is the correct shape (no automated channel needed).`;
+  navigator.clipboard.writeText(txt).then(()=>{const b=document.getElementById("copy");const o=b.textContent;b.textContent="✓ Copied — wiring summary";setTimeout(()=>b.textContent=o,2200);});
+};
+
+// ---- KPIs + MODE ----
+function renderKPIs(){
+  const orphans=DATA.filter(d=>d.channels===0).length;
+  const thin=DATA.filter(d=>d.channels===1).length;
+  const wired=DATA.filter(d=>d.channels>=2).length;
+  const k=document.getElementById("kpis");
+  const cls = orphans>0 ? "bad" : "good";
+  k.innerHTML=
+    `<div class="kpi"><div class="lbl">User-invocable</div><div class="big">31</div><div class="note">the /ork: surface (unchanged)</div></div>`+
+    `<div class="kpi ${cls}"><div class="lbl">Orphans · 0 channels</div><div class="big">${orphans}</div><div class="note">${orphans?'prd-to-goal · telemetry-inspect':'every skill has a trigger path'}</div></div>`+
+    `<div class="kpi ${thin>2?'bad':'warn'}"><div class="lbl">Single-channel</div><div class="big">${thin}</div><div class="note">${MODE==='after'?'only setup (user-first by design)':'one wire = breaks on refactor'}</div></div>`+
+    `<div class="kpi good"><div class="lbl">Multi-wired · ≥2 channels</div><div class="big">${wired}</div><div class="note">fire without anyone typing them</div></div>`;
+}
+function setMode(m){
+  MODE=m; DATA = m==="before" ? BEFORE : AFTER;
+  document.querySelectorAll(".mode").forEach(b=>b.classList.toggle("active",b.dataset.m===m));
+  document.getElementById("modeHint").textContent = m==="before"
+    ? "pre-wiring: 2 orphaned, 8 single-channel"
+    : "after wiring: 0 orphaned, 30 multi-wired — 9 skills gained a channel";
+  // refresh per-channel toggle counts
+  document.querySelectorAll(".tg").forEach(el=>{
+    const c=CH.find(x=>x.k===el.dataset.c);
+    el.querySelector(".cnt").textContent=`${DATA.filter(d=>has(d,c)).length} skills`;
+  });
+  renderKPIs(); renderMatrix(); renderBlackout();
+}
+document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+setMode("after");
+
+document.getElementById("foot").innerHTML=
+  "Activation channels = direct (telemetry) · chain (skill→skill refs: /ork:x, /x, frontmatter skills:[]) · subagent (agent skills: grants) · background (autonomous markers). "+
+  "Chain counts include prose slash-mentions and may slightly over-count; channel bucketing (0/1/2+) is robust. "+
+  "memory & remember granted to 34 agents each — the 'invisible workhorses' direct telemetry can't see. Self-contained, no network. Built 2026-06-01.";
+</script>
+</body>
+</html>

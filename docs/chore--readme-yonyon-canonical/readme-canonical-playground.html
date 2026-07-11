@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OrchestKit README · Canonical Link Audit</title>
+    <style>
+      :root{--bg:#0b0e14;--panel:#121722;--ink:#e6edf3;--muted:#8b98a9;--line:#232b3a;--old:#f0a35e;--new:#59d9a4;--accent:#7c9cff;--mono:ui-monospace,"SF Mono",Menlo,monospace;--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+      *{box-sizing:border-box}
+      body{margin:0;background:radial-gradient(1100px 500px at 80% -10%,#16203a,var(--bg) 55%);color:var(--ink);font-family:var(--sans);padding:32px 20px 70px;line-height:1.5}
+      .wrap{max-width:860px;margin:0 auto}
+      h1{font-size:1.5rem;margin:0 0 4px;letter-spacing:-.02em}
+      p.sub{color:var(--muted);margin:0 0 22px}
+      .pill{display:inline-block;font-family:var(--mono);font-size:.72rem;padding:2px 8px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}
+      .bar{display:flex;gap:8px;align-items:center;margin:0 0 16px}
+      button{font-family:var(--mono);font-size:.78rem;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);cursor:pointer}
+      button.on{border-color:var(--accent);background:#141d33}
+      table{width:100%;border-collapse:collapse;font-size:.86rem}
+      th{text-align:left;color:var(--muted);font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;padding:8px 10px;border-bottom:1px solid var(--line)}
+      td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+      code{font-family:var(--mono);font-size:.82em}
+      .old code{color:var(--old);text-decoration:line-through;text-decoration-color:#6b4a2a}
+      .new code{color:var(--new)}
+      .ln{color:var(--muted);font-family:var(--mono);font-size:.78rem}
+      .note{margin-top:18px;font-size:.82rem;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+      .note b{color:var(--accent)}
+      .hide{display:none}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <span class="pill">orchestkit · README canonical link audit</span>
+      <h1>vercel.app&nbsp;→&nbsp;yonyon.ai</h1>
+      <p class="sub">The 5 documentation links in <code>README.md</code> still pointed at the bare Vercel host. This PR repoints them at the canonical brand domain. Toggle the view to see before / after.</p>
+      <div class="bar">
+        <button id="b-both" class="on" onclick="setView('both')">Before → After</button>
+        <button id="b-old" onclick="setView('old')">Before only</button>
+        <button id="b-new" onclick="setView('new')">After only</button>
+      </div>
+      <table>
+        <thead><tr><th>README line</th><th>Link</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="note">
+        <b>Why it still worked before:</b> <code>orchestkit.vercel.app</code> already 301-redirects to <code>orchestkit.yonyon.ai</code> (shipped in #2101), so these links resolved — this is canonical hygiene, not a broken-link fix. <b>Path is preserved</b> through the 301, so even the deep links (<code>/docs/skills/overview</code>, <code>/docs/changelog</code>) land correctly either way.
+      </div>
+    </div>
+    <script>
+      var links=[
+        {ln:20, label:"Explore the Docs", path:"/"},
+        {ln:71, label:"Browse everything in the Docs", path:"/docs/skills/overview"},
+        {ln:140, label:"Full docs (release channels)", path:"/docs/getting-started/release-channels"},
+        {ln:230, label:"Full Changelog", path:"/docs/changelog"},
+        {ln:249, label:"Footer · Docs", path:"/"}
+      ];
+      var view="both";
+      function row(l){
+        var oldu="https://orchestkit.vercel.app"+l.path;
+        var newu="https://orchestkit.yonyon.ai"+l.path;
+        var o='<div class="old'+(view==="new"?" hide":"")+'">'+l.label+': <code>'+oldu+'</code></div>';
+        var n='<div class="new'+(view==="old"?" hide":"")+'"><code>'+newu+'</code></div>';
+        return '<tr><td class="ln">L'+l.ln+'</td><td>'+o+n+'</td></tr>';
+      }
+      function render(){document.getElementById("rows").innerHTML=links.map(row).join("")}
+      function setView(v){view=v;["both","old","new"].forEach(function(x){document.getElementById("b-"+x).classList.toggle("on",x===v)});render()}
+      render();
+    </script>
+  </body>
+</html>

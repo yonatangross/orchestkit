@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Anonymous-only PRM — Playground</title>
+<style>body{background:#0d1117;color:#e6edf3;font-family:ui-monospace,Menlo,monospace;padding:2rem;line-height:1.6;max-width:900px}.ok{color:#3fb950}.bad{color:#f85149}.dim{color:#8b949e}pre{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:1rem;font-size:.82rem}</style>
+</head>
+<body>
+<h1>🔐 Anonymous-only RFC 9728 PRM</h1>
+<p class="dim">orank's own fix text: "If anonymous-only is correct… consider publishing a minimal PRM that explicitly signals anonymous-only access." This stays honest — empty arrays are the truth, not stubs.</p>
+<pre><span class="dim">GET /.well-known/oauth-protected-resource</span>
+{
+  "resource": "https://orchestkit.yonyon.ai",
+  "authorization_servers": [],        <span class="ok">← no AS exists (truth)</span>
+  "scopes_supported": [],
+  "bearer_methods_supported": [],     <span class="ok">← no bearer token ever read (truth)</span>
+  "resource_documentation": "https://orchestkit.yonyon.ai/auth.md",
+  "resource_policy_uri": "https://orchestkit.yonyon.ai/api-policy.md"
+}
+
+<span class="bad">still 404 by design:</span> /.well-known/oauth-authorization-server — RFC 8414 metadata
+for a nonexistent authorization server would be a lie.
+<span class="bad">still forfeited:</span> WWW-Authenticate 401 hint — a public API returning 401s would be a lie.</pre>
+<p>auth.md updated: Discover rewritten around the PRM, live sample payloads, registration walkthrough declared N/A by design, anonymous = sole identity type. Targets: oauth-protected-resource (+2), walkthrough (+2), agent-auth-discovery (partial of 3), auth-md-structure (+1).</p>
+</body>
+</html>

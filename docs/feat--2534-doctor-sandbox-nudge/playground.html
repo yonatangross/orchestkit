@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ork:doctor — Check 15: CC Bash-sandbox posture</title>
+<style>
+  :root {
+    --pg-bg: hsl(232 26% 7%); --pg-ink: hsl(220 18% 93%); --pg-muted: hsl(220 12% 64%);
+    --pg-faint: hsl(220 10% 46%); --pg-glass: hsl(0 0% 100% / .05); --pg-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%); --v-bad: hsl(0 78% 63%); --v-good: hsl(152 60% 50%);
+    --v-warn: hsl(38 95% 60%); --v-info: hsl(205 85% 62%);
+    --r-sm: 9px; --r-md: 16px; --r-lg: 24px; --ease: cubic-bezier(.2,.8,.25,1);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; line-height: 1.5;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--pg-ink);
+    background: radial-gradient(900px 600px at 15% -5%, hsl(248 70% 30% / .35), transparent 60%),
+      radial-gradient(800px 600px at 100% 0%, hsl(205 80% 32% / .24), transparent 55%), var(--pg-bg);
+    background-attachment: fixed; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace; }
+  .wrap { max-width: 880px; margin-inline: auto; padding: 36px 24px 80px; }
+  h1 { font-size: clamp(20px, 3vw, 28px); letter-spacing: -.3px; margin: 0 0 6px; }
+  h1 .accent { color: var(--pg-accent); }
+  .sub { color: var(--pg-muted); font-size: 14px; max-width: 66ch; margin: 0 0 24px; }
+  .sub b { color: var(--pg-ink); }
+  .toggle { display: inline-flex; gap: 4px; background: var(--pg-glass); border: 1px solid var(--pg-edge);
+    border-radius: 999px; padding: 5px; margin-block-end: 22px; }
+  .toggle button { all: unset; cursor: pointer; font-size: 13px; font-weight: 600; padding: 8px 16px;
+    border-radius: 999px; color: var(--pg-muted); transition: background .2s var(--ease), color .2s var(--ease); }
+  .toggle button[aria-pressed="true"] { background: var(--pg-accent); color: white; }
+  .panel { border: 1px solid var(--pg-edge); background: var(--pg-glass); border-radius: var(--r-lg); overflow: hidden;
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 20px 60px -22px hsl(248 60% 6% / .7); }
+  .term { background: hsl(232 30% 5% / .85); }
+  .term-bar { display: flex; gap: 8px; align-items: center; padding: 11px 16px; border-block-end: 1px solid hsl(0 0% 100% / .07); }
+  .dot { width: 11px; height: 11px; border-radius: 50%; } .dot.r{background:hsl(0 70% 60%)} .dot.y{background:hsl(44 90% 58%)} .dot.g{background:hsl(140 55% 52%)}
+  .term-title { margin-inline-start: 8px; font-size: 12px; color: var(--pg-faint); }
+  .term-body { padding: 18px; font-size: 13px; min-height: 180px; }
+  .row { margin-block-end: 10px; }
+  .row .head { font-weight: 700; font-size: 12px; color: var(--pg-faint); text-transform: uppercase; letter-spacing: .6px; }
+  .verline { display: flex; gap: 8px; align-items: flex-start; margin-block-start: 6px; }
+  .verline .badge { flex: none; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .b-good { color: var(--v-good); background: hsl(152 60% 50% / .13); }
+  .b-warn { color: var(--v-warn); background: hsl(38 95% 60% / .13); }
+  .b-info { color: var(--v-info); background: hsl(205 85% 62% / .13); }
+  .verline .vt { font-size: 13px; color: var(--pg-ink); }
+  .nudge { margin-block-start: 14px; border-inline-start: 3px solid var(--v-info); background: hsl(205 85% 62% / .06);
+    border-radius: 0 var(--r-sm) var(--r-sm) 0; padding: 12px 14px; }
+  .nudge .nh { font-size: 12px; font-weight: 700; color: var(--v-info); margin-block-end: 8px; }
+  .nudge pre { margin: 0; font-size: 11.5px; color: var(--pg-muted); white-space: pre-wrap; line-height: 1.5; }
+  .caveats { padding: 16px 18px 20px; }
+  .caveats h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--pg-faint); margin: 0 0 10px; }
+  .caveats ul { margin: 0; padding-inline-start: 18px; }
+  .caveats li { font-size: 12.5px; color: var(--pg-muted); margin-block-end: 6px; }
+  .caveats li b { color: var(--pg-ink); }
+  .copybar { margin-block-start: 22px; display: flex; gap: 10px; align-items: center; border: 1px dashed var(--pg-edge);
+    border-radius: var(--r-md); padding: 11px 14px; background: hsl(0 0% 100% / .025); }
+  .copybar .cp { flex: 1; font-size: 12px; color: var(--pg-muted); }
+  .copybar button { all: unset; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--pg-accent);
+    border: 1px solid var(--pg-accent); border-radius: var(--r-sm); padding: 7px 13px; }
+  .copybar button:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce){ *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="accent">ork:doctor</span> — Check 15: CC Bash-sandbox posture</h1>
+  <p class="sub">OrchestKit ships <b>no sandbox</b> (isolation is the harness's job). But Claude Code <b>has</b> a native Bash-sandbox you can turn on — and most people don't know it exists. This check surfaces the posture and nudges it. Toggle a machine's state:</p>
+
+  <div class="toggle" role="group" aria-label="Sandbox state">
+    <button id="b-off" aria-pressed="true" onclick="setState('off')">sandbox OFF</button>
+    <button id="b-bare" aria-pressed="false" onclick="setState('bare')">ON, no denyRead</button>
+    <button id="b-good" aria-pressed="false" onclick="setState('good')">ON + hardened</button>
+  </div>
+
+  <div class="panel">
+    <div class="term">
+      <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="term-title mono">/ork:doctor · check 15</span></div>
+      <div class="term-body mono" id="body"></div>
+    </div>
+    <div class="caveats">
+      <h3>Honest limits — doctor states these in the output</h3>
+      <ul>
+        <li><b>Bash-only.</b> Confines Bash subprocesses. Read/Write tools, MCP, and hooks run <b>unsandboxed</b>. Raises the floor, not full containment.</li>
+        <li><b>~/.ssh readable by default</b> unless <span class="mono">sandbox.filesystem.denyRead</span> is set — the nudge includes it.</li>
+        <li><b>No detection API.</b> <span class="mono">settings.local.json</span> is the only signal; a CLI-flag sandbox reads as "not configured".</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="copybar">
+    <span class="cp mono" id="cp"></span>
+    <button id="cpBtn" onclick="copyPrompt()">Copy</button>
+  </div>
+</div>
+
+<script>
+  const DATA = {
+    off: {
+      verdict: {cls:'b-warn', t:'sandbox: not configured (running unsandboxed)'},
+      nudge: true,
+      note: 'A bypassed guard has nothing underneath. Turn the wall on.',
+    },
+    bare: {
+      verdict: {cls:'b-good', t:'sandbox: ON (denyRead entries: 0, network allowlist: 0)'},
+      nudge: 'partial',
+      note: 'On — but ~/.ssh / ~/.aws are still readable. Add them to denyRead.',
+    },
+    good: {
+      verdict: {cls:'b-good', t:'sandbox: ON (denyRead entries: 3, network allowlist: 4)'},
+      nudge: false,
+      note: 'Bash subprocesses confined + secrets denied + egress allowlisted. (Still Bash-only.)',
+    },
+  };
+  const NUDGE = `Run /sandbox to enable the OS Bash-sandbox. Starter config for
+.claude/settings.local.json:
+
+  "sandbox": {
+    "enabled": true,
+    "filesystem": { "denyRead": ["~/.ssh", "~/.aws", "~/.config/gh"] },
+    "network":    { "allowedDomains": ["github.com", "registry.npmjs.org",
+                                       "pypi.org", "api.anthropic.com"] }
+  }`;
+  const $ = id => document.getElementById(id);
+  let state = 'off';
+
+  function setState(s) {
+    state = s;
+    ['off','bare','good'].forEach(k => $('b-' + k).setAttribute('aria-pressed', k === s));
+    const d = DATA[s];
+    let html = `<div class="row"><span class="head">verdict (info-level)</span>
+      <div class="verline"><span class="badge ${d.verdict.cls}">CHECK 15</span><span class="vt">${d.verdict.t}</span></div></div>
+      <div class="row"><span style="font-size:12.5px;color:var(--pg-muted)">${d.note}</span></div>`;
+    if (d.nudge) {
+      const label = d.nudge === 'partial' ? 'Hardening nudge (denyRead missing)' : 'Remediation nudge';
+      const body = d.nudge === 'partial'
+        ? '  add to .claude/settings.local.json:\n  "sandbox": { "filesystem": { "denyRead": ["~/.ssh", "~/.aws"] } }'
+        : NUDGE;
+      html += `<div class="nudge"><div class="nh">💡 ${label}</div><pre>${body}</pre></div>`;
+    }
+    $('body').innerHTML = html;
+    $('cp').textContent = 'Run /ork:doctor and show me Check 15 (sandbox posture) for this machine.';
+  }
+  function copyPrompt() {
+    navigator.clipboard?.writeText($('cp').textContent).then(() => {
+      const b = $('cpBtn'); const o = b.textContent; b.textContent = '✓ Copied'; setTimeout(() => b.textContent = o, 1500);
+    });
+  }
+  setState('off');
+</script>
+</body>
+</html>

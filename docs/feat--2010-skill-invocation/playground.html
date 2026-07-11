@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SQLite the OrchestKit way — correct usage + #2006 adoption</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--p2:#1c2230;--bd:#30363d;--fg:#e6edf3;--mut:#9da7b3;--ac:#58a6ff;--ok:#3fb950;--err:#f85149;--warn:#d29922;--mag:#bc8cff;--mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:1040px;margin:0 auto;padding:32px 20px 64px}
+  h1{font-size:23px;margin:0 0 4px}
+  .sub{color:var(--mut);margin:0 0 22px;font-size:14px;max-width:78ch}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 20px;border-bottom:1px solid var(--bd);padding-bottom:14px}
+  .tabs button{background:var(--p2);color:var(--fg);border:1px solid var(--bd);border-radius:7px;padding:8px 13px;font:12.5px var(--mono);cursor:pointer}
+  .tabs button.on{background:rgba(88,166,255,.2);border-color:var(--ac);color:#cfe6ff}
+  .view{display:none}
+  .view.on{display:block}
+  .grid{display:grid;grid-template-columns:320px 1fr;gap:20px}
+  @media(max-width:780px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--bd);border-radius:10px;padding:18px}
+  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:0 0 12px}
+  .opt{display:flex;align-items:center;gap:10px;padding:8px 0}
+  .opt label{font-size:14px;flex:1}
+  .opt label small{color:var(--mut);font-size:12px;display:block}
+  .switch{position:relative;width:40px;height:22px;flex:0 0 auto}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;inset:0;background:var(--p2);border:1px solid var(--bd);border-radius:22px;cursor:pointer;transition:.15s}
+  .slider:before{content:"";position:absolute;height:14px;width:14px;left:3px;top:3px;background:var(--mut);border-radius:50%;transition:.15s}
+  input:checked + .slider{background:rgba(63,185,80,.25);border-color:var(--ok)}
+  input:checked + .slider:before{transform:translateX(18px);background:var(--ok)}
+  .verdict{font:13px var(--mono);padding:10px 12px;border-radius:8px;margin:4px 0 12px;border:1px solid var(--bd)}
+  .v-ok{background:rgba(63,185,80,.1);border-color:rgba(63,185,80,.4);color:var(--ok)}
+  .v-bad{background:rgba(248,81,73,.1);border-color:rgba(248,81,73,.5);color:var(--err)}
+  .v-warn{background:rgba(210,153,34,.1);border-color:rgba(210,153,34,.4);color:var(--warn)}
+  .why{color:var(--mut);font-size:13.5px;border-left:2px solid var(--bd);padding-left:12px;margin-top:10px}
+  pre{background:#010409;border:1px solid var(--bd);border-radius:8px;padding:12px;font:12px/1.5 var(--mono);overflow:auto;margin:0}
+  .ladder{display:flex;flex-direction:column;gap:6px;font:12.5px var(--mono)}
+  .rung{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid var(--bd);border-radius:7px;background:var(--p2)}
+  .rung .n{color:var(--mut);width:18px;text-align:right}
+  .rung .pg{flex:1}
+  .rung.bad{border-color:rgba(248,81,73,.5);background:rgba(248,81,73,.08)}
+  .rung.crit{border-color:rgba(88,166,255,.5)}
+  .rung .tag{font-size:11px;color:var(--mut)}
+  .btn{background:var(--p2);color:var(--fg);border:1px solid var(--bd);border-radius:7px;padding:8px 13px;font:12.5px var(--mono);cursor:pointer}
+  .btn:hover{border-color:var(--ac)}
+  .btn.go{background:rgba(63,185,80,.15);border-color:rgba(63,185,80,.45);color:var(--ok)}
+  .range{width:100%}
+  .sess{display:flex;flex-direction:column;gap:5px;font:11.5px var(--mono);margin-top:6px}
+  .lane{display:flex;align-items:center;gap:8px}
+  .lane .who{width:74px;color:var(--mut)}
+  .bar{flex:1;height:18px;border:1px solid var(--bd);border-radius:5px;background:#010409;position:relative;overflow:hidden}
+  .fill{position:absolute;left:0;top:0;bottom:0;width:0;transition:width .25s}
+  .fill.wait{background:repeating-linear-gradient(45deg,rgba(210,153,34,.35),rgba(210,153,34,.35) 6px,transparent 6px,transparent 12px)}
+  .fill.commit{background:rgba(63,185,80,.4)}
+  .fill.fail{background:rgba(248,81,73,.45)}
+  .lane .st{width:120px;text-align:right;color:var(--mut)}
+  table{border-collapse:collapse;width:100%;font:12.5px var(--mono);margin-top:4px}
+  th,td{border:1px solid var(--bd);padding:6px 9px;text-align:left}
+  th{color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  td.c{text-align:center}
+  .big{font:600 30px var(--mono);color:var(--ac)}
+  .chain{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font:12px var(--mono);margin-top:18px}
+  .chain .n{padding:5px 9px;border:1px solid var(--bd);border-radius:6px;background:var(--p2)}
+  .chain .done{color:var(--ok);border-color:rgba(63,185,80,.4)}
+  .chain .now{color:var(--ac);border-color:var(--ac)}
+  .chain .next{color:var(--mut)}
+  .ascii{font:11.5px/1.35 var(--mono);color:var(--mut);background:#010409;border:1px solid var(--bd);border-radius:8px;padding:14px;overflow:auto;white-space:pre;margin:0 0 20px}
+  .gate{background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.4);border-radius:8px;padding:12px 14px;font-size:13.5px;margin-top:16px}
+  footer{color:var(--mut);font-size:12px;margin-top:26px;text-align:center}
+  code{font-family:var(--mono);color:#cfe6ff}
+  b.ok{color:var(--ok)}b.err{color:var(--err)}b.warn{color:var(--warn)}b.ac{color:var(--ac)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🗃️ SQLite the OrchestKit way</h1>
+  <p class="sub">Our M168 session registry runs on the built-in <code>node:sqlite</code> (Node&nbsp;≥22.5), shared by every CC session at <code>~/.local/state/orchestkit/sessions.db</code>. These three views are the actual correctness rules from <code>session-registry.ts</code> — and what <b class="ac">#2006</b> adds on top. Toggle things and watch them pass or break. 🧪</p>
+
+  <pre class="ascii">  every CC session ─┐   ┌─ register / heartbeat / lock / override
+   primary ┐        │   │
+  worktree ┤────────▼───▼──────────────────────────────────────────┐
+   #2004   ┘   ~/.local/state/orchestkit/sessions.db  (node:sqlite) │
+                WAL · lock-free reads · serialized writes           │
+                001 sessions·locks·overrides·worktree_links   v1 ───┤
+                002 skill_suggestion · skill_invocation   v2  #2006 ◀┘ 📊</pre>
+
+  <div class="tabs" id="tabs">
+    <button data-v="pragma" class="on">① connection ladder</button>
+    <button data-v="write">② concurrent writes</button>
+    <button data-v="adopt">③ #2006 adoption</button>
+  </div>
+
+  <!-- ───────────────────────── VIEW 1: PRAGMA LADDER ───────────────────────── -->
+  <div class="view on" id="v-pragma">
+    <div class="grid">
+      <div class="card">
+        <h2>open-time choices</h2>
+        <div class="opt"><label>busy_timeout set <b>first</b><small>before journal_mode = WAL</small></label>
+          <span class="switch"><input type="checkbox" id="pBusyFirst" checked><span class="slider"></span></span></div>
+        <div class="opt"><label>use <code>db.exec()</code> for PRAGMAs<small>off = the <code>.pragma()</code> API</small></label>
+          <span class="switch"><input type="checkbox" id="pExec" checked><span class="slider"></span></span></div>
+        <div class="opt"><label>run integrity_check on open<small>+ quarantine if corrupt</small></label>
+          <span class="switch"><input type="checkbox" id="pIntegrity" checked><span class="slider"></span></span></div>
+        <p class="why">The pragma <i>order</i> is load-bearing. <code>node:sqlite</code> has no default busy handler, unlike <code>better-sqlite3</code> — so the WAL switch under concurrency throws instantly unless a timeout is already armed.</p>
+      </div>
+      <div class="card">
+        <h2>open sequence</h2>
+        <div class="verdict" id="pVerdict"></div>
+        <div class="ladder" id="pLadder"></div>
+        <p class="why" id="pWhy"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────────────────── VIEW 2: CONCURRENT WRITES ───────────────────── -->
+  <div class="view" id="v-write">
+    <div class="grid">
+      <div class="card">
+        <h2>write storm</h2>
+        <div class="opt"><label>concurrent sessions: <b id="wnLbl" class="ac">4</b></label></div>
+        <input class="range" type="range" id="wn" min="1" max="8" value="4">
+        <div class="opt"><label>wrap in <code>writeWithRetry</code><small>BEGIN IMMEDIATE + jittered backoff</small></label>
+          <span class="switch"><input type="checkbox" id="wRetry" checked><span class="slider"></span></span></div>
+        <button class="btn go" id="wFire" style="width:100%;margin-top:10px">⚡ fire all writes at once</button>
+        <p class="why">Each session takes the RESERVED lock at <code>BEGIN IMMEDIATE</code>, so contention surfaces there — not mid-write. Losers see <code>SQLITE_BUSY</code> (errcode <b>5</b>/<b>261</b>) and retry up to 15× with 20–150ms jitter (~1.3s worst case). Sync spin: hooks + <code>DatabaseSync</code> are synchronous.</p>
+      </div>
+      <div class="card">
+        <h2>what happens</h2>
+        <div class="verdict" id="wVerdict">Press fire ⚡</div>
+        <div class="sess" id="wLanes"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────────────────── VIEW 3: #2006 ADOPTION ──────────────────────── -->
+  <div class="view" id="v-adopt">
+    <div class="grid">
+      <div class="card">
+        <h2>this session</h2>
+        <table id="aTbl"><thead><tr><th>skill</th><th>suggested</th><th>invoked</th></tr></thead><tbody></tbody></table>
+        <p class="why">A <code>skill_suggestion</code> row at suggest-time, a <code>skill_invocation</code> row when a <code>/</code>-skill runs. Both keyed by <code>(session_id, skill)</code> so the adoption query is a self-join — impossible against today's append-only <code>skill-usage.log</code>.</p>
+      </div>
+      <div class="card">
+        <h2>adoptionRate(window)</h2>
+        <div class="opt" style="justify-content:space-between">
+          <span>taken ÷ suggested = <span class="big" id="aRate">—</span></span>
+          <span style="color:var(--mut);font:12px var(--mono)" id="aFrac"></span>
+        </div>
+        <pre id="aSql"></pre>
+        <div class="gate">🚧 <b>Gate before any code:</b> the issue assumes a <code>skill-suggestions.jsonl</code> writer that <b class="err">doesn't exist on main</b>. <code>smart-suggestions.ts</code> only returns a string (and suggests rules, not skills). Phase&nbsp;0 must pin the real suggest-side emitter, else these two tables model a ghost. Comment the drift on #2006 first.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chain">
+    <span class="n done">#2003 bundle loads ✅</span> →
+    <span class="n done">#2008 registry works ✅</span> →
+    <span class="n now">#2006 adoption 📊 (you are here)</span> →
+    <span class="n next">analytics surface</span>
+  </div>
+
+  <footer>OrchestKit · #2006 M168 skill adoption · patterns mirror <code>src/hooks/src/lib/session-registry.ts</code> @ main · self-contained, no network 🔒</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(s){return document.querySelector(s);};
+  var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s));};
+
+  // ---- tabs ----
+  $$('#tabs button').forEach(function(b){
+    b.onclick=function(){
+      $$('#tabs button').forEach(function(x){x.classList.remove('on');});
+      $$('.view').forEach(function(v){v.classList.remove('on');});
+      b.classList.add('on');
+      $('#v-'+b.dataset.v).classList.add('on');
+    };
+  });
+
+  // ---- VIEW 1: pragma ladder ----
+  var PRAGMAS=[
+    {p:"busy_timeout = 5000",        tag:"arm retry window", k:"busy"},
+    {p:"journal_mode = WAL",         tag:"lock-free reads",  k:"wal"},
+    {p:"synchronous = NORMAL",       tag:"durable + fast",   k:""},
+    {p:"foreign_keys = ON",          tag:"FK cascade",       k:""},
+    {p:"temp_store = MEMORY",        tag:"temp in RAM",      k:""},
+    {p:"cache_size = -16000",        tag:"16MB page cache",  k:""},
+    {p:"wal_autocheckpoint = 100",   tag:"cap WAL growth",   k:""},
+    {p:"mmap_size = 268435456",      tag:"256MB mmap",       k:""}
+  ];
+  function renderPragma(){
+    var busyFirst=$('#pBusyFirst').checked, useExec=$('#pExec').checked, integ=$('#pIntegrity').checked;
+    var rows=PRAGMAS.slice();
+    if(!busyFirst){ // move busy_timeout to the end → WAL switches with no timeout armed
+      rows.splice(0,1); rows.push(PRAGMAS[0]);
+    }
+    var walLockedBeforeBusy=false;
+    var html=rows.map(function(r,i){
+      var cls="rung", note=r.tag;
+      var walIdx=rows.findIndex(function(x){return x.k==="wal";});
+      var busyIdx=rows.findIndex(function(x){return x.k==="busy";});
+      if(r.k==="wal" && busyIdx>walIdx){ cls+=" bad"; note="💥 database is locked — no timeout armed"; walLockedBeforeBusy=true; }
+      else if(r.k==="busy"||r.k==="wal"){ cls+=" crit"; }
+      return '<div class="'+cls+'"><span class="n">'+(i+1)+'</span><span class="pg">PRAGMA '+r.p+'</span><span class="tag">'+note+'</span></div>';
+    }).join('');
+    if(integ) html+='<div class="rung"><span class="n">✓</span><span class="pg">PRAGMA integrity_check</span><span class="tag">ok → continue · else quarantine + reopen</span></div>';
+    html+='<div class="rung crit"><span class="n">▶</span><span class="pg">runMigrations(db)</span><span class="tag">apply NNN-*.sql &gt; user_version</span></div>';
+    $('#pLadder').innerHTML=html;
+
+    var v=$('#pVerdict'), why=$('#pWhy');
+    if(!useExec){
+      v.className="verdict v-bad"; v.textContent="❌ TypeError: db.pragma is not a function";
+      why.innerHTML="<b class='err'>node:sqlite has no <code>.pragma()</code></b> — set with <code>db.exec('PRAGMA …')</code>, read with <code>db.prepare('PRAGMA user_version').get()</code>. This is the #1 porting trap from better-sqlite3.";
+    } else if(walLockedBeforeBusy){
+      v.className="verdict v-bad"; v.textContent="❌ SqliteError: database is locked (at journal_mode = WAL)";
+      why.innerHTML="WAL switch needs an exclusive moment. With <b class='err'>busy_timeout unset</b>, a second session holding the file makes the switch throw <i>immediately</i> — and since this runs at <code>openDb()</code>, the whole hook dies. Order matters: <b class='ok'>busy_timeout first</b>.";
+    } else {
+      v.className="verdict v-ok"; v.textContent="✅ DB open · WAL armed · "+(integ?"integrity verified · ":"")+"migrations current";
+      why.innerHTML="Canonical <code>applyPragmas()</code> order. Reads now go lock-free; writes serialize through <code>writeWithRetry</code> (view ②).";
+    }
+  }
+  ['#pBusyFirst','#pExec','#pIntegrity'].forEach(function(s){$(s).onchange=renderPragma;});
+  renderPragma();
+
+  // ---- VIEW 2: concurrent writes ----
+  $('#wn').oninput=function(){$('#wnLbl').textContent=this.value;};
+  $('#wFire').onclick=function(){
+    var n=parseInt($('#wn').value,10), retry=$('#wRetry').checked;
+    var lanes=$('#wLanes'); lanes.innerHTML="";
+    var order=[]; for(var i=0;i<n;i++)order.push(i);
+    // one winner commits per "slot"; others wait their turn (RESERVED lock is exclusive)
+    var totalRetries=0, anyFail=false, slot=0;
+    var laneEls=[];
+    order.forEach(function(i){
+      var row=document.createElement('div'); row.className="lane";
+      row.innerHTML='<span class="who">sess '+(i+1)+'</span><div class="bar"><div class="fill" id="f'+i+'"></div></div><span class="st" id="s'+i+'">queued</span>';
+      lanes.appendChild(row); laneEls.push(i);
+    });
+    if(n===1){
+      anim(0,0,0,false); finish(0);
+    } else if(!retry){
+      // no retry: winner commits, the rest throw SQLITE_BUSY and the hook would die
+      anim(0,0,0,false);
+      for(var j=1;j<n;j++){ anim(j,j,0,true); anyFail=true; }
+      finish(0);
+    } else {
+      // each subsequent session waits one slot, accruing a retry, then commits
+      for(var k=0;k<n;k++){ var r=k; totalRetries+=r; anim(k,k,r,false); }
+      finish(totalRetries);
+    }
+    function anim(idx,slotPos,retries,fail){
+      var f=$('#f'+idx), st=$('#s'+idx);
+      setTimeout(function(){
+        if(fail){ f.className="fill fail"; f.style.width="40%"; st.innerHTML="<b style='color:var(--err)'>SQLITE_BUSY ✗</b>"; return; }
+        if(retries>0){ f.className="fill wait"; f.style.width=(20+slotPos*9)+"%"; st.textContent="BUSY ×"+retries+" ⟳"; }
+        setTimeout(function(){
+          f.className="fill commit"; f.style.width="100%";
+          st.innerHTML="<b style='color:var(--ok)'>COMMIT ✓</b>"+(retries>0?" <span style='color:var(--mut)'>("+retries+")</span>":"");
+        }, 220+retries*180);
+      }, 60*slotPos);
+    }
+    function finish(rt){
+      var v=$('#wVerdict');
+      if(anyFail){
+        v.className="verdict v-bad";
+        v.innerHTML="❌ "+(n-1)+" write(s) threw <code>SQLITE_BUSY</code> → uncaught → hook returns \"\". <b class='err'>Always wrap writes in writeWithRetry.</b>";
+      } else {
+        v.className="verdict v-ok";
+        v.innerHTML="✅ all "+n+" committed · "+rt+" total retr"+(rt===1?"y":"ies")+" · serialized by RESERVED lock, no lost writes.";
+      }
+    }
+  };
+  $('#wFire').click();
+
+  // ---- VIEW 3: #2006 adoption ----
+  var SKILLS=[
+    {s:"ork:assess",   sug:true,  inv:true},
+    {s:"ork:verify",   sug:true,  inv:true},
+    {s:"ork:explore",  sug:true,  inv:false},
+    {s:"ork:brainstorm",sug:false, inv:true},
+    {s:"ork:commit",   sug:false, inv:false}
+  ];
+  function chk(on){return '<input type="checkbox" '+(on?'checked':'')+'>';}
+  function renderAdopt(){
+    var tb=$('#aTbl tbody'); tb.innerHTML="";
+    SKILLS.forEach(function(r,i){
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td>/'+r.s+'</td><td class="c" data-k="sug" data-i="'+i+'">'+chk(r.sug)+'</td><td class="c" data-k="inv" data-i="'+i+'">'+chk(r.inv)+'</td>';
+      tb.appendChild(tr);
+    });
+    $$('#aTbl tbody input').forEach(function(box){
+      box.onchange=function(){
+        var td=this.parentNode; SKILLS[+td.dataset.i][td.dataset.k]=this.checked; compute();
+      };
+    });
+    compute();
+  }
+  function compute(){
+    var suggested=SKILLS.filter(function(r){return r.sug;}).length;
+    var taken=SKILLS.filter(function(r){return r.sug && r.inv;}).length;
+    var rate=suggested?Math.round(100*taken/suggested):0;
+    $('#aRate').textContent=suggested? rate+"%" : "n/a";
+    $('#aRate').style.color = !suggested?"var(--mut)": rate>=66?"var(--ok)":rate>=33?"var(--warn)":"var(--err)";
+    $('#aFrac').textContent=taken+" / "+suggested+" suggested skills run";
+    $('#aSql').textContent=
+"SELECT COUNT(DISTINCT i.skill) AS taken,        -- = "+taken+"\n"+
+"       COUNT(DISTINCT s.skill) AS suggested     -- = "+suggested+"\n"+
+"FROM   skill_suggestion s\n"+
+"LEFT JOIN skill_invocation i USING (session_id, skill)\n"+
+"WHERE  s.suggested_at >= :window_start;         -- rate = "+(suggested?rate:"n/a")+(suggested?"%":"");
+  }
+  renderAdopt();
+})();
+</script>
+</body>
+</html>

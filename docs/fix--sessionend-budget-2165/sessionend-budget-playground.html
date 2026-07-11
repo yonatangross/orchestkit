@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SessionEnd Hook Budget — Playground (fix/sessionend-budget-2165)</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #e6edf3;
+    --muted: #8b949e; --green: #3fb950; --red: #f85149; --amber: #d29922;
+    --blue: #58a6ff; --track: #21262d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", monospace;
+    background: var(--bg); color: var(--text); line-height: 1.5; padding: 24px;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 18px;
+  }
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 680px) { .controls { grid-template-columns: 1fr; } }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+  .val { color: var(--blue); font-weight: 600; }
+  input[type=range] { width: 100%; accent-color: var(--blue); }
+  .presets { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  button {
+    background: var(--track); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 7px 12px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  button:hover { border-color: var(--blue); }
+  button.active { background: var(--blue); color: #0d1117; border-color: var(--blue); font-weight: 600; }
+  .timeline { margin-top: 10px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 13px; }
+  .bar-label { width: 168px; flex-shrink: 0; color: var(--muted); }
+  .bar-track { flex: 1; position: relative; height: 26px; background: var(--track); border-radius: 5px; overflow: hidden; }
+  .bar-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 5px 0 0 5px; transition: width .25s, background .25s; display: flex; align-items: center; padding-left: 8px; font-size: 11px; color: #0d1117; font-weight: 600; white-space: nowrap; }
+  .budget-line { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--amber); z-index: 5; transition: left .25s; }
+  .budget-line::after { content: "⏱ budget"; position: absolute; top: -16px; left: 4px; font-size: 10px; color: var(--amber); white-space: nowrap; }
+  .verdict { font-size: 15px; font-weight: 600; margin-top: 6px; }
+  .verdict.ok { color: var(--green); }
+  .verdict.fail { color: var(--red); }
+  .legend { font-size: 12px; color: var(--muted); margin-top: 14px; }
+  code { background: var(--track); padding: 1px 6px; border-radius: 4px; font-size: 12px; color: var(--blue); }
+  .note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .scale { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-left: 178px; margin-top: 2px; }
+  .kicker { display:inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--track); color: var(--amber); border: 1px solid var(--border); margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="kicker">OrchestKit · CC 2.1.165 · SessionEnd hooks</span>
+  <h1>SessionEnd Hook Budget Simulator</h1>
+  <div class="sub">Why <code>session-handoff-generator</code> got "Hook cancelled" — and what the fix changes. Drag the sliders or pick a preset.</div>
+
+  <div class="panel">
+    <div class="presets">
+      <button data-preset="before" class="active">❌ Before (env unset → ~1.5s)</button>
+      <button data-preset="after">✅ After (env=8000 · git 1s)</button>
+      <button data-preset="async">⚠️ "Just make it async"</button>
+    </div>
+    <div class="controls">
+      <div>
+        <label>Global SessionEnd budget — <span class="val" id="budgetVal"></span><br><code>CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS</code></label>
+        <input type="range" id="budget" min="1500" max="12000" step="500" />
+      </div>
+      <div>
+        <label>Dispatcher cost (cleanup + git push 🌐) — <span class="val" id="dispVal"></span></label>
+        <input type="range" id="disp" min="200" max="6000" step="100" />
+      </div>
+      <div>
+        <label>handoff: git status sub-timeout — <span class="val" id="gitVal"></span></label>
+        <input type="range" id="git" min="500" max="3000" step="100" />
+      </div>
+      <div>
+        <label>handoff mode</label>
+        <button id="modeBtn" data-mode="sync">sync (blocking) ▸ correct</button>
+        <div class="note" id="modeNote"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="timeline" id="timeline"></div>
+    <div class="scale"><span>0s</span><span>3s</span><span>6s</span><span>9s</span><span>12s</span></div>
+    <div class="verdict" id="verdict"></div>
+    <div class="legend">
+      📄 handoff writes <code>latest.yaml</code> → resume context. It must finish <b>before</b> the amber budget line.
+      Per <b>CC 2.1.23</b>, <code>async</code> hooks are <b>cancelled</b> on teardown — so async never finishes here.
+    </div>
+  </div>
+
+  <div class="panel" style="font-size:13px">
+    <b>The fix (2 lines):</b><br>
+    <code>src/settings/ork.settings.json</code> → add <code>"CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS": "8000"</code><br>
+    <code>session-handoff-generator.ts:47</code> → git status <code>timeout: 3000 → 1000</code>
+    <div class="note">Per-hook <code>"timeout": 5</code> is ignored at exit (CC 2.1.74) — the global env var governs the sum. Bumping it does nothing; async makes it worse. The env var is the lever CC shipped for exactly this.</div>
+  </div>
+</div>
+
+<script>
+const SCALE_MAX = 12000; // 12s across the bar
+const $ = id => document.getElementById(id);
+const state = { budget: 1500, disp: 2500, git: 3000, mode: 'sync' };
+
+const presets = {
+  before: { budget: 1500, disp: 2500, git: 3000, mode: 'sync' },
+  after:  { budget: 8000, disp: 2500, git: 1000, mode: 'sync' },
+  async:  { budget: 1500, disp: 2500, git: 1000, mode: 'async' },
+};
+
+function pct(ms) { return Math.min(100, (ms / SCALE_MAX) * 100); }
+
+function render() {
+  $('budgetVal').textContent = (state.budget/1000).toFixed(1) + 's';
+  $('dispVal').textContent = (state.disp/1000).toFixed(1) + 's';
+  $('gitVal').textContent = (state.git/1000).toFixed(1) + 's';
+  $('budget').value = state.budget;
+  $('disp').value = state.disp;
+  $('git').value = state.git;
+
+  const modeBtn = $('modeBtn');
+  modeBtn.textContent = state.mode === 'sync' ? 'sync (blocking) ▸ correct' : 'async ▸ cancelled on exit';
+  modeBtn.style.borderColor = state.mode === 'sync' ? 'var(--green)' : 'var(--red)';
+  $('modeNote').textContent = state.mode === 'sync'
+    ? 'Blocks exit until done (or budget kills it).'
+    : 'CC 2.1.23: async SessionEnd hooks are killed on teardown.';
+
+  // handoff fixed overhead (node spawn + fs) ~ 300ms, plus its git status call
+  const handoffWork = 300 + state.git;
+  // dispatcher runs first (sync). handoff starts after dispatcher finishes.
+  const handoffStart = state.disp;
+  const handoffEnd = handoffStart + handoffWork;
+
+  let survives;
+  if (state.mode === 'async') {
+    survives = false; // cancelled on teardown regardless
+  } else {
+    survives = handoffEnd <= state.budget;
+  }
+
+  const budgetPct = pct(state.budget);
+  const rows = [
+    { label: '1️⃣ dispatcher (sync)', start: 0, dur: state.disp, color: 'var(--blue)', text: 'cleanup + git push' },
+    {
+      label: '2️⃣ handoff-generator',
+      start: handoffStart, dur: handoffWork,
+      color: survives ? 'var(--green)' : 'var(--red)',
+      text: state.mode === 'async' ? 'async ✂' : (survives ? 'git status → write ✔' : '✂ CANCELLED')
+    },
+  ];
+
+  let html = '';
+  for (const r of rows) {
+    const leftPct = pct(r.start);
+    const widthPct = pct(r.start + r.dur) - leftPct;
+    html += `<div class="bar-row">
+      <div class="bar-label">${r.label}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="left:${leftPct}%;width:${widthPct}%;background:${r.color}">${r.text}</div>
+        <div class="budget-line" style="left:${budgetPct}%"></div>
+      </div>
+    </div>`;
+  }
+  $('timeline').innerHTML = html;
+
+  const v = $('verdict');
+  if (survives) {
+    v.className = 'verdict ok';
+    v.textContent = `✅ handoff finishes at ${(handoffEnd/1000).toFixed(1)}s — under the ${(state.budget/1000).toFixed(1)}s budget. latest.yaml written.`;
+  } else if (state.mode === 'async') {
+    v.className = 'verdict fail';
+    v.textContent = `❌ async hook cancelled on session teardown (CC 2.1.23) — latest.yaml NOT written.`;
+  } else {
+    v.className = 'verdict fail';
+    v.textContent = `❌ handoff needs ${(handoffEnd/1000).toFixed(1)}s but budget kills it at ${(state.budget/1000).toFixed(1)}s → "Hook cancelled". latest.yaml NOT written.`;
+  }
+
+  // sync preset highlight
+  document.querySelectorAll('.presets button').forEach(b => {
+    const p = presets[b.dataset.preset];
+    b.classList.toggle('active', p && p.budget===state.budget && p.git===state.git && p.mode===state.mode);
+  });
+}
+
+['budget','disp','git'].forEach(id => $(id).addEventListener('input', e => { state[id] = +e.target.value; render(); }));
+$('modeBtn').addEventListener('click', () => { state.mode = state.mode === 'sync' ? 'async' : 'sync'; render(); });
+document.querySelectorAll('.presets button').forEach(b => b.addEventListener('click', () => { Object.assign(state, presets[b.dataset.preset]); render(); }));
+
+render();
+</script>
+</body>
+</html>

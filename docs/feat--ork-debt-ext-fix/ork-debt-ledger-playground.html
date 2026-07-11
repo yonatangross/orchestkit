@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>/ork:debt — the one steal from ponytail</title>
+<style>
+  :root{
+    --bg:#0b0e14;--panel:#11151f;--panel2:#161b27;--line:#222a3a;
+    --txt:#d7dee9;--dim:#8b97a8;--faint:#5b6678;
+    --ork:#a78bfa;--teal:#7ee0c9;--pony:#e3b341;
+    --good:#3fb950;--due:#f85149;--soon:#d29922;
+    --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  code,.mono{font-family:var(--mono)}
+  header{padding:18px 22px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#11151f,#0b0e14)}
+  header h1{margin:0;font-size:19px}
+  header .tag{color:var(--dim);font-size:13px;margin-top:4px}
+  header .tag b{color:var(--teal)}
+  .contrast{display:flex;gap:0;margin:14px 22px 0;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:12.5px}
+  .contrast div{flex:1;padding:10px 14px}
+  .contrast .has{background:#15131f;border-right:1px solid var(--line)}
+  .contrast .has b{color:var(--ork)}
+  .contrast .gap{background:#101f1c}
+  .contrast .gap b{color:var(--teal)}
+  .layout{display:grid;grid-template-columns:290px 1fr;min-height:calc(100vh - 74px)}
+  /* rail */
+  .rail{border-right:1px solid var(--line);padding:16px;background:var(--panel);
+    position:sticky;top:0;align-self:start;height:calc(100vh - 74px);overflow:auto}
+  .rail h2{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--faint);margin:18px 0 8px}
+  .rail h2:first-child{margin-top:0}
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .seg button{flex:1 1 auto;background:var(--panel2);color:var(--dim);border:1px solid var(--line);
+    border-radius:7px;padding:7px 9px;font-size:12px;cursor:pointer;transition:.12s;white-space:nowrap}
+  .seg button:hover{color:var(--txt)}
+  .seg button.on{background:#2a2147;border-color:var(--ork);color:#cbb8ff}
+  .chk{display:flex;align-items:center;gap:9px;padding:7px 9px;border:1px solid var(--line);
+    border-radius:8px;margin-bottom:6px;cursor:pointer;background:var(--panel2);transition:.12s;font-size:12.5px}
+  .chk:hover{border-color:#3a4d76}
+  .chk.on{background:#19223a;border-color:#3a4d76}
+  .chk .box{width:15px;height:15px;border-radius:4px;border:1px solid var(--faint);flex:none;display:grid;place-items:center;font-size:11px}
+  .chk.on .box{background:var(--ork);border-color:var(--ork);color:#16102e}
+  .chk small{color:var(--faint);font-size:10.5px;display:block}
+  .toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;
+    border:1px solid var(--line);border-radius:8px;background:var(--panel2);cursor:pointer;font-size:12.5px}
+  .toggle .sw{width:36px;height:20px;border-radius:20px;background:#2a3346;position:relative;transition:.15s;flex:none}
+  .toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#5b6678;transition:.15s}
+  .toggle.on .sw{background:var(--ork)}
+  .toggle.on .sw::after{left:18px;background:#fff}
+  .slider{margin-top:6px}
+  .slider input{width:100%}
+  .stageLbl{display:flex;justify-content:space-between;font-size:10px;color:var(--faint);margin-top:2px}
+  .scaleNow{text-align:center;font-weight:700;color:var(--teal);margin:4px 0 2px;font-size:13px}
+  .presets button{display:block;width:100%;text-align:left;margin-bottom:6px;background:var(--panel2);
+    border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:9px 10px;cursor:pointer;font-size:12.5px}
+  .presets button:hover{border-color:#3a4d76;background:#19223a}
+  .presets button small{display:block;color:var(--faint);font-size:11px;margin-top:2px}
+  /* main */
+  .main{padding:18px 22px 150px;overflow:auto}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0;margin-bottom:18px;overflow:hidden}
+  .card .hd{padding:13px 16px;border-bottom:1px solid var(--line);background:var(--panel2);
+    display:flex;align-items:center;gap:10px}
+  .card .hd .t{font-size:13px;font-weight:700}
+  .card .hd .t small{color:var(--faint);font-weight:400;font-size:11px;margin-left:6px}
+  .card .bd{padding:14px 16px}
+  /* code pane */
+  .code{font-family:var(--mono);font-size:12.5px;line-height:1.7}
+  .file{margin-bottom:14px}
+  .file .fn{color:var(--faint);font-size:11px;margin-bottom:3px;border-bottom:1px dashed var(--line);padding-bottom:3px}
+  .ln{display:flex;gap:12px}
+  .ln .no{color:var(--faint);width:22px;text-align:right;user-select:none;flex:none}
+  .ln .src{color:#9fb0c8}
+  .mk{color:var(--pony)}
+  .mk .pre{color:#f0c674;font-weight:700}
+  .mk .trg{color:var(--teal)}
+  .mk.notrg .trg{color:var(--due);text-decoration:line-through;opacity:.7}
+  /* ledger */
+  table.led{border-collapse:collapse;width:100%;font-size:12.5px}
+  table.led th{text-align:left;color:var(--faint);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;
+    padding:6px 8px;border-bottom:1px solid var(--line);font-weight:600}
+  table.led td{padding:8px;border-bottom:1px solid #1a2030;vertical-align:top}
+  table.led td.file{font-family:var(--mono);color:var(--ork);font-size:11.5px;white-space:nowrap}
+  table.led td.choice{color:var(--txt)}
+  table.led td.up{color:var(--dim)}
+  table.led td.trg{font-family:var(--mono);font-size:11px;color:var(--teal)}
+  .st{font-family:var(--mono);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+  .st.def{background:#10231f;color:var(--good)}
+  .st.soon{background:#251d09;color:var(--soon)}
+  .st.due{background:#260f0f;color:var(--due)}
+  .st.unk{background:#1a1a22;color:var(--faint)}
+  tr.dueRow td{background:#1c0d0d}
+  .ledFoot{margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--dim);display:flex;gap:18px}
+  .ledFoot b{color:var(--txt)}
+  .ledFoot .dueN{color:var(--due)}
+  .empty{color:var(--faint);font-style:italic;padding:18px;text-align:center}
+  .notrgwarn{margin-top:12px;background:#251d09;border:1px solid var(--soon);border-radius:8px;
+    padding:9px 12px;font-size:12px;color:#f1d18a}
+  /* prompt */
+  .promptbar{position:fixed;bottom:0;left:290px;right:0;background:var(--panel);border-top:1px solid var(--line);
+    padding:12px 22px;display:flex;gap:14px;align-items:flex-start}
+  .promptbar .pp{flex:1;font-family:var(--mono);font-size:12px;background:#0d1119;border:1px solid var(--line);
+    border-radius:9px;padding:11px 13px;max-height:104px;overflow:auto;white-space:pre-wrap}
+  .promptbar button{flex:none;align-self:stretch;background:var(--ork);color:#16102e;border:none;border-radius:9px;
+    padding:0 18px;font-weight:700;cursor:pointer;font-size:13px}
+  .promptbar button:hover{filter:brightness(1.08)}
+  @media(max-width:880px){.layout{grid-template-columns:1fr}.rail{position:static;height:auto}.promptbar{left:0}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎻 <code>/ork:debt</code> — the one steal from 🐴 ponytail</h1>
+  <div class="tag">ork's gate <b>prevents over-engineering</b>. This is the missing counterpart: <b>record the deliberate under-engineering</b> you chose, with the condition that should make you revisit it.</div>
+</header>
+<div class="contrast">
+  <div class="has"><b>ork TODAY ✅</b> &nbsp;<code>yagni-gate</code> + <code>scope-appropriate-architecture</code> stop you building OAuth2+PKCE for a take-home. The decision is made… then forgotten.</div>
+  <div class="gap"><b>THE GAP 🎯</b> &nbsp;Nothing records <i>"we used the simple thing on purpose — upgrade when X."</i> Six months later: which cuts were deliberate vs accidental?</div>
+</div>
+
+<div class="layout">
+  <aside class="rail">
+    <h2>Shortcuts in your codebase</h2>
+    <div id="shortcuts"></div>
+
+    <h2>Marker prefix</h2>
+    <div class="seg" id="prefixSeg"></div>
+
+    <h2>Marker shape</h2>
+    <div class="toggle on" id="trgToggle"><span>Include <code>when &lt;trigger&gt;</code> clause</span><span class="sw"></span></div>
+
+    <h2>Project scale (drag)</h2>
+    <div class="scaleNow" id="scaleNow"></div>
+    <div class="slider"><input type="range" id="scale" min="0" max="4" value="1" step="1"></div>
+    <div class="stageLbl"><span>Prototype</span><span>Enterprise</span></div>
+
+    <h2>Presets</h2>
+    <div class="presets" id="presets"></div>
+  </aside>
+
+  <main class="main">
+    <!-- code pane -->
+    <section class="card">
+      <div class="hd"><span class="t">① The marker — dropped at the moment of the shortcut <small>inline, structured, greppable</small></span></div>
+      <div class="bd"><div class="code" id="codePane"></div></div>
+    </section>
+    <!-- ledger -->
+    <section class="card">
+      <div class="hd"><span class="t">② <code>/ork:debt</code> — harvests every marker into a live ledger</span></div>
+      <div class="bd">
+        <div id="ledger"></div>
+        <div class="ledFoot" id="ledFoot"></div>
+        <div class="notrgwarn" id="notrgWarn" style="display:none">⚠️ <b>No trigger clause</b> → this is just a <code>// TODO</code>. The ledger can't tell you <i>when</i> to act, so every row is <span style="color:var(--faint)">unknown ?</span>. The <code>when &lt;trigger&gt;</code> clause is what turns a TODO into a ledger. Toggle it back on.</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="promptbar">
+  <div class="pp" id="prompt"></div>
+  <button id="copyBtn">Copy</button>
+</div>
+
+<script>
+const STAGES=['Prototype','MVP','Growth','Scale','Enterprise'];
+const SHORTCUTS=[
+  {id:'auth',on:true ,file:'auth.ts',ln:14,choice:'session cookies',up:'JWT + refresh tokens',trg:'a 2nd service is added',firesAt:2},
+  {id:'db'  ,on:true ,file:'db.ts'  ,ln:8 ,choice:'SQLite single-file',up:'Postgres',trg:'concurrent writers > 1',firesAt:2},
+  {id:'cache',on:true,file:'api.ts' ,ln:42,choice:'in-process Map cache',up:'Redis',trg:'> 1 process / pod',firesAt:3},
+  {id:'jobs',on:false,file:'mailer.ts',ln:9,choice:'inline await send()',up:'a job queue (BullMQ)',trg:'email latency hits requests',firesAt:2},
+  {id:'search',on:false,file:'search.ts',ln:20,choice:'SQL LIKE %q%',up:'full-text / pg_trgm',trg:'rows > 50k',firesAt:3},
+  {id:'pag',on:false,file:'list.ts',ln:31,choice:'offset pagination',up:'cursor pagination',trg:'table > 100k rows',firesAt:3},
+];
+const PREFIXES=['// ork-debt:','// @debt:','// TODO-scale:'];
+const PRESETS=[
+  {label:'Fresh take-home',sub:'3 cuts · scale=Prototype · all deferred',s:{scale:0,on:['auth','db','cache'],trg:true}},
+  {label:'It grew to Growth',sub:'scale=Growth · watch auth/db/jobs go DUE',s:{scale:2,on:['auth','db','cache','jobs'],trg:true}},
+  {label:'Scaling hard',sub:'scale=Scale · most corners now due',s:{scale:3,on:['auth','db','cache','jobs','search','pag'],trg:true}},
+  {label:'Marker WITHOUT trigger',sub:'see why it collapses to a dumb TODO',s:{scale:2,on:['auth','db','cache'],trg:false}},
+];
+const DEF={scale:1,prefix:0,trg:true};
+const state={scale:1,prefix:0,trg:true,on:new Set(['auth','db','cache'])};
+
+/* build shortcut checkboxes */
+const sc=document.getElementById('shortcuts');
+sc.innerHTML=SHORTCUTS.map(s=>`<div class="chk${s.on?' on':''}" data-id="${s.id}">
+  <div class="box">${s.on?'✓':''}</div>
+  <div>${s.file}:${s.ln} → ${s.choice}<small>upgrade: ${s.up}</small></div></div>`).join('');
+sc.querySelectorAll('.chk').forEach(c=>c.onclick=()=>{
+  const id=c.dataset.id;state.on.has(id)?state.on.delete(id):state.on.add(id);updateAll();});
+/* prefix seg */
+const ps=document.getElementById('prefixSeg');
+ps.innerHTML=PREFIXES.map((p,i)=>`<button data-i="${i}">${p}</button>`).join('');
+ps.querySelectorAll('button').forEach(b=>b.onclick=()=>{state.prefix=+b.dataset.i;updateAll();});
+/* trigger toggle */
+document.getElementById('trgToggle').onclick=()=>{state.trg=!state.trg;updateAll();};
+/* scale */
+document.getElementById('scale').oninput=e=>{state.scale=+e.target.value;updateAll();};
+/* presets */
+const pr=document.getElementById('presets');
+pr.innerHTML=PRESETS.map((p,i)=>`<button data-i="${i}">${p.label}<small>${p.sub}</small></button>`).join('');
+pr.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  const p=PRESETS[b.dataset.i].s;state.scale=p.scale;state.trg=p.trg;state.on=new Set(p.on);updateAll();});
+
+function active(){return SHORTCUTS.filter(s=>state.on.has(s.id));}
+function statusOf(s){
+  if(!state.trg)return'unk';
+  if(state.scale>=s.firesAt)return'due';
+  if(state.scale===s.firesAt-1)return'soon';
+  return'def';
+}
+function marker(s){
+  const pfx=PREFIXES[state.prefix];
+  const trg=state.trg?` <span class="trg">when ${s.trg}</span>`:'';
+  return `<span class="mk${state.trg?'':' notrg'}"><span class="pre">${pfx}</span> ${s.choice}, upgrade to ${s.up}${state.trg?',':''}${trg}</span>`;
+}
+
+function renderCode(){
+  const byFile={};active().forEach(s=>{(byFile[s.file]=byFile[s.file]||[]).push(s);});
+  const fakeSrc={auth:'const sess = cookie.sign(uid)',db:'const db = sqlite("./app.db")',
+    'api.ts':'const cache = new Map()',mailer:'await send(mail)',search:'WHERE name LIKE $q',list:'.limit(20).offset(n)'};
+  let html='';
+  for(const f in byFile){
+    html+=`<div class="file"><div class="fn">${f}</div>`;
+    byFile[f].forEach(s=>{
+      const src=fakeSrc[s.id]||fakeSrc[f]||'// ...';
+      html+=`<div class="ln"><span class="no">${s.ln}</span><span class="src">${marker(s)}</span></div>`;
+      html+=`<div class="ln"><span class="no">${s.ln+1}</span><span class="src">${src}</span></div>`;
+    });
+    html+='</div>';
+  }
+  if(!html)html='<div class="empty">No shortcuts selected — toggle some in the left rail.</div>';
+  document.getElementById('codePane').innerHTML=html;
+}
+
+function renderLedger(){
+  const rows=active();
+  const led=document.getElementById('ledger');
+  if(!rows.length){led.innerHTML='<div class="empty">Lean already. Nothing deferred. Ship. 🚢</div>';
+    document.getElementById('ledFoot').innerHTML='';document.getElementById('notrgWarn').style.display='none';return;}
+  const lbl={def:['def','deferred ✅'],soon:['soon','soon ⏳'],due:['due','DUE NOW ⚠️'],unk:['unk','unknown ?']};
+  let body=rows.map(s=>{
+    const st=statusOf(s);const[cls,txt]=lbl[st];
+    return `<tr class="${st==='due'?'dueRow':''}">
+      <td class="file">${s.file}:${s.ln}</td>
+      <td class="choice">${s.choice}</td>
+      <td class="up">→ ${s.up}</td>
+      <td class="trg">${state.trg?s.trg:'—'}</td>
+      <td><span class="st ${cls}">${txt}</span></td></tr>`;
+  }).join('');
+  led.innerHTML=`<table class="led"><tr><th>file</th><th>deferred choice</th><th>upgrade path</th><th>trigger</th><th>status @ ${STAGES[state.scale]}</th></tr>${body}</table>`;
+  const dueN=rows.filter(s=>statusOf(s)==='due').length;
+  document.getElementById('ledFoot').innerHTML=
+    `<span>net: <b>${rows.length}</b> deliberate corners tracked</span>`+
+    (state.trg?`<span class="dueN">${dueN} now DUE at ${STAGES[state.scale]} scale</span>`:`<span style="color:var(--faint)">status uncomputable — no triggers</span>`);
+  document.getElementById('notrgWarn').style.display=state.trg?'none':'block';
+}
+
+function buildPrompt(){
+  const rows=active();const pfx=PREFIXES[state.prefix];
+  const due=rows.filter(s=>statusOf(s)==='due');
+  let p=`Add an /ork:debt skill to OrchestKit — the counterpart to the yagni-gate.\n`;
+  p+=`Convention: when an agent takes a deliberate shortcut, it drops an inline marker:\n`;
+  p+=`  ${pfx} <choice>, upgrade to <path>${state.trg?', when <trigger>':''}\n`;
+  p+=`/ork:debt greps the repo for these markers and renders a ledger (file · choice · upgrade path · trigger`;
+  p+=state.trg?` · status). It parses the "when <trigger>" clause and flags rows whose condition is met at the current project stage as DUE.\n`:`). `;
+  if(!state.trg)p+=`NOTE: drop the trigger clause and it degrades to a plain TODO list — keep "when <trigger>", it's what makes it a ledger.\n`;
+  p+=`This records deliberate UNDER-engineering so it's revisitable; it does not replace the gate that prevents OVER-engineering.`;
+  if(state.trg&&due.length)p+=`\nRight now ${due.length} corner(s) would flag DUE at ${STAGES[state.scale]} scale: ${due.map(s=>s.file+':'+s.ln).join(', ')}.`;
+  return p;
+}
+
+function updateAll(){
+  document.getElementById('scaleNow').textContent=STAGES[state.scale];
+  document.getElementById('scale').value=state.scale;
+  document.getElementById('trgToggle').classList.toggle('on',state.trg);
+  document.querySelectorAll('#prefixSeg button').forEach((b,i)=>b.classList.toggle('on',i===state.prefix));
+  document.querySelectorAll('#shortcuts .chk').forEach(c=>{
+    const on=state.on.has(c.dataset.id);c.classList.toggle('on',on);c.querySelector('.box').textContent=on?'✓':'';});
+  renderCode();renderLedger();
+  document.getElementById('prompt').textContent=buildPrompt();
+}
+document.getElementById('copyBtn').onclick=()=>{
+  navigator.clipboard.writeText(document.getElementById('prompt').textContent).then(()=>{
+    const b=document.getElementById('copyBtn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1100);});
+};
+updateAll();
+</script>
+</body>
+</html>
