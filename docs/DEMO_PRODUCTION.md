@@ -6,7 +6,7 @@
 
 ```bash
 # 1. Copy demo config to Remotion compositions
-cp demo-orchestkit-cli.ts plugins/ork/skills/demo-producer/src/components/configs/
+cp orchestkit-demos/scripts/demo-cli.ts plugins/ork/skills/demo-producer/src/components/configs/
 
 # 2. Register composition in Root.tsx (see code comments)
 
@@ -97,14 +97,14 @@ ffmpeg -i out/OrchestKitCliDemo-with-audio.mp4 \
 
 ```
 orchestkit/
-├── demo-orchestkit-cli.ts                    ← Config (this file)
-├── DEMO_PRODUCTION.md                        ← You are here
+├── orchestkit-demos/scripts/demo-cli.ts      ← Config (source)
+├── docs/DEMO_PRODUCTION.md                    ← You are here
 ├── out/
 │   └── OrchestKitCliDemo-final.mp4          ← Upload this
 └── plugins/ork/skills/demo-producer/
     └── src/components/
         └── configs/
-            └── orchestkit-cli.ts             ← Copied from demo-orchestkit-cli.ts
+            └── orchestkit-cli.ts             ← Copied from orchestkit-demos/scripts/demo-cli.ts
 ```
 
 ## Editing After Render
