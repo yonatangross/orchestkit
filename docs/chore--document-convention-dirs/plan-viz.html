@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Document Convention Dirs — OrchestKit</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2430;--border:#30363d;--fg:#e6edf3;--muted:#8b949e;
+        --accent:#58a6ff;--red:#f85149;--green:#3fb950;--yellow:#d4b13a;--violet:#a371f7;
+        --mono:'SFMono-Regular',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  html[data-theme="light"]{--bg:#f6f8fa;--panel:#fff;--panel2:#eef1f5;--border:#d0d7de;--fg:#1f2328;--muted:#57606a;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.55}
+  .wrap{max-width:1060px;margin:0 auto;padding:28px 20px 70px}
+  header.top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:22px}
+  h1{font-size:22px;margin:0;letter-spacing:-.4px}
+  h1 .sub{display:block;color:var(--muted);font-weight:400;font-size:14px;margin-top:4px}
+  .theme-btn{background:var(--panel);border:1px solid var(--border);color:var(--fg);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px}
+  .reframe{background:linear-gradient(90deg,rgba(88,166,255,.10),transparent);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:14px 18px;margin-bottom:22px;font-size:14px}
+  .reframe b{color:var(--accent)}
+  h2{font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:22px 0 12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  td code{font-family:var(--mono);font-size:12px;color:var(--fg)}
+  .dir{font-family:var(--mono);color:var(--violet);font-weight:600}
+  .why{color:var(--muted);font-size:12.5px}
+  .anchor{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--green);color:var(--green);white-space:nowrap}
+  pre{margin:0;font-family:var(--mono);font-size:12px;line-height:1.65;color:#c9d1d9;background:#000;border:1px solid var(--border);border-radius:8px;padding:14px;white-space:pre-wrap}
+  pre .g{color:var(--green)} pre .r{color:var(--red)} pre .c{color:#6a737d}
+  footer{color:var(--muted);font-size:12px;margin-top:28px;border-top:1px solid var(--border);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>🧭 Document the convention-anchor dirs
+      <span class="sub">turn 4 "mystery" dirs into obviously-intentional structure · chore/document-convention-dirs</span></h1>
+    <button class="theme-btn" onclick="var h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark'">☀︎ / ☾</button>
+  </header>
+
+  <div class="reframe">
+    <b>The reframe:</b> <code>spec/</code>, <code>vendor/</code>, <code>designs/</code>, <code>swarm-specs/</code> looked like
+    thin clutter — but each is a path a skill or CI <b>hardcodes</b>. Deleting them breaks CI or a skill. The real problem
+    wasn't that they exist; it's that <b>none had a README</b>, so they read as junk. Fix = document, not delete.
+  </div>
+
+  <h2>The 4 anchors — proof they're load-bearing</h2>
+  <table>
+    <thead><tr><th>Dir</th><th>Files</th><th>Why it's load-bearing</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="dir">spec/</td><td>1</td>
+        <td class="why"><code>hook-events.spec.yml</code> globbed by <b>4 CI workflows</b> + consumed by packages/hook-contract{,-py}</td>
+        <td><span class="anchor">🟢 KEEP</span></td>
+      </tr>
+      <tr>
+        <td class="dir">vendor/</td><td>2</td>
+        <td class="why"><code>sync-vercel-skills.sh:28</code> reads <code>vercel-skills/mapping.json</code> as MAPPING_FILE</td>
+        <td><span class="anchor">🟢 KEEP</span></td>
+      </tr>
+      <tr>
+        <td class="dir">designs/</td><td>1</td>
+        <td class="why">runtime output dir — <code>/ork:visualize-plan</code> writes <code>designs/&lt;branch&gt;.md</code></td>
+        <td><span class="anchor">🟢 KEEP</span></td>
+      </tr>
+      <tr>
+        <td class="dir">swarm-specs/</td><td>4</td>
+        <td class="why"><code>/ork:swarm-migrate</code> frontmatter globs <code>swarm-specs/**/*.yaml</code> (skill trigger)</td>
+        <td><span class="anchor">🟢 KEEP</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>What this PR adds (additive only)</h2>
+  <pre><span class="c"># a 1-line-purpose README.md in each dir — answers "wtf is this?" in place</span>
++ spec/README.md          <span class="g">"hook-event contract · globbed by 4 CI workflows · do not move"</span>
++ vendor/README.md        <span class="g">"vendored data · sync-vercel-skills.sh reads mapping.json"</span>
++ designs/README.md       <span class="g">"output dir for /ork:visualize-plan"</span>
++ swarm-specs/README.md   <span class="g">"input specs for /ork:swarm-migrate (globbed)"</span>
++ CONTRIBUTING.md         <span class="g">"Convention Anchor Directories" section under Project Structure</span>
+
+<span class="c"># safety: none of these filenames match the CI glob / sync mapping / skill triggers</span>
+spec glob        → <span class="r">spec/hook-events.spec.yml</span>   (README.md doesn't match) ✅
+swarm glob       → <span class="r">swarm-specs/**/*.yaml</span>       (README.md doesn't match) ✅
+vendor read      → <span class="r">vercel-skills/mapping.json</span>  (untouched) ✅</pre>
+
+  <footer>
+    Final PR of the hygiene arc (#2840/#2841/#2844/#2845 merged; #2842 open).
+    5 files added, 0 removed, 0 moved.
+  </footer>
+</div>
+</body>
+</html>
