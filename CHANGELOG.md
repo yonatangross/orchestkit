@@ -5,6 +5,16 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.69.1](https://github.com/yonatangross/orchestkit/compare/v8.69.0...v8.69.1) (2026-07-11)
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.207) ([#2839](https://github.com/yonatangross/orchestkit/issues/2839)) ([1031ff3](https://github.com/yonatangross/orchestkit/commit/1031ff388b4d16cada2dd86128a39e696bfdea59))
+* de-bloat logo + add playground-drift recurrence guard ([#2844](https://github.com/yonatangross/orchestkit/issues/2844)) ([8abd7d0](https://github.com/yonatangross/orchestkit/commit/8abd7d005a751a1529c35c30f272b221065db4c7))
+* prune 418 stale PR-playground dirs from main, add recurrence fix ([#2841](https://github.com/yonatangross/orchestkit/issues/2841)) ([a17c50b](https://github.com/yonatangross/orchestkit/commit/a17c50ba7bf2a434cf2349430669d9480e6eaf3f))
+* repo hygiene sweep — declutter root, untrack generated coverage ([#2840](https://github.com/yonatangross/orchestkit/issues/2840)) ([5c3acc7](https://github.com/yonatangross/orchestkit/commit/5c3acc79d300ae0b3983becc2c127e87d773d4d6))
+
 ## [8.69.0](https://github.com/yonatangross/orchestkit/compare/v8.68.3...v8.69.0) (2026-07-10)
 
 
