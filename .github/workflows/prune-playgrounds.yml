@@ -6,13 +6,18 @@
 # The PR Playground gate (ci.yml: playground-check) mandates a committed
 # docs/<branch-slug>/*.html per PR. Those dirs merge to main and accumulate
 # forever — 418 dead dirs / ~11MB built up 2026-03..2026-07 before the first
-# sweep. This job moves dirs whose PR is already merged onto the orphan
+# sweep. This workflow moves dirs whose PR is already merged onto the orphan
 # `playgrounds-archive` branch, then removes them from main.
 #
-# SAFETY: manual-dispatch only, dry-run by DEFAULT. It never auto-fires on a
-# schedule (cross-branch mutation we cannot integration-test pre-merge stays
-# operator-gated). Only touches docs/<type>--<slug>/ dirs whose branch is
-# gone from origin; the KEEP set below is hard-excluded regardless.
+# SAFETY MODEL:
+#   - schedule (monthly): READ-ONLY drift scan → opens/updates a tracking issue.
+#     No file mutation, no cross-branch writes. Just tells you drift exists.
+#   - workflow_dispatch: the mutating `apply` path, dry-run by DEFAULT. The
+#     removal itself lands via a PR (never a direct push to main), so a human
+#     reviews it. Cross-branch mutation we cannot integration-test pre-merge
+#     stays operator-gated on purpose.
+#   Only touches docs/<type>--<slug>/ dirs whose branch is gone from origin;
+#   the KEEP set (in scripts/prune-playgrounds.sh) is hard-excluded regardless.
 name: Prune Playgrounds
 
 on:
@@ -26,6 +31,8 @@ on:
         description: "Only prune dirs whose branch was last touched > N days ago"
         type: string
         default: "30"
+  schedule:
+    - cron: "0 9 1 * *" # 09:00 UTC on the 1st of each month — drift scan only
 
 permissions:
   contents: read
@@ -35,12 +42,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Manual, mutating path. Dispatch-only. Apply is opt-in + PR-gated downstream.
   prune:
     name: Prune merged playground dirs
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write # push archive branch + commit removal to main
+      contents: write # push archive branch + open removal PR
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -50,11 +59,40 @@ jobs:
       - name: Identify prunable dirs
         id: scan
         env:
-          OLDER_THAN_DAYS: ${{ inputs.older_than_days }}
+          OLDER_THAN_DAYS: ${{ inputs.older_than_days || '30' }}
         run: bash scripts/prune-playgrounds.sh scan
 
-      - name: Apply (archive + remove)
+      - name: Apply (archive + open removal PR)
         if: ${{ inputs.apply == true && steps.scan.outputs.count != '0' }}
         env:
-          OLDER_THAN_DAYS: ${{ inputs.older_than_days }}
+          OLDER_THAN_DAYS: ${{ inputs.older_than_days || '30' }}
         run: bash scripts/prune-playgrounds.sh apply
+
+  # Scheduled, read-only drift detector. Surfaces regrowth as an issue so the
+  # graveyard never silently rebuilds. Mutates nothing.
+  drift-scan:
+    name: Monthly drift scan
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write # open/update the drift tracking issue
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan for prunable dirs
+        id: scan
+        env:
+          OLDER_THAN_DAYS: "30"
+        run: bash scripts/prune-playgrounds.sh scan
+
+      - name: Open or update drift issue
+        if: ${{ steps.scan.outputs.count != '0' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COUNT: ${{ steps.scan.outputs.count }}
+        run: bash scripts/prune-playgrounds-report.sh

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hygiene Follow-ups — OrchestKit</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2430;--border:#30363d;--fg:#e6edf3;--muted:#8b949e;
+        --accent:#58a6ff;--red:#f85149;--green:#3fb950;--yellow:#d4b13a;--violet:#a371f7;
+        --mono:'SFMono-Regular',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  html[data-theme="light"]{--bg:#f6f8fa;--panel:#fff;--panel2:#eef1f5;--border:#d0d7de;--fg:#1f2328;--muted:#57606a;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.55}
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 20px 70px}
+  header.top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:24px}
+  h1{font-size:22px;margin:0;letter-spacing:-.4px}
+  h1 .sub{display:block;color:var(--muted);font-weight:400;font-size:14px;margin-top:4px}
+  .theme-btn{background:var(--panel);border:1px solid var(--border);color:var(--fg);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px}
+  h2{font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:24px 0 12px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.two{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+  .card.a{border-left:4px solid var(--yellow)} .card.b{border-left:4px solid var(--violet)}
+  .card h3{margin:0 0 10px;font-size:14px}
+  .bar{height:26px;border-radius:6px;background:var(--panel2);position:relative;overflow:hidden;margin:8px 0}
+  .bar > i{display:block;height:100%;border-radius:6px}
+  .bar span{position:absolute;top:0;left:8px;line-height:26px;font-size:11px;font-family:var(--mono);color:#fff;text-shadow:0 1px 2px #000}
+  .metric{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin:4px 0}
+  .metric b{color:var(--green)}
+  pre{margin:8px 0 0;font-family:var(--mono);font-size:11.5px;line-height:1.6;color:#c9d1d9;background:#000;border:1px solid var(--border);border-radius:8px;padding:12px;white-space:pre-wrap}
+  pre .c{color:#6a737d} pre .g{color:var(--green)} pre .y{color:var(--yellow)} pre .r{color:var(--red)}
+  .note{background:linear-gradient(90deg,rgba(248,81,73,.10),transparent);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:10px;padding:12px 16px;margin:18px 0 0;font-size:13px}
+  .note b{color:var(--red)}
+  .flow{font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--muted)}
+  .flow .k{color:var(--green)} .flow .x{color:var(--red)}
+  footer{color:var(--muted);font-size:12px;margin-top:30px;border-top:1px solid var(--border);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>🧽 Hygiene follow-ups
+      <span class="sub">logo de-bloat + graveyard recurrence guard · chore/hygiene-followups</span></h1>
+    <button class="theme-btn" onclick="var h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark'">☀︎ / ☾</button>
+  </header>
+
+  <div class="two">
+    <div class="card a">
+      <h3>🖼️ Logo.png de-bloat</h3>
+      <div class="bar"><i style="width:100%;background:var(--red)"></i><span>before · 2048² · 4830 KB</span></div>
+      <div class="bar"><i style="width:6.9%;background:var(--green)"></i><span>after · 512² · 335 KB</span></div>
+      <div class="metric"><b>−93%</b> working-tree size · high-res recoverable from git history</div>
+      <div class="note" style="margin-top:12px">
+        <b>Honest scope:</b> this shrinks the <i>working tree</i>, not clone size — the
+        4.7MB blob is already in history and only a (rejected) public-history rewrite
+        would change that. Minor tidy, not the big win.
+      </div>
+    </div>
+
+    <div class="card b">
+      <h3>🔁 Recurrence guard</h3>
+      <p class="metric">The PR-Playground gate forces a new <code>docs/&lt;branch&gt;/*.html</code>
+        onto main every PR. Backlog was cleared in #2841 — this stops silent regrowth.</p>
+      <div class="flow">
+monthly cron ──► <span class="k">scan (read-only)</span>
+                     │
+              drift &gt; 0 ?
+                 ┌───┴───┐
+                <span class="k">yes</span>      no
+                 │        └─ exit quiet
+                 ▼
+        open/update <span class="k">tracking issue</span>
+                 │
+        you run <span class="y">apply</span> ──► archive + <b>removal PR</b>
+                                       (human-reviewed)
+      </div>
+    </div>
+  </div>
+
+  <h2>Why the schedule mutates nothing</h2>
+  <pre><span class="c"># the scheduled job is READ-ONLY by construction</span>
+schedule   → drift-scan job   permissions: <span class="g">contents: read, issues: write</span>
+           → scans, opens an issue if drift. <span class="g">No files, no branches touched.</span>
+
+dispatch   → prune job        permissions: contents: write
+           → apply is opt-in AND lands via a <span class="y">PR</span>, never a push to main
+           → cross-branch mutation stays <span class="r">operator-gated</span> (can't pre-test in CI)</pre>
+
+  <h2>Guards on the prune logic</h2>
+  <pre>only touches   docs/<span class="r">&lt;type&gt;--&lt;slug&gt;</span>/ dirs
+skips if        a matching branch still exists on <span class="g">origin</span> (PR not merged)
+age gate        newest commit older than <span class="g">30 days</span>
+KEEP set        9 dirs hard-excluded (audits, site, feat--activation-audit, …)
+validated       shellcheck ✅  actionlint ✅  live scan ✅ (0 prunable now)</pre>
+
+  <footer>
+    Ships after #2840 + #2841 (both merged). Files: <code>.github/assets/Logo.png</code>,
+    <code>.github/workflows/prune-playgrounds.yml</code>, <code>scripts/prune-playgrounds-report.sh</code>.
+  </footer>
+</div>
+</body>
+</html>
