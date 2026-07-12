@@ -5,6 +5,29 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.70.0](https://github.com/yonatangross/orchestkit/compare/v8.69.1...v8.70.0) (2026-07-12)
+
+
+### Features
+
+* **auto:** reframe /ork:auto as the default front door ([#2849](https://github.com/yonatangross/orchestkit/issues/2849)) ([4d4c0e8](https://github.com/yonatangross/orchestkit/commit/4d4c0e8f22f9e1bbf5e035ac7ff6fb7bddbe5a56))
+
+
+### Bug Fixes
+
+* **hooks:** restore skill-usage analytics + agent-type attribution at SubagentStop ([#2850](https://github.com/yonatangross/orchestkit/issues/2850)) ([f2e0159](https://github.com/yonatangross/orchestkit/commit/f2e0159e7210ce87d2cba52db9b2d40fcb85e975))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.207) ([#2848](https://github.com/yonatangross/orchestkit/issues/2848)) ([a7d9678](https://github.com/yonatangross/orchestkit/commit/a7d96786074d0004bbfa8b6c00d413ca210e9195))
+* untrack 7.5MB build artifacts + local state, remove dead playgrounds/ ([#2845](https://github.com/yonatangross/orchestkit/issues/2845)) ([d2c724c](https://github.com/yonatangross/orchestkit/commit/d2c724ca2fec1fdb1a60c86ca89f380514715a69))
+
+
+### Documentation
+
+* add READMEs for the 4 convention-anchor dirs ([#2847](https://github.com/yonatangross/orchestkit/issues/2847)) ([154f9fb](https://github.com/yonatangross/orchestkit/commit/154f9fb6dd84e0f0b7f187ddd159e8617da80f48))
+
 ## [8.69.1](https://github.com/yonatangross/orchestkit/compare/v8.69.0...v8.69.1) (2026-07-11)
 
 
