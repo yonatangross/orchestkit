@@ -747,9 +747,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "auto": {
     "name": "auto",
-    "description": "Intent-classified router — the front door to OrchestKit. Takes a plain-English goal, classifies it into one intent category, and routes to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:brainstorm, /ork:implement, /ork:review-pr, /ork:verify, a /goal optimization loop, or the skill-evolution gate). Use when you describe a goal not a method, when the right skill is unclear, or when you want the agent to pick the approach. Triggers on: auto, do this, figure out, just make, get it to, I want, help me, not sure which.",
+    "description": "Intent-classified router — the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Takes a plain-English goal, classifies it into one intent category, and routes to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:brainstorm, /ork:implement, /ork:review-pr, /ork:verify, a /goal optimization loop, or the skill-evolution gate). A goal that maps unambiguously to one skill short-circuits straight to it — routing is never overhead, so use it even when you think you know the target skill. Skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, get it to, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "907f08824661740f85dd0ed56ab649f4686778e8cfc9de1b97c38531095320d0",
+    "sha256": "5fd0412da1b069e781d1586ad40d24e85de219fe6057f78912f00931541f0ba6",
     "author": "OrchestKit",
     "tags": [
       "router",

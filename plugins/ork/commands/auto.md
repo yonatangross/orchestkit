@@ -1,5 +1,5 @@
 ---
-description: "Intent-classified router — the front door to OrchestKit. Takes a plain-English goal, classifies it into one intent category, and routes to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:brainstorm, /ork:implement, /ork:review-pr, /ork:verify, a /goal optimization loop, or the skill-evolution gate). Use when you describe a goal not a method, when the right skill is unclear, or when you want the agent to pick the approach. Triggers on: auto, do this, figure out, just make, get it to, I want, help me, not sure which."
+description: "Intent-classified router — the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Takes a plain-English goal, classifies it into one intent category, and routes to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:brainstorm, /ork:implement, /ork:review-pr, /ork:verify, a /goal optimization loop, or the skill-evolution gate). A goal that maps unambiguously to one skill short-circuits straight to it — routing is never overhead, so use it even when you think you know the target skill. Skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, get it to, I want, help me, fix, build, improve, any goal description."
 allowed-tools: [AskUserQuestion, Read, Grep, Glob, Skill, Task]
 ---
 
@@ -15,13 +15,25 @@ The front door to OrchestKit. **You describe a goal in plain English; the router
 
 **Core principle:** routing is a *deterministic workflow*, not an autonomous agent (Anthropic, *Building Effective Agents*). Classify → confirm → hand off. The router never does the work itself — it picks who does.
 
-## When to use vs. go direct
+## When to use
 
-| Use `/ork:auto` when… | Go direct when… |
+**By default, for any goal-shaped request.** An unambiguous goal is a 1-step
+route: auto classifies, confirms in one line, and hands off — no extra hops,
+so there is no "too obvious for auto".
+
+| Use `/ork:auto` for… | Skip only when… |
 |---|---|
-| You describe a goal, not a method | You already know the skill (`/ork:cover`) |
-| The right skill isn't obvious | The request maps unambiguously to one |
-| You want the agent to choose | You're chaining a known workflow |
+| Any goal description ("fix X", "get Y to Z") | Already executing inside another skill (no recursion) |
+| The right skill isn't obvious | Chaining a known multi-skill workflow you're mid-way through |
+| You think you know the skill — auto confirms & short-circuits | |
+
+> **Design note (2026-07-12):** this table previously said "Go direct when you
+> already know the skill / the request maps unambiguously to one". That inverted
+> instruction made the front door structurally unreachable — a competent model
+> always believes it knows the target, so the router recorded near-zero
+> invocations across thousands of sessions (the exact dead-skill problem the
+> "Why this exists" note above describes). Routers must be framed as the
+> default path, not an escape hatch for confusion.
 
 ## Intent categories → OrchestKit skill
 

@@ -17,6 +17,41 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.69.1",
+    "date": "2026-07-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.207) ([#2839](https://github.com/yonatangross/orchestkit/issues/2839)) ([1031ff3](https://github.com/yonatangross/orchestkit/commit/1031ff388b4d16cada2dd86128a39e696bfdea59))",
+          "de-bloat logo + add playground-drift recurrence guard ([#2844](https://github.com/yonatangross/orchestkit/issues/2844)) ([8abd7d0](https://github.com/yonatangross/orchestkit/commit/8abd7d005a751a1529c35c30f272b221065db4c7))",
+          "prune 418 stale PR-playground dirs from main, add recurrence fix ([#2841](https://github.com/yonatangross/orchestkit/issues/2841)) ([a17c50b](https://github.com/yonatangross/orchestkit/commit/a17c50ba7bf2a434cf2349430669d9480e6eaf3f))",
+          "repo hygiene sweep — declutter root, untrack generated coverage ([#2840](https://github.com/yonatangross/orchestkit/issues/2840)) ([5c3acc7](https://github.com/yonatangross/orchestkit/commit/5c3acc79d300ae0b3983becc2c127e87d773d4d6))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.69.0",
+    "date": "2026-07-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**cc:** bump support floor 2.1.183 → 2.1.206 (renew strict pin) ([#2830](https://github.com/yonatangross/orchestkit/issues/2830)) ([10a2d30](https://github.com/yonatangross/orchestkit/commit/10a2d30e8fd4bfaaad45e385f7e3aa4eaa6afd32))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** re-architect InstructionsLoaded to real single-file payload ([#2832](https://github.com/yonatangross/orchestkit/issues/2832)) ([7061fcb](https://github.com/yonatangross/orchestkit/commit/7061fcb1a0d744301822b35e6ab97e099f8b318c)), closes [#2475](https://github.com/yonatangross/orchestkit/issues/2475)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.68.3",
     "date": "2026-07-10",
     "compareUrl": "",
