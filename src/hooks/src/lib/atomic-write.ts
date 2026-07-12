@@ -98,6 +98,14 @@ export function lockedAtomicWriteSync(
 ): boolean {
   const effectiveLockPath = lockPath || `${filePath}.lock`;
 
+  // Ensure the target directory exists BEFORE locking. acquireLock() creates the
+  // lock dir non-recursively (mkdirSync(lockPath)), so a missing parent throws
+  // ENOENT — and callers that wrap this in a silent try/catch (e.g. agent
+  // attribution's writeSessionState) then drop the write entirely. atomicWriteSync
+  // also mkdir's the parent, but only AFTER the lock is held — too late for the
+  // lock mkdir. Hoisting it here makes first-write-on-a-fresh-dir reliable.
+  mkdirSync(dirname(filePath), { recursive: true });
+
   if (!acquireLock(effectiveLockPath)) {
     logHook('atomic-write', `Failed to acquire lock for ${filePath}`, 'warn');
     return false;

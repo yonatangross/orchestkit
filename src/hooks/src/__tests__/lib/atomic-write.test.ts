@@ -309,6 +309,22 @@ describe('lockedAtomicWriteSync', () => {
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe('third');
   });
+
+  it('writes to a target whose parent directory does not yet exist', () => {
+    // Regression: acquireLock() mkdir's the lock dir non-recursively, so a
+    // missing parent used to throw ENOENT — and callers with a silent catch
+    // (agent-attribution session-state) dropped the write on a fresh project.
+    // The wrapper now ensures the parent exists before locking.
+    const filePath = path.join(tmpDir, 'brand', 'new', 'agents', 'session-state.json');
+    expect(fs.existsSync(path.dirname(filePath))).toBe(false);
+
+    const result = lockedAtomicWriteSync(filePath, '{"staged":true}');
+
+    expect(result).toBe(true);
+    expect(fs.readFileSync(filePath, 'utf8')).toBe('{"staged":true}');
+    // No lock artifact left behind.
+    expect(fs.existsSync(`${filePath}.lock`)).toBe(false);
+  });
 });
 
 describe('concurrent write protection', () => {
