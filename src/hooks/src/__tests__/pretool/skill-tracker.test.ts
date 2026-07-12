@@ -6,10 +6,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-const { mockAppendFileSync, mockRecordInvocation, mockRotateLogFile } = vi.hoisted(() => ({
+const { mockAppendFileSync, mockRecordInvocation, mockRotateLogFile, mockAppendAnalytics } = vi.hoisted(() => ({
   mockAppendFileSync: vi.fn(),
   mockRecordInvocation: vi.fn(),
   mockRotateLogFile: vi.fn(),
+  mockAppendAnalytics: vi.fn(),
 }));
 
 // Mock dependencies before imports
@@ -46,6 +47,14 @@ vi.mock('node:path', () => {
 // __tests__/lib/session-registry.test.ts (isolated via ORK_SESSION_DB).
 vi.mock('../../lib/session-registry.js', () => ({
   recordInvocation: (...args: unknown[]) => mockRecordInvocation(...args),
+}));
+
+// User-scoped analytics is mocked because the real appendAnalytics no-ops under
+// VITEST (isTestEnv guard) — mocking lets us assert the restored write (#2813).
+vi.mock('../../lib/analytics.js', () => ({
+  appendAnalytics: (...args: unknown[]) => mockAppendAnalytics(...args),
+  hashProject: vi.fn(() => 'hashed-pid'),
+  getTeamContext: vi.fn(() => undefined),
 }));
 
 import { skillTracker } from '../../pretool/skill/skill-tracker.js';
@@ -136,6 +145,28 @@ describe('skill-tracker', () => {
     );
 
     expect(mockRecordInvocation).not.toHaveBeenCalled();
+  });
+
+  it('writes a user-scoped skill-usage.jsonl analytics row (#2813 revival)', () => {
+    skillTracker(createSkillInput('unit-testing'), testCtx);
+
+    expect(mockAppendAnalytics).toHaveBeenCalledWith(
+      'skill-usage.jsonl',
+      expect.objectContaining({
+        skill: 'unit-testing',
+        pid: 'hashed-pid',
+        ts: expect.any(String),
+      }),
+    );
+  });
+
+  it('does not write skill-usage.jsonl when the skill name is empty', () => {
+    skillTracker(
+      { tool_name: 'Skill', session_id: 'test-session-123', project_dir: '/test/project', tool_input: {} },
+      testCtx,
+    );
+
+    expect(mockAppendAnalytics).not.toHaveBeenCalled();
   });
 
   it('rotates skill-usage.log before appending (unbounded-growth guard)', () => {

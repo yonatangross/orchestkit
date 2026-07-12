@@ -265,9 +265,15 @@ function recordCacheTokens(input: HookInput, ctx: HookContext): void {
  */
 function trackAgentResult(input: HookInput): void {
   try {
+    // Resolve file-based session context first (Issue #1195) — it also carries
+    // the subagent_type staged at SubagentStart (#245), which is the only source
+    // of the type for forks/background agents whose SubagentStop payload omits it.
+    const agentCtx = resolveAgentContext(input.agent_id || '');
+
     const agentType = input.tool_input?.subagent_type as string
       || input.subagent_type
       || input.agent_type
+      || agentCtx.type
       || 'unknown';
     const agentName = input.tool_input?.name as string || undefined;
     const success = !input.error;
@@ -318,9 +324,6 @@ function trackAgentResult(input: HookInput): void {
     const outputStr = typeof output === 'string' ? output : '';
     const summarySource = lastMsg.slice(0, 300) || outputStr.slice(0, 300) || promptSummary;
     const cleanSummary = summarySource.replace(/\n/g, ' ').trim() || agentType;
-
-    // Resolve agent context from file-based session state (Issue #1195)
-    const agentCtx = resolveAgentContext(input.agent_id || '');
 
     // Determine stage: first agent = lead, background = parallel, rest = follow-up
     const isBackground = !!(input.tool_input?.run_in_background);

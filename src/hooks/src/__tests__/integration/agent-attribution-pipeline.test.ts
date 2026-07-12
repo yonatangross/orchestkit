@@ -112,6 +112,26 @@ describe('Session State Pipeline', () => {
     expect(ctx.startMs).toBe(0);
   });
 
+  test('stages and resolves the agent type across the start→stop loop (#245)', () => {
+    recordAgentStart('agent-1', 'ork:test-generator');
+    const ctx = resolveAgentContext('agent-1');
+    expect(ctx.type).toBe('ork:test-generator');
+  });
+
+  test('resolveAgentContext cleans up the staged type entry (#245)', () => {
+    recordAgentStart('agent-1', 'ork:test-generator');
+    resolveAgentContext('agent-1');
+    const statePath = join(tmpDir, '.claude', 'agents', 'session-state.json');
+    const state = JSON.parse(readFileSync(statePath, 'utf8'));
+    expect(state.agent_types?.['agent-1']).toBeUndefined();
+  });
+
+  test('resolveAgentContext returns undefined type when none was staged (#245)', () => {
+    recordAgentStart('agent-1'); // no type arg
+    const ctx = resolveAgentContext('agent-1');
+    expect(ctx.type).toBeUndefined();
+  });
+
   test('duration calculation: start → stop gives positive duration', () => {
     recordAgentStart('agent-1');
     // Simulate some work time

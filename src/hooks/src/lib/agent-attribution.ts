@@ -34,7 +34,7 @@ function readSessionState(): SessionState {
     const path = getStatePath();
     if (existsSync(path)) return JSON.parse(readFileSync(path, 'utf8'));
   } catch { /* corrupt state — start fresh */ }
-  return { commit_base: '', agent_counter: 0, agent_starts: {} };
+  return { commit_base: '', agent_counter: 0, agent_starts: {}, agent_types: {} };
 }
 
 function writeSessionState(state: SessionState): void {
@@ -43,10 +43,20 @@ function writeSessionState(state: SessionState): void {
   } catch { /* attribution should never break hooks */ }
 }
 
-/** Record agent start time (called from SubagentStart hook). */
-export function recordAgentStart(agentId: string): void {
+/**
+ * Record agent start time + type (called from SubagentStart hook).
+ *
+ * `agentType` is staged here because the SubagentStop payload carries no
+ * subagent_type for forks/background agents — SubagentStart fires before
+ * SubagentStop for both, so this is the reliable capture point (#245).
+ */
+export function recordAgentStart(agentId: string, agentType?: string): void {
   const state = readSessionState();
   state.agent_starts[agentId] = Date.now();
+  if (agentType) {
+    state.agent_types ||= {};
+    state.agent_types[agentId] = agentType;
+  }
   if (!state.commit_base) {
     const head = gitExec(['rev-parse', 'HEAD']);
     if (head) state.commit_base = head;
@@ -54,16 +64,21 @@ export function recordAgentStart(agentId: string): void {
   writeSessionState(state);
 }
 
-/** Get agent context and increment counter (called from SubagentStop hook). */
-export function resolveAgentContext(agentId: string): { startMs: number; counter: number; commitBase: string } {
+/**
+ * Get agent context and increment counter (called from SubagentStop hook).
+ * Returns `type` when the SubagentStart hook staged it for this agent_id.
+ */
+export function resolveAgentContext(agentId: string): { startMs: number; counter: number; commitBase: string; type?: string } {
   const state = readSessionState();
   const startMs = state.agent_starts[agentId] || 0;
   const counter = state.agent_counter;
   const commitBase = state.commit_base;
+  const type = state.agent_types?.[agentId];
   state.agent_counter = counter + 1;
   delete state.agent_starts[agentId];
+  if (state.agent_types) delete state.agent_types[agentId];
   writeSessionState(state);
-  return { startMs, counter, commitBase };
+  return { startMs, counter, commitBase, type };
 }
 
 // -----------------------------------------------------------------------------

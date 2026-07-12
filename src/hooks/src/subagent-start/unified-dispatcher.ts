@@ -94,10 +94,13 @@ export function unifiedSubagentStartDispatcher(input: HookInput, ctx: HookContex
     ctx.log(HOOK_NAME, `context-gate failed: ${message}`, 'warn');
   }
 
-  // --- Phase 1b: Agent attribution setup (Issue #1195) ---
-  // Record start time + commit_base via file-based state (env vars don't persist across hook processes)
+  // --- Phase 1b: Agent attribution setup (Issue #1195, #245) ---
+  // Record start time + commit_base via file-based state (env vars don't persist across hook processes).
+  // Also stage the agent type: SubagentStop carries no subagent_type for forks/background agents, so we
+  // capture it here (SubagentStart fires before SubagentStop) for the SubagentStop analytics writer.
   if (input.agent_id) {
-    try { recordAgentStart(input.agent_id); } catch { /* non-critical */ }
+    const agentType = (input.tool_input?.subagent_type as string) || input.agent_type || '';
+    try { recordAgentStart(input.agent_id, agentType || undefined); } catch { /* non-critical */ }
   }
 
   // --- Phase 2: Validation + tracking (subagent-validator) ---

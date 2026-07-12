@@ -19,6 +19,7 @@ import { join, dirname } from 'node:path';
 import { NOOP_CTX } from '../../lib/context.js';
 import { recordInvocation } from '../../lib/session-registry.js';
 import { recordSkillChannel } from '../../lib/skill-channels.js';
+import { appendAnalytics, hashProject, getTeamContext } from '../../lib/analytics.js';
 
 // Re-enabled 2026-07-09 after ~4 months dead (#959 dropped its dispatch) — cap
 // growth up front rather than let it silently reach the size that flagged the
@@ -79,6 +80,18 @@ export function skillTracker(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
   // (user-direct or assistant-chained — indistinguishable here, so tagged
   // "main"). The subagent channel is captured separately at SubagentStop.
   recordSkillChannel(projectDir, { skill: skillName, channel: 'main', sessionId: input.session_id });
+
+  // User-scoped cross-project analytics (~/.claude/analytics/skill-usage.jsonl).
+  // Restored here after the #959 hooks.json rework dropped this hook's dispatch
+  // (#2813 revived the dispatch but not this write), leaving the file dead since
+  // 2026-06-21. Schema `{ ts, pid, skill, team? }` matches skills/analytics
+  // (data-locations.md) + the telemetry-http-sink OrkSkillUsage allowlist.
+  appendAnalytics('skill-usage.jsonl', {
+    ts: timestamp,
+    pid: hashProject(process.env.CLAUDE_PROJECT_DIR || projectDir || ''),
+    skill: skillName,
+    ...getTeamContext(),
+  });
 
   ctx.log('skill-tracker', `Skill usage logged for ${skillName}`);
 

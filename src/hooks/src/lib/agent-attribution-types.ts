@@ -10,6 +10,9 @@ export interface SessionState {
   commit_base: string;
   agent_counter: number;
   agent_starts: Record<string, number>; // agent_id → start timestamp
+  // agent_id → subagent_type, staged at SubagentStart because the SubagentStop
+  // payload carries no type for forks/background agents (#245 24% "unknown").
+  agent_types?: Record<string, string>;
 }
 
 export interface LedgerEntry {

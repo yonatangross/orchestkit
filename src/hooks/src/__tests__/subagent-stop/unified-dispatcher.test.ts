@@ -28,6 +28,13 @@ vi.mock('../../lib/analytics.js', () => ({
   getTeamContext: vi.fn(() => undefined),
 }));
 
+// Mock the file-based attribution lib so resolveAgentContext returns a
+// controllable staged type (#245) without touching the real session-state.json.
+vi.mock('../../lib/agent-attribution.js', () => ({
+  resolveAgentContext: vi.fn(() => ({ startMs: 0, counter: 0, commitBase: '', type: undefined })),
+  appendLedgerEntry: vi.fn(),
+}));
+
 // Mock the individual hooks that the dispatcher calls — after #897: 2 hooks
 vi.mock('../../subagent-stop/handoff-preparer.js', () => ({
   handoffPreparer: vi.fn(() => ({ continue: true, suppressOutput: true })),
@@ -40,6 +47,7 @@ vi.mock('../../subagent-stop/feedback-loop.js', () => ({
 import { unifiedSubagentStopDispatcher, registeredHookNames } from '../../subagent-stop/unified-dispatcher.js';
 import { trackEvent } from '../../lib/session-tracker.js';
 import { appendAnalytics } from '../../lib/analytics.js';
+import { resolveAgentContext } from '../../lib/agent-attribution.js';
 import { handoffPreparer } from '../../subagent-stop/handoff-preparer.js';
 import { feedbackLoop } from '../../subagent-stop/feedback-loop.js';
 import { createTestContext } from '../fixtures/test-context.js';
@@ -648,6 +656,76 @@ describe('unified-subagent-stop-dispatcher', () => {
           agent: 'general-purpose',
           agent_name: null,
         })
+      );
+    });
+
+    test('falls back to the SubagentStart-staged type when the stop payload omits it (#245)', async () => {
+      // Arrange — reproduce the fork/background case: no type anywhere in the
+      // stop payload, but SubagentStart staged it keyed by agent_id.
+      vi.mocked(trackEvent).mockReset();
+      vi.mocked(resolveAgentContext).mockReturnValueOnce({
+        startMs: 0, counter: 0, commitBase: '', type: 'ork:test-generator',
+      });
+      const input = createSubagentStopInput({
+        tool_input: {},
+        subagent_type: undefined,
+        agent_type: undefined,
+        agent_id: 'agent-staged-1',
+      });
+
+      // Act
+      await unifiedSubagentStopDispatcher(input, testCtx);
+
+      // Assert — attributed instead of 'unknown', across both writers.
+      expect(trackEvent).toHaveBeenCalledWith(
+        'agent_spawned',
+        'ork:test-generator',
+        expect.any(Object),
+      );
+      expect(appendAnalytics).toHaveBeenCalledWith(
+        'agent-usage.jsonl',
+        expect.objectContaining({ agent: 'ork:test-generator' }),
+      );
+    });
+
+    test('inline payload type wins over the staged type', async () => {
+      // Arrange — when the stop payload DOES carry the type, prefer it.
+      vi.mocked(trackEvent).mockReset();
+      vi.mocked(resolveAgentContext).mockReturnValueOnce({
+        startMs: 0, counter: 0, commitBase: '', type: 'staged-loser',
+      });
+      const input = createSubagentStopInput({
+        tool_input: { subagent_type: 'inline-winner' },
+      });
+
+      // Act
+      await unifiedSubagentStopDispatcher(input, testCtx);
+
+      // Assert
+      expect(trackEvent).toHaveBeenCalledWith(
+        'agent_spawned',
+        'inline-winner',
+        expect.any(Object),
+      );
+    });
+
+    test('still resolves to unknown when neither payload nor staged type exist', async () => {
+      // Arrange — default mock returns type: undefined.
+      vi.mocked(trackEvent).mockReset();
+      const input = createSubagentStopInput({
+        tool_input: {},
+        subagent_type: undefined,
+        agent_type: undefined,
+      });
+
+      // Act
+      await unifiedSubagentStopDispatcher(input, testCtx);
+
+      // Assert
+      expect(trackEvent).toHaveBeenCalledWith(
+        'agent_spawned',
+        'unknown',
+        expect.any(Object),
       );
     });
   });

@@ -141,9 +141,26 @@ describe('unified-subagent-start-dispatcher', () => {
   });
 
   describe('agent attribution', () => {
-    test('records agent start when agent_id present', () => {
+    test('records agent start with staged type from tool_input.subagent_type (#245)', () => {
       unifiedSubagentStartDispatcher(input({ agent_id: 'agent-abc123' }), testCtx);
-      expect(recordAgentStart).toHaveBeenCalledWith('agent-abc123');
+      // Type is staged so SubagentStop can attribute forks/background agents.
+      expect(recordAgentStart).toHaveBeenCalledWith('agent-abc123', 'ork:test-generator');
+    });
+
+    test('falls back to top-level agent_type when tool_input.subagent_type absent', () => {
+      unifiedSubagentStartDispatcher(
+        input({ agent_id: 'agent-xyz', tool_input: {}, agent_type: 'debug-investigator' }),
+        testCtx,
+      );
+      expect(recordAgentStart).toHaveBeenCalledWith('agent-xyz', 'debug-investigator');
+    });
+
+    test('records start with undefined type when no type available', () => {
+      unifiedSubagentStartDispatcher(
+        input({ agent_id: 'agent-notype', tool_input: {}, agent_type: undefined }),
+        testCtx,
+      );
+      expect(recordAgentStart).toHaveBeenCalledWith('agent-notype', undefined);
     });
 
     test('skips attribution when no agent_id', () => {
