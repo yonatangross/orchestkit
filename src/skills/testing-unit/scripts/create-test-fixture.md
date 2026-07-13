@@ -2,7 +2,7 @@
 name: create-test-fixture
 description: Create pytest fixture with auto-detected existing fixtures. Use when creating test fixtures.
 user-invocable: false
-argument-hint: [fixture-name]
+argument-hint: "[fixture-name]"
 ---
 
 Create pytest fixture: $ARGUMENTS

@@ -17,13 +17,13 @@
 		"@orama/orama": "^3.1.18",
 		"@vercel/analytics": "^2.0.1",
 		"@vercel/speed-insights": "^2.0.0",
-		"@xyflow/react": "^12.11.1",
+		"@xyflow/react": "^12.11.2",
 		"@yonatan-hq/analytics": "^1.0.3",
 		"esbuild": "^0.28.1",
-		"fumadocs-core": "^16.10.7",
-		"fumadocs-mdx": "^15.0.13",
-		"fumadocs-ui": "^16.10.7",
-		"lucide-react": "^1.23.0",
+		"fumadocs-core": "^16.11.3",
+		"fumadocs-mdx": "^15.1.0",
+		"fumadocs-ui": "^16.11.3",
+		"lucide-react": "^1.24.0",
 		"next": "^16.2.10",
 		"react": "^19.2.7",
 		"react-dom": "^19.2.7"
@@ -34,7 +34,7 @@
 		"@tailwindcss/postcss": "^4.3.2",
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/react": "^16.3.2",
-		"@types/node": "^26.1.0",
+		"@types/node": "^26.1.1",
 		"@types/react": "^19.2.17",
 		"@types/react-dom": "^19.0.0",
 		"@vitejs/plugin-react": "^6.0.3",
@@ -42,11 +42,11 @@
 		"agentation-mcp": "^1.2.0",
 		"happy-dom": "^20.10.6",
 		"magic-string": "^0.30.21",
-		"postcss": "^8.5.16",
+		"postcss": "^8.5.18",
 		"remark-gfm": "^4.0.1",
 		"tailwindcss": "^4.0.0",
 		"typescript": "^6.0.3",
-		"vitest": "^4.1.9"
+		"vitest": "^4.1.10"
 	},
 	"optionalDependencies": {
 		"@esbuild/darwin-x64": "^0.28.0"
