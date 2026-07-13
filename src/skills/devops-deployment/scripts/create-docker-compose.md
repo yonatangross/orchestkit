@@ -2,7 +2,7 @@
 name: create-docker-compose
 description: Create Docker Compose configuration with auto-detected services. Use when setting up local development environment.
 user-invocable: false
-argument-hint: [project-name]
+argument-hint: "[project-name]"
 ---
 
 Create Docker Compose: $ARGUMENTS

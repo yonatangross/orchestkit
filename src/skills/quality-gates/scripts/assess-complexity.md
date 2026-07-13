@@ -2,7 +2,7 @@
 name: assess-complexity
 description: Assess task complexity with auto-analyzed codebase context. Use when evaluating task difficulty before starting work.
 user-invocable: false
-argument-hint: [file-or-directory]
+argument-hint: "[file-or-directory]"
 ---
 
 Assess complexity for: $ARGUMENTS

@@ -164,6 +164,23 @@ else
     fail "argument-hint: $hint_count/$invocable_count have hints. Missing:$missing_hints"
 fi
 
+# --- Test 4b: argument-hint values must be quoted strings ---
+# Bare brackets (argument-hint: [foo]) parse as a YAML flow sequence, not a
+# string. Claude Code renders the accidental array leniently, but strict
+# loaders (GitHub Copilot CLI >= 1.0.65, VS Code Agent Skills) validate the
+# field as str and silently drop the skill. Multi-token bare values
+# ([number] [title]) are not even valid YAML. Regression guard for PR #2864.
+echo -e "\n${CYAN}Test 4b: argument-hint YAML Quoting${NC}"
+
+# grep exits 1 when no files match — that is the pass case here  # silent: known-noise
+unquoted_hints=$(grep -rln --include='*.md' -E '^argument-hint:[[:space:]]*\[' "$SKILLS_DIR" || true)
+
+if [[ -z "$unquoted_hints" ]]; then
+    pass "argument-hint: no unquoted flow-sequence values"
+else
+    fail "argument-hint: unquoted [bracket] values (wrap in double quotes): $(echo "$unquoted_hints" | tr '\n' ' ')"
+fi
+
 # --- Test 5: disable-model-invocation balance ---
 echo -e "\n${CYAN}Test 5: Skill Listing Balance${NC}"
 
