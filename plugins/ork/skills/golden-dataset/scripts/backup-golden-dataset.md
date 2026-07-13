@@ -2,7 +2,7 @@
 name: backup-golden-dataset
 description: Backup golden dataset with timestamped filename. Use when backing up test datasets.
 user-invocable: false
-argument-hint: [dataset-name]
+argument-hint: "[dataset-name]"
 ---
 
 Backup golden dataset: $ARGUMENTS

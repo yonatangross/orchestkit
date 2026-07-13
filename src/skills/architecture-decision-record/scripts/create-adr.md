@@ -2,7 +2,7 @@
 name: create-adr
 description: Create an Architecture Decision Record with auto-filled context. Use when documenting architectural decisions.
 user-invocable: false
-argument-hint: [number] [title]
+argument-hint: "[number] [title]"
 ---
 
 Create ADR $ARGUMENTS

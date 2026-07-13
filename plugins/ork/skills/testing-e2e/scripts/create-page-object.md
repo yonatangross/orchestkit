@@ -2,7 +2,7 @@
 name: create-page-object
 description: Create Playwright page object with auto-detected existing patterns. Use when creating E2E test page objects.
 user-invocable: false
-argument-hint: [page-name]
+argument-hint: "[page-name]"
 ---
 
 Create page object: $ARGUMENTS
