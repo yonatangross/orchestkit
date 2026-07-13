@@ -2,7 +2,7 @@
 name: create-release
 description: Create a GitHub release with auto-detected version and changelog. Use when creating new releases.
 user-invocable: false
-argument-hint: [version]
+argument-hint: "[version]"
 allowed-tools: Bash, Read, Grep, Glob
 ---
 
