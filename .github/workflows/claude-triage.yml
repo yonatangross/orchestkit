@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
         with:
           persist-credentials: false
-      - uses: anthropics/claude-code-action@558b1d6cab4085c7753fe402c10bef0fbb92ac7a  # v1
+      - uses: anthropics/claude-code-action@e90deca47693f9457b72f2b53c17d7c445a87342  # v1
         with:
           # Auth via the Max-plan OAuth token (CLAUDE_CODE_OAUTH_TOKEN) instead of
           # metered console credits — $0 spend. Rotate with `claude setup-token`
