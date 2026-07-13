@@ -103,8 +103,9 @@ describe('Crypto Utilities', () => {
     it('truncates strings longer than 500 chars', () => {
       const longString = 'x'.repeat(600);
       const result = sanitizePayload({ content: longString });
-      expect((result?.content as string).length).toBeLessThanOrEqual(500);
-      expect((result?.content as string).endsWith('...')).toBe(true);
+      const content = result?.content as string;
+      expect(content.length).toBeLessThanOrEqual(500);
+      expect(content.endsWith('...')).toBe(true);
     });
 
     it('does not truncate strings at exactly 500 chars', () => {
