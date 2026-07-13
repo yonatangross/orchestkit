@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.70.1](https://github.com/yonatangross/orchestkit/compare/v8.70.0...v8.70.1) (2026-07-13)
+
+
+### Bug Fixes
+
+* quote argument-hint YAML values so Copilot CLI ≥1.0.65 loads all skills (closes [#2863](https://github.com/yonatangross/orchestkit/issues/2863)) ([#2864](https://github.com/yonatangross/orchestkit/issues/2864)) ([4d7d2d0](https://github.com/yonatangross/orchestkit/commit/4d7d2d051e32a4f320ac32f24d18a74a4918c0e6))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/node ([#2851](https://github.com/yonatangross/orchestkit/issues/2851)) ([b8e9a9f](https://github.com/yonatangross/orchestkit/commit/b8e9a9f2dbb2003b40e9727fad5efe2eeb1d8ca2))
+
+
+### CI/CD
+
+* add argument-hint quoting lint, skip fork PR report comment ([#2865](https://github.com/yonatangross/orchestkit/issues/2865)) ([fc8c8ed](https://github.com/yonatangross/orchestkit/commit/fc8c8edc4f3f678c590c5a4ddcb6cb549a998b2f))
+
 ## [8.70.0](https://github.com/yonatangross/orchestkit/compare/v8.69.1...v8.70.0) (2026-07-12)
 
 
