@@ -2,7 +2,7 @@
 name: create-msw-handler
 description: Create MSW handler with auto-detected existing handlers and endpoints. Use when creating API mocks.
 user-invocable: false
-argument-hint: [endpoint-path]
+argument-hint: "[endpoint-path]"
 ---
 
 Create MSW handler for: $ARGUMENTS
