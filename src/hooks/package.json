@@ -33,7 +33,7 @@
     "@vitest/coverage-v8": "^4.1.10",
     "esbuild": "^0.28.0",
     "fast-check": "^4.9.0",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "vitest": "^4.0.18"
   },
   "keywords": [
