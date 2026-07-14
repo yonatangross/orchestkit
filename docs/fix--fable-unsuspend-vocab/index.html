@@ -1,0 +1,21 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fable 5 vocab un-suspend</title><style>
+:root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--green:#3fb950;--red:#f85149;--amber:#d29922;--mono:"SF Mono",ui-monospace,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;padding:2rem 1rem;background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif;display:flex;justify-content:center}
+main{max-width:760px;width:100%}h1{font-size:1.3rem;margin:0 0 .3rem}.sub{color:var(--muted);margin:0 0 1.4rem}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1rem}
+.card h2{font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 .6rem}
+.before{border-left:3px solid var(--red);padding-left:.7rem;color:var(--muted);text-decoration:line-through;font-size:.86rem;margin:.4rem 0}
+.after{border-left:3px solid var(--green);padding-left:.7rem;font-size:.86rem;margin:.4rem 0}
+code{font-family:var(--mono);background:rgba(110,118,129,.2);padding:.1em .35em;border-radius:4px;font-size:.9em}
+.foot{color:var(--muted);font-size:.8rem;margin-top:1.4rem;line-height:1.5}</style></head><body><main>
+<h1>Fable 5 vocab un-suspend cleanup</h1>
+<p class="sub">#2435 closed as not-planned — its "suspend when permanent" trigger is dead (Fable 5 is GA). But the docs still said the opposite. This flips 3 source files (+ regenerated mirrors) to the correct current status.</p>
+<div class="card"><h2>models.vocab.json $comment</h2>
+<div class="before">"claude-fable-5 access is SUSPENDED for all customers per a US export-control directive — do NOT recommend or pin it… kept DORMANT… demote deferred until suspension is confirmed permanent"</div>
+<div class="after">"claude-fable-5 is GENERALLY AVAILABLE — Anthropic's frontier tier above Opus… no structural demote needed. Premium pricing; must NOT be auto-pinned — the fable-spend-consent gate requires explicit user consent"</div></div>
+<div class="card"><h2>multimodal-llm + upgrade-assessment skills</h2>
+<div class="before">"claude-fable-5 is unavailable — Anthropic suspended access… do not pin or recommend"</div>
+<div class="after">"claude-fable-5 is the frontier tier above Opus (GA 2026-07) — premium cost, use only with explicit consent via the fable-spend-consent gate"</div></div>
+<p class="foot">The <code>fable-spend-consent.ts</code> pretool gate is the real guardrail (not availability) — it blocks auto-pinning Fable and requires explicit user consent before any premium spend. Vocab structure was already correct (fable in shortNames/aliases/fullIds); only the prose was backwards. Vocab lint: 146 model-ID tokens still pass.</p>
+</main></body></html>

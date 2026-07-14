@@ -31,7 +31,7 @@ Integrate vision, audio, and video generation capabilities from leading multimod
 >
 > | Provider | Model IDs |
 > |----------|-----------|
-> | Anthropic | `claude-opus-4-8` (recommended — 2,576 px budget, production default), `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001`. `claude-fable-5` is **unavailable** — Anthropic suspended access for all customers per a US export-control directive (2026-06-12); do not pin or recommend it |
+> | Anthropic | `claude-opus-4-8` (recommended — 2,576 px budget, production default), `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001`. `claude-fable-5` is Anthropic's **frontier tier above Opus** (GA 2026-07). Premium cost — never auto-pin it; the fable-spend-consent gate requires explicit user consent before any Fable spend |
 > | OpenAI    | `gpt-5.5` (current flagship) |
 > | Google    | `gemini-3.1-pro-preview` (flagship), `gemini-3.1-flash-lite-preview` (cost) |
 > | Veo       | `veo-3.1-generate-preview` / `veo-3.1-lite-generate-preview` / `veo-3.1-fast-generate-preview` |
@@ -130,7 +130,7 @@ Generate multi-scene videos with consistent characters using storyboarding and c
 
 | Decision | Recommendation |
 |----------|----------------|
-| High accuracy vision | `claude-opus-4-8` (production default — 2,576 px vision budget, 3× what Opus 4.6 allotted). (`claude-fable-5` was the SOTA option but access is suspended for all customers per a US export-control directive, 2026-06-12 — unavailable) |
+| High accuracy vision | `claude-opus-4-8` (production default — 2,576 px vision budget, 3× what Opus 4.6 allotted). (`claude-fable-5` is the frontier SOTA option, GA 2026-07 — premium cost, use only with explicit consent via the fable-spend-consent gate) |
 | Long documents | `gemini-3.1-pro-preview` (1M+ context) |
 | Cost-efficient vision | `gemini-3.1-flash-lite-preview` (**replaces Gemini 2.5 Flash**, deprecates Oct 2026) |
 | Video analysis | `gemini-3.1-pro-preview` (native video, supersedes 2.5 Pro) |

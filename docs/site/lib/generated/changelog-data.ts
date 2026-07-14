@@ -17,6 +17,114 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.71.0",
+    "date": "2026-07-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**loop-gates:** harden streak + cross-model gates, review holdout labels (M161) ([#2873](https://github.com/yonatangross/orchestkit/issues/2873)) ([a470f19](https://github.com/yonatangross/orchestkit/commit/a470f19ba70fedfe8488688f01a87d0bd9f53902))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** ORK_NO_NOTIFY opt-out + playground-warner opt-in-by-detection ([#2876](https://github.com/yonatangross/orchestkit/issues/2876)) ([f5ef746](https://github.com/yonatangross/orchestkit/commit/f5ef74635580f482249556d4fde5c66c46aa4889))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.70.3",
+    "date": "2026-07-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc:** reconcile 7 auto-filed 2.1.207-208 adoption issues ([#2871](https://github.com/yonatangross/orchestkit/issues/2871)) ([ab3282d](https://github.com/yonatangross/orchestkit/commit/ab3282d3e32a205c357ec802d901a8c290a1e17f))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.70.2",
+    "date": "2026-07-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.208) ([#2867](https://github.com/yonatangross/orchestkit/issues/2867)) ([9d8942a](https://github.com/yonatangross/orchestkit/commit/9d8942a90aeedfe678caad1abfb89b5483fd54a4))",
+          "**cc:** advance latest_known 2.1.206 → 2.1.208 (soft, floor frozen) ([#2870](https://github.com/yonatangross/orchestkit/issues/2870)) ([90996b5](https://github.com/yonatangross/orchestkit/commit/90996b56aa657b7c50f901182909851210f828d7))",
+          "**deps-dev:** adopt TypeScript 7.0.2 across remaining 4 trees ([#2869](https://github.com/yonatangross/orchestkit/issues/2869)) ([9266f8a](https://github.com/yonatangross/orchestkit/commit/9266f8a6e1b71fde3519fd8838ed52dd1c9895ba))",
+          "**deps-dev:** bump @types/node in the npm-minor-patch group ([#2853](https://github.com/yonatangross/orchestkit/issues/2853)) ([df87ef1](https://github.com/yonatangross/orchestkit/commit/df87ef1d5ab3d6d4e1e75a63719211409084aba4))",
+          "**deps-dev:** bump the npm-minor-patch group in /src/hooks with 5 updates ([#2855](https://github.com/yonatangross/orchestkit/issues/2855)) ([795deb6](https://github.com/yonatangross/orchestkit/commit/795deb66297cfe7a70b82142bdda58ad1ce68bf2))",
+          "**deps-dev:** bump typescript from 6.0.3 to 7.0.2 in /src/hooks ([#2856](https://github.com/yonatangross/orchestkit/issues/2856)) ([a57d266](https://github.com/yonatangross/orchestkit/commit/a57d2665c1e29fe08bad333fd7102026fa0eb65a))",
+          "**deps:** bump the npm-minor-patch group ([#2860](https://github.com/yonatangross/orchestkit/issues/2860)) ([cba8842](https://github.com/yonatangross/orchestkit/commit/cba88426e73926fa5f3a8fe8ba134ef7667e67fc))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.70.1",
+    "date": "2026-07-13",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "quote argument-hint YAML values so Copilot CLI ≥1.0.65 loads all skills (closes [#2863](https://github.com/yonatangross/orchestkit/issues/2863)) ([#2864](https://github.com/yonatangross/orchestkit/issues/2864)) ([4d7d2d0](https://github.com/yonatangross/orchestkit/commit/4d7d2d051e32a4f320ac32f24d18a74a4918c0e6))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**deps-dev:** bump @types/node ([#2851](https://github.com/yonatangross/orchestkit/issues/2851)) ([b8e9a9f](https://github.com/yonatangross/orchestkit/commit/b8e9a9f2dbb2003b40e9727fad5efe2eeb1d8ca2))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "add argument-hint quoting lint, skip fork PR report comment ([#2865](https://github.com/yonatangross/orchestkit/issues/2865)) ([fc8c8ed](https://github.com/yonatangross/orchestkit/commit/fc8c8edc4f3f678c590c5a4ddcb6cb549a998b2f))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.70.0",
+    "date": "2026-07-12",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**auto:** reframe /ork:auto as the default front door ([#2849](https://github.com/yonatangross/orchestkit/issues/2849)) ([4d4c0e8](https://github.com/yonatangross/orchestkit/commit/4d4c0e8f22f9e1bbf5e035ac7ff6fb7bddbe5a56))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** restore skill-usage analytics + agent-type attribution at SubagentStop ([#2850](https://github.com/yonatangross/orchestkit/issues/2850)) ([f2e0159](https://github.com/yonatangross/orchestkit/commit/f2e0159e7210ce87d2cba52db9b2d40fcb85e975))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.207) ([#2848](https://github.com/yonatangross/orchestkit/issues/2848)) ([a7d9678](https://github.com/yonatangross/orchestkit/commit/a7d96786074d0004bbfa8b6c00d413ca210e9195))",
+          "untrack 7.5MB build artifacts + local state, remove dead playgrounds/ ([#2845](https://github.com/yonatangross/orchestkit/issues/2845)) ([d2c724c](https://github.com/yonatangross/orchestkit/commit/d2c724ca2fec1fdb1a60c86ca89f380514715a69))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "add READMEs for the 4 convention-anchor dirs ([#2847](https://github.com/yonatangross/orchestkit/issues/2847)) ([154f9fb](https://github.com/yonatangross/orchestkit/commit/154f9fb6dd84e0f0b7f187ddd159e8617da80f48))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.69.1",
     "date": "2026-07-11",
     "compareUrl": "",
