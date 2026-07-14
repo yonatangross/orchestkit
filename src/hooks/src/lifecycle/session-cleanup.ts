@@ -5,9 +5,10 @@
  * Hook: SessionEnd
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync, copyFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync, copyFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
+import { stateRootDir } from '../lib/session-state.js';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, outputSilentSuccess } from '../lib/common.js';
 import { cleanupTeam } from '../lib/agent-teams.js';
@@ -296,6 +297,25 @@ export function sessionCleanup(input: HookInput, ctx: HookContext = NOOP_CTX): H
       ctx.log('session-cleanup', `Evicted ${gc.removed}/${gc.scanned} expired headroom stash(es)`);
     }
   } catch { /* never block cleanup on GC */ }
+
+  // #2561: evict stale team-spawn ledgers (TTL 6h). The fan-out gate writes one
+  // small session-scoped counter per session under state/team-spawns/; sweep old
+  // ones so they don't accumulate. Best-effort — never block cleanup.
+  try {
+    const spawnDir = join(stateRootDir(), 'team-spawns');
+    if (existsSync(spawnDir)) {
+      const cutoff = Date.now() - 6 * 60 * 60 * 1000;
+      let removed = 0;
+      for (const f of readdirSync(spawnDir)) {
+        if (!f.endsWith('.json')) continue;
+        const fp = join(spawnDir, f);
+        try {
+          if (statSync(fp).mtimeMs < cutoff) { unlinkSync(fp); removed++; }
+        } catch { /* per-file */ }
+      }
+      if (removed > 0) ctx.log('session-cleanup', `Evicted ${removed} stale team-spawn ledger(s)`);
+    }
+  } catch { /* never block cleanup */ }
 
   // Clean up team directories if this session was a team lead
   const teamName = process.env.CLAUDE_CODE_TEAM_NAME;
