@@ -11,25 +11,12 @@ export * from '../lib/common.js';
 export * from '../lib/git.js';
 
 // PostTool hooks - Root (11)
-import { auditLogger } from '../posttool/audit-logger.js';
-import { unifiedErrorHandler } from '../posttool/unified-error-handler.js';
-import { realtimeSync } from '../posttool/realtime-sync.js';
-import { userTracking } from '../posttool/user-tracking.js';
-import { sessionMetrics } from '../posttool/session-metrics.js';
-import { skillEditTracker } from '../posttool/skill-edit-tracker.js';
-import { dirtyFileTracker } from '../posttool/dirty-file-tracker.js';
-import { unifiedDispatcher } from '../posttool/unified-dispatcher.js';
 
 // PostTool/Write hooks (4) — #922: removed dead entries; #1280 added stale-import-detector; debt-marker-tracker added
-import { codeStyleLearner } from '../posttool/write/code-style-learner.js';
-import { namingConventionLearner } from '../posttool/write/naming-convention-learner.js';
 import { staleImportDetector } from '../posttool/write/stale-import-detector.js';
 import { editHistoryTracker } from '../posttool/write/edit-history-tracker.js';
 import { debtMarkerTracker } from '../posttool/write/debt-marker-tracker.js';
 // PostTool/Bash hooks (4) — #1436 added gh-rate-limit-tracker
-import { issueProgressCommenter } from '../posttool/bash/issue-progress-commenter.js';
-import { issueSubtaskUpdater } from '../posttool/bash/issue-subtask-updater.js';
-import { patternExtractor } from '../posttool/bash/pattern-extractor.js';
 import { ghRateLimitTracker } from '../posttool/bash/gh-rate-limit-tracker.js';
 // #1885 — cross-session state bus publisher
 import { sessionHeartbeatPublisher } from '../posttool/bash/session-heartbeat-publisher.js';
@@ -39,7 +26,6 @@ import { heartbeat as sessionHeartbeat } from '../posttool/heartbeat.js';
 import { chainStalenessChecker } from '../posttool/chain-staleness-checker.js';
 
 // PostTool/Skill hooks (1)
-import { skillUsageOptimizer } from '../posttool/skill/skill-usage-optimizer.js';
 
 // PostTool/Expect hooks (1) — fingerprint auto-save (#1191)
 import { fingerprintSaver } from '../posttool/expect/fingerprint-saver.js';
@@ -55,7 +41,6 @@ import { agentTaskAutoRegister } from '../posttool/task/agent-task-auto-register
 import { failureHandler } from '../posttool/failure-handler.js';
 
 // Intelligent Decision Capture System
-import { toolPreferenceLearner } from '../posttool/tool-preference-learner.js';
 
 // MCP output transformation (CC 2.1.89)
 import { mcpOutputTransform } from '../posttool/mcp-output-transform.js';
@@ -91,29 +76,16 @@ import type { HookFn } from '../types.js';
  */
 export const hooks: Record<string, HookFn> = {
   // PostTool hooks - Root (10)
-  'posttool/audit-logger': auditLogger,
-  'posttool/unified-error-handler': unifiedErrorHandler,
-  'posttool/realtime-sync': realtimeSync,
-  'posttool/user-tracking': userTracking,
-  'posttool/session-metrics': sessionMetrics,
-  'posttool/skill-edit-tracker': skillEditTracker,
-  'posttool/dirty-file-tracker': dirtyFileTracker,
-  'posttool/unified-dispatcher': unifiedDispatcher,
   'posttool/metrics-bridge': metricsBridge,
   'posttool/context-crossing-warn': contextCrossingWarn,
   'posttool/metrics-dispatcher': metricsDispatcher,
 
   // PostTool/Write hooks (4) — #922 removed coverage-predictor/readme-sync; #1280 added stale-import-detector; debt-marker-tracker added
-  'posttool/write/code-style-learner': codeStyleLearner,
-  'posttool/write/naming-convention-learner': namingConventionLearner,
   'posttool/write/stale-import-detector': staleImportDetector,
   'posttool/write/edit-history-tracker': editHistoryTracker,
   'posttool/write/debt-marker-tracker': debtMarkerTracker,
 
   // PostTool/Bash hooks (4) — #1436 added gh-rate-limit-tracker
-  'posttool/bash/issue-progress-commenter': issueProgressCommenter,
-  'posttool/bash/issue-subtask-updater': issueSubtaskUpdater,
-  'posttool/bash/pattern-extractor': patternExtractor,
   'posttool/bash/gh-rate-limit-tracker': ghRateLimitTracker,
   // #1885 — publishes structural git/gh events to cross-session state bus
   'posttool/bash/session-heartbeat-publisher': sessionHeartbeatPublisher,
@@ -123,7 +95,6 @@ export const hooks: Record<string, HookFn> = {
   'posttool/chain-staleness-checker': chainStalenessChecker,
 
   // PostTool/Skill hooks (1)
-  'posttool/skill/skill-usage-optimizer': skillUsageOptimizer,
 
   // PostTool/Expect hooks (1) — fingerprint auto-save (#1191)
   'posttool/expect/fingerprint-saver': fingerprintSaver,
@@ -139,7 +110,6 @@ export const hooks: Record<string, HookFn> = {
   'posttool/failure-handler': failureHandler,
 
   // Intelligent Decision Capture System
-  'posttool/tool-preference-learner': toolPreferenceLearner,
 
   // MCP output transformation (CC 2.1.89)
   'posttool/mcp-output-transform': mcpOutputTransform,

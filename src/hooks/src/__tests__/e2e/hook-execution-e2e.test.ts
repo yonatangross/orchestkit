@@ -76,12 +76,9 @@ vi.mock('node:fs', async () => {
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 
-import {
-  unifiedDispatcher,
-  registeredHookNames as posttoolHookNames,
-  registeredHookMatchers,
-  matchesTool,
-} from '../../posttool/unified-dispatcher.js';
+// Dead-hook triage (#2561): the legacy posttool/unified-dispatcher was deleted
+// (flattened into per-hook async entries in hooks.json), so its execution,
+// registry, and matchesTool tests were removed.
 
 import {
   unifiedSubagentStopDispatcher,
@@ -108,107 +105,12 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
 }
 
 // ---------------------------------------------------------------------------
-// Tests: PostToolUse Unified Dispatcher
+// Shared test context
 // ---------------------------------------------------------------------------
 
 let testCtx: ReturnType<typeof createTestContext>;
-describe('PostToolUse Unified Dispatcher — execution', () => {
-  beforeEach(() => {
-    testCtx = createTestContext({ projectDir: '/tmp/orchestkit-e2e-test' });
-    vi.clearAllMocks();
-  });
-
-  it('returns continue=true for Bash tool_name', async () => {
-    const input = makeInput({ tool_name: 'Bash' });
-    const result = await unifiedDispatcher(input, testCtx);
-    expect(result.continue).toBe(true);
-  });
-
-  it('returns continue=true for Read tool_name (wildcard matcher)', async () => {
-    const input = makeInput({ tool_name: 'Read' });
-    const result = await unifiedDispatcher(input, testCtx);
-    expect(result.continue).toBe(true);
-  });
-
-  it('returns continue=true for Write tool_name', async () => {
-    const input = makeInput({ tool_name: 'Write', tool_input: { file_path: '/tmp/test.ts', content: 'export {}' } });
-    const result = await unifiedDispatcher(input, testCtx);
-    expect(result.continue).toBe(true);
-  });
-
-  it('returns continue=true for Edit tool_name', async () => {
-    const input = makeInput({ tool_name: 'Edit', tool_input: { file_path: '/tmp/test.ts', old_string: 'a', new_string: 'b' } });
-    const result = await unifiedDispatcher(input, testCtx);
-    expect(result.continue).toBe(true);
-  });
-
-  it('returns continue=true for Skill tool_name', async () => {
-    const input = makeInput({ tool_name: 'Skill', tool_input: { skill: 'implement' } });
-    const result = await unifiedDispatcher(input, testCtx);
-    expect(result.continue).toBe(true);
-  });
-
-  it('returns continue=true for empty tool_name (no matching hooks)', async () => {
-    const input = makeInput({ tool_name: '' });
-    const result = await unifiedDispatcher(input, testCtx);
-    expect(result.continue).toBe(true);
-  });
-
-  it('never throws even if a sub-hook fails internally', async () => {
-    const input = makeInput({ tool_name: 'Bash' });
-    await expect(unifiedDispatcher(input)).resolves.toMatchObject({ continue: true });
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Tests: PostToolUse Registry
-// ---------------------------------------------------------------------------
-
-describe('PostToolUse Unified Dispatcher — registry', () => {
-  it('registeredHookNames returns a non-empty array', () => {
-    const names = posttoolHookNames();
-    expect(Array.isArray(names)).toBe(true);
-    expect(names.length).toBeGreaterThan(0);
-  });
-
-  it('registeredHookNames includes required hooks', () => {
-    const names = posttoolHookNames();
-    // After #897 slimming: only 3 hooks remain
-    const required = ['redact-secrets', 'config-change-auditor', 'team-member-start'];
-    for (const name of required) {
-      expect(names, `Expected "${name}" to be registered`).toContain(name);
-    }
-  });
-
-  it('registeredHookMatchers returns matchers for each hook', () => {
-    const matchers = registeredHookMatchers();
-    expect(Array.isArray(matchers)).toBe(true);
-    expect(matchers.length).toBe(posttoolHookNames().length);
-    for (const m of matchers) {
-      expect(m).toHaveProperty('name');
-      expect(m).toHaveProperty('matcher');
-    }
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Tests: matchesTool routing logic
-// ---------------------------------------------------------------------------
-
-describe('matchesTool — routing logic', () => {
-  it.each([
-    { tool: 'Bash', matcher: '*' as const, expected: true },
-    { tool: 'Read', matcher: '*' as const, expected: true },
-    { tool: 'Bash', matcher: 'Bash', expected: true },
-    { tool: 'Read', matcher: 'Bash', expected: false },
-    { tool: 'Edit', matcher: ['Write', 'Edit'], expected: true },
-    { tool: 'Read', matcher: ['Write', 'Edit'], expected: false },
-    { tool: 'Write', matcher: ['Write', 'Edit'], expected: true },
-    { tool: 'Skill', matcher: 'Skill', expected: true },
-    { tool: 'Task', matcher: 'Skill', expected: false },
-  ])('matchesTool($tool, $matcher) === $expected', ({ tool, matcher, expected }) => {
-    expect(matchesTool(tool, matcher)).toBe(expected);
-  });
+beforeEach(() => {
+  testCtx = createTestContext({ projectDir: '/tmp/orchestkit-e2e-test' });
 });
 
 // ---------------------------------------------------------------------------

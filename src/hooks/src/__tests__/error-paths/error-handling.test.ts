@@ -247,14 +247,8 @@ describe('Error Path Coverage', () => {
       expectValidResult(result);
     });
 
-    test('hooks handle missing CLAUDE_PLUGIN_ROOT', async () => {
-      delete process.env.CLAUDE_PLUGIN_ROOT;
-
-      const { unifiedErrorHandler } = await import('../../posttool/unified-error-handler.js');
-      const input = createBashInput('echo test', { tool_result: 'output' });
-      const result = unifiedErrorHandler(input);
-
-      expectValidResult(result);
+    test('placeholder — unified-error-handler removed (dead code cleanup)', () => {
+      expect(true).toBe(true);
     });
 
     test('hooks handle missing CLAUDE_SESSION_ID', async () => {
@@ -311,21 +305,6 @@ describe('Error Path Coverage', () => {
       { name: 'special chars in session_id', input: { session_id: 'session-<>&"\'' } },
     ];
 
-    test.each(edgeCases)('unified-error-handler handles $name', async ({ input }) => {
-      const { unifiedErrorHandler } = await import('../../posttool/unified-error-handler.js');
-      const hookInput = createBashInput('echo test', { ...input, tool_result: 'output' });
-
-      // Should not throw
-      let result: HookResult;
-      try {
-        result = unifiedErrorHandler(hookInput);
-        expectValidResult(result);
-      } catch (error) {
-        // If it throws, that's a test failure
-        expect(error).toBeUndefined();
-      }
-    });
-
     test.each(edgeCases)('session-cleanup handles $name', async ({ input }) => {
       const { sessionCleanup } = await import('../../lifecycle/session-cleanup.js');
       const hookInput = createHookInput({ tool_name: 'SessionEnd', ...input });
@@ -341,19 +320,8 @@ describe('Error Path Coverage', () => {
   });
 
   describe('Error Recovery Patterns', () => {
-    test('hooks log errors but continue operation', async () => {
-      // Setup to cause an error
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockImplementation(() => {
-        throw new Error('Simulated read error');
-      });
-
-      const { unifiedErrorHandler } = await import('../../posttool/unified-error-handler.js');
-      const input = createBashInput('echo test', { tool_result: 'output' });
-      const result = unifiedErrorHandler(input);
-
-      // Hook should recover and allow continuation
-      expect(result.continue).toBe(true);
+    test('placeholder — unified-error-handler removed (dead code cleanup)', () => {
+      expect(true).toBe(true);
     });
 
     test('cleanup hooks attempt best-effort cleanup on errors', async () => {

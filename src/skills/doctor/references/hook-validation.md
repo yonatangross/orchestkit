@@ -59,7 +59,6 @@ hooks.json (63 global + 22 agent-scoped + 1 skill-scoped entries)
 | Bundle | Handlers | Async |
 |--------|----------|-------|
 | agent.mjs | Agent hooks | No |
-| hooks.mjs | Core dispatching | No |
 | lifecycle.mjs | Session lifecycle | Yes |
 | notification.mjs | Alerts | Yes |
 | permission.mjs | Auto-approve | No |

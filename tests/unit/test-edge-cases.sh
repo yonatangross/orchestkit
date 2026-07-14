@@ -39,7 +39,6 @@ test_typescript_bundles_exist() {
     log_section "Test: TypeScript Hook Bundles Exist"
 
     local bundles=(
-        "hooks.mjs"
         "permission.mjs"
         "pretool.mjs"
         "posttool.mjs"
@@ -82,10 +81,13 @@ test_typescript_source_structure() {
 test_typescript_entry_points() {
     log_section "Test: TypeScript Entry Points"
 
-    if [[ -f "${PROJECT_ROOT}/src/hooks/src/index.ts" ]]; then
-        log_pass "Main index.ts exists"
+    # index.ts (the old barrel registry) was deleted in the 2026-07-15 dead-hook
+    # triage — the real entry points are the per-event registry maps.
+    if [[ -d "${PROJECT_ROOT}/src/hooks/src/entries" ]] && \
+       ls "${PROJECT_ROOT}/src/hooks/src/entries/"*.ts >/dev/null 2>&1; then
+        log_pass "Per-event entries maps exist"
     else
-        log_fail "Main index.ts missing"
+        log_fail "src/hooks/src/entries/*.ts missing"
     fi
 
     if [[ -f "${PROJECT_ROOT}/src/hooks/src/types.ts" ]]; then
@@ -149,23 +151,22 @@ test_count_empty_dirs() {
 test_typescript_exports() {
     log_section "Test: TypeScript Hook Exports"
 
-    # Check that index.ts exports hook types
-    if grep -q "export.*HookInput\|export.*HookResult" "${PROJECT_ROOT}/src/hooks/src/index.ts" 2>/dev/null || \
-       grep -q "export.*from.*types" "${PROJECT_ROOT}/src/hooks/src/index.ts" 2>/dev/null; then
-        log_pass "index.ts exports hook types"
+    # Hook types live in types.ts (index.ts barrel deleted 2026-07-15)
+    if grep -q "export.*HookInput\|export.*HookResult" "${PROJECT_ROOT}/src/hooks/src/types.ts"; then
+        log_pass "types.ts exports hook types"
     else
-        log_fail "index.ts missing hook type exports"
+        log_fail "types.ts missing hook type exports"
     fi
 
-    # Check that bundles are not empty
-    local hooks_bundle="${PROJECT_ROOT}/src/hooks/dist/hooks.mjs"
-    if [[ -f "$hooks_bundle" ]]; then
+    # Check that the hot-path split bundle is not empty (runtime loads these)
+    local pretool_bundle="${PROJECT_ROOT}/src/hooks/dist/pretool.mjs"
+    if [[ -f "$pretool_bundle" ]]; then
         local size
-        size=$(wc -c < "$hooks_bundle" | tr -d ' ')
+        size=$(wc -c < "$pretool_bundle" | tr -d ' ')
         if [[ "$size" -gt 1000 ]]; then
-            log_pass "hooks.mjs has content (${size} bytes)"
+            log_pass "pretool.mjs has content (${size} bytes)"
         else
-            log_fail "hooks.mjs seems too small (${size} bytes)"
+            log_fail "pretool.mjs seems too small (${size} bytes)"
         fi
     fi
 }

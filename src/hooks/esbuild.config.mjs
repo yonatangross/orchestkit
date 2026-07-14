@@ -11,7 +11,6 @@ import { writeFileSync, mkdirSync, readdirSync, copyFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const isWatch = process.argv.includes('--watch');
-const useSplitBundles = process.argv.includes('--split') || !process.argv.includes('--single');
 
 /**
  * Entry points for code splitting
@@ -96,27 +95,10 @@ async function buildSplitBundles() {
     console.log(`  ${name}.mjs: ${stats.bundles[name].sizeKB} KB (${outputFile.exports.length} exports)`);
   }
 
-  // Also build unified bundle for CLI tools (decision-history, etc.)
-  const unifiedResult = await build({
-    ...commonBuildOptions,
-    entryPoints: ['./src/index.ts'],
-    outfile: './dist/hooks.mjs',
-    banner: {
-      js: `// OrchestKit Hooks - Unified Bundle (for CLI tools)
-// Use split bundles (permission.mjs, pretool.mjs, etc.) for hooks
-`,
-    },
-  });
-
-  const unifiedOutput = unifiedResult.metafile.outputs['dist/hooks.mjs'];
-  stats.bundles['hooks'] = {
-    size: unifiedOutput.bytes,
-    sizeKB: (unifiedOutput.bytes / 1024).toFixed(2),
-    exports: unifiedOutput.exports.length,
-    unified: true,
-  };
-
-  console.log(`\n  hooks.mjs (unified): ${stats.bundles['hooks'].sizeKB} KB (for CLI tools)`);
+  // The unified dist/hooks.mjs bundle was removed with src/index.ts (dead-hook
+  // triage 2026-07-15): the runtime loads only the split bundles via
+  // bin/run-hook.mjs, and the monolith's sole consumer was the never-invoked
+  // bin/decision-history.mjs CLI.
 
   const buildTimeMs = Date.now() - startTime;
   stats.totalSizeKB = (stats.totalSize / 1024).toFixed(2);
@@ -126,46 +108,6 @@ async function buildSplitBundles() {
 
   console.log(`\nBuild complete in ${buildTimeMs}ms`);
   console.log(`Split bundles: ${stats.totalSizeKB} KB (${Object.keys(entryPoints).length} bundles)`);
-  console.log(`Unified bundle: ${stats.bundles['hooks'].sizeKB} KB`);
-}
-
-/**
- * Build single unified bundle (legacy mode)
- */
-async function buildSingleBundle() {
-  const startTime = Date.now();
-
-  const result = await build({
-    ...commonBuildOptions,
-    entryPoints: ['./src/index.ts'],
-    outfile: './dist/hooks.mjs',
-    banner: {
-      js: `// OrchestKit Hooks - TypeScript/ESM Bundle
-// https://github.com/yonatangross/orchestkit
-`,
-    },
-  });
-
-  const outputFile = result.metafile.outputs['dist/hooks.mjs'];
-  const buildTimeMs = Date.now() - startTime;
-  // Deterministic (#2360): see buildSplitBundles — no timestamps in the file.
-  const stats = {
-    mode: 'single',
-    size: outputFile.bytes,
-    sizeKB: (outputFile.bytes / 1024).toFixed(2),
-    inputs: Object.keys(result.metafile.inputs).length,
-    exports: outputFile.exports,
-  };
-
-  writeFileSync('./dist/bundle-stats.json', JSON.stringify(stats, null, 2));
-
-  console.log(`Build complete in ${buildTimeMs}ms`);
-  console.log(`Bundle size: ${stats.sizeKB} KB`);
-  console.log(`Input files: ${stats.inputs}`);
-
-  if (stats.size > 100 * 1024) {
-    console.warn(`WARNING: Bundle size (${stats.sizeKB} KB) exceeds 100KB target`);
-  }
 }
 
 /**
@@ -192,11 +134,13 @@ async function main() {
   mkdirSync('./dist', { recursive: true });
 
   if (isWatch) {
-    // Watch mode uses unified bundle for simplicity
+    // Watch mode rebuilds the same split bundles the runtime loads — the old
+    // "unified bundle for simplicity" watched src/index.ts, which is gone.
     const ctx = await context({
       ...commonBuildOptions,
-      entryPoints: ['./src/index.ts'],
-      outfile: './dist/hooks.mjs',
+      entryPoints,
+      outdir: './dist',
+      outExtension: { '.js': '.mjs' },
       banner: {
         js: `// OrchestKit Hooks - Development Build
 `,
@@ -204,10 +148,8 @@ async function main() {
     });
     await ctx.watch();
     console.log('Watching for changes...');
-  } else if (useSplitBundles) {
-    await buildSplitBundles();
   } else {
-    await buildSingleBundle();
+    await buildSplitBundles();
   }
 
   // #2012: migrations must travel with the bundles (see copyMigrations).

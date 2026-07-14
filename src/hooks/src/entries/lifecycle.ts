@@ -18,11 +18,8 @@ import { sessionCleanup } from '../lifecycle/session-cleanup.js';
 import { cwdChanged } from '../lifecycle/cwd-changed.js';
 import { fileChanged } from '../lifecycle/file-changed.js';
 import { sessionEnvSetup } from '../lifecycle/session-env-setup.js';
-import { sessionTracking } from '../lifecycle/session-tracking.js';
-import { sessionMetricsSummary } from '../lifecycle/session-metrics-summary.js';
 import { dependencyVersionCheck } from '../lifecycle/dependency-version-check.js';
 import { ccVersionCheck } from '../lifecycle/cc-version-check.js';
-import { unifiedSessionStartDispatcher } from '../lifecycle/unified-dispatcher.js';
 import { preCompactSaver } from '../lifecycle/pre-compact-saver.js';
 import { preCompactGuard } from '../lifecycle/pre-compact-guard.js';
 import { preCompactTaskDonePrompt } from '../lifecycle/pre-compact-task-done-prompt.js';
@@ -39,7 +36,6 @@ import { sessionHandoffInjector } from '../lifecycle/session-handoff-injector.js
 import { progressReporter } from '../teammate-idle/progress-reporter.js';
 import { teamSynthesisTrigger } from '../teammate-idle/team-synthesis-trigger.js';
 import { teamQualityGate } from '../teammate-idle/team-quality-gate.js';
-import { unifiedTeammateIdleDispatcher } from '../teammate-idle/unified-dispatcher.js';
 
 // TaskCreated hooks (CC 2.1.84)
 import { creationTracker } from '../task-created/creation-tracker.js';
@@ -127,11 +123,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/cwd-changed': cwdChanged,
   'lifecycle/file-changed': fileChanged,
   'lifecycle/session-env-setup': sessionEnvSetup,
-  'lifecycle/session-tracking': sessionTracking,
-  'lifecycle/session-metrics-summary': sessionMetricsSummary,
   'lifecycle/dependency-version-check': dependencyVersionCheck,
   'lifecycle/cc-version-check': ccVersionCheck,
-  'lifecycle/unified-dispatcher': unifiedSessionStartDispatcher,
   'lifecycle/pre-compact-saver': preCompactSaver,
   'lifecycle/pre-compact-guard': preCompactGuard,
   'lifecycle/pre-compact-task-done-prompt': preCompactTaskDonePrompt,
@@ -162,7 +155,6 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/session-finalizer': sessionFinalizer,
 
   // TeammateIdle hooks (CC 2.1.33)
-  'teammate-idle/unified-dispatcher': unifiedTeammateIdleDispatcher,
   'teammate-idle/progress-reporter': progressReporter,
   'teammate-idle/team-synthesis-trigger': teamSynthesisTrigger,
   'teammate-idle/team-quality-gate': teamQualityGate,

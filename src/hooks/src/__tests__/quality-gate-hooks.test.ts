@@ -1,11 +1,10 @@
 /**
  * Tier 3 Quality Gate Hooks - Comprehensive Test Suite
  *
- * Tests four quality gate hooks:
+ * Tests three quality gate hooks:
  * 1. coverageThresholdGate  - Coverage enforcement
  * 2. mergeReadinessChecker  - Pre-merge validation
  * 3. subagentQualityGate    - Subagent error tracking
- * 4. unifiedErrorHandler    - Error detection and suggestions
  *
  * All external I/O (fs, child_process, crypto) is mocked.
  */
@@ -91,7 +90,6 @@ import { execSync, execFileSync } from 'node:child_process';
 import { coverageThresholdGate } from '../skill/coverage-threshold-gate.js';
 import { mergeReadinessChecker } from '../skill/merge-readiness-checker.js';
 import { subagentQualityGate } from '../subagent-stop/subagent-quality-gate.js';
-import { unifiedErrorHandler } from '../posttool/unified-error-handler.js';
 
 // ---------------------------------------------------------------------------
 // Test Utilities
@@ -111,15 +109,6 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
   return createHookInput({
     tool_name: 'Bash',
     tool_input: { command },
-    ...overrides,
-  });
-}
-
-function createPostToolInput(overrides: Partial<HookInput> = {}): HookInput {
-  return createHookInput({
-    tool_name: 'Bash',
-    tool_input: { command: 'npm test' },
-    exit_code: 0,
     ...overrides,
   });
 }
@@ -905,193 +894,5 @@ describe('subagentQualityGate', () => {
 
     expect(result.continue).toBe(true);
     expect(result.systemMessage).toBeDefined();
-  });
-});
-
-// =============================================================================
-// 4. unifiedErrorHandler (v3 — logger-only, no JSONL writes #919)
-// =============================================================================
-
-describe('unifiedErrorHandler', () => {
-  // -------------------------------------------------------------------------
-  // Trivial command skip
-  // -------------------------------------------------------------------------
-
-  test('skips trivial bash commands: echo', () => {
-    const result = unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'echo hello' },
-        exit_code: 1,
-      }),
-    );
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('skips trivial bash commands: ls', () => {
-    const result = unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'ls -la' },
-        exit_code: 1,
-      }),
-    );
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('skips trivial bash commands: pwd', () => {
-    const result = unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'pwd' },
-        exit_code: 1,
-      }),
-    );
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('skips trivial: cat', () => {
-    const result = unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'cat file.txt' },
-        exit_code: 1,
-      }),
-    );
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test.each(['head -n 10 file', 'tail -f log', 'wc -l file', 'date', 'whoami'])(
-    'skips trivial command: %s',
-    (command) => {
-      const result = unifiedErrorHandler(
-        createPostToolInput({
-          tool_input: { command },
-          exit_code: 1,
-        }),
-      );
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    },
-  );
-
-  // -------------------------------------------------------------------------
-  // No error detected - success
-  // -------------------------------------------------------------------------
-
-  test('returns silent success when exit code is 0 and no error patterns', () => {
-    const result = unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'npm test' },
-        exit_code: 0,
-        tool_output: 'All tests passed',
-      }),
-    );
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('returns silent success for non-Bash tool with no error', () => {
-    const result = unifiedErrorHandler(
-      createHookInput({
-        tool_name: 'Read',
-        tool_input: { file_path: '/some/file.ts' },
-        exit_code: 0,
-      }),
-    );
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  // -------------------------------------------------------------------------
-  // Error detection — always returns silent success (v3 logger-only)
-  // Detailed error detection + logHook assertions in unified-error-handler.test.ts
-  // -------------------------------------------------------------------------
-
-  test('returns silent success on non-zero exit code (v3 logger-only)', () => {
-    const result = unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'npm test' },
-        exit_code: 1,
-        tool_output: 'test output without error patterns',
-      }),
-    );
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('returns silent success on tool_error (v3 logger-only)', () => {
-    const result = unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'git push' },
-        exit_code: 0,
-        tool_error: 'Authentication failed for remote',
-      }),
-    );
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('returns silent success on error pattern in output (v3 logger-only)', () => {
-    const result = unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'npm run build' },
-        exit_code: 0,
-        tool_output: 'Compilation ERROR: Cannot find module',
-      }),
-    );
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  // -------------------------------------------------------------------------
-  // Edge cases
-  // -------------------------------------------------------------------------
-
-  test('handles missing tool_name gracefully', () => {
-    const result = unifiedErrorHandler(
-      createHookInput({
-        tool_name: '',
-        exit_code: 1,
-      }),
-    );
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('handles undefined tool_output gracefully', () => {
-    const result = unifiedErrorHandler(
-      createPostToolInput({
-        tool_input: { command: 'npm test' },
-        exit_code: 0,
-        tool_output: undefined,
-      }),
-    );
-
-    expect(result.continue).toBe(true);
-  });
-
-  test('handles non-Bash tools with errors', () => {
-    const result = unifiedErrorHandler(
-      createHookInput({
-        tool_name: 'Read',
-        tool_input: { file_path: '/nonexistent' },
-        tool_error: 'File does not exist',
-      }),
-    );
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
   });
 });

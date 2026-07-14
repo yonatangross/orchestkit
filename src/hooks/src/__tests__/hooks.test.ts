@@ -13,11 +13,6 @@ import { dangerousCommandBlocker } from '../pretool/bash/dangerous-command-block
 import { fileGuard } from '../pretool/write-edit/file-guard.js';
 import { sessionEnvSetup } from '../lifecycle/session-env-setup.js';
 
-// Consolidated hooks (Issue #219)
-import { unifiedErrorHandler } from '../posttool/unified-error-handler.js';
-import { unifiedDispatcher } from '../posttool/unified-dispatcher.js';
-import { decisionProcessor } from '../skill/decision-processor.js';
-
 // Import utilities
 import {
   outputSilentSuccess,
@@ -1004,164 +999,14 @@ describe('lifecycle/session-env-setup', () => {
 // skill-auto-suggest removed — dead code, never registered in hooks.json
 
 // =============================================================================
-// Consolidated Hooks Tests (Issue #219)
-// =============================================================================
-
-describe('unified-error-handler (consolidated from error-collector + error-tracker + error-solution-suggester)', () => {
-  
-
-  const createPostToolInput = (
-    toolName: string,
-    exitCode: number,
-    output: string,
-    toolInput?: Record<string, unknown>
-  ): HookInput => ({
-    hook_event: 'PostToolUse',
-    tool_name: toolName,
-    tool_input: toolInput || {},
-    tool_result: {
-      is_error: exitCode !== 0,
-      content: output,
-    },
-    session_id: 'test-session',
-  });
-
-  test('returns silent success for non-error outputs', () => {
-    const input = createPostToolInput('Bash', 0, 'Success output');
-    const result = unifiedErrorHandler(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('detects errors from exit code', () => {
-    const input = createPostToolInput('Bash', 1, 'Error: command failed');
-    const result = unifiedErrorHandler(input);
-
-    expect(result.continue).toBe(true);
-  });
-
-  test('detects errors from tool_error flag', () => {
-    const input: HookInput = {
-      hook_event: 'PostToolUse',
-      tool_name: 'Bash',
-      tool_input: {},
-      tool_result: {
-        is_error: true,
-        content: 'Some error occurred',
-      },
-      session_id: 'test-session',
-    };
-    const result = unifiedErrorHandler(input);
-
-    expect(result.continue).toBe(true);
-  });
-
-  test('skips trivial commands (echo, ls)', () => {
-    const input = createPostToolInput('Bash', 1, 'error', { command: 'echo test' });
-    const result = unifiedErrorHandler(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('always continues even on errors', () => {
-    const input = createPostToolInput('Bash', 1, 'fatal error');
-    const result = unifiedErrorHandler(input);
-
-    expect(result.continue).toBe(true);
-  });
-});
-
-describe('decision-processor (consolidated decision saver + entity extractor)', () => {
-  
-
-  const createSkillInput = (skillOutput: string): HookInput => ({
-    hook_event: 'PostToolUse',
-    tool_name: 'Skill',
-    tool_input: { skill: 'test-skill' },
-    tool_result: {
-      is_error: false,
-      content: skillOutput,
-    },
-    session_id: 'test-session',
-  });
-
-  test('returns silent success for non-decision content', () => {
-    const input = createSkillInput('Just some regular output without decisions');
-    const result = decisionProcessor(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('detects decision-related content', () => {
-    const input = createSkillInput('DECIDED: We will use PostgreSQL for the database');
-    const result = decisionProcessor(input);
-
-    expect(result.continue).toBe(true);
-  });
-
-  test('extracts technology entities', () => {
-    const input = createSkillInput('We decided to use React 19 with TypeScript and Vite');
-    const result = decisionProcessor(input);
-
-    expect(result.continue).toBe(true);
-  });
-
-  test('handles empty skill output', () => {
-    const input = createSkillInput('');
-    const result = decisionProcessor(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
-  test('always continues', () => {
-    const inputs = [
-      'Decision: use FastAPI',
-      'CHOSE: React over Vue',
-      'We will implement caching',
-      'Random text',
-    ];
-
-    for (const text of inputs) {
-      const input = createSkillInput(text);
-      const result = decisionProcessor(input);
-      expect(result.continue).toBe(true);
-    }
-  });
-});
-
-// =============================================================================
 // PostToolUse Unified Dispatcher — Read-Only Tool Handling
 // =============================================================================
+// (execution test removed — legacy posttool/unified-dispatcher deleted in the
+// dead-hook triage; hooks.json matcher safety is covered by async-registry tests)
 
-describe('posttool/unified-dispatcher read-only tool handling', () => {
-  test.each(['Read', 'Glob', 'Grep', 'WebFetch', 'WebSearch'])(
-    'returns silent success (no side-effect hooks) for read-only tool: %s',
-    async (toolName) => {
-      const input: HookInput = {
-        hook_event: 'PostToolUse',
-        tool_name: toolName,
-        tool_input: {},
-        tool_result: { is_error: false, content: 'ok' },
-        session_id: 'test-session',
-      };
-      const result = await unifiedDispatcher(input);
-
-      // The dispatcher always returns silent success (async hooks are fire-and-forget).
-      // The key protection is hooks.json matcher excluding read-only tools,
-      // but if somehow invoked, dispatcher still returns gracefully.
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    }
-  );
-
+describe('posttool read-only tool handling (hooks.json matcher)', () => {
   test('hooks.json PostToolUse matcher prevents dispatcher invocation for read-only tools', () => {
     // This is validated by async-registry.test.ts PostToolUse Matcher Safety tests.
-    // Here we verify the dispatcher's internal wildcard matchers would match
-    // read-only tools if hooks.json didn't filter them out first.
     const readOnlyTools = ['Read', 'Glob', 'Grep', 'WebFetch', 'WebSearch'];
     const dispatcherMatcher = 'Bash|Write|Edit|Task|Skill|NotebookEdit';
     const allowedTools = dispatcherMatcher.split('|');

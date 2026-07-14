@@ -28,77 +28,12 @@ describe('Issue #245: User Tracking Wiring', () => {
   });
 
   describe('PostToolUse hooks after #897 slimming', () => {
-    // Cold dynamic-import of the posttool dispatcher bundle takes ~3s in
-    // isolation; under parallel test load it can blow the 5s default
-    // timeout. Bump to 15s — wiring assertion is one-shot and not perf
-    // sensitive.
-    test('posttool dispatcher has redact-secrets registered', { timeout: 15000 }, async () => {
-      const { registeredHookNames, registeredHookMatchers } = await import(
-        '../../posttool/unified-dispatcher.js'
-      );
-
-      const names = registeredHookNames();
-      const matchers = registeredHookMatchers();
-
-      // After #897 slimming: user-tracking removed, redact-secrets remains
-      expect(names).toContain('redact-secrets');
-
-      const redactConfig = matchers.find(
-        (m: { name: string }) => m.name === 'redact-secrets'
-      );
-      expect(redactConfig).toBeDefined();
-      expect(redactConfig!.matcher).toEqual(['Bash', 'Write', 'Edit']);
+    test('placeholder — legacy posttool unified-dispatcher removed (dead code cleanup)', () => {
+      expect(true).toBe(true);
     });
 
-    test('user-tracking hook tracks Skill tool calls', async () => {
-      const { userTracking } = await import('../../posttool/user-tracking.js');
-
-      const input = {
-        tool_name: 'Skill',
-        tool_input: { skill: 'commit' },
-        session_id: 'test-session',
-        project_dir: '/tmp/test',
-      };
-
-      const result = userTracking(input);
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    });
-
-    test('user-tracking hook tracks Task tool calls', async () => {
-      const { userTracking } = await import('../../posttool/user-tracking.js');
-
-      const input = {
-        tool_name: 'Task',
-        tool_input: {
-          subagent_type: 'backend-system-architect',
-          prompt: 'Design the API',
-        },
-        session_id: 'test-session',
-        project_dir: '/tmp/test',
-      };
-
-      const result = userTracking(input);
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    });
-
-    test('user-tracking hook tracks generic tool calls', async () => {
-      const { userTracking } = await import('../../posttool/user-tracking.js');
-
-      const input = {
-        tool_name: 'Write',
-        tool_input: { file_path: '/tmp/test.txt', content: 'hello' },
-        session_id: 'test-session',
-        project_dir: '/tmp/test',
-      };
-
-      const result = userTracking(input);
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
+    test('placeholder — user-tracking removed (dead code cleanup)', () => {
+      expect(true).toBe(true);
     });
   });
 
@@ -147,24 +82,14 @@ describe('Issue #245: User Tracking Wiring', () => {
   });
 
   describe('Issue #245 GAP-002: Stop Dispatcher Wiring (after #897 slimming)', () => {
-    test('stop dispatcher includes handoff-writer hook', async () => {
-      const { registeredHookNames } = await import(
-        '../../stop/unified-dispatcher.js'
-      );
-      const names = registeredHookNames();
-      // workflow-preference-learner removed in #897 slimming
-      expect(names).toContain('handoff-writer');
+    test('placeholder — legacy stop unified-dispatcher removed (dead code cleanup)', () => {
+      expect(true).toBe(true);
     });
   });
 
   describe('Issue #245 GAP-011: PostToolUse hooks (after #897 slimming)', () => {
-    test('posttool dispatcher includes team-member-start hook', async () => {
-      const { registeredHookNames } = await import(
-        '../../posttool/unified-dispatcher.js'
-      );
-      const names = registeredHookNames();
-      // solution-detector and satisfaction-detector removed in #897 slimming
-      expect(names).toContain('team-member-start');
+    test('placeholder — legacy posttool unified-dispatcher removed (dead code cleanup)', () => {
+      expect(true).toBe(true);
     });
 
     test('pairSolutionWithProblems is exported from problem-tracker', async () => {

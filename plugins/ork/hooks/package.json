@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "type": "module",
   "description": "TypeScript/ESM hooks for OrchestKit Claude Plugin",
-  "main": "./dist/hooks.mjs",
   "types": "./dist/types.d.ts",
   "bin": {
     "run-hook": "./bin/run-hook.mjs"
