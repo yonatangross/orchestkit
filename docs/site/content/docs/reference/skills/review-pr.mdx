@@ -1065,13 +1065,13 @@ A cross-model refuter is bound by the same blindness contract (engine §1): neut
 
 ## Quorum interaction (a slot, not a veto)
 
-Cross-model adds ONE diverse refuter into the engine §4 quorum — it **substitutes** one same-model slot, never inflates the count or the §8 spawn ceiling (24/run).
+Cross-model adds ONE diverse refuter into the engine §4 quorum. It **substitutes** a same-model slot at the request-changes-blocker tier (total judges unchanged at 3), but at **CRITICAL / HIGH it is ADDED, not substituted** — the two same-model refuters are kept and the cross-model one is a third judge (3 total). Substitution there would drop same-model 2→1, leaving a CRITICAL judged by exactly two voters (one of them an untrusted-label alt model) — thinner corroboration precisely where stakes are highest (#2556). The ADD costs one extra spawn at that tier by design; it is exempted from the §8 ceiling accounting the same way the blocker tier's substitution is (dedup-to-root-cause still runs first).
 
-| Finding tier | Same-model | + Cross-model | Rule |
-|---|---|---|---|
-| request-changes blocker | 2 (was 3) | 1 | majority of 3; cross-model counts once, like any refuter |
-| CRITICAL / HIGH | 1 (was 2) | 1 | majority of 2 → tie = UPHELD (engine §4: no lone kill flips a verdict) |
-| advisory | 1 | 0 | cross-model never spawned for advisory findings |
+| Finding tier | Same-model | + Cross-model | Total judges | Rule |
+|---|---|---|---|---|
+| request-changes blocker | 2 (was 3) | 1 (substitutes) | 3 | majority of 3; cross-model counts once, like any refuter |
+| CRITICAL / HIGH | 2 (kept) | 1 (**added**, #2556) | 3 | majority of 3 → no lone kill flips a verdict (engine §4/§7) |
+| advisory | 1 | 0 | 1 | cross-model never spawned for advisory findings |
 
 A 1-of-N cross-model dissent follows engine §4: records a caveat, drops the finding's confidence to "low", never revises alone. The no-auto-flip gate (engine §7) is untouched: a cross-model KILL of a `request-changes` blocker still requires explicit user confirmation before the verdict moves.
 
@@ -1087,7 +1087,7 @@ under_cross_model_budget() =
 
 - Default cap **4** cross-model spawns/run (inside the engine §8 ceiling). `ORK_CROSS_MODEL_MAX=0` disables; `ORK_CROSS_MODEL=0` is the master kill switch (checked first).
 - Over the cap → refute the top-K cross-model, the rest **same-model only**, flagged `cross_model: "skipped — budget"` in the report (never silently truncated, engine §8).
-- One-line cost disclosure before the first spawn (shown, not prompted — the gate already required a key + high effort): `🔀 Cross-model refutation: up to N calls to &lt;model&gt; via ORK_ALT_MODEL_CMD (external, billed by your provider). Set ORK_CROSS_MODEL=0 to skip.`
+- **Prompt once before the first spawn** (consent, not just disclosure — aligns with `/ultrareview`, which asks first for the same external spend; #2556). Ask via AskUserQuestion and proceed only on approval; on decline, fall back to the same-model lane (never "no refutation"). The `ORK_ALT_MODEL_CMD` env var + high-effort gate express *configuration*, not per-run consent — a configured command shouldn't silently bill on every run. Prompt copy: `🔀 Cross-model refutation will make up to N calls to &lt;model&gt; via ORK_ALT_MODEL_CMD (external, billed by your provider). Run it? [Yes / Same-model only]`. Skip the prompt only when `ORK_CROSS_MODEL_CONSENT=1` is set (a durable pre-authorization for unattended/`-p` runs), mirroring the standing-authorization carve-out.
 
 ## Run loop (per qualifying finding — illustrative)
 
@@ -1111,6 +1111,8 @@ for finding in qualifying_findings_ranked:            # engine §8 dedup + rank 
 ```
 
 A cross-model vote that fails to parse, times out, or returns no citation → treated as **UPHELD** (engine §3). A flaky alternate model can never *weaken* a finding.
+
+**Parser contract.** `ORK_ALT_MODEL_CMD` must emit exactly the `ork-cross-model-refuter/1.0` shape — `\{verdict, independent_band, citation\}` — pinned in [`cross-model-output.schema.json`](./cross-model-output.schema.json) so `parse_refuter_json` never improvises the shape (#2556). `verdict ∈ \{UPHELD, DOWNGRADE, OVERTURN, KILL\}`; `independent_band` is the model's own blind `lo-hi` band on 0–10 (engine §1); `citation` is a `file:line` or `null`. Anything off-contract (extra keys, bad verdict, non-JSON) is parse-failure → UPHELD. A stub implementation for tests lives at `tests/fixtures/cross-model-refuter/stub-alt-model.sh`.
 
 ## Decision / reset rules
 

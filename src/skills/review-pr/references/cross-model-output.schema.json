@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ork-cross-model-refuter/1.0",
+  "description": "Contract for the stdout of an ORK_ALT_MODEL_CMD cross-model refuter (review-pr/references/cross-model-refuter.md). The alt model receives a neutral refuter prompt on stdin and MUST emit exactly this JSON on stdout so parse_refuter_json can consume it without improvising a shape (#2556). The command is untrusted: this schema pins the WIRE FORMAT only — trust comes from the orchestrator's §3 citation-verify + §7 no-auto-flip, never from these fields.",
+  "type": "object",
+  "required": ["verdict", "independent_band", "citation"],
+  "additionalProperties": false,
+  "properties": {
+    "verdict": {
+      "type": "string",
+      "enum": ["UPHELD", "DOWNGRADE", "OVERTURN", "KILL"],
+      "description": "The refuter's judgment of the ORIGINAL finding. UPHELD = finding stands. DOWNGRADE/OVERTURN/KILL weaken or remove it — but only take effect if `citation` verifies against the real diff (engine §3); an unverifiable cite is forced to UPHELD by the orchestrator."
+    },
+    "independent_band": {
+      "type": "string",
+      "pattern": "^(10|[0-9])-(10|[0-9])$",
+      "description": "The refuter's OWN blind score band for the changed code, produced BEFORE seeing the producer's score (engine §1 independent-score-first). Format 'lo-hi' on the 0-10 scale, e.g. '3-5'. lo <= hi."
+    },
+    "citation": {
+      "type": ["string", "null"],
+      "description": "file:line (or file:line-range) the verdict rests on, or null when the refuter offers no concrete evidence. A KILL/DOWNGRADE/OVERTURN with citation=null or an unverifiable citation is treated as UPHELD (engine §3) — a refuter can never weaken a finding without checkable evidence."
+    },
+    "refuter_model": {
+      "type": "string",
+      "description": "Optional self-reported model label. Best-effort provenance ONLY — never a trust boundary (a wrapper can emit any banner). The orchestrator stamps its own detection; this field is advisory."
+    },
+    "rationale": {
+      "type": "string",
+      "description": "Optional one-line human-readable justification for the verdict. Not load-bearing — the citation is."
+    }
+  }
+}
