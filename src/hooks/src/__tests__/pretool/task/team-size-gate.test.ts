@@ -14,6 +14,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { HookInput } from '../../../types.js';
 import { teamSizeGate, isPremiumModel, ledgerPath } from '../../../pretool/task/team-size-gate.js';
 
@@ -21,8 +22,11 @@ const ENV_KEYS = ['HOME', 'ORK_TEAM_SIZE_MAX', 'ORK_TEAM_OPUS_MAX', 'ORK_TEAM_SI
 let saved: Record<string, string | undefined>;
 let home: string;
 
-function spawn(model: string, session = 'sess-1'): HookInput {
-  return { tool_name: 'Task', session_id: session, tool_input: { model, description: `spawn ${model}` } } as unknown as HookInput;
+// CC renamed Task -> Agent and hooks.json registers this dispatcher under the `Agent`
+// matcher, so `Agent` is what every live invocation actually carries. The suite used to
+// feed 'Task' here — which passed while the hook early-returned on every real spawn.
+function spawn(model: string, session = 'sess-1', toolName = 'Agent'): HookInput {
+  return { tool_name: toolName, session_id: session, tool_input: { model, description: `spawn ${model}` } } as unknown as HookInput;
 }
 
 beforeEach(() => {
@@ -45,8 +49,38 @@ describe('isPremiumModel', () => {
   });
 });
 
+describe('team-size-gate — dispatch (regression: the gate must actually FIRE)', () => {
+  // This hook shipped DEAD: it guarded `tool_name !== 'Task'` while hooks.json registers
+  // the dispatcher under the `Agent` matcher, so it early-returned on every real spawn.
+  // The old suite passed anyway because it fed 'Task'. These tests read the REAL matcher
+  // out of hooks.json, so a future tool rename fails here instead of silently killing the hook.
+  const hooksJsonPath = fileURLToPath(new URL('../../../../hooks.json', import.meta.url));
+  const hooksJson = JSON.parse(readFileSync(hooksJsonPath, 'utf8')) as {
+    hooks: Record<string, Array<{ matcher?: string }>>;
+  };
+
+  const preToolMatchers = (hooksJson.hooks.PreToolUse ?? [])
+    .map(e => e.matcher ?? '')
+    .filter(m => /Agent|Task/.test(m));
+
+  it('hooks.json registers a spawn matcher we recognise', () => {
+    expect(preToolMatchers.length).toBeGreaterThan(0);
+  });
+
+  it.each(preToolMatchers.flatMap(m => m.split('|')).filter(t => /Agent|Task/.test(t)))(
+    'fires for tool_name=%s (the name CC actually sends)',
+    toolName => {
+      const r = teamSizeGate(spawn('opus', `sess-${toolName}`, toolName));
+      // A live spawn must be COUNTED, not silently skipped.
+      const led = JSON.parse(readFileSync(ledgerPath(`sess-${toolName}`), 'utf8'));
+      expect(led.total).toBe(1);
+      expect(r.continue).toBe(true);
+    },
+  );
+});
+
 describe('team-size-gate — passthrough', () => {
-  it('ignores non-Task tools', () => {
+  it('ignores non-spawn tools', () => {
     const r = teamSizeGate({ tool_name: 'Bash', session_id: 's', tool_input: {} } as unknown as HookInput);
     expect(r.suppressOutput).toBe(true);
     expect(r.continue).toBe(true);

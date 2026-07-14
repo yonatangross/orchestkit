@@ -82,9 +82,19 @@ function readLedger(path: string, session: string): SpawnLedger {
   return { schema: LEDGER_SCHEMA, session, total: 0, opus: 0, spawns: [], updated: '' };
 }
 
+/**
+ * Tool names that represent a subagent spawn.
+ *
+ * CC renamed `Task` → `Agent`, and `hooks.json` registers this dispatcher under the
+ * `Agent` matcher — so `tool_name` is `"Agent"` in every live invocation. Guarding on
+ * `'Task'` alone made this hook silently never fire (it early-returned on every real
+ * spawn). Both names are accepted: `Agent` is current, `Task` covers older CC builds.
+ */
+const SPAWN_TOOL_NAMES = new Set(['Agent', 'Task']);
+
 export function teamSizeGate(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   if (process.env.ORK_NO_TEAM_SIZE_GATE === '1') return outputSilentSuccess();
-  if (input.tool_name && input.tool_name !== 'Task') return outputSilentSuccess();
+  if (input.tool_name && !SPAWN_TOOL_NAMES.has(input.tool_name)) return outputSilentSuccess();
 
   const session = input.session_id || '';
   if (!session) return outputSilentSuccess(); // no session key → can't count safely
