@@ -17,6 +17,38 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.72.0",
+    "date": "2026-07-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hook-contract:** OpenAPI sink spec + portable client example ([#2883](https://github.com/yonatangross/orchestkit/issues/2883)) ([ce2ecc1](https://github.com/yonatangross/orchestkit/commit/ce2ecc14734878da71991fb6cf5b6a17994abaf2)), closes [#1806](https://github.com/yonatangross/orchestkit/issues/1806) [#1808](https://github.com/yonatangross/orchestkit/issues/1808)"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** revive team-size-gate as session fan-out ledger ([#2561](https://github.com/yonatangross/orchestkit/issues/2561)) ([#2881](https://github.com/yonatangross/orchestkit/issues/2881)) ([3a460da](https://github.com/yonatangross/orchestkit/commit/3a460da900f2fb7b3ee3207b175120451a604bcd))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.71.1",
+    "date": "2026-07-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**vocab:** un-suspend Fable 5 — GA, consent-gated (not suspended) ([#2879](https://github.com/yonatangross/orchestkit/issues/2879)) ([ee91a33](https://github.com/yonatangross/orchestkit/commit/ee91a33527219050c3820542c2ed485f218c049b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.71.0",
     "date": "2026-07-14",
     "compareUrl": "",
