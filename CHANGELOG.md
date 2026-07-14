@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.71.0](https://github.com/yonatangross/orchestkit/compare/v8.70.3...v8.71.0) (2026-07-14)
+
+
+### Features
+
+* **loop-gates:** harden streak + cross-model gates, review holdout labels (M161) ([#2873](https://github.com/yonatangross/orchestkit/issues/2873)) ([a470f19](https://github.com/yonatangross/orchestkit/commit/a470f19ba70fedfe8488688f01a87d0bd9f53902))
+
+
+### Miscellaneous
+
+* **hooks:** ORK_NO_NOTIFY opt-out + playground-warner opt-in-by-detection ([#2876](https://github.com/yonatangross/orchestkit/issues/2876)) ([f5ef746](https://github.com/yonatangross/orchestkit/commit/f5ef74635580f482249556d4fde5c66c46aa4889))
+
 ## [8.70.3](https://github.com/yonatangross/orchestkit/compare/v8.70.2...v8.70.3) (2026-07-14)
 
 
