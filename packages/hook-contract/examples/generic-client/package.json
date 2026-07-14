@@ -1,0 +1,23 @@
+{
+  "name": "@orchestkit/hook-contract-example-generic-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Reference HTTP sink that verifies OrchestKit hook signatures (#1808).",
+  "scripts": {
+    "start": "tsx server.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@orchestkit/hook-contract": "file:../..",
+    "@types/express": "^5.0.0",
+    "@types/supertest": "^6.0.2",
+    "supertest": "^7.1.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.10"
+  }
+}

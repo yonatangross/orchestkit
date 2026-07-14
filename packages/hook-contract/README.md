@@ -89,6 +89,28 @@ if (!result.valid) {
 
 Key rotation: pass an array of secrets to `verify(...)`; any match wins. Signer emits multiple schemes during the overlap (`t=...,v1=<old>,v2=<new>`).
 
+## Examples
+
+[`examples/generic-client/`](examples/generic-client/) is a minimal, framework-portable HTTP sink that consumes signed hook events — proof the contract is usable beyond the yonatan-hq platform. It exports a side-effect-free `createApp(secret)` factory (Express) that:
+
+- captures the **raw request bytes** before parsing (HMAC is over the exact bytes);
+- verifies `X-CC-Hooks-Signature` with `verify()` (never throws — branches on `reason`);
+- returns `202` on accept, `400` on missing/malformed header or invalid JSON, `401` on stale/mismatch.
+
+```bash
+cd examples/generic-client
+npm install && npm test    # vitest + supertest against createApp()
+```
+
+## OpenAPI
+
+[`openapi/sink.yaml`](openapi/sink.yaml) is an OpenAPI **3.1** description of the `POST /hooks/ingest` sink: the `X-CC-Hooks-Signature` security scheme, a `oneOf` request body discriminated on `event` (mirroring the canonical `HOOK_EVENT_SCHEMAS`), and the `202`/`400`/`401`/`429` response shapes. It lints clean under both `@redocly/cli` and `@stoplight/spectral-cli` (ruleset in [`openapi/.spectral.yaml`](openapi/.spectral.yaml)):
+
+```bash
+npx @redocly/cli lint openapi/sink.yaml
+npx @stoplight/spectral-cli lint openapi/sink.yaml -r openapi/.spectral.yaml
+```
+
 ## Out of scope
 
 - Asymmetric signing (Ed25519, RSA) — see RFC §2 non-goals.
