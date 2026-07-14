@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.72.0](https://github.com/yonatangross/orchestkit/compare/v8.71.1...v8.72.0) (2026-07-14)
+
+
+### Features
+
+* **hook-contract:** OpenAPI sink spec + portable client example ([#2883](https://github.com/yonatangross/orchestkit/issues/2883)) ([ce2ecc1](https://github.com/yonatangross/orchestkit/commit/ce2ecc14734878da71991fb6cf5b6a17994abaf2)), closes [#1806](https://github.com/yonatangross/orchestkit/issues/1806) [#1808](https://github.com/yonatangross/orchestkit/issues/1808)
+
+
+### Bug Fixes
+
+* **hooks:** revive team-size-gate as session fan-out ledger ([#2561](https://github.com/yonatangross/orchestkit/issues/2561)) ([#2881](https://github.com/yonatangross/orchestkit/issues/2881)) ([3a460da](https://github.com/yonatangross/orchestkit/commit/3a460da900f2fb7b3ee3207b175120451a604bcd))
+
 ## [8.71.1](https://github.com/yonatangross/orchestkit/compare/v8.71.0...v8.71.1) (2026-07-14)
 
 
