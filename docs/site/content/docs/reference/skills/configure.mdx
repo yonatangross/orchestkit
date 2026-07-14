@@ -1476,9 +1476,24 @@ in docs or prompts, prefer the new "Manual" label.
 
 # HTTP Hooks — Dual-Channel Telemetry (CC 2.1.63+)
 
+> ⚠️ **Channel 1 is DEPRECATED (#1861).** Do not configure it for new installs.
+>
+> Both channels POST to the **same** downstream endpoint, so running both delivers
+> **every hook event twice**. That duplication is not free — it drove a **61% rate-limit
+> reject rate** on the yonatan-hq platform (2026-05-13) and forced a per-session bucketing
+> workaround server-side that exists only to absorb the double-send.
+>
+> **Channel 4 (the HMAC-signed `http-sink`) is now canonical**: batched, retried with
+> exponential backoff + jitter, circuit-broken, and verified end-to-end against the
+> published hook contract (`@orchestkit/hook-contract` / `orchestkit-hook-contract` on
+> PyPI — M141). Nothing depends on channel 1.
+>
+> `npm run generate:http-hooks` still works but **warns on every run**, and becomes a
+> **no-op in v9.x** (breaking). Track #1861.
+
 OrchestKit supports two parallel channels for streaming session data:
 
-- **Channel 1: Native HTTP hooks** — CC POSTs raw JSON to HQ for ALL 18 event types (zero overhead)
+- **Channel 1: Native HTTP hooks** — ⚠️ *deprecated* — CC POSTs raw JSON to HQ for ALL 18 event types (Bearer auth, no batching, no retry, no dedupe)
 - **Channel 2: Command hooks** — Node spawn for enriched reporting (token usage, metrics, HMAC auth)
 
 ## Quick Start

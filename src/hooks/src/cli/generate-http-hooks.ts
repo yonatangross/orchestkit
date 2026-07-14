@@ -1,8 +1,33 @@
 /**
- * HTTP Hook Generator — #910, #1860
+ * HTTP Hook Generator — #910, #1860 — DEPRECATED (channel 1), see #1861
  *
  * Generates native CC 2.1.63 HTTP hook entries for all 19 event types.
  * Output: JSON config suitable for `.claude/settings.local.json`
+ *
+ * ## DEPRECATED — this is "channel 1"
+ *
+ * OrchestKit emits hook events over two channels that POST to the SAME
+ * downstream endpoint, so every event is currently delivered TWICE:
+ *
+ *   channel 1 (this file) — 19 per-event POSTs from settings.local.json.
+ *                           Bearer auth, no batching, no retry, no dedupe.
+ *   channel 4 (http-sink) — HMAC-signed (t=,v1=), batched, retry with
+ *                           exponential backoff + jitter, circuit breaker.
+ *
+ * The duplication is not free: it drove a 61% rate-limit reject rate on the
+ * yonatan-hq platform (2026-05-13) and forced a per-session bucketing
+ * workaround server-side that exists only to absorb the double-send.
+ *
+ * Channel 4 is now CANONICAL — the hook contract is published
+ * (@orchestkit/hook-contract / orchestkit-hook-contract on PyPI, M141), the
+ * sink's HMAC format is verified end-to-end by the platform consumer, and the
+ * OpenAPI spec describes the ingest endpoint. Nothing depends on channel 1.
+ *
+ * Migration: configure the channel-4 http-sink instead. See
+ * `src/skills/configure/references/http-hooks.md`.
+ *
+ * Flag-day: this generator becomes a no-op in v9.x (breaking — tracked by
+ * #1861). Until then it still works, but warns on every run.
  *
  * Token enforcement (#1860): in --write mode the generator refuses to
  * persist hook entries when $ORCHESTKIT_HOOK_TOKEN is unset/empty in the
@@ -125,9 +150,34 @@ function getDefaultSettingsPath(): string {
   return join(safeProjectDir(), '.claude', 'settings.local.json');
 }
 
+/**
+ * Channel-1 deprecation notice (#1861).
+ *
+ * Written to stderr so it survives `... > settings.json` redirection — the
+ * stdout path is the generator's actual payload and must stay pipeable.
+ */
+function warnDeprecated(): void {
+  console.error(
+    '\n' +
+      '  ⚠️  DEPRECATED: generate:http-hooks is channel 1 and is being retired.\n' +
+      '\n' +
+      '     Channel 4 (the HMAC-signed http-sink) is now canonical: batched,\n' +
+      '     retried, circuit-broken, and verified end-to-end against the\n' +
+      '     published hook contract (M141).\n' +
+      '\n' +
+      '     Running BOTH channels double-POSTs every hook event to the same\n' +
+      '     endpoint — that already cost a 61% rate-limit reject rate.\n' +
+      '\n' +
+      '     Migrate: src/skills/configure/references/http-hooks.md\n' +
+      '     This generator becomes a no-op in v9.x — track #1861.\n',
+  );
+}
+
 // --- CLI entrypoint ---
 function main(): void {
   const args = process.argv.slice(2);
+
+  warnDeprecated();
 
   if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
     console.log(`Usage: generate-http-hooks <webhook-url> [options]
