@@ -7,8 +7,8 @@
       "exports": 67
     },
     "pretool": {
-      "size": 133974,
-      "sizeKB": "130.83",
+      "size": 134291,
+      "sizeKB": "131.14",
       "exports": 82
     },
     "posttool": {
@@ -37,8 +37,8 @@
       "exports": 83
     },
     "notification": {
-      "size": 11164,
-      "sizeKB": "10.90",
+      "size": 11256,
+      "sizeKB": "10.99",
       "exports": 4
     },
     "setup": {
@@ -57,14 +57,14 @@
       "exports": 67
     },
     "hooks": {
-      "size": 388937,
-      "sizeKB": "379.82",
+      "size": 389346,
+      "sizeKB": "380.22",
       "exports": 165,
       "unified": true
     }
   },
-  "totalSize": 779454,
-  "totalSizeKB": "761.19",
+  "totalSize": 779863,
+  "totalSizeKB": "761.58",
   "inputs": 114,
-  "avgBundleSizeKB": "69.20"
+  "avgBundleSizeKB": "69.23"
 }

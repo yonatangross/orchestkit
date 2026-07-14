@@ -13,7 +13,13 @@
  *   - `git push` (anything that pushes the current branch)
  *   - `gh pr create ...`
  *
+ * Opt-in by convention (#2574): stays silent unless THIS repo actually
+ * defines the `playground-check` gate in `.github/workflows/`. Most repos with
+ * the plugin installed have no such job, so warning there would make a
+ * factually false "CI will reject your PR" claim.
+ *
  * Skips:
+ *   - repos with no `playground-check` workflow (the common case)
  *   - main / master / develop / dev branches
  *   - bot/automation prefixes (dependabot/, renovate/, release-please)
  *   - if `docs/<slug>/*.html` already exists
@@ -22,7 +28,7 @@
  */
 
 import { execSync } from 'node:child_process';
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, getField } from '../../lib/common.js';
@@ -69,6 +75,26 @@ function hasPlayground(projectDir: string, slug: string): boolean {
   }
 }
 
+/**
+ * True only when THIS repo actually defines the `playground-check` CI gate
+ * (a job/reference in .github/workflows/). Elsewhere the warning would make a
+ * factually false claim — most repos with the plugin installed have no such
+ * job — so the warner stays silent unless the gate is real (#2574).
+ */
+function repoDefinesPlaygroundGate(projectDir: string): boolean {
+  const wfDir = join(projectDir, '.github', 'workflows');
+  if (!existsSync(wfDir)) return false;
+  try {
+    for (const f of readdirSync(wfDir)) {
+      if (!f.endsWith('.yml') && !f.endsWith('.yaml')) continue;
+      if (readFileSync(join(wfDir, f), 'utf8').includes('playground-check')) return true;
+    }
+  } catch {
+    // best-effort: unreadable workflows dir → assume no gate, stay silent
+  }
+  return false;
+}
+
 export function playgroundPresenceWarner(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   if (process.env.ORK_DISABLE_PLAYGROUND_WARNER === '1') return outputSilentSuccess();
   if (input.tool_name !== 'Bash') return outputSilentSuccess();
@@ -83,6 +109,13 @@ export function playgroundPresenceWarner(input: HookInput, ctx: HookContext = NO
   // Skip exempt branches
   if (EXEMPT_BRANCHES.has(branch)) return outputSilentSuccess();
   if (EXEMPT_PREFIXES.some(prefix => branch.startsWith(prefix))) {
+    return outputSilentSuccess();
+  }
+
+  // Opt-in by convention: only warn in repos that actually enforce the gate.
+  // Elsewhere the "CI will reject this PR" claim is false — stay silent (#2574).
+  if (!repoDefinesPlaygroundGate(projectDir)) {
+    ctx.log(HOOK_NAME, 'no playground-check gate in this repo — silent');
     return outputSilentSuccess();
   }
 
@@ -109,4 +142,4 @@ export function playgroundPresenceWarner(input: HookInput, ctx: HookContext = NO
 }
 
 // Testing exports
-export { PUSH_RE, branchToSlug, hasPlayground, EXEMPT_BRANCHES, EXEMPT_PREFIXES };
+export { PUSH_RE, branchToSlug, hasPlayground, repoDefinesPlaygroundGate, EXEMPT_BRANCHES, EXEMPT_PREFIXES };

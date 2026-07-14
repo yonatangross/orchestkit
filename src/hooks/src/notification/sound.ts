@@ -104,6 +104,10 @@ function playSound(player: string, soundFile: string): void {
 // -----------------------------------------------------------------------------
 
 export function soundNotification(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  // Global opt-out for OrchestKit Notification hooks (desktop banner + sound).
+  // Mirrors desktop.ts + the ORK_NO_* opt-out convention (#2430).
+  if (process.env.ORK_NO_NOTIFY === '1') return outputSilentSuccess();
+
   // CC sends notification_type at root level; tool_input is a fallback
   const notificationType = input.notification_type
     || (input.tool_input?.notification_type as string)

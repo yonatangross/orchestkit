@@ -163,6 +163,11 @@ function sendLinuxNotification(title: string, subtitle: string, message: string)
 // -----------------------------------------------------------------------------
 
 export async function desktopNotification(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
+  // Global opt-out for OrchestKit Notification hooks (desktop banner + sound).
+  // Set once in your env; survives version bumps (unlike editing the install
+  // cache's hooks.json). Mirrors the ORK_NO_* opt-out convention (#2430).
+  if (process.env.ORK_NO_NOTIFY === '1') return outputSilentSuccess();
+
   const toolInput = input.tool_input || {};
   const message = input.message || (toolInput.message as string) || '';
   const notificationType = input.notification_type || (toolInput.notification_type as string) || '';
