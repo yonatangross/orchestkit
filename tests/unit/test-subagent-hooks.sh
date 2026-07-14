@@ -126,21 +126,6 @@ test_subagent_quality_gate_validates_output() {
 
 describe "Agent Hooks"
 
-test_context_publisher_outputs_json() {
-    local hook="$HOOKS_DIR/agent/context-publisher.sh"
-    if [[ ! -f "$hook" ]]; then
-        skip "context-publisher.sh not found"
-    fi
-
-    local input='{"agent_id":"test-agent-001","context":{"key":"value"}}'
-    local output
-    output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
-
-    if [[ -n "$output" ]]; then
-        assert_valid_json "$output"
-    fi
-}
-
 test_handoff_preparer_creates_handoff_context() {
     local hook="$HOOKS_DIR/agent/handoff-preparer.sh"
     if [[ ! -f "$hook" ]]; then

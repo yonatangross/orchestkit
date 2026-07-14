@@ -191,14 +191,16 @@ else
 fi
 
 # =====================================================================
-# Test: PostToolUse hooks (error handler, budget monitor)
+# Test: PostToolUse hooks (failure handler, metrics dispatcher)
+# The legacy PostToolUse error-handler dispatcher was deleted in the
+# dead-hook triage (#2561/PR #2889) — children are individually registered now.
 # =====================================================================
 echo ""
 echo -e "${CYAN}Testing PostToolUse Hooks${NC}"
 echo "----------------------------------------"
 
-echo -n "  unified-error-handler (success)... "
-if run_ts_hook "posttool/unified-error-handler" "$(get_fixture posttool_success)" 0; then
+echo -n "  failure-handler (success)... "
+if run_ts_hook "posttool/failure-handler" "$(get_fixture posttool_success)" 0; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
 else
@@ -206,8 +208,8 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-echo -n "  unified-error-handler (success)... "
-if run_ts_hook "posttool/unified-error-handler" "$(get_fixture posttool_success)" 0; then
+echo -n "  metrics-dispatcher (success)... "
+if run_ts_hook "posttool/metrics-dispatcher" "$(get_fixture posttool_success)" 0; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
 else
@@ -224,15 +226,6 @@ echo "----------------------------------------"
 
 echo -n "  session-context-loader... "
 if run_ts_hook "lifecycle/session-context-loader" '{"session_id":"test"}' 0; then
-    echo -e "${GREEN}PASS${NC}"
-    PASSED=$((PASSED + 1))
-else
-    echo -e "${RED}FAIL${NC}"
-    FAILED=$((FAILED + 1))
-fi
-
-echo -n "  session-metrics-summary... "
-if run_ts_hook "lifecycle/session-metrics-summary" '{"session_id":"test"}' 0; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
 else

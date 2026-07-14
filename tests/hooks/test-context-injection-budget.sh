@@ -168,30 +168,7 @@ for prompt in "do you remember the auth pattern" "how did we handle caching" "wh
 done
 
 echo ""
-echo "▶ Test 4: Realtime-sync keyword changes"
-echo "────────────────────────────────────────────────────────────"
-
-# "must" and "cannot" should NOT trigger IMMEDIATE sync
-IMMEDIATE_RE="decided|chose|architecture|security|blocked|breaking|critical|deprecated|removed|migration"
-
-for word in "must" "cannot"; do
-  if echo "$IMMEDIATE_RE" | grep -q "$word"; then
-    fail "\"$word\" still in IMMEDIATE_KEYWORDS"
-  else
-    pass "\"$word\" removed from IMMEDIATE_KEYWORDS"
-  fi
-done
-
-# MIN_CONTENT_LENGTH should be 60
-MIN_LEN=$(grep 'MIN_CONTENT_LENGTH' "$PROJECT_ROOT/src/hooks/src/posttool/realtime-sync.ts" | grep -o '[0-9]*')
-if [ "$MIN_LEN" = "60" ]; then
-  pass "MIN_CONTENT_LENGTH = 60 (was 30)"
-else
-  fail "MIN_CONTENT_LENGTH = $MIN_LEN (expected 60)"
-fi
-
-echo ""
-echo "▶ Test 5: Agentation context compression"
+echo "▶ Test 4: Agentation context compression"
 echo "────────────────────────────────────────────────────────────"
 
 AGENTATION_LINES=$(grep -c '.' "$PROJECT_ROOT/src/hooks/src/lifecycle/agentation-context.ts" <<< "$(sed -n '/AGENTATION_CONTEXT/,/;$/p' "$PROJECT_ROOT/src/hooks/src/lifecycle/agentation-context.ts")" 2>/dev/null || echo "0")
@@ -209,7 +186,7 @@ else
 fi
 
 echo ""
-echo "▶ Test 6: Noisy output filter"
+echo "▶ Test 5: Noisy output filter"
 echo "────────────────────────────────────────────────────────────"
 
 # Test isNoisyOutput logic
@@ -272,7 +249,7 @@ else
 fi
 
 echo ""
-echo "▶ Test 7: SessionStart hook consolidation"
+echo "▶ Test 6: SessionStart hook consolidation"
 echo "────────────────────────────────────────────────────────────"
 
 SESSION_START_HOOKS=$(node -e "
@@ -295,7 +272,7 @@ else
 fi
 
 echo ""
-echo "▶ Test 8: session_id fallback"
+echo "▶ Test 7: session_id fallback"
 echo "────────────────────────────────────────────────────────────"
 
 if grep -q "input.session_id" "$PROJECT_ROOT/src/hooks/src/prompt/unified-dispatcher.ts"; then

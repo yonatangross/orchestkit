@@ -78,34 +78,6 @@ test_error_pattern_warner_hook() {
     fi
 }
 
-test_issue_docs_requirement_hook() {
-    local hook="$HOOKS_DIR/pretool/bash/issue-docs-requirement.sh"
-    if [[ ! -f "$hook" ]]; then
-        skip "issue-docs-requirement.sh not found"
-    fi
-
-    local output
-    output=$(echo "$PRETOOL_INPUT" | bash "$hook" 2>/dev/null) || true
-
-    if [[ -n "$output" ]]; then
-        assert_valid_json "$output"
-    fi
-}
-
-test_multi_instance_quality_gate_hook() {
-    local hook="$HOOKS_DIR/pretool/bash/multi-instance-quality-gate.sh"
-    if [[ ! -f "$hook" ]]; then
-        skip "multi-instance-quality-gate.sh not found"
-    fi
-
-    local output
-    output=$(echo "$PRETOOL_INPUT" | bash "$hook" 2>/dev/null) || true
-
-    if [[ -n "$output" ]]; then
-        assert_valid_json "$output"
-    fi
-}
-
 # ============================================================================
 # PRETOOL/WRITE-EDIT HOOKS
 # ============================================================================

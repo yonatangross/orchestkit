@@ -265,9 +265,12 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-echo -n "  unified-dispatcher hook (posttool bundle)... "
+# The legacy PostToolUse dispatcher was deleted in the dead-hook triage
+# (#2561/PR #2889) — PostToolUse hooks are individually registered now.
+# Verify a live posttool hook is wired in hooks.json instead.
+echo -n "  metrics-dispatcher hook (posttool bundle)... "
 if [[ -f "$HOOKS_DIR/dist/posttool.mjs" ]]; then
-    if jq -e '.. | objects | select(has("command")) | ((.command // "") + " " + ((.args // []) | join(" "))) | select(test("unified-dispatcher"))' "$HOOKS_DIR/hooks.json" >/dev/null 2>&1; then
+    if jq -e '.. | objects | select(has("command")) | ((.command // "") + " " + ((.args // []) | join(" "))) | select(test("posttool/metrics-dispatcher"))' "$HOOKS_DIR/hooks.json" >/dev/null 2>&1; then
         echo -e "${GREEN}PASS${NC} (registered in hooks.json)"
         PASSED=$((PASSED + 1))
     else
