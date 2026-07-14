@@ -36,6 +36,11 @@
         }
       }
     },
+    "streak_target": {
+      "type": "integer",
+      "minimum": 2,
+      "description": "Optional default for the streak gate (verify/references/streak-gate.md): require N consecutive READY-FOR-MERGE verifications before declaring done. N >= 2 (1 would be identical to single-shot verify). An explicit --streak=N flag always overrides this. Declared here so a configured target is schema-validated rather than silently ignored (#2557)."
+    },
     "dimensions": {
       "type": "array",
       "minItems": 1,

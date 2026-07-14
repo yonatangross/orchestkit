@@ -1321,7 +1321,7 @@ A single green is not proof. Flaky suites, race conditions, and order-dependent 
 /ork:verify --streak=3                          # continues an existing streak for the same scope
 ```
 
-`--streak=N` (N ≥ 2). When absent, verify behaves exactly as before (single pass/fail). The target may also come from `.claude/policies/verification-policy.json` (`"streak_target": N`); the explicit flag wins.
+`--streak=N` (N ≥ 2). When absent, verify behaves exactly as before (single pass/fail). The target may also come from the verify rubric's `streak_target` slot (`src/skills/verify/rubric.json`, an integer ≥ 2 validated by `src/skills/shared/rubric.schema.json` — a configured value is schema-checked, not silently ignored); the explicit flag always wins.
 
 Parse it alongside the other flags in Argument Resolution:
 
@@ -1331,7 +1331,7 @@ for token in "$ARGUMENTS".split():
     if token.startswith("--streak="):
         STREAK_TARGET = int(token.split("=", 1)[1])   # explicit override
         SCOPE = SCOPE.replace(token, "").strip()
-STREAK_TARGET = STREAK_TARGET or policy.get("streak_target")  # may stay None
+STREAK_TARGET = STREAK_TARGET or rubric.get("streak_target")  # validated slot; may stay None
 ```
 
 ## Ledger
@@ -1346,6 +1346,7 @@ The streak persists across independent verify runs in `.claude/chain/verify-stre
   "current": 2,
   "met": false,
   "reset_count": 1,
+  "last_run_ts": "2026-06-20T10:31Z",
   "history": [
     { "ts": "2026-06-20T10:01Z", "verdict": "fail", "composite": 5.4, "blocker": "security 3.2" },
     { "ts": "2026-06-20T10:14Z", "verdict": "pass", "composite": 7.8 },
@@ -1354,16 +1355,24 @@ The streak persists across independent verify runs in `.claude/chain/verify-stre
 }
 ```
 
-`scope` keys the streak — switching scope starts a fresh streak. `current` is the live consecutive-pass count; `met` is `current >= target`.
+`scope` keys the streak — switching scope starts a fresh streak. `current` is the live consecutive-pass count; `met` is `current >= target`. `last_run_ts` is the timestamp of the run that last wrote the ledger — the freshness stamp a `/goal` loop checks so it never trusts a `met:true` it didn't just produce (see Stale-ledger guard).
+
+**Scope keying is normalized.** The raw scope string is trimmed and its internal whitespace collapsed before it keys the streak, so `"auth flow"` and `"auth  flow"` (or a trailing space) extend the *same* streak instead of silently starting fresh ones:
+
+```python
+def streak_key(scope: str) -> str:
+    return " ".join(scope.split())   # trim + collapse runs of whitespace
+```
 
 ## Run protocol
 
 Each `/ork:verify --streak=N` invocation:
 
 ```python
-ledger = read(".claude/chain/verify-streak.json") or new_ledger(scope, N)
-if ledger.scope != SCOPE or ledger.target != N:
-    ledger = new_ledger(SCOPE, N)          # scope/target change → fresh streak
+key = streak_key(SCOPE)                     # normalized: trim + collapse whitespace
+ledger = read(".claude/chain/verify-streak.json") or new_ledger(key, N)
+if ledger.scope != key or ledger.target != N:
+    ledger = new_ledger(key, N)            # scope/target change → fresh streak
 
 verdict = run_full_verification()          # the normal 8-phase verify, UNCHANGED
 
@@ -1374,8 +1383,11 @@ else:
     ledger.current = 0                     # ANY non-ready verdict breaks it
 ledger.history.append({ts, verdict, composite, blocker?})
 ledger.met = ledger.current >= ledger.target
-write(".claude/chain/verify-streak.json", ledger)
+ledger.last_run_ts = now_iso()             # stamp THIS run — the freshness proof
+write_atomic(".claude/chain/verify-streak.json", ledger)   # tmp + rename, never in-place
 ```
+
+**Atomic write (concurrency safety).** The ledger *is* the counter, so a torn or last-writer-wins write corrupts the whole feature. Two verify runs on the same scope (e.g. parallel worktrees) must not race: write to `verify-streak.json.tmp.&lt;pid&gt;` then `rename()` over the target (an atomic filesystem op on POSIX). Never mutate the file in place. If two runs still interleave, rename-last-wins loses at most one increment — it never leaves a half-written ledger.
 
 **Reset rule:** a streak breaks on *any* non-`READY FOR MERGE` verdict — a tripped dimension blocker, a failing test, or an IMPROVEMENTS-RECOMMENDED. One red zeroes the count. There is no partial credit.
 
@@ -1398,14 +1410,15 @@ Always surface the count: `STREAK 2/3 — one more green to merge` or `streak re
 The streak gate is what makes the quality-streak recipe converge. The `until`-clause reads the ledger; each loop turn runs verify:
 
 ```
-rm -f .claude/chain/verify-streak.json   # reset first — see Stale-ledger guard below
-/goal until jq -e '.met==true' .claude/chain/verify-streak.json   # run /ork:verify --streak=3 each turn
+# Stamp the loop start; honor met only for a ledger written AFTER it.
+LOOP_START="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+/goal until jq -e --arg t "$LOOP_START" '.met==true and .last_run_ts >= $t' .claude/chain/verify-streak.json
 /goal abort-if turns > 15 OR tokens > 150000 OR no_progress_for_4_turns
 ```
 
 `no_progress_for_4_turns` is deliberately generous: a streak that keeps resetting *is* progress information (it's surfacing real flakiness), so give it room before aborting.
 
-**Stale-ledger guard (the first-run race).** `/goal` evaluates the `until`-clause at the *top* of each turn — before that turn's verify runs. If a previous completed streak for the same scope left `met:true` in the ledger, the loop exits on turn 1 having run **zero** fresh verifications. Defense: `rm` the ledger before entering the loop (shown above) so it always starts cold. A more robust form (tracked under streak hardening) stamps a `last_run_ts` per run and honors `met` only when the ledger was written this loop — never trust a `met:true` you didn't just produce.
+**Stale-ledger guard (the first-run race).** `/goal` evaluates the `until`-clause at the *top* of each turn — before that turn's verify runs. If a previous completed streak for the same scope left `met:true` in the ledger, a bare `.met==true` check exits on turn 1 having run **zero** fresh verifications. Defense (robust form): the `until`-clause compares `last_run_ts` against the loop-start timestamp, so `met:true` is honored **only when the ledger was written this loop** — you never trust a `met` you didn't just produce. This needs no `rm` and is safe even if a stale ledger exists (the old `rm -f` reset still works as a simpler fallback, but the timestamp guard is preferred because it also survives a mid-loop scope reuse). ISO-8601 UTC timestamps compare correctly as strings.
 
 ## Reuse in `/ork:cover`
 
