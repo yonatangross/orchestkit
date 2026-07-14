@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.73.0",
+    "date": "2026-07-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** deprecate channel-1 generate:http-hooks ([#2884](https://github.com/yonatangross/orchestkit/issues/2884)) ([f3243be](https://github.com/yonatangross/orchestkit/commit/f3243be8b4a4ab9c63b99d21cab7d5bb2128f3c5)), closes [#1861](https://github.com/yonatangross/orchestkit/issues/1861)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.72.0",
     "date": "2026-07-14",
     "compareUrl": "",

@@ -5,7 +5,6 @@
 # Tests TypeScript lifecycle hooks in hooks/src/lifecycle/:
 # - session-cleanup.ts
 # - session-env-setup.ts
-# - session-metrics-summary.ts
 #
 # Updated for TypeScript hook architecture (v5.1.0+)
 # Shell script hooks migrated to TypeScript and compiled to lifecycle.mjs
@@ -81,27 +80,6 @@ test_session_env_setup_has_metrics_init() {
         return 0
     fi
     fail "session-env-setup.ts should initialize metrics/logs"
-}
-
-# ============================================================================
-# SESSION-METRICS-SUMMARY TESTS
-# ============================================================================
-
-describe "session-metrics-summary.ts"
-
-test_session_metrics_summary_exists() {
-    assert_file_exists "$TS_HOOKS_DIR/session-metrics-summary.ts"
-}
-
-test_session_metrics_summary_exports_handler() {
-    assert_file_contains "$TS_HOOKS_DIR/session-metrics-summary.ts" "export"
-}
-
-test_session_metrics_summary_has_calculation() {
-    if grep -qiE "metrics|summary|calculate|total" "$TS_HOOKS_DIR/session-metrics-summary.ts" 2>/dev/null; then
-        return 0
-    fi
-    fail "session-metrics-summary.ts should calculate metrics"
 }
 
 # ============================================================================

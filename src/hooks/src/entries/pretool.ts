@@ -26,10 +26,7 @@ import { ciSimulation } from '../pretool/bash/ci-simulation.js';
 import { preCommitSimulation } from '../pretool/bash/pre-commit-simulation.js';
 import { changelogGenerator } from '../pretool/bash/changelog-generator.js';
 import { versionSync } from '../pretool/bash/version-sync.js';
-import { issueDocsRequirement } from '../pretool/bash/issue-docs-requirement.js';
-import { multiInstanceQualityGate } from '../pretool/bash/multi-instance-quality-gate.js';
 import { agentBrowserSafety } from '../pretool/bash/agent-browser-safety.js';
-import { commitAtomicityChecker } from '../pretool/bash/commit-atomicity-checker.js';
 import { issueReferenceChecker } from '../pretool/bash/issue-reference-checker.js';
 import { ghLabelEnforcer } from '../pretool/bash/gh-label-enforcer.js';
 import { ghMilestoneEnforcer } from '../pretool/bash/gh-milestone-enforcer.js';
@@ -40,14 +37,11 @@ import { fileGuard } from '../pretool/write-edit/file-guard.js';
 
 // PreTool/Write hooks (4)
 import { architectureChangeDetector } from '../pretool/Write/architecture-change-detector.js';
-import { codeQualityGate } from '../pretool/Write/code-quality-gate.js';
-import { docstringEnforcer } from '../pretool/Write/docstring-enforcer.js';
 import { securityPatternValidator } from '../pretool/Write/security-pattern-validator.js';
 
 // PreTool/MCP hooks (3)
 import { context7Tracker } from '../pretool/mcp/context7-tracker.js';
 import { memoryValidator } from '../pretool/mcp/memory-validator.js';
-import { notebooklmAdvisor } from '../pretool/mcp/notebooklm-advisor.js';
 
 // PreTool/InputMod hooks (1)
 import { writeHeaders } from '../pretool/input-mod/write-headers.js';
@@ -105,10 +99,7 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/pre-commit-simulation': preCommitSimulation,
   'pretool/bash/changelog-generator': changelogGenerator,
   'pretool/bash/version-sync': versionSync,
-  'pretool/bash/issue-docs-requirement': issueDocsRequirement,
-  'pretool/bash/multi-instance-quality-gate': multiInstanceQualityGate,
   'pretool/bash/agent-browser-safety': agentBrowserSafety,
-  'pretool/bash/commit-atomicity-checker': commitAtomicityChecker,
   'pretool/bash/issue-reference-checker': issueReferenceChecker,
   'pretool/bash/gh-label-enforcer': ghLabelEnforcer,
   'pretool/bash/gh-milestone-enforcer': ghMilestoneEnforcer,
@@ -119,14 +110,11 @@ export const hooks: Record<string, HookFn> = {
 
   // PreTool/Write hooks (4)
   'pretool/Write/architecture-change-detector': architectureChangeDetector,
-  'pretool/Write/code-quality-gate': codeQualityGate,
-  'pretool/Write/docstring-enforcer': docstringEnforcer,
   'pretool/Write/security-pattern-validator': securityPatternValidator,
 
   // PreTool/MCP hooks (3)
   'pretool/mcp/context7-tracker': context7Tracker,
   'pretool/mcp/memory-validator': memoryValidator,
-  'pretool/mcp/notebooklm-advisor': notebooklmAdvisor,
 
   // PreTool/InputMod hooks (1)
   'pretool/input-mod/write-headers': writeHeaders,

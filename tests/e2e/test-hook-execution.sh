@@ -3,9 +3,10 @@
 # Hook Execution E2E Test
 # ============================================================================
 # Verifies that the unified hook dispatchers actually fire when called:
-#   - posttool/unified-dispatcher (PostToolUse)
 #   - subagent-stop/unified-dispatcher (SubagentStop)
 #   - prompt/unified-dispatcher (UserPromptSubmit)
+# (The legacy PostToolUse dispatcher was deleted in the dead-hook triage
+# #2561 — PostToolUse children are individually registered now.)
 #
 # Strategy: delegates to the vitest test file
 #   src/hooks/src/__tests__/e2e/hook-execution-e2e.test.ts

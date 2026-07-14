@@ -104,7 +104,6 @@ hooks/
 │   ├── setup.mjs           # Setup bundle (24KB)
 │   ├── skill.mjs           # Skill bundle (52KB)
 │   ├── agent.mjs           # Agent bundle (8KB)
-│   ├── hooks.mjs           # Unified bundle for CLI tools (324KB)
 │   └── bundle-stats.json   # Build metrics
 ├── bin/
 │   ├── run-hook.mjs               # CLI runner (loads event-specific bundles)
@@ -1117,7 +1116,6 @@ export function myHook(input: HookInput): HookResult {
 | setup.mjs | 24KB | 26 | Setup/maintenance |
 | skill.mjs | 52KB | 35 | Skill operations |
 | agent.mjs | 8KB | 41 | Agent operations |
-| hooks.mjs (unified) | 324KB | 136 | CLI tools only |
 
 **Performance Gains:**
 - **89% per-load savings:** Average ~35KB loaded per hook vs 324KB unified

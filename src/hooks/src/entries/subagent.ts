@@ -17,7 +17,6 @@ export * from '../lib/retry-manager.js';
 // SubagentStart hooks (6 — #1783 added agent-view-titler)
 import { contextGate } from '../subagent-start/context-gate.js';
 import { subagentValidator } from '../subagent-start/subagent-validator.js';
-import { modelCostAdvisor } from '../subagent-start/model-cost-advisor.js';
 import { issueContextInjector } from '../subagent-start/issue-context-injector.js';
 import { agentViewTitler } from '../subagent-start/agent-view-titler.js';
 import { unifiedSubagentStartDispatcher } from '../subagent-start/unified-dispatcher.js';
@@ -25,7 +24,6 @@ import { unifiedSubagentStartDispatcher } from '../subagent-start/unified-dispat
 // SubagentStop hooks (9) — #1282 added subagent-scope-auditor
 import { autoSpawnQuality } from '../subagent-stop/auto-spawn-quality.js';
 import { subagentScopeAuditor } from '../subagent-stop/subagent-scope-auditor.js';
-import { contextPublisher } from '../subagent-stop/context-publisher.js';
 import { feedbackLoop } from '../subagent-stop/feedback-loop.js';
 import { handoffPreparer } from '../subagent-stop/handoff-preparer.js';
 import { multiClaudeVerifier } from '../subagent-stop/multi-claude-verifier.js';
@@ -45,14 +43,12 @@ export const hooks: Record<string, HookFn> = {
   // SubagentStart hooks (6 — #1783 added agent-view-titler)
   'subagent-start/context-gate': contextGate,
   'subagent-start/subagent-validator': subagentValidator,
-  'subagent-start/model-cost-advisor': modelCostAdvisor,
   'subagent-start/issue-context-injector': issueContextInjector,
   'subagent-start/agent-view-titler': agentViewTitler,
   'subagent-start/unified-dispatcher': unifiedSubagentStartDispatcher,
 
   // SubagentStop hooks (9)
   'subagent-stop/auto-spawn-quality': autoSpawnQuality,
-  'subagent-stop/context-publisher': contextPublisher,
   'subagent-stop/feedback-loop': feedbackLoop,
   'subagent-stop/handoff-preparer': handoffPreparer,
   'subagent-stop/multi-claude-verifier': multiClaudeVerifier,

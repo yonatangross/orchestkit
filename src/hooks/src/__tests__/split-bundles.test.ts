@@ -408,7 +408,12 @@ describe('Cross-Bundle Consistency', () => {
     // 246 -> 247: #2475 — added instructions-loaded/session-rules-audit (SessionStart) —
     //             whole-set instruction handlers moved off the single-file
     //             InstructionsLoaded event (which had a fabricated files_loaded shape).
-    expect(totalHooks).toBe(247);
+    // 247 -> 197: #2561 dead-hook triage — deleted the 46 grandfathered dead hooks
+    //             (45 registry entries; communication-style-tracker was comment-only)
+    //             plus 5 already-removed legacy unified-dispatchers (posttool,
+    //             lifecycle, stop, notification, teammate-idle). Matches
+    //             validate-registry.mjs reachable closure of 197.
+    expect(totalHooks).toBe(197);
   });
 });
 

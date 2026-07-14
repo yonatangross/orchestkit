@@ -11,17 +11,12 @@ export * from '../lib/common.js';
 
 // Stop hooks (9) + StopFailure handler (CC 2.1.78)
 import { handoffWriter } from '../stop/handoff-writer.js';
-import { fullTestSuite } from '../stop/full-test-suite.js';
-import { issueWorkSummary } from '../stop/issue-work-summary.js';
 import { securityScanAggregator } from '../stop/security-scan-aggregator.js';
 import { taskCompletionCheck } from '../stop/task-completion-check.js';
-import { unifiedStopDispatcher } from '../stop/unified-dispatcher.js';
 import { stopFailureHandler } from '../stop/stop-failure-handler.js';
 import { ledgerCleanup } from '../stop/ledger-cleanup.js';
 
 // Intelligent Decision Capture System
-import { workflowPreferenceLearner } from '../stop/workflow-preference-learner.js';
-import { sessionEndTracking } from '../stop/session-end-tracking.js';
 // #1885 — cross-session state bus finalizer (companion to posttool publisher)
 import { sessionHeartbeatFinalizer } from '../stop/session-heartbeat-finalizer.js';
 // Graph-first session summary (replaces memory-capture.ts)
@@ -37,16 +32,11 @@ import type { HookFn } from '../types.js';
  */
 export const hooks: Record<string, HookFn> = {
   'stop/handoff-writer': handoffWriter,
-  'stop/full-test-suite': fullTestSuite,
-  'stop/issue-work-summary': issueWorkSummary,
   'stop/security-scan-aggregator': securityScanAggregator,
   'stop/task-completion-check': taskCompletionCheck,
-  'stop/unified-dispatcher': unifiedStopDispatcher,
   'stop/stop-failure-handler': stopFailureHandler,
   'stop/ledger-cleanup': ledgerCleanup,
   // Intelligent Decision Capture System
-  'stop/workflow-preference-learner': workflowPreferenceLearner,
-  'stop/session-end-tracking': sessionEndTracking,
   // #1885 — marks status=completed in cross-session state bus
   'stop/session-heartbeat-finalizer': sessionHeartbeatFinalizer,
   'stop/session-summary': sessionSummary,

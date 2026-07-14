@@ -44,8 +44,6 @@ import { goalTracker } from '../prompt/goal-tracker.js';
 import { worktreeAdvisoryConsumer } from '../prompt/worktree-advisory-consumer.js';
 
 // --- Legacy hooks kept in bundle for backward compat (not in hooks.json) ---
-import { antipatternDetector } from '../prompt/antipattern-detector.js';
-import { todoEnforcer } from '../prompt/todo-enforcer.js';
 import { pipelineDetector } from '../prompt/pipeline-detector.js';
 import { thrashDetector } from '../prompt/thrash-detector.js';
 // communicationStyleTracker removed: replaced by type:prompt hook in hooks.json (#980)
@@ -71,11 +69,8 @@ export const hooks: Record<string, HookFn> = {
   // M119 PR-2 (#1794 follow-up) — deferred worktree advisory consumer
   'prompt/worktree-advisory-consumer': worktreeAdvisoryConsumer,
   // Legacy hooks (consolidated into unified-dispatcher, kept for override compat)
-  'prompt/antipattern-detector': antipatternDetector,
-  'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
   'prompt/thrash-detector': thrashDetector,
-  // 'prompt/communication-style-tracker': replaced by type:prompt hook in hooks.json (#980)
 };
 
 export function getHook(name: string): HookFn | undefined {

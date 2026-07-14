@@ -6,17 +6,21 @@
  * child_process to prevent real git/osascript/notify-send calls.
  *
  * Validates the full internal chain:
- *   dispatcher → matchesTool → real hook fn → filesystem side effects
+ *   dispatcher → real hook fn → filesystem side effects
  *
  * What this catches that functional tests don't:
  * - Hook that imports a missing module
  * - Hook that crashes on real input shapes
  * - Hook that writes to wrong path
  * - Dispatcher ↔ hook interface mismatches
+ *
+ * Dead-hook triage (#2561): the legacy posttool/lifecycle/stop/notification
+ * unified-dispatchers were deleted (flattened into per-hook async entries in
+ * hooks.json), so only the subagent-stop and setup dispatchers remain.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { mkdirSync, rmSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
@@ -46,11 +50,7 @@ vi.mock('node:child_process', () => ({
 // ---------------------------------------------------------------------------
 
 import { _resetForTesting } from '../../lib/analytics-buffer.js';
-import { unifiedDispatcher } from '../../posttool/unified-dispatcher.js';
-import { unifiedSessionStartDispatcher } from '../../lifecycle/unified-dispatcher.js';
-import { unifiedStopDispatcher } from '../../stop/unified-dispatcher.js';
 import { unifiedSubagentStopDispatcher } from '../../subagent-stop/unified-dispatcher.js';
-import { unifiedNotificationDispatcher } from '../../notification/unified-dispatcher.js';
 import { unifiedSetupDispatcher } from '../../setup/unified-dispatcher.js';
 
 // ---------------------------------------------------------------------------
@@ -120,147 +120,11 @@ const SILENT_SUCCESS = { continue: true, suppressOutput: true };
 describe('Dispatcher Integration (real hooks, temp filesystem)', () => {
 
   // =========================================================================
-  // POSTTOOL — real hooks execute through dispatcher
-  // =========================================================================
-
-  describe('posttool/unified-dispatcher', () => {
-    it('returns silent success for Bash tool with real hooks', async () => {
-      const result = await unifiedDispatcher(makeInput({ tool_name: 'Bash' }));
-      expect(result).toEqual(SILENT_SUCCESS);
-    });
-
-    it('returns silent success for Write tool with real hooks', async () => {
-      const result = await unifiedDispatcher(makeInput({
-        tool_name: 'Write',
-        tool_input: { file_path: '/tmp/test.ts', content: 'const x = 1;' },
-      }));
-      expect(result).toEqual(SILENT_SUCCESS);
-    });
-
-    it('returns silent success for Edit tool with real hooks', async () => {
-      const result = await unifiedDispatcher(makeInput({
-        tool_name: 'Edit',
-        tool_input: { file_path: '/tmp/test.ts', old_string: 'x', new_string: 'y' },
-      }));
-      expect(result).toEqual(SILENT_SUCCESS);
-    });
-
-    it('returns silent success for Task tool with real hooks', async () => {
-      const result = await unifiedDispatcher(makeInput({
-        tool_name: 'Task',
-        tool_input: { subagent_type: 'Explore' },
-      }));
-      expect(result).toEqual(SILENT_SUCCESS);
-    });
-
-    it('returns silent success for Skill tool with real hooks', async () => {
-      const result = await unifiedDispatcher(makeInput({
-        tool_name: 'Skill',
-        tool_input: { skill: 'commit' },
-      }));
-      expect(result).toEqual(SILENT_SUCCESS);
-    });
-
-    it('returns silent success for read-only tools (Read, Glob, Grep, WebFetch, WebSearch)', async () => {
-      for (const tool of ['Read', 'Glob', 'Grep', 'WebFetch', 'WebSearch']) {
-        const result = await unifiedDispatcher(makeInput({ tool_name: tool }));
-        expect(result).toEqual(SILENT_SUCCESS);
-      }
-    });
-
-    // audit-logger removed in #897 slimming — posttool now has only 3 hooks
-    it('returns silent success for Bash (redact-secrets runs)', async () => {
-      const result = await unifiedDispatcher(makeInput({
-        tool_name: 'Bash',
-        tool_input: { command: 'npm test' },
-      }));
-      expect(result).toEqual(SILENT_SUCCESS);
-    });
-
-    it('returns silent success for empty tool_name', async () => {
-      const result = await unifiedDispatcher(makeInput({ tool_name: '' }));
-      expect(result).toEqual(SILENT_SUCCESS);
-    });
-
-    it('returns silent success for empty tool_input', async () => {
-      const result = await unifiedDispatcher(makeInput({
-        tool_name: 'Bash',
-        tool_input: {},
-      }));
-      expect(result).toEqual(SILENT_SUCCESS);
-    });
-  });
-
-  // =========================================================================
-  // LIFECYCLE — session start hooks
-  // =========================================================================
-
-  describe('lifecycle/unified-dispatcher', () => {
-    it('returns silent success running all 6 session-start hooks', async () => {
-      const result = await unifiedSessionStartDispatcher(makeInput());
-      expect(result).toEqual(SILENT_SUCCESS);
-    });
-
-    it('session-env-setup creates log directory', async () => {
-      await unifiedSessionStartDispatcher(makeInput());
-
-      const logDir = join(testDir, '.claude', 'logs');
-      expect(existsSync(logDir)).toBe(true);
-    });
-
-    it('returns silent success when project_dir is missing', async () => {
-      delete process.env.CLAUDE_PROJECT_DIR;
-      const result = await unifiedSessionStartDispatcher(makeInput({
-        project_dir: undefined,
-      }));
-      expect(result).toEqual(SILENT_SUCCESS);
-    });
-  });
-
-  // =========================================================================
-  // STOP — session stop hooks
-  // =========================================================================
-
-  describe('stop/unified-dispatcher', () => {
-    it('returns silent success running all 4 stop hooks', async () => {
-      const result = await unifiedStopDispatcher(makeInput());
-      expect(result).toEqual(SILENT_SUCCESS);
-    });
-
-    it('handoff-writer creates HANDOFF.md', async () => {
-      await unifiedStopDispatcher(makeInput());
-
-      const handoffFile = join(testDir, '.claude', 'HANDOFF.md');
-      expect(existsSync(handoffFile)).toBe(true);
-
-      const content = readFileSync(handoffFile, 'utf-8');
-      expect(content).toContain('# Session Handoff');
-      expect(content).toContain('**Branch**:');
-      expect(content).toContain('**Session**:');
-    });
-
-    it('handoff-writer overwrites existing HANDOFF.md', async () => {
-      // Pre-create HANDOFF.md
-      const claudeDir = join(testDir, '.claude');
-      mkdirSync(claudeDir, { recursive: true });
-      const handoffFile = join(claudeDir, 'HANDOFF.md');
-      writeFileSync(handoffFile, '# Old Handoff\nStale content.\n');
-
-      await unifiedStopDispatcher(makeInput());
-
-      const content = readFileSync(handoffFile, 'utf-8');
-      // Should be fresh content, not old
-      expect(content).toContain('# Session Handoff');
-      expect(content).not.toContain('Stale content');
-    });
-  });
-
-  // =========================================================================
   // SUBAGENT-STOP — subagent stop hooks
   // =========================================================================
 
   describe('subagent-stop/unified-dispatcher', () => {
-    it('returns silent success running all 4 subagent-stop hooks', async () => {
+    it('returns silent success running all subagent-stop hooks', async () => {
       const result = await unifiedSubagentStopDispatcher(makeInput({
         subagent_type: 'Explore',
         agent_id: 'test-agent-id',
@@ -280,44 +144,11 @@ describe('Dispatcher Integration (real hooks, temp filesystem)', () => {
   });
 
   // =========================================================================
-  // NOTIFICATION — notification hooks
-  // =========================================================================
-
-  describe('notification/unified-dispatcher', () => {
-    it('returns silent success for permission_prompt notification', async () => {
-      const result = await unifiedNotificationDispatcher(makeInput({
-        tool_name: '',
-        notification_type: 'permission_prompt',
-        message: 'Claude wants to run: npm test',
-      }));
-      expect(result).toEqual(SILENT_SUCCESS);
-    });
-
-    it('returns silent success for idle_prompt notification', async () => {
-      const result = await unifiedNotificationDispatcher(makeInput({
-        tool_name: '',
-        notification_type: 'idle_prompt',
-        message: 'Claude is waiting for input',
-      }));
-      expect(result).toEqual(SILENT_SUCCESS);
-    });
-
-    it('returns silent success for unknown notification type', async () => {
-      const result = await unifiedNotificationDispatcher(makeInput({
-        tool_name: '',
-        notification_type: 'unknown_type',
-        message: 'Something happened',
-      }));
-      expect(result).toEqual(SILENT_SUCCESS);
-    });
-  });
-
-  // =========================================================================
   // SETUP — plugin initialization hooks
   // =========================================================================
 
   describe('setup/unified-dispatcher', () => {
-    it('returns silent success running all 3 setup hooks', async () => {
+    it('returns silent success running all setup hooks', async () => {
       const result = await unifiedSetupDispatcher(makeInput());
       expect(result).toEqual(SILENT_SUCCESS);
     });
@@ -348,11 +179,7 @@ describe('Dispatcher Integration (real hooks, temp filesystem)', () => {
       };
 
       const results = await Promise.all([
-        unifiedDispatcher(minimalInput),
-        unifiedSessionStartDispatcher(minimalInput),
-        unifiedStopDispatcher(minimalInput),
         unifiedSubagentStopDispatcher(minimalInput),
-        unifiedNotificationDispatcher(minimalInput),
         unifiedSetupDispatcher(minimalInput),
       ]);
 
@@ -360,18 +187,5 @@ describe('Dispatcher Integration (real hooks, temp filesystem)', () => {
         expect(result).toEqual(SILENT_SUCCESS);
       }
     });
-
-    it('hooks write to correct project directory (not cwd)', async () => {
-      // Run stop dispatcher which creates HANDOFF.md
-      await unifiedStopDispatcher(makeInput());
-
-      // Verify file is in testDir
-      const handoffFile = join(testDir, '.claude', 'HANDOFF.md');
-      expect(existsSync(handoffFile)).toBe(true);
-
-      const content = readFileSync(handoffFile, 'utf-8');
-      expect(content).toContain('# Session Handoff');
-    });
   });
 });
-

@@ -123,28 +123,31 @@ echo ""
 echo "▶ Test 2: PostToolUse Hook Latency"
 echo "────────────────────────────────────────"
 
-# Test unified-error-handler (replaced context-budget-monitor — removed in dead code cleanup)
+# The legacy PostToolUse error-handler dispatcher was deleted in the dead-hook
+# triage (#2561/PR #2889) — time live individually-registered posttool hooks.
+
+# Test failure-handler
 test_input='{"tool_name":"Bash","tool_input":{"command":"echo test"},"tool_result":"test"}'
-duration=$(time_command bash -c "echo '$test_input' | node '$HOOKS_BIN' posttool/unified-error-handler")
+duration=$(time_command bash -c "echo '$test_input' | node '$HOOKS_BIN' posttool/failure-handler")
 
 if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
-    pass "unified-error-handler: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
+    pass "failure-handler: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
 elif [[ "$duration" -lt "$DISPATCHER_TARGET" ]]; then
-    warn "unified-error-handler: ${duration}ms (acceptable but >target)"
+    warn "failure-handler: ${duration}ms (acceptable but >target)"
 else
-    fail "unified-error-handler: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
+    fail "failure-handler: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
 fi
 
-# Test unified-error-handler
+# Test metrics-dispatcher
 test_input='{"tool_name":"Bash","tool_input":{"command":"echo test"},"tool_result":"test"}'
-duration=$(time_command bash -c "echo '$test_input' | node '$HOOKS_BIN' posttool/unified-error-handler")
+duration=$(time_command bash -c "echo '$test_input' | node '$HOOKS_BIN' posttool/metrics-dispatcher")
 
 if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
-    pass "unified-error-handler: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
+    pass "metrics-dispatcher: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
 elif [[ "$duration" -lt "$DISPATCHER_TARGET" ]]; then
-    warn "unified-error-handler: ${duration}ms (acceptable but >target)"
+    warn "metrics-dispatcher: ${duration}ms (acceptable but >target)"
 else
-    fail "unified-error-handler: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
+    fail "metrics-dispatcher: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
 fi
 
 echo ""

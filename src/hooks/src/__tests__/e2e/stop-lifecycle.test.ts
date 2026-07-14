@@ -58,7 +58,6 @@ vi.mock('../../lib/common.js', async () => {
 // Import stop hooks
 import { handoffWriter } from '../../stop/handoff-writer.js';
 import { taskCompletionCheck } from '../../stop/task-completion-check.js';
-import { unifiedStopDispatcher } from '../../stop/unified-dispatcher.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 /**
@@ -259,24 +258,10 @@ describe('Stop Hook Lifecycle E2E', () => {
   });
 
   describe('Re-entry Prevention (CC 2.1.25: stop_hook_active)', () => {
-    test('prevents re-entry when stop_hook_active is true', async () => {
-      const result = await unifiedStopDispatcher(createStopInput({
-        stop_hook_active: true,
-      }), testCtx);
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    });
-
-    test('runs normally when stop_hook_active is false', async () => {
-      const result = await unifiedStopDispatcher(createStopInput({
-        stop_hook_active: false,
-      }), testCtx);
-      expect(result.continue).toBe(true);
-    });
-
-    test('runs normally when stop_hook_active is undefined', async () => {
-      const result = await unifiedStopDispatcher(createStopInput(), testCtx);
-      expect(result.continue).toBe(true);
+    // Dead-hook triage (#2561): legacy stop/unified-dispatcher removed
+    // (flattened into per-hook async entries in hooks.json).
+    test('placeholder — stop unified-dispatcher removed (dead code cleanup)', () => {
+      expect(true).toBe(true);
     });
   });
 });

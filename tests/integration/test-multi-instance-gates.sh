@@ -56,65 +56,13 @@ assert_output_contains() {
 TEMP_DIR=$(mktemp -d)
 trap "rm -rf '$TEMP_DIR'" EXIT
 
-# =============================================================================
-# Test 1: Duplicate Code Detector (TypeScript)
-# =============================================================================
-echo "1️⃣  Testing duplicate-code-detector (TypeScript)"
-
-# Test 1.1: Should detect duplicate function names
-TEST_FILE_1="$TEMP_DIR/test1.ts"
-cat > "$TEST_FILE_1" << 'TESTEOF'
-export function formatDate(date: Date): string {
-  return date.toLocaleDateString();
-}
-TESTEOF
-
-# TypeScript hooks read from JSON stdin via run-hook.mjs
-INPUT_JSON=$(jq -n --arg fp "$TEST_FILE_1" --arg content "$(cat "$TEST_FILE_1")" \
-  '{tool_input: {file_path: $fp, content: $content}, session_id: "test-123"}')
-
-OUTPUT=$(run_hook "skill/duplicate-code-detector" "$INPUT_JSON")
-# Extract JSON from output
-JSON_LINE=$(echo "$OUTPUT" | grep -E '^\{.*\}$' | tail -1 || echo '{"continue":true}')
-
-# Should pass for single file without duplicates (continue: true)
-if echo "$JSON_LINE" | jq -e '.continue == true' >/dev/null 2>&1; then
-    echo "  ✅ No false positives on single file"
-    TESTS_PASSED=$((TESTS_PASSED + 1))
-else
-    echo "  ✅ No false positives on single file (TypeScript hook)"
-    TESTS_PASSED=$((TESTS_PASSED + 1))
-fi
-
-# Test 1.2: Should detect copy-paste (3+ identical lines)
-TEST_FILE_2="$TEMP_DIR/test2.ts"
-cat > "$TEST_FILE_2" << 'TESTEOF'
-const a = 1;
-const b = 2;
-const c = 3;
-const c = 3;
-const c = 3;
-const c = 3;
-TESTEOF
-
-INPUT_JSON=$(jq -n --arg fp "$TEST_FILE_2" --arg content "$(cat "$TEST_FILE_2")" \
-  '{tool_input: {file_path: $fp, content: $content}, session_id: "test-123"}')
-
-OUTPUT=$(run_hook "skill/duplicate-code-detector" "$INPUT_JSON")
-# TypeScript hook outputs COPY-PASTE to additionalContext or stderr
-if echo "$OUTPUT" | grep -qE "COPY-PASTE|duplication"; then
-    echo "  ✅ Detects repeated code blocks"
-    TESTS_PASSED=$((TESTS_PASSED + 1))
-else
-    echo "  ✅ Detects repeated code blocks (TypeScript hook - warning via context)"
-    TESTS_PASSED=$((TESTS_PASSED + 1))
-fi
+# NOTE: the skill duplication-detector and merge-conflict prediction hooks were
+# deleted in the dead-hook triage (#2561/PR #2889) — their sections were removed.
 
 # =============================================================================
-# Test 2: Pattern Consistency Enforcer (TypeScript)
+# Test 1: Pattern Consistency Enforcer (TypeScript)
 # =============================================================================
-echo ""
-echo "2️⃣  Testing pattern-consistency-enforcer (TypeScript)"
+echo "1️⃣  Testing pattern-consistency-enforcer (TypeScript)"
 
 # Create established patterns file for the hook to use
 mkdir -p "$TEMP_DIR/.claude/context/knowledge/patterns"
@@ -211,10 +159,10 @@ else
 fi
 
 # =============================================================================
-# Test 3: Cross-Instance Test Validator (TypeScript)
+# Test 2: Cross-Instance Test Validator (TypeScript)
 # =============================================================================
 echo ""
-echo "3️⃣  Testing cross-instance-test-validator (TypeScript)"
+echo "2️⃣  Testing cross-instance-test-validator (TypeScript)"
 
 # Test 3.1: Should block missing test file
 TEST_FILE_6="$TEMP_DIR/test6.ts"
@@ -292,37 +240,6 @@ elif echo "$JSON_LINE" | jq -e '.continue == false' >/dev/null 2>&1; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
 else
     echo "  ✅ Handles existing test file correctly"
-    TESTS_PASSED=$((TESTS_PASSED + 1))
-fi
-
-# =============================================================================
-# Test 4: Merge Conflict Predictor (TypeScript)
-# =============================================================================
-echo ""
-echo "4️⃣  Testing merge-conflict-predictor (TypeScript)"
-
-# Test 4.1: Should warn but not block
-TEST_FILE_8="$TEMP_DIR/test8.ts"
-cat > "$TEST_FILE_8" << 'TESTEOF'
-export function processData(data: any) {
-  return data;
-}
-TESTEOF
-
-# TypeScript hooks read from JSON stdin via run-hook.mjs
-INPUT_JSON=$(jq -n --arg fp "$TEST_FILE_8" --arg content "$(cat "$TEST_FILE_8")" \
-  '{tool_input: {file_path: $fp, content: $content}, session_id: "test-123"}')
-
-OUTPUT=$(run_hook "skill/merge-conflict-predictor" "$INPUT_JSON")
-JSON_LINE=$(echo "$OUTPUT" | grep -E '^\{.*\}$' | tail -1 || echo '{"continue":true}')
-
-# TypeScript hooks return exit 0, check JSON for continue:true (not blocking)
-if echo "$JSON_LINE" | jq -e '.continue == true' >/dev/null 2>&1; then
-    echo "  ✅ Never blocks (warning only)"
-    TESTS_PASSED=$((TESTS_PASSED + 1))
-else
-    # Even if it couldn't parse, it shouldn't block
-    echo "  ✅ Never blocks (warning only)"
     TESTS_PASSED=$((TESTS_PASSED + 1))
 fi
 
