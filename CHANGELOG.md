@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.73.0](https://github.com/yonatangross/orchestkit/compare/v8.72.0...v8.73.0) (2026-07-14)
+
+
+### Features
+
+* **hooks:** deprecate channel-1 generate:http-hooks ([#2884](https://github.com/yonatangross/orchestkit/issues/2884)) ([f3243be](https://github.com/yonatangross/orchestkit/commit/f3243be8b4a4ab9c63b99d21cab7d5bb2128f3c5)), closes [#1861](https://github.com/yonatangross/orchestkit/issues/1861)
+
 ## [8.72.0](https://github.com/yonatangross/orchestkit/compare/v8.71.1...v8.72.0) (2026-07-14)
 
 

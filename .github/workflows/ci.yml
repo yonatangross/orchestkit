@@ -110,6 +110,14 @@ jobs:
       - name: TypeScript typecheck
         run: cd src/hooks && npx tsc --noEmit -p tsconfig.test.json
 
+      # Registry closure gate (#959 / #2886 bug class): every hook registered in
+      # the entries maps must be reachable from hooks.json, agent/skill
+      # frontmatter, or dispatcher fan-out. Fails on NEW dead hooks (ratchet
+      # baseline in src/hooks/scripts/known-dead-hooks.json only shrinks), on
+      # ghost references, and on count drift in the hooks.json description.
+      - name: Hook registry closure
+        run: cd src/hooks && node scripts/validate-registry.mjs
+
   # ============================================================================
   # STAGE 1b: Dependency Security Audit (BLOCKING)
   # ============================================================================
