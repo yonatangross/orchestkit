@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypeScript 7.0.2 Adoption — OrchestKit trees</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;
+    --green:#3fb950;--blue:#58a6ff;--amber:#d29922;--mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2rem 1rem;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:flex;justify-content:center}
+  main{max-width:860px;width:100%}
+  h1{font-size:1.4rem;margin:0 0 .25rem}
+  .sub{color:var(--muted);margin:0 0 1.5rem;font-size:.95rem}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1.25rem}
+  .card h2{font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 .75rem}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-weight:600}
+  code{font-family:var(--mono);background:rgba(110,118,129,.2);padding:.1em .35em;border-radius:4px;font-size:.9em}
+  .pill{display:inline-block;padding:.1em .5em;border-radius:999px;font-size:.75rem;font-weight:600}
+  .done{background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.4)}
+  .wave{background:rgba(88,166,255,.15);color:var(--blue);border:1px solid rgba(88,166,255,.4)}
+  .toggle{display:flex;gap:.5rem;margin:.6rem 0}
+  .toggle button{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;
+    padding:.4rem .9rem;font-size:.85rem;cursor:pointer;font-family:var(--mono)}
+  .toggle button.active{border-color:var(--blue);color:var(--blue);font-weight:600}
+  .out{font-family:var(--mono);font-size:.82rem;white-space:pre-wrap;background:var(--bg);
+    border:1px solid var(--border);border-radius:6px;padding:.7rem;margin-top:.5rem;color:var(--muted)}
+  .foot{color:var(--muted);font-size:.8rem;margin-top:1.5rem;line-height:1.5}
+</style>
+</head>
+<body>
+<main>
+  <h1>TypeScript 7.0.2 Adoption — OrchestKit</h1>
+  <p class="sub">TS 7.0 ("Corsa") is the native Go compiler major. This PR bundles the 4 held-major trees behind the <code>src/hooks</code> canary, which merged clean (tsc + biome + build + 8860 tests).</p>
+
+  <div class="card">
+    <h2>Per-tree status</h2>
+    <table>
+      <thead><tr><th>Tree</th><th>6.0.3 → 7.0.2</th><th>Verification</th></tr></thead>
+      <tbody>
+        <tr><td><code>src/hooks</code></td><td><span class="pill done">merged (canary #2856)</span></td><td>tsc ✓ · biome ✓ · build ✓ · 8860 tests ✓</td></tr>
+        <tr><td><code>src/mcp-server</code></td><td><span class="pill wave">this PR</span></td><td>tsc --noEmit ✓ (probed)</td></tr>
+        <tr><td><code>packages/hook-contract</code></td><td><span class="pill wave">this PR</span></td><td>root-workspace build, CI-verified</td></tr>
+        <tr><td><code>docs/site</code></td><td><span class="pill wave">this PR</span></td><td>next build (auth-gated), CI-verified</td></tr>
+        <tr><td><code>orchestkit-demos</code></td><td><span class="pill wave">this PR</span></td><td>demos app, CI-verified</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Why a TS-major devDep bump is (mostly) mechanical here</h2>
+    <div class="toggle">
+      <button id="bEsbuild" class="active">esbuild tree (hooks)</button>
+      <button id="bTsc">tsc typecheck</button>
+      <button id="bArch">native binaries</button>
+    </div>
+    <div class="out" id="explain"></div>
+  </div>
+
+  <p class="foot">
+    Supersedes the 4 separate Dependabot PRs (#2861 demos · #2858 docs/site · #2854 hook-contract · #2852 mcp-server).
+    Each lockfile carries the full <code>@typescript/typescript-&lt;arch&gt;</code> binary set including
+    <code>linux-x64</code> for the CI runner. No <code>plugins/</code> mirror drift — these trees don't mirror <code>package.json</code>.
+  </p>
+</main>
+<script>
+  const notes = {
+    bEsbuild: "esbuild has its own parser and ignores the `typescript` package,\nso a TS-major devDep bump produces NO bundle-output change.\nThe only drift would be a stale mirrored package.json version\nstring — and these trees don't mirror package.json, so: none.",
+    bTsc: "`tsc --noEmit` is the ONLY TS7-sensitive surface. Verified\nclean on src/hooks (+8860 tests) and src/mcp-server. TS 7.0 is\na semver major but drop-in for typical projects — expect a\ncompile, not a migration.",
+    bArch: "TS 7.0 ships ~20 platform-native binaries in the lockfile\n(@typescript/typescript-<os>-<arch>), like esbuild/rolldown.\nDependabot resolved the full cross-platform set; verified\nlinux-x64 (the CI runner arch) is present in all 4 locks.\nVerify locally with `npm ci` (not `npm install`) to avoid\narch-strip."
+  };
+  const out = document.getElementById('explain');
+  const btns = {bEsbuild:document.getElementById('bEsbuild'),bTsc:document.getElementById('bTsc'),bArch:document.getElementById('bArch')};
+  function show(k){out.textContent=notes[k];for(const id in btns)btns[id].classList.toggle('active',id===k);}
+  for(const id in btns)btns[id].addEventListener('click',()=>show(id));
+  show('bEsbuild');
+</script>
+</body>
+</html>
