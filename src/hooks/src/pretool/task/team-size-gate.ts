@@ -4,79 +4,157 @@
 /**
  * Team Size Gate - PreToolUse[Task] Hook
  *
- * Enforces team size limits when spawning teammates via Agent Teams.
- * - Max 6 total team members (cost control)
- * - Max 3 Opus-model members (budget guard)
- * - Passthrough for non-team Task spawns (regular subagents)
+ * Cost/budget guard on subagent fan-out. Under CC 2.1.178+ there is one
+ * IMPLICIT team per session (TeamCreate/TeamDelete were removed), and
+ * `team_name` on a spawn is accepted-but-ignored — so the old member-count
+ * source (~/.claude/teams/<name>/config.json via getTeamMembers) is dead: it
+ * always read 0 members, making this gate a silent no-op (#2561).
  *
- * CC 2.1.178 removed the TeamCreate/TeamDelete tools (one implicit team per
- * session now). `team_name` on the Agent/Task spawn is CC-accepted-but-ignored
- * and is retained by ork skills as the team key this gate reads. Follow-up: the
- * member-count source (~/.claude/teams/<name>/config.json via getTeamMembers)
- * predates implicit teams and should be re-verified against CC 2.1.178+.
+ * This version counts spawns directly. Every Task spawn this session is
+ * recorded in a session-scoped ledger; the gate warns (or, opt-in, blocks)
+ * when cumulative fan-out crosses a threshold:
+ *   - total subagent spawns  (ORK_TEAM_SIZE_MAX, default 24)
+ *   - premium spawns (opus / fable) (ORK_TEAM_OPUS_MAX, default 8)
+ *
+ * Posture (default ADVISORY — never blocks legitimate workflows):
+ *   - default: warn once via systemMessage on crossing, continue:true
+ *   - ORK_TEAM_SIZE_HARD=1: deny the spawn that would exceed the cap
+ *   - ORK_NO_TEAM_SIZE_GATE=1: disable entirely
  *
  * @hook PreToolUse[Task]
  * @since CC 2.1.33
  */
 
-import type { HookInput, HookResult , HookContext} from '../../types.js';
-import { outputSilentSuccess, outputDeny } from '../../lib/common.js';
-import { getTeamMembers, isStaleTeam, cleanupTeam } from '../../lib/agent-teams.js';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import type { HookInput, HookResult, HookContext } from '../../types.js';
+import { outputSilentSuccess, outputDeny, outputWarning } from '../../lib/common.js';
+import { atomicWriteSync } from '../../lib/atomic-write.js';
+import { stateRootDir } from '../../lib/session-state.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
-const MAX_TEAM_SIZE = 6;
-const MAX_OPUS_MEMBERS = 3;
+const LEDGER_SCHEMA = 'team-spawns/1.0';
+
+function intEnv(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+  const n = Number.parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+interface SpawnLedger {
+  schema: string;
+  session: string;
+  total: number;
+  opus: number; // premium tier (opus + fable)
+  spawns: { model: string; ts: string }[];
+  updated: string;
+}
+
+/** Premium tier = opus or fable, by shortName or full ID (vocab-consistent). */
+function isPremiumModel(model: string): boolean {
+  return /(?:^|[-/])?(opus|fable)/i.test(model);
+}
+
+function ledgerPath(session: string): string {
+  const safe = session.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || 'no-session';
+  return join(stateRootDir(), 'team-spawns', `${safe}.json`);
+}
+
+function readLedger(path: string, session: string): SpawnLedger {
+  try {
+    if (existsSync(path)) {
+      const parsed = JSON.parse(readFileSync(path, 'utf8')) as Partial<SpawnLedger>;
+      if (parsed.schema === LEDGER_SCHEMA && typeof parsed.total === 'number') {
+        return {
+          schema: LEDGER_SCHEMA,
+          session,
+          total: parsed.total,
+          opus: typeof parsed.opus === 'number' ? parsed.opus : 0,
+          spawns: Array.isArray(parsed.spawns) ? parsed.spawns.slice(-50) : [],
+          updated: parsed.updated || '',
+        };
+      }
+    }
+  } catch {
+    // corrupt/unreadable ledger → start fresh
+  }
+  return { schema: LEDGER_SCHEMA, session, total: 0, opus: 0, spawns: [], updated: '' };
+}
 
 export function teamSizeGate(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  if (process.env.ORK_NO_TEAM_SIZE_GATE === '1') return outputSilentSuccess();
+  if (input.tool_name && input.tool_name !== 'Task') return outputSilentSuccess();
+
+  const session = input.session_id || '';
+  if (!session) return outputSilentSuccess(); // no session key → can't count safely
+
   const toolInput = input.tool_input || {};
-
-  // Only gate team spawns — regular Task subagents pass through
-  const teamName = toolInput.team_name as string | undefined;
-  if (!teamName) {
-    return outputSilentSuccess();
-  }
-
-  // Auto-clean a stale team config left by a prior run (#447)
-  if (isStaleTeam(teamName)) {
-    cleanupTeam(teamName);
-    ctx.log('team-size-gate', `Auto-cleaned stale team "${teamName}" before re-spawn`);
-  }
-
   const model = (toolInput.model as string) || '';
   const description = (toolInput.description as string) || '';
+  const premium = isPremiumModel(model);
 
-  // Read current team membership
-  const members = getTeamMembers();
-  const currentSize = members.length;
+  const TOTAL_MAX = intEnv('ORK_TEAM_SIZE_MAX', 24);
+  const OPUS_MAX = intEnv('ORK_TEAM_OPUS_MAX', 8);
+  const hard = process.env.ORK_TEAM_SIZE_HARD === '1';
 
-  ctx.log('team-size-gate', `Team "${teamName}": ${currentSize} members, spawning model="${model}"`);
+  const path = ledgerPath(session);
+  const led = readLedger(path, session);
 
-  // Check total team size
-  if (currentSize >= MAX_TEAM_SIZE) {
-    ctx.log('team-size-gate', `BLOCKED: Team size limit (${currentSize} >= ${MAX_TEAM_SIZE})`);
-    return outputDeny(
-      `Team Size Limit\n\nTeam "${teamName}" has ${currentSize} members (max ${MAX_TEAM_SIZE}).\n\n` +
-      `Wait for existing teammates to complete before spawning more.\n\n` +
-      `Attempted: ${description}`,
-    );
-  }
-
-  // Check Opus model count
-  if (model === 'opus') {
-    const opusCount = members.filter(
-      (m) => m.agentType.toLowerCase().includes('opus'),
-    ).length;
-
-    if (opusCount >= MAX_OPUS_MEMBERS) {
-      ctx.log('team-size-gate', `BLOCKED: Opus limit (${opusCount} >= ${MAX_OPUS_MEMBERS})`);
+  // HARD posture: deny the spawn that WOULD exceed a cap (before recording).
+  if (hard) {
+    if (led.total >= TOTAL_MAX) {
+      ctx.log('team-size-gate', `BLOCKED: fan-out ${led.total} >= ${TOTAL_MAX}`);
       return outputDeny(
-        `Opus Model Limit\n\nTeam "${teamName}" already has ${opusCount} Opus members (max ${MAX_OPUS_MEMBERS}).\n\n` +
-        `Use a lighter model (sonnet/haiku) or wait for Opus teammates to finish.\n\n` +
-        `Attempted: ${description}`,
+        `Subagent Fan-out Limit\n\nThis session has already spawned ${led.total} subagents ` +
+          `(max ${TOTAL_MAX}, ORK_TEAM_SIZE_MAX). Let running agents finish, or raise the cap.\n\n` +
+          `Attempted: ${description}`,
+      );
+    }
+    if (premium && led.opus >= OPUS_MAX) {
+      ctx.log('team-size-gate', `BLOCKED: premium fan-out ${led.opus} >= ${OPUS_MAX}`);
+      return outputDeny(
+        `Premium Model Limit\n\nThis session has already spawned ${led.opus} premium (opus/fable) ` +
+          `subagents (max ${OPUS_MAX}, ORK_TEAM_OPUS_MAX). Use sonnet/haiku, or raise the cap.\n\n` +
+          `Attempted: ${description}`,
       );
     }
   }
 
-  ctx.log('team-size-gate', `Team spawn allowed: ${currentSize + 1}/${MAX_TEAM_SIZE}`);
+  // Record this spawn.
+  led.total += 1;
+  if (premium) led.opus += 1;
+  const ts = new Date().toISOString();
+  led.spawns.push({ model: model || 'inherit', ts });
+  led.spawns = led.spawns.slice(-50);
+  led.updated = ts;
+  try {
+    mkdirSync(dirname(path), { recursive: true });
+    atomicWriteSync(path, JSON.stringify(led));
+  } catch {
+    // best-effort ledger — never fail a spawn over a write error
+  }
+
+  ctx.log('team-size-gate', `spawn #${led.total} (premium=${led.opus}) model="${model}"`);
+
+  // ADVISORY posture (default): warn once, exactly on crossing the threshold.
+  if (!hard) {
+    if (led.total === TOTAL_MAX) {
+      return outputWarning(
+        `High subagent fan-out: ${led.total} spawned this session (advisory threshold ORK_TEAM_SIZE_MAX=${TOTAL_MAX}). ` +
+          `Check for runaway orchestration. Set ORK_TEAM_SIZE_HARD=1 to enforce a hard cap.`,
+      );
+    }
+    if (premium && led.opus === OPUS_MAX) {
+      return outputWarning(
+        `High premium-model fan-out: ${led.opus} opus/fable subagents this session (advisory threshold ORK_TEAM_OPUS_MAX=${OPUS_MAX}). ` +
+          `Prefer sonnet/haiku for routine work to control cost.`,
+      );
+    }
+  }
+
   return outputSilentSuccess();
 }
+
+// Testing exports
+export { isPremiumModel, ledgerPath, LEDGER_SCHEMA };
