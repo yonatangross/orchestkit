@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.70.2](https://github.com/yonatangross/orchestkit/compare/v8.70.1...v8.70.2) (2026-07-14)
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.208) ([#2867](https://github.com/yonatangross/orchestkit/issues/2867)) ([9d8942a](https://github.com/yonatangross/orchestkit/commit/9d8942a90aeedfe678caad1abfb89b5483fd54a4))
+* **cc:** advance latest_known 2.1.206 → 2.1.208 (soft, floor frozen) ([#2870](https://github.com/yonatangross/orchestkit/issues/2870)) ([90996b5](https://github.com/yonatangross/orchestkit/commit/90996b56aa657b7c50f901182909851210f828d7))
+* **deps-dev:** adopt TypeScript 7.0.2 across remaining 4 trees ([#2869](https://github.com/yonatangross/orchestkit/issues/2869)) ([9266f8a](https://github.com/yonatangross/orchestkit/commit/9266f8a6e1b71fde3519fd8838ed52dd1c9895ba))
+* **deps-dev:** bump @types/node in the npm-minor-patch group ([#2853](https://github.com/yonatangross/orchestkit/issues/2853)) ([df87ef1](https://github.com/yonatangross/orchestkit/commit/df87ef1d5ab3d6d4e1e75a63719211409084aba4))
+* **deps-dev:** bump the npm-minor-patch group in /src/hooks with 5 updates ([#2855](https://github.com/yonatangross/orchestkit/issues/2855)) ([795deb6](https://github.com/yonatangross/orchestkit/commit/795deb66297cfe7a70b82142bdda58ad1ce68bf2))
+* **deps-dev:** bump typescript from 6.0.3 to 7.0.2 in /src/hooks ([#2856](https://github.com/yonatangross/orchestkit/issues/2856)) ([a57d266](https://github.com/yonatangross/orchestkit/commit/a57d2665c1e29fe08bad333fd7102026fa0eb65a))
+* **deps:** bump the npm-minor-patch group ([#2860](https://github.com/yonatangross/orchestkit/issues/2860)) ([cba8842](https://github.com/yonatangross/orchestkit/commit/cba88426e73926fa5f3a8fe8ba134ef7667e67fc))
+
 ## [8.70.1](https://github.com/yonatangross/orchestkit/compare/v8.70.0...v8.70.1) (2026-07-13)
 
 
