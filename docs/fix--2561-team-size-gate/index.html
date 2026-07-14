@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>#2561 team-size-gate fix</title><style>
+:root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--green:#3fb950;--red:#f85149;--amber:#d29922;--blue:#58a6ff;--mono:"SF Mono",ui-monospace,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;padding:2rem 1rem;background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif;display:flex;justify-content:center}
+main{max-width:800px;width:100%}h1{font-size:1.3rem;margin:0 0 .3rem}.sub{color:var(--muted);margin:0 0 1.3rem}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1rem}
+.card h2{font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 .6rem}
+label{display:block;font-size:.82rem;color:var(--muted);margin:.5rem 0 .25rem}
+input,select{font-family:var(--mono);font-size:.85rem;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:.4rem .6rem;width:120px}
+.row{display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap}
+.verdict{margin-top:.8rem;padding:.6rem .8rem;border-radius:6px;font-size:.85rem;font-weight:600;font-family:var(--mono);white-space:pre-wrap}
+.ok{background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.4)}
+.warn{background:rgba(210,153,34,.12);color:var(--amber);border:1px solid rgba(210,153,34,.4)}
+.bad{background:rgba(248,81,73,.12);color:var(--red);border:1px solid rgba(248,81,73,.4)}
+code{font-family:var(--mono);background:rgba(110,118,129,.2);padding:.1em .35em;border-radius:4px;font-size:.9em}
+.foot{color:var(--muted);font-size:.8rem;margin-top:1.3rem;line-height:1.5}</style></head><body><main>
+<h1>#2561 — team-size-gate, revived</h1>
+<p class="sub">Was a silent no-op since CC 2.1.178 (counted from a team config.json nothing writes → 0 members → caps never fired). Now counts spawns in a session ledger. Simulate a session's fan-out:</p>
+<div class="card"><h2>Simulate</h2>
+<div class="row">
+<div><label>total spawns so far</label><input id="total" type="number" value="24" min="0"></div>
+<div><label>premium (opus/fable)</label><input id="opus" type="number" value="3" min="0"></div>
+<div><label>next spawn model</label><select id="model"><option>sonnet</option><option>opus</option><option>claude-fable-5</option><option>haiku</option></select></div>
+<div><label>posture</label><select id="hard"><option value="0">advisory (default)</option><option value="1">hard (ORK_TEAM_SIZE_HARD=1)</option></select></div>
+</div>
+<div class="verdict" id="out"></div></div>
+<p class="foot">Defaults: <code>ORK_TEAM_SIZE_MAX=24</code>, <code>ORK_TEAM_OPUS_MAX=8</code> (env-tunable). Advisory warns once on crossing (never blocks a legit workflow); <code>ORK_TEAM_SIZE_HARD=1</code> denies the spawn that would exceed. Ledger: <code>~/.claude/state/orchestkit/team-spawns/&lt;session&gt;.json</code>, TTL-swept at SessionEnd. Premium = opus + fable (vocab-consistent). 12 unit tests.</p>
+</main><script>
+const TMAX=24,OMAX=8;
+const el=id=>document.getElementById(id),out=el('out');
+function run(){
+  const total=+el('total').value, opus=+el('opus').value, m=el('model').value, hard=el('hard').value==='1';
+  const prem=/opus|fable/i.test(m);
+  const nt=total+1, no=opus+(prem?1:0);
+  if(hard){
+    if(total>=TMAX){out.className='verdict bad';out.textContent=`✗ DENIED — session already at ${total} spawns (max ${TMAX}). The spawn is blocked.`;return;}
+    if(prem&&opus>=OMAX){out.className='verdict bad';out.textContent=`✗ DENIED — ${opus} premium spawns already (max ${OMAX}). Use sonnet/haiku.`;return;}
+    out.className='verdict ok';out.textContent=`✓ allowed → total ${nt}, premium ${no}`;return;
+  }
+  if(nt===TMAX){out.className='verdict warn';out.textContent=`⚠ ADVISORY (allowed) — crossed ${TMAX} spawns this session. "Check for runaway orchestration."`;return;}
+  if(prem&&no===OMAX){out.className='verdict warn';out.textContent=`⚠ ADVISORY (allowed) — crossed ${OMAX} premium spawns. "Prefer sonnet/haiku for routine work."`;return;}
+  out.className='verdict ok';out.textContent=`✓ allowed, silent → total ${nt}, premium ${no}`;
+}
+['total','opus','model','hard'].forEach(id=>el(id).addEventListener('input',run));run();
+</script></body></html>

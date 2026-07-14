@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.71.1](https://github.com/yonatangross/orchestkit/compare/v8.71.0...v8.71.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* **vocab:** un-suspend Fable 5 — GA, consent-gated (not suspended) ([#2879](https://github.com/yonatangross/orchestkit/issues/2879)) ([ee91a33](https://github.com/yonatangross/orchestkit/commit/ee91a33527219050c3820542c2ed485f218c049b))
+
 ## [8.71.0](https://github.com/yonatangross/orchestkit/compare/v8.70.3...v8.71.0) (2026-07-14)
 
 
