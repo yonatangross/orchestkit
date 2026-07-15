@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.75.0](https://github.com/yonatangross/orchestkit/compare/v8.74.0...v8.75.0) (2026-07-15)
+
+
+### Features
+
+* **hooks:** phases 3-5 — see, speed, prove ([#2908](https://github.com/yonatangross/orchestkit/issues/2908)) ([e75d8c9](https://github.com/yonatangross/orchestkit/commit/e75d8c99ec8efa79af3d57bb7213f0dcae4423b8)), closes [#1847](https://github.com/yonatangross/orchestkit/issues/1847)
+
+
+### Bug Fixes
+
+* **ci:** unbreak main tails - skill counts, eval content, file guard ([#2911](https://github.com/yonatangross/orchestkit/issues/2911)) ([dd75fc1](https://github.com/yonatangross/orchestkit/commit/dd75fc1b2cd56bc035a91f0393b89e3eecebc2eb))
+* **hooks:** unbreak main — 3 red checks from the P3-5 merge ([#2910](https://github.com/yonatangross/orchestkit/issues/2910)) ([a20eac1](https://github.com/yonatangross/orchestkit/commit/a20eac1363a53033c9b6a798718a06f400eea002))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.210) ([#2907](https://github.com/yonatangross/orchestkit/issues/2907)) ([6190c5f](https://github.com/yonatangross/orchestkit/commit/6190c5fdf64ad4ae5572135f7579f8dfbf3f333c))
+* **ci:** bump remaining CC pins from 2.1.148 to floor 2.1.206 ([#2912](https://github.com/yonatangross/orchestkit/issues/2912)) ([2d22a3a](https://github.com/yonatangross/orchestkit/commit/2d22a3a9b4956f9ac8573c5b5d36c034fc0d0a5f))
+
 ## [8.74.0](https://github.com/yonatangross/orchestkit/compare/v8.73.0...v8.74.0) (2026-07-14)
 
 
