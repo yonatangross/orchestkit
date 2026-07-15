@@ -509,8 +509,8 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=33  # +1: /ork:design-stylecards declarative aesthetic recipe catalog
-EXPECTED_INTERNAL=81  # +1: audit-activation (agent-side activation audit, non-invocable)
+EXPECTED_USER_INVOCABLE=34  # +1: audit-activation flipped to user-invocable (direct-only, disable-model-invocation)
+EXPECTED_INTERNAL=80  # -1: audit-activation moved to user-invocable
 
 missing_user_invocable=()
 user_invocable_true=()

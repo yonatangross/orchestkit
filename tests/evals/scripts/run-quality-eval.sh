@@ -269,20 +269,36 @@ run_with_forced_skill() {
     # Default to Haiku for eval generation
     flags+=(--model "${EVAL_MODEL:-haiku}")
 
-    if [[ -n "$cwd_arg" && "$cwd_arg" != "." ]]; then
-        (
-            cd "$cwd_arg" || exit 1
+    # Retry once on a dead generation call (non-zero exit or blank output).
+    # A transient CLI failure otherwise grades every assertion FAIL against an
+    # empty transcript, flaking the whole eval (observed locally and in CI).
+    # Blank means whitespace-only, not just zero bytes: a "\n"-only file passes
+    # -s but still grades as "no output" (observed 2026-07-15, eval 2 = 0/4).
+    local attempt
+    for attempt in 1 2; do
+        local gen_ok=true
+        if [[ -n "$cwd_arg" && "$cwd_arg" != "." ]]; then
+            (
+                cd "$cwd_arg" || exit 1
+                run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
+                    "${flags[@]}" \
+                    > "$output_file" 2>"$stderr_file"
+            ) || gen_ok=false
+        else
             run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
                 "${flags[@]}" \
-                > "$output_file" 2>"$stderr_file"
-        ) || echo -e "  ${YELLOW}Warning: claude exited non-zero for force-skill run${NC}" >&2
-    else
-        if ! run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
-            "${flags[@]}" \
-            > "$output_file" 2>"$stderr_file"; then
+                > "$output_file" 2>"$stderr_file" || gen_ok=false
+        fi
+        if [[ "$gen_ok" == "true" && -n "$(tr -d '[:space:]' < "$output_file")" ]]; then
+            break
+        fi
+        if [[ "$attempt" -eq 1 ]]; then
+            echo -e "  ${YELLOW}Warning: force-skill generation failed (exit or blank output) — retrying once${NC}" >&2
+            sleep 5
+        else
             echo -e "  ${YELLOW}Warning: claude exited non-zero for force-skill run${NC}" >&2
         fi
-    fi
+    done
 }
 
 # Run a prompt with skill (plugin loaded) and capture output (A6: timeout)

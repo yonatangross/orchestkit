@@ -8,6 +8,11 @@
 # desync its state machine and produce wrong major version bumps (e.g. 8.0.0 → 9.0.0
 # on what should be a minor bump).
 #
+# Governance is two-tier: generic extra-files are blocked on ANY edit, while
+# json extra-files with a jsonpath (e.g. manifests/ork.json $.version) are only
+# blocked when the governed field itself changes — routine content edits like
+# the hooks count in the manifest description pass without an override label.
+#
 # See feedback memory + PR #1946 fix for the incident this guards against.
 
 name: Release-Please Guard
@@ -63,11 +68,17 @@ jobs:
         if: steps.bot-check.outputs.skip == 'false'
         id: governed
         run: |
-          # Pull every "path" value out of release-please-config.json extra-files arrays.
-          # Also include the manifest itself, CHANGELOG.md, and version.txt (which
-          # release-please owns by convention even when not listed as extra-files).
+          # Two governance tiers:
+          #  1. WHOLE-FILE: generic extra-files (inline x-release-please markers)
+          #     plus the manifest, CHANGELOG.md, and version.txt — any edit is a
+          #     violation because release-please owns arbitrary content in them.
+          #  2. FIELD-LEVEL: json extra-files with a jsonpath — release-please
+          #     owns ONLY that field (e.g. $.version in manifests/ork.json).
+          #     Content edits (description counts, component lists) are routine
+          #     and legitimate; only a change to the governed field violates.
           jq -r '
-            (.packages[].["extra-files"] // []) | .[].path
+            (.packages[].["extra-files"] // []) | .[]
+            | select(.type != "json" or (.jsonpath // "") == "") | .path
           ' .release-please-config.json > /tmp/governed.txt
 
           # Add release-please's other owned files
@@ -81,8 +92,17 @@ jobs:
           sort -u /tmp/governed.txt > /tmp/governed.sorted
           mv /tmp/governed.sorted /tmp/governed.txt
 
-          echo "Governed files:"
+          # Field-level governed files: TAB-separated "path<TAB>jsonpath"
+          jq -r '
+            (.packages[].["extra-files"] // []) | .[]
+            | select(.type == "json" and (.jsonpath // "") != "")
+            | "\(.path)\t\(.jsonpath)"
+          ' .release-please-config.json | sort -u > /tmp/governed-fields.txt
+
+          echo "Whole-file governed:"
           cat /tmp/governed.txt
+          echo "Field-level governed (path<TAB>jsonpath):"
+          cat /tmp/governed-fields.txt
 
       - name: Diff PR against base
         if: steps.bot-check.outputs.skip == 'false'
@@ -103,10 +123,32 @@ jobs:
 
       - name: Fail if PR touches governed files
         if: steps.bot-check.outputs.skip == 'false'
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
           # Use grep -F -f to find lines from governed.txt present in changed.txt.
           # An empty match list = clean PR; any match = violation.
           violations=$(grep -F -x -f /tmp/governed.txt /tmp/changed.txt || true)
+
+          # Field-level check: for json extra-files, a change is only a
+          # violation if the governed jsonpath VALUE differs from the merge
+          # base (i.e. the PR hand-bumps a release-please-owned field).
+          # Non-version content edits (e.g. the hooks count in the
+          # manifests/ork.json description) pass without an override label.
+          merge_base=$(git merge-base "origin/$BASE_REF" HEAD)
+          while IFS=$'\t' read -r path jsonpath; do
+            [[ -z "$path" ]] && continue
+            grep -F -x -q "$path" /tmp/changed.txt || continue
+            # $.version -> .version (jq filter)
+            jq_path="${jsonpath#$}"
+            base_val=$(git show "$merge_base:$path" 2>/dev/null | jq -r "$jq_path" 2>/dev/null || echo "__ABSENT__")
+            head_val=$(jq -r "$jq_path" "$path" 2>/dev/null || echo "__ABSENT__")
+            if [[ "$base_val" != "__ABSENT__" && "$base_val" != "$head_val" ]]; then
+              violations+="${violations:+$'\n'}$path (governed field $jsonpath: '$base_val' -> '$head_val')"
+            else
+              echo "::notice::$path changed but governed field $jsonpath is untouched ('$head_val') — allowed."
+            fi
+          done < /tmp/governed-fields.txt
 
           if [[ -n "$violations" ]]; then
             echo "::error::PR modifies files governed by release-please."

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fix/hook-tails — P3-5 tail fixes playground</title>
+<style>
+  :root {
+    --bg: #0f1117; --panel: #181b23; --border: #2a2f3c;
+    --text: #e2e6ef; --dim: #8b93a7; --green: #4ade80; --red: #f87171;
+    --amber: #fbbf24; --blue: #60a5fa; --mono: "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.6 -apple-system, "Segoe UI", sans-serif; padding: 2rem 1rem; }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 1.4rem; margin-bottom: .25rem; }
+  .sub { color: var(--dim); margin-bottom: 1.5rem; }
+  .tabs { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tabs button { background: var(--panel); color: var(--dim); border: 1px solid var(--border); border-radius: 8px; padding: .5rem 1rem; cursor: pointer; font-size: .9rem; }
+  .tabs button.active { color: var(--text); border-color: var(--blue); }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; display: none; }
+  .panel.active { display: block; }
+  h2 { font-size: 1.05rem; margin-bottom: .75rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; margin: .75rem 0; }
+  th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--dim); font-weight: 600; }
+  code, pre { font-family: var(--mono); font-size: .82rem; }
+  pre { background: #10131a; border: 1px solid var(--border); border-radius: 8px; padding: .75rem 1rem; overflow-x: auto; margin: .75rem 0; }
+  .ok { color: var(--green); } .bad { color: var(--red); } .warn { color: var(--amber); }
+  .pill { display: inline-block; border-radius: 999px; padding: .05rem .6rem; font-size: .75rem; border: 1px solid var(--border); }
+  .pill.ok { border-color: var(--green); } .pill.bad { border-color: var(--red); }
+  .sim { display: flex; gap: .5rem; margin: .75rem 0; flex-wrap: wrap; }
+  .sim button { background: #10131a; color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: .45rem .9rem; cursor: pointer; font-size: .85rem; }
+  .sim button.sel { border-color: var(--blue); }
+  #simOut { min-height: 3.2rem; }
+  .meter { background: #10131a; border: 1px solid var(--border); border-radius: 8px; height: 22px; overflow: hidden; margin: .35rem 0 .8rem; }
+  .meter > div { height: 100%; background: linear-gradient(90deg, #34d399, #4ade80); color: #08331a; font-size: .75rem; font-weight: 700; display: flex; align-items: center; padding-left: .5rem; }
+  .footer { color: var(--dim); font-size: .8rem; margin-top: 1.5rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>fix/hook-tails — main-run tail fixes</h1>
+  <p class="sub">Two red checks from run 29399984499 fixed at root, audit-activation eval hardened, File Guard made field-aware, 5 merged branches pruned.</p>
+
+  <div class="tabs">
+    <button class="active" data-t="a">Task A — red checks</button>
+    <button data-t="b">Task B — eval score</button>
+    <button data-t="c">Task C — File Guard</button>
+    <button data-t="d">Task D — hygiene</button>
+  </div>
+
+  <div class="panel active" id="p-a">
+    <h2>Root cause: one frontmatter flip, two broken suites</h2>
+    <p><code>audit-activation</code> flipped <code>user-invocable: false → true</code> (direct-only skill) without updating downstream ground truth:</p>
+    <table>
+      <tr><th>Suite</th><th>Failure</th><th>Root fix</th></tr>
+      <tr><td><code>test-skill-cc-features.sh</code></td><td class="bad">argument-hint missing on the newly invocable skill</td><td>added <code>argument-hint: "[--json]"</code> (the script's real flag)</td></tr>
+      <tr><td><code>test-skill-md.sh</code> (via <code>eval:static</code>)</td><td class="bad">pinned counts stale: 34 invocable vs expected 33; 80 internal vs expected 81</td><td>re-pinned 34 / 80 with provenance comments</td></tr>
+    </table>
+    <p>Both suites re-run locally: <span class="pill ok">exit 0</span> and <code>eval:static</code> summary <span class="pill ok">Failed: 0</span>. No assertions weakened — the counts moved because the skill legitimately moved buckets.</p>
+  </div>
+
+  <div class="panel" id="p-b">
+    <h2>audit-activation TIER-1 eval: 27% → PASS</h2>
+    <div class="meter"><div style="width:27%">27% before</div></div>
+    <div class="meter"><div style="width:92%">11/11 assertion coverage after (run-level PASS)</div></div>
+    <p>TIER-1 injects the frontmatter-stripped SKILL.md into a <em>text-only</em> Haiku run — every essential that lived behind <code>Read(rules/…)</code> progressive disclosure was invisible to the eval. Fix: inline a six-point <strong>Report Contract</strong> (data-source line naming <code>run-activation-audit.sh</code>, counts+percentages split, top-5 concentration, complete never-fired list by name, verbatim window caveat, four-bucket table) plus the ACTIVE / MIS-TRIGGERED / NICHE / DEAD buckets and hard rules directly in SKILL.md.</p>
+  </div>
+
+  <div class="panel" id="p-c">
+    <h2>Release-Please File Guard: whole-file → field-aware</h2>
+    <p><code>manifests/ork.json</code> is an extra-file, but release-please only owns <code>$.version</code> inside it. The guard now compares the governed jsonpath value against the merge base — try it:</p>
+    <div class="sim">
+      <button class="sel" data-s="count">Bump hooks count in description</button>
+      <button data-s="version">Hand-edit version field</button>
+      <button data-s="claude">Edit CLAUDE.md (generic extra-file)</button>
+    </div>
+    <pre id="simOut"></pre>
+  </div>
+
+  <div class="panel" id="p-d">
+    <h2>Local branch prune</h2>
+    <p>Five branches confirmed squash-merged via their GitHub PR state (ancestry check is useless after squash), then deleted:</p>
+    <table>
+      <tr><th>Branch</th><th>PR</th></tr>
+      <tr><td><code>fix/team-size-gate-dead-matcher</code></td><td>#2886 <span class="pill ok">MERGED</span></td></tr>
+      <tr><td><code>feat/hook-registry-closure-gate</code></td><td>#2887 <span class="pill ok">MERGED</span></td></tr>
+      <tr><td><code>feat/dead-hook-triage-51</code></td><td>#2889 <span class="pill ok">MERGED</span></td></tr>
+      <tr><td><code>feat/phase3-5-hook-hardening</code></td><td>#2908 <span class="pill ok">MERGED</span></td></tr>
+      <tr><td><code>fix/p35-followups</code></td><td>#2910 <span class="pill ok">MERGED</span></td></tr>
+    </table>
+  </div>
+
+  <p class="footer">OrchestKit · fix/hook-tails · generated for the PR playground gate</p>
+</div>
+<script>
+  const cases = {
+    count:   "$ guard manifests/ork.json\n  governed field $.version: '8.74.0' == '8.74.0'  (untouched)\n  notice: content edit allowed — no override label needed\n  RESULT: CLEAN",
+    version: "$ guard manifests/ork.json\n  governed field $.version: '8.74.0' -> '9.0.0'  (hand-bumped!)\n  error: release-please owns this field (PR #1946 incident)\n  RESULT: VIOLATION — guard fails",
+    claude:  "$ guard CLAUDE.md\n  generic extra-file: whole-file governed (inline x-release-please markers)\n  RESULT: VIOLATION — use the 'release-please-override' label"
+  };
+  const out = document.getElementById("simOut");
+  const paint = k => { out.textContent = cases[k]; out.className = k === "count" ? "ok" : "bad"; };
+  document.querySelectorAll(".sim button").forEach(b => b.onclick = () => {
+    document.querySelectorAll(".sim button").forEach(x => x.classList.remove("sel"));
+    b.classList.add("sel"); paint(b.dataset.s);
+  });
+  paint("count");
+  document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+    document.querySelectorAll(".tabs button").forEach(x => x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    document.getElementById("p-" + b.dataset.t).classList.add("active");
+  });
+</script>
+</body>
+</html>

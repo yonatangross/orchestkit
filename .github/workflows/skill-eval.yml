@@ -76,15 +76,47 @@ jobs:
         # Scorecard pinned-deps (npmCommand): accepted risk — npm has no
         # SHA-pin; --ignore-scripts mitigates the postinstall, then the native
         # binary install is re-run explicitly (same as orchestkit-eval.yml).
-        # Pinned to the supported floor (shared/cc-support.json).
+        # Pinned to the supported floor (shared/cc-support.json). The previous
+        # 2.1.148 pin was 58 releases BELOW the 2.1.206 floor and produced
+        # systematically degraded `claude -p` eval generations on runners
+        # (9-45% scores for content that scores 100% on a floor-compliant CLI).
         run: |
           set -euo pipefail
-          npm install -g @anthropic-ai/claude-code@2.1.148 --ignore-scripts
+          npm install -g @anthropic-ai/claude-code@2.1.206 --ignore-scripts
           node "$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
           claude --version
+
+      # Telemetry fixture: .claude/logs/ is gitignored, so runners have no
+      # spawn telemetry. Skills whose evals audit that stream (audit-activation)
+      # would otherwise be evaluated in an environment their assertions
+      # presuppose cannot exist — the generation degrades to static grep and
+      # the eval measures the degraded path, not the contract. Seed a pinned
+      # synthetic stream ONLY when the real one is absent (never overwrites).
+      - name: Seed spawn-telemetry fixture (runners have no .claude/logs)
+        if: env.CLAUDE_CODE_OAUTH_TOKEN != ''
+        run: |
+          set -euo pipefail
+          if [ ! -f .claude/logs/subagent-spawns.jsonl ]; then
+            mkdir -p .claude/logs
+            cp tests/evals/fixtures/subagent-spawns.fixture.jsonl .claude/logs/subagent-spawns.jsonl
+            echo "Seeded $(wc -l < .claude/logs/subagent-spawns.jsonl) fixture spawn records"
+          fi
 
       # Failures FAIL the job: run-skill-eval.sh exits non-zero when any
       # changed skill fails its trigger or quality eval.
       - name: Run eval:skill for changed skills
         if: env.CLAUDE_CODE_OAUTH_TOKEN != ''
         run: npm run eval:skill -- --changed
+
+      # On failure, surface the per-assertion grader reasons — without this
+      # the job log shows only PASS/FAIL names, making CI-vs-local eval gaps
+      # undiagnosable (the transcripts themselves are temp files, already gone).
+      - name: Dump grader reasons on failure
+        if: failure() && env.CLAUDE_CODE_OAUTH_TOKEN != ''
+        run: |
+          set -euo pipefail
+          for f in tests/evals/results/skills/*.quality.json; do
+            [ -f "$f" ] || continue
+            echo "=== $f ==="
+            cat "$f"
+          done

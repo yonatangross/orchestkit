@@ -603,7 +603,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "audit-activation",
     "description": "Audits OrchestKit sub-agent activation from real spawn telemetry — computes the generic-vs-specialist spawn split, flags dormant agents (never fired), and classifies each as fires/mis-triggered/niche. The agent-side analogue of audit-skills. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths.",
     "version": "1.0.0",
-    "sha256": "6c0ff492c82f0dec1042926a3620c7ca1a98429478a69c718869dc05fa2c4f8a",
+    "sha256": "158371591ed3f023f8e036e0fd405f1b8813cedfa7c5f8a60c1c04e8d8acea63",
     "author": "OrchestKit",
     "tags": [
       "audit",

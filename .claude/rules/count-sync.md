@@ -23,3 +23,13 @@ paths:
 
 ## Common Mistake
 Count drift across files is the #1 manifest bug. If `test:manifests` fails, search all three locations and reconcile.
+
+## Release-Please File Guard interplay
+`manifests/ork.json` is a release-please extra-file, but only its `$.version`
+field is governed. The File Guard is field-aware: editing the description
+counts (skills/agents/hooks) or component lists passes without any label —
+only a hand-edited `version` value trips it. NEVER touch `version` in
+`manifests/ork.json` (or any extra-file); release-please owns it. Whole-file
+governed paths (CLAUDE.md, pyproject.toml, CHANGELOG.md, version.txt,
+plugins-data.ts, stop-uncommitted-check.mjs) still block on ANY edit — for a
+legitimate content change there, use the `release-please-override` label.
