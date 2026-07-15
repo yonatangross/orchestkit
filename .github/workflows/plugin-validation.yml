@@ -308,12 +308,12 @@ jobs:
         id: install-cc
         run: |
           # Pin to exact version + --ignore-scripts (supply chain mitigation — Scorecard #130, #132)
-          # Pinned to our supported floor (2.1.148, shared/cc-support.json) — older versions
+          # Pinned to our supported floor (2.1.206, shared/cc-support.json) — older versions
           # don't recognize the experimental.{monitors,themes} block format introduced in
           # CC 2.1.129 and emit a hard error during plugin validate.
           # Scorecard pinned-deps (npmCommand): accepted risk — npm has no SHA-pin; --ignore-scripts
           # mitigates the postinstall. Dropped from code-scanning by the SARIF filter in scorecard.yml.
-          npm install -g @anthropic-ai/claude-code@2.1.148 --ignore-scripts 2>/dev/null || true
+          npm install -g @anthropic-ai/claude-code@2.1.206 --ignore-scripts 2>/dev/null || true
           # `--ignore-scripts` skips the package's own postinstall which
           # fetches the native `claude` binary. Without this explicit
           # invocation, the wrapper installs but `command -v claude` finds

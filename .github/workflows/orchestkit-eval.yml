@@ -88,9 +88,10 @@ jobs:
         # fetches the native `claude` binary; we re-run it explicitly so
         # scripts/run-eval.sh (which calls `claude -p --bare`) doesn't
         # fast-fail with "claude native binary not installed."
+        # Pinned to the supported floor (2.1.206, shared/cc-support.json).
         run: |
           set -euo pipefail
-          npm install -g @anthropic-ai/claude-code@2.1.148 --ignore-scripts
+          npm install -g @anthropic-ai/claude-code@2.1.206 --ignore-scripts
           node "$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
           claude --version
         env:

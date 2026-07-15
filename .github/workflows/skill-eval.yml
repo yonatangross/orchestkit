@@ -77,7 +77,7 @@ jobs:
         # SHA-pin; --ignore-scripts mitigates the postinstall, then the native
         # binary install is re-run explicitly (same as orchestkit-eval.yml).
         # Pinned to the supported floor (shared/cc-support.json). The previous
-        # 2.1.148 pin was 58 releases BELOW the 2.1.206 floor and produced
+        # pin was 58 releases BELOW the 2.1.206 floor and produced
         # systematically degraded `claude -p` eval generations on runners
         # (9-45% scores for content that scores 100% on a floor-compliant CLI).
         run: |

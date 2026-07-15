@@ -79,9 +79,10 @@ jobs:
       # that one trusted script after the install restores the binary
       # without re-enabling arbitrary transitive scripts.
       - name: Install Claude Code CLI
+        # Pinned to the supported floor (2.1.206, shared/cc-support.json).
         run: |
           set -euo pipefail
-          npm install -g @anthropic-ai/claude-code@2.1.148 --ignore-scripts
+          npm install -g @anthropic-ai/claude-code@2.1.206 --ignore-scripts
           node "$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
           claude --version
 
