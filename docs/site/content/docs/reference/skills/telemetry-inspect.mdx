@@ -34,6 +34,7 @@ One-shot health check for OrchestKit's telemetry pipeline. Reports writer activi
 4. **Orphan detection** — files on disk under `.claude/\{telemetry,logs,state,feedback\}/` that aren't in the registry (possible stale writer or new file needing schema), plus inventory rows whose writer hook no longer exists in `src/hooks/src/` (dead writer → orphan)
 5. **Growth trend** — bytes per hour since session start (fire alert if > 100 KB/hr)
 6. **Coordination layer (M168)** — live counts from `sessions.db` (running sessions, held locks, pending worktree links, skill invocations) plus write throughput from `coordination-metrics.jsonl`
+7. **Runtime fired-census** — which hooks actually *fired*, from the per-invocation records `run-hook.mjs` writes to `~/.claude/analytics/hook-timing.jsonl`. Checks 1–4 answer "is the file being written?"; this answers "is the *writer* running at all?" — the upstream question. A hook can be wired and reachable (the closure gate proves that statically) and still never fire: #2886 shipped exactly that with 12 green tests.
 
 ## Usage
 
@@ -68,6 +69,12 @@ Unlocked telemetry files (14)
 Orphan files (1)
   .claude/feedback/skill-usage.json  — delisted, writer unwired since #959
 
+Runtime fired-census (7d window)
+  ALIVE  59   IDLE 3   NEVER 83   UNOBSERVABLE 54
+  tree 8.75.0 · installed 8.73.0/8.74.0  <-- SKEW: NEVER is not a verdict
+  never-fired writers (the ones that matter here):
+    posttool/dirty-file-tracker   [PostToolUse]   0 fires, ever
+
 Summary
   Pipeline health:  GREEN  (21/21 expected writers active)
   Schema coverage:  7/21 (33%)
@@ -92,7 +99,12 @@ Summary
    - mtime > 7 days → "no recent writes"
    - line count 0 → "no writes"
 5. **Orphan scan** — `Bash find .claude/\{telemetry,logs,state,feedback\} -type f` cross-check against registered paths. Any on-disk files not in inventory → orphan. Merge in dead-writer orphans from step 2.
-6. **Render report** — ASCII table by default, JSON if `--json` argument passed.
+6. **Runtime fired-census** — steps 1–5 ask "is the file being written?". This asks the upstream question: "does the writer hook run at all?"
+   - Run `node src/hooks/scripts/fired-census.mjs --json` (OrchestKit repo only; skip gracefully elsewhere — it exits 0 and prints an absent-census notice if `~/.claude/analytics/hook-timing.jsonl` doesn't exist yet).
+   - Report the class counts (`totals`), and the `versions.skewed` line **verbatim when true** — the census is written by the INSTALLED plugin across ALL projects, while the closure comes from this tree, so `NEVER` on a hook newer than the installed build is expected, not a finding.
+   - Cross-reference: for every inventory writer from step 2 that is a live file, look up its census row. A writer that is `ALIVE` but whose file has 0 lines is a **real defect** (it runs and produces nothing). A writer that is `NEVER` is the #2886 class — surface it, but as advisory.
+   - **Never** call a hook dead from `NEVER` alone. `UNOBSERVABLE` rows (dispatcher children) *cannot* appear by construction, and rare events (`WorktreeRemove`, `PreCompact`) look identical to a broken guard from here. Read the guard before concluding.
+7. **Render report** — ASCII table by default, JSON if `--json` argument passed.
 
 Core logic is deterministic + read-only. Do NOT write to any telemetry file — this skill is an observer.
 
