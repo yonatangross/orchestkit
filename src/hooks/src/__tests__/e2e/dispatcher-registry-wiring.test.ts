@@ -357,7 +357,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 102 -> 103: #2590 — lifecycle/telemetry-dark-check (SessionStart, async 5s).
       // 103 -> 104: #2475 — instructions-loaded/session-rules-audit (SessionStart, async 5s).
       // 104 -> 107: P3-A3 — 3 async observer hooks (UserPromptExpansion, MessageDisplay, PostToolBatch).
-      expect(asyncHooks.length, 'Should have exactly 107 async hooks').toBe(107);
+      // 107 -> 106: MessageDisplay observer reverted same-day (claude plugin validate rejects the key).
+      expect(asyncHooks.length, 'Should have exactly 106 async hooks').toBe(106);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -487,7 +488,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 103 -> 104: #2475 — session-rules-audit (SessionStart, async 5s) replaces
       //             the cross-file InstructionsLoaded handlers.
       // 104 -> 107: P3-A3 — 3 async observer hooks (UserPromptExpansion, MessageDisplay, PostToolBatch).
-      expect(asyncCount).toBe(107);
+      // 107 -> 106: MessageDisplay observer reverted same-day (claude plugin validate rejects the key).
+      expect(asyncCount).toBe(106);
     });
 
     it('should have hooks for all critical security operations', () => {

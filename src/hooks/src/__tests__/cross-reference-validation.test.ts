@@ -233,7 +233,6 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
       UserPromptSubmit: ['prompt', 'lifecycle'],
       // P3-A3 (CC 2.1.208): observer-only events
       UserPromptExpansion: ['prompt', 'lifecycle'],
-      MessageDisplay: ['notification', 'lifecycle'],
       PostToolBatch: ['posttool', 'lifecycle'],
       // SessionStart also allows 'instructions-loaded': that prefix routes to the
       // lifecycle bundle per run-hook.mjs bundleMap (#1264); #2475 moved the

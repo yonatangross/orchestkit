@@ -600,7 +600,19 @@ fi
 if $RUN_QUALITY; then
     echo -e "${CYAN}>>> Running quality evaluation...${NC}"
     echo ""
-    if bash "$QUALITY_RUNNER" "${SKILL_ARGS[@]}" "${PASSTHROUGH_ARGS[@]}"; then
+    # Skills with disable-model-invocation: true CANNOT be routed to by the
+    # model — the default (routed) quality tier scores 0% by construction.
+    # Use the harness's designed TIER-1 unit eval (--force-skill injects
+    # SKILL.md and bypasses routing) for those skills. Surfaced by
+    # audit-activation scoring 0% the day it became evaluable (P3-A2).
+    QUALITY_EXTRA_ARGS=()
+    if [[ -n "$SKILL" && -f "$REPO_ROOT/src/skills/$SKILL/SKILL.md" ]] && grep -qE '^disable-model-invocation:\s*true' "$REPO_ROOT/src/skills/$SKILL/SKILL.md"; then
+        if [[ ! " ${PASSTHROUGH_ARGS[*]-} " == *" --force-skill "* ]]; then
+            echo -e "${YELLOW}${SKILL} has disable-model-invocation: true — routed eval is impossible; using --force-skill (TIER 1 unit eval)${NC}"
+            QUALITY_EXTRA_ARGS+=(--force-skill)
+        fi
+    fi
+    if bash "$QUALITY_RUNNER" "${SKILL_ARGS[@]}" "${PASSTHROUGH_ARGS[@]}" ${QUALITY_EXTRA_ARGS[@]+"${QUALITY_EXTRA_ARGS[@]}"}; then
         QUALITY_EXIT=0
     else
         QUALITY_EXIT=$?
