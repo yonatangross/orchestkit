@@ -14,6 +14,7 @@
 export {
   outputSilentSuccess,
   outputSilentAllow,
+  outputTerminalSequence,
   outputBlock,
   outputWithContext,
   outputPromptContext,

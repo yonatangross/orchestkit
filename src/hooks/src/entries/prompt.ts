@@ -43,6 +43,9 @@ import { goalTracker } from '../prompt/goal-tracker.js';
 // M119 PR-2 (#1794 follow-up) — picks up deferred worktree advisories
 import { worktreeAdvisoryConsumer } from '../prompt/worktree-advisory-consumer.js';
 
+// P3-A3: UserPromptExpansion observer (CC 2.1.208) — observer-only telemetry
+import { promptExpansionObserver } from '../prompt/prompt-expansion-observer.js';
+
 // --- Legacy hooks kept in bundle for backward compat (not in hooks.json) ---
 import { pipelineDetector } from '../prompt/pipeline-detector.js';
 import { thrashDetector } from '../prompt/thrash-detector.js';
@@ -68,6 +71,8 @@ export const hooks: Record<string, HookFn> = {
   // (SessionStart-cached reminder, see ../lifecycle/ask-fallback-injector.js)
   // M119 PR-2 (#1794 follow-up) — deferred worktree advisory consumer
   'prompt/worktree-advisory-consumer': worktreeAdvisoryConsumer,
+  // P3-A3: UserPromptExpansion (CC 2.1.208) — never blocks, never modifies
+  'prompt/prompt-expansion-observer': promptExpansionObserver,
   // Legacy hooks (consolidated into unified-dispatcher, kept for override compat)
   'prompt/pipeline-detector': pipelineDetector,
   'prompt/thrash-detector': thrashDetector,

@@ -5,11 +5,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { HookInput } from '../../../types.js';
 import { mockCommonBasic } from '../../fixtures/mock-common.js';
 
-// Mock node:fs
+// Mock node:fs — the hook must NEVER use readFileSync (bounded head-read only)
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
   readFileSync: vi.fn(),
   statSync: vi.fn(),
+  openSync: vi.fn(),
+  readSync: vi.fn(),
+  closeSync: vi.fn(),
 }));
 
 // Mock common.ts
@@ -21,11 +24,13 @@ vi.mock('../../../lib/code-summarizer.js', () => ({
   summarizeCode: vi.fn(() => '[TLDR] test.ts (600 lines, ~2100 tokens, TypeScript)\n\nFunctions (3):\n  foo\n  bar\n  baz'),
 }));
 
-import { existsSync, readFileSync, statSync } from 'node:fs';
-import { outputAllowWithContext, outputSilentSuccess } from '../../../lib/common.js';
+import { existsSync, readFileSync, statSync, openSync, readSync, closeSync } from 'node:fs';
+import { estimateTokenCount, outputAllowWithContext, outputSilentSuccess } from '../../../lib/common.js';
 import { summarizeCode } from '../../../lib/code-summarizer.js';
 import { tldrSummary } from '../../../pretool/read/tldr-summary.js';
 import { createTestContext } from '../../fixtures/test-context.js';
+
+const HEAD_SAMPLE_BYTES = 64 * 1024;
 
 function makeInput(overrides: Partial<HookInput['tool_input']> = {}): HookInput {
   return {
@@ -40,14 +45,30 @@ function makeContent(lines: number): string {
   return Array.from({ length: lines }, (_, i) => `// line ${i + 1}`).join('\n');
 }
 
+/**
+ * Wire the fs mocks to serve `content` through the openSync/readSync path,
+ * honoring position + length so the hook's 64KB cap is exercised for real.
+ */
+function setFileContent(content: string, sizeOverride?: number): void {
+  const data = Buffer.from(content, 'utf8');
+  (statSync as ReturnType<typeof vi.fn>).mockReturnValue({ size: sizeOverride ?? data.length });
+  (openSync as ReturnType<typeof vi.fn>).mockReturnValue(42);
+  (readSync as ReturnType<typeof vi.fn>).mockImplementation(
+    (_fd: number, buffer: Buffer, offset: number, length: number, position: number) => {
+      const n = Math.min(length, Math.max(0, data.length - position));
+      data.copy(buffer, offset, position, position + n);
+      return n;
+    },
+  );
+}
+
 let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
   testCtx = createTestContext();
   vi.clearAllMocks();
-  // Default: file exists, reasonable size, large content
+  // Default: file exists with large-enough content (600 lines ≈ 7KB → over token threshold)
   (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
-  (statSync as ReturnType<typeof vi.fn>).mockReturnValue({ size: 50_000 });
-  (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(makeContent(600));
+  setFileContent(makeContent(600));
 });
 
 // ---------------------------------------------------------------------------
@@ -58,25 +79,25 @@ describe('tldrSummary — guard conditions', () => {
   it('passes through when no file_path', () => {
     const result = tldrSummary(makeInput({ file_path: undefined }), testCtx);
     expect(result).toEqual(outputSilentSuccess());
-    expect(readFileSync).not.toHaveBeenCalled();
+    expect(openSync).not.toHaveBeenCalled();
   });
 
   it('passes through when offset is set', () => {
     const result = tldrSummary(makeInput({ offset: 100 }), testCtx);
     expect(result).toEqual(outputSilentSuccess());
-    expect(readFileSync).not.toHaveBeenCalled();
+    expect(openSync).not.toHaveBeenCalled();
   });
 
   it('passes through when limit is set', () => {
     const result = tldrSummary(makeInput({ limit: 50 }), testCtx);
     expect(result).toEqual(outputSilentSuccess());
-    expect(readFileSync).not.toHaveBeenCalled();
+    expect(openSync).not.toHaveBeenCalled();
   });
 
   it('passes through for unsupported extension', () => {
     const result = tldrSummary(makeInput({ file_path: '/project/styles.css' }), testCtx);
     expect(result).toEqual(outputSilentSuccess());
-    expect(readFileSync).not.toHaveBeenCalled();
+    expect(openSync).not.toHaveBeenCalled();
   });
 
   it('passes through for files without extension', () => {
@@ -88,22 +109,24 @@ describe('tldrSummary — guard conditions', () => {
     (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
     const result = tldrSummary(makeInput(), testCtx);
     expect(result).toEqual(outputSilentSuccess());
-    expect(readFileSync).not.toHaveBeenCalled();
+    expect(openSync).not.toHaveBeenCalled();
   });
 
-  it('passes through when file > 2MB', () => {
+  it('passes through when file > 2MB without opening it', () => {
     (statSync as ReturnType<typeof vi.fn>).mockReturnValue({ size: 3_000_000 });
     const result = tldrSummary(makeInput(), testCtx);
     expect(result).toEqual(outputSilentSuccess());
-    expect(readFileSync).not.toHaveBeenCalled();
+    expect(openSync).not.toHaveBeenCalled();
   });
 
-  it('passes through for small files (below both thresholds)', () => {
-    const smallContent = makeContent(100); // 100 lines
-    (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(smallContent);
-    const result = tldrSummary(makeInput(), testCtx);
+  it('passes through for small files (below both thresholds) — unchanged behavior', () => {
+    setFileContent(makeContent(100)); // 100 lines, ~1KB
+    const result = tldrSummary(makeInput({ file_path: '/project/src/small-file.ts' }), testCtx);
     expect(result).toEqual(outputSilentSuccess());
     expect(outputAllowWithContext).not.toHaveBeenCalled();
+    // Small file is still read via the bounded path, never readFileSync
+    expect(readSync).toHaveBeenCalledTimes(1);
+    expect(readFileSync).not.toHaveBeenCalled();
   });
 });
 
@@ -145,8 +168,60 @@ describe('tldrSummary — summary injection', () => {
   });
 
   it('triggers on file at exactly 1000 lines', () => {
-    (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(makeContent(1000));
+    setFileContent(makeContent(1000));
     tldrSummary(makeInput(), testCtx);
+    expect(outputAllowWithContext).toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Bounded head read (perf: never read the whole file)
+// ---------------------------------------------------------------------------
+
+describe('tldrSummary — bounded head read', () => {
+  it('reads the full content of files under 64KB', () => {
+    const content = makeContent(600); // ~7KB
+    setFileContent(content);
+    tldrSummary(makeInput({ file_path: '/project/src/under-64kb.ts' }), testCtx);
+    expect(readSync).toHaveBeenCalledTimes(1);
+    const [, , , length, position] = (readSync as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(length).toBe(Buffer.byteLength(content, 'utf8'));
+    expect(position).toBe(0);
+    expect(readFileSync).not.toHaveBeenCalled();
+  });
+
+  it('reads at most 64KB of a large file — never the whole file', () => {
+    const content = makeContent(20_000); // ~250KB, well over the 64KB cap
+    setFileContent(content);
+    tldrSummary(makeInput({ file_path: '/project/src/huge-file.ts' }), testCtx);
+
+    // Exactly one bounded read from position 0, capped at 64KB
+    expect(readSync).toHaveBeenCalledTimes(1);
+    const [, , , length, position] = (readSync as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(length).toBe(HEAD_SAMPLE_BYTES);
+    expect(position).toBe(0);
+    // No full-file read via any path
+    expect(readFileSync).not.toHaveBeenCalled();
+
+    // Summary is derived from the head sample only
+    const summarized = (summarizeCode as ReturnType<typeof vi.fn>).mock.calls[0][0] as string;
+    expect(Buffer.byteLength(summarized, 'utf8')).toBeLessThanOrEqual(HEAD_SAMPLE_BYTES);
+    // Partial trailing line is dropped so extractors see clean lines
+    expect(content.startsWith(`${summarized}\n`)).toBe(true);
+    expect(outputAllowWithContext).toHaveBeenCalled();
+
+    // File descriptor is closed
+    expect(closeSync).toHaveBeenCalledWith(42);
+  });
+
+  it('extrapolates line count from stat size for truncated samples', () => {
+    // Long lines: the ~541-line head sample alone is below the 1000-line
+    // threshold, but the extrapolated total (~1600 lines) is over it.
+    // Pin token estimate below its threshold so only line extrapolation can fire.
+    (estimateTokenCount as ReturnType<typeof vi.fn>).mockReturnValueOnce(500);
+    const line = 'x'.repeat(120);
+    setFileContent(Array.from({ length: 1600 }, () => line).join('\n')); // ~194KB
+    tldrSummary(makeInput({ file_path: '/project/src/extrapolated.ts' }), testCtx);
     expect(outputAllowWithContext).toHaveBeenCalled();
   });
 });
@@ -156,19 +231,30 @@ describe('tldrSummary — summary injection', () => {
 // ---------------------------------------------------------------------------
 
 describe('tldrSummary — error handling', () => {
-  it('returns silent success when readFileSync throws', () => {
-    (readFileSync as ReturnType<typeof vi.fn>).mockImplementation(() => {
+  it('returns silent success when the file is unreadable (openSync throws)', () => {
+    (openSync as ReturnType<typeof vi.fn>).mockImplementation(() => {
       throw new Error('EACCES: permission denied');
     });
-    const result = tldrSummary(makeInput(), testCtx);
+    const result = tldrSummary(makeInput({ file_path: '/project/src/unreadable-a.ts' }), testCtx);
     expect(result).toEqual(outputSilentSuccess());
+    expect(outputAllowWithContext).not.toHaveBeenCalled();
+  });
+
+  it('returns silent success and closes the fd when readSync throws', () => {
+    (readSync as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      throw new Error('EIO: i/o error');
+    });
+    const result = tldrSummary(makeInput({ file_path: '/project/src/unreadable-b.ts' }), testCtx);
+    expect(result).toEqual(outputSilentSuccess());
+    expect(closeSync).toHaveBeenCalledWith(42);
+    expect(outputAllowWithContext).not.toHaveBeenCalled();
   });
 
   it('returns silent success when statSync throws', () => {
     (statSync as ReturnType<typeof vi.fn>).mockImplementation(() => {
       throw new Error('ENOENT');
     });
-    const result = tldrSummary(makeInput(), testCtx);
+    const result = tldrSummary(makeInput({ file_path: '/project/src/unreadable-c.ts' }), testCtx);
     expect(result).toEqual(outputSilentSuccess());
   });
 });

@@ -3,15 +3,30 @@
  * CC 2.1.7 Compliant: Outputs proper JSON with suppressOutput
  *
  * Sends rich desktop notifications with context (repo, branch, task).
- * Uses native osascript title/subtitle/message - no external deps.
  *
- * Version: 2.0.0
+ * PRIMARY PATH (#1847): returns the top-level `terminalSequence` hook-output
+ * field with an OSC 777 notify sequence (\u001b]777;notify;TITLE;BODY\u0007).
+ * CC emits it to the user's terminal, which raises the desktop banner —
+ * zero process spawns, works on macOS + Linux, command hooks only.
+ *
+ * LEGACY FALLBACK: set ORK_NOTIFY_OSASCRIPT=1 to restore the old behavior of
+ * spawning `osascript` (macOS) / `notify-send` (Linux) per notification —
+ * for terminals that do not implement OSC 777. When the flag is set the hook
+ * spawns the native notifier and returns silent success (no terminalSequence).
+ *
+ * SECURITY: notification text is untrusted hook input. Before embedding it in
+ * the OSC 777 sequence we strip control chars (incl. ESC/BEL, so the text
+ * cannot terminate or nest escape sequences) and `;` (the OSC field
+ * delimiter), then truncate.
+ *
+ * Version: 3.0.0 (terminalSequence primary, osascript legacy via env flag)
  */
 
 import { execFileSync, spawn } from 'node:child_process';
 import { basename } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
+import { outputTerminalSequence } from '../lib/output.js';
 import { assertSafeCommandName } from '../lib/sanitize-shell.js';
 import { NOOP_CTX } from '../lib/context.js';
 
@@ -120,10 +135,38 @@ function truncateMessage(message: string, maxLen = 120): string {
   return `${message.substring(0, maxLen - 3)}...`;
 }
 
+// -----------------------------------------------------------------------------
+// terminalSequence primary path (#1847)
+// -----------------------------------------------------------------------------
+
+/**
+ * Sanitize untrusted text for embedding in an OSC 777 field:
+ * strip control chars (C0 + DEL + C1 — kills ESC/BEL injection) and `;`
+ * (the OSC field delimiter), then truncate.
+ */
+function sanitizeForOsc777(text: string, maxLen: number): string {
+  const cleaned = text
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: intentional -- untrusted text must not carry escape/control bytes into the terminal
+    .replace(/[\u0000-\u001f\u007f-\u009f]/g, '')
+    .replace(/;/g, '')
+    .trim();
+  return truncateMessage(cleaned, maxLen);
+}
+
+/**
+ * Build the OSC 777 notify sequence: ESC ] 777 ; notify ; TITLE ; BODY BEL
+ */
+function buildOsc777Notify(title: string, body: string): string {
+  return `\u001b]777;notify;${sanitizeForOsc777(title, 80)};${sanitizeForOsc777(body, 120)}\u0007`;
+}
+
+// -----------------------------------------------------------------------------
+// Legacy osascript/notify-send path (ORK_NOTIFY_OSASCRIPT=1)
+// -----------------------------------------------------------------------------
+
 /**
  * Send macOS notification with title, subtitle, and message.
  * Sound is handled separately by sound.ts to avoid double-sound.
- * Activates the terminal app so the user lands back in the right window.
  */
 function sendMacNotification(
   title: string,
@@ -192,12 +235,21 @@ export async function desktopNotification(input: HookInput, ctx: HookContext = N
   const subtitle = buildSubtitle(branch);
   const body = buildMessage(message, notificationType);
 
-  // Send platform-appropriate notification (sound handled by sound.ts)
-  if (hasCommand('osascript')) {
-    sendMacNotification(title, subtitle, body);
-  } else if (hasCommand('notify-send')) {
-    sendLinuxNotification(title, subtitle, body);
+  // LEGACY fallback (#1847): explicit opt-in only. Spawns the native notifier
+  // instead of emitting the OSC 777 terminalSequence.
+  if (process.env.ORK_NOTIFY_OSASCRIPT === '1') {
+    if (hasCommand('osascript')) {
+      sendMacNotification(title, subtitle, body);
+    } else if (hasCommand('notify-send')) {
+      sendLinuxNotification(title, subtitle, body);
+    }
+    return outputSilentSuccess();
   }
 
-  return outputSilentSuccess();
+  // PRIMARY path (#1847): OSC 777 notify via terminalSequence — no spawns.
+  // terminalSequence is macOS/Linux only; skip on Windows.
+  if (process.platform === 'win32') return outputSilentSuccess();
+
+  const oscBody = subtitle ? `${subtitle} — ${body}` : body;
+  return outputTerminalSequence(buildOsc777Notify(title, oscBody));
 }

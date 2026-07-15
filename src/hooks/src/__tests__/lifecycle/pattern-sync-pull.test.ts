@@ -10,6 +10,11 @@ import { join } from 'node:path';
 import { tmpdir, } from 'node:os';
 import type { HookInput } from '../../types.js';
 import { patternSyncPull } from '../../lifecycle/pattern-sync-pull.js';
+import {
+  LEARNED_PATTERNS_CACHE_SCHEMA,
+  LEARNED_PATTERNS_CACHE_MAX_BYTES,
+  readDistilledPatterns,
+} from '../../lib/learned-patterns-cache.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
@@ -640,6 +645,126 @@ describe('pattern-sync-pull', () => {
       // Assert
       const projectPatterns = readProjectPatterns();
       expect(projectPatterns).toHaveLength(5);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // P4-B3: distilled learned-patterns cache for the PermissionRequest hot path
+  // ---------------------------------------------------------------------------
+
+  describe('distilled learned-patterns cache (P4-B3)', () => {
+    let originalPluginRoot: string | undefined;
+
+    beforeEach(() => {
+      // Pin plugin root so writer (this hook) and reader (learning-tracker)
+      // resolve the same .claude/feedback directory deterministically.
+      originalPluginRoot = process.env.CLAUDE_PLUGIN_ROOT;
+      process.env.CLAUDE_PLUGIN_ROOT = TEST_PROJECT_DIR;
+    });
+
+    afterEach(() => {
+      if (originalPluginRoot !== undefined) {
+        process.env.CLAUDE_PLUGIN_ROOT = originalPluginRoot;
+      } else {
+        delete process.env.CLAUDE_PLUGIN_ROOT;
+      }
+    });
+
+    const cacheFilePath = () =>
+      join(TEST_PROJECT_DIR, '.claude', 'feedback', 'learned-patterns-cache.json');
+
+    /** Write learned-patterns.json with an autoApprovePatterns key */
+    function createSourceWithAutoApprove(autoApprovePatterns: unknown[]): void {
+      const feedbackDir = join(TEST_PROJECT_DIR, '.claude', 'feedback');
+      mkdirSync(feedbackDir, { recursive: true });
+      writeFileSync(
+        join(feedbackDir, 'learned-patterns.json'),
+        JSON.stringify({ version: '1.0', patterns: [], autoApprovePatterns }, null, 2)
+      );
+    }
+
+    test('SessionStart distills autoApprovePatterns into the tiny cache', () => {
+      // Arrange
+      createSourceWithAutoApprove(['npm run build', 'git status']);
+
+      // Act
+      patternSyncPull(createHookInput(), testCtx);
+
+      // Assert — small, versioned, valid
+      expect(existsSync(cacheFilePath())).toBe(true);
+      const cache = JSON.parse(readFileSync(cacheFilePath(), 'utf-8'));
+      expect(cache.schema).toBe(LEARNED_PATTERNS_CACHE_SCHEMA);
+      expect(cache.autoApprovePatterns).toEqual(['npm run build', 'git status']);
+    });
+
+    test('cache round-trips through readDistilledPatterns (reader contract)', () => {
+      // Arrange
+      createSourceWithAutoApprove(['npm run build']);
+
+      // Act
+      patternSyncPull(createHookInput(), testCtx);
+
+      // Assert — the exact reader the permission hook uses accepts the file
+      expect(readDistilledPatterns()).toEqual(['npm run build']);
+    });
+
+    test('filters invalid entries and stays under the 2KB budget', () => {
+      // Arrange — mix of invalid entries + enough long patterns to exceed 2KB
+      const longPatterns = Array.from({ length: 60 }, (_, i) => `command-${i} ${'x'.repeat(150)}`);
+      createSourceWithAutoApprove([42, null, '', 'a'.repeat(201), 'npm run build', ...longPatterns]);
+
+      // Act
+      patternSyncPull(createHookInput(), testCtx);
+
+      // Assert
+      const raw = readFileSync(cacheFilePath(), 'utf-8');
+      expect(Buffer.byteLength(raw, 'utf8')).toBeLessThanOrEqual(LEARNED_PATTERNS_CACHE_MAX_BYTES);
+      const cache = JSON.parse(raw);
+      expect(cache.autoApprovePatterns).toContain('npm run build');
+      expect(cache.autoApprovePatterns).not.toContain('');
+      expect(cache.autoApprovePatterns).not.toContain('a'.repeat(201));
+      expect(cache.autoApprovePatterns.every((p: unknown) => typeof p === 'string')).toBe(true);
+    });
+
+    test('removes a stale cache when the source file is absent', () => {
+      // Arrange — cache exists from a previous session, source was deleted
+      const feedbackDir = join(TEST_PROJECT_DIR, '.claude', 'feedback');
+      mkdirSync(feedbackDir, { recursive: true });
+      writeFileSync(
+        cacheFilePath(),
+        JSON.stringify({ schema: LEARNED_PATTERNS_CACHE_SCHEMA, autoApprovePatterns: ['rm -rf'] })
+      );
+
+      // Act
+      patternSyncPull(createHookInput(), testCtx);
+
+      // Assert — stale auto-approve patterns must not outlive their source
+      expect(existsSync(cacheFilePath())).toBe(false);
+    });
+
+    test('distills even when global sync is disabled', () => {
+      // Arrange
+      createSyncConfig({ sync_enabled: false });
+      createSourceWithAutoApprove(['git status']);
+
+      // Act
+      patternSyncPull(createHookInput(), testCtx);
+
+      // Assert
+      expect(existsSync(cacheFilePath())).toBe(true);
+      expect(readDistilledPatterns()).toEqual(['git status']);
+    });
+
+    test('does not touch the cache when ORCHESTKIT_SKIP_SLOW_HOOKS=1', () => {
+      // Arrange
+      process.env.ORCHESTKIT_SKIP_SLOW_HOOKS = '1';
+      createSourceWithAutoApprove(['npm run build']);
+
+      // Act
+      patternSyncPull(createHookInput(), testCtx);
+
+      // Assert
+      expect(existsSync(cacheFilePath())).toBe(false);
     });
   });
 });

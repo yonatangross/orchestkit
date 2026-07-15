@@ -15,7 +15,7 @@
  * @see #463
  */
 
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { closeSync, existsSync, openSync, readSync, statSync } from 'node:fs';
 import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputAllowWithContext,
@@ -29,6 +29,7 @@ const HOOK_NAME = 'tldr-summary';
 const LINE_THRESHOLD = 1000; // Raised from 500 — #token-reduction
 const TOKEN_THRESHOLD = 2000;
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB safety cap
+const HEAD_SAMPLE_BYTES = 64 * 1024; // never read more than 64KB on this sync PreToolUse path
 
 /** Session-level dedup: skip files already summarized this session */
 const summarizedThisSession = new Set<string>();
@@ -76,12 +77,33 @@ export function tldrSummary(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
       return outputSilentSuccess();
     }
 
-    // Read file content
-    const content = readFileSync(filePath, 'utf8');
+    // Read at most the first 64KB — never the whole file (perf budget <50ms)
+    const sampleSize = Math.min(stats.size, HEAD_SAMPLE_BYTES);
+    const buffer = Buffer.alloc(sampleSize);
+    const fd = openSync(filePath, 'r');
+    let bytesRead = 0;
+    try {
+      bytesRead = readSync(fd, buffer, 0, sampleSize, 0);
+    } finally {
+      closeSync(fd);
+    }
+    let content = buffer.toString('utf8', 0, bytesRead);
+    const truncated = stats.size > bytesRead;
+    if (truncated) {
+      // Drop the possibly-partial trailing line (and any split UTF-8 char)
+      const lastNewline = content.lastIndexOf('\n');
+      if (lastNewline > 0) content = content.slice(0, lastNewline);
+    }
 
-    // Guard: small file — below both thresholds
-    const lineCount = content.split('\n').length;
-    const tokenCount = estimateTokenCount(content);
+    // Guard: small file — below both thresholds.
+    // For truncated samples, extrapolate totals from the stat size.
+    const sampleLines = content.split('\n').length;
+    const sampleTokens = estimateTokenCount(content);
+    const scale = truncated
+      ? stats.size / Math.max(1, Buffer.byteLength(content, 'utf8'))
+      : 1;
+    const lineCount = Math.round(sampleLines * scale);
+    const tokenCount = Math.round(sampleTokens * scale);
     if (lineCount < LINE_THRESHOLD && tokenCount < TOKEN_THRESHOLD) {
       return outputSilentSuccess();
     }

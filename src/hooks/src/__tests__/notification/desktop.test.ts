@@ -2,6 +2,11 @@
  * Unit tests for desktop notification hook
  * Tests macOS/Linux notification dispatching, message formatting, and platform detection.
  *
+ * #1847: the PRIMARY path now returns an OSC 777 `terminalSequence`; the
+ * osascript/notify-send spawn path is LEGACY behind ORK_NOTIFY_OSASCRIPT=1.
+ * The osascript-oriented describes below set that flag in beforeEach; the
+ * 'terminalSequence primary path' describe clears it.
+ *
  * CC 2.1.7 Compliance: All code paths must return { continue: true, suppressOutput: true }
  *
  * Issue #257: notification hooks 0% -> 100% coverage
@@ -95,6 +100,8 @@ function osascriptScript(): string {
 let testCtx: ReturnType<typeof createTestContext>;
 describe('notification/desktop', () => {
   beforeEach(() => {
+    // Legacy spawn path under test in most describes below (#1847).
+    process.env.ORK_NOTIFY_OSASCRIPT = '1';
     testCtx = createTestContext({ projectDir: '/test/projects/orchestkit', branch: 'feature/235-add-notifications' });
     vi.clearAllMocks();
     _resetCommandCacheForTesting();
@@ -110,7 +117,106 @@ describe('notification/desktop', () => {
   });
 
   afterEach(() => {
+    delete process.env.ORK_NOTIFY_OSASCRIPT;
     vi.restoreAllMocks();
+  });
+
+  // ---------------------------------------------------------------------------
+  // terminalSequence primary path (#1847)
+  // ---------------------------------------------------------------------------
+
+  describe('terminalSequence primary path (#1847)', () => {
+    const ESC = String.fromCharCode(27);
+    const BEL = String.fromCharCode(7);
+    const OSC_NOTIFY_PREFIX = `${ESC}]777;notify;`;
+
+    beforeEach(() => {
+      delete process.env.ORK_NOTIFY_OSASCRIPT;
+    });
+
+    test('returns OSC 777 notify terminalSequence for permission_prompt', async () => {
+      const result = await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+      expect(result.terminalSequence?.startsWith(OSC_NOTIFY_PREFIX)).toBe(true);
+      expect(result.terminalSequence?.endsWith(BEL)).toBe(true);
+    });
+
+    test.each(['permission_prompt', 'idle_prompt', 'agent_needs_input'])(
+      'returns terminalSequence for actionable type %s',
+      async (notificationType) => {
+        const result = await desktopNotification(createNotificationInput(notificationType), testCtx);
+        expect(result.terminalSequence?.startsWith(OSC_NOTIFY_PREFIX)).toBe(true);
+      },
+    );
+
+    test('spawns no process in primary mode (zero child_process usage)', async () => {
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
+      expect(mockSpawn).not.toHaveBeenCalled();
+      expect(vi.mocked(execFileSync)).not.toHaveBeenCalled();
+    });
+
+    test('includes repo name in the OSC 777 title field', async () => {
+      const result = await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
+      expect(result.terminalSequence).toContain('orchestkit needs approval');
+    });
+
+    test('strips ; from untrusted message text (OSC field delimiter)', async () => {
+      const result = await desktopNotification(
+        createNotificationInput('permission_prompt', 'evil;injected;field'),
+        testCtx,
+      );
+      // ESC]777;notify;TITLE;BODY — exactly 4 ;-separated segments, no extras
+      expect(result.terminalSequence?.split(';')).toHaveLength(4);
+      expect(result.terminalSequence).toContain('evilinjectedfield');
+    });
+
+    test('strips control/escape chars from untrusted message text', async () => {
+      const result = await desktopNotification(
+        createNotificationInput('permission_prompt', 'bad\u001b]0;pwn\u0007\u0000end'),
+        testCtx,
+      );
+      const seq = result.terminalSequence ?? '';
+      // Only the leading ESC and trailing BEL of the OSC envelope remain
+      expect(seq.indexOf('\u001b')).toBe(0);
+      expect(seq.lastIndexOf('\u001b')).toBe(0);
+      expect(seq.indexOf('\u0007')).toBe(seq.length - 1);
+      expect(seq).not.toContain('\u0000');
+      // Non-control text survives; the OSC field delimiter is stripped from it
+      expect(seq).toContain('bad]0pwnend');
+    });
+
+    test('truncates overlong message text in the body field', async () => {
+      const result = await desktopNotification(
+        createNotificationInput('permission_prompt', 'A'.repeat(500)),
+        testCtx,
+      );
+      expect(result.terminalSequence).toContain('...');
+      expect(result.terminalSequence).not.toContain('A'.repeat(200));
+    });
+
+    test('non-actionable types return silent success without terminalSequence', async () => {
+      const result = await desktopNotification(createNotificationInput('agent_completed'), testCtx);
+      expect(result).toEqual({ continue: true, suppressOutput: true });
+      expect(result.terminalSequence).toBeUndefined();
+    });
+
+    test('ORK_NO_NOTIFY=1 opt-out suppresses the terminalSequence too', async () => {
+      process.env.ORK_NO_NOTIFY = '1';
+      try {
+        const result = await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
+        expect(result.terminalSequence).toBeUndefined();
+      } finally {
+        delete process.env.ORK_NO_NOTIFY;
+      }
+    });
+
+    test('legacy flag ORK_NOTIFY_OSASCRIPT=1 spawns osascript and omits terminalSequence', async () => {
+      process.env.ORK_NOTIFY_OSASCRIPT = '1';
+      const result = await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
+      expect(result.terminalSequence).toBeUndefined();
+      expect((mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript')).toHaveLength(1);
+    });
   });
 
   // ---------------------------------------------------------------------------

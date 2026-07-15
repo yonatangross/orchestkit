@@ -128,7 +128,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code — 114 skills, 37 agents, 216 hooks working together."
+    "description": "The complete AI development toolkit for Claude Code — 114 skills, 37 agents, 219 hooks working together."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -197,7 +197,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/hooks/overview",
-    "title": "216 Hooks: What Fires When",
+    "title": "219 Hooks: What Fires When",
     "description": "TypeScript functions that intercept every Claude Code lifecycle event -- blocking dangerous commands, injecting context, and syncing memory, all invisibly."
   },
   {
@@ -488,12 +488,17 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/hooks",
     "title": "Hooks Reference",
-    "description": "Complete reference for all 148 global lifecycle hook entries across 27 event categories."
+    "description": "Complete reference for all 151 global lifecycle hook entries across 30 event categories."
   },
   {
     "url": "/docs/reference/hooks/instructions-loaded",
     "title": "InstructionsLoaded",
     "description": "Hooks triggered on InstructionsLoaded events (2 hooks)."
+  },
+  {
+    "url": "/docs/reference/hooks/message-display",
+    "title": "MessageDisplay",
+    "description": "Hooks triggered on MessageDisplay events (1 hooks)."
   },
   {
     "url": "/docs/reference/hooks/notification",
@@ -514,6 +519,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference/hooks/post-compact",
     "title": "PostCompact",
     "description": "Hooks triggered on PostCompact events (2 hooks)."
+  },
+  {
+    "url": "/docs/reference/hooks/post-tool-batch",
+    "title": "PostToolBatch",
+    "description": "Hooks triggered on PostToolBatch events (1 hooks)."
   },
   {
     "url": "/docs/reference/hooks/post-tool-use-failure",
@@ -626,6 +636,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Hooks triggered on TeammateIdle events (4 hooks)."
   },
   {
+    "url": "/docs/reference/hooks/user-prompt-expansion",
+    "title": "UserPromptExpansion",
+    "description": "Hooks triggered on UserPromptExpansion events (1 hooks)."
+  },
+  {
     "url": "/docs/reference/hooks/user-prompt-submit",
     "title": "UserPromptSubmit",
     "description": "Hooks triggered on UserPromptSubmit events (5 hooks)."
@@ -643,7 +658,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference",
     "title": "Reference",
-    "description": "Complete reference for all 114 skills, 37 agents, and 216 hooks."
+    "description": "Complete reference for all 114 skills, 37 agents, and 219 hooks."
   },
   {
     "url": "/docs/reference/skills/accessibility",
@@ -1283,7 +1298,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/reference-skills",
     "title": "Reference Skills",
-    "description": "The 81 user-invocable:false skills auto-injected into agent context — the knowledge library behind OrchestKit agents."
+    "description": "The 80 user-invocable:false skills auto-injected into agent context — the knowledge library behind OrchestKit agents."
   },
   {
     "url": "/docs/skills/skill-composition",

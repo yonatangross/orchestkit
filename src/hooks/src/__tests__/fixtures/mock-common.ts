@@ -102,6 +102,11 @@ export function mockCommonBasic(
 
     // --- Output helpers (correct return shapes, matching common.ts) ---
     outputSilentSuccess: vi.fn((): HookResult => ({ continue: true, suppressOutput: true })),
+    outputTerminalSequence: vi.fn((sequence: string): HookResult => ({
+      continue: true,
+      suppressOutput: true,
+      terminalSequence: sequence,
+    })),
     outputSilentAllow: vi.fn((): HookResult => ({
       continue: true,
       suppressOutput: true,

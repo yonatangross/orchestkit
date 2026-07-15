@@ -164,7 +164,8 @@ describe('Async Hooks Registry', () => {
       //             pretool/skill/skill-tracker + lifecycle/webhook-forwarder (both async).
       // 102 -> 103: #2590 — lifecycle/telemetry-dark-check (SessionStart, async 5s).
       // 103 -> 104: #2475 — instructions-loaded/session-rules-audit (SessionStart, async 5s).
-      expect(asyncHooks.length, 'Should have exactly 104 async hooks').toBe(104);
+      // 104 -> 107: P3-A3 — 3 async observer hooks (UserPromptExpansion, MessageDisplay, PostToolBatch).
+      expect(asyncHooks.length, 'Should have exactly 107 async hooks').toBe(107);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

@@ -43,10 +43,17 @@ jobs:
       - name: Run tests with coverage
         id: tests
         run: |
-          # Run hook tests with coverage (vitest + @vitest/coverage-v8 4.0.18)
+          # Run hook tests with coverage (vitest + @vitest/coverage-v8 4.0.18).
+          # GATE: vitest.config.ts coverage thresholds (lines 70 / functions 72 /
+          # branches 65 / statements 70) must fail this step. `| tee` swallows
+          # the exit code (no pipefail in Actions' default bash), so capture it
+          # explicitly and re-raise at the END of the step — report outputs are
+          # still populated for the failing run. No secrets are used here, so
+          # this is safe on fork PRs (only the PR comment below is fork-gated).
           cd src/hooks
           npm ci
-          npm run test:coverage 2>&1 | tee ../../test.log || true
+          vitest_exit=0
+          npm run test:coverage 2>&1 | tee ../../test.log || vitest_exit=$?
 
           # Copy coverage to root for report generator
           if [ -f coverage/coverage-summary.json ]; then
@@ -96,8 +103,13 @@ jobs:
             echo "coverage_statements=0" >> "$GITHUB_OUTPUT"
           fi
 
+          # Re-raise the vitest/coverage-threshold failure now that all report
+          # outputs are written. Downstream report steps run via !cancelled().
+          exit "$vitest_exit"
+
       - name: Run linting
         id: lint
+        if: ${{ !cancelled() }}
         run: |
           # TypeScript type-check
           cd src/hooks && npx tsc --noEmit 2>&1 | tee ../../lint.log || true
@@ -111,6 +123,7 @@ jobs:
 
       - name: Run security scan
         id: security
+        if: ${{ !cancelled() }}
         run: |
           npm audit --json > audit.json 2>/dev/null || true
           critical="$(jq -r '.metadata.vulnerabilities.critical // 0' audit.json)" || true
@@ -124,6 +137,8 @@ jobs:
 
       - name: Generate CI Report
         id: report
+        if: ${{ !cancelled() }}
+        # justify: best-effort report rendering is advisory; the real gate is the tests step above
         continue-on-error: true
         env:
           CI_BUILD_STATUS: ${{ steps.build.outputs.status }}
@@ -138,6 +153,7 @@ jobs:
           npx tsx scripts/generate-ci-report.ts --output ci-report.html
 
       - name: Upload CI Report
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: ci-report
@@ -150,7 +166,8 @@ jobs:
       - name: Comment on PR
         # Fork PRs get a read-only GITHUB_TOKEN, so commenting fails with
         # 403 "Resource not accessible by integration" — skip them.
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        # !cancelled(): still post/update the report when the test gate failed.
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9.0.0
         with:
           script: |
@@ -217,6 +234,7 @@ jobs:
             }
 
       - name: Job Summary
+        if: ${{ !cancelled() }}
         run: |
           if [ -f ci-report.md ]; then
             cat ci-report.md >> "$GITHUB_STEP_SUMMARY"

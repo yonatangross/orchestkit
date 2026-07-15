@@ -12,6 +12,7 @@ import { atomicWriteSync } from '../lib/atomic-write.js';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, outputSilentSuccess } from '../lib/common.js';
 import { getHomeDir } from '../lib/paths.js';
+import { distillLearnedPatterns } from '../lib/learned-patterns-cache.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 interface PatternFile {
@@ -137,25 +138,35 @@ export function patternSyncPull(input: HookInput, ctx: HookContext = NOOP_CTX): 
 
   const projectDir = input.project_dir || (ctx.projectDir);
 
-  // Check if sync is enabled
-  if (!isSyncEnabled(projectDir)) {
-    ctx.log('pattern-sync-pull', 'Global sync disabled, skipping pull');
-    return outputSilentSuccess();
-  }
-
   // Check file sizes (use getHomeDir for cross-platform compatibility)
   const globalPatternsFile = `${getHomeDir()}/.claude/global-patterns.json`;
   const projectPatternsFile = `${projectDir}/.claude/feedback/learned-patterns.json`;
 
-  if (!checkFileSize(globalPatternsFile) || !checkFileSize(projectPatternsFile)) {
+  if (!isSyncEnabled(projectDir)) {
+    // Sync disabled: skip the pull, but still refresh the distilled cache below
+    ctx.log('pattern-sync-pull', 'Global sync disabled, skipping pull');
+  } else if (!checkFileSize(globalPatternsFile) || !checkFileSize(projectPatternsFile)) {
     ctx.log('pattern-sync-pull', 'Skipping pattern sync due to large files');
-    return outputSilentSuccess();
+  } else {
+    // Pull global patterns
+    ctx.log('pattern-sync-pull', 'Pulling global patterns...');
+    pullGlobalPatterns(projectDir);
+    ctx.log('pattern-sync-pull', 'Global patterns pulled successfully');
   }
 
-  // Pull global patterns
-  ctx.log('pattern-sync-pull', 'Pulling global patterns...');
-  pullGlobalPatterns(projectDir);
-  ctx.log('pattern-sync-pull', 'Global patterns pulled successfully');
+  // P4-B3: distill learned-patterns.json into the tiny cache the
+  // PermissionRequest hot path (permission/learning-tracker) reads instead of
+  // parsing the full file. Runs AFTER the pull so it sees merged data, and
+  // even when sync is disabled (the source file may still exist/change).
+  try {
+    const written = distillLearnedPatterns();
+    ctx.log(
+      'pattern-sync-pull',
+      written ? 'Distilled learned-patterns cache' : 'No learned-patterns source — cache invalidated',
+    );
+  } catch {
+    // Advisory only — never fail SessionStart over the cache
+  }
 
   return outputSilentSuccess();
 }

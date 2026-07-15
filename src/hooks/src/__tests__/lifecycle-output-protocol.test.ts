@@ -312,11 +312,66 @@ describe('lifecycle output protocol — TaskCreated (post-guard)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Notification — skip: desktop/sound return outputSilentSuccess (no risk)
+// Notification — desktop/sound now return the top-level terminalSequence
+// field (#1847). The guard must pass it through untouched (it only inspects
+// hookSpecificOutput), and the results must never carry a wrong-event
+// hookEventName or additionalContext.
 // ---------------------------------------------------------------------------
 
-describe('lifecycle output protocol — Notification', () => {
-  it.skip('TODO: desktop/sound return outputSilentSuccess — no hookEventName risk; add test if unified-dispatcher ever calls outputPromptContext()', () => {});
+import { desktopNotification } from '../notification/desktop.js';
+import { soundNotification } from '../notification/sound.js';
+
+describe('lifecycle output protocol — Notification (#1847 terminalSequence)', () => {
+  const ESC = String.fromCharCode(27);
+  const BEL = String.fromCharCode(7);
+  let testCtx: ReturnType<typeof createTestContext>;
+  beforeEach(() => {
+    testCtx = createTestContext();
+    vi.clearAllMocks();
+    stderrSpy.mockClear();
+    // Primary path only — the legacy spawn fallback must stay off here
+    delete process.env.ORK_NOTIFY_OSASCRIPT;
+  });
+
+  function notificationInput(notificationType: string): HookInput {
+    return {
+      hook_event: 'Notification',
+      tool_name: 'Notification',
+      session_id: 'test-session-001',
+      tool_input: {},
+      notification_type: notificationType,
+      message: 'A tool needs your permission to proceed.',
+    };
+  }
+
+  it('desktop: OSC 777 terminalSequence survives the output guard unchanged', async () => {
+    const rawResult = await desktopNotification(notificationInput('permission_prompt'), testCtx);
+    const sanitized = sanitizeOutput(rawResult, 'Notification') as HookResult;
+    expect(sanitized.continue).toBe(true);
+    expect(sanitized.terminalSequence).toBe(rawResult.terminalSequence);
+    expect(sanitized.terminalSequence?.startsWith(`${ESC}]777;notify;`)).toBe(true);
+    expect(sanitized.terminalSequence?.endsWith(BEL)).toBe(true);
+    assertNoWrongHookEventName(sanitized, 'Notification');
+    assertNoAdditionalContext(sanitized, 'Notification');
+    expect(stderrSpy).not.toHaveBeenCalled();
+  });
+
+  it('sound: BEL terminalSequence survives the output guard unchanged', () => {
+    const rawResult = soundNotification(notificationInput('permission_prompt'), testCtx);
+    const sanitized = sanitizeOutput(rawResult, 'Notification') as HookResult;
+    expect(sanitized.continue).toBe(true);
+    expect(sanitized.terminalSequence).toBe(BEL);
+    assertNoWrongHookEventName(sanitized, 'Notification');
+    assertNoAdditionalContext(sanitized, 'Notification');
+    expect(stderrSpy).not.toHaveBeenCalled();
+  });
+
+  it('non-actionable notification types emit no terminalSequence at all', async () => {
+    const desktopResult = await desktopNotification(notificationInput('agent_completed'), testCtx);
+    expect(desktopResult.terminalSequence).toBeUndefined();
+    const soundResult = soundNotification(notificationInput('not_a_real_type'), testCtx);
+    expect(soundResult.terminalSequence).toBeUndefined();
+  });
 });
 
 // ---------------------------------------------------------------------------

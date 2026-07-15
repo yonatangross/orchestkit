@@ -36,7 +36,10 @@ export type HookEvent =
   | 'PermissionDenied'
   | 'CwdChanged'
   | 'FileChanged'
-  | 'MessageDisplay';
+  | 'MessageDisplay'
+  // P3-A3 (CC 2.1.208): observer-only events
+  | 'UserPromptExpansion'
+  | 'PostToolBatch';
 
 /**
  * Hook input envelope from Claude Code (sent via stdin as JSON)
@@ -311,6 +314,14 @@ export interface HookResult {
   decision?: 'block' | 'approve';
   /** Retry flag for PermissionDenied hooks (CC 2.1.89) */
   retry?: boolean;
+  /**
+   * Terminal escape sequence emitted by CC to the user's terminal (#1847).
+   * Command hooks only; macOS/Linux. e.g. OSC 777 desktop notify
+   * (`\u001b]777;notify;TITLE;BODY\u0007`) or a bare BEL (`\u0007`) for sound.
+   * Any untrusted text embedded in the sequence MUST be sanitized first
+   * (strip control chars + `;` field delimiters).
+   */
+  terminalSequence?: string;
 }
 
 /**

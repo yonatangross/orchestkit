@@ -2,6 +2,11 @@
  * Unit tests for sound notification hook
  * Tests macOS sound playback via detached afplay spawn, sound mapping, and error resilience.
  *
+ * #1847: the PRIMARY path now returns a BEL `terminalSequence`; the
+ * afplay/Linux-player spawn path is LEGACY behind ORK_NOTIFY_OSASCRIPT=1.
+ * The spawn-oriented describes below set that flag in beforeEach; the
+ * 'terminalSequence primary path' describe clears it.
+ *
  * CC 2.1.7 Compliance: All code paths must return { continue: true, suppressOutput: true }
  *
  * Issue #257: notification hooks 0% -> 100% coverage
@@ -87,6 +92,8 @@ function createSoundInput(notificationType: string): HookInput {
 let testCtx: ReturnType<typeof createTestContext>;
 describe('notification/sound', () => {
   beforeEach(() => {
+    // Legacy spawn path under test in most describes below (#1847).
+    process.env.ORK_NOTIFY_OSASCRIPT = '1';
     testCtx = createTestContext();
     vi.clearAllMocks();
     _resetAfplayCacheForTesting();
@@ -101,7 +108,78 @@ describe('notification/sound', () => {
   });
 
   afterEach(() => {
+    delete process.env.ORK_NOTIFY_OSASCRIPT;
     vi.restoreAllMocks();
+  });
+
+  // ---------------------------------------------------------------------------
+  // terminalSequence primary path (#1847)
+  // ---------------------------------------------------------------------------
+
+  describe('terminalSequence primary path (#1847)', () => {
+    const BEL = String.fromCharCode(7);
+
+    beforeEach(() => {
+      delete process.env.ORK_NOTIFY_OSASCRIPT;
+    });
+
+    test.each([
+      'permission_prompt',
+      'idle_prompt',
+      'auth_success',
+      'task_complete',
+      'error',
+      'warning',
+      'agent_needs_input',
+      'agent_completed',
+    ])('returns BEL terminalSequence for mapped type %s', (notificationType) => {
+      const result = soundNotification(createSoundInput(notificationType), testCtx);
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+      expect(result.terminalSequence).toBe(BEL);
+    });
+
+    test('spawns no process in primary mode (zero child_process usage)', () => {
+      soundNotification(createSoundInput('permission_prompt'), testCtx);
+      expect(mockSpawn).not.toHaveBeenCalled();
+      expect(vi.mocked(execFileSync)).not.toHaveBeenCalled();
+    });
+
+    test.each(['info', 'unknown_type', ''])(
+      'unmapped type %s stays silent — no terminalSequence',
+      (notificationType) => {
+        const result = soundNotification(createSoundInput(notificationType), testCtx);
+        expect(result).toEqual({ continue: true, suppressOutput: true });
+        expect(result.terminalSequence).toBeUndefined();
+      },
+    );
+
+    test('prototype keys are not mapped types (untrusted input hardening)', () => {
+      const result = soundNotification(createSoundInput('constructor'), testCtx);
+      expect(result.terminalSequence).toBeUndefined();
+      expect(mockSpawn).not.toHaveBeenCalled();
+    });
+
+    test('ORK_NO_NOTIFY=1 opt-out suppresses the terminalSequence too', () => {
+      process.env.ORK_NO_NOTIFY = '1';
+      try {
+        const result = soundNotification(createSoundInput('permission_prompt'), testCtx);
+        expect(result.terminalSequence).toBeUndefined();
+      } finally {
+        delete process.env.ORK_NO_NOTIFY;
+      }
+    });
+
+    test('legacy flag ORK_NOTIFY_OSASCRIPT=1 spawns afplay and omits terminalSequence', () => {
+      process.env.ORK_NOTIFY_OSASCRIPT = '1';
+      const result = soundNotification(createSoundInput('permission_prompt'), testCtx);
+      expect(result.terminalSequence).toBeUndefined();
+      expect(mockSpawn).toHaveBeenCalledWith(
+        'afplay',
+        ['/System/Library/Sounds/Sosumi.aiff'],
+        expect.any(Object),
+      );
+    });
   });
 
   // ---------------------------------------------------------------------------

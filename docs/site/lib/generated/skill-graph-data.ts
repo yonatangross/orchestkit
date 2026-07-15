@@ -117,7 +117,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "audit-activation",
     "label": "Audit Activation",
-    "type": "reference",
+    "type": "command",
     "complexity": "medium",
     "category": "security",
     "hasDeps": false,

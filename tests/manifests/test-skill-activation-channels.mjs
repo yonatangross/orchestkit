@@ -40,8 +40,9 @@ const C = process.stdout.isTTY
 // Keep this list SHORT and justified — each entry is a skill a human is expected
 // to invoke explicitly, where chaining/granting would be artificial.
 const STANDALONE_ALLOWLIST = {
-  // (currently empty — every user-invocable skill is wired. Add entries as:
-  //   'skill-name': 'why it is intentionally direct-only',
+  // Add entries as: 'skill-name': 'why it is intentionally direct-only',
+  'audit-activation':
+    'operator audit tool — user-invocable with disable-model-invocation: true by design (P3-A2); direct /ork:audit-activation is the only intended trigger',
 };
 
 // ---- parse a YAML frontmatter `skills:` field (inline [..] OR block list) ----

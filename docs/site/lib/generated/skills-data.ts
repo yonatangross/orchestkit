@@ -603,7 +603,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "audit-activation",
     "description": "Audits OrchestKit sub-agent activation from real spawn telemetry — computes the generic-vs-specialist spawn split, flags dormant agents (never fired), and classifies each as fires/mis-triggered/niche. The agent-side analogue of audit-skills. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths.",
     "version": "1.0.0",
-    "sha256": "6b0367a51410b0c27fa5239a32458e6ab3dd68adb6afd018d14b3cf832ab11a9",
+    "sha256": "9bf7f684015d54dff663fd6b9aed7da07b5e2fd40eab59dd46de8cbfadb93272",
     "author": "OrchestKit",
     "tags": [
       "audit",
@@ -612,7 +612,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "telemetry",
       "orchestkit"
     ],
-    "userInvocable": false,
+    "userInvocable": true,
     "context": "fork",
     "allowedTools": [
       "Read",
@@ -4937,7 +4937,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "telemetry-inspect",
     "description": "Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. Use when verifying the observability pipeline is healthy, debugging a missing writer, or auditing which files have schema locks vs. which are drift-vulnerable. Read-only — never modifies telemetry files.",
     "version": "1.0.0",
-    "sha256": "f0aef28fcd9daba5ebe232689d24dd0a5377cfba69d6fd971a1c0e468d563941",
+    "sha256": "3455a4932fa4a805e98afd63c5ab464636fe16899af70902460220cbe0933593",
     "author": "OrchestKit",
     "tags": [
       "telemetry",
@@ -5130,7 +5130,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "testing-patterns",
     "description": "Redirect — testing-patterns was split into 5 focused sub-skills. Use when looking for testing-patterns, writing tests, or test automation. Redirects to testing-unit, testing-e2e, testing-integration, testing-llm, or testing-perf.",
     "version": "2.0.0",
-    "sha256": "71c84e16239948e5c9c0596c501d7a8c2bb8b3c5f2de3d9351975c19cd14add7",
+    "sha256": "85102955a6fafd7f2649828af69ade6dea199b4cfcf11b63fb79f142760d48ca",
     "author": "OrchestKit",
     "tags": [
       "testing",

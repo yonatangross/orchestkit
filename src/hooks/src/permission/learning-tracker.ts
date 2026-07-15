@@ -16,6 +16,7 @@ import {
   getPluginRoot,
 } from '../lib/common.js';
 import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
+import { readDistilledPatterns } from '../lib/learned-patterns-cache.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { NOOP_CTX } from '../lib/context.js';
@@ -63,11 +64,25 @@ export function _resetPatternCacheForTesting(): void {
 }
 
 /**
- * Load learned patterns from feedback file (cached per process)
+ * Load learned patterns (cached per process).
+ *
+ * P4-B3 hot-path fix: prefer the tiny (<2KB) distilled cache precomputed by
+ * the SessionStart hook lifecycle/pattern-sync-pull (single small readFileSync
+ * — fits the <10ms PermissionRequest budget). Falls back ONCE per process to
+ * the legacy full learned-patterns.json parse when the cache is absent or
+ * invalid — preserving fail-open advisory semantics.
  */
 function loadLearnedPatterns(): string[] {
   if (_cachedPatterns !== null) return _cachedPatterns;
 
+  // Fast path: distilled cache (schema-checked; null on absence/tampering)
+  const distilled = readDistilledPatterns();
+  if (distilled !== null) {
+    _cachedPatterns = distilled;
+    return distilled;
+  }
+
+  // Slow fallback (once per process): legacy full-file read
   const pluginRoot = getPluginRoot();
   const feedbackFile = join(pluginRoot, '.claude', 'feedback', 'learned-patterns.json');
 

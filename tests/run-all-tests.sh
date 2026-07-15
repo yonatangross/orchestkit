@@ -332,9 +332,10 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
         run_test "Agent Definitions" "$SCRIPT_DIR/subagents/definition/test-agent-definitions.sh" || true
     fi
 
-    # Functional tests (rule traceability, eval completeness, efficiency scorecard)
+    # Functional tests (rule traceability, efficiency scorecard)
+    # silent: best-effort (run_test records failures; suite exits non-zero at end)
     run_test "Rule Traceability" "$SCRIPT_DIR/skills/functional/test-rule-traceability.sh" || true
-    run_test "Eval Completeness" "$SCRIPT_DIR/skills/functional/test-eval-completeness.sh" || true
+    # silent: best-effort (run_test records failures; suite exits non-zero at end)
     run_test "Skill Efficiency Scorecard" "$SCRIPT_DIR/skills/functional/skill-efficiency-scorecard.sh" "true" || true
 
     # Plugin structure validation (CC 2.1.16 compliance)

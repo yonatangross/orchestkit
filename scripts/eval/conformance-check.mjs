@@ -155,7 +155,7 @@ const result = {
   by_check: byCheck,
   findings,
 };
-const outDir = join(ROOT, 'tests', 'evaluations', 'results');
+const outDir = join(ROOT, 'tests', 'evals', 'results');
 try { mkdirSync(outDir, { recursive: true }); } catch {}
 writeFileSync(join(outDir, 'conformance.json'), JSON.stringify(result, null, 2) + '\n');
 

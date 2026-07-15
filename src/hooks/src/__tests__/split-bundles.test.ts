@@ -413,7 +413,11 @@ describe('Cross-Bundle Consistency', () => {
     //             plus 5 already-removed legacy unified-dispatchers (posttool,
     //             lifecycle, stop, notification, teammate-idle). Matches
     //             validate-registry.mjs reachable closure of 197.
-    expect(totalHooks).toBe(197);
+    // 197 -> 200: P3-A3 — 3 observer-only hooks for never-listened CC 2.1.208
+    //             events: prompt/prompt-expansion-observer (UserPromptExpansion),
+    //             notification/message-display-observer (MessageDisplay),
+    //             posttool/tool-batch-observer (PostToolBatch).
+    expect(totalHooks).toBe(200);
   });
 });
 

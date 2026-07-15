@@ -517,7 +517,121 @@ describe('learningTracker', () => {
   });
 
   // -----------------------------------------------------------------------
-  // 8. Edge cases
+  // 8. P4-B3: distilled cache fast path
+  // -----------------------------------------------------------------------
+
+  describe('distilled cache fast path (P4-B3)', () => {
+    const CACHE_FILE = 'learned-patterns-cache.json';
+
+    /** Build a valid distilled-cache payload */
+    function validCache(patterns: unknown[]): string {
+      return JSON.stringify({
+        schema: 'ork.learned-patterns-cache.v1',
+        generated_at: '2026-07-15T00:00:00.000Z',
+        autoApprovePatterns: patterns,
+      });
+    }
+
+    test('prefers the distilled cache and never parses the full file', () => {
+      // Arrange — ONLY the tiny cache is readable; the big file read would throw
+      (readFileSync as ReturnType<typeof vi.fn>).mockImplementation((p: unknown) => {
+        if (String(p).includes(CACHE_FILE)) return validCache(['npm run build']);
+        throw new Error(`hot path must not read: ${String(p)}`);
+      });
+      const input = createBashInput('npm run build');
+
+      // Act
+      const result = learningTracker(input);
+
+      // Assert — auto-approved purely from the cache
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      // The full learned-patterns.json was neither stat'd nor read
+      const bigFileTouches = [
+        ...(existsSync as ReturnType<typeof vi.fn>).mock.calls,
+        ...(readFileSync as ReturnType<typeof vi.fn>).mock.calls,
+      ].filter((call) => String(call[0]).includes('learned-patterns.json'));
+      expect(bigFileTouches).toHaveLength(0);
+    });
+
+    test('falls back to the full file when the cache is absent (ENOENT)', () => {
+      // Arrange — cache read throws ENOENT, legacy file has the pattern
+      (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      (readFileSync as ReturnType<typeof vi.fn>).mockImplementation((p: unknown) => {
+        if (String(p).includes(CACHE_FILE)) {
+          const err = new Error('ENOENT: no such file') as NodeJS.ErrnoException;
+          err.code = 'ENOENT';
+          throw err;
+        }
+        return JSON.stringify({ autoApprovePatterns: ['git status'] });
+      });
+      const input = createBashInput('git status');
+
+      // Act
+      const result = learningTracker(input);
+
+      // Assert — legacy fallback still auto-approves (fail-open preserved)
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+    });
+
+    test('rejects a cache with the wrong schema key and falls back', () => {
+      // Arrange — tampered/foreign cache; no legacy file
+      (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
+      (readFileSync as ReturnType<typeof vi.fn>).mockImplementation((p: unknown) => {
+        if (String(p).includes(CACHE_FILE)) {
+          return JSON.stringify({ schema: 'bogus.v9', autoApprovePatterns: ['npm run build'] });
+        }
+        throw new Error('no file');
+      });
+      const input = createBashInput('npm run build');
+
+      // Act
+      const result = learningTracker(input);
+
+      // Assert — invalid cache grants nothing
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+    });
+
+    test('filters invalid entries inside a valid cache (SEC)', () => {
+      // Arrange — non-strings / empty / oversized entries mixed in
+      (readFileSync as ReturnType<typeof vi.fn>).mockImplementation((p: unknown) => {
+        if (String(p).includes(CACHE_FILE)) {
+          return validCache([42, null, '', 'a'.repeat(201), 'npm run build']);
+        }
+        throw new Error('no file');
+      });
+      const input = createBashInput('npm run build');
+
+      // Act
+      const result = learningTracker(input);
+
+      // Assert — the one valid pattern still matches
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+    });
+
+    test('survives absence of BOTH cache and legacy file (fail-open)', () => {
+      // Arrange
+      (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
+      (readFileSync as ReturnType<typeof vi.fn>).mockImplementation(() => {
+        const err = new Error('ENOENT: no such file') as NodeJS.ErrnoException;
+        err.code = 'ENOENT';
+        throw err;
+      });
+      const input = createBashInput('npm run build');
+
+      // Act
+      const result = learningTracker(input);
+
+      // Assert — silent pass-through, permission decision untouched
+      expect(result).toEqual({ continue: true, suppressOutput: true });
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // 9. Edge cases
   // -----------------------------------------------------------------------
 
   describe('edge cases', () => {

@@ -16,7 +16,7 @@ PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
 AGENTS_DIR="$PROJECT_ROOT/src/agents"
 SKILLS_DIR="$PROJECT_ROOT/src/skills"
-RESULTS_DIR="$PROJECT_ROOT/tests/evaluations/results"
+RESULTS_DIR="$PROJECT_ROOT/tests/evals/results"
 RESULTS_FILE="$RESULTS_DIR/static-analysis.json"
 
 JSON_ONLY=false
@@ -484,13 +484,13 @@ header "Section F: CC-Idiom Conformance"
 # drift). Advisory only: emits warn (never fail) so it cannot block CI while
 # signal quality is validated. Set CONFORMANCE_STRICT=1 locally to gate.
 node "$PROJECT_ROOT/scripts/eval/conformance-check.mjs" >/dev/null 2>&1 || true
-CONF_JSON="$PROJECT_ROOT/tests/evaluations/results/conformance.json"
+CONF_JSON="$PROJECT_ROOT/tests/evals/results/conformance.json"
 CONF_N=0
 if [ -f "$CONF_JSON" ]; then
   CONF_N=$(grep -o '"total_findings"[: ]*[0-9]*' "$CONF_JSON" | grep -o '[0-9]*' | head -1)
 fi
 if [ "${CONF_N:-0}" -gt 0 ]; then
-  add_check "CC-Idiom Conformance" "warn" "$CONF_N stale-idiom finding(s) — see tests/evaluations/results/conformance.json"
+  add_check "CC-Idiom Conformance" "warn" "$CONF_N stale-idiom finding(s) — see tests/evals/results/conformance.json"
 else
   add_check "CC-Idiom Conformance" "pass" "No stale CC-idiom drift detected"
 fi

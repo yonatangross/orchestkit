@@ -587,7 +587,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: static-analysis-results
-          path: tests/evaluations/results/static-analysis.json
+          path: tests/evals/results/static-analysis.json
           retention-days: 30
         if: always()
 
@@ -630,12 +630,6 @@ jobs:
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash scripts/ci/run-tests.sh tests/feedback --verbose
 
-      - name: Run evaluation tests
-        shell: bash
-        run: |
-          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash scripts/ci/run-tests.sh tests/evaluations --verbose
-
 
   # ============================================================================
   # STAGE 9: Coverage Report
@@ -646,7 +640,7 @@ jobs:
       contents: read
     needs: [unit-tests, security-tests]
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
         with:
@@ -662,11 +656,26 @@ jobs:
         uses: ./.github/actions/setup
         with:
           build-plugins: 'false'
+          install-hooks-deps: 'true'  # vitest coverage run below needs src/hooks/node_modules
+
+      # Produce coverage/coverage-summary.json so hook-coverage-report.sh takes
+      # its real-JSON path instead of silently falling back to the filename-grep
+      # heuristic (which measured "a test file mentions the hook", not coverage).
+      # This run also enforces the vitest.config.ts coverage thresholds
+      # (lines 70 / functions 72 / branches 65 / statements 70).
+      - name: Run vitest with coverage
+        shell: bash
+        working-directory: src/hooks
+        run: npx vitest run --coverage
 
       - name: Generate hook coverage report
         shell: bash
         run: |
+          set -o pipefail  # tee must not mask the report script's exit code
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          # Gates on REAL vitest line coverage now that the step above writes
+          # coverage-summary.json (real lines ≈84% as of 2026-07; the ~73% note
+          # in vitest.config.ts is stale). Stricter than vitest thresholds.lines=70.
           export COVERAGE_THRESHOLD=75
           bash tests/coverage/hook-coverage-report.sh | tee coverage-report.txt
 

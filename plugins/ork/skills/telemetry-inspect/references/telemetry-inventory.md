@@ -2,7 +2,7 @@
 
 Single source of truth listing every file that OrchestKit hooks write to. The `telemetry-inspect` skill reads this inventory to distinguish "expected" files from orphans.
 
-Last updated: 2026-07-09 (live writer census)
+Last updated: 2026-07-15 (dead-hook triage — see changelog at bottom)
 
 ## Path routing helpers
 
@@ -58,7 +58,6 @@ Note: `appendAnalytics` writes its own filename set (`task-usage.jsonl`, `team-a
 | `.claude/logs/hooks.log` | `lib/log.ts` (`logHook`, all hooks) |
 | `.claude/logs/permission-feedback.log` | `lib/log.ts` (`logPermissionFeedback`) |
 | `.claude/logs/permission-denials.jsonl` | `permission-denied/denial-logger`, `permission-denied/denial-notification` |
-| `.claude/logs/audit.log` | `posttool/audit-logger`, `lifecycle/session-cleanup`, `agent/security-command-audit` |
 | `.claude/logs/agent-state.json` | `subagent-start/context-gate` |
 
 ### `.claude/state/`
@@ -73,17 +72,13 @@ Note: `appendAnalytics` writes its own filename set (`task-usage.jsonl`, `team-a
 | `.claude/state/expect-auto-fires.json` | `posttool/ui-change-detector` |
 | `.claude/state/expect-snapshots/` | `posttool/expect/snapshot-recorder` |
 | `.claude/state/worktree-advisory-*.md` | `lib/worktree-advisory` (consumed by `prompt/worktree-advisory-consumer`) |
-| `.claude/state/session-*-token-accum.json` | session token-accumulator hook |
+| `.claude/state/session-*-token-accum.json` | `lib/session-token-accum` (called from `lifecycle/pre-compact-task-done-prompt`, `posttool/context-crossing-warn`) |
 
 ### `.claude/feedback/`
 
 | Path | Writer |
 |------|--------|
-| `.claude/feedback/code-style-profile.json` | `posttool/write/code-style-learner` |
-| `.claude/feedback/naming-conventions.json` | `posttool/write/naming-convention-learner` |
-| `.claude/feedback/tool-preferences.json` | `posttool/tool-preference-learner` |
 | `.claude/feedback/learned-patterns.json` | `lifecycle/pattern-sync-push`, `lifecycle/pattern-sync-pull`, `permission/learning-tracker` |
-| `.claude/feedback/patterns-queue.json` | `posttool/bash/pattern-extractor` |
 | `.claude/feedback/consent-log.json` | `lifecycle/analytics-consent-check` |
 | `.claude/feedback/dependency-check-cache.json` | `lifecycle/dependency-version-check` |
 | `.claude/feedback/changelog-decisions.json` | `lib/decision-history` |
@@ -98,7 +93,7 @@ These files exist on disk from historical runs but have no reachable writer at H
 | `.claude/feedback/skill-usage.json` | 2026-03-06 | Writer `posttool/skill/skill-usage-optimizer` unwired by commit `e3e99b2ff` (#959, "PostToolUse: 17→3 sub-hooks"). Function + dispatch-map entry survive but no `hooks.json` entry invokes the key → unreachable. Superseded by M168 (#2015) `skill_invocation` SQLite table. **Delisted from SCHEMA_LOCKED 2026-07-09.** |
 | `.claude/logs/skill-usage.log` | ~~2026-03-06~~ **revived 2026-07-09** | Writer `pretool/skill/skill-tracker` was unwired in the same #959 prune, but unlike the optimizer it is NOT superseded — it is the sole feeder of the M168 `skill_invocation` SQLite table (`recordInvocation`) and of `skill-channels.jsonl` main (#2154). Dispatch restored in hooks.json; live again. |
 | `.claude/logs/skill-analytics.jsonl` | 2026-03-03 | No current writer; last source touch was M168 (#2015), which moved skill usage to the SQLite `skill_invocation` table. |
-| `.claude/logs/memory-metrics.jsonl` | 2026-03-03 | Referenced in `lifecycle/unified-dispatcher`; not currently emitting. Verify before re-wiring. |
+| `.claude/logs/memory-metrics.jsonl` | 2026-03-03 | Was referenced in `lifecycle/unified-dispatcher`, which was itself deleted in the 2026-07-15 dead-hook triage. Pure orphan now. |
 | `.claude/logs/agent-patterns.jsonl` | 2026-02-12 | No writer source file has ever existed — pure disk orphan. |
 | `.claude/logs/background-hooks.log` | 2026-02-08 | No writer source file has ever existed — pure disk orphan. |
 | `.claude/feedback/satisfaction.json` / `satisfaction.log` | 2026-01-23 / 2026-03-06 | Writer source removed in #959. |
@@ -127,3 +122,15 @@ These files exist on disk from historical runs but have no reachable writer at H
 1. Remove or unwire the writer.
 2. Remove its `SCHEMA_LOCKED` entry (and update the length assertion in the test) so `telemetry-inspect` reports the leftover file as an orphan instead of an expected writer.
 3. Move it to the Deprecated section above with the removal commit + date.
+
+## Changelog
+
+**2026-07-15 dead-hook triage** — the following rows were removed because their writer hook files no longer exist under `src/hooks/src/` at HEAD. Any of these files still on disk are orphans (report 🔴):
+
+- `.claude/logs/audit.log` — writer `posttool/audit-logger` deleted. The row's other listed "writers" were mislistings: `lifecycle/session-cleanup` only prunes `audit.log.old*` archives, and `agent/security-command-audit` writes `security-audit.log` (a different, uninventoried file).
+- `.claude/feedback/code-style-profile.json` — writer `posttool/write/code-style-learner` deleted.
+- `.claude/feedback/naming-conventions.json` — writer `posttool/write/naming-convention-learner` deleted.
+- `.claude/feedback/tool-preferences.json` — writer `posttool/tool-preference-learner` deleted.
+- `.claude/feedback/patterns-queue.json` — writer `posttool/bash/pattern-extractor` deleted.
+
+Also verified deleted in the same triage (never had live rows here, or were already in the Deprecated section): `posttool/skill/skill-usage-optimizer`, `posttool/dirty-file-tracker`, `stop/workflow-preference-learner`, `posttool/skill-edit-tracker`, `subagent-stop/context-publisher`, `posttool/realtime-sync`, `posttool/session-metrics`, `lifecycle/unified-dispatcher`.

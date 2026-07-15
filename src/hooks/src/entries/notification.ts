@@ -5,9 +5,11 @@
  * Bundle: notification.mjs (~8 KB estimated - smallest bundle)
  */
 
-// Notification hooks (2)
+// Notification hooks (3)
 import { desktopNotification } from '../notification/desktop.js';
 import { soundNotification } from '../notification/sound.js';
+// P3-A3: MessageDisplay observer (CC 2.1.208) — observer-only telemetry
+import { messageDisplayObserver } from '../notification/message-display-observer.js';
 
 import type { HookFn } from '../types.js';
 
@@ -17,6 +19,8 @@ import type { HookFn } from '../types.js';
 export const hooks: Record<string, HookFn> = {
   'notification/desktop': desktopNotification,
   'notification/sound': soundNotification,
+  // P3-A3: MessageDisplay (CC 2.1.208) — never blocks, never modifies
+  'notification/message-display-observer': messageDisplayObserver,
 };
 
 export function getHook(name: string): HookFn | undefined {

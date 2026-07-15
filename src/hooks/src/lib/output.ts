@@ -22,6 +22,18 @@ export function outputSilentSuccess(): HookResult {
 }
 
 /**
+ * Output a terminal escape sequence via CC's top-level `terminalSequence`
+ * field (#1847). Command hooks only; macOS/Linux terminals.
+ *
+ * SECURITY: callers MUST sanitize any untrusted text embedded in the
+ * sequence before building it (strip control chars + `;` OSC field
+ * delimiters) — this builder does not inspect the sequence.
+ */
+export function outputTerminalSequence(sequence: string): HookResult {
+  return { continue: true, suppressOutput: true, terminalSequence: sequence };
+}
+
+/**
  * Output silent allow - permission hook approves silently.
  * #1910: all callers are PreToolUse permission hooks, so hookEventName is
  * 'PreToolUse'. Without it CC's envelope validator rejects the hookSpecificOutput

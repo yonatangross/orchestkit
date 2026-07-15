@@ -68,6 +68,8 @@ import { uiChangeDetector } from '../posttool/ui-change-detector.js';
 import { expectSnapshotRecorder } from '../posttool/expect/snapshot-recorder.js';
 // M139 #1782: plugins/ drift detector (Write|Edit, src/ paths only)
 import { checkPluginsDrift } from '../posttool/check-plugins-drift.js';
+// P3-A3: PostToolBatch observer (CC 2.1.208) — observer-only telemetry
+import { toolBatchObserver } from '../posttool/tool-batch-observer.js';
 
 import type { HookFn } from '../types.js';
 
@@ -134,6 +136,9 @@ export const hooks: Record<string, HookFn> = {
 
   // M139 #1782: plugins/ drift detector
   'posttool/check-plugins-drift': checkPluginsDrift,
+
+  // P3-A3: PostToolBatch (CC 2.1.208) — never blocks, never modifies
+  'posttool/tool-batch-observer': toolBatchObserver,
 };
 
 export function getHook(name: string): HookFn | undefined {

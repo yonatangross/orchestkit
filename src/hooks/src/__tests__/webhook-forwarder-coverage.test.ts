@@ -45,6 +45,15 @@ const INTENTIONAL_EXCLUSIONS = new Set<string>([
   // forbidden); Bash is already covered by the Bash|Write|Edit|... metrics-dispatcher
   // catch-all below. So this matcher group correctly has no own forwarder.
   'PostToolUse:Read|Bash|Grep|Glob',
+  // P3-A3 (CC 2.1.208): the 3 new observer-only events are deliberately NOT
+  // webhook-forwarded. They are high-frequency (MessageDisplay fires on every
+  // assistant message, PostToolBatch on every parallel batch) and their only
+  // handler is a size-capped logHook telemetry observer; forwarding them would
+  // triple the per-event command count for telemetry that SessionEnd/PreCompact
+  // forwarders already summarize. Revisit once live payload shapes are known.
+  'MessageDisplay',
+  'PostToolBatch',
+  'UserPromptExpansion',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -161,7 +170,9 @@ describe('Webhook Forwarder Coverage Validator', () => {
   test('hooks.json has the expected number of event types', () => {
     const eventCount = Object.keys(hookEvents).length;
     // Guard: if this fails, a new event was added — update the test AND add forwarder coverage
-    expect(eventCount).toBe(27);
+    // 27 -> 30: P3-A3 — UserPromptExpansion, MessageDisplay, PostToolBatch
+    // (observer-only; forwarding deferred via INTENTIONAL_EXCLUSIONS above).
+    expect(eventCount).toBe(30);
   });
 
   test('detects standalone webhook-forwarder entries', () => {

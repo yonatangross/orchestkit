@@ -24,7 +24,7 @@ One-shot health check for OrchestKit's telemetry pipeline. Reports writer activi
 1. **Writer activity** — for each registered telemetry file, recent write count (from mtime scan) and last-write delta
 2. **File health** — size (warn at 256 KB, critical at 1 MB), line count, mtime
 3. **Schema lock status** — which files have validators in `lib/telemetry-schemas.ts`
-4. **Orphan detection** — files on disk under `.claude/{telemetry,logs,state,feedback}/` that aren't in the registry (possible stale writer or new file needing schema)
+4. **Orphan detection** — files on disk under `.claude/{telemetry,logs,state,feedback}/` that aren't in the registry (possible stale writer or new file needing schema), plus inventory rows whose writer hook no longer exists in `src/hooks/src/` (dead writer → orphan)
 5. **Growth trend** — bytes per hour since session start (fire alert if > 100 KB/hr)
 6. **Coordination layer (M168)** — live counts from `sessions.db` (running sessions, held locks, pending worktree links, skill invocations) plus write throughput from `coordination-metrics.jsonl`
 
@@ -55,7 +55,7 @@ Schema-locked files (7)
 
 Unlocked telemetry files (14)
   .claude/feedback/changelog-decisions.json      ○ 4 KB    ✗ no schema
-  .claude/feedback/code-style-profile.json       ○ 8 KB    ✗ no schema
+  .claude/feedback/learned-patterns.json         ○ 8 KB    ✗ no schema
   (...14 more...)
 
 Orphan files (1)
@@ -70,18 +70,22 @@ Summary
 
 ## Implementation plan (for an agent/LLM running this skill)
 
-1. **List known files** — read `lib/telemetry-schemas.ts`'s `SCHEMA_LOCKED` inventory for the 7 locked paths. Extend with a hardcoded inventory of the other 14 unlocked paths (copy from the skill-local `references/telemetry-inventory.md`).
-2. **For each file**:
+1. **List known files** — read `lib/telemetry-schemas.ts`'s `SCHEMA_LOCKED` inventory for the 7 locked paths. Extend with the unlocked paths listed in the skill-local `references/telemetry-inventory.md`.
+2. **Cross-check inventory writers against the registry closure** — never trust the inventory blindly:
+   - Run `node src/hooks/scripts/validate-registry.mjs` (from the OrchestKit repo root; skip gracefully if not in the OrchestKit repo) and confirm it passes.
+   - For every writer named in the inventory (e.g. `posttool/metrics-bridge`), verify the source file exists: `test -f src/hooks/src/<writer>.ts`.
+   - Any inventory writer that is NOT a live `src/hooks/src/` file is **ORPHANED — report 🔴**, never "expected-but-empty". Its file(s) on disk are orphans regardless of freshness, and the inventory row is stale (flag it for removal).
+3. **For each file**:
    - Use `Glob` to resolve `.claude/state/ork-metrics-*.json` pattern → may be multiple
    - Use `Read` with `limit: 10` to see shape and `Bash wc -l` for line count
    - Use `Bash stat` for mtime + size
-3. **Classify health**:
+4. **Classify health**:
    - size > 1 MB → critical
    - size > 256 KB → warn
    - mtime > 7 days → "no recent writes"
    - line count 0 → "no writes"
-4. **Orphan scan** — `Bash find .claude/{telemetry,logs,state,feedback} -type f` cross-check against registered paths. Any on-disk files not in inventory → orphan.
-5. **Render report** — ASCII table by default, JSON if `--json` argument passed.
+5. **Orphan scan** — `Bash find .claude/{telemetry,logs,state,feedback} -type f` cross-check against registered paths. Any on-disk files not in inventory → orphan. Merge in dead-writer orphans from step 2.
+6. **Render report** — ASCII table by default, JSON if `--json` argument passed.
 
 Core logic is deterministic + read-only. Do NOT write to any telemetry file — this skill is an observer.
 

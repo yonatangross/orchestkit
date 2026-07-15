@@ -11,7 +11,6 @@
 # 1. Rule file resolution: testCase.rule -> rules/{rule}.md must exist
 # 2. Content verification: expectedBehavior terms appear in rule file content
 # 3. Bidirectional coverage: rule files without test cases are flagged
-# 4. Contradiction detection: .eval.json should_not entries vs rule content
 #
 # Usage: ./test-rule-traceability.sh [--verbose]
 # Exit codes: 0 = all pass, 1 = failures found
@@ -22,7 +21,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../../.." && pwd)}"
 SKILLS_DIR="$PROJECT_ROOT/src/skills"
-EVALS_DIR="$PROJECT_ROOT/tests/evaluations"
 
 VERBOSE="${1:-}"
 
@@ -249,96 +247,6 @@ if [[ $untested_total -eq 0 ]]; then
 else
     echo ""
     echo "  $untested_total rule file(s) without test coverage"
-fi
-echo ""
-
-# ============================================================================
-# Test 4: Contradiction detection (.eval.json should_not vs rules)
-# ============================================================================
-echo -e "${CYAN}Test 3: Contradiction Detection (should_not vs rule content)${NC}"
-echo "----------------------------------------------------------------------------"
-
-contradictions=0
-
-for eval_file in "$EVALS_DIR"/*.eval.json; do
-    [[ -f "$eval_file" ]] || continue
-
-    if ! jq empty "$eval_file" 2>/dev/null; then
-        continue
-    fi
-
-    eval_skill=$(jq -r '.skill' "$eval_file")
-    skill_dir="$SKILLS_DIR/$eval_skill"
-
-    # Check each evaluation's should_not entries
-    eval_count=$(jq '.evaluations | length' "$eval_file")
-    for i in $(seq 0 $((eval_count - 1))); do
-        has_should_not=$(jq -r ".evaluations[$i] | has(\"should_not\")" "$eval_file")
-        [[ "$has_should_not" == "true" ]] || continue
-
-        should_not_count=$(jq ".evaluations[$i].should_not | length" "$eval_file")
-        for s in $(seq 0 $((should_not_count - 1))); do
-            should_not=$(jq -r ".evaluations[$i].should_not[$s]" "$eval_file")
-            should_not_lower=$(echo "$should_not" | tr '[:upper:]' '[:lower:]')
-
-            # Check if SKILL.md explicitly instructs this forbidden behavior
-            skill_file="$skill_dir/SKILL.md"
-            if [[ -f "$skill_file" ]]; then
-                skill_content=$(tr '[:upper:]' '[:lower:]' < "$skill_file")
-                # Extract key terms from should_not
-                terms=$(extract_terms "$should_not")
-                match_count=0
-                term_count=0
-                for term in $terms; do
-                    term_count=$((term_count + 1))
-                    if [[ "$skill_content" == *"$term"* ]]; then
-                        match_count=$((match_count + 1))
-                    fi
-                done
-
-                # Flag if majority of should_not terms appear as instructions
-                if [[ $term_count -gt 0 ]]; then
-                    threshold=$(( (term_count + 1) / 2 ))
-                    if [[ $match_count -ge $threshold ]]; then
-                        eval_id=$(jq -r ".evaluations[$i].id" "$eval_file")
-                        info "$eval_skill/$eval_id: should_not terms found in SKILL.md: \"$should_not\" ($match_count/$term_count terms)"
-                    fi
-                fi
-            fi
-
-            # Check rule files for contradictions
-            if [[ -d "$skill_dir/rules" ]]; then
-                for rule_file in "$skill_dir/rules"/*.md; do
-                    [[ -f "$rule_file" ]] || continue
-                    rule_basename=$(basename "$rule_file" .md)
-                    [[ "$rule_basename" == "_template" || "$rule_basename" == "_sections" ]] && continue
-
-                    rule_content=$(tr '[:upper:]' '[:lower:]' < "$rule_file")
-                    terms=$(extract_terms "$should_not")
-                    match_count=0
-                    term_count=0
-                    for term in $terms; do
-                        term_count=$((term_count + 1))
-                        if [[ "$rule_content" == *"$term"* ]]; then
-                            match_count=$((match_count + 1))
-                        fi
-                    done
-
-                    # Flag if ALL key terms match — warn since term overlap may be
-                    # contextual (e.g., "modify" appears in analysis context, not as instruction)
-                    if [[ $term_count -gt 1 && $match_count -eq $term_count ]]; then
-                        eval_id=$(jq -r ".evaluations[$i].id" "$eval_file")
-                        warn "$eval_skill/$eval_id: Possible contradiction in rules/${rule_basename}.md for should_not: \"$should_not\""
-                        contradictions=$((contradictions + 1))
-                    fi
-                done
-            fi
-        done
-    done
-done
-
-if [[ $contradictions -eq 0 ]]; then
-    pass "No contradictions found between should_not entries and rule files"
 fi
 echo ""
 

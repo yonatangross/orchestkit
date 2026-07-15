@@ -31,7 +31,7 @@ One-shot health check for OrchestKit's telemetry pipeline. Reports writer activi
 1. **Writer activity** — for each registered telemetry file, recent write count (from mtime scan) and last-write delta
 2. **File health** — size (warn at 256 KB, critical at 1 MB), line count, mtime
 3. **Schema lock status** — which files have validators in `lib/telemetry-schemas.ts`
-4. **Orphan detection** — files on disk under `.claude/\{telemetry,logs,state,feedback\}/` that aren't in the registry (possible stale writer or new file needing schema)
+4. **Orphan detection** — files on disk under `.claude/\{telemetry,logs,state,feedback\}/` that aren't in the registry (possible stale writer or new file needing schema), plus inventory rows whose writer hook no longer exists in `src/hooks/src/` (dead writer → orphan)
 5. **Growth trend** — bytes per hour since session start (fire alert if > 100 KB/hr)
 6. **Coordination layer (M168)** — live counts from `sessions.db` (running sessions, held locks, pending worktree links, skill invocations) plus write throughput from `coordination-metrics.jsonl`
 
@@ -62,7 +62,7 @@ Schema-locked files (7)
 
 Unlocked telemetry files (14)
   .claude/feedback/changelog-decisions.json      ○ 4 KB    ✗ no schema
-  .claude/feedback/code-style-profile.json       ○ 8 KB    ✗ no schema
+  .claude/feedback/learned-patterns.json         ○ 8 KB    ✗ no schema
   (...14 more...)
 
 Orphan files (1)
@@ -77,18 +77,22 @@ Summary
 
 ## Implementation plan (for an agent/LLM running this skill)
 
-1. **List known files** — read `lib/telemetry-schemas.ts`'s `SCHEMA_LOCKED` inventory for the 7 locked paths. Extend with a hardcoded inventory of the other 14 unlocked paths (copy from the skill-local `references/telemetry-inventory.md`).
-2. **For each file**:
+1. **List known files** — read `lib/telemetry-schemas.ts`'s `SCHEMA_LOCKED` inventory for the 7 locked paths. Extend with the unlocked paths listed in the skill-local `references/telemetry-inventory.md`.
+2. **Cross-check inventory writers against the registry closure** — never trust the inventory blindly:
+   - Run `node src/hooks/scripts/validate-registry.mjs` (from the OrchestKit repo root; skip gracefully if not in the OrchestKit repo) and confirm it passes.
+   - For every writer named in the inventory (e.g. `posttool/metrics-bridge`), verify the source file exists: `test -f src/hooks/src/&lt;writer&gt;.ts`.
+   - Any inventory writer that is NOT a live `src/hooks/src/` file is **ORPHANED — report 🔴**, never "expected-but-empty". Its file(s) on disk are orphans regardless of freshness, and the inventory row is stale (flag it for removal).
+3. **For each file**:
    - Use `Glob` to resolve `.claude/state/ork-metrics-*.json` pattern → may be multiple
    - Use `Read` with `limit: 10` to see shape and `Bash wc -l` for line count
    - Use `Bash stat` for mtime + size
-3. **Classify health**:
+4. **Classify health**:
    - size > 1 MB → critical
    - size > 256 KB → warn
    - mtime > 7 days → "no recent writes"
    - line count 0 → "no writes"
-4. **Orphan scan** — `Bash find .claude/\{telemetry,logs,state,feedback\} -type f` cross-check against registered paths. Any on-disk files not in inventory → orphan.
-5. **Render report** — ASCII table by default, JSON if `--json` argument passed.
+5. **Orphan scan** — `Bash find .claude/\{telemetry,logs,state,feedback\} -type f` cross-check against registered paths. Any on-disk files not in inventory → orphan. Merge in dead-writer orphans from step 2.
+6. **Render report** — ASCII table by default, JSON if `--json` argument passed.
 
 Core logic is deterministic + read-only. Do NOT write to any telemetry file — this skill is an observer.
 
@@ -149,7 +153,7 @@ When inspecting Claude Code's own OTel metrics (downstream of this skill — `cl
 
 Single source of truth listing every file that OrchestKit hooks write to. The `telemetry-inspect` skill reads this inventory to distinguish "expected" files from orphans.
 
-Last updated: 2026-07-09 (live writer census)
+Last updated: 2026-07-15 (dead-hook triage — see changelog at bottom)
 
 ## Path routing helpers
 
@@ -205,7 +209,6 @@ Note: `appendAnalytics` writes its own filename set (`task-usage.jsonl`, `team-a
 | `.claude/logs/hooks.log` | `lib/log.ts` (`logHook`, all hooks) |
 | `.claude/logs/permission-feedback.log` | `lib/log.ts` (`logPermissionFeedback`) |
 | `.claude/logs/permission-denials.jsonl` | `permission-denied/denial-logger`, `permission-denied/denial-notification` |
-| `.claude/logs/audit.log` | `posttool/audit-logger`, `lifecycle/session-cleanup`, `agent/security-command-audit` |
 | `.claude/logs/agent-state.json` | `subagent-start/context-gate` |
 
 ### `.claude/state/`
@@ -220,17 +223,13 @@ Note: `appendAnalytics` writes its own filename set (`task-usage.jsonl`, `team-a
 | `.claude/state/expect-auto-fires.json` | `posttool/ui-change-detector` |
 | `.claude/state/expect-snapshots/` | `posttool/expect/snapshot-recorder` |
 | `.claude/state/worktree-advisory-*.md` | `lib/worktree-advisory` (consumed by `prompt/worktree-advisory-consumer`) |
-| `.claude/state/session-*-token-accum.json` | session token-accumulator hook |
+| `.claude/state/session-*-token-accum.json` | `lib/session-token-accum` (called from `lifecycle/pre-compact-task-done-prompt`, `posttool/context-crossing-warn`) |
 
 ### `.claude/feedback/`
 
 | Path | Writer |
 |------|--------|
-| `.claude/feedback/code-style-profile.json` | `posttool/write/code-style-learner` |
-| `.claude/feedback/naming-conventions.json` | `posttool/write/naming-convention-learner` |
-| `.claude/feedback/tool-preferences.json` | `posttool/tool-preference-learner` |
 | `.claude/feedback/learned-patterns.json` | `lifecycle/pattern-sync-push`, `lifecycle/pattern-sync-pull`, `permission/learning-tracker` |
-| `.claude/feedback/patterns-queue.json` | `posttool/bash/pattern-extractor` |
 | `.claude/feedback/consent-log.json` | `lifecycle/analytics-consent-check` |
 | `.claude/feedback/dependency-check-cache.json` | `lifecycle/dependency-version-check` |
 | `.claude/feedback/changelog-decisions.json` | `lib/decision-history` |
@@ -245,7 +244,7 @@ These files exist on disk from historical runs but have no reachable writer at H
 | `.claude/feedback/skill-usage.json` | 2026-03-06 | Writer `posttool/skill/skill-usage-optimizer` unwired by commit `e3e99b2ff` (#959, "PostToolUse: 17→3 sub-hooks"). Function + dispatch-map entry survive but no `hooks.json` entry invokes the key → unreachable. Superseded by M168 (#2015) `skill_invocation` SQLite table. **Delisted from SCHEMA_LOCKED 2026-07-09.** |
 | `.claude/logs/skill-usage.log` | ~~2026-03-06~~ **revived 2026-07-09** | Writer `pretool/skill/skill-tracker` was unwired in the same #959 prune, but unlike the optimizer it is NOT superseded — it is the sole feeder of the M168 `skill_invocation` SQLite table (`recordInvocation`) and of `skill-channels.jsonl` main (#2154). Dispatch restored in hooks.json; live again. |
 | `.claude/logs/skill-analytics.jsonl` | 2026-03-03 | No current writer; last source touch was M168 (#2015), which moved skill usage to the SQLite `skill_invocation` table. |
-| `.claude/logs/memory-metrics.jsonl` | 2026-03-03 | Referenced in `lifecycle/unified-dispatcher`; not currently emitting. Verify before re-wiring. |
+| `.claude/logs/memory-metrics.jsonl` | 2026-03-03 | Was referenced in `lifecycle/unified-dispatcher`, which was itself deleted in the 2026-07-15 dead-hook triage. Pure orphan now. |
 | `.claude/logs/agent-patterns.jsonl` | 2026-02-12 | No writer source file has ever existed — pure disk orphan. |
 | `.claude/logs/background-hooks.log` | 2026-02-08 | No writer source file has ever existed — pure disk orphan. |
 | `.claude/feedback/satisfaction.json` / `satisfaction.log` | 2026-01-23 / 2026-03-06 | Writer source removed in #959. |
@@ -274,4 +273,16 @@ These files exist on disk from historical runs but have no reachable writer at H
 1. Remove or unwire the writer.
 2. Remove its `SCHEMA_LOCKED` entry (and update the length assertion in the test) so `telemetry-inspect` reports the leftover file as an orphan instead of an expected writer.
 3. Move it to the Deprecated section above with the removal commit + date.
+
+## Changelog
+
+**2026-07-15 dead-hook triage** — the following rows were removed because their writer hook files no longer exist under `src/hooks/src/` at HEAD. Any of these files still on disk are orphans (report 🔴):
+
+- `.claude/logs/audit.log` — writer `posttool/audit-logger` deleted. The row's other listed "writers" were mislistings: `lifecycle/session-cleanup` only prunes `audit.log.old*` archives, and `agent/security-command-audit` writes `security-audit.log` (a different, uninventoried file).
+- `.claude/feedback/code-style-profile.json` — writer `posttool/write/code-style-learner` deleted.
+- `.claude/feedback/naming-conventions.json` — writer `posttool/write/naming-convention-learner` deleted.
+- `.claude/feedback/tool-preferences.json` — writer `posttool/tool-preference-learner` deleted.
+- `.claude/feedback/patterns-queue.json` — writer `posttool/bash/pattern-extractor` deleted.
+
+Also verified deleted in the same triage (never had live rows here, or were already in the Deprecated section): `posttool/skill/skill-usage-optimizer`, `posttool/dirty-file-tracker`, `stop/workflow-preference-learner`, `posttool/skill-edit-tracker`, `subagent-stop/context-publisher`, `posttool/realtime-sync`, `posttool/session-metrics`, `lifecycle/unified-dispatcher`.
 

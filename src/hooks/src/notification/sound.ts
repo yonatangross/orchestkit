@@ -2,20 +2,31 @@
  * Sound Notifications - Notification Hook
  * CC 2.1.7 Compliant: outputs JSON with suppressOutput
  *
- * Plays sounds for task completion using detached child processes
- * that survive after the hook's Node process exits.
+ * PRIMARY PATH (#1847): returns the top-level `terminalSequence` hook-output
+ * field with a BEL (\u0007). CC emits it to the user's terminal, which rings
+ * the terminal bell — zero process spawns, works on macOS + Linux, command
+ * hooks only. Only known notification types (the SOUND_MAP keys) ring.
  *
- * Version: 2.0.0 (spawn + detach for reliable playback)
+ * LEGACY FALLBACK: set ORK_NOTIFY_OSASCRIPT=1 (shared with desktop.ts) to
+ * restore the old behavior of spawning `afplay` (macOS) / pw-play|paplay|aplay
+ * (Linux) with per-type sound files and ORK_SOUND_<TYPE> overrides — for
+ * terminals with the bell muted or when distinct per-event sounds are wanted.
+ *
+ * Version: 3.0.0 (terminalSequence BEL primary, afplay legacy via env flag)
  */
 
 import { execFileSync, spawn } from 'node:child_process';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
+import { outputTerminalSequence } from '../lib/output.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
 // -----------------------------------------------------------------------------
+
+/** BEL — rings the terminal bell (primary path, #1847). */
+const BEL = '\u0007';
 
 const SOUND_MAP: Record<string, string> = {
   permission_prompt: '/System/Library/Sounds/Sosumi.aiff',
@@ -115,21 +126,33 @@ export function soundNotification(input: HookInput, ctx: HookContext = NOOP_CTX)
 
   ctx.log('sound', `Sound notification check: [${notificationType}]`);
 
-  // Play sound based on notification_type — macOS first, then Linux
-  if (hasAfplay()) {
-    const soundFile = SOUND_MAP[notificationType];
-    if (soundFile) {
-      playSound('afplay', process.env[`ORK_SOUND_${notificationType.toUpperCase()}`] || soundFile);
-    }
-  } else {
-    const linuxPlayer = getLinuxPlayer();
-    if (linuxPlayer) {
-      const soundFile = LINUX_SOUND_MAP[notificationType];
-      if (soundFile) {
-        playSound(linuxPlayer, process.env[`ORK_SOUND_${notificationType.toUpperCase()}`] || soundFile);
-      }
-    }
+  // Unknown/unmapped notification types never make noise. The type string is
+  // untrusted input — Object.hasOwn (not a bare truthy lookup) so prototype
+  // keys like "constructor" can't slip through as a mapped type.
+  if (!Object.hasOwn(SOUND_MAP, notificationType)) {
+    return outputSilentSuccess();
   }
 
-  return outputSilentSuccess();
+  // LEGACY fallback (#1847): explicit opt-in only. Spawns a native player
+  // with per-type sound files instead of emitting the BEL terminalSequence.
+  if (process.env.ORK_NOTIFY_OSASCRIPT === '1') {
+    if (hasAfplay()) {
+      playSound('afplay', process.env[`ORK_SOUND_${notificationType.toUpperCase()}`] || SOUND_MAP[notificationType]);
+    } else {
+      const linuxPlayer = getLinuxPlayer();
+      if (linuxPlayer) {
+        const soundFile = LINUX_SOUND_MAP[notificationType];
+        if (soundFile) {
+          playSound(linuxPlayer, process.env[`ORK_SOUND_${notificationType.toUpperCase()}`] || soundFile);
+        }
+      }
+    }
+    return outputSilentSuccess();
+  }
+
+  // PRIMARY path (#1847): terminal bell via terminalSequence — no spawns.
+  // terminalSequence is macOS/Linux only; skip on Windows.
+  if (process.platform === 'win32') return outputSilentSuccess();
+
+  return outputTerminalSequence(BEL);
 }

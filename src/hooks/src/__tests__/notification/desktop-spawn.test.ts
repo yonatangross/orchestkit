@@ -4,7 +4,8 @@
 /**
  * Supplemental tests for desktop notification hook: spawn behavior + terminal mapping.
  *
- * Covers the spawn-based delivery introduced in v2.0.0:
+ * Covers the LEGACY spawn-based delivery (#1847: behind ORK_NOTIFY_OSASCRIPT=1;
+ * the primary path is the OSC 777 terminalSequence, tested in desktop.test.ts):
  *  - detached: true, stdio: 'ignore', child.unref()
  *  - Terminal app name mapping (TERM_PROGRAM → macOS app name)
  *
@@ -80,6 +81,8 @@ function createNotificationInput(notificationType: string): HookInput {
 let testCtx: ReturnType<typeof createTestContext>;
 describe('notification/desktop — spawn behavior', () => {
   beforeEach(() => {
+    // #1847: spawn delivery is the legacy path, opt-in via env flag
+    process.env.ORK_NOTIFY_OSASCRIPT = '1';
     testCtx = createTestContext({ projectDir: '/test/projects/orchestkit' });
     vi.clearAllMocks();
     _resetCommandCacheForTesting();
@@ -94,6 +97,7 @@ describe('notification/desktop — spawn behavior', () => {
   });
 
   afterEach(() => {
+    delete process.env.ORK_NOTIFY_OSASCRIPT;
     vi.restoreAllMocks();
   });
 
@@ -104,14 +108,14 @@ describe('notification/desktop — spawn behavior', () => {
   describe('spawn-based notification delivery', () => {
     test('spawns osascript with detached: true', async () => {
       await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
-      const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
+      const calls = (mockSpawn.mock.calls as unknown[][]).filter((c: unknown[]) => c[0] === 'osascript');
       expect(calls).toHaveLength(1);
       expect(calls[0][2]).toMatchObject({ detached: true });
     });
 
     test('uses stdio: ignore when spawning osascript', async () => {
       await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
-      const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
+      const calls = (mockSpawn.mock.calls as unknown[][]).filter((c: unknown[]) => c[0] === 'osascript');
       expect(calls).toHaveLength(1);
       expect(calls[0][2]).toMatchObject({ stdio: 'ignore' });
     });
@@ -123,7 +127,7 @@ describe('notification/desktop — spawn behavior', () => {
 
     test('passes -e flag followed by full AppleScript to osascript', async () => {
       await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
-      const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
+      const calls = (mockSpawn.mock.calls as unknown[][]).filter((c: unknown[]) => c[0] === 'osascript');
       expect(calls).toHaveLength(1);
       const args: string[] = calls[0][1] as string[];
       expect(args[0]).toBe('-e');
@@ -146,7 +150,7 @@ describe('notification/desktop — spawn behavior', () => {
         return Buffer.from('');
       });
       await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
-      const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'notify-send');
+      const calls = (mockSpawn.mock.calls as unknown[][]).filter((c: unknown[]) => c[0] === 'notify-send');
       expect(calls).toHaveLength(1);
       expect(calls[0][2]).toMatchObject({ detached: true, stdio: 'ignore' });
     });
@@ -170,7 +174,7 @@ describe('notification/desktop — spawn behavior', () => {
         return Buffer.from('');
       });
       await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
-      const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'notify-send');
+      const calls = (mockSpawn.mock.calls as unknown[][]).filter((c: unknown[]) => c[0] === 'notify-send');
       expect(calls).toHaveLength(1);
       // spawn('notify-send', ['--', title, fullMessage], options)
       const args: string[] = calls[0][1] as string[];
@@ -187,17 +191,17 @@ describe('notification/desktop — spawn behavior', () => {
   describe('no focus stealing', () => {
     test('osascript script does not contain activate clause', async () => {
       await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
-      const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
+      const calls = (mockSpawn.mock.calls as unknown[][]).filter((c: unknown[]) => c[0] === 'osascript');
       expect(calls).toHaveLength(1);
-      const script: string = (calls[0] as any[])[1][1] as string;
+      const script: string = ((calls[0] as unknown[])[1] as string[])[1];
       expect(script).not.toContain('activate');
       expect(script).not.toContain('tell application');
     });
 
     test('osascript script only contains display notification', async () => {
       await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
-      const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
-      const script: string = (calls[0] as any[])[1][1] as string;
+      const calls = (mockSpawn.mock.calls as unknown[][]).filter((c: unknown[]) => c[0] === 'osascript');
+      const script: string = ((calls[0] as unknown[])[1] as string[])[1];
       expect(script).toContain('display notification');
       expect(script).toContain('with title');
       expect(script).toContain('subtitle');
