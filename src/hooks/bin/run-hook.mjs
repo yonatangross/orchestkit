@@ -460,10 +460,18 @@ function isValidSessionId(sessionId) {
  * @param {{ t_bundle_ms: number, t_stdin_ms: number, t_exec_ms: number, _t3: bigint }} [timing] - Pipeline stage timings
  * @returns {void}
  */
-function trackHookTriggered(trackedHookName, success, durationMs, projectDir, timing) {
+function trackHookTriggered(trackedHookName, success, durationMs, projectDir, timing, sessionIdFromInput) {
   try {
-    const sessionId = process.env.CLAUDE_SESSION_ID;
-    if (!sessionId) return; // No session, skip tracking
+    // #census-blindspot: env-only lookup made this silently skip every hook on
+    // the lifecycle events (SessionStart/Stop/SessionEnd), where CC passes
+    // session_id in the STDIN PAYLOAD but does not export CLAUDE_SESSION_ID.
+    // Result: 18/20 SessionStart hooks looked "never fired" for 4.5 months
+    // while demonstrably working (session-registrar writes sessions.db daily).
+    // Proven by negative control: same hook + same stdin, env var present ->
+    // record written; env var absent -> hook runs, zero record.
+    // Payload first (it's the authoritative per-invocation value), env second.
+    const sessionId = sessionIdFromInput || process.env.CLAUDE_SESSION_ID;
+    if (!sessionId) return; // genuinely no session context — skip
 
     // Validate session ID to prevent path traversal (SEC-001)
     if (!isValidSessionId(sessionId)) return;
@@ -634,6 +642,9 @@ async function runHook(parsedInput) {
       t_exec_ms: Number(t3 - t2) / 1e6,
       _t3: t3, // passed through so trackHookTriggered can measure its own overhead
     };
-    trackHookTriggered(hookName, success, durationMs, projectDir, timing);
+    // normalizeInput() already resolved session_id from the payload (falling
+    // back to CLAUDE_SESSION_ID). Pass it through so lifecycle events, which
+    // carry session_id only in stdin, are no longer invisible to the census.
+    trackHookTriggered(hookName, success, durationMs, projectDir, timing, parsedInput?.session_id);
   }
 }

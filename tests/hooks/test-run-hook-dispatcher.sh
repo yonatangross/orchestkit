@@ -399,6 +399,65 @@ else
 fi
 
 # =============================================================================
+# 8. Census blind-spot regression (#census-blindspot)
+# =============================================================================
+# trackHookTriggered() read CLAUDE_SESSION_ID from the ENV only. CC passes
+# session_id in the STDIN PAYLOAD on lifecycle events (SessionStart/Stop/
+# SessionEnd) without exporting the env var — so every hook on those events
+# silently wrote NO analytics record for 4.5 months while working fine
+# (session-registrar demonstrably writes sessions.db daily, yet the census
+# showed it as never-fired). The fix reads the payload first, env second.
+# Guard both directions so the regression cannot return unnoticed.
+echo ""
+echo "8. Census blind-spot (session_id from stdin payload)"
+
+# The census is a SHARED GLOBAL file — concurrent live sessions append to it
+# while this test runs, so a line-count delta is a race, not a signal. Assert
+# on the per-session events.jsonl this run owns instead: trackHookTriggered
+# writes it under .claude/memory/sessions/<session_id>/, keyed by exactly the
+# id resolution under test. Unique ids per case keep the runs isolated.
+census_probe() {  # census_probe <payload> [env-assignments...]
+  local payload="$1"; shift
+  env "$@" CLAUDE_PROJECT_DIR="$PROJECT_ROOT" \
+    node "$RUN_HOOK" "lifecycle/cc-version-check" <<< "$payload" > /dev/null 2>&1 || true  # silent: side-effect — asserting on the tracking write, not this exit code
+  sleep 1  # fire-and-forget append (#920) — stdout returns before the write lands
+}
+session_recorded() {  # session_recorded <session_id>
+  [[ -s "$PROJECT_ROOT/.claude/memory/sessions/$1/events.jsonl" ]]
+}
+
+# 8a. THE REGRESSION ITSELF: no env var, session_id only in stdin -> must record.
+SID_STDIN="census-stdin-$$"
+census_probe "{\"hook_event_name\":\"SessionStart\",\"session_id\":\"$SID_STDIN\",\"source\":\"startup\",\"cwd\":\"$PROJECT_ROOT\"}" -u CLAUDE_SESSION_ID
+if session_recorded "$SID_STDIN"; then
+  pass "lifecycle hook with stdin-only session_id IS recorded (env var absent)"
+else
+  fail "census blind spot returned: hook ran but wrote no record without CLAUDE_SESSION_ID"
+fi
+
+# 8b. The env-var path must keep working (payload absent, env present).
+SID_ENV="census-env-$$"
+census_probe "{\"hook_event_name\":\"SessionStart\",\"source\":\"startup\",\"cwd\":\"$PROJECT_ROOT\"}" "CLAUDE_SESSION_ID=$SID_ENV"
+if session_recorded "$SID_ENV"; then
+  pass "env-var session_id still recorded (fallback path intact)"
+else
+  fail "env-var census path broke"
+fi
+
+# 8c. Genuinely no session context anywhere -> skips without inventing an id.
+# normalizeInput() leaves session_id as '' (falsy) so the guard must bail —
+# proven by the absence of any '' / 'undefined' session directory.
+census_probe "{\"hook_event_name\":\"SessionStart\",\"source\":\"startup\",\"cwd\":\"$PROJECT_ROOT\"}" -u CLAUDE_SESSION_ID
+if [[ ! -d "$PROJECT_ROOT/.claude/memory/sessions/undefined" && ! -d "$PROJECT_ROOT/.claude/memory/sessions/null" ]]; then
+  pass "no session_id anywhere still skips tracking (no junk session dirs)"
+else
+  fail "tracking invented a session dir with no session context at all"
+fi
+
+rm -rf "$PROJECT_ROOT/.claude/memory/sessions/census-stdin-$$" \
+       "$PROJECT_ROOT/.claude/memory/sessions/census-env-$$" 2>/dev/null || true  # silent: post-cleanup — test fixtures
+
+# =============================================================================
 # Summary
 echo ""
 echo "================================="
