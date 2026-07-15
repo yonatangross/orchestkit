@@ -37,8 +37,8 @@
       "exports": 84
     },
     "notification": {
-      "size": 11546,
-      "sizeKB": "11.28",
+      "size": 11079,
+      "sizeKB": "10.82",
       "exports": 4
     },
     "setup": {
@@ -57,8 +57,8 @@
       "exports": 68
     }
   },
-  "totalSize": 657148,
-  "totalSizeKB": "641.75",
+  "totalSize": 656681,
+  "totalSizeKB": "641.29",
   "inputs": 111,
-  "avgBundleSizeKB": "58.34"
+  "avgBundleSizeKB": "58.30"
 }

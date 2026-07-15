@@ -247,11 +247,12 @@ describe('hooks.json wiring E2E', () => {
       // 215 -> 216: #2475 added instructions-loaded/session-rules-audit (SessionStart) —
       //             whole-set instruction handlers moved off the single-file
       //             InstructionsLoaded event to SessionStart.
-      // 216 -> 219: P3-A3 — registered 3 never-listened CC 2.1.208 events as
+      // 216 -> 218: P3-A3 — registered CC 2.1.208 observer events; MessageDisplay
+      //             reverted same-day (claude plugin validate rejects the key) as
       //             observer-only hooks: prompt/prompt-expansion-observer
       //             (UserPromptExpansion), notification/message-display-observer
       //             (MessageDisplay), posttool/tool-batch-observer (PostToolBatch).
-      expect(hooksConfig.description).toContain('219 total');
+      expect(hooksConfig.description).toContain('218 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

@@ -71,3 +71,5 @@ After this audit, run the deeper experiment if you suspect descriptions: `docs/f
 - `telemetry-inspect` — validates the telemetry data-plane this skill reads from
 - `analytics` — raw usage queries across projects
 - `doctor` — broader plugin health (manifests, hooks, memory budget)
+
+> Eval note: this skill is direct-only (`disable-model-invocation: true`), so quality evals run in TIER-1 unit mode (`--force-skill`) — routed evals are impossible by construction.

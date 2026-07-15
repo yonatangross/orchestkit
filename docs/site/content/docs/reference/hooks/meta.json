@@ -17,7 +17,6 @@
     "stop-failure",
     "subagent-start",
     "subagent-stop",
-    "message-display",
     "notification",
     "pre-compact",
     "post-compact",

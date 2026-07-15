@@ -417,7 +417,8 @@ describe('Cross-Bundle Consistency', () => {
     //             events: prompt/prompt-expansion-observer (UserPromptExpansion),
     //             notification/message-display-observer (MessageDisplay),
     //             posttool/tool-batch-observer (PostToolBatch).
-    expect(totalHooks).toBe(200);
+    // 200 -> 199: MessageDisplay observer reverted same-day (plugin validate rejects the key).
+    expect(totalHooks).toBe(199);
   });
 });
 

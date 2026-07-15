@@ -51,7 +51,6 @@ const INTENTIONAL_EXCLUSIONS = new Set<string>([
   // handler is a size-capped logHook telemetry observer; forwarding them would
   // triple the per-event command count for telemetry that SessionEnd/PreCompact
   // forwarders already summarize. Revisit once live payload shapes are known.
-  'MessageDisplay',
   'PostToolBatch',
   'UserPromptExpansion',
 ]);
@@ -170,9 +169,10 @@ describe('Webhook Forwarder Coverage Validator', () => {
   test('hooks.json has the expected number of event types', () => {
     const eventCount = Object.keys(hookEvents).length;
     // Guard: if this fails, a new event was added — update the test AND add forwarder coverage
-    // 27 -> 30: P3-A3 — UserPromptExpansion, MessageDisplay, PostToolBatch
+    // 27 -> 29: P3-A3 — UserPromptExpansion, PostToolBatch (MessageDisplay
+    // reverted same-day: claude plugin validate rejects the key)
     // (observer-only; forwarding deferred via INTENTIONAL_EXCLUSIONS above).
-    expect(eventCount).toBe(30);
+    expect(eventCount).toBe(29);
   });
 
   test('detects standalone webhook-forwarder entries', () => {

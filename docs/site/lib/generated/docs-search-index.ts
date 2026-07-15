@@ -128,7 +128,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code — 114 skills, 37 agents, 219 hooks working together."
+    "description": "The complete AI development toolkit for Claude Code — 114 skills, 37 agents, 218 hooks working together."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -197,7 +197,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/hooks/overview",
-    "title": "219 Hooks: What Fires When",
+    "title": "218 Hooks: What Fires When",
     "description": "TypeScript functions that intercept every Claude Code lifecycle event -- blocking dangerous commands, injecting context, and syncing memory, all invisibly."
   },
   {
@@ -488,17 +488,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/hooks",
     "title": "Hooks Reference",
-    "description": "Complete reference for all 151 global lifecycle hook entries across 30 event categories."
+    "description": "Complete reference for all 150 global lifecycle hook entries across 29 event categories."
   },
   {
     "url": "/docs/reference/hooks/instructions-loaded",
     "title": "InstructionsLoaded",
     "description": "Hooks triggered on InstructionsLoaded events (2 hooks)."
-  },
-  {
-    "url": "/docs/reference/hooks/message-display",
-    "title": "MessageDisplay",
-    "description": "Hooks triggered on MessageDisplay events (1 hooks)."
   },
   {
     "url": "/docs/reference/hooks/notification",
@@ -658,7 +653,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference",
     "title": "Reference",
-    "description": "Complete reference for all 114 skills, 37 agents, and 219 hooks."
+    "description": "Complete reference for all 114 skills, 37 agents, and 218 hooks."
   },
   {
     "url": "/docs/reference/skills/accessibility",

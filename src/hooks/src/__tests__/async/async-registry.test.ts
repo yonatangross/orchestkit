@@ -165,7 +165,8 @@ describe('Async Hooks Registry', () => {
       // 102 -> 103: #2590 — lifecycle/telemetry-dark-check (SessionStart, async 5s).
       // 103 -> 104: #2475 — instructions-loaded/session-rules-audit (SessionStart, async 5s).
       // 104 -> 107: P3-A3 — 3 async observer hooks (UserPromptExpansion, MessageDisplay, PostToolBatch).
-      expect(asyncHooks.length, 'Should have exactly 107 async hooks').toBe(107);
+      // 107 -> 106: MessageDisplay observer reverted same-day (claude plugin validate rejects the key).
+      expect(asyncHooks.length, 'Should have exactly 106 async hooks').toBe(106);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
