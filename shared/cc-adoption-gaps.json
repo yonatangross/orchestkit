@@ -1,1 +1,239 @@
-[]
+[
+  {
+    "version": "2.1.209",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "featureless": true,
+    "issues_filed_at": "2026-07-15T04:03:20Z"
+  },
+  {
+    "version": "2.1.210",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "worktree_subagent_git_isolation",
+        "category": "breaking",
+        "description": "isolation:'worktree' subagents can no longer run git-mutating commands against the main repo checkout.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "chain-patterns",
+          "swarm-migrate"
+        ],
+        "reference_changelog_line": "Fixed `isolation: 'worktree'` subagents being able to run git-mutating commands against the main repo checkout instead of their own isolated worktree",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "ultracode_human_only_trigger",
+        "category": "breaking",
+        "description": "ultracode keyword opt-in no longer fires on non-human input like webhooks or relayed PR comments.",
+        "gap_score": 20,
+        "affected_skills": [
+          "ci-sentinel",
+          "github-operations",
+          "fix-issue"
+        ],
+        "reference_changelog_line": "Fixed the `ultracode` keyword opt-in firing on non-human-originated input such as webhook payloads and relayed PR comments",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "hook_timeout_not_user_reject",
+        "category": "breaking",
+        "description": "Hook callback timeouts are no longer misreported as user rejections that stalled unattended sessions.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "chain-patterns",
+          "checkpoint-resume"
+        ],
+        "reference_changelog_line": "Fixed a hook callback timeout being misreported to the model as a user rejection, which made unattended sessions stop and wait",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "plugin_mcp_survives_resync",
+        "category": "breaking",
+        "description": "Plugin-provided MCP servers are no longer torn down when MCP servers are re-synced mid-session.",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
+          "mcp-visual-output",
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed plugin-provided MCP servers being torn down when MCP servers are re-synced mid-session",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "plan_approval_no_edit_label",
+        "category": "breaking",
+        "description": "Plan approvals without edits are no longer labeled '(edited by user)' or overwritten with a stale snapshot.",
+        "gap_score": 20,
+        "affected_skills": [
+          "visualize-plan",
+          "implement",
+          "brainstorm"
+        ],
+        "reference_changelog_line": "Fixed plan approvals without edits being labeled \"(edited by user)\" and overwriting the plan file with a stale snapshot",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "positional_placeholders_preserved",
+        "category": "breaking",
+        "description": "Unmatched $1/$2 positional placeholders in skills and commands are now preserved verbatim instead of silently stripped.",
+        "gap_score": 20,
+        "affected_skills": [
+          "auto",
+          "help",
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed unmatched `$1`/`$2` positional placeholders in skills and commands being silently stripped; they are now preserved verbatim",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "agents_effort_ultracode_dispatch",
+        "category": "breaking",
+        "description": "claude agents --effort ultracode value now reaches dispatched sessions instead of being silently dropped.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "bare-eval",
+          "chain-patterns"
+        ],
+        "reference_changelog_line": "Fixed `claude agents --effort ultracode` not reaching dispatched sessions; the value was silently dropped",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "sdk_mcp_initialize_immediate_connect",
+        "category": "breaking",
+        "description": "SDK MCP servers registered via an initialize control request now start connecting immediately instead of next turn.",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
+          "mcp-visual-output"
+        ],
+        "reference_changelog_line": "Fixed SDK MCP servers registered via an `initialize` control request waiting until the next turn to start connecting",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "sandbox_symlink_reconcile",
+        "category": "breaking",
+        "description": "Late-appearing .claude/* symlinks are now reconciled into the sandbox deny-write list.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "configure",
+          "browser-tools"
+        ],
+        "reference_changelog_line": "Fixed late-appearing `.claude/*` symlinks not being reconciled into the sandbox deny-write list",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "agent_tool_prompt_injection_hardening",
+        "category": "breaking",
+        "description": "Agent tool hardened against indirect prompt injection via content a subagent read.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "agent-orchestration",
+          "browser-tools"
+        ],
+        "reference_changelog_line": "Hardened the Agent tool against indirect prompt injection via content a subagent read",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "worktree_lock_sweep_release",
+        "category": "breaking",
+        "description": "Periodic sweep now releases git worktree locks whose owning process is gone after killed background sessions.",
+        "gap_score": 20,
+        "affected_skills": [
+          "chain-patterns",
+          "swarm-migrate",
+          "agent-orchestration"
+        ],
+        "reference_changelog_line": "Fixed killed background sessions leaving a permanent `git worktree lock` behind; the periodic sweep now releases locks whose owning process is gone",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "memory_index_over_limit_errors",
+        "category": "breaking",
+        "description": "Memory writes leaving MEMORY.md index over its read limit now produce an explicit error instead of silent truncation.",
+        "gap_score": 20,
+        "affected_skills": [
+          "memory",
+          "memory-fabric",
+          "remember"
+        ],
+        "reference_changelog_line": "Memory writes that leave a MEMORY.md index over its read limit now produce an explicit error instead of silent truncation",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "auto_mode_sonnet5_classifier",
+        "category": "breaking",
+        "description": "Auto mode permission classifier defaults to Sonnet 5 for external sessions, validated on first request and pinned.",
+        "gap_score": 20,
+        "affected_skills": [
+          "auto",
+          "configure",
+          "doctor"
+        ],
+        "reference_changelog_line": "Improved auto mode: the permission classifier now defaults to Sonnet 5 for external sessions, validated on the session's first request and pinned for the session",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "doctor_auto_mode_bedrock_vertex",
+        "category": "new_command",
+        "description": "/doctor now proposes auto-mode default on Bedrock, Vertex, and Foundry where auto mode no longer needs opt-in.",
+        "gap_score": 15,
+        "affected_skills": [
+          "doctor",
+          "configure",
+          "auto"
+        ],
+        "reference_changelog_line": "Fixed `/doctor` skipping its auto-mode-default proposal on Bedrock, Vertex, and Foundry, where auto mode no longer needs an opt-in",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "path_permission_rule_warning",
+        "category": "new_perm",
+        "description": "Startup warns on Write(path)/NotebookEdit(path)/Glob(path) permission rules — use Edit(path) or Read(path).",
+        "gap_score": 12,
+        "affected_skills": [
+          "configure",
+          "security-patterns",
+          "doctor"
+        ],
+        "reference_changelog_line": "Added a startup warning for `Write(path)`, `NotebookEdit(path)`, and `Glob(path)` permission rules — use `Edit(path)` or `Read(path)` instead",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "bash_timeout_backgrounded_message",
+        "category": "new_field",
+        "description": "Bash/PowerShell tool message distinguishes timeout auto-background from explicit background requests.",
+        "gap_score": 10,
+        "affected_skills": [
+          "task-dependency-patterns",
+          "chain-patterns",
+          "dev"
+        ],
+        "reference_changelog_line": "Improved the Bash/PowerShell tool message when a command hits its timeout and is auto-backgrounded, so the model can distinguish a hang from an explicit background request",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
+      },
+      {
+        "feature_slug": "bash_cd_background_working_dir",
+        "category": "new_field",
+        "description": "Bash tool result now states working directory is unchanged when a cd command was moved to the background.",
+        "gap_score": 10,
+        "affected_skills": [
+          "dev",
+          "task-dependency-patterns"
+        ],
+        "reference_changelog_line": "Fixed Claude assuming a `cd` took effect after its command was moved to the background; the tool result now states the working directory is unchanged",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
+      }
+    ],
+    "raw_bullets_count": 33,
+    "issues_filed_at": "2026-07-15T04:03:20Z"
+  }
+]
