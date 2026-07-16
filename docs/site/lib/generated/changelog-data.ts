@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.77.0",
+    "date": "2026-07-16",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** display-lint gate, de-clutter Bash transcript at the source ([#2930](https://github.com/yonatangross/orchestkit/issues/2930)) ([86f1b56](https://github.com/yonatangross/orchestkit/commit/86f1b56e22cbb22ff365fc6422bb87b17e9290e3))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.76.0",
     "date": "2026-07-16",
     "compareUrl": "",

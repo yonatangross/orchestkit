@@ -17,9 +17,15 @@
  * line-wrap splitting flags from their args).
  *
  * Deliberately NOT fired on:
- *   - heredoc-bearing commands (`<<`) — writing a script file IS the remedy,
- *     so the command that creates one must pass
- *   - script invocations (bash/sh/zsh/python/node <file>) — already compliant
+ *   - real heredoc-bearing commands (`<<EOF`, `<<'EOF'`, `<<-EOF`) — writing
+ *     a script file IS the remedy, so the command that creates one must
+ *     pass. Anchored to an actual delimiter so bash bit-shift (`1 << 4`)
+ *     doesn't false-exempt an otherwise-cluttered command.
+ *   - a command that IS ENTIRELY a script invocation
+ *     (bash/sh/zsh/python/node <file>) — already compliant. Requires the
+ *     WHOLE command to be the invocation, not merely present as one stage
+ *     among several — `<clutter> && bash noop.sh` does not exempt the
+ *     clutter before it.
  *   - long single-stage commands (e.g. `git commit -F msg.txt`) — length
  *     alone is not clutter; only compound chains defeat readability
  *   - ORK_DISPLAY_LINT=0 (env opt-out)
@@ -38,7 +44,12 @@ const MAX_STAGES = 3; // normalizeCommand() segments (&&, ;, |, ||)
 
 /** Commands that already follow the script-file pattern. */
 const SCRIPT_INVOCATION_RE =
-  /(^|[&;|]\s*)(bash|sh|zsh|python3?|node)\s+(\$\{?[A-Za-z_][A-Za-z0-9_]*\}?\/)?\S*\.(sh|bash|py|mjs|js|ts)\b/;
+  /^(bash|sh|zsh|python3?|node)\s+(\$\{?[A-Za-z_][A-Za-z0-9_]*\}?\/)?\S*\.(sh|bash|py|mjs|js|ts)\b/;
+
+// A real heredoc delimiter starts with a letter, underscore, or quote —
+// `<< 4`, `<<4`, `<< $n` (bash arithmetic shift / bareword) never match,
+// so `console.log(1 << 4)` correctly stays out of the exemption.
+const HEREDOC_RE = /<<-?~?\s*(['"][A-Za-z_][A-Za-z0-9_]*['"]|[A-Za-z_][A-Za-z0-9_]*)/;
 
 export function displayLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   if (process.env.ORK_DISPLAY_LINT === '0') return outputSilentSuccess();
@@ -47,12 +58,16 @@ export function displayLint(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
   if (!command || command.length <= MAX_DISPLAY_LENGTH) return outputSilentSuccess();
 
   // Heredocs are how script files get created — never lint the remedy.
-  if (command.includes('<<')) return outputSilentSuccess();
-
-  // Already invoking a script file — compliant regardless of length.
-  if (SCRIPT_INVOCATION_RE.test(command)) return outputSilentSuccess();
+  if (HEREDOC_RE.test(command)) return outputSilentSuccess();
 
   const stages = normalizeCommand(command);
+
+  // Already invoking a script file — compliant ONLY when the ENTIRE
+  // command is that invocation. Matching "anywhere in the command" let
+  // `<clutter> && bash noop.sh` (the noop need not even exist) bypass the
+  // lint for everything before it — the exact clutter this hook targets.
+  if (stages.length === 1 && SCRIPT_INVOCATION_RE.test(stages[0])) return outputSilentSuccess();
+
   if (stages.length < MAX_STAGES) return outputSilentSuccess();
 
   ctx.log(
