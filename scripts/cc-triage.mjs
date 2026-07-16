@@ -216,7 +216,12 @@ function readFixtureClaudeOutput() {
 const AUTH_ERROR_RE = /\b(401|authentication_error|invalid bearer token|unauthorized)\b/i;
 let authFailureDetail = null;
 
-const CLAUDE_CALL_TIMEOUT_MS = 60_000;
+// 180s (was 60s): opus extraction of a large changelog consistently exceeded
+// 60s on BOTH attempts for CC 2.1.211 (37 changelog bullets), so callClaude
+// returned null every run → parse_failed written → the version never
+// self-healed (retry hit the identical 60s wall each time). A nightly cron has
+// no latency budget; give opus headroom for big releases.
+const CLAUDE_CALL_TIMEOUT_MS = 180_000;
 
 function callClaude(prompt) {
   // Single retry budget over THREE failure modes:
@@ -229,7 +234,7 @@ function callClaude(prompt) {
   //       version is dropped from triage forever (parse_failed: false means
   //       "succeeded but no features", which the workflow trusts as final).
   //
-  // Each attempt has its own 60s timeout (CLAUDE_CALL_TIMEOUT_MS). If both
+  // Each attempt has its own 180s timeout (CLAUDE_CALL_TIMEOUT_MS). If both
   // attempts fail, return null — caller sets `parse_failed: true` so
   // `--retry-failed` can re-attempt later.
   //
