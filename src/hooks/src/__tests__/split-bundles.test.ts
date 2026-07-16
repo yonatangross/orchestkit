@@ -418,7 +418,10 @@ describe('Cross-Bundle Consistency', () => {
     //             notification/message-display-observer (MessageDisplay),
     //             posttool/tool-batch-observer (PostToolBatch).
     // 200 -> 199: MessageDisplay observer reverted same-day (plugin validate rejects the key).
-    expect(totalHooks).toBe(199);
+    // 199 -> 200: pretool/bash/display-lint — transcript de-clutter gate (brainstorm
+    //             2026-07-16): denies >200-char 3+-stage compound one-liners with a
+    //             write-a-script-file remedy; dispatched via sync-bash-dispatcher.
+    expect(totalHooks).toBe(200);
   });
 });
 

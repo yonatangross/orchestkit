@@ -252,6 +252,12 @@ describe('hooks.json wiring E2E', () => {
       //             observer-only hooks: prompt/prompt-expansion-observer
       //             (UserPromptExpansion), notification/message-display-observer
       //             (MessageDisplay), posttool/tool-batch-observer (PostToolBatch).
+      // display-lint (2026-07-16) is dispatched via the EXISTING
+      // sync-bash-dispatcher hooks.json entry (same pattern as
+      // pre-commit-test-gate) — adds no new hooks.json "type":"command"
+      // entry, so bin/count-hooks.sh's total is unchanged at 218. The
+      // registry-map count in split-bundles.test.ts (199 -> 200) is the
+      // metric that reflects the new hook function.
       expect(hooksConfig.description).toContain('218 total');
     });
 

@@ -17,6 +17,35 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.76.0",
+    "date": "2026-07-16",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** fired-census + fix a 4.5-month telemetry blind spot ([#2913](https://github.com/yonatangross/orchestkit/issues/2913)) ([958b897](https://github.com/yonatangross/orchestkit/commit/958b89719f4a7678133bf2f44d8205c8f903ae59))",
+          "**telemetry-inspect:** consume the fired-census ([#2915](https://github.com/yonatangross/orchestkit/issues/2915)) ([7e40ffd](https://github.com/yonatangross/orchestkit/commit/7e40ffd2fec3fe31e8588f54e5afe305d5c34058))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**cc-triage:** raise opus extraction timeout to 180s (was 60s) ([#2922](https://github.com/yonatangross/orchestkit/issues/2922)) ([8885c8e](https://github.com/yonatangross/orchestkit/commit/8885c8e2a03865cfa4fc4a8aca5b942f22463ee6))",
+          "**hooks:** session-scope shared state, kill cross-session bleed ([#2920](https://github.com/yonatangross/orchestkit/issues/2920)) ([e21b720](https://github.com/yonatangross/orchestkit/commit/e21b720b98016f5973da7b70febc87a662de188b)), closes [#2919](https://github.com/yonatangross/orchestkit/issues/2919)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.211) ([#2918](https://github.com/yonatangross/orchestkit/issues/2918)) ([38f5155](https://github.com/yonatangross/orchestkit/commit/38f5155382bbed2f8f44213aefb1b8d76bc8b67f))",
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.211) ([#2921](https://github.com/yonatangross/orchestkit/issues/2921)) ([56306f9](https://github.com/yonatangross/orchestkit/commit/56306f9a22bbb89b87c4a086065b755cb4805ac2))",
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.211) ([#2929](https://github.com/yonatangross/orchestkit/issues/2929)) ([77d9fb1](https://github.com/yonatangross/orchestkit/commit/77d9fb189f66b4e2e6940d8a3150db4578e1cd28))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.75.0",
     "date": "2026-07-15",
     "compareUrl": "",

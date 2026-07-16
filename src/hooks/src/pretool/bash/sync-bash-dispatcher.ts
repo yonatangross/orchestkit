@@ -42,6 +42,7 @@ import { worktreeMergeVerifier } from './worktree-merge-verifier.js';
 // Phase 7: Local-dev hygiene bundle (this PR)
 import { playgroundPresenceWarner } from './playground-presence-warner.js';
 import { deleteBranchStackedPRGuard } from './delete-branch-stacked-pr-guard.js';
+import { displayLint } from './display-lint.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'sync-bash-dispatcher';
@@ -73,6 +74,8 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   { name: 'issue-reference-checker', fn: issueReferenceChecker },
   { name: 'gh-label-enforcer', fn: ghLabelEnforcer },
   { name: 'gh-milestone-enforcer', fn: ghMilestoneEnforcer },
+  // Phase 2.5: Transcript hygiene (deny long compound one-liners -> script files)
+  { name: 'display-lint', fn: displayLint },
   // Phase 3: Advisory
   { name: 'unified-advisory-dispatcher', fn: unifiedBashAdvisoryDispatcher },
   // Phase 4: Pre-commit quality (lint/test/typecheck — blocks on failure)
