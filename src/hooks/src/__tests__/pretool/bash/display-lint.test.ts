@@ -64,10 +64,64 @@ describe('display-lint', () => {
     expect(isDenied(displayLint(bash(heredoc), NOOP_CTX))).toBe(false);
   });
 
-  test('passes script-file invocations regardless of length', () => {
-    const script = `cd /Users/someone/very/long/project/path/for/the/test/case/to/definitely/exceed/every/threshold/we/set && bash /private/tmp/claude-501/some-session-id/scratchpad/rebase-round2.sh && echo done && echo verified && echo pushed`;
+  test('passes a command that IS ENTIRELY a script invocation, regardless of length', () => {
+    const script = `bash /private/tmp/claude-501/scratchpad/rebase-round2.sh --verbose ${'-'.repeat(140)}`;
     expect(script.length).toBeGreaterThan(200);
     expect(isDenied(displayLint(bash(script), NOOP_CTX))).toBe(false);
+  });
+
+  // Regression test for the bypass a code-quality review caught after this
+  // hook shipped (2026-07-16): the script-invocation exemption used to
+  // match "anywhere in the command", so appending a script call to any
+  // cluttered command silenced the lint for everything before it. Verified
+  // live against the built dispatcher before fixing.
+  test('does NOT exempt clutter that merely CONTAINS a script call among other stages', () => {
+    const bypassAttempt = `cd /Users/someone/very/long/project/path/for/the/test/case/to/definitely/exceed/every/threshold/we/set && bash /private/tmp/claude-501/some-session-id/scratchpad/rebase-round2.sh && echo done && echo verified && echo pushed`;
+    expect(bypassAttempt.length).toBeGreaterThan(200);
+    expect(isDenied(displayLint(bash(bypassAttempt), NOOP_CTX))).toBe(true);
+  });
+
+  // Regression test for the companion bug: the heredoc exemption was a bare
+  // `.includes('<<')`, so a cluttered command containing a bash bit-shift
+  // (unrelated to heredocs) was falsely exempted. Verified live before fixing.
+  test('does NOT exempt clutter containing a bit-shift "<<" that is not a heredoc', () => {
+    const bitShift = `cd /Users/someone/very/long/project/path/for/the/test/case/${'x'.repeat(100)} && node -e 'console.log(1 << 4)' && echo done && echo verified && echo pushed`;
+    expect(bitShift.length).toBeGreaterThan(200);
+    expect(isDenied(displayLint(bash(bitShift), NOOP_CTX))).toBe(true);
+  });
+
+  test('boundary: exactly MAX_DISPLAY_LENGTH (200) chars passes, 201 denies', () => {
+    const stagesSuffix = " && echo b && echo c"; // pushes stage count to 3
+    const pad = (targetLen: number) => {
+      const base = `echo a${stagesSuffix}`; // 3 stages, short
+      return `${base}${'x'.repeat(Math.max(0, targetLen - base.length))}`;
+    };
+    const at200 = pad(200);
+    const at201 = pad(201);
+    expect(at200.length).toBe(200);
+    expect(at201.length).toBe(201);
+    expect(isDenied(displayLint(bash(at200), NOOP_CTX))).toBe(false);
+    expect(isDenied(displayLint(bash(at201), NOOP_CTX))).toBe(true);
+  });
+
+  test('boundary: exactly 2 stages passes, exactly 3 stages denies (same length)', () => {
+    const longPad = 'x'.repeat(100);
+    const twoStages = `echo ${longPad} && echo ${longPad}`;
+    const threeStages = `echo ${longPad} && echo ${longPad} && echo x`;
+    expect(twoStages.length).toBeGreaterThan(200);
+    expect(threeStages.length).toBeGreaterThan(200);
+    expect(isDenied(displayLint(bash(twoStages), NOOP_CTX))).toBe(false);
+    expect(isDenied(displayLint(bash(threeStages), NOOP_CTX))).toBe(true);
+  });
+
+  test('fires on a pasted multi-line block (newline-separated, no heredoc)', () => {
+    const pasted = [
+      `cd /Users/someone/very/long/project/path/for/the/test/case/${'x'.repeat(100)}`,
+      "sed -n '1,40p' some-file.ts",
+      "grep -n 'pattern' another-file.ts | head -10",
+    ].join('\n');
+    expect(pasted.length).toBeGreaterThan(200);
+    expect(isDenied(displayLint(bash(pasted), NOOP_CTX))).toBe(true);
   });
 
   test('ORK_DISPLAY_LINT=0 opts out entirely', () => {
