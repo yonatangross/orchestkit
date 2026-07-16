@@ -252,7 +252,9 @@ describe('hooks.json wiring E2E', () => {
       //             observer-only hooks: prompt/prompt-expansion-observer
       //             (UserPromptExpansion), notification/message-display-observer
       //             (MessageDisplay), posttool/tool-batch-observer (PostToolBatch).
-      expect(hooksConfig.description).toContain('218 total');
+      // 218 -> 219: pretool/bash/display-lint (2026-07-16) — transcript
+      //             de-clutter gate dispatched via sync-bash-dispatcher.
+      expect(hooksConfig.description).toContain('219 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {
