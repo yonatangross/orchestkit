@@ -40,6 +40,7 @@ interface EditEntry {
   t: number;
   f: string;
   tool?: string;
+  sid?: string;
 }
 
 /**
@@ -93,12 +94,19 @@ function findThrashingFiles(entries: EditEntry[]): Map<string, number> {
   return thrashing;
 }
 
-export function thrashDetector(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+export function thrashDetector(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const path = getEditHistoryPath(ctx.projectDir);
   const entries = readAndTrimHistory(path);
-  if (entries.length < THRASH_THRESHOLD) return outputSilentSuccess();
 
-  const thrashing = findThrashingFiles(entries);
+  // Session-scope the window (#2919): the history file is shared by every
+  // session in this project. Counting another session's edits produced
+  // false thrash warnings, so only this session's records participate.
+  // Legacy records without `sid` never match and age out via MAX_ENTRIES.
+  const sid = input.session_id || ctx.sessionId || '';
+  const sessionEntries = entries.filter(e => (e.sid ?? '') === sid);
+  if (sessionEntries.length < THRASH_THRESHOLD) return outputSilentSuccess();
+
+  const thrashing = findThrashingFiles(sessionEntries);
   if (thrashing.size === 0) return outputSilentSuccess();
 
   const lines = Array.from(thrashing.entries())

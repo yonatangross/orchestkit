@@ -9,7 +9,10 @@
  * the history at UserPromptSubmit time.
  *
  * State: `.claude/state/edit-history.jsonl` — append-only, capped at
- * MAX_ENTRIES by periodic truncation on read.
+ * MAX_ENTRIES by periodic truncation on read. Each record carries the
+ * writing session's id (`sid`) so the read side can scope its window to
+ * one session — concurrent sessions in the same project must not see
+ * each other's edits (#2919).
  */
 
 import { appendFileSync, mkdirSync } from 'node:fs';
@@ -35,7 +38,8 @@ export function editHistoryTracker(input: HookInput, ctx: HookContext = NOOP_CTX
   try {
     const p = getEditHistoryPath(ctx.projectDir);
     mkdirSync(dirname(p), { recursive: true });
-    const entry = JSON.stringify({ t: Date.now(), f: filePath, tool: toolName });
+    const sid = input.session_id || ctx.sessionId || '';
+    const entry = JSON.stringify({ t: Date.now(), f: filePath, tool: toolName, sid });
     appendFileSync(p, `${entry}\n`);
   } catch (err) {
     ctx.log(HOOK_NAME, `Append failed: ${(err as Error).message}`);

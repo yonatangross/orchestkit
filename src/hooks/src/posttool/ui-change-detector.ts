@@ -28,8 +28,12 @@ import { isDevStackLive, readDevStackState } from '../lib/dev-stack-state.js';
 const COOLDOWN_MS = 30_000;
 const FIRE_RECORD = '.claude/state/expect-auto-fires.json';
 
+// Stale entries (old sessions, legacy un-keyed routes) are pruned on write
+// so the per-session keying (#2919) can't grow the file unboundedly.
+const PRUNE_AFTER_MS = 3_600_000; // 1h — far beyond any live cooldown
+
 interface FireRecord {
-  [route: string]: number; // last fire timestamp (ms)
+  [sessionAndRoute: string]: number; // "<sid>:<route>" → last fire timestamp (ms)
 }
 
 function readFires(projectDir: string): FireRecord {
@@ -113,13 +117,19 @@ export async function uiChangeDetector(input: HookInput): Promise<HookResult> {
   const route = fileToRoute(filePath);
   if (!route) return outputSilentSuccess();
 
-  // Per-route cooldown
+  // Per-route cooldown, scoped to this session (#2919): the skip token above
+  // is already session-keyed; the cooldown sharing one key across sessions
+  // silently swallowed the nudge for whichever session edited second.
   const now = Date.now();
   const fires = readFires(projectDir);
-  const last = fires[route] ?? 0;
+  const fireKey = `${sessionId}:${route}`;
+  const last = fires[fireKey] ?? 0;
   if (now - last < COOLDOWN_MS) return outputSilentSuccess();
 
-  fires[route] = now;
+  for (const key of Object.keys(fires)) {
+    if (now - (fires[key] ?? 0) > PRUNE_AFTER_MS) delete fires[key];
+  }
+  fires[fireKey] = now;
   writeFires(projectDir, fires);
 
   const state = readDevStackState();

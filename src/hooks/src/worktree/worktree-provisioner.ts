@@ -258,7 +258,7 @@ export function worktreeProvisioner(
   // best-effort: the provisioned path must be returned even if these fail.
   const parentSid = input.session_id;
   if (parentSid) registerLinks(projectDir, worktreePath, name, parentSid, ctx);
-  maybeEmitMonorepoAdvisory(projectDir, name, ctx, HOOK_NAME);
+  maybeEmitMonorepoAdvisory(projectDir, name, ctx, HOOK_NAME, parentSid);
 
   return {
     continue: true,

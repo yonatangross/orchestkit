@@ -112,5 +112,58 @@ describe('thrash-detector — pure logic', () => {
       expect(ctx).toContain('[thrash-detector]');
       expect(ctx).toContain('auth.ts');
     });
+
+    // #2919: the history file is shared per-project — the window must only
+    // count the CURRENT session's edits, or concurrent sessions produce
+    // false thrash warnings for files they never touched.
+    test('ignores another session\'s edits (#2919 cross-session bleed)', () => {
+      const dir = resolve(tmp, '.claude', 'state');
+      mkdirSync(dir, { recursive: true });
+      const p = resolve(dir, 'edit-history.jsonl');
+      const body = [1, 2, 3, 4]
+        .map(t => JSON.stringify({ t, f: '/src/auth.ts', tool: 'Edit', sid: 'session-A' }))
+        .join('\n');
+      writeFileSync(p, `${body}\n`, 'utf8');
+
+      const result = thrashDetector(
+        { session_id: 'session-B' } as never,
+        { ...NOOP_CTX, projectDir: tmp, sessionId: 'session-B' },
+      );
+      expect(result.hookSpecificOutput).toBeUndefined();
+    });
+
+    test('fires for own session even when interleaved with another session (#2919)', () => {
+      const dir = resolve(tmp, '.claude', 'state');
+      mkdirSync(dir, { recursive: true });
+      const p = resolve(dir, 'edit-history.jsonl');
+      const rows: string[] = [];
+      for (let t = 1; t <= 4; t++) {
+        rows.push(JSON.stringify({ t: t * 2 - 1, f: '/src/auth.ts', tool: 'Edit', sid: 'session-A' }));
+        rows.push(JSON.stringify({ t: t * 2, f: '/src/other.ts', tool: 'Edit', sid: 'session-B' }));
+      }
+      writeFileSync(p, `${rows.join('\n')}\n`, 'utf8');
+
+      const result = thrashDetector(
+        { session_id: 'session-A' } as never,
+        { ...NOOP_CTX, projectDir: tmp, sessionId: 'session-A' },
+      );
+      const ctx = (result.hookSpecificOutput as { additionalContext?: string })?.additionalContext;
+      expect(ctx).toBeDefined();
+      expect(ctx).toContain('auth.ts');
+    });
+
+    test('legacy records without sid never match a real session (#2919)', () => {
+      const dir = resolve(tmp, '.claude', 'state');
+      mkdirSync(dir, { recursive: true });
+      const p = resolve(dir, 'edit-history.jsonl');
+      const body = [1, 2, 3, 4].map(t => JSON.stringify({ t, f: '/src/auth.ts', tool: 'Edit' })).join('\n');
+      writeFileSync(p, `${body}\n`, 'utf8');
+
+      const result = thrashDetector(
+        { session_id: 'session-A' } as never,
+        { ...NOOP_CTX, projectDir: tmp, sessionId: 'session-A' },
+      );
+      expect(result.hookSpecificOutput).toBeUndefined();
+    });
   });
 });
