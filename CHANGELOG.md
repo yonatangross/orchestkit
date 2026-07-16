@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.77.1](https://github.com/yonatangross/orchestkit/compare/v8.77.0...v8.77.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* **hooks:** close two display-lint exemption bypasses ([#2932](https://github.com/yonatangross/orchestkit/issues/2932)) ([fe8b8c2](https://github.com/yonatangross/orchestkit/commit/fe8b8c292ae53369e22094fc4839a218fdd9e49d))
+
 ## [8.77.0](https://github.com/yonatangross/orchestkit/compare/v8.76.0...v8.77.0) (2026-07-16)
 
 
