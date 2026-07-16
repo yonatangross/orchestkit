@@ -2,9 +2,10 @@
 // Created: 2026-04-17
 
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync, existsSync, readFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { execSync } from 'node:child_process';
 import {
   TEST_COMMAND_RE,
   GIT_COMMIT_RE,
@@ -92,6 +93,42 @@ describe('pre-commit-test-gate', () => {
       const r = preCommitTestGate(input, { ...NOOP_CTX, projectDir: tmp });
       expect(r.hookSpecificOutput).toBeUndefined();
       expect(existsSync(getStatePath(tmp))).toBe(false);
+    });
+
+    // #2919: the "this session" advisory must key off the session that
+    // actually ran the tests — another session's run must not satisfy it.
+    test('records the running session id (#2919)', () => {
+      const input = { tool_name: 'Bash', session_id: 'sess-A', tool_input: { command: 'npm test' } } as never;
+      preCommitTestGate(input, { ...NOOP_CTX, projectDir: tmp, sessionId: 'sess-A' });
+      const state = JSON.parse(readFileSync(getStatePath(tmp), 'utf8'));
+      expect(state.session_id).toBe('sess-A');
+    });
+
+    test('another session\'s test run does not satisfy this session\'s gate (#2919)', () => {
+      // Session A runs tests…
+      recordTestRun(tmp, 'npm test', 'sess-A');
+      // …session B commits a staged file: must be advised as if no run happened.
+      execSync('git init -q && git config user.email t@t && git config user.name t', { cwd: tmp });
+      writeFileSync(join(tmp, 'f.txt'), 'x');
+      execSync('git add f.txt', { cwd: tmp });
+
+      const input = { tool_name: 'Bash', session_id: 'sess-B', tool_input: { command: 'git commit -m x' } } as never;
+      const r = preCommitTestGate(input, { ...NOOP_CTX, projectDir: tmp, sessionId: 'sess-B' });
+      const ctxText = (r.hookSpecificOutput as { additionalContext?: string })?.additionalContext;
+      // outputNotify reflows text, so match across possible line breaks.
+      expect(ctxText).toMatch(/no test run has been\s+recorded this session/);
+    });
+
+    test('own session\'s fresh test run keeps the commit clean (#2919)', () => {
+      execSync('git init -q && git config user.email t@t && git config user.name t', { cwd: tmp });
+      writeFileSync(join(tmp, 'f.txt'), 'x');
+      execSync('git add f.txt', { cwd: tmp });
+      // Test run AFTER the file edit, same session → silent gate.
+      recordTestRun(tmp, 'npm test', 'sess-A');
+
+      const input = { tool_name: 'Bash', session_id: 'sess-A', tool_input: { command: 'git commit -m x' } } as never;
+      const r = preCommitTestGate(input, { ...NOOP_CTX, projectDir: tmp, sessionId: 'sess-A' });
+      expect(r.hookSpecificOutput).toBeUndefined();
     });
   });
 });

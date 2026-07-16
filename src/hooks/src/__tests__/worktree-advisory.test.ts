@@ -205,4 +205,37 @@ describe('worktree-advisory (#1794 PR-2)', () => {
       expect(consumeWorktreeAdvisories(tmp)).toBeNull();
     });
   });
+
+  // -----------------------------------------------------------------------
+  // Session scoping (#2919): an advisory belongs to the session that
+  // created the worktree; another session must not consume-and-destroy it.
+  // -----------------------------------------------------------------------
+  describe('session scoping (#2919)', () => {
+    it('another session cannot consume a session-keyed advisory', () => {
+      writeWorktreeAdvisory('for owner only', 'wt-abc', tmp, 'session-A');
+      expect(consumeWorktreeAdvisories(tmp, 'session-B')).toBeNull();
+      // File must still be on disk for the owner
+      expect(consumeWorktreeAdvisories(tmp, 'session-A')).toBe('for owner only');
+    });
+
+    it('owner consumes only its own advisories among several sessions', () => {
+      writeWorktreeAdvisory('A body', 'wt-a', tmp, 'session-A');
+      writeWorktreeAdvisory('B body', 'wt-b', tmp, 'session-B');
+      expect(consumeWorktreeAdvisories(tmp, 'session-A')).toBe('A body');
+      expect(consumeWorktreeAdvisories(tmp, 'session-B')).toBe('B body');
+      expect(consumeWorktreeAdvisories(tmp, 'session-B')).toBeNull();
+    });
+
+    it('legacy un-keyed advisories remain consumable by any session (no orphans)', () => {
+      writeWorktreeAdvisory('legacy body', 'wt-old', tmp); // no sessionId → legacy filename
+      expect(consumeWorktreeAdvisories(tmp, 'session-Z')).toBe('legacy body');
+    });
+
+    it('session id is slugified into the filename (no path tricks)', () => {
+      writeWorktreeAdvisory('body', 'wt', tmp, '../../evil');
+      const files = readdirSync(join(tmp, '.claude', 'state'));
+      expect(files).toHaveLength(1);
+      expect(files[0]).toMatch(/^worktree-advisory-wt\.[a-zA-Z0-9_-]+\.md$/);
+    });
+  });
 });

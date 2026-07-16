@@ -81,6 +81,7 @@ export function maybeEmitMonorepoAdvisory(
   name: string,
   ctx: HookContext,
   hookName: string,
+  sessionId?: string,
 ): void {
   if (getSparsePaths(projectDir)) return; // already configured
 
@@ -92,7 +93,7 @@ export function maybeEmitMonorepoAdvisory(
     'Consider configuring `worktree.sparsePaths` in `.claude/settings.json` to speed up worktree creation. ' +
     'Example: `{ "worktree": { "sparsePaths": ["src/", "packages/core/", "tests/"] } }` — ' +
     'only those directories will be checked out in worktrees (CC 2.1.76+).';
-  const wrote = writeWorktreeAdvisory(advisory, name, projectDir);
+  const wrote = writeWorktreeAdvisory(advisory, name, projectDir, sessionId);
   ctx.log(
     hookName,
     wrote

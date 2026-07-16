@@ -13,13 +13,17 @@
  * This module reintroduces model-facing delivery via a deferred mechanism:
  *
  *   1. `writeWorktreeAdvisory` (called from WorktreeCreate hook) writes the
- *      advisory to `.claude/state/worktree-advisory-<slug>.md`. Idempotent:
- *      writing twice with the same name just overwrites.
+ *      advisory to `.claude/state/worktree-advisory-<slug>.<sid>.md`, keyed
+ *      by the CREATING session so another concurrent session cannot
+ *      consume-and-destroy it (#2919). Idempotent: writing twice with the
+ *      same name+session just overwrites.
  *
  *   2. `consumeWorktreeAdvisories` (called from UserPromptSubmit hook) reads
- *      ALL pending advisory files, concatenates them, deletes them, returns
- *      the joined text. Returns `null` if nothing pending — caller emits
- *      silent success.
+ *      the pending advisory files OWNED BY THIS SESSION (plus legacy
+ *      un-keyed files, so pre-upgrade advisories still deliver instead of
+ *      orphaning), concatenates them, deletes them, returns the joined
+ *      text. Returns `null` if nothing pending — caller emits silent
+ *      success.
  *
  * This way the next user prompt after a worktree create receives the
  * `sparsePaths` nudge as `additionalContext` — which CC DOES consume on
@@ -62,17 +66,33 @@ export function writeWorktreeAdvisory(
   advisory: string,
   name: string,
   projectDir: string,
+  sessionId?: string,
 ): boolean {
   if (!advisory?.trim() || !projectDir) return false;
   try {
     const dir = join(projectDir, ADVISORY_DIR);
     mkdirSync(dir, { recursive: true });
-    const file = join(dir, `${ADVISORY_PREFIX}${slugify(name)}${ADVISORY_SUFFIX}`);
+    // Session key goes in the filename (dot-separated — slugs can't contain
+    // dots) so the consumer can filter without opening the file.
+    const sidPart = sessionId ? `.${slugify(sessionId)}` : '';
+    const file = join(dir, `${ADVISORY_PREFIX}${slugify(name)}${sidPart}${ADVISORY_SUFFIX}`);
     writeFileSync(file, `${advisory.trimEnd()}\n`, 'utf8');
     return true;
   } catch {
     return false;
   }
+}
+
+/**
+ * True when the advisory filename belongs to `sessionId` — or is a legacy
+ * un-keyed file (no dot-separated session segment), which any session may
+ * deliver so pre-upgrade advisories don't orphan.
+ */
+function advisoryBelongsTo(fileName: string, sessionId: string): boolean {
+  const base = fileName.slice(ADVISORY_PREFIX.length, -ADVISORY_SUFFIX.length);
+  const dotIdx = base.lastIndexOf('.');
+  if (dotIdx === -1) return true; // legacy format: worktree-advisory-<slug>.md
+  return base.slice(dotIdx + 1) === slugify(sessionId);
 }
 
 /**
@@ -83,7 +103,7 @@ export function writeWorktreeAdvisory(
  * throws (e.g. EBUSY), the others are still processed and returned —
  * partial-results semantics so a single bad file doesn't suppress the rest.
  */
-export function consumeWorktreeAdvisories(projectDir: string): string | null {
+export function consumeWorktreeAdvisories(projectDir: string, sessionId = ''): string | null {
   if (!projectDir) return null;
   const dir = join(projectDir, ADVISORY_DIR);
   if (!existsSync(dir)) return null;
@@ -97,6 +117,7 @@ export function consumeWorktreeAdvisories(projectDir: string): string | null {
 
   const advisoryFiles = entries
     .filter(name => name.startsWith(ADVISORY_PREFIX) && name.endsWith(ADVISORY_SUFFIX))
+    .filter(name => advisoryBelongsTo(name, sessionId))
     .sort();
 
   if (advisoryFiles.length === 0) return null;

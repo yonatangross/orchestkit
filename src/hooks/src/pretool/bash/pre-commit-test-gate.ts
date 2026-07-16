@@ -42,17 +42,21 @@ const GIT_COMMIT_RE = /(^|[&;|\s])git\s+commit\b/;
 interface TestRunState {
   timestamp: number;
   command: string;
+  // Session that ran the tests (#2919). The advisory says "this session",
+  // so a record from a different concurrent session must not satisfy the
+  // gate (false negative) or misattribute the "edited after tests" delta.
+  session_id?: string;
 }
 
 function getStatePath(projectDir: string): string {
   return join(projectDir, '.claude', 'state', 'last-test-run.json');
 }
 
-function recordTestRun(projectDir: string, command: string): void {
+function recordTestRun(projectDir: string, command: string, sessionId = ''): void {
   try {
     const p = getStatePath(projectDir);
     mkdirSync(dirname(p), { recursive: true });
-    const state: TestRunState = { timestamp: Date.now(), command };
+    const state: TestRunState = { timestamp: Date.now(), command, session_id: sessionId };
     atomicWriteSync(p, JSON.stringify(state), 'utf8');
   } catch {
     // Best-effort: if we can't write state, we silently skip the gate later.
@@ -112,10 +116,11 @@ export function preCommitTestGate(input: HookInput, ctx: HookContext = NOOP_CTX)
   if (!command) return outputSilentSuccess();
 
   const projectDir = ctx.projectDir;
+  const sessionId = input.session_id || ctx.sessionId || '';
 
   // --- Timestamp test-runner invocations ------------------------------------
   if (TEST_COMMAND_RE.test(command)) {
-    recordTestRun(projectDir, command);
+    recordTestRun(projectDir, command, sessionId);
     ctx.log(HOOK_NAME, `Recorded test run: ${command.slice(0, 80)}`);
     return outputSilentSuccess();
   }
@@ -125,7 +130,12 @@ export function preCommitTestGate(input: HookInput, ctx: HookContext = NOOP_CTX)
     return outputSilentSuccess();
   }
 
-  const lastRun = readLastTestRun(projectDir);
+  // Only this session's test run counts (#2919) — the advisory text claims
+  // "this session", and honoring another session's run made it lie both
+  // ways (false pass and misattributed staleness). Legacy records without
+  // session_id are treated as not-this-session.
+  const lastRunRaw = readLastTestRun(projectDir);
+  const lastRun = lastRunRaw && lastRunRaw.session_id === sessionId ? lastRunRaw : null;
   const staged = stagedFiles(projectDir);
   if (staged.length === 0) {
     // Nothing staged — let the commit proceed (will fail on its own if empty)

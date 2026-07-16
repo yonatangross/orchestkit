@@ -11,7 +11,7 @@
  * cost circuit-breaking.
  *
  * Brake-file integration with G5:
- *   If `.claude/state/goal-budget-tripped.json` exists, surface its reason as
+ *   If `.claude/state/goal-budget-tripped.json` exists for THIS session, surface its reason as
  *   `outputBlock` with `continueOnBlock: true` (set in hooks.json) so the
  *   model is informed but the user can override by deleting the file.
  *
@@ -97,8 +97,12 @@ export function goalTracker(
   const projectDir = ctx.projectDir;
 
   // Check brake file first — couples to G5 budget guard.
+  // The budget is per-session (G5 sums goal-history filtered by session_id),
+  // so the brake only applies to the session that tripped it (#2919). A
+  // brake left by another concurrent session — or a legacy file without a
+  // session_id — must not block this session's /goal.
   const brake = readBrake(projectDir);
-  if (brake) {
+  if (brake && brake.session_id === sessionId) {
     const reason = brake.reason || 'budget';
     const turns = brake.turns ?? '?';
     const tokens = brake.tokens ?? '?';

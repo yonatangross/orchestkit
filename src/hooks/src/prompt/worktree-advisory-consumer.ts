@@ -42,7 +42,10 @@ export function worktreeAdvisoryConsumer(
   const projectDir = input.project_dir || ctx.projectDir;
   if (!projectDir) return outputSilentSuccess();
 
-  const advisories = consumeWorktreeAdvisories(projectDir);
+  // Session-scoped (#2919): only advisories written by THIS session (or
+  // legacy un-keyed files) are consumed — another session's advisory must
+  // not be stolen-and-deleted before its owner's next prompt.
+  const advisories = consumeWorktreeAdvisories(projectDir, input.session_id || ctx.sessionId || '');
   if (!advisories) return outputSilentSuccess();
 
   ctx.log(HOOK_NAME, `Injecting deferred worktree advisory (${advisories.length} chars)`);
