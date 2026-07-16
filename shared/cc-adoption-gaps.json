@@ -1,9 +1,82 @@
 [
   {
     "version": "2.1.211",
-    "features": [],
+    "features": [
+      {
+        "feature_slug": "permission_preview_char_neutralize",
+        "category": "breaking",
+        "description": "Permission previews now neutralize bidi-override, zero-width, and look-alike quote chars so tool inputs can't spoof appr",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "mcp-patterns"
+        ],
+        "reference_changelog_line": "Fixed permission previews relayed to chat channels not neutralizing bidirectional-override, zero-width, and look-alike quote characters, so tool inputs cannot visually alter the approval message",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "auto_mode_hook_ask_floor",
+        "category": "breaking",
+        "description": "Auto mode no longer overrides a PreToolUse hook's `ask` decision for unsandboxed Bash; hook `ask` now floors at a prompt",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed auto mode overriding a PreToolUse hook's `ask` decision for unsandboxed Bash — a hook `ask` now floors the decision at a prompt",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "nested_rules_source_exclusion",
+        "category": "breaking",
+        "description": "Nested `.claude/rules/*.md` files no longer load when setting sources exclude project settings.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed nested `.claude/rules/*.md` files loading even when setting sources exclude project settings",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "env_var_scientific_notation",
+        "category": "breaking",
+        "description": "Integer env vars (timeouts, token budgets, retry counts) now accept scientific notation and digit separators like `1e6`,",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Updated integer environment variables (timeouts, token budgets, retry counts) to accept scientific notation and digit-separator spellings like `1e6` and `64_000`",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "always_allow_repo_root_persist",
+        "category": "breaking",
+        "description": "\"Always allow\" permission rules now save at the repo root so worktree approvals persist across sessions and worktrees.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "security-patterns",
+          "swarm-migrate"
+        ],
+        "reference_changelog_line": "Changed \"always allow\" permission rules to save at the repository root, so approvals granted in a git worktree persist across sessions and worktrees",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "forward_subagent_text_flag",
+        "category": "new_command",
+        "description": "Added `--forward-subagent-text` flag and env var to include subagent text and thinking in stream-json output.",
+        "gap_score": 15,
+        "affected_skills": [
+          "agent-orchestration",
+          "chain-patterns",
+          "bare-eval"
+        ],
+        "reference_changelog_line": "Added `--forward-subagent-text` flag and `CLAUDE_CODE_FORWARD_SUBAGENT_TEXT` environment variable to include subagent text and thinking in stream-json output",
+        "relevance": "plugin"
+      }
+    ],
     "raw_bullets_count": 37,
-    "parse_failed": true,
-    "failed_at": "2026-07-16T14:31:03.590Z"
+    "issues_filed_at": "2026-07-16T15:14:38Z"
   }
 ]
