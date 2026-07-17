@@ -6,6 +6,7 @@
 import { execFileSync } from 'node:child_process';
 import { getProjectDir } from './common.js';
 import { assertSafeGitArgs } from './sanitize-shell.js';
+import { readBranchOr } from './git-head.js';
 
 /**
  * Execute a git command safely (no shell — args passed as array).
@@ -25,21 +26,36 @@ export function gitExec(args: string[], cwd?: string, timeout = 10000): string {
   }
 }
 
+/** Per-directory branch memo: the dispatcher calls this from several hooks. */
+const branchCacheByDir = new Map<string, string>();
+
 /**
- * Get the current git branch
+ * Get the current git branch.
+ *
+ * Parses `.git/HEAD` rather than spawning git (#2970, follow-up to #2948).
+ * This sits on the PreToolUse/Bash path, where the repo's own budget is
+ * <50ms: every Bash command reached this, uncached, and paid a real
+ * `execFileSync` with a 5000ms allowance. Under `index.lock` contention that
+ * spawn can burn its whole timeout, which is exactly the stall #2948 traced
+ * on the telemetry path.
+ *
+ * Semantics are unchanged: branch name on a branch, '' on detached HEAD
+ * (matching `git branch --show-current`, which this previously shelled out
+ * to), 'unknown' when there is no readable repo.
  */
 export function getCurrentBranch(projectDir?: string): string {
   const dir = projectDir || getProjectDir();
-  try {
-    return execFileSync('git', ['branch', '--show-current'], {
-      cwd: dir,
-      encoding: 'utf8',
-      timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
-    }).trim();
-  } catch {
-    return 'unknown';
-  }
+  const cached = branchCacheByDir.get(dir);
+  if (cached !== undefined) return cached;
+
+  const branch = readBranchOr(dir, 'unknown');
+  branchCacheByDir.set(dir, branch);
+  return branch;
+}
+
+/** Drop the branch memo (tests, and any caller that changes HEAD in-process). */
+export function _resetBranchCacheForTesting(): void {
+  branchCacheByDir.clear();
 }
 
 /**

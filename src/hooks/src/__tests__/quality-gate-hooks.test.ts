@@ -72,6 +72,18 @@ vi.mock('node:child_process', () => ({
 }));
 
 // ---------------------------------------------------------------------------
+// Mock lib/git-head (#2970)
+// ---------------------------------------------------------------------------
+// Branch resolution parses .git/HEAD instead of spawning `git branch
+// --show-current`, so the branch a case wants is set here rather than via the
+// execFileSync mock below. Every other git call in these tests still shells
+// out and is still mocked above.
+vi.mock('../lib/git-head.js', () => ({
+  readBranchFromHead: vi.fn(() => 'feature/test'),
+  readBranchOr: vi.fn(() => 'feature/test'),
+}));
+
+// ---------------------------------------------------------------------------
 // Mock node:crypto
 // ---------------------------------------------------------------------------
 vi.mock('node:crypto', () => ({

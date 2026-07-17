@@ -23,9 +23,13 @@ vi.mock('../../lib/atomic-write.js', async () => {
   };
 });
 
-vi.mock('node:child_process', () => ({
-  execSync: vi.fn(() => ''),
-  execFileSync: vi.fn(),
+// #2970: branch resolution moved from an execFileSync spawn to the git-head
+// leaf module. Mock the LEAF here — these tests own the mapping/sanitize/
+// fallback logic, while the parser itself is covered against a real
+// filesystem in branch-from-head.test.ts. child_process is gone entirely.
+vi.mock('../../lib/git-head.js', () => ({
+  readBranchFromHead: vi.fn(),
+  readBranchOr: vi.fn(),
 }));
 
 import {
@@ -42,14 +46,14 @@ import {
 } from '../../lib/session-id-generator.js';
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
+import { readBranchFromHead } from '../../lib/git-head.js';
 
 describe('Smart Session ID Generator', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
   const mockWriteFileSync = vi.mocked(writeFileSync);
   const mockMkdirSync = vi.mocked(mkdirSync);
-  const mockExecFileSync = vi.mocked(execFileSync);
+  const mockReadBranch = vi.mocked(readBranchFromHead);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -92,7 +96,7 @@ describe('Smart Session ID Generator', () => {
 
   describe('getGitBranchForSession', () => {
     it('should return git branch when available', () => {
-      mockExecFileSync.mockReturnValue('main\n');
+      mockReadBranch.mockReturnValue('main');
 
       const branch = getGitBranchForSession('/test/project');
 
@@ -100,7 +104,7 @@ describe('Smart Session ID Generator', () => {
     });
 
     it('should sanitize feature branch names', () => {
-      mockExecFileSync.mockReturnValue('feature/245-smart-sessions\n');
+      mockReadBranch.mockReturnValue('feature/245-smart-sessions');
 
       const branch = getGitBranchForSession('/test/project');
 
@@ -108,9 +112,9 @@ describe('Smart Session ID Generator', () => {
       expect(branch).toBe('feature-245-sma');
     });
 
-    it('should return nobranch when git fails', () => {
-      mockExecFileSync.mockImplementation(() => {
-        throw new Error('not a git repository');
+    it('should return nobranch when there is no readable repo', () => {
+      mockReadBranch.mockImplementation(() => {
+        throw new Error('ENOENT: no .git');
       });
 
       const branch = getGitBranchForSession('/test/project');
@@ -118,8 +122,20 @@ describe('Smart Session ID Generator', () => {
       expect(branch).toBe('nobranch');
     });
 
+    // #2970: the two failure modes must stay DISTINCT. '' means "repo, but
+    // detached HEAD" and maps to 'detached'; a throw means "no readable repo"
+    // and maps to 'nobranch'. The old spawn produced the same split via an
+    // empty stdout vs a non-zero exit; collapsing them changes the session id.
+    it('should return detached on an empty branch (detached HEAD)', () => {
+      mockReadBranch.mockReturnValue('');
+
+      const branch = getGitBranchForSession('/test/project');
+
+      expect(branch).toBe('detached');
+    });
+
     it('should cache branch in env var', () => {
-      mockExecFileSync.mockReturnValue('develop\n');
+      mockReadBranch.mockReturnValue('develop');
 
       getGitBranchForSession('/test/project');
 
@@ -132,7 +148,25 @@ describe('Smart Session ID Generator', () => {
       const branch = getGitBranchForSession('/test/project');
 
       expect(branch).toBe('cached-branch');
-      expect(mockExecFileSync).not.toHaveBeenCalled();
+      expect(mockReadBranch).not.toHaveBeenCalled();
+    });
+
+    // #2970 regression: this module must not spawn a subprocess at all.
+    // Asserted STATICALLY rather than with a spy — ESM module namespaces are
+    // not configurable, so `vi.spyOn(cp, 'execFileSync')` throws. Reading the
+    // source is also the stronger claim: it proves the import is GONE, not
+    // merely unexercised by the mocked path.
+    it('should not import child_process at all', async () => {
+      const { readFileSync: realRead } = await vi.importActual<typeof import('node:fs')>('node:fs');
+      const src = realRead(
+        new URL('../../lib/session-id-generator.ts', import.meta.url),
+        'utf8',
+      ) as string;
+
+      // Match the IMPORT, not the bare word: a comment may legitimately name
+      // the call this replaced, and a substring match would flag that prose.
+      const imports = [...src.matchAll(/^import .*? from '([^']+)';$/gm)].map((m) => m[1]);
+      expect(imports).not.toContain('node:child_process');
     });
   });
 
@@ -234,7 +268,7 @@ describe('Smart Session ID Generator', () => {
   describe('generateSmartSessionId', () => {
     it('should generate valid session ID format', () => {
       process.env.CLAUDE_PROJECT_DIR = '/path/to/orchestkit';
-      mockExecFileSync.mockReturnValue('main\n');
+      mockReadBranch.mockReturnValue('main');
       const date = new Date(2026, 0, 30, 17, 45);
 
       const sessionId = generateSmartSessionId(undefined, date);
@@ -244,7 +278,7 @@ describe('Smart Session ID Generator', () => {
 
     it('should handle missing git branch', () => {
       process.env.CLAUDE_PROJECT_DIR = '/path/to/project';
-      mockExecFileSync.mockImplementation(() => {
+      mockReadBranch.mockImplementation(() => {
         throw new Error('not a git repo');
       });
       const date = new Date(2026, 0, 30, 17, 45);
@@ -256,7 +290,7 @@ describe('Smart Session ID Generator', () => {
 
     it('should sanitize long branch names', () => {
       process.env.CLAUDE_PROJECT_DIR = '/path/to/app';
-      mockExecFileSync.mockReturnValue('feature/very-long-branch-name-here\n');
+      mockReadBranch.mockReturnValue('feature/very-long-branch-name-here');
       const date = new Date(2026, 0, 30, 9, 30);
 
       const sessionId = generateSmartSessionId(undefined, date);
@@ -367,7 +401,7 @@ describe('Smart Session ID Generator', () => {
     it('should generate new session ID when nothing available', () => {
       mockExistsSync.mockReturnValue(false);
       process.env.CLAUDE_PROJECT_DIR = '/path/to/myproject';
-      mockExecFileSync.mockReturnValue('develop\n');
+      mockReadBranch.mockReturnValue('develop');
 
       const result = getOrGenerateSessionId();
 
@@ -383,7 +417,7 @@ describe('Smart Session ID Generator', () => {
         return callCount > 1; // First call (cache check) = false, second (dir check) = true
       });
       process.env.CLAUDE_PROJECT_DIR = '/path/to/myproject';
-      mockExecFileSync.mockReturnValue('develop\n');
+      mockReadBranch.mockReturnValue('develop');
 
       getOrGenerateSessionId();
 

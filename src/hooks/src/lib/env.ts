@@ -1,10 +1,10 @@
 /**
- * Environment readers — effectful functions that read process.env or spawn child processes.
+ * Environment readers — effectful functions that read process.env or the filesystem.
  * Extracted from common.ts for separation of pure vs. effectful code.
  */
 
-import { existsSync, statSync, readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { existsSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   getLogDir as getLogDirFromPaths,
   getProjectDir as getProjectDirFromPaths,
@@ -12,6 +12,7 @@ import {
   getPluginDataDir as getPluginDataDirFromPaths,
 } from './paths.js';
 import { getOrGenerateSessionId } from './session-id-generator.js';
+import { readBranchFromHead } from './git-head.js';
 
 // -----------------------------------------------------------------------------
 // Environment and Paths
@@ -117,37 +118,6 @@ export function getCachedBranch(projectDir?: string): string {
   } catch {
     return 'unknown';
   }
-}
-
-/**
- * Read the current branch by parsing `.git/HEAD` directly — no subprocess.
- *
- * This used to be `execFileSync('git', ['branch', '--show-current'],
- * {timeout: 5000})`, and that spawn was the #2948 stall: every hook runs in
- * a fresh process (the in-memory cache above is always cold), so EVERY
- * telemetry emit paid one synchronous git spawn. Under fork pressure and
- * index.lock contention from concurrent sessions, that spawn ran for
- * seconds — production timing records show 8-10s exec times — blowing the
- * hook's own 5s budget and surfacing as "UserPromptSubmit hook timed out".
- * HEAD is a one-line symref file; reading it takes no locks and can't stall.
- *
- * Matches `git branch --show-current` semantics: branch name on a branch,
- * empty string on detached HEAD. Throws on unreadable/missing HEAD (caller
- * maps to 'unknown').
- */
-function readBranchFromHead(dir: string): string {
-  let gitDir = join(dir, '.git');
-  // Linked worktrees and submodules: `.git` is a FILE containing
-  // "gitdir: <path>" (possibly relative to `dir`).
-  if (statSync(gitDir).isFile()) {
-    const pointer = readFileSync(gitDir, 'utf8');
-    const m = pointer.match(/^gitdir:\s*(.+)\s*$/m);
-    if (!m) throw new Error('malformed .git pointer file');
-    gitDir = resolve(dir, m[1].trim());
-  }
-  const head = readFileSync(join(gitDir, 'HEAD'), 'utf8').trim();
-  const ref = head.match(/^ref:\s*refs\/heads\/(.+)$/);
-  return ref ? ref[1] : ''; // detached HEAD → '' (same as --show-current)
 }
 
 /**

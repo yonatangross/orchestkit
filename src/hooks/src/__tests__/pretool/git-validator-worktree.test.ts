@@ -38,7 +38,16 @@ vi.mock('node:child_process', () => ({
   execFileSync: vi.fn(() => ''),
 }));
 
+// #2970: branch resolution parses .git/HEAD via the git-head leaf instead of
+// spawning git. Per-directory semantics (#2363) are unchanged.
+vi.mock('../../lib/git-head.js', () => ({
+  readBranchFromHead: vi.fn(),
+  readBranchOr: vi.fn(),
+}));
+
 import { execFileSync } from 'node:child_process';
+import { readBranchOr } from '../../lib/git-head.js';
+import { _resetBranchCacheForTesting } from '../../lib/git.js';
 
 // =============================================================================
 // Test utilities
@@ -63,22 +72,20 @@ function mainCtx(): HookContext {
 }
 
 /**
- * Mock `git branch --show-current` per directory; `git diff --cached`
- * (atomic-commit analysis) returns empty.
+ * Resolve a branch per directory, and return empty for `git diff --cached`
+ * (atomic-commit analysis).
+ *
+ * #2970: branch resolution no longer spawns `git branch --show-current`; it
+ * parses `<dir>/.git/HEAD` via the git-head leaf. The per-directory semantics
+ * this suite exercises (#2363 worktree-awareness) are unchanged, so the
+ * simulation just moves from the spawn to the leaf. An unknown dir yields the
+ * caller's fallback, matching the old "throw -> caught -> 'unknown'" path.
  */
 function mockBranches(byDir: Record<string, string>): void {
-  vi.mocked(execFileSync).mockImplementation(((
-    _cmd: string,
-    args: readonly string[],
-    opts: { cwd?: string },
-  ) => {
-    if (args[0] === 'branch') {
-      const cwd = opts?.cwd ?? '';
-      if (cwd in byDir) return `${byDir[cwd]}\n`;
-      throw new Error(`not a git repo: ${cwd}`);
-    }
-    return '';
-  }) as typeof execFileSync);
+  vi.mocked(readBranchOr).mockImplementation((dir: string, fallback: string) =>
+    dir in byDir ? byDir[dir] : fallback,
+  );
+  vi.mocked(execFileSync).mockReturnValue('');
 }
 
 let tmpHome: string;
@@ -91,6 +98,10 @@ beforeEach(() => {
   delete process.env.ORCHESTKIT_PROTECTED_BRANCHES;
   vi.mocked(execFileSync).mockReset();
   vi.mocked(execFileSync).mockReturnValue('');
+  vi.mocked(readBranchOr).mockReset();
+  // #2970 added a per-dir memo in git.ts; module-level state leaks across
+  // cases without this.
+  _resetBranchCacheForTesting();
 });
 
 afterEach(() => {
@@ -345,12 +356,11 @@ describe('gitValidator worktree-awareness (#2363)', () => {
       { ...NOOP_CTX, branch: 'feat/regular', projectDir: PROJECT_DIR },
     );
 
-    // Not blocked, and no branch lookups were needed at all
+    // Not blocked, and no branch lookups were needed at all. Post-#2970 a
+    // lookup is a git-head call rather than a `git branch` spawn; the
+    // invariant (zero lookups on this path) is what matters.
     expect(result.continue).toBe(true);
-    const branchCalls = vi
-      .mocked(execFileSync)
-      .mock.calls.filter((c) => (c[1] as string[])[0] === 'branch');
-    expect(branchCalls).toHaveLength(0);
+    expect(readBranchOr).not.toHaveBeenCalled();
   });
 
   it('commit-message validation now applies through a cd chain', () => {

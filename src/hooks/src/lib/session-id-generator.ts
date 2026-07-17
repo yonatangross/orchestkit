@@ -14,13 +14,13 @@
  * - Valid file path characters only
  */
 
-import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { atomicWriteSync } from './atomic-write.js';
 import { join, basename } from 'node:path';
 import { safeProjectDir } from './paths.js';
 import { safeMkdirSync } from './safe-fs.js';
+import { readBranchFromHead } from './git-head.js';
 
 // =============================================================================
 // CONSTANTS
@@ -62,12 +62,11 @@ export function getGitBranchForSession(projectDir?: string): string {
   const dir = safeProjectDir(projectDir);
 
   try {
-    const branch = execFileSync('git', ['branch', '--show-current'], {
-      cwd: dir,
-      encoding: 'utf8',
-      timeout: 2000,
-      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
-    }).trim();
+    // Parses .git/HEAD; no subprocess (#2970, follow-up to #2948). The two
+    // failure modes stay distinct and map onto the SAME strings as the old
+    // spawn did: '' (repo, detached HEAD) -> 'detached', a throw (no readable
+    // repo) -> 'nobranch'. Collapsing them would change the session id.
+    const branch = readBranchFromHead(dir);
 
     const sanitized = sanitizeName(branch || 'detached', MAX_BRANCH_LENGTH);
     process.env.ORCHESTKIT_SESSION_BRANCH = sanitized;

@@ -12,7 +12,7 @@
  * git binary involved anywhere.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -74,5 +74,40 @@ describe('getCachedBranch — .git/HEAD parsing (#2948)', () => {
     expect(getCachedBranch(dir)).toBe('feat/cached');
     rmSync(join(dir, '.git'), { recursive: true, force: true });
     expect(getCachedBranch(dir)).toBe('feat/cached');
+  });
+});
+
+/**
+ * The cycle-prevention argument for #2970 rests entirely on git-head.ts being
+ * a LEAF. env.ts already imports session-id-generator.ts, so if the shared
+ * branch helper ever grows a local import it can close a loop and produce
+ * undefined-at-import-time in the esbuild bundle. Encode the invariant rather
+ * than trusting a comment someone has to notice.
+ */
+describe('git-head.ts is a leaf module (#2970)', () => {
+  const readSrc = async (rel: string): Promise<string> => {
+    const { readFileSync: realRead } =
+      await vi.importActual<typeof import('node:fs')>('node:fs');
+    return realRead(new URL(rel, import.meta.url), 'utf8') as string;
+  };
+
+  it('imports nothing from lib/ — only node: builtins', async () => {
+    const src = await readSrc('../../lib/git-head.ts');
+    const imports = [...src.matchAll(/^import .*? from '([^']+)';$/gm)].map((m) => m[1]);
+
+    expect(imports.length).toBeGreaterThan(0);
+    for (const spec of imports) {
+      expect(spec).toMatch(/^node:/);
+    }
+  });
+
+  // Asserted on the IMPORT, not on the bare word: this file's own docstring
+  // names the `execFileSync` call it replaced, and a raw substring match would
+  // flag that prose. (Precisely the comment-matching false positive that made
+  // hq-ext's silent-failure gate unusable.)
+  it('spawns no subprocess', async () => {
+    const src = await readSrc('../../lib/git-head.ts');
+    const imports = [...src.matchAll(/^import .*? from '([^']+)';$/gm)].map((m) => m[1]);
+    expect(imports).not.toContain('node:child_process');
   });
 });

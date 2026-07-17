@@ -13,9 +13,17 @@ import { mockCommonBasic } from '../fixtures/mock-common.js';
 // Mock dependencies before imports
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
+// Still mocked: git.ts's OTHER helpers legitimately shell out. Only branch
+// resolution moved off the spawn (#2970).
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(() => ''),
   execFileSync: vi.fn(() => ''),
+}));
+
+// #2970: getCurrentBranch now parses .git/HEAD via the git-head leaf.
+vi.mock('../../lib/git-head.js', () => ({
+  readBranchFromHead: vi.fn(),
+  readBranchOr: vi.fn(),
 }));
 
 import {
@@ -31,8 +39,10 @@ import {
   getDefaultBranch,
   getGitStatus,
   hasUncommittedChanges,
+  _resetBranchCacheForTesting,
 } from '../../lib/git.js';
 import { execFileSync } from 'node:child_process';
+import { readBranchOr } from '../../lib/git-head.js';
 
 // =============================================================================
 // Tests
@@ -98,18 +108,51 @@ describe('lib/git', () => {
   // ---------------------------------------------------------------------------
 
   describe('getCurrentBranch', () => {
+    // The per-dir memo added in #2970 is module-level state; drop it between
+    // cases or the first mocked value leaks into every later assertion.
+    beforeEach(() => {
+      _resetBranchCacheForTesting();
+    });
+
     test('returns branch name from git', () => {
-      vi.mocked(execFileSync).mockReturnValue('feat/my-feature\n');
+      vi.mocked(readBranchOr).mockReturnValue('feat/my-feature');
 
       expect(getCurrentBranch('/test/project')).toBe('feat/my-feature');
     });
 
-    test('returns "unknown" when git command fails', () => {
-      vi.mocked(execFileSync).mockImplementation(() => {
-        throw new Error('detached HEAD');
-      });
+    test('returns "unknown" when there is no readable repo', () => {
+      // readBranchOr swallows the parse error and yields the caller's fallback.
+      vi.mocked(readBranchOr).mockReturnValue('unknown');
 
       expect(getCurrentBranch('/test/project')).toBe('unknown');
+    });
+
+    // #2970: this runs on the PreToolUse/Bash path, where it was previously an
+    // UNCACHED 5s-timeout spawn on every command. The memo is the point.
+    test('resolves once per directory, then serves from cache', () => {
+      vi.mocked(readBranchOr).mockReturnValue('main');
+
+      expect(getCurrentBranch('/test/project')).toBe('main');
+      expect(getCurrentBranch('/test/project')).toBe('main');
+
+      expect(readBranchOr).toHaveBeenCalledTimes(1);
+    });
+
+    test('caches per directory, not globally', () => {
+      vi.mocked(readBranchOr).mockReturnValueOnce('main').mockReturnValueOnce('dev');
+
+      expect(getCurrentBranch('/repo/a')).toBe('main');
+      expect(getCurrentBranch('/repo/b')).toBe('dev');
+    });
+
+    // #2970: no subprocess on this path. Asserted on the IMPORT rather than a
+    // substring, since the docstring legitimately names the call it replaced.
+    test('does not spawn git to resolve the branch', () => {
+      vi.mocked(readBranchOr).mockReturnValue('main');
+
+      getCurrentBranch('/test/project');
+
+      expect(execFileSync).not.toHaveBeenCalled();
     });
   });
 
