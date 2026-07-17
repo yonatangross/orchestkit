@@ -1,0 +1,36 @@
+---
+title: "Case study: CC Adoption Wave Explorer"
+description: How an automated release-watch pipeline turns 3 Claude Code releases into 37 scored adoption issues and one interactive triage dashboard.
+icon: Waves
+---
+
+import { LazyLabEmbed } from "@/components/lazy";
+
+
+**Problem.** Claude Code ships multiple releases a week. Every release can carry
+breaking changes for a plugin with 100+ skills and 37 agents — hooks that stop
+firing, permission semantics that shift, worktree isolation that tightens. Reading
+changelogs manually does not scale, and falling one version behind costs hours of
+debugging.
+
+**Approach.** An automated pipeline (described in
+[How we adopt every Claude Code release](/docs/guides/cc-adoption)) watches upstream
+releases, snapshots each changelog, and runs an LLM triage that files one scored
+GitHub issue per change. For the July 2026 wave that meant **37 issues across
+CC 2.1.210 → 2.1.212**, each with a category (breaking / new command / new field),
+a 0–20 gap score, and the list of affected skills.
+
+The explorer below is the dashboard that wave produced. Filter by version, category,
+gap score, or affected skill; click cards to build a work batch; the prompt bar
+composes the triage instruction that goes back into a Claude Code session.
+
+<LazyLabEmbed
+  slug="cc-adoption-wave-210-212"
+  caption="Live artifact — the actual 37-issue wave for CC 2.1.210–212, auto-filed 2026-07-15 to 2026-07-17."
+  height={620}
+/>
+
+**What it demonstrates.** Chart marks use a CVD-validated categorical palette
+(6 slots, all accessibility checks passing), stat tiles and stacked bars follow a
+documented encoding standard, and the whole artifact is one dependency-free HTML file
+generated inside the working session that triaged the wave.

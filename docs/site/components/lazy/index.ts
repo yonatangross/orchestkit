@@ -9,3 +9,4 @@ export { LazyAnalyticsDashboard } from "./analytics-dashboard";
 export { LazyPipelineGallery } from "./pipeline-gallery";
 export { LazyComponentDNA } from "./component-dna";
 export { LazySetupWizard } from "./setup-wizard";
+export { LazyLabGallery, LazyLabEmbed, LazyCcAdoptionBoard } from "./lab-gallery";

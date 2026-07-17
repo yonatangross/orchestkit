@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Agent Coordination — Swarm vs Agents vs Workflow (2026)</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --border:#30363d; --ink:#e6edf3; --muted:#8b949e;
+    --acc:#7c3aed; --green:#3fb950; --amber:#d29922; --red:#f85149; --blue:#58a6ff; --cyan:#39c5cf;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 ui-sans-serif,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px}
+  h1{font-size:26px;margin:0 0 4px} h2{font-size:19px;margin:34px 0 10px;border-bottom:1px solid var(--border);padding-bottom:6px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  .grid{display:grid;gap:16px}
+  .cards{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+  .card h3{margin:0 0 6px;font-size:15px} .card p{margin:6px 0;color:var(--muted);font-size:13px}
+  .pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;margin:2px 4px 2px 0}
+  .p-green{background:rgba(63,185,80,.15);color:var(--green)} .p-amber{background:rgba(210,153,34,.15);color:var(--amber)}
+  .p-red{background:rgba(248,81,73,.15);color:var(--red)} .p-blue{background:rgba(88,166,255,.15);color:var(--blue)}
+  .p-acc{background:rgba(124,58,237,.18);color:#b392f0}
+  .mer{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;overflow:auto}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  th,td{padding:9px 11px;text-align:left;border-bottom:1px solid var(--border);font-size:13px;vertical-align:top}
+  th{background:#1c2230;color:var(--ink);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  td:first-child{font-weight:600}
+  .sel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
+  .q{margin:14px 0} .q label{display:block;font-weight:600;margin-bottom:7px;font-size:14px}
+  .opts{display:flex;gap:8px;flex-wrap:wrap}
+  .opt{flex:1;min-width:120px;background:#1c2230;border:1px solid var(--border);border-radius:9px;padding:10px 12px;cursor:pointer;font-size:13px;transition:.12s;color:var(--ink)}
+  .opt:hover{border-color:var(--acc)} .opt.on{border-color:var(--acc);background:rgba(124,58,237,.18);box-shadow:0 0 0 1px var(--acc)}
+  .verdict{margin-top:18px;border:1px solid var(--acc);border-radius:12px;padding:16px;background:rgba(124,58,237,.08)}
+  .verdict .big{font-size:21px;font-weight:700;color:#b392f0}
+  .verdict code{background:#1c2230;padding:1px 6px;border-radius:5px;color:var(--cyan)}
+  .src{color:var(--muted);font-size:12px} .src a{color:var(--blue);text-decoration:none}
+  .note{background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.35);border-radius:10px;padding:12px 14px;font-size:13px;margin:14px 0}
+  .note b{color:var(--amber)}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .foot{margin-top:26px;color:var(--muted);font-size:12px;text-align:center}
+  .barwrap{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px}
+  .bar{height:9px;border-radius:5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧭 Multi-Agent Coordination — Swarm vs Agents vs Workflow</h1>
+  <p class="sub">State of practice as of <b>2026-06-17</b> · grounded in Tavily research (Anthropic docs, Microsoft taxonomy, production field reports) · the question: <i>why not a shitload of swarm?</i></p>
+
+  <div class="note">
+    <b>⚡ TL;DR from 2026 production data:</b> Free peer-swarm is the <i>least</i> reliable pattern in the wild —
+    field reports cite a <b>35–55% success-rate ceiling</b> in unconstrained environments, compounding to ~36% failure over 20-step chains,
+    with 4s+ coordination latency. The <b>orchestrator-worker</b> + <b>deterministic pipeline</b> patterns are "what survives contact with production."
+    What this session ran (the Workflow tool) <i>is</i> that production-standard pattern — not a gap.
+  </div>
+
+  <h2>① The five canonical topologies</h2>
+  <div class="grid cards">
+    <div class="card"><h3>🎯 Orchestrator–Worker</h3><p>One coordinator fans out subtasks; workers <b>don't talk to each other</b>, all coordination flows through the hub.</p><span class="pill p-green">most deployed</span><span class="pill p-blue">auditable</span></div>
+    <div class="card"><h3>➡️ Pipeline</h3><p>Fixed sequential stages: A→B→C. Each consumes the prior. Predictable, debuggable.</p><span class="pill p-green">deterministic</span><span class="pill p-blue">KYC / review flows</span></div>
+    <div class="card"><h3>🕸️ Mesh</h3><p>3–8 named peers with <b>persistent direct channels</b>, iterating on a shared artifact. Topology fixed at design time.</p><span class="pill p-amber">peer debate</span><span class="pill p-amber">~3× cost</span></div>
+    <div class="card"><h3>🐝 Swarm</h3><p>Many peers coordinate via shared state; <b>topology emerges at runtime</b>. Broad exploration, unknown solution path.</p><span class="pill p-red">35–55% ceiling</span><span class="pill p-red">hard to control</span></div>
+    <div class="card"><h3>🌲 Hierarchical</h3><p>Tree of supervisors → sub-supervisors → workers. Recursive decomposition for very large tasks.</p><span class="pill p-amber">latency stacks</span><span class="pill p-blue">scales</span></div>
+  </div>
+
+  <h2>② Topology diagrams</h2>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(330px,1fr))">
+    <div class="mer"><b>🎯 Orchestrator–Worker (Workflow tool)</b>
+      <pre class="mermaid">
+flowchart TD
+  O([Orchestrator / script]):::o
+  O --> W1[worker]:::w
+  O --> W2[worker]:::w
+  O --> W3[worker]:::w
+  W1 --> O
+  W2 --> O
+  W3 --> O
+  classDef o fill:#7c3aed,stroke:#b392f0,color:#fff
+  classDef w fill:#161b22,stroke:#30363d,color:#e6edf3
+      </pre>
+    </div>
+    <div class="mer"><b>🕸️ Mesh / Agent Teams (peer SendMessage)</b>
+      <pre class="mermaid">
+flowchart LR
+  A[security]:::w <--> B[ci-cd]:::w
+  B <--> C[release]:::w
+  C <--> A
+  L([team lead]):::o --- A
+  L --- B
+  L --- C
+  classDef o fill:#7c3aed,stroke:#b392f0,color:#fff
+  classDef w fill:#161b22,stroke:#30363d,color:#e6edf3
+      </pre>
+    </div>
+    <div class="mer"><b>🐝 Swarm (emergent, shared blackboard)</b>
+      <pre class="mermaid">
+flowchart TD
+  BB[(shared state)]:::bb
+  S1[agent]:::w <--> BB
+  S2[agent]:::w <--> BB
+  S3[agent]:::w <--> BB
+  S4[agent]:::w <--> BB
+  S5[agent]:::w <--> BB
+  classDef bb fill:#d29922,stroke:#f0c674,color:#000
+  classDef w fill:#161b22,stroke:#30363d,color:#e6edf3
+      </pre>
+    </div>
+    <div class="mer"><b>➡️ Pipeline (what merges to main looked like)</b>
+      <pre class="mermaid">
+flowchart LR
+  I[analyze PR]:::w --> F[fix + rebuild]:::w --> M[merge when green]:::g --> N[next tree]:::w
+  classDef w fill:#161b22,stroke:#30363d,color:#e6edf3
+  classDef g fill:#238636,stroke:#3fb950,color:#fff
+      </pre>
+    </div>
+  </div>
+
+  <h2>③ How OrchestKit / Claude Code primitives map</h2>
+  <table>
+    <tr><th>Primitive</th><th>Topology</th><th>Coordinates via</th><th>Agents talk?</th><th>Default agent</th><th>Cost</th><th>Use when</th></tr>
+    <tr><td>Agent tool (single)</td><td>🎯 Orchestrator–Worker</td><td>parent collects</td><td>No (star)</td><td>ork:* if named</td><td><span class="pill p-green">low</span></td><td>Independent tasks, dispatch &amp; check later</td></tr>
+    <tr><td>Subagent (YAML)</td><td>➡️ Pipeline</td><td>locked config</td><td>No</td><td>pinned</td><td><span class="pill p-green">predictable</span></td><td>Repeatable workflows (review, tests)</td></tr>
+    <tr><td><b>Workflow tool</b> ← this session</td><td>🎯+➡️ Orchestrator + Pipeline</td><td>the JS script</td><td>No — return data</td><td><b>generic</b> (pass <code>agentType</code> for ork:*)</td><td><span class="pill p-green">cheap</span></td><td>Deterministic fan-out over a work-list (11 PRs → 11 readers)</td></tr>
+    <tr><td>Agent Teams</td><td>🕸️ Mesh / 🐝 Swarm</td><td>mailbox + shared task list</td><td><b>Yes</b> (SendMessage)</td><td>ork:* named</td><td><span class="pill p-red">~3× (every msg = round trip)</span></td><td>Dependent tasks needing peer debate</td></tr>
+    <tr><td>ork:swarm-migrate</td><td>🎯 Orchestrator–Worker</td><td>coordinator + ledger</td><td>No</td><td>per-repo</td><td><span class="pill p-amber">scales</span></td><td>Same change across N repos</td></tr>
+  </table>
+
+  <h2>④ Pick your topology</h2>
+  <div class="sel">
+    <div class="q"><label>1 · Are the subtasks independent, or does step N need step N-1?</label>
+      <div class="opts" data-q="dep">
+        <div class="opt" data-v="indep">🔀 Fully independent</div>
+        <div class="opt" data-v="seq">⛓️ Sequentially dependent</div>
+        <div class="opt" data-v="shared">🧩 Iterate on ONE shared artifact</div>
+      </div></div>
+    <div class="q"><label>2 · Is the solution path known up front?</label>
+      <div class="opts" data-q="path">
+        <div class="opt" data-v="known">🗺️ Known (I can script the steps)</div>
+        <div class="opt" data-v="unknown">🌫️ Unknown (needs exploration)</div>
+      </div></div>
+    <div class="q"><label>3 · Do agents need to challenge / debate each other in real time?</label>
+      <div class="opts" data-q="debate">
+        <div class="opt" data-v="no">🚫 No — just produce results</div>
+        <div class="opt" data-v="yes">💬 Yes — adversarial / peer review</div>
+      </div></div>
+    <div class="q"><label>4 · How many parallel units?</label>
+      <div class="opts" data-q="scale">
+        <div class="opt" data-v="few">1–8</div>
+        <div class="opt" data-v="many">9–100s</div>
+      </div></div>
+    <div class="verdict" id="verdict">
+      <div class="big" id="vtitle">⬆️ Answer the 4 questions</div>
+      <div id="vbody" style="margin-top:8px;color:var(--muted)">A recommendation will appear here — the primitive, the topology, and the cost tier.</div>
+    </div>
+  </div>
+
+  <h2>⑤ Reliability reality check</h2>
+  <div class="card">
+    <p style="margin-top:0">Self-reported production success rates (unconstrained tasks, 2026 field reports). Higher control = higher reliability.</p>
+    <div class="barwrap"><span style="width:160px">➡️ Pipeline / determ.</span><div class="bar" style="width:88%;background:var(--green)"></div><span>~90%</span></div>
+    <div class="barwrap"><span style="width:160px">🎯 Orchestrator–Worker</span><div class="bar" style="width:80%;background:var(--green)"></div><span>~80%</span></div>
+    <div class="barwrap"><span style="width:160px">🕸️ Mesh (3–8 peers)</span><div class="bar" style="width:62%;background:var(--amber)"></div><span>~60–70%</span></div>
+    <div class="barwrap"><span style="width:160px">🐝 Free swarm</span><div class="bar" style="width:45%;background:var(--red)"></div><span>35–55%</span></div>
+    <p class="src">Caveat: these are directional figures from practitioner reports, not a controlled benchmark. The ordering is the robust signal, not the exact %.</p>
+  </div>
+
+  <h2>⑥ Why this session looked "thin" (and why that was correct)</h2>
+  <div class="grid cards">
+    <div class="card"><h3>🔒 External serialization</h3><p>GitHub merges to a shared lockfile are width-1: branch protection forces one-at-a-time. 50 agents can't merge 5 PRs to one tree at once.</p></div>
+    <div class="card"><h3>🧱 Tiny sequential fixes</h3><p>TS6 tsconfig, biome one-liner, mirror syncs — each smaller than the overhead of spawning+coordinating an agent for it.</p></div>
+    <div class="card"><h3>⚙️ Generic-default</h3><p>Workflow's <code>agent()</code> defaulted to generic readers, not <code>ork:*</code> personas — the real, fixable gap. Pass <code>agentType:'ork:…'</code> to wire the fleet.</p></div>
+    <div class="card"><h3>✅ Right tool</h3><p>11 PRs → 11 parallel readers (orchestrator-worker) + main-thread execution = the production-standard shape, not a swarm shortfall.</p></div>
+  </div>
+
+  <h2>⑦ The honest gap worth building</h2>
+  <div class="card">
+    <p style="margin-top:0">OrchestKit has the personas <i>and</i> the team/workflow primitives — but no general <b>goal → decompose → assign specialist → coordinate</b> auto-router. Every fan-out is hand-designed. Coordination is either script-mediated (cheap, no peer talk) or team-mesh (peer talk, ~3× cost), with no smart selector choosing between them or wiring <code>ork:*</code> in by default.</p>
+    <p class="src">Sources (2026): code.claude.com/docs/agent-teams · cloudzero.com/blog/claude-code-agents · gurusup.com (5-pattern taxonomy) · truefoundry / tensoria (framework benchmarks) · r/AI_Agents production field report (swarm ceiling).</p>
+  </div>
+
+  <div class="foot">Generated 2026-06-17 · open in any browser · self-contained (mermaid via CDN)</div>
+</div>
+
+<script>
+mermaid.initialize({startOnLoad:true,theme:'dark',themeVariables:{fontSize:'13px'}});
+const state={dep:null,path:null,debate:null,scale:null};
+document.querySelectorAll('.opts').forEach(group=>{
+  const q=group.dataset.q;
+  group.querySelectorAll('.opt').forEach(o=>{
+    o.addEventListener('click',()=>{
+      group.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));
+      o.classList.add('on'); state[q]=o.dataset.v; render();
+    });
+  });
+});
+function render(){
+  const {dep,path,debate,scale}=state;
+  if(!dep||!path||!debate||!scale) return;
+  let title,body,cls;
+  if(debate==='yes'||dep==='shared'){
+    title='🕸️ Agent Teams (Mesh)';
+    cls='p-amber';
+    body='Peers need to challenge each other / co-edit one artifact → <b>Agent Teams</b> with named <code>ork:*</code> teammates + SendMessage. Cost ~3× (every message is a model round trip). Keep it to 3–8 peers. This is the "swarm panel" feel — use it for adversarial review, competing-hypothesis debugging, or design debate.';
+    if(scale==='many') body+=' <br>⚠️ 9+ peers in a mesh → coordination cost explodes & reliability drops toward the 35–55% swarm ceiling. Shard into sub-teams under a supervisor instead.';
+  } else if(dep==='seq'){
+    title='➡️ Pipeline (Workflow tool)';
+    cls='p-green';
+    body='Sequential dependence + no debate → deterministic <b>pipeline()</b> in the Workflow tool. Each stage consumes the last; wall-clock = slowest single chain. Highest reliability tier. Pass <code>agentType:\'ork:…\'</code> per stage to use specialists.';
+  } else if(dep==='indep' && path==='known'){
+    title= scale==='many' ? '🎯 Workflow tool — parallel() fan-out' : '🎯 Agent tool (single dispatch)';
+    cls='p-green';
+    body = scale==='many'
+      ? 'Many independent, scriptable units → <b>Workflow tool parallel()</b> (orchestrator-worker). Caps at min(16, cores−2) concurrent; 1000 lifetime. Exactly this session\'s 11-PR fan-out. <b>Cheap + auditable.</b>'
+      : 'A handful of independent tasks → just dispatch <b>Agent tool</b> spawns (agent view) and collect. No orchestration framework needed.';
+  } else if(path==='unknown'){
+    title='🐝 Swarm — but constrain it';
+    cls='p-red';
+    body='Unknown solution path + independence → exploration swarm. ⚠️ Lowest reliability (35–55%). Constrain it: cap rounds, add a <b>verifier/critic</b> gate, prefer loop-until-dry over free emergence. Most teams keep swarms to back-office research, never user-facing flows.';
+  } else {
+    title='🎯 Orchestrator–Worker';
+    cls='p-green';
+    body='Default safe choice: a coordinator fans out to workers, aggregates results. Workers don\'t talk. Most-deployed production pattern.';
+  }
+  document.getElementById('vtitle').innerHTML=title;
+  document.getElementById('vbody').innerHTML=body;
+  const v=document.getElementById('verdict');
+  v.style.borderColor = cls==='p-red'?'var(--red)':cls==='p-amber'?'var(--amber)':'var(--green)';
+}
+</script>
+</body>
+</html>

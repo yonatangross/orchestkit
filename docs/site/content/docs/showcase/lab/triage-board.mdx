@@ -1,0 +1,30 @@
+---
+title: "Case study: Issue Triage Board"
+description: The entire open-issue backlog as one interactive board — 98 issues triaged in a single session instead of a week of grooming.
+icon: KanbanSquare
+---
+
+import { LazyLabEmbed } from "@/components/lazy";
+
+
+**Problem.** A fast-moving solo repo accumulates open issues faster than any grooming
+ritual clears them. At the time this board was generated the backlog stood at
+**98 open issues** spanning bugs, adoption work, and milestone bundles — too many to
+hold in one head, too interconnected for a flat list.
+
+**Approach.** Instead of paging through GitHub, the session pulled the full backlog
+and rendered it as a decision board: every issue a card, milestones as swimlanes,
+and drag-to-triage buckets. The output of a triage pass is not a spreadsheet — it is
+a composed execution prompt listing the chosen batch, ready to paste back into the
+next working session.
+
+<LazyLabEmbed
+  slug="triage-board"
+  caption="Live artifact — the real 98-issue backlog snapshot this board was generated from (June 2026)."
+  height={620}
+/>
+
+**What it demonstrates.** The pattern behind most Lab artifacts: pull real state,
+render it as a manipulable surface, and make the copy-out artifact an *instruction*,
+not a report. The board is a point-in-time snapshot by design — triage decisions are
+consumed immediately, so freshness matters less than decision speed.

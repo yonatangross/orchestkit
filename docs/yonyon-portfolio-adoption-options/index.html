@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>yonyon.ai — Playgrounds &amp; CC-Adoption Story: Decision Board</title>
+<style>
+  :root {
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(220 12% 64%);
+    --pg-faint: hsl(220 10% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --r-sm: 9px; --r-md: 16px;
+    --ease: cubic-bezier(.2,.8,.25,1);
+  }
+  .viz-root { color-scheme: dark; --seq-fill:#3987e5; --grid:#2c2c2a; --good:#0ca30c; --warn:#fab219; }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--pg-bg);
+    background-image:
+      radial-gradient(900px 600px at 10% -10%, hsl(248 70% 22% / .5), transparent 60%),
+      radial-gradient(700px 500px at 95% 10%, hsl(262 65% 20% / .4), transparent 55%),
+      radial-gradient(800px 700px at 50% 115%, hsl(240 60% 16% / .5), transparent 60%);
+    background-attachment: fixed;
+    color: var(--pg-ink);
+    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    min-height: 100vh;
+  }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  .layout { display: grid; grid-template-columns: 400px 1fr; gap: 16px; max-width: 1440px; margin: 0 auto; padding: 24px 16px 150px; }
+  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+  header.hero { grid-column: 1 / -1; padding: 8px 4px 0; }
+  header.hero h1 { font-size: 22px; font-weight: 700; letter-spacing: -.3px; }
+  header.hero p { color: var(--pg-muted); margin-top: 4px; max-width: 78ch; }
+
+  .glass {
+    background: var(--pg-glass);
+    border: 1px solid var(--pg-glass-edge);
+    border-radius: var(--r-md);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 20px 60px -22px hsl(232 40% 3% / .7), 0 4px 12px -6px hsl(232 40% 3% / .5),
+                inset 0 1px 0 hsl(0 0% 100% / .12);
+  }
+
+  aside { display: flex; flex-direction: column; gap: 12px; align-self: start; }
+  .panel { padding: 16px; }
+  .panel > h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--pg-faint); font-weight: 600; margin-bottom: 3px; }
+  .panel > .sub { color: var(--pg-faint); font-size: 12px; margin-bottom: 10px; }
+
+  .opt {
+    display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center;
+    border: 1px solid var(--pg-glass-edge); background: var(--pg-glass);
+    border-radius: var(--r-sm); padding: 10px 12px; margin-bottom: 8px; cursor: pointer;
+    transition: border-color 200ms var(--ease), background 200ms var(--ease);
+  }
+  .opt:hover { background: var(--pg-glass-2); }
+  .opt.on { border-color: var(--pg-accent); background: hsl(248 84% 68% / .09); }
+  .opt .nm { font-weight: 600; font-size: 13.5px; }
+  .opt .pitch { grid-column: 1 / -1; color: var(--pg-muted); font-size: 12px; }
+  .opt .tags { grid-column: 1 / -1; display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; align-items: center; }
+  .tag { font-size: 10.5px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--pg-glass-edge); color: var(--pg-faint); }
+  .tag.rec { color: hsl(140 60% 70%); border-color: hsl(140 60% 40% / .5); }
+  .tag.defer { color: var(--pg-faint); }
+  .mark { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--pg-glass-edge); display: grid; place-items: center; font-size: 11px; color: transparent; }
+  .opt.on .mark { background: var(--pg-accent); border-color: var(--pg-accent); color: hsl(232 30% 10%); }
+  .scorebar { display: inline-flex; align-items: center; gap: 5px; }
+  .scorebar .track { width: 52px; height: 5px; border-radius: 3px; background: var(--grid); overflow: hidden; }
+  .scorebar .fill { height: 100%; background: var(--seq-fill); border-radius: 3px; display: block; }
+  .scorebar .v { font-size: 10.5px; color: var(--pg-faint); font-variant-numeric: tabular-nums; }
+
+  main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .preview-card { padding: 20px; }
+  .preview-card h2 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .preview-card .meta { color: var(--pg-faint); font-size: 12px; margin-bottom: 14px; }
+  .risk { border-left: 2px solid var(--warn); padding: 6px 10px; margin-top: 14px; color: var(--pg-muted); font-size: 12.5px; background: hsl(45 80% 50% / .05); border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+  .risk b { color: var(--pg-ink); }
+
+  /* ---------- mockup stage ---------- */
+  .stage { border-radius: var(--r-md); border: 1px solid var(--pg-glass-edge); background: hsl(232 22% 10%); overflow: hidden; }
+  .browser-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid hsl(0 0% 100% / .08); background: hsl(232 20% 13%); }
+  .browser-bar .dots { display: flex; gap: 5px; }
+  .browser-bar .dots i { width: 9px; height: 9px; border-radius: 50%; background: hsl(0 0% 100% / .15); }
+  .browser-bar .url { flex: 1; text-align: center; font-size: 11px; color: var(--pg-faint); font-family: ui-monospace, Menlo, monospace; background: hsl(0 0% 100% / .05); border-radius: 6px; padding: 3px 10px; }
+  .mock { padding: 22px; min-height: 300px; animation: fadeIn 300ms var(--ease); }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* mockup primitives */
+  .m-h1 { height: 14px; width: 45%; border-radius: 4px; background: hsl(0 0% 100% / .35); margin-bottom: 8px; }
+  .m-h2 { height: 9px; border-radius: 4px; background: hsl(0 0% 100% / .22); margin-bottom: 6px; }
+  .m-txt { height: 6px; border-radius: 3px; background: hsl(0 0% 100% / .12); margin-bottom: 5px; }
+  .m-accent { background: hsl(248 84% 68% / .75) !important; }
+  .m-grid { display: grid; gap: 10px; }
+  .m-card { border: 1px solid hsl(0 0% 100% / .12); border-radius: 10px; padding: 10px; background: hsl(0 0% 100% / .04); }
+  .m-thumb { height: 52px; border-radius: 6px; margin-bottom: 8px;
+    background: linear-gradient(120deg, hsl(248 60% 30% / .8), hsl(262 55% 22% / .8)); position: relative; overflow: hidden; }
+  .m-thumb::after { content: ""; position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, transparent 0 14px, hsl(0 0% 100% / .07) 14px 15px); }
+  .m-badge { display: inline-block; font-size: 9px; color: hsl(220 15% 80%); border: 1px solid hsl(0 0% 100% / .15); border-radius: 999px; padding: 0 6px; margin-right: 4px; }
+  .m-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr; gap: 8px; align-items: center; padding: 6px 8px; border-bottom: 1px solid hsl(0 0% 100% / .06); }
+  .m-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 5px; }
+  .m-meter { height: 5px; border-radius: 3px; background: hsl(0 0% 100% / .1); overflow: hidden; }
+  .m-meter i { display: block; height: 100%; background: #3987e5; }
+  .m-flow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+  .m-node { font-size: 10.5px; color: hsl(220 15% 85%); border: 1px solid hsl(248 84% 68% / .5); background: hsl(248 84% 68% / .12); border-radius: 8px; padding: 5px 9px; white-space: nowrap; }
+  .m-arrow { color: hsl(248 84% 68%); font-size: 12px; }
+  .m-iframe { border: 1.5px dashed hsl(248 84% 68% / .55); border-radius: 10px; padding: 14px; text-align: center; color: var(--pg-faint); font-size: 11px; margin-top: 10px;
+    background: hsl(248 84% 68% / .05); }
+
+  /* linkedin post mock */
+  .li-post { max-width: 520px; background: hsl(0 0% 100% / .06); border: 1px solid hsl(0 0% 100% / .12); border-radius: 12px; padding: 16px; }
+  .li-head { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .li-ava { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, hsl(248 70% 55%), hsl(262 60% 40%)); display: grid; place-items: center; font-weight: 700; font-size: 15px; }
+  .li-head .who { font-size: 13px; font-weight: 600; }
+  .li-head .sub { font-size: 11px; color: var(--pg-faint); }
+  .li-body { font-size: 13px; white-space: pre-wrap; color: hsl(220 15% 88%); }
+  .li-actions { display: flex; gap: 18px; margin-top: 12px; padding-top: 10px; border-top: 1px solid hsl(0 0% 100% / .08); color: var(--pg-faint); font-size: 11.5px; }
+  .copy-post { margin-top: 12px; background: transparent; border: 1px solid var(--pg-accent); color: var(--pg-accent); border-radius: var(--r-sm); padding: 7px 14px; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background 100ms var(--ease); }
+  .copy-post:hover { background: hsl(248 84% 68% / .12); }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .tab { border: 1px solid var(--pg-glass-edge); background: transparent; color: var(--pg-muted); border-radius: 999px; padding: 5px 13px; font: inherit; font-size: 12.5px; cursor: pointer; transition: background 100ms var(--ease), color 100ms var(--ease); }
+  .tab[aria-pressed="true"] { background: var(--pg-accent); border-color: var(--pg-accent); color: hsl(232 30% 10%); font-weight: 600; }
+
+  /* prompt bar */
+  .promptbar {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: 14px; width: min(1408px, calc(100vw - 32px));
+    display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+    padding: 12px 14px; border-radius: var(--r-md); z-index: 40;
+    background: hsl(232 26% 10% / .93);
+    border: 1px solid var(--pg-glass-edge);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 20px 60px -22px hsl(232 40% 3% / .7), 0 4px 12px -6px hsl(232 40% 3% / .5);
+  }
+  #prompt { color: var(--pg-muted); font-size: 12.5px; max-height: 88px; overflow-y: auto; white-space: pre-wrap; }
+  #copy { background: var(--pg-accent); border: none; color: hsl(232 30% 10%); font: inherit; font-weight: 700; border-radius: var(--r-sm); padding: 10px 18px; cursor: pointer; white-space: nowrap; transition: transform 100ms var(--ease), filter 100ms var(--ease); }
+  #copy:hover { filter: brightness(1.08); }
+  #copy:active { transform: scale(.97); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body class="viz-root">
+<div class="layout">
+  <header class="hero">
+    <h1>Playgrounds &amp; the CC-Adoption Story → yonyon.ai</h1>
+    <p>Decision board from the 3-agent brainstorm (18 ideas → 7 kept). Pick a <b>Lab backbone</b>, toggle <b>guide sections</b>, choose a <b>LinkedIn variant</b> — the preview shows a mockup of each choice and the prompt bar composes the implementation instruction. Two surfaces, two audiences: <span class="mono">orchestkit.yonyon.ai</span> (engineers) + apex <span class="mono">yonyon.ai</span> teaser (recruiters/clients).</p>
+  </header>
+
+  <aside>
+    <div class="glass panel">
+      <h3>1 · Lab backbone <span class="tag">pick one</span></h3>
+      <div class="sub">How playgrounds get surfaced on orchestkit.yonyon.ai</div>
+      <div id="backboneOpts"></div>
+    </div>
+    <div class="glass panel">
+      <h3>2 · Add-ons <span class="tag">toggle</span></h3>
+      <div class="sub">Composable extras on top of the backbone</div>
+      <div id="addonOpts"></div>
+    </div>
+    <div class="glass panel">
+      <h3>3 · Adoption guide <span class="tag">toggle</span></h3>
+      <div class="sub">"How we adopt CC versions" section content</div>
+      <div id="guideOpts"></div>
+    </div>
+    <div class="glass panel">
+      <h3>4 · LinkedIn post <span class="tag">pick one</span></h3>
+      <div class="sub">Post about automatic CC adoption</div>
+      <div id="liOpts"></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="glass preview-card">
+      <div class="tabs" id="tabs"></div>
+      <h2 id="pvTitle"></h2>
+      <div class="meta" id="pvMeta"></div>
+      <div class="stage">
+        <div class="browser-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url" id="pvUrl"></span></div>
+        <div class="mock" id="pvMock"></div>
+      </div>
+      <div class="risk" id="pvRisk"></div>
+    </div>
+  </main>
+</div>
+
+<div class="promptbar">
+  <div id="prompt"></div>
+  <button id="copy">Copy prompt</button>
+</div>
+
+<script>
+/* ---------------- data ---------------- */
+const LI_POSTS = {
+  numbers: `37 GitHub issues filed this week. I wrote zero of them.
+
+Claude Code shipped versions 2.1.210 through 2.1.212. My open-source plugin, OrchestKit, has to keep up with every release or it silently breaks.
+
+So I stopped keeping up manually. A GitHub Actions pipeline now watches every Claude Code release, snapshots the changelog, and runs an Opus-powered triage that reads the diff like a senior engineer. Each new feature, new field, or breaking change becomes its own adoption issue, categorized and scored by how big the gap is.
+
+The same pipeline bumps the minimum supported version automatically and renders an interactive HTML playground for each adoption wave, so I see the whole release at a glance before touching code.
+
+Cost to build: one weekend. Cost of falling one version behind: hours of debugging hooks that stopped firing.
+
+If your product sits on a platform that ships daily, manual changelog reading is not a process. It is a liability.
+
+Pipeline and playgrounds are public: github.com/yonatangross/orchestkit`,
+
+  cto: `Your platform is a dependency that ships daily. Nobody on your team is reading its changelog.
+
+Claude Code released 3 versions in the last 72 hours. For anyone building on top (plugins, agents, internal tooling), each one can quietly break a hook, a permission rule, or a workflow.
+
+Here is what that costs when it goes unmanaged: hours of debugging something that was announced in a changelog nobody read.
+
+I automated the whole loop for my open-source plugin, OrchestKit:
+1. A watcher snapshots every upstream release.
+2. An LLM triage reads the diff and files one scored GitHub issue per change (37 filed this week alone).
+3. The support floor bumps itself once the version matrix lands.
+4. Each wave gets an interactive dashboard so I triage a release in minutes, not an afternoon.
+
+The pattern is not Claude Code specific. Cursor, VS Code, any weekly-shipping platform: same exposure, same fix.
+
+The pipeline is public if you want to steal it: github.com/yonatangross/orchestkit`,
+
+  series: `CC adoption wave, week of July 14. The numbers:
+
+3 Claude Code releases (2.1.210 to 2.1.212).
+37 adoption issues auto-filed by the pipeline. I wrote zero.
+25 flagged as breaking. 28 plugin skills affected.
+
+The one that mattered: worktree subagents can no longer run git-mutating commands against the main checkout. If your agents assume shared git state, that is your weekend gone.
+
+How this works: my pipeline watches Claude Code releases, snapshots the changelog, runs LLM triage that files one scored issue per change, and renders an interactive dashboard per wave. I review a release in minutes.
+
+Every wave, I post the recap here. Follow along or steal the pipeline: github.com/yonatangross/orchestkit`
+};
+
+/* mockup builders return HTML strings */
+const M = {
+  gallery: `
+    <div class="m-h1"></div><div class="m-txt" style="width:60%"></div>
+    <div class="m-grid" style="grid-template-columns:repeat(3,1fr);margin-top:14px">
+      ${Array.from({length:6},(_,i)=>`
+        <div class="m-card">
+          <div class="m-thumb"></div>
+          <div class="m-h2" style="width:${65-i*4}%"></div>
+          <div class="m-txt" style="width:90%"></div>
+          <div><span class="m-badge">adoption</span><span class="m-badge">2026-07</span></div>
+        </div>`).join('')}
+    </div>
+    <div class="m-txt" style="width:34%;margin-top:12px" ></div>`,
+  curated: `
+    <div class="m-h1" style="width:58%"></div>
+    <div class="m-txt" style="width:85%"></div><div class="m-txt" style="width:78%"></div>
+    <div class="m-flow">
+      <span class="m-node">Problem</span><span class="m-arrow">→</span>
+      <span class="m-node">Approach</span><span class="m-arrow">→</span>
+      <span class="m-node">What it shows</span>
+    </div>
+    <div class="m-iframe">sandboxed &lt;iframe&gt; — live playground embed<br>with a 2-line "what you are looking at" caption</div>
+    <div class="m-txt" style="width:70%;margin-top:12px"></div><div class="m-txt" style="width:64%"></div>`,
+  tiles: `
+    <div class="m-h1"></div>
+    <div class="m-grid" style="grid-template-columns:repeat(2,1fr);margin-top:14px">
+      ${Array.from({length:4},()=>`
+        <div class="m-card" style="padding:0;overflow:hidden">
+          <div class="m-thumb" style="height:86px;margin:0;border-radius:0"></div>
+          <div style="padding:8px"><div class="m-h2" style="width:55%"></div><div class="m-txt" style="width:80%;margin:0"></div></div>
+        </div>`).join('')}
+    </div>
+    <div class="m-txt" style="width:46%;margin-top:12px"></div>`,
+  board: `
+    <div class="m-h1" style="width:52%"></div>
+    <div class="m-txt" style="width:40%"></div>
+    <div style="margin-top:12px">
+      <div class="m-row" style="border-bottom-color:hsl(0 0% 100% / .15)">
+        <div class="m-txt" style="width:60%;margin:0"></div><div class="m-txt" style="width:70%;margin:0"></div>
+        <div class="m-txt" style="width:50%;margin:0"></div><div class="m-txt" style="width:80%;margin:0"></div>
+      </div>
+      ${[['#3987e5',95],['#3987e5',80],['#d55181',55],['#008300',45],['#c98500',30]].map(([c,w])=>`
+        <div class="m-row">
+          <div><span class="m-dot" style="background:${c}"></span><span class="m-txt" style="display:inline-block;width:65%;margin:0;vertical-align:middle"></span></div>
+          <div class="m-txt" style="width:55%;margin:0"></div>
+          <div class="m-meter"><i style="width:${w}%"></i></div>
+          <div class="m-txt" style="width:70%;margin:0"></div>
+        </div>`).join('')}
+    </div>
+    <div class="m-txt" style="width:38%;margin-top:10px"></div>`,
+  casestudy: `
+    <div class="m-h1" style="width:64%"></div>
+    <div class="m-txt" style="width:88%"></div><div class="m-txt" style="width:82%"></div>
+    <div class="m-flow" style="margin-top:16px">
+      <span class="m-node">release-watch</span><span class="m-arrow">→</span>
+      <span class="m-node">changelog snapshot</span><span class="m-arrow">→</span>
+      <span class="m-node">Opus triage</span><span class="m-arrow">→</span>
+      <span class="m-node">37 issues</span><span class="m-arrow">→</span>
+      <span class="m-node">floor bump</span><span class="m-arrow">→</span>
+      <span class="m-node">wave playground</span>
+    </div>
+    <div class="m-grid" style="grid-template-columns:repeat(3,1fr);margin-top:14px">
+      <div class="m-card"><div class="m-h2 m-accent" style="width:40%"></div><div class="m-txt" style="width:70%"></div></div>
+      <div class="m-card"><div class="m-h2 m-accent" style="width:40%"></div><div class="m-txt" style="width:70%"></div></div>
+      <div class="m-card"><div class="m-h2 m-accent" style="width:40%"></div><div class="m-txt" style="width:70%"></div></div>
+    </div>
+    <div class="m-txt" style="width:76%;margin-top:12px"></div><div class="m-txt" style="width:70%"></div>`,
+  archive: `
+    <div class="m-h1" style="width:48%"></div>
+    ${['2.1.212 · 12 issues · 7 breaking','2.1.211 · 8 issues · 6 breaking','2.1.210 · 17 issues · 13 breaking','2.1.208 · closed wave','2.1.207 · closed wave'].map((t,i)=>`
+      <div class="m-card" style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;opacity:${1-i*.14}">
+        <span style="font-size:11px;color:hsl(220 15% 82%)" class="mono">${t}</span>
+        <span class="m-badge">wave page</span>
+      </div>`).join('')}`,
+  apex: `
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:16px">
+      <div class="li-ava" style="width:34px;height:34px;font-size:12px">YG</div>
+      <div><div class="m-h2" style="width:120px;margin-bottom:4px"></div><div class="m-txt" style="width:170px;margin:0"></div></div>
+    </div>
+    <div class="m-h1" style="width:70%"></div>
+    <div class="m-txt" style="width:60%"></div>
+    <div class="m-card" style="margin-top:16px;border-color:hsl(248 84% 68% / .5)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div class="m-h2 m-accent" style="width:130px"></div>
+          <div class="m-txt" style="width:220px"></div>
+          <div class="m-txt" style="width:180px;margin:0"></div>
+        </div>
+        <div class="m-thumb" style="width:120px;height:64px;margin:0"></div>
+      </div>
+      <div style="margin-top:8px"><span class="m-badge">The Lab →</span><span class="m-badge">orchestkit.yonyon.ai</span></div>
+    </div>
+    <div class="m-txt" style="width:44%;margin-top:14px"></div>`,
+  li: v => `
+    <div class="li-post">
+      <div class="li-head">
+        <div class="li-ava">YG</div>
+        <div><div class="who">Yonatan Gross</div><div class="sub">Building OrchestKit · AI tooling</div></div>
+      </div>
+      <div class="li-body">${LI_POSTS[v].slice(0, 420)}…</div>
+      <div class="li-actions"><span>👍 Like</span><span>💬 Comment</span><span>↗ Repost</span></div>
+    </div>
+    <button class="copy-post" data-li="${v}">Copy full post text</button>`
+};
+
+const GROUPS = {
+  backbone: {
+    pick: 'one',
+    options: [
+      { id:'manifest', nm:'Manifest-driven Lab gallery', score:9.0, effort:'M',
+        pitch:'CI prebuild emits playgrounds.json (title/desc/tags from each file’s head, allowlist-gated); one gallery page renders cards; raw HTML served from public/lab/.',
+        tags:['recommended','zero-touch churn','noindex raw files'],
+        url:'orchestkit.yonyon.ai/docs/showcase/lab', mock:'gallery',
+        risk:'Auto-extracted titles ship unreviewed to a public portfolio. Mitigation: allowlist field in the manifest script; garbage-titled playgrounds never surface.' },
+      { id:'curatedOnly', nm:'Curated case studies only', score:7.5, effort:'L',
+        pitch:'Hand-pick the top 5-8; one MDX page each (problem, approach, sandboxed embed, takeaway) under showcase/. No long tail.',
+        tags:['highest signal/item','writing cost','prune-exempt'],
+        url:'orchestkit.yonyon.ai/docs/showcase/lab/triage-board', mock:'curated',
+        risk:'Curation debt: narrative pages fossilize while the playground style evolves; a 6-month-old case study undersells current work. The long tail stays invisible.' },
+      { id:'liveTiles', nm:'Live iframe tile grid', score:6.5, effort:'M',
+        pitch:'Gallery renders each playground live in scaled-down sandboxed iframes; click to expand. Real artifacts, no screenshots.',
+        tags:['most impressive','mobile risk'],
+        url:'orchestkit.yonyon.ai/docs/showcase/lab', mock:'tiles',
+        risk:'Dozens of animating glassmorphism dashboards murder mobile CPU and LCP. Needs IntersectionObserver lazy-mount + load-on-hover gating, which tends to rot.' },
+    ]
+  },
+  addons: {
+    pick: 'many',
+    options: [
+      { id:'apexTeaser', nm:'Apex portfolio teaser strip', score:8.0, effort:'S', on:true,
+        pitch:'A compact "The Lab" card on yonyon.ai (yonatan-hq/portfolio repo, Sanity-backed) linking to the docs-site gallery. Recruiters see it without leaving the portfolio.',
+        tags:['recommended','separate repo','2 audiences bridged'],
+        url:'yonyon.ai/#lab', mock:'apex',
+        risk:'Cross-repo change (yonatan-hq/portfolio, not orchestkit). Keep it a dumb link card; do NOT embed live playgrounds in the portfolio or you inherit the mobile problem there too.' },
+      { id:'flagship', nm:'3 flagship case studies', score:7.5, effort:'L', on:true,
+        pitch:'On top of the gallery: full case-study MDX for the best 3 (adoption wave explorer, triage board, session standing board), following the existing Pipeline Gallery pattern.',
+        tags:['pairs with manifest gallery'],
+        url:'orchestkit.yonyon.ai/docs/showcase/lab/adoption-waves', mock:'curated',
+        risk:'Writing is the cost. Cap at 3 and reuse the Pipeline Gallery component pattern or this silently becomes a week of docs work.' },
+    ]
+  },
+  guide: {
+    pick: 'many',
+    options: [
+      { id:'statusBoard', nm:'Live adoption status board', score:8.8, effort:'S', on:true,
+        pitch:'Build-time page rendering shared/cc-adoption-gaps.json + cc-support.json: feature, category, gap score, affected skills, state. Regenerates every deploy, zero API calls.',
+        tags:['recommended','data already in repo'],
+        url:'orchestkit.yonyon.ai/docs/guides/cc-adoption/status', mock:'board',
+        risk:'"Current as of last deploy" is not live; a wave closed between deploys looks stale. Mitigation: visible "generated at <commit>" stamp.' },
+      { id:'caseStudy', nm:'"How we adopt every CC release" case study', score:8.6, effort:'M', on:true,
+        pitch:'Evergreen narrative: watch → snapshot → Opus triage → auto-filed issues → floor bump → wave playground. Anchored to the existing SOP doc so prose can’t drift.',
+        tags:['recommended','the recruiter artifact'],
+        url:'orchestkit.yonyon.ai/docs/guides/cc-adoption', mock:'casestudy',
+        risk:'Prose rots if the pipeline changes and nobody edits. Mitigation: link mechanics to docs/cc-release-integration-sop.md as single source; page tells the story only.' },
+      { id:'archive', nm:'Versioned wave archive', score:7.2, effort:'M', on:false,
+        pitch:'Auto-generated MDX per CC release: changelog delta, gap breakdown, issue links, embedded wave playground. Browsable adoption history.',
+        tags:['gate on gap-score sum'],
+        url:'orchestkit.yonyon.ai/docs/guides/cc-adoption/waves/2.1.212', mock:'archive',
+        risk:'Thin pages for trivial releases create archive noise. Gate generation on issue count / gap-score sum so a 2-issue release gets no page.' },
+    ]
+  },
+  li: {
+    pick: 'one',
+    options: [
+      { id:'numbers', nm:'"37 issues. I wrote zero."', score:8.4, effort:'S',
+        pitch:'Numbers-first shock hook, 4-beat pipeline explanation, repo link. Draft ready below.',
+        tags:['recommended','draft ready'],
+        url:'linkedin.com/in/yonatangross', mock:'li',
+        risk:'Skeptics will ask "do the issues get DONE or just pile up?" Keep a closed-loop stat ready in comments (e.g. 238 closed on the umbrella milestone) or it reads as automation theater.' },
+      { id:'cto', nm:'"Your platform ships daily"', score:7.0, effort:'S',
+        pitch:'Zoom out to the general problem: unmanaged platform dependency. Wider CTO/EM reach, softer sell.',
+        tags:['wider audience'],
+        url:'linkedin.com/in/yonatangross', mock:'li',
+        risk:'Without a concrete screenshot of the issue list or playground it reads as abstract LinkedIn-speak. Must attach one real image.' },
+      { id:'series', nm:'Weekly wave recap (series opener)', score:6.8, effort:'M',
+        pitch:'Recurring format: version range, issue count, the one breaking change that mattered, playground link. Compounding familiarity.',
+        tags:['cadence commitment','needs skip rule'],
+        url:'linkedin.com/in/yonatangross', mock:'li',
+        risk:'Boring weeks produce boring posts and the series dies quietly. Skip rule: no post if the wave has under 5 issues or no breaking change.' },
+    ]
+  }
+};
+
+const state = {
+  backbone: 'manifest',
+  addons: new Set(['apexTeaser','flagship']),
+  guide: new Set(['statusBoard','caseStudy']),
+  li: 'numbers',
+  view: null, // {group, id} currently previewed
+};
+state.view = { group: 'backbone', id: 'manifest' };
+
+/* ---------------- render ---------------- */
+function optHtml(group, o, active) {
+  return `<div class="opt ${active ? 'on' : ''}" data-group="${group}" data-id="${o.id}" role="button" tabindex="0" aria-pressed="${active}">
+    <div class="nm">${o.nm}</div>
+    <div class="mark">✓</div>
+    <div class="pitch">${o.pitch}</div>
+    <div class="tags">
+      ${o.tags.map(t => `<span class="tag ${t === 'recommended' ? 'rec' : ''}">${t}</span>`).join('')}
+      <span class="tag">effort ${o.effort}</span>
+      <span class="scorebar"><span class="track"><i class="fill" style="width:${o.score * 10}%"></i></span><span class="v">${o.score.toFixed(1)}</span></span>
+    </div>
+  </div>`;
+}
+
+function isActive(group, id) {
+  if (GROUPS[group].pick === 'one') return state[group] === id;
+  return state[group].has(id);
+}
+
+function renderControls() {
+  document.getElementById('backboneOpts').innerHTML = GROUPS.backbone.options.map(o => optHtml('backbone', o, isActive('backbone', o.id))).join('');
+  document.getElementById('addonOpts').innerHTML = GROUPS.addons.options.map(o => optHtml('addons', o, isActive('addons', o.id))).join('');
+  document.getElementById('guideOpts').innerHTML = GROUPS.guide.options.map(o => optHtml('guide', o, isActive('guide', o.id))).join('');
+  document.getElementById('liOpts').innerHTML = GROUPS.li.options.map(o => optHtml('li', o, isActive('li', o.id))).join('');
+}
+
+function renderPreview() {
+  const { group, id } = state.view;
+  const o = GROUPS[group].options.find(x => x.id === id);
+  if (!o) return;
+  document.getElementById('tabs').innerHTML =
+    Object.entries(GROUPS).flatMap(([g, def]) => def.options.filter(x => isActive(g, x.id)).map(x =>
+      `<button class="tab" data-vgroup="${g}" data-vid="${x.id}" aria-pressed="${state.view.group === g && state.view.id === x.id}">${x.nm.length > 30 ? x.nm.slice(0, 28) + '…' : x.nm}</button>`
+    )).join('');
+  document.getElementById('pvTitle').textContent = o.nm;
+  document.getElementById('pvMeta').textContent = `score ${o.score.toFixed(1)}/10 · effort ${o.effort} · ${o.pitch}`;
+  document.getElementById('pvUrl').textContent = o.url;
+  const mockEl = document.getElementById('pvMock');
+  mockEl.innerHTML = o.mock === 'li' ? M.li(o.id) : M[o.mock];
+  document.getElementById('pvRisk').innerHTML = `<b>Devil’s advocate:</b> ${o.risk}`;
+}
+
+/* ---------------- prompt ---------------- */
+function updatePrompt() {
+  const p = [];
+  p.push('Ship the yonyon.ai portfolio + CC-adoption content bundle:');
+  let n = 1;
+
+  const bb = state.backbone;
+  if (bb === 'manifest') {
+    p.push(`${n++}. Lab gallery (orchestkit repo, docs/site): add a prebuild script that scans the repo playgrounds (docs/playgrounds/*.html + committed playground dirs), extracts title/description/tags from each file's <head>, applies an allowlist, and emits playgrounds.json; copy the allowed HTML into public/lab/; add a gallery page under content/docs/showcase (card grid from the manifest, "best on desktop" badge). Raw /lab/*.html get noindex; only the gallery page is indexed. Embeds use sandboxed iframes.`);
+  } else if (bb === 'curatedOnly') {
+    p.push(`${n++}. Curated Lab (orchestkit repo, docs/site): hand-pick the top 5-8 playgrounds and write one MDX case-study page each (problem, approach, sandboxed iframe embed with a 2-line caption, takeaway) under content/docs/showcase/lab/, following the existing Pipeline Gallery pattern. No auto-generated gallery.`);
+  } else if (bb === 'liveTiles') {
+    p.push(`${n++}. Live Lab grid (orchestkit repo, docs/site): gallery page rendering each playground in a scaled sandboxed iframe tile (allow-scripts only), IntersectionObserver lazy-mount + load-on-hover gate, click to expand to the full public/lab/ copy. Mobile gets static fallback cards.`);
+  }
+
+  if (state.addons.has('flagship')) {
+    p.push(`${n++}. Flagship case studies: full MDX pages for the 3 best playgrounds (CC adoption wave explorer, triage playground, session standing board), reusing the Pipeline Gallery component pattern, cross-linked from the gallery.`);
+  }
+  if (state.addons.has('apexTeaser')) {
+    p.push(`${n++}. Apex teaser (separate repo: yonatan-hq/portfolio): add a compact "The Lab" section card on yonyon.ai linking to the docs-site gallery, matching the existing section component style (see src/components/sections/). Link card only, no embedded playgrounds.`);
+  }
+
+  const g = state.guide;
+  if (g.has('caseStudy') || g.has('statusBoard') || g.has('archive')) {
+    const bits = [];
+    if (g.has('caseStudy')) bits.push('an evergreen "How we adopt every Claude Code release" narrative page (watch → snapshot → Opus triage → auto-filed issues → floor bump → wave playground; mechanics link to docs/cc-release-integration-sop.md as the single source)');
+    if (g.has('statusBoard')) bits.push('a build-time adoption status board rendering shared/cc-adoption-gaps.json + shared/cc-support.json (feature, category, gap score, affected skills) with a "generated at <commit>" stamp');
+    if (g.has('archive')) bits.push('an auto-generated wave archive: one MDX page per CC release (changelog delta, gap breakdown, issue links, embedded wave playground), generation gated on issue count so trivial releases get no page');
+    p.push(`${n++}. CC-adoption guide section under content/docs/guides: ${bits.join('; ')}.`);
+  }
+
+  const li = GROUPS.li.options.find(o => o.id === state.li);
+  p.push(`${n++}. LinkedIn: use the "${li.nm}" variant (full text available via the Copy-full-post button in the playground). Before posting, attach one real screenshot (wave playground or issue list) and keep a closed-loop stat ready for comments.`);
+
+  p.push('Repo rules: orchestkit changes go through a feature branch + PR (npm run build, stage plugins/ + docs/site generated data); the portfolio change is a separate PR in yonatan-hq/portfolio. Nothing merges without review.');
+  document.getElementById('prompt').textContent = p.join('\n');
+}
+
+function updateAll() { renderControls(); renderPreview(); updatePrompt(); }
+
+/* ---------------- events ---------------- */
+document.addEventListener('click', e => {
+  const cp = e.target.closest('[data-li]');
+  if (cp) {
+    navigator.clipboard.writeText(LI_POSTS[cp.dataset.li]).then(() => {
+      const t = cp.textContent; cp.textContent = 'Copied!'; setTimeout(() => cp.textContent = t, 1200);
+    });
+    return;
+  }
+  const tab = e.target.closest('[data-vgroup]');
+  if (tab) { state.view = { group: tab.dataset.vgroup, id: tab.dataset.vid }; updateAll(); return; }
+  const opt = e.target.closest('.opt');
+  if (opt) {
+    const { group, id } = opt.dataset;
+    if (GROUPS[group].pick === 'one') state[group] = id;
+    else state[group].has(id) ? state[group].delete(id) : state[group].add(id);
+    state.view = { group, id };
+    updateAll();
+  }
+});
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList?.contains('opt')) { e.preventDefault(); e.target.click(); }
+});
+document.getElementById('copy').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('prompt').textContent).then(() => {
+    const b = document.getElementById('copy');
+    const t = b.textContent; b.textContent = 'Copied!';
+    setTimeout(() => { b.textContent = t; }, 1200);
+  });
+});
+
+updateAll();
+</script>
+</body>
+</html>
