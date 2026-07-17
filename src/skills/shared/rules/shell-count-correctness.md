@@ -24,7 +24,8 @@ A file whose last line has no trailing newline reports one line fewer than it ha
 printf 'a\nb\nc' > f.txt   # three lines, no trailing newline
 
 wc -l < f.txt              # 2   <- WRONG
-grep -c '' f.txt           # 3   <- right
+awk 'END{print NR}' f.txt  # 3   <- right
+grep -c '' f.txt           # 3   <- also right, but see the exit-code trap below
 ```
 
 **Incorrect** — a 501-line file passes a 500-line gate:
@@ -35,8 +36,20 @@ LINE_COUNT=$(wc -l < "$SKILL_MD" | tr -d ' ')
 
 **Correct:**
 ```bash
-LINE_COUNT=$(grep -c '' "$SKILL_MD")
+LINE_COUNT=$(awk 'END{print NR}' "$SKILL_MD")
 (( LINE_COUNT > 500 )) && fail
+```
+
+**Prefer `awk 'END{print NR}'` over `grep -c ''`.** `grep -c` **exits 1 when the count
+is zero** (an empty file), so under `set -euo pipefail` an empty input aborts the whole
+script. `awk` exits 0 and prints `0`. This is a real regression trap — it was shipped and
+reverted in this repo before landing on `awk`.
+
+```bash
+printf '' > empty.md
+set -e
+grep -c '' empty.md        # prints 0, EXIT 1 -> set -e kills the script
+awk 'END{print NR}' empty.md   # prints 0, EXIT 0 -> safe
 ```
 
 Shipped here: 132 `.md` files in this repo lack a trailing newline, and the
@@ -61,12 +74,13 @@ lines=$(find "$DIR" -name "*.$ext" -print | xargs wc -l | tail -1 | awk '{print 
 
 **Correct** — one count per file, summed:
 ```bash
-lines=$(find "$DIR" -name "*.$ext" -exec grep -ch '' {} + | awk '{s+=$1} END{print s+0}')
+lines=$(find "$DIR" -name "*.$ext" -exec awk 'END{print NR}' {} + | awk '{s+=$1} END{print s+0}')
 ```
 
-This one recipe fixes three traps at once: it sums every batch, `grep -c ''` counts
-lines rather than newlines, and nothing parses a filename (so newlines in filenames
-cannot inflate it). It also prints `0` on an empty file list instead of hanging.
+This one recipe fixes every trap at once: it sums every batch, `awk` counts lines
+rather than newlines, nothing parses a filename (so newlines in filenames cannot
+inflate it), and it prints `0` — with exit 0 — on an empty file or an empty file list
+instead of aborting under `set -e`.
 
 Shipped here: `audit-full`'s token estimator under-reported `.md` by **94.7%**
 (40,267 vs 756,671 real lines) on this repo.
@@ -84,7 +98,7 @@ grep -hc error f1 f2 | awk '{s+=$1} END{print s}'   # 2  <- right
 ```
 
 Process files separately whenever a boundary can carry meaning. This is why the
-estimator fix above uses `grep -ch` rather than `xargs -0 cat | wc -l`.
+estimator fix above uses per-file `-exec awk` rather than `xargs -0 cat | wc -l`.
 
 ---
 
@@ -125,8 +139,8 @@ grep -c pattern file | tr -d ' '     # exact, one value by construction
 
 | Goal | Don't | Do |
 |---|---|---|
-| Lines in one file | `wc -l < f` | `grep -c '' f` |
-| Lines across many files | `xargs wc -l \| tail -1` | `find … -exec grep -ch '' {} + \| awk '{s+=$1} END{print s+0}'` |
+| Lines in one file | `wc -l < f` | `awk 'END{print NR}' f` |
+| Lines across many files | `xargs wc -l \| tail -1` | `find … -exec awk 'END{print NR}' {} + \| awk '{s+=$1} END{print s+0}'` |
 | Count across file boundaries | `cat a b \| grep -c x` | `grep -hc x a b \| awk '{s+=$1} END{print s}'` |
 | Unique values | `uniq` | `sort \| uniq` |
 | Read a count from output | first-integer regex | exact compare / typed parse |

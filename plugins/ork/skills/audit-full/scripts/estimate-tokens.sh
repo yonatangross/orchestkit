@@ -22,15 +22,24 @@ echo ""
 EXCLUDE_DIRS="-path '*/node_modules' -o -path '*/.venv' -o -path '*/vendor' -o -path '*/__pycache__' -o -path '*/dist' -o -path '*/build' -o -path '*/.next' -o -path '*/out' -o -path '*/.git' -o -path '*/coverage'"
 
 # Total real lines across every file of one extension.
-# `grep -c ''` counts lines; `wc -l` counts newlines and so undercounts by one for
-# every file lacking a trailing newline. `-exec ... {} +` emits one count per file,
-# so summing with awk stays correct even when find splits the exec into batches —
-# unlike `xargs wc -l | tail -1`, which keeps only the final batch's total.
+#
+# `awk END{print NR}` rather than `wc -l`: wc counts newlines, so it under-reports by
+# one for every file whose last line lacks a trailing newline. awk counts records and
+# gets those right.
+#
+# `-exec ... {} +` rather than `xargs wc -l | tail -1`: xargs/find batch a long file
+# list, wc prints a total per batch, and tail keeps only the last one — silently
+# dropping every earlier batch. Summing the per-batch numbers with awk is correct at
+# any list length.
+#
+# awk rather than `grep -c ''`: grep exits 1 when nothing matches, which under
+# `set -euo pipefail` aborts the whole run as soon as one extension has only empty
+# files. awk exits 0 and prints 0.
 count_lines() {
   local ext="$1"
 
-  # silent: best-effort — unreadable paths and binary files are reported per entry; the sum over readable files is the estimate, and one bad file must not abort a whole-codebase count
-  find "$PROJECT_DIR" \( $EXCLUDE_DIRS \) -prune -o -name "*.$ext" -exec grep -ch '' {} + 2>/dev/null \
+  # silent: best-effort — find reports unreadable paths per entry; the sum over readable files is the estimate, and one bad file must not abort a whole-codebase count
+  find "$PROJECT_DIR" \( $EXCLUDE_DIRS \) -prune -o -name "*.$ext" -exec awk 'END{print NR}' {} + 2>/dev/null \
     | awk '{s+=$1} END{print s+0}'
 }
 
