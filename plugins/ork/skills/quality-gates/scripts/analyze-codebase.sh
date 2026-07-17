@@ -33,10 +33,14 @@ count_loc() {
   local path="$1"
   local total=0
 
-  # Count lines for common languages
-  if command -v wc >/dev/null; then
-    total=$(find "$path" -type f \( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
-  fi
+  # `-exec awk` rather than `xargs wc -l | tail -1`: xargs batches a long file list,
+  # wc prints a total per batch, and tail keeps only the last one — silently dropping
+  # every earlier batch (measured at -95% on a large tree). Summing per-batch counts
+  # is correct at any length. awk also counts a final line lacking a trailing newline,
+  # which wc -l misses. See shared/rules/shell-count-correctness.md.
+  # silent: best-effort — find reports unreadable paths per entry; the sum over readable files is the metric, and one bad file must not abort a complexity scan
+  total=$(find "$path" -type f \( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) -exec awk 'END{print NR}' {} + 2>/dev/null \
+    | awk '{s+=$1} END{print s+0}')
 
   echo "${total:-0}"
 }

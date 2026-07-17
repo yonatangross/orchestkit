@@ -30,8 +30,11 @@ echo
 while IFS= read -r skill_file; do
     CHECKED=$((CHECKED + 1))
 
-    # Count lines
-    line_count=$(wc -l < "$skill_file" | tr -d ' ')
+    # Count lines. awk counts records; wc -l counts newlines and so reports one
+    # short for any file lacking a trailing newline — letting a 521-line SKILL.md
+    # pass as 520. (Not `grep -c ''`: it exits 1 on an empty file, and set -e
+    # would abort the whole run. See shared/rules/shell-count-correctness.md.)
+    line_count=$(awk 'END{print NR}' "$skill_file")
 
     # Get relative path for cleaner output
     rel_path="${skill_file#$PROJECT_ROOT/}"
