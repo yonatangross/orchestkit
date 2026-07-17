@@ -12,12 +12,12 @@
     "...agents",
     "...hooks",
     "---[ChefHat]Guides---",
+    "...guides",
     "...cookbook",
-    "---[Library]Reference---",
-    "...reference",
+    "---[Sparkles]Showcase---",
+    "...showcase",
     "---[LifeBuoy]Help---",
     "...troubleshooting",
-    "...showcase",
     "...changelog"
   ]
 }

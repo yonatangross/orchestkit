@@ -1,5 +1,6 @@
 {
   "title": "Agents",
+  "defaultOpen": false,
   "pages": [
     "index",
     "accessibility-specialist",

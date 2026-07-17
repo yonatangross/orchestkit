@@ -464,7 +464,7 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
     # Write meta.json
     pages = ["index"] + slugs
     (out_dir / "meta.json").write_text(
-        json.dumps({"title": "Skills", "pages": pages}, indent=2) + "\n",
+        json.dumps({"title": "Skills", "defaultOpen": False, "pages": pages}, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -686,7 +686,7 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
     # Write meta.json
     pages = ["index"] + slugs
     (out_dir / "meta.json").write_text(
-        json.dumps({"title": "Agents", "pages": pages}, indent=2) + "\n",
+        json.dumps({"title": "Agents", "defaultOpen": False, "pages": pages}, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -973,7 +973,7 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
     # meta.json — include spotlights section
     pages = ["index"] + [s for s, _, _ in cat_slugs] + ["spotlights"]
     (out_dir / "meta.json").write_text(
-        json.dumps({"title": "Hooks", "pages": pages}, indent=2) + "\n",
+        json.dumps({"title": "Hooks", "defaultOpen": False, "pages": pages}, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -1434,7 +1434,12 @@ def main():
 
     # Update reference meta.json
     print("Updating reference meta.json...")
-    meta = {"title": "Reference", "pages": ["index", "skills", "agents", "hooks"]}
+    meta = {
+        "title": "Reference",
+        "description": "Generated reference for every skill, agent, and hook",
+        "root": True,  # own sidebar tab; keeps 192 generated pages out of the main tree
+        "pages": ["index", "skills", "agents", "hooks"],
+    }
     meta_path = Path(docs_out) / "meta.json"
     meta_path.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
 

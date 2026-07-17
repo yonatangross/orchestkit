@@ -1,5 +1,6 @@
 {
   "title": "Hooks",
+  "defaultOpen": false,
   "pages": [
     "index",
     "pre-tool-use",
