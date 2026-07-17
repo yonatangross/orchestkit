@@ -1,0 +1,8 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Lab generator fallback — fix note</title>
+<style>body{background:hsl(232 26% 7%);color:hsl(220 18% 93%);font:15px/1.6 system-ui;max-width:720px;margin:40px auto;padding:0 20px}
+code{font-family:ui-monospace,Menlo,monospace;background:hsl(0 0% 100%/.08);padding:1px 5px;border-radius:4px}
+.card{background:hsl(0 0% 100%/.05);border:1px solid hsl(0 0% 100%/.18);border-radius:16px;padding:20px;margin-top:16px}</style></head>
+<body><h1>Lab generator: clean-checkout fallback</h1>
+<div class="card"><p><b>Found by adversarial verification of #2952:</b> <code>generate-lab-data.mjs</code> hard-failed on clean checkouts because 3 manifest sources under <code>docs/*.html</code> are gitignored working artifacts.</p>
+<p><b>Fix:</b> prefer the repo source; fall back to the committed <code>public/lab/</code> copy with a warning; fail only when both are missing.</p>
+<p><b>Verified:</b> fresh worktree run → 3 graceful fallbacks, 10 entries, <code>lab-data.ts</code> byte-identical.</p></div></body></html>

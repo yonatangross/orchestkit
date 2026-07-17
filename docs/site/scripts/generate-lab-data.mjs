@@ -12,7 +12,10 @@
  * outputs. Sources under docs/*.html may be gitignored working artifacts —
  * the committed public/lab copies are the published canon.
  *
- * Fails loudly when a manifest source is missing (e.g. pruned playground):
+ * Source resolution: prefer the repo source file; when it is absent (several
+ * sources under docs/*.html are gitignored working artifacts, so clean
+ * checkouts don't have them) fall back to the committed public/lab copy with
+ * a warning. Fails loudly only when BOTH are missing (truly pruned entry):
  * remove the entry or restore the file.
  */
 import { execSync } from "node:child_process";
@@ -35,11 +38,19 @@ const entries = [];
 const missing = [];
 for (const e of manifest.entries) {
   const src = path.join(REPO, e.source);
-  if (!fs.existsSync(src)) {
+  const committed = path.join(OUT_LAB, `${e.slug}.html`);
+  let html;
+  if (fs.existsSync(src)) {
+    html = fs.readFileSync(src, "utf8");
+  } else if (fs.existsSync(committed)) {
+    console.warn(
+      `[generate-lab-data] source absent (gitignored or pruned): ${e.source} — keeping committed public/lab/${e.slug}.html`,
+    );
+    html = fs.readFileSync(committed, "utf8");
+  } else {
     missing.push(e.source);
     continue;
   }
-  const html = fs.readFileSync(src, "utf8");
   const title = e.title ?? html.match(/<title>([^<]*)<\/title>/)?.[1]?.trim() ?? e.slug;
   const description =
     e.description ??

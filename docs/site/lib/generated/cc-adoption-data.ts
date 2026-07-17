@@ -144,4 +144,4 @@ export const CC_SUPPORT = {
   policy: "latest + 3 previous minors",
 } as const;
 
-export const GENERATED_AT = { commit: "0210a37f6", date: "2026-07-17" } as const;
+export const GENERATED_AT = { commit: "95e8b6d2a", date: "2026-07-17" } as const;
