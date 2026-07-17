@@ -23,15 +23,20 @@ import { getWebhookUrl } from './orchestration-state.js';
 import { getPluginDataDir, getProjectDir } from './paths.js';
 
 const HOOK_NAME = 'http-sink';
-const FETCH_TIMEOUT_MS = 3000;
-// Retry budget rationale (audited 2026-04-16 for CC 2.1.111):
-// MAX_RETRIES=3 covers the typical transient-network error modes (DNS
-// blip, receiver cold start, upstream 503). Short 200 ms base with 5 s
-// cap exponential backoff keeps tail latency bounded per telemetry
-// event — important because this hook is on the hot PostToolUse path.
-// The separate circuit breaker (below) handles sustained outages;
-// retries alone are not the long-term fallback.
-const MAX_RETRIES = 3;
+const FETCH_TIMEOUT_MS = 1500;
+// Retry budget rationale (#2948, supersedes the 2026-04-16 audit):
+// The whole in-hook budget must fit under the tightest hooks.json timeout
+// that dispatches this sink (5s), INCLUDING node startup (~200-500ms) and
+// backoff sleeps — CC kills the PROCESS at the timeout, and the detached
+// fetch keeps the process alive until it settles. The old 3000ms x
+// (3 retries + 1) exceeded that budget whenever the receiver was slow, so
+// events died mid-retry AND the user saw "hook timed out" warnings.
+// Note the AbortSignal below is created once and shared across attempts,
+// so FETCH_TIMEOUT_MS bounds TOTAL fetch time, not per-attempt time:
+// worst case = 1500ms fetch + one 200ms backoff + instant aborted retry.
+// Patient retries belong in flush() at SessionEnd, and the circuit
+// breaker (below) handles sustained outages.
+const MAX_RETRIES = 1;
 const BASE_DELAY_MS = 200;
 const MAX_DELAY_MS = 5000;
 
