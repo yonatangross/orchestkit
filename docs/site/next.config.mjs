@@ -180,6 +180,28 @@ const config = {
 				},
 			],
 		},
+		{
+			// Lab playgrounds (public/lab/*.html): self-contained working artifacts.
+			// - noindex: the gallery page is the indexed front door, not the raw files.
+			// - frame-ancestors/X-Frame-Options relaxed to same-origin so the docs
+			//   pages can embed them in sandboxed iframes (global default is DENY).
+			source: "/lab/:path*",
+			headers: [
+				{ key: "X-Robots-Tag", value: "noindex" },
+				{ key: "X-Frame-Options", value: "SAMEORIGIN" },
+				{
+					key: "Content-Security-Policy",
+					value: [
+						"default-src 'self'",
+						"script-src 'self' 'unsafe-inline'",
+						"style-src 'self' 'unsafe-inline'",
+						"img-src 'self' data:",
+						"font-src 'self' data:",
+						"frame-ancestors 'self'",
+					].join("; "),
+				},
+			],
+		},
 	],
 };
 

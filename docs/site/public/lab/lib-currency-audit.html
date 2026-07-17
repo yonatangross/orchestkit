@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OrchestKit Library-Currency Audit — 2026-05-31</title>
+<style>
+  :root{
+    --bg:#0a0d12;--panel:#12171f;--panel2:#1a212c;--border:#2a323d;--fg:#e6edf3;--muted:#8b98a9;
+    --crit:#f85149;--high:#ff8c42;--med:#d2a32a;--low:#58a6ff;--drop:#3fb950;--accent:#bc8cff;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14.5px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  a{color:var(--accent)}
+  header{padding:28px 26px 18px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#0e131a,var(--bg))}
+  h1{margin:0 0 6px;font-size:23px;letter-spacing:-.01em}
+  h1 .d{color:var(--accent);font-family:var(--mono);font-size:18px}
+  .sub{color:var(--muted);font-size:13.5px;max-width:900px}
+  main{max-width:1180px;margin:0 auto;padding:24px 26px 80px}
+  section{margin-bottom:34px}
+  h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px;margin:0 0 16px}
+  .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:6px}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+  .stat .n{font-size:26px;font-weight:700;font-family:var(--mono)}
+  .stat .l{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+  .c-crit{color:var(--crit)}.c-high{color:var(--high)}.c-med{color:var(--med)}.c-low{color:var(--low)}.c-drop{color:var(--drop)}
+  .mermaid{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;overflow-x:auto;text-align:center}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:900px){.two{grid-template-columns:1fr}}
+  table.ver{width:100%;border-collapse:collapse;font-size:12.5px;font-family:var(--mono)}
+  table.ver th,table.ver td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top}
+  table.ver th{color:var(--muted);font-size:11px;text-transform:uppercase}
+  .vc-confirmed{color:var(--drop)}.vc-corrected{color:var(--high)}.vc-unverifiable{color:var(--muted)}
+  .toolbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:16px;position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5;border-bottom:1px solid var(--border)}
+  .toolbar button{background:var(--panel2);color:var(--fg);border:1px solid var(--border);border-radius:20px;padding:5px 13px;cursor:pointer;font-size:12.5px;transition:.12s}
+  .toolbar button:hover{border-color:var(--accent)}
+  .toolbar button.active{border-color:var(--accent);color:var(--accent);background:rgba(188,140,255,.1)}
+  .toolbar .sep{width:1px;height:22px;background:var(--border);margin:0 4px}
+  .toolbar .lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;margin-right:2px}
+  .card{background:var(--panel);border:1px solid var(--border);border-left-width:4px;border-radius:10px;margin-bottom:12px;overflow:hidden}
+  .card.s-critical{border-left-color:var(--crit)}.card.s-high{border-left-color:var(--high)}
+  .card.s-medium{border-left-color:var(--med)}.card.s-low{border-left-color:var(--low)}.card.s-drop{border-left-color:var(--drop)}
+  .card>summary{cursor:pointer;padding:13px 16px;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .card>summary::-webkit-details-marker{display:none}
+  .badge{font-family:var(--mono);font-size:10.5px;padding:2px 7px;border-radius:5px;white-space:nowrap;font-weight:600}
+  .b-critical{background:rgba(248,81,73,.16);color:var(--crit)}.b-high{background:rgba(255,140,66,.16);color:var(--high)}
+  .b-medium{background:rgba(210,163,42,.16);color:var(--med)}.b-low{background:rgba(88,166,255,.16);color:var(--low)}.b-drop{background:rgba(63,185,80,.16);color:var(--drop)}
+  .kind{font-family:var(--mono);font-size:10.5px;color:var(--muted);border:1px solid var(--border);border-radius:5px;padding:2px 6px}
+  .kind.fab{color:var(--crit);border-color:rgba(248,81,73,.4)}
+  .cl{font-family:var(--mono);font-size:11px;color:var(--accent)}
+  .ttl{font-weight:600;flex:1;min-width:200px}
+  .eff{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+  .card .body{padding:0 16px 15px;border-top:1px solid var(--border)}
+  .file{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin:10px 0 4px}
+  .diff{display:grid;grid-template-columns:1fr;gap:6px;margin:6px 0}
+  pre{margin:0;background:#06090d;border:1px solid var(--border);border-radius:7px;padding:9px 11px;overflow-x:auto;font-family:var(--mono);font-size:12px;white-space:pre-wrap;word-break:break-word}
+  pre.before{border-left:3px solid var(--crit)}pre.after{border-left:3px solid var(--drop)}
+  pre .tag{display:block;font-size:9.5px;letter-spacing:.08em;margin-bottom:3px;text-transform:uppercase}
+  pre.before .tag{color:var(--crit)}pre.after .tag{color:var(--drop)}
+  .ev{color:var(--muted);font-size:12.5px;margin-top:10px;padding-top:8px;border-top:1px dashed var(--border)}
+  .ev b{color:var(--fg)}
+  .road{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .lane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px}
+  .lane h3{margin:0 0 4px;font-size:13.5px}
+  .lane .desc{color:var(--muted);font-size:12px;margin-bottom:10px}
+  .lane ol{margin:0;padding-left:18px}
+  .lane li{margin-bottom:6px;font-size:12.5px}
+  .lane code{font-family:var(--mono);font-size:11px;background:var(--panel2);padding:1px 4px;border-radius:3px}
+  .note{background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.3);border-radius:9px;padding:13px 15px;color:#e6c9c9;font-size:13px}
+  .note b{color:#fff}
+  .count{color:var(--muted);font-size:12px;margin-left:auto}
+  footer{color:var(--muted);font-size:11.5px;border-top:1px solid var(--border);padding:18px 26px;text-align:center;max-width:1180px;margin:0 auto}
+</style>
+</head>
+<body>
+<header>
+  <h1>OrchestKit Library-Currency Audit <span class="d">· 2026-05-31</span></h1>
+  <div class="sub">14 library clusters across 111 skills + 37 agents, audited vs the <b>true latest</b> via context7 + live web (Jan-2026 training cutoff not trusted), each finding <b>adversarially re-verified</b> against GitHub source / official migration guides / npm·PyPI registries. This is the "what can we upgrade" pass — no fixes applied yet. No sugarcoat: every diff below is real and cited.</div>
+</header>
+<main>
+
+  <section>
+    <h2>Audit integrity</h2>
+    <div class="stat-row">
+      <div class="stat"><div class="n">107</div><div class="l">findings</div></div>
+      <div class="stat"><div class="n c-crit">7</div><div class="l">critical</div></div>
+      <div class="stat"><div class="n c-high">25</div><div class="l">high*</div></div>
+      <div class="stat"><div class="n c-med">35</div><div class="l">medium*</div></div>
+      <div class="stat"><div class="n c-low">31</div><div class="l">low*</div></div>
+      <div class="stat"><div class="n c-drop">10</div><div class="l">no-action</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="n c-drop">103</div><div class="l">confirmed</div></div>
+      <div class="stat"><div class="n c-high">4</div><div class="l">overstated→down</div></div>
+      <div class="stat"><div class="n c-drop">0</div><div class="l">refuted</div></div>
+      <div class="stat"><div class="n c-high">12</div><div class="l">version claims corrected</div></div>
+      <div class="stat"><div class="n c-crit">8</div><div class="l">fabricated APIs</div></div>
+      <div class="stat"><div class="n c-crit">9</div><div class="l">copy-paste hard-breaks</div></div>
+    </div>
+    <p class="sub" style="margin-top:8px">*severities after the verifier's corrections (4 findings down-ranked: ragas-result-indexing high→med, hypothesis low, sec-003 high→med, llm-sdk-006 stays low). "No-action" = libraries verified <i>already current</i> — kept as evidence, not work.</p>
+  </section>
+
+  <section>
+    <h2>The damning part — skills inventing APIs that don't exist</h2>
+    <div class="note">
+      Beyond version lag, the audit found <b>8 fabricated APIs</b> — code the skill teaches that has <b>no counterpart in the shipped library</b>. A user copy-pasting these gets ImportError / TypeError / silently-ignored config, not a working result. Worst concentration: <code>react-server-components-framework/references/nextjs-16-upgrade.md</code> (3 invented APIs) and <code>json-render</code> SKILL.md (4 broken signatures).
+    </div>
+    <div class="mermaid" id="m-fab"></div>
+  </section>
+
+  <section>
+    <h2>Cluster severity map</h2>
+    <div class="mermaid" id="m-clusters"></div>
+  </section>
+
+  <section>
+    <h2>Findings <span class="count" id="fcount"></span></h2>
+    <div class="toolbar" id="bar">
+      <span class="lbl">sev</span>
+      <button data-f="sev" data-v="all" class="active">all</button>
+      <button data-f="sev" data-v="critical">critical</button>
+      <button data-f="sev" data-v="high">high</button>
+      <button data-f="sev" data-v="medium">medium</button>
+      <button data-f="sev" data-v="low">low</button>
+      <button data-f="sev" data-v="drop">no-action</button>
+      <span class="sep"></span>
+      <span class="lbl">kind</span>
+      <button data-f="kind" data-v="all" class="active">all</button>
+      <button data-f="kind" data-v="fabricated">fabricated</button>
+      <button data-f="kind" data-v="broken">broken</button>
+      <button data-f="kind" data-v="deprecated">deprecated</button>
+      <button data-f="kind" data-v="version">version-pin</button>
+      <button data-f="kind" data-v="newbest">new-best-practice</button>
+      <button data-f="kind" data-v="security">security</button>
+    </div>
+    <div id="cards"></div>
+  </section>
+
+  <section>
+    <h2>Verified version table — claimed vs independently re-confirmed</h2>
+    <table class="ver"><thead><tr><th>cluster</th><th>library</th><th>taught/claimed</th><th>verified latest (2026-05-31)</th><th>verdict</th></tr></thead><tbody id="vbody"></tbody></table>
+  </section>
+
+  <section>
+    <h2>Upgrade roadmap — by impact × effort</h2>
+    <div class="road">
+      <div class="lane" style="border-left:4px solid var(--crit)">
+        <h3 class="c-crit">🔴 Lane 1 — copy-paste hard-breaks (do first)</h3>
+        <div class="desc">Code that throws on the version the skill targets. Highest user pain, mostly S/M effort.</div>
+        <ol>
+          <li><b>testing-llm</b>: <code>ragas>=1.2.0</code> pin is unsatisfiable + <code>recalibrate=True</code> invented → repin <code>>=0.4.0</code>, class-based metrics, drop recalibrate</li>
+          <li><b>json-render</b>: <code>Render</code>/<code>defineCatalog</code>/<code>createMcpApp</code>/<code>registerJsonRenderTool</code> signatures all wrong on 0.19 → one coordinated rewrite + re-sync</li>
+          <li><b>observability</b>: <code>from langfuse.callback import CallbackHandler</code> → <code>langfuse.langchain</code>; <code>new Resource()</code> → <code>resourceFromAttributes()</code></li>
+          <li><b>langgraph</b>: <code>langgraph.cache</code> import + <code>PostgresSaver.from_conn_string</code> bare-assign → fix imports + <code>with…as cp: cp.setup()</code></li>
+          <li><b>mcp</b>: 4 import paths resolve only against the 2.0-alpha split / fastmcp fork → align to <code>@modelcontextprotocol/sdk</code> subpaths + FastMCP</li>
+          <li><b>python-backend</b>: <code>httpx.AsyncClient(app=app)</code> removed in 0.28 → <code>ASGITransport(app=app)</code></li>
+          <li><b>vector-rag</b>: gemini <code>text-embedding-004</code> shut down 2026-01-14 → <code>gemini-embedding-001</code></li>
+        </ol>
+      </div>
+      <div class="lane" style="border-left:4px solid var(--high)">
+        <h3 class="c-high">🟠 Lane 2 — deprecated / fabricated-but-non-crashing</h3>
+        <div class="desc">Works today but wrong/deprecated, or invented config that's silently ignored. Misleads agents.</div>
+        <ol>
+          <li><b>next-react</b>: rewrite <code>nextjs-16-upgrade.md</code> — kill invented <code>next/proxy</code>, <code>revalidateTag({type})</code>, <code>cache()</code> wrapper, <code>next-browser</code></li>
+          <li><b>langgraph</b>: <code>create_react_agent</code> deprecated since v1.0 → <code>langchain.agents.create_agent</code>; stop selling pre/post_model_hook as "new 1.2"</li>
+          <li><b>observability</b>: <code>@observe(type=)</code> → <code>as_type=</code>; v2 <code>trace().generation()</code> → <code>start_observation()</code>; <code>@langfuse/* ^4</code> → 5.x</li>
+          <li><b>security</b>: python-jose (CVE-2025-61152 alg=none) → PyJWT; OWASP LLM 2023 labels → 2025</li>
+          <li><b>vector-rag</b>: Cohere <code>Client()/v3.0/max_chunks_per_doc</code> → <code>ClientV2()/rerank-v4.0-pro/max_tokens_per_doc</code></li>
+          <li><b>llm-sdk</b>: <code>google.generativeai</code> (archived) → <code>from google import genai</code></li>
+          <li><b>frontend-libs</b>: Zod 4 — <code>z.string().email()/.uuid()</code> → <code>z.email()/z.uuid()</code>, <code>.flatten()</code> → <code>z.treeifyError()</code> (shape change!)</li>
+        </ol>
+      </div>
+      <div class="lane" style="border-left:4px solid var(--med)">
+        <h3 class="c-med">🟡 Lane 3 — new-best-practice & version-pin</h3>
+        <div class="desc">Not wrong, just behind the frontier. Additive guidance + pin bumps.</div>
+        <ol>
+          <li><b>db-migrations</b>: PG18 <code>uuidv7()</code> over random v4; native <code>WITHOUT OVERLAPS</code>/<code>PERIOD</code>; B-tree skip-scan nuance</li>
+          <li><b>vector-rag</b>: pgvector <code>halfvec</code>/<code>binary_quantize()</code> for 3072-dim embeddings; voyage-3→3.5</li>
+          <li><b>python-backend</b>: <code>= Depends()</code> → <code>Annotated[…, Depends()]</code> (21 sites); <code>.dict()</code>→<code>.model_dump()</code>; <code>datetime.utcnow()</code>×3; <code>get_event_loop()</code>×4</li>
+          <li><b>next-react</b>: next/image breaking defaults; async params for icon/og/sitemap; pins 16.2.6/19.2.6</li>
+          <li><b>frontend-libs</b>: Biome <code>noFloatingPromises</code> needs <code>domains.types</code>; Zustand checklist label is backwards</li>
+          <li><b>llm-sdk</b>: gpt-5.2→gpt-5.5 (~18 sites); OpenAI Responses API; Claude 4.6→4.8 table</li>
+        </ol>
+      </div>
+      <div class="lane" style="border-left:4px solid var(--drop)">
+        <h3 class="c-drop">🟢 Verified current (no action)</h3>
+        <div class="desc">Audited and confirmed up-to-date — proof the suite isn't uniformly stale.</div>
+        <ol>
+          <li><b>testing-js</b>: Vitest 4.1, Playwright 1.60, MSW already v2 — strong shape (only 1 fabricated config block)</li>
+          <li><b>infra-events</b>: Temporal 1.27.2, Celery 5.6.3, redis-py 8.0, aiokafka 0.14 — all current</li>
+          <li><b>db-migrations</b>: Alembic 1.18.4 / SQLAlchemy 2.0 APIs all valid (staleness is PG18 feature-awareness, not breakage)</li>
+          <li><b>langgraph</b>: stream v2 / GraphOutput / RemoteGraph / core import paths — current</li>
+          <li><b>llm-sdk</b>: Anthropic caching shape + vision content-blocks + Claude Opus 4.8 — current</li>
+          <li><b>security</b>: py_webauthn 2.7.1, PyJWT 2.13.0, OWASP LLM list mostly mapped</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+</main>
+<footer>
+  OrchestKit lib-currency audit · 2026-05-31 · 28-agent verified workflow (research + adversarial re-verify) · context7 + GitHub source + npm/PyPI registries · ground truth cited per finding · self-contained except mermaid (CDN)
+</footer>
+
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+// ---- DATA (all 107 findings, post-verification) ----
+const F = [
+ // langgraph (1.2.2 / sdk 0.4.0 / cli 0.4.27 / langchain-core 1.4.0)
+ {c:'langgraph',id:'lg-1',sev:'high',kind:'deprecated',eff:'M',t:'create_react_agent @deprecated since v1.0',f:'langgraph/SKILL.md:149-156',b:'from langgraph.prebuilt import create_react_agent\nagent = create_react_agent(model, tools, prompt=...)',a:'from langchain.agents import create_agent\nagent = create_agent(model, tools, system_prompt=...)',ev:'Source chat_agent_executor.py: @deprecated(category=LangGraphDeprecatedSinceV10). Official langchain v1 migration guide confirms new home + prompt→system_prompt.'},
+ {c:'langgraph',id:'lg-2',sev:'high',kind:'deprecated',eff:'M',t:'pre/post_model_hook marketed as NEW "1.2" — actually legacy on deprecated API',f:'langgraph/SKILL.md:35-39,142',b:'# "NEW in LangGraph 1.2": pre_model_hook / post_model_hook',a:'# middleware: before_model / after_model (create_agent)\n# hooks only exist on the deprecated create_react_agent',ev:'Migration guide: "Pre-model hooks are now implemented as middleware with before_model". The framing is exactly backwards.'},
+ {c:'langgraph',id:'lg-3',sev:'high',kind:'broken',eff:'S',t:'langgraph.cache import → ImportError',f:'langgraph/SKILL.md:128',b:'from langgraph.cache import CachePolicy, SqliteCache',a:'from langgraph.types import CachePolicy\nfrom langgraph.cache.sqlite import SqliteCache  # langgraph-checkpoint-sqlite\n# or: from langgraph.cache.memory import InMemoryCache',ev:'Verified in source: CachePolicy is in langgraph.types; SqliteCache lives in the separate langgraph-checkpoint-sqlite pkg. Both names wrong → ImportError.'},
+ {c:'langgraph',id:'lg-4',sev:'medium',kind:'contradiction',eff:'S',t:'SqliteCache (body) vs InMemoryCache (Key Patterns) self-contradiction',f:'SKILL.md:128/137 vs :243',b:'body: SqliteCache  ·  "2026 Key Patterns": "via InMemoryCache"',a:'pick one; correct module paths (langgraph.cache.sqlite / .memory)',ev:'Both classes real but different paths; layered on lg-3 ImportError.'},
+ {c:'langgraph',id:'lg-5',sev:'high',kind:'broken',eff:'S',t:'PostgresSaver.from_conn_string is a context manager',f:'checkpoints-setup.md:28; checkpoints-store.md:16,29',b:'checkpointer = PostgresSaver.from_conn_string(DB_URI)',a:'with PostgresSaver.from_conn_string(DB_URI) as cp:\n    cp.setup()\n    # use cp',ev:'Source: @classmethod @contextmanager def from_conn_string(...)->Iterator[PostgresSaver]; setup() MUST be called. Bare assign yields a _GeneratorContextManager.'},
+ {c:'langgraph',id:'lg-6',sev:'low',kind:'version',eff:'S',t:'metadata.json drift + pre-GA "v0.2.58" caveat',f:'metadata.json; routing-cross-graph.md:10,104',b:'metadata 2.0.0 / ruleCount 32 / 1.0.7+  ·  "v0.2.58+ (stable in v0.3+)"',a:'metadata 2.2.0 / 37 / >=1.2.0  ·  drop pre-GA caveat (stable in 1.x)',ev:'SKILL frontmatter 2.2.0/37 is correct; metadata stale.'},
+ {c:'langgraph',id:'lg-7',sev:'low',kind:'cosmetic',eff:'S',t:'defer docstring mis-described',f:'SKILL.md:37,145',b:'"defer = current super-step"',a:'"defer = until the run is about to end" (source docstring)',ev:'add_node(defer: bool=False) docstring verified in source.'},
+ {c:'langgraph',id:'lg-8',sev:'drop',kind:'cosmetic',eff:'S',t:'stream v2 / GraphOutput — current',f:'langgraph',b:'',a:'',ev:'Confirmed current API in pregel/main.py. No action.'},
+ {c:'langgraph',id:'lg-9',sev:'drop',kind:'cosmetic',eff:'S',t:'RemoteGraph import — current',f:'platform-remote-graph.md',b:'',a:'',ev:'langgraph.pregel.remote.RemoteGraph still the 1.x path. No action.'},
+ {c:'langgraph',id:'lg-10',sev:'drop',kind:'cosmetic',eff:'S',t:'core import paths — current',f:'langgraph',b:'',a:'',ev:'checkpoint.memory/postgres, store.postgres, func, types, graph, prebuilt all correct on 1.x.'},
+
+ // next-react (Next 16.2.6 / React 19.2.6)
+ {c:'next-react',id:'NR-01',sev:'high',kind:'deprecated',eff:'M',t:'single-arg revalidateTag deprecated (in copy-paste templates)',f:'8+ sites incl scripts/server-action-template.ts',b:"revalidateTag('products')",a:"revalidateTag('products','max')  // or updateTag('products') for read-your-writes",ev:'v16 guide: "revalidateTag now requires a second argument specifying a cacheLife profile. The single-argument form is deprecated and will produce a TypeScript error."'},
+ {c:'next-react',id:'NR-02',sev:'high',kind:'fabricated',eff:'M',t:'INVENTED revalidateTag({type}) options + array overload',f:'nextjs-16-upgrade.md:533-542',b:"revalidateTag('products',{type:'layout'})\nrevalidateTag(['a','b'])",a:"revalidateTag(tag, profile)  // profile: string | {expire?: number}",ev:'No {type} object and no array overload exist in /functions/revalidateTag. Pure hallucination in the skill.'},
+ {c:'next-react',id:'NR-03',sev:'high',kind:'fabricated',eff:'M',t:'INVENTED next/proxy module (ProxyRequest/ProxyResponse)',f:'nextjs-16-upgrade.md',b:"import { ProxyRequest, ProxyResponse } from 'next/proxy'",a:"// proxy.ts — import { NextResponse } from 'next/server'\n// import type { NextRequest } from 'next/server'\nexport function proxy(request: NextRequest) {}",ev:'No next/proxy module exists. Migration is just middleware.ts→proxy.ts rename; edge runtime unsupported in proxy.'},
+ {c:'next-react',id:'NR-04',sev:'high',kind:'fabricated',eff:'M',t:'INVENTED cache(fn,{revalidate}) PPR wrapper from next/cache',f:'nextjs-16-upgrade.md:227,252-267',b:"import { cache } from 'next/cache'\nexport const getX = cache(fn, { revalidate: 60, tags: [...] })",a:"// next.config: cacheComponents: true\n'use cache'\ncacheLife('hours'); cacheTag('x')",ev:'No such cache() wrapper in next/cache. Contradicts the skill’s own correct SKILL.md/cache-components.md.'},
+ {c:'next-react',id:'NR-05',sev:'medium',kind:'fabricated',eff:'S',t:'INVENTED next-browser CLI binary',f:'SKILL.md',b:'npx next-browser ...',a:".mcp.json: npx -y next-devtools-mcp@latest  (Next DevTools MCP via /_next/mcp)",ev:'No next-browser binary exists. Real AI-agent tool is next-devtools-mcp.'},
+ {c:'next-react',id:'NR-06',sev:'medium',kind:'newbest',eff:'M',t:'next/image v16 breaking defaults uncovered',f:'performance/rules/images-nextjs.md:28',b:"<Image quality={85} ... />  // + images.domains",a:"qualities:[85] in config (else coerced to 75); minimumCacheTTL now 14400s; domains→remotePatterns; localPatterns.search for query images",ev:'All verbatim in v16 upgrade guide "next/image changes".'},
+ {c:'next-react',id:'NR-07',sev:'low',kind:'version',eff:'S',t:'pins 16.2.3/19.2.3 → 16.2.6/19.2.6',f:'SKILL.md:5,17,37',b:'next@16.2.3 react@19.2.3',a:'next@16.2.6 react@19.2.6 (security release)',ev:'Same 16.2/19.2 line; APIs valid, patch lag only.'},
+ {c:'next-react',id:'NR-08',sev:'low',kind:'newbest',eff:'S',t:'async params for icon/og-image + sitemap id Promise',f:'nextjs-16-upgrade.md',b:'(omitted)',a:'opengraph-image/icon receive params AND id as Promises; generateSitemaps sitemap fn id is a Promise',ev:'Confirmed in v16 guide "Async parameters" sections.'},
+
+ // frontend-libs (Zod 4.4.3 / Vite 8.0.14 / Zustand 5.0.11 / Biome 2.4)
+ {c:'frontend-libs',id:'FL-01',sev:'medium',kind:'deprecated',eff:'M',t:'ZodError.flatten() deprecated (shape change!)',f:'forms-validation-zod.md:51',b:'result.error.flatten().fieldErrors  // Record<string,string[]>',a:"const tree = z.treeifyError(result.error)\n// tree.properties[field].errors  ← per-field messages",ev:'zod v4 changelog: .flatten() deprecated → z.treeifyError(). NOT a drop-in: shape differs.'},
+ {c:'frontend-libs',id:'FL-02',sev:'medium',kind:'deprecated',eff:'S',t:'z.string().email() deprecated',f:'forms-validation-zod.md:30,110,111',b:'z.string().email()',a:'z.email()',ev:'zod v4 changelog: method forms deprecated, still work.'},
+ {c:'frontend-libs',id:'FL-03',sev:'medium',kind:'deprecated',eff:'S',t:'review playbook teaches deprecated z.string().uuid()/.email() as CORRECT',f:'typescript-quality.md:36-37,105-106',b:"z.string().uuid()  // under 'CORRECT' heading",a:'z.uuid() (RFC9562-strict) / z.guid() (permissive)',ev:'A review rule enforcing deprecated APIs propagates them.'},
+ {c:'frontend-libs',id:'FL-04',sev:'medium',kind:'deprecated',eff:'S',t:'"2026 Patterns" file ships v3 Zod syntax',f:'frontend-integration.md:13-18',b:'z.string().uuid()/.email()/.datetime()',a:'z.uuid()/z.email()/z.iso.datetime()',ev:'File branded "2026 Patterns" using v3 forms.'},
+ {c:'frontend-libs',id:'FL-05',sev:'medium',kind:'deprecated',eff:'S',t:'server actions: z.string().uuid() + .flatten()',f:'server-actions.md:163,176',b:'z.string().uuid() ; .flatten().fieldErrors',a:'z.uuid() ; z.treeifyError()',ev:'Same Zod 4 root cause as FL-01..04.'},
+ {c:'frontend-libs',id:'FL-06',sev:'medium',kind:'deprecated',eff:'S',t:'Zustand checklist label is BACKWARDS',f:'zustand-checklist.md:34',b:'"import from zustand/react/shallow (not deprecated zustand/shallow)"',a:"import { useShallow } from 'zustand/shallow'  // primary in v5 guide\n// deprecated = create() eq-fn → createWithEqualityFn from 'zustand/traditional'",ev:'v5 migration guide imports useShallow FROM zustand/shallow. The "deprecated" label is factually wrong.'},
+ {c:'frontend-libs',id:'FL-07',sev:'medium',kind:'newbest',eff:'S',t:'Biome noFloatingPromises needs the "types" domain',f:'linting-biome-rules.md:40-43',b:'nursery.noFloatingPromises: "error"  // no domains key',a:'domains: { types: "recommended" }  // enables type-aware analysis',ev:'Biome 2.4: rule moved to types domain; without it the rule silently under-functions.'},
+ {c:'frontend-libs',id:'FL-08',sev:'low',kind:'cosmetic',eff:'S',t:'Vite 8.0.14 — current (add patch line)',f:'vite-advanced',b:'',a:'Vite 8.0.0 (Rolldown default) → 8.0.14; rolldownOptions/transformWithOxc real',ev:'Skill accurate; cosmetic note only.'},
+ {c:'frontend-libs',id:'FL-09',sev:'low',kind:'cosmetic',eff:'S',t:'shadcn 6 styles → 8 (Sera, Rhea added)',f:'shadcn-patterns',b:'"6 styles"',a:'8: Vega Nova Maia Lyra Mira Luma Sera Rhea',ev:'ui.shadcn.com changelog confirms Sera (Apr) + Rhea (May 2026).'},
+
+ // python-backend (FastAPI 0.136.1 / SQLAlchemy 2.0.50 / Pydantic 2.13.4 / httpx 0.28.1)
+ {c:'python-backend',id:'PYBE-002',sev:'high',kind:'broken',eff:'S',t:'httpx AsyncClient(app=app) REMOVED in 0.28',f:'fastapi-lifespan.md:354',b:'async with AsyncClient(app=app, base_url="http://test") as c:',a:'async with AsyncClient(transport=ASGITransport(app=app), base_url=...) as c:',ev:'encode/httpx #3111 + changelog: app= deprecated 0.27, REMOVED 0.28 → TypeError on any current install.'},
+ {c:'python-backend',id:'PYBE-001',sev:'medium',kind:'deprecated',eff:'S',t:'Pydantic .dict() → .model_dump()',f:'fastapi-lifespan.md:220',b:'AnalysisModel(**request.dict())',a:'AnalysisModel(**request.model_dump())',ev:'.dict() PydanticDeprecatedSince20, removed in V3. Skill uses model_dump elsewhere (inconsistent).'},
+ {c:'python-backend',id:'PYBE-003',sev:'medium',kind:'deprecated',eff:'S',t:'class Config → SettingsConfigDict',f:'pool-setup-template.py:50',b:'class Config:\n    env_prefix = "DB_"',a:'model_config = SettingsConfigDict(env_prefix="DB_")',ev:'Only "class Config" left in cluster; 4 other files already migrated.'},
+ {c:'python-backend',id:'PYBE-004',sev:'medium',kind:'deprecated',eff:'S',t:'order.dict() → model_dump()',f:'distributed-systems/event-messaging.md:18,34',b:'payload=order.dict()',a:'payload=order.model_dump()',ev:'Same Pydantic V2 deprecation.'},
+ {c:'python-backend',id:'PYBE-005',sev:'low',kind:'deprecated',eff:'S',t:'datetime.utcnow() ×3',f:'event-messaging.md:35,51,92',b:'created_at=datetime.utcnow()',a:'created_at=datetime.now(datetime.UTC)',ev:'Deprecated since 3.12. Undercounted by research (3 sites). Matches your "never utcnow" rule.'},
+ {c:'python-backend',id:'PYBE-008',sev:'low',kind:'deprecated',eff:'S',t:'asyncio.get_event_loop() ×4 (verifier-added)',f:'semaphore-patterns.md:42,47; connection-pooling-examples.md:279,284',b:'loop = asyncio.get_event_loop()',a:'loop = asyncio.get_running_loop()  # inside coroutine; time.monotonic() for clock',ev:'Research missed this; emits DeprecationWarning on 3.12+ in sync __init__.'},
+ {c:'python-backend',id:'PYBE-006',sev:'low',kind:'newbest',eff:'M',t:'Depends() default → Annotated[..., Depends()]',f:'21 sites',b:'def route(s = Depends(get_session)):',a:'SessionDep = Annotated[Session, Depends(get_session)]\ndef route(s: SessionDep):',ev:'FastAPI docs: "prefer the Annotated version" since 0.95.1. Zero Annotated usages currently.'},
+ {c:'python-backend',id:'PYBE-007',sev:'low',kind:'version',eff:'S',t:'frontmatter floors stale (cosmetic)',f:'python-backend frontmatter',b:'fastapi>=0.100.0 sqlalchemy>=2.0.0',a:'(valid floors; every taught API works on 0.136.1/2.0.50)',ev:'No code broken; freshness only.'},
+
+ // testing-js (Playwright 1.60 / Vitest 4.1.7 / msw 2.14.6 / axe 4.11.3)
+ {c:'testing-js',id:'TJS-01',sev:'medium',kind:'fabricated',eff:'S',t:'INVENTED use.aiAgents defineConfig block',f:'testing-e2e/references/playwright-1.59-api.md:242-253',b:"use: { aiAgents: { enabled:true, model:'claude-sonnet-4-6', autoHeal:true } }",a:'// agents are CLI-only: npx playwright init-agents --loop=claude',ev:'No aiAgents key in any Playwright TestOptions. The skill’s own prose already uses the CLI form.'},
+ {c:'testing-js',id:'TJS-02',sev:'low',kind:'version',eff:'S',t:'Playwright pin 1.59 → 1.60',f:'testing-e2e/SKILL.md:17',b:'>=1.59.0',a:'1.60 adds connectOverCDP({noDefaults}), webError.location(), consoleMessage.location()',ev:'Floor still satisfiable; freshness note.'},
+ {c:'testing-js',id:'TJS-03',sev:'low',kind:'cosmetic',eff:'S',t:'wcag21aa vs wcag22aa inconsistency (5 locations)',f:'a11y-testing-tools.md, examples, checklist',b:'wcag21aa (3 files) vs wcag22aa (rules/SKILL)',a:'standardize on wcag22aa',ev:'Both valid axe tags; consistency cleanup. Broader than research flagged.'},
+ {c:'testing-js',id:'TJS-04',sev:'drop',kind:'cosmetic',eff:'S',t:'Vitest 4.1 features — current',f:'testing-unit/SKILL.md:177-241',b:'',a:'',ev:'aroundEach/aroundAll, mockThrow, vi.defineHelper, test tags, AI_AGENT reporter all real. No action.'},
+ {c:'testing-js',id:'TJS-05',sev:'drop',kind:'cosmetic',eff:'S',t:'MSW already v2 (http/HttpResponse)',f:'testing-*',b:'',a:'',ev:'Zero legacy rest/res/ctx anywhere. No migration needed.'},
+ {c:'testing-js',id:'TJS-06',sev:'low',kind:'cosmetic',eff:'S',t:'jest-axe NOT deprecated; axe-core/playwright 4.11.3',f:'a11y-testing-tools.md',b:'(implies jest-axe stale)',a:'jest-axe 10.0.0 maintained; vitest-axe IS abandoned (0.1.0)',ev:'Version note; AxeBuilder API unchanged.'},
+
+ // testing-py-llm (ragas 0.4.3 / deepeval 4.0.5 / pytest 9.0.3 / hypothesis 6.155.1)
+ {c:'testing-py-llm',id:'ragas-pin',sev:'critical',kind:'fabricated',eff:'S',t:'ragas>=1.2.0 pin is UNSATISFIABLE (no 1.x exists)',f:'testing-llm/SKILL.md:18-19,110,123',b:'ragas >= 1.2.0   # "RAGAS 1.2"',a:'ragas >= 0.4.0   (latest is 0.4.3; zero 1.x ever shipped)',ev:'PyPI: 88 versions, latest 0.4.3, no 1.x. pip install fails to resolve. The whole "1.2" premise is invented.'},
+ {c:'testing-py-llm',id:'ragas-recalibrate',sev:'critical',kind:'fabricated',eff:'S',t:'INVENTED recalibrate=True feature',f:'testing-llm',b:'from ragas.evaluation import evaluate\nevaluate(..., recalibrate=True)',a:'from ragas import evaluate\nevaluate(dataset, metrics, llm=...)  # no recalibrate param',ev:'No recalibrate in the documented evaluate() signature → TypeError. Canonical import is from ragas.'},
+ {c:'testing-py-llm',id:'ragas-legacy-metric',sev:'high',kind:'deprecated',eff:'M',t:'pre-0.2 lowercase singletons + HF Dataset',f:'deepeval-ragas-api.md:139-209',b:'from ragas.metrics import faithfulness, answer_relevancy\nDataset.from_dict({question,answer,contexts,ground_truth})',a:'from ragas.metrics import LLMContextRecall, Faithfulness, FactualCorrectness\nEvaluationDataset.from_list([{user_input,retrieved_contexts,response,reference}])',ev:'docs.ragas.io current API is class-based + EvaluationDataset. (llm= is optional, not "required".)'},
+ {c:'testing-py-llm',id:'ragas-result-idx',sev:'medium',kind:'broken',eff:'S',t:'dataset keys/singletons dead (result[...] still works)',f:'deepeval-ragas-api.md:242-262',b:'Dataset.from_dict({question,answer,...}) + lowercase metrics',a:'EvaluationDataset.from_list + class metrics',ev:'Down-ranked high→med: result[‘faithfulness’] dict access still valid; only dataset keys + singletons break.'},
+ {c:'testing-py-llm',id:'deepeval-geval',sev:'high',kind:'broken',eff:'S',t:'GEvalMetric → ImportError (class is GEval); + criteria AND steps invalid',f:'deepeval-ragas-api.md:82-91',b:'from deepeval.metrics import GEvalMetric\nGEvalMetric(criteria=..., evaluation_steps=...)',a:'from deepeval.metrics import GEval\nGEval(evaluation_params=[...], evaluation_steps=[...])  # criteria OR steps, not both',ev:'Class is GEval; passing both criteria and evaluation_steps is itself invalid per docs.'},
+ {c:'testing-py-llm',id:'deepeval-story',sev:'medium',kind:'version',eff:'S',t:'include_reason mislabeled "2.3 feature"; pin 2 majors behind',f:'testing-llm/SKILL.md:99-108,123',b:'deepeval >= 2.3.0  # "2.3 self-explaining scores"',a:'deepeval >= 4.0  (latest 4.0.5; include_reason is baseline, not 2.3)',ev:'Core assert_test/LLMTestCase flow still valid; stale pin + inaccurate framing.'},
+ {c:'testing-py-llm',id:'hypothesis-cats',sev:'low',kind:'cosmetic',eff:'S',t:'whitelist_categories (still works, forward-dated deprecation)',f:'strategies-guide.md:17',b:"st.characters(whitelist_categories=('L','N'))",a:"st.characters(categories=('L','N'))",ev:'Down-ranked med→low: alias still works on 6.155.1, no warning yet. Non-idiomatic, not broken.'},
+ {c:'testing-py-llm',id:'pytest-pin',sev:'low',kind:'version',eff:'S',t:'pytest 9.0.1 → 9.0.3',f:'orchestkit-test-strategy.md:26',b:'pytest 9.0.1',a:'pytest 9.0.3',ev:'Same-minor patch in a tech-stack table.'},
+ {c:'testing-py-llm',id:'deepeval-model',sev:'low',kind:'cosmetic',eff:'S',t:'fictional model gpt-5.2-mini',f:'deepeval-ragas-api.md:41,57,102,121',b:"model='gpt-5.2-mini'",a:"model='gpt-5-mini'  (no gpt-5.2-mini exists)",ev:'Real minis are gpt-5-mini / gpt-5.4-mini. Fails only at eval-time.'},
+
+ // vector-rag (pgvector 0.8.2)
+ {c:'vector-rag',id:'vr-1',sev:'high',kind:'broken',eff:'S',t:'gemini text-embedding-004 SHUT DOWN 2026-01-14',f:'embeddings-models.md:42,48',b:'model="text-embedding-004"  # 768 dims',a:'model="gemini-embedding-001"  # GA 2025-07-14',ev:'ai.google.dev/deprecations: 004 dead since 2026-01-14. Today is 2026-05-31 → non-existent model.'},
+ {c:'vector-rag',id:'vr-2',sev:'high',kind:'deprecated',eff:'M',t:'Cohere rerank: Client()/v3.0/max_chunks_per_doc',f:'reranking-llm.md:46-55; SKILL.md',b:'cohere.Client(); model="rerank-english-v3.0"; max_chunks_per_doc=',a:'cohere.ClientV2(); model="rerank-v4.0-pro"; max_tokens_per_doc=4096',ev:'Live docs.cohere.com/reference/rerank shows ClientV2 + rerank-v4.0-pro + max_tokens_per_doc.'},
+ {c:'vector-rag',id:'vr-3',sev:'medium',kind:'version',eff:'S',t:'voyage-3 → voyage-3.5',f:'SKILL.md:164; embeddings-models.md',b:'voyage-3',a:'voyage-3.5 / voyage-3.5-lite (same price, MRL dims)',ev:'voyage-3.5 released 2025-05-20; voyage-3 a half-gen behind.'},
+ {c:'vector-rag',id:'vr-4',sev:'medium',kind:'newbest',eff:'M',t:'pgvector halfvec / binary_quantize() gap',f:'pgvector-schema.md; pgvector-indexing.md',b:'vector(1024) + HNSW/IVFFlat only',a:'halfvec (float16, ~50% storage) + binary_quantize() / bit indexing (pgvector 0.7+)',ev:'Real gap for high-dim (3072) embeddings; additive guidance.'},
+ {c:'vector-rag',id:'vr-5',sev:'low',kind:'version',eff:'S',t:'voyage-multimodal-3 → 3.5',f:'multimodal-embeddings.md:60',b:'voyage-multimodal-3',a:'voyage-multimodal-3.5',ev:'Old model still works; a generation behind.'},
+ {c:'vector-rag',id:'vr-6',sev:'low',kind:'cosmetic',eff:'S',t:'cross-encoder repo name dashes',f:'reranking-cross-encoder.md:17,32,62',b:'ms-marco-MiniLM-L-6-v2',a:'ms-marco-MiniLM-L6-v2 (canonical; dashed form redirects)',ev:'Redirect-safe rename. CrossEncoder.predict() unchanged.'},
+
+ // observability (langfuse py 4.7.1 / JS 5.4.1 / OTel resources 2.7.1)
+ {c:'observability',id:'OBS-1',sev:'critical',kind:'broken',eff:'S',t:'from langfuse.callback import CallbackHandler → ImportError',f:'tracing-setup.md:165; migration-v2-v3.md:12 ("unchanged" — wrong)',b:'from langfuse.callback import CallbackHandler',a:'from langfuse.langchain import CallbackHandler',ev:'No langfuse/callback module in current package tree. Issue #7323 documents the v3 move. The skill’s migration table FALSELY says "unchanged".'},
+ {c:'observability',id:'OBS-2',sev:'high',kind:'deprecated',eff:'M',t:'@observe(type=) → as_type=',f:'tracing-setup.md:96-130 (×7)',b:'@observe(type="agent")',a:'@observe(as_type="agent")',ev:'Langfuse docs: param is as_type (py) / asType (js). Skill’s own migration-v2-v3.md documents the rename.'},
+ {c:'observability',id:'OBS-3',sev:'high',kind:'broken',eff:'M',t:'v2 trace().generation() + lf.score() builder',f:'langfuse-setup-checklist.md:368-417',b:'langfuse_client.trace(...).generation(...); lf.score(trace_id=...)',a:'langfuse.start_observation(...); langfuse.create_score(trace_id=...)',ev:'v4 is observation-centric; the v2 builder is not part of the model.'},
+ {c:'observability',id:'OBS-4',sev:'high',kind:'version',eff:'S',t:'@langfuse/* pinned ^4.0.0 → 5.x',f:'langfuse-setup-checklist.md:117-118',b:'"@langfuse/core": "^4.0.0"',a:'"@langfuse/core": "^5.0.0"  (latest 5.4.1)',ev:'npm dist-tags.latest = 5.4.1; caret freezes users a full major behind.'},
+ {c:'observability',id:'OBS-5',sev:'high',kind:'broken',eff:'S',t:'new Resource() REMOVED in OTel JS 2.x',f:'opentelemetry-tracing.ts:8,17',b:'import { Resource } from "@opentelemetry/resources"\nresource: new Resource({...})',a:'import { resourceFromAttributes } from "@opentelemetry/resources"\nresource: resourceFromAttributes({...})',ev:'OTel JS upgrade-to-2.x: Resource constructor removed; latest 2.7.1.'},
+ {c:'observability',id:'OBS-6',sev:'medium',kind:'deprecated',eff:'S',t:'SemanticResourceAttributes → ATTR_* consts',f:'opentelemetry-tracing.ts:9,18-20',b:'SemanticResourceAttributes.SERVICE_NAME',a:'ATTR_SERVICE_NAME (+ ATTR_DEPLOYMENT_ENVIRONMENT_NAME in incubating)',ev:'Deprecated since semantic-conventions@1.0.0; latest 1.41.1.'},
+ {c:'observability',id:'OBS-7',sev:'medium',kind:'contradiction',eff:'S',t:'langfuse>=4.0.0 vs leftover >=3.13.0',f:'migration-v2-v3.md:210 vs :398',b:'top: >=4.0.0  ·  checklist: >=3.13.0',a:'unify >=4.0.0 (PyPI latest 4.7.1)',ev:'Leftover line steers a subset one major behind.'},
+ {c:'observability',id:'OBS-8',sev:'medium',kind:'broken',eff:'S',t:'from langfuse.opentelemetry import LangfuseSpanProcessor → ImportError',f:'llm-langfuse-traces.md:132,152; tracing-setup.md:72',b:'from langfuse.opentelemetry import LangfuseSpanProcessor',a:'Langfuse(should_export_span=...)  # from langfuse.span_filter import is_default_export_span',ev:'No langfuse/opentelemetry module on v4; span filtering is a client kwarg. (verifier raised confidence to high)'},
+ {c:'observability',id:'OBS-9',sev:'drop',kind:'cosmetic',eff:'S',t:'prom-client — current',f:'prometheus-metrics.ts',b:'',a:'',ev:'prom-client 15.1.3; Registry/Counter/Histogram surface current. No action.'},
+
+ // llm-sdk (openai 2.38.0 / anthropic 0.105.2 / gpt-5.5 / Claude Opus 4.8)
+ {c:'llm-sdk',id:'llm-001',sev:'high',kind:'deprecated',eff:'M',t:'google.generativeai (archived read-only) → unified genai',f:'audio-speech-to-text.md:42; audio-text-to-speech.md:20; vision-image-analysis.md:70',b:'import google.generativeai as genai\nm = genai.GenerativeModel(...)',a:'from google import genai\nclient = genai.Client()\nclient.models.generate_content(...) ; client.files.upload(file=...)',ev:'Legacy repo archived 2025-12-16, support ended 2025-11-30.'},
+ {c:'llm-sdk',id:'llm-002',sev:'medium',kind:'newbest',eff:'M',t:'OpenAI Responses API recommended (Chat Completions still ok)',f:'llm-sdk',b:'client.chat.completions.create(..., response_format=...)',a:'client.responses.parse(model=..., input=..., text_format=Model) → .output_parsed',ev:'OpenAI migrate guide: Responses recommended for new projects; not a deprecation.'},
+ {c:'llm-sdk',id:'llm-003',sev:'medium',kind:'contradiction',eff:'S',t:'vision table: Claude Opus 4.6 / GPT-5.2 vs 4.8 elsewhere',f:'vision-models.md:17,67',b:'| Claude Opus 4.6 | 1M |  ·  GPT-5.2 128K',a:'Claude Opus 4.8 (GA 2026-05-28); current GPT-5.x',ev:'Internal staleness on both model ids.'},
+ {c:'llm-sdk',id:'llm-004',sev:'medium',kind:'version',eff:'M',t:'gpt-5.2 hard-coded ~18× → gpt-5.5',f:'calling-tool-definition.md:129; vision-*; caching',b:'model="gpt-5.2"',a:'model="gpt-5.5"  (GA 2026-04-23)',ev:'Pervasive example-id staleness; may still alias but not current default.'},
+ {c:'llm-sdk',id:'llm-005',sev:'low',kind:'version',eff:'S',t:'gpt-4o caching example → gpt-5.5',f:'caching-http.md:42',b:'model="gpt-4o"',a:'model="gpt-5.5"',ev:'Prior-gen id in prefix-caching example.'},
+ {c:'llm-sdk',id:'llm-006',sev:'low',kind:'version',eff:'S',t:'stale model id (do NOT hardcode a fabricated price)',f:'synthetic-data',b:'gpt-5.2 + "$5/$30" guess',a:'bump id only; source-tag any price (only gpt-5.5-PRO price is public: $30/$180)',ev:'Down-noted: prior proposed price was itself invented. Just update the id.'},
+ {c:'llm-sdk',id:'llm-007',sev:'low',kind:'cosmetic',eff:'S',t:'Anthropic caching shape — current',f:'caching-http.md:24-37',b:'',a:'',ev:'cache_control {type:ephemeral, ttl:"1h"} current; default flipped to 5m 2026-03-06. No change.'},
+ {c:'llm-sdk',id:'llm-008',sev:'low',kind:'cosmetic',eff:'S',t:'Anthropic vision content-blocks — current',f:'vision-image-analysis.md:50-64',b:'',a:'',ev:'claude-opus-4-8 + base64 image block shape current. No change.'},
+
+ // mcp (TS sdk 1.29.0 / py mcp 1.27.2 / spec 2025-11-25)
+ {c:'mcp',id:'mcp-1',sev:'high',kind:'broken',eff:'M',t:'NodeStreamableHTTPServerTransport only in 2.0-alpha split',f:'server-transport.md:111-113',b:"import { NodeStreamableHTTPServerTransport } from '@modelcontextprotocol/node'",a:"import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'\nimport { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'",ev:'npm pack: class exists ONLY in @modelcontextprotocol/node@2.0.0-alpha.2, not pinned stable 1.29.0 → MODULE_NOT_FOUND.'},
+ {c:'mcp',id:'mcp-2',sev:'high',kind:'broken',eff:'S',t:'from mcp.server.mcpserver import MCPServer → ModuleNotFoundError',f:'server-transport.md:92',b:'from mcp.server.mcpserver import MCPServer',a:'from mcp.server.fastmcp import FastMCP',ev:'Wheel extract: no mcpserver.py, no MCPServer class anywhere in mcp 1.27.2.'},
+ {c:'mcp',id:'mcp-3',sev:'high',kind:'broken',eff:'S',t:"@modelcontextprotocol/client is alpha-only",f:'client-patterns.md:14,38,111',b:"from '@modelcontextprotocol/client'",a:"from '@modelcontextprotocol/sdk/client/index.js' (+ /client/streamableHttp.js)",ev:'Stable resolves Client via /client subpath of the SDK; the bare package is 2.0-alpha only.'},
+ {c:'mcp',id:'mcp-4',sev:'high',kind:'broken',eff:'S',t:'from mcp import Client → ImportError (it’s the fastmcp fork)',f:'testing-debugging.md:27',b:'from mcp import Client',a:'from mcp import ClientSession  # or fastmcp.Client for in-process',ev:'mcp 1.27.2 exports ClientSession/ClientSessionGroup, no top-level Client. Client(app) is the jlowin fastmcp 3.3.1 API. Skill’s own table warns they differ.'},
+ {c:'mcp',id:'mcp-5',sev:'medium',kind:'broken',eff:'S',t:'streamable_http_client yields 3-tuple, skill unpacks 2',f:'client-patterns.md:99',b:'async with streamable_http_client(url) as (read, write):',a:'async with streamable_http_client(url) as (read, write, get_session_id):',ev:'Source yields (read, write, get_session_id) → ValueError too many values to unpack.'},
+ {c:'mcp',id:'mcp-6',sev:'medium',kind:'newbest',eff:'S',t:'consistency: align 3 rule files to apps-ui.md',f:'mcp-patterns rules',b:'(mixed import layouts)',a:'single-package subpaths (apps-ui.md already correct)',ev:'Roll-up of mcp-1..5; internal inconsistency vs the correct SDK-landscape table.'},
+
+ // json-render (all @json-render/* 0.19.0)
+ {c:'json-render',id:'JR-001',sev:'critical',kind:'broken',eff:'M',t:'Render export does not exist (it’s Renderer)',f:'json-render-catalog/SKILL.md:60,72,215,304',b:"import { Render } from '@json-render/react'\n<Render catalog={c} components={x} spec={s} directives={d} />",a:"import { Renderer } from '@json-render/react'\nconst { registry } = defineRegistry(catalog, { components })\n<Renderer spec={s} registry={registry} />",ev:'0.19 dist: export is Renderer; RendererProps = {spec, registry, loading?, fallback?} only. No catalog/components/directives props → throws at import.'},
+ {c:'json-render',id:'JR-002',sev:'critical',kind:'broken',eff:'S',t:'defineCatalog is two-arg (schema, catalog)',f:'SKILL.md:138',b:'defineCatalog({ Card: {...} })',a:'defineCatalog(schema, { components: { Card: {...} } })',ev:'0.19 dist signature defineCatalog(schema, catalog). Skill’s own upstream-core.md:44 already shows the two-arg form.'},
+ {c:'json-render',id:'JR-003',sev:'critical',kind:'broken',eff:'M',t:'createMcpApp signature + .start() wrong',f:'SKILL.md:77-83',b:'const app = createMcpApp({ catalog, html })\napp.start()',a:'const server = await createMcpApp({ name, version, catalog, html, tool:{...} })  // returns McpServer, no .start()',ev:'0.19 dist: createMcpApp(options)->Promise<McpServer>; name+version REQUIRED; no .start/.close; default tool name "render-ui".'},
+ {c:'json-render',id:'JR-004',sev:'critical',kind:'broken',eff:'M',t:'registerJsonRenderTool/Resource options wrong',f:'SKILL.md:97,100',b:'registerJsonRenderTool(server, { catalog })',a:'registerJsonRenderTool(server, { catalog, name, title, description, resourceUri })  // all required',ev:'0.19 RegisterToolOptions requires name/title/description/resourceUri; no html/csp. Built on ext-apps registerAppTool.'},
+ {c:'json-render',id:'JR-006',sev:'high',kind:'broken',eff:'S',t:'renderTo* options have no catalog field',f:'SKILL.md:95,98,108,119,203,208,211',b:'renderToBuffer(spec, { catalog, registry })',a:'renderToBuffer(spec, { registry, includeStandard?, state? })',ev:'react-pdf/react-email/image RenderOptions have no catalog key → TS error under exactOptionalPropertyTypes.'},
+ {c:'json-render',id:'JR-007',sev:'high',kind:'broken',eff:'S',t:'<Renderer catalog=> prop does not exist',f:'SKILL.md:83',b:'<Renderer spec={s} catalog={c} registry={r} />',a:'<Renderer spec={s} registry={defineRegistry(c,{components}).registry} />',ev:'Same root cause as JR-001; registry must come from defineRegistry.'},
+ {c:'json-render',id:'JR-005',sev:'medium',kind:'newbest',eff:'S',t:'import ./app.html → buildAppHtml',f:'SKILL.md:74',b:"import bundledHtml from './app.html'",a:"import { buildAppHtml } from '@json-render/mcp/app'",ev:'Works with raw-loader but docs prescribe buildAppHtml.'},
+ {c:'json-render',id:'JR-009',sev:'medium',kind:'version',eff:'S',t:'upstream-version-tested 0.17.0 → 0.19.0',f:'SKILL.md:16',b:'upstream-version-tested: 0.17.0',a:'0.19.0 (predates ext-apps / ui:// resources mental model)',ev:'Compounds JR-003/004.'},
+ {c:'json-render',id:'JR-008',sev:'low',kind:'cosmetic',eff:'S',t:'shadcn catalog 29 → 36 components',f:'package-ecosystem.md:29',b:'@json-render/shadcn | 29',a:'36 (frontmatter already says 36)',ev:'Internal contradiction.'},
+ {c:'json-render',id:'JR-010',sev:'low',kind:'version',eff:'S',t:'multi-surface pins 0.17.0 → 0.19.0',f:'multi-surface SKILL',b:'0.17.0',a:'0.19.0 (react-pdf/email/image/...)',ev:'Pure pin bump.'},
+ {c:'json-render',id:'JR-011',sev:'drop',kind:'cosmetic',eff:'S',t:'useJsonRenderApp block — current',f:'SKILL.md:110-117',b:'',a:'',ev:'useJsonRenderApp + <Renderer spec registry> correct on 0.19. No change.'},
+
+ // infra-events (temporal 1.27.2 / celery 5.6.3 / redis 8.0 / stripe 15.2.0)
+ {c:'infra-events',id:'ie-1',sev:'low',kind:'deprecated',eff:'S',t:'stripe.error.* legacy submodule',f:'retry-strategies.md:113-115',b:'except stripe.error.RateLimitError',a:'except stripe.RateLimitError',ev:'Stripe docs: error.* is legacy (API <=2022-08-01). Illustrative example.'},
+ {c:'infra-events',id:'ie-2',sev:'low',kind:'deprecated',eff:'S',t:'global stripe.PaymentIntent.create() deprecated',f:'retry-strategies.md:102; result-backends.md:233',b:'stripe.PaymentIntent.create(...)',a:'StripeClient().v1.payment_intents.create(...)',ev:'stripe-python v15 StripeClient pattern. (latest 15.2.0, not "v12")'},
+ {c:'infra-events',id:'ie-3',sev:'drop',kind:'cosmetic',eff:'S',t:'Temporal SDK — current',f:'temporal-workflows.md',b:'',a:'',ev:'@workflow.defn/run/query/signal + execute_activity current on 1.27.2.'},
+ {c:'infra-events',id:'ie-4',sev:'drop',kind:'cosmetic',eff:'S',t:'Celery — current',f:'retry-strategies.md',b:'',a:'',ev:'autoretry_for/retry_backoff current on 5.6.3.'},
+ {c:'infra-events',id:'ie-5',sev:'drop',kind:'cosmetic',eff:'S',t:'redis-py — current',f:'redlock-algorithm.md',b:'',a:'',ev:'redis.asyncio, .eval(), set(nx=,ex=) current on 8.0.0.'},
+ {c:'infra-events',id:'ie-6',sev:'drop',kind:'cosmetic',eff:'S',t:'aiokafka — current',f:'idempotency-examples.md',b:'',a:'',ev:'AIOKafkaConsumer constructor + lifecycle stable on 0.14.0.'},
+
+ // db-migrations (Alembic 1.18.4 / SQLAlchemy 2.0.50 / Postgres 18 / pgroll 0.16.2)
+ {c:'db-migrations',id:'dbm-01',sev:'medium',kind:'newbest',eff:'M',t:'PG18 uuidv7() over random gen_random_uuid()',f:'database-patterns/SKILL.md:68',b:'id uuid DEFAULT gen_random_uuid()  -- random v4',a:'id uuid DEFAULT uuidv7()  -- PG18 time-ordered, better index locality',ev:'PG18 ships uuidv7() (RFC 9562). Skill teaches only v4 → poor B-tree locality. Highest-value fix.'},
+ {c:'db-migrations',id:'dbm-02',sev:'medium',kind:'newbest',eff:'M',t:'PG18 native temporal constraints',f:'audit-trails.md:31',b:'CREATE EXTENSION temporal_tables  -- "PostgreSQL 15+"',a:'PRIMARY KEY ... WITHOUT OVERLAPS / FOREIGN KEY ... PERIOD (needs btree_gist); keep ext only for full system-versioned history',ev:'PG18 native constraints give uniqueness/RI (not system-versioned history). "15+" label misleading.'},
+ {c:'db-migrations',id:'dbm-03',sev:'medium',kind:'broken',eff:'S',t:'asyncio.run() in env.py when loop exists',f:'alembic-autogenerate.md:55 vs :149',b:'def run_migrations_online(): asyncio.run(run_async_migrations())',a:'if in_greenlet(): await_only(run_async_migrations()) else: asyncio.run(...)',ev:'Skill contradicts its own "Common Mistakes". in_greenlet is real (sqlalchemy.util.concurrency).'},
+ {c:'db-migrations',id:'dbm-04',sev:'low',kind:'version',eff:'S',t:'pgroll 0.16.2 (verbs valid; don’t pin)',f:'migration-rollback.md:28-62',b:'(unpinned)',a:'init/start/complete/rollback all valid; validate since 0.14',ev:'~9 minors behind but functionally correct; intentionally unpinned.'},
+ {c:'db-migrations',id:'dbm-05',sev:'low',kind:'cosmetic',eff:'S',t:'PG18 B-tree skip scan nuances "not leftmost = no index"',f:'schema-indexing.md:35',b:'"Does NOT use index: WHERE status=pending (not leftmost)"',a:'PG18 skip scan can use it (few distinct prefix values); leftmost still the design heuristic',ev:'Categorical "no index" no longer strictly true on PG18.'},
+ {c:'db-migrations',id:'dbm-06',sev:'drop',kind:'cosmetic',eff:'S',t:'Alembic APIs — current',f:'database-patterns',b:'',a:'',ev:'op.*, --autogenerate, alembic check, await_only all current on 1.18.4.'},
+
+ // security (OWASP 2025 / PyJWT 2.13.0 / python-jose CVE / Zod v4 / py_webauthn 2.7.1)
+ {c:'security',id:'sec-001',sev:'high',kind:'version',eff:'M',t:'OWASP LLM 2023 labels (skill teaches superseded mapping)',f:'guardrails-llm-validation.md:52-62; test-cases.json:193',b:'LLM02 Insecure Output, LLM07 Insecure Plugin Design, LLM09 Overreliance',a:'LLM02 Sensitive Info Disclosure, LLM05 Improper Output Handling, LLM07 System Prompt Leakage, LLM08 Vector/Embedding Weaknesses, LLM09 Misinformation, LLM10 Unbounded Consumption',ev:'genai.owasp.org/llm-top-10 2025 list. Has a test-cases.json:193 coupling.'},
+ {c:'security',id:'sec-002',sev:'high',kind:'security',eff:'S',t:'python-jose (CVE-2025-61152 alg=none) in auth path',f:'request-context-pattern.md:56,68-69',b:'from jose import jwt; jwt.decode(...); except jwt.JWTError',a:'import jwt  # PyJWT; except jwt.InvalidTokenError',ev:'python-jose unmaintained (3.3.0, 2021), CVE-2025-61152 accepts alg=none w/o sig. PyJWT 2.13.0 already the skill standard. Only python-jose user.'},
+ {c:'security',id:'sec-003',sev:'medium',kind:'version',eff:'M',t:'OWASP web 2021 → 2025 (fix mapping carefully)',f:'examples/owasp-top10-fixes.md',b:'A08 Insecure Deserialization (2021)',a:'A08:2025 Software or Data Integrity Failures (deserialization lives HERE, not A03)',ev:'Down-ranked high→med: research mis-mapped deserialization to A03. Real 2025 order: A01 Access, A02 Misconfig, A03 Supply Chain, A04 Crypto, A05 Injection, A06 Insecure Design, A07 AuthN, A08 Integrity, A09 Logging, A10 Exceptional Conditions.'},
+ {c:'security',id:'sec-004',sev:'medium',kind:'broken',eff:'M',t:'Zod-named file ships v3 syntax + REMOVED .errors',f:'references/zod-v4-api.md',b:'z.string().email(); result.error.errors; z.setErrorMap(...)',a:'z.email(); result.error.issues; unified { error } param',ev:'ZodError.errors REMOVED in v4 (real break); methods deprecated; issue codes moved to z.core. The file says "zod@latest".'},
+ {c:'security',id:'sec-006',sev:'medium',kind:'newbest',eff:'S',t:'tenant-isolation/context-separation not mapped to OWASP LLM07/LLM08',f:'references/tenant-isolation.md, context-separation.md',b:'(no OWASP LLM ID mapping)',a:'map to LLM07 System Prompt Leakage + LLM08 Vector/Embedding Weaknesses (2025)',ev:'Building blocks exist; OWASP linkage missing.'},
+ {c:'security',id:'sec-005',sev:'drop',kind:'cosmetic',eff:'S',t:'py_webauthn — current',f:'auth-oauth.md:77',b:'',a:'',ev:'webauthn 2.7.1 (Duo Labs), generate/verify API current. No change.'},
+];
+
+const VERS = [
+ ['langgraph','langgraph','mixed 0.2.58/1.0.7/>=1.2','1.2.2','confirmed'],
+ ['langgraph','langchain (create_agent)','langgraph.prebuilt','langchain.agents.create_agent','confirmed'],
+ ['next-react','Next.js','16.2.3','16.2.6 (2026-05-07)','confirmed'],
+ ['next-react','React','19.2.3','19.2.6 (2026-05-06)','confirmed'],
+ ['frontend-libs','Zod','4.x','4.4.3','corrected'],
+ ['frontend-libs','Zustand','5.0.14','5.0.11 (highest confirmed)','corrected'],
+ ['frontend-libs','Vite','8.x','8.0.14 (rolldown 1.0.2)','confirmed'],
+ ['frontend-libs','Biome','2.4.12','2.4.x (types domain)','confirmed'],
+ ['frontend-libs','shadcn/ui','6 styles','8 styles (Sera, Rhea)','confirmed'],
+ ['frontend-libs','TanStack Query / RHF / Radix / Recharts','v5 / 7.76 / unified / 3.8','not re-fetched','unverifiable'],
+ ['python-backend','FastAPI','>=0.100','0.136.1','confirmed'],
+ ['python-backend','SQLAlchemy','>=2.0','2.0.50 (2.1.0b2 beta)','confirmed'],
+ ['python-backend','Pydantic','—','2.13.4','confirmed'],
+ ['python-backend','httpx','—','0.28.1 (app= removed)','confirmed'],
+ ['testing-js','Playwright','>=1.59','1.60.0','confirmed'],
+ ['testing-js','Vitest','4.1.7','4.1.7','confirmed'],
+ ['testing-js','msw','2.14.6','2.14.6','confirmed'],
+ ['testing-js','@axe-core/playwright','4.11.2','4.11.3','corrected'],
+ ['testing-py-llm','ragas','>=1.2.0 (invented)','0.4.3 (no 1.x exists)','confirmed'],
+ ['testing-py-llm','deepeval','>=2.3','4.0.5','confirmed'],
+ ['testing-py-llm','pytest','9.0.1','9.0.3','confirmed'],
+ ['testing-py-llm','hypothesis','—','6.155.1','confirmed'],
+ ['vector-rag','pgvector','0.8.2','0.8.2 (halfvec/binary 0.7+)','confirmed'],
+ ['vector-rag','Gemini text embed','text-embedding-004','DEAD → gemini-embedding-001','confirmed'],
+ ['vector-rag','Cohere rerank','rerank-english-v3.0','rerank-v4.0-pro (ClientV2)','confirmed'],
+ ['vector-rag','Voyage','voyage-3','voyage-3.5','confirmed'],
+ ['observability','langfuse (py)','^4 / callback path','4.7.1 (langfuse.langchain)','confirmed'],
+ ['observability','@langfuse/* (js)','^4.0.0','5.4.1','confirmed'],
+ ['observability','@opentelemetry/resources','new Resource()','2.7.1 (resourceFromAttributes)','confirmed'],
+ ['llm-sdk','openai (py)','2.30.0','2.38.0','corrected'],
+ ['llm-sdk','anthropic (py)','0.104.1','0.105.2','corrected'],
+ ['llm-sdk','OpenAI model','gpt-5.2','gpt-5.5 (GA 2026-04-23)','confirmed'],
+ ['llm-sdk','google-generativeai','legacy','archived → google-genai','confirmed'],
+ ['llm-sdk','Gemini model','gemini-3-flash-preview','Gemini 3 Flash GA (drop -preview)','corrected'],
+ ['mcp','@modelcontextprotocol/sdk','1.29.0','1.29.0','confirmed'],
+ ['mcp','mcp (py)','1.27.2','1.27.2','confirmed'],
+ ['mcp','MCP spec','2025-11-25','2025-11-25','confirmed'],
+ ['json-render','@json-render/*','0.17.0 / 0.19.0','0.19.0','confirmed'],
+ ['infra-events','stripe (py)','v12.x','15.2.0','corrected'],
+ ['infra-events','arq','~0.26','0.28.0','corrected'],
+ ['infra-events','aiokafka','0.13/0.14','0.14.0','confirmed'],
+ ['infra-events','temporalio / celery / redis','1.27.2 / 5.6.3 / 8.0','all confirmed','confirmed'],
+ ['db-migrations','Alembic','1.18.4','1.18.4','confirmed'],
+ ['db-migrations','PostgreSQL','18','18 GA (uuidv7, WITHOUT OVERLAPS)','confirmed'],
+ ['db-migrations','pgroll','0.16.2','0.16.2','confirmed'],
+ ['security','OWASP web Top 10','2021','2025 (deser→A08 not A03)','corrected'],
+ ['security','OWASP LLM Top 10','2023 labels','2025','confirmed'],
+ ['security','python-jose','3.3.0 (CVE-2025-61152)','unmaintained → PyJWT 2.13.0','confirmed'],
+ ['security','py_webauthn','2.7.1','2.7.1','confirmed'],
+];
+
+// cluster meta (worst severity drives color)
+const CLU = {
+ 'testing-py-llm':{l:'testing-py-llm',w:'critical'}, 'observability':{l:'observability',w:'critical'}, 'json-render':{l:'json-render',w:'critical'},
+ 'langgraph':{l:'langgraph',w:'high'}, 'next-react':{l:'next-react',w:'high'}, 'vector-rag':{l:'vector-rag',w:'high'},
+ 'mcp':{l:'mcp',w:'high'}, 'security':{l:'security',w:'high'}, 'python-backend':{l:'python-backend',w:'high'},
+ 'frontend-libs':{l:'frontend-libs',w:'medium'}, 'db-migrations':{l:'db-migrations',w:'medium'}, 'llm-sdk':{l:'llm-sdk',w:'medium'},
+ 'testing-js':{l:'testing-js',w:'low'}, 'infra-events':{l:'infra-events',w:'low'},
+};
+const ORDER=['critical','high','medium','low','drop'];
+
+// ---- render mermaid ----
+function clusterCounts(c){const f=F.filter(x=>x.c===c);return ORDER.map(s=>f.filter(x=>x.sev===s).length);}
+const sevClass={critical:'crit',high:'high',medium:'med',low:'low'};
+const clusterNodes=Object.keys(CLU).sort((a,b)=>ORDER.indexOf(CLU[a].w)-ORDER.indexOf(CLU[b].w)).map(c=>{
+  const [cr,hi,me,lo,dr]=clusterCounts(c);const tot=cr+hi+me+lo+dr;
+  const lbl=`${c}<br/>${tot} findings`+(cr?`<br/>${cr} crit`:'')+(hi?` · ${hi} high`:'');
+  return `  ${c.replace(/-/g,'_')}["${lbl}"]:::${sevClass[CLU[c].w]||'low'}`;
+}).join('\n');
+const clusterEdges=Object.keys(CLU).map(c=>`  ROOT --> ${c.replace(/-/g,'_')}`).join('\n');
+const mClusters=`graph LR
+  ROOT["Lib Audit 2026-05-31<br/>107 findings<br/>103 confirmed · 0 refuted"]:::root
+${clusterEdges}
+${clusterNodes}
+classDef root fill:#1a212c,stroke:#bc8cff,color:#e6edf3,stroke-width:2px;
+classDef crit fill:#2a1416,stroke:#f85149,color:#f0c9c9;
+classDef high fill:#2a1d12,stroke:#ff8c42,color:#f0d9c9;
+classDef med fill:#2a2510,stroke:#d2a32a,color:#efe3bf;
+classDef low fill:#0f1d2e,stroke:#58a6ff,color:#cfe3ff;`;
+
+const mFab=`graph LR
+  S["Skills inventing<br/>APIs that DON'T EXIST"]:::root
+  S --> A["next/proxy module<br/>(ProxyRequest/Response)"]:::crit
+  S --> B["revalidateTag({type})<br/>+ array overload"]:::crit
+  S --> C["cache() PPR wrapper<br/>from next/cache"]:::crit
+  S --> D["next-browser CLI"]:::crit
+  S --> E["use.aiAgents<br/>defineConfig block"]:::crit
+  S --> G["ragas recalibrate=True"]:::crit
+  S --> H["ragas >=1.2.0<br/>(no 1.x ever shipped)"]:::crit
+  S --> I["gpt-5.2-mini<br/>(non-existent model)"]:::crit
+classDef root fill:#2a1416,stroke:#f85149,color:#fff,stroke-width:2px;
+classDef crit fill:#1a212c,stroke:#ff8c42,color:#f0d9c9;`;
+
+mermaid.initialize({startOnLoad:false,theme:'dark',themeVariables:{fontSize:'13px',fontFamily:'ui-monospace,monospace'}});
+async function drawMermaid(){
+  for(const [id,def] of [['m-clusters',mClusters],['m-fab',mFab]]){
+    try{const {svg}=await mermaid.render(id+'-svg',def);document.getElementById(id).innerHTML=svg;}
+    catch(e){document.getElementById(id).innerHTML='<pre>'+e.message+'</pre>';}
+  }
+}
+drawMermaid();
+
+// ---- render version table ----
+const vbody=document.getElementById('vbody');
+VERS.forEach(([c,lib,claim,ver,vd])=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td style="color:var(--accent)">${c}</td><td>${lib}</td><td>${claim}</td><td>${ver}</td><td class="vc-${vd}">${vd}</td>`;
+  vbody.appendChild(tr);
+});
+
+// ---- render finding cards ----
+const cardsEl=document.getElementById('cards');
+const state={sev:'all',kind:'all'};
+function kindLabel(k){return {fabricated:'FABRICATED',broken:'broken-on-latest',deprecated:'deprecated-api',version:'version-pin',newbest:'new-best-practice',cosmetic:'cosmetic',security:'security',contradiction:'self-contradiction'}[k]||k;}
+function render(){
+  cardsEl.innerHTML='';
+  const list=F.filter(f=>(state.sev==='all'||f.sev===state.sev)&&(state.kind==='all'||f.kind===state.kind))
+    .sort((a,b)=>ORDER.indexOf(a.sev)-ORDER.indexOf(b.sev));
+  document.getElementById('fcount').textContent=`${list.length} shown / ${F.length} total`;
+  for(const f of list){
+    const d=document.createElement('details');d.className='card s-'+f.sev;
+    const sm=document.createElement('summary');
+    sm.innerHTML=`<span class="badge b-${f.sev}">${f.sev.toUpperCase()}</span>`+
+      `<span class="kind ${f.kind==='fabricated'?'fab':''}">${kindLabel(f.kind)}</span>`+
+      `<span class="cl">${f.c}</span>`+
+      `<span class="ttl">${f.t}</span>`+
+      `<span class="eff">${f.id} · ${f.eff}</span>`;
+    d.appendChild(sm);
+    const body=document.createElement('div');body.className='body';
+    const fl=document.createElement('div');fl.className='file';fl.textContent='📄 '+f.f;body.appendChild(fl);
+    if(f.b||f.a){
+      const diff=document.createElement('div');diff.className='diff';
+      if(f.b){const p=document.createElement('pre');p.className='before';const t=document.createElement('span');t.className='tag';t.textContent='before (as taught)';p.appendChild(t);p.appendChild(document.createTextNode(f.b));diff.appendChild(p);}
+      if(f.a){const p=document.createElement('pre');p.className='after';const t=document.createElement('span');t.className='tag';t.textContent='after (latest-correct)';p.appendChild(t);p.appendChild(document.createTextNode(f.a));diff.appendChild(p);}
+      body.appendChild(diff);
+    }
+    const ev=document.createElement('div');ev.className='ev';ev.innerHTML='<b>Evidence:</b> '+f.ev;body.appendChild(ev);
+    d.appendChild(body);cardsEl.appendChild(d);
+  }
+}
+document.getElementById('bar').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const f=b.dataset.f;state[f]=b.dataset.v;
+  document.querySelectorAll(`#bar button[data-f="${f}"]`).forEach(x=>x.classList.toggle('active',x===b));
+  render();
+});
+render();
+</script>
+</body>
+</html>

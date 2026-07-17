@@ -1,0 +1,70 @@
+---
+title: How we adopt every Claude Code release
+description: The automated pipeline that turns each upstream Claude Code release into scored adoption issues, a support-floor bump, and an interactive wave dashboard.
+icon: RefreshCw
+---
+
+import { LazyCcAdoptionBoard, LazyLabEmbed } from "@/components/lazy";
+
+
+Claude Code ships several releases a week. OrchestKit — 100+ skills, 37 agents, and a
+hook runtime that sits directly on CC's contracts — silently breaks if it falls behind.
+Reading changelogs manually is not a process, so the repo runs an automated adoption
+loop instead. In one July 2026 week, that loop turned three releases (2.1.210 → 2.1.212)
+into **37 auto-filed, scored adoption issues**. Zero were written by hand.
+
+## The loop
+
+```
+detect → extract → verify → file → adopt → subtract
+```
+
+1. **Detect.** A daily workflow polls the upstream Claude Code changelog and snapshots
+   every new version into the repo. If the newest known version starts lagging the
+   upstream head, a staleness alarm files an issue by itself.
+2. **Extract.** An LLM triage (Opus) reads each snapshot like a reviewer: every bullet
+   becomes a structured feature record with a category — `breaking`, `new_command`,
+   `new_field` — a 0–20 **gap score**, and the list of OrchestKit skills it touches.
+3. **Verify.** A token-free relevance gate then corrects the LLM in both directions:
+   end-user-only noise is downgraded below the filing floor (never dropped — a drop
+   would be invisible), and items that map to an existing skill get recall-boosted.
+   Genuinely ambiguous releases fall back to a manual adversarial-refute pass.
+4. **File.** Every feature above the floor becomes its own GitHub issue under a single
+   rolling "CC adoption" milestone, deduplicated by body marker across reruns.
+5. **Adopt.** A human (or an implementation session) picks up issues and ships PRs —
+   deliberately the one manual step, because adoption is judgment.
+6. **Subtract.** Every release also asks: *what can we now delete?* When CC ships a
+   native mechanism, the corresponding OrchestKit shim is removed rather than kept.
+
+The support window closes the loop: once a version's compatibility entry lands, a
+workflow bumps the supported floor automatically and propagates it into the docs,
+the version matrix, and the doctor.
+
+The mechanics live in the repo and stay authoritative there — see
+[`docs/cc-release-integration-sop.md`](https://github.com/yonatangross/orchestkit/blob/main/docs/cc-release-integration-sop.md)
+for the stage-by-stage index. This page tells the story; the SOP owns the details.
+
+## The board — current wave, real data
+
+<LazyCcAdoptionBoard />
+
+## What a wave looks like
+
+Each wave also renders an interactive explorer — the triage surface for deciding what
+to adopt first. This is the real dashboard for the 2.1.210–212 wave:
+
+<LazyLabEmbed
+  slug="cc-adoption-wave-210-212"
+  caption="The 37-issue adoption wave for CC 2.1.210–212 — filter, batch, and copy a triage prompt."
+  height={620}
+/>
+
+More artifacts like this live in [The Lab](/docs/showcase/lab).
+
+## Why this is worth copying
+
+If your product sits on a platform that ships daily — Claude Code, Cursor, a cloud
+SDK — you have a dependency nobody pins. The pattern here is portable: snapshot the
+changelog, make an LLM produce *structured, scored* records (not summaries), gate
+them with cheap deterministic checks, and let issues + a dashboard carry the memory.
+The pipeline cost one weekend. Falling one version behind used to cost more.

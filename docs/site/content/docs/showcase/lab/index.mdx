@@ -1,0 +1,29 @@
+---
+title: The Lab
+description: Interactive playgrounds OrchestKit generates as working artifacts — triage boards, adoption-wave explorers, and decision boards, published as-is.
+icon: FlaskConical
+---
+
+import { LazyLabGallery } from "@/components/lazy";
+
+
+OrchestKit sessions produce **self-contained interactive HTML playgrounds** as working
+artifacts: a triage session emits a triage board, a release-adoption wave emits a wave
+explorer, a brainstorm emits a decision board with mockups. Each one is a single file
+with no build step and no dependencies.
+
+This gallery publishes the curated set, as-is. They are working tools, not demos —
+the numbers, issues, and decisions in them are real.
+
+<LazyLabGallery />
+
+## How these get here
+
+Every entry is allowlisted in `docs/site/lab-manifest.json` and published by
+`generate-lab-data.mjs`, which copies the HTML into the site and emits the gallery
+manifest. Playgrounds churn weekly in the repo (old ones are auto-pruned); only
+allowlisted entries surface here, so the gallery never breaks when the working set rots.
+
+Raw playground pages are excluded from search indexing — this gallery page is the
+front door. Curious how a wave explorer gets generated in the first place? Read
+[How we adopt every Claude Code release](/docs/guides/cc-adoption).

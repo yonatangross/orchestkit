@@ -1,0 +1,30 @@
+---
+title: "Case study: Session Standing Board"
+description: A drag-to-triage standing board for session outcomes, with full keyboard and touch support — the accessibility reference for Lab decision boards.
+icon: LayoutDashboard
+---
+
+import { LazyLabEmbed } from "@/components/lazy";
+
+
+**Problem.** Long autonomous sessions end with a pile of outcomes in mixed states:
+shipped, blocked, needs-review, deferred. Deciding what happens next is a
+prioritization task, and doing it in prose (a summary nobody re-reads) loses the
+decisions.
+
+**Approach.** The standing board renders session outcomes as draggable cards across
+priority buckets. It is also the repo's **accessibility reference implementation**
+for drag-and-drop: native HTML5 drag is mouse-only, so this board uses Pointer
+Events plus keyboard reorder plus `aria-live` announcements — drag with a mouse,
+a finger, or arrow keys, same result.
+
+<LazyLabEmbed
+  slug="session-standing-board"
+  caption="Live artifact — drag with mouse or touch, or focus a card and reorder with the keyboard."
+  height={620}
+/>
+
+**What it demonstrates.** Playground quality is governed by a written, falsifiable
+visual standard (design tokens, motion budget, drag-and-drop a11y rules) that every
+generated board must pass — this artifact is the template other decision boards are
+checked against.
