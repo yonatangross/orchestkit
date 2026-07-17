@@ -1,82 +1,154 @@
 [
   {
-    "version": "2.1.211",
+    "version": "2.1.212",
+    "parse_failed": false,
     "features": [
       {
-        "feature_slug": "permission_preview_char_neutralize",
+        "feature_slug": "mcp_tool_call_auto_background",
         "category": "breaking",
-        "description": "Permission previews now neutralize bidi-override, zero-width, and look-alike quote chars so tool inputs can't spoof appr",
+        "description": "MCP tool calls over 2min auto-move to background; threshold set via CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS.",
         "gap_score": 20,
         "affected_skills": [
-          "security-patterns",
-          "mcp-patterns"
+          "mcp-patterns",
+          "mcp-visual-output"
         ],
-        "reference_changelog_line": "Fixed permission previews relayed to chat channels not neutralizing bidirectional-override, zero-width, and look-alike quote characters, so tool inputs cannot visually alter the approval message",
+        "reference_changelog_line": "MCP tool calls running longer than 2 minutes now move to the background automatically so the session stays usable; configure the threshold or disable with `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS`",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "auto_mode_hook_ask_floor",
+        "feature_slug": "plan_mode_bash_permission_bypass",
         "category": "breaking",
-        "description": "Auto mode no longer overrides a PreToolUse hook's `ask` decision for unsandboxed Bash; hook `ask` now floors at a prompt",
+        "description": "Plan mode no longer auto-runs file-modifying Bash commands without a permission prompt or canUseTool callback.",
         "gap_score": 20,
-        "affected_skills": [
-          "security-patterns",
-          "configure"
-        ],
-        "reference_changelog_line": "Fixed auto mode overriding a PreToolUse hook's `ask` decision for unsandboxed Bash — a hook `ask` now floors the decision at a prompt",
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed plan mode auto-running file-modifying Bash commands (e.g. `touch`, `rm`) without a permission prompt or SDK `canUseTool` callback",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "nested_rules_source_exclusion",
+        "feature_slug": "worktree_symlink_escape",
         "category": "breaking",
-        "description": "Nested `.claude/rules/*.md` files no longer load when setting sources exclude project settings.",
+        "description": "Worktree creation no longer follows a committed .claude/worktrees symlink to write files outside the repo.",
         "gap_score": 20,
         "affected_skills": [
-          "configure",
-          "security-patterns"
-        ],
-        "reference_changelog_line": "Fixed nested `.claude/rules/*.md` files loading even when setting sources exclude project settings",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "env_var_scientific_notation",
-        "category": "breaking",
-        "description": "Integer env vars (timeouts, token budgets, retry counts) now accept scientific notation and digit separators like `1e6`,",
-        "gap_score": 20,
-        "affected_skills": [
-          "configure"
-        ],
-        "reference_changelog_line": "Updated integer environment variables (timeouts, token budgets, retry counts) to accept scientific notation and digit-separator spellings like `1e6` and `64_000`",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "always_allow_repo_root_persist",
-        "category": "breaking",
-        "description": "\"Always allow\" permission rules now save at the repo root so worktree approvals persist across sessions and worktrees.",
-        "gap_score": 20,
-        "affected_skills": [
-          "configure",
-          "security-patterns",
+          "chain-patterns",
           "swarm-migrate"
         ],
-        "reference_changelog_line": "Changed \"always allow\" permission rules to save at the repository root, so approvals granted in a git worktree persist across sessions and worktrees",
+        "reference_changelog_line": "Fixed worktree creation following a repository-committed symlink at `.claude/worktrees`, which could create files outside the repository",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "forward_subagent_text_flag",
+        "feature_slug": "hook_halt_dropped_bypass",
+        "category": "breaking",
+        "description": "A continue:false hook halt is no longer dropped when the tool fails or completes mid-stream.",
+        "gap_score": 20,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed a `continue:false` hook's halt being dropped when the tool fails or completes mid-stream, and hook infrastructure errors being misreported as user rejections",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "force_login_method_enforced",
+        "category": "breaking",
+        "description": "Enterprise forceLoginMethod now enforced for VS Code extension, SDK, setup-token, and install-github-app logins.",
+        "gap_score": 20,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed Enterprise `forceLoginMethod` to be enforced for VS Code extension, SDK, `setup-token`, and `install-github-app` logins, not just the terminal",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "sdk_set_model_mid_turn",
+        "category": "breaking",
+        "description": "Headless/SDK set_model control request now applies mid-turn on the next model round-trip.",
+        "gap_score": 20,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed headless/SDK sessions to apply a `set_model` control request mid-turn; the next model round-trip uses the new model instead of waiting for the next turn",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "agents_json_needs_input_status",
+        "category": "breaking",
+        "description": "claude agents --json now reports 'Needs input' (not 'Working') for sessions awaiting a prompt.",
+        "gap_score": 20,
+        "affected_skills": [
+          "ci-sentinel",
+          "analytics"
+        ],
+        "reference_changelog_line": "Changed agent view / `claude agents --json`: sessions waiting on a sandbox, MCP-input, or managed-settings prompt now show as \"Needs input\" instead of \"Working\"",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "fork_background_subtask_rename",
         "category": "new_command",
-        "description": "Added `--forward-subagent-text` flag and env var to include subagent text and thinking in stream-json output.",
+        "description": "/fork now copies conversation into a new background session; the old in-session subagent is now /subtask.",
         "gap_score": 15,
         "affected_skills": [
           "agent-orchestration",
-          "chain-patterns",
-          "bare-eval"
+          "task-dependency-patterns"
         ],
-        "reference_changelog_line": "Added `--forward-subagent-text` flag and `CLAUDE_CODE_FORWARD_SUBAGENT_TEXT` environment variable to include subagent text and thinking in stream-json output",
+        "reference_changelog_line": "`/fork` now copies your conversation into a new background session (its own row in `claude agents`) while you keep working; the in-session subagent it used to launch is now `/subtask`",
         "relevance": "plugin"
+      },
+      {
+        "feature_slug": "auto_mode_reset_command",
+        "category": "new_command",
+        "description": "New `claude auto-mode reset` command restores default auto-mode config (confirmation prompt; --yes skips).",
+        "gap_score": 15,
+        "affected_skills": [],
+        "reference_changelog_line": "Added `claude auto-mode reset` to restore the default auto-mode configuration, with a confirmation prompt (pass `--yes` to skip)",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "task_tool_mode_deprecated",
+        "category": "deprecation",
+        "description": "Task tool's mode parameter is deprecated/ignored; subagents inherit the parent session's permission mode.",
+        "gap_score": 8,
+        "affected_skills": [
+          "task-dependency-patterns",
+          "agent-orchestration"
+        ],
+        "reference_changelog_line": "Deprecated the Task tool's `mode` parameter (now ignored); subagents inherit the parent session's permission mode by default",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "max_web_searches_per_session",
+        "category": "new_field",
+        "description": "New per-session WebSearch cap (default 200) via CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION.",
+        "gap_score": 10,
+        "affected_skills": [
+          "web-research-workflow"
+        ],
+        "reference_changelog_line": "Added a session-wide limit on WebSearch tool calls (default 200, tunable via `CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`) to stop runaway search loops",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
+      },
+      {
+        "feature_slug": "max_subagents_per_session",
+        "category": "new_field",
+        "description": "New per-session subagent spawn cap (default 200) via CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION; /clear resets it.",
+        "gap_score": 10,
+        "affected_skills": [
+          "agent-orchestration",
+          "swarm-migrate",
+          "task-dependency-patterns"
+        ],
+        "reference_changelog_line": "Added a per-session cap on subagent spawns (default 200, override with `CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`) to stop runaway delegation loops; `/clear` resets the budget",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
+      },
+      {
+        "feature_slug": "transcript_reasoning_effort_attr",
+        "category": "new_attr",
+        "description": "Session transcripts now record the reasoning effort level on each assistant message.",
+        "gap_score": 10,
+        "affected_skills": [
+          "analytics",
+          "telemetry-inspect"
+        ],
+        "reference_changelog_line": "Changed session transcripts to record the reasoning effort level on each assistant message",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
       }
     ],
-    "raw_bullets_count": 37,
-    "issues_filed_at": "2026-07-16T15:14:38Z"
+    "raw_bullets_count": 48,
+    "issues_filed_at": "2026-07-17T04:04:41Z"
   }
 ]
