@@ -5,6 +5,27 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.78.0](https://github.com/yonatangross/orchestkit/compare/v8.77.1...v8.78.0) (2026-07-17)
+
+
+### Features
+
+* **docs-site:** reference root tab + sidebar IA repair ([#2963](https://github.com/yonatangross/orchestkit/issues/2963)) ([a001df0](https://github.com/yonatangross/orchestkit/commit/a001df0296494a2c23208dadf86de232ae9aae87))
+
+
+### Bug Fixes
+
+* **audit:** correct silently-wrong line counts in audit scripts ([#2966](https://github.com/yonatangross/orchestkit/issues/2966)) ([017841a](https://github.com/yonatangross/orchestkit/commit/017841a681713128c3f6eeaaf90e0fdd9f28477c))
+* **counts:** correct the CI line gate and the complexity LOC scan ([#2973](https://github.com/yonatangross/orchestkit/issues/2973)) ([740dd9c](https://github.com/yonatangross/orchestkit/commit/740dd9c020aa98aa26bf0d490851e1c8c0c7bb0f))
+* **hooks:** consolidate branch resolution, drop the last two git spawns ([122175e](https://github.com/yonatangross/orchestkit/commit/122175e293e59b94e8081db2ed04d250b0395bf8)), closes [#2970](https://github.com/yonatangross/orchestkit/issues/2970)
+* **hooks:** kill the sync git spawn behind webhook-forwarder timeouts ([2e941e3](https://github.com/yonatangross/orchestkit/commit/2e941e35604075a253cc694a7d9e28d3b54343c5))
+* **hooks:** stop display-lint and pipe guard misreading shell grammar ([2b95f3d](https://github.com/yonatangross/orchestkit/commit/2b95f3d57a5b0710cf3814680823970ac1a45b16))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.212) ([#2946](https://github.com/yonatangross/orchestkit/issues/2946)) ([0210a37](https://github.com/yonatangross/orchestkit/commit/0210a37f665c2be71ce158d2440261f5a4e27348))
+
 ## [8.77.1](https://github.com/yonatangross/orchestkit/compare/v8.77.0...v8.77.1) (2026-07-16)
 
 
