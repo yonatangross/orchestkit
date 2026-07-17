@@ -127,8 +127,13 @@ export function containsDangerousCommand(
  * Bash does NOT perform brace expansion, process substitution, etc. inside
  * quotes, so detection must ignore quoted regions to avoid false positives.
  * Example: --jq '{title, labels}' → --jq '___'
+ *
+ * Exported for callers that need SHELL-FAITHFUL parsing rather than the
+ * bypass-resistant parsing normalizeCommand() provides (#2947). Quoted
+ * regions are opaque payload to the shell: operators inside them are NOT
+ * stage separators.
  */
-function blankQuotedContent(cmd: string): string {
+export function blankQuotedContent(cmd: string): string {
   // Single-quoted strings: no escaping possible inside single quotes in bash
   let result = cmd.replace(/'[^']*'/g, "''");
   // Double-quoted strings: handle escaped quotes inside

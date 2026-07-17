@@ -11,10 +11,18 @@
  * bury the assistant's narrative under command noise — the #1 transcript
  * complaint in this repo's sessions.
  *
- * This hook fixes the clutter at the SOURCE: a command that is both long
- * AND many-staged is denied with instructions to write a script file and
+ * This hook addresses the clutter at the SOURCE: a command that is both
+ * long AND many-staged draws an advisory nudge to write a script file and
  * run that instead (one short tool card, and robust against terminal
  * line-wrap splitting flags from their args).
+ *
+ * ADVISORY, NOT A BLOCK (#2947). This shipped as a hard deny and the deny
+ * was the wrong mechanism for a cosmetic concern: it blocked correct work,
+ * including the very probes needed to debug this hook, and taught users to
+ * reach for ORK_DISPLAY_LINT=0 (which disables the gate wholesale, exactly
+ * the outcome it exists to prevent). It now warns and lets the command run.
+ * The warning carries no permissionDecision, so it neither approves nor
+ * denies: dangerous-command-blocker and the permission prompt still apply.
  *
  * Deliberately NOT fired on:
  *   - real heredoc-bearing commands (`<<EOF`, `<<'EOF'`, `<<-EOF`) — writing
@@ -27,20 +35,62 @@
  *     among several — `<clutter> && bash noop.sh` does not exempt the
  *     clutter before it.
  *   - long single-stage commands (e.g. `git commit -F msg.txt`) — length
- *     alone is not clutter; only compound chains defeat readability
+ *     alone is not clutter; only compound chains defeat readability. This
+ *     covers commands whose QUOTED payload holds shell metacharacters
+ *     (`python3 -c "…"`, `git commit -m "a | b"`, `grep "a\|b"`): the shell
+ *     sees one stage, so the lint must too (#2947).
  *   - ORK_DISPLAY_LINT=0 (env opt-out)
+ *
+ * Known, accepted limitation: `bash -c "<cluttered chain>"` counts as one
+ * stage and is not flagged, since the chain lives inside a quoted payload.
+ * Deliberately wrapping a chain to dodge an advisory nudge is self-defeating
+ * (the clutter still renders). Revisit only if it shows up in real
+ * transcripts.
  */
 
 import type { HookInput, HookResult, HookContext } from '../../types.js';
-import { outputSilentSuccess, outputDeny } from '../../lib/common.js';
-import { normalizeCommand } from '../../lib/normalize-command.js';
+import { outputSilentSuccess, outputPreToolAdvisory } from '../../lib/common.js';
+import { blankQuotedContent } from '../../lib/normalize-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'pretool/bash/display-lint';
 
-/** Fire only when BOTH thresholds are exceeded. */
+/** Flagging requires length STRICTLY over this. */
 const MAX_DISPLAY_LENGTH = 200; // chars
-const MAX_STAGES = 3; // normalizeCommand() segments (&&, ;, |, ||)
+/** Flagging requires stage count AT OR OVER this (2 stages is not clutter). */
+const MIN_STAGES_TO_FLAG = 3; // shell stages (&&, ||, |, ;, newline)
+
+/**
+ * Shell stage separators, outside quotes and not backslash-escaped.
+ *
+ * The `(?<!\\)` guard is load-bearing: `grep -l a\|b` carries an escaped
+ * pipe with no quotes anywhere, and bash reads it as a literal character.
+ * Without the lookbehind the split manufactures stages that do not exist.
+ */
+const STAGE_SPLIT_RE = /\s*(?<!\\)(?:&&|\|\||\||;|\n)\s*/;
+
+/**
+ * Split a command into the stages BASH would see.
+ *
+ * Deliberately NOT normalizeCommand(): that is a SECURITY primitive whose
+ * documented job is to "prevent bypass via quoting, escapes, and compound
+ * operators". It strips quotes but keeps their content, and rewrites `\|`
+ * into a real `|`, so that a `rm` hidden inside quotes still gets matched.
+ * Correct for dangerous-command-blocker; inverted for a DISPLAY judgment,
+ * where it counted `python3 -c "<7-line script>"` as 7 stages and denied a
+ * single-stage command (#2947).
+ *
+ * Here the shell's own semantics apply, and BOTH halves are needed:
+ *   1. blank quoted regions (operators inside them are payload), and
+ *   2. never split on a backslash-escaped operator (it is a literal).
+ * Blanking alone is insufficient: `grep -l a\|b` has no quotes at all.
+ */
+function splitDisplayStages(command: string): string[] {
+  return blankQuotedContent(command)
+    .split(STAGE_SPLIT_RE)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
 
 /** Commands that already follow the script-file pattern. */
 const SCRIPT_INVOCATION_RE =
@@ -60,7 +110,7 @@ export function displayLint(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
   // Heredocs are how script files get created — never lint the remedy.
   if (HEREDOC_RE.test(command)) return outputSilentSuccess();
 
-  const stages = normalizeCommand(command);
+  const stages = splitDisplayStages(command);
 
   // Already invoking a script file — compliant ONLY when the ENTIRE
   // command is that invocation. Matching "anywhere in the command" let
@@ -68,22 +118,17 @@ export function displayLint(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
   // lint for everything before it — the exact clutter this hook targets.
   if (stages.length === 1 && SCRIPT_INVOCATION_RE.test(stages[0])) return outputSilentSuccess();
 
-  if (stages.length < MAX_STAGES) return outputSilentSuccess();
+  if (stages.length < MIN_STAGES_TO_FLAG) return outputSilentSuccess();
 
-  ctx.log(
-    HOOK_NAME,
-    `flagged: ${command.length} chars / ${stages.length} stages`,
-  );
-  ctx.logPermission('deny', `display-lint: ${command.length} chars, ${stages.length} stages`, input);
+  ctx.log(HOOK_NAME, `flagged: ${command.length} chars / ${stages.length} stages`);
 
-  return outputDeny(
-    `[display-lint] This compound one-liner is ${command.length} chars across ${stages.length} stages — it renders as transcript clutter and line-wrap can split flags from their arguments.
-
-Write the steps to a script file and run that instead:
-  1. Write the commands to a .sh file in the scratchpad directory
-  2. Run it: bash <scratchpad>/<task>.sh
-
-One short tool card, a readable transcript, and identical behavior.
-(Opt out for this session: export ORK_DISPLAY_LINT=0)`,
+  // Advisory, NOT a permission decision: the command runs. Reaches the user
+  // (systemMessage) AND Claude (additionalContext) — the latter is what
+  // actually shifts future calls toward script files now that this hook no
+  // longer blocks. outputAllowWithContext() would have set
+  // permissionDecision:'allow' and skipped the permission prompt as a side
+  // effect of a cosmetic lint.
+  return outputPreToolAdvisory(
+    `[display-lint] ${command.length} chars across ${stages.length} stages. A script file renders as one short tool card and is safe from line-wrap splitting a flag from its argument: write the steps to <scratchpad>/<task>.sh and run that. (Silence: export ORK_DISPLAY_LINT=0)`,
   );
 }

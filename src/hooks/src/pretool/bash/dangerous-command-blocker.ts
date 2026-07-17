@@ -137,8 +137,15 @@ const ASK_REGEX_PATTERNS: { pattern: RegExp; reason: string }[] = [
 /**
  * Shell interpreters that should never receive piped input.
  * Stays in DENY tier — executing arbitrary remote code is never safe to "ask" about.
+ *
+ * The `(?<!\|)\|(?!\|)` guard matches a REAL pipe only. Without it the second
+ * `|` of a `||` operator matched, so `make build || bash fallback.sh` and
+ * `cmd 2>&1 || python3 -c "..."` were denied as "piping to a shell" (#2955).
+ * `||` is logical OR: it runs the right side when the left FAILS and pipes
+ * nothing. This narrows the pattern to real pipes; every `curl ... | bash`
+ * remains blocked.
  */
-const PIPE_TO_SHELL_RE = /\|\s*(sh|bash|zsh|dash|python[23]?|node|perl|ruby|tclsh)\b/i;
+const PIPE_TO_SHELL_RE = /(?<!\|)\|(?!\|)\s*(sh|bash|zsh|dash|python[23]?|node|perl|ruby|tclsh)\b/i;
 
 // =============================================================================
 // Main handler

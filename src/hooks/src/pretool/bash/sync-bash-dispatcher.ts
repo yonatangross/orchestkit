@@ -74,7 +74,8 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   { name: 'issue-reference-checker', fn: issueReferenceChecker },
   { name: 'gh-label-enforcer', fn: ghLabelEnforcer },
   { name: 'gh-milestone-enforcer', fn: ghMilestoneEnforcer },
-  // Phase 2.5: Transcript hygiene (deny long compound one-liners -> script files)
+  // Phase 2.5: Transcript hygiene (advisory: nudge long compound one-liners
+  // toward script files; warns only, never blocks — #2947)
   { name: 'display-lint', fn: displayLint },
   // Phase 3: Advisory
   { name: 'unified-advisory-dispatcher', fn: unifiedBashAdvisoryDispatcher },
@@ -90,35 +91,62 @@ const BASH_HOOKS: BlockingHookConfig[] = [
 ];
 
 /**
- * Build the merged HookResult from collected context parts and optional updatedInput.
+ * Build the merged HookResult from collected context parts, optional
+ * updatedInput, and any advisory systemMessages.
+ *
+ * systemMessage merging exists because a non-blocking hook has no other way
+ * to reach the user from inside this dispatcher: the loop below short-circuits
+ * only on `!continue`, and otherwise collects `additionalContext` alone. A
+ * hook returning outputWarning() (continue:true + systemMessage, no
+ * permissionDecision) was therefore silently dropped, making the hook a no-op.
+ * Caught while converting display-lint from deny to advisory (#2947).
+ *
+ * `suppressOutput` is deliberately left untouched here. It hides hook STDOUT
+ * from the transcript and has no bearing on `systemMessage`, which CC renders
+ * as its own field. Forcing it false to "reveal" the advisory would instead
+ * surface this dispatcher's raw JSON envelope — clutter, from the de-clutter
+ * hook.
  */
 function buildMergedResult(
   contextParts: string[],
   updatedInput: Record<string, unknown> | undefined,
+  systemMessages: string[] = [],
 ): HookResult {
   const mergedContext = contextParts.length > 0 ? contextParts.join('\n\n---\n\n') : null;
+  const mergedMessage = systemMessages.length > 0 ? systemMessages.join('\n') : null;
+
+  const withMessage = (result: HookResult): HookResult => {
+    if (!mergedMessage) return result;
+    logHook(HOOK_NAME, `Merged ${systemMessages.length} advisory message(s)`);
+    return { ...result, systemMessage: mergedMessage };
+  };
 
   if (updatedInput && mergedContext) {
     logHook(HOOK_NAME, `Merged ${contextParts.length} context(s) + updatedInput`);
-    return {
+    return withMessage({
       continue: true,
       suppressOutput: true,
       hookSpecificOutput: { hookEventName: 'PreToolUse', updatedInput, additionalContext: mergedContext },
-    };
+    });
   }
 
   if (updatedInput) {
     logHook(HOOK_NAME, 'updatedInput only — no context');
-    return outputWithUpdatedInput(updatedInput);
+    return withMessage(outputWithUpdatedInput(updatedInput));
   }
 
   if (mergedContext) {
     logHook(HOOK_NAME, `Merged ${contextParts.length} context(s)`);
-    return {
+    return withMessage({
       continue: true,
       suppressOutput: true,
       hookSpecificOutput: { additionalContext: mergedContext, hookEventName: 'PreToolUse' },
-    };
+    });
+  }
+
+  if (mergedMessage) {
+    logHook(HOOK_NAME, `Advisory only: ${systemMessages.length} message(s)`);
+    return { continue: true, systemMessage: mergedMessage };
   }
 
   logHook(HOOK_NAME, 'All hooks silent');
@@ -138,6 +166,7 @@ function buildMergedResult(
  */
 export function syncBashDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const contextParts: string[] = [];
+  const systemMessages: string[] = [];
   let updatedInput: Record<string, unknown> | undefined;
 
   for (const hook of BASH_HOOKS) {
@@ -165,11 +194,18 @@ export function syncBashDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX
         contextParts.push(context);
         ctx.log(HOOK_NAME, `${hook.name}: additionalContext collected`);
       }
+
+      // Advisory warnings (continue:true + systemMessage, no permission
+      // decision). Without this the message never leaves the dispatcher.
+      if (result.systemMessage) {
+        systemMessages.push(result.systemMessage);
+        ctx.log(HOOK_NAME, `${hook.name}: systemMessage collected`);
+      }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       ctx.log(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
     }
   }
 
-  return buildMergedResult(contextParts, updatedInput);
+  return buildMergedResult(contextParts, updatedInput, systemMessages);
 }

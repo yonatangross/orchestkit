@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.77.1",
+    "date": "2026-07-16",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** close two display-lint exemption bypasses ([#2932](https://github.com/yonatangross/orchestkit/issues/2932)) ([fe8b8c2](https://github.com/yonatangross/orchestkit/commit/fe8b8c292ae53369e22094fc4839a218fdd9e49d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.77.0",
     "date": "2026-07-16",
     "compareUrl": "",

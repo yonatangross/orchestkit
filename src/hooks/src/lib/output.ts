@@ -321,6 +321,39 @@ export function outputAllowWithContext(ctx: string, systemMessage?: string): Hoo
 }
 
 /**
+ * Non-blocking PreToolUse advisory: warn the USER and nudge CLAUDE, without
+ * making any permission decision (#2947).
+ *
+ * The two fields are NOT redundant; they are different audiences:
+ *   - `systemMessage`      -> "Warning message shown to the user" (per CC docs)
+ *   - `additionalContext`  -> injected into Claude's context window
+ * A user-only message cannot change Claude's behavior, and a Claude-only
+ * context injection leaves the user wondering why nothing happened. An
+ * advisory hook that wants to alter future tool calls needs both.
+ *
+ * Deliberately omits `permissionDecision`. Per CC's hook reference, an
+ * omitted decision is equivalent to `defer`: the normal permission flow
+ * still applies, so this neither approves nor blocks. Using `allow` here
+ * would skip the interactive permission prompt as a side effect of a
+ * cosmetic lint.
+ *
+ * `suppressOutput` is intentionally left alone: it hides hook STDOUT from
+ * the transcript and has no effect on `systemMessage`, so forcing it false
+ * would only surface the raw JSON envelope as noise.
+ */
+export function outputPreToolAdvisory(message: string): HookResult {
+  if (!message?.trim()) return outputSilentSuccess();
+  return {
+    continue: true,
+    systemMessage: message,
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      additionalContext: message,
+    },
+  };
+}
+
+/**
  * Output error message - only use when there's an actual problem
  */
 export function outputError(message: string): HookResult {

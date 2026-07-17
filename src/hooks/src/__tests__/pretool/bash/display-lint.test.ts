@@ -2,11 +2,14 @@
 // Created: 2026-07-16
 
 /**
- * Tests for pretool/bash/display-lint — the transcript de-clutter gate.
+ * Tests for pretool/bash/display-lint — the transcript de-clutter advisory.
  *
  * Fires ONLY when a command is both long (>200 chars) AND many-staged
  * (3+ segments): the combination that renders as tool-card noise. The
- * remedy it demands (script files, heredoc-created) must always pass.
+ * remedy it suggests (script files, heredoc-created) must never be flagged.
+ *
+ * The hook WARNS, it does not block (#2947), so `isFlagged` reads the
+ * advisory systemMessage rather than a permission decision.
  */
 
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
@@ -17,9 +20,20 @@ function bash(command: string): never {
   return { tool_name: 'Bash', tool_input: { command } } as never;
 }
 
-function isDenied(r: { hookSpecificOutput?: unknown }): boolean {
+/** The hook flagged the command (advisory emitted). */
+function isFlagged(r: { systemMessage?: string }): boolean {
+  return (r.systemMessage ?? '').includes('[display-lint]');
+}
+
+/**
+ * The hook made a permission decision. Must ALWAYS be false: a cosmetic
+ * lint that returned permissionDecision 'allow' would bypass
+ * dangerous-command-blocker and the permission prompt; 'deny' would block
+ * correct work. Guards the #2947 mechanism change from silent regression.
+ */
+function madePermissionDecision(r: { hookSpecificOutput?: unknown }): boolean {
   const out = r.hookSpecificOutput as { permissionDecision?: string } | undefined;
-  return out?.permissionDecision === 'deny';
+  return out?.permissionDecision !== undefined;
 }
 
 // A real offender captured from a live session transcript (2026-07-16).
@@ -37,37 +51,60 @@ describe('display-lint', () => {
     else process.env.ORK_DISPLAY_LINT = savedEnv;
   });
 
-  test('denies a real long compound one-liner from a live transcript', () => {
+  test('flags a real long compound one-liner from a live transcript', () => {
     const r = displayLint(bash(REAL_OFFENDER), NOOP_CTX);
-    expect(isDenied(r)).toBe(true);
+    expect(isFlagged(r)).toBe(true);
     expect(JSON.stringify(r)).toContain('script file');
   });
 
+  // #2947: the mechanism, not just the thresholds. A cosmetic lint must
+  // never touch the permission system in EITHER direction.
+  test('warns without ever making a permission decision', () => {
+    const flagged = displayLint(bash(REAL_OFFENDER), NOOP_CTX);
+    expect(isFlagged(flagged)).toBe(true);
+    expect(madePermissionDecision(flagged)).toBe(false);
+    expect(flagged.continue).toBe(true);
+
+    const clean = displayLint(bash('git status'), NOOP_CTX);
+    expect(madePermissionDecision(clean)).toBe(false);
+  });
+
+  // systemMessage reaches the USER; additionalContext reaches CLAUDE. Now
+  // that the hook cannot block, additionalContext is the ONLY channel that
+  // shifts future tool calls toward script files. Dropping it would leave a
+  // hook that is visible but inert.
+  test('advisory reaches BOTH the user and Claude', () => {
+    const r = displayLint(bash(REAL_OFFENDER), NOOP_CTX);
+    expect(r.systemMessage).toContain('[display-lint]');
+    expect(r.hookSpecificOutput?.additionalContext).toContain('[display-lint]');
+    expect(r.hookSpecificOutput?.hookEventName).toBe('PreToolUse');
+  });
+
   test('passes short commands regardless of stages', () => {
-    expect(isDenied(displayLint(bash('git status && git diff | head -5'), NOOP_CTX))).toBe(false);
+    expect(isFlagged(displayLint(bash('git status && git diff | head -5'), NOOP_CTX))).toBe(false);
   });
 
   test('passes long single-stage commands (length alone is not clutter)', () => {
     const long = `git commit -m "${'x'.repeat(240)}"`;
-    expect(isDenied(displayLint(bash(long), NOOP_CTX))).toBe(false);
+    expect(isFlagged(displayLint(bash(long), NOOP_CTX))).toBe(false);
   });
 
   test('passes two-stage commands even when long', () => {
     const twoStage = `cd /some/deeply/nested/project/path/that/goes/on/forever/and/ever/until/it/is/definitely/long/enough/for/the/threshold && npx vitest run --reporter=verbose --coverage.enabled --coverage.reporter=text-summary --coverage.reporter=json 2>&1`;
     expect(twoStage.length).toBeGreaterThan(200);
-    expect(isDenied(displayLint(bash(twoStage), NOOP_CTX))).toBe(false);
+    expect(isFlagged(displayLint(bash(twoStage), NOOP_CTX))).toBe(false);
   });
 
   test('never lints heredoc commands — creating a script file IS the remedy', () => {
     const heredoc = `cat > /tmp/scratch/task.sh <<'EOF'\n${'step; '.repeat(60)}\nEOF\nbash /tmp/scratch/task.sh && echo done && echo really-done`;
     expect(heredoc.length).toBeGreaterThan(200);
-    expect(isDenied(displayLint(bash(heredoc), NOOP_CTX))).toBe(false);
+    expect(isFlagged(displayLint(bash(heredoc), NOOP_CTX))).toBe(false);
   });
 
   test('passes a command that IS ENTIRELY a script invocation, regardless of length', () => {
     const script = `bash /private/tmp/claude-501/scratchpad/rebase-round2.sh --verbose ${'-'.repeat(140)}`;
     expect(script.length).toBeGreaterThan(200);
-    expect(isDenied(displayLint(bash(script), NOOP_CTX))).toBe(false);
+    expect(isFlagged(displayLint(bash(script), NOOP_CTX))).toBe(false);
   });
 
   // Regression test for the bypass a code-quality review caught after this
@@ -78,7 +115,7 @@ describe('display-lint', () => {
   test('does NOT exempt clutter that merely CONTAINS a script call among other stages', () => {
     const bypassAttempt = `cd /Users/someone/very/long/project/path/for/the/test/case/to/definitely/exceed/every/threshold/we/set && bash /private/tmp/claude-501/some-session-id/scratchpad/rebase-round2.sh && echo done && echo verified && echo pushed`;
     expect(bypassAttempt.length).toBeGreaterThan(200);
-    expect(isDenied(displayLint(bash(bypassAttempt), NOOP_CTX))).toBe(true);
+    expect(isFlagged(displayLint(bash(bypassAttempt), NOOP_CTX))).toBe(true);
   });
 
   // Regression test for the companion bug: the heredoc exemption was a bare
@@ -87,10 +124,10 @@ describe('display-lint', () => {
   test('does NOT exempt clutter containing a bit-shift "<<" that is not a heredoc', () => {
     const bitShift = `cd /Users/someone/very/long/project/path/for/the/test/case/${'x'.repeat(100)} && node -e 'console.log(1 << 4)' && echo done && echo verified && echo pushed`;
     expect(bitShift.length).toBeGreaterThan(200);
-    expect(isDenied(displayLint(bash(bitShift), NOOP_CTX))).toBe(true);
+    expect(isFlagged(displayLint(bash(bitShift), NOOP_CTX))).toBe(true);
   });
 
-  test('boundary: exactly MAX_DISPLAY_LENGTH (200) chars passes, 201 denies', () => {
+  test('boundary: exactly MAX_DISPLAY_LENGTH (200) chars passes, 201 flags', () => {
     const stagesSuffix = " && echo b && echo c"; // pushes stage count to 3
     const pad = (targetLen: number) => {
       const base = `echo a${stagesSuffix}`; // 3 stages, short
@@ -100,18 +137,18 @@ describe('display-lint', () => {
     const at201 = pad(201);
     expect(at200.length).toBe(200);
     expect(at201.length).toBe(201);
-    expect(isDenied(displayLint(bash(at200), NOOP_CTX))).toBe(false);
-    expect(isDenied(displayLint(bash(at201), NOOP_CTX))).toBe(true);
+    expect(isFlagged(displayLint(bash(at200), NOOP_CTX))).toBe(false);
+    expect(isFlagged(displayLint(bash(at201), NOOP_CTX))).toBe(true);
   });
 
-  test('boundary: exactly 2 stages passes, exactly 3 stages denies (same length)', () => {
+  test('boundary: exactly 2 stages passes, exactly 3 stages flags (same length)', () => {
     const longPad = 'x'.repeat(100);
     const twoStages = `echo ${longPad} && echo ${longPad}`;
     const threeStages = `echo ${longPad} && echo ${longPad} && echo x`;
     expect(twoStages.length).toBeGreaterThan(200);
     expect(threeStages.length).toBeGreaterThan(200);
-    expect(isDenied(displayLint(bash(twoStages), NOOP_CTX))).toBe(false);
-    expect(isDenied(displayLint(bash(threeStages), NOOP_CTX))).toBe(true);
+    expect(isFlagged(displayLint(bash(twoStages), NOOP_CTX))).toBe(false);
+    expect(isFlagged(displayLint(bash(threeStages), NOOP_CTX))).toBe(true);
   });
 
   test('fires on a pasted multi-line block (newline-separated, no heredoc)', () => {
@@ -121,15 +158,76 @@ describe('display-lint', () => {
       "grep -n 'pattern' another-file.ts | head -10",
     ].join('\n');
     expect(pasted.length).toBeGreaterThan(200);
-    expect(isDenied(displayLint(bash(pasted), NOOP_CTX))).toBe(true);
+    expect(isFlagged(displayLint(bash(pasted), NOOP_CTX))).toBe(true);
+  });
+
+  // Regression tests for #2947: stage counting used normalizeCommand(), a
+  // SECURITY primitive that deliberately strips quotes (to stop `rm` hiding
+  // inside them) and unescapes `\|` into a real pipe. Both are inverted for
+  // a display judgment, so operators living inside a quoted payload were
+  // counted as top-level stages and single-stage commands got denied.
+  //
+  // The pre-existing "passes long single-stage commands" test above missed
+  // this: its quoted payload is 240 x's with no shell metacharacters in it.
+  describe('#2947 — quoted payloads and escapes are not shell stages', () => {
+    test('passes `python3 -c` whose quoted script contains newlines and pipes', () => {
+      // Verbatim shape of the command this hook falsely denied as "7 stages".
+      const cmd = `python3 -c "\nimport json\nd = json.load(open('src/hooks/hooks.json'))\nfor g in d['hooks']['UserPromptSubmit']:\n    print('matcher:', g.get('matcher', '<none>'))\n    for h in g.get('hooks', []):\n        print(json.dumps(h, indent=2))\n"`;
+      expect(cmd.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(false);
+    });
+
+    test('passes a long `git commit -m` whose message contains ||, |, and ;', () => {
+      const msg = `fix(hooks): handle a || b and c | d; also ; semicolons ${'x'.repeat(150)}`;
+      const cmd = `git commit -m "${msg}"`;
+      expect(cmd.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(false);
+    });
+
+    test('passes a long single-stage grep whose BRE alternation uses escaped pipes', () => {
+      const cmd = `grep -rn "libraryQueryKeys\\|libraryHubsQueryOptions\\|libraryArtifactsQueryOptions\\|libraryFacetsQueryOptions\\|libraryDetailQueryOptions\\|libraryStatsQueryOptions" /Users/someone/very/long/monorepo/path/apps/web/lib/queries/library.ts`;
+      expect(cmd.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(false);
+    });
+
+    test('an escaped pipe outside quotes is a literal, not a stage separator', () => {
+      const cmd = `find /Users/someone/very/long/project/path/that/keeps/going/and/going/src -name '*.ts' -newermt 2026-07-01 -exec grep -l authorName\\|authorEmail\\|committerName\\|committerEmail {} + ${'#'.repeat(120)}`;
+      expect(cmd.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(false);
+    });
+
+    // The shape that started #2947: `gh <cmd> --body/--title "<prose>"`.
+    // Long human prose reliably contains `;`, `|`, or newlines, every one of
+    // which the old counter promoted to a top-level stage. One gh call, one
+    // stage, and the payload is a string argument the shell never parses.
+    test('passes `gh issue comment --body` whose prose contains separators', () => {
+      const body =
+        'CONFIRMED by the org usage API: the 06:00Z hourly bucket shows the handover at exactly the fix minute; the prior bucket was flat | the delta is unambiguous. Rollout continues; no action needed.';
+      const cmd = `gh issue comment 8467 --repo Yonatan-HQ/platform --body "${body}"`;
+      expect(cmd.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(false);
+    });
+
+    test('passes `gh issue edit --title` with a long quoted title', () => {
+      const cmd = `cd /Users/yonatangross/coding/yonatan-hq/hq-ext-ccwave && gh issue edit 688 --title "cc-adoption: verify shipped .claude/rules still load (2.1.211 nested_rules_precedence); confirm the loader honors depth | ordering across nested dirs"`;
+      expect(cmd.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(false);
+    });
+
+    // The fix must NOT loosen the gate: real stages outside quotes still count.
+    test('still denies real stages even when quoted payloads also contain operators', () => {
+      const cmd = `cd /Users/someone/very/long/project/path/for/this/particular/test/case/that/just/keeps/going/and/going/deeper && grep -n 'a|b|c' file.ts | head -8 && sed -n '1,40p' other.ts && echo done && echo verified`;
+      expect(cmd.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(true);
+    });
   });
 
   test('ORK_DISPLAY_LINT=0 opts out entirely', () => {
     process.env.ORK_DISPLAY_LINT = '0';
-    expect(isDenied(displayLint(bash(REAL_OFFENDER), NOOP_CTX))).toBe(false);
+    expect(isFlagged(displayLint(bash(REAL_OFFENDER), NOOP_CTX))).toBe(false);
   });
 
   test('passes empty/missing command', () => {
-    expect(isDenied(displayLint(bash(''), NOOP_CTX))).toBe(false);
+    expect(isFlagged(displayLint(bash(''), NOOP_CTX))).toBe(false);
   });
 });
