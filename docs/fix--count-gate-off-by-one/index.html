@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assess · token-efficient-scripts</title>
+<style>
+  /* ── §2 tokens · cool-glass persona (developer/technical product) · HSL only ── */
+  :root{
+    --pg-bg:hsl(232 26% 7%);
+    --pg-ink:hsl(220 18% 93%);
+    --pg-muted:hsl(220 12% 64%);
+    --pg-faint:hsl(220 10% 46%);
+    --pg-glass:hsl(0 0% 100% / .05);
+    --pg-glass-2:hsl(0 0% 100% / .08);
+    --pg-glass-edge:hsl(0 0% 100% / .18);
+    --pg-accent:hsl(248 84% 68%);
+    --pg-accent-deep:hsl(248 70% 52%);
+    --pg-warm:hsl(38 95% 60%);
+
+    /* data-mark tokens — threshold encoding, NOT chrome accents (chart-encoding §"different pixels").
+       validate_palette.js unavailable locally -> documented fallback: semantic grade-band thresholds. */
+    --m-crit:hsl(2 68% 58%);
+    --m-poor:hsl(24 82% 58%);
+    --m-ok:hsl(43 88% 60%);
+    --m-good:hsl(152 52% 50%);
+
+    --r-sm:9px; --r-md:16px; --r-lg:24px;
+    --sh-amb:0 20px 60px -22px hsl(232 40% 2% / .7);
+    --sh-tight:0 4px 12px -6px hsl(232 40% 2% / .5);
+    --ease:cubic-bezier(.2,.8,.25,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(900px 600px at 12% 4%, hsl(248 70% 40% / .20), transparent 60%),
+      radial-gradient(760px 520px at 88% 96%, hsl(268 62% 42% / .16), transparent 62%),
+      var(--pg-bg);
+    background-attachment:fixed;
+    color:var(--pg-ink);
+    font:400 15px/1.6 ui-sans-serif,-apple-system,"Segoe UI",Inter,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:48px 24px 96px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums}
+
+  /* ── §3 hierarchy: verdict is PRIMARY, everything else recedes ── */
+  header{margin-block-end:32px}
+  .eyebrow{
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--pg-faint);font-weight:600;margin-block-end:12px;
+  }
+  h1{font-size:32px;font-weight:700;letter-spacing:-.3px;line-height:1.15}
+  h1 .sub{color:var(--pg-muted);font-weight:400}
+  .lede{color:var(--pg-muted);margin-block-start:12px;max-width:70ch}
+
+  .glass{
+    background:var(--pg-glass);
+    border:1px solid var(--pg-glass-edge);
+    border-radius:var(--r-lg);
+    box-shadow:var(--sh-amb),var(--sh-tight),inset 0 1px 0 hsl(0 0% 100% / .12);
+    -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  }
+
+  /* PRIMARY: the verdict */
+  .verdict{padding:28px;margin-block-end:24px;display:flex;gap:28px;align-items:center;flex-wrap:wrap}
+  .score-ring{
+    inline-size:132px;block-size:132px;border-radius:50%;flex:none;
+    display:grid;place-items:center;position:relative;
+    background:conic-gradient(var(--ring-c) calc(var(--pct)*1%),hsl(0 0% 100% / .07) 0);
+    transition:background 300ms var(--ease);
+  }
+  .score-ring::after{
+    content:"";position:absolute;inset:9px;border-radius:50%;
+    background:hsl(232 26% 9%);
+  }
+  .score-ring > div{position:relative;z-index:1;text-align:center}
+  .score-num{font-size:34px;font-weight:700;letter-spacing:-1px;line-height:1}
+  .score-grade{font-size:12px;color:var(--pg-muted);margin-block-start:4px;letter-spacing:.1em}
+  .verdict-body{flex:1;min-inline-size:280px}
+  .verdict-tag{
+    display:inline-block;padding:5px 11px;border-radius:999px;
+    font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    margin-block-end:10px;
+  }
+  .verdict-body p{color:var(--pg-muted);font-size:14px}
+  .verdict-body strong{color:var(--pg-ink);font-weight:600}
+
+  /* SECONDARY: dimension controls */
+  section{margin-block-start:24px}
+  .sec-head{display:flex;justify-content:space-between;align-items:baseline;margin-block-end:14px;gap:16px;flex-wrap:wrap}
+  h2{font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--pg-muted)}
+  .hint{font-size:12px;color:var(--pg-faint)}
+
+  .dims{padding:20px 24px}
+  .dim{
+    display:grid;grid-template-columns:132px 1fr 46px 76px;
+    gap:14px;align-items:center;padding:11px 0;
+    border-block-end:1px solid hsl(0 0% 100% / .05);
+  }
+  .dim:last-child{border-block-end:none}
+  .dim-name{font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px}
+  .dim-w{font-size:10px;color:var(--pg-faint);font-weight:400}
+  /* §3: ONE visual per row. The meter is the mark; the range is an invisible
+     input layer on top of it (still focusable, keyboard-operable, screen-reader labelled). */
+  .slot{position:relative;block-size:20px;display:flex;align-items:center}
+  .meter{
+    block-size:9px;border-radius:999px;background:hsl(0 0% 100% / .06);
+    overflow:hidden;position:relative;inline-size:100%;
+  }
+  .meter-fill{
+    block-size:100%;border-radius:999px;
+    transition:inline-size 300ms var(--ease),background 300ms var(--ease);
+  }
+  .knob{
+    position:absolute;inline-size:13px;block-size:13px;border-radius:50%;
+    background:var(--pg-ink);border:2px solid hsl(232 26% 9%);
+    inset-block-start:50%;transform:translate(-50%,-50%);pointer-events:none;
+    transition:inset-inline-start 300ms var(--ease);
+  }
+  .dim-val{font-size:14px;font-weight:700;text-align:end}
+  .dim-conf{font-size:10px;color:var(--pg-faint);text-align:end;letter-spacing:.04em}
+  .slot input[type=range]{
+    position:absolute;inset:0;inline-size:100%;block-size:100%;
+    opacity:0;cursor:pointer;margin:0;
+  }
+  .slot:has(input:focus-visible) .meter{outline:2px solid var(--pg-accent);outline-offset:3px}
+  /* calculator sliders keep a normal visible track */
+  .calc-row input[type=range]{accent-color:var(--pg-accent);cursor:pointer}
+  .calc-row input[type=range]:focus-visible{outline:2px solid var(--pg-accent);outline-offset:3px;border-radius:999px}
+
+  /* TERTIARY: evidence + payback */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:860px){.grid2{grid-template-columns:1fr}}
+  .panel{padding:20px 22px}
+  .panel h3{font-size:12px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--pg-muted);margin-block-end:14px}
+
+  .ev{display:flex;gap:10px;padding:9px 0;border-block-end:1px solid hsl(0 0% 100% / .05);font-size:13px;align-items:flex-start}
+  .ev:last-child{border-block-end:none}
+  .ev-i{flex:none;inline-size:16px;text-align:center}
+  .ev-t{color:var(--pg-muted);line-height:1.5}
+  .ev-t b{color:var(--pg-ink);font-weight:600}
+  .ev-t code{
+    font-family:ui-monospace,Menlo,monospace;font-size:11.5px;
+    background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px;color:var(--pg-ink);
+  }
+
+  .calc-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:13px}
+  .calc-row span:first-child{color:var(--pg-muted)}
+  .calc-out{
+    margin-block-start:14px;padding:14px;border-radius:var(--r-md);
+    background:hsl(0 0% 100% / .04);border:1px solid hsl(0 0% 100% / .08);
+  }
+  .calc-verdict{font-size:13px;font-weight:600;line-height:1.5}
+  .calc-detail{font-size:11.5px;color:var(--pg-faint);margin-block-start:6px;line-height:1.5}
+
+  table{inline-size:100%;border-collapse:collapse;font-size:12.5px}
+  th{
+    text-align:start;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--pg-faint);font-weight:600;padding-block-end:8px;border-block-end:1px solid hsl(0 0% 100% / .1);
+  }
+  td{padding:8px 0;border-block-end:1px solid hsl(0 0% 100% / .05);color:var(--pg-muted);vertical-align:top}
+  td:last-child,th:last-child{text-align:end}
+  tr:last-child td{border-block-end:none}
+  .tag{
+    display:inline-block;padding:2px 7px;border-radius:5px;font-size:10px;
+    font-weight:700;letter-spacing:.04em;
+  }
+  .t-true{background:hsl(152 52% 50% / .16);color:hsl(152 52% 62%)}
+  .t-false{background:hsl(2 68% 58% / .16);color:hsl(2 68% 66%)}
+  .t-drift{background:hsl(43 88% 60% / .16);color:hsl(43 88% 66%)}
+
+  /* copy-prompt bar — §7: 1 click, natural language, no modal */
+  .copybar{
+    margin-block-start:24px;padding:14px 16px;display:flex;gap:14px;align-items:center;
+    background:var(--pg-glass);border:1px solid var(--pg-glass-edge);border-radius:var(--r-md);
+  }
+  .copybar code{
+    flex:1;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--pg-muted);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  button.copy{
+    flex:none;padding:8px 16px;border-radius:var(--r-sm);border:1px solid var(--pg-glass-edge);
+    background:var(--pg-accent-deep);color:hsl(0 0% 100%);font-size:12px;font-weight:600;
+    cursor:pointer;transition:transform 100ms var(--ease),background 100ms var(--ease);
+  }
+  button.copy:hover{background:var(--pg-accent)}
+  button.copy:active{transform:scale(.97)}
+  button.copy:focus-visible{outline:2px solid var(--pg-ink);outline-offset:2px}
+
+  .reset{
+    background:transparent;border:1px solid var(--pg-glass-edge);color:var(--pg-muted);
+    padding:5px 11px;border-radius:var(--r-sm);font-size:11px;cursor:pointer;
+    transition:color 100ms var(--ease);
+  }
+  .reset:hover{color:var(--pg-ink)}
+  .reset:focus-visible{outline:2px solid var(--pg-accent);outline-offset:2px}
+  footer{margin-block-start:32px;font-size:11px;color:var(--pg-faint);line-height:1.7}
+  .sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+
+  /* ── tabs ── */
+  .tabs{display:flex;gap:6px;margin-block-end:24px;border-block-end:1px solid hsl(0 0% 100% / .08);padding-block-end:0}
+  .tab{
+    background:transparent;border:none;border-block-end:2px solid transparent;
+    color:var(--pg-faint);font:600 13px/1 inherit;letter-spacing:.02em;
+    padding:11px 16px;cursor:pointer;transition:color 100ms var(--ease),border-color 100ms var(--ease);
+  }
+  .tab:hover{color:var(--pg-muted)}
+  .tab[aria-selected="true"]{color:var(--pg-ink);border-block-end-color:var(--pg-accent)}
+  .tab:focus-visible{outline:2px solid var(--pg-accent);outline-offset:-2px;border-radius:var(--r-sm)}
+  .tabpanel[hidden]{display:none}
+
+  /* ── adoption cards ── */
+  .adopt{padding:22px;margin-block-end:20px}
+  .adopt-head{display:flex;gap:12px;align-items:flex-start;margin-block-end:16px;flex-wrap:wrap}
+  .adopt-num{
+    flex:none;inline-size:26px;block-size:26px;border-radius:50%;
+    background:hsl(0 0% 100% / .07);border:1px solid var(--pg-glass-edge);
+    display:grid;place-items:center;font:700 12px/1 ui-monospace,Menlo,monospace;color:var(--pg-muted);
+  }
+  .adopt-title{flex:1;min-inline-size:220px}
+  .adopt-title h4{font-size:15px;font-weight:700;letter-spacing:-.2px;margin-block-end:3px}
+  .adopt-title p{font-size:12.5px;color:var(--pg-faint)}
+  .sev{
+    flex:none;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.05em;
+  }
+  .sev-live{background:hsl(2 68% 58% / .16);color:hsl(2 68% 66%)}
+  .sev-minor{background:hsl(43 88% 60% / .16);color:hsl(43 88% 66%)}
+  .sev-prev{background:hsl(248 84% 68% / .16);color:hsl(248 84% 76%)}
+  .sev-none{background:hsl(152 52% 50% / .16);color:hsl(152 52% 62%)}
+
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-block-end:14px}
+  @media(max-width:800px){.ba{grid-template-columns:1fr}}
+  .ba-col{border-radius:var(--r-md);overflow:hidden;border:1px solid hsl(0 0% 100% / .08)}
+  .ba-lab{
+    font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+    padding:7px 12px;
+  }
+  .ba-before .ba-lab{background:hsl(2 68% 58% / .13);color:hsl(2 68% 68%)}
+  .ba-after  .ba-lab{background:hsl(152 52% 50% / .13);color:hsl(152 52% 62%)}
+  .ba-code{
+    padding:12px;font:400 11.5px/1.65 ui-monospace,"SF Mono",Menlo,monospace;
+    color:var(--pg-ink);background:hsl(232 30% 5% / .5);overflow-x:auto;white-space:pre;
+  }
+  .ba-code .c{color:var(--pg-faint)}
+  .ba-code .bad{color:hsl(2 68% 68%)}
+  .ba-code .good{color:hsl(152 52% 62%)}
+
+  .why{font-size:13px;color:var(--pg-muted);line-height:1.6;margin-block-end:12px}
+  .why b{color:var(--pg-ink);font-weight:600}
+  .why code{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px;color:var(--pg-ink)}
+  .impact{
+    padding:11px 13px;border-radius:var(--r-md);
+    background:hsl(0 0% 100% / .04);border:1px solid hsl(0 0% 100% / .08);
+    font-size:12.5px;color:var(--pg-muted);line-height:1.6;
+  }
+  .impact b{color:var(--pg-ink)}
+  .impact .n{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+
+  /* §6 reduced-motion gate — verbatim */
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">/ork:assess · effort xhigh · comparison mode</div>
+    <h1>MaceTenth/token-efficient-scripts <span class="sub">— is it worth installing?</span></h1>
+    <p class="lede">
+      Every score below is anchored to a command that was actually run, not a reading of the README.
+      The benchmark was reproduced twice from source; the guardrails were tested against real files.
+      <b>Verdict</b> scores the plugin. <b>Adoption</b> shows what we take from it, and the two real ork bugs it led me to.
+    </p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Assessment views">
+    <button class="tab" role="tab" id="tab-v" aria-controls="panel-v" aria-selected="true">Verdict</button>
+    <button class="tab" role="tab" id="tab-a" aria-controls="panel-a" aria-selected="false">Adoption &amp; impact</button>
+  </div>
+
+  <div class="tabpanel" id="panel-v" role="tabpanel" aria-labelledby="tab-v">
+
+  <!-- PRIMARY -->
+  <div class="glass verdict">
+    <div class="score-ring" id="ring" style="--pct:52;--ring-c:var(--m-poor)">
+      <div>
+        <div class="score-num mono" id="composite">5.2</div>
+        <div class="score-grade" id="grade">GRADE D</div>
+      </div>
+    </div>
+    <div class="verdict-body">
+      <span class="verdict-tag" id="vtag" style="background:hsl(24 82% 58% / .16);color:hsl(24 82% 66%)">Don't install · harvest instead</span>
+      <p id="vtext">
+        The <strong>ideas are sound and the correctness guardrails are genuinely real</strong> (I verified all
+        three against real files). But the apparatus around them doesn't hold up: the benchmark's
+        equivalence oracle is <strong>provably unsound</strong>, the shipped harness re-verifies
+        <strong>4 of the 36 documented experiments</strong>, and the Stop hook spends
+        <strong>~0.5s of every session</strong> re-deriving a hardcoded constant. Worth reading once.
+        Not worth installing — especially since you already run RTK.
+      </p>
+    </div>
+  </div>
+
+  <!-- SECONDARY -->
+  <section>
+    <div class="sec-head">
+      <h2>Dimension scores</h2>
+      <div style="display:flex;gap:12px;align-items:center">
+        <span class="hint">weights: ork unified rubric · scalability skipped (no runtime service) → weights ÷ 0.91</span>
+        <button class="reset" id="reset">Reset to assessed</button>
+      </div>
+    </div>
+    <div class="glass dims" id="dims"></div>
+  </section>
+
+  <!-- TERTIARY -->
+  <section class="grid2">
+    <div class="glass panel">
+      <h3>Claims I tested myself</h3>
+      <table>
+        <thead><tr><th>Claim</th><th>Verdict</th></tr></thead>
+        <tbody id="claims"></tbody>
+      </table>
+      <p class="hint" style="margin-block-start:12px">
+        Guardrails: verified by constructing the exact failing files.
+        Numbers: from two clean runs of their unmodified <code style="font-size:11px">bench.py</code>.
+      </p>
+    </div>
+
+    <div class="glass panel">
+      <h3>Stop-hook payback calculator</h3>
+      <p class="hint" style="margin-block-end:12px">
+        The hook fires on every session stop, regenerates 20k lines, greps twice — and after fire #1
+        records nothing new. How much of your life does it cost?
+      </p>
+      <div class="calc-row">
+        <span>Sessions per day</span>
+        <span><input type="range" id="sess" min="1" max="60" value="12" style="inline-size:120px"> <b class="mono" id="sessv">12</b></span>
+      </div>
+      <div class="calc-row">
+        <span>Hook latency (measured 408–1512ms)</span>
+        <span><input type="range" id="lat" min="400" max="1500" step="10" value="713" style="inline-size:120px"> <b class="mono" id="latv">713ms</b></span>
+      </div>
+      <div class="calc-out">
+        <div class="calc-verdict" id="calcv"></div>
+        <div class="calc-detail" id="calcd"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="glass panel">
+      <h3>What actually survives — the harvest list</h3>
+      <div class="ev"><span class="ev-i">✅</span><span class="ev-t"><b>The three correctness guardrails.</b> Verified real: <code>wc -l</code> returned 2 on a 3-line file with no trailing newline; <code>cat f1 f2</code> produced literal <code>errorerror</code> and undercounted 2→1; <code>uniq</code> alone said 3 uniques vs 2. These are worth stealing verbatim.</span></div>
+      <div class="ev"><span class="ev-i">✅</span><span class="ev-t"><b>Its own epistemic honesty.</b> It self-corrected compact-JSON down from 50–79% to the measured 40.64%, and states plainly that a universal monthly cost claim is "not established" — then the README prints <b>~94%</b> anyway.</span></div>
+      <div class="ev"><span class="ev-i">⚠️</span><span class="ev-t"><b>The self-improvement loop dead-ends.</b> <code>CLAUDE_PLUGIN_DATA</code> is real (CC 2.1.78) and the log persists correctly — I checked, and my "it's vapor" hypothesis was wrong. But folding a finding back into SKILL.md is, by the plugin's own admission, "a maintainer step". The user's loop cannot close.</span></div>
+      <div class="ev"><span class="ev-i">❌</span><span class="ev-t"><b>The oracle is unsound.</b> <code>num()</code> takes the first integer in stdout: on <code>access2.log:7</code> it reads <b>2</b> — the digit from the <em>filename</em>. On multi-file <code>a.log:3\nb.log:99</code> it reads <b>3</b> and silently drops every later file. A <code>same_answer=yes</code> can come from reading the wrong number.</span></div>
+      <div class="ev"><span class="ev-i">❌</span><span class="ev-t"><b>The test can't fail.</b> Every experiment pits a deliberately terrible baseline (dump 20k rows) against the obvious right answer (<code>grep -c</code>). It authored both sides. A suite that cannot fail carries no information.</span></div>
+      <div class="ev"><span class="ev-i">❌</span><span class="ev-t"><b>"Self-benchmarking weekly" isn't a thing.</b> No CI, no <code>.github/</code>, no workflow anywhere. The one <code>bench-bot</code> commit says <em>"(manual verification run)"</em> in its own message and appended 9 lines of markdown.</span></div>
+      <div class="ev"><span class="ev-i">❌</span><span class="ev-t"><b>MIT is claimed, not granted.</b> <code>plugin.json</code> says <code>"license":"MIT"</code> and the README wears an MIT badge, but there is no LICENSE file and GitHub reports <code>licenseInfo: null</code> — so it's technically all-rights-reserved.</span></div>
+      <div class="ev"><span class="ev-i">❌</span><span class="ev-t"><b>It leaks.</b> <code>bench.py:10</code> calls <code>mkdtemp()</code> with no <code>rmtree</code> — 2.73 MB orphaned per run; at the advertised weekly cadence that's ~142 MB/year.</span></div>
+    </div>
+  </section>
+
+  </div><!-- /panel-v -->
+
+  <div class="tabpanel" id="panel-a" role="tabpanel" aria-labelledby="tab-a" hidden>
+
+    <div class="glass verdict" style="padding:22px">
+      <div class="verdict-body">
+        <span class="verdict-tag" style="background:hsl(152 52% 50% / .16);color:hsl(152 52% 62%)">Adopt 3 guardrails · reject the rest</span>
+        <p style="font-size:14px">
+          We take the <strong>three correctness guardrails</strong> and nothing else — no plugin, no hook, no
+          benchmark. The payoff isn't the text: auditing ork for the patterns they name surfaced
+          <strong>two real bugs in our own code</strong>, one of which is <strong>live and severe</strong>.
+        </p>
+      </div>
+    </div>
+
+    <section>
+      <div class="sec-head"><h2>What we adopt</h2>
+        <span class="hint">3 guardrails → 1 rule file in <code style="font-size:11px">src/skills/shared/rules/</code> → 2 bugs found</span>
+      </div>
+
+      <!-- 1 -->
+      <div class="glass adopt">
+        <div class="adopt-head">
+          <div class="adopt-num">1</div>
+          <div class="adopt-title">
+            <h4>Token estimator undercounts by up to 95%</h4>
+            <p>src/skills/audit-full/scripts/estimate-tokens.sh:30 — found by auditing for the <code>wc -l</code> pattern</p>
+          </div>
+          <span class="sev sev-live">LIVE · SEVERE</span>
+        </div>
+        <div class="ba">
+          <div class="ba-col ba-before"><div class="ba-lab">Before — today's code</div><div class="ba-code">find … -name "*.$ext" -print \
+  | <span class="bad">xargs wc -l</span> \
+  | <span class="bad">tail -1</span> \
+  | awk '{print $1}'
+<span class="c"># xargs SPLITS a long arg list into
+# batches → wc prints one "total" PER
+# batch → tail -1 keeps only the LAST</span></div></div>
+          <div class="ba-col ba-after"><div class="ba-lab">After — the fix</div><div class="ba-code">find … -name "*.$ext" <span class="good">-print0</span> \
+  | <span class="good">xargs -0 grep -ch ''</span> \
+  | <span class="good">awk '{s+=$1} END{print s}'</span>
+<span class="c"># sums EVERY file, and grep -c ''
+# counts real lines (not newlines),
+# so it fixes both traps at once</span></div></div>
+        </div>
+        <p class="why"><b>Why it matters:</b> <code>audit-full</code> exists to decide whether a codebase fits the 1M context window.
+        It undercounts precisely on the big repos where that question is live — so it answers <b>"fits"</b> when it doesn't.</p>
+        <div class="impact">
+          <b>Measured on this repo, today:</b><br>
+          <span class="n">.md&nbsp;&nbsp; 40,267 → 756,671</span> &nbsp;(<b>−94.7%</b> error)<br>
+          <span class="n">.json 114,163 → 483,611</span> &nbsp;(<b>−76.4%</b>)<br>
+          <span class="n">.ts&nbsp;&nbsp; 863,786 → 1,605,521</span> &nbsp;(<b>−46.2%</b>)<br>
+          <span style="color:var(--pg-faint)">Verified: <code style="font-size:11px">.ts</code> emitted 2 "total" lines → xargs batched → tail dropped one.</span>
+        </div>
+      </div>
+
+      <!-- 2 -->
+      <div class="glass adopt">
+        <div class="adopt-head">
+          <div class="adopt-num">2</div>
+          <div class="adopt-title">
+            <h4>500-line SKILL.md gate is off by one</h4>
+            <p>src/skills/audit-skills/scripts/run-audit.sh:47 — the guardrail's literal case</p>
+          </div>
+          <span class="sev sev-minor">LIVE · MINOR</span>
+        </div>
+        <div class="ba">
+          <div class="ba-col ba-before"><div class="ba-lab">Before</div><div class="ba-code">LINE_COUNT=$(<span class="bad">wc -l</span> &lt; "$SKILL_MD" \
+  | tr -d ' ')
+<span class="c"># wc -l counts NEWLINES. a file with
+# no trailing newline reports one
+# line fewer than it has</span></div></div>
+          <div class="ba-col ba-after"><div class="ba-lab">After</div><div class="ba-code">LINE_COUNT=$(<span class="good">grep -c ''</span> "$SKILL_MD")
+<span class="c"># grep -c '' counts LINES —
+# correct with or without a
+# trailing newline</span></div></div>
+        </div>
+        <p class="why"><b>Why it matters:</b> <b>7 of 114</b> SKILL.md files ship without a trailing newline. Each gets a silent
+        1-line discount against the 500-line limit. Only bites exactly at the boundary — a 501-line file reads as 500 and passes.
+        Small, but it's a <b>quality gate lying about the thing it gates</b>.</p>
+        <div class="impact">
+          <b>Verified:</b> two identical 500-line files — <span class="n">wc -l</span> reports
+          <span class="n">499</span> for the newline-less one, <span class="n">500</span> for the other.<br>
+          <span style="color:var(--pg-faint)">Repo-wide: exactly <span class="n">132</span> <code style="font-size:11px">.md</code> files lack a trailing newline — matching the <span class="n">132</span>-line delta between fix variants in bug 1 <b>to the line</b>.</span>
+        </div>
+      </div>
+
+      <!-- 3 -->
+      <div class="glass adopt">
+        <div class="adopt-head">
+          <div class="adopt-num">3</div>
+          <div class="adopt-title">
+            <h4><code style="font-size:13px">cat</code> across files glues boundary lines</h4>
+            <p>No current ork hits — adopted as prevention</p>
+          </div>
+          <span class="sev sev-prev">PREVENTIVE</span>
+        </div>
+        <div class="ba">
+          <div class="ba-col ba-before"><div class="ba-lab">Before — the trap</div><div class="ba-code"><span class="bad">cat f1 f2</span> | grep -c error
+<span class="c"># f1 ends "error" with NO newline,
+# f2 starts "error"
+# → cat yields "errorerror"
+# → grep -c returns 1, truth is 2</span></div></div>
+          <div class="ba-col ba-after"><div class="ba-lab">After</div><div class="ba-code"><span class="good">grep -hc error f1 f2</span> \
+  | awk '{s+=$1} END{print s}'
+<span class="c"># per-file processing — boundaries
+# never merge → returns 2</span></div></div>
+        </div>
+        <p class="why"><b>Why we take it anyway:</b> I grepped ork and found <b>zero</b> multi-file <code>cat</code> pipelines today.
+        But the fix for bug 1 <i>introduces</i> exactly this shape (<code>xargs -0 cat | wc -l</code> was a candidate) — so the guardrail is what
+        steered the fix to <code>grep -ch</code> instead. It earns its place by <b>preventing the fix from creating the next bug</b>.</p>
+        <div class="impact">
+          <b>Verified:</b> <code>cat f1 f2</code> produced the literal string <span class="n">errorerror</span>;
+          <span class="n">grep -c</span> fell from the true <span class="n">2</span> to <span class="n">1</span>.
+        </div>
+      </div>
+
+      <!-- 4 -->
+      <div class="glass adopt">
+        <div class="adopt-head">
+          <div class="adopt-num">4</div>
+          <div class="adopt-title">
+            <h4><code style="font-size:13px">sort</code> before <code style="font-size:13px">uniq</code></h4>
+            <p>ork already does this correctly everywhere</p>
+          </div>
+          <span class="sev sev-none">NO ACTION</span>
+        </div>
+        <p class="why">Every <code>uniq</code> in ork is already preceded by <code>sort</code> (checked <code>explore/dependency-mapper.sh</code>,
+        <code>emulate-seed/auto-discover.sh</code>, and the rest). The blind refuter called this guardrail
+        <b>"near-universal knowledge bordering on filler"</b> and our codebase agrees. <b>We document it for completeness and change nothing.</b></p>
+      </div>
+
+      <!-- 5 -->
+      <div class="glass adopt">
+        <div class="adopt-head">
+          <div class="adopt-num">5</div>
+          <div class="adopt-title">
+            <h4>Don't parse counts out of decorated stdout</h4>
+            <p>The lesson from their <code style="font-size:13px">num()</code> bug — a test-practice rule, not theirs</p>
+          </div>
+          <span class="sev sev-prev">PREVENTIVE</span>
+        </div>
+        <div class="ba">
+          <div class="ba-col ba-before"><div class="ba-lab">Their bug (don't copy)</div><div class="ba-code"><span class="bad">num = re.findall(r"-?\d+", out)[0]</span>
+<span class="c"># "access2.log:7"  → 2  (!!)
+#   grabs the digit from the FILENAME
+# "a.log:3\nb.log:99" → 3
+#   drops every later file</span></div></div>
+          <div class="ba-col ba-after"><div class="ba-lab">Our rule</div><div class="ba-code"><span class="good">grep -c … | tr -d ' '</span>   <span class="c"># exact</span>
+<span class="good">int(out.strip())</span>          <span class="c"># typed</span>
+<span class="c"># compare whole stdout, or parse a
+# known shape — never "first int
+# you can find in the output"</span></div></div>
+        </div>
+        <p class="why"><b>Why:</b> this is the defect that sank their testability score to <b>2.5</b>. We're not adopting their code —
+        we're adopting the <b>lesson</b>, because ork's own audit scripts do <code>awk '{print $1}'</code> over decorated output in several places.</p>
+        <div class="impact"><b>Verified:</b> built the counterexample — <code>num("access2.log:7")</code> returns <span class="n">2</span>, not <span class="n">7</span>.</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="glass panel">
+        <h3>What we explicitly reject — and why</h3>
+        <div class="ev"><span class="ev-i">🚫</span><span class="ev-t"><b>The plugin itself.</b> Scored <b>5.16/D/FAIL</b>. Installing it adds a Stop hook, a per-invocation context cost, and a marketplace dependency to get advice its own "Tool selection order" says to skip in favour of native Grep/Glob.</span></div>
+        <div class="ev"><span class="ev-i">🚫</span><span class="ev-t"><b>The Stop hook.</b> ~0.5s of every session stop to re-derive a constant fixed by a hardcoded literal. Zero information after fire #1.</span></div>
+        <div class="ev"><span class="ev-i">🚫</span><span class="ev-t"><b>The benchmark.</b> No failure channel — forced all three assertions to DIFF and it still exited <code>0</code>. Its fixtures all end with trailing newlines, so it cannot test the very guardrails we're adopting.</span></div>
+        <div class="ev"><span class="ev-i">🚫</span><span class="ev-t"><b>Every headline number.</b> "~94% saving" is marked <i>"Not established"</i> in their own evidence base. "1.68×" is contradicted by their own shipped log (1.52×) and by my runs (2.55×, 2.17×).</span></div>
+        <div class="ev"><span class="ev-i">🚫</span><span class="ev-t"><b>Tier 3 (code trimming).</b> Their own doc calls it "a rounding error", and they misapply it to <code>bench.py</code> — shipped, long-lived code — against their own stated scope.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="glass panel">
+        <h3>The honest version of this adoption</h3>
+        <p class="why" style="margin:0">
+          The guardrail text did <b>not</b> name bug&nbsp;1 — <code>xargs</code> batching is a different failure from
+          "<code>wc -l</code> counts newlines". What actually happened: the guardrail worked as a <b>search heuristic</b>. Grepping ork
+          for the pattern it warns about led me to a worse, unrelated bug sitting next to it.<br><br>
+          That's a real result, and it's also the fair way to value this project: <b>~20 lines of prose that pointed at a −95% error in our
+          own token estimator</b>. Worth reading. Still not worth installing — and the estimator bug was ours, not theirs.
+        </p>
+      </div>
+    </section>
+
+  </div><!-- /panel-a -->
+
+  <div class="copybar">
+    <code id="prompt"></code>
+    <button class="copy" id="copy">Copy prompt</button>
+  </div>
+  <div class="sr" role="status" aria-live="polite" id="live"></div>
+
+  <footer>
+    Scored against the OrchestKit unified rubric (assess/quality-model.md), comparison mode.
+    Scalability skipped — no runtime service — so the remaining seven weights are rescaled ÷&nbsp;0.91.
+    Chrome uses the cool-glass persona; data marks use a semantic grade-band threshold encoding
+    (<code style="font-size:10px">validate_palette.js</code> unavailable locally → documented fallback).
+    Evidence collected 2026-07-17 on Darwin x86_64, tiktoken absent → bench.py used its chars/4 proxy.
+  </footer>
+</div>
+
+<script>
+// ── assessed scores. weight = ork unified rubric, rescaled ÷0.91 (scalability 0.10 skipped) ──
+const BASE = [
+  {k:"correctness",    n:"Correctness",     w:0.15, s:4.5, c:"high",   note:"guardrails real; oracle unsound; README overclaims"},
+  {k:"maintainability",n:"Maintainability", w:0.15, s:4.0, c:"high",   note:"same number drifts across 4 surfaces"},
+  {k:"performance",    n:"Performance",     w:0.12, s:5.5, c:"high",   note:"levers real; plugin's own overhead is a tax"},
+  {k:"security",       n:"Security",        w:0.20, s:7.5, c:"high",   note:"blind-refuted UP: zero network/eval/secrets; only real ding is auto-update + shell Stop hook"},
+  {k:"testability",    n:"Testability",     w:0.13, s:2.5, c:"high",   note:"no failure channel at all: DIFF prints, exit stays 0"},
+  {k:"compliance",     n:"Compliance",      w:0.15, s:7.0, c:"medium", note:"shape correct + idiomatic; MIT-without-LICENSE deduction moved here from security"},
+  {k:"simplicity",     n:"Simplicity",      w:0.10, s:3.5, c:"high",   note:"mostly restates CC defaults; adds a permanent hook"},
+];
+const SUM = BASE.reduce((a,d)=>a+d.w,0);           // 1.00 → rescale below
+BASE.forEach(d=>d.aw = d.w/SUM);
+
+const CLAIMS = [
+  ["<b>wc -l</b> counts newlines not lines","true"],
+  ["<b>cat a b</b> glues newline-less boundaries","true"],
+  ["<b>sort</b> before <b>uniq</b>","true"],
+  ["<b>num()</b> is a sound equivalence oracle","false"],
+  ["Filter-before-sort = <b>1.68×</b>","drift"],
+  ["Compact JSON <b>40.64%</b> (self-corrected)","true"],
+  ["<b>~94%</b> monthly saving (README)","false"],
+  ["“Self-benchmarking <b>weekly</b>”","false"],
+  ["License is <b>MIT</b>","false"],
+  ["<b>bench.py</b> survives a path with a space","false"],
+  ["Bench can regression-test its own guardrails","false"],
+];
+const TAGV = {true:["t-true","VERIFIED"],false:["t-false","FALSE"],drift:["t-drift","DRIFTS"]};
+
+const bandColor = s => s>=7 ? "var(--m-good)" : s>=6 ? "var(--m-ok)" : s>=4 ? "var(--m-poor)" : "var(--m-crit)";
+const gradeOf = c => c>=9?"A+":c>=8?"A":c>=7?"B":c>=6?"C":c>=5?"D":"F";
+
+const dimsEl = document.getElementById("dims");
+BASE.forEach((d,i)=>{
+  const row = document.createElement("div");
+  row.className = "dim";
+  row.innerHTML = `
+    <div class="dim-name">${d.n}<span class="dim-w mono">${(d.aw*100).toFixed(0)}%</span></div>
+    <div class="slot" title="${d.note}">
+      <div class="meter"><div class="meter-fill" id="m${i}"></div></div>
+      <div class="knob" id="k${i}"></div>
+      <input type="range" min="0" max="10" step="0.1" value="${d.s}"
+             id="r${i}" aria-label="${d.n} score, ${d.note}">
+    </div>
+    <div class="dim-val mono" id="v${i}">${d.s.toFixed(1)}</div>
+    <div class="dim-conf">${d.c}</div>`;
+  dimsEl.appendChild(row);
+  document.getElementById(`r${i}`).addEventListener("input", e=>{
+    BASE[i].s = parseFloat(e.target.value); render();
+  });
+});
+
+const tb = document.getElementById("claims");
+CLAIMS.forEach(([t,v])=>{
+  const [cls,label] = TAGV[v];
+  tb.insertAdjacentHTML("beforeend",
+    `<tr><td>${t}</td><td><span class="tag ${cls}">${label}</span></td></tr>`);
+});
+
+function render(){
+  let comp = 0;
+  BASE.forEach((d,i)=>{
+    comp += d.s * d.aw;
+    const f = document.getElementById(`m${i}`);
+    f.style.inlineSize = (d.s*10)+"%";
+    f.style.background = bandColor(d.s);
+    document.getElementById(`k${i}`).style.insetInlineStart = (d.s*10)+"%";
+    document.getElementById(`v${i}`).textContent = d.s.toFixed(1);
+  });
+  const g = gradeOf(comp);
+  document.getElementById("composite").textContent = comp.toFixed(1);
+  document.getElementById("grade").textContent = "GRADE "+g;
+  const ring = document.getElementById("ring");
+  ring.style.setProperty("--pct", (comp*10).toFixed(0));
+  ring.style.setProperty("--ring-c", bandColor(comp));
+
+  const tag = document.getElementById("vtag");
+  const pass = comp>=5.5 && BASE.find(d=>d.k==="security").s>=7.0;
+  if(comp>=7){ tag.textContent="Install"; tag.style.background="hsl(152 52% 50% / .16)"; tag.style.color="hsl(152 52% 62%)"; }
+  else if(comp>=5.5){ tag.textContent="Marginal · harvest the guardrails"; tag.style.background="hsl(43 88% 60% / .16)"; tag.style.color="hsl(43 88% 66%)"; }
+  else { tag.textContent="Don't install · harvest instead"; tag.style.background="hsl(24 82% 58% / .16)"; tag.style.color="hsl(24 82% 66%)"; }
+  prompt();
+}
+
+const sess=document.getElementById("sess"), lat=document.getElementById("lat");
+function calc(){
+  const s=+sess.value, l=+lat.value;
+  document.getElementById("sessv").textContent=s;
+  document.getElementById("latv").textContent=l+"ms";
+  const perDay=s*l/1000, perYear=perDay*365/60;
+  const useful=l/1000;
+  document.getElementById("calcv").innerHTML =
+    `<span style="color:${perYear>30?'var(--m-crit)':'var(--m-ok)'}">${perDay.toFixed(1)}s/day → ${perYear.toFixed(0)} min/year</span> of blocked session-stop`;
+  document.getElementById("calcd").textContent =
+    `Of that, ${useful.toFixed(1)}s total was informative (fire #1). Every subsequent fire re-derives ` +
+    `dump=400000B vs count=6B — a value fixed by a hardcoded literal in on-stop.sh:7, so it can never change. ` +
+    `Information yield after day one: zero.`;
+  prompt();
+}
+sess.addEventListener("input",calc); lat.addEventListener("input",calc);
+
+function prompt(){
+  const onAdopt = document.getElementById("tab-a")?.getAttribute("aria-selected")==="true";
+  const weak = [...BASE].sort((a,b)=>a.s-b.s)[0];
+  document.getElementById("prompt").textContent = onAdopt
+    ? `Fix the token estimator in src/skills/audit-full/scripts/estimate-tokens.sh:30 — replace the "xargs wc -l | tail -1" recipe with "-print0 | xargs -0 grep -ch '' | awk '{s+=$1} END{print s}'", which fixes both the xargs batching undercount (-94.7% on .md in this repo) and the wc -l trailing-newline off-by-one. Then apply the same grep -c '' fix to the 500-line gate in audit-skills/scripts/run-audit.sh:47, and add the three correctness guardrails as a rule in src/skills/shared/rules/. Don't install the plugin.`
+    : `Don't install token-efficient-scripts. Instead, add its three verified correctness guardrails (wc -l newlines, cat boundary-glue, sort-before-uniq) to our own skill, and skip the rest — its weakest dimension is ${weak.n.toLowerCase()} at ${weak.s.toFixed(1)}/10.`;
+}
+
+document.getElementById("copy").addEventListener("click", async e=>{
+  const b=e.currentTarget;
+  try{ await navigator.clipboard.writeText(document.getElementById("prompt").textContent);
+       b.textContent="✓ Copied"; document.getElementById("live").textContent="Prompt copied to clipboard";
+       setTimeout(()=>b.textContent="Copy prompt",1500);
+  }catch{ b.textContent="Press ⌘C"; setTimeout(()=>b.textContent="Copy prompt",1500); }
+});
+
+document.getElementById("reset").addEventListener("click",()=>{
+  const orig=[4.5,4.0,5.5,7.5,2.5,7.0,3.5];
+  BASE.forEach((d,i)=>{ d.s=orig[i]; document.getElementById(`r${i}`).value=orig[i]; });
+  render(); document.getElementById("live").textContent="Scores reset to assessed values";
+});
+
+// tabs — click + full arrow-key roving per WAI-ARIA
+const tabs=[...document.querySelectorAll('.tab')];
+function sel(id){
+  tabs.forEach(t=>{
+    const on = t.id===id;
+    t.setAttribute('aria-selected', on);
+    document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+  });
+  document.getElementById(id).focus();
+  document.getElementById('live').textContent =
+    document.getElementById(id).textContent + ' view shown';
+  prompt();
+}
+tabs.forEach((t,i)=>{
+  t.addEventListener('click',()=>sel(t.id));
+  t.addEventListener('keydown',e=>{
+    const d = e.key==='ArrowRight' ? 1 : e.key==='ArrowLeft' ? -1 : 0;
+    if(d){ e.preventDefault(); sel(tabs[(i+d+tabs.length)%tabs.length].id); }
+  });
+});
+
+render(); calc();
+</script>
+</body>
+</html>
