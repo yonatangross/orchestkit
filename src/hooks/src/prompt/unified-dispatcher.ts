@@ -45,9 +45,18 @@ import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.j
 import { detectEffortLevel, effortTokenBudget, DEFAULT_EFFORT_LEVEL } from '../lib/effort-detector.js';
 import { trackTokenUsage } from '../lib/token-tracker.js';
 import { getSessionStorageDir } from '../lib/paths.js';
-import { manageSessionIdentity } from '../lib/session-identity-state.js';
+import { manageSessionIdentity, resolveTranscriptPath } from '../lib/session-identity-state.js';
 import { mergeIdentityTitle } from '../lib/session-identity.js';
-import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  writeFileSync,
+  readFileSync,
+  statSync,
+  openSync,
+  readSync,
+  closeSync,
+} from 'node:fs';
 import { join } from 'node:path';
 
 // Import hook implementations — every-turn
@@ -213,19 +222,31 @@ function buildSessionTitle(branch: string, effort: string, isWorktree = false): 
  * Returns true on first turn (no state file), on branch/effort change, or on
  * I/O failure (fail-open keeps prior behavior).
  */
-function shouldEmitSessionTitle(
+export function shouldEmitSessionTitle(
   title: string,
   sessionId: string | undefined,
   projectDir: string | undefined,
+  transcriptPath: string | null,
+  branch: string,
 ): boolean {
   if (!title) return false;
   if (!sessionId || !projectDir) return true;
   try {
     const dir = getPromptSessionDir(sessionId, projectDir);
     const file = join(dir, 'last-session-title.txt');
+    let lastEmitted = '';
     if (existsSync(file)) {
-      const last = readFileSync(file, 'utf8').trim();
-      if (last === title) return false;
+      lastEmitted = readFileSync(file, 'utf8').trim();
+      if (lastEmitted === title) return false;
+    }
+    // /rename guard: before emitting a CHANGED title, make sure the user hasn't
+    // taken the title over with /rename. The live prompt-bar title lives in the
+    // transcript's last `custom-title` record; if it is neither the value we
+    // last emitted nor the git branch (cmux's stamp), the user set it manually —
+    // suppress our emit so a regenerated topic can't clobber a rename. Only runs
+    // on the rare turns where our title actually changed, so it stays cheap.
+    if (title !== lastEmitted && userRenamedTitle(transcriptPath, lastEmitted, branch)) {
+      return false;
     }
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
     writeFileSync(file, title, 'utf8');
@@ -234,6 +255,57 @@ function shouldEmitSessionTitle(
     return true;
   }
 }
+
+/**
+ * True when the live session title (transcript's last `custom-title` record) was
+ * set by the user via /rename — i.e. it is neither the value we last emitted nor
+ * the current git branch (cmux stamps the branch on pane focus). Bounded,
+ * grep-then-parse read so it stays cheap even on a large transcript; fail-open
+ * to false (no rename detected → normal emit) on any error.
+ */
+function userRenamedTitle(
+  transcriptPath: string | null,
+  lastEmitted: string,
+  branch: string,
+): boolean {
+  if (!transcriptPath || !existsSync(transcriptPath)) return false;
+  // No title emitted yet (first turn): we have no baseline to compare against, so
+  // never treat a pre-existing native/cmux title as "the user renamed" — that
+  // would suppress ork's legitimate first emit. Only guard once we own a title.
+  if (!lastEmitted) return false;
+  try {
+    const size = statSync(transcriptPath).size;
+    const start = Math.max(0, size - TRANSCRIPT_TAIL_BYTES);
+    const fd = openSync(transcriptPath, 'r');
+    let live = '';
+    try {
+      const len = size - start;
+      const buf = Buffer.alloc(len);
+      readSync(fd, buf, 0, len, start);
+      for (const line of buf.toString('utf8').split('\n')) {
+        if (line.indexOf('"custom-title"') === -1) continue;
+        try {
+          const rec = JSON.parse(line) as { type?: string; customTitle?: string };
+          if (rec.type === 'custom-title' && typeof rec.customTitle === 'string') {
+            live = rec.customTitle;
+          }
+        } catch {
+          /* skip a partial/split line at the tail boundary */
+        }
+      }
+    } finally {
+      closeSync(fd);
+    }
+    if (!live) return false;
+    // A title that matches neither our last emit nor the branch = a manual rename.
+    return live !== lastEmitted && live !== branch;
+  } catch {
+    return false;
+  }
+}
+
+/** Only read this many bytes off the transcript tail for the rename check. */
+const TRANSCRIPT_TAIL_BYTES = 65_536;
 
 /**
  * Pin the branch used for the session title to the FIRST branch this session
@@ -418,7 +490,14 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
     ? manageSessionIdentity(input, ctx, getPromptSessionDir(sessionId, projectDir), projectDir)
     : null;
   const sessionTitle = aiTitle ? mergeIdentityTitle(aiTitle, branchTitle) : branchTitle;
-  const emitTitle = shouldEmitSessionTitle(sessionTitle, sessionId, projectDir);
+  const transcriptPath = resolveTranscriptPath(input, projectDir);
+  const emitTitle = shouldEmitSessionTitle(
+    sessionTitle,
+    sessionId,
+    projectDir,
+    transcriptPath,
+    titleBranch,
+  );
 
   // No context produced — still try to set the title if we have one
   if (contextParts.length === 0) {
