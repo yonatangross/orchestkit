@@ -3,10 +3,13 @@
 
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 
+// vitest runs with root = docs/site; cwd-relative resolution is stable across
+// direct invocation and the full suite (import.meta.url gets mangled by the
+// happy-dom transform in the latter).
 const content = (p: string) =>
-  JSON.parse(readFileSync(fileURLToPath(new URL(`../content/docs/${p}`, import.meta.url)), "utf8"));
+  JSON.parse(readFileSync(resolve(process.cwd(), "content", "docs", p), "utf8"));
 
 /**
  * Guards the sidebar information architecture:
