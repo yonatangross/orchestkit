@@ -44,7 +44,9 @@ for SKILL_MD in "$SKILLS_DIR"/*/SKILL.md; do
   FAILS=()
 
   # Check 1: line count
-  LINE_COUNT=$(wc -l < "$SKILL_MD" | tr -d ' ')
+  # grep -c '' counts lines; wc -l counts newlines, so it reports one line short for
+  # any file without a trailing newline — letting a 501-line SKILL.md pass as 500.
+  LINE_COUNT=$(grep -c '' "$SKILL_MD")
   if (( LINE_COUNT > 500 )); then
     FAILS+=("FAIL: skill_md_too_long:${LINE_COUNT}_lines")
     STATUS="FAIL"
