@@ -116,6 +116,14 @@ function makeUpdatedInputResult(updatedInput: Record<string, unknown>): HookResu
   };
 }
 
+/**
+ * An advisory hook: continue:true + systemMessage, no permission decision
+ * and no additionalContext. This is what outputWarning() produces.
+ */
+function makeWarningResult(message: string): HookResult {
+  return { continue: true, systemMessage: message };
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -277,6 +285,75 @@ describe('sync-bash-dispatcher', () => {
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Advisory systemMessage propagation (#2947)
+  //
+  // A hook returning outputWarning() carries continue:true + systemMessage and
+  // NOTHING else: no permissionDecision, no additionalContext. The loop
+  // short-circuits only on !continue and otherwise collected additionalContext
+  // alone, so such a hook was silently dropped and behaved as a no-op. Caught
+  // when display-lint moved from deny to advisory.
+  // -------------------------------------------------------------------------
+
+  describe('advisory systemMessage propagation', () => {
+    it('propagates a lone advisory warning to the caller', () => {
+      vi.mocked(ghLabelEnforcer).mockReturnValue(makeWarningResult('[display-lint] 250 chars / 4 stages'));
+
+      const input = createBashInput('git status');
+      const result = syncBashDispatcher(input, testCtx);
+
+      expect(result.continue).toBe(true);
+      expect(result.systemMessage).toContain('[display-lint]');
+    });
+
+    // Per CC's hook reference, suppressOutput hides hook STDOUT from the
+    // transcript and does not affect systemMessage, which CC renders as its
+    // own field. So an advisory must NOT flip suppressOutput off: doing that
+    // would surface the dispatcher's raw JSON envelope instead.
+    it('leaves suppressOutput alone on the context path when an advisory rides along', () => {
+      vi.mocked(ghLabelEnforcer).mockReturnValue(makeContextResult('some context'));
+      vi.mocked(ghMilestoneEnforcer).mockReturnValue(makeWarningResult('[display-lint] noisy'));
+
+      const input = createBashInput('gh issue create --title "Test"');
+      const result = syncBashDispatcher(input, testCtx);
+
+      expect(result.suppressOutput).toBe(true);
+      expect(result.systemMessage).toContain('[display-lint]');
+    });
+
+    it('merges multiple advisories', () => {
+      vi.mocked(ghLabelEnforcer).mockReturnValue(makeWarningResult('warning one'));
+      vi.mocked(ghMilestoneEnforcer).mockReturnValue(makeWarningResult('warning two'));
+
+      const input = createBashInput('git status');
+      const result = syncBashDispatcher(input, testCtx);
+
+      expect(result.systemMessage).toContain('warning one');
+      expect(result.systemMessage).toContain('warning two');
+    });
+
+    it('carries an advisory alongside additionalContext from another hook', () => {
+      vi.mocked(ghLabelEnforcer).mockReturnValue(makeContextResult('Add a --label flag'));
+      vi.mocked(ghMilestoneEnforcer).mockReturnValue(makeWarningResult('[display-lint] noisy'));
+
+      const input = createBashInput('gh issue create --title "Test"');
+      const result = syncBashDispatcher(input, testCtx);
+
+      expect(result.hookSpecificOutput?.additionalContext).toContain('Add a --label flag');
+      expect(result.systemMessage).toContain('[display-lint]');
+    });
+
+    it('an advisory never blocks and never decides permission', () => {
+      vi.mocked(ghLabelEnforcer).mockReturnValue(makeWarningResult('[display-lint] noisy'));
+
+      const input = createBashInput('git status');
+      const result = syncBashDispatcher(input, testCtx);
+
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 

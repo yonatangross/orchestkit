@@ -22,6 +22,7 @@ export {
   outputSessionStartContext,
   outputWithNotification,
   outputAllowWithContext,
+  outputPreToolAdvisory,
   outputError,
   outputWarning,
   outputDeny,
