@@ -9,9 +9,23 @@
 // scanners even though the endpoint is fully conformant when warm. Full page
 // bodies live in @/lib/doc-markdown (source-backed), used only by the MCP
 // full-content path.
+//
+// Ranking (shared rules with app/api/search — see lib/search-relevance.ts):
+//   • per-property boosts: title hits > description hits
+//   • synonym expansion (lib/search-synonyms) at reduced weight
+//   • typo tolerance (edit distance 1, incl. transpositions) for terms ≥ 4 chars
+//   • doc-type weighting: guide/concept/cookbook above reference
+//   • exact-title floor: exact/prefix title match always surfaces top-3
 
 import { SITE } from "@/lib/constants";
 import { DOCS_SEARCH_INDEX } from "@/lib/generated/docs-search-index";
+import {
+	DOC_TYPE_WEIGHT,
+	docTypeForUrl,
+	titleMatchBonus,
+} from "@/lib/search-relevance";
+import { osaDistance } from "@/lib/search-suggest";
+import { expandQuery } from "@/lib/search-synonyms";
 
 export type DocHit = {
 	id: string;
@@ -20,31 +34,76 @@ export type DocHit = {
 	content: string;
 };
 
+const TITLE_BOOST = 5;
+const DESCRIPTION_BOOST = 2;
+const SYNONYM_FACTOR = 0.5;
+const FUZZY_FACTOR = 0.6;
+
+/** Score one term against a text: substring hit at full weight, otherwise a
+ * fuzzy (distance ≤ 1, prefix-aware) word hit at reduced weight. */
+function termScore(
+	term: string,
+	text: string,
+	textWords: readonly string[],
+	weight: number,
+	fuzzy: boolean,
+): number {
+	if (text.includes(term)) return weight;
+	if (!fuzzy || term.length < 4) return 0;
+	for (const word of textWords) {
+		if (osaDistance(term, word, 2) <= 1) return weight * FUZZY_FACTOR;
+		// "worktee" ~ "worktreecreate": compare against the word's prefix.
+		if (
+			word.length > term.length &&
+			osaDistance(term, word.slice(0, term.length + 1), 2) <= 1
+		)
+			return weight * FUZZY_FACTOR * 0.8;
+	}
+	return 0;
+}
+
+function wordsOf(text: string): string[] {
+	return text.split(/[^a-z0-9]+/).filter(Boolean);
+}
+
 export function searchDocs(query: string, max = 10): DocHit[] {
-	const terms = query
-		.toLowerCase()
-		.split(/[^a-z0-9]+/)
-		.filter((t) => t.length > 1);
-	if (terms.length === 0) return [];
+	const { original, synonyms } = expandQuery(query);
+	if (original.length === 0) return [];
+	const fuzzy = query.trim().length >= 4;
 
 	const scored: Array<DocHit & { score: number }> = [];
 	for (const page of DOCS_SEARCH_INDEX) {
 		const title = page.title.toLowerCase();
 		const desc = page.description.toLowerCase();
+		const titleWords = wordsOf(title);
+		const descWords = wordsOf(desc);
+
 		let score = 0;
-		for (const term of terms) {
-			if (title.includes(term)) score += 3;
-			if (desc.includes(term)) score += 1;
+		for (const term of original) {
+			score += termScore(term, title, titleWords, TITLE_BOOST, fuzzy);
+			score += termScore(term, desc, descWords, DESCRIPTION_BOOST, fuzzy);
 		}
-		if (score > 0) {
-			scored.push({
-				id: page.url,
-				title: page.title || page.url,
-				url: `${SITE.domain}${page.url}`,
-				content: page.description,
-				score,
-			});
+		for (const term of synonyms) {
+			score +=
+				termScore(term, title, titleWords, TITLE_BOOST, false) * SYNONYM_FACTOR;
+			score +=
+				termScore(term, desc, descWords, DESCRIPTION_BOOST, false) *
+				SYNONYM_FACTOR;
 		}
+		if (score <= 0) continue;
+
+		// Doc-type weighting, then the exact-title floor on top.
+		score =
+			score * DOC_TYPE_WEIGHT[docTypeForUrl(page.url)] +
+			titleMatchBonus(query, page.title);
+
+		scored.push({
+			id: page.url,
+			title: page.title || page.url,
+			url: `${SITE.domain}${page.url}`,
+			content: page.description,
+			score,
+		});
 	}
 	return scored
 		.sort((a, b) => b.score - a.score)

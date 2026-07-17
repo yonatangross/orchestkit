@@ -166,6 +166,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Text-prompt fallback for when the Claude Code AskUserQuestion picker stalls or otherwise refuses keystrokes."
   },
   {
+    "url": "/docs/guides/cc-adoption",
+    "title": "How we adopt every Claude Code release",
+    "description": "The automated pipeline that turns each upstream Claude Code release into scored adoption issues, a support-floor bump, and an interactive wave dashboard."
+  },
+  {
     "url": "/docs/guides/claude-fable-5",
     "title": "Claude Fable 5 with OrchestKit",
     "description": "How OrchestKit supports Claude Fable 5: correct pricing, a spend-consent gate for agent pins, advisor warnings, and the deliberate opt-in path (ORK_FABLE_OK)."
@@ -1229,6 +1234,26 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference/skills/zustand-patterns",
     "title": "Zustand Patterns",
     "description": "Reference for Zustand 5.x state management including slices, middleware, Immer, useShallow, persistence, selectors, and devtools integration. Documents 7 core patterns with TypeScript examples and anti-patterns. Use when building React state management with Zustand instead of Redux."
+  },
+  {
+    "url": "/docs/showcase/lab/adoption-waves",
+    "title": "Case study: CC Adoption Wave Explorer",
+    "description": "How an automated release-watch pipeline turns 3 Claude Code releases into 37 scored adoption issues and one interactive triage dashboard."
+  },
+  {
+    "url": "/docs/showcase/lab",
+    "title": "The Lab",
+    "description": "Interactive playgrounds OrchestKit generates as working artifacts — triage boards, adoption-wave explorers, and decision boards, published as-is."
+  },
+  {
+    "url": "/docs/showcase/lab/session-standing",
+    "title": "Case study: Session Standing Board",
+    "description": "A drag-to-triage standing board for session outcomes, with full keyboard and touch support — the accessibility reference for Lab decision boards."
+  },
+  {
+    "url": "/docs/showcase/lab/triage-board",
+    "title": "Case study: Issue Triage Board",
+    "description": "The entire open-issue backlog as one interactive board — 98 issues triaged in a single session instead of a week of grooming."
   },
   {
     "url": "/docs/showcase/pipeline",

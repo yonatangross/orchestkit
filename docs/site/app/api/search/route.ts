@@ -2,25 +2,57 @@ import { createSearchAPI } from "fumadocs-core/search/server";
 import { buildSearchIndexes } from "@/lib/search-indexes";
 import { problemResponse } from "@/lib/problem";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
+import { rerankByRelevance, typoToleranceFor } from "@/lib/search-relevance";
+import { expandQueryString } from "@/lib/search-synonyms";
 
 // Unified ⌘K search over ALL content types (docs · skills · agents · hooks ·
 // compositions) via one Orama index. Replaces the title-only fumadocs default.
 //
-//  • tolerance: 1  → 1-char Levenshtein typo tolerance ("agnt" finds "agent").
+//  • tolerance: 1  → 1-char Levenshtein typo tolerance ("agnt" finds "agent"),
+//        gated to queries ≥ 4 chars (short queries use the strict index —
+//        1-char tolerance on a 3-char query matches nearly everything).
 //        Note: tolerance > 0 disables prefix search (Orama #544) — the correct
 //        trade for full-query docs search.
 //  • boost.content → lift body-content matches; advanced mode already weights
 //        title/heading hits, so content boost balances deep-body relevance.
 //  • indexes carry a `tag` ("docs"|"skill"|"agent"|"hook"|"composition") so the
 //        search dialog can filter by content type (?tag=skill) for the tabs.
-const { GET: fumaGET } = createSearchAPI("advanced", {
-	language: "english",
-	indexes: buildSearchIndexes,
-	search: {
-		tolerance: 1,
-		boost: { content: 1.5 },
-	},
-});
+//  • results are post-reranked (lib/search-relevance): doc-type weighting
+//        (guide/concept/cookbook above reference) with an exact-title floor.
+function makeSearchAPI(tolerance: number) {
+	return createSearchAPI("advanced", {
+		language: "english",
+		indexes: buildSearchIndexes,
+		search: {
+			tolerance,
+			boost: { content: 1.5 },
+		},
+	});
+}
+
+const strictAPI = makeSearchAPI(0);
+const fuzzyAPI = makeSearchAPI(1);
+
+type FumaResult = {
+	id: string;
+	url: string;
+	type: "page" | "heading" | "text";
+	content: string;
+};
+
+/** Rerank flat fumadocs results: group heading/text rows under their page,
+ * reorder page blocks by doc-type weight + exact-title floor, re-flatten. */
+function rerankResults(results: FumaResult[], query: string): FumaResult[] {
+	const blocks: Array<{ url: string; title: string; rows: FumaResult[] }> = [];
+	for (const row of results) {
+		if (row.type === "page" || blocks.length === 0) {
+			blocks.push({ url: row.url, title: row.content, rows: [row] });
+		} else {
+			blocks[blocks.length - 1].rows.push(row);
+		}
+	}
+	return rerankByRelevance(blocks, query).flatMap((b) => b.rows);
+}
 
 // Cursor-based pagination: the cursor is an opaque token encoding the next
 // position in the (deterministic, per-build) ranked result list. Cursors beat
@@ -90,14 +122,21 @@ export async function GET(req: Request) {
 		);
 	}
 
-	const res = await fumaGET(req);
+	// Synonym expansion (agent↔subagent, hook↔event, …) broadens recall; typo
+	// tolerance only for queries ≥ 4 chars. Same response contract as before.
+	const searchUrl = new URL(url);
+	searchUrl.searchParams.set("query", expandQueryString(query));
+	const api = typoToleranceFor(query) === 1 ? fuzzyAPI : strictAPI;
+	const res = await api.GET(new Request(searchUrl, { headers: req.headers }));
 	if (!res.ok) return res;
 
 	const limitRaw = url.searchParams.get("limit");
 	const limit = limitRaw ? Number.parseInt(limitRaw, 10) : 0;
 
 	const results = (await res.json()) as unknown;
-	const all = Array.isArray(results) ? results : [];
+	const all = Array.isArray(results)
+		? rerankResults(results as FumaResult[], query)
+		: [];
 	const end = Number.isFinite(limit) && limit > 0 ? start + limit : all.length;
 	const page = all.slice(start, end);
 	const nextCursor = end < all.length ? encodeCursor(end) : null;
