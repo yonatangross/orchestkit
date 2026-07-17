@@ -132,17 +132,37 @@ describe('HttpSink with Retry + Circuit Breaker', () => {
   // Retry logic
   // =========================================================================
   describe('retry', () => {
-    it('retries on 5xx up to 3 times (4 total attempts)', async () => {
+    // #2948: the in-hook budget is 1 retry (2 total attempts). The old
+    // 3-retry budget (4 x 3s) exceeded the 5s hooks.json timeout whenever
+    // the receiver was slow, so events died mid-retry AND surfaced as
+    // "hook timed out" warnings. Patient retries belong in flush().
+    it('retries on 5xx exactly once (2 total attempts), then gives up', async () => {
       mockFetchResponses = [
         { ok: false, status: 503 },
         { ok: false, status: 502 },
-        { ok: false, status: 500 },
-        { ok: true, status: 202 }, // succeeds on 4th attempt
+        { ok: true, status: 202 }, // never reached: budget exhausted at 2
       ];
       new HttpSink().addEvent(makeEvent());
       await new Promise(r => setTimeout(r, 2000));
 
-      expect(mockFetchCalls.length).toBe(4);
+      expect(mockFetchCalls.length).toBe(2);
+      expect(logMessages.some(m => m.includes('after 2 attempts'))).toBe(true);
+    });
+
+    // #2948 regression: the WHOLE in-hook network budget (attempts +
+    // backoff sleeps) must comfortably fit inside the tightest hooks.json
+    // timeout (5s) with node startup (~500ms) to spare. If someone raises
+    // MAX_RETRIES or FETCH_TIMEOUT_MS again, this fails before prod does.
+    it('worst-case wall clock stays under 3.5s even when every attempt fails', async () => {
+      mockFetchResponses = ['network-error', 'network-error', 'network-error'];
+      const started = Date.now();
+      new HttpSink().addEvent(makeEvent());
+      // Poll until the sink reports exhaustion instead of sleeping a fixed time.
+      while (!logMessages.some(m => m.includes('Forward failed')) && Date.now() - started < 5000) {
+        await new Promise(r => setTimeout(r, 50));
+      }
+      expect(Date.now() - started).toBeLessThan(3500);
+      expect(logMessages.some(m => m.includes('Forward failed'))).toBe(true);
     });
 
     it('retries on network error', async () => {

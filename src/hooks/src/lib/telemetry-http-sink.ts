@@ -213,7 +213,9 @@ export function postAnalyticsToSink(file: string, entry: Record<string, unknown>
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(3000),
+        // #2948: must fit inside the tightest hooks.json timeout including
+        // node startup — the detached fetch keeps the process alive.
+        signal: AbortSignal.timeout(1500),
       });
       if (resp.ok) recordSuccess();
       else recordFailure();
