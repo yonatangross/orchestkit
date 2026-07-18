@@ -20,7 +20,12 @@ const content = (p: string) =>
 describe("sidebar IA structure", () => {
   it("root meta places every non-root content section explicitly", () => {
     const pages: string[] = content("meta.json").pages;
-    const spreads = pages.filter((p) => p.startsWith("...")).map((p) => p.slice(3));
+    // Sections are placed as collapsible folder refs ("foundations") — the
+    // spread form ("...foundations") is also accepted for back-compat. Both
+    // "explicitly place" the section; separators ("---…---") are ignored.
+    const placed = pages
+      .filter((p) => !p.startsWith("---"))
+      .map((p) => (p.startsWith("...") ? p.slice(3) : p));
     for (const section of [
       "getting-started",
       "foundations",
@@ -35,10 +40,10 @@ describe("sidebar IA structure", () => {
       "troubleshooting",
       "changelog",
     ]) {
-      expect(spreads, `${section} must be explicitly placed in root meta.json`).toContain(section);
+      expect(placed, `${section} must be explicitly placed in root meta.json`).toContain(section);
     }
     // reference is deliberately NOT in the main tree — it is its own root tab
-    expect(spreads).not.toContain("reference");
+    expect(placed).not.toContain("reference");
   });
 
   it("reference is a root tab with collapsed generated folders", () => {
@@ -49,5 +54,22 @@ describe("sidebar IA structure", () => {
         `reference/${sub} must default to collapsed`,
       ).toBe(false);
     }
+  });
+
+  // Drift gate. A previous revision trimmed these to `pages: ["index"]` to
+  // shrink the sidebar; that also removed 192 pages from the page tree, which
+  // silently killed prev/next (findNeighbour resolves against the real tree)
+  // and made reference leaves render an unrelated sidebar section. Crowding is
+  // handled by defaultOpen/defaultOpenLevel — never by emptying `pages`.
+  it("generated catalog leaves stay IN the page tree", () => {
+    for (const sub of ["skills", "agents", "hooks"]) {
+      const pages: string[] = content(`reference/${sub}/meta.json`).pages;
+      expect(
+        pages.length,
+        `reference/${sub} must list its leaf pages (emptying it breaks prev/next + section context)`,
+      ).toBeGreaterThan(5);
+      expect(pages, `reference/${sub} must keep its index entry`).toContain("index");
+    }
+    expect(content("reference/meta.json").pages).toContain("index");
   });
 });

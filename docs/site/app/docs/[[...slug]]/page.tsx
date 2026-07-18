@@ -15,6 +15,26 @@ import { breadcrumbNode } from "@/components/structured-data";
 import { LazyContextualSkillSidebar } from "@/components/lazy/contextual-skill-sidebar";
 import { LazySkillDependencyGraph } from "@/components/lazy/skill-dep-graph";
 import { LazySkillRecommender } from "@/components/lazy/skill-recommender";
+import { GeorgeDivider } from "@/components/world/george";
+import { SkillDossier } from "@/components/world/skill-dossier";
+import { getSectionGlyph } from "@/components/world/station-glyphs";
+import { SKILLS } from "@/lib/generated/skills-data";
+
+/**
+ * A skill reference page is /docs/reference/skills/<name> where <name>
+ * exists in the generated skills dataset.
+ */
+function skillSlugOf(slugs: string[]): string | null {
+  if (
+    slugs.length === 3 &&
+    slugs[0] === "reference" &&
+    slugs[1] === "skills" &&
+    slugs[2] in SKILLS
+  ) {
+    return slugs[2];
+  }
+  return null;
+}
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
@@ -24,6 +44,13 @@ export default async function Page(props: {
   if (!page) notFound();
 
   const MDX = page.data.body;
+  const skillSlug = skillSlugOf(page.slugs);
+  // Section identity row above the title: glyph chip + section label.
+  const SectionGlyph = getSectionGlyph(page.slugs[0] ?? "");
+  const sectionLabel = (page.slugs[0] ?? "")
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
   const lastModified =
     page.data.lastModified instanceof Date
       ? page.data.lastModified
@@ -84,8 +111,24 @@ export default async function Page(props: {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription>{page.data.description}</DocsDescription>
+      <div className="relative">
+        {SectionGlyph ? (
+          <div aria-hidden="true" className="mb-3 flex items-center gap-2">
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-fd-primary/25 bg-fd-primary/10 text-fd-primary [&_svg]:h-4 [&_svg]:w-4">
+              <SectionGlyph />
+            </span>
+            <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-fd-muted-foreground">
+              {sectionLabel}
+            </span>
+          </div>
+        ) : null}
+        <DocsTitle>{page.data.title}</DocsTitle>
+        {/* Skill pages: the dossier below is the description's single home. */}
+        {skillSlug ? null : (
+          <DocsDescription>{page.data.description}</DocsDescription>
+        )}
+      </div>
+      {skillSlug ? <SkillDossier slug={skillSlug} /> : null}
       <DocsBody>
         <MDX
           components={{
@@ -95,6 +138,7 @@ export default async function Page(props: {
             SkillRecommender: LazySkillRecommender,
           }}
         />
+        <GeorgeDivider />
       </DocsBody>
     </DocsPage>
   );

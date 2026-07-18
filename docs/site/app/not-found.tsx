@@ -1,11 +1,13 @@
 import Link from "next/link";
+import { GeorgeBuried } from "@/components/world/george";
 
 export default function NotFound() {
   return (
     <main className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
-      <h1 className="text-6xl font-bold tabular-nums">404</h1>
+      <GeorgeBuried className="text-fd-muted-foreground" />
+      <h1 className="mt-6 text-6xl font-bold tabular-nums">404</h1>
       <p className="mt-4 text-lg text-fd-muted-foreground">
-        This page doesn't exist.
+        This page got buried.
       </p>
       <div className="mt-8 flex gap-3">
         <Link

@@ -34,13 +34,13 @@ export default function OGImage() {
               width: "64px",
               height: "64px",
               borderRadius: "16px",
-              backgroundColor: "#6EE7B7",
+              backgroundColor: "#6366F1",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontSize: "36px",
               fontWeight: 800,
-              color: "#0A0A0A",
+              color: "#FAFAFA",
             }}
           >
             O
@@ -81,7 +81,7 @@ export default function OGImage() {
                 alignItems: "center",
               }}
             >
-              <span style={{ fontSize: "56px", fontWeight: 800, color: "#6EE7B7" }}>
+              <span style={{ fontSize: "56px", fontWeight: 800, color: "#A5B4FC" }}>
                 {count}
               </span>
               <span style={{ fontSize: "20px", color: "#71717A" }}>

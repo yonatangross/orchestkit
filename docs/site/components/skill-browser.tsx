@@ -41,8 +41,8 @@ const SKILL_CATEGORY_META: Record<
   testing: {
     label: "Testing",
     ...CATEGORY_COLORS.testing,
-    border: "border-l-emerald-400 dark:border-l-emerald-500",
-    dot: "bg-emerald-500",
+    border: "border-l-sky-400 dark:border-l-sky-500",
+    dot: "bg-sky-500",
   },
   security: {
     label: "Security",

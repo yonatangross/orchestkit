@@ -450,6 +450,10 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
         f'description: "Complete reference for all {count} OrchestKit skills."',
         "---",
         "",
+        "import { SkillAtlas } from '@/components/world/skill-atlas';",
+        "",
+        "<SkillAtlas />",
+        "",
         "# Skills Reference",
         "",
         f"OrchestKit includes **{count} skills** \u2014 reusable knowledge modules "
@@ -461,7 +465,9 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
     index_lines.extend(index_rows)
     (out_dir / "index.mdx").write_text("\n".join(index_lines) + "\n", encoding="utf-8")
 
-    # Write meta.json
+    # Write meta.json. Sidebar shows only the index (the Skill Atlas); the
+    # 114 leaf routes still build from their .mdx files but stay out of the
+    # nav so it isn't a wall. Full slug list kept for any downstream use.
     pages = ["index"] + slugs
     (out_dir / "meta.json").write_text(
         json.dumps({"title": "Skills", "defaultOpen": False, "pages": pages}, indent=2) + "\n",
@@ -683,7 +689,8 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
     index_lines.extend(index_rows)
     (out_dir / "index.mdx").write_text("\n".join(index_lines) + "\n", encoding="utf-8")
 
-    # Write meta.json
+    # Write meta.json. Sidebar shows only the index; agent leaf routes still
+    # build from their .mdx files but stay out of the nav.
     pages = ["index"] + slugs
     (out_dir / "meta.json").write_text(
         json.dumps({"title": "Agents", "defaultOpen": False, "pages": pages}, indent=2) + "\n",
@@ -970,7 +977,8 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
             json.dumps(spotlights_meta, indent=2) + "\n", encoding="utf-8"
         )
 
-    # meta.json — include spotlights section
+    # meta.json. Sidebar shows only the index; hook category + spotlight
+    # routes still build from their .mdx files but stay out of the nav.
     pages = ["index"] + [s for s, _, _ in cat_slugs] + ["spotlights"]
     (out_dir / "meta.json").write_text(
         json.dumps({"title": "Hooks", "defaultOpen": False, "pages": pages}, indent=2) + "\n",

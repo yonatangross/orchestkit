@@ -215,3 +215,7 @@ cellebrite-tech-stack.html
 # Vercel CLI local linking state (projectId/orgId) — the CLI normally auto-ignores
 # this; it is local machine state, not repo content. Untracked (repo hygiene).
 .vercel/
+
+# Per-session Claude telemetry (session-local, never committed)
+.claude/memory/sessions/
+docs/site/.claude/memory/sessions/

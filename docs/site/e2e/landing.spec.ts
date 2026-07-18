@@ -124,7 +124,7 @@ test.describe('Landing — design tokens (no missing CSS variables)', () => {
     expect(color).not.toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)/);
   });
 
-  test('primary button uses the emerald token', async ({ page }) => {
+  test('primary button uses the indigo token', async ({ page }) => {
     await page.goto('/');
 
     const cta = page.getByRole('link', { name: /get started/i }).first();

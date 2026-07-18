@@ -32,7 +32,7 @@ export async function GET(
           <span
             style={{
               fontSize: "18px",
-              color: "#6EE7B7",
+              color: "#A5B4FC",
               fontWeight: 600,
               marginBottom: "24px",
               textTransform: "uppercase",
@@ -80,13 +80,13 @@ export async function GET(
               width: "40px",
               height: "40px",
               borderRadius: "10px",
-              backgroundColor: "#6EE7B7",
+              backgroundColor: "#6366F1",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontSize: "22px",
               fontWeight: 800,
-              color: "#0A0A0A",
+              color: "#FAFAFA",
             }}
           >
             O

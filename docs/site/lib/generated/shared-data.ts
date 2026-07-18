@@ -369,7 +369,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
     "label": "Frontend"
   },
   "testing": {
-    "color": "#22c55e",
+    "color": "#0ea5e9",
     "label": "Testing"
   },
   "security": {
