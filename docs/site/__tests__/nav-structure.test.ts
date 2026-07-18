@@ -55,4 +55,21 @@ describe("sidebar IA structure", () => {
       ).toBe(false);
     }
   });
+
+  // Drift gate. A previous revision trimmed these to `pages: ["index"]` to
+  // shrink the sidebar; that also removed 192 pages from the page tree, which
+  // silently killed prev/next (findNeighbour resolves against the real tree)
+  // and made reference leaves render an unrelated sidebar section. Crowding is
+  // handled by defaultOpen/defaultOpenLevel — never by emptying `pages`.
+  it("generated catalog leaves stay IN the page tree", () => {
+    for (const sub of ["skills", "agents", "hooks"]) {
+      const pages: string[] = content(`reference/${sub}/meta.json`).pages;
+      expect(
+        pages.length,
+        `reference/${sub} must list its leaf pages (emptying it breaks prev/next + section context)`,
+      ).toBeGreaterThan(5);
+      expect(pages, `reference/${sub} must keep its index entry`).toContain("index");
+    }
+    expect(content("reference/meta.json").pages).toContain("index");
+  });
 });

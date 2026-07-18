@@ -1,5 +1,37 @@
 {
   "title": "Hooks",
   "defaultOpen": false,
-  "pages": []
+  "pages": [
+    "index",
+    "config-change",
+    "cwd-changed",
+    "elicitation",
+    "elicitation-result",
+    "file-changed",
+    "instructions-loaded",
+    "notification",
+    "permission-denied",
+    "permission-request",
+    "post-compact",
+    "post-tool-batch",
+    "post-tool-use",
+    "post-tool-use-failure",
+    "pre-compact",
+    "pre-tool-use",
+    "session-end",
+    "session-start",
+    "setup",
+    "stop",
+    "stop-failure",
+    "subagent-start",
+    "subagent-stop",
+    "task-completed",
+    "task-created",
+    "teammate-idle",
+    "user-prompt-expansion",
+    "user-prompt-submit",
+    "worktree-create",
+    "worktree-remove",
+    "spotlights"
+  ]
 }

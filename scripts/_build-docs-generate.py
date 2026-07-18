@@ -468,9 +468,9 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
     # Write meta.json. Sidebar shows only the index (the Skill Atlas); the
     # 114 leaf routes still build from their .mdx files but stay out of the
     # nav so it isn't a wall. Full slug list kept for any downstream use.
-    _ = ["index"] + slugs
+    pages = ["index"] + slugs
     (out_dir / "meta.json").write_text(
-        json.dumps({"title": "Skills", "defaultOpen": False, "pages": []}, indent=2) + "\n",
+        json.dumps({"title": "Skills", "defaultOpen": False, "pages": pages}, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -691,9 +691,9 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
 
     # Write meta.json. Sidebar shows only the index; agent leaf routes still
     # build from their .mdx files but stay out of the nav.
-    _ = ["index"] + slugs
+    pages = ["index"] + slugs
     (out_dir / "meta.json").write_text(
-        json.dumps({"title": "Agents", "defaultOpen": False, "pages": []}, indent=2) + "\n",
+        json.dumps({"title": "Agents", "defaultOpen": False, "pages": pages}, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -979,9 +979,9 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
 
     # meta.json. Sidebar shows only the index; hook category + spotlight
     # routes still build from their .mdx files but stay out of the nav.
-    _ = ["index"] + [s for s, _, _ in cat_slugs] + ["spotlights"]
+    pages = ["index"] + [s for s, _, _ in cat_slugs] + ["spotlights"]
     (out_dir / "meta.json").write_text(
-        json.dumps({"title": "Hooks", "defaultOpen": False, "pages": []}, indent=2) + "\n",
+        json.dumps({"title": "Hooks", "defaultOpen": False, "pages": pages}, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -1446,7 +1446,7 @@ def main():
         "title": "Reference",
         "description": "Generated reference for every skill, agent, and hook",
         "root": True,  # own sidebar tab; keeps 192 generated pages out of the main tree
-        "pages": ["skills", "agents", "hooks"],
+        "pages": ["index", "skills", "agents", "hooks"],
     }
     meta_path = Path(docs_out) / "meta.json"
     meta_path.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")

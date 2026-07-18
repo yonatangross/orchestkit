@@ -132,9 +132,14 @@ export default async function HomePage() {
       </a>
       {/* ============ HERO — the factory ride ============
           Sticky canvas-scrub ride (components/world/factory-ride.tsx).
-          All overlay copy below is server-rendered and passed in as
-          props, so the HTML stays SEO/crawler-complete; the client
-          component only adds the scroll mechanics. */}
+          All overlay copy below is server-rendered and passed in as props,
+          so every headline, link and CTA is in the raw HTML — which is what
+          raw-HTML scrapers and LLM crawlers read.
+          Caveat, deliberately stated: once JS runs, the ride layout hides
+          stops 2-5 (visibility:hidden) until scroll reveals them, so a
+          render-then-index crawler sees only the first stop above the fold.
+          The load-bearing copy (h1, counts, install command, primary CTAs)
+          lives in stop 1 for exactly that reason. */}
       <section aria-labelledby="hero-heading">
         <FactoryRide
           hero={
