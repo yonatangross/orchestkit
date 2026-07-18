@@ -8,8 +8,10 @@ vi.mock("next/link", () => ({
 
 // Mock lucide-react
 vi.mock("lucide-react", () => ({
-  ChevronRight: () => <span data-testid="chevron" />,
   ArrowRight: () => <span data-testid="arrow" />,
+  BadgeCheck: () => <span data-testid="badge-check" />,
+  Ban: () => <span data-testid="ban" />,
+  ChevronDown: () => <span data-testid="chevron-down" />,
 }));
 
 // Mock internal components

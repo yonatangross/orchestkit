@@ -38,8 +38,8 @@ export const SEARCH_RESULTS_HTML = `<!doctype html>
   body{margin:0;font-family:system-ui,sans-serif;font-size:14px;color:#e9eef7;background:#0e1626}
   .wrap{padding:12px}
   a.r{display:block;text-decoration:none;color:inherit;background:#111a2e;border:1px solid #1e2b45;border-radius:8px;padding:10px 12px;margin-bottom:8px}
-  a.r:hover{border-color:#34d399}
-  a.r b{color:#34d399} a.r span{display:block;color:#8da2c0;margin-top:3px;font-size:.86em}
+  a.r:hover{border-color:#818cf8}
+  a.r b{color:#818cf8} a.r span{display:block;color:#8da2c0;margin-top:3px;font-size:.86em}
   .empty{color:#8da2c0;padding:8px}
 </style></head>
 <body><div class="wrap" id="root"><div class="empty">Loading…</div></div>

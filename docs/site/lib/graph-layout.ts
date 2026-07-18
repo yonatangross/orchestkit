@@ -8,7 +8,7 @@ import { GRAPH_NODES, GRAPH_EDGES } from "@/lib/generated/skill-graph-data";
 export const CATEGORY_HEX: Record<string, string> = {
   backend: "#f59e0b",
   frontend: "#3b82f6",
-  testing: "#22c55e",
+  testing: "#0ea5e9",
   security: "#ef4444",
   "ai-llm": "#06b6d4",
   devops: "#f97316",

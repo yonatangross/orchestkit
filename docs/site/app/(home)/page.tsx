@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BadgeCheck, Ban } from "lucide-react";
 import { CopyInstallButton } from "./copy-button";
 import { SITE, COUNTS } from "@/lib/constants";
 import { formatStars } from "@/lib/format-stars";
-import { AnimateOnView } from "@/components/animate-on-view";
 import { AgentReadinessSection } from "@/components/agent-readiness-section";
 import { HomepageStructuredData } from "@/components/structured-data";
+import FactoryRide from "@/components/world/factory-ride";
 
 async function getStarCount(): Promise<number | null> {
   try {
@@ -108,119 +108,225 @@ export default async function HomePage() {
   return (
     <main>
       <HomepageStructuredData starCount={stars} />
-      {/* ============ HERO ============ */}
-      <section
-        aria-labelledby="hero-heading"
-        className="relative overflow-hidden border-b border-fd-border"
-      >
-        {/* Radial emerald gradient top-center */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(ellipse 80% 60% at 50% 0%, var(--color-fd-primary-10) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 50% 10%, var(--color-fd-primary-5) 0%, transparent 70%)",
-          }}
-        />
-        {/* Dot grid motif */}
-        <div aria-hidden="true" className="absolute inset-0 bg-dot-grid opacity-60" />
+      {/* ============ HERO — the factory ride ============
+          Sticky canvas-scrub ride (components/world/factory-ride.tsx).
+          All overlay copy below is server-rendered and passed in as
+          props, so the HTML stays SEO/crawler-complete; the client
+          component only adds the scroll mechanics. */}
+      <section aria-labelledby="hero-heading">
+        <FactoryRide
+          hero={
+            <div className="mx-auto max-w-[880px] text-center">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[oklch(0.62_0.2_264/0.35)] bg-[oklch(0.62_0.2_264/0.14)] px-2.5 py-1.5 font-mono text-[12px] font-medium text-[oklch(0.82_0.08_270)]">
+                <span
+                  aria-hidden="true"
+                  className="h-1.5 w-1.5 rounded-full bg-[oklch(0.62_0.2_264)]"
+                  style={{ boxShadow: "0 0 0 3px oklch(0.62 0.2 264 / 0.25)" }}
+                />
+                The complete AI development toolkit for Claude Code
+              </span>
 
-        <div className="relative mx-auto max-w-[1200px] px-7 py-24 sm:py-28 text-center">
-          <AnimateOnView>
-            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--color-fd-primary-20)] bg-[var(--color-fd-primary-10)] px-2.5 py-1.5 font-mono text-[12px] font-medium text-fd-primary">
-              <span
-                aria-hidden="true"
-                className="h-1.5 w-1.5 rounded-full bg-fd-primary"
-                style={{ boxShadow: "0 0 0 3px var(--color-fd-primary-20)" }}
-              />
-              The complete AI development toolkit for Claude Code
-            </span>
-          </AnimateOnView>
-
-          <AnimateOnView delay={100} className="mt-5">
-            <h1
-              id="hero-heading"
-              data-speakable-headline
-              className="text-fluid-h1 font-semibold leading-[1.02] tracking-[-0.025em] text-fd-foreground"
-            >
-              {/* Brand in the H1 itself (SSR, no JS) so AI crawlers + agent-readiness
-                  scanners read the product name in the top heading — accessible name
-                  becomes "OrchestKit — Stop explaining your stack. Start shipping."
-                  without altering the visual hero. */}
-              <span className="sr-only">OrchestKit — </span>
-              <span
-                className="bg-clip-text text-transparent"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(180deg, var(--color-fd-foreground) 0%, color-mix(in oklch, var(--color-fd-foreground) 70%, var(--color-fd-muted-foreground)) 100%)",
-                }}
+              <h1
+                id="hero-heading"
+                data-speakable-headline
+                className="mt-5 text-fluid-h1 font-semibold leading-[1.02] tracking-[-0.025em] text-[oklch(0.93_0.012_270)]"
               >
-                Stop explaining your stack.
-              </span>
-              <br />
-              <span className="headline-trace">Start shipping.</span>
-            </h1>
-          </AnimateOnView>
+                {/* Brand in the H1 itself (SSR, no JS) so AI crawlers + agent-readiness
+                    scanners read the product name in the top heading — accessible name
+                    becomes "OrchestKit — Stop explaining your stack. Start shipping."
+                    without altering the visual hero. */}
+                <span className="sr-only">OrchestKit — </span>
+                <span
+                  className="bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(180deg, oklch(0.96 0.006 270) 0%, oklch(0.78 0.02 264) 100%)",
+                  }}
+                >
+                  Stop explaining your stack.
+                </span>
+                <br />
+                <span className="headline-trace">Start shipping.</span>
+              </h1>
 
-          <AnimateOnView delay={200} className="mt-5">
-            <p data-speakable-summary className="mx-auto max-w-[620px] text-[clamp(0.95rem,0.3vw+0.9rem,1.125rem)] leading-[1.55] text-fd-muted-foreground">
-              <span className="font-mono text-[0.92em] font-medium text-fd-foreground">
-                {COUNTS.skills} skills
-              </span>
-              <span className="mx-1.5 opacity-40">·</span>
-              <span className="font-mono text-[0.92em] font-medium text-fd-foreground">
-                {COUNTS.agents} agents
-              </span>
-              <span className="mx-1.5 opacity-40">·</span>
-              <span className="font-mono text-[0.92em] font-medium text-fd-foreground">
-                {COUNTS.hooks} hooks
-              </span>
-              {" "}— loaded on demand, zero runtime cost.
-            </p>
-          </AnimateOnView>
+              <p
+                data-speakable-summary
+                className="mx-auto mt-5 max-w-[620px] text-[clamp(0.95rem,0.3vw+0.9rem,1.125rem)] leading-[1.55] text-[oklch(0.72_0.02_264)]"
+              >
+                <span className="font-mono text-[0.92em] font-medium text-[oklch(0.95_0.008_270)]">
+                  {COUNTS.skills} skills
+                </span>
+                <span className="mx-1.5 opacity-40">·</span>
+                <span className="font-mono text-[0.92em] font-medium text-[oklch(0.95_0.008_270)]">
+                  {COUNTS.agents} agents
+                </span>
+                <span className="mx-1.5 opacity-40">·</span>
+                <span className="font-mono text-[0.92em] font-medium text-[oklch(0.95_0.008_270)]">
+                  {COUNTS.hooks} hooks
+                </span>
+                {" "}— loaded on demand, zero runtime cost.
+              </p>
 
-          <AnimateOnView delay={300} className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
-            <Link
-              href="/docs/getting-started/first-10-minutes"
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-fd-primary px-[18px] text-sm font-medium text-fd-primary-foreground transition-all duration-150 hover:-translate-y-px hover:bg-[oklch(0.54_0.15_163)] hover:shadow-[0_0_0_4px_var(--color-fd-glow)]"
-            >
-              Get started{" "}
-              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-            </Link>
-            <CopyInstallButton />
-            <Link
-              href="#cookbook"
-              className="inline-flex h-10 items-center rounded-lg border border-fd-border bg-transparent px-[18px] text-sm font-medium text-fd-foreground transition-colors hover:border-[var(--color-fd-primary-30)] hover:bg-fd-muted"
-            >
-              See the cookbook
-            </Link>
-          </AnimateOnView>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
+                <Link
+                  href="/docs/getting-started/first-10-minutes"
+                  className="inline-flex h-10 items-center gap-2 rounded-lg bg-[oklch(0.62_0.2_264)] px-[18px] text-sm font-medium text-white transition-all duration-150 hover:-translate-y-px hover:bg-[oklch(0.66_0.19_264)] hover:shadow-[0_0_0_4px_oklch(0.62_0.2_264/0.25)]"
+                >
+                  Get started{" "}
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+                <CopyInstallButton />
+                <Link
+                  href="#cookbook"
+                  className="inline-flex h-10 items-center rounded-lg border border-[oklch(1_0_0/0.16)] bg-transparent px-[18px] text-sm font-medium text-[oklch(0.93_0.012_270)] transition-colors hover:border-[oklch(1_0_0/0.3)] hover:bg-[oklch(1_0_0/0.06)]"
+                >
+                  See the cookbook
+                </Link>
+              </div>
 
-          <AnimateOnView delay={400} className="mt-7 flex flex-wrap items-center justify-center font-mono text-[12px] text-fd-muted-foreground">
-            <a
-              href={`${SITE.github}/stargazers`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3.5 transition-colors hover:text-fd-foreground"
-            >
-              <svg className="h-3 w-3 opacity-70" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-              {stars !== null ? (
-                <>
-                  <span className="font-medium text-fd-foreground tabular-nums">{formatStars(stars)}</span>
-                  <span>stars</span>
-                </>
-              ) : (
-                <span>Star on GitHub</span>
-              )}
-            </a>
-            <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
-            <span className="inline-flex items-center gap-1.5 px-3.5">MIT license</span>
-            <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
-            <span className="inline-flex items-center gap-1.5 px-3.5">Claude Code ≥ {SITE.ccVersion}</span>
-          </AnimateOnView>
-        </div>
+              <div className="mt-7 flex flex-wrap items-center justify-center font-mono text-[12px] text-[oklch(0.72_0.02_264)]">
+                <a
+                  href={`${SITE.github}/stargazers`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3.5 transition-colors hover:text-[oklch(0.93_0.012_270)]"
+                >
+                  <svg className="h-3 w-3 opacity-70" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                  {stars !== null ? (
+                    <>
+                      <span className="font-medium tabular-nums text-[oklch(0.95_0.008_270)]">{formatStars(stars)}</span>
+                      <span>stars</span>
+                    </>
+                  ) : (
+                    <span>Star on GitHub</span>
+                  )}
+                </a>
+                <span aria-hidden="true" className="h-3 w-px bg-[oklch(1_0_0/0.16)]" />
+                <span className="inline-flex items-center gap-1.5 px-3.5">MIT license</span>
+                <span aria-hidden="true" className="h-3 w-px bg-[oklch(1_0_0/0.16)]" />
+                <span className="inline-flex items-center gap-1.5 px-3.5">Claude Code ≥ {SITE.ccVersion}</span>
+              </div>
+            </div>
+          }
+          cards={[
+            <div className="fr-card" key="hooks">
+              <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--yy-george-cool)]">
+                The intake scanners
+              </div>
+              <div className="mt-2.5 text-[44px] font-bold leading-none tracking-[-0.02em] tabular-nums text-[oklch(0.95_0.008_270)]">
+                {COUNTS.hooks}
+                <span className="ml-2 text-base font-medium tracking-normal text-[oklch(0.72_0.02_264)]">hooks</span>
+              </div>
+              <h2 className="mt-1.5 text-xl font-semibold tracking-[-0.01em] text-[oklch(0.93_0.012_270)]">
+                Every action, inspected
+              </h2>
+              <p className="mt-2.5 text-sm leading-[1.6] text-[oklch(0.72_0.02_264)]">
+                TypeScript lifecycle hooks gate each tool call: dangerous commands blocked,
+                context injected, security enforced. Non-blocking by design.
+              </p>
+              <div className="mt-3.5 inline-flex items-center gap-2 rounded-[9px] border border-[oklch(0.63_0.2_25/0.35)] bg-[oklch(0.63_0.2_25/0.12)] px-3 py-2 font-mono text-xs text-[oklch(0.86_0.07_20)]">
+                <Ban className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span>rm -rf /</span>
+                <span className="opacity-60">→ diverted before execution</span>
+              </div>
+              <div className="mt-4">
+                <Link
+                  href="/docs/reference/hooks"
+                  className="inline-flex items-center gap-1.5 font-mono text-[12.5px] font-semibold text-[oklch(0.76_0.11_270)] hover:underline"
+                >
+                  /docs/reference/hooks
+                  <ArrowRight className="h-3 w-3" aria-hidden="true" />
+                </Link>
+              </div>
+            </div>,
+            <div className="fr-card" key="agents">
+              <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--yy-george-cool)]">
+                The assembly bay
+              </div>
+              <div className="mt-2.5 text-[44px] font-bold leading-none tracking-[-0.02em] tabular-nums text-[oklch(0.95_0.008_270)]">
+                {COUNTS.agents}
+                <span className="ml-2 text-base font-medium tracking-normal text-[oklch(0.72_0.02_264)]">agents</span>
+              </div>
+              <h2 className="mt-1.5 text-xl font-semibold tracking-[-0.01em] text-[oklch(0.93_0.012_270)]">
+                Specialists, in parallel
+              </h2>
+              <p className="mt-2.5 text-sm leading-[1.6] text-[oklch(0.72_0.02_264)]">
+                Security auditors, frontend devs, DB engineers, working simultaneously in
+                isolated worktrees, each with curated tools and skills.
+              </p>
+              <div className="mt-4">
+                <Link
+                  href="/docs/reference/agents"
+                  className="inline-flex items-center gap-1.5 font-mono text-[12.5px] font-semibold text-[oklch(0.76_0.11_270)] hover:underline"
+                >
+                  /docs/reference/agents
+                  <ArrowRight className="h-3 w-3" aria-hidden="true" />
+                </Link>
+              </div>
+            </div>,
+            <div className="fr-card" key="skills">
+              <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--yy-george-cool)]">
+                The tool wall
+              </div>
+              <div className="mt-2.5 text-[44px] font-bold leading-none tracking-[-0.02em] tabular-nums text-[oklch(0.95_0.008_270)]">
+                {COUNTS.skills}
+                <span className="ml-2 text-base font-medium tracking-normal text-[oklch(0.72_0.02_264)]">skills</span>
+              </div>
+              <h2 className="mt-1.5 text-xl font-semibold tracking-[-0.01em] text-[oklch(0.93_0.012_270)]">
+                Knowledge, on pegs
+              </h2>
+              <p className="mt-2.5 text-sm leading-[1.6] text-[oklch(0.72_0.02_264)]">
+                Auth patterns, migrations, API design, reusable modules that load only when
+                the work needs them.
+              </p>
+              <div className="mt-3.5 flex flex-wrap gap-1.5">
+                {["/ork:implement", "/ork:review-pr", "/ork:brainstorm", `+${COUNTS.skills - 3}`].map((chip) => (
+                  <span
+                    key={chip}
+                    className="rounded-[7px] border border-[oklch(0.76_0.06_220/0.3)] bg-[oklch(1_0_0/0.08)] px-2 py-1 font-mono text-[11.5px] text-[oklch(0.84_0.03_220)]"
+                  >
+                    {chip}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-4">
+                <Link
+                  href="/docs/reference/skills"
+                  className="inline-flex items-center gap-1.5 font-mono text-[12.5px] font-semibold text-[oklch(0.76_0.11_270)] hover:underline"
+                >
+                  /docs/reference/skills
+                  <ArrowRight className="h-3 w-3" aria-hidden="true" />
+                </Link>
+              </div>
+            </div>,
+          ]}
+          finale={
+            <div className="mx-auto max-w-[760px] text-center">
+              <span className="inline-flex items-center gap-2.5 rounded-xl border border-[oklch(0.62_0.2_264/0.4)] bg-[oklch(0.62_0.2_264/0.14)] px-[18px] py-2.5 font-mono text-sm font-semibold tracking-[0.06em] text-[oklch(0.85_0.06_270)] shadow-[0_0_50px_oklch(0.62_0.2_264/0.25)]">
+                <BadgeCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
+                VERIFIED · MERGED
+              </span>
+              <h2 className="mt-5 text-[clamp(30px,4.6vw,52px)] font-semibold leading-[1.1] tracking-[-0.02em] text-[oklch(0.95_0.008_270)]">
+                Your change ships in a sealed crate.
+              </h2>
+              <p className="mt-3 text-base text-[oklch(0.72_0.02_264)]">
+                Tests, security scans and quality gates, passed before the dock doors open.
+              </p>
+              <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
+                <Link
+                  href="/docs/getting-started/first-10-minutes"
+                  className="inline-flex h-10 items-center gap-2 rounded-lg bg-[oklch(0.62_0.2_264)] px-[18px] text-sm font-medium text-white transition-all duration-150 hover:-translate-y-px hover:bg-[oklch(0.66_0.19_264)] hover:shadow-[0_0_0_4px_oklch(0.62_0.2_264/0.25)]"
+                >
+                  Get started{" "}
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+                <CopyInstallButton />
+              </div>
+            </div>
+          }
+        />
       </section>
 
       {/* ============ WHAT IS (definitional, SSR — agent/LLM extractable) ============ */}
@@ -433,7 +539,7 @@ export default async function HomePage() {
           <div className="mt-6 flex flex-wrap gap-2.5">
             <Link
               href="/docs/getting-started/first-10-minutes"
-              className="inline-flex h-10 items-center rounded-lg bg-fd-primary px-[18px] text-sm font-medium text-fd-primary-foreground transition-colors hover:bg-[oklch(0.54_0.15_163)]"
+              className="inline-flex h-10 items-center rounded-lg bg-fd-primary px-[18px] text-sm font-medium text-fd-primary-foreground transition-colors hover:bg-[oklch(0.54_0.15_264)]"
             >
               Get started
             </Link>

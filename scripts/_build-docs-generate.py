@@ -450,6 +450,10 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
         f'description: "Complete reference for all {count} OrchestKit skills."',
         "---",
         "",
+        "import { SkillAtlas } from '@/components/world/skill-atlas';",
+        "",
+        "<SkillAtlas />",
+        "",
         "# Skills Reference",
         "",
         f"OrchestKit includes **{count} skills** \u2014 reusable knowledge modules "

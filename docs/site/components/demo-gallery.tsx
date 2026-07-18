@@ -502,7 +502,7 @@ function CompositionModal({
                 aria-label={copied ? "Copied" : "Copy command"}
               >
                 {copied ? (
-                  <Check className="h-4 w-4 text-green-500" />
+                  <Check className="h-4 w-4 text-fd-success" />
                 ) : (
                   <Copy className="h-4 w-4" />
                 )}

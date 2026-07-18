@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { zeroResultSuggestions, type Suggestion } from "@/lib/search-suggest";
+import { GeorgeCurled } from "@/components/world/george";
 
 const BROWSE_LINKS: { name: string; url: string }[] = [
 	{ name: "Getting started", url: "/docs/getting-started/installation" },
@@ -42,6 +43,10 @@ export function SearchZeroResults({
 
 	return (
 		<div className="flex flex-col gap-4 px-4 py-6 text-sm">
+			<div className="flex flex-col items-center gap-1 text-fd-muted-foreground">
+				<GeorgeCurled className="h-16 w-auto" />
+				<p className="text-xs">Nothing here yet.</p>
+			</div>
 			<p className="text-fd-muted-foreground">
 				No results for{" "}
 				<span className="font-medium text-fd-foreground">

@@ -2,10 +2,16 @@
 @import "fumadocs-ui/css/preset.css";
 
 /*
- * Circuit Forge — OrchestKit docs theme
- * Emerald-accented dual-mode theme with dot-grid background and blueprint precision.
- * Light mode: clean slate palette with emerald accents.
- * Dark mode: deep navy-slate palette with emerald accents.
+ * Indigo Ledger — OrchestKit docs theme (yonyon brand)
+ * Indigo-primary dual-mode theme with heterochromia undertones and two
+ * "george" accents used only at icon/border/marker scale:
+ *   --yy-george-warm (amber): warnings, deprecations, active/current states,
+ *     focus ring, sidebar-active left rule.
+ *   --yy-george-cool (ice-blue): info callouts, inline-code tint, TOC active
+ *     marker, secondary metadata.
+ * Light mode: warm undertones (hue 85, chroma <= 0.012 on large surfaces).
+ * Dark mode: cool undertones (hue 220-270).
+ * Danger stays red — never amber. Body text stays near-neutral.
  */
 
 /* ============================================================
@@ -20,43 +26,44 @@
   --text-fluid-h1: clamp(2rem, 2.5vw + 1.5rem, 4.5rem);
   --text-fluid-h2: clamp(1.25rem, 1.5vw + 0.75rem, 2.25rem);
 
-  /* Light mode palette — slate + emerald (oklch for perceptual uniformity) */
-  --color-fd-background: oklch(0.985 0.002 250);      /* #fafbfc */
-  --color-fd-foreground: oklch(0.208 0.042 265);      /* #0f172a */
-  --color-fd-muted: oklch(0.968 0.007 250);            /* #f1f5f9 */
-  --color-fd-muted-foreground: oklch(0.554 0.023 255); /* #64748b */
-  --color-fd-popover: oklch(1.0 0 0);                  /* #ffffff */
-  --color-fd-popover-foreground: oklch(0.279 0.041 265); /* #1e293b */
-  --color-fd-card: oklch(0.975 0.005 250);             /* #f3f6f8 */
-  --color-fd-card-foreground: oklch(0.208 0.042 265);  /* #0f172a */
-  --color-fd-border: oklch(0.929 0.013 255);           /* #e2e8f0 */
-  --color-fd-primary: oklch(0.527 0.118 162);          /* #047857 emerald-700 — darkened from #059669 for WCAG AA on white (link text was ~3.6:1) */
+  /* Light mode palette — warm-undertone neutrals (hue 85, chroma <= 0.012
+     on large surfaces) + indigo primary. Text stays near-neutral. */
+  --color-fd-background: oklch(0.99 0.004 85);         /* warm near-white */
+  --color-fd-foreground: oklch(0.21 0.02 270);         /* near-neutral ink */
+  --color-fd-muted: oklch(0.965 0.008 85);
+  --color-fd-muted-foreground: oklch(0.50 0.02 270);
+  --color-fd-popover: oklch(0.997 0.002 85);
+  --color-fd-popover-foreground: oklch(0.27 0.02 270);
+  --color-fd-card: oklch(0.978 0.006 85);
+  --color-fd-card-foreground: oklch(0.21 0.02 270);
+  --color-fd-border: oklch(0.918 0.01 85);
+  --color-fd-primary: oklch(0.488 0.217 264);          /* yonyon indigo, darkened for WCAG AA on light bg */
   --color-fd-primary-foreground: oklch(1.0 0 0);       /* #ffffff */
-  --color-fd-secondary: oklch(0.968 0.007 250);        /* #f1f5f9 */
-  --color-fd-secondary-foreground: oklch(0.208 0.042 265); /* #0f172a */
-  --color-fd-accent: oklch(0.980 0.021 163);           /* #ecfdf5 */
-  --color-fd-accent-foreground: oklch(0.208 0.042 265); /* #0f172a */
-  --color-fd-ring: oklch(0.696 0.170 163);             /* #10b981 */
+  --color-fd-secondary: oklch(0.965 0.008 85);
+  --color-fd-secondary-foreground: oklch(0.21 0.02 270);
+  --color-fd-accent: oklch(0.955 0.016 264);           /* indigo-tinted hover surface */
+  --color-fd-accent-foreground: oklch(0.21 0.02 270);
+  --color-fd-ring: oklch(0.60 0.13 85);                /* george-warm amber focus ring, darkened for 3:1 non-text contrast on light surfaces (WCAG 1.4.11) */
   --color-fd-overlay: oklch(0 0 0 / 0.2);
 
   /* 5-surface hierarchy (Vercel/Stripe pattern) */
-  --color-fd-surface-sunken: oklch(0.960 0.005 250);   /* below background */
-  --color-fd-surface-raised: oklch(0.995 0.001 250);   /* above card */
+  --color-fd-surface-sunken: oklch(0.958 0.006 85);    /* below background */
+  --color-fd-surface-raised: oklch(0.998 0.002 85);    /* above card */
 
-  /* 5-stop emerald ramp — for pills, badges, hover states, soft backgrounds */
-  --color-fd-primary-5: oklch(0.596 0.145 163 / 0.05);
-  --color-fd-primary-10: oklch(0.596 0.145 163 / 0.10);
-  --color-fd-primary-20: oklch(0.596 0.145 163 / 0.20);
-  --color-fd-primary-30: oklch(0.596 0.145 163 / 0.30);
-  --color-fd-primary-50: oklch(0.596 0.145 163 / 0.50);
+  /* 5-stop indigo ramp — for pills, badges, hover states, soft backgrounds */
+  --color-fd-primary-5: oklch(0.62 0.2 264 / 0.05);
+  --color-fd-primary-10: oklch(0.62 0.2 264 / 0.10);
+  --color-fd-primary-20: oklch(0.62 0.2 264 / 0.20);
+  --color-fd-primary-30: oklch(0.62 0.2 264 / 0.30);
+  --color-fd-primary-50: oklch(0.62 0.2 264 / 0.50);
 
-  /* Glow token — transparent emerald for hover effects, focus rings */
-  --color-fd-glow: oklch(0.696 0.170 163 / 0.25);
+  /* Glow token — transparent indigo for hover effects, focus rings */
+  --color-fd-glow: oklch(0.62 0.2 264 / 0.25);
 
   /* Gradient terminus — the "powered trace" endpoint. Decorative ONLY
-     (gradients, borders); never text, never interactive. +26° from primary,
-     mirroring the portfolio's primary→terminus hue relationship. */
-  --color-fd-terminus: oklch(0.62 0.14 188);
+     (gradients, borders); never text, never interactive. The yonyon brand
+     gradient end: indigo → violet. */
+  --color-fd-terminus: oklch(0.6 0.2 290);
 }
 
 /* ============================================================
@@ -65,57 +72,79 @@
    ============================================================ */
 
 .dark {
-  --color-fd-background: oklch(0.165 0.022 265);       /* #0c0f14 */
-  --color-fd-foreground: oklch(0.929 0.013 255);       /* #e2e8f0 */
-  --color-fd-muted: oklch(0.254 0.030 260);            /* #1c2436 */
-  --color-fd-muted-foreground: oklch(0.769 0.020 255); /* #b1bccb — lifted from 0.704 for WCAG AA contrast on small labels */
-  --color-fd-popover: oklch(0.192 0.025 260);          /* #111621 */
-  --color-fd-popover-foreground: oklch(0.929 0.013 255); /* #e2e8f0 */
-  --color-fd-card: oklch(0.192 0.025 260);             /* #111621 */
-  --color-fd-card-foreground: oklch(0.929 0.013 255);  /* #e2e8f0 */
-  --color-fd-border: oklch(0.279 0.041 265);           /* #1e293b */
-  --color-fd-primary: oklch(0.696 0.170 163);          /* #10b981 */
-  --color-fd-primary-foreground: oklch(0.165 0.022 265); /* #0c0f14 */
-  --color-fd-secondary: oklch(0.222 0.027 260);        /* #171d2b */
-  --color-fd-secondary-foreground: oklch(0.929 0.013 255); /* #e2e8f0 */
-  --color-fd-accent: oklch(0.254 0.030 260);           /* #1c2436 */
-  --color-fd-accent-foreground: oklch(0.929 0.013 255); /* #e2e8f0 */
-  --color-fd-ring: oklch(0.696 0.170 163);             /* #10b981 */
+  --color-fd-background: oklch(0.13 0.02 270);         /* yonyon dark indigo-slate */
+  --color-fd-foreground: oklch(0.93 0.012 270);
+  --color-fd-muted: oklch(0.22 0.025 270);
+  --color-fd-muted-foreground: oklch(0.77 0.02 270);   /* lifted for WCAG AA contrast on small labels */
+  --color-fd-popover: oklch(0.17 0.022 270);
+  --color-fd-popover-foreground: oklch(0.93 0.012 270);
+  --color-fd-card: oklch(0.17 0.022 270);
+  --color-fd-card-foreground: oklch(0.93 0.012 270);
+  --color-fd-border: oklch(0.26 0.028 270);
+  --color-fd-primary: oklch(0.62 0.2 264);             /* yonyon indigo */
+  --color-fd-primary-foreground: oklch(0.985 0.005 270);
+  --color-fd-secondary: oklch(0.20 0.024 270);
+  --color-fd-secondary-foreground: oklch(0.93 0.012 270);
+  --color-fd-accent: oklch(0.25 0.045 270);            /* indigo-tinted hover surface */
+  --color-fd-accent-foreground: oklch(0.93 0.012 270);
+  --color-fd-ring: oklch(0.78 0.13 85);                /* george-warm amber focus ring */
   --color-fd-overlay: oklch(0 0 0 / 0.4);
 
   /* 5-surface hierarchy — dark mode */
-  --color-fd-surface-sunken: oklch(0.140 0.018 265);   /* deeper than background */
-  --color-fd-surface-raised: oklch(0.222 0.027 260);   /* above card */
+  --color-fd-surface-sunken: oklch(0.11 0.018 270);    /* deeper than background */
+  --color-fd-surface-raised: oklch(0.20 0.024 270);    /* above card */
 
-  /* 5-stop emerald ramp — dark mode (brighter base) */
-  --color-fd-primary-5: oklch(0.696 0.170 163 / 0.05);
-  --color-fd-primary-10: oklch(0.696 0.170 163 / 0.10);
-  --color-fd-primary-20: oklch(0.696 0.170 163 / 0.20);
-  --color-fd-primary-30: oklch(0.696 0.170 163 / 0.30);
-  --color-fd-primary-50: oklch(0.696 0.170 163 / 0.50);
+  /* 5-stop indigo ramp — dark mode */
+  --color-fd-primary-5: oklch(0.62 0.2 264 / 0.05);
+  --color-fd-primary-10: oklch(0.62 0.2 264 / 0.10);
+  --color-fd-primary-20: oklch(0.62 0.2 264 / 0.20);
+  --color-fd-primary-30: oklch(0.62 0.2 264 / 0.30);
+  --color-fd-primary-50: oklch(0.62 0.2 264 / 0.50);
 
   /* Glow — brighter in dark mode */
-  --color-fd-glow: oklch(0.696 0.170 163 / 0.30);
+  --color-fd-glow: oklch(0.62 0.2 264 / 0.30);
 
-  /* Terminus — lifted for dark surfaces, still decorative-only */
-  --color-fd-terminus: oklch(0.78 0.12 188);
+  /* Terminus — lifted violet for dark surfaces, still decorative-only */
+  --color-fd-terminus: oklch(0.68 0.17 290);
 }
 
-/* Semantic colors required by Fumadocs preset */
+/* Semantic colors required by Fumadocs preset.
+   warn/caution = george-warm amber, info = george-cool ice,
+   success = desaturated indigo, danger stays red (never amber).
+   Light-mode values are darkened for icon/border legibility on warm
+   near-white; .dark overrides restore the exact brand accent values. */
 @theme static {
-  --color-fd-info: oklch(62.3% 0.214 259.815);
-  --color-fd-warning: oklch(76.9% 0.188 70.08);
-  --color-fd-error: oklch(63.7% 0.237 25.331);
-  --color-fd-success: oklch(72.3% 0.219 149.579);
-  --color-fd-idea: oklch(70.5% 0.209 60.849);
+  --color-fd-info: oklch(0.55 0.09 220);               /* ice, darkened for light bg */
+  --color-fd-warning: oklch(0.65 0.13 85);             /* amber, darkened for light bg */
+  --color-fd-error: oklch(63.7% 0.237 25.331);         /* danger stays red */
+  --color-fd-success: oklch(0.62 0.1 264);             /* desaturated indigo */
+  --color-fd-idea: oklch(0.65 0.13 85);                /* amber family */
   --color-fd-diff-remove: rgba(200, 10, 100, 0.12);
   --color-fd-diff-remove-symbol: rgb(230, 10, 100);
   --color-fd-diff-add: rgba(14, 180, 100, 0.1);
   --color-fd-diff-add-symbol: rgb(10, 200, 100);
 }
 
+.dark {
+  --color-fd-info: oklch(0.76 0.06 220);               /* --yy-george-cool */
+  --color-fd-warning: oklch(0.78 0.13 85);             /* --yy-george-warm */
+  --color-fd-idea: oklch(0.78 0.13 85);
+}
+
 :root {
-  --color-success: oklch(0.696 0.170 163); /* #10b981 */
+  /* yonyon brand accents — downstream component tokens.
+     Icon/border/marker scale ONLY; never fills behind text blocks. */
+  --yy-george-warm: oklch(0.78 0.13 85);   /* amber: warnings, active states, focus */
+  --yy-george-cool: oklch(0.76 0.06 220);  /* ice: info, code tint, TOC marker, metadata */
+  --yy-brand-end: oklch(0.6 0.2 290);      /* violet gradient terminus */
+
+  /* Text-scale accent variants — the ONLY george tokens allowed as text
+     color on theme-following surfaces. Darkened in light mode for WCAG AA
+     (>= 4.5:1 on background/card); .dark restores the accent values. */
+  --yy-george-warm-text: oklch(0.50 0.11 85);
+  --yy-george-cool-text: oklch(0.50 0.09 220);
+
+  --color-success: oklch(0.62 0.1 264); /* desaturated indigo (ledger semantics) */
   --duration-fast: 150ms;
   --duration-base: 200ms;
   --duration-normal: 300ms;
@@ -139,14 +168,28 @@
   --section-y: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
   --section-x: clamp(1rem, 0.5rem + 2vw, 2rem);
 
-  /* The signature: a powered circuit trace, primary → terminus */
+  /* The signature: the yonyon ledger trace, indigo → violet */
   --gradient-trace: linear-gradient(135deg, var(--color-fd-primary), var(--color-fd-terminus));
+}
+
+/* ============================================================
+   HETEROCHROMIA SELECTION — warm in light, cool in dark
+   ============================================================ */
+
+::selection {
+  background-color: oklch(0.78 0.13 85 / 0.3);         /* george-warm */
+}
+
+.dark ::selection {
+  background-color: oklch(0.76 0.06 220 / 0.35);       /* george-cool */
 }
 
 .dark {
   color-scheme: dark;
   --shadow-card: 0 1px 2px 0 oklch(0 0 0 / 0.20), 0 2px 6px -1px oklch(0 0 0 / 0.28);
   --shadow-overlay: 0 16px 48px -8px oklch(0 0 0 / 0.55);
+  --yy-george-warm-text: oklch(0.78 0.13 85);
+  --yy-george-cool-text: oklch(0.76 0.06 220);
 }
 
 /* ============================================================
@@ -347,12 +390,12 @@
   .stagger-3 { animation-delay: 200ms; }
   .stagger-4 { animation-delay: 300ms; }
 
-  /* Hover glow — emerald glow on hover */
+  /* Hover glow — indigo glow on hover */
   .hover-glow {
     transition: box-shadow 150ms ease-out;
   }
   .hover-glow:hover {
-    box-shadow: 0 0 20px var(--color-fd-glow), 0 0 40px oklch(0.696 0.170 163 / 0.10);
+    box-shadow: 0 0 20px var(--color-fd-glow), 0 0 40px oklch(0.62 0.2 264 / 0.10);
   }
 }
 
@@ -420,7 +463,243 @@ nav[data-fumadocs-sidebar] a {
   font-size: 0.8125rem;
 }
 
+/* Sidebar active item — 2px george-warm left rule + indigo text.
+   Amber marks the "you are here" (active/current) semantic. */
+nav[data-fumadocs-sidebar] a[data-active="true"] {
+  position: relative;
+  color: var(--color-fd-primary);
+}
+nav[data-fumadocs-sidebar] a[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--yy-george-warm);
+}
+
+/* TOC active item — george-cool ice marker; text stays readable indigo. */
+#nd-toc a[data-active="true"] {
+  color: var(--color-fd-primary);
+  border-inline-start-color: var(--yy-george-cool);
+}
+
+/* ============================================================
+   PROSE ACCENTS — inline code, blockquotes (heterochromia)
+   ============================================================ */
+
+/* Inline code — george-cool ice tint, never behind whole text blocks */
+:not(pre) > code,
+.prose :not(pre) > code {
+  background-color: oklch(0.95 0.015 220 / 0.5);
+}
+.dark :not(pre) > code,
+.dark .prose :not(pre) > code {
+  background-color: oklch(0.2 0.03 220);
+}
+
+/* Blockquote bar — warm in light, cool in dark; border-scale only */
+.prose blockquote,
+article blockquote {
+  border-inline-start-color: oklch(0.78 0.13 85 / 0.7); /* george-warm */
+}
+.dark .prose blockquote,
+.dark article blockquote {
+  border-inline-start-color: oklch(0.76 0.06 220 / 0.7); /* george-cool */
+}
+
 /* Expand docs layout to use full viewport width */
 #nd-docs-layout {
   --fd-layout-width: 100%;
+}
+
+/* ============================================================
+   FACTORY RIDE — scroll-world homepage hero (components/world/)
+   Server HTML renders the static stacked fallback (no-JS and
+   prefers-reduced-motion). A CSS media-query gate (scripting +
+   motion, below) switches into the sticky canvas-scrub ride on
+   first paint; the client component only drives the mechanics.
+   The band is a fixed dark cinematic surface in both themes;
+   overlay copy uses fixed light inks.
+   ============================================================ */
+
+.fr-root {
+  position: relative;
+  background: oklch(0.13 0.02 270); /* yonyon dark bg */
+  color: oklch(0.93 0.012 270);
+  border-bottom: 1px solid var(--color-fd-border);
+}
+.fr-track {
+  position: relative;
+}
+.fr-stage {
+  position: relative;
+  overflow: hidden;
+}
+.fr-poster {
+  object-fit: cover;
+  opacity: 0.4;
+}
+.fr-film {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.fr-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      oklch(0.13 0.02 270 / 0.8) 0%,
+      transparent 18%,
+      transparent 70%,
+      oklch(0.13 0.02 270 / 0.85) 100%
+    ),
+    radial-gradient(
+      120% 90% at 50% 50%,
+      transparent 55%,
+      oklch(0.13 0.02 270 / 0.55) 100%
+    );
+}
+
+/* Fallback layout: every stop stacks in DOM order, fully visible. */
+.fr-stop {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 72px 24px;
+}
+.fr-cue,
+.fr-dots {
+  display: none;
+}
+
+/* Glass stop card — dark glass on the film in both themes. */
+.fr-card {
+  width: min(430px, 88vw);
+  padding: 26px 28px;
+  border-radius: 18px;
+  background: oklch(0.16 0.02 270 / 0.72);
+  border: 1px solid oklch(1 0 0 / 0.16);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  box-shadow: 0 20px 60px -22px oklch(0.1 0.02 270 / 0.8);
+}
+
+/* ── live mode: the ride ─────────────────────────────────────
+   Gated purely in CSS (JS available + motion OK) so the live layout
+   is already correct on FIRST paint — no post-hydration class flip,
+   no CLS from the track growing to 560vh after FCP. The client
+   component only drives the mechanics (canvas scrub, .fr-on,
+   .fr-riding) and gates itself on the same two media queries.
+   Browsers without `scripting` MQ support (and no-JS / reduced-motion
+   users) keep the static stacked fallback above. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .fr-root .fr-track {
+    height: 560vh;
+  }
+  .fr-root .fr-stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+  }
+  .fr-root .fr-poster {
+    opacity: 1;
+  }
+  .fr-root .fr-film {
+    display: block;
+  }
+  .fr-root .fr-stop {
+    position: absolute;
+    inset: 0;
+    padding: 0 24px;
+    opacity: 0;
+    transform: translateY(18px);
+    /* visibility (delayed on hide so the fade-out still plays) keeps
+       inactive stops out of the tab order and the accessibility tree —
+       invisible links must not be focusable (WCAG 2.4.3 / 2.4.7) */
+    visibility: hidden;
+    transition:
+      opacity 400ms var(--ease-out-expo),
+      transform 400ms var(--ease-out-expo),
+      visibility 0s linear 400ms;
+    pointer-events: none;
+  }
+  .fr-root .fr-stop.fr-on {
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+    transition-delay: 0s;
+    pointer-events: auto;
+  }
+  .fr-root .fr-stop[data-side="left"] {
+    justify-items: start;
+    padding-left: clamp(24px, 7vw, 110px);
+  }
+  .fr-root .fr-stop[data-side="right"] {
+    justify-items: end;
+    padding-right: clamp(24px, 7vw, 110px);
+  }
+
+  /* scroll cue under the hero copy (live mode only) */
+  .fr-root .fr-cue {
+    display: block;
+    margin-top: 56px;
+    text-align: center;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: oklch(0.6 0.02 264);
+    animation: fr-bob 2s var(--ease-out-expo) infinite;
+  }
+
+  /* right-edge ride progress dots — current stop marked george-warm
+     (amber = active/current semantic), marker scale only */
+  .fr-root .fr-dots {
+    position: absolute;
+    right: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 300ms var(--ease-out-expo);
+  }
+  .fr-root.fr-riding .fr-dots {
+    opacity: 1;
+  }
+}
+
+@keyframes fr-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+.fr-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: oklch(1 0 0 / 0.18);
+  transition:
+    background 200ms var(--ease-out-expo),
+    height 200ms var(--ease-out-expo);
+}
+.fr-dots i.fr-cur {
+  background: var(--yy-george-warm);
+  height: 18px;
+  border-radius: 4px;
 }

@@ -15,6 +15,26 @@ import { breadcrumbNode } from "@/components/structured-data";
 import { LazyContextualSkillSidebar } from "@/components/lazy/contextual-skill-sidebar";
 import { LazySkillDependencyGraph } from "@/components/lazy/skill-dep-graph";
 import { LazySkillRecommender } from "@/components/lazy/skill-recommender";
+import { GeorgeDivider } from "@/components/world/george";
+import { SkillDossier } from "@/components/world/skill-dossier";
+import { getSectionGlyph } from "@/components/world/station-glyphs";
+import { SKILLS } from "@/lib/generated/skills-data";
+
+/**
+ * A skill reference page is /docs/reference/skills/<name> where <name>
+ * exists in the generated skills dataset.
+ */
+function skillSlugOf(slugs: string[]): string | null {
+  if (
+    slugs.length === 3 &&
+    slugs[0] === "reference" &&
+    slugs[1] === "skills" &&
+    slugs[2] in SKILLS
+  ) {
+    return slugs[2];
+  }
+  return null;
+}
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
@@ -24,6 +44,12 @@ export default async function Page(props: {
   if (!page) notFound();
 
   const MDX = page.data.body;
+  const skillSlug = skillSlugOf(page.slugs);
+  // Section glyph keyed by the top-level section segment. Rendered as a
+  // 96px watermark behind the title block plus a 12px marker adjacent to
+  // the breadcrumb (the fumadocs-internal breadcrumb slot itself is not
+  // injectable, so the marker sits directly below it, above the title).
+  const SectionGlyph = getSectionGlyph(page.slugs[0] ?? "");
   const lastModified =
     page.data.lastModified instanceof Date
       ? page.data.lastModified
@@ -84,8 +110,27 @@ export default async function Page(props: {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription>{page.data.description}</DocsDescription>
+      <div className="relative">
+        {SectionGlyph ? (
+          <>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -top-4 right-0 h-24 w-24 select-none opacity-[0.03] dark:opacity-[0.05] [&_svg]:h-full [&_svg]:w-full"
+            >
+              <SectionGlyph />
+            </div>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none mb-2 h-3 w-3 text-fd-muted-foreground [&_svg]:h-full [&_svg]:w-full"
+            >
+              <SectionGlyph />
+            </div>
+          </>
+        ) : null}
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsDescription>{page.data.description}</DocsDescription>
+      </div>
+      {skillSlug ? <SkillDossier slug={skillSlug} /> : null}
       <DocsBody>
         <MDX
           components={{
@@ -95,6 +140,7 @@ export default async function Page(props: {
             SkillRecommender: LazySkillRecommender,
           }}
         />
+        <GeorgeDivider />
       </DocsBody>
     </DocsPage>
   );

@@ -8,7 +8,7 @@ import {
 } from "@/lib/generated/changelog-data";
 
 const TAG_BG: Record<SectionType, string> = {
-  added: "bg-emerald-500/10 text-emerald-400",
+  added: "bg-indigo-500/10 text-indigo-400",
   fixed: "bg-amber-500/10 text-amber-400",
   changed: "bg-cyan-500/10 text-cyan-400",
   removed: "bg-red-500/10 text-red-400",
