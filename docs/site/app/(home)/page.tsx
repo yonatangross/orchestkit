@@ -174,7 +174,7 @@ export default async function HomePage() {
 
               <p
                 data-speakable-summary
-                className="mx-auto mt-4 max-w-[620px] text-[clamp(0.95rem,0.3vw+0.9rem,1.125rem)] leading-[1.55] text-[oklch(0.72_0.02_264)] [text-wrap:balance]"
+                className="mx-auto mt-4 max-w-[620px] text-[clamp(0.95rem,0.3vw+0.9rem,1.125rem)] leading-[1.55] text-[oklch(0.86_0.015_264)] [text-wrap:balance]"
               >
                 <span className="whitespace-nowrap font-mono text-[0.92em] font-medium">
                   <span className="text-[var(--yy-george-warm)]">{COUNTS.skills}</span>{" "}
@@ -212,7 +212,7 @@ export default async function HomePage() {
                 </Link>
               </div>
 
-              <div className="mt-7 flex flex-wrap items-center justify-center font-mono text-[12px] text-[oklch(0.72_0.02_264)]">
+              <div className="mt-7 flex flex-wrap items-center justify-center font-mono text-[12px] text-[oklch(0.86_0.015_264)]">
                 <a
                   href={`${SITE.github}/stargazers`}
                   target="_blank"
@@ -245,12 +245,12 @@ export default async function HomePage() {
               </div>
               <div className="mt-2.5 text-[44px] font-bold leading-none tracking-[-0.02em] tabular-nums text-[oklch(0.95_0.008_270)]">
                 {COUNTS.hooks}
-                <span className="ml-2 text-base font-medium tracking-normal text-[oklch(0.72_0.02_264)]">hooks</span>
+                <span className="ml-2 text-base font-medium tracking-normal text-[oklch(0.86_0.015_264)]">hooks</span>
               </div>
               <h2 className="mt-1.5 text-xl font-semibold tracking-[-0.01em] text-[oklch(0.93_0.012_270)]">
                 Every action, inspected
               </h2>
-              <p className="mt-2.5 text-sm leading-[1.6] text-[oklch(0.72_0.02_264)]">
+              <p className="mt-2.5 text-sm leading-[1.6] text-[oklch(0.86_0.015_264)]">
                 TypeScript lifecycle hooks gate each tool call: dangerous commands blocked,
                 context injected, security enforced. Non-blocking by design.
               </p>
@@ -275,12 +275,12 @@ export default async function HomePage() {
               </div>
               <div className="mt-2.5 text-[44px] font-bold leading-none tracking-[-0.02em] tabular-nums text-[oklch(0.95_0.008_270)]">
                 {COUNTS.agents}
-                <span className="ml-2 text-base font-medium tracking-normal text-[oklch(0.72_0.02_264)]">agents</span>
+                <span className="ml-2 text-base font-medium tracking-normal text-[oklch(0.86_0.015_264)]">agents</span>
               </div>
               <h2 className="mt-1.5 text-xl font-semibold tracking-[-0.01em] text-[oklch(0.93_0.012_270)]">
                 Specialists, in parallel
               </h2>
-              <p className="mt-2.5 text-sm leading-[1.6] text-[oklch(0.72_0.02_264)]">
+              <p className="mt-2.5 text-sm leading-[1.6] text-[oklch(0.86_0.015_264)]">
                 Security auditors, frontend devs, DB engineers, working simultaneously in
                 isolated worktrees, each with curated tools and skills.
               </p>
@@ -300,12 +300,12 @@ export default async function HomePage() {
               </div>
               <div className="mt-2.5 text-[44px] font-bold leading-none tracking-[-0.02em] tabular-nums text-[oklch(0.95_0.008_270)]">
                 {COUNTS.skills}
-                <span className="ml-2 text-base font-medium tracking-normal text-[oklch(0.72_0.02_264)]">skills</span>
+                <span className="ml-2 text-base font-medium tracking-normal text-[oklch(0.86_0.015_264)]">skills</span>
               </div>
               <h2 className="mt-1.5 text-xl font-semibold tracking-[-0.01em] text-[oklch(0.93_0.012_270)]">
                 Knowledge, on pegs
               </h2>
-              <p className="mt-2.5 text-sm leading-[1.6] text-[oklch(0.72_0.02_264)]">
+              <p className="mt-2.5 text-sm leading-[1.6] text-[oklch(0.86_0.015_264)]">
                 Auth patterns, migrations, API design, reusable modules that load only when
                 the work needs them.
               </p>
@@ -339,7 +339,7 @@ export default async function HomePage() {
               <h2 className="mt-5 text-[clamp(30px,4.6vw,52px)] font-semibold leading-[1.1] tracking-[-0.02em] text-[oklch(0.95_0.008_270)]">
                 Your change ships in a sealed crate.
               </h2>
-              <p className="mt-3 text-base text-[oklch(0.72_0.02_264)]">
+              <p className="mt-3 text-base text-[oklch(0.86_0.015_264)]">
                 Tests, security scans and quality gates, passed before the dock doors open.
               </p>
               <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">

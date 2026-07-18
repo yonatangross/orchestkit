@@ -612,6 +612,16 @@ article blockquote {
   inset: 0;
   pointer-events: none;
   background:
+    /* Centre scrim: the copy sits here, over the brightest part of the
+       diorama (lit metal + glowing crates). Without this the sub-copy and
+       the stars/licence row wash out completely. Kept as a soft radial so
+       the art still reads at the edges. */
+    radial-gradient(
+      68% 52% at 50% 46%,
+      oklch(0.09 0.02 265 / 0.78) 0%,
+      oklch(0.09 0.02 265 / 0.55) 45%,
+      transparent 78%
+    ),
     linear-gradient(
       180deg,
       oklch(0.13 0.02 270 / 0.8) 0%,
@@ -624,6 +634,16 @@ article blockquote {
       transparent 55%,
       oklch(0.13 0.02 270 / 0.55) 100%
     );
+}
+
+/* Overlay copy sits on photography, so the small text carries its own
+   separation. Deliberately NOT applied to the whole stop: the h1 uses
+   background-clip:text with a transparent fill, and a text-shadow on that
+   paints straight through the glyphs and turns the gradient muddy grey. */
+.fr-stop p,
+.fr-stop .font-mono,
+.fr-stop a:not([class*="bg-"]) {
+  text-shadow: 0 1px 2px oklch(0.08 0.02 265 / 0.55), 0 2px 18px oklch(0.08 0.02 265 / 0.4);
 }
 
 /* Fallback layout: every stop stacks in DOM order, fully visible. */
