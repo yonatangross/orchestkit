@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit — homepage mock (scroll-world ride)</title>
+<style>
+  :root{
+    --bg: hsl(232 26% 6%);
+    --ink: hsl(220 18% 93%);
+    --muted: hsl(222 14% 66%);
+    --faint: hsl(224 12% 48%);
+    --glass: hsl(0 0% 100% / .05);
+    --glass-2: hsl(0 0% 100% / .09);
+    --edge: hsl(0 0% 100% / .16);
+    --violet: hsl(248 84% 68%);
+    --emerald: hsl(163 62% 44%);
+    --emerald-ink: hsl(163 70% 92%);
+    --danger: hsl(2 78% 62%);
+    --mono: "SF Mono", ui-monospace, Menlo, monospace;
+    --ease: cubic-bezier(.2,.8,.25,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg); color:var(--ink); font-family:ui-sans-serif,-apple-system,"Inter","Segoe UI",sans-serif}
+  a{color:inherit; text-decoration:none}
+  .mono{font-family:var(--mono)}
+
+  /* ── topbar (mirrors the real site nav) ─────────────── */
+  .nav{
+    position:fixed; inset:0 0 auto 0; z-index:50; height:56px;
+    display:flex; align-items:center; gap:24px; padding:0 24px;
+    background:hsl(232 26% 6% / .55); border-bottom:1px solid var(--edge);
+    backdrop-filter:blur(16px) saturate(1.2); -webkit-backdrop-filter:blur(16px) saturate(1.2);
+  }
+  .nav .logo{font-weight:700; letter-spacing:-.2px; font-size:15px}
+  .nav .logo i{font-style:normal; color:var(--emerald)}
+  .nav .links{display:flex; gap:18px; font-size:13px; color:var(--muted)}
+  .nav .links a:hover{color:var(--ink)}
+  .nav .right{margin-left:auto; display:flex; align-items:center; gap:12px}
+  .nav .stars{font-family:var(--mono); font-size:12px; color:var(--muted)}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; height:38px; padding:0 16px;
+    border-radius:10px; font-size:13.5px; font-weight:600; cursor:pointer;
+    transition:transform 150ms var(--ease), box-shadow 150ms var(--ease);
+  }
+  .btn.primary{background:var(--emerald); color:hsl(163 60% 8%)}
+  .btn.primary:hover{transform:translateY(-1px); box-shadow:0 0 0 4px hsl(163 62% 44% / .25)}
+  .btn.ghost{border:1px solid var(--edge); color:var(--ink)}
+  .btn.ghost:hover{background:var(--glass)}
+
+  /* ── the ride ───────────────────────────────────────── */
+  .ride{height:560vh; position:relative}
+  .stage{position:sticky; top:0; height:100vh; overflow:hidden}
+  #film{position:absolute; inset:0; width:100%; height:100%}
+  .vignette{position:absolute; inset:0; pointer-events:none;
+    background:
+      linear-gradient(180deg, hsl(232 26% 6% / .8) 0%, transparent 18%, transparent 70%, hsl(232 26% 6% / .85) 100%),
+      radial-gradient(120% 90% at 50% 50%, transparent 55%, hsl(232 26% 6% / .55) 100%);
+  }
+
+  .stop{position:absolute; inset:0; display:grid; place-items:center; opacity:0; transform:translateY(18px); transition:opacity 400ms var(--ease), transform 400ms var(--ease); pointer-events:none}
+  .stop.on{opacity:1; transform:none; pointer-events:auto}
+
+  /* hero stop */
+  .hero{max-width:880px; text-align:center; padding:0 24px}
+  .badge{
+    display:inline-flex; align-items:center; gap:8px; padding:7px 12px; border-radius:999px;
+    font-family:var(--mono); font-size:12px; color:var(--emerald-ink);
+    background:hsl(163 62% 44% / .12); border:1px solid hsl(163 62% 44% / .3);
+  }
+  .badge .dot{width:6px; height:6px; border-radius:50%; background:var(--emerald); box-shadow:0 0 0 3px hsl(163 62% 44% / .25)}
+  h1{font-size:clamp(40px,6.4vw,76px); font-weight:650; letter-spacing:-.025em; line-height:1.02; margin-top:22px}
+  h1 .dim{background:linear-gradient(180deg, var(--ink), hsl(222 14% 72%)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  h1 .glow{color:var(--emerald-ink); text-shadow:0 0 40px hsl(163 62% 44% / .5)}
+  .counts{margin-top:18px; color:var(--muted); font-size:16px}
+  .counts b{font-family:var(--mono); font-weight:600; color:var(--ink); font-size:.94em}
+  .counts .sep{opacity:.4; margin:0 8px}
+  .cta-row{margin-top:30px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center}
+  .install{
+    display:inline-flex; align-items:center; gap:10px; height:38px; padding:0 16px;
+    border-radius:10px; border:1px solid var(--edge); background:var(--glass);
+    font-family:var(--mono); font-size:13px; color:var(--muted); cursor:pointer;
+  }
+  .install:hover{color:var(--ink); border-color:hsl(0 0% 100% / .3)}
+  .install .d{color:var(--faint)}
+  .cue{margin-top:56px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); animation:bob 2s var(--ease) infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+  /* narrative stop cards */
+  .stopcard{
+    width:min(430px,88vw); padding:26px 28px; border-radius:18px;
+    background:hsl(232 26% 8% / .72); border:1px solid var(--edge);
+    backdrop-filter:blur(20px) saturate(1.3); -webkit-backdrop-filter:blur(20px) saturate(1.3);
+    box-shadow:0 20px 60px -22px hsl(232 40% 3% / .8);
+  }
+  .stop[data-side="left"]{justify-items:start; padding-left:clamp(24px,7vw,110px)}
+  .stop[data-side="right"]{justify-items:end; padding-right:clamp(24px,7vw,110px)}
+  .stopcard .k{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--violet)}
+  .stopcard .big{font-size:44px; font-weight:700; letter-spacing:-.02em; line-height:1; margin-top:10px; font-variant-numeric:tabular-nums}
+  .stopcard .big small{font-size:16px; font-weight:500; color:var(--muted); letter-spacing:0; margin-left:8px}
+  .stopcard h3{font-size:20px; letter-spacing:-.2px; margin-top:6px}
+  .stopcard p{margin-top:10px; font-size:14px; line-height:1.6; color:var(--muted)}
+  .stopcard .go{display:inline-flex; align-items:center; gap:6px; margin-top:16px; font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--emerald)}
+  .stopcard .go:hover{text-decoration:underline}
+  .blocked{
+    display:inline-flex; align-items:center; gap:8px; margin-top:14px; padding:8px 12px; border-radius:9px;
+    font-family:var(--mono); font-size:12px; color:hsl(2 90% 84%);
+    background:hsl(2 78% 62% / .12); border:1px solid hsl(2 78% 62% / .35);
+  }
+  .chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:14px}
+  .chip{font-family:var(--mono); font-size:11.5px; padding:5px 9px; border-radius:7px; background:var(--glass-2); border:1px solid var(--edge); color:var(--muted)}
+
+  /* finale */
+  .finale{text-align:center; padding:0 24px}
+  .finale .stamp{
+    display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:12px;
+    font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.06em; color:var(--emerald-ink);
+    background:hsl(163 62% 44% / .14); border:1px solid hsl(163 62% 44% / .4);
+    box-shadow:0 0 50px hsl(163 62% 44% / .25);
+  }
+  .finale h2{font-size:clamp(30px,4.6vw,52px); font-weight:650; letter-spacing:-.02em; margin-top:20px}
+  .finale p{color:var(--muted); margin-top:12px; font-size:16px}
+
+  /* ride progress dots */
+  .dots{position:fixed; right:22px; top:50%; transform:translateY(-50%); z-index:40; display:flex; flex-direction:column; gap:10px; opacity:0; transition:opacity 300ms var(--ease)}
+  body.riding .dots{opacity:1}
+  .dots i{width:6px; height:6px; border-radius:50%; background:hsl(0 0% 100% / .18); transition:background 200ms var(--ease), height 200ms var(--ease)}
+  .dots i.cur{background:var(--emerald); height:18px; border-radius:4px}
+
+  /* ── below the ride: normal page ────────────────────── */
+  .section{max-width:1150px; margin:0 auto; padding:96px 24px}
+  .sec-k{font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--emerald)}
+  .sec-h{font-size:clamp(24px,3vw,34px); font-weight:650; letter-spacing:-.02em; margin-top:10px}
+  .grid3{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin-top:36px}
+  .pcard{padding:24px; border-radius:16px; background:var(--glass); border:1px solid var(--edge)}
+  .pcard .eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--faint); text-transform:uppercase}
+  .pcard h4{font-size:18px; letter-spacing:-.2px; margin-top:10px}
+  .pcard p{font-size:13.5px; color:var(--muted); line-height:1.6; margin-top:8px}
+  .pcard .go{display:inline-block; margin-top:14px; font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--emerald)}
+  .grid4{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; margin-top:36px}
+  .rcard{padding:18px 20px; border-radius:14px; background:var(--glass); border:1px solid var(--edge); transition:border-color 200ms var(--ease)}
+  .rcard:hover{border-color:hsl(163 62% 44% / .4)}
+  .rcard .cmd{font-family:var(--mono); font-size:12px; color:var(--violet)}
+  .rcard h5{font-size:15px; margin-top:8px; letter-spacing:-.1px}
+  .rcard p{font-size:12.5px; color:var(--muted); line-height:1.55; margin-top:6px}
+  .rcard .new{float:right; font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; color:var(--emerald); border:1px solid hsl(163 62% 44% / .4); padding:2px 6px; border-radius:999px}
+  footer{border-top:1px solid var(--edge); padding:40px 24px 64px; text-align:center; color:var(--faint); font-size:13px}
+  footer .note{font-family:var(--mono); font-size:11.5px; margin-top:10px}
+
+  @media (prefers-reduced-motion: reduce){
+    .ride{height:auto}
+    .stage{position:static; height:auto; aspect-ratio:16/9}
+    .stop{position:static; opacity:1; transform:none; display:block; padding:32px 24px}
+    .cue{display:none}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="logo">⬡ <i>Orchest</i>Kit</div>
+  <div class="links">
+    <a href="#">Docs</a><a href="#">Cookbook</a><a href="#">Lab</a><a href="#">Changelog</a>
+  </div>
+  <div class="right">
+    <span class="stars">★ 1.2k</span>
+    <a class="btn primary">Get started</a>
+  </div>
+</nav>
+
+<div class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+
+<!-- ═══════════ THE RIDE ═══════════ -->
+<div class="ride" id="ride">
+  <div class="stage">
+    <canvas id="film" aria-hidden="true"></canvas>
+    <div class="vignette"></div>
+
+    <!-- stop 0: hero -->
+    <div class="stop on" data-stop="0">
+      <div class="hero">
+        <span class="badge"><span class="dot"></span>The complete AI development toolkit for Claude Code</span>
+        <h1><span class="dim">Stop explaining your stack.</span><br><span class="glow">Start shipping.</span></h1>
+        <p class="counts"><b>114 skills</b><span class="sep">·</span><b>37 agents</b><span class="sep">·</span><b>90 hooks</b>, loaded on demand, zero runtime cost.</p>
+        <div class="cta-row">
+          <a class="btn primary">Get started →</a>
+          <button class="install"><span class="d">$</span> claude install orchestkit/ork <span class="d">⧉</span></button>
+          <a class="btn ghost">See the cookbook</a>
+        </div>
+        <div class="cue">▼ scroll to ride the factory</div>
+      </div>
+    </div>
+
+    <!-- stop 1: hooks -->
+    <div class="stop" data-stop="1" data-side="left">
+      <div class="stopcard">
+        <div class="k">The intake scanners</div>
+        <div class="big">90<small>hooks</small></div>
+        <h3>Every action, inspected</h3>
+        <p>TypeScript lifecycle hooks gate each tool call: dangerous commands blocked, context injected, security enforced. Non-blocking by design.</p>
+        <div class="blocked">⛔ rm -rf / <span style="opacity:.6">→</span> diverted before execution</div>
+        <a class="go">→ /docs/reference/hooks</a>
+      </div>
+    </div>
+
+    <!-- stop 2: agents -->
+    <div class="stop" data-stop="2" data-side="right">
+      <div class="stopcard">
+        <div class="k">The assembly bay</div>
+        <div class="big">37<small>agents</small></div>
+        <h3>Specialists, in parallel</h3>
+        <p>Security auditors, frontend devs, DB engineers, working simultaneously in isolated worktrees, each with curated tools and skills.</p>
+        <a class="go">→ /docs/reference/agents</a>
+      </div>
+    </div>
+
+    <!-- stop 3: skills -->
+    <div class="stop" data-stop="3" data-side="left">
+      <div class="stopcard">
+        <div class="k">The tool wall</div>
+        <div class="big">114<small>skills</small></div>
+        <h3>Knowledge, on pegs</h3>
+        <p>Auth patterns, migrations, API design, reusable modules that load only when the work needs them.</p>
+        <div class="chips"><span class="chip">/ork:implement</span><span class="chip">/ork:review-pr</span><span class="chip">/ork:brainstorm</span><span class="chip">+111</span></div>
+        <a class="go">→ /docs/reference/skills</a>
+      </div>
+    </div>
+
+    <!-- stop 4: finale -->
+    <div class="stop" data-stop="4">
+      <div class="finale">
+        <span class="stamp">✅ VERIFIED · MERGED</span>
+        <h2>Your change ships in a sealed crate.</h2>
+        <p>Tests, security scans and quality gates, passed before the dock doors open.</p>
+        <div class="cta-row">
+          <a class="btn primary">Get started →</a>
+          <button class="install"><span class="d">$</span> claude install orchestkit/ork <span class="d">⧉</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ NORMAL PAGE RESUMES (existing content, unchanged) ═══════════ -->
+<section class="section">
+  <div class="sec-k">Choose your route</div>
+  <h2 class="sec-h">Where are you starting from?</h2>
+  <div class="grid3">
+    <div class="pcard">
+      <div class="eyebrow">01 / New here</div>
+      <h4>New to OrchestKit?</h4>
+      <p>Install and ship your first feature in under 5 minutes.</p>
+      <a class="go">Get started →</a>
+    </div>
+    <div class="pcard">
+      <div class="eyebrow">02 / Evaluating</div>
+      <h4>Evaluating for your team?</h4>
+      <p>90 hooks enforce security and quality automatically. Zero config.</p>
+      <a class="go">See the guardrails →</a>
+    </div>
+    <div class="pcard">
+      <div class="eyebrow">03 / Existing user</div>
+      <h4>Already using Claude Code?</h4>
+      <p>37 parallel specialist agents, 3-tier memory, keyword activation.</p>
+      <a class="go">What OrchestKit adds →</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <div class="sec-k">Cookbook</div>
+  <h2 class="sec-h">Recipes that ship real work</h2>
+  <div class="grid4">
+    <div class="rcard"><div class="cmd">/ork:implement</div><h5>Implement a feature</h5><p>From idea to merged PR with parallel AI agents.</p></div>
+    <div class="rcard"><span class="new">NEW</span><div class="cmd">/ork:design-ship</div><h5>Claude Design → PR</h5><p>Handoff URL in, reviewable PR out.</p></div>
+    <div class="rcard"><div class="cmd">/ork:review-pr</div><h5>Review a PR</h5><p>Parallel specialized reviewers, synthesized comment.</p></div>
+    <div class="rcard"><div class="cmd">/ork:fix-issue</div><h5>Fix a GitHub issue</h5><p>Root-cause analysis, regression detection, linked PR.</p></div>
+    <div class="rcard"><div class="cmd">TaskCreate</div><h5>Task management</h5><p>Multi-agent TaskCreate / TaskList / dependency chains.</p></div>
+    <div class="rcard"><div class="cmd">/ork:memory</div><h5>Set up memory</h5><p>3-tier knowledge graph that persists across sessions.</p></div>
+    <div class="rcard"><div class="cmd">/ork:demo-producer</div><h5>Create a demo video</h5><p>VHS + Remotion pipeline, auto-generated voiceover.</p></div>
+    <div class="rcard"><div class="cmd">/ork:audit-full</div><h5>Security audit</h5><p>Parallel scan across auth, secrets, OWASP, dependencies.</p></div>
+  </div>
+</section>
+
+<footer>
+  <div>⬡ OrchestKit · MIT · GitHub · X · Discord</div>
+  <div class="note">MOCK, production: overlays are server-rendered HTML (SEO-live counts), frames load poster-first after LCP, reduced-motion gets the stacked page you can see by enabling it.</div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var FRAMES=101, imgs=new Array(FRAMES), loaded=0;
+  var cv=document.getElementById("film"), cx=cv.getContext("2d");
+  var reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var lastP=0;
+
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+  function fit(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    drawFrame(lastP);
+  }
+  function drawFrame(p){
+    lastP=p;
+    var idx=clamp(Math.floor(p*FRAMES),0,FRAMES-1);
+    var im=imgs[idx];
+    if(!(im&&im.complete&&im.naturalWidth))return;
+    // cover-fit
+    var cw=cv.width, ch=cv.height, iw=im.naturalWidth, ih=im.naturalHeight;
+    var s=Math.max(cw/iw,ch/ih), dw=iw*s, dh=ih*s;
+    cx.drawImage(im,(cw-dw)/2,(ch-dh)/2,dw,dh);
+  }
+  for(var i=1;i<=FRAMES;i++)(function(i){
+    var im=new Image();
+    im.onload=function(){ loaded++; if(loaded===1||loaded===FRAMES) drawFrame(lastP); };
+    im.src="../../docs/site/public/world/frames/f_"+String(i).padStart(3,"0")+".jpg";
+    imgs[i-1]=im;
+  })(i);
+
+  // stops: [start,end] of scroll progress where each overlay shows
+  var STOPS=[[0,.14],[.20,.40],[.46,.63],[.68,.84],[.90,1.01]];
+  var stopEls=[].slice.call(document.querySelectorAll(".stop"));
+  var dotEls=[].slice.call(document.querySelectorAll(".dots i"));
+
+  var ride=document.getElementById("ride");
+  var ticking=false;
+  function onScroll(){
+    if(ticking)return; ticking=true;
+    requestAnimationFrame(function(){
+      ticking=false;
+      if(reduced)return;
+      var r=ride.getBoundingClientRect();
+      var span=r.height-innerHeight;
+      var p=span>0?clamp(-r.top/span,0,1):0;
+      drawFrame(p);
+      var cur=-1;
+      STOPS.forEach(function(w,i){
+        var on=p>=w[0]&&p<=w[1];
+        stopEls[i].classList.toggle("on",on);
+        if(on)cur=i;
+      });
+      dotEls.forEach(function(d,i){d.classList.toggle("cur",i===cur)});
+      document.body.classList.toggle("riding",p>.01&&p<.999);
+    });
+  }
+  addEventListener("scroll",onScroll,{passive:true});
+  addEventListener("resize",fit);
+  fit();
+  if(reduced){ drawFrame(1); }
+})();
+</script>
+</body>
+</html>
