@@ -230,6 +230,7 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
             alt=""
             fill
             priority
+            fetchPriority="high"
             sizes="100vw"
             className="fr-poster"
           />

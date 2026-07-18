@@ -3,7 +3,6 @@
   "description": "Generated reference for every skill, agent, and hook",
   "root": true,
   "pages": [
-    "index",
     "skills",
     "agents",
     "hooks"

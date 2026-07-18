@@ -3,7 +3,7 @@ import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import type { ReactNode } from "react";
 import { baseOptions } from "@/app/layout.config";
 import { getSectionGlyph } from "@/components/world/station-glyphs";
-import { getDeclutteredPageTree } from "@/lib/source";
+import { source } from "@/lib/source";
 
 /** Section slug of a top-level docs folder, e.g. "getting-started". */
 function sectionSlug(folder: PageTree.Folder): string | null {
@@ -33,7 +33,7 @@ function withStationGlyphs(tree: PageTree.Root): PageTree.Root {
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <DocsLayout
-      tree={withStationGlyphs(getDeclutteredPageTree())}
+      tree={withStationGlyphs(source.pageTree)}
       sidebar={{ defaultOpenLevel: 0, collapsible: true }}
       {...baseOptions}
     >

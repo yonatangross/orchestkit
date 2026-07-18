@@ -329,15 +329,13 @@
   background: transparent;
 }
 
-/* Minimal top-nav search — hide the wide "Search ⌘K" bar, keep the compact
-   icon (matches yonyon.ai's plain nav). The sidebar search stays intact. */
-#nd-nav [data-search-full],
-header [data-search-full] {
+/* Minimal home nav — hide the wide "Search ⌘K" bar so the top nav reads as
+   plain links like yonyon.ai. Scoped to `#nd-nav` (the home//docs top nav)
+   ON PURPOSE: on docs pages the same `[data-search-full]` marks the
+   SIDEBAR search box, which must stay. Cmd/Ctrl-K still opens search
+   everywhere (verified: the dialog mounts on the homepage). */
+#nd-nav [data-search-full] {
   display: none !important;
-}
-#nd-nav [data-search],
-header [data-search] {
-  display: inline-flex !important;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -510,36 +508,26 @@ pre code {
    SIDEBAR — Tighter spacing, flush left
    ============================================================ */
 
-/* Sidebar surface — distinct from the page background, matching the
-   yonyon portfolio --sidebar shade (a hair lighter than bg in light,
-   a hair lighter in dark) so the nav reads as its own panel. */
-nav[data-fumadocs-sidebar] {
-  background: oklch(0.98 0.005 270);
-  border-inline-end: 1px solid var(--color-fd-border);
-}
-.dark nav[data-fumadocs-sidebar] {
-  background: oklch(0.18 0.025 270);
-}
-
-nav[data-fumadocs-sidebar] a {
+/* The sidebar element is `aside#nd-sidebar` — there is no
+   `nav[data-fumadocs-sidebar]` in the rendered DOM (verified at runtime;
+   an earlier revision styled that non-existent selector and did nothing).
+   Its panel surface and border already come from fumadocs' own
+   `bg-fd-card` + border, which resolve to the yonyon tokens remapped
+   above, so only the item rhythm and active treatment are set here. */
+#nd-sidebar a {
   padding-top: 0.375rem;
   padding-bottom: 0.375rem;
   font-size: 0.8125rem;
   border-radius: var(--radius-control);
 }
 
-/* Sidebar active item — yonyon --sidebar-accent pill + indigo text.
-   Matches the portfolio's active nav treatment (indigo, not amber). */
-nav[data-fumadocs-sidebar] a[data-active="true"] {
+/* Active item — indigo text on an indigo-tinted pill (fumadocs' default,
+   driven by our tokens) plus a 2px indigo rule marking "you are here". */
+#nd-sidebar a[data-active="true"] {
   position: relative;
-  color: var(--color-fd-primary);
   font-weight: 500;
-  background: oklch(0.95 0.03 270);
 }
-.dark nav[data-fumadocs-sidebar] a[data-active="true"] {
-  background: oklch(0.24 0.03 270);
-}
-nav[data-fumadocs-sidebar] a[data-active="true"]::before {
+#nd-sidebar a[data-active="true"]::before {
   content: "";
   position: absolute;
   inset-inline-start: 0;
