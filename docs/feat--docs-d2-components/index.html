@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docs Design Overhaul — Current vs D1 vs D2 vs D3, live</title>
+<style>
+  /* ---------- playground chrome (cool-glass, per standard) ---------- */
+  :root {
+    --pg-bg: hsl(232 26% 7%); --pg-ink: hsl(220 18% 93%); --pg-muted: hsl(220 12% 64%);
+    --pg-faint: hsl(220 10% 46%); --pg-glass: hsl(0 0% 100% / .05); --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18); --pg-accent: hsl(248 84% 68%);
+    --r-sm: 9px; --r-md: 16px; --ease: cubic-bezier(.2,.8,.25,1);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--pg-bg);
+    background-image: radial-gradient(900px 600px at 10% -10%, hsl(248 70% 22% / .5), transparent 60%),
+                      radial-gradient(700px 500px at 95% 10%, hsl(262 65% 20% / .4), transparent 55%);
+    background-attachment: fixed; color: var(--pg-ink);
+    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; min-height: 100vh;
+  }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .layout { display: grid; grid-template-columns: 330px 1fr; gap: 16px; max-width: 1460px; margin: 0 auto; padding: 24px 16px 130px; }
+  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+  header.hero-pg { grid-column: 1 / -1; padding: 4px 4px 0; }
+  header.hero-pg h1 { font-size: 21px; font-weight: 700; letter-spacing: -.3px; }
+  header.hero-pg p { color: var(--pg-muted); margin-top: 4px; max-width: 82ch; }
+  .glass { background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--r-md);
+    backdrop-filter: blur(16px); box-shadow: 0 20px 60px -22px hsl(232 40% 3% / .7), inset 0 1px 0 hsl(0 0% 100% / .1); }
+  aside { display: flex; flex-direction: column; gap: 12px; align-self: start; position: sticky; top: 16px; }
+  .panel { padding: 16px; }
+  .panel h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--pg-faint); font-weight: 600; margin-bottom: 8px; }
+  .stage-btn { display: block; width: 100%; text-align: left; border: 1px solid var(--pg-glass-edge); background: var(--pg-glass);
+    border-radius: var(--r-sm); color: var(--pg-ink); padding: 10px 12px; margin-bottom: 8px; font: inherit; cursor: pointer;
+    transition: border-color 200ms var(--ease), background 200ms var(--ease); }
+  .stage-btn:hover { background: var(--pg-glass-2); }
+  .stage-btn[aria-pressed="true"] { border-color: var(--pg-accent); background: hsl(248 84% 68% / .09); }
+  .stage-btn .nm { font-weight: 600; font-size: 13.5px; display: flex; justify-content: space-between; }
+  .stage-btn .d { color: var(--pg-muted); font-size: 12px; margin-top: 2px; }
+  .score { font-size: 11px; color: var(--pg-faint); }
+  label.knob { display: flex; justify-content: space-between; align-items: center; gap: 8px; color: var(--pg-muted); font-size: 12.5px; margin-top: 9px; }
+  input[type=range] { width: 130px; accent-color: var(--pg-accent); }
+  input[type=checkbox] { accent-color: var(--pg-accent); width: 15px; height: 15px; }
+  .knob .v { font-family: ui-monospace, Menlo, monospace; color: var(--pg-ink); font-size: 11.5px; min-width: 34px; text-align: right; }
+  main { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+  .verdict { padding: 12px 16px; font-size: 12.5px; color: var(--pg-muted); }
+  .verdict b { color: var(--pg-ink); }
+  .browser { border-radius: var(--r-md); border: 1px solid var(--pg-glass-edge); overflow: hidden; }
+  .browser-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: hsl(232 20% 13%); border-bottom: 1px solid hsl(0 0% 100% / .08); }
+  .browser-bar .dots i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: hsl(0 0% 100% / .15); margin-right: 4px; }
+  .browser-bar .url { flex: 1; text-align: center; font-size: 11px; color: var(--pg-faint); font-family: ui-monospace, Menlo, monospace; }
+  .promptbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: 14px; width: min(1428px, calc(100vw - 32px));
+    display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: var(--r-md);
+    z-index: 40; background: hsl(232 26% 10% / .93); border: 1px solid var(--pg-glass-edge); backdrop-filter: blur(18px); }
+  #prompt { color: var(--pg-muted); font-size: 12.5px; max-height: 80px; overflow-y: auto; white-space: pre-wrap; }
+  #copy { background: var(--pg-accent); border: none; color: hsl(232 30% 10%); font: inherit; font-weight: 700;
+    border-radius: var(--r-sm); padding: 10px 18px; cursor: pointer; }
+
+  /* ================= DOCS MOCK — Circuit Forge base ================= */
+  .mock {
+    /* stage-driven custom props (JS writes these) */
+    --m-primary: oklch(0.696 0.170 163);
+    --m-terminus: oklch(0.696 0.170 163);
+    --m-bg: oklch(0.165 0.022 265);
+    --m-fg: oklch(0.929 0.013 255);
+    --m-muted: oklch(0.62 0.02 260);
+    --m-card: oklch(0.205 0.025 262);
+    --m-border: oklch(0.30 0.02 260);
+    --m-radius-card: 8px;
+    --m-shadow-card: none;
+    --m-section-pad: 34px;
+    background: var(--m-bg); color: var(--m-fg);
+    font-family: "Geist", system-ui, sans-serif; overflow: hidden; position: relative;
+  }
+  .m-section { padding: var(--m-section-pad) clamp(20px, 5%, 64px); position: relative; }
+  /* hero */
+  .m-hero { display: grid; grid-template-columns: 1.15fr 1fr; gap: 32px; align-items: center; position: relative; }
+  .m-hero-art { position: relative; min-height: 220px; border-radius: var(--m-radius-card); overflow: hidden; }
+  .m-blob { position: absolute; inset: 0; background: radial-gradient(60% 70% at 60% 40%, color-mix(in oklch, var(--m-primary) 22%, transparent), transparent 70%); }
+  .m-grid-bg { position: absolute; inset: 0; opacity: 0;
+    background-image: radial-gradient(color-mix(in oklch, var(--m-primary) 45%, transparent) 1.2px, transparent 1.2px);
+    background-size: 22px 22px; }
+  .mock.anim .m-grid-bg.on { opacity: .5; animation: flicker 3.2s linear infinite; }
+  .m-grid-bg.on { opacity: .35; }
+  @keyframes flicker { 0%,100% { opacity: .28 } 40% { opacity: .55 } 55% { opacity: .38 } 70% { opacity: .6 } }
+  .m-eyebrow { display: none; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .12em;
+    color: var(--m-primary); margin-bottom: 8px; font-family: ui-monospace, Menlo, monospace; }
+  .mock.eyebrows .m-eyebrow { display: block; }
+  .m-h1 { font-size: 30px; font-weight: 700; letter-spacing: -.5px; line-height: 1.15; }
+  .mock.gradtext .m-h1 span { background: linear-gradient(135deg, var(--m-primary), var(--m-terminus));
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .m-sub { color: var(--m-muted); margin-top: 10px; max-width: 46ch; font-size: 13.5px; }
+  .m-ctas { display: flex; gap: 10px; margin-top: 18px; }
+  .m-btn { border-radius: calc(var(--m-radius-card) - 2px); padding: 9px 16px; font-size: 13px; font-weight: 600; border: 1px solid transparent; cursor: pointer; transition: transform 150ms, box-shadow 150ms; }
+  .m-btn.primary { background: var(--m-primary); color: oklch(0.13 0.02 260); }
+  .mock.glow .m-btn.primary:hover { transform: scale(1.04); box-shadow: 0 0 20px color-mix(in oklch, var(--m-primary) 30%, transparent); }
+  .m-btn.ghost { background: transparent; border-color: var(--m-border); color: var(--m-fg); }
+  .m-stats { display: flex; gap: 26px; margin-top: 20px; }
+  .m-stat .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .m-stat .k { font-size: 11px; color: var(--m-muted); }
+  /* terminal (D3) */
+  .m-term { display: none; position: relative; background: oklch(0.14 0.015 260); border: 1px solid var(--m-border);
+    border-radius: var(--m-radius-card); box-shadow: var(--m-shadow-card); font-family: ui-monospace, Menlo, monospace;
+    font-size: 11px; line-height: 1.75; padding: 14px 16px; color: var(--m-muted); }
+  .mock.term .m-term { display: block; }
+  .mock.term .m-hero-art .m-blob, .mock.term .m-hero-art .m-grid-bg { border-radius: var(--m-radius-card); }
+  .m-term .g { color: var(--m-primary); }
+  .m-term .c { color: var(--m-fg); }
+  .m-term .line { white-space: nowrap; overflow: hidden; }
+  .mock.anim.term .m-term .line { width: 0; animation: type 0.6s steps(40, end) forwards; }
+  .mock.anim.term .m-term .line:nth-child(2) { animation-delay: .5s } .mock.anim.term .m-term .line:nth-child(3) { animation-delay: 1s }
+  .mock.anim.term .m-term .line:nth-child(4) { animation-delay: 1.5s } .mock.anim.term .m-term .line:nth-child(5) { animation-delay: 2s }
+  .mock.anim.term .m-term .line:nth-child(6) { animation-delay: 2.5s } .mock.anim.term .m-term .line:nth-child(7) { animation-delay: 3s }
+  .mock.anim.term .m-term .line:nth-child(8) { animation-delay: 3.5s }
+  @keyframes type { to { width: 100% } }
+  /* cards */
+  .m-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .m-card { position: relative; background: var(--m-card); border: 1px solid var(--m-border);
+    border-radius: var(--m-radius-card); padding: 16px; box-shadow: var(--m-shadow-card);
+    transition: transform 200ms var(--ease), box-shadow 200ms var(--ease), border-color 200ms; overflow: hidden; }
+  .mock.lift .m-card:hover { transform: translateY(-4px);
+    box-shadow: 0 12px 24px -8px color-mix(in oklch, var(--m-primary) 15%, transparent), 0 4px 24px color-mix(in oklch, var(--m-primary) 12%, transparent);
+    border-color: color-mix(in oklch, var(--m-primary) 30%, var(--m-border)); }
+  .m-card.featured::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(135deg, var(--m-primary), var(--m-terminus)); opacity: 0; transition: opacity 200ms; }
+  .mock.gradtop .m-card.featured::before { opacity: .65; }
+  .mock.gradtop .m-card.featured:hover::before { opacity: 1; }
+  .m-card .spot { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 250ms;
+    background: radial-gradient(180px circle at var(--mx, 50%) var(--my, 50%), color-mix(in oklch, var(--m-primary) 14%, transparent), transparent 70%); }
+  .mock.spotlight .m-card:hover .spot { opacity: 1; }
+  .m-card h4 { font-size: 14.5px; font-weight: 650; }
+  .m-card p { color: var(--m-muted); font-size: 12px; margin-top: 5px; line-height: 1.55; }
+  .m-card .cnt { font-size: 20px; font-weight: 700; color: var(--m-primary); font-variant-numeric: tabular-nums; margin-bottom: 6px; }
+  /* article sample */
+  .m-article { border-top: 1px solid var(--m-border); }
+  .m-article .m-prose { max-width: 68ch; }
+  .m-article h2 { font-size: 20px; font-weight: 700; letter-spacing: -.3px; margin-bottom: 8px; }
+  .m-article p { color: var(--m-muted); font-size: 13px; line-height: 1.7; margin-bottom: 10px; }
+  .m-callout { background: var(--m-card); border: 1px solid var(--m-border); border-left: 3px solid var(--m-primary);
+    border-radius: calc(var(--m-radius-card) - 2px); padding: 12px 14px; font-size: 12.5px; color: var(--m-muted); box-shadow: var(--m-shadow-card); }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+</style>
+</head>
+<body>
+<div class="layout">
+  <header class="hero-pg">
+    <h1>Docs Design Overhaul — the bundles, rendered live</h1>
+    <p>One mock of the orchestkit.yonyon.ai landing + article chrome, restyled in place per bundle. Real token values from both design systems (Circuit Forge emerald · portfolio grammar). <b>Hover the cards</b> to feel each stage; the terminus slider taste-tests the emerald→teal→indigo debate on the hero gradient.</p>
+  </header>
+
+  <aside>
+    <div class="glass panel">
+      <h3>Stage</h3>
+      <div id="stages"></div>
+    </div>
+    <div class="glass panel">
+      <h3>Knobs</h3>
+      <label class="knob">Gradient terminus hue <input type="range" id="hue" min="162" max="290" step="1" value="188"><span class="v" id="hueV">188</span></label>
+      <label class="knob">Eyebrows <input type="checkbox" id="kEyebrow" checked></label>
+      <label class="knob">Hover-lift cards <input type="checkbox" id="kLift" checked></label>
+      <label class="knob">Motion (grid flicker, tickers, typing) <input type="checkbox" id="kAnim" checked></label>
+    </div>
+  </aside>
+
+  <main>
+    <div class="glass verdict" id="verdict"></div>
+    <div class="browser">
+      <div class="browser-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">orchestkit.yonyon.ai — live-styled mock</span></div>
+
+      <div class="mock" id="mock">
+        <!-- HERO -->
+        <div class="m-section m-hero">
+          <div>
+            <div class="m-eyebrow">Claude Code Plugin</div>
+            <div class="m-h1">Ship with <span>battle-tested</span> AI workflows</div>
+            <p class="m-sub">114 skills, 37 agents, and 218 hooks with built-in best practices, security gates, and quality loops for Claude Code.</p>
+            <div class="m-ctas">
+              <button class="m-btn primary">Install OrchestKit</button>
+              <button class="m-btn ghost">Browse The Lab</button>
+            </div>
+            <div class="m-stats">
+              <div class="m-stat"><div class="v" data-count="114">114</div><div class="k">skills</div></div>
+              <div class="m-stat"><div class="v" data-count="37">37</div><div class="k">agents</div></div>
+              <div class="m-stat"><div class="v" data-count="218">218</div><div class="k">hooks</div></div>
+            </div>
+          </div>
+          <div class="m-hero-art">
+            <div class="m-blob"></div>
+            <div class="m-grid-bg" id="gridbg"></div>
+            <div class="m-term">
+              <div class="line"><span class="g">$</span> <span class="c">/ork:brainstorm docs-site UI/UX overhaul</span></div>
+              <div class="line">→ grounding: 273 pages, 70% generated reference</div>
+              <div class="line">→ agents: ia-thinker · search-thinker · benchmarks</div>
+              <div class="line">✓ 18 ideas → 7 kept → 2 bundles</div>
+              <div class="line"><span class="g">$</span> <span class="c">ship B1+B2</span></div>
+              <div class="line">→ PR #2963 reference root tab <span class="g">✓ merged</span></div>
+              <div class="line">→ PR #2964 search: 24/24 golden <span class="g">✓ merged</span></div>
+              <div class="line"><span class="g">✓ live on orchestkit.yonyon.ai in 3h11m</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRIMITIVES -->
+        <div class="m-section">
+          <div class="m-eyebrow">Primitives</div>
+          <div class="m-cards">
+            <div class="m-card featured"><div class="spot"></div><div class="cnt" data-count="114">114</div><h4>Skills</h4><p>Reusable knowledge modules: patterns, frameworks, and workflows injected on demand.</p></div>
+            <div class="m-card featured"><div class="spot"></div><div class="cnt" data-count="37">37</div><h4>Agents</h4><p>Specialized personas with curated tools, from backend architects to security auditors.</p></div>
+            <div class="m-card featured"><div class="spot"></div><div class="cnt" data-count="218">218</div><h4>Hooks</h4><p>TypeScript lifecycle automation: security gates, memory sync, audit logging.</p></div>
+          </div>
+        </div>
+
+        <!-- ARTICLE SAMPLE -->
+        <div class="m-section m-article">
+          <div class="m-prose">
+            <div class="m-eyebrow">Guides</div>
+            <h2>How we adopt every Claude Code release</h2>
+            <p>Claude Code ships several releases a week. OrchestKit silently breaks if it falls behind, so the repo runs an automated adoption loop: detect, extract, verify, file, adopt, subtract.</p>
+            <div class="m-callout">In one July 2026 week, the loop turned three releases into 37 auto-filed, scored adoption issues. Zero were written by hand.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="promptbar">
+  <div id="prompt"></div>
+  <button id="copy">Copy prompt</button>
+</div>
+
+<script>
+const STAGES = [
+  { id: "current", nm: "Current — Circuit Forge", score: null,
+    d: "Shipped state: flat cards, static blob, no eyebrows, uniform radii.",
+    verdict: `<b>Baseline.</b> Solid tokens (emerald oklch, WCAG-tuned) but no elevation language, no typographic kickers, generic spacing — reads as templated Fumadocs. This is the "sucks" the brainstorm diagnosed.`,
+    flags: [] },
+  { id: "d1", nm: "D1 — Foundation", score: 9.0,
+    d: "Token grammar port: eyebrows, radius ramp, shadow trio, hover-lift, gradient-top, fluid spacing, teal terminus.",
+    verdict: `<b>Pure CSS, zero LCP risk.</b> The portfolio's token GRAMMAR on the emerald anchor: 14px card radius, 2-layer shadows, hover-lift with primary-tinted glow, gradient top borders, eyebrow kickers, fluid section padding, gradient headline to the +26° terminus. Hover the cards.`,
+    flags: ["eyebrows", "lift", "gradtop", "gradtext", "glow", "d1tokens"] },
+  { id: "d2", nm: "D1+D2 — Component lift", score: 8.5,
+    d: "+ 21st.dev via minimal shadcn: number tickers, flickering grid hero, spotlight cards.",
+    verdict: `<b>+ the registry unlock.</b> shadcn minimal-mode (fd-alias bridge, fd-* stays canonical) brings NumberTicker (watch the stats count up), a flickering circuit grid behind the hero, and mouse-spotlight on the primitive cards. Budget: &lt;30KB, all reduced-motion gated.`,
+    flags: ["eyebrows", "lift", "gradtop", "gradtext", "glow", "d1tokens", "gridbg", "tickers", "spotlight"] },
+  { id: "d3", nm: "D1+D2+D3 — Signature hero", score: 8.2,
+    d: "+ terminal card replaying a REAL session (today's docs-UX ship).",
+    verdict: `<b>The one bold move.</b> The hero art becomes a terminal replaying a genuine session — this morning's actual brainstorm → two PRs → live in 3h11m. Survives screenshots, explains the product. The honesty rule: if the transcript ever reads fake, cut it.`,
+    flags: ["eyebrows", "lift", "gradtop", "gradtext", "glow", "d1tokens", "gridbg", "tickers", "spotlight", "term"] },
+];
+
+const state = { stage: "d1", hue: 188, eyebrow: true, lift: true, anim: true };
+
+const mock = document.getElementById("mock");
+
+function applyStage() {
+  const s = STAGES.find(x => x.id === state.stage);
+  const f = new Set(s.flags);
+  if (!state.eyebrow) f.delete("eyebrows");
+  if (!state.lift) f.delete("lift");
+  mock.className = "mock " + [...f].filter(x => x !== "d1tokens").join(" ") + (state.anim ? " anim" : "");
+  // tokens
+  const d1 = f.has("d1tokens");
+  mock.style.setProperty("--m-radius-card", d1 ? "14px" : "8px");
+  mock.style.setProperty("--m-shadow-card", d1 ? "0 1px 2px 0 oklch(0 0 0 / .2), 0 2px 6px -1px oklch(0 0 0 / .28)" : "none");
+  mock.style.setProperty("--m-section-pad", d1 ? "clamp(2.5rem, 1.5rem + 3vw, 4.2rem)" : "34px");
+  mock.style.setProperty("--m-terminus", `oklch(0.66 0.15 ${state.hue})`);
+  document.getElementById("gridbg").classList.toggle("on", f.has("gridbg"));
+  document.getElementById("verdict").innerHTML = s.verdict +
+    (state.hue > 250 ? ` <span style="color:hsl(45 90% 65%)">⚠ terminus ${state.hue} = indigo territory — the rejected full-unification look; taste it, then come back to 188.</span>` : "");
+  runTickers(f.has("tickers") && state.anim);
+  renderControls();
+  updatePrompt();
+}
+
+let tickerTimers = [];
+function runTickers(on) {
+  tickerTimers.forEach(clearInterval); tickerTimers = [];
+  document.querySelectorAll("[data-count]").forEach(el => {
+    const target = +el.dataset.count;
+    if (!on) { el.textContent = target; return; }
+    let cur = 0; const step = Math.max(1, Math.round(target / 40));
+    el.textContent = "0";
+    const t = setInterval(() => {
+      cur = Math.min(target, cur + step);
+      el.textContent = cur;
+      if (cur >= target) clearInterval(t);
+    }, 28);
+    tickerTimers.push(t);
+  });
+}
+
+function renderControls() {
+  document.getElementById("stages").innerHTML = STAGES.map(s => `
+    <button class="stage-btn" data-id="${s.id}" aria-pressed="${state.stage === s.id}">
+      <span class="nm">${s.nm}${s.score ? `<span class="score">${s.score.toFixed(1)}</span>` : ""}</span>
+      <span class="d">${s.d}</span>
+    </button>`).join("");
+}
+
+function updatePrompt() {
+  const parts = [];
+  if (state.stage === "current") {
+    parts.push("Keep the current Circuit Forge styling on orchestkit.yonyon.ai (no design changes).");
+  } else {
+    parts.push(`Implement the docs-site design overhaul (docs/site, orchestkit repo) through stage ${state.stage.toUpperCase()}:`);
+    parts.push(`1. D1 Foundation (app/global.css only): port the portfolio token GRAMMAR onto the emerald anchor — radius ramp off 0.625rem (card = r+4), 2-layer card shadows, hover-lift (-4px + primary-tinted color-mix shadow), gradient-top-border on featured cards, eyebrow utility (12px/600/uppercase/.12em, emerald, mono), fluid section spacing clamps, prose measure 68ch, and a gradient terminus token at hue ${state.hue} (oklch(0.66 0.15 ${state.hue})) used ONLY decoratively (hero headline gradient, gradient borders). All glows color-mix'd from var(--color-fd-primary), never hardcoded. Keep ease-out-expo; adopt 150/200/400ms durations.${state.eyebrow ? "" : " SKIP eyebrows."}${state.lift ? "" : " SKIP hover-lift."}`);
+    if (state.stage === "d2" || state.stage === "d3") {
+      parts.push("2. D2 Component lift: add shadcn minimal-mode (components.json + cn() + ~20-line fd-alias bridge in global.css; fd-* stays canonical, no migration of existing components). Install from 21st.dev registry: NumberTicker (hero stats + primitives counts + cc-adoption-board tiles, min-width reserved per digit, reduced-motion shows final value), a flickering-grid hero background (color = var(--color-fd-primary), pointer-events-none, lazy-mounted, reduced-motion static), and spotlight-hover treatment on the three primitives cards only. Bundle delta budget < 30KB; add a lint note that new components use bg-fd-* utilities.");
+    }
+    if (state.stage === "d3") {
+      parts.push("3. D3 Signature hero: replace the hero art with a terminal card (HTML text, Geist Mono, CSS steps() line reveal, full transcript readable when static / reduced-motion) replaying the REAL 2026-07-17 session: /ork:brainstorm docs UX → 3 agents → 18 ideas → PRs #2963 + #2964 merged → live in 3h11m. Keep the transcript honest — regenerate it from a real session whenever it drifts.");
+    }
+    parts.push("Verify: golden before/after screenshots of landing + a guide page + a reference page at 2 widths; LCP unchanged on landing (webpagetest or lighthouse CI); contrast checks only where new color pairs appear (terminus is decorative-only). Ship as PR(s) with the playground-gate artifact; D1 first, D2 separate.");
+  }
+  document.getElementById("prompt").textContent = parts.join("\n");
+}
+
+document.addEventListener("click", e => {
+  const b = e.target.closest(".stage-btn");
+  if (b) { state.stage = b.dataset.id; applyStage(); }
+});
+document.getElementById("hue").addEventListener("input", e => {
+  state.hue = +e.target.value; document.getElementById("hueV").textContent = state.hue; applyStage();
+});
+document.getElementById("kEyebrow").addEventListener("change", e => { state.eyebrow = e.target.checked; applyStage(); });
+document.getElementById("kLift").addEventListener("change", e => { state.lift = e.target.checked; applyStage(); });
+document.getElementById("kAnim").addEventListener("change", e => { state.anim = e.target.checked; applyStage(); });
+
+// spotlight mouse tracking
+document.addEventListener("mousemove", e => {
+  const card = e.target.closest(".m-card");
+  if (!card || !mock.classList.contains("spotlight")) return;
+  const r = card.getBoundingClientRect();
+  card.style.setProperty("--mx", `${e.clientX - r.left}px`);
+  card.style.setProperty("--my", `${e.clientY - r.top}px`);
+});
+
+document.getElementById("copy").addEventListener("click", () => {
+  navigator.clipboard.writeText(document.getElementById("prompt").textContent).then(() => {
+    const b = document.getElementById("copy"); const t = b.textContent;
+    b.textContent = "Copied!"; setTimeout(() => (b.textContent = t), 1200);
+  });
+});
+
+applyStage();
+</script>
+</body>
+</html>

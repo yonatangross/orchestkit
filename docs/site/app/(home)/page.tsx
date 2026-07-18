@@ -6,6 +6,9 @@ import { formatStars } from "@/lib/format-stars";
 import { AnimateOnView } from "@/components/animate-on-view";
 import { AgentReadinessSection } from "@/components/agent-readiness-section";
 import { HomepageStructuredData } from "@/components/structured-data";
+import { NumberTicker } from "@/components/lab/number-ticker";
+import { FlickeringGrid } from "@/components/lab/flickering-grid";
+import { MagicCard } from "@/components/lab/magic-card";
 
 async function getStarCount(): Promise<number | null> {
   try {
@@ -113,6 +116,8 @@ export default async function HomePage() {
         aria-labelledby="hero-heading"
         className="relative overflow-hidden border-b border-fd-border"
       >
+        {/* Ambient flickering grid, layered behind the hero content */}
+        <FlickeringGrid className="absolute inset-0 -z-10" />
         {/* Radial emerald gradient top-center */}
         <div
           aria-hidden="true"
@@ -326,31 +331,38 @@ export default async function HomePage() {
 
           <div className="mb-11 grid grid-cols-1 gap-[14px] md:grid-cols-3">
             {PRIMITIVES.map((p) => (
-              <Link
+              // MagicCard adds the pointer-tracking spotlight overlay only; its
+              // own border/bg/rounded chrome is neutralized so the Link keeps
+              // the merged D1 card-trace / card-lift treatment intact.
+              <MagicCard
                 key={p.letter}
-                href={p.href}
-                className="group card-elevated card-trace card-lift relative overflow-hidden rounded-[var(--radius-card)] border border-fd-border bg-[var(--color-fd-surface-raised)] p-5"
+                className="rounded-[var(--radius-card)] border-0 bg-transparent"
               >
-                <div className="mb-5 flex items-start justify-between">
-                  <div
-                    aria-hidden="true"
-                    className="grid h-[38px] w-[38px] place-items-center rounded-lg border border-[var(--color-fd-primary-20)] bg-[var(--color-fd-primary-10)] font-mono text-[17px] font-semibold text-fd-primary"
-                  >
-                    {p.letter}
+                <Link
+                  href={p.href}
+                  className="group card-elevated card-trace card-lift relative block h-full overflow-hidden rounded-[var(--radius-card)] border border-fd-border bg-[var(--color-fd-surface-raised)] p-5"
+                >
+                  <div className="mb-5 flex items-start justify-between">
+                    <div
+                      aria-hidden="true"
+                      className="grid h-[38px] w-[38px] place-items-center rounded-lg border border-[var(--color-fd-primary-20)] bg-[var(--color-fd-primary-10)] font-mono text-[17px] font-semibold text-fd-primary"
+                    >
+                      {p.letter}
+                    </div>
+                    <div className="pt-2.5 font-mono text-[11px] uppercase tracking-[0.06em] text-fd-muted-foreground">
+                      {p.tag}
+                    </div>
                   </div>
-                  <div className="pt-2.5 font-mono text-[11px] uppercase tracking-[0.06em] text-fd-muted-foreground">
-                    {p.tag}
+                  <div className="flex items-baseline gap-1.5 font-mono text-[clamp(2rem,2vw+1.2rem,2.75rem)] font-medium leading-none tracking-[-0.03em] text-fd-foreground">
+                    <NumberTicker value={p.count} />
+                    <span className="text-[0.5em] font-normal tracking-normal text-fd-muted-foreground">
+                      {p.unit}
+                    </span>
                   </div>
-                </div>
-                <div className="flex items-baseline gap-1.5 font-mono text-[clamp(2rem,2vw+1.2rem,2.75rem)] font-medium leading-none tracking-[-0.03em] text-fd-foreground">
-                  <span className="tabular-nums">{p.count}</span>
-                  <span className="text-[0.5em] font-normal tracking-normal text-fd-muted-foreground">
-                    {p.unit}
-                  </span>
-                </div>
-                <h3 className="mt-2.5 mb-2 text-base font-semibold text-fd-foreground">{p.title}</h3>
-                <p className="text-[13px] leading-[1.55] text-fd-muted-foreground">{p.desc}</p>
-              </Link>
+                  <h3 className="mt-2.5 mb-2 text-base font-semibold text-fd-foreground">{p.title}</h3>
+                  <p className="text-[13px] leading-[1.55] text-fd-muted-foreground">{p.desc}</p>
+                </Link>
+              </MagicCard>
             ))}
           </div>
 
