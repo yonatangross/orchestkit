@@ -1,0 +1,8 @@
+{
+  "generated_from": "self-test fixture (deterministic)",
+  "overall": { "count": 2, "index": 0.875 },
+  "components": {
+    "commit": { "score": 0.95, "effective_precision": 1.0, "effective_recall": 0.9, "quality_pass_rate": null },
+    "assess": { "score": 0.8, "effective_precision": 0.8, "effective_recall": 0.8, "quality_pass_rate": null }
+  }
+}

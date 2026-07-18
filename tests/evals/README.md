@@ -146,6 +146,39 @@ Two CI surfaces consume this:
 derived mechanically from the component description (tagged `starter`) and are
 meant to be refined by a human before the scores are trusted.
 
+## Quality Index + Regression Gate (#2194)
+
+`scripts/eval/aggregate-quality-index.sh` reduces the committed-shape result
+JSONs (`results/skills/*.trigger.json` + `*.quality.json`) to one per-component
+quality index, deterministically (pure jq/bash, no LLM). Each metric is
+normalized to 0..1; a component `score` is the mean of the metrics that exist;
+`overall.index` is the mean of component scores. It writes
+`results/quality-index.json` (gitignored artifact).
+
+`tests/evals/scripts/check-eval-regression.sh` runs the aggregator over the
+current results and diffs against the COMMITTED baseline
+`tests/evals/quality-index.baseline.json`. It exits non-zero when a baseline
+component regresses beyond the threshold (default `0.05`, override with
+`EVAL_REGRESSION_THRESHOLD`) or disappears from the fresh index (coverage
+cannot silently vanish once data lands). Accept an intentional change with
+`--update-baseline`.
+
+```bash
+bash scripts/eval/aggregate-quality-index.sh          # write quality-index.json
+bash tests/evals/scripts/check-eval-regression.sh     # gate current vs baseline
+bash tests/evals/scripts/check-eval-regression.sh --update-baseline  # accept a change
+```
+
+**Honest scope.** The committed baseline currently measures **0 components**:
+`results/` is gitignored and holds no committed result JSONs, so nothing has
+been scored yet. In this empty state the gate is a loud NO-OP (it prints a
+notice and exits 0 — it does NOT report a green quality PASS). A full paid eval
+run must land and seed the baseline (`--update-baseline`) to make the index
+exhaustive across the ~94 committed specs. Until then the gate is still valuable
+as a ratchet on whatever IS measured, and its logic is CI-verified by
+`tests/evals/test-quality-index-gate.sh` against fixtures (pass / regress /
+drop / empty-state).
+
 ## Duration Report
 
 `npm run eval:report` aggregates trigger + quality durations from result JSONs:
