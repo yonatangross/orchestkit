@@ -665,7 +665,11 @@ article blockquote {
    users) never get .fr-live either and keep the fallback above. */
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
   .fr-root.fr-live .fr-track {
-    height: 560vh;
+    /* Tightened from 560vh: the generated flight is only a few seconds long,
+       so a longer track just spreads the same motion thinner and the world
+       reads as a still image. Shorter track = more camera movement per
+       scroll. */
+    height: 360vh;
   }
   .fr-root.fr-live .fr-stage {
     position: sticky;
@@ -697,7 +701,15 @@ article blockquote {
   }
   .fr-root.fr-live .fr-stop.fr-on {
     opacity: 1;
-    transform: none;
+    /* --fr-shift is written per-frame from the scroll handler, so the copy
+       travels against the world (real parallax) instead of only fading.
+       The entry easing is shortened here so the parallax tracks the scroll
+       instead of lagging 400ms behind it. */
+    transform: translateY(var(--fr-shift, 0px));
+    transition:
+      opacity 400ms var(--ease-out-expo),
+      transform 90ms linear,
+      visibility 0s;
     visibility: visible;
     transition-delay: 0s;
     pointer-events: auto;
