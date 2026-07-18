@@ -305,10 +305,10 @@
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(600px at 50% 30%, oklch(0.62 0.2 264 / 0.12), transparent 70%),
-    radial-gradient(110% 80% at 82% 0%, oklch(0.26 0.09 285 / 0.55), transparent 60%),
-    radial-gradient(90% 70% at 8% 100%, oklch(0.22 0.08 280 / 0.5), transparent 60%),
-    radial-gradient(120% 100% at 50% 40%, transparent 30%, oklch(0.08 0.012 265 / 0.85) 100%);
+    radial-gradient(700px at 50% 22%, oklch(0.62 0.2 264 / 0.18), transparent 70%),
+    radial-gradient(120% 85% at 85% -5%, oklch(0.34 0.13 286 / 0.8), transparent 58%),
+    radial-gradient(100% 75% at 5% 105%, oklch(0.3 0.12 278 / 0.72), transparent 58%),
+    radial-gradient(130% 105% at 50% 42%, transparent 28%, oklch(0.075 0.014 265 / 0.88) 100%);
 }
 .dark body::after {
   content: "";
@@ -316,15 +316,28 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.4;
-  background-image: radial-gradient(circle, oklch(0.62 0.2 264 / 0.14) 1px, transparent 1px);
-  background-size: 22px 22px;
+  opacity: 0.6;
+  background-image: radial-gradient(circle, oklch(0.62 0.2 264 / 0.18) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(130% 100% at 50% 30%, black 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(130% 100% at 50% 30%, black 30%, transparent 75%);
 }
 /* Let the cosmic layer read through the docs shell in dark mode while
    prose stays on a near-opaque panel. */
 .dark #nd-docs-layout,
 .dark main {
   background: transparent;
+}
+
+/* Minimal top-nav search — hide the wide "Search ⌘K" bar, keep the compact
+   icon (matches yonyon.ai's plain nav). The sidebar search stays intact. */
+#nd-nav [data-search-full],
+header [data-search-full] {
+  display: none !important;
+}
+#nd-nav [data-search],
+header [data-search] {
+  display: inline-flex !important;
 }
 
 @media (prefers-reduced-motion: no-preference) {
