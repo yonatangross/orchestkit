@@ -56,7 +56,10 @@ export default function Layout({ children }: { children: ReactNode }) {
 					Skip to main content
 				</a>
 				<Banner id={`v${SITE.version}`}>{BANNER_TEXT}</Banner>
-				<RootProvider search={{ SearchDialog: CustomSearchDialog }}>
+				<RootProvider
+					theme={{ defaultTheme: "dark" }}
+					search={{ SearchDialog: CustomSearchDialog }}
+				>
 					<div id="main-content">{children}</div>
 				</RootProvider>
 				<HQAnalytics projectId="orchestkit" />

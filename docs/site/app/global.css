@@ -23,7 +23,7 @@
   /* Fluid typography — clamp(min, vw + rem, max)
      rem component respects user font-size preferences (accessibility)
      vw component drives smooth viewport scaling */
-  --text-fluid-h1: clamp(2rem, 2.5vw + 1.5rem, 4.5rem);
+  --text-fluid-h1: clamp(2.5rem, 4vw + 1.5rem, 6rem);   /* yonyon-scale display */
   --text-fluid-h2: clamp(1.25rem, 1.5vw + 0.75rem, 2.25rem);
 
   /* Light mode palette — warm-undertone neutrals (hue 85, chroma <= 0.012
@@ -169,7 +169,7 @@
   --section-x: clamp(1rem, 0.5rem + 2vw, 2rem);
 
   /* The signature: the yonyon ledger trace, indigo → violet */
-  --gradient-trace: linear-gradient(135deg, var(--color-fd-primary), var(--color-fd-terminus));
+  --gradient-trace: linear-gradient(to right, var(--color-fd-primary) 0%, var(--color-fd-terminus) 100%);  /* yonyon "runs itself." emphasis */
 }
 
 /* ============================================================
@@ -285,6 +285,46 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ============================================================
+   COSMIC BACKGROUND — yonyon.ai signature (pure CSS, no image)
+   Two violet corner nebulae + a centered indigo glow + a 1px
+   particle dot-grid + an edge vignette, fixed behind everything.
+   Dark-mode only; light mode stays clean per the portfolio.
+   ============================================================ */
+.dark body {
+  background-color: oklch(0.1 0.018 265);   /* solid base under the cosmic layers */
+}
+.dark body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(600px at 50% 30%, oklch(0.62 0.2 264 / 0.12), transparent 70%),
+    radial-gradient(110% 80% at 82% 0%, oklch(0.26 0.09 285 / 0.55), transparent 60%),
+    radial-gradient(90% 70% at 8% 100%, oklch(0.22 0.08 280 / 0.5), transparent 60%),
+    radial-gradient(120% 100% at 50% 40%, transparent 30%, oklch(0.08 0.012 265 / 0.85) 100%);
+}
+.dark body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.4;
+  background-image: radial-gradient(circle, oklch(0.62 0.2 264 / 0.14) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+/* Let the cosmic layer read through the docs shell in dark mode while
+   prose stays on a near-opaque panel. */
+.dark #nd-docs-layout,
+.dark main {
+  background: transparent;
 }
 
 @media (prefers-reduced-motion: no-preference) {

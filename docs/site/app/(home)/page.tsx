@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, BadgeCheck, Ban } from "lucide-react";
 import { CopyInstallButton } from "./copy-button";
 import { SITE, COUNTS } from "@/lib/constants";
@@ -109,6 +110,20 @@ export default async function HomePage() {
   return (
     <main>
       <HomepageStructuredData starCount={stars} />
+      {/* George — the yonyon husky, gold-ring badge bottom-right */}
+      <a
+        href={SITE.github}
+        aria-label="OrchestKit on GitHub"
+        className="fixed bottom-5 right-5 z-40 hidden rounded-full ring-2 ring-[var(--yy-george-warm)]/60 transition-transform hover:scale-105 md:block"
+      >
+        <Image
+          src="/brand/george-badge.png"
+          alt="George, the OrchestKit husky"
+          width={52}
+          height={52}
+          className="rounded-full"
+        />
+      </a>
       {/* ============ HERO — the factory ride ============
           Sticky canvas-scrub ride (components/world/factory-ride.tsx).
           All overlay copy below is server-rendered and passed in as
