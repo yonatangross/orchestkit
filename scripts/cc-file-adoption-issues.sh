@@ -11,8 +11,9 @@
 #   GH_REPO           "owner/repo" — required for milestone resolution
 #                     (workflow injects ${{ github.repository }})
 #   MIN_GAP_SCORE     issue floor (default 10)
-#   ORK_EVIDENCE_GATE 1 (default) enables the evidence lanes; 0 = legacy
-#                     score-only filing, recall lane skipped
+#   ORK_EVIDENCE_GATE 0 (default) = legacy score-only filing, recall lane
+#                     skipped; 1 enables both evidence lanes (the workflow sets
+#                     it to 1 explicitly so activation is never silent)
 #   EVIDENCE_ROOTS    space-separated paths grepped for surface evidence
 #   RECALL_MIN        sub-floor recall band lower bound (default 4)
 #   FEATURE_CAP       extractor hard cap for cap-saturation warning (default 20)
@@ -45,9 +46,10 @@ MIN_GAP_SCORE="${MIN_GAP_SCORE:-10}"
 # actually author. Space-separated; non-existent paths are filtered out at use.
 # Injectable so the hermetic step-3 tests can point it at a controlled fixture.
 EVIDENCE_ROOTS="${EVIDENCE_ROOTS:-src/settings/ manifests/ src/hooks/hooks.json src/hooks/src/ src/skills/ src/agents/}"
-# ORK_EVIDENCE_GATE=0 disables both new lanes: the >=floor loop files purely on
-# score (legacy behaviour) and the sub-floor recall lane is skipped entirely.
-EVIDENCE_GATE="${ORK_EVIDENCE_GATE:-1}"
+# ORK_EVIDENCE_GATE defaults to 0 (legacy score-only filing, recall lane skipped)
+# so the gate never activates silently. The nightly workflow sets it to 1
+# explicitly (a visible, one-line-revertible switch). 1 enables both lanes.
+EVIDENCE_GATE="${ORK_EVIDENCE_GATE:-0}"
 # Lower bound of the recall band. Sub-floor features scored below this are too
 # weak to file even with evidence; [RECALL_MIN, MIN_GAP_SCORE) is the recall lane.
 RECALL_MIN="${RECALL_MIN:-4}"
@@ -56,13 +58,16 @@ RECALL_MIN="${RECALL_MIN:-4}"
 # we stamp cap_saturated and warn (a cheap #2950 aid, not the truncation fix).
 FEATURE_CAP="${FEATURE_CAP:-20}"
 
-# Minimum length for a slug-derived search token. Shorter fragments (dir, fd, ui)
-# are too generic to be evidence; backticked identifiers and env-vars bypass this.
-TOKEN_MIN_LEN=4
-
-# Generic words that carry no surface-identity signal — dropped from slug tokens
-# so they can't produce a spurious evidence hit on their own.
-TOKEN_STOPLIST=" fix fixed adds added new news now when with support supported allow allowed flag mode error path check prompt option value from into that this "
+# Evidence is a hit on an IDENTIFIER-SHAPED token, classified by shape (not by an
+# unbounded English stoplist): a token is a search candidate only if it contains
+# `_` `-` `.` or `:`, or is mixedCase (has both an upper and a lower letter) — i.e.
+# a name a plugin author would type verbatim (`SessionStart`, `Bash`, `settings.json`,
+# `--no-browser`). Bare single-case dictionary words (chrome, scroll, source) are
+# discarded: they are common in prose and code alike, so matching them proves
+# nothing about whether ork authors the surface. Verified against the real 2.1.214
+# ledger — every genuine feature line carries such an identifier (SessionStart,
+# Bash, Edit), while end-user-only lines (scrollbar/cursor polish) do not.
+STRONG_TOKEN_MIN=3
 
 # Temp file accumulating per-feature dispositions (JSON lines) written by the
 # lanes and merged back into the ledger in a single jq pass at the end. The
@@ -96,55 +101,54 @@ existing_roots() {
   done
 }
 
-# Derive identifier-like search tokens from a feature (one per line, deduped):
-#   1. identifiers inside backtick spans of the description + changelog line
-#      (the most trustworthy surface names, e.g. `SubagentStop`, `--no-browser`)
-#   2. ALL_CAPS_SNAKE env-var names anywhere in that text
-#   3. slug segments (split on _ and -) of length >= TOKEN_MIN_LEN, minus the
-#      stoplist, plus the whole concatenated slug
-# Generic single words never become tokens on their own — that is the precision
-# lever for #2993.
+# Derive IDENTIFIER-SHAPED (STRONG) search tokens from a feature, one per line,
+# deduped. Candidates are every word in the description + changelog line + slug,
+# plus the slug's `_`/`-` segments and its concatenated form. A candidate is kept
+# only if it is identifier-shaped: contains `_` `-` `.` or `:`, OR is mixedCase
+# (has both an upper and a lower letter). Bare single-case words (chrome, scroll,
+# source) are dropped — matching them proves nothing (see the note above). The
+# full slug is always identifier-shaped when multi-segment, so a real feature
+# yields >= 1 token and evaluates to hit/miss rather than the unknown fallback.
 derive_tokens() {
   local feat="$1"
   local slug desc ref text
   slug=$(printf '%s' "$feat" | jq -r '.feature_slug // ""')
   desc=$(printf '%s' "$feat" | jq -r '.description // ""')
   ref=$(printf '%s' "$feat" | jq -r '.reference_changelog_line // ""')
-  text="$desc $ref"
+  text="$desc $ref $slug"
   {
-    # (1) identifiers inside backtick spans. No backticks / no identifier is the
-    # common case, so grep exit 1 here is expected, not an error.
-    printf '%s\n' "$text" | grep -oE '`[^`]+`' | grep -oE '[A-Za-z][A-Za-z0-9_-]{2,}' || true  # silent: known-noise
-    # (2) ALL_CAPS_SNAKE env vars — usually absent.
-    printf '%s\n' "$text" | grep -oE '[A-Z][A-Z0-9]+(_[A-Z0-9]+)+' || true  # silent: known-noise
-    # (3) slug segments + concatenated slug
-    printf '%s\n' "$slug" | tr '_-' '\n\n'
-    printf '%s\n' "$slug" | tr -d '_-'
-  } | while read -r tok; do
+    # Every identifier-ish word anywhere in the text (also pulls names out of
+    # `backtick` spans and flags like --no-browser). A no-match grep exits 1,
+    # which is expected on a wordless line.
+    printf '%s\n' "$text" | grep -oE '[A-Za-z][A-Za-z0-9_.:-]{2,}' || true  # silent: known-noise
+    printf '%s\n' "$slug"                     # full slug (identifier-shaped if multi-segment)
+    printf '%s\n' "$slug" | tr '_-' '\n\n'    # slug segments (kept only if mixedCase)
+  } | while IFS= read -r tok; do
       [ -z "$tok" ] && continue
-      # Keep tokens that clear the length bar and are not stoplisted. Backtick and
-      # env-var tokens are typically long enough to pass naturally.
-      local lc=" $(printf '%s' "$tok" | tr '[:upper:]' '[:lower:]') "
-      if [ "${#tok}" -ge "$TOKEN_MIN_LEN" ] && [ "${TOKEN_STOPLIST%%"$lc"*}" = "$TOKEN_STOPLIST" ]; then
-        printf '%s\n' "$tok"
+      [ "${#tok}" -ge "$STRONG_TOKEN_MIN" ] || continue
+      local strong=0
+      case "$tok" in *[_.:-]*) strong=1 ;; esac
+      # mixedCase (both an upper and a lower letter) is also identifier-shaped.
+      if [ "$strong" -eq 0 ] && grep -q '[a-z]' <<< "$tok" && grep -q '[A-Z]' <<< "$tok"; then
+        strong=1
       fi
+      [ "$strong" -eq 1 ] && printf '%s\n' "$tok"
     done | sort -u
 }
 
 # Echo one of: hit | miss | unknown.
-#   hit     — a derived token was found in an evidence root
+#   hit     — an identifier-shaped token matched somewhere in the roots
 #   miss    — tokens were derived but none matched
-#   unknown — no usable tokens could be derived (cannot assess)
+#   unknown — no identifier-shaped token could be derived (cannot assess)
 # When the gate is disabled it short-circuits to `hit` (never suppresses).
 has_evidence() {
   local feat="$1"
   [ "$EVIDENCE_GATE" = "0" ] && { echo hit; return; }
-  local roots tokens
+  local roots tokens tok
   roots=$(existing_roots)
   [ -z "$roots" ] && { echo unknown; return; }
   tokens=$(derive_tokens "$feat")
   [ -z "$tokens" ] && { echo unknown; return; }
-  local tok
   while IFS= read -r tok; do
     [ -z "$tok" ] && continue
     # -r recursive, -l list, -i case-insensitive, -F fixed string so a token with
@@ -350,7 +354,7 @@ done < <(jq -r '.[] | "\(.version) \((.features // []) | length)"' "$GAPS_FILE")
 # ── Merge per-feature dispositions back into the ledger ───────────────────────
 # The lanes recorded (version, feature_slug, disposition) triples to DISPO_FILE.
 # Fold them onto the matching feature objects in one jq pass, keyed on
-# version + NUL + slug so no separator can collide.
+# version + space + slug (neither field contains a space, so the key is unique).
 if [ -s "$DISPO_FILE" ]; then
   DISPO_JSON="$(jq -s '.' "$DISPO_FILE")"
   TMP_DISPO="$(mktemp)"

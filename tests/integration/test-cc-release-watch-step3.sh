@@ -381,9 +381,11 @@ fi
 rm -rf "$EVDIR"
 
 # ---- Case 13 (#2992): sub-floor + evidence → filed via recall lane -----------
+# The changelog line carries a mixedCase identifier (SessionStart) that appears
+# in the evidence file — the STRONG-token hit that drives the recall lane.
 EVDIR=$(mktemp -d)
 echo "handles SessionStart source and fork materialization" > "$EVDIR/dispatcher.ts"
-F=$(feat "session_fork_source" 5)
+F=$(jq -nc '{feature_slug: "session_fork_source", gap_score: 5, description: "SessionStart reports source fork", category: "new_field", reference_changelog_line: "Changed SessionStart hooks to report source fork", affected_skills: []}')
 GAPS=$(jq -nc --argjson f "$F" '[{version: "2.1.999", features: [$f]}]')
 run_gate "case13-recall" "$GAPS" "$EVDIR"
 CALLS=$(count_calls "issue|create")
@@ -441,19 +443,72 @@ else
 fi
 
 # ---- Case 16 (#2993): above-floor WITH evidence → still files (gate-on happy) -
+# The changelog line names a mixedCase identifier (SubagentStop) present in the
+# evidence file — the STRONG-token hit that lets the precision lane file.
 EVDIR=$(mktemp -d)
-echo "the hook state field is materialized here" > "$EVDIR/skill.md"
-F=$(feat "hook_state_field" 15)
+echo "the dispatcher handles the SubagentStop hook" > "$EVDIR/dispatcher.ts"
+F=$(jq -nc '{feature_slug: "subagentstop_hook", gap_score: 15, description: "Added the SubagentStop hook", category: "new_event", reference_changelog_line: "Added the SubagentStop hook event", affected_skills: []}')
 GAPS=$(jq -nc --argjson f "$F" '[{version: "2.1.999", features: [$f]}]')
 run_gate "case16-gateon-file" "$GAPS" "$EVDIR"
 CALLS=$(count_calls "issue|create")
-D=$(dispo_of "hook_state_field")
+D=$(dispo_of "subagentstop_hook")
 if [ "$GATE_EXIT" = "0" ] && [ "$CALLS" = "1" ] && [ -z "$D" ]; then
   log_pass "case 16: above-floor + evidence (gate on) → filed, no disposition stamp"
 else
   log_fail "case 16" "exit=$GATE_EXIT calls=$CALLS dispo='$D' (see /tmp/step3-case16-gateon-file.out)"
 fi
 rm -rf "$EVDIR"
+
+# ============================================================================
+# M169 real-tree ANCHOR cases — NON-hermetic. These run the evidence grep
+# against the ACTUAL repo tree with the DEFAULT EVIDENCE_ROOTS (unset), from
+# PROJECT_ROOT, so they assert the gate discriminates on real code. They define
+# "working": if a tightening breaks either, the tightening is wrong.
+# ============================================================================
+
+# Run the filer from PROJECT_ROOT with the gate on and DEFAULT evidence roots,
+# against a temp gaps/args file (never the real ledger). Leaves the rewritten
+# ledger at $ANCHOR_GAPS for assertions.
+run_anchor() {
+  local name="$1" gaps_json="$2"
+  : > "$MOCK_LOG"
+  ANCHOR_GAPS="$WORK/anchor-gaps.json"
+  echo "$gaps_json" > "$ANCHOR_GAPS"
+  echo '{"milestone": "CC adoption"}' > "$WORK/anchor-args.json"
+  pushd "$PROJECT_ROOT" >/dev/null
+  ANCHOR_EXIT=0
+  ORK_EVIDENCE_GATE=1 GAPS_FILE="$ANCHOR_GAPS" ISSUE_ARGS_FILE="$WORK/anchor-args.json" \
+  MOCK_EXISTING_MILESTONE=1 GH_REPO="acme/orchestkit" \
+    bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" > "/tmp/step3-$name.out" 2>&1 \
+    || ANCHOR_EXIT=$?
+  popd >/dev/null
+}
+
+# ---- Anchor A (#2992): the REAL 2.1.214 sessionstart fork-source feature MUST
+# evaluate hit — its surface is src/hooks/src/lifecycle/sync-session-dispatcher.ts.
+REAL_REF='Changed SessionStart hooks to report source `"fork"` when a session begins as a fork instead of `"resume"`'
+GAPS=$(jq -nc --arg ref "$REAL_REF" \
+  '[{version: "2.1.214", features: [{feature_slug: "sessionstart_fork_source", gap_score: 5, description: "SessionStart hooks report source fork on a forked session", category: "new_field", reference_changelog_line: $ref, affected_skills: []}]}]')
+run_anchor "anchorA-real-hit" "$GAPS"
+CALLS=$(count_calls "issue|create")
+if [ "$ANCHOR_EXIT" = "0" ] && [ "$CALLS" = "1" ]; then
+  log_pass "anchor A: real sessionstart fork-source (score 5) → evidence hit → filed via recall lane"
+else
+  log_fail "anchor A" "exit=$ANCHOR_EXIT calls=$CALLS (see /tmp/step3-anchorA-real-hit.out)"
+fi
+
+# ---- Anchor B (#2993): an end-user-only feature MUST evaluate miss on the real
+# tree (chrome/scroll/polish live only in prose docs, never in code/config).
+GAPS=$(jq -nc \
+  '[{version: "2.1.214", features: [{feature_slug: "chrome_scroll_polish", gap_score: 20, description: "smoother scrollbar and cursor polish", category: "breaking", reference_changelog_line: "chrome scroll polish", affected_skills: []}]}]')
+run_anchor "anchorB-real-miss" "$GAPS"
+CALLS=$(count_calls "issue|create")
+D=$(jq -r '[.[] | .features[]? | select(.feature_slug=="chrome_scroll_polish") | .disposition] | .[0] // ""' "$ANCHOR_GAPS")
+if [ "$ANCHOR_EXIT" = "0" ] && [ "$CALLS" = "0" ] && [ "$D" = "triaged-noop-no-evidence" ]; then
+  log_pass "anchor B: end-user chrome_scroll_polish (score 20) → evidence miss → not filed on real tree"
+else
+  log_fail "anchor B" "exit=$ANCHOR_EXIT calls=$CALLS dispo='$D' (see /tmp/step3-anchorB-real-miss.out)"
+fi
 
 echo ""
 echo "========================================================="
