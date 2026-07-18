@@ -17,6 +17,30 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.79.0",
+    "date": "2026-07-18",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**cc-watch:** evidence-gated filing lanes - precision gate + sub-floor recall ([#2992](https://github.com/yonatangross/orchestkit/issues/2992), [#2993](https://github.com/yonatangross/orchestkit/issues/2993)) ([#2995](https://github.com/yonatangross/orchestkit/issues/2995)) ([efee8f1](https://github.com/yonatangross/orchestkit/commit/efee8f1d663242d014307db7209113897bf8d140))",
+          "**cc:** adopt CC 2.1.209-214, advance latest_known to 2.1.214 ([#2994](https://github.com/yonatangross/orchestkit/issues/2994)) ([04b6906](https://github.com/yonatangross/orchestkit/commit/04b6906131adc0d76383121462f9fe006688b38d))",
+          "**evals:** eval coverage walker + starter-spec fill ([#2192](https://github.com/yonatangross/orchestkit/issues/2192)) ([#2998](https://github.com/yonatangross/orchestkit/issues/2998)) ([523bd02](https://github.com/yonatangross/orchestkit/commit/523bd02cd67d1e9af77c30eaf97eb3a84a0ddc1d))",
+          "**evals:** quality index aggregator + real regression gate ([#2194](https://github.com/yonatangross/orchestkit/issues/2194)) ([#2999](https://github.com/yonatangross/orchestkit/issues/2999)) ([fb98c98](https://github.com/yonatangross/orchestkit/commit/fb98c981a29d5d2baf40eb7639a2c12412b9f67e))",
+          "**hooks:** regenerate session title on direction change ([#2974](https://github.com/yonatangross/orchestkit/issues/2974)) ([a1dee8b](https://github.com/yonatangross/orchestkit/commit/a1dee8b9d1c15d5b1c6199847c715102d0862ccd))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.214) ([#2989](https://github.com/yonatangross/orchestkit/issues/2989)) ([a951b80](https://github.com/yonatangross/orchestkit/commit/a951b803d8f051b019e6f30e2f8ca78877e81203))",
+          "**hygiene:** drift fixes - claims gate, islands gate, hooks.json ([#2996](https://github.com/yonatangross/orchestkit/issues/2996)) ([01c5dbd](https://github.com/yonatangross/orchestkit/commit/01c5dbdcaa72d05d9924feaa74f48eb72007d217))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.78.0",
     "date": "2026-07-17",
     "compareUrl": "",
