@@ -158,7 +158,7 @@ export default async function HomePage() {
                 Stop explaining your stack.
               </span>
               <br />
-              Start shipping.
+              <span className="headline-trace">Start shipping.</span>
             </h1>
           </AnimateOnView>
 
@@ -329,17 +329,8 @@ export default async function HomePage() {
               <Link
                 key={p.letter}
                 href={p.href}
-                className="group relative overflow-hidden rounded-[10px] border border-fd-border bg-[var(--color-fd-surface-raised)] p-5 transition-all duration-150 hover:-translate-y-px hover:border-[color-mix(in_oklch,var(--color-fd-primary)_40%,var(--color-fd-border))] hover:shadow-[0_0_0_4px_var(--color-fd-glow)]"
+                className="group card-elevated card-trace card-lift relative overflow-hidden rounded-[var(--radius-card)] border border-fd-border bg-[var(--color-fd-surface-raised)] p-5"
               >
-                {/* Top-accent shimmer on hover */}
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-x-0 top-0 h-px opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-                  style={{
-                    background:
-                      "linear-gradient(90deg, transparent 0%, color-mix(in oklch, var(--color-fd-primary) 40%, transparent) 50%, transparent 100%)",
-                  }}
-                />
                 <div className="mb-5 flex items-start justify-between">
                   <div
                     aria-hidden="true"

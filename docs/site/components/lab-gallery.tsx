@@ -6,7 +6,7 @@ import { LAB_ENTRIES, type LabEntry } from "@/lib/generated/lab-data";
 function LabCard({ entry }: { entry: LabEntry }) {
   return (
     <div
-      className="flex flex-col rounded-lg border p-5 transition-all duration-200 hover:shadow-md"
+      className={`card-elevated card-lift flex flex-col rounded-[var(--radius-card)] border p-5 ${entry.featured ? "card-trace" : ""}`}
       style={{ borderColor: "var(--color-fd-border)", background: "var(--color-fd-card)" }}
     >
       <div className="flex items-start justify-between gap-2">

@@ -53,6 +53,10 @@
   /* Glow token — transparent emerald for hover effects, focus rings */
   --color-fd-glow: oklch(0.696 0.170 163 / 0.25);
 
+  /* Gradient terminus — the "powered trace" endpoint. Decorative ONLY
+     (gradients, borders); never text, never interactive. +26° from primary,
+     mirroring the portfolio's primary→terminus hue relationship. */
+  --color-fd-terminus: oklch(0.62 0.14 188);
 }
 
 /* ============================================================
@@ -92,6 +96,9 @@
 
   /* Glow — brighter in dark mode */
   --color-fd-glow: oklch(0.696 0.170 163 / 0.30);
+
+  /* Terminus — lifted for dark surfaces, still decorative-only */
+  --color-fd-terminus: oklch(0.78 0.12 188);
 }
 
 /* Semantic colors required by Fumadocs preset */
@@ -110,14 +117,36 @@
 :root {
   --color-success: oklch(0.696 0.170 163); /* #10b981 */
   --duration-fast: 150ms;
+  --duration-base: 200ms;
   --duration-normal: 300ms;
-  --duration-slow: 500ms;
+  --duration-slow: 400ms;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   color-scheme: light;
+
+  /* Radius ramp — semantic slots off one base (portfolio grammar) */
+  --radius-base: 0.625rem;
+  --radius-card: calc(var(--radius-base) + 4px);    /* 14px */
+  --radius-control: calc(var(--radius-base) - 2px); /* 8px  */
+  --radius-pill: 9999px;
+
+  /* Elevation — 2-layer subtle card shadow + overlay; glow derives from
+     primary via color-mix so it stays hue-portable */
+  --shadow-card: 0 1px 2px 0 oklch(0 0 0 / 0.04), 0 2px 6px -1px oklch(0 0 0 / 0.08);
+  --shadow-overlay: 0 16px 48px -8px oklch(0 0 0 / 0.24);
+  --shadow-glow: 0 0 20px color-mix(in oklch, var(--color-fd-primary) 25%, transparent);
+
+  /* Fluid spacing — section rhythm scales with viewport */
+  --section-y: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
+  --section-x: clamp(1rem, 0.5rem + 2vw, 2rem);
+
+  /* The signature: a powered circuit trace, primary → terminus */
+  --gradient-trace: linear-gradient(135deg, var(--color-fd-primary), var(--color-fd-terminus));
 }
 
 .dark {
   color-scheme: dark;
+  --shadow-card: 0 1px 2px 0 oklch(0 0 0 / 0.20), 0 2px 6px -1px oklch(0 0 0 / 0.28);
+  --shadow-overlay: 0 16px 48px -8px oklch(0 0 0 / 0.55);
 }
 
 /* ============================================================
@@ -172,6 +201,83 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-fd-muted-foreground);
+}
+
+/* ============================================================
+   SURFACE SYSTEM — cards, traces, lifts (the D1 grammar)
+   Featured surfaces only; dense index lists stay quiet.
+   ============================================================ */
+
+/* Elevated card: soft 2-layer shadow + card radius */
+.card-elevated {
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* Powered trace — the signature. A 2px primary→terminus gradient along the
+   top edge; brightens on hover like a live circuit. */
+.card-trace {
+  position: relative;
+  overflow: hidden;
+}
+.card-trace::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-trace);
+  opacity: 0.65;
+  transition: opacity var(--duration-base) var(--ease-out-expo);
+}
+.card-trace:hover::before {
+  opacity: 1;
+}
+
+/* Headline trace — gradient text span for hero/section headlines.
+   Decorative emphasis only; surrounding text carries the accessible color. */
+.headline-trace {
+  background: var(--gradient-trace);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card-lift {
+    transition:
+      transform var(--duration-base) var(--ease-out-expo),
+      box-shadow var(--duration-base) var(--ease-out-expo),
+      border-color var(--duration-base) var(--ease-out-expo);
+  }
+  .card-lift:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 12px 24px -8px color-mix(in oklch, var(--color-fd-primary) 15%, transparent),
+      0 4px 24px color-mix(in oklch, var(--color-fd-primary) 12%, transparent);
+    border-color: color-mix(in oklch, var(--color-fd-primary) 30%, var(--color-fd-border));
+  }
+  .btn-glow {
+    transition:
+      transform var(--duration-fast) var(--ease-out-expo),
+      box-shadow var(--duration-fast) var(--ease-out-expo);
+  }
+  .btn-glow:hover {
+    transform: scale(1.03);
+    box-shadow: var(--shadow-glow);
+  }
+}
+
+/* Fluid section rhythm */
+.section-flow {
+  padding-block: var(--section-y);
+}
+
+/* Reading measure for docs prose — long-form pages cap at a comfortable line
+   length even on wide viewports (the layout is full-width). */
+#nd-docs-layout article .prose {
+  max-width: 68ch;
 }
 
 /* ============================================================

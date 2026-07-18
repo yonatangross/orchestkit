@@ -45,7 +45,7 @@ export function CcAdoptionBoard() {
         ].map((t) => (
           <div
             key={t.k}
-            className="rounded-lg border p-4"
+            className="card-elevated rounded-[var(--radius-card)] border p-4"
             style={{ borderColor: "var(--color-fd-border)", background: "var(--color-fd-card)" }}
           >
             <div className="font-mono text-xl font-bold" style={{ color: "var(--color-fd-foreground)" }}>
