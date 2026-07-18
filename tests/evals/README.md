@@ -111,6 +111,41 @@ The GitHub Actions workflow (`.github/workflows/eval-index-effectiveness.yml`) r
 
 In CI (no Claude CLI), the workflow validates golden test structure only. Full agent routing evaluation requires a self-hosted runner with Claude CLI installed.
 
+## Coverage Walker (#2192)
+
+`scripts/eval/eval-coverage.sh` walks every shipped component and confirms it has
+an eval spec, so a newly added skill or agent cannot slip through uncovered.
+
+```bash
+# Report coverage + write tests/evals/results/coverage.json (gitignored artifact)
+bash scripts/eval/eval-coverage.sh
+
+# Write coverage.json only, no table (used by static-analysis.sh)
+bash scripts/eval/eval-coverage.sh --json-only
+
+# Generate a STARTER spec for every uncovered component (safe to re-run)
+bash scripts/eval/eval-coverage.sh --fill
+
+# Ratchet: exit non-zero if any component is uncovered (used by CI)
+bash scripts/eval/eval-coverage.sh --check
+```
+
+Enumeration mirrors `static-analysis.sh`: skills are `src/skills/*/SKILL.md`
+(so `src/skills/shared/` is excluded), agents are top-level `src/agents/*.md`
+carrying YAML frontmatter (so `src/agents/README.md` and `src/agents/shared/`
+are excluded). `coverage.json` also records `orphan_specs` (a spec whose
+component no longer exists) as a distinct category for drift visibility.
+
+Two CI surfaces consume this:
+- `scripts/eval/static-analysis.sh` calls it advisory (warn, never fail) and
+  regenerates `coverage.json` for free.
+- `tests/evals/test-eval-coverage.sh` is the hard ratchet wired into
+  `tests/run-all-tests.sh`; it fails the suite when any component is uncovered.
+
+`--fill` writes STARTER specs: the trigger prompt and single assertion are
+derived mechanically from the component description (tagged `starter`) and are
+meant to be refined by a human before the scores are trusted.
+
 ## Duration Report
 
 `npm run eval:report` aggregates trigger + quality durations from result JSONs:
