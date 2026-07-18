@@ -818,7 +818,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "f9cfb04bece130f3af6d3145af11cf6b7f5ce747857002d36413af286c8df2a9",
+    "sha256": "06b64a98f90ca575f5f2cfab20bf4cc5cc0f3d9f57734edb335bf6ad382c3549",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -1144,7 +1144,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "code-review-playbook",
     "description": "Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices.",
     "version": "2.0.0",
-    "sha256": "325868a3d479679b4eb6a7ff53cd5c1c304c07444861e3b184debb859480392b",
+    "sha256": "5866f02ca7ecfb6621dd709b2046d682409ec9e6930d0a3da526ad388e015bc9",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -1819,7 +1819,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-to-code",
     "description": "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts screenshots, descriptions, or URLs as input and produces production-ready React components. Checks existing Storybook components before generating, orchestrates design extraction via Stitch MCP, component matching via 21st.dev registry, adaptation to project design tokens, and self-healing verification via run-story-tests. Use when converting visual designs to code, implementing UI from mockups, or building components from screenshots.",
     "version": "1.0.1",
-    "sha256": "8653a83f819238e8fb578ffe5e26d519e282611d53b1087caaf4ec56021b5cda",
+    "sha256": "b28e9071008ad27cc51448d61ef65bc0da165c160761c048cab8ee6a2d0460ab",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",

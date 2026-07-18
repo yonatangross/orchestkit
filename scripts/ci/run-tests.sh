@@ -4,8 +4,11 @@
 #
 # Usage: run-tests.sh <test-dir> [--verbose]
 #
-# Discovers and runs all test-*.sh scripts in the specified directory.
-# Returns non-zero exit code if any tests fail.
+# Discovers and runs all test-*.sh and test-*.mjs scripts in the specified
+# directory. Returns non-zero exit code if any tests fail.
+# (.mjs support added 2026-07-18: test-skill-activation-channels.mjs was
+# silently skipped by the old test-*.sh-only glob, leaving the islands gate
+# dead in CI while npm run test:manifests ran it locally.)
 
 set -euo pipefail
 
@@ -46,11 +49,18 @@ if [[ ! -d "$TEST_DIR" ]]; then
   exit 1
 fi
 
-# Discover all test scripts (POSIX-compatible, works on macOS bash 3.2)
+# Discover all test scripts (POSIX-compatible, works on macOS bash 3.2).
+# Default discovery covers shell AND node tests; an explicit --pattern
+# narrows to exactly that pattern, preserving the old behavior.
 TEST_FILES=()
+if [[ "$PATTERN" == "test-*.sh" ]]; then
+  FOUND="$(find "$TEST_DIR" \( -name "test-*.sh" -o -name "test-*.mjs" \) -type f | sort)"
+else
+  FOUND="$(find "$TEST_DIR" -name "$PATTERN" -type f | sort)"
+fi
 while IFS= read -r file; do
   [[ -n "$file" ]] && TEST_FILES+=("$file")
-done <<< "$(find "$TEST_DIR" -name "$PATTERN" -type f | sort)"
+done <<< "$FOUND"
 
 if [[ ${#TEST_FILES[@]} -eq 0 ]]; then
   echo -e "${YELLOW}WARNING: No tests found matching '$PATTERN' in $TEST_DIR${NC}"
@@ -69,7 +79,6 @@ echo ""
 # Track results
 PASSED=0
 FAILED=0
-SKIPPED=0
 FAILED_TESTS=()
 START_TIME=$(date +%s)
 
@@ -91,10 +100,13 @@ run_test() {
   test_start=$(date +%s)
   local exit_code=0
 
+  local runner=bash
+  [[ "$test_file" == *.mjs ]] && runner=node
+
   if [[ "$VERBOSE" == "true" ]]; then
-    bash "$test_file" || exit_code=$?
+    "$runner" "$test_file" || exit_code=$?
   else
-    bash "$test_file" > /dev/null 2>&1 || exit_code=$?
+    "$runner" "$test_file" > /dev/null 2>&1 || exit_code=$?
   fi
 
   local test_end
