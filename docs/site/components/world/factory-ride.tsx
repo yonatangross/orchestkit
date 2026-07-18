@@ -27,6 +27,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  */
 
 const FRAME_COUNT = 101;
+/** Every Nth frame is fetched up front; the rest wait until the visitor rides. */
+const COARSE_STEP = 4;
 
 /** [start, end] scroll-progress windows for the 5 overlay stops. */
 const STOPS: ReadonlyArray<readonly [number, number]> = [
@@ -64,6 +66,7 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
     Array.from({ length: FRAME_COUNT }, () => null),
   );
   const lastPRef = useRef(0);
+  const loadFineRef = useRef<(() => void) | null>(null);
 
   // Gate the mechanics on the SAME conditions as the CSS live-layout
   // media query, so scroll scrubbing (and frame fetches) only run when
@@ -91,6 +94,7 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
     const images = imagesRef.current;
     let disposed = false;
     let ticking = false;
+    let fineStarted = false;
 
     const drawFrame = (p: number) => {
       lastPRef.current = p;
@@ -130,6 +134,8 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
       const rect = track.getBoundingClientRect();
       const span = rect.height - window.innerHeight;
       const p = span > 0 ? Math.min(1, Math.max(0, -rect.top / span)) : 0;
+      // The visitor is actually riding — fill in the in-between frames.
+      if (p > 0.01) loadFineRef.current?.();
       drawFrame(p);
       let cur = -1;
       STOPS.forEach(([start, end], i) => {
@@ -152,30 +158,46 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
       });
     };
 
-    // Frames load lazily AFTER mount, once the browser is idle, so the
-    // poster stays the LCP element and frame fetches never compete with it.
-    const loadFrames = () => {
-      if (disposed) return;
-      for (let i = 0; i < FRAME_COUNT; i++) {
-        if (images[i]) continue;
-        const img = new window.Image();
-        img.decoding = "async";
-        img.onload = () => {
-          if (disposed) return;
-          const exact = Math.floor(lastPRef.current * FRAME_COUNT);
-          // Repaint when a frame near the current position arrives
-          // (covers the initial poster -> canvas handoff at p = 0).
-          if (Math.abs(exact - i) <= 1) drawFrame(lastPRef.current);
-        };
-        img.src = frameSrc(i);
-        images[i] = img;
-      }
+    // Frames load in two phases AFTER mount so the poster stays the LCP
+    // element and a visitor who never scrolls does not pay for the whole
+    // flight. `drawFrame` falls back to the nearest loaded frame at or
+    // below the exact index, so the coarse pass alone already scrubs.
+    const loadFrame = (i: number) => {
+      if (disposed || images[i]) return;
+      const img = new window.Image();
+      img.decoding = "async";
+      img.onload = () => {
+        if (disposed) return;
+        const exact = Math.floor(lastPRef.current * FRAME_COUNT);
+        // Repaint when a frame near the current position arrives
+        // (covers the initial poster -> canvas handoff at p = 0).
+        if (Math.abs(exact - i) <= COARSE_STEP) drawFrame(lastPRef.current);
+      };
+      img.src = frameSrc(i);
+      images[i] = img;
     };
+
+    // Phase 1 (idle): every Nth frame — roughly a quarter of the bytes,
+    // enough for a complete (slightly coarse) scrub of the whole flight.
+    const loadCoarse = () => {
+      if (disposed) return;
+      for (let i = 0; i < FRAME_COUNT; i += COARSE_STEP) loadFrame(i);
+      loadFrame(FRAME_COUNT - 1);
+    };
+
+    // Phase 2: the in-between frames, fetched only once the visitor
+    // actually starts riding. Landing and clicking through costs nothing.
+    const loadFine = () => {
+      if (disposed || fineStarted) return;
+      fineStarted = true;
+      for (let i = 0; i < FRAME_COUNT; i++) loadFrame(i);
+    };
+    loadFineRef.current = loadFine;
 
     const idleId =
       typeof window.requestIdleCallback === "function"
-        ? window.requestIdleCallback(loadFrames)
-        : window.setTimeout(loadFrames, 250);
+        ? window.requestIdleCallback(loadCoarse)
+        : window.setTimeout(loadCoarse, 250);
 
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", fit);
