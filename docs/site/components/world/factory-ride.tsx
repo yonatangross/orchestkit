@@ -2,7 +2,13 @@
 
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 /**
  * FactoryRide — the scroll-world "factory ride" homepage hero.
@@ -15,16 +21,27 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  * Progressive enhancement contract:
  * - Server HTML renders the poster plus ALL overlay copy stacked in
  *   DOM order (SEO-complete, no-JS fallback).
- * - The live layout is applied purely by CSS (see global.css) under
- *   `@media (scripting: enabled) and (prefers-reduced-motion:
- *   no-preference)`, so it is correct on FIRST paint — no
- *   post-hydration class flip, no layout shift. This component only
- *   drives the mechanics (canvas scrub, `.fr-on`, `.fr-riding`) and
- *   lazily loads the frames via requestIdleCallback; it gates itself
- *   on the same two media queries.
+ * - The live layout (see global.css) requires BOTH `@media (scripting:
+ *   enabled) and (prefers-reduced-motion: no-preference)` AND the
+ *   `.fr-live` class, which this component adds only after React has
+ *   actually mounted. Gating on the media query alone would leave a
+ *   broken ride (560vh track, sticky stage, stops 2-5 permanently
+ *   hidden because nothing ever toggles `.fr-on`) whenever the client
+ *   chunk 404s or hydration throws. Tying it to mount means a failed
+ *   hydration degrades to the stacked static layout instead.
+ * - The class is set in a layout effect, so the flip lands before the
+ *   first post-hydration paint (no visible jump from the fallback).
  * - prefers-reduced-motion, no JS, or no `scripting` MQ support keeps
  *   the static stacked layout; frames are never fetched in that mode.
  */
+
+/**
+ * Layout effect on the client, no-op on the server. `useLayoutEffect`
+ * warns during SSR; the fallback keeps the server render silent while
+ * the client still applies `.fr-live` before paint.
+ */
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 const FRAME_COUNT = 101;
 /** Every Nth frame is fetched up front; the rest wait until the visitor rides. */
@@ -68,12 +85,13 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
   const lastPRef = useRef(0);
   const loadFineRef = useRef<(() => void) | null>(null);
 
-  // Gate the mechanics on the SAME conditions as the CSS live-layout
-  // media query, so scroll scrubbing (and frame fetches) only run when
-  // the ride layout is actually active. In browsers without `scripting`
-  // MQ support, matchMedia reports false and both CSS and JS stay in
-  // the static fallback — consistent by construction.
-  useEffect(() => {
+  // Single source of truth for "the ride is active": this drives BOTH
+  // the `.fr-live` class that unlocks the CSS ride layout and the
+  // mechanics below, so the layout can never be live while the JS that
+  // animates it is absent. Reduced-motion / no-`scripting`-MQ support
+  // keeps `live` false, so those visitors stay on the static stacked
+  // layout and fetch zero frames — unchanged by the mount gate.
+  useIsomorphicLayoutEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const scripting = window.matchMedia("(scripting: enabled)");
     const apply = () => setLive(!motion.matches && scripting.matches);
@@ -149,6 +167,14 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
       root.classList.toggle("fr-riding", p > 0.01 && p < 0.999);
     };
 
+    // A viewport change moves the track/stop boundaries as well as the
+    // canvas backing store, so re-fit AND recompute progress: `fit`
+    // alone would leave the active stop and dots on stale windows.
+    const onResize = () => {
+      fit();
+      update();
+    };
+
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
@@ -200,14 +226,14 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
         : window.setTimeout(loadCoarse, 250);
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", fit);
+    window.addEventListener("resize", onResize);
     fit();
     update();
 
     return () => {
       disposed = true;
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", fit);
+      window.removeEventListener("resize", onResize);
       if (typeof window.cancelIdleCallback === "function") {
         window.cancelIdleCallback(idleId);
       } else {
@@ -220,7 +246,20 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
   const overlays: readonly ReactNode[] = [hero, ...cards, finale];
 
   return (
-    <div ref={rootRef} className="fr-root">
+    <div ref={rootRef} className={live ? "fr-root fr-live" : "fr-root"}>
+      {/* First focusable element in the ride: without it the ride
+          hijacks ~5.6 viewports of scrolling with no keyboard escape.
+          Only rendered in live mode — there is nothing to skip in the
+          static stacked fallback. Mirrors the "Skip to main content"
+          pattern in app/layout.tsx. */}
+      {live ? (
+        <a
+          href="#ride-end"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:rounded-md focus:bg-fd-primary focus:px-4 focus:py-2 focus:text-fd-primary-foreground focus:outline-none"
+        >
+          Skip the scroll ride
+        </a>
+      ) : null}
       <div ref={trackRef} className="fr-track">
         <div className="fr-stage">
           {/* Poster-first: eager LCP image; the canvas paints over it once
@@ -271,6 +310,11 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
           </div>
         </div>
       </div>
+      {/* Skip-link target: a zero-height marker at the very end of the
+          track, so jumping here lands the first section below the ride
+          at the top of the viewport. tabIndex -1 moves focus with the
+          jump, so the next Tab continues into that content. */}
+      <div id="ride-end" tabIndex={-1} className="focus:outline-none" />
     </div>
   );
 }

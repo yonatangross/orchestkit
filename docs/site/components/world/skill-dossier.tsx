@@ -169,10 +169,10 @@ export function SkillDossier({ slug }: { slug: string }) {
     >
       {/* Hero strip */}
       <div className="rounded-lg border border-fd-border bg-fd-card p-4">
+        {/* No title here on purpose: the page h1 already names the skill,
+            so repeating it read as "Commit · Commit". The section's
+            aria-label carries the name for screen readers instead. */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <span className="text-sm font-semibold text-fd-foreground">
-            {titleCase(skill.name)}
-          </span>
           {segments !== null && (
             <span
               className="inline-flex items-center gap-1"

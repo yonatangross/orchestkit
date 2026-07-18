@@ -651,30 +651,35 @@ article blockquote {
 }
 
 /* ── live mode: the ride ─────────────────────────────────────
-   Gated purely in CSS (JS available + motion OK) so the live layout
-   is already correct on FIRST paint — no post-hydration class flip,
-   no CLS from the track growing to 560vh after FCP. The client
-   component only drives the mechanics (canvas scrub, .fr-on,
-   .fr-riding) and gates itself on the same two media queries.
+   Double-gated: the media query (JS available + motion OK) AND the
+   .fr-live class, which the client component adds in a layout effect
+   once React has actually mounted. The media query alone is not
+   enough — if the client chunk 404s or hydration throws, JS is still
+   "enabled", so the CSS would build a 560vh track with a sticky stage
+   while nothing ever toggles .fr-on, leaving stops 2-5 permanently
+   invisible and ~5.6 viewports of dead scroll. Requiring .fr-live
+   means a failed hydration degrades to the static stacked fallback.
+   The class lands in a layout effect (before the first post-hydration
+   paint), so there is no visible flip in the healthy path.
    Browsers without `scripting` MQ support (and no-JS / reduced-motion
-   users) keep the static stacked fallback above. */
+   users) never get .fr-live either and keep the fallback above. */
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
-  .fr-root .fr-track {
+  .fr-root.fr-live .fr-track {
     height: 560vh;
   }
-  .fr-root .fr-stage {
+  .fr-root.fr-live .fr-stage {
     position: sticky;
     top: 0;
     height: 100vh;
     height: 100svh;
   }
-  .fr-root .fr-poster {
+  .fr-root.fr-live .fr-poster {
     opacity: 1;
   }
-  .fr-root .fr-film {
+  .fr-root.fr-live .fr-film {
     display: block;
   }
-  .fr-root .fr-stop {
+  .fr-root.fr-live .fr-stop {
     position: absolute;
     inset: 0;
     padding: 0 24px;
@@ -690,24 +695,24 @@ article blockquote {
       visibility 0s linear 400ms;
     pointer-events: none;
   }
-  .fr-root .fr-stop.fr-on {
+  .fr-root.fr-live .fr-stop.fr-on {
     opacity: 1;
     transform: none;
     visibility: visible;
     transition-delay: 0s;
     pointer-events: auto;
   }
-  .fr-root .fr-stop[data-side="left"] {
+  .fr-root.fr-live .fr-stop[data-side="left"] {
     justify-items: start;
     padding-left: clamp(24px, 7vw, 110px);
   }
-  .fr-root .fr-stop[data-side="right"] {
+  .fr-root.fr-live .fr-stop[data-side="right"] {
     justify-items: end;
     padding-right: clamp(24px, 7vw, 110px);
   }
 
   /* scroll cue under the hero copy (live mode only) */
-  .fr-root .fr-cue {
+  .fr-root.fr-live .fr-cue {
     display: block;
     margin-top: 56px;
     text-align: center;
@@ -721,7 +726,7 @@ article blockquote {
 
   /* right-edge ride progress dots — current stop marked george-warm
      (amber = active/current semantic), marker scale only */
-  .fr-root .fr-dots {
+  .fr-root.fr-live .fr-dots {
     position: absolute;
     right: 22px;
     top: 50%;
@@ -733,7 +738,7 @@ article blockquote {
     opacity: 0;
     transition: opacity 300ms var(--ease-out-expo);
   }
-  .fr-root.fr-riding .fr-dots {
+  .fr-root.fr-live.fr-riding .fr-dots {
     opacity: 1;
   }
 }
