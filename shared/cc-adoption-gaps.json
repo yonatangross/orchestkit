@@ -1,154 +1,182 @@
 [
   {
-    "version": "2.1.212",
+    "version": "2.1.214",
     "parse_failed": false,
     "features": [
       {
-        "feature_slug": "mcp_tool_call_auto_background",
+        "feature_slug": "dir_glob_allow_scope_fix",
         "category": "breaking",
-        "description": "MCP tool calls over 2min auto-move to background; threshold set via CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS.",
+        "description": "Single-segment dir/** allow rules no longer auto-approve writes to same-named nested dirs anywhere in the tree",
         "gap_score": 20,
         "affected_skills": [
-          "mcp-patterns",
-          "mcp-visual-output"
+          "security-patterns",
+          "configure"
         ],
-        "reference_changelog_line": "MCP tool calls running longer than 2 minutes now move to the background automatically so the session stays usable; configure the threshold or disable with `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS`",
+        "reference_changelog_line": "Fixed single-segment `dir/**` allow rules like `Edit(src/**)` auto-approving writes to nested `dir/` directories anywhere in the tree instead of only `<cwd>/dir`",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "plan_mode_bash_permission_bypass",
+        "feature_slug": "bash_fd_redirect_fail_closed",
         "category": "breaking",
-        "description": "Plan mode no longer auto-runs file-modifying Bash commands without a permission prompt or canUseTool callback.",
-        "gap_score": 20,
-        "affected_skills": [],
-        "reference_changelog_line": "Fixed plan mode auto-running file-modifying Bash commands (e.g. `touch`, `rm`) without a permission prompt or SDK `canUseTool` callback",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "worktree_symlink_escape",
-        "category": "breaking",
-        "description": "Worktree creation no longer follows a committed .claude/worktrees symlink to write files outside the repo.",
+        "description": "Bash permission checks now fail closed on file-descriptor redirect forms the analyzer parsed differently than bash",
         "gap_score": 20,
         "affected_skills": [
-          "chain-patterns",
-          "swarm-migrate"
+          "security-patterns"
         ],
-        "reference_changelog_line": "Fixed worktree creation following a repository-committed symlink at `.claude/worktrees`, which could create files outside the repository",
+        "reference_changelog_line": "Fixed Bash permission checks to fail closed on file-descriptor redirect forms that bash parses differently than the permission analyzer",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "hook_halt_dropped_bypass",
+        "feature_slug": "bash_long_command_prompt",
         "category": "breaking",
-        "description": "A continue:false hook halt is no longer dropped when the tool fails or completes mid-stream.",
-        "gap_score": 20,
-        "affected_skills": [],
-        "reference_changelog_line": "Fixed a `continue:false` hook's halt being dropped when the tool fails or completes mid-stream, and hook infrastructure errors being misreported as user rejections",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "force_login_method_enforced",
-        "category": "breaking",
-        "description": "Enterprise forceLoginMethod now enforced for VS Code extension, SDK, setup-token, and install-github-app logins.",
-        "gap_score": 20,
-        "affected_skills": [],
-        "reference_changelog_line": "Changed Enterprise `forceLoginMethod` to be enforced for VS Code extension, SDK, `setup-token`, and `install-github-app` logins, not just the terminal",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "sdk_set_model_mid_turn",
-        "category": "breaking",
-        "description": "Headless/SDK set_model control request now applies mid-turn on the next model round-trip.",
-        "gap_score": 20,
-        "affected_skills": [],
-        "reference_changelog_line": "Changed headless/SDK sessions to apply a `set_model` control request mid-turn; the next model round-trip uses the new model instead of waiting for the next turn",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "agents_json_needs_input_status",
-        "category": "breaking",
-        "description": "claude agents --json now reports 'Needs input' (not 'Working') for sessions awaiting a prompt.",
+        "description": "Bash commands over 10,000 characters now always prompt instead of being auto-approved",
         "gap_score": 20,
         "affected_skills": [
-          "ci-sentinel",
-          "analytics"
+          "security-patterns"
         ],
-        "reference_changelog_line": "Changed agent view / `claude agents --json`: sessions waiting on a sandbox, MCP-input, or managed-settings prompt now show as \"Needs input\" instead of \"Working\"",
+        "reference_changelog_line": "Fixed Bash permission checks misjudging very long commands — commands over 10,000 characters now always prompt instead of running automatically",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "fork_background_subtask_rename",
-        "category": "new_command",
-        "description": "/fork now copies conversation into a new background session; the old in-session subagent is now /subtask.",
-        "gap_score": 15,
+        "feature_slug": "bash_zsh_subscript_prompt",
+        "category": "breaking",
+        "description": "Bash checks now prompt on zsh variable subscripts and modifiers in [[ ]] comparisons instead of treating them as inert",
+        "gap_score": 20,
         "affected_skills": [
-          "agent-orchestration",
-          "task-dependency-patterns"
+          "security-patterns"
         ],
-        "reference_changelog_line": "`/fork` now copies your conversation into a new background session (its own row in `claude agents`) while you keep working; the in-session subagent it used to launch is now `/subtask`",
+        "reference_changelog_line": "Fixed Bash permission checks treating zsh variable subscripts and modifiers in `[[ ]]` comparisons as inert text — these commands now prompt for approval",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "auto_mode_reset_command",
-        "category": "new_command",
-        "description": "New `claude auto-mode reset` command restores default auto-mode config (confirmation prompt; --yes skips).",
-        "gap_score": 15,
+        "feature_slug": "bash_help_man_auto_approve_fix",
+        "category": "breaking",
+        "description": "Bash checks no longer auto-approve help/man commands that could run unsafe options, command substitutions, or backslash ",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed Bash permission checks to no longer auto-approve certain `help` and `man` commands that could run unsafe options, command substitutions, or backslash paths",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "remote_permission_prompt_ordering",
+        "category": "breaking",
+        "description": "Permission prompts on remote sessions no longer proceed before the local confirmation dialog resolves",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed permission prompts on remote sessions that could proceed before the local confirmation dialog",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "hook_exit2_block_on_bad_json",
+        "category": "breaking",
+        "description": "Hooks with exit code 2 now block as documented even when the hook's stdout JSON fails schema validation",
+        "gap_score": 20,
         "affected_skills": [],
-        "reference_changelog_line": "Added `claude auto-mode reset` to restore the default auto-mode configuration, with a confirmation prompt (pass `--yes` to skip)",
+        "reference_changelog_line": "Fixed hooks with exit code 2 not blocking as documented when the hook's stdout JSON fails schema validation",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "task_tool_mode_deprecated",
-        "category": "deprecation",
-        "description": "Task tool's mode parameter is deprecated/ignored; subagents inherit the parent session's permission mode.",
-        "gap_score": 8,
+        "feature_slug": "hook_if_single_segment_scope",
+        "category": "breaking",
+        "description": "Single-segment dir/** hook if: conditions now match only <cwd>/dir; use **/dir/** for any-depth matching",
+        "gap_score": 20,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed single-segment `dir/**` hook `if:` conditions to match only `<cwd>/dir`; write `**/dir/**` for any-depth matching. `deny`/`ask` permission rules keep their any-depth match.",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "docker_daemon_redirect_perm",
+        "category": "new_perm",
+        "description": "Docker commands with daemon-redirect flags (--url, --connection, --identity, Podman remote) now require permission",
+        "gap_score": 12,
         "affected_skills": [
-          "task-dependency-patterns",
-          "agent-orchestration"
+          "security-patterns",
+          "devops-deployment"
         ],
-        "reference_changelog_line": "Deprecated the Task tool's `mode` parameter (now ignored); subagents inherit the parent session's permission mode by default",
+        "reference_changelog_line": "Added permission prompts for `docker` commands (including the Podman `docker` shim) carrying daemon-redirect flags (`--url`, `--connection`, `--identity`, and Podman's remote mode) that previously ran without one",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "max_web_searches_per_session",
+        "feature_slug": "file_magic_files_from_perm",
+        "category": "new_perm",
+        "description": "file commands using -m/--magic-file or -f/--files-from now require permission instead of being auto-allowed as read-only",
+        "gap_score": 12,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Changed `file` commands using `-m`/`--magic-file` or `-f`/`--files-from` to require permission instead of being auto-allowed as read-only",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "memory_modified_timestamp",
         "category": "new_field",
-        "description": "New per-session WebSearch cap (default 200) via CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION.",
+        "description": "Memory file frontmatter now includes an ISO modified timestamp",
         "gap_score": 10,
         "affected_skills": [
-          "web-research-workflow"
+          "memory",
+          "remember",
+          "dream",
+          "memory-fabric"
         ],
-        "reference_changelog_line": "Added a session-wide limit on WebSearch tool calls (default 200, tunable via `CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`) to stop runaway search loops",
+        "reference_changelog_line": "Added an ISO `modified` timestamp to memory file frontmatter",
         "relevance": "plugin",
         "recall_boosted_from": 5
       },
       {
-        "feature_slug": "max_subagents_per_session",
-        "category": "new_field",
-        "description": "New per-session subagent spawn cap (default 200) via CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION; /clear resets it.",
-        "gap_score": 10,
-        "affected_skills": [
-          "agent-orchestration",
-          "swarm-migrate",
-          "task-dependency-patterns"
-        ],
-        "reference_changelog_line": "Added a per-session cap on subagent spawns (default 200, override with `CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`) to stop runaway delegation loops; `/clear` resets the budget",
-        "relevance": "plugin",
-        "recall_boosted_from": 5
-      },
-      {
-        "feature_slug": "transcript_reasoning_effort_attr",
+        "feature_slug": "otel_message_tool_source_attrs",
         "category": "new_attr",
-        "description": "Session transcripts now record the reasoning effort level on each assistant message.",
+        "description": "OpenTelemetry log events gain message.uuid, client_request_id, and tool_source attributes for correlation and provenance",
         "gap_score": 10,
         "affected_skills": [
-          "analytics",
+          "monitoring-observability",
           "telemetry-inspect"
         ],
-        "reference_changelog_line": "Changed session transcripts to record the reasoning effort level on each assistant message",
+        "reference_changelog_line": "Added `message.uuid`, `client_request_id`, and `tool_source` attributes to OpenTelemetry log events for message-level correlation and tool provenance",
         "relevance": "plugin",
         "recall_boosted_from": 5
+      },
+      {
+        "feature_slug": "otel_content_max_length_env",
+        "category": "new_field",
+        "description": "New CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH configures the 60 KB truncation limit on OpenTelemetry content attributes",
+        "gap_score": 10,
+        "affected_skills": [
+          "monitoring-observability",
+          "telemetry-inspect",
+          "configure"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH` to configure the 60 KB truncation limit on OpenTelemetry content attributes",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
+      },
+      {
+        "feature_slug": "subagent_statusline_effort",
+        "category": "new_field",
+        "description": "Reasoning effort added to the subagentStatusLine payload so custom agent rows can render model and effort",
+        "gap_score": 10,
+        "affected_skills": [
+          "agent-orchestration",
+          "audit-activation"
+        ],
+        "reference_changelog_line": "Added reasoning effort to the `subagentStatusLine` payload, so custom agent rows can render model and effort",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
+      },
+      {
+        "feature_slug": "sessionstart_fork_source",
+        "category": "new_attr",
+        "description": "SessionStart hooks now report source \"fork\" when a session begins as a fork instead of \"resume\"",
+        "gap_score": 5,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed SessionStart hooks to report source `\"fork\"` when a session begins as a fork instead of `\"resume\"`",
+        "relevance": "plugin"
       }
     ],
-    "raw_bullets_count": 48,
-    "issues_filed_at": "2026-07-17T04:04:41Z"
+    "raw_bullets_count": 47,
+    "issues_filed_at": "2026-07-18T04:03:02Z"
   }
 ]
