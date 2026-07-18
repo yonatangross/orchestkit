@@ -116,6 +116,12 @@ fi
 
 mkdir -p "$WORK/shared"
 
+# Legacy cases (1-11) predate the M169 evidence gate and assert pure
+# score/dedup/stamp behaviour, so run them with the gate OFF (ORK_EVIDENCE_GATE=0
+# = filer's legacy path: file every >=floor feature, recall lane skipped). The
+# M169 cases (12+) set ORK_EVIDENCE_GATE=1 + EVIDENCE_ROOTS explicitly per-run.
+export ORK_EVIDENCE_GATE=0
+
 # Helper: run script in $WORK against fixture, count `issue create` calls.
 run_case() {
   local name="$1" expected="$2" gaps_json="$3" existing="${4:-}"
@@ -328,6 +334,181 @@ if [ "$EXIT" = "0" ] && [ "$STAMPED" = "1" ] && [ "$UNSTAMPED" = "1" ]; then
   log_pass "case 11: filer stamps issues_filed_at on filed entry, leaves parse_failed unstamped"
 else
   log_fail "case 11: stamp" "exit=$EXIT stamped=$STAMPED unstamped=$UNSTAMPED (see /tmp/step3-stamp.out)"
+fi
+
+# ============================================================================
+# M169 — evidence-gated lanes (#2992 recall + #2993 precision)
+# Cases below run with ORK_EVIDENCE_GATE=1 and a controlled EVIDENCE_ROOTS dir so
+# the grep is hermetic (never touches the real plugin tree).
+# ============================================================================
+
+# Run the filer with the evidence gate ON against a specific evidence dir.
+# Args: name gaps_json evidence_dir. Sets GATE_EXIT + leaves the rewritten ledger
+# in $WORK/shared/cc-adoption-gaps.json for the caller to assert.
+run_gate() {
+  local name="$1" gaps_json="$2" evdir="$3"
+  : > "$MOCK_LOG"
+  echo "$gaps_json" > "$WORK/shared/cc-adoption-gaps.json"
+  echo '{"milestone": "CC 2.1.999 adoption"}' > "$WORK/shared/gh-issue-args.json"
+  pushd "$WORK" >/dev/null
+  GATE_EXIT=0
+  ORK_EVIDENCE_GATE=1 EVIDENCE_ROOTS="$evdir" \
+  MOCK_EXISTING_MILESTONE=1 GH_REPO="acme/orchestkit" \
+    bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" >"/tmp/step3-$name.out" 2>&1 \
+    || GATE_EXIT=$?
+  popd >/dev/null
+}
+
+# feature-slug disposition read helper
+dispo_of() {
+  jq -r --arg s "$1" \
+    '[.[] | .features[]? | select(.feature_slug==$s) | .disposition] | .[0] // ""' \
+    "$WORK/shared/cc-adoption-gaps.json"
+}
+
+# ---- Case 12 (#2993): above-floor + ZERO evidence → NOT filed, noop stamped ---
+EVDIR=$(mktemp -d)   # empty dir = no evidence anywhere
+F=$(feat "chrome_scroll_polish" 20)
+GAPS=$(jq -nc --argjson f "$F" '[{version: "2.1.999", features: [$f]}]')
+run_gate "case12-noop" "$GAPS" "$EVDIR"
+CALLS=$(count_calls "issue|create")
+D=$(dispo_of "chrome_scroll_polish")
+if [ "$GATE_EXIT" = "0" ] && [ "$CALLS" = "0" ] && [ "$D" = "triaged-noop-no-evidence" ]; then
+  log_pass "case 12: above-floor + no evidence → 0 creates, disposition=triaged-noop-no-evidence"
+else
+  log_fail "case 12" "exit=$GATE_EXIT calls=$CALLS dispo='$D' (see /tmp/step3-case12-noop.out)"
+fi
+rm -rf "$EVDIR"
+
+# ---- Case 13 (#2992): sub-floor + evidence → filed via recall lane -----------
+# The changelog line carries a mixedCase identifier (SessionStart) that appears
+# in the evidence file — the STRONG-token hit that drives the recall lane.
+EVDIR=$(mktemp -d)
+echo "handles SessionStart source and fork materialization" > "$EVDIR/dispatcher.ts"
+F=$(jq -nc '{feature_slug: "session_fork_source", gap_score: 5, description: "SessionStart reports source fork", category: "new_field", reference_changelog_line: "Changed SessionStart hooks to report source fork", affected_skills: []}')
+GAPS=$(jq -nc --argjson f "$F" '[{version: "2.1.999", features: [$f]}]')
+run_gate "case13-recall" "$GAPS" "$EVDIR"
+CALLS=$(count_calls "issue|create")
+D=$(dispo_of "session_fork_source")
+CREATE_LINE=$(grep -F 'issue|create' "$MOCK_LOG" | head -1)
+if [ "$GATE_EXIT" = "0" ] && [ "$CALLS" = "1" ] && [ -z "$D" ]; then
+  log_pass "case 13: sub-floor + evidence → filed via recall lane (no disposition stamp)"
+else
+  log_fail "case 13" "exit=$GATE_EXIT calls=$CALLS dispo='$D' (see /tmp/step3-case13-recall.out)"
+fi
+if grep -qF "sub-floor score but codebase evidence" <<< "$CREATE_LINE"; then
+  log_pass "case 13: recall-lane note present in issue body"
+else
+  log_fail "case 13: recall note" "body missing recall-lane marker"
+fi
+rm -rf "$EVDIR"
+
+# ---- Case 14 (#2992): sub-floor + NO evidence → unfiled-subfloor -------------
+EVDIR=$(mktemp -d)   # empty
+F=$(feat "chrome_tab_group" 5)
+GAPS=$(jq -nc --argjson f "$F" '[{version: "2.1.999", features: [$f]}]')
+run_gate "case14-unfiled" "$GAPS" "$EVDIR"
+CALLS=$(count_calls "issue|create")
+D=$(dispo_of "chrome_tab_group")
+if [ "$GATE_EXIT" = "0" ] && [ "$CALLS" = "0" ] && [ "$D" = "unfiled-subfloor" ]; then
+  log_pass "case 14: sub-floor + no evidence → 0 creates, disposition=unfiled-subfloor"
+else
+  log_fail "case 14" "exit=$GATE_EXIT calls=$CALLS dispo='$D' (see /tmp/step3-case14-unfiled.out)"
+fi
+rm -rf "$EVDIR"
+
+# ---- Case 15 (#2950 aid): cap-saturation stamp ------------------------------
+# 20 features (== hard cap) → cap_saturated:true + a loud warning; a 3-feature
+# version is left unstamped. Gate OFF so we do not file 20 issues; all features
+# are sub-floor so the legacy precision path files nothing either.
+: > "$MOCK_LOG"
+BIG=$(jq -nc '[range(0;20) | {feature_slug: "cap\(.)", gap_score: 5, description: "d", category: "tooling", reference_changelog_line: "- x\(.)", affected_skills: []}]')
+SMALL=$(jq -nc '[range(0;3) | {feature_slug: "small\(.)", gap_score: 5, description: "d", category: "tooling", reference_changelog_line: "- y\(.)", affected_skills: []}]')
+jq -nc --argjson a "$BIG" --argjson b "$SMALL" \
+  '[{version: "2.1.999", features: $a}, {version: "2.1.998", features: $b}]' \
+  > "$WORK/shared/cc-adoption-gaps.json"
+echo '{"milestone": "CC 2.1.999 adoption"}' > "$WORK/shared/gh-issue-args.json"
+pushd "$WORK" >/dev/null
+EXIT=0
+ORK_EVIDENCE_GATE=0 MOCK_EXISTING_MILESTONE=1 GH_REPO="acme/orchestkit" \
+  bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" > /tmp/step3-cap.out 2>&1 || EXIT=$?
+popd >/dev/null
+CAP_BIG=$(jq -r '.[] | select(.version=="2.1.999") | .cap_saturated // false' "$WORK/shared/cc-adoption-gaps.json")
+CAP_SMALL=$(jq -r '.[] | select(.version=="2.1.998") | .cap_saturated // false' "$WORK/shared/cc-adoption-gaps.json")
+if [ "$EXIT" = "0" ] && [ "$CAP_BIG" = "true" ] && [ "$CAP_SMALL" = "false" ] \
+   && grep -qF "exactly 20 features" /tmp/step3-cap.out; then
+  log_pass "case 15: cap-saturation stamps cap_saturated on the 20-feature version + warns"
+else
+  log_fail "case 15" "exit=$EXIT cap_big=$CAP_BIG cap_small=$CAP_SMALL (see /tmp/step3-cap.out)"
+fi
+
+# ---- Case 16 (#2993): above-floor WITH evidence → still files (gate-on happy) -
+# The changelog line names a mixedCase identifier (SubagentStop) present in the
+# evidence file — the STRONG-token hit that lets the precision lane file.
+EVDIR=$(mktemp -d)
+echo "the dispatcher handles the SubagentStop hook" > "$EVDIR/dispatcher.ts"
+F=$(jq -nc '{feature_slug: "subagentstop_hook", gap_score: 15, description: "Added the SubagentStop hook", category: "new_event", reference_changelog_line: "Added the SubagentStop hook event", affected_skills: []}')
+GAPS=$(jq -nc --argjson f "$F" '[{version: "2.1.999", features: [$f]}]')
+run_gate "case16-gateon-file" "$GAPS" "$EVDIR"
+CALLS=$(count_calls "issue|create")
+D=$(dispo_of "subagentstop_hook")
+if [ "$GATE_EXIT" = "0" ] && [ "$CALLS" = "1" ] && [ -z "$D" ]; then
+  log_pass "case 16: above-floor + evidence (gate on) → filed, no disposition stamp"
+else
+  log_fail "case 16" "exit=$GATE_EXIT calls=$CALLS dispo='$D' (see /tmp/step3-case16-gateon-file.out)"
+fi
+rm -rf "$EVDIR"
+
+# ============================================================================
+# M169 real-tree ANCHOR cases — NON-hermetic. These run the evidence grep
+# against the ACTUAL repo tree with the DEFAULT EVIDENCE_ROOTS (unset), from
+# PROJECT_ROOT, so they assert the gate discriminates on real code. They define
+# "working": if a tightening breaks either, the tightening is wrong.
+# ============================================================================
+
+# Run the filer from PROJECT_ROOT with the gate on and DEFAULT evidence roots,
+# against a temp gaps/args file (never the real ledger). Leaves the rewritten
+# ledger at $ANCHOR_GAPS for assertions.
+run_anchor() {
+  local name="$1" gaps_json="$2"
+  : > "$MOCK_LOG"
+  ANCHOR_GAPS="$WORK/anchor-gaps.json"
+  echo "$gaps_json" > "$ANCHOR_GAPS"
+  echo '{"milestone": "CC adoption"}' > "$WORK/anchor-args.json"
+  pushd "$PROJECT_ROOT" >/dev/null
+  ANCHOR_EXIT=0
+  ORK_EVIDENCE_GATE=1 GAPS_FILE="$ANCHOR_GAPS" ISSUE_ARGS_FILE="$WORK/anchor-args.json" \
+  MOCK_EXISTING_MILESTONE=1 GH_REPO="acme/orchestkit" \
+    bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" > "/tmp/step3-$name.out" 2>&1 \
+    || ANCHOR_EXIT=$?
+  popd >/dev/null
+}
+
+# ---- Anchor A (#2992): the REAL 2.1.214 sessionstart fork-source feature MUST
+# evaluate hit — its surface is src/hooks/src/lifecycle/sync-session-dispatcher.ts.
+REAL_REF='Changed SessionStart hooks to report source `"fork"` when a session begins as a fork instead of `"resume"`'
+GAPS=$(jq -nc --arg ref "$REAL_REF" \
+  '[{version: "2.1.214", features: [{feature_slug: "sessionstart_fork_source", gap_score: 5, description: "SessionStart hooks report source fork on a forked session", category: "new_field", reference_changelog_line: $ref, affected_skills: []}]}]')
+run_anchor "anchorA-real-hit" "$GAPS"
+CALLS=$(count_calls "issue|create")
+if [ "$ANCHOR_EXIT" = "0" ] && [ "$CALLS" = "1" ]; then
+  log_pass "anchor A: real sessionstart fork-source (score 5) → evidence hit → filed via recall lane"
+else
+  log_fail "anchor A" "exit=$ANCHOR_EXIT calls=$CALLS (see /tmp/step3-anchorA-real-hit.out)"
+fi
+
+# ---- Anchor B (#2993): a realistic end-user-only changelog line (full
+# capitalized sentence, sentence-initial verb, no code identifier) MUST evaluate
+# miss on the real tree.
+GAPS=$(jq -nc \
+  '[{version: "2.1.214", features: [{feature_slug: "chrome_scroll_polish", gap_score: 20, description: "Smoother scrollbar rendering and cursor polish in the transcript view", category: "breaking", reference_changelog_line: "Fixed scrollbar rendering and improved cursor polish in the transcript view", affected_skills: []}]}]')
+run_anchor "anchorB-real-miss" "$GAPS"
+CALLS=$(count_calls "issue|create")
+D=$(jq -r '[.[] | .features[]? | select(.feature_slug=="chrome_scroll_polish") | .disposition] | .[0] // ""' "$ANCHOR_GAPS")
+if [ "$ANCHOR_EXIT" = "0" ] && [ "$CALLS" = "0" ] && [ "$D" = "triaged-noop-no-evidence" ]; then
+  log_pass "anchor B: end-user chrome_scroll_polish (score 20) → evidence miss → not filed on real tree"
+else
+  log_fail "anchor B" "exit=$ANCHOR_EXIT calls=$CALLS dispo='$D' (see /tmp/step3-anchorB-real-miss.out)"
 fi
 
 echo ""

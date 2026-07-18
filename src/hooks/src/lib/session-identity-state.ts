@@ -30,6 +30,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from 'node:fs';
@@ -71,6 +72,19 @@ const FILE_PARSED = 'session-identity.json';
 const FILE_SPAWNED = 'session-identity.spawned';
 const FILE_COLOR_APPLIED = 'session-identity.color';
 const FILE_TOMBSTONE = 'session-identity.failed';
+/** Regeneration baseline: the branch the current title was generated on, plus a
+ *  per-prompt turn counter, so we can detect a direction change. */
+const FILE_META = 'session-identity.meta';
+
+/**
+ * Turns-based refresh (opt-in). Set ORK_SESSION_IDENTITY_REFRESH_TURNS=<n> to
+ * regenerate the topic every <n> prompts even without a branch change — catches
+ * a long single-branch session whose work drifts across topics. Default unset =
+ * off (branch change is the only always-on trigger). A regenerate re-runs the
+ * detached haiku generator; it never blocks, and the new title still flows
+ * through the dispatcher's /rename guard, so an explicit /rename always wins.
+ */
+const ENV_REFRESH_TURNS = 'ORK_SESSION_IDENTITY_REFRESH_TURNS';
 
 /**
  * Resolve the session transcript path. Prefer the envelope's transcript_path;
@@ -134,6 +148,22 @@ export function manageSessionIdentity(
     const colorAppliedPath = join(sessionDir, FILE_COLOR_APPLIED);
     const tombstonePath = join(sessionDir, FILE_TOMBSTONE);
 
+    // 0. Regeneration: has the session's direction changed since the title was
+    //    generated? If so, drop the cached identity so the flow below re-spawns
+    //    the generator with the current branch + prompt. Never touches the color
+    //    file (color stays stable for the session). The regenerated title still
+    //    passes through the dispatcher's /rename guard, so a manual rename wins.
+    if (shouldRegenerateIdentity(sessionDir, ctx.branch || '')) {
+      for (const p of [parsedPath, rawPath, spawnedPath, tombstonePath]) {
+        try {
+          if (existsSync(p)) rmSync(p);
+        } catch {
+          /* fail open — a leftover file just delays regeneration one turn */
+        }
+      }
+      ctx.log('session-identity', `direction changed → regenerating title (branch=${ctx.branch})`);
+    }
+
     // 1. Identity already parsed → ensure color upgrade applied, return title.
     if (existsSync(parsedPath)) {
       const identity = parseIdentityOutput(readFileSync(parsedPath, 'utf8'));
@@ -182,6 +212,86 @@ export function manageSessionIdentity(
   } catch (error) {
     ctx.log('session-identity', `failed open: ${error}`, 'warn');
     return null;
+  }
+}
+
+interface IdentityMeta {
+  /** branch the current title was generated on */
+  branch: string;
+  /** total prompts seen this session (incremented every call) */
+  turns: number;
+  /** turns value at the last generation, for the turns-based refresh */
+  genTurn: number;
+}
+
+/**
+ * Decide whether to regenerate the session title, and advance the per-session
+ * meta baseline. Called once per prompt BEFORE the cached-identity short-circuit.
+ *
+ * Triggers (either fires):
+ *   - branch changed since the title was generated (always on) — a new branch is
+ *     a new piece of work. Ignores the 'unknown'/empty git fallback so a
+ *     momentarily-unavailable branch never forces a spurious regenerate.
+ *   - ORK_SESSION_IDENTITY_REFRESH_TURNS=n set and n prompts elapsed since the
+ *     last generation (opt-in) — catches topic drift on a long single-branch
+ *     session.
+ *
+ * Fail-open: any I/O error returns false (keep the current title). The meta file
+ * is best-effort; a missing baseline just seeds from the current turn.
+ */
+function shouldRegenerateIdentity(sessionDir: string, liveBranch: string): boolean {
+  try {
+    const metaPath = join(sessionDir, FILE_META);
+    let meta: IdentityMeta | null = null;
+    if (existsSync(metaPath)) {
+      try {
+        meta = JSON.parse(readFileSync(metaPath, 'utf8')) as IdentityMeta;
+      } catch {
+        meta = null; // corrupt → reseed below
+      }
+    }
+
+    const branch = (liveBranch || '').trim();
+    const branchKnown = branch !== '' && branch !== 'unknown';
+
+    // First time (or corrupt meta): seed the baseline, never regenerate now.
+    if (!meta || typeof meta.turns !== 'number') {
+      writeMeta(metaPath, { branch: branchKnown ? branch : '', turns: 1, genTurn: 1 });
+      return false;
+    }
+
+    const turns = meta.turns + 1;
+    let regen = false;
+
+    // Branch change (only when both old and new are real branches).
+    if (branchKnown && meta.branch && meta.branch !== '' && branch !== meta.branch) {
+      regen = true;
+    }
+
+    // Turns-based refresh (opt-in).
+    const refreshTurns = Number(process.env[ENV_REFRESH_TURNS] ?? '0');
+    if (!regen && Number.isFinite(refreshTurns) && refreshTurns > 0) {
+      if (turns - meta.genTurn >= refreshTurns) regen = true;
+    }
+
+    writeMeta(metaPath, {
+      // Adopt the live branch as the new baseline once it's known; otherwise keep
+      // the old one so a transient 'unknown' doesn't reset branch tracking.
+      branch: branchKnown ? branch : meta.branch,
+      turns,
+      genTurn: regen ? turns : meta.genTurn,
+    });
+    return regen;
+  } catch {
+    return false; // fail-open: keep the current title
+  }
+}
+
+function writeMeta(metaPath: string, meta: IdentityMeta): void {
+  try {
+    writeFileSync(metaPath, JSON.stringify(meta), 'utf8');
+  } catch {
+    /* best-effort — a missing baseline just reseeds next turn */
   }
 }
 

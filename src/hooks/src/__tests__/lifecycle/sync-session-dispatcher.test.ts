@@ -243,6 +243,26 @@ describe('lifecycle/sync-session-dispatcher', () => {
       expect(materializeAntipatternRules).toHaveBeenCalledWith('/test/project');
     });
 
+    it.each(['compact', 'resume', 'fork'])(
+      'skips rules materialization on light-mode source %s',
+      (source) => {
+        const input = createSessionStartInput({ source } as Partial<HookInput>);
+        syncSessionDispatcher(input, testCtx);
+
+        expect(materializeAntipatternRules).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each(['startup', 'clear'])(
+      'materializes rules on full-start source %s',
+      (source) => {
+        const input = createSessionStartInput({ source } as Partial<HookInput>);
+        syncSessionDispatcher(input, testCtx);
+
+        expect(materializeAntipatternRules).toHaveBeenCalled();
+      },
+    );
+
     it('continues even if materializeAntipatternRules throws', () => {
       vi.mocked(materializeAntipatternRules).mockImplementation(() => {
         throw new Error('rules file write failed');

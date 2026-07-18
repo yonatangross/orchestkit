@@ -145,6 +145,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+          # Activate the evidence-gated filing lanes (PR #2995, #2992/#2993). The
+          # script default is 0 (legacy score-only filing) so the gate never
+          # silently turns on; this one line is the visible, revertible switch.
+          ORK_EVIDENCE_GATE: "1"
         run: bash scripts/cc-file-adoption-issues.sh
 
       # Step 3b — consolidate stray per-version "CC X.Y.Z adoption" milestones

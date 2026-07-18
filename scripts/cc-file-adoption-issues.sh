@@ -11,12 +11,22 @@
 #   GH_REPO           "owner/repo" — required for milestone resolution
 #                     (workflow injects ${{ github.repository }})
 #   MIN_GAP_SCORE     issue floor (default 10)
+#   ORK_EVIDENCE_GATE 0 (default) = legacy score-only filing, recall lane
+#                     skipped; 1 enables both evidence lanes (the workflow sets
+#                     it to 1 explicitly so activation is never silent)
+#   EVIDENCE_ROOTS    space-separated paths grepped for surface evidence
+#   RECALL_MIN        sub-floor recall band lower bound (default 4)
+#   FEATURE_CAP       extractor hard cap for cap-saturation warning (default 20)
 #
 # Side effects (via gh):
 #   - Resolves milestone (creates if missing)
-#   - For each feature with gap_score >= MIN_GAP_SCORE, dedups by
-#     `Key: \`<slug>+<version>\`` body marker and creates an issue
-#     with labels cc-adoption,automation
+#   - PRECISION lane (#2993): for each feature with gap_score >= MIN_GAP_SCORE,
+#     dedups by Changelog-Ref marker, then files ONLY if the plugin tree shows
+#     evidence of the surface — otherwise stamps `triaged-noop-no-evidence`.
+#   - RECALL lane (#2992): for each sub-floor feature in [RECALL_MIN, floor),
+#     files via the same path IF the tree shows evidence, else stamps
+#     `unfiled-subfloor`.
+#   - Issues carry labels cc-adoption,automation
 #
 # Returns 0 on success even when no issues are filed (empty gaps,
 # empty features, all dedup'd). Hard-fails only on missing inputs
@@ -26,7 +36,56 @@ set -euo pipefail
 
 GAPS_FILE="${GAPS_FILE:-shared/cc-adoption-gaps.json}"
 ISSUE_ARGS_FILE="${ISSUE_ARGS_FILE:-shared/gh-issue-args.json}"
+# MIN_GAP_SCORE is the filer floor. It is duplicated as FILE_FLOOR in
+# scripts/cc-triage.mjs (the verify gate's downgrade/boost target). Keep both in
+# sync: if you change the default here, change FILE_FLOOR there too (#2992/#2993).
 MIN_GAP_SCORE="${MIN_GAP_SCORE:-10}"
+
+# ── Evidence gate (M169: #2992 recall lane + #2993 precision lane) ────────────
+# Roots grepped for codebase evidence that a CC feature touches a surface we
+# actually author. Space-separated; non-existent paths are filtered out at use.
+# Injectable so the hermetic step-3 tests can point it at a controlled fixture.
+EVIDENCE_ROOTS="${EVIDENCE_ROOTS:-src/settings/ manifests/ src/hooks/hooks.json src/hooks/src/ src/skills/ src/agents/}"
+# ORK_EVIDENCE_GATE defaults to 0 (legacy score-only filing, recall lane skipped)
+# so the gate never activates silently. The nightly workflow sets it to 1
+# explicitly (a visible, one-line-revertible switch). 1 enables both lanes.
+EVIDENCE_GATE="${ORK_EVIDENCE_GATE:-0}"
+# Lower bound of the recall band. Sub-floor features scored below this are too
+# weak to file even with evidence; [RECALL_MIN, MIN_GAP_SCORE) is the recall lane.
+RECALL_MIN="${RECALL_MIN:-4}"
+# The LLM extractor caps features[] at 20 (scripts/cc-triage.mjs validateAndScore
+# `.slice(0, 20)`). A version that hits it exactly may have had features dropped;
+# we stamp cap_saturated and warn (a cheap #2950 aid, not the truncation fix).
+FEATURE_CAP="${FEATURE_CAP:-20}"
+
+# Evidence is a hit on an IDENTIFIER-SHAPED token in a CODE/CONFIG file. Round 3
+# tightened the classifier after review found Title-case sentence-initial verbs
+# (Fixed, Added, Changed) and hyphenated English (auto-approve, read-only) were
+# leaking as "identifiers". The rules now are:
+#   - candidates come from two places only: identifiers inside `backtick` spans,
+#     and prose words with an INTERNAL lower->UPPER camelCase transition
+#     (SessionStart, SubagentStop — but NOT Fixed/Bash/Edit, which have no
+#     internal transition). Bare/hyphenated prose words are NOT candidates.
+#   - the sentence-initial word of the description and changelog line is dropped
+#     (every changelog line opens with a capitalized verb).
+#   - a token needs a >= TOKEN_CORE_MIN alphanumeric core.
+#   - camelCase tokens are matched CASE-SENSITIVELY (their only signal is casing);
+#     punctuated tokens (`_ - . :`, e.g. settings.json, an env var) case-insensitively.
+#   - a match counts only in a NON-PROSE file. ork skill/agent markdown documents
+#     every CC concept encyclopedically, so a doc name-drop is not proof ork
+#     authors the surface — code/config (.ts, .json, .sh) is.
+# Validated against all 15 real 2.1.214 feature lines: the sessionstart fork-source
+# adoption hits (SessionStart is in the hook code); 12 of the other 14 miss.
+TOKEN_CORE_MIN=4
+# Prose file extensions whose matches do NOT count as authoring evidence.
+PROSE_EXT_RE='\.(md|mdx|markdown|html?|txt)$'
+
+# Temp file accumulating per-feature dispositions (JSON lines) written by the
+# lanes and merged back into the ledger in a single jq pass at the end. The
+# filing loops run in a `jq | while` subshell, so a file (not a var) is how the
+# records survive back to the parent shell.
+DISPO_FILE="$(mktemp)"
+trap 'rm -f "$DISPO_FILE"' EXIT
 
 # Portable sha256 of stdin → bare hex (Linux sha256sum, macOS shasum). Used for
 # the stable Changelog-Ref dedup key (#2041).
@@ -42,6 +101,173 @@ sha256_hex() {
 # note in the PR to anchor the key to the deterministic snapshot bullet instead.)
 normalize_ref() {
   sed -E 's/^[[:space:]]*[-*+][[:space:]]+//; s/[[:space:]]+/ /g; s/^[[:space:]]+//; s/[[:space:]]+$//'
+}
+
+# Filter EVIDENCE_ROOTS down to paths that actually exist, so grep never errors
+# on a missing root (a removed dir must not fail-open the whole gate).
+existing_roots() {
+  local r
+  for r in $EVIDENCE_ROOTS; do
+    [ -e "$r" ] && printf '%s\n' "$r"
+  done
+}
+
+# Length of a token's alphanumeric core (punctuation stripped).
+core_len() { printf '%s' "$1" | tr -cd '[:alnum:]' | awk '{ print length }'; }
+
+# Derive classified search tokens from a feature, one per line, deduped, as
+# "C<TAB>token" (camelCase — match case-sensitively) or "P<TAB>token" (punctuated
+# — match case-insensitively). See the classifier note above for the rules.
+derive_tokens() {
+  local feat="$1"
+  local slug desc ref desc_rest ref_rest
+  slug=$(printf '%s' "$feat" | jq -r '.feature_slug // ""')
+  desc=$(printf '%s' "$feat" | jq -r '.description // ""')
+  ref=$(printf '%s' "$feat" | jq -r '.reference_changelog_line // ""')
+  # Drop the sentence-initial word of desc + ref (a capitalized verb otherwise
+  # matches prose everywhere). Backtick spans are scanned from the full text.
+  desc_rest=$(printf '%s' "$desc" | sed -E 's/^[^[:space:]]+[[:space:]]+//')
+  ref_rest=$(printf '%s' "$ref" | sed -E 's/^[^[:space:]]+[[:space:]]+//')
+  {
+    # (a) identifiers inside backtick spans (from the full text). A no-match grep
+    # exits 1, expected when a line has no backticks.
+    printf '%s\n' "$desc $ref" | grep -oE '`[^`]*`' | grep -oE '[A-Za-z][A-Za-z0-9_.:-]{2,}' || true  # silent: known-noise
+    # (b) prose words, sentence-initial dropped; only camelCase survives below.
+    printf '%s\n' "$desc_rest $ref_rest" | grep -oE '[A-Za-z][A-Za-z0-9]+' || true  # silent: known-noise
+    # (c) the slug (always punctuated; effectively never matches, but keeps a real
+    # feature out of the `unknown` bucket).
+    printf '%s\n' "$slug"
+  } | while IFS= read -r tok; do
+      [ -z "$tok" ] && continue
+      [ "$(core_len "$tok")" -ge "$TOKEN_CORE_MIN" ] || continue
+      case "$tok" in
+        *[_.:-]*) printf 'P\t%s\n' "$tok"; continue ;;   # punctuated
+      esac
+      # internal lower->UPPER transition => camelCase identifier (SessionStart yes,
+      # Fixed/Bash/Edit no). Bare/Title-case prose words are dropped here.
+      if grep -Eq '[a-z][A-Z]' <<< "$tok"; then
+        printf 'C\t%s\n' "$tok"
+      fi
+    done | sort -u
+}
+
+# Echo one of: hit | miss | unknown.
+#   hit     — a classified token matched in a NON-PROSE (code/config) file
+#   miss    — tokens were derived but none matched in code/config
+#   unknown — no classified token could be derived (cannot assess)
+# When the gate is disabled it short-circuits to `hit` (never suppresses).
+has_evidence() {
+  local feat="$1"
+  [ "$EVIDENCE_GATE" = "0" ] && { echo hit; return; }
+  local roots classified line cls tok files
+  roots=$(existing_roots)
+  [ -z "$roots" ] && { echo unknown; return; }
+  classified=$(derive_tokens "$feat")
+  [ -z "$classified" ] && { echo unknown; return; }
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    cls=${line%%$'\t'*}
+    tok=${line#*$'\t'}
+    # -F fixed string so a token with regex metachars can't misbehave. camelCase
+    # (C) matches case-sensitively — its distinctiveness IS the casing; punctuated
+    # (P) matches case-insensitively. A no-match grep exits 1 (expected).
+    if [ "$cls" = "C" ]; then
+      files=$(printf '%s\n' "$roots" | tr '\n' '\0' | xargs -0 grep -rlF -- "$tok" 2>/dev/null || true)  # silent: known-noise
+    else
+      files=$(printf '%s\n' "$roots" | tr '\n' '\0' | xargs -0 grep -rliF -- "$tok" 2>/dev/null || true)  # silent: known-noise
+    fi
+    [ -z "$files" ] && continue
+    # Count only matches in non-prose files: skill/agent markdown name-drops CC
+    # concepts without ork authoring them, so a doc-only match is not evidence.
+    if grep -vqE "$PROSE_EXT_RE" <<< "$files"; then
+      echo hit; return
+    fi
+  done <<< "$classified"
+  echo miss
+}
+
+# Append a per-feature disposition record for the final ledger merge.
+record_dispo() {
+  jq -nc --arg v "$1" --arg s "$2" --arg d "$3" \
+    '{version: $v, feature_slug: $s, disposition: $d}' >> "$DISPO_FILE"
+}
+
+# Return 0 if an OPEN cc-adoption issue already carries this feature's
+# Changelog-Ref marker (the dedup probe, shared by both filing lanes).
+already_filed() {
+  local feat="$1" slug version ref key ref_key ref_hash existing
+  slug=$(printf '%s' "$feat" | jq -r '.feature_slug')
+  version=$(printf '%s' "$feat" | jq -r '.version')
+  ref=$(printf '%s' "$feat" | jq -r '.reference_changelog_line')
+  key="${slug}+${version}"
+  ref_key="$ref"
+  if [ -z "$ref" ] || [ "$ref" = "null" ]; then ref_key="$key"; fi
+  ref_hash=$(printf '%s' "$ref_key" | normalize_ref | sha256_hex)
+  existing=$(gh issue list --label cc-adoption --state open \
+    --search "\"Changelog-Ref: \\\`$ref_hash\\\`\" in:body" \
+    --json number --jq 'length')
+  [ "$existing" -gt 0 ]
+}
+
+# Create one cc-adoption issue from a feature JSON. $2=1 adds the recall-lane
+# note to the body. Does NOT dedup — callers run already_filed() first, in the
+# order each lane requires (#2993 wants dedup BEFORE the evidence check).
+create_issue() {
+  local feat="$1" recall="${2:-0}"
+  local SLUG VERSION DESC CAT SCORE REF AFFECTED KEY REF_KEY REF_HASH TITLE BODY
+  SLUG=$(printf '%s' "$feat" | jq -r '.feature_slug')
+  VERSION=$(printf '%s' "$feat" | jq -r '.version')
+  DESC=$(printf '%s' "$feat" | jq -r '.description')
+  CAT=$(printf '%s' "$feat" | jq -r '.category')
+  SCORE=$(printf '%s' "$feat" | jq -r '.gap_score')
+  REF=$(printf '%s' "$feat" | jq -r '.reference_changelog_line')
+  AFFECTED=$(printf '%s' "$feat" | jq -r '.affected_skills | join(", ")')
+  KEY="${SLUG}+${VERSION}"
+  REF_KEY="$REF"
+  if [ -z "$REF" ] || [ "$REF" = "null" ]; then REF_KEY="$KEY"; fi
+  REF_HASH=$(printf '%s' "$REF_KEY" | normalize_ref | sha256_hex)
+
+  # Assemble the body line-by-line. The recall note is inserted only for the
+  # sub-floor recall lane, so a plain array keeps the conditional unambiguous
+  # (safer than an in-place ${var:+…} expansion, which splits on whitespace).
+  local -a body=(
+    "**Auto-filed by cc-release-watch** — see [shared/cc-adoption-gaps.json](../blob/main/shared/cc-adoption-gaps.json) for the source data."
+    ""
+    "**Key:** \`${KEY}\`"
+    "**Changelog-Ref:** \`${REF_HASH}\`"
+    "**Category:** \`${CAT}\` (gap_score=${SCORE})"
+    "**Affected skills:** ${AFFECTED:-(none detected)}"
+  )
+  if [ "$recall" = "1" ]; then
+    body+=(
+      ""
+      "**Recall lane:** sub-floor score but codebase evidence — filed because a surface token appears in the plugin tree."
+    )
+  fi
+  body+=(
+    ""
+    "## Changelog reference"
+    ""
+    "> ${REF}"
+    ""
+    "## What to do"
+    ""
+    "${DESC}"
+    ""
+    "See \`shared/cc-snapshots/${VERSION}.md\` for the full version notes, or run \`/release-notes\` in Claude Code (2.1.173+) to view the live upstream changelog. When closing this issue, link the PR with \`Closes #N\` so release-please picks it up."
+    ""
+    "## Policy"
+    ""
+    "Per \`shared/rules/cc-support-policy.md\`, the support floor will auto-bump after this version's matrix entry lands in \`src/hooks/src/lib/cc-version-matrix.ts\`. The follow-up bump PR is opened by \`.github/workflows/cc-support-window-bump.yml\`."
+  )
+  TITLE="adopt CC $VERSION feature: $SLUG ($CAT)"
+  BODY=$(printf '%s\n' "${body[@]}")
+  gh issue create \
+    --title "$TITLE" \
+    --body "$BODY" \
+    --label cc-adoption,automation \
+    --milestone "$MILESTONE_TITLE"
+  echo "Filed: $KEY"
 }
 
 if [ ! -s "$GAPS_FILE" ] || [ "$(jq 'length' "$GAPS_FILE")" = "0" ]; then
@@ -69,77 +295,106 @@ if [ -z "$MILESTONE_NUM" ]; then
   echo "Created milestone $MILESTONE_TITLE (#$MILESTONE_NUM)"
 fi
 
-# Iterate features across all gap entries. The `.features[]?` `?`
-# tolerator + `select(.gap_score >= $floor)` is the regression guard:
-# without the tolerator, an empty `features: []` array crashes jq's
-# stream; with it, jq emits zero outputs and the while-loop runs zero
-# times. That is the M134 regression — empty features[] silently
-# produced zero issues but no test asserted that behavior.
+# ── PRECISION lane (#2993): >= floor, evidence-gated ─────────────────────────
+# Iterate features across all gap entries. The `.features[]?` `?` tolerator +
+# `select(.gap_score >= $floor)` is the M134 regression guard: without the
+# tolerator, an empty `features: []` array crashes jq's stream; with it, jq
+# emits zero outputs and the while-loop runs zero times (empty features[] must
+# file zero issues — asserted by the step-3 test).
+#
+# For each qualifying feature, in this exact order:
+#   1. dedup (already_filed) — an already-open issue short-circuits everything;
+#      we must not re-evaluate or re-stamp it.
+#   2. evidence (has_evidence) — a `miss` means nothing in the plugin tree
+#      references this surface, so it is NOT ours to adopt: skip filing and
+#      stamp `triaged-noop-no-evidence`. `unknown` (no derivable tokens) does
+#      NOT suppress — over-file beats false-drop, per the SOP.
+#   3. file.
 jq -c --argjson floor "$MIN_GAP_SCORE" \
   '.[] | .version as $v | .features[]? | select(.gap_score >= $floor) | . + {version: $v}' \
   "$GAPS_FILE" \
   | while read -r feat; do
-      SLUG=$(echo "$feat" | jq -r '.feature_slug')
-      VERSION=$(echo "$feat" | jq -r '.version')
-      DESC=$(echo "$feat" | jq -r '.description')
-      CAT=$(echo "$feat" | jq -r '.category')
-      SCORE=$(echo "$feat" | jq -r '.gap_score')
-      REF=$(echo "$feat" | jq -r '.reference_changelog_line')
-      AFFECTED=$(echo "$feat" | jq -r '.affected_skills | join(", ")')
-      KEY="${SLUG}+${VERSION}"   # legacy marker, kept in the body for human readability
+      SLUG=$(printf '%s' "$feat" | jq -r '.feature_slug')
+      VERSION=$(printf '%s' "$feat" | jq -r '.version')
 
-      # #2041: dedup on a hash of the VERBATIM changelog line, not slug+version.
-      # The LLM's feature_slug drifts run-to-run (marketplace_remove_scope_flag vs
-      # marketplace_remove_scope), so the old KEY filed duplicates on re-triage. The
-      # changelog line is immutable + 1:1 with a feature. Pre-existing issues are
-      # migrated to carry this marker by cc-backfill-changelog-ref.sh (a workflow
-      # step that runs BEFORE this filer). Degenerate fallback: a feature with no
-      # ref keys on the legacy slug+version so filing never silently breaks.
-      REF_KEY="$REF"
-      if [ -z "$REF" ] || [ "$REF" = "null" ]; then REF_KEY="$KEY"; fi
-      REF_HASH=$(printf '%s' "$REF_KEY" | normalize_ref | sha256_hex)
-
-      EXISTING=$(gh issue list --label cc-adoption --state open \
-        --search "\"Changelog-Ref: \\\`$REF_HASH\\\`\" in:body" \
-        --json number --jq 'length')
-      if [ "$EXISTING" -gt 0 ]; then
-        echo "Skip (exists): $REF_HASH ($KEY)"
+      if already_filed "$feat"; then
+        echo "Skip (exists): ${SLUG}+${VERSION}"
         continue
       fi
 
-      TITLE="adopt CC $VERSION feature: $SLUG ($CAT)"
-      # NOTE: do NOT use a `cat <<BODY` heredoc here. A heredoc body
-      # at column 1 broke YAML block-scalar indentation when this
-      # logic lived inline in the workflow. Now standalone, heredocs
-      # are safe; printf is kept for parity + line-by-line review.
-      BODY=$(printf '%s\n' \
-        "**Auto-filed by cc-release-watch** — see [shared/cc-adoption-gaps.json](../blob/main/shared/cc-adoption-gaps.json) for the source data." \
-        "" \
-        "**Key:** \`${KEY}\`" \
-        "**Changelog-Ref:** \`${REF_HASH}\`" \
-        "**Category:** \`${CAT}\` (gap_score=${SCORE})" \
-        "**Affected skills:** ${AFFECTED:-(none detected)}" \
-        "" \
-        "## Changelog reference" \
-        "" \
-        "> ${REF}" \
-        "" \
-        "## What to do" \
-        "" \
-        "${DESC}" \
-        "" \
-        "See \`shared/cc-snapshots/${VERSION}.md\` for the full version notes, or run \`/release-notes\` in Claude Code (2.1.173+) to view the live upstream changelog. When closing this issue, link the PR with \`Closes #N\` so release-please picks it up." \
-        "" \
-        "## Policy" \
-        "" \
-        "Per \`shared/rules/cc-support-policy.md\`, the support floor will auto-bump after this version's matrix entry lands in \`src/hooks/src/lib/cc-version-matrix.ts\`. The follow-up bump PR is opened by \`.github/workflows/cc-support-window-bump.yml\`.")
-      gh issue create \
-        --title "$TITLE" \
-        --body "$BODY" \
-        --label cc-adoption,automation \
-        --milestone "$MILESTONE_TITLE"
-      echo "Filed: $KEY"
+      if [ "$EVIDENCE_GATE" != "0" ]; then
+        EV=$(has_evidence "$feat")
+        if [ "$EV" = "miss" ]; then
+          echo "Skip (no evidence): ${SLUG}+${VERSION} — no plugin-tree reference to this surface" >&2
+          record_dispo "$VERSION" "$SLUG" "triaged-noop-no-evidence"
+          continue
+        fi
+      fi
+
+      create_issue "$feat" 0
     done
+
+# ── RECALL lane (#2992): sub-floor [RECALL_MIN, floor), evidence-gated ────────
+# Second pass over features the precision lane never touched (below the filer
+# floor). The triage-side recall boost only fires for features whose LLM-curated
+# affected_skills map to a predating skill; a real adoption with an EMPTY
+# affected_skills array (e.g. the 2.1.214 sessionstart fork-source feature) slips
+# through. This lane is the independent safety net: if a surface token from the
+# feature actually appears in the plugin tree, file it; otherwise record it as
+# `unfiled-subfloor` so the miss is visible, never a silent drop.
+if [ "$EVIDENCE_GATE" != "0" ]; then
+  jq -c --argjson floor "$MIN_GAP_SCORE" --argjson rmin "$RECALL_MIN" \
+    '.[] | .version as $v | .features[]? | select(.gap_score >= $rmin and .gap_score < $floor) | . + {version: $v}' \
+    "$GAPS_FILE" \
+    | while read -r feat; do
+        SLUG=$(printf '%s' "$feat" | jq -r '.feature_slug')
+        VERSION=$(printf '%s' "$feat" | jq -r '.version')
+
+        EV=$(has_evidence "$feat")
+        if [ "$EV" != "hit" ]; then
+          record_dispo "$VERSION" "$SLUG" "unfiled-subfloor"
+          continue
+        fi
+
+        if already_filed "$feat"; then
+          echo "Skip (exists): ${SLUG}+${VERSION}"
+          continue
+        fi
+
+        echo "Recall-lane candidate (sub-floor + evidence): ${SLUG}+${VERSION}" >&2
+        create_issue "$feat" 1
+      done
+fi
+
+# ── Cap-saturation warning (#2950 aid) ───────────────────────────────────────
+# A version whose features[] length equals the extractor's hard cap may have had
+# additional features truncated. Warn loudly; the stamp is applied in the jq pass
+# below. This is a signal, not the truncation fix (#2950 stays open).
+while read -r cs_ver cs_len; do
+  if [ "$cs_len" = "$FEATURE_CAP" ]; then
+    echo "WARNING: version $cs_ver has exactly $FEATURE_CAP features (extractor hard cap) — additional features may have been truncated (#2950)." >&2
+  fi
+done < <(jq -r '.[] | "\(.version) \((.features // []) | length)"' "$GAPS_FILE")
+
+# ── Merge per-feature dispositions back into the ledger ───────────────────────
+# The lanes recorded (version, feature_slug, disposition) triples to DISPO_FILE.
+# Fold them onto the matching feature objects in one jq pass, keyed on
+# version + space + slug (neither field contains a space, so the key is unique).
+if [ -s "$DISPO_FILE" ]; then
+  DISPO_JSON="$(jq -s '.' "$DISPO_FILE")"
+  TMP_DISPO="$(mktemp)"
+  jq --argjson dispo "$DISPO_JSON" '
+    ($dispo | map({key: (.version + " " + .feature_slug), value: .disposition}) | from_entries) as $m
+    | map(
+        .version as $v
+        | .features = ((.features // []) | map(
+            . as $f
+            | ($v + " " + ($f.feature_slug // "")) as $k
+            | if $m[$k] then . + {disposition: $m[$k]} else . end
+          ))
+      )
+  ' "$GAPS_FILE" > "$TMP_DISPO" && mv "$TMP_DISPO" "$GAPS_FILE"
+fi
 
 # Stamp every fully-processed (non-stuck) entry with `issues_filed_at` so the
 # next cc-release-watch run can PRUNE it from its carry-forward. Without this
@@ -151,9 +406,15 @@ jq -c --argjson floor "$MIN_GAP_SCORE" \
 # UNSTAMPED so they stay carried for `cc-triage --retry-failed`. Reaching this
 # line means the loop completed (set -e aborts on any gh error), i.e. every
 # feature >= floor was filed or dedup-skipped — a true "processed" marker.
+# The same pass also stamps `cap_saturated: true` on any entry whose features[]
+# hit the extractor hard cap (#2950 aid) — folded in here so the ledger is
+# written once.
 TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 TMP_GAPS="$(mktemp)"
-jq --arg ts "$TS" \
-  'map(if (.parse_failed // false) == true then . else . + {issues_filed_at: $ts} end)' \
+jq --arg ts "$TS" --argjson cap "$FEATURE_CAP" \
+  'map(
+     (if ((.features // []) | length) == $cap then . + {cap_saturated: true} else . end)
+     | (if (.parse_failed // false) == true then . else . + {issues_filed_at: $ts} end)
+   )' \
   "$GAPS_FILE" > "$TMP_GAPS" && mv "$TMP_GAPS" "$GAPS_FILE"
 echo "Stamped issues_filed_at=$TS on filed entries (parse_failed entries left for retry)."
