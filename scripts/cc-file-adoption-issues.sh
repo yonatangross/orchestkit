@@ -58,16 +58,27 @@ RECALL_MIN="${RECALL_MIN:-4}"
 # we stamp cap_saturated and warn (a cheap #2950 aid, not the truncation fix).
 FEATURE_CAP="${FEATURE_CAP:-20}"
 
-# Evidence is a hit on an IDENTIFIER-SHAPED token, classified by shape (not by an
-# unbounded English stoplist): a token is a search candidate only if it contains
-# `_` `-` `.` or `:`, or is mixedCase (has both an upper and a lower letter) — i.e.
-# a name a plugin author would type verbatim (`SessionStart`, `Bash`, `settings.json`,
-# `--no-browser`). Bare single-case dictionary words (chrome, scroll, source) are
-# discarded: they are common in prose and code alike, so matching them proves
-# nothing about whether ork authors the surface. Verified against the real 2.1.214
-# ledger — every genuine feature line carries such an identifier (SessionStart,
-# Bash, Edit), while end-user-only lines (scrollbar/cursor polish) do not.
-STRONG_TOKEN_MIN=3
+# Evidence is a hit on an IDENTIFIER-SHAPED token in a CODE/CONFIG file. Round 3
+# tightened the classifier after review found Title-case sentence-initial verbs
+# (Fixed, Added, Changed) and hyphenated English (auto-approve, read-only) were
+# leaking as "identifiers". The rules now are:
+#   - candidates come from two places only: identifiers inside `backtick` spans,
+#     and prose words with an INTERNAL lower->UPPER camelCase transition
+#     (SessionStart, SubagentStop — but NOT Fixed/Bash/Edit, which have no
+#     internal transition). Bare/hyphenated prose words are NOT candidates.
+#   - the sentence-initial word of the description and changelog line is dropped
+#     (every changelog line opens with a capitalized verb).
+#   - a token needs a >= TOKEN_CORE_MIN alphanumeric core.
+#   - camelCase tokens are matched CASE-SENSITIVELY (their only signal is casing);
+#     punctuated tokens (`_ - . :`, e.g. settings.json, an env var) case-insensitively.
+#   - a match counts only in a NON-PROSE file. ork skill/agent markdown documents
+#     every CC concept encyclopedically, so a doc name-drop is not proof ork
+#     authors the surface — code/config (.ts, .json, .sh) is.
+# Validated against all 15 real 2.1.214 feature lines: the sessionstart fork-source
+# adoption hits (SessionStart is in the hook code); 12 of the other 14 miss.
+TOKEN_CORE_MIN=4
+# Prose file extensions whose matches do NOT count as authoring evidence.
+PROSE_EXT_RE='\.(md|mdx|markdown|html?|txt)$'
 
 # Temp file accumulating per-feature dispositions (JSON lines) written by the
 # lanes and merged back into the ledger in a single jq pass at the end. The
@@ -101,63 +112,77 @@ existing_roots() {
   done
 }
 
-# Derive IDENTIFIER-SHAPED (STRONG) search tokens from a feature, one per line,
-# deduped. Candidates are every word in the description + changelog line + slug,
-# plus the slug's `_`/`-` segments and its concatenated form. A candidate is kept
-# only if it is identifier-shaped: contains `_` `-` `.` or `:`, OR is mixedCase
-# (has both an upper and a lower letter). Bare single-case words (chrome, scroll,
-# source) are dropped — matching them proves nothing (see the note above). The
-# full slug is always identifier-shaped when multi-segment, so a real feature
-# yields >= 1 token and evaluates to hit/miss rather than the unknown fallback.
+# Length of a token's alphanumeric core (punctuation stripped).
+core_len() { printf '%s' "$1" | tr -cd '[:alnum:]' | awk '{ print length }'; }
+
+# Derive classified search tokens from a feature, one per line, deduped, as
+# "C<TAB>token" (camelCase — match case-sensitively) or "P<TAB>token" (punctuated
+# — match case-insensitively). See the classifier note above for the rules.
 derive_tokens() {
   local feat="$1"
-  local slug desc ref text
+  local slug desc ref desc_rest ref_rest
   slug=$(printf '%s' "$feat" | jq -r '.feature_slug // ""')
   desc=$(printf '%s' "$feat" | jq -r '.description // ""')
   ref=$(printf '%s' "$feat" | jq -r '.reference_changelog_line // ""')
-  text="$desc $ref $slug"
+  # Drop the sentence-initial word of desc + ref (a capitalized verb otherwise
+  # matches prose everywhere). Backtick spans are scanned from the full text.
+  desc_rest=$(printf '%s' "$desc" | sed -E 's/^[^[:space:]]+[[:space:]]+//')
+  ref_rest=$(printf '%s' "$ref" | sed -E 's/^[^[:space:]]+[[:space:]]+//')
   {
-    # Every identifier-ish word anywhere in the text (also pulls names out of
-    # `backtick` spans and flags like --no-browser). A no-match grep exits 1,
-    # which is expected on a wordless line.
-    printf '%s\n' "$text" | grep -oE '[A-Za-z][A-Za-z0-9_.:-]{2,}' || true  # silent: known-noise
-    printf '%s\n' "$slug"                     # full slug (identifier-shaped if multi-segment)
-    printf '%s\n' "$slug" | tr '_-' '\n\n'    # slug segments (kept only if mixedCase)
+    # (a) identifiers inside backtick spans (from the full text). A no-match grep
+    # exits 1, expected when a line has no backticks.
+    printf '%s\n' "$desc $ref" | grep -oE '`[^`]*`' | grep -oE '[A-Za-z][A-Za-z0-9_.:-]{2,}' || true  # silent: known-noise
+    # (b) prose words, sentence-initial dropped; only camelCase survives below.
+    printf '%s\n' "$desc_rest $ref_rest" | grep -oE '[A-Za-z][A-Za-z0-9]+' || true  # silent: known-noise
+    # (c) the slug (always punctuated; effectively never matches, but keeps a real
+    # feature out of the `unknown` bucket).
+    printf '%s\n' "$slug"
   } | while IFS= read -r tok; do
       [ -z "$tok" ] && continue
-      [ "${#tok}" -ge "$STRONG_TOKEN_MIN" ] || continue
-      local strong=0
-      case "$tok" in *[_.:-]*) strong=1 ;; esac
-      # mixedCase (both an upper and a lower letter) is also identifier-shaped.
-      if [ "$strong" -eq 0 ] && grep -q '[a-z]' <<< "$tok" && grep -q '[A-Z]' <<< "$tok"; then
-        strong=1
+      [ "$(core_len "$tok")" -ge "$TOKEN_CORE_MIN" ] || continue
+      case "$tok" in
+        *[_.:-]*) printf 'P\t%s\n' "$tok"; continue ;;   # punctuated
+      esac
+      # internal lower->UPPER transition => camelCase identifier (SessionStart yes,
+      # Fixed/Bash/Edit no). Bare/Title-case prose words are dropped here.
+      if grep -Eq '[a-z][A-Z]' <<< "$tok"; then
+        printf 'C\t%s\n' "$tok"
       fi
-      [ "$strong" -eq 1 ] && printf '%s\n' "$tok"
     done | sort -u
 }
 
 # Echo one of: hit | miss | unknown.
-#   hit     — an identifier-shaped token matched somewhere in the roots
-#   miss    — tokens were derived but none matched
-#   unknown — no identifier-shaped token could be derived (cannot assess)
+#   hit     — a classified token matched in a NON-PROSE (code/config) file
+#   miss    — tokens were derived but none matched in code/config
+#   unknown — no classified token could be derived (cannot assess)
 # When the gate is disabled it short-circuits to `hit` (never suppresses).
 has_evidence() {
   local feat="$1"
   [ "$EVIDENCE_GATE" = "0" ] && { echo hit; return; }
-  local roots tokens tok
+  local roots classified line cls tok files
   roots=$(existing_roots)
   [ -z "$roots" ] && { echo unknown; return; }
-  tokens=$(derive_tokens "$feat")
-  [ -z "$tokens" ] && { echo unknown; return; }
-  while IFS= read -r tok; do
-    [ -z "$tok" ] && continue
-    # -r recursive, -l list, -i case-insensitive, -F fixed string so a token with
-    # regex metachars can't misbehave. A no-match grep exits 1 (expected).
-    if printf '%s\n' "$roots" | tr '\n' '\0' \
-        | xargs -0 grep -rliF -- "$tok" >/dev/null 2>&1; then  # silent: known-noise
+  classified=$(derive_tokens "$feat")
+  [ -z "$classified" ] && { echo unknown; return; }
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    cls=${line%%$'\t'*}
+    tok=${line#*$'\t'}
+    # -F fixed string so a token with regex metachars can't misbehave. camelCase
+    # (C) matches case-sensitively — its distinctiveness IS the casing; punctuated
+    # (P) matches case-insensitively. A no-match grep exits 1 (expected).
+    if [ "$cls" = "C" ]; then
+      files=$(printf '%s\n' "$roots" | tr '\n' '\0' | xargs -0 grep -rlF -- "$tok" 2>/dev/null || true)  # silent: known-noise
+    else
+      files=$(printf '%s\n' "$roots" | tr '\n' '\0' | xargs -0 grep -rliF -- "$tok" 2>/dev/null || true)  # silent: known-noise
+    fi
+    [ -z "$files" ] && continue
+    # Count only matches in non-prose files: skill/agent markdown name-drops CC
+    # concepts without ork authoring them, so a doc-only match is not evidence.
+    if grep -vqE "$PROSE_EXT_RE" <<< "$files"; then
       echo hit; return
     fi
-  done <<< "$tokens"
+  done <<< "$classified"
   echo miss
 }
 

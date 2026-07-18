@@ -497,10 +497,11 @@ else
   log_fail "anchor A" "exit=$ANCHOR_EXIT calls=$CALLS (see /tmp/step3-anchorA-real-hit.out)"
 fi
 
-# ---- Anchor B (#2993): an end-user-only feature MUST evaluate miss on the real
-# tree (chrome/scroll/polish live only in prose docs, never in code/config).
+# ---- Anchor B (#2993): a realistic end-user-only changelog line (full
+# capitalized sentence, sentence-initial verb, no code identifier) MUST evaluate
+# miss on the real tree.
 GAPS=$(jq -nc \
-  '[{version: "2.1.214", features: [{feature_slug: "chrome_scroll_polish", gap_score: 20, description: "smoother scrollbar and cursor polish", category: "breaking", reference_changelog_line: "chrome scroll polish", affected_skills: []}]}]')
+  '[{version: "2.1.214", features: [{feature_slug: "chrome_scroll_polish", gap_score: 20, description: "Smoother scrollbar rendering and cursor polish in the transcript view", category: "breaking", reference_changelog_line: "Fixed scrollbar rendering and improved cursor polish in the transcript view", affected_skills: []}]}]')
 run_anchor "anchorB-real-miss" "$GAPS"
 CALLS=$(count_calls "issue|create")
 D=$(jq -r '[.[] | .features[]? | select(.feature_slug=="chrome_scroll_polish") | .disposition] | .[0] // ""' "$ANCHOR_GAPS")
