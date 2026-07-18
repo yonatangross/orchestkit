@@ -496,7 +496,34 @@ else
 fi
 
 # ============================================================================
-# Section G: JSON Output
+# Section G: Eval Coverage (#2192) — advisory
+# ============================================================================
+# Walk every shipped component and confirm it has an eval spec. Advisory here
+# (warn, never fail) so it can be wired in additively; the hard ratchet lives in
+# tests/evals/test-eval-coverage.sh. Regenerates coverage.json for free on CI.
+
+header "Section G: Eval Coverage"
+
+COV_RC=0
+bash "$PROJECT_ROOT/scripts/eval/eval-coverage.sh" --json-only >/dev/null || COV_RC=$?
+COV_JSON="$PROJECT_ROOT/tests/evals/results/coverage.json"
+COV_N=0
+if [ -f "$COV_JSON" ]; then
+  COV_N=$(grep -o '"uncovered_total"[: ]*[0-9]*' "$COV_JSON" | grep -o '[0-9]*' | head -1)
+fi
+if [ "$COV_RC" -ne 0 ]; then
+  warn "Eval Coverage — walker exited $COV_RC (see scripts/eval/eval-coverage.sh)"
+  add_check "Eval Coverage" "warn" "coverage walker exited $COV_RC"
+elif [ "${COV_N:-0}" -gt 0 ]; then
+  warn "Eval Coverage — $COV_N component(s) without a spec (run eval-coverage.sh --fill)"
+  add_check "Eval Coverage" "warn" "$COV_N component(s) without an eval spec"
+else
+  pass "Eval Coverage — every skill and agent has an eval spec"
+  add_check "Eval Coverage" "pass" "All components have an eval spec"
+fi
+
+# ============================================================================
+# Section H: JSON Output
 # ============================================================================
 
 END_TIME=$(ms_now)
