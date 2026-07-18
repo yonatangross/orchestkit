@@ -20,7 +20,12 @@ const content = (p: string) =>
 describe("sidebar IA structure", () => {
   it("root meta places every non-root content section explicitly", () => {
     const pages: string[] = content("meta.json").pages;
-    const spreads = pages.filter((p) => p.startsWith("...")).map((p) => p.slice(3));
+    // Sections are placed as collapsible folder refs ("foundations") — the
+    // spread form ("...foundations") is also accepted for back-compat. Both
+    // "explicitly place" the section; separators ("---…---") are ignored.
+    const placed = pages
+      .filter((p) => !p.startsWith("---"))
+      .map((p) => (p.startsWith("...") ? p.slice(3) : p));
     for (const section of [
       "getting-started",
       "foundations",
@@ -35,10 +40,10 @@ describe("sidebar IA structure", () => {
       "troubleshooting",
       "changelog",
     ]) {
-      expect(spreads, `${section} must be explicitly placed in root meta.json`).toContain(section);
+      expect(placed, `${section} must be explicitly placed in root meta.json`).toContain(section);
     }
     // reference is deliberately NOT in the main tree — it is its own root tab
-    expect(spreads).not.toContain("reference");
+    expect(placed).not.toContain("reference");
   });
 
   it("reference is a root tab with collapsed generated folders", () => {

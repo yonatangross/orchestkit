@@ -28,27 +28,27 @@
 
   /* Light mode palette — warm-undertone neutrals (hue 85, chroma <= 0.012
      on large surfaces) + indigo primary. Text stays near-neutral. */
-  --color-fd-background: oklch(0.99 0.004 85);         /* warm near-white */
-  --color-fd-foreground: oklch(0.21 0.02 270);         /* near-neutral ink */
-  --color-fd-muted: oklch(0.965 0.008 85);
-  --color-fd-muted-foreground: oklch(0.50 0.02 270);
-  --color-fd-popover: oklch(0.997 0.002 85);
-  --color-fd-popover-foreground: oklch(0.27 0.02 270);
-  --color-fd-card: oklch(0.978 0.006 85);
-  --color-fd-card-foreground: oklch(0.21 0.02 270);
-  --color-fd-border: oklch(0.918 0.01 85);
-  --color-fd-primary: oklch(0.488 0.217 264);          /* yonyon indigo, darkened for WCAG AA on light bg */
+  --color-fd-background: oklch(0.99 0.005 270);        /* yonyon cool near-white (matches portfolio --background) */
+  --color-fd-foreground: oklch(0.15 0.02 270);         /* yonyon ink */
+  --color-fd-muted: oklch(0.96 0.01 270);
+  --color-fd-muted-foreground: oklch(0.45 0.02 270);
+  --color-fd-popover: oklch(0.99 0.005 270);
+  --color-fd-popover-foreground: oklch(0.20 0.02 270);
+  --color-fd-card: oklch(0.985 0.006 270);
+  --color-fd-card-foreground: oklch(0.15 0.02 270);
+  --color-fd-border: oklch(0.91 0.02 270);             /* yonyon --border */
+  --color-fd-primary: oklch(0.488 0.217 264);          /* yonyon --primary (exact) */
   --color-fd-primary-foreground: oklch(1.0 0 0);       /* #ffffff */
-  --color-fd-secondary: oklch(0.965 0.008 85);
-  --color-fd-secondary-foreground: oklch(0.21 0.02 270);
-  --color-fd-accent: oklch(0.955 0.016 264);           /* indigo-tinted hover surface */
-  --color-fd-accent-foreground: oklch(0.21 0.02 270);
-  --color-fd-ring: oklch(0.60 0.13 85);                /* george-warm amber focus ring, darkened for 3:1 non-text contrast on light surfaces (WCAG 1.4.11) */
+  --color-fd-secondary: oklch(0.96 0.01 270);
+  --color-fd-secondary-foreground: oklch(0.15 0.02 270);
+  --color-fd-accent: oklch(0.95 0.03 270);             /* yonyon --sidebar-accent, indigo-tinted hover */
+  --color-fd-accent-foreground: oklch(0.15 0.02 270);
+  --color-fd-ring: oklch(0.488 0.217 264);             /* yonyon --ring = primary indigo (not amber) */
   --color-fd-overlay: oklch(0 0 0 / 0.2);
 
   /* 5-surface hierarchy (Vercel/Stripe pattern) */
-  --color-fd-surface-sunken: oklch(0.958 0.006 85);    /* below background */
-  --color-fd-surface-raised: oklch(0.998 0.002 85);    /* above card */
+  --color-fd-surface-sunken: oklch(0.965 0.008 270);   /* below background */
+  --color-fd-surface-raised: oklch(0.998 0.003 270);   /* above card */
 
   /* 5-stop indigo ramp — for pills, badges, hover states, soft backgrounds */
   --color-fd-primary-5: oklch(0.62 0.2 264 / 0.05);
@@ -87,7 +87,7 @@
   --color-fd-secondary-foreground: oklch(0.93 0.012 270);
   --color-fd-accent: oklch(0.25 0.045 270);            /* indigo-tinted hover surface */
   --color-fd-accent-foreground: oklch(0.93 0.012 270);
-  --color-fd-ring: oklch(0.78 0.13 85);                /* george-warm amber focus ring */
+  --color-fd-ring: oklch(0.62 0.2 264);                /* yonyon --ring = primary indigo */
   --color-fd-overlay: oklch(0 0 0 / 0.4);
 
   /* 5-surface hierarchy — dark mode */
@@ -457,17 +457,34 @@ pre code {
    SIDEBAR — Tighter spacing, flush left
    ============================================================ */
 
+/* Sidebar surface — distinct from the page background, matching the
+   yonyon portfolio --sidebar shade (a hair lighter than bg in light,
+   a hair lighter in dark) so the nav reads as its own panel. */
+nav[data-fumadocs-sidebar] {
+  background: oklch(0.98 0.005 270);
+  border-inline-end: 1px solid var(--color-fd-border);
+}
+.dark nav[data-fumadocs-sidebar] {
+  background: oklch(0.18 0.025 270);
+}
+
 nav[data-fumadocs-sidebar] a {
   padding-top: 0.375rem;
   padding-bottom: 0.375rem;
   font-size: 0.8125rem;
+  border-radius: var(--radius-control);
 }
 
-/* Sidebar active item — 2px george-warm left rule + indigo text.
-   Amber marks the "you are here" (active/current) semantic. */
+/* Sidebar active item — yonyon --sidebar-accent pill + indigo text.
+   Matches the portfolio's active nav treatment (indigo, not amber). */
 nav[data-fumadocs-sidebar] a[data-active="true"] {
   position: relative;
   color: var(--color-fd-primary);
+  font-weight: 500;
+  background: oklch(0.95 0.03 270);
+}
+.dark nav[data-fumadocs-sidebar] a[data-active="true"] {
+  background: oklch(0.24 0.03 270);
 }
 nav[data-fumadocs-sidebar] a[data-active="true"]::before {
   content: "";
@@ -477,7 +494,7 @@ nav[data-fumadocs-sidebar] a[data-active="true"]::before {
   bottom: 15%;
   width: 2px;
   border-radius: 1px;
-  background: var(--yy-george-warm);
+  background: var(--color-fd-primary);
 }
 
 /* TOC active item — george-cool ice marker; text stays readable indigo. */

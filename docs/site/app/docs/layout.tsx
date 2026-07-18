@@ -32,7 +32,11 @@ function withStationGlyphs(tree: PageTree.Root): PageTree.Root {
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <DocsLayout tree={withStationGlyphs(getDeclutteredPageTree())} {...baseOptions}>
+    <DocsLayout
+      tree={withStationGlyphs(getDeclutteredPageTree())}
+      sidebar={{ defaultOpenLevel: 0, collapsible: true }}
+      {...baseOptions}
+    >
       {children}
     </DocsLayout>
   );
