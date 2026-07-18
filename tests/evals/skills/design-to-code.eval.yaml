@@ -9,11 +9,11 @@ skill_path: src/skills/design-to-code/SKILL.md
 plugin_dir: plugins/ork
 
 trigger_evals:
-  - prompt: "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP."
+  - prompt: "screenshot to component"
     should_trigger: true
 
 quality_evals:
-  - prompt: "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP."
+  - prompt: "screenshot to component"
     assertions:
       - name: "produces relevant output"
         check: "produces output consistent with: Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP."

@@ -9,11 +9,11 @@ skill_path: src/skills/prd-to-goal/SKILL.md
 plugin_dir: plugins/ork
 
 trigger_evals:
-  - prompt: "Decomposes a PRD, issue, or spec into a copy-pasteable `/goal until..."
+  - prompt: "decompose acceptance criteria"
     should_trigger: true
 
 quality_evals:
-  - prompt: "Decomposes a PRD, issue, or spec into a copy-pasteable `/goal until..."
+  - prompt: "decompose acceptance criteria"
     assertions:
       - name: "produces relevant output"
         check: "produces output consistent with: Decomposes a PRD, issue, or spec into a copy-pasteable `/goal until..."

@@ -9,11 +9,11 @@ skill_path: src/skills/ci-sentinel/SKILL.md
 plugin_dir: plugins/ork
 
 trigger_evals:
-  - prompt: "Hourly autonomous classifier for failing PRs across your repos."
+  - prompt: "auto-classify failures"
     should_trigger: true
 
 quality_evals:
-  - prompt: "Hourly autonomous classifier for failing PRs across your repos."
+  - prompt: "auto-classify failures"
     assertions:
       - name: "produces relevant output"
         check: "produces output consistent with: Hourly autonomous classifier for failing PRs across your repos."

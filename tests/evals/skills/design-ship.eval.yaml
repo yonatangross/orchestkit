@@ -9,11 +9,11 @@ skill_path: src/skills/design-ship/SKILL.md
 plugin_dir: plugins/ork
 
 trigger_evals:
-  - prompt: "End-to-end Claude Design handoff to pull request: imports a handoff bundle from claude.ai/design, generates Storybook stories and Playwright tests, runs diff-aware browser verification, and opens a PR with the bundle URL, before/after screenshots, and coverage delta embedded in the body."
+  - prompt: "ship claude design"
     should_trigger: true
 
 quality_evals:
-  - prompt: "End-to-end Claude Design handoff to pull request: imports a handoff bundle from claude.ai/design, generates Storybook stories and Playwright tests, runs diff-aware browser verification, and opens a PR with the bundle URL, before/after screenshots, and coverage delta embedded in the body."
+  - prompt: "ship claude design"
     assertions:
       - name: "produces relevant output"
         check: "produces output consistent with: End-to-end Claude Design handoff to pull request: imports a handoff bundle from claude.ai/design, generates Storybook stories and Playwright tests, runs diff-aware browser verification, and opens a PR with the bundle URL, before/after screenshots, and coverage delta embedded in the body."

@@ -9,11 +9,11 @@ skill_path: src/skills/release-sync/SKILL.md
 plugin_dir: plugins/ork
 
 trigger_evals:
-  - prompt: "Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging."
+  - prompt: "push release content"
     should_trigger: true
 
 quality_evals:
-  - prompt: "Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging."
+  - prompt: "push release content"
     assertions:
       - name: "produces relevant output"
         check: "produces output consistent with: Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging."

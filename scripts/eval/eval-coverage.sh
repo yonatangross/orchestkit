@@ -96,7 +96,12 @@ if [ "$MODE" = "fill" ]; then
   filled=0
   while IFS= read -r name; do
     [ -z "$name" ] && continue
-    python3 "$GEN_HELPER" skill "$SKILLS_DIR/$name/SKILL.md" "$SKILL_SPECS_DIR/$name.eval.yaml"
+    # Pull the skill's declared trigger keywords (if any) so the generated
+    # should-trigger prompt is guaranteed to match one, satisfying
+    # tests/skills/triggering/test-trigger-keywords.sh. Empty when absent.
+    kws="$(awk '/^---$/{n++; next} n==1{print} n>=2{exit}' "$SKILLS_DIR/$name/SKILL.md" \
+           | yq -r '(.triggers.keywords // []) | .[]' | paste -sd '|' -)"
+    python3 "$GEN_HELPER" skill "$SKILLS_DIR/$name/SKILL.md" "$SKILL_SPECS_DIR/$name.eval.yaml" --keywords "$kws"
     filled=$((filled + 1))
   done < "$TMP_WORK/uncovered_skills"
   while IFS= read -r name; do

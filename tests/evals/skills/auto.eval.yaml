@@ -9,11 +9,11 @@ skill_path: src/skills/auto/SKILL.md
 plugin_dir: plugins/ork
 
 trigger_evals:
-  - prompt: "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request."
+  - prompt: "not sure which"
     should_trigger: true
 
 quality_evals:
-  - prompt: "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request."
+  - prompt: "not sure which"
     assertions:
       - name: "produces relevant output"
         check: "produces output consistent with: Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request."

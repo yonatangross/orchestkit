@@ -9,11 +9,11 @@ skill_path: src/skills/ci-debug/SKILL.md
 plugin_dir: plugins/ork
 
 trigger_evals:
-  - prompt: "Diagnose a failing CI run against an 11-pattern playbook."
+  - prompt: "workflow failed"
     should_trigger: true
 
 quality_evals:
-  - prompt: "Diagnose a failing CI run against an 11-pattern playbook."
+  - prompt: "workflow failed"
     assertions:
       - name: "produces relevant output"
         check: "produces output consistent with: Diagnose a failing CI run against an 11-pattern playbook."

@@ -9,11 +9,11 @@ skill_path: src/skills/design-stylecards/SKILL.md
 plugin_dir: plugins/ork
 
 trigger_evals:
-  - prompt: "Declarative catalog of named aesthetic recipes, exact shadow stacks, glass surfaces, gradient treatments, and type scales as copy-paste values with Use-When and Avoid rules."
+  - prompt: "make it look polished"
     should_trigger: true
 
 quality_evals:
-  - prompt: "Declarative catalog of named aesthetic recipes, exact shadow stacks, glass surfaces, gradient treatments, and type scales as copy-paste values with Use-When and Avoid rules."
+  - prompt: "make it look polished"
     assertions:
       - name: "produces relevant output"
         check: "produces output consistent with: Declarative catalog of named aesthetic recipes, exact shadow stacks, glass surfaces, gradient treatments, and type scales as copy-paste values with Use-When and Avoid rules."

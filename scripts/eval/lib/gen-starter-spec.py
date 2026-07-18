@@ -8,8 +8,11 @@ meant to be refined by a human before the scores are trusted (hence the
 `starter` tag and the header comment).
 
 Usage:
-    gen-starter-spec.py skill <component_md> <out_yaml>
+    gen-starter-spec.py skill <component_md> <out_yaml> [--keywords "a|b|c"]
     gen-starter-spec.py agent <component_md> <out_yaml>
+
+When --keywords is given (pipe-separated), the should-trigger prompt is
+guaranteed to contain one of them, and the tool exits non-zero if it cannot.
 
 Stdlib only. Deterministic. No network.
 """
@@ -93,10 +96,18 @@ def humanize(name: str) -> str:
 
 
 def main() -> int:
-    if len(sys.argv) != 4:
+    args = sys.argv[1:]
+    keywords: list[str] = []
+    if "--keywords" in args:
+        k = args.index("--keywords")
+        # Keywords arrive pipe-separated (keywords never contain '|').
+        raw = args[k + 1] if k + 1 < len(args) else ""
+        keywords = [w.strip() for w in raw.split("|") if w.strip()]
+        del args[k : k + 2]
+    if len(args) != 3:
         print(__doc__, file=sys.stderr)
         return 2
-    kind, comp_path, out_path = sys.argv[1], sys.argv[2], sys.argv[3]
+    kind, comp_path, out_path = args[0], args[1], args[2]
     if kind not in ("skill", "agent"):
         print(f"unknown kind: {kind}", file=sys.stderr)
         return 2
@@ -118,6 +129,27 @@ def main() -> int:
     sentence = first_sentence(desc) or f"work handled by the {name} {kind}"
     # A plausible should-trigger user utterance derived from the description.
     trigger_prompt = sentence
+
+    # When the skill declares trigger keywords, the should-trigger prompt MUST
+    # contain one (tests/skills/triggering/test-trigger-keywords.sh requires it).
+    # Keep the description sentence if it already contains a keyword; otherwise
+    # seed the prompt from the most specific (longest) keyword.
+    if keywords:
+        low = trigger_prompt.lower()
+        if not any(kw.lower() in low for kw in keywords):
+            trigger_prompt = max(keywords, key=len)
+        if not any(kw.lower() in trigger_prompt.lower() for kw in keywords):
+            print(
+                f"gen-starter-spec: {name}: could not build a trigger prompt "
+                f"containing any of its keywords {keywords}",
+                file=sys.stderr,
+            )
+            return 4
+
+    if not trigger_prompt.strip():
+        print(f"gen-starter-spec: {name}: empty trigger prompt", file=sys.stderr)
+        return 4
+
     check = f"produces output consistent with: {sentence}"
     created = datetime.date.today().isoformat()
 
