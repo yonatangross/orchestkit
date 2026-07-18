@@ -45,11 +45,12 @@ export default async function Page(props: {
 
   const MDX = page.data.body;
   const skillSlug = skillSlugOf(page.slugs);
-  // Section glyph keyed by the top-level section segment. Rendered as a
-  // 96px watermark behind the title block plus a 12px marker adjacent to
-  // the breadcrumb (the fumadocs-internal breadcrumb slot itself is not
-  // injectable, so the marker sits directly below it, above the title).
+  // Section identity row above the title: glyph chip + section label.
   const SectionGlyph = getSectionGlyph(page.slugs[0] ?? "");
+  const sectionLabel = (page.slugs[0] ?? "")
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
   const lastModified =
     page.data.lastModified instanceof Date
       ? page.data.lastModified
@@ -112,23 +113,20 @@ export default async function Page(props: {
       />
       <div className="relative">
         {SectionGlyph ? (
-          <>
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -top-4 right-0 h-24 w-24 select-none opacity-[0.03] dark:opacity-[0.05] [&_svg]:h-full [&_svg]:w-full"
-            >
+          <div aria-hidden="true" className="mb-3 flex items-center gap-2">
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-fd-primary/25 bg-fd-primary/10 text-fd-primary [&_svg]:h-4 [&_svg]:w-4">
               <SectionGlyph />
-            </div>
-            <div
-              aria-hidden="true"
-              className="pointer-events-none mb-2 h-3 w-3 text-fd-muted-foreground [&_svg]:h-full [&_svg]:w-full"
-            >
-              <SectionGlyph />
-            </div>
-          </>
+            </span>
+            <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-fd-muted-foreground">
+              {sectionLabel}
+            </span>
+          </div>
         ) : null}
         <DocsTitle>{page.data.title}</DocsTitle>
-        <DocsDescription>{page.data.description}</DocsDescription>
+        {/* Skill pages: the dossier below is the description's single home. */}
+        {skillSlug ? null : (
+          <DocsDescription>{page.data.description}</DocsDescription>
+        )}
       </div>
       {skillSlug ? <SkillDossier slug={skillSlug} /> : null}
       <DocsBody>

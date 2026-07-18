@@ -19,9 +19,15 @@ export const source = loader({
 // skills/<name> keeps working. `app/docs/layout.tsx` can adopt it by
 // passing `tree={getDeclutteredPageTree()}` instead of `source.pageTree`.
 
-const SKILLS_INDEX_URL = "/docs/reference/skills";
+// Catalog sections whose per-item leaf pages drown the sidebar (114 skills,
+// 37 agents, the hook reference). Each collapses to one link on its index.
+const COLLAPSED_INDEX_URLS = [
+  "/docs/reference/skills",
+  "/docs/reference/agents",
+  "/docs/reference/hooks",
+];
 
-function collapseSkillsFolder(folder: Folder, index: Item): Item {
+function collapseCatalogFolder(folder: Folder, index: Item): Item {
   // Reuse the folder's index item so the URL (and its $ref/$id metadata)
   // stays exactly what fumadocs generated; only the display name/icon come
   // from the folder node.
@@ -32,11 +38,22 @@ function collapseSkillsFolder(folder: Folder, index: Item): Item {
   };
 }
 
+// The index page is not always folder.index — in this tree it can sit among
+// the children as a regular page (e.g. "Skills Reference"), so check both.
+function findIndexItem(folder: Folder, url: string): Item | null {
+  if (folder.index?.url === url) return folder.index;
+  const child = folder.children.find(
+    (c): c is Item => c.type === "page" && c.url === url,
+  );
+  return child ?? null;
+}
+
 function transformNodes(nodes: Node[]): Node[] {
   return nodes.map((node) => {
     if (node.type !== "folder") return node;
-    if (node.index?.url === SKILLS_INDEX_URL) {
-      return collapseSkillsFolder(node, node.index);
+    for (const url of COLLAPSED_INDEX_URLS) {
+      const index = findIndexItem(node, url);
+      if (index) return collapseCatalogFolder(node, index);
     }
     return { ...node, children: transformNodes(node.children) };
   });

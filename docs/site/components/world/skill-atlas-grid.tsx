@@ -244,7 +244,7 @@ export function SkillAtlasGrid({ clusters }: { clusters: AtlasCluster[] }) {
                         {entry.complexity}
                       </span>
                       {entry.userInvocable && (
-                        <span className="inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium leading-tight bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300">
+                        <span className="inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium leading-tight bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
                           Command
                         </span>
                       )}

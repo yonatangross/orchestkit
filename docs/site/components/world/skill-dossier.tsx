@@ -62,10 +62,10 @@ function parseDescription(description: string): ParsedDescription {
 
   const cut = [useStart, dontStart].filter((i) => i >= 0);
   const pitchEnd = cut.length > 0 ? Math.min(...cut) : description.length;
-  const firstSentence = description.slice(0, pitchEnd).trim();
-  // One-line pitch: first sentence only.
-  const pitch =
-    firstSentence.split(/(?<=\.)\s+/)[0]?.trim() || description.trim();
+  // The page suppresses DocsDescription on skill pages, so the dossier is
+  // the description's only home: keep the FULL text before the use-when
+  // markers (nothing is lost, nothing renders twice).
+  const pitch = description.slice(0, pitchEnd).trim() || description.trim();
 
   let useWhen: string | null = null;
   if (useStart >= 0) {

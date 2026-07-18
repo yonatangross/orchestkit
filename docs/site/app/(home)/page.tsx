@@ -6,6 +6,7 @@ import { formatStars } from "@/lib/format-stars";
 import { AgentReadinessSection } from "@/components/agent-readiness-section";
 import { HomepageStructuredData } from "@/components/structured-data";
 import FactoryRide from "@/components/world/factory-ride";
+import { GeorgeMark } from "@/components/world/george";
 
 async function getStarCount(): Promise<number | null> {
   try {
@@ -118,11 +119,7 @@ export default async function HomePage() {
           hero={
             <div className="mx-auto max-w-[880px] text-center">
               <span className="inline-flex items-center gap-2 rounded-full border border-[oklch(0.62_0.2_264/0.35)] bg-[oklch(0.62_0.2_264/0.14)] px-2.5 py-1.5 font-mono text-[12px] font-medium text-[oklch(0.82_0.08_270)]">
-                <span
-                  aria-hidden="true"
-                  className="h-1.5 w-1.5 rounded-full bg-[oklch(0.62_0.2_264)]"
-                  style={{ boxShadow: "0 0 0 3px oklch(0.62 0.2 264 / 0.25)" }}
-                />
+                <GeorgeMark />
                 The complete AI development toolkit for Claude Code
               </span>
 
@@ -151,23 +148,28 @@ export default async function HomePage() {
 
               <p
                 data-speakable-summary
-                className="mx-auto mt-5 max-w-[620px] text-[clamp(0.95rem,0.3vw+0.9rem,1.125rem)] leading-[1.55] text-[oklch(0.72_0.02_264)]"
+                className="mx-auto mt-4 max-w-[620px] text-[clamp(0.95rem,0.3vw+0.9rem,1.125rem)] leading-[1.55] text-[oklch(0.72_0.02_264)] [text-wrap:balance]"
               >
-                <span className="font-mono text-[0.92em] font-medium text-[oklch(0.95_0.008_270)]">
-                  {COUNTS.skills} skills
+                <span className="whitespace-nowrap font-mono text-[0.92em] font-medium">
+                  <span className="text-[var(--yy-george-warm)]">{COUNTS.skills}</span>{" "}
+                  <span className="text-[oklch(0.95_0.008_270)]">skills</span>
                 </span>
                 <span className="mx-1.5 opacity-40">·</span>
-                <span className="font-mono text-[0.92em] font-medium text-[oklch(0.95_0.008_270)]">
-                  {COUNTS.agents} agents
+                <span className="whitespace-nowrap font-mono text-[0.92em] font-medium">
+                  <span className="text-[var(--yy-george-cool)]">{COUNTS.agents}</span>{" "}
+                  <span className="text-[oklch(0.95_0.008_270)]">agents</span>
                 </span>
                 <span className="mx-1.5 opacity-40">·</span>
-                <span className="font-mono text-[0.92em] font-medium text-[oklch(0.95_0.008_270)]">
-                  {COUNTS.hooks} hooks
+                <span className="whitespace-nowrap font-mono text-[0.92em] font-medium">
+                  <span className="text-[oklch(0.74_0.14_290)]">{COUNTS.hooks}</span>{" "}
+                  <span className="text-[oklch(0.95_0.008_270)]">hooks</span>
                 </span>
-                {" "}— loaded on demand, zero runtime cost.
+                <span className="mt-1 block text-[0.9em]">
+                  Loaded on demand, zero runtime cost.
+                </span>
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
                 <Link
                   href="/docs/getting-started/first-10-minutes"
                   className="inline-flex h-10 items-center gap-2 rounded-lg bg-[oklch(0.62_0.2_264)] px-[18px] text-sm font-medium text-white transition-all duration-150 hover:-translate-y-px hover:bg-[oklch(0.66_0.19_264)] hover:shadow-[0_0_0_4px_oklch(0.62_0.2_264/0.25)]"

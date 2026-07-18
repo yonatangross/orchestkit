@@ -465,10 +465,12 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
     index_lines.extend(index_rows)
     (out_dir / "index.mdx").write_text("\n".join(index_lines) + "\n", encoding="utf-8")
 
-    # Write meta.json
-    pages = ["index"] + slugs
+    # Write meta.json. Sidebar shows only the index (the Skill Atlas); the
+    # 114 leaf routes still build from their .mdx files but stay out of the
+    # nav so it isn't a wall. Full slug list kept for any downstream use.
+    _ = ["index"] + slugs
     (out_dir / "meta.json").write_text(
-        json.dumps({"title": "Skills", "defaultOpen": False, "pages": pages}, indent=2) + "\n",
+        json.dumps({"title": "Skills", "pages": ["index"]}, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -687,10 +689,11 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
     index_lines.extend(index_rows)
     (out_dir / "index.mdx").write_text("\n".join(index_lines) + "\n", encoding="utf-8")
 
-    # Write meta.json
-    pages = ["index"] + slugs
+    # Write meta.json. Sidebar shows only the index; agent leaf routes still
+    # build from their .mdx files but stay out of the nav.
+    _ = ["index"] + slugs
     (out_dir / "meta.json").write_text(
-        json.dumps({"title": "Agents", "defaultOpen": False, "pages": pages}, indent=2) + "\n",
+        json.dumps({"title": "Agents", "pages": ["index"]}, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -974,10 +977,11 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
             json.dumps(spotlights_meta, indent=2) + "\n", encoding="utf-8"
         )
 
-    # meta.json — include spotlights section
-    pages = ["index"] + [s for s, _, _ in cat_slugs] + ["spotlights"]
+    # meta.json. Sidebar shows only the index; hook category + spotlight
+    # routes still build from their .mdx files but stay out of the nav.
+    _ = ["index"] + [s for s, _, _ in cat_slugs] + ["spotlights"]
     (out_dir / "meta.json").write_text(
-        json.dumps({"title": "Hooks", "defaultOpen": False, "pages": pages}, indent=2) + "\n",
+        json.dumps({"title": "Hooks", "pages": ["index"]}, indent=2) + "\n",
         encoding="utf-8",
     )
 
