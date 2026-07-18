@@ -751,6 +751,16 @@ OpenTelemetry attributes shipped in CC 2.1.117 (3 fields), CC 2.1.119 (3 more), 
 
 Both attributes are attached only to telemetry from **workflow-spawned** agents (a `/workflows` run); ordinary session events lack them, so every `group_by(.["workflow.run_id"])` query must `select(... != null)` first. Emitted in CC 2.1.202. **HQ note:** these two attributes are the last unwired input for the Langfuse OTEL trigger bridge (Yonatan-HQ/platform#6631) — with `workflow.run_id`/`workflow.name` on the wire, HQ can reconstruct a run trace end-to-end. Tracked there as an HQ observability track; nothing to build in ork beyond documenting the fields for `/ork:analytics` consumers.
 
+### From 2.1.214 (message/tool provenance)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| `message.uuid` | log events | string (UUID) | Stable per-message identifier — joins a log event back to the exact transcript message that produced it. |
+| `client_request_id` | log events | string | Correlates all events belonging to one client-side API request (retries share the underlying request identity). |
+| `tool_source` | tool events | string | Where the tool came from (built-in, MCP server, plugin) — slices tool-usage panels by provider instead of lumping `mcp__*` names together. |
+
+New in CC 2.1.214; older data lacks them, so queries must null-check before grouping. The truncation limit for captured content on these events is configurable via `CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH` (default 60 KB) — see configure's `cc-version-settings.md`.
+
 Exports land in `~/.claude/otel/` (when OTEL export is enabled in `settings.json`) and in the same JSONL streams this skill already reads if OTEL-to-JSONL bridging is on.
 
 ## Data location

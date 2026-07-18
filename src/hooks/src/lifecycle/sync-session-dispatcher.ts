@@ -60,10 +60,11 @@ export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_
   const startMs = Date.now();
 
   // v7.30.0 (#1269): Source-aware gating.
-  // CC sends input.source: "startup" | "resume" | "clear" | "compact"
-  // On compact/resume: skip heavy operations (rules materialization already done).
+  // CC sends input.source: "startup" | "resume" | "clear" | "compact" | "fork" (fork since CC 2.1.214; previously reported as "resume")
+  // On compact/resume/fork: skip heavy operations (rules materialization already done —
+  // forks share the original session's project dir, so on-disk rules are already current).
   const source = (input as unknown as Record<string, unknown>).source as string | undefined;
-  const isLightResume = source === 'compact' || source === 'resume';
+  const isLightResume = source === 'compact' || source === 'resume' || source === 'fork';
 
   if (source) {
     ctx.log(HOOK_NAME, `SessionStart source: ${source}${isLightResume ? ' (light mode — skipping materialization)' : ''}`);

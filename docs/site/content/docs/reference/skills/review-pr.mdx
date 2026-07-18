@@ -1383,6 +1383,8 @@ Use metrics to:
 
 Claude Code 2.1.111 ships a built-in `/ultrareview` — parallel multi-agent deep review (Pro/Max users get 3 free per month). It overlaps this skill's Phase 3 but goes deeper. It's not free, so never fire it by default — offer it only when a trigger justifies the cost, and always ask the user before burning a quota.
 
+Reliability note (CC 2.1.212): `/ultrareview &lt;PR#&gt;` PR references parse correctly, branch fetch works for branches not checked out locally, and billing no longer misfires after `/clear`.
+
 ## Trigger evaluation (automatic, after Phase 3)
 
 Compute whether `/ultrareview` is warranted from the already-collected PR metadata + agent results:

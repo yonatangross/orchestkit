@@ -1471,6 +1471,25 @@ valid — no deprecation.
 flags use explicit mode values (`acceptEdits`, `dontAsk`, `plan`). When *describing* the no-mode state
 in docs or prompts, prefer the new "Manual" label.
 
+## CC 2.1.214 Settings
+
+### `CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH` — OTEL content truncation limit
+
+CC 2.1.214 makes the truncation limit for content captured on OTEL log events configurable. The
+default stays 60 KB; set the env var (bytes) to raise or lower it:
+
+```bash
+# Capture up to 200 KB of content per OTEL log event
+export CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH=200000
+```
+
+Pairs with the new 2.1.214 log-event attributes (`message.uuid`, `client_request_id`, `tool_source`)
+documented in analytics' `otel-fields.md`.
+
+**Action for OrchestKit**: none in settings — ork ships no OTEL config. Relevant when debugging
+truncated prompt/tool content in an OTEL pipeline (or the HQ Langfuse bridge): raise the limit on the
+host that launches `claude`, not in per-project config.
+
 
 ### Http Hooks
 
