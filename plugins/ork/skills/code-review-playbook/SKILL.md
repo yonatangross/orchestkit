@@ -213,7 +213,7 @@ This playbook is the manual framework; Claude Code ships built-in commands that 
 - **`/code-review --comment`** — posts findings as inline PR comments.
 - **`/simplify`** — **CC 2.1.154 changed this**: it now runs a **cleanup-only** review (reuse, simplification, efficiency, altitude) and applies the fixes — it no longer invokes the full `/code-review --fix` bug-hunt. Reach for `/simplify` for tidy-ups, `/code-review --fix` for bug-finding-plus-fix.
 
-Use the built-ins for fast diff-scoped passes; use `ork:review-pr` for the multi-agent, full-PR review (security + testing + architecture). See #1940 for the overlap analysis between `/code-review --comment` and `ork:review-pr`.
+Use the built-ins for fast diff-scoped passes; use `ork:review-pr` for the multi-agent, full-PR review (security + testing + architecture).
 
 ---
 

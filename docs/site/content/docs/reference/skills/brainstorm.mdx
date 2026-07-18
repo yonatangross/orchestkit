@@ -394,7 +394,7 @@ ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
 
 > **Push notifications (CC 2.1.110+):** For long brainstorm sessions, use `PushNotification` to alert when synthesis is complete (requires Remote Control with "Push when Claude decides").
 >
-> **Lighter alternative (CC 2.1.141+):** Hooks can emit desktop notifications, window titles, and bells natively via the `terminalSequence` field in hook JSON output — no Remote Control required, no Anthropic round-trip. See #1847 for the migration of ork's existing notification hooks.
+> **Lighter alternative (CC 2.1.141+):** Hooks can emit desktop notifications, window titles, and bells natively via the `terminalSequence` field in hook JSON output — no Remote Control required, no Anthropic round-trip. Ork's notification hooks (`notification/desktop`, `notification/sound`) already emit via `terminalSequence` (#1847, shipped).
 
 > **Manual cleanup:** To stop lingering background teammates, press `Ctrl+F` twice (foreground/Stop). Note: `/clear` (CC 2.1.72+) preserves background agents — only foreground tasks are cleared.
 
