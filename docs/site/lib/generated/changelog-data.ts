@@ -17,6 +17,47 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.80.1",
+    "date": "2026-07-19",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**deps-dev:** bump @biomejs/biome from 2.5.3 to 2.5.4 in /src/hooks in the npm-minor-patch group ([#3006](https://github.com/yonatangross/orchestkit/issues/3006)) ([89057c4](https://github.com/yonatangross/orchestkit/commit/89057c4a4b4e1a506db93961b277b27d64f39717))",
+          "**deps:** bump the npm-minor-patch group ([#3009](https://github.com/yonatangross/orchestkit/issues/3009)) ([deebb70](https://github.com/yonatangross/orchestkit/commit/deebb7016514baa9473ed03edff5c51d377e7763))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "bump the github-actions group with 7 updates ([#3010](https://github.com/yonatangross/orchestkit/issues/3010)) ([def4f72](https://github.com/yonatangross/orchestkit/commit/def4f72908868a083e0d93811226e3ff3451dc1b))",
+          "skip autoheal on dependabot PRs instead of failing ([#3013](https://github.com/yonatangross/orchestkit/issues/3013)) ([ade336b](https://github.com/yonatangross/orchestkit/commit/ade336b58a5864149d99a03b06df893984895d0c))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.80.0",
+    "date": "2026-07-19",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**docs-site:** scroll-world ride homepage + yonyon rebrand ([d348761](https://github.com/yonatangross/orchestkit/commit/d348761059362e40772c114053c8d6dd93a443f0))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.215) ([#3004](https://github.com/yonatangross/orchestkit/issues/3004)) ([6f0747a](https://github.com/yonatangross/orchestkit/commit/6f0747a98acc32990000285ea009456e29d04653))",
+          "remove agentation and the never-published release channels ([b23da59](https://github.com/yonatangross/orchestkit/commit/b23da597e15980cef182e39029147a3c97ce6b34))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.79.0",
     "date": "2026-07-18",
     "compareUrl": "",

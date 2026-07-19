@@ -651,6 +651,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Complete reference for all 114 skills, 36 agents, and 216 hooks."
   },
   {
+    "url": "/docs/reference/skills/.!16367!figma-design-handoff",
+    "title": "Figma Design Handoff",
+    "description": "Figma-to-code design handoff patterns including Figma Variables to design tokens pipeline, component spec extraction, Dev Mode inspection, Auto Layout to CSS Flexbox/Grid mapping, and visual regression with Applitools. Use when converting Figma designs to code, documenting component specs, setting up design-dev workflows, or comparing production UI against Figma designs."
+  },
+  {
     "url": "/docs/reference/skills/accessibility",
     "title": "Accessibility",
     "description": "Accessibility patterns for WCAG 2.2 compliance, keyboard focus management, React Aria component patterns, cognitive inclusion, native HTML-first philosophy, and user preference honoring. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, accessible component libraries, reduced motion, or cognitive accessibility."

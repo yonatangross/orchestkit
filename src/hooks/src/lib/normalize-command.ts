@@ -142,6 +142,29 @@ export function blankQuotedContent(cmd: string): string {
 }
 
 /**
+ * Blank the BODY of quoted heredocs (`<<'EOF'` / `<<"EOF"`, and the `<<-`
+ * tab-stripping forms).
+ *
+ * A quoted heredoc delimiter disables ALL expansion in bash: the body is inert
+ * payload, exactly like a single-quoted string. Scanning it for shell features
+ * is a false positive — `cat > s.sh <<'EOF'` writing a script that merely
+ * CONTAINS `<(...)`, `<<<`, or `IFS=` was being blocked even though bash never
+ * interprets those bytes.
+ *
+ * UNQUOTED heredocs (`<<EOF`) still perform parameter and command substitution,
+ * so their bodies are deliberately left intact for scanning.
+ */
+export function blankQuotedHeredocBodies(cmd: string): string {
+  // <<['"]DELIM['"] ... newline DELIM  — non-greedy body, delimiter on its own line.
+  // Bounded quantifiers avoid ReDoS on untrusted input (CodeQL SEC-003).
+  return cmd.replace(
+    /(<<-?\s*(['"])([A-Za-z_][A-Za-z0-9_]{0,63})\2)([\s\S]{0,20000}?)(^[ \t]*\3[ \t]*$)/gm,
+    (_m, open: string, _q: string, _delim: string, _body: string, close: string) =>
+      `${open}\n${close}`,
+  );
+}
+
+/**
  * Detect suspicious shell features that bypass simple operator splitting.
  * Returns array of finding descriptions, empty if clean.
  *
@@ -151,8 +174,9 @@ export function blankQuotedContent(cmd: string): string {
 export function detectSuspiciousShellFeatures(cmd: string): string[] {
   const findings: string[] = [];
 
-  // Strip quoted string contents — bash doesn't expand inside quotes
-  const unquoted = blankQuotedContent(cmd);
+  // Strip inert payload before scanning: quoted-heredoc bodies first (they may
+  // themselves contain quotes), then quoted strings. Bash expands neither.
+  const unquoted = blankQuotedContent(blankQuotedHeredocBodies(cmd));
 
   // 1. Process substitution: <(cmd) or >(cmd)
   // Limit content length to avoid ReDoS on untrusted input (CodeQL SEC-003)
