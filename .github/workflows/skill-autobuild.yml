@@ -55,7 +55,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # SAME-REPO ONLY — never run (or grant write) for fork PRs.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    #
+    # DEPENDABOT IS EXCLUDED ON PURPOSE. Dependabot-triggered runs read from
+    # GitHub's separate *Dependabot* secret store, so `secrets.RELEASE_BOT_*`
+    # resolve to empty strings and the token mint below dies in ~4s with
+    # "'app-id' input must be set to a non-empty string". That surfaced as a
+    # red `autoheal` check claiming the heal failed when it had never run,
+    # which is actively misleading during triage.
+    #
+    # Skipping keeps the signal honest. When Dependabot bumps a dep under
+    # src/** (e.g. src/hooks/package.json), the generated mirror in plugins/
+    # goes stale and ci.yml's "Build drift detected" gate fails correctly.
+    # Fix it by hand: check out the PR branch, `npm run build`, commit the
+    # regenerated artifacts. See the PR that added this comment for the full
+    # write-up of why the alternatives were rejected.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && github.event.pull_request.user.login != 'dependabot[bot]'
     # GITHUB_TOKEN stays read-only; the heal commit is pushed with the App token
     # (#2528-A) so required checks re-trigger on the healed SHA.
     permissions:
