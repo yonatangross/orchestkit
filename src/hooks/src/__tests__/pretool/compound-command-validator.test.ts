@@ -170,4 +170,37 @@ describe('compound-command-validator', () => {
       expect(result.stopReason).toContain('nested command substitution');
     });
   });
+
+  describe('here-string tier: ASK, not DENY', () => {
+    // A here-string is a stdin redirection, not obfuscation. It cannot be
+    // narrowed safely (source /dev/stdin <<<, $SHELL <<<, env bash <<< all
+    // execute and defeat any first-word check), so instead of hard-blocking
+    // the benign majority it escalates to the user.
+    const asks = (cmd: string) => {
+      const r = compoundCommandValidator(createBashInput(cmd), testCtx);
+      expect(r.continue).toBe(true);
+      expect(r.hookSpecificOutput?.permissionDecision).toBe('ask');
+    };
+
+    it('escalates a benign here-string to ASK (grep)', () => {
+      asks('grep -c error <<< "$output"');
+    });
+
+    it('escalates a here-string fed to an interpreter to ASK (nothing auto-runs)', () => {
+      // bash <<< "code" is dangerous, but the user sees the ASK prompt and
+      // can decline — it is NOT silently allowed and NOT silently denied.
+      asks('bash <<< "echo hi"');
+    });
+
+    it('escalates cat here-string to ASK (was DENY before the tier change)', () => {
+      asks('cat <<< "secret data"');
+    });
+
+    it('DENY wins when a here-string co-occurs with an obfuscation feature', () => {
+      // process substitution present too → the more dangerous tier governs.
+      const r = compoundCommandValidator(createBashInput('bash <<< "x" <(cat /etc/passwd)'), testCtx);
+      expect(r.continue).toBe(false);
+      expect(r.stopReason).toContain('process substitution');
+    });
+  });
 });
