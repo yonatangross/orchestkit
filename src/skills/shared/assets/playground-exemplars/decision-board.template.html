@@ -296,7 +296,7 @@ ITEMS.forEach((it, idx) => {
 
 const byId = id => ITEMS.find(i => i.id === id);
 const rice = it => Math.round((it.reach * it.impact * it.confidence) / it.effort);
-const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const stage = document.getElementById("stage");
 const live  = document.getElementById("live");
 const announce = msg => { live.textContent = ""; requestAnimationFrame(() => live.textContent = msg); };

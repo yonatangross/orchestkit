@@ -150,10 +150,17 @@ function matchSkillsByDirectory(dir: string): string[] {
       // Strip **/ prefix/suffix for directory name matching
       const base = pattern.replace(/\*\*\//g, '').replace(/\/\*\*/g, '');
       if (base.includes('*')) {
-        // Convert glob to regex: * → [^/]*, . → \., rest literal
-        const re = new RegExp(
-          `^${base.replace(/\./g, '\\.').replace(/\*/g, '[^/]*')}$`,
-        );
+        // Convert glob to regex. Escape ALL regex metacharacters first
+        // (the old version only handled `.` and `*`, so `+ ? ^ $ { } ( ) | [ ]`
+        // in a pattern were interpreted as regex operators — CodeQL #136,
+        // js/incomplete-sanitization), then turn the escaped `\*` into `[^/]*`.
+        const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '[^/]*');
+        let re: RegExp;
+        try {
+          re = new RegExp(`^${escaped}$`);
+        } catch {
+          continue; // malformed pattern → skip rather than throw
+        }
         for (const e of entries) {
           if (re.test(e)) {
             matched.add(skill);

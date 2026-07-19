@@ -77,7 +77,11 @@ function argToZod(argType) {
     case 'select':
     case 'radio': {
       if (!Array.isArray(opts) || opts.length === 0) return { drop: true, reason: 'select/radio with no options' }
-      const enums = opts.map(o => `'${String(o).replace(/'/g, "\\'")}'`).join(', ')
+      // JSON.stringify emits a fully-escaped double-quoted literal (backslash,
+      // quote, newline, control chars) — the hand-rolled single-quote-only
+      // escape let a value like `\'` break out of the string into code
+      // position of the generated catalog (CodeQL #334, js/incomplete-sanitization).
+      const enums = opts.map(o => JSON.stringify(String(o))).join(', ')
       return { zod: `z.enum([${enums}])` }
     }
     case 'color':
