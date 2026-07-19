@@ -14,6 +14,7 @@ copyable starting points enforced by
 | `decision-board.template.html` | Decision board | cool-glass | …the playground is for **prioritization / management** via drag-and-drop. Swap `ITEMS`. |
 | `release-notes-player.template.html` | User-story player (recipe) | cool-glass | …the playground is **release / changelog / "what's new" notes**, played as a flow. Swap `RELEASE`. Route adoption / verdict views to a dashboard, not here (§0). |
 | `decision-router.template.html` | Decision board (router) | cool-glass | …the board is a backlog to **prioritize and route to execution** — each card → an ork strategy (single/workflow/nested/teams/swarm) + a plan-only invocation. Swap `CARDS`. Used by `visualize-plan`. |
+| `living-plan.template.html` | Living plan (dashboard family) | cool-glass | …the plan **executes over multiple sessions/waves** and the artifact must track its own progress. Embedded `lpp-state` JSON; sessions UPDATE the same file (statuses, changelog), never fork. Every item carries a "done when" evidence check. Swap the `STATE` block. Used by `visualize-plan` (update mode) and `brainstorm` Phase 6. |
 
 ## What makes these different from a dashboard
 

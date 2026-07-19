@@ -210,6 +210,11 @@ Present in 200-300 word sections:
 
 After each section: "Does this look right so far?"
 
+**Living plan output (Phase 6.4, optional):** if the user asked for a playground or the synthesis is a
+multi-wave plan, ALSO emit a living plan playground (see SKILL.md Phase 6.4) — waves from Phase 5,
+scores from Phase 4, discards from Phase 3, per-item "done when" evidence. Later sessions update the
+same file's `lpp-state` JSON as work executes; never fork a second file for the same plan.
+
 ```python
 # Store decision in memory
 mcp__memory__create_entities(entities=[{
