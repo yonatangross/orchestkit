@@ -47,6 +47,17 @@ const FRAME_COUNT = 101;
 /** Every Nth frame is fetched up front; the rest wait until the visitor rides. */
 const COARSE_STEP = 4;
 
+// Motion amplification. The generated flight is only a few seconds of gentle
+// drift, so scrubbing it across the track alone looks static. These give the
+// ride its camera feel; raising them makes the world move harder.
+/** Extra scale at the start of the ride, eased out to 1.0 by the end. */
+const PUSH_IN = 0.18;
+/** How much of the zoom overscan the camera drifts across, per axis. */
+const DRIFT_X = 0.6;
+const DRIFT_Y = 0.35;
+/** Peak offset (px) of the copy against the world, per stop. */
+const PARALLAX_PX = 90;
+
 /** [start, end] scroll-progress windows for the 5 overlay stops. */
 const STOPS: ReadonlyArray<readonly [number, number]> = [
   [0, 0.14],
@@ -135,10 +146,22 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
       const ch = canvas.height;
       const iw = img.naturalWidth;
       const ih = img.naturalHeight;
-      const s = Math.max(cw / iw, ch / ih); // cover-fit
+
+      // The source flight is a few seconds of gentle drift. Spread raw over
+      // the whole track it reads as a still image, so the camera move is
+      // amplified here: a slow push-in plus a drift across the diorama,
+      // both driven by scroll. This is the ride's actual sense of motion —
+      // the frames alone are far too subtle to carry it.
+      const zoom = 1 + (1 - p) * PUSH_IN; // starts wide, pushes in
+      const s = Math.max(cw / iw, ch / ih) * zoom; // cover-fit, amplified
       const dw = iw * s;
       const dh = ih * s;
-      ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+      const slackX = Math.max(0, dw - cw);
+      const slackY = Math.max(0, dh - ch);
+      // Drift diagonally across whatever overscan the zoom created.
+      const dx = (cw - dw) / 2 + slackX * (0.5 - p) * DRIFT_X;
+      const dy = (ch - dh) / 2 + slackY * (0.5 - p) * DRIFT_Y;
+      ctx.drawImage(img, dx, dy, dw, dh);
     };
 
     const fit = () => {
@@ -158,8 +181,16 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
       let cur = -1;
       STOPS.forEach(([start, end], i) => {
         const on = p >= start && p <= end;
-        stopRefs.current[i]?.classList.toggle("fr-on", on);
+        const el = stopRefs.current[i];
+        el?.classList.toggle("fr-on", on);
         if (on) cur = i;
+        // Real parallax: the copy travels against the world instead of just
+        // fading. Each stop moves through its own window at a rate the
+        // background does not share, so the two layers separate visibly.
+        if (el && on) {
+          const localP = (p - start) / Math.max(0.0001, end - start);
+          el.style.setProperty("--fr-shift", `${(0.5 - localP) * PARALLAX_PX}px`);
+        }
       });
       dotRefs.current.forEach((dot, i) => {
         dot?.classList.toggle("fr-cur", i === cur);
