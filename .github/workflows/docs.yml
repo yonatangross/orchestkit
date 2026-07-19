@@ -148,3 +148,14 @@ jobs:
       - name: Build docs site
         working-directory: docs/site
         run: npm run build
+
+      # #2969: the docs-site vitest suite (vitest.site.config.ts — search golden
+      # queries, nav-structure guards) was wired into NO workflow, so it gated
+      # nothing. A test that failed under the full suite merged green in #2963
+      # and was only caught locally.
+      #
+      # Runs in this job rather than a new one so it reuses the node_modules
+      # installed above, and runs AFTER the build so generated data exists.
+      - name: Run docs-site tests
+        working-directory: docs/site
+        run: npm test

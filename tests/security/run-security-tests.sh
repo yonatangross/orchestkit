@@ -27,6 +27,7 @@ echo ""
 PASSED=0
 FAILED=0
 TOTAL=0
+FAILED_LOGS=()
 
 run_test() {
     local name="$1"
@@ -39,13 +40,26 @@ run_test() {
         return 1
     fi
 
-    if bash "$script" > /dev/null 2>&1; then
+    # Capture output instead of discarding it. Sending a failing test's output
+    # to /dev/null made every failure undiagnosable from the suite: the runner
+    # reported a bare "FAIL: <name>" and you had to re-run each script by hand
+    # to learn anything. On failure we now echo the tail of the real output.
+    local log
+    log="$(mktemp -t ork-sec-XXXXXX)"
+
+    if bash "$script" > "$log" 2>&1; then
         echo -e "  ${GREEN}PASS${NC}: $name"
         PASSED=$((PASSED + 1))
+        rm -f "$log"
         return 0
     else
-        echo -e "  ${RED}FAIL${NC}: $name"
+        local code=$?
+        echo -e "  ${RED}FAIL${NC}: $name (exit $code)"
+        echo "  ---- last 20 lines of $(basename "$script") ----"
+        sed -e 's/^/  | /' "$log" | tail -20
+        echo "  ---- end ----"
         FAILED=$((FAILED + 1))
+        FAILED_LOGS+=("$name|$log")
         return 1
     fi
 }
