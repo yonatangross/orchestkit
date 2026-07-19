@@ -28,6 +28,11 @@ Reference exemplars (read the one matching your archetype before building):
 - `decision-router.template.html` — execution-router variant of the decision board: triage (Now/Next/Later)
   **plus** routing each card to an ork strategy (single/workflow/nested/teams/swarm) + a plan-only
   invocation. Used by `visualize-plan` for backlogs the user must prioritize and dispatch.
+- `living-plan.template.html` — **living plan** (dashboard family): a plan that executes over multiple
+  sessions/waves. Carries an embedded `lpp-state` JSON block; the visual layer renders FROM state.
+  Sessions update the SAME file in place (flip item statuses, append changelog) — one plan = one file,
+  never fork a second file for the same slug. Every item has an `evidence` ("done when") check; done
+  without evidence is a contract violation. Used by `visualize-plan` update mode and `brainstorm` Phase 6.
 
 ---
 
@@ -48,6 +53,12 @@ Then pick ONE archetype:
         chrome = §2 tokens · data marks follow the CHART-ENCODING standard
         (/dataviz validated palette + table-view twin — chart-encoding-standard.md).
         ASCII-card layout is the fallback only when /dataviz is unavailable.
+
+  DASHBOARD sub-route — LIVING PLAN if ≥1 is true:
+  □ the plan executes over multiple sessions or waves   □ the user will ask "where are we" later
+  □ item completion is verifiable by a command/check
+        → use living-plan.template.html: embedded lpp-state JSON, update-in-place contract,
+          per-item "done when" evidence. One plan = one file; git history is the timeline.
 ```
 
 ---

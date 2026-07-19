@@ -52,6 +52,29 @@ Hide unavailable options from the AskUserQuestion list and add a one-line instal
 > card routes to an ork strategy (single/workflow/nested/teams/swarm) over the full 37-agent registry and
 > emits a **plan-only** invocation. Seeding recipe + strategy→tooling map: `Read("${CLAUDE_SKILL_DIR}/references/decision-router.md")`.
 
+## Living-plan update mode
+
+A plan that executes over multiple sessions/waves is a **living plan**: one plan = ONE html file that
+carries its own state and gets updated in place. Exemplar: `living-plan.template.html` (§0 dashboard
+sub-route in the visual standard). The contract:
+
+1. **Detect before authoring.** If the target path (or the plan's known slug under `docs/playgrounds/**`)
+   already contains `id="lpp-state"`, you are UPDATING, not authoring. Never fork a second file for the
+   same slug; rename = `git mv`, keep the slug.
+2. **Merge, never overwrite.** Parse the JSON, flip item `status` (`planned → in_progress → done`, or
+   `dropped` with a changelog reason), append to `changelog` (append-only), bump `updated`. Removed work
+   moves to `dropped`; items are never deleted.
+3. **Evidence gate.** An item may only move to `done` when its `evidence` check ("done when: <command>")
+   has actually been run this session. Done without evidence is a contract violation — leave it
+   `in_progress` and say why.
+4. **State renders, prose doesn't.** The "Now" column and wave counters are computed from item statuses
+   by the file's own renderer. Update the JSON; do not hand-edit rendered progress.
+5. **Git history is the timeline.** Each update is a normal commit; no side-channel progress files.
+
+Minimal state shape (v1): `{lpp, slug, title, created, updated, score{composite,target},
+waves[{id,title,status}], items[{id,wave,title,impact,effort,risk,status,detail,evidence,owner}],
+changelog[{at,note}]}`.
+
 ## The plan brief (shared interchange, v1)
 
 All non-ASCII renderers consume the same compact markdown brief built in STEP 1 — one source of truth, no per-format recomputation:
