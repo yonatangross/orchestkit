@@ -13,7 +13,7 @@ Operational procedure for re-running the MCP version audit documented in `mcp-ve
 ```bash
 # From repo root
 for pkg in @upstash/context7-mcp @modelcontextprotocol/server-sequential-thinking \
-           @modelcontextprotocol/server-memory tavily-mcp agentation-mcp \
+           @modelcontextprotocol/server-memory tavily-mcp \
            @21st-dev/magic fal-ai-mcp notebooklm-mcp; do
   v=$(npm view "$pkg" version 2>/dev/null)
   pub=$(npm view "$pkg" time.modified 2>/dev/null | head -1)

@@ -5,7 +5,6 @@ import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
-import { AgentationWrapper } from "@/components/agentation-wrapper";
 import { ClientErrorReporter } from "@/components/client-error-reporter";
 import CustomSearchDialog from "@/components/search-dialog";
 import { WebMcpProvider } from "@/components/webmcp-provider";
@@ -65,7 +64,6 @@ export default function Layout({ children }: { children: ReactNode }) {
 				<HQAnalytics projectId="orchestkit" />
 				<WebVitalsReporter />
 				<ClientErrorReporter />
-				<AgentationWrapper />
 				<WebMcpProvider />
 			</body>
 		</html>

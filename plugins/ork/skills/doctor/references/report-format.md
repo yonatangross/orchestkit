@@ -13,7 +13,7 @@
 | Agents           | 37/37 valid                                    |
 | Hooks            | 87/87 entries (12 bundles)                     |
 | Memory           | Graph memory healthy                           |
-| MCP              | context7 ✓  memory ✓  tavily ○  agentation ○  |
+| MCP              | context7 ✓  memory ✓  tavily ○                |
 | Permissions      | 12/12 reachable                                |
 | Schemas          | 15/15 compliant                                |
 | Context          | 1850/2200 tokens (84%)                         |
@@ -48,7 +48,7 @@
     "agents": {"passed": true, "count": 37, "perPlugin": {"ork": 37}},
     "hooks": {"passed": true, "entries": 87, "bundles": 12, "source": "ork"},
     "memory": {"passed": true, "available": ["graph"]},
-    "mcp": {"passed": true, "servers": {"context7": "enabled", "memory": "enabled", "sequential-thinking": "disabled", "tavily": "disabled", "agentation": "disabled"}},
+    "mcp": {"passed": true, "servers": {"context7": "enabled", "memory": "enabled", "sequential-thinking": "disabled", "tavily": "disabled"}},
     "permissions": {"passed": true, "count": 12},
     "schemas": {"passed": true, "count": 15},
     "context": {"passed": true, "usage": 0.84},

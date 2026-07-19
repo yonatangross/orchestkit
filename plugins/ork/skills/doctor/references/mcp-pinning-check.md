@@ -12,7 +12,7 @@ any `npx -y` fetch with no signal.
 
 | Tier | Criteria | Packages |
 |---|---|---|
-| **HIGH** | Pre-1.0 upstream, API may change without notice | `@21st-dev/magic`, `agentation-mcp` |
+| **HIGH** | Pre-1.0 upstream, API may change without notice | `@21st-dev/magic` |
 | **MEDIUM** | Active upstream, semver, used in many skills | `@upstash/context7-mcp`, `tavily-mcp`, `fal-ai-mcp` |
 | **LOW** | Stable API, calendar-versioned | `@modelcontextprotocol/server-sequential-thinking`, `@modelcontextprotocol/server-memory` |
 
@@ -36,9 +36,8 @@ For each enabled remote server:
 
 **HIGH-tier @latest detected:**
 ```
-MCP pinning: 2 HIGH-tier server(s) resolve to @latest
+MCP pinning: 1 HIGH-tier server(s) resolve to @latest
     ⚠ 21st-dev-magic (@21st-dev/magic)
-    ⚠ agentation (agentation-mcp)
     → Consider pinning to concrete versions in .mcp.json
     → See src/skills/mcp-patterns/references/mcp-version-matrix.md
 ```

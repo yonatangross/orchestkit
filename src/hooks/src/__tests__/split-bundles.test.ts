@@ -421,7 +421,9 @@ describe('Cross-Bundle Consistency', () => {
     // 199 -> 200: pretool/bash/display-lint — transcript de-clutter gate (brainstorm
     //             2026-07-16): denies >200-char 3+-stage compound one-liners with a
     //             write-a-script-file remedy; dispatched via sync-bash-dispatcher.
-    expect(totalHooks).toBe(200);
+    // 200 -> 199: removed lifecycle/agentation-context — the agentation
+    //             UI-annotation integration was dropped entirely.
+    expect(totalHooks).toBe(199);
   });
 });
 

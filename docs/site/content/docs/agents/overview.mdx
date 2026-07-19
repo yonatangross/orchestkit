@@ -6,7 +6,7 @@ full: true
 
 import { LazyAgentSelector as AgentSelector } from '@/components/lazy';
 
-# 37 Specialists, One Prompt Away
+# 36 Specialists, One Prompt Away
 
 An OrchestKit **agent** is a specialized AI persona built from four components:
 
@@ -160,7 +160,7 @@ hooks:
 
 This pattern is used by read-only agents like `security-auditor`, `debug-investigator`, `code-quality-reviewer`, and `system-design-reviewer` to prevent them from modifying code. The `deployment-manager` uses a different hook (`deployment-safety-check`) to validate commands before execution.
 
-## The 37 Agents by Category
+## The 36 Agents by Category
 
 Categories collapse the 11 raw `category:` values from `src/agents/*.md` frontmatter into 7 readable groups. Singletons (data, git, research) fold into adjacent categories.
 
@@ -175,7 +175,6 @@ Categories collapse the 11 raw `category:` values from `src/agents/*.md` frontma
 | `component-curator` | inherit | Audits project component usage, searches 21st.dev, recommends upgrades |
 | `claude-design-orchestrator` | sonnet | Parses claude.ai/design handoff bundles, dedups components, reconciles tokens |
 | `genui-architect` | inherit | Generative UI / json-render catalog design with Zod-typed schemas |
-| `ui-feedback` | sonnet | Processes UI annotations, maps element paths to source code, implements fixes |
 | `demo-producer` | sonnet | Marketing videos, VHS terminal recording, Remotion |
 | `system-design-reviewer` | opus | 5-dimension architecture review (Scale, Data, Security, UX, Coherence) |
 

@@ -81,9 +81,6 @@ Output structure:
 verification-output/{timestamp}/
 ├── screenshots/          (PNGs per route, base64 in gallery)
 ├── ai-evaluations/       (JSON per screenshot with score + issues)
-├── annotations/          (before/after if agentation used)
-│   ├── before/
-│   └── after/
 └── gallery.html          (self-contained, open in browser)
 ```
 

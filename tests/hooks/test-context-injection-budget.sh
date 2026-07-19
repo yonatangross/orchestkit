@@ -104,18 +104,11 @@ echo "────────────────────────�
 HELLO_TOKENS=$(measure_tokens "hello" "simple greeting")
 
 if [ "$HELLO_TOKENS" = "-1" ] || [ -z "$HELLO_TOKENS" ]; then
-  warn "Could not measure tokens (dispatcher may not be importable as ESM)"
-  echo "    Falling back to static analysis..."
-
-  # Static analysis: count the AGENTATION_CONTEXT string length
-  AGENTATION_LEN=$(grep -o '\[Agentation\].*' "$PROJECT_ROOT/src/hooks/src/lifecycle/agentation-context.ts" | head -1 | wc -c | tr -d ' ')
-  AGENTATION_TOKENS=$((AGENTATION_LEN / 3))
-
-  if [ "$AGENTATION_TOKENS" -lt 20 ]; then
-    pass "Agentation context compressed (~${AGENTATION_TOKENS}t, was ~45t)"
-  else
-    fail "Agentation context still large (~${AGENTATION_TOKENS}t, target <20t)"
-  fi
+  # The old fallback here measured the agentation context string, which no
+  # longer exists. There is no honest static substitute for the real
+  # measurement, so this warns rather than asserting on something unrelated:
+  # a green tick from an unrelated check is worse than an explicit skip.
+  warn "Could not measure tokens (dispatcher may not be importable as ESM) - budget assertion skipped"
 else
   echo "    Tokens on 'hello': $HELLO_TOKENS"
   if [ "$HELLO_TOKENS" -le "$MAX_PER_TURN_TOKENS" ]; then
@@ -167,26 +160,13 @@ for prompt in "do you remember the auth pattern" "how did we handle caching" "wh
   fi
 done
 
-echo ""
-echo "▶ Test 4: Agentation context compression"
-echo "────────────────────────────────────────────────────────────"
-
-AGENTATION_LINES=$(grep -c '.' "$PROJECT_ROOT/src/hooks/src/lifecycle/agentation-context.ts" <<< "$(sed -n '/AGENTATION_CONTEXT/,/;$/p' "$PROJECT_ROOT/src/hooks/src/lifecycle/agentation-context.ts")" 2>/dev/null || echo "0")
-
-# Check that the constant value fits on one line (backtick string with no newlines)
-CONST_HAS_NEWLINE=$(node -e "
-  const src = require('fs').readFileSync('$PROJECT_ROOT/src/hooks/src/lifecycle/agentation-context.ts','utf8');
-  const m = src.match(/AGENTATION_CONTEXT\s*=\s*\x60([^\x60]*)\x60/);
-  console.log(m && !m[1].includes('\\n') ? 'single' : 'multi');
-" 2>/dev/null)
-if [ "$CONST_HAS_NEWLINE" = "single" ]; then
-  pass "AGENTATION_CONTEXT is single-line (was 4 lines)"
-else
-  fail "AGENTATION_CONTEXT still has newlines (expected single-line)"
-fi
+# The old Test 4 measured the agentation context constant. The agentation
+# integration was removed entirely, so the test is deleted rather than
+# retargeted at an unrelated constant: a passing assertion about something
+# the test was never about is worse than one fewer test.
 
 echo ""
-echo "▶ Test 5: Noisy output filter"
+echo "▶ Test 4: Noisy output filter"
 echo "────────────────────────────────────────────────────────────"
 
 # Test isNoisyOutput logic
@@ -249,7 +229,7 @@ else
 fi
 
 echo ""
-echo "▶ Test 6: SessionStart hook consolidation"
+echo "▶ Test 5: SessionStart hook consolidation"
 echo "────────────────────────────────────────────────────────────"
 
 SESSION_START_HOOKS=$(node -e "
@@ -272,7 +252,7 @@ else
 fi
 
 echo ""
-echo "▶ Test 7: session_id fallback"
+echo "▶ Test 6: session_id fallback"
 echo "────────────────────────────────────────────────────────────"
 
 if grep -q "input.session_id" "$PROJECT_ROOT/src/hooks/src/prompt/unified-dispatcher.ts"; then

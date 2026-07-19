@@ -130,7 +130,7 @@ Categories available:
 
 ## Step 5: Configure MCPs (Optional)
 
-4 of the 5 MCPs ship **enabled by default**. Tavily requires an API key. **agentation ships disabled** (`"disabled": true` in `.mcp.json`) because it needs a local package — enable it after `npm install agentation-mcp`.
+All 4 MCPs ship **enabled by default**. Tavily requires an API key.
 
 | MCP | Purpose | Default | Requires |
 |-----|---------|---------|----------|
@@ -138,9 +138,8 @@ Categories available:
 | memory | Cross-session persistence | enabled | Nothing |
 | sequential-thinking | Structured reasoning for subagents | enabled | Nothing |
 | tavily | Web search + extraction | enabled | API key (free tier: app.tavily.com) |
-| agentation | UI annotation tool | disabled | `npm install agentation-mcp`, then flip `disabled: false` |
 
-> **Why mostly enabled?** OrchestKit ships 30+ Sonnet/Haiku subagents. While Opus 4.8 has native extended thinking, Sonnet and Haiku do not — they benefit from sequential-thinking. Tavily and agentation are used by specific agents (see `mcpServers` in agent frontmatter). CC's MCPSearch auto-defers schemas when overhead exceeds 10% of context, so token cost is managed automatically.
+> **Why enabled?** OrchestKit ships 30+ Sonnet/Haiku subagents. While Opus 4.8 has native extended thinking, Sonnet and Haiku do not — they benefit from sequential-thinking. Tavily is used by specific agents (see `mcpServers` in agent frontmatter). CC's MCPSearch auto-defers schemas when overhead exceeds 10% of context, so token cost is managed automatically.
 
 > **Background agents:** MCP tools are NOT available in background subagents (hard CC platform limitation). Agents that need MCP tools must run in the foreground.
 
@@ -222,13 +221,7 @@ Save webhookUrl to config and remind about env var (same as above, skip generato
 
 Load `Read("$\{CLAUDE_SKILL_DIR\}/references/http-hooks.md")` for architecture details.
 
-## Step 11: Optional Integrations
-
-Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/integrations.md")` for full integration setup steps.
-
-Covers Agentation UI annotation tool (npm install, MCP config, component scaffold, CSP updates). All steps are idempotent.
-
-## Step 12: Preview & Save
+## Step 11: Preview & Save
 
 > **Tip (CC 2.1.69+):** After saving configuration changes, run `/reload-plugins` to activate them without restarting your session.
 >
@@ -262,7 +255,6 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | `references/mcp-config.md` | MCP configuration |
 | `references/http-hooks.md` | CC 2.1.63+ observability hooks (Langfuse, Datadog, custom endpoints) |
 | `references/cc-version-settings.md` | CC 2.1.7, 2.1.20, 2.1.23, 2.1.79 version-specific settings |
-| `references/integrations.md` | Optional third-party integrations (Agentation) |
 
 ---
 
@@ -470,7 +462,7 @@ function writeAndValidateConfig(path: string, config: PluginConfig): void {
 
 ---
 
-## References (5)
+## References (4)
 
 ### Cc Version Settings
 
@@ -1054,7 +1046,7 @@ Before 2.1.133, pressing **Stop** in claude.ai's Remote Control surface (the web
 
 CC 2.1.133 makes the Remote Control stop path identical to local `Esc`: the current tool/prompt aborts, the message queue resumes, and the session is immediately usable again.
 
-**Impact for OrchestKit**: No OrchestKit skill currently drives a Remote Control flow, so there's no end-user-facing change today. The fix matters as forward-compat for any future agentation/`channels`-style surface that exposes a remote stop button — any OrchestKit chain that gets driven from claude.ai now interrupts cleanly without leaving a hung CLI side.
+**Impact for OrchestKit**: No OrchestKit skill currently drives a Remote Control flow, so there's no end-user-facing change today. The fix matters as forward-compat for any future `channels`-style surface that exposes a remote stop button — any OrchestKit chain that gets driven from claude.ai now interrupts cleanly without leaving a hung CLI side.
 
 ### MCP OAuth Honors HTTP(S)_PROXY / NO_PROXY / mTLS
 
@@ -1613,62 +1605,6 @@ Each event type gets a native HTTP hook entry:
 Remove the generated entries from `.claude/settings.local.json`, or delete the file entirely. Plugin command hooks continue working independently.
 
 
-### Integrations
-
-# Optional Integrations
-
-## Agentation (UI Annotation Tool)
-
-```
-Enable Agentation UI annotation tool? [y/N]: y
-```
-
-[Agentation](https://agentation.dev) lets you annotate your app's UI in the browser and have Claude pick up the feedback automatically.
-
-**When enabled, perform these steps (idempotent — skip any step already done):**
-
-1. **Install dependencies** (check `package.json` first):
-   ```bash
-   npm install -D agentation agentation-mcp
-   ```
-
-2. **Add MCP server to `.mcp.json`** (skip if `agentation` key already exists):
-   ```json
-   {
-     "mcpServers": {
-       "agentation": {
-         "command": "npx",
-         "args": ["-y", "agentation-mcp", "server"],
-         "disabled": false
-       }
-     }
-   }
-   ```
-
-3. **Enable MCP server in Claude Code settings** — add `"agentation"` to the `enabledMcpjsonServers` array in `.claude/settings.local.json` (create file if missing, skip if already listed):
-   ```json
-   {
-     "enabledMcpjsonServers": ["agentation"]
-   }
-   ```
-
-4. **Scaffold wrapper component** — create a dev-only client component (skip if file already exists). Use the project's component directory (e.g. `src/components/`, `components/`, or `app/components/`):
-   ```tsx
-   // agentation-wrapper.tsx
-   "use client";
-
-   import { Agentation } from "agentation";
-
-   export function AgentationWrapper() {
-     if (process.env.NODE_ENV !== "development") return null;
-     return <Agentation endpoint="http://localhost:4747" webhookUrl="http://localhost:4747" />;
-   }
-   ```
-   Then instruct the user to add `&lt;AgentationWrapper /&gt;` to their root layout.
-
-5. **CSP update** (only if the project has a Content-Security-Policy): add `http://localhost:4747` to the `connect-src` directive for development mode only.
-
-
 ### Mcp Config
 
 # MCP Configuration
@@ -1684,7 +1620,6 @@ Commands work without them - MCPs just add extra capabilities.
 | **sequential-thinking** | Structured reasoning | None | Sonnet/Haiku subagents needing multi-step reasoning |
 | **memory** | Knowledge graph | Local file | Decisions, patterns, entities |
 | **tavily** | Web search, extract, crawl | Cloud (Tavily) | /ork:explore, /ork:implement, web-research agents |
-| **agentation** | UI annotation tool | Local daemon | UI feedback → automatic agent pickup |
 | **stitch** | Official Google Stitch MCP — AI design → HTML/screenshots | Cloud (Google) | /ork:design-to-code, design-context-extractor |
 | **21st-dev-magic** | React component registry (1.4M devs) | Cloud (21st.dev) | /ork:component-search, frontend-ui-developer |
 | **storybook-mcp** | Project component discovery, testing, previews via Storybook 10.3+ | Local (localhost:6006) | /ork:design-to-code, component-curator, frontend-ui-developer |
@@ -1711,7 +1646,7 @@ All MCPs are optional — OrchestKit works without any. Enable what fits your wo
 
 ## Default State
 
-OrchestKit ships **all 5 MCPs enabled** in `.mcp.json`. Tavily requires an API key (`TAVILY_API_KEY` via 1Password) — it connects but tools fail without the key. Agentation requires `npm install -D agentation-mcp`.
+OrchestKit ships **all 4 MCPs enabled** in `.mcp.json`. Tavily requires an API key (`TAVILY_API_KEY` via 1Password) — it connects but tools fail without the key.
 
 ## Two-Layer MCP Control (CC 2.1.49)
 
@@ -1751,7 +1686,7 @@ OrchestKit agents declare `mcpServers` explicitly to avoid inheriting unnecessar
 
 **MCP tools are NOT available in background subagents.** This is a hard CC platform limitation.
 
-Agents spawned with `run_in_background: true` or `background: true` cannot call any MCP tools (tavily, context7, memory, sequential-thinking, agentation). Design background agents to use only built-in CC tools (Read, Grep, Glob, Bash, etc.).
+Agents spawned with `run_in_background: true` or `background: true` cannot call any MCP tools (tavily, context7, memory, sequential-thinking). Design background agents to use only built-in CC tools (Read, Grep, Glob, Bash, etc.).
 
 If a background agent needs MCP tools, run it in the foreground instead.
 
@@ -1765,12 +1700,11 @@ Each connected MCP adds tool definitions to the context window:
 | memory | 8 | ~1200 |
 | sequential-thinking | 1 | ~600 |
 | tavily | 5 | ~2000 |
-| agentation | 8 | ~1500 |
-| **Total** | **24** | **~5700** |
+| **Total** | **16** | **~4200** |
 
 **MCPSearch (default since CC 2.1.7):** When MCP tool schemas exceed 10% of the context window, CC automatically defers schema loading and uses an `MCPSearch` tool to discover tools on demand — reducing overhead by ~85%.
 
-With 5 MCPs (~5.7K tokens = 2.8% of 200K), schemas load upfront. This is acceptable. If you add more MCPs and cross the 10% threshold, MCPSearch activates automatically.
+With 4 MCPs (~4.2K tokens = 2.1% of 200K), schemas load upfront. This is acceptable. If you add more MCPs and cross the 10% threshold, MCPSearch activates automatically.
 
 **Tighten the threshold:** Set `ENABLE_TOOL_SEARCH=auto:5` in your shell profile to defer at 5% instead of 10%.
 
@@ -1802,11 +1736,6 @@ Edit `.mcp.json` and set `"disabled": true` or `false` for each MCP:
     "tavily": {
       "command": "sh",
       "args": ["-c", "TAVILY_API_KEY=$(op read 'op://<vault>/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
-      "disabled": false
-    },
-    "agentation": {
-      "command": "npx",
-      "args": ["-y", "agentation-mcp", "server"],
       "disabled": false
     },
     "21st-dev-magic": {
@@ -1881,7 +1810,6 @@ Agents fall back to WebFetch (Haiku-summarized) → agent-browser (full headless
 | sequential-thinking | None |
 | memory | None (creates `.claude/memory/` automatically) |
 | tavily | 1Password: `op read 'op://&lt;vault&gt;/Tavily API Key/API Key'` (free: https://app.tavily.com) |
-| agentation | `npm install -D agentation-mcp` in project |
 | notebooklm-mcp | `uv tool install notebooklm-mcp-cli` + `nlm login` + `nlm setup add claude-code` |
 | stitch | API key from [stitch.withgoogle.com/settings](https://stitch.withgoogle.com/settings). Add via: `claude mcp add stitch --transport http https://stitch.googleapis.com/mcp --header "X-Goog-Api-Key: YOUR-KEY" -s user` |
 | 21st-dev-magic | API key from https://21st.dev (free tier available). Set `TWENTYFIRST_DEV_API_KEY` env var |
@@ -1896,7 +1824,6 @@ OrchestKit agents and skills integrate with these MCPs:
 | /ork:implement, /ork:verify, /ork:review-pr | context7 | Fetch current library docs |
 | web-research-analyst, market-intelligence | tavily | Web search and content extraction |
 | /ork:remember, /ork:memory | memory | Persist decisions across sessions |
-| ui-feedback | agentation | Browser UI annotations → code fixes |
 | notebooklm (skill) | notebooklm-mcp | External RAG, research, studio content |
 | Sonnet/Haiku subagents | sequential-thinking | Structured reasoning for non-Opus models |
 | /ork:design-to-code, design-context-extractor | stitch | AI design → HTML, screenshot extraction, design context |

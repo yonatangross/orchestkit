@@ -94,14 +94,6 @@
   .eval-icon.warning { color: var(--warn); }
   .eval-icon.error { color: var(--fail); }
 
-  /* Before/After (Layer 2) */
-  .diff-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
-  .diff-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted);
-    letter-spacing: 0.5px; margin-bottom: 4px; }
-  .diff-img { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); }
-  .annotation-resolution { background: rgba(63,185,80,0.08); border: 1px solid rgba(63,185,80,0.2);
-    border-radius: var(--radius); padding: 12px; margin-top: 12px; font-size: 13px; }
-
   /* API response section */
   .api-response { background: var(--bg); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 12px; margin-top: 12px;
@@ -138,7 +130,6 @@
     .grid { grid-template-columns: 1fr; padding: 16px; }
     .summary { flex-wrap: wrap; gap: 16px; padding: 16px; }
     .header { flex-direction: column; gap: 12px; align-items: flex-start; }
-    .diff-container { grid-template-columns: 1fr; }
     .findings { padding: 16px; }
     .findings-grid { grid-template-columns: 1fr; }
     .route-breakdown { flex-wrap: wrap; }
@@ -159,7 +150,6 @@
 <div class="summary">
   <div class="stat"><span class="stat-label">Routes Captured</span><span class="stat-value">{{ROUTE_COUNT}}</span></div>
   <div class="stat"><span class="stat-label">Issues Found</span><span class="stat-value">{{ISSUE_COUNT}}</span></div>
-  <div class="stat"><span class="stat-label">Annotations</span><span class="stat-value">{{ANNOTATION_COUNT}}</span></div>
   <div class="stat"><span class="stat-label">Date</span><span class="stat-value">{{DATE}}</span></div>
   <div class="stat"><span class="stat-label">Duration</span><span class="stat-value">{{DURATION}}</span></div>
 </div>
@@ -192,7 +182,7 @@
     </div>
     <img class="modal-img" id="modal-img" src="" alt="">
     <div class="modal-body" id="modal-body">
-      <!-- AI evaluation + annotations injected here -->
+      <!-- AI evaluation injected here -->
     </div>
   </div>
 </div>
@@ -295,21 +285,6 @@ function openModal(routeId) {
       const cls = e.severity === 'ok' ? 'ok' : e.severity === 'warning' ? 'warning' : 'error';
       const icon = e.severity === 'ok' ? '\u2713' : e.severity === 'warning' ? '\u26A0' : '\u2717';
       body += `<div class="eval-item"><span class="eval-icon ${cls}">${icon}</span><span>${esc(e.message)}</span></div>`;
-    });
-    body += '</div>';
-  }
-
-  // Before/after (agentation annotations)
-  if (route.annotations && route.annotations.length > 0) {
-    body += '<div class="eval-section"><h3>Agentation Annotations</h3>';
-    route.annotations.forEach(a => {
-      const safeBefore = a.before && a.before.startsWith('data:image/') ? a.before : '';
-      const safeAfter = a.after && a.after.startsWith('data:image/') ? a.after : '';
-      body += `<div class="diff-container">
-        <div><div class="diff-label">Before</div><img class="diff-img" src="${safeBefore}" alt="Before"></div>
-        <div><div class="diff-label">After</div><img class="diff-img" src="${safeAfter}" alt="After"></div>
-      </div>
-      <div class="annotation-resolution">${esc(a.resolution)}</div>`;
     });
     body += '</div>';
   }

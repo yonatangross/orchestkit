@@ -37,7 +37,6 @@ Not in `.mcp.json` — you add these per-project when needed. Agents that refere
 |-----|---------|-------|
 | **stitch** | Google Stitch — AI design to HTML, screenshots, design context | API key from [stitch.withgoogle.com](https://stitch.withgoogle.com/settings) |
 | **storybook-mcp** | Project component discovery, testing, previews via Storybook 10.3+ | `@storybook/addon-mcp` + running Storybook |
-| **agentation** | UI annotation — browser feedback picked up automatically | `npm install -D agentation-mcp` (disabled by default in `.mcp.json`) |
 | **notebooklm-mcp** | Google NotebookLM — RAG, research synthesis, podcasts | `uv tool install notebooklm-mcp-cli` + `nlm login` |
 
 ## Recommended by Project Type
@@ -76,7 +75,6 @@ OrchestKit scopes MCP access per agent to keep context windows lean.
 | monitoring-engineer | tavily | Service status research |
 | component-curator | storybook-mcp | Component inventory, story coverage audit |
 | debug-investigator | memory | Recall past debugging decisions |
-| ui-feedback | agentation | Browser annotations to code fixes |
 
 ### context7 Library Docs (18 agents)
 
@@ -153,17 +151,6 @@ npx mcp-add --type http --url "http://localhost:6006/mcp" --scope project
 
 Storybook must be running for dev + testing tools. The docs toolset can be published remotely via Chromatic.
 
-### Agentation (UI feedback)
-
-Pre-configured in `.mcp.json` but disabled by default. To enable:
-
-```json
-"agentation": {
-  "command": "npx",
-  "args": ["-y", "agentation-mcp", "server"],
-  "disabled": false
-}
-```
 
 ### NotebookLM (RAG + research)
 
@@ -202,7 +189,6 @@ Each MCP adds tool definitions to the context window:
 | ork-elicit | 1 | ~300 |
 | tavily | 5 | ~2,000 |
 | 21st-dev-magic | 4 | ~800 |
-| agentation | 8 | ~1,500 |
 | stitch | 14 | ~2,800 |
 | storybook-mcp | 6 | ~1,200 |
 | notebooklm-mcp | 36 | ~7,000 |

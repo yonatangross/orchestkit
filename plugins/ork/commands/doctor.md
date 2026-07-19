@@ -56,7 +56,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version & Channel** - Validates CC >= 2.1.206 (supported floor), detects release channel (stable/beta/alpha), recommends 2.1.154+ for Opus 4.8 / `xhigh` effort, `/ultrareview`, stream-json `plugin_errors`
+10. **Claude Code Version** - Validates CC >= 2.1.206 (supported floor), recommends 2.1.154+ for Opus 4.8 / `xhigh` effort, `/ultrareview`, stream-json `plugin_errors`
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes. Sub-check warns when HIGH-tier servers resolve to `@latest` in `.mcp.json` (closes #1462)
 13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
@@ -125,7 +125,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **10. CC Version & Channel** | Runtime version against minimum required, release channel (stable/beta/alpha) | load `${CLAUDE_SKILL_DIR}/references/version-compatibility.md` |
+| **10. CC Version** | Runtime version against minimum required | load `${CLAUDE_SKILL_DIR}/references/version-compatibility.md` |
 | **11. External Deps** | Optional tools (agent-browser, portless) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
 | **12. MCP Status** | Enabled/disabled state, credential checks, **HIGH-tier `@latest` pinning warn** | load `${CLAUDE_SKILL_DIR}/rules/mcp-status-checks.md` + `${CLAUDE_SKILL_DIR}/references/mcp-pinning-check.md` |
 | **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |

@@ -9,7 +9,6 @@
  * Checks .mcp.json for enabled MCPs and validates their requirements:
  * - tavily: TAVILY_API_KEY available via env, the server's "env" block, or a
  *   secret-manager fetch (e.g. `op read`) in the launch command
- * - agentation: agentation-mcp must be installed
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -57,20 +56,10 @@ function keyProvidedByConfig(entry: McpServerEntry, keyName: string): boolean {
  * Check a single enabled MCP server for missing requirements.
  * Returns a warning string or null if the server is properly configured.
  */
-function checkServer(name: string, entry: McpServerEntry, projectDir: string): string | null {
+function checkServer(name: string, entry: McpServerEntry): string | null {
   if (name === 'tavily') {
     if (process.env.TAVILY_API_KEY || keyProvidedByConfig(entry, 'TAVILY_API_KEY')) return null;
     return `- tavily is enabled but TAVILY_API_KEY is not available\n  Fix: export TAVILY_API_KEY="tvly-..." in ~/.zshrc, add it to the server's "env" block in .mcp.json, or fetch it via a secret manager (e.g. op read)`;
-  }
-
-  if (name === 'agentation') {
-    const binExists = existsSync(join(projectDir, 'node_modules', '.bin', 'agentation-mcp'));
-    if (binExists) return null;
-    try {
-      const pkg = JSON.parse(readFileSync(join(projectDir, 'package.json'), 'utf-8'));
-      if ('agentation-mcp' in { ...pkg.dependencies, ...pkg.devDependencies }) return null;
-    } catch { /* no package.json */ }
-    return `- agentation is enabled but agentation-mcp is not installed\n  Fix: npm install -D agentation-mcp  or  set "disabled": true in .mcp.json`;
   }
 
   return null;
@@ -107,7 +96,7 @@ export function mcpHealthCheck(input: HookInput, ctx: HookContext = NOOP_CTX): H
   const warnings: string[] = [];
   for (const [name, entry] of Object.entries(servers)) {
     if (entry.disabled === true) continue;
-    const warning = checkServer(name, entry, projectDir);
+    const warning = checkServer(name, entry);
     if (warning) warnings.push(warning);
   }
 

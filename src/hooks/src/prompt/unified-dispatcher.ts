@@ -24,9 +24,6 @@
  * Moved to SessionStart (correct lifecycle for static config):
  * - profile-injector → materializeProfileRules()
  * - memory-context-loader → materializeDecisionRules()
- * - agentation-context → lifecycle/agentation-context (M104 PR-B, #1234 audit) —
- *   .mcp.json contents don't change mid-session, so pin the reminder to the
- *   cached SessionStart prefix instead of re-checking each prompt.
  *
  * CC 2.1.9 Compliant: Single additionalContext output
  * CC 2.1.94: sessionTitle set from branch + effort for prompt-bar identification
@@ -67,7 +64,6 @@ import { cacheBreakDetector } from './cache-break-detector.js';
 // antipattern-warning migrated to type:prompt hook in hooks.json (#972)
 // Import hook implementations — once-per-session
 import { handoffInjector } from './handoff-injector.js';
-// agentation-context moved to lifecycle/SessionStart in M104 PR-B (#1234 audit)
 import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
@@ -106,9 +102,6 @@ interface PromptHookConfig {
  *
  * profile-injector + memory-context-loader moved to SessionStart (sync-session-dispatcher)
  * where they materialize rules files BEFORE CC loads instructions.
- *
- * agentation-context moved to lifecycle/SessionStart in M104 PR-B (#1234 audit) —
- * .mcp.json is static for the session, so pin the reminder to the cached prefix.
  */
 const HOOKS: PromptHookConfig[] = [
   // --- Once-per-session hooks (run on first turn only, file-flag gated) ---

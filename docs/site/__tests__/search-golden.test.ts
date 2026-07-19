@@ -42,7 +42,9 @@ const MUST_INCLUDE: Array<[query: string, urls: string[]]> = [
   // Exact/prefix titles across doc types.
   ["installation", ["/docs/getting-started/installation"]],
   ["hook debugging", ["/docs/troubleshooting/hook-debugging"]],
-  ["release channels", ["/docs/getting-started/release-channels"]],
+  // "release channels" golden removed with the feature: the beta/alpha
+  // branches were never published, so the page documented an install command
+  // that errored. The query has no correct answer to assert against now.
   ["graph memory", ["/docs/memory/graph-memory"]],
   ["changelog", ["/docs/changelog"]],
 ];

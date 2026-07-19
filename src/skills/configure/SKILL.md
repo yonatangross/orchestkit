@@ -138,7 +138,7 @@ Categories available:
 
 ## Step 5: Configure MCPs (Optional)
 
-4 of the 5 MCPs ship **enabled by default**. Tavily requires an API key. **agentation ships disabled** (`"disabled": true` in `.mcp.json`) because it needs a local package — enable it after `npm install agentation-mcp`.
+All 4 MCPs ship **enabled by default**. Tavily requires an API key.
 
 | MCP | Purpose | Default | Requires |
 |-----|---------|---------|----------|
@@ -146,9 +146,8 @@ Categories available:
 | memory | Cross-session persistence | enabled | Nothing |
 | sequential-thinking | Structured reasoning for subagents | enabled | Nothing |
 | tavily | Web search + extraction | enabled | API key (free tier: app.tavily.com) |
-| agentation | UI annotation tool | disabled | `npm install agentation-mcp`, then flip `disabled: false` |
 
-> **Why mostly enabled?** OrchestKit ships 30+ Sonnet/Haiku subagents. While Opus 4.8 has native extended thinking, Sonnet and Haiku do not — they benefit from sequential-thinking. Tavily and agentation are used by specific agents (see `mcpServers` in agent frontmatter). CC's MCPSearch auto-defers schemas when overhead exceeds 10% of context, so token cost is managed automatically.
+> **Why enabled?** OrchestKit ships 30+ Sonnet/Haiku subagents. While Opus 4.8 has native extended thinking, Sonnet and Haiku do not — they benefit from sequential-thinking. Tavily is used by specific agents (see `mcpServers` in agent frontmatter). CC's MCPSearch auto-defers schemas when overhead exceeds 10% of context, so token cost is managed automatically.
 
 > **Background agents:** MCP tools are NOT available in background subagents (hard CC platform limitation). Agents that need MCP tools must run in the foreground.
 
@@ -230,13 +229,7 @@ Save webhookUrl to config and remind about env var (same as above, skip generato
 
 Load `Read("${CLAUDE_SKILL_DIR}/references/http-hooks.md")` for architecture details.
 
-## Step 11: Optional Integrations
-
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/integrations.md")` for full integration setup steps.
-
-Covers Agentation UI annotation tool (npm install, MCP config, component scaffold, CSP updates). All steps are idempotent.
-
-## Step 12: Preview & Save
+## Step 11: Preview & Save
 
 > **Tip (CC 2.1.69+):** After saving configuration changes, run `/reload-plugins` to activate them without restarting your session.
 >
@@ -270,4 +263,3 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `references/mcp-config.md` | MCP configuration |
 | `references/http-hooks.md` | CC 2.1.63+ observability hooks (Langfuse, Datadog, custom endpoints) |
 | `references/cc-version-settings.md` | CC 2.1.7, 2.1.20, 2.1.23, 2.1.79 version-specific settings |
-| `references/integrations.md` | Optional third-party integrations (Agentation) |

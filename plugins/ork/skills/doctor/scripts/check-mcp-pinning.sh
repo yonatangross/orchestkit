@@ -23,7 +23,6 @@ set -euo pipefail
 # these can break agents silently on next `npx -y` fetch.
 HIGH_TIER_PACKAGES=(
     "@21st-dev/magic"
-    "agentation-mcp"
 )
 MEDIUM_TIER_PACKAGES=(
     "@upstash/context7-mcp"

@@ -38,8 +38,6 @@
 		"@types/react": "^19.2.17",
 		"@types/react-dom": "^19.0.0",
 		"@vitejs/plugin-react": "^6.0.3",
-		"agentation": "^3.0.2",
-		"agentation-mcp": "^1.2.0",
 		"happy-dom": "^20.10.6",
 		"magic-string": "^0.30.21",
 		"postcss": "^8.5.18",

@@ -13,7 +13,6 @@
 | **6. Alternative Comparison** | Compare approaches (optional) | Recommendation |
 | **7. Metrics Tracking** | Trend analysis | Historical data |
 | **8. Report Compilation** | Evidence artifacts + gallery.html | Final report |
-| **8.5 Agentation Loop** | User annotates, ui-feedback fixes | Before/after diffs |
 
 ---
 
@@ -233,30 +232,6 @@ Agent(
 ```
 
 **Output**: `verification-output/{timestamp}/` folder with screenshots, AI evaluations (JSON), and `gallery.html`.
-
----
-
-## Phase 8.5: Agentation Visual Feedback (Opt-In)
-
-**Trigger**: Only when agentation MCP is configured in `.mcp.json`. Runs AFTER Phase 8 report compilation.
-
-```python
-# Check agentation availability
-ToolSearch(query="select:mcp__agentation__agentation_get_all_pending")
-
-# If available, offer user choice
-AskUserQuestion(questions=[{
-  "question": "Agentation detected. Annotate the live UI before finalizing?",
-  "header": "Visual Feedback Loop",
-  "options": [
-    {"label": "Yes", "description": "I'll mark issues, ui-feedback agent fixes them, gallery updates with before/after"},
-    {"label": "Skip", "description": "Finalize with current screenshots"}
-  ]
-}])
-
-# If yes: watch → acknowledge → dispatch ui-feedback → re-screenshot → update gallery
-# Max 3 rounds (configurable in verification-config.yaml)
-```
 
 ---
 

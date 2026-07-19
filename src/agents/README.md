@@ -29,7 +29,7 @@ Explore codebase?              → Explore (built-in)
 Unsure OR mixed concerns?      → workflow-architect
 ```
 
-### Agent registry (37 agents)
+### Agent registry (36 agents)
 
 | Agent | Category | Model | Effort | When to spawn |
 |---|---|---|---|---|
@@ -53,7 +53,6 @@ Unsure OR mixed concerns?      → workflow-architect
 | `frontend-performance-engineer` | frontend | sonnet | medium | Performance engineer who optimizes Core Web Vitals, analyzes bundles, profiles render performance, and sets… |
 | `frontend-ui-developer` | frontend | inherit | medium | Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, design system t… |
 | `genui-architect` | frontend | inherit | medium | Generative UI and json-render catalog specialist. Designs Zod-typed catalogs, selects shadcn components, co… |
-| `ui-feedback` | frontend | sonnet | low | UI annotation and feedback processor. Watches for new annotations from agentation, maps element paths to so… |
 | `git-operations-engineer` | git | haiku | low | Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history. |
 | `llm-integrator` | llm | sonnet | medium | LLM integration: OpenAI/Anthropic/Ollama APIs, prompt templates, function calling, streaming, token cost op… |
 | `multimodal-specialist` | llm | sonnet | medium | Vision, audio, video generation, and multimodal processing specialist who integrates Claude Opus 4.8, GPT-5… |

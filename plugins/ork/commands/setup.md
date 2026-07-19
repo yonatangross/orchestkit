@@ -1,5 +1,5 @@
 ---
-description: "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks, project-scoped configuration, and release channel detection. Use when setting up OrchestKit for a new project or rescanning after major changes."
+description: "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes."
 allowed-tools: [Read, Write, Grep, Glob, Bash, AskUserQuestion, TaskCreate, TaskUpdate, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations, mcp__ork-elicit__ork_elicit]
 ---
 
@@ -25,7 +25,6 @@ Personalized onboarding that scans your codebase, detects your stack, recommends
 /ork:setup --rescan     # Re-scan after changes (skip safety phase)
 /ork:setup --score-only # Just show readiness score
 /ork:setup --plan-only  # Just show improvement plan
-/ork:setup --channel    # Just show release channel
 /ork:setup --configure  # Jump directly to Phase 3.5: project configuration wizard
 ```
 
@@ -97,7 +96,6 @@ Load `Read("${CLAUDE_SKILL_DIR}/references/stack-skill-mapping.md")` for the ful
 
 ## Phase 2b: Channel Detection
 
-Detect release channel from `manifests/ork.json` version string. Classification: `X.Y.Z` = stable, `X.Y.Z-beta.*` = beta, `X.Y.Z-alpha.*` = alpha. Display alongside stack profile. Use `--channel` flag to show only channel detection.
 
 ## Phase 3: Safety Check
 
@@ -196,7 +194,7 @@ If streaming selected:
 
 Load details: `Read("${CLAUDE_SKILL_DIR}/references/integrations.md")` for setup steps.
 
-Covers Agentation UI annotation tool, CC version-specific settings (CC 2.1.7 MCP deferral, CC 2.1.20 task deletion, CC 2.1.23 spinner verbs, CC 2.1.79 turn duration display), and monorepo worktree optimization.
+Covers CC version-specific settings (CC 2.1.7 MCP deferral, CC 2.1.20 task deletion, CC 2.1.23 spinner verbs, CC 2.1.79 turn duration display) and monorepo worktree optimization.
 
 ### Monorepo Sparse Paths (CC 2.1.76+)
 
@@ -246,7 +244,6 @@ Both are session-scoped trial paths; for permanent install, use the standard `/p
 | `--configure` | Jump directly to Phase 3.5: project configuration wizard |
 | `--score-only` | Show current readiness score (Phase 6 only) |
 | `--plan-only` | Show improvement plan (Phase 7 only) |
-| `--channel` | Show detected release channel only |
 | `--telemetry` | Jump to Phase 9: telemetry/webhook setup |
 | `--preset` | Apply a preset (complete/standard/lite/hooks-only/monorepo) |
 
@@ -276,7 +273,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `claude-md-health.md` | Phase 7b: CLAUDE.md modular structure analysis |
 | `keybindings.md` | Phase 8: Keyboard shortcut recommendations |
 | `telemetry-setup.md` | Phase 9: Webhook/telemetry configuration |
-| `integrations.md` | Phase 10: Agentation + CC version settings |
+| `integrations.md` | Phase 10: CC version settings |
 | `presets.md` | Preset definitions and skill/agent matrices |
 
 ## CC `--channels` + console auth (2.1.128+)

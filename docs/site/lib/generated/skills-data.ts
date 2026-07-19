@@ -56,8 +56,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "accessibility-specialist",
       "design-system-architect",
-      "frontend-ui-developer",
-      "ui-feedback"
+      "frontend-ui-developer"
     ]
   },
   "agent-orchestration": {
@@ -1315,7 +1314,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "configure",
     "description": "Interactive configuration wizard for OrchestKit plugin settings including MCP server enablement, hook permissions, keybindings, and installation presets (Complete/Standard/Lite). Supports preset shortcuts, per-category skill customization, and webhook configuration. Use when customizing plugin behavior or managing settings.",
     "version": "1.0.1",
-    "sha256": "f2b4ff6faba0b26ced1b4a5510c519fa1690ef7f04197ce2abfcf195366280c0",
+    "sha256": "4f2f7d876ff4966eb6b6c706db43a23b98c8ba89710a4812a0ac3ba29ebf3112",
     "author": "OrchestKit",
     "tags": [
       "configuration",
@@ -1339,7 +1338,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "cc-version-settings.md",
         "http-hooks.md",
-        "integrations.md",
         "mcp-config.md",
         "presets.md"
       ]
@@ -2056,7 +2054,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.2.0",
-    "sha256": "f205eaff48773b07343f0ff58e74282a74986a4cdbc61777465ea562a99a121e",
+    "sha256": "877ae29d1978a7cc3697565f298879bb7f2fba6224caeaaadd1783c6fab59578",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -2597,8 +2595,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "debug-investigator",
-      "ui-feedback"
+      "debug-investigator"
     ]
   },
   "github-operations": {
@@ -3313,7 +3310,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "security-layer-auditor",
       "system-design-reviewer",
       "test-generator",
-      "ui-feedback",
       "web-research-analyst",
       "workflow-architect"
     ]
@@ -4394,7 +4390,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "security-layer-auditor",
       "system-design-reviewer",
       "test-generator",
-      "ui-feedback",
       "web-research-analyst",
       "workflow-architect"
     ]
@@ -4638,9 +4633,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "setup": {
     "name": "setup",
-    "description": "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks, project-scoped configuration, and release channel detection. Use when setting up OrchestKit for a new project or rescanning after major changes.",
+    "description": "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.",
     "version": "2.0.0",
-    "sha256": "340c9d205ce3155e43e38135c47dd271328603953aab107bf6f87fb9afecb3ee",
+    "sha256": "50a309d3f94c5ec96c58a089e13ce412d1e7a5d0a5f0746e3c3ac5c06f95c8e4",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -4929,7 +4924,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "release-engineer",
       "security-auditor",
       "test-generator",
-      "ui-feedback",
       "workflow-architect"
     ]
   },
@@ -5324,8 +5318,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "component-curator",
       "design-system-architect",
       "frontend-ui-developer",
-      "genui-architect",
-      "ui-feedback"
+      "genui-architect"
     ]
   },
   "upgrade-assessment": {
@@ -5454,7 +5447,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security scanning, and type checking. Runs coverage analysis, detects regressions, and validates against project conventions. Reports pass/fail with detailed findings and coverage deltas. Use when verifying implementations, validating changes after /ork:implement, or running pre-merge quality gates.",
     "version": "4.5.0",
-    "sha256": "7630c7b9840245f542332c45d76d33a6162fa4fa4269383262949fdbab21df27",
+    "sha256": "b903a299f3aaf9be403874ed8c8ed367795b3c99ea8c689ef7b3bfe59b567994",
     "author": "OrchestKit",
     "tags": [
       "verification",
@@ -5480,10 +5473,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskList",
       "TaskStop",
       "mcp__memory__search_nodes",
-      "mcp__agentation__agentation_get_all_pending",
-      "mcp__agentation__agentation_acknowledge",
-      "mcp__agentation__agentation_resolve",
-      "mcp__agentation__agentation_watch_annotations",
       "ToolSearch",
       "CronCreate",
       "CronDelete",

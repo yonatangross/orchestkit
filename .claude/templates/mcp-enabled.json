@@ -3,33 +3,39 @@
   "mcpServers": {
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ],
       "description": "Up-to-date documentation for frameworks and libraries",
       "auto": "75"
     },
     "sequential-thinking": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
       "description": "Complex reasoning and architectural decision support",
       "auto": "60"
     },
     "memory": {
       "command": "sh",
-      "args": ["-c", "DIR=\"$CLAUDE_PROJECT_DIR\"; [ -n \"$DIR\" ] || DIR=\"$PWD\"; export MEMORY_FILE_PATH=\"$DIR/.claude/memory/memory.json\"; mkdir -p \"$DIR/.claude/memory\"; exec npx -y @modelcontextprotocol/server-memory"],
+      "args": [
+        "-c",
+        "DIR=\"$CLAUDE_PROJECT_DIR\"; [ -n \"$DIR\" ] || DIR=\"$PWD\"; export MEMORY_FILE_PATH=\"$DIR/.claude/memory/memory.json\"; mkdir -p \"$DIR/.claude/memory\"; exec npx -y @modelcontextprotocol/server-memory"
+      ],
       "description": "Knowledge graph memory (PRIMARY) - resolves an absolute MEMORY_FILE_PATH at runtime so the graph persists (#2631)",
       "auto": "90"
     },
     "tavily": {
       "command": "sh",
-      "args": ["-c", "TAVILY_API_KEY=$(op read 'op://<vault>/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
+      "args": [
+        "-c",
+        "TAVILY_API_KEY=$(op read 'op://<vault>/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"
+      ],
       "description": "Web search, extract, crawl, and deep research",
       "auto": "70"
-    },
-    "agentation": {
-      "command": "npx",
-      "args": ["-y", "agentation-mcp", "server"],
-      "description": "UI annotation tool — browser feedback picked up automatically",
-      "auto": "65"
     }
   }
 }

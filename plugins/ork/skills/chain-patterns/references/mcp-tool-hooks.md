@@ -1,6 +1,6 @@
 # Hooks Invoking MCP Tools — `type: "mcp_tool"`
 
-CC 2.1.118 added a new hook dispatch type that lets a registered hook invoke an MCP tool directly, without spawning a subagent. Unlocks fast access to MCP context (memory, agentation, sequential-thinking) from inside hook handlers.
+CC 2.1.118 added a new hook dispatch type that lets a registered hook invoke an MCP tool directly, without spawning a subagent. Unlocks fast access to MCP context (memory, sequential-thinking) from inside hook handlers.
 
 **Closes:** part of #1501 (M122-4). Reference for adoption.
 
@@ -60,25 +60,7 @@ No subprocess spawn, no shell parsing — same dispatch path the model uses when
 
 Use case: surface prior decisions about the file being edited.
 
-## Pattern 2 — Read Annotation Queue After Read
-
-```json
-{
-  "PostToolUse": [
-    {
-      "matcher": "Read",
-      "type": "mcp_tool",
-      "tool": "mcp__agentation__agentation_get_pending",
-      "input": { "filePath": "${input.tool_input.file_path}" },
-      "outputMapping": "systemMessage"
-    }
-  ]
-}
-```
-
-Use case: alert the model when annotations exist for the file just read.
-
-## Pattern 3 — Sequential Thinking on Long Tasks
+## Pattern 2 — Sequential Thinking on Long Tasks
 
 ```json
 {
@@ -104,7 +86,7 @@ Use case: kick off a structured plan for any task description over 200 chars.
 | MCP server is `disabled: true` in `.mcp.json` | Skip the hook (it'll fail at dispatch) |
 | You need to gate on the MCP response | Subagent — `mcp_tool` doesn't support conditional logic in-place |
 | The hook needs MCP output for >1 downstream MCP call | Subagent — chained MCP calls are expensive in this dispatch type |
-| MCP server is HIGH-tier (`@21st-dev/magic`, `agentation` pre-1.0) | Pin first (see `src/skills/mcp-patterns/references/mcp-version-matrix.md`) |
+| MCP server is HIGH-tier (`@21st-dev/magic` pre-1.0) | Pin first (see `src/skills/mcp-patterns/references/mcp-version-matrix.md`) |
 
 ## Performance Envelope
 

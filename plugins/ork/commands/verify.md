@@ -1,6 +1,6 @@
 ---
 description: "Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security scanning, and type checking. Runs coverage analysis, detects regressions, and validates against project conventions. Reports pass/fail with detailed findings and coverage deltas. Use when verifying implementations, validating changes after /ork:implement, or running pre-merge quality gates."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, TaskStop, mcp__memory__search_nodes, mcp__agentation__agentation_get_all_pending, mcp__agentation__agentation_acknowledge, mcp__agentation__agentation_resolve, mcp__agentation__agentation_watch_annotations, ToolSearch, CronCreate, CronDelete, Monitor, PushNotification]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, TaskStop, mcp__memory__search_nodes, ToolSearch, CronCreate, CronDelete, Monitor, PushNotification]
 ---
 
 # Auto-generated from skills/verify/SKILL.md
@@ -82,7 +82,7 @@ AskUserQuestion(
 ```
 
 **Based on answer, adjust workflow:**
-- **Full verification**: All 10 phases (8 + 2.5 + 8.5), 7 parallel agents including visual capture
+- **Full verification**: All 9 phases (8 + 2.5), 7 parallel agents including visual capture
 - **Tests only**: Skip phases 2 (security), 5 (UI/UX analysis)
 - **Security & code quality**: Run security-auditor + code-quality-reviewer agents
 - **Quick check**: Run tests only, skip grading and suggestions
@@ -185,7 +185,6 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/verification-phases.md")` fo
 | **6. Alternative Comparison** | Compare approaches (optional) | Recommendation |
 | **7. Metrics Tracking** | Trend analysis | Historical data |
 | **8. Report Compilation** | Evidence artifacts + gallery.html | Final report |
-| **8.5 Agentation Loop** | User annotates, ui-feedback fixes | Before/after diffs |
 
 ### Phase 2 Agents (Quick Reference)
 
@@ -249,12 +248,6 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/visual-capture.md")` for aut
 **Output**: `verification-output/{timestamp}/gallery.html` — open in browser to see all screenshots with AI evaluations, scores, and annotation diffs.
 
 **Graceful degradation**: If no frontend detected or server won't start, skips visual capture with a warning — never blocks verification.
-
-### Phase 8.5: Agentation Visual Feedback (opt-in)
-
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/visual-capture.md")` (Phase 8.5 section) for agentation loop workflow.
-
-**Trigger**: Only when agentation MCP is configured. Offers user the choice to annotate the live UI. `ui-feedback` agent processes annotations, re-screenshots show before/after.
 
 
 ## Grading & Scoring
@@ -356,7 +349,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
 | `verification-phases.md` | 8-phase workflow, agent spawn definitions, Agent Teams mode |
-| `visual-capture.md` | Phase 2.5 + 8.5: screenshot capture, AI vision, gallery generation, agentation loop |
+| `visual-capture.md` | Phase 2.5: screenshot capture, AI vision, gallery generation |
 | `quality-model.md` | Scoring dimensions and weights (8 unified) |
 | `grading-rubric.md` | Per-agent scoring criteria |
 | `report-template.md` | Full report format with visual evidence section |
