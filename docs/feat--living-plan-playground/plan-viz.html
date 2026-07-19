@@ -200,7 +200,7 @@
   "slug": "living-plan-playground-rollout",
   "title": "LPP Rollout (this PR, tracking itself)",
   "created": "2026-07-20",
-  "updated": "2026-07-20T03:20:00Z",
+  "updated": "2026-07-20T03:55:00Z",
   "score": {
     "dims": {
       "pattern completeness": 8.5,
@@ -306,8 +306,8 @@
       "impact": 8.5,
       "effort": "1-2d",
       "risk": "med",
-      "status": "planned",
-      "owner": "platform",
+      "status": "in_progress",
+      "owner": "platform PR #8704",
       "before": "living plans render only as iframed static HTML",
       "after": "library detects lpp-state and renders via the design system; fleet view sorted by staleness",
       "detail": "Touches the same viewer code as the folder-card empty-pane bug; fix together.",
@@ -355,6 +355,10 @@
     {
       "at": "2026-07-20",
       "note": "v1: dogfood instance created to satisfy the PR Playground gate as a living plan tracking the LPP rollout itself. W0 items done in this very diff."
+    },
+    {
+      "at": "2026-07-20",
+      "note": "W2.1 in progress: issue #8702 filed (design decisions operator-approved: Storybook-first) and slice-1 PR platform#8704 opened (Zod schema + registry domain + shelf/detail components + stories, 10/10 tests, type-check clean). Stitch API leg parked: registers server-side but lands no screens."
     }
   ]
 }
