@@ -1,0 +1,41 @@
+---
+title: Hooks
+description: Deterministic TypeScript checks that run around every tool call.
+---
+
+import { Card, Cards } from 'fumadocs-ui/components/card';
+
+Hooks are the deterministic layer. They fire on lifecycle events rather than being invoked, which makes them the right place for guardrails that must not depend on the model choosing to run them.
+
+<Cards>
+  <Card
+    title="Overview"
+    description="What hooks do and when they fire."
+    href="/docs/hooks/overview"
+  />
+  <Card
+    title="Architecture"
+    description="The dispatcher, the entries map, and how registration works."
+    href="/docs/hooks/architecture"
+  />
+  <Card
+    title="Lifecycle hooks"
+    description="Session start, prompt submit, and stop events."
+    href="/docs/hooks/lifecycle-hooks"
+  />
+  <Card
+    title="Safety hooks"
+    description="Guardrails that block destructive or unsafe tool calls."
+    href="/docs/hooks/safety-hooks"
+  />
+  <Card
+    title="Memory hooks"
+    description="Capturing and recalling context across sessions."
+    href="/docs/hooks/memory-hooks"
+  />
+  <Card
+    title="Writing hooks"
+    description="Adding a hook, registering it, and keeping counts in sync."
+    href="/docs/hooks/writing-hooks"
+  />
+</Cards>

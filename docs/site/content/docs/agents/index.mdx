@@ -1,0 +1,31 @@
+---
+title: Agents
+description: Specialist sub-agents with their own context window, tools, and system prompt.
+---
+
+import { Card, Cards } from 'fumadocs-ui/components/card';
+
+Agents run as separate sub-processes with an isolated context budget. Use one when a task needs its own working memory or a narrower tool set than the main loop.
+
+<Cards>
+  <Card
+    title="Overview"
+    description="What an agent is and how it differs from a skill."
+    href="/docs/agents/overview"
+  />
+  <Card
+    title="Choosing an agent"
+    description="Matching a task to the right specialist instead of the generic one."
+    href="/docs/agents/choosing-an-agent"
+  />
+  <Card
+    title="Multi-agent patterns"
+    description="Fan-out, pipelines, and adversarial verification."
+    href="/docs/agents/multi-agent-patterns"
+  />
+  <Card
+    title="Writing agents"
+    description="Frontmatter, tool scoping, and skill wiring."
+    href="/docs/agents/writing-agents"
+  />
+</Cards>
