@@ -37,7 +37,7 @@ updates:
           - "*"
     open-pull-requests-limit: 5
 
-  # ── npm: root (overrides: hono / ip-address / express-rate-limit / fast-uri) ──
+  # ── npm: root (workspace root; no direct deps today) ──
   # Root package.json is governed by the Release-Please File Guard, so this
   # stream carries `release-please-override` to keep that (non-required) check
   # green when a bump edits the override ranges or devDependencies.
