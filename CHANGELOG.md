@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.80.1](https://github.com/yonatangross/orchestkit/compare/v8.80.0...v8.80.1) (2026-07-19)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @biomejs/biome from 2.5.3 to 2.5.4 in /src/hooks in the npm-minor-patch group ([#3006](https://github.com/yonatangross/orchestkit/issues/3006)) ([89057c4](https://github.com/yonatangross/orchestkit/commit/89057c4a4b4e1a506db93961b277b27d64f39717))
+* **deps:** bump the npm-minor-patch group ([#3009](https://github.com/yonatangross/orchestkit/issues/3009)) ([deebb70](https://github.com/yonatangross/orchestkit/commit/deebb7016514baa9473ed03edff5c51d377e7763))
+
+
+### CI/CD
+
+* bump the github-actions group with 7 updates ([#3010](https://github.com/yonatangross/orchestkit/issues/3010)) ([def4f72](https://github.com/yonatangross/orchestkit/commit/def4f72908868a083e0d93811226e3ff3451dc1b))
+* skip autoheal on dependabot PRs instead of failing ([#3013](https://github.com/yonatangross/orchestkit/issues/3013)) ([ade336b](https://github.com/yonatangross/orchestkit/commit/ade336b58a5864149d99a03b06df893984895d0c))
+
 ## [8.80.0](https://github.com/yonatangross/orchestkit/compare/v8.79.0...v8.80.0) (2026-07-19)
 
 
