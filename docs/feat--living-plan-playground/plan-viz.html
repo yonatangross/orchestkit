@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  LIVING PLAN template (LPP v2.1) — a plan playground that tracks its own execution.
+  Persona: cool-glass (§1). Tokens per §2 (--pg-*, HSL). Glass per §5. Motion per §6
+  (signature moment = panel cross-fade; everything else 100/200ms).
+
+  Contract (the part that makes it "living"):
+  • ONE plan = ONE file. Sessions UPDATE the STATE block below in place; never fork a
+    second file for the same plan slug. Git history is the timeline.
+  • The visual layer renders FROM state. A dumb updater that only mutates the JSON is
+    legal and sufficient; every tab, ring, and bar re-paints on reload.
+  • Every item carries `evidence`: the command/check that PROVES done. Marking an item
+    done without evidence is a contract violation, not a style choice.
+  • `changelog` is append-only. Merges never drop items; removed work moves to
+    status "dropped" with a reason. Rejected planning-time ideas live in `discards`.
+
+  Depth guide (thin instances are the failure mode): per-item before/after, detail with
+  the NUMBERS that justified it, risk + failure + containment, evidence, owner;
+  plan-level scored dims with target, discards with reasons, research with sources.
+
+  Reuse: copy this file, replace STATE, keep the engine. Run the §10 self-audit before
+  shipping. Archetype family: DASHBOARD (living).
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Living Plan</title>
+<style>
+  :root{
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(226 14% 64%);
+    --pg-faint: hsl(226 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-accent-deep: hsl(248 70% 54%);
+    --pg-violet: hsl(268 78% 70%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-ok: hsl(152 62% 58%);
+    --pg-risk: hsl(0 78% 66%);
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    font-size: 15px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background: var(--pg-bg);
+    color: var(--pg-ink);
+    font-family:-apple-system,'SF Pro Text',Inter,sans-serif;
+    line-height:1.55; padding:48px 24px 96px;
+    background-image:
+      radial-gradient(60% 42% at 12% 0%,   hsl(248 84% 68% / .16), transparent 62%),
+      radial-gradient(48% 36% at 88% 8%,   hsl(268 78% 70% / .12), transparent 60%),
+      radial-gradient(52% 40% at 50% 100%, hsl(240 80% 62% / .10), transparent 64%);
+    background-attachment: fixed;
+  }
+  .wrap{max-inline-size:1120px;margin-inline:auto}
+
+  /* type roles (§4) */
+  h1{font-size:1.85rem;font-weight:700;letter-spacing:-.3px}
+  h2{font-size:1.1rem;font-weight:650;letter-spacing:-.2px;margin-block:32px 14px;
+     color:var(--pg-ink);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .sub{color:var(--pg-muted);margin-block:8px 28px;font-size:.92rem}
+  .mono,.num,td.num,.kpi b{font-variant-numeric:tabular-nums}
+
+  /* glass (§5): fill + 1px edge + blur + top-left inset light + two-part shadow */
+  .glass{
+    background:var(--pg-glass);
+    border:1px solid var(--pg-glass-edge);
+    border-radius:24px;
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / .12),
+      0 20px 60px -22px hsl(232 40% 3% / .7),
+      0 4px 12px -6px hsl(232 40% 3% / .5);
+  }
+
+  /* hero */
+  .hero{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;
+        padding:24px;margin-block-end:24px}
+  .ring-wrap{position:relative;inline-size:132px;block-size:132px}
+  .ring-wrap svg{transform:rotate(-90deg)}
+  .ring-c{fill:none;stroke:hsl(0 0% 100% / .08);stroke-width:10}
+  .ring-p{fill:none;stroke:url(#pg-grad);stroke-width:10;stroke-linecap:round;
+          transition:stroke-dashoffset 500ms var(--pg-ease)}
+  .ring-txt{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+  .ring-txt b{font-size:1.5rem;font-weight:700}
+  .ring-txt span{font-size:.68rem;color:var(--pg-muted);text-transform:uppercase;letter-spacing:.06em}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .kpi{background:var(--pg-glass);border:1px solid hsl(0 0% 100% / .10);
+       border-radius:16px;padding:12px 16px}
+  .kpi b{display:block;font-size:1.25rem;font-weight:700}
+  .kpi span{color:var(--pg-faint);font-size:.75rem}
+  .kpi .up{color:var(--pg-ok)} .kpi .mid{color:var(--pg-warm)} .kpi .acc{color:var(--pg-accent)}
+
+  /* wave progress strip */
+  .wavestrip{display:grid;gap:10px;padding:20px 24px;margin-block-end:24px}
+  .wrow{display:grid;grid-template-columns:130px 1fr 76px;gap:16px;align-items:center;font-size:.85rem}
+  .wrow .wl{color:var(--pg-muted);font-weight:600}
+  .wbar{block-size:10px;border-radius:5px;background:hsl(0 0% 100% / .07);overflow:hidden}
+  .wbar i{display:block;block-size:100%;border-radius:5px;
+          background:linear-gradient(90deg,var(--pg-accent-deep),var(--pg-accent),var(--pg-violet));
+          transition:inline-size 500ms var(--pg-ease)}
+  .wrow .wn{text-align:end;color:var(--pg-faint)}
+  .wrow.done .wl{color:var(--pg-ok)} .wrow.done .wbar i{background:var(--pg-ok)}
+
+  /* tabs (secondary tier) */
+  .tabs{display:flex;gap:8px;margin-block:24px 18px;flex-wrap:wrap}
+  .tab{background:var(--pg-glass);border:1px solid hsl(0 0% 100% / .12);color:var(--pg-muted);
+       padding:8px 18px;border-radius:999px;cursor:pointer;font-size:.88rem;
+       transition:color 100ms var(--pg-ease),background 100ms var(--pg-ease)}
+  .tab:hover{color:var(--pg-ink)}
+  .tab.active{background:linear-gradient(135deg,var(--pg-accent-deep),var(--pg-accent));
+              color:hsl(232 30% 8%);border-color:transparent;font-weight:650}
+
+  /* panels: the one signature moment = 300ms cross-fade + rise (§6) */
+  .panel{display:none}
+  .panel.active{display:block;animation:pg-in 300ms var(--pg-ease)}
+  @keyframes pg-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--pg-glass);border:1px solid var(--pg-glass-edge);border-radius:16px;
+        backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+        box-shadow:inset 0 1px 0 hsl(0 0% 100% / .10), 0 4px 12px -6px hsl(232 40% 3% / .5);
+        padding:18px 22px;margin-block-end:14px;
+        transition:border-color 200ms var(--pg-ease)}
+  .card:hover{border-color:hsl(248 84% 68% / .5)}
+  .card h3{font-size:1rem;font-weight:650;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-block-end:4px}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-block:8px;align-items:center}
+  .chip{font-size:.72rem;padding:2px 10px;border-radius:999px;border:1px solid hsl(0 0% 100% / .14);color:var(--pg-faint);white-space:nowrap}
+  .impact{display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--pg-muted)}
+  .impact .ib{inline-size:72px;block-size:6px;border-radius:3px;background:hsl(0 0% 100% / .08);overflow:hidden}
+  .impact .ib i{display:block;block-size:100%;background:linear-gradient(90deg,var(--pg-accent),var(--pg-violet))}
+
+  /* status system: hue carries the role */
+  .st{font-size:.72rem;padding:2px 12px;border-radius:999px;font-weight:600}
+  .st-planned{color:var(--pg-faint);border:1px solid hsl(0 0% 100% / .16);background:hsl(0 0% 100% / .03)}
+  .st-in_progress{color:hsl(38 95% 68%);border:1px solid hsl(38 95% 60% / .45);background:hsl(38 95% 60% / .10)}
+  .st-done{color:var(--pg-ok);border:1px solid hsl(152 62% 58% / .45);background:hsl(152 62% 58% / .10)}
+  .st-dropped{color:var(--pg-risk);border:1px solid hsl(0 78% 66% / .4);background:hsl(0 78% 66% / .08);text-decoration:line-through}
+
+  table{inline-size:100%;border-collapse:collapse;font-size:.85rem}
+  th,td{text-align:start;padding:8px 12px;border-block-end:1px solid hsl(0 0% 100% / .08);vertical-align:top}
+  th{color:var(--pg-faint);font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em}
+  .note{border-inline-start:3px solid var(--pg-warm);padding:10px 16px;background:var(--pg-glass);
+        border-radius:0 12px 12px 0;margin-block:14px;font-size:.88rem;color:var(--pg-muted)}
+  .src{font-size:.8rem;color:var(--pg-muted)}
+  .faint{color:var(--pg-faint)}
+  .strike{color:var(--pg-faint);text-decoration:line-through}
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-block-start:8px;font-size:.82rem}
+  .ba>div{background:hsl(0 0% 100% / .04);border:1px solid hsl(0 0% 100% / .09);border-radius:12px;padding:10px 14px}
+  .ba b{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pg-faint);margin-block-end:3px}
+  .ba .aft b{color:var(--pg-ok)}
+  details summary{cursor:pointer;color:var(--pg-faint);font-size:.82rem;margin-block-start:8px}
+  .score-row{display:grid;grid-template-columns:170px 1fr 46px;gap:12px;align-items:center;margin-block:6px;font-size:.85rem}
+  .score-row .bar{block-size:8px;border-radius:4px;background:hsl(0 0% 100% / .07);overflow:hidden}
+  .score-row .bar i{display:block;block-size:100%;border-radius:4px;
+    background:linear-gradient(90deg,var(--pg-accent-deep),var(--pg-accent))}
+  .score-row .v{text-align:end;color:var(--pg-muted)}
+  .wavehead{font-size:.78rem;color:var(--pg-faint);font-weight:400}
+  a{color:var(--pg-accent)}
+  @media(max-width:760px){.ba{grid-template-columns:1fr}.hero{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="lpp-title">Living Plan</h1>
+  <p class="sub" id="lpp-sub"></p>
+
+  <div class="hero glass">
+    <div class="ring-wrap">
+      <svg width="132" height="132" viewBox="0 0 132 132" aria-hidden="true">
+        <defs>
+          <linearGradient id="pg-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="hsl(248 70% 54%)"/>
+            <stop offset="100%" stop-color="hsl(268 78% 70%)"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-c" cx="66" cy="66" r="56"/>
+        <circle class="ring-p" id="lpp-ring" cx="66" cy="66" r="56"/>
+      </svg>
+      <div class="ring-txt"><b id="lpp-pct">0%</b><span>complete</span></div>
+    </div>
+    <div class="kpis" id="lpp-kpis"></div>
+  </div>
+
+  <div class="wavestrip glass" id="lpp-wavestrip"></div>
+
+  <div class="tabs" id="lpp-tabs"></div>
+  <div id="lpp-panels"></div>
+</div>
+
+<!-- ═══════════ STATE — the only block sessions edit. Append, flip statuses, never fork. ═══════════ -->
+<script type="application/json" id="lpp-state">
+{
+  "lpp": 2,
+  "slug": "living-plan-playground-rollout",
+  "title": "LPP Rollout (this PR, tracking itself)",
+  "created": "2026-07-20",
+  "updated": "2026-07-20T03:20:00Z",
+  "score": {
+    "dims": {
+      "pattern completeness": 8.5,
+      "visual standard compliance": 9.0,
+      "cross-repo integration": 7.5,
+      "platform nativity": 4.0
+    },
+    "composite": 7.3,
+    "target": 9.0
+  },
+  "waves": [
+    {
+      "id": "W0",
+      "title": "pattern + skills (this PR)",
+      "status": "in_progress"
+    },
+    {
+      "id": "W1",
+      "title": "HQ integration",
+      "status": "in_progress"
+    },
+    {
+      "id": "W2",
+      "title": "platform-native",
+      "status": "planned"
+    }
+  ],
+  "items": [
+    {
+      "id": "W0.1",
+      "wave": "W0",
+      "title": "living-plan.template.html exemplar (v2.1, cool-glass)",
+      "impact": 9.0,
+      "effort": "done",
+      "risk": "low",
+      "status": "done",
+      "owner": "this PR",
+      "before": "plan playgrounds were one-shot renders that froze at authoring time",
+      "after": "self-tracking artifact: lpp-state JSON, ring + wave bars, evidence gate",
+      "detail": "v1 was too thin (operator veto); v2 added schema depth; v2.1 adopted the visual standard (mesh, glass, ring).",
+      "evidence": "THIS FILE renders from its own lpp-state; node --check clean",
+      "failure": "template drifts from the standard",
+      "containment": "colocation rule: standard + exemplar same PR"
+    },
+    {
+      "id": "W0.2",
+      "wave": "W0",
+      "title": "visualize-plan living-plan route + update mode",
+      "impact": 8.5,
+      "effort": "done",
+      "risk": "low",
+      "status": "done",
+      "owner": "this PR",
+      "before": "visualize-plan always authored a fresh playground",
+      "after": "detects lpp-state, MERGES (flip statuses, append changelog), never forks",
+      "evidence": "format-dispatch.md section Living-plan update mode in this diff"
+    },
+    {
+      "id": "W0.3",
+      "wave": "W0",
+      "title": "brainstorm Phase 6.4 emits LPP",
+      "impact": 7.5,
+      "effort": "done",
+      "risk": "low",
+      "status": "done",
+      "owner": "this PR",
+      "before": "Phase 6 was in-chat prose only",
+      "after": "multi-wave syntheses emit a living plan (waves from P5, scores from P4, discards from P3)",
+      "evidence": "SKILL.md Phase 6.4 + phase-workflow.md in this diff"
+    },
+    {
+      "id": "W1.1",
+      "wave": "W1",
+      "title": "hq-ext:auto assigns LPP at Compose→Confirm",
+      "impact": 8.0,
+      "effort": "shipped",
+      "risk": "low",
+      "status": "in_progress",
+      "owner": "hq-ext PR #721",
+      "before": "auto showed plans as chat prose for the operator nod",
+      "after": "multi-wave goals confirm against a living playground; Synthesize flips statuses behind the Tier-1 evidence gate",
+      "evidence": "hq-ext#721 merged + one real auto run updating its own plan file",
+      "failure": "agents fork a second file instead of merging",
+      "containment": "update-mode contract: detect lpp-state before authoring"
+    },
+    {
+      "id": "W1.2",
+      "wave": "W1",
+      "title": "Dream Factory indexes living plans",
+      "impact": 7.5,
+      "effort": "convention",
+      "risk": "low",
+      "status": "in_progress",
+      "owner": "hq-ext PR #721",
+      "before": "living plans invisible to the platform library",
+      "after": "graduation to docs/playgrounds/<category>/ WITH literal df-meta category= tag; DF picks them up via sync-playgrounds.mjs",
+      "evidence": "a graduated living plan visible at /dreamfactory"
+    },
+    {
+      "id": "W2.1",
+      "wave": "W2",
+      "title": "Dream Factory native LivingPlan viewer",
+      "impact": 8.5,
+      "effort": "1-2d",
+      "risk": "med",
+      "status": "planned",
+      "owner": "platform",
+      "before": "living plans render only as iframed static HTML",
+      "after": "library detects lpp-state and renders via the design system; fleet view sorted by staleness",
+      "detail": "Touches the same viewer code as the folder-card empty-pane bug; fix together.",
+      "evidence": "platform issue filed citing #8700/#8701; viewer renders lpp-state natively",
+      "failure": "two renderers drift (file JS vs platform component)",
+      "containment": "state schema is the contract; file renderer stays the portable fallback"
+    },
+    {
+      "id": "W2.2",
+      "wave": "W2",
+      "title": "Explanation-type router (ASCII / playground / GenUI / NotebookLM / podcast)",
+      "impact": 8.0,
+      "effort": "brainstorm",
+      "risk": "med",
+      "status": "planned",
+      "owner": "orchestkit + platform",
+      "before": "each surface picks its own rendering; no unified routing by content type + audience + style",
+      "after": "one routing table; §0 archetype rule and the GenUI hqCatalog become two halves of one router",
+      "evidence": "dedicated brainstorm session with its own LPP"
+    }
+  ],
+  "discards": [
+    {
+      "title": "spec.json + index.html folder shape for LPP",
+      "reason": "hq-ext decision-playgrounds already use it; LPP keeps single-file portability, same data/shell split inlined"
+    },
+    {
+      "title": "live server/DB backing",
+      "reason": "the file IS the database; git is sync; platform-native viewer arrives in W2 without changing the contract"
+    }
+  ],
+  "research": [
+    {
+      "title": "PR Playground gate",
+      "note": "ci.yml playground-check mandates docs/<branch-slug>/*.html per PR; this file satisfies it AS a living plan.",
+      "source": ""
+    },
+    {
+      "title": "418 dead playground dirs pruned 2026-03..07",
+      "note": "one-shot plan-viz files rot; living plans give the gate artifact a reason to stay current.",
+      "source": ""
+    }
+  ],
+  "changelog": [
+    {
+      "at": "2026-07-20",
+      "note": "v1: dogfood instance created to satisfy the PR Playground gate as a living plan tracking the LPP rollout itself. W0 items done in this very diff."
+    }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  "use strict";
+  const st = JSON.parse(document.getElementById('lpp-state').textContent);
+  const L = {planned:'planned', in_progress:'in progress', done:'done', dropped:'dropped'};
+  const RK = {low:'var(--pg-ok)', med:'var(--pg-warm)', medium:'var(--pg-warm)', high:'var(--pg-risk)'};
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const stChip = i => '<span class="st st-'+i.status+'">'+(L[i.status]||i.status)+'</span>';
+
+  document.getElementById('lpp-title').textContent = st.title;
+  document.title = st.title;
+  document.getElementById('lpp-sub').textContent =
+    st.slug+' · created '+st.created+' · state updated '+String(st.updated).slice(0,16).replace('T',' ');
+
+  const items = st.items;
+  const active = items.filter(i=>i.status!=='dropped');
+  const doneN = active.filter(i=>i.status==='done').length;
+  const ipN = active.filter(i=>i.status==='in_progress').length;
+  const pct = active.length ? Math.round(100*doneN/active.length) : 0;
+
+  // progress ring
+  const CIRC = 2*Math.PI*56;
+  const ring = document.getElementById('lpp-ring');
+  ring.setAttribute('stroke-dasharray', CIRC.toFixed(1));
+  ring.setAttribute('stroke-dashoffset', (CIRC*(1-pct/100)).toFixed(1));
+  document.getElementById('lpp-pct').textContent = pct+'%';
+
+  document.getElementById('lpp-kpis').innerHTML = [
+    {c:'acc', v:st.score.composite+' → '+st.score.target, l:'score, now → target'},
+    {c:'up',  v:doneN+'/'+active.length, l:'items proven done'},
+    {c:'mid', v:ipN, l:'in progress now'},
+    {c:'up',  v:(st.discards||[]).length, l:'ideas deliberately discarded'}
+  ].map(k=>'<div class="kpi"><b class="'+k.c+'">'+esc(k.v)+'</b><span>'+esc(k.l)+'</span></div>').join('');
+
+  // wave progress strip
+  document.getElementById('lpp-wavestrip').innerHTML = st.waves.map(w=>{
+    const wi = items.filter(i=>i.wave===w.id && i.status!=='dropped');
+    const wd = wi.filter(i=>i.status==='done').length;
+    const wp = wi.length ? Math.round(100*wd/wi.length) : 0;
+    return '<div class="wrow'+(wp===100?' done':'')+'">'+
+      '<span class="wl">'+esc(w.id)+' · '+esc(w.title)+'</span>'+
+      '<div class="wbar"><i style="inline-size:'+wp+'%"></i></div>'+
+      '<span class="wn num">'+wd+'/'+wi.length+(wp===100?' ✓':'')+'</span></div>';
+  }).join('');
+
+  // panels
+  const impactBar = i => i.impact!=null
+    ? '<span class="impact">impact <span class="ib"><i style="inline-size:'+(i.impact*10)+'%"></i></span> <b class="num">'+i.impact+'</b></span>' : '';
+
+  const waveHtml = st.waves.map(w=>{
+    const wi=items.filter(i=>i.wave===w.id);
+    const wd=wi.filter(i=>i.status==='done').length;
+    return '<h2>'+esc(w.id)+' · '+esc(w.title)+' <span class="wavehead num">'+wd+'/'+wi.length+' done</span></h2>'+
+      wi.map(i=>{
+        let h='<div class="card"><h3><span class="num faint">'+esc(i.id)+'</span> '+esc(i.title)+stChip(i)+'</h3>';
+        h+='<div class="meta">'+impactBar(i)+
+          (i.effort?'<span class="chip">'+esc(i.effort)+'</span>':'')+
+          (i.risk?'<span class="chip" style="color:'+(RK[i.risk]||'var(--pg-faint)')+';border-color:currentColor">risk: '+esc(i.risk)+'</span>':'')+
+          (i.owner?'<span class="chip">'+esc(i.owner)+'</span>':'')+'</div>';
+        if(i.detail) h+='<p class="src">'+esc(i.detail)+'</p>';
+        if(i.before||i.after) h+='<div class="ba"><div><b>Before</b>'+esc(i.before||'')+'</div><div class="aft"><b>After (promised)</b>'+esc(i.after||'')+'</div></div>';
+        if(i.evidence) h+='<p class="src" style="margin-block-start:8px"><b style="color:var(--pg-ok)">done when:</b> '+esc(i.evidence)+'</p>';
+        if(i.failure||i.containment) h+='<details><summary>risk detail</summary><p class="src"><b>failure:</b> '+esc(i.failure||'?')+'<br><b>containment:</b> '+esc(i.containment||'?')+'</p></details>';
+        return h+'</div>';
+      }).join('');
+  }).join('');
+
+  const waveIds = st.waves.map(w=>w.id);
+  const matrixHtml = '<h2>Progress matrix</h2><div class="card" style="overflow-x:auto"><table>'+
+    '<tr><th>id</th><th>item</th><th>before</th><th>now</th>'+waveIds.map(w=>'<th>after '+esc(w)+'</th>').join('')+'</tr>'+
+    items.map(i=>{
+      const now = i.status==='done' ? '<span style="color:var(--pg-ok)">✓ '+esc((i.after||'done').slice(0,60))+'</span>'
+        : i.status==='in_progress' ? '<span style="color:var(--pg-warm)">◐ in progress</span>'
+        : i.status==='dropped' ? '<span class="strike">dropped</span>'
+        : '<span class="faint">○ '+esc((i.before||'planned').slice(0,50))+'</span>';
+      const cells = waveIds.map(w=> w!==i.wave ? '<td class="faint">·</td>'
+        : '<td class="src">'+(i.status==='done'?'<span style="color:var(--pg-ok)">landed</span>':esc((i.after||'').slice(0,60)))+'</td>').join('');
+      return '<tr><td class="num faint">'+esc(i.id)+'</td><td>'+esc(i.title)+'</td><td class="src">'+esc((i.before||'').slice(0,60))+'</td><td>'+now+'</td>'+cells+'</tr>';
+    }).join('')+'</table></div>'+
+    '<div class="note">"Now" is computed from item statuses, never hand-written. A completed wave collapses into the Now column with a ✓.</div>';
+
+  const dims=st.score.dims||{};
+  const scoreHtml = '<h2>Plan scoring</h2><div class="card">'+
+    Object.entries(dims).map(([k,v])=>'<div class="score-row"><span class="faint">'+esc(k)+'</span><div class="bar"><i style="inline-size:'+(v*10)+'%"></i></div><span class="v num">'+v.toFixed(1)+'</span></div>').join('')+
+    '<div class="score-row" style="border-block-start:1px solid hsl(0 0% 100% / .1);padding-block-start:10px;margin-block-start:10px"><b>Composite → target</b><div class="bar"><i style="inline-size:'+(st.score.composite*10)+'%;background:var(--pg-ok)"></i></div><span class="v num"><b>'+st.score.composite+'</b></span></div></div>';
+
+  const riskHtml = '<h2>Risk heat map</h2><div class="card"><table>'+
+    '<tr><th>item</th><th>risk</th><th>failure mode</th><th>containment</th></tr>'+
+    items.filter(i=>i.failure||i.containment||['high','med','medium'].includes(i.risk)).map(i=>
+      '<tr><td class="num faint">'+esc(i.id)+'</td><td style="color:'+(RK[i.risk]||'var(--pg-faint)')+'">'+esc(i.risk||'?')+'</td><td class="src">'+esc(i.failure||'')+'</td><td class="src">'+esc(i.containment||'')+'</td></tr>'
+    ).join('')+'</table></div>';
+
+  const discardsHtml = '<h2>Discarded (with reasons)</h2><div class="card"><table>'+
+    '<tr><th>idea</th><th>why discarded</th></tr>'+
+    (st.discards||[]).map(d=>'<tr><td class="strike">'+esc(d.title)+'</td><td class="src">'+esc(d.reason)+'</td></tr>').join('')+
+    '</table></div><div class="note">A plan that remembers what it rejected does not re-litigate it next session.</div>';
+
+  const researchHtml = '<h2>Research that shaped the plan</h2>'+
+    (st.research||[]).map(r=>'<div class="card"><h3>'+esc(r.title)+'</h3><p class="src">'+esc(r.note)+
+      (r.source?' · <a href="'+esc(r.source)+'">source</a>':'')+'</p></div>').join('');
+
+  const updatesHtml = '<h2>Updates (append-only)</h2><div class="card"><table>'+
+    '<tr><th>when</th><th>note</th></tr>'+
+    (st.changelog||[]).slice().reverse().map(e=>'<tr><td class="num faint">'+esc(e.at)+'</td><td>'+esc(e.note)+'</td></tr>').join('')+
+    '</table></div>'+
+    '<div class="note">This is a LIVING artifact (lpp v'+st.lpp+'). Sessions mutate the state block in this same file; never fork a second file for slug "'+esc(st.slug)+'".</div>';
+
+  const panels=[
+    {id:'waves',label:'Execution waves',html:waveHtml},
+    {id:'matrix',label:'Progress matrix',html:matrixHtml},
+    {id:'scores',label:'Scores',html:scoreHtml},
+    {id:'risk',label:'Risk map',html:riskHtml},
+    {id:'discards',label:'Discards',html:discardsHtml}
+  ];
+  if((st.research||[]).length) panels.push({id:'research',label:'Research',html:researchHtml});
+  panels.push({id:'updates',label:'Updates',html:updatesHtml});
+
+  document.getElementById('lpp-tabs').innerHTML =
+    panels.map((p,i)=>'<button class="tab'+(i===0?' active':'')+'" data-t="'+p.id+'">'+p.label+'</button>').join('');
+  document.getElementById('lpp-panels').innerHTML =
+    panels.map((p,i)=>'<div class="panel'+(i===0?' active':'')+'" id="p-'+p.id+'">'+p.html+'</div>').join('');
+
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('p-'+t.dataset.t).classList.add('active');
+  }));
+})();
+</script>
+</body>
+</html>
