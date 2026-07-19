@@ -364,6 +364,22 @@ describe('detectSuspiciousShellFeatures — quoted heredoc bodies', () => {
     expect(detectSuspiciousShellFeatures(cmd).length).toBeGreaterThan(0);
   });
 
+  test('here-string to a non-interpreter is clean', () => {
+    expect(detectSuspiciousShellFeatures('grep -c error <<< "$output"')).toEqual([]);
+    expect(detectSuspiciousShellFeatures('read -r a b <<< "$line"')).toEqual([]);
+    expect(detectSuspiciousShellFeatures('jq . <<< "$json"')).toEqual([]);
+  });
+
+  test('here-string feeding an interpreter is still detected', () => {
+    expect(detectSuspiciousShellFeatures('bash <<< "$code"').length).toBeGreaterThan(0);
+    expect(detectSuspiciousShellFeatures('python3 <<< "import os"').length).toBeGreaterThan(0);
+  });
+
+  test('interpreter here-string in a later stage is still detected', () => {
+    expect(detectSuspiciousShellFeatures('cat x && bash <<< "$c"').length).toBeGreaterThan(0);
+    expect(detectSuspiciousShellFeatures('echo hi | bash <<< "$c"').length).toBeGreaterThan(0);
+  });
+
   test('unterminated quoted heredoc does not swallow the rest of the command', () => {
     // No closing delimiter — the body must NOT be blanked, so the payload shows.
     const cmd = `cat > s.sh <<'SH'\ndiff ${PS}evil)`;

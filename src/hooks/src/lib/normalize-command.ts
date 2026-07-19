@@ -212,9 +212,26 @@ export function detectSuspiciousShellFeatures(cmd: string): string[] {
     }
   }
 
-  // 3. Here-strings: <<<
-  if (/<<</.test(unquoted)) {
-    findings.push('here-string detected (<<<)');
+  // 3. Here-strings feeding a shell interpreter: `bash <<< "$code"`
+  //
+  // A here-string is a redirection, not a stage separator, so `<<<` on its own
+  // bypasses nothing. Blocking it categorically rejected ordinary commands
+  // (`grep x <<< "$v"`, `jq . <<< "$json"`, `wc -l <<< "$out"`) while the
+  // sibling redirections `<` and `<<` stayed allowed — inconsistent, and it
+  // fired constantly in real sessions.
+  //
+  // The risk is the RECEIVER, exactly as with `| bash`: feeding a string to an
+  // interpreter executes it. So flag only when the stage containing `<<<`
+  // starts with one.
+  for (const stage of unquoted.split(/(?:&&|\|\||[;|\n])/)) {
+    const idx = stage.indexOf('<<<');
+    if (idx < 0) continue;
+    const head = stage.slice(0, idx).trim();
+    const firstWord = head.split(/\s+/)[0] ?? '';
+    if (/^(sh|bash|zsh|dash|python[23]?|node|perl|ruby|tclsh)$/i.test(firstWord)) {
+      findings.push('here-string feeding a shell interpreter detected');
+      break;
+    }
   }
 
   // 4. IFS manipulation: ${IFS} or IFS= assignment
