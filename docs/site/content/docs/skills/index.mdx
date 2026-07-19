@@ -1,0 +1,41 @@
+---
+title: Skills
+description: Reusable capability modules that teach Claude Code a workflow once and reuse it every session.
+---
+
+import { Card, Cards } from 'fumadocs-ui/components/card';
+
+Skills package a workflow as Markdown plus frontmatter. User-invocable ones surface as slash commands; the rest load on demand when their triggers match.
+
+<Cards>
+  <Card
+    title="Overview"
+    description="What a skill is and how Claude Code loads one."
+    href="/docs/skills/overview"
+  />
+  <Card
+    title="Command skills"
+    description="User-invocable skills that surface as slash commands."
+    href="/docs/skills/command-skills"
+  />
+  <Card
+    title="Reference skills"
+    description="Pattern libraries loaded on demand rather than invoked."
+    href="/docs/skills/reference-skills"
+  />
+  <Card
+    title="Skill composition"
+    description="Chaining skills so one workflow feeds the next."
+    href="/docs/skills/skill-composition"
+  />
+  <Card
+    title="Writing skills"
+    description="Authoring standards, frontmatter, and the size budget."
+    href="/docs/skills/writing-skills"
+  />
+  <Card
+    title="Dependency graph"
+    description="Which skills depend on which, visualized."
+    href="/docs/skills/dependency-graph"
+  />
+</Cards>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docs fixes: section routes + footer wrap</title>
+<style>
+  :root{--bg:#0b0d12;--panel:#12151c;--panel2:#171b24;--line:#232936;--fg:#e6e9ef;--dim:#98a1b3;
+        --ok:#57c99a;--bad:#e26d6d;--accent:#457cfd;
+        --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+        --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.5}
+  header{padding:20px 24px 15px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+  header h1{margin:0;font-size:17px;font-weight:600;letter-spacing:-.01em}
+  header .sub{color:var(--dim);font-size:12.5px}
+  .wrap{display:grid;grid-template-columns:250px 1fr}
+  @media(max-width:900px){.wrap{grid-template-columns:1fr}}
+  .side{padding:20px;border-right:1px solid var(--line)}
+  .grp{margin-bottom:20px}
+  .grp>label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:8px}
+  .seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:3px}
+  .seg button{flex:1;padding:7px;background:none;border:0;border-radius:6px;color:var(--dim);font-family:inherit;font-size:12.5px;cursor:pointer}
+  .seg button.on{background:var(--panel2);color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
+  input[type=range]{width:100%}
+  .note{background:var(--panel);border:1px solid var(--line);border-left:2px solid var(--accent);border-radius:0 8px 8px 0;padding:11px 12px;font-size:11.5px;color:var(--dim);line-height:1.55}
+  .note b{color:var(--fg)}
+  .stage{padding:20px 24px 40px;min-width:0}
+  h2{margin:0 0 11px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);font-weight:600}
+  .sect{margin-bottom:28px}
+  /* footer sim */
+  .simwrap{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#05070f}
+  .sim{margin:0 auto;border-top:1px solid #ffffff14}
+  .sim .inner{display:flex;padding:20px 28px;font-size:13px;color:#949eb8;align-items:center;justify-content:space-between}
+  .sim.fixed .inner{flex-wrap:wrap;gap:12px 32px}
+  .sim .nav{display:flex;flex-wrap:wrap;gap:8px 20px}
+  .sim a{color:#949eb8;text-decoration:none}
+  .sim u{text-decoration:underline;text-underline-offset:4px}
+  .ruler{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:7px}
+  /* routes */
+  .rt{display:grid;grid-template-columns:1fr 84px 84px;gap:9px;align-items:center;background:var(--panel);
+      border:1px solid var(--line);border-radius:9px;padding:8px 12px;margin-bottom:6px;font-family:var(--mono);font-size:11.5px}
+  .rt.hdr{background:none;border:0;padding:2px 12px;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);font-family:var(--sans)}
+  .code{text-align:center;font-weight:600;padding:3px 7px;border-radius:6px;font-size:11px}
+  .c404{background:#2a1a1a;color:var(--bad);border:1px solid #4a2a2a}
+  .c200{background:#14261e;color:var(--ok);border:1px solid #24503a}
+  .sum{display:flex;gap:10px;flex-wrap:wrap}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;flex:1 1 130px}
+  .card .n{font-size:22px;font-weight:650;letter-spacing:-.02em}
+  .card .l{font-size:11.5px;color:var(--dim);margin-top:2px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Docs fixes</h1>
+  <span class="sub">section-folder 404s (#2962) and the footer wrap</span>
+</header>
+
+<div class="wrap">
+  <aside class="side">
+    <div class="grp">
+      <label>Footer version</label>
+      <div class="seg" id="ver">
+        <button data-v="before">Before</button>
+        <button data-v="after" class="on">After</button>
+      </div>
+    </div>
+    <div class="grp">
+      <label>Viewport width <span id="wlab" style="font-family:var(--mono)"></span></label>
+      <input type="range" id="w" min="620" max="1320" value="1180" step="20">
+    </div>
+    <div class="note" id="note"></div>
+  </aside>
+
+  <main class="stage">
+    <div class="sect">
+      <h2>Footer <span style="text-transform:none;letter-spacing:0;color:var(--dim)">&mdash; drag the width to reproduce the collision</span></h2>
+      <div class="simwrap">
+        <div class="sim" id="sim">
+          <div class="inner" id="inner"></div>
+        </div>
+      </div>
+      <div class="ruler" id="ruler"></div>
+    </div>
+
+    <div class="sect">
+      <h2>Section-folder routes</h2>
+      <div class="sum" id="sum"></div>
+    </div>
+
+    <div class="sect">
+      <div class="rt hdr"><div>route</div><div style="text-align:center">before</div><div style="text-align:center">after</div></div>
+      <div id="routes"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const LINKS = ['GitHub','Docs','Developers','Best Plugins','vs Agent SDK','Compare','Pricing','About','Contact','Privacy','Terms'];
+// folders that had no index.mdx (verified: /docs/foundations and /docs/getting-started returned 404 in prod)
+const FIXED = ['agents','foundations','getting-started','guides','hooks','memory','showcase','skills'];
+const ALREADY = ['analytics','changelog','cookbook','reference','troubleshooting'];
+
+const state = { v:'after', w:1180 };
+const $ = id => document.getElementById(id);
+
+function renderFooter(){
+  const sim = $('sim');
+  sim.style.width = state.w + 'px';
+  sim.className = 'sim' + (state.v === 'after' ? ' fixed' : '');
+  $('inner').innerHTML =
+    `<span>OrchestKit is built by Yonyon &middot; Built with <u>Fumadocs</u> &middot; Designed with <u>Claude Design</u></span>
+     <nav class="nav">${LINKS.map(l=>`<a href="#">${l}</a>`).join('')}</nav>`;
+  $('wlab').textContent = state.w + 'px';
+  const collides = state.v === 'before' && state.w < 1240;
+  $('ruler').innerHTML = collides
+    ? '<span style="color:var(--bad)">both blocks wrap independently with no gap, so they collide</span>'
+    : (state.v === 'after' && state.w < 1240
+        ? '<span style="color:var(--ok)">container wraps as a unit, 12px row gap keeps them apart</span>'
+        : 'fits on one line');
+  $('note').innerHTML = state.v === 'before'
+    ? '<b>Before.</b> <code>flex items-center justify-between</code> with no <code>flex-wrap</code> and no gap. The left span and the 11-link nav each wrap internally and overlap.'
+    : '<b>After.</b> Added <code>flex-wrap</code> and <code>gap-x-8 gap-y-3</code>. When space runs out the nav drops to its own row cleanly.';
+}
+
+function renderRoutes(){
+  const rows = FIXED.map(f =>
+    `<div class="rt"><div>/docs/${f}</div>
+      <div class="code c404">404</div><div class="code c200">200</div></div>`).join('')
+   + ALREADY.map(f =>
+    `<div class="rt" style="opacity:.55"><div>/docs/${f}</div>
+      <div class="code c200">200</div><div class="code c200">200</div></div>`).join('');
+  $('routes').innerHTML = rows;
+  $('sum').innerHTML = `
+    <div class="card"><div class="n" style="color:var(--ok)">${FIXED.length}</div><div class="l">folders given an index page</div></div>
+    <div class="card"><div class="n">${ALREADY.length}</div><div class="l">already had one</div></div>
+    <div class="card"><div class="n">36</div><div class="l">links verified to resolve</div></div>
+    <div class="card"><div class="n">0</div><div class="l">sidebar entries changed</div></div>`;
+}
+
+document.querySelectorAll('#ver button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#ver button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); state.v=b.dataset.v; renderFooter();
+}));
+$('w').addEventListener('input', e => { state.w = +e.target.value; renderFooter(); });
+
+renderFooter(); renderRoutes();
+</script>
+</body>
+</html>

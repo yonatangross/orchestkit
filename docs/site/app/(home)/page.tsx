@@ -636,7 +636,7 @@ export default async function HomePage() {
 
       {/* ============ FOOTER ============ */}
       <footer>
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between px-7 py-5 text-[13px] text-fd-muted-foreground">
+        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-x-8 gap-y-3 px-7 py-5 text-[13px] text-fd-muted-foreground">
           <span>
             OrchestKit is built by Yonyon{" · "}
             Built with{" "}

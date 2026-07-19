@@ -1,0 +1,31 @@
+---
+title: Memory
+description: How OrchestKit persists decisions and context across sessions.
+---
+
+import { Card, Cards } from 'fumadocs-ui/components/card';
+
+Three memory layers, each with a different lifetime and retrieval model. Most projects use more than one.
+
+<Cards>
+  <Card
+    title="Overview"
+    description="The three layers and when to reach for each."
+    href="/docs/memory/overview"
+  />
+  <Card
+    title="Graph memory"
+    description="Entities, relations, and observations in the MCP knowledge graph."
+    href="/docs/memory/graph-memory"
+  />
+  <Card
+    title="Local memory"
+    description="File-backed notes scoped to a single project."
+    href="/docs/memory/local-memory"
+  />
+  <Card
+    title="Native CC memory"
+    description="Claude Code's own memory surface and how it interacts."
+    href="/docs/memory/native-cc-memory"
+  />
+</Cards>
