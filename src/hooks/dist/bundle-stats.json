@@ -7,8 +7,8 @@
       "exports": 69
     },
     "pretool": {
-      "size": 127335,
-      "sizeKB": "124.35",
+      "size": 127486,
+      "sizeKB": "124.50",
       "exports": 85
     },
     "posttool": {
@@ -57,8 +57,8 @@
       "exports": 69
     }
   },
-  "totalSize": 660790,
-  "totalSizeKB": "645.30",
+  "totalSize": 660941,
+  "totalSizeKB": "645.45",
   "inputs": 111,
-  "avgBundleSizeKB": "58.66"
+  "avgBundleSizeKB": "58.68"
 }
