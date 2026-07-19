@@ -241,15 +241,20 @@ test_brace_expansion() {
 }
 test_brace_expansion
 
-log_section "Test 11: Here-string blocked"
+log_section "Test 11: Here-string escalates to ASK (not silently allowed)"
 test_here_string() {
+  # Policy: a here-string is a stdin redirection, not command obfuscation, and
+  # cannot be narrowed safely (source /dev/stdin <<<, $SHELL <<<, env bash <<<
+  # all execute and defeat any first-word check). Rather than a blanket DENY
+  # that also rejects the benign `grep x <<< "$v"`, it escalates to the user:
+  # nothing runs without confirmation, and `bash <<<` is shown to be declined.
   local result
   result=$(run_compound_validator 'cat <<< "secret data"')
 
-  if [[ "$result" == *'"continue":false'* ]] || [[ "$result" == *'"continue": false'* ]]; then
-    log_pass "Here-string blocked"
+  if [[ "$result" == *'"permissionDecision":"ask"'* ]] || [[ "$result" == *'"permissionDecision": "ask"'* ]]; then
+    log_pass "Here-string escalated to ASK"
   else
-    log_fail "Here-string NOT blocked"
+    log_fail "Here-string NOT escalated to ASK (expected permissionDecision ask)"
   fi
 }
 test_here_string
