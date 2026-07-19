@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.80.0](https://github.com/yonatangross/orchestkit/compare/v8.79.0...v8.80.0) (2026-07-19)
+
+
+### Features
+
+* **docs-site:** scroll-world ride homepage + yonyon rebrand ([d348761](https://github.com/yonatangross/orchestkit/commit/d348761059362e40772c114053c8d6dd93a443f0))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.215) ([#3004](https://github.com/yonatangross/orchestkit/issues/3004)) ([6f0747a](https://github.com/yonatangross/orchestkit/commit/6f0747a98acc32990000285ea009456e29d04653))
+* remove agentation and the never-published release channels ([b23da59](https://github.com/yonatangross/orchestkit/commit/b23da597e15980cef182e39029147a3c97ce6b34))
+
 ## [8.79.0](https://github.com/yonatangross/orchestkit/compare/v8.78.0...v8.79.0) (2026-07-18)
 
 
