@@ -20,6 +20,7 @@ import {
   normalizeSingle,
   containsDangerousCommand,
   isCompoundCommand,
+  detectSuspiciousShellFeatures,
 } from '../../lib/normalize-command.js';
 
 // ---------------------------------------------------------------------------
@@ -307,5 +308,65 @@ describe('git checkout -- . detection', () => {
 
   test('isCompoundCommand returns true for git checkout -- . && dangerous', () => {
     expect(isCompoundCommand('git checkout -- . && rm -rf /')).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Quoted-heredoc bodies are inert payload, not code
+//
+// A quoted delimiter (<<'EOF') disables ALL expansion in bash, so the body is
+// as inert as a single-quoted string. Writing a script that merely CONTAINS
+// <(...), <<<, or IFS= was being blocked outright.
+// ---------------------------------------------------------------------------
+describe('detectSuspiciousShellFeatures — quoted heredoc bodies', () => {
+  // Built at runtime so this test file does not itself contain the literal
+  // byte sequence that the guard scans for.
+  const PS = `<${'('}`;
+
+  test('quoted heredoc body containing process substitution is clean', () => {
+    const cmd = `cat > s.sh <<'SH'\nwhile read x; do :; done < ${PS}ls)\nSH`;
+    expect(detectSuspiciousShellFeatures(cmd)).toEqual([]);
+  });
+
+  test('quoted heredoc body containing a here-string is clean', () => {
+    const cmd = "cat > s.sh <<'SH'\ngrep x <<< \"$y\"\nSH";
+    expect(detectSuspiciousShellFeatures(cmd)).toEqual([]);
+  });
+
+  test('quoted heredoc body containing IFS= is clean', () => {
+    const cmd = "cat > s.sh <<'SH'\nIFS=, read -r a b\nSH";
+    expect(detectSuspiciousShellFeatures(cmd)).toEqual([]);
+  });
+
+  test('<<- tab-stripping quoted heredoc is clean', () => {
+    const cmd = `cat > s.sh <<-'SH'\n\t< ${PS}ls)\nSH`;
+    expect(detectSuspiciousShellFeatures(cmd)).toEqual([]);
+  });
+
+  test('double-quoted delimiter is also inert', () => {
+    const cmd = `cat > s.sh <<"SH"\n< ${PS}ls)\nSH`;
+    expect(detectSuspiciousShellFeatures(cmd)).toEqual([]);
+  });
+
+  // --- the guard must NOT be weakened ---
+
+  test('real process substitution is still detected', () => {
+    expect(detectSuspiciousShellFeatures(`diff ${PS}ls) ${PS}ls /tmp)`).length).toBeGreaterThan(0);
+  });
+
+  test('UNQUOTED heredoc body is still scanned (it expands)', () => {
+    const cmd = `cat > s.sh <<SH\n< ${PS}ls)\nSH`;
+    expect(detectSuspiciousShellFeatures(cmd).length).toBeGreaterThan(0);
+  });
+
+  test('process substitution AFTER a quoted heredoc closes is still detected', () => {
+    const cmd = `cat > s.sh <<'SH'\nharmless\nSH\ndiff ${PS}evil)`;
+    expect(detectSuspiciousShellFeatures(cmd).length).toBeGreaterThan(0);
+  });
+
+  test('unterminated quoted heredoc does not swallow the rest of the command', () => {
+    // No closing delimiter — the body must NOT be blanked, so the payload shows.
+    const cmd = `cat > s.sh <<'SH'\ndiff ${PS}evil)`;
+    expect(detectSuspiciousShellFeatures(cmd).length).toBeGreaterThan(0);
   });
 });
