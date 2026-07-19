@@ -80,10 +80,6 @@ import { rulesSizeCheck } from '../lifecycle/rules-size-check.js';
 // (moved from UserPromptSubmit to SessionStart so the reminder pins to the
 // cached system-prompt prefix instead of re-injecting every turn)
 import { askFallbackInjector } from '../lifecycle/ask-fallback-injector.js';
-// #638 / M104 PR-B — Agentation MCP annotation reminder (moved from
-// prompt/unified-dispatcher UserPromptSubmit → SessionStart; .mcp.json is
-// static for the session, so the reminder pins to the cached prompt prefix)
-import { agentationContext } from '../lifecycle/agentation-context.js';
 // #1826 — defensive backfill cleanup of envelope-corrupt session/worktree
 // entries (idempotent: writes a done-marker after first sweep).
 import { cleanupEnvelopeCorruption } from '../lifecycle/cleanup-envelope-corruption.js';
@@ -140,8 +136,6 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/rules-size-check': rulesSizeCheck,
   // M119 #1795 / M104 PR-A — ORK_ASK_FALLBACK=text reminder (cached on SessionStart)
   'lifecycle/ask-fallback-injector': askFallbackInjector,
-  // #638 / M104 PR-B — Agentation MCP annotation reminder (cached on SessionStart)
-  'lifecycle/agentation-context': agentationContext,
   // #1826 — backfill cleanup of envelope-corrupt session/worktree entries
   'lifecycle/cleanup-envelope-corruption': cleanupEnvelopeCorruption,
   // #1884 — sweep stale empty sibling paths from aborted worktree-add runs

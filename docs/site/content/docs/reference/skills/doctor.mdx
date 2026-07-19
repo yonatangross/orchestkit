@@ -63,7 +63,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version & Channel** - Validates CC >= 2.1.206 (supported floor), detects release channel (stable/beta/alpha), recommends 2.1.154+ for Opus 4.8 / `xhigh` effort, `/ultrareview`, stream-json `plugin_errors`
+10. **Claude Code Version** - Validates CC >= 2.1.206 (supported floor), recommends 2.1.154+ for Opus 4.8 / `xhigh` effort, `/ultrareview`, stream-json `plugin_errors`
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes. Sub-check warns when HIGH-tier servers resolve to `@latest` in `.mcp.json` (closes #1462)
 13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
@@ -132,7 +132,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **10. CC Version & Channel** | Runtime version against minimum required, release channel (stable/beta/alpha) | load `$\{CLAUDE_SKILL_DIR\}/references/version-compatibility.md` |
+| **10. CC Version** | Runtime version against minimum required | load `$\{CLAUDE_SKILL_DIR\}/references/version-compatibility.md` |
 | **11. External Deps** | Optional tools (agent-browser, portless) | load `$\{CLAUDE_SKILL_DIR\}/rules/diagnostic-checks.md` |
 | **12. MCP Status** | Enabled/disabled state, credential checks, **HIGH-tier `@latest` pinning warn** | load `$\{CLAUDE_SKILL_DIR\}/rules/mcp-status-checks.md` + `$\{CLAUDE_SKILL_DIR\}/references/mcp-pinning-check.md` |
 | **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `$\{CLAUDE_SKILL_DIR\}/rules/diagnostic-checks.md` |
@@ -493,7 +493,6 @@ Validates `.mcp.json` entries for enabled/disabled state and required credential
 # - Parse .mcp.json, list each server with enabled/disabled state
 # - For tavily: check TAVILY_API_KEY env var OR op CLI availability
 # - For memory: check MEMORY_FILE_PATH path is writable
-# - For agentation: check agentation-mcp package is installed (npx --yes dry-run)
 # - Flag any enabled MCP whose process would likely fail at startup
 # - HIGH-tier @latest pinning: see references/mcp-pinning-check.md
 #   (script: scripts/check-mcp-pinning.sh — exit 1 on HIGH-tier @latest)
@@ -526,7 +525,6 @@ MCP Servers:
 - memory:             enabled  ✓
 - sequential-thinking: disabled ○
 - tavily:             disabled ○  (enable: set TAVILY_API_KEY, see /ork:configure)
-- agentation:         disabled ○
 ```
 
 **Misconfigured (Tavily enabled but no key):**
@@ -536,13 +534,6 @@ MCP Servers:
 - memory:             enabled  ✓
 - tavily:             enabled  ✗  TAVILY_API_KEY not set — MCP will fail at startup
                                   Fix: set TAVILY_API_KEY or set "disabled": true in .mcp.json
-```
-
-**Misconfigured (agentation enabled but not installed):**
-```
-MCP Servers:
-- agentation:         enabled  ✗  agentation-mcp package not found
-                                  Fix: npm install -D agentation-mcp  or  set "disabled": true
 ```
 
 
@@ -890,7 +881,7 @@ MCP Servers: WARNING
 
 ## Overview
 
-OrchestKit uses 150 global hook entries across 27 event types, compiled into 11 bundles. This reference explains how to validate and troubleshoot hooks.
+OrchestKit uses 149 global hook entries across 27 event types, compiled into 11 bundles. This reference explains how to validate and troubleshoot hooks.
 
 ## Hook Architecture
 
@@ -1090,7 +1081,7 @@ any `npx -y` fetch with no signal.
 
 | Tier | Criteria | Packages |
 |---|---|---|
-| **HIGH** | Pre-1.0 upstream, API may change without notice | `@21st-dev/magic`, `agentation-mcp` |
+| **HIGH** | Pre-1.0 upstream, API may change without notice | `@21st-dev/magic` |
 | **MEDIUM** | Active upstream, semver, used in many skills | `@upstash/context7-mcp`, `tavily-mcp`, `fal-ai-mcp` |
 | **LOW** | Stable API, calendar-versioned | `@modelcontextprotocol/server-sequential-thinking`, `@modelcontextprotocol/server-memory` |
 
@@ -1114,9 +1105,8 @@ For each enabled remote server:
 
 **HIGH-tier @latest detected:**
 ```
-MCP pinning: 2 HIGH-tier server(s) resolve to @latest
+MCP pinning: 1 HIGH-tier server(s) resolve to @latest
     ⚠ 21st-dev-magic (@21st-dev/magic)
-    ⚠ agentation (agentation-mcp)
     → Consider pinning to concrete versions in .mcp.json
     → See src/skills/mcp-patterns/references/mcp-version-matrix.md
 ```
@@ -1529,7 +1519,7 @@ See `$\{CLAUDE_SKILL_DIR\}/../chain-patterns/references/worktree-agent-pattern.m
 | Agents           | 37/37 valid                                    |
 | Hooks            | 87/87 entries (12 bundles)                     |
 | Memory           | Graph memory healthy                           |
-| MCP              | context7 ✓  memory ✓  tavily ○  agentation ○  |
+| MCP              | context7 ✓  memory ✓  tavily ○                |
 | Permissions      | 12/12 reachable                                |
 | Schemas          | 15/15 compliant                                |
 | Context          | 1850/2200 tokens (84%)                         |
@@ -1564,7 +1554,7 @@ See `$\{CLAUDE_SKILL_DIR\}/../chain-patterns/references/worktree-agent-pattern.m
     "agents": {"passed": true, "count": 37, "perPlugin": {"ork": 37}},
     "hooks": {"passed": true, "entries": 87, "bundles": 12, "source": "ork"},
     "memory": {"passed": true, "available": ["graph"]},
-    "mcp": {"passed": true, "servers": {"context7": "enabled", "memory": "enabled", "sequential-thinking": "disabled", "tavily": "disabled", "agentation": "disabled"}},
+    "mcp": {"passed": true, "servers": {"context7": "enabled", "memory": "enabled", "sequential-thinking": "disabled", "tavily": "disabled"}},
     "permissions": {"passed": true, "count": 12},
     "schemas": {"passed": true, "count": 15},
     "context": {"passed": true, "usage": 0.84},
@@ -2442,33 +2432,6 @@ Claude Code: 2.1.4x (MEMORY LEAK RISK)
 - 8 memory leaks fixed in 2.1.50 affect long-running sessions
 - Symptoms: increasing memory usage, slower responses over time
 - Upgrade: npm install -g @anthropic-ai/claude-code@latest
-```
-
-## Release Channel Detection
-
-Doctor should detect and display the release channel alongside the CC version check. The version is read from `.claude-plugin/plugin.json` or `version.txt`.
-
-| Version Pattern | Channel | Stability |
-|----------------|---------|-----------|
-| `X.Y.Z` (no suffix) | stable | Production-ready |
-| `X.Y.Z-beta.N` | beta | Feature-complete, may have bugs |
-| `X.Y.Z-alpha.N` | alpha | Experimental, expect breaking changes |
-
-When on beta or alpha, doctor should append a pre-release reminder to the compatibility output:
-
-```
-Claude Code: 2.1.56 (OK)
-- Minimum required: 2.1.56
-- OrchestKit channel: beta (v7.0.0-beta.3)
-  ⚠ Pre-release version — some features may be unstable. Report issues at github.com/yonatangross/orchestkit/issues
-```
-
-On stable, no extra warning is needed — just include the channel line:
-
-```
-Claude Code: 2.1.56 (OK)
-- Minimum required: 2.1.56
-- OrchestKit channel: stable (v7.0.0)
 ```
 
 ## OrchestKit Version History

@@ -30,7 +30,6 @@ Maps detected technologies to recommended OrchestKit skills.
 | **Sequential Thinking** | If using Sonnet/Haiku subagents | Low (local npx) |
 | **Tavily** | If web-research-workflow relevant | Medium (needs API key, free tier) |
 | **NotebookLM** | If many docs/READMEs for team RAG | Medium (Google auth) |
-| **Agentation** | If frontend UI work detected | Medium (npm install) |
 | **Phoenix/Langfuse** | If LLM observability desired | Medium (Docker, optional) |
 
 Present as toggles with impact labels. Show install commands for selected MCPs.

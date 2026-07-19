@@ -98,19 +98,6 @@
       ]
     },
     {
-      "id": "agentation-loop",
-      "rule": null,
-      "query": "Verify the signup flow with visual feedback",
-      "expectedBehavior": [
-        "Completes standard verification including visual capture",
-        "Detects agentation MCP availability via ToolSearch",
-        "Offers user choice to annotate live UI before finalizing",
-        "If accepted: watches for annotations, dispatches ui-feedback agent for fixes",
-        "Re-screenshots affected routes and shows before/after diffs in gallery",
-        "Limits annotation-fix cycles to max 3 rounds by default"
-      ]
-    },
-    {
       "id": "monitor-background-verification-scripts",
       "rule": null,
       "query": "Run type-check + lint + tests in parallel and report failures as they surface",

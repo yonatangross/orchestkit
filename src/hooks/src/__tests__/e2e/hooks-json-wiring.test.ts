@@ -258,7 +258,9 @@ describe('hooks.json wiring E2E', () => {
       // entry, so bin/count-hooks.sh's total is unchanged at 218. The
       // registry-map count in split-bundles.test.ts (199 -> 200) is the
       // metric that reflects the new hook function.
-      expect(hooksConfig.description).toContain('218 total');
+      // 218 -> 216: removed lifecycle/agentation-context (SessionStart) — the
+      //             agentation UI-annotation integration was dropped entirely.
+      expect(hooksConfig.description).toContain('216 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

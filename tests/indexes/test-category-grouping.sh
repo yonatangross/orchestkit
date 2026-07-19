@@ -36,7 +36,6 @@ declare -A EXPECTED_CATEGORIES=(
     ["frontend-ui-developer"]="frontend"
     ["frontend-performance-engineer"]="frontend"
     ["accessibility-specialist"]="frontend"
-    ["ui-feedback"]="frontend"
     ["security-auditor"]="security"
     ["security-layer-auditor"]="security"
     ["ai-safety-auditor"]="security"

@@ -95,8 +95,7 @@ echo "Test 3: pinned HIGH-tier passes, exit 0"
 cat > "$TMP/pinned.json" <<'JSON'
 {
   "mcpServers": {
-    "21st-dev-magic": {"command": "npx", "args": ["-y", "@21st-dev/magic@0.1.0"]},
-    "agentation": {"command": "npx", "args": ["-y", "agentation-mcp@1.2.0"]}
+    "21st-dev-magic": {"command": "npx", "args": ["-y", "@21st-dev/magic@0.1.0"]}
   }
 }
 JSON
@@ -109,13 +108,13 @@ echo "Test 4: disabled HIGH-tier @latest is ignored"
 cat > "$TMP/disabled.json" <<'JSON'
 {
   "mcpServers": {
-    "agentation": {"command": "npx", "args": ["-y", "agentation-mcp"], "disabled": true}
+    "21st-dev-magic": {"command": "npx", "args": ["-y", "@21st-dev/magic"], "disabled": true}
   }
 }
 JSON
 out="$("$CHECK" --mcp-json "$TMP/disabled.json" 2>&1)" && rc=$? || rc=$?
 assert_exit "exits 0 when only HIGH-tier entry is disabled" 0 "$rc"
-assert_not_contains "no warning for disabled" "agentation" "$out"
+assert_not_contains "no warning for disabled" "21st-dev-magic" "$out"
 
 # -----------------------------------------------------------------------------
 echo "Test 5: local server (node ./server.mjs) is skipped"

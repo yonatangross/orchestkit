@@ -358,7 +358,9 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 103 -> 104: #2475 — instructions-loaded/session-rules-audit (SessionStart, async 5s).
       // 104 -> 107: P3-A3 — 3 async observer hooks (UserPromptExpansion, MessageDisplay, PostToolBatch).
       // 107 -> 106: MessageDisplay observer reverted same-day (claude plugin validate rejects the key).
-      expect(asyncHooks.length, 'Should have exactly 106 async hooks').toBe(106);
+      // 106 -> 105: removed lifecycle/agentation-context (SessionStart, async 5s) —
+      //             the agentation UI-annotation integration was dropped entirely.
+      expect(asyncHooks.length, 'Should have exactly 105 async hooks').toBe(105);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -489,7 +491,9 @@ describe('Dispatcher Registry Wiring E2E', () => {
       //             the cross-file InstructionsLoaded handlers.
       // 104 -> 107: P3-A3 — 3 async observer hooks (UserPromptExpansion, MessageDisplay, PostToolBatch).
       // 107 -> 106: MessageDisplay observer reverted same-day (claude plugin validate rejects the key).
-      expect(asyncCount).toBe(106);
+      // 106 -> 105: removed lifecycle/agentation-context (SessionStart, async 5s) —
+      //             the agentation UI-annotation integration was dropped entirely.
+      expect(asyncCount).toBe(105);
     });
 
     it('should have hooks for all critical security operations', () => {

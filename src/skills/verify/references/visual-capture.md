@@ -238,7 +238,6 @@ Build the `GALLERY_JSON` data structure:
         {"severity": "ok", "message": "Layout consistent"},
         {"severity": "warning", "message": "Hero image loading slowly"}
       ],
-      "annotations": [],
       "apiResponse": null
     }
   ]
@@ -264,48 +263,6 @@ Write(file_path=f"verification-output/{timestamp}/gallery.html", content=rendere
 Bash(command="kill $(lsof -ti :PORT) 2>/dev/null || true", description="Stop dev server")
 ```
 
-## Phase 8.5: Agentation Loop (Opt-In)
-
-**Trigger**: Only when agentation MCP is configured in `.mcp.json`.
-
-```python
-# Check if agentation is available
-ToolSearch(query="select:mcp__agentation__agentation_get_all_pending")
-```
-
-If available, offer the user:
-```python
-AskUserQuestion(questions=[{
-  "question": "Agentation is configured. Want to annotate the UI before finalizing?",
-  "header": "Visual Feedback Loop",
-  "options": [
-    {"label": "Yes, let me annotate", "description": "I'll mark issues on the live UI, then ui-feedback agent fixes them"},
-    {"label": "Skip", "description": "Finalize gallery with current screenshots"}
-  ]
-}])
-```
-
-If yes:
-```python
-# 1. Watch for annotations
-mcp__agentation__agentation_get_all_pending()
-
-# 2. For each annotation:
-mcp__agentation__agentation_acknowledge(annotationId=id)
-
-# 3. Dispatch ui-feedback agent
-Agent(subagent_type="ork:ui-feedback",
-  prompt="Process agentation annotation: {annotation}. Fix the issue, then resolve.",
-  run_in_background=True)
-
-# 4. After fixes, re-screenshot affected routes
-# 5. Save before/after pairs
-# 6. Update gallery with annotation diffs
-```
-
-### Max Rounds
-Default 3 rounds of annotate-fix-verify. Configurable in `verification-config.yaml`.
-
 ## Graceful Degradation
 
 | Failure | Behavior |
@@ -315,5 +272,4 @@ Default 3 rounds of annotate-fix-verify. Configurable in `verification-config.ya
 | agent-browser unavailable | Skip screenshots, try `curl` for API-only |
 | Screenshot fails on a route | Skip that route, continue with others |
 | Base64 output too large | Compress or reduce route count |
-| Agentation not configured | Skip Layer 2 entirely (no prompt) |
 | Auth flow fails | Skip protected routes, screenshot public only |

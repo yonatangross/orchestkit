@@ -128,7 +128,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code — 114 skills, 37 agents, 218 hooks working together."
+    "description": "The complete AI development toolkit for Claude Code — 114 skills, 36 agents, 216 hooks working together."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -154,11 +154,6 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/getting-started/navigating",
     "title": "Find What You Need",
     "description": "Hub-and-spoke navigation — find the right skills and agents for your role and task."
-  },
-  {
-    "url": "/docs/getting-started/release-channels",
-    "title": "Release Channels",
-    "description": "Install OrchestKit from stable, beta, or alpha release channels using Claude Code's multiple-marketplace pattern."
   },
   {
     "url": "/docs/guides/ask-fallback",
@@ -202,7 +197,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/hooks/overview",
-    "title": "218 Hooks: What Fires When",
+    "title": "216 Hooks: What Fires When",
     "description": "TypeScript functions that intercept every Claude Code lifecycle event -- blocking dangerous commands, injecting context, and syncing memory, all invisibly."
   },
   {
@@ -388,7 +383,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/agents",
     "title": "Agents Reference",
-    "description": "Complete reference for all 37 OrchestKit agents."
+    "description": "Complete reference for all 36 OrchestKit agents."
   },
   {
     "url": "/docs/reference/agents/infrastructure-architect",
@@ -451,11 +446,6 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Test specialist: coverage gap analysis, unit/integration test generation, fixtures, API mocking (MSW), HTTP recording"
   },
   {
-    "url": "/docs/reference/agents/ui-feedback",
-    "title": "Ui Feedback",
-    "description": "UI annotation and feedback processor. Watches for new annotations from agentation, maps element paths to source code, implements fixes, and resolves annotations with summaries"
-  },
-  {
     "url": "/docs/reference/agents/web-research-analyst",
     "title": "Web Research Analyst",
     "description": "Web research: browser automation, Tavily API, competitive intelligence, documentation capture, technical recon"
@@ -493,7 +483,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/hooks",
     "title": "Hooks Reference",
-    "description": "Complete reference for all 150 global lifecycle hook entries across 29 event categories."
+    "description": "Complete reference for all 149 global lifecycle hook entries across 29 event categories."
   },
   {
     "url": "/docs/reference/hooks/instructions-loaded",
@@ -553,7 +543,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/hooks/session-start",
     "title": "SessionStart",
-    "description": "Hooks triggered on SessionStart events (20 hooks)."
+    "description": "Hooks triggered on SessionStart events (19 hooks)."
   },
   {
     "url": "/docs/reference/hooks/setup",
@@ -658,7 +648,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference",
     "title": "Reference",
-    "description": "Complete reference for all 114 skills, 37 agents, and 218 hooks."
+    "description": "Complete reference for all 114 skills, 36 agents, and 216 hooks."
   },
   {
     "url": "/docs/reference/skills/accessibility",
@@ -1123,7 +1113,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/setup",
     "title": "Setup",
-    "description": "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks, project-scoped configuration, and release channel detection. Use when setting up OrchestKit for a new project or rescanning after major changes."
+    "description": "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes."
   },
   {
     "url": "/docs/reference/skills/skill-evolution",

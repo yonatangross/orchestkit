@@ -980,29 +980,6 @@ export const AGENTS: Agent[] = [
     ]
   },
   {
-    "id": "ui-feedback",
-    "name": "Ui Feedback",
-    "description": "UI annotation and feedback processor. Watches for new annotations from agentation, maps element paths to source code, implements fixes, and resolves annotations with summaries.",
-    "category": "frontend",
-    "model": "sonnet",
-    "taskTypes": [
-      "debug",
-      "build"
-    ],
-    "keywords": [
-      "annotation",
-      "agentation",
-      "ui fix",
-      "element path",
-      "visual feedback",
-      "source mapping"
-    ],
-    "examplePrompts": [
-      "Process pending UI annotations and implement fixes",
-      "Map annotated element paths to source code and resolve"
-    ]
-  },
-  {
     "id": "web-research-analyst",
     "name": "Web Research Analyst",
     "description": "Web research: browser automation, Tavily API, competitive intelligence, documentation capture, technical recon.",

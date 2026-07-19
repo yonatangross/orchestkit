@@ -90,7 +90,7 @@ AskUserQuestion(
 ```
 
 **Based on answer, adjust workflow:**
-- **Full verification**: All 10 phases (8 + 2.5 + 8.5), 7 parallel agents including visual capture
+- **Full verification**: All 9 phases (8 + 2.5), 7 parallel agents including visual capture
 - **Tests only**: Skip phases 2 (security), 5 (UI/UX analysis)
 - **Security & code quality**: Run security-auditor + code-quality-reviewer agents
 - **Quick check**: Run tests only, skip grading and suggestions
@@ -197,7 +197,6 @@ Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/verification-phases.md")` 
 | **6. Alternative Comparison** | Compare approaches (optional) | Recommendation |
 | **7. Metrics Tracking** | Trend analysis | Historical data |
 | **8. Report Compilation** | Evidence artifacts + gallery.html | Final report |
-| **8.5 Agentation Loop** | User annotates, ui-feedback fixes | Before/after diffs |
 
 ### Phase 2 Agents (Quick Reference)
 
@@ -261,12 +260,6 @@ Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/visual-capture.md")` for a
 **Output**: `verification-output/\{timestamp\}/gallery.html` — open in browser to see all screenshots with AI evaluations, scores, and annotation diffs.
 
 **Graceful degradation**: If no frontend detected or server won't start, skips visual capture with a warning — never blocks verification.
-
-### Phase 8.5: Agentation Visual Feedback (opt-in)
-
-Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/visual-capture.md")` (Phase 8.5 section) for agentation loop workflow.
-
-**Trigger**: Only when agentation MCP is configured. Offers user the choice to annotate the live UI. `ui-feedback` agent processes annotations, re-screenshots show before/after.
 
 ---
 
@@ -375,7 +368,7 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | File | Content |
 |------|---------|
 | `verification-phases.md` | 8-phase workflow, agent spawn definitions, Agent Teams mode |
-| `visual-capture.md` | Phase 2.5 + 8.5: screenshot capture, AI vision, gallery generation, agentation loop |
+| `visual-capture.md` | Phase 2.5: screenshot capture, AI vision, gallery generation |
 | `quality-model.md` | Scoring dimensions and weights (8 unified) |
 | `grading-rubric.md` | Per-agent scoring criteria |
 | `report-template.md` | Full report format with visual evidence section |
@@ -538,9 +531,6 @@ Output structure:
 verification-output/{timestamp}/
 ├── screenshots/          (PNGs per route, base64 in gallery)
 ├── ai-evaluations/       (JSON per screenshot with score + issues)
-├── annotations/          (before/after if agentation used)
-│   ├── before/
-│   └── after/
 └── gallery.html          (self-contained, open in browser)
 ```
 
@@ -1198,12 +1188,6 @@ Copy this template and fill in results from parallel agent verification.
 
 **Gallery**: Open `verification-output/{timestamp}/gallery.html` for full screenshots with AI evaluations.
 
-### Agentation Annotations (if applicable)
-
-| Annotation | Route | Resolution | Before/After |
-|-----------|-------|------------|--------------|
-| [user comment] | /dashboard | [fix summary] | [see gallery] |
-
 ---
 
 ## Evidence Artifacts
@@ -1695,7 +1679,6 @@ verdict capped at IMPROVEMENTS RECOMMENDED until VERIFIED or WAIVED.
 | **6. Alternative Comparison** | Compare approaches (optional) | Recommendation |
 | **7. Metrics Tracking** | Trend analysis | Historical data |
 | **8. Report Compilation** | Evidence artifacts + gallery.html | Final report |
-| **8.5 Agentation Loop** | User annotates, ui-feedback fixes | Before/after diffs |
 
 ---
 
@@ -1915,30 +1898,6 @@ Agent(
 ```
 
 **Output**: `verification-output/\{timestamp\}/` folder with screenshots, AI evaluations (JSON), and `gallery.html`.
-
----
-
-## Phase 8.5: Agentation Visual Feedback (Opt-In)
-
-**Trigger**: Only when agentation MCP is configured in `.mcp.json`. Runs AFTER Phase 8 report compilation.
-
-```python
-# Check agentation availability
-ToolSearch(query="select:mcp__agentation__agentation_get_all_pending")
-
-# If available, offer user choice
-AskUserQuestion(questions=[{
-  "question": "Agentation detected. Annotate the live UI before finalizing?",
-  "header": "Visual Feedback Loop",
-  "options": [
-    {"label": "Yes", "description": "I'll mark issues, ui-feedback agent fixes them, gallery updates with before/after"},
-    {"label": "Skip", "description": "Finalize with current screenshots"}
-  ]
-}])
-
-# If yes: watch → acknowledge → dispatch ui-feedback → re-screenshot → update gallery
-# Max 3 rounds (configurable in verification-config.yaml)
-```
 
 ---
 
@@ -2226,7 +2185,6 @@ Build the `GALLERY_JSON` data structure:
         {"severity": "ok", "message": "Layout consistent"},
         {"severity": "warning", "message": "Hero image loading slowly"}
       ],
-      "annotations": [],
       "apiResponse": null
     }
   ]
@@ -2252,48 +2210,6 @@ Write(file_path=f"verification-output/{timestamp}/gallery.html", content=rendere
 Bash(command="kill $(lsof -ti :PORT) 2>/dev/null || true", description="Stop dev server")
 ```
 
-## Phase 8.5: Agentation Loop (Opt-In)
-
-**Trigger**: Only when agentation MCP is configured in `.mcp.json`.
-
-```python
-# Check if agentation is available
-ToolSearch(query="select:mcp__agentation__agentation_get_all_pending")
-```
-
-If available, offer the user:
-```python
-AskUserQuestion(questions=[{
-  "question": "Agentation is configured. Want to annotate the UI before finalizing?",
-  "header": "Visual Feedback Loop",
-  "options": [
-    {"label": "Yes, let me annotate", "description": "I'll mark issues on the live UI, then ui-feedback agent fixes them"},
-    {"label": "Skip", "description": "Finalize gallery with current screenshots"}
-  ]
-}])
-```
-
-If yes:
-```python
-# 1. Watch for annotations
-mcp__agentation__agentation_get_all_pending()
-
-# 2. For each annotation:
-mcp__agentation__agentation_acknowledge(annotationId=id)
-
-# 3. Dispatch ui-feedback agent
-Agent(subagent_type="ork:ui-feedback",
-  prompt="Process agentation annotation: {annotation}. Fix the issue, then resolve.",
-  run_in_background=True)
-
-# 4. After fixes, re-screenshot affected routes
-# 5. Save before/after pairs
-# 6. Update gallery with annotation diffs
-```
-
-### Max Rounds
-Default 3 rounds of annotate-fix-verify. Configurable in `verification-config.yaml`.
-
 ## Graceful Degradation
 
 | Failure | Behavior |
@@ -2303,7 +2219,6 @@ Default 3 rounds of annotate-fix-verify. Configurable in `verification-config.ya
 | agent-browser unavailable | Skip screenshots, try `curl` for API-only |
 | Screenshot fails on a route | Skip that route, continue with others |
 | Base64 output too large | Compress or reduce route count |
-| Agentation not configured | Skip Layer 2 entirely (no prompt) |
 | Auth flow fails | Skip protected routes, screenshot public only |
 
 

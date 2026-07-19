@@ -11,7 +11,6 @@ Commands work without them - MCPs just add extra capabilities.
 | **sequential-thinking** | Structured reasoning | None | Sonnet/Haiku subagents needing multi-step reasoning |
 | **memory** | Knowledge graph | Local file | Decisions, patterns, entities |
 | **tavily** | Web search, extract, crawl | Cloud (Tavily) | /ork:explore, /ork:implement, web-research agents |
-| **agentation** | UI annotation tool | Local daemon | UI feedback → automatic agent pickup |
 | **stitch** | Official Google Stitch MCP — AI design → HTML/screenshots | Cloud (Google) | /ork:design-to-code, design-context-extractor |
 | **21st-dev-magic** | React component registry (1.4M devs) | Cloud (21st.dev) | /ork:component-search, frontend-ui-developer |
 | **storybook-mcp** | Project component discovery, testing, previews via Storybook 10.3+ | Local (localhost:6006) | /ork:design-to-code, component-curator, frontend-ui-developer |
@@ -38,7 +37,7 @@ All MCPs are optional — OrchestKit works without any. Enable what fits your wo
 
 ## Default State
 
-OrchestKit ships **all 5 MCPs enabled** in `.mcp.json`. Tavily requires an API key (`TAVILY_API_KEY` via 1Password) — it connects but tools fail without the key. Agentation requires `npm install -D agentation-mcp`.
+OrchestKit ships **all 4 MCPs enabled** in `.mcp.json`. Tavily requires an API key (`TAVILY_API_KEY` via 1Password) — it connects but tools fail without the key.
 
 ## Two-Layer MCP Control (CC 2.1.49)
 
@@ -78,7 +77,7 @@ OrchestKit agents declare `mcpServers` explicitly to avoid inheriting unnecessar
 
 **MCP tools are NOT available in background subagents.** This is a hard CC platform limitation.
 
-Agents spawned with `run_in_background: true` or `background: true` cannot call any MCP tools (tavily, context7, memory, sequential-thinking, agentation). Design background agents to use only built-in CC tools (Read, Grep, Glob, Bash, etc.).
+Agents spawned with `run_in_background: true` or `background: true` cannot call any MCP tools (tavily, context7, memory, sequential-thinking). Design background agents to use only built-in CC tools (Read, Grep, Glob, Bash, etc.).
 
 If a background agent needs MCP tools, run it in the foreground instead.
 
@@ -92,12 +91,11 @@ Each connected MCP adds tool definitions to the context window:
 | memory | 8 | ~1200 |
 | sequential-thinking | 1 | ~600 |
 | tavily | 5 | ~2000 |
-| agentation | 8 | ~1500 |
-| **Total** | **24** | **~5700** |
+| **Total** | **16** | **~4200** |
 
 **MCPSearch (default since CC 2.1.7):** When MCP tool schemas exceed 10% of the context window, CC automatically defers schema loading and uses an `MCPSearch` tool to discover tools on demand — reducing overhead by ~85%.
 
-With 5 MCPs (~5.7K tokens = 2.8% of 200K), schemas load upfront. This is acceptable. If you add more MCPs and cross the 10% threshold, MCPSearch activates automatically.
+With 4 MCPs (~4.2K tokens = 2.1% of 200K), schemas load upfront. This is acceptable. If you add more MCPs and cross the 10% threshold, MCPSearch activates automatically.
 
 **Tighten the threshold:** Set `ENABLE_TOOL_SEARCH=auto:5` in your shell profile to defer at 5% instead of 10%.
 
@@ -129,11 +127,6 @@ Edit `.mcp.json` and set `"disabled": true` or `false` for each MCP:
     "tavily": {
       "command": "sh",
       "args": ["-c", "TAVILY_API_KEY=$(op read 'op://<vault>/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
-      "disabled": false
-    },
-    "agentation": {
-      "command": "npx",
-      "args": ["-y", "agentation-mcp", "server"],
       "disabled": false
     },
     "21st-dev-magic": {
@@ -208,7 +201,6 @@ Agents fall back to WebFetch (Haiku-summarized) → agent-browser (full headless
 | sequential-thinking | None |
 | memory | None (creates `.claude/memory/` automatically) |
 | tavily | 1Password: `op read 'op://<vault>/Tavily API Key/API Key'` (free: https://app.tavily.com) |
-| agentation | `npm install -D agentation-mcp` in project |
 | notebooklm-mcp | `uv tool install notebooklm-mcp-cli` + `nlm login` + `nlm setup add claude-code` |
 | stitch | API key from [stitch.withgoogle.com/settings](https://stitch.withgoogle.com/settings). Add via: `claude mcp add stitch --transport http https://stitch.googleapis.com/mcp --header "X-Goog-Api-Key: YOUR-KEY" -s user` |
 | 21st-dev-magic | API key from https://21st.dev (free tier available). Set `TWENTYFIRST_DEV_API_KEY` env var |
@@ -223,7 +215,6 @@ OrchestKit agents and skills integrate with these MCPs:
 | /ork:implement, /ork:verify, /ork:review-pr | context7 | Fetch current library docs |
 | web-research-analyst, market-intelligence | tavily | Web search and content extraction |
 | /ork:remember, /ork:memory | memory | Persist decisions across sessions |
-| ui-feedback | agentation | Browser UI annotations → code fixes |
 | notebooklm (skill) | notebooklm-mcp | External RAG, research, studio content |
 | Sonnet/Haiku subagents | sequential-thinking | Structured reasoning for non-Opus models |
 | /ork:design-to-code, design-context-extractor | stitch | AI design → HTML, screenshot extraction, design context |

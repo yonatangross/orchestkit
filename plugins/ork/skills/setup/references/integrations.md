@@ -1,16 +1,5 @@
 # Phase 10: Optional Integrations
 
-## Agentation UI Annotation Tool
-
-If frontend UI work detected in Phase 1 scan:
-
-1. Install: `npm install agentation-mcp`
-2. MCP config: Add to `.mcp.json`
-3. Component scaffold: Wrap target components
-4. CSP updates: Allow agentation connections
-
-All steps are idempotent — safe to re-run.
-
 ## CC Version-Specific Settings
 
 ### CC 2.1.7+

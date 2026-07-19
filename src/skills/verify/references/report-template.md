@@ -176,12 +176,6 @@ Copy this template and fill in results from parallel agent verification.
 
 **Gallery**: Open `verification-output/{timestamp}/gallery.html` for full screenshots with AI evaluations.
 
-### Agentation Annotations (if applicable)
-
-| Annotation | Route | Resolution | Before/After |
-|-----------|-------|------------|--------------|
-| [user comment] | /dashboard | [fix summary] | [see gallery] |
-
 ---
 
 ## Evidence Artifacts

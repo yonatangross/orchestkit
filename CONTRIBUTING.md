@@ -58,11 +58,11 @@ src/
 │       ├── scripts/           # Optional: Executable code and generators
 │       ├── assets/            # Optional: Templates and copyable files
 │       └── checklists/        # Optional: Implementation checklists
-├── agents/               # <!--ork:agents-->37<!--/ork--> specialized AI personas
-└── hooks/                # <!--ork:hooks-->218<!--/ork--> TypeScript hooks in 12 split bundles
+├── agents/               # <!--ork:agents-->36<!--/ork--> specialized AI personas
+└── hooks/                # <!--ork:hooks-->216<!--/ork--> TypeScript hooks in 12 split bundles
 
 manifests/                # Plugin definition
-└── ork.json              # Single plugin (<!--ork:skills-->114<!--/ork--> skills, <!--ork:agents-->37<!--/ork--> agents, <!--ork:hooks-->218<!--/ork--> hooks)
+└── ork.json              # Single plugin (<!--ork:skills-->114<!--/ork--> skills, <!--ork:agents-->36<!--/ork--> agents, <!--ork:hooks-->216<!--/ork--> hooks)
 ```
 
 ### Generated Files (Do Not Edit)

@@ -1,5 +1,10 @@
 {
   "title": "Getting Started",
   "icon": "Rocket",
-  "pages": ["installation", "release-channels", "first-10-minutes", "navigating", "configuration"]
+  "pages": [
+    "installation",
+    "first-10-minutes",
+    "navigating",
+    "configuration"
+  ]
 }

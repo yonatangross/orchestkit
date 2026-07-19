@@ -38,9 +38,6 @@ vi.mock('../../prompt/handoff-injector.js', () => ({
   }),
 }));
 
-// agentation-context migrated to lifecycle/SessionStart in M104 PR-B; the
-// dispatcher no longer imports it, so no mock is needed here.
-
 vi.mock('../../prompt/context-exhaustion-warner.js', () => ({
   contextExhaustionWarner: () => ({ continue: true, suppressOutput: true }),
 }));

@@ -35,10 +35,10 @@ OrchestKit Health Check
 =======================
 Plugin:     ork v8.63.2
 Skills:     113 loaded (32 commands, 81 reference)
-Agents:     37 registered
-Hooks:      218 active (150 global, 46 agent, 22 skill-scoped)
+Agents:     36 registered
+Hooks:      216 active (149 global, 45 agent, 22 skill-scoped)
 Memory:     Graph ✓  Local ✓  CC Native ✓
-MCP:        context7 ✓  memory ✓  tavily ○  agentation ○
+MCP:        context7 ✓  memory ✓  tavily ○
 
 Status: Healthy
 ```
@@ -53,7 +53,6 @@ Status: Healthy
 | `✗ Hooks: 0 active` | Hook compilation failed | Run `node --version` (must be >= 18). If OK, reinstall: `claude uninstall ork && claude install orchestkit/ork` |
 | `✗ Skills: 0 loaded` | Plugin not found by Claude Code | Check `claude plugins` shows `ork`. Try closing and reopening Claude Code |
 | `○ tavily ○` | **Not an error** — Tavily is optional | See setup below if you want web research |
-| `○ agentation ○` | **Not an error** — Agentation is optional | Only needed for UI annotation workflows |
 
 <Callout type="info">
 Most issues are fixed by ensuring Node.js >= 18 is installed and restarting Claude Code. If problems persist, run `/ork:doctor --verbose` for detailed diagnostics.
