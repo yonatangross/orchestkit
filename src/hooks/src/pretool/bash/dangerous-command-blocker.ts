@@ -145,7 +145,62 @@ const ASK_REGEX_PATTERNS: { pattern: RegExp; reason: string }[] = [
  * nothing. This narrows the pattern to real pipes; every `curl ... | bash`
  * remains blocked.
  */
-const PIPE_TO_SHELL_RE = /(?<!\|)\|(?!\|)\s*(sh|bash|zsh|dash|python[23]?|node|perl|ruby|tclsh)\b/i;
+const SHELL_INTERPRETER_RE = /^(sh|bash|zsh|dash|python[23]?|node|perl|ruby|tclsh)\b/i;
+
+/**
+ * True when the command pipes into a shell interpreter.
+ *
+ * Scans quote state character by character instead of regex-matching a
+ * quote-STRIPPED command (#2955 follow-up). Two properties matter, and a
+ * single regex over normalizeSingle() output cannot satisfy both:
+ *
+ *   1. A `|` INSIDE quotes is literal text, not a pipe. Stripping quotes first
+ *      turned inert argument text into an apparent pipe, so
+ *      `grep -nE 'run_test|bash ' file` was denied despite containing no pipe
+ *      at all. Regex alternations, awk programs and sed scripts hit this
+ *      constantly.
+ *   2. The interpreter NAME may be quoted and still execute: `curl x | 'bash'`
+ *      runs bash. So quotes cannot simply be blanked either — the target word
+ *      is unquoted only after a real pipe is found.
+ *
+ * `||` is logical OR (runs the right side when the left FAILS, pipes nothing)
+ * and is skipped. Every `curl ... | bash` stays blocked.
+ */
+export function pipesToShellInterpreter(cmd: string): boolean {
+  let inSingle = false;
+  let inDouble = false;
+
+  for (let i = 0; i < cmd.length; i++) {
+    const ch = cmd[i];
+
+    if (ch === '\\' && inDouble) {
+      i++; // escaped char inside double quotes
+      continue;
+    }
+    if (ch === "'" && !inDouble) {
+      inSingle = !inSingle;
+      continue;
+    }
+    if (ch === '"' && !inSingle) {
+      inDouble = !inDouble;
+      continue;
+    }
+    if (ch !== '|' || inSingle || inDouble) continue;
+
+    // Skip `||` (logical OR) in both directions.
+    if (cmd[i + 1] === '|') {
+      i++;
+      continue;
+    }
+    if (i > 0 && cmd[i - 1] === '|') continue;
+
+    // Real pipe. Unquote the target word so `| 'bash'` and `| b"a"sh` still match.
+    const target = cmd.slice(i + 1).replace(/['"]/g, '').trimStart();
+    if (SHELL_INTERPRETER_RE.test(target)) return true;
+  }
+
+  return false;
+}
 
 // =============================================================================
 // Main handler
@@ -201,7 +256,9 @@ export function dangerousCommandBlocker(input: HookInput, ctx: HookContext = NOO
   }
 
   // --- DENY tier: piping to shell interpreters ---
-  if (PIPE_TO_SHELL_RE.test(normalizedCommand)) {
+  // Uses the RAW command: quote state is what decides whether a `|` is a pipe,
+  // and normalizeSingle() has already stripped the quotes.
+  if (pipesToShellInterpreter(command)) {
     const reason = 'Piping to shell interpreter detected';
     ctx.log('dangerous-command-blocker', `BLOCKED: ${reason}`);
     ctx.logPermission('deny', reason, input);

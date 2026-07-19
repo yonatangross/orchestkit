@@ -11,6 +11,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Interactive selector and complete reference for picking the right agent for any task."
   },
   {
+    "url": "/docs/agents",
+    "title": "Agents",
+    "description": "Specialist sub-agents with their own context window, tools, and system prompt."
+  },
+  {
     "url": "/docs/agents/multi-agent-patterns",
     "title": "Multi-Agent Patterns",
     "description": "How OrchestKit orchestrates parallel agents for implementation, review, and complex workflows."
@@ -121,6 +126,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "OrchestKit ships as one unified plugin — everything loads on-demand with zero overhead."
   },
   {
+    "url": "/docs/foundations",
+    "title": "Foundations",
+    "description": "The core concepts behind OrchestKit — skills, agents, hooks, and how they compose."
+  },
+  {
     "url": "/docs/foundations/mcp-servers",
     "title": "MCP Servers",
     "description": "External tool integrations that give agents web search, component registries, design extraction, and more."
@@ -144,6 +154,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/getting-started/first-10-minutes",
     "title": "Your First 10 Minutes",
     "description": "From install to your first AI-assisted commit — a guided walkthrough."
+  },
+  {
+    "url": "/docs/getting-started",
+    "title": "Getting Started",
+    "description": "Install OrchestKit, run your first workflow, and learn how the pieces fit together."
   },
   {
     "url": "/docs/getting-started/installation",
@@ -171,6 +186,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "How OrchestKit supports Claude Fable 5: correct pricing, a spend-consent gate for agent pins, advisor warnings, and the deliberate opt-in path (ORK_FABLE_OK)."
   },
   {
+    "url": "/docs/guides",
+    "title": "Guides",
+    "description": "Longer-form walkthroughs for specific stacks and adoption topics."
+  },
+  {
     "url": "/docs/guides/orchestkit-with-nextjs",
     "title": "Using OrchestKit with Next.js",
     "description": "How OrchestKit's skills, agents, and hooks apply to a Next.js / React codebase — installation, which components activate, and real workflows."
@@ -184,6 +204,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/hooks/architecture",
     "title": "Hook Architecture",
     "description": "How OrchestKit's 218-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
+  },
+  {
+    "url": "/docs/hooks",
+    "title": "Hooks",
+    "description": "Deterministic TypeScript checks that run around every tool call."
   },
   {
     "url": "/docs/hooks/lifecycle-hooks",
@@ -254,6 +279,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/memory/graph-memory",
     "title": "Graph Memory (Primary)",
     "description": "The zero-config knowledge graph that stores entities and typed relations as OrchestKit's primary memory tier."
+  },
+  {
+    "url": "/docs/memory",
+    "title": "Memory",
+    "description": "How OrchestKit persists decisions and context across sessions."
   },
   {
     "url": "/docs/memory/local-memory",
@@ -649,11 +679,6 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference",
     "title": "Reference",
     "description": "Complete reference for all 114 skills, 36 agents, and 216 hooks."
-  },
-  {
-    "url": "/docs/reference/skills/.!16367!figma-design-handoff",
-    "title": "Figma Design Handoff",
-    "description": "Figma-to-code design handoff patterns including Figma Variables to design tokens pipeline, component spec extraction, Dev Mode inspection, Auto Layout to CSS Flexbox/Grid mapping, and visual regression with Applitools. Use when converting Figma designs to code, documenting component specs, setting up design-dev workflows, or comparing production UI against Figma designs."
   },
   {
     "url": "/docs/reference/skills/accessibility",
@@ -1231,6 +1256,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Reference for Zustand 5.x state management including slices, middleware, Immer, useShallow, persistence, selectors, and devtools integration. Documents 7 core patterns with TypeScript examples and anti-patterns. Use when building React state management with Zustand instead of Redux."
   },
   {
+    "url": "/docs/showcase",
+    "title": "Showcase",
+    "description": "What OrchestKit produces — pipeline runs and generated visual experiments."
+  },
+  {
     "url": "/docs/showcase/lab/adoption-waves",
     "title": "Case study: CC Adoption Wave Explorer",
     "description": "How an automated release-watch pipeline turns 3 Claude Code releases into 37 scored adoption issues and one interactive triage dashboard."
@@ -1304,6 +1334,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/skills/dependency-graph",
     "title": "Skill Dependency Graph",
     "description": "Interactive visualization of how OrchestKit's 114 skills connect through dependency relationships."
+  },
+  {
+    "url": "/docs/skills",
+    "title": "Skills",
+    "description": "Reusable capability modules that teach Claude Code a workflow once and reuse it every session."
   },
   {
     "url": "/docs/skills/overview",
