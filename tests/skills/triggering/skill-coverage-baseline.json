@@ -1,0 +1,7 @@
+{
+  "schema": "ork-skill-coverage-baseline/1.0",
+  "description": "Ratchet floor for the deterministic skill-coverage gate. Counts may only go DOWN.",
+  "collisions": 7,
+  "unreachable": 15,
+  "contradictions": 0
+}
