@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.80.3",
+    "date": "2026-07-20",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** latch the session-title /rename guard so it can't leak ([#3025](https://github.com/yonatangross/orchestkit/issues/3025)) ([b2f075f](https://github.com/yonatangross/orchestkit/commit/b2f075f4a0233339506fe957a3d8ee56866c5017))",
+          "**security:** resolve 5 real CodeQL findings, dismiss 4 as noise ([#3022](https://github.com/yonatangross/orchestkit/issues/3022)) ([ddc4759](https://github.com/yonatangross/orchestkit/commit/ddc475937bce454d18ac87295c6891198f05b143))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.80.2",
     "date": "2026-07-19",
     "compareUrl": "",

@@ -86,3 +86,44 @@ Example output:
 | code-quality-reviewer | 45 | 8.2s | 98% | opus |
 | test-generator | 32 | 12.1s | 94% | sonnet |
 ```
+
+## Routing Analysis (SQLite)
+
+The coordination DB (`~/.local/state/orchestkit/sessions.db`, populated by the
+skill-tracker hook since 2026-07-10) ships a `routing_edge` view (migration 003):
+for each `/ork:auto` or `/hq-ext:auto` invocation, the next skill invoked in the
+same session **within 120 seconds** is treated as the route taken. No jq needed.
+
+**Read the output as a lower bound, not a census.** The 120s window is
+load-bearing: measured against real data, the unbounded version of this join had
+a median gap of 43 minutes and a max of 27 hours, i.e. it was reporting "what the
+user ran later in a long session", not routing. Bounding it cut 53 apparent
+edges to 3 real ones. Rows are also missing whenever a router answers inline or
+dispatches into a forked subagent whose skill calls land under a different
+session id. Treat a low edge count as "not measurable this way", never as
+"routing did not happen".
+
+```bash
+# Route distribution per router
+sqlite3 -column ~/.local/state/orchestkit/sessions.db \
+  "SELECT router, routed_to, COUNT(*) n FROM routing_edge
+   GROUP BY router, routed_to ORDER BY router, n DESC;"
+
+# Gap between the router call and the skill that followed it
+sqlite3 -column ~/.local/state/orchestkit/sessions.db \
+  "SELECT router, COUNT(*) n, AVG(gap_ms)/1000.0 avg_s FROM routing_edge
+   GROUP BY router;"
+
+# Per-project routing volume (join sessions for cwd)
+sqlite3 -column ~/.local/state/orchestkit/sessions.db \
+  "SELECT replace(s.cwd,'/Users/','~') proj, e.router, COUNT(*) n
+   FROM routing_edge e JOIN sessions s ON s.sid = e.session_id
+   GROUP BY proj, e.router ORDER BY n DESC LIMIT 20;"
+```
+
+Router-to-same-router pairs are excluded by the view: those are session
+re-entries for a new goal, not a dispatch. Decision-level context (goal text,
+chosen intent, mutating?) is NOT captured here and cannot be — routing decisions
+are made in-prompt and never written anywhere. Capturing them needs a dedicated
+decision-phase telemetry stream; this view is the zero-new-writers
+approximation, not a substitute for it.

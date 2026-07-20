@@ -260,7 +260,7 @@ describe('hooks.json wiring E2E', () => {
       // metric that reflects the new hook function.
       // 218 -> 216: removed lifecycle/agentation-context (SessionStart) — the
       //             agentation UI-annotation integration was dropped entirely.
-      expect(hooksConfig.description).toContain('216 total');
+      expect(hooksConfig.description).toContain('217 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {
