@@ -12,7 +12,7 @@ Writers do not hard-code directories — they go through four helpers. Know thes
 |--------|--------|------------------|
 | `writeTelemetryEvent()` | `lib/telemetry-jsonl.ts` | `.claude/telemetry/` (or plugin-data/telemetry on CC ≥ 2.1.78) |
 | `appendEventLog(file, entry)` | `lib/event-logger.ts:17` | `<project>/.claude/logs/` |
-| `appendAnalytics(file, entry)` | `lib/analytics.ts:55` | `getAnalyticsDir()` = `.claude/memory/analytics/` (NOT `.claude/logs/`) |
+| `appendAnalytics(file, entry)` | `lib/analytics.ts:55` | `getAnalyticsDir()` = `~/.claude/analytics/` — HOME-relative, not project-relative (NOT `.claude/logs/`, NOT `.claude/memory/`) |
 | `logHook()` / `logPermissionFeedback()` | `lib/log.ts:51,75` | `getLogDir()` = `.claude/logs/` |
 
 Note: `appendAnalytics` writes its own filename set (`task-usage.jsonl`, `team-activity.jsonl`, `agent-usage.jsonl`, `subagent-quality.jsonl`, `session-summary.jsonl`) into the analytics dir — distinct from the `.claude/logs/` files below, and dual-writes to the yonatan-hq platform sink via `postAnalyticsToSink`.
