@@ -264,7 +264,12 @@ jobs:
                 continue
               }
 
-            verdict_md=$(jq -r '.content // ""' "${tmpdir}/verdict.json")
+            # `claude -p --output-format json` puts the assistant text in
+            # `.result` (same key the auth smoke test reads above). An earlier
+            # version read `.content`, which never exists, so every verdict was
+            # empty and no comment or ledger row was ever written. Keep
+            # `.content` only as a defensive fallback for future format drift.
+            verdict_md=$(jq -r '.result // .content // ""' "${tmpdir}/verdict.json")
             tokens=$(jq -r '.usage.total_tokens // 0' "${tmpdir}/verdict.json")
 
             if [ -z "$verdict_md" ]; then
