@@ -446,6 +446,44 @@ dump_dead_envelope() {
     } >&2
 }
 
+# Extract ONLY the operational shape of a rate-limit message, never the raw
+# text. Distinguishing a rolling-window limit (waits out) from a plan-level cap
+# (does not) decides whether scheduling can fix a red eval at all, and that
+# answer lives in this string. Matching known shapes keeps arbitrary model
+# output out of public CI logs. Emits a leading " — ..." or nothing.
+rate_limit_hint() {
+    local json_file="$1"
+    local msg
+    # silent: external-api-shape
+    msg=$(jq -r '.result // ""' "$json_file" 2>/dev/null)
+    [[ -z "$msg" ]] && return 0
+
+    # Known shape: "Claude AI usage limit reached|<epoch-seconds>"
+    if [[ "$msg" == *"usage limit reached"* ]]; then
+        local epoch when
+        epoch=$(printf '%s' "$msg" | grep -oE '[0-9]{10,}' | head -1)
+        if [[ -n "$epoch" ]]; then
+            # date(1) differs: BSD on macOS, GNU on ubuntu runners.
+            # silent: external-api-shape
+            when=$(date -r "$epoch" -u '+%Y-%m-%dT%H:%MZ' 2>/dev/null || true)
+            if [[ -z "$when" ]]; then
+                # silent: external-api-shape
+                when=$(date -u -d "@$epoch" '+%Y-%m-%dT%H:%MZ' 2>/dev/null || true)
+            fi
+            [[ -z "$when" ]] && when="epoch $epoch"
+            echo " — usage limit, resets $when"
+        else
+            echo " — usage limit (no reset timestamp given)"
+        fi
+        return 0
+    fi
+    if [[ "$msg" == *"ate limit"* ]]; then
+        echo " — rate limit (rolling window)"
+        return 0
+    fi
+    echo " — unrecognised limit message (${#msg} chars)"
+}
+
 classify_generation() {
     local json_file="$1"
 
@@ -465,14 +503,34 @@ classify_generation() {
             error_max_turns|error_max_budget|error_max_tokens)
                 echo "terminal: $subtype (raise --max-turns / --max-budget-usd)"; return 3 ;;
         esac
+        # Rate limiting is an operational fact about the ACCOUNT, not a
+        # property of the generation, so it is classified before the generic
+        # is_error branch. Observed on CI: 20 calls, 20 x HTTP 429, zero
+        # succeeded, because the runner shares one subscription quota with
+        # interactive use. Returns 3 (terminal) so the caller does NOT retry —
+        # a retry fires into the same exhausted quota and just doubles the
+        # wasted calls.
+        local api_status
+        # silent: external-api-shape
+        api_status=$(jq -r '.api_error_status // ""' "$json_file" 2>/dev/null)
+        if [[ "$api_status" == "429" ]]; then
+            dump_dead_envelope "$json_file"
+            echo "RATE LIMITED (HTTP 429)$(rate_limit_hint "$json_file") — subscription quota, not a skill failure"
+            return 3
+        fi
+
         # silent: external-api-shape
         if jq -e '.is_error == true' "$json_file" >/dev/null 2>&1; then
             # An envelope reporting is_error:true alongside subtype:success is
-            # self-contradictory and was observed on CI runners while the same
-            # call succeeded locally. Dump the shape so the next red run
-            # carries the cause rather than just this summary string.
+            # self-contradictory: subtype describes the envelope SHAPE while
+            # terminal_reason/api_error_status describe what happened. Printing
+            # only subtype is why this read as "error envelope: success".
             dump_dead_envelope "$json_file"
-            echo "error envelope${subtype:+: $subtype}"; return 1
+            local treason
+            # silent: external-api-shape
+            treason=$(jq -r '.terminal_reason // ""' "$json_file" 2>/dev/null)
+            echo "error envelope${subtype:+: $subtype}${treason:+ / $treason}${api_status:+ / HTTP $api_status}"
+            return 1
         fi
     fi
 
@@ -1156,6 +1214,15 @@ eval_skill() {
     elif [[ "$agg_delta" -gt 0 ]]; then
         verdict="SKILL_ADDS_VALUE"
         verdict_display="${GREEN}SKILL ADDS VALUE${NC}"
+    elif [[ "$agg_delta" -eq 0 && "$agg_skill_rate" -eq 0 ]]; then
+        # A delta-only gate cannot tell "both scored 100%" from "both scored
+        # 0%" — each is delta 0, and 0/0 used to render as PASS (0%). That
+        # makes the gate blind to a skill that is merely USELESS; it only ever
+        # caught one that is WORSE than no skill. Called out distinctly rather
+        # than failed, because a 0% baseline usually means the assertions are
+        # unsatisfiable, which is an eval-authoring bug, not a skill bug.
+        verdict="NO_SIGNAL"
+        verdict_display="${YELLOW}NO SIGNAL (both 0%) — assertions may be unsatisfiable${NC}"
     elif [[ "$agg_delta" -eq 0 ]]; then
         verdict="NEUTRAL"
         verdict_display="${YELLOW}NEUTRAL${NC}"

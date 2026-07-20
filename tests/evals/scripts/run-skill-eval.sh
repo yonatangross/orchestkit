@@ -578,6 +578,7 @@ TRIGGER_EXIT=0
 QUALITY_EXIT=0
 TRIGGER_RESULT=""
 QUALITY_RESULT=""
+QUALITY_VERDICT=""
 
 # --- Run trigger eval ---
 if $RUN_TRIGGER; then
@@ -621,7 +622,13 @@ if $RUN_QUALITY; then
 
     # Read quality result if available
     if [[ -n "$SKILL" && -f "$RESULTS_DIR/${SKILL}.quality.json" ]]; then
+        # silent: external-api-shape
         QUALITY_RESULT=$(jq -r '.aggregate.skill_pass_rate | tostring' "$RESULTS_DIR/${SKILL}.quality.json" 2>/dev/null || echo "N/A")
+        # The inner runner already computed a real verdict (SKILL_ADDS_VALUE /
+        # NEUTRAL / NO_SIGNAL). Printing a bare "PASS" over it lost that
+        # distinction — a NEUTRAL run scoring 0% displayed as "PASS (0%)".
+        # silent: external-api-shape
+        QUALITY_VERDICT=$(jq -r '.aggregate.verdict // ""' "$RESULTS_DIR/${SKILL}.quality.json" 2>/dev/null || echo "")
     fi
 fi
 
@@ -672,8 +679,12 @@ if [[ -n "$SKILL" ]]; then
     if $RUN_QUALITY; then
         if [[ $QUALITY_EXIT -eq 0 ]] && ! $quality_measured; then
             echo -e "  Quality:   ${YELLOW}N/A${NC}  (not measured: no score published)"
+        elif [[ $QUALITY_EXIT -eq 0 && "$QUALITY_VERDICT" == "NO_SIGNAL" ]]; then
+            echo -e "  Quality:   ${YELLOW}NO SIGNAL${NC}  (skill and baseline both ${QUALITY_RESULT}% — nothing was discriminated)"
+        elif [[ $QUALITY_EXIT -eq 0 && "$QUALITY_VERDICT" == "NEUTRAL" ]]; then
+            echo -e "  Quality:   ${YELLOW}NEUTRAL${NC}  (${QUALITY_RESULT}%, no delta vs baseline)"
         elif [[ $QUALITY_EXIT -eq 0 ]]; then
-            echo -e "  Quality:   ${GREEN}PASS${NC}  (${QUALITY_RESULT}%)"
+            echo -e "  Quality:   ${GREEN}PASS${NC}  (${QUALITY_RESULT}%${QUALITY_VERDICT:+, $QUALITY_VERDICT})"
         elif [[ $QUALITY_EXIT -eq 2 ]]; then
             echo -e "  Quality:   ${YELLOW}INCONCLUSIVE${NC}  (no score published: dead generation)"
         else
@@ -690,6 +701,10 @@ if [[ -n "$SKILL" ]]; then
         # Neither lane produced a number. Claiming PASS here is the vacuous
         # verdict this block exists to prevent.
         echo -e "  Overall:   ${YELLOW}N/A${NC}  (nothing was measured for this skill)"
+    elif [[ $TRIGGER_EXIT -eq 0 && $QUALITY_EXIT -eq 0 && "$QUALITY_VERDICT" == "NO_SIGNAL" ]]; then
+        # Both lanes exited 0, but the quality lane discriminated nothing.
+        # Calling that PASS is the same vacuous verdict one level up.
+        echo -e "  Overall:   ${YELLOW}NO SIGNAL${NC}  (ran, but distinguished nothing)"
     elif [[ $TRIGGER_EXIT -eq 0 && $QUALITY_EXIT -eq 0 ]]; then
         echo -e "  Overall:   ${GREEN}PASS${NC}"
     elif [[ ($TRIGGER_EXIT -eq 0 || $TRIGGER_EXIT -eq 2) && ($QUALITY_EXIT -eq 0 || $QUALITY_EXIT -eq 2) ]]; then
