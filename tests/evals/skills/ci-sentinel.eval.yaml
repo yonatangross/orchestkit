@@ -10,9 +10,13 @@ skill_path: src/skills/ci-sentinel/SKILL.md
 plugin_dir: plugins/ork
 
 trigger_evals:
-  - prompt: "set up an hourly bot that triages failing PRs across my repos"
+  # should_trigger:true prompts MUST contain a token from triggers.keywords in
+  # src/skills/ci-sentinel/SKILL.md ([sentinel, "self-healing ci",
+  # "auto-classify failures", "watch open PRs"]) — tests/skills/triggering/
+  # test-trigger-keywords.sh enforces that statically, with no model spend.
+  - prompt: "install the CI sentinel to watch open PRs in this repo"
     should_trigger: true
-  - prompt: "automatically classify red CI checks on my open pull requests"
+  - prompt: "auto-classify failures on my open pull requests every day"
     should_trigger: true
   - prompt: "fix the failing test in this PR"
     should_trigger: false
