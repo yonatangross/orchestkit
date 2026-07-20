@@ -338,6 +338,9 @@ eval_skill() {
     # #3032: prompts where every rep produced no answer. Not measured, so they
     # are excluded from precision/recall entirely rather than scored as misses.
     local dead_prompts=0
+    # Every MEASURED should_trigger:true prompt. This is the correct denominator
+    # for effective recall (see the eff_recall block below for why).
+    local pos_total=0
     local results_json="["
     local first_result=true
 
@@ -368,6 +371,10 @@ eval_skill() {
             # Determine verdict
             local verdict="" symbol=""
             if [[ "$should_trigger" == "true" ]]; then
+                # Full MEASURED positive population. `flaky` cannot serve this
+                # role: it is incremented in the negative branch too (below), so
+                # tp+fn+flaky over-counts. Dead prompts already `continue`d above.
+                ((pos_total++))
                 if [[ "$triggered" -eq "$reps" ]]; then
                     verdict="OK"; symbol="${GREEN}v${NC}"; ((tp++))
                     tp_partial=$(echo "$tp_partial + 1" | bc)
@@ -410,9 +417,19 @@ eval_skill() {
     if [[ $((tp + fn)) -gt 0 ]]; then
         recall=$(echo "scale=1; $tp * 100 / ($tp + $fn)" | bc)
     fi
-    local tp_fn_partial; tp_fn_partial=$(echo "$tp_partial + $fn" | bc)
-    if [[ $(echo "$tp_fn_partial > 0" | bc) -eq 1 ]]; then
-        eff_recall=$(echo "scale=1; $tp_partial * 100 / $tp_fn_partial" | bc)
+    # Effective recall = credited positive mass / FULL measured positive
+    # population.
+    #
+    # This denominator used to be `tp_partial + fn`, which put the flaky mass in
+    # BOTH the numerator and the denominator. Whenever nothing hard-missed
+    # (fn == 0) that reduces to tp_partial/tp_partial = 100%, regardless of how
+    # badly the prompts actually scored. Observed: ci-sentinel triggered on 1 of
+    # 3 reps of its only prompt (a 33% trigger rate) and the gate reported
+    # "PASS (P:0 R:0)" off a 100% effective recall.
+    #
+    # Using pos_total, that same run scores 0.33/1 = 33% and correctly FAILS.
+    if [[ "$pos_total" -gt 0 ]]; then
+        eff_recall=$(echo "scale=1; $tp_partial * 100 / $pos_total" | bc)
     fi
     local tp_fp_partial; tp_fp_partial=$(echo "$tp_partial + $fp_partial" | bc)
     if [[ $(echo "$tp_fp_partial > 0" | bc) -eq 1 ]]; then
@@ -447,6 +464,7 @@ eval_skill() {
   "false_negatives": $fn,
   "flaky": $flaky,
   "dead_prompts": $dead_prompts,
+  "positive_population": $pos_total,
   "total_prompts": $trigger_count,
   "reps_per_prompt": $REPS,
   "duration_seconds": $duration,

@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.83.1",
+    "date": "2026-07-20",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**evals:** report an eval outage as inconclusive, not as a skill regression ([#3047](https://github.com/yonatangross/orchestkit/issues/3047)) ([105cd62](https://github.com/yonatangross/orchestkit/commit/105cd6246b1032f9fcb5ffb7e646152c843307f0))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.83.0",
     "date": "2026-07-20",
     "compareUrl": "",

@@ -457,6 +457,16 @@ jobs:
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash scripts/ci/run-tests.sh tests/compliance --verbose
 
+      # tests/evals was never in this list, so its four guards (quality-index,
+      # dead-generation #3036, eval-coverage, effective-recall) all passed
+      # locally and gated nothing. Same dead-gate shape as the islands suite.
+      # These are pure logic/arithmetic and make no model calls.
+      - name: Run eval-harness guard tests
+        shell: bash
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash scripts/ci/run-tests.sh tests/evals --verbose
+
   # ============================================================================
   # STAGE 7: Agent & Skill Validation
   # Uses dynamic test discovery
