@@ -477,6 +477,16 @@ rate_limit_hint() {
         fi
         return 0
     fi
+    # Observed on CI 2026-07-20: "You've hit your weekly limit    resets Jul 21,
+    # 11pm (UTC)". A WEEKLY cap is the important case to name, because unlike a
+    # rolling window it cannot be waited out inside a run, and no amount of
+    # concurrency or backoff tuning changes it — the only levers are scheduling
+    # and shrinking the corpus.
+    if [[ "$msg" == *"weekly limit"* ]]; then
+        local resets="${msg#*resets }"
+        echo " — WEEKLY cap exhausted${resets:+, resets ${resets}} (not fixable by backoff)"
+        return 0
+    fi
     if [[ "$msg" == *"ate limit"* ]]; then
         echo " — rate limit (rolling window)"
         return 0
