@@ -265,7 +265,19 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 | **4. Evaluation & Rating** | Rate 0-10 (7 dimensions incl. **simplicity**), devil's advocate | Ranked ideas |
 | **5. Synthesis** | Filter to top 2-3, trade-off table, **test strategy per approach** | Options |
 | **6. Design Presentation** | Present in 200-300 word sections, log to experiment journal | Validated design |
+| **6.4. Living Plan Playground** (optional, on request or multi-wave plan) | Emit an updatable LPP playground via `visualize-plan`'s living-plan path | `<slug>.html` (living) |
 | **6.5. Audio Podcast** (signal-fired, optional) | Auto-emit `brainstorm-podcast.m4a` when composite≥8.0 + approaches≥4 | `.m4a` file |
+
+### Phase 6.4 — Living Plan Playground (optional)
+
+When the user asked for a playground output, OR the synthesis produced a **multi-wave plan** (2+
+execution waves with verifiable items), emit the design as a **living plan playground** instead of a
+one-shot render: waves from Phase 5 synthesis, 7-dimension scores from Phase 4, discarded ideas with
+reasons from Phase 3, one item per work unit with a "done when" evidence check. Route through
+`visualize-plan`'s living-plan path (exemplar `living-plan.template.html`, update-mode contract in its
+`references/format-dispatch.md` §Living-plan update mode). The artifact then tracks its own execution:
+later sessions flip item statuses in the embedded `lpp-state` JSON and append to its changelog — one
+plan = one file, never fork.
 
 ### Phase 6.5 — Post-synthesis audio podcast (signal-fired, optional)
 
