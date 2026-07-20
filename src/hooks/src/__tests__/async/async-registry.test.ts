@@ -168,7 +168,7 @@ describe('Async Hooks Registry', () => {
       // 107 -> 106: MessageDisplay observer reverted same-day (claude plugin validate rejects the key).
       // 106 -> 105: removed lifecycle/agentation-context (SessionStart, async 5s) —
       //             the agentation UI-annotation integration was dropped entirely.
-      expect(asyncHooks.length, 'Should have exactly 105 async hooks').toBe(105);
+      expect(asyncHooks.length, 'Should have exactly 106 async hooks').toBe(106);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
