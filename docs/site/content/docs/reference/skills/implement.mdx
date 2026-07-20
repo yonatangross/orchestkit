@@ -306,20 +306,19 @@ Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, par
 
 **Partial results (CC 2.1.98):** if a worktree-isolated agent crashes mid-implementation, salvage its partial output — `git diff --name-only` in its worktree, commit what's usable, flag incomplete items — instead of re-spawning; escalate a `BLOCKED` agent to the user. Full salvage logic: the monitor-patterns reference above.
 
-### Worktree-Isolated Implementation (CC 2.1.50)
+### Worktree-Isolated Implementation
 
-> ⚠️ **`isolation="worktree"` does NOT reliably isolate parallel agents in
-> CC Opus 4.7. Observed: spawning multiple agents with that param thrashes
-> the PRIMARY worktree's HEAD via sequential `git checkout`, cutting agents
-> off at ~60 tool uses. Tracked at Yonatan-HQ/platform#3224.**
+**Spawn parallel implementation agents with `Agent(isolation="worktree")`.** The
+subagent bypass of the worktree-isolation guard was fixed in CC 2.1.154 and
+completed in 2.1.203; ork's floor is >= 2.1.206, so every supported session gets
+real isolation. Full pattern, plus the 2.1.206 caveat that `EnterWorktree`
+now prompts for confirmation on ork's out-of-tree `../&lt;repo&gt;-&lt;task&gt;` convention:
+`Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/worktree-agent-pattern.md")`
 
-**Use the manual pre-create pattern instead.** The lead creates one
-worktree per agent BEFORE spawning, and each agent prompt starts with
-`FIRST: cd &lt;worktree-path&gt;`. Empirical: 4–22 tool-uses per agent (vs
-60–86 with broken isolation), zero cutoffs across M164 Wave 2/3.
-
-Load full pattern + helper function + incident details + prompt
-constraints: `Read("$\{CLAUDE_SKILL_DIR\}/references/manual-worktree-pattern.md")`
+*Historical (CC &lt;= 2.1.153 only):* the param thrashed the primary worktree's HEAD
+and cut agents off at ~60 tool uses (Yonatan-HQ/platform#3224). The manual
+pre-create workaround that fixed it is superseded and kept only as a record:
+`references/manual-worktree-pattern.md`.
 
 ### Post-Deploy Monitoring (CC 2.1.71)
 

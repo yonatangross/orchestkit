@@ -1,6 +1,7 @@
 # Heal Loop Strategy
 
-Fix failing generated tests iteratively. Max 3 iterations to prevent infinite loops.
+Fix failing generated tests iteratively. Ceiling is 3 iterations (2 repair passes plus a
+final verifying run) to prevent infinite loops. See "Iteration Budget" below for the split.
 
 ## Failure Classification
 
@@ -16,13 +17,17 @@ Fix failing generated tests iteratively. Max 3 iterations to prevent infinite lo
 
 ## Iteration Budget
 
+Enforced by `workflows/heal-loop.mjs`, not by instruction. The ceiling is **3 diagnose runs
+and 2 repair passes**: the final iteration verifies the previous repair and does not start a
+new one, because there would be no run left to confirm it.
+
 ```
-Iteration 1: Fix obvious errors (imports, assertions, setup)
-Iteration 2: Fix interaction errors (selectors, timing, state)
-Iteration 3: Fix remaining edge cases or mark as known-failing
+Iteration 1: diagnose -> repair  (obvious errors: imports, assertions, setup)
+Iteration 2: diagnose -> repair  (interaction errors: selectors, timing, state)
+Iteration 3: diagnose only       (verify iteration 2's repair; no further repair)
 ```
 
-After 3 iterations, any still-failing tests are reported with:
+Anything still failing after the final diagnose is reported with:
 - Failure reason
 - File and line number
 - Suggested manual fix

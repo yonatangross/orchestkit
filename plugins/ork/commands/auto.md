@@ -52,14 +52,32 @@ so there is no "too obvious for auto".
 
 Full per-category parameter extraction + edge cases: `references/routing-rules.md`.
 
+## Model weight (orthogonal second dimension)
+
+Intent picks **who** does the work. Weight picks **how expensive that worker should be**. A route is `{intent} @ {weight}`. Weight never changes the intent and never replaces it. The taxonomy above and the 7 disambiguation rules are untouched by it.
+
+Tiers are the ones already declared in `src/agents/*.md` frontmatter (`haiku` 7 · `sonnet` 10 · `opus` 6 · `inherit` 13). No parallel taxonomy.
+
+| weight | tier | the task is… |
+|---|---|---|
+| **Light** | `haiku` | mechanical or IO-bound, single file, deterministic output, trivially revertible |
+| **Standard** | `sonnet` | the default: bounded judgment, known pattern |
+| **Heavy** | `opus` | adversarial, security, safety, architecture, cross-cutting, or ambiguous |
+
+**Resolution is asymmetric:** ANY heavy signal ⇒ Heavy; Light requires ALL light signals; everything else is Standard. Under-powering a security review yields a confident wrong answer nobody catches; over-powering a rename only wastes money.
+
+Weight is **per leg, not per route**. A PR review can be a Heavy security leg plus a Light lint leg. Full signal table, per-intent defaults, and the honest limits of this lever: `references/routing-rules.md`.
+
+> **This is the selector, not the cap.** `src/hooks/src/pretool/task/team-size-gate.ts` is an ex-post, per-session counter keyed on `ORK_TEAM_OPUS_MAX` (default 8). Its default posture is advisory (`outputWarning`); with `ORK_TEAM_SIZE_HARD=1` it escalates to `outputDeny` and refuses the spawn outright. Either way it reads the model read-only: it can refuse a premium spawn, but it cannot *choose* a cheaper one for you. Routing is what chooses. The two compose, cap as backstop and routing as selector; never duplicate the cap's counting here.
+
 ## The flow
 
 ```
   CLASSIFY  ->  CONFIRM  ->  HAND OFF
      |            |             |
-  reason       show the     invoke the
-  out loud     route        target skill;
-  (CoT)        + nod        follow ITS phases
+  intent       show the     invoke the
+  + weight     route        target skill;
+  out loud     + nod        follow ITS phases
 ```
 
 ### 1. Classify (reason out loud first)
@@ -68,6 +86,8 @@ State your reasoning **before** committing to a route — this triggers chain-of
 
 Apply the disambiguation rules (most specific wins; explicit verb beats inferred intent). **The load-bearing one: explicit verb wins** — "Fix the slow query" → `fix`, not `optimize`. For the full ordered ruleset (all 7, including the truly-ambiguous fallback), `references/routing-rules.md` is canonical.
 
+Then classify **weight in the same pass**, naming the signal that decided it: *"touches auth and models an attacker → Heavy."* Intent first, weight second; a weight call never rewrites the intent you just committed to.
+
 ### 2. Confirm (low ceremony)
 
 Show the chosen route in one line and get a nod before handing off:
@@ -75,11 +95,21 @@ Show the chosen route in one line and get a nod before handing off:
 ```
 Goal:   "{original goal}"
 Intent: {category}
+Weight: {Light|Standard|Heavy} ({tier}), decided by: {signal}
 Route:  {/ork:skill or loop} {extracted args}
         [run] · [adjust] · [cancel]
 ```
 
 For low-risk single-pass routes (`verify`, `review`), an inline "routing you to /ork:verify — ok?" is enough. Never hand off without a nod.
+
+**Premium spend is never silent.** Routing down (Light/Standard) needs no approval, because spending less is not a decision the user has to make. Routing **up to Heavy** is premium spend and gets its own line the user must accept:
+
+```
+⚠️  Heavy route: {N} opus-tier leg(s), triggered by: {heavy signal}
+    [approve premium] · [run Standard instead] · [cancel]
+```
+
+If they decline, run Standard and say plainly which check is weakened. Never upgrade mid-handoff or inside a spawned agent the user did not see.
 
 ### 3. Hand off
 
@@ -100,6 +130,10 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 - **No recursion.** `/ork:auto` must not route to itself, directly or via a spawned agent.
 - **No bypass.** Routing does not skip the target skill's guardrails, readonly enforcement, or confirmation steps.
 - **Classification quality is the whole job.** A misroute that fails silently is worse than a fallback question. When two categories are equally plausible, ask — don't gamble.
+- **No silent upgrade.** A Heavy (opus/fable) leg is premium spend and requires an explicit nod on its own line. Downgrades stay silent.
+- **The cap is not the router's to move.** Never read, set, or suggest raising `ORK_TEAM_OPUS_MAX`. That is the user's budget.
+- **A gate denial is not a re-route trigger.** If `team-size-gate` denies a spawn, do NOT relabel a Heavy leg as Standard to slip under the cap. Report the denial and let the user decide.
+- **Weight is a hint, not an override.** The router cannot change an agent's declared `model:`. It selects skills and agents, and sets the caller's model that the 13 `inherit` agents adopt. It never overrides a target skill's own agent selection.
 
 ## Validation
 
@@ -121,7 +155,11 @@ Target ≥95% category accuracy; track the fallback rate as a degradation alarm 
 
 Done means all of these hold:
 - Classification reasoning is stated out loud BEFORE a route is committed, naming the chosen intent category and the signal words that triggered it.
+- Weight is classified in the same pass as intent, naming the signal that decided it, and resolves asymmetrically (ANY heavy signal ⇒ Heavy; Light needs ALL light signals; else Standard).
 - The confirm block names one of the taxonomy's intent categories, its target skill or `/goal` loop, and the extracted args — on one line.
+- Every Heavy (opus/fable) leg is surfaced for explicit approval before handoff; no premium spend is silent, and declining it runs Standard with the weakened check named.
+- Adversarial, security, safety, architecture, and cross-cutting work is never routed below opus tier; mechanical single-file IO-bound work is not routed above haiku tier.
+- The router neither counts spawns nor touches `ORK_TEAM_OPUS_MAX`, and never downgrades a Heavy leg to evade a `team-size-gate` denial.
 - No target skill is invoked without an explicit nod (or `-y`); handoff never precedes confirmation.
 - When two categories are equally plausible, exactly ONE clarifying question is asked — the fallback is never silently guessed.
 - `optimize` routes to a `/goal` loop and `improve-skill` to the evolution gate; neither claims a dedicated skill that does not exist.

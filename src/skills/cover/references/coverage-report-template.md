@@ -25,7 +25,7 @@ Format for the Phase 6 report output.
 | E2E | {N} | {N} | {N} | {N} |
 | **Total** | **{N}** | **{N}** | **{N}** | **{N}** |
 
-Heal iterations used: {N}/3
+Heal iterations used: {N}/{maxIterations}   # denominator is 2 or 3, see heal-loop-strategy.md
 
 ## Files Created
 
@@ -41,7 +41,7 @@ Heal iterations used: {N}/3
 
 ## Failures (if any)
 
-{tests that could not be healed after 3 iterations, with failure reason and suggested fix}
+{tests that could not be healed within the iteration budget, with failure reason and suggested fix}
 
 ## Next Steps
 

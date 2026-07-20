@@ -49,12 +49,16 @@ for token in "$ARGUMENTS".split():
 
 Read `${CLAUDE_EFFORT}` (CC 2.1.120+) first; explicit `--effort=` token wins as override. Default `high` when CC < 2.1.120 and no flag. Pattern matches assess + explore (#1540). Scale test generation depth:
 
-| Effort Level | Tiers Generated | Agents | Heal Iterations |
+| Effort Level | Tiers Generated | Agents | `maxIterations` to pass Phase 5 |
 |-------------|----------------|--------|-----------------|
-| **low** | Unit only | 1 agent | 1 max |
-| **medium** | Unit + Integration | 2 agents | 2 max |
-| **high** (default) | Unit + Integration + E2E | 3 agents | 3 max |
-| **xhigh** (Opus 4.8, CC 2.1.111+) | Unit + Integration + E2E | 3 agents | 4 max (one extra heal pass) |
+| **low** | Unit only | 1 agent | 2 (1 repair + 1 verify) |
+| **medium** | Unit + Integration | 2 agents | 2 (1 repair + 1 verify) |
+| **high** (default) | Unit + Integration + E2E | 3 agents | 3 (2 repairs + 1 verify) |
+| **xhigh** (Opus 4.8, CC 2.1.111+) | Unit + Integration + E2E | 3 agents | 3 (the ceiling; xhigh adds agents, not heal passes) |
+
+Values are what you pass as `maxIterations` in Phase 5. The script clamps to `[2, 3]`
+(`heal-loop.mjs`), so anything outside that range is coerced, and the final iteration always
+verifies rather than repairing. There is no 4-iteration mode.
 
 > **Override:** Explicit `--tier=` flag or user selection overrides `/effort` downscaling.
 
@@ -311,28 +315,36 @@ Run all generated tests and collect results.
 
 ### Phase 5: Heal Loop
 
-Fix failing tests iteratively. Max 3 iterations to prevent infinite loops.
+Do NOT hand-roll the loop. Run the real executor:
 
 ```python
-for iteration in range(3):
-    if all_tests_pass:
-        break
-
-    # For each failing test:
-    # 1. Read the test file and the source code it tests
-    # 2. Analyze the failure (assertion error? import error? timeout?)
-    # 3. Fix the test (not the source code — tests only)
-    # 4. Re-run the fixed tests
-
-    # Common fixes:
-    # - Wrong assertions (expected value mismatch)
-    # - Missing imports or setup
-    # - Stale selectors in E2E tests
-    # - Race conditions (add proper waits)
-    # - Mock configuration errors
+Workflow(
+  scriptPath="${CLAUDE_SKILL_DIR}/workflows/heal-loop.mjs",
+  args={"testCommand": "<tier test command>", "tier": "unit", "testGlob": "tests/unit/",
+        "maxIterations": 3}   # from the effort table above; omitted defaults to 3
+)
+# One invocation per tier that has failures.
 ```
 
-Load heal strategy details: `Read("${CLAUDE_SKILL_DIR}/references/heal-loop-strategy.md")`
+**The iteration bound is enforced by the script, not by instruction.** `heal-loop.mjs`
+runs a real counted loop clamped to `[2, 3]`: each iteration spawns a diagnose agent that
+actually executes the test command and returns structured pass/fail plus the verbatim
+failure output, then a repair agent that receives *that failure text* and edits test files
+only. It exits early the moment the suite is green.
+
+The **final iteration diagnoses but does not repair** - there would be no run left to verify
+that repair. So `maxIterations: N` means N diagnose runs and N-1 repair passes, and the
+default 3 means 2 repairs. A ceiling of 1 is coerced to 2, since 1 would mean zero repairs.
+
+Every failure is classified into the taxonomy (`assertion`, `import`, `setup`, `timeout`,
+`stale-selector`, `type`, `flaky`, plus `source-bug`), which selects the fix strategy.
+
+The workflow returns `status: "healed"` or a **structured failure** (`status: "failed"`,
+`healed: false`) carrying `remaining_failures`, `failure_categories`, and the per-iteration
+ledger. Never report a `"failed"` result as a success: surface the still-failing tests in
+the Phase 6 report.
+
+Strategy detail (taxonomy table, fix rules, flaky prevention): `Read("${CLAUDE_SKILL_DIR}/references/heal-loop-strategy.md")`
 
 **Boundary: heal fixes TESTS, not source code.** If a test fails because the source code has a bug, report it — don't silently fix production code.
 
@@ -455,6 +467,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `real-service-detection.md` | Docker-compose/testcontainers detection, service startup, teardown |
 | `heal-loop-strategy.md` | Failure classification, fix patterns, iteration budget |
 | `coverage-report-template.md` | Report format, delta calculation, gap analysis |
+| `workflows/heal-loop.mjs` | Phase 5 executor — script-enforced 3-iteration repair loop (run via the Workflow tool) |
 
 
 **Version:** 1.2.0 (April 2026) — `${CLAUDE_EFFORT}` env var as primary effort signal (CC 2.1.120, #1540)

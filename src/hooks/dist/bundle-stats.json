@@ -47,8 +47,8 @@
       "exports": 52
     },
     "skill": {
-      "size": 40908,
-      "sizeKB": "39.95",
+      "size": 43884,
+      "sizeKB": "42.86",
       "exports": 68
     },
     "agent": {
@@ -57,8 +57,8 @@
       "exports": 69
     }
   },
-  "totalSize": 663583,
-  "totalSizeKB": "648.03",
+  "totalSize": 666559,
+  "totalSizeKB": "650.94",
   "inputs": 112,
-  "avgBundleSizeKB": "58.91"
+  "avgBundleSizeKB": "59.18"
 }

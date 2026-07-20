@@ -748,7 +748,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router — the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Takes a plain-English goal, classifies it into one intent category, and routes to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:brainstorm, /ork:implement, /ork:review-pr, /ork:verify, a /goal optimization loop, or the skill-evolution gate). A goal that maps unambiguously to one skill short-circuits straight to it — routing is never overhead, so use it even when you think you know the target skill. Skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, get it to, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "5fd0412da1b069e781d1586ad40d24e85de219fe6057f78912f00931541f0ba6",
+    "sha256": "8a8fbda88b5b94bd2f4af61694851c5b4d716508504777b79e76af8dc8f2769f",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -1104,9 +1104,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ci-sentinel": {
     "name": "ci-sentinel",
-    "description": "Hourly autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply — NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over.",
+    "description": "Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply — NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over.",
     "version": "0.1.0",
-    "sha256": "9bc650fae591de13c4a8f173f60654d1f810c1c466c55d4ba3e0ee13e6eb7654",
+    "sha256": "c42a5420c811a30893e3e6fdde313e2fe1c1c0cf6b28b1c49469900df2dfdbc4",
     "author": "OrchestKit",
     "tags": [
       "ci",
@@ -1351,7 +1351,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "cover",
     "description": "Generate and run comprehensive test suites — unit tests, integration tests with real services (testcontainers/docker-compose), and Playwright E2E tests. Analyzes coverage gaps, spawns parallel test-generator agents per tier, runs tests, and heals failures (max 3 iterations). Use when generating tests for existing code, improving coverage after implementation, or creating a full test suite from scratch. Chains naturally after /ork:implement. Do NOT use for verifying/grading existing tests (use /ork:verify) or running tests without generation (use npm test directly).",
     "version": "1.2.0",
-    "sha256": "e42c218c5bf2975e64201a04fac6012a4aabaf6314568a524108bb858017f9f0",
+    "sha256": "f765ef22e2ce925fad34660a7fe75a025f8a248b1c2fe7e51996d6e8aca7010d",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2791,7 +2791,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when implementing features, building new capabilities, or creating full-stack functionality.",
     "version": "2.8.0",
-    "sha256": "0e305875c2e1204050a16fde3151c3bf2288947d45da95aebbe2f12f362e4cdc",
+    "sha256": "a0fb2ba0fcf72adb5da562050ec0554d4b1f9dd45602ace7b926d5d67a8e5492",
     "author": "OrchestKit",
     "tags": [
       "implementation",
