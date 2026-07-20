@@ -5,6 +5,28 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.82.0](https://github.com/yonatangross/orchestkit/compare/v8.81.0...v8.82.0) (2026-07-20)
+
+
+### Features
+
+* **playgrounds:** living-plan archetype (LPP) ([#3019](https://github.com/yonatangross/orchestkit/issues/3019)) ([cb03e49](https://github.com/yonatangross/orchestkit/commit/cb03e4981cf5b4fa99c1be697431aa3cc13a63c1))
+
+
+### Bug Fixes
+
+* **analytics:** stop advertising data the file cannot provide ([#3037](https://github.com/yonatangross/orchestkit/issues/3037)) ([96bc00c](https://github.com/yonatangross/orchestkit/commit/96bc00c4834222750371085b6eaeb5923bd2c3c9))
+
+
+### Miscellaneous
+
+* **deps:** bump the npm-minor-patch group across 1 directory with 21 updates ([#3030](https://github.com/yonatangross/orchestkit/issues/3030)) ([927229c](https://github.com/yonatangross/orchestkit/commit/927229c34ba6e4eb70f0af8563ea7d9801dd05bc))
+
+
+### CI/CD
+
+* bump the github-actions group across 1 directory with 2 updates ([#3031](https://github.com/yonatangross/orchestkit/issues/3031)) ([e062c96](https://github.com/yonatangross/orchestkit/commit/e062c96a83ed7e87edae613ac67b00882e7b9af5))
+
 ## [8.81.0](https://github.com/yonatangross/orchestkit/compare/v8.80.3...v8.81.0) (2026-07-20)
 
 
