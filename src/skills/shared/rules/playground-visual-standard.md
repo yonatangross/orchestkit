@@ -199,6 +199,7 @@ Glass reads as glass only against a dark, contrasted backdrop with a visible edg
 8. Native `draggable="true"` DnD → replace with the §7 pointer+keyboard engine.
 9. Physical `left`/`right` CSS in a playground that may be RTL → logical properties.
 10. Copy-prompt that dumps values instead of a natural-language instruction.
+11. A raw `<` inside an embedded JSON island (`<script type="application/json">`) → write it as `\u003c`. The `type` attribute is invisible to the HTML tokenizer, so a literal `</script` in any string value terminates the element at parse time and the remainder is parsed as live markup — before `JSON.parse` and before any escaper the renderer defines, so no JS-level guard can reach it. `JSON.stringify` does not escape `<`; the writer must emit `\u003c`. Enforced by `tests/security/test-json-island-breakout.sh`.
 
 ---
 

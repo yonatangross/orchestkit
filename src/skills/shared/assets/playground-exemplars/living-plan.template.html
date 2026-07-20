@@ -201,6 +201,14 @@
 </div>
 
 <!-- ═══════════ STATE — the only block sessions edit. Append, flip statuses, never fork. ═══════════ -->
+<!-- SECURITY INVARIANT — write every "<" in the values below as \u003c
+     `type="application/json"` means nothing to the HTML tokenizer: a literal
+     `</script` anywhere in this block ENDS the element at parse time, and the rest
+     of the state is then parsed as live markup. That happens before JSON.parse and
+     before esc()/stCls()/riskColor()/safeUrl() exist, so no renderer-side guard can
+     defend it — a plan title of `x</script><img src=x onerror=...>` simply executes.
+     JSON.stringify does NOT escape `<`, so the writer must. \u003c is valid JSON
+     and parses back to a plain `<`. Enforced by tests/security/test-json-island-breakout.sh. -->
 <script type="application/json" id="lpp-state">
 {
   "lpp": 2,
