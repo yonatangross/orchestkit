@@ -6,6 +6,42 @@ name: "Performance and load testing evaluation"
 skill_path: src/skills/testing-perf/SKILL.md
 plugin_dir: plugins/ork
 
+trigger_evals:
+  # Should trigger — load and stress testing
+  - prompt: "how do I load test this endpoint to find where it breaks?"
+    should_trigger: true
+  - prompt: "k6 or Locust for stress testing a REST API?"
+    should_trigger: true
+  # Should trigger — suite execution speed via parallelism
+  - prompt: "my pytest suite takes 12 minutes, how do I parallelize it across cores?"
+    should_trigger: true
+  # Should trigger — benchmarking
+  - prompt: "how do I benchmark this function and track regressions over time?"
+    should_trigger: true
+  # Should trigger — terse phrasing
+  - prompt: "k6 load test"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "locust stres test setup"
+    should_trigger: true
+  # Should NOT trigger — performance confusion pair (app runtime perf, not test perf)
+  - prompt: "how do I improve my page's LCP and Core Web Vitals?"
+    should_trigger: false
+  - prompt: "this React component re-renders too often, how do I fix it?"
+    should_trigger: false
+  # Should NOT trigger — testing-unit confusion pair (boilerplate, not parallelism)
+  - prompt: "how do I reduce boilerplate across these repetitive test blocks?"
+    should_trigger: false
+  # Should NOT trigger — cover confusion pair (cover GENERATES tests)
+  - prompt: "generate a test suite for the orders API"
+    should_trigger: false
+  # Should NOT trigger — testing-e2e confusion pair
+  - prompt: "how do I structure page objects in Playwright?"
+    should_trigger: false
+  # Should NOT trigger — multi-intent, primary is implement
+  - prompt: "build the search endpoint and then load test it to 500 rps"
+    should_trigger: false
+
 quality_evals:
   - prompt: |
       We're launching a new API endpoint that needs to handle 500 concurrent

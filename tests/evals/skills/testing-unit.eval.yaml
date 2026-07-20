@@ -6,6 +6,47 @@ name: "Unit testing patterns evaluation"
 skill_path: src/skills/testing-unit/SKILL.md
 plugin_dir: plugins/ork
 
+trigger_evals:
+  # Should trigger — fixture scoping and test isolation
+  - prompt: "what fixture scope should I use for a pytest fixture that creates a database user?"
+    should_trigger: true
+  - prompt: "my tests share state and conflict in CI, how should I structure test data?"
+    should_trigger: true
+  # Should trigger — network-level mocking
+  - prompt: "should I mock fetch directly or intercept at the network layer with MSW?"
+    should_trigger: true
+  # Should trigger — parametrization and boilerplate
+  - prompt: "I have five near-identical test blocks that differ only by input, how do I collapse them?"
+    should_trigger: true
+  - prompt: "what is the AAA pattern and how strictly should I follow it?"
+    should_trigger: true
+  # Should trigger — terse phrasing
+  - prompt: "fixture scope?"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "parametrized tets with pytest"
+    should_trigger: true
+  # Should NOT trigger — cover confusion pair (cover GENERATES tests, this skill explains patterns)
+  - prompt: "generate unit tests for the pricing service"
+    should_trigger: false
+  - prompt: "add test coverage for the notification module"
+    should_trigger: false
+  # Should NOT trigger — testing-perf confusion pair (parallel EXECUTION, not per-test authoring)
+  - prompt: "how do I run my pytest suite in parallel across 8 cores?"
+    should_trigger: false
+  # Should NOT trigger — testing-llm confusion pair (LLM-specific mocking)
+  - prompt: "how should I mock the Anthropic API response in my tests?"
+    should_trigger: false
+  # Should NOT trigger — testing-integration confusion pair
+  - prompt: "how do I verify my API contract with Pact?"
+    should_trigger: false
+  # Should NOT trigger — testing-e2e confusion pair
+  - prompt: "how do I set up page objects in Playwright?"
+    should_trigger: false
+  # Should NOT trigger — multi-intent, primary is implement
+  - prompt: "implement the discount service and then write its unit tests"
+    should_trigger: false
+
 quality_evals:
   - prompt: |
       I need to write unit tests for a pricing service that calculates

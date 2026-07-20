@@ -6,6 +6,42 @@ name: "Integration and contract testing evaluation"
 skill_path: src/skills/testing-integration/SKILL.md
 plugin_dir: plugins/ork
 
+trigger_evals:
+  # Should trigger — contract testing
+  - prompt: "how do I verify the consumer and provider agree on the API contract?"
+    should_trigger: true
+  - prompt: "two teams deploy independently and keep breaking each other's API expectations"
+    should_trigger: true
+  # Should trigger — real-dependency testing
+  - prompt: "should I test my repository layer against a real Postgres or against mocks?"
+    should_trigger: true
+  # Should trigger — schema and property-based validation
+  - prompt: "how do I validate response shapes with Zod inside my tests?"
+    should_trigger: true
+  - prompt: "when is property-based testing worth it over example-based tests?"
+    should_trigger: true
+  # Should trigger — terse phrasing
+  - prompt: "pact contract testing"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "propery based testing in python"
+    should_trigger: true
+  # Should NOT trigger — cover confusion pair (cover GENERATES tests)
+  - prompt: "generate integration tests for the order service"
+    should_trigger: false
+  # Should NOT trigger — testing-unit confusion pair
+  - prompt: "what fixture scope should this factory use?"
+    should_trigger: false
+  # Should NOT trigger — testing-e2e confusion pair
+  - prompt: "how do I drive the browser through the signup flow?"
+    should_trigger: false
+  # Should NOT trigger — testing-perf confusion pair
+  - prompt: "how many requests per second can this endpoint sustain?"
+    should_trigger: false
+  # Should NOT trigger — multi-intent, primary is implement
+  - prompt: "add the payments endpoint and then contract-test it against inventory"
+    should_trigger: false
+
 quality_evals:
   - prompt: |
       We have a Node.js orders service that depends on a payments service
