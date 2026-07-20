@@ -481,7 +481,15 @@ rate_limit_hint() {
         echo " — rate limit (rolling window)"
         return 0
     fi
-    echo " — unrecognised limit message (${#msg} chars)"
+
+    # Only reached when api_error_status is set, which means the call was
+    # rejected before generating anything: .result here is the API's own error
+    # string, not model output. Echoing it is therefore safe, and withholding
+    # it is what left the limit TYPE unknown after three CI runs. Bounded and
+    # newline-stripped so a hostile payload cannot reshape the log.
+    local safe
+    safe=$(printf '%s' "${msg:0:200}" | tr -d '\n\r' | tr -c '[:print:]' ' ')
+    echo " — unrecognised limit message (${#msg} chars): ${safe}"
 }
 
 classify_generation() {
