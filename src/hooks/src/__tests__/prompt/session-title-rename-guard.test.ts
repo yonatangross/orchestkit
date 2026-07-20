@@ -14,7 +14,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { shouldEmitSessionTitle } from '../../prompt/unified-dispatcher.js';
@@ -89,5 +89,46 @@ describe('shouldEmitSessionTitle — /rename guard', () => {
     );
     const emit = shouldEmitSessionTitle('🔧 New · feat/x', SID, projectDir, transcript, 'feat/x');
     expect(emit).toBe(false); // latest record is a rename → suppress
+  });
+});
+
+describe('shouldEmitSessionTitle — sticky /rename latch (the leak fix)', () => {
+  it('once a rename is detected, STAYS suppressed even after the transcript no longer shows it', () => {
+    // Turn N: user renamed → detected → latched.
+    primeLastEmitted('📊 Old · feat/x');
+    writeFileSync(transcript, customTitleLine('my important session'), 'utf8');
+    expect(shouldEmitSessionTitle('🔧 New · feat/x', SID, projectDir, transcript, 'feat/x')).toBe(false);
+
+    // Turn N+K: the rename record has aged out of the tail window (or cmux
+    // stamped the branch as the newest custom-title). Without the latch the
+    // guard would MISS the rename and emit, overwriting the user's name.
+    writeFileSync(transcript, customTitleLine('feat/x'), 'utf8'); // only a branch stamp visible now
+    expect(shouldEmitSessionTitle('🎯 Yet another · feat/x', SID, projectDir, transcript, 'feat/x')).toBe(false);
+
+    // And with an EMPTY transcript tail — still suppressed.
+    writeFileSync(transcript, '', 'utf8');
+    expect(shouldEmitSessionTitle('🚀 Different · feat/x', SID, projectDir, transcript, 'feat/x')).toBe(false);
+  });
+
+  it('writes the user-renamed.flag when it latches', () => {
+    primeLastEmitted('📊 Old · feat/x');
+    writeFileSync(transcript, customTitleLine('hand typed name'), 'utf8');
+    shouldEmitSessionTitle('🔧 New · feat/x', SID, projectDir, transcript, 'feat/x');
+    expect(existsSync(join(promptSessionDir(), 'user-renamed.flag'))).toBe(true);
+  });
+
+  it('a pre-existing latch suppresses immediately, before any transcript read', () => {
+    // Simulate a latch from an earlier turn; transcript shows a normal ork title.
+    writeFileSync(join(promptSessionDir(), 'user-renamed.flag'), 'prev\n', 'utf8');
+    primeLastEmitted('📊 Old · feat/x');
+    writeFileSync(transcript, customTitleLine('📊 Old · feat/x'), 'utf8');
+    expect(shouldEmitSessionTitle('🔧 New · feat/x', SID, projectDir, transcript, 'feat/x')).toBe(false);
+  });
+
+  it('does NOT latch when there was no rename (normal emit still works)', () => {
+    primeLastEmitted('📊 Old · feat/x');
+    writeFileSync(transcript, customTitleLine('📊 Old · feat/x'), 'utf8'); // last title is ours, not a rename
+    expect(shouldEmitSessionTitle('🔧 New · feat/x', SID, projectDir, transcript, 'feat/x')).toBe(true);
+    expect(existsSync(join(promptSessionDir(), 'user-renamed.flag'))).toBe(false);
   });
 });
