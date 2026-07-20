@@ -226,6 +226,19 @@ export function shouldEmitSessionTitle(
   if (!sessionId || !projectDir) return true;
   try {
     const dir = getPromptSessionDir(sessionId, projectDir);
+    // STICKY /rename latch: once the user has taken the title over, never emit
+    // again for this session. The per-turn transcript check below is not
+    // reliable on its own — the rename record can age past the tail window
+    // (TRANSCRIPT_TAIL_BYTES) on a long session, or cmux can stamp the branch
+    // as the newest `custom-title`, either of which makes userRenamedTitle()
+    // miss the rename. A single miss let ork re-emit and OVERWRITE the user's
+    // name, which un-named the session and re-woke CC's `ai-title` auto-titler
+    // (CC only generates a title for UNNAMED sessions). Latching the yield the
+    // first time we detect a rename makes it permanent for the session — this
+    // is the per-session disable flag the rename design (option B) specified.
+    const renamedFlag = join(dir, 'user-renamed.flag');
+    if (existsSync(renamedFlag)) return false;
+
     const file = join(dir, 'last-session-title.txt');
     let lastEmitted = '';
     if (existsSync(file)) {
@@ -239,6 +252,13 @@ export function shouldEmitSessionTitle(
     // suppress our emit so a regenerated topic can't clobber a rename. Only runs
     // on the rare turns where our title actually changed, so it stays cheap.
     if (title !== lastEmitted && userRenamedTitle(transcriptPath, lastEmitted, branch)) {
+      // Latch it: a future tail-check miss must not resurrect our emit.
+      try {
+        if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+        writeFileSync(renamedFlag, `${lastEmitted}\n`, 'utf8');
+      } catch {
+        /* fail-open on the latch write; we still suppress THIS turn */
+      }
       return false;
     }
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });

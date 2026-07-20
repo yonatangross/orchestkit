@@ -17,6 +17,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.80.2",
+    "date": "2026-07-19",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** here-string guard escalates to ASK instead of DENY ([#3021](https://github.com/yonatangross/orchestkit/issues/3021)) ([69fbfcb](https://github.com/yonatangross/orchestkit/commit/69fbfcbfe0eef3188a455954319321f656781786))",
+          "**hooks:** stop flagging quoted-heredoc bodies as shell attacks ([#3015](https://github.com/yonatangross/orchestkit/issues/3015)) ([6747007](https://github.com/yonatangross/orchestkit/commit/6747007adb735fcd147f420d5b8cf4d994491ac6))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "make the gates real, and stop the pipe guard blocking quoted text ([#3018](https://github.com/yonatangross/orchestkit/issues/3018)) ([eb3e4e9](https://github.com/yonatangross/orchestkit/commit/eb3e4e9b3b487780d1fbb1f7b1d8b44bfd89c0c9))",
+          "pin actions in skill-claims-audit to SHA ([#3020](https://github.com/yonatangross/orchestkit/issues/3020)) ([f7349ec](https://github.com/yonatangross/orchestkit/commit/f7349ec9376a0d815e48bd02c01b5fb857018972))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.80.1",
     "date": "2026-07-19",
     "compareUrl": "",
