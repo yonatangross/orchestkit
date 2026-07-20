@@ -2789,9 +2789,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "implement": {
     "name": "implement",
-    "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when implementing features, building new capabilities, or creating full-stack functionality.",
+    "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability, for example 'build a user authentication system with JWT', 'add dark mode support to the dashboard', or 'set up rate limiting middleware'. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "a0fb2ba0fcf72adb5da562050ec0554d4b1f9dd45602ace7b926d5d67a8e5492",
+    "sha256": "1df94ae564b2b7068842f7aeff61c0a45c144ef6a5d15516b3b0df8840c42514",
     "author": "OrchestKit",
     "tags": [
       "implementation",
