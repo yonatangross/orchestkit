@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 const repo = '/Users/yonatangross/coding/yonatangross/orchestkit';
 const ORIG_COMMIT = 'd8acb7dba'; // commit BEFORE the WIP description rewrite (original terse descriptions)
@@ -10,7 +10,9 @@ function descFrom(text) { const m = text.match(/^description:\s*(.*)$/m); return
 const rewritten = {}, original = {};
 for (const a of agents) {
   rewritten[a] = descFrom(fs.readFileSync(`${repo}/src/agents/${a}.md`, 'utf8'));
-  try { original[a] = descFrom(execSync(`git -C ${repo} show ${ORIG_COMMIT}:src/agents/${a}.md`, { encoding: 'utf8' })); } catch { original[a] = rewritten[a]; }
+  // execFileSync with an argv array: no shell, so the interpolated agent name
+  // can never be parsed as a command (CodeQL #331, js/shell-command-injection-from-environment).
+  try { original[a] = descFrom(execFileSync('git', ['-C', repo, 'show', `${ORIG_COMMIT}:src/agents/${a}.md`], { encoding: 'utf8' })); } catch { original[a] = rewritten[a]; }
 }
 
 // test set: task -> correct agent (D=dormant target, F=already-fires)

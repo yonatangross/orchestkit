@@ -77,7 +77,13 @@ function argToZod(argType) {
     case 'select':
     case 'radio': {
       if (!Array.isArray(opts) || opts.length === 0) return { drop: true, reason: 'select/radio with no options' }
-      const enums = opts.map(o => `'${String(o).replace(/'/g, "\\'")}'`).join(', ')
+      // Escape BOTH the backslash (the escape char) and the single quote in one
+      // pass. The old escaper handled only `'`, so a value like `\'` emitted
+      // `\\'` — a literal backslash then a string-closing quote — breaking out
+      // into code position of the generated catalog (CodeQL #334,
+      // js/incomplete-sanitization). Escaping backslash first-and-together
+      // closes that. Single-quote output is kept deliberately (catalog.ts style).
+      const enums = opts.map(o => `'${String(o).replace(/[\\']/g, '\\$&')}'`).join(', ')
       return { zod: `z.enum([${enums}])` }
     }
     case 'color':
