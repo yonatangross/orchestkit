@@ -197,7 +197,11 @@ run_prompt() {
 Available skills:
 $(echo -e "$SKILLS_CATALOG")"
 
+    local dead=0
     for ((i=1; i<=reps; i++)); do
+        # The exit code is deliberately not the signal: `claude` can exit
+        # non-zero and still emit a usable envelope, and can exit 0 with a dead
+        # one. The structured_output probe below is strictly stronger.
         run_with_timeout "$GEN_TIMEOUT" claude -p "$classification_prompt" \
             "${BARE_FLAG[@]}" \
             --model haiku \
@@ -205,7 +209,16 @@ $(echo -e "$SKILLS_CATALOG")"
             --output-format json \
             --json-schema "$TRIGGER_SCHEMA" \
             --max-turns "$MAX_TURNS" \
-            > "$tmpfile" 2>/dev/null || true
+            > "$tmpfile" 2>/dev/null || true  # silent: external-api-shape
+
+        # #3032: a call that produced no structured_output at all did not
+        # "decline to trigger" — it produced NO ANSWER. Counting it as a
+        # non-trigger is what turns an eval-infrastructure outage into a
+        # recall of 0, which then reads as a skill regression.
+        if ! jq -e '.structured_output | objects | has("skill_triggered")' "$tmpfile" >/dev/null 2>&1; then
+            ((dead++))
+            continue
+        fi
 
         local result; result=$(detect_trigger "$tmpfile" "$skill_name")
         if [[ "$result" == "true" ]]; then
@@ -214,7 +227,7 @@ $(echo -e "$SKILLS_CATALOG")"
     done
 
     rm -f "$tmpfile"
-    echo "$triggered"
+    echo "${triggered}|${dead}"
 }
 
 # Run one eval entry in isolation — writes result to a temp file for parallel collection.
@@ -228,11 +241,21 @@ run_prompt_parallel() {
 
     local prompt; prompt=$(yq -r ".trigger_evals[$idx].prompt" "$eval_file")
     local should_trigger; should_trigger=$(yq -r ".trigger_evals[$idx].should_trigger" "$eval_file")
-    local triggered; triggered=$(run_prompt "$prompt" "$skill_id" "$reps")
-    local rate; rate=$(echo "scale=2; $triggered / $reps" | bc)
+    # run_prompt returns "triggered|dead" (#3032).
+    local raw; raw=$(run_prompt "$prompt" "$skill_id" "$reps")
+    local triggered="${raw%%|*}"
+    local dead="${raw##*|}"
+
+    # Rate is over the reps that actually ANSWERED. If every rep died there is
+    # no rate to report, so emit 0 and let the caller gate on the dead count.
+    local answered=$((reps - dead))
+    local rate="0"
+    if [[ "$answered" -gt 0 ]]; then
+        rate=$(echo "scale=2; $triggered / $answered" | bc)
+    fi
 
     # Write result to file for parent to collect
-    echo "${idx}|${should_trigger}|${triggered}|${reps}|${rate}|${prompt}" > "$result_dir/result_${idx}"
+    echo "${idx}|${should_trigger}|${triggered}|${reps}|${rate}|${dead}|${prompt}" > "$result_dir/result_${idx}"
 }
 
 # Max parallel prompt workers (controls concurrency)
@@ -312,6 +335,9 @@ eval_skill() {
     # --- Collect results (sorted by index) ---
     local tp=0 fp=0 tn=0 fn=0 flaky=0
     local tp_partial="0" fp_partial="0"
+    # #3032: prompts where every rep produced no answer. Not measured, so they
+    # are excluded from precision/recall entirely rather than scored as misses.
+    local dead_prompts=0
     local results_json="["
     local first_result=true
 
@@ -327,8 +353,17 @@ eval_skill() {
             local rfile="$result_dir/result_${idx}"
             [[ -f "$rfile" ]] || continue
 
-            IFS='|' read -r _idx should_trigger triggered reps rate prompt < "$rfile"
+            IFS='|' read -r _idx should_trigger triggered reps rate dead prompt < "$rfile"
             [[ "$should_trigger" != "$pass" ]] && continue
+
+            # #3032: every rep produced no answer. This prompt was NOT measured,
+            # so it must not land in tp, fn or flaky — a MISS here would be
+            # indistinguishable from the classifier genuinely rejecting it.
+            if [[ "${dead:-0}" -ge "$reps" ]]; then
+                echo -e "    ${YELLOW}?${NC} \"${prompt:0:50}\"  0/${reps}  NO ANSWER (dead generation)"
+                ((dead_prompts++))
+                continue
+            fi
 
             # Determine verdict
             local verdict="" symbol=""
@@ -411,12 +446,23 @@ eval_skill() {
   "true_negatives": $tn,
   "false_negatives": $fn,
   "flaky": $flaky,
+  "dead_prompts": $dead_prompts,
   "total_prompts": $trigger_count,
   "reps_per_prompt": $REPS,
   "duration_seconds": $duration,
   "results": $results_json
 }
 ENDJSON
+
+    # #3032: if NOTHING was measured, there is no verdict to give. Returning a
+    # recall of 0 here is what made an eval-infrastructure outage read as a
+    # total skill regression. Exit 2 = "could not measure", which the caller
+    # renders as INCONCLUSIVE rather than FAIL.
+    if [[ "$dead_prompts" -gt 0 && $((tp + fp + tn + fn + flaky)) -eq 0 ]]; then
+        echo -e "  ${YELLOW}INCONCLUSIVE: all ${dead_prompts} prompt(s) died (no gradeable answer).${NC}"
+        echo -e "  ${YELLOW}No precision/recall exists for this run. Not a skill regression.${NC}"
+        return 2
+    fi
 
     # Return pass/fail based on effective recall threshold
     local eff_recall_int=${eff_recall%.*}
@@ -482,6 +528,9 @@ passed=0
 failed=0
 skipped=0
 failed_skills=()
+# #3032: skills whose prompts all died. Unmeasured, not failed.
+inconclusive=0
+inconclusive_skills=()
 
 for eval_file in "${eval_files[@]}"; do
     local_skill_id=$(yq -r '.id' "$eval_file")
@@ -498,14 +547,24 @@ for eval_file in "${eval_files[@]}"; do
     fi
 
     ((total++))
-    if eval_skill "$eval_file"; then
-        ((passed++))
-        # Save cache on success
-        [[ "$DRY_RUN" == "false" ]] && save_eval_cache "$local_skill_id" "trigger"
-    else
-        ((failed++))
-        failed_skills+=("$(yq -r '.id' "$eval_file")")
-    fi
+    eval_rc=0
+    eval_skill "$eval_file" || eval_rc=$?
+    case "$eval_rc" in
+        0)
+            ((passed++))
+            # Save cache on success
+            [[ "$DRY_RUN" == "false" ]] && save_eval_cache "$local_skill_id" "trigger"
+            ;;
+        2)
+            # Never cache an unmeasured run, or the next run inherits the outage.
+            ((inconclusive++))
+            inconclusive_skills+=("$(yq -r '.id' "$eval_file")")
+            ;;
+        *)
+            ((failed++))
+            failed_skills+=("$(yq -r '.id' "$eval_file")")
+            ;;
+    esac
 done
 
 # Summary
@@ -519,9 +578,19 @@ echo -e "  Passed: ${GREEN}$passed${NC}"
 if [[ "$failed" -gt 0 ]]; then
     echo -e "  Failed: ${RED}$failed${NC} (${failed_skills[*]})"
 fi
+if [[ "$inconclusive" -gt 0 ]]; then
+    echo -e "  Inconclusive: ${YELLOW}$inconclusive${NC} (${inconclusive_skills[*]})"
+    echo -e "  ${YELLOW}Every prompt died, so no precision/recall exists.${NC}"
+    echo -e "  ${YELLOW}Eval-infrastructure outage, not a skill regression.${NC}"
+fi
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
+# A real failure outranks an outage.
 if [[ "$failed" -gt 0 ]]; then
     exit 1
+fi
+# #3032: distinct "could not measure" code.
+if [[ "$inconclusive" -gt 0 ]]; then
+    exit 2
 fi
 exit 0
