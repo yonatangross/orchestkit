@@ -119,7 +119,7 @@ AskUserQuestion(questions=[{
   "header": "Format",
   "options": [
     {"label": "ASCII + emojis (Recommended)", "description": "Fast, in-chat, zero-dependency. Always the floor — rendered first even if you also pick a richer format."},
-    {"label": "Interactive playground", "description": "Single-file HTML explorer written to docs/<branch-dir>/plan-viz.html (also satisfies the PR Playground gate). Delegates to the playground skill."},
+    {"label": "Interactive playground", "description": "Single-file HTML explorer written to docs/<branch-dir>/plan-viz.html (also satisfies the PR Playground gate). Delegates to the playground skill. Multi-wave plans become LIVING plans: the file carries lpp-state JSON and later sessions update it in place."},
     {"label": "NotebookLM infographic", "description": "Stakeholder-ready infographic/slides via notebooklm studio_create. Async — fired and notified, never blocks."},
     {"label": "All available", "description": "ASCII inline now + the richer formats linked as they finish."}
   ],
@@ -226,6 +226,14 @@ Render the selected sections into the `FORMATS` chosen in STEP 0.5. **ASCII alwa
 > **Backlog to dispatch?** If the plan is a backlog the user must prioritize **and route to execution**,
 > use the **decision-router** variant — each card routes to an ork strategy and emits a plan-only
 > invocation: `Read("${CLAUDE_SKILL_DIR}/references/decision-router.md")`.
+>
+> **Living plan (multi-wave)?** If the plan executes over multiple sessions/waves, or completion is
+> verifiable by commands, use the **living-plan** exemplar (`living-plan.template.html`): the playground
+> embeds an `lpp-state` JSON block, every item carries a "done when" evidence check, and progress renders
+> FROM state. **Update mode:** before authoring, check whether `docs/<branch-dir>/plan-viz.html` (or the
+> plan's known path) already has `id="lpp-state"` — if yes, MERGE into it (flip statuses, append changelog,
+> move removed items to dropped) and never create a second file for the same slug. Full contract:
+> `Read("${CLAUDE_SKILL_DIR}/references/format-dispatch.md")` §Living-plan update mode.
 
 
 ## STEP 5: Offer Actions
