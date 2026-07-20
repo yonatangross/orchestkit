@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.81.0](https://github.com/yonatangross/orchestkit/compare/v8.80.3...v8.81.0) (2026-07-20)
+
+
+### Features
+
+* **hooks:** analytics dead-writer liveness guard + routing_edge view ([#3026](https://github.com/yonatangross/orchestkit/issues/3026)) ([ac3d7ba](https://github.com/yonatangross/orchestkit/commit/ac3d7bae5bdb3f3f8fef71b7c0781e9ebc69a926))
+
 ## [8.80.3](https://github.com/yonatangross/orchestkit/compare/v8.80.2...v8.80.3) (2026-07-20)
 
 
