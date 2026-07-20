@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.80.3](https://github.com/yonatangross/orchestkit/compare/v8.80.2...v8.80.3) (2026-07-20)
+
+
+### Bug Fixes
+
+* **hooks:** latch the session-title /rename guard so it can't leak ([#3025](https://github.com/yonatangross/orchestkit/issues/3025)) ([b2f075f](https://github.com/yonatangross/orchestkit/commit/b2f075f4a0233339506fe957a3d8ee56866c5017))
+* **security:** resolve 5 real CodeQL findings, dismiss 4 as noise ([#3022](https://github.com/yonatangross/orchestkit/issues/3022)) ([ddc4759](https://github.com/yonatangross/orchestkit/commit/ddc475937bce454d18ac87295c6891198f05b143))
+
 ## [8.80.2](https://github.com/yonatangross/orchestkit/compare/v8.80.1...v8.80.2) (2026-07-19)
 
 
