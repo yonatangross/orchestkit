@@ -104,9 +104,31 @@ jobs:
 
       # Failures FAIL the job: run-skill-eval.sh exits non-zero when any
       # changed skill fails its trigger or quality eval.
+      # Exit 2 (#3032) means a generation produced no gradeable text, so no
+      # score exists. That is an eval-infrastructure outage, not a skill
+      # regression, and reporting it as a red skill check trains reviewers to
+      # ignore a real red. Surfaced the same way as the missing-auth path
+      # above: a LOUD SKIP, never a silent fake-pass. Any other non-zero
+      # exit still fails the job.
       - name: Run eval:skill for changed skills
         if: env.CLAUDE_CODE_OAUTH_TOKEN != ''
-        run: npm run eval:skill -- --changed
+        run: |
+          set -uo pipefail
+          rc=0
+          npm run eval:skill -- --changed || rc=$?
+          if [[ "$rc" -eq 2 ]]; then
+            echo "::warning::Skill eval INCONCLUSIVE - a generation died (no gradeable text), so no score was published. Not a skill regression."
+            {
+              echo "### Skill Eval: INCONCLUSIVE"
+              echo ""
+              echo "A \`claude -p\` generation returned no gradeable text (crash, blank, or"
+              echo "turn/budget exhaustion), so the harness refused to publish a score."
+              echo "The changed skills were **not evaluated**. This is an infrastructure"
+              echo "outage, not evidence about the skills. See #3032."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          exit "$rc"
 
       # On failure, surface the per-assertion grader reasons — without this
       # the job log shows only PASS/FAIL names, making CI-vs-local eval gaps

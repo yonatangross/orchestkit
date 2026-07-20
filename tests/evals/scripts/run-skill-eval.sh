@@ -646,11 +646,16 @@ if [[ -n "$SKILL" ]]; then
     fi
 
     # Quality row
+    # #3032: exit 2 means a generation died and NO score was published, so
+    # printing "FAIL (%)" invented a verdict out of an outage. An empty result
+    # also renders as n/a rather than a bare percent sign.
     if $RUN_QUALITY; then
         if [[ $QUALITY_EXIT -eq 0 ]]; then
             echo -e "  Quality:   ${GREEN}PASS${NC}  (${QUALITY_RESULT}%)"
+        elif [[ $QUALITY_EXIT -eq 2 ]]; then
+            echo -e "  Quality:   ${YELLOW}INCONCLUSIVE${NC}  (no score published: dead generation)"
         else
-            echo -e "  Quality:   ${RED}FAIL${NC}  (${QUALITY_RESULT}%)"
+            echo -e "  Quality:   ${RED}FAIL${NC}  (${QUALITY_RESULT:-n/a}%)"
         fi
     else
         echo -e "  Quality:   ${YELLOW}SKIPPED${NC}"
@@ -660,6 +665,8 @@ if [[ -n "$SKILL" ]]; then
     echo ""
     if [[ $TRIGGER_EXIT -eq 0 && $QUALITY_EXIT -eq 0 ]]; then
         echo -e "  Overall:   ${GREEN}PASS${NC}"
+    elif [[ $TRIGGER_EXIT -eq 0 && $QUALITY_EXIT -eq 2 ]]; then
+        echo -e "  Overall:   ${YELLOW}INCONCLUSIVE${NC}  (eval infrastructure could not measure this skill)"
     else
         echo -e "  Overall:   ${RED}FAIL${NC}"
     fi
@@ -669,8 +676,18 @@ fi
 
 echo -e "${BLUE}============================================================${NC}"
 
-# Exit with failure if either runner failed
-if [[ $TRIGGER_EXIT -ne 0 || $QUALITY_EXIT -ne 0 ]]; then
+# Exit with failure if either runner failed.
+# A real failure outranks an outage.
+if [[ $TRIGGER_EXIT -ne 0 ]]; then
     exit 1
+fi
+if [[ $QUALITY_EXIT -ne 0 && $QUALITY_EXIT -ne 2 ]]; then
+    exit 1
+fi
+# #3032: propagate the distinct "could not measure" code instead of
+# flattening it to 1. The caller decides how to surface an outage; grading a
+# dead generation as a regression is what this exit code exists to prevent.
+if [[ $QUALITY_EXIT -eq 2 ]]; then
+    exit 2
 fi
 exit 0

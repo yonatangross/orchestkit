@@ -1229,6 +1229,11 @@ total=0
 passed=0
 failed=0
 failed_skills=()
+# #3032: a dead generation returns 2 from eval_skill. That is "could not
+# measure", not "the skill regressed", and collapsing the two reports an
+# infrastructure outage as a quality failure. Track it separately.
+inconclusive=0
+inconclusive_skills=()
 
 skipped=0
 for eval_file in "${eval_files[@]}"; do
@@ -1246,14 +1251,25 @@ for eval_file in "${eval_files[@]}"; do
     fi
 
     ((total++))
-    if eval_skill "$eval_file"; then
-        ((passed++))
-        # Save cache on success
-        [[ "$DRY_RUN" == "false" ]] && save_eval_cache "$local_skill_id" "quality"
-    else
-        ((failed++))
-        failed_skills+=("$(yq -r '.id' "$eval_file")")
-    fi
+    eval_rc=0
+    eval_skill "$eval_file" || eval_rc=$?
+    case "$eval_rc" in
+        0)
+            ((passed++))
+            # Save cache on success
+            [[ "$DRY_RUN" == "false" ]] && save_eval_cache "$local_skill_id" "quality"
+            ;;
+        2)
+            # Dead generation: no score was published. Never cache an
+            # unmeasured run, or the next run inherits the outage.
+            ((inconclusive++))
+            inconclusive_skills+=("$(yq -r '.id' "$eval_file")")
+            ;;
+        *)
+            ((failed++))
+            failed_skills+=("$(yq -r '.id' "$eval_file")")
+            ;;
+    esac
 done
 
 # Summary
@@ -1267,9 +1283,19 @@ echo -e "  Passed: ${GREEN}$passed${NC}"
 if [[ "$failed" -gt 0 ]]; then
     echo -e "  Failed: ${RED}$failed${NC} (${failed_skills[*]})"
 fi
+if [[ "$inconclusive" -gt 0 ]]; then
+    echo -e "  Inconclusive: ${YELLOW}$inconclusive${NC} (${inconclusive_skills[*]})"
+    echo -e "  ${YELLOW}A generation produced no gradeable text, so no score exists.${NC}"
+    echo -e "  ${YELLOW}This is an eval-infrastructure outage, not a skill regression.${NC}"
+fi
 echo -e "${BLUE}----------------------------------------------------${NC}"
 
+# A real failure outranks an outage: if anything genuinely failed, exit 1.
 if [[ "$failed" -gt 0 ]]; then
     exit 1
+fi
+# #3032: distinct exit so callers can tell "could not measure" from "failed".
+if [[ "$inconclusive" -gt 0 ]]; then
+    exit 2
 fi
 exit 0
