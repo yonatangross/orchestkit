@@ -85,16 +85,18 @@ td:first-child, td:nth-child(2) { color: var(--pg-ink); font-family: ui-monospac
 </section>
 
 <section class="panel">
-  <h2>routing_edge view · real data (migration rehearsal, 2026-07-20)</h2>
-  <p class="desc">The auto routers hand off by invoking the next skill in-session, so the routing graph is a self-join on <code>skill_invocation</code>. Migration 003 ships it as a view; ran against a copy of the live DB:</p>
+  <h2>routing_edge view · why the window is load-bearing</h2>
+  <p class="desc">The auto routers hand off by invoking the target skill, so a handoff shows up as the next <code>skill_invocation</code> row in the session. The first cut of this view left that join <b>unbounded</b> — and adversarial review caught that it was measuring the wrong thing entirely. Measured against the real DB:</p>
   <table>
-    <thead><tr><th>router</th><th>edges</th><th>share</th></tr></thead>
+    <thead><tr><th>gap between router call and next skill</th><th>pairs</th></tr></thead>
     <tbody>
-      <tr><td>hq-ext:auto</td><td><span class="bar" style="inline-size:144px"></span>48</td><td>92%</td></tr>
-      <tr><td>ork:auto</td><td><span class="bar" style="inline-size:12px"></span>4</td><td>8%</td></tr>
+      <tr><td>&le; 30s (plausible same-turn handoff)</td><td><span class="bar" style="inline-size:6px"></span>2</td></tr>
+      <tr><td>&le; 2m &mdash; the shipped bound</td><td><span class="bar" style="inline-size:9px"></span>3</td></tr>
+      <tr><td>&le; 15m</td><td><span class="bar" style="inline-size:63px"></span>21</td></tr>
+      <tr><td>unbounded (the original view)</td><td><span class="bar" style="inline-size:159px"></span>53</td></tr>
     </tbody>
   </table>
-  <p class="desc" style="margin-block:12px 0">Query surface: <code>sqlite3 ~/.local/state/orchestkit/sessions.db "SELECT router, routed_to, COUNT(*) FROM routing_edge GROUP BY 1,2"</code> · recipes added to <code>ork:analytics</code>.</p>
+  <p class="desc" style="margin-block:12px 0"><b style="color:var(--pg-danger)">Median unbounded gap: 43 minutes. Max: 27 hours.</b> Those are not handoffs — they are just the next thing the user ran in a long multi-goal session. Bounding at 120s and excluding router&rarr;same-router self-pairs cuts 53 apparent edges to <b>3 real ones</b>. The view now ships as an explicit <i>lower bound</i>: a router that answers inline, or dispatches into a forked subagent whose skill calls land under another session id, produces no row at all. Decision-level routing (goal &rarr; chosen intent) is in-prompt and written nowhere; capturing it needs a dedicated telemetry stream, which this view does not pretend to be.</p>
 </section>
 
 <section class="panel">
