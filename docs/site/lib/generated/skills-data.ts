@@ -817,7 +817,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "06b64a98f90ca575f5f2cfab20bf4cc5cc0f3d9f57734edb335bf6ad382c3549",
+    "sha256": "5fc1e62388ce894cd8076006cfce913716e7841a3bb65ced0228992f3fa9e6f1",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -5525,7 +5525,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "visualize-plan",
     "description": "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
     "version": "2.1.0",
-    "sha256": "3789774b7b10c8b15bc89cd9cebadaf1c979d03c4aee72a60b9012257d0478f2",
+    "sha256": "2171b33b4938760b1e87de548cf92e91568757849f357a80efea5f81ea714b5c",
     "author": "OrchestKit",
     "tags": [
       "visualization",

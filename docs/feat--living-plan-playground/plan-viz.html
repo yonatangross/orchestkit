@@ -387,6 +387,10 @@
   const safeUrl = u => /^(https?|mailto):/i.test(String(u||'')) ? String(u) : '';
   // status drives a CSS class: whitelist it, never interpolate raw state into an attribute
   const stCls = s => Object.prototype.hasOwnProperty.call(L, s) ? s : 'planned';
+  // risk drives an inline style: same rule. A bare RK[r] would reach the prototype
+  // chain (RK['constructor'] returns a function that stringifies into the attribute),
+  // and it is the one tainted->markup path that never passed through esc().
+  const riskColor = r => Object.prototype.hasOwnProperty.call(RK, r) ? RK[r] : 'var(--pg-faint)';
   const stChip = i => '<span class="st st-'+stCls(i.status)+'">'+esc(L[i.status]||i.status)+'</span>';
 
   document.getElementById('lpp-title').textContent = st.title;
@@ -437,7 +441,7 @@
         let h='<div class="card"><h3><span class="num faint">'+esc(i.id)+'</span> '+esc(i.title)+stChip(i)+'</h3>';
         h+='<div class="meta">'+impactBar(i)+
           (i.effort?'<span class="chip">'+esc(i.effort)+'</span>':'')+
-          (i.risk?'<span class="chip" style="color:'+(RK[i.risk]||'var(--pg-faint)')+';border-color:currentColor">risk: '+esc(i.risk)+'</span>':'')+
+          (i.risk?'<span class="chip" style="color:'+riskColor(i.risk)+';border-color:currentColor">risk: '+esc(i.risk)+'</span>':'')+
           (i.owner?'<span class="chip">'+esc(i.owner)+'</span>':'')+'</div>';
         if(i.detail) h+='<p class="src">'+esc(i.detail)+'</p>';
         if(i.before||i.after) h+='<div class="ba"><div><b>Before</b>'+esc(i.before||'')+'</div><div class="aft"><b>After (promised)</b>'+esc(i.after||'')+'</div></div>';
@@ -469,7 +473,7 @@
   const riskHtml = '<h2>Risk heat map</h2><div class="card"><table>'+
     '<tr><th>item</th><th>risk</th><th>failure mode</th><th>containment</th></tr>'+
     items.filter(i=>i.failure||i.containment||['high','med','medium'].includes(i.risk)).map(i=>
-      '<tr><td class="num faint">'+esc(i.id)+'</td><td style="color:'+(RK[i.risk]||'var(--pg-faint)')+'">'+esc(i.risk||'?')+'</td><td class="src">'+esc(i.failure||'')+'</td><td class="src">'+esc(i.containment||'')+'</td></tr>'
+      '<tr><td class="num faint">'+esc(i.id)+'</td><td style="color:'+riskColor(i.risk)+'">'+esc(i.risk||'?')+'</td><td class="src">'+esc(i.failure||'')+'</td><td class="src">'+esc(i.containment||'')+'</td></tr>'
     ).join('')+'</table></div>';
 
   const discardsHtml = '<h2>Discarded (with reasons)</h2><div class="card"><table>'+

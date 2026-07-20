@@ -17,19 +17,6 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
-    "version": "8.81.0",
-    "date": "2026-07-20",
-    "compareUrl": "",
-    "sections": [
-      {
-        "type": "added",
-        "items": [
-          "**hooks:** analytics dead-writer liveness guard + routing_edge view ([#3026](https://github.com/yonatangross/orchestkit/issues/3026)) ([ac3d7ba](https://github.com/yonatangross/orchestkit/commit/ac3d7bae5bdb3f3f8fef71b7c0781e9ebc69a926))"
-        ]
-      }
-    ]
-  },
-  {
     "version": "8.80.3",
     "date": "2026-07-20",
     "compareUrl": "",
