@@ -106,18 +106,20 @@ function formatMissing(lines: unknown): string {
   const ranges: string[] = [];
   let start = nums[0];
   let prev = nums[0];
-  for (let i = 1; i <= nums.length; i++) {
+  // Iterate the real elements only. A trailing i === nums.length pass would read
+  // undefined into `start`/`prev`, which type-checks today solely because
+  // noUncheckedIndexedAccess is off; the closing range is flushed after the loop.
+  for (let i = 1; i < nums.length; i++) {
     const cur = nums[i];
-    if (cur !== prev + 1 || i === nums.length) {
+    if (cur !== prev + 1) {
       ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
-      if (ranges.length >= MAX_MISSING_LINES) {
-        return `${ranges.join(', ')}${i < nums.length ? ', ...' : ''}`;
-      }
+      if (ranges.length >= MAX_MISSING_LINES) return `${ranges.join(', ')}, ...`;
       start = cur;
     }
     prev = cur;
   }
-  return ranges.join(', ');
+  ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
+  return ranges.slice(0, MAX_MISSING_LINES).join(', ');
 }
 
 /** Per-file rows from Jest/Vitest coverage-summary.json (any key that is not `total`). */

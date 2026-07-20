@@ -293,18 +293,27 @@ if (healed) {
 }
 
 // STRUCTURED FAILURE. Never a soft "mostly fine", the caller must be able to gate on this.
+//
+// `latest` is null only when EVERY diagnose agent returned nothing, so the suite state is
+// unknown rather than known-good. Reporting fail_count 0 there would let a caller gating on
+// fail_count read a failed run as clean, which is the exact fail-open shape this loop exists
+// to avoid. Emit -1 (the same unknown sentinel the ledger uses) so the gate cannot pass.
+const unknownState = latest === null;
 log(
-	`heal-loop: NOT HEALED after ${iterationsUsed} iteration(s), ${residual.length} test(s) still failing.`,
+	unknownState
+		? `heal-loop: NOT HEALED after ${iterationsUsed} iteration(s); suite state UNKNOWN, every diagnose run returned nothing.`
+		: `heal-loop: NOT HEALED after ${iterationsUsed} iteration(s), ${residual.length} test(s) still failing.`,
 );
 return {
 	status: "failed",
 	healed: false,
+	state_known: !unknownState,
 	tier: TIER,
 	test_command: TEST_COMMAND,
 	iterations_used: iterationsUsed,
 	max_iterations: MAX_ITERATIONS,
 	pass_count: latest ? latest.pass_count : 0,
-	fail_count: latest ? latest.fail_count : residual.length,
+	fail_count: latest ? latest.fail_count : unknownState ? -1 : residual.length,
 	failure_categories: byCategory,
 	remaining_failures: residual.map((f) => ({
 		test: f.test,
@@ -315,5 +324,7 @@ return {
 		suggested_fix: f.suggested_fix,
 	})),
 	iteration_ledger: ledger,
-	note: `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. These tests are STILL FAILING and require manual resolution; do not report this run as a success.`,
+	note: unknownState
+		? `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. Every diagnose run returned nothing, so the suite state is UNKNOWN (fail_count -1, state_known false). Do NOT report this run as a success and do NOT treat fail_count 0 as green.`
+		: `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. These tests are STILL FAILING and require manual resolution; do not report this run as a success.`,
 };

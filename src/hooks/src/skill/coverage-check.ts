@@ -18,7 +18,10 @@ export function coverageCheck(_input: HookInput, ctx: HookContext = NOOP_CTX): H
   const projectDir = ctx.projectDir;
   const logDir = ctx.logDir;
   const logFile = `${logDir}/coverage-check.log`;
-  const threshold = parseInt(process.env.COVERAGE_THRESHOLD || '80', 10);
+  // Same guard as coverage-threshold-gate: a malformed value yields NaN, and every
+  // `x < NaN` comparison is false, so the check would silently report success.
+  const parsedThreshold = parseInt(process.env.COVERAGE_THRESHOLD || '80', 10);
+  const threshold = Number.isFinite(parsedThreshold) ? parsedThreshold : 80;
 
   // Ensure log directory exists
   try {
