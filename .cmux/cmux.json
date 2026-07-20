@@ -1,0 +1,59 @@
+{
+  "$schema": "https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/data/cmux.schema.json",
+  "commands": [
+    {
+      "name": "OrchestKit Dev Rig",
+      "keywords": ["orchestkit", "dev", "rig", "plugins", "build"],
+      "workspace": {
+        "name": "OrchestKit Dev",
+        "cwd": ".",
+        "layout": {
+          "direction": "horizontal",
+          "split": 0.5,
+          "children": [
+            {
+              "pane": {
+                "surfaces": [
+                  {
+                    "type": "terminal",
+                    "name": "shell",
+                    "command": "",
+                    "focus": true
+                  }
+                ]
+              }
+            },
+            {
+              "direction": "vertical",
+              "split": 0.5,
+              "children": [
+                {
+                  "pane": {
+                    "surfaces": [
+                      {
+                        "type": "terminal",
+                        "name": "build",
+                        "command": "npm run build"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pane": {
+                    "surfaces": [
+                      {
+                        "type": "browser",
+                        "name": "web",
+                        "url": "https://orchestkit.vercel.app"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

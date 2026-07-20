@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cmux declarative team layout: OrchestKit Dev Rig</title>
+<style>
+  :root {
+    --bg:#0d1117; --panel:#161b22; --edge:#30363d; --ink:#e6edf3; --dim:#8b949e;
+    --term:#3fb950; --browser:#58a6ff; --focus:#d29922;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.6 ui-sans-serif,system-ui,-apple-system,sans-serif;padding:28px 20px 70px}
+  .wrap{max-width:1080px;margin:0 auto}
+  h1{font-size:24px;margin:0 0 4px;letter-spacing:-.02em}
+  .sub{color:var(--dim);margin:0 0 24px;font-size:14px}
+  .sub code{font-family:var(--mono);color:var(--browser)}
+
+  .grid{display:grid;grid-template-columns:1fr 340px;gap:16px}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+
+  .card{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:16px 18px}
+  .card h3{margin:0 0 12px;font-size:14px;letter-spacing:.02em}
+
+  /* layout preview */
+  #stage{width:100%;height:380px;border:1px solid var(--edge);border-radius:8px;
+         background:#0b0f14;padding:8px;display:flex}
+  .node{display:flex;gap:6px;flex:1;min-width:0;min-height:0}
+  .node.horizontal{flex-direction:row}
+  .node.vertical{flex-direction:column}
+  .pane{border:1px solid var(--edge);border-radius:6px;min-width:0;min-height:0;
+        display:flex;flex-direction:column;overflow:hidden;background:#10161d;
+        transition:border-color .15s, box-shadow .15s}
+  .pane .bar{font-family:var(--mono);font-size:10.5px;padding:4px 8px;
+             border-bottom:1px solid var(--edge);display:flex;justify-content:space-between;
+             align-items:center;gap:6px;flex-shrink:0}
+  .pane .body{flex:1;padding:8px;font-family:var(--mono);font-size:11px;
+              color:var(--dim);overflow:hidden;word-break:break-all}
+  .pane.terminal .bar{color:var(--term);background:rgba(63,185,80,.08)}
+  .pane.browser  .bar{color:var(--browser);background:rgba(88,166,255,.08)}
+  .pane.focused{border-color:var(--focus);box-shadow:0 0 0 1px var(--focus) inset}
+  .badge{font-size:9px;padding:1px 5px;border-radius:20px;background:rgba(210,153,34,.2);
+         color:var(--focus);letter-spacing:.04em}
+
+  label{display:block;font-size:12px;color:var(--dim);margin:14px 0 5px}
+  input[type=range]{width:100%;accent-color:var(--browser)}
+  .val{font-family:var(--mono);font-size:11.5px;color:var(--ink)}
+  .row{display:flex;gap:8px;align-items:center}
+  button{background:#21262d;color:var(--ink);border:1px solid var(--edge);border-radius:6px;
+         padding:6px 11px;font:inherit;font-size:12.5px;cursor:pointer}
+  button:hover{border-color:var(--browser)}
+  button[aria-pressed="true"]{background:var(--browser);color:#04121f;border-color:var(--browser);font-weight:600}
+
+  pre{margin:0;font-family:var(--mono);font-size:11.5px;line-height:1.5;
+      background:#0b0f14;border:1px solid var(--edge);border-radius:8px;padding:12px;
+      overflow:auto;max-height:300px;white-space:pre-wrap;word-break:break-word}
+  .tree{font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--dim)}
+  .tree b{color:var(--ink);font-weight:600}
+  .note{color:var(--dim);font-size:12.5px;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>cmux declarative team layout</h1>
+  <p class="sub">Live renderer for the <code>OrchestKit Dev Rig</code> workspace declared in <code>.cmux/cmux.json</code>. Drag the splits to see how the declarative tree maps to real panes. The JSON below regenerates as you change it, so what you see is what the config would produce.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Layout preview</h3>
+      <div id="stage"></div>
+      <div class="tree" id="tree" style="margin-top:14px"></div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Controls</h3>
+        <label for="s1">outer split (horizontal) <span class="val" id="v1">0.50</span></label>
+        <input type="range" id="s1" min="0.15" max="0.85" step="0.01" value="0.5">
+
+        <label for="s2">inner split (vertical) <span class="val" id="v2">0.50</span></label>
+        <input type="range" id="s2" min="0.15" max="0.85" step="0.01" value="0.5">
+
+        <label>outer direction</label>
+        <div class="row">
+          <button id="dh" aria-pressed="true">horizontal</button>
+          <button id="dv" aria-pressed="false">vertical</button>
+        </div>
+
+        <label>focus</label>
+        <div class="row">
+          <button class="f" data-f="shell" aria-pressed="true">shell</button>
+          <button class="f" data-f="build" aria-pressed="false">build</button>
+          <button class="f" data-f="web" aria-pressed="false">web</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h3>Generated <code style="font-size:12px">cmux.json</code> layout</h3>
+        <pre id="json"></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>What this PR adds</h3>
+    <p class="note" style="margin-top:0">
+      <b>.cmux/cmux.json</b> declares one command, <code>OrchestKit Dev Rig</code>, with keywords
+      <code>orchestkit, dev, rig, plugins, build</code>. Invoking it opens a workspace whose layout is a
+      binary tree: a <code>direction</code> node with a <code>split</code> ratio and two
+      <code>children</code>, bottoming out in <code>pane.surfaces</code> entries that are either a
+      <code>terminal</code> (with an optional <code>command</code>) or a <code>browser</code> (with a
+      <code>url</code>). Exactly one surface carries <code>focus: true</code>.
+    </p>
+    <p class="note">
+      Because the layout is declarative, the rig is reproducible: any teammate running the command gets
+      the identical pane arrangement, working directory, and startup commands, with no manual splitting.
+    </p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var state = { dir: "horizontal", s1: 0.5, s2: 0.5, focus: "shell" };
+
+  var SURFACES = {
+    shell: { type: "terminal", name: "shell", command: "" },
+    build: { type: "terminal", name: "build", command: "npm run build" },
+    web:   { type: "browser",  name: "web",   url: "https://orchestkit.vercel.app" }
+  };
+
+  function paneEl(key, flex){
+    var s = SURFACES[key];
+    var d = document.createElement("div");
+    d.className = "pane " + s.type + (state.focus === key ? " focused" : "");
+    d.style.flex = flex + " 1 0";
+
+    var bar = document.createElement("div");
+    bar.className = "bar";
+    var left = document.createElement("span");
+    left.textContent = s.type + " · " + s.name;
+    bar.appendChild(left);
+    if (state.focus === key){
+      var b = document.createElement("span");
+      b.className = "badge";
+      b.textContent = "focus";
+      bar.appendChild(b);
+    }
+
+    var body = document.createElement("div");
+    body.className = "body";
+    body.textContent = s.type === "browser" ? s.url : (s.command ? "$ " + s.command : "$ ");
+
+    d.appendChild(bar); d.appendChild(body);
+    return d;
+  }
+
+  function render(){
+    var stage = document.getElementById("stage");
+    stage.innerHTML = "";
+
+    var outer = document.createElement("div");
+    outer.className = "node " + state.dir;
+
+    var inner = document.createElement("div");
+    inner.className = "node " + (state.dir === "horizontal" ? "vertical" : "horizontal");
+    inner.style.flex = (1 - state.s1) + " 1 0";
+    inner.appendChild(paneEl("build", state.s2));
+    inner.appendChild(paneEl("web", 1 - state.s2));
+
+    outer.appendChild(paneEl("shell", state.s1));
+    outer.appendChild(inner);
+    stage.appendChild(outer);
+
+    document.getElementById("v1").textContent = state.s1.toFixed(2);
+    document.getElementById("v2").textContent = state.s2.toFixed(2);
+
+    var innerDir = state.dir === "horizontal" ? "vertical" : "horizontal";
+    document.getElementById("tree").innerHTML =
+      "<b>" + state.dir + "</b> split " + state.s1.toFixed(2) + "<br>" +
+      "&nbsp;├─ pane → terminal <b>shell</b>" + (state.focus === "shell" ? "  (focus)" : "") + "<br>" +
+      "&nbsp;└─ <b>" + innerDir + "</b> split " + state.s2.toFixed(2) + "<br>" +
+      "&nbsp;&nbsp;&nbsp;&nbsp;├─ pane → terminal <b>build</b> · npm run build" + (state.focus === "build" ? "  (focus)" : "") + "<br>" +
+      "&nbsp;&nbsp;&nbsp;&nbsp;└─ pane → browser <b>web</b>" + (state.focus === "web" ? "  (focus)" : "");
+
+    var surf = function(k){
+      var s = SURFACES[k], o = { type: s.type, name: s.name };
+      if (s.type === "terminal") o.command = s.command; else o.url = s.url;
+      if (state.focus === k) o.focus = true;
+      return o;
+    };
+
+    var layout = {
+      direction: state.dir,
+      split: Number(state.s1.toFixed(2)),
+      children: [
+        { pane: { surfaces: [surf("shell")] } },
+        {
+          direction: innerDir,
+          split: Number(state.s2.toFixed(2)),
+          children: [
+            { pane: { surfaces: [surf("build")] } },
+            { pane: { surfaces: [surf("web")] } }
+          ]
+        }
+      ]
+    };
+
+    document.getElementById("json").textContent = JSON.stringify(layout, null, 2);
+  }
+
+  document.getElementById("s1").addEventListener("input", function(e){
+    state.s1 = parseFloat(e.target.value); render();
+  });
+  document.getElementById("s2").addEventListener("input", function(e){
+    state.s2 = parseFloat(e.target.value); render();
+  });
+  document.getElementById("dh").addEventListener("click", function(){
+    state.dir = "horizontal";
+    document.getElementById("dh").setAttribute("aria-pressed","true");
+    document.getElementById("dv").setAttribute("aria-pressed","false");
+    render();
+  });
+  document.getElementById("dv").addEventListener("click", function(){
+    state.dir = "vertical";
+    document.getElementById("dv").setAttribute("aria-pressed","true");
+    document.getElementById("dh").setAttribute("aria-pressed","false");
+    render();
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".f"), function(btn){
+    btn.addEventListener("click", function(){
+      state.focus = btn.dataset.f;
+      Array.prototype.forEach.call(document.querySelectorAll(".f"), function(b){
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+      });
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
