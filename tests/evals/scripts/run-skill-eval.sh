@@ -635,11 +635,15 @@ if [[ -n "$SKILL" ]]; then
     echo ""
 
     # Trigger row
+    # #3032: exit 2 means every prompt died, so no precision/recall was
+    # computed. Rendering that as FAIL invented a verdict from an outage.
     if $RUN_TRIGGER; then
         if [[ $TRIGGER_EXIT -eq 0 ]]; then
             echo -e "  Trigger:   ${GREEN}PASS${NC}  ($TRIGGER_RESULT)"
+        elif [[ $TRIGGER_EXIT -eq 2 ]]; then
+            echo -e "  Trigger:   ${YELLOW}INCONCLUSIVE${NC}  (no answer: dead generation)"
         else
-            echo -e "  Trigger:   ${RED}FAIL${NC}  ($TRIGGER_RESULT)"
+            echo -e "  Trigger:   ${RED}FAIL${NC}  (${TRIGGER_RESULT:-n/a})"
         fi
     else
         echo -e "  Trigger:   ${YELLOW}SKIPPED${NC}"
@@ -661,11 +665,11 @@ if [[ -n "$SKILL" ]]; then
         echo -e "  Quality:   ${YELLOW}SKIPPED${NC}"
     fi
 
-    # Overall
+    # Overall: a real failure in EITHER lane outranks an outage in the other.
     echo ""
     if [[ $TRIGGER_EXIT -eq 0 && $QUALITY_EXIT -eq 0 ]]; then
         echo -e "  Overall:   ${GREEN}PASS${NC}"
-    elif [[ $TRIGGER_EXIT -eq 0 && $QUALITY_EXIT -eq 2 ]]; then
+    elif [[ ($TRIGGER_EXIT -eq 0 || $TRIGGER_EXIT -eq 2) && ($QUALITY_EXIT -eq 0 || $QUALITY_EXIT -eq 2) ]]; then
         echo -e "  Overall:   ${YELLOW}INCONCLUSIVE${NC}  (eval infrastructure could not measure this skill)"
     else
         echo -e "  Overall:   ${RED}FAIL${NC}"
@@ -676,9 +680,8 @@ fi
 
 echo -e "${BLUE}============================================================${NC}"
 
-# Exit with failure if either runner failed.
-# A real failure outranks an outage.
-if [[ $TRIGGER_EXIT -ne 0 ]]; then
+# A real failure in either lane outranks an outage in the other.
+if [[ $TRIGGER_EXIT -ne 0 && $TRIGGER_EXIT -ne 2 ]]; then
     exit 1
 fi
 if [[ $QUALITY_EXIT -ne 0 && $QUALITY_EXIT -ne 2 ]]; then
@@ -687,7 +690,7 @@ fi
 # #3032: propagate the distinct "could not measure" code instead of
 # flattening it to 1. The caller decides how to surface an outage; grading a
 # dead generation as a regression is what this exit code exists to prevent.
-if [[ $QUALITY_EXIT -eq 2 ]]; then
+if [[ $TRIGGER_EXIT -eq 2 || $QUALITY_EXIT -eq 2 ]]; then
     exit 2
 fi
 exit 0
