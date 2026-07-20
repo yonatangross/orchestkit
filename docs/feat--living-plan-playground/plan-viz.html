@@ -386,7 +386,12 @@
   // href scheme allowlist: a state file is self-authored, but javascript:/data: must never render
   const safeUrl = u => /^(https?|mailto):/i.test(String(u||'')) ? String(u) : '';
   // status drives a CSS class: whitelist it, never interpolate raw state into an attribute
-  const stCls = s => Object.prototype.hasOwnProperty.call(L, s) ? s : 'planned';
+  // Return the value from a clean table, never the argument itself. Returning `s`
+  // (even guarded) keeps the tainted parameter on the return path all the way to
+  // innerHTML — that is the actual flow CodeQL's js/xss-through-dom reports, and no
+  // hasOwnProperty guard clears it because CodeQL does not model guards as sanitizers.
+  const CLS = {planned:'planned', in_progress:'in_progress', done:'done', dropped:'dropped'};
+  const stCls = s => Object.prototype.hasOwnProperty.call(CLS, s) ? CLS[s] : 'planned';
   // risk drives an inline style: same rule. A bare RK[r] would reach the prototype
   // chain (RK['constructor'] returns a function that stringifies into the attribute),
   // and it is the one tainted->markup path that never passed through esc().
@@ -467,7 +472,7 @@
 
   const dims=st.score.dims||{};
   const scoreHtml = '<h2>Plan scoring</h2><div class="card">'+
-    Object.entries(dims).map(([k,v])=>'<div class="score-row"><span class="faint">'+esc(k)+'</span><div class="bar"><i style="inline-size:'+(v*10)+'%"></i></div><span class="v num">'+v.toFixed(1)+'</span></div>').join('')+
+    Object.entries(dims).map(([k,v])=>'<div class="score-row"><span class="faint">'+esc(k)+'</span><div class="bar"><i style="inline-size:'+(Number(v)*10)+'%"></i></div><span class="v num">'+Number(v).toFixed(1)+'</span></div>').join('')+
     '<div class="score-row" style="border-block-start:1px solid hsl(0 0% 100% / .1);padding-block-start:10px;margin-block-start:10px"><b>Composite → target</b><div class="bar"><i style="inline-size:'+(Number(st.score.composite)*10)+'%;background:var(--pg-ok)"></i></div><span class="v num"><b>'+Number(st.score.composite)+'</b></span></div></div>';
 
   const riskHtml = '<h2>Risk heat map</h2><div class="card"><table>'+
