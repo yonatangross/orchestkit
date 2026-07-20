@@ -393,11 +393,13 @@ describe('unified-subagent-stop-dispatcher', () => {
       // Act
       await unifiedSubagentStopDispatcher(input, testCtx);
 
-      // Assert
-      expect(trackEvent).toHaveBeenCalledWith(
-        'agent_spawned',
-        'unknown',
-        expect.any(Object)
+      // Assert — this test pins TYPE RESOLUTION, not spawn counting. With no
+      // type, no staged start and no transcript, the stop is a phantom (#3035)
+      // so trackEvent is deliberately suppressed; assert on the analytics row,
+      // which is written for every stop including phantoms.
+      expect(appendAnalytics).toHaveBeenCalledWith(
+        'agent-usage.jsonl',
+        expect.objectContaining({ agent: 'unknown', phantom: true }),
       );
     });
 
@@ -604,18 +606,20 @@ describe('unified-subagent-stop-dispatcher', () => {
       ['top-level subagent_type fallback', { tool_input: {}, subagent_type: 'primary', agent_type: 'secondary' }, 'primary'],
       ['agent_type fallback', { tool_input: {}, subagent_type: undefined, agent_type: 'fallback' }, 'fallback'],
       ['unknown fallback', { tool_input: {}, subagent_type: undefined, agent_type: undefined }, 'unknown'],
-    ])('%s: tracks correct agent name', async (_description, overrides, expectedAgent) => {
+    ])('%s: resolves the correct agent type', async (_description, overrides, expectedAgent) => {
       // Arrange
       const input = createSubagentStopInput(overrides);
 
       // Act
       await unifiedSubagentStopDispatcher(input, testCtx);
 
-      // Assert
-      expect(trackEvent).toHaveBeenCalledWith(
-        'agent_spawned',
-        expectedAgent,
-        expect.any(Object)
+      // Assert — anchored on the analytics row rather than trackEvent, because
+      // the 'unknown fallback' case is a phantom under #3035 and its spawn event
+      // is deliberately suppressed. The row is written for every stop, so all
+      // four cases stay green and keep testing what they were written to test.
+      expect(appendAnalytics).toHaveBeenCalledWith(
+        'agent-usage.jsonl',
+        expect.objectContaining({ agent: expectedAgent }),
       );
     });
 
@@ -629,13 +633,17 @@ describe('unified-subagent-stop-dispatcher', () => {
       // Act
       await unifiedSubagentStopDispatcher(input, testCtx);
 
-      // Assert
+      // Assert — agent_name is no longer written to agent-usage.jsonl (#3034:
+      // it read tool_input.name, which CC does not send at SubagentStop, so it
+      // was null on 100% of rows). The branch-activity ledger still carries it.
+      // What this test guards is that the TYPE still resolves from tool_input.
       expect(appendAnalytics).toHaveBeenCalledWith(
         'agent-usage.jsonl',
-        expect.objectContaining({
-          agent: 'Explore',
-          agent_name: 'researcher',
-        })
+        expect.objectContaining({ agent: 'Explore' }),
+      );
+      expect(appendAnalytics).toHaveBeenCalledWith(
+        'agent-usage.jsonl',
+        expect.not.objectContaining({ agent_name: expect.anything() }),
       );
     });
 
@@ -649,13 +657,16 @@ describe('unified-subagent-stop-dispatcher', () => {
       // Act
       await unifiedSubagentStopDispatcher(input, testCtx);
 
-      // Assert
+      // Assert — agent_name is no longer written at all (#3034), which is the
+      // honest form of "always null". Guard the absence so it cannot silently
+      // come back as a constant.
       expect(appendAnalytics).toHaveBeenCalledWith(
         'agent-usage.jsonl',
-        expect.objectContaining({
-          agent: 'general-purpose',
-          agent_name: null,
-        })
+        expect.objectContaining({ agent: 'general-purpose' }),
+      );
+      expect(appendAnalytics).toHaveBeenCalledWith(
+        'agent-usage.jsonl',
+        expect.not.objectContaining({ agent_name: expect.anything() }),
       );
     });
 
@@ -721,11 +732,17 @@ describe('unified-subagent-stop-dispatcher', () => {
       // Act
       await unifiedSubagentStopDispatcher(input, testCtx);
 
-      // Assert
-      expect(trackEvent).toHaveBeenCalledWith(
+      // Assert — no type, no staged start, no transcript is the phantom
+      // conjunction (#3035), so the spawn event is suppressed and the marked
+      // row is the observable. That suppression IS the fix, so assert it.
+      expect(appendAnalytics).toHaveBeenCalledWith(
+        'agent-usage.jsonl',
+        expect.objectContaining({ agent: 'unknown', phantom: true, has_transcript: false }),
+      );
+      expect(trackEvent).not.toHaveBeenCalledWith(
         'agent_spawned',
-        'unknown',
-        expect.any(Object),
+        expect.anything(),
+        expect.anything(),
       );
     });
   });

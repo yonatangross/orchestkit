@@ -18,7 +18,7 @@
  * CC 2.1.19 Compliant: Single async hook with internal routing
  */
 
-import { openSync, readSync, closeSync, fstatSync } from 'node:fs';
+import { openSync, readSync, closeSync, fstatSync, existsSync } from 'node:fs';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir, getSessionId } from '../lib/common.js';
 import { trackEvent } from '../lib/session-tracker.js';
@@ -72,6 +72,14 @@ interface TranscriptMetrics {
   error_count: number;
   completion_status: 'normal' | 'partial' | 'error';
   token_usage?: { input?: number; output?: number };
+  /**
+   * Model that served the subagent's turns, read from the transcript's assistant
+   * entries (#3034). This is the ONLY real source: CC delivers no `tool_input`
+   * at SubagentStop, so the previous `input.tool_input?.model` read was constant
+   * "unknown" on 100% of 11,319 rows. Measured recovery over 333 real
+   * transcripts: 95.5%.
+   */
+  model?: string;
 }
 
 /** Max bytes to read from transcript (128KB) — enough for metrics without reading huge files */
@@ -108,6 +116,7 @@ function analyzeTranscript(transcriptPath: string): TranscriptMetrics | null {
     let inputTokens = 0;
     let outputTokens = 0;
     let hasTokenInfo = false;
+    let model: string | undefined;
     const lastLineWasTruncated = bytesRead < fileSize;
 
     for (const line of lines) {
@@ -148,6 +157,15 @@ function analyzeTranscript(transcriptPath: string): TranscriptMetrics | null {
         outputTokens += parseInt(outputMatch[1], 10);
         hasTokenInfo = true;
       }
+
+      // #3034: the transcript is the only place the serving model appears —
+      // CC sends no tool_input at SubagentStop. First hit wins; a subagent's
+      // turns are served by one model, and scanning on means re-matching it
+      // on every assistant line for nothing.
+      if (!model) {
+        const modelMatch = trimmed.match(/"model"\s*:\s*"([^"]+)"/);
+        if (modelMatch) model = modelMatch[1];
+      }
     }
 
     // Determine completion status
@@ -168,6 +186,7 @@ function analyzeTranscript(transcriptPath: string): TranscriptMetrics | null {
       error_count: errorCount,
       completion_status: completionStatus,
       ...(hasTokenInfo ? { token_usage: { input: inputTokens, output: outputTokens } } : {}),
+      ...(model ? { model } : {}),
     };
   } catch {
     // File missing, unreadable, or parse error — all fine
@@ -260,6 +279,44 @@ function recordCacheTokens(input: HookInput, ctx: HookContext): void {
 }
 
 /**
+ * True when the stop payload names a transcript that is actually on disk.
+ * A missing path and a path pointing at nothing are the same answer here.
+ */
+function hasTranscriptOnDisk(transcriptPath: string | undefined): boolean {
+  if (!transcriptPath) return false;
+  try {
+    return existsSync(transcriptPath);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A SubagentStop is PHANTOM when three independent signals agree that no agent
+ * ever ran under this agent_id (#3035):
+ *
+ *   1. no type from the payload nor from SubagentStart staging (#245)
+ *   2. no staged start timestamp — SubagentStart never fired for this id
+ *   3. no transcript on disk — path absent, or pointing at nothing
+ *
+ * All three are required. Any one alone is unsafe: a real agent can miss the
+ * staged start (hook disabled, project-dir mismatch, spawned before the plugin
+ * loaded) and a real agent can be typeless — but a real agent always leaves a
+ * transcript. That third signal is what protects a long-running agent whose
+ * staged start has already been consumed.
+ *
+ * Measured over 859 live ledger rows the conjunction is exact: 0 of 477 unknown
+ * rows had a readable transcript; 382 of 382 attributed rows did.
+ *
+ * Do NOT "fix" this by correlating harder. f2e0159e7 (#2850) already shipped
+ * SubagentStart staging + correlation for this exact symptom and the rate went
+ * 24% -> 38%. This class has no SubagentStart to correlate with, by construction.
+ */
+function isPhantomStop(agentType: string, startMs: number, hasTranscript: boolean): boolean {
+  return agentType === 'unknown' && startMs === 0 && !hasTranscript;
+}
+
+/**
  * Track agent result for user profiling
  * Issue #245: Multi-User Intelligent Decision Capture
  */
@@ -275,41 +332,74 @@ function trackAgentResult(input: HookInput): void {
       || input.agent_type
       || agentCtx.type
       || 'unknown';
+    // Still read for the branch-activity LEDGER and transcript quality record
+    // below — those are separate sinks from agent-usage.jsonl. It is also always
+    // undefined in practice (no tool_input at SubagentStop), but `undefined`
+    // omits the key there rather than writing a constant, so it stays honest.
     const agentName = input.tool_input?.name as string || undefined;
     const success = !input.error;
-    const durationMs = input.duration_ms;
+
+    // #3035: classify BEFORE anything counts this as a spawn. One stat(2) is
+    // noise beside the locked session-state read+write resolveAgentContext just
+    // performed, and statting unconditionally is what makes `has_transcript`
+    // trustworthy on attributed rows too.
+    const hasTranscript = hasTranscriptOnDisk(input.agent_transcript_path);
+    const phantom = isPhantomStop(agentType, agentCtx.startMs, hasTranscript);
+
+    // #3034: CC delivers neither `duration_ms` nor `tool_input` nor
+    // `agent_output`/`output` at SubagentStop — 0 of 11,319 real rows carried
+    // any of them. The only true sources are the SubagentStart-staged start
+    // time and the transcript, so both are computed before the write.
+    const effectiveDuration = input.duration_ms
+      || (agentCtx.startMs ? Date.now() - agentCtx.startMs : 0);
+    const metrics = hasTranscript && input.agent_transcript_path
+      ? analyzeTranscript(input.agent_transcript_path)
+      : null;
 
     // Extract result quality indicators
     const output = input.agent_output || input.output || '';
     const outputLength = typeof output === 'string' ? output.length : 0;
 
-    trackEvent('agent_spawned', agentType, {
-      success,
-      duration_ms: durationMs,
-      output: {
-        has_output: outputLength > 0,
-        output_length: outputLength,
-        has_error: !!input.error,
-      },
-      context: input.agent_id,
-    });
-
-    // Extract model from SubagentStop input or environment
-    const model = input.tool_input?.model as string
-      || process.env.CLAUDE_MODEL
-      || 'unknown';
+    // A phantom never ran — keep it out of the user profile's spawn counts.
+    // Guarded separately from the analytics write below: these are independent
+    // sinks, and user profiling is the less durable one. Sharing the outer
+    // try meant a throwing trackEvent silently destroyed the analytics row for
+    // that spawn — the record we most want when something is going wrong.
+    if (!phantom) {
+      try {
+        trackEvent('agent_spawned', agentType, {
+          success,
+          duration_ms: effectiveDuration || undefined,
+          output: {
+            has_output: outputLength > 0,
+            output_length: outputLength,
+            has_error: !!input.error,
+          },
+          context: input.agent_id,
+        });
+      } catch {
+        // Profiling is best-effort; never let it cost us the analytics row.
+      }
+    }
 
     // Cross-project analytics (Issue #459, #727)
+    // #3034: `agent_name` and `output_len` are deliberately NOT written — both
+    // read payload fields CC never sends, so they were constant on 100% of rows.
+    // A constant key reads as data; absence is honest.
+    // #3035: phantoms ARE written, marked. Skipping would destroy the only
+    // evidence of a phenomenon whose cause is still unknown. `has_transcript` is
+    // written on every row from this version on, so its ABSENCE dates a row to
+    // before this fix — `select(.has_transcript == null)` isolates the legacy set.
     appendAnalytics('agent-usage.jsonl', {
       ts: new Date().toISOString(),
       pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
       agent: agentType,
-      agent_name: agentName ?? null,
-      model,
-      duration_ms: durationMs,
+      model: metrics?.model ?? null,
+      duration_ms: effectiveDuration > 0 ? effectiveDuration : null,
       success,
-      output_len: outputLength,
       last_msg_len: input.last_assistant_message?.length ?? null,
+      has_transcript: hasTranscript,
+      ...(phantom ? { phantom: true } : {}),
       ...getTeamContext(),
     });
 
@@ -333,9 +423,6 @@ function trackAgentResult(input: HookInput): void {
     const orchestrator = process.env.CLAUDE_SKILL_NAME
       || process.env.ORCHESTKIT_ACTIVE_SKILL
       || undefined;
-
-    // Duration: prefer CC-provided, fall back to start-time diff
-    const effectiveDuration = durationMs || (agentCtx.startMs ? Date.now() - agentCtx.startMs : 0);
 
     appendLedgerEntry({
       ts: new Date().toISOString(),
