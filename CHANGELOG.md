@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.83.0](https://github.com/yonatangross/orchestkit/compare/v8.82.1...v8.83.0) (2026-07-20)
+
+
+### Features
+
+* **cmux:** add declarative team layout for cmux ([#3045](https://github.com/yonatangross/orchestkit/issues/3045)) ([1eb838b](https://github.com/yonatangross/orchestkit/commit/1eb838bfeae4e526a111198ae88458e3704589c1))
+* **cover,hooks,auto:** close four AI-developer-workflow gaps ([#3044](https://github.com/yonatangross/orchestkit/issues/3044)) ([f644290](https://github.com/yonatangross/orchestkit/commit/f644290a881a41b1915ed6beb76809bd0c9f07cb))
+
 ## [8.82.1](https://github.com/yonatangross/orchestkit/compare/v8.82.0...v8.82.1) (2026-07-20)
 
 
