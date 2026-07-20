@@ -413,6 +413,39 @@ extract_output_text() {
 #   1 = TRANSIENT dead  — blank/empty/crashed. Worth one retry.
 #   3 = TERMINAL dead   — turn or budget exhaustion. Retrying burns another
 #                         full-length call to hit the same wall, so abort.
+# Print the STRUCTURAL shape of a dead generation to stderr so a CI failure
+# carries evidence instead of only a summary string. Deliberately omits the
+# model's own text (.result): the cause of a dead generation lives in the
+# envelope metadata, and echoing arbitrary generated text into a public CI log
+# is not worth the diagnostic value. Goes to stderr because callers capture
+# this function's stdout as the human-readable reason.
+DEAD_ENVELOPE_JQ='{
+    keys: (keys | join(",")),
+    type, subtype, is_error, stop_reason, terminal_reason,
+    api_error_status, num_turns, total_cost_usd,
+    permission_denials: (.permission_denials // [] | length),
+    result_len: ((.result // "") | length)
+} | to_entries[] | "    \(.key): \(.value)"'
+
+dump_dead_envelope() {
+    local json_file="$1"
+    {
+        echo "  ---- dead-generation envelope (structural fields only) ----"
+        echo "    bytes: $(wc -c < "$json_file" | tr -d ' ')"
+        if jq -e 'type == "object"' "$json_file" >/dev/null 2>&1; then
+            # silent: external-api-shape
+            jq -r "$DEAD_ENVELOPE_JQ" "$json_file" 2>/dev/null
+        else
+            echo "    NOT a single JSON object. First 200 bytes:"
+            head -c 200 "$json_file" | sed 's/^/      /'
+            echo ""
+            # silent: external-api-shape
+            echo "    stream object count: $(jq -s 'length' "$json_file" 2>/dev/null || echo '?')"
+        fi
+        echo "  -----------------------------------------------------------"
+    } >&2
+}
+
 classify_generation() {
     local json_file="$1"
 
@@ -434,6 +467,11 @@ classify_generation() {
         esac
         # silent: external-api-shape
         if jq -e '.is_error == true' "$json_file" >/dev/null 2>&1; then
+            # An envelope reporting is_error:true alongside subtype:success is
+            # self-contradictory and was observed on CI runners while the same
+            # call succeeded locally. Dump the shape so the next red run
+            # carries the cause rather than just this summary string.
+            dump_dead_envelope "$json_file"
             echo "error envelope${subtype:+: $subtype}"; return 1
         fi
     fi
@@ -443,6 +481,7 @@ classify_generation() {
     local extracted
     extracted=$(extract_output_text "$json_file")
     if [[ -z "$(tr -d '[:space:]' <<< "$extracted")" ]]; then
+        dump_dead_envelope "$json_file"
         echo "no gradeable text after extraction"; return 1
     fi
     return 0

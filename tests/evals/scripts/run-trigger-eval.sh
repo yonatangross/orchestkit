@@ -269,8 +269,15 @@ eval_skill() {
     local trigger_count; trigger_count=$(yq -r '.trigger_evals | length' "$eval_file")
     local start_time; start_time=$(date +%s)
 
+    # Both early returns below exit 0 WITHOUT measuring anything. The caller
+    # used to count that as a pass, so a skill that never ran reported green.
+    # Exit codes stay as-is (run-skill-eval.sh keys off 0/2), so the caller
+    # reads this flag instead to tell "measured and passed" from "never ran".
+    LAST_EVAL_MEASURED=true
+
     # Skip skills with no trigger_evals (don't print noisy empty boxes)
     if [[ "$trigger_count" -eq 0 && "$DRY_RUN" == "false" ]]; then
+        LAST_EVAL_MEASURED=false
         return 0
     fi
 
@@ -281,6 +288,7 @@ eval_skill() {
             local invocable; invocable=$(grep '^user-invocable:' "$skill_md" | awk '{print $2}')
             if [[ "$invocable" != "true" ]]; then
                 echo -e "  ${CYAN}$skill_id${NC}: ${YELLOW}SKIP (not user-invocable, trigger eval N/A)${NC}"
+                LAST_EVAL_MEASURED=false
                 return 0
             fi
         fi
@@ -549,6 +557,9 @@ failed_skills=()
 # #3032: skills whose prompts all died. Unmeasured, not failed.
 inconclusive=0
 inconclusive_skills=()
+notmeasured=0
+notmeasured_skills=()
+LAST_EVAL_MEASURED=true
 
 for eval_file in "${eval_files[@]}"; do
     local_skill_id=$(yq -r '.id' "$eval_file")
@@ -566,12 +577,20 @@ for eval_file in "${eval_files[@]}"; do
 
     ((total++))
     eval_rc=0
+    LAST_EVAL_MEASURED=true
     eval_skill "$eval_file" || eval_rc=$?
     case "$eval_rc" in
         0)
-            ((passed++))
-            # Save cache on success
-            [[ "$DRY_RUN" == "false" ]] && save_eval_cache "$local_skill_id" "trigger"
+            if ! $LAST_EVAL_MEASURED; then
+                # Returned 0 without running. Counting this as a pass is how a
+                # skipped skill reported green.
+                ((notmeasured++))
+                notmeasured_skills+=("$(yq -r '.id' "$eval_file")")
+            else
+                ((passed++))
+                # Save cache on success. Never cache an unmeasured run.
+                [[ "$DRY_RUN" == "false" ]] && save_eval_cache "$local_skill_id" "trigger"
+            fi
             ;;
         2)
             # Never cache an unmeasured run, or the next run inherits the outage.
@@ -595,6 +614,11 @@ echo -e "  Total:  $total"
 echo -e "  Passed: ${GREEN}$passed${NC}"
 if [[ "$failed" -gt 0 ]]; then
     echo -e "  Failed: ${RED}$failed${NC} (${failed_skills[*]})"
+fi
+if [[ "$notmeasured" -gt 0 ]]; then
+    echo -e "  Not measured: ${YELLOW}$notmeasured${NC} (${notmeasured_skills[*]})"
+    echo -e "  ${YELLOW}No trigger cases, or the skill is not user-invocable.${NC}"
+    echo -e "  ${YELLOW}These were NOT evaluated — do not read them as passing.${NC}"
 fi
 if [[ "$inconclusive" -gt 0 ]]; then
     echo -e "  Inconclusive: ${YELLOW}$inconclusive${NC} (${inconclusive_skills[*]})"

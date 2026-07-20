@@ -634,11 +634,27 @@ if [[ -n "$SKILL" ]]; then
     echo -e "  Skill:     ${CYAN}$SKILL${NC}"
     echo ""
 
+    # A lane counts as MEASURED only when it published a result value.
+    # #3032 fixed the outage path (exit 2). This fixes its sibling: a lane can
+    # also return 0 WITHOUT running — run-trigger-eval.sh returns 0 early when
+    # a spec has no trigger_evals, and again when the skill is not
+    # user-invocable (trigger eval only models slash-command routing, so it is
+    # N/A by design for background skills). Neither path writes a results
+    # artifact, so an EMPTY result is the not-measured signal. Reading exit 0
+    # as PASS turned "never ran" into a green verdict for 76 of 119 specs.
+    # Check the artifact, not the exit code.
+    trigger_measured=true
+    quality_measured=true
+    case "$TRIGGER_RESULT" in ""|null|N/A|*null*) trigger_measured=false ;; esac
+    case "$QUALITY_RESULT" in ""|null|N/A) quality_measured=false ;; esac
+
     # Trigger row
     # #3032: exit 2 means every prompt died, so no precision/recall was
     # computed. Rendering that as FAIL invented a verdict from an outage.
     if $RUN_TRIGGER; then
-        if [[ $TRIGGER_EXIT -eq 0 ]]; then
+        if [[ $TRIGGER_EXIT -eq 0 ]] && ! $trigger_measured; then
+            echo -e "  Trigger:   ${YELLOW}N/A${NC}  (not measured: no trigger cases, or skill is not user-invocable)"
+        elif [[ $TRIGGER_EXIT -eq 0 ]]; then
             echo -e "  Trigger:   ${GREEN}PASS${NC}  ($TRIGGER_RESULT)"
         elif [[ $TRIGGER_EXIT -eq 2 ]]; then
             echo -e "  Trigger:   ${YELLOW}INCONCLUSIVE${NC}  (no answer: dead generation)"
@@ -654,7 +670,9 @@ if [[ -n "$SKILL" ]]; then
     # printing "FAIL (%)" invented a verdict out of an outage. An empty result
     # also renders as n/a rather than a bare percent sign.
     if $RUN_QUALITY; then
-        if [[ $QUALITY_EXIT -eq 0 ]]; then
+        if [[ $QUALITY_EXIT -eq 0 ]] && ! $quality_measured; then
+            echo -e "  Quality:   ${YELLOW}N/A${NC}  (not measured: no score published)"
+        elif [[ $QUALITY_EXIT -eq 0 ]]; then
             echo -e "  Quality:   ${GREEN}PASS${NC}  (${QUALITY_RESULT}%)"
         elif [[ $QUALITY_EXIT -eq 2 ]]; then
             echo -e "  Quality:   ${YELLOW}INCONCLUSIVE${NC}  (no score published: dead generation)"
@@ -667,7 +685,12 @@ if [[ -n "$SKILL" ]]; then
 
     # Overall: a real failure in EITHER lane outranks an outage in the other.
     echo ""
-    if [[ $TRIGGER_EXIT -eq 0 && $QUALITY_EXIT -eq 0 ]]; then
+    if [[ $TRIGGER_EXIT -eq 0 && $QUALITY_EXIT -eq 0 ]] \
+       && ! $trigger_measured && ! $quality_measured; then
+        # Neither lane produced a number. Claiming PASS here is the vacuous
+        # verdict this block exists to prevent.
+        echo -e "  Overall:   ${YELLOW}N/A${NC}  (nothing was measured for this skill)"
+    elif [[ $TRIGGER_EXIT -eq 0 && $QUALITY_EXIT -eq 0 ]]; then
         echo -e "  Overall:   ${GREEN}PASS${NC}"
     elif [[ ($TRIGGER_EXIT -eq 0 || $TRIGGER_EXIT -eq 2) && ($QUALITY_EXIT -eq 0 || $QUALITY_EXIT -eq 2) ]]; then
         echo -e "  Overall:   ${YELLOW}INCONCLUSIVE${NC}  (eval infrastructure could not measure this skill)"
