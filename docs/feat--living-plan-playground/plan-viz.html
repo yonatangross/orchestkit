@@ -21,6 +21,13 @@
 
   Reuse: copy this file, replace STATE, keep the engine. Run the §10 self-audit before
   shipping. Archetype family: DASHBOARD (living).
+
+  SECTION CANON v1 (part of the contract, all LPP surfaces use these labels in this order;
+  renderers may OMIT a section but never rename or reorder):
+    Execution waves · Progress matrix · Scores · Risk map · Discards · Research · Updates
+  This applies to the file renderer below, platform-native renders, and confirm-gate views.
+  Drift between surfaces was the first real-world failure of LPP v1 adoption; the canon
+  exists so a plan reads identically wherever it is rendered.
 -->
 <head>
 <meta charset="UTF-8">
@@ -200,7 +207,7 @@
   "slug": "living-plan-playground-rollout",
   "title": "LPP Rollout (this PR, tracking itself)",
   "created": "2026-07-20",
-  "updated": "2026-07-20T03:55:00Z",
+  "updated": "2026-07-20T04:40:00Z",
   "score": {
     "dims": {
       "pattern completeness": 8.5,
@@ -359,6 +366,10 @@
     {
       "at": "2026-07-20",
       "note": "W2.1 in progress: issue #8702 filed (design decisions operator-approved: Storybook-first) and slice-1 PR platform#8704 opened (Zod schema + registry domain + shelf/detail components + stories, 10/10 tests, type-check clean). Stitch API leg parked: registers server-side but lands no screens."
+    },
+    {
+      "at": "2026-07-20",
+      "note": "Regenerated on the XSS-hardened renderer (CodeQL js/xss-through-dom x3: unescaped numeric + status interpolations). State preserved."
     }
   ]
 }
@@ -370,8 +381,13 @@
   const st = JSON.parse(document.getElementById('lpp-state').textContent);
   const L = {planned:'planned', in_progress:'in progress', done:'done', dropped:'dropped'};
   const RK = {low:'var(--pg-ok)', med:'var(--pg-warm)', medium:'var(--pg-warm)', high:'var(--pg-risk)'};
-  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
-  const stChip = i => '<span class="st st-'+i.status+'">'+(L[i.status]||i.status)+'</span>';
+  // escape for BOTH text and attribute contexts (research source goes into an href="…")
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  // href scheme allowlist: a state file is self-authored, but javascript:/data: must never render
+  const safeUrl = u => /^(https?|mailto):/i.test(String(u||'')) ? String(u) : '';
+  // status drives a CSS class: whitelist it, never interpolate raw state into an attribute
+  const stCls = s => Object.prototype.hasOwnProperty.call(L, s) ? s : 'planned';
+  const stChip = i => '<span class="st st-'+stCls(i.status)+'">'+esc(L[i.status]||i.status)+'</span>';
 
   document.getElementById('lpp-title').textContent = st.title;
   document.title = st.title;
@@ -411,7 +427,7 @@
 
   // panels
   const impactBar = i => i.impact!=null
-    ? '<span class="impact">impact <span class="ib"><i style="inline-size:'+(i.impact*10)+'%"></i></span> <b class="num">'+i.impact+'</b></span>' : '';
+    ? '<span class="impact">impact <span class="ib"><i style="inline-size:'+(Number(i.impact)*10)+'%"></i></span> <b class="num">'+Number(i.impact)+'</b></span>' : '';
 
   const waveHtml = st.waves.map(w=>{
     const wi=items.filter(i=>i.wave===w.id);
@@ -448,7 +464,7 @@
   const dims=st.score.dims||{};
   const scoreHtml = '<h2>Plan scoring</h2><div class="card">'+
     Object.entries(dims).map(([k,v])=>'<div class="score-row"><span class="faint">'+esc(k)+'</span><div class="bar"><i style="inline-size:'+(v*10)+'%"></i></div><span class="v num">'+v.toFixed(1)+'</span></div>').join('')+
-    '<div class="score-row" style="border-block-start:1px solid hsl(0 0% 100% / .1);padding-block-start:10px;margin-block-start:10px"><b>Composite → target</b><div class="bar"><i style="inline-size:'+(st.score.composite*10)+'%;background:var(--pg-ok)"></i></div><span class="v num"><b>'+st.score.composite+'</b></span></div></div>';
+    '<div class="score-row" style="border-block-start:1px solid hsl(0 0% 100% / .1);padding-block-start:10px;margin-block-start:10px"><b>Composite → target</b><div class="bar"><i style="inline-size:'+(Number(st.score.composite)*10)+'%;background:var(--pg-ok)"></i></div><span class="v num"><b>'+Number(st.score.composite)+'</b></span></div></div>';
 
   const riskHtml = '<h2>Risk heat map</h2><div class="card"><table>'+
     '<tr><th>item</th><th>risk</th><th>failure mode</th><th>containment</th></tr>'+
@@ -463,13 +479,13 @@
 
   const researchHtml = '<h2>Research that shaped the plan</h2>'+
     (st.research||[]).map(r=>'<div class="card"><h3>'+esc(r.title)+'</h3><p class="src">'+esc(r.note)+
-      (r.source?' · <a href="'+esc(r.source)+'">source</a>':'')+'</p></div>').join('');
+      (safeUrl(r.source)?' · <a href="'+esc(safeUrl(r.source))+'">source</a>':'')+'</p></div>').join('');
 
   const updatesHtml = '<h2>Updates (append-only)</h2><div class="card"><table>'+
     '<tr><th>when</th><th>note</th></tr>'+
     (st.changelog||[]).slice().reverse().map(e=>'<tr><td class="num faint">'+esc(e.at)+'</td><td>'+esc(e.note)+'</td></tr>').join('')+
     '</table></div>'+
-    '<div class="note">This is a LIVING artifact (lpp v'+st.lpp+'). Sessions mutate the state block in this same file; never fork a second file for slug "'+esc(st.slug)+'".</div>';
+    '<div class="note">This is a LIVING artifact (lpp v'+Number(st.lpp)+'). Sessions mutate the state block in this same file; never fork a second file for slug "'+esc(st.slug)+'".</div>';
 
   const panels=[
     {id:'waves',label:'Execution waves',html:waveHtml},
