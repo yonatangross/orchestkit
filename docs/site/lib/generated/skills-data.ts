@@ -168,7 +168,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "analytics",
     "description": "Queries local analytics across OrchestKit projects for agent usage, skill frequency, hook timing, team activity, session replay, cost estimation, and model delegation trends. Privacy-safe with hashed project IDs. Supports time-range filtering and comparative analysis. Use when reviewing performance, estimating costs, or understanding usage patterns.",
     "version": "2.1.0",
-    "sha256": "effd5e20fac0654f8e2bd9799f9ed3b233a29d070585e7a01743ae4b3d5641d0",
+    "sha256": "8c5de596cc9ebe4e872c58b7863ed7520e793ef051e04909688ee5c38cb844b9",
     "author": "OrchestKit",
     "tags": [
       "analytics",
@@ -2054,7 +2054,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.2.0",
-    "sha256": "f53aee71ba377c50f565d49474aa028e58764754fa6df6085f943e75c9266ca1",
+    "sha256": "501467a55c03acd4a55be9205c9eeb9f308a873d5622939e0b1d42f254280369",
     "author": "OrchestKit",
     "tags": [
       "health-check",

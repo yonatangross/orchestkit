@@ -126,7 +126,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | **0. Installed Plugins** | Auto-detects ork plugin, counts skills/agents | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
 | **1. Skills** | Frontmatter, context field, token budget, links, **activation-channel reachability** (no orphaned user-invocable skills) | load `${CLAUDE_SKILL_DIR}/references/skills-validation.md` |
 | **2. Agents** | Frontmatter, model, skill refs, tool refs | load `${CLAUDE_SKILL_DIR}/references/agents-validation.md` |
-| **3. Hooks** | hooks.json schema, bundles, async patterns | load `${CLAUDE_SKILL_DIR}/references/hook-validation.md` |
+| **3. Hooks** | hooks.json schema, bundles, async patterns — across all three hook scopes: **global**, **agent-scoped**, and **skill-scoped**. Detects the common hook problems: missing files (registered but not on disk), syntax errors in hooks.json or bundles, permission issues (non-executable scripts), and stale references (entries pointing at renamed/removed handlers) | load `${CLAUDE_SKILL_DIR}/references/hook-validation.md` |
 
 > **Activation-channel orphans (repo / pre-release):** a user-invocable skill should be reachable by more than a human typing it — via a chain (another skill references `/ork:<skill>`), a subagent grant (`skills:` in `src/agents/*.md`), or a background trigger. A skill with none is an "island" that silently rots. In a repo checkout, run `npm run test:manifests:channels` (gated in CI via `test:manifests`). Fix an island by wiring any one channel, or add it to `STANDALONE_ALLOWLIST` with a justification.
 
@@ -181,6 +181,8 @@ WARNING: xhigh effort requires Opus 4.8.
 **Exit code**: Non-zero in `--json` mode; soft warning in interactive mode.
 
 ## Report Format
+
+Every category reports an explicit **pass / warn / fail** status, and every warn or fail comes with **specific fix steps** for that failure type (the exact command to run, file to edit, or config to change) — doctor diagnoses AND prescribes, it never just lists problems.
 
 > Load `Read("${CLAUDE_SKILL_DIR}/references/report-format.md")` for ASCII report templates, JSON CI output schema, and exit codes.
 

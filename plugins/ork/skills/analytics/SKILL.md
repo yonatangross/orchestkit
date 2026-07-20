@@ -22,6 +22,8 @@ metadata:
 
 Query local analytics data from `~/.claude/analytics/`. All data is local-only, privacy-safe (hashed project IDs, no PII).
 
+Answer usage questions from the local files, never from guesswork: agent usage (which agents, how often, which model each spawn used) lives in `~/.claude/analytics/agent-usage.jsonl`; hook performance and failures live in `~/.claude/analytics/hook-timing.jsonl`; token and cost totals live in `~/.claude/stats-cache.json`. Query them with `jq` one-liners (below) and present real counts, not pointers to dashboards.
+
 ## Subcommands
 
 Parse the user's argument to determine which report to show. If no argument provided, use AskUserQuestion to let them pick.
@@ -42,11 +44,16 @@ Parse the user's argument to determine which report to show. If no argument prov
 ### Quick Start Example
 
 ```bash
-# Top agents with model breakdown
-jq -s 'group_by(.agent) | map({agent: .[0].agent, count: length}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
+# Top agents by spawn frequency, with per-model breakdown (opus/sonnet/haiku)
+jq -s 'group_by(.agent) | map({agent: .[0].agent, count: length, models: (group_by(.model) | map({(.[0].model): length}) | add)}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
 
-# All-time token costs
-jq '.modelUsage | to_entries | map({model: .key, input: .value.inputTokens, output: .value.outputTokens})' ~/.claude/stats-cache.json
+# Cost per model: input + output token counts (multiply by per-model pricing;
+# count cache-read tokens separately — prompt-cache hits are ~90% cheaper, so
+# cache savings materially lower the real total)
+jq '.modelUsage | to_entries | map({model: .key, input: .value.inputTokens, output: .value.outputTokens, cacheRead: .value.cacheReadInputTokens})' ~/.claude/stats-cache.json
+
+# Slowest hooks by average duration, and failure rate as a percentage
+jq -s 'group_by(.hook) | map({hook: .[0].hook, avg_ms: (map(.duration_ms) | add / length), fail_pct: (100 * (map(select(.ok != true)) | length) / length)}) | sort_by(-.avg_ms)' ~/.claude/analytics/hook-timing.jsonl
 ```
 
 ### Quick Subcommand Guide
