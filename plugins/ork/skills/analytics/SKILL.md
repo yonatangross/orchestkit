@@ -31,7 +31,7 @@ Parse the user's argument to determine which report to show. If no argument prov
 | Subcommand | Description | Data Source | Reference |
 |------------|-------------|-------------|-----------|
 | `agents` | Top agents by frequency, duration, model breakdown | `agent-usage.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
-| `models` | Model delegation breakdown (opus/sonnet/haiku) | `agent-usage.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
+| `models` | Model delegation breakdown — **currently unavailable, see the data-quality caveat below (#3034)** | `agent-usage.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
 | `skills` | Top skills by invocation count | `skill-usage.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
 | `hooks` | Slowest hooks and failure rates | `hook-timing.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
 | `teams` | Team spawn counts, idle time, task completions | `team-activity.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
@@ -44,8 +44,8 @@ Parse the user's argument to determine which report to show. If no argument prov
 ### Quick Start Example
 
 ```bash
-# Top agents by spawn frequency, with per-model breakdown (opus/sonnet/haiku)
-jq -s 'group_by(.agent) | map({agent: .[0].agent, count: length, models: (group_by(.model) | map({(.[0].model): length}) | add)}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
+# Top agents by spawn frequency. Excludes phantom rows (see caveat below).
+jq -s 'map(select(.agent != "unknown")) | group_by(.agent) | map({agent: .[0].agent, count: length}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
 
 # Cost per model: input + output token counts (multiply by per-model pricing;
 # count cache-read tokens separately — prompt-cache hits are ~90% cheaper, so
@@ -69,6 +69,16 @@ jq -s 'group_by(.hook) | map({hook: .[0].hook, avg_ms: (map(.duration_ms) | add 
 **`summary`** — Run all subcommands and present a unified view: total sessions, top 5 agents, top 5 skills, team activity, unique projects. If `~/.claude/otel/*.jsonl` exists with non-empty content, append the three OTEL panels from `otel-fields.md`; otherwise omit them (do not render empty panels).
 
 **`otel`** — Render the OTEL panels: 3 from CC 2.1.117 (top slash commands user-vs-model, per-effort cost, effort-vs-success correlation), 3 from CC 2.1.119 (oversized inputs, pre/post latency, see `otel-fields.md`), 1 from CC 2.1.122 (most-mentioned `@` targets), and 1 from CC 2.1.126 (skill activation by trigger type). See `Read("${CLAUDE_SKILL_DIR}/references/otel-fields.md")` for queries, graceful-fallback rules, and panel semantics. Each panel falls back cleanly to "no OTEL data available (upgrade to CC ≥ X)" when its specific file is absent or empty — render only the panels with data.
+
+## Data-Quality Caveats — read before reporting any number
+
+Two measured defects in `agent-usage.jsonl` change what this file can honestly answer. Verified against 11,249 real rows on 2026-07-20.
+
+**1. Four of eight fields are dead for 100% of rows (#3034).** `model` is the literal string `"unknown"` on every row, `agent_name` is null on every row, `output_len` is 0 on every row, and `duration_ms` is absent entirely. Only `ts`, `pid`, `agent`, and `success` carry signal. Do NOT report model delegation, agent duration, or output size from this file — grouping by `.model` returns one `unknown` bucket, not a breakdown. If asked, say the data is unavailable and cite #3034 rather than presenting a single-bucket result as if it were an answer.
+
+**2. ~38% of rows are phantom events, not spawns (#3035).** Rows with `agent == "unknown"` have no SubagentStart, no readable transcript, and their agent ids appear nowhere in Claude Code's own session data. They are an inflated denominator: any activation ratio computed over the full file is wrong. **Filter `select(.agent != "unknown")` before computing any share, percentage, or ranking.** A specialist-vs-generic split over the raw file understates specialists by roughly a third.
+
+Both are writer-side defects, not query bugs — a better jq expression cannot recover the missing signal.
 
 ## Data Files
 
