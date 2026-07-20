@@ -22,7 +22,7 @@ metadata:
 
 Query local analytics data from `~/.claude/analytics/`. All data is local-only, privacy-safe (hashed project IDs, no PII).
 
-Answer usage questions from the local files, never from guesswork: agent usage (which agents, how often, which model each spawn used) lives in `~/.claude/analytics/agent-usage.jsonl`; hook performance and failures live in `~/.claude/analytics/hook-timing.jsonl`; token and cost totals live in `~/.claude/stats-cache.json`. Query them with `jq` one-liners (below) and present real counts, not pointers to dashboards.
+Answer usage questions from the local files, never from guesswork: agent usage (which agents and how often — not which model, see the caveats) lives in `~/.claude/analytics/agent-usage.jsonl`; hook performance and failures live in `~/.claude/analytics/hook-timing.jsonl`; token and cost totals live in `~/.claude/stats-cache.json`. Query them with `jq` one-liners (below) and present real counts, not pointers to dashboards.
 
 ## Subcommands
 
@@ -30,8 +30,8 @@ Parse the user's argument to determine which report to show. If no argument prov
 
 | Subcommand | Description | Data Source | Reference |
 |------------|-------------|-------------|-----------|
-| `agents` | Top agents by frequency, duration, model breakdown | `agent-usage.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
-| `models` | Model delegation breakdown — **currently unavailable, see the data-quality caveat below (#3034)** | `agent-usage.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
+| `agents` | Top agents by frequency and success rate (duration/model unavailable — #3034) | `agent-usage.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
+| `models` | Model delegation from **token totals** in `stats-cache.json`. Per-spawn attribution is unavailable (#3034) | `stats-cache.json` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
 | `skills` | Top skills by invocation count | `skill-usage.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
 | `hooks` | Slowest hooks and failure rates | `hook-timing.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
 | `teams` | Team spawn counts, idle time, task completions | `team-activity.jsonl` | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
@@ -86,7 +86,7 @@ Load `Read("${CLAUDE_SKILL_DIR}/references/data-locations.md")` for complete dat
 
 | File | Contents |
 |------|----------|
-| `agent-usage.jsonl` | Agent spawn events with model, duration, success |
+| `agent-usage.jsonl` | Agent spawns — usable fields are `ts`, `pid`, `agent`, `success` only. `model`/`agent_name`/`output_len`/`duration_ms` are dead (#3034) and ~38% of rows are phantoms (#3035) |
 | `skill-usage.jsonl` | Skill invocations |
 | `hook-timing.jsonl` | Hook execution timing and failure rates |
 | `session-summary.jsonl` | Session end summaries |
