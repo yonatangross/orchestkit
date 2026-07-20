@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.83.0",
+    "date": "2026-07-20",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**cmux:** add declarative team layout for cmux ([#3045](https://github.com/yonatangross/orchestkit/issues/3045)) ([1eb838b](https://github.com/yonatangross/orchestkit/commit/1eb838bfeae4e526a111198ae88458e3704589c1))",
+          "**cover,hooks,auto:** close four AI-developer-workflow gaps ([#3044](https://github.com/yonatangross/orchestkit/issues/3044)) ([f644290](https://github.com/yonatangross/orchestkit/commit/f644290a881a41b1915ed6beb76809bd0c9f07cb))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.82.1",
     "date": "2026-07-20",
     "compareUrl": "",
