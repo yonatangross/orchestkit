@@ -5,6 +5,24 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.82.1](https://github.com/yonatangross/orchestkit/compare/v8.82.0...v8.82.1) (2026-07-20)
+
+
+### Bug Fixes
+
+* **evals:** refuse to grade dead generations ([#3043](https://github.com/yonatangross/orchestkit/issues/3043)) ([6c40c80](https://github.com/yonatangross/orchestkit/commit/6c40c80d126e71cea79c1c75b5e7b7969e0dc5f2))
+* **hooks:** mark phantom stops, recover model, drop dead fields ([#3041](https://github.com/yonatangross/orchestkit/issues/3041)) ([7fcdce8](https://github.com/yonatangross/orchestkit/commit/7fcdce8dbe2e2b2b38bdd3df4324c01b6475042f))
+
+
+### Miscellaneous
+
+* **labs:** weekly upstream pin sync ([#3039](https://github.com/yonatangross/orchestkit/issues/3039)) ([8470fa5](https://github.com/yonatangross/orchestkit/commit/8470fa51da9b571d0a402dd4dd9c562fa5544935))
+
+
+### Documentation
+
+* reconcile every surface this session made stale ([#3040](https://github.com/yonatangross/orchestkit/issues/3040)) ([5b6239a](https://github.com/yonatangross/orchestkit/commit/5b6239a401c2935bc19c13fc822814fdb6188bf0))
+
 ## [8.82.0](https://github.com/yonatangross/orchestkit/compare/v8.81.0...v8.82.0) (2026-07-20)
 
 
