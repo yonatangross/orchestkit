@@ -53,7 +53,7 @@ Agents: 38/38 valid
 ## Hook Health
 
 ```
-Hooks: 95/95 entries valid (12 bundles)
+Hooks: 95/95 entries valid (11 bundles)
 - Global: 34, Agent-scoped: 54, Skill-scoped: 7
 - Async hooks: 9 (native async)
 - Error Rate: 0.3%

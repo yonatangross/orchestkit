@@ -11,7 +11,7 @@
 +===================================================================+
 | Skills           | 67/67 valid                                    |
 | Agents           | 37/37 valid                                    |
-| Hooks            | 87/87 entries (12 bundles)                     |
+| Hooks            | 87/87 entries (11 bundles)                     |
 | Memory           | Graph memory healthy                           |
 | MCP              | context7 ✓  memory ✓  tavily ○                |
 | Permissions      | 12/12 reachable                                |

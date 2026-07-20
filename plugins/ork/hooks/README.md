@@ -14,7 +14,7 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 
 **Architecture:**
 - TypeScript source → ESM split bundles → Event-based deployment
-- 12 event-specific bundles + 1 unified bundle for CLI tools
+- 11 event-specific bundles (the unified bundle was removed with `src/index.ts`)
 - 89% per-load savings (~35KB average vs 324KB unified)
 - Zero dependencies in production bundles
 - CC 2.1.17 compliant (engine field), CC 2.1.16 compliant (Task Management), CC 2.1.9 compliant (additionalContext)
@@ -92,7 +92,7 @@ hooks/
 │   ├── setup/              # Setup and maintenance hooks (9)
 │   ├── agent/              # Agent-specific hooks (5)
 │   └── skill/              # Skill validation hooks (22)
-├── dist/                   # Compiled output (12 split bundles + 1 unified)
+├── dist/                   # Compiled output (11 split bundles)
 │   ├── permission.mjs      # Permission bundle (8KB)
 │   ├── pretool.mjs         # PreToolUse bundle (48KB)
 │   ├── posttool.mjs        # PostToolUse bundle (58KB)
@@ -1119,7 +1119,7 @@ export function myHook(input: HookInput): HookResult {
 
 **Performance Gains:**
 - **89% per-load savings:** Average ~35KB loaded per hook vs 324KB unified
-- **Split total:** 381KB (across 12 bundles)
+- **Split total:** 648KB (across 11 bundles)
 - **Typical load:** 8-58KB depending on event type
 
 ### Hook Execution Time
@@ -1345,7 +1345,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
-**Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
+**Architecture:** 11 split bundles (648KB total)
 **Hooks:** <!--ork:hooks-->217<!--/ork--> hooks (<!--ork:hooks-global-->150<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
@@ -1363,6 +1363,8 @@ The registry's change history used to accumulate inside the `description` field 
 (re-registered subagent-stop/unified-dispatcher, orphaned since v7.30.0/#1206 — agent-usage + subagent-quality analytics writer)
 
 (18 once:true context loaders).
+
+#3023 (2026-07-20, 216 -> 217): lifecycle/analytics-liveness-check (SessionStart, async t=5) peer-compares the independent JSONL writers under ~/.claude/analytics/ (skill-usage, agent-usage, hook-timing) and warns when one is stale >=48h while a sibling wrote within 24h — i.e. the pipeline is provably alive and that writer is provably dead. Motivated by skill-usage.jsonl recording ONE entry between 2026-03-07 and 2026-07-13 while agent-usage logged 245-1132 events/day; nothing warned for four months. Silent by design when the analytics dir is absent, fewer than two watched files exist, or ALL files are stale (an idle machine is not a dead writer). Opt-out ORK_NO_ANALYTICS_LIVENESS_WARN=1; dir override ORK_ANALYTICS_DIR (tests). Shipped alongside SQLite migration 003-routing-edges.sql (user_version 2 -> 3, routing_edge view, 120s-bounded).
 
 #2590 (2026-07-10): lifecycle/telemetry-dark-check (SessionStart, async t=5) warns when $ORCHESTKIT_HOOK_TOKEN is set but $ORCHESTKIT_HOOK_URL is unset AND local .claude/telemetry/*.jsonl is accumulating (>64KiB) — telemetry-sync silently no-ops and rotated files never clear; inverse of #1860; opt-out ORK_NO_TELEMETRY_DARK_WARN=1.
 

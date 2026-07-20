@@ -57,7 +57,7 @@ cd src/hooks && npm run build    # Compile TypeScript hooks
 
 **Agent**: Create `src/agents/my-agent.md` with frontmatter (`name`, `description`, `model`, `tools`, `skills`). Add `background: true` for agents that never need interactive results. Add to manifest, rebuild.
 
-**Hook**: Create `src/hooks/src/<category>/my-hook.ts`, register in `src/hooks/hooks.json`, rebuild with `cd src/hooks && npm run build`. After adding/removing hooks, update the count in `hooks.json` description field and in the Version section below — these must stay in sync.
+**Hook**: Create `src/hooks/src/<category>/my-hook.ts`, register in BOTH `src/hooks/hooks.json` and the entries map `src/hooks/src/entries/<event>.ts` (one without the other is a silently-dead hook, the #959 class), rebuild with `cd src/hooks && npm run build`. Then run `bash bin/validate-counts.sh` and fix what it reports, and add a Registry changelog entry in `src/hooks/README.md`.
 
 ## Critical Rules
 

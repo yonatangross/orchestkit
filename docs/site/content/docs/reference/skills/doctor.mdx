@@ -119,7 +119,11 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | **4. Memory** | .claude/memory/ graph integrity + queue depth; **auto-memory MEMORY.md index budget (≤24.4 KB; warns + recommends /ork:dream on re-bloat)** | load `$\{CLAUDE_SKILL_DIR\}/references/memory-health.md` |
 | **5. Build** | plugins/ sync with src/, manifest counts, orphans | load `$\{CLAUDE_SKILL_DIR\}/rules/diagnostic-checks.md` |
 
-> **Analytics writer liveness (part of Category 4):** the local analytics pipeline has several independent JSONL writers under `~/.claude/analytics/` (skill-usage, agent-usage, hook-timing). A writer can die silently while its siblings stay hot — observed once for four months (skill-usage.jsonl, 2026-03 to 2026-07). Doctor's check is a peer comparison: flag any watched file whose last write is ≥48h old while a sibling wrote within 24h (`stat -f '%m %N' ~/.claude/analytics/*.jsonl`). The `lifecycle/analytics-liveness-check` SessionStart hook runs the same comparison continuously; if doctor flags a dead writer, the write path was dropped from the dispatcher — check its registration in `src/hooks/hooks.json` AND the entries map (`src/hooks/src/entries/*.ts`), the #959 failure class. `/ork:telemetry-inspect` gives the per-file deep dive.
+> **Analytics writer liveness (System Health):** the local analytics pipeline has several independent JSONL writers under `~/.claude/analytics/` (skill-usage, agent-usage, hook-timing). A writer can die silently while its siblings stay hot — observed once for four months (skill-usage.jsonl, 2026-03 to 2026-07). The check is a peer comparison: flag any watched file whose last write is ≥48h old while a sibling wrote within 24h (`stat -f '%m %N' ~/.claude/analytics/*.jsonl`). The `lifecycle/analytics-liveness-check` SessionStart hook runs the same comparison continuously.
+>
+> A flagged writer means the write path was dropped from dispatch, so check **both** surfaces — `src/hooks/hooks.json` AND the entries map (`src/hooks/src/entries/*.ts`). A hook present in one but not the other is registered-looking and silently dead: the #959 failure class. `/ork:telemetry-inspect` gives the per-file deep dive, including the field-level defects tracked in #3034 (constant fields) and #3035 (phantom rows), which this structural check cannot see.
+>
+> *(Category numbering in this file is inconsistent between the Overview list above and these tables — the Overview numbers 4 as Hook Health, the tables number 4 as Memory. This check belongs to System Health regardless of which numbering a reader follows.)*
 
 ### Categories 6-9: Infrastructure
 
@@ -732,7 +736,7 @@ Agents: 38/38 valid
 ## Hook Health
 
 ```
-Hooks: 95/95 entries valid (12 bundles)
+Hooks: 95/95 entries valid (11 bundles)
 - Global: 34, Agent-scoped: 54, Skill-scoped: 7
 - Async hooks: 9 (native async)
 - Error Rate: 0.3%
@@ -885,7 +889,7 @@ MCP Servers: WARNING
 
 ## Overview
 
-OrchestKit uses 150 global hook entries across 27 event types, compiled into 11 bundles. This reference explains how to validate and troubleshoot hooks.
+OrchestKit uses 150 global hook entries across 29 event types, compiled into 11 bundles. This reference explains how to validate and troubleshoot hooks.
 
 ## Hook Architecture
 
@@ -1521,7 +1525,7 @@ See `$\{CLAUDE_SKILL_DIR\}/../chain-patterns/references/worktree-agent-pattern.m
 +===================================================================+
 | Skills           | 67/67 valid                                    |
 | Agents           | 37/37 valid                                    |
-| Hooks            | 87/87 entries (12 bundles)                     |
+| Hooks            | 87/87 entries (11 bundles)                     |
 | Memory           | Graph memory healthy                           |
 | MCP              | context7 ✓  memory ✓  tavily ○                |
 | Permissions      | 12/12 reachable                                |

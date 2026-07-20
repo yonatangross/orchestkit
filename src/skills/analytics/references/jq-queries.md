@@ -2,27 +2,39 @@
 
 Ready-to-run jq queries for each analytics subcommand. All queries target `~/.claude/analytics/*.jsonl`.
 
-## agents — Top agents by frequency and duration
+> **`agent-usage.jsonl` carries less signal than its schema suggests.** Measured against
+> 11,249 real rows: `model`, `agent_name`, `output_len` and `duration_ms` are constant or
+> absent on 100% of rows (#3034), and ~38% of rows are phantom `SubagentStop` events with no
+> originating spawn (#3035). Only `ts`, `pid`, `agent` and `success` are usable. Every query
+> below therefore filters phantoms before counting, and none of them group by `model` or
+> average `duration_ms` — those columns cannot be recovered by a better query. See the
+> Data-Quality Caveats section of `SKILL.md`.
+
+## agents — Top agents by frequency and success rate
 
 ```bash
-jq -s 'group_by(.agent) | map({
+jq -s 'map(select(.agent != "unknown")) | group_by(.agent) | map({
   agent: .[0].agent,
   count: length,
-  avg_ms: (map(.duration_ms // 0) | add / length | floor),
-  success_rate: (map(select(.success)) | length) / length * 100 | floor,
-  models: (group_by(.model) | map({model: .[0].model, count: length}) | sort_by(-.count))
+  success_rate: (map(select(.success)) | length) / length * 100 | floor
 }) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
 ```
 
 ## models — Model delegation breakdown
 
+Per-**spawn** model attribution is unavailable (#3034): `.model` is the literal string
+`unknown` on every row of `agent-usage.jsonl`, so grouping by it yields one bucket. Answer
+this question from token-level data in `stats-cache.json` instead, and say plainly that
+per-spawn attribution is not recoverable.
+
 ```bash
-jq -s 'group_by(.model) | map({
-  model: .[0].model,
-  count: length,
-  avg_ms: (map(.duration_ms // 0) | add / length | floor),
-  agents: ([.[].agent] | unique)
-}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
+jq '.modelUsage | to_entries | map({
+  model: .key,
+  input: .value.inputTokens,
+  output: .value.outputTokens,
+  cacheRead: .value.cacheReadInputTokens,
+  costUSD: .value.costUSD
+}) | sort_by(-.costUSD)' ~/.claude/stats-cache.json
 ```
 
 ## skills — Top skills by invocation count
@@ -76,15 +88,16 @@ jq -r .pid ~/.claude/analytics/agent-usage.jsonl 2>/dev/null | sort -u | wc -l
 
 ## Presentation Format
 
-Present all results as clean markdown tables with counts, percentages, and averages. If a file doesn't exist, note that no data has been collected yet for that category.
+Present all results as clean markdown tables with counts, percentages, and averages. If a file doesn't exist, note that no data has been collected yet for that category. If the file exists but the field is dead (#3034), say the data is unavailable and cite the issue — never render a single-bucket group as if it were a breakdown.
 
-Example output:
+Example output — note there is deliberately no Avg Duration or Top Model column, because
+`agent-usage.jsonl` cannot support either (#3034):
 
 ```markdown
-| Agent | Count | Avg Duration | Success Rate | Top Model |
-|-------|-------|-------------|-------------|-----------|
-| code-quality-reviewer | 45 | 8.2s | 98% | opus |
-| test-generator | 32 | 12.1s | 94% | sonnet |
+| Agent | Count | Success Rate |
+|-------|-------|-------------|
+| code-quality-reviewer | 45 | 98% |
+| test-generator | 32 | 94% |
 ```
 
 ## Routing Analysis (SQLite)
