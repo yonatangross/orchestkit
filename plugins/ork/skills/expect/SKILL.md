@@ -239,7 +239,7 @@ Load: `Read("${CLAUDE_SKILL_DIR}/references/test-plan.md")`
 
 ### agent-browser Quick Primer
 
-> Floor is `>= 0.25.0`; current tested release is **0.31.1** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs.
+> Floor is `>= 0.25.0`; current tested release is **0.32.3** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. The commands documented below are unchanged in 0.32.x.
 
 
 | Area | Command | Notes |

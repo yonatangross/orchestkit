@@ -902,7 +902,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "browser-tools",
     "description": "OrchestKit security wrapper for browser automation. Adds URL blocklisting, rate limiting, robots.txt enforcement, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows that need safety guardrails.",
     "version": "5.0.0",
-    "sha256": "41fda8e4faf7697c2ccc3d301917e3f3819c67ef72cded57beffa18699d09a18",
+    "sha256": "97bf1d23be529c3d252899e277e18365534126b663003b5512d5d227bb86ea43",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -2303,7 +2303,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser (Rust daemon + CDP, ARIA-tree-first). Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience.",
     "version": "1.1.0",
-    "sha256": "c6530ea2e97be1e420ac328e7c914353d4f33624932382e13fcae60dde60e6ab",
+    "sha256": "5ab11adda99c2bd931c858680d8c76ebd61b0b29f15723b097d91d6bc6198df1",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -3706,7 +3706,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "portless",
     "description": "Named HTTPS .localhost URLs for local development with portless (v0.15.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration.",
     "version": "1.2.0",
-    "sha256": "a2479414052581cf961543b1e67c9126cf86687a3bb144b1e30acfc25b3cf82c",
+    "sha256": "5ea6fa1b3dd4c70dfd9daab12698c609658796d6bc1417408ae9171cc49c99a2",
     "author": "OrchestKit",
     "tags": [
       "dev-server",
