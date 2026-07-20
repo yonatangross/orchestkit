@@ -703,6 +703,36 @@ Example output:
 | test-generator | 32 | 12.1s | 94% | sonnet |
 ```
 
+## Routing Analysis (SQLite)
+
+The coordination DB (`~/.local/state/orchestkit/sessions.db`, populated by the
+skill-tracker hook since 2026-07-10) ships a `routing_edge` view (migration 003):
+for each `/ork:auto` or `/hq-ext:auto` invocation, the next skill invoked in the
+same session IS the route taken. No jq needed.
+
+```bash
+# Route distribution per router
+sqlite3 -column ~/.local/state/orchestkit/sessions.db \
+  "SELECT router, routed_to, COUNT(*) n FROM routing_edge
+   GROUP BY router, routed_to ORDER BY router, n DESC;"
+
+# Median handoff latency (router invocation -> routed skill invocation)
+sqlite3 -column ~/.local/state/orchestkit/sessions.db \
+  "SELECT router, COUNT(*) n, AVG(handoff_ms)/1000.0 avg_s FROM routing_edge
+   GROUP BY router;"
+
+# Per-project routing volume (join sessions for cwd)
+sqlite3 -column ~/.local/state/orchestkit/sessions.db \
+  "SELECT replace(s.cwd,'/Users/','~') proj, e.router, COUNT(*) n
+   FROM routing_edge e JOIN sessions s ON s.sid = e.session_id
+   GROUP BY proj, e.router ORDER BY n DESC LIMIT 20;"
+```
+
+Caveats: a router followed by no further skill in that session produces no edge
+(abandoned or answered inline); `hq-ext:auto -> hq-ext:auto` edges are re-entries
+in multi-goal sessions, not misroutes. Decision-level context (goal text, chosen
+intent) is intentionally NOT captured — routing decisions are in-prompt.
+
 
 ### Otel Fields
 

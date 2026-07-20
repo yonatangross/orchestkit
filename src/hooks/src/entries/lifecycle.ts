@@ -92,6 +92,8 @@ import { hookTokenCheck } from '../lifecycle/hook-token-check.js';
 // #2590 — warn when $ORCHESTKIT_HOOK_TOKEN is set but $ORCHESTKIT_HOOK_URL is
 // unset and local telemetry is accumulating (inverse of #1860; fail-silent closer).
 import { telemetryDarkCheck } from '../lifecycle/telemetry-dark-check.js';
+// Dead-writer liveness guard — peer-compares ~/.claude/analytics writers (#959 class)
+import { analyticsLivenessCheck } from '../lifecycle/analytics-liveness-check.js';
 // #1912 — M168 Phase 2: SQLite session registry (Layer 1 coordination)
 import { sessionRegistrar } from '../lifecycle/session-registrar.js';
 // #1912 — M168 Phase 2: SQLite session registry finalizer (SessionEnd; lifecycle/ prefix per convention)
@@ -143,6 +145,7 @@ export const hooks: Record<string, HookFn> = {
   // #1860 — warn when $ORCHESTKIT_HOOK_TOKEN is unset but type:http hooks reference it
   'lifecycle/hook-token-check': hookTokenCheck,
   'lifecycle/telemetry-dark-check': telemetryDarkCheck,
+  'lifecycle/analytics-liveness-check': analyticsLivenessCheck,
   // #1912 — M168 Phase 2: SQLite session registry (Layer 1 coordination)
   'lifecycle/session-registrar': sessionRegistrar,
   // #1912 — M168 Phase 2: SessionEnd finalizer (lifecycle/ prefix per cross-reference-validation.test.ts:235)

@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 149 global + 45 agent-scoped + 22 skill-scoped = 216 total hooks. Registry history lives in README.md (Registry changelog) - do not append changelog prose here, only re-stamp the counts.",
+  "description": "OrchestKit hooks - 150 global + 45 agent-scoped + 22 skill-scoped = 217 total hooks. Registry history lives in README.md (Registry changelog) - do not append changelog prose here, only re-stamp the counts.",
   "hooks": {
     "PreToolUse": [
       {
@@ -797,6 +797,16 @@
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
               "lifecycle/telemetry-dark-check"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/analytics-liveness-check"
             ]
           },
           {

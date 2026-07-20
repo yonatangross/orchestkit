@@ -17,13 +17,13 @@
       "exports": 68
     },
     "prompt": {
-      "size": 56273,
-      "sizeKB": "54.95",
+      "size": 56151,
+      "sizeKB": "54.83",
       "exports": 109
     },
     "lifecycle": {
-      "size": 141025,
-      "sizeKB": "137.72",
+      "size": 142314,
+      "sizeKB": "138.98",
       "exports": 68
     },
     "stop": {
@@ -57,8 +57,8 @@
       "exports": 69
     }
   },
-  "totalSize": 661935,
-  "totalSizeKB": "646.42",
-  "inputs": 111,
-  "avgBundleSizeKB": "58.77"
+  "totalSize": 663102,
+  "totalSizeKB": "647.56",
+  "inputs": 112,
+  "avgBundleSizeKB": "58.87"
 }

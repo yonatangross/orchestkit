@@ -112,6 +112,8 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | **4. Memory** | .claude/memory/ graph integrity + queue depth; **auto-memory MEMORY.md index budget (≤24.4 KB; warns + recommends /ork:dream on re-bloat)** | load `${CLAUDE_SKILL_DIR}/references/memory-health.md` |
 | **5. Build** | plugins/ sync with src/, manifest counts, orphans | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
 
+> **Analytics writer liveness (part of Category 4):** the local analytics pipeline has several independent JSONL writers under `~/.claude/analytics/` (skill-usage, agent-usage, hook-timing). A writer can die silently while its siblings stay hot — observed once for four months (skill-usage.jsonl, 2026-03 to 2026-07). Doctor's check is a peer comparison: flag any watched file whose last write is ≥48h old while a sibling wrote within 24h (`stat -f '%m %N' ~/.claude/analytics/*.jsonl`). The `lifecycle/analytics-liveness-check` SessionStart hook runs the same comparison continuously; if doctor flags a dead writer, the write path was dropped from the dispatcher — check its registration in `src/hooks/hooks.json` AND the entries map (`src/hooks/src/entries/*.ts`), the #959 failure class. `/ork:telemetry-inspect` gives the per-file deep dive.
+
 ### Categories 6-9: Infrastructure
 
 | Category | What It Checks |
