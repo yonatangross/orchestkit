@@ -310,20 +310,40 @@ run_with_skill() {
     local -a flags
     read -ra flags <<< "$(build_claude_flags true)"
 
-    if [[ -n "$cwd_arg" && "$cwd_arg" != "." ]]; then
-        (
-            cd "$cwd_arg" || exit 1
-            run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
-                "${flags[@]}" \
-                > "$output_file" 2>"$stderr_file"
-        ) || echo -e "  ${YELLOW}Warning: claude exited non-zero for with-skill run${NC}" >&2
-    else
-        if ! run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
-            "${flags[@]}" \
-            > "$output_file" 2>"$stderr_file"; then
-            echo -e "  ${YELLOW}Warning: claude exited non-zero for with-skill run${NC}" >&2
+    # #3036: retry a dead generation instead of grading it. Previously this
+    # only warned and continued, so an error envelope or a blank file was
+    # scored 0/N — which silently flips a delta-gated verdict (a dead
+    # with-skill run fakes SKILL_REGRESSES; a dead baseline fakes
+    # SKILL_ADDS_VALUE). Returns 1 when the generation is unusable so the
+    # caller aborts rather than publishing a fabricated score.
+    #
+    # The exit code is deliberately ignored in favour of classify_generation,
+    # which is strictly stronger: `claude` can exit 0 and still produce an
+    # ungradeable error envelope, so the exit code alone was never the signal.
+    local attempt reason rc
+    for attempt in 1 2; do
+        if [[ -n "$cwd_arg" && "$cwd_arg" != "." ]]; then
+            # silent: external-api-shape
+            ( cd "$cwd_arg" && run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" "${flags[@]}" > "$output_file" 2>"$stderr_file" ) || true
+        else
+            # silent: external-api-shape
+            run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" "${flags[@]}" > "$output_file" 2>"$stderr_file" || true
         fi
-    fi
+
+        rc=0; reason=$(classify_generation "$output_file") || rc=$?
+        [[ "$rc" -eq 0 ]] && return 0
+
+        if [[ "$rc" -eq 3 ]]; then
+            echo -e "  ${RED}Dead with-skill generation — ${reason}${NC}" >&2
+            return 1
+        fi
+        if [[ "$attempt" -eq 1 ]]; then
+            echo -e "  ${YELLOW}Dead with-skill generation (${reason}) — retrying once${NC}" >&2
+            sleep 5
+        fi
+    done
+    echo -e "  ${RED}Dead with-skill generation after retry — ${reason}${NC}" >&2
+    return 1
 }
 
 # Run a prompt without skill (baseline) and capture output (A6: timeout)
@@ -334,31 +354,98 @@ run_baseline() {
     local -a flags
     read -ra flags <<< "$(build_claude_flags false)"
 
-    if [[ -n "$cwd_arg" && "$cwd_arg" != "." ]]; then
-        (
-            cd "$cwd_arg" || exit 1
-            run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
-                "${flags[@]}" \
-                > "$output_file" 2>/dev/null
-        ) || echo -e "  ${YELLOW}Warning: claude exited non-zero for baseline run${NC}" >&2
-    else
-        if ! run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" \
-            "${flags[@]}" \
-            > "$output_file" 2>/dev/null; then
-            echo -e "  ${YELLOW}Warning: claude exited non-zero for baseline run${NC}" >&2
+    # #3036: same protection as run_with_skill. A dead BASELINE is the more
+    # insidious direction — it inflates the delta and makes a skill look like
+    # it adds value it does not.
+    local attempt reason rc
+    for attempt in 1 2; do
+        if [[ -n "$cwd_arg" && "$cwd_arg" != "." ]]; then
+            # silent: external-api-shape
+            ( cd "$cwd_arg" && run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" "${flags[@]}" > "$output_file" 2>/dev/null ) || true
+        else
+            # silent: external-api-shape
+            run_with_timeout "$GEN_TIMEOUT" claude -p "$prompt" "${flags[@]}" > "$output_file" 2>/dev/null || true
         fi
-    fi
+
+        rc=0; reason=$(classify_generation "$output_file") || rc=$?
+        [[ "$rc" -eq 0 ]] && return 0
+
+        if [[ "$rc" -eq 3 ]]; then
+            echo -e "  ${RED}Dead baseline generation — ${reason}${NC}" >&2
+            return 1
+        fi
+        if [[ "$attempt" -eq 1 ]]; then
+            echo -e "  ${YELLOW}Dead baseline generation (${reason}) — retrying once${NC}" >&2
+            sleep 5
+        fi
+    done
+    echo -e "  ${RED}Dead baseline generation after retry — ${reason}${NC}" >&2
+    return 1
 }
 
 # Extract text content from claude JSON output
 extract_output_text() {
     local json_file="$1"
     local text
-    text=$(jq -r '.result // .content // . | if type == "string" then . else tostring end' "$json_file" 2>/dev/null)
-    if [[ -z "$text" || "$text" == "null" ]]; then
-        text=$(cat "$json_file" 2>/dev/null)
+    # #3036: NEVER fall through to `.` — an error envelope has no usable
+    # .result, and the old `.result // .content // .` stringified the WHOLE
+    # envelope, handing the grader session metrics (duration_ms, num_turns,
+    # subtype "error_max_turns") as if they were the model's prose. Same for
+    # the old `cat "$json_file"` fallback, which leaked the envelope whenever
+    # .result existed but was "". Both paths are closed: a JSON object yields
+    # ONLY .result/.content, and anything else is treated as plain text.
+    # jq stderr is suppressed on purpose — a parse failure IS the signal that
+    # this is plain text (--print mode), handled by the fallthrough below.
+    # silent: external-api-shape
+    if jq -e 'type == "object"' "$json_file" >/dev/null 2>&1; then
+        # silent: external-api-shape
+        text=$(jq -r '(.result // .content // "") | if type == "string" then . else tostring end' "$json_file" 2>/dev/null)
+        [[ "$text" == "null" ]] && text=""
+        printf '%s\n' "$text"
+        return 0
     fi
-    echo "$text"
+    # silent: external-api-shape
+    cat "$json_file" 2>/dev/null
+}
+
+# Classify one generation (#3036). Echoes a human-readable reason; returns:
+#   0 = alive, gradeable
+#   1 = TRANSIENT dead  — blank/empty/crashed. Worth one retry.
+#   3 = TERMINAL dead   — turn or budget exhaustion. Retrying burns another
+#                         full-length call to hit the same wall, so abort.
+classify_generation() {
+    local json_file="$1"
+
+    if [[ ! -s "$json_file" ]]; then
+        echo "empty output file"; return 1
+    fi
+    if [[ -z "$(tr -d '[:space:]' < "$json_file")" ]]; then
+        echo "whitespace-only output"; return 1
+    fi
+
+    # silent: external-api-shape
+    if jq -e 'type == "object"' "$json_file" >/dev/null 2>&1; then
+        local subtype
+        # silent: external-api-shape
+        subtype=$(jq -r '.subtype // ""' "$json_file" 2>/dev/null)
+        case "$subtype" in
+            error_max_turns|error_max_budget|error_max_tokens)
+                echo "terminal: $subtype (raise --max-turns / --max-budget-usd)"; return 3 ;;
+        esac
+        # silent: external-api-shape
+        if jq -e '.is_error == true' "$json_file" >/dev/null 2>&1; then
+            echo "error envelope${subtype:+: $subtype}"; return 1
+        fi
+    fi
+
+    # Gradeable text must exist AFTER extraction, not merely in the raw file:
+    # an envelope with .result == "" is a dead generation wearing a live file.
+    local extracted
+    extracted=$(extract_output_text "$json_file")
+    if [[ -z "$(tr -d '[:space:]' <<< "$extracted")" ]]; then
+        echo "no gradeable text after extraction"; return 1
+    fi
+    return 0
 }
 
 # Grade ALL assertions for a given output in a single Claude call (A3: batch)
@@ -594,12 +681,17 @@ run_eval_entry() {
     local with_stderr; with_stderr=$(mktemp)
     CLEANUP_FILES+=("$with_file" "$base_file" "$with_stderr")
 
+    # #3036: set when any generation this entry needs is unusable. The caller
+    # must refuse to publish a score rather than grade whatever landed.
+    _EVAL_DEAD_GENERATION=false
+
     if [[ "$FORCE_SKILL" == "true" ]]; then
         echo -e "${BLUE}||${NC}  ${CYAN}Running force-skill (SKILL.md injected, no routing)...${NC}"
         run_with_forced_skill "$prompt" "$with_file" "$with_stderr" "$_CURRENT_SKILL_ID" "$scaffold_cwd"
+        classify_generation "$with_file" >/dev/null || _EVAL_DEAD_GENERATION=true
     elif [[ "$SKIP_BASELINE" == "true" ]]; then
         echo -e "${BLUE}||${NC}  ${CYAN}Running with-skill (baseline skipped)...${NC}"
-        run_with_skill "$prompt" "$with_file" "$with_stderr" "$scaffold_cwd"
+        run_with_skill "$prompt" "$with_file" "$with_stderr" "$scaffold_cwd" || _EVAL_DEAD_GENERATION=true
     else
         echo -e "${BLUE}||${NC}  ${CYAN}Running with-skill + baseline (parallel)...${NC}"
 
@@ -609,8 +701,15 @@ run_eval_entry() {
         run_baseline "$prompt" "$base_file" "$scaffold_cwd" &
         local base_pid=$!
 
-        wait $with_pid 2>/dev/null || true
-        wait $base_pid 2>/dev/null || true
+        # #3036: capture BOTH exit codes. These were previously discarded with
+        # `|| true`, so a dead generation reached the grader and was scored 0.
+        # Either side dying corrupts the delta gate, in opposite directions.
+        local with_rc=0 base_rc=0
+        wait $with_pid || with_rc=$?
+        wait $base_pid || base_rc=$?
+        if [[ "$with_rc" -ne 0 || "$base_rc" -ne 0 ]]; then
+            _EVAL_DEAD_GENERATION=true
+        fi
     fi
 
     _EVAL_WITH_FILE="$with_file"
@@ -869,6 +968,24 @@ eval_skill() {
         else
             # (A4) Run with-skill + baseline in parallel
             run_eval_entry "$prompt" "$scaffold_cwd"
+
+            # #3036: refuse to grade a dead generation. Scoring it 0 is what
+            # silently flipped delta-gated verdicts in BOTH directions — a dead
+            # with-skill run faked SKILL_REGRESSES, a dead baseline faked
+            # SKILL_ADDS_VALUE. Exit 2 is distinct from a genuine eval failure
+            # (1) so CI can tell "the harness could not measure" apart from
+            # "the skill regressed".
+            if [[ "${_EVAL_DEAD_GENERATION:-false}" == "true" ]]; then
+                echo -e "${RED}+========================================================+${NC}" >&2
+                echo -e "${RED}|  ABORT: dead generation — refusing to publish a score  |${NC}" >&2
+                echo -e "${RED}+========================================================+${NC}" >&2
+                echo -e "  skill: ${skill_id}  eval: ${ei}" >&2
+                echo -e "  A generation produced no gradeable text (crash, blank, or" >&2
+                echo -e "  turn/budget exhaustion). Grading it would fabricate a verdict." >&2
+                rm -f "$_EVAL_WITH_FILE" "$_EVAL_STDERR_FILE" "$_EVAL_BASE_FILE"
+                return 2
+            fi
+
             with_text=$(extract_output_text "$_EVAL_WITH_FILE")
             base_text=$(extract_output_text "$_EVAL_BASE_FILE")
             with_stderr_file="$_EVAL_STDERR_FILE"
