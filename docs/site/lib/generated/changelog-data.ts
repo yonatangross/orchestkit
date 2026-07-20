@@ -17,6 +17,32 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.82.1",
+    "date": "2026-07-20",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**evals:** refuse to grade dead generations ([#3043](https://github.com/yonatangross/orchestkit/issues/3043)) ([6c40c80](https://github.com/yonatangross/orchestkit/commit/6c40c80d126e71cea79c1c75b5e7b7969e0dc5f2))",
+          "**hooks:** mark phantom stops, recover model, drop dead fields ([#3041](https://github.com/yonatangross/orchestkit/issues/3041)) ([7fcdce8](https://github.com/yonatangross/orchestkit/commit/7fcdce8dbe2e2b2b38bdd3df4324c01b6475042f))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**labs:** weekly upstream pin sync ([#3039](https://github.com/yonatangross/orchestkit/issues/3039)) ([8470fa5](https://github.com/yonatangross/orchestkit/commit/8470fa51da9b571d0a402dd4dd9c562fa5544935))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "reconcile every surface this session made stale ([#3040](https://github.com/yonatangross/orchestkit/issues/3040)) ([5b6239a](https://github.com/yonatangross/orchestkit/commit/5b6239a401c2935bc19c13fc822814fdb6188bf0))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.82.0",
     "date": "2026-07-20",
     "compareUrl": "",

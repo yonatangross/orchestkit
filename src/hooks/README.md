@@ -804,7 +804,7 @@ The `run_on_fail` field is **NOT part of the CC hooks spec**. CC ignores unknown
 - `security-scan-aggregator` - Aggregate security findings
 - `coverage-check` - Check test coverage
 - `evidence-collector` - Collect session evidence
-- `coverage-threshold-gate` - Enforce coverage thresholds
+- `coverage-threshold-gate` - Enforce coverage thresholds; on block, names the lowest-covered files (and uncovered line ranges where the report provides them) so the block doubles as input to a repair pass
 - `cross-instance-test-validator` - Cross-instance validation
 
 ### Timeout Recommendations
