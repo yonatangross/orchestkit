@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.83.1](https://github.com/yonatangross/orchestkit/compare/v8.83.0...v8.83.1) (2026-07-20)
+
+
+### Bug Fixes
+
+* **evals:** report an eval outage as inconclusive, not as a skill regression ([#3047](https://github.com/yonatangross/orchestkit/issues/3047)) ([105cd62](https://github.com/yonatangross/orchestkit/commit/105cd6246b1032f9fcb5ffb7e646152c843307f0))
+
 ## [8.83.0](https://github.com/yonatangross/orchestkit/compare/v8.82.1...v8.83.0) (2026-07-20)
 
 
