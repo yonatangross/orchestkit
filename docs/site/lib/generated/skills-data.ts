@@ -168,7 +168,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "analytics",
     "description": "Queries local analytics across OrchestKit projects for agent usage, skill frequency, hook timing, team activity, session replay, cost estimation, and model delegation trends. Privacy-safe with hashed project IDs. Supports time-range filtering and comparative analysis. Use when reviewing performance, estimating costs, or understanding usage patterns.",
     "version": "2.1.0",
-    "sha256": "8c5de596cc9ebe4e872c58b7863ed7520e793ef051e04909688ee5c38cb844b9",
+    "sha256": "f0f3235a8788cb7d2a078a63d5fe6f6471b198d1bf9eef6e5416983f45550f43",
     "author": "OrchestKit",
     "tags": [
       "analytics",
