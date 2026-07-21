@@ -1,0 +1,42 @@
+<!DOCTYPE html><html lang="en" dir="ltr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Catalog burn-down</title>
+<style>:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 12% 64%);--faint:hsl(220 10% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--ok:hsl(152 52% 50%);--warn:hsl(43 88% 60%);--r:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(900px 600px at 12% 4%,hsl(248 70% 40% / .2),transparent 60%),var(--bg);
+color:var(--ink);font:400 15px/1.6 ui-sans-serif,-apple-system,Inter,system-ui,sans-serif;padding:48px 24px 96px}
+.wrap{max-width:900px;margin:0 auto}.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+color:var(--faint);font-weight:600;margin-block-end:12px}h1{font-size:30px;font-weight:700;letter-spacing:-.3px}
+.lede{color:var(--muted);margin-block-start:12px;max-width:70ch}
+.card{background:var(--glass);border:1px solid var(--edge);border-radius:var(--r);padding:22px;margin-block-start:24px}
+h2{font-size:18px;font-weight:650;margin-block-end:14px}
+.bar{display:flex;align-items:center;gap:12px;margin-block-end:10px;font-size:14px}
+.bar .lbl{width:190px;color:var(--muted)}.track{flex:1;height:10px;border-radius:6px;background:hsl(0 0% 100% / .08);overflow:hidden}
+.fill{height:100%;border-radius:6px}.num{width:96px;text-align:right;font-family:ui-monospace,Menlo,monospace}
+table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;font-size:11px;letter-spacing:.09em;
+text-transform:uppercase;color:var(--faint);padding:0 10px 10px 0}
+td{padding:9px 10px 9px 0;border-block-start:1px solid hsl(0 0% 100% / .07)}
+.mono{font-family:ui-monospace,Menlo,monospace}.ok{color:var(--ok);font-weight:650}.warn{color:var(--warn);font-weight:650}
+.note{margin-block-start:16px;padding:12px 14px;border-radius:9px;background:hsl(0 0% 100% / .08);
+border-inline-start:3px solid var(--warn);font-size:14px;color:hsl(43 60% 82%)}</style></head><body><div class="wrap">
+<div class="eyebrow">chore · ratchet burn-down · $0</div>
+<h1>Model recency: 37 to 0</h1>
+<p class="lede">A ratchet exists so a number can be driven down. This drives one to zero, and removes a check that encoded the wrong model of how routing works.</p>
+
+<div class="card"><h2>Burn-down</h2>
+<div class="bar"><span class="lbl">model recency</span><span class="track"><span class="fill" style="width:0%;background:var(--ok)"></span></span><span class="num ok">37 → 0</span></div>
+<div class="bar"><span class="lbl">files affected</span><span class="track"><span class="fill" style="width:0%;background:var(--ok)"></span></span><span class="num ok">23 → 0</span></div>
+<div class="bar"><span class="lbl">collisions</span><span class="track"><span class="fill" style="width:100%;background:var(--warn)"></span></span><span class="num warn">7</span></div>
+<div class="bar"><span class="lbl">unreachable skills</span><span class="track"><span class="fill" style="width:100%;background:var(--warn)"></span></span><span class="num warn">15</span></div>
+</div>
+
+<div class="card"><h2>What changed</h2>
+<table><thead><tr><th>Change</th><th>Detail</th></tr></thead><tbody>
+<tr><td class="mono">claude-sonnet-4-6 → claude-sonnet-5</td><td>51 occurrences across 23 files, all <span class="mono">model=</span> assignments in live code examples</td></tr>
+<tr><td class="mono">multi-claim prompts</td><td>no longer ratcheted, now informational</td></tr>
+</tbody></table>
+<div class="note">Checked in context first. Every occurrence was a recommendation, not migration history. The gate's own history filter had already excluded the upgrade ladder, which legitimately names superseded IDs.</div></div>
+
+<div class="card"><h2>Why the check was wrong</h2>
+<p class="lede">It flagged "one prompt claimed by two skills" as a defect. 2026 routing research models routing as <strong>set-valued multi-label</strong>: one query legitimately needs several skills. "Add auth and write tests for it" genuinely wants both <span class="mono">implement</span> and <span class="mono">cover</span>. Ratcheting that would have failed a PR for improving the corpus in the right direction. It reports 0 today, so nothing was ever blocked.</p></div>
+</div></body></html>

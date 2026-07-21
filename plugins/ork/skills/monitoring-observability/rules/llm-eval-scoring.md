@@ -69,7 +69,7 @@ async def evaluate_relevance(query: str, response: str):
     get_client().update_current_observation(
         input={"query": query[:500], "response": response[:500]},
         output={"score": score, "criteria": "relevance"},
-        model="claude-sonnet-4-6",
+        model="claude-sonnet-5",
     )
     return score
 ```
@@ -78,7 +78,7 @@ Result in Langfuse UI:
 ```
 evaluator:relevance_judge (0.8s, $0.01)
 +-- generation: judge_prompt -> score: 0.85
-+-- metadata: {criteria: "relevance", model: "claude-sonnet-4-6"}
++-- metadata: {criteria: "relevance", model: "claude-sonnet-5"}
 ```
 
 ## G-Eval Automated Scoring

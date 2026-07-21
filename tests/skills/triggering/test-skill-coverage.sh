@@ -23,7 +23,8 @@
 #   A. description collisions  — two skills competing for the same prompts
 #   B. reachability            — skills with no slash command, no model
 #                                invocation, and no agent skills: entry
-#   C. trigger contradictions  — one prompt claimed should_trigger:true by 2+
+#   C. multi-claim prompts    — one prompt claimed should_trigger:true by 2+
+#                                INFORMATIONAL ONLY, not a ratchet. See below.
 #
 # RATCHET, NOT A CLIFF
 # Pre-existing offenders are recorded in skill-coverage-baseline.json. This
@@ -143,7 +144,7 @@ unreachable = sorted(
     and n not in agent_declared
 )
 
-# ---- C. trigger contradictions -------------------------------------------
+# ---- C. multi-claim prompts (informational) --------------------------------
 claims = collections.defaultdict(set)
 for p in glob.glob("tests/evals/skills/*.eval.yaml"):
     sid = os.path.basename(p)[: -len(".eval.yaml")]
@@ -185,7 +186,7 @@ echo "  Skills scanned: ${n_skills}"
 echo ""
 printf '  %-28s %s\n' "description collisions" "$n_col"
 printf '  %-28s %s\n' "unreachable skills"     "$n_unreach"
-printf '  %-28s %s\n' "trigger contradictions" "$n_contra"
+printf '  %-28s %s\n' "multi-claim prompts (info)" "$n_contra"
 echo ""
 
 if [[ "$n_col" -gt 0 ]]; then
@@ -246,7 +247,15 @@ check() {
 }
 check "collisions"     "$n_col"     "$b_col"
 check "unreachable"    "$n_unreach" "$b_unreach"
-check "contradictions" "$n_contra"  "$b_contra"
+
+# Multi-claim prompts are reported but NOT ratcheted. This check originally
+# treated "one prompt claimed by two skills" as a defect. 2026 routing research
+# (SkillRouter, Alibaba 2026-04; Multi-Agent Routing as Set-Valued Prediction,
+# arXiv 2606.28925) models routing as set-valued multi-label: a single query
+# legitimately needs several skills, and "add auth and write tests for it"
+# genuinely wants both implement and cover. Ratcheting it would have failed a
+# PR for improving the corpus in exactly the right direction.
+printf '  %-24s %s (informational, not gated)\n' "multi-claim prompts" "$n_contra"
 echo ""
 
 if [[ "$fail" -eq 1 ]]; then

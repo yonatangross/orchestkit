@@ -100,7 +100,7 @@ Return structured integration report:
 {
   "integration": {
     "provider": "anthropic",
-    "model": "claude-sonnet-4-6",
+    "model": "claude-sonnet-5",
     "sdk_version": "0.40.0"
   },
   "endpoints_created": [
@@ -118,7 +118,7 @@ Return structured integration report:
     "cache_type": "ephemeral",
     "estimated_savings": "72%"
   },
-  "fallback_chain": ["claude-sonnet-4-6", "gpt-5.5", "ollama/llama3.3"],
+  "fallback_chain": ["claude-sonnet-5", "gpt-5.5", "ollama/llama3.3"],
   "rate_limiting": {
     "requests_per_minute": 60,
     "tokens_per_minute": 100000
@@ -165,7 +165,7 @@ PROVIDERS = {
         "client": Anthropic(),
         "models": {
             "fast": "claude-haiku-4-5-20251001",
-            "balanced": "claude-sonnet-4-6",
+            "balanced": "claude-sonnet-5",
             "powerful": "claude-opus-4-8"
         },
         "supports_caching": True,
@@ -194,7 +194,7 @@ PROVIDERS = {
 ```python
 async def stream_completion(
     prompt: str,
-    model: str = "claude-sonnet-4-6"
+    model: str = "claude-sonnet-5"
 ) -> AsyncIterator[str]:
     """Stream LLM response as SSE events."""
     async with client.messages.stream(
