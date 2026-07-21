@@ -95,11 +95,34 @@ Extract paths that look like file references (patterns: paths with `/` and file 
 # - Paths containing / with common extensions: .py, .ts, .tsx, .js, .json, .md, .yaml, .yml, .sh
 # - Backtick-wrapped paths: `src/something/file.ts`
 # - Quoted paths in frontmatter descriptions
-
-for ref in file_refs:
-    Glob(pattern=ref)  # Check if file exists
-    # If no match → mark as STALE_FILE_REF
 ```
+
+**Classify each ref's SCOPE before verifying it.** `Glob` only sees the current repo, so a path that
+lives anywhere else can never match and would otherwise be scored as missing. A memory about
+`~/.claude` hooks, a homebrew cask, a cmux config, or another repo is not stale just because this
+repo does not contain it.
+
+```python
+def scope(ref):
+    # Anything rooted outside the working repo is UNVERIFIABLE, not missing.
+    if ref.startswith(("~", "/", "$")):          return "UNVERIFIABLE"
+    if ref.startswith(("http://", "https://")):  return "UNVERIFIABLE"
+    if re.match(r'^[A-Za-z0-9_.-]+/', ref) and not (REPO / ref.split("/")[0]).exists():
+        return "UNVERIFIABLE"   # first segment is not a real top-level dir here
+    return "REPO_RELATIVE"
+
+verifiable = [r for r in file_refs if scope(r) == "REPO_RELATIVE"]
+external   = [r for r in file_refs if scope(r) == "UNVERIFIABLE"]
+
+missing = []
+for ref in verifiable:
+    Glob(pattern=ref)
+    # If no match → missing.append(ref)
+```
+
+**The staleness ratio is computed over `verifiable` ONLY.** `external` refs are recorded for the
+report and never counted toward pruning. A memory with zero verifiable refs is `EVERGREEN` no
+matter how many external paths it names.
 
 ### 2b: Symbol References
 
@@ -115,12 +138,52 @@ for symbol in symbol_refs:
 
 | Finding | Classification | Action |
 |---------|---------------|--------|
-| All file refs valid, all symbols found | FRESH | Keep |
-| Some file refs missing | PARTIALLY_STALE | Flag for review |
-| All file refs missing AND all symbols missing | FULLY_STALE | Prune candidate |
-| No external refs (pure decision/preference) | EVERGREEN | Keep |
+| **Zero VERIFIABLE refs** (none, or all UNVERIFIABLE) | EVERGREEN | Keep |
+| All verifiable refs valid, all symbols found | FRESH | Keep |
+| Some verifiable refs missing | PARTIALLY_STALE | Flag for review |
+| All verifiable refs missing AND all symbols missing | FULLY_STALE | Prune candidate |
 
 Only memories classified as FULLY_STALE are auto-pruned. PARTIALLY_STALE memories are reported but kept — the user decides.
+
+### 2d: Prune guards — checked AFTER classification, before any delete
+
+`FULLY_STALE` is necessary but **not sufficient** to delete. Every guard below downgrades to
+PARTIALLY_STALE (kept + flagged). These exist because memory files are **not in git**: a wrong
+delete is silent and unrecoverable, so the asymmetry always favours keeping.
+
+```python
+GUARD_DAYS = 14
+
+for m in list(fully_stale_files):
+    reason = None
+    # 1. Preferences do not decay because a path moved.
+    if m["type"] == "user":
+        reason = "type:user is never auto-pruned"
+    # 2. A feedback/reference memory carries a LESSON; the file paths in it are
+    #    illustrations, not a manifest. Its worth does not expire when an
+    #    illustrative path moves, and ref-extraction is lossy anyway (it catches
+    #    `file.ts` but misses `file.ts:186` and `functionName()`). Only project
+    #    memories — which track live work against concrete files — are eligible
+    #    to go fully stale on ref death.
+    elif m["type"] in ("feedback", "reference"):
+        reason = f"type:{m['type']} value is the lesson, not its file refs"
+    # 3. Recently written memories describe the present, whatever their refs say.
+    elif (now - m["mtime"]) < GUARD_DAYS * 86400:
+        reason = f"modified within {GUARD_DAYS}d"
+    # 4. A memory that exists to prevent a regression must outlive the code it cites.
+    elif re.search(r'\b(do not|don\'t|never|avoid)\b', m["body"], re.I):
+        reason = "carries a do-not/never directive"
+    if reason:
+        m["classification"] = "PARTIALLY_STALE"
+        m["kept_reason"] = f"prune-guard: {reason}"
+        fully_stale_files.remove(m)
+        partially_stale_files.append(m)
+```
+
+Guard 3 is the subtle one. `reference_cmux_scroll_blank_research` said *"RESOLVED; do NOT re-suggest
+`tui:fullscreen` on cmux"* and every path it cited had moved. Deleting it reintroduces exactly the
+regression it was written to prevent. A memory whose value is a prohibition is at its most useful
+precisely when the original code is gone.
 
 ### STEP 2.5: Consult-gate (#2351) — never prune a memory that's still being used
 
@@ -264,10 +327,19 @@ Read all surviving `.md` files (excluding MEMORY.md itself). Generate the index:
 ```
 
 Rules for the rebuilt index:
-- One line per memory file, under 150 characters
-- Sorted alphabetically by filename
-- Total index must stay under 200 lines
-- If over 200 lines after rebuild, warn the user (do not auto-truncate content memories)
+- One line per memory file, sorted alphabetically by filename
+- **The binding constraint is BYTES, not lines.** MEMORY.md is loaded every session and stops
+  loading past the read limit (~24 KB), at which point the whole index silently degrades. Line
+  count is a proxy that misses this: a 151-entry index at a 147-char mean is 22.5 KB and nearly
+  dead, while the same 151 entries at 112 chars is 16.2 KB and healthy.
+- Target **≤ 17 KB total**. Derive the per-line budget rather than hardcoding it:
+  `budget_chars = (17 * 1024 - non_entry_overhead) / entry_count`
+- If the rebuild exceeds the target, **trim hooks to the derived budget before dropping any entry**.
+  Truncate at a word boundary and keep the leading clause (it carries the discriminating detail).
+  Every memory file must remain represented 1:1 — verify `indexed == files_on_disk` after writing.
+- Only if trimming to ~90 chars still overflows should you warn the user. Never auto-delete a memory
+  to fit the index; the index is a pointer table, and shrinking it is a formatting problem, not a
+  retention one.
 
 ```python
 # Write the rebuilt MEMORY.md

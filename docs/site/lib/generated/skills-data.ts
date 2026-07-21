@@ -2193,7 +2193,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "dream",
     "description": "Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory).",
     "version": "1.0.0",
-    "sha256": "925ac28d90005d127dd2b5e5808ba973b088e4ef3ac5aaf6210483c5bae68933",
+    "sha256": "05596b82d50bca1ffcf5dd53de10456bd9e17fdd1982099d21597755b4eddf93",
     "author": "OrchestKit",
     "tags": [
       "memory",
