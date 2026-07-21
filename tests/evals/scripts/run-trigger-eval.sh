@@ -281,18 +281,31 @@ eval_skill() {
         return 0
     fi
 
-    # Skip non-invocable skills — trigger eval only tests slash command routing
-    if [[ "$DRY_RUN" == "false" && "$trigger_count" -gt 0 ]]; then
-        local skill_md="src/skills/$skill_id/SKILL.md"
-        if [[ -f "$skill_md" ]]; then
-            local invocable; invocable=$(grep '^user-invocable:' "$skill_md" | awk '{print $2}')
-            if [[ "$invocable" != "true" ]]; then
-                echo -e "  ${CYAN}$skill_id${NC}: ${YELLOW}SKIP (not user-invocable, trigger eval N/A)${NC}"
-                LAST_EVAL_MEASURED=false
-                return 0
-            fi
-        fi
-    fi
+    # NO invocability skip. Presence of trigger_evals IS the signal to measure.
+    #
+    # This used to skip when `user-invocable != true`, justified as "trigger
+    # eval only tests slash command routing". That was inverted relative to what
+    # matters. Per Anthropic's Agent Skills docs the two frontmatter fields
+    # answer different questions:
+    #
+    #   disable-model-invocation: true  -> slash only, model can never select it
+    #   user-invocable: false           -> hidden from the / menu, but the model
+    #                                      CAN select it; its description is
+    #                                      loaded into context precisely so that
+    #                                      selection can happen
+    #
+    # So the old gate skipped exactly the background skills the model CAN reach
+    # (the testing-* family and 11 others) while still evaluating slash-only
+    # ones. Inverting it to gate on disable-model-invocation was tried and is
+    # ALSO wrong: it would have skipped brainstorm, commit, implement, doctor
+    # and five more flagship skills whose trigger cases encode real routing
+    # intent that /ork:auto depends on.
+    #
+    # Invocability is simply the wrong axis. A spec carrying trigger cases means
+    # somebody decided those prompts should route here, and that is measurable
+    # regardless of how the skill is reached. The no-cases path above already
+    # reports "not measured" rather than a vacuous pass, which is the honest
+    # answer for a spec nobody wrote cases for.
 
     echo -e "\n${BLUE}╔══════════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}║  TRIGGER EVAL — ${BOLD}$skill_id${NC}${BLUE}$(printf '%*s' $((36 - ${#skill_id})) '')║${NC}"

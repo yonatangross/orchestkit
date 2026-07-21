@@ -602,6 +602,14 @@ QUALITY_VERDICT=""
 if $RUN_TRIGGER; then
     echo -e "${CYAN}>>> Running trigger evaluation...${NC}"
     echo ""
+    # Clear the expected artifact FIRST so its presence afterwards proves THIS
+    # run produced it. Reading a leftover file is how an unmeasured lane looked
+    # measured: accessibility has no trigger_evals, yet a results file from four
+    # months earlier ({"precision":0,"recall":0}) was read as the current result
+    # and rendered "Trigger: PASS (P:0 R:0)". Checking the artifact is only
+    # stronger than checking the exit code if the artifact is known to be fresh.
+    # silent: post-cleanup
+    [[ -n "$SKILL" ]] && rm -f "$RESULTS_DIR/${SKILL}.trigger.json"
     if bash "$TRIGGER_RUNNER" "${SKILL_ARGS[@]}" "${PASSTHROUGH_ARGS[@]}"; then
         TRIGGER_EXIT=0
     else
@@ -631,6 +639,9 @@ if $RUN_QUALITY; then
             QUALITY_EXTRA_ARGS+=(--force-skill)
         fi
     fi
+    # Same staleness guard as the trigger lane above.
+    # silent: post-cleanup
+    [[ -n "$SKILL" ]] && rm -f "$RESULTS_DIR/${SKILL}.quality.json"
     if bash "$QUALITY_RUNNER" "${SKILL_ARGS[@]}" "${PASSTHROUGH_ARGS[@]}" ${QUALITY_EXTRA_ARGS[@]+"${QUALITY_EXTRA_ARGS[@]}"}; then
         QUALITY_EXIT=0
     else
@@ -678,7 +689,7 @@ if [[ -n "$SKILL" ]]; then
     # computed. Rendering that as FAIL invented a verdict from an outage.
     if $RUN_TRIGGER; then
         if [[ $TRIGGER_EXIT -eq 0 ]] && ! $trigger_measured; then
-            echo -e "  Trigger:   ${YELLOW}N/A${NC}  (not measured: no trigger cases, or skill is not user-invocable)"
+            echo -e "  Trigger:   ${YELLOW}N/A${NC}  (not measured: the spec declares no trigger cases)"
         elif [[ $TRIGGER_EXIT -eq 0 ]]; then
             echo -e "  Trigger:   ${GREEN}PASS${NC}  ($TRIGGER_RESULT)"
         elif [[ $TRIGGER_EXIT -eq 2 ]]; then
