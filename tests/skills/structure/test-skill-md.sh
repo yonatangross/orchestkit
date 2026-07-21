@@ -509,8 +509,15 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=35  # +1: release-checklist flipped to user-invocable (direct-only, disable-model-invocation)
-EXPECTED_INTERNAL=79  # -1: release-checklist moved to user-invocable
+# +10 net: the reachability burn-down flipped 11 skills that were reachable by
+# NOBODY (user-invocable:false AND disable-model-invocation:true AND named by no
+# agent) to user-invocable:true, while LEAVING disable-model-invocation:true so
+# their descriptions stay out of the context budget. Skills affected:
+# ascii-visualizer, audit-skills, checkpoint-resume, configure, feedback,
+# notebooklm, presentation-builder, release-checklist, skill-evolution,
+# upgrade-assessment, validate-counts.
+EXPECTED_USER_INVOCABLE=45
+EXPECTED_INTERNAL=69
 
 missing_user_invocable=()
 user_invocable_true=()
