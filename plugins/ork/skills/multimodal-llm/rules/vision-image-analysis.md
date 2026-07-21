@@ -72,7 +72,7 @@ from google import genai
 client = genai.Client()
 image = Image.open(image_path)
 response = client.models.generate_content(
-    model="gemini-2.5-pro",
+    model="gemini-3.1-pro-preview",
     contents=[prompt, image],
 )
 ```

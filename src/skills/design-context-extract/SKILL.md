@@ -76,7 +76,7 @@ Input (screenshot/URL/project)
 ┌──────────────────────────────┐
 │ Output                        │  Choose format:
 │ → design-tokens.json (W3C)    │
-│ → tailwind.config.ts          │
+│ → @theme (Tailwind v4)        │
 │ → tokens.css (CSS variables)  │
 │ → Markdown spec               │
 └──────────────────────────────┘
@@ -132,7 +132,8 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 **For current project:**
 ```python
-Glob("**/tailwind.config.*")
+Grep("@theme", glob="**/*.css")   # Tailwind v4: theme lives in CSS, not a config file
+Glob("**/tailwind.config.*")      # Tailwind v3 only (v4 ignores this file)
 Glob("**/tokens.css")
 Glob("**/*.css")  # Look for design token files
 Glob("**/theme.*")
@@ -223,7 +224,7 @@ AskUserQuestion(questions=[{
   "question": "Output format for extracted tokens?",
   "header": "Format",
   "options": [
-    {"label": "Tailwind config (Recommended)", "description": "tailwind.config.ts with extracted theme values"},
+    {"label": "Tailwind @theme (Recommended)", "description": "@theme block in the CSS entry (app.css) with extracted theme values"},
     {"label": "W3C Design Tokens", "description": "design-tokens.json following W3C DTCG spec"},
     {"label": "CSS Variables", "description": "tokens.css with CSS custom properties"},
     {"label": "Markdown spec", "description": "Human-readable design specification document"}
@@ -231,6 +232,24 @@ AskUserQuestion(questions=[{
   "multiSelect": false
 }])
 ```
+
+Tailwind v4 is CSS-first: theme values go in an `@theme` block, and `tailwind.config.js`
+is ignored entirely (see `ui-components/rules/tailwind-v4-patterns.md`).
+
+```css
+/* app.css: the recommended Tailwind output */
+@import "tailwindcss";
+
+@theme {
+  --color-primary: oklch(0.62 0.21 255);
+  --font-sans: "Inter", system-ui, sans-serif;
+  --spacing: 0.25rem;
+}
+```
+
+**Legacy (Tailwind v3 only):** if the project pins v3, emit `tailwind.config.ts` with the
+same values under `theme.extend`. Offer this only after confirming the v3 pin in
+`package.json`. It is never the default.
 
 ## Step 4: Generate Output
 

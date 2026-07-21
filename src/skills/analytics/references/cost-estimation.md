@@ -15,6 +15,8 @@ Authoritative source: `src/hooks/src/lib/models.vocab.json` (`pricing`). Keep in
 
 > `claude-sonnet-5` has an intro rate of $2/$10 per MTok through 2026-08-31; the durable $3/$15 sticker is used here for stable cost projections.
 
+> **Expiry: 2026-08-31.** That intro rate ends on this date, and the table above is dated Jun 2026. If you are reading this on or after 2026-09-01, treat every figure here as unverified and re-check it against `src/hooks/src/lib/models.vocab.json` (`pricing`) before quoting a cost.
+
 ## Cost Formula
 
 ```

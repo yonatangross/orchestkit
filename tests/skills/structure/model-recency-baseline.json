@@ -1,0 +1,6 @@
+{
+  "schema": "ork-model-recency-baseline/1.0",
+  "description": "Ratchet floor for the deterministic model-recency gate. Counts may only go DOWN. Regenerate with --update-baseline when a superseded recommendation is genuinely updated to the current model for its channel.",
+  "recommendations": 37,
+  "files_affected": 23
+}

@@ -128,7 +128,7 @@ Return structured security report:
       "line": 45,
       "code": "query = f\"SELECT * FROM users WHERE id = {user_id}\"",
       "fix": "Use parameterized query: session.execute(text('SELECT * FROM users WHERE id = :id'), {'id': user_id})",
-      "owasp": "A03:2021 - Injection"
+      "owasp": "A05:2025 - Injection"
     }
   ],
   "high": [...],
@@ -142,7 +142,7 @@ Return structured security report:
     {"file": ".env.example", "line": 5, "type": "AWS_KEY", "action": "Verify not real credentials"}
   ],
   "recommendations": [
-    "Upgrade pyjwt to 2.8.0+ to fix CVE-2022-29217",
+    "Upgrade pyjwt to 2.10.1+ to fix CVE-2022-29217 (2.8.0 clears that CVE but carries CVE-2024-53861)",
     "Add rate limiting to /api/auth endpoints",
     "Enable CORS origin validation"
   ]
@@ -175,19 +175,25 @@ Return structured security report:
 - Standard audit: 25-40 tool calls (full OWASP check)
 - Deep audit: 50-80 tool calls (code review + all patterns)
 
-## OWASP Top 10 (2021) Checklist
+## OWASP Top 10:2025 Checklist
 | ID | Category | Check |
 |----|----------|-------|
-| A01 | Broken Access Control | Role checks, path traversal, IDOR |
-| A02 | Cryptographic Failures | Weak algorithms, plaintext secrets |
-| A03 | Injection | SQL, NoSQL, OS command, LDAP |
-| A04 | Insecure Design | Business logic flaws, missing limits |
-| A05 | Security Misconfiguration | Debug mode, default creds, verbose errors |
-| A06 | Vulnerable Components | Outdated dependencies with CVEs |
-| A07 | Auth Failures | Weak passwords, session fixation, brute force |
-| A08 | Data Integrity Failures | Unsigned updates, insecure deserialization |
-| A09 | Logging Failures | Missing audit logs, log injection |
-| A10 | SSRF | Unvalidated URLs, internal network access |
+| A01 | Broken Access Control | Role checks, path traversal, IDOR, SSRF (absorbed from A10:2021) |
+| A02 | Security Misconfiguration | Debug mode, default creds, verbose errors, permissive CORS |
+| A03 | Software Supply Chain Failures | Dependencies with CVEs, unpinned/floating versions, lockfile integrity, dependency confusion, unverified build and CI artifacts, compromised registries |
+| A04 | Cryptographic Failures | Weak algorithms, plaintext secrets, missing transit encryption |
+| A05 | Injection | SQL, NoSQL, OS command, LDAP, XSS |
+| A06 | Insecure Design | Business logic flaws, missing limits, no threat model |
+| A07 | Authentication Failures | Weak passwords, session fixation, brute force |
+| A08 | Software or Data Integrity Failures | Unsigned updates, insecure deserialization, untrusted CI plugins |
+| A09 | Security Logging and Alerting Failures | Missing audit logs, log injection, no alerting on abuse |
+| A10 | Mishandling of Exceptional Conditions | Swallowed errors, fail-open paths, error messages leaking internals |
+
+Numbering moved with the 2025 edition. Mapping the two most likely to trip stale
+references: 2021's A06 Vulnerable and Outdated Components is now the broader
+A03:2025 Software Supply Chain Failures, and Injection moved A03:2021 → A05:2025.
+Report findings with the 2025 identifier; cite a 2021 ID only when quoting an
+older report.
 
 ## Scan Commands
 ```bash

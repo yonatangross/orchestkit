@@ -6,6 +6,40 @@ name: "LLM and AI testing patterns evaluation"
 skill_path: src/skills/testing-llm/SKILL.md
 plugin_dir: plugins/ork
 
+trigger_evals:
+  # Should trigger — RAG and generation quality evaluation
+  - prompt: "how do I evaluate whether my RAG pipeline returns faithful answers?"
+    should_trigger: true
+  - prompt: "what metrics does RAGAS give me and which ones actually matter?"
+    should_trigger: true
+  # Should trigger — LLM-specific mocking
+  - prompt: "how should I mock Anthropic API responses across my test suite?"
+    should_trigger: true
+  # Should trigger — structured output validation
+  - prompt: "how do I assert the model returned valid structured output every time?"
+    should_trigger: true
+  # Should trigger — terse phrasing
+  - prompt: "ragas metrics"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "deepeval assertoins for my agent"
+    should_trigger: true
+  # Should NOT trigger — cover confusion pair (cover GENERATES tests)
+  - prompt: "write tests for my chat endpoint"
+    should_trigger: false
+  # Should NOT trigger — testing-unit confusion pair (non-LLM network mocking)
+  - prompt: "how do I mock this REST API with MSW?"
+    should_trigger: false
+  # Should NOT trigger — testing-integration confusion pair
+  - prompt: "how do I contract-test my API with Pact?"
+    should_trigger: false
+  # Should NOT trigger — llm-integration confusion pair (building, not testing)
+  - prompt: "how do I stream tokens from the Anthropic API to the client?"
+    should_trigger: false
+  # Should NOT trigger — multi-intent, primary is implement
+  - prompt: "build the summarization endpoint and then evaluate its output quality"
+    should_trigger: false
+
 quality_evals:
   - prompt: |
       We have a RAG pipeline that retrieves documents and generates answers

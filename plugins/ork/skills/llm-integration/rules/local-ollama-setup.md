@@ -10,8 +10,13 @@ tags: [ollama, setup, install, langchain, environment, local]
 ## Quick Start
 
 ```bash
-# Install Ollama
-curl -fsSL https://ollama.ai/install.sh | sh
+# Install Ollama (prefer a package manager)
+brew install ollama
+
+# No package manager? Download the script, inspect it, then run it
+curl -fsSL https://ollama.com/install.sh -o /tmp/ollama-install.sh
+less /tmp/ollama-install.sh    # read what you are about to execute as root
+sh /tmp/ollama-install.sh
 
 # Pull models
 ollama pull deepseek-r1:70b      # Reasoning (GPT-4 level)
@@ -21,6 +26,8 @@ ollama pull nomic-embed-text     # Embeddings
 # Start server
 ollama serve
 ```
+
+Piping a remote script straight into a shell is never suggested here because this repo's own permission policy blocks it unconditionally: `Bash(curl * | sh)` sits in the `autoMode.hard_deny` tier (see `configure/references/cc-version-settings.md`), which no allow rule or permission mode can override.
 
 ## LangChain Integration
 

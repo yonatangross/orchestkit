@@ -103,7 +103,7 @@ Return structured integration report:
   "integration": {
     "modalities": ["vision", "audio"],
     "providers": ["openai", "anthropic", "google"],
-    "models": ["gpt-5", "claude-opus-4-8", "gemini-2.5-pro"]
+    "models": ["gpt-5", "claude-opus-4-8", "gemini-3.1-pro-preview"]
   },
   "endpoints_created": [
     {"path": "/api/v1/analyze-image", "method": "POST"},

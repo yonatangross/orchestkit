@@ -63,8 +63,12 @@ done
 #!/usr/bin/env bash
 # Enable auto-merge for approved PRs with passing checks
 
-gh pr list --json number,reviewDecision,statusCheckRollupState --jq \
-  '.[] | select(.reviewDecision == "APPROVED" and .statusCheckRollupState == "SUCCESS") | .number' | \
+# `statusCheckRollup` is an ARRAY of check objects (there is no scalar
+# `statusCheckRollupState` field), so aggregate it before filtering.
+gh pr list --json number,reviewDecision,statusCheckRollup --jq \
+  '.[] | select(.reviewDecision == "APPROVED"
+   and ([(.statusCheckRollup // [])[] | .conclusion // .state]
+        | length > 0 and all(IN("SUCCESS","SKIPPED","NEUTRAL")))) | .number' | \
 while read -r pr; do
   echo "Enabling auto-merge for PR #$pr"
   gh pr merge "$pr" --auto --squash --delete-branch

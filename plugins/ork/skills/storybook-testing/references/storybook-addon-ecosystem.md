@@ -14,7 +14,7 @@ Storybook 10 consolidates its addon ecosystem around first-party addons. Essenti
 |-------|---------|---------|
 | `@storybook/addon-vitest` | Run stories as Vitest tests | `npm i -D @storybook/addon-vitest` |
 | `@storybook/addon-a11y` | Accessibility audits via axe-core | `npm i -D @storybook/addon-a11y` |
-| `@storybook/addon-interactions` | Step-through play() in UI panel | `npm i -D @storybook/addon-interactions` |
+| `@storybook/addon-interactions` | Step-through play() in UI panel | Bundled in core |
 | `@storybook/addon-coverage` | Code coverage for story tests | `npm i -D @storybook/addon-coverage` |
 
 ### UI & Design
@@ -22,9 +22,9 @@ Storybook 10 consolidates its addon ecosystem around first-party addons. Essenti
 | Addon | Purpose | Install |
 |-------|---------|---------|
 | `@storybook/addon-themes` | Theme switching (light/dark/custom) | `npm i -D @storybook/addon-themes` |
-| `@storybook/addon-viewport` | Responsive viewport simulation | `npm i -D @storybook/addon-viewport` |
-| `@storybook/addon-backgrounds` | Background color switching | `npm i -D @storybook/addon-backgrounds` |
-| `@storybook/addon-measure` | Layout measurement overlay | `npm i -D @storybook/addon-measure` |
+| `@storybook/addon-viewport` | Responsive viewport simulation | Bundled in core |
+| `@storybook/addon-backgrounds` | Background color switching | Bundled in core |
+| `@storybook/addon-measure` | Layout measurement overlay | Bundled in core |
 
 ### Documentation
 
@@ -49,21 +49,30 @@ import type { StorybookConfig } from '@storybook/react-vite'
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(ts|tsx)'],
+  // Only addons that ship as separate packages belong here. Viewport, controls,
+  // interactions, actions, backgrounds, and measure are bundled in core.
   addons: [
     '@storybook/addon-vitest',
     '@storybook/addon-a11y',
-    '@storybook/addon-interactions',
     '@storybook/addon-themes',
-    '@storybook/addon-viewport',
   ],
   framework: '@storybook/react-vite',
-  docs: {
-    autodocs: 'tag',  // generate docs for stories with 'autodocs' tag
-  },
 }
 
 export default config
 ```
+
+The `docs.autodocs` key was removed in Storybook 8. Autodocs is opt-in per story
+file via the meta tag instead:
+
+```ts
+const meta = {
+  component: Button,
+  tags: ['autodocs'],
+} satisfies Meta<typeof Button>
+```
+
+See `rules/storybook-autodocs.md` for the full pattern.
 
 ---
 

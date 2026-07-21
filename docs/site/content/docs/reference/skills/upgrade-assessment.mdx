@@ -307,10 +307,14 @@ Model ID format changed from `claude-\{version\}-\{variant\}` to `claude-\{varia
 | `claude-opus-4-20250514` | `claude-opus-4-6-20260115` | +1M context, +128K output, +files API |
 | `claude-opus-4-6-20260115` | `claude-opus-4-6` | Opus 4.6 1M context GA (no premium, no beta header) |
 | `claude-opus-4-6` | `claude-opus-4-7` | Opus 4.7 — xhigh effort (CC 2.1.111+), 3× vision resolution (2,576 px), substantially better filesystem memory + instruction following, updated tokenizer (same pricing as 4.6) |
-| `claude-opus-4-7` | `claude-opus-4-8` | Opus 4.8 (current latest Opus) — defaults to high effort, xhigh for hardest tasks, lean system prompt (CC 2.1.154) |
+| `claude-opus-4-7` | `claude-opus-4-8` | Opus 4.8 — defaults to high effort, xhigh for hardest tasks, lean system prompt (CC 2.1.154) |
 | `claude-opus-4-8` | `claude-fable-5` (frontier tier above Opus) — **only with explicit user consent** | `claude-fable-5` is GA (2026-07, above Opus). It carries premium cost, so the fable-spend-consent gate blocks any auto-pin — migrate/pin only on explicit user consent. Opus 4.8 stays the safe default top tier |
 | `claude-sonnet-4-5-20250929` | `claude-sonnet-4-6` | Sonnet 4.6 — adaptive thinking, 1M context |
-| `claude-sonnet-4-6` | `claude-sonnet-5` | Sonnet 5 (current latest Sonnet — `sonnet` aliases to this automatically) — adaptive thinking on by default, `xhigh` effort, near-Opus coding/agentic quality, new tokenizer (~30% more tokens), 3× vision resolution |
+| `claude-sonnet-4-6` | `claude-sonnet-5` | Sonnet 5 — adaptive thinking on by default, `xhigh` effort, near-Opus coding/agentic quality, new tokenizer (~30% more tokens), 3× vision resolution |
+
+The rows above are migration history, not a statement about which model is newest. Do not read "the last row" as "the current latest" and do not hardcode a specific ID as latest: both claims expire the day a new model ships.
+
+For today's answer, use the alias channel. `src/hooks/src/lib/models.vocab.json` is the single source of truth, and its `aliases` map (`fable`, `opus`, `sonnet`, `haiku`) always points at the current latest full ID in that channel. When a new model ships, the alias advances and the retired ID moves into `fullIds` or `historicalIds`. Prefer the alias in agent frontmatter and config; resolve it against the vocab file when you need the concrete ID.
 
 ### Common Breaking Changes
 
@@ -453,98 +457,7 @@ git commit -m "upgrade claude"
 
 ---
 
-## References (4)
-
-### Cc 2.1.47 Upgrade Guide
-
-# CC 2.1.47 Upgrade Guide
-
-## What Changed
-
-CC 2.1.47 is the new minimum version for OrchestKit 6.0.x. This release includes platform fixes, new hook fields, and UX improvements.
-
-## Breaking Changes
-
-None. CC 2.1.47 is backwards-compatible with all OrchestKit hooks and skills.
-
-## New Hook Input Fields
-
-| Field | Event | Description |
-|-------|-------|-------------|
-| `last_assistant_message` | Stop, SubagentStop | Final assistant message text from the session/agent |
-| `added_dirs` | All events | List of directories added via `--add-dir` or `/add-dir` |
-
-These fields are optional — hooks should always use `input.field ?? fallback` patterns.
-
-## Platform Fixes
-
-### Windows Support
-- Hooks now execute on Windows via Git Bash (previously silently failed)
-- Windows worktree session matching fixed (drive letter casing)
-- PR #645 added Windows-safe spawning to prevent console flashing
-
-### Worktree Support
-- Skills and agents are now discovered from worktrees (previously main checkout only)
-- Background tasks (`Task` tool) complete successfully from worktrees
-- Heartbeat and cleanup hooks work reliably in worktrees
-
-### SessionStart Deferral
-- SessionStart hooks now fire ~500ms after session init
-- All OrchestKit SessionStart hooks are compatible with this deferral
-- Async hooks (`unified-dispatcher`, `pr-status-enricher`) are unaffected (already fire-and-forget)
-- Sync hooks (`session-context-loader`, `prefill-guard`, `mcp-health-check`) still run before first prompt
-
-## UX Improvements
-
-| Feature | Shortcut | Description |
-|---------|----------|-------------|
-| Find in output | `Ctrl+F` | Search through all session output |
-| Multi-line input | `Shift+Down` | Enter multi-line prompts without sending |
-
-## Agent Teams Improvements
-
-- `model` field in agent frontmatter is now respected in team spawns
-- Improved agent memory provides larger context for spawned agents
-- `TeammateIdle` and `TaskCompleted` events available since CC 2.1.33
-
-## OrchestKit Adoption Summary
-
-### Hooks Updated
-- `monorepo-detector`: Skips `--add-dir` suggestion when `added_dirs` already active
-- `session-summary`: Tracks `added_dirs_count` and classifies `session_outcome`
-- `session-tracking`: Passes `added_dirs_count` to session context
-- `session-cleanup`: Includes `last_msg_len` and `added_dirs_count` in analytics
-- `session-context-loader`: Scans added directories for context files
-- `subagent-stop/unified-dispatcher`: Tracks `last_msg_len` in agent analytics
-- `auto-approve-project-writes`: Already supports `added_dirs` (reference implementation)
-
-### Skills Updated
-- `doctor`: Version compatibility matrix with all CC 2.1.47 features
-- `configure`: Team plugin distribution docs
-- `worktree-coordination`: CC 2.1.47 platform support table
-- `help`: CC keyboard shortcuts reference
-
-### Runtime Utilities
-- `cc-version-matrix.ts`: CC version constants (`MIN_CC_VERSION`, `LATEST_KNOWN_CC`) + `compareCCVersions()`. (The per-feature catalogue + `hasFeature`/`getAvailableFeatures` helpers were removed in #2229 — they had zero production callers; ork adopts features by use, not runtime gating.)
-
-## Verification
-
-Run the doctor skill to verify your CC version:
-
-```bash
-/ork:doctor
-```
-
-Check 10 (Claude Code Version) validates CC >= 2.1.47 and reports missing features for older versions.
-
-## Rollback
-
-If you need to downgrade below CC 2.1.47:
-- OrchestKit hooks will continue to work in degraded mode
-- `added_dirs` and `last_assistant_message` fields will be undefined (hooks handle this gracefully)
-- Windows hook execution will fail silently
-- Worktree discovery will not find skills/agents from worktrees
-
+## References (3)
 
 ### Output Format
 

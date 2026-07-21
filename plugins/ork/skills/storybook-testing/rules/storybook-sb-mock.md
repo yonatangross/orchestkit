@@ -32,7 +32,7 @@ export const RegularUser: Story = {}  // Still sees admin mock — no isolation
 **Correct — Step 1: Register mocks in `.storybook/preview.ts`:**
 ```ts
 // .storybook/preview.ts — registration only, runs once at startup
-import { sb } from '@storybook/test'
+import { sb } from 'storybook/test'
 
 // Register modules to mock — use dynamic import(), not string paths
 sb.mock(import('../src/lib/api'))
@@ -42,7 +42,7 @@ sb.mock(import('../src/lib/api'))
 ```tsx
 // UserProfile.stories.tsx
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect, mocked, within } from '@storybook/test'
+import { expect, mocked, within } from 'storybook/test'
 import { UserProfile } from './UserProfile'
 import { fetchUser } from '@/lib/api'
 

@@ -146,7 +146,7 @@ Return structured implementation report:
     {"name": "RateLimitMiddleware", "config": {"default": "100/min", "auth": "10/min"}}
   ],
   "security_measures": [
-    "bcrypt password hashing (cost=12)",
+    "Argon2id password hashing (bcrypt cost=12 acceptable fallback)",
     "JWT with 15min access / 7d refresh",
     "Rate limiting on auth endpoints"
   ],
@@ -273,7 +273,7 @@ def create_tokens(user_id: str) -> dict:
 | Category | Requirement |
 |----------|-------------|
 | API Design | RESTful, OpenAPI 3.1, versioned (/api/v1/) |
-| Authentication | JWT (15min access, 7d refresh), bcrypt (cost=12) |
+| Authentication | JWT (15min access, 7d refresh), Argon2id hashing (bcrypt cost=12 acceptable fallback, silently truncates input at 72 bytes) |
 | Validation | Pydantic v2 with Field constraints |
 | Database | SQLAlchemy 2.0 async, proper indexes |
 | Rate Limiting | Token bucket via SlowAPI + Redis, 100/min default |
@@ -303,7 +303,7 @@ curl -X POST http://localhost:8500/api/v1/auth/register \
   "endpoint": "/api/v1/auth/register",
   "method": "POST",
   "rate_limit": "5/min",
-  "security": ["bcrypt hashing", "email validation"]
+  "security": ["Argon2id hashing", "email validation"]
 }
 ```
 

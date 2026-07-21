@@ -6,6 +6,43 @@ name: "E2E testing patterns evaluation"
 skill_path: src/skills/testing-e2e/SKILL.md
 plugin_dir: plugins/ork
 
+trigger_evals:
+  # Should trigger — page objects and Playwright structure
+  - prompt: "how should I structure page objects for a multi-step checkout flow in Playwright?"
+    should_trigger: true
+  - prompt: "my Playwright tests are flaky in CI, which selectors should I prefer?"
+    should_trigger: true
+  # Should trigger — visual regression
+  - prompt: "how do I catch unintended visual changes in my UI between deploys?"
+    should_trigger: true
+  # Should trigger — axe-core inside the browser test
+  - prompt: "how do I run axe-core accessibility checks inside my browser tests?"
+    should_trigger: true
+  # Should trigger — terse phrasing
+  - prompt: "playwright page objects"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "playright visual regression setup"
+    should_trigger: true
+  # Should NOT trigger — cover confusion pair (cover GENERATES tests)
+  - prompt: "write E2E tests for the checkout flow"
+    should_trigger: false
+  # Should NOT trigger — accessibility confusion pair (WCAG guidance, not browser testing)
+  - prompt: "does conveying status with color alone violate WCAG?"
+    should_trigger: false
+  # Should NOT trigger — testing-integration confusion pair
+  - prompt: "how do I test my API endpoints against a real Postgres instance?"
+    should_trigger: false
+  # Should NOT trigger — testing-unit confusion pair
+  - prompt: "should I use MSW to mock this hook's fetch call?"
+    should_trigger: false
+  # Should NOT trigger — testing-perf confusion pair
+  - prompt: "how many concurrent users can this endpoint handle?"
+    should_trigger: false
+  # Should NOT trigger — multi-intent, primary is implement
+  - prompt: "build the checkout page and then add Playwright coverage for it"
+    should_trigger: false
+
 quality_evals:
   - prompt: |
       I need to write end-to-end tests for an e-commerce checkout flow.

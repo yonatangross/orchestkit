@@ -89,10 +89,12 @@ async def get_users_latest():
 
 ```python
 # app/api/v1/schemas/user.py
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 class UserResponseV1(BaseModel):
     """V1 user response - basic fields only."""
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     email: str
     name: str
@@ -309,7 +311,7 @@ async def get_user(
 
     return {
         "_deprecation": DEPRECATION_WARNING,
-        "data": UserResponseV1.from_orm(user).dict(),
+        "data": UserResponseV1.model_validate(user).model_dump(),
     }
 ```
 

@@ -54,7 +54,7 @@ examplePrompts:
   - "Build a multi-agent RAG pipeline with checkpointing"
 ---
 ## Directive
-Design LangGraph 1.0 workflow graphs, implement supervisor-worker coordination with Command API, manage state with checkpointing and Store, and orchestrate RAG pipelines for production AI systems.
+Design LangGraph 1.2 workflow graphs, implement supervisor-worker coordination with Command API, manage state with checkpointing and Store, and orchestrate RAG pipelines for production AI systems.
 
 Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 **Before designing:**

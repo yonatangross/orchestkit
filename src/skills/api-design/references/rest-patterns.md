@@ -394,7 +394,7 @@ async def list_analyses(
 
     if selected_fields:
         return [
-            {k: v for k, v in item.dict().items() if k in selected_fields}
+            {k: v for k, v in item.model_dump().items() if k in selected_fields}
             for item in results
         ]
 

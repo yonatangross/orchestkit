@@ -156,7 +156,7 @@ Pause workflows for human intervention. Requires checkpointer for state persiste
 
 ## Streaming
 
-Real-time updates and progress tracking for workflows. **LangGraph 1.1 introduces `version="v2"`** — an opt-in streaming format with full type safety on `stream()`, `astream()`, `invoke()`, and `ainvoke()`.
+Real-time updates and progress tracking for workflows. **LangGraph 1.2 supports `version="v2"`** (introduced in 1.1), an opt-in streaming format with full type safety on `stream()`, `astream()`, `invoke()`, and `ainvoke()`.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
@@ -2015,7 +2015,7 @@ for namespace, chunk in graph.stream(inputs, subgraphs=True, stream_mode="update
 - Use `"messages"` for chat interfaces
 - Enable `subgraphs=True` for complex nested workflows
 - Combine multiple modes in a list for comprehensive output
-- **LangGraph 1.1+**: Add `version="v2"` for fully typed streaming output (see `streaming-v2-format.md`)
+- **LangGraph 1.2+**: Add `version="v2"` for fully typed streaming output (see `streaming-v2-format.md`)
 
 Reference: [LangGraph Streaming](https://langchain-ai.github.io/langgraph/concepts/streaming/)
 
@@ -2072,9 +2072,9 @@ Reference: [LangGraph Streaming](https://langchain-ai.github.io/langgraph/concep
 ### Use streaming v2 format for type-safe real-time output — MEDIUM
 
 
-## Streaming v2 Format (LangGraph 1.1+)
+## Streaming v2 Format (LangGraph 1.2+)
 
-LangGraph 1.1 introduces `version="v2"` — an opt-in streaming format that brings full type safety to all streaming and invocation methods. Default remains `"v1"` for backwards compatibility.
+LangGraph 1.2 supports `version="v2"` (introduced in 1.1), an opt-in streaming format that brings full type safety to all streaming and invocation methods. Default remains `"v1"` for backwards compatibility.
 
 **Incorrect — untyped v1 invoke (default):**
 ```python
@@ -2128,7 +2128,7 @@ assert isinstance(result.value, MyState)  # auto-coerced — not a plain dict
 - Graph construction, checkpointers, and tool calling are **unchanged**
 - Future major version will default to v2
 
-Reference: [LangGraph 1.1 Release Notes](https://github.com/langchain-ai/langgraph/releases)
+Reference: [LangGraph Release Notes](https://github.com/langchain-ai/langgraph/releases)
 
 
 ### Add subgraph directly as node when parent and child share the same state — MEDIUM

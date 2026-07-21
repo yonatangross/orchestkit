@@ -56,9 +56,13 @@ password_hash = hashlib.md5(password.encode()).hexdigest()
 
 ### ✅ Secure: Modern Password Hashing
 ```python
-from passlib.hash import argon2
-password_hash = argon2.hash(password)
-# Verify: argon2.verify(password, password_hash)
+# argon2-cffi (pip install argon2-cffi). Not passlib, which last shipped in 2020
+# and breaks on Python 3.13+ after PEP 594 removed the stdlib crypt module.
+from argon2 import PasswordHasher
+
+ph = PasswordHasher()
+password_hash = ph.hash(password)  # salt + cost params embedded in the output
+# Verify: ph.verify(password_hash, password) raises VerifyMismatchError on failure
 ```
 
 ## A05: Injection

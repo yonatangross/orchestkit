@@ -13,7 +13,7 @@ Separate build-time concerns from runtime to produce minimal, secure production 
 **Incorrect:**
 ```dockerfile
 # Single-stage: build tools and dev deps ship to production
-FROM node:20
+FROM node:24
 WORKDIR /app
 COPY . .
 RUN npm install
@@ -26,13 +26,13 @@ CMD ["node", "dist/main.js"]
 **Correct:**
 ```dockerfile
 # Stage 1: Install production dependencies only
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
 
 # Stage 2: Build with dev dependencies
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
@@ -40,7 +40,7 @@ COPY . .
 RUN npm run build && npm run test
 
 # Stage 3: Minimal production runtime
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules

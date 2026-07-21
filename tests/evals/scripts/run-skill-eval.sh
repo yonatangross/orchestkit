@@ -28,6 +28,8 @@ DRY_RUN=false
 # Source shared library
 # shellcheck source=lib/eval-common.sh
 source "$SCRIPT_DIR/lib/eval-common.sh"
+# shellcheck source=lib/budget-governor.sh
+source "$SCRIPT_DIR/lib/budget-governor.sh"
 
 EVALS_DIR="$(dirname "$SCRIPT_DIR")"
 RESULTS_DIR="$EVALS_DIR/results/skills"
@@ -574,15 +576,40 @@ echo -e "  Dry-run:  $(if $DRY_RUN; then echo -e "${YELLOW}YES${NC}"; else echo 
 echo -e "${BLUE}============================================================${NC}"
 echo ""
 
+# Refuse a run the subscription cannot pay for, BEFORE committing to N calls.
+# A prior run fired 20 calls into an exhausted weekly cap and got 20 x HTTP 429,
+# discovering in 72s what one check knows instantly. Only blocks on a recorded
+# reset time still in the future; an unparseable limit message proceeds.
+# Dry runs make no calls, so they are never gated.
+if [[ "$DRY_RUN" == "false" ]]; then
+    budget_rc=0
+    budget_check || budget_rc=$?
+    if [[ "$budget_rc" -eq 3 ]]; then
+        echo -e "  ${YELLOW}Skipped by the budget governor — not a skill regression.${NC}"
+        # Exit 2 is the harness's established "could not measure" code (#3032),
+        # so an unaffordable run reads as INCONCLUSIVE rather than as a failure.
+        exit 2
+    fi
+fi
+
 TRIGGER_EXIT=0
 QUALITY_EXIT=0
 TRIGGER_RESULT=""
 QUALITY_RESULT=""
+QUALITY_VERDICT=""
 
 # --- Run trigger eval ---
 if $RUN_TRIGGER; then
     echo -e "${CYAN}>>> Running trigger evaluation...${NC}"
     echo ""
+    # Clear the expected artifact FIRST so its presence afterwards proves THIS
+    # run produced it. Reading a leftover file is how an unmeasured lane looked
+    # measured: accessibility has no trigger_evals, yet a results file from four
+    # months earlier ({"precision":0,"recall":0}) was read as the current result
+    # and rendered "Trigger: PASS (P:0 R:0)". Checking the artifact is only
+    # stronger than checking the exit code if the artifact is known to be fresh.
+    # silent: post-cleanup
+    [[ -n "$SKILL" ]] && rm -f "$RESULTS_DIR/${SKILL}.trigger.json"
     if bash "$TRIGGER_RUNNER" "${SKILL_ARGS[@]}" "${PASSTHROUGH_ARGS[@]}"; then
         TRIGGER_EXIT=0
     else
@@ -612,6 +639,9 @@ if $RUN_QUALITY; then
             QUALITY_EXTRA_ARGS+=(--force-skill)
         fi
     fi
+    # Same staleness guard as the trigger lane above.
+    # silent: post-cleanup
+    [[ -n "$SKILL" ]] && rm -f "$RESULTS_DIR/${SKILL}.quality.json"
     if bash "$QUALITY_RUNNER" "${SKILL_ARGS[@]}" "${PASSTHROUGH_ARGS[@]}" ${QUALITY_EXTRA_ARGS[@]+"${QUALITY_EXTRA_ARGS[@]}"}; then
         QUALITY_EXIT=0
     else
@@ -621,7 +651,13 @@ if $RUN_QUALITY; then
 
     # Read quality result if available
     if [[ -n "$SKILL" && -f "$RESULTS_DIR/${SKILL}.quality.json" ]]; then
+        # silent: external-api-shape
         QUALITY_RESULT=$(jq -r '.aggregate.skill_pass_rate | tostring' "$RESULTS_DIR/${SKILL}.quality.json" 2>/dev/null || echo "N/A")
+        # The inner runner already computed a real verdict (SKILL_ADDS_VALUE /
+        # NEUTRAL / NO_SIGNAL). Printing a bare "PASS" over it lost that
+        # distinction — a NEUTRAL run scoring 0% displayed as "PASS (0%)".
+        # silent: external-api-shape
+        QUALITY_VERDICT=$(jq -r '.aggregate.verdict // ""' "$RESULTS_DIR/${SKILL}.quality.json" 2>/dev/null || echo "")
     fi
 fi
 
@@ -634,11 +670,27 @@ if [[ -n "$SKILL" ]]; then
     echo -e "  Skill:     ${CYAN}$SKILL${NC}"
     echo ""
 
+    # A lane counts as MEASURED only when it published a result value.
+    # #3032 fixed the outage path (exit 2). This fixes its sibling: a lane can
+    # also return 0 WITHOUT running — run-trigger-eval.sh returns 0 early when
+    # a spec has no trigger_evals, and again when the skill is not
+    # user-invocable (trigger eval only models slash-command routing, so it is
+    # N/A by design for background skills). Neither path writes a results
+    # artifact, so an EMPTY result is the not-measured signal. Reading exit 0
+    # as PASS turned "never ran" into a green verdict for 76 of 119 specs.
+    # Check the artifact, not the exit code.
+    trigger_measured=true
+    quality_measured=true
+    case "$TRIGGER_RESULT" in ""|null|N/A|*null*) trigger_measured=false ;; esac
+    case "$QUALITY_RESULT" in ""|null|N/A) quality_measured=false ;; esac
+
     # Trigger row
     # #3032: exit 2 means every prompt died, so no precision/recall was
     # computed. Rendering that as FAIL invented a verdict from an outage.
     if $RUN_TRIGGER; then
-        if [[ $TRIGGER_EXIT -eq 0 ]]; then
+        if [[ $TRIGGER_EXIT -eq 0 ]] && ! $trigger_measured; then
+            echo -e "  Trigger:   ${YELLOW}N/A${NC}  (not measured: the spec declares no trigger cases)"
+        elif [[ $TRIGGER_EXIT -eq 0 ]]; then
             echo -e "  Trigger:   ${GREEN}PASS${NC}  ($TRIGGER_RESULT)"
         elif [[ $TRIGGER_EXIT -eq 2 ]]; then
             echo -e "  Trigger:   ${YELLOW}INCONCLUSIVE${NC}  (no answer: dead generation)"
@@ -654,8 +706,14 @@ if [[ -n "$SKILL" ]]; then
     # printing "FAIL (%)" invented a verdict out of an outage. An empty result
     # also renders as n/a rather than a bare percent sign.
     if $RUN_QUALITY; then
-        if [[ $QUALITY_EXIT -eq 0 ]]; then
-            echo -e "  Quality:   ${GREEN}PASS${NC}  (${QUALITY_RESULT}%)"
+        if [[ $QUALITY_EXIT -eq 0 ]] && ! $quality_measured; then
+            echo -e "  Quality:   ${YELLOW}N/A${NC}  (not measured: no score published)"
+        elif [[ $QUALITY_EXIT -eq 0 && "$QUALITY_VERDICT" == "NO_SIGNAL" ]]; then
+            echo -e "  Quality:   ${YELLOW}NO SIGNAL${NC}  (skill and baseline both ${QUALITY_RESULT}% — nothing was discriminated)"
+        elif [[ $QUALITY_EXIT -eq 0 && "$QUALITY_VERDICT" == "NEUTRAL" ]]; then
+            echo -e "  Quality:   ${YELLOW}NEUTRAL${NC}  (${QUALITY_RESULT}%, no delta vs baseline)"
+        elif [[ $QUALITY_EXIT -eq 0 ]]; then
+            echo -e "  Quality:   ${GREEN}PASS${NC}  (${QUALITY_RESULT}%${QUALITY_VERDICT:+, $QUALITY_VERDICT})"
         elif [[ $QUALITY_EXIT -eq 2 ]]; then
             echo -e "  Quality:   ${YELLOW}INCONCLUSIVE${NC}  (no score published: dead generation)"
         else
@@ -667,7 +725,16 @@ if [[ -n "$SKILL" ]]; then
 
     # Overall: a real failure in EITHER lane outranks an outage in the other.
     echo ""
-    if [[ $TRIGGER_EXIT -eq 0 && $QUALITY_EXIT -eq 0 ]]; then
+    if [[ $TRIGGER_EXIT -eq 0 && $QUALITY_EXIT -eq 0 ]] \
+       && ! $trigger_measured && ! $quality_measured; then
+        # Neither lane produced a number. Claiming PASS here is the vacuous
+        # verdict this block exists to prevent.
+        echo -e "  Overall:   ${YELLOW}N/A${NC}  (nothing was measured for this skill)"
+    elif [[ $TRIGGER_EXIT -eq 0 && $QUALITY_EXIT -eq 0 && "$QUALITY_VERDICT" == "NO_SIGNAL" ]]; then
+        # Both lanes exited 0, but the quality lane discriminated nothing.
+        # Calling that PASS is the same vacuous verdict one level up.
+        echo -e "  Overall:   ${YELLOW}NO SIGNAL${NC}  (ran, but distinguished nothing)"
+    elif [[ $TRIGGER_EXIT -eq 0 && $QUALITY_EXIT -eq 0 ]]; then
         echo -e "  Overall:   ${GREEN}PASS${NC}"
     elif [[ ($TRIGGER_EXIT -eq 0 || $TRIGGER_EXIT -eq 2) && ($QUALITY_EXIT -eq 0 || $QUALITY_EXIT -eq 2) ]]; then
         echo -e "  Overall:   ${YELLOW}INCONCLUSIVE${NC}  (eval infrastructure could not measure this skill)"

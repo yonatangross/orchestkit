@@ -49,7 +49,7 @@
     {
       "id": "ai-agent-test-workflow",
       "rule": "e2e-ai-agents",
-      "query": "Set up AI-powered test generation with Playwright 1.58",
+      "query": "Set up AI-powered test generation with Playwright 1.59",
       "expectedBehavior": [
         "Describes the Planner/Generator/Healer three-agent workflow",
         "References npx playwright init-agents --loop=claude for Claude Code",
