@@ -78,12 +78,57 @@ jobs:
       # (avoids hard-failing CI for older runner images).
       - name: Validate plugin tag (CC 2.1.118+)
         if: ${{ steps.release.outputs.release_created == 'true' }}
+        # justify: best-effort https://github.com/yonatangross/orchestkit/issues/3062
+        # Dry-run validation only; the tag itself is created by release-please's
+        # GitHub Release step, so a runner without the claude CLI must not fail
+        # an otherwise-good release.
         continue-on-error: true
         run: |
           if command -v claude >/dev/null 2>&1; then
             claude plugin tag "${{ steps.release.outputs.version }}" --dry-run
           else
             echo "::notice::claude CLI not present on runner — skipping plugin tag validation"
+          fi
+
+      # Keep an open release PR mergeable (#3062).
+      #
+      # `.release-please-config.json` sets exclude-paths: ["docs"], so a
+      # docs-only merge is correctly a no-op for the release ("PR #N remained
+      # the same") and release-please does NOT force-push the release branch.
+      # main moves on regardless, so the release PR drifts BEHIND — and main
+      # requires up-to-date branches, which silently strands the release until
+      # someone runs update-branch by hand. A run of docs-only merges can hold
+      # a release indefinitely with nothing surfacing why.
+      #
+      # Idempotent and self-limiting: it only acts when the PR is actually
+      # BEHIND, and whenever release-please does regenerate the branch it
+      # force-pushes anyway, harmlessly discarding this merge.
+      - name: Keep open release PR up to date
+        # justify: best-effort https://github.com/yonatangross/orchestkit/issues/3062
+        # Convenience only — it must never fail a release run. The outcome is
+        # always announced via ::notice/::warning below, so a no-op is visible
+        # in the log rather than silent.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -uo pipefail
+          PR=$(gh pr list --state open \
+                 --json number,headRefName,mergeStateStatus \
+                 --jq '[.[] | select(.headRefName | startswith("release-please--"))][0]' 2>/dev/null || echo "")
+          if [ -z "$PR" ] || [ "$PR" = "null" ]; then
+            echo "::notice::No open release PR — nothing to update."
+            exit 0
+          fi
+          NUM=$(printf '%s' "$PR" | jq -r '.number')
+          STATE=$(printf '%s' "$PR" | jq -r '.mergeStateStatus')
+          echo "::notice::Open release PR #${NUM} is ${STATE}"
+          if [ "$STATE" = "BEHIND" ]; then
+            echo "::notice::Release PR #${NUM} is BEHIND main — bringing it up to date."
+            gh pr update-branch "$NUM" \
+              || echo "::warning::update-branch failed for #${NUM}; update it manually before merging."
+          else
+            echo "::notice::Release PR #${NUM} is not BEHIND — no update needed."
           fi
 
   # NOTE: Version sync to manifests, pyproject.toml, and CLAUDE.md is handled

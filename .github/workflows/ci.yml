@@ -716,7 +716,7 @@ jobs:
           echo "Lint: ${{ needs.lint.result }}"
           echo "Security Audit: ${{ needs.security-audit.result }}"
           echo "Secret Scanning: ${{ needs.secret-scanning.result }}"
-          echo "PR Playground: ${{ needs.playground-check.result }}  (advisory, non-blocking)"
+          echo "PR Playground: ${{ needs.playground-check.result }}  (required check — gates merge on its own; not re-aggregated here)"
           echo "Unit Tests: ${{ needs.unit-tests.result }}"
           echo "Hook TS Tests: ${{ needs.hook-typescript-tests.result }}"
           echo "Security Tests: ${{ needs.security-tests.result }}"
@@ -732,14 +732,18 @@ jobs:
           # ADVISORY jobs are reported above but MUST NOT fail this summary.
           #
           # playground-check asks for a hand-authored HTML playground per PR.
-          # It is not in the repo's required-status-checks list, so it reads as
-          # advisory — but it was included in the blocking loop below, and this
-          # summary IS required. A docs/tooling PR with no user-visible surface
-          # therefore hit: playground-check fails -> CI Summary fails ->
-          # required check red -> unmergeable, with nothing actually broken.
-          # An advisory gate should not become load-bearing by aggregation.
+          # It IS in the repo's required-status-checks list, so a red
+          # playground-check already makes the PR unmergeable on its own.
+          # This summary is ALSO required, so counting playground-check in the
+          # blocking loop below would fail the same PR twice for one cause and
+          # obscure which gate actually needs attention. It is therefore
+          # reported here but deliberately NOT re-aggregated.
+          #
+          # Do not describe this gate as "advisory" — it blocks. The exemptions
+          # are branch-based (bot PRs, and the dependabot/ release-please/
+          # renovate/ chore-cc-snapshot-/ ci/ prefixes), not severity-based.
           if [[ "${{ needs.playground-check.result }}" == "failure" ]]; then
-            echo "::warning title=PR Playground (advisory)::No playground found for this PR. Not blocking the CI Summary. Add docs/<branch-slug>/*.html when the change has a user-visible surface worth demonstrating."
+            echo "::warning title=PR Playground::No playground found for this PR. The PR Playground check is REQUIRED and will block merge until this is resolved (this summary does not re-aggregate it). Add docs/<branch-slug>/*.html, or use a documented exempt branch prefix if the change has no user-visible surface."
           fi
 
           # Fail only on explicit failures (skipped jobs are OK - they use path filters)
