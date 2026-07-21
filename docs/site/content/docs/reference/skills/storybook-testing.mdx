@@ -239,7 +239,7 @@ export const IconOnly: Story = {
 **Correct:**
 ```tsx
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect, within } from '@storybook/test'
+import { expect, within } from 'storybook/test'
 import { Button } from './Button'
 
 const meta = {
@@ -559,12 +559,12 @@ export const WithLongLabel: Story = {
 Reference: `references/storybook-migration-guide.md`
 
 
-### Use play() functions with @storybook/test for interaction testing instead of manual verification — CRITICAL
+### Use play() functions with storybook/test for interaction testing instead of manual verification — CRITICAL
 
 
 ## Storybook: Play Functions for Interaction Testing
 
-Every story that demonstrates interactive behavior should include a `play()` function. Play functions simulate real user interactions using `userEvent` and validate outcomes with `expect` — all from `@storybook/test`. These run automatically in the Storybook UI and as Vitest tests in CI.
+Every story that demonstrates interactive behavior should include a `play()` function. Play functions simulate real user interactions using `userEvent` and validate outcomes with `expect` — all from `storybook/test`. These run automatically in the Storybook UI and as Vitest tests in CI.
 
 **Incorrect:**
 ```tsx
@@ -587,7 +587,7 @@ export const SubmitForm: Story = {
 **Correct:**
 ```tsx
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect, fn, userEvent, within } from '@storybook/test'
+import { expect, fn, userEvent, within } from 'storybook/test'
 import { LoginForm } from './LoginForm'
 
 const meta = {
@@ -632,7 +632,7 @@ export const ValidationError: Story = {
 ```
 
 **Key rules:**
-- Import `expect`, `fn`, `userEvent`, and `within` from `@storybook/test` — not from Vitest or Testing Library directly.
+- Import `expect`, `fn`, `userEvent`, and `within` from `storybook/test` — not from Vitest or Testing Library directly.
 - Use `within(canvasElement)` to scope queries to the story's rendered output, not `screen`.
 - Use accessible queries: `getByRole`, `getByLabelText`, `getByText` — avoid `getByTestId` unless no semantic alternative exists.
 - Always `await` each `userEvent` and `expect` call — play functions are async.
@@ -672,7 +672,7 @@ export const RegularUser: Story = {}  // Still sees admin mock — no isolation
 **Correct — Step 1: Register mocks in `.storybook/preview.ts`:**
 ```ts
 // .storybook/preview.ts — registration only, runs once at startup
-import { sb } from '@storybook/test'
+import { sb } from 'storybook/test'
 
 // Register modules to mock — use dynamic import(), not string paths
 sb.mock(import('../src/lib/api'))
@@ -682,7 +682,7 @@ sb.mock(import('../src/lib/api'))
 ```tsx
 // UserProfile.stories.tsx
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect, mocked, within } from '@storybook/test'
+import { expect, mocked, within } from 'storybook/test'
 import { UserProfile } from './UserProfile'
 import { fetchUser } from '@/lib/api'
 
@@ -830,7 +830,7 @@ Storybook 10 consolidates its addon ecosystem around first-party addons. Essenti
 |-------|---------|---------|
 | `@storybook/addon-vitest` | Run stories as Vitest tests | `npm i -D @storybook/addon-vitest` |
 | `@storybook/addon-a11y` | Accessibility audits via axe-core | `npm i -D @storybook/addon-a11y` |
-| `@storybook/addon-interactions` | Step-through play() in UI panel | `npm i -D @storybook/addon-interactions` |
+| `@storybook/addon-interactions` | Step-through play() in UI panel | Bundled in core |
 | `@storybook/addon-coverage` | Code coverage for story tests | `npm i -D @storybook/addon-coverage` |
 
 ### UI & Design
@@ -838,9 +838,9 @@ Storybook 10 consolidates its addon ecosystem around first-party addons. Essenti
 | Addon | Purpose | Install |
 |-------|---------|---------|
 | `@storybook/addon-themes` | Theme switching (light/dark/custom) | `npm i -D @storybook/addon-themes` |
-| `@storybook/addon-viewport` | Responsive viewport simulation | `npm i -D @storybook/addon-viewport` |
-| `@storybook/addon-backgrounds` | Background color switching | `npm i -D @storybook/addon-backgrounds` |
-| `@storybook/addon-measure` | Layout measurement overlay | `npm i -D @storybook/addon-measure` |
+| `@storybook/addon-viewport` | Responsive viewport simulation | Bundled in core |
+| `@storybook/addon-backgrounds` | Background color switching | Bundled in core |
+| `@storybook/addon-measure` | Layout measurement overlay | Bundled in core |
 
 ### Documentation
 
@@ -865,21 +865,30 @@ import type { StorybookConfig } from '@storybook/react-vite'
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(ts|tsx)'],
+  // Only addons that ship as separate packages belong here. Viewport, controls,
+  // interactions, actions, backgrounds, and measure are bundled in core.
   addons: [
     '@storybook/addon-vitest',
     '@storybook/addon-a11y',
-    '@storybook/addon-interactions',
     '@storybook/addon-themes',
-    '@storybook/addon-viewport',
   ],
   framework: '@storybook/react-vite',
-  docs: {
-    autodocs: 'tag',  // generate docs for stories with 'autodocs' tag
-  },
 }
 
 export default config
 ```
+
+The `docs.autodocs` key was removed in Storybook 8. Autodocs is opt-in per story
+file via the meta tag instead:
+
+```ts
+const meta = {
+  component: Button,
+  tags: ['autodocs'],
+} satisfies Meta<typeof Button>
+```
+
+See `rules/storybook-autodocs.md` for the full pattern.
 
 ---
 
@@ -1053,13 +1062,13 @@ Storybook 10 introduces automatic module mocking. For explicit per-story overrid
 
 1. Register mocks in `.storybook/preview.ts`:
 ```ts
-import { sb } from '@storybook/test'
+import { sb } from 'storybook/test'
 sb.mock(import('../src/api/client'), { spy: true })
 ```
 
 2. Configure per-story with `mocked()` in `beforeEach`:
 ```tsx
-import { mocked } from '@storybook/test'
+import { mocked } from 'storybook/test'
 import { fetchUser } from '../src/api/client'
 
 export const WithUser: Story = {
@@ -1137,7 +1146,7 @@ import { action } from '@storybook/addon-actions'
 args: { onClick: action('clicked') }
 
 // After
-import { fn } from '@storybook/test'
+import { fn } from 'storybook/test'
 args: { onClick: fn() }
 ```
 
@@ -1147,7 +1156,7 @@ args: { onClick: fn() }
 import { action } from '@storybook/addon-actions'
 import { within, userEvent } from '@storybook/testing-library'
 
-// After (unified under @storybook/test)
-import { fn, within, userEvent, expect } from '@storybook/test'
+// After (unified under storybook/test, folded into the core package in SB 9)
+import { fn, within, userEvent, expect } from 'storybook/test'
 ```
 

@@ -13,8 +13,8 @@ disable-model-invocation: true
 complexity: medium
 persuasion-type: reference
 targets:
-  - library: framer-motion
-    version: ">=11.0.0"
+  - library: motion
+    version: ">=12.0.0"
 metadata:
   category: document-asset-creation
 allowed-tools:

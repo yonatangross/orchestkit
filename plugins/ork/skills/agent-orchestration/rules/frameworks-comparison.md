@@ -14,7 +14,7 @@ Decision matrix for choosing between multi-agent frameworks.
 
 | Framework | Best For | Key Features | Status |
 |-----------|----------|--------------|--------|
-| LangGraph 1.0.6 | Complex stateful workflows | Persistence, streaming, human-in-loop | Production |
+| LangGraph 1.2 | Complex stateful workflows | Persistence, streaming, human-in-loop | Production |
 | CrewAI 1.8.x | Role-based collaboration | Flows, hierarchical crews, a2a, HITL | Production |
 | OpenAI Agents SDK 0.12+ | Provider-agnostic (100+ LLMs) | Handoffs, guardrails, tool search, MCPServerManager | Production |
 | GPT-5.2-Codex | Long-horizon coding | Context compaction, project-scale, security | Production |

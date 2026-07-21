@@ -118,7 +118,7 @@
   ```
 - [ ] Validate tokens in dependency
 - [ ] Set appropriate token expiry (15min access, 7d refresh)
-- [ ] Use bcrypt for password hashing (cost >= 12)
+- [ ] Use Argon2id for password hashing (bcrypt at cost >= 12 is an acceptable fallback, but it silently truncates input at 72 bytes)
 
 ### Input Validation
 

@@ -348,7 +348,7 @@ module.exports = {
 };
 
 // 3. Dockerfile - ensure Sharp can build
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package*.json ./
@@ -356,7 +356,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY --from=builder /app/.next/standalone ./

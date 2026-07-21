@@ -95,7 +95,8 @@ TaskUpdate(taskId="2", status="in_progress")  # When starting
 TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 
 # Detect project's design system
-Glob("**/tailwind.config.*")
+Grep("@theme", glob="**/*.css")   # Tailwind v4: theme lives in CSS, not a config file
+Glob("**/tailwind.config.*")      # Tailwind v3 only (v4 ignores this file)
 Glob("**/tokens.css")
 Glob("**/.tokens.json")
 # Read existing tokens if found → used in Stage 3

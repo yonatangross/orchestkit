@@ -21,8 +21,8 @@
       "expectedBehavior": [
         "Claude looks up milestone NUMBER via gh api (not using name directly in API)",
         "Claude uses gh api -X PATCH with the milestone number to close it",
-        "Claude queries PRs with --json reviewDecision,statusCheckRollupState",
-        "Claude filters for APPROVED reviewDecision and SUCCESS statusCheckRollupState",
+        "Claude queries PRs with --json reviewDecision,statusCheckRollup (there is no statusCheckRollupState field)",
+        "Claude filters for APPROVED reviewDecision and aggregates the statusCheckRollup array rather than comparing it to a scalar",
         "Claude does NOT use gh issue close on any issues (issues close only via PR merge)"
       ]
     },

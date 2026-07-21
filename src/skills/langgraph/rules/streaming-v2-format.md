@@ -5,9 +5,9 @@ impactDescription: "v1 streaming returns untyped dicts — v2 adds full type saf
 tags: streaming, v2, type-safety, langgraph-1.1
 ---
 
-## Streaming v2 Format (LangGraph 1.1+)
+## Streaming v2 Format (LangGraph 1.2+)
 
-LangGraph 1.1 introduces `version="v2"` — an opt-in streaming format that brings full type safety to all streaming and invocation methods. Default remains `"v1"` for backwards compatibility.
+LangGraph 1.2 supports `version="v2"` (introduced in 1.1), an opt-in streaming format that brings full type safety to all streaming and invocation methods. Default remains `"v1"` for backwards compatibility.
 
 **Incorrect — untyped v1 invoke (default):**
 ```python
@@ -61,4 +61,4 @@ assert isinstance(result.value, MyState)  # auto-coerced — not a plain dict
 - Graph construction, checkpointers, and tool calling are **unchanged**
 - Future major version will default to v2
 
-Reference: [LangGraph 1.1 Release Notes](https://github.com/langchain-ai/langgraph/releases)
+Reference: [LangGraph Release Notes](https://github.com/langchain-ai/langgraph/releases)

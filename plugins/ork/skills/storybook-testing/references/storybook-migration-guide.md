@@ -39,13 +39,13 @@ Storybook 10 introduces automatic module mocking. For explicit per-story overrid
 
 1. Register mocks in `.storybook/preview.ts`:
 ```ts
-import { sb } from '@storybook/test'
+import { sb } from 'storybook/test'
 sb.mock(import('../src/api/client'), { spy: true })
 ```
 
 2. Configure per-story with `mocked()` in `beforeEach`:
 ```tsx
-import { mocked } from '@storybook/test'
+import { mocked } from 'storybook/test'
 import { fetchUser } from '../src/api/client'
 
 export const WithUser: Story = {
@@ -123,7 +123,7 @@ import { action } from '@storybook/addon-actions'
 args: { onClick: action('clicked') }
 
 // After
-import { fn } from '@storybook/test'
+import { fn } from 'storybook/test'
 args: { onClick: fn() }
 ```
 
@@ -133,6 +133,6 @@ args: { onClick: fn() }
 import { action } from '@storybook/addon-actions'
 import { within, userEvent } from '@storybook/testing-library'
 
-// After (unified under @storybook/test)
-import { fn, within, userEvent, expect } from '@storybook/test'
+// After (unified under storybook/test, folded into the core package in SB 9)
+import { fn, within, userEvent, expect } from 'storybook/test'
 ```

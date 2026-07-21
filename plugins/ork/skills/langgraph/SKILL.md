@@ -172,7 +172,7 @@ Pause workflows for human intervention. Requires checkpointer for state persiste
 
 ## Streaming
 
-Real-time updates and progress tracking for workflows. **LangGraph 1.1 introduces `version="v2"`** — an opt-in streaming format with full type safety on `stream()`, `astream()`, `invoke()`, and `ainvoke()`.
+Real-time updates and progress tracking for workflows. **LangGraph 1.2 supports `version="v2"`** (introduced in 1.1), an opt-in streaming format with full type safety on `stream()`, `astream()`, `invoke()`, and `ainvoke()`.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|

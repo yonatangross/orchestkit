@@ -140,9 +140,11 @@ gh issue list --json number,labels --jq '[.[] | select(.labels[].name == "bug")]
 # PR summary with author
 gh pr list --json number,title,author --jq '.[] | "\(.number): \(.title) by \(.author.login)"'
 
-# Find ready-to-merge PRs
-gh pr list --json number,reviewDecision,statusCheckRollupState \
-  --jq '[.[] | select(.reviewDecision == "APPROVED" and .statusCheckRollupState == "SUCCESS")]'
+# Find ready-to-merge PRs (statusCheckRollup is an ARRAY, so fold it first)
+gh pr list --json number,reviewDecision,statusCheckRollup \
+  --jq '[.[] | select(.reviewDecision == "APPROVED"
+        and ([(.statusCheckRollup // [])[] | .conclusion // .state]
+             | length > 0 and all(IN("SUCCESS","SKIPPED","NEUTRAL"))))]'
 ```
 
 ---

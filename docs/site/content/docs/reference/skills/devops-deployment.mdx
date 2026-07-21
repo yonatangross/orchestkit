@@ -423,7 +423,7 @@ Every Docker image layer is immutable and inspectable. Running as root or embedd
 
 **Incorrect:**
 ```dockerfile
-FROM node:20
+FROM node:24
 WORKDIR /app
 
 # BAD: Copies .env, .git, node_modules, and everything else
@@ -441,7 +441,7 @@ CMD ["node", "dist/main.js"]
 
 **Correct:**
 ```dockerfile
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 # GOOD: Create and use non-root user (uid 1001)
@@ -497,7 +497,7 @@ Separate build-time concerns from runtime to produce minimal, secure production 
 **Incorrect:**
 ```dockerfile
 # Single-stage: build tools and dev deps ship to production
-FROM node:20
+FROM node:24
 WORKDIR /app
 COPY . .
 RUN npm install
@@ -510,13 +510,13 @@ CMD ["node", "dist/main.js"]
 **Correct:**
 ```dockerfile
 # Stage 1: Install production dependencies only
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
 
 # Stage 2: Build with dev dependencies
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
@@ -524,7 +524,7 @@ COPY . .
 RUN npm run build && npm run test
 
 # Stage 3: Minimal production runtime
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
@@ -1029,7 +1029,7 @@ Best practices for Dockerfile optimization, multi-stage builds, and container se
 # ============================================================
 # Stage 1: Dependencies (builder)
 # ============================================================
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
@@ -1037,7 +1037,7 @@ RUN npm ci --only=production && npm cache clean --force
 # ============================================================
 # Stage 2: Build (with dev dependencies)
 # ============================================================
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci  # Include dev dependencies
@@ -1047,7 +1047,7 @@ RUN npm run build && npm run test
 # ============================================================
 # Stage 3: Production runtime (minimal)
 # ============================================================
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 # Security: Non-root user

@@ -8,7 +8,7 @@ Best practices for Dockerfile optimization, multi-stage builds, and container se
 # ============================================================
 # Stage 1: Dependencies (builder)
 # ============================================================
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
@@ -16,7 +16,7 @@ RUN npm ci --only=production && npm cache clean --force
 # ============================================================
 # Stage 2: Build (with dev dependencies)
 # ============================================================
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci  # Include dev dependencies
@@ -26,7 +26,7 @@ RUN npm run build && npm run test
 # ============================================================
 # Stage 3: Production runtime (minimal)
 # ============================================================
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 # Security: Non-root user

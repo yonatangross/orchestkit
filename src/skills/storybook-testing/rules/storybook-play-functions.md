@@ -1,5 +1,5 @@
 ---
-title: Use play() functions with @storybook/test for interaction testing instead of manual verification
+title: Use play() functions with storybook/test for interaction testing instead of manual verification
 impact: CRITICAL
 impactDescription: "Without play() interaction tests, component behavior is only verified manually — regressions go undetected until production, and user flows are never validated in CI."
 tags: [storybook, play-functions, interaction-testing, user-event, assertions]
@@ -7,7 +7,7 @@ tags: [storybook, play-functions, interaction-testing, user-event, assertions]
 
 ## Storybook: Play Functions for Interaction Testing
 
-Every story that demonstrates interactive behavior should include a `play()` function. Play functions simulate real user interactions using `userEvent` and validate outcomes with `expect` — all from `@storybook/test`. These run automatically in the Storybook UI and as Vitest tests in CI.
+Every story that demonstrates interactive behavior should include a `play()` function. Play functions simulate real user interactions using `userEvent` and validate outcomes with `expect` — all from `storybook/test`. These run automatically in the Storybook UI and as Vitest tests in CI.
 
 **Incorrect:**
 ```tsx
@@ -30,7 +30,7 @@ export const SubmitForm: Story = {
 **Correct:**
 ```tsx
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect, fn, userEvent, within } from '@storybook/test'
+import { expect, fn, userEvent, within } from 'storybook/test'
 import { LoginForm } from './LoginForm'
 
 const meta = {
@@ -75,7 +75,7 @@ export const ValidationError: Story = {
 ```
 
 **Key rules:**
-- Import `expect`, `fn`, `userEvent`, and `within` from `@storybook/test` — not from Vitest or Testing Library directly.
+- Import `expect`, `fn`, `userEvent`, and `within` from `storybook/test` — not from Vitest or Testing Library directly.
 - Use `within(canvasElement)` to scope queries to the story's rendered output, not `screen`.
 - Use accessible queries: `getByRole`, `getByLabelText`, `getByText` — avoid `getByTestId` unless no semantic alternative exists.
 - Always `await` each `userEvent` and `expect` call — play functions are async.

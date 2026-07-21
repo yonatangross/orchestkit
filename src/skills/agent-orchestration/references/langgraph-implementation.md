@@ -1,6 +1,6 @@
 # LangGraph Implementation: Multi-Scenario Orchestration
 
-Complete Python implementation of the multi-scenario orchestration pattern using LangGraph 1.0.6+.
+Complete Python implementation of the multi-scenario orchestration pattern using LangGraph 1.2+.
 
 ## 1. State Definition
 

@@ -77,12 +77,13 @@ gh pr checks 456 --watch --fail-fast
 ### JSON Output for Automation
 
 ```bash
-# Get check status
-gh pr checks 456 --json name,state,conclusion
+# Get check status. Valid fields: bucket, completedAt, description, event,
+# link, name, startedAt, state, workflow. There is no `conclusion` field here.
+gh pr checks 456 --json name,state,bucket
 
-# Check if all passed
-gh pr checks 456 --json conclusion \
-  --jq 'all(.[].conclusion == "SUCCESS")'
+# Check if all passed (bucket is one of: pass, fail, pending, skipping, cancel)
+gh pr checks 456 --json bucket \
+  --jq 'any(.[]; .bucket == "fail") | not'
 ```
 
 ### Wait for Checks Pattern
@@ -90,8 +91,20 @@ gh pr checks 456 --json conclusion \
 ```bash
 PR_NUMBER=456
 
+# `statusCheckRollup` returns an ARRAY of check objects, not a scalar state.
+# CheckRun entries carry `.conclusion`, StatusContext entries carry `.state`,
+# and an in-flight CheckRun has a null conclusion. Aggregate before comparing.
+ROLLUP_JQ='
+  [(.statusCheckRollup // [])[] | .conclusion // .state // "PENDING"]
+  | if any(IN("FAILURE","TIMED_OUT","CANCELLED","ACTION_REQUIRED","STARTUP_FAILURE"))
+    then "FAILURE"
+    elif any(IN("PENDING","EXPECTED","QUEUED","IN_PROGRESS"))
+    then "PENDING"
+    else "SUCCESS"
+    end'
+
 while true; do
-  STATUS=$(gh pr view $PR_NUMBER --json statusCheckRollupState --jq '.statusCheckRollupState')
+  STATUS=$(gh pr view $PR_NUMBER --json statusCheckRollup --jq "$ROLLUP_JQ")
 
   case "$STATUS" in
     "SUCCESS")
@@ -197,9 +210,12 @@ gh pr merge 456 --admin --squash
 #!/bin/bash
 PR_NUMBER=$1
 
-# 1. Verify checks passed
-if ! gh pr view $PR_NUMBER --json statusCheckRollupState \
-  --jq '.statusCheckRollupState == "SUCCESS"' | grep -q true; then
+# 1. Verify checks passed. `statusCheckRollup` is an array, so every entry has
+#    to be green; `length > 0` keeps a PR with no checks at all from sailing
+#    through, because `all` on an empty array is true.
+if ! gh pr view $PR_NUMBER --json statusCheckRollup \
+  --jq '[(.statusCheckRollup // [])[] | .conclusion // .state]
+        | length > 0 and all(IN("SUCCESS","SKIPPED","NEUTRAL"))' | grep -q true; then
   echo "ERROR: Checks not passed"
   gh pr checks $PR_NUMBER
   exit 1
@@ -265,9 +281,11 @@ gh pr list --author @me --state open
 # PRs needing my review
 gh pr list --search "review-requested:@me"
 
-# Ready to merge
-gh pr list --json number,title,reviewDecision,statusCheckRollupState \
-  --jq '[.[] | select(.reviewDecision == "APPROVED" and .statusCheckRollupState == "SUCCESS")]'
+# Ready to merge (statusCheckRollup is an array, so fold it before filtering)
+gh pr list --json number,title,reviewDecision,statusCheckRollup \
+  --jq '[.[] | select(.reviewDecision == "APPROVED"
+        and ([(.statusCheckRollup // [])[] | .conclusion // .state]
+             | length > 0 and all(IN("SUCCESS","SKIPPED","NEUTRAL"))))]'
 
 # Draft PRs
 gh pr list --draft

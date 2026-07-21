@@ -7200,23 +7200,37 @@ async def admin_panel(payload: dict = Depends(verify_token)):
 ```
 
 ```python
-# Safe password comparison using constant-time comparison
+# Constant-time COMPARISON only. The SHA-256 hashing below is NOT safe password
+# storage: unsalted and single-round, so it is trivially cracked by rainbow tables
+# and GPU brute force. The only lesson here is compare_digest instead of ==.
 import hmac
 import hashlib
 
-def check_password_secure(stored_hash: str, provided_password: str) -> bool:
-    # Hash the provided password
+def compare_hashes_demo(stored_hash: str, provided_password: str) -> bool:
+    # UNSAFE hashing, shown only to give compare_digest something to compare
     provided_hash = hashlib.sha256(provided_password.encode()).hexdigest()
 
     # SAFE: hmac.compare_digest uses constant-time comparison
     return hmac.compare_digest(stored_hash, provided_hash)
 
-# Better: Use a proper password hashing library
-from passlib.hash import argon2
+# Correct password storage: a salted, memory-hard KDF via argon2-cffi
+# (pip install argon2-cffi). Do not use passlib, it was last released in 2020
+# and breaks on Python 3.13+ where PEP 594 removed the stdlib crypt module.
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
+
+ph = PasswordHasher()
+
+def hash_password(plain_password: str) -> str:
+    # SAFE: per-password salt and cost parameters are embedded in the output
+    return ph.hash(plain_password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # SAFE: Argon2 handles timing-safe comparison internally
-    return argon2.verify(plain_password, hashed_password)
+    # SAFE: Argon2 handles salting and timing-safe comparison internally
+    try:
+        return ph.verify(hashed_password, plain_password)
+    except VerifyMismatchError:
+        return False
 ```
 
 ### Detection
@@ -8409,9 +8423,13 @@ password_hash = hashlib.md5(password.encode()).hexdigest()
 
 ### ✅ Secure: Modern Password Hashing
 ```python
-from passlib.hash import argon2
-password_hash = argon2.hash(password)
-# Verify: argon2.verify(password, password_hash)
+# argon2-cffi (pip install argon2-cffi). Not passlib, which last shipped in 2020
+# and breaks on Python 3.13+ after PEP 594 removed the stdlib crypt module.
+from argon2 import PasswordHasher
+
+ph = PasswordHasher()
+password_hash = ph.hash(password)  # salt + cost params embedded in the output
+# Verify: ph.verify(password_hash, password) raises VerifyMismatchError on failure
 ```
 
 ## A05: Injection

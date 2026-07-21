@@ -12,7 +12,7 @@ Every Docker image layer is immutable and inspectable. Running as root or embedd
 
 **Incorrect:**
 ```dockerfile
-FROM node:20
+FROM node:24
 WORKDIR /app
 
 # BAD: Copies .env, .git, node_modules, and everything else
@@ -30,7 +30,7 @@ CMD ["node", "dist/main.js"]
 
 **Correct:**
 ```dockerfile
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 # GOOD: Create and use non-root user (uid 1001)
