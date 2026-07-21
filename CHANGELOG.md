@@ -5,6 +5,29 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.84.0](https://github.com/yonatangross/orchestkit/compare/v8.83.1...v8.84.0) (2026-07-21)
+
+
+### Features
+
+* **evals:** honest verdicts, three new gates, and a budget governor ([a1490b0](https://github.com/yonatangross/orchestkit/commit/a1490b022d235105dd6fe04dfac28c966c063a0c))
+
+
+### Bug Fixes
+
+* **dream:** stop auto-pruning live memories with out-of-repo refs ([1df5cd4](https://github.com/yonatangross/orchestkit/commit/1df5cd4834f7a73a1de487fd17c2dea1c4b1f51f))
+* **evals:** score effective recall over the full positive population ([#3049](https://github.com/yonatangross/orchestkit/issues/3049)) ([e821cbf](https://github.com/yonatangross/orchestkit/commit/e821cbf4bd25e8c72982cce1de28c31ff3a1f903))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.216) ([#3053](https://github.com/yonatangross/orchestkit/issues/3053)) ([4a671c9](https://github.com/yonatangross/orchestkit/commit/4a671c9fa16611bbf6b62d249ccb47300898cd95))
+
+
+### Documentation
+
+* add AGENTS.md for AI coding agent discoverability ([#3059](https://github.com/yonatangross/orchestkit/issues/3059)) ([df25757](https://github.com/yonatangross/orchestkit/commit/df2575715520e951ffeab47267a01bd980ce937a))
+
 ## [8.83.1](https://github.com/yonatangross/orchestkit/compare/v8.83.0...v8.83.1) (2026-07-20)
 
 
