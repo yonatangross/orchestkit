@@ -143,7 +143,10 @@ export default async function HomePage() {
       <section aria-labelledby="hero-heading">
         <FactoryRide
           hero={
-            <div className="mx-auto max-w-[880px] text-center">
+            /* Keyed to match the `cards` below: FactoryRide renders these
+               five overlays as one array ([hero, ...cards, finale]), so an
+               unkeyed member trips React's key validation. */
+            <div key="hero" className="mx-auto max-w-[880px] text-center">
               <span className="inline-flex items-center gap-2 rounded-full border border-[oklch(0.62_0.2_264/0.35)] bg-[oklch(0.62_0.2_264/0.14)] px-2.5 py-1.5 font-mono text-[12px] font-medium text-[oklch(0.82_0.08_270)]">
                 <GeorgeMark />
                 The complete AI development toolkit for Claude Code
@@ -331,7 +334,7 @@ export default async function HomePage() {
             </div>,
           ]}
           finale={
-            <div className="mx-auto max-w-[760px] text-center">
+            <div key="finale" className="mx-auto max-w-[760px] text-center">
               <span className="inline-flex items-center gap-2.5 rounded-xl border border-[oklch(0.62_0.2_264/0.4)] bg-[oklch(0.62_0.2_264/0.14)] px-[18px] py-2.5 font-mono text-sm font-semibold tracking-[0.06em] text-[oklch(0.85_0.06_270)] shadow-[0_0_50px_oklch(0.62_0.2_264/0.25)]">
                 <BadgeCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
                 VERIFIED · MERGED

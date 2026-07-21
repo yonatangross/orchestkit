@@ -596,9 +596,29 @@ article blockquote {
   position: relative;
   overflow: hidden;
 }
+/* Containing block for the poster. next/image `fill` positions itself
+   against the nearest positioned ancestor and rejects `sticky`, which
+   .fr-stage requires for the pinned ride. An absolute wrapper gives fill a
+   valid parent with identical geometry. */
+.fr-poster-wrap {
+  position: absolute;
+  inset: 0;
+}
 .fr-poster {
   object-fit: cover;
   opacity: 0.4;
+}
+/* Mirrors PORTRAIT_FILL / PORTRAIT_ANCHOR_Y in factory-ride.tsx. The poster
+   is the LCP image and is what a phone shows before any frame decodes, so
+   it must frame the factory the same way the canvas will or the hero
+   visibly re-frames the moment the ride takes over. `object-position`
+   cannot do this: cover-fit on a portrait viewport leaves no vertical
+   slack to reposition within, so only scaling past cover creates any. */
+@media (orientation: portrait) {
+  .fr-poster {
+    transform: scale(1.45);
+    transform-origin: center 72%;
+  }
 }
 .fr-film {
   display: none;
@@ -663,10 +683,18 @@ article blockquote {
   width: min(430px, 88vw);
   padding: 26px 28px;
   border-radius: 18px;
-  background: oklch(0.16 0.02 270 / 0.72);
+  /* Deliberately NOT backdrop-filter. These cards sit over a canvas that
+     repaints every animation frame during the ride, so a blur backdrop
+     forces the compositor to re-sample the film behind every card on every
+     frame — the single most expensive thing on the page. A near-opaque
+     fill plus a top sheen reads as the same dark glass and costs nothing
+     to composite. */
+  background: linear-gradient(
+    to bottom,
+    oklch(0.2 0.025 270 / 0.9),
+    oklch(0.14 0.02 270 / 0.92)
+  );
   border: 1px solid oklch(1 0 0 / 0.16);
-  backdrop-filter: blur(20px) saturate(1.3);
-  -webkit-backdrop-filter: blur(20px) saturate(1.3);
   box-shadow: 0 20px 60px -22px oklch(0.1 0.02 270 / 0.8);
 }
 

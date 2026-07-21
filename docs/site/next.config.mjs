@@ -169,7 +169,11 @@ const config = {
 						"default-src 'self'",
 						// 'unsafe-eval' only in dev — Turbopack/React dev mode needs eval();
 						// production stays strict (no eval, React never uses it in prod).
-						`script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+						// va.vercel-scripts.com is the DEV-ONLY origin for Vercel Analytics
+						// and Speed Insights (script.debug.js). In production both inject
+						// same-origin under /_vercel/, already covered by 'self', so this
+						// allowance is deliberately kept out of the production policy.
+						`script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval' https://va.vercel-scripts.com" : ""}`,
 						"style-src 'self' 'unsafe-inline'",
 						"img-src 'self' data: https:",
 						"font-src 'self' data:",
