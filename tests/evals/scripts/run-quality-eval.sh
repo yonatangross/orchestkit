@@ -36,6 +36,8 @@ DRY_RUN=false
 # Source shared library (A1)
 # shellcheck source=lib/eval-common.sh
 source "$SCRIPT_DIR/lib/eval-common.sh"
+# shellcheck source=lib/budget-governor.sh
+source "$SCRIPT_DIR/lib/budget-governor.sh"
 
 # Runner-specific configuration
 EVALS_DIR="$(dirname "$SCRIPT_DIR")"
@@ -533,6 +535,10 @@ classify_generation() {
         api_status=$(jq -r '.api_error_status // ""' "$json_file" 2>/dev/null)
         if [[ "$api_status" == "429" ]]; then
             dump_dead_envelope "$json_file"
+            # Persist the cap so the NEXT run refuses to start instead of
+            # rediscovering it call by call. Best-effort by design.
+            # silent: external-api-shape
+            record_cap_exhausted "$(jq -r '.result // ""' "$json_file" 2>/dev/null || true)"
             echo "RATE LIMITED (HTTP 429)$(rate_limit_hint "$json_file") — subscription quota, not a skill failure"
             return 3
         fi

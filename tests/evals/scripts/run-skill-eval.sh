@@ -28,6 +28,8 @@ DRY_RUN=false
 # Source shared library
 # shellcheck source=lib/eval-common.sh
 source "$SCRIPT_DIR/lib/eval-common.sh"
+# shellcheck source=lib/budget-governor.sh
+source "$SCRIPT_DIR/lib/budget-governor.sh"
 
 EVALS_DIR="$(dirname "$SCRIPT_DIR")"
 RESULTS_DIR="$EVALS_DIR/results/skills"
@@ -573,6 +575,22 @@ echo -e "  Quality:  $(if $RUN_QUALITY; then echo -e "${GREEN}YES${NC}"; else ec
 echo -e "  Dry-run:  $(if $DRY_RUN; then echo -e "${YELLOW}YES${NC}"; else echo "no"; fi)"
 echo -e "${BLUE}============================================================${NC}"
 echo ""
+
+# Refuse a run the subscription cannot pay for, BEFORE committing to N calls.
+# A prior run fired 20 calls into an exhausted weekly cap and got 20 x HTTP 429,
+# discovering in 72s what one check knows instantly. Only blocks on a recorded
+# reset time still in the future; an unparseable limit message proceeds.
+# Dry runs make no calls, so they are never gated.
+if [[ "$DRY_RUN" == "false" ]]; then
+    budget_rc=0
+    budget_check || budget_rc=$?
+    if [[ "$budget_rc" -eq 3 ]]; then
+        echo -e "  ${YELLOW}Skipped by the budget governor — not a skill regression.${NC}"
+        # Exit 2 is the harness's established "could not measure" code (#3032),
+        # so an unaffordable run reads as INCONCLUSIVE rather than as a failure.
+        exit 2
+    fi
+fi
 
 TRIGGER_EXIT=0
 QUALITY_EXIT=0
