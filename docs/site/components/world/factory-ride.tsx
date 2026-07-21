@@ -13,10 +13,11 @@ import {
 /**
  * FactoryRide — the scroll-world "factory ride" homepage hero.
  *
- * A tall track (~560vh) wraps a sticky full-viewport stage. A canvas
- * scrubs 101 pre-rendered frames by scroll progress (rAF-throttled),
- * with 5 server-rendered overlay stops fading in over fixed progress
- * windows, and right-edge progress dots.
+ * A tall track (360vh, see global.css) wraps a sticky full-viewport
+ * stage. A canvas scrubs 101 pre-rendered frames by scroll progress
+ * (rAF-throttled, eased — see SMOOTHING), with 5 server-rendered overlay
+ * stops fading in over fixed progress windows, and right-edge progress
+ * dots.
  *
  * Progressive enhancement contract:
  * - Server HTML renders the poster plus ALL overlay copy stacked in
@@ -46,15 +47,54 @@ const useIsomorphicLayoutEffect =
 const FRAME_COUNT = 101;
 /** Every Nth frame is fetched up front; the rest wait until the visitor rides. */
 const COARSE_STEP = 4;
+/**
+ * Concurrent frame requests. The fine pass is 101 images (~7.2 MB); firing
+ * them all at once saturates the connection, so the frames nearest the
+ * playhead arrive late and the scrub visibly holds on a stale frame. A
+ * small window keeps the pipe full while letting `pump` re-prioritise
+ * toward wherever the visitor actually is.
+ */
+const MAX_INFLIGHT = 6;
+/**
+ * Per-frame easing toward the scroll position. Raw scroll offset maps to a
+ * discrete frame index, so a trackpad tick jumps several frames at once and
+ * reads as stutter. Easing the *rendered* progress toward the *target*
+ * decouples playback smoothness from input granularity.
+ */
+const SMOOTHING = 0.16;
+/** Below this delta the ease has converged; stop the rAF loop and idle. */
+const SETTLE_EPSILON = 0.0004;
 
 // Motion amplification. The generated flight is only a few seconds of gentle
 // drift, so scrubbing it across the track alone looks static. These give the
 // ride its camera feel; raising them makes the world move harder.
-/** Extra scale at the start of the ride, eased out to 1.0 by the end. */
+/**
+ * Extra scale applied as the ride progresses. The source master is only
+ * 1280x716, so any zoom is upscaling: this ramps from 1.0 at the landing
+ * frame (where first impressions are formed, and where the canvas is
+ * therefore at its sharpest) up to 1 + PUSH_IN by the end, rather than the
+ * reverse. Same amount of camera movement, sharpest pixel where it counts.
+ */
 const PUSH_IN = 0.18;
 /** How much of the zoom overscan the camera drifts across, per axis. */
 const DRIFT_X = 0.6;
 const DRIFT_Y = 0.35;
+/**
+ * Portrait framing. The render is 16:9-ish with the factory in the lower
+ * middle and empty background across the top.
+ *
+ * Cover-fitting that into a portrait phone matches the frame height almost
+ * exactly (the overflow is horizontal, not vertical), so the source's empty
+ * upper third lands on screen as a dead black band and there is no vertical
+ * overscan available to pan out of it. PORTRAIT_FILL scales past cover to
+ * manufacture that overscan; PORTRAIT_ANCHOR_Y then biases into it, toward
+ * the bottom of the source where the factory actually is.
+ *
+ * Both interpolate to a no-op (1.0 / 0.5) as the viewport approaches the
+ * source aspect, so desktop framing is bit-for-bit unchanged.
+ */
+const PORTRAIT_FILL = 1.45;
+const PORTRAIT_ANCHOR_Y = 0.72;
 /** Peak offset (px) of the copy against the world, per stop. */
 const PARALLAX_PX = 90;
 
@@ -152,31 +192,56 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
       // amplified here: a slow push-in plus a drift across the diorama,
       // both driven by scroll. This is the ride's actual sense of motion —
       // the frames alone are far too subtle to carry it.
-      const zoom = 1 + (1 - p) * PUSH_IN; // starts wide, pushes in
-      const s = Math.max(cw / iw, ch / ih) * zoom; // cover-fit, amplified
+      // How much taller than the source this viewport is: 0 at the source
+      // aspect or wider (all desktop), rising to 1 on a phone in portrait.
+      const portraitness = Math.min(
+        1,
+        Math.max(0, ch / cw / (ih / iw) - 1),
+      );
+      const fill = 1 + portraitness * (PORTRAIT_FILL - 1);
+      const anchorY = 0.5 + portraitness * (PORTRAIT_ANCHOR_Y - 0.5);
+
+      const zoom = 1 + p * PUSH_IN; // sharpest at the landing frame, pushes in
+      const s = Math.max(cw / iw, ch / ih) * zoom * fill; // cover-fit, amplified
       const dw = iw * s;
       const dh = ih * s;
       const slackX = Math.max(0, dw - cw);
       const slackY = Math.max(0, dh - ch);
       // Drift diagonally across whatever overscan the zoom created.
+      // `-slackY * anchorY` is the anchored equivalent of `(ch - dh) / 2`:
+      // at anchorY 0.5 the two are identical, so landscape is unchanged.
       const dx = (cw - dw) / 2 + slackX * (0.5 - p) * DRIFT_X;
-      const dy = (ch - dh) / 2 + slackY * (0.5 - p) * DRIFT_Y;
+      const dy = -slackY * anchorY + slackY * (0.5 - p) * DRIFT_Y;
       ctx.drawImage(img, dx, dy, dw, dh);
     };
 
     const fit = () => {
-      const dpr = window.devicePixelRatio || 1;
+      // Capped deliberately. The source master is 1280x716, so a full-DPR
+      // backing store on a 2x display is ~8M pixels upscaled from a 1.1MP
+      // frame: it buys no real detail and costs a large scaled blit every
+      // animation frame. 1.5 keeps edges clean without paying for pixels
+      // the source cannot fill.
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.round(canvas.clientWidth * dpr);
       canvas.height = Math.round(canvas.clientHeight * dpr);
       drawFrame(lastPRef.current);
     };
 
-    const update = () => {
+    // Where the scroll actually is, versus where the film is currently
+    // drawn. Keeping the two separate is the whole point: `targetP` snaps to
+    // input, `renderP` chases it, and everything visible is driven off
+    // `renderP` so the world and the copy never disagree about the position.
+    let targetP = 0;
+    let renderP = 0;
+    let easeId = 0;
+
+    const readProgress = () => {
       const rect = track.getBoundingClientRect();
       const span = rect.height - window.innerHeight;
-      const p = span > 0 ? Math.min(1, Math.max(0, -rect.top / span)) : 0;
-      // The visitor is actually riding — fill in the in-between frames.
-      if (p > 0.01) loadFineRef.current?.();
+      return span > 0 ? Math.min(1, Math.max(0, -rect.top / span)) : 0;
+    };
+
+    const applyProgress = (p: number) => {
       drawFrame(p);
       let cur = -1;
       STOPS.forEach(([start, end], i) => {
@@ -198,12 +263,42 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
       root.classList.toggle("fr-riding", p > 0.01 && p < 0.999);
     };
 
+    // Exponential ease toward the scroll target, self-cancelling once it
+    // converges so an idle page costs zero rAF callbacks.
+    const ease = () => {
+      easeId = 0;
+      if (disposed) return;
+      const delta = targetP - renderP;
+      if (Math.abs(delta) <= SETTLE_EPSILON) {
+        renderP = targetP;
+        applyProgress(renderP);
+        return;
+      }
+      renderP += delta * SMOOTHING;
+      applyProgress(renderP);
+      easeId = requestAnimationFrame(ease);
+    };
+
+    const kick = () => {
+      if (!easeId && !disposed) easeId = requestAnimationFrame(ease);
+    };
+
+    const update = () => {
+      targetP = readProgress();
+      // The visitor is actually riding — fill in the in-between frames.
+      if (targetP > 0.01) loadFineRef.current?.();
+      kick();
+    };
+
     // A viewport change moves the track/stop boundaries as well as the
     // canvas backing store, so re-fit AND recompute progress: `fit`
-    // alone would leave the active stop and dots on stale windows.
+    // alone would leave the active stop and dots on stale windows. Resize
+    // snaps instead of easing — easing a layout change reads as a glitch.
     const onResize = () => {
       fit();
-      update();
+      targetP = readProgress();
+      renderP = targetP;
+      applyProgress(renderP);
     };
 
     const onScroll = () => {
@@ -219,27 +314,73 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
     // element and a visitor who never scrolls does not pay for the whole
     // flight. `drawFrame` falls back to the nearest loaded frame at or
     // below the exact index, so the coarse pass alone already scrubs.
-    const loadFrame = (i: number) => {
-      if (disposed || images[i]) return;
+    // Requests are bounded and playhead-prioritised. The old code fired all
+    // 101 images the instant `p` crossed 0.01, which saturated the
+    // connection: frames arrived in request order, not in the order the
+    // visitor needed them, so the scrub sat on a stale frame while bytes for
+    // the far end of the flight were still in flight. `pump` instead keeps a
+    // small window open and always dispatches the queued frame nearest the
+    // current position, so a fast scroll re-targets the network.
+    const queue: number[] = [];
+    const requested = new Set<number>();
+    let inflight = 0;
+
+    // Declared as hoisted functions: `startLoad` and `pump` are mutually
+    // recursive (a completed load pumps the next one).
+    function startLoad(i: number) {
+      inflight++;
       const img = new window.Image();
       img.decoding = "async";
+      const settle = () => {
+        inflight--;
+        pump();
+      };
       img.onload = () => {
         if (disposed) return;
-        const exact = Math.floor(lastPRef.current * FRAME_COUNT);
+        const exact = Math.floor(renderP * FRAME_COUNT);
         // Repaint when a frame near the current position arrives
         // (covers the initial poster -> canvas handoff at p = 0).
-        if (Math.abs(exact - i) <= COARSE_STEP) drawFrame(lastPRef.current);
+        if (Math.abs(exact - i) <= COARSE_STEP) applyProgress(renderP);
+        settle();
       };
+      // A 404 or decode failure must free its slot, or the pipeline wedges
+      // permanently at MAX_INFLIGHT and the ride freezes mid-flight.
+      img.onerror = settle;
       img.src = frameSrc(i);
       images[i] = img;
+    }
+
+    function pump() {
+      if (disposed) return;
+      while (inflight < MAX_INFLIGHT && queue.length > 0) {
+        const exact = Math.floor(renderP * FRAME_COUNT);
+        let bestAt = 0;
+        let bestDist = Number.POSITIVE_INFINITY;
+        for (let k = 0; k < queue.length; k++) {
+          const dist = Math.abs(queue[k] - exact);
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestAt = k;
+          }
+        }
+        const [next] = queue.splice(bestAt, 1);
+        startLoad(next);
+      }
+    }
+
+    const enqueue = (i: number) => {
+      if (disposed || requested.has(i)) return;
+      requested.add(i);
+      queue.push(i);
     };
 
     // Phase 1 (idle): every Nth frame — roughly a quarter of the bytes,
     // enough for a complete (slightly coarse) scrub of the whole flight.
     const loadCoarse = () => {
       if (disposed) return;
-      for (let i = 0; i < FRAME_COUNT; i += COARSE_STEP) loadFrame(i);
-      loadFrame(FRAME_COUNT - 1);
+      for (let i = 0; i < FRAME_COUNT; i += COARSE_STEP) enqueue(i);
+      enqueue(FRAME_COUNT - 1);
+      pump();
     };
 
     // Phase 2: the in-between frames, fetched only once the visitor
@@ -247,7 +388,8 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
     const loadFine = () => {
       if (disposed || fineStarted) return;
       fineStarted = true;
-      for (let i = 0; i < FRAME_COUNT; i++) loadFrame(i);
+      for (let i = 0; i < FRAME_COUNT; i++) enqueue(i);
+      pump();
     };
     loadFineRef.current = loadFine;
 
@@ -263,6 +405,10 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
 
     return () => {
       disposed = true;
+      if (easeId) cancelAnimationFrame(easeId);
+      // Drop anything not yet dispatched; in-flight images are already
+      // guarded by the `disposed` checks in their handlers.
+      queue.length = 0;
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
       if (typeof window.cancelIdleCallback === "function") {
@@ -295,15 +441,17 @@ export default function FactoryRide({ hero, cards, finale }: FactoryRideProps) {
         <div className="fr-stage">
           {/* Poster-first: eager LCP image; the canvas paints over it once
               frames arrive. Decorative backdrop — copy lives in the stops. */}
-          <Image
-            src="/world/poster.jpg"
-            alt=""
-            fill
-            priority
-            fetchPriority="high"
-            sizes="100vw"
-            className="fr-poster"
-          />
+          <div className="fr-poster-wrap">
+            <Image
+              src="/world/poster.jpg"
+              alt=""
+              fill
+              priority
+              fetchPriority="high"
+              sizes="100vw"
+              className="fr-poster"
+            />
+          </div>
           <canvas ref={canvasRef} className="fr-film" aria-hidden="true" />
           <div className="fr-vignette" aria-hidden="true" />
 
