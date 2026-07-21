@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gap register resolution</title>
+<style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 12% 64%);
+--faint:hsl(220 10% 46%);--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);
+--ok:hsl(152 52% 50%);--warn:hsl(43 88% 60%);--bad:hsl(2 68% 58%);--r:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(900px 600px at 12% 4%,hsl(248 70% 40% / .20),transparent 60%),var(--bg);
+color:var(--ink);font:400 15px/1.6 ui-sans-serif,-apple-system,"Segoe UI",Inter,system-ui,sans-serif;padding:48px 24px 96px}
+.wrap{max-width:920px;margin:0 auto}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:600;margin-block-end:12px}
+h1{font-size:30px;font-weight:700;letter-spacing:-.3px;line-height:1.15}
+.lede{color:var(--muted);margin-block-start:12px;max-width:70ch}
+.card{background:var(--glass);border:1px solid var(--edge);border-radius:var(--r);padding:22px;margin-block-start:24px}
+h2{font-size:18px;font-weight:650;margin-block-end:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);padding:0 10px 10px 0}
+td{padding:9px 10px 9px 0;border-block-start:1px solid hsl(0 0% 100% / .07);vertical-align:top}
+.ok{color:var(--ok);font-weight:650}.warn{color:var(--warn);font-weight:650}.bad{color:var(--bad);font-weight:650}
+.mono{font-family:ui-monospace,Menlo,monospace}
+.note{margin-block-start:16px;padding:12px 14px;border-radius:9px;background:hsl(0 0% 100% / .08);
+border-inline-start:3px solid var(--warn);font-size:14px;color:hsl(43 60% 82%)}
+</style></head><body><div class="wrap">
+<div class="eyebrow">docs only · follow-up to a1490b022</div>
+<h1>Gap register: what is actually closed</h1>
+<p class="lede">GAPS.md was compiled before remediation and described everything as open. Anyone reading it would redo finished work. This marks each section resolved and documents the four new gates, which lived in zero markdown files.</p>
+
+<div class="card"><h2>Resolution</h2>
+<table><thead><tr><th>Section</th><th>Status</th><th>Evidence</th></tr></thead><tbody>
+<tr><td>A. Security</td><td class="ok">closed</td><td class="mono">node:20 → 0 refs · OWASP 2025 · supply-chain rule added</td></tr>
+<tr><td>B. Correctness</td><td class="ok">closed</td><td class="mono">gh flags → 0 · @storybook/test → 0 · gemini-2.5-pro → 0</td></tr>
+<tr><td>C. Consistency</td><td class="ok">closed</td><td class="mono">LangGraph unified on 1.2</td></tr>
+<tr><td>D. Stale</td><td class="ok">closed</td><td class="mono">2.1.47 guide deleted · superlatives replaced</td></tr>
+<tr><td>E. Detection</td><td class="ok">closed</td><td class="mono">3 new gates, 114/114 skills covered</td></tr>
+<tr><td>F. Eval harness</td><td class="warn">partial</td><td class="mono">governor shipped · F1/F3 open</td></tr>
+</tbody></table></div>
+
+<div class="card"><h2>Two corrections the register got wrong</h2>
+<table><thead><tr><th>Claim</th><th>Reality</th></tr></thead><tbody>
+<tr><td class="mono">A3: 3 of 5 OWASP IDs mis-mapped</td><td class="bad">FALSE POSITIVE — the file is built on Top 10:2025 where those headings are already correct. Validated against the 2021 list by mistake.</td></tr>
+<tr><td class="mono">C2-C5: version drift</td><td class="warn">Mostly legitimate history: a release-notes link and "feature landed in X" statements, not competing floors.</td></tr>
+</tbody></table></div>
+
+<div class="card"><h2>The four gates, now documented</h2>
+<table><thead><tr><th>Gate</th><th>Catches</th><th>Shape</th></tr></thead><tbody>
+<tr><td class="mono">test-skill-coverage</td><td>collisions, reachability, contradictions</td><td>ratchet</td></tr>
+<tr><td class="mono">test-model-recency</td><td>valid but not latest for its channel</td><td>ratchet</td></tr>
+<tr><td class="mono">test-targets-floor-agreement</td><td>two skills, one library, two floors</td><td>hard gate at 0</td></tr>
+<tr><td class="mono">budget-governor</td><td>a run the weekly cap cannot pay for</td><td>runtime guard</td></tr>
+</tbody></table>
+<div class="note">All four are $0: no LLM calls, no network, no quota. Together they took deterministic coverage from 31 of 114 skills to 114 of 114.</div></div>
+
+<div class="card"><h2>Caveat carried into both docs</h2>
+<p class="lede">2026 routing research (SkillRouter; Multi-Agent Routing as Set-Valued Prediction) finds routing keys on the skill <strong>body</strong> more than metadata, and is <strong>set-valued multi-label</strong> rather than per-skill binary. The "trigger contradictions" check therefore encodes the wrong model: a prompt legitimately claimed by two skills is normal, not a defect. It reports 0 today. Drop or invert it before it fires.</p></div>
+</div></body></html>
