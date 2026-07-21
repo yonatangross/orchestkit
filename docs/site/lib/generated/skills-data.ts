@@ -219,7 +219,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "animation-motion-design",
     "description": "Animation and motion design patterns using Motion library (formerly Framer Motion) and View Transitions API. Use when implementing component animations, page transitions, micro-interactions, gesture-driven UIs, or ensuring motion accessibility with prefers-reduced-motion.",
     "version": "1.0.0",
-    "sha256": "0a5f728949abe5bbd7735295576c7f56b2323ebcd634301682ccf4b593f99ec5",
+    "sha256": "733fa19b9df784f34b435c89fe614a4436f613dbcbf903cd3f1e9ae21c6a2cdd",
     "author": "OrchestKit",
     "tags": [
       "animation",
@@ -1583,7 +1583,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-context-extract",
     "description": "Extract design DNA from existing app screenshots, live URLs, or screen recordings using Google Stitch. Produces color palettes, typography specs, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user provides, uploads, links, or points to a screenshot, URL, or video and asks to extract the design, analyze the animations or scroll behavior, audit an existing design, create a design system from a live app, or ensure new pages match an established visual identity.",
     "version": "1.0.1",
-    "sha256": "5546704fca4d253b026477211656d4d97e65e7ce7235a471d1aa8be2f0cabb82",
+    "sha256": "2b785bea9cf94356a6623e8d1e1cb445dbc7f1454304f769214c68ff54347758",
     "author": "OrchestKit",
     "tags": [
       "design-context",
@@ -1817,7 +1817,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-to-code",
     "description": "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts screenshots, descriptions, or URLs as input and produces production-ready React components. Checks existing Storybook components before generating, orchestrates design extraction via Stitch MCP, component matching via 21st.dev registry, adaptation to project design tokens, and self-healing verification via run-story-tests. Use when converting visual designs to code, implementing UI from mockups, or building components from screenshots.",
     "version": "1.0.1",
-    "sha256": "b28e9071008ad27cc51448d61ef65bc0da165c160761c048cab8ee6a2d0460ab",
+    "sha256": "f970dc3c0458424c838920c1660f49adc5e475984d0ec6f0670b508d15781f0f",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
@@ -2602,7 +2602,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "github-operations",
     "description": "GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts. Use when managing GitHub issues, PRs, milestones, or Projects with gh.",
     "version": "1.1.0",
-    "sha256": "98c5c92e84b0ccbdab3971bcb9304778742dd97969e95d49704ab5e6148e44a3",
+    "sha256": "2cc8fa29fe6f9a12e4b9f435ee62dfb8f23d43db6d4c460fc29ddce145849fee",
     "author": "OrchestKit",
     "tags": [
       "github",
@@ -3013,7 +3013,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "langgraph",
     "description": "LangGraph 1.x (LTS) workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",
     "version": "2.2.0",
-    "sha256": "06b2e8b411d58d84fc29b6efc3495dd9f67c0e3e974e5c28ff57c817ff911cf5",
+    "sha256": "dd366a10d479205c12141b1d9fc319ce68606431daa367707a21805f7bb4d6c5",
     "author": "OrchestKit",
     "tags": [
       "langgraph",
@@ -5356,7 +5356,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "max",
     "structure": {
       "references": [
-        "cc-2.1.47-upgrade-guide.md",
         "output-format.md",
         "recommendation-format.md",
         "scoring-rubric.md"
