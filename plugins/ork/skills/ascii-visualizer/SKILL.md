@@ -6,7 +6,7 @@ description: "ASCII diagram patterns for architecture, workflows, file trees, an
 tags: [ascii, diagrams, visualization, box-drawing, architecture, terminal]
 version: 1.0.0
 author: OrchestKit
-user-invocable: false
+user-invocable: true
 disable-model-invocation: true
 context: inherit
 allowed-tools: [Read, Grep, Glob]

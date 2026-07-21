@@ -11,7 +11,7 @@ description: "Unit, integration, E2E, performance, and LLM testing patterns."
 |-------|------|------------|-------------|
 | [Bare Eval](/docs/reference/skills/bare-eval) | Reference | medium | Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill ev... |
 | [Code Review Playbook](/docs/reference/skills/code-review-playbook) | Reference | low | Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments... |
-| [Cover](/docs/reference/skills/cover) | Command | high | Generate and run comprehensive test suites — unit tests, integration tests with real services (testcontainers/docker-... |
+| [Cover](/docs/reference/skills/cover) | Command | high | Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers ... |
 | [Emulate Seed](/docs/reference/skills/emulate-seed) | Reference | medium | Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAut... |
 | [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-brow... |
 | [Quality Gates](/docs/reference/skills/quality-gates) | Reference | max | Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing c... |
@@ -23,7 +23,7 @@ description: "Unit, integration, E2E, performance, and LLM testing patterns."
 | [Testing Patterns](/docs/reference/skills/testing-patterns) | Reference | low | Redirect — testing-patterns was split into 5 focused sub-skills. Use when looking for testing-patterns, writing tests... |
 | [Testing Perf](/docs/reference/skills/testing-perf) | Reference | medium | Performance and load testing patterns — k6 load tests, Locust stress tests, pytest execution optimization (xdist para... |
 | [Testing Unit](/docs/reference/skills/testing-unit) | Reference | medium | Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests (test.each, @pytest.mark.pa... |
-| [Verify](/docs/reference/skills/verify) | Command | high | Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security sca... |
+| [Verify](/docs/reference/skills/verify) | Command | high | Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E... |
 
 ## Related Agents
 

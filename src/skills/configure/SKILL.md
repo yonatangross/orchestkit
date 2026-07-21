@@ -8,7 +8,7 @@ context: inherit
 version: 1.0.1
 author: OrchestKit
 tags: [configuration, setup, wizard, customization]
-user-invocable: false
+user-invocable: true
 disable-model-invocation: true
 allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
 complexity: low

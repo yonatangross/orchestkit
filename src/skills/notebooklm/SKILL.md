@@ -6,7 +6,7 @@ author: OrchestKit
 description: "NotebookLM integration patterns for external RAG, research synthesis, studio content generation (audio, cinematic video, slides, infographics, mind maps), and knowledge management. Use when creating notebooks, adding sources, generating audio/video, or querying NotebookLM via MCP."
 version: 1.3.0
 tags: [notebooklm, mcp, rag, google, podcast, video, cinematic, research, knowledge-management]
-user-invocable: false
+user-invocable: true
 disable-model-invocation: true
 context: fork
 complexity: medium

@@ -5,23 +5,27 @@ description: "User-invocable commands for common development workflows."
 
 # Workflows Skills
 
-**34 skills** for user-invocable commands for common development workflows.
+**45 skills** for user-invocable commands for common development workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
+| [Ascii Visualizer](/docs/reference/skills/ascii-visualizer) | Command | low | ASCII diagram patterns for architecture, workflows, file trees, and data visualizations. Use when creating terminal-r... |
 | [Assess](/docs/reference/skills/assess) | Command | high | Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, test... |
 | [Audit Activation](/docs/reference/skills/audit-activation) | Command | medium | Audits OrchestKit sub-agent activation from real spawn telemetry — computes the generic-vs-specialist spawn split, fl... |
+| [Audit Skills](/docs/reference/skills/audit-skills) | Command | medium | Audits all OrchestKit skills for quality, completeness, and compliance with authoring standards. Use when checking sk... |
 | [Auto](/docs/reference/skills/auto) | Command | medium | Intent-classified router — the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Take... |
 | [Brainstorm](/docs/reference/skills/brainstorm) | Command | medium | Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideatio... |
+| [Checkpoint Resume](/docs/reference/skills/checkpoint-resume) | Command | high | Rate-limit-resilient pipeline with checkpoint/resume for long multi-phase sessions. Saves progress to .claude/pipelin... |
 | [Ci Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, pr... |
 | [Ci Sentinel](/docs/reference/skills/ci-sentinel) | Command | medium | Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red... |
 | [Commit](/docs/reference/skills/commit) | Command | low | Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-a... |
 | [Component Search](/docs/reference/skills/component-search) | Command | simple | Search 21st.dev component registry for production-ready React components. Finds components by natural language descri... |
-| [Cover](/docs/reference/skills/cover) | Command | high | Generate and run comprehensive test suites — unit tests, integration tests with real services (testcontainers/docker-... |
+| [Configure](/docs/reference/skills/configure) | Command | low | Interactive configuration wizard for OrchestKit plugin settings including MCP server enablement, hook permissions, ke... |
+| [Cover](/docs/reference/skills/cover) | Command | high | Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers ... |
 | [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary genera... |
 | [Design Context Extract](/docs/reference/skills/design-context-extract) | Command | medium | Extract design DNA from existing app screenshots, live URLs, or screen recordings using Google Stitch. Produces color... |
-| [Design Import](/docs/reference/skills/design-import) | Command | medium | Imports a Claude Design (claude.ai/design) handoff bundle and scaffolds the proposed components into the project. Acc... |
-| [Design Ship](/docs/reference/skills/design-ship) | Command | complex | End-to-end Claude Design handoff to pull request: imports a handoff bundle from claude.ai/design, generates Storybook... |
+| [Design Import](/docs/reference/skills/design-import) | Command | medium | Scaffolds React components out of an exported Claude Design handoff bundle and stops at files on disk: no stories, no... |
+| [Design Ship](/docs/reference/skills/design-ship) | Command | complex | One-shot pipeline that turns a claude.ai/design link into a reviewable pull request, four stages chained end to end: ... |
 | [Design Stylecards](/docs/reference/skills/design-stylecards) | Command | low | Declarative catalog of named aesthetic recipes — exact shadow stacks, glass surfaces, gradient treatments, and type s... |
 | [Design To Code](/docs/reference/skills/design-to-code) | Command | complex | Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts screenshots, descriptions, or ... |
 | [Dev](/docs/reference/skills/dev) | Command | medium | One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev... |
@@ -29,17 +33,24 @@ description: "User-invocable commands for common development workflows."
 | [Dream](/docs/reference/skills/dream) | Command | medium | Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md i... |
 | [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-brow... |
 | [Explore](/docs/reference/skills/explore) | Command | high | Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, a... |
+| [Feedback](/docs/reference/skills/feedback) | Command | low | Manages OrchestKit learning system including feedback status, usage pattern tracking, and privacy/analytics consent. ... |
 | [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression det... |
 | [Help](/docs/reference/skills/help) | Command | low | OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right ... |
 | [Implement](/docs/reference/skills/implement) | Command | medium | Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates ... |
 | [Memory](/docs/reference/skills/memory) | Command | low | Unified read-side memory operations including knowledge graph search, session context loading, decision timeline view... |
+| [Notebooklm](/docs/reference/skills/notebooklm) | Command | medium | NotebookLM integration patterns for external RAG, research synthesis, studio content generation (audio, cinematic vid... |
 | [Prd To Goal](/docs/reference/skills/prd-to-goal) | Command | low | Decomposes a PRD, issue, or spec into a copy-pasteable `/goal until ... abort-if ...` line. Use when running /goal ag... |
+| [Presentation Builder](/docs/reference/skills/presentation-builder) | Command | medium | Creates zero-dependency, animation-rich HTML presentations from scratch or by converting PowerPoint files. Use when t... |
+| [Release Checklist](/docs/reference/skills/release-checklist) | Command | medium | Ship a release: the final pre-tag gate for OrchestKit itself, run once a change is already known good. Walks 12 order... |
 | [Release Sync](/docs/reference/skills/release-sync) | Command | low | Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging. Reads CHANGELOG, CLAUDE.md, a... |
 | [Remember](/docs/reference/skills/remember) | Command | low | Stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and re... |
 | [Review Pr](/docs/reference/skills/review-pr) | Command | medium | PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analys... |
 | [Setup](/docs/reference/skills/setup) | Command | medium | Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers... |
+| [Skill Evolution](/docs/reference/skills/skill-evolution) | Command | medium | Tracks skill usage patterns, edit frequency, and success rates to suggest improvements and optimizations. Manages ski... |
 | [Swarm Migrate](/docs/reference/skills/swarm-migrate) | Command | high | Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transfo... |
 | [Telemetry Inspect](/docs/reference/skills/telemetry-inspect) | Command | low | Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write count... |
-| [Verify](/docs/reference/skills/verify) | Command | high | Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security sca... |
+| [Upgrade Assessment](/docs/reference/skills/upgrade-assessment) | Command | max | Evaluates platform upgrade readiness across Claude model versions, CC releases, and OrchestKit updates with 6-dimensi... |
+| [Validate Counts](/docs/reference/skills/validate-counts) | Command | low | Validates hook, skill, and agent counts are consistent across CLAUDE.md, hooks.json, manifests, and source directorie... |
+| [Verify](/docs/reference/skills/verify) | Command | high | Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E... |
 | [Visualize Plan](/docs/reference/skills/visualize-plan) | Command | medium | Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency grap... |
 | [Write Prd](/docs/reference/skills/write-prd) | Command | medium | Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, an... |

@@ -8,7 +8,7 @@ context: inherit
 version: 1.1.0
 author: OrchestKit
 tags: [skill-management, evolution, versioning, analytics]
-user-invocable: false
+user-invocable: true
 disable-model-invocation: true
 allowed-tools: [Read, Write, Edit, Grep, Glob]
 complexity: medium

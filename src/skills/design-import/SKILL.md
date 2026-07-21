@@ -2,7 +2,7 @@
 name: design-import
 license: MIT
 compatibility: "Claude Code 2.1.206+. Requires: claude-design-orchestrator agent. Optional: stitch, 21st-dev-magic, storybook-mcp MCP servers (used transitively via design-to-code)."
-description: "Imports a Claude Design (claude.ai/design) handoff bundle and scaffolds the proposed components into the project. Accepts a bundle URL or local file, parses and validates the schema, deduplicates components against the existing codebase via component-search, then pipes the survivors through the design-to-code pipeline. Writes provenance metadata so future imports can detect drift between design versions. Use after exporting a handoff bundle from claude.ai/design — this is the entry point that turns a design into code."
+description: "Scaffolds React components out of an exported Claude Design handoff bundle and stops at files on disk: no stories, no tests, no pull request. Takes a claude.ai/design URL or a local bundle file, validates the tarball layout, reconciles the bundle's design tokens against the project's, deduplicates every proposed component against the existing codebase via component-search, pipes the survivors through the design-to-code pipeline, and records provenance so a later re-export can be diffed for drift. This is the import step by itself. Use it when you want the scaffolded code sitting in the working tree to inspect or edit yourself; when that same scaffold should carry on through test generation, browser verification and an opened PR, run /ork:design-ship instead."
 argument-hint: "<handoff-url | path-to-bundle.json>"
 tags: [claude-design, handoff, design-import, design-to-code, bundle, scaffold, frontend]
 context: fork

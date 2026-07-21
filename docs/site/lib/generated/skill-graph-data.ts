@@ -87,9 +87,9 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "ascii-visualizer",
     "label": "Ascii Visualizer",
-    "type": "reference",
+    "type": "command",
     "complexity": "low",
-    "category": "other",
+    "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 2
@@ -137,7 +137,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "audit-skills",
     "label": "Audit Skills",
-    "type": "reference",
+    "type": "command",
     "complexity": "medium",
     "category": "security",
     "hasDeps": false,
@@ -207,9 +207,9 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "checkpoint-resume",
     "label": "Checkpoint Resume",
-    "type": "reference",
+    "type": "command",
     "complexity": "high",
-    "category": "other",
+    "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0
@@ -277,9 +277,9 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "configure",
     "label": "Configure",
-    "type": "reference",
+    "type": "command",
     "complexity": "low",
-    "category": "other",
+    "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 2
@@ -497,9 +497,9 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "feedback",
     "label": "Feedback",
-    "type": "reference",
+    "type": "command",
     "complexity": "low",
-    "category": "other",
+    "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0
@@ -707,7 +707,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "notebooklm",
     "label": "Notebooklm",
-    "type": "reference",
+    "type": "command",
     "complexity": "medium",
     "category": "ai-llm",
     "hasDeps": false,
@@ -757,7 +757,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "presentation-builder",
     "label": "Presentation Builder",
-    "type": "reference",
+    "type": "command",
     "complexity": "medium",
     "category": "frontend",
     "hasDeps": false,
@@ -837,9 +837,9 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "release-checklist",
     "label": "Release Checklist",
-    "type": "reference",
+    "type": "command",
     "complexity": "medium",
-    "category": "other",
+    "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0
@@ -927,9 +927,9 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "skill-evolution",
     "label": "Skill Evolution",
-    "type": "reference",
+    "type": "command",
     "complexity": "medium",
-    "category": "other",
+    "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0
@@ -1057,9 +1057,9 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "upgrade-assessment",
     "label": "Upgrade Assessment",
-    "type": "reference",
+    "type": "command",
     "complexity": "max",
-    "category": "other",
+    "category": "workflow",
     "hasDeps": true,
     "depCount": 4,
     "usedByCount": 0
@@ -1077,9 +1077,9 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "validate-counts",
     "label": "Validate Counts",
-    "type": "reference",
+    "type": "command",
     "complexity": "low",
-    "category": "other",
+    "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0
