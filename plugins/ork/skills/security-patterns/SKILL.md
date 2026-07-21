@@ -167,6 +167,7 @@ Protection against the most critical web application security risks.
 |------|-------------|
 | `owasp-injection.md` | SQL/command injection, parameterized queries, SSRF prevention |
 | `owasp-broken-auth.md` | JWT algorithm confusion, CSRF protection, timing attacks |
+| `supply-chain.md` | Lockfile integrity, dependency confusion, provenance, SBOM (A03:2025) |
 
 **Key Decisions:** Parameterized queries only | Hardcode JWT algorithm | SameSite=Strict cookies
 
