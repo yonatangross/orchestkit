@@ -51,6 +51,7 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	// authorization server exists) — still get a structured JSON 404 for
 	// agents instead of an HTML page. Kept in sync with next.config.mjs by
 	// agent-404.test.ts.
+	"/.well-known/ai-catalog.json",
 	"/.well-known/agent-skills/index.json",
 	"/.well-known/oauth-protected-resource",
 	"/.well-known/http-message-signatures-directory",
