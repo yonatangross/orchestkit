@@ -176,6 +176,8 @@ GitHub Actions workflow for tag-triggered releases, version bumping script, and 
 
 Load Read("${CLAUDE_SKILL_DIR}/references/release-automation.md") for CI workflow, bump script, and release checklist.
 
+To actually execute the pre-tag gate, run `/ork:release-checklist`. It walks the 12 ordered steps (build, full suite, security tests, typecheck) and is the last thing to run once a change is already known good. This skill covers how releases are automated; that one is the gate you run.
+
 ---
 
 ## Best Practices

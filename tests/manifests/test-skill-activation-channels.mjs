@@ -43,6 +43,12 @@ const STANDALONE_ALLOWLIST = {
   // Add entries as: 'skill-name': 'why it is intentionally direct-only',
   'audit-activation':
     'operator audit tool — user-invocable with disable-model-invocation: true by design (P3-A2); direct /ork:audit-activation is the only intended trigger',
+  'audit-skills':
+    'operator audit tool, the skill-side counterpart audit-activation names as its analogue; same shape and same justification as that entry',
+  'upgrade-assessment':
+    'operator tool run when a new CC or model ships to decide whether to upgrade; no skill can decide on your behalf that it is time to assess, so any chain would be artificial',
+  'presentation-builder':
+    'user-initiated creative task — nothing in a workflow legitimately concludes "now build a presentation", so granting or chaining it would be inventing a trigger that should not fire',
 };
 
 // ---- parse a YAML frontmatter `skills:` field (inline [..] OR block list) ----

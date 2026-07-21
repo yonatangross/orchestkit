@@ -4245,7 +4245,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "release-management",
     "description": "Automates GitHub releases with semantic versioning, changelog generation from merged PRs, and gh CLI integration. Supports draft, prerelease, and standard release workflows with task-tracked multi-phase execution. Use when creating releases, tagging versions, or publishing changelogs.",
     "version": "1.0.0",
-    "sha256": "5e886aca22db27762f8f2f0ff0d3a2d2289b7b1cb47add094ba7462203f6c786",
+    "sha256": "1130350efb0de2560d74f9fb894256ae8e7793d5c27551d41a881eb4a31a6652",
     "author": "OrchestKit",
     "tags": [
       "git",
