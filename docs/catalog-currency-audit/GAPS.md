@@ -1,8 +1,44 @@
 # OrchestKit Gap Register
 
-**Compiled** 2026-07-21 · **Branch** `test/trigger-evals-testing-family` · **Assess verdict** FAIL (C, 5.86), security blocker
+**Compiled** 2026-07-21 · **Assess verdict at time of writing** FAIL (C, 5.86), security blocker
 
 Every gap below was verified at `file:line` during the audit. Items marked ✅ VERIFIED were reproduced or read directly; items marked 🔬 REPRODUCED were executed live.
+
+---
+
+## ⚠️ RESOLUTION STATUS (read this first)
+
+**Most of this register is CLOSED.** It was compiled *before* remediation and the tables below describe the state at audit time, not now. Merged to `main` as `a1490b022`, 2026-07-21.
+
+| section | status |
+|---|---|
+| **A. Security** | ✅ closed — A1/A2 `node:20` (0 refs), A4 OWASP 2021→2025, A6 `curl\|sh`, A7 crypto label, A8 `passlib`→`argon2-cffi`, A9 pyjwt floor, A10 Argon2id. **A5 supply-chain** shipped as `security-patterns/rules/supply-chain.md` |
+| **B. Correctness** | ✅ closed — B1/B2 `gh` flags (0 live usages), B3-B6 Storybook (0 `@storybook/test`), B7 Pydantic v2, B8 Tailwind v4, B9 `motion` rename, B10 `gemini-2.5-pro` (0 refs) |
+| **C. Consistency** | ✅ closed — C1 LangGraph unified on 1.2. C2-C5 re-examined and found to be **legitimate history**, not drift (see below) |
+| **D. Stale** | ✅ closed — D1 guide deleted, D3 superlatives replaced with an alias pointer |
+| **E. Detection** | ✅ closed — E1 `test-model-recency.sh`, E2 `test-targets-floor-agreement.mjs`, E3 resolved |
+| **F. Eval harness** | 🟡 partial — F2 budget governor shipped. F1/F3 remain open |
+
+### A3 was a FALSE POSITIVE, do not "fix" it
+
+A3 claimed 3 of 5 OWASP IDs were mis-mapped in `owasp-top10-fixes.md`. **They were already correct.** That file is explicitly built on OWASP Top 10:**2025** (its title and body say so); the finding was validated against the **2021** list by mistake. Renumbering would have introduced the bug. A remediation agent correctly refused this instruction.
+
+### C2-C5 are mostly legitimate history
+
+A later pass found the remaining Playwright 1.58 / Biome 2.0 / pgvector 0.7 references are a link to release notes and "feature landed in version X" statements, not competing floors. A prose-based detector for this was built, measured at near-zero precision, and **deleted rather than shipped**. `test-targets-floor-agreement.mjs` checks only `targets:` frontmatter, which is unambiguous.
+
+### Still open
+
+| # | gap | why |
+|---|---|---|
+| F1 | `implement` trigger recall never measured | needs a run; see the routing caveat below |
+| F3 | 36 agent eval specs, 0 workflows reference them | cost decision, not code |
+| — | 37 model-recency, 7 collisions, 15 unreachable | all **ratcheted**, can only improve |
+| — | `assess-verdict.json` holds a foreign assessment | needs a merge/discard call |
+
+### ⚠️ Caveat on the whole trigger-eval direction
+
+2026 routing research (SkillRouter, Alibaba 2026-04; *Multi-Agent Routing as Set-Valued Prediction*, arXiv 2606.28925) finds routing keys on the skill **body** more than metadata, and is **set-valued multi-label** rather than per-skill binary. The "trigger contradictions" check in `test-skill-coverage.sh` therefore encodes the wrong model: a prompt legitimately claimed by two skills is normal, not a defect. It reports 0 today. Drop or invert it before it fires.
 
 ---
 
