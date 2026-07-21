@@ -23,6 +23,13 @@ const config = {
 	// independent of Next's file-router handling of "." segments.
 	rewrites: async () => [
 		{
+			// Agentic Resource Discovery (ARD) catalog — enumerates the agentic
+			// resources below (MCP server, skills index, agent card, APIs) so an
+			// AI client can find them before invoking.
+			source: "/.well-known/ai-catalog.json",
+			destination: "/api/well-known/ai-catalog",
+		},
+		{
 			source: "/.well-known/agent-skills/index.json",
 			destination: "/api/well-known/agent-skills",
 		},
