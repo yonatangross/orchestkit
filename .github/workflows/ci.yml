@@ -346,6 +346,11 @@ jobs:
         with:
           build-plugins: 'false'
 
+      # No extra installs needed for the npm audit gate: it now audits every tree
+      # --package-lock-only, so it reads lockfiles instead of requiring node_modules.
+      # An install-based fix was tried first and is wrong here — docs/site pulls
+      # @yonatan-hq/analytics from GitHub Packages and NPM_TOKEN is deliberately
+      # withheld on pull_request runs (#2536), so `npm ci` 401s on every PR.
       - name: Run security tests
         shell: bash
         run: |
