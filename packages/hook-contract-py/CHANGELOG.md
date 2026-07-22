@@ -2,6 +2,17 @@
 
 All notable changes to `orchestkit-hook-contract` are documented here.
 
+## 0.1.2 — 2026-07-22
+
+Metadata-only release, no code or schema changes (byte-identical contract to
+0.1.1; parity with the npm sibling holds). Republished so PyPI serves the
+domain-anchored `[project.urls]` (`Homepage = https://orchestkit.yonyon.ai`)
+that the repository already declared — the published 0.1.1 artifact still
+advertised the GitHub repository, so agents and agent-readiness scanners could
+not verify the package as OrchestKit's official SDK by domain match. Cut in
+lockstep with `@orchestkit/hook-contract@0.1.2`, which adds the matching
+`homepage` field on the npm side.
+
 ## 0.1.1 — 2026-05-30
 
 First lockstep release with the npm sibling (`@orchestkit/hook-contract@0.1.1`).
