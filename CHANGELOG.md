@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.84.5](https://github.com/yonatangross/orchestkit/compare/v8.84.4...v8.84.5) (2026-07-22)
+
+
+### Bug Fixes
+
+* **ci:** scope Claude workflow tools, gate triage on author ([#3085](https://github.com/yonatangross/orchestkit/issues/3085)) ([2835d07](https://github.com/yonatangross/orchestkit/commit/2835d075ad065ea273c5e1339f88a0650018d9e3))
+* **security:** audit all four trees in CI, pin sharp ([#3090](https://github.com/yonatangross/orchestkit/issues/3090)) ([b23e208](https://github.com/yonatangross/orchestkit/commit/b23e2087f8089a001be9a6f933aba73246518e01))
+* **security:** correct audit-gate id reporting, allowlist hono ([#3087](https://github.com/yonatangross/orchestkit/issues/3087)) ([cd19fee](https://github.com/yonatangross/orchestkit/commit/cd19fee126d9255487c7d8695d6986545e0cdf2d))
+
 ## [8.84.4](https://github.com/yonatangross/orchestkit/compare/v8.84.3...v8.84.4) (2026-07-22)
 
 
