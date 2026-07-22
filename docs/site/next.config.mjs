@@ -30,6 +30,12 @@ const config = {
 			destination: "/api/well-known/ai-catalog",
 		},
 		{
+			// did:web DID document — resolves the host identity the ARD catalog
+			// and its trustManifest claim (did:web:orchestkit.yonyon.ai).
+			source: "/.well-known/did.json",
+			destination: "/api/well-known/did",
+		},
+		{
 			source: "/.well-known/agent-skills/index.json",
 			destination: "/api/well-known/agent-skills",
 		},

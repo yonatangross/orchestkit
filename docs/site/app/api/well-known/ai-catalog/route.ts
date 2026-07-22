@@ -10,8 +10,10 @@ import { SITE } from "@/lib/constants";
 //
 // Every entry below points at a resource this site already serves; the
 // catalog is a discovery index over them, not a new surface. Host identity is
-// a did:web anchored to the domain. The API is unauthenticated and read-only,
-// so no progressive-trust / credential metadata is advertised.
+// a did:web anchored to the domain and resolvable at /.well-known/did.json. The
+// API is unauthenticated and read-only, so the host trustManifest advertises a
+// verifiable identity + provenance but no credential/attestation envelope —
+// there is nothing to sign for and no compliance program to assert.
 export const revalidate = false;
 
 // did:web derives from the host: https://orchestkit.yonyon.ai -> did:web:orchestkit.yonyon.ai
@@ -27,6 +29,25 @@ export function GET() {
 			displayName: SITE.name,
 			identifier: HOST_ID,
 			documentationUrl: `${d}/llms.txt`,
+			// ARD trustManifest — the zero-trust identity envelope for the catalog.
+			// Only `identity` is required; we advertise the fields we can back:
+			//   - identity: the did:web resolvable at /.well-known/did.json, whose
+			//     verification key is the same one in the RFC 9421 key directory.
+			//   - provenance: the catalog is generated from and published from the
+			//     public source repository.
+			// Omitted on purpose (nothing to honestly assert): `signature` (this
+			// origin runs no request-signing bot), `attestations` (no SOC2/HIPAA or
+			// other compliance program), `trustSchema` (no external governance).
+			trustManifest: {
+				identity: HOST_ID,
+				identityType: "did",
+				provenance: [
+					{
+						relation: "publishedFrom",
+						sourceId: "https://github.com/yonatangross/orchestkit",
+					},
+				],
+			},
 		},
 		entries: [
 			{
