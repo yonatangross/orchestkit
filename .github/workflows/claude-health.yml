@@ -83,9 +83,38 @@ jobs:
           " \
           --output-format json \
           --max-turns 10 \
-          --model claude-sonnet-4-5-20250514 \
+          --model claude-sonnet-5 \
           --allowedTools "Read,Grep,Glob,Bash(npm audit:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh run list:*),Bash(cat:*),Bash(wc:*)" \
-          > /tmp/health-report.json
+          > /tmp/health-report.json 2> /tmp/health-stderr.log || RC=$?
+
+          # Never let the report redirect swallow the failure.
+          #
+          # This step failed 40 consecutive nights (2026-06-13 -> 2026-07-22)
+          # emitting nothing but "Process completed with exit code 1": stdout
+          # went into the report file and stderr was never surfaced, so the
+          # cause was unknowable from the run log. The job still "ran" nightly
+          # and wrote nothing. Surface both streams on failure, always.
+          RC=${RC:-0}
+          if [ "$RC" -ne 0 ] || [ ! -s /tmp/health-report.json ]; then
+            echo "::error::health assessment failed (exit ${RC}) — no usable report written"
+            {
+              echo "## Nightly Health Report — FAILED (exit ${RC})"
+              echo ""
+              echo "**stderr**"
+              echo '```'
+              tail -c 2000 /tmp/health-stderr.log 2>/dev/null || echo "(none captured)"
+              echo '```'
+              echo "**stdout (first 2KB of the report file)**"
+              echo '```'
+              head -c 2000 /tmp/health-report.json 2>/dev/null || echo "(empty)"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "----- stderr -----"
+            tail -c 2000 /tmp/health-stderr.log 2>/dev/null || true
+            echo "----- stdout -----"
+            head -c 2000 /tmp/health-report.json 2>/dev/null || true
+            exit 1
+          fi
 
       - name: Parse and display report
         run: |
