@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.84.2](https://github.com/yonatangross/orchestkit/compare/v8.84.1...v8.84.2) (2026-07-22)
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.217) ([#3070](https://github.com/yonatangross/orchestkit/issues/3070)) ([565e5e7](https://github.com/yonatangross/orchestkit/commit/565e5e7f8d53e3aaba0f4e013a65a4004b98e418))
+* **deps:** bump body-parser from 2.2.2 to 2.3.0 in /src/mcp-server ([#3065](https://github.com/yonatangross/orchestkit/issues/3065)) ([c7dba92](https://github.com/yonatangross/orchestkit/commit/c7dba92134716cff5c8728456be0efcd3c47ee01))
+* **deps:** bump fast-uri from 3.1.2 to 3.1.4 in /orchestkit-demos ([#3076](https://github.com/yonatangross/orchestkit/issues/3076)) ([82b63e3](https://github.com/yonatangross/orchestkit/commit/82b63e3cefeb269996393fd677b834688eba1374))
+* **deps:** bump fast-uri from 3.1.2 to 3.1.4 in /src/mcp-server ([#3074](https://github.com/yonatangross/orchestkit/issues/3074)) ([c4d79ee](https://github.com/yonatangross/orchestkit/commit/c4d79ee016045f252a2c95cea9e896a16bfb5438))
+* **deps:** bump hono from 4.12.25 to 4.12.31 in /src/mcp-server ([#3075](https://github.com/yonatangross/orchestkit/issues/3075)) ([2f57247](https://github.com/yonatangross/orchestkit/commit/2f5724785180ecb6169fecf3d0876c9dd3a2ce79))
+
+
+### CI/CD
+
+* make nightly health failures diagnosable ([#3072](https://github.com/yonatangross/orchestkit/issues/3072)) ([d3b2901](https://github.com/yonatangross/orchestkit/commit/d3b2901090ca40dea4d8fffb866f9c847aecb778))
+* validate pinned Claude model IDs at commit time ([#3077](https://github.com/yonatangross/orchestkit/issues/3077)) ([2e850e3](https://github.com/yonatangross/orchestkit/commit/2e850e31f472f1afd330ee16d95332adb4ae7e6b))
+
 ## [8.84.1](https://github.com/yonatangross/orchestkit/compare/v8.84.0...v8.84.1) (2026-07-21)
 
 
