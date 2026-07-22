@@ -240,7 +240,15 @@ jobs:
 
       - name: Ensure npm supports OIDC trusted publishing
         # Trusted publishing (OIDC) landed in npm 11.5.1; runners bundle npm 10.
-        run: npm install -g npm@latest
+        #
+        # Pinned to the 11.x line on purpose. This step used to install
+        # `npm@latest`, which silently broke the 0.1.2 publish on 2026-07-22:
+        # npm 12 shipped with engines `node ^22.22.2 || ^24.15.0 || >=26.0.0`
+        # and this job pins node 20, so `npm@latest` resolved to 12.0.1 and
+        # died with EBADENGINE *after* build/test/smoke had all passed.
+        # An unpinned npm against a pinned node is the bug; keep the two in
+        # step. Bump this range (and node above) together, deliberately.
+        run: npm install -g "npm@^11.5.1"
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v6.0.0
         with:
