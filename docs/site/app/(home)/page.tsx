@@ -633,6 +633,35 @@ export default async function HomePage() {
               . AI agents can query the docs through the NLWeb /ask endpoint or the
               OrchestKit Docs MCP server, hosted and as a Docker image.
             </p>
+            <p>
+              Each skill is a self-contained playbook the agent loads only when a
+              task calls for it: writing a test suite, designing a REST or GraphQL
+              API, hardening authentication, planning a database migration, or
+              reviewing a pull request. The agents are specialists — a backend
+              system architect, a security auditor, a frontend developer, a
+              database engineer — that Claude Code can spawn in parallel for larger
+              pieces of work. The hooks run at defined points in the session to
+              enforce quality gates, so problems are caught as they happen instead
+              of surfacing later in review.
+            </p>
+            <p>
+              Because OrchestKit is published under the yonyon.ai domain, every
+              developer resource sits at a stable, name-addressable URL: the OpenAPI
+              3.1 specification at{" "}
+              <a href={`${SITE.domain}/openapi.json`} className="underline decoration-fd-border underline-offset-4 hover:text-fd-primary">
+                /openapi.json
+              </a>
+              , the Model Context Protocol server at{" "}
+              <a href={`${SITE.domain}/api/mcp`} className="underline decoration-fd-border underline-offset-4 hover:text-fd-primary">
+                /api/mcp
+              </a>
+              , the machine-readable indexes at /llms.txt and
+              /.well-known/ai-catalog.json, and the authentication and versioning
+              policies at /auth.md and /api-policy.md. The Python package ships on
+              PyPI as orchestkit-hook-contract and the documentation MCP server as a
+              public Docker image, so an agent can discover and use OrchestKit by
+              name across npm, PyPI, and the MCP registry.
+            </p>
           </div>
         </div>
       </section>
