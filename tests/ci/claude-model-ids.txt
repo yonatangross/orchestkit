@@ -1,0 +1,51 @@
+# Servable Claude model IDs — the allowlist for the workflow model-ID gate.
+#
+# WHY THIS FILE EXISTS
+# `claude-health.yml` pinned `claude-sonnet-4-5-20250514` for 40 consecutive
+# nights. That ID never existed: Sonnet 4.5's dated ID is -20250929, and
+# -20250514 belongs to Sonnet 4. The API answers an unknown model ID with
+# 404 not_found_error, so the job died in ~2.5s every night, and because a
+# typo'd ID is indistinguishable from a valid one until runtime, nothing
+# caught it at commit time. This file is what makes that catchable. (#3071)
+#
+# FORMAT
+#   <model-id>              -> ALLOWED, gate passes
+#   <model-id>  # DEPRECATED: retires <date>  -> gate WARNS (still servable)
+# Anything a workflow pins that is absent here FAILS the gate.
+#
+# HOW TO UPDATE
+# When a new model ships, add its ID here in the same commit that pins it.
+# Source of truth is the Models API — do not hand-guess IDs:
+#   client.models.list()      # or: ant models list
+# Never append a date suffix to an alias. `claude-sonnet-5` is complete as
+# written; `claude-sonnet-5-20260101` is not a real ID.
+#
+# Last verified against the model catalog: 2026-07-22
+
+# ---- Current ----
+claude-fable-5
+claude-opus-4-8
+claude-opus-4-7
+claude-opus-4-6
+claude-sonnet-5
+claude-sonnet-4-6
+claude-haiku-4-5
+claude-haiku-4-5-20251001
+
+# ---- Restricted availability (valid, but only for orgs with access) ----
+claude-mythos-5
+
+# ---- Legacy, still servable ----
+claude-opus-4-5
+claude-opus-4-5-20251101
+claude-sonnet-4-5
+claude-sonnet-4-5-20250929
+
+# ---- Deprecated: still servable, but pin something newer ----
+claude-opus-4-1  # DEPRECATED: retires 2026-08-05
+claude-opus-4-1-20250805  # DEPRECATED: retires 2026-08-05
+claude-opus-4-0  # DEPRECATED: retirement TBD
+claude-opus-4-20250514  # DEPRECATED: retirement TBD
+claude-sonnet-4-0  # DEPRECATED: retirement TBD
+claude-sonnet-4-20250514  # DEPRECATED: retirement TBD
+claude-3-haiku-20240307  # DEPRECATED: retires 2026-04-19

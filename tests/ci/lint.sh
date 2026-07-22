@@ -261,6 +261,65 @@ fi
 echo ""
 
 # ============================================================================
+# 6. Workflow Claude Model IDs (#3071)
+# ============================================================================
+# claude-health.yml pinned `claude-sonnet-4-5-20250514` for 40 consecutive
+# nights. That ID never existed (Sonnet 4.5 is -20250929; -20250514 belongs
+# to Sonnet 4), so the API answered 404 not_found_error and the job died in
+# ~2.5s every night writing nothing. A typo'd model ID is indistinguishable
+# from a valid one until runtime — this makes it a commit-time failure.
+echo -e "${BLUE}6. Workflow Claude Model IDs${NC}"
+
+MODEL_ALLOWLIST="$SCRIPT_DIR/claude-model-ids.txt"
+WORKFLOW_DIR="$PROJECT_ROOT/.github/workflows"
+
+if [ ! -f "$MODEL_ALLOWLIST" ]; then
+    fail "Model-ID allowlist missing: tests/ci/claude-model-ids.txt"
+elif [ ! -d "$WORKFLOW_DIR" ]; then
+    warn "No .github/workflows directory to scan for model IDs"
+else
+    # Two pin shapes exist: `--model <id>` (raw `claude -p`) and
+    # `claude_args: "... --model <id>"` (anthropics/claude-code-action); a
+    # bare `model: <id>` YAML key is matched too. src/agents use aliases
+    # (opus|sonnet|haiku|inherit), which the claude-* pattern ignores by design.
+    model_pins=$(grep -rhoE -- "(--model|model:)[[:space:]]+claude-[a-z0-9.-]+" "$WORKFLOW_DIR" \
+                 | sed -E 's/^(--model|model:)[[:space:]]+//' \
+                 | sort -u || true)  # silent: known-noise — no pinned models is a valid state
+
+    model_checked=0
+    model_bad=0
+
+    while IFS= read -r model_id; do
+        [ -n "$model_id" ] || continue
+        model_checked=$((model_checked + 1))
+
+        # Anchored so `claude-sonnet-4-5` cannot be satisfied by the longer
+        # `claude-sonnet-4-5-20250929` entry, and so comment lines never match.
+        allow_line=$(grep -E "^[[:space:]]*${model_id}([[:space:]]|#|\$)" "$MODEL_ALLOWLIST" || true)  # silent: known-noise — absent = the failure we report
+        pinned_in=$(grep -rl -- "$model_id" "$WORKFLOW_DIR" | head -1 || true)  # silent: known-noise — attribution only
+        where=$(basename "${pinned_in:-workflow}")
+
+        if [ -z "$allow_line" ]; then
+            fail "$where pins unknown model ID '$model_id' — the API answers 404 not_found_error at runtime. If this model is genuinely new, add it to tests/ci/claude-model-ids.txt in the same commit."
+            model_bad=$((model_bad + 1))
+        # here-string, not a pipe: `printf | grep -q` SIGPIPEs the producer
+        # under `set -o pipefail` and flips this branch non-deterministically.
+        elif grep -q "DEPRECATED" <<<"$allow_line"; then
+            note=$(sed 's/.*#[[:space:]]*//' <<<"$allow_line")
+            warn "$where pins '$model_id' — $note"
+        fi
+    done <<< "$model_pins"
+
+    if [ "$model_checked" -eq 0 ]; then
+        warn "No pinned Claude model IDs found in .github/workflows — the match pattern may need updating"
+    elif [ "$model_bad" -eq 0 ]; then
+        pass "All $model_checked pinned workflow model ID(s) are servable"
+    fi
+fi
+
+echo ""
+
+# ============================================================================
 # Summary
 # ============================================================================
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
