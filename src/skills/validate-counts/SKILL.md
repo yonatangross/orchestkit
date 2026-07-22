@@ -5,7 +5,7 @@ description: Validates hook, skill, and agent counts are consistent across CLAUD
 tags: [validation, consistency, orchestkit]
 version: 2.0.0
 author: OrchestKit
-user-invocable: true
+user-invocable: false
 disable-model-invocation: true
 context: inherit
 allowed-tools: [Read, Bash, Grep, Glob]

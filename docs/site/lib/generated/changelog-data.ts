@@ -17,6 +17,51 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.84.1",
+    "date": "2026-07-21",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "fix playground gate messaging and release-PR stranding ([#3063](https://github.com/yonatangross/orchestkit/issues/3063)) ([95d8e8d](https://github.com/yonatangross/orchestkit/commit/95d8e8dfa73306ffe3bc4c66841a3756343a5e79))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.84.0",
+    "date": "2026-07-21",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**evals:** honest verdicts, three new gates, and a budget governor ([a1490b0](https://github.com/yonatangross/orchestkit/commit/a1490b022d235105dd6fe04dfac28c966c063a0c))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**dream:** stop auto-pruning live memories with out-of-repo refs ([1df5cd4](https://github.com/yonatangross/orchestkit/commit/1df5cd4834f7a73a1de487fd17c2dea1c4b1f51f))",
+          "**evals:** score effective recall over the full positive population ([#3049](https://github.com/yonatangross/orchestkit/issues/3049)) ([e821cbf](https://github.com/yonatangross/orchestkit/commit/e821cbf4bd25e8c72982cce1de28c31ff3a1f903))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.216) ([#3053](https://github.com/yonatangross/orchestkit/issues/3053)) ([4a671c9](https://github.com/yonatangross/orchestkit/commit/4a671c9fa16611bbf6b62d249ccb47300898cd95))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "add AGENTS.md for AI coding agent discoverability ([#3059](https://github.com/yonatangross/orchestkit/issues/3059)) ([df25757](https://github.com/yonatangross/orchestkit/commit/df2575715520e951ffeab47267a01bd980ce937a))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.83.1",
     "date": "2026-07-20",
     "compareUrl": "",

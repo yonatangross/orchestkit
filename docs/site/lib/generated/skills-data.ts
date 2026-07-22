@@ -452,7 +452,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "ascii-visualizer",
     "description": "ASCII diagram patterns for architecture, workflows, file trees, and data visualizations. Use when creating terminal-rendered diagrams, box-drawing layouts, progress bars, swimlanes, or blast radius visualizations.",
     "version": "1.0.0",
-    "sha256": "249d29fc19ecaee2b0a90c92d1dbc13a3528685902c9fb02a1cc4378de80359b",
+    "sha256": "2d1e5fbd8ea080c88764e884193b51c3f79581bcf4d13a1889d40eee1ca6eaa1",
     "author": "OrchestKit",
     "tags": [
       "ascii",
@@ -462,7 +462,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "architecture",
       "terminal"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "inherit",
     "allowedTools": [
       "Read",
@@ -708,7 +708,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "audit-skills",
     "description": "Audits all OrchestKit skills for quality, completeness, and compliance with authoring standards. Use when checking skill health, before releases, or after bulk skill edits to surface SKILL.md files that are too long, have missing frontmatter, lack rules/references, or are unregistered in manifests.",
     "version": "2.0.0",
-    "sha256": "fd46c2200b67b15de5ae84a3fa6683b4432c3e8f68c6db26bd46dd8a868efab8",
+    "sha256": "67342d3cf9de18db6436d8304350196d26aec2d4dbf3f7a8b76ad945ab146e91",
     "author": "OrchestKit",
     "tags": [
       "audit",
@@ -716,7 +716,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "skills",
       "orchestkit"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "Read",
@@ -1031,7 +1031,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "checkpoint-resume",
     "description": "Rate-limit-resilient pipeline with checkpoint/resume for long multi-phase sessions. Saves progress to .claude/pipeline-state.json after each phase. Use when starting a complex multi-phase task that risks hitting rate limits, when resuming an interrupted session, or when orchestrating work spanning commits, GitHub issues, and large file changes.",
     "version": "2.0.0",
-    "sha256": "38dc2f90945a5200951a428eab417b028eead2ad7b1cd4885ba9d4ef2e347914",
+    "sha256": "b9908aa05a003713c0a381bdf7ef438ce5f9097c86fabe01cbddb333170779ae",
     "author": "OrchestKit",
     "tags": [
       "resilience",
@@ -1039,7 +1039,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "pipeline",
       "orchestkit"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "Bash",
@@ -1316,7 +1316,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "configure",
     "description": "Interactive configuration wizard for OrchestKit plugin settings including MCP server enablement, hook permissions, keybindings, and installation presets (Complete/Standard/Lite). Supports preset shortcuts, per-category skill customization, and webhook configuration. Use when customizing plugin behavior or managing settings.",
     "version": "1.0.1",
-    "sha256": "f9c94c432e682d9e64c864a9b57a3a387acf7d54007a41e57bc06469daced88e",
+    "sha256": "4f2f7d876ff4966eb6b6c706db43a23b98c8ba89710a4812a0ac3ba29ebf3112",
     "author": "OrchestKit",
     "tags": [
       "configuration",
@@ -1324,7 +1324,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "wizard",
       "customization"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "inherit",
     "allowedTools": [
       "Bash",
@@ -2441,7 +2441,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "feedback",
     "description": "Manages OrchestKit learning system including feedback status, usage pattern tracking, and privacy/analytics consent. Supports pause/resume learning, data export, privacy policy display, and bug reporting. Tracks learned patterns and agent performance metrics. Use when reviewing learned patterns, pausing learning, or managing data consent.",
     "version": "1.2.0",
-    "sha256": "1a19fabeb1fce7a7aa2be753088f7a1d654fc263408afbb32322c4f38712cf00",
+    "sha256": "f57bb702ad3d4675f6f41331cf0ec39fd21d2bbb52a8a3d8152bb8fee6eccb27",
     "author": "OrchestKit",
     "tags": [
       "feedback",
@@ -2452,7 +2452,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "analytics",
       "consent"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "inherit",
     "allowedTools": [
       "Read",
@@ -3528,7 +3528,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "notebooklm",
     "description": "NotebookLM integration patterns for external RAG, research synthesis, studio content generation (audio, cinematic video, slides, infographics, mind maps), and knowledge management. Use when creating notebooks, adding sources, generating audio/video, or querying NotebookLM via MCP.",
     "version": "1.3.0",
-    "sha256": "3147377f62e1d7067d009ee1e726fd33715fcaf72aefe131ccf8c51a52576ff8",
+    "sha256": "89c4ca8d5aa2b9fbd082e33dc5d0af5d4aaaeda1dd58be5f343480838d059c98",
     "author": "OrchestKit",
     "tags": [
       "notebooklm",
@@ -3541,7 +3541,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "research",
       "knowledge-management"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "Read",
@@ -3780,7 +3780,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "presentation-builder",
     "description": "Creates zero-dependency, animation-rich HTML presentations from scratch or by converting PowerPoint files. Use when the user wants to build a presentation, convert a PPT/PPTX to web slides, or create a slide deck for a talk, pitch, or tutorial. Generates single self-contained HTML files with inline CSS/JS.",
     "version": "1.0.0",
-    "sha256": "3524b75b63e77b2f547d912da06280ff7812d744805c5dcc2937628722f54d7b",
+    "sha256": "a1f714674a834723292baf006ee4e2de0498c6cc3c56fe5ea108e3cdb7a29c26",
     "author": "OrchestKit",
     "tags": [
       "presentation",
@@ -3791,7 +3791,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "animation",
       "zero-dependency"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "AskUserQuestion",
@@ -4210,14 +4210,14 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "release-checklist",
     "description": "Ship a release: the final pre-tag gate for OrchestKit itself, run once a change is already known good. Walks 12 ordered steps (build, full test suite, security tests, typecheck, manifest count validation, changelog entry, version bump across package.json and CLAUDE.md, selective staging, conventional release commit, tag, confirmed push), halting at the first failed step with remediation guidance. Use when cutting and shipping a version, not for judging whether a change is correct (that is /ork:verify).",
     "version": "2.0.0",
-    "sha256": "550d2f8127be13bc0696cdf7b9012feb1f8c5ef867ad55ecd341949bf27aef9a",
+    "sha256": "09aec87068ffbce59535169c40b64845d9e022f226da611d81907e5c968f2c3d",
     "author": "OrchestKit",
     "tags": [
       "release",
       "checklist",
       "orchestkit"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "inherit",
     "allowedTools": [
       "Read",
@@ -4245,7 +4245,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "release-management",
     "description": "Automates GitHub releases with semantic versioning, changelog generation from merged PRs, and gh CLI integration. Supports draft, prerelease, and standard release workflows with task-tracked multi-phase execution. Use when creating releases, tagging versions, or publishing changelogs.",
     "version": "1.0.0",
-    "sha256": "1130350efb0de2560d74f9fb894256ae8e7793d5c27551d41a881eb4a31a6652",
+    "sha256": "5e886aca22db27762f8f2f0ff0d3a2d2289b7b1cb47add094ba7462203f6c786",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -4700,7 +4700,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "skill-evolution",
     "description": "Tracks skill usage patterns, edit frequency, and success rates to suggest improvements and optimizations. Manages skill versioning with safe rollback capability and confidence scoring for suggestions. Use when reviewing skill performance, applying auto-suggested changes, or rolling back problematic versions.",
     "version": "1.1.0",
-    "sha256": "f627d19f0f93620d9118cd7616ca029ed0354c9c8524c36456a4e33a3b549ac6",
+    "sha256": "3f57c93185dd48ae2e1b23f5f5d8a24ae5afb918a007a1b43df7ebf932454ec2",
     "author": "OrchestKit",
     "tags": [
       "skill-management",
@@ -4708,7 +4708,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "versioning",
       "analytics"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "inherit",
     "allowedTools": [
       "Read",
@@ -5331,7 +5331,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "upgrade-assessment",
     "description": "Evaluates platform upgrade readiness across Claude model versions, CC releases, and OrchestKit updates with 6-dimensional assessment. Researches target versions, detects current environment, produces structured migration plan with risk scores. Use when planning major version transitions or evaluating upgrade impact.",
     "version": "1.0.0",
-    "sha256": "82fb677b6c3530f1d63d8a3b813233dc3e3418a50abe7c6741da713ea25e5141",
+    "sha256": "0d5b70f31a5292a69a2da1010ef52878ad300ba10a383fb5e7cbdb1da06dc966",
     "author": "OrchestKit",
     "tags": [
       "upgrade",
@@ -5340,7 +5340,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "compatibility",
       "migration"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [
       "AskUserQuestion",
@@ -5416,14 +5416,14 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "validate-counts",
     "description": "Validates hook, skill, and agent counts are consistent across CLAUDE.md, hooks.json, manifests, and source directories. Use when counts may be stale after adding or removing components, before releases, or when CLAUDE.md Project Overview looks wrong.",
     "version": "2.0.0",
-    "sha256": "9ba91423f3fb00dfafc2094c9f62b00a9f8dc4d54b0dee97ffc48ac767a0f1d7",
+    "sha256": "c194427021a9c6fb6697890c3ca9f87fa83ada5585f0dbb72a4897776471c049",
     "author": "OrchestKit",
     "tags": [
       "validation",
       "consistency",
       "orchestkit"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "inherit",
     "allowedTools": [
       "Read",

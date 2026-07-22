@@ -5,7 +5,7 @@ description: Audits all OrchestKit skills for quality, completeness, and complia
 tags: [audit, quality, skills, orchestkit]
 version: 2.0.0
 author: OrchestKit
-user-invocable: true
+user-invocable: false
 disable-model-invocation: true
 context: fork
 complexity: medium

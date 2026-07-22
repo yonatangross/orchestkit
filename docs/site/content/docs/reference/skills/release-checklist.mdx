@@ -3,11 +3,9 @@ title: "Release Checklist"
 description: "Ship a release: the final pre-tag gate for OrchestKit itself, run once a change is already known good. Walks 12 ordered steps (build, full test suite, security tests, typecheck, manifest count validation, changelog entry, version bump across package.json and CLAUDE.md, selective staging, conventional release commit, tag, confirmed push), halting at the first failed step with remediation guidance. Use when cutting and shipping a version, not for judging whether a change is correct (that is /ork:verify)."
 ---
 
-<span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-```bash title="Invoke"
-/ork:release-checklist
-```
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="release-checklist" />
 

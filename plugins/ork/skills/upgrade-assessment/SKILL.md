@@ -8,7 +8,7 @@ context: fork
 version: 1.0.0
 author: OrchestKit
 tags: [upgrade, assessment, platform, compatibility, migration]
-user-invocable: true
+user-invocable: false
 disable-model-invocation: true
 allowed-tools: [AskUserQuestion, Bash, Read, Grep, Glob, Agent, WebSearch, WebFetch]
 skills: [explore, verify, remember, memory]

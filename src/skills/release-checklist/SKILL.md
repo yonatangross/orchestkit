@@ -5,7 +5,7 @@ description: "Ship a release: the final pre-tag gate for OrchestKit itself, run 
 tags: [release, checklist, orchestkit]
 version: 2.0.0
 author: OrchestKit
-user-invocable: true
+user-invocable: false
 disable-model-invocation: true
 argument-hint: "[version]"
 context: inherit
