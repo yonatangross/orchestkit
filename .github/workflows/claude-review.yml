@@ -66,4 +66,11 @@ jobs:
             | Security | PASS/WARN/FAIL | ... |
             | Tests | PASS/WARN/FAIL | ... |
             | Types | PASS/WARN/FAIL | ... |
-          claude_args: "--max-turns 5 --model claude-sonnet-4-6"
+          # Tool allowlist matches the convention already used by claude-health.yml.
+          # This job holds pull-requests:write and issues:write while reviewing a diff
+          # that, on the pull_request trigger, is authored by whoever opened the PR.
+          # Restrict the model to reading the code and the PR metadata it reviews.
+          claude_args: >-
+            --max-turns 5
+            --model claude-sonnet-4-6
+            --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(gh pr view:*),Bash(gh pr diff:*)"
