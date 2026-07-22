@@ -65,6 +65,11 @@ fi
 
 is_allowlisted() {
   local target="$1"
+  # `local` is load-bearing. Bash uses dynamic scoping, so an unscoped loop
+  # variable named `id` here reassigns the CALLER's `id` (audit_project declares
+  # one). Without it, every failure message printed the last allowlist key
+  # instead of the offending advisory, pointing readers at the wrong ID.
+  local id
   for id in "${ACTIVE_IDS[@]}"; do
     [[ "$id" == "$target" ]] && return 0
   done
