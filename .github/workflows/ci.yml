@@ -346,18 +346,11 @@ jobs:
         with:
           build-plugins: 'false'
 
-      # The npm audit gate covers four package.json trees, but ./.github/actions/setup
-      # installs only the root and src/hooks. The gate treats a missing node_modules as
-      # a pass, so docs/site and src/mcp-server were silently unaudited and their
-      # advisories (5 high in docs/site) never surfaced. Install them here so all four
-      # trees are actually checked; the gate now hard-fails on a missing tree when CI
-      # is set, which turns any future regression of this into a red run.
-      - name: Install the two trees the audit gate would otherwise skip
-        shell: bash
-        run: |
-          npm ci --prefix docs/site --no-audit --no-fund
-          npm ci --prefix src/mcp-server --no-audit --no-fund
-
+      # No extra installs needed for the npm audit gate: it now audits every tree
+      # --package-lock-only, so it reads lockfiles instead of requiring node_modules.
+      # An install-based fix was tried first and is wrong here — docs/site pulls
+      # @yonatan-hq/analytics from GitHub Packages and NPM_TOKEN is deliberately
+      # withheld on pull_request runs (#2536), so `npm ci` 401s on every PR.
       - name: Run security tests
         shell: bash
         run: |

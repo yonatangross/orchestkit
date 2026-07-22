@@ -84,33 +84,47 @@ audit_project() {
     warn "$label: no package.json, skipping"
     return 0
   fi
-  if [[ ! -d "$dir/node_modules" ]]; then
-    # A skip must never read as a pass in CI. This gate silently audited only
-    # 2 of its 4 trees for as long as it has existed, because the CI setup
-    # action installs root and src/hooks but not docs/site or src/mcp-server.
-    # It therefore never once reported the 5 high-severity sharp advisories in
-    # docs/site. Locally a skip is still a convenience; in CI it is a failure.
-    if [[ -n "${CI:-}" ]]; then
-      fail "$label: node_modules not installed — CI must audit every tree, not skip it"
-      echo ""
-      return 1
-    fi
-    warn "$label: node_modules not installed, skipping (run npm install first)"
-    return 0
+  # No node_modules requirement. This gate used to skip (and therefore silently
+  # PASS) any tree that was not installed, and the CI setup action installs only
+  # the root and src/hooks — so docs/site and src/mcp-server were never audited
+  # and their advisories, including 5 high-severity sharp/libvips ones, never
+  # surfaced. Auditing --package-lock-only fixes that at the root: it reads the
+  # lockfile rather than an install, so every tree is audited on every run.
+  #
+  # It also sidesteps an auth problem that an install-based fix cannot. docs/site
+  # depends on @yonatan-hq/analytics from GitHub Packages, and NPM_TOKEN is
+  # deliberately withheld on pull_request runs (#2536, see docs.yml) so that PR
+  # author code never executes with the token in env. An `npm ci` here would 401
+  # on every PR; reading the lockfile needs no registry auth at all.
+  #
+  # Auditing the lockfile is also the more correct question for a gate: it
+  # describes what CI and production will install, not what happens to be
+  # sitting in a contributor's node_modules.
+  if [[ ! -f "$dir/package-lock.json" ]]; then
+    fail "$label: no package-lock.json — cannot audit this tree"
+    echo ""
+    return 1
   fi
 
   echo "▶ $label ($dir)"
 
-  local report
-  report=$(cd "$dir" && npm audit --audit-level="$LEVEL" --json 2>/dev/null || true)
+  local report errfile
+  errfile=$(mktemp)
+  # npm audit exits 1 whenever findings exist, which is the normal case here, so
+  # its exit code cannot distinguish "found CVEs" from "could not run". We decide
+  # on the report instead. stderr is captured rather than discarded: an earlier
+  # version sent it to /dev/null, which is precisely how a registry 401 would
+  # have been reported as the uninformative "produced no output".
+  report=$(cd "$dir" && npm audit --audit-level="$LEVEL" --package-lock-only --json 2>"$errfile")
 
-  # npm audit returns exit 1 when findings exist — which is expected.
-  # We parse the JSON regardless and decide per-advisory.
-  if [[ -z "$report" ]]; then
-    fail "$label: npm audit produced no output"
+  if [[ -z "$report" ]] || ! jq -e . >/dev/null 2>&1 <<<"$report"; then
+    fail "$label: npm audit produced no usable JSON report"
+    sed 's/^/      /' "$errfile" | head -5
+    rm -f "$errfile"
     echo ""
     return 1
   fi
+  rm -f "$errfile"
 
   local total
   total=$(echo "$report" | jq -r '.metadata.vulnerabilities | to_entries | map(select(.key == "moderate" or .key == "high" or .key == "critical")) | map(.value) | add // 0' 2>/dev/null || echo "0")
