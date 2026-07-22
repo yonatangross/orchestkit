@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.84.3](https://github.com/yonatangross/orchestkit/compare/v8.84.2...v8.84.3) (2026-07-22)
+
+
+### Miscellaneous
+
+* **hook-contract:** bump to 0.1.2, domain-anchored SDK provenance ([#3080](https://github.com/yonatangross/orchestkit/issues/3080)) ([dd17002](https://github.com/yonatangross/orchestkit/commit/dd17002e5be00408177ebb6169e0d26287808924))
+
+
+### CI/CD
+
+* pin npm to 11.x in the hook-contract publish job ([#3082](https://github.com/yonatangross/orchestkit/issues/3082)) ([0aad2e7](https://github.com/yonatangross/orchestkit/commit/0aad2e7cae5eca201f2cd08098fb04e05f1a7f22))
+
 ## [8.84.2](https://github.com/yonatangross/orchestkit/compare/v8.84.1...v8.84.2) (2026-07-22)
 
 
