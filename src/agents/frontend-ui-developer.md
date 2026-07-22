@@ -27,6 +27,7 @@ tools:
 skills:
   - react-server-components-framework
   - ui-components
+  - ai-ui-generation
   - testing-unit
   - testing-e2e
   - accessibility
@@ -41,6 +42,7 @@ skills:
   - task-dependency-patterns
   - component-search
   - storybook-mcp-integration
+  - storybook-testing
   - design-to-code
   - design-context-extract
   - remember

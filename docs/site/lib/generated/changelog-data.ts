@@ -17,6 +17,94 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.84.3",
+    "date": "2026-07-22",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**hook-contract:** bump to 0.1.2, domain-anchored SDK provenance ([#3080](https://github.com/yonatangross/orchestkit/issues/3080)) ([dd17002](https://github.com/yonatangross/orchestkit/commit/dd17002e5be00408177ebb6169e0d26287808924))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "pin npm to 11.x in the hook-contract publish job ([#3082](https://github.com/yonatangross/orchestkit/issues/3082)) ([0aad2e7](https://github.com/yonatangross/orchestkit/commit/0aad2e7cae5eca201f2cd08098fb04e05f1a7f22))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.84.2",
+    "date": "2026-07-22",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.217) ([#3070](https://github.com/yonatangross/orchestkit/issues/3070)) ([565e5e7](https://github.com/yonatangross/orchestkit/commit/565e5e7f8d53e3aaba0f4e013a65a4004b98e418))",
+          "**deps:** bump body-parser from 2.2.2 to 2.3.0 in /src/mcp-server ([#3065](https://github.com/yonatangross/orchestkit/issues/3065)) ([c7dba92](https://github.com/yonatangross/orchestkit/commit/c7dba92134716cff5c8728456be0efcd3c47ee01))",
+          "**deps:** bump fast-uri from 3.1.2 to 3.1.4 in /orchestkit-demos ([#3076](https://github.com/yonatangross/orchestkit/issues/3076)) ([82b63e3](https://github.com/yonatangross/orchestkit/commit/82b63e3cefeb269996393fd677b834688eba1374))",
+          "**deps:** bump fast-uri from 3.1.2 to 3.1.4 in /src/mcp-server ([#3074](https://github.com/yonatangross/orchestkit/issues/3074)) ([c4d79ee](https://github.com/yonatangross/orchestkit/commit/c4d79ee016045f252a2c95cea9e896a16bfb5438))",
+          "**deps:** bump hono from 4.12.25 to 4.12.31 in /src/mcp-server ([#3075](https://github.com/yonatangross/orchestkit/issues/3075)) ([2f57247](https://github.com/yonatangross/orchestkit/commit/2f5724785180ecb6169fecf3d0876c9dd3a2ce79))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "make nightly health failures diagnosable ([#3072](https://github.com/yonatangross/orchestkit/issues/3072)) ([d3b2901](https://github.com/yonatangross/orchestkit/commit/d3b2901090ca40dea4d8fffb866f9c847aecb778))",
+          "validate pinned Claude model IDs at commit time ([#3077](https://github.com/yonatangross/orchestkit/issues/3077)) ([2e850e3](https://github.com/yonatangross/orchestkit/commit/2e850e31f472f1afd330ee16d95332adb4ae7e6b))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.84.1",
+    "date": "2026-07-21",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "fix playground gate messaging and release-PR stranding ([#3063](https://github.com/yonatangross/orchestkit/issues/3063)) ([95d8e8d](https://github.com/yonatangross/orchestkit/commit/95d8e8dfa73306ffe3bc4c66841a3756343a5e79))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.84.0",
+    "date": "2026-07-21",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**evals:** honest verdicts, three new gates, and a budget governor ([a1490b0](https://github.com/yonatangross/orchestkit/commit/a1490b022d235105dd6fe04dfac28c966c063a0c))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**dream:** stop auto-pruning live memories with out-of-repo refs ([1df5cd4](https://github.com/yonatangross/orchestkit/commit/1df5cd4834f7a73a1de487fd17c2dea1c4b1f51f))",
+          "**evals:** score effective recall over the full positive population ([#3049](https://github.com/yonatangross/orchestkit/issues/3049)) ([e821cbf](https://github.com/yonatangross/orchestkit/commit/e821cbf4bd25e8c72982cce1de28c31ff3a1f903))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.216) ([#3053](https://github.com/yonatangross/orchestkit/issues/3053)) ([4a671c9](https://github.com/yonatangross/orchestkit/commit/4a671c9fa16611bbf6b62d249ccb47300898cd95))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "add AGENTS.md for AI coding agent discoverability ([#3059](https://github.com/yonatangross/orchestkit/issues/3059)) ([df25757](https://github.com/yonatangross/orchestkit/commit/df2575715520e951ffeab47267a01bd980ce937a))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.83.1",
     "date": "2026-07-20",
     "compareUrl": "",

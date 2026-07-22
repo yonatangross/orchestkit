@@ -156,7 +156,7 @@ In v3, tool calls within generations are rendered inline in the trace view:
 @observe(as_type="agent")
 async def coding_agent(task: str):
     response = await client.messages.create(
-        model="claude-sonnet-4-6",
+        model="claude-sonnet-5",
         tools=[
             {"name": "read_file", "description": "Read a file", "input_schema": {...}},
             {"name": "write_file", "description": "Write a file", "input_schema": {...}},

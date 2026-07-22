@@ -355,7 +355,7 @@ class CostCircuitBreaker:
         """Calculate cost based on model pricing (Dec 2025)."""
         PRICING = {
             "claude-sonnet-5": {"input": 3.0, "output": 15.0},
-            "claude-sonnet-4-6": {"input": 3.0, "output": 15.0},
+            "claude-sonnet-5": {"input": 3.0, "output": 15.0},
             "gpt-5.5": {"input": 2.5, "output": 10.0},
             "gpt-5-mini": {"input": 0.15, "output": 0.60},
             "claude-haiku-4-5-20251001": {"input": 0.80, "output": 4.0},
@@ -428,7 +428,7 @@ class QualityAwareFallback:
 llm_chain = FallbackChain(
     primary=LLMConfig(
         name="primary",
-        model="claude-sonnet-4-6",
+        model="claude-sonnet-5",
         timeout=30.0,
     ),
     fallbacks=[
@@ -443,7 +443,7 @@ llm_chain = FallbackChain(
 )
 
 budget_guard = TokenBudgetGuard(
-    model="claude-sonnet-4-6",
+    model="claude-sonnet-5",
     context_limit=200000,
     allocation=BudgetAllocation(
         system_prompt=3000,

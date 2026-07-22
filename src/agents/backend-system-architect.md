@@ -33,6 +33,7 @@ skills:
   - distributed-systems
   - architecture-decision-record
   - architecture-patterns
+  - scope-appropriate-architecture
   - security-patterns
   - monitoring-observability
   - performance

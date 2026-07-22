@@ -17,11 +17,11 @@ description: "User-invocable commands for common development workflows."
 | [Ci Sentinel](/docs/reference/skills/ci-sentinel) | Command | medium | Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red... |
 | [Commit](/docs/reference/skills/commit) | Command | low | Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-a... |
 | [Component Search](/docs/reference/skills/component-search) | Command | simple | Search 21st.dev component registry for production-ready React components. Finds components by natural language descri... |
-| [Cover](/docs/reference/skills/cover) | Command | high | Generate and run comprehensive test suites — unit tests, integration tests with real services (testcontainers/docker-... |
+| [Cover](/docs/reference/skills/cover) | Command | high | Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers ... |
 | [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary genera... |
 | [Design Context Extract](/docs/reference/skills/design-context-extract) | Command | medium | Extract design DNA from existing app screenshots, live URLs, or screen recordings using Google Stitch. Produces color... |
-| [Design Import](/docs/reference/skills/design-import) | Command | medium | Imports a Claude Design (claude.ai/design) handoff bundle and scaffolds the proposed components into the project. Acc... |
-| [Design Ship](/docs/reference/skills/design-ship) | Command | complex | End-to-end Claude Design handoff to pull request: imports a handoff bundle from claude.ai/design, generates Storybook... |
+| [Design Import](/docs/reference/skills/design-import) | Command | medium | Scaffolds React components out of an exported Claude Design handoff bundle and stops at files on disk: no stories, no... |
+| [Design Ship](/docs/reference/skills/design-ship) | Command | complex | One-shot pipeline that turns a claude.ai/design link into a reviewable pull request, four stages chained end to end: ... |
 | [Design Stylecards](/docs/reference/skills/design-stylecards) | Command | low | Declarative catalog of named aesthetic recipes — exact shadow stacks, glass surfaces, gradient treatments, and type s... |
 | [Design To Code](/docs/reference/skills/design-to-code) | Command | complex | Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts screenshots, descriptions, or ... |
 | [Dev](/docs/reference/skills/dev) | Command | medium | One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev... |
@@ -40,6 +40,6 @@ description: "User-invocable commands for common development workflows."
 | [Setup](/docs/reference/skills/setup) | Command | medium | Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers... |
 | [Swarm Migrate](/docs/reference/skills/swarm-migrate) | Command | high | Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transfo... |
 | [Telemetry Inspect](/docs/reference/skills/telemetry-inspect) | Command | low | Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write count... |
-| [Verify](/docs/reference/skills/verify) | Command | high | Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security sca... |
+| [Verify](/docs/reference/skills/verify) | Command | high | Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E... |
 | [Visualize Plan](/docs/reference/skills/visualize-plan) | Command | medium | Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency grap... |
 | [Write Prd](/docs/reference/skills/write-prd) | Command | medium | Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, an... |

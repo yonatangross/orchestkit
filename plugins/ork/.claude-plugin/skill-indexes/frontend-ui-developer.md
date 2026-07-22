@@ -5,6 +5,7 @@
 |
 |react-server-components-framework:{SKILL.md,references/{cache-components.md,capability-details.md,client-components.md,component-patterns.md,data-fetching.md,migration-guide.md,nextjs-16-upgrade.md,react-19-patterns.md,routing-patterns.md,server-actions.md,server-components.md,streaming-patterns.md,tanstack-router-patterns.md}}|frontend,react,react-19.2,nextjs-16,server-components,streaming,cache-components,turbopack
 |ui-components:{SKILL.md,references/{aschild-composition.md,cn-utility-patterns.md,component-extension.md,cva-variant-system.md,dark-mode-toggle.md,dialog-modal-patterns.md,dropdown-menu-patterns.md,focus-management.md,oklch-theming.md,popover-tooltip-patterns.md}}|ui-components,shadcn,radix,component-library,design-system,accessible-components,react-hook-form,zod,forms,validation,server-actions,field-arrays
+|ai-ui-generation:{SKILL.md,references/{ai-ui-failure-modes.md,ai-ui-tool-comparison.md,prompt-templates-library.md}}|ai-ui,json-render,v0,v0-app,stitch,bolt,bolt-cloud,cursor,prompt-engineering,code-generation,design-tokens,component-generation,ai-review,shadcn-ui
 |testing-unit:{SKILL.md,references/{aaa-pattern.md,factory-patterns.md,msw-2x-api.md,stateful-testing.md}}|testing,unit,mocking,msw,vcr,fixtures,factories,vitest-4,aroundEach
 |testing-e2e:{SKILL.md,references/{a11y-testing-tools.md,playwright-1.59-api.md,playwright-setup.md,visual-regression.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
 |accessibility:{SKILL.md,references/{focus-patterns.md,react-aria-hooks.md,ux-thresholds-quick.md,wcag-criteria.md}}|accessibility,a11y,wcag,focus-management,react-aria,keyboard-navigation,screen-reader,aria
@@ -19,6 +20,7 @@
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,workflow,coordination
 |component-search:{SKILL.md}|components,21st-dev,react,ui,search,registry,tailwind,shadcn
 |storybook-mcp-integration:{SKILL.md}|storybook,mcp,component-discovery,story-preview,component-testing,a11y,design-system,react
+|storybook-testing:{SKILL.md,references/{storybook-addon-ecosystem.md,storybook-ci-strategy.md,storybook-migration-guide.md}}|storybook,vitest,csf3,chromatic,turbosnap,visual-regression,play-functions,component-testing,a11y-testing,autodocs,esm-only,module-automocking
 |design-to-code:{SKILL.md}|design-to-code,stitch,21st-dev,ui-generation,mockup,component,react,frontend
 |design-context-extract:{SKILL.md}|design-context,design-tokens,stitch,extraction,colors,typography,audit,visual-identity
 |remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
