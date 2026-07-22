@@ -85,6 +85,16 @@ audit_project() {
     return 0
   fi
   if [[ ! -d "$dir/node_modules" ]]; then
+    # A skip must never read as a pass in CI. This gate silently audited only
+    # 2 of its 4 trees for as long as it has existed, because the CI setup
+    # action installs root and src/hooks but not docs/site or src/mcp-server.
+    # It therefore never once reported the 5 high-severity sharp advisories in
+    # docs/site. Locally a skip is still a convenience; in CI it is a failure.
+    if [[ -n "${CI:-}" ]]; then
+      fail "$label: node_modules not installed — CI must audit every tree, not skip it"
+      echo ""
+      return 1
+    fi
     warn "$label: node_modules not installed, skipping (run npm install first)"
     return 0
   fi
