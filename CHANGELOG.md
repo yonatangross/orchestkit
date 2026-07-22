@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.84.4](https://github.com/yonatangross/orchestkit/compare/v8.84.3...v8.84.4) (2026-07-22)
+
+
+### Miscellaneous
+
+* **skills:** burn model-recency ratchet to zero ([#3056](https://github.com/yonatangross/orchestkit/issues/3056)) ([f0f9557](https://github.com/yonatangross/orchestkit/commit/f0f9557369e2f1a7f3d268af09f1ba4f810aebd0))
+
 ## [8.84.3](https://github.com/yonatangross/orchestkit/compare/v8.84.2...v8.84.3) (2026-07-22)
 
 
