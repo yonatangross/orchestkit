@@ -1,8 +1,12 @@
 {
   "_schema": {
-    "description": "npm audit gate allowlist. Add advisory IDs with a reason and an optional expiry date (YYYY-MM-DD). An expired entry fails the test so exceptions get revisited.",
+    "description": "npm audit gate allowlist. Keys are the NUMERIC npm advisory id (the `source` field of an npm audit `via` entry), not the GHSA string, because that is what tests/security/test-npm-audit.sh matches on. Add a reason and an optional expiry date (YYYY-MM-DD). An expired entry fails the test so exceptions get revisited.",
     "example": {
-      "GHSA-xxxx-yyyy-zzzz": { "reason": "no upstream fix yet", "until": "2026-07-01" }
+      "1234567": { "reason": "no upstream fix yet", "until": "2026-07-01" }
     }
+  },
+  "1124006": {
+    "reason": "GHSA-frvp-7c67-39w9, @hono/node-server <2.0.5 path traversal in serve-static on Windows via encoded backslash. Transitive via @modelcontextprotocol/sdk, whose newest release (1.29.0) still pins the vulnerable range, so there is no upstream fix; npm's only remedy is a breaking downgrade to sdk 1.24.3. Not reachable here: src/mcp-server/src/index.ts and docs-server.ts both use StdioServerTransport only, never an HTTP transport, so serve-static is never instantiated. Revisit when the MCP SDK bumps @hono/node-server.",
+    "until": "2026-09-01"
   }
 }
