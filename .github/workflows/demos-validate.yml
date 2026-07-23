@@ -18,6 +18,12 @@
 # it on any PR that touches the demos tree moves that signal from post-release to
 # pre-merge, including on Dependabot PRs.
 #
+# SCOPE, honestly: this job is NOT in main's required status checks, so a red run
+# here does not by itself block a merge — including a Dependabot auto-merge, which
+# is how #3086 got in. It surfaces the breakage at review time rather than after
+# the next release. To make it actually gate, add "Validate Renderer" to the
+# branch-protection required contexts for main.
+#
 # Deliberately a separate workflow rather than a pull_request trigger on
 # release-video.yml: that workflow's jobs read release-event data and would fail
 # on a PR.
