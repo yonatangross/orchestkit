@@ -30,6 +30,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # A gate keyed on a label that does not exist is a dead gate: the condition is
+  # always false, the workflow shows "skipped", and it looks like coverage while
+  # doing nothing. Claude PR Review lived this way for the repo's whole history
+  # (gated on `needs-claude-review`, a label nobody created). This fails CI if
+  # any workflow references a label the repo does not have.
+  gate-labels:
+    name: Dead-gate audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      issues: read  # gh api …/labels
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Every workflow gate label must exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: bash scripts/check-workflow-gates.sh
+
   actionlint:
     name: actionlint
     runs-on: ubuntu-latest
