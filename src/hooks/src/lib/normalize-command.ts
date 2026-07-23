@@ -186,9 +186,9 @@ const NET_TOKEN_RE = /\b(curl|wget|fetch|nc|ncat|netcat|ssh|scp|ftp|telnet|aria2
 export function classifyProcessSubstitutions(unquoted: string): string[] {
   const findings: string[] = [];
   const re = /([<>])\(([^)]{1,500})\)/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(unquoted)) !== null) {
+  for (const m of unquoted.matchAll(re)) {
     const [, dir, inner] = m;
+    const idx = m.index ?? 0;
     if (dir === '>') {
       // >(cmd): the consumer is INSIDE the parens. `tee >(wc -l)` is data;
       // `> >(bash)` executes whatever flows in.
@@ -201,13 +201,13 @@ export function classifyProcessSubstitutions(unquoted: string): string[] {
     // Scan the whole segment, not the first word — env/command prefixes and
     // absolute paths (`env bash`, `/bin/bash`) defeat first-word checks.
     const segStart = Math.max(
-      unquoted.lastIndexOf('|', m.index),
-      unquoted.lastIndexOf(';', m.index),
-      unquoted.lastIndexOf('&', m.index),
-      unquoted.lastIndexOf('`', m.index),
-      unquoted.lastIndexOf('$(', m.index),
+      unquoted.lastIndexOf('|', idx),
+      unquoted.lastIndexOf(';', idx),
+      unquoted.lastIndexOf('&', idx),
+      unquoted.lastIndexOf('`', idx),
+      unquoted.lastIndexOf('$(', idx),
     );
-    const segment = unquoted.slice(segStart + 1, m.index);
+    const segment = unquoted.slice(segStart + 1, idx);
     if (EXEC_TOKEN_RE.test(segment)) {
       findings.push('process substitution feeding a shell interpreter (<(...))');
     } else if (SCRIPT_TOKEN_RE.test(segment) && (NET_TOKEN_RE.test(inner) || NET_TOKEN_RE.test(segment))) {
