@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.84.7](https://github.com/yonatangross/orchestkit/compare/v8.84.6...v8.84.7) (2026-07-23)
+
+
+### Bug Fixes
+
+* **demos:** repair the Remotion renderer, validate it pre-merge ([#3099](https://github.com/yonatangross/orchestkit/issues/3099)) ([1447afa](https://github.com/yonatangross/orchestkit/commit/1447afa35cf290ece3bfd2de075cfc2262564a40))
+
 ## [8.84.6](https://github.com/yonatangross/orchestkit/compare/v8.84.5...v8.84.6) (2026-07-23)
 
 
