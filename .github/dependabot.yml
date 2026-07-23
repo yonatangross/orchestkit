@@ -130,8 +130,29 @@ updates:
     labels:
       - "dependencies"
     groups:
+      # Remotion is split OUT of the minor-patch bundle. #3086: a remotion
+      # 4.0.484 -> 4.0.489 *patch* removed a Config API and, buried in a
+      # 21-package group PR, shipped invisibly and broke 27 releases. Remotion
+      # does not follow semver for its config/CLI surface, so even its patch
+      # bumps need to arrive as their own reviewable PR (now also gated by
+      # demos-validate.yml).
+      remotion:
+        patterns:
+          - "remotion"
+          - "@remotion/*"
       npm-minor-patch:
+        exclude-patterns:
+          - "remotion"
+          - "@remotion/*"
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # Remotion 4.x cannot build under TypeScript 7 (@remotion/bundler needs the
+      # legacy ts.sys / ts.readConfigFile the Go rewrite dropped). #3099 pinned
+      # this tree to ^6.0.3; without this ignore Dependabot re-proposes the TS 7
+      # major every week and each maintainer rediscovers the break. Revisit when
+      # Remotion ships TS 7 support.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 5
