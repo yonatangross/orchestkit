@@ -4,7 +4,7 @@
 name: Claude PR Review
 on:
   pull_request:
-    types: [opened, reopened, synchronize, labeled]
+    types: [labeled, synchronize]
   issue_comment:
     types: [created]
   workflow_dispatch:
@@ -25,52 +25,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Decide whether a PR should be auto-reviewed. The label path alone was dead
-  # for the repo's whole history: it gates on `needs-claude-review`, a label that
-  # did not exist, so `contains(...labels...)` was always false and Claude PR
-  # Review never ran on any PR. This job auto-requests a review when the PR
-  # touches paths where an unreviewed change is most dangerous (CI/gates, build
-  # and release scripts, security tests) — exactly the class that merged
-  # unreviewed this session. Non-sensitive PRs still opt in via the label.
-  detect:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    outputs:
-      sensitive: ${{ steps.f.outputs.sensitive }}
-    steps:
-      - id: f
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          PR: ${{ github.event.pull_request.number }}
-        run: |
-          set -euo pipefail
-          files=$(gh api "repos/${REPO}/pulls/${PR}/files" --paginate --jq '.[].filename')
-          if printf '%s\n' "$files" \
-               | grep -qE '^(\.github/workflows/|\.github/actions/|scripts/|bin/|tests/security/)'; then
-            echo "::notice::Sensitive paths changed — auto-requesting a Claude review."
-            echo "sensitive=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "sensitive=false" >> "$GITHUB_OUTPUT"
-          fi
-
+  # Fires when the `needs-claude-review` label is present (added by a human, or
+  # auto-applied to sensitive-path PRs by auto-label.yml), on an @claude comment
+  # from a trusted actor, or on manual dispatch. The label path was dead for the
+  # repo's whole history because the label did not exist; it does now, and
+  # validate-workflows' Dead-gate audit fails CI if it is ever removed.
+  #
+  # Detection was deliberately split into auto-label.yml rather than a detect
+  # job here: co-locating them under one cancel-in-progress concurrency group
+  # meant a burst of pull_request events (opened + N labeled from PR creation)
+  # cancelled every run and no review ever completed.
   review:
-    needs: [detect]
-    # always() because `detect` is skipped for issue_comment / workflow_dispatch;
-    # without it this job would inherit detect's skip. The event guards below
-    # ensure needs.detect.outputs is only read on pull_request events.
     if: |
-      always() && (
-        github.event_name == 'workflow_dispatch' ||
-        (github.event_name == 'issue_comment' &&
-         contains(github.event.comment.body, '@claude') &&
-         contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)) ||
-        (github.event_name == 'pull_request' &&
-         (contains(github.event.pull_request.labels.*.name, 'needs-claude-review') ||
-          needs.detect.outputs.sensitive == 'true'))
-      )
+      (github.event_name == 'pull_request' &&
+       contains(github.event.pull_request.labels.*.name, 'needs-claude-review')) ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' &&
+       contains(github.event.comment.body, '@claude') &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
