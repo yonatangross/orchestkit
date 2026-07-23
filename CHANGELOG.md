@@ -5,6 +5,24 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.84.10](https://github.com/yonatangross/orchestkit/compare/v8.84.9...v8.84.10) (2026-07-23)
+
+
+### Bug Fixes
+
+* **ci:** drop the What's New freshness gate blocking the PR queue ([#3118](https://github.com/yonatangross/orchestkit/issues/3118)) ([c9308d0](https://github.com/yonatangross/orchestkit/commit/c9308d02d32715ca91974b1197bf91c111adae32))
+
+
+### Miscellaneous
+
+* **deps:** bump the npm-minor-patch group across 1 directory with 4 updates ([#3111](https://github.com/yonatangross/orchestkit/issues/3111)) ([5efd7e6](https://github.com/yonatangross/orchestkit/commit/5efd7e68e8e3b25cea818613f420f3995fbcaeca))
+* **deps:** bump the remotion group across 1 directory with 21 updates ([#3110](https://github.com/yonatangross/orchestkit/issues/3110)) ([7278d19](https://github.com/yonatangross/orchestkit/commit/7278d19213b0e4ba7348a05bf4f18d7c3a87553e))
+
+
+### CI/CD
+
+* bump the github-actions group across 1 directory with 6 updates ([#3112](https://github.com/yonatangross/orchestkit/issues/3112)) ([6e83f3a](https://github.com/yonatangross/orchestkit/commit/6e83f3aa81827b67b72ca22c8990ce4f3a6c3723))
+
 ## [8.84.9](https://github.com/yonatangross/orchestkit/compare/v8.84.8...v8.84.9) (2026-07-23)
 
 
