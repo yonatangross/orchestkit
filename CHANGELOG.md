@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.84.9](https://github.com/yonatangross/orchestkit/compare/v8.84.8...v8.84.9) (2026-07-23)
+
+
+### Bug Fixes
+
+* **ci:** scope What's New --check to PRs, refresh for 8.84.8 ([#3113](https://github.com/yonatangross/orchestkit/issues/3113)) ([b14c62d](https://github.com/yonatangross/orchestkit/commit/b14c62d430a15a6e28c375697beead6760d1480b))
+
+
+### CI/CD
+
+* **review:** allow the release bot to trigger a review ([#3114](https://github.com/yonatangross/orchestkit/issues/3114)) ([bbff822](https://github.com/yonatangross/orchestkit/commit/bbff8220ec9eb36e123348c1df1e7acd9da8f584))
+* **review:** skip auto-label on Dependabot PRs (no secret access) ([#3116](https://github.com/yonatangross/orchestkit/issues/3116)) ([8707f66](https://github.com/yonatangross/orchestkit/commit/8707f661abd9d9ff738b1c1707feb4ec35607ab9))
+
 ## [8.84.8](https://github.com/yonatangross/orchestkit/compare/v8.84.7...v8.84.8) (2026-07-23)
 
 
