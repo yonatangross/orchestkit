@@ -25,6 +25,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Fires when the `needs-claude-review` label is present (added by a human, or
+  # auto-applied to sensitive-path PRs by auto-label.yml), on an @claude comment
+  # from a trusted actor, or on manual dispatch. The label path was dead for the
+  # repo's whole history because the label did not exist; it does now, and
+  # validate-workflows' Dead-gate audit fails CI if it is ever removed.
+  #
+  # Detection was deliberately split into auto-label.yml rather than a detect
+  # job here: co-locating them under one cancel-in-progress concurrency group
+  # meant a burst of pull_request events (opened + N labeled from PR creation)
+  # cancelled every run and no review ever completed.
   review:
     if: |
       (github.event_name == 'pull_request' &&
