@@ -17,6 +17,7 @@ import {
   outputAsk,
 } from '../../lib/common.js';
 import {
+  blankQuotedHeredocBodies,
   containsDangerousCommand,
   normalizeSingle,
 } from '../../lib/normalize-command.js';
@@ -296,7 +297,13 @@ export function dangerousCommandBlocker(input: HookInput, ctx: HookContext = NOO
   // --- DENY tier: piping to shell interpreters ---
   // Uses the RAW command: quote state is what decides whether a `|` is a pipe,
   // and normalizeSingle() has already stripped the quotes.
-  if (pipesToShellInterpreter(command)) {
+  // Blank QUOTED heredoc bodies first (#3098): `cat > x.sh <<'SH' ... SH` is
+  // writing inert text to a file — a `| bash` inside that body is script
+  // CONTENT, not an operator of this command. Bash performs no expansion in a
+  // quoted heredoc, so nothing in it can execute here. UNQUOTED heredoc bodies
+  // stay scanned: `$(curl x | bash)` inside one DOES execute via command
+  // substitution.
+  if (pipesToShellInterpreter(blankQuotedHeredocBodies(command))) {
     const reason = 'Piping to shell interpreter detected';
     ctx.log('dangerous-command-blocker', `BLOCKED: ${reason}`);
     ctx.logPermission('deny', reason, input);
