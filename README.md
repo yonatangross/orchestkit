@@ -209,6 +209,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v8.84.7](https://github.com/yonatangross/orchestkit/compare/v8.84.6...v8.84.7)** · 2026-07-23
+
+- **demos:** repair the Remotion renderer, validate it pre-merge (#3099)
+
 **[v8.84.6](https://github.com/yonatangross/orchestkit/compare/v8.84.5...v8.84.6)** · 2026-07-23
 
 - **cc-watch:** snapshot upstream CHANGELOG (2.1.218) (#3094)
@@ -249,10 +253,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **evals:** score effective recall over the full positive population (#3049)
 - **cc-watch:** snapshot upstream CHANGELOG (2.1.216) (#3053)
 - add AGENTS.md for AI coding agent discoverability (#3059)
-
-**[v8.83.1](https://github.com/yonatangross/orchestkit/compare/v8.83.0...v8.83.1)** · 2026-07-20
-
-- **evals:** report an eval outage as inconclusive, not as a skill regression (#3047)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
