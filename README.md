@@ -209,6 +209,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v8.84.8](https://github.com/yonatangross/orchestkit/compare/v8.84.7...v8.84.8)** · 2026-07-23
+
+- **hooks:** stop denying local data piped to an interpreter (#3097)
+- **security:** remove privesc in release regen, tighten allowlist (#3102)
+- **demos:** make renderer check gate-able, split remotion bumps (#3105)
+- **review:** auto-run Claude review on sensitive PRs, ban dead gates (#3104)
+
 **[v8.84.7](https://github.com/yonatangross/orchestkit/compare/v8.84.6...v8.84.7)** · 2026-07-23
 
 - **demos:** repair the Remotion renderer, validate it pre-merge (#3099)
@@ -245,14 +252,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v8.84.1](https://github.com/yonatangross/orchestkit/compare/v8.84.0...v8.84.1)** · 2026-07-21
 
 - fix playground gate messaging and release-PR stranding (#3063)
-
-**[v8.84.0](https://github.com/yonatangross/orchestkit/compare/v8.83.1...v8.84.0)** · 2026-07-21
-
-- **evals:** honest verdicts, three new gates, and a budget governor
-- **dream:** stop auto-pruning live memories with out-of-repo refs
-- **evals:** score effective recall over the full positive population (#3049)
-- **cc-watch:** snapshot upstream CHANGELOG (2.1.216) (#3053)
-- add AGENTS.md for AI coding agent discoverability (#3059)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
