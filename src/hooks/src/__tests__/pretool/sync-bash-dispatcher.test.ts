@@ -183,6 +183,46 @@ describe('sync-bash-dispatcher', () => {
   // Short-circuit on block
   // -------------------------------------------------------------------------
 
+  describe('short-circuit on ask (#3098 — the ask tier was swallowed)', () => {
+    // An ask is {continue:true, permissionDecision:'ask'}. It survived the
+    // !continue check and the merge then dropped hookSpecificOutput, so every
+    // ask-tier prompt (sudo/kill "Are you sure?", here-strings) reached CC as
+    // a silent allow. These pin the propagation.
+    const makeAskResult = (reason: string) => ({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse' as const,
+        permissionDecision: 'ask' as const,
+        permissionDecisionReason: reason,
+      },
+    });
+
+    it('propagates an ask from dangerous-command-blocker verbatim', () => {
+      vi.mocked(dangerousCommandBlocker).mockReturnValue(makeAskResult('Elevated privileges requested'));
+
+      const result = syncBashDispatcher(createBashInput('sudo rm /tmp/x'), testCtx);
+
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    it('does not call later hooks after an ask', () => {
+      vi.mocked(dangerousCommandBlocker).mockReturnValue(makeAskResult('ask'));
+
+      syncBashDispatcher(createBashInput('sudo rm /tmp/x'), testCtx);
+
+      expect(compoundCommandValidator).not.toHaveBeenCalled();
+      expect(unifiedBashAdvisoryDispatcher).not.toHaveBeenCalled();
+    });
+
+    it('propagates an ask from compound-command-validator verbatim', () => {
+      vi.mocked(compoundCommandValidator).mockReturnValue(makeAskResult('here-string'));
+
+      const result = syncBashDispatcher(createBashInput('bash <<< "echo hi"'), testCtx);
+
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+  });
+
   describe('short-circuit on first block', () => {
     it('returns block result immediately when dangerous-command-blocker blocks', () => {
       const blockResult = makeBlockResult('rm -rf / is dangerous');

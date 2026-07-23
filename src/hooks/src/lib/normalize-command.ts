@@ -171,6 +171,59 @@ export function blankQuotedHeredocBodies(cmd: string): string {
  * Detects: process substitution, brace expansion (command form), here-strings,
  * IFS manipulation, and nested command substitution.
  */
+/** Interpreters that execute an argument file or stdin as a script. */
+const EXEC_TOKEN_RE = /(^|[\s/])(sh|bash|zsh|dash|tclsh|source|eval|exec)($|[\s;|&])|(^|\s)\.\s/;
+/** Interpreters that execute a FILE argument as a script (python3 <(curl x) is RCE). */
+const SCRIPT_TOKEN_RE = /(^|[\s/])(python[23]?|node|perl|ruby)($|[\s;|&])/;
+/** Commands that fetch bytes from off-machine. Mirrors dangerous-command-blocker. */
+const NET_TOKEN_RE = /\b(curl|wget|fetch|nc|ncat|netcat|ssh|scp|ftp|telnet|aria2c)\b/i;
+
+/**
+ * Classify each process substitution by what consumes it.
+ * DENY-class findings keep the historical 'process substitution' prefix;
+ * ASK-class ones use 'unresolved-receiver' so the validator can tier them.
+ */
+export function classifyProcessSubstitutions(unquoted: string): string[] {
+  const findings: string[] = [];
+  const re = /([<>])\(([^)]{1,500})\)/g;
+  for (const m of unquoted.matchAll(re)) {
+    const [, dir, inner] = m;
+    const idx = m.index ?? 0;
+    if (dir === '>') {
+      // >(cmd): the consumer is INSIDE the parens. `tee >(wc -l)` is data;
+      // `> >(bash)` executes whatever flows in.
+      if (EXEC_TOKEN_RE.test(inner) || SCRIPT_TOKEN_RE.test(inner)) {
+        findings.push('process substitution feeding an interpreter (>(...))');
+      }
+      continue;
+    }
+    // <(cmd): the consumer is the owning simple command BEFORE the match.
+    // Scan the whole segment, not the first word — env/command prefixes and
+    // absolute paths (`env bash`, `/bin/bash`) defeat first-word checks.
+    const segStart = Math.max(
+      unquoted.lastIndexOf('|', idx),
+      unquoted.lastIndexOf(';', idx),
+      unquoted.lastIndexOf('&', idx),
+      unquoted.lastIndexOf('`', idx),
+      unquoted.lastIndexOf('$(', idx),
+    );
+    const segment = unquoted.slice(segStart + 1, idx);
+    if (EXEC_TOKEN_RE.test(segment)) {
+      findings.push('process substitution feeding a shell interpreter (<(...))');
+    } else if (SCRIPT_TOKEN_RE.test(segment) && (NET_TOKEN_RE.test(inner) || NET_TOKEN_RE.test(segment))) {
+      // python3 <(curl x) executes fetched code; python3 <(cat local.py) is
+      // equivalent to `python3 local.py`, which no guard blocks.
+      findings.push('process substitution feeding an interpreter from the network (<(...))');
+    } else if (/\$/.test(segment.trimStart().split(/\s/)[0] ?? '')) {
+      // `$SHELL <(x)`, `$CMD <(x)`: receiver is a variable — statically
+      // unresolvable, same class as the here-string bypasses. Escalate.
+      findings.push('unresolved-receiver process substitution (<(...))');
+    }
+    // Plain data consumers (diff, grep, comm, wc, …) fall through: clean.
+  }
+  return findings;
+}
+
 export function detectSuspiciousShellFeatures(cmd: string): string[] {
   const findings: string[] = [];
 
@@ -180,8 +233,17 @@ export function detectSuspiciousShellFeatures(cmd: string): string[] {
 
   // 1. Process substitution: <(cmd) or >(cmd)
   // Limit content length to avoid ReDoS on untrusted input (CodeQL SEC-003)
-  if (/[<>]\([^)]{1,500}\)/.test(unquoted)) {
-    findings.push('process substitution detected (<(...) or >(...))');
+  //
+  // Not every substitution is a bypass (#3098). `diff <(sort a) <(sort b)` and
+  // `grep -q X <(sed -n 1,25p f)` are data plumbing: the inner text stays
+  // visible to every other validator, so nothing is hidden. The hazard is a
+  // substitution whose OUTPUT IS EXECUTED — `bash <(curl x)` — or one whose
+  // receiver cannot be resolved statically (`$SHELL <(x)`; the here-string
+  // analysis found 9 such first-word bypasses, so the whole owning segment is
+  // scanned for interpreter tokens, and unresolvable receivers escalate to ASK
+  // instead of silently passing).
+  for (const finding of classifyProcessSubstitutions(unquoted)) {
+    findings.push(finding);
   }
 
   // 2. Brace expansion (command form): {cat,/etc/passwd}

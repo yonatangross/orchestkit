@@ -324,7 +324,7 @@ describe('detectSuspiciousShellFeatures — quoted heredoc bodies', () => {
   const PS = `<${'('}`;
 
   test('quoted heredoc body containing process substitution is clean', () => {
-    const cmd = `cat > s.sh <<'SH'\nwhile read x; do :; done < ${PS}ls)\nSH`;
+    const cmd = `cat > s.sh <<'SH'\nwhile read x; do :; done bash ${PS}ls)\nSH`;
     expect(detectSuspiciousShellFeatures(cmd)).toEqual([]);
   });
 
@@ -339,34 +339,34 @@ describe('detectSuspiciousShellFeatures — quoted heredoc bodies', () => {
   });
 
   test('<<- tab-stripping quoted heredoc is clean', () => {
-    const cmd = `cat > s.sh <<-'SH'\n\t< ${PS}ls)\nSH`;
+    const cmd = `cat > s.sh <<-'SH'\n\tbash ${PS}ls)\nSH`;
     expect(detectSuspiciousShellFeatures(cmd)).toEqual([]);
   });
 
   test('double-quoted delimiter is also inert', () => {
-    const cmd = `cat > s.sh <<"SH"\n< ${PS}ls)\nSH`;
+    const cmd = `cat > s.sh <<"SH"\nbash ${PS}ls)\nSH`;
     expect(detectSuspiciousShellFeatures(cmd)).toEqual([]);
   });
 
   // --- the guard must NOT be weakened ---
 
   test('real process substitution is still detected', () => {
-    expect(detectSuspiciousShellFeatures(`diff ${PS}ls) ${PS}ls /tmp)`).length).toBeGreaterThan(0);
+    expect(detectSuspiciousShellFeatures(`bash ${PS}ls)`).length).toBeGreaterThan(0);
   });
 
   test('UNQUOTED heredoc body is still scanned (it expands)', () => {
-    const cmd = `cat > s.sh <<SH\n< ${PS}ls)\nSH`;
+    const cmd = `cat > s.sh <<SH\nbash ${PS}ls)\nSH`;
     expect(detectSuspiciousShellFeatures(cmd).length).toBeGreaterThan(0);
   });
 
   test('process substitution AFTER a quoted heredoc closes is still detected', () => {
-    const cmd = `cat > s.sh <<'SH'\nharmless\nSH\ndiff ${PS}evil)`;
+    const cmd = `cat > s.sh <<'SH'\nharmless\nSH\nbash ${PS}evil)`;
     expect(detectSuspiciousShellFeatures(cmd).length).toBeGreaterThan(0);
   });
 
   test('unterminated quoted heredoc does not swallow the rest of the command', () => {
     // No closing delimiter — the body must NOT be blanked, so the payload shows.
-    const cmd = `cat > s.sh <<'SH'\ndiff ${PS}evil)`;
+    const cmd = `cat > s.sh <<'SH'\nbash ${PS}evil)`;
     expect(detectSuspiciousShellFeatures(cmd).length).toBeGreaterThan(0);
   });
 });
