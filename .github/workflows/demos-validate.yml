@@ -70,8 +70,10 @@ jobs:
             exit 0
           fi
           files=$(gh api "repos/${REPO}/pulls/${PR}/files" --paginate --jq '.[].filename')
-          if printf '%s\n' "$files" \
-               | grep -qE '^(orchestkit-demos/|\.github/workflows/demos-validate\.yml)'; then
+          # Here-string, not `printf | grep -q`: under pipefail, grep -q's
+          # early-exit SIGPIPEs the producer (exit 141) and flips the result
+          # non-deterministically. A here-string has no producer process.
+          if grep -qE '^(orchestkit-demos/|\.github/workflows/demos-validate\.yml)' <<<"$files"; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "::notice::orchestkit-demos untouched — renderer validation not needed. Reporting success."
@@ -106,7 +108,7 @@ jobs:
           set -euo pipefail
           out=$(npx remotion compositions)
           for id in TPL-ReleaseNotes TPL-ReleaseNotesSquare; do
-            if ! printf '%s\n' "$out" | grep -qE "^${id}\b"; then
+            if ! grep -qE "^${id}\b" <<<"$out"; then
               echo "::error::Composition ${id} is not registered — release-video.yml renders it and would fail after the next release."
               exit 1
             fi
