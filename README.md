@@ -205,60 +205,57 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## What's New
 
-**v8.16.0** — CC 2.1.149 → 2.1.161 adoption catch-up
+<!--ork:whats-new-->
+<!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
+<!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
-- **CC 2.1.160 + 2.1.161 adopted** — shell/build-config write prompts, single-file `grep` satisfies read-before-edit, background-session SIGTERM-before-SIGKILL, dynamic-workflow trigger renamed `workflow` → `ultracode`, parallel-tool independent failure, `claude mcp` secret redaction, `OTEL_RESOURCE_ATTRIBUTES` metric labels, `claude agents` done/total, `/mcp` collapse-unused-connectors.
-- **CC 2.1.157 adopted** — `.claude/skills` plugin auto-load (no marketplace), `claude plugin init`, `EnterWorktree` mid-session switching, worktrees unlocked on finish, `claude agents --agent`, backspace-dismiss workflow trigger.
-- **Skill tool-signature fixes** — corrected `SendMessage` / `PushNotification` examples that had drifted from the live tool schemas across 5 skills, surfaced by a 61-skill adversarially-verified staleness audit.
-- **Version matrix now 472 entries**; supported floor held at **2.1.148** (frozen until 2026-08-23).
+**[v8.84.5](https://github.com/yonatangross/orchestkit/compare/v8.84.4...v8.84.5)** · 2026-07-22
 
-**v7.63.0** — CC 2.1.116 Adoption + `gh` rate-limit enforcement
+- **ci:** scope Claude workflow tools, gate triage on author (#3085)
+- **security:** audit all four trees in CI, pin sharp (#3090)
+- **security:** correct audit-gate id reporting, allowlist hono (#3087)
 
-- **`MIN_CC_VERSION` bumped 2.1.113 → 2.1.116**, 10 new matrix entries (333 total), including `agent_hooks_main_thread` (agent-scoped hooks fire in `--agent` main thread, not just subagent), `sandbox_rm_dangerous_path_fix`, `reload_plugins_auto_deps`, `bash_gh_rate_limit_hint`
-- **New PostToolUse hook `gh-rate-limit-tracker`** — detects primary/secondary/HTTP-403+rate-phrase signals in `gh` stdout, injects `additionalContext` telling the model to stop the loop and wait for reset
-- **5 new skill evals** covering the 2.1.116 behavioral knowledge in `github-operations`, `create-pr`, `review-pr`, `doctor`, and agent-hook authoring
-- **Hook count 180 → 181**; 14 agent hooks audited for main-thread firing safety (all defensive blockers — net positive)
+**[v8.84.4](https://github.com/yonatangross/orchestkit/compare/v8.84.3...v8.84.4)** · 2026-07-22
 
-**v7.38.0** — CC 2.1.101 Full Adoption + Frontmatter Audit
+- **skills:** burn model-recency ratchet to zero (#3056)
 
-- **26 skill frontmatter fixes** — CC 2.1.101 enforces `context:fork` and `agent:` fields that were previously silently ignored; audited and corrected all 105 skills
-- **18 new CC features tracked** — 253 total in version matrix (deny-overrides-ask, dynamic MCP in subagents, worktree file access, focus mode, `/team-onboarding`)
-- **Wrong agent assignments fixed** — performance→frontend-performance-engineer, devops→ci-cd-engineer
-- **agent: removed from commit/create-pr** — prevents CC from delegating to agent instead of running skill workflow
+**[v8.84.3](https://github.com/yonatangross/orchestkit/compare/v8.84.2...v8.84.3)** · 2026-07-22
 
-**v7.37.0** — CC 2.1.98 Full Adoption
+- **hook-contract:** bump to 0.1.2, domain-anchored SDK provenance (#3080)
+- pin npm to 11.x in the hook-contract publish job (#3082)
 
-- **Monitor tool** — real-time streaming from background builds/tests in implement, cover, verify, review-pr
-- **Partial result synthesis** — crashed background agents report progress; 4 workflow skills salvage partial work instead of re-spawning
-- **Subprocess hardening** — `SCRIPT_CAPS=500` enforced, PID namespace sandbox, ENV_SCRUB active
-- **17 new CC features tracked** — 235 total in version matrix
-- **Anti-sycophancy protocol** — bans performative agreement in review skills (from Superpowers analysis)
-- **Verification gate** — cross-cutting 5-step evidence rule across 7 workflow skills
-- **Agent status protocol** — DONE/DONE_WITH_CONCERNS/BLOCKED/NEEDS_CONTEXT across all 39 agents
-- **Pressure-test framework** — RED-GREEN behavioral scenarios for 5 discipline skills
+**[v8.84.2](https://github.com/yonatangross/orchestkit/compare/v8.84.1...v8.84.2)** · 2026-07-22
 
-**v7.36.0** — CORS Hardening + Release-Please Fix
+- **cc-watch:** snapshot upstream CHANGELOG (2.1.217) (#3070)
+- **deps:** bump body-parser from 2.2.2 to 2.3.0 in /src/mcp-server (#3065)
+- **deps:** bump fast-uri from 3.1.2 to 3.1.4 in /orchestkit-demos (#3076)
+- **deps:** bump fast-uri from 3.1.2 to 3.1.4 in /src/mcp-server (#3074)
+- **deps:** bump hono from 4.12.25 to 4.12.31 in /src/mcp-server (#3075)
+- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
 
-- **CORS restricted** — `Access-Control-Allow-Origin` from `*` to same-origin on docs site
-- **Release-please drift fix** — `x-release-please-version` marker eliminates build drift on release PRs
+**[v8.84.1](https://github.com/yonatangross/orchestkit/compare/v8.84.0...v8.84.1)** · 2026-07-21
 
-**v7.33.0** — CC 2.1.97 Full Utilization
+- fix playground gate messaging and release-PR stranding (#3063)
 
-- **26 new CC features tracked** — refreshInterval status line, workspace.git_worktree, TRACEPARENT OTEL, Stop/SubagentStop long-session fix, and 20 more
+**[v8.84.0](https://github.com/yonatangross/orchestkit/compare/v8.83.1...v8.84.0)** · 2026-07-21
 
-**v7.30.0** — CC 2.1.94 Integration + Skill Hook Unlock
+- **evals:** honest verdicts, three new gates, and a budget governor
+- **dream:** stop auto-pruning live memories with out-of-repo refs
+- **evals:** score effective recall over the full positive population (#3049)
+- **cc-watch:** snapshot upstream CHANGELOG (2.1.216) (#3053)
+- add AGENTS.md for AI coding agent discoverability (#3059)
 
-- **20 dead skill frontmatter hooks activated** — CC 2.1.94 fixed silent ignore; context loaders now fire across 15 workflow skills
-- **Dynamic session titles** — prompt bar shows `{branch} · {effort}` via `hookSpecificOutput.sessionTitle`
-- **Effort default aligned** — `high` default matches CC 2.1.94+ for API-key/Bedrock/Vertex/Team/Enterprise users
-- **105 skills**, **39 agents**, **1 hooks**, **25 invocable commands**
+**[v8.83.1](https://github.com/yonatangross/orchestkit/compare/v8.83.0...v8.83.1)** · 2026-07-20
 
-**v7.27.0** — shadcn/ui v4 Style System + CC 2.1.90
+- **evals:** report an eval outage as inconclusive, not as a skill regression (#3047)
 
-- **shadcn/ui v4 styles** — 6 styles across 7 design skills
-- **CC 2.1.90 integration** — format-on-save, offline resilience, `/powerup` onboarding
+**[v8.83.0](https://github.com/yonatangross/orchestkit/compare/v8.82.1...v8.83.0)** · 2026-07-20
 
-[Full Changelog →](https://orchestkit.yonyon.ai/docs/changelog)
+- **cmux:** add declarative team layout for cmux (#3045)
+- **cover,hooks,auto:** close four AI-developer-workflow gaps (#3044)
+
+_See [CHANGELOG.md](CHANGELOG.md) for the full release history._
+<!--/ork-->
 
 ---
 

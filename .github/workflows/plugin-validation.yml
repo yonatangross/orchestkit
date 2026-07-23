@@ -382,6 +382,17 @@ jobs:
         shell: bash
         run: bash scripts/stamp-counts.sh --check
 
+      # The README "What's New" block is derived from CHANGELOG.md by
+      # stamp-whats-new.mjs. This fails CI if a normal PR touches CHANGELOG or the
+      # block without regenerating it — which is how it previously rotted ~68
+      # versions behind. Skipped on release-please PRs: those add the new CHANGELOG
+      # entry, and release.yml regenerates the block on the release branch as a
+      # best-effort step, so a regen hiccup must never block the release itself.
+      - name: Check README What's New is fresh
+        if: ${{ github.event_name != 'pull_request' || !startsWith(github.head_ref, 'release-please--') }}
+        shell: bash
+        run: node scripts/stamp-whats-new.mjs --check
+
   # Job 7: Skills Validation (flat structure)
   skills-validation:
     name: Skills Validation
