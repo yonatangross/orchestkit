@@ -51,6 +51,13 @@ jobs:
           persist-credentials: false
       - uses: anthropics/claude-code-action@af0559ee4f514d1ef21826982bed13f7edc3c35e  # v1.0.178
         with:
+          # The action refuses a run triggered by a bot unless it is allow-listed.
+          # auto-label-review.yml applies needs-claude-review with the Release Bot
+          # App token (GITHUB_TOKEN-added labels do not cascade), so the labeled
+          # event that fires this review has orchestkit-release-bot as its actor.
+          # Allow just that bot — not '*' — so a review is still only triggered by
+          # our own automation or a trusted human, never an arbitrary bot.
+          allowed_bots: "orchestkit-release-bot"
           # Auth via the Max-plan OAuth token (CLAUDE_CODE_OAUTH_TOKEN) instead of
           # metered console credits — $0 spend. Rotate with `claude setup-token`
           # then `gh secret set CLAUDE_CODE_OAUTH_TOKEN` if a run 401s.
