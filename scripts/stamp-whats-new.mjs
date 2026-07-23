@@ -27,7 +27,13 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+// WHATS_NEW_ROOT lets a TRUSTED copy of this script (staged outside the repo)
+// operate on a checked-out branch's files. release.yml relies on it: it copies
+// this script out of main before checking out the release branch, so the code
+// that runs is always main's, never the branch's. Without that split, a branch
+// named `release-please--<anything>` could execute arbitrary code under the
+// Release Bot token.
+const ROOT = process.env.WHATS_NEW_ROOT || join(dirname(fileURLToPath(import.meta.url)), "..");
 const CHANGELOG = join(ROOT, "CHANGELOG.md");
 const README = join(ROOT, "README.md");
 
@@ -50,6 +56,16 @@ function parseChangelog(text) {
     if (m) {
       if (cur) blocks.push(cur);
       cur = { version: m[1], url: m[2], date: m[3], bullets: [] };
+      continue;
+    }
+    // A "## " line that did NOT match the header regex is still a release
+    // boundary — a prerelease like "## [8.85.0-rc.1](url) (date)" fails the
+    // \d+\.\d+\.\d+ capture. Without closing the current block here, every
+    // bullet under that unparsed release is silently attributed to the PREVIOUS
+    // version, which reads as correct and is wrong.
+    if (/^## /.test(line)) {
+      if (cur) blocks.push(cur);
+      cur = null;
       continue;
     }
     if (!cur) continue;
