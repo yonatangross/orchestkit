@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.84.8](https://github.com/yonatangross/orchestkit/compare/v8.84.7...v8.84.8) (2026-07-23)
+
+
+### Bug Fixes
+
+* **hooks:** stop denying local data piped to an interpreter ([#3097](https://github.com/yonatangross/orchestkit/issues/3097)) ([4c9b973](https://github.com/yonatangross/orchestkit/commit/4c9b9731c29854a96e716f32c286b11d53345327))
+* **security:** remove privesc in release regen, tighten allowlist ([#3102](https://github.com/yonatangross/orchestkit/issues/3102)) ([7a11882](https://github.com/yonatangross/orchestkit/commit/7a1188234724b435b5f53e8b53e321848b9cb0b4))
+
+
+### CI/CD
+
+* **demos:** make renderer check gate-able, split remotion bumps ([#3105](https://github.com/yonatangross/orchestkit/issues/3105)) ([aba09d4](https://github.com/yonatangross/orchestkit/commit/aba09d41ef387bb93859ad0601c28ddc61b3fb42))
+* **review:** auto-run Claude review on sensitive PRs, ban dead gates ([#3104](https://github.com/yonatangross/orchestkit/issues/3104)) ([5900e29](https://github.com/yonatangross/orchestkit/commit/5900e298b2637d837f67cc1296d7e04da4df791f))
+
 ## [8.84.7](https://github.com/yonatangross/orchestkit/compare/v8.84.6...v8.84.7) (2026-07-23)
 
 
