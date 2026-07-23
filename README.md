@@ -209,6 +209,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v8.84.6](https://github.com/yonatangross/orchestkit/compare/v8.84.5...v8.84.6)** · 2026-07-23
+
+- **cc-watch:** snapshot upstream CHANGELOG (2.1.218) (#3094)
+- **readme:** auto-generate What's New from CHANGELOG (#3096)
+
 **[v8.84.5](https://github.com/yonatangross/orchestkit/compare/v8.84.4...v8.84.5)** · 2026-07-22
 
 - **ci:** scope Claude workflow tools, gate triage on author (#3085)
@@ -248,11 +253,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v8.83.1](https://github.com/yonatangross/orchestkit/compare/v8.83.0...v8.83.1)** · 2026-07-20
 
 - **evals:** report an eval outage as inconclusive, not as a skill regression (#3047)
-
-**[v8.83.0](https://github.com/yonatangross/orchestkit/compare/v8.82.1...v8.83.0)** · 2026-07-20
-
-- **cmux:** add declarative team layout for cmux (#3045)
-- **cover,hooks,auto:** close four AI-developer-workflow gaps (#3044)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
