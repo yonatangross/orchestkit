@@ -1,0 +1,79 @@
+diff --git a/src/terminal/PageList.zig b/src/terminal/PageList.zig
+index aa63b0474..bb5cc5247 100644
+--- a/src/terminal/PageList.zig
++++ b/src/terminal/PageList.zig
+@@ -2476,6 +2476,17 @@ fn resizeWithoutReflow(self: *PageList, opts: Resize) Allocator.Error!void {
+             assert(self.totalRows() >= self.rows);
+         }
+     }
++
++    // Restore any compressed page that now overlaps the active area. Growing
++    // rows without reflow can "pull down" a compressed history page into the
++    // active area, but the active-area write paths (Screen/Terminal via
++    // pageAssumeResident) require residency and will read decommitted memory
++    // otherwise. This makes the resize() contract ("Resizing forces all nodes
++    // to be decompressed today") actually hold for the reflow=false path.
++    {
++        var node: ?*Node = self.getTopLeft(.active).node;
++        while (node) |n| : (node = n.next) _ = n.page();
++    }
+ }
+ 
+ fn resizeWithoutReflowGrowCols(
+@@ -6526,6 +6537,56 @@ test "PageList incremental compression skips visible history" {
+     try testing.expectEqual(@as(u64, 0), s.page_compression.next_serial);
+ }
+ 
++test "PageList grow pulls compressed page into active area still compressed" {
++    // Proof of the scrollback-tear root cause:
++    //
++    //   resize() header comment: "Resizing forces all nodes to be
++    //   decompressed today" — but the reflow=false path only resets the
++    //   compression STATE MACHINE and never restores pages.
++    //
++    //   resizeWithoutReflow's row-grow pull-down: "A compressed history page
++    //   pulled into the active area remains compressed until ... Node.page".
++    //
++    //   Screen.zig / Terminal.zig then access ACTIVE-AREA nodes via
++    //   pageAssumeResident() == &node.data.resident — a wrong-union-field
++    //   access on a compressed node: safety panic in Debug, torn garbage
++    //   reads over decommitted (MADV_FREE_REUSABLE) memory in ReleaseFast.
++    //
++    // This test pins the invariant those call sites rely on: after ANY
++    // operation, every node overlapping the active area must be resident.
++    const testing = std.testing;
++
++    var s = try init(testing.allocator, 80, 24, null);
++    defer s.deinit();
++    try s.growColdPagesForTest(3);
++
++    // Compress all eligible (complete, non-visible) history pages.
++    try testing.expectEqual(
++        IncrementalCompressionResult.complete,
++        s.compress(.drain),
++    );
++    var compressed_before: usize = 0;
++    {
++        var it = s.pages.first;
++        while (it) |node| : (it = node.next) {
++            if (node.isCompressed()) compressed_before += 1;
++        }
++    }
++    try testing.expect(compressed_before > 0);
++
++    // Grow rows without reflow: scrollback is pulled down into the active
++    // area (resizeWithoutReflow's metadata-only traversal).
++    try s.resize(.{ .rows = 24 + 200, .reflow = false });
++
++    // INVARIANT UNDER TEST: every node overlapping the active area is
++    // resident, because the hot write paths access them with
++    // pageAssumeResident(). Expected to FAIL on current code.
++    var node: ?*Node = s.getTopLeft(.active).node;
++    while (node) |n| : (node = n.next) {
++        try testing.expect(!n.isCompressed());
++    }
++}
++
+ test "PageList owns incremental compression state" {
+     const testing = std.testing;
+ 
