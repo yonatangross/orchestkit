@@ -100,6 +100,13 @@ audit_project() {
   # Auditing the lockfile is also the more correct question for a gate: it
   # describes what CI and production will install, not what happens to be
   # sitting in a contributor's node_modules.
+  #
+  # KNOWN LIMIT: npm resolves advisories by POSTing the whole tree to
+  # registry.npmjs.org's bulk endpoint. Dependencies hosted elsewhere -- notably
+  # @yonatan-hq/* on GitHub Packages in docs/site -- are therefore never checked,
+  # with or without --package-lock-only. "All four trees are audited" means all
+  # four are WALKED; it does not mean every dependency in them has advisory
+  # coverage. Private-registry packages need their own scanning.
   if [[ ! -f "$dir/package-lock.json" ]]; then
     fail "$label: no package-lock.json — cannot audit this tree"
     echo ""

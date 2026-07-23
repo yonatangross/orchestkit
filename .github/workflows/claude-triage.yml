@@ -85,9 +85,17 @@ jobs:
           # (maintainers routinely paste external stack traces and user reports), and
           # the run carries a GITHUB_TOKEN with issues:write. The "do NOT apply labels"
           # instruction in the prompt above is advisory text that injected content can
-          # override; this allowlist is the part that actually enforces it -- the two
-          # read-only gh calls the prompt needs, and nothing that can mutate the repo.
+          # override; this allowlist is the part that actually enforces it.
+          #
+          # Both gh rules are deliberately EXACT, with no trailing `:*`. A trailing
+          # wildcard is a plain string-prefix match with no awareness of gh's
+          # HTTP-verb flags, so `Bash(gh api repos/:owner/:repo/milestones:*)` also
+          # matched `gh api repos/:owner/:repo/milestones -X POST|PATCH|DELETE`.
+          # That is a write primitive, held by a job with issues: write, reachable
+          # from an attacker-influenceable issue body -- precisely the threat this
+          # allowlist exists to contain. An earlier version of this comment claimed
+          # the list held "nothing that can mutate the repo"; that was false.
           claude_args: >-
             --max-turns 3
             --model claude-haiku-4-5-20251001
-            --allowedTools "Read,Grep,Glob,Bash(gh label list:*),Bash(gh api repos/:owner/:repo/milestones:*)"
+            --allowedTools "Read,Grep,Glob,Bash(gh label list),Bash(gh api repos/:owner/:repo/milestones)"

@@ -61,6 +61,18 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
 
+      # Checked out with the Release Bot token so the What's New refresh step
+      # below can push to the release branch. release-please-action itself works
+      # over the API and does not need the local tree, but tolerates it.
+      # persist-credentials: false matches every other checkout in this repo.
+      # The refresh step below authenticates its single push explicitly instead,
+      # so the App token is never written into .git/config where any later step
+      # (or any script from a checked-out branch) could read it.
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
       - id: release
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7  # v5.0.0
         with:
@@ -129,6 +141,84 @@ jobs:
               || echo "::warning::update-branch failed for #${NUM}; update it manually before merging."
           else
             echo "::notice::Release PR #${NUM} is not BEHIND — no update needed."
+          fi
+
+      # Regenerate the README "What's New" block on the release branch. The
+      # release PR adds the new CHANGELOG entry but cannot run a script, so the
+      # derived block would otherwise ship a release behind. plugin-validation's
+      # freshness --check is skipped on release-please branches, so this is the
+      # sole mechanism that keeps the block current at merge time. The block
+      # self-heals on the next build if this ever fails, so it must never block
+      # a release.
+      - name: Refresh README What's New on the release PR
+        # justify: best-effort https://github.com/yonatangross/orchestkit/issues/3095
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -uo pipefail
+
+          # Stage a TRUSTED copy of the stamper from main BEFORE any branch is
+          # checked out. The original version ran `node scripts/stamp-whats-new.mjs`
+          # after checking the branch out, i.e. it executed code from that branch
+          # with the App token in scope. Selecting the branch by name prefix is
+          # not a trust signal: only `main` is protected, so anyone able to push
+          # `release-please--<anything>` could have had code run here.
+          cp scripts/stamp-whats-new.mjs "$RUNNER_TEMP/stamp-whats-new.mjs"
+
+          # Require the release PR to actually be authored by the release bot,
+          # rather than trusting the branch name alone.
+          PR_JSON=$(gh pr list --state open --json headRefName,author,number \
+                      --jq '[.[] | select(.headRefName | startswith("release-please--"))][0]' 2>/dev/null || echo "")
+          if [ -z "$PR_JSON" ] || [ "$PR_JSON" = "null" ]; then
+            echo "::notice::No open release PR — nothing to refresh."
+            exit 0
+          fi
+          BRANCH=$(printf '%s' "$PR_JSON" | jq -r '.headRefName')
+          AUTHOR=$(printf '%s' "$PR_JSON" | jq -r '.author.login')
+          NUM=$(printf '%s' "$PR_JSON" | jq -r '.number')
+          case "$AUTHOR" in
+            *"[bot]"|"orchestkit-release-bot"|"github-actions")
+              ;;
+            *)
+              echo "::warning::Release PR #${NUM} on ${BRANCH} is authored by '${AUTHOR}', not the release bot. Refusing to check it out."
+              exit 0
+              ;;
+          esac
+
+          if ! git fetch --quiet origin "$BRANCH"; then
+            echo "::warning::Could not fetch ${BRANCH}; What's New not refreshed."
+            exit 0
+          fi
+          if ! git checkout --quiet "$BRANCH"; then
+            echo "::warning::Could not check out ${BRANCH}; What's New not refreshed."
+            exit 0
+          fi
+
+          # Run the trusted copy against the branch's files. WHATS_NEW_ROOT keeps
+          # its path resolution pointed at the workspace even though the script
+          # itself lives outside it.
+          if ! WHATS_NEW_ROOT="$GITHUB_WORKSPACE" node "$RUNNER_TEMP/stamp-whats-new.mjs"; then
+            echo "::warning::stamp-whats-new failed on ${BRANCH}; What's New not refreshed."
+            exit 0
+          fi
+
+          if git diff --quiet -- README.md; then
+            echo "::notice::What's New already current on ${BRANCH}."
+            exit 0
+          fi
+
+          git config user.name "orchestkit-release-bot[bot]"
+          git config user.email "orchestkit-release-bot[bot]@users.noreply.github.com"
+          git add README.md
+          git commit --quiet -m "docs: refresh README What's New for the release"
+          # Authenticate this one push explicitly; credentials are not persisted.
+          if git push --quiet \
+               "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+               "HEAD:${BRANCH}"; then
+            echo "::notice::Refreshed What's New on ${BRANCH}."
+          else
+            echo "::warning::Could not push What's New refresh to ${BRANCH}."
           fi
 
   # NOTE: Version sync to manifests, pyproject.toml, and CLAUDE.md is handled
