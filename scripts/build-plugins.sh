@@ -577,6 +577,7 @@ echo ""
 echo ""
 echo "Stamping counts and version markers…"
 bash "$(dirname "$0")/stamp-counts.sh"
+node "$(dirname "$0")/stamp-whats-new.mjs"
 echo ""
 
 echo -e "${BLUE}[10/10] Build Summary${NC}"
