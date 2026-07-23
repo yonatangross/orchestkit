@@ -37,9 +37,17 @@ concurrency:
 jobs:
   label:
     name: Label sensitive PRs for review
-    # Fork PRs cannot read the App-token secrets and cannot be labelled by a
-    # read-only token; they stay opt-in via an @claude comment from a maintainer.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    # Skip when the App-token secrets are unreachable:
+    #  - fork PRs run with a read-only token and no secret access;
+    #  - Dependabot PRs are isolated from repo secrets by GitHub, so the
+    #    "Mint Release Bot token" step below cannot run and the job would fail
+    #    (red) on every sensitive-path Dependabot PR rather than no-op.
+    # These paths stay reviewable via an @claude comment from a maintainer, and
+    # Dependabot PRs are already gated by the required checks (incl. Validate
+    # Renderer) and the semver-major hold.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 3
     permissions:
