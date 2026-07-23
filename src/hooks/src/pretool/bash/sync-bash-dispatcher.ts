@@ -184,6 +184,16 @@ export function syncBashDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX
         return result;
       }
 
+      // Short-circuit on ASK. An ask is {continue:true, permissionDecision:'ask'},
+      // so it survived the !continue check above and then the merge dropped its
+      // hookSpecificOutput — every ask-tier prompt (sudo/kill "Are you sure?",
+      // here-strings) was silently swallowed into allow. Return it directly so
+      // CC actually prompts (#3098).
+      if (result.hookSpecificOutput?.permissionDecision === 'ask') {
+        ctx.log(HOOK_NAME, `${hook.name} asked — short-circuiting`);
+        return result;
+      }
+
       if (result.hookSpecificOutput?.updatedInput) {
         updatedInput = result.hookSpecificOutput.updatedInput as Record<string, unknown>;
         ctx.log(HOOK_NAME, `${hook.name}: updatedInput collected`);

@@ -50,8 +50,12 @@ export function compoundCommandValidator(input: HookInput, ctx: HookContext = NO
     return outputSilentSuccess();
   }
 
-  const hereStringFindings = suspiciousFeatures.filter((f) => f.startsWith('here-string'));
-  const denyFindings = suspiciousFeatures.filter((f) => !f.startsWith('here-string'));
+  // ASK tier: here-strings AND process substitutions whose receiver is a
+  // variable ($SHELL <(x)) — both are "cannot be told apart statically"
+  // cases; the operator sees the command and decides. Everything else denies.
+  const isAskTier = (f: string) => f.startsWith('here-string') || f.startsWith('unresolved-receiver');
+  const hereStringFindings = suspiciousFeatures.filter(isAskTier);
+  const denyFindings = suspiciousFeatures.filter((f) => !isAskTier(f));
 
   // Any obfuscation feature present → DENY (wins even if a here-string is
   // also present — the more dangerous tier governs).
@@ -76,11 +80,11 @@ Please rewrite the command using standard shell syntax.`
   ctx.log('compound-command-validator', `ASK: ${reason}`);
 
   return outputAsk(
-    `Here-string (<<<) detected.
+    `Stdin/receiver redirection detected: ${reason}.
 
-A here-string feeds text to a command's stdin. This is usually harmless \
-(e.g. grep x <<< "$v"), but feeding one to a shell interpreter \
-(bash <<< "code", source /dev/stdin <<< "code") executes arbitrary code. \
+This is usually harmless (e.g. grep x <<< "$v", diff <(sort a) <(sort b)), \
+but feeding a shell interpreter (bash <<< "code") or an unresolvable \
+receiver ($SHELL <(x)) executes arbitrary code. \
 Approve only if you recognize this command.`
   );
 }
