@@ -209,6 +209,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v8.84.9](https://github.com/yonatangross/orchestkit/compare/v8.84.8...v8.84.9)** · 2026-07-23
+
+- **ci:** scope What's New --check to PRs, refresh for 8.84.8 (#3113)
+- **review:** allow the release bot to trigger a review (#3114)
+- **review:** skip auto-label on Dependabot PRs (no secret access) (#3116)
+
 **[v8.84.8](https://github.com/yonatangross/orchestkit/compare/v8.84.7...v8.84.8)** · 2026-07-23
 
 - **hooks:** stop denying local data piped to an interpreter (#3097)
@@ -248,10 +254,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps:** bump fast-uri from 3.1.2 to 3.1.4 in /src/mcp-server (#3074)
 - **deps:** bump hono from 4.12.25 to 4.12.31 in /src/mcp-server (#3075)
 - …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v8.84.1](https://github.com/yonatangross/orchestkit/compare/v8.84.0...v8.84.1)** · 2026-07-21
-
-- fix playground gate messaging and release-PR stranding (#3063)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
