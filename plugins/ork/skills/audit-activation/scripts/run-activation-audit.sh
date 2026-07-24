@@ -24,22 +24,43 @@ const jsonMode = process.env.JSON_MODE === "true";
 const rd = (p) => { try { return fs.readFileSync(p,"utf8").split("\n").filter(Boolean).map(l=>{try{return JSON.parse(l)}catch{return null}}).filter(Boolean) } catch { return [] } };
 
 const spawnFile = `${repo}/.claude/logs/subagent-spawns.jsonl`;
-const spawns = rd(spawnFile);
+const allRows = rd(spawnFile);
 const inv = fs.readdirSync(`${repo}/src/agents`).filter(f=>f.endsWith(".md")&&!/^(README|INDEX|CONTRIBUTING)\.md$/i.test(f)).map(f=>f.replace(/\.md$/,"")).sort();
 const invSet = new Set(inv);
 const BUILTIN = new Set(["Explore","general-purpose","Plan","workflow-subagent","statusline-setup"]);
 const norm = (n)=>String(n||"?").replace(/^ork:/,"");
 
-let g=0,o=0,other=0,unknown=0; const fires={}; let mn=null,mx=null;
+// M170/#3128: exclude synthetic sessions before computing ANY share. A single
+// test session (test-123) once spawned all 36 catalog agents and made this
+// audit report "dormant 0, ork 24%" — the tool graded its own test data.
+// Two signatures: session_id starting with test-, or a session spawning more
+// distinct catalog agents than any real workflow does (>20).
+const perSession = {};
+for (const s of allRows){
+  const sid = s.session_id || "?";
+  const n = norm(s.subagent_type||s.agent||s.agent_type||"?");
+  if (invSet.has(n)) (perSession[sid] ||= new Set()).add(n);
+}
+const sessionsAll = new Set(allRows.map(s => s.session_id || "?"));
+const excluded = new Set([...sessionsAll].filter(sid => /^test-/i.test(sid) || (perSession[sid]?.size||0) > 20));
+const spawns = allRows.filter(s => !excluded.has(s.session_id || "?"));
+const excludedRows = allRows.length - spawns.length;
+
+let g=0,o=0,gp=0,other=0,unknown=0; const fires={}; let mn=null,mx=null;
 for (const s of spawns){
   const raw = s.subagent_type||s.agent||s.agent_type||"?";
   const n = norm(raw); const t = s.timestamp||s.ts;
   if (t){ if(!mn||t<mn)mn=t; if(!mx||t>mx)mx=t; }
   if (n==="?"||n===""){ unknown++; continue; }
+  if (raw==="general-purpose"||n==="general-purpose") gp++;
   if (BUILTIN.has(raw)||BUILTIN.has(n)) g++;
   else if (invSet.has(n)){ o++; fires[n]=(fires[n]||0)+1; }
   else other++;
 }
+// The advisor metric (#2632): of spawns the advisor can influence (ork + gp),
+// what share reached the catalog? Baseline anchor 2026-06-23: 44.2%, ratio 0.79.
+const addressableShare = (o+gp) ? Math.round(o/(o+gp)*1000)/10 : 0;
+const addressableRatio = gp ? Math.round(o/gp*100)/100 : null;
 const tot = spawns.length || 1;
 const pct = (x)=>Math.round(x/tot*100);
 const fired = inv.filter(a=>fires[a]);
@@ -57,12 +78,17 @@ const top5 = Object.values(fires).sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,
 const conc = o ? Math.round(top5/o*100) : 0;
 
 if (jsonMode){
-  console.log(JSON.stringify({ window:[mn,mx], total:tot, totals:{generic:g,ork:o,other,unknown},
+  console.log(JSON.stringify({ window:[mn,mx], total:tot, totals:{generic:g,ork:o,general_purpose:gp,other,unknown},
+    addressable:{share_pct:addressableShare, ratio:addressableRatio, baseline:{share_pct:44.2, ratio:0.79, date:"2026-06-23"}},
+    excluded:{sessions:[...excluded], rows:excludedRows},
     agents: inv.map(a=>({name:a,fires:fires[a]||0,skillRefs:skillRefs[a]})), conc_top5_pct:conc }, null, 2));
   process.exit(0);
 }
 
 const bar=(p)=>"#".repeat(Math.round(p/2.7)).padEnd(37,".");
+console.log(`\nADDRESSABLE RATIO (headline · ork:general-purpose · advisor #2632 success metric)`);
+console.log(`  ork ${o} : gp ${gp}  ->  share ${addressableShare}% · ratio ${addressableRatio ?? "n/a"}   (baseline 2026-06-23: 44.2% · 0.79 — should climb toward 1.0)`);
+if (excludedRows) console.log(`  excluded ${excludedRows} row(s) from ${excluded.size} synthetic session(s): ${[...excluded].slice(0,3).join(", ")}${excluded.size>3?" …":""}`);
 console.log(`\nAGENT SPAWNS (${tot} total · ${(mn||"?").slice(0,10)} -> ${(mx||"?").slice(0,10)})`);
 console.log(`  generic CC    ${bar(pct(g))}  ${pct(g)}%`);
 console.log(`  ork catalog   ${bar(pct(o))}  ${pct(o)}%`);
