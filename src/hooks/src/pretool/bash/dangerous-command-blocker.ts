@@ -199,7 +199,10 @@ export function hasNetworkSource(upstream: string): boolean {
   return NETWORK_SOURCE_RE.test(upstream);
 }
 
-export function pipesToShellInterpreter(cmd: string): boolean {
+/** Which interpreter shape a real pipe targets, or null when none. */
+export type PipeToInterpreterKind = 'exec' | 'interpreter';
+
+export function pipesToShellInterpreter(cmd: string): PipeToInterpreterKind | null {
   let inSingle = false;
   let inDouble = false;
 
@@ -231,15 +234,42 @@ export function pipesToShellInterpreter(cmd: string): boolean {
     const target = cmd.slice(i + 1).replace(/['"]/g, '').trimStart();
 
     // stdin-as-script: always a deny, whatever the source.
-    if (SHELL_EXEC_RE.test(target)) return true;
+    if (SHELL_EXEC_RE.test(target)) return 'exec';
 
     // stdin-as-data: a deny only when the bytes came off-machine. Local data
     // into `python3 -c` is log parsing, not RCE (#3096).
-    if (SCRIPT_INTERPRETER_RE.test(target) && hasNetworkSource(cmd.slice(0, i))) return true;
+    if (SCRIPT_INTERPRETER_RE.test(target) && hasNetworkSource(cmd.slice(0, i)))
+      return 'interpreter';
   }
 
-  return false;
+  return null;
 }
+
+// -----------------------------------------------------------------------------
+// Deny messages for the pipe-to-interpreter guard.
+//
+// permissionDecisionReason is fed back to the model on a PreToolUse deny, and
+// CC keeps NO memory of a denied command (no dedup, no backoff). So a reason
+// that only says "blocked, dangerous" leaves the model to re-emit the single
+// most natural idiom (`curl <url> | python3`) next turn, and it hits the same
+// wall forever. The reason must REDIRECT to the allowed shape: fetch to a file
+// first, then read the file locally (a network source is what makes the piped
+// form an RCE; local data into an interpreter is allowed, #3096).
+// -----------------------------------------------------------------------------
+const PIPE_TO_SHELL_DENY =
+  'Piping fetched output into a shell interpreter detected.\n\n' +
+  'This runs code you have never seen, so it is blocked. Split it into steps you can inspect:\n' +
+  '  1. curl -fsSL "<url>" -o /tmp/script.sh   (fetch to a file)\n' +
+  '  2. less /tmp/script.sh                    (read what it does)\n' +
+  '  3. bash /tmp/script.sh                    (run only after inspecting)';
+
+const PIPE_TO_INTERPRETER_DENY =
+  'Piping network output into a script interpreter detected.\n\n' +
+  'Remote bytes into python3/node/perl/ruby is the remote-code-execution shape, so it is blocked.\n' +
+  'Fetch and interpret as SEPARATE steps (local data into an interpreter is allowed):\n' +
+  '  1. curl -fsSL "<url>" -o /tmp/data.json                            (network to file)\n' +
+  '  2. python3 -c \'import json; d = json.load(open("/tmp/data.json"))\' (file to interpreter, OK)\n' +
+  'For an API read, prefer a real client or MCP query tool over curl piped to an interpreter.';
 
 // =============================================================================
 // Main handler
@@ -303,14 +333,11 @@ export function dangerousCommandBlocker(input: HookInput, ctx: HookContext = NOO
   // quoted heredoc, so nothing in it can execute here. UNQUOTED heredoc bodies
   // stay scanned: `$(curl x | bash)` inside one DOES execute via command
   // substitution.
-  if (pipesToShellInterpreter(blankQuotedHeredocBodies(command))) {
-    const reason = 'Piping to shell interpreter detected';
-    ctx.log('dangerous-command-blocker', `BLOCKED: ${reason}`);
-    ctx.logPermission('deny', reason, input);
-    return outputDeny(
-      `${reason}\n\n` +
-        'Piping untrusted content to a shell interpreter is dangerous and has been blocked.',
-    );
+  const pipeKind = pipesToShellInterpreter(blankQuotedHeredocBodies(command));
+  if (pipeKind) {
+    ctx.log('dangerous-command-blocker', `BLOCKED: Piping to shell interpreter (${pipeKind})`);
+    ctx.logPermission('deny', 'Piping to shell interpreter detected', input);
+    return outputDeny(pipeKind === 'exec' ? PIPE_TO_SHELL_DENY : PIPE_TO_INTERPRETER_DENY);
   }
 
   // --- ASK tier: dangerous but sometimes legitimate (substring) ---
