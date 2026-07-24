@@ -260,7 +260,10 @@ describe('hooks.json wiring E2E', () => {
       // metric that reflects the new hook function.
       // 218 -> 216: removed lifecycle/agentation-context (SessionStart) — the
       //             agentation UI-annotation integration was dropped entirely.
-      expect(hooksConfig.description).toContain('217 total');
+      // 217 -> 219: M170/#3126 new Workflow matcher with two dispatch entries:
+      //             pretool/task/workflow-agenttype-advisor (new hook) and a
+      //             second ref to the existing lifecycle/webhook-forwarder.
+      expect(hooksConfig.description).toContain('219 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

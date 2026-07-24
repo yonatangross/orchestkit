@@ -98,6 +98,7 @@ const bar=(p)=>"#".repeat(Math.round(p/2.7)).padEnd(37,".");
 console.log(`\nADDRESSABLE RATIO (headline · ork:general-purpose · advisor #2632 success metric)`);
 console.log(`  ork ${o} : gp ${gp}  ->  share ${addressableShare}% · ratio ${addressableRatio ?? "n/a"}   (baseline 2026-06-23: 44.2% · 0.79 — should climb toward 1.0)`);
 if (excludedRows) console.log(`  excluded ${excludedRows} row(s) from ${excluded.size} synthetic session(s): ${[...excluded].slice(0,3).join(", ")}${excluded.size>3?" …":""}`);
+if (resolved) console.log(`  resolved ${resolved} name-shadowed start row(s) via the pretool (type, name) map (#3129)`);
 console.log(`\nAGENT SPAWNS (${tot} total · ${(mn||"?").slice(0,10)} -> ${(mx||"?").slice(0,10)})`);
 console.log(`  generic CC    ${bar(pct(g))}  ${pct(g)}%`);
 console.log(`  ork catalog   ${bar(pct(o))}  ${pct(o)}%`);
