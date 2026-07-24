@@ -5,22 +5,58 @@
  * Unit tests for prompt/executor-route-nudge (M170/#3127)
  *
  * Once-per-session advisory that points build-shaped prompts at the executor
- * skills. Self-gated by a session flag file, so tests use unique session ids.
+ * skills. Self-gated by a session flag file. node:fs is mocked (in-memory
+ * path set) so the suite does zero real disk I/O and is fully isolated
+ * across runs -- fixed after /ork:assess verification found two tests
+ * (traversal + JSON-envelope session_id) shared an unmocked fallback flag
+ * file with asymmetric cleanup, making the suite fail non-deterministically
+ * on repeated runs against the same working directory (real fs, not a fresh
+ * checkout). Mocking removes the shared real-file dependency entirely.
  */
 
-import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi, beforeEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+
+const { mockExistsSync, mockMkdirSync, mockWriteFileSync, writtenPaths } = vi.hoisted(() => ({
+  mockExistsSync: vi.fn(),
+  mockMkdirSync: vi.fn(),
+  mockWriteFileSync: vi.fn(),
+  writtenPaths: new Set<string>(),
+}));
+
+vi.mock('node:fs', () => ({
+  existsSync: mockExistsSync,
+  mkdirSync: mockMkdirSync,
+  writeFileSync: mockWriteFileSync,
+}));
+
 import { getSessionStorageDir } from '../../lib/paths.js';
 import { executorRouteNudge } from '../../prompt/executor-route-nudge.js';
+
+beforeEach(() => {
+  writtenPaths.clear();
+  mockExistsSync.mockReset().mockImplementation((p: string) => writtenPaths.has(p));
+  mockMkdirSync.mockReset();
+  mockWriteFileSync.mockReset().mockImplementation((p: string, _data: string, opts: { flag?: string }) => {
+    // Mirror Node's real 'wx' (create-exclusive) semantics: throw EEXIST if
+    // the path is already "written" -- this is what makes the TOCTOU test
+    // below a meaningful assertion instead of a no-op.
+    if (opts?.flag === 'wx' && writtenPaths.has(p)) {
+      const err = new Error(`EEXIST: file already exists, open '${p}'`) as NodeJS.ErrnoException;
+      err.code = 'EEXIST';
+      throw err;
+    }
+    writtenPaths.add(p);
+  });
+});
 
 let seq = 0;
 function makeInput(prompt: string, sessionId?: string): HookInput {
   seq += 1;
   return {
     tool_name: '',
-    session_id: sessionId ?? `wf-nudge-test-${process.pid}-${Date.now()}-${seq}`,
+    session_id: sessionId ?? `wf-nudge-test-${seq}`,
     prompt,
   } as HookInput;
 }
@@ -42,7 +78,7 @@ describe('prompt/executor-route-nudge', () => {
   });
 
   test('fires at most once per session', () => {
-    const sessionId = `wf-nudge-once-${process.pid}-${Date.now()}`;
+    const sessionId = 'wf-nudge-once';
     const first = executorRouteNudge(makeInput(BUILD_PROMPT, sessionId));
     const second = executorRouteNudge(makeInput(BUILD_PROMPT, sessionId));
     expect(contextOf(first)).not.toBe('');
@@ -87,17 +123,13 @@ describe('prompt/executor-route-nudge', () => {
     test('a traversal session_id does not escape the session storage dir', () => {
       const traversalId = '../../../../tmp/pwn';
       const escapedPath = join(getSessionStorageDir(), '..', '..', '..', '..', 'tmp', 'pwn-executor-nudge.flag');
-      try {
-        const result = executorRouteNudge(makeInput(BUILD_PROMPT, traversalId));
-        // Sanitized to the 'invalid' bucket: still nudges (fail-open on the
-        // advisory), but the write lands inside session storage, not at
-        // the attacker-influenced path.
-        expect(contextOf(result)).not.toBe('');
-        expect(existsSync(escapedPath)).toBe(false);
-        expect(existsSync(join(getSessionStorageDir(), 'invalid-executor-nudge.flag'))).toBe(true);
-      } finally {
-        rmSync(join(getSessionStorageDir(), 'invalid-executor-nudge.flag'), { force: true });
-      }
+      const result = executorRouteNudge(makeInput(BUILD_PROMPT, traversalId));
+      // Sanitized to the 'invalid' bucket: still nudges (fail-open on the
+      // advisory), but the write lands inside session storage, not at
+      // the attacker-influenced path.
+      expect(contextOf(result)).not.toBe('');
+      expect(writtenPaths.has(escapedPath)).toBe(false);
+      expect(writtenPaths.has(join(getSessionStorageDir(), 'invalid-executor-nudge.flag'))).toBe(true);
     });
 
     test('a JSON-envelope session_id (the #1826 leak shape) is rejected without throwing', () => {
@@ -105,8 +137,15 @@ describe('prompt/executor-route-nudge', () => {
       expect(() => executorRouteNudge(makeInput(BUILD_PROMPT, envelopeId))).not.toThrow();
     });
 
+    // Distinct fallback IDs: both the traversal and envelope inputs above
+    // collapse to the same 'invalid' bucket by design (safeIdentifier has
+    // one fallback value), so sharing state between THOSE two tests would
+    // reintroduce the exact collision this file was rewritten to remove.
+    // Each test above now runs against a fresh writtenPaths Set (beforeEach),
+    // so the shared fallback bucket is no longer a real collision.
+
     test('concurrent calls for the same session fire the nudge at most once (TOCTOU)', () => {
-      const sessionId = `wf-nudge-race-${process.pid}-${Date.now()}`;
+      const sessionId = 'wf-nudge-race';
       const results = Array.from({ length: 5 }, () => executorRouteNudge(makeInput(BUILD_PROMPT, sessionId)));
       const fired = results.filter((r) => contextOf(r) !== '');
       expect(fired).toHaveLength(1);
