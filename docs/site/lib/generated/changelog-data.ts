@@ -17,6 +17,133 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.84.10",
+    "date": "2026-07-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** drop the What's New freshness gate blocking the PR queue ([#3118](https://github.com/yonatangross/orchestkit/issues/3118)) ([c9308d0](https://github.com/yonatangross/orchestkit/commit/c9308d02d32715ca91974b1197bf91c111adae32))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**deps:** bump the npm-minor-patch group across 1 directory with 4 updates ([#3111](https://github.com/yonatangross/orchestkit/issues/3111)) ([5efd7e6](https://github.com/yonatangross/orchestkit/commit/5efd7e68e8e3b25cea818613f420f3995fbcaeca))",
+          "**deps:** bump the remotion group across 1 directory with 21 updates ([#3110](https://github.com/yonatangross/orchestkit/issues/3110)) ([7278d19](https://github.com/yonatangross/orchestkit/commit/7278d19213b0e4ba7348a05bf4f18d7c3a87553e))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "bump the github-actions group across 1 directory with 6 updates ([#3112](https://github.com/yonatangross/orchestkit/issues/3112)) ([6e83f3a](https://github.com/yonatangross/orchestkit/commit/6e83f3aa81827b67b72ca22c8990ce4f3a6c3723))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.84.9",
+    "date": "2026-07-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** scope What's New --check to PRs, refresh for 8.84.8 ([#3113](https://github.com/yonatangross/orchestkit/issues/3113)) ([b14c62d](https://github.com/yonatangross/orchestkit/commit/b14c62d430a15a6e28c375697beead6760d1480b))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**review:** allow the release bot to trigger a review ([#3114](https://github.com/yonatangross/orchestkit/issues/3114)) ([bbff822](https://github.com/yonatangross/orchestkit/commit/bbff8220ec9eb36e123348c1df1e7acd9da8f584))",
+          "**review:** skip auto-label on Dependabot PRs (no secret access) ([#3116](https://github.com/yonatangross/orchestkit/issues/3116)) ([8707f66](https://github.com/yonatangross/orchestkit/commit/8707f661abd9d9ff738b1c1707feb4ec35607ab9))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.84.8",
+    "date": "2026-07-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** stop denying local data piped to an interpreter ([#3097](https://github.com/yonatangross/orchestkit/issues/3097)) ([4c9b973](https://github.com/yonatangross/orchestkit/commit/4c9b9731c29854a96e716f32c286b11d53345327))",
+          "**security:** remove privesc in release regen, tighten allowlist ([#3102](https://github.com/yonatangross/orchestkit/issues/3102)) ([7a11882](https://github.com/yonatangross/orchestkit/commit/7a1188234724b435b5f53e8b53e321848b9cb0b4))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**demos:** make renderer check gate-able, split remotion bumps ([#3105](https://github.com/yonatangross/orchestkit/issues/3105)) ([aba09d4](https://github.com/yonatangross/orchestkit/commit/aba09d41ef387bb93859ad0601c28ddc61b3fb42))",
+          "**review:** auto-run Claude review on sensitive PRs, ban dead gates ([#3104](https://github.com/yonatangross/orchestkit/issues/3104)) ([5900e29](https://github.com/yonatangross/orchestkit/commit/5900e298b2637d837f67cc1296d7e04da4df791f))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.84.7",
+    "date": "2026-07-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**demos:** repair the Remotion renderer, validate it pre-merge ([#3099](https://github.com/yonatangross/orchestkit/issues/3099)) ([1447afa](https://github.com/yonatangross/orchestkit/commit/1447afa35cf290ece3bfd2de075cfc2262564a40))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.84.6",
+    "date": "2026-07-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.218) ([#3094](https://github.com/yonatangross/orchestkit/issues/3094)) ([bbd760e](https://github.com/yonatangross/orchestkit/commit/bbd760e48e03396a3f0a63fd0c1b97615f904940))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**readme:** auto-generate What's New from CHANGELOG ([#3096](https://github.com/yonatangross/orchestkit/issues/3096)) ([667aebe](https://github.com/yonatangross/orchestkit/commit/667aebe872f4ff7a1eb1a4ea162aff7713f3ee94))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.84.5",
+    "date": "2026-07-22",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** scope Claude workflow tools, gate triage on author ([#3085](https://github.com/yonatangross/orchestkit/issues/3085)) ([2835d07](https://github.com/yonatangross/orchestkit/commit/2835d075ad065ea273c5e1339f88a0650018d9e3))",
+          "**security:** audit all four trees in CI, pin sharp ([#3090](https://github.com/yonatangross/orchestkit/issues/3090)) ([b23e208](https://github.com/yonatangross/orchestkit/commit/b23e2087f8089a001be9a6f933aba73246518e01))",
+          "**security:** correct audit-gate id reporting, allowlist hono ([#3087](https://github.com/yonatangross/orchestkit/issues/3087)) ([cd19fee](https://github.com/yonatangross/orchestkit/commit/cd19fee126d9255487c7d8695d6986545e0cdf2d))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.84.4",
+    "date": "2026-07-22",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**skills:** burn model-recency ratchet to zero ([#3056](https://github.com/yonatangross/orchestkit/issues/3056)) ([f0f9557](https://github.com/yonatangross/orchestkit/commit/f0f9557369e2f1a7f3d268af09f1ba4f810aebd0))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.84.3",
     "date": "2026-07-22",
     "compareUrl": "",
