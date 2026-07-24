@@ -51,7 +51,14 @@ export function deriveSpawnDescription(input: HookInput): string {
 
 export function spawnIntentLogger(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolInput = input.tool_input || {};
-  const subagentType = (toolInput.subagent_type as string) || '';
+  // M170/#3129: a spawn has a TYPE (subagent_type, defaulting to
+  // general-purpose when omitted) and optionally a NAME (the `name` param).
+  // CC's SubagentStart payload puts the NAME in agent_type for named spawns,
+  // shadowing the real type — so this pretool row is the only place the
+  // (type, name) pair is ever observable. Record both, never conflate.
+  const rawType = (toolInput.subagent_type as string) || '';
+  const agentName = (toolInput.name as string) || '';
+  const subagentType = rawType || (agentName ? 'general-purpose' : '');
 
   // Guard at top: only Task/Agent invocations carry spawn intent.
   if (!subagentType) {
@@ -62,6 +69,7 @@ export function spawnIntentLogger(input: HookInput, ctx: HookContext = NOOP_CTX)
     timestamp: new Date().toISOString(),
     source: 'pretool' as const,
     subagent_type: subagentType,
+    ...(agentName ? { agent_name: agentName } : {}),
     description: deriveSpawnDescription(input),
     session_id: input.session_id,
     ...(input.tool_use_id ? { tool_use_id: input.tool_use_id } : {}),

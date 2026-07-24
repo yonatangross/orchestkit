@@ -46,9 +46,18 @@ const excluded = new Set([...sessionsAll].filter(sid => /^test-/i.test(sid) || (
 const spawns = allRows.filter(s => !excluded.has(s.session_id || "?"));
 const excludedRows = allRows.length - spawns.length;
 
-let g=0,o=0,gp=0,other=0,unknown=0; const fires={}; let mn=null,mx=null;
+// M170/#3129: SubagentStart rows for NAMED spawns carry the custom name in
+// subagent_type (CC payload shadowing). Pretool rows record the (type, name)
+// pair — build a name->type map and resolve shadowed start rows through it.
+const nameToType = {};
 for (const s of spawns){
-  const raw = s.subagent_type||s.agent||s.agent_type||"?";
+  if (s.agent_name && s.subagent_type && s.agent_name !== s.subagent_type)
+    nameToType[s.agent_name] = s.subagent_type;
+}
+let g=0,o=0,gp=0,other=0,unknown=0,resolved=0; const fires={}; let mn=null,mx=null;
+for (const s of spawns){
+  let raw = s.subagent_type||s.agent||s.agent_type||"?";
+  if (s.source === "start" && nameToType[raw]){ raw = nameToType[raw]; resolved++; }
   const n = norm(raw); const t = s.timestamp||s.ts;
   if (t){ if(!mn||t<mn)mn=t; if(!mx||t>mx)mx=t; }
   if (n==="?"||n===""){ unknown++; continue; }
@@ -89,6 +98,7 @@ const bar=(p)=>"#".repeat(Math.round(p/2.7)).padEnd(37,".");
 console.log(`\nADDRESSABLE RATIO (headline · ork:general-purpose · advisor #2632 success metric)`);
 console.log(`  ork ${o} : gp ${gp}  ->  share ${addressableShare}% · ratio ${addressableRatio ?? "n/a"}   (baseline 2026-06-23: 44.2% · 0.79 — should climb toward 1.0)`);
 if (excludedRows) console.log(`  excluded ${excludedRows} row(s) from ${excluded.size} synthetic session(s): ${[...excluded].slice(0,3).join(", ")}${excluded.size>3?" …":""}`);
+if (resolved) console.log(`  resolved ${resolved} name-shadowed start row(s) via the pretool (type, name) map (#3129)`);
 console.log(`\nAGENT SPAWNS (${tot} total · ${(mn||"?").slice(0,10)} -> ${(mx||"?").slice(0,10)})`);
 console.log(`  generic CC    ${bar(pct(g))}  ${pct(g)}%`);
 console.log(`  ork catalog   ${bar(pct(o))}  ${pct(o)}%`);

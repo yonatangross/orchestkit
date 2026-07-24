@@ -337,6 +337,10 @@ function logSpawn(
   const entry = {
     timestamp: new Date().toISOString(),
     source: 'start' as const,
+    // M170/#3129: for NAMED spawns CC's SubagentStart agent_type carries the
+    // custom name, shadowing the real type — unrecoverable at this event.
+    // The pretool row (spawn-intent-logger) records the (type, name) pair;
+    // downstream classifiers join start rows against it via agent_name.
     subagent_type: subagentType,
     description: description,
     session_id: sessionId,

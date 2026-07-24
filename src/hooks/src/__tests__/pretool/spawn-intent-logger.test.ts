@@ -108,6 +108,29 @@ describe('spawnIntentLogger', () => {
     expect(mockBufferWrite).not.toHaveBeenCalled();
   });
 
+  // M170/#3129: the (type, name) pair is only observable here — SubagentStart
+  // shadows the type with the name for named spawns.
+  test('records agent_name alongside the real type for named spawns', () => {
+    spawnIntentLogger(
+      makeInput({ subagent_type: 'Explore', name: 'repo-sweep', description: 'sweep repos' }),
+    );
+    const entry = loggedEntry();
+    expect(entry.subagent_type).toBe('Explore');
+    expect(entry.agent_name).toBe('repo-sweep');
+  });
+
+  test('named spawn without a type logs the general-purpose default', () => {
+    spawnIntentLogger(makeInput({ name: 'filer-builder', description: 'build the filer' }));
+    const entry = loggedEntry();
+    expect(entry.subagent_type).toBe('general-purpose');
+    expect(entry.agent_name).toBe('filer-builder');
+  });
+
+  test('omits agent_name entirely for unnamed spawns', () => {
+    spawnIntentLogger(makeInput({ subagent_type: 'Explore', description: 'plain' }));
+    expect(loggedEntry()).not.toHaveProperty('agent_name');
+  });
+
   test('never throws when the write fails', () => {
     mockBufferWrite.mockImplementationOnce(() => {
       throw new Error('disk full');
