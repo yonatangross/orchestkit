@@ -84,7 +84,14 @@ if [[ "$USE_CHANGED" == "true" ]]; then
             CHANGED_SKILLS+=("$skill_name")
             _seen_skills[$skill_name]=1
         fi
-    done < <(git diff --name-only origin/main -- src/skills/ tests/evals/skills/ 2>/dev/null | sort -u)
+    # #2967: was 'src/skills/ tests/evals/skills/', which selects on ANY changed
+    # path under a skill dir (e.g. scripts/run-audit.sh), so a script-only PR
+    # fires the eval and grades an unrelated, unchanged SKILL.md. Narrowed to
+    # the artifacts the grader actually reads.
+    # silent: best-effort — git diff exits non-zero on a shallow/missing
+    # origin/main ref; the empty-array branch below already treats that as
+    # "no changes detected," not a failure worth surfacing.
+    done < <(git diff --name-only origin/main -- 'src/skills/*/SKILL.md' 'tests/evals/skills/*.eval.yaml' 2>/dev/null | sort -u)
 
     if [[ ${#CHANGED_SKILLS[@]} -eq 0 ]]; then
         echo -e "${GREEN}No skill changes detected vs main — nothing to eval.${NC}"

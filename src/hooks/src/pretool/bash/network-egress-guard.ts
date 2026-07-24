@@ -220,9 +220,11 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   if (!raw) return outputSilentSuccess();
 
   const command = normalizeSingle(raw);
-  // #3122: the DENY tier scans a quote-aware view so a quoted mention of an RCE
-  // pattern (a grep/rg search string, an echo) is not hard-blocked. The ASK tier
-  // keeps `command` — it must still see quoted URLs for the host-allowlist checks.
+  // #3122/#3125: both tiers scan the quote-aware view so a quoted mention of an
+  // RCE/staged-run/exfil pattern (a grep/rg search string, an echo) is not
+  // flagged. `command` (quote-STRIPPED, not quote-aware) is kept only for host
+  // extraction (extractUrlHosts/firstRemoteHost) on the two ASK checks that
+  // genuinely need to see a quoted URL to resolve its allowlist status.
   const denyScan = normalizeSingle(egressDenyScanView(raw));
 
   // --- DENY tier ---
@@ -241,7 +243,10 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   }
 
   // --- ASK tier: staged download-then-run ---
-  if (STAGED_RUN_RE.test(command)) {
+  // #3125: was command (quote-stripped raw) — a quoted MENTION of a staged-run
+  // pattern (grep "curl -o x.sh && bash x.sh", echo "...") false-positived.
+  // No URL needed here, so denyScan is safe and closes the gap.
+  if (STAGED_RUN_RE.test(denyScan)) {
     const reason = 'Downloads a script from the network and then executes it. Proceed?';
     ctx.log(HOOK_NAME, `ASK: staged download-then-run`);
     ctx.logPermission('ask', reason, input);
@@ -249,7 +254,10 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   }
 
   // --- ASK tier: data upload to a non-allowlisted host ---
-  if (FETCH_RE.test(command) && UPLOAD_RE.test(command)) {
+  // #3125: FETCH_RE/UPLOAD_RE now test denyScan — a real upload flag (-d/-X
+  // POST) is never quoted, so this only drops quoted MENTIONS, not real
+  // uploads. Host extraction stays on `command`: it must see the quoted URL.
+  if (FETCH_RE.test(denyScan) && UPLOAD_RE.test(denyScan)) {
     const offHost = extractUrlHosts(command).find((h) => !isAllowlisted(h));
     if (offHost) {
       const reason = `Uploads data to a non-allowlisted host (${offHost}). Possible exfiltration. Proceed?`;
@@ -260,7 +268,10 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   }
 
   // --- ASK tier: nc / scp / rsync to a non-allowlisted host ---
-  if (NC_RE.test(command) || SCP_RSYNC_REMOTE_RE.test(command)) {
+  // #3125: matchers test denyScan (no URL needed to detect nc/scp/rsync
+  // presence); host extraction stays on `command` for the same reason as
+  // the upload check above.
+  if (NC_RE.test(denyScan) || SCP_RSYNC_REMOTE_RE.test(denyScan)) {
     const host = firstRemoteHost(command);
     if (host && !isAllowlisted(host)) {
       const reason = `Opens a raw connection / transfers files to a non-allowlisted host (${host}). Proceed?`;
