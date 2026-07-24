@@ -17,6 +17,22 @@ import {
 import { detectSuspiciousShellFeatures } from '../../lib/normalize-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
+// A process substitution feeding an interpreter (`bash <(curl x)`,
+// `python3 <(curl x)`) is the procsub spelling of `curl | bash`. Like the pipe
+// guard's deny (dangerous-command-blocker), the reason must REDIRECT to the
+// allowed shape or the model re-emits it every turn: CC feeds the deny reason
+// back but keeps no memory of a denied command (no dedup, no backoff). Appended
+// ONLY for the interpreter-feeding findings; brace expansion / IFS / nested
+// substitution have no fetch-to-file analogue, so "rewrite plainly" stays the
+// right guidance there.
+const PROCSUB_INTERP_REDIRECT =
+  '\n\nThat finding is the process-substitution spelling of piping fetched code into ' +
+  'an interpreter. Do the fetch and the run as SEPARATE steps you can inspect:\n' +
+  '  1. curl -fsSL "<url>" -o /tmp/x        (fetch to a file)\n' +
+  '  2. less /tmp/x                         (read what it does)\n' +
+  '  3. bash /tmp/x   (or: python3 /tmp/x)  (run the local file; no guard blocks that)\n' +
+  'For an API read, prefer a real client or MCP query tool.';
+
 /**
  * Validate compound commands for suspicious shell features.
  *
@@ -64,13 +80,16 @@ export function compoundCommandValidator(input: HookInput, ctx: HookContext = NO
     ctx.logPermission('deny', `Suspicious shell feature: ${reason}`, input);
     ctx.log('compound-command-validator', `BLOCKED: ${reason}`);
 
+    const feedsInterpreter = denyFindings.some((f) => f.includes('process substitution feeding'));
+    const redirect = feedsInterpreter ? PROCSUB_INTERP_REDIRECT : '';
+
     return outputDeny(
       `BLOCKED: Suspicious shell feature detected.
 
 Finding: ${reason}
 
 These shell features can bypass command validation and are not permitted.
-Please rewrite the command using standard shell syntax.`
+Please rewrite the command using standard shell syntax.${redirect}`
     );
   }
 

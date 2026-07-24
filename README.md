@@ -209,6 +209,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v8.84.10](https://github.com/yonatangross/orchestkit/compare/v8.84.9...v8.84.10)** · 2026-07-23
+
+- **ci:** drop the What's New freshness gate blocking the PR queue (#3118)
+- **deps:** bump the npm-minor-patch group across 1 directory with 4 updates (#3111)
+- **deps:** bump the remotion group across 1 directory with 21 updates (#3110)
+- bump the github-actions group across 1 directory with 6 updates (#3112)
+
 **[v8.84.9](https://github.com/yonatangross/orchestkit/compare/v8.84.8...v8.84.9)** · 2026-07-23
 
 - **ci:** scope What's New --check to PRs, refresh for 8.84.8 (#3113)
@@ -245,15 +252,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **hook-contract:** bump to 0.1.2, domain-anchored SDK provenance (#3080)
 - pin npm to 11.x in the hook-contract publish job (#3082)
-
-**[v8.84.2](https://github.com/yonatangross/orchestkit/compare/v8.84.1...v8.84.2)** · 2026-07-22
-
-- **cc-watch:** snapshot upstream CHANGELOG (2.1.217) (#3070)
-- **deps:** bump body-parser from 2.2.2 to 2.3.0 in /src/mcp-server (#3065)
-- **deps:** bump fast-uri from 3.1.2 to 3.1.4 in /orchestkit-demos (#3076)
-- **deps:** bump fast-uri from 3.1.2 to 3.1.4 in /src/mcp-server (#3074)
-- **deps:** bump hono from 4.12.25 to 4.12.31 in /src/mcp-server (#3075)
-- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

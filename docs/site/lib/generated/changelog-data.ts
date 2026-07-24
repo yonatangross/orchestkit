@@ -17,6 +17,32 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.84.10",
+    "date": "2026-07-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** drop the What's New freshness gate blocking the PR queue ([#3118](https://github.com/yonatangross/orchestkit/issues/3118)) ([c9308d0](https://github.com/yonatangross/orchestkit/commit/c9308d02d32715ca91974b1197bf91c111adae32))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**deps:** bump the npm-minor-patch group across 1 directory with 4 updates ([#3111](https://github.com/yonatangross/orchestkit/issues/3111)) ([5efd7e6](https://github.com/yonatangross/orchestkit/commit/5efd7e68e8e3b25cea818613f420f3995fbcaeca))",
+          "**deps:** bump the remotion group across 1 directory with 21 updates ([#3110](https://github.com/yonatangross/orchestkit/issues/3110)) ([7278d19](https://github.com/yonatangross/orchestkit/commit/7278d19213b0e4ba7348a05bf4f18d7c3a87553e))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "bump the github-actions group across 1 directory with 6 updates ([#3112](https://github.com/yonatangross/orchestkit/issues/3112)) ([6e83f3a](https://github.com/yonatangross/orchestkit/commit/6e83f3aa81827b67b72ca22c8990ce4f3a6c3723))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.84.9",
     "date": "2026-07-23",
     "compareUrl": "",
