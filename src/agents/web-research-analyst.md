@@ -7,7 +7,7 @@ maxTurns: 30
 effort: medium
 context: fork
 color: cyan
-memory: project
+memory: local
 background: true
 initialPrompt: "Check TaskList for pending research tasks. Review any prior research findings in memory."
 tools:

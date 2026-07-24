@@ -7,7 +7,7 @@ maxTurns: 20
 effort: low
 context: fork
 color: violet
-memory: project
+memory: local
 background: true
 initialPrompt: "Check TaskList for pending research tasks. Search memory for prior market intelligence and competitive analysis."
 tools:

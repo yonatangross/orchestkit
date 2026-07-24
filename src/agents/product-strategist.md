@@ -7,7 +7,7 @@ maxTurns: 30
 effort: medium
 context: fork
 color: purple
-memory: project
+memory: local
 tools:
   - Read
   - Write

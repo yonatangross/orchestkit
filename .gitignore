@@ -91,8 +91,10 @@ HOOK_SECURITY_*.txt
 # Hook logs (generated at runtime)
 .claude/hooks/logs/
 
-# Agent memory (runtime, per-agent)
-.claude/agent-memory/
+# Agent memory (M170/#3130): project scope (.claude/agent-memory/) is
+# COMMITTED — CC injects it at spawn and git is the sharing mechanism.
+# Local scope stays untracked per CC docs. PII pass required before adding
+# new dirs (public repo): bash scripts are word-level + token-format scans.
 .claude/agent-memory-local/
 
 # Agent activity ledgers (runtime, per-branch attribution tracking)

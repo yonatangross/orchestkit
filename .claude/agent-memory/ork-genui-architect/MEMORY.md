@@ -1,0 +1,2 @@
+- [Execute strategy selector design (#2516)](project_execute_strategy_selector_2516.md) — per-card execution-strategy picker for the cool-glass decision board: inline in Details, constrained 5-strategy catalog, plan-only emitted artifact
+- [Execution primitive tradeoffs (2026)](reference_execution_primitive_tradeoffs.md) — reliability/cost ground truth for the 5 ork execution primitives + the deterministic decision table
