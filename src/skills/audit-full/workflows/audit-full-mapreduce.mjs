@@ -62,12 +62,18 @@ const cfg = Array.isArray(RAW)
 const SHARDS =
 	Array.isArray(cfg.shards) && cfg.shards.length ? cfg.shards : ["src"];
 const MODE = cfg.mode || "full"; // full | security | architecture | dependencies
-// Specialist routing (#2371 follow-up): security-mode stages have an obvious
-// owner — run them as ork:security-auditor (curated red-team prompt) instead
-// of the generic workflow subagent. Mixed modes stay generic on purpose:
+// Specialist routing (#2371 follow-up, extended for M170/#3126): single-domain
+// modes have an obvious owner — run them as the matching specialist instead of
+// the generic workflow subagent (security/dependencies → security-auditor's
+// curated red-team + CVE prompt; architecture → system-design-reviewer's
+// read-only design criteria). Mixed "full" mode stays generic on purpose:
 // forcing a specialist onto a cross-domain task is worse than the default.
 const STAGE_AGENT =
-	MODE === "security" ? { agentType: "ork:security-auditor" } : {};
+	MODE === "security" || MODE === "dependencies"
+		? { agentType: "ork:security-auditor" }
+		: MODE === "architecture"
+			? { agentType: "ork:system-design-reviewer" }
+			: {};
 const EFFORT = cfg.effort || "high"; // high → single advisory refuters; xhigh → quorum
 const REFUTER_CEILING = 24; // engine §8 global spawn ceiling
 

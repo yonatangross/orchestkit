@@ -63,6 +63,9 @@ import { teamSizeGate } from '../pretool/task/team-size-gate.js';
 // for known-bad built-in tool invocations. See #1883 (seed rule).
 import { toolInvocationLinter } from '../pretool/tool-invocation-linter.js';
 
+// PreTool/Workflow hooks (1) — M170 agent activation (#3126)
+import { workflowAgentTypeAdvisor } from '../pretool/task/workflow-agenttype-advisor.js';
+
 // PreTool/Cron hooks (1) — CI/headless guard
 import { cronGuard } from '../pretool/cron-guard.js';
 
@@ -135,6 +138,9 @@ export const hooks: Record<string, HookFn> = {
 
   // PreTool/Tool-invocation linter (1) — registry-driven rule engine
   'pretool/tool-invocation-linter': toolInvocationLinter,
+
+  // PreTool/Workflow hooks (1) — M170 agent activation (#3126)
+  'pretool/task/workflow-agenttype-advisor': workflowAgentTypeAdvisor,
 
   // PreTool/Cron hooks (1) — CI/headless guard
   'pretool/cron-guard': cronGuard,

@@ -202,6 +202,31 @@
         ]
       },
       {
+        "matcher": "Workflow",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "timeout": 10,
+            "statusMessage": "Checking workflow stage typing...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "pretool/task/workflow-agenttype-advisor"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 15,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
+          }
+        ]
+      },
+      {
         "matcher": "CronCreate",
         "hooks": [
           {

@@ -361,7 +361,9 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 106 -> 105: removed lifecycle/agentation-context (SessionStart, async 5s) —
       // 105 -> 106: added lifecycle/analytics-liveness-check (SessionStart, async 5s, #3023).
       //             the agentation UI-annotation integration was dropped entirely.
-      expect(asyncHooks.length, 'Should have exactly 106 async hooks').toBe(106);
+      // 106 -> 107: M170 #3126 — webhook-forwarder on the new PreToolUse[Workflow]
+      //             matcher group (advisor itself is sync).
+      expect(asyncHooks.length, 'Should have exactly 107 async hooks').toBe(107);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -495,7 +497,9 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 106 -> 105: removed lifecycle/agentation-context (SessionStart, async 5s) —
       // 105 -> 106: added lifecycle/analytics-liveness-check (SessionStart, async 5s, #3023).
       //             the agentation UI-annotation integration was dropped entirely.
-      expect(asyncCount).toBe(106);
+      // 106 -> 107: M170 #3126 — webhook-forwarder on the new PreToolUse[Workflow]
+      //             matcher group (advisor itself is sync).
+      expect(asyncCount).toBe(107);
     });
 
     it('should have hooks for all critical security operations', () => {

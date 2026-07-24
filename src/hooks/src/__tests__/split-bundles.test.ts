@@ -425,7 +425,10 @@ describe('Cross-Bundle Consistency', () => {
     // comparison at SessionStart (#3023; skill-usage.jsonl silent 4 months).
     // 200 -> 199: removed lifecycle/agentation-context — the agentation
     //             UI-annotation integration was dropped entirely.
-    expect(totalHooks).toBe(200);
+    // 200 -> 201: pretool/task/workflow-agenttype-advisor — M170/#3126, nudges
+    //             untyped Workflow() agent() stages toward the specialist
+    //             catalog (workflow-internal spawns = largest generic bucket).
+    expect(totalHooks).toBe(201);
   });
 });
 

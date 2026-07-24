@@ -246,6 +246,10 @@ Rules (references/heal-loop-strategy.md):
 
 Report exactly what you changed.`,
 		{
+			// M170/#3126: repair has an obvious specialist owner — fixing tests
+			// by failure category is test-generator's exact domain. The run stage
+			// above stays generic on purpose (mechanical command execution).
+			agentType: "ork:test-generator",
 			label: `repair:${TIER}#${iteration}`,
 			phase: "Heal",
 			schema: REPAIR_RESULT,
