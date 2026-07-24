@@ -115,6 +115,12 @@ If they decline, run Standard and say plainly which check is weakened. Never upg
 
 Invoke the target skill with the extracted parameters and **follow that skill's own phases and guardrails** — do not override them. The router's job ends at the handoff; the specialist owns execution and its own report.
 
+**A hand-off is a Skill-tool invocation, not a recommendation.** The failure mode that motivated M170 (#3127): telemetry traced 43 router hand-offs and found ZERO reached an executor skill (`/ork:implement`, `/ork:cover`, `/ork:fix-issue`, `/ork:review-pr`) — the route was named in chat, then the work happened inline in the main loop, so the executors' specialist wiring (implement → backend-system-architect, cover → test-generator) never activated. Therefore:
+
+- Once the user nods, the SAME turn must contain the Skill-tool call for the routed skill. Never end the routing turn with only a description of what will run.
+- Doing the routed work inline "because it's faster" is a routing failure, not a shortcut — the executor's parallel specialists and guardrails are the point of routing.
+- If the routed skill genuinely cannot run (missing prerequisite, wrong repo state), say exactly that and stop; do not silently absorb the work into the main loop.
+
 ## Fallback + honest gaps
 
 - **Fallback category.** If no category clears a confident threshold, ask exactly ONE clarifying question rather than guessing. A rising fallback rate is the leading indicator that the taxonomy needs work — surface it, don't bury it.

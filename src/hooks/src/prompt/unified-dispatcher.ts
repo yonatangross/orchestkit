@@ -64,6 +64,7 @@ import { cacheBreakDetector } from './cache-break-detector.js';
 // antipattern-warning migrated to type:prompt hook in hooks.json (#972)
 // Import hook implementations — once-per-session
 import { handoffInjector } from './handoff-injector.js';
+import { executorRouteNudge } from './executor-route-nudge.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
@@ -114,6 +115,10 @@ const HOOKS: PromptHookConfig[] = [
   // --- Context producers (output merged into single additionalContext) ---
   { name: 'context-exhaustion-warner', fn: contextExhaustionWarner, producesContext: true },
   { name: 'pipeline-detector', fn: pipelineDetector, producesContext: true },
+  // M170/#3127: once-per-session executor-skill reminder on build-shaped prompts
+  // (self-gated by a session flag file, so NOT runOnce — it must see every
+  // prompt until the first build-shaped one arrives).
+  { name: 'executor-route-nudge', fn: executorRouteNudge, producesContext: true },
   // antipattern-warning removed (#972) — now a type:prompt hook in hooks.json
 ];
 
