@@ -49,15 +49,23 @@ const excludedRows = allRows.length - spawns.length;
 // M170/#3129: SubagentStart rows for NAMED spawns carry the custom name in
 // subagent_type (CC payload shadowing). Pretool rows record the (type, name)
 // pair — build a name->type map and resolve shadowed start rows through it.
+// Keyed by session_id+name, NOT bare name (found in /ork:assess review):
+// two different sessions can reuse the same custom name for different
+// specialists, and a bare-name map lets a later session write silently
+// overwrite an earlier mapping -- the exact shadowing shape this fix
+// exists to resolve, reintroduced one level up. NOTE: this bash script
+// wraps the whole node program in single quotes -- never use an
+// apostrophe in any comment or string literal below this line.
 const nameToType = {};
 for (const s of spawns){
   if (s.agent_name && s.subagent_type && s.agent_name !== s.subagent_type)
-    nameToType[s.agent_name] = s.subagent_type;
+    nameToType[`${s.session_id||"?"}::${s.agent_name}`] = s.subagent_type;
 }
 let g=0,o=0,gp=0,other=0,unknown=0,resolved=0; const fires={}; let mn=null,mx=null;
 for (const s of spawns){
   let raw = s.subagent_type||s.agent||s.agent_type||"?";
-  if (s.source === "start" && nameToType[raw]){ raw = nameToType[raw]; resolved++; }
+  const nameKey = `${s.session_id||"?"}::${raw}`;
+  if (s.source === "start" && nameToType[nameKey]){ raw = nameToType[nameKey]; resolved++; }
   const n = norm(raw); const t = s.timestamp||s.ts;
   if (t){ if(!mn||t<mn)mn=t; if(!mx||t>mx)mx=t; }
   if (n==="?"||n===""){ unknown++; continue; }

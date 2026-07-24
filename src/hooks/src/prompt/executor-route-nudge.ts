@@ -28,6 +28,7 @@ import type { HookContext, HookInput, HookResult } from '../types.js';
 import { outputPromptContext, outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { getSessionStorageDir } from '../lib/paths.js';
+import { safeIdentifier } from '../lib/safe-fs.js';
 
 const HOOK_NAME = 'executor-route-nudge';
 
@@ -42,7 +43,12 @@ const BUILD_VERB_RE =
 const ALREADY_ROUTED_RE = /\/(?:ork|hq-ext):[a-z-]+/i;
 
 function flagPath(sessionId: string): string {
-  return join(getSessionStorageDir(), `${sessionId}-executor-nudge.flag`);
+  // #1826-class hardening: session_id is untrusted hook input. Route it
+  // through the same sanitizer getSessionTempDir uses for the identical
+  // field, so a leaked JSON envelope or a '../' segment can't steer the
+  // write outside the session storage dir.
+  const safe = safeIdentifier(sessionId, 'invalid');
+  return join(getSessionStorageDir(), `${safe}-executor-nudge.flag`);
 }
 
 export function executorRouteNudge(
@@ -61,9 +67,14 @@ export function executorRouteNudge(
   try {
     if (existsSync(flag)) return outputSilentSuccess();
     mkdirSync(getSessionStorageDir(), { recursive: true });
-    writeFileSync(flag, new Date().toISOString(), 'utf-8');
+    // 'wx' = create exclusively, fail if it exists: closes the TOCTOU gap
+    // between the existsSync check above and this write (two concurrent
+    // invocations for the same session could otherwise both pass the
+    // check and both fire the nudge).
+    writeFileSync(flag, new Date().toISOString(), { encoding: 'utf-8', flag: 'wx' });
   } catch {
-    // Flag I/O failure: prefer silence over risking a nudge every turn.
+    // Flag I/O failure (including EEXIST from the wx race guard above):
+    // prefer silence over risking a nudge every turn.
     return outputSilentSuccess();
   }
 

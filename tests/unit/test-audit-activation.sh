@@ -79,6 +79,27 @@ bash "$RUN" --help >/dev/null 2>&1 && pass "--help exits 0" || fail "--help fail
 # ── 7. unknown flag rejected (non-zero) ─────────────────────────────────────
 if bash "$RUN" --bogus >/dev/null 2>&1; then fail "unknown flag not rejected"; else pass "unknown flag rejected (non-zero)"; fi
 
+# ── 8. cross-session name collision does NOT misattribute (/ork:assess finding) ─
+# Two different sessions each spawn a custom-NAMED agent called "reviewer" —
+# session A's "reviewer" resolves to alpha-agent, session B's "reviewer"
+# resolves to beta-agent. A bare-name (not session-scoped) map would let
+# session B's pretool row overwrite session A's mapping, so session A's
+# start row would misresolve to beta-agent. Assert it resolves correctly
+# for BOTH sessions instead.
+{
+  echo '{"timestamp":"2026-06-10T00:00:00Z","session_id":"session-A","source":"pretool","subagent_type":"ork:alpha-agent","agent_name":"reviewer"}'
+  echo '{"timestamp":"2026-06-10T00:00:01Z","session_id":"session-A","source":"start","subagent_type":"reviewer"}'
+  echo '{"timestamp":"2026-06-11T00:00:00Z","session_id":"session-B","source":"pretool","subagent_type":"ork:beta-agent","agent_name":"reviewer"}'
+  echo '{"timestamp":"2026-06-11T00:00:01Z","session_id":"session-B","source":"start","subagent_type":"reviewer"}'
+} > "$SBX/.claude/logs/subagent-spawns.jsonl"
+json="$(bash "$RUN" --json 2>&1)"
+# silent: best-effort — node exit/output IS the assertion; parse-error text is noise
+alpha_fires="$(echo "$json" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);const a=j.agents.find(x=>x.name==="alpha-agent");console.log(a?a.fires:-1)})' 2>/dev/null)"
+# silent: best-effort — node exit/output IS the assertion; parse-error text is noise
+beta_fires="$(echo "$json" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);const a=j.agents.find(x=>x.name==="beta-agent");console.log(a?a.fires:-1)})' 2>/dev/null)"
+[ "$alpha_fires" = "2" ] && pass "session-A 'reviewer' resolves to alpha-agent (2 fires: pretool+start), not shadowed by session-B" || fail "alpha-agent fires: expected 2, got $alpha_fires"
+[ "$beta_fires" = "2" ] && pass "session-B 'reviewer' resolves to beta-agent (2 fires: pretool+start), unaffected by session-A" || fail "beta-agent fires: expected 2, got $beta_fires"
+
 rm -rf "$SBX"
 echo "════════════════════════════════════════════════════════════════"
 echo "  Total: $((PASS + FAIL))  |  Passed: ${GREEN}${PASS}${NC}  |  Failed: ${RED}${FAIL}${NC}"

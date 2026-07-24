@@ -8,8 +8,11 @@
  * skills. Self-gated by a session flag file, so tests use unique session ids.
  */
 
+import { existsSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { getSessionStorageDir } from '../../lib/paths.js';
 import { executorRouteNudge } from '../../prompt/executor-route-nudge.js';
 
 let seq = 0;
@@ -75,5 +78,38 @@ describe('prompt/executor-route-nudge', () => {
       makeInput('please implement cursor-based pagination for the sessions listing endpoint'),
     );
     expect(contextOf(result)).not.toBe('');
+  });
+
+  // Regression coverage for the /ork:assess findings (2026-07-24): a
+  // traversal session_id must not steer the flag write outside the
+  // session storage dir, and it must never throw out to the caller.
+  describe('untrusted session_id hardening', () => {
+    test('a traversal session_id does not escape the session storage dir', () => {
+      const traversalId = '../../../../tmp/pwn';
+      const escapedPath = join(getSessionStorageDir(), '..', '..', '..', '..', 'tmp', 'pwn-executor-nudge.flag');
+      try {
+        const result = executorRouteNudge(makeInput(BUILD_PROMPT, traversalId));
+        // Sanitized to the 'invalid' bucket: still nudges (fail-open on the
+        // advisory), but the write lands inside session storage, not at
+        // the attacker-influenced path.
+        expect(contextOf(result)).not.toBe('');
+        expect(existsSync(escapedPath)).toBe(false);
+        expect(existsSync(join(getSessionStorageDir(), 'invalid-executor-nudge.flag'))).toBe(true);
+      } finally {
+        rmSync(join(getSessionStorageDir(), 'invalid-executor-nudge.flag'), { force: true });
+      }
+    });
+
+    test('a JSON-envelope session_id (the #1826 leak shape) is rejected without throwing', () => {
+      const envelopeId = '{"continue":true,"foo":"bar"}';
+      expect(() => executorRouteNudge(makeInput(BUILD_PROMPT, envelopeId))).not.toThrow();
+    });
+
+    test('concurrent calls for the same session fire the nudge at most once (TOCTOU)', () => {
+      const sessionId = `wf-nudge-race-${process.pid}-${Date.now()}`;
+      const results = Array.from({ length: 5 }, () => executorRouteNudge(makeInput(BUILD_PROMPT, sessionId)));
+      const fired = results.filter((r) => contextOf(r) !== '');
+      expect(fired).toHaveLength(1);
+    });
   });
 });
