@@ -79,9 +79,9 @@ model_list:
       model: anthropic/claude-sonnet-5
       api_key: os.environ/ANTHROPIC_API_KEY
 
-  - model_name: claude-opus-4-8
+  - model_name: claude-opus-5
     litellm_params:
-      model: anthropic/claude-opus-4-8
+      model: anthropic/claude-opus-5
       api_key: os.environ/ANTHROPIC_API_KEY
 
   - model_name: claude-haiku-4-5-20251001

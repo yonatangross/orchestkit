@@ -136,7 +136,7 @@ Every bake-off appends one immutable record (both outcomes) to `src/skills/<skil
   "decision": "promoted",
   "reason": "delta 0.7 >= margin 0.5; min_pass 7.0 met; no dimension under blocker",
   "promoted_to_version": "2.4.0",
-  "grader_model": "claude-opus-4-8[1m]",
+  "grader_model": "claude-opus-5[1m]",
   "fork_subagent": true
 }
 ```
