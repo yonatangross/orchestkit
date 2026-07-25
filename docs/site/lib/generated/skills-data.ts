@@ -3362,7 +3362,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "monitoring-observability",
     "description": "Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse v4 LLM tracing (as_type, score_current_span, should_export_span, LangfuseMedia), and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring.",
     "version": "3.0.0",
-    "sha256": "4c8c6907553fc238f4984863eaf466604c070bb9d8cb7918a34e2fee142b649b",
+    "sha256": "dc7e74197b23016b1fdd9f71b6c29de4236613354f8eb647520bef84af965a30",
     "author": "OrchestKit",
     "tags": [
       "monitoring",

@@ -198,15 +198,36 @@
     "target": 8.0
   },
   "waves": [
-    { "id": "W1", "title": "stop shipping broken code", "status": "planned" },
-    { "id": "W2", "title": "dual-registry currency watchdog", "status": "planned" },
-    { "id": "W3", "title": "additive coverage", "status": "planned" },
-    { "id": "W4", "title": "phantom-symbol gate (own milestone)", "status": "planned" }
+    {
+      "id": "W1",
+      "title": "stop shipping broken code",
+      "status": "done"
+    },
+    {
+      "id": "W2",
+      "title": "dual-registry currency watchdog",
+      "status": "planned"
+    },
+    {
+      "id": "W3",
+      "title": "additive coverage",
+      "status": "planned"
+    },
+    {
+      "id": "W4",
+      "title": "phantom-symbol gate (own milestone)",
+      "status": "planned"
+    }
   ],
   "items": [
     {
-      "id": "W1.1", "wave": "W1", "title": "Replace LangfuseExporter with LangfuseSpanProcessor",
-      "impact": 9.5, "effort": "20min", "risk": "low", "status": "planned",
+      "id": "W1.1",
+      "wave": "W1",
+      "title": "Replace LangfuseExporter with LangfuseSpanProcessor",
+      "impact": 9.5,
+      "effort": "20min",
+      "risk": "low",
+      "status": "done",
       "before": "3 skill files ship `import { LangfuseExporter } from \"@langfuse/otel\"`. The published 5.9.1 .d.ts exports no such symbol, so every copy-paste throws at import.",
       "after": "All 3 use LangfuseSpanProcessor wired into NodeSDK spanProcessors, matching the shipped type surface.",
       "detail": "Verified by fetching cdn.jsdelivr.net/npm/@langfuse/otel@5.9.1/dist/index.d.ts. Its full export list is KNOWN_LLM_INSTRUMENTATION_SCOPE_PREFIXES, LangfuseSpanProcessor, LangfuseSpanProcessorParams, MaskFunction, ShouldExportSpan, isDefaultExportSpan, isGenAISpan, isKnownLLMInstrumentor, isLangfuseSpan. Sites: rules/llm-langfuse-traces.md:168, references/framework-integrations.md:296, references/migration-v2-v3.md:243.",
@@ -216,8 +237,13 @@
       "owner": "agent"
     },
     {
-      "id": "W1.2", "wave": "W1", "title": "Correct the @langfuse/core client import",
-      "impact": 8.5, "effort": "10min", "risk": "low", "status": "planned",
+      "id": "W1.2",
+      "wave": "W1",
+      "title": "Correct the @langfuse/core client import",
+      "impact": 8.5,
+      "effort": "10min",
+      "risk": "low",
+      "status": "done",
       "before": "migration-v2-v3.md:235 teaches `import { Langfuse } from \"@langfuse/core\"`. @langfuse/core is an internal utility package (\"Core functions and utilities for Langfuse packages\") and exports no Langfuse class.",
       "after": "Uses LangfuseClient from @langfuse/client, the actual public client of JS SDK v5.",
       "detail": "@langfuse/client@5.9.1 exports LangfuseClient plus DatasetManager, ExperimentManager, ScoreManager, PromptManager. @langfuse/core exports API types and LangfuseAPIClient only.",
@@ -227,8 +253,13 @@
       "owner": "agent"
     },
     {
-      "id": "W1.3", "wave": "W1", "title": "Remove the @langfuse/vercel migration row",
-      "impact": 6.0, "effort": "5min", "risk": "low", "status": "planned",
+      "id": "W1.3",
+      "wave": "W1",
+      "title": "Remove the @langfuse/vercel migration row",
+      "impact": 6.0,
+      "effort": "5min",
+      "risk": "low",
+      "status": "done",
       "before": "migration-v2-v3.md:222 maps `langfuse-vercel` to `@langfuse/vercel`, a package that has never been published.",
       "after": "The row is removed or replaced with the real AI SDK path (OTel span processor + the Vercel AI SDK telemetry hook).",
       "detail": "registry.npmjs.org/@langfuse/vercel/latest returns no version. Confirmed alongside 6 sibling packages that DO resolve at 5.9.1.",
@@ -238,8 +269,13 @@
       "owner": "agent"
     },
     {
-      "id": "W1.4", "wave": "W1", "title": "Fix version-era prose and the misnamed migration doc",
-      "impact": 5.5, "effort": "15min", "risk": "low", "status": "planned",
+      "id": "W1.4",
+      "wave": "W1",
+      "title": "Fix version-era prose and the misnamed migration doc",
+      "impact": 5.5,
+      "effort": "15min",
+      "risk": "low",
+      "status": "done",
       "before": "framework-integrations.md:3 opens with 'Langfuse v3 integrates with modern AI frameworks' while the skill targets v4 and JS is at v5. The migration doc is named migration-v2-v3.md but its content is v3 to v4.",
       "after": "Prose names the era it documents; the file is migration-v3-v4.md with its references updated.",
       "detail": "Pure naming rot, zero behavioural risk, but it is the line a reader trusts first when deciding whether the page is current.",
@@ -249,8 +285,13 @@
       "owner": "agent"
     },
     {
-      "id": "W1.5", "wave": "W1", "title": "Rewrite the LangGraph 1.2 callout to describe 1.2",
-      "impact": 9.0, "effort": "45min", "risk": "med", "status": "planned",
+      "id": "W1.5",
+      "wave": "W1",
+      "title": "Rewrite the LangGraph 1.2 callout to describe 1.2",
+      "impact": 9.0,
+      "effort": "45min",
+      "risk": "med",
+      "status": "done",
       "before": "SKILL.md:35 opens 'LangGraph 1.2 (Q1 2026) — new in this bump' and lists deferred nodes, model middleware, and node-level caching. Those are 1.1-era. LangGraph 1.2 shipped 12 May 2026 with a different headline set.",
       "after": "The callout lists the actual 1.2 additions; the 1.1 features move to a correctly-labelled prior-release note rather than being deleted.",
       "detail": "The three documented features are real and useful — only their attribution is wrong. Deleting them would lose good content; relabelling them keeps it.",
@@ -260,8 +301,13 @@
       "owner": "agent"
     },
     {
-      "id": "W1.6", "wave": "W1", "title": "Add rules for the real 1.2 surface (4 new rules)",
-      "impact": 9.0, "effort": "3h", "risk": "med", "status": "planned",
+      "id": "W1.6",
+      "wave": "W1",
+      "title": "Add rules for the real 1.2 surface (4 new rules)",
+      "impact": 9.0,
+      "effort": "3h",
+      "risk": "med",
+      "status": "done",
       "before": "grep across src/ finds zero hits for DeltaChannel, snapshot_frequency, TimeoutPolicy, run_timeout, idle_timeout, NodeTimeoutError, error_handler on add_node, and RunControl. A 37-rule LangGraph skill cannot advise on any of the framework's current fault-tolerance surface.",
       "after": "Four rules land under rules/: delta-channel state, per-node timeouts, node error handlers, and RunControl graceful shutdown — taking the skill to 41 rules.",
       "detail": "This is the largest content gap. DeltaChannel in particular is the framework's answer to long-running-thread state growth, which is exactly the scaling question the skill is consulted for.",
@@ -271,8 +317,13 @@
       "owner": "agent"
     },
     {
-      "id": "W1.7", "wave": "W1", "title": "Lead routing-retry-loops with framework-native retry",
-      "impact": 7.0, "effort": "30min", "risk": "low", "status": "planned",
+      "id": "W1.7",
+      "wave": "W1",
+      "title": "Lead routing-retry-loops with framework-native retry",
+      "impact": 7.0,
+      "effort": "30min",
+      "risk": "low",
+      "status": "done",
       "before": "rules/routing-retry-loops.md teaches a hand-rolled retry_count field in graph state as the Correct pattern. As of 1.2 the framework answer is retry_policy plus timeout plus error_handler on add_node.",
       "after": "The rule leads with the native primitives and keeps the counter pattern as the fallback for pre-1.2 pins.",
       "detail": "The existing advice is not wrong, it is superseded. Left alone it teaches users to reimplement a framework feature.",
@@ -282,8 +333,13 @@
       "owner": "agent"
     },
     {
-      "id": "W1.8", "wave": "W1", "title": "Resolve the stale @langchain/langgraph JS floor",
-      "impact": 7.5, "effort": "20min", "risk": "low", "status": "planned",
+      "id": "W1.8",
+      "wave": "W1",
+      "title": "Resolve the stale @langchain/langgraph JS floor",
+      "impact": 7.5,
+      "effort": "20min",
+      "risk": "low",
+      "status": "done",
       "before": "SKILL.md frontmatter declares a target of @langchain/langgraph at 1.2.0 or above. npm latest is 1.4.8, and the skill's 37 rules contain no TypeScript at all — so the floor advertises a coverage the skill does not have.",
       "after": "Either the JS target is removed (skill scoped Python-only, the recommendation) or it is bumped to 1.4 with the JS-specific deltas documented.",
       "detail": "Discarded the alternative of a full JS twin track: 37 rules across two languages doubles the maintenance surface with no evidence of demand.",
@@ -293,8 +349,13 @@
       "owner": "agent"
     },
     {
-      "id": "W1.9", "wave": "W1", "title": "Trigger evals for the new 1.2 rules",
-      "impact": 6.5, "effort": "45min", "risk": "low", "status": "planned",
+      "id": "W1.9",
+      "wave": "W1",
+      "title": "Trigger evals for the new 1.2 rules",
+      "impact": 6.5,
+      "effort": "45min",
+      "risk": "low",
+      "status": "done",
       "before": "tests/evals/skills/langgraph.eval.yaml predates the new rules, so nothing exercises their triggers.",
       "after": "The eval file covers the four new rules, keeping the repo's own eval-coverage contract intact.",
       "detail": "Required by the project's rule that a new rule ships with trigger coverage.",
@@ -304,8 +365,13 @@
       "owner": "agent"
     },
     {
-      "id": "W2.1", "wave": "W2", "title": "Add upstream-version-tested frontmatter to both skills",
-      "impact": 7.0, "effort": "15min", "risk": "low", "status": "planned",
+      "id": "W2.1",
+      "wave": "W2",
+      "title": "Add upstream-version-tested frontmatter to both skills",
+      "impact": 7.0,
+      "effort": "15min",
+      "risk": "low",
+      "status": "planned",
       "before": "Neither langgraph nor monitoring-observability declares upstream-version-tested:, so check-labs-versions.mjs would SKIP them even if they were enrolled.",
       "after": "Both carry the key, making them addressable by the existing watchdog with no new frontmatter vocabulary.",
       "detail": "Reuses machinery that already works rather than inventing a parallel mechanism.",
@@ -315,8 +381,13 @@
       "owner": "agent"
     },
     {
-      "id": "W2.2", "wave": "W2", "title": "Teach check-labs-versions.mjs to read PyPI",
-      "impact": 9.5, "effort": "2h", "risk": "med", "status": "planned",
+      "id": "W2.2",
+      "wave": "W2",
+      "title": "Teach check-labs-versions.mjs to read PyPI",
+      "impact": 9.5,
+      "effort": "2h",
+      "risk": "med",
+      "status": "planned",
       "before": "The watchdog resolves versions with `npm view`, so it is structurally blind to PyPI. langgraph, langchain, langfuse, deepeval and ragas are all PyPI packages — the entire ecosystem is invisible to it.",
       "after": "Targets carry a registry field (npm or pypi); the PyPI path reads pypi.org/pypi/\u003cpkg>/json and returns info.version.",
       "detail": "This is the root cause. Every content fix in W1 rots again without it. The 5 currently-watched packages are emulate, portless, agent-browser and two @json-render entries — none from this ecosystem.",
@@ -326,8 +397,13 @@
       "owner": "agent"
     },
     {
-      "id": "W2.3", "wave": "W2", "title": "Compare floor satisfiability, not string equality",
-      "impact": 8.5, "effort": "1h", "risk": "high", "status": "planned",
+      "id": "W2.3",
+      "wave": "W2",
+      "title": "Compare floor satisfiability, not string equality",
+      "impact": 8.5,
+      "effort": "1h",
+      "risk": "high",
+      "status": "planned",
       "before": "The watchdog reports DRIFT whenever pinned does not string-equal latest. Applied to a floor like 'langgraph at 1.2.0 or above' against latest 1.2.9 that is a false alarm — the floor is satisfied.",
       "after": "A floor is flagged only when upstream has moved to a new MINOR or MAJOR beyond it; a patch bump inside the floor is silent.",
       "detail": "This is the difference between a gate people act on and a gate people mute. The @langchain/langgraph case (floor 1.2.0, latest 1.4.8) must fire; the langgraph Python case (floor 1.2.0, latest 1.2.9) must not.",
@@ -337,8 +413,13 @@
       "owner": "agent"
     },
     {
-      "id": "W2.4", "wave": "W2", "title": "Enroll the ecosystem packages in labs-version-watch",
-      "impact": 8.0, "effort": "30min", "risk": "low", "status": "planned",
+      "id": "W2.4",
+      "wave": "W2",
+      "title": "Enroll the ecosystem packages in labs-version-watch",
+      "impact": 8.0,
+      "effort": "30min",
+      "risk": "low",
+      "status": "planned",
       "before": "labs-version-watch.yml runs check --then--apply --then--open-PR for 5 packages, none from this ecosystem.",
       "after": "langgraph, langchain-core, langfuse and the Langfuse JS packages are enrolled and produce the same auto-PR.",
       "detail": "The workflow already exists and already opens PRs. Adding rows is cheaper and less drift-prone than building a second notification channel.",
@@ -348,8 +429,13 @@
       "owner": "agent"
     },
     {
-      "id": "W2.5", "wave": "W2", "title": "Fixture-driven tests plus a CI-discovery check",
-      "impact": 8.0, "effort": "1.5h", "risk": "med", "status": "planned",
+      "id": "W2.5",
+      "wave": "W2",
+      "title": "Fixture-driven tests plus a CI-discovery check",
+      "impact": 8.0,
+      "effort": "1.5h",
+      "risk": "med",
+      "status": "planned",
       "before": "No test covers the resolver, and a new test file type can be silently skipped by the CI runner's discovery glob.",
       "after": "Recorded registry JSON fixtures drive offline unit tests, and the CI-parity command proves the runner actually discovers the new file.",
       "detail": "run-tests.sh line 57 globs test-*.sh and test-*.mjs, so a .mjs test WILL be found — verified, not assumed. Fixtures keep the PR gate network-free; live probing stays in the nightly workflow.",
@@ -359,8 +445,13 @@
       "owner": "agent"
     },
     {
-      "id": "W3.1", "wave": "W3", "title": "New reference page for the Langfuse JS v5 SDK",
-      "impact": 7.0, "effort": "2h", "risk": "low", "status": "planned",
+      "id": "W3.1",
+      "wave": "W3",
+      "title": "New reference page for the Langfuse JS v5 SDK",
+      "impact": 7.0,
+      "effort": "2h",
+      "risk": "low",
+      "status": "planned",
       "before": "Langfuse JS is a separate major (5) with different package names from Python (4), and ork covers it only in a few scattered, partly-broken snippets.",
       "after": "references/langfuse-js-v5.md documents LangfuseClient, LangfuseSpanProcessor, MaskFunction and ShouldExportSpan, plus @langfuse/langchain and @langfuse/openai.",
       "detail": "Masking and span filtering exist in the JS processor (MaskFunction, ShouldExportSpan are exported types) but ork's JS guidance is currently unusable, so a JS user cannot apply PII masking from these docs at all.",
@@ -370,8 +461,13 @@
       "owner": "agent"
     },
     {
-      "id": "W3.2", "wave": "W3", "title": "Cover the Langfuse JS experiments surface",
-      "impact": 6.0, "effort": "1.5h", "risk": "low", "status": "planned",
+      "id": "W3.2",
+      "wave": "W3",
+      "title": "Cover the Langfuse JS experiments surface",
+      "impact": 6.0,
+      "effort": "1.5h",
+      "risk": "low",
+      "status": "planned",
       "before": "@langfuse/client exports ExperimentManager, Evaluator, RunEvaluator, createEvaluatorFromAutoevals, RegressionError and DatasetManager. The golden-dataset skill mentions none of them.",
       "after": "golden-dataset documents the JS experiments and evaluator runner alongside the Python path.",
       "detail": "Additive gap, not a defect — which is why it sits in W3 behind the correctness work.",
@@ -381,8 +477,13 @@
       "owner": "agent"
     },
     {
-      "id": "W3.3", "wave": "W3", "title": "Record langgraph-supervisor and -swarm as track-only",
-      "impact": 4.5, "effort": "20min", "risk": "low", "status": "planned",
+      "id": "W3.3",
+      "wave": "W3",
+      "title": "Record langgraph-supervisor and -swarm as track-only",
+      "impact": 4.5,
+      "effort": "20min",
+      "risk": "low",
+      "status": "planned",
       "before": "langgraph-supervisor last shipped 0.0.31 in Nov 2025 and langgraph-swarm 0.1.0 in Dec 2025. ork teaches hand-rolled supervisors, which is defensible but undocumented as a decision.",
       "after": "The TRACK_ONLY tier in check-labs-versions.mjs carries both with a dated do-not-adopt note.",
       "detail": "The TRACK_ONLY tier already exists for exactly this (the wterm decision). Reusing it costs two rows.",
@@ -392,8 +493,13 @@
       "owner": "agent"
     },
     {
-      "id": "W3.4", "wave": "W3", "title": "Authoring rule: version claims must be machine-checkable",
-      "impact": 6.5, "effort": "30min", "risk": "low", "status": "planned",
+      "id": "W3.4",
+      "wave": "W3",
+      "title": "Authoring rule: version claims must be machine-checkable",
+      "impact": 6.5,
+      "effort": "30min",
+      "risk": "low",
+      "status": "planned",
       "before": "Nothing in the authoring rules says a version claim has to be verifiable, so prose claims accumulate faster than gates can chase them.",
       "after": "skill-authoring.md states that a version claim belongs in targets: or upstream-version-tested:, and that an import in a code fence must name a symbol the package actually exports.",
       "detail": "Turns W2 and W4 from bolt-on gates into an enforceable authoring contract.",
@@ -403,8 +509,13 @@
       "owner": "agent"
     },
     {
-      "id": "W4.1", "wave": "W4", "title": "Import-symbol gate (nightly)",
-      "impact": 10.0, "effort": "1d", "risk": "high", "status": "planned",
+      "id": "W4.1",
+      "wave": "W4",
+      "title": "Import-symbol gate (nightly)",
+      "impact": 10.0,
+      "effort": "1d",
+      "risk": "high",
+      "status": "planned",
       "before": "No gate can catch a symbol that never existed at any version. LangfuseExporter passed every existing check: lint, structure tests, floor agreement, and the upstream-drift linter.",
       "after": "A nightly job extracts TypeScript imports from skill code fences and asserts each symbol appears in the package's published .d.ts.",
       "detail": "Highest impact and lowest simplicity of every idea considered — which is why it is its own milestone rather than a rider on a correctness hotfix.",
@@ -414,8 +525,13 @@
       "owner": "agent"
     },
     {
-      "id": "W4.2", "wave": "W4", "title": "Package-existence gate",
-      "impact": 7.5, "effort": "2h", "risk": "med", "status": "planned",
+      "id": "W4.2",
+      "wave": "W4",
+      "title": "Package-existence gate",
+      "impact": 7.5,
+      "effort": "2h",
+      "risk": "med",
+      "status": "planned",
       "before": "@langfuse/vercel was documented for months and has never existed on the registry.",
       "after": "Every scoped package named in skill docs must resolve to a published version.",
       "detail": "Shares the extractor and the nightly schedule with W4.1, so it is cheap once that exists.",
@@ -426,23 +542,73 @@
     }
   ],
   "discards": [
-    { "title": "Full JS/TS twin track for the langgraph skill", "reason": "37 rules across two languages doubles the maintenance surface with no evidence of demand. Narrowing the JS floor (W1.8) gets the correctness win at a fraction of the cost." },
-    { "title": "Nightly digest issue instead of the existing auto-PR", "reason": "labs-version-watch.yml already opens PRs and works. A second notification channel is drift, not coverage." },
-    { "title": "Approach A — content-only hotfix, no automation", "reason": "Restores correctness and changes nothing about why it broke. Composite 5.5 against 8.3 for the same content work plus one resolver." },
-    { "title": "Shell out to pip to resolve PyPI versions", "reason": "Adds a Python toolchain dependency to a Node workflow. The pypi.org JSON API needs only a fetch." },
-    { "title": "Prose-scanning version linter across all skill bodies", "reason": "Already tried and rejected in this repo: a lexical scan cannot separate 'requires at least X' from 'feature Y landed in X', and all four of its findings were legitimate." }
+    {
+      "title": "Full JS/TS twin track for the langgraph skill",
+      "reason": "37 rules across two languages doubles the maintenance surface with no evidence of demand. Narrowing the JS floor (W1.8) gets the correctness win at a fraction of the cost."
+    },
+    {
+      "title": "Nightly digest issue instead of the existing auto-PR",
+      "reason": "labs-version-watch.yml already opens PRs and works. A second notification channel is drift, not coverage."
+    },
+    {
+      "title": "Approach A — content-only hotfix, no automation",
+      "reason": "Restores correctness and changes nothing about why it broke. Composite 5.5 against 8.3 for the same content work plus one resolver."
+    },
+    {
+      "title": "Shell out to pip to resolve PyPI versions",
+      "reason": "Adds a Python toolchain dependency to a Node workflow. The pypi.org JSON API needs only a fetch."
+    },
+    {
+      "title": "Prose-scanning version linter across all skill bodies",
+      "reason": "Already tried and rejected in this repo: a lexical scan cannot separate 'requires at least X' from 'feature Y landed in X', and all four of its findings were legitimate."
+    }
   ],
   "research": [
-    { "title": "@langfuse/otel exports no LangfuseExporter", "note": "The published 5.9.1 type bundle exports LangfuseSpanProcessor and eight helpers. LangfuseExporter is absent, so all three ork snippets throw at import.", "source": "https://cdn.jsdelivr.net/npm/@langfuse/otel@5.9.1/dist/index.d.ts" },
-    { "title": "@langfuse/core is internal; the client is @langfuse/client", "note": "core is described as 'Core functions and utilities for Langfuse packages' and exports API types plus LangfuseAPIClient. LangfuseClient lives in @langfuse/client.", "source": "https://langfuse.com/docs/observability/sdk/typescript/setup" },
-    { "title": "@langfuse/vercel is unpublished", "note": "Six sibling @langfuse packages resolve at 5.9.1; @langfuse/vercel returns nothing from the registry.", "source": "https://registry.npmjs.org/@langfuse/vercel/latest" },
-    { "title": "LangGraph 1.2 shipped 12 May 2026 with a different feature set than ork claims", "note": "Real 1.2 headline additions: DeltaChannel with snapshot_frequency, per-node timeouts via TimeoutPolicy raising NodeTimeoutError, node error_handler receiving a typed NodeError, and RunControl for cooperative graceful shutdown. None appear anywhere in src/.", "source": "https://www.langchain.com/blog/fault-tolerance-in-langgraph" },
-    { "title": "Live version probe, 2026-07-25", "note": "PyPI: langgraph 1.2.9, langchain 1.3.14, langchain-core 1.5.1, langfuse 4.14.1, deepeval 4.1.3, ragas 0.4.3. npm: @langchain/langgraph 1.4.8, @langfuse/* 5.9.1, legacy langfuse monolith 3.38.20.", "source": "https://pypi.org/pypi/langgraph/json" },
-    { "title": "The watchdog is structurally npm-only", "note": "scripts/check-labs-versions.mjs resolves via `npm view` and watches 5 packages: emulate, portless, agent-browser, @json-render/core, @json-render/mcp. No PyPI code path exists, so the whole LangChain ecosystem is invisible to it.", "source": "https://github.com/yonatangross/orchestkit" },
-    { "title": "Neither existing structural gate could have caught this", "note": "test-targets-floor-agreement.mjs compares skills to each other, never to upstream. test-upstream-version-drift.mjs matches only 0.x tokens by design, and every package here is 1.x or 4.x — a structural no-op.", "source": "https://github.com/yonatangross/orchestkit" }
+    {
+      "title": "@langfuse/otel exports no LangfuseExporter",
+      "note": "The published 5.9.1 type bundle exports LangfuseSpanProcessor and eight helpers. LangfuseExporter is absent, so all three ork snippets throw at import.",
+      "source": "https://cdn.jsdelivr.net/npm/@langfuse/otel@5.9.1/dist/index.d.ts"
+    },
+    {
+      "title": "@langfuse/core is internal; the client is @langfuse/client",
+      "note": "core is described as 'Core functions and utilities for Langfuse packages' and exports API types plus LangfuseAPIClient. LangfuseClient lives in @langfuse/client.",
+      "source": "https://langfuse.com/docs/observability/sdk/typescript/setup"
+    },
+    {
+      "title": "@langfuse/vercel is unpublished",
+      "note": "Six sibling @langfuse packages resolve at 5.9.1; @langfuse/vercel returns nothing from the registry.",
+      "source": "https://registry.npmjs.org/@langfuse/vercel/latest"
+    },
+    {
+      "title": "LangGraph 1.2 shipped 12 May 2026 with a different feature set than ork claims",
+      "note": "Real 1.2 headline additions: DeltaChannel with snapshot_frequency, per-node timeouts via TimeoutPolicy raising NodeTimeoutError, node error_handler receiving a typed NodeError, and RunControl for cooperative graceful shutdown. None appear anywhere in src/.",
+      "source": "https://www.langchain.com/blog/fault-tolerance-in-langgraph"
+    },
+    {
+      "title": "Live version probe, 2026-07-25",
+      "note": "PyPI: langgraph 1.2.9, langchain 1.3.14, langchain-core 1.5.1, langfuse 4.14.1, deepeval 4.1.3, ragas 0.4.3. npm: @langchain/langgraph 1.4.8, @langfuse/* 5.9.1, legacy langfuse monolith 3.38.20.",
+      "source": "https://pypi.org/pypi/langgraph/json"
+    },
+    {
+      "title": "The watchdog is structurally npm-only",
+      "note": "scripts/check-labs-versions.mjs resolves via `npm view` and watches 5 packages: emulate, portless, agent-browser, @json-render/core, @json-render/mcp. No PyPI code path exists, so the whole LangChain ecosystem is invisible to it.",
+      "source": "https://github.com/yonatangross/orchestkit"
+    },
+    {
+      "title": "Neither existing structural gate could have caught this",
+      "note": "test-targets-floor-agreement.mjs compares skills to each other, never to upstream. test-upstream-version-drift.mjs matches only 0.x tokens by design, and every package here is 1.x or 4.x — a structural no-op.",
+      "source": "https://github.com/yonatangross/orchestkit"
+    }
   ],
   "changelog": [
-    { "at": "2026-07-25", "note": "v1 authored from a live PyPI + npm + .d.ts probe. Assess composite 5.9 (grade D), target 8.0. Approach B recommended; C split into W4 as its own milestone." }
+    {
+      "at": "2026-07-25",
+      "note": "v1 authored from a live PyPI + npm + .d.ts probe. Assess composite 5.9 (grade D), target 8.0. Approach B recommended; C split into W4 as its own milestone."
+    },
+    {
+      "at": "2026-07-25",
+      "note": "Wave 1 landed as 12c7f429b. Scope was larger than planned: 4 LangfuseExporter sites (not 3) plus install instructions and a client import in the setup checklist. Verified against upstream source rather than docs prose. Two plan assumptions were WRONG and corrected: (a) the Langfuse v3 self-hosting prose is accurate, that is the platform version line, not the SDK, so it was left alone; (b) the langfuse-vercel successor is @langfuse/vercel-ai-sdk, not @langfuse/vercel. Bonus find: rules/_sections.md was stale by 9 rules and an entire category (Platform) - rebuilt to 41 rules / 12 categories. npm run build + test:skills + test:agents + test:manifests all exit 0."
+    }
   ]
 }
 </script>

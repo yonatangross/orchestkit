@@ -12,8 +12,12 @@ disable-model-invocation: true
 complexity: medium
 persuasion-type: reference
 targets:
+  # Python SDK. The JS/TS SDK is a separate line at 5.x (@langfuse/* packages) — see
+  # references/langfuse-js-v5.md. The self-hosted platform is a third axis (v3) and is not an
+  # SDK version.
   - library: langfuse
     version: ">=4.0.0"
+upstream-version-tested: "4.14.1"
 metadata:
   category: document-asset-creation
 allowed-tools:
