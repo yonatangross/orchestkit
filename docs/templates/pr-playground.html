@@ -6,7 +6,12 @@
   placeholders marked [[TODO]], and reference it from the PR body with:
 
     ## Interactive Playground
-    **[Open Playground](https://htmlpreview.github.io/?https://github.com/.../blob/{branch}/docs/feat--{branch-slug}/{name}.html)**
+    **[Open Playground](https://htmlpreview.github.io/?https://github.com/.../blob/{head-sha}/docs/feat--{branch-slug}/{name}.html)**
+
+  Pin the commit SHA (git rev-parse HEAD), never the branch name. GitHub
+  deletes the head branch on merge, so a branch-pinned blob URL 404s the
+  moment the PR lands. A SHA keeps working because refs/pull/<N>/head is
+  retained indefinitely.
 
   That's enough to satisfy the PR Playground CI check. Add interactive
   JS-driven sections only if the PR genuinely benefits from them.
