@@ -114,8 +114,9 @@ Langfuse v3 requires ClickHouse (analytics), Redis (queuing), MinIO (blob storag
 
 ### Node.js (Express/Next.js)
 
-- [ ] Install SDK: `npm install @langfuse/core @langfuse/otel`
-- [ ] Add to package.json: `"@langfuse/core": "^5.0.0"` and `"@langfuse/otel": "^5.0.0"`
+- [ ] Install SDK: `npm install @langfuse/client @langfuse/tracing @langfuse/otel @opentelemetry/sdk-node`
+- [ ] Add to package.json: `"@langfuse/client"`, `"@langfuse/tracing"`, `"@langfuse/otel"` at `"^5.0.0"`
+- [ ] Do NOT install `@langfuse/core` directly — it is an internal utility package, not the client
 
 ## Phase 3: Configuration
 
@@ -186,14 +187,12 @@ langfuse_client = Langfuse(
 **File:** `src/lib/langfuse.ts`
 
 ```typescript
-import { Langfuse } from '@langfuse/core';
+import { LangfuseClient } from '@langfuse/client';
 
-export const langfuse = new Langfuse({
+export const langfuse = new LangfuseClient({
   publicKey: process.env.LANGFUSE_PUBLIC_KEY!,
   secretKey: process.env.LANGFUSE_SECRET_KEY!,
-  baseUrl: process.env.LANGFUSE_HOST || 'https://cloud.langfuse.com',
-  debug: process.env.NODE_ENV === 'development',
-  enabled: process.env.NODE_ENV !== 'test'
+  baseUrl: process.env.LANGFUSE_BASE_URL || 'https://cloud.langfuse.com',
 });
 ```
 

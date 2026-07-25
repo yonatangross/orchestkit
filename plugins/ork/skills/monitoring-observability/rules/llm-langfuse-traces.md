@@ -165,15 +165,24 @@ langfuse = Langfuse(
 
 ```typescript
 import { NodeSDK } from "@opentelemetry/sdk-node";
-import { LangfuseExporter } from "@langfuse/otel";
+import { LangfuseSpanProcessor } from "@langfuse/otel";
 
+// v5 ships a SpanProcessor, NOT an exporter: it goes in `spanProcessors`,
+// never `traceExporter`. Keys fall back to LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY.
 const sdk = new NodeSDK({
-  traceExporter: new LangfuseExporter({
-    publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-    secretKey: process.env.LANGFUSE_SECRET_KEY,
-  }),
+  spanProcessors: [
+    new LangfuseSpanProcessor({
+      publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+      secretKey: process.env.LANGFUSE_SECRET_KEY,
+    }),
+  ],
 });
 sdk.start();
+
+// Short-lived processes MUST flush before exit or trailing spans are lost.
+process.on("beforeExit", async () => {
+  await sdk.shutdown();
+});
 ```
 
 ## Best Practices

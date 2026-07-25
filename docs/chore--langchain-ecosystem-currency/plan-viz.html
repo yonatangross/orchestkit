@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  LIVING PLAN (LPP v2) — LangChain-ecosystem currency remediation for OrchestKit.
+  Authored 2026-07-25 from a verified upstream probe (PyPI + npm registry + published .d.ts).
+  Persona: cool-glass. Engine copied verbatim from living-plan.template.html; only STATE differs.
+  ONE plan = ONE file. Later sessions flip statuses in the lpp-state block below, append to
+  changelog, and never fork a second file for slug "langchain-ecosystem-currency".
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Living Plan</title>
+<style>
+  :root{
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(226 14% 64%);
+    --pg-faint: hsl(226 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-accent-deep: hsl(248 70% 54%);
+    --pg-violet: hsl(268 78% 70%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-ok: hsl(152 62% 58%);
+    --pg-risk: hsl(0 78% 66%);
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    font-size: 15px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background: var(--pg-bg);
+    color: var(--pg-ink);
+    font-family:-apple-system,'SF Pro Text',Inter,sans-serif;
+    line-height:1.55; padding:48px 24px 96px;
+    background-image:
+      radial-gradient(60% 42% at 12% 0%,   hsl(248 84% 68% / .16), transparent 62%),
+      radial-gradient(48% 36% at 88% 8%,   hsl(268 78% 70% / .12), transparent 60%),
+      radial-gradient(52% 40% at 50% 100%, hsl(240 80% 62% / .10), transparent 64%);
+    background-attachment: fixed;
+  }
+  .wrap{max-inline-size:1120px;margin-inline:auto}
+
+  h1{font-size:1.85rem;font-weight:700;letter-spacing:-.3px}
+  h2{font-size:1.1rem;font-weight:650;letter-spacing:-.2px;margin-block:32px 14px;
+     color:var(--pg-ink);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .sub{color:var(--pg-muted);margin-block:8px 28px;font-size:.92rem}
+  .mono,.num,td.num,.kpi b{font-variant-numeric:tabular-nums}
+
+  .glass{
+    background:var(--pg-glass);
+    border:1px solid var(--pg-glass-edge);
+    border-radius:24px;
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / .12),
+      0 20px 60px -22px hsl(232 40% 3% / .7),
+      0 4px 12px -6px hsl(232 40% 3% / .5);
+  }
+
+  .hero{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;
+        padding:24px;margin-block-end:24px}
+  .ring-wrap{position:relative;inline-size:132px;block-size:132px}
+  .ring-wrap svg{transform:rotate(-90deg)}
+  .ring-c{fill:none;stroke:hsl(0 0% 100% / .08);stroke-width:10}
+  .ring-p{fill:none;stroke:url(#pg-grad);stroke-width:10;stroke-linecap:round;
+          transition:stroke-dashoffset 500ms var(--pg-ease)}
+  .ring-txt{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+  .ring-txt b{font-size:1.5rem;font-weight:700}
+  .ring-txt span{font-size:.68rem;color:var(--pg-muted);text-transform:uppercase;letter-spacing:.06em}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .kpi{background:var(--pg-glass);border:1px solid hsl(0 0% 100% / .10);
+       border-radius:16px;padding:12px 16px}
+  .kpi b{display:block;font-size:1.25rem;font-weight:700}
+  .kpi span{color:var(--pg-faint);font-size:.75rem}
+  .kpi .up{color:var(--pg-ok)} .kpi .mid{color:var(--pg-warm)} .kpi .acc{color:var(--pg-accent)}
+
+  .wavestrip{display:grid;gap:10px;padding:20px 24px;margin-block-end:24px}
+  .wrow{display:grid;grid-template-columns:230px 1fr 76px;gap:16px;align-items:center;font-size:.85rem}
+  .wrow .wl{color:var(--pg-muted);font-weight:600}
+  .wbar{block-size:10px;border-radius:5px;background:hsl(0 0% 100% / .07);overflow:hidden}
+  .wbar i{display:block;block-size:100%;border-radius:5px;
+          background:linear-gradient(90deg,var(--pg-accent-deep),var(--pg-accent),var(--pg-violet));
+          transition:inline-size 500ms var(--pg-ease)}
+  .wrow .wn{text-align:end;color:var(--pg-faint)}
+  .wrow.done .wl{color:var(--pg-ok)} .wrow.done .wbar i{background:var(--pg-ok)}
+
+  .tabs{display:flex;gap:8px;margin-block:24px 18px;flex-wrap:wrap}
+  .tab{background:var(--pg-glass);border:1px solid hsl(0 0% 100% / .12);color:var(--pg-muted);
+       padding:8px 18px;border-radius:999px;cursor:pointer;font-size:.88rem;
+       transition:color 100ms var(--pg-ease),background 100ms var(--pg-ease)}
+  .tab:hover{color:var(--pg-ink)}
+  .tab.active{background:linear-gradient(135deg,var(--pg-accent-deep),var(--pg-accent));
+              color:hsl(232 30% 8%);border-color:transparent;font-weight:650}
+
+  .panel{display:none}
+  .panel.active{display:block;animation:pg-in 300ms var(--pg-ease)}
+  @keyframes pg-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--pg-glass);border:1px solid var(--pg-glass-edge);border-radius:16px;
+        backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+        box-shadow:inset 0 1px 0 hsl(0 0% 100% / .10), 0 4px 12px -6px hsl(232 40% 3% / .5);
+        padding:18px 22px;margin-block-end:14px;
+        transition:border-color 200ms var(--pg-ease)}
+  .card:hover{border-color:hsl(248 84% 68% / .5)}
+  .card h3{font-size:1rem;font-weight:650;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-block-end:4px}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-block:8px;align-items:center}
+  .chip{font-size:.72rem;padding:2px 10px;border-radius:999px;border:1px solid hsl(0 0% 100% / .14);color:var(--pg-faint);white-space:nowrap}
+  .impact{display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--pg-muted)}
+  .impact .ib{inline-size:72px;block-size:6px;border-radius:3px;background:hsl(0 0% 100% / .08);overflow:hidden}
+  .impact .ib i{display:block;block-size:100%;background:linear-gradient(90deg,var(--pg-accent),var(--pg-violet))}
+
+  .st{font-size:.72rem;padding:2px 12px;border-radius:999px;font-weight:600}
+  .st-planned{color:var(--pg-faint);border:1px solid hsl(0 0% 100% / .16);background:hsl(0 0% 100% / .03)}
+  .st-in_progress{color:hsl(38 95% 68%);border:1px solid hsl(38 95% 60% / .45);background:hsl(38 95% 60% / .10)}
+  .st-done{color:var(--pg-ok);border:1px solid hsl(152 62% 58% / .45);background:hsl(152 62% 58% / .10)}
+  .st-dropped{color:var(--pg-risk);border:1px solid hsl(0 78% 66% / .4);background:hsl(0 78% 66% / .08);text-decoration:line-through}
+
+  table{inline-size:100%;border-collapse:collapse;font-size:.85rem}
+  th,td{text-align:start;padding:8px 12px;border-block-end:1px solid hsl(0 0% 100% / .08);vertical-align:top}
+  th{color:var(--pg-faint);font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em}
+  .note{border-inline-start:3px solid var(--pg-warm);padding:10px 16px;background:var(--pg-glass);
+        border-radius:0 12px 12px 0;margin-block:14px;font-size:.88rem;color:var(--pg-muted)}
+  .src{font-size:.8rem;color:var(--pg-muted)}
+  .faint{color:var(--pg-faint)}
+  .strike{color:var(--pg-faint);text-decoration:line-through}
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-block-start:8px;font-size:.82rem}
+  .ba>div{background:hsl(0 0% 100% / .04);border:1px solid hsl(0 0% 100% / .09);border-radius:12px;padding:10px 14px}
+  .ba b{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pg-faint);margin-block-end:3px}
+  .ba .aft b{color:var(--pg-ok)}
+  details summary{cursor:pointer;color:var(--pg-faint);font-size:.82rem;margin-block-start:8px}
+  .score-row{display:grid;grid-template-columns:170px 1fr 46px;gap:12px;align-items:center;margin-block:6px;font-size:.85rem}
+  .score-row .bar{block-size:8px;border-radius:4px;background:hsl(0 0% 100% / .07);overflow:hidden}
+  .score-row .bar i{display:block;block-size:100%;border-radius:4px;
+    background:linear-gradient(90deg,var(--pg-accent-deep),var(--pg-accent))}
+  .score-row .v{text-align:end;color:var(--pg-muted)}
+  .wavehead{font-size:.78rem;color:var(--pg-faint);font-weight:400}
+  a{color:var(--pg-accent)}
+  @media(max-width:760px){.ba{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.wrow{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="lpp-title">Living Plan</h1>
+  <p class="sub" id="lpp-sub"></p>
+
+  <div class="hero glass">
+    <div class="ring-wrap">
+      <svg width="132" height="132" viewBox="0 0 132 132" aria-hidden="true">
+        <defs>
+          <linearGradient id="pg-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="hsl(248 70% 54%)"/>
+            <stop offset="100%" stop-color="hsl(268 78% 70%)"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-c" cx="66" cy="66" r="56"/>
+        <circle class="ring-p" id="lpp-ring" cx="66" cy="66" r="56"/>
+      </svg>
+      <div class="ring-txt"><b id="lpp-pct">0%</b><span>complete</span></div>
+    </div>
+    <div class="kpis" id="lpp-kpis"></div>
+  </div>
+
+  <div class="wavestrip glass" id="lpp-wavestrip"></div>
+
+  <div class="tabs" id="lpp-tabs"></div>
+  <div id="lpp-panels"></div>
+</div>
+
+<!-- ═══════════ STATE — the only block sessions edit. Append, flip statuses, never fork. ═══════════ -->
+<!-- SECURITY INVARIANT: every "<" in the values below MUST be written as the six
+     characters backslash-u-0-0-3-c. type="application/json" is invisible to the HTML
+     tokenizer, so a literal '</script' in any string value ends the element at parse
+     time and the rest is parsed as live markup, before JSON.parse and before esc()
+     exists. Enforced by tests/security/test-json-island-breakout.sh. -->
+<script type="application/json" id="lpp-state">
+{
+  "lpp": 2,
+  "slug": "langchain-ecosystem-currency",
+  "title": "LangChain ecosystem currency — OrchestKit remediation",
+  "created": "2026-07-25",
+  "updated": "2026-07-25T00:00:00Z",
+  "score": {
+    "dims": {
+      "correctness": 4.5,
+      "maintainability": 6.0,
+      "performance": 8.0,
+      "security": 6.5,
+      "scalability": 5.0,
+      "testability": 4.5,
+      "compliance": 6.5
+    },
+    "composite": 5.9,
+    "target": 8.0
+  },
+  "waves": [
+    {
+      "id": "W1",
+      "title": "stop shipping broken code",
+      "status": "done"
+    },
+    {
+      "id": "W2",
+      "title": "dual-registry currency watchdog",
+      "status": "done"
+    },
+    {
+      "id": "W3",
+      "title": "additive coverage",
+      "status": "done"
+    },
+    {
+      "id": "W4",
+      "title": "phantom-symbol gate (own milestone)",
+      "status": "done"
+    }
+  ],
+  "items": [
+    {
+      "id": "W1.1",
+      "wave": "W1",
+      "title": "Replace LangfuseExporter with LangfuseSpanProcessor",
+      "impact": 9.5,
+      "effort": "20min",
+      "risk": "low",
+      "status": "done",
+      "before": "3 skill files ship `import { LangfuseExporter } from \"@langfuse/otel\"`. The published 5.9.1 .d.ts exports no such symbol, so every copy-paste throws at import.",
+      "after": "All 3 use LangfuseSpanProcessor wired into NodeSDK spanProcessors, matching the shipped type surface.",
+      "detail": "Verified by fetching cdn.jsdelivr.net/npm/@langfuse/otel@5.9.1/dist/index.d.ts. Its full export list is KNOWN_LLM_INSTRUMENTATION_SCOPE_PREFIXES, LangfuseSpanProcessor, LangfuseSpanProcessorParams, MaskFunction, ShouldExportSpan, isDefaultExportSpan, isGenAISpan, isKnownLLMInstrumentor, isLangfuseSpan. Sites: rules/llm-langfuse-traces.md:168, references/framework-integrations.md:296, references/migration-v2-v3.md:243.",
+      "failure": "The v5 processor is registered via NodeSDK spanProcessors, not traceExporter — a mechanical find-and-replace of the class name alone still produces non-working code.",
+      "containment": "Re-fetch the .d.ts after editing and confirm every imported identifier appears in the export list.",
+      "evidence": "rg -n 'LangfuseExporter' src/ returns zero hits AND each new import symbol appears in the fetched @langfuse/otel .d.ts export list",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.2",
+      "wave": "W1",
+      "title": "Correct the @langfuse/core client import",
+      "impact": 8.5,
+      "effort": "10min",
+      "risk": "low",
+      "status": "done",
+      "before": "migration-v2-v3.md:235 teaches `import { Langfuse } from \"@langfuse/core\"`. @langfuse/core is an internal utility package (\"Core functions and utilities for Langfuse packages\") and exports no Langfuse class.",
+      "after": "Uses LangfuseClient from @langfuse/client, the actual public client of JS SDK v5.",
+      "detail": "@langfuse/client@5.9.1 exports LangfuseClient plus DatasetManager, ExperimentManager, ScoreManager, PromptManager. @langfuse/core exports API types and LangfuseAPIClient only.",
+      "failure": "Swapping the package but keeping the class name Langfuse — the class is LangfuseClient.",
+      "containment": "Same .d.ts export-list check as W1.1.",
+      "evidence": "rg -n '@langfuse/core' src/ returns zero hits outside an explicit 'internal, do not import' note",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.3",
+      "wave": "W1",
+      "title": "Remove the @langfuse/vercel migration row",
+      "impact": 6.0,
+      "effort": "5min",
+      "risk": "low",
+      "status": "done",
+      "before": "migration-v2-v3.md:222 maps `langfuse-vercel` to `@langfuse/vercel`, a package that has never been published.",
+      "after": "The row is removed or replaced with the real AI SDK path (OTel span processor + the Vercel AI SDK telemetry hook).",
+      "detail": "registry.npmjs.org/@langfuse/vercel/latest returns no version. Confirmed alongside 6 sibling packages that DO resolve at 5.9.1.",
+      "failure": "Replacing it with another guessed package name instead of the documented integration.",
+      "containment": "Every package named in the replacement must return a version from the registry before the edit lands.",
+      "evidence": "for each @langfuse/* named in the docs, curl registry.npmjs.org/\u003cpkg>/latest returns HTTP 200",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.4",
+      "wave": "W1",
+      "title": "Fix version-era prose and the misnamed migration doc",
+      "impact": 5.5,
+      "effort": "15min",
+      "risk": "low",
+      "status": "done",
+      "before": "framework-integrations.md:3 opens with 'Langfuse v3 integrates with modern AI frameworks' while the skill targets v4 and JS is at v5. The migration doc is named migration-v2-v3.md but its content is v3 to v4.",
+      "after": "Prose names the era it documents; the file is migration-v3-v4.md with its references updated.",
+      "detail": "Pure naming rot, zero behavioural risk, but it is the line a reader trusts first when deciding whether the page is current.",
+      "failure": "Renaming the file without updating _sections.md and SKILL.md cross-references, producing a dead link.",
+      "containment": "grep the old filename repo-wide after the rename; the count must be zero.",
+      "evidence": "rg -n 'migration-v2-v3' src/ plugins/ returns zero hits and npm run test:skills passes",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.5",
+      "wave": "W1",
+      "title": "Rewrite the LangGraph 1.2 callout to describe 1.2",
+      "impact": 9.0,
+      "effort": "45min",
+      "risk": "med",
+      "status": "done",
+      "before": "SKILL.md:35 opens 'LangGraph 1.2 (Q1 2026) — new in this bump' and lists deferred nodes, model middleware, and node-level caching. Those are 1.1-era. LangGraph 1.2 shipped 12 May 2026 with a different headline set.",
+      "after": "The callout lists the actual 1.2 additions; the 1.1 features move to a correctly-labelled prior-release note rather than being deleted.",
+      "detail": "The three documented features are real and useful — only their attribution is wrong. Deleting them would lose good content; relabelling them keeps it.",
+      "failure": "Trusting a blog aggregator for the 1.2 feature list instead of the upstream docs, and importing a second wrong attribution.",
+      "containment": "Every claimed 1.2 API must be confirmed against docs.langchain.com or the langgraph release notes before it is written.",
+      "evidence": "each API named in the callout resolves to a docs.langchain.com page or a langgraph GitHub release note cited inline",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.6",
+      "wave": "W1",
+      "title": "Add rules for the real 1.2 surface (4 new rules)",
+      "impact": 9.0,
+      "effort": "3h",
+      "risk": "med",
+      "status": "done",
+      "before": "grep across src/ finds zero hits for DeltaChannel, snapshot_frequency, TimeoutPolicy, run_timeout, idle_timeout, NodeTimeoutError, error_handler on add_node, and RunControl. A 37-rule LangGraph skill cannot advise on any of the framework's current fault-tolerance surface.",
+      "after": "Four rules land under rules/: delta-channel state, per-node timeouts, node error handlers, and RunControl graceful shutdown — taking the skill to 41 rules.",
+      "detail": "This is the largest content gap. DeltaChannel in particular is the framework's answer to long-running-thread state growth, which is exactly the scaling question the skill is consulted for.",
+      "failure": "Writing rules from a search-result summary rather than the API reference, shipping signatures that do not exist — the same defect class as W1.1 in a new place.",
+      "containment": "Each rule carries the doc URL for its API; the W4 import-symbol gate later enforces this automatically.",
+      "evidence": "ls src/skills/langgraph/rules/ shows 41 rules AND rules/_sections.md lists the 4 new ones AND npm run test:skills passes",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.7",
+      "wave": "W1",
+      "title": "Lead routing-retry-loops with framework-native retry",
+      "impact": 7.0,
+      "effort": "30min",
+      "risk": "low",
+      "status": "done",
+      "before": "rules/routing-retry-loops.md teaches a hand-rolled retry_count field in graph state as the Correct pattern. As of 1.2 the framework answer is retry_policy plus timeout plus error_handler on add_node.",
+      "after": "The rule leads with the native primitives and keeps the counter pattern as the fallback for pre-1.2 pins.",
+      "detail": "The existing advice is not wrong, it is superseded. Left alone it teaches users to reimplement a framework feature.",
+      "failure": "Deleting the manual pattern outright, stranding anyone pinned below 1.2.",
+      "containment": "Keep both, ordered by recommendation, with the version each requires.",
+      "evidence": "rules/routing-retry-loops.md names retry_policy, timeout and error_handler before the retry_count example",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.8",
+      "wave": "W1",
+      "title": "Resolve the stale @langchain/langgraph JS floor",
+      "impact": 7.5,
+      "effort": "20min",
+      "risk": "low",
+      "status": "done",
+      "before": "SKILL.md frontmatter declares a target of @langchain/langgraph at 1.2.0 or above. npm latest is 1.4.8, and the skill's 37 rules contain no TypeScript at all — so the floor advertises a coverage the skill does not have.",
+      "after": "Either the JS target is removed (skill scoped Python-only, the recommendation) or it is bumped to 1.4 with the JS-specific deltas documented.",
+      "detail": "Discarded the alternative of a full JS twin track: 37 rules across two languages doubles the maintenance surface with no evidence of demand.",
+      "failure": "Bumping the floor number without adding any JS content — the claim stays hollow, just newer.",
+      "containment": "If the target stays, at least one rule must contain runnable TypeScript.",
+      "evidence": "the targets: block contains no @langchain/langgraph entry, OR the skill contains at least one TypeScript code fence importing from it",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.9",
+      "wave": "W1",
+      "title": "Trigger evals for the new 1.2 rules",
+      "impact": 6.5,
+      "effort": "45min",
+      "risk": "low",
+      "status": "done",
+      "before": "tests/evals/skills/langgraph.eval.yaml predates the new rules, so nothing exercises their triggers.",
+      "after": "The eval file covers the four new rules, keeping the repo's own eval-coverage contract intact.",
+      "detail": "Required by the project's rule that a new rule ships with trigger coverage.",
+      "failure": "Adding eval specs that are never executed in CI — the documented eval-specs-not-CI-executed failure mode.",
+      "containment": "Confirm the runner discovers the file, do not trust a green exit code.",
+      "evidence": "the eval runner reports a non-zero executed-case count for the four new rules, not just exit 0",
+      "owner": "agent"
+    },
+    {
+      "id": "W2.1",
+      "wave": "W2",
+      "title": "Add upstream-version-tested frontmatter to both skills",
+      "impact": 7.0,
+      "effort": "15min",
+      "risk": "low",
+      "status": "done",
+      "before": "Neither langgraph nor monitoring-observability declares upstream-version-tested:, so check-labs-versions.mjs would SKIP them even if they were enrolled.",
+      "after": "Both carry the key, making them addressable by the existing watchdog with no new frontmatter vocabulary.",
+      "detail": "Reuses machinery that already works rather than inventing a parallel mechanism.",
+      "failure": "Confusing the pin with the floor: upstream-version-tested is 'what we validated against', targets: is 'the minimum we require'. They are different numbers.",
+      "containment": "Document both keys side by side in the skill-authoring rule.",
+      "evidence": "node scripts/check-labs-versions.mjs prints an OK or DRIFT line (not SKIP) for langgraph and monitoring-observability",
+      "owner": "agent"
+    },
+    {
+      "id": "W2.2",
+      "wave": "W2",
+      "title": "Teach check-labs-versions.mjs to read PyPI",
+      "impact": 9.5,
+      "effort": "2h",
+      "risk": "med",
+      "status": "done",
+      "before": "The watchdog resolves versions with `npm view`, so it is structurally blind to PyPI. langgraph, langchain, langfuse, deepeval and ragas are all PyPI packages — the entire ecosystem is invisible to it.",
+      "after": "Targets carry a registry field (npm or pypi); the PyPI path reads pypi.org/pypi/\u003cpkg>/json and returns info.version.",
+      "detail": "This is the root cause. Every content fix in W1 rots again without it. The 5 currently-watched packages are emulate, portless, agent-browser and two @json-render entries — none from this ecosystem.",
+      "failure": "Shelling out to `pip index` or `pip install --dry-run`, which needs a Python toolchain in CI. The JSON API needs only curl.",
+      "containment": "Pure fetch plus JSON parse, no subprocess, no Python dependency added to the workflow.",
+      "evidence": "node scripts/check-labs-versions.mjs prints a version line for langfuse sourced from pypi.org, with no python3 or pip in the process tree",
+      "owner": "agent"
+    },
+    {
+      "id": "W2.3",
+      "wave": "W2",
+      "title": "Compare floor satisfiability, not string equality",
+      "impact": 8.5,
+      "effort": "1h",
+      "risk": "high",
+      "status": "done",
+      "before": "The watchdog reports DRIFT whenever pinned does not string-equal latest. Applied to a floor like 'langgraph at 1.2.0 or above' against latest 1.2.9 that is a false alarm — the floor is satisfied.",
+      "after": "A floor is flagged only when upstream has moved to a new MINOR or MAJOR beyond it; a patch bump inside the floor is silent.",
+      "detail": "This is the difference between a gate people act on and a gate people mute. The @langchain/langgraph case (floor 1.2.0, latest 1.4.8) must fire; the langgraph Python case (floor 1.2.0, latest 1.2.9) must not.",
+      "failure": "Over-firing turns the watchdog into noise and it gets baselined away — the exact death this repo has already given one lexical gate.",
+      "containment": "Unit-test both cases explicitly: 1.2.0 vs 1.2.9 must be quiet, 1.2.0 vs 1.4.8 must fire. Ship neither behaviour untested.",
+      "evidence": "a unit test asserts quiet for floor 1.2.0 against latest 1.2.9 and firing for floor 1.2.0 against latest 1.4.8",
+      "owner": "agent"
+    },
+    {
+      "id": "W2.4",
+      "wave": "W2",
+      "title": "Enroll the ecosystem packages in labs-version-watch",
+      "impact": 8.0,
+      "effort": "30min",
+      "risk": "low",
+      "status": "done",
+      "before": "labs-version-watch.yml runs check --then--apply --then--open-PR for 5 packages, none from this ecosystem.",
+      "after": "langgraph, langchain-core, langfuse and the Langfuse JS packages are enrolled and produce the same auto-PR.",
+      "detail": "The workflow already exists and already opens PRs. Adding rows is cheaper and less drift-prone than building a second notification channel.",
+      "failure": "The run is green but writes nothing — the documented silent-noop pattern where an empty branch hits `continue` and exits 0.",
+      "containment": "Judge the run by its artifact (a branch or PR), never by exit code.",
+      "evidence": "a deliberately-stale pin produces an actual chore/labs-version-watch branch on origin, confirmed by git ls-remote",
+      "owner": "agent"
+    },
+    {
+      "id": "W2.5",
+      "wave": "W2",
+      "title": "Fixture-driven tests plus a CI-discovery check",
+      "impact": 8.0,
+      "effort": "1.5h",
+      "risk": "med",
+      "status": "done",
+      "before": "No test covers the resolver, and a new test file type can be silently skipped by the CI runner's discovery glob.",
+      "after": "Recorded registry JSON fixtures drive offline unit tests, and the CI-parity command proves the runner actually discovers the new file.",
+      "detail": "run-tests.sh line 57 globs test-*.sh and test-*.mjs, so a .mjs test WILL be found — verified, not assumed. Fixtures keep the PR gate network-free; live probing stays in the nightly workflow.",
+      "failure": "A gate that passes locally via an npm script but is absent from CI's discovered count — the dead-gate pattern that hid a broken islands check for months.",
+      "containment": "Run bash scripts/ci/run-tests.sh on the target dir and read the discovered-count, not the npm script.",
+      "evidence": "bash scripts/ci/run-tests.sh tests/unit --verbose lists the new test file in its discovered set and reports it passing",
+      "owner": "agent"
+    },
+    {
+      "id": "W3.1",
+      "wave": "W3",
+      "title": "New reference page for the Langfuse JS v5 SDK",
+      "impact": 7.0,
+      "effort": "2h",
+      "risk": "low",
+      "status": "done",
+      "before": "Langfuse JS is a separate major (5) with different package names from Python (4), and ork covers it only in a few scattered, partly-broken snippets.",
+      "after": "references/langfuse-js-v5.md documents LangfuseClient, LangfuseSpanProcessor, MaskFunction and ShouldExportSpan, plus @langfuse/langchain and @langfuse/openai.",
+      "detail": "Masking and span filtering exist in the JS processor (MaskFunction, ShouldExportSpan are exported types) but ork's JS guidance is currently unusable, so a JS user cannot apply PII masking from these docs at all.",
+      "failure": "Duplicating the Python page's structure and drifting the two apart.",
+      "containment": "The JS page links to the Python page for shared concepts rather than restating them.",
+      "evidence": "the new reference exists, is listed in references/_sections.md, and every symbol it imports appears in the corresponding published .d.ts",
+      "owner": "agent"
+    },
+    {
+      "id": "W3.2",
+      "wave": "W3",
+      "title": "Cover the Langfuse JS experiments surface",
+      "impact": 6.0,
+      "effort": "1.5h",
+      "risk": "low",
+      "status": "done",
+      "before": "@langfuse/client exports ExperimentManager, Evaluator, RunEvaluator, createEvaluatorFromAutoevals, RegressionError and DatasetManager. The golden-dataset skill mentions none of them.",
+      "after": "golden-dataset documents the JS experiments and evaluator runner alongside the Python path.",
+      "detail": "Additive gap, not a defect — which is why it sits in W3 behind the correctness work.",
+      "failure": "Guessing method signatures from class names.",
+      "containment": "Read the .d.ts for each symbol before writing an example.",
+      "evidence": "golden-dataset names ExperimentManager and createEvaluatorFromAutoevals, and both appear in the @langfuse/client export list",
+      "owner": "agent"
+    },
+    {
+      "id": "W3.3",
+      "wave": "W3",
+      "title": "Record langgraph-supervisor and -swarm as track-only",
+      "impact": 4.5,
+      "effort": "20min",
+      "risk": "low",
+      "status": "done",
+      "before": "langgraph-supervisor last shipped 0.0.31 in Nov 2025 and langgraph-swarm 0.1.0 in Dec 2025. ork teaches hand-rolled supervisors, which is defensible but undocumented as a decision.",
+      "after": "The TRACK_ONLY tier in check-labs-versions.mjs carries both with a dated do-not-adopt note.",
+      "detail": "The TRACK_ONLY tier already exists for exactly this (the wterm decision). Reusing it costs two rows.",
+      "failure": "None material.",
+      "containment": "n/a",
+      "evidence": "TRACK_ONLY in scripts/check-labs-versions.mjs contains both packages with a dated note",
+      "owner": "agent"
+    },
+    {
+      "id": "W3.4",
+      "wave": "W3",
+      "title": "Authoring rule: version claims must be machine-checkable",
+      "impact": 6.5,
+      "effort": "30min",
+      "risk": "low",
+      "status": "done",
+      "before": "Nothing in the authoring rules says a version claim has to be verifiable, so prose claims accumulate faster than gates can chase them.",
+      "after": "skill-authoring.md states that a version claim belongs in targets: or upstream-version-tested:, and that an import in a code fence must name a symbol the package actually exports.",
+      "detail": "Turns W2 and W4 from bolt-on gates into an enforceable authoring contract.",
+      "failure": "Writing a rule so broad it bans legitimate historical prose like 'deprecated in v1.0'.",
+      "containment": "Scope the rule to requirement claims and imports; explicitly exempt history and release-note links, matching the reasoning already recorded in test-targets-floor-agreement.mjs.",
+      "evidence": ".claude/rules/skill-authoring.md contains the rule and the exemption for historical prose",
+      "owner": "agent"
+    },
+    {
+      "id": "W4.1",
+      "wave": "W4",
+      "title": "Import-symbol gate (nightly)",
+      "impact": 10.0,
+      "effort": "1d",
+      "risk": "high",
+      "status": "done",
+      "before": "No gate can catch a symbol that never existed at any version. LangfuseExporter passed every existing check: lint, structure tests, floor agreement, and the upstream-drift linter.",
+      "after": "A nightly job extracts TypeScript imports from skill code fences and asserts each symbol appears in the package's published .d.ts.",
+      "detail": "Highest impact and lowest simplicity of every idea considered — which is why it is its own milestone rather than a rider on a correctness hotfix.",
+      "failure": "A lexical extractor that misreads pseudo-code fences and cries wolf. This repo has already rejected one lexical version-scanner for exactly that reason.",
+      "containment": "Restrict to `import { X } from \"pkg\"` in ts and typescript fences — an import statement is unambiguous in a way prose never is. Nightly and network-dependent, so never a PR gate. Ship it flagging today's four known defects before they are fixed, as a live true-positive proof.",
+      "evidence": "run against the pre-W1 tree the gate reports exactly the known-bad imports and no others",
+      "owner": "agent"
+    },
+    {
+      "id": "W4.2",
+      "wave": "W4",
+      "title": "Package-existence gate",
+      "impact": 7.5,
+      "effort": "2h",
+      "risk": "med",
+      "status": "done",
+      "before": "@langfuse/vercel was documented for months and has never existed on the registry.",
+      "after": "Every scoped package named in skill docs must resolve to a published version.",
+      "detail": "Shares the extractor and the nightly schedule with W4.1, so it is cheap once that exists.",
+      "failure": "Flagging deliberately-hypothetical package names in examples.",
+      "containment": "Allowlist an explicit example scope for illustrative names.",
+      "evidence": "run against the pre-W1 tree the gate reports @langfuse/vercel and no false positives",
+      "owner": "agent"
+    }
+  ],
+  "discards": [
+    {
+      "title": "Full JS/TS twin track for the langgraph skill",
+      "reason": "37 rules across two languages doubles the maintenance surface with no evidence of demand. Narrowing the JS floor (W1.8) gets the correctness win at a fraction of the cost."
+    },
+    {
+      "title": "Nightly digest issue instead of the existing auto-PR",
+      "reason": "labs-version-watch.yml already opens PRs and works. A second notification channel is drift, not coverage."
+    },
+    {
+      "title": "Approach A — content-only hotfix, no automation",
+      "reason": "Restores correctness and changes nothing about why it broke. Composite 5.5 against 8.3 for the same content work plus one resolver."
+    },
+    {
+      "title": "Shell out to pip to resolve PyPI versions",
+      "reason": "Adds a Python toolchain dependency to a Node workflow. The pypi.org JSON API needs only a fetch."
+    },
+    {
+      "title": "Prose-scanning version linter across all skill bodies",
+      "reason": "Already tried and rejected in this repo: a lexical scan cannot separate 'requires at least X' from 'feature Y landed in X', and all four of its findings were legitimate."
+    }
+  ],
+  "research": [
+    {
+      "title": "@langfuse/otel exports no LangfuseExporter",
+      "note": "The published 5.9.1 type bundle exports LangfuseSpanProcessor and eight helpers. LangfuseExporter is absent, so all three ork snippets throw at import.",
+      "source": "https://cdn.jsdelivr.net/npm/@langfuse/otel@5.9.1/dist/index.d.ts"
+    },
+    {
+      "title": "@langfuse/core is internal; the client is @langfuse/client",
+      "note": "core is described as 'Core functions and utilities for Langfuse packages' and exports API types plus LangfuseAPIClient. LangfuseClient lives in @langfuse/client.",
+      "source": "https://langfuse.com/docs/observability/sdk/typescript/setup"
+    },
+    {
+      "title": "@langfuse/vercel is unpublished",
+      "note": "Six sibling @langfuse packages resolve at 5.9.1; @langfuse/vercel returns nothing from the registry.",
+      "source": "https://registry.npmjs.org/@langfuse/vercel/latest"
+    },
+    {
+      "title": "LangGraph 1.2 shipped 12 May 2026 with a different feature set than ork claims",
+      "note": "Real 1.2 headline additions: DeltaChannel with snapshot_frequency, per-node timeouts via TimeoutPolicy raising NodeTimeoutError, node error_handler receiving a typed NodeError, and RunControl for cooperative graceful shutdown. None appear anywhere in src/.",
+      "source": "https://www.langchain.com/blog/fault-tolerance-in-langgraph"
+    },
+    {
+      "title": "Live version probe, 2026-07-25",
+      "note": "PyPI: langgraph 1.2.9, langchain 1.3.14, langchain-core 1.5.1, langfuse 4.14.1, deepeval 4.1.3, ragas 0.4.3. npm: @langchain/langgraph 1.4.8, @langfuse/* 5.9.1, legacy langfuse monolith 3.38.20.",
+      "source": "https://pypi.org/pypi/langgraph/json"
+    },
+    {
+      "title": "The watchdog is structurally npm-only",
+      "note": "scripts/check-labs-versions.mjs resolves via `npm view` and watches 5 packages: emulate, portless, agent-browser, @json-render/core, @json-render/mcp. No PyPI code path exists, so the whole LangChain ecosystem is invisible to it.",
+      "source": "https://github.com/yonatangross/orchestkit"
+    },
+    {
+      "title": "Neither existing structural gate could have caught this",
+      "note": "test-targets-floor-agreement.mjs compares skills to each other, never to upstream. test-upstream-version-drift.mjs matches only 0.x tokens by design, and every package here is 1.x or 4.x — a structural no-op.",
+      "source": "https://github.com/yonatangross/orchestkit"
+    }
+  ],
+  "changelog": [
+    {
+      "at": "2026-07-25",
+      "note": "v1 authored from a live PyPI + npm + .d.ts probe. Assess composite 5.9 (grade D), target 8.0. Approach B recommended; C split into W4 as its own milestone."
+    },
+    {
+      "at": "2026-07-25",
+      "note": "Wave 1 landed as 12c7f429b. Scope was larger than planned: 4 LangfuseExporter sites (not 3) plus install instructions and a client import in the setup checklist. Verified against upstream source rather than docs prose. Two plan assumptions were WRONG and corrected: (a) the Langfuse v3 self-hosting prose is accurate, that is the platform version line, not the SDK, so it was left alone; (b) the langfuse-vercel successor is @langfuse/vercel-ai-sdk, not @langfuse/vercel. Bonus find: rules/_sections.md was stale by 9 rules and an entire category (Platform) - rebuilt to 41 rules / 12 categories. npm run build + test:skills + test:agents + test:manifests all exit 0."
+    },
+    {
+      "at": "2026-07-25",
+      "note": "Wave 2 landed as 1fae67353. PyPI resolver live: langgraph 1.2.9 and langfuse 4.14.1 now resolve (pypi) where they were previously invisible. Floor semantics verified against the real pairs: >=1.2.0 vs 1.2.9 stays quiet, >=1.2.0 vs 1.4.8 fires. Two things the plan did not anticipate: (a) package-name aliasing was required - a skill declaring next.js must resolve to the npm package next, or it SKIPs forever while looking covered; (b) expanding LIBRARY_REGISTRY to 37 libraries cut unresolvable floors from 21 to 3 and surfaced 3 MAJOR-behind floors elsewhere in the repo (react-i18next 13 vs 17, pact 16 vs 17, testcontainers 11 vs 12) plus a real agent-browser pin drift - all left for their owners, not mixed in. W3.3 (track-only tier for the dormant langgraph-supervisor/swarm) landed here too since it is the same file. 43/43 offline unit assertions; CI runner discovery confirmed via run-tests.sh glob, not the npm script."
+    },
+    {
+      "at": "2026-07-25",
+      "note": "Wave 3 landed as 03c3840ed. Langfuse JS v5 reference written from published .d.ts, golden-dataset gained the JS experiment runner, and skill-authoring.md now carries the machine-checkable version-claim contract with two explicit anti-churn exemptions (historical prose; multiple version axes per product)."
+    },
+    {
+      "at": "2026-07-25",
+      "note": "Wave 4 landed as 24d4b81ef. The import-symbol gate was PROVEN before being trusted: run against src/skills at the pre-fix commit it reports 12 broken imports including all four LangfuseExporter sites. It also found a second phantom-symbol family outside the LangChain scope in @json-render/core - jsonSchema is only a method on Catalog, CatalogComponents is not exported by core, both fixed; mergeCatalogs does not exist at all across 5 sites and is left REPORTED not guessed, because inventing a replacement API is the same defect the gate exists to catch. W4.2 (package-existence) is folded into the same script: an unpublished package resolves to not-published and is reported separately from a missing symbol. Nightly workflow, deliberately not a PR gate."
+    }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  "use strict";
+  const st = JSON.parse(document.getElementById('lpp-state').textContent);
+  const L = {planned:'planned', in_progress:'in progress', done:'done', dropped:'dropped'};
+  const RK = {low:'var(--pg-ok)', med:'var(--pg-warm)', medium:'var(--pg-warm)', high:'var(--pg-risk)'};
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  const safeUrl = u => /^(https?|mailto):/i.test(String(u||'')) ? String(u) : '';
+  const CLS = {planned:'planned', in_progress:'in_progress', done:'done', dropped:'dropped'};
+  const stCls = s => Object.prototype.hasOwnProperty.call(CLS, s) ? CLS[s] : 'planned';
+  const riskColor = r => Object.prototype.hasOwnProperty.call(RK, r) ? RK[r] : 'var(--pg-faint)';
+  const stChip = i => '<span class="st st-'+stCls(i.status)+'">'+esc(L[i.status]||i.status)+'</span>';
+
+  document.getElementById('lpp-title').textContent = st.title;
+  document.title = st.title;
+  document.getElementById('lpp-sub').textContent =
+    st.slug+' · created '+st.created+' · state updated '+String(st.updated).slice(0,16).replace('T',' ');
+
+  const items = st.items;
+  const active = items.filter(i=>i.status!=='dropped');
+  const doneN = active.filter(i=>i.status==='done').length;
+  const ipN = active.filter(i=>i.status==='in_progress').length;
+  const pct = active.length ? Math.round(100*doneN/active.length) : 0;
+
+  const CIRC = 2*Math.PI*56;
+  const ring = document.getElementById('lpp-ring');
+  ring.setAttribute('stroke-dasharray', CIRC.toFixed(1));
+  ring.setAttribute('stroke-dashoffset', (CIRC*(1-pct/100)).toFixed(1));
+  document.getElementById('lpp-pct').textContent = pct+'%';
+
+  document.getElementById('lpp-kpis').innerHTML = [
+    {c:'acc', v:st.score.composite+' → '+st.score.target, l:'assess composite, now → target'},
+    {c:'up',  v:doneN+'/'+active.length, l:'items proven done'},
+    {c:'mid', v:ipN, l:'in progress now'},
+    {c:'up',  v:(st.discards||[]).length, l:'ideas deliberately discarded'}
+  ].map(k=>'<div class="kpi"><b class="'+k.c+'">'+esc(k.v)+'</b><span>'+esc(k.l)+'</span></div>').join('');
+
+  document.getElementById('lpp-wavestrip').innerHTML = st.waves.map(w=>{
+    const wi = items.filter(i=>i.wave===w.id && i.status!=='dropped');
+    const wd = wi.filter(i=>i.status==='done').length;
+    const wp = wi.length ? Math.round(100*wd/wi.length) : 0;
+    return '<div class="wrow'+(wp===100?' done':'')+'">'+
+      '<span class="wl">'+esc(w.id)+' · '+esc(w.title)+'</span>'+
+      '<div class="wbar"><i style="inline-size:'+wp+'%"></i></div>'+
+      '<span class="wn num">'+wd+'/'+wi.length+(wp===100?' ✓':'')+'</span></div>';
+  }).join('');
+
+  const impactBar = i => i.impact!=null
+    ? '<span class="impact">impact <span class="ib"><i style="inline-size:'+(Number(i.impact)*10)+'%"></i></span> <b class="num">'+Number(i.impact)+'</b></span>' : '';
+
+  const waveHtml = st.waves.map(w=>{
+    const wi=items.filter(i=>i.wave===w.id);
+    const wd=wi.filter(i=>i.status==='done').length;
+    return '<h2>'+esc(w.id)+' · '+esc(w.title)+' <span class="wavehead num">'+wd+'/'+wi.length+' done</span></h2>'+
+      wi.map(i=>{
+        let h='<div class="card"><h3><span class="num faint">'+esc(i.id)+'</span> '+esc(i.title)+stChip(i)+'</h3>';
+        h+='<div class="meta">'+impactBar(i)+
+          (i.effort?'<span class="chip">'+esc(i.effort)+'</span>':'')+
+          (i.risk?'<span class="chip" style="color:'+riskColor(i.risk)+';border-color:currentColor">risk: '+esc(i.risk)+'</span>':'')+
+          (i.owner?'<span class="chip">'+esc(i.owner)+'</span>':'')+'</div>';
+        if(i.detail) h+='<p class="src">'+esc(i.detail)+'</p>';
+        if(i.before||i.after) h+='<div class="ba"><div><b>Before</b>'+esc(i.before||'')+'</div><div class="aft"><b>After (promised)</b>'+esc(i.after||'')+'</div></div>';
+        if(i.evidence) h+='<p class="src" style="margin-block-start:8px"><b style="color:var(--pg-ok)">done when:</b> '+esc(i.evidence)+'</p>';
+        if(i.failure||i.containment) h+='<details><summary>risk detail</summary><p class="src"><b>failure:</b> '+esc(i.failure||'?')+'<br><b>containment:</b> '+esc(i.containment||'?')+'</p></details>';
+        return h+'</div>';
+      }).join('');
+  }).join('');
+
+  const waveIds = st.waves.map(w=>w.id);
+  const matrixHtml = '<h2>Progress matrix</h2><div class="card" style="overflow-x:auto"><table>'+
+    '<tr><th>id</th><th>item</th><th>before</th><th>now</th>'+waveIds.map(w=>'<th>after '+esc(w)+'</th>').join('')+'</tr>'+
+    items.map(i=>{
+      const now = i.status==='done' ? '<span style="color:var(--pg-ok)">✓ '+esc((i.after||'done').slice(0,60))+'</span>'
+        : i.status==='in_progress' ? '<span style="color:var(--pg-warm)">◐ in progress</span>'
+        : i.status==='dropped' ? '<span class="strike">dropped</span>'
+        : '<span class="faint">○ '+esc((i.before||'planned').slice(0,50))+'</span>';
+      const cells = waveIds.map(w=> w!==i.wave ? '<td class="faint">·</td>'
+        : '<td class="src">'+(i.status==='done'?'<span style="color:var(--pg-ok)">landed</span>':esc((i.after||'').slice(0,60)))+'</td>').join('');
+      return '<tr><td class="num faint">'+esc(i.id)+'</td><td>'+esc(i.title)+'</td><td class="src">'+esc((i.before||'').slice(0,60))+'</td><td>'+now+'</td>'+cells+'</tr>';
+    }).join('')+'</table></div>'+
+    '<div class="note">"Now" is computed from item statuses, never hand-written. A completed wave collapses into the Now column with a ✓.</div>';
+
+  const dims=st.score.dims||{};
+  const scoreHtml = '<h2>Plan scoring</h2><div class="card">'+
+    Object.entries(dims).map(([k,v])=>'<div class="score-row"><span class="faint">'+esc(k)+'</span><div class="bar"><i style="inline-size:'+(Number(v)*10)+'%"></i></div><span class="v num">'+Number(v).toFixed(1)+'</span></div>').join('')+
+    '<div class="score-row" style="border-block-start:1px solid hsl(0 0% 100% / .1);padding-block-start:10px;margin-block-start:10px"><b>Composite → target</b><div class="bar"><i style="inline-size:'+(Number(st.score.composite)*10)+'%;background:var(--pg-ok)"></i></div><span class="v num"><b>'+Number(st.score.composite)+'</b></span></div></div>'+
+    '<div class="note">Dimensions and weights are the ork assess rubric (security weighted 0.20, correctness and maintainability 0.15 each). Composite 5.9 is grade D — NEEDS WORK — and clears the 5.5 implement gate only barely.</div>';
+
+  const riskHtml = '<h2>Risk heat map</h2><div class="card"><table>'+
+    '<tr><th>item</th><th>risk</th><th>failure mode</th><th>containment</th></tr>'+
+    items.filter(i=>i.failure||i.containment||['high','med','medium'].includes(i.risk)).map(i=>
+      '<tr><td class="num faint">'+esc(i.id)+'</td><td style="color:'+riskColor(i.risk)+'">'+esc(i.risk||'?')+'</td><td class="src">'+esc(i.failure||'')+'</td><td class="src">'+esc(i.containment||'')+'</td></tr>'
+    ).join('')+'</table></div>';
+
+  const discardsHtml = '<h2>Discarded (with reasons)</h2><div class="card"><table>'+
+    '<tr><th>idea</th><th>why discarded</th></tr>'+
+    (st.discards||[]).map(d=>'<tr><td class="strike">'+esc(d.title)+'</td><td class="src">'+esc(d.reason)+'</td></tr>').join('')+
+    '</table></div><div class="note">A plan that remembers what it rejected does not re-litigate it next session.</div>';
+
+  const researchHtml = '<h2>Research that shaped the plan</h2>'+
+    (st.research||[]).map(r=>'<div class="card"><h3>'+esc(r.title)+'</h3><p class="src">'+esc(r.note)+
+      (safeUrl(r.source)?' · <a href="'+esc(safeUrl(r.source))+'">source</a>':'')+'</p></div>').join('');
+
+  const updatesHtml = '<h2>Updates (append-only)</h2><div class="card"><table>'+
+    '<tr><th>when</th><th>note</th></tr>'+
+    (st.changelog||[]).slice().reverse().map(e=>'<tr><td class="num faint">'+esc(e.at)+'</td><td>'+esc(e.note)+'</td></tr>').join('')+
+    '</table></div>'+
+    '<div class="note">This is a LIVING artifact (lpp v'+Number(st.lpp)+'). Sessions mutate the state block in this same file; never fork a second file for slug "'+esc(st.slug)+'".</div>';
+
+  const panels=[
+    {id:'waves',label:'Execution waves',html:waveHtml},
+    {id:'matrix',label:'Progress matrix',html:matrixHtml},
+    {id:'scores',label:'Scores',html:scoreHtml},
+    {id:'risk',label:'Risk map',html:riskHtml},
+    {id:'discards',label:'Discards',html:discardsHtml}
+  ];
+  if((st.research||[]).length) panels.push({id:'research',label:'Research',html:researchHtml});
+  panels.push({id:'updates',label:'Updates',html:updatesHtml});
+
+  document.getElementById('lpp-tabs').innerHTML =
+    panels.map((p,i)=>'<button class="tab'+(i===0?' active':'')+'" data-t="'+p.id+'">'+p.label+'</button>').join('');
+  document.getElementById('lpp-panels').innerHTML =
+    panels.map((p,i)=>'<div class="panel'+(i===0?' active':'')+'" id="p-'+p.id+'">'+p.html+'</div>').join('');
+
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('p-'+t.dataset.t).classList.add('active');
+  }));
+})();
+</script>
+</body>
+</html>

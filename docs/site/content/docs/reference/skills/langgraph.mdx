@@ -1,6 +1,6 @@
 ---
 title: "Langgraph"
-description: "LangGraph 1.x (LTS) workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows."
+description: "LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error handlers, graceful drain), routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
@@ -9,24 +9,47 @@ description: "LangGraph 1.x (LTS) workflow patterns for state management, routin
 
 <ContextualSkillSidebar slug="langgraph" />
 
-> **Langgraph** LangGraph 1.x (LTS) workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.
+> **Langgraph** LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error handlers, graceful drain), routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.
 
 
 # LangGraph Workflow Patterns
 
 Comprehensive patterns for building production LangGraph workflows. **LangGraph 1.x is LTS** (Long Term Support) — the first stable major release, powering agents at Uber, LinkedIn, and Klarna. Each category has individual rule files in `rules/` loaded on-demand.
 
-> **LangGraph 1.2 (Q1 2026) — new in this bump:**
+> **LangGraph 1.2 (shipped 2026-05-12) — the fault-tolerance release.** Everything below is on
+> `StateGraph.add_node(...)` unless noted:
 >
-> - **Deferred nodes** (`defer=True` on `add_node`) — the node runs only after all *other* upstream nodes have completed, so its execution is deferred until the run is about to end. This makes "aggregate once everyone else is done" patterns a one-liner instead of a custom reducer.
-> - **Model middleware** (`before_model` / `after_model`) on `create_agent(...)` (from `langchain.agents`) — inject compression, summarization, or PII redaction without subclassing. Note: the legacy `pre_model_hook` / `post_model_hook` params only existed on the now-deprecated `create_react_agent`; the current equivalent is middleware on `create_agent`.
-> - **Node-level caching** via `CachePolicy(ttl=..., key_func=...)` with `SqliteCache` and `RedisCache` backends (pluggable via `graph.compile(cache=...)`). Idempotent nodes skip recomputation on replay.
+> - **Per-node timeouts** — `timeout=` accepts `float | timedelta | TimeoutPolicy`.
+>   `TimeoutPolicy(run_timeout=, idle_timeout=, refresh_on="auto"|"heartbeat")` separates a hard
+>   wall-clock cap from an idle cap that progress refreshes. On expiry LangGraph raises
+>   `NodeTimeoutError` (carrying `kind="idle"|"run"` and `elapsed`), drops that attempt's writes, and
+>   defers to the retry policy. Cooperative: it rides asyncio cancellation, so a node blocking the
+>   GIL is *not* interrupted. See `rules/resilience-node-timeouts.md`.
+> - **Node error handlers** — `error_handler=` registers a recovery node that runs once the retry
+>   budget is exhausted. It receives failure context by declaring a parameter typed `NodeError`
+>   (fields `node`, `error`) and returns a `Command` to update state and reroute.
+>   See `rules/resilience-error-handlers.md`.
+> - **`RunControl`** (`langgraph.runtime`) — cooperative graceful shutdown. `request_drain(reason)`
+>   from any thread; nodes poll `runtime.drain_requested` and stop at a checkpoint boundary, leaving
+>   a resumable thread instead of a half-applied superstep. See `rules/resilience-graceful-drain.md`.
+> - **`DeltaChannel`** (`langgraph.channels.delta`, **beta**) — checkpoints store only incremental
+>   writes and replay them through a batch reducer, with a snapshot every `snapshot_frequency`
+>   updates. Fixes checkpoint cost growing with thread length. Its reducer takes a *batch* and must
+>   be batching-invariant. See `rules/state-delta-channel.md`.
+> - **`runtime.heartbeat()`** — explicit progress signal, the only one that refreshes an idle timeout
+>   under `refresh_on="heartbeat"`.
+>
+> **Landed earlier, in 1.1 — not 1.2** (they are current and supported; only their release
+> attribution was wrong in prior versions of this skill): deferred nodes (`defer=True`), node-level
+> caching (`CachePolicy` + `graph.compile(cache=...)`), and model middleware
+> (`before_model` / `after_model`) on `create_agent`.
 
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
-| [State Management](#state-management) | 4 | CRITICAL | Designing workflow state schemas, accumulators, reducers |
+| [State Management](#state-management) | 5 | CRITICAL | Designing workflow state schemas, accumulators, reducers, delta channels |
+| [Resilience](#resilience) | 3 | CRITICAL | Node timeouts, error handlers, graceful drain (1.2+) |
 | [Routing & Branching](#routing--branching) | 4 | HIGH | Dynamic routing, retry loops, semantic routing, cross-graph |
 | [Parallel Execution](#parallel-execution) | 3 | HIGH | Fan-out/fan-in, map-reduce, concurrent agents |
 | [Supervisor Patterns](#supervisor-patterns) | 3 | HIGH | Central coordinators, round-robin, priority dispatch |
@@ -38,7 +61,7 @@ Comprehensive patterns for building production LangGraph workflows. **LangGraph 
 | [Functional API](#functional-api) | 3 | MEDIUM | @entrypoint/@task decorators, migration from StateGraph |
 | [Platform](#platform) | 3 | HIGH | Deployment, RemoteGraph, double-texting strategies |
 
-**Total: 37 rules across 11 categories**
+**Total: 41 rules across 12 categories**
 
 ## State Management
 
@@ -50,6 +73,33 @@ State schemas determine how data flows between nodes. Wrong schemas cause silent
 | Pydantic Validation | `rules/state-pydantic.md` | `BaseModel` at boundaries, TypedDict internally |
 | MessagesState | `rules/state-messages.md` | `MessagesState` or `add_messages` reducer |
 | Custom Reducers | `rules/state-reducers.md` | `Annotated[T, reducer_fn]` for merge/overwrite |
+| Delta Channels (1.2, beta) | `rules/state-delta-channel.md` | `DeltaChannel(reducer, snapshot_frequency=)` for large accumulators |
+
+## Resilience
+
+Fault tolerance for nodes that talk to the outside world. New in 1.2 — before it, the only lever was
+`retry_policy`, which cannot help a node that never fails because it never returns.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Node Timeouts | `rules/resilience-node-timeouts.md` | `add_node(..., timeout=TimeoutPolicy(run_timeout=, idle_timeout=))` |
+| Error Handlers | `rules/resilience-error-handlers.md` | `add_node(..., error_handler=)` + param typed `NodeError` → `Command` |
+| Graceful Drain | `rules/resilience-graceful-drain.md` | `RunControl().request_drain()` + `runtime.drain_requested` |
+
+```python
+from langgraph.types import RetryPolicy, TimeoutPolicy
+from langgraph.errors import NodeError
+
+builder.add_node(
+    "call_vendor",
+    call_vendor,
+    timeout=TimeoutPolicy(run_timeout=300, idle_timeout=30),
+    retry_policy=RetryPolicy(max_attempts=3),
+    error_handler=lambda state, error: Command(
+        update={"failure": f"{error.node}: {error.error}"}, goto="degraded_path"
+    ),
+)
+```
 
 ## Routing & Branching
 
@@ -284,7 +334,7 @@ See `test-cases.json` for consolidated test cases across all categories.
 
 ---
 
-## Rules (37)
+## Rules (41)
 
 ### Recover interrupted workflow state and debug checkpoint history — HIGH
 
@@ -1373,6 +1423,269 @@ builder.add_edge("summarize", END)
 Reference: [RemoteGraph](https://langchain-ai.github.io/langgraph/concepts/langgraph_platform/#remotegraph)
 
 
+### Recover exhausted nodes with error_handler= instead of wrapping every node body in try/except — HIGH
+
+
+## Node Error Handlers (1.2+)
+
+`add_node(..., error_handler=)` registers a **node** that runs after the retry budget is exhausted.
+It receives the failure context and can update state and route elsewhere via `Command`.
+
+**Incorrect:**
+
+```python
+def enrich(state: State) -> dict:
+    try:
+        return {"data": vendor.fetch(state["id"])}
+    except Exception as e:
+        # Swallowed. The retry policy sees a SUCCESS and never retries.
+        # The failure is invisible in the checkpoint and to any downstream branch.
+        return {"data": None, "error": str(e)}
+```
+
+**Correct:**
+
+```python
+from langgraph.errors import NodeError
+from langgraph.types import Command, RetryPolicy
+
+def enrich(state: State) -> dict:
+    # Let it raise. Retries are the framework's job.
+    return {"data": vendor.fetch(state["id"])}
+
+def enrich_failed(state: State, error: NodeError) -> Command:
+    # Reached only after every retry is exhausted.
+    return Command(
+        update={"data": None, "failure": f"{error.node}: {error.error}"},
+        goto="degraded_path",
+    )
+
+builder.add_node(
+    "enrich",
+    enrich,
+    retry_policy=RetryPolicy(max_attempts=3),
+    error_handler=enrich_failed,
+)
+```
+
+### Getting the failure context
+
+The handler is an ordinary node. To receive the failure, declare a parameter **typed** `NodeError` —
+injection is by type annotation, not by position or name:
+
+```python
+def handler(state: State, error: NodeError) -> Command: ...
+```
+
+`NodeError` is a frozen dataclass with exactly two fields:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `node` | `str` | Name of the node that failed |
+| `error` | `BaseException` | The exception it raised |
+
+Branch on the concrete exception type, not on message text:
+
+```python
+def handler(state: State, error: NodeError) -> Command:
+    if isinstance(error.error, NodeTimeoutError):
+        return Command(update={"status": "timed_out"}, goto="slow_path")
+    if isinstance(error.error, RateLimitError):
+        return Command(update={"status": "throttled"}, goto="queue_for_later")
+    raise error.error   # re-raise what you cannot handle — do not swallow
+```
+
+### Retry policy ordering
+
+`retry_policy` accepts a `RetryPolicy` **or a sequence**; the first policy whose `retry_on` matches
+is applied. Order narrowest-first:
+
+```python
+retry_policy=[
+    RetryPolicy(retry_on=RateLimitError, max_attempts=6, initial_interval=2.0),
+    RetryPolicy(retry_on=ConnectionError, max_attempts=3),
+]
+```
+
+Defaults are `initial_interval=0.5`, `backoff_factor=2.0`, `max_interval=128.0`, `max_attempts=3`,
+`jitter=True`.
+
+- Do not catch-and-return inside a node body — you disable retries and lose the error in the checkpoint
+- An `error_handler` that returns `Command(goto=...)` is how you express a fallback branch
+- Re-raise `error.error` for cases the handler does not genuinely recover from
+
+
+### Drain a run with RunControl on shutdown instead of letting SIGTERM kill it mid-superstep — HIGH
+
+
+## Cooperative Graceful Shutdown (1.2+)
+
+`RunControl` lets a deploy or autoscaler ask a run to stop **at a checkpoint boundary** rather than
+wherever SIGTERM happened to land.
+
+**Incorrect:**
+
+```python
+# Deploy sends SIGTERM. The process dies inside a superstep.
+# Whatever the node already did externally (charged a card, sent an email)
+# is not reflected in any checkpoint — the resumed thread does it again.
+async def main():
+    await graph.ainvoke(state, config={"configurable": {"thread_id": tid}})
+
+signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+```
+
+**Correct:**
+
+```python
+import asyncio
+import signal
+from langgraph.runtime import RunControl
+
+async def main():
+    control = RunControl()
+
+    loop = asyncio.get_running_loop()
+    loop.add_signal_handler(signal.SIGTERM, control.request_drain, "sigterm")
+
+    await graph.ainvoke(
+        state,
+        config={"configurable": {"thread_id": tid}},
+        context={"control": control},
+    )
+    # Exits at a checkpoint boundary, leaving a resumable thread behind.
+```
+
+### The control surface
+
+| Member | Meaning |
+|---|---|
+| `RunControl()` | Fresh control plane. **One per run** — a control that has been drained stays drained |
+| `.request_drain(reason="shutdown")` | Ask the run to wind down. Safe from any thread |
+| `.drain_requested` | `bool` |
+| `.drain_reason` | The string passed to `request_drain`, or `None` |
+
+`Runtime` proxies the same signal, so a node reads it without touching the control object:
+
+```python
+async def process_batch(state: State, runtime: Runtime) -> dict:
+    done = []
+    for item in state["queue"]:
+        if runtime.drain_requested:
+            # Stop cleanly and checkpoint what finished. Do NOT start item N+1.
+            return {"processed": done, "drained_at": runtime.drain_reason}
+        done.append(await handle(item))
+    return {"processed": done}
+```
+
+### Why "cooperative" is the whole point
+
+Nothing preempts the node. A loop that never checks `runtime.drain_requested` runs to completion
+regardless, so long-running nodes must poll it at a boundary where stopping is safe — between items,
+never mid-write.
+
+Pair it with the container's grace period: request the drain on SIGTERM, and size
+`terminationGracePeriodSeconds` above the longest single item, not the longest whole run.
+
+- Create a fresh `RunControl` per run; reusing one after `request_drain()` starts the next run drained
+- Check `drain_requested` only where a partial result is a legitimate checkpoint
+- Drain is not cancellation: use `timeout=` (see `resilience-node-timeouts.md`) to bound a stuck node
+
+
+### Bound every node attempt with timeout= instead of letting a hung call stall the graph forever — CRITICAL
+
+
+## Per-Node Timeouts (1.2+)
+
+`add_node(..., timeout=)` caps a single node **attempt**. When it fires, LangGraph raises
+`NodeTimeoutError`, discards that attempt's writes, and hands off to the node's retry policy.
+
+**Incorrect:**
+
+```python
+async def call_vendor(state: State) -> dict:
+    # No bound. If the vendor hangs, this superstep never completes and the
+    # retry policy never engages — there is no failure for it to react to.
+    resp = await httpx.AsyncClient().post(VENDOR_URL, json=state["payload"])
+    return {"result": resp.json()}
+
+builder.add_node("call_vendor", call_vendor, retry_policy=RetryPolicy(max_attempts=3))
+```
+
+**Correct:**
+
+```python
+from langgraph.types import RetryPolicy, TimeoutPolicy
+
+# Scalar shorthand: hard wall-clock cap in seconds.
+builder.add_node("call_vendor", call_vendor, timeout=30)
+
+# Full policy: a hard cap AND an idle cap that resets on progress.
+builder.add_node(
+    "stream_summary",
+    stream_summary,
+    timeout=TimeoutPolicy(
+        run_timeout=300,     # never refreshed — absolute ceiling for one attempt
+        idle_timeout=30,     # refreshed by progress signals
+        refresh_on="auto",   # or "heartbeat" to count ONLY explicit heartbeats
+    ),
+    retry_policy=RetryPolicy(max_attempts=3),
+)
+```
+
+`timeout` accepts `float | timedelta | TimeoutPolicy`.
+
+### Choosing run_timeout vs idle_timeout
+
+| Node shape | Use |
+|---|---|
+| Single bounded request | `run_timeout` alone |
+| Token stream / long generation | `idle_timeout` — a healthy stream keeps refreshing it |
+| Long job that must still end | both — `idle_timeout` catches stalls, `run_timeout` caps total |
+
+### Heartbeats for work the graph cannot observe
+
+Under `refresh_on="heartbeat"`, only explicit calls refresh the idle clock:
+
+```python
+async def long_batch(state: State, runtime: Runtime) -> dict:
+    for chunk in state["chunks"]:
+        await process(chunk)
+        runtime.heartbeat()   # "still making progress"
+    return {"done": True}
+```
+
+### Timeouts are cooperative — this is the trap
+
+Timeouts ride on asyncio cancellation. A node doing **synchronous** CPU-bound work or `time.sleep()`
+holds the GIL, so the timeout cannot fire until the event loop is released:
+
+```python
+# ✗ timeout= will NOT interrupt this — it blocks the loop
+def crunch(state: State) -> dict:
+    time.sleep(600)
+    return {}
+
+# ✓ yields to the loop, so the timeout can fire
+async def crunch(state: State) -> dict:
+    await asyncio.sleep(600)
+    return {}
+
+# ✓ CPU-bound work belongs off the loop
+async def crunch(state: State) -> dict:
+    return await asyncio.to_thread(blocking_crunch, state["data"])
+```
+
+### Inspecting the failure
+
+`NodeTimeoutError` (from `langgraph.errors`) carries `node`, `timeout`, `run_timeout`,
+`idle_timeout`, `elapsed`, and `kind` (`"idle"` or `"run"`) — enough to alert on *which* bound blew
+without parsing a message string.
+
+- Prefer a timeout on every node that performs I/O; a retry policy without one is not a safety net
+- Set `run_timeout` above p99 latency, not above the mean, or retries amplify load during a slowdown
+
+
 ### Define conditional edge routing with explicit mappings and END fallback — HIGH
 
 
@@ -1542,7 +1855,33 @@ Reference: [Cross-graph navigation](https://langchain-ai.github.io/langgraph/how
 ### Implement retry loops with max counter to prevent infinite resource consumption — HIGH
 
 
-## Retry Loop Pattern
+## Prefer the framework's retry primitives (1.2+)
+
+Since 1.2, retries, timeouts and recovery are declarative on `add_node`. Reach for a hand-rolled
+loop-back edge only when pinned below 1.2, or when a "retry" means *re-planning* rather than
+re-running the same node.
+
+**Preferred:**
+
+```python
+from langgraph.types import RetryPolicy, TimeoutPolicy
+from langgraph.errors import NodeError, NodeTimeoutError
+
+builder.add_node(
+    "llm_call",
+    llm_call,
+    retry_policy=RetryPolicy(max_attempts=3, initial_interval=0.5, backoff_factor=2.0),
+    timeout=TimeoutPolicy(run_timeout=120, idle_timeout=30),
+    error_handler=lambda state, error: Command(
+        update={"error": str(error.error)}, goto="error_handler"
+    ),
+)
+```
+
+That replaces the counter, the loop-back edge, the backoff, AND adds a timeout the manual pattern
+never had. Details: `resilience-node-timeouts.md`, `resilience-error-handlers.md`.
+
+## Manual Retry Loop (pre-1.2 fallback)
 
 Loop-back edges for retrying failed operations. Always include a max retry counter.
 
@@ -1587,10 +1926,11 @@ workflow.add_conditional_edges("llm_call", should_retry, {
 ```
 
 **Key rules:**
-- Always track `retry_count` in state
+- On 1.2+, reach for `retry_policy` / `timeout` / `error_handler` first — the manual loop is the fallback
+- If you do hand-roll it: always track `retry_count` in state, and never omit the max
 - Set max retries (2-3 for LLM calls)
 - Include explicit "failed" path for max retries exceeded
-- Consider exponential backoff for API calls
+- A manual loop has no timeout: a hung call never fails, so the counter never advances
 
 Reference: [LangGraph Conditional Edges](https://langchain-ai.github.io/langgraph/concepts/low_level/#conditional-edges)
 
@@ -1666,6 +2006,93 @@ def semantic_router(state) -> str:
 - Always include a fallback/general route
 
 Reference: [LangGraph Command API](https://langchain-ai.github.io/langgraph/concepts/low_level/#command)
+
+
+### Store growing accumulators in a DeltaChannel so checkpoints do not re-serialize the whole value every superstep — HIGH
+
+
+## DeltaChannel for Large Accumulators (1.2+, beta)
+
+A normal `Annotated[list[X], operator.add]` channel writes its **full** value into every checkpoint.
+`DeltaChannel` writes only the incremental writes and reconstructs state by replaying them through
+the reducer, taking a full snapshot every Nth update.
+
+**Incorrect:**
+
+```python
+import operator
+from typing import Annotated, TypedDict
+
+class State(TypedDict):
+    # 5,000-message thread → every superstep re-serializes all 5,000 messages.
+    transcript: Annotated[list[Message], operator.add]
+```
+
+**Correct:**
+
+```python
+from typing import Annotated, TypedDict
+from langgraph.channels.delta import DeltaChannel
+
+def append_all(state: list[Message], writes: Sequence[list[Message]]) -> list[Message]:
+    # NOTE: writes is a BATCH of updates, not a single update.
+    out = list(state)
+    for w in writes:
+        out.extend(w)
+    return out
+
+class State(TypedDict):
+    transcript: Annotated[list[Message], DeltaChannel(append_all, snapshot_frequency=500)]
+```
+
+### The reducer contract is different from a normal reducer
+
+```python
+DeltaChannel(reducer, typ=None, *, snapshot_frequency=1000)
+```
+
+`reducer` is `(state, list_of_writes) -> new_state` — it receives a **batch**. Two properties are
+mandatory, and violating either corrupts reconstructed state:
+
+1. **Deterministic** — same inputs, same output, every replay.
+2. **Batching-invariant** (associative across folds):
+
+   ```
+   reducer(reducer(state, xs), ys) == reducer(state, xs + ys)
+   ```
+
+LangGraph replays checkpointed writes in *larger batches than they were originally produced*, so a
+reducer that behaves differently per batch size silently diverges on resume.
+
+```python
+# ✗ NOT batching-invariant — the cap is applied per batch, so the result
+#   depends on how writes happen to be grouped on replay.
+def last_n(state, writes):
+    return (state + [w for batch in writes for w in batch])[-100:]
+```
+
+Trim in a node instead, where the boundary is explicit.
+
+### Snapshot cadence
+
+`typ` is inferred from the outer annotation, so pass only `reducer` and `snapshot_frequency`.
+A full snapshot blob is written when **either** this channel reaches `snapshot_frequency` updates
+(default 1000, must be a positive int) **or** the run reaches the system-wide
+`DELTA_MAX_SUPERSTEPS_SINCE_SNAPSHOT` bound (default 5000) — the second bound stops a quiet channel
+from accumulating unbounded replay depth.
+
+Lower `snapshot_frequency` costs more write volume and bounds read latency; raise it for
+write-heavy, rarely-resumed threads.
+
+### Beta — read before adopting
+
+`DeltaChannel` is explicitly **beta**. Threads written today are expected to remain readable, but the
+surrounding contract is not stable: `BaseCheckpointSaver.get_delta_channel_history`, the
+`_DeltaSnapshot` blob shape, and the `counters_since_delta_snapshot` metadata field may all change.
+
+- Reach for it only when the accumulator is genuinely large; a short thread gains nothing
+- Never use it for a value the graph reads on every superstep — reconstruction is not free
+- Pin `langgraph` tightly while it is beta, and re-read the release notes before a minor bump
 
 
 ### Use MessagesState with add_messages reducer to preserve conversation history — CRITICAL

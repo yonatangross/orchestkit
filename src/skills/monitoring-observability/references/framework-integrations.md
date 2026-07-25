@@ -1,6 +1,13 @@
 # Framework Integrations
 
-Langfuse v3 integrates with modern AI frameworks via OpenTelemetry. Each integration provides automatic tracing of agent execution, tool calls, and LLM generations.
+Langfuse integrates with modern AI frameworks via OpenTelemetry. Each integration provides automatic
+tracing of agent execution, tool calls, and LLM generations. Python examples below target the
+**Python SDK v4**; the JS/TS section targets the **JS SDK v5**.
+
+> **Three version numbers, three axes — do not "correct" one into another.** The self-hosted
+> *platform* is on the v3 line (Postgres + ClickHouse + Redis + S3/blob). The *Python SDK* is on 4.x.
+> The *JS/TS SDK* is on 5.x. A doc that says "Langfuse v3 requires ClickHouse" is talking about the
+> platform and is correct.
 
 ## Claude Agent SDK
 
@@ -293,15 +300,24 @@ All frameworks above also work in JS/TS using `@langfuse/otel`:
 
 ```typescript
 import { NodeSDK } from "@opentelemetry/sdk-node";
-import { LangfuseExporter } from "@langfuse/otel";
+import { LangfuseSpanProcessor } from "@langfuse/otel";
 
+// v5 ships a SpanProcessor, NOT an exporter: it goes in `spanProcessors`,
+// never `traceExporter`. Keys fall back to LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY.
 const sdk = new NodeSDK({
-  traceExporter: new LangfuseExporter({
-    publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-    secretKey: process.env.LANGFUSE_SECRET_KEY,
-  }),
+  spanProcessors: [
+    new LangfuseSpanProcessor({
+      publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+      secretKey: process.env.LANGFUSE_SECRET_KEY,
+    }),
+  ],
 });
 sdk.start();
+
+// Short-lived processes MUST flush before exit or trailing spans are lost.
+process.on("beforeExit", async () => {
+  await sdk.shutdown();
+});
 
 // All OTEL-compatible frameworks now trace to Langfuse
 ```

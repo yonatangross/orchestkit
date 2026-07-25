@@ -125,6 +125,8 @@ Detection and alerting for silent failures in LLM agents.
 | Resource | Description |
 |----------|-------------|
 | `$\{CLAUDE_SKILL_DIR\}/references/` | Logging, metrics, tracing, Langfuse, drift analysis guides |
+| `$\{CLAUDE_SKILL_DIR\}/references/langfuse-js-v5.md` | **JS/TS SDK v5** — different major and package layout from Python 4.x. Read before writing any JS Langfuse code |
+| `$\{CLAUDE_SKILL_DIR\}/references/migration-v3-v4.md` | Python v2→v4 and JS/TS v3→v5 migration paths |
 | `$\{CLAUDE_SKILL_DIR\}/checklists/` | Implementation checklists for monitoring and Langfuse setup |
 | `$\{CLAUDE_SKILL_DIR\}/examples/` | Real-world monitoring dashboard and trace examples |
 | `$\{CLAUDE_SKILL_DIR\}/scripts/` | Templates: Prometheus, OpenTelemetry, health checks, Langfuse |
@@ -1237,15 +1239,24 @@ langfuse = Langfuse(
 
 ```typescript
 import { NodeSDK } from "@opentelemetry/sdk-node";
-import { LangfuseExporter } from "@langfuse/otel";
+import { LangfuseSpanProcessor } from "@langfuse/otel";
 
+// v5 ships a SpanProcessor, NOT an exporter: it goes in `spanProcessors`,
+// never `traceExporter`. Keys fall back to LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY.
 const sdk = new NodeSDK({
-  traceExporter: new LangfuseExporter({
-    publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-    secretKey: process.env.LANGFUSE_SECRET_KEY,
-  }),
+  spanProcessors: [
+    new LangfuseSpanProcessor({
+      publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+      secretKey: process.env.LANGFUSE_SECRET_KEY,
+    }),
+  ],
 });
 sdk.start();
+
+// Short-lived processes MUST flush before exit or trailing spans are lost.
+process.on("beforeExit", async () => {
+  await sdk.shutdown();
+});
 ```
 
 ## Best Practices
@@ -1896,7 +1907,7 @@ if tool_check["alert"]:
 
 ---
 
-## References (25)
+## References (26)
 
 ### Agent Observability
 
@@ -4323,7 +4334,14 @@ def export_experiment_results(experiment_id: str) -> pd.DataFrame:
 
 # Framework Integrations
 
-Langfuse v3 integrates with modern AI frameworks via OpenTelemetry. Each integration provides automatic tracing of agent execution, tool calls, and LLM generations.
+Langfuse integrates with modern AI frameworks via OpenTelemetry. Each integration provides automatic
+tracing of agent execution, tool calls, and LLM generations. Python examples below target the
+**Python SDK v4**; the JS/TS section targets the **JS SDK v5**.
+
+> **Three version numbers, three axes — do not "correct" one into another.** The self-hosted
+> *platform* is on the v3 line (Postgres + ClickHouse + Redis + S3/blob). The *Python SDK* is on 4.x.
+> The *JS/TS SDK* is on 5.x. A doc that says "Langfuse v3 requires ClickHouse" is talking about the
+> platform and is correct.
 
 ## Claude Agent SDK
 
@@ -4616,15 +4634,24 @@ All frameworks above also work in JS/TS using `@langfuse/otel`:
 
 ```typescript
 import { NodeSDK } from "@opentelemetry/sdk-node";
-import { LangfuseExporter } from "@langfuse/otel";
+import { LangfuseSpanProcessor } from "@langfuse/otel";
 
+// v5 ships a SpanProcessor, NOT an exporter: it goes in `spanProcessors`,
+// never `traceExporter`. Keys fall back to LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY.
 const sdk = new NodeSDK({
-  traceExporter: new LangfuseExporter({
-    publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-    secretKey: process.env.LANGFUSE_SECRET_KEY,
-  }),
+  spanProcessors: [
+    new LangfuseSpanProcessor({
+      publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+      secretKey: process.env.LANGFUSE_SECRET_KEY,
+    }),
+  ],
 });
 sdk.start();
+
+// Short-lived processes MUST flush before exit or trailing spans are lost.
+process.on("beforeExit", async () => {
+  await sdk.shutdown();
+});
 
 // All OTEL-compatible frameworks now trace to Langfuse
 ```
@@ -4716,6 +4743,192 @@ class LangfuseEvidentlyMonitor:
 
 - [Evidently AI Docs](https://docs.evidentlyai.com/)
 - [Langfuse SDK](https://langfuse.com/docs/sdk/python)
+
+
+### Langfuse Js V5
+
+# Langfuse JS/TS SDK v5
+
+The JS/TS SDK is a **different major** from Python and a different package layout. Python is on
+4.x and imports everything from `langfuse`; JS/TS is on 5.x and splits across scoped packages.
+Do not translate a Python snippet by guessing the JS name.
+
+Every symbol on this page was taken from the published type declarations at 5.9.1
+(`cdn.jsdelivr.net/npm/@langfuse/&lt;pkg&gt;@5.9.1/dist/index.d.ts`). If you add one, verify it the same
+way — this file previously documented `LangfuseExporter`, a class that has never existed.
+
+## Packages
+
+| Package | Exports you actually use |
+|---|---|
+| `@langfuse/otel` | `LangfuseSpanProcessor`, `MaskFunction`, `ShouldExportSpan`, `isDefaultExportSpan`, `isGenAISpan`, `isKnownLLMInstrumentor`, `isLangfuseSpan` |
+| `@langfuse/tracing` | `observe`, `startObservation`, `startActiveObservation`, `updateActiveObservation`, `createTraceId`, `getActiveTraceId`, `setActiveTraceIO`, `propagateAttributes` |
+| `@langfuse/client` | `LangfuseClient`, `DatasetManager`, `ExperimentManager`, `ScoreManager`, `PromptManager`, `createEvaluatorFromAutoevals`, `RegressionError` |
+| `@langfuse/langchain` | `CallbackHandler` |
+| `@langfuse/openai` | OpenAI SDK auto-instrumentation |
+| `@langfuse/vercel-ai-sdk` | `LangfuseVercelAiSdkIntegration` |
+
+Two traps:
+
+- **`@langfuse/core` is not the client.** It is an internal utility package ("Core functions and
+  utilities for Langfuse packages") exporting API types and `LangfuseAPIClient`. It has no
+  `Langfuse` export. Never install or import it directly.
+- **`@langfuse/vercel` does not exist.** The successor to the old `langfuse-vercel` is
+  `@langfuse/vercel-ai-sdk`.
+
+## Tracing setup
+
+```bash
+npm install @langfuse/tracing @langfuse/otel @opentelemetry/sdk-node
+```
+
+```typescript
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { LangfuseSpanProcessor } from "@langfuse/otel";
+
+// A SpanProcessor, NOT an exporter — it goes in `spanProcessors`, never `traceExporter`.
+const sdk = new NodeSDK({
+  spanProcessors: [new LangfuseSpanProcessor()],
+});
+sdk.start();
+
+// Short-lived processes MUST flush, or trailing spans are dropped on exit.
+main().finally(() => sdk.shutdown());
+```
+
+Credentials default to `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, and `LANGFUSE_BASE_URL`
+(default `https://cloud.langfuse.com`).
+
+### LangfuseSpanProcessorParams
+
+| Param | Purpose |
+|---|---|
+| `publicKey` / `secretKey` / `baseUrl` | Credentials; fall back to env |
+| `mask` | `MaskFunction` — redact span data before export |
+| `shouldExportSpan` | `ShouldExportSpan` — full override of default span filtering |
+| `flushAt` / `flushInterval` | Batch size / interval |
+| `exportMode` | `"immediate"` or `"batched"` |
+| `environment` / `release` | Tag every span |
+| `mediaUploadEnabled`, `timeout`, `additionalHeaders`, `exporter` | Less common |
+
+### Masking and filtering — the JS equivalents of the Python kwargs
+
+The Python client takes `should_export_span` as a constructor kwarg. In JS the same two levers live
+on the processor:
+
+```typescript
+new LangfuseSpanProcessor({
+  // Redact secrets from span payloads before they leave the process.
+  mask: ({ data }) =>
+    typeof data === "string" ? data.replace(/secret_\w+/g, "secret_***") : data,
+
+  // Drop noisy infra spans (DB drivers, DNS, HTTP clients) to cut ingestion cost.
+  shouldExportSpan: ({ otelSpan }) => otelSpan.name.startsWith("my-service"),
+});
+```
+
+`shouldExportSpan` is a **full override** of the default filtering. To narrow rather than replace
+it, compose with the shipped predicate:
+
+```typescript
+import { LangfuseSpanProcessor, isDefaultExportSpan } from "@langfuse/otel";
+
+new LangfuseSpanProcessor({
+  shouldExportSpan: (params) => isDefaultExportSpan(params) && !params.otelSpan.name.startsWith("pg."),
+});
+```
+
+## Manual instrumentation
+
+```typescript
+import { observe, startActiveObservation, updateActiveObservation } from "@langfuse/tracing";
+
+const tracedFn = observe(async (input: string) => {
+  updateActiveObservation({ metadata: { chunks: 12 } });
+  return await llm.generate(input);
+}, { name: "analyze_content" });
+
+await startActiveObservation("retrieval", async () => {
+  return await vectorStore.similaritySearch(query);
+});
+```
+
+## Client API — prompts, scores, datasets
+
+```typescript
+import { LangfuseClient } from "@langfuse/client";
+
+const langfuse = new LangfuseClient();   // reads the same env vars
+
+const prompt = await langfuse.prompt.get("summarize");
+const dataset = await langfuse.dataset.get("my-evaluation-dataset");
+```
+
+## LangChain JS
+
+```typescript
+import { CallbackHandler } from "@langfuse/langchain";
+
+const handler = new CallbackHandler({
+  sessionId: "session_abc",
+  userId: "user_123",
+  tags: ["production"],
+});
+
+await chain.invoke({ input }, { callbacks: [handler] });
+```
+
+## Vercel AI SDK
+
+```bash
+npm install @langfuse/vercel-ai-sdk @langfuse/client @langfuse/tracing @langfuse/otel
+```
+
+```typescript
+import { LangfuseVercelAiSdkIntegration } from "@langfuse/vercel-ai-sdk";
+
+registerTelemetry(new LangfuseVercelAiSdkIntegration());
+```
+
+On the older AI SDK v6 line there is no integration package: set
+`experimental_telemetry: \{ isEnabled: true \}` on the call and let `LangfuseSpanProcessor` collect it.
+
+## Experiments and evaluators
+
+The JS client ships a full experiment runner the Python-focused pages do not cover.
+
+```typescript
+const dataset = await langfuse.dataset.get("my-dataset");
+
+const result = await dataset.runExperiment({
+  name: "Model Evaluation",
+  runName: "Model Evaluation Run 1",   // optional
+  task: myTask,
+  evaluators: [myEvaluator],
+});
+```
+
+Type contracts worth knowing before you write one:
+
+| Type | Shape |
+|---|---|
+| `ExperimentTask` | `(params) => Promise&lt;any&gt;` — receives `input`, `expectedOutput`, `metadata` |
+| `Evaluator` | `(params) => Promise&lt;Evaluation \| Evaluation[]&gt;` — scores ONE item |
+| `RunEvaluator` | `(params) => Promise&lt;Evaluation \| Evaluation[]&gt;` — scores the WHOLE run, receives every item's result |
+| `Evaluation` | `\{ name, value, comment?, metadata?, dataType?, configId? \}` |
+
+Use `Evaluator` for per-item quality and `RunEvaluator` for aggregate assertions (pass rate, mean
+score) — a per-item evaluator cannot see the other items.
+
+`createEvaluatorFromAutoevals` adapts an autoevals scorer instead of hand-writing one, and
+`RegressionError` is thrown when a run regresses against a configured baseline — catch it to fail
+CI on quality drops rather than only on exceptions.
+
+## Cross-references
+
+- Python v4 tracing: `rules/llm-langfuse-traces.md`
+- Cost tracking and Metrics API v2: `rules/llm-cost-tracking.md`
+- Migration paths for both SDKs: `references/migration-v3-v4.md`
 
 
 ### Logging Patterns
@@ -5082,9 +5295,13 @@ sum(rate(claude_code.pull_request.count[5m])) by (provider)
 
 **See also**: `$\{CLAUDE_SKILL_DIR\}/../telemetry-inspect/SKILL.md` and `$\{CLAUDE_SKILL_DIR\}/../configure/references/cc-version-settings.md` (CC 2.1.129 section) for the upstream changelog reference.
 
-### Migration V2 V3
+### Migration V3 V4
 
-# Migration Guide: v2 → v4 (Python) / v3 → v4 (JS)
+# Migration Guide: Python v2 → v4 · JS/TS v3 → v5
+
+Two SDKs, two version lines. The Python SDK is at **4.x** (latest 4.14.1); the JS/TS SDK went a major
+further and is at **5.x** (all `@langfuse/*` packages at 5.9.1). Separately, the self-hosted platform
+is on its own v3 line — that number is not an SDK version and needs no migration here.
 
 ## Python SDK: v2 → v3
 
@@ -5299,13 +5516,22 @@ get_client().update_current_span(input={"screenshot": media})
 
 ### Package Changes
 
-| v3 (Deprecated) | v4 (Current) |
+The JS/TS SDK moved a major ahead of Python: the monolith `langfuse` package stopped at 3.x and the
+scoped `@langfuse/*` packages are at **5.x**. Verify every package below against the registry before
+adopting it — this table previously listed a package that has never been published.
+
+| v3 (Deprecated) | v5 (Current) |
 |------------------|--------------|
-| `langfuse` (monolith) | `@langfuse/core` (base) |
-| — | `@langfuse/tracing` (trace API) |
-| — | `@langfuse/otel` (OTEL exporter) |
-| `langfuse-langchain` | `@langfuse/langchain` |
-| `langfuse-vercel` | `@langfuse/vercel` |
+| `langfuse` (monolith) | `@langfuse/client` — exports `LangfuseClient` |
+| — | `@langfuse/tracing` (`observe`, `startActiveObservation`, `updateActiveObservation`) |
+| — | `@langfuse/otel` — exports `LangfuseSpanProcessor` (a SpanProcessor, not an exporter) |
+| `langfuse-langchain` | `@langfuse/langchain` — exports `CallbackHandler` |
+| `langfuse-vercel` | `@langfuse/vercel-ai-sdk` — exports `LangfuseVercelAiSdkIntegration` |
+| — | `@langfuse/openai` (OpenAI SDK auto-instrumentation) |
+
+> **`@langfuse/core` is NOT the client.** It is an internal utility package ("Core functions and
+> utilities for Langfuse packages") exporting API types and `LangfuseAPIClient`. It has no `Langfuse`
+> export. Import `LangfuseClient` from `@langfuse/client`.
 
 ### Setup Changes
 
@@ -5317,24 +5543,34 @@ const langfuse = new Langfuse({
   secretKey: "sk-...",
 });
 
-// ✅ v4: Option A — Direct tracing
-import { Langfuse } from "@langfuse/core";
-const langfuse = new Langfuse({
+// ✅ v5: Option A — client API (prompts, datasets, scores, experiments)
+//    LangfuseClient lives in @langfuse/client. @langfuse/core is internal utils.
+import { LangfuseClient } from "@langfuse/client";
+const langfuse = new LangfuseClient({
   publicKey: "pk-...",
   secretKey: "sk-...",
 });
 
-// ✅ v4: Option B — OTEL-native (recommended)
+// ✅ v5: Option B — OTEL-native tracing (recommended)
 import { NodeSDK } from "@opentelemetry/sdk-node";
-import { LangfuseExporter } from "@langfuse/otel";
+import { LangfuseSpanProcessor } from "@langfuse/otel";
 
+// v5 ships a SpanProcessor, NOT an exporter: it goes in `spanProcessors`,
+// never `traceExporter`. Keys fall back to LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY.
 const sdk = new NodeSDK({
-  traceExporter: new LangfuseExporter({
-    publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-    secretKey: process.env.LANGFUSE_SECRET_KEY,
-  }),
+  spanProcessors: [
+    new LangfuseSpanProcessor({
+      publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+      secretKey: process.env.LANGFUSE_SECRET_KEY,
+    }),
+  ],
 });
 sdk.start();
+
+// Short-lived processes MUST flush before exit or trailing spans are lost.
+process.on("beforeExit", async () => {
+  await sdk.shutdown();
+});
 ```
 
 ### Tracing Changes
@@ -5485,9 +5721,11 @@ ClickHouse Inc. acquired Langfuse on January 16, 2026. Key implications:
 
 ### JavaScript v3 → v4
 
-- [ ] Replace `langfuse` package with `@langfuse/core` + `@langfuse/otel`
-- [ ] Update imports from `langfuse` → `@langfuse/core`
+- [ ] Replace `langfuse` package with `@langfuse/client` + `@langfuse/tracing` + `@langfuse/otel`
+- [ ] Update imports from `langfuse` → `@langfuse/client` (the class is `LangfuseClient`, not `Langfuse`)
 - [ ] Replace `langfuse-langchain` → `@langfuse/langchain`
+- [ ] Replace `langfuse-vercel` → `@langfuse/vercel-ai-sdk`
+- [ ] Verify each `@langfuse/*` package resolves on the registry before you ship the import
 - [ ] Set up OTEL exporter for automatic tracing
 - [ ] Update `package.json` dependencies
 
@@ -7408,16 +7646,25 @@ response = llm.invoke("Analyze this code...")  # Auto-traced!
 
 ```typescript
 import { NodeSDK } from "@opentelemetry/sdk-node";
-import { LangfuseExporter } from "@langfuse/otel";
+import { LangfuseSpanProcessor } from "@langfuse/otel";
 
-// Setup OTEL exporter to Langfuse
+// Register the Langfuse span processor on the OTEL SDK
+// v5 ships a SpanProcessor, NOT an exporter: it goes in `spanProcessors`,
+// never `traceExporter`. Keys fall back to LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY.
 const sdk = new NodeSDK({
-  traceExporter: new LangfuseExporter({
-    publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-    secretKey: process.env.LANGFUSE_SECRET_KEY,
-  }),
+  spanProcessors: [
+    new LangfuseSpanProcessor({
+      publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+      secretKey: process.env.LANGFUSE_SECRET_KEY,
+    }),
+  ],
 });
 sdk.start();
+
+// Short-lived processes MUST flush before exit or trailing spans are lost.
+process.on("beforeExit", async () => {
+  await sdk.shutdown();
+});
 
 // All OTEL-compatible libraries now trace to Langfuse
 ```
@@ -7619,8 +7866,9 @@ Langfuse v3 requires ClickHouse (analytics), Redis (queuing), MinIO (blob storag
 
 ### Node.js (Express/Next.js)
 
-- [ ] Install SDK: `npm install @langfuse/core @langfuse/otel`
-- [ ] Add to package.json: `"@langfuse/core": "^5.0.0"` and `"@langfuse/otel": "^5.0.0"`
+- [ ] Install SDK: `npm install @langfuse/client @langfuse/tracing @langfuse/otel @opentelemetry/sdk-node`
+- [ ] Add to package.json: `"@langfuse/client"`, `"@langfuse/tracing"`, `"@langfuse/otel"` at `"^5.0.0"`
+- [ ] Do NOT install `@langfuse/core` directly — it is an internal utility package, not the client
 
 ## Phase 3: Configuration
 
@@ -7691,14 +7939,12 @@ langfuse_client = Langfuse(
 **File:** `src/lib/langfuse.ts`
 
 ```typescript
-import { Langfuse } from '@langfuse/core';
+import { LangfuseClient } from '@langfuse/client';
 
-export const langfuse = new Langfuse({
+export const langfuse = new LangfuseClient({
   publicKey: process.env.LANGFUSE_PUBLIC_KEY!,
   secretKey: process.env.LANGFUSE_SECRET_KEY!,
-  baseUrl: process.env.LANGFUSE_HOST || 'https://cloud.langfuse.com',
-  debug: process.env.NODE_ENV === 'development',
-  enabled: process.env.NODE_ENV !== 'test'
+  baseUrl: process.env.LANGFUSE_BASE_URL || 'https://cloud.langfuse.com',
 });
 ```
 

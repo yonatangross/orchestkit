@@ -177,9 +177,8 @@ export const catalog = defineCatalog(schema, {
 Use `jsonSchema({ strict: true })` to export catalog schemas compatible with LLM structured output APIs (OpenAI, Anthropic, Gemini):
 
 ```typescript
-import { jsonSchema } from '@json-render/core'
-
-const schema = jsonSchema(catalog, { strict: true })
+// jsonSchema is a METHOD on the Catalog instance, not a top-level export.
+const schema = catalog.jsonSchema({ strict: true })
 // Pass to OpenAI response_format, Anthropic tool_use, or Gemini structured output
 ```
 
@@ -327,7 +326,7 @@ The shadcn catalog components use default Tailwind classes. When your project us
 
 ```typescript
 import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
-import { mergeCatalogs, type CatalogComponents } from '@json-render/core'
+import type { CatalogComponents } from '@json-render/react'
 
 // Override shadcn component implementations for Luma style
 const lumaComponents: Partial<CatalogComponents<typeof shadcnCatalog>> = {
