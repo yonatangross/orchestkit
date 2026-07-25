@@ -1,6 +1,6 @@
 ---
 name: mcp-visual-output
-compatibility: "Claude Code 2.1.206+"
+compatibility: "Claude Code 2.1.220+"
 description: "Interactive MCP visual output via @json-render/mcp. Upgrade plain JSON tool responses to interactive dashboards rendered in sandboxed iframes inside Claude, Cursor, ChatGPT, VS Code Copilot, Goose, and Postman conversations. Covers createMcpApp(), registerJsonRenderTool(), registerJsonRenderResource(), CSP config, JSON Patch streaming, and dashboard component patterns. Use when a tool result would read better as a stat grid, data table, or status badge than as text, when retrofitting interactive UI onto MCP tools that already work, or when creating eval and monitoring dashboards. For the server itself (transport, auth, tool handlers, security) reach for ork:mcp-patterns."
 tags: [mcp, json-render, visual-output, dashboard, iframe, sandbox, interactive-ui, genui]
 version: 1.1.0
