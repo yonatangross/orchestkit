@@ -1,5 +1,6 @@
 ---
 description: "Decomposes a PRD, issue, or spec into a copy-pasteable `/goal until ... abort-if ...` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions."
+argument-hint: "[prd-text | issue#N | path/to/spec.md]"
 allowed-tools: [Read, Write, Bash, Grep]
 ---
 

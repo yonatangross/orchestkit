@@ -1,5 +1,6 @@
 ---
 description: "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes."
+argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure]"
 allowed-tools: [Read, Write, Grep, Glob, Bash, AskUserQuestion, TaskCreate, TaskUpdate, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations, mcp__ork-elicit__ork_elicit]
 ---
 

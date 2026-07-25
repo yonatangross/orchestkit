@@ -1,5 +1,6 @@
 ---
 description: "Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command — but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific)."
+argument-hint: "<PR-number | run-URL | job-URL>"
 allowed-tools: [Bash, Read, Grep, Glob]
 ---
 
