@@ -904,7 +904,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "browser-tools",
     "description": "OrchestKit security wrapper for browser automation. Adds URL blocklisting, rate limiting, robots.txt enforcement, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows that need safety guardrails.",
     "version": "5.0.0",
-    "sha256": "97bf1d23be529c3d252899e277e18365534126b663003b5512d5d227bb86ea43",
+    "sha256": "9b08df47f8cbd295247eee84d5d56497702af84e921fd82cd346ae4fa13a1b41",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -2305,7 +2305,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser (Rust daemon + CDP, ARIA-tree-first). Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience.",
     "version": "1.1.0",
-    "sha256": "5ab11adda99c2bd931c858680d8c76ebd61b0b29f15723b097d91d6bc6198df1",
+    "sha256": "565d86bbe4bd54c6ddcb67cf5891a697fa7df813bc40f21a994ff31571206a31",
     "author": "OrchestKit",
     "tags": [
       "testing",
