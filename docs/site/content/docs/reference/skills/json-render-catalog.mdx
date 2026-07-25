@@ -1071,7 +1071,8 @@ At scale (100 specs/day, $3/M input tokens with Haiku): ~$0.04/day savings. The 
 **Key rules:**
 - Use YAML for standalone mode — it reduces both input and output tokens by ~30%
 - Use JSON for inline mode / streaming — JSON Patch (RFC 6902) operates on JSON, not YAML
-- Import `parseYamlSpec` from `@json-render/yaml` to convert YAML strings to spec objects
+- Convert YAML to a spec with `createYamlStreamCompiler()` — `push(text)` then `flush()`. There is no sync `parseYamlSpec()`
+- Generate the system prompt with `yamlPrompt(catalog)` rather than hand-writing it, so it tracks the catalog
 - Do not mix formats in a single spec — pick one and stay consistent
 - Measure token usage with your provider's tokenizer to validate savings for your specific catalogs
 

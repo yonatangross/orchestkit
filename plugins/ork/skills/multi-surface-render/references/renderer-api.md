@@ -175,6 +175,6 @@ const remotionRegistry = {
 | Option | Type | Description |
 |--------|------|-------------|
 | `catalog` | `Catalog` | Required. Zod-typed component definitions |
-| `registry` | `CatalogComponents` | Required. Platform-specific component map |
+| `registry` | `InferCatalogComponents<typeof catalog>` | Required. Platform-specific component map |
 | `spec` | `JsonRenderSpec` | Required. Flat-tree JSON/YAML spec |
 | `onError` | `(err: Error) => void` | Optional. Error handler |

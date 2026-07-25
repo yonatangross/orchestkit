@@ -19,9 +19,9 @@
       "rule": "shadcn-catalog",
       "query": "What components are available in json-render for building a settings page?",
       "expectedBehavior": [
-        "References @json-render/shadcn package with its 29 pre-built components",
+        "References @json-render/shadcn package with its 36 pre-built components",
         "Recommends relevant shadcn components: Card, Switch, Select, Input, Button, Tabs",
-        "Suggests using shadcnCatalog as-is rather than rebuilding standard components",
+        "Suggests using shadcnComponentDefinitions as-is rather than rebuilding standard components",
         "Shows object-spread composition for adding custom domain-specific components"
       ]
     },
@@ -32,7 +32,7 @@
       "expectedBehavior": [
         "Recommends YAML mode for standalone generation with ~30% token savings",
         "Explains that JSON is required for inline/streaming (JSON Patch RFC 6902 over JSONL)",
-        "Shows parseYamlSpec() import from @json-render/yaml",
+        "Shows createYamlStreamCompiler() push/flush from @json-render/yaml",
         "Provides the decision rule: inline/streaming → JSON, standalone → YAML"
       ]
     },
