@@ -46,7 +46,7 @@ Storybook becomes the single source of truth — adding a story automatically ex
 - **`@json-render/ink` (0.15)** — render catalogs to terminal UIs (Ink-based, 20+ components) using the same spec.
 - **`@json-render/next` (0.16)** — generate full Next.js apps (routes, layouts, SSR, metadata) from a single spec.
 - **`@json-render/shadcn-svelte` (0.16)** — 36-component Svelte 5 + Tailwind mirror of the React shadcn catalog.
-- **shadcn catalog at 36 components** (was documented as 29 — the count was wrong even at 0.13). Use `@json-render/shadcn` as-is or `mergeCatalogs()` with your custom types.
+- **shadcn catalog at 36 components** (was documented as 29 — the count was wrong even at 0.13). Use `@json-render/shadcn` as-is, or spread `shadcnComponentDefinitions` together with your own definitions.
 - **`@json-render/react-three-fiber`** now ships 20 components including `GaussianSplat` (0.17).
 - **`@json-render/mcp`** — upgrade plain MCP tool JSON into interactive iframes inside Claude/Cursor/ChatGPT conversations. See the `ork:mcp-visual-output` skill.
 - **MCP multi-surface**: same spec renders to React, PDF (`@json-render/react-pdf`), email (`@json-render/react-email`), terminal (Ink), Next.js apps, and Remotion videos.
@@ -185,10 +185,10 @@ const schema = catalog.jsonSchema({ strict: true })
 ### Step 2: Implement Components
 
 ```tsx
-import type { CatalogComponents } from '@json-render/react'
+import type { InferCatalogComponents } from '@json-render/core'
 import type { catalog } from './catalog'
 
-export const components: CatalogComponents<typeof catalog> = {
+export const components: InferCatalogComponents<typeof catalog> = {
   Card: ({ title, description, children }) => (
     <div className="rounded-lg border p-4">
       <h3 className="font-semibold">{title}</h3>
@@ -308,16 +308,15 @@ The `@json-render/shadcn` package provides a production-ready catalog of 36 comp
 > **Svelte:** `@json-render/shadcn-svelte` (added in 0.16) mirrors the same 36 components for Svelte 5 + Tailwind projects.
 
 ```tsx
-import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
+import { shadcnComponentDefinitions, shadcnComponents } from '@json-render/shadcn'
 import { defineRegistry, Renderer } from '@json-render/react'
-import { mergeCatalogs } from '@json-render/core'
 
 // Use as-is
-const { registry } = defineRegistry(shadcnCatalog, { components: shadcnComponents })
+const { registry } = defineRegistry(shadcnComponentDefinitions, { components: shadcnComponents })
 <Renderer spec={spec} registry={registry} />
 
 // Or merge with custom components
-const catalog = mergeCatalogs(shadcnCatalog, customCatalog)
+const catalog = { ...shadcnComponentDefinitions, ...customCatalog }
 ```
 
 ### Style-Aware Catalogs
@@ -325,11 +324,11 @@ const catalog = mergeCatalogs(shadcnCatalog, customCatalog)
 The shadcn catalog components use default Tailwind classes. When your project uses a specific shadcn v4 style (Luma, Nova, etc.), override component implementations to match:
 
 ```typescript
-import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
-import type { CatalogComponents } from '@json-render/react'
+import { shadcnComponentDefinitions, shadcnComponents } from '@json-render/shadcn'
+import type { InferCatalogComponents } from '@json-render/core'
 
 // Override shadcn component implementations for Luma style
-const lumaComponents: Partial<CatalogComponents<typeof shadcnCatalog>> = {
+const lumaComponents: Partial<InferCatalogComponents<typeof shadcnComponentDefinitions>> = {
   Card: ({ title, description, children }) => (
     <div className="rounded-4xl border shadow-md ring-1 ring-foreground/5 p-6">
       <h3 className="font-semibold">{title}</h3>
@@ -458,7 +457,7 @@ Adding interactivity with events, watchers, and state.
 1. Using `z.any()` or `z.unknown()` in catalog props — defeats the purpose of catalog constraints, AI can generate anything
 2. Always using JSON specs — wastes 30% tokens when inline/streaming is not needed (use YAML in standalone mode)
 3. Nesting component definitions — json-render uses a flat tree; all elements are siblings referenced by ID
-4. Skipping `mergeCatalogs()` when combining shadcn + custom — manual merging loses type safety
+4. Re-declaring shadcn components instead of spreading `shadcnComponentDefinitions` — you lose the upstream Zod bounds
 5. Not setting `.max()` on arrays — AI can generate unbounded lists that break layouts
 
 ## Related Skills

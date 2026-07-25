@@ -239,15 +239,16 @@ const componentSchema = z.object({
 })
 
 // Add to project catalog
-import { defineCatalog, mergeCatalogs } from '@json-render/core'
+import { defineCatalog } from '@json-render/core'
 import { existingCatalog } from './catalog'
 
-export const catalog = mergeCatalogs(existingCatalog, {
+export const catalog = {
+  ...existingCatalog,
   {ComponentName}: {
     props: componentSchema,
     children: true, // or false for leaf components
   },
-})
+}
 ```
 
 **Enables:** same component output to PDF, email, video, or MCP response — no reimplementation needed.

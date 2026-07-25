@@ -142,11 +142,11 @@ export const DemoVideo = () => (
 
 ```tsx
 import { render } from 'ink'
-import { InkRenderer } from '@json-render/ink'
+import { Renderer } from '@json-render/ink'
 import { catalog } from './catalog'
 import { inkRegistry } from './registries/ink'
 
-render(<InkRenderer spec={spec} catalog={catalog} registry={inkRegistry} />)
+render(<Renderer spec={spec} catalog={catalog} registry={inkRegistry} />)
 ```
 
 Useful for `/ork:*` CLI dashboards and streaming agent chat interfaces — ships 20+ Ink-native components (Box, Text, Spinner, Table, Markdown, Progress, etc.).
@@ -154,17 +154,31 @@ Useful for `/ork:*` CLI dashboards and streaming agent chat interfaces — ships
 ### Render to Next.js App (0.16+)
 
 ```typescript
-import { generateNextApp } from '@json-render/next'
+// createNextApp lives on the /server subpath, not the package root.
+import { createNextApp } from '@json-render/next/server'
 
-await generateNextApp(spec, {
-  catalog,
-  registry: webRegistry,
-  outDir: './out',
-  // generates routes, layouts, SSR handlers, and metadata
+const { getPageData, generateMetadata, generateStaticParams } = createNextApp({
+  spec,                        // NextAppSpec: routes keyed by Next.js URL patterns
+  loaders: { getPost },        // server-side data loaders referenced by route.loader
 })
 ```
 
-Output is a full Next.js App Router project — specs describe route trees, not just components.
+It does **not** scaffold a project on disk. `createNextApp` returns the server-side pieces you
+re-export from a catch-all route, and the page itself renders through `PageRenderer`:
+
+```tsx
+// app/[[...slug]]/page.tsx
+export { generateMetadata, generateStaticParams }
+
+export default async function Page({ params }) {
+  const data = await getPageData(params)
+  if (!data) notFound()
+  return <PageRenderer {...data} registry={webRegistry} />
+}
+```
+
+A spec describes a route tree (pages, layouts, metadata, loading and error states), not just a
+component tree.
 
 ## Decision Matrix — When to Use Each Target
 
@@ -490,14 +504,14 @@ function Dashboard({ spec }) {
 ### Progressive Streaming Pattern
 
 ```tsx
-import { Renderer, defineRegistry, useStreamingSpec } from '@json-render/react'
+import { Renderer, defineRegistry, useUIStream } from '@json-render/react'
 import { catalog } from './catalog'
 import { webComponents } from './registries/web'
 
 const { registry: webRegistry } = defineRegistry(catalog, { components: webComponents })
 
 function StreamingDashboard({ specStream }) {
-  const spec = useStreamingSpec(specStream) // updates as patches arrive
+  const spec = useUIStream(specStream) // updates as patches arrive
 
   return (
     <Renderer
@@ -587,16 +601,16 @@ export const emailRegistry = {
 - Registry components receive the same props defined in the catalog Zod schema
 - Never add platform-specific props to the catalog — the catalog is platform-agnostic
 - Organize registries in `./registries/web.ts`, `./registries/pdf.ts`, `./registries/email.ts`
-- Use `CatalogComponents&lt;typeof catalog&gt;` type to ensure registries match the catalog
+- Use `InferCatalogComponents&lt;typeof catalog&gt;` type to ensure registries match the catalog
 
 ### Type-Safe Registry Pattern
 
 ```typescript
-import type { CatalogComponents } from '@json-render/react'
+import type { InferCatalogComponents } from '@json-render/core'
 import type { catalog } from './catalog'
 
 // TypeScript ensures every catalog type is implemented
-export const webRegistry: CatalogComponents<typeof catalog> = {
+export const webRegistry: InferCatalogComponents<typeof catalog> = {
   Heading: ({ text, level }) => { /* ... */ },
   StatCard: ({ label, value, trend }) => { /* ... */ },
   // Missing type → TypeScript error
@@ -803,12 +817,12 @@ import { Renderer } from '@json-render/react'
 />
 ```
 
-### `useStreamingSpec` Hook
+### `useUIStream` Hook
 
 ```tsx
-import { useStreamingSpec } from '@json-render/react'
+import { useUIStream } from '@json-render/react'
 
-const spec = useStreamingSpec(stream) // ReadableStream of JSON Patch ops
+const spec = useUIStream(stream) // ReadableStream of JSON Patch ops
 ```
 
 ---

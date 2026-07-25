@@ -1819,7 +1819,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-to-code",
     "description": "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts screenshots, descriptions, or URLs as input and produces production-ready React components. Checks existing Storybook components before generating, orchestrates design extraction via Stitch MCP, component matching via 21st.dev registry, adaptation to project design tokens, and a self-healing Storybook verification loop that retries up to three times. Use when converting visual designs to code, implementing UI from mockups, or building components from screenshots. To call the MCP tool surface on its own, with no design to convert, use storybook-mcp-integration.",
     "version": "1.0.1",
-    "sha256": "7e7ea71d9b07b3552c0b9ad06c0975a4995dfd4af8c513e84b7f857fc63e62bc",
+    "sha256": "70bd2aa414ef76e4874ea65eebb4d49b1b6c6907e950486d3db1247e97818aee",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
@@ -2953,7 +2953,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "json-render-catalog",
     "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects.",
     "version": "1.3.0",
-    "sha256": "2b18ca5a644ddb0a19b7b6ebd6fddedcea54c9650b43ea4939799db561746472",
+    "sha256": "ff1bd0c409aac58e143128716f793e547a8a72bb08a1fea5a0a1a60ba40b1924",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -3451,7 +3451,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multi-surface-render",
     "description": "Multi-surface rendering with json-render — same JSON spec produces React web, Next.js apps, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform-specific APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for multiple platforms, creating PDF reports, email templates, demo videos, or social media images from a single component spec.",
     "version": "1.1.0",
-    "sha256": "4dc5782a26b3ae6963a5162e66a7a5b7fed9734dff3f62b794b329312085178f",
+    "sha256": "eaa7db25cbaa1f5f0ce8bb5f357e2696a187d35fb19fcfc9abd80f623cefdf9b",
     "author": "OrchestKit",
     "tags": [
       "json-render",

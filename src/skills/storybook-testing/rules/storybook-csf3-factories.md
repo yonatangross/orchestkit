@@ -12,15 +12,15 @@ Storybook 10 uses Component Story Format 3 (CSF3) where stories are plain object
 **Incorrect:**
 ```tsx
 // CSF2 pattern — no type inference, verbose
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import { StoryObj, Meta } from '@storybook/react'
 import { Button } from './Button'
 
 export default {
   title: 'Components/Button',
   component: Button,
-} as ComponentMeta<typeof Button>
+} as Meta<typeof Button>
 
-const Template: ComponentStory<typeof Button> = (args) => <Button {...args} />
+const Template: StoryObj<typeof Button> = (args) => <Button {...args} />
 
 export const Primary = Template.bind({})
 Primary.args = {

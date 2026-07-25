@@ -15,12 +15,12 @@ import { Renderer } from '@json-render/react'
 />
 ```
 
-### `useStreamingSpec` Hook
+### `useUIStream` Hook
 
 ```tsx
-import { useStreamingSpec } from '@json-render/react'
+import { useUIStream } from '@json-render/react'
 
-const spec = useStreamingSpec(stream) // ReadableStream of JSON Patch ops
+const spec = useUIStream(stream) // ReadableStream of JSON Patch ops
 ```
 
 ---

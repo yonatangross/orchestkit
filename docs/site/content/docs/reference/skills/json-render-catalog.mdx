@@ -40,7 +40,7 @@ Storybook becomes the single source of truth — adding a story automatically ex
 - **`@json-render/ink` (0.15)** — render catalogs to terminal UIs (Ink-based, 20+ components) using the same spec.
 - **`@json-render/next` (0.16)** — generate full Next.js apps (routes, layouts, SSR, metadata) from a single spec.
 - **`@json-render/shadcn-svelte` (0.16)** — 36-component Svelte 5 + Tailwind mirror of the React shadcn catalog.
-- **shadcn catalog at 36 components** (was documented as 29 — the count was wrong even at 0.13). Use `@json-render/shadcn` as-is or `mergeCatalogs()` with your custom types.
+- **shadcn catalog at 36 components** (was documented as 29 — the count was wrong even at 0.13). Use `@json-render/shadcn` as-is, or spread `shadcnComponentDefinitions` together with your own definitions.
 - **`@json-render/react-three-fiber`** now ships 20 components including `GaussianSplat` (0.17).
 - **`@json-render/mcp`** — upgrade plain MCP tool JSON into interactive iframes inside Claude/Cursor/ChatGPT conversations. See the `ork:mcp-visual-output` skill.
 - **MCP multi-surface**: same spec renders to React, PDF (`@json-render/react-pdf`), email (`@json-render/react-email`), terminal (Ink), Next.js apps, and Remotion videos.
@@ -179,10 +179,10 @@ const schema = catalog.jsonSchema({ strict: true })
 ### Step 2: Implement Components
 
 ```tsx
-import type { CatalogComponents } from '@json-render/react'
+import type { InferCatalogComponents } from '@json-render/core'
 import type { catalog } from './catalog'
 
-export const components: CatalogComponents<typeof catalog> = {
+export const components: InferCatalogComponents<typeof catalog> = {
   Card: ({ title, description, children }) => (
     <div className="rounded-lg border p-4">
       <h3 className="font-semibold">{title}</h3>
@@ -302,16 +302,15 @@ The `@json-render/shadcn` package provides a production-ready catalog of 36 comp
 > **Svelte:** `@json-render/shadcn-svelte` (added in 0.16) mirrors the same 36 components for Svelte 5 + Tailwind projects.
 
 ```tsx
-import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
+import { shadcnComponentDefinitions, shadcnComponents } from '@json-render/shadcn'
 import { defineRegistry, Renderer } from '@json-render/react'
-import { mergeCatalogs } from '@json-render/core'
 
 // Use as-is
-const { registry } = defineRegistry(shadcnCatalog, { components: shadcnComponents })
+const { registry } = defineRegistry(shadcnComponentDefinitions, { components: shadcnComponents })
 <Renderer spec={spec} registry={registry} />
 
 // Or merge with custom components
-const catalog = mergeCatalogs(shadcnCatalog, customCatalog)
+const catalog = { ...shadcnComponentDefinitions, ...customCatalog }
 ```
 
 ### Style-Aware Catalogs
@@ -319,11 +318,11 @@ const catalog = mergeCatalogs(shadcnCatalog, customCatalog)
 The shadcn catalog components use default Tailwind classes. When your project uses a specific shadcn v4 style (Luma, Nova, etc.), override component implementations to match:
 
 ```typescript
-import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
-import type { CatalogComponents } from '@json-render/react'
+import { shadcnComponentDefinitions, shadcnComponents } from '@json-render/shadcn'
+import type { InferCatalogComponents } from '@json-render/core'
 
 // Override shadcn component implementations for Luma style
-const lumaComponents: Partial<CatalogComponents<typeof shadcnCatalog>> = {
+const lumaComponents: Partial<InferCatalogComponents<typeof shadcnComponentDefinitions>> = {
   Card: ({ title, description, children }) => (
     <div className="rounded-4xl border shadow-md ring-1 ring-foreground/5 p-6">
       <h3 className="font-semibold">{title}</h3>
@@ -452,7 +451,7 @@ Adding interactivity with events, watchers, and state.
 1. Using `z.any()` or `z.unknown()` in catalog props — defeats the purpose of catalog constraints, AI can generate anything
 2. Always using JSON specs — wastes 30% tokens when inline/streaming is not needed (use YAML in standalone mode)
 3. Nesting component definitions — json-render uses a flat tree; all elements are siblings referenced by ID
-4. Skipping `mergeCatalogs()` when combining shadcn + custom — manual merging loses type safety
+4. Re-declaring shadcn components instead of spreading `shadcnComponentDefinitions` — you lose the upstream Zod bounds
 5. Not setting `.max()` on arrays — AI can generate unbounded lists that break layouts
 
 ## Related Skills
@@ -702,13 +701,13 @@ Toolbar: {
 
 ### Merging Catalogs
 
-Use `mergeCatalogs()` to combine the shadcn base with custom domain components:
+Combine the shadcn base with custom domain components using object spread:
 
 ```typescript
-import { mergeCatalogs } from '@json-render/core'
-import { shadcnCatalog } from '@json-render/shadcn'
+import { shadcnComponentDefinitions } from '@json-render/shadcn'
 
-const appCatalog = mergeCatalogs(shadcnCatalog, {
+const appCatalog = {
+  ...shadcnComponentDefinitions,
   PricingCard: {
     props: z.object({
       plan: z.enum(['free', 'pro', 'enterprise']),
@@ -717,14 +716,14 @@ const appCatalog = mergeCatalogs(shadcnCatalog, {
     }),
     children: false,
   },
-})
+}
 ```
 
 **Key rules:**
 - Every component in the catalog must have a `props` Zod schema and a `children` declaration
 - Use `.max()`, `.min()`, and `.default()` on all schemas to bound what AI can generate
 - Use typed children arrays (`['Button']`) for containers that should only accept specific child types
-- Use `mergeCatalogs()` to combine catalogs — manual spreading loses runtime validation
+- Compose catalogs with object spread (`\{ ...base, ...custom \}`). There is no merge helper in `@json-render/core`; validation lives in each definition's Zod schema and spreading preserves it
 - Export the catalog type for use in component implementations: `type AppCatalog = typeof catalog`
 
 Reference: https://github.com/nicholasgriffintn/json-render
@@ -853,17 +852,17 @@ const catalog = defineCatalog(schema, {
 
 **Correct:**
 ```typescript
-import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
-import { mergeCatalogs } from '@json-render/core'
+import { shadcnComponentDefinitions, shadcnComponents } from '@json-render/shadcn'
 import { z } from 'zod'
 
 // Use shadcn as-is for standard components
-import { Renderer, defineRegistry } from '@json-render/shadcn'
-const { registry } = defineRegistry(shadcnCatalog, { components: shadcnComponents })
+import { Renderer, defineRegistry } from '@json-render/react'
+const { registry } = defineRegistry(shadcnComponentDefinitions, { components: shadcnComponents })
 <Renderer spec={spec} registry={registry} />
 
 // Extend with domain-specific components only
-const appCatalog = mergeCatalogs(shadcnCatalog, {
+const appCatalog = {
+  ...shadcnComponentDefinitions,
   PricingCard: {
     props: z.object({
       plan: z.enum(['free', 'pro', 'enterprise']),
@@ -872,7 +871,7 @@ const appCatalog = mergeCatalogs(shadcnCatalog, {
     }),
     children: false,
   },
-})
+}
 ```
 
 ### The 29 shadcn Components
@@ -937,7 +936,7 @@ const appCatalog = mergeCatalogs(shadcnCatalog, {
 | Scenario | Approach |
 |----------|----------|
 | Standard UI (dashboards, settings, forms) | Use shadcn as-is |
-| Domain-specific display (pricing, metrics, timelines) | Add custom components via `mergeCatalogs` |
+| Domain-specific display (pricing, metrics, timelines) | Spread custom definitions over `shadcnComponentDefinitions` |
 | Branded components (custom design system) | Override shadcn implementations, keep schemas |
 | Project uses shadcn v4 style (Luma, Nova, etc.) | Override implementations with style-correct classes |
 | Highly specialized (3D, charts, maps) | Add custom + use `@json-render/react-three-fiber` |
@@ -949,13 +948,13 @@ When your project uses a shadcn v4 style, the default `shadcnComponents` use gen
 **Incorrect — using default components in a Luma project:**
 ```typescript
 // Default shadcnComponents use rounded-lg — wrong for Luma (rounded-4xl)
-const { registry: defaultRegistry } = defineRegistry(shadcnCatalog, { components: shadcnComponents })
+const { registry: defaultRegistry } = defineRegistry(shadcnComponentDefinitions, { components: shadcnComponents })
 <Renderer spec={spec} registry={defaultRegistry} />
 ```
 
 **Correct — overriding implementations for project's v4 style:**
 ```typescript
-import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
+import { shadcnComponentDefinitions, shadcnComponents } from '@json-render/shadcn'
 // Read components.json → style to determine overrides (Luma, Nova, etc.)
 const lumaOverrides = {
   Card: ({ title, children }) => (
@@ -969,8 +968,8 @@ const components = { ...shadcnComponents, ...lumaOverrides }
 ```
 
 **Key rules:**
-- Start with `shadcnCatalog` — covers 80% of common UI patterns out of the box
-- Use `mergeCatalogs()` to add domain-specific components alongside shadcn
+- Start with `shadcnComponentDefinitions` — covers 80% of common UI patterns out of the box
+- Add domain-specific components alongside shadcn with object spread over `shadcnComponentDefinitions`
 - Override implementations (not schemas) for branded styling or v4 style conformance
 - Check `components.json` → `"style"` to determine which class overrides apply
 
@@ -1018,35 +1017,27 @@ const systemPrompt = `Generate a json-render spec in JSON format:
 
 **Correct:**
 ```typescript
-// YAML for standalone mode — 30% fewer tokens
-import { parseYamlSpec } from '@json-render/yaml'
-
-const systemPrompt = `Generate a json-render spec in YAML format:
-root: card-1
-elements:
-  card-1:
-    type: Card
-    props:
-      title: Welcome
-      description: Getting started guide
-    children: [btn-1, btn-2]
-  btn-1:
-    type: Button
-    props:
-      label: Continue
-      variant: default
-  btn-2:
-    type: Button
-    props:
-      label: Skip
-      variant: ghost`
-
-// Parse YAML spec before rendering
+// YAML for standalone mode — 30% fewer tokens.
+// Do not hand-write the prompt: yamlPrompt() derives it from the catalog, so it
+// stays in sync when components change.
+import { createYamlStreamCompiler, yamlPrompt } from '@json-render/yaml'
 import { Renderer, defineRegistry } from '@json-render/react'
-const spec = parseYamlSpec(yamlString)
+import type { Spec } from '@json-render/core'
+
+const systemPrompt = yamlPrompt(catalog, { mode: 'standalone' })
+
+// There is no sync parseYamlSpec(). The compiler is incremental: push text,
+// then flush to finalise. A complete string is just a single push.
+const compiler = createYamlStreamCompiler<Spec>()
+compiler.push(yamlString)
+const { result: spec } = compiler.flush()
+
 const { registry } = defineRegistry(catalog, { components })
 <Renderer spec={spec} registry={registry} />
 ```
+
+The same compiler backs streaming: push each chunk as it arrives and read
+`newPatches` to apply progressive updates, rather than waiting for the whole document.
 
 ### Format Selection Criteria
 
@@ -1246,14 +1237,14 @@ Custom GenUI often passes `onClick`, `onChange` as props. json-render uses the `
 Your existing React/Vue components work as json-render implementations with minimal changes:
 
 ```typescript
-import type { CatalogComponents } from '@json-render/react'
+import type { InferCatalogComponents } from '@json-render/core'
 import type { catalog } from './catalog'
 
 // Reuse existing component implementations
 import { Card as ExistingCard } from '@/components/Card'
 import { Button as ExistingButton } from '@/components/Button'
 
-export const components: CatalogComponents<typeof catalog> = {
+export const components: InferCatalogComponents<typeof catalog> = {
   Card: ({ title, description, elevated, children }) => (
     <ExistingCard title={title} description={description} elevated={elevated}>
       {children}
@@ -1300,7 +1291,7 @@ Include the catalog schema in the system prompt so the AI knows which types and 
 
 | Package | Purpose |
 |---------|---------|
-| `@json-render/core` | `defineCatalog()`, `mergeCatalogs()`, spec validation, type utilities |
+| `@json-render/core` | `defineCatalog()`, `defineSchema()`, spec validation, type utilities |
 
 ## Web Renderers
 
@@ -1658,12 +1649,12 @@ export const catalog = defineCatalog(schema, {
 ```typescript
 // AUTO-GENERATED from Storybook — wires catalog to actual React components
 // Edit imports if your story files live elsewhere.
-import type { CatalogComponents } from '@json-render/react'
+import type { InferCatalogComponents } from '@json-render/core'
 import type { catalog } from './catalog'
 import { Card } from '../components/Card'
 import { Button } from '../components/Button'
 
-export const components: CatalogComponents<typeof catalog> = {
+export const components: InferCatalogComponents<typeof catalog> = {
   Card,
   Button,
   // ...
@@ -2473,14 +2464,14 @@ import { createRenderer } from "@json-render/ink";
 import { standardComponents } from "@json-render/ink";
 import { catalog } from "./catalog";
 
-const InkRenderer = createRenderer(catalog, {
+const Renderer = createRenderer(catalog, {
   ...standardComponents,
   // custom component overrides here
 });
 
-// InkRenderer includes all providers (state, visibility, actions, focus)
+// Renderer includes all providers (state, visibility, actions, focus)
 render(
-  <InkRenderer spec={spec} state={{ activeTab: "overview" }} />
+  <Renderer spec={spec} state={{ activeTab: "overview" }} />
 );
 ```
 

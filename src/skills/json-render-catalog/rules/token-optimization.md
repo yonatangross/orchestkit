@@ -45,35 +45,27 @@ const systemPrompt = `Generate a json-render spec in JSON format:
 
 **Correct:**
 ```typescript
-// YAML for standalone mode — 30% fewer tokens
-import { parseYamlSpec } from '@json-render/yaml'
-
-const systemPrompt = `Generate a json-render spec in YAML format:
-root: card-1
-elements:
-  card-1:
-    type: Card
-    props:
-      title: Welcome
-      description: Getting started guide
-    children: [btn-1, btn-2]
-  btn-1:
-    type: Button
-    props:
-      label: Continue
-      variant: default
-  btn-2:
-    type: Button
-    props:
-      label: Skip
-      variant: ghost`
-
-// Parse YAML spec before rendering
+// YAML for standalone mode — 30% fewer tokens.
+// Do not hand-write the prompt: yamlPrompt() derives it from the catalog, so it
+// stays in sync when components change.
+import { createYamlStreamCompiler, yamlPrompt } from '@json-render/yaml'
 import { Renderer, defineRegistry } from '@json-render/react'
-const spec = parseYamlSpec(yamlString)
+import type { Spec } from '@json-render/core'
+
+const systemPrompt = yamlPrompt(catalog, { mode: 'standalone' })
+
+// There is no sync parseYamlSpec(). The compiler is incremental: push text,
+// then flush to finalise. A complete string is just a single push.
+const compiler = createYamlStreamCompiler<Spec>()
+compiler.push(yamlString)
+const { result: spec } = compiler.flush()
+
 const { registry } = defineRegistry(catalog, { components })
 <Renderer spec={spec} registry={registry} />
 ```
+
+The same compiler backs streaming: push each chunk as it arrives and read
+`newPatches` to apply progressive updates, rather than waiting for the whole document.
 
 ### Format Selection Criteria
 
