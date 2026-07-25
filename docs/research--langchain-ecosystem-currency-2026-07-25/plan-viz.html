@@ -211,7 +211,7 @@
     {
       "id": "W3",
       "title": "additive coverage",
-      "status": "planned"
+      "status": "done"
     },
     {
       "id": "W4",
@@ -451,7 +451,7 @@
       "impact": 7.0,
       "effort": "2h",
       "risk": "low",
-      "status": "planned",
+      "status": "done",
       "before": "Langfuse JS is a separate major (5) with different package names from Python (4), and ork covers it only in a few scattered, partly-broken snippets.",
       "after": "references/langfuse-js-v5.md documents LangfuseClient, LangfuseSpanProcessor, MaskFunction and ShouldExportSpan, plus @langfuse/langchain and @langfuse/openai.",
       "detail": "Masking and span filtering exist in the JS processor (MaskFunction, ShouldExportSpan are exported types) but ork's JS guidance is currently unusable, so a JS user cannot apply PII masking from these docs at all.",
@@ -467,7 +467,7 @@
       "impact": 6.0,
       "effort": "1.5h",
       "risk": "low",
-      "status": "planned",
+      "status": "done",
       "before": "@langfuse/client exports ExperimentManager, Evaluator, RunEvaluator, createEvaluatorFromAutoevals, RegressionError and DatasetManager. The golden-dataset skill mentions none of them.",
       "after": "golden-dataset documents the JS experiments and evaluator runner alongside the Python path.",
       "detail": "Additive gap, not a defect — which is why it sits in W3 behind the correctness work.",
@@ -499,7 +499,7 @@
       "impact": 6.5,
       "effort": "30min",
       "risk": "low",
-      "status": "planned",
+      "status": "done",
       "before": "Nothing in the authoring rules says a version claim has to be verifiable, so prose claims accumulate faster than gates can chase them.",
       "after": "skill-authoring.md states that a version claim belongs in targets: or upstream-version-tested:, and that an import in a code fence must name a symbol the package actually exports.",
       "detail": "Turns W2 and W4 from bolt-on gates into an enforceable authoring contract.",
@@ -612,6 +612,10 @@
     {
       "at": "2026-07-25",
       "note": "Wave 2 landed as 1fae67353. PyPI resolver live: langgraph 1.2.9 and langfuse 4.14.1 now resolve (pypi) where they were previously invisible. Floor semantics verified against the real pairs: >=1.2.0 vs 1.2.9 stays quiet, >=1.2.0 vs 1.4.8 fires. Two things the plan did not anticipate: (a) package-name aliasing was required - a skill declaring next.js must resolve to the npm package next, or it SKIPs forever while looking covered; (b) expanding LIBRARY_REGISTRY to 37 libraries cut unresolvable floors from 21 to 3 and surfaced 3 MAJOR-behind floors elsewhere in the repo (react-i18next 13 vs 17, pact 16 vs 17, testcontainers 11 vs 12) plus a real agent-browser pin drift - all left for their owners, not mixed in. W3.3 (track-only tier for the dormant langgraph-supervisor/swarm) landed here too since it is the same file. 43/43 offline unit assertions; CI runner discovery confirmed via run-tests.sh glob, not the npm script."
+    },
+    {
+      "at": "2026-07-25",
+      "note": "Wave 3 landed as 03c3840ed. Langfuse JS v5 reference written from published .d.ts, golden-dataset gained the JS experiment runner, and skill-authoring.md now carries the machine-checkable version-claim contract with two explicit anti-churn exemptions (historical prose; multiple version axes per product)."
     }
   ]
 }
