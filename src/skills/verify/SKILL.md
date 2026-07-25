@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.206+. Requires memory MCP server."
 description: "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking across parallel agents, scores every dimension 0-10, and returns a READY FOR MERGE, IMPROVEMENTS RECOMMENDED, or BLOCKED verdict with coverage deltas, detected regressions, and a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when validating changes after /ork:implement, judging whether a branch is mergeable, or running a pre-merge quality gate. Use /ork:cover instead when the tests still have to be written."
 argument-hint: "[feature-or-scope]"
 context: fork
-version: 4.5.0
+version: 4.6.0
 author: OrchestKit
 tags: [verification, testing, quality, validation, parallel-agents, grading]
 user-invocable: true
@@ -350,6 +350,26 @@ Agent scores, tool summaries, and every "X is clean / passing / fixed" sentence 
 
 Protocol — claim sources, build step, template, and anti-patterns (laundering, optimism-marking, omission): `Read("${CLAUDE_SKILL_DIR}/references/verification-manifest.md")`.
 
+### Reachability: is the green load-bearing? (REACHED vs UNREACHED)
+
+Provenance answers *who ran it*. It does not answer *whether the pass means anything*. A row reading `✅ VERIFIED · pytest · exit 0 · 214 passed` is honest and can still be worthless, because a suite passing does not prove the suite **reached** the change. A validator shipped 2026-07-19 was fully defined, fully tested, and never called at its call site: every test passed against the old path.
+
+For every test the diff **adds or modifies**, the manifest carries a second mark:
+
+| Mark | Meaning |
+|---|---|
+| 🟢 **REACHED** | The run showed the test **fail without the change and pass with it**, citing both commands. |
+| 🟡 **UNREACHED** | The test is green but has never been seen to fail. Not evidence. |
+| ⚪ **WAIVED** | Deliberately accepted with a one-line reason. |
+
+> **Verdict rule:** a test added or modified by this diff that is 🟡 UNREACHED **caps the verdict at IMPROVEMENTS RECOMMENDED** until the proof is shown or the row is ⚪ WAIVED. Stacks with the provenance cap and the dimension blockers — all must clear. Under `--streak=N` it resets the streak.
+
+Two ordering rules make the proof safe, and both come from real damage: **commit before mutating** (`git checkout --` restores to HEAD, so mutating uncommitted work destroys the change on restore), and **mutate the call site, not the new unit** (mutating the unit proves the unit's tests work, and leaves a dead call site undetected).
+
+**This skill does not perform the mutation** — it writes no test files and edits no source. The proof is produced upstream by `/ork:implement` or `/ork:cover` and graded here; absent a proof, the row is 🟡 UNREACHED and the verdict is capped.
+
+Protocol — scope, the 5-step proof, what makes a mutation load-bearing, template, and anti-patterns (coverage-as-proof, batch proof, cosmetic mutation): `Read("${CLAUDE_SKILL_DIR}/references/reachability-proof.md")`.
+
 ---
 
 ## Report Format
@@ -368,7 +388,8 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/report-template.md")` for fu
 
 ## Verification Manifest
 [✅ VERIFIED · 🟡 CLAIMED · ⬜ UNCHECKED · ⚪ WAIVED — any load-bearing 🟡/⬜ caps the verdict below READY FOR MERGE]
-| # | Load-bearing claim | Asserted by | Provenance | Evidence (cmd · exit · key line) |
+[Reached: 🟢 REACHED · 🟡 UNREACHED · n/a — any 🟡 on a test this diff added/modified also caps the verdict]
+| # | Load-bearing claim | Asserted by | Provenance | Reached | Evidence (cmd · exit · key line) |
 ```
 
 > **Push notifications (CC 2.1.110+):** Verify runs for >5 min are common on complex changes. When the final verdict is ready, call `PushNotification` to alert the user — they likely walked away from the terminal. Requires Remote Control with "Push when Claude decides" config; fails silently for users without it.
@@ -394,6 +415,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `grading-rubric.md` | Per-agent scoring criteria |
 | `report-template.md` | Full report format with visual evidence section |
 | `verification-manifest.md` | VERIFIED‑vs‑CLAIMED provenance ledger: states, verdict rule, claim sources, template, anti‑patterns |
+| `reachability-proof.md` | REACHED‑vs‑UNREACHED: the mutate→red→restore→green proof, commit-first and call-site rules, verdict cap, anti‑patterns |
 | `alternative-comparison.md` | Approach comparison template |
 | `orchestration-mode.md` | Agent Teams vs Task Tool |
 | `policy-as-code.md` | Verification policy configuration |
@@ -452,8 +474,9 @@ Done means all of these hold:
 - verdict is exactly one of READY FOR MERGE / IMPROVEMENTS RECOMMENDED / BLOCKED, with the composite and every dimension score cited
 - every load-bearing "passing/clean/fixed" claim sits in the Verification Manifest marked VERIFIED (lead re-ran, cites command · exit · key line), CLAIMED, UNCHECKED, or WAIVED
 - test evidence is the actual runner summary line (command, exit code, pass count) — never paraphrase
+- every test the diff added or modified carries a Reached mark: REACHED cites the failing run AND the passing run; a green-only row is UNREACHED, not evidence
 - any dimension below its `min_blocker` is reported BLOCKED regardless of composite
-- READY FOR MERGE only when no load-bearing claim is still CLAIMED/UNCHECKED (and under `--streak=N`, the full streak is met)
+- READY FOR MERGE only when no load-bearing claim is still CLAIMED/UNCHECKED, no diff-added test is still UNREACHED (and under `--streak=N`, the full streak is met)
 
 ## Related Skills
 
@@ -465,5 +488,6 @@ Done means all of these hold:
 
 ---
 
+**Version:** 4.6.0 (July 2026) — Added the Reachability Proof (REACHED vs UNREACHED): the manifest's second axis. Provenance grades who ran a claim; reachability grades whether the green means anything. A test the diff added that has never been seen to fail caps the verdict below READY FOR MERGE
 **Version:** 4.5.0 (July 2026) — Added the Verification Manifest (VERIFIED vs CLAIMED) — a load-bearing-claim provenance ledger that caps the verdict below READY FOR MERGE until unverified claims are re-run or waived
 **Version:** 4.4.0 (June 2026) — Added `--streak=N` consecutive-pass gate (#2540)
