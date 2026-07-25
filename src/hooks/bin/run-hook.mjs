@@ -11,7 +11,7 @@
 
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { existsSync, readFileSync, appendFile, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, appendFile, mkdirSync, readdirSync, statSync, renameSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { sanitizeOutput } from './output-guard.mjs';
@@ -508,6 +508,10 @@ function trackHookTriggered(trackedHookName, success, durationMs, projectDir, ti
     });
 
     // Cross-project analytics (Issue #459)
+    // NOTE: this path deliberately does NOT go through lib/analytics.ts
+    // appendAnalytics() — that lives in the compiled TS bundles, and this
+    // dispatcher runs before/outside them. See rotateAnalyticsIfNeeded below
+    // for why that matters.
     const analyticsDir = join(homedir(), '.claude', 'analytics');
     mkdirSync(analyticsDir, { recursive: true });
     const pid = getProjectHash(projectDir);
@@ -521,12 +525,43 @@ function trackHookTriggered(trackedHookName, success, durationMs, projectDir, ti
       t_track_ms: t4 !== undefined ? Number(t4 - timing._t3) / 1e6 : undefined,
     } : {};
     const timingPath = join(analyticsDir, 'hook-timing.jsonl');
+    rotateAnalyticsIfNeeded(timingPath);
     appendFile(timingPath,
       JSON.stringify({ ts: new Date().toISOString(), hook: trackedHookName, duration_ms: durationMs, ok: success, pid, ...(team ? { team } : {}), ...stageTimings }) + '\n', (err) => {
       if (err) process.stderr.write(`[orchestkit] WARNING: failed to write hook timing to ${timingPath}: ${err.message}\n`);
     });
   } catch {
     // Silent failure - tracking should never break hooks
+  }
+}
+
+/**
+ * Rotate an analytics JSONL once it exceeds maxBytes. Renames to
+ * <name>.<YYYY-MM>.jsonl, matching `rotateIfNeeded` in src/hooks/src/lib/analytics.ts.
+ *
+ * WHY THIS IS DUPLICATED RATHER THAN IMPORTED
+ *
+ *   Every other analytics file is written through appendAnalytics(), which calls
+ *   rotateIfNeeded() for free. This dispatcher is a plain .mjs that runs before and
+ *   outside the compiled TS bundles, so it cannot import that helper and instead
+ *   appends with raw appendFile(). hook-timing.jsonl was therefore the ONE analytics
+ *   file with no size bound.
+ *
+ *   Measured before this fix: 1,426,892 rows / 300 MB, growing ~9,840 rows and ~2 MB
+ *   per day since 2026-03-02 with no rotation ever having fired. That is 30x the 10 MB
+ *   cap every sibling file respects, and ~730 MB/year unbounded.
+ *
+ *   The cost here is one statSync per hook invocation, against an appendFile that was
+ *   already happening. Failure is swallowed: a rotation problem must never break a hook.
+ */
+function rotateAnalyticsIfNeeded(filePath, maxBytes = 10_485_760) {
+  try {
+    if (statSync(filePath).size > maxBytes) {
+      const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+      renameSync(filePath, filePath.replace(/\.jsonl$/, `.${month}.jsonl`));
+    }
+  } catch {
+    // Missing file (first write) or a failed rename are both non-events.
   }
 }
 
