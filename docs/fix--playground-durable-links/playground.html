@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Durable playground links</title>
+<style>
+  :root {
+    --bg:#0d1117; --panel:#161b22; --line:#30363d; --fg:#e6edf3; --dim:#8b949e;
+    --ok:#3fb950; --bad:#f85149; --warn:#d29922; --accent:#58a6ff;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+         font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; padding:32px 20px; }
+  .wrap { max-width:920px; margin:0 auto; }
+  h1 { font-size:26px; margin:0 0 6px; letter-spacing:-.3px; }
+  .sub { color:var(--dim); margin:0 0 28px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:10px;
+           padding:18px 20px; margin:0 0 20px; }
+  h2 { font-size:15px; text-transform:uppercase; letter-spacing:.7px; color:var(--dim);
+       margin:0 0 14px; font-weight:600; }
+  table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12.5px; }
+  th, td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); }
+  th { color:var(--dim); font-weight:500; text-transform:uppercase; font-size:10.5px; letter-spacing:.6px; }
+  tr:last-child td { border-bottom:0; }
+  .ok { color:var(--ok); } .bad { color:var(--bad); } .warn { color:var(--warn); }
+  .pill { display:inline-block; padding:1px 7px; border-radius:20px; font-size:11px;
+          font-family:var(--mono); border:1px solid currentColor; }
+  code { font-family:var(--mono); background:#21262d; padding:1px 5px; border-radius:4px; font-size:12.5px; }
+  .flow { font-family:var(--mono); font-size:12.5px; white-space:pre; overflow-x:auto;
+          color:var(--dim); line-height:1.75; margin:0; }
+  .flow b { color:var(--fg); font-weight:600; }
+  .flow .r { color:var(--bad); } .flow .g { color:var(--ok); }
+  label { display:flex; align-items:center; gap:10px; margin:0 0 12px; font-size:13.5px; }
+  select { background:#21262d; color:var(--fg); border:1px solid var(--line);
+           border-radius:6px; padding:6px 10px; font-family:var(--mono); font-size:12.5px; }
+  .out { font-family:var(--mono); font-size:12px; background:#0b0f14; border:1px solid var(--line);
+         border-radius:8px; padding:14px; word-break:break-all; line-height:1.7; }
+  .verdict { margin-top:12px; font-size:13px; }
+  footer { color:var(--dim); font-size:12px; margin-top:26px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Playground links die on merge</h1>
+  <p class="sub">Every merged PR's <em>Open Playground</em> link 404s, because the URL pins the
+     branch name and GitHub deletes the branch when the PR lands.</p>
+
+  <div class="panel">
+    <h2>What happens</h2>
+<p class="flow"><b>PR open</b>    branch <b>fix/yaml-prose-leftover</b> exists
+            blob/<b>fix/yaml-prose-leftover</b>/docs/.../phantom-symbols.html   <span class="g">200 OK</span>
+
+<b>PR merges</b>  GitHub auto-deletes the head branch
+            blob/<b>fix/yaml-prose-leftover</b>/docs/.../phantom-symbols.html   <span class="r">404 GONE</span>
+
+            the FILE is fine, it is on main. the <b>ref</b> is what vanished.</p>
+  </div>
+
+  <div class="panel">
+    <h2>Measured, on PR #3147 whose branch is already deleted</h2>
+    <table>
+      <tr><th>URL form</th><th>status</th><th>during review</th><th>after merge</th></tr>
+      <tr><td>blob/&lt;branch&gt;/</td><td class="bad">404</td><td class="ok">works</td><td class="bad">dead</td></tr>
+      <tr><td>blob/&lt;head-sha&gt;/</td><td class="ok">200</td><td class="ok">works</td><td class="ok">works</td></tr>
+      <tr><td>blob/&lt;merge-sha&gt;/</td><td class="ok">200</td><td class="warn">n/a</td><td class="ok">works</td></tr>
+      <tr><td>blob/main/</td><td class="ok">200</td><td class="bad">404</td><td class="ok">works</td></tr>
+    </table>
+    <p class="verdict">Only the <span class="pill ok">head SHA</span> works on both sides of the merge.
+       GitHub retains <code>refs/pull/&lt;N&gt;/head</code> forever, so the commit stays
+       reachable even after the branch is gone.</p>
+  </div>
+
+  <div class="panel">
+    <h2>Try it</h2>
+    <label>URL form
+      <select id="form">
+        <option value="branch">blob/&lt;branch&gt;/ &mdash; today's template</option>
+        <option value="sha" selected>blob/&lt;head-sha&gt;/ &mdash; the fix</option>
+        <option value="main">blob/main/</option>
+      </select>
+    </label>
+    <label>PR state
+      <select id="state">
+        <option value="open">open, under review</option>
+        <option value="merged" selected>merged, branch deleted</option>
+      </select>
+    </label>
+    <div class="out" id="url"></div>
+    <p class="verdict" id="verdict"></p>
+  </div>
+
+  <div class="panel">
+    <h2>Blast radius: merged PRs with a dead link</h2>
+    <table>
+      <tr><th>PR</th><th>branch (deleted)</th></tr>
+      <tr><td>#3147</td><td>fix/yaml-prose-leftover</td></tr>
+      <tr><td>#3146</td><td>fix/command-argument-hint</td></tr>
+      <tr><td>#3144</td><td>chore/currency-followups</td></tr>
+      <tr><td>#3142</td><td>chore/langchain-ecosystem-currency</td></tr>
+      <tr><td>#3138</td><td>fix/skill-eval-scope-and-ask-tier-quotes</td></tr>
+      <tr><td>#3137</td><td>fix/executor-nudge-test-isolation</td></tr>
+      <tr><td>#3136</td><td>fix/assess-m170-findings</td></tr>
+    </table>
+    <p class="verdict">Open PR <strong>#3141</strong> carries the same form and would join this
+       list on merge. <strong>#3145</strong> already uses <code>blob/main/</code>, from
+       <code>labs-version-watch.yml</code>, which got it right.</p>
+  </div>
+
+  <footer>OrchestKit &middot; fix/playground-durable-links</footer>
+</div>
+
+<script>
+  const SLUG = "docs/fix--yaml-prose-leftover/phantom-symbols.html";
+  const SHA  = "1294771ae82d487fc7d3d9fe3f93c0b622b65694";
+  const BR   = "fix/yaml-prose-leftover";
+  const BASE = "https://htmlpreview.github.io/?https://github.com/yonatangross/orchestkit/blob/";
+
+  const refFor = f => f === "branch" ? BR : f === "sha" ? SHA : "main";
+
+  function live(form, state) {
+    if (form === "branch") return state === "open";   // branch exists only pre-merge
+    if (form === "main")   return state === "merged"; // file reaches main only on merge
+    return true;                                       // sha works either side
+  }
+
+  function render() {
+    const form  = document.getElementById("form").value;
+    const state = document.getElementById("state").value;
+    document.getElementById("url").textContent = BASE + refFor(form) + "/" + SLUG;
+    const ok = live(form, state);
+    const v  = document.getElementById("verdict");
+    v.innerHTML = ok
+      ? '<span class="pill ok">200</span> &nbsp;resolves'
+      : '<span class="pill bad">404</span> &nbsp;' +
+        (form === "branch" ? "the branch was deleted on merge"
+                           : "not on main until the PR merges");
+  }
+
+  document.getElementById("form").addEventListener("change", render);
+  document.getElementById("state").addEventListener("change", render);
+  render();
+</script>
+</body>
+</html>

@@ -1417,7 +1417,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "create-pr",
     "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Use when opening PRs or submitting code for review.",
     "version": "2.5.0",
-    "sha256": "95c81a3ffe30b5679ace27f9f0e6d7b19e2b7e6ef6c91c339892a304652fe8d0",
+    "sha256": "e02d5c6fd2142d79726f51d4b6ac9999270cc14e5d7c43bdd664900046ae3da1",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -5456,8 +5456,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "verify": {
     "name": "verify",
     "description": "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking across parallel agents, scores every dimension 0-10, and returns a READY FOR MERGE, IMPROVEMENTS RECOMMENDED, or BLOCKED verdict with coverage deltas, detected regressions, and a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when validating changes after /ork:implement, judging whether a branch is mergeable, or running a pre-merge quality gate. Use /ork:cover instead when the tests still have to be written.",
-    "version": "4.5.0",
-    "sha256": "20978165e08700523b9c2605b880bfdda34c127894e9d27da2e63a67aef5f91b",
+    "version": "4.6.0",
+    "sha256": "a71a441b1efc008b6fb1ec7dc9645f4217724db4b1c5630b8d76a90619dc2fe0",
     "author": "OrchestKit",
     "tags": [
       "verification",
@@ -5510,6 +5510,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "orchestration-mode.md",
         "policy-as-code.md",
         "quality-model.md",
+        "reachability-proof.md",
         "report-template.md",
         "streak-gate.md",
         "verification-checklist.md",
