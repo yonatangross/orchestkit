@@ -5,6 +5,29 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.0.0](https://github.com/yonatangross/orchestkit/compare/v8.85.0...v9.0.0) (2026-07-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* **cc:** the Claude Code support floor is now 2.1.220. Claude Code 2.1.206 through 2.1.219 are no longer supported; hooks and skills may no-op or error on them, and that is not treated as a bug. Upgrade Claude Code before updating OrchestKit.
+
+### Features
+
+* **cc:** adopt Opus 5, strict-renew the support floor to 2.1.220 ([#3141](https://github.com/yonatangross/orchestkit/issues/3141)) ([47b78fb](https://github.com/yonatangross/orchestkit/commit/47b78fbe891e3d6b76c7d782dccf3b877bcd8f71))
+* **verify:** add the Reachability Proof axis (REACHED vs UNREACHED) ([#3149](https://github.com/yonatangross/orchestkit/issues/3149)) ([5fc5031](https://github.com/yonatangross/orchestkit/commit/5fc5031cac828c31284eed6dbd899f700acd7f4c))
+
+
+### Bug Fixes
+
+* **docs:** pin playground links to the commit SHA, not the branch ([#3148](https://github.com/yonatangross/orchestkit/issues/3148)) ([30d575f](https://github.com/yonatangross/orchestkit/commit/30d575f5e034057d0027e15d716904c68660b539))
+* **hooks:** bound hook-timing.jsonl, the one analytics file with no cap ([#3151](https://github.com/yonatangross/orchestkit/issues/3151)) ([d389c37](https://github.com/yonatangross/orchestkit/commit/d389c374d00c349a9852f77bc84f25e076d5c930))
+
+
+### Miscellaneous
+
+* **deps:** weekly upstream pin sync ([#3145](https://github.com/yonatangross/orchestkit/issues/3145)) ([9dd49fe](https://github.com/yonatangross/orchestkit/commit/9dd49fe42764acb297b6c019cb63621703ba5b12))
+
 ## [8.85.0](https://github.com/yonatangross/orchestkit/compare/v8.84.10...v8.85.0) (2026-07-25)
 
 
