@@ -124,6 +124,41 @@ async def validate_before_add(document: dict, source_url_map: dict) -> dict:
 7. Testing restore procedures in production instead of staging
 8. Committing SQL dumps instead of JSON (not version-control friendly)
 
+## Running a dataset as an experiment
+
+Curating a dataset is half the job; the other half is running something against it and scoring the
+result. Both Langfuse SDKs ship a runner, and their shapes differ.
+
+**Python (SDK 4.x):** see `monitoring-observability/references/experiments-api.md`.
+
+**JS/TS (SDK 5.x):** `@langfuse/client` exposes the runner directly on a fetched dataset.
+
+```typescript
+import { LangfuseClient } from "@langfuse/client";
+
+const langfuse = new LangfuseClient();
+const dataset = await langfuse.dataset.get("my-evaluation-dataset");
+
+const result = await dataset.runExperiment({
+  name: "Retrieval quality",
+  task: myTask,               // (params) => Promise<any>
+  evaluators: [myEvaluator],  // per-item: (params) => Promise<Evaluation | Evaluation[]>
+});
+```
+
+| Type | Scores | Use for |
+|---|---|---|
+| `Evaluator` | one item | Per-example quality (faithfulness, relevance) |
+| `RunEvaluator` | the whole run | Aggregate assertions — pass rate, mean score, regression checks |
+| `Evaluation` | — | `{ name, value, comment?, metadata?, dataType?, configId? }` |
+
+A per-item `Evaluator` cannot see the other items, so anything comparative belongs in a
+`RunEvaluator`. `createEvaluatorFromAutoevals` wraps an autoevals scorer instead of hand-writing
+one, and `RegressionError` is thrown when a run regresses against a configured baseline — catch it
+to fail CI on a quality drop rather than only on an exception.
+
+Full JS surface: `monitoring-observability/references/langfuse-js-v5.md`.
+
 ## Evaluations
 
 See `test-cases.json` for 9 test cases across all categories.

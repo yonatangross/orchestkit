@@ -2658,7 +2658,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "golden-dataset",
     "description": "Golden dataset lifecycle patterns for curation, versioning, quality validation, and CI integration. Use when building evaluation datasets, managing dataset versions, validating quality scores, or integrating golden tests into pipelines.",
     "version": "2.0.0",
-    "sha256": "eb4a5721c581808adf740a83b8680d04266491db6cae7262e84cc75e2f50415c",
+    "sha256": "158e26d2aa1338302727c726d6231736dde62fda9a1b4eb8135be99db56295a5",
     "author": "OrchestKit",
     "tags": [
       "golden-dataset",
@@ -3362,7 +3362,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "monitoring-observability",
     "description": "Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse v4 LLM tracing (as_type, score_current_span, should_export_span, LangfuseMedia), and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring.",
     "version": "3.0.0",
-    "sha256": "dc7e74197b23016b1fdd9f71b6c29de4236613354f8eb647520bef84af965a30",
+    "sha256": "d91aa3f669af646ee3b0351cdf179cf28d0dab9bbb64af891b2e160673629a18",
     "author": "OrchestKit",
     "tags": [
       "monitoring",
@@ -3403,6 +3403,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "experiments-api.md",
         "framework-integrations.md",
         "langfuse-evidently-integration.md",
+        "langfuse-js-v5.md",
         "logging-patterns.md",
         "metrics-collection.md",
         "migration-v3-v4.md",

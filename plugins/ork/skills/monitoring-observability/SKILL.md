@@ -142,6 +142,8 @@ Detection and alerting for silent failures in LLM agents.
 | Resource | Description |
 |----------|-------------|
 | `${CLAUDE_SKILL_DIR}/references/` | Logging, metrics, tracing, Langfuse, drift analysis guides |
+| `${CLAUDE_SKILL_DIR}/references/langfuse-js-v5.md` | **JS/TS SDK v5** — different major and package layout from Python 4.x. Read before writing any JS Langfuse code |
+| `${CLAUDE_SKILL_DIR}/references/migration-v3-v4.md` | Python v2→v4 and JS/TS v3→v5 migration paths |
 | `${CLAUDE_SKILL_DIR}/checklists/` | Implementation checklists for monitoring and Langfuse setup |
 | `${CLAUDE_SKILL_DIR}/examples/` | Real-world monitoring dashboard and trace examples |
 | `${CLAUDE_SKILL_DIR}/scripts/` | Templates: Prometheus, OpenTelemetry, health checks, Langfuse |

@@ -206,7 +206,7 @@
     {
       "id": "W2",
       "title": "dual-registry currency watchdog",
-      "status": "planned"
+      "status": "done"
     },
     {
       "id": "W3",
@@ -371,7 +371,7 @@
       "impact": 7.0,
       "effort": "15min",
       "risk": "low",
-      "status": "planned",
+      "status": "done",
       "before": "Neither langgraph nor monitoring-observability declares upstream-version-tested:, so check-labs-versions.mjs would SKIP them even if they were enrolled.",
       "after": "Both carry the key, making them addressable by the existing watchdog with no new frontmatter vocabulary.",
       "detail": "Reuses machinery that already works rather than inventing a parallel mechanism.",
@@ -387,7 +387,7 @@
       "impact": 9.5,
       "effort": "2h",
       "risk": "med",
-      "status": "planned",
+      "status": "done",
       "before": "The watchdog resolves versions with `npm view`, so it is structurally blind to PyPI. langgraph, langchain, langfuse, deepeval and ragas are all PyPI packages — the entire ecosystem is invisible to it.",
       "after": "Targets carry a registry field (npm or pypi); the PyPI path reads pypi.org/pypi/\u003cpkg>/json and returns info.version.",
       "detail": "This is the root cause. Every content fix in W1 rots again without it. The 5 currently-watched packages are emulate, portless, agent-browser and two @json-render entries — none from this ecosystem.",
@@ -403,7 +403,7 @@
       "impact": 8.5,
       "effort": "1h",
       "risk": "high",
-      "status": "planned",
+      "status": "done",
       "before": "The watchdog reports DRIFT whenever pinned does not string-equal latest. Applied to a floor like 'langgraph at 1.2.0 or above' against latest 1.2.9 that is a false alarm — the floor is satisfied.",
       "after": "A floor is flagged only when upstream has moved to a new MINOR or MAJOR beyond it; a patch bump inside the floor is silent.",
       "detail": "This is the difference between a gate people act on and a gate people mute. The @langchain/langgraph case (floor 1.2.0, latest 1.4.8) must fire; the langgraph Python case (floor 1.2.0, latest 1.2.9) must not.",
@@ -419,7 +419,7 @@
       "impact": 8.0,
       "effort": "30min",
       "risk": "low",
-      "status": "planned",
+      "status": "done",
       "before": "labs-version-watch.yml runs check --then--apply --then--open-PR for 5 packages, none from this ecosystem.",
       "after": "langgraph, langchain-core, langfuse and the Langfuse JS packages are enrolled and produce the same auto-PR.",
       "detail": "The workflow already exists and already opens PRs. Adding rows is cheaper and less drift-prone than building a second notification channel.",
@@ -435,7 +435,7 @@
       "impact": 8.0,
       "effort": "1.5h",
       "risk": "med",
-      "status": "planned",
+      "status": "done",
       "before": "No test covers the resolver, and a new test file type can be silently skipped by the CI runner's discovery glob.",
       "after": "Recorded registry JSON fixtures drive offline unit tests, and the CI-parity command proves the runner actually discovers the new file.",
       "detail": "run-tests.sh line 57 globs test-*.sh and test-*.mjs, so a .mjs test WILL be found — verified, not assumed. Fixtures keep the PR gate network-free; live probing stays in the nightly workflow.",
@@ -483,7 +483,7 @@
       "impact": 4.5,
       "effort": "20min",
       "risk": "low",
-      "status": "planned",
+      "status": "done",
       "before": "langgraph-supervisor last shipped 0.0.31 in Nov 2025 and langgraph-swarm 0.1.0 in Dec 2025. ork teaches hand-rolled supervisors, which is defensible but undocumented as a decision.",
       "after": "The TRACK_ONLY tier in check-labs-versions.mjs carries both with a dated do-not-adopt note.",
       "detail": "The TRACK_ONLY tier already exists for exactly this (the wterm decision). Reusing it costs two rows.",
@@ -608,6 +608,10 @@
     {
       "at": "2026-07-25",
       "note": "Wave 1 landed as 12c7f429b. Scope was larger than planned: 4 LangfuseExporter sites (not 3) plus install instructions and a client import in the setup checklist. Verified against upstream source rather than docs prose. Two plan assumptions were WRONG and corrected: (a) the Langfuse v3 self-hosting prose is accurate, that is the platform version line, not the SDK, so it was left alone; (b) the langfuse-vercel successor is @langfuse/vercel-ai-sdk, not @langfuse/vercel. Bonus find: rules/_sections.md was stale by 9 rules and an entire category (Platform) - rebuilt to 41 rules / 12 categories. npm run build + test:skills + test:agents + test:manifests all exit 0."
+    },
+    {
+      "at": "2026-07-25",
+      "note": "Wave 2 landed as 1fae67353. PyPI resolver live: langgraph 1.2.9 and langfuse 4.14.1 now resolve (pypi) where they were previously invisible. Floor semantics verified against the real pairs: >=1.2.0 vs 1.2.9 stays quiet, >=1.2.0 vs 1.4.8 fires. Two things the plan did not anticipate: (a) package-name aliasing was required - a skill declaring next.js must resolve to the npm package next, or it SKIPs forever while looking covered; (b) expanding LIBRARY_REGISTRY to 37 libraries cut unresolvable floors from 21 to 3 and surfaced 3 MAJOR-behind floors elsewhere in the repo (react-i18next 13 vs 17, pact 16 vs 17, testcontainers 11 vs 12) plus a real agent-browser pin drift - all left for their owners, not mixed in. W3.3 (track-only tier for the dormant langgraph-supervisor/swarm) landed here too since it is the same file. 43/43 offline unit assertions; CI runner discovery confirmed via run-tests.sh glob, not the npm script."
     }
   ]
 }
