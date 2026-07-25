@@ -2056,7 +2056,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.2.0",
-    "sha256": "eb6588fb509c3cf8cad0020cdbe5f6b3e4aa0ab6f69ea5edf4dfff348bf508b5",
+    "sha256": "33e9e05fb6e09dae7cfbe6c175034f582f043309b2a30d9ace9e23183f3b48fc",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -2793,7 +2793,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability, for example 'build a user authentication system with JWT', 'add dark mode support to the dashboard', or 'set up rate limiting middleware'. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "7cef7c152d12e1d76ec2bffa585f4ae6deeb6b25cdbe65d38fdbd869af8b11a1",
+    "sha256": "d6aa6388fc1a9c4bef65b8dd38cbd13f9716f6f7146fdcd777ed245bc0afc90b",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -4560,7 +4560,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "security-patterns",
     "description": "Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.",
     "version": "2.0.0",
-    "sha256": "c9b0024409719ef2bd329931cf97475e463bc872a4a2fafff6175511f6d43389",
+    "sha256": "95811cc1d4afa4330cdc60d44e08b5c116b12cce6a36c50a7ea5eb2c4b6311df",
     "author": "OrchestKit",
     "tags": [
       "security",

@@ -7,6 +7,21 @@
  *   - CLAUDE.md                                       (Version section "Claude Code: >= X.Y.Z")
  *   - src/hooks/src/lib/cc-version-matrix.ts          (MIN_CC_VERSION + LATEST_KNOWN_CC constants)
  *   - src/skills/doctor/references/version-compatibility.md  (overview line)
+ *   - docs/site/content/docs/troubleshooting/index.mdx (fenced code-block floor comment)
+ *   - README.md                                       (shields.io badge + "Requires >=" prose)
+ *   - src/skills/<slug>/SKILL.md                      (compatibility: frontmatter floor, all 114)
+ *     (written with <slug> deliberately: the literal glob would close this
+ *     block comment on its own "*" + "/" and silently turn the rest of the
+ *     header into parsed code.)
+ *
+ * The SKILL.md sweep was added 2026-07-25. Before it, those 114 floors were
+ * hand-edited on every bump while tests/manifests/test-cc-version-floor.sh
+ * enforced them against the SoT with SKILL_COMPAT_STRICT defaulting to 1 — so a
+ * floor bump was a guaranteed 114-file CI failure until someone did the sweep by
+ * hand. Only the "Claude Code X.Y.Z+" prefix is rewritten; the remainder of each
+ * compatibility string is preserved verbatim, because 31 of the 114 also state
+ * real per-skill dependencies (memory MCP server, gh CLI, network access,
+ * agent-browser >= 0.25.0, optional stitch / 21st-dev-magic / storybook-mcp).
  *
  * Idempotent. Run after editing cc-support.json. Used by:
  *   - .github/workflows/cc-support-window-bump.yml (CI auto-bump)
@@ -14,7 +29,13 @@
  *
  * Issue: #1488 (M130)
  */
-import { readFileSync, writeFileSync, existsSync, renameSync } from 'node:fs';
+import {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  renameSync,
+  readdirSync,
+} from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -175,6 +196,100 @@ stamp('README.md', [
     expectedMatches: 1,
   },
 ]);
+
+// ---------------------------------------------------------------------------
+// src/skills/*/SKILL.md :: compatibility: frontmatter floor
+//
+// Not a `stamp()` call because the target is ~114 files rather than one, and a
+// per-file expectedMatches assertion would be the wrong contract: a skill is
+// allowed to carry no compatibility line at all. Instead this reports three
+// counts and fails loud only on the one case that indicates real drift — a
+// compatibility line whose floor cannot be parsed.
+// ---------------------------------------------------------------------------
+const SKILLS_DIR = 'src/skills';
+// Anchored to the frontmatter line so body prose that legitimately cites an old
+// release (matrix rows, "CC 2.1.206 introduced X") is never touched.
+const COMPAT_LINE_RE = /^(compatibility:\s*"?)Claude Code (\d+\.\d+\.\d+)\+/m;
+
+function stampSkillCompatibility() {
+  const absSkills = join(ROOT, SKILLS_DIR);
+  if (!existsSync(absSkills)) {
+    console.warn(`stamp-cc-support: skip (missing): ${SKILLS_DIR}`);
+    return;
+  }
+
+  let stamped = 0;
+  let inSync = 0;
+  let noFloor = 0;
+  const unparseable = [];
+
+  const dirs = readdirSync(absSkills, { withFileTypes: true })
+    .filter(d => d.isDirectory())
+    .map(d => d.name)
+    .sort();
+
+  for (const dir of dirs) {
+    const rel = `${SKILLS_DIR}/${dir}/SKILL.md`;
+    const abs = join(ROOT, rel);
+    if (!existsSync(abs)) continue;
+
+    const before = readFileSync(abs, 'utf8');
+    const compatLine = before.match(/^compatibility:.*$/m);
+    if (!compatLine) {
+      noFloor++;
+      continue;
+    }
+
+    const m = before.match(COMPAT_LINE_RE);
+    if (!m) {
+      // Declares compatibility but not in the "Claude Code X.Y.Z+" shape this
+      // stamper owns. Collected and reported rather than silently skipped, so a
+      // reworded floor can't drift away from the SoT unnoticed.
+      unparseable.push(`${rel}: ${compatLine[0].slice(0, 90)}`);
+      continue;
+    }
+
+    if (m[2] === supported_floor) {
+      inSync++;
+      continue;
+    }
+
+    const after = before.replace(
+      COMPAT_LINE_RE,
+      `$1Claude Code ${supported_floor}+`,
+    );
+    writeAtomic(abs, after);
+    stamped++;
+    mutations++;
+  }
+
+  if (unparseable.length > 0) {
+    console.error(
+      `stamp-cc-support: ${unparseable.length} SKILL.md compatibility line(s) declare a floor this stamper cannot parse:`,
+    );
+    for (const u of unparseable) console.error(`  - ${u}`);
+    console.error(
+      '  Expected the form: compatibility: "Claude Code X.Y.Z+ ...". Reword to match, or',
+    );
+    console.error(
+      '  drop the CC floor from the line and let the plugin-level declaration stand alone.',
+    );
+    process.exit(1);
+  }
+
+  const total = stamped + inSync + noFloor;
+  if (stamped > 0) {
+    console.log(
+      `  ✓ ${SKILLS_DIR}/*/SKILL.md :: compatibility floor — stamped ${stamped}, already in sync ${inSync}, no floor declared ${noFloor} (of ${total})`,
+    );
+  } else {
+    console.log(
+      `  · ${SKILLS_DIR}/*/SKILL.md :: compatibility floor — all ${inSync} in sync at ${supported_floor} (no floor declared: ${noFloor})`,
+    );
+  }
+}
+
+stampSkillCompatibility();
 
 console.log(mutations === 0
   ? 'stamp-cc-support: no changes needed (already in sync)'

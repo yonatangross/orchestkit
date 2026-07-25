@@ -52,7 +52,8 @@ Define both palettes side by side in the chart's `<style>`; a data mark never we
 
 ## Capability gate — never hard-require
 
-`/dataviz` is CC-bundled at **2.1.198** (above ork's 2.1.206 floor) and is disableable via
+`/dataviz` has been CC-bundled since **2.1.198**, which is below ork's 2.1.220 floor, so every
+supported session ships it. It is still disableable via
 `disableBundledSkills`. **Probe before use** (the `visualize-plan` STEP 0.5 pattern). If it is
 absent, or the validator returns a hard FAIL, **fall back to the ASCII-card layout** — the same
 output ork produced before this standard existed. `/dataviz` upgrades charts; it never blocks them.
