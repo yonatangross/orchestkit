@@ -216,7 +216,7 @@
     {
       "id": "W4",
       "title": "phantom-symbol gate (own milestone)",
-      "status": "planned"
+      "status": "done"
     }
   ],
   "items": [
@@ -515,7 +515,7 @@
       "impact": 10.0,
       "effort": "1d",
       "risk": "high",
-      "status": "planned",
+      "status": "done",
       "before": "No gate can catch a symbol that never existed at any version. LangfuseExporter passed every existing check: lint, structure tests, floor agreement, and the upstream-drift linter.",
       "after": "A nightly job extracts TypeScript imports from skill code fences and asserts each symbol appears in the package's published .d.ts.",
       "detail": "Highest impact and lowest simplicity of every idea considered — which is why it is its own milestone rather than a rider on a correctness hotfix.",
@@ -531,7 +531,7 @@
       "impact": 7.5,
       "effort": "2h",
       "risk": "med",
-      "status": "planned",
+      "status": "done",
       "before": "@langfuse/vercel was documented for months and has never existed on the registry.",
       "after": "Every scoped package named in skill docs must resolve to a published version.",
       "detail": "Shares the extractor and the nightly schedule with W4.1, so it is cheap once that exists.",
@@ -616,6 +616,10 @@
     {
       "at": "2026-07-25",
       "note": "Wave 3 landed as 03c3840ed. Langfuse JS v5 reference written from published .d.ts, golden-dataset gained the JS experiment runner, and skill-authoring.md now carries the machine-checkable version-claim contract with two explicit anti-churn exemptions (historical prose; multiple version axes per product)."
+    },
+    {
+      "at": "2026-07-25",
+      "note": "Wave 4 landed as 24d4b81ef. The import-symbol gate was PROVEN before being trusted: run against src/skills at the pre-fix commit it reports 12 broken imports including all four LangfuseExporter sites. It also found a second phantom-symbol family outside the LangChain scope in @json-render/core - jsonSchema is only a method on Catalog, CatalogComponents is not exported by core, both fixed; mergeCatalogs does not exist at all across 5 sites and is left REPORTED not guessed, because inventing a replacement API is the same defect the gate exists to catch. W4.2 (package-existence) is folded into the same script: an unpublished package resolves to not-published and is reported separately from a missing symbol. Nightly workflow, deliberately not a PR gate."
     }
   ]
 }

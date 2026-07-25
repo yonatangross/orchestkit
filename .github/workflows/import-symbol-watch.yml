@@ -29,8 +29,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
+      # Least privilege: this job only reads the repo and writes to the step summary.
+      # It does NOT open issues — an earlier draft declared `issues: write` for a
+      # file-an-issue step that was never built. Add the scope back with the feature,
+      # not before it.
       contents: read
-      issues: write   # to file/refresh the findings issue
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3
 
