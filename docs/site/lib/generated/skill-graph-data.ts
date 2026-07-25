@@ -609,7 +609,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "label": "Langgraph",
     "type": "reference",
     "complexity": "high",
-    "category": "ai-llm",
+    "category": "backend",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0

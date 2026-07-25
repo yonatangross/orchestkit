@@ -1,4 +1,8 @@
-# Migration Guide: v2 → v4 (Python) / v3 → v4 (JS)
+# Migration Guide: Python v2 → v4 · JS/TS v3 → v5
+
+Two SDKs, two version lines. The Python SDK is at **4.x** (latest 4.14.1); the JS/TS SDK went a major
+further and is at **5.x** (all `@langfuse/*` packages at 5.9.1). Separately, the self-hosted platform
+is on its own v3 line — that number is not an SDK version and needs no migration here.
 
 ## Python SDK: v2 → v3
 
@@ -213,13 +217,22 @@ get_client().update_current_span(input={"screenshot": media})
 
 ### Package Changes
 
-| v3 (Deprecated) | v4 (Current) |
+The JS/TS SDK moved a major ahead of Python: the monolith `langfuse` package stopped at 3.x and the
+scoped `@langfuse/*` packages are at **5.x**. Verify every package below against the registry before
+adopting it — this table previously listed a package that has never been published.
+
+| v3 (Deprecated) | v5 (Current) |
 |------------------|--------------|
-| `langfuse` (monolith) | `@langfuse/core` (base) |
-| — | `@langfuse/tracing` (trace API) |
-| — | `@langfuse/otel` (OTEL exporter) |
-| `langfuse-langchain` | `@langfuse/langchain` |
-| `langfuse-vercel` | `@langfuse/vercel` |
+| `langfuse` (monolith) | `@langfuse/client` — exports `LangfuseClient` |
+| — | `@langfuse/tracing` (`observe`, `startActiveObservation`, `updateActiveObservation`) |
+| — | `@langfuse/otel` — exports `LangfuseSpanProcessor` (a SpanProcessor, not an exporter) |
+| `langfuse-langchain` | `@langfuse/langchain` — exports `CallbackHandler` |
+| `langfuse-vercel` | `@langfuse/vercel-ai-sdk` — exports `LangfuseVercelAiSdkIntegration` |
+| — | `@langfuse/openai` (OpenAI SDK auto-instrumentation) |
+
+> **`@langfuse/core` is NOT the client.** It is an internal utility package ("Core functions and
+> utilities for Langfuse packages") exporting API types and `LangfuseAPIClient`. It has no `Langfuse`
+> export. Import `LangfuseClient` from `@langfuse/client`.
 
 ### Setup Changes
 
@@ -231,24 +244,34 @@ const langfuse = new Langfuse({
   secretKey: "sk-...",
 });
 
-// ✅ v4: Option A — Direct tracing
-import { Langfuse } from "@langfuse/core";
-const langfuse = new Langfuse({
+// ✅ v5: Option A — client API (prompts, datasets, scores, experiments)
+//    LangfuseClient lives in @langfuse/client. @langfuse/core is internal utils.
+import { LangfuseClient } from "@langfuse/client";
+const langfuse = new LangfuseClient({
   publicKey: "pk-...",
   secretKey: "sk-...",
 });
 
-// ✅ v4: Option B — OTEL-native (recommended)
+// ✅ v5: Option B — OTEL-native tracing (recommended)
 import { NodeSDK } from "@opentelemetry/sdk-node";
-import { LangfuseExporter } from "@langfuse/otel";
+import { LangfuseSpanProcessor } from "@langfuse/otel";
 
+// v5 ships a SpanProcessor, NOT an exporter: it goes in `spanProcessors`,
+// never `traceExporter`. Keys fall back to LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY.
 const sdk = new NodeSDK({
-  traceExporter: new LangfuseExporter({
-    publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-    secretKey: process.env.LANGFUSE_SECRET_KEY,
-  }),
+  spanProcessors: [
+    new LangfuseSpanProcessor({
+      publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+      secretKey: process.env.LANGFUSE_SECRET_KEY,
+    }),
+  ],
 });
 sdk.start();
+
+// Short-lived processes MUST flush before exit or trailing spans are lost.
+process.on("beforeExit", async () => {
+  await sdk.shutdown();
+});
 ```
 
 ### Tracing Changes
@@ -399,9 +422,11 @@ ClickHouse Inc. acquired Langfuse on January 16, 2026. Key implications:
 
 ### JavaScript v3 → v4
 
-- [ ] Replace `langfuse` package with `@langfuse/core` + `@langfuse/otel`
-- [ ] Update imports from `langfuse` → `@langfuse/core`
+- [ ] Replace `langfuse` package with `@langfuse/client` + `@langfuse/tracing` + `@langfuse/otel`
+- [ ] Update imports from `langfuse` → `@langfuse/client` (the class is `LangfuseClient`, not `Langfuse`)
 - [ ] Replace `langfuse-langchain` → `@langfuse/langchain`
+- [ ] Replace `langfuse-vercel` → `@langfuse/vercel-ai-sdk`
+- [ ] Verify each `@langfuse/*` package resolves on the registry before you ship the import
 - [ ] Set up OTEL exporter for automatic tracing
 - [ ] Update `package.json` dependencies
 

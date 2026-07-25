@@ -2,11 +2,11 @@
 name: langgraph
 license: MIT
 compatibility: "Claude Code 2.1.206+."
-description: LangGraph 1.x (LTS) workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.
-tags: [langgraph, workflow, state, routing, parallel, supervisor, tools, checkpoints, streaming, streaming-v2, subgraphs, functional, lts]
+description: LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error handlers, graceful drain), routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.
+tags: [langgraph, workflow, state, delta-channel, resilience, timeout, routing, parallel, supervisor, tools, checkpoints, streaming, streaming-v2, subgraphs, functional, lts, python]
 context: fork
 agent: workflow-architect
-version: 2.2.0
+version: 2.3.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
@@ -14,10 +14,12 @@ complexity: high
 persuasion-type: reference
 effort: high
 targets:
-  - library: "@langchain/langgraph"
-    version: ">=1.2.0"
+  # Python only. The JS package `@langchain/langgraph` is on its own faster line (1.4.x as of
+  # 2026-07) and every rule here is Python — declaring a JS floor advertised coverage this skill
+  # does not have. Re-add it only alongside real TypeScript rules.
   - library: "langgraph"
     version: ">=1.2.0"
+upstream-version-tested: "1.2.9"
 metadata:
   category: document-asset-creation
 allowed-tools:
@@ -32,17 +34,40 @@ allowed-tools:
 
 Comprehensive patterns for building production LangGraph workflows. **LangGraph 1.x is LTS** (Long Term Support) — the first stable major release, powering agents at Uber, LinkedIn, and Klarna. Each category has individual rule files in `rules/` loaded on-demand.
 
-> **LangGraph 1.2 (Q1 2026) — new in this bump:**
+> **LangGraph 1.2 (shipped 2026-05-12) — the fault-tolerance release.** Everything below is on
+> `StateGraph.add_node(...)` unless noted:
 >
-> - **Deferred nodes** (`defer=True` on `add_node`) — the node runs only after all *other* upstream nodes have completed, so its execution is deferred until the run is about to end. This makes "aggregate once everyone else is done" patterns a one-liner instead of a custom reducer.
-> - **Model middleware** (`before_model` / `after_model`) on `create_agent(...)` (from `langchain.agents`) — inject compression, summarization, or PII redaction without subclassing. Note: the legacy `pre_model_hook` / `post_model_hook` params only existed on the now-deprecated `create_react_agent`; the current equivalent is middleware on `create_agent`.
-> - **Node-level caching** via `CachePolicy(ttl=..., key_func=...)` with `SqliteCache` and `RedisCache` backends (pluggable via `graph.compile(cache=...)`). Idempotent nodes skip recomputation on replay.
+> - **Per-node timeouts** — `timeout=` accepts `float | timedelta | TimeoutPolicy`.
+>   `TimeoutPolicy(run_timeout=, idle_timeout=, refresh_on="auto"|"heartbeat")` separates a hard
+>   wall-clock cap from an idle cap that progress refreshes. On expiry LangGraph raises
+>   `NodeTimeoutError` (carrying `kind="idle"|"run"` and `elapsed`), drops that attempt's writes, and
+>   defers to the retry policy. Cooperative: it rides asyncio cancellation, so a node blocking the
+>   GIL is *not* interrupted. See `rules/resilience-node-timeouts.md`.
+> - **Node error handlers** — `error_handler=` registers a recovery node that runs once the retry
+>   budget is exhausted. It receives failure context by declaring a parameter typed `NodeError`
+>   (fields `node`, `error`) and returns a `Command` to update state and reroute.
+>   See `rules/resilience-error-handlers.md`.
+> - **`RunControl`** (`langgraph.runtime`) — cooperative graceful shutdown. `request_drain(reason)`
+>   from any thread; nodes poll `runtime.drain_requested` and stop at a checkpoint boundary, leaving
+>   a resumable thread instead of a half-applied superstep. See `rules/resilience-graceful-drain.md`.
+> - **`DeltaChannel`** (`langgraph.channels.delta`, **beta**) — checkpoints store only incremental
+>   writes and replay them through a batch reducer, with a snapshot every `snapshot_frequency`
+>   updates. Fixes checkpoint cost growing with thread length. Its reducer takes a *batch* and must
+>   be batching-invariant. See `rules/state-delta-channel.md`.
+> - **`runtime.heartbeat()`** — explicit progress signal, the only one that refreshes an idle timeout
+>   under `refresh_on="heartbeat"`.
+>
+> **Landed earlier, in 1.1 — not 1.2** (they are current and supported; only their release
+> attribution was wrong in prior versions of this skill): deferred nodes (`defer=True`), node-level
+> caching (`CachePolicy` + `graph.compile(cache=...)`), and model middleware
+> (`before_model` / `after_model`) on `create_agent`.
 
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
-| [State Management](#state-management) | 4 | CRITICAL | Designing workflow state schemas, accumulators, reducers |
+| [State Management](#state-management) | 5 | CRITICAL | Designing workflow state schemas, accumulators, reducers, delta channels |
+| [Resilience](#resilience) | 3 | CRITICAL | Node timeouts, error handlers, graceful drain (1.2+) |
 | [Routing & Branching](#routing--branching) | 4 | HIGH | Dynamic routing, retry loops, semantic routing, cross-graph |
 | [Parallel Execution](#parallel-execution) | 3 | HIGH | Fan-out/fan-in, map-reduce, concurrent agents |
 | [Supervisor Patterns](#supervisor-patterns) | 3 | HIGH | Central coordinators, round-robin, priority dispatch |
@@ -54,7 +79,7 @@ Comprehensive patterns for building production LangGraph workflows. **LangGraph 
 | [Functional API](#functional-api) | 3 | MEDIUM | @entrypoint/@task decorators, migration from StateGraph |
 | [Platform](#platform) | 3 | HIGH | Deployment, RemoteGraph, double-texting strategies |
 
-**Total: 37 rules across 11 categories**
+**Total: 41 rules across 12 categories**
 
 ## State Management
 
@@ -66,6 +91,33 @@ State schemas determine how data flows between nodes. Wrong schemas cause silent
 | Pydantic Validation | `rules/state-pydantic.md` | `BaseModel` at boundaries, TypedDict internally |
 | MessagesState | `rules/state-messages.md` | `MessagesState` or `add_messages` reducer |
 | Custom Reducers | `rules/state-reducers.md` | `Annotated[T, reducer_fn]` for merge/overwrite |
+| Delta Channels (1.2, beta) | `rules/state-delta-channel.md` | `DeltaChannel(reducer, snapshot_frequency=)` for large accumulators |
+
+## Resilience
+
+Fault tolerance for nodes that talk to the outside world. New in 1.2 — before it, the only lever was
+`retry_policy`, which cannot help a node that never fails because it never returns.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Node Timeouts | `rules/resilience-node-timeouts.md` | `add_node(..., timeout=TimeoutPolicy(run_timeout=, idle_timeout=))` |
+| Error Handlers | `rules/resilience-error-handlers.md` | `add_node(..., error_handler=)` + param typed `NodeError` → `Command` |
+| Graceful Drain | `rules/resilience-graceful-drain.md` | `RunControl().request_drain()` + `runtime.drain_requested` |
+
+```python
+from langgraph.types import RetryPolicy, TimeoutPolicy
+from langgraph.errors import NodeError
+
+builder.add_node(
+    "call_vendor",
+    call_vendor,
+    timeout=TimeoutPolicy(run_timeout=300, idle_timeout=30),
+    retry_policy=RetryPolicy(max_attempts=3),
+    error_handler=lambda state, error: Command(
+        update={"failure": f"{error.node}: {error.error}"}, goto="degraded_path"
+    ),
+)
+```
 
 ## Routing & Branching
 

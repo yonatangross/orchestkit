@@ -463,6 +463,7 @@ export const SKILLS_SUMMARY = {
     "python": [
       "async-jobs",
       "domain-driven-design",
+      "langgraph",
       "python-backend",
       "testing-perf"
     ],

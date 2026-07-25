@@ -43,4 +43,54 @@ quality_evals:
       - name: "Command resume"
         check: "uses Command(resume=...) to resume the workflow after human approval"
 
-tags: [langgraph, background, workflow]
+  # --- 1.2 resilience surface (added 2026-07-25 alongside rules/resilience-*.md) ---
+
+  - prompt: |
+      One node in my LangGraph pipeline calls a vendor API that
+      occasionally hangs forever. I already set a RetryPolicy with
+      max_attempts=3 but the run still gets stuck. Why, and how do I
+      fix it?
+    assertions:
+      - name: "explains retry cannot fire without a failure"
+        check: "explains that a retry policy only engages on a raised error, so a hung call never triggers it"
+      - name: "recommends timeout= on add_node"
+        check: "recommends the timeout= parameter on add_node, or TimeoutPolicy with run_timeout/idle_timeout"
+      - name: "cooperative cancellation caveat"
+        check: "warns that timeouts rely on asyncio cancellation, so synchronous GIL-blocking work is not interrupted"
+
+  - prompt: |
+      When a node in my graph exhausts its retries I want to record the
+      failure in state and route to a fallback branch instead of
+      killing the whole run. What is the current way to do that?
+    assertions:
+      - name: "error_handler parameter"
+        check: "recommends the error_handler= parameter on add_node rather than a try/except inside the node body"
+      - name: "NodeError injection by type"
+        check: "shows the handler receiving failure context via a parameter typed NodeError"
+      - name: "returns Command to reroute"
+        check: "returns a Command to update state and goto a different node"
+
+  - prompt: |
+      My LangGraph thread accumulates a long message list. Checkpoint
+      writes keep getting slower the longer the conversation runs.
+      What can I change?
+    assertions:
+      - name: "identifies full re-serialization"
+        check: "explains that a normal accumulator channel rewrites its entire value into every checkpoint"
+      - name: "DeltaChannel with snapshot_frequency"
+        check: "recommends DeltaChannel and mentions the snapshot_frequency knob"
+      - name: "batching-invariant reducer"
+        check: "warns the reducer receives a batch of writes and must be deterministic and batching-invariant"
+
+  - prompt: |
+      Our deploys send SIGTERM and kill LangGraph runs mid-execution,
+      so work gets redone on restart. How do I shut down cleanly?
+    assertions:
+      - name: "RunControl request_drain"
+        check: "recommends RunControl and request_drain() rather than exiting on the signal directly"
+      - name: "nodes poll drain_requested"
+        check: "shows a node checking runtime.drain_requested and stopping at a safe boundary"
+      - name: "cooperative, not preemptive"
+        check: "notes that draining is cooperative so a node that never checks will run to completion"
+
+tags: [langgraph, background, workflow, resilience]
