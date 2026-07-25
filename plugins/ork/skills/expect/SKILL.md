@@ -19,7 +19,7 @@ metadata:
   category: testing
   milestone: M99
   upstream-package: agent-browser
-  upstream-version-tested: "0.32.3"
+  upstream-version-tested: "0.33.0"
 triggers:
   keywords: [expect, "test my changes", "browser test", "diff test", "test what I changed", "test the UI", "visual regression", "check my changes"]
   examples:
