@@ -22,7 +22,7 @@ inert.
 | | Question | States |
 |---|---|---|
 | **Provenance** (manifest) | Did the *lead* run this, or relay it? | ✅ VERIFIED · 🟡 CLAIMED · ⬜ UNCHECKED · ⚪ WAIVED |
-| **Reachability** (this doc) | Would this test *fail* if the change were absent? | 🔴 REACHED · 🟠 UNREACHED · ⚪ WAIVED |
+| **Reachability** (this doc) | Would this test *fail* if the change were absent? | 🟢 REACHED · 🟡 UNREACHED · ⚪ WAIVED |
 
 A row can be VERIFIED and UNREACHED at the same time. That combination is the most
 dangerous state in the report, because it looks like the strongest one.
@@ -38,7 +38,7 @@ claim of the form "the fix is covered" / "there is a test for this."
 
 ## The proof
 
-A test is 🔴 REACHED when the run has shown it **fail without the change and pass with
+A test is 🟢 REACHED when the run has shown it **fail without the change and pass with
 it**. Nothing weaker counts. Not "the test looks like it covers this." Not "coverage
 reports the line." Seeing it fail is the proof.
 
@@ -95,7 +95,7 @@ here. Verify **grades** the reachability proof; it does not produce one.
 
 - The proof is produced by whoever wrote the code, typically `/ork:implement` or
   `/ork:cover`, and carried into the run as evidence.
-- If no proof exists, verify marks the row 🟠 UNREACHED and the verdict is capped. It
+- If no proof exists, verify marks the row 🟡 UNREACHED and the verdict is capped. It
   does not mutate the tree to manufacture one.
 
 This keeps verify read-only and puts the burden where the knowledge is. A skill that
@@ -104,7 +104,7 @@ catch.
 
 ## The rule (wired to the verdict)
 
-> **A test added or modified by this diff that is 🟠 UNREACHED caps the verdict at
+> **A test added or modified by this diff that is 🟡 UNREACHED caps the verdict at
 > IMPROVEMENTS RECOMMENDED. It cannot grade READY FOR MERGE until the proof is shown or
 > the row is explicitly ⚪ WAIVED with a reason.**
 
@@ -123,8 +123,8 @@ test-coverage claims.
 | # | Load-bearing claim | Asserted by | Provenance | Reached | Evidence (cmd · exit · key line) |
 |---|---|---|---|---|---|
 | 1 | Types check clean (web) | frontend-ui-dev | ✅ VERIFIED | n/a | `pnpm --filter web type-check` · exit 0 · 0 errors |
-| 2 | New portal-auth guard is covered | test-generator | ✅ VERIFIED | 🔴 REACHED | deleted `get_portal_context` call in routes/portal.py:44 · `pytest tests/unit/routes/test_portal.py` · exit 1 · 3 failed · restored · exit 0 · 3 passed |
-| 3 | Retry logic is covered | test-generator | ✅ VERIFIED | 🟠 UNREACHED | suite green, but no failing run shown → **caps verdict** |
+| 2 | New portal-auth guard is covered | test-generator | ✅ VERIFIED | 🟢 REACHED | deleted `get_portal_context` call in routes/portal.py:44 · `pytest tests/unit/routes/test_portal.py` · exit 1 · 3 failed · restored · exit 0 · 3 passed |
+| 3 | Retry logic is covered | test-generator | ✅ VERIFIED | 🟡 UNREACHED | suite green, but no failing run shown → **caps verdict** |
 | 4 | Legacy suite still green | ci | ✅ VERIFIED | n/a | untouched by this diff |
 
 **Manifest verdict impact:** row 3 is a new test with no reachability proof →
@@ -142,7 +142,7 @@ Row 3 is the entire point. It is VERIFIED, it is green, and it is still not evid
 - **Cosmetic mutation.** A renamed variable that still turns the test red means the test
   is asserting on the wrong thing, which is its own finding, not a pass.
 - **Proof by assertion.** "I verified the test fails without the fix" with no command and
-  no exit code is 🟡 CLAIMED provenance *and* 🟠 UNREACHED. Both caps apply.
+  no exit code is 🟡 CLAIMED provenance *and* 🟡 UNREACHED. Both caps apply.
 - **Batch proof.** One mutation and a whole-suite red does not prove which test caught
   it. Prove per claim, and name the test that went red.
 
