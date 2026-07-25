@@ -59,6 +59,30 @@ export const LIBRARY_REGISTRY = {
   zustand: 'npm',
   // testing-integration means the Node client; PyPI also publishes a `testcontainers`.
   testcontainers: 'npm',
+  // The json-render family. Left unmapped, `@json-render/shadcn` sat in the skip bucket while its
+  // docs imported `shadcnCatalog`, a symbol it does not export — coverage debt hiding a real defect.
+  next: 'npm',
+  zod: 'npm',
+  '@json-render/react': 'npm',
+  '@json-render/shadcn': 'npm',
+  '@json-render/react-pdf': 'npm',
+  '@json-render/react-email': 'npm',
+  '@json-render/svelte': 'npm',
+  '@json-render/vue': 'npm',
+  '@json-render/solid': 'npm',
+  '@json-render/ink': 'npm',
+  '@json-render/yaml': 'npm',
+  '@json-render/next': 'npm',
+  '@langfuse/openai': 'npm',
+  '@langfuse/core': 'npm',
+  'react-aria': 'npm',
+  'react-stately': 'npm',
+  msw: 'npm',
+  '@testing-library/react': 'npm',
+  'jest-axe': 'npm',
+  'lucide-react': 'npm',
+  '@storybook/react': 'npm',
+  '@tanstack/react-query': 'npm',
 
   // --- PyPI ---
   langgraph: 'pypi',

@@ -44,6 +44,10 @@ export function namedImports(code) {
 export function splitSpecifier(spec) {
   if (spec.startsWith('.') || spec.startsWith('/')) return { kind: 'relative' };
   if (spec.startsWith('node:')) return { kind: 'builtin' };
+  // `@/components`, `@/lib`, ... are the conventional TS path alias for project-internal code.
+  // They are NOT packages: counting them as "unmapped" inflates the skip bucket and hides how
+  // much real coverage is missing.
+  if (spec.startsWith('@/')) return { kind: 'relative' };
   const parts = spec.split('/');
   const root = spec.startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];
   if (NODE_BUILTINS.has(root)) return { kind: 'builtin' };
