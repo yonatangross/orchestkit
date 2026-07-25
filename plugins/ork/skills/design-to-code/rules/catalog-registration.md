@@ -62,24 +62,25 @@ const catalog = {
 
 **Correct:**
 ```typescript
-import { mergeCatalogs } from '@json-render/core'
 import { existingCatalog } from './catalog'
 import { PricingCardSchema, PricingCard } from './components/PricingCard'
 
-export const catalog = mergeCatalogs(existingCatalog, {
+export const catalog = {
+  ...existingCatalog,
   PricingCard: {
     props: PricingCardSchema,
     children: false, // leaf component — no nested children
   },
-})
+}
 
 // For layout components that wrap other catalog entries:
-export const catalogWithLayout = mergeCatalogs(existingCatalog, {
+export const catalogWithLayout = {
+  ...existingCatalog,
   FeatureSection: {
     props: FeatureSectionSchema,
     children: true, // accepts any catalog children
   },
-})
+}
 ```
 
 ### Key Rules
@@ -87,5 +88,5 @@ export const catalogWithLayout = mergeCatalogs(existingCatalog, {
 - Always use `.max()` bounds on strings and arrays to prevent unbounded AI generation
 - Use `z.enum()` for any prop with a finite set of valid values
 - Set `children: false` for data-display components, `children: true` for layout wrappers
-- Use `mergeCatalogs()` instead of manual spreading to preserve runtime validation
+- Compose with object spread (`{ ...base, ...custom }`); `@json-render/core` exports no catalog-merge helper
 - Export the Zod schema alongside the component for reuse in tests and type generation

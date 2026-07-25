@@ -88,13 +88,13 @@ Toolbar: {
 
 ### Merging Catalogs
 
-Use `mergeCatalogs()` to combine the shadcn base with custom domain components:
+Combine the shadcn base with custom domain components using object spread:
 
 ```typescript
-import { mergeCatalogs } from '@json-render/core'
-import { shadcnCatalog } from '@json-render/shadcn'
+import { shadcnComponentDefinitions } from '@json-render/shadcn'
 
-const appCatalog = mergeCatalogs(shadcnCatalog, {
+const appCatalog = {
+  ...shadcnComponentDefinitions,
   PricingCard: {
     props: z.object({
       plan: z.enum(['free', 'pro', 'enterprise']),
@@ -103,14 +103,14 @@ const appCatalog = mergeCatalogs(shadcnCatalog, {
     }),
     children: false,
   },
-})
+}
 ```
 
 **Key rules:**
 - Every component in the catalog must have a `props` Zod schema and a `children` declaration
 - Use `.max()`, `.min()`, and `.default()` on all schemas to bound what AI can generate
 - Use typed children arrays (`['Button']`) for containers that should only accept specific child types
-- Use `mergeCatalogs()` to combine catalogs — manual spreading loses runtime validation
+- Compose catalogs with object spread (`{ ...base, ...custom }`). There is no merge helper in `@json-render/core`; validation lives in each definition's Zod schema and spreading preserves it
 - Export the catalog type for use in component implementations: `type AppCatalog = typeof catalog`
 
 Reference: https://github.com/nicholasgriffintn/json-render

@@ -225,14 +225,14 @@ import { createRenderer } from "@json-render/ink";
 import { standardComponents } from "@json-render/ink";
 import { catalog } from "./catalog";
 
-const InkRenderer = createRenderer(catalog, {
+const Renderer = createRenderer(catalog, {
   ...standardComponents,
   // custom component overrides here
 });
 
-// InkRenderer includes all providers (state, visibility, actions, focus)
+// Renderer includes all providers (state, visibility, actions, focus)
 render(
-  <InkRenderer spec={spec} state={{ activeTab: "overview" }} />
+  <Renderer spec={spec} state={{ activeTab: "overview" }} />
 );
 ```
 

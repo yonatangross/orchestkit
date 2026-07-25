@@ -1,5 +1,6 @@
 ---
 description: "Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply — NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over."
+argument-hint: "[install|status|enable|disable]"
 allowed-tools: [Bash, Read, Write, Edit, Grep, Glob]
 ---
 

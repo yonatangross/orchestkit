@@ -146,11 +146,11 @@ export const DemoVideo = () => (
 
 ```tsx
 import { render } from 'ink'
-import { InkRenderer } from '@json-render/ink'
+import { Renderer } from '@json-render/ink'
 import { catalog } from './catalog'
 import { inkRegistry } from './registries/ink'
 
-render(<InkRenderer spec={spec} catalog={catalog} registry={inkRegistry} />)
+render(<Renderer spec={spec} catalog={catalog} registry={inkRegistry} />)
 ```
 
 Useful for `/ork:*` CLI dashboards and streaming agent chat interfaces — ships 20+ Ink-native components (Box, Text, Spinner, Table, Markdown, Progress, etc.).
@@ -158,17 +158,31 @@ Useful for `/ork:*` CLI dashboards and streaming agent chat interfaces — ships
 ### Render to Next.js App (0.16+)
 
 ```typescript
-import { generateNextApp } from '@json-render/next'
+// createNextApp lives on the /server subpath, not the package root.
+import { createNextApp } from '@json-render/next/server'
 
-await generateNextApp(spec, {
-  catalog,
-  registry: webRegistry,
-  outDir: './out',
-  // generates routes, layouts, SSR handlers, and metadata
+const { getPageData, generateMetadata, generateStaticParams } = createNextApp({
+  spec,                        // NextAppSpec: routes keyed by Next.js URL patterns
+  loaders: { getPost },        // server-side data loaders referenced by route.loader
 })
 ```
 
-Output is a full Next.js App Router project — specs describe route trees, not just components.
+It does **not** scaffold a project on disk. `createNextApp` returns the server-side pieces you
+re-export from a catch-all route, and the page itself renders through `PageRenderer`:
+
+```tsx
+// app/[[...slug]]/page.tsx
+export { generateMetadata, generateStaticParams }
+
+export default async function Page({ params }) {
+  const data = await getPageData(params)
+  if (!data) notFound()
+  return <PageRenderer {...data} registry={webRegistry} />
+}
+```
+
+A spec describes a route tree (pages, layouts, metadata, loading and error states), not just a
+component tree.
 
 ## Decision Matrix — When to Use Each Target
 

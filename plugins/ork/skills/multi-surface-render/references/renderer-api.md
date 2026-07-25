@@ -15,12 +15,12 @@ import { Renderer } from '@json-render/react'
 />
 ```
 
-### `useStreamingSpec` Hook
+### `useUIStream` Hook
 
 ```tsx
-import { useStreamingSpec } from '@json-render/react'
+import { useUIStream } from '@json-render/react'
 
-const spec = useStreamingSpec(stream) // ReadableStream of JSON Patch ops
+const spec = useUIStream(stream) // ReadableStream of JSON Patch ops
 ```
 
 ---
@@ -175,6 +175,6 @@ const remotionRegistry = {
 | Option | Type | Description |
 |--------|------|-------------|
 | `catalog` | `Catalog` | Required. Zod-typed component definitions |
-| `registry` | `CatalogComponents` | Required. Platform-specific component map |
+| `registry` | `InferCatalogComponents<typeof catalog>` | Required. Platform-specific component map |
 | `spec` | `JsonRenderSpec` | Required. Flat-tree JSON/YAML spec |
 | `onError` | `(err: Error) => void` | Optional. Error handler |

@@ -34,17 +34,17 @@ const catalog = defineCatalog(schema, {
 
 **Correct:**
 ```typescript
-import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
-import { mergeCatalogs } from '@json-render/core'
+import { shadcnComponentDefinitions, shadcnComponents } from '@json-render/shadcn'
 import { z } from 'zod'
 
 // Use shadcn as-is for standard components
-import { Renderer, defineRegistry } from '@json-render/shadcn'
-const { registry } = defineRegistry(shadcnCatalog, { components: shadcnComponents })
+import { Renderer, defineRegistry } from '@json-render/react'
+const { registry } = defineRegistry(shadcnComponentDefinitions, { components: shadcnComponents })
 <Renderer spec={spec} registry={registry} />
 
 // Extend with domain-specific components only
-const appCatalog = mergeCatalogs(shadcnCatalog, {
+const appCatalog = {
+  ...shadcnComponentDefinitions,
   PricingCard: {
     props: z.object({
       plan: z.enum(['free', 'pro', 'enterprise']),
@@ -53,7 +53,7 @@ const appCatalog = mergeCatalogs(shadcnCatalog, {
     }),
     children: false,
   },
-})
+}
 ```
 
 ### The 29 shadcn Components
@@ -118,7 +118,7 @@ const appCatalog = mergeCatalogs(shadcnCatalog, {
 | Scenario | Approach |
 |----------|----------|
 | Standard UI (dashboards, settings, forms) | Use shadcn as-is |
-| Domain-specific display (pricing, metrics, timelines) | Add custom components via `mergeCatalogs` |
+| Domain-specific display (pricing, metrics, timelines) | Spread custom definitions over `shadcnComponentDefinitions` |
 | Branded components (custom design system) | Override shadcn implementations, keep schemas |
 | Project uses shadcn v4 style (Luma, Nova, etc.) | Override implementations with style-correct classes |
 | Highly specialized (3D, charts, maps) | Add custom + use `@json-render/react-three-fiber` |
@@ -130,13 +130,13 @@ When your project uses a shadcn v4 style, the default `shadcnComponents` use gen
 **Incorrect — using default components in a Luma project:**
 ```typescript
 // Default shadcnComponents use rounded-lg — wrong for Luma (rounded-4xl)
-const { registry: defaultRegistry } = defineRegistry(shadcnCatalog, { components: shadcnComponents })
+const { registry: defaultRegistry } = defineRegistry(shadcnComponentDefinitions, { components: shadcnComponents })
 <Renderer spec={spec} registry={defaultRegistry} />
 ```
 
 **Correct — overriding implementations for project's v4 style:**
 ```typescript
-import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
+import { shadcnComponentDefinitions, shadcnComponents } from '@json-render/shadcn'
 // Read components.json → style to determine overrides (Luma, Nova, etc.)
 const lumaOverrides = {
   Card: ({ title, children }) => (
@@ -150,7 +150,7 @@ const components = { ...shadcnComponents, ...lumaOverrides }
 ```
 
 **Key rules:**
-- Start with `shadcnCatalog` — covers 80% of common UI patterns out of the box
-- Use `mergeCatalogs()` to add domain-specific components alongside shadcn
+- Start with `shadcnComponentDefinitions` — covers 80% of common UI patterns out of the box
+- Add domain-specific components alongside shadcn with object spread over `shadcnComponentDefinitions`
 - Override implementations (not schemas) for branded styling or v4 style conformance
 - Check `components.json` → `"style"` to determine which class overrides apply

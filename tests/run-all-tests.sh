@@ -343,7 +343,11 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
 
     # Plugin structure validation (CC 2.1.16 compliance)
     run_test "Plugin JSON Schema" "$SCRIPT_DIR/plugins/test-plugin-json-schema.sh" || true
+    # silent: gating-relaxed - run_test records the failure in the suite tally; `|| true` only
+    # stops `set -e` from aborting the remaining tests. A red test still fails the overall run.
     run_test "No Commands Directory" "$SCRIPT_DIR/plugins/test-no-commands-directory.sh" || true
+    # silent: gating-relaxed - same contract as above
+    run_test "Command Frontmatter Passthrough" "$SCRIPT_DIR/plugins/test-command-frontmatter-passthrough.sh" || true
 
     # Plugin structure compliance tests (hooks location)
     run_test "Plugin Structure Compliance" "$SCRIPT_DIR/plugins/structure/test-plugin-structure-compliance.sh" || true

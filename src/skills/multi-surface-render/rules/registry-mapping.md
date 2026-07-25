@@ -77,16 +77,16 @@ export const emailRegistry = {
 - Registry components receive the same props defined in the catalog Zod schema
 - Never add platform-specific props to the catalog — the catalog is platform-agnostic
 - Organize registries in `./registries/web.ts`, `./registries/pdf.ts`, `./registries/email.ts`
-- Use `CatalogComponents<typeof catalog>` type to ensure registries match the catalog
+- Use `InferCatalogComponents<typeof catalog>` type to ensure registries match the catalog
 
 ### Type-Safe Registry Pattern
 
 ```typescript
-import type { CatalogComponents } from '@json-render/react'
+import type { InferCatalogComponents } from '@json-render/core'
 import type { catalog } from './catalog'
 
 // TypeScript ensures every catalog type is implemented
-export const webRegistry: CatalogComponents<typeof catalog> = {
+export const webRegistry: InferCatalogComponents<typeof catalog> = {
   Heading: ({ text, level }) => { /* ... */ },
   StatCard: ({ label, value, trend }) => { /* ... */ },
   // Missing type → TypeScript error

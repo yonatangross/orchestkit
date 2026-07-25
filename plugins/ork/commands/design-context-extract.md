@@ -1,5 +1,6 @@
 ---
 description: "Extract design DNA from existing app screenshots, live URLs, or screen recordings using Google Stitch. Produces color palettes, typography specs, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user provides, uploads, links, or points to a screenshot, URL, or video and asks to extract the design, analyze the animations or scroll behavior, audit an existing design, create a design system from a live app, or ensure new pages match an established visual identity."
+argument-hint: "[screenshot-path | video-path | url | 'current project']"
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 
