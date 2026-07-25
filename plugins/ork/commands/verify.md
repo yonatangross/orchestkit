@@ -321,15 +321,15 @@ For every test the diff **adds or modifies**, the manifest carries a second mark
 
 | Mark | Meaning |
 |---|---|
-| 🔴 **REACHED** | The run showed the test **fail without the change and pass with it**, citing both commands. |
-| 🟠 **UNREACHED** | The test is green but has never been seen to fail. Not evidence. |
+| 🟢 **REACHED** | The run showed the test **fail without the change and pass with it**, citing both commands. |
+| 🟡 **UNREACHED** | The test is green but has never been seen to fail. Not evidence. |
 | ⚪ **WAIVED** | Deliberately accepted with a one-line reason. |
 
-> **Verdict rule:** a test added or modified by this diff that is 🟠 UNREACHED **caps the verdict at IMPROVEMENTS RECOMMENDED** until the proof is shown or the row is ⚪ WAIVED. Stacks with the provenance cap and the dimension blockers — all must clear. Under `--streak=N` it resets the streak.
+> **Verdict rule:** a test added or modified by this diff that is 🟡 UNREACHED **caps the verdict at IMPROVEMENTS RECOMMENDED** until the proof is shown or the row is ⚪ WAIVED. Stacks with the provenance cap and the dimension blockers — all must clear. Under `--streak=N` it resets the streak.
 
 Two ordering rules make the proof safe, and both come from real damage: **commit before mutating** (`git checkout --` restores to HEAD, so mutating uncommitted work destroys the change on restore), and **mutate the call site, not the new unit** (mutating the unit proves the unit's tests work, and leaves a dead call site undetected).
 
-**This skill does not perform the mutation** — it writes no test files and edits no source. The proof is produced upstream by `/ork:implement` or `/ork:cover` and graded here; absent a proof, the row is 🟠 UNREACHED and the verdict is capped.
+**This skill does not perform the mutation** — it writes no test files and edits no source. The proof is produced upstream by `/ork:implement` or `/ork:cover` and graded here; absent a proof, the row is 🟡 UNREACHED and the verdict is capped.
 
 Protocol — scope, the 5-step proof, what makes a mutation load-bearing, template, and anti-patterns (coverage-as-proof, batch proof, cosmetic mutation): `Read("${CLAUDE_SKILL_DIR}/references/reachability-proof.md")`.
 
@@ -350,7 +350,7 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/report-template.md")` for fu
 
 ## Verification Manifest
 [✅ VERIFIED · 🟡 CLAIMED · ⬜ UNCHECKED · ⚪ WAIVED — any load-bearing 🟡/⬜ caps the verdict below READY FOR MERGE]
-[Reached: 🔴 REACHED · 🟠 UNREACHED · n/a — any 🟠 on a test this diff added/modified also caps the verdict]
+[Reached: 🟢 REACHED · 🟡 UNREACHED · n/a — any 🟡 on a test this diff added/modified also caps the verdict]
 | # | Load-bearing claim | Asserted by | Provenance | Reached | Evidence (cmd · exit · key line) |
 ```
 
