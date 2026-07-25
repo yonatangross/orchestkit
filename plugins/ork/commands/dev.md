@@ -1,5 +1,6 @@
 ---
 description: "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session — all using the current git branch as the namespace key. Replaces the 4-terminal manual setup with a single `/ork:dev` invocation. Use when starting a new feature branch, switching worktrees, or returning to a project after a break. Skip silently when prerequisite binaries (portless, emulate, agent-browser) are missing — emits install hints."
+argument-hint: "[start|stop|status] [--share|--funnel|--live H]"
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 

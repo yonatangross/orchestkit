@@ -209,6 +209,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v8.85.0](https://github.com/yonatangross/orchestkit/compare/v8.84.10...v8.85.0)** · 2026-07-25
+
+- agent activation routing (M170) (#3133)
+- 3 defects found by /ork:assess on the M170 diff (#3136)
+- **build:** stop dropping argument-hint from generated commands (#3146)
+- **hooks:** make network-egress-guard DENY tier quote-aware (#3124)
+- **hooks:** redirect pipe-to-interpreter deny instead of dead-ending (#3121)
+- …and 8 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v8.84.10](https://github.com/yonatangross/orchestkit/compare/v8.84.9...v8.84.10)** · 2026-07-23
 
 - **ci:** drop the What's New freshness gate blocking the PR queue (#3118)
@@ -247,11 +256,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v8.84.4](https://github.com/yonatangross/orchestkit/compare/v8.84.3...v8.84.4)** · 2026-07-22
 
 - **skills:** burn model-recency ratchet to zero (#3056)
-
-**[v8.84.3](https://github.com/yonatangross/orchestkit/compare/v8.84.2...v8.84.3)** · 2026-07-22
-
-- **hook-contract:** bump to 0.1.2, domain-anchored SDK provenance (#3080)
-- pin npm to 11.x in the hook-contract publish job (#3082)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

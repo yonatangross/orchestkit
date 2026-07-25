@@ -11,7 +11,7 @@ version: 1.0.0
 
 | Package | Purpose |
 |---------|---------|
-| `@json-render/core` | `defineCatalog()`, `mergeCatalogs()`, spec validation, type utilities |
+| `@json-render/core` | `defineCatalog()`, `defineSchema()`, spec validation, type utilities |
 
 ## Web Renderers
 

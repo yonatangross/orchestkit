@@ -100,12 +100,12 @@ export const catalog = defineCatalog(schema, {
 ```typescript
 // AUTO-GENERATED from Storybook — wires catalog to actual React components
 // Edit imports if your story files live elsewhere.
-import type { CatalogComponents } from '@json-render/react'
+import type { InferCatalogComponents } from '@json-render/core'
 import type { catalog } from './catalog'
 import { Card } from '../components/Card'
 import { Button } from '../components/Button'
 
-export const components: CatalogComponents<typeof catalog> = {
+export const components: InferCatalogComponents<typeof catalog> = {
   Card,
   Button,
   // ...

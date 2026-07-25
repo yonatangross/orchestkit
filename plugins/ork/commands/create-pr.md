@@ -1,5 +1,6 @@
 ---
 description: "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Use when opening PRs or submitting code for review."
+argument-hint: "[title]"
 allowed-tools: [AskUserQuestion, Bash, Agent, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
 ---
 
@@ -272,13 +273,26 @@ Bash(f'git commit -m "docs: add PR playground for {BRANCH}"')
 Bash(f"git push origin {BRANCH}")
 ```
 
+Resolve the head SHA first, and pin the link to it:
+
+```bash
+Bash("git rev-parse HEAD")   # -> {HEAD_SHA}
+```
+
 Add a "Live Preview" section to the PR body:
 
 ```markdown
 ## Live Preview
 
-**[Open Interactive Playground](https://htmlpreview.github.io/?https://github.com/{OWNER}/{REPO}/blob/{BRANCH}/docs/{BRANCH_DIR}/playground.html)**
+**[Open Interactive Playground](https://htmlpreview.github.io/?https://github.com/{OWNER}/{REPO}/blob/{HEAD_SHA}/docs/{BRANCH_DIR}/playground.html)**
 ```
+
+> **Pin the SHA, never the branch.** GitHub deletes the head branch on merge, so a
+> `blob/{BRANCH}/` URL returns 404 the moment the PR lands. That silently broke the
+> playground link on every merged PR through #3147. A commit SHA stays reachable
+> indefinitely because GitHub retains `refs/pull/<N>/head`, so the same URL works
+> during review and after merge. Verified: branch form 404, SHA form 200, on a PR
+> whose branch was already deleted.
 
 > **Why required:** CI Stage 1d (`playground-check`) blocks merge if `docs/{branch-dir}/*.html` is missing. Bot PRs (dependabot, release-please) are exempt.
 

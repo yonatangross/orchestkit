@@ -38,6 +38,15 @@ Closes #
 
 ## Interactive Playground
 
-<!-- For non-trivial changes: link to docs/<branch-slug>/<name>.html. CI requires this for most PRs. -->
+<!--
+For non-trivial changes: link to docs/<branch-slug>/<name>.html. CI requires this for most PRs.
 
-**[Open Playground](https://htmlpreview.github.io/?https://github.com/yonatangross/orchestkit/blob/BRANCH-NAME/docs/BRANCH-DIR/FILE.html)**
+Pin the COMMIT SHA, not the branch name. GitHub deletes the branch on merge, so a
+branch-pinned blob URL 404s the moment the PR lands, which is what happened to
+#3136, #3137, #3138, #3142, #3144, #3146 and #3147. A SHA stays reachable forever
+because GitHub keeps refs/pull/<N>/head.
+
+Get it with:  git rev-parse HEAD
+-->
+
+**[Open Playground](https://htmlpreview.github.io/?https://github.com/yonatangross/orchestkit/blob/COMMIT-SHA/docs/BRANCH-DIR/FILE.html)**

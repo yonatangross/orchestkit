@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  DASHBOARD archetype (§0). cool-glass persona, §2 --pg-* tokens, one signature motion.
+  Shows the skill -> command frontmatter transform and the field it silently dropped.
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>argument-hint: the field the build dropped</title>
+<style>
+  :root{
+    --pg-bg:hsl(232 26% 7%); --pg-ink:hsl(220 18% 93%); --pg-muted:hsl(226 14% 64%);
+    --pg-faint:hsl(226 12% 46%); --pg-glass:hsl(0 0% 100% / .05);
+    --pg-glass-edge:hsl(0 0% 100% / .18); --pg-accent:hsl(248 84% 68%);
+    --pg-accent-deep:hsl(248 70% 54%); --pg-violet:hsl(268 78% 70%);
+    --pg-ok:hsl(152 62% 58%); --pg-risk:hsl(0 78% 66%); --pg-warm:hsl(38 95% 60%);
+    --pg-ease:cubic-bezier(.2,.8,.25,1); font-size:15px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--pg-bg);color:var(--pg-ink);
+    font-family:-apple-system,'SF Pro Text',Inter,sans-serif;line-height:1.55;padding:48px 24px 96px;
+    background-image:radial-gradient(60% 42% at 12% 0%,hsl(248 84% 68% / .16),transparent 62%),
+                     radial-gradient(48% 36% at 88% 8%,hsl(268 78% 70% / .12),transparent 60%);
+    background-attachment:fixed}
+  .wrap{max-inline-size:980px;margin-inline:auto}
+  h1{font-size:1.8rem;font-weight:700;letter-spacing:-.3px}
+  h2{font-size:1.02rem;font-weight:650;margin-block:30px 12px}
+  .sub{color:var(--pg-muted);margin-block:8px 26px;font-size:.92rem}
+  .glass{background:var(--pg-glass);border:1px solid var(--pg-glass-edge);border-radius:24px;
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    box-shadow:inset 0 1px 0 hsl(0 0% 100% / .12),0 20px 60px -22px hsl(232 40% 3% / .7)}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;padding:22px;margin-block-end:22px}
+  .kpi{background:var(--pg-glass);border:1px solid hsl(0 0% 100% / .10);border-radius:16px;padding:12px 16px}
+  .kpi b{display:block;font-size:1.45rem;font-weight:700;font-variant-numeric:tabular-nums}
+  .kpi span{color:var(--pg-faint);font-size:.74rem}
+  .bad{color:var(--pg-risk)} .ok{color:var(--pg-ok)} .acc{color:var(--pg-accent)}
+  .flow{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin-block:18px}
+  .pane{background:var(--pg-glass);border:1px solid var(--pg-glass-edge);border-radius:16px;padding:14px 18px}
+  .pane h3{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--pg-faint);margin-block-end:8px}
+  .arrow{color:var(--pg-accent);font-size:1.5rem;text-align:center}
+  pre{font-family:'SF Mono',ui-monospace,monospace;font-size:.78rem;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+  .drop{color:var(--pg-risk);text-decoration:line-through}
+  .kept{color:var(--pg-muted)}
+  .added{color:var(--pg-ok)}
+  .note{border-inline-start:3px solid var(--pg-warm);padding:10px 16px;background:var(--pg-glass);
+    border-radius:0 12px 12px 0;margin-block:16px;font-size:.87rem;color:var(--pg-muted)}
+  table{inline-size:100%;border-collapse:collapse;font-size:.84rem;margin-block-start:8px}
+  th,td{text-align:start;padding:8px 14px;border-block-end:1px solid hsl(0 0% 100% / .08)}
+  th{color:var(--pg-faint);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
+  code{background:hsl(0 0% 100% / .06);padding:1px 6px;border-radius:6px;font-family:'SF Mono',ui-monospace,monospace;font-size:.82em}
+  @media(max-width:720px){.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}}
+  @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>The field the build dropped</h1>
+  <p class="sub">CC renders a slash command's ghost placeholder from the <b>command</b> file.
+  OrchestKit authors it on the <b>skill</b>. The generator never copied it across.</p>
+
+  <div class="kpis glass">
+    <div class="kpi"><b class="ok">34/34</b><span>skills declaring argument-hint</span></div>
+    <div class="kpi"><b class="bad">0/34</b><span>commands that carried it</span></div>
+    <div class="kpi"><b class="ok">34/34</b><span>after the fix</span></div>
+    <div class="kpi"><b class="acc">92</b><span>assertions now guarding it</span></div>
+  </div>
+
+  <h2>The transform</h2>
+  <div class="flow">
+    <div class="pane">
+      <h3>src/skills/visualize-plan/SKILL.md</h3>
+<pre><span class="kept">name: visualize-plan</span>
+<span class="added">argument-hint: "[plan-or-issue]"</span>
+<span class="kept">user-invocable: true</span>
+<span class="kept">allowed-tools: [...]</span></pre>
+    </div>
+    <div class="arrow">&#9654;</div>
+    <div class="pane">
+      <h3>plugins/ork/commands/visualize-plan.md (before)</h3>
+<pre><span class="kept">description: ...</span>
+<span class="drop">argument-hint: never written</span>
+<span class="kept">allowed-tools: [...]</span></pre>
+    </div>
+  </div>
+
+  <div class="note">
+    <code>generate_command_from_skill()</code> in <code>scripts/build-plugins.sh</code> hand-writes
+    the frontmatter field by field. It extracted <code>description</code> and
+    <code>allowed-tools</code> and nothing else, so any other key the source declares is discarded
+    without a warning. The skill still says <code>argument-hint</code>, every test still passes,
+    and the placeholder simply never appears.
+  </div>
+
+  <h2>Why nothing caught it</h2>
+  <table>
+    <tr><th>Gate</th><th>What it checks</th><th>Would it catch this?</th></tr>
+    <tr><td><code>test-skill-md.sh</code></td><td>skill frontmatter is well-formed</td><td class="bad">no, the skill was correct</td></tr>
+    <tr><td><code>test-no-commands-directory.sh</code></td><td><code>src/</code> has no commands dir</td><td class="bad">no, different layer</td></tr>
+    <tr><td>build drift check</td><td><code>plugins/</code> matches a rebuild</td><td class="bad">no, the bug is deterministic</td></tr>
+    <tr><td><b>new</b> <code>test-command-frontmatter-passthrough.sh</code></td><td>each declared key survives skill &#8594; command</td><td class="ok">yes</td></tr>
+  </table>
+
+  <div class="note">
+    Same failure family as the phantom-symbol work: a value authored correctly in one layer,
+    silently dropped by a transform, with every gate green because no gate compared the two layers.
+    The new test fails loudly if the generator forgets a key, and refuses to pass vacuously if its
+    discovery loop finds no command/skill pairs.
+  </div>
+</div>
+</body>
+</html>

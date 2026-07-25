@@ -62,6 +62,12 @@ generate_command_from_skill() {
     # Extract allowed tools from frontmatter
     local allowed_tools=$(echo "$frontmatter" | grep -E "^allowed-tools:" | sed 's/^allowed-tools: *//')
 
+    # Extract argument-hint. CC renders this as the ghost placeholder after the command name
+    # ("/ork:visualize-plan [plan-or-issue]"). It is read from the COMMAND file, not the SKILL,
+    # so dropping it here silently disables the hint for every command even though all 34
+    # user-invocable skills declare one in source. Optional: emitted only when present.
+    local argument_hint=$(echo "$frontmatter" | grep -E "^argument-hint:" | sed 's/^argument-hint: *//')
+
     # Default allowed tools if not specified
     if [[ -z "$allowed_tools" ]]; then
         allowed_tools="[Bash, Read, Write, Edit, Glob, Grep]"
@@ -71,6 +77,7 @@ generate_command_from_skill() {
     {
         echo "---"
         echo "description: $description"
+        [[ -n "$argument_hint" ]] && echo "argument-hint: $argument_hint"
         echo "allowed-tools: $allowed_tools"
         echo "---"
         echo ""

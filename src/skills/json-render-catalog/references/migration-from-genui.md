@@ -154,14 +154,14 @@ Custom GenUI often passes `onClick`, `onChange` as props. json-render uses the `
 Your existing React/Vue components work as json-render implementations with minimal changes:
 
 ```typescript
-import type { CatalogComponents } from '@json-render/react'
+import type { InferCatalogComponents } from '@json-render/core'
 import type { catalog } from './catalog'
 
 // Reuse existing component implementations
 import { Card as ExistingCard } from '@/components/Card'
 import { Button as ExistingButton } from '@/components/Button'
 
-export const components: CatalogComponents<typeof catalog> = {
+export const components: InferCatalogComponents<typeof catalog> = {
   Card: ({ title, description, elevated, children }) => (
     <ExistingCard title={title} description={description} elevated={elevated}>
       {children}

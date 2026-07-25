@@ -54,14 +54,14 @@ function Dashboard({ spec }) {
 ### Progressive Streaming Pattern
 
 ```tsx
-import { Renderer, defineRegistry, useStreamingSpec } from '@json-render/react'
+import { Renderer, defineRegistry, useUIStream } from '@json-render/react'
 import { catalog } from './catalog'
 import { webComponents } from './registries/web'
 
 const { registry: webRegistry } = defineRegistry(catalog, { components: webComponents })
 
 function StreamingDashboard({ specStream }) {
-  const spec = useStreamingSpec(specStream) // updates as patches arrive
+  const spec = useUIStream(specStream) // updates as patches arrive
 
   return (
     <Renderer
