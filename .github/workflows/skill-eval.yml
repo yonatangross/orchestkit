@@ -77,12 +77,12 @@ jobs:
         # SHA-pin; --ignore-scripts mitigates the postinstall, then the native
         # binary install is re-run explicitly (same as orchestkit-eval.yml).
         # Pinned to the supported floor (shared/cc-support.json). The previous
-        # pin was 58 releases BELOW the 2.1.206 floor and produced
+        # pin was 58 releases BELOW the then-current 2.1.206 floor and produced
         # systematically degraded `claude -p` eval generations on runners
         # (9-45% scores for content that scores 100% on a floor-compliant CLI).
         run: |
           set -euo pipefail
-          npm install -g @anthropic-ai/claude-code@2.1.206 --ignore-scripts
+          npm install -g @anthropic-ai/claude-code@2.1.220 --ignore-scripts
           node "$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
           claude --version
 

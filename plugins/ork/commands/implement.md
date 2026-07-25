@@ -297,7 +297,7 @@ Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, par
 
 **Spawn parallel implementation agents with `Agent(isolation="worktree")`.** The
 subagent bypass of the worktree-isolation guard was fixed in CC 2.1.154 and
-completed in 2.1.203; ork's floor is >= 2.1.206, so every supported session gets
+completed in 2.1.203; ork's floor is >= 2.1.220, so every supported session gets
 real isolation. Full pattern, plus the 2.1.206 caveat that `EnterWorktree`
 now prompts for confirmation on ork's out-of-tree `../<repo>-<task>` convention:
 `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/worktree-agent-pattern.md")`

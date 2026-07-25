@@ -1,6 +1,6 @@
 ---
 name: release-checklist
-compatibility: "Claude Code 2.1.206+"
+compatibility: "Claude Code 2.1.220+"
 description: "Ship a release: the final pre-tag gate for OrchestKit itself, run once a change is already known good. Walks 12 ordered steps (build, full test suite, security tests, typecheck, manifest count validation, changelog entry, version bump across package.json and CLAUDE.md, selective staging, conventional release commit, tag, confirmed push), halting at the first failed step with remediation guidance. Use when cutting and shipping a version, not for judging whether a change is correct (that is /ork:verify)."
 tags: [release, checklist, orchestkit]
 version: 2.0.0

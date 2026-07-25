@@ -54,9 +54,28 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     expect(calculateCost('fable', MTOK).total).toBeCloseTo(60.0, 5); // $10 + $50
   });
 
-  it('resolves `opus` alias to claude-opus-4-8 (alias table cannot silently flip)', () => {
-    expect(resolveModelKey('opus')).toBe('claude-opus-4-8');
+  it('resolves `opus` alias to claude-opus-5 (alias table cannot silently flip)', () => {
+    // Advanced claude-opus-4-8 -> claude-opus-5 on 2026-07-25 (CC 2.1.219 made
+    // Opus 5 the default Opus). The per-MTok total is unchanged because both
+    // price at $5/$25, so this assertion is the only thing that catches the flip.
+    expect(resolveModelKey('opus')).toBe('claude-opus-5');
     expect(calculateCost('opus', MTOK).total).toBeCloseTo(30.0, 5); // $5 + $25
+  });
+
+  it('prices claude-opus-5 at $5/$25 per MTok (cache 0.5/6.25)', () => {
+    expect(getCostConfig().models['claude-opus-5']).toEqual({
+      input_per_mtok: 5.0,
+      output_per_mtok: 25.0,
+      cache_read_per_mtok: 0.5,
+      cache_write_per_mtok: 6.25,
+    });
+  });
+
+  it('prices the 1M-context variant claude-opus-5[1m] via partial match', () => {
+    // '[1m]' is a CC session-label suffix, not an API model ID. It only resolves
+    // once the base ID is priced, which is why the missing entry hit BOTH forms.
+    expect(getPricing('claude-opus-5[1m]').input_per_mtok).toBe(5.0);
+    expect(getPricing('claude-opus-5[1m]').output_per_mtok).toBe(25.0);
   });
 
   it('prices the 1M-context variant claude-fable-5[1m] via partial match', () => {
@@ -67,6 +86,27 @@ describe('cost-estimator vocab canaries (#2338)', () => {
   it('every full ID in the pricing table resolves to itself', () => {
     for (const id of Object.keys(modelsVocab.pricing)) {
       expect(resolveModelKey(id)).toBe(id);
+    }
+  });
+
+  // The gap that let Opus 5 ship mispriced: the canaries above pin the pricing
+  // TABLE, and the one below pins the unknown-model FALLBACK, but nothing
+  // asserted that a model ork actually supports never reaches that fallback.
+  // claude-opus-5 was a real fullId with no pricing row, so it resolved to
+  // sonnet's $3/$15 and undercounted by 40% with no test turning red.
+  it('no fullIds model silently takes the unknown-model fallback', () => {
+    const TIER: Record<string, number> = {
+      fable: 10.0,
+      opus: 5.0,
+      sonnet: 3.0,
+      haiku: 1.0,
+    };
+    for (const id of modelsVocab.fullIds) {
+      const family = Object.keys(TIER).find(f => id.includes(f));
+      expect(family, `${id} matches no known family; add it to TIER`).toBeDefined();
+      expect(getPricing(id).input_per_mtok, `${id} priced off-tier`).toBe(
+        TIER[family as string],
+      );
     }
   });
 

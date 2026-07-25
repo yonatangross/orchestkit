@@ -1,7 +1,7 @@
 ---
 name: multimodal-llm
 license: MIT
-compatibility: "Claude Code 2.1.206+."
+compatibility: "Claude Code 2.1.220+."
 author: OrchestKit
 version: 2.1.1
 description: Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines.
@@ -31,7 +31,7 @@ Integrate vision, audio, and video generation capabilities from leading multimod
 >
 > | Provider | Model IDs |
 > |----------|-----------|
-> | Anthropic | `claude-opus-4-8` (recommended — 2,576 px budget, production default), `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001`. `claude-fable-5` is Anthropic's **frontier tier above Opus** (GA 2026-07). Premium cost — never auto-pin it; the fable-spend-consent gate requires explicit user consent before any Fable spend |
+> | Anthropic | `claude-opus-5` (recommended, 2,576 px budget, production default), `claude-opus-4-8`, `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001`. `claude-fable-5` is Anthropic's **frontier tier above Opus** (GA 2026-07). Premium cost — never auto-pin it; the fable-spend-consent gate requires explicit user consent before any Fable spend |
 > | OpenAI    | `gpt-5.5` (current flagship) |
 > | Google    | `gemini-3.1-pro-preview` (flagship), `gemini-3.1-flash-lite-preview` (cost) |
 > | Veo       | `veo-3.1-generate-preview` / `veo-3.1-lite-generate-preview` / `veo-3.1-fast-generate-preview` |
@@ -130,7 +130,7 @@ Generate multi-scene videos with consistent characters using storyboarding and c
 
 | Decision | Recommendation |
 |----------|----------------|
-| High accuracy vision | `claude-opus-4-8` (production default — 2,576 px vision budget, 3× what Opus 4.6 allotted). (`claude-fable-5` is the frontier SOTA option, GA 2026-07 — premium cost, use only with explicit consent via the fable-spend-consent gate) |
+| High accuracy vision | `claude-opus-5` (production default, 2,576 px vision budget, 3× what Opus 4.6 allotted; give it crop/analyze tools rather than more thinking, which is the cheaper lever on this model). (`claude-fable-5` is the frontier SOTA option, GA 2026-07 — premium cost, use only with explicit consent via the fable-spend-consent gate) |
 | Long documents | `gemini-3.1-pro-preview` (1M+ context) |
 | Cost-efficient vision | `gemini-3.1-flash-lite-preview` (**replaces Gemini 2.5 Flash**, deprecates Oct 2026) |
 | Video analysis | `gemini-3.1-pro-preview` (native video, supersedes 2.5 Pro) |
@@ -159,7 +159,7 @@ with open("image.png", "rb") as f:
     b64 = base64.standard_b64encode(f.read()).decode("utf-8")
 
 response = client.messages.create(
-    model="claude-opus-4-8",
+    model="claude-opus-5",
     max_tokens=1024,
     messages=[{"role": "user", "content": [
         {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": b64}},

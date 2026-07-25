@@ -1,7 +1,7 @@
 ---
 name: implement
 license: MIT
-compatibility: "Claude Code 2.1.206+. Requires memory MCP server, context7 MCP server, network access."
+compatibility: "Claude Code 2.1.220+. Requires memory MCP server, context7 MCP server, network access."
 description: "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability, for example 'build a user authentication system with JWT', 'add dark mode support to the dashboard', or 'set up rate limiting middleware'. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code."
 argument-hint: "[feature-description]"
 context: fork
@@ -339,7 +339,7 @@ Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, par
 
 **Spawn parallel implementation agents with `Agent(isolation="worktree")`.** The
 subagent bypass of the worktree-isolation guard was fixed in CC 2.1.154 and
-completed in 2.1.203; ork's floor is >= 2.1.206, so every supported session gets
+completed in 2.1.203; ork's floor is >= 2.1.220, so every supported session gets
 real isolation. Full pattern, plus the 2.1.206 caveat that `EnterWorktree`
 now prompts for confirmation on ork's out-of-tree `../<repo>-<task>` convention:
 `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/worktree-agent-pattern.md")`

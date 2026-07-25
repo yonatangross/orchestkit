@@ -1,15 +1,16 @@
 {
-  "$comment": "SINGLE SOURCE OF TRUTH for the Claude model vocabulary (#2338). Consumed by: src/hooks/src/lib/cost-estimator.ts + src/hooks/src/subagent-start/model-cost-advisor.ts (esbuild-inlined JSON import), tests/agents/test-agent-frontmatter.sh, tests/agents/test-agent-model-field.sh, tests/skills/structure/test-model-id-vocab.sh, scripts/generate-docs-data.js. Add new models HERE, nowhere else. shortNames = agent frontmatter values; aliases = shortName -> current latest full ID per channel; fullIds = API-valid IDs allowed in agent frontmatter and skill docs; historicalIds = retired IDs that legitimately appear in migration/monitoring docs (allowed by the vocab lint, NOT valid for agent frontmatter); pricing = per-MTok USD. NOTE (2026-07-14): claude-fable-5 is GENERALLY AVAILABLE — Anthropic's frontier tier above Opus. The earlier 2026-06-12 export-control suspension was lifted; Fable stays fully in the vocab (shortName/alias/fullId) as an active model, so no structural demote is needed (#2435 closed not-planned — the trigger is dead). Premium pricing applies and it must NOT be auto-pinned to agents/sessions: the fable-spend-consent pretool gate (src/hooks/src/pretool/task/fable-spend-consent.ts) requires explicit user consent before any Fable spend. NOTE (2026-06-30): Sonnet 5 (claude-sonnet-5) adopted — `sonnet` alias advanced claude-sonnet-4-6 -> claude-sonnet-5; the prior ID stays in fullIds (still an active model). Pricing $3/$15 per MTok (cache 0.3/3.75) matches the Sonnet tier; intro $2/$10 through 2026-08-31 is NOT stamped (the durable sticker is used for stable cost reports). cost-estimator unknown-model fallback repointed sonnet-4-6 -> sonnet-5.",
-  "updated": "2026-06-30",
+  "$comment": "SINGLE SOURCE OF TRUTH for the Claude model vocabulary (#2338). Consumed by: src/hooks/src/lib/cost-estimator.ts (esbuild-inlined JSON import), tests/agents/test-agent-frontmatter.sh, tests/agents/test-agent-model-field.sh, tests/skills/structure/test-model-id-vocab.sh, tests/skills/structure/test-model-recency.sh (ratchets docs onto the current alias target, so advancing an alias here FAILS until the docs follow), scripts/generate-docs-data.js (shortNames only). The previously-listed src/hooks/src/subagent-start/model-cost-advisor.ts no longer exists; delisted 2026-07-25. Add new models HERE, nowhere else. shortNames = agent frontmatter values; aliases = shortName -> current latest full ID per channel; fullIds = API-valid IDs allowed in agent frontmatter and skill docs; historicalIds = retired IDs that legitimately appear in migration/monitoring docs (allowed by the vocab lint, NOT valid for agent frontmatter); pricing = per-MTok USD. NOTE (2026-07-14): claude-fable-5 is GENERALLY AVAILABLE — Anthropic's frontier tier above Opus. The earlier 2026-06-12 export-control suspension was lifted; Fable stays fully in the vocab (shortName/alias/fullId) as an active model, so no structural demote is needed (#2435 closed not-planned — the trigger is dead). Premium pricing applies and it must NOT be auto-pinned to agents/sessions: the fable-spend-consent pretool gate (src/hooks/src/pretool/task/fable-spend-consent.ts) requires explicit user consent before any Fable spend. NOTE (2026-06-30): Sonnet 5 (claude-sonnet-5) adopted — `sonnet` alias advanced claude-sonnet-4-6 -> claude-sonnet-5; the prior ID stays in fullIds (still an active model). Pricing $3/$15 per MTok (cache 0.3/3.75) matches the Sonnet tier; intro $2/$10 through 2026-08-31 is NOT stamped (the durable sticker is used for stable cost reports). cost-estimator unknown-model fallback repointed sonnet-4-6 -> sonnet-5. NOTE (2026-07-25): Opus 5 (claude-opus-5) adopted, made the default Opus model by CC 2.1.219. The `opus` alias advanced claude-opus-4-8 -> claude-opus-5; claude-opus-4-8 stays in fullIds and pricing (still an active model, and still fast-mode capable per 2.1.219, which removed Opus 4.7 from fast mode). Pricing $5/$25 per MTok (cache 0.5/6.25) is IDENTICAL to claude-opus-4-8, so the numbers look unchanged, but the missing entry was NOT harmless: getPricing()'s substring partial-match cannot relate 'claude-opus-5' to 'claude-opus-4-8' (neither contains the other), so every Opus 5 session silently fell through to the claude-sonnet-5 fallback and was costed at $3/$15, a 40% undercount on the default model. Same failure mode as the claude-fable-5 gap (see cost-estimator.test.ts). Absence from fullIds separately meant the vocab lint REJECTED any agent frontmatter or skill doc naming the current default model. There is no separate 1M-context model ID: claude-opus-5 is 1M by default and by maximum, and the '[1m]' suffix seen in CC session labels is not an API model ID (it resolves here via partial match once the base ID is priced). claude-mythos-5 is deliberately NOT added: it is Project Glasswing only.",
+  "updated": "2026-07-25",
   "shortNames": ["fable", "opus", "sonnet", "haiku", "inherit"],
   "aliases": {
     "fable": "claude-fable-5",
-    "opus": "claude-opus-4-8",
+    "opus": "claude-opus-5",
     "sonnet": "claude-sonnet-5",
     "haiku": "claude-haiku-4-5-20251001"
   },
   "fullIds": [
     "claude-fable-5",
+    "claude-opus-5",
     "claude-opus-4-8",
     "claude-opus-4-7",
     "claude-opus-4-6",
@@ -35,6 +36,12 @@
       "output_per_mtok": 50.0,
       "cache_read_per_mtok": 1.0,
       "cache_write_per_mtok": 12.5
+    },
+    "claude-opus-5": {
+      "input_per_mtok": 5.0,
+      "output_per_mtok": 25.0,
+      "cache_read_per_mtok": 0.5,
+      "cache_write_per_mtok": 6.25
     },
     "claude-opus-4-8": {
       "input_per_mtok": 5.0,

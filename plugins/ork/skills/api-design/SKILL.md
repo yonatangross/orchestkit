@@ -1,7 +1,7 @@
 ---
 name: api-design
 license: MIT
-compatibility: "Claude Code 2.1.206+."
+compatibility: "Claude Code 2.1.220+."
 description: API contract design for REST and GraphQL, covering resource shape, URL and header versioning with deprecation windows, RFC 9457 Problem Details error handling, and OpenAPI specs. Use when specifying the wire contract an endpoint exposes, choosing a versioning scheme, or standardizing error response bodies across services. Framework-agnostic protocol layer, not runtime implementation.
 tags: [api-design, rest, graphql, versioning, error-handling, rfc9457, openapi, problem-details]
 context: fork

@@ -1,7 +1,7 @@
 ---
 name: expect
 license: MIT
-compatibility: "Claude Code 2.1.206+. Requires agent-browser >= 0.25.0 (Rust-native, no Playwright)."
+compatibility: "Claude Code 2.1.220+. Requires agent-browser >= 0.25.0 (Rust-native, no Playwright)."
 description: "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser (Rust daemon + CDP, ARIA-tree-first). Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience."
 argument-hint: "[-m <instruction>] [--target unstaged|branch|commit] [--flow <slug>] [-y]"
 context: fork
@@ -19,7 +19,7 @@ metadata:
   category: testing
   milestone: M99
   upstream-package: agent-browser
-  upstream-version-tested: "0.32.3"
+  upstream-version-tested: "0.33.0"
 triggers:
   keywords: [expect, "test my changes", "browser test", "diff test", "test what I changed", "test the UI", "visual regression", "check my changes"]
   examples:
@@ -239,7 +239,7 @@ Load: `Read("${CLAUDE_SKILL_DIR}/references/test-plan.md")`
 
 ### agent-browser Quick Primer
 
-> Floor is `>= 0.25.0`; current tested release is **0.32.3** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. The commands documented below are unchanged in 0.32.x.
+> Floor is `>= 0.25.0`; current tested release is **0.33.0** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. 0.33.0 adds `agent-browser a11y [url]`, an embedded axe-core audit (WCAG tag filtering, selector scoping, iframe-aware text/JSON output) available as both a CLI command and an MCP tool. The commands documented below are unchanged from 0.32.x through 0.33.0.
 
 
 | Area | Command | Notes |

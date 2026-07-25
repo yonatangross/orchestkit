@@ -31,6 +31,25 @@ ORIG_DOC=$(cat src/skills/doctor/references/version-compatibility.md)
 ORIG_README=$(cat README.md)
 ORIG_TROUBLESHOOTING=$(cat docs/site/content/docs/troubleshooting/index.mdx)
 
+# Stamp target #6 (added 2026-07-25): the `compatibility:` floor in all 114
+# src/skills/*/SKILL.md files. Without snapshotting these, a bumped-floor test
+# below leaves 114 files reading "Claude Code 2.1.999+" in the working tree, and
+# the very next test (test-cc-version-floor.sh) then reports the stamper as
+# non-idempotent with 114 pending mutations.
+#
+# Snapshotted as byte-exact file copies rather than by replaying just the
+# compatibility line: 7 of the 114 SKILL.md files have no trailing newline, and a
+# line-oriented rewrite (awk/sed) silently adds one. That normalization shows up
+# as 7 spuriously dirty files, and trailing-newline state is load-bearing here —
+# see tests/skills/test-skill-length.sh, which documents that `wc -l` under-counts
+# a file missing its final newline.
+COMPAT_BACKUP_DIR=$(mktemp -d)
+for skill_md in src/skills/*/SKILL.md; do
+    [ -f "$skill_md" ] || continue
+    mkdir -p "$COMPAT_BACKUP_DIR/$(dirname "$skill_md")"
+    cp -p "$skill_md" "$COMPAT_BACKUP_DIR/$skill_md"
+done
+
 # Extract the current MIN_CC_VERSION value so monotonic-guard assertions stay
 # resilient to floor bumps (was hardcoded "2.1.122" pre-M131).
 ORIG_FLOOR=$(printf '%s' "$ORIG_MATRIX" | grep -oE "MIN_CC_VERSION = '[0-9]+\.[0-9]+\.[0-9]+'" | head -1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
@@ -46,6 +65,14 @@ restore() {
   echo "$ORIG_DOC" > src/skills/doctor/references/version-compatibility.md
   echo "$ORIG_README" > README.md
   echo "$ORIG_TROUBLESHOOTING" > docs/site/content/docs/troubleshooting/index.mdx
+  # Restore the 114 SKILL.md files byte-for-byte (stamp target #6).
+  if [ -d "$COMPAT_BACKUP_DIR" ]; then
+    for skill_md in src/skills/*/SKILL.md; do
+      [ -f "$COMPAT_BACKUP_DIR/$skill_md" ] || continue
+      cp -p "$COMPAT_BACKUP_DIR/$skill_md" "$skill_md"
+    done
+    rm -rf "$COMPAT_BACKUP_DIR"
+  fi
 }
 trap restore EXIT
 
