@@ -17,6 +17,41 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.85.0",
+    "date": "2026-07-25",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "agent activation routing (M170) ([#3133](https://github.com/yonatangross/orchestkit/issues/3133)) ([af4d6fd](https://github.com/yonatangross/orchestkit/commit/af4d6fdc807c84329035b240908fc8f1f91f4c87))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "3 defects found by /ork:assess on the M170 diff ([#3136](https://github.com/yonatangross/orchestkit/issues/3136)) ([b8be78c](https://github.com/yonatangross/orchestkit/commit/b8be78c1786e49f9a368b8526ce00cf93eb6e47d))",
+          "**build:** stop dropping argument-hint from generated commands ([#3146](https://github.com/yonatangross/orchestkit/issues/3146)) ([be63597](https://github.com/yonatangross/orchestkit/commit/be635970a637381feb24ee85f655d9b4f8c2b34a))",
+          "**hooks:** make network-egress-guard DENY tier quote-aware ([#3124](https://github.com/yonatangross/orchestkit/issues/3124)) ([357e404](https://github.com/yonatangross/orchestkit/commit/357e4048430d9a70c23f7bd4222004a3ca697182))",
+          "**hooks:** redirect pipe-to-interpreter deny instead of dead-ending ([#3121](https://github.com/yonatangross/orchestkit/issues/3121)) ([c72bf74](https://github.com/yonatangross/orchestkit/commit/c72bf7446aea0dc4e18f431158830ac72b78b147))",
+          "LangChain ecosystem currency + dual-registry version watchdog ([#3142](https://github.com/yonatangross/orchestkit/issues/3142)) ([de60c1b](https://github.com/yonatangross/orchestkit/commit/de60c1b59e019cb3f48e12b5ff047e09062d69e1))",
+          "narrow skill-eval pathspec + close ASK-tier quote gap ([#3138](https://github.com/yonatangross/orchestkit/issues/3138)) ([8355412](https://github.com/yonatangross/orchestkit/commit/8355412b3f9d16ab4544916f3f3e8148b1ed05de))",
+          "**skills:** remove 24 phantom imports found by the import gate ([#3144](https://github.com/yonatangross/orchestkit/issues/3144)) ([cba9633](https://github.com/yonatangross/orchestkit/commit/cba9633bf948f9cec19a079dba4bd848a6fe6e15))",
+          "**skills:** remove phantom-API leftovers the import gate cannot see ([#3147](https://github.com/yonatangross/orchestkit/issues/3147)) ([774ac7b](https://github.com/yonatangross/orchestkit/commit/774ac7b9fec6db7045793edf8ac6bb39fe9c5040))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.218) ([#3120](https://github.com/yonatangross/orchestkit/issues/3120)) ([2414aaf](https://github.com/yonatangross/orchestkit/commit/2414aafa2c500c916bea76d8c6f300450b65e978))",
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.220) ([#3140](https://github.com/yonatangross/orchestkit/issues/3140)) ([5dc0175](https://github.com/yonatangross/orchestkit/commit/5dc0175c8e32c0e458c032e31c8674608b42d46d))",
+          "**deps-dev:** bump @biomejs/biome from 2.5.4 to 2.5.5 in /src/hooks in the npm-minor-patch group across 1 directory ([#3107](https://github.com/yonatangross/orchestkit/issues/3107)) ([dc50099](https://github.com/yonatangross/orchestkit/commit/dc500998fdfaf7910de1cb1f1f753447baf938e8))",
+          "**deps:** bump postcss from 8.5.16 to 8.5.23 in /orchestkit-demos ([#3143](https://github.com/yonatangross/orchestkit/issues/3143)) ([7edc78e](https://github.com/yonatangross/orchestkit/commit/7edc78ed8ffbdcb8a681e9781a8080c43fc77c3c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.84.10",
     "date": "2026-07-23",
     "compareUrl": "",
