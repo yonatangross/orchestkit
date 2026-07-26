@@ -3,28 +3,35 @@
   "version": "1.0.0",
   "testCases": [
     {
-      "id": "basic-draw-an-architecture-diagram",
+      "id": "basic-no-argument-render-current-state",
       "rule": "",
-      "query": "Draw an architecture diagram showing our React frontend connecting to a FastAPI backend with Redis cache and PostgreSQL database.",
+      "query": "/ork:quickviz",
       "expectedBehavior": [
-        "Produces ASCII box-drawing diagram with standard weight characters",
-        "Uses directional arrows to show data flow between components",
-        "Labels each box with component name and technology",
-        "Keeps diagram under 80 characters wide for terminal compatibility",
-        "Uses monospace-safe characters only to ensure consistent terminal rendering"
+        "Renders the state of the CURRENT conversation, since no topic was supplied",
+        "Does not ask which topic or format to use before rendering",
+        "Emits the visual inline in the reply rather than writing a file",
+        "Leads with the visual and keeps prose to what the diagram cannot carry"
       ]
     },
     {
-      "id": "edge-show-the-blast-radius",
+      "id": "basic-status-of-the-work",
       "rule": "",
-      "query": "Show the blast radius of changing src/api/auth.ts \u2014 which files are directly affected, transitively affected, and which tests need updating?",
+      "query": "status? vis in ascii emojies",
       "expectedBehavior": [
-        "Uses concentric rings blast radius pattern",
-        "Shows CHANGED FILE in center ring",
-        "Ring 1 shows direct dependents with file count",
-        "Ring 2 shows transitive dependents affected indirectly by the change",
-        "Ring 3 shows affected test files",
-        "Includes legend explaining ring meaning and impact classification"
+        "Renders current state as a status box with semantic emoji markers",
+        "Ranks what is open or next rather than listing items unordered",
+        "Uses bar meters or counts for anything measurable",
+        "Prints a question mark for values that are genuinely unknown"
+      ]
+    },
+    {
+      "id": "basic-options-with-a-verdict",
+      "rule": "",
+      "query": "show me the options and what is most correct",
+      "expectedBehavior": [
+        "Renders the options as a comparison table rather than prose paragraphs",
+        "States a single recommendation instead of leaving an open menu",
+        "Separates what is verified from what is inferred"
       ]
     },
     {
@@ -34,7 +41,17 @@
       "expectedBehavior": [
         "Claude does NOT invoke the quickviz skill",
         "Suggests using Mermaid, PlantUML, or an image generation tool instead",
-        "ASCII visualizer is for terminal-rendered monospace output, not image files"
+        "Quickviz is for terminal-rendered monospace output, not image files"
+      ]
+    },
+    {
+      "id": "negative-full-plan-playground",
+      "rule": "",
+      "query": "Build me an interactive HTML playground comparing these four migration options",
+      "expectedBehavior": [
+        "Claude does NOT invoke the quickviz skill",
+        "Routes to visualize-plan instead, which owns multi-artifact file output",
+        "Quickviz is the inline chat path and writes no files"
       ]
     },
     {
@@ -46,6 +63,16 @@
         "Labels each component box with both the component name and its technology stack",
         "Shows directional arrows indicating data flow and communication patterns between layers",
         "Uses layered architecture diagram with box-drawing characters for structured component visualization"
+      ]
+    },
+    {
+      "id": "status-glyph-vocabulary",
+      "rule": "status-glyph-vocabulary",
+      "query": "Which status glyphs should I use to show pass, fail, and in-progress states in a terminal diagram?",
+      "expectedBehavior": [
+        "Uses the closed-set status glyph vocabulary rather than inventing new symbols",
+        "Applies each glyph semantically so it carries meaning instead of decoration",
+        "Keeps the same glyph meaning consistent across every diagram in the output"
       ]
     },
     {

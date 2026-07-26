@@ -4072,7 +4072,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "quickviz",
     "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead.",
     "version": "2.0.0",
-    "sha256": "784231ead9ecd685606cdea7290cb33e87c755ce9b06f98ecde9d0effeca0959",
+    "sha256": "4c3e7d58a2a1ac75b5987adc09741e8d3e014df3d3b38efa9a71b0ce2b95af25",
     "author": "OrchestKit",
     "tags": [
       "ascii",

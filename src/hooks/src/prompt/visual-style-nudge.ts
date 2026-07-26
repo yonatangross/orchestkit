@@ -43,13 +43,24 @@ const THROTTLE_EVERY = 8;
 const MIN_PROMPT_LENGTH = 12;
 
 /**
- * Prompts that want an answer with SHAPE. Explicit viz asks are included so
- * the reference is in context the moment it is wanted, but the higher-value
- * half is the implicit set (status/compare/options/explain) — those are the
- * ones where the rule has decayed and the operator has to ask twice.
+ * EXPLICIT ask: the user typed the word. This is the strongest signal that
+ * exists and it is never throttled — see fireOrdinal().
+ *
+ * Measured on a real 13-prompt session (2026-07-26): the operator typed
+ * "vis in ascii emojies" six times, and the throttle silenced four of them.
+ * Those four are the operator doing this hook's job by hand because the hook
+ * had rate-limited its response to an unambiguous request. Rate-limiting an
+ * explicit ask is backwards; the throttle exists for the IMPLICIT set below.
  */
-const WANTS_SHAPE_RE =
-  /\b(?:vis(?:ualiz[es]?|ualise)?|ascii|emoji|diagram|chart|sketch|draw)\b|\b(?:status|where do we stand|what'?s next|compare|comparison|trade-?offs?|options|breakdown|summar(?:y|ise|ize)|explain|show me|walk me through)\b/i;
+const EXPLICIT_ASK_RE =
+  /\b(?:vis(?:ualiz[es]?|ualise)?|ascii|emoji(?:es|s)?|diagram|chart|sketch|draw)\b/i;
+
+/**
+ * IMPLICIT shape request: the answer wants structure but the user did not say
+ * so. These are throttled, because firing on every "status" would be noise.
+ */
+const IMPLICIT_SHAPE_RE =
+  /\b(?:status|where do we stand|what'?s next|compare|comparison|trade-?offs?|options|breakdown|summar(?:y|ise|ize)|explain|show me|walk me through)\b/i;
 
 /** The user is already routing to a skill — do not second-guess it. */
 const ALREADY_ROUTED_RE = /\/(?:ork|hq-ext):[a-z-]+/i;
@@ -67,7 +78,7 @@ function counterPath(sessionId: string): string {
  * fire, or null when it should stay quiet. Fails CLOSED as null — a counter
  * problem must never turn into per-turn noise.
  */
-function fireOrdinal(sessionId: string): number | null {
+function fireOrdinal(sessionId: string, explicit: boolean): number | null {
   const path = counterPath(sessionId);
   let seen = 0;
   try {
@@ -86,7 +97,13 @@ function fireOrdinal(sessionId: string): number | null {
     return null; // cannot persist: firing again next turn would be noise
   }
 
-  // Fire on the 1st qualifying prompt, then every THROTTLE_EVERY after it.
+  // An EXPLICIT ask bypasses the throttle entirely. The counter is still
+  // advanced above so implicit prompts keep their cadence, but a user who
+  // typed "ascii"/"vis" has already made the request and must never be
+  // rate-limited into silence.
+  if (explicit) return seen + 1;
+
+  // Implicit: fire on the 1st qualifying prompt, then every THROTTLE_EVERY.
   if (seen % THROTTLE_EVERY !== 0) return null;
   return Math.floor(seen / THROTTLE_EVERY) + 1;
 }
@@ -100,9 +117,11 @@ export function visualStyleNudge(
 
   if (prompt.length < MIN_PROMPT_LENGTH) return outputSilentSuccess();
   if (ALREADY_ROUTED_RE.test(prompt)) return outputSilentSuccess();
-  if (!WANTS_SHAPE_RE.test(prompt)) return outputSilentSuccess();
 
-  const ordinal = fireOrdinal(sessionId);
+  const explicit = EXPLICIT_ASK_RE.test(prompt);
+  if (!explicit && !IMPLICIT_SHAPE_RE.test(prompt)) return outputSilentSuccess();
+
+  const ordinal = fireOrdinal(sessionId, explicit);
   if (ordinal === null) return outputSilentSuccess();
 
   // The ordinal is not decoration: unified-dispatcher runs DELTA DETECTION on

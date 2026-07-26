@@ -98,6 +98,43 @@ describe('visual-style-nudge', () => {
     expect(() => visualStyleNudge(prompt('what is the status here', evil))).not.toThrow();
   });
 
+  it('REGRESSION: an EXPLICIT ask is never throttled', () => {
+    // Measured on a real 13-prompt session (2026-07-26): the operator typed
+    // "vis in ascii emojies" six times and the throttle silenced four of them.
+    // Rate-limiting the strongest signal that exists is backwards.
+    const sid = 'explicit-never-throttled';
+    const results: boolean[] = [];
+    for (let i = 0; i < 6; i++) {
+      results.push(fired(visualStyleNudge(prompt('vis in ascii emojies status', sid))));
+    }
+    expect(results.every(Boolean)).toBe(true);
+  });
+
+  it('REGRESSION: replays the real session prompts that were wrongly silenced', () => {
+    const sid = 'real-session-replay';
+    // Verbatim from the 2026-07-26 session, in order.
+    const explicitAsks = [
+      'vis in ascii emojies status and decision ened i dont understand',
+      'vis in ascii emojies explanation',
+      'status? vis in ascii emojies',
+      'explain whats left on track b in ascii emojies',
+      'so whats next? vis ascii emojies',
+    ];
+    const results = explicitAsks.map(p => fired(visualStyleNudge(prompt(p, sid))));
+    // Before the bypass this was [true, false, false, false, false].
+    expect(results).toEqual([true, true, true, true, true]);
+  });
+
+  it('IMPLICIT shape requests stay throttled (the bypass must not become noise)', () => {
+    const sid = 'implicit-still-throttled';
+    const results: boolean[] = [];
+    for (let i = 0; i < 6; i++) {
+      results.push(fired(visualStyleNudge(prompt('what is the status of things', sid))));
+    }
+    expect(results[0]).toBe(true);
+    expect(results.slice(1).some(Boolean)).toBe(false);
+  });
+
   it('REGRESSION: consecutive fires emit DIFFERENT text (defeats dispatcher delta-skip)', () => {
     // unified-dispatcher runs delta detection on the consolidated context and
     // silently drops a turn whose output is byte-identical to the previous one

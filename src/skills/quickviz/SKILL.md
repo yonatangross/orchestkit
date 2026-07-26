@@ -14,7 +14,6 @@ argument-hint: "[topic-to-render]"
 complexity: low
 persuasion-type: reference
 effort: low
-model: haiku
 metadata:
   category: document-asset-creation
 ---
@@ -27,7 +26,11 @@ Render the answer as ASCII art plus semantic emojis, inline, immediately. All ou
 
 ## Execution (run this, do not ask first)
 
-The whole point is speed, so there is no setup phase. Given a topic:
+The whole point is speed, so there is no setup phase.
+
+**With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `/ork:quickviz` on its own means "render where we are right now" — the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.
+
+Given a topic (or the conversation, when none is given):
 
 1. **Render immediately.** Do NOT call `AskUserQuestion` to pick a format, do NOT call `TaskCreate`, do NOT spawn an `Agent`. Choose the form yourself from the topic shape and draw it. Asking first defeats the skill.
 2. **Pick the form from the shape of the data**, using the pattern library below:
