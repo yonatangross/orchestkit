@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.0.1](https://github.com/yonatangross/orchestkit/compare/v9.0.0...v9.0.1) (2026-07-26)
+
+
+### Bug Fixes
+
+* bound rotated analytics archives, unstale the CC floor ([#3156](https://github.com/yonatangross/orchestkit/issues/3156)) ([bf2bd9d](https://github.com/yonatangross/orchestkit/commit/bf2bd9d37e33614316371ba19de47e3b9b460a3d))
+* **build:** default-deny frontmatter gate, pass all 10 fields ([#3158](https://github.com/yonatangross/orchestkit/issues/3158)) ([4e02e1c](https://github.com/yonatangross/orchestkit/commit/4e02e1c7671777f350225964bb440b2517123854))
+* **readme:** refresh What's New for 9.0.0 and isolate the RTL table cell ([#3153](https://github.com/yonatangross/orchestkit/issues/3153)) ([6dbcb9a](https://github.com/yonatangross/orchestkit/commit/6dbcb9ac9e4ba6deb54776ff2ced08c1680b9313))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.220) ([#3155](https://github.com/yonatangross/orchestkit/issues/3155)) ([b56a1fd](https://github.com/yonatangross/orchestkit/commit/b56a1fd085b4f8a6472f6d364e318baa7914d247))
+
 ## [9.0.0](https://github.com/yonatangross/orchestkit/compare/v8.85.0...v9.0.0) (2026-07-25)
 
 
