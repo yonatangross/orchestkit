@@ -13,7 +13,7 @@ const SKILLS_DIR = join(import.meta.dirname, '..', 'src', 'skills');
 
 // Classification from agent analysis
 const LOW = new Set([
-  'a11y-testing', 'ascii-visualizer', 'assess', 'audio-mixing-patterns',
+  'a11y-testing', 'quickviz', 'assess', 'audio-mixing-patterns',
   'best-practices', 'biome-linting', 'browser-content-capture', 'business-case-analysis',
   'cache-cost-tracking', 'callout-positioning', 'code-review-playbook', 'commit',
   'configure', 'content-type-recipes', 'core-web-vitals', 'create-pr',

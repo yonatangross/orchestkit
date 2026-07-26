@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-SKILL_DIR="${ASCII_SKILL_DIR:-src/skills/ascii-visualizer}"
+SKILL_DIR="${ASCII_SKILL_DIR:-src/skills/quickviz}"
 TOKENS="$SKILL_DIR/tokens.json"
 
 [ -f "$TOKENS" ] || { echo "tokens.json not found at $TOKENS" >&2; exit 1; }

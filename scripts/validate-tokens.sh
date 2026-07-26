@@ -8,7 +8,7 @@
 
 set -euo pipefail
 
-SKILL_DIR="${ASCII_SKILL_DIR:-src/skills/ascii-visualizer}"
+SKILL_DIR="${ASCII_SKILL_DIR:-src/skills/quickviz}"
 PRIMITIVES="$SKILL_DIR/primitives.json"
 TOKENS="$SKILL_DIR/tokens.json"
 SCHEMA="$SKILL_DIR/tokens.schema.json"
