@@ -1,5 +1,5 @@
 {
-  "skill": "ascii-visualizer",
+  "skill": "quickviz",
   "version": "1.0.0",
   "testCases": [
     {
@@ -32,7 +32,7 @@
       "rule": "",
       "query": "Generate a PNG diagram of our microservices architecture for the README",
       "expectedBehavior": [
-        "Claude does NOT invoke the ascii-visualizer skill",
+        "Claude does NOT invoke the quickviz skill",
         "Suggests using Mermaid, PlantUML, or an image generation tool instead",
         "ASCII visualizer is for terminal-rendered monospace output, not image files"
       ]

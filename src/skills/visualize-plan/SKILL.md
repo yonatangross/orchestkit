@@ -12,7 +12,7 @@ author: OrchestKit
 tags: [visualization, planning, before-after, architecture, diff, risk, impact, migration, playground, infographic, multi-format]
 user-invocable: true
 allowed-tools: [Read, Grep, Glob, Agent, TaskCreate, TaskUpdate, AskUserQuestion, Bash, Write, mcp__memory__search_nodes, mcp__memory__create_entities, ToolSearch]
-skills: [ascii-visualizer, explore, architecture-decision-record, memory, remember]
+skills: [quickviz, explore, architecture-decision-record, memory, remember]
 complexity: medium
 persuasion-type: guidance
 hooks:
@@ -173,7 +173,7 @@ For architecture-level understanding **and the default before/after section [0]*
 ```python
 Agent(
   subagent_type="Explore",
-  prompt="Map component architecture of {affected_directories} at TWO points: (a) base = each file as returned by `git show origin/main:<path>` (NOT the working tree — avoids conflating uncommitted edits), (b) head = current working tree. Return per point: components, dependencies, data flows; mark what is added [+], removed [-], or changed [~] between them. Use the ascii-visualizer skill for diagrams.",
+  prompt="Map component architecture of {affected_directories} at TWO points: (a) base = each file as returned by `git show origin/main:<path>` (NOT the working tree — avoids conflating uncommitted edits), (b) head = current working tree. Return per point: components, dependencies, data flows; mark what is added [+], removed [-], or changed [~] between them. Use the quickviz skill for diagrams.",
   model="haiku"
 )
 ```
@@ -340,7 +340,7 @@ Available when user selects "Drill deeper". Load `Read("${CLAUDE_SKILL_DIR}/refe
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
 | section-rendering (load `${CLAUDE_SKILL_DIR}/rules/section-rendering.md`) | HIGH | Rendering conventions for all 6 core sections ([0]–[5]) |
-| ASCII diagrams | MEDIUM | Via `ascii-visualizer` skill (box-drawing, file trees, workflows) |
+| ASCII diagrams | MEDIUM | Via `quickviz` skill (box-drawing, file trees, workflows) |
 
 ## References
 

@@ -1,4 +1,4 @@
-# Contributing to ascii-visualizer
+# Contributing to quickviz
 
 Governance for the ASCII design system: char-sets, primitives, status glyph
 vocabulary, lint rules, render patterns. See `designs/ascii-design-system.md`
@@ -25,7 +25,7 @@ for the full design.
    - Collision check vs the existing 11 status glyphs (or 80+ primitives)
    - Terminal-render screenshot (iTerm + VS Code minimum)
    - One real OrchestKit usage that needs it
-2. ascii-visualizer skill owner reviews; one design-system-architect
+2. quickviz skill owner reviews; one design-system-architect
    reviewer signs off; one Phase-1 user must voice support.
 3. Append to `primitives.json` (never reorder existing entries).
 4. If status glyph: append to `rules/status-glyph-vocabulary.md`.

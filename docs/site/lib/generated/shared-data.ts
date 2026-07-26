@@ -8,7 +8,7 @@ export const TOTALS: Totals = {
   "skills": 114,
   "agents": 36,
   "hooks": 219,
-  "commands": 34,
+  "commands": 35,
   "compositions": 14
 };
 
@@ -498,11 +498,11 @@ export const SKILLS_SUMMARY = {
       "api-design",
       "architecture-decision-record",
       "architecture-patterns",
-      "ascii-visualizer",
       "audit-full",
       "browser-tools",
       "distributed-systems",
-      "documentation-patterns"
+      "documentation-patterns",
+      "domain-driven-design"
     ]
   }
 };

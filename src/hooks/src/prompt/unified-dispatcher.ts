@@ -65,6 +65,7 @@ import { cacheBreakDetector } from './cache-break-detector.js';
 // Import hook implementations — once-per-session
 import { handoffInjector } from './handoff-injector.js';
 import { executorRouteNudge } from './executor-route-nudge.js';
+import { visualStyleNudge } from './visual-style-nudge.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
@@ -119,6 +120,7 @@ const HOOKS: PromptHookConfig[] = [
   // (self-gated by a session flag file, so NOT runOnce — it must see every
   // prompt until the first build-shaped one arrives).
   { name: 'executor-route-nudge', fn: executorRouteNudge, producesContext: true },
+  { name: 'visual-style-nudge', fn: visualStyleNudge, producesContext: true },
   // antipattern-warning removed (#972) — now a type:prompt hook in hooks.json
 ];
 

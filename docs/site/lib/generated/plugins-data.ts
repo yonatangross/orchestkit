@@ -13,7 +13,7 @@ export const PLUGINS: Plugin[] = [
     "skillCount": 114,
     "agentCount": 36,
     "hooks": 219,
-    "commandCount": 34,
+    "commandCount": 35,
     "color": "#06b6d4",
     "required": false,
     "recommended": true,
@@ -26,7 +26,6 @@ export const PLUGINS: Plugin[] = [
       "api-design",
       "architecture-decision-record",
       "architecture-patterns",
-      "ascii-visualizer",
       "assess",
       "async-jobs",
       "audit-activation",
@@ -41,7 +40,8 @@ export const PLUGINS: Plugin[] = [
       "checkpoint-resume",
       "ci-debug",
       "ci-sentinel",
-      "code-review-playbook"
+      "code-review-playbook",
+      "commit"
     ],
     "agents": [
       "accessibility-specialist",
@@ -107,6 +107,7 @@ export const PLUGINS: Plugin[] = [
       "implement",
       "memory",
       "prd-to-goal",
+      "quickviz",
       "release-sync",
       "remember",
       "review-pr",

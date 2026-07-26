@@ -1,22 +1,47 @@
 ---
-title: "Ascii Visualizer"
-description: "ASCII diagram patterns for architecture, workflows, file trees, and data visualizations. Use when creating terminal-rendered diagrams, box-drawing layouts, progress bars, swimlanes, or blast radius visualizations."
+title: "Quickviz"
+description: "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead."
 ---
 
-<span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
+<span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+```bash title="Invoke"
+/ork:quickviz
+```
 
-<ContextualSkillSidebar slug="ascii-visualizer" />
+<ContextualSkillSidebar slug="quickviz" />
 
-> **Ascii Visualizer** ASCII diagram patterns for architecture, workflows, file trees, and data visualizations. Use when creating terminal-rendered diagrams, box-drawing layouts, progress bars, swimlanes, or blast radius visualizations.
+> **Quickviz** Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead.
 
 
-# ASCII Visualizer
+# Quickviz
 
-Consistent, readable ASCII diagrams for architecture, workflows, file trees, and data visualizations. All output renders correctly in monospace terminals without external tools.
+Render the answer as ASCII art plus semantic emojis, inline, immediately. All output renders in a monospace terminal with no external tools.
 
 **Core principle:** Encode information into structure, not decoration. Every diagram element should communicate something meaningful.
+
+## Execution (run this, do not ask first)
+
+The whole point is speed, so there is no setup phase. Given a topic:
+
+1. **Render immediately.** Do NOT call `AskUserQuestion` to pick a format, do NOT call `TaskCreate`, do NOT spawn an `Agent`. Choose the form yourself from the topic shape and draw it. Asking first defeats the skill.
+2. **Pick the form from the shape of the data**, using the pattern library below:
+
+   | Topic shape | Form |
+   |---|---|
+   | state / progress / health | status box + bar meters |
+   | A vs B, options, trade-offs | comparison table or side-by-side boxes |
+   | steps, pipeline, hand-offs | left-to-right flow with `──▶` |
+   | containment, layers, layout | nested boxes / tree |
+   | ranked list, scores, counts | table + bar meters |
+   | over time | sparkline or milestone track |
+
+3. **Emit inline in the reply.** Never write a file unless the user asked for one. This is a chat answer, not an artifact.
+4. **Use the 12-emoji semantic set and box-drawing vocabulary** defined in `src/rules/visual-style.md`. Semantic, never decorative: an emoji must mean something (✅ pass, ❌ fail, ⚠️ risk, 🔴 blocked).
+5. **Lead with the answer.** The visual comes first; prose after it only if it adds something the diagram cannot carry.
+6. **Stay honest.** If a number is unknown, print `?` rather than inventing one. A confident-looking chart built on guesses is worse than prose.
+
+**When NOT to use this skill:** if the deliverable is a multi-section HTML playground, a persisted plan artifact, or anything needing file output, use `visualize-plan` instead. Quickviz is the cheap inline path; visualize-plan is the full pipeline.
 
 
 ## Box-Drawing Character Reference

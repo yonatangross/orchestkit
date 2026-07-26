@@ -85,16 +85,6 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 2
   },
   {
-    "id": "ascii-visualizer",
-    "label": "Ascii Visualizer",
-    "type": "reference",
-    "complexity": "low",
-    "category": "other",
-    "hasDeps": false,
-    "depCount": 0,
-    "usedByCount": 2
-  },
-  {
     "id": "assess",
     "label": "Assess",
     "type": "command",
@@ -815,6 +805,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 4
   },
   {
+    "id": "quickviz",
+    "label": "Quickviz",
+    "type": "command",
+    "complexity": "low",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 2
+  },
+  {
     "id": "rag-retrieval",
     "label": "Rag Retrieval",
     "type": "reference",
@@ -1433,7 +1433,7 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   },
   {
     "source": "explore",
-    "target": "ascii-visualizer"
+    "target": "quickviz"
   },
   {
     "source": "explore",
@@ -1645,7 +1645,7 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   },
   {
     "source": "visualize-plan",
-    "target": "ascii-visualizer"
+    "target": "quickviz"
   },
   {
     "source": "visualize-plan",

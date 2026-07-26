@@ -509,8 +509,8 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=34  # +1: audit-activation flipped to user-invocable (direct-only, disable-model-invocation)
-EXPECTED_INTERNAL=80  # -1: audit-activation moved to user-invocable
+EXPECTED_USER_INVOCABLE=35  # +1: quickviz (repurposed ascii-visualizer) flipped from inert to invocable — cheap inline viz on-ramp beside visualize-plan's full pipeline
+EXPECTED_INTERNAL=79  # -1: ascii-visualizer -> quickviz moved to user-invocable
 
 missing_user_invocable=()
 user_invocable_true=()

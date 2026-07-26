@@ -12,13 +12,13 @@ No sugarcoat. Failed = failed; blocked = blocked. Rule: `shared/rules/anti-sycop
 
 ## Visuals
 
-ASCII art and 12 semantic emojis encouraged in chat output. Rule: `src/rules/visual-style.md`. CI lints PR titles+bodies; `visual-style-override` label bypasses.
+ASCII art + 12 semantic emojis for any structured chat answer: status, comparisons, plans, ad-hoc "explain/show me X". Whole session, not just reply 1. Sub-agents do NOT inherit this; restate it in their prompt. Rule: `src/rules/visual-style.md`. CI lints PR titles+bodies; `visual-style-override` bypasses.
 
 ## Project Overview
 
 **OrchestKit** — Claude Code plugin for AI-assisted development with built-in best practices, security patterns, and quality gates.
 
-For live component counts (skills / agents / hooks / per-session token cost) run `claude plugin details ork` — requires CC ≥ 2.1.139.
+For live component counts (skills / agents / hooks / per-session token cost) run `claude plugin details ork`.
 
 ## Directory Structure
 

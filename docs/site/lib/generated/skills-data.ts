@@ -448,36 +448,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "test-generator"
     ]
   },
-  "ascii-visualizer": {
-    "name": "ascii-visualizer",
-    "description": "ASCII diagram patterns for architecture, workflows, file trees, and data visualizations. Use when creating terminal-rendered diagrams, box-drawing layouts, progress bars, swimlanes, or blast radius visualizations.",
-    "version": "1.0.0",
-    "sha256": "4a63650fb1d2345d481e470d6106cbc1f8d05b06a5a98c27687ec9110d567ef6",
-    "author": "OrchestKit",
-    "tags": [
-      "ascii",
-      "diagrams",
-      "visualization",
-      "box-drawing",
-      "architecture",
-      "terminal"
-    ],
-    "userInvocable": false,
-    "context": "inherit",
-    "allowedTools": [
-      "Read",
-      "Grep",
-      "Glob"
-    ],
-    "skills": [],
-    "agent": null,
-    "complexity": "low",
-    "structure": {},
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": []
-  },
   "assess": {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches.",
@@ -2380,7 +2350,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "explore",
     "description": "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns.",
     "version": "2.6.0",
-    "sha256": "ba2695ec46b151815f970d35ba8ad64d03437618070d4fa98421e79955b82f23",
+    "sha256": "ad97d91f2b1891677aebb61d920331a1cc3d9333668414ec57267e5839505072",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -2405,7 +2375,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ToolSearch"
     ],
     "skills": [
-      "ascii-visualizer",
+      "quickviz",
       "architecture-decision-record",
       "memory",
       "architecture-patterns",
@@ -4098,6 +4068,36 @@ export const SKILLS: Record<string, SkillMeta> = {
       "code-quality-reviewer"
     ]
   },
+  "quickviz": {
+    "name": "quickviz",
+    "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead.",
+    "version": "2.0.0",
+    "sha256": "ceb9780b529faaaab56c994064e35dae57281f54cd4befe137fb5ead93f5200e",
+    "author": "OrchestKit",
+    "tags": [
+      "ascii",
+      "diagrams",
+      "visualization",
+      "box-drawing",
+      "terminal",
+      "quick"
+    ],
+    "userInvocable": true,
+    "context": "inherit",
+    "allowedTools": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "rag-retrieval": {
     "name": "rag-retrieval",
     "description": "Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding documents, implementing hybrid search, contextual retrieval, HyDE, agentic RAG, multimodal RAG, query decomposition, reranking, or pgvector search.",
@@ -5536,7 +5536,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "visualize-plan",
     "description": "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
     "version": "2.1.0",
-    "sha256": "bcd1fa225e35fc6b272c5b983e38d33396dedc58b4af87492d91837df834cd38",
+    "sha256": "721a00beb0928283d9630fe5b93aedae975eee5f295004210c49b1cf025bec07",
     "author": "OrchestKit",
     "tags": [
       "visualization",
@@ -5568,7 +5568,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ToolSearch"
     ],
     "skills": [
-      "ascii-visualizer",
+      "quickviz",
       "explore",
       "architecture-decision-record",
       "memory",
