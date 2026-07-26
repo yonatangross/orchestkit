@@ -211,6 +211,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.1.0](https://github.com/yonatangross/orchestkit/compare/v9.0.2...v9.1.0)** · 2026-07-26
+
+- retro-hardening mechanisms 5+6 (invocability check, byte-budget guard) (#3161)
+- **viz:** re-anchor visual-style rule + quickviz on-ramp (#3164)
+- **viz:** stop throttling explicit visual asks (#3166)
+
 **[v9.0.2](https://github.com/yonatangross/orchestkit/compare/v9.0.1...v9.0.2)** · 2026-07-26
 
 - **ci:** remove the Claude PR Review workflow and its labeler (#3159)
@@ -259,10 +265,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **security:** remove privesc in release regen, tighten allowlist (#3102)
 - **demos:** make renderer check gate-able, split remotion bumps (#3105)
 - **review:** auto-run Claude review on sensitive PRs, ban dead gates (#3104)
-
-**[v8.84.7](https://github.com/yonatangross/orchestkit/compare/v8.84.6...v8.84.7)** · 2026-07-23
-
-- **demos:** repair the Remotion renderer, validate it pre-merge (#3099)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
