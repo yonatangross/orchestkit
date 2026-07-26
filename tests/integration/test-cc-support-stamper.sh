@@ -58,20 +58,74 @@ if [ -z "$ORIG_FLOOR" ]; then
   exit 1
 fi
 
+# ---------------------------------------------------------------------------
+# Restore set, DERIVED from the stamper rather than hand-maintained.
+#
+# The hand-written list above drifted twice: README.md was missing until it bit
+# someone, and `.claude-plugin/marketplace.json` (stamp target #5, the
+# machine-readable install gate CC reads to decide whether ork can be
+# installed at all) was still missing on 2026-07-26 — a full test run left
+# `"engine": ">=2.1.999"` in the working tree, one `git add -A` away from
+# shipping an uninstallable plugin.
+#
+# Root cause was maintaining the restore set in a SECOND place. It is now read
+# out of the stamper's own `stamp('<path>')` call sites, so a new stamp target
+# is covered the moment it is added. Byte-exact `cp -p` throughout: 7 of the
+# SKILL.md files have no trailing newline and `echo "$VAR" > file` silently
+# adds one.
+# ---------------------------------------------------------------------------
+STAMPER_SRC="scripts/stamp-cc-support.mjs"
+BACKUP_DIR=$(mktemp -d)
+
+# `while read` rather than `mapfile`: this script's shebang is /bin/bash, which
+# on macOS is bash 3.2 where mapfile does not exist. A mapfile version passes
+# Linux CI and breaks every local run — precisely the silent-divergence shape
+# this rewrite exists to kill.
+STAMP_TARGETS=()
+while IFS= read -r target; do
+  [ -n "$target" ] && STAMP_TARGETS+=("$target")
+done < <(grep -oE "^stamp\('[^']+'" "$STAMPER_SRC" | sed "s/^stamp('//; s/'$//")
+if [ "${#STAMP_TARGETS[@]}" -eq 0 ]; then
+  echo "FATAL: derived zero stamp targets from $STAMPER_SRC — parser drifted" >&2
+  exit 1
+fi
+# shared/cc-support.json is the source of truth the tests mutate directly; it is
+# not a stamp() target, so it is appended explicitly.
+STAMP_TARGETS+=("shared/cc-support.json")
+for skill_md in src/skills/*/SKILL.md; do
+  [ -f "$skill_md" ] && STAMP_TARGETS+=("$skill_md")
+done
+
+for f in "${STAMP_TARGETS[@]}"; do
+  [ -f "$f" ] || continue
+  mkdir -p "$BACKUP_DIR/$(dirname "$f")"
+  cp -p "$f" "$BACKUP_DIR/$f"
+done
+
 restore() {
-  echo "$ORIG_SUPPORT" > shared/cc-support.json
-  echo "$ORIG_CLAUDE_MD" > CLAUDE.md
-  echo "$ORIG_MATRIX" > src/hooks/src/lib/cc-version-matrix.ts
-  echo "$ORIG_DOC" > src/skills/doctor/references/version-compatibility.md
-  echo "$ORIG_README" > README.md
-  echo "$ORIG_TROUBLESHOOTING" > docs/site/content/docs/troubleshooting/index.mdx
-  # Restore the 114 SKILL.md files byte-for-byte (stamp target #6).
+  for f in "${STAMP_TARGETS[@]}"; do
+    [ -f "$BACKUP_DIR/$f" ] || continue
+    cp -p "$BACKUP_DIR/$f" "$f"
+  done
+  rm -rf "$BACKUP_DIR"
   if [ -d "$COMPAT_BACKUP_DIR" ]; then
-    for skill_md in src/skills/*/SKILL.md; do
-      [ -f "$COMPAT_BACKUP_DIR/$skill_md" ] || continue
-      cp -p "$COMPAT_BACKUP_DIR/$skill_md" "$skill_md"
-    done
     rm -rf "$COMPAT_BACKUP_DIR"
+  fi
+
+  # Post-condition: prove the restore actually worked. Any stamp target still
+  # holding a fixture version means a leak, and a leak must be LOUD — the whole
+  # point of this rewrite is that the previous failure mode was silent.
+  local leaked=0
+  for f in "${STAMP_TARGETS[@]}"; do
+    [ -f "$f" ] || continue
+    if grep -qE '2\.1\.999|"2\.2\.0"' "$f"; then
+      echo "LEAK: $f still contains a test fixture version after restore" >&2
+      leaked=1
+    fi
+  done
+  if [ "$leaked" -eq 1 ]; then
+    echo "FATAL: test fixture leaked into the working tree — do not commit." >&2
+    exit 1
   fi
 }
 trap restore EXIT
