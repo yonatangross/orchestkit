@@ -1,5 +1,6 @@
 ---
 description: "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead."
+argument-hint: "[topic-to-render]"
 disable-model-invocation: false
 model: haiku
 effort: low

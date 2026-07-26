@@ -10,6 +10,7 @@ user-invocable: true
 disable-model-invocation: false
 context: inherit
 allowed-tools: [Read, Grep, Glob]
+argument-hint: "[topic-to-render]"
 complexity: low
 persuasion-type: reference
 effort: low
