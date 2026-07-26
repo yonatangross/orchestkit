@@ -211,6 +211,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.0.0](https://github.com/yonatangross/orchestkit/compare/v8.85.0...v9.0.0)** · 2026-07-25
+
+- **cc:** the Claude Code support floor is now 2.1.220. Claude Code 2.1.206 through 2.1.219 are no longer supported; hooks and skills may no-op or error on them, and that is not treated as a bug. Upgrade Claude Code before updating OrchestKit.
+- **cc:** adopt Opus 5, strict-renew the support floor to 2.1.220 (#3141)
+- **verify:** add the Reachability Proof axis (REACHED vs UNREACHED) (#3149)
+- **docs:** pin playground links to the commit SHA, not the branch (#3148)
+- **hooks:** bound hook-timing.jsonl, the one analytics file with no cap (#3151)
+- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v8.85.0](https://github.com/yonatangross/orchestkit/compare/v8.84.10...v8.85.0)** · 2026-07-25
 
 - agent activation routing (M170) (#3133)
@@ -254,10 +263,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** scope Claude workflow tools, gate triage on author (#3085)
 - **security:** audit all four trees in CI, pin sharp (#3090)
 - **security:** correct audit-gate id reporting, allowlist hono (#3087)
-
-**[v8.84.4](https://github.com/yonatangross/orchestkit/compare/v8.84.3...v8.84.4)** · 2026-07-22
-
-- **skills:** burn model-recency ratchet to zero (#3056)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

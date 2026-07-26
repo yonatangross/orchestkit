@@ -11,11 +11,12 @@
  * Issue #459: Local Cross-Project Analytics System
  */
 
-import { mkdirSync, statSync, renameSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
 import { bufferWrite } from './analytics-buffer.js';
 import { createHash } from 'node:crypto';
 import { getHomeDir, joinPath } from './paths.js';
 import { postAnalyticsToSink } from './telemetry-http-sink.js';
+import { rotateAnalyticsIfNeeded } from '../../bin/analytics-rotate.mjs';
 
 function getAnalyticsDir(): string {
   return joinPath(getHomeDir(), '.claude', 'analytics');
@@ -32,18 +33,18 @@ export function getTeamContext(): { team: string } | undefined {
   return team ? { team } : undefined;
 }
 
-/** Rotate file if it exceeds maxBytes (default 10MB). Renames to <name>.<YYYY-MM>.jsonl */
+/**
+ * Rotate file if it exceeds maxBytes (default 10MB), then prune rotated
+ * archives back under the retention caps.
+ *
+ * Delegates to bin/analytics-rotate.mjs so this and the bin/run-hook.mjs
+ * dispatcher share ONE implementation. Before that split there were two copies,
+ * both of which rotated without ever bounding the archives they created (#3151
+ * capped the active file only) and both of which let a second rotation in the
+ * same calendar month silently overwrite the first archive.
+ */
 export function rotateIfNeeded(filePath: string, maxBytes = 10_485_760): void {
-  try {
-    const stats = statSync(filePath);
-    if (stats.size > maxBytes) {
-      const month = new Date().toISOString().slice(0, 7); // YYYY-MM
-      const rotated = filePath.replace(/\.jsonl$/, `.${month}.jsonl`);
-      renameSync(filePath, rotated);
-    }
-  } catch {
-    // File doesn't exist or rename failed — both fine
-  }
+  rotateAnalyticsIfNeeded(filePath, { maxBytes });
 }
 
 /** Returns true when running inside a test runner (vitest / jest). */

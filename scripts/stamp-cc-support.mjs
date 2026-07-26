@@ -182,6 +182,19 @@ stamp('docs/site/content/docs/troubleshooting/index.mdx', [
   },
 ]);
 
+// The marketplace engine field is the machine-readable install gate: CC refuses
+// to install the plugin below it. It was hand-maintained and untested, so it
+// drifted twice (2.1.113 -> 2.1.148 in #2116, then 2.1.148 while the floor moved
+// to 2.1.220). Stamping it removes the hand-maintenance that caused both.
+stamp('.claude-plugin/marketplace.json', [
+  {
+    label: 'marketplace engine floor',
+    pattern: /("engine":\s*">=)\d+\.\d+\.\d+(")/,
+    replacement: `$1${supported_floor}$2`,
+    expectedMatches: 1,
+  },
+]);
+
 stamp('README.md', [
   {
     label: 'Claude Code shields.io badge floor',

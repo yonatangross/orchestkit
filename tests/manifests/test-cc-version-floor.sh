@@ -144,7 +144,22 @@ if [[ -d "$SKILLS_DIR" ]]; then
     fi
 fi
 
-# 5. Idempotence: stamper should produce zero mutations on an already-stamped tree.
+# 5. .claude-plugin/marketplace.json :: engine field
+#
+# This is the machine-readable install gate CC enforces before installing the
+# plugin. It was hand-maintained and covered by no test, so it drifted below the
+# governed floor twice. It is now a stamp target; this assertion is the gate.
+MARKETPLACE_JSON="$PROJECT_ROOT/.claude-plugin/marketplace.json"
+if [[ -f "$MARKETPLACE_JSON" ]]; then
+    ENGINE_VAL=$(node -e "const e=JSON.parse(require('fs').readFileSync('$MARKETPLACE_JSON','utf8')).engine||'';console.log(e.replace(/^[^0-9]*/,''))")
+    if [[ "$ENGINE_VAL" == "$SOT" ]]; then
+        log_pass "marketplace.json engine floor = $ENGINE_VAL"
+    else
+        log_fail "marketplace.json engine floor" "got '$ENGINE_VAL', want '$SOT' (run: node scripts/stamp-cc-support.mjs)"
+    fi
+fi
+
+# 6. Idempotence: stamper should produce zero mutations on an already-stamped tree.
 set +e
 STAMP_OUT=$(node "$PROJECT_ROOT/scripts/stamp-cc-support.mjs" 2>&1)
 STAMP_RC=$?

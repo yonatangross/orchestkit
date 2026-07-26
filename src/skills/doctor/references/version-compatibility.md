@@ -504,29 +504,31 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.90 | Full+++++++++++++++++ | /powerup, PLUGIN_KEEP_MARKETPLACE, .husky protected, exit code 2 fix, format-on-save fix, 3x perf |
 | >= 2.1.91 | Full | MCP result size override, disableSkillShellExecution, plugin bin/, Edit shorter anchors, transcript fix |
 | >= 2.1.92 | Full | forceRemoteSettingsRefresh, Stop hook preventContinuation fix, tool input JSON-string fix, Write perf, tmux pane fix |
-| >= 2.1.94 | Minimum | **Skill frontmatter hooks fix (unlocks 20 context loaders), sessionTitle hook output, keep-coding-instructions, default effort high, rate-limit 429 surface, --resume across worktrees, CJK stream-json fix — current minimum** |
+| >= 2.1.94 | Full | Skill frontmatter hooks fix (unlocks 20 context loaders), sessionTitle hook output, keep-coding-instructions, default effort high, rate-limit 429 surface, --resume across worktrees, CJK stream-json fix |
 | >= 2.1.95 | Full | MCP tool description 2KB cap, local MCP config dedup (npm-only release) |
 | >= 2.1.96 | Full | Bedrock bearer token 403 hotfix (2.1.94 regression) |
 | >= 2.1.97 | Full | refreshInterval status line, workspace.git_worktree, Stop/SubagentStop long-session fix, subagent cwd leak fix, plugin update fix, Bash permissions hardened, TRACEPARENT OTEL, image compression parity, 429 exponential backoff, MCP memory leak fix, transcript optimization |
 | >= 2.1.101 | Full | /team-onboarding, OS CA cert trust, deny-overrides-ask, subagent dynamic MCP, worktree agent file access, focus mode summaries, settings resilience |
 | >= 2.1.105 | Full | EnterWorktree path param, PreCompact blocking (exit code 2 / decision:block), plugin monitors manifest, skill description cap 1536 chars, WebFetch script stripping, stale worktree squash cleanup |
 | >= 2.1.108 | Full | ENABLE_PROMPT_CACHING_1H for 1-hour cache TTL (major cost savings), /recap session context restoration, Skill tool auto-discovery of built-in commands, model switch warning, lazy language grammars (lower memory), rate limit distinction, agent auto-classifier fix |
-| >= 2.1.110 | **Recommended** | **/tui fullscreen rendering, PushNotification tool for long sessions, /focus command (replaces Ctrl+O), Bash max timeout enforced, Write user-edit signal, session recap default-on (no env var needed), --resume resurrects scheduled tasks, /doctor MCP duplicate warning, Remote Control commands (/autocompact, /context, /exit, /reload-plugins), SDK TRACEPARENT/TRACESTATE auto-propagation** |
+| >= 2.1.110 | Full | /tui fullscreen rendering, PushNotification tool for long sessions, /focus command (replaces Ctrl+O), Bash max timeout enforced, Write user-edit signal, session recap default-on (no env var needed), --resume resurrects scheduled tasks, /doctor MCP duplicate warning, Remote Control commands (/autocompact, /context, /exit, /reload-plugins), SDK TRACEPARENT/TRACESTATE auto-propagation |
+| >= 2.1.220 | **Minimum (current floor)** | **OrchestKit's supported floor. Anything below is unsupported. `shared/cc-support.json` is the single source of truth; this row mirrors it.** |
 
 ## Doctor Check Implementation
 
 The doctor skill validates CC version in category 10:
 
 ```
-Claude Code: 2.1.47 (OK)
-- Minimum required: 2.1.47
+Claude Code: 2.1.220 (OK)
+- Minimum required: 2.1.220
 ```
 
-When CC version is below 2.1.47, doctor should show:
+When CC version is below the floor, doctor should show the shortfall. Example on a
+much older build, where the missing-feature list is long enough to be useful:
 
 ```
 Claude Code: 2.1.44 (DEGRADED)
-- Minimum required: 2.1.47
+- Minimum required: 2.1.220
 - Missing features:
   - last_assistant_message (Stop/SubagentStop context)
   - added_dirs (multi-directory support)

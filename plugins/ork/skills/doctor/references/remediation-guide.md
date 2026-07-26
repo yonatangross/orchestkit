@@ -52,7 +52,7 @@ claude plugin validate
 
 ### "Stale plugin paths in PATH"
 
-CC ≤ 2.1.127 occasionally left `installed_plugins.json` entries pointing at deleted cache directories, polluting `PATH` for subprocesses. CC 2.1.128+ scrubs those automatically — no maintenance needed at our floor (2.1.168). If you see plugin commands failing with `command not found` after uninstalling a plugin on CC < 2.1.128, upgrade.
+CC ≤ 2.1.127 occasionally left `installed_plugins.json` entries pointing at deleted cache directories, polluting `PATH` for subprocesses. CC 2.1.128+ scrubs those automatically — no maintenance needed at our floor (2.1.220). If you see plugin commands failing with `command not found` after uninstalling a plugin on CC < 2.1.128, upgrade.
 
 ### "Auto mode unable to evaluate"
 

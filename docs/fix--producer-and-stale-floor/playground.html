@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Producer inflation, stale floors, unbounded archives (OrchestKit playground)</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-2: #1c2230;
+    --line: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --good: #3fb950;
+    --bad: #f85149;
+    --warn: #d29922;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: -0.3px; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  h2 { font-size: 18px; margin: 36px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 14px; margin: 20px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; margin: 14px 0; }
+  .grid { display: grid; gap: 14px; }
+  .g2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .g4 { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  code, pre { font-family: var(--mono); font-size: 13px; }
+  pre {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px; overflow-x: auto; margin: 10px 0; line-height: 1.5;
+  }
+  .tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; vertical-align: middle; }
+  .t-bad { background: rgba(248,81,73,.15); color: var(--bad); border: 1px solid rgba(248,81,73,.35); }
+  .t-good { background: rgba(63,185,80,.15); color: var(--good); border: 1px solid rgba(63,185,80,.35); }
+  .t-warn { background: rgba(210,153,34,.15); color: var(--warn); border: 1px solid rgba(210,153,34,.35); }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+  td.mono, th.mono { font-family: var(--mono); font-size: 12px; }
+  .del { color: var(--bad); }
+  .add { color: var(--good); }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .stat { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+  .stat .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat .v { font-family: var(--mono); font-size: 22px; margin-top: 4px; }
+  .bar { height: 10px; border-radius: 999px; background: var(--panel-2); overflow: hidden; margin-top: 8px; border: 1px solid var(--line); }
+  .bar > i { display: block; height: 100%; }
+  .note { color: var(--muted); font-size: 13px; }
+  ul { margin: 8px 0; padding-left: 20px; }
+  li { margin: 4px 0; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Four defects: one producer, three floors, and an archive nobody capped</h1>
+  <p class="sub">Interactive companion to <code>fix/producer-and-stale-floor</code>. Everything below is measured, not modelled.</p>
+
+  <h2>A. The producer that squares your token count</h2>
+
+  <div class="card">
+    <p>
+      Claude Code re-reads the whole cached context every turn. A turn's
+      <code>cache_read_input_tokens</code> is therefore a re-read of context already counted once
+      under <code>cache_creation</code>. Summing it per turn re-counts the same context once per
+      turn, so <code>total_tokens</code> grows with the <strong>square</strong> of the turn count.
+    </p>
+    <p class="note">
+      The server-side parser was fixed on 2026-07-14. The producer was not, and on prod the
+      producer is the only path that runs: the API cannot read a laptop
+      <code>transcript_path</code>.
+    </p>
+
+    <h3>Try it</h3>
+    <div class="grid g2">
+      <div>
+        <label>Turns in the session: <b id="turnsOut">400</b></label>
+        <input id="turns" type="range" min="10" max="2000" step="10" value="400">
+      </div>
+      <div>
+        <label>Unique tokens per turn (input + output + cache creation): <b id="uniqOut">1200</b></label>
+        <input id="uniq" type="range" min="200" max="4000" step="100" value="1200">
+      </div>
+    </div>
+    <p class="note" style="margin-top:12px">
+      Context is modelled as growing by the per-turn unique volume, so turn N re-reads about
+      N times that volume. Inflation is independent of the per-turn value: it is
+      <code>1 + (N+1)/2</code>, which is why long sessions blow up and short ones look fine.
+    </p>
+
+    <div class="grid g4" style="margin-top:14px">
+      <div class="stat"><div class="k">Correct total</div><div class="v" id="sTrue">-</div></div>
+      <div class="stat"><div class="k">Reported (buggy)</div><div class="v del" id="sBug">-</div></div>
+      <div class="stat"><div class="k">Inflation</div><div class="v" id="sMul">-</div></div>
+      <div class="stat"><div class="k">Cost-per-token error</div><div class="v" id="sErr">-</div></div>
+    </div>
+    <div class="bar"><i id="barTrue" style="background:var(--good)"></i></div>
+    <div class="note" id="barCap" style="margin-top:6px"></div>
+
+    <h3>Observed in the wild</h3>
+    <table>
+      <tr><th>Session</th><th class="mono">Turns</th><th class="mono">Inflation</th></tr>
+      <tr><td>Reported case 1</td><td class="mono">1,725</td><td class="mono del">26x</td></tr>
+      <tr><td>Reported case 2</td><td class="mono">longer</td><td class="mono del">538x</td></tr>
+      <tr><td>Regression fixture in this PR</td><td class="mono">40</td><td class="mono del">6,834x</td></tr>
+    </table>
+    <p class="note">
+      The fixture inflates harder than the field cases because it re-reads a fixed 10k per turn
+      against only 30 unique tokens per turn. That is deliberate: it makes the quadratic term
+      dominate so the assertion cannot pass by accident.
+    </p>
+
+    <h3>The change</h3>
+    <pre>  for tk in ("input_tokens", "output_tokens",
+<span class="add">+                 "cache_creation_input_tokens",</span>
+             ):
+      v = usage.get(tk, 0)
+      if v:
+          total_tok += int(v)
+  cr = usage.get("cache_read_input_tokens", 0)
+  cc = usage.get("cache_creation_input_tokens", 0)
+  if cr:
+      cache_read_tokens += int(cr)
+<span class="del">-     total_tok += int(cr)          # the whole bug</span>
+  if cc:
+      cache_creation_tokens += int(cc)
+<span class="del">-     total_tok += int(cc)          # folded into the loop above</span></pre>
+    <p class="note">
+      <span class="tag t-warn">cross-repo</span>
+      This file lives in <code>Yonatan-HQ/platform</code>, not in OrchestKit, so it ships as its
+      own PR. <code>cache_read</code> keeps its own <code>metadata.cache_read_tokens</code> field:
+      nothing is discarded, it just leaves a total it never belonged in.
+    </p>
+  </div>
+
+  <h2>B. Stale support-floor claims</h2>
+
+  <div class="card">
+    <p>
+      v9.0.0 raised the floor to <b>2.1.220</b>. The single source of truth
+      (<code>shared/cc-support.json</code>) moved; ten derived claims did not. Three of them were
+      already published.
+    </p>
+    <table>
+      <tr><th>Where</th><th class="mono">Was</th><th>Verdict</th></tr>
+      <tr><td><code>.claude-plugin/marketplace.json</code> engine</td><td class="mono">&gt;=2.1.148</td><td><span class="tag t-bad">install gate</span></td></tr>
+      <tr><td><code>docs/site/lib/generated/cc-adoption-data.ts</code></td><td class="mono">2.1.206 / 2.1.208 / 2.1.206</td><td><span class="tag t-bad">published</span></td></tr>
+      <tr><td><code>docs/site/.../guides/claude-fable-5.mdx</code></td><td class="mono">2.1.183+</td><td><span class="tag t-bad">published</span></td></tr>
+      <tr><td><code>security-patterns/.../cc-permission-model.md</code></td><td class="mono">2.1.168</td><td><span class="tag t-bad">published</span></td></tr>
+      <tr><td><code>doctor/.../remediation-guide.md</code></td><td class="mono">2.1.168</td><td><span class="tag t-bad">self-contradicting</span></td></tr>
+      <tr><td><code>doctor/.../version-compatibility.md</code> matrix</td><td class="mono">2.1.94</td><td><span class="tag t-bad">self-contradicting</span></td></tr>
+      <tr><td><code>doctor/</code> sample outputs (x4)</td><td class="mono">2.1.47</td><td><span class="tag t-bad">stale</span></td></tr>
+      <tr><td><code>hook-input.property.test.ts</code> comment</td><td class="mono">2.1.117</td><td><span class="tag t-bad">stale</span></td></tr>
+      <tr><td><code>bare-eval/workflows/skill-fitness.mjs</code> prompt</td><td class="mono">2.1.183</td><td><span class="tag t-bad">mis-scores skills</span></td></tr>
+    </table>
+
+    <h3>Not touched, on purpose</h3>
+    <ul>
+      <li><code>src/hooks/README.md</code> floor entries: an append-only adoption log. "Floor was 2.1.170 at that point" is a record, not a claim.</li>
+      <li>Everything of the form "landed in 2.1.x", "deprecated in 2.1.y", changelog rows, pinned fixtures, CI installer pins.</li>
+      <li><code>types.ts</code> "Reviewed through CC 2.1.206": a review-coverage record, not a floor.</li>
+    </ul>
+
+    <h3>Why it drifted, and what stops it now</h3>
+    <p>
+      The engine field was hand-maintained and covered by no test, so it drifted twice. It is now
+      a <code>stamp-cc-support.mjs</code> target with an assertion in
+      <code>tests/manifests/test-cc-version-floor.sh</code>.
+    </p>
+    <pre>CC Version Floor Consistency (M137 #1765)
+  OK  SoT supported_floor = 2.1.220
+  OK  cc-version-matrix.ts MIN_CC_VERSION = 2.1.220
+  OK  CLAUDE.md Claude Code floor = 2.1.220
+  OK  SKILL.md compatibility: all 114 skills at or above SoT
+  OK  marketplace.json engine floor = 2.1.220     &lt;- new
+  OK  stamp-cc-support.mjs is idempotent
+Results: 7 passed, 0 failed</pre>
+  </div>
+
+  <h2>C. The 300 MB file that #3151 did not cap</h2>
+
+  <div class="card">
+    <p>
+      #3151 bounded the ACTIVE file at 10 MB. Measured right after it landed:
+    </p>
+    <pre>hook-timing.jsonl            236 KB   &lt;- the file #3151 capped
+hook-timing.2026-07.jsonl    300 MB   &lt;- where 99% of the bytes actually are</pre>
+    <p>
+      Rotation without retention just moves unbounded growth one filename over. The same two
+      copies also shared a latent data-loss bug: the archive name is derived from the current
+      month, so a second rotation in the same month resolved to the same path and
+      <code>renameSync</code> silently destroyed the first archive.
+    </p>
+
+    <div class="grid g2">
+      <div>
+        <h3><span class="tag t-bad">before</span> unbounded</h3>
+        <pre>active  &gt; 10 MB ?
+   |
+   +-- rename -&gt; name.2026-07.jsonl
+                   |
+                   +-- (nothing)
+
+second rotation, same month:
+   rename -&gt; name.2026-07.jsonl
+             ^ overwrites, no error</pre>
+      </div>
+      <div>
+        <h3><span class="tag t-good">after</span> bounded</h3>
+        <pre>active  &gt; 10 MB ?
+   |
+   +-- pick a FREE name
+   |     name.2026-07.jsonl
+   |     name.2026-07.2.jsonl
+   |     name.2026-07.3.jsonl  ...
+   |
+   +-- prune oldest by mtime while
+         count &gt; 3  OR  total &gt; 50 MB
+       (never below 1 archive)</pre>
+      </div>
+    </div>
+
+    <p class="note">
+      Steady state is about 30 MB per analytics base name instead of unbounded. The existing
+      300 MB archive is pruned by the code on the next rotation once newer archives exist; this
+      PR does not delete anything itself.
+    </p>
+
+    <h3>One implementation, not two</h3>
+    <p>
+      <code>bin/run-hook.mjs</code> and <code>src/lib/analytics.ts</code> each carried their own
+      copy, and both carried both defects. They now import
+      <code>bin/analytics-rotate.mjs</code>: plain ESM with no side effects, so the dispatcher can
+      load it at runtime and the esbuild bundles can inline it at build time.
+    </p>
+  </div>
+
+  <h2>D. Tests for a helper that shipped with none</h2>
+
+  <div class="card">
+    <p>
+      #3151's commit message claimed "Verified: 7 direct assertions on the helper".
+      <code>git grep rotateAnalyticsIfNeeded</code> matched no test file. There were zero.
+    </p>
+    <p>
+      The 15 new tests run against a real temp directory rather than a mocked
+      <code>node:fs</code>. Both defects are filesystem-state defects (which file exists, how many,
+      how large, which one got deleted), and a call-shape assertion on a <code>renameSync</code>
+      mock is exactly what let them ship.
+    </p>
+
+    <h3>Mutation check</h3>
+    <p class="note">Break each behaviour, confirm red, restore, confirm byte-identical.</p>
+    <table>
+      <tr><th>Mutation</th><th>Result</th></tr>
+      <tr><td>rotation never triggers at the cap</td><td><span class="tag t-good">RED</span> 7 failed / 8 passed</td></tr>
+      <tr><td>same-month archive is clobbered</td><td><span class="tag t-good">RED</span> 4 failed / 11 passed</td></tr>
+      <tr><td>retention never prunes</td><td><span class="tag t-good">RED</span> 4 failed / 11 passed</td></tr>
+      <tr><td>newest-archive guard removed</td><td><span class="tag t-good">RED</span> 1 failed / 14 passed</td></tr>
+      <tr><td>byte cap ignored</td><td><span class="tag t-good">RED</span> 2 failed / 13 passed</td></tr>
+      <tr><td>producer: cache_read summed back in</td><td><span class="tag t-good">RED</span> 1200 vs 8201200</td></tr>
+    </table>
+    <p class="note">All restores verified byte-identical by sha256.</p>
+  </div>
+
+  <h2>Gates</h2>
+  <div class="card">
+    <pre>bash bin/validate-counts.sh            Validation PASSED
+bash tests/manifests/test-cc-version-floor.sh   7 passed, 0 failed
+npm run test:skills                    exit 0
+npm run test:security                  17 passed, 0 failed
+npm run typecheck                      exit 0
+vitest (src/hooks)                     299 files, 7381 passed, 2 skipped
+pytest (platform producer)             7 passed</pre>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  var turns = document.getElementById('turns');
+  var uniq = document.getElementById('uniq');
+
+  function fmt(n) {
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'k';
+    return String(Math.round(n));
+  }
+
+  function render() {
+    var n = Number(turns.value);
+    var u = Number(uniq.value);
+
+    document.getElementById('turnsOut').textContent = n.toLocaleString();
+    document.getElementById('uniqOut').textContent = u.toLocaleString();
+
+    // Correct: unique volume only.
+    var real = n * u;
+    // Buggy: plus the per-turn re-read of a context that has grown to turn * u.
+    var reread = u * (n * (n + 1) / 2);
+    var bug = real + reread;
+    var mul = bug / real;
+
+    document.getElementById('sTrue').textContent = fmt(real);
+    document.getElementById('sBug').textContent = fmt(bug);
+    document.getElementById('sMul').textContent = mul.toFixed(1) + 'x';
+    // cost/token uses total_tokens as the denominator, so it reads low by 1/mul.
+    document.getElementById('sErr').textContent = '-' + (100 - 100 / mul).toFixed(1) + '%';
+
+    var pct = Math.max(0.4, (real / bug) * 100);
+    document.getElementById('barTrue').style.width = pct.toFixed(3) + '%';
+    document.getElementById('barCap').textContent =
+      'Green is the real signal as a share of what was reported: ' + pct.toFixed(2) + '%.';
+  }
+
+  turns.addEventListener('input', render);
+  uniq.addEventListener('input', render);
+  render();
+})();
+</script>
+</body>
+</html>

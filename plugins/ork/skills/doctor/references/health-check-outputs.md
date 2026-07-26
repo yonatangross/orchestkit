@@ -105,15 +105,15 @@ Context Budget: 1850/2200 tokens (84%)
 
 **OK:**
 ```
-Claude Code: 2.1.47 (OK)
-- Minimum required: 2.1.47
+Claude Code: 2.1.220 (OK)
+- Minimum required: 2.1.220
 - All 15 features available
 ```
 
 **Degraded:**
 ```
 Claude Code: 2.1.44 (DEGRADED)
-- Minimum required: 2.1.47
+- Minimum required: 2.1.220
 - Missing: last_assistant_message, added_dirs, Windows hooks, worktree discovery
 - Upgrade: npm install -g @anthropic-ai/claude-code@latest
 ```

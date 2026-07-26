@@ -58,7 +58,7 @@ const sessionIdArb = fc.string({ minLength: 0, maxLength: 64 });
 
 /**
  * ToolInput generator — generates type-correct fields as guaranteed by the
- * CC 2.1.85+ runtime input validator. Our floor is CC 2.1.117, so hooks can
+ * CC 2.1.85+ runtime input validator. Our floor is CC 2.1.220, so hooks can
  * trust that `file_path`, `command`, etc. are strings when present.
  *
  * A separate defensive-input pass (arrays/objects where strings expected) is
