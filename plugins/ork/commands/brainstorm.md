@@ -2,6 +2,10 @@
 description: "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
 argument-hint: "[topic-or-idea]"
 disable-model-invocation: true  # M127 A/S5: slash-only — explicit /ork:brainstorm only
+model: sonnet
+context: fork
+user-invocable: true
+name: brainstorm
 allowed-tools: [AskUserQuestion, Agent, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, PushNotification, mcp__memory__search_nodes]
 ---
 

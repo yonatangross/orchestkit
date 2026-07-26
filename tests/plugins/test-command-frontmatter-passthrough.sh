@@ -48,29 +48,42 @@ RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
 
 # --- classification -------------------------------------------------------
 # MUST_SURVIVE: CC reads this from the COMMAND file. Assert present + equal.
+#
+# SOURCE OF TRUTH: the frontmatter table at
+# https://code.claude.com/docs/en/slash-commands
+# Custom commands were merged into skills upstream, so skills and commands share
+# ONE frontmatter schema. Every field below is documented there as read from the
+# command file. Keep this list aligned with PASSTHROUGH_KEYS in
+# generate_command_from_skill() (scripts/build-plugins.sh) — the generator reads
+# the same names.
 MUST_SURVIVE=(
   description               # one-line summary shown in the command picker
   argument-hint             # ghost placeholder after the command name (#3146)
   allowed-tools             # tool permissions for the command invocation
-  disable-model-invocation  # observed in use by other installed plugins
+  disable-model-invocation  # blocks model auto-invocation; manual /name only
+  model                     # model override while the skill/command is active
+  effort                    # effort level override while active
+  context                   # `fork` runs it in a subagent context
+  agent                     # which subagent type when context: fork
+  user-invocable            # false hides it from the / menu
+  name                      # display name; interacts with the invoked name
 )
 
 # SKILL_ONLY: legitimately does not cross the transform. Assert ABSENT from the
 # command, so an accidental leak is caught too — this half is not decoration,
 # it is what makes each classification falsifiable in both directions.
 #
-# `model` note (UNVERIFIED as of 2026-07-26): 25 skills declare `model:` and 0
-# generated commands carry it. 470 command files from other installed plugins
-# were searched for a command-frontmatter `model:` and none was found, so there
-# is no evidence CC reads it from a command file. It is parked here rather than
-# in MUST_SURVIVE because changing the generator on a guess is how the original
-# bug shipped. To settle it: hand-add `model: haiku` to one generated command,
-# invoke it, and see which model answers. If CC honors it, move this key to
-# MUST_SURVIVE and teach the generator.
+# These are OrchestKit's own catalog metadata (manifest counts, authoring
+# standards, eval wiring). None appears in the upstream slash-command
+# frontmatter table, so none is read from a command file.
+#
+# `disallowed-tools` is the one to watch: it is not in the documented table, but
+# it is security-adjacent and only one skill declares it. If CC ever documents
+# it as a command field, it moves up — a dropped deny-list fails open.
 SKILL_ONLY=(
-  name version author license tags complexity context compatibility
-  persuasion-type user-invocable triggers metadata skills paths hooks
-  effort agent invocation_hooks disallowed-tools model
+  version author license tags complexity compatibility
+  persuasion-type triggers metadata skills paths hooks
+  invocation_hooks disallowed-tools
 )
 
 in_list() { local n="$1"; shift; local x; for x in "$@"; do [[ "$x" == "$n" ]] && return 0; done; return 1; }

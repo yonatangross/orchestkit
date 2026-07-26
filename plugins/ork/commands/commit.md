@@ -2,6 +2,10 @@
 description: "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use when committing changes or generating commit messages."
 argument-hint: "[message]"
 disable-model-invocation: true
+effort: low
+context: inherit
+user-invocable: true
+name: commit
 allowed-tools: [Bash]
 ---
 

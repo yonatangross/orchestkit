@@ -1,6 +1,11 @@
 ---
 description: "Unified read-side memory operations including knowledge graph search, session context loading, decision timeline viewing, and Mermaid graph visualization. Subcommands: search, load, history, viz, status. Complements /ork:remember (write-side). Use when searching past decisions, loading context, or visualizing the knowledge graph."
 argument-hint: "[subcommand] [query]"
+model: haiku
+effort: low
+context: inherit
+user-invocable: true
+name: memory
 allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__read_graph]
 ---
 

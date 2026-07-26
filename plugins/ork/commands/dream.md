@@ -1,6 +1,11 @@
 ---
 description: "Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory)."
 argument-hint: "[--dry-run]"
+model: sonnet
+effort: low
+context: inherit
+user-invocable: true
+name: dream
 allowed-tools: [Read, Write, Edit, Glob, Grep, Bash]
 ---
 
