@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.1.0](https://github.com/yonatangross/orchestkit/compare/v9.0.2...v9.1.0) (2026-07-26)
+
+
+### Features
+
+* retro-hardening mechanisms 5+6 (invocability check, byte-budget guard) ([#3161](https://github.com/yonatangross/orchestkit/issues/3161)) ([c5ac1aa](https://github.com/yonatangross/orchestkit/commit/c5ac1aa3ac62f304ac015c5cc71ea71d1faba2fa))
+* **viz:** re-anchor visual-style rule + quickviz on-ramp ([#3164](https://github.com/yonatangross/orchestkit/issues/3164)) ([9ff788e](https://github.com/yonatangross/orchestkit/commit/9ff788eae26609fa6d3e903e642742ac013c44d9))
+
+
+### Bug Fixes
+
+* **viz:** stop throttling explicit visual asks ([#3166](https://github.com/yonatangross/orchestkit/issues/3166)) ([dde0e87](https://github.com/yonatangross/orchestkit/commit/dde0e871d7806d3d39246fefdc27d3ae0d0b1bf7))
+
 ## [9.0.2](https://github.com/yonatangross/orchestkit/compare/v9.0.1...v9.0.2) (2026-07-26)
 
 
