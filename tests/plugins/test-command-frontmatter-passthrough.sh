@@ -3,7 +3,7 @@
 # Created: 2026-07-25
 
 # ============================================================================
-# Command Frontmatter Passthrough Test
+# Command Frontmatter Passthrough Test  —  the cross-layer transform gate
 # ============================================================================
 # WHAT THIS GUARDS
 #
@@ -14,13 +14,28 @@
 #   dropped: the skill still declares it, every test still passes, and the
 #   feature just does not work.
 #
-#   That is exactly what happened to `argument-hint`. All 34 user-invocable
-#   skills declared one; 0 of 34 generated commands carried it; the ghost
-#   placeholder after "/ork:visualize-plan" never rendered. Nothing caught it
-#   because nothing compared the two layers.
+#   That is the shape of a whole bug class. Three shipped in one day (2026-07-25)
+#   with identical structure — a value correct in layer A, lost by the transform
+#   into layer B, every gate green because no gate read both sides:
+#     * LangfuseExporter   docs             -> reality
+#     * argument-hint      SKILL.md         -> generated command
+#     * hook-timing cap    appendAnalytics  -> the .mjs dispatcher
 #
-#   This test compares them. If you add a frontmatter key that CC reads from the
-#   command file, add it to PASSTHROUGH_KEYS below and to the generator.
+# WHY THIS GATE IS DEFAULT-DENY
+#
+#   The first version of this test carried a hand-maintained allowlist:
+#
+#       PASSTHROUGH_KEYS=(description argument-hint allowed-tools)
+#
+#   That reproduces the very failure it guards against, one level up. It checks
+#   the three fields already known to work, and a human has to remember to add
+#   the fourth. The next dropped field is simply one nobody added to the array,
+#   and this file stays green while printing "PASSED".
+#
+#   So the list is INVERTED. Every key any source skill declares must be
+#   classified below. An UNCLASSIFIED key is a hard failure, not a silent pass.
+#   Adding a frontmatter key to a skill without deciding which side of the
+#   transform it lives on now breaks the build, with instructions.
 # ============================================================================
 
 set -euo pipefail
@@ -31,9 +46,34 @@ ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
 
-# Frontmatter keys that must survive the skill -> command transform when present
-# in the source skill. Order does not matter; presence and value do.
-PASSTHROUGH_KEYS=(description argument-hint allowed-tools)
+# --- classification -------------------------------------------------------
+# MUST_SURVIVE: CC reads this from the COMMAND file. Assert present + equal.
+MUST_SURVIVE=(
+  description               # one-line summary shown in the command picker
+  argument-hint             # ghost placeholder after the command name (#3146)
+  allowed-tools             # tool permissions for the command invocation
+  disable-model-invocation  # observed in use by other installed plugins
+)
+
+# SKILL_ONLY: legitimately does not cross the transform. Assert ABSENT from the
+# command, so an accidental leak is caught too — this half is not decoration,
+# it is what makes each classification falsifiable in both directions.
+#
+# `model` note (UNVERIFIED as of 2026-07-26): 25 skills declare `model:` and 0
+# generated commands carry it. 470 command files from other installed plugins
+# were searched for a command-frontmatter `model:` and none was found, so there
+# is no evidence CC reads it from a command file. It is parked here rather than
+# in MUST_SURVIVE because changing the generator on a guess is how the original
+# bug shipped. To settle it: hand-add `model: haiku` to one generated command,
+# invoke it, and see which model answers. If CC honors it, move this key to
+# MUST_SURVIVE and teach the generator.
+SKILL_ONLY=(
+  name version author license tags complexity context compatibility
+  persuasion-type user-invocable triggers metadata skills paths hooks
+  effort agent invocation_hooks disallowed-tools model
+)
+
+in_list() { local n="$1"; shift; local x; for x in "$@"; do [[ "$x" == "$n" ]] && return 0; done; return 1; }
 
 # Print the value of a frontmatter key, or nothing when absent. Always exits 0
 # so it is safe under `set -e`.
@@ -45,15 +85,22 @@ fm_value() {
   ' "$1"
 }
 
+# Print every top-level frontmatter key in a file.
+fm_keys() {
+  awk '
+    NR==1 && $0=="---" { infm=1; next }
+    infm && $0=="---"  { exit }
+    infm && /^[a-zA-Z][a-zA-Z0-9_-]*:/ { sub(":.*", ""); print }
+  ' "$1"
+}
+
 echo "=========================================="
 echo "  Command frontmatter passthrough"
 echo "=========================================="
 echo ""
 
-fail=0
-checked=0
-skipped=0
-missing_report=""
+fail=0; checked=0; skipped=0; report=""
+unclassified=""
 
 for plugin_dir in "$ROOT"/plugins/*/; do
   cmd_dir="$plugin_dir/commands"
@@ -71,32 +118,67 @@ for plugin_dir in "$ROOT"/plugins/*/; do
       continue
     fi
 
-    for key in "${PASSTHROUGH_KEYS[@]}"; do
-      src_val="$(fm_value "$skill" "$key")"
-      # Only assert keys the SOURCE actually declares. allowed-tools has a
-      # generator default, so its absence upstream is legitimate.
-      [[ -n "$src_val" ]] || continue
-      checked=$((checked + 1))
-      cmd_val="$(fm_value "$cmd" "$key")"
-      if [[ -z "$cmd_val" ]]; then
-        fail=$((fail + 1))
-        missing_report+="  ${plugin}/${name}: '${key}' declared in SKILL.md but ABSENT from the generated command"$'\n'
-      elif [[ "$cmd_val" != "$src_val" ]]; then
-        fail=$((fail + 1))
-        missing_report+="  ${plugin}/${name}: '${key}' differs between layers"$'\n'
+    while read -r key; do
+      [[ -n "$key" ]] || continue
+
+      # --- the default-deny arm: an unknown key is a failure ---------------
+      if ! in_list "$key" "${MUST_SURVIVE[@]}" && ! in_list "$key" "${SKILL_ONLY[@]}"; then
+        case " $unclassified " in
+          *" $key "*) : ;;
+          *) unclassified+="$key " ;;
+        esac
+        continue
       fi
-    done
+
+      src_val="$(fm_value "$skill" "$key")"
+      cmd_val="$(fm_value "$cmd" "$key")"
+
+      if in_list "$key" "${MUST_SURVIVE[@]}"; then
+        # allowed-tools has a generator default, so absence upstream is legit.
+        [[ -n "$src_val" ]] || continue
+        checked=$((checked + 1))
+        if [[ -z "$cmd_val" ]]; then
+          fail=$((fail + 1))
+          report+="  ${plugin}/${name}: '${key}' declared in SKILL.md but ABSENT from the generated command"$'\n'
+        elif [[ "$cmd_val" != "$src_val" ]]; then
+          fail=$((fail + 1))
+          report+="  ${plugin}/${name}: '${key}' differs between layers"$'\n'
+        fi
+      else
+        # SKILL_ONLY — must NOT appear downstream.
+        checked=$((checked + 1))
+        if [[ -n "$cmd_val" ]]; then
+          fail=$((fail + 1))
+          report+="  ${plugin}/${name}: '${key}' is classified SKILL_ONLY but LEAKED into the command"$'\n'
+        fi
+      fi
+    done < <(fm_keys "$skill")
   done
 done
+
+unclassified_count=$(echo $unclassified | wc -w | tr -d ' ')
 
 echo "  field assertions checked : $checked"
 echo "  commands without a skill : $skipped"
 echo "  mismatches               : $fail"
+echo "  unclassified keys        : $unclassified_count"
 echo ""
 
+if [[ "$unclassified_count" -gt 0 ]]; then
+  echo -e "${RED}FAILED${NC} - frontmatter key(s) with no classification:"
+  for k in $unclassified; do echo "    $k"; done
+  echo ""
+  echo "  A key crossing this transform must be a deliberate decision, not a default."
+  echo "  Add each to exactly one list at the top of this file:"
+  echo "    MUST_SURVIVE - CC reads it from the command file (and teach"
+  echo "                   generate_command_from_skill() in scripts/build-plugins.sh)"
+  echo "    SKILL_ONLY   - it legitimately stops at the skill layer"
+  exit 1
+fi
+
 if [[ $fail -gt 0 ]]; then
-  echo -e "${RED}FAILED${NC} - the command generator dropped or altered frontmatter:"
-  printf '%b' "$missing_report"
+  echo -e "${RED}FAILED${NC} - the command generator dropped, altered, or leaked frontmatter:"
+  printf '%b' "$report"
   echo ""
   echo "Fix generate_command_from_skill() in scripts/build-plugins.sh, then rebuild."
   exit 1
@@ -109,5 +191,5 @@ if [[ $checked -eq 0 ]]; then
   exit 1
 fi
 
-echo -e "${GREEN}PASSED${NC} - every declared frontmatter key survives the skill to command transform"
+echo -e "${GREEN}PASSED${NC} - every declared frontmatter key is classified and lands on the correct side"
 exit 0

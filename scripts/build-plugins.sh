@@ -68,6 +68,13 @@ generate_command_from_skill() {
     # user-invocable skills declare one in source. Optional: emitted only when present.
     local argument_hint=$(echo "$frontmatter" | grep -E "^argument-hint:" | sed 's/^argument-hint: *//')
 
+    # Extract disable-model-invocation. Like argument-hint, CC reads this from the COMMAND
+    # file: it controls whether the model may auto-invoke the command or only the user can.
+    # 12 user-invocable skills declare it and none of the generated commands carried it, so
+    # every one of those was silently model-invocable. Found by the default-deny arm of
+    # tests/plugins/test-command-frontmatter-passthrough.sh. Optional: emitted when present.
+    local disable_model_invocation=$(echo "$frontmatter" | grep -E "^disable-model-invocation:" | sed 's/^disable-model-invocation: *//')
+
     # Default allowed tools if not specified
     if [[ -z "$allowed_tools" ]]; then
         allowed_tools="[Bash, Read, Write, Edit, Glob, Grep]"
@@ -78,6 +85,9 @@ generate_command_from_skill() {
         echo "---"
         echo "description: $description"
         [[ -n "$argument_hint" ]] && echo "argument-hint: $argument_hint"
+        if [[ -n "$disable_model_invocation" ]]; then
+            echo "disable-model-invocation: $disable_model_invocation"
+        fi
         echo "allowed-tools: $allowed_tools"
         echo "---"
         echo ""

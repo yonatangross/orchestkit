@@ -1,6 +1,7 @@
 ---
 description: Audits OrchestKit sub-agent activation from real spawn telemetry — computes the generic-vs-specialist spawn split, flags dormant agents (never fired), and classifies each as fires/mis-triggered/niche. The agent-side analogue of audit-skills. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths.
 argument-hint: "[--json]"
+disable-model-invocation: true
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 
