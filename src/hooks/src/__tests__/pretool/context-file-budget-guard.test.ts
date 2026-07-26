@@ -92,10 +92,10 @@ describe('context-file-budget-guard', () => {
     // File just under budget; the edit's new_string is small but the
     // replacement expands one occurrence enough to cross the line.
     const filePath = join(dir, 'MEMORY.md');
-    const base = 'HEADER\n' + 'z'.repeat(17 * 1024 - 100);
+    const base = `HEADER\n${'z'.repeat(17 * 1024 - 100)}`;
     writeFileSync(filePath, base);
     const result = contextFileBudgetGuard(
-      editInput(filePath, 'HEADER', 'HEADER' + 'w'.repeat(200)),
+      editInput(filePath, 'HEADER', `HEADER${'w'.repeat(200)}`),
     );
     expect(isAsk(result)).toBe(true);
   });
@@ -103,10 +103,10 @@ describe('context-file-budget-guard', () => {
   it('projects replace_all correctly (every occurrence counts)', () => {
     const filePath = join(dir, 'MEMORY.md');
     // 100 occurrences of a marker; each grows by 160 bytes on replace_all.
-    const base = Array.from({ length: 100 }, () => 'MARK\n').join('') + 'z'.repeat(1024);
+    const base = `${Array.from({ length: 100 }, () => 'MARK\n').join('')}${'z'.repeat(1024)}`;
     writeFileSync(filePath, base);
     const result = contextFileBudgetGuard(
-      editInput(filePath, 'MARK', 'MARK' + 'w'.repeat(160), true),
+      editInput(filePath, 'MARK', `MARK${'w'.repeat(160)}`, true),
     );
     // 100 * 160 = 16000 extra bytes + ~1.5KB base ≈ 17.5KB -> over
     expect(isAsk(result)).toBe(true);
@@ -114,7 +114,7 @@ describe('context-file-budget-guard', () => {
     // Single-occurrence replace of the same strings stays under: proves the
     // projection distinguishes replace_all from single replace.
     const single = contextFileBudgetGuard(
-      editInput(filePath, 'MARK', 'MARK' + 'w'.repeat(160), false),
+      editInput(filePath, 'MARK', `MARK${'w'.repeat(160)}`, false),
     );
     expect(isAsk(single)).toBe(false);
   });

@@ -428,7 +428,11 @@ describe('Cross-Bundle Consistency', () => {
     // 200 -> 201: pretool/task/workflow-agenttype-advisor — M170/#3126, nudges
     //             untyped Workflow() agent() stages toward the specialist
     //             catalog (workflow-internal spawns = largest generic bucket).
-    expect(totalHooks).toBe(201);
+    // 201 -> 202: pretool/write-edit/context-file-budget-guard — retro-hardening
+    //             mechanism 6. Projects post-write byte size of MEMORY.md /
+    //             CLAUDE.md and ASKs over budget, before the write lands
+    //             (the prior control was post-hoc CI only).
+    expect(totalHooks).toBe(202);
   });
 });
 
