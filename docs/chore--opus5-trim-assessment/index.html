@@ -85,7 +85,8 @@
   summary::-webkit-details-marker{display:none}
   summary::before{content:"▸ ";color:var(--pg-accent)}
   details[open] summary::before{content:"▾ "}
-  .mermaid{background:hsl(232 30% 4% / .55);border:1px solid hsl(0 0% 100% / .10);border-radius:var(--r-md);padding:20px;margin-top:12px;text-align:center}
+  .mermaid{background:hsl(232 30% 4% / .55);border:1px solid hsl(0 0% 100% / .10);border-radius:var(--r-md);padding:20px;margin-top:12px;text-align:center;overflow-x:auto}
+  .mermaid svg{max-width:100%;height:auto}
   ul{margin:8px 0;padding-left:20px} li{margin:5px 0}
   .keep{border-left:2px solid var(--pg-good);padding-left:12px;margin:10px 0}
   hr{border:0;border-top:1px solid hsl(0 0% 100% / .09);margin:48px 0}
@@ -151,21 +152,20 @@
 
   <h2>2 · Where the tokens actually are</h2>
   <div class="mermaid">
-%%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-monospace,Menlo,monospace','fontSize':'13px'}}}%%
 flowchart LR
-  subgraph B["BEFORE · 9,977 tok / session"]
-    B1["Skill index<br/>59 skills<br/>5,867 tok"]
-    B2["Agent descriptions<br/>36 agents<br/>1,329 tok"]
-    B3["CLAUDE.md<br/>1,156 tok"]
-    B4["MEMORY.md<br/>950 tok"]
-    B5["path-less rules<br/>675 tok"]
+  subgraph B["BEFORE &nbsp; 9,977 tok"]
+    B1["Skill index &nbsp; 59 skills<br/>5,867 tok"]
+    B2["Agent descriptions &nbsp; 36<br/>1,329 tok"]
+    B3["CLAUDE.md &nbsp; 1,156 tok"]
+    B4["MEMORY.md &nbsp; 950 tok"]
+    B5["path-less rules &nbsp; 675 tok"]
   end
-  subgraph A["AFTER · 8,109 tok / session"]
-    A1["Skill index<br/>56 skills<br/>4,225 tok"]
-    A2["Agent descriptions<br/>UNCHANGED<br/>1,329 tok"]
-    A3["CLAUDE.md<br/>1,080 tok"]
-    A4["MEMORY.md<br/>950 tok"]
-    A5["path-less rules<br/>525 tok"]
+  subgraph A["AFTER &nbsp; 8,109 tok"]
+    A1["Skill index &nbsp; 56 skills<br/>4,225 tok"]
+    A2["Agent descriptions &nbsp; 36<br/>1,329 tok"]
+    A3["CLAUDE.md &nbsp; 1,080 tok"]
+    A4["MEMORY.md &nbsp; 950 tok"]
+    A5["path-less rules &nbsp; 525 tok"]
   end
   B1 -->|"-1,642"| A1
   B2 -->|"0 · refuted"| A2
@@ -407,15 +407,14 @@ the only reason this check has to exist.
 
   <h2>6 · Execution plan</h2>
   <div class="mermaid">
-%%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-monospace,Menlo,monospace','fontSize':'13px'}}}%%
 flowchart TD
-  W0["WAVE 0 · Fix 5 shipped bugs<br/>~0 bytes · highest value"]
+  W0["WAVE 0 &nbsp; Fix 5 shipped bugs<br/>~0 bytes, highest value"]
   T1["Add the 2 missing gates<br/>tool-coverage + reachability"]
-  W1["WAVE 1 · Zero-risk deletions<br/>9 orphans + boilerplate<br/>-322 KB"]
+  W1["WAVE 1 &nbsp; Zero-risk deletions<br/>9 orphans + boilerplate<br/>-322 KB"]
   M["MEASURE<br/>re-baseline the token gate"]
-  W3["WAVE 3 · Index rewrites<br/>-6,400 B index · -1,600 tok"]
-  W2["WAVE 2 · Merges LAST<br/>needs agent frontmatter surgery<br/>-505 KB"]
-  W4["WAVE 4 · ban-voice to judgement-voice<br/>anytime"]
+  W3["WAVE 3 &nbsp; Index rewrites<br/>-6,400 B, -1,600 tok"]
+  W2["WAVE 2 &nbsp; Merges LAST<br/>needs agent frontmatter surgery<br/>-505 KB"]
+  W4["WAVE 4 &nbsp; ban to judgement voice<br/>anytime"]
   W0 --> T1 --> W1 --> M --> W3 --> W2
   W4 -.-> M
   classDef crit fill:#3d1f28,stroke:#e0475f,color:#f5e8ea
@@ -480,14 +479,13 @@ flowchart TD
 
   <h2>9 · How this was produced</h2>
   <div class="mermaid">
-%%{init:{'theme':'base','themeVariables':{'fontFamily':'ui-monospace,Menlo,monospace','fontSize':'13px'}}}%%
 flowchart LR
   E["Evidence pack<br/>telemetry + byte math<br/>gathered inline"]
-  subgraph AU["Audit · 7 parallel dimensions"]
+  subgraph AU["Audit &nbsp; 7 parallel dimensions"]
     D1[rules]; D2[live-skills]; D3[agents]
     D4[deadweight]; D5[index-tax]; D6[anachronism]; D7[overlap]
   end
-  subgraph VE["Verify · adversarial, default = auditor is wrong"]
+  subgraph VE["Verify &nbsp; adversarial, default = auditor is wrong"]
     V["8 refuters<br/>open the files<br/>re-check every quote"]
   end
   S["Synthesis<br/>drop everything refuted"]
@@ -525,7 +523,9 @@ flowchart LR
 </div>
 <script>
   mermaid.initialize({startOnLoad:true, theme:'base', securityLevel:'loose',
+    flowchart:{ useMaxWidth:false, htmlLabels:true, nodeSpacing:44, rankSpacing:56, padding:16 },
     themeVariables:{
+      fontFamily:'ui-sans-serif,-apple-system,Segoe UI,Inter,sans-serif', fontSize:'14px',
       background:'transparent', primaryColor:'#1c2333', primaryTextColor:'#e8e6f0',
       primaryBorderColor:'#4a5568', lineColor:'#7c6cf0', secondaryColor:'#2a1f3d',
       tertiaryColor:'#1f3d2b', clusterBkg:'hsl(0 0% 100% / .03)', clusterBorder:'#4a5568'
