@@ -98,6 +98,24 @@ describe('visual-style-nudge', () => {
     expect(() => visualStyleNudge(prompt('what is the status here', evil))).not.toThrow();
   });
 
+  it('REGRESSION: consecutive fires emit DIFFERENT text (defeats dispatcher delta-skip)', () => {
+    // unified-dispatcher runs delta detection on the consolidated context and
+    // silently drops a turn whose output is byte-identical to the previous one
+    // (unified-dispatcher.ts, prompt-hash.txt). A constant message is therefore
+    // injected exactly ONCE per session and every later re-anchor is swallowed,
+    // reproducing the decay this hook exists to fix. Measured through the real
+    // dispatcher before the fix: 1/20 fires. After: 3/20, at prompts 1/9/17.
+    const sid = 'delta-skip';
+    const messages: string[] = [];
+    for (let i = 0; i < 17; i++) {
+      const r = visualStyleNudge(prompt('what is the status of things', sid));
+      const c = (r.hookSpecificOutput as { additionalContext?: string })?.additionalContext;
+      if (c) messages.push(c);
+    }
+    expect(messages.length).toBeGreaterThan(1); // it re-anchors at all
+    expect(new Set(messages).size).toBe(messages.length); // and never repeats itself
+  });
+
   it('names the sub-agent non-inheritance caveat (the second diagnosed gap)', () => {
     const r = visualStyleNudge(prompt('show me the comparison please', 'caveat-1'));
     const out = r.hookSpecificOutput as { additionalContext?: string };

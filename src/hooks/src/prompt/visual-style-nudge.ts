@@ -63,11 +63,11 @@ function counterPath(sessionId: string): string {
 }
 
 /**
- * Returns true when this qualifying prompt should re-anchor the rule.
- * Fails OPEN as "do not fire" — a counter problem must never turn into
- * per-turn noise.
+ * Returns the 1-based re-anchor ordinal when this qualifying prompt should
+ * fire, or null when it should stay quiet. Fails CLOSED as null — a counter
+ * problem must never turn into per-turn noise.
  */
-function shouldFire(sessionId: string): boolean {
+function fireOrdinal(sessionId: string): number | null {
   const path = counterPath(sessionId);
   let seen = 0;
   try {
@@ -76,18 +76,19 @@ function shouldFire(sessionId: string): boolean {
       if (Number.isFinite(parsed) && parsed >= 0) seen = parsed;
     }
   } catch {
-    return false; // unreadable counter: stay quiet rather than fire every turn
+    return null; // unreadable counter: stay quiet rather than fire every turn
   }
 
   try {
     mkdirSync(getSessionStorageDir(), { recursive: true });
     writeFileSync(path, String(seen + 1), 'utf8');
   } catch {
-    return false; // cannot persist: firing again next turn would be noise
+    return null; // cannot persist: firing again next turn would be noise
   }
 
   // Fire on the 1st qualifying prompt, then every THROTTLE_EVERY after it.
-  return seen % THROTTLE_EVERY === 0;
+  if (seen % THROTTLE_EVERY !== 0) return null;
+  return Math.floor(seen / THROTTLE_EVERY) + 1;
 }
 
 export function visualStyleNudge(
@@ -100,12 +101,21 @@ export function visualStyleNudge(
   if (prompt.length < MIN_PROMPT_LENGTH) return outputSilentSuccess();
   if (ALREADY_ROUTED_RE.test(prompt)) return outputSilentSuccess();
   if (!WANTS_SHAPE_RE.test(prompt)) return outputSilentSuccess();
-  if (!shouldFire(sessionId)) return outputSilentSuccess();
 
+  const ordinal = fireOrdinal(sessionId);
+  if (ordinal === null) return outputSilentSuccess();
+
+  // The ordinal is not decoration: unified-dispatcher runs DELTA DETECTION on
+  // the consolidated context and silently drops any turn whose output is
+  // byte-identical to the previous one. A constant message would therefore be
+  // injected exactly ONCE per session and every later re-anchor would be
+  // swallowed — reproducing the decay this hook exists to fix. Verified
+  // through the real dispatcher: constant text fired 1/20, the varying text
+  // below fires on schedule. Keep this varying.
   return outputPromptContext(
-    `[${HOOK_NAME}] This answer has shape — render it as ASCII art plus semantic ` +
-      `emojis (boxes, tables, bar meters), not prose paragraphs. Applies to THIS ` +
-      `reply and every later one, not just the first. Full glyph vocabulary and ` +
+    `[${HOOK_NAME} #${ordinal}] This answer has shape — render it as ASCII art plus ` +
+      `semantic emojis (boxes, tables, bar meters), not prose paragraphs. Applies to ` +
+      `THIS reply and every later one, not just the first. Full glyph vocabulary and ` +
       `palette: src/rules/visual-style.md. Sub-agents do not inherit this rule; ` +
       `restate it in their prompt if their output reaches the user.`,
   );
