@@ -60,6 +60,44 @@ VOCAB = {
 }
 
 
+# The ASCII Palette from src/rules/visual-style.md is a SEPARATE vocabulary from
+# the Twelve-Glyph emoji list above. The rule sanctions box drawing, dividers,
+# arrows and progress blocks for diagrams; the emoji vocabulary does not govern
+# them and must not be used to reject them.
+#
+# They collide only because `unicodedata.category()` returns "So" (Symbol-other)
+# for box-drawing characters exactly as it does for emoji, so the classifier
+# below cannot tell "┌" from "🔔" without this table. Measured 2026-07-26: that
+# collision rejected a PR body containing a plain file-tree diagram, in a repo
+# whose own rule says "ASCII boxes, tables, diagrams — all encouraged".
+#
+# Ranges, not literals, so the file stays pure ASCII. Dingbats (U+2700-27BF) are
+# deliberately EXCLUDED: that is where the U+2713/U+2717 check marks live, and
+# the rule redirects those to the white-check / red-X from VOCAB.
+ASCII_PALETTE_RANGES = (
+    (0x2500, 0x257F),  # Box Drawing    ┌ ─ ┐ │ └ ┘ ├ ┤ ┬ ┴ ┼ ╔ ═ ╗ ║ ╚ ╝ ╭ ╮ ╰ ╯
+    (0x2580, 0x259F),  # Block Elements █ ▓ ▒ ░ and the eighth-block bar meters
+)
+
+# Geometric-shape members of the palette's "Arrows" and "Bullets" rows. Listed
+# individually because U+25A0-25FF also holds shapes the rule does not sanction.
+ASCII_PALETTE_CHARS = frozenset(
+    (
+        "▶",  # black right-pointing triangle (arrow)
+        "◀",  # black left-pointing triangle (arrow)
+        "◦",  # white bullet
+    )
+)
+
+
+def in_ascii_palette(ch: str) -> bool:
+    """True when the rule's ASCII Palette governs this character, not the emoji vocabulary."""
+    if ch in ASCII_PALETTE_CHARS:
+        return True
+    cp = ord(ch)
+    return any(lo <= cp <= hi for lo, hi in ASCII_PALETTE_RANGES)
+
+
 def is_emoji(ch: str) -> bool:
     """Match the workflow's classifier exactly: Symbol-other, or >= U+1F000."""
     return unicodedata.category(ch) == "So" or ord(ch) >= 0x1F000
@@ -70,6 +108,10 @@ def find_violations(text: str, mode: str) -> list[str]:
     found: set[str] = set()
     for ch in text:
         if mode == "body" and ch in VOCAB:
+            continue
+        # Titles stay strict: the rule's per-surface table forbids BOTH emoji and
+        # ASCII art in PR titles, so the palette exemption is body-only.
+        if mode == "body" and in_ascii_palette(ch):
             continue
         if is_emoji(ch):
             found.add(ch)

@@ -85,9 +85,17 @@ Hard 4800-byte cap enforced by `tests/perf/test-token-overhead.sh`. Box-drawing 
 - **Allowed:** one emoji per H2 heading.
 - **Forbidden:** ASCII boxes, multi-line diagrams, decorative dividers. Extract to `docs/<topic>.md` with a one-line pointer.
 
+### ✅ PR bodies
+
+GitHub renders these natively, same as README. ASCII diagrams from the palette above are encouraged — a before/after box or a file tree carries a review point faster than a paragraph. Emoji are limited to the twelve-glyph vocabulary.
+
+Enforced by `bin/validate-visual-style.py --mode body` in the Visual-Style PR Lint check. The palette and the emoji vocabulary are two separate lists: box drawing, dividers, arrows and progress blocks are governed by **ASCII Palette**, everything emoji by **The Twelve-Glyph Vocabulary**. The validator once conflated them (both report Unicode category `So`) and rejected plain box-drawn diagrams; keep the two tables distinct when editing either.
+
 ### ❌ Code, commit messages, PR titles
 
 No emoji. No ASCII art. Conventional Commits stays plain (`feat:`, `fix:`, etc.) — the type prefix is already the signal. Code comments stay plain so grep stays useful.
+
+The PR **title** is the strict surface; the PR **body** is not. `--mode title` rejects every non-ASCII symbol including the palette, which is why a diagram belongs in the body.
 
 ## Greppability Contract
 

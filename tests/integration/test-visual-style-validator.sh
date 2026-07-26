@@ -72,6 +72,36 @@ else
   log_fail "body dingbat" "expected exit 1 for U+2713/U+2717"
 fi
 
+# --- ASCII Palette vs emoji vocabulary --------------------------------------
+# Regression guard. Box drawing reports Unicode category "So" exactly as emoji
+# do, so the classifier used to reject a plain file-tree diagram in a PR body —
+# in a repo whose own rule calls ASCII diagrams encouraged. The palette and the
+# twelve-glyph vocabulary are separate lists; body mode must honour both.
+BOX_TREE=$(printf 'tree:\n  \\u2514\\u2500 a.ts\n  \\u251c\\u2500 b.ts')
+printf '%b' "$BOX_TREE" > "$WORK/body-box.txt"
+if [ "$(run_validator --mode body "$WORK/body-box.txt")" = "0" ]; then
+  log_pass "body: box-drawing diagram passes (ASCII Palette, not emoji)"
+else
+  log_fail "body box-drawing" "expected exit 0 — palette chars are not emoji"
+fi
+
+BOX_FULL=$(printf '\\u250c\\u2500\\u2510\n\\u2502 \\u2588\\u2588\\u2591\\u2591 \\u2502\n\\u2514\\u2500\\u2518')
+printf '%b' "$BOX_FULL" > "$WORK/body-bars.txt"
+if [ "$(run_validator --mode body "$WORK/body-bars.txt")" = "0" ]; then
+  log_pass "body: box borders + progress blocks pass"
+else
+  log_fail "body blocks" "expected exit 0 for U+2500-257F and U+2580-259F"
+fi
+
+# The palette exemption is body-only: the per-surface table forbids BOTH emoji
+# and ASCII art in PR titles, so the same characters must still fail there.
+printf 'fix: %b' "$(printf '\\u250c\\u2500\\u2510')" > "$WORK/title-box.txt"
+if [ "$(run_validator --mode title "$WORK/title-box.txt")" = "1" ]; then
+  log_pass "title: box-drawing still fails (palette exemption is body-only)"
+else
+  log_fail "title box-drawing" "expected exit 1 — titles stay plain ASCII"
+fi
+
 # --env input path (used by the CI workflow)
 if PR_BODY="clean body, no glyphs" python3 "$VALIDATOR" --mode body --env PR_BODY >/dev/null 2>&1; then
   log_pass "body: --env input path works (CI invocation shape)"

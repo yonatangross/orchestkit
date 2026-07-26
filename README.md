@@ -211,6 +211,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.1.1](https://github.com/yonatangross/orchestkit/compare/v9.1.0...v9.1.1)** · 2026-07-26
+
+- sync README and changelog data to v9.1.0 (#3167)
+
 **[v9.1.0](https://github.com/yonatangross/orchestkit/compare/v9.0.2...v9.1.0)** · 2026-07-26
 
 - retro-hardening mechanisms 5+6 (invocability check, byte-budget guard) (#3161)
@@ -258,13 +262,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** scope What's New --check to PRs, refresh for 8.84.8 (#3113)
 - **review:** allow the release bot to trigger a review (#3114)
 - **review:** skip auto-label on Dependabot PRs (no secret access) (#3116)
-
-**[v8.84.8](https://github.com/yonatangross/orchestkit/compare/v8.84.7...v8.84.8)** · 2026-07-23
-
-- **hooks:** stop denying local data piped to an interpreter (#3097)
-- **security:** remove privesc in release regen, tighten allowlist (#3102)
-- **demos:** make renderer check gate-able, split remotion bumps (#3105)
-- **review:** auto-run Claude review on sensitive PRs, ban dead gates (#3104)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

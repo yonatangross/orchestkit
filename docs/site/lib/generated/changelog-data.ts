@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "9.1.1",
+    "date": "2026-07-26",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "sync README and changelog data to v9.1.0 ([#3167](https://github.com/yonatangross/orchestkit/issues/3167)) ([5694f4b](https://github.com/yonatangross/orchestkit/commit/5694f4b3a2b1de1857e3fd71fdaf45b9aeeeb07c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "9.1.0",
     "date": "2026-07-26",
     "compareUrl": "",
