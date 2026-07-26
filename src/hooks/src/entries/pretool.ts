@@ -34,6 +34,7 @@ import { ghMilestoneEnforcer } from '../pretool/bash/gh-milestone-enforcer.js';
 
 // PreTool/Write-Edit hooks (2)
 import { contentSecretScanner } from '../pretool/write-edit/content-secret-scanner.js';
+import { contextFileBudgetGuard } from '../pretool/write-edit/context-file-budget-guard.js';
 import { fileGuard } from '../pretool/write-edit/file-guard.js';
 
 // PreTool/Write hooks (4)
@@ -111,6 +112,7 @@ export const hooks: Record<string, HookFn> = {
 
   // PreTool/Write-Edit hooks (2)
   'pretool/write-edit/content-secret-scanner': contentSecretScanner,
+  'pretool/write-edit/context-file-budget-guard': contextFileBudgetGuard,
   'pretool/write-edit/file-guard': fileGuard,
 
   // PreTool/Write hooks (4)

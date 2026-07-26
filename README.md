@@ -211,6 +211,17 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.0.2](https://github.com/yonatangross/orchestkit/compare/v9.0.1...v9.0.2)** · 2026-07-26
+
+- **ci:** remove the Claude PR Review workflow and its labeler (#3159)
+
+**[v9.0.1](https://github.com/yonatangross/orchestkit/compare/v9.0.0...v9.0.1)** · 2026-07-26
+
+- bound rotated analytics archives, unstale the CC floor (#3156)
+- **build:** default-deny frontmatter gate, pass all 10 fields (#3158)
+- **readme:** refresh What's New for 9.0.0 and isolate the RTL table cell (#3153)
+- **cc-watch:** snapshot upstream CHANGELOG (2.1.220) (#3155)
+
 **[v9.0.0](https://github.com/yonatangross/orchestkit/compare/v8.85.0...v9.0.0)** · 2026-07-25
 
 - **cc:** the Claude Code support floor is now 2.1.220. Claude Code 2.1.206 through 2.1.219 are no longer supported; hooks and skills may no-op or error on them, and that is not treated as a bug. Upgrade Claude Code before updating OrchestKit.
@@ -252,17 +263,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v8.84.7](https://github.com/yonatangross/orchestkit/compare/v8.84.6...v8.84.7)** · 2026-07-23
 
 - **demos:** repair the Remotion renderer, validate it pre-merge (#3099)
-
-**[v8.84.6](https://github.com/yonatangross/orchestkit/compare/v8.84.5...v8.84.6)** · 2026-07-23
-
-- **cc-watch:** snapshot upstream CHANGELOG (2.1.218) (#3094)
-- **readme:** auto-generate What's New from CHANGELOG (#3096)
-
-**[v8.84.5](https://github.com/yonatangross/orchestkit/compare/v8.84.4...v8.84.5)** · 2026-07-22
-
-- **ci:** scope Claude workflow tools, gate triage on author (#3085)
-- **security:** audit all four trees in CI, pin sharp (#3090)
-- **security:** correct audit-gate id reporting, allowlist hono (#3087)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

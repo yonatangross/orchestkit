@@ -24,6 +24,7 @@ import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } 
 // Import consolidated hook implementations
 import { contentSecretScanner } from './content-secret-scanner.js';
 import { fileGuard } from './file-guard.js';
+import { contextFileBudgetGuard } from './context-file-budget-guard.js';
 import { dependencyConfusionScanner } from './dependency-confusion-scanner.js';
 import { writeHeaders } from '../input-mod/write-headers.js';
 import { unifiedWriteEditQualityDispatcher } from './unified-quality-dispatcher.js';
@@ -43,6 +44,7 @@ interface WriteEditHookConfig {
 const WRITE_EDIT_HOOKS: WriteEditHookConfig[] = [
   { name: 'content-secret-scanner', fn: contentSecretScanner },
   { name: 'file-guard', fn: fileGuard },
+  { name: 'context-file-budget-guard', fn: contextFileBudgetGuard },
   { name: 'dependency-confusion-scanner', fn: dependencyConfusionScanner },
   { name: 'write-headers', fn: writeHeaders },
   { name: 'unified-quality-dispatcher', fn: unifiedWriteEditQualityDispatcher },
