@@ -24,6 +24,7 @@
 import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, outputAllowWithContext, outputAsk } from '../../lib/common.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { isBypassMode } from '../../lib/guards.js';
 
 const HOOK_NAME = 'task-agent-advisor';
 
@@ -165,8 +166,18 @@ export function taskAgentAdvisor(input: HookInput, ctx: HookContext = NOOP_CTX):
       // narrow, so genuinely multi-domain tasks don't match and never reach
       // here; if a match is a false positive, the user simply approves
       // general-purpose. Never a hard `deny` — keeps the human in the loop.
+      //
+      // ...except under bypassPermissions, where there IS no human in the loop
+      // by the user's own choice. Degrade the prompt to the advisory note it
+      // used to be rather than blocking an unattended run on a routing
+      // preference. See isBypassMode().
+      if (isBypassMode(input)) {
+        return outputAllowWithContext(
+          `This task matches \`${specialist}\`'s domain, prefer it over \`general-purpose\`.`,
+        );
+      }
       return outputAsk(
-        `This task matches \`${specialist}\`'s domain — prefer it over \`general-purpose\` ` +
+        `This task matches \`${specialist}\`'s domain, prefer it over \`general-purpose\` ` +
           `(curated system prompt + scoped tools spawn the right specialist). ` +
           `Approve \`general-purpose\` only if the task genuinely spans multiple domains.`,
       );

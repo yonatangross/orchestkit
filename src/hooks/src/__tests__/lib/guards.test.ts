@@ -35,6 +35,7 @@ import {
   runGuards,
   isDontAskMode,
   isAutoMode,
+  isBypassMode,
 } from '../../lib/guards.js';
 import type { GuardResult } from '../../lib/guards.js';
 import type { HookInput } from '../../types.js';
@@ -455,5 +456,33 @@ describe('isAutoMode', () => {
 
   it('returns false for default mode', () => {
     expect(isAutoMode(makeInput({ permissionMode: 'default' }))).toBe(false);
+  });
+});
+
+describe('isBypassMode', () => {
+  it('returns true for bypassPermissions (--dangerously-skip-permissions)', () => {
+    expect(isBypassMode(makeInput({ permissionMode: 'bypassPermissions' }))).toBe(true);
+  });
+
+  it('returns false for every other mode', () => {
+    for (const mode of ['default', 'acceptEdits', 'auto', 'dontAsk', 'manual', 'plan'] as const) {
+      expect(isBypassMode(makeInput({ permissionMode: mode })), mode).toBe(false);
+    }
+  });
+
+  it('returns false when permissionMode is absent', () => {
+    expect(isBypassMode(makeInput())).toBe(false);
+  });
+
+  it('reads a snake_case permission_mode key as a fallback', () => {
+    const input = makeInput();
+    (input as unknown as Record<string, unknown>).permission_mode = 'bypassPermissions';
+    expect(isBypassMode(input)).toBe(true);
+  });
+
+  it('does not treat an arbitrary snake_case value as bypass', () => {
+    const input = makeInput();
+    (input as unknown as Record<string, unknown>).permission_mode = 'default';
+    expect(isBypassMode(input)).toBe(false);
   });
 });

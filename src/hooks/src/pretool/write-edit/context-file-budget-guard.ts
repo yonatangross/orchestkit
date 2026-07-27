@@ -32,6 +32,7 @@ import { outputSilentSuccess, outputAsk, logHook } from '../../lib/common.js';
 import { readFileSync, existsSync } from 'node:fs';
 import { basename } from 'node:path';
 import { NOOP_CTX } from '../../lib/context.js';
+import { isBypassMode } from '../../lib/guards.js';
 
 const HOOK_NAME = 'context-file-budget-guard';
 
@@ -97,6 +98,10 @@ function projectSize(input: HookInput): number | null {
 }
 
 export function contextFileBudgetGuard(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  // Confirmation-only hook: nothing here denies, so it is entirely skipped when
+  // the user ran `--dangerously-skip-permissions`. See isBypassMode().
+  if (isBypassMode(input)) return outputSilentSuccess();
+
   const ti = input.tool_input as { file_path?: string };
   const filePath = ti?.file_path;
   if (!filePath) return outputSilentSuccess();

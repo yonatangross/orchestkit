@@ -5,9 +5,13 @@
  * CC 2.1.69: Added "ask" decision tier for gray-zone commands
  *
  * Tiers:
- *   DENY  — catastrophic, never legitimate (rm -rf /, fork bomb, DROP DATABASE)
- *   ASK   — dangerous but sometimes legitimate (git reset --hard, sudo, kill)
- *   ALLOW — everything else (silent pass-through)
+ *   DENY  : catastrophic, never legitimate (rm -rf /, fork bomb, DROP DATABASE)
+ *   ASK   : dangerous but sometimes legitimate (git reset --hard, sudo, kill -9)
+ *   ALLOW : everything else (silent pass-through)
+ *
+ * DENY applies in every permission mode. ASK is skipped under
+ * `bypassPermissions` (`--dangerously-skip-permissions`). See the gate in the
+ * handler.
  */
 
 import type { HookInput, HookResult , HookContext} from '../../types.js';
@@ -22,6 +26,7 @@ import {
   normalizeSingle,
 } from '../../lib/normalize-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { isBypassMode } from '../../lib/guards.js';
 
 // =============================================================================
 // DENY tier — catastrophic system damage, NEVER legitimate
@@ -71,10 +76,10 @@ const DENY_REGEX_PATTERNS: { pattern: RegExp; label: string }[] = [
 // COMPOSE BOUNDARY (CC 2.1.183): CC now natively BLOCKS destructive git
 // (`reset --hard`, `checkout -- .`, `clean -fd`, `stash drop`), non-agent
 // `commit --amend`, and `terraform`/`pulumi`/`cdk destroy` — but ONLY in auto
-// mode, as an unattended backstop. This hook fires in EVERY permission mode at
-// PreToolUse, so the two compose: native auto-mode block is the headless safety
-// net; this ASK tier gives interactive users the confirmation prompt native
-// auto-mode skips. We mirror CC's discard-risk set below for interactive parity
+// mode, as an unattended backstop. This hook fires at PreToolUse in every mode
+// except bypassPermissions (gated in the handler), so the two compose: native
+// auto-mode block is the headless safety net; this ASK tier gives interactive
+// users the confirmation prompt native auto-mode skips. We mirror CC's discard-risk set below for interactive parity
 // (and keep force-push/sudo/kill, which native auto-mode blocking does not cover).
 // `commit --amend` is intentionally NOT mirrored: a stateless PreToolUse hook
 // can't tell "made by the agent this session" from a legitimate amend, so it is
@@ -121,10 +126,9 @@ const ASK_REGEX_PATTERNS: { pattern: RegExp; reason: string }[] = [
     pattern: /\bsudo\s+/i,
     reason: 'Elevated privileges requested. Are you sure?',
   },
-  {
-    pattern: /\b(kill|pkill|killall)\s+/i,
-    reason: 'Terminates running processes. Are you sure?',
-  },
+  // Process termination is NOT here. See processTerminationAsk(), which needs
+  // to reason about how many processes a target can match, and that does not
+  // reduce to one readable regex.
   {
     pattern: /\bdocker\s+system\s+prune\b/i,
     reason: 'Removes all unused Docker resources. Are you sure?',
@@ -134,6 +138,76 @@ const ASK_REGEX_PATTERNS: { pattern: RegExp; reason: string }[] = [
     reason: 'Removes all installed dependencies. Are you sure?',
   },
 ];
+
+// -----------------------------------------------------------------------------
+// ASK tier: process termination
+//
+// The old rule was a bare `\b(kill|pkill|killall)\s+`: every form of every
+// command, no exceptions. It fired on `pkill -f my-test-script.sh`, an agent
+// cleaning up a process it started itself one line earlier, which made it the
+// noisiest entry in the tier by a wide margin.
+//
+// Dropping it wholesale would be wrong in the other direction: on a machine
+// running 15 Claude Code sessions, `pkill node` takes out all of them. So the
+// question is not "is this a kill" but "how many processes can this match, and
+// can they clean up":
+//
+//   ASK   killall <name>              name-based; hits EVERY match, always broad
+//   ASK   kill -9 / pkill -SIGKILL    uncatchable; target loses unflushed state
+//   ASK   pkill -u <user>             every process owned by a user
+//   ASK   pkill node                  bare name; matches every node process
+//   ALLOW pkill -f ./scripts/dev.sh   -f with a path/script target: precise
+//   ALLOW kill 12345                  one known pid, graceful TERM
+//
+// The `-f`-with-a-specific-target carve-out is the whole point: `-f` matches
+// against the FULL command line, so a target carrying a `/` or a script
+// extension identifies one program rather than a class of them.
+// -----------------------------------------------------------------------------
+
+/** SIGKILL in any spelling. Cannot be trapped, so the target cannot clean up. */
+const FORCE_SIGNAL_RE = /\s-(9|kill|sigkill)\b/i;
+
+/**
+ * A `pkill -f` target precise enough to name one program: it contains a path
+ * separator or a script extension. `-f ./scripts/dev.sh`, `-f node dist/x.mjs`
+ * and `-f test-model-recency.sh` qualify; `-f node` does not.
+ */
+const SPECIFIC_KILL_TARGET_RE = /\s-f\s[^&|;]*(\/|\.(sh|bash|zsh|js|cjs|mjs|ts|tsx|py|rb|go|jar|php|pl))\b/i;
+
+/**
+ * Returns an ASK reason for a process-termination command, or null to allow.
+ *
+ * `command` is the normalized, lowercased command (see normalizeSingle), so
+ * every pattern here can assume lowercase input; the `/i` flags are belt and
+ * braces for direct callers in tests.
+ */
+export function processTerminationAsk(command: string): string | null {
+  // killall is broad by construction: it takes a name, not a pid, and signals
+  // every process matching it. No carve-out.
+  if (/\bkillall\b/i.test(command)) {
+    return 'Terminates every process matching that name. Are you sure?';
+  }
+
+  // Scope to the kill/pkill segment of a compound command so flags belonging to
+  // a neighbouring command cannot be read as this one's.
+  const segment = command.match(/\b(kill|pkill)\b[^&|;]*/i)?.[0];
+  if (!segment) return null;
+
+  if (FORCE_SIGNAL_RE.test(segment)) {
+    return 'Force-kills (SIGKILL), so the target cannot clean up. Are you sure?';
+  }
+
+  // `kill` takes pids: one explicit target, already known to the caller.
+  if (/\bkill\b/i.test(segment) && !/\bpkill\b/i.test(segment)) return null;
+
+  if (/\s-u\s/i.test(segment)) {
+    return 'Terminates every process owned by a user. Are you sure?';
+  }
+
+  if (SPECIFIC_KILL_TARGET_RE.test(segment)) return null;
+
+  return 'Terminates every process matching that pattern. Are you sure?';
+}
 
 /**
  * Shell interpreters that should never receive piped input.
@@ -340,6 +414,19 @@ export function dangerousCommandBlocker(input: HookInput, ctx: HookContext = NOO
     return outputDeny(pipeKind === 'exec' ? PIPE_TO_SHELL_DENY : PIPE_TO_INTERPRETER_DENY);
   }
 
+  // --- ASK tier gate: bypassPermissions means the user opted out of prompts ---
+  // Everything above this line is DENY and stays active in every mode: those
+  // patterns are the unattended-run safety net. Everything below is a
+  // confirmation, and a confirmation is exactly what
+  // `--dangerously-skip-permissions` turns off. CC's permission engine honours
+  // the flag; a PreToolUse hook answering `ask` does not, so without this gate
+  // ork re-introduces the prompts the user disabled, in every repo it is
+  // installed in.
+  if (isBypassMode(input)) {
+    ctx.log('dangerous-command-blocker', 'ASK tier skipped: bypassPermissions mode');
+    return outputSilentSuccess();
+  }
+
   // --- ASK tier: dangerous but sometimes legitimate (substring) ---
   const askSubstringCheck = containsDangerousCommand(
     command,
@@ -361,6 +448,14 @@ export function dangerousCommandBlocker(input: HookInput, ctx: HookContext = NOO
       ctx.logPermission('ask', reason, input);
       return outputAsk(reason);
     }
+  }
+
+  // --- ASK tier: process termination (breadth-aware, see helper) ---
+  const killReason = processTerminationAsk(normalizedCommand);
+  if (killReason) {
+    ctx.log('dangerous-command-blocker', `ASK: ${killReason}`);
+    ctx.logPermission('ask', killReason, input);
+    return outputAsk(killReason);
   }
 
   return outputSilentSuccess();

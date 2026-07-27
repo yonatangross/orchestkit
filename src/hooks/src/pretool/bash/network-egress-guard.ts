@@ -35,6 +35,7 @@ import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, outputDeny, outputAsk } from '../../lib/common.js';
 import { normalizeSingle } from '../../lib/normalize-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { isBypassMode } from '../../lib/guards.js';
 
 const HOOK_NAME = 'network-egress-guard';
 
@@ -240,6 +241,15 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
           'separate reviewed step.',
       );
     }
+  }
+
+  // --- ASK tier gate: bypassPermissions means the user opted out of prompts ---
+  // DENY above stays active in every mode; only the confirmations below are
+  // skipped. See isBypassMode() for why a PreToolUse `ask` otherwise survives
+  // `--dangerously-skip-permissions`.
+  if (isBypassMode(input)) {
+    ctx.log(HOOK_NAME, 'ASK tier skipped: bypassPermissions mode');
+    return outputSilentSuccess();
   }
 
   // --- ASK tier: staged download-then-run ---

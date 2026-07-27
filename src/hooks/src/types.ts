@@ -63,8 +63,25 @@ export interface HookInput {
   exit_code?: number;
   /** Whether a stop hook is currently active (prevents re-entry) */
   stop_hook_active?: boolean;
-  /** Permission mode (CC 2.1.25: dontAsk mode makes quality gates warn-only; CC 2.1.88: 'auto' mode — classifier-based approval) */
-  permissionMode?: 'default' | 'acceptEdits' | 'dontAsk' | 'auto';
+  /**
+   * Permission mode (CC 2.1.25: dontAsk mode makes quality gates warn-only;
+   * CC 2.1.88: 'auto' mode, classifier-based approval).
+   *
+   * The union mirrors `claude --permission-mode` verbatim (`acceptEdits`,
+   * `auto`, `bypassPermissions`, `manual`, `dontAsk`, `plan`) plus the
+   * `default` value CC sends when no flag was passed. It previously listed
+   * only 4 of the 7, so `bypassPermissions`, the mode
+   * `--dangerously-skip-permissions` selects, was not expressible and no
+   * hook could gate on it.
+   */
+  permissionMode?:
+    | 'default'
+    | 'acceptEdits'
+    | 'auto'
+    | 'bypassPermissions'
+    | 'manual'
+    | 'dontAsk'
+    | 'plan';
   /** User prompt (UserPromptSubmit only) */
   prompt?: string;
   /** Project directory */

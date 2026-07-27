@@ -15,6 +15,14 @@
  * follow it without re-prompting (the model-cost-advisor separately warns
  * when inherited-fable runs low/medium-complexity tasks).
  *
+ * DELIBERATELY NOT gated on isBypassMode(). Every other ork ASK site is now
+ * skipped under `--dangerously-skip-permissions`, because a permission prompt
+ * is what that flag exists to turn off. This one is not a permission prompt:
+ * it is spend consent, and the flag says nothing about money. Auto-approving
+ * a $10/$50-per-MTok pin because a session runs unattended is the exact
+ * failure this hook was written to prevent. ORK_FABLE_OK=1 remains the way to
+ * pre-consent, and it stays explicit on purpose.
+ *
  * @hook PreToolUse[Agent] via sync-task-dispatcher
  */
 

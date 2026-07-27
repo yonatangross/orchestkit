@@ -16,6 +16,7 @@ import {
 } from '../../lib/common.js';
 import { detectSuspiciousShellFeatures } from '../../lib/normalize-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { isBypassMode } from '../../lib/guards.js';
 
 // A process substitution feeding an interpreter (`bash <(curl x)`,
 // `python3 <(curl x)`) is the procsub spelling of `curl | bash`. Like the pipe
@@ -93,7 +94,14 @@ Please rewrite the command using standard shell syntax.${redirect}`
     );
   }
 
-  // Only here-string findings remain → ASK. Nothing runs without confirmation.
+  // Only here-string findings remain → ASK. The DENY tier above still applies
+  // in every mode; this confirmation is skipped under bypassPermissions, which
+  // is the user telling us not to prompt. See isBypassMode().
+  if (isBypassMode(input)) {
+    ctx.log('compound-command-validator', 'ASK tier skipped: bypassPermissions mode');
+    return outputSilentSuccess();
+  }
+
   const reason = hereStringFindings.join('; ');
   ctx.logPermission('ask', `Here-string redirection: ${reason}`, input);
   ctx.log('compound-command-validator', `ASK: ${reason}`);

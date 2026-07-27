@@ -323,3 +323,27 @@ export function isDontAskMode(input: HookInput): boolean {
 export function isAutoMode(input: HookInput): boolean {
   return input.permissionMode === 'auto';
 }
+
+/**
+ * Check if the session runs with `--dangerously-skip-permissions`
+ * (`--permission-mode bypassPermissions`).
+ *
+ * PreToolUse hooks fire in EVERY permission mode, and a hook that answers
+ * `ask` is honoured on top of whatever mode the session is in. CC's own
+ * permission engine is what the flag switches off, not ours. So an ork ASK
+ * tier keeps prompting a user who explicitly opted out of prompts, in every
+ * repo where ork is installed. Gate confirmation-only tiers on this.
+ *
+ * DENY tiers must NOT use this helper: catastrophic commands stay blocked in
+ * bypass mode, which is exactly the unattended case they exist for.
+ *
+ * Reads a snake_case spelling as a fallback. CC has sent this key camelCase
+ * since 2.1.25, but a gate that silently evaluates false on a key rename is
+ * the worst failure shape here (the prompts simply come back), and the check
+ * is free.
+ */
+export function isBypassMode(input: HookInput): boolean {
+  if (input.permissionMode === 'bypassPermissions') return true;
+  const snake = (input as unknown as Record<string, unknown>).permission_mode;
+  return snake === 'bypassPermissions';
+}

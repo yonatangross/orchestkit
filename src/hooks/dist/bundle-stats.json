@@ -2,14 +2,14 @@
   "mode": "split",
   "bundles": {
     "permission": {
-      "size": 28417,
-      "sizeKB": "27.75",
-      "exports": 69
+      "size": 28540,
+      "sizeKB": "27.87",
+      "exports": 70
     },
     "pretool": {
-      "size": 135274,
-      "sizeKB": "132.10",
-      "exports": 85
+      "size": 136333,
+      "sizeKB": "133.14",
+      "exports": 86
     },
     "posttool": {
       "size": 86489,
@@ -52,13 +52,13 @@
       "exports": 68
     },
     "agent": {
-      "size": 20985,
-      "sizeKB": "20.49",
-      "exports": 69
+      "size": 21108,
+      "sizeKB": "20.61",
+      "exports": 70
     }
   },
-  "totalSize": 679810,
-  "totalSizeKB": "663.88",
+  "totalSize": 681115,
+  "totalSizeKB": "665.15",
   "inputs": 113,
-  "avgBundleSizeKB": "60.35"
+  "avgBundleSizeKB": "60.47"
 }
