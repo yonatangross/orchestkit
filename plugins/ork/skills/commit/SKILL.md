@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [git, commit, version-control, conventional-commits]
 user-invocable: true
 disable-model-invocation: true
-allowed-tools: [Bash]
+allowed-tools: [Bash, Read, Write, AskUserQuestion]
 skills: [chain-patterns]
 complexity: low
 persuasion-type: discipline

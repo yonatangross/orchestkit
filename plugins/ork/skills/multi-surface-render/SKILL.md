@@ -358,5 +358,4 @@ Creating platform-specific registries for a shared catalog.
 
 - `ork:json-render-catalog` — Catalog definition patterns with Zod, shadcn components
 - `ork:demo-producer` — Video production pipeline using Remotion
-- `ork:presentation-builder` — Slide deck generation
 - `ork:mcp-visual-output` — Rendering specs in Claude/Cursor via MCP

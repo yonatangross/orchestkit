@@ -59,8 +59,6 @@ examplePrompts:
 ## Directive
 Design and implement infrastructure as code with Terraform, Kubernetes, and cloud-native patterns, focusing on security, scalability, and cost optimization.
 
-Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
-
 ## Grounding Protocol (ground before you design infrastructure)
 Design and classify AGAINST retrieved authoritative references, not recall alone. A controlled A/B (OrchestKit, 2026-06) showed an *ungrounded* reviewer missed subtle, knowledge-dependent issues — over-permissive IAM/RBAC, missing network policies, insecure defaults, unbounded cost footguns — that a *grounded* reviewer caught (subtle-issue recall 2/4 → 4/4, control-validated). So, before classifying or finalizing infrastructure:
 1. **Current API + security best practices** — ground against current cloud/Kubernetes API surfaces and hardening guidance. Use whatever is configured (all optional, degrade gracefully): a Kubernetes/Envoy reference library if present, or `WebSearch`/`WebFetch` for current CVEs, CIS Benchmarks, and provider security advisories affecting the services *and pinned versions/API versions* actually in scope.
@@ -88,15 +86,6 @@ Design infrastructure for actual requirements, not hypothetical future needs.
 Don't add extra redundancy, regions, or services beyond what's needed.
 Simple, well-secured infrastructure beats complex over-provisioned setups.
 </avoid_overengineering>
-
-## Task Management
-For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
-1. `TaskCreate` for each major step with descriptive `activeForm`
-2. `TaskGet` to verify `blockedBy` is empty before starting
-3. Set status to `in_progress` when starting a step
-4. Use `addBlockedBy` for dependencies between steps
-5. Mark `completed` only when step is fully verified
-6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for Terraform, Kubernetes, AWS

@@ -8,7 +8,7 @@ version: 1.8.0
 author: OrchestKit
 tags: [assessment, evaluation, quality, comparison, pros-cons, rating]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, ToolSearch, mcp__memory__search_nodes, Bash]
+allowed-tools: [AskUserQuestion, Read, Write, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, ToolSearch, mcp__memory__search_nodes, Bash]
 skills: [code-review-playbook, quality-gates, architecture-decision-record, memory, chain-patterns]
 argument-hint: "[code-path-or-topic] [--render=markdown|json-render|both] [--effort=low|medium|high|xhigh]"
 complexity: high
@@ -51,9 +51,9 @@ Comprehensive assessment skill for answering "is this good?" with structured eva
 |---|---|
 | `low` / `medium` | Subset of dimensions, faster turnaround |
 | `high` (default) | All six dimensions with pros/cons |
-| `xhigh` (Opus 4.8) | All six dimensions + one additional assessor pass focused on uncertainty/caveats; emits `confidence` per dimension |
+| `xhigh` | All six dimensions + one additional assessor pass focused on uncertainty/caveats; emits `confidence` per dimension |
 
-> `xhigh` silently falls back to `high` on models that don't support it (Opus 4.8 does). `/ork:doctor` warns when `xhigh` is used without Opus 4.8.
+> `xhigh` silently falls back to `high` on a model that does not implement it: no error, no log line. `/ork:doctor` Category 14 reports this, and only when it can positively prove the active model lacks the tier.
 
 ---
 
@@ -89,7 +89,7 @@ for token in "$ARGUMENTS".split():
 EFFORT = EFFORT or "high"  # default when CC < 2.1.120 and no flag
 ```
 
-Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass — see "Effort levels" table above. On CC < 2.1.120 the env var is unset; the explicit `--effort=` override is the only path. `/ork:doctor` warns when `xhigh` is requested without Opus 4.8.
+Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass — see "Effort levels" table above. On CC < 2.1.120 the env var is unset; the explicit `--effort=` override is the only path. `/ork:doctor` Category 14 reports a provably unsupported `xhigh` request.
 
 ---
 
@@ -187,10 +187,7 @@ TaskUpdate(taskId="6", addBlockedBy=["4"])  # Alternatives need quality scores
 TaskUpdate(taskId="7", addBlockedBy=["5", "6"])  # Suggestions need analysis
 TaskUpdate(taskId="8", addBlockedBy=["7"])  # Report needs suggestions
 
-# 4. Before starting each task, verify it's unblocked
-task = TaskGet(taskId="2")  # Verify blockedBy is empty
-
-# 5. Update status as you progress
+# 4. Update status as you progress
 TaskUpdate(taskId="2", status="in_progress")  # When starting
 TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```
@@ -391,9 +388,9 @@ Consumers: `/ork:implement` Step -0.5 blocks Phase 1 on `verdict == "fail"` (use
 
 ---
 
-## Self-Reported Uncertainty (Opus 4.8, `xhigh` effort)
+## Self-Reported Uncertainty (`xhigh` effort)
 
-Opus 4.8 is materially better than older tiers at honestly reporting its own limits. When `xhigh` effort is active, enrich each dimension's rating with a `confidence` level and a list of `caveats` — things the model couldn't verify, assumptions it relied on, or cases it didn't test.
+Current-generation models report their own limits far better than older tiers did. When `xhigh` effort is active, enrich each dimension's rating with a `confidence` level and a list of `caveats` — things the model couldn't verify, assumptions it relied on, or cases it didn't test.
 
 Output schema per dimension (JSON):
 

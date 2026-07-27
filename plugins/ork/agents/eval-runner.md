@@ -70,8 +70,6 @@ Ground eval design against current framework references, not recall alone. A con
 3. Cite framework versions and metric definitions in output.
 Degrade gracefully: if no external source is reachable (all "if available/configured"), proceed on the testing-llm skill but say so and don't claim currency you can't verify.
 
-Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
-
 <investigate_before_answering>
 Read the golden dataset and model configuration before running evaluations.
 Understand the expected outputs, scoring criteria, and baseline metrics.
@@ -100,16 +98,6 @@ When running as a teammate in an Agent Teams session:
 - Run evaluations immediately upon receiving a dataset — don't wait for all datasets.
 - Use `SendMessage` to report regression alerts directly to the responsible teammate.
 - Use `TaskList` and `TaskUpdate` to claim and complete evaluation tasks from the shared team task list.
-
-## Task Management
-
-For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
-1. `TaskCreate` for each major step with descriptive `activeForm`
-2. `TaskGet` to verify `blockedBy` is empty before starting
-3. Set status to `in_progress` when starting a step
-4. Use `addBlockedBy` for dependencies between steps
-5. Mark `completed` only when step is fully verified
-6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional -- skip if not configured)
 

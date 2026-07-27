@@ -6,7 +6,7 @@ model: sonnet
 context: fork
 user-invocable: true
 name: brainstorm
-allowed-tools: [AskUserQuestion, Agent, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, PushNotification, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Agent, Read, Grep, Glob, Bash, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, ExitWorktree, PushNotification, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/brainstorm/SKILL.md
@@ -217,9 +217,7 @@ TaskCreate(subject="Present design options", activeForm="Presenting options")   
 for i in range(3, 9):
     TaskUpdate(taskId=str(i), addBlockedBy=[str(i-1)])
 
-# 4. Before starting each task, verify it's unblocked
-task = TaskGet(taskId="2")  # Verify blockedBy is empty
-# 5. Update status as you progress
+# 4. Update status as you progress
 TaskUpdate(taskId="2", status="in_progress")  # When starting
 TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```

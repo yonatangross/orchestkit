@@ -39,7 +39,6 @@ If all pass, an annotated git tag `v<version>` is created locally; pushing it tr
 | Skill | Section to update |
 |---|---|
 | `src/skills/release-management/SKILL.md` | Add `claude plugin tag` to the validation checklist |
-| `src/skills/release-checklist/SKILL.md` | Pre-release verification step |
 | `src/skills/release-sync/SKILL.md` | Detect tag-based sync triggers |
 
 ## What Drift Looks Like
@@ -93,4 +92,3 @@ git add . && git commit -m "chore: release X.Y.Z"
 - `.github/workflows/release-please.yml` — release automation
 - `.release-please-config.json` — extra-files configuration (5 file paths kept in sync)
 - `src/skills/release-management/SKILL.md` — release flow ownership
-- `src/skills/release-checklist/SKILL.md` — pre-release validation

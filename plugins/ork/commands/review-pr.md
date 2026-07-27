@@ -4,7 +4,7 @@ argument-hint: "[pr-number-or-branch]"
 context: fork
 user-invocable: true
 name: review-pr
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, ToolSearch, Monitor]
+allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, ToolSearch, Monitor]
 ---
 
 # Auto-generated from skills/review-pr/SKILL.md
@@ -22,7 +22,7 @@ Deep code review using 6-7 parallel specialized agents.
 /ork:review-pr feature-branch
 ```
 
-> **Opus 4.8**: Parallel agents use native adaptive thinking for deeper analysis. Complexity-aware routing matches agent model to review difficulty.
+> **Opus 5**: Parallel agents use native adaptive thinking for deeper analysis. Complexity-aware routing matches agent model to review difficulty.
 
 
 ## Argument Resolution

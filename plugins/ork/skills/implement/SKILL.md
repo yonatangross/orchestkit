@@ -10,7 +10,7 @@ disable-model-invocation: true  # M127 A/S5: slash-only — explicit /ork:implem
 author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, ToolSearch, CronCreate, CronDelete, Monitor, PushNotification, mcp__context7__query_docs, mcp__memory__search_nodes]
+allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, ToolSearch, WebFetch, EnterWorktree, ExitWorktree, CronCreate, CronDelete, Monitor, PushNotification, mcp__context7__query_docs, mcp__memory__search_nodes]
 skills: [api-design, react-server-components-framework, testing-unit, testing-e2e, testing-integration, explore, verify, memory, scope-appropriate-architecture, chain-patterns]
 complexity: medium
 persuasion-type: guidance
@@ -110,9 +110,9 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 For implementations touching **>10 files**, enforce max 5 files per agent batch, run tests between batches, commit green batches immediately, stop on red. Override via `--batch-size N`. Full rule: `Read("${CLAUDE_SKILL_DIR}/rules/batch-governance.md")`.
 
-### Budget Awareness (Opus 4.8 task budgets, public beta)
+### Budget Awareness (Opus 5 task budgets, public beta)
 
-Opus 4.8 exposes per-task token budgets. Until the CC side is GA, OrchestKit tracks an advisory `budget_remaining_pct` in `state.json` so long runs self-throttle. Update after each phase:
+Opus 5 exposes per-task token budgets. Until the CC side is GA, OrchestKit tracks an advisory `budget_remaining_pct` in `state.json` so long runs self-throttle. Update after each phase:
 
 ```python
 # At end of every phase, estimate remaining budget:
@@ -156,7 +156,7 @@ Read the `/effort` setting to scale implementation depth. The effort-aware conte
 | **low** | 1 (Discovery) → 5 (Implement) → 10 (Reflect) | 2 max | ~50K |
 | **medium** | 1 → 2 → 5 → 7 (Scope Creep) → 10 | 3 max | ~150K |
 | **high** (default) | All 10 phases | 4-7 | ~400K |
-| **xhigh** (Opus 4.8, CC 2.1.111+) | All 10 phases + one additional healing iteration on test failures before escalating | 4-7 | ~550K |
+| **xhigh** (Opus 5, CC 2.1.111+) | All 10 phases + one additional healing iteration on test failures before escalating | 4-7 | ~550K |
 
 > **Override:** Explicit user selection in Step 0 (e.g., "Plan first" or "Worktree") overrides `/effort` downscaling. If user requests full exploration, respect that regardless of effort level.
 
@@ -257,10 +257,7 @@ TaskUpdate(taskId="7", addBlockedBy=["6"])  # Scope creep needs integration
 TaskUpdate(taskId="8", addBlockedBy=["7"])  # E2E needs scope check
 TaskUpdate(taskId="9", addBlockedBy=["8"])  # Docs need E2E
 
-# 4. Before starting each task, verify it's unblocked
-task = TaskGet(taskId="2")  # Verify blockedBy is empty
-
-# 5. Update status as you progress
+# 4. Update status as you progress
 TaskUpdate(taskId="2", status="in_progress")  # When starting
 TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```
@@ -398,7 +395,7 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("${CLAUDE_SKIL
 - **Agent status protocol** — all subagents report DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT per `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`
 - **Tests are NOT optional** — each task includes its tests, matched to change type (see matrix above)
 - **Parallel when independent** — use `run_in_background: true`, launch all agents in ONE message
-- **Output limits (CC 2.1.77+):** Opus 4.8 defaults to 64k output tokens (128k upper bound). Generate complete artifacts in a single pass when possible; chunk across turns if output exceeds the limit
+- **Output limits (CC 2.1.77+):** the Opus tier defaults to 64k output tokens (128k upper bound). Generate complete artifacts in a single pass when possible; chunk across turns if output exceeds the limit
 - **Micro-plan before implementing** — scope boundaries, file list, acceptance criteria
 - **Detect scope creep** (phase 7) — score 0-10, split PR if significant
 - **Real services when available** — if docker-compose/testcontainers exist, use them in Phase 6

@@ -9,7 +9,7 @@ version: 3.0.1
 author: OrchestKit
 tags: [memory, decisions, patterns, best-practices, graph-memory]
 user-invocable: true
-allowed-tools: [Read, Grep, Glob, Bash, mcp__memory__create_entities, mcp__memory__create_relations, mcp__memory__add_observations, mcp__memory__search_nodes]
+allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__create_entities, mcp__memory__create_relations, mcp__memory__add_observations, mcp__memory__search_nodes]
 complexity: low
 persuasion-type: collaborative
 effort: low
@@ -28,7 +28,7 @@ triggers:
 
 # Remember - Store Decisions and Patterns
 
-> **Filesystem vs MCP memory (Opus 4.8 guidance, CC 2.1.111+):** Opus 4.8 is *substantially* better than older tiers at reading filesystem memory across multi-session work. Use that to your advantage:
+> **Filesystem vs MCP memory (Opus 5 guidance, CC 2.1.111+):** Opus 5 reads filesystem memory reliably across multi-session work. Use that to your advantage:
 > - **Short-lived handoff state** (current phase, task in-progress, pending approvals) → `.claude/chain/*.json` files. Small, structured, session-scoped.
 > - **Durable auto-memory** (user facts, feedback, project conventions) → `~/.claude/projects/<slug>/memory/*.md` files with a one-line index in `MEMORY.md`. Read on every session start.
 > - **Cross-session knowledge graph** (typed entities + relations for query traversal) → MCP memory server (this skill's default path). Best when future sessions will *search* for patterns.

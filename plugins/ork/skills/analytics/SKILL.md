@@ -139,6 +139,5 @@ Present results as clean markdown tables. Include counts, percentages, and avera
 ## Related Skills
 
 - `ork:explore` - Codebase exploration and analysis
-- `ork:feedback` - Capture user feedback
 - `ork:remember` - Store project knowledge
 - `ork:doctor` - Health check diagnostics

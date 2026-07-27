@@ -62,10 +62,7 @@ TaskUpdate(taskId="4", addBlockedBy=["3"])  # Drafting needs research context
 TaskUpdate(taskId="5", addBlockedBy=["4"])  # Stories need draft structure
 TaskUpdate(taskId="6", addBlockedBy=["5"])  # Output needs all sections done
 
-# 4. Before starting each task, verify it's unblocked
-task = TaskGet(taskId="2")  # Verify blockedBy is empty
-
-# 5. Update status as you progress
+# 4. Update status as you progress
 TaskUpdate(taskId="2", status="in_progress")  # When starting
 TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```

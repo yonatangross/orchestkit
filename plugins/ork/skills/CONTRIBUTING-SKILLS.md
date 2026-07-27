@@ -138,7 +138,7 @@ hooks:
 
 Use `once: true` for one-shot setup (context loading, env detection, precondition checks). Omit `once` for guards that must run on every tool call (security, pattern enforcement).
 
-> **CC 2.1.94 unlock**: Before CC 2.1.94, plugin skill hooks declared in YAML frontmatter were **silently ignored** — the commands were never executed. CC 2.1.94 fixed this, activating 20 context loaders across 15 OrchestKit skills (assess, implement, verify, brainstorm, review-pr, fix-issue, doctor, explore, cover, setup, commit, quality-gates, visualize-plan, release-checklist, code-review-playbook). These previously-dead hooks now fire on every skill invocation.
+> **CC 2.1.94 unlock**: Before CC 2.1.94, plugin skill hooks declared in YAML frontmatter were **silently ignored** — the commands were never executed. CC 2.1.94 fixed this, activating the context loaders across OrchestKit skills (assess, implement, verify, brainstorm, review-pr, fix-issue, doctor, explore, cover, setup, commit, quality-gates, visualize-plan, code-review-playbook). These previously-dead hooks now fire on every skill invocation.
 >
 > **Handler requirement**: Every `skill/<name>` reference must be registered in `src/hooks/src/entries/skill.ts`. The test `src/__tests__/skill-frontmatter-hooks-invariant.test.ts` enforces this — any dangling reference will fail CI.
 
@@ -213,7 +213,8 @@ CC auto-loads everything matching `.claude/rules/*.md` into every `<system-remin
 
 Concrete failure case: `yonatan-hq/platform/.claude/rules/recent-decisions.md` reached 53.8k chars in 7 months on the rolling pattern. Index-per-entry would have stayed under 1k forever.
 
-Full reference with migration path, decision matrix, and per-skill examples: `src/skills/skill-evolution/references/storage-patterns.md`.
+Rule of thumb: store one index entry per decision and let the detail live in a
+per-entry file. Never append to a single rolling `.md` that CC auto-loads.
 
 ## Rules
 

@@ -1,5 +1,5 @@
 ---
-description: "Intent-classified router — the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Takes a plain-English goal, classifies it into one intent category, and routes to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:brainstorm, /ork:implement, /ork:review-pr, /ork:verify, a /goal optimization loop, or the skill-evolution gate). A goal that maps unambiguously to one skill short-circuits straight to it — routing is never overhead, so use it even when you think you know the target skill. Skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, get it to, I want, help me, fix, build, improve, any goal description."
+description: "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:implement, /ork:review-pr, /ork:verify, a /goal loop). Routing is never overhead, so use it even when you think you know the target skill. Skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, get it to, I want, help me, fix, build, improve, any goal description."
 argument-hint: "[plain-english goal]"
 model: sonnet
 context: inherit
@@ -52,7 +52,7 @@ so there is no "too obvious for auto".
 | **build** | build, implement, create, add feature, from ticket | `/ork:implement` |
 | **review** | review, PR, MR, pull request, #N | `/ork:review-pr` |
 | **verify** | verify, check, make sure, passes, green | `/ork:verify` |
-| **improve-skill** | improve the skill, optimize the prompt, SKILL.md | the **skill-evolution / holdout gate** (see Gaps) |
+| **improve-skill** | improve the skill, optimize the prompt, SKILL.md | the **holdout-promotion gate** (see Gaps) |
 | **(fallback)** | no confident category | clarify with ONE question |
 
 Full per-category parameter extraction + edge cases: `references/routing-rules.md`.

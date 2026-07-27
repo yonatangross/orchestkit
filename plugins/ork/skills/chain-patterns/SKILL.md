@@ -14,6 +14,11 @@ persuasion-type: guidance
 model: haiku
 ---
 
+<!-- tool-coverage: illustrative. Reference skill, loaded via the skills: field and never
+     invoked directly. The fenced calls below teach a pattern; they are not calls this skill
+     makes, so widening allowed-tools to satisfy the coverage gate would grant real
+     permissions to something that never acts. -->
+
 # Chain Patterns
 
 ## Overview

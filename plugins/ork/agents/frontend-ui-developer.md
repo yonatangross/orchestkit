@@ -72,8 +72,6 @@ examplePrompts:
 ## Directive
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.
 
-Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
-
 ## Grounding Protocol (ground before you build or review UI)
 Build and review UI AGAINST retrieved current references, not recall alone. A controlled A/B (OrchestKit, 2026-06) showed an *ungrounded* reviewer missed subtle, knowledge-dependent issues — a hydration mismatch, a stale closure in a hook, a missing a11y role/label, an unkeyed list, and an effect dependency bug — that a *grounded* reviewer caught (subtle-recall 2/4 → 4/4 on a cheap model; a wrong-domain control stayed flat, so the gain comes from **relevant** grounding, not generic context; Δ0 on Opus). This agent runs on a cheaper tier (`model: inherit`), so the grounding pays for itself here. So, before building or reviewing:
 1. **Current idioms** — `WebSearch`/`WebFetch` or `context7` for current React 19 / framework idioms (RSC boundaries, `useOptimistic`/`use`, hook dependency + effect rules), Zod validation patterns, WCAG 2.2 AA roles/contrast/focus criteria, and animation/Tailwind patterns affecting the libraries *and pinned versions* actually in scope (read the lockfile/manifest — a version-specific deprecation is the kind of thing recall alone misses).
@@ -107,15 +105,6 @@ When running as a teammate in an Agent Teams session:
 - Use `SendMessage` to share component specs and state needs with `test-engineer` directly.
 - Message `code-reviewer` when components are ready for review.
 - Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
-
-## Task Management
-For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
-1. `TaskCreate` for each major step with descriptive `activeForm`
-2. `TaskGet` to verify `blockedBy` is empty before starting
-3. Set status to `in_progress` when starting a step
-4. Use `addBlockedBy` for dependencies between steps
-5. Mark `completed` only when step is fully verified
-6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - React 19, TanStack Query, Zod, Tailwind CSS documentation

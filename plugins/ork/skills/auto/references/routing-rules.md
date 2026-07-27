@@ -50,7 +50,7 @@ Per-category parameter extraction + edge cases. Read during the Classify step to
 - **Invoke:** `/ork:verify`
 - **Edges:** "make sure it works" → all checks. "check tests pass" → tests-focused.
 
-## improve-skill → skill-evolution / holdout gate
+## improve-skill → holdout-promotion gate
 
 - **Extract:** which `SKILL.md`, quality metric (else task-completion against test cases).
 - **Invoke:** the champion/challenger **holdout-promotion gate** (`/ork:assess` evals + `evolution-engine`). Requires a benchmark + holdout set to exist first — if missing, help the user define 5–10 cases before looping.

@@ -6,7 +6,7 @@ effort: low
 context: inherit
 user-invocable: true
 name: commit
-allowed-tools: [Bash]
+allowed-tools: [Bash, Read, Write, AskUserQuestion]
 ---
 
 # Auto-generated from skills/commit/SKILL.md

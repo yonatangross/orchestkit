@@ -59,10 +59,7 @@ TaskCreate(subject="Milestone tracking", activeForm="Updating milestones")
 TaskUpdate(taskId="3", addBlockedBy=["2"])
 TaskUpdate(taskId="4", addBlockedBy=["3"])
 
-# 4. Before starting each task, verify it's unblocked
-task = TaskGet(taskId="2")  # Verify blockedBy is empty
-
-# 5. Update status as you progress
+# 4. Update status as you progress
 TaskUpdate(taskId="2", status="in_progress")  # When starting
 TaskUpdate(taskId="2", status="completed")    # When done
 ```

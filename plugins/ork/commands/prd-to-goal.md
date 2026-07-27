@@ -4,7 +4,7 @@ argument-hint: "[prd-text | issue#N | path/to/spec.md]"
 context: inherit
 user-invocable: true
 name: prd-to-goal
-allowed-tools: [Read, Write, Bash, Grep]
+allowed-tools: [Read, Write, Bash, Grep, Agent]
 ---
 
 # Auto-generated from skills/prd-to-goal/SKILL.md
