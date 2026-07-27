@@ -41,4 +41,47 @@ quality_evals:
       - name: "point of no return"
         check: "marks a clear point of no return between the reversible and irreversible phases"
 
+# Trigger cases. Every positive is VERBATIM from a real 13-prompt session
+# (2026-07-26) rather than invented — that replay is also what showed the skill
+# is asked for as a modifier on an existing question, never as a self-contained
+# topic, so the phrasing here is deliberately scrappy and mid-conversation.
+#
+# The negatives carry most of the value: quickviz was made invocable alongside
+# visualize-plan, and the two are only separated by whether the deliverable is
+# an inline chat answer or a file. These pin that boundary.
+trigger_evals:
+  # --- the canonical ask, six times in one session -------------------------
+  - prompt: "vis in ascii emojies"
+    should_trigger: true
+  - prompt: "status? vis in ascii emojies"
+    should_trigger: true
+  - prompt: "so whats next? vis ascii emojies"
+    should_trigger: true
+  - prompt: "explain whats left on track b in ascii emojies"
+    should_trigger: true
+
+  # --- implicit shape: wants structure without naming the format -----------
+  - prompt: "show me the options and what is most correct"
+    should_trigger: true
+  - prompt: "draw me a quick diagram of how the auth flow works"
+    should_trigger: true
+  - prompt: "compare these two approaches visually"
+    should_trigger: true
+
+  # --- the visualize-plan boundary: deliverable is a FILE, not a reply -----
+  - prompt: "Build me an interactive HTML playground comparing these four migration options"
+    should_trigger: false
+  - prompt: "Create a plan playground with before/after architecture and a risk heat map"
+    should_trigger: false
+
+  # --- wrong medium: quickviz renders monospace terminal output only -------
+  - prompt: "Generate a PNG diagram of our microservices architecture for the README"
+    should_trigger: false
+
+  # --- no shape to render --------------------------------------------------
+  - prompt: "rename this variable to userCount"
+    should_trigger: false
+  - prompt: "run the tests and tell me if they pass"
+    should_trigger: false
+
 tags: [quickviz, background, visualization]
