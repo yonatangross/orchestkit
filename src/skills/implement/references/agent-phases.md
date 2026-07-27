@@ -2,7 +2,7 @@
 
 ## 128K Output Token Strategy
 
-With Opus 4.6's 128K output tokens, each agent produces **complete artifacts in a single pass**. This reduces implementation from 17 agents across 4 phases to **14 agents across 3 phases**.
+With 128K output tokens available, each agent produces **complete artifacts in a single pass**. This reduces implementation from 17 agents across 4 phases to **14 agents across 3 phases**.
 
 | Metric | Before (64K) | After (128K) | Agent Teams Mode |
 |--------|-------------|--------------|-----------------|

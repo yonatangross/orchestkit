@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [health-check, diagnostics, validation, permissions, hooks, skills, agents, memory]
 user-invocable: true
 disable-model-invocation: true
-allowed-tools: [Bash, Read, Grep, Glob]
+allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
 skills: [configure]
 complexity: low
 persuasion-type: collaborative
@@ -85,7 +85,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes. Sub-check warns when HIGH-tier servers resolve to `@latest` in `.mcp.json` (closes #1462)
 13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
-14. **Effort/Model Compatibility** - Warns when `xhigh` effort is requested without Opus 4.8 (silent fallback otherwise)
+14. **Effort/Model Compatibility** - Warns only when `xhigh` effort is configured AND the active model is provably unable to run it. Silent otherwise, because the fallback itself is silent
 
 ## When to Use
 
@@ -160,29 +160,47 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | **11. External Deps** | Optional tools (agent-browser, portless) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
 | **12. MCP Status** | Enabled/disabled state, credential checks, **HIGH-tier `@latest` pinning warn** | load `${CLAUDE_SKILL_DIR}/rules/mcp-status-checks.md` + `${CLAUDE_SKILL_DIR}/references/mcp-pinning-check.md` |
 | **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
-| **14. Effort/Model** | Detects `xhigh` effort configured without Opus 4.8 — see below | inline |
+| **14. Effort/Model** | `xhigh` effort configured on a model that provably cannot run it (see below). Defaults to silence | inline |
 | **15. Sandbox Posture** | CC Bash-sandbox on/off + `/sandbox` nudge (opt-in, Bash-only; info-level) | load `${CLAUDE_SKILL_DIR}/references/sandbox-posture.md` |
 
 ### Category 14: Effort/Model Compatibility (CC 2.1.111+)
 
-CC 2.1.111 added `xhigh` effort (Opus 4.8; since CC 2.1.154 it defaults to `high` and takes `xhigh` for the hardest tasks). Using it with a model that doesn't support it silently falls back to `high` — producing no error but losing the extra deepening pass documented in the affected skills.
+CC 2.1.111 added the `xhigh` effort tier. **The only reason this category exists is the silence**: a model that does not implement `xhigh` degrades the request to `high` with no error, no warning, and no log line, so the extra deepening pass the affected skills document is lost without any visible signal. If CC ever surfaces the downgrade itself, delete this category.
 
-**Detection**:
-- If the active model does NOT support `xhigh` (i.e. not Opus 4.8), check whether `/effort` is set to `xhigh`:
-  - Read `.claude/settings.json` → `effort` field
-  - Read `$ORCHESTKIT_EFFORT` env var (populated by the effort-detector hook)
-- Check for any skill invocation under `.claude/chain/*.json` that explicitly set `effort: xhigh` with a non-Opus-4.8 model in scope
+The check is **capability-shaped, not model-name-shaped**. Never hardcode "the current frontier model" here: that guarantees a false failure the day the next one ships, and it prescribes a downgrade to a superseded model.
 
-**Warning format**:
+**Do not route this through `src/hooks/src/lib/models.vocab.json`.** That file is the model-id/pricing vocabulary and carries no effort or capability fields at all, so keying off it would leave the check permanently, accidentally dead rather than deliberately quiet.
+
+**Detection (warn only on positive proof):**
+
+1. Resolve the configured effort, in order: `.claude/settings.json` → `effort`, then `$ORCHESTKIT_EFFORT` (populated by the effort-detector hook), then any `.claude/chain/*.json` entry that explicitly set `effort: xhigh`. No `xhigh` anywhere means pass, no output.
+2. Resolve the active model id.
+3. Warn **only** when that model id matches a prefix in doctor's local `XHIGH_UNSUPPORTED_PREFIXES` table below. Every other outcome (model absent from the table, model id unresolvable, settings file missing) is a pass. A check that cannot prove a problem stays quiet.
+
+```python
+# Doctor-local capability table. Deliberately a DENY-list, not an allow-list:
+# a model absent from this table is assumed to support xhigh and emits nothing.
+# Add an entry only from an OBSERVED silent degrade, citing the CC version it was
+# seen on. Never add one by inferring from a model being new, old, or cheap.
+XHIGH_UNSUPPORTED_PREFIXES = [
+    # prefix        evidence
+    "claude-3-",  # the whole Claude 3 line predates CC 2.1.111, which introduced the tier
+]
 ```
-WARNING: xhigh effort requires Opus 4.8.
-  Current model: <model-id>
-  Configured effort: xhigh
-  Impact: Skills fall back to high — xhigh's extra deepening pass is lost silently.
-  Fix: Either switch to Opus 4.8 (`claude --model opus-4-8`) or lower effort to `high`.
+
+An empty or short table is the correct resting state. Silence here means "doctor has no proof of a problem", which is a true statement, whereas a name-matched failure against an unrecognized model is a false one.
+
+**Warning format** (no model name is hardcoded, both sides are read at runtime):
+```
+WARNING: effort is set to `xhigh`, but <model-id> matches XHIGH_UNSUPPORTED_PREFIXES.
+  Configured effort: xhigh (source: <settings.json | $ORCHESTKIT_EFFORT | chain>)
+  Impact: the run degrades to `high` with no error and no log line, so the extra
+          deepening pass is lost with nothing to notice it by.
+  Fix: run this on a model that implements `xhigh`, or set effort to `high` so the
+       config matches what actually executes.
 ```
 
-**Exit code**: Non-zero in `--json` mode; soft warning in interactive mode.
+**Exit code**: Non-zero in `--json` mode only when the warning actually fires; soft warning in interactive mode. A silent pass is exit 0.
 
 ## Report Format
 

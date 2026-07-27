@@ -11,7 +11,7 @@ user-invocable: true
 complexity: low
 context: inherit
 persuasion-type: guidance
-allowed-tools: [Read, Write, Bash, Grep]
+allowed-tools: [Read, Write, Bash, Grep, Agent]
 metadata:
   category: planning
   milestone: M140

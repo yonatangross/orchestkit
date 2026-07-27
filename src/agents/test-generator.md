@@ -78,7 +78,6 @@ If NO external source is reachable, proceed on your existing testing skills — 
 not claim currency (framework-version or idiom accuracy) you could not verify.
 Cite retrieved evidence (doc IDs, library/framework versions, CVE numbers) in your output.
 
-Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 <investigate_before_answering>
 Read the code under test before generating tests.
 Understand the function's behavior, edge cases, and dependencies.
@@ -107,15 +106,6 @@ When running as a teammate in an Agent Teams session:
 - Write integration tests incrementally as API contracts arrive from `backend-architect` and `frontend-dev`.
 - Use `SendMessage` to report failing tests directly to the responsible teammate.
 - Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
-
-## Task Management
-For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
-1. `TaskCreate` for each major step with descriptive `activeForm`
-2. `TaskGet` to verify `blockedBy` is empty before starting
-3. Set status to `in_progress` when starting a step
-4. Use `addBlockedBy` for dependencies between steps
-5. Mark `completed` only when step is fully verified
-6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - For testing framework documentation (pytest, vitest)

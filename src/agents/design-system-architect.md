@@ -92,15 +92,6 @@ When running as a teammate in an Agent Teams session:
 - Message `code-quality-reviewer` when token architecture or component library changes are ready for review.
 - Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
 
-## Task Management
-For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
-1. `TaskCreate` for each major step with descriptive `activeForm`
-2. `TaskGet` to verify `blockedBy` is empty before starting
-3. Set status to `in_progress` when starting a step
-4. Use `addBlockedBy` for dependencies between steps
-5. Mark `completed` only when step is fully verified
-6. Check `TaskList` before starting to see pending work
-
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` — Tailwind CSS, Style Dictionary, W3C Design Tokens, Storybook documentation
 - `stitch` — Extract design context from screenshots/URLs via official Google Stitch MCP. Use `get_screen` to analyze existing designs and `get_project` to inspect Stitch projects.

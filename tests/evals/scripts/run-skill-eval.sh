@@ -120,8 +120,9 @@ fi
 # =============================================================================
 # --holdout-promote <skill>  (#2555)
 # =============================================================================
-# Champion/challenger holdout bake-off implementing the protocol in
-# src/skills/skill-evolution/references/holdout-promotion-gate.md.
+# Champion/challenger holdout bake-off. The protocol used to be documented in
+# src/skills/skill-evolution/, which was deleted as an unreachable orphan; the
+# authoritative description is now this block plus the exit-code contract below.
 #
 # Terminal mode: runs the sealed-holdout bake-off and exits — it does NOT fall
 # through to the trigger/quality flow below.
@@ -159,8 +160,8 @@ if [[ -n "$HOLDOUT_PROMOTE_SKILL" ]]; then
         echo -e "${RED}Error: holdout eval set not found for skill '$hp_skill'.${NC}" >&2
         echo -e "${RED}  expected: $HP_HOLDOUT${NC}" >&2
         echo -e "${RED}            $HP_LOCK${NC}" >&2
-        echo -e "${YELLOW}  Build a sealed holdout (holdout.jsonl + holdout.lock.json) per${NC}" >&2
-        echo -e "${YELLOW}  src/skills/skill-evolution/references/holdout-promotion-gate.md first.${NC}" >&2
+        echo -e "${YELLOW}  Build a sealed holdout (holdout.jsonl + holdout.lock.json) first;${NC}" >&2
+        echo -e "${YELLOW}  see the --holdout-promote block in this script for the contract.${NC}" >&2
         exit 2
     fi
     if [[ ! -f "$HP_SKILL_MD" ]]; then

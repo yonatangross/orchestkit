@@ -12,7 +12,8 @@
 # 1. CLAUDE.md — loaded into system prompt every session
 # 2. MEMORY.md — loaded into system prompt every session (first 200 lines)
 # 3. Agent descriptions — ALL 38 listed in Task tool system prompt
-# 4. User-invocable skill count — each adds description to system prompt
+# 4. Skill index: name+description of every MODEL-FACING skill, always loaded
+#    (plus a separate slash-command sprawl cap on user-invocable skills)
 # 5. Hook dispatcher budget — per-turn context injection cap
 # 6. Total session overhead — combined budget for all vectors
 #
@@ -78,16 +79,41 @@ CLAUDE_MD_MAX_BYTES=4800       # ~1,200 tokens — project instructions
 MEMORY_MD_MAX_BYTES=5000       # ~1,250 tokens — auto-memory (trim the bloat)
 AGENT_DESC_TOTAL_MAX_BYTES=6000  # ~1,500 tokens — all 38 agent descriptions combined
 AGENT_DESC_SINGLE_MAX_BYTES=250  # ~62 tokens — no single agent description > 250 bytes
-MAX_USER_INVOCABLE_SKILLS=35   # Each adds ~50-100 tokens to system prompt (23→25: +design-import, +design-ship, Bet A #113; 25→26: +telemetry-inspect, M121 #1491; 26→27: +dev, M125 Lane B #1525; 27→28: +agents-view, M137 #1768; 28→29: +prd-to-goal, M140 #1792; 29→33: reconciling cap with reality — current count is 32 from pre-existing #1855 drift, +1 headroom; #1865; 33→34: +audit-activation made user-invocable, P3-A2 activation unbolting; 34→35: quickviz — the repurposed ascii-visualizer, flipped from inert to invocable so there is a CHEAP inline viz on-ramp next to visualize-plan's full pipeline. Paid from the ~325t of real headroom under TOTAL_SESSION_MAX_TOKENS, not by demoting a skill: 18 of the 34 invocable skills show zero use across a 5-month window, so demotion candidates exist and should be spent deliberately via analytics, not opportunistically to fund one flip.)
+MAX_USER_INVOCABLE_SKILLS=35   # Slash-command sprawl cap ONLY (size of the /ork:<name> menu). This is NOT an index-token budget: `user-invocable` controls whether a slash command exists, and 10 of these 35 skills are also `disable-model-invocation: true`, so they cost ZERO always-loaded tokens. Real index cost is measured separately by SKILL_INDEX_MAX_BYTES below. History (23→25: +design-import, +design-ship, Bet A #113; 25→26: +telemetry-inspect, M121 #1491; 26→27: +dev, M125 Lane B #1525; 27→28: +agents-view, M137 #1768; 28→29: +prd-to-goal, M140 #1792; 29→33: reconciling cap with reality — current count is 32 from pre-existing #1855 drift, +1 headroom; #1865; 33→34: +audit-activation made user-invocable, P3-A2 activation unbolting; 34→35: quickviz — the repurposed ascii-visualizer, flipped from inert to invocable so there is a CHEAP inline viz on-ramp next to visualize-plan's full pipeline. Paid from the ~325t of real headroom under TOTAL_SESSION_MAX_TOKENS, not by demoting a skill: 18 of the 34 invocable skills show zero use across a 5-month window, so demotion candidates exist and should be spent deliberately via analytics, not opportunistically to fund one flip.)
 HOOK_BUDGET_MAX_TOKENS=800     # Per-turn dispatcher cap
-TOTAL_SESSION_MAX_TOKENS=5500  # Combined session overhead budget (5300 → 5400 in M140 #1792 for ork:prd-to-goal; M137 #1768 for ork:agents-view; prior bump for CC 2.1.90 matrix growth; 5400→5500 in #1865 to match invocable-cap bump — covers ~57 token overage observed on origin/main + ~40 headroom)
+
+# Always-loaded skill index. The set that costs tokens is every skill whose
+# `disable-model-invocation` is NOT true, and its cost is the actual bytes of
+# the `name` + `description` frontmatter fields.
+# Measured 2026-07-27 on this branch: 59 model-facing skills, 23275 bytes
+# (~5819t). Budget set at 24500 bytes, about 5% headroom over measured.
+SKILL_INDEX_MAX_BYTES=22500  # ratcheted 24500->22500: measured 20968 after the 9-orphan deletion; 24500 left 14% slack, which is more air than the thing being measured moves in a release
+
+# Combined session overhead budget.
+# Re-baselined 2026-07-27. The old value (5500) was arithmetic on a wrong
+# model on BOTH halves:
+#   (a) wrong population. Test 6 charged `user-invocable: true` skills (35).
+#       That is the slash-command axis, not the index axis. 10 of those 35 are
+#       `disable-model-invocation: true` and cost nothing, while 34 skills that
+#       are NOT user-invocable are model-facing and were charged nothing.
+#   (b) wrong method. `count * 80` was a guess. Measuring the real name +
+#       description bytes of the 59 model-facing skills gives ~5819t, about
+#       3000t MORE than the 2800t the old formula reported. The gate was
+#       under-reporting session overhead by roughly half.
+# Measured total on this branch: 1156t CLAUDE.md + 950t MEMORY.md + 1329t agent
+# descriptions + 5819t skill index = 9254t. Budget 9700 leaves ~446t (4.8%)
+# headroom. In CI MEMORY.md is absent, so CI measures ~8304t against the same
+# ceiling. Ratchet this DOWN as description trimming lands. Do not raise it to
+# make a red run green.
+TOTAL_SESSION_MAX_TOKENS=9300  # ratcheted 9700->9300: measured 8665; 9700 left 11% slack and would not have caught a full skill-index regression
 
 echo "  Budgets:"
 echo "  ├─ CLAUDE.md:           < ${CLAUDE_MD_MAX_BYTES} bytes (~$(estimate_tokens $CLAUDE_MD_MAX_BYTES)t)"
 echo "  ├─ MEMORY.md:           < ${MEMORY_MD_MAX_BYTES} bytes (~$(estimate_tokens $MEMORY_MD_MAX_BYTES)t)"
 echo "  ├─ Agent descs (total): < ${AGENT_DESC_TOTAL_MAX_BYTES} bytes (~$(estimate_tokens $AGENT_DESC_TOTAL_MAX_BYTES)t)"
 echo "  ├─ Agent desc (each):   < ${AGENT_DESC_SINGLE_MAX_BYTES} bytes (~$(estimate_tokens $AGENT_DESC_SINGLE_MAX_BYTES)t)"
-echo "  ├─ User-invocable:      ≤ ${MAX_USER_INVOCABLE_SKILLS} skills"
+echo "  ├─ Skill index:         < ${SKILL_INDEX_MAX_BYTES} bytes (~$(estimate_tokens $SKILL_INDEX_MAX_BYTES)t)"
+echo "  ├─ User-invocable:      ≤ ${MAX_USER_INVOCABLE_SKILLS} skills (slash sprawl, not index cost)"
 echo "  ├─ Hook budget/turn:    ≤ ${HOOK_BUDGET_MAX_TOKENS} tokens"
 echo "  └─ Total session:       < ${TOTAL_SESSION_MAX_TOKENS} tokens"
 echo ""
@@ -187,18 +213,66 @@ fi
 echo ""
 
 # ============================================================================
-# Test 4: User-Invocable Skill Count
+# Test 4: Skill Index Overhead (model-facing) + slash-command sprawl
 # ============================================================================
-echo "▶ Test 4: User-Invocable Skill Count"
+echo "▶ Test 4: Skill Index Overhead"
 echo "────────────────────────────────────────"
 
-invocable_count=$(grep -rl 'user-invocable: true' "$SKILLS_DIR"/*/SKILL.md 2>/dev/null | wc -l | tr -d ' ')
+# These are two DIFFERENT axes and must never be conflated again:
+#   user-invocable: true           -> a /ork:<name> slash command exists (UX sprawl)
+#   disable-model-invocation: true -> the model never sees the skill, so it costs
+#                                     ZERO always-loaded index tokens
+# What actually burns context every session is the MODEL-FACING set: every skill
+# whose disable-model-invocation is not true. Its cost is the real bytes of the
+# `name` + `description` frontmatter fields, not a per-skill guess.
+# One awk pass over every SKILL.md emits:
+#   <model-facing count> <index bytes> <user-invocable count> <slash-only count> <slash-only AND user-invocable>
+read -r mf_count index_bytes invocable_count slash_only_count slash_only_invocable <<<"$(
+  awk '
+    function emit() {
+      if (!seen) return
+      if (ui) invocable++
+      if (dmi) { slash_only++; if (ui) slash_ui++; return }
+      mf++
+      bytes += length(nm) + length(ds)
+    }
+    FNR==1 { emit(); seen=1; infm=0; closed=0; dmi=0; ui=0; nm=""; ds=""; inds=0 }
+    closed { next }
+    /^---[[:space:]]*$/ { if (infm) closed=1; else infm=1; inds=0; next }
+    !infm { next }
+    {
+      key=$0
+      sub(/[[:space:]]*#.*$/, "", key)   # tolerate trailing YAML comments on flags
+      sub(/[[:space:]]+$/, "", key)
+    }
+    key ~ /^disable-model-invocation:[[:space:]]*true$/ { dmi=1; inds=0; next }
+    key ~ /^user-invocable:[[:space:]]*true$/           { ui=1;  inds=0; next }
+    /^name:/        { s=key; sub(/^name:[[:space:]]*/,"",s);        gsub(/^"|"$/,"",s); nm=s; inds=0; next }
+    /^description:/ { s=$0;  sub(/^description:[[:space:]]*/,"",s); gsub(/^"|"$/,"",s); ds=s; inds=1; next }
+    # folded / block-scalar continuation lines still belong to the description
+    inds && /^[[:space:]]+[^[:space:]]/ { s=$0; sub(/^[[:space:]]+/,"",s); ds = ds " " s; next }
+    { inds=0 }
+    END { emit(); printf "%d %d %d %d %d\n", mf, bytes, invocable, slash_only, slash_ui }
+  ' "$SKILLS_DIR"/*/SKILL.md
+)"
+
+skill_index_t=$(estimate_tokens "$index_bytes")
+
+info "Model-facing skills: ${mf_count} · slash-only (zero index cost): ${slash_only_count}"
+info "user-invocable: ${invocable_count}, of which ${slash_only_invocable} are slash-only and cost 0 index tokens"
+
+if [[ "$index_bytes" -le "$SKILL_INDEX_MAX_BYTES" ]]; then
+    pass "Skill index (name+description of ${mf_count} model-facing skills): ${index_bytes} bytes (~${skill_index_t}t) ≤ ${SKILL_INDEX_MAX_BYTES}"
+else
+    fail "Skill index (name+description of ${mf_count} model-facing skills): ${index_bytes} bytes (~${skill_index_t}t) exceeds ${SKILL_INDEX_MAX_BYTES} limit"
+    info "Shorten skill descriptions, or set disable-model-invocation: true on skills that are genuinely slash-only"
+fi
 
 if [[ "$invocable_count" -le "$MAX_USER_INVOCABLE_SKILLS" ]]; then
-    pass "User-invocable skills: ${invocable_count} ≤ ${MAX_USER_INVOCABLE_SKILLS}"
+    pass "User-invocable skills (slash sprawl): ${invocable_count} ≤ ${MAX_USER_INVOCABLE_SKILLS}"
 else
-    fail "User-invocable skills: ${invocable_count} exceeds ${MAX_USER_INVOCABLE_SKILLS} limit"
-    info "Each user-invocable skill adds its description to the system prompt"
+    fail "User-invocable skills (slash sprawl): ${invocable_count} exceeds ${MAX_USER_INVOCABLE_SKILLS} limit"
+    info "This caps the /ork: menu size. It is NOT the index-token budget (that is the check above)."
 fi
 echo ""
 
@@ -235,16 +309,16 @@ claude_md_t=$(estimate_tokens "${claude_md_bytes:-0}")
 memory_md_t=$(estimate_tokens "${memory_md_bytes:-0}")
 agent_desc_t=$(estimate_tokens "${agent_desc_total:-0}")
 
-# Estimate user-invocable skill descriptions (~80 tokens avg per skill)
-invocable_t=$((invocable_count * 80))
+# Measured index cost of the model-facing skill set (from Test 4), not a guess
+skill_index_t=${skill_index_t:-0}
 
-total_session_t=$((claude_md_t + memory_md_t + agent_desc_t + invocable_t))
+total_session_t=$((claude_md_t + memory_md_t + agent_desc_t + skill_index_t))
 
 echo "  Breakdown:"
 echo "  ├─ CLAUDE.md:           ~${claude_md_t}t"
 echo "  ├─ MEMORY.md:           ~${memory_md_t}t"
 echo "  ├─ Agent descriptions:  ~${agent_desc_t}t"
-echo "  ├─ Invocable skills:    ~${invocable_t}t (${invocable_count} × ~80t)"
+echo "  ├─ Skill index:         ~${skill_index_t}t (${mf_count} model-facing, ${index_bytes} measured bytes)"
 echo "  └─ Total:               ~${total_session_t}t"
 echo ""
 
@@ -253,7 +327,7 @@ if [[ "$total_session_t" -le "$TOTAL_SESSION_MAX_TOKENS" ]]; then
 else
     fail "Total session overhead: ~${total_session_t} tokens exceeds ${TOTAL_SESSION_MAX_TOKENS} budget"
     overage=$((total_session_t - TOTAL_SESSION_MAX_TOKENS))
-    info "Over budget by ~${overage} tokens — trim agent descriptions and MEMORY.md"
+    info "Over budget by ~${overage} tokens. Biggest lever is the skill index (~${skill_index_t}t), then agent descriptions, then MEMORY.md"
 fi
 echo ""
 
@@ -268,9 +342,10 @@ if [[ "$FAIL_COUNT" -gt 0 ]]; then
     echo -e "  ${RED}FAILED${NC}: Token overhead exceeds budget"
     echo ""
     echo "  Fix priority:"
-    echo "  1. Trim agent descriptions (biggest per-session waste)"
-    echo "  2. Trim MEMORY.md (remove resolved issues, old debug notes)"
-    echo "  3. Review CLAUDE.md for stale sections"
+    echo "  1. Trim model-facing skill descriptions (biggest per-session cost)"
+    echo "  2. Trim agent descriptions"
+    echo "  3. Trim MEMORY.md (remove resolved issues, old debug notes)"
+    echo "  4. Review CLAUDE.md for stale sections"
     exit 1
 else
     echo -e "  ${GREEN}ALL TESTS PASSED${NC}: Token overhead within budget"

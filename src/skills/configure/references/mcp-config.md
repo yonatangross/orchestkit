@@ -215,7 +215,7 @@ OrchestKit agents and skills integrate with these MCPs:
 | /ork:implement, /ork:verify, /ork:review-pr | context7 | Fetch current library docs |
 | web-research-analyst, market-intelligence | tavily | Web search and content extraction |
 | /ork:remember, /ork:memory | memory | Persist decisions across sessions |
-| notebooklm (skill) | notebooklm-mcp | External RAG, research, studio content |
+| /ork:release-sync, /ork:visualize-plan | notebooklm-mcp | External RAG, research, studio content |
 | Sonnet/Haiku subagents | sequential-thinking | Structured reasoning for non-Opus models |
 | /ork:design-to-code, design-context-extractor | stitch | AI design → HTML, screenshot extraction, design context |
 | /ork:component-search, component-curator | 21st-dev-magic | Search + retrieve production React components |

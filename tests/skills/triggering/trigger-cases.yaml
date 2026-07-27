@@ -191,16 +191,6 @@ skills:
       - "fix this bug"
       - "commit my changes"
 
-  feedback:
-    should_trigger:
-      - "give me feedback on this code"
-      - "provide feedback"
-      - "review and give feedback"
-    should_not_trigger:
-      - "implement a feature"
-      - "fix this bug"
-      - "commit my changes"
-
   help:
     should_trigger:
       - "show available skills and commands"
@@ -241,23 +231,4 @@ skills:
       - "fix this bug"
       - "commit my changes"
 
-  skill-evolution:
-    should_trigger:
-      - "evolve this skill"
-      - "improve the skill"
-      - "update skill definitions"
-    should_not_trigger:
-      - "implement a feature"
-      - "fix this bug"
-      - "commit my changes"
-
-  upgrade-assessment:
-    should_trigger:
-      - "assess the upgrade"
-      - "should we upgrade this dependency"
-      - "evaluate the upgrade path"
-    should_not_trigger:
-      - "deploy to production"
-      - "fix this bug"
-      - "run the linter"
 

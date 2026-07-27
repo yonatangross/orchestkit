@@ -71,14 +71,6 @@ When ingesting a bundle, run independent reads in parallel:
 The bundle declares what Claude Design generated. Don't re-derive what the bundle already says. Don't invent a token hierarchy when the bundle ships flat tokens. Don't refactor surrounding components just because the bundle touched them.
 </avoid_overengineering>
 
-## Task Management
-For multi-step bundle work (3+ components or multi-skill composition), use task tracking:
-1. `TaskCreate` per major phase (parse, validate, dedup, scaffold, verify) with descriptive `activeForm`
-2. `TaskGet` to verify `blockedBy` is empty before starting
-3. Set status to `in_progress` when starting a phase
-4. Use `addBlockedBy` for dependencies (scaffold must wait for dedup)
-5. Mark `completed` only when the phase output is on disk and verified
-
 ## Agent Teams (CC 2.1.33+)
 When running as a teammate:
 - Send normalized component manifest to `frontend-ui-developer` for implementation

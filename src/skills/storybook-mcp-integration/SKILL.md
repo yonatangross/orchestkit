@@ -2,7 +2,7 @@
 name: storybook-mcp-integration
 license: MIT
 compatibility: "Claude Code 2.1.220+. Optional: @storybook/addon-mcp (Storybook 10.3+, Vite-based only)."
-description: "Reference for the Storybook MCP server itself (@storybook/addon-mcp): its 6 tools across 3 toolsets (dev, docs, testing), install prerequisites, availability detection, per-agent toolset filtering, and Chromatic remote publishing. Component discovery via list-all-documentation/get-documentation, story previews via preview-stories, component and a11y runs via run-story-tests. Use when setting up the Storybook MCP server, deciding which toolset an agent needs, or calling these tools directly to inventory, preview, or test components that already exist. For the end-to-end pipeline that turns a mockup into a new component and consumes these tools as one stage, use design-to-code."
+description: "Reference for the Storybook MCP server itself (@storybook/addon-mcp): 6 tools across 3 toolsets (dev, docs, testing), availability detection, and per-agent toolset filtering. Use when setting up the server or calling these tools directly against components that already exist. For the end-to-end pipeline that turns a mockup into a new component and consumes these tools as one stage, use design-to-code."
 tags: [storybook, mcp, component-discovery, story-preview, component-testing, a11y, design-system, react]
 context: fork
 version: 1.0.0
@@ -23,6 +23,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+  - ToolSearch
 paths:
   - ".storybook/**"
   - "src/**/*.stories.{ts,tsx}"

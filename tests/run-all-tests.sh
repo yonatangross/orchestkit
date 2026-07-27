@@ -333,6 +333,17 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
         run_test "Semantic Matching" "$SCRIPT_DIR/skills/semantic-matching/test-skill-discovery.sh" || true
         run_test "Skill-Agent Integration" "$SCRIPT_DIR/skills/integration/test-skill-agent-integration.sh" || true
         run_test "Agent Definitions" "$SCRIPT_DIR/subagents/definition/test-agent-definitions.sh" || true
+        # Reachability gate: a skill with no slash command AND model invocation
+        # disabled AND no skills: frontmatter wiring cannot be invoked by anyone.
+        run_test "Unreachable Skills" "$SCRIPT_DIR/orphans/test-unreachable-skills.sh" || true  # silent: best-effort (run_test records failures; suite exits non-zero at end)
+        # Tool-coverage gate: allowed-tools must cover the tools the body
+        # instructs. Wrapper translates the audit's 0/1/2/3 into pass/fail; see
+        # its header. The underlying audit had never run in any CI path.
+        run_test "Skill Tool Coverage" "$SCRIPT_DIR/skills/test-skill-tool-coverage.sh" || true  # silent: best-effort (run_test records failures; suite exits non-zero at end)
+        # Model-recency gate: catches prose model claims ("requires Opus 4.8")
+        # while exempting historical prose ("landed in Opus 4.8"). Also never
+        # referenced by a runner before this line.
+        run_test "Model Recency" "$SCRIPT_DIR/skills/structure/test-model-recency.sh" || true  # silent: best-effort (run_test records failures; suite exits non-zero at end)
     fi
 
     # Functional tests (rule traceability, efficiency scorecard)

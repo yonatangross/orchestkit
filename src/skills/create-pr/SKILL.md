@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
 disable-model-invocation: true
-allowed-tools: [AskUserQuestion, Bash, Agent, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Agent, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
 skills: [commit, review-pr, memory, chain-patterns]
 complexity: medium
 persuasion-type: guidance
@@ -21,7 +21,7 @@ triggers:
   keywords: ["create pr", "create a pr", "crate a", "pull request", "open pr", "open a pr", "make a pr", "submit pr", "push and pr", "push this up"]
   examples:
     - "create a pull request for this feature"
-    - "open a PR against dev"
+    - "open a PR against the default branch"
     - "this is ready for review, make a PR"
   anti-triggers: [commit, review pr, merge, rebase, push]
 ---
@@ -54,6 +54,17 @@ TITLE = "$ARGUMENTS"  # Optional PR title, e.g., "Add user authentication"
 # If provided, use as PR title. If empty, generate from branch/commits.
 # $ARGUMENTS[0] is the first token (CC 2.1.59 indexed access)
 ```
+
+## Base Branch Resolution
+
+Derive the base branch from the remote. Never hardcode `dev` or `main`; repos differ.
+
+```bash
+BASE=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+BASE=${BASE:-main}   # ref missing (fresh/shallow clone)? run: git remote set-head origin -a
+```
+
+Every `$BASE` below refers to this value.
 
 ---
 
@@ -132,10 +143,7 @@ TaskUpdate(taskId="4", addBlockedBy=["3"])  # Tests run after agent validation
 TaskUpdate(taskId="5", addBlockedBy=["4"])  # PR creation needs tests to pass
 TaskUpdate(taskId="6", addBlockedBy=["5"])  # Playground after PR (needs title/summary)
 
-# 4. Before starting each task, verify it's unblocked
-task = TaskGet(taskId="2")  # Verify blockedBy is empty
-
-# 5. Update status as you progress
+# 4. Update status as you progress
 TaskUpdate(taskId="2", status="in_progress")  # When starting
 TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```
@@ -181,8 +189,8 @@ npm run lint && npm run typecheck && npm test -- --bail
 ```bash
 BRANCH=$(git branch --show-current)
 ISSUE=$(echo "$BRANCH" | grep -oE '[0-9]+' | head -1)
-git log --oneline dev..HEAD
-git diff dev...HEAD --stat
+git log --oneline "origin/$BASE..HEAD"
+git diff "origin/$BASE...HEAD" --stat
 ```
 
 ### Phase 3b: Agent Attribution (automatic)
@@ -210,7 +218,7 @@ Include agent attribution sections (from Phase 3b) after the Test Plan section i
 
 ```bash
 TYPE="feat"  # Determine: feat/fix/refactor/docs/test/chore
-gh pr create --base dev \
+gh pr create --base "$BASE" \
   --title "$TYPE(#$ISSUE): Brief description" \
   --body "$(cat <<'EOF'
 ## Summary
@@ -377,7 +385,7 @@ Before claiming PR is ready, apply: `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/r
 ## Quality Bar
 
 Done means all of these hold:
-- PR opened from a feature branch with a clean working tree against the correct base (dev, or the detected host equivalent)
+- PR opened from a feature branch with a clean working tree against the correct base (`$BASE`, derived from `origin/HEAD`, or the detected host equivalent)
 - Title uses conventional `type(#issue): ...` format matching the change
 - Body carries Summary, Changes, and Test Plan sections; every closed issue has its own `Closes #N` keyword
 - Pre-flight validation for the chosen PR type passed locally before creation (skipped only for the Quick type)

@@ -31,7 +31,6 @@ MEM0_VALID_SCOPES=("continuity" "decisions" "agents" "patterns" "best-practices"
 REMEMBER_SKILL="$PROJECT_ROOT/src/skills/remember"
 MEMORY_SKILL_DIR="$PROJECT_ROOT/src/skills/memory"
 BEST_PRACTICES_SKILL="$PROJECT_ROOT/src/skills/quality-gates"
-FEEDBACK_SKILL="$PROJECT_ROOT/src/skills/feedback"
 
 # Helper to set up clean test environment
 # Note: mem0 functions are now in test-helpers.sh, no need to source a library
@@ -428,13 +427,9 @@ test_best_practices_skill_has_warnings_flag() {
     assert_file_contains "$BEST_PRACTICES_SKILL/SKILL.md" "WARNING"
 }
 
-test_feedback_skill_exists() {
-    assert_file_exists "$FEEDBACK_SKILL/SKILL.md"
-}
-
-test_feedback_skill_has_capabilities() {
-    : # Placeholder
-}
+# NOTE: the `feedback` skill was deleted as an unreachable orphan (no slash
+# command, model invocation disabled, no `skills:` wiring). Its schema at
+# .claude/schemas/feedback.schema.json survives and is still covered below.
 
 # ============================================================================
 # HOOK TESTS (TypeScript - migrated from bash in v5.1.0)

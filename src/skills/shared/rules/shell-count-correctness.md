@@ -53,7 +53,7 @@ awk 'END{print NR}' empty.md   # prints 0, EXIT 0 -> safe
 ```
 
 Shipped here: 132 `.md` files in this repo lack a trailing newline, and the
-`audit-skills` 500-line gate under-reported each of them by exactly one line.
+500-line SKILL.md gate under-reported each of them by exactly one line.
 
 ---
 

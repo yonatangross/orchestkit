@@ -18,38 +18,90 @@
 # `aliases` map is documented as "shortName -> current latest full ID per
 # channel". Nothing consumed it until this gate.
 #
-# WHAT IT CHECKS
-#   For every `claude-(fable|opus|sonnet|haiku)-<digit>...` token in
-#   src/skills and src/agents: is the token in `fullIds` but NOT the
-#   `aliases` target for its channel? If so it is VALID BUT SUPERSEDED.
-#   Retired IDs (historicalIds only) are out of scope: those are already the
-#   vocab lint's business and they read as history by construction.
+# WHAT IT CHECKS  (three independent counters, one ratchet)
 #
-# THE FALSE-POSITIVE PROBLEM, AND THE HEURISTIC
+#   1. ID-SHAPED RECOMMENDATIONS. For every
+#      `claude-(fable|opus|sonnet|haiku)-<digit>...` token in src/skills and
+#      src/agents: is the token in `fullIds` but NOT the `aliases` target for
+#      its channel? If so it is VALID BUT SUPERSEDED. Retired IDs
+#      (historicalIds only) are out of scope: those are already the vocab
+#      lint's business and they read as history by construction.
 #
-# A superseded ID is perfectly legitimate in migration ladders, changelogs,
-# monitoring/query patterns, trace illustrations, and pricing tables that list
-# several models side by side. Flagging those would be noise, and noise gets
-# the gate deleted. So a token is only reported when it reads as a
-# RECOMMENDATION, defined narrowly as: the token appears as the VALUE of a
-# model-ish key or argument on the same line, e.g.
+#   2. PROSE CLAIMS. The same question asked of human prose: "Opus 4.8",
+#      "Claude Sonnet 4.6", "Haiku 4.5". Counter 1 is structurally blind to
+#      these, which is how 79 "Opus 4.8" mentions survived an alias advance
+#      while the gate reported a clean 0. Prose is normalised to an ID
+#      ("Opus 4.8" -> claude-opus-4-8) and run through the same supersession
+#      test.
 #
-#     model="claude-sonnet-4-6"      model: claude-sonnet-4-6
-#     "model": "claude-sonnet-4-6"   init_chat_model("claude-sonnet-4-6")
-#     model_name=...                 llm="anthropic/claude-sonnet-4-6"
+#   3. CC VERSION STAMPS IN AGENT BODIES. `CC 2.1.NN` / `Claude Code 2.1.NN`
+#      hardcoded anywhere in `src/agents/*.md`. Agents have no pin mechanism
+#      and no bot that bumps them, so a stamp there only rots. The real
+#      support floor lives in CLAUDE.md and is already CI-tested; an agent
+#      body must not carry a second, unmaintained copy of it. (Sibling gate:
+#      test-agent-no-version-snapshot.mjs does the same job for Labs 0.x
+#      package versions.)
 #
-# That is the shape a reader copy-pastes. Everything else is skipped:
+# REQUIREMENT vs HISTORY — THE HARD PART
 #
-#   1. PATH indicates history/migration. Any path matching
-#      migration|migrate|upgrade|changelog|history|compat|version.
-#      (e.g. upgrade-assessment/rules/knowledge-compatibility.md documents the
-#      full model ladder on purpose, and every cell there is superseded.)
-#   2. MARKDOWN TABLE ROWS (optionally blockquoted). Pricing tables, support
-#      matrices, and ladders enumerate models; they do not recommend one.
-#   3. ASCII TREE / DIAGRAM lines (containing the box-drawing run markers
-#      or `+--`). Those illustrate observed trace OUTPUT, not code to copy.
-#   4. An inline opt-out marker `model-recency-ok:` followed by a reason, on
-#      the flagged line or the line directly above it.
+# Historical and citation prose is LEGITIMATE and must never be rewritten to
+# look current. `.claude/rules/skill-authoring.md` says so explicitly:
+# "Deprecated in v1.0", "landed in 0.7", and links to release notes are
+# legitimate. So:
+#
+#     "xhigh landed in Opus 4.8"        HISTORY  -> never flagged
+#     "since CC 2.1.154 it defaults..." HISTORY  -> never flagged
+#     "3x what Opus 4.6 allotted"       CITATION -> never flagged
+#     "requires Opus 4.8"               ROT      -> flagged
+#     "> **Opus 4.8**: agents use..."   ROT      -> flagged
+#     "**Auditor:** Claude Opus 4.8"    ROT      -> flagged
+#
+# A mention is reported ONLY when it reads as a LIVE claim, and never when it
+# reads as a dated one. Concretely, a superseded mention is skipped when:
+#
+#   H1. HISTORY CUE in the 60 characters before it: landed / shipped /
+#       introduced / added / launched / released / deprecated / retired /
+#       superseded / replaced / renamed / was / were / used to / previously /
+#       formerly / originally / legacy / historic / prior to / before /
+#       since / as of / until / up to / back in / older / earlier /
+#       migrat* / upgrad* / changelog.
+#   H2. COMPARISON immediately before it (12-char tail): than / vs / versus /
+#       compared to / "3x". Benchmark rows and "3x the Opus 4.6 ceiling"
+#       cite an older model on purpose.
+#   H3. FLOOR FORM: "Opus 4.6+", "Opus 4.6 or newer". A floor is satisfied by
+#       any newer release (same rule the targets-floor gate applies), so it
+#       does not rot when the alias advances.
+#   H4. PATH indicates history/migration:
+#       migration|migrate|upgrade|changelog|history|compat|version.
+#   H5. MARKDOWN TABLE ROWS (optionally blockquoted) and ASCII DIAGRAM lines.
+#       Pricing tables, support matrices, benchmark grids and ladders
+#       enumerate models; they do not recommend one.
+#   H6. ESCAPE HATCH: an inline `model-recency-ok: <reason>` marker on the
+#       flagged line or the line directly above it. This is the documented
+#       opt-out for genuine history the heuristics above misclassify. Give a
+#       reason; "model-recency-ok:" with no words after it is not an argument.
+#
+# and it IS reported when one of these live-claim shapes matches:
+#
+#   R1. VALUE OF A MODEL-ISH KEY (ID form only):
+#         model="claude-sonnet-4-6"      model: claude-sonnet-4-6
+#         init_chat_model("claude-sonnet-4-6")   llm="anthropic/claude-..."
+#   R2. PRESENT-TENSE PREDICATE: "Opus 4.8 is / has / supports / defaults to
+#       / exposes / reads / can ...". Present tense with no history cue is a
+#       claim about the model you are on right now.
+#   R3. REQUIREMENT VERB governing it: requires / needs / must use / use /
+#       using / running on / assumes / expects / targets / only with /
+#       leveraging / powered by / built on / optimized for / with / without.
+#   R4. LABEL POSITION: the model names a section or callout, i.e. it appears
+#       before the line's first label colon (`: ` or `:**`) within 90 chars,
+#       or the line is a markdown heading. "## Self-Reported Uncertainty
+#       (Opus 4.8, xhigh effort)" is a promise about the running model.
+#   R5. KEY-VALUE: "**Auditor:** Claude Opus 4.8",
+#       "Co-Authored-By: Claude Opus 4.6". Templates get copy-pasted.
+#
+# CC stamps (counter 3) reuse H1, H6 and the table/diagram skip. They do NOT
+# get H3: "CC 2.1.172+" is exactly the hardcoded floor this counter exists to
+# remove, because CLAUDE.md already owns that number.
 #
 # Consequence: this gate UNDER-reports by design. A missed recommendation is
 # a gap; a false alarm is a dead gate.
@@ -59,6 +111,14 @@
 # fails only when a count gets WORSE, so the existing backlog does not redden
 # every open PR on day one. Same contract as
 # tests/skills/triggering/test-skill-coverage.sh.
+#
+# LAYOUT
+#   test-model-recency.sh        this file: reporting + the ratchet
+#   model-recency-scan.py        the scanner (all matching lives there)
+#   model-recency-baseline.json  the ratchet floor
+# The scanner is a real file, not a heredoc: a 9 KB `python3 - <<EOF` body
+# deadlocked before python ever started when this script was run from its
+# repo path.
 # =============================================================================
 set -euo pipefail
 
@@ -90,115 +150,26 @@ echo "  Model Recency Gate (deterministic, \$0)"
 echo "=========================================="
 echo ""
 
-REPORT=$(VOCAB_FILE="$VOCAB_FILE" python3 - <<'PYEOF'
-import json, os, re, glob, collections
+SCAN="$SCRIPT_DIR/model-recency-scan.py"
+if [[ ! -f "$SCAN" ]]; then
+  echo "FAIL: scanner missing: $SCAN"
+  exit 1
+fi
 
-vocab = json.load(open(os.environ["VOCAB_FILE"], encoding="utf-8"))
-aliases = vocab["aliases"]
-full_ids = set(vocab["fullIds"])
-
-TOKEN = r"claude-(?:fable|opus|sonnet|haiku)-[0-9][0-9a-z-]*"
-CHANNEL_RE = re.compile(r"^claude-(fable|opus|sonnet|haiku)-")
-
-# The token must be the VALUE of a model-ish key/argument. An optional
-# provider prefix (anthropic/, openrouter/anthropic/) is tolerated. No \b
-# before `model` on purpose: it must also fire inside init_chat_model(...).
-REC_RE = re.compile(
-    r"(?:model(?:_?name|_?id)?|llm)[\"']?\s*[=:(]\s*[\"']?"
-    r"(?:[a-z0-9_.-]+/)*"
-    r"(" + TOKEN + r")",
-    re.I,
-)
-
-HISTORY_PATH_RE = re.compile(
-    r"migration|migrate|upgrade|changelog|history|compat|version", re.I)
-TABLE_ROW_RE = re.compile(r"^\s*(?:>\s*)*\|")
-DIAGRAM_RE = re.compile(r"[└├│─]|\+--")
-OPT_OUT_RE = re.compile(r"model-recency-ok:")
-
-
-def current_for(token):
-    """Alias target for this token's channel, or None if the channel is
-    unknown."""
-    m = CHANNEL_RE.match(token)
-    return aliases.get(m.group(1)) if m else None
-
-
-def superseded(token):
-    """Valid but no longer the latest for its channel.
-
-    A bare ID that the dated alias target extends (claude-haiku-4-5 vs
-    claude-haiku-4-5-20251001) is the SAME model written without its
-    snapshot date, so it is current, not superseded.
-    """
-    if token not in full_ids:
-        return False
-    cur = current_for(token)
-    if cur is None or token == cur:
-        return False
-    return not cur.startswith(token + "-")
-
-
-files = sorted(
-    p for root in ("src/skills", "src/agents")
-    for p in glob.glob(f"{root}/**/*.md", recursive=True)
-)
-
-findings = []
-skipped_history_files = set()
-
-for path in files:
-    history_path = bool(HISTORY_PATH_RE.search(path))
-    try:
-        lines = open(path, encoding="utf-8", errors="ignore").read().splitlines()
-    except OSError:
-        continue
-    for i, line in enumerate(lines):
-        hits = [m.group(1) for m in REC_RE.finditer(line)]
-        hits = [t for t in hits if superseded(t)]
-        if not hits:
-            continue
-        if history_path:
-            skipped_history_files.add(path)
-            continue
-        if TABLE_ROW_RE.match(line) or DIAGRAM_RE.search(line):
-            continue
-        prev = lines[i - 1] if i else ""
-        if OPT_OUT_RE.search(line) or OPT_OUT_RE.search(prev):
-            continue
-        for token in hits:
-            findings.append({
-                "file": path,
-                "line": i + 1,
-                "token": token,
-                "current": current_for(token),
-                "text": line.strip()[:110],
-            })
-
-by_token = collections.Counter(f["token"] for f in findings)
-by_file = collections.Counter(f["file"] for f in findings)
-
-print(json.dumps({
-    "files_scanned": len(files),
-    "aliases": aliases,
-    "recommendations": len(findings),
-    "files_affected": len(by_file),
-    "by_token": dict(sorted(by_token.items(), key=lambda kv: -kv[1])),
-    "by_file": dict(sorted(by_file.items(), key=lambda kv: (-kv[1], kv[0]))),
-    "skipped_history_files": sorted(skipped_history_files),
-    "findings": findings,
-}))
-PYEOF
-)
+REPORT=$(VOCAB_FILE="$VOCAB_FILE" python3 "$SCAN")
 
 n_scanned=$(echo "$REPORT" | jq -r '.files_scanned')
 n_rec=$(echo "$REPORT" | jq -r '.recommendations')
+n_prose=$(echo "$REPORT" | jq -r '.prose_claims')
+n_cc=$(echo "$REPORT" | jq -r '.cc_stamps')
 n_files=$(echo "$REPORT" | jq -r '.files_affected')
 
 echo "  Markdown files scanned: ${n_scanned}"
 echo "  Current per channel:    $(echo "$REPORT" | jq -r '.aliases | to_entries | map("\(.key)=\(.value)") | join("  ")')"
 echo ""
 printf '  %-28s %s\n' "superseded recommendations" "$n_rec"
+printf '  %-28s %s\n' "superseded prose claims"    "$n_prose"
+printf '  %-28s %s\n' "CC stamps in agent bodies"  "$n_cc"
 printf '  %-28s %s\n' "files affected"             "$n_files"
 echo ""
 
@@ -206,6 +177,21 @@ if [[ "$n_rec" -gt 0 ]]; then
   echo "${BLUE}--- superseded model recommended (valid ID, not the latest) ---${NC}"
   echo "$REPORT" | jq -r '.by_token | to_entries[] | "  \(.value)x  \(.key)"'
   echo ""
+fi
+
+if [[ "$n_prose" -gt 0 ]]; then
+  echo "${BLUE}--- superseded model claimed in prose (live claim, not history) ---${NC}"
+  echo "$REPORT" | jq -r '.by_phrase | to_entries[] | "  \(.value)x  \(.key)"'
+  echo ""
+fi
+
+if [[ "$n_cc" -gt 0 ]]; then
+  echo "${BLUE}--- hardcoded CC version stamp in an agent body ---${NC}"
+  echo "$REPORT" | jq -r '.cc_findings | group_by(.file)[] | "  \(length)x  \(.[0].file)"' | head -30
+  echo ""
+fi
+
+if [[ "$n_rec" -gt 0 || "$n_prose" -gt 0 || "$n_cc" -gt 0 ]]; then
   echo "${BLUE}--- by file ---${NC}"
   echo "$REPORT" | jq -r '.by_file | to_entries[] | "  \(.value)x  \(.key)"' | head -40
   echo ""
@@ -213,6 +199,8 @@ fi
 
 if $VERBOSE; then
   echo "$REPORT" | jq -r '.findings[] | "  \(.file):\(.line)  \(.token) -> \(.current)\n      \(.text)"'
+  echo "$REPORT" | jq -r '.prose_findings[] | "  \(.file):\(.line)  \(.phrase) -> \(.current)  [\(.why)]\n      \(.text)"'
+  echo "$REPORT" | jq -r '.cc_findings[] | "  \(.file):\(.line)  \(.stamp)\n      \(.text)"'
   echo ""
   echo "${CYAN}Skipped (history/migration path):${NC}"
   echo "$REPORT" | jq -r '.skipped_history_files[] | "  \(.)"'
@@ -220,10 +208,11 @@ if $VERBOSE; then
 fi
 
 write_baseline() {
-  jq -n --argjson r "$n_rec" --argjson f "$n_files" \
-    '{schema:"ork-model-recency-baseline/1.0",
-      description:"Ratchet floor for the deterministic model-recency gate. Counts may only go DOWN. Regenerate with --update-baseline when a superseded recommendation is genuinely updated to the current model for its channel.",
-      recommendations:$r, files_affected:$f}' > "$BASELINE"
+  jq -n --argjson r "$n_rec" --argjson p "$n_prose" --argjson c "$n_cc" \
+        --argjson f "$n_files" \
+    '{schema:"ork-model-recency-baseline/2.0",
+      description:"Ratchet floor for the deterministic model-recency gate. Counts may only go DOWN. recommendations = ID-shaped `model=claude-...` values pointing at a superseded model; prose_claims = live prose claims (\"requires Opus 4.8\") on a superseded model, history/citation prose excluded by design; cc_stamps = hardcoded `CC 2.1.NN` in src/agents/*.md bodies, where CLAUDE.md already owns the support floor. Regenerate with --update-baseline when an offender is genuinely retargeted at the current model for its channel.",
+      recommendations:$r, prose_claims:$p, cc_stamps:$c, files_affected:$f}' > "$BASELINE"
 }
 
 if $UPDATE_BASELINE; then
@@ -239,8 +228,10 @@ if [[ ! -f "$BASELINE" ]]; then
   exit 0
 fi
 
-b_rec=$(jq -r '.recommendations' "$BASELINE")
-b_files=$(jq -r '.files_affected' "$BASELINE")
+b_rec=$(jq -r '.recommendations // 0' "$BASELINE")
+b_prose=$(jq -r '.prose_claims // 0' "$BASELINE")
+b_cc=$(jq -r '.cc_stamps // 0' "$BASELINE")
+b_files=$(jq -r '.files_affected // 0' "$BASELINE")
 
 echo "=========================================="
 echo "  Ratchet"
@@ -258,13 +249,17 @@ check() {
   fi
 }
 check "recommendations" "$n_rec"   "$b_rec"
+check "prose claims"    "$n_prose" "$b_prose"
+check "cc stamps"       "$n_cc"    "$b_cc"
 check "files affected"  "$n_files" "$b_files"
 echo ""
 
 if [[ "$fail" -eq 1 ]]; then
-  echo "${RED}FAIL: a doc recommends a model that is valid but no longer the latest.${NC}"
-  echo "${RED}Point it at the current ID for its channel (see aliases above), or add${NC}"
-  echo "${RED}an inline 'model-recency-ok: <reason>' marker if the older ID is intended.${NC}"
+  echo "${RED}FAIL: a doc names a model, or an agent hardcodes a CC version, that is${NC}"
+  echo "${RED}no longer current. Point it at the current ID for its channel (see the${NC}"
+  echo "${RED}aliases above), drop the CC stamp (CLAUDE.md owns the floor), or add an${NC}"
+  echo "${RED}inline 'model-recency-ok: <reason>' marker when the older reference is${NC}"
+  echo "${RED}genuine history and the heuristics misread it.${NC}"
   exit 1
 fi
 echo "${GREEN}PASS: no model-recency regression.${NC}"

@@ -9,7 +9,7 @@ version: 1.2.0
 author: OrchestKit
 tags: [testing, coverage, unit, integration, e2e, test-generation, real-services, testcontainers]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, CronCreate, CronDelete, Monitor, PushNotification, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
+allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, Workflow, CronCreate, CronDelete, Monitor, PushNotification, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
 skills: [testing-unit, testing-integration, testing-e2e, testing-perf, testing-llm, chain-patterns, memory, quality-gates]
 complexity: high
 persuasion-type: discipline
@@ -169,10 +169,7 @@ TaskUpdate(taskId="5", addBlockedBy=["4"])  # Execution needs generated tests
 TaskUpdate(taskId="6", addBlockedBy=["5"])  # Healing needs test results
 TaskUpdate(taskId="7", addBlockedBy=["6"])  # Report needs healed suite
 
-# 4. Before starting each task, verify it's unblocked
-task = TaskGet(taskId="2")  # Verify blockedBy is empty
-
-# 5. Update status as you progress
+# 4. Update status as you progress
 TaskUpdate(taskId="2", status="in_progress")  # When starting
 TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```
@@ -260,41 +257,24 @@ Output coverage baseline to user immediately (progressive output).
 
 Spawn test-generator agents per tier. Launch ALL in ONE message with `run_in_background=true`.
 
-> ⚠️ **`isolation="worktree"` does NOT reliably isolate parallel agents in
-> CC Opus 4.7.** Observed: spawning multiple agents with that param thrashes
-> the PRIMARY worktree's HEAD via sequential `git checkout`, cutting agents
-> off at ~60 tool uses. Tracked at Yonatan-HQ/platform#3224.
+> **Isolation:** spawn each tier agent with `Agent(isolation="worktree")`, one
+> worktree per tier (unit / integration / e2e) so they don't conflict. The
+> subagent bypass of the worktree-isolation guard was fixed in CC 2.1.154 and
+> completed in 2.1.203; ork's floor is >= 2.1.220, so every supported session
+> gets real isolation. Do not create worktrees by hand before spawning.
 >
-> **Use the manual pre-create pattern instead.** Create one worktree per
-> agent BEFORE spawning (`git worktree add ../<repo>-<tier> -b feat/<slug>-<tier> origin/dev`),
-> then make `FIRST: cd <worktree-path>` the first Bash call in each agent
-> prompt. Empirical: 4–22 tool-uses per agent (vs 60–86 with broken
-> isolation), zero cutoffs across M164 Wave 2/3 + M170 sub-agents.
->
-> Full pattern + helper function + prompt-constraint template:
-> `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/manual-worktree-pattern.md")`
-> (cross-referenced from `/ork:implement` — same doc applies here).
+> The new branch's base comes from the `worktree.baseRef` setting (ork sets
+> `"head"` so unpushed local commits are visible to spawned agents), never from
+> a hardcoded branch name. Full pattern:
+> `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/worktree-agent-pattern.md")`
 
 ```python
-# Pre-create worktrees BEFORE the agent batch (lead-thread responsibility).
-# One worktree per tier (unit / integration / e2e) so they don't conflict.
-import subprocess
-REPO_ROOT = Bash("git rev-parse --show-toplevel").stdout.strip()
-BASE_REF = "origin/dev"  # or "origin/main" depending on repo convention
-TIER_WORKTREES = {}
-for tier in TIERS:
-    wt_path = f"../<repo>-cover-{tier}"  # adjust per your repo
-    branch = f"feat/cover-{SCOPE_SLUG}-{tier}"
-    Bash(f"git worktree add {wt_path} -b {branch} {BASE_REF}")
-    TIER_WORKTREES[tier] = wt_path
-
-# Unit tests agent (manual pre-create pattern)
+# Unit tests agent (worktree-isolated)
 if "unit" in TIERS:
     Agent(
         subagent_type="ork:test-generator",
-        prompt=f"""FIRST: cd {TIER_WORKTREES["unit"]}
-
-        Generate unit tests for: {SCOPE}
+        isolation="worktree",
+        prompt=f"""Generate unit tests for: {SCOPE}
         Coverage gaps: {gap_map.unit_gaps}
         Framework: {detected_framework}
         Existing tests: {existing_test_files}
@@ -305,19 +285,14 @@ if "unit" in TIERS:
         - MSW/VCR for HTTP mocking (never mock fetch directly)
         - Factory-based test data (FactoryBoy/faker-js)
         - Edge cases: empty input, errors, timeouts, boundary values
-        - Target: 90%+ business logic coverage
-
-        Do NOT use `isolation="worktree"` — this worktree was pre-created
-        by the lead. Every Bash call should start from {TIER_WORKTREES["unit"]}.""",
+        - Target: 90%+ business logic coverage""",
         run_in_background=True,
         max_turns=50,
         model=MODEL_OVERRIDE
     )
 
 # Integration + E2E agents follow the same pattern:
-# - Pre-create worktree at TIER_WORKTREES["integration"] / TIER_WORKTREES["e2e"]
-# - Agent prompt FIRST line: `cd <path>`
-# - subagent_type="ork:test-generator", run_in_background=True (no isolation kwarg)
+# - subagent_type="ork:test-generator", isolation="worktree", run_in_background=True
 # - Integration focus: API endpoints (Supertest/httpx), real DB, contract tests (Pact), Zod schema validation
 # - E2E focus: Playwright, semantic locators, Page Object Model, axe-core a11y, visual regression
 #
@@ -325,7 +300,7 @@ if "unit" in TIERS:
 # When integration tests need GitHub/Stripe/Resend/Okta/etc. emulated
 # (HMAC webhooks, parallel port isolation, full config from scratch),
 # spawn emulate-engineer instead of test-generator for that tier:
-# - subagent_type="ork:emulate-engineer" (same manual-worktree pattern)
+# - subagent_type="ork:emulate-engineer" (same isolation="worktree" form)
 # - Pairs with emulate-seed skill for seed YAML patterns
 ```
 

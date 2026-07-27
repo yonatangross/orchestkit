@@ -2,10 +2,10 @@
 # ============================================================================
 # Memory Commands Unit Tests
 # ============================================================================
-# Tests for memory/feedback slash commands (CC 2.1.3 merged with skills):
+# Tests for memory slash commands (CC 2.1.3 merged with skills):
 # - /remember (skills/remember/SKILL.md)
 # - /ork:memory search (skills/memory/SKILL.md)
-# - /ork:feedback (skills/feedback/SKILL.md)
+# Plus the memory and feedback JSON schemas under .claude/schemas/.
 # ============================================================================
 
 set -euo pipefail
@@ -128,59 +128,11 @@ test_memory_has_subcommands() {
     grep -qi "search" "$file" || fail "memory SKILL.md should mention search subcommand"
 }
 
-# ============================================================================
-# /ork:feedback COMMAND TESTS
-# ============================================================================
-
-describe "Command: /ork:feedback"
-
-test_feedback_command_exists() {
-    assert_file_exists "$SKILLS_DIR/feedback/SKILL.md"
-}
-
-test_feedback_has_usage_section() {
-    assert_file_contains "$SKILLS_DIR/feedback/SKILL.md" "## Usage"
-}
-
-test_feedback_has_subcommands() {
-    local file="$SKILLS_DIR/feedback/SKILL.md"
-
-    assert_file_contains "$file" "status"
-    assert_file_contains "$file" "pause"
-    assert_file_contains "$file" "resume"
-    assert_file_contains "$file" "reset"
-    assert_file_contains "$file" "export"
-    assert_file_contains "$file" "settings"
-    assert_file_contains "$file" "opt-in"
-    assert_file_contains "$file" "opt-out"
-}
-
-test_feedback_has_subcommand_sections() {
-    local file="$SKILLS_DIR/feedback/SKILL.md"
-
-    # Check for subcommand headers (may be ### or other format)
-    grep -qi "status" "$file" || fail "feedback SKILL.md should have status section"
-    grep -qi "pause" "$file" || fail "feedback SKILL.md should have pause section"
-    grep -qi "reset" "$file" || fail "feedback SKILL.md should have reset section"
-}
-
-test_feedback_has_when_to_use() {
-    # Overview is optional if description has trigger phrases (standardized in #179)
-    local file="$SKILLS_DIR/feedback/SKILL.md"
-    if grep -q "## Overview" "$file"; then
-        # Has Overview - OK
-        return 0
-    elif grep -qiE "description:.*use\s+(when|for|this)" "$file"; then
-        # Description has triggers - Overview optional
-        return 0
-    else
-        fail "feedback SKILL.md should have Overview section or trigger phrases in description"
-    fi
-}
-
-test_feedback_has_output_examples() {
-    grep -qF "Output:" "$SKILLS_DIR/feedback/SKILL.md" || fail "feedback SKILL.md should have Output examples"
-}
+# NOTE: the `feedback` skill was deleted as an unreachable orphan (no slash
+# command, model invocation disabled, no `skills:` wiring), so the
+# /ork:feedback command tests that lived here are gone with it. The analytics
+# schema it described, .claude/schemas/feedback.schema.json, still exists and
+# is still covered by the schema tests further down this file.
 
 # ============================================================================
 # COMMAND FORMAT VALIDATION
@@ -189,7 +141,7 @@ test_feedback_has_output_examples() {
 describe "Commands: Format Validation"
 
 test_all_commands_have_title() {
-    for cmd in remember memory feedback; do
+    for cmd in remember memory; do
         local file="$SKILLS_DIR/${cmd}/SKILL.md"
         if [[ -f "$file" ]]; then
             # Should have a title with the command name
@@ -201,7 +153,7 @@ test_all_commands_have_title() {
 }
 
 test_all_commands_are_readable() {
-    for cmd in remember memory feedback; do
+    for cmd in remember memory; do
         local file="$SKILLS_DIR/${cmd}/SKILL.md"
         if [[ -f "$file" ]]; then
             # Should be readable
@@ -213,7 +165,7 @@ test_all_commands_are_readable() {
 }
 
 test_commands_have_reasonable_size() {
-    for cmd in remember memory feedback; do
+    for cmd in remember memory; do
         local file="$SKILLS_DIR/${cmd}/SKILL.md"
         if [[ -f "$file" ]]; then
             local size
