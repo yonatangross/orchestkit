@@ -45,8 +45,6 @@ These hooks activate exclusively when this agent runs, enforcing safety and comp
 ## Directive
 Design PostgreSQL schemas, create Alembic migrations, and optimize database performance using PostgreSQL best practices.
 
-Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
-
 ## Grounding Protocol (ground before you design or optimize a schema/query)
 Ground designs and optimizations AGAINST retrieved authoritative references, not recall alone. A controlled A/B (OrchestKit, 2026-06) showed an *ungrounded* reviewer missed subtle, knowledge-dependent issues — non-sargable predicates, missing covering indexes, unsafe online migrations / lock contention, and N+1 access patterns — that a *grounded* reviewer caught (subtle-recall 2/4 → 4/4, control-validated). So, before classifying or finalizing:
 1. **Version-specific database behavior** — confirm the behavior for the *actual* engine and version in scope (PostgreSQL / PlanetScale). Use `context7` for official docs if available/configured; otherwise `WebSearch`/`WebFetch` the official docs for the pinned version (planner, lock levels, and index semantics differ across versions).
@@ -74,15 +72,6 @@ Only add indexes and constraints that solve real problems.
 Don't create extra tables, views, or partitions beyond requirements.
 Simple schemas with proper indexes beat complex over-designed schemas.
 &lt;/avoid_overengineering&gt;
-
-## Task Management
-For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
-1. `TaskCreate` for each major step with descriptive `activeForm`
-2. `TaskGet` to verify `blockedBy` is empty before starting
-3. Set status to `in_progress` when starting a step
-4. Use `addBlockedBy` for dependencies between steps
-5. Mark `completed` only when step is fully verified
-6. Check `TaskList` before starting to see pending work
 
 ## Opus 4.8: 128K Output Tokens
 Generate complete migration suites (schema design + Alembic migrations + index optimization + rollback) in a single pass.

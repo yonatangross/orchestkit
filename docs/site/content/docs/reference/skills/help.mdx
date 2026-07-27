@@ -16,7 +16,7 @@ description: "OrchestKit help directory with categorized skill listings. Use whe
 
 # OrchestKit Skill Directory
 
-Dynamic skill discovery — reads from source at runtime so listings are never stale.
+Dynamic skill discovery: enumerates the installed plugin at runtime so listings are never stale.
 
 > **CC 2.1.121+ tip:** if you just want to find one skill quickly, the native `/skills` command now has type-to-filter — open it and start typing the skill name. Use `/ork:help` when you want categorized browsing or rationale for *why* a skill applies.
 
@@ -32,7 +32,7 @@ Dynamic skill discovery — reads from source at runtime so listings are never s
 ## Argument Resolution
 
 ```python
-CATEGORY = "$ARGUMENTS[0]"  # Optional: build, git, memory, quality, config, explore, plan, media, all
+CATEGORY = "$ARGUMENTS[0]"  # Optional: build, git, plan, quality, memory, config, explore, design, ops, all
 # If provided, skip AskUserQuestion and show that category directly.
 # $ARGUMENTS is the full string (CC 2.1.59 indexed access)
 ```
@@ -44,15 +44,34 @@ CATEGORY = "$ARGUMENTS[0]"  # Optional: build, git, memory, quality, config, exp
 **ALWAYS run this first** to get accurate, up-to-date skill data:
 
 ```python
-# Scan all user-invocable skills from source
-Grep(pattern="user-invocable:\\s*true", path="src/skills", output_mode="files_with_matches")
+# ${CLAUDE_PLUGIN_ROOT} is set by the plugin runtime and points at the INSTALLED
+# plugin. That is the normal case: a marketplace user has no src/ directory.
+SKILLS_ROOT = "${CLAUDE_PLUGIN_ROOT}/skills"
+matches = Grep(pattern="user-invocable:\\s*true", path=SKILLS_ROOT, output_mode="files_with_matches")
+
+# Dogfooding fallback: inside the OrchestKit repo itself the skills live in the
+# source tree. Retry there if the env var was unset or the probe found nothing.
+if not matches:
+    SKILLS_ROOT = "src/skills"
+    matches = Grep(pattern="user-invocable:\\s*true", path=SKILLS_ROOT, output_mode="files_with_matches")
 ```
 
-For each matched file, extract name and description from frontmatter:
+If BOTH probes return zero files, say so plainly ("could not locate the OrchestKit
+skills directory, checked `$\{CLAUDE_PLUGIN_ROOT\}/skills` and `src/skills`") and stop.
+Do NOT substitute a remembered list of skill names. Any such list is stale by
+construction and a confident wrong answer is worse than no answer.
+
+For each matched file, read the frontmatter to get name, description, version,
+complexity, `argument-hint` and tags:
 
 ```python
-# For each SKILL.md found, read first 15 lines to get name + description
-Read(file_path="src/skills/{name}/SKILL.md", limit=15)
+Read(file_path=f"{SKILLS_ROOT}/{skill_dir}/SKILL.md", limit=25)
+```
+
+Every number rendered later is derived from this scan, never typed as a literal:
+
+```python
+TOTAL = len(matches)   # user-invocable skill count
 ```
 
 Build the skill list dynamically. **Never hardcode counts or skill names.**
@@ -70,12 +89,13 @@ AskUserQuestion(
   questions=[{
     "question": "What type of task are you working on?",
     "header": "Category",
-    # 4-option cap (CC schema): the 7 categories are grouped into 3 buckets +
-    # "Show all". STEP 2 renders the constituent categories for the picked bucket.
+    # 4-option cap (CC schema): every category from STEP 2 is grouped into one of
+    # 3 buckets + "Show all". STEP 2 renders the constituent categories for the
+    # picked bucket. Descriptions name intents, never skills, so they cannot drift.
     "options": [
-      {"label": "Build & ship", "description": "Implement, brainstorm, test, commit, PR, fix issues"},
-      {"label": "Plan & assess", "description": "PRDs, plan visualization, quality assessment, PR review"},
-      {"label": "Explore & operate", "description": "Codebase exploration, memory, setup, diagnostics"},
+      {"label": "Build & ship", "description": "Writing code, tests, git and PRs, UI and design work"},
+      {"label": "Plan & assess", "description": "Requirements, planning, quality assessment, review"},
+      {"label": "Explore & operate", "description": "Codebase exploration, memory, setup, diagnostics, CI"},
       {"label": "Show all", "description": "List every user-invocable skill"}
     ],
     "multiSelect": false
@@ -89,28 +109,38 @@ AskUserQuestion(
 
 For the selected category, render the skill table from the data gathered in STEP 0.
 
-### Category-to-Skill Mapping
+### Category Definitions
 
-Granular categories (used by the CLI args `build`, `git`, … from STEP 1):
+Categories are defined by **tag predicates**, never by a list of skill names, so a
+newly shipped skill lands in the right bucket without editing this file. Match each
+discovered skill's frontmatter `tags` against the sets below (case-insensitive, one
+hit is enough):
 
-| Category | Skills |
-|----------|--------|
-| BUILD | implement, brainstorm, cover, verify |
-| GIT | commit, create-pr, review-pr, fix-issue |
-| PLAN | visualize-plan, write-prd, assess |
-| MEMORY | remember, memory |
-| QUALITY | assess, review-pr, doctor |
-| CONFIG | setup, doctor, configure |
-| EXPLORE | explore |
+| Category | CLI arg | Matches any of these tags |
+|----------|---------|---------------------------|
+| BUILD | `build` | implementation, feature, testing, coverage, test-generation, verification, e2e |
+| GIT | `git` | git, github, commit, pull-request, pr, issue, bug-fix |
+| PLAN | `plan` | planning, ideation, prd, requirements, visualization |
+| QUALITY | `quality` | quality, assessment, evaluation, code-review, validation, grading |
+| MEMORY | `memory` | memory, decisions, graph-memory, consolidation |
+| CONFIG | `config` | setup, configuration, onboarding, diagnostics, health-check, dev-loop |
+| EXPLORE | `explore` | exploration, codebase, code-search, architecture, discovery |
+| DESIGN | `design` | design, design-context, design-tokens, design-to-code, frontend, ui, components, stylecards |
+| OPS | `ops` | ci, automation, telemetry, observability, release, migration |
+| OTHER | (none) | anything the rows above did not match |
 
-The STEP 0 picker only offers **3 buckets** (the AskUserQuestion schema caps a
-question at 4 options) — each bucket renders the union of its categories:
+A skill matching two categories is listed under both. That is expected, not a bug.
+OTHER is what makes the totals reconcile: every skill found in STEP 0 must appear
+somewhere in a full listing, so a skill nobody has categorized yet still shows up.
+
+The STEP 1 picker only offers **3 buckets** (the AskUserQuestion schema caps a
+question at 4 options). Each bucket renders the union of its categories:
 
 | Picker bucket | Renders categories |
 |---------------|--------------------|
-| Build & ship | BUILD + GIT |
+| Build & ship | BUILD + GIT + DESIGN |
 | Plan & assess | PLAN + QUALITY |
-| Explore & operate | MEMORY + CONFIG + EXPLORE |
+| Explore & operate | MEMORY + CONFIG + EXPLORE + OPS + OTHER |
 
 For each skill in the category, render:
 
@@ -122,7 +152,9 @@ For each skill in the category, render:
 
 ### "Show all" — Full Listing
 
-If user picks "Show all", render ALL user-invocable skills grouped by category from STEP 0 data.
+If user picks "Show all", render ALL user-invocable skills grouped by category from
+STEP 0 data, then close with the derived total: `\{TOTAL\} user-invocable skills`.
+Print `TOTAL` from `len(matches)`. Never type a number you did not just count.
 
 ---
 

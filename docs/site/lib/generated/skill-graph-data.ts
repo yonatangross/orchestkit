@@ -125,16 +125,6 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
-    "id": "audit-skills",
-    "label": "Audit Skills",
-    "type": "reference",
-    "complexity": "medium",
-    "category": "security",
-    "hasDeps": false,
-    "depCount": 0,
-    "usedByCount": 0
-  },
-  {
     "id": "auto",
     "label": "Auto",
     "type": "command",
@@ -193,16 +183,6 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 11
-  },
-  {
-    "id": "checkpoint-resume",
-    "label": "Checkpoint Resume",
-    "type": "reference",
-    "complexity": "high",
-    "category": "other",
-    "hasDeps": false,
-    "depCount": 0,
-    "usedByCount": 0
   },
   {
     "id": "ci-debug",
@@ -482,17 +462,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": true,
     "depCount": 5,
-    "usedByCount": 6
-  },
-  {
-    "id": "feedback",
-    "label": "Feedback",
-    "type": "reference",
-    "complexity": "low",
-    "category": "other",
-    "hasDeps": false,
-    "depCount": 0,
-    "usedByCount": 0
+    "usedByCount": 5
   },
   {
     "id": "figma-design-handoff",
@@ -652,7 +622,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 19
+    "usedByCount": 18
   },
   {
     "id": "memory-fabric",
@@ -695,16 +665,6 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
-    "id": "notebooklm",
-    "label": "Notebooklm",
-    "type": "reference",
-    "complexity": "medium",
-    "category": "ai-llm",
-    "hasDeps": false,
-    "depCount": 0,
-    "usedByCount": 0
-  },
-  {
     "id": "okr-design",
     "label": "Okr Design",
     "type": "reference",
@@ -740,16 +700,6 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "type": "command",
     "complexity": "low",
     "category": "product",
-    "hasDeps": false,
-    "depCount": 0,
-    "usedByCount": 0
-  },
-  {
-    "id": "presentation-builder",
-    "label": "Presentation Builder",
-    "type": "reference",
-    "complexity": "medium",
-    "category": "frontend",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0
@@ -835,16 +785,6 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 1
   },
   {
-    "id": "release-checklist",
-    "label": "Release Checklist",
-    "type": "reference",
-    "complexity": "medium",
-    "category": "other",
-    "hasDeps": false,
-    "depCount": 0,
-    "usedByCount": 0
-  },
-  {
     "id": "release-management",
     "label": "Release Management",
     "type": "reference",
@@ -872,7 +812,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 9
+    "usedByCount": 8
   },
   {
     "id": "responsive-patterns",
@@ -922,16 +862,6 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "ai-llm",
     "hasDeps": true,
     "depCount": 5,
-    "usedByCount": 0
-  },
-  {
-    "id": "skill-evolution",
-    "label": "Skill Evolution",
-    "type": "reference",
-    "complexity": "medium",
-    "category": "other",
-    "hasDeps": false,
-    "depCount": 0,
     "usedByCount": 0
   },
   {
@@ -1055,16 +985,6 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
-    "id": "upgrade-assessment",
-    "label": "Upgrade Assessment",
-    "type": "reference",
-    "complexity": "max",
-    "category": "other",
-    "hasDeps": true,
-    "depCount": 4,
-    "usedByCount": 0
-  },
-  {
     "id": "user-research",
     "label": "User Research",
     "type": "reference",
@@ -1075,16 +995,6 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 1
   },
   {
-    "id": "validate-counts",
-    "label": "Validate Counts",
-    "type": "reference",
-    "complexity": "low",
-    "category": "other",
-    "hasDeps": false,
-    "depCount": 0,
-    "usedByCount": 0
-  },
-  {
     "id": "verify",
     "label": "Verify",
     "type": "command",
@@ -1092,7 +1002,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "testing",
     "hasDeps": true,
     "depCount": 10,
-    "usedByCount": 4
+    "usedByCount": 3
   },
   {
     "id": "visualize-plan",
@@ -1586,22 +1496,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "swarm-migrate",
     "target": "explore"
-  },
-  {
-    "source": "upgrade-assessment",
-    "target": "explore"
-  },
-  {
-    "source": "upgrade-assessment",
-    "target": "verify"
-  },
-  {
-    "source": "upgrade-assessment",
-    "target": "remember"
-  },
-  {
-    "source": "upgrade-assessment",
-    "target": "memory"
   },
   {
     "source": "verify",

@@ -16,7 +16,7 @@ description: "Audits OrchestKit sub-agent activation from real spawn telemetry �
 
 # audit-activation
 
-Reports whether OrchestKit's specialized sub-agents are actually being activated, from **real spawn telemetry** — not vibes. The agent-side analogue of `audit-skills` (which audits skill *quality*; this audits agent *activation*).
+Reports whether OrchestKit's specialized sub-agents are actually being activated, from **real spawn telemetry** — not vibes. Scope is agent *activation*, not skill *quality*.
 
 It answers: "Do my specialized agents get spawned, or does the model default to generic Explore/general-purpose?" Read-only — it never edits agents.
 
@@ -127,7 +127,6 @@ After this audit, run the deeper experiment if you suspect descriptions: `docs/f
 
 ## Related Skills
 
-- `audit-skills` — quality audit for skills (this skill's sibling, agent-side)
 - `telemetry-inspect` — validates the telemetry data-plane this skill reads from
 - `analytics` — raw usage queries across projects
 - `doctor` — broader plugin health (manifests, hooks, memory budget)

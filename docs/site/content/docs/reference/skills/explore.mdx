@@ -24,7 +24,7 @@ Multi-angle codebase exploration using 3-5 parallel agents.
 /ork:explore authentication
 ```
 
-> **Opus 4.8**: Exploration agents use native adaptive thinking for deeper pattern recognition across large codebases.
+> **Opus 5**: Exploration agents use native adaptive thinking for deeper pattern recognition across large codebases.
 
 ---
 
@@ -46,9 +46,9 @@ EFFORT = EFFORT or "high"  # default
 | `low` | 1 (structure-only) | 1, 2, 8 | ~1 min |
 | `medium` | 2 (structure + data flow) | 1, 2, 3 (subset), 8 | ~3 min |
 | `high` (default) | 4 (full parallel team) | 1–8 | ~6 min |
-| `xhigh` (Opus 4.8) | 5 (+ uncertainty pass on health scores) | 1–8 + caveats | ~8 min |
+| `xhigh` (Opus 5) | 5 (+ uncertainty pass on health scores) | 1–8 + caveats | ~8 min |
 
-**Override gate:** if the user passes `--effort=high` explicitly while `$\{CLAUDE_EFFORT\}` is `low`, the flag wins. `/ork:doctor` warns when `xhigh` is requested without Opus 4.8.
+**Override gate:** if the user passes `--effort=high` explicitly while `$\{CLAUDE_EFFORT\}` is `low`, the flag wins. `/ork:doctor` warns when `xhigh` is requested without Opus 5.
 
 ---
 
@@ -156,10 +156,7 @@ TaskUpdate(taskId="6", addBlockedBy=["4"])  # Hotspots need exploration done
 TaskUpdate(taskId="7", addBlockedBy=["4"])  # Product needs exploration done
 TaskUpdate(taskId="8", addBlockedBy=["5", "6", "7"])  # Report needs all analysis done
 
-# 4. Before starting each task, verify it's unblocked
-task = TaskGet(taskId="2")  # Verify blockedBy is empty
-
-# 5. Update status as you progress
+# 4. Update status as you progress
 TaskUpdate(taskId="2", status="in_progress")  # When starting
 TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```

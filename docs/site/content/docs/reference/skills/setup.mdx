@@ -66,10 +66,7 @@ TaskUpdate(taskId="3", addBlockedBy=["2"])
 TaskUpdate(taskId="4", addBlockedBy=["3"])
 TaskUpdate(taskId="5", addBlockedBy=["4"])
 
-# 4. Before starting each task, verify it's unblocked
-task = TaskGet(taskId="2")  # Verify blockedBy is empty
-
-# 5. Update status as you progress
+# 4. Update status as you progress
 TaskUpdate(taskId="2", status="in_progress")  # When starting
 TaskUpdate(taskId="2", status="completed")    # When done
 ```
@@ -1226,7 +1223,7 @@ Computes a composite readiness score (0-10) from 6 dimensions.
 OrchestKit Readiness Score: 7.2 / 10  (stable channel, v7.0.0)
 
   Stack Coverage  ████████░░  9/10  Python + React fully covered
-  Hook Protection ████████░░  8/10  219 hooks active
+  Hook Protection ████████░░  8/10  218 hooks active
   MCP Enhancement ██████░░░░  6/10  2/3 recommended MCPs active
   Memory Depth    ████░░░░░░  4/10  12 entities (target: 50+)
   Custom Skills   ██░░░░░░░░  2/10  0/3 suggested skills created

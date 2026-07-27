@@ -55,7 +55,6 @@ Ground pipeline decisions against current references, not recall alone. A contro
 2. **Project rules** — cross-check `.claude/rules/antipatterns.md`; pin third-party actions to a SHA.
 Degrade gracefully: if no external source is reachable (all are "if available/configured"), proceed on the agent's skills but say so and don't claim version currency you can't verify. Cite action versions / advisory IDs in output.
 
-Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 &lt;investigate_before_answering&gt;
 Read existing workflow files and CI configuration before making changes.
 Understand current caching strategies and job dependencies.
@@ -76,15 +75,6 @@ Only add the pipeline stages needed for the project.
 Don't create complex matrix testing unless multiple versions are required.
 Simple, fast pipelines are better than comprehensive slow ones.
 &lt;/avoid_overengineering&gt;
-
-## Task Management
-For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
-1. `TaskCreate` for each major step with descriptive `activeForm`
-2. `TaskGet` to verify `blockedBy` is empty before starting
-3. Set status to `in_progress` when starting a step
-4. Use `addBlockedBy` for dependencies between steps
-5. Mark `completed` only when step is fully verified
-6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for GitHub Actions, GitLab CI

@@ -11,7 +11,7 @@ description: "User-invocable commands for common development workflows."
 |-------|------|------------|-------------|
 | [Assess](/docs/reference/skills/assess) | Command | high | Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, test... |
 | [Audit Activation](/docs/reference/skills/audit-activation) | Command | medium | Audits OrchestKit sub-agent activation from real spawn telemetry — computes the generic-vs-specialist spawn split, fl... |
-| [Auto](/docs/reference/skills/auto) | Command | medium | Intent-classified router — the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Take... |
+| [Auto](/docs/reference/skills/auto) | Command | medium | Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Class... |
 | [Brainstorm](/docs/reference/skills/brainstorm) | Command | medium | Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideatio... |
 | [Ci Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, pr... |
 | [Ci Sentinel](/docs/reference/skills/ci-sentinel) | Command | medium | Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red... |
@@ -20,10 +20,10 @@ description: "User-invocable commands for common development workflows."
 | [Cover](/docs/reference/skills/cover) | Command | high | Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers ... |
 | [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary genera... |
 | [Design Context Extract](/docs/reference/skills/design-context-extract) | Command | medium | Extract design DNA from existing app screenshots, live URLs, or screen recordings using Google Stitch. Produces color... |
-| [Design Import](/docs/reference/skills/design-import) | Command | medium | Scaffolds React components out of an exported Claude Design handoff bundle and stops at files on disk: no stories, no... |
-| [Design Ship](/docs/reference/skills/design-ship) | Command | complex | One-shot pipeline that turns a claude.ai/design link into a reviewable pull request, four stages chained end to end: ... |
+| [Design Import](/docs/reference/skills/design-import) | Command | medium | Scaffolds React components from a Claude Design handoff bundle and stops at files on disk: no stories, no tests, no p... |
+| [Design Ship](/docs/reference/skills/design-ship) | Command | complex | One-shot pipeline turning a claude.ai/design link into a pull request: scaffold via /ork:design-import, stories and s... |
 | [Design Stylecards](/docs/reference/skills/design-stylecards) | Command | low | Declarative catalog of named aesthetic recipes — exact shadow stacks, glass surfaces, gradient treatments, and type s... |
-| [Design To Code](/docs/reference/skills/design-to-code) | Command | complex | Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts screenshots, descriptions, or ... |
+| [Design To Code](/docs/reference/skills/design-to-code) | Command | complex | Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts a screenshot, a description, o... |
 | [Dev](/docs/reference/skills/dev) | Command | medium | One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev... |
 | [Doctor](/docs/reference/skills/doctor) | Command | low | OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent front... |
 | [Dream](/docs/reference/skills/dream) | Command | medium | Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md i... |

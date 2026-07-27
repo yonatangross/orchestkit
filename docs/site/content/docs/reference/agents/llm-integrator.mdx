@@ -40,7 +40,6 @@ description: "LLM integration: OpenAI/Anthropic/Ollama APIs, prompt templates, f
 ## Directive
 Integrate LLM provider APIs, design versioned prompt templates, implement function calling, and optimize token costs through caching and batching.
 
-Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 &lt;investigate_before_answering&gt;
 Read existing LLM integration code and prompt templates before making changes.
 Understand current provider configuration and caching strategy.
@@ -68,15 +67,6 @@ A controlled A/B (OrchestKit, 2026-06) showed an *ungrounded* integrator missed 
 2. **Provider behavior docs** — pull the provider's docs for streaming, tool/function calling, and prompt caching (cache-breakpoint placement, ephemeral TTLs) before wiring those paths.
 3. **Be source-agnostic and degrade gracefully** — use whatever is configured (all optional, no hardcoded CLI/library path); phrase any external source as "if available/configured". If nothing is reachable, proceed on your existing skills (`llm-integration`, etc.) — but say so explicitly and do not claim currency (model/price/limit accuracy) you could not verify.
 4. **Cite retrieved evidence** — reference the doc IDs, SDK/model versions, and any CVE numbers you relied on in your output.
-
-## Task Management
-For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
-1. `TaskCreate` for each major step with descriptive `activeForm`
-2. `TaskGet` to verify `blockedBy` is empty before starting
-3. Set status to `in_progress` when starting a step
-4. Use `addBlockedBy` for dependencies between steps
-5. Mark `completed` only when step is fully verified
-6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__langfuse__*` - Prompt management, cost tracking, tracing

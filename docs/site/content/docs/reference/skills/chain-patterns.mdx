@@ -12,6 +12,11 @@ description: "Chain patterns for CC 2.1.71 pipelines — MCP detection, handoff 
 > **Chain Patterns** Chain patterns for CC 2.1.71 pipelines — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building multi-phase pipeline skills. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable.
 
 
+<!-- tool-coverage: illustrative. Reference skill, loaded via the skills: field and never
+     invoked directly. The fenced calls below teach a pattern; they are not calls this skill
+     makes, so widening allowed-tools to satisfy the coverage gate would grant real
+     permissions to something that never acts. -->
+
 # Chain Patterns
 
 ## Overview
@@ -1596,7 +1601,6 @@ If all pass, an annotated git tag `v&lt;version&gt;` is created locally; pushing
 | Skill | Section to update |
 |---|---|
 | `src/skills/release-management/SKILL.md` | Add `claude plugin tag` to the validation checklist |
-| `src/skills/release-checklist/SKILL.md` | Pre-release verification step |
 | `src/skills/release-sync/SKILL.md` | Detect tag-based sync triggers |
 
 ## What Drift Looks Like
@@ -1650,7 +1654,6 @@ git add . && git commit -m "chore: release X.Y.Z"
 - `.github/workflows/release-please.yml` — release automation
 - `.release-please-config.json` — extra-files configuration (5 file paths kept in sync)
 - `src/skills/release-management/SKILL.md` — release flow ownership
-- `src/skills/release-checklist/SKILL.md` — pre-release validation
 
 
 ### Pr From Platform

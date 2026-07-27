@@ -5,9 +5,9 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 114,
+  "skills": 105,
   "agents": 36,
-  "hooks": 219,
+  "hooks": 218,
   "commands": 35,
   "compositions": 14
 };
@@ -425,8 +425,7 @@ export const SKILLS_SUMMARY = {
     "video": [
       "demo-producer",
       "multi-surface-render",
-      "multimodal-llm",
-      "notebooklm"
+      "multimodal-llm"
     ],
     "accessibility": [
       "accessibility",
@@ -490,7 +489,6 @@ export const SKILLS_SUMMARY = {
     "rag": [
       "cover",
       "interaction-patterns",
-      "notebooklm",
       "rag-retrieval",
       "testing-llm"
     ],

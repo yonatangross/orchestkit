@@ -1,6 +1,6 @@
 ---
 title: "Auto"
-description: "Intent-classified router — the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Takes a plain-English goal, classifies it into one intent category, and routes to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:brainstorm, /ork:implement, /ork:review-pr, /ork:verify, a /goal optimization loop, or the skill-evolution gate). A goal that maps unambiguously to one skill short-circuits straight to it — routing is never overhead, so use it even when you think you know the target skill. Skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, get it to, I want, help me, fix, build, improve, any goal description."
+description: "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:implement, /ork:review-pr, /ork:verify, a /goal loop). Routing is never overhead, so use it even when you think you know the target skill. Skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, get it to, I want, help me, fix, build, improve, any goal description."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
@@ -11,7 +11,7 @@ description: "Intent-classified router — the front door to OrchestKit and the 
 
 <ContextualSkillSidebar slug="auto" />
 
-> **Auto** Intent-classified router — the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Takes a plain-English goal, classifies it into one intent category, and routes to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:brainstorm, /ork:implement, /ork:review-pr, /ork:verify, a /goal optimization loop, or the skill-evolution gate).
+> **Auto** Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:implement, /ork:review-pr, /ork:verify, a /goal loop). Routing is never overhead, so use it even when you think you know the target skill.
 
 
 # /ork:auto — Intent Router
@@ -54,7 +54,7 @@ so there is no "too obvious for auto".
 | **build** | build, implement, create, add feature, from ticket | `/ork:implement` |
 | **review** | review, PR, MR, pull request, #N | `/ork:review-pr` |
 | **verify** | verify, check, make sure, passes, green | `/ork:verify` |
-| **improve-skill** | improve the skill, optimize the prompt, SKILL.md | the **skill-evolution / holdout gate** (see Gaps) |
+| **improve-skill** | improve the skill, optimize the prompt, SKILL.md | the **holdout-promotion gate** (see Gaps) |
 | **(fallback)** | no confident category | clarify with ONE question |
 
 Full per-category parameter extraction + edge cases: `references/routing-rules.md`.
@@ -244,7 +244,7 @@ Per-category parameter extraction + edge cases. Read during the Classify step to
 - **Invoke:** `/ork:verify`
 - **Edges:** "make sure it works" → all checks. "check tests pass" → tests-focused.
 
-## improve-skill → skill-evolution / holdout gate
+## improve-skill → holdout-promotion gate
 
 - **Extract:** which `SKILL.md`, quality metric (else task-completion against test cases).
 - **Invoke:** the champion/challenger **holdout-promotion gate** (`/ork:assess` evals + `evolution-engine`). Requires a benchmark + holdout set to exist first — if missing, help the user define 5–10 cases before looping.
