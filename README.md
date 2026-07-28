@@ -251,10 +251,9 @@ Join the **Building with AI** community for AI dev tips, OrchestKit support, and
 | **Building with AI** | The umbrella community. One join, every room below. | [Join](https://yonyon.ai/go/community) |
 | **Builders** | For people already building | [Join](https://yonyon.ai/go/builders) |
 | **OrchestKit** | For OrchestKit users | [Join](https://yonyon.ai/go/orchestkit) |
-| **The Orchestra** | For anyone building with AI agents | [Join](https://chat.whatsapp.com/CFAQoyGl2rp4P3JHcwC9Uu) |
 | **AI for Business** | For people leading AI adoption | [Join](https://yonyon.ai/go/business) |
 
-Names and audiences match what [yonyon.ai](https://yonyon.ai/en) renders, so the two surfaces cannot drift. Most links resolve through `yonyon.ai/go/*`, so they survive an invite rotation without a README change.
+Names and audiences match what [yonyon.ai](https://yonyon.ai/en) renders, so the two surfaces cannot drift. Every link resolves through `yonyon.ai/go/*`, so a rotated invite never needs a README change and no raw invite is published here.
 
 ---
 

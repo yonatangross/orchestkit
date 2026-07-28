@@ -128,10 +128,11 @@ a{color:var(--pg-accent);text-underline-offset:3px}
         <div class="real"><span class="dot good"></span>🤝 <span dir="rtl">בונים עם AI</span></div>
         <div class="claim">README said: <b>Community</b> (all channels). Close enough, but now named.</div>
       </div>
-      <div class="ev-card bad">
+      <div class="ev-card" style="border-color:hsl(38 92% 60% / .38)">
         <div class="code mono">CFAQoyGl2rp4P3JHcwC9Uu</div>
-        <div class="real"><span class="dot bad"></span>🎻 The Orchestra</div>
-        <div class="claim">README said: <b>AI Dev (EN)</b>. No group has ever had that name.</div>
+        <div class="real"><span class="dot warn"></span>🎻 The Orchestra</div>
+        <div class="claim">README said: <b>AI Dev (EN)</b>. Live, but absent from both canonical
+          registries and its name fails the clarity-first doctrine. <b>Row removed</b>, see stage 5.</div>
       </div>
       <div class="ev-card bad">
         <div class="code mono">BC4QoLEUNR76ygZwyrgZZT</div>
@@ -201,9 +202,8 @@ a{color:var(--pg-accent);text-underline-offset:3px}
       <span class="tag warn">one surface still disagrees</span>
     </div>
     <p class="st-why">
-      Three repos independently list the community rooms. The README is the one this PR fixes;
-      the portfolio seed list gains The Orchestra in a companion PR. Platform's bot room tuple is
-      left alone on purpose, and is called out below rather than changed silently.
+      Three repos independently list the community rooms. After this PR all three agree on the same
+      four entries, which is the state that makes future drift detectable.
     </p>
 
     <table class="matrix">
@@ -232,16 +232,53 @@ a{color:var(--pg-accent);text-underline-offset:3px}
         </tr>
         <tr>
           <td><b>The Orchestra</b></td>
-          <td class="y">kept</td><td class="y">added (companion PR)</td><td class="n">absent</td>
+          <td class="n">removed</td><td class="n">absent</td><td class="n">absent</td>
         </tr>
       </tbody>
     </table>
+  </section>
+
+  <!-- ───────────────────────── stage 5 : the naming call ───────────────────────── -->
+  <section class="glass stage">
+    <div class="st-hd">
+      <h2>5 · Why The Orchestra is not in the table</h2>
+      <span class="tag warn">reversed mid-review</span>
+    </div>
+    <p class="st-why">
+      An earlier draft of this PR added it, on the reasoning that a live room missing from the
+      registries was an oversight. That reasoning was wrong, and the repo says so in writing.
+    </p>
+
+    <div class="note" style="background:hsl(0 0% 100% / .04);border-color:var(--pg-glass-edge);color:var(--pg-ink)">
+      <span class="mono" style="font-size:12.5px">portfolio/src/data/community-rooms-seeds.ts:6</span><br>
+      <i>"Naming strategy (settled 2026-07-17 after three rounds): clarity first. Every name tells a
+      stranger what the room is and who it's for in one second; no metaphor system to decode."</i>
+    </div>
+
+    <table style="margin-block-start:14px">
+      <thead><tr><th>Name</th><th>What a stranger learns in one second</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><b>Builders</b></td><td class="who">who it is for</td><td>✅</td></tr>
+        <tr><td><b>OrchestKit</b></td><td class="who">the product it is about</td><td>✅</td></tr>
+        <tr><td><b>AI for Business</b></td><td class="who">who it is for</td><td>✅</td></tr>
+        <tr><td><b>The Orchestra</b></td>
+            <td class="who">nothing. it is a pun on orchestration</td><td>❌</td></tr>
+      </tbody>
+    </table>
+
+    <p class="st-why" style="margin-block-start:16px">
+      The timeline supports reading the omission as deliberate. A 2026-06-21 platform audit praised
+      "The Orchestra" as on-theme during the metaphor era; the 2026-07-17 round then replaced
+      metaphor names with literal ones and did not carry it over. It is absent from the portfolio
+      seeds and from platform's <span class="mono">COMMUNITY_ROOMS</span> independently. Two
+      omissions after a three-round naming exercise is a decision, not a gap.
+    </p>
 
     <div class="note">
-      <b>Flagged, not fixed:</b> platform's <span class="mono">COMMUNITY_ROOMS</span> tuple in
-      <span class="mono">apps/api/app/services/hq_bot/community_activity.py</span> omits The
-      Orchestra, so the weekly activity brief has never counted that room. That is a live
-      behaviour change in a different repo, so it belongs in its own PR with its own review.
+      <b>The irony:</b> the README's original label for that invite was "AI Dev (EN)", which
+      <i>passes</i> the doctrine. The first draft of this fix replaced a compliant display name with
+      the non-compliant internal group name. That row was not the stale one. The group stays live and
+      unadvertised, exactly as before this PR; republishing it is a branding decision, not a docs fix.
     </div>
   </section>
 
@@ -321,7 +358,6 @@ const ROWS = {
        'The umbrella community. One join, every room below.', 'Join · /go/community'],
       ['<b>Builders</b>', 'For people already building', 'Join · /go/builders'],
       ['<b>OrchestKit</b>', 'For OrchestKit users', 'Join · /go/orchestkit'],
-      ['<b>The Orchestra</b>', 'For anyone building with AI agents', 'Join · raw invite'],
       ['<b>AI for Business</b>', 'For people leading AI adoption', 'Join · /go/business'],
     ],
   },
