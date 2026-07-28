@@ -246,15 +246,15 @@ _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 
 Join the **Building with AI** community for AI dev tips, OrchestKit support, and connecting with other builders:
 
-| Group | Who it's for | Link |
-|-------|--------------|------|
-| **Building with AI** · <strong dir="rtl">בונים עם AI</strong> | The umbrella community. One join, every room below. | [Join](https://yonyon.ai/go/community) |
-| **OrchestKit** | Setups, hooks, agents, and real problems from the field. | [Join](https://yonyon.ai/go/orchestkit) |
-| **The Orchestra** | English room for AI dev talk: agents, MCP, Claude Code. | [Join](https://chat.whatsapp.com/CFAQoyGl2rp4P3JHcwC9Uu) |
-| **Builders** · <strong dir="rtl">בילדרים</strong> | Hebrew room for people already shipping AI: RAG, agents, MCP in production. | [Join](https://yonyon.ai/go/builders) |
-| **AI for Business** · <strong dir="rtl">AI לעסקים</strong> | Hebrew room for founders and team leads adopting AI. Decisions and ROI, no code. | [Join](https://yonyon.ai/go/business) |
+| Room | Who it's for | Link |
+|------|--------------|------|
+| **Building with AI** | The umbrella community. One join, every room below. | [Join](https://yonyon.ai/go/community) |
+| **Builders** | For people already building | [Join](https://yonyon.ai/go/builders) |
+| **OrchestKit** | For OrchestKit users | [Join](https://yonyon.ai/go/orchestkit) |
+| **The Orchestra** | For anyone building with AI agents | [Join](https://chat.whatsapp.com/CFAQoyGl2rp4P3JHcwC9Uu) |
+| **AI for Business** | For people leading AI adoption | [Join](https://yonyon.ai/go/business) |
 
-Most links resolve through `yonyon.ai/go/*`, so they survive an invite rotation without a README change.
+Names and audiences match what [yonyon.ai](https://yonyon.ai/en) renders, so the two surfaces cannot drift. Most links resolve through `yonyon.ai/go/*`, so they survive an invite rotation without a README change.
 
 ---
 

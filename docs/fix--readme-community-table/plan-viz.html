@@ -158,10 +158,33 @@ a{color:var(--pg-accent);text-underline-offset:3px}
       <span class="tag good">rendered as GitHub renders it</span>
     </div>
     <p class="st-why">
-      Toggle to compare. Hebrew cells stay wrapped in
-      <span class="mono">&lt;strong dir="rtl"&gt;</span>, the bidi isolation pattern established in
-      #3153, so the pipes of the markdown table never reorder around the Hebrew run.
+      Toggle to compare. Names and audience lines are copied from what
+      <span class="mono">yonyon.ai/en</span> actually renders, so the README cannot drift from the
+      site. No Hebrew reaches this table, which retires the
+      <span class="mono">&lt;strong dir="rtl"&gt;</span> bidi-isolation workaround from #3153 rather
+      than perpetuating it.
     </p>
+
+    <div class="note" style="background:hsl(248 84% 68% / .09);border-color:hsl(248 84% 68% / .30);color:hsl(248 40% 86%)">
+      <b>Three naming layers, easy to confuse.</b> A room has a group-internal WhatsApp name
+      (<span class="mono">og:title</span>, often Hebrew plus emoji), an English display name, and a
+      Hebrew display name. The first draft of this fix put the <i>group-internal</i> names into an
+      English README, which is the wrong layer. An English surface uses the English display name;
+      the Hebrew variant belongs to <span class="mono">yonyon.ai/he</span> only.
+    </div>
+
+    <table style="margin-block-start:14px">
+      <thead><tr><th>Layer</th><th>Builders</th><th>AI for Business</th></tr></thead>
+      <tbody>
+        <tr><td>WhatsApp <span class="mono">og:title</span></td>
+            <td>🛠️ <span dir="rtl">בילדרים</span></td>
+            <td><span dir="rtl">AI לעסקים</span> 📈</td></tr>
+        <tr><td><span class="mono">yonyon.ai/en</span> (this README)</td>
+            <td><b>Builders</b></td><td><b>AI for Business</b></td></tr>
+        <tr><td><span class="mono">yonyon.ai/he</span></td>
+            <td><span dir="rtl">בילדרים</span></td><td><span dir="rtl">AI לעסקים</span></td></tr>
+      </tbody>
+    </table>
 
     <div class="seg" role="group" aria-label="Table version">
       <button type="button" data-v="before" aria-pressed="false">Before</button>
@@ -294,18 +317,12 @@ const ROWS = {
   after: {
     head: ['Group', "Who it's for", 'Link'],
     body: [
-      ['<b>Building with AI</b> · <strong dir="rtl">בונים עם AI</strong>',
+      ['<b>Building with AI</b>',
        'The umbrella community. One join, every room below.', 'Join · /go/community'],
-      ['<b>OrchestKit</b>',
-       'Setups, hooks, agents, and real problems from the field.', 'Join · /go/orchestkit'],
-      ['<b>The Orchestra</b>',
-       'English room for AI dev talk: agents, MCP, Claude Code.', 'Join · raw invite'],
-      ['<b>Builders</b> · <strong dir="rtl">בילדרים</strong>',
-       'Hebrew room for people already shipping AI: RAG, agents, MCP in production.',
-       'Join · /go/builders'],
-      ['<b>AI for Business</b> · <strong dir="rtl">AI לעסקים</strong>',
-       'Hebrew room for founders and team leads adopting AI. Decisions and ROI, no code.',
-       'Join · /go/business'],
+      ['<b>Builders</b>', 'For people already building', 'Join · /go/builders'],
+      ['<b>OrchestKit</b>', 'For OrchestKit users', 'Join · /go/orchestkit'],
+      ['<b>The Orchestra</b>', 'For anyone building with AI agents', 'Join · raw invite'],
+      ['<b>AI for Business</b>', 'For people leading AI adoption', 'Join · /go/business'],
     ],
   },
 };
