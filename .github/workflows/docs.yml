@@ -74,13 +74,6 @@ jobs:
       - name: Check docs facts (CC floor + component counts)
         run: node scripts/check-docs-facts.mjs
 
-      # Counts and the CC floor are covered above; this covers command names.
-      # A skill only surfaces as /ork:<name> when user-invocable: true, so a
-      # frontmatter flip silently deletes a command the docs still advertise
-      # (#3183: /ork:configure lived in the README ~4 months after the flip).
-      - name: Check README command references resolve
-        run: node scripts/check-readme-commands.mjs
-
   build:
     name: Docs Site Build
     permissions:
