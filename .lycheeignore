@@ -1,0 +1,13 @@
+# Links lychee cannot check honestly. Each entry needs a reason, or this file
+# becomes a place to hide real rot.
+
+# Cloudflare bot protection: 403 to any non-browser user agent, renders fine for
+# a human. Verified 2026-07-28 while auditing every README URL by hand (#3183).
+https://claude\.ai/.*
+
+# Precautionary, matches nothing today: #3183 moved every README invite behind
+# yonyon.ai/go/*, and those redirects ARE checked. Kept because a raw invite is
+# the obvious thing for a future edit to paste back in, and checking one proves
+# little: WhatsApp answers 200 for live and for some retired groups alike. The
+# signal that matters is the group name in og:title, which lychee does not read.
+https://chat\.whatsapp\.com/.*
