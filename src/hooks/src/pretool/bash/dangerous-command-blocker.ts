@@ -170,9 +170,78 @@ const FORCE_SIGNAL_RE = /\s-(9|kill|sigkill)\b/i;
 /**
  * A `pkill -f` target precise enough to name one program: it contains a path
  * separator or a script extension. `-f ./scripts/dev.sh`, `-f node dist/x.mjs`
- * and `-f test-model-recency.sh` qualify; `-f node` does not.
+ * and `-f test-model-recency.sh` qualify.
  */
 const SPECIFIC_KILL_TARGET_RE = /\s-f\s[^&|;]*(\/|\.(sh|bash|zsh|js|cjs|mjs|ts|tsx|py|rb|go|jar|php|pl))\b/i;
+
+/**
+ * Runtimes whose bare name identifies a CLASS of processes, not one program.
+ * `-f node` on a machine running several Claude Code sessions takes out all of
+ * them; `-f agent-browser` names a single binary. The old carve-out demanded a
+ * `/` or a script extension, so every specific binary name without one still
+ * asked — `pkill -f agent-browser`, `pkill -f portless`, `pkill -f emulate`.
+ * Inverting the test (ask for the known-broad names, allow the rest) matches
+ * the stated criterion, which is breadth, not punctuation.
+ */
+const GENERIC_RUNTIME_RE = /^(node|deno|bun|python[23]?|ruby|perl|php|java|bash|sh|zsh|fish|tsx|ts-node|npm|npx|pnpm|yarn)$/i;
+
+/**
+ * Words that name a termination COMMAND rather than merely appear in the text.
+ *
+ * This is the fix for the loudest false-positive class. The previous test was
+ * `command.match(/\b(kill|pkill)\b/)`, which matched the word ANYWHERE in the
+ * string, including inside a quoted argument. So commands that terminate
+ * nothing at all still prompted:
+ *
+ *   grep -rn "pkill" src/hooks/src          <- read-only search
+ *   echo "use pkill -f to clean up" >> doc  <- writing documentation
+ *   git commit -m "stop pkill prompts"      <- a commit message
+ *   sed -n '/pkill -f/p' file               <- read-only extraction
+ *
+ * Every repo where process cleanup is discussed hit this, which is why it read
+ * as "the hook is broken everywhere". A command name is only a command name in
+ * COMMAND POSITION: at the start of the string, or directly after a pipe, `;`,
+ * `&&`, `||`, a subshell open, or `sudo`/`then`/`do`/`else`. Anywhere else it is
+ * an argument, i.e. data.
+ *
+ * Quote state is tracked character by character rather than stripping quotes
+ * first, matching the approach already used for interpreter pipes in this file:
+ * a `|` inside quotes is literal text and must not open a new command position.
+ */
+function terminationCommandSegment(command: string): string | null {
+  let inSingle = false;
+  let inDouble = false;
+  let atCommandStart = true;
+
+  for (let i = 0; i < command.length; i++) {
+    const ch = command[i];
+
+    if (inSingle) { if (ch === "'") inSingle = false; continue; }
+    if (inDouble) { if (ch === '"') inDouble = false; continue; }
+    if (ch === "'") { inSingle = true; atCommandStart = false; continue; }
+    if (ch === '"') { inDouble = true; atCommandStart = false; continue; }
+
+    // Operators that open a fresh command position.
+    if (ch === '|' || ch === ';' || ch === '&' || ch === '(' || ch === '\n') {
+      atCommandStart = true;
+      continue;
+    }
+    if (ch === ' ' || ch === '\t') continue;
+
+    if (atCommandStart) {
+      const rest = command.slice(i);
+      // `sudo`, `then`, `do`, `else` and `time` keep the next word in command
+      // position rather than ending it.
+      const passthrough = rest.match(/^(sudo|then|do|else|time)\s+/i);
+      if (passthrough) { i += passthrough[0].length - 1; continue; }
+
+      const hit = rest.match(/^(killall|pkill|kill)\b[^&|;]*/i);
+      if (hit) return hit[0];
+    }
+    atCommandStart = false;
+  }
+  return null;
+}
 
 /**
  * Returns an ASK reason for a process-termination command, or null to allow.
@@ -182,16 +251,16 @@ const SPECIFIC_KILL_TARGET_RE = /\s-f\s[^&|;]*(\/|\.(sh|bash|zsh|js|cjs|mjs|ts|t
  * braces for direct callers in tests.
  */
 export function processTerminationAsk(command: string): string | null {
+  // Only a word in COMMAND POSITION terminates anything. Merely naming one in
+  // an argument (grep/sed/echo/commit message) must not prompt.
+  const segment = terminationCommandSegment(command);
+  if (!segment) return null;
+
   // killall is broad by construction: it takes a name, not a pid, and signals
   // every process matching it. No carve-out.
-  if (/\bkillall\b/i.test(command)) {
+  if (/^killall\b/i.test(segment)) {
     return 'Terminates every process matching that name. Are you sure?';
   }
-
-  // Scope to the kill/pkill segment of a compound command so flags belonging to
-  // a neighbouring command cannot be read as this one's.
-  const segment = command.match(/\b(kill|pkill)\b[^&|;]*/i)?.[0];
-  if (!segment) return null;
 
   if (FORCE_SIGNAL_RE.test(segment)) {
     return 'Force-kills (SIGKILL), so the target cannot clean up. Are you sure?';
@@ -205,6 +274,12 @@ export function processTerminationAsk(command: string): string | null {
   }
 
   if (SPECIFIC_KILL_TARGET_RE.test(segment)) return null;
+
+  // `-f <specific-binary>`: precise even without a `/` or an extension. Ask
+  // only when the target is a bare generic runtime, which is the actual
+  // breadth hazard (`-f node` hits every Node process on the machine).
+  const dashF = segment.match(/\s-f\s+["']?([^\s"'&|;]+)/i);
+  if (dashF && !GENERIC_RUNTIME_RE.test(dashF[1])) return null;
 
   return 'Terminates every process matching that pattern. Are you sure?';
 }

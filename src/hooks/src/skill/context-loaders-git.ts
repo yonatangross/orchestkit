@@ -9,7 +9,7 @@
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
-import { safeExec, readPackageJson } from './context-loader-utils.js';
+import { safeExec } from './context-loader-utils.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 /**
@@ -148,26 +148,7 @@ export function planContextLoader(_input: HookInput, hookCtx: HookContext = NOOP
   return outputWithContext(ctx);
 }
 
-/**
- * Release State Loader — captures version and changelog state.
- * Used by: release-checklist skill (PreToolUse/Read, once:true)
- */
-export function releaseStateLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
-  const projectDir = hookCtx.projectDir;
-
-  const lastTag = safeExec('git describe --tags --abbrev=0 2>/dev/null', projectDir);
-  const pkg = readPackageJson(projectDir);
-  const currentVersion = (pkg?.version as string) || '';
-  const unreleasedCommits = lastTag
-    ? safeExec(`git rev-list ${lastTag}..HEAD --count`, projectDir)
-    : '';
-
-  const ctx = [
-    '[Release State — loaded once]',
-    currentVersion ? `Current version: ${currentVersion}` : '',
-    lastTag ? `Last tag: ${lastTag}` : 'No tags found',
-    unreleasedCommits ? `Unreleased commits: ${unreleasedCommits}` : '',
-  ].filter(Boolean).join('\n');
-
-  return outputWithContext(ctx);
-}
+// releaseStateLoader removed: its only consumer was the release-checklist
+// skill (PreToolUse/Read, once:true), deleted as an unreachable orphan. The
+// hook stayed in the entries map with nothing able to dispatch it, which is
+// the #959 dead-hook class; validate-registry.mjs caught it.

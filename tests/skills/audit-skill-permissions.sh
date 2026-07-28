@@ -215,8 +215,14 @@ for skill_dir in "$SKILLS_DIR"/*/; do
     # Applies to EVERY skill that declares allowed-tools, user-invocable or not.
     # Skills without the key inherit everything and are skipped.
     #
-    # ESCAPE HATCH, deliberately explicit and greppable:
-    #     <!-- tool-coverage: illustrative -->
+    # ESCAPE HATCH, a FRONTMATTER key, deliberately explicit and greppable:
+    #     tool-coverage: illustrative
+    # It lives in frontmatter, not the body, for two reasons. It is metadata
+    # rather than prose, and an HTML comment in the body breaks the docs-site
+    # build: SKILL.md bodies are published as MDX, and MDX rejects `<!-- -->`
+    # ("Unexpected character `!` before name"). The first version of this hatch
+    # was a body comment and it broke tests/unit/test-mdx-compile.sh on 2 files.
+    # Matched anchored (^) so prose inside a fenced block cannot self-exempt.
     # A reference skill exists to TEACH a pattern, so its fenced calls are
     # documentation rather than calls the skill itself makes. Widening such a
     # skill's allowed-tools to satisfy this check would grant real permissions
@@ -226,7 +232,7 @@ for skill_dir in "$SKILLS_DIR"/*/; do
     # exemption for review. Matches the house pattern used by model-recency-ok,
     # ascii-lint-disable and rtl-ok.
     if grep -q "^allowed-tools:" "$skill_md"; then
-        if grep -q "tool-coverage: illustrative" "$skill_md"; then
+        if grep -q "^tool-coverage: illustrative" "$skill_md"; then
             coverage_exempt=$((coverage_exempt + 1))
             coverage_exempt_names+=("$skill_name")
         else

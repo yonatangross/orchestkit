@@ -20,7 +20,7 @@ import { patternConsistencyEnforcer } from '../skill/pattern-consistency-enforce
 import { redactSecrets } from '../skill/redact-secrets.js';
 
 // once:true context loaders (CC 2.1.69)
-import { prContextLoader, issueContextLoader, commitConventionLoader, planContextLoader, releaseStateLoader } from '../skill/context-loaders-git.js';
+import { prContextLoader, issueContextLoader, commitConventionLoader, planContextLoader } from '../skill/context-loaders-git.js';
 import { repoStructureIndexer, testFrameworkDetector, projectConventionLoader, doctorEnvSnapshot, setupEnvDetector, priorDecisionsLoader, assessmentBaselineLoader, qualityBaselineLoader } from '../skill/context-loaders-env.js';
 // once:true standards loaders (CC 2.1.72 cache-opt)
 import { implementStandardsLoader, reviewDimensionsLoader, verifyScoringRubricLoader, brainstormInstructionsLoader } from '../skill/context-loaders-standards.js';
@@ -43,7 +43,6 @@ export const hooks: Record<string, HookFn> = {
   'skill/issue-context-loader': issueContextLoader,
   'skill/commit-convention-loader': commitConventionLoader,
   'skill/plan-context-loader': planContextLoader,
-  'skill/release-state-loader': releaseStateLoader,
   'skill/repo-structure-indexer': repoStructureIndexer,
   'skill/test-framework-detector': testFrameworkDetector,
   'skill/project-convention-loader': projectConventionLoader,

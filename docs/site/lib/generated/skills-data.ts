@@ -916,7 +916,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "chain-patterns",
     "description": "Chain patterns for CC 2.1.71 pipelines — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building multi-phase pipeline skills. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable.",
     "version": "1.0.0",
-    "sha256": "d96806c6aaa9cf377c3e348ef4474d33c174e9489c54346127d17568e2007316",
+    "sha256": "5ab711fcb7cb11b9a021f65bbb992f42296784d9c816f51e80954c71fbc80e37",
     "author": "OrchestKit",
     "tags": [
       "pipeline",
@@ -4617,7 +4617,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "task-dependency-patterns",
     "description": "Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status.",
     "version": "1.0.0",
-    "sha256": "273b5f78ef1b8c4575c7db9cc76091487e0eb6cc3a0cc8d8910ca49c9f14e337",
+    "sha256": "83b85d3ce840ef9b9181b8290e3baba9e0837beb511fd014883bce7b8b15f300",
     "author": "OrchestKit",
     "tags": [
       "task-management",

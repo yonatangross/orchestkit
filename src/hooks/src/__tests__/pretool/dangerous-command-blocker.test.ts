@@ -508,6 +508,65 @@ describe('dangerous-command-blocker', () => {
     });
   });
 
+  describe('ASK tier: process termination — command position', () => {
+    // The rule used to match the word ANYWHERE in the command string, so any
+    // command that merely NAMED a termination command prompted, even though it
+    // terminated nothing. Reported from the field as "this happens in multiple
+    // repos": every repo where process cleanup is discussed in code, docs or
+    // commit messages hit it. A command name only names a command in command
+    // position; anywhere else it is data.
+    const inertMentions: Array<[string, string]> = [
+      ['grep -rn "pkill" src/hooks/src', 'read-only search'],
+      ['rg "killall" --type ts', 'ripgrep search'],
+      ['echo "use pkill -f to clean up" >> NOTES.md', 'writing documentation'],
+      ['git commit -m "fix: stop pkill false positives"', 'commit message'],
+      [`sed -n '/pkill -f target/,/^}/p' file.ts`, 'read-only extraction'],
+      ['cat notes.md | grep -c "kill -9"', 'counting occurrences'],
+    ];
+
+    it.each(inertMentions)('allows %s (%s — terminates nothing)', (cmd) => {
+      const result = dangerousCommandBlocker(createBashInput(cmd));
+      expect(result.hookSpecificOutput?.permissionDecision).not.toBe('ask');
+    });
+
+    // Command position must still be recognised after an operator, or the fix
+    // above would silence real terminations hiding behind a pipe or `&&`.
+    const realAfterOperator: Array<[string]> = [
+      ['npm test && pkill node'],
+      ['echo hi | pkill node'],
+      ['npm run build; killall node'],
+      ['sudo pkill node'],
+    ];
+
+    it.each(realAfterOperator)('still asks for %s', (cmd) => {
+      const result = dangerousCommandBlocker(createBashInput(cmd));
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+    });
+
+    // `-f <name>` is precise when the name identifies ONE program. The old
+    // carve-out required a `/` or a script extension, so ordinary binaries were
+    // treated as broad: `pkill -f agent-browser` prompted on every invocation.
+    it.each([
+      ['pkill -f "agent-browser"'],
+      ['pkill -f agent-browser'],
+      ['pkill -f portless'],
+      ['pkill -f emulate'],
+    ])('allows %s (names one binary, breadth is the criterion)', (cmd) => {
+      const result = dangerousCommandBlocker(createBashInput(cmd));
+      expect(result.hookSpecificOutput?.permissionDecision).not.toBe('ask');
+    });
+
+    // ...but a bare generic runtime is exactly the breadth hazard the rule
+    // exists for: on a machine running several sessions, this takes out all.
+    it.each([['pkill -f node'], ['pkill -f python3'], ['pkill -f bash']])(
+      'still asks for %s (generic runtime matches a class)',
+      (cmd) => {
+        const result = dangerousCommandBlocker(createBashInput(cmd));
+        expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+      },
+    );
+  });
+
   describe('ASK tier: process termination', () => {
     it('asks for kill -9', () => {
       const result = dangerousCommandBlocker(createBashInput('kill -9 12345'));

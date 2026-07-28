@@ -7,8 +7,8 @@
       "exports": 70
     },
     "pretool": {
-      "size": 136333,
-      "sizeKB": "133.14",
+      "size": 136980,
+      "sizeKB": "133.77",
       "exports": 86
     },
     "posttool": {
@@ -47,8 +47,8 @@
       "exports": 52
     },
     "skill": {
-      "size": 43921,
-      "sizeKB": "42.89",
+      "size": 43558,
+      "sizeKB": "42.54",
       "exports": 68
     },
     "agent": {
@@ -57,8 +57,8 @@
       "exports": 70
     }
   },
-  "totalSize": 681115,
-  "totalSizeKB": "665.15",
+  "totalSize": 681399,
+  "totalSizeKB": "665.43",
   "inputs": 113,
-  "avgBundleSizeKB": "60.47"
+  "avgBundleSizeKB": "60.49"
 }
