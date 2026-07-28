@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Skill Flow Visualization — before / after</title>
+<style>
+  :root {
+    /* cool-glass persona — technical precision */
+    --pg-bg:         hsl(232 26% 7%);
+    --pg-ink:        hsl(220 18% 93%);
+    --pg-muted:      hsl(220 14% 64%);
+    --pg-faint:      hsl(220 12% 46%);
+    --pg-glass:      hsl(0 0% 100% / .05);
+    --pg-glass-2:    hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent:     hsl(248 84% 68%);
+    --pg-accent-deep:hsl(248 74% 52%);
+    --pg-warm:       hsl(38 95% 60%);
+    --pg-teal:       hsl(172 62% 52%);
+
+    --r-sm: 9px;  --r-md: 16px;  --r-lg: 24px;
+    --shadow: 0 20px 60px -22px hsl(232 40% 3% / .7), 0 4px 12px -6px hsl(232 40% 3% / .5);
+    --ease: cubic-bezier(.2,.8,.25,1);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(900px 600px at 12% -5%,  hsl(248 84% 68% / .16), transparent 60%),
+      radial-gradient(800px 520px at 88% 8%,   hsl(262 78% 62% / .13), transparent 62%),
+      radial-gradient(700px 700px at 50% 105%, hsl(232 70% 55% / .10), transparent 60%),
+      var(--pg-bg);
+    background-attachment: fixed;
+    color: var(--pg-ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; }
+
+  .wrap { max-width: 1240px; margin-inline: auto; padding: 48px 24px 96px; }
+
+  /* ---------- header ---------- */
+  header { margin-block-end: 32px; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--pg-faint); font-weight: 600; margin-block-end: 12px;
+  }
+  h1 {
+    font-size: clamp(28px, 4.2vw, 44px); line-height: 1.1; letter-spacing: -.3px;
+    margin: 0 0 12px; font-weight: 700;
+  }
+  h1 em { font-style: normal; color: var(--pg-accent); }
+  .lede { color: var(--pg-muted); max-width: 68ch; margin: 0; font-size: 16px; }
+
+  .statbar {
+    display: flex; flex-wrap: wrap; gap: 12px; margin-block-start: 24px;
+  }
+  .stat {
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+    border-radius: var(--r-md); padding: 12px 16px;
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / .12);
+  }
+  .stat b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
+  .stat span { font-size: 12px; color: var(--pg-faint); }
+  .stat.bad b { color: var(--pg-warm); }
+
+  /* ---------- controls ---------- */
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
+    margin-block: 32px 24px;
+  }
+  .tabs { display: flex; gap: 4px; background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+          border-radius: var(--r-md); padding: 4px; backdrop-filter: blur(14px); }
+  .tab {
+    appearance: none; border: 0; background: transparent; color: var(--pg-muted);
+    font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    padding: 8px 16px; border-radius: 12px; transition: all 100ms var(--ease);
+  }
+  .tab:hover { color: var(--pg-ink); }
+  .tab[aria-selected="true"] { background: var(--pg-accent); color: hsl(232 40% 8%); }
+  .tab:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+
+  .seg { display: flex; gap: 4px; background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+         border-radius: var(--r-md); padding: 4px; }
+  .seg button {
+    appearance: none; border: 0; background: transparent; color: var(--pg-muted);
+    font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+    padding: 7px 14px; border-radius: 12px; transition: all 100ms var(--ease);
+  }
+  .seg button[aria-pressed="true"] { background: var(--pg-glass-2); color: var(--pg-ink); }
+  .seg button:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+
+  /* ---------- compare grid ---------- */
+  .compare { display: grid; gap: 20px; grid-template-columns: 1fr; align-items: start; }
+  @media (min-width: 1000px) { .compare.split { grid-template-columns: 400px 1fr; } }
+
+  .pane {
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+    border-radius: var(--r-lg); padding: 20px;
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--shadow), inset 0 1px 0 hsl(0 0% 100% / .12);
+  }
+  .pane.before { opacity: .72; }
+  .pane-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-block-end: 16px; }
+  .pane-title { font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  .pane.before .pane-title { color: var(--pg-faint); }
+  .pane.after  .pane-title { color: var(--pg-accent); }
+  .pane-note { font-size: 12px; color: var(--pg-faint); }
+
+  /* ---------- BEFORE: wall of text mock ---------- */
+  .doc {
+    /* fixed height on purpose: the bounded scroll window IS the point of this pane */
+    height: 560px; overflow-y: auto; border-radius: var(--r-md);
+    background: hsl(232 24% 10%); border: 1px solid hsl(0 0% 100% / .07);
+    padding: 18px; scrollbar-width: thin;
+  }
+  .doc h4 { margin: 20px 0 10px; font-size: 13px; color: var(--pg-muted); letter-spacing: -.2px; }
+  .doc h4:first-child { margin-block-start: 0; }
+  .line { height: 7px; border-radius: 3px; background: hsl(220 14% 64% / .20); margin-block-end: 7px; }
+  .code { border-radius: var(--r-sm); background: hsl(248 40% 16% / .5);
+          border: 1px solid hsl(0 0% 100% / .05); padding: 10px; margin-block: 10px; }
+  .code .line { background: hsl(248 60% 74% / .22); }
+  .doc-meter {
+    display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: space-between;
+    font-size: 11px; color: var(--pg-faint); margin-block-start: 12px; flex: 0 0 auto;
+  }
+  .doc-meter span { white-space: nowrap; }
+  .doc-meter b { color: var(--pg-warm); font-variant-numeric: tabular-nums; }
+
+  /* ---------- AFTER: flow graph ---------- */
+  .lane { margin-block-end: 18px; }
+  .lane-label {
+    font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--pg-faint); font-weight: 700; margin-block-end: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .lane-label::after { content: ""; flex: 1; height: 1px; background: hsl(0 0% 100% / .08); }
+  .lane.core .lane-label { color: var(--pg-accent); }
+
+  .rail { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; }
+
+  .node {
+    appearance: none; text-align: start; font: inherit; cursor: pointer;
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+    border-radius: var(--r-md); padding: 10px 12px; min-width: 116px; max-width: 168px;
+    color: var(--pg-ink); transition: transform 200ms var(--ease), background 200ms var(--ease), border-color 200ms var(--ease);
+  }
+  .node:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 3px; }
+  .node .n-num {
+    font-size: 10px; font-weight: 700; color: var(--pg-faint);
+    font-variant-numeric: tabular-nums; letter-spacing: .06em;
+  }
+  .node .n-label { font-size: 12.5px; font-weight: 600; line-height: 1.3; margin-block-start: 3px; letter-spacing: -.15px; }
+
+  /* tiering: pre-flight + emit de-emphasized, core dominant (§3) */
+  .lane.pre .node, .lane.emit .node { opacity: .6; border-color: transparent; background: hsl(0 0% 100% / .035); }
+  .lane.pre .node .n-label, .lane.emit .node .n-label { font-weight: 500; font-size: 12px; }
+  .lane.core .node { border-color: hsl(248 84% 68% / .34); background: hsl(248 60% 40% / .13); }
+
+  /* specificity must beat `.lane.pre .node` (0,3,0) — hence the `.lane` prefix */
+  .lane .node[aria-current="true"] {
+    opacity: 1; transform: translateY(-3px);
+    background: var(--pg-accent); border-color: var(--pg-accent); color: hsl(232 44% 8%);
+  }
+  .lane .node[aria-current="true"] .n-num { color: hsl(232 44% 8% / .68); }
+  .lane .node[aria-current="true"] .n-label { font-weight: 700; }
+
+  .node.gate  { border-start-start-radius: var(--r-sm); border-end-start-radius: var(--r-sm); }
+  .badge-mini {
+    display: inline-block; margin-block-start: 6px; font-size: 9px; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px; border-radius: 999px;
+  }
+  .badge-mini.gate { background: hsl(38 95% 60% / .18); color: var(--pg-warm); }
+  .badge-mini.par  { background: hsl(172 62% 52% / .18); color: var(--pg-teal); }
+  .badge-mini.opt  { background: hsl(0 0% 100% / .08); color: var(--pg-faint); }
+  .lane .node[aria-current="true"] .badge-mini { background: hsl(232 44% 8% / .16); color: hsl(232 44% 8%); }
+
+  .arrow { align-self: center; color: var(--pg-accent); opacity: .5; font-size: 15px; flex: 0 0 auto; }
+  [dir="rtl"] .arrow { transform: scaleX(-1); }
+
+  /* ---------- detail + transport ---------- */
+  .detail {
+    margin-block-start: 18px; padding: 16px; border-radius: var(--r-md);
+    background: hsl(232 24% 11% / .8); border: 1px solid hsl(0 0% 100% / .09);
+    min-height: 108px;
+  }
+  .detail .d-step { font-size: 11px; color: var(--pg-faint); letter-spacing: .1em; text-transform: uppercase; font-weight: 700; }
+  .detail .d-title { font-size: 17px; font-weight: 700; margin-block: 5px 10px; letter-spacing: -.2px; }
+  .detail dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 13px; }
+  .detail dt { color: var(--pg-faint); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; padding-block-start: 2px; }
+  .detail dd { margin: 0; color: var(--pg-muted); }
+  .detail dd.out { color: var(--pg-teal); font-weight: 600; }
+
+  .transport { display: flex; align-items: center; gap: 8px; margin-block-start: 16px; }
+  .transport button {
+    appearance: none; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+    border-radius: 12px; padding: 8px 14px; transition: all 100ms var(--ease);
+    background: var(--pg-glass-2); border: 1px solid var(--pg-glass-edge); color: var(--pg-ink);
+  }
+  .transport button.primary { background: var(--pg-accent); border-color: var(--pg-accent); color: hsl(232 44% 8%); }
+  .transport button:disabled { opacity: .35; cursor: default; }
+  .transport button:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+  .transport .hint { margin-inline-start: auto; font-size: 12px; color: var(--pg-faint); font-variant-numeric: tabular-nums; }
+
+  /* ---------- rollout ---------- */
+  .rollout { margin-block-start: 32px; }
+  h2 { font-size: 20px; letter-spacing: -.25px; margin: 0 0 6px; }
+  .sub { color: var(--pg-muted); font-size: 14px; margin: 0 0 18px; max-width: 72ch; }
+  .tiers { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .tier { background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--r-md);
+          padding: 16px; backdrop-filter: blur(14px); }
+  .tier h3 { font-size: 13px; margin: 0 0 8px; letter-spacing: -.1px; }
+  .tier .big { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
+  .tier .of { font-size: 13px; color: var(--pg-faint); font-weight: 500; }
+  .tier p { font-size: 12.5px; color: var(--pg-muted); margin: 8px 0 0; }
+  .bar { height: 5px; border-radius: 3px; background: hsl(0 0% 100% / .09); margin-block-start: 10px; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 3px; background: var(--pg-accent); }
+  .tier.t2 .bar i { background: var(--pg-teal); }
+  .tier.t3 .bar i { background: var(--pg-warm); }
+
+  /* ---------- copy prompt ---------- */
+  .promptbar {
+    margin-block-start: 32px; display: flex; gap: 12px; align-items: center;
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+    border-radius: var(--r-md); padding: 14px 16px; backdrop-filter: blur(14px);
+  }
+  .promptbar code { flex: 1; font-size: 12.5px; color: var(--pg-muted); line-height: 1.5; }
+  .promptbar button {
+    appearance: none; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+    background: var(--pg-accent); border: 0; color: hsl(232 44% 8%);
+    border-radius: 12px; padding: 10px 18px; white-space: nowrap; transition: all 100ms var(--ease);
+  }
+  .promptbar button:focus-visible { outline: 2px solid var(--pg-ink); outline-offset: 2px; }
+
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">OrchestKit · docs/reference/skills</div>
+    <h1>Every skill page is a wall of text.<br />None of them show <em>the shape of the skill</em>.</h1>
+    <p class="lede">
+      A generated skill page dumps the whole <code class="mono">SKILL.md</code> body verbatim — badges,
+      sidebar, then up to 2,500 lines of prose and Python. The phase structure is in there, but you have to
+      read the entire file to recover it. This playground compares the page as it ships today against the
+      same page with a flow graph at the top.
+    </p>
+    <div class="statbar">
+      <div class="stat"><b>114</b><span>skills published</span></div>
+      <div class="stat bad"><b>0</b><span>with a flow diagram</span></div>
+      <div class="stat bad"><b>2,531</b><span>lines · longest page (brainstorm)</span></div>
+      <div class="stat"><b>11</b><span>already carry a machine-readable phase table</span></div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="tabs" role="tablist" aria-label="Skill">
+      <button class="tab" role="tab" id="tab-assess"         aria-selected="false" data-skill="assess">/ork:assess</button>
+      <button class="tab" role="tab" id="tab-brainstorm"     aria-selected="true"  data-skill="brainstorm">/ork:brainstorm</button>
+      <button class="tab" role="tab" id="tab-visualize-plan" aria-selected="false" data-skill="visualize-plan">/ork:visualize-plan</button>
+    </div>
+    <div class="seg" role="group" aria-label="View">
+      <button id="v-split" aria-pressed="true">Before / after</button>
+      <button id="v-after" aria-pressed="false">After only</button>
+    </div>
+  </div>
+
+  <div class="compare split" id="compare">
+
+    <section class="pane before" id="pane-before">
+      <div class="pane-head">
+        <span class="pane-title">Before — shipping today</span>
+        <span class="pane-note">scroll it</span>
+      </div>
+      <div class="doc" id="doc" tabindex="0" aria-label="Mock of the current documentation page"></div>
+      <div class="doc-meter">
+        <span>you are <b id="depth">0%</b> through the page</span>
+        <span id="beforeStats" class="mono"></span>
+      </div>
+    </section>
+
+    <section class="pane after" id="pane-after">
+      <div class="pane-head">
+        <span class="pane-title">After — flow graph first</span>
+        <span class="pane-note">click any node · ← → to step</span>
+      </div>
+      <div id="graph"></div>
+
+      <div class="detail" id="detail" aria-live="polite">
+        <div class="d-step" id="d-step"></div>
+        <div class="d-title" id="d-title"></div>
+        <dl>
+          <dt>Does</dt><dd id="d-does"></dd>
+          <dt>Yields</dt><dd class="out" id="d-out"></dd>
+        </dl>
+      </div>
+
+      <div class="transport">
+        <button id="prev" aria-label="Previous phase">‹ Prev</button>
+        <button id="play" class="primary">▶ Play flow</button>
+        <button id="next" aria-label="Next phase">Next ›</button>
+        <span class="hint" id="hint"></span>
+      </div>
+    </section>
+
+  </div>
+
+  <section class="rollout">
+    <h2>How far this can go without hand-authoring 114 diagrams</h2>
+    <p class="sub">
+      The flow above was not invented — it was read out of the skill's own source. How cleanly that
+      generalizes depends on what each <code class="mono">SKILL.md</code> already contains. Measured across
+      all 114 skills at <code class="mono">HEAD</code>:
+    </p>
+    <div class="tiers">
+      <div class="tier t1">
+        <h3>Tier 1 — phase table</h3>
+        <div><span class="big">11</span> <span class="of">/ 114</span></div>
+        <div class="bar"><i style="width:9.6%"></i></div>
+        <p>Already have a <code class="mono">| Phase | Activities | Output |</code> table. Parses into a
+        full graph with labels <em>and</em> outputs, zero authoring. <code class="mono">assess</code> and
+        <code class="mono">brainstorm</code> are here.</p>
+      </div>
+      <div class="tier t2">
+        <h3>Tier 2 — STEP/Phase headings</h3>
+        <div><span class="big">21</span> <span class="of">/ 114</span></div>
+        <div class="bar"><i style="width:18.4%"></i></div>
+        <p>No table, but they have <code class="mono">## STEP n:</code> / <code class="mono">## Phase n:</code>
+        headings. Node labels derive cleanly; "yields" needs the heading body or a one-line frontmatter hint.
+        <code class="mono">visualize-plan</code> is here.</p>
+      </div>
+      <div class="tier t3">
+        <h3>Tier 3 — unstructured</h3>
+        <div><span class="big">82</span> <span class="of">/ 114</span></div>
+        <div class="bar"><i style="width:71.9%"></i></div>
+        <p>No phase spine to parse. These need either an authored <code class="mono">flow:</code> key in
+        frontmatter, or they genuinely have no flow (reference skills, pattern libraries) and should render
+        a capability map instead of a pipeline.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="promptbar">
+    <code class="mono" id="promptText"></code>
+    <button id="copyBtn">Copy prompt</button>
+  </div>
+  <p class="sr" id="live" aria-live="polite"></p>
+
+</div>
+
+<script>
+/* ------------------------------------------------------------------
+   Flow data — transcribed from the real SKILL.md sources at HEAD.
+   assess:         src/skills/assess/SKILL.md          (Workflow Overview table + STEP headings)
+   brainstorm:     src/skills/brainstorm/SKILL.md      (The Seven-Phase Process table + STEP headings)
+   visualize-plan: src/skills/visualize-plan/SKILL.md  (STEP headings)
+   ------------------------------------------------------------------ */
+const SKILLS = {
+  assess: {
+    label: "/ork:assess",
+    stats: { lines: 1559, words: 7893 },
+    lanes: [
+      { id: "pre", label: "Pre-flight", nodes: [
+        { num: "STEP -1", label: "MCP Probe + Resume",  does: "Probe MCP servers once at skill start; resume any prior crashed session.", out: "Capabilities + resume point" },
+        { num: "STEP 0",  label: "Verify User Intent",  does: "AskUserQuestion gate — confirm what is being assessed before spending effort.", out: "Confirmed target + scope", tag: "gate" },
+        { num: "STEP 0b", label: "Orchestration Mode",  does: "Pick single-agent, workflow, or teams execution for the run.", out: "Execution mode" }
+      ]},
+      { id: "core", label: "Core phases", nodes: [
+        { num: "1",   label: "Target Understanding",   does: "Read code/design, identify scope.", out: "Context summary" },
+        { num: "1.5", label: "Scope Discovery",        does: "Build a bounded file list so the assessment cannot sprawl.", out: "Scoped file list" },
+        { num: "2",   label: "Quality Rating",         does: "6-dimension scoring, 0-10, with reasoning per dimension.", out: "Scores with reasoning" },
+        { num: "2.5", label: "Adversarial Refutation", does: "Effort-gated pass that tries to refute its own scores.", out: "Surviving scores", tag: "opt" },
+        { num: "3",   label: "Pros / Cons Analysis",   does: "Strengths and weaknesses, stated in balance.", out: "Balanced evaluation" },
+        { num: "4",   label: "Alternative Comparison", does: "Score the alternatives on the same dimensions.", out: "Comparison matrix" },
+        { num: "5",   label: "Improvement Suggestions",does: "Actionable recommendations, ranked.", out: "Prioritized list" },
+        { num: "6",   label: "Effort Estimation",      does: "Time and complexity estimates per recommendation.", out: "Effort breakdown" },
+        { num: "7",   label: "Assessment Report",      does: "Compile every prior phase into the report.", out: "Final report" }
+      ]},
+      { id: "emit", label: "Emit & hand off", nodes: [
+        { num: "7b", label: "Dashboard Spec",   does: "Emit a json-render dashboard spec for the scores.", out: "Dashboard spec" },
+        { num: "7c", label: "Memory Writeback", does: "Signal-fired — persist the verdict to the memory graph.", out: "Memory entities", tag: "opt" },
+        { num: "7d", label: "Chain Verdict",    does: "Stop-gating verdict other skills can read.", out: "PASS / FAIL verdict" }
+      ]}
+    ]
+  },
+
+  brainstorm: {
+    label: "/ork:brainstorm",
+    stats: { lines: 2531, words: 13895 },
+    lanes: [
+      { id: "pre", label: "Pre-flight", nodes: [
+        { num: "STEP -1", label: "MCP Probe + Resume",     does: "Probe MCP servers once; resume from a prior crashed session.", out: "Capabilities + resume point" },
+        { num: "STEP 0",  label: "Project Context",        does: "Scan the codebase for signals in parallel, then classify the project tier.", out: "Tier 1-4 classification", tag: "par" },
+        { num: "STEP 0a", label: "Verify User Intent",     does: "AskUserQuestion — exploration flow, constraints, and whether to plan first.", out: "Mode + constraints", tag: "gate" },
+        { num: "STEP 0b", label: "Orchestration Mode",     does: "Choose execution shape. Skipped entirely for Tier 1-2 projects.", out: "Execution mode" },
+        { num: "STEP 0c", label: "Effort-Aware Scaling",   does: "Scale phase depth to the requested effort level.", out: "Scaled phase plan" }
+      ]},
+      { id: "core", label: "The seven-phase process", nodes: [
+        { num: "0", label: "Topic Analysis",       does: "Classify keywords, select 3-5 agents.", out: "Agent list" },
+        { num: "1", label: "Memory + Context",     does: "Search the graph, check the codebase, read the experiment journal.", out: "Prior patterns" },
+        { num: "2", label: "Divergent Exploration",does: "Generate 10+ ideas WITHOUT filtering — agents run in parallel and stream ideas as they return.", out: "Idea pool", tag: "par" },
+        { num: "3", label: "Keep / Discard Gate",  does: "Binary viability only: keep, discard, or crash. 10s per idea.", out: "Survivors only", tag: "gate" },
+        { num: "4", label: "Evaluation & Rating",  does: "Rate 0-10 across 7 dimensions including simplicity, with a devil's advocate pass.", out: "Ranked ideas" },
+        { num: "5", label: "Synthesis",            does: "Filter to the top 2-3, build a trade-off table, add a test strategy per approach.", out: "Options" },
+        { num: "6", label: "Design Presentation",  does: "Present in 200-300 word sections; log to the experiment journal.", out: "Validated design" }
+      ]},
+      { id: "emit", label: "Optional tails", nodes: [
+        { num: "6.4", label: "Living Plan Playground", does: "On request or for a multi-wave plan, emit an updatable LPP playground.", out: "<slug>.html (living)", tag: "opt" },
+        { num: "6.5", label: "Audio Podcast",          does: "Signal-fired when composite score ≥ 8.0 and approaches ≥ 4.", out: "brainstorm-podcast.m4a", tag: "opt" }
+      ]}
+    ]
+  },
+
+  "visualize-plan": {
+    label: "/ork:visualize-plan",
+    stats: { lines: 1400, words: 7537 },
+    lanes: [
+      { id: "pre", label: "Pre-flight", nodes: [
+        { num: "STEP -1",  label: "Check Memory",        does: "Search for related prior visualizations; offer to compare against them.", out: "Prior plans" },
+        { num: "STEP 0",   label: "Detect Plan Context", does: "Detect the plan from context, or clarify it with the user.", out: "Plan context" },
+        { num: "STEP 0.5", label: "Choose Output Format",does: "Front door: ASCII, interactive playground, or NotebookLM infographic.", out: "Chosen format(s)", tag: "gate" }
+      ]},
+      { id: "core", label: "Render pipeline", nodes: [
+        { num: "1",  label: "Gather Data",            does: "Collect the plan's changes, risks, dependencies, and impact.", out: "Plan dataset" },
+        { num: "2",  label: "Render Tier 1 Header",   does: "Always rendered — the at-a-glance header.", out: "Tier 1 header" },
+        { num: "3",  label: "Ask Which Sections",     does: "Ask which sections to expand rather than dumping all of them.", out: "Section selection", tag: "gate" },
+        { num: "4",  label: "Render Sections",        does: "Render only the sections the user asked to expand.", out: "Expanded sections" },
+        { num: "4b", label: "Dispatch to Format(s)",  does: "Hand the rendered content to each chosen output format.", out: "Artifacts" }
+      ]},
+      { id: "emit", label: "Hand off", nodes: [
+        { num: "5", label: "Offer Actions", does: "Offer the follow-on actions the plan implies.", out: "Next actions" }
+      ]}
+    ]
+  }
+};
+
+const TAGS = { gate: "gate", par: "parallel", opt: "optional" };
+
+let current = "brainstorm";
+let idx = 0;
+let flat = [];
+let timer = null;
+
+const $ = (id) => document.getElementById(id);
+
+/* ---------- BEFORE pane: faux wall-of-text ---------- */
+function buildDoc(skill) {
+  const s = SKILLS[skill];
+  const doc = $("doc");
+  doc.innerHTML = "";
+  // one faux block per ~40 real lines, so scroll depth is proportional to the real page
+  const blocks = Math.round(s.stats.lines / 40);
+  const headings = ["Argument Resolution","STEP -1: MCP Probe","STEP 0: Verify Intent","Task Management",
+                    "Workflow Overview","Phase 1","Phase 2","Phase 3","Phase 4","Phase 5","Phase 6",
+                    "Output Format","Agent Teams Mode","Rules Quick Reference","Success Criteria"];
+  for (let i = 0; i < blocks; i++) {
+    if (i % 3 === 0) {
+      const h = document.createElement("h4");
+      h.textContent = "## " + (headings[(i / 3) % headings.length] || "Section");
+      doc.appendChild(h);
+    }
+    const isCode = i % 4 === 2;
+    const box = document.createElement("div");
+    if (isCode) box.className = "code";
+    const n = isCode ? 5 : 4;
+    for (let j = 0; j < n; j++) {
+      const l = document.createElement("div");
+      l.className = "line";
+      l.style.width = (46 + ((i * 7 + j * 13) % 52)) + "%";
+      box.appendChild(l);
+    }
+    doc.appendChild(box);
+  }
+  $("beforeStats").textContent = s.stats.lines.toLocaleString() + " lines · " +
+                                 s.stats.words.toLocaleString() + " words · 0 diagrams";
+  doc.scrollTop = 0;
+  $("depth").textContent = "0%";
+}
+
+$("doc").addEventListener("scroll", (e) => {
+  const el = e.target;
+  const max = el.scrollHeight - el.clientHeight;
+  $("depth").textContent = (max > 0 ? Math.round((el.scrollTop / max) * 100) : 0) + "%";
+});
+
+/* ---------- AFTER pane: the flow graph ---------- */
+function buildGraph(skill) {
+  const s = SKILLS[skill];
+  const g = $("graph");
+  g.innerHTML = "";
+  flat = [];
+
+  s.lanes.forEach((lane) => {
+    const laneEl = document.createElement("div");
+    laneEl.className = "lane " + lane.id;
+
+    const lbl = document.createElement("div");
+    lbl.className = "lane-label";
+    lbl.textContent = lane.label;
+    laneEl.appendChild(lbl);
+
+    const rail = document.createElement("div");
+    rail.className = "rail";
+
+    lane.nodes.forEach((node, i) => {
+      const b = document.createElement("button");
+      b.className = "node" + (node.tag === "gate" ? " gate" : "");
+      b.type = "button";
+      b.setAttribute("aria-current", "false");
+      const gi = flat.length;
+      b.innerHTML =
+        '<div class="n-num">' + node.num + '</div>' +
+        '<div class="n-label"></div>' +
+        (node.tag ? '<span class="badge-mini ' + node.tag + '">' + TAGS[node.tag] + '</span>' : '');
+      b.querySelector(".n-label").textContent = node.label;
+      b.addEventListener("click", () => select(gi));
+      rail.appendChild(b);
+      flat.push({ el: b, node: node, lane: lane.label });
+
+      if (i < lane.nodes.length - 1) {
+        const a = document.createElement("span");
+        a.className = "arrow";
+        a.setAttribute("aria-hidden", "true");
+        a.textContent = "→";
+        rail.appendChild(a);
+      }
+    });
+
+    laneEl.appendChild(rail);
+    g.appendChild(laneEl);
+  });
+}
+
+function select(i, announce) {
+  idx = Math.max(0, Math.min(i, flat.length - 1));
+  flat.forEach((f, k) => f.el.setAttribute("aria-current", k === idx ? "true" : "false"));
+  const { node, lane } = flat[idx];
+  $("d-step").textContent = lane + " · " + node.num;
+  $("d-title").textContent = node.label;
+  $("d-does").textContent = node.does;
+  $("d-out").textContent = node.out;
+  $("hint").textContent = "step " + (idx + 1) + " of " + flat.length;
+  $("prev").disabled = idx === 0;
+  $("next").disabled = idx === flat.length - 1;
+  if (announce !== false) $("live").textContent = node.num + " " + node.label + ". Yields " + node.out + ".";
+}
+
+function load(skill) {
+  current = skill;
+  document.querySelectorAll(".tab").forEach((t) =>
+    t.setAttribute("aria-selected", String(t.dataset.skill === skill)));
+  buildDoc(skill);
+  buildGraph(skill);
+  select(0, false);
+  updatePrompt();
+}
+
+/* ---------- transport ---------- */
+function stop() { if (timer) { clearInterval(timer); timer = null; $("play").textContent = "▶ Play flow"; } }
+$("prev").addEventListener("click", () => { stop(); select(idx - 1); });
+$("next").addEventListener("click", () => { stop(); select(idx + 1); });
+$("play").addEventListener("click", () => {
+  if (timer) return stop();
+  $("play").textContent = "❚❚ Pause";
+  if (idx >= flat.length - 1) select(0, false);
+  timer = setInterval(() => {
+    if (idx >= flat.length - 1) return stop();
+    select(idx + 1, false);
+  }, 900);
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.target.matches("input, textarea")) return;
+  if (e.key === "ArrowRight") { stop(); select(idx + 1); }
+  if (e.key === "ArrowLeft")  { stop(); select(idx - 1); }
+});
+
+document.querySelectorAll(".tab").forEach((t) =>
+  t.addEventListener("click", () => { stop(); load(t.dataset.skill); }));
+
+/* ---------- view toggle ---------- */
+$("v-split").addEventListener("click", () => {
+  $("compare").classList.add("split");
+  $("pane-before").style.display = "";
+  $("v-split").setAttribute("aria-pressed", "true");
+  $("v-after").setAttribute("aria-pressed", "false");
+});
+$("v-after").addEventListener("click", () => {
+  $("compare").classList.remove("split");
+  $("pane-before").style.display = "none";
+  $("v-split").setAttribute("aria-pressed", "false");
+  $("v-after").setAttribute("aria-pressed", "true");
+});
+
+/* ---------- copy prompt ---------- */
+function updatePrompt() {
+  $("promptText").textContent =
+    "Add a flow graph to the top of every generated skill reference page on the docs site. " +
+    "Derive the phases from each SKILL.md — parse the phase table where one exists, fall back to " +
+    "STEP/Phase headings otherwise — and group the nodes into pre-flight, core phases, and emit lanes " +
+    "so the core work reads as primary. Start with " + SKILLS[current].label + ".";
+}
+$("copyBtn").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText($("promptText").textContent);
+    const b = $("copyBtn");
+    b.textContent = "✓ Copied";
+    setTimeout(() => { b.textContent = "Copy prompt"; }, 1500);
+  } catch (_) {
+    $("live").textContent = "Copy failed — select the text manually.";
+  }
+});
+
+load("brainstorm");
+</script>
+</body>
+</html>
