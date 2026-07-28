@@ -171,19 +171,29 @@ for agent_file in "$PROJECT_ROOT/src/agents"/*.md; do
 
         ((agent_count++)) || true
 
-        # Check for CC 2.1.6 required fields
-        if ! head -50 "$agent_file" | grep -q "^model:"; then
+        # Check for CC 2.1.6 required fields.
+        #
+        # Read the head ONCE into a variable rather than piping `head` into
+        # `grep -q` three times. Under `set -o pipefail` that pipeline is a
+        # race: `grep -q` exits the moment it matches, `head` then dies on
+        # SIGPIPE with a non-zero status, pipefail propagates it, and the `!`
+        # reports a MISSING field for a file that plainly has it. It flips on
+        # timing, so the same tree lints green one run and red the next.
+        # Observed reporting all 35 agents as missing `model:` on a clean main.
+        agent_head=$(head -50 "$agent_file")
+
+        if ! grep -q "^model:" <<< "$agent_head"; then
             fail "$agent_name missing 'model:' field"
-            ((agent_errors++)) || true
+            ((agent_errors++)) || true  # silent: known-noise ((x++)) returns 1 when x was 0
         fi
 
-        if ! head -50 "$agent_file" | grep -q "^skills:"; then
+        if ! grep -q "^skills:" <<< "$agent_head"; then
             warn "$agent_name missing 'skills:' array (CC 2.1.6)"
         fi
 
-        if ! head -50 "$agent_file" | grep -q "^tools:"; then
+        if ! grep -q "^tools:" <<< "$agent_head"; then
             fail "$agent_name missing 'tools:' array"
-            ((agent_errors++)) || true
+            ((agent_errors++)) || true  # silent: known-noise ((x++)) returns 1 when x was 0
         fi
     fi
 done
