@@ -135,7 +135,8 @@ export function visualStyleNudge(
     `[${HOOK_NAME} #${ordinal}] This answer has shape — render it as ASCII art plus ` +
       `semantic emojis (boxes, tables, bar meters), not prose paragraphs. Applies to ` +
       `THIS reply and every later one, not just the first. Full glyph vocabulary and ` +
-      `palette: src/rules/visual-style.md. Sub-agents do not inherit this rule; ` +
+      `palette: the ork:quickviz skill, rules/visual-style.md. Sub-agents do not ` +
+      `inherit this rule; ` +
       `restate it in their prompt if their output reaches the user.`,
   );
 }
