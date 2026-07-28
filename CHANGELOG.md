@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.2.1](https://github.com/yonatangross/orchestkit/compare/v9.2.0...v9.2.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* **evals:** propagate INCONCLUSIVE through the --changed fan-out ([#3188](https://github.com/yonatangross/orchestkit/issues/3188)) ([5d91f2c](https://github.com/yonatangross/orchestkit/commit/5d91f2c23c3cf45654fb4dee3491de418b098b8e))
+* **quickviz:** ship visual-style.md inside the skill bundle ([#3185](https://github.com/yonatangross/orchestkit/issues/3185)) ([db038a1](https://github.com/yonatangross/orchestkit/commit/db038a14fb49b7ee757ff09c1896ec874e6ea1d6))
+
+
+### CI/CD
+
+* bump the github-actions group across 1 directory with 2 updates ([#3174](https://github.com/yonatangross/orchestkit/issues/3174)) ([ea01f8e](https://github.com/yonatangross/orchestkit/commit/ea01f8eb8885eccd9a94e20fa0b2593eddebb7a9))
+
 ## [9.2.0](https://github.com/yonatangross/orchestkit/compare/v9.1.1...v9.2.0) (2026-07-28)
 
 
