@@ -5,6 +5,35 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.2.0](https://github.com/yonatangross/orchestkit/compare/v9.1.1...v9.2.0) (2026-07-28)
+
+
+### Features
+
+* **docs:** derive a flow graph for every skill reference page ([#3184](https://github.com/yonatangross/orchestkit/issues/3184)) ([060ab5e](https://github.com/yonatangross/orchestkit/commit/060ab5ebf6cb4953d82bcd1b18d5fa0ea0b1c766))
+
+
+### Bug Fixes
+
+* **hooks:** skip ASK tiers in bypassPermissions mode ([#3177](https://github.com/yonatangross/orchestkit/issues/3177)) ([f2c3d38](https://github.com/yonatangross/orchestkit/commit/f2c3d387b8841e22f9d7b163a713c42b66716e67))
+* **visual-style:** stop the emoji vocabulary rejecting the ASCII palette ([#3169](https://github.com/yonatangross/orchestkit/issues/3169)) ([a5dd7fb](https://github.com/yonatangross/orchestkit/commit/a5dd7fb8d5613115317eb9c9745584b133901742))
+
+
+### Miscellaneous
+
+* **deps:** bump the npm-minor-patch group across 1 directory with 4 updates ([#3179](https://github.com/yonatangross/orchestkit/issues/3179)) ([5c8169a](https://github.com/yonatangross/orchestkit/commit/5c8169ac83abc2e401b1aa7185ad079f2d3a8e3c))
+* **deps:** bump the remotion group across 1 directory with 21 updates ([#3175](https://github.com/yonatangross/orchestkit/issues/3175)) ([728a7e7](https://github.com/yonatangross/orchestkit/commit/728a7e77af8b883820fbbf722143f07e63ef7d4f))
+
+
+### Documentation
+
+* **readme:** rebuild the community table and drop two dead sections ([#3183](https://github.com/yonatangross/orchestkit/issues/3183)) ([1b06de9](https://github.com/yonatangross/orchestkit/commit/1b06de967e5fb9b60c3b325dba7c42ce8d8a4590))
+
+
+### CI/CD
+
+* gate README command references, sweep dead links weekly ([#3187](https://github.com/yonatangross/orchestkit/issues/3187)) ([cf961b1](https://github.com/yonatangross/orchestkit/commit/cf961b1c0923fe939a0ab71ffa22f2b2191564d9))
+
 ## [9.1.1](https://github.com/yonatangross/orchestkit/compare/v9.1.0...v9.1.1) (2026-07-26)
 
 
