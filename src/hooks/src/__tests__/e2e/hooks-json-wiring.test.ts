@@ -263,7 +263,11 @@ describe('hooks.json wiring E2E', () => {
       // 217 -> 219: M170/#3126 new Workflow matcher with two dispatch entries:
       //             pretool/task/workflow-agenttype-advisor (new hook) and a
       //             second ref to the existing lifecycle/webhook-forwarder.
-      expect(hooksConfig.description).toContain('219 total');
+      // 219 -> 218: removed skill/release-state-loader. Its only consumer was
+      //             the release-checklist skill, deleted as an unreachable
+      //             orphan, which left the hook registered with nothing able
+      //             to dispatch it (#959 dead-hook class). skill-scoped 22->21.
+      expect(hooksConfig.description).toContain('218 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

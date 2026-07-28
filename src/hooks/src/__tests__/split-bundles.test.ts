@@ -432,7 +432,12 @@ describe('Cross-Bundle Consistency', () => {
     //             mechanism 6. Projects post-write byte size of MEMORY.md /
     //             CLAUDE.md and ASKs over budget, before the write lands
     //             (the prior control was post-hoc CI only).
-    expect(totalHooks).toBe(202);
+    // 202 -> 201: removed skill/release-state-loader from the entries map. Its
+    //             only consumer, the release-checklist skill, was deleted as an
+    //             unreachable orphan, leaving the hook registered but
+    //             undispatchable (#959 dead-hook class, caught by
+    //             validate-registry.mjs as a NEW DEAD HOOK).
+    expect(totalHooks).toBe(201);
   });
 });
 
