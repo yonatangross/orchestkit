@@ -1252,7 +1252,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "num": "6.4",
             "label": "Living Plan Playground",
             "does": "Emit an updatable LPP playground via visualize-plan's living-plan path",
-            "out": ".html (living)",
+            "out": "<slug>.html (living)",
             "tag": "optional"
           },
           {
@@ -1557,14 +1557,14 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "CI Debug: ·",
+            "label": "CI Debug: <repo> · <pr-or-run-ref>",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "CI Debug: · · NOVEL",
+            "label": "CI Debug: <repo> · <pr-or-run-ref> · NOVEL",
             "does": "",
             "out": null,
             "tag": null
@@ -1659,7 +1659,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "CI Debug: · #",
+            "label": "CI Debug: <repo> · #<n>",
             "does": "",
             "out": null,
             "tag": null
@@ -3575,7 +3575,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Prior-fix lookup",
-            "does": "Before diagnosis kicks off, optionally invoke scripts/prior_fix_lookup.py to surface similar fixes already recorded in the memory MCP. READ-ONLY — no writeback. Self-skips on every non-happy-path so it never blocks the fix:",
+            "does": "Before diagnosis kicks off, optionally invoke scripts/prior_fix_lookup.py <session-dir> to surface similar fixes already recorded in the memory MCP. READ-ONLY — no writeback. Self-skips on every non-happy-path so it never blocks the fix:",
             "out": null,
             "tag": null
           },
@@ -6368,7 +6368,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "8c",
             "label": "Verdict KG writeback",
-            "does": "After the verdict is submitted, optionally invoke scripts/verdict_writeback.py to persist the verdict + findings to the memory MCP knowledge graph. Self-skips on every non-happy-path so it never breaks the review:",
+            "does": "After the verdict is submitted, optionally invoke scripts/verdict_writeback.py <review-dir> to persist the verdict + findings to the memory MCP knowledge graph. Self-skips on every non-happy-path so it never breaks the review:",
             "out": null,
             "tag": null
           }
@@ -6795,7 +6795,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "1",
             "label": "Spec validation",
-            "does": "Load . Verify:",
+            "does": "Load <spec-file.yaml>. Verify:",
             "out": null,
             "tag": null
           },
@@ -6830,7 +6830,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "6",
             "label": "Final report",
-            "does": "When all waves complete (or the swarm pauses/aborts), emit a single markdown report under .swarm-logs/-report.md:",
+            "does": "When all waves complete (or the swarm pauses/aborts), emit a single markdown report under .swarm-logs/<spec-name>-report.md:",
             "out": null,
             "tag": null
           }

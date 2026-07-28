@@ -66,16 +66,47 @@ function scanFolderStructure(skillPath) {
   return structure;
 }
 
+// Only real HTML tag names are stripped. Anything else between angle brackets is
+// prose: SKILL.md is full of placeholders like `<slug>.html` and `<name>`, and a
+// blanket `<[^>]+>` strip silently ate them.
+// The executable/embedding tags are listed too. They never legitimately appear in
+// a skill heading, and leaving them out would let `<sc<span>ript>` collapse into a
+// `<script>` the allowlist then refuses to touch.
+const HTML_TAG_NAMES =
+  'a|abbr|b|blockquote|br|code|dd|details|div|dl|dt|em|h[1-6]|hr|i|img|kbd|li|' +
+  'ol|p|pre|q|s|samp|small|span|strong|sub|summary|sup|table|tbody|td|tfoot|th|' +
+  'thead|tr|u|ul|var|' +
+  'script|style|iframe|object|embed|link|meta|noscript|template|svg|math';
+const HTML_TAG_RE = new RegExp(`</?(?:${HTML_TAG_NAMES})(?:\\s[^>]*)?/?>`, 'gi');
+
+/**
+ * Remove HTML tags, repeating until the string stops changing.
+ *
+ * The loop is the point: one pass is incomplete sanitization, because removing
+ * the inner match of `<scr<script>ipt>` splices the remainder back together into
+ * a live `<script>`. Flagged by CodeQL as js/incomplete-multi-character-sanitization.
+ */
+function stripHtmlTags(s) {
+  let out = String(s);
+  let prev;
+  do {
+    prev = out;
+    out = out.replace(HTML_TAG_RE, '');
+  } while (out !== prev);
+  return out;
+}
+
 /**
  * Strip markdown emphasis/code/links down to plain text.
  */
 function plainText(s) {
-  return String(s)
-    .replace(/`([^`]*)`/g, '$1')
-    .replace(/\*\*([^*]*)\*\*/g, '$1')
-    .replace(/\*([^*]*)\*/g, '$1')
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/<[^>]+>/g, '')
+  return stripHtmlTags(
+    String(s)
+      .replace(/`([^`]*)`/g, '$1')
+      .replace(/\*\*([^*]*)\*\*/g, '$1')
+      .replace(/\*([^*]*)\*/g, '$1')
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1'),
+  )
     .replace(/\s+/g, ' ')
     .trim();
 }
