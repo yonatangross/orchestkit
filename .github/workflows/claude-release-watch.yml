@@ -4,19 +4,18 @@
 
 name: Claude Release Watch
 on:
+  # POLICY: real `claude -p` calls run LOCALLY during dev, never automatically
+  # in CI. Max-plan OAuth costs $0 in dollars but draws on the SHARED WEEKLY
+  # QUOTA, the same pool as interactive sessions, so an automatic run silently
+  # competes with the operator for their own capacity. Measured 2026-07-28: one
+  # 51-skill sweep fired ~904 API calls in a single run and exhausted the cap.
+  # Manual dispatch only. Do NOT re-add schedule/pull_request/issues triggers.
   workflow_dispatch:
     inputs:
       reissue_existing:
         description: 'Comma-separated CC versions to re-emit gap entries for (e.g. "2.1.133,2.1.134"). Existing snapshot bodies are kept; the gaps file is re-populated with empty features[] so triage re-runs.'
         required: false
         default: ''
-  schedule:
-    # 03:00 UTC = 06:00 Israel (IDT, UTC+3) — triage ready at the start of the IL workday.
-    # CC releases cluster in the evening UTC, so 03:00 catches them ~8-11h sooner than 14:00.
-    # GitHub cron is fixed UTC; revisit to 04:00 UTC if IL switches to standard time (UTC+2).
-    - cron: '0 3 * * *'
-
-# Serialize so two cron fires (or cron + manual) can't race on the snapshot commit.
 concurrency:
   group: cc-release-watch
   cancel-in-progress: false

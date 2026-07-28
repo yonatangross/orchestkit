@@ -336,6 +336,11 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
         # Reachability gate: a skill with no slash command AND model invocation
         # disabled AND no skills: frontmatter wiring cannot be invoked by anyone.
         run_test "Unreachable Skills" "$SCRIPT_DIR/orphans/test-unreachable-skills.sh" || true  # silent: best-effort (run_test records failures; suite exits non-zero at end)
+        # Policy gate: a workflow that invokes an LLM must be manually
+        # triggered. Max-plan OAuth is $0 in dollars but draws on the shared
+        # weekly quota, so an automatic run competes with the operator's own
+        # interactive sessions.
+        run_test "No Automatic LLM in CI" "$SCRIPT_DIR/unit/test-no-llm-in-ci.sh" || true  # silent: best-effort (run_test records failures; suite exits non-zero at end)
         # Tool-coverage gate: allowed-tools must cover the tools the body
         # instructs. Wrapper translates the audit's 0/1/2/3 into pass/fail; see
         # its header. The underlying audit had never run in any CI path.

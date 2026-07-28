@@ -18,13 +18,12 @@ name: CI Sentinel
 # after a quarter of false-positive-free operation.
 
 on:
-  schedule:
-    # Daily at 08:17 UTC. Throttled from hourly (2026-07) alongside the
-    # OAuth-token migration: the token is billed against the Max plan, and
-    # an hourly sweep would draw on the same interactive quota. Daily keeps
-    # red-PR diagnosis timely without eating that quota. `:17` minute offset
-    # kept to dodge the top-of-hour cron storm.
-    - cron: "17 8 * * *"
+  # POLICY: real `claude -p` calls run LOCALLY during dev, never automatically
+  # in CI. Max-plan OAuth costs $0 in dollars but draws on the SHARED WEEKLY
+  # QUOTA, the same pool as interactive sessions, so an automatic run silently
+  # competes with the operator for their own capacity. Measured 2026-07-28: one
+  # 51-skill sweep fired ~904 API calls in a single run and exhausted the cap.
+  # Manual dispatch only. Do NOT re-add schedule/pull_request/issues triggers.
   workflow_dispatch:
     inputs:
       max_prs:

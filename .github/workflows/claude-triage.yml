@@ -3,8 +3,12 @@
 
 name: Claude Issue Triage
 on:
-  issues:
-    types: [opened]
+  # POLICY: real `claude -p` calls run LOCALLY during dev, never automatically
+  # in CI. Max-plan OAuth costs $0 in dollars but draws on the SHARED WEEKLY
+  # QUOTA, the same pool as interactive sessions, so an automatic run silently
+  # competes with the operator for their own capacity. Measured 2026-07-28: one
+  # 51-skill sweep fired ~904 API calls in a single run and exhausted the cap.
+  # Manual dispatch only. Do NOT re-add schedule/pull_request/issues triggers.
   workflow_dispatch:
     inputs:
       issue_number:
@@ -14,7 +18,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
   id-token: write
 
 concurrency:
