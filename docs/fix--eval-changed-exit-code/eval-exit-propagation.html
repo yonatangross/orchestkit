@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Eval exit propagation — outage vs regression</title>
+<style>
+  :root {
+    --pg-bg:         hsl(232 26% 7%);
+    --pg-ink:        hsl(220 18% 93%);
+    --pg-muted:      hsl(220 14% 64%);
+    --pg-faint:      hsl(220 12% 46%);
+    --pg-glass:      hsl(0 0% 100% / .05);
+    --pg-glass-2:    hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent:     hsl(248 84% 68%);
+    --pg-warm:       hsl(38 95% 60%);
+    --pg-red:        hsl(2 76% 62%);
+    --pg-teal:       hsl(172 62% 52%);
+    --r-sm: 9px; --r-md: 16px; --r-lg: 24px;
+    --shadow: 0 20px 60px -22px hsl(232 40% 3% / .7), 0 4px 12px -6px hsl(232 40% 3% / .5);
+    --ease: cubic-bezier(.2,.8,.25,1);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(900px 600px at 12% -5%, hsl(248 84% 68% / .16), transparent 60%),
+      radial-gradient(800px 520px at 88% 8%,  hsl(262 78% 62% / .13), transparent 62%),
+      var(--pg-bg);
+    background-attachment: fixed;
+    color: var(--pg-ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .wrap { max-width: 1120px; margin-inline: auto; padding: 48px 24px 96px; }
+  .eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--pg-faint); font-weight: 600; margin-block-end: 12px; }
+  h1 { font-size: clamp(26px,4vw,40px); line-height: 1.12; letter-spacing: -.3px; margin: 0 0 12px; font-weight: 700; }
+  h1 em { font-style: normal; color: var(--pg-accent); }
+  .lede { color: var(--pg-muted); max-width: 70ch; margin: 0; }
+  .card { background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--r-lg);
+          padding: 20px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+          box-shadow: var(--shadow), inset 0 1px 0 hsl(0 0% 100% / .12); }
+  h2 { font-size: 19px; letter-spacing: -.25px; margin: 0 0 6px; }
+  .sub { color: var(--pg-muted); font-size: 14px; margin: 0 0 16px; max-width: 74ch; }
+  section { margin-block-start: 32px; }
+
+  /* pipeline */
+  .pipe { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; margin-block: 14px; }
+  .stage { background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--r-md);
+           padding: 10px 12px; min-width: 150px; max-width: 210px; }
+  .stage .t { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--pg-faint); font-weight: 700; }
+  .stage .v { font-size: 13px; font-weight: 600; margin-block-start: 3px; }
+  .stage .n { font-size: 11px; color: var(--pg-muted); margin-block-start: 4px; }
+  .arrow { align-self: center; color: var(--pg-accent); opacity: .55; }
+  .bad  { border-color: hsl(2 76% 62% / .5);  background: hsl(2 60% 40% / .13); }
+  .good { border-color: hsl(172 62% 52% / .45); background: hsl(172 50% 34% / .13); }
+  .code-pill { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; display: inline-block; margin-block-start: 6px; }
+  .pill-2 { background: hsl(38 95% 60% / .18); color: var(--pg-warm); }
+  .pill-1 { background: hsl(2 76% 62% / .18); color: var(--pg-red); }
+  .pill-0 { background: hsl(172 62% 52% / .18); color: var(--pg-teal); }
+
+  /* toggle */
+  .seg { display: inline-flex; gap: 4px; background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+         border-radius: var(--r-md); padding: 4px; margin-block-end: 16px; }
+  .seg button { appearance: none; border: 0; background: transparent; color: var(--pg-muted); font: inherit;
+                font-size: 13px; font-weight: 600; cursor: pointer; padding: 7px 15px; border-radius: 12px;
+                transition: all 100ms var(--ease); }
+  .seg button[aria-pressed="true"] { background: var(--pg-accent); color: hsl(232 44% 8%); }
+  .seg button:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+
+  pre { background: hsl(232 24% 10%); border: 1px solid hsl(0 0% 100% / .07); border-radius: var(--r-md);
+        padding: 14px; overflow-x: auto; font-size: 12.5px; margin: 0; }
+  pre .del { color: var(--pg-red); }
+  pre .ins { color: var(--pg-teal); }
+  pre .cmt { color: var(--pg-faint); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 13px; margin-block-start: 12px; }
+  th, td { text-align: start; padding: 8px 10px; border-block-end: 1px solid hsl(0 0% 100% / .08); }
+  th { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--pg-faint); }
+  td.mono { font-variant-numeric: tabular-nums; }
+  .ok  { color: var(--pg-teal); font-weight: 700; }
+  .no  { color: var(--pg-red); font-weight: 700; }
+
+  .promptbar { margin-block-start: 32px; display: flex; gap: 12px; align-items: center;
+               background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+               border-radius: var(--r-md); padding: 14px 16px; }
+  .promptbar code { flex: 1; font-size: 12.5px; color: var(--pg-muted); }
+  .promptbar button { appearance: none; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+                      background: var(--pg-accent); border: 0; color: hsl(232 44% 8%);
+                      border-radius: 12px; padding: 10px 18px; white-space: nowrap; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">OrchestKit · tests/evals</div>
+    <h1>An eval outage was reporting as <em>a skill regression</em>.</h1>
+    <p class="lede">
+      <code class="mono">#3032</code> taught the single-skill path to exit <code class="mono">2</code>
+      for "could not measure", so an infrastructure outage would never read as a regression. The
+      <code class="mono">--changed</code> fan-out, which is the path CI actually runs, collapsed every
+      non-zero into <code class="mono">1</code> and threw that distinction away.
+    </p>
+  </header>
+
+  <section>
+    <div class="seg" role="group" aria-label="View">
+      <button id="b-before" aria-pressed="true">Before</button>
+      <button id="b-after" aria-pressed="false">After</button>
+    </div>
+
+    <div class="card">
+      <h2 id="ph">What CI saw</h2>
+      <p class="sub" id="ps">Run 30328867969 · skill <code class="mono">quickviz</code> · 7 of 7 prompts returned no answer.</p>
+      <div class="pipe" id="pipe"></div>
+      <pre id="snippet"></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Precedence table</h2>
+    <p class="sub">
+      A real failure in any skill must outrank an outage in another, and an outage must never be able to
+      mask a real failure. Both directions are asserted in
+      <code class="mono">tests/evals/test-changed-fanout-exit.sh</code>.
+    </p>
+    <table>
+      <thead><tr><th>Per-skill exits</th><th>Before</th><th>After</th><th>Meaning</th></tr></thead>
+      <tbody id="tbl"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Why it matters more than one red check</h2>
+    <p class="sub">
+      The harness printed <span class="mono">Trigger: INCONCLUSIVE / Quality: INCONCLUSIVE / Overall:
+      INCONCLUSIVE</span> and the job still concluded <span class="no">failure</span>. A check that goes
+      red on an outage teaches people to ignore red checks, which is the failure mode the exit code was
+      introduced to prevent in the first place.
+    </p>
+  </section>
+
+  <div class="promptbar">
+    <code class="mono" id="pt">Propagate the INCONCLUSIVE exit code through the --changed fan-out in the skill eval harness, so an infrastructure outage stops reporting as a skill regression, and add a test that fails against the old flattening form.</code>
+    <button id="cp">Copy prompt</button>
+  </div>
+  <p class="sr" id="live" aria-live="polite"></p>
+
+</div>
+
+<script>
+const VIEW = {
+  before: {
+    h: "What CI saw",
+    s: "Run 30328867969 · skill quickviz · 7 of 7 prompts returned no answer.",
+    stages: [
+      { t: "per-skill run",   v: "quickviz",            n: "every generation died", pill: "exit 2", cls: "good", p: "pill-2" },
+      { t: "--changed fan-out", v: "overall_exit = 1",  n: "flattened by if-bang",  pill: "exit 1", cls: "bad",  p: "pill-1" },
+      { t: "skill-eval.yml",  v: "rc -eq 2 ? no",       n: "guard never matches",   pill: "exit 1", cls: "bad",  p: "pill-1" },
+      { t: "check",           v: "RED",                 n: "reads as a regression", pill: "failure", cls: "bad", p: "pill-1" }
+    ],
+    code:
+`<span class="cmt">// tests/evals/scripts/run-skill-eval.sh</span>
+overall_exit=0
+for skill_name in "\${CHANGED_SKILLS[@]}"; do
+    <span class="del">if ! bash "$0" "$skill_name" "\${PASSTHROUGH_ARGS[@]}"; then</span>
+    <span class="del">    overall_exit=1   # &lt;- exit 2 collapses to 1 here</span>
+    <span class="del">fi</span>
+done
+exit $overall_exit`
+  },
+  after: {
+    h: "What CI sees now",
+    s: "Same run, same 7 dead generations. The distinction survives to the caller.",
+    stages: [
+      { t: "per-skill run",   v: "quickviz",             n: "every generation died", pill: "exit 2", cls: "good", p: "pill-2" },
+      { t: "--changed fan-out", v: "overall_exit = 2",   n: "propagated",            pill: "exit 2", cls: "good", p: "pill-2" },
+      { t: "skill-eval.yml",  v: "rc -eq 2 ? yes",       n: "warns, exits 0",        pill: "exit 0", cls: "good", p: "pill-0" },
+      { t: "check",           v: "GREEN + warning",      n: "reads as an outage",    pill: "success", cls: "good", p: "pill-0" }
+    ],
+    code:
+`<span class="cmt">// tests/evals/scripts/run-skill-eval.sh</span>
+overall_exit=0
+for skill_name in "\${CHANGED_SKILLS[@]}"; do
+    skill_exit=0
+    <span class="ins">bash "$0" "$skill_name" "\${PASSTHROUGH_ARGS[@]}" || skill_exit=$?</span>
+    <span class="ins">if [[ $skill_exit -eq 2 ]]; then</span>
+    <span class="ins">    if [[ $overall_exit -eq 0 ]]; then   # only upgrade 0 -&gt; 2</span>
+    <span class="ins">        overall_exit=2</span>
+    <span class="ins">    fi</span>
+    <span class="ins">elif [[ $skill_exit -ne 0 ]]; then</span>
+    <span class="ins">    overall_exit=1</span>
+    <span class="ins">fi</span>
+done
+exit $overall_exit`
+  }
+};
+
+const ROWS = [
+  ["0 0",   "0", "0", "all measured and passing"],
+  ["2",     "1", "2", "a lone outage"],
+  ["2 2",   "1", "2", "two outages"],
+  ["0 2",   "1", "2", "pass plus outage"],
+  ["1",     "1", "1", "a real failure"],
+  ["2 1",   "1", "1", "failure outranks outage"],
+  ["1 2",   "1", "1", "outage cannot mask a failure"],
+  ["0 1 2", "1", "1", "mixed resolves to failure"]
+];
+
+const $ = (id) => document.getElementById(id);
+
+function render(k) {
+  const v = VIEW[k];
+  $("ph").textContent = v.h;
+  $("ps").textContent = v.s;
+  const pipe = $("pipe");
+  pipe.innerHTML = "";
+  v.stages.forEach((s, i) => {
+    const d = document.createElement("div");
+    d.className = "stage " + s.cls;
+    d.innerHTML = '<div class="t"></div><div class="v"></div><div class="n"></div>' +
+                  '<span class="code-pill ' + s.p + '"></span>';
+    d.querySelector(".t").textContent = s.t;
+    d.querySelector(".v").textContent = s.v;
+    d.querySelector(".n").textContent = s.n;
+    d.querySelector(".code-pill").textContent = s.pill;
+    pipe.appendChild(d);
+    if (i < v.stages.length - 1) {
+      const a = document.createElement("span");
+      a.className = "arrow"; a.setAttribute("aria-hidden", "true"); a.textContent = "→";
+      pipe.appendChild(a);
+    }
+  });
+  $("snippet").innerHTML = v.code;
+  $("b-before").setAttribute("aria-pressed", String(k === "before"));
+  $("b-after").setAttribute("aria-pressed", String(k === "after"));
+}
+
+const tbl = $("tbl");
+for (const [codes, before, after, meaning] of ROWS) {
+  const tr = document.createElement("tr");
+  const wrong = before !== after;
+  tr.innerHTML = '<td class="mono"></td>' +
+                 '<td class="mono ' + (wrong ? "no" : "") + '"></td>' +
+                 '<td class="mono ok"></td><td></td>';
+  const c = tr.querySelectorAll("td");
+  c[0].textContent = codes; c[1].textContent = before; c[2].textContent = after; c[3].textContent = meaning;
+  tbl.appendChild(tr);
+}
+
+$("b-before").addEventListener("click", () => render("before"));
+$("b-after").addEventListener("click", () => render("after"));
+$("cp").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText($("pt").textContent);
+    $("cp").textContent = "✓ Copied";
+    setTimeout(() => { $("cp").textContent = "Copy prompt"; }, 1500);
+  } catch (_) { $("live").textContent = "Copy failed — select the text manually."; }
+});
+
+render("before");
+</script>
+</body>
+</html>
