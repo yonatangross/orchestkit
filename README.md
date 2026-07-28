@@ -8,7 +8,7 @@
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.220-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
-[![Community](https://img.shields.io/badge/Community-WhatsApp-25D366?style=for-the-badge&logo=whatsapp)](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk)
+[![Community](https://img.shields.io/badge/Community-WhatsApp-25D366?style=for-the-badge&logo=whatsapp)](https://yonyon.ai/go/community)
 [![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-1A1A2E?style=for-the-badge&logo=bookstack&logoColor=4F9CF9)](https://deepwiki.com/yonatangross/orchestkit)
 
 </div>
@@ -17,7 +17,7 @@
 
 <p align="center">
   <a href="https://orchestkit.yonyon.ai/"><strong>Explore the Docs →</strong></a> ·
-  <a href="https://chat.whatsapp.com/Krraz7LhB951K7nQfC08B2"><strong>OrchestKit Users Group →</strong></a><br>
+  <a href="https://yonyon.ai/go/orchestkit"><strong>OrchestKit Community →</strong></a><br>
   <sub>Skill browser, demo gallery, setup wizard</sub>
 </p>
 
@@ -31,7 +31,6 @@
 - [Key Commands](#key-commands)
 - [Configuration](#configuration)
 - [Install](#install)
-- [Release Channels](#release-channels)
 - [FAQ](#faq)
 - [Development](#development)
 - [What's New](#whats-new)
@@ -89,6 +88,7 @@ All available in a single `/plugin install ork`. Skills load on-demand. Hooks wo
 ## Key Commands
 
 ```bash
+/ork:auto         # Front door: describe a goal, it routes to the right skill
 /ork:setup        # Personalized onboarding wizard
 /ork:implement    # Full-stack implementation with parallel agents
 /ork:expect       # Diff-aware AI browser testing
@@ -104,9 +104,7 @@ All available in a single `/plugin install ork`. Skills load on-demand. Hooks wo
 
 ## Configuration
 
-```bash
-/ork:configure
-```
+`/ork:setup` detects your stack, recommends MCP servers, and writes the configuration for you.
 
 ### Recommended MCP Servers
 
@@ -114,10 +112,10 @@ All available in a single `/plugin install ork`. Skills load on-demand. Hooks wo
 |--------|---------|-----------|
 | Context7 | Up-to-date library docs | Recommended |
 | Memory | Knowledge graph persistence | Recommended |
-| Sequential Thinking | Structured reasoning for subagents | Optional |
+| Sequential Thinking | Structured reasoning for subagents | Recommended |
 | Tavily | Web search and extraction | Optional |
 
-The setup wizard (`/ork:setup`) will recommend MCPs based on your stack.
+Set `"alwaysLoad": true` on the first three in your `.mcp.json`. It skips the per-skill tool probe and shaves ~150ms off cold starts.
 
 ### Customizing skills
 
@@ -138,30 +136,6 @@ Not on Claude Code? Pull the skills into any agent (Cursor, Codex, OpenCode, …
 ```bash
 npx skills add yonatangross/orchestkit
 ```
-
----
-
-## Release Channels
-
-| Channel | Stability | Install |
-|---------|-----------|---------|
-| **Stable** | Production-ready | `/plugin install ork` |
-| **Beta** | May have rough edges | See below |
-| **Alpha** | Experimental, may break | See below |
-
-To install beta or alpha:
-
-```bash
-# Beta channel
-/plugin marketplace add yonatangross/orchestkit --ref beta --name orchestkit-beta
-/plugin install ork@orchestkit-beta
-
-# Alpha channel
-/plugin marketplace add yonatangross/orchestkit --ref alpha --name orchestkit-alpha
-/plugin install ork@orchestkit-alpha
-```
-
-Run `/ork:doctor` to check which channel you're on. [Full docs](https://orchestkit.yonyon.ai/docs/getting-started/release-channels).
 
 ---
 
@@ -270,20 +244,23 @@ _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 
 ## Community
 
-Join the **Code with Yonatan** community for AI dev tips, OrchestKit support, and connecting with other builders:
+Join the **Building with AI** community for AI dev tips, OrchestKit support, and connecting with other builders:
 
-| Group | Link |
-|-------|------|
-| **Community** (all channels) | [Join on WhatsApp](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk) |
-| **AI Dev (EN)** | [English Group](https://chat.whatsapp.com/CFAQoyGl2rp4P3JHcwC9Uu) |
-| <strong dir="rtl">יש לך AI?</strong> | [Hebrew Group](https://chat.whatsapp.com/BC4QoLEUNR76ygZwyrgZZT) |
-| **OrchestKit Users** | [Support & Showcase](https://chat.whatsapp.com/Krraz7LhB951K7nQfC08B2) |
+| Group | Who it's for | Link |
+|-------|--------------|------|
+| **Building with AI** · <strong dir="rtl">בונים עם AI</strong> | The umbrella community. One join, every room below. | [Join](https://yonyon.ai/go/community) |
+| **OrchestKit** | Setups, hooks, agents, and real problems from the field. | [Join](https://yonyon.ai/go/orchestkit) |
+| **The Orchestra** | English room for AI dev talk: agents, MCP, Claude Code. | [Join](https://chat.whatsapp.com/CFAQoyGl2rp4P3JHcwC9Uu) |
+| **Builders** · <strong dir="rtl">בילדרים</strong> | Hebrew room for people already shipping AI: RAG, agents, MCP in production. | [Join](https://yonyon.ai/go/builders) |
+| **AI for Business** · <strong dir="rtl">AI לעסקים</strong> | Hebrew room for founders and team leads adopting AI. Decisions and ROI, no code. | [Join](https://yonyon.ai/go/business) |
+
+Most links resolve through `yonyon.ai/go/*`, so they survive an invite rotation without a README change.
 
 ---
 
 <div align="center">
 
-**[Docs](https://orchestkit.yonyon.ai/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)** · **[Community](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk)**
+**[Docs](https://orchestkit.yonyon.ai/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)** · **[Community](https://yonyon.ai/go/community)**
 
 MIT License · [@yonatangross](https://github.com/yonatangross)
 
