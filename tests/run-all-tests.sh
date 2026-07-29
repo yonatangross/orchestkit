@@ -150,7 +150,8 @@ if [[ "$RUN_LINT" == "true" ]]; then
     echo -e "${BOLD}${CYAN}LINT / STATIC ANALYSIS${NC}"
     echo ""
 
-    run_test "Static Analysis Suite" "$SCRIPT_DIR/ci/lint.sh" || true
+    run_test "Static Analysis Suite" "$SCRIPT_DIR/ci/lint.sh" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
+    run_test "Playground Gate Inertness (#3193)" "$SCRIPT_DIR/ci/test-playground-gate-inertness.sh" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
     run_test "Passive Index Generation" "$SCRIPT_DIR/indexes/test-index-generation.sh" || true
 fi
 

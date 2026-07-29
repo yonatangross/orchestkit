@@ -180,24 +180,81 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Check playground exists
+      # One decision, consumed by both steps below. It used to be copy-pasted
+      # into each of them, which is how they drift.
+      - name: Decide whether a playground is required
+        id: gate
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_REF: ${{ github.head_ref }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
-          # Skip for bot PRs (dependabot, release-please, in-house cron bot)
+          set -uo pipefail
+
+          skip() {
+            echo "required=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::$1"
+            exit 0
+          }
+
+          # Bot PRs never carry a playground.
           if [[ "$PR_AUTHOR" == "dependabot[bot]" || "$PR_AUTHOR" == "release-please[bot]" || "$PR_AUTHOR" == "github-actions[bot]" || "$PR_AUTHOR" == "orchestkit-release-bot[bot]" ]]; then
-            echo "::notice::Skipping playground check for bot PR ($PR_AUTHOR)"
-            exit 0
+            skip "Skipping playground check for bot PR ($PR_AUTHOR)"
           fi
 
-          # Skip for automated branches + ci/ config-only branches (vercel.json,
-          # .github/, *.toml have nothing user-facing to playground)
+          # Automated branches, kept as a cheap fast path.
           if [[ "$HEAD_REF" =~ ^(dependabot/|release-please|renovate/|chore/cc-snapshot-|ci/) ]]; then
-            echo "::notice::Skipping playground check for automated branch ($HEAD_REF)"
+            skip "Skipping playground check for automated branch ($HEAD_REF)"
+          fi
+
+          # Path-based inertness.
+          #
+          # The branch rule above already encodes this intent ("vercel.json,
+          # .github/, *.toml have nothing user-facing to playground") but keys it
+          # on a branch NAME, which only works for branches we name ourselves. An
+          # outside contributor fixing a typo in README.md has no such prefix, so
+          # the gate demanded a hand-authored interactive playground for a
+          # one-line docs diff — and being a REQUIRED check, it hard-blocked the
+          # PR with no path forward. Hit for real on #3193.
+          #
+          # Fail-closed on purpose: a changed file matching nothing here still
+          # REQUIRES a playground, so a new user-facing directory is never
+          # silently exempted just because this list predates it.
+          # NOTE the `.*` after `\.github/`: the trailing `$` anchors the whole
+          # alternation, so a bare `\.github/` would only match a file literally
+          # named ".github/" and every real workflow path would fall through to
+          # "playground required".
+          INERT='^(README\.md|CHANGELOG\.md|CONTRIBUTING\.md|SECURITY\.md|CODE_OF_CONDUCT\.md|LICENSE|\.github/.*|vercel\.json|[^/]*\.toml)$'
+
+          FILES=$(gh pr diff "$PR_NUMBER" --name-only 2>/dev/null || true)
+          if [ -z "$FILES" ]; then
+            echo "required=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Could not read the PR diff; requiring a playground (fail-closed)."
             exit 0
           fi
 
+          # grep -v exits 0 when SOME line fails to match, i.e. a non-inert file
+          # exists. Negating it means "every changed file is inert".
+          #
+          # Here-string, NOT `printf ... | grep -q`. grep -q early-exits on the
+          # first match, which SIGPIPEs the producer; under `pipefail` that 141
+          # propagates and flips this `if` non-deterministically (#603). In a
+          # REQUIRED gate that races fail-OPEN: a user-facing PR would sometimes
+          # be waved through with no playground. A here-string has no producer
+          # process, so there is nothing to signal.
+          if ! grep -qvE "$INERT" <<< "$FILES"; then
+            skip "Skipping playground check: every changed file is docs or config only"
+          fi
+
+          echo "required=true" >> "$GITHUB_OUTPUT"
+          echo "::notice::Playground required (PR touches user-facing paths)"
+
+      - name: Check playground exists
+        if: steps.gate.outputs.required == 'true'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
           # Derive docs directory from branch name (/ → --)
           BRANCH_DIR=$(echo "$HEAD_REF" | sed 's|/|--|g')
           DOCS_DIR="docs/${BRANCH_DIR}"
@@ -220,21 +277,11 @@ jobs:
           echo "::notice::Found ${HTML_COUNT} playground file(s) in ${DOCS_DIR}/"
 
       - name: Check playground link in PR body
+        if: steps.gate.outputs.required == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          HEAD_REF: ${{ github.head_ref }}
         run: |
-          # Skip for bot PRs (dependabot, release-please, in-house cron bot)
-          if [[ "$PR_AUTHOR" == "dependabot[bot]" || "$PR_AUTHOR" == "release-please[bot]" || "$PR_AUTHOR" == "github-actions[bot]" || "$PR_AUTHOR" == "orchestkit-release-bot[bot]" ]]; then
-            exit 0
-          fi
-          # Skip for automated branches
-          if [[ "$HEAD_REF" =~ ^(dependabot/|release-please|renovate/|chore/cc-snapshot-|ci/) ]]; then
-            exit 0
-          fi
-
           PR_BODY=$(gh pr view "$PR_NUMBER" --json body -q .body 2>/dev/null || echo "")
           if ! echo "$PR_BODY" | grep -qi "playground"; then
             echo "::error::PR body is missing a Playground section."
