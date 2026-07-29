@@ -21,6 +21,27 @@ export interface SkillDetail {
   relatedAgents: string[];
 }
 
+/** One step in a derived skill flow. `out` is only known for table-tier flows. */
+export interface SkillFlowNode {
+  num: string;
+  label: string;
+  does: string;
+  out: string | null;
+  tag: "optional" | null;
+}
+
+export interface SkillFlowLane {
+  id: "pre" | "core" | "emit" | "map";
+  label: string;
+  nodes: SkillFlowNode[];
+}
+
+/** Derived from SKILL.md. See extractSkillFlow in generate-docs-data.js. */
+export interface SkillFlow {
+  tier: "table" | "headings" | "sections";
+  lanes: SkillFlowLane[];
+}
+
 /** Skill metadata without content fields — used by skill-browser */  
 export type SkillMeta = Omit<SkillDetail, "content" | "contentTruncated">;
 

@@ -150,7 +150,8 @@ if [[ "$RUN_LINT" == "true" ]]; then
     echo -e "${BOLD}${CYAN}LINT / STATIC ANALYSIS${NC}"
     echo ""
 
-    run_test "Static Analysis Suite" "$SCRIPT_DIR/ci/lint.sh" || true
+    run_test "Static Analysis Suite" "$SCRIPT_DIR/ci/lint.sh" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
+    run_test "Playground Gate Inertness (#3193)" "$SCRIPT_DIR/ci/test-playground-gate-inertness.sh" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
     run_test "Passive Index Generation" "$SCRIPT_DIR/indexes/test-index-generation.sh" || true
 fi
 
@@ -178,6 +179,7 @@ if [[ "$RUN_UNIT" == "true" ]]; then
     run_test "Audit-Activation Script" "$SCRIPT_DIR/unit/test-audit-activation.sh" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
     run_test "Eval Coverage Ratchet (#2192)" "$SCRIPT_DIR/evals/test-eval-coverage.sh" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
     run_test "Dead-Generation Guard (#3036)" "$SCRIPT_DIR/evals/test-dead-generation-guard.sh" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
+    run_test "Changed Fan-Out Exit Propagation (#3032)" "$SCRIPT_DIR/evals/test-changed-fanout-exit.sh" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
     run_test "Quality Index Gate (#2194)" "$SCRIPT_DIR/evals/test-quality-index-gate.sh" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
     run_test "Handoff Bundle Schema" "$SCRIPT_DIR/unit/test-handoff-bundle-schema.sh" || true
     run_test "Stub Fallback Integration" "$SCRIPT_DIR/unit/test-stub-fallback.sh" || true  # silent: known-noise

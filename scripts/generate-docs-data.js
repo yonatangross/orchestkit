@@ -66,6 +66,219 @@ function scanFolderStructure(skillPath) {
   return structure;
 }
 
+// Only real HTML tag names are stripped. Anything else between angle brackets is
+// prose: SKILL.md is full of placeholders like `<slug>.html` and `<name>`, and a
+// blanket `<[^>]+>` strip silently ate them.
+// The executable/embedding tags are listed too. They never legitimately appear in
+// a skill heading, and leaving them out would let `<sc<span>ript>` collapse into a
+// `<script>` the allowlist then refuses to touch.
+const HTML_TAG_NAMES =
+  'a|abbr|b|blockquote|br|code|dd|details|div|dl|dt|em|h[1-6]|hr|i|img|kbd|li|' +
+  'ol|p|pre|q|s|samp|small|span|strong|sub|summary|sup|table|tbody|td|tfoot|th|' +
+  'thead|tr|u|ul|var|' +
+  'script|style|iframe|object|embed|link|meta|noscript|template|svg|math';
+const HTML_TAG_RE = new RegExp(`</?(?:${HTML_TAG_NAMES})(?:\\s[^>]*)?/?>`, 'gi');
+
+/**
+ * Remove HTML tags, repeating until the string stops changing.
+ *
+ * The loop is the point: one pass is incomplete sanitization, because removing
+ * the inner match of `<scr<script>ipt>` splices the remainder back together into
+ * a live `<script>`. Flagged by CodeQL as js/incomplete-multi-character-sanitization.
+ */
+function stripHtmlTags(s) {
+  let out = String(s);
+  let prev;
+  do {
+    prev = out;
+    out = out.replace(HTML_TAG_RE, '');
+  } while (out !== prev);
+  return out;
+}
+
+/**
+ * Strip markdown emphasis/code/links down to plain text.
+ */
+function plainText(s) {
+  return stripHtmlTags(
+    String(s)
+      .replace(/`([^`]*)`/g, '$1')
+      .replace(/\*\*([^*]*)\*\*/g, '$1')
+      .replace(/\*([^*]*)\*/g, '$1')
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1'),
+  )
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Node labels are chips in a graph; anything past ~44 chars wraps badly. */
+function truncateLabel(s, max = 44) {
+  const t = String(s).trim();
+  if (t.length <= max) return t;
+  return t.slice(0, max - 1).replace(/[\s—,:-]+$/, '') + '…';
+}
+
+/**
+ * Split "**2. Divergent Exploration** (optional)" into
+ * { num: "2", label: "Divergent Exploration", optional: true }.
+ * Falls back to the whole cell as the label when there is no leading number.
+ */
+function splitPhaseCell(cell) {
+  const text = plainText(cell);
+  const optional = /\(optional|\(signal-fired|\boptional\b/i.test(text);
+  const stripped = text.replace(/\((?:optional|signal-fired)[^)]*\)/gi, '').trim();
+  const m = /^([0-9]+(?:\.[0-9]+)?[a-z]?)[.)]?\s+(.*)$/.exec(stripped);
+  if (m) return { num: m[1], label: truncateLabel(m[2].trim()), optional };
+  return { num: "", label: truncateLabel(stripped), optional };
+}
+
+/**
+ * Derive a flow graph from a SKILL.md body. Three tiers, measured across the
+ * 114 shipped skills:
+ *
+ *   tier "table"    : a `| Phase | Activities | Output |` table exists. Parses
+ *                     into a full pipeline with per-node activities AND output.
+ *   tier "headings" : no table, but `## STEP n:` / `## Phase n:` headings exist.
+ *                     Labels derive cleanly; output is left null.
+ *   tier "sections" : neither. These are mostly reference/pattern skills with no
+ *                     pipeline at all, so we render a capability map (section
+ *                     chips, no arrows) rather than faking a sequence.
+ *
+ * Returns null when even the section map would be noise (< 3 sections).
+ */
+function extractSkillFlow(body) {
+  const lines = body.split('\n');
+
+  // --- pre-flight nodes: "## STEP <n>: <Label>" with n < 1 (-1, 0, 0a, 0.5 …)
+  // These are setup/gating steps and are visually de-emphasised.
+  const pre = [];
+  const headingNodes = [];
+  const headingRe = /^#{2,3}\s+(?:STEP|Step|Phase)\s+(-?[0-9]+(?:\.[0-9]+)?[a-z]?)\s*[:—-]\s*(.+)$/;
+  for (let i = 0; i < lines.length; i++) {
+    const m = headingRe.exec(lines[i]);
+    if (!m) continue;
+    const num = m[1];
+    const label = truncateLabel(plainText(m[2]).replace(/\s*\([^)]*\)\s*$/, '').trim());
+    if (!label) continue;
+    // first non-empty, non-fence prose line under the heading becomes "does"
+    let does = '';
+    for (let j = i + 1; j < Math.min(i + 8, lines.length); j++) {
+      const t = lines[j].trim();
+      if (!t || t.startsWith('#')) { if (t.startsWith('#')) break; continue; }
+      if (t.startsWith('```') || t.startsWith('|') || t.startsWith('>')) break;
+      does = plainText(t);
+      break;
+    }
+    const node = { num: `STEP ${num}`, label, does, out: null, tag: null };
+    if (parseFloat(num) < 1) pre.push(node);
+    else headingNodes.push({ ...node, num });
+  }
+
+  // --- core nodes: prefer the phase table, else the >= 1 headings
+  const core = [];
+  const emit = [];
+  let tier = null;
+
+  // A SKILL.md can hold several `| Phase | … |` tables. assess has a
+  // "Phase | Handoff File | Contents" table whose first column is a bare
+  // number, which yields nodes labelled "0", "1", "2". So: collect every
+  // candidate, prefer an Activities/Output header, and reject any table whose
+  // rows do not actually carry phase names.
+  const tableHeader = /^\|\s*(?:Phase|Step|Stage)\s*\|\s*([^|]+)\|\s*([^|]+)\|/i;
+
+  function parseTableAt(headerIdx) {
+    const rows = [];
+    for (let i = headerIdx + 2; i < lines.length; i++) {
+      const row = lines[i];
+      if (!row.trim().startsWith('|')) break;
+      const cells = row.split('|').slice(1, -1);
+      if (cells.length < 2) break;
+      const { num, label, optional } = splitPhaseCell(cells[0]);
+      if (!label) continue;
+      rows.push({
+        num: num || String(rows.length + 1),
+        label,
+        does: plainText(cells[1] || ''),
+        out: cells[2] ? plainText(cells[2]) : null,
+        tag: optional ? 'optional' : null,
+      });
+    }
+    // A real phase table names its phases; a lookup table labels them "0"/"1".
+    const named = rows.filter((r) => !/^[0-9.]*$/.test(r.label)).length;
+    return named >= 2 && named >= rows.length / 2 ? rows : null;
+  }
+
+  let best = null;
+  for (let i = 0; i < lines.length; i++) {
+    const m = tableHeader.exec(lines[i]);
+    if (!m) continue;
+    const rows = parseTableAt(i);
+    if (!rows) continue;
+    // Header naming activities + output is the canonical shape, so take it and stop.
+    const canonical =
+      /activit|action|does|work/i.test(m[1]) && /output|result|yield|produce/i.test(m[2]);
+    if (canonical) { best = rows; break; }
+    if (!best) best = rows;
+  }
+
+  if (best) {
+    tier = 'table';
+    for (const node of best) (node.tag === 'optional' ? emit : core).push(node);
+  }
+
+  if (core.length === 0 && headingNodes.length > 0) {
+    tier = 'headings';
+    core.push(...headingNodes);
+  }
+
+  // --- tier 3: no pipeline, so render a capability map of the section headings.
+  // Most skills here are reference/pattern libraries whose ## headings ARE the
+  // capability list (security-patterns: Authentication / Defense-in-Depth /
+  // OWASP Top 10 / …). The scaffolding headings every SKILL.md carries are
+  // dropped, because "Quick Start | Related Skills" describes nothing. When
+  // that leaves too little, the ### subsections carry the real content instead
+  // (ai-ui-generation keeps everything under a generic "Rule Details").
+  if (core.length === 0) {
+    const scaffolding = new Set([
+      'quick reference', 'rules quick reference', 'quick start', 'rule details',
+      'detailed documentation', 'related skills', 'see also', 'references',
+      'reference', 'notes', 'changelog', 'argument resolution', 'success criteria',
+      'output format', 'overview', 'table of contents', 'when to use this skill',
+    ]);
+    const collect = (level) => {
+      const out = [];
+      const re = level === 2 ? /^##\s+(?!#)(.+)$/ : /^###\s+(?!#)(.+)$/;
+      for (const line of lines) {
+        const m = re.exec(line);
+        if (!m) continue;
+        const label = truncateLabel(plainText(m[1]).replace(/^[^\w(]+/, '').trim());
+        if (!label || scaffolding.has(label.toLowerCase().replace(/\s*\(.*$/, '').trim())) continue;
+        if (out.some((s) => s.label === label)) continue;
+        out.push({ num: '', label, does: '', out: null, tag: null });
+      }
+      return out;
+    };
+    let sections = collect(2);
+    if (sections.length < 5) {
+      for (const s of collect(3)) {
+        if (!sections.some((x) => x.label === s.label)) sections.push(s);
+      }
+    }
+    if (sections.length < 3) return null;
+    return {
+      tier: 'sections',
+      lanes: [{ id: 'map', label: 'What it covers', nodes: sections.slice(0, 14) }],
+    };
+  }
+
+  const lanes = [];
+  if (pre.length) lanes.push({ id: 'pre', label: 'Pre-flight', nodes: pre.slice(0, 8) });
+  lanes.push({ id: 'core', label: tier === 'table' ? 'Phases' : 'Steps', nodes: core.slice(0, 16) });
+  if (emit.length) lanes.push({ id: 'emit', label: 'Optional tails', nodes: emit.slice(0, 6) });
+
+  return { tier, lanes };
+}
+
 /**
  * Extract skill metadata from SKILL.md
  */
@@ -106,6 +319,9 @@ function extractSkillMetadata(skillName, skillPath) {
     agent: frontmatter.agent || null,
     complexity: frontmatter.complexity || 'low',
     structure: structure,
+    // Derived from the FULL body on purpose: `content` below is truncated at
+    // 3000 chars, which lands short of most phase tables.
+    flow: extractSkillFlow(body),
     content: truncatedBody,
     contentTruncated: bodyTruncated
   };
@@ -418,6 +634,27 @@ function generateSplitModules(data) {
     '  relatedAgents: string[];',
     '}',
     '',
+    '/** One step in a derived skill flow. `out` is only known for table-tier flows. */',
+    'export interface SkillFlowNode {',
+    '  num: string;',
+    '  label: string;',
+    '  does: string;',
+    '  out: string | null;',
+    '  tag: "optional" | null;',
+    '}',
+    '',
+    'export interface SkillFlowLane {',
+    '  id: "pre" | "core" | "emit" | "map";',
+    '  label: string;',
+    '  nodes: SkillFlowNode[];',
+    '}',
+    '',
+    '/** Derived from SKILL.md. See extractSkillFlow in generate-docs-data.js. */',
+    'export interface SkillFlow {',
+    '  tier: "table" | "headings" | "sections";',
+    '  lanes: SkillFlowLane[];',
+    '}',
+    '',
     '/** Skill metadata without content fields — used by skill-browser */  ',
     'export type SkillMeta = Omit<SkillDetail, "content" | "contentTruncated">;',
     '',
@@ -551,7 +788,7 @@ function generateSplitModules(data) {
   // 5. skills-data.ts — SKILLS (metadata only, no content/contentTruncated)
   const skillsMeta = {};
   for (const [key, skill] of Object.entries(skillsDetailed)) {
-    const { content, contentTruncated, ...meta } = skill;
+    const { content, contentTruncated, flow, ...meta } = skill;
     skillsMeta[key] = meta;
   }
   const skillsContent = [
@@ -579,6 +816,36 @@ function generateSplitModules(data) {
     '',
   ].join('\n');
   fs.writeFileSync(path.join(TS_OUTPUT_DIR, 'skill-content-data.ts'), skillContentContent);
+
+  // 6b. skill-flows-data.ts: SKILL_FLOWS (derived pipeline per skill, #flow-viz)
+  const skillFlows = {};
+  for (const [key, skill] of Object.entries(skillsDetailed)) {
+    if (skill.flow) skillFlows[key] = skill.flow;
+  }
+  const flowTierCounts = Object.values(skillFlows).reduce((acc, f) => {
+    acc[f.tier] = (acc[f.tier] || 0) + 1;
+    return acc;
+  }, {});
+  const skillFlowsContent = [
+    '// AUTO-GENERATED by scripts/generate-docs-data.js',
+    '// DO NOT EDIT MANUALLY — your changes will be overwritten.',
+    '//',
+    '// Flow graphs derived from each SKILL.md. Tiers:',
+    '//   table    : parsed from a | Phase | Activities | Output | table',
+    '//   headings : parsed from ## STEP n: / ## Phase n: headings',
+    '//   sections : no pipeline; a capability map of ## sections',
+    '',
+    'import type { SkillFlow } from "./types";',
+    '',
+    `export const SKILL_FLOWS: Record<string, SkillFlow> = ${JSON.stringify(skillFlows, null, 2)};`,
+    '',
+  ].join('\n');
+  fs.writeFileSync(path.join(TS_OUTPUT_DIR, 'skill-flows-data.ts'), skillFlowsContent);
+  console.log(
+    `${GREEN}    skill-flows-data.ts: ${Object.keys(skillFlows).length} flows ` +
+    `(table ${flowTierCounts.table || 0}, headings ${flowTierCounts.headings || 0}, ` +
+    `sections ${flowTierCounts.sections || 0}, none ${Object.keys(skillsDetailed).length - Object.keys(skillFlows).length})${NC}`,
+  );
 
   // 7. skill-graph-data.ts — Dependency graph nodes and edges (#1084)
   const categoryMap = {

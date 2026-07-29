@@ -382,6 +382,19 @@ jobs:
         shell: bash
         run: bash scripts/stamp-counts.sh --check
 
+      # Counts and the CC floor are covered above; this covers command NAMES.
+      # A skill surfaces as /ork:<name> only when user-invocable: true, so a
+      # frontmatter flip silently deletes a command the README still advertises
+      # (#3183: /ork:configure survived ~4 months after 7bcab430a).
+      #
+      # Lives here, not in docs.yml, because docs.yml is path-filtered to
+      # src/skills, src/agents, hooks.json and docs/site. README.md is not in
+      # that filter, so a README-only edit would never have run this gate. This
+      # job runs on every PR, and already validates README-stamped counts.
+      - name: Check README command references resolve
+        shell: bash
+        run: node scripts/check-readme-commands.mjs
+
       # NOTE: there is deliberately no "What's New freshness" gate here.
       # An earlier version ran `stamp-whats-new.mjs --check`, but the only thing
       # that changes CHANGELOG is release-please (whose branches were exempt), so

@@ -101,7 +101,18 @@ if [[ "$USE_CHANGED" == "true" ]]; then
     echo -e "${CYAN}Changed skills: ${CHANGED_SKILLS[*]}${NC}"
     echo ""
 
-    # Run eval for each changed skill
+    # Run eval for each changed skill.
+    #
+    # #3032 taught the single-skill path to exit 2 for "could not measure" so an
+    # infrastructure outage never reads as a skill regression. This fan-out is
+    # its sibling and used to flatten every non-zero to 1, including that 2 —
+    # so a run where every generation died came back as 1, the workflow's
+    # `rc -eq 2` INCONCLUSIVE guard never matched, and the check went red on an
+    # outage. `--changed` is the path CI actually runs, so that flattening
+    # reintroduced the exact false signal exit 2 exists to prevent.
+    #
+    # Precedence matches the single-skill aggregation below: a real failure in
+    # any skill (1) outranks an outage in another (2).
     overall_exit=0
     for skill_name in "${CHANGED_SKILLS[@]}"; do
         eval_yaml="$EVALS_DIR/skills/${skill_name}.eval.yaml"
@@ -110,7 +121,16 @@ if [[ "$USE_CHANGED" == "true" ]]; then
             continue
         fi
         echo -e "${BLUE}>>> Evaluating changed skill: $skill_name${NC}"
-        if ! bash "$0" "$skill_name" "${PASSTHROUGH_ARGS[@]}"; then
+        skill_exit=0
+        bash "$0" "$skill_name" "${PASSTHROUGH_ARGS[@]}" || skill_exit=$?
+        if [[ $skill_exit -eq 2 ]]; then
+            # Only upgrade 0 -> 2. Never downgrade a real failure to an outage.
+            # Spelled as a full `if` rather than `[[ ]] && ...` so it stays
+            # correct if this script ever adopts `set -e`.
+            if [[ $overall_exit -eq 0 ]]; then
+                overall_exit=2
+            fi
+        elif [[ $skill_exit -ne 0 ]]; then
             overall_exit=1
         fi
     done

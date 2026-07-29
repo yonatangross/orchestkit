@@ -8,8 +8,10 @@
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.220-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
-[![Community](https://img.shields.io/badge/Community-WhatsApp-25D366?style=for-the-badge&logo=whatsapp)](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk)
+[![Community](https://img.shields.io/badge/Community-WhatsApp-25D366?style=for-the-badge&logo=whatsapp)](https://yonyon.ai/go/community)
 [![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-1A1A2E?style=for-the-badge&logo=bookstack&logoColor=4F9CF9)](https://deepwiki.com/yonatangross/orchestkit)
+
+[![MCP Toplist](https://mcptoplist.com/badge/io.github.yonatangross%2Forchestkit.svg)](https://mcptoplist.com/server/io.github.yonatangross%2Forchestkit)
 
 </div>
 
@@ -17,7 +19,7 @@
 
 <p align="center">
   <a href="https://orchestkit.yonyon.ai/"><strong>Explore the Docs →</strong></a> ·
-  <a href="https://chat.whatsapp.com/Krraz7LhB951K7nQfC08B2"><strong>OrchestKit Users Group →</strong></a><br>
+  <a href="https://yonyon.ai/go/orchestkit"><strong>OrchestKit Community →</strong></a><br>
   <sub>Skill browser, demo gallery, setup wizard</sub>
 </p>
 
@@ -31,7 +33,6 @@
 - [Key Commands](#key-commands)
 - [Configuration](#configuration)
 - [Install](#install)
-- [Release Channels](#release-channels)
 - [FAQ](#faq)
 - [Development](#development)
 - [What's New](#whats-new)
@@ -89,6 +90,7 @@ All available in a single `/plugin install ork`. Skills load on-demand. Hooks wo
 ## Key Commands
 
 ```bash
+/ork:auto         # Front door: describe a goal, it routes to the right skill
 /ork:setup        # Personalized onboarding wizard
 /ork:implement    # Full-stack implementation with parallel agents
 /ork:expect       # Diff-aware AI browser testing
@@ -104,9 +106,7 @@ All available in a single `/plugin install ork`. Skills load on-demand. Hooks wo
 
 ## Configuration
 
-```bash
-/ork:configure
-```
+`/ork:setup` detects your stack, recommends MCP servers, and writes the configuration for you.
 
 ### Recommended MCP Servers
 
@@ -114,10 +114,10 @@ All available in a single `/plugin install ork`. Skills load on-demand. Hooks wo
 |--------|---------|-----------|
 | Context7 | Up-to-date library docs | Recommended |
 | Memory | Knowledge graph persistence | Recommended |
-| Sequential Thinking | Structured reasoning for subagents | Optional |
+| Sequential Thinking | Structured reasoning for subagents | Recommended |
 | Tavily | Web search and extraction | Optional |
 
-The setup wizard (`/ork:setup`) will recommend MCPs based on your stack.
+Set `"alwaysLoad": true` on the first three in your `.mcp.json`. It skips the per-skill tool probe and shaves ~150ms off cold starts.
 
 ### Customizing skills
 
@@ -138,30 +138,6 @@ Not on Claude Code? Pull the skills into any agent (Cursor, Codex, OpenCode, …
 ```bash
 npx skills add yonatangross/orchestkit
 ```
-
----
-
-## Release Channels
-
-| Channel | Stability | Install |
-|---------|-----------|---------|
-| **Stable** | Production-ready | `/plugin install ork` |
-| **Beta** | May have rough edges | See below |
-| **Alpha** | Experimental, may break | See below |
-
-To install beta or alpha:
-
-```bash
-# Beta channel
-/plugin marketplace add yonatangross/orchestkit --ref beta --name orchestkit-beta
-/plugin install ork@orchestkit-beta
-
-# Alpha channel
-/plugin marketplace add yonatangross/orchestkit --ref alpha --name orchestkit-alpha
-/plugin install ork@orchestkit-alpha
-```
-
-Run `/ork:doctor` to check which channel you're on. [Full docs](https://orchestkit.yonyon.ai/docs/getting-started/release-channels).
 
 ---
 
@@ -211,6 +187,21 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.2.1](https://github.com/yonatangross/orchestkit/compare/v9.2.0...v9.2.1)** · 2026-07-28
+
+- **evals:** propagate INCONCLUSIVE through the --changed fan-out (#3188)
+- **quickviz:** ship visual-style.md inside the skill bundle (#3185)
+- bump the github-actions group across 1 directory with 2 updates (#3174)
+
+**[v9.2.0](https://github.com/yonatangross/orchestkit/compare/v9.1.1...v9.2.0)** · 2026-07-28
+
+- **docs:** derive a flow graph for every skill reference page (#3184)
+- **hooks:** skip ASK tiers in bypassPermissions mode (#3177)
+- **visual-style:** stop the emoji vocabulary rejecting the ASCII palette (#3169)
+- **deps:** bump the npm-minor-patch group across 1 directory with 4 updates (#3179)
+- **deps:** bump the remotion group across 1 directory with 21 updates (#3175)
+- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v9.1.1](https://github.com/yonatangross/orchestkit/compare/v9.1.0...v9.1.1)** · 2026-07-26
 
 - sync README and changelog data to v9.1.0 (#3167)
@@ -250,19 +241,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** redirect pipe-to-interpreter deny instead of dead-ending (#3121)
 - …and 8 more (see [CHANGELOG.md](CHANGELOG.md))
 
-**[v8.84.10](https://github.com/yonatangross/orchestkit/compare/v8.84.9...v8.84.10)** · 2026-07-23
-
-- **ci:** drop the What's New freshness gate blocking the PR queue (#3118)
-- **deps:** bump the npm-minor-patch group across 1 directory with 4 updates (#3111)
-- **deps:** bump the remotion group across 1 directory with 21 updates (#3110)
-- bump the github-actions group across 1 directory with 6 updates (#3112)
-
-**[v8.84.9](https://github.com/yonatangross/orchestkit/compare/v8.84.8...v8.84.9)** · 2026-07-23
-
-- **ci:** scope What's New --check to PRs, refresh for 8.84.8 (#3113)
-- **review:** allow the release bot to trigger a review (#3114)
-- **review:** skip auto-label on Dependabot PRs (no secret access) (#3116)
-
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
 
@@ -270,20 +248,22 @@ _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 
 ## Community
 
-Join the **Code with Yonatan** community for AI dev tips, OrchestKit support, and connecting with other builders:
+Join the **Building with AI** community for AI dev tips, OrchestKit support, and connecting with other builders:
 
-| Group | Link |
-|-------|------|
-| **Community** (all channels) | [Join on WhatsApp](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk) |
-| **AI Dev (EN)** | [English Group](https://chat.whatsapp.com/CFAQoyGl2rp4P3JHcwC9Uu) |
-| <strong dir="rtl">יש לך AI?</strong> | [Hebrew Group](https://chat.whatsapp.com/BC4QoLEUNR76ygZwyrgZZT) |
-| **OrchestKit Users** | [Support & Showcase](https://chat.whatsapp.com/Krraz7LhB951K7nQfC08B2) |
+| Room | Who it's for | Link |
+|------|--------------|------|
+| **Building with AI** | The umbrella community. One join, every room below. | [Join](https://yonyon.ai/go/community) |
+| **Builders** | For people already building | [Join](https://yonyon.ai/go/builders) |
+| **OrchestKit** | For OrchestKit users | [Join](https://yonyon.ai/go/orchestkit) |
+| **AI for Business** | For people leading AI adoption | [Join](https://yonyon.ai/go/business) |
+
+Names and audiences match what [yonyon.ai](https://yonyon.ai/en) renders, so the two surfaces cannot drift. Every link resolves through `yonyon.ai/go/*`, so a rotated invite never needs a README change and no raw invite is published here.
 
 ---
 
 <div align="center">
 
-**[Docs](https://orchestkit.yonyon.ai/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)** · **[Community](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk)**
+**[Docs](https://orchestkit.yonyon.ai/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)** · **[Community](https://yonyon.ai/go/community)**
 
 MIT License · [@yonatangross](https://github.com/yonatangross)
 

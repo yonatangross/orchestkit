@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PR Playground gate — decide from the diff, not the branch name</title>
+<style>
+  :root {
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(220 14% 64%);
+    --pg-faint: hsl(220 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-red: hsl(2 76% 62%);
+    --pg-teal: hsl(172 62% 52%);
+    --r-sm: 9px; --r-md: 16px; --r-lg: 24px;
+    --shadow: 0 20px 60px -22px hsl(232 40% 3% / .7), 0 4px 12px -6px hsl(232 40% 3% / .5);
+    --ease: cubic-bezier(.2,.8,.25,1);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(900px 600px at 12% -5%, hsl(248 84% 68% / .16), transparent 60%),
+      radial-gradient(800px 520px at 88% 8%,  hsl(262 78% 62% / .13), transparent 62%),
+      var(--pg-bg);
+    background-attachment: fixed;
+    color: var(--pg-ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .wrap { max-width: 1080px; margin-inline: auto; padding: 44px 24px 96px; }
+  .eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--pg-faint); font-weight: 600; margin-block-end: 10px; }
+  h1 { font-size: clamp(26px,4vw,38px); line-height: 1.14; letter-spacing: -.3px; margin: 0 0 10px; font-weight: 700; }
+  h1 em { font-style: normal; color: var(--pg-accent); }
+  .lede { color: var(--pg-muted); max-width: 70ch; margin: 0; }
+  section { margin-block-start: 32px; }
+  h2 { font-size: 18px; letter-spacing: -.25px; margin: 0 0 5px; }
+  .sub { color: var(--pg-muted); font-size: 13.5px; margin: 0 0 15px; max-width: 76ch; }
+  .card { background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--r-lg);
+          padding: 18px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+          box-shadow: var(--shadow), inset 0 1px 0 hsl(0 0% 100% / .10); }
+
+  .seg { display: inline-flex; gap: 4px; background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+         border-radius: var(--r-md); padding: 4px; margin-block-end: 15px; }
+  .seg button { appearance: none; border: 0; background: transparent; color: var(--pg-muted); font: inherit;
+                font-size: 13px; font-weight: 600; cursor: pointer; padding: 7px 15px; border-radius: 12px;
+                transition: all 100ms var(--ease); }
+  .seg button[aria-pressed="true"] { background: var(--pg-accent); color: hsl(232 44% 8%); }
+  .seg button:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+
+  .lane { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; margin-block: 12px; }
+  .node { background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--r-md);
+          padding: 10px 12px; min-width: 152px; max-width: 215px; }
+  .node .t { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--pg-faint); font-weight: 700; }
+  .node .v { font-size: 13px; font-weight: 600; margin-block-start: 3px; }
+  .node .n { font-size: 11px; color: var(--pg-muted); margin-block-start: 4px; }
+  .arrow { align-self: center; color: var(--pg-accent); opacity: .55; }
+  .bad  { border-color: hsl(2 76% 62% / .5);   background: hsl(2 60% 40% / .13); }
+  .good { border-color: hsl(172 62% 52% / .45); background: hsl(172 50% 34% / .13); }
+
+  pre { background: hsl(232 24% 10%); border: 1px solid hsl(0 0% 100% / .07); border-radius: var(--r-md);
+        padding: 14px; overflow-x: auto; font-size: 12.5px; margin: 0; }
+  pre .del { color: var(--pg-red); }
+  pre .ins { color: var(--pg-teal); }
+  pre .cmt { color: var(--pg-faint); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 13px; margin-block-start: 10px; }
+  th, td { text-align: start; padding: 7px 10px; border-block-end: 1px solid hsl(0 0% 100% / .08); }
+  th { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--pg-faint); }
+  .req  { color: var(--pg-warm); font-weight: 700; }
+  .skip { color: var(--pg-teal); font-weight: 700; }
+
+  .bugs { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); }
+  .bug { background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--r-md); padding: 15px; }
+  .bug h3 { font-size: 13.5px; margin: 0 0 7px; }
+  .bug p { font-size: 12.5px; color: var(--pg-muted); margin: 0 0 8px; }
+  .tag { display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+         padding: 2px 7px; border-radius: 999px; margin-block-end: 8px; }
+  .tag.open  { background: hsl(2 76% 62% / .18); color: var(--pg-red); }
+  .tag.block { background: hsl(38 95% 60% / .18); color: var(--pg-warm); }
+
+  .promptbar { margin-block-start: 30px; display: flex; gap: 12px; align-items: center;
+               background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+               border-radius: var(--r-md); padding: 14px 16px; }
+  .promptbar code { flex: 1; font-size: 12.5px; color: var(--pg-muted); }
+  .promptbar button { appearance: none; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+                      background: var(--pg-accent); border: 0; color: hsl(232 44% 8%);
+                      border-radius: 12px; padding: 10px 18px; white-space: nowrap; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">OrchestKit · .github/workflows/ci.yml</div>
+    <h1>A required gate asked a first-time contributor for <em>an interactive playground</em>, to add a badge.</h1>
+    <p class="lede">
+      The PR Playground check skips bots and branches named <code class="mono">dependabot/</code>,
+      <code class="mono">ci/</code> and friends. An outside contributor has no such prefix, so a one-line
+      <code class="mono">README.md</code> diff was told to ship a hand-authored HTML playground. Being a
+      required check, there was no way through.
+    </p>
+  </header>
+
+  <section>
+    <div class="seg" role="group" aria-label="View">
+      <button id="b-before" aria-pressed="true">Before</button>
+      <button id="b-after" aria-pressed="false">After</button>
+    </div>
+    <div class="card">
+      <h2 id="ph"></h2>
+      <p class="sub" id="ps"></p>
+      <div class="lane" id="lane"></div>
+      <pre id="snip"></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>What counts as inert</h2>
+    <p class="sub">
+      Fail-closed on purpose: a path matching nothing here still requires a playground, so a new
+      user-facing directory is never silently exempted just because this list predates it.
+    </p>
+    <table>
+      <thead><tr><th>Changed files</th><th>Decision</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">README.md</td><td class="skip">skip</td><td>nothing user-facing to demonstrate</td></tr>
+        <tr><td class="mono">.github/workflows/ci.yml</td><td class="skip">skip</td><td>config, matching the rule's own stated intent</td></tr>
+        <tr><td class="mono">vercel.json · *.toml · LICENSE</td><td class="skip">skip</td><td>config and legal</td></tr>
+        <tr><td class="mono">src/skills/** · src/hooks/** · src/agents/**</td><td class="req">required</td><td>user-facing behaviour</td></tr>
+        <tr><td class="mono">docs/site/**</td><td class="req">required</td><td>the website is a product surface</td></tr>
+        <tr><td class="mono">README.md + src/skills/**</td><td class="req">required</td><td>one non-inert file decides the whole diff</td></tr>
+        <tr><td class="mono">some/brand/new/surface.ts</td><td class="req">required</td><td>unknown path, fail-closed</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Two bugs found while writing the fix</h2>
+    <p class="sub">Both were caught by tooling rather than review, and both were in code about to ship.</p>
+    <div class="bugs">
+      <div class="bug">
+        <span class="tag open">fail-open race</span>
+        <h3>grep -q in a pipe under pipefail</h3>
+        <p>
+          The first draft piped into <code class="mono">grep -qvE</code>.
+          <code class="mono">grep -q</code> exits on the first match, the producer takes SIGPIPE (141),
+          <code class="mono">pipefail</code> propagates it, and the enclosing
+          <code class="mono">if</code> flips non-deterministically under load.
+        </p>
+        <p>
+          In a required gate that races <strong>fail-open</strong>: a user-facing PR would sometimes be
+          waved through with no playground. Fixed with a here-string, which has no producer process to
+          signal. Caught by the repo's own silent-failure hook.
+        </p>
+      </div>
+      <div class="bug">
+        <span class="tag block">would have re-blocked</span>
+        <h3>Anchor applied to the whole alternation</h3>
+        <p>
+          <code class="mono">^(…|\.github/|…)$</code> anchors the trailing <code class="mono">$</code>
+          against every branch, so <code class="mono">\.github/</code> only matched a file literally
+          named <code class="mono">.github/</code>.
+        </p>
+        <p>
+          Every real workflow path fell through to "playground required" — the exact class of bug the fix
+          exists to remove. Caught by the new test, not by reading the regex.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="promptbar">
+    <code class="mono" id="pt">Make the PR Playground gate decide from the changed files instead of the branch name, so docs-only contributions from outside contributors are exempt, keep it fail-closed for unknown paths, and collapse the duplicated skip logic into one step.</code>
+    <button id="cp">Copy prompt</button>
+  </div>
+  <p class="sr" id="live" aria-live="polite"></p>
+</div>
+
+<script>
+const VIEW = {
+  before: {
+    h: "Deciding by branch name",
+    s: "The skip list is keyed on a prefix only this repo's own branches carry.",
+    nodes: [
+      { t: "PR", v: "README.md, 1 line", n: "external contributor", cls: "good" },
+      { t: "author check", v: "not a bot", n: "no skip", cls: "bad" },
+      { t: "branch check", v: "mcp-toplist-badge", n: "no known prefix, no skip", cls: "bad" },
+      { t: "gate", v: "playground REQUIRED", n: "required check, hard block", cls: "bad" }
+    ],
+    code:
+`<span class="cmt"># .github/workflows/ci.yml</span>
+<span class="cmt"># Skip for automated branches + ci/ config-only branches (vercel.json,</span>
+<span class="cmt"># .github/, *.toml have nothing user-facing to playground)</span>
+<span class="del">if [[ "$HEAD_REF" =~ ^(dependabot/|release-please|renovate/|ci/) ]]; then</span>
+<span class="del">  exit 0</span>
+<span class="del">fi</span>
+
+<span class="cmt"># ...and the same block copy-pasted into the body-check step below,</span>
+<span class="cmt"># which is how the two drift apart.</span>`
+  },
+  after: {
+    h: "Deciding from the diff",
+    s: "One decision step, consumed by both checks. The comment's own intent, enforced by path.",
+    nodes: [
+      { t: "PR", v: "README.md, 1 line", n: "external contributor", cls: "good" },
+      { t: "author check", v: "not a bot", n: "continue", cls: "good" },
+      { t: "diff check", v: "all files inert", n: "README.md matches INERT", cls: "good" },
+      { t: "gate", v: "skipped", n: "nothing to demonstrate", cls: "good" }
+    ],
+    code:
+`<span class="cmt"># One decision, consumed by both steps below.</span>
+- name: Decide whether a playground is required
+  id: gate
+  run: |
+    <span class="ins">INERT='^(README\\.md|…|\\.github/.*|vercel\\.json|[^/]*\\.toml)$'</span>
+    <span class="ins">FILES=$(gh pr diff "$PR_NUMBER" --name-only)</span>
+    <span class="cmt"># here-string, not a pipe: grep -q would SIGPIPE the</span>
+    <span class="cmt"># producer and race fail-OPEN under pipefail</span>
+    <span class="ins">if ! grep -qvE "$INERT" &lt;&lt;&lt; "$FILES"; then</span>
+    <span class="ins">  skip "every changed file is docs or config only"</span>
+    <span class="ins">fi</span>
+
+- name: Check playground exists
+  <span class="ins">if: steps.gate.outputs.required == 'true'</span>`
+  }
+};
+
+const $ = (id) => document.getElementById(id);
+
+function render(k) {
+  const v = VIEW[k];
+  $("ph").textContent = v.h;
+  $("ps").textContent = v.s;
+  const lane = $("lane");
+  lane.innerHTML = "";
+  v.nodes.forEach((s, i) => {
+    const d = document.createElement("div");
+    d.className = "node " + s.cls;
+    d.innerHTML = '<div class="t"></div><div class="v"></div><div class="n"></div>';
+    d.querySelector(".t").textContent = s.t;
+    d.querySelector(".v").textContent = s.v;
+    d.querySelector(".n").textContent = s.n;
+    lane.appendChild(d);
+    if (i < v.nodes.length - 1) {
+      const a = document.createElement("span");
+      a.className = "arrow"; a.setAttribute("aria-hidden", "true"); a.textContent = "→";
+      lane.appendChild(a);
+    }
+  });
+  $("snip").innerHTML = v.code;
+  $("b-before").setAttribute("aria-pressed", String(k === "before"));
+  $("b-after").setAttribute("aria-pressed", String(k === "after"));
+}
+
+$("b-before").addEventListener("click", () => render("before"));
+$("b-after").addEventListener("click", () => render("after"));
+$("cp").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText($("pt").textContent);
+    $("cp").textContent = "✓ Copied";
+    setTimeout(() => { $("cp").textContent = "Copy prompt"; }, 1500);
+  } catch (_) { $("live").textContent = "Copy failed, select the text manually."; }
+});
+
+render("before");
+</script>
+</body>
+</html>

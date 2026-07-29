@@ -536,7 +536,34 @@ echo ""
 echo -e "${BLUE}[7.5/10] Checking vendor upstream references...${NC}"
 
 if [[ -f "$SCRIPT_DIR/sync-vercel-skills.sh" ]]; then
-    if bash "$SCRIPT_DIR/sync-vercel-skills.sh" --check 2>/dev/null; then
+    # HARD TIME BOUND. This check is advisory (both outcome branches below are
+    # non-fatal), but unbounded it could wedge the WHOLE build indefinitely:
+    # observed repeatedly in worktrees, including one build left at 6h28m
+    # elapsed with 0.22s of CPU, asleep in this step with no child processes
+    # and no network activity. `--check` only stats 37 local files, so it has
+    # no legitimate reason to exceed a second; longer means the hang, not work.
+    #
+    # macOS ships no `timeout`, hence the portable background+poll form.
+    # Killing the child is safe: the original call sat inside an `if` condition
+    # precisely so a non-zero exit takes the else branch and the build proceeds
+    # through steps 8-10 (`set -e` does not fire inside an `if` condition).
+    _sync_deadline=30
+    bash "$SCRIPT_DIR/sync-vercel-skills.sh" --check >/dev/null 2>&1 &
+    _sync_pid=$!
+    _sync_waited=0
+    # silent: infrastructure-resilience `kill -0` is a liveness probe; its stderr on a reaped pid is not an error
+    while kill -0 "$_sync_pid" 2>/dev/null && [[ $_sync_waited -lt $_sync_deadline ]]; do
+        sleep 1
+        _sync_waited=$((_sync_waited + 1))
+    done
+    # silent: infrastructure-resilience same liveness probe, deciding timed-out vs finished
+    if kill -0 "$_sync_pid" 2>/dev/null; then
+        # silent: infrastructure-resilience killing + reaping a hung advisory child; non-zero here is the expected path
+        kill -KILL "$_sync_pid" 2>/dev/null || true
+        # silent: infrastructure-resilience `wait` on a SIGKILLed child always returns non-zero
+        wait "$_sync_pid" 2>/dev/null || true
+        echo -e "${YELLOW}  Vendor refs: check exceeded ${_sync_deadline}s and was killed (advisory, build continues)${NC}"
+    elif wait "$_sync_pid"; then
         echo -e "${GREEN}  Vendor refs: all present${NC}"
     else
         echo -e "${RED}  Vendor refs: stale or missing — run: bash scripts/sync-vercel-skills.sh${NC}"

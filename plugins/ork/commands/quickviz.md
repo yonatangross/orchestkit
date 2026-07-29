@@ -40,7 +40,7 @@ Given a topic (or the conversation, when none is given):
    | over time | sparkline or milestone track |
 
 3. **Emit inline in the reply.** Never write a file unless the user asked for one. This is a chat answer, not an artifact.
-4. **Use the 12-emoji semantic set and box-drawing vocabulary** defined in `src/rules/visual-style.md`. Semantic, never decorative: an emoji must mean something (✅ pass, ❌ fail, ⚠️ risk, 🔴 blocked).
+4. **Use the 12-emoji semantic set and box-drawing vocabulary** defined in `rules/visual-style.md` (shipped with this skill). Semantic, never decorative: an emoji must mean something (✅ pass, ❌ fail, ⚠️ risk, 🔴 blocked).
 5. **Lead with the answer.** The visual comes first; prose after it only if it adds something the diagram cannot carry.
 6. **Stay honest.** If a number is unknown, print `?` rather than inventing one. A confident-looking chart built on guesses is worse than prose.
 

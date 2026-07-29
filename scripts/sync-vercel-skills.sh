@@ -106,12 +106,33 @@ while IFS= read -r entry; do
     continue
   fi
 
-  # Fetch upstream
-  content=$(curl -sS --fail "$raw_url" 2>/dev/null) || {
-    echo -e "${YELLOW}  SKIP${NC}: $hash_key (fetch failed: $raw_url)"
+  # Fetch upstream.
+  #
+  # --connect-timeout / --max-time are LOAD-BEARING, not hygiene. This loop
+  # fetches 37 URLs from raw.githubusercontent.com and runs inside
+  # `npm run build` at step [7.5/10]. Without a timeout a single stalled
+  # connection blocks the ENTIRE build indefinitely: observed repeatedly on
+  # 2026-07-28/29, including one build left at 6h28m elapsed with 0.22s of CPU,
+  # sleeping in this exact step. Killing it and re-running made the same build
+  # finish in 35s, which is the signature of a network stall, not slow work.
+  #
+  # The SKIP path below was already correct. It was simply unreachable, because
+  # curl never returned to trigger it. A bounded failure degrades one reference
+  # to SKIP; an unbounded one wedges every build for every contributor.
+  #
+  # curl's diagnostic is captured, not discarded, so a timeout is
+  # distinguishable from a 404 in the SKIP line.
+  curl_err_file="${TMPDIR:-/tmp}/.sync-vercel-curl-err.$$"
+  # silent: infrastructure-resilience upstream fetch is best-effort; curl's reason is surfaced in the SKIP line
+  content=$(curl -sS --fail --connect-timeout 5 --max-time 20 "$raw_url" 2>"$curl_err_file") || {
+    # silent: infrastructure-resilience missing err file just yields an empty reason, handled by the default below
+    curl_err=$(tr -d '\n' < "$curl_err_file" 2>/dev/null | cut -c1-80)
+    rm -f "$curl_err_file"
+    echo -e "${YELLOW}  SKIP${NC}: $hash_key (${curl_err:-fetch failed or timed out}) $raw_url"
     SKIPPED=$((SKIPPED + 1))
     continue
   }
+  rm -f "$curl_err_file"
 
   # Strip upstream frontmatter if present
   body="$content"

@@ -135,7 +135,7 @@ export function codeCommentGlyphWarn(
 
   return {
     continue: true,
-    systemMessage: `[visual-style] ⚠ Code comment in ${path} contains glyphs outside the 12-vocab: ${violations.join(' ')}. Per src/rules/visual-style.md the "code" surface forbids emoji. Advisory only — not a block.`,
+    systemMessage: `[visual-style] ⚠ Code comment in ${path} contains glyphs outside the 12-vocab: ${violations.join(' ')}. Per the ork:quickviz visual-style rules the "code" surface forbids emoji. Advisory only — not a block.`,
   };
 }
 
