@@ -41,7 +41,9 @@ type FumaResult = {
 };
 
 /** Rerank flat fumadocs results: group heading/text rows under their page,
- * reorder page blocks by doc-type weight + exact-title floor, re-flatten. */
+ * reorder page blocks by match count + doc-type tiebreak + exact-title floor,
+ * re-flatten. `matchCount` is the number of matched snippets inside the page,
+ * which is the strongest available proxy for "this page is about the query". */
 function rerankResults(results: FumaResult[], query: string): FumaResult[] {
 	const blocks: Array<{ url: string; title: string; rows: FumaResult[] }> = [];
 	for (const row of results) {
@@ -51,7 +53,12 @@ function rerankResults(results: FumaResult[], query: string): FumaResult[] {
 			blocks[blocks.length - 1].rows.push(row);
 		}
 	}
-	return rerankByRelevance(blocks, query).flatMap((b) => b.rows);
+	const scored = blocks.map((b) => ({
+		...b,
+		// Exclude the page row itself; only sub-rows are evidence of a match.
+		matchCount: b.rows.filter((r) => r.type !== "page").length,
+	}));
+	return rerankByRelevance(scored, query).flatMap((b) => b.rows);
 }
 
 // Cursor-based pagination: the cursor is an opaque token encoding the next
