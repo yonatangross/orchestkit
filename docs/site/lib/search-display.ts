@@ -93,6 +93,23 @@ export function toBlocks<T extends { type?: string }>(
 	return blocks;
 }
 
+/**
+ * Flatten blocks back into a row list, keeping at most `maxSnippets` sub-rows
+ * per page. `null` keeps every sub-row.
+ *
+ * Trimming happens AFTER ranking so the scorer still sees each page's full
+ * match count while the response carries only what the caller will display.
+ */
+export function flattenBlocks<T>(
+	blocks: readonly ResultBlock<T>[],
+	maxSnippets: number | null,
+): T[] {
+	return blocks.flatMap((b) => [
+		b.page,
+		...(maxSnippets === null ? b.children : b.children.slice(0, maxSnippets)),
+	]);
+}
+
 /** Build the grouped display list from relevance-ordered result blocks. */
 export function buildDisplayList<
 	T extends { id: string; url: string; type?: string },

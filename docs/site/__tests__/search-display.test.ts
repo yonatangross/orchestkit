@@ -14,6 +14,7 @@ import {
 	MAX_SNIPPETS_PER_PAGE,
 	TOP_RESULTS_LABEL,
 	buildDisplayList,
+	flattenBlocks,
 	toBlocks,
 } from "@/lib/search-display";
 import { rerankByRelevance } from "@/lib/search-relevance";
@@ -57,6 +58,37 @@ describe("toBlocks", () => {
 
 		expect(blocks).toHaveLength(2);
 		expect(blocks[0].page.id).toBe("x");
+	});
+});
+
+describe("flattenBlocks (response bounding)", () => {
+	// Without a cap the API returns every matched row. A one-character query
+	// like "m" is 2180 rows / 433 KB, re-fetched on every keystroke. The dialog
+	// renders at most 2 snippets per page, so it asks for 2 (85x smaller).
+	const blocks = toBlocks([...block("/a", "A", 8), ...block("/b", "B", 5)]);
+
+	it("keeps every sub-row when uncapped, preserving the old contract", () => {
+		expect(flattenBlocks(blocks, null)).toHaveLength(15);
+	});
+
+	it("caps sub-rows per page without dropping any page", () => {
+		const rows = flattenBlocks(blocks, 2);
+
+		expect(rows.filter((r) => r.type === "page")).toHaveLength(2);
+		expect(rows).toHaveLength(6);
+	});
+
+	it("keeps the page row even at maxSnippets=0", () => {
+		const rows = flattenBlocks(blocks, 0);
+
+		expect(rows).toHaveLength(2);
+		expect(rows.every((r) => r.type === "page")).toBe(true);
+	});
+
+	it("leaves a page with fewer snippets than the cap untouched", () => {
+		const rows = flattenBlocks(toBlocks(block("/a", "A", 1)), 5);
+
+		expect(rows).toHaveLength(2);
 	});
 });
 

@@ -25,7 +25,10 @@ import {
   SearchDialogOverlay,
   type SharedProps,
 } from "fumadocs-ui/components/dialog/search";
-import { buildDisplayList } from "@/lib/search-display";
+import {
+  MAX_SNIPPETS_PER_PAGE,
+  buildDisplayList,
+} from "@/lib/search-display";
 import { reportZeroResultQuery } from "@/lib/search-beacon";
 import { SearchZeroResults } from "@/components/search-zero-results";
 
@@ -42,7 +45,12 @@ export default function CustomSearchDialog(props: SharedProps) {
   const [tag, setTag] = useState<string | undefined>(undefined);
   const { search, setSearch, query } = useDocsSearch({
     type: "fetch",
-    api: "/api/search",
+    // Ask for only what this dialog can render. Without these bounds the API
+    // returns EVERY matched row: a one-character query like "m" is 2180 rows /
+    // 433 KB, re-fetched on each keystroke, then parsed and grouped client-side.
+    // maxSnippets matches MAX_SNIPPETS_PER_PAGE; limit covers the display cap
+    // (3 top + 6 groups x 4 = 27 pages, at most 3 rows each).
+    api: `/api/search?maxSnippets=${MAX_SNIPPETS_PER_PAGE}&limit=90`,
     tag,
   });
 
