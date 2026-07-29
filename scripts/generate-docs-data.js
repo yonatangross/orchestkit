@@ -174,6 +174,19 @@ function extractSkillFlow(body) {
     else headingNodes.push({ ...node, num });
   }
 
+  // Heading-derived lanes render with arrows, which asserts an execution
+  // sequence — so they must be ordered by the STEP NUMBER, not by where the
+  // heading happens to sit in the file. cover/SKILL.md declares Step -0.5
+  // before Step -1, so file order rendered "-0.5 → -1 → 0" and the arrows
+  // claimed an order the numbering contradicts.
+  //
+  // Only these two lanes are sorted. A table-derived core lane keeps its row
+  // order, because there the author's row sequence IS the declaration and its
+  // first column is not always numeric.
+  const byStepNumber = (a, b) => parseFloat(a.num.replace(/^STEP /, '')) - parseFloat(b.num.replace(/^STEP /, ''));
+  pre.sort(byStepNumber);
+  headingNodes.sort(byStepNumber);
+
   // --- core nodes: prefer the phase table, else the >= 1 headings
   const core = [];
   const emit = [];
