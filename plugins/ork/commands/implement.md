@@ -353,7 +353,7 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("${CLAUDE_SKIL
 ## Key Principles
 
 - **Verification gate (terminal, mandatory)** — before declaring ANY task done you MUST `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")` and satisfy EVERY check: every changed file verified, tests green, scope-creep scored. A partial pass is NOT done; "should work now" is not evidence.
-- **Agent status protocol** — all subagents report DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT per `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`
+- **Agent status protocol** — all subagents report DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT per `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`
 - **Tests are NOT optional** — each task includes its tests, matched to change type (see matrix above)
 - **Parallel when independent** — use `run_in_background: true`, launch all agents in ONE message
 - **Output limits (CC 2.1.77+):** the Opus tier defaults to 64k output tokens (128k upper bound). Generate complete artifacts in a single pass when possible; chunk across turns if output exceeds the limit

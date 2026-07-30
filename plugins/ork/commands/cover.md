@@ -419,7 +419,7 @@ Before claiming coverage is complete, apply: `Read("${CLAUDE_PLUGIN_ROOT}/skills
 
 ### Agent Status Protocol
 
-All test-generator agents report using: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`. BLOCKED if tests can't be written due to missing interfaces. NEEDS_CONTEXT if test expectations are unclear.
+All test-generator agents report using: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`. BLOCKED if tests can't be written due to missing interfaces. NEEDS_CONTEXT if test expectations are unclear.
 
 ## Quality Bar
 
