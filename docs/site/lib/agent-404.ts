@@ -70,6 +70,15 @@ export const SERVED_PREFIXES: readonly string[] = [
 	"/api",
 	"/_next",
 	"/thumbnails",
+	// PostHog same-origin proxy (next.config.mjs rewrites /ingest/* to
+	// eu.i.posthog.com). This MUST be a prefix, not a set of exact paths.
+	// Middleware runs BEFORE rewrites, and PostHog's ingestion endpoints are
+	// extensionless — /decide, /flags, /e/, /s/ — so the "has a file extension"
+	// escape hatch below does not cover them. Without this entry every captured
+	// event 404s here and never reaches PostHog, while /ingest/static/array.js
+	// still loads (it has an extension), leaving a site that looks instrumented
+	// and records nothing.
+	"/ingest",
 ];
 
 export function isServedPath(pathname: string): boolean {

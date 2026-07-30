@@ -32,6 +32,25 @@ describe("isServedPath", () => {
 		expect(isServedPath("/thumbnails/x.png")).toBe(true);
 	});
 
+	it("PostHog /ingest proxy paths are served, including extensionless ones", () => {
+		// Middleware runs BEFORE next.config rewrites, so anything it 404s never
+		// reaches PostHog. The failure this pins is silent and asymmetric: the
+		// asset path has an extension and survives on the static-asset escape
+		// hatch above, so the SDK loads and looks healthy while every actual
+		// capture 404s. Both halves must pass.
+		expect(isServedPath("/ingest/static/array.js")).toBe(true);
+		for (const p of [
+			"/ingest/decide",
+			"/ingest/flags",
+			"/ingest/e/",
+			"/ingest/s/",
+			"/ingest/i/v0/e/",
+		]) {
+			expect(isServedPath(p)).toBe(true);
+			expect(shouldJsonError("POST", p, "*/*")).toBe(false);
+		}
+	});
+
 	it("unknown .json paths are NOT served (agents get a JSON 404)", () => {
 		// /product_feed.json is an Agentic-Commerce probe; an HTML 404 there is the
 		// lone content-negotiation leak (#2316 class). Real .json is in SERVED_EXACT.

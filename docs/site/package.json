@@ -25,6 +25,7 @@
 		"fumadocs-ui": "^16.13.0",
 		"lucide-react": "^1.27.0",
 		"next": "^16.2.12",
+		"posthog-js": "^1.408.1",
 		"react": "^19.2.8",
 		"react-dom": "^19.2.8"
 	},
