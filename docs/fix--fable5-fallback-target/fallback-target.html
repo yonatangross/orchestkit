@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fable 5 fallback target · PR #3206</title>
+<style>
+:root{--bg:#0b0d10;--panel:#12161b;--panel2:#171c23;--line:#232a33;--tx:#e6edf3;
+--dim:#8b97a6;--faint:#5b6675;--ok:#3fb950;--bad:#f85149;--warn:#d29922;
+--info:#58a6ff;--acc:#bc8cff;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.55 -apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+header{padding:18px 24px 13px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#12161b,#0b0d10)}
+h1{margin:0 0 4px;font-size:19px}
+.sub{color:var(--dim);font-size:12.5px}
+main{padding:22px 24px 40px;max-width:1020px}
+h2{font-size:15px;margin:22px 0 6px}
+h3{font-size:12px;margin:20px 0 8px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;font-weight:600}
+p{margin:8px 0;color:#c9d4e0;max-width:78ch}
+.lede{color:var(--dim);font-size:13px;margin-bottom:16px;max-width:84ch}
+table{width:100%;border-collapse:collapse;font-size:12.6px;margin:8px 0}
+th{text-align:left;color:var(--faint);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;padding:7px 9px;border-bottom:1px solid var(--line)}
+td{padding:9px;border-bottom:1px solid #1b2027;vertical-align:top}
+tr:last-child td{border-bottom:0}
+code,.mono{font-family:var(--mono);font-size:12px}
+pre{background:#0d1117;border:1px solid var(--line);border-radius:7px;padding:13px;overflow-x:auto;font-family:var(--mono);font-size:11.5px;line-height:1.5;color:#c9d4e0;margin:8px 0}
+.note{border-left:3px solid var(--warn);padding:9px 14px;background:rgba(210,153,34,.06);color:#d8c9a3;font-size:12.7px;margin:12px 0;border-radius:0 6px 6px 0}
+.note.bad{border-left-color:var(--bad);background:rgba(248,81,73,.06);color:#e8b3b0}
+.note.ok{border-left-color:var(--ok);background:rgba(63,185,80,.06);color:#a9d5b0}
+.note.info{border-left-color:var(--info);background:rgba(88,166,255,.06);color:#a8c8ea}
+.del{color:#e8b3b0;background:rgba(248,81,73,.09);padding:1px 4px;border-radius:3px;text-decoration:line-through}
+.ins{color:#a9d5b0;background:rgba(63,185,80,.11);padding:1px 4px;border-radius:3px;font-weight:600}
+.tgl{background:var(--panel2);border:1px solid var(--line);color:var(--dim);padding:7px 14px;border-radius:16px;cursor:pointer;font-size:12.5px;font-weight:600;margin:4px 6px 4px 0}
+.tgl.on{background:rgba(188,140,255,.14);color:var(--acc);border-color:var(--acc)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:15px 17px;margin:11px 0}
+.para{background:#0d1117;border:1px solid var(--line);border-radius:7px;padding:14px;font-size:13px;line-height:1.7}
+ul{padding-left:19px;color:#c9d4e0;max-width:78ch}li{margin:5px 0;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1>The Fable 5 guide named the wrong fallback model</h1>
+  <div class="sub">PR #3206 · <code>fix/fable5-fallback-target</code> · two occurrences, one visible on the rendered page</div>
+</header>
+
+<main>
+
+<h2>The correction</h2>
+<p class="lede">The guide said Fable 5's safety classifier falls back to Opus 4.8. That was accurate when Fable 5 shipped on 2026-06-09, because 4.8 was the current Opus. Opus 5 has since shipped, so the sentence became wrong without anyone editing it.</p>
+
+<div>
+  <button class="tgl on" id="t-after">Show: AFTER</button>
+  <button class="tgl" id="t-before">Show: BEFORE</button>
+</div>
+
+<h3>line 8 · intro paragraph (NOT visible in the section a reader lands on)</h3>
+<div class="para" id="p8"></div>
+
+<h3>line 42 · "Fallback behavior to know about" (this is the one on screen)</h3>
+<div class="para" id="p42"></div>
+
+<div class="note bad"><b>Why fixing only the visible one would have been wrong.</b> The rendered page surfaces the line-42 section. A reader reporting the bug sees that sentence and nothing else. Patching just it leaves the intro paragraph asserting the same stale fact three screens higher up.</div>
+
+<h2>What was deliberately NOT changed</h2>
+<div class="card">
+<pre>It bills at $10 input / $50 output per MTok
+  — <span class="del">2x Opus 4.8 output pricing</span> —          &lt;-- LEFT ALONE
+  and in under 5% of sessions a safety classifier
+  transparently falls back to <span class="ins">Opus 5</span>       &lt;-- FIXED</pre>
+<p style="font-size:12.7px">Both phrases say "Opus 4.8" and sit in the same sentence, but they are <b>different claims</b>. One is the fallback target. The other is a relative-pricing baseline. Re-baselining the pricing comparison needs actual Opus 5 pricing, which a find-and-replace does not supply. Flagged as a follow-up rather than guessed.</p>
+</div>
+
+<h2>Layer check, because the sibling PR got this wrong</h2>
+<table>
+  <tr><th style="width:22%">question</th><th>answer</th></tr>
+  <tr><td>Is this file generated?</td><td><b>No.</b> <code>scripts/_build-docs-generate.py</code> has no <code>guides/</code> reference, and the file carries no generated banner.</td></tr>
+  <tr><td>So editing the MDX directly is…</td><td>Correct. It does not trip the docs-drift gate.</td></tr>
+  <tr><td>Contrast with #3204</td><td>That PR hand-edited the <b>generated</b> <code>plugins/</code> tree instead of <code>src/</code>. The build regenerated over it and CI reported <code>Build drift detected!</code>. Same shape of mistake, opposite answer.</td></tr>
+</table>
+
+<div class="note info"><b>The reusable check.</b> Before editing anything under a docs tree, ask whether a generator owns it. Reference pages under <code>docs/site/content/docs/reference/</code> are generator-owned; hand-written guides under <code>docs/site/content/docs/guides/</code> are not. Getting it backwards fails CI in a way that looks like infrastructure breakage rather than a layering mistake.</div>
+
+<h2>Why this class of rot is hard to catch</h2>
+<ul>
+  <li>Nothing was edited. The sentence was true when written and decayed in place as the model lineup moved.</li>
+  <li>No test asserts it. There is no gate comparing prose model names against a canonical list, and <code>shared/cc-support.json</code> carries no fable entry to compare against.</li>
+  <li>The page renders perfectly. Fact rot has no visual signal, which is why it took a human reading the rendered page to spot it.</li>
+</ul>
+
+</main>
+
+<script>
+const AFTER={
+ p8:'Claude Fable 5 (<code>claude-fable-5</code>, released 2026-06-09) is Anthropic\'s Mythos-class frontier model … It bills at <b>$10 input / $50 output per MTok</b> — 2x Opus 4.8 output pricing — and in under 5% of sessions a safety classifier transparently falls back to <span class="ins">Opus 5</span> (cyber/bio topics; you are informed when it happens).',
+ p42:'Fable 5\'s safety classifiers fall back to <span class="ins">Opus 5</span> in a small fraction of sessions, most likely on cyber/bio-adjacent content. For security-audit workloads this means a fable-pinned auditor could silently switch models mid-run — one reason OrchestKit keeps its own security agents on an explicit <code>opus</code> pin rather than fable.'
+};
+const BEFORE={
+ p8:'Claude Fable 5 (<code>claude-fable-5</code>, released 2026-06-09) is Anthropic\'s Mythos-class frontier model … It bills at <b>$10 input / $50 output per MTok</b> — 2x Opus 4.8 output pricing — and in under 5% of sessions a safety classifier transparently falls back to <span class="del">Opus 4.8</span> (cyber/bio topics; you are informed when it happens).',
+ p42:'Fable 5\'s safety classifiers fall back to <span class="del">Opus 4.8</span> in a small fraction of sessions, most likely on cyber/bio-adjacent content. For security-audit workloads this means a fable-pinned auditor could silently switch models mid-run — one reason OrchestKit keeps its own security agents on an explicit <code>opus</code> pin rather than fable.'
+};
+function show(which){
+  const S = which==='after' ? AFTER : BEFORE;
+  document.getElementById('p8').innerHTML=S.p8;
+  document.getElementById('p42').innerHTML=S.p42;
+  document.getElementById('t-after').classList.toggle('on',which==='after');
+  document.getElementById('t-before').classList.toggle('on',which==='before');
+}
+document.getElementById('t-after').onclick=()=>show('after');
+document.getElementById('t-before').onclick=()=>show('before');
+show('after');
+</script>
+</body>
+</html>
