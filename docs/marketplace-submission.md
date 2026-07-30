@@ -189,7 +189,12 @@ Moved to `plugins/ork/shared/status-protocol.md` and rewrote the reference in al
 
 ### High, operator decision required
 
-**H1. The public slug is `ork`, and marketplace names are immutable.** The
+**H1. RESOLVED 2026-07-30: operator chose `orchestkit`.** Submit the form with
+`name: "orchestkit"`, `displayName: "OrchestKit"`. Local `plugins/ork` stays
+unchanged (renaming would break existing self-hosted installs; the form field is
+independent of the local directory name). Original finding follows.
+
+The public slug would have defaulted to `ork`, and marketplace names are immutable. The
 official README: "The `name` field in a marketplace entry is an immutable slug.
 Once a plugin has been published, its `name` must not change." Users would type
 `/plugin install ork@claude-plugins-official`. Every comparable external entry
@@ -210,9 +215,14 @@ Not an exfiltration finding: the credential is read locally and passed to Tavily
 own service, which is same-service use and explicitly on the policy's do-not-flag
 list. But it is a credential-shaped string in a payload that gets cloned to every
 user's disk, it is dead config for anyone who is not the operator, and a reviewer
-grepping for `op read` will stop on it. Left in place because removing it would
-break the operator's daily dev loop. Decide before submitting: gitignore it,
-genericize to `${TAVILY_API_KEY}`, or leave and expect a question.
+grepping for `op read` will stop on it.
+
+**RESOLVED 2026-07-30, and the finding was narrower than stated:** no `.mcp.json`
+exists in the tracked tree (the operator's own is untracked/local). The only
+tracked occurrence of the literal private-vault path was ONE unit-test fixture,
+`src/hooks/src/__tests__/lifecycle/mcp-health-check.test.ts:56`, now genericized
+to the same `op://<vault>/` placeholder the docs use. `op://<vault>/` placeholders
+in docs/templates are intentional user-facing instructions and stay.
 
 ### Medium, no action taken
 
