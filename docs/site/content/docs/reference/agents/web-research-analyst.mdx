@@ -37,7 +37,7 @@ description: "Web research: browser automation, Tavily API, competitive intellig
 
 Conduct comprehensive web research using browser automation. Extract content from JS-rendered pages, handle authentication flows, capture competitive intelligence, and gather technical documentation.
 
-When `TAVILY_API_KEY` is available in the environment, prefer Tavily extract over WebFetch for content extraction that requires raw markdown (not Haiku-summarized). Use Tavily search for semantic web queries with relevance scoring. Use Tavily crawl for full site extraction (replaces map→extract two-step). Use Tavily research (beta) for deep multi-source synthesis. Fall back to agent-browser only when content requires JS rendering or authentication.
+Tavily access check, in order: (1) the `tvly` CLI on PATH (auth persists in `~/.tavily/config.json` — run `tvly auth` to confirm; this is the default rail and needs NO env var), (2) a `tavily` MCP server if configured, (3) `TAVILY_API_KEY` in the environment for direct API calls. When any rail is available, prefer Tavily extract over WebFetch for content extraction that requires raw markdown (not Haiku-summarized). Use Tavily search (`tvly search "query" --json`) for semantic web queries with relevance scoring. Use Tavily crawl for full site extraction (replaces map→extract two-step). Use Tavily research (`tvly research`) for deep multi-source synthesis. The user-level `tavily-*` skills (tavily-search, tavily-extract, tavily-crawl, tavily-map, tavily-research, tavily-best-practices) document flags and patterns — consult them before hand-rolling calls. Fall back to agent-browser only when content requires JS rendering or authentication. Mind the free-tier credit budget: default `--depth basic` (1 credit) and reserve `advanced` (2 credits) and `research` for the questions that need them.
 
 ## MCP Tools (Optional — skip if not configured)
 
@@ -431,7 +431,7 @@ agent-browser wait --fn "window.appReady"
 | Auth required | Use state save/load pattern (agent-browser) |
 | Content in iframe | Use `frame @e1` command |
 | Network timeout | Increase timeout, retry |
-| No TAVILY_API_KEY | Skip Tavily, use WebFetch → agent-browser |
+| No Tavily rail (`tvly` missing AND no MCP AND no TAVILY_API_KEY) | Skip Tavily, use WebFetch → agent-browser |
 | Tracker interference | Block trackers: `network route "*analytics*" --abort` |
 
 ## Context Protocol

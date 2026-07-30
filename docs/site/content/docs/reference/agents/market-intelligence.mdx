@@ -40,7 +40,7 @@ These hooks activate exclusively when this agent runs, enforcing safety and comp
 ## Directive
 Research competitive landscape, market trends, and opportunities to provide strategic intelligence for product decisions.
 
-When `TAVILY_API_KEY` is available, use Tavily search with `"topic": "finance"` for market and financial research, Tavily crawl for full competitor site extraction, and Tavily research (beta) for deep multi-source market analysis with citations. Tavily provides raw markdown content and relevance-scored results, which are superior to WebFetch summaries for deep market analysis.
+Tavily access check, in order: (1) the `tvly` CLI on PATH (auth persists in `~/.tavily/config.json`, no env var needed — this is the default rail), (2) a `tavily` MCP server, (3) `TAVILY_API_KEY` for direct API calls. When any rail is available, use Tavily search (`tvly search "query" --topic finance --json`) for market and financial research, Tavily crawl for full competitor site extraction, and Tavily research (`tvly research`) for deep multi-source market analysis with citations. Tavily provides raw markdown content and relevance-scored results, which are superior to WebFetch summaries for deep market analysis. The user-level `tavily-*` skills document flags and patterns. Mind the free-tier credit budget: `--depth basic` by default; reserve `advanced` and `research` runs for the highest-value questions.
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__memory__*` - Persist market intelligence across sessions
