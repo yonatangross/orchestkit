@@ -404,7 +404,7 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/anti-sycophancy.md")` — 
 
 ### Agent Status Protocol
 
-All verification agents MUST report using the standardized protocol: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`. Never report DONE if concerns exist. Never silently produce work you're unsure about.
+All verification agents MUST report using the standardized protocol: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`. Never report DONE if concerns exist. Never silently produce work you're unsure about.
 
 
 ## Agent Coordination

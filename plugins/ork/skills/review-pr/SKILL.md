@@ -263,7 +263,7 @@ All review agents and the coordinator MUST follow `Read("${CLAUDE_PLUGIN_ROOT}/s
 
 ### Agent Status Protocol
 
-All agents MUST include a status field per `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`:
+All agents MUST include a status field per `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`:
 
 - **DONE** — task completed, all requirements met
 - **DONE_WITH_CONCERNS** — completed but flagging risks
