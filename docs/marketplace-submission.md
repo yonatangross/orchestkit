@@ -247,6 +247,23 @@ and a schema. The validator tolerates it; noted for completeness.
 Claude Code ignores it. Affects only OrchestKit's self-hosted marketplace, not the
 submission. Left as-is.
 
+**M6. Two open Dependabot alerts, both outside the shipped plugin.**
+
+| Severity | Package | Manifest |
+|---|---|---|
+| high | `brace-expansion` (DoS via exponential expansion) | `orchestkit-demos/package-lock.json` |
+| medium | `@hono/node-server` (path traversal in `serve-static` on Windows) | `src/mcp-server/package-lock.json` |
+
+Verified not reachable from the plugin: `plugins/ork/mcp-server/server.mjs` bundles
+neither package (zero matches for `hono` or `serve-static`), and `plugin.json`
+declares no `mcpServers`, so that bundle is not loaded at all. Both alerts sit in a
+demos directory and an unbundled source tree.
+
+They still ship, because a `git-subdir` source clones the whole repo, and a
+reviewer landing on the repo's Security tab sees "1 high, 1 moderate" before
+reading any of the above. Clearing them before submitting is cheap and removes an
+avoidable first impression.
+
 ## 4. Pre-submission checklist
 
 Before opening the form:
@@ -258,6 +275,9 @@ Before opening the form:
 - [ ] Re-run `claude plugin validate ./plugins/ork` on `main` and keep the output.
 - [ ] Note the exact `main` commit SHA to hand to reviewers.
 - [ ] Confirm <https://orchestkit.yonyon.ai/> is up, since it is the homepage a reviewer visits.
+
+- [ ] Clear the two Dependabot alerts (M6). Neither reaches the plugin, but the
+      repo Security tab is the first thing a reviewer sees.
 
 Optional, improves odds:
 
