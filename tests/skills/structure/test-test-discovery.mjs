@@ -67,7 +67,7 @@ import { fileURLToPath } from 'node:url';
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 
 // Lower this as tests are wired into a runner. Never raise it.
-const ORPHAN_BASELINE = 57;
+const ORPHAN_BASELINE = 1;
 
 const TEST_EXT = new Set(['sh', 'mjs', 'js']);
 const isCandidate = (name) =>
