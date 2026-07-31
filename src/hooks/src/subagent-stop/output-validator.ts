@@ -19,20 +19,35 @@ export function outputValidator(input: HookInput, ctx: HookContext = NOOP_CTX): 
   const agentName = input.subagent_type || input.agent_type || 'unknown';
   const timestamp = new Date().toISOString();
 
-  // Read agent output
-  const output = input.agent_output || input.output || '';
+  // Read agent output. Distinguish "CC never sent the field" from "the agent
+  // returned an empty string" — conflating the two is what made this hook a
+  // kill-switch (#3200). CC delivers neither `agent_output` nor `output` at
+  // SubagentStop: 0 of 11,319 real rows carried either, recorded at
+  // subagent-stop/unified-dispatcher.ts (#3034). Because
+  // sync-subagent-stop-dispatcher short-circuits on `continue: false`, an
+  // absent field reported as a validation ERROR silently starved every hook
+  // queued behind this one — auto-spawn-quality, multi-claude-verifier,
+  // subagent-quality-gate, retry-handler and skill-channel-tracker, i.e. 5 of
+  // the 6 SYNC_HOOKS, including retry-handler which is functional and not
+  // telemetry. Measured consequence: skill-channels.jsonl held 559 rows across
+  // 16 files with ZERO `channel:"subagent"` for two months.
+  const rawOutput = input.agent_output ?? input.output;
+  const outputDelivered = typeof rawOutput === 'string';
+  const output = rawOutput ?? '';
 
   const validationErrors: string[] = [];
   const validationWarnings: string[] = [];
 
-  // Check 1: Output is not empty
-  if (!output) {
+  // Check 1: Output is not empty — only meaningful when CC actually delivered
+  // the field. An absent field is a payload-contract fact, not an agent defect.
+  if (outputDelivered && !output) {
     validationErrors.push('Agent produced empty output');
   }
 
-  // Check 2: Minimum length check
+  // Check 2: Minimum length check. Skipped when the field was never delivered,
+  // otherwise every single SubagentStop warns "very short (0 chars)".
   const outputLength = output.length;
-  if (outputLength < 50) {
+  if (outputDelivered && outputLength < 50) {
     validationWarnings.push(`Output seems very short (${outputLength} chars)`);
   }
 

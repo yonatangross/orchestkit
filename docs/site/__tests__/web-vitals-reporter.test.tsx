@@ -210,18 +210,50 @@ describe("WebVitalsReporter", () => {
 	it("never writes a sampling decision or sends when sessionStorage access throws", () => {
 		// isSampled() must fail open (return false) if sessionStorage is unavailable —
 		// simulate a browser that throws on storage access (private mode / quota).
-		const getItemSpy = vi
-			.spyOn(window.sessionStorage, "getItem")
-			.mockImplementation(() => {
-				throw new Error("SecurityError: storage disabled");
-			});
+		//
+		// Replace the whole `sessionStorage` accessor. Neither
+		// vi.spyOn(window.sessionStorage, "getItem") nor
+		// vi.spyOn(Storage.prototype, "getItem") intercepts under this jsdom —
+		// both were verified to leave the call untouched (hasOwnProperty was
+		// false and the throw never fired). That is how this test went vacuous:
+		// getItem simply returned null, the beforeEach Math.random() stub of 0 put
+		// the session inside the 10% sample, a beacon went out, and the assertion
+		// below failed for a reason that had nothing to do with storage throwing.
+		// The fail-open branch it names had never actually been exercised.
+		const original = Object.getOwnPropertyDescriptor(
+			window,
+			"sessionStorage",
+		) as PropertyDescriptor;
+		const throwing = () => {
+			throw new Error("SecurityError: storage disabled");
+		};
+		Object.defineProperty(window, "sessionStorage", {
+			configurable: true,
+			get: () =>
+				({
+					getItem: throwing,
+					setItem: throwing,
+					removeItem: throwing,
+					clear: () => {},
+					key: () => null,
+					length: 0,
+				}) as unknown as Storage,
+		});
 
-		render(<WebVitalsReporter />);
-		emit(LCP);
-		fireVisibilityHidden();
-		expect(sendBeacon).not.toHaveBeenCalled();
+		// Guard the guard: if a future jsdom change breaks interception again,
+		// fail here with a clear cause instead of silently going vacuous.
+		expect(() => window.sessionStorage.getItem("hq-cwv-sampled")).toThrow(
+			"storage disabled",
+		);
 
-		getItemSpy.mockRestore();
+		try {
+			render(<WebVitalsReporter />);
+			emit(LCP);
+			fireVisibilityHidden();
+			expect(sendBeacon).not.toHaveBeenCalled();
+		} finally {
+			Object.defineProperty(window, "sessionStorage", original);
+		}
 	});
 
 	it("emits a payload shaped with project_id 'orchestkit' and an event name <= 50 chars", () => {

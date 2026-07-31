@@ -5,7 +5,7 @@ description: "How OrchestKit supports Claude Fable 5: correct pricing, a spend-c
 
 # Claude Fable 5 with OrchestKit
 
-Claude Fable 5 (`claude-fable-5`, released 2026-06-09) is Anthropic's Mythos-class frontier model: state-of-the-art on coding, vision, and knowledge work, with week-long autonomous-run capability and a 1M-context variant (`claude-fable-5[1m]`). It bills at **$10 input / $50 output per MTok** — 2x Opus 4.8 output pricing — and in under 5% of sessions a safety classifier transparently falls back to Opus 4.8 (cyber/bio topics; you are informed when it happens).
+Claude Fable 5 (`claude-fable-5`, released 2026-06-09) is Anthropic's Mythos-class frontier model: state-of-the-art on coding, vision, and knowledge work, with week-long autonomous-run capability and a 1M-context variant (`claude-fable-5[1m]`). It bills at **$10 input / $50 output per MTok** — 2x Opus 4.8 output pricing — and in under 5% of sessions a safety classifier transparently falls back to Opus 5 (cyber/bio topics; you are informed when it happens).
 
 OrchestKit supports Fable 5 fully, while treating it as a **deliberate spend decision** rather than a default.
 
@@ -39,7 +39,7 @@ The cost-neutral default for agent fleets is `model: inherit` — quality follow
 
 ## Fallback behavior to know about
 
-Fable 5's safety classifiers fall back to Opus 4.8 in a small fraction of sessions, most likely on cyber/bio-adjacent content. For security-audit workloads this means a fable-pinned auditor could silently switch models mid-run — one reason OrchestKit keeps its own security agents on an explicit `opus` pin rather than fable.
+Fable 5's safety classifiers fall back to Opus 5 in a small fraction of sessions, most likely on cyber/bio-adjacent content. For security-audit workloads this means a fable-pinned auditor could silently switch models mid-run — one reason OrchestKit keeps its own security agents on an explicit `opus` pin rather than fable.
 
 ## Requirements
 

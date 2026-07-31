@@ -32,6 +32,7 @@
 - [What You Get](#what-you-get)
 - [Key Commands](#key-commands)
 - [Configuration](#configuration)
+- [What OrchestKit observes](#what-orchestkit-observes)
 - [Install](#install)
 - [FAQ](#faq)
 - [Development](#development)
@@ -122,6 +123,67 @@ Set `"alwaysLoad": true` on the first three in your `.mcp.json`. It skips the pe
 ### Customizing skills
 
 Skills install as files on your disk, but **don't hand-edit the installed copy** — it gets overwritten on update and silently diverges from the canonical playbook. The supported ways to extend (user-level skills, project skills, upstream PRs, or disabling a bundled skill) are in [docs/extending-skills.md](docs/extending-skills.md).
+
+---
+
+## What OrchestKit observes
+
+OrchestKit is a quality-gate plugin, so its hooks are the product rather than an
+add-on. This section states plainly what they see, where it goes, and how to turn
+each piece off.
+
+**Scope: broad and intentional.** OrchestKit registers 218 hooks across 29
+lifecycle events, including `SessionStart`, `UserPromptSubmit`, `PreToolUse`,
+`PostToolUse`, and `Stop`. They are **not** gated to a particular framework or
+project type, because the gates they enforce (secret-write blocking, protected-file
+guards, git safety, file-size limits, agent status protocol) apply to any codebase.
+If you only want gates on some projects, enable the plugin per-project rather than
+globally.
+
+**Where data goes: a local file on your own disk.**
+
+| What | Destination | Notes |
+|---|---|---|
+| Lifecycle events (session end, PR merged, goal converged, chain phase) | `~/.local/state/orchestkit/events.jsonl` | Written unconditionally, rotated at 10 MB. `ORK_EVENTS_LOG` redirects the path (used by the test suite) |
+| Hook metrics: event name, tool name, payload size, duration | same local file | Size-capped metrics only |
+| Prompt text and file contents | **Never recorded** | Hooks read them to make an allow/deny decision, then discard |
+| Remote sync | **Off** | No endpoint is compiled in; see below |
+
+There is deliberately **no global kill switch** for the local write, because the
+gates depend on that state (the git-safety and chain-staleness hooks read their
+own prior events). To stop it entirely, disable the plugin. Individual noisy hooks
+have their own opt-outs: `ORK_DISABLE_DEBT_TRACKER`, `ORK_DISABLE_WORKTREE_VERIFIER`,
+`ORK_DISABLE_COORDINATION_METRICS`, `ORK_NO_NOTIFY`, `ORK_NO_STALE_SWEEP`, and
+`ORCHESTKIT_SKIP_SLOW_HOOKS` among others.
+
+**Network access is opt-in and unset by default.** There is no hardcoded remote
+host anywhere in the shipped hook bundles (`grep -o 'https\?://' plugins/ork/hooks/dist/*.mjs`
+returns nothing). An outbound call happens only if you configure a destination
+yourself, via one of:
+
+- `ORCHESTKIT_HOOK_URL` + `ORCHESTKIT_HOOK_TOKEN`, which enable the manual
+  `hooks/bin/telemetry-sync.mjs` CLI. It POSTs your local JSONL to *your own*
+  endpoint. No hook ever invokes it; you run it by hand.
+- `ORK_HQ_TELEMETRY_URL`, which points the telemetry HTTP sink at *your own* collector.
+- `ORK_HQ_TELEMETRY_USE_HQ_API=1` together with `HQ_API_URL`, the same sink aimed
+  at a self-hosted HQ API.
+
+The sink returns early when the URL or the token is missing, and
+`telemetry-sync.mjs` prints `No ORCHESTKIT_HOOK_URL or TOKEN configured. Nothing
+to sync.` then exits 0. There is no analytics ping, no crash reporter, and no
+feature-flag fetch.
+
+**What OrchestKit never reads.** No OS keychain lookups, no `~/.aws/credentials`,
+no SSH private keys, no browser cookie or login stores, no clipboard. The one
+place secret-shaped paths appear in the source is
+`plugins/ork/hooks/dist/pretool.mjs`, where `id_rsa`, `.pem`, `.env`, and
+`credentials.json` form a **blocklist** that stops Claude writing to them. That
+code denies access; it does not read those files.
+
+**Third-party MCP servers are recommendations, not bundled dependencies.** The
+plugin ships no `.mcp.json` and declares no `mcpServers`. The table under
+[Configuration](#configuration) is advisory, and `/ork:setup` asks before writing
+anything.
 
 ---
 

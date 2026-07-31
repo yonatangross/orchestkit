@@ -1,6 +1,7 @@
 import { createSearchAPI } from "fumadocs-core/search/server";
 import { buildSearchIndexes } from "@/lib/search-indexes";
 import { problemResponse } from "@/lib/problem";
+import { flattenBlocks, toBlocks } from "@/lib/search-display";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 import { rerankByRelevance, typoToleranceFor } from "@/lib/search-relevance";
 import { expandQueryString } from "@/lib/search-synonyms";
@@ -41,17 +42,27 @@ type FumaResult = {
 };
 
 /** Rerank flat fumadocs results: group heading/text rows under their page,
- * reorder page blocks by doc-type weight + exact-title floor, re-flatten. */
-function rerankResults(results: FumaResult[], query: string): FumaResult[] {
-	const blocks: Array<{ url: string; title: string; rows: FumaResult[] }> = [];
-	for (const row of results) {
-		if (row.type === "page" || blocks.length === 0) {
-			blocks.push({ url: row.url, title: row.content, rows: [row] });
-		} else {
-			blocks[blocks.length - 1].rows.push(row);
-		}
-	}
-	return rerankByRelevance(blocks, query).flatMap((b) => b.rows);
+ * reorder page blocks by match count + doc-type tiebreak + exact-title floor,
+ * re-flatten. `matchCount` is the number of matched snippets inside the page,
+ * which is the strongest available proxy for "this page is about the query".
+ *
+ * `maxSnippets` trims each block's sub-rows AFTER scoring, so ranking still
+ * sees the full match count while the response carries only what a caller
+ * will display. A broad query like "m" matches 2180 rows / 433 KB; the ⌘K
+ * dialog renders at most 2 snippets per page, so it asks for 2. */
+function rerankResults(
+	results: FumaResult[],
+	query: string,
+	maxSnippets: number | null,
+): FumaResult[] {
+	const scored = toBlocks(results).map((b) => ({
+		...b,
+		url: b.page.url,
+		title: b.page.content,
+		// Only sub-rows are evidence of a match; the page row is not.
+		matchCount: b.children.length,
+	}));
+	return flattenBlocks(rerankByRelevance(scored, query), maxSnippets);
 }
 
 // Cursor-based pagination: the cursor is an opaque token encoding the next
@@ -133,9 +144,20 @@ export async function GET(req: Request) {
 	const limitRaw = url.searchParams.get("limit");
 	const limit = limitRaw ? Number.parseInt(limitRaw, 10) : 0;
 
+	// Optional, additive: omit it and every matched snippet is returned, so the
+	// existing response contract is unchanged for current callers.
+	const maxSnippetsRaw = url.searchParams.get("maxSnippets");
+	const maxSnippetsParsed = maxSnippetsRaw
+		? Number.parseInt(maxSnippetsRaw, 10)
+		: Number.NaN;
+	const maxSnippets =
+		Number.isFinite(maxSnippetsParsed) && maxSnippetsParsed >= 0
+			? maxSnippetsParsed
+			: null;
+
 	const results = (await res.json()) as unknown;
 	const all = Array.isArray(results)
-		? rerankResults(results as FumaResult[], query)
+		? rerankResults(results as FumaResult[], query, maxSnippets)
 		: [];
 	const end = Number.isFinite(limit) && limit > 0 ? start + limit : all.length;
 	const page = all.slice(start, end);

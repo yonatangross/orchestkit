@@ -149,8 +149,17 @@ describe('output-validator', () => {
       expect(result.systemMessage).toContain('empty output');
     });
 
-    test('fails validation for undefined output', () => {
-      // Arrange
+    // #3200: this previously asserted `continue === false` for an ABSENT field.
+    // That assertion was the bug written down. Claude Code delivers neither
+    // `agent_output` nor `output` at SubagentStop (0 of 11,319 captured rows,
+    // recorded at subagent-stop/unified-dispatcher.ts, #3034), so the old
+    // contract made this hook block on 100% of real events — and because
+    // sync-subagent-stop-dispatcher short-circuits on `continue: false`, it
+    // starved the 5 hooks behind it (incl. retry-handler, which is functional)
+    // for two months. An absent payload field is not an agent defect: the hook
+    // has nothing to validate and must stay out of the way.
+    test('does NOT fail validation when the field was never delivered', () => {
+      // Arrange: the real CC payload — no agent_output key at all.
       const input: HookInput = {
         tool_name: 'Task',
         session_id: 'test-session',
@@ -161,18 +170,28 @@ describe('output-validator', () => {
       const result = outputValidator(input);
 
       // Assert
-      expect(result.continue).toBe(false);
+      expect(result.continue).not.toBe(false);
+      expect(result.systemMessage ?? '').not.toContain('empty output');
     });
 
-    test('fails validation for null-ish output', () => {
+    // #3200: this test claimed to cover a null-ish field but did not. Passing
+    // `undefined` to `createSubagentStopInput` triggers JS default-parameter
+    // substitution, so `agentOutput` became '' and this was a duplicate of
+    // 'fails validation for empty string' above. Build the input explicitly.
+    test('an explicitly undefined agent_output is treated as not delivered', () => {
       // Arrange
-      const input = createSubagentStopInput(undefined as any);
+      const input: HookInput = {
+        tool_name: 'Task',
+        session_id: 'test-session',
+        tool_input: {},
+        agent_output: undefined,
+      } as HookInput;
 
       // Act
       const result = outputValidator(input);
 
       // Assert
-      expect(result.continue).toBe(false);
+      expect(result.continue).not.toBe(false);
     });
   });
 

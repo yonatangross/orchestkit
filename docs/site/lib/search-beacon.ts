@@ -7,6 +7,7 @@
 // The query string is the only payload and is truncated to 80 chars.
 // Fail-open everywhere: a beacon must never throw or block the dialog.
 
+import { mirrorToPostHog } from "@/lib/posthog-mirror";
 import { truncateQuery } from "@/lib/search-relevance";
 
 const PROJECT_ID = "orchestkit";
@@ -45,6 +46,9 @@ export function reportZeroResultQuery(query: string): void {
 				keepalive: true,
 			}).catch(() => {});
 		}
+		// Mirror AFTER the first-party send, so PostHog can never be the reason
+		// the authoritative sink misses an event.
+		mirrorToPostHog("search:zero-results", { query: truncated });
 	} catch {
 		// fail-open
 	}

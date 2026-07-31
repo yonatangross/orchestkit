@@ -21,7 +21,30 @@ const config = {
 	// Map agent-discovery well-known paths to their route handlers. Done via
 	// rewrites (rather than dot-folders under app/) so the URLs are stable and
 	// independent of Next's file-router handling of "." segments.
+	// PostHog's ingestion API is sensitive to a trailing-slash redirect on its
+	// paths, so Next must not add one.
+	skipTrailingSlashRedirect: true,
 	rewrites: async () => [
+		// ── PostHog same-origin proxy (EU cloud) ──────────────────────────────
+		// MANDATORY, not an optimisation: the CSP below sets
+		// `script-src 'self' 'unsafe-inline'` with no external hosts, so
+		// posthog-js loaded from *.posthog.com would be blocked outright.
+		// Routing it through our own origin keeps the policy strict AND survives
+		// the ad blockers that drop *.posthog.com.
+		// Assets and ingestion live on DIFFERENT hosts, and the specific
+		// static/array rules must precede the catch-all or it swallows them.
+		{
+			source: "/ingest/static/:path*",
+			destination: "https://eu-assets.i.posthog.com/static/:path*",
+		},
+		{
+			source: "/ingest/array/:path*",
+			destination: "https://eu-assets.i.posthog.com/array/:path*",
+		},
+		{
+			source: "/ingest/:path*",
+			destination: "https://eu.i.posthog.com/:path*",
+		},
 		{
 			// Agentic Resource Discovery (ARD) catalog — enumerates the agentic
 			// resources below (MCP server, skills index, agent card, APIs) so an

@@ -5,6 +5,12 @@
 // overall), then grouped sections (Guides / Concepts / Skills / Agents /
 // Hooks / Other) capped per group. Items stay in ONE flat array so the
 // dialog's arrow-key navigation works unchanged across group boundaries.
+//
+// Each page carries up to MAX_SNIPPETS_PER_PAGE of the heading/text rows the
+// search API matched inside it. Those rows are the ONLY on-screen evidence of
+// why a page matched — fumadocs pre-wraps the hit in <mark> and indents the
+// row — so dropping them (as this module used to) reduced every result to a
+// bare page title. They also deep-link to the matching #anchor.
 
 import { docTypeForUrl, stripOrigin } from "@/lib/search-relevance";
 
@@ -53,6 +59,9 @@ const GROUP_ORDER: readonly DisplayGroup[] = [
 export const TOP_RESULTS_LABEL = "Top results";
 const TOP_COUNT = 3;
 const MAX_PER_GROUP = 4;
+/** Matched snippets shown under each page. Enough to prove the match without
+ * letting one dense page crowd out the rest of the list. */
+export const MAX_SNIPPETS_PER_PAGE = 2;
 
 export type DisplayList<T> = {
 	/** Flat, ordered item list (feeds keyboard navigation untouched). */
@@ -61,33 +70,80 @@ export type DisplayList<T> = {
 	headerById: Record<string, string>;
 };
 
-/** Build the grouped display list from relevance-ordered page results. */
-export function buildDisplayList<T extends { id: string; url: string }>(
-	pages: readonly T[],
-): DisplayList<T> {
+/** A page result plus the heading/text rows matched inside it. */
+export type ResultBlock<T> = { page: T; children: T[] };
+
+/**
+ * Group the flat search API response into page blocks. The API emits each
+ * page row followed by its own heading/text rows, so a new block starts at
+ * every `type === "page"`. A leading non-page row (possible only if the API
+ * ever returns an orphan) heads its own block rather than being dropped.
+ */
+export function toBlocks<T extends { type?: string }>(
+	rows: readonly T[],
+): ResultBlock<T>[] {
+	const blocks: ResultBlock<T>[] = [];
+	for (const row of rows) {
+		if (row.type === "page" || blocks.length === 0) {
+			blocks.push({ page: row, children: [] });
+		} else {
+			blocks[blocks.length - 1].children.push(row);
+		}
+	}
+	return blocks;
+}
+
+/**
+ * Flatten blocks back into a row list, keeping at most `maxSnippets` sub-rows
+ * per page. `null` keeps every sub-row.
+ *
+ * Trimming happens AFTER ranking so the scorer still sees each page's full
+ * match count while the response carries only what the caller will display.
+ */
+export function flattenBlocks<T>(
+	blocks: readonly ResultBlock<T>[],
+	maxSnippets: number | null,
+): T[] {
+	return blocks.flatMap((b) => [
+		b.page,
+		...(maxSnippets === null ? b.children : b.children.slice(0, maxSnippets)),
+	]);
+}
+
+/** Build the grouped display list from relevance-ordered result blocks. */
+export function buildDisplayList<
+	T extends { id: string; url: string; type?: string },
+>(rows: readonly T[]): DisplayList<T> {
+	const blocks = toBlocks(rows);
 	const items: T[] = [];
 	const headerById: Record<string, string> = {};
 
-	const top = pages.slice(0, TOP_COUNT);
+	/** Push a page and its capped snippets as one contiguous run. */
+	const pushBlock = (block: ResultBlock<T>) => {
+		items.push(block.page);
+		items.push(...block.children.slice(0, MAX_SNIPPETS_PER_PAGE));
+	};
+
+	const top = blocks.slice(0, TOP_COUNT);
 	if (top.length > 0) {
-		headerById[top[0].id] = TOP_RESULTS_LABEL;
-		items.push(...top);
+		headerById[top[0].page.id] = TOP_RESULTS_LABEL;
+		for (const block of top) pushBlock(block);
 	}
 
-	const grouped = new Map<DisplayGroup, T[]>();
-	for (const page of pages.slice(TOP_COUNT)) {
-		const group = displayGroupForUrl(page.url);
+	const grouped = new Map<DisplayGroup, ResultBlock<T>[]>();
+	for (const block of blocks.slice(TOP_COUNT)) {
+		const group = displayGroupForUrl(block.page.url);
 		const bucket = grouped.get(group) ?? [];
 		if (bucket.length < MAX_PER_GROUP) {
-			bucket.push(page);
+			bucket.push(block);
 			grouped.set(group, bucket);
 		}
 	}
 	for (const group of GROUP_ORDER) {
 		const bucket = grouped.get(group);
 		if (!bucket || bucket.length === 0) continue;
-		headerById[bucket[0].id] = group;
-		items.push(...bucket);
+		headerById[bucket[0].page.id] = group;
+		for (const block of bucket) pushBlock(block);
 	}
 
 	return { items, headerById };

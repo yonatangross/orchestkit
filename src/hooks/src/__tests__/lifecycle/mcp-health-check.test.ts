@@ -53,7 +53,7 @@ describe('mcp-health-check: tavily key sourcing', () => {
     writeMcpConfig({
       tavily: {
         command: 'sh',
-        args: ['-c', "TAVILY_API_KEY=$(op read 'op://Platform/Tavily-API-Key/credential') exec npx -y tavily-mcp@0.2.20"],
+        args: ['-c', "TAVILY_API_KEY=$(op read 'op://<vault>/Tavily API Key/API Key') exec npx -y tavily-mcp@0.2.20"],
       },
     });
     expect(warning(run())).toBe('');

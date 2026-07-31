@@ -105,23 +105,53 @@ export function stripOrigin(url: string): string {
 	return url.replace(/^https?:\/\/[^/]+/, "");
 }
 
+/** Weight of the match-count signal (log2-saturated snippet count). */
+export const MATCH_COUNT_WEIGHT = 1;
+/** Max swing contributed by doc-type. A tiebreaker, NOT a multiplier. */
+export const TYPE_TIEBREAK_WEIGHT = 0.5;
+/** Max contribution of the incoming Orama ordering, normalized to 0..1.
+ * Deliberately below the doc-type swing (0.275): position is the weak proxy
+ * that caused the original mis-ranking, so it settles ties that the editorial
+ * doc-type preference leaves open, not the other way round. */
+export const POSITION_WEIGHT = 0.2;
+
 /**
- * Rerank already-relevance-sorted page blocks. Position is used as the base
- * relevance signal (Orama scores are not exposed by fumadocs), scaled by
- * doc-type weight, with the exact-title floor added on top.
+ * Rerank already-relevance-sorted page blocks.
+ *
+ * `matchCount` (how many snippets Orama matched inside the page) is the
+ * primary relevance signal. It replaces the previous scheme, where the only
+ * signal was list position SCALED by doc-type weight — that let a guide with
+ * one passing mention outrank a reference page documenting the term eight
+ * times, purely because "reference" carried the lowest type weight.
+ *
+ * Signals, in order of authority:
+ *   1. exact-title floor  — additive 1000/2000, still overrides everything
+ *   2. match count        — log2-saturated, so a page cannot win on sheer
+ *                           repetition; 1→1.0, 3→2.0, 7→3.0, 15→4.0
+ *   3. doc-type           — now SHIFTS instead of SCALES; max swing across
+ *                           the table (1.35 → 0.8) is 0.275, well under one
+ *                           log2 step, so it only separates near-ties
+ *   4. incoming position  — Orama's own ordering, finest tiebreak
+ *
+ * Blocks with no `matchCount` score 0 on signal 2, degrading to the old
+ * position + type behaviour (used by callers that only have page rows).
  */
-export function rerankByRelevance<T extends { url: string; title: string }>(
-	blocks: readonly T[],
-	query: string,
-): T[] {
+export function rerankByRelevance<
+	T extends { url: string; title: string; matchCount?: number },
+>(blocks: readonly T[], query: string): T[] {
 	const n = blocks.length;
 	return blocks
-		.map((block, i) => ({
-			block,
-			score:
-				(n - i) * DOC_TYPE_WEIGHT[docTypeForUrl(stripOrigin(block.url))] +
-				titleMatchBonus(query, block.title),
-		}))
+		.map((block, i) => {
+			const type = docTypeForUrl(stripOrigin(block.url));
+			const match = Math.log2(1 + (block.matchCount ?? 0)) * MATCH_COUNT_WEIGHT;
+			const position = n > 0 ? ((n - i) / n) * POSITION_WEIGHT : 0;
+			const typeShift = (DOC_TYPE_WEIGHT[type] - 1) * TYPE_TIEBREAK_WEIGHT;
+			return {
+				block,
+				score:
+					match + position + typeShift + titleMatchBonus(query, block.title),
+			};
+		})
 		.sort((a, b) => b.score - a.score)
 		.map((s) => s.block);
 }

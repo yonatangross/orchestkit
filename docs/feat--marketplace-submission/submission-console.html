@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Marketplace Submission Console</title>
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#e6edf3; --dim:#8b949e;
+          --accent:#58a6ff; --green:#3fb950; --amber:#d29922; --red:#f85149; --purple:#bc8cff;
+          --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font:14px/1.5 -apple-system,"Segoe UI",sans-serif; padding:24px; max-width:960px; margin:0 auto; }
+  h1 { font-size:18px; margin-bottom:4px; }
+  .sub { color:var(--dim); font-size:12px; margin-bottom:18px; }
+  h2 { font-size:12px; text-transform:uppercase; letter-spacing:.09em; color:var(--dim); margin:20px 0 8px; }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:14px; margin-bottom:10px; }
+  .row { display:flex; gap:8px; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .row:last-child { border-bottom:0; }
+  .row .state { font-family:var(--mono); font-size:11px; padding:1px 8px; border-radius:10px; white-space:nowrap; }
+  .done { background:#1f3a24; color:var(--green); }
+  .decided { background:#2d1f47; color:var(--purple); }
+  .risk { background:#3a2a10; color:var(--amber); }
+  .you { background:#3d1418; color:var(--red); }
+  .row .what { flex:1; }
+  .row .who { color:var(--dim); font-size:11px; }
+  label.chk { display:flex; gap:8px; align-items:flex-start; padding:7px 0; cursor:pointer; font-size:13px; border-bottom:1px solid var(--border); }
+  label.chk:last-child { border-bottom:0; }
+  label.chk input { margin-top:3px; accent-color:var(--green); }
+  .promptbox { background:#0a0d12; border:1px solid var(--border); border-radius:8px; padding:12px; margin-top:10px; }
+  #prompt { font-family:var(--mono); font-size:11.5px; color:#a5d6ff; white-space:pre-wrap; }
+  button#copy { margin-top:10px; background:#238636; color:#fff; border:0; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12.5px; }
+  button#copy:hover { background:#2ea043; }
+  .pill { display:inline-block; font-family:var(--mono); font-size:11px; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:2px 10px; margin:2px 4px 2px 0; }
+</style>
+</head>
+<body>
+  <h1>OrchestKit -&gt; Official Plugin Directory</h1>
+  <div class="sub">PR #3205 companion console. Submission is a WEB FORM (clau.de/plugin-directory-submission), not a PR. Fork PRs against the directory are auto-closed.</div>
+
+  <h2>Locked decisions</h2>
+  <div class="card">
+    <div class="row"><span class="state decided">DECIDED</span><span class="what">Directory slug: <b>orchestkit</b> (displayName OrchestKit). Immutable once published; local <code>plugins/ork</code> unchanged.</span><span class="who">operator 07-30</span></div>
+    <div class="row"><span class="state decided">DECIDED</span><span class="what">Broad-scope hooks: <b>submit and argue</b> purposive scope. Disclosure README front-runs the finding; rejection is cheap feedback.</span><span class="who">operator 07-30</span></div>
+  </div>
+
+  <h2>Prep state</h2>
+  <div class="card">
+    <div class="row"><span class="state done">FIXED</span><span class="what">Description now matches behavior + "What OrchestKit observes" README section (was a documented auto-fail).</span><span class="who">agent</span></div>
+    <div class="row"><span class="state done">FIXED</span><span class="what">Bogus <code>ork:shared:status-protocol</code> agent removed from <code>agents/</code>; count = advertised 36; 43 refs rewritten.</span><span class="who">agent</span></div>
+    <div class="row"><span class="state done">FIXED</span><span class="what">Only tracked private-vault string (one test fixture) genericized to <code>op://&lt;vault&gt;/</code>; no tracked <code>.mcp.json</code> exists.</span><span class="who">session</span></div>
+    <div class="row"><span class="state done">VERIFIED</span><span class="what">MIT license OK (Apache gate is Anthropic-internal only) · zero undisclosed telemetry (no remote URLs in dist) · 2 Dependabot alerts unreachable from bundle.</span><span class="who">agent</span></div>
+    <div class="row"><span class="state risk">RISK</span><span class="what"><code>has_broad_scope_hooks</code> true under literal policy reading. Reviewer-notes block in the form answers pre-empts it.</span><span class="who">accepted</span></div>
+  </div>
+
+  <h2>Submit checklist (check as you go)</h2>
+  <div class="card" id="checklist">
+    <label class="chk"><input type="checkbox" data-k="merge"> Merge PR #3205 (reviewer cloning main must see the disclosure README, else auto-fail)</label>
+    <label class="chk"><input type="checkbox" data-k="form"> Open <code>clau.de/plugin-directory-submission</code></label>
+    <label class="chk"><input type="checkbox" data-k="paste"> Paste form answers from <code>docs/marketplace-submission.md</code> section 5 (slug <b>orchestkit</b> + reviewer-notes block)</label>
+    <label class="chk"><input type="checkbox" data-k="sent"> Submitted (record date in the doc)</label>
+  </div>
+
+  <h2>Review bar (what their automated reviewer checks)</h2>
+  <div class="card">
+    <span class="pill">reads ENTIRE repo incl. .claude/ scripts/ tests/</span>
+    <span class="pill">bar: handles user data responsibly</span>
+    <span class="pill">4 auto-fail conditions</span>
+    <span class="pill">structural invariants I1-I11</span>
+    <span class="pill">Anthropic authors the entry + pins SHA</span>
+  </div>
+
+  <div class="promptbox">
+    <div id="prompt"></div>
+    <button id="copy">Copy status prompt</button>
+  </div>
+
+<script>
+  const state = { merge:false, form:false, paste:false, sent:false };
+  function updatePrompt() {
+    const steps = { merge:"PR #3205 merged", form:"form opened", paste:"answers pasted (slug orchestkit)", sent:"SUBMITTED" };
+    const done = Object.keys(steps).filter(k => state[k]).map(k => steps[k]);
+    const next = Object.keys(steps).find(k => !state[k]);
+    let t = "OrchestKit marketplace submission status: ";
+    t += done.length ? done.join("; ") + ". " : "not started. ";
+    t += next ? ("Next step: " + steps[next] + ".") : "All steps complete - watch for the reviewer's response and update docs/marketplace-submission.md with the outcome.";
+    document.getElementById("prompt").textContent = t;
+  }
+  document.querySelectorAll("#checklist input").forEach(c =>
+    c.addEventListener("change", () => { state[c.dataset.k] = c.checked; updatePrompt(); }));
+  document.getElementById("copy").addEventListener("click", () =>
+    navigator.clipboard.writeText(document.getElementById("prompt").textContent).then(() => {
+      const b = document.getElementById("copy"); b.textContent = "Copied!"; setTimeout(() => b.textContent = "Copy status prompt", 1200);
+    }));
+  updatePrompt();
+</script>
+</body>
+</html>

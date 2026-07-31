@@ -25,7 +25,10 @@ import {
   SearchDialogOverlay,
   type SharedProps,
 } from "fumadocs-ui/components/dialog/search";
-import { buildDisplayList } from "@/lib/search-display";
+import {
+  MAX_SNIPPETS_PER_PAGE,
+  buildDisplayList,
+} from "@/lib/search-display";
 import { reportZeroResultQuery } from "@/lib/search-beacon";
 import { SearchZeroResults } from "@/components/search-zero-results";
 
@@ -42,27 +45,32 @@ export default function CustomSearchDialog(props: SharedProps) {
   const [tag, setTag] = useState<string | undefined>(undefined);
   const { search, setSearch, query } = useDocsSearch({
     type: "fetch",
-    api: "/api/search",
+    // Ask for only what this dialog can render. Without these bounds the API
+    // returns EVERY matched row: a one-character query like "m" is 2180 rows /
+    // 433 KB, re-fetched on each keystroke, then parsed and grouped client-side.
+    // maxSnippets matches MAX_SNIPPETS_PER_PAGE; limit covers the display cap
+    // (3 top + 6 groups x 4 = 27 pages, at most 3 rows each).
+    api: `/api/search?maxSnippets=${MAX_SNIPPETS_PER_PAGE}&limit=90`,
     tag,
   });
 
-  // Page-level results only — grouped display reads like a sitemap slice;
-  // heading/text sub-rows add noise once sections exist.
-  const pages = useMemo(() => {
+  // Keep heading/text sub-rows: they carry the <mark>-highlighted excerpt that
+  // shows WHY a page matched, and deep-link to the matching #anchor. Filtering
+  // to type === "page" here reduced every result to a bare title (for "tavily",
+  // 66 of 86 rows were evidence and all 66 were dropped). buildDisplayList caps
+  // them per page so the list stays scannable.
+  const rows = useMemo(() => {
     if (!Array.isArray(query.data)) return null;
-    return (query.data as SortedResult[]).filter((r) => r.type === "page");
+    return query.data as SortedResult[];
   }, [query.data]);
 
-  const display = useMemo(
-    () => (pages ? buildDisplayList(pages) : null),
-    [pages],
-  );
+  const display = useMemo(() => (rows ? buildDisplayList(rows) : null), [rows]);
 
   // Zero-result beacon: debounced so mid-typing states don't fire, deduped
   // per query string, truncated to 80 chars inside the reporter.
   const lastReported = useRef<string>("");
   const isZeroResult =
-    search.trim().length > 0 && !query.isLoading && pages?.length === 0;
+    search.trim().length > 0 && !query.isLoading && rows?.length === 0;
   useEffect(() => {
     if (!isZeroResult) return;
     const q = search.trim();
