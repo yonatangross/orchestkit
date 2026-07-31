@@ -9,7 +9,6 @@ tags: [architecture, documentation, decision-making, backend]
 context: fork
 agent: backend-system-architect
 user-invocable: false
-disable-model-invocation: true
 complexity: medium
 persuasion-type: guidance
 metadata:

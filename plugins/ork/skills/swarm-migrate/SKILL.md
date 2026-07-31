@@ -11,7 +11,7 @@ author: OrchestKit
 tags: [migration, cross-repo, swarm, parallel-agents, worktree, ledger]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, ToolSearch, Monitor]
-skills: [github-operations, create-pr, ci-debug, verify, memory, explore]
+skills: [github-operations, verify, memory, explore]
 complexity: high
 persuasion-type: guidance
 model: sonnet

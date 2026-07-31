@@ -8,7 +8,6 @@ version: 1.0.0
 author: OrchestKit
 tags: [git, github, issues, tracking, workflow]
 user-invocable: false
-disable-model-invocation: true
 allowed-tools: [Bash]
 complexity: low
 persuasion-type: discipline

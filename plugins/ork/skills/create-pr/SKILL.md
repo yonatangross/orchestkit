@@ -11,7 +11,7 @@ tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
 disable-model-invocation: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Agent, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
-skills: [commit, review-pr, memory, chain-patterns]
+skills: [review-pr, memory, chain-patterns]
 complexity: medium
 persuasion-type: guidance
 metadata:

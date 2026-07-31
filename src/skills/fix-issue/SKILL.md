@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [issue, bug-fix, github, debugging, rca, prevention]
 user-invocable: true
 allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Agent, TaskCreate, TaskUpdate, TaskStop, Grep, Glob, ToolSearch, ExitWorktree, CronCreate, CronDelete, PushNotification, mcp__memory__search_nodes, mcp__context7__get_library_docs]
-skills: [commit, explore, verify, memory, remember, chain-patterns]
+skills: [explore, verify, memory, remember, chain-patterns]
 complexity: medium
 persuasion-type: guidance
 model: sonnet

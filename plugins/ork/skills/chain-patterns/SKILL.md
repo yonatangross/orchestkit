@@ -6,7 +6,6 @@ tags: [pipeline, resilience, checkpoint, mcp, orchestkit]
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
-disable-model-invocation: true
 context: inherit
 allowed-tools: [Read, ToolSearch]
 complexity: medium

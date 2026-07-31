@@ -7,7 +7,6 @@ tags: [architecture, yagni, over-engineering, scope, patterns]
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
-disable-model-invocation: true
 context: inherit
 complexity: low
 persuasion-type: guidance

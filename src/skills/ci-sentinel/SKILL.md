@@ -11,7 +11,7 @@ author: OrchestKit
 tags: [ci, sentinel, automation, github-actions, propose-dont-apply, autonomous]
 user-invocable: true
 allowed-tools: [Bash, Read, Write, Edit, Grep, Glob]
-skills: [github-operations, ci-debug, memory]
+skills: [github-operations, memory]
 complexity: medium
 persuasion-type: guidance
 model: sonnet

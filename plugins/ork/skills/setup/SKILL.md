@@ -11,7 +11,7 @@ tags: [onboarding, setup, wizard, configuration, stack-detection, mcp, personali
 user-invocable: true
 disable-model-invocation: true
 allowed-tools: [Read, Write, Grep, Glob, Bash, AskUserQuestion, TaskCreate, TaskUpdate, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations, mcp__ork-elicit__ork_elicit]
-skills: [doctor, configure, remember, explore, help]
+skills: [configure, remember, explore, help]
 complexity: medium
 persuasion-type: collaborative
 hooks:

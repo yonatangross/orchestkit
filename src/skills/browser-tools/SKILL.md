@@ -9,7 +9,6 @@ agent: web-research-analyst
 version: 5.0.0
 author: OrchestKit
 user-invocable: false
-disable-model-invocation: true
 complexity: medium
 persuasion-type: discipline
 metadata:

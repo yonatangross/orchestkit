@@ -7,7 +7,6 @@ version: 2.1.1
 description: Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines.
 tags: [vision, audio, video, multimodal, image, speech, transcription, tts, kling, sora, veo, video-generation]
 user-invocable: false
-disable-model-invocation: true
 context: fork
 agent: multimodal-specialist
 complexity: high
