@@ -15,20 +15,15 @@ on:
   # silently competes with the operator for their own capacity. Measured 2026-07-28:
   # one 51-skill sweep fired ~904 API calls in a single run and exhausted the cap.
   #
-  # That policy governs LLM calls. It does NOT govern this workflow's probe.
-  # `scripts/check-labs-versions.mjs` makes ZERO model calls: it fetches npm and
-  # PyPI and compares strings. Applying the no-schedule rule to it bought no quota
-  # protection and cost real coverage. Measured 2026-07-31: the last dispatch was
-  # 2026-07-27, and in those 4 unwatched days 5 pin drifts and 16 floor lags
-  # accumulated with nothing reporting them, because the ONLY currency gate in the
-  # repo required a human to remember to press a button.
+  # This file stays manual-dispatch only, and the detection half now lives in a
+  # separate file. See .github/workflows/labs-version-probe.yml: it runs the same
+  # read-only `check-labs-versions.mjs` nightly and reports to the step summary.
   #
-  # So the job is split. `probe` is read-only, runs nightly, and writes to the step
-  # summary. `check-and-pr` still writes branches and opens PRs, and is still manual
-  # dispatch only. Do NOT add a schedule to `check-and-pr`, and do NOT add any
-  # `claude -p` step to `probe`.
-  schedule:
-    - cron: "0 5 * * *"  # daily 05:00 UTC, offset from import-symbol-watch (06:00)
+  # The split is structural. tests/unit/test-no-llm-in-ci.sh forbids an automatic
+  # trigger in any workflow FILE matching its LLM signature, and the policy text in
+  # this very comment block matches it. The guard is file-scoped and blunt on
+  # purpose, so the schedulable half was moved out rather than the rule bent.
+  # Do NOT add a schedule here.
   workflow_dispatch:
 
 # Default-deny at workflow level; writes scoped to the check-and-pr job.
@@ -40,47 +35,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Read-only nightly probe. No writes, no branches, no PRs, no model calls.
-  # Reports to the step summary so drift is visible without anyone dispatching.
-  probe:
-    if: github.event_name == 'schedule'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3
-        with:
-          persist-credentials: false
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6
-        with:
-          node-version: '22'
-
-      - name: Probe upstream registries
-        id: probe
-        run: |
-          set -uo pipefail
-          node scripts/check-labs-versions.mjs > /tmp/drift.txt 2>&1 || true
-          {
-            echo '## Upstream version probe'
-            echo ''
-            if grep -qE '^DRIFT|behind upstream' /tmp/drift.txt; then
-              echo 'Drift detected. Dispatch this workflow manually to open the bump PR.'
-            else
-              echo 'No drift. Every pin and declared floor is current.'
-            fi
-            echo ''
-            echo '```'
-            cat /tmp/drift.txt
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-          # Never fail the nightly run on drift: a red cron people cannot action
-          # is a red cron people mute. The summary is the deliverable.
-          grep -cE '^DRIFT' /tmp/drift.txt || true
-
   check-and-pr:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
