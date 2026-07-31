@@ -323,6 +323,20 @@ Names and audiences match what [yonyon.ai](https://yonyon.ai/en) renders, so the
 
 ---
 
+## Who builds this
+
+OrchestKit is built and maintained by **[Yonatan Gross](https://github.com/yonatangross)** — [Yonyon AI](https://yonyon.ai/en), an AI consulting practice. It is the toolkit extracted from real client work, not a side project: the patterns here are the ones that survived shipping.
+
+It stays MIT and free. Nothing is gated, and none of the below changes that.
+
+**Working out where AI actually fits in your business?** The [**AI readiness audit**](https://platform.yonyon.ai/ai-audit) is a free assessment that maps your workflows and returns a prioritized report — the same diagnostic that opens a consulting engagement.
+
+**Want the toolkit running properly in your team?** Setup, configuration, and a working agent loop tailored to your stack is something I do as a fixed-scope engagement. Start a [discussion](https://github.com/yonatangross/orchestkit/discussions) or reach out through the [community](https://yonyon.ai/go/business).
+
+Security policy and reporting: [SECURITY.md](SECURITY.md).
+
+---
+
 <div align="center">
 
 **[Docs](https://orchestkit.yonyon.ai/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)** · **[Community](https://yonyon.ai/go/community)**
