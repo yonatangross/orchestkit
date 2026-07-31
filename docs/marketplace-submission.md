@@ -5,6 +5,39 @@ directory. Everything here is operator-gated: nothing has been submitted.
 
 Researched and audited 2026-07-30 against live primary sources.
 
+## 0. SUBMITTED 2026-07-31
+
+Submitted via the Console form (platform.claude.com/plugins/submit) — the correct form
+for individual authors; the claude.ai form requires a Team or Enterprise organization.
+Confirmation screen: "Plugin submitted for review. Your plugin submission has been
+received. The review team will evaluate it and may reach out for additional information."
+
+Submitted values: slug `orchestkit`, display name OrchestKit, category development,
+repo yonatangross/orchestkit, plugin path `plugins/ork`, homepage orchestkit.yonyon.ai,
+license MIT, privacy policy https://orchestkit.yonyon.ai/privacy (verified live, HTTP 200),
+contact yonaigross@gmail.com, supported platform **Claude Code only**.
+
+Two corrections this submission surfaced:
+
+1. **Target directory.** Approved submissions land in `anthropics/claude-plugins-community`
+   after review, NOT the official marketplace. Per the Claude Code docs, the official
+   marketplace is curated by Anthropic at its discretion, has no application process, and
+   the submission form does not add plugins to it. Earlier framing in this doc as an
+   "official marketplace submission" was wrong; the win here is a community listing.
+2. **Claude Cowork was UNTICKED.** The form asks submitters to test each selected surface
+   first. OrchestKit has never been tested in Cowork, and a grep for "cowork" across
+   `plugins/` returns only the word "coworker" in prose. Cowork can be added later via a
+   new submission once actually tested.
+
+The form had no reviewer-notes field. The disclosure that block was written for lives in the
+README section "What OrchestKit observes", which the automated reviewer reads from the cloned
+repo — the reason PR #3205 was merged before submitting.
+
+Two form fields this doc had not anticipated, recorded for next time: `Plugin description`
+(prose, directory-facing) and `Example use cases` (numbered examples).
+
+---
+
 ## 1. The verified process
 
 Submission is a **web form**, not a pull request. Both Anthropic marketplace
