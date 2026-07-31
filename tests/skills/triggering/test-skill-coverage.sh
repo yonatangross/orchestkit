@@ -85,7 +85,17 @@ for d in sorted(glob.glob(f"{SKILLS}/*/")):
             re.search(r"^disable-model-invocation:\s*true", fm, re.M)),
     }
 
-# Every skill named in any agent's skills: array.
+# Every skill named in any agent's skills: array THAT CAN ACTUALLY RESOLVE.
+#
+# A declaration is not a reachability path. `disable-model-invocation: true`
+# also prevents the skill being preloaded into a subagent, so naming such a
+# skill in an agent's skills: array does nothing at all (#3218).
+#
+# Counting those declarations made this metric report 0 unreachable skills
+# while 29 were reachable by nobody: the agent entries masked them. That is the
+# same illusion as #3215, encoded here in the measurement rather than in the
+# frontmatter. Filtering on model_invocable makes the number mean what its
+# label says.
 agent_declared = set()
 for p in glob.glob(f"{AGENTS}/*.md"):
     fm, _ = frontmatter(p)
@@ -93,7 +103,7 @@ for p in glob.glob(f"{AGENTS}/*.md"):
     if m:
         for line in m.group(1).splitlines():
             s = line.strip().lstrip("-").strip()
-            if s:
+            if s and skills.get(s, {}).get("model_invocable"):
                 agent_declared.add(s)
 
 # ---- A. description collisions -------------------------------------------
