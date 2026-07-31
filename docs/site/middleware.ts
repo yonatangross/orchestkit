@@ -2,7 +2,13 @@
 // Created: 2026-06-05
 
 import { type NextRequest, NextResponse } from "next/server";
-import { shouldJsonError } from "@/lib/agent-404";
+import { prefersJsonError, shouldJsonError } from "@/lib/agent-404";
+import {
+	acceptFamily,
+	classifyAgentSurface,
+	uaFamily,
+} from "@/lib/agent-surface";
+import { reportServerEvent } from "@/lib/analytics-server";
 import { SITE } from "@/lib/constants";
 import { problemResponse } from "@/lib/problem";
 
@@ -26,6 +32,12 @@ function mdTarget(pathname: string): string | null {
 export function middleware(req: NextRequest) {
 	const { pathname, searchParams } = req.nextUrl;
 	const accept = req.headers.get("accept") ?? "";
+	// Bounded property values shared by every branch below. See lib/agent-surface.
+	const audience = {
+		accept_family: acceptFamily(accept),
+		ua_family: uaFamily(req.headers.get("user-agent")),
+		method: req.method,
+	};
 
 	// 1) Markdown content negotiation → the Markdown route (only / and /docs/*).
 	const wantsMarkdown =
@@ -39,6 +51,19 @@ export function middleware(req: NextRequest) {
 			const url = req.nextUrl.clone();
 			url.pathname = target;
 			url.search = ""; // drop ?mode=agent so it doesn't leak into the rewrite
+			// Which of the three entry paths an agent actually used is only known
+			// HERE — middleware is what decides the rewrite, and the rewritten
+			// handler cannot tell them apart. Emitting it here avoids inventing a
+			// middleware→handler header contract just to carry one property.
+			reportServerEvent(req.headers, "agent:api-request", pathname, {
+				...audience,
+				surface: "md",
+				trigger: accept.includes("text/markdown")
+					? "accept-header"
+					: pathname.endsWith(".md")
+						? "dot-md-suffix"
+						: "mode-agent-param",
+			});
 			return NextResponse.rewrite(url);
 		}
 	}
@@ -47,12 +72,42 @@ export function middleware(req: NextRequest) {
 	// client gets a structured RFC 9457 error instead of the HTML not-found page,
 	// so agents parse the failure instead of scraping markup.
 	if (shouldJsonError(req.method, pathname, accept)) {
+		// The highest-signal event on this surface: it names the paths agents
+		// expect and we do not serve, which is how SERVED_EXACT and the
+		// next.config rewrite table should actually be grown.
+		reportServerEvent(req.headers, "agent:not-found", pathname, {
+			...audience,
+			branch: "middleware-json-404",
+		});
 		return problemResponse({
 			type: `${SITE.domain}/docs/reference`,
 			title: "Resource not found",
 			status: 404,
 			detail: `No resource at ${pathname}. Browse /docs, or see the API catalog at /.well-known/api-catalog.`,
 			instance: pathname,
+		});
+	}
+
+	// 3) Agent-surface reach. This is the ONLY place the eight prerendered
+	// /.well-known/* handlers, /openapi.json and /llms.txt are observable at all:
+	// they are `revalidate = false` + zero-arg GET(), so they execute at build
+	// time and are served from the CDN, and any capture() inside them would run
+	// once, ever. Double-gated to keep volume honest — a non-HTML Accept AND a
+	// path that is actually an agent surface, so browser page loads, RSC
+	// payloads, static assets and the PostHog proxy emit nothing.
+	//
+	// The third gate is `client=dialog`. A non-HTML Accept does NOT mean "agent":
+	// browser fetch() and navigator.sendBeacon both send `Accept: */*`, so our
+	// own CMD-K dialog calling /api/search looked exactly like an agent. fumadocs
+	// debounces that fetch at 100ms, which meant one event per settled keystroke.
+	// The dialog now tags its own requests; anything else hitting /api/search is
+	// a genuine caller of the documented endpoint and still counts.
+	const surface = classifyAgentSurface(pathname);
+	const isOwnClient = req.nextUrl.searchParams.get("client") === "dialog";
+	if (surface && prefersJsonError(accept) && !isOwnClient) {
+		reportServerEvent(req.headers, "agent:api-request", pathname, {
+			...audience,
+			surface,
 		});
 	}
 
