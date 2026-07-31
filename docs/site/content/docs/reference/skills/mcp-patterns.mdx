@@ -20,6 +20,14 @@ Patterns for building, composing, and securing Model Context Protocol servers. B
 >
 > **Deploying to Cloudflare?** See the `building-mcp-server-on-cloudflare` skill for Workers-specific deployment patterns.
 
+> **Pin `mcp&lt;2` until you migrate.** Every Python snippet in this skill targets the v1 SDK
+> (`from mcp.server.fastmcp import FastMCP`). The Python SDK released **2.0.0**, `pip install mcp`
+> now resolves to it, and upstream's own README says to keep a `&lt;2` upper bound on your requirement
+> until you have migrated. `FastMCP` does not appear anywhere in the 2.0 README, so treat these
+> snippets as v1-only rather than assuming they still apply. v1.x continues to receive critical bug
+> and security fixes on its own branch. Verified 2026-07-31.
+> Migration guide: https://py.sdk.modelcontextprotocol.io/migration/
+
 ## Decision Tree — Which Rule to Read
 
 ```

@@ -15,8 +15,13 @@ effort: high
 targets:
   - library: "@modelcontextprotocol/sdk"
     version: ">=1.29.0"
+  # Upper bound is deliberate, not a lag. `pip install mcp` now resolves to 2.x,
+  # and the 2.0 README says to keep a `<2` bound until you have migrated. Every
+  # Python snippet in this skill is v1 (`from mcp.server.fastmcp import FastMCP`),
+  # and FastMCP is not mentioned anywhere in the 2.0 README. Verified 2026-07-31.
+  # Remove the ceiling only together with a migration of rules/*.md.
   - library: "mcp"
-    version: ">=1.27.0"
+    version: ">=1.28.0,<2.0.0"
 metadata:
   category: mcp-enhancement
   spec-version: "2025-11-25"
@@ -38,6 +43,14 @@ Patterns for building, composing, and securing Model Context Protocol servers. B
 > **Scaffolding a new server?** Use Anthropic's `mcp-builder` skill (`claude install anthropics/skills`) for project setup and evaluation creation. This skill focuses on **patterns, security, and advanced features** after initial setup.
 >
 > **Deploying to Cloudflare?** See the `building-mcp-server-on-cloudflare` skill for Workers-specific deployment patterns.
+
+> **Pin `mcp<2` until you migrate.** Every Python snippet in this skill targets the v1 SDK
+> (`from mcp.server.fastmcp import FastMCP`). The Python SDK released **2.0.0**, `pip install mcp`
+> now resolves to it, and upstream's own README says to keep a `<2` upper bound on your requirement
+> until you have migrated. `FastMCP` does not appear anywhere in the 2.0 README, so treat these
+> snippets as v1-only rather than assuming they still apply. v1.x continues to receive critical bug
+> and security fixes on its own branch. Verified 2026-07-31.
+> Migration guide: https://py.sdk.modelcontextprotocol.io/migration/
 
 ## Decision Tree — Which Rule to Read
 

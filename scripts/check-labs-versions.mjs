@@ -183,6 +183,12 @@ for (const { skill, library, floor } of collectFloors()) {
   const v = compareFloor(floor, latest);
   if (v.severity === 'ok') {
     console.log(`ok    ${library.padEnd(24)} ${floor} satisfied by ${latest} (${skill})`);
+  } else if (v.severity === 'bounded') {
+    // A DECLARED upper bound is a decision, not a lag, so it must not inflate the
+    // "N floors behind upstream" tally. Counting it would make the deliberate ceiling
+    // indistinguishable from neglect, and the whole point of the bound is that someone
+    // already looked. It still prints, so the ceiling stays visible.
+    console.log(`bound ${library.padEnd(24)} ${floor} deliberately excludes ${latest} (${skill})`);
   } else {
     console.log(`${v.severity.toUpperCase().padEnd(5)} ${library.padEnd(24)} ${floor} vs latest ${latest} (${skill})`);
     floorLag.push({ skill, library, floor, latest, severity: v.severity });

@@ -205,7 +205,15 @@ function cmp(a, b) {
  *   patch        (folded into ok — a patch bump never invalidates a floor)
  *   minor-behind upstream moved a minor or more; content MAY be missing features. Advisory.
  *   major-behind upstream moved a major; the skill may document a superseded major. Actionable.
+ *   bounded      latest is excluded by a DECLARED upper bound. Intentional, not a lag.
  *   unsatisfiable latest is BELOW the floor. Always a defect: a typo, or a yanked release.
+ *
+ * On `bounded`: a floor may carry an upper bound (">=1.28.0,<2.0.0") when upstream itself says
+ * not to take the next major yet. The Python `mcp` SDK is the live case: its 2.0 README says
+ * "keep a <2 upper bound on your requirement until you've migrated", and `pip install mcp` now
+ * resolves to 2.x. Reporting that deliberate ceiling as `major-behind` every run would be the
+ * cry-wolf failure this whole function is written to avoid, so a declared bound gets its own
+ * severity and does not count as a lag.
  */
 export function compareFloor(floorExpr, latest) {
   const floor = parseFloor(floorExpr);
@@ -213,6 +221,17 @@ export function compareFloor(floorExpr, latest) {
   if (!floor || !cur) return { severity: 'unknown', floor: floorExpr, latest };
 
   if (cmp(cur, floor) < 0) return { severity: 'unsatisfiable', floor: floorExpr, latest };
+
+  // A declared upper bound means "we know about the newer major and are deliberately not on it".
+  const upper = /<\s*=?\s*v?(\d+)(?:\.(\d+))?(?:\.(\d+))?/.exec(String(floorExpr ?? ''));
+  if (upper) {
+    const inclusive = /<\s*=/.test(floorExpr);
+    const cap = [Number(upper[1]), Number(upper[2] ?? 0), Number(upper[3] ?? 0)];
+    const d = cmp(cur, cap);
+    if (d > 0 || (d === 0 && !inclusive)) {
+      return { severity: 'bounded', floor: floorExpr, latest };
+    }
+  }
   if (cur[0] > floor[0]) return { severity: 'major-behind', floor: floorExpr, latest };
   if (cur[1] > floor[1]) return { severity: 'minor-behind', floor: floorExpr, latest };
   return { severity: 'ok', floor: floorExpr, latest };
