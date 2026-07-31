@@ -52,6 +52,13 @@ vi.mock("..//lib/constants", () => ({
       "Yonyon here is a software studio (the publisher of OrchestKit) — not the musician of the same name.",
     url: "https://orchestkit.yonyon.ai/yonyon",
   },
+  // Added 2026-07-31 alongside the real INTEGRATIONS export (lib/constants.ts):
+  // integrationMentionNodes() in structured-data.tsx reads this unconditionally
+  // via softwareApplicationNode(), so any test mocking this module needs the key
+  // present even when the test itself never inspects the value.
+  INTEGRATIONS: [
+    { name: "Anthropic", url: "https://www.anthropic.com", description: "Test integration." },
+  ],
 }));
 
 vi.mock("..//lib/generated/compositions-data", () => ({

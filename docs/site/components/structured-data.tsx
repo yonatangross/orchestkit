@@ -7,7 +7,7 @@
 // identifiers. Ratings are NEVER fabricated — GitHub stars are surfaced as an
 // honest InteractionCounter, not a fake aggregateRating.
 
-import { COUNTS, ORG, PERSON, SAME_AS, SITE, YONYON } from "@/lib/constants";
+import { COUNTS, INTEGRATIONS, ORG, PERSON, SAME_AS, SITE, YONYON } from "@/lib/constants";
 
 const ORG_ID = `${SITE.domain}/#organization`;
 const WEBSITE_ID = `${SITE.domain}/#website`;
@@ -136,6 +136,19 @@ export function websiteNode(): JsonLdNode {
 	};
 }
 
+// Integration partners as Organization stubs, for the `mentions` property.
+// `mentions` (unlike `sameAs`) correctly models "referenced, not identical" —
+// each provider in lib/constants.ts#INTEGRATIONS is a real, verifiable
+// dependency or documented integration, never an aspirational partnership.
+function integrationMentionNodes(): JsonLdNode[] {
+	return INTEGRATIONS.map((integration) => ({
+		"@type": "Organization",
+		name: integration.name,
+		url: integration.url,
+		description: integration.description,
+	}));
+}
+
 // SoftwareApplication — a free dev tool. `offers.price` is "0" (honest), and
 // GitHub stars (when known) surface as an InteractionCounter rather than a
 // fabricated aggregateRating.
@@ -159,6 +172,7 @@ export function softwareApplicationNode(starCount?: number | null): JsonLdNode {
 			priceCurrency: "USD",
 		},
 		softwareRequirements: `Claude Code ${SITE.ccVersion}`,
+		mentions: integrationMentionNodes(),
 	};
 	if (typeof starCount === "number" && starCount > 0) {
 		node.interactionStatistic = {
@@ -180,6 +194,13 @@ export function techArticleNode(args: {
 	path: string;
 	datePublished?: string;
 	dateModified?: string;
+	// Real schema.org/TechArticle properties (verified: schema.org/dependencies,
+	// schema.org/proficiencyLevel — the latter's only defined values are
+	// "Beginner" and "Expert"). Pass these only when the caller has a genuine
+	// source for them (e.g. a skill's declared `skills` dependency list and
+	// `complexity` field) — never inferred or guessed.
+	dependencies?: string;
+	proficiencyLevel?: "Beginner" | "Expert";
 }): JsonLdNode {
 	const url = `${SITE.domain}${args.path}`;
 	const node: JsonLdNode = {
@@ -197,6 +218,8 @@ export function techArticleNode(args: {
 	};
 	if (args.datePublished) node.datePublished = args.datePublished;
 	if (args.dateModified) node.dateModified = args.dateModified;
+	if (args.dependencies) node.dependencies = args.dependencies;
+	if (args.proficiencyLevel) node.proficiencyLevel = args.proficiencyLevel;
 	return node;
 }
 

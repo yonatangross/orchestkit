@@ -83,3 +83,42 @@ export const SAME_AS = [
 ] as const;
 
 export const BANNER_TEXT = `OrchestKit v${SITE.version} — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · Claude Code ${SITE.ccVersion}`;
+
+// Providers OrchestKit or this docs site genuinely integrates with — each entry
+// below is backed by a real dependency or documented integration, not a
+// wishlist. Used for the `mentions` property on JSON-LD (schema.org: entities
+// referenced but not asserted as the same entity — unlike `sameAs`, which this
+// site reserves for verified profiles of OrchestKit itself) and for the
+// "Integrations" section of /llms.txt and /api/md.
+//   - Anthropic: publisher of Claude Code, the agentic CLI this plugin extends.
+//   - Tavily: documented MCP server integration (web search/extract/crawl/deep
+//     research) — see content/docs/foundations/mcp-servers.mdx.
+//   - PostHog: product analytics for this docs site itself (posthog-js,
+//     same-origin proxied via /ingest — see instrumentation-client.ts).
+//   - Vercel: hosting platform for this docs site (see vercel.json and the
+//     orchestkit.vercel.app canonical-domain redirect in next.config.mjs).
+export const INTEGRATIONS = [
+  {
+    name: "Anthropic",
+    url: "https://www.anthropic.com",
+    description:
+      "Publisher of Claude Code, the agentic CLI that OrchestKit extends as a plugin.",
+  },
+  {
+    name: "Tavily",
+    url: "https://tavily.com",
+    description:
+      "Documented MCP server integration for web search, extraction, crawling, and deep research.",
+  },
+  {
+    name: "PostHog",
+    url: "https://posthog.com",
+    description:
+      "Product analytics for this docs site, proxied same-origin and anonymous (no login exists on this site).",
+  },
+  {
+    name: "Vercel",
+    url: "https://vercel.com",
+    description: "Hosting platform this docs site is deployed on.",
+  },
+] as const;

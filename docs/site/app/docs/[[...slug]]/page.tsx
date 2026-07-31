@@ -11,7 +11,12 @@ import {
 import { notFound } from "next/navigation";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import { SITE } from "@/lib/constants";
-import { breadcrumbNode } from "@/components/structured-data";
+import {
+  breadcrumbNode,
+  organizationNode,
+  personNode,
+  techArticleNode,
+} from "@/components/structured-data";
 import { LazyContextualSkillSidebar } from "@/components/lazy/contextual-skill-sidebar";
 import { LazySkillDependencyGraph } from "@/components/lazy/skill-dep-graph";
 import { LazySkillRecommender } from "@/components/lazy/skill-recommender";
@@ -61,30 +66,54 @@ export default async function Page(props: {
   // `footer={{ children }}` override silently dropped prev/next site-wide.
   const neighbours = findNeighbour(source.pageTree, page.url);
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "TechArticle",
-    headline: page.data.title,
-    description: page.data.description,
-    url: `${SITE.domain}/docs/${page.slugs.join("/")}`,
-    publisher: {
-      "@type": "Organization",
-      name: SITE.name,
-      url: SITE.domain,
-    },
-    ...(lastModified ? { dateModified: lastModified.toISOString() } : {}),
-  };
+  // Real schema.org/proficiencyLevel only defines "Beginner" | "Expert" (no
+  // "Intermediate"), so a skill's "medium" complexity is deliberately left
+  // unset here rather than forced into either bucket -- see the "never
+  // inferred or guessed" rule on techArticleNode's own dependencies/
+  // proficiencyLevel params.
+  const skillMeta = skillSlug ? SKILLS[skillSlug] : undefined;
+  const proficiencyLevel: "Beginner" | "Expert" | undefined =
+    skillMeta?.complexity === "low"
+      ? "Beginner"
+      : skillMeta?.complexity === "high" || skillMeta?.complexity === "max"
+        ? "Expert"
+        : undefined;
+  const dependencies =
+    skillMeta?.skills && skillMeta.skills.length > 0
+      ? skillMeta.skills.join(", ")
+      : undefined;
 
-  const breadcrumbLd = {
+  // A single self-contained @graph per page rather than techArticleNode's
+  // bare {"@id": ...} references to Organization/Person nodes emitted only on
+  // /about, /compare and the homepage: real-world structured-data consumers
+  // (Google's Rich Results Test included) evaluate each page's JSON-LD in
+  // isolation and do not fetch other pages to resolve an @id, so referencing
+  // an entity this page never emits itself would ship an unresolvable
+  // reference on every one of the ~270 docs pages. Emitting the minimal
+  // Organization + Person nodes alongside keeps every page's structured data
+  // genuinely self-contained.
+  const structuredDataGraph = {
     "@context": "https://schema.org",
-    ...breadcrumbNode([
-      { name: SITE.name, url: SITE.domain },
-      { name: "Docs", url: `${SITE.domain}/docs` },
-      {
-        name: page.data.title,
-        url: `${SITE.domain}/docs/${page.slugs.join("/")}`,
-      },
-    ]),
+    "@graph": [
+      organizationNode(),
+      personNode(),
+      techArticleNode({
+        headline: page.data.title,
+        description: page.data.description ?? page.data.title,
+        path: `/docs/${page.slugs.join("/")}`,
+        ...(lastModified ? { dateModified: lastModified.toISOString() } : {}),
+        ...(dependencies ? { dependencies } : {}),
+        ...(proficiencyLevel ? { proficiencyLevel } : {}),
+      }),
+      breadcrumbNode([
+        { name: SITE.name, url: SITE.domain },
+        { name: "Docs", url: `${SITE.domain}/docs` },
+        {
+          name: page.data.title,
+          url: `${SITE.domain}/docs/${page.slugs.join("/")}`,
+        },
+      ]),
+    ],
   };
 
   return (
@@ -106,11 +135,7 @@ export default async function Page(props: {
     >
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredDataGraph) }}
       />
       <div className="relative">
         {SectionGlyph ? (
