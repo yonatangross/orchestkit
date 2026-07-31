@@ -150,7 +150,7 @@ jobs:
       # sole mechanism that keeps the block current at merge time. The block
       # self-heals on the next build if this ever fails, so it must never block
       # a release.
-      - name: Refresh README What's New on the release PR
+      - name: Refresh CHANGELOG-derived files on the release PR
         # justify: best-effort https://github.com/yonatangross/orchestkit/issues/3095
         continue-on-error: true
         env:
@@ -165,6 +165,11 @@ jobs:
           # not a trust signal: only `main` is protected, so anyone able to push
           # `release-please--<anything>` could have had code run here.
           cp scripts/stamp-whats-new.mjs "$RUNNER_TEMP/stamp-whats-new.mjs"
+          # Same trust argument for the docs-site changelog generator. Both
+          # outputs are DERIVED from CHANGELOG.md, which release-please writes
+          # but never rebuilds, so the widened drift gate (#3217) failed every
+          # release PR until this step regenerated both.
+          cp scripts/generate-changelog-data.js "$RUNNER_TEMP/generate-changelog-data.js"
 
           # Require the release PR to actually be authored by the release bot,
           # rather than trusting the branch name alone.
@@ -202,23 +207,28 @@ jobs:
             echo "::warning::stamp-whats-new failed on ${BRANCH}; What's New not refreshed."
             exit 0
           fi
+          if ! CHANGELOG_DATA_ROOT="$GITHUB_WORKSPACE" node "$RUNNER_TEMP/generate-changelog-data.js"; then
+            echo "::warning::generate-changelog-data failed on ${BRANCH}; docs-site changelog not refreshed."
+            exit 0
+          fi
 
-          if git diff --quiet -- README.md; then
-            echo "::notice::What's New already current on ${BRANCH}."
+          DERIVED=(README.md docs/site/lib/generated/changelog-data.ts)
+          if git diff --quiet -- "${DERIVED[@]}"; then
+            echo "::notice::CHANGELOG-derived files already current on ${BRANCH}."
             exit 0
           fi
 
           git config user.name "orchestkit-release-bot[bot]"
           git config user.email "orchestkit-release-bot[bot]@users.noreply.github.com"
-          git add README.md
-          git commit --quiet -m "docs: refresh README What's New for the release"
+          git add -- "${DERIVED[@]}"
+          git commit --quiet -m "docs: refresh CHANGELOG-derived files for the release"
           # Authenticate this one push explicitly; credentials are not persisted.
           if git push --quiet \
                "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
                "HEAD:${BRANCH}"; then
-            echo "::notice::Refreshed What's New on ${BRANCH}."
+            echo "::notice::Refreshed CHANGELOG-derived files on ${BRANCH}."
           else
-            echo "::warning::Could not push What's New refresh to ${BRANCH}."
+            echo "::warning::Could not push CHANGELOG-derived refresh to ${BRANCH}."
           fi
 
   # NOTE: Version sync to manifests, pyproject.toml, and CLAUDE.md is handled

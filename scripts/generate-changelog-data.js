@@ -7,7 +7,13 @@
 const fs = require("fs");
 const path = require("path");
 
-const ROOT = path.resolve(__dirname, "..");
+// CHANGELOG_DATA_ROOT mirrors WHATS_NEW_ROOT in stamp-whats-new.mjs, and exists
+// for the same reason: release-please.yml copies these generators OUT of the
+// workspace before checking out the release branch, so it never executes code
+// from an unprotected branch with the App token in scope. A trusted copy run
+// from $RUNNER_TEMP would otherwise resolve ROOT to $RUNNER_TEMP/.. and write
+// its output nowhere useful.
+const ROOT = process.env.CHANGELOG_DATA_ROOT || path.resolve(__dirname, "..");
 const INPUT = path.join(ROOT, "CHANGELOG.md");
 const OUTPUT = path.join(ROOT, "docs/site/lib/generated/changelog-data.ts");
 
