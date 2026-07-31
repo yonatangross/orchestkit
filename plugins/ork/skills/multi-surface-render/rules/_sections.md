@@ -27,7 +27,7 @@ Server-side rendering to PDF (renderToBuffer, renderToFile, renderToStream) and 
 
 Remotion compositions for video and Satori-based image generation for OG images and social cards.
 
-- `video-image-renderer.md` — JsonRenderComposition, renderToPng, renderToSvg, Satori constraints
+- `video-image-renderer.md` — Renderer (Remotion), renderToPng, renderToSvg, Satori constraints
 
 ## 5. Registry Mapping (registry) — HIGH — 1 rule
 

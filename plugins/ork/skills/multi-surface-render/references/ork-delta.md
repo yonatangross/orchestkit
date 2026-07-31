@@ -17,12 +17,15 @@ verbatim by `scripts/sync-vercel-skills.sh`; re-sync before trusting any API cla
 
 ## Treat the vendored upstream export tables as authoritative when a snippet disagrees
 
-Why: distilled from the retired `references/renderer-api.md`; no traced incident. The retired file
-and the surviving Remotion snippets both use `<JsonRenderComposition fps durationInFrames width
-height>`, while `references/upstream-remotion.md` lists `Renderer` under Key Exports and sources
-duration, fps, width and height from `spec.composition`. Hand-written snippets in this skill have
-already drifted from the synced file once, so the synced file breaks the tie and the snippet is the
-thing that gets corrected.
+Why: distilled from the retired `references/renderer-api.md`; no traced incident. This rule earned
+itself the same day it was written. The retired file and every hand-written Remotion snippet in this
+skill used `<JsonRenderComposition fps durationInFrames width height>`, while
+`references/upstream-remotion.md` listed `Renderer` under Key Exports. The vendored file was right:
+`check-import-symbols.mjs` later confirmed against `@json-render/remotion@0.19.0` that
+`JsonRenderComposition` has never been exported at all. The snippets were corrected to
+`Renderer({ spec, components })` on 2026-07-31, with fps and durationInFrames moved onto Remotion's
+own `Composition` where they belong. When a hand-written snippet disagrees with the synced file, the
+synced file breaks the tie and the snippet is the thing that gets corrected.
 
 Upstream: `references/upstream-remotion.md` ("Key Exports") in this directory.
 

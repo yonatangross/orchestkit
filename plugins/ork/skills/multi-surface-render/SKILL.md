@@ -341,7 +341,7 @@ Remotion compositions and Satori image generation.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Video & Image | `rules/video-image-renderer.md` | JsonRenderComposition, renderToPng, renderToSvg |
+| Video & Image | `rules/video-image-renderer.md` | Renderer (Remotion), renderToPng, renderToSvg |
 
 ### Registry Mapping
 

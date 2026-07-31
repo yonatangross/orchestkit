@@ -3170,7 +3170,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multi-surface-render",
     "description": "Multi-surface rendering with json-render — same JSON spec produces React web, Next.js apps, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform-specific APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for multiple platforms, creating PDF reports, email templates, demo videos, or social media images from a single component spec.",
     "version": "1.1.0",
-    "sha256": "138da65e0dd7b76d7b049f92f099cf8132225c2527957611551ff7d2c13f2bdc",
+    "sha256": "825d10da2d40db1c5711af3c70bce9baef54448bd985dd36a86e247c72ee8d33",
     "author": "OrchestKit",
     "tags": [
       "json-render",
