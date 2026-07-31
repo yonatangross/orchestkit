@@ -174,6 +174,16 @@
 <script>
   const S = JSON.parse(document.getElementById('lpp-state').textContent);
   const r = S.ratchet, t = S.targets;
+
+  // Escape every interpolated value before it reaches innerHTML.
+  // CodeQL js/xss-through-dom flagged lines 183/195/207 of the first version of this
+  // file as high severity: DOM text read from the lpp-state island was reinterpreted
+  // as HTML. The island is authored, not user input, but a living plan is edited by a
+  // new session every wave, so the escape is the fix rather than an exemption.
+  const esc = (v) => String(v).replace(/[&<>"']/g, (ch) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+  ));
+  const num = (v) => Number(v) || 0;
   const kpis = [
     { n: r.orphanFiles,      k: 'קבצים יתומים (יעד ' + t.orphanFiles + ')',      cls: r.orphanFiles > t.orphanFiles ? 'bad' : 'good' },
     { n: r.restatementFiles, k: 'קבצי שכתוב (יעד ' + t.restatementFiles + ')',   cls: r.restatementFiles > t.restatementFiles ? 'bad' : 'good' },
@@ -181,31 +191,31 @@
     { n: (r.orphanLines + r.restatementLines).toLocaleString(), k: 'שורות מועמדות למחיקה', cls: 'warn' }
   ];
   document.getElementById('kpis').innerHTML = kpis.map(x =>
-    `<div class="kpi ${x.cls}"><div class="n">${x.n}</div><div class="k">${x.k}</div></div>`).join('');
+    `<div class="kpi ${esc(x.cls)}"><div class="n">${esc(x.n)}</div><div class="k">${esc(x.k)}</div></div>`).join('');
 
   const done = S.items.filter(i => i.status === 'done').length;
   const doing = S.items.filter(i => i.status === 'doing').length;
   const todo = S.items.length - done - doing;
   document.getElementById('meter').innerHTML =
-    `<i style="flex:${done};background:var(--pg-ok)"></i>` +
-    `<i style="flex:${doing};background:var(--pg-warm)"></i>` +
-    `<i style="flex:${todo};background:hsl(220 12% 30%)"></i>`;
+    `<i style="flex:${num(done)};background:var(--pg-ok)"></i>` +
+    `<i style="flex:${num(doing)};background:var(--pg-warm)"></i>` +
+    `<i style="flex:${num(todo)};background:hsl(220 12% 30%)"></i>`;
 
   const mark = { done: '✓', doing: '◐', todo: '·' };
   document.getElementById('items').innerHTML = S.items.map(i => `
-    <div class="item ${i.status}">
-      <div class="st">${mark[i.status]}</div>
+    <div class="item ${esc(i.status)}">
+      <div class="st">${esc(mark[i.status] || '·')}</div>
       <div>
-        <h3>${i.title}</h3>
-        <p>${i.desc}</p>
+        <h3>${esc(i.title)}</h3>
+        <p>${esc(i.desc)}</p>
         ${i.skills ? `<div class="chips" style="margin-block-start:10px">${i.skills.map(s =>
-          `<span class="chip">${s}</span>`).join('')}</div>` : ''}
-        <div class="ev"><b>הושלם כאשר:</b> ${i.evidence}</div>
+          `<span class="chip">${esc(s)}</span>`).join('')}</div>` : ''}
+        <div class="ev"><b>הושלם כאשר:</b> ${esc(i.evidence)}</div>
       </div>
     </div>`).join('');
 
   document.getElementById('log').innerHTML = S.changelog.map(c =>
-    `<li><time>${c.at}</time>${c.what}</li>`).join('');
+    `<li><time>${esc(c.at)}</time>${esc(c.what)}</li>`).join('');
 </script>
 </body>
 </html>
