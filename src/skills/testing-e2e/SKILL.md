@@ -42,7 +42,30 @@ End-to-end testing with Playwright 1.59+, visual regression, accessibility, and 
 | [A11y CI/CD](#accessibility-cicd) | `rules/a11y-testing.md` | MEDIUM | CI gates, jest-axe unit tests, PR blocking |
 | [End-to-End Types](#end-to-end-types) | `rules/validation-end-to-end.md` | HIGH | tRPC, Prisma, Pydantic type safety |
 
-**Total: 7 rules, 4 references, 3 checklists, 3 examples, 1 script**
+**Total: 7 rules, 2 references, 3 checklists, 1 example, 1 script**
+
+## Upstream coverage (do not restate)
+
+Playwright, axe-core and jest-axe document themselves. This skill carries only the
+OrchestKit delta (`references/ork-delta.md`) plus the house subsets in `rules/`. Fetch
+the vendor page for anything below instead of expecting it here.
+
+| Topic | Source |
+|-------|--------|
+| Screenshot comparison workflow, baseline files, `snapshotPathTemplate` | https://playwright.dev/docs/test-snapshots |
+| `toHaveScreenshot` options: `mask`, `maxDiffPixelRatio`, `stylePath`, `animations` | https://playwright.dev/docs/api/class-pageassertions |
+| Auth reuse: `storageState`, setup projects, IndexedDB | https://playwright.dev/docs/auth |
+| Network interception with `page.route` (the house default is still emulate first, see `rules/emulate-e2e.md`) | https://playwright.dev/docs/mock |
+| Removed and changed APIs per release (SKILL.md keeps only the short denylist below) | https://playwright.dev/docs/release-notes |
+| Full locator API surface (the house priority ladder stays in `rules/e2e-playwright.md`) | https://playwright.dev/docs/locators |
+| Playwright runner setup on CI (the house a11y gate workflow stays in `rules/a11y-testing.md`) | https://playwright.dev/docs/ci |
+| `init-agents` CLI flags and generated files (the Planner/Generator/Healer workflow stays in `rules/e2e-ai-agents.md`) | https://playwright.dev/docs/test-agents |
+| `jest-axe` matcher and `configureAxe` API (the house component-state subset stays in `rules/a11y-testing.md`) | https://github.com/NickColley/jest-axe |
+| Lighthouse CI configuration and score assertions | https://github.com/GoogleChrome/lighthouse-ci |
+
+WCAG 2.2 success criteria and the manual keyboard / screen-reader / contrast / zoom
+passes are NOT routed away: `checklists/a11y-testing-checklist.md` still carries them
+in full, with https://www.w3.org/WAI/WCAG22/quickref/ as the normative reference.
 
 ## emulate Backends
 
@@ -179,7 +202,9 @@ await expect(page).toHaveScreenshot('checkout-page.png', {
 });
 ```
 
-See `references/visual-regression.md` for full configuration, CI/CD workflows, cross-platform handling, and Percy migration guide.
+House rules that the vendor docs do not state (CI-only baselines, single snapshot
+project, mask over threshold): `references/ork-delta.md`. Option reference and the
+baseline workflow itself: see the Upstream coverage table above.
 
 ## Key Decisions
 
@@ -200,10 +225,8 @@ See `references/visual-regression.md` for full configuration, CI/CD workflows, c
 
 | Resource | Description |
 |----------|-------------|
-| `references/playwright-1.59-api.md` | Playwright 1.59 API: locators, assertions, AI agents, `screencast`, `browser.bind()`, `locator.normalize()` |
+| `references/ork-delta.md` | House rules the vendor docs do not state: jest-axe over vitest-axe, CLI-only agent init, CI-only baselines, single snapshot project, mask over threshold |
 | `references/playwright-setup.md` | Installation, MCP server, seed tests, agent initialization |
-| `references/visual-regression.md` | Screenshot config, CI/CD workflows, cross-platform, Percy migration |
-| `references/a11y-testing-tools.md` | jest-axe setup, Playwright axe-core, CI pipelines, manual checklists |
 
 ## Checklists
 
@@ -217,9 +240,10 @@ See `references/visual-regression.md` for full configuration, CI/CD workflows, c
 
 | Example | Description |
 |---------|-------------|
-| `examples/e2e-test-patterns.md` | User flows, page objects, auth fixtures, API mocking, multi-tab, file upload |
-| `examples/a11y-testing-examples.md` | jest-axe components, Playwright axe E2E, custom rules, CI pipeline |
 | `examples/orchestkit-e2e-tests.md` | OrchestKit analysis flow: page objects, SSE progress, error handling |
+
+Generic Playwright samples (user flows, auth fixtures, API mocking, multi-tab, file
+upload, axe scans) now come from the vendor pages in the Upstream coverage table.
 
 ## Scripts
 
@@ -230,7 +254,9 @@ See `references/visual-regression.md` for full configuration, CI/CD workflows, c
 ## Related Skills
 
 - `testing-unit` - Unit testing patterns with mocking, fixtures, and data factories
-- `test-standards-enforcer` - AAA and naming enforcement
-- `run-tests` - Test execution orchestration
+- `testing-integration` - API boundary and contract testing
+- `cover` - Generates the E2E tier when the suite does not exist yet
+- `verify` - Grades an existing suite and returns a merge verdict
+- `expect` - Diff-aware browser verification via agent-browser
 - `emulate-seed` - Seed configuration authoring for emulate providers
 - `portless` (upstream) - Stable HTTPS `baseURL` for local E2E tests (`https://myapp.localhost` instead of port guessing; HTTPS-on-443 default since portless 0.10)

@@ -114,4 +114,4 @@ agent-browser clipboard paste  # Paste clipboard contents
 - **`inspect` opens DevTools** to local network — only use on trusted machines, not CI/shared envs
 - **`clipboard read`** accesses host clipboard without prompt — be aware in sandboxed contexts
 
-Reference: `references/debug-tools.md` (Trace Safety, Recording Best Practices)
+Reference: trace, record and profiler commands are upstream, see the `agent-browser` skill. Our delta: `references/ork-delta.md` (capture output is credential bearing).

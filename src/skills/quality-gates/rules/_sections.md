@@ -1,37 +1,23 @@
 ---
 title: Quality Gates Rule Categories
-version: 2.0.0
+version: 3.0.0
 ---
 
 # Rule Categories
 
-## 1. Complexity Scoring (complexity) — CRITICAL — 1 rule
+3 rules across 2 categories. The complexity rubric, blocking thresholds, and gate
+decision flow live in `SKILL.md`, not in `rules/`. OrchestKit-specific scars and house
+decisions live in `references/ork-delta.md`.
 
-Assess task complexity on a 1-5 scale with blocking thresholds and escalation protocols.
+## 1. Scope Control (yagni), CRITICAL, 1 rule
 
-- `complexity-scoring.md` — Level 1-5 characteristics, assessment formula, blocking thresholds
+Pre-implementation check that blocks architecture disproportionate to the project tier.
 
-## 2. Gate Workflows (workflows) — HIGH — 1 rule
+- `yagni-gate.md`: justified complexity ratio, tier LOC budgets, simpler alternatives, security exemption
 
-Pre-task validation, stuck detection, and escalation workflows.
-
-- `workflows.md` — Gate validation, stuck detection, requirements completeness
-
-## 3. Gate Patterns (patterns) — HIGH — 1 rule
-
-Gate validation templates and integration patterns.
-
-- `gate-patterns.md` — Validation templates, context integration, common pitfalls
-
-## 4. LLM Quality Validation (llm) — HIGH — 1 rule
-
-LLM-as-judge patterns for automated quality assessment.
-
-- `llm-quality-validation.md` — Aspect scoring, fail-open/closed strategies, graceful degradation
-
-## 5. Best Practices (practices) — HIGH — 2 rules
+## 2. Best Practices (practices), HIGH, 2 rules
 
 Personal pattern library for tracking success/failure patterns and code standards across projects.
 
-- `practices-code-standards.md` — Pattern library management, success/failure tracking, confidence scoring
-- `practices-review-checklist.md` — Category-based review, proactive anti-pattern detection, memory integration
+- `practices-code-standards.md`: pattern library management, success/failure tracking, confidence scoring
+- `practices-review-checklist.md`: category-based review, proactive anti-pattern detection, memory integration

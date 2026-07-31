@@ -29,110 +29,106 @@ path_patterns: ["vite.config.*", "**/vite/**"]
 
 # Vite Advanced Patterns
 
-Advanced configuration for **Vite 8** (Rolldown-powered, stable Mar 2026) with Environment API from Vite 7.
+A wrapper around **Vite 8** (Rolldown-powered), not a copy of its documentation.
+Vite's own docs are the source of truth for config keys, API surface, and migration
+mechanics. This skill carries the house delta plus four enforceable rules.
 
-## Vite 8: Rolldown-Powered Builds (Default)
+Vite 8 replaces the esbuild+Rollup pipeline with **Rolldown** (Rust-based unified
+bundler) and is the default for new projects. `advancedChunks` supersedes
+`manualChunks`; `build.rollupOptions` becomes `build.rolldownOptions`.
 
-Vite 8 replaces esbuild+Rollup with **Rolldown** (Rust-based unified bundler), delivering 7.7x faster builds and 50% less memory. This is now the default for all new projects.
+## Upstream coverage (do not restate)
 
-```bash
-npm install vite@8  # Direct upgrade
-```
+Fetch these from Vite rather than expecting them here. Rows marked with a rule keep a
+narrower, enforceable house subset in that rule file: read the rule for the house
+position, fetch the doc for the full API.
 
-**Key improvements:**
+| Topic | Fetch from |
+|-------|------------|
+| Vite 7 to 8 migration: `rolldownOptions`, `transformWithOxc`, `moduleType: 'js'`, removed hooks and output formats, browser target bumps | https://vite.dev/guide/migration |
+| Rolldown adoption path, `rolldown-vite`, Oxc, `advancedChunks` group syntax (house subset stays in `rules/vite-advanced-chunks.md`) | https://vite.dev/guide/rolldown |
+| Build options: `target`, `minify`, `sourcemap`, `cssCodeSplit`, `cssMinify`, `assetsInlineLimit`, `chunkSizeWarningLimit` | https://vite.dev/config/build-options |
+| Dependency pre-bundling and `optimizeDeps` include/exclude/force | https://vite.dev/guide/dep-pre-bundling |
+| SSR: client and server entry points, middleware-mode dev server, production server wiring, streaming | https://vite.dev/guide/ssr |
+| Environment API config and per-environment build output (house subset stays in `rules/vite-environments.md`) | https://vite.dev/guide/api-environment |
+| Environment API for plugins: `this.environment`, `perEnvironmentPlugin`, `applyToEnvironment` | https://vite.dev/guide/api-environment-plugins |
+| Environment API for frameworks: `createBuilder`, `buildApp`, `ModuleRunner` | https://vite.dev/guide/api-environment-frameworks |
+| Plugin hook reference, virtual modules, `enforce`/`apply`, `handleHotUpdate` (house subset stays in `rules/vite-plugin-hooks.md`) | https://vite.dev/guide/api-plugin |
+| Env variables and modes, `.env` files, the `VITE_` prefix | https://vite.dev/guide/env-and-mode |
+| Deploying a static site and verifying with `vite preview` | https://vite.dev/guide/static-deploy |
 
-| Metric | Vite 7 | Vite 8 | Improvement |
-|--------|--------|--------|-------------|
-| Build time (Linear) | 46s | 6s | **7.7x faster** |
-| Dev server startup | ~3s | ~1s | **3x faster** |
-| HMR updates | ~100ms | ~60ms | **40% faster** |
-| Memory usage | ~800MB | ~400MB | **50% reduction** |
+Library mode is not in the table: `references/library-mode.md` and
+`rules/vite-lib-config.md` still carry it in full.
 
-**Breaking changes from Vite 7:**
-- `build.rollupOptions` → `build.rolldownOptions` (auto-converted with deprecation warning)
-- `transformWithEsbuild` → `transformWithOxc`
-- Plugin `transform()` returning JS must add `moduleType: 'js'` to return value
-- `manualChunks` object form removed — use function form or `advancedChunks`
-- `'system'` / `'amd'` output formats no longer supported
-- Lightning CSS is now standard (replaces esbuild for CSS minification)
-- Browser target bump: Chrome 107→111, Firefox 104→114, Safari 16.0→16.4
+## House delta
 
-### advancedChunks (Replaces manualChunks)
+Read `${CLAUDE_SKILL_DIR}/references/ork-delta.md` for the rules Vite's docs do not
+state: the Vite 8 adoption path for existing production apps, the `VITE_` secrets
+rule, the production sourcemap setting, the house build budget, the `vite preview`
+gate, chunk-name stability across the `advancedChunks` migration, the visualizer
+diff requirement, and the `node_modules/.vite` cache-clearing step.
 
-Vite 8 introduces declarative chunk grouping with priority control and size constraints:
+## House config
 
-```typescript
+Not a Vite tutorial: these are the settings the delta above makes non-negotiable, in the
+shape we actually ship them.
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+
 export default defineConfig({
   build: {
-    rolldownOptions: {
+    // 'hidden' emits maps for the error reporter without publishing source.
+    // Never true (publishes source) and never 'inline' (inflates every JS file).
+    sourcemap: 'hidden',
+    rollupOptions: {
       output: {
+        // Carry existing chunk NAMES across the manualChunks to advancedChunks
+        // migration. A renamed group changes its filename and invalidates that
+        // chunk for every returning visitor, even with identical contents.
         advancedChunks: {
           groups: [
-            { name: 'react-vendor', test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/, priority: 20 },
-            { name: 'ui-vendor', test: /[\\/]node_modules[\\/]@radix-ui[\\/]/, priority: 15, minShareCount: 2 },
-            { name: 'vendor', test: /[\\/]node_modules[\\/]/, priority: 10, maxSize: 500000 },
+            { name: 'vendor', test: /node_modules/, priority: 10 },
+            { name: 'app', priority: 0 },
           ],
         },
       },
     },
   },
-})
-```
-
-Load Read("${CLAUDE_SKILL_DIR}/references/vite8-rolldown.md") for full migration options, benchmarks, advancedChunks syntax, Oxc benefits, and migration checklist.
-
-## Environment API (from Vite 7, stable)
-
-Multi-environment support (client/SSR/edge) is first-class:
-
-```typescript
-export default defineConfig({
-  environments: {
-    client: { build: { outDir: 'dist/client' } },
-    ssr: { build: { outDir: 'dist/server', ssr: true } },
-  },
 });
 ```
 
-Load Read("${CLAUDE_SKILL_DIR}/references/environment-api.md") for full configuration, per-environment plugins, Builder API, and `buildApp` hook.
+```bash
+# Prove the build. `vite build` exiting 0 means the bundler finished, not that the
+# app runs: base-path mistakes and dev-only env vars survive a green build.
+vite build && vite preview      # then walk the routes, console must be clean
 
-## Plugin Development
+# Diff the chunk graph before and after any chunk-config change.
+npx vite-bundle-visualizer
 
-Hooks for `config`, `transform`, `resolveId`, `load`, virtual modules, HMR, and environment-aware transforms.
+# Stale pre-bundle cache mimics a broken plugin. Clear it BEFORE editing plugin code.
+rm -rf node_modules/.vite && vite --force
+```
 
-Load Read("${CLAUDE_SKILL_DIR}/references/plugin-development.md") for plugin structure, hook execution order, and advanced patterns.
+> `VITE_`-prefixed variables are inlined into the client bundle at build time. They are
+> public bundle content, never secrets. Audit `.env.production` before deploy.
 
-## SSR Configuration
+## Rules
 
-Middleware mode for dev, separate client/server builds for prod, streaming SSR support.
-
-Load Read("${CLAUDE_SKILL_DIR}/references/ssr-configuration.md") for entry points, dev/prod server setup, and streaming patterns.
-
-## Build Optimization
-
-Chunk splitting with `advancedChunks` (Vite 8, preferred) or `manualChunks` (Vite 7 legacy), tree shaking, minification, and bundle analysis.
-
-Load Read("${CLAUDE_SKILL_DIR}/references/chunk-optimization.md") for chunk strategies, build targets, and optimization checklist.
-
-## Quick Reference
-
-| Feature | Vite 8 Status |
-|---------|---------------|
-| Rolldown bundler | **Default** (replaces esbuild+Rollup) |
-| Environment API | Stable (from Vite 7) |
-| ESM-only distribution | Default |
-| Node.js requirement | 20.19+ or 22.12+ |
-| `advancedChunks` | New (replaces `manualChunks`) |
-| `buildApp` hook | Stable (for multi-env plugins) |
-| `createBuilder` | Multi-env builds |
-| Oxc integration | Parsing 3x faster than SWC |
+| Rule | Covers |
+|------|--------|
+| `rules/vite-advanced-chunks.md` | Chunk splitting: `advancedChunks` groups, priority, `maxSize`, `minShareCount` |
+| `rules/vite-environments.md` | `environments` config for client, SSR, and edge; per-environment `outDir` |
+| `rules/vite-lib-config.md` | Library mode externals, dual ESM/CJS output, `exports` map, type declarations |
+| `rules/vite-plugin-hooks.md` | Hook order, virtual modules via `resolveId` + `load`, `enforce` and `apply` |
 
 ## Key Decisions
 
 | Decision | Recommendation |
 |----------|----------------|
 | New projects | **Vite 8** (default) |
-| Existing production apps | Evaluate Vite 8, use `rolldown-vite` for gradual migration |
+| Existing production apps | Stage the upgrade through `rolldown-vite` before committing |
 | Multi-env builds | Environment API (`environments` config) |
 | Plugin scope | Use `this.environment` for env-aware plugins |
 | SSR | Middleware mode for dev, separate builds for prod |
@@ -140,10 +136,9 @@ Load Read("${CLAUDE_SKILL_DIR}/references/chunk-optimization.md") for chunk stra
 
 ## Related Skills
 
-- `biome-linting` - Fast linting alongside Vite
 - `ork:react-server-components-framework` - SSR integration
-- `edge-computing-patterns` - Edge environment builds
 - `ork:storybook-testing` - Component testing with Vitest
+- `ork:performance` - Core Web Vitals targets behind the build budget
 
 ## References
 
@@ -151,9 +146,5 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 | File | Content |
 |------|---------|
-| `vite8-rolldown.md` | Rolldown migration, benchmarks, advancedChunks, Oxc benefits |
-| `environment-api.md` | Multi-environment builds, Builder API, per-env plugins |
-| `plugin-development.md` | Plugin hooks, virtual modules, HMR, env-aware transforms |
-| `ssr-configuration.md` | Entry points, dev/prod servers, streaming SSR |
+| `ork-delta.md` | House rules that Vite's docs do not state |
 | `library-mode.md` | Building publishable npm packages |
-| `chunk-optimization.md` | advancedChunks, manualChunks, tree shaking, bundle analysis |

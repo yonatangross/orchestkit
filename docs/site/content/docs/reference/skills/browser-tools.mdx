@@ -18,6 +18,21 @@ OrchestKit security wrapper for `agent-browser`. **For command reference and usa
 
 > **Command docs**: Refer to the upstream `agent-browser` skill for the full command reference (50+ commands: interaction, wait, capture, extraction, storage, semantic locators, tabs, debug, mobile, network, cookies, state, vault).
 
+## Upstream coverage (do not restate)
+
+These topics belong to the vendor. Read them at the source; do not copy them back into this skill.
+
+| Topic | First-party source |
+|-------|--------------------|
+| CLI command reference, snapshot and ref loop, waits, auth options, eval, config file | `agent-browser` skill · https://github.com/vercel-labs/agent-browser/blob/main/skills/agent-browser/SKILL.md |
+| Electron and desktop-app automation over CDP (`connect`, `--cdp`, webviews, tabs) | https://github.com/vercel-labs/agent-browser/blob/main/skill-data/electron/SKILL.md |
+| Slack workspace navigation and extraction recipes | https://github.com/vercel-labs/agent-browser/blob/main/skill-data/slack/SKILL.md |
+| Running headless in a Vercel Sandbox microVM (deps, snapshots, cron) | `vercel:vercel-sandbox` skill · https://github.com/vercel-labs/agent-browser/blob/main/skill-data/vercel-sandbox/SKILL.md |
+| Exploratory QA sweep with repro evidence (issue taxonomy, report template) | `dogfood` skill · https://github.com/vercel-labs/agent-browser/blob/main/skill-data/dogfood/SKILL.md |
+| Named `.localhost` dev URLs | `ork:portless` skill · https://github.com/vercel-labs/portless |
+
+**Our delta over all of the above**: `references/ork-delta.md`, covering where the safety hook does and does not apply, the shared rate-limit budget, and the local-URL policy.
+
 ## Decision Tree
 
 ```bash
@@ -147,7 +162,7 @@ agent-browser open "http://localhost:3000"  # which app is this?
 
 **Native Rust rewrite (v0.20):** agent-browser is now 100% native Rust — the old Node.js/Playwright daemon (the "sidecar") is **gone**. It drives Chrome directly over CDP, so there is **no Node runtime, no Playwright, and no separate browser-driver process** to install or keep alive. Result: 99x smaller install (710→7 MB), 18x less memory (143→8 MB), 1.6x faster cold start.
 
-## Safety Guardrails (7 rules + 11-check hook)
+## Safety Guardrails (6 rules + the agent-browser-safety hook)
 
 This skill enforces safety through the `agent-browser-safety` PreToolUse hook and 6 rule files:
 
@@ -180,8 +195,10 @@ The hook intercepts all `agent-browser` Bash commands and enforces:
 |----------|-------|----------|
 | Ethics & Security | `browser-scraping-ethics.md`, `browser-auth-security.md` | CRITICAL |
 | Local Dev | `browser-portless-local-dev.md` | HIGH |
-| Reliability | `browser-rate-limiting.md`, `browser-snapshot-workflow.md` | HIGH |
+| Reliability | `browser-rate-limiting.md` | HIGH |
 | Debug & Device | `browser-debug-recording.md`, `browser-mobile-testing.md` | HIGH |
+
+Snapshot, ref lifecycle, iframe traversal, batch and diff workflows are upstream's (see the coverage table above); the parts we actually add are in `references/ork-delta.md`.
 
 ### Configuration
 
@@ -235,6 +252,7 @@ git add *.har                                  # NEVER commit HAR captures
 
 ## Related Skills
 
+- `references/ork-delta.md`: our delta, hook coverage gaps, shared rate-limit budget, local-URL policy
 - `agent-browser` (upstream) — Full command reference and usage patterns
 - `portless` (upstream) — Stable named `.localhost` URLs for local dev servers
 - `ork:web-research-workflow` — Unified decision tree for web research
@@ -244,7 +262,7 @@ git add *.har                                  # NEVER commit HAR captures
 
 ---
 
-## Rules (7)
+## Rules (6)
 
 ### Secure browser automation credentials to prevent token leaks and account compromise — CRITICAL
 
@@ -364,7 +382,7 @@ agent-browser --confirm-interactive open https://admin.example.com
 - **v0.21+**: HAR captures contain auth tokens — never commit `.har` files, add to `.gitignore`
 - **v0.17+**: auth cookies now persist on browser close — clear cookies explicitly if you need a fresh session
 
-Reference: `references/auth-flows.md` (Security Considerations, Secure State Files)
+Reference: login flows, the auth vault and state files are upstream, see the `agent-browser` skill. Our delta: `references/ork-delta.md`.
 
 
 ### Use browser debug and recording tools safely to avoid leaking sensitive data in traces — HIGH
@@ -478,7 +496,7 @@ agent-browser clipboard paste  # Paste clipboard contents
 - **`inspect` opens DevTools** to local network — only use on trusted machines, not CI/shared envs
 - **`clipboard read`** accesses host clipboard without prompt — be aware in sandboxed contexts
 
-Reference: `references/debug-tools.md` (Trace Safety, Recording Best Practices)
+Reference: trace, record and profiler commands are upstream, see the `agent-browser` skill. Our delta: `references/ork-delta.md` (capture output is credential bearing).
 
 
 ### Scope mobile browser testing to verified devices and emulation profiles — HIGH
@@ -544,7 +562,7 @@ done
 - Use `diff screenshot` to compare rendering across devices
 - Do not rely solely on emulation — iOS Simulator provides higher-fidelity results for iOS-specific issues
 
-Reference: `references/mobile-testing.md` (Device Emulation, iOS Simulator)
+Reference: device emulation and iOS Simulator commands are upstream, see the `agent-browser` skill. Our delta: `references/ork-delta.md`.
 
 
 ### Use Portless named URLs instead of raw port numbers for local dev — HIGH
@@ -726,7 +744,7 @@ agent-browser network requests --clear    # Reset tracked request log
 - Use `--action-policy &lt;path&gt;` (v0.16) to enforce a JSON policy file governing which actions are permitted
 - Use `--max-output &lt;bytes&gt;` (v0.16) to cap command output size — prevents context window blowup from large pages
 
-Reference: `references/anti-bot-handling.md` (Rate Limiting, Adaptive Rate Limiting, Retry Logic)
+Reference: `references/ork-delta.md` (the rate-limit budget is per hostname and shared machine-wide).
 
 
 ### Respect robots.txt and terms of service to avoid legal issues and IP bans — CRITICAL
@@ -789,207 +807,86 @@ agent-browser get text @e5  # Extract specific content area, not full page
 - Use `--max-output` (v0.16) to limit extracted content size and reduce data over-collection
 - Respect `--allowed-domains` (v0.16) to scope crawls — prevents accidentally following links to unrelated sites
 
-Reference: `references/anti-bot-handling.md` (Respectful Scraping Principles, Check robots.txt)
-
-
-### Wait and snapshot browser content to avoid empty results and bloated page dumps — HIGH
-
-
-## Browser: Snapshot Workflow
-
-Always follow the wait-then-snapshot-then-extract pattern: wait for the page to fully load, take an accessibility snapshot to discover element refs, then extract targeted content using those refs. Re-snapshot after any navigation or significant DOM change.
-
-**Incorrect:**
-```bash
-# Extracting immediately without waiting — content may be empty or partial
-agent-browser open https://docs.example.com/article
-agent-browser get text body > /tmp/article.txt
-
-# Using stale refs after navigating — @e5 refers to the OLD page
-agent-browser snapshot -i
-agent-browser click @e3
-agent-browser get text @e5
-
-# Full-page dump captures nav, header, footer, ads — massive noise
-agent-browser wait --load networkidle
-agent-browser get text body > /tmp/article.txt
-```
-
-**Correct:**
-```bash
-# 1. Navigate and wait for full page load
-agent-browser open https://docs.example.com/article
-agent-browser wait --load networkidle
-
-# 2. Snapshot to discover element refs (93% less context than full DOM)
-agent-browser snapshot -i
-# Output: @e1 [nav] "Navigation", @e5 [article] "Main Content Area"
-
-# 3. Extract targeted content using refs
-agent-browser get text @e5  # Only the article, not the full page
-```
-
-```bash
-# Re-snapshot after navigation or DOM changes
-agent-browser snapshot -i
-agent-browser fill @e1 "search query"
-agent-browser click @e2
-
-agent-browser wait --load networkidle
-agent-browser snapshot -i          # NEW refs after page change
-agent-browser get text @e1         # Extract from updated page
-```
-
-```bash
-# Extraction preference order (lowest to highest context cost):
-agent-browser get text @e5           # 1. Targeted ref (best)
-agent-browser get html @e5           # 2. HTML when formatting matters
-agent-browser eval "JSON.stringify(  # 3. Custom JS for structured data
-  Array.from(document.querySelectorAll('h2')).map(h => h.innerText))"
-agent-browser get text body          # 4. Full body (last resort)
-```
-
-**Key rules:**
-- Always `wait --load networkidle` after `open` before any extraction or snapshotting
-- Always `snapshot -i` before interacting with elements -- refs are only valid within their snapshot
-- Re-snapshot after every navigation, form submission, or significant DOM change
-- Use `get text @e#` for targeted extraction instead of `get text body` -- 93% less context
-- Prefer semantic wait strategies (`--text`, `--url`, `@e#`) over fixed `wait` delays
-- Verify extracted content is non-empty before saving to avoid capturing blank pages
-
-## Enhanced Screenshot Commands (v0.19+)
-
-Capture full pages and annotated snapshots for visual debugging:
-
-```bash
-# Full page and annotated capture (NOTE: --full is command-level since v0.21)
-agent-browser screenshot --full /tmp/full-page.png   # Entire scrollable page
-agent-browser screenshot --annotate                  # Numbered element labels for debugging
-agent-browser screenshot --screenshot-dir /tmp/shots --screenshot-format webp --screenshot-quality 80
-agent-browser pdf /tmp/page.pdf                      # Save as PDF
-```
-
-## iframe Traversal (v0.21+)
-
-Snapshots and interactions now traverse into iframe content automatically. Cross-origin iframes are supported since v0.22 via `Target.setAutoAttach`.
-
-```bash
-# v0.21+: iframes included in snapshot automatically
-agent-browser snapshot -i
-# Output includes both parent page refs AND iframe content refs
-
-# Pre-v0.21: manual iframe targeting required
-agent-browser frame @e5        # Enter specific iframe
-agent-browser snapshot -i      # Snapshot inside iframe
-agent-browser frame main       # Return to main frame
-```
-
-## Batch Commands (v0.21+)
-
-Execute multiple commands in sequence from stdin:
-
-```bash
-# Pipe JSON array of commands
-echo '[{"command":"open","args":["https://example.com"]},{"command":"screenshot","args":["/tmp/shot.png"]}]' | agent-browser batch --json
-
-# Stop on first failure
-echo '[...]' | agent-browser batch --json --bail
-```
-
-## Interaction with Element Refs
-
-After `snapshot -i`, use `@refs` for precise interaction patterns:
-
-```bash
-# Correct: targeted interaction
-agent-browser snapshot -i
-agent-browser fill @e3 "search query"
-agent-browser click @e5
-agent-browser select @e7 "Category"
-agent-browser hover @e2                  # Trigger dropdown
-agent-browser scroll down 500            # Load more content
-agent-browser scrollintoview @e15        # Navigate to element
-agent-browser upload @e10 ./file.pdf     # File upload
-agent-browser drag @e1 @e8              # Drag and drop
-
-# Keyboard interaction
-agent-browser press Enter                # Submit
-agent-browser press Tab                  # Navigate
-agent-browser keyboard type "query"      # Type without selector
-```
-
-## Storage in Snapshot Workflow
-
-Read and debug page state during snapshots:
-
-```bash
-# Read page state
-agent-browser storage local              # Check localStorage
-agent-browser storage session            # Check sessionStorage
-```
-
-## Extended Wait Commands
-
-Add semantic waits beyond `--load` patterns:
-
-```bash
-# Wait for custom conditions
-agent-browser wait --fn "window.loaded"  # Custom JS condition
-```
-
-## Diff-Based Verification (v0.13+)
-
-Replace manual "snapshot → act → snapshot → eyeball" patterns with native diff commands for verifiable, regression-free automation.
-
-**Incorrect: Manual before/after comparison**
-```bash
-agent-browser snapshot -i > /tmp/before.txt
-agent-browser click @e3
-agent-browser snapshot -i > /tmp/after.txt
-diff /tmp/before.txt /tmp/after.txt  # Manual, fragile
-```
-
-**Correct: Native diff verification**
-```bash
-agent-browser snapshot -i            # Captures baseline automatically
-agent-browser click @e3
-agent-browser wait --load networkidle
-agent-browser diff snapshot          # Shows +/- changes like git diff
-```
-
-**Visual regression testing:**
-```bash
-# Capture baseline for regression tests
-agent-browser screenshot /tmp/baseline.png
-
-# Make CSS/component changes...
-
-# Verify visual changes
-agent-browser diff screenshot --baseline /tmp/baseline.png
-# Output: 2.3% pixels changed — highlights differences in red
-```
-
-**Key rules for diff commands:**
-- Use `diff snapshot` after every action to verify intended effect
-- Save baselines for regression testing: `agent-browser snapshot -i > baseline.txt`
-- Use `diff screenshot` for visual regression — anything >5% mismatch needs investigation
-- Use `diff url` to compare staging vs production pages side-by-side
-- Diff output uses git-style +/- for a11y trees and pixel counts for visual diffs
-- Use `find "text"` (v0.16) as an alternative to `snapshot -i` when you know the element's visible text or label
-- Use `find --role button "Submit"` to locate elements by ARIA role + text — more resilient than `@ref` numbers
-- Use `highlight @e1` (v0.16) to visually mark elements during debugging — clear with `highlight --clear`
-- Use `screenshot --annotate` for numbered element labels that correspond to `@ref` identifiers
-- **v0.21+**: iframes are traversed automatically in snapshots — no need for `frame @e1` first
-- **v0.21 breaking**: `--full` is now command-level, not global — use `screenshot --full`, not `--full screenshot`
-- **v0.23.1**: alert/beforeunload dialogs are auto-dismissed by default — opt out with `--no-auto-dialog`
-
-Reference: `references/page-interaction.md` (Snapshot + Refs), `references/content-extraction.md` (Extraction Methods)
+Reference: robots.txt enforcement is done by the `agent-browser-safety` hook, see `references/ork-delta.md` for the commands it does and does not cover.
 
 
 
 ---
 
-## References (5)
+## References (6)
+
+### Browser Tools: the OrchestKit delta over agent-browser
+
+
+# OrchestKit delta: agent-browser
+
+Commands, flags, snapshot and ref loops, Electron CDP attach, Slack navigation,
+Vercel Sandbox wiring and the dogfood report workflow are upstream's job. See
+the "Upstream coverage (do not restate)" table in `SKILL.md` for where each of
+those lives. This file carries only what OrchestKit adds, contradicts, or has
+to warn about.
+
+## Assume ZERO safety-hook coverage for any agent-browser run that is not a local Bash command
+
+Why: `src/hooks/src/pretool/bash/agent-browser-safety.ts:471` returns silently
+unless the Bash command string matches `agent-browser`. A Vercel Sandbox run
+executes the CLI inside the microVM via `sandbox.runCommand(...)`, and `--mcp`
+speaks stdio to an MCP client, so neither ever reaches the PreToolUse Bash hook.
+URL blocklist, rate limiting and robots.txt enforcement are all absent on those
+paths and have to be re-imposed at the sandbox or MCP-client layer. Distilled
+from the retired upstream-sandbox reference; no traced incident.
+Upstream: `vercel:vercel-sandbox` skill, and
+https://github.com/vercel-labs/agent-browser/blob/main/skill-data/vercel-sandbox/SKILL.md
+
+## Reach a new origin with open, goto or navigate if you want it policed
+
+Why: `extractUrl` (same hook file, lines 417-420) matches only
+`(navigate|goto|open) &lt;url&gt;`, and the blocklist, rate-limit and robots checks
+(lines 489-544) each early-exit when it returns null. So `read &lt;url&gt;`,
+`a11y &lt;url&gt;`, `vitals &lt;url&gt;`, `diff url <a> &lt;b&gt;`, `connect &lt;port&gt;` and
+`--cdp &lt;port&gt;` skip all three checks: they are policy holes, not approvals.
+Distilled from the retired browser-snapshot-workflow rule; no traced
+incident.
+Upstream: `agent-browser` skill, and
+https://github.com/vercel-labs/agent-browser/blob/main/skills/agent-browser/SKILL.md
+
+## Budget navigations per host: the rate limiter is machine-wide, not per session
+
+Why: house limits are 10 per minute, 100 per hour and 3 per 3 seconds per
+hostname (issue #318, "Add rate limiting to agent-browser-safety hook"), and
+`checkRateLimit` persists timestamps to one `rate-limits.json` under the log
+dir keyed only by domain (hook lines 122-215). Parallel sessions, worktrees and
+sub-agents therefore draw from the same budget, and a page-by-page sweep of a
+single host (the upstream dogfood workflow) hits the per-minute wall long
+before it finishes. Raise `AGENT_BROWSER_RATE_LIMIT_PER_MIN` and
+`AGENT_BROWSER_RATE_LIMIT_PER_HOUR` deliberately instead of retrying into a
+block.
+Upstream: `dogfood` skill, and
+https://github.com/vercel-labs/agent-browser/blob/main/skill-data/dogfood/SKILL.md
+
+## Local targets are allowed by default; name them with portless, not a port
+
+Why: `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` defaults to on and clears
+`localhost`, `127.0.0.1` and `*.localhost` before the blocklist runs (hook
+lines 431-437, introduced by commit 48ab54b64, PR #950, the v7.1.0 agent-browser
+CLI adoption). Local dev URLs therefore work out of the box, and setting the
+variable to `0` re-blocks every one of them at once. (Electron and desktop CDP
+attach are unaffected either way: `connect &lt;port&gt;` carries no URL to check.) A named
+`https://&lt;app&gt;.localhost` from portless survives a port change and tells the
+next reader which app was under test.
+Upstream: `ork:portless` skill, and https://github.com/vercel-labs/portless
+
+## Keep page-derived output targeted, verified, and out of the repo
+
+Why: house convention behind the anti-pattern list in `SKILL.md`. Extract
+through a ref (`get text @e5`) rather than dumping `get text body`, confirm the
+result is non-empty before saving it (a blank capture looks like a successful
+one), and treat HAR captures, React fiber dumps and traces as credential
+bearing: write them under /tmp and never `git add` them. Distilled from the
+retired browser-snapshot-workflow rule; no traced incident.
+Upstream: `agent-browser` skill (snapshot, get, network har, react commands), and
+https://github.com/vercel-labs/agent-browser/blob/main/skills/agent-browser/SKILL.md
+
 
 ### Upstream Dogfood
 

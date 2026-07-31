@@ -5,6 +5,8 @@ version: 4.0.0
 
 # Rule Categories
 
+4 categories, 6 rules.
+
 ## 1. Ethics & Security (browser) — CRITICAL — 2 rules
 
 Responsible scraping practices and secure credential handling.
@@ -18,12 +20,12 @@ Stable local development URLs using Portless instead of port guessing.
 
 - `browser-portless-local-dev.md` — Portless named URLs, service discovery, agent-browser integration
 
-## 3. Reliability (browser) — HIGH — 2 rules
+## 3. Reliability (browser) — HIGH — 1 rule
 
-Rate limiting and page interaction patterns for reliable automation.
+Rate limiting for reliable automation. Snapshot, ref lifecycle, iframe traversal, batch and diff
+workflows are upstream's; see the coverage table in `SKILL.md` and `references/ork-delta.md`.
 
 - `browser-rate-limiting.md` — Request delays, exponential backoff, concurrency limits, domain restriction
-- `browser-snapshot-workflow.md` — Wait-then-snapshot, iframe traversal, batch, semantic locators, --full scope change
 
 ## 4. Debug & Device (browser) — HIGH — 2 rules
 

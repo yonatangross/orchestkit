@@ -43,7 +43,7 @@ Patterns for building production Python backends with asyncio, FastAPI, SQLAlche
 | [SQLAlchemy](#sqlalchemy) | 3 | HIGH | Async sessions, relationships, migrations |
 | [Pooling](#pooling) | 3 | MEDIUM | Database pools, HTTP sessions, tuning |
 
-**Total: 12 rules across 4 categories**
+**Total: 12 rules across 4 categories.** House decisions rescued from thinned files live in `references/ork-delta.md`; vendor material is linked, not restated (see [Upstream coverage](#upstream-coverage-do-not-restate)).
 
 ## Quick Start
 
@@ -108,7 +108,7 @@ Production-ready FastAPI patterns for lifespan, dependencies, middleware, and se
 - **Dependency injection** with class-based services and `Depends()`
 - **Middleware stack**: CORS -> RequestID -> Timing -> Logging
 - **Pydantic Settings** with `.env` and field validation
-- **Exception handlers** with RFC 9457 Problem Details
+- **Exception handlers** wired to RFC 9457 Problem Details bodies (the body format itself is `ork:api-design`)
 
 ### Key Decisions
 
@@ -160,6 +160,9 @@ Database and HTTP connection pooling for high-performance async Python applicati
 pool_size = (concurrent_requests / avg_queries_per_request) * 1.5
 ```
 
+That formula sizes one process. The fleet-level cap against the server's
+`max_connections`, and the pool alert thresholds, are in `references/ork-delta.md`.
+
 ## Anti-Patterns (FORBIDDEN)
 
 ```python
@@ -174,9 +177,36 @@ pool_size = (concurrent_requests / avg_queries_per_request) * 1.5
 # NEVER forget to close pools on shutdown
 ```
 
+## Upstream coverage (do not restate)
+
+Topics removed in the 2026-07-31 wrap-plus-delta thinning. Consult the first-party source; only the ork delta (house policy, scars, working config) belongs in this skill. Where a row says a house subset stays in a `rules/` file, that file is still the authority for the OrchestKit position and the link only covers the vendor surface around it.
+
+| Topic | First-party source |
+|-------|--------------------|
+| asyncio task API reference: TaskGroup vs `gather()`, `asyncio.timeout()`, `ExceptionGroup` and `except*`, `to_thread()`. House subset stays in `rules/asyncio-taskgroup.md` and `rules/asyncio-cancellation.md`. | https://docs.python.org/3/library/asyncio-task.html |
+| `asyncio.Semaphore`, `Lock`, `Event`, `Queue` semantics. House subset stays in `rules/asyncio-structured.md`; the create-once-plus-timeout rule is in `references/ork-delta.md`. | https://docs.python.org/3/library/asyncio-sync.html |
+| Event-loop debug mode, `slow_callback_duration`, detecting blocking calls (the house 100 ms threshold is in `references/ork-delta.md`) | https://docs.python.org/3/library/asyncio-dev.html |
+| FastAPI project scaffolding: app layout, `APIRouter` composition, Pydantic Settings wiring, uvicorn entry point | https://fastapi.tiangolo.com/tutorial/bigger-applications/ |
+| FastAPI lifespan API and startup/shutdown mechanics. House subset stays in `rules/fastapi-background.md`; the reverse-order teardown rule is in `references/ork-delta.md`. | https://fastapi.tiangolo.com/advanced/events/ |
+| Starlette/FastAPI middleware API, `BaseHTTPMiddleware`, `call_next`, CORS options. House subset stays in `rules/fastapi-middleware.md` and `references/fastapi-app-boilerplate.md`; the middleware-vs-dependency split is in `references/ork-delta.md`. | https://fastapi.tiangolo.com/tutorial/middleware/ |
+| SQLAlchemy 2.0 asyncio API: `create_async_engine`, `async_sessionmaker`, `expire_on_commit`, `Mapped`/`mapped_column`, `with_for_update`, bulk insert and update. House subset stays in `rules/sqlalchemy-sessions.md`, `rules/sqlalchemy-relationships.md`, `rules/sqlalchemy-migrations.md`, and `references/eager-loading.md`. | https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html |
+| SQLAlchemy pool implementations and options (`pool_size`, `max_overflow`, `pool_pre_ping`, `pool_recycle`, `pool_timeout`). House subset stays in `rules/pooling-database.md`. | https://docs.sqlalchemy.org/en/20/core/pooling.html |
+| SQLAlchemy pool events (`checkout`, `checkin`, `connect`) for instrumentation. House subset stays in `rules/pooling-tuning.md`; the alert thresholds are in `references/ork-delta.md`. | https://docs.sqlalchemy.org/en/20/core/events.html |
+| asyncpg pool API: `create_pool`, `min_size`/`max_size`, `max_inactive_connection_lifetime`, `setup` hook, type codecs | https://magicstack.github.io/asyncpg/current/api/index.html |
+| aiohttp client reference: `ClientSession`, `TCPConnector` limits, keep-alive, DNS caching, `ClientTimeout`. House subset stays in `rules/pooling-http.md`. | https://docs.aiohttp.org/en/stable/client_reference.html |
+| PostgreSQL server-side connection limits (`max_connections`, `superuser_reserved_connections`) | https://www.postgresql.org/docs/current/runtime-config-connection.html |
+| pytest-asyncio fixtures and async test setup | https://pytest-asyncio.readthedocs.io/en/stable/reference/fixtures/index.html |
+| Container and Kubernetes packaging, readiness/liveness probes, resource limits | https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/ |
+| Auth flows, password hashing, token expiry policy, security headers | Owned by `ork:security-patterns` (`src/skills/security-patterns/`); the FastAPI `Depends()` auth chain stays in `rules/fastapi-dependencies.md` |
+| RFC 9457 problem-details body format, API versioning, SSE and WebSocket wire contracts | Owned by `ork:api-design` (`src/skills/api-design/`); the FastAPI exception-handler wiring stays in `rules/fastapi-background.md` and `references/fastapi-app-boilerplate.md` |
+| Production checklists for FastAPI, asyncio, SQLAlchemy, and pooling | Derivable from the sources above; no checklist restatement kept |
+
 ## Related Skills
 
 - `ork:architecture-patterns` - Clean architecture and layer separation
 - `ork:async-jobs` - Celery/ARQ for background processing
-- `streaming-api-patterns` - SSE/WebSocket async patterns
+- `ork:api-design` - Wire contract, RFC 9457 errors, SSE/WebSocket streaming
 - `ork:database-patterns` - Database schema design
+- `ork:security-patterns` - Auth, password hashing, token policy
+- `ork:testing-integration` - pytest-asyncio and httpx ASGI test setup
+- `ork:devops-deployment` - Docker and Kubernetes packaging

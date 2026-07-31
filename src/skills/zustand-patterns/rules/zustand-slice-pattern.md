@@ -72,4 +72,4 @@ const useStore = create<AppStore>()(
 - Keep each slice in its own file, export only the creator function and interface
 - Declare middleware mutator types in the `StateCreator` generic so TypeScript knows available features
 
-Reference: `references/middleware-composition.md` (TypeScript Typing for Middleware)
+Reference: `references/ork-delta.md` (mutator tuple is graded here) and https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/advanced-typescript.md

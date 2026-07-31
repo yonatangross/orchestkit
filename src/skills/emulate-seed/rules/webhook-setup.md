@@ -85,4 +85,5 @@ if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
 - Clean up the webhook server in `afterAll` to prevent port leaks
 - Emulate delivers webhooks on state mutations (create, update, delete) — not on reads
 
-Reference: `references/sdk-patterns.md`
+Reference: `references/upstream.md` for the emulator lifecycle API,
+`references/ork-delta.md` for the ork-side corrections to it.

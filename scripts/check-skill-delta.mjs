@@ -40,6 +40,37 @@ const BASELINE_PATH = join(ROOT, 'tests', 'skills', 'structure', 'skill-delta-ba
 
 const RESTATE_MIN_LINES = 150;
 
+// VENDORED FILES ARE EXEMPT.
+// references/upstream*.md are not ours to thin: scripts/sync-vercel-skills.sh fetches them
+// verbatim from upstream and build-plugins.sh step 7.5 + tests/skills/test-upstream-refs.sh
+// require them present. They are restatement BY DESIGN, and they carry no ork anchors, so
+// without this exemption the gate reports them forever and actively pushes a thinning agent
+// to delete them. That happened: wave 2 removed 8 vendored files and broke the sync check.
+// Source of truth is the same mapping the sync script reads, so the two cannot drift.
+function loadVendoredPaths() {
+  const mappingPath = join(ROOT, 'vendor', 'vercel-skills', 'mapping.json');
+  const out = new Set();
+  if (!existsSync(mappingPath)) return out;
+  try {
+    const m = JSON.parse(readFileSync(mappingPath, 'utf8'));
+    const walkVal = (v) => {
+      if (typeof v === 'string') {
+        if (/\.md$/.test(v)) out.add(v.replace(/^\.\//, ''));
+      } else if (Array.isArray(v)) v.forEach(walkVal);
+      else if (v && typeof v === 'object') Object.values(v).forEach(walkVal);
+    };
+    walkVal(m);
+  } catch {
+    // A malformed mapping must not silently disable the exemption; fall back to the
+    // filename convention the sync script itself documents (references/upstream-*.md).
+  }
+  return out;
+}
+const VENDORED = loadVendoredPaths();
+const isVendored = (rel) =>
+  /(^|\/)references\/upstream[^/]*\.md$/.test(rel) ||
+  [...VENDORED].some((v) => rel.endsWith(v));
+
 // Anchors that can only originate from this repo / operator. A file with zero of
 // these across >150 lines is teaching upstream's product, not our use of it.
 const ORK_ANCHOR = new RegExp(
@@ -91,6 +122,7 @@ for (const dirent of readdirSync(skillsDir, { withFileTypes: true })) {
   for (const p of walk(skillPath)) {
     if (!p.endsWith('.md') || basename(p) === 'SKILL.md') continue;
     const rel = relative(ROOT, p);
+    if (isVendored(rel)) continue; // vendored upstream copy, not ours to thin
     const bucket = relative(skillPath, p).split('/')[0];
     const content = readFileSync(p, 'utf8');
     subjects.push({
@@ -104,12 +136,17 @@ for (const dirent of readdirSync(skillsDir, { withFileTypes: true })) {
   }
 }
 
+// The haystack MUST include tests/ and bin/. A skill file named in a test contract is
+// referenced, not orphaned. Scanning only src/ + manifests/ reported three EXPECTED_SCRIPTS
+// entries (tests/skills/scripts/test-specific-skills.sh) as orphans, and thinning agents duly
+// deleted them, turning that suite red. Same failure shape as the vendored-file exemption:
+// the gate must see every consumer, or it recommends deleting live contracts.
 const haystack = []; // { path, content }
-for (const top of ['src', 'manifests']) {
+for (const top of ['src', 'manifests', 'tests', 'bin']) {
   const d = join(ROOT, top);
   if (!existsSync(d)) continue;
   for (const p of walk(d)) {
-    if (!/\.(md|json|ts)$/.test(p)) continue;
+    if (!/\.(md|json|ts|sh|mjs|js)$/.test(p)) continue;
     haystack.push({ path: p, content: readFileSync(p, 'utf8') });
   }
 }

@@ -1,8 +1,8 @@
 {
   "note": "Ratchet baseline for check-skill-delta.mjs: counts may only decrease. Regenerate with --update-baseline only when findings are genuinely resolved.",
-  "orphanFiles": 146,
-  "orphanLines": 26517,
-  "restatementFiles": 175,
-  "restatementLines": 41793,
-  "overlapFiles": 1
+  "orphanFiles": 50,
+  "orphanLines": 5813,
+  "restatementFiles": 87,
+  "restatementLines": 17877,
+  "overlapFiles": 0
 }

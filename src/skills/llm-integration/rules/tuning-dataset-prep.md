@@ -7,119 +7,37 @@ tags: [synthetic-data, dataset, quality, deduplication, teacher-model, formattin
 
 # Dataset Preparation & Synthetic Data
 
-## Synthetic Data Generation
+Upstream (do not restate): TRL `SFTTrainer` and its accepted dataset formats
+live at https://huggingface.co/docs/trl/sft_trainer. Embedding models for
+similarity dedup live at https://sbert.net/. This rule keeps the pipeline
+order, our volume floors and the two steps teams skip.
+
+## Pipeline order (all four steps, in this order)
 
 ```python
-import json
-import asyncio
-from openai import AsyncOpenAI
+# 1. GENERATE with a teacher model, temperature high for diversity
+resp = await client.chat.completions.create(
+    model="gpt-5.5",                          # teacher, plain default id only
+    messages=[{"role": "system", "content": f"Generate a training example about {topic}."}],
+    response_format={"type": "json_object"},
+    temperature=0.9,
+)
 
-client = AsyncOpenAI()
+# 2. VALIDATE with a DIFFERENT model on the cost tier, never the teacher
+#    Score clarity / quality / realism 1-10; keep=false if any score < 6.
+validator_model = "claude-haiku-4-5-20251001"
 
-async def generate_training_example(topic: str) -> dict:
-    """Generate a single training example using teacher model."""
-    response = await client.chat.completions.create(
-        model="gpt-5.5",  # Teacher
-        messages=[{
-            "role": "system",
-            "content": f"Generate a training example about {topic}. "
-                      "Include instruction and response."
-        }],
-        response_format={"type": "json_object"},
-        temperature=0.9,  # Higher for diversity
-    )
-    return json.loads(response.choices[0].message.content)
-
-
-async def generate_dataset(topic: str, num_examples: int = 100) -> list[dict]:
-    """Generate dataset in batches."""
-    examples = []
-    batch_size = 10
-
-    for batch_start in range(0, num_examples, batch_size):
-        batch_tasks = [
-            generate_training_example(topic)
-            for _ in range(min(batch_size, num_examples - batch_start))
-        ]
-        batch_results = await asyncio.gather(*batch_tasks)
-        examples.extend(batch_results)
-
-    return examples
-```
-
-## Quality Validation
-
-```python
-async def validate_example(example: dict, validator_model: str = "claude-haiku-4-5-20251001") -> dict:
-    """Validate and score a training example."""
-    response = await client.chat.completions.create(
-        model=validator_model,
-        messages=[{
-            "role": "system",
-            "content": """Score this training example 1-10 on:
-- clarity: Is the instruction clear?
-- quality: Is the response high quality?
-- realism: Is this a realistic interaction?
-
-Output JSON: {"clarity": N, "quality": N, "realism": N, "keep": true/false}
-Set keep=false if any score < 6."""
-        }, {
-            "role": "user",
-            "content": f"Instruction: {example['instruction']}\n\nResponse: {example['response']}"
-        }],
-        response_format={"type": "json_object"},
-    )
-    return {**example, **json.loads(response.choices[0].message.content)}
-```
-
-## Deduplication
-
-```python
+# 3. DEDUPLICATE on instruction embeddings, cosine > 0.85 is a duplicate
 from sentence_transformers import SentenceTransformer
-import numpy as np
+embeddings = SentenceTransformer("all-MiniLM-L6-v2").encode(instructions)
 
-def deduplicate_examples(examples: list[dict], threshold: float = 0.85) -> list[dict]:
-    """Remove near-duplicate examples using embeddings."""
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-    instructions = [ex["instruction"] for ex in examples]
-    embeddings = model.encode(instructions)
-
-    unique_indices = []
-    for i, emb in enumerate(embeddings):
-        is_unique = True
-        for j in unique_indices:
-            similarity = np.dot(emb, embeddings[j]) / (
-                np.linalg.norm(emb) * np.linalg.norm(embeddings[j])
-            )
-            if similarity > threshold:
-                is_unique = False
-                break
-        if is_unique:
-            unique_indices.append(i)
-
-    return [examples[i] for i in unique_indices]
+# 4. FORMAT once, at the end: Alpaca (instruction/input/output) or
+#    ChatML (messages: [{role: user}, {role: assistant}]). Pick per trainer.
 ```
 
-## Dataset Formatting
-
-```python
-# Alpaca format
-def to_alpaca_format(examples: list[dict]) -> list[dict]:
-    return [{
-        "instruction": ex["instruction"],
-        "input": ex.get("input", ""),
-        "output": ex["response"],
-    } for ex in examples]
-
-# ChatML format
-def to_chatml_format(examples: list[dict]) -> list[dict]:
-    return [{
-        "messages": [
-            {"role": "user", "content": ex["instruction"]},
-            {"role": "assistant", "content": ex["response"]},
-        ]
-    } for ex in examples]
-```
+Steps 2 and 3 are the ones that get skipped. Generating straight into a
+training file is how a 1000-example dataset turns out to be 300 distinct
+examples repeated with paraphrase noise.
 
 ## Data Requirements by Task
 
@@ -135,11 +53,11 @@ def to_chatml_format(examples: list[dict]) -> list[dict]:
 
 1. **Quality > Quantity**: 1,000 high-quality examples beat 10,000 mediocre ones
 2. **Diversity**: Use seeds, varied prompts, multiple domains
-3. **Validation**: Filter with separate model, remove low-quality
+3. **Validation**: Filter with a separate model, remove low-quality
 4. **Deduplication**: Remove near-duplicates to prevent overfitting
 5. **Iterative Refinement**: Generate, train, evaluate, adjust generation
 
-**Incorrect — generating dataset without validation or deduplication:**
+**Incorrect, generating a dataset without validation or deduplication:**
 ```python
 async def generate_dataset(topic: str, num: int = 1000):
     examples = []
@@ -149,7 +67,7 @@ async def generate_dataset(topic: str, num: int = 1000):
     return examples
 ```
 
-**Correct — validating and deduplicating before saving:**
+**Correct, validating and deduplicating before saving:**
 ```python
 async def generate_dataset(topic: str, num: int = 1000):
     examples = []

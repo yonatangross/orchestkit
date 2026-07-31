@@ -29,6 +29,21 @@ OrchestKit security wrapper for `agent-browser`. **For command reference and usa
 
 > **Command docs**: Refer to the upstream `agent-browser` skill for the full command reference (50+ commands: interaction, wait, capture, extraction, storage, semantic locators, tabs, debug, mobile, network, cookies, state, vault).
 
+## Upstream coverage (do not restate)
+
+These topics belong to the vendor. Read them at the source; do not copy them back into this skill.
+
+| Topic | First-party source |
+|-------|--------------------|
+| CLI command reference, snapshot and ref loop, waits, auth options, eval, config file | `agent-browser` skill · https://github.com/vercel-labs/agent-browser/blob/main/skills/agent-browser/SKILL.md |
+| Electron and desktop-app automation over CDP (`connect`, `--cdp`, webviews, tabs) | https://github.com/vercel-labs/agent-browser/blob/main/skill-data/electron/SKILL.md |
+| Slack workspace navigation and extraction recipes | https://github.com/vercel-labs/agent-browser/blob/main/skill-data/slack/SKILL.md |
+| Running headless in a Vercel Sandbox microVM (deps, snapshots, cron) | `vercel:vercel-sandbox` skill · https://github.com/vercel-labs/agent-browser/blob/main/skill-data/vercel-sandbox/SKILL.md |
+| Exploratory QA sweep with repro evidence (issue taxonomy, report template) | `dogfood` skill · https://github.com/vercel-labs/agent-browser/blob/main/skill-data/dogfood/SKILL.md |
+| Named `.localhost` dev URLs | `ork:portless` skill · https://github.com/vercel-labs/portless |
+
+**Our delta over all of the above**: `references/ork-delta.md`, covering where the safety hook does and does not apply, the shared rate-limit budget, and the local-URL policy.
+
 ## Decision Tree
 
 ```bash
@@ -158,7 +173,7 @@ agent-browser open "http://localhost:3000"  # which app is this?
 
 **Native Rust rewrite (v0.20):** agent-browser is now 100% native Rust — the old Node.js/Playwright daemon (the "sidecar") is **gone**. It drives Chrome directly over CDP, so there is **no Node runtime, no Playwright, and no separate browser-driver process** to install or keep alive. Result: 99x smaller install (710→7 MB), 18x less memory (143→8 MB), 1.6x faster cold start.
 
-## Safety Guardrails (7 rules + 11-check hook)
+## Safety Guardrails (6 rules + the agent-browser-safety hook)
 
 This skill enforces safety through the `agent-browser-safety` PreToolUse hook and 6 rule files:
 
@@ -191,8 +206,10 @@ The hook intercepts all `agent-browser` Bash commands and enforces:
 |----------|-------|----------|
 | Ethics & Security | `browser-scraping-ethics.md`, `browser-auth-security.md` | CRITICAL |
 | Local Dev | `browser-portless-local-dev.md` | HIGH |
-| Reliability | `browser-rate-limiting.md`, `browser-snapshot-workflow.md` | HIGH |
+| Reliability | `browser-rate-limiting.md` | HIGH |
 | Debug & Device | `browser-debug-recording.md`, `browser-mobile-testing.md` | HIGH |
+
+Snapshot, ref lifecycle, iframe traversal, batch and diff workflows are upstream's (see the coverage table above); the parts we actually add are in `references/ork-delta.md`.
 
 ### Configuration
 
@@ -246,6 +263,7 @@ git add *.har                                  # NEVER commit HAR captures
 
 ## Related Skills
 
+- `references/ork-delta.md`: our delta, hook coverage gaps, shared rate-limit budget, local-URL policy
 - `agent-browser` (upstream) — Full command reference and usage patterns
 - `portless` (upstream) — Stable named `.localhost` URLs for local dev servers
 - `ork:web-research-workflow` — Unified decision tree for web research

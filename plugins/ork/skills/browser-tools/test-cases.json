@@ -4,7 +4,6 @@
   "testCases": [
     {
       "id": "page-interaction",
-      "rule": "browser-snapshot-workflow",
       "query": "Fill out a multi-step form and submit it using agent-browser",
       "expectedBehavior": [
         "Uses snapshot -i to discover interactive elements",
@@ -15,7 +14,6 @@
     },
     {
       "id": "content-extraction",
-      "rule": "browser-snapshot-workflow",
       "query": "Extract the main article text from a web page",
       "expectedBehavior": [
         "Uses targeted ref extraction (get text @e#) over full body",
@@ -81,7 +79,6 @@
     },
     {
       "id": "semantic-locators",
-      "rule": "browser-snapshot-workflow",
       "query": "Find and click a button by its visible text label",
       "expectedBehavior": [
         "Uses find command with visible text instead of fragile @ref numbers",

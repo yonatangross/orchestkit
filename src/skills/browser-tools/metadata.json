@@ -4,7 +4,7 @@
   "date": "March 2026",
   "abstract": "OrchestKit orchestration wrapper for browser automation. Adds security rules, rate limiting, and ethical scraping guardrails on top of the upstream agent-browser skill.",
   "ruleCount": 6,
-  "categories": 3,
+  "categories": 4,
   "consolidatedFrom": [
     "browser-automation",
     "browser-content-capture"

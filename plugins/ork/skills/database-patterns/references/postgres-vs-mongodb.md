@@ -79,7 +79,7 @@ These cases are rare but legitimate:
 
 ## Migration: MongoDB to PostgreSQL
 
-See `references/migration-paths.md` for detailed migration strategies.
+See `references/db-migration-paths.md` for detailed migration strategies.
 
 Quick summary:
 1. Map collections to tables (or JSONB columns for truly flexible data)

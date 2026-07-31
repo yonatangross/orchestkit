@@ -66,4 +66,4 @@ done
 - Use `diff screenshot` to compare rendering across devices
 - Do not rely solely on emulation — iOS Simulator provides higher-fidelity results for iOS-specific issues
 
-Reference: `references/mobile-testing.md` (Device Emulation, iOS Simulator)
+Reference: device emulation and iOS Simulator commands are upstream, see the `agent-browser` skill. Our delta: `references/ork-delta.md`.

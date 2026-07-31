@@ -13,19 +13,21 @@ When running tests in parallel (Vitest, Jest workers, CI matrix), each worker ne
 
 ```typescript
 // vitest.setup.ts — each worker gets a unique port
-import { createEmulate } from '@emulators/emulate'
-import type { Emulator } from '@emulators/emulate'
+import { readFileSync } from 'node:fs'
+import { parse } from 'yaml'
+import { createEmulator, type Emulator, type SeedConfig } from 'emulate'
 
 let github: Emulator
 
 const BASE_PORT = 4001
 const workerPort = BASE_PORT + parseInt(process.env.VITEST_WORKER_ID || '0')
+const seed = parse(readFileSync('./emulate.config.yaml', 'utf8')) as SeedConfig
 
 beforeAll(async () => {
-  github = await createEmulate({
+  github = await createEmulator({
     service: 'github',
     port: workerPort,
-    seed: './emulate.config.yaml'
+    seed
   })
   process.env.GITHUB_API_BASE = github.url
 })
@@ -50,7 +52,7 @@ const workerPort = 4001 + parseInt(process.env.JEST_WORKER_ID || '0')
 
 ```typescript
 // BAD: shared port causes race conditions
-const github = await createEmulate({ service: 'github', port: 4001 })
+const github = await createEmulator({ service: 'github', port: 4001 })
 
 // Worker 1 creates a PR, Worker 2 sees it — non-deterministic
 ```
@@ -60,7 +62,7 @@ const github = await createEmulate({ service: 'github', port: 4001 })
 ```typescript
 // GOOD: each worker has isolated state
 const workerPort = 4001 + parseInt(process.env.VITEST_WORKER_ID || '0')
-const github = await createEmulate({ service: 'github', port: workerPort })
+const github = await createEmulator({ service: 'github', port: workerPort })
 
 // Worker 1 on :4002, Worker 2 on :4003 — fully isolated
 ```
@@ -94,5 +96,8 @@ jobs:
 - In CI matrix builds, use shard index with a multiplier (e.g., `* 100`) to avoid port overlap between shards
 - Never rely on a single shared emulator instance for parallel test execution
 - Always set `GITHUB_API_BASE` per worker so test code uses the correct port
+- Import `createEmulator` from `emulate`; `createEmulate` and the `@emulators/emulate`
+  package do not exist (see `references/ork-delta.md`)
 
-Reference: `references/sdk-patterns.md`
+Reference: `references/upstream.md` for the emulator lifecycle API,
+`references/ork-delta.md` for the ork-side corrections to it.

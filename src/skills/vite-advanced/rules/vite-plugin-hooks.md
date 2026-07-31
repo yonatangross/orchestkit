@@ -77,4 +77,4 @@ export function preProcessPlugin(): Plugin {
 - Set `apply: 'build'` or `apply: 'serve'` to restrict a plugin to one mode.
 - Access `this.environment` in hooks (Vite 6+) for environment-specific transforms.
 
-Reference: `references/plugin-development.md`
+Reference: full hook reference at https://vite.dev/guide/api-plugin.

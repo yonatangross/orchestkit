@@ -72,4 +72,6 @@ export function envAwarePlugin(): Plugin {
 - For edge runtimes, set `resolve.noExternal: true` and `resolve.conditions` for edge-specific package exports.
 - Vite 7 requires Node.js 20.19+ or 22.12+ for `require(esm)` support.
 
-Reference: `references/environment-api.md`
+Reference: https://vite.dev/guide/api-environment for the config surface and
+https://vite.dev/guide/api-environment-plugins for `this.environment` and
+`perEnvironmentPlugin`.

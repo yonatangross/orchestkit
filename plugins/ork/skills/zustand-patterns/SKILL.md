@@ -35,11 +35,25 @@ Modern state management with Zustand 5.x - lightweight, TypeScript-first, no boi
 - Computed/derived state with selectors
 - State that needs middleware (logging, devtools, persistence)
 
-## Core Patterns
+## Upstream coverage (do not restate)
 
-Covers basic stores, slices, Immer, persist, selectors, async actions, and devtools.
+Zustand's own docs are the source for the mechanics. This skill carries only the OrchestKit delta
+on top of them, in `references/ork-delta.md`, the `rules/` files, and the checklist.
 
-Load Read("${CLAUDE_SKILL_DIR}/references/core-patterns.md") for full code examples of all 7 core patterns.
+| Topic | First-party source |
+|-------|--------------------|
+| Basic store, `create<State>()()`, actions, async actions | https://github.com/pmndrs/zustand/blob/main/docs/reference/apis/create.md |
+| Slices pattern (splitting and combining stores) | https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/slices-pattern.md |
+| Typing slices and middleware mutator tuples | https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/advanced-typescript.md |
+| Immer middleware (draft mutations) | https://github.com/pmndrs/zustand/blob/main/docs/reference/middlewares/immer.md |
+| persist: `partialize`, `version`, `migrate`, `onRehydrateStorage`, storage adapters | https://github.com/pmndrs/zustand/blob/main/docs/reference/middlewares/persist.md |
+| devtools: action names, `enabled`, `serialize`, `trace` | https://github.com/pmndrs/zustand/blob/main/docs/reference/middlewares/devtools.md |
+| `subscribeWithSelector` and non-React subscriptions | https://github.com/pmndrs/zustand/blob/main/docs/reference/middlewares/subscribe-with-selector.md |
+| Selectors and `useShallow` re-render control | https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/prevent-rerenders-with-use-shallow.md |
+| v4 to v5 migration (`createWithEqualityFn`, React 18 floor) | https://github.com/pmndrs/zustand/blob/main/docs/reference/migrations/migrating-to-v5.md |
+| SSR and hydration | https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/ssr-and-hydration.md |
+| Store testing and reset | https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/testing.md |
+| Server-state ownership (use TanStack Query, not Zustand) | https://tanstack.com/query/latest/docs/framework/react/guides/does-this-replace-client-state |
 
 ## Quick Reference
 
@@ -82,9 +96,9 @@ Load Read("${CLAUDE_SKILL_DIR}/references/anti-patterns-and-integration.md") for
 
 ## Related Skills
 
-- `tanstack-query-advanced` - Server state management (use with Zustand for client state)
-- `form-state-patterns` - Form state (React Hook Form vs Zustand for forms)
 - `react-server-components-framework` - RSC hydration considerations with Zustand
+- Server state: https://tanstack.com/query/latest/docs/framework/react/guides/does-this-replace-client-state
+- Form state: https://react-hook-form.com/docs/useform
 
 ## Capability Details
 
@@ -114,9 +128,8 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 | File | Content |
 |------|---------|
-| `core-patterns.md` | Basic store, slices, Immer, persist, selectors, async, devtools |
+| `ork-delta.md` | OrchestKit-specific rules: the corrected `zustand/shallow` label, the v5 floor, secret handling, graded slice typing |
 | `anti-patterns-and-integration.md` | Forbidden patterns and React Query integration |
-| `middleware-composition.md` | Combining multiple middleware in correct order |
 
 Other resources:
 - Load: `Read("${CLAUDE_SKILL_DIR}/scripts/store-template.ts")` - Production-ready store template

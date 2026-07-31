@@ -1271,6 +1271,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Decision Tree",
             "does": "",
             "out": null,
@@ -1299,7 +1306,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Safety Guardrails (7 rules + 11-check hook)",
+            "label": "Safety Guardrails (6 rules + the agent-brow…",
             "does": "",
             "out": null,
             "tag": null
@@ -1655,7 +1662,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
-            "label": "Code Review Philosophy",
+            "label": "Upstream coverage (do not restate)",
             "does": "",
             "out": null,
             "tag": null
@@ -2111,6 +2118,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "id": "map",
         "label": "What it covers",
         "nodes": [
+          {
+            "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
           {
             "num": "",
             "label": "Alembic Migrations",
@@ -3187,14 +3201,14 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "CLI Reference",
+            "label": "Upstream coverage (do not restate)",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "SDK Patterns",
+            "label": "CLI Reference",
             "does": "",
             "out": null,
             "tag": null
@@ -4334,6 +4348,20 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Supporting Files",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Key Decisions",
             "does": "",
             "out": null,
@@ -4680,6 +4708,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Infrastructure Monitoring",
             "does": "",
             "out": null,
@@ -4688,13 +4723,6 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "LLM Observability",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Drift Detection",
             "does": "",
             "out": null,
             "tag": null
@@ -5480,6 +5508,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "does": "",
             "out": null,
             "tag": null
+          },
+          {
+            "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
           }
         ]
       }
@@ -5495,6 +5530,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "Core Concepts",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Upstream coverage (do not restate)",
             "does": "",
             "out": null,
             "tag": null
@@ -6653,6 +6695,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "emulate Backends",
             "does": "",
             "out": null,
@@ -7324,35 +7373,28 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
-            "label": "Vite 8: Rolldown-Powered Builds (Default)",
+            "label": "Upstream coverage (do not restate)",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "Environment API (from Vite 7, stable)",
+            "label": "House delta",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "Plugin Development",
+            "label": "House config",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "SSR Configuration",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Build Optimization",
+            "label": "Rules",
             "does": "",
             "out": null,
             "tag": null
@@ -7504,7 +7546,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
-            "label": "Core Patterns",
+            "label": "Upstream coverage (do not restate)",
             "does": "",
             "out": null,
             "tag": null

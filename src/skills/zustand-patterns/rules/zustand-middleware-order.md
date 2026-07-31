@@ -63,4 +63,4 @@ const useStore = create<AppState>()(
 - **persist** is always outermost -- serializes the final, fully transformed state to storage
 - When using a subset, preserve relative order (e.g., `devtools(immer(...))` not `immer(devtools(...))`)
 
-Reference: `references/middleware-composition.md` (Middleware Execution Order, Why Order Matters)
+Reference: upstream middleware docs, https://github.com/pmndrs/zustand/blob/main/docs/reference/middlewares/persist.md and https://github.com/pmndrs/zustand/blob/main/docs/reference/middlewares/immer.md

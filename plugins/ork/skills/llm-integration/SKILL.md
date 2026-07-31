@@ -148,6 +148,31 @@ Design, version, and optimize prompts for production LLM applications.
 - `prompt-react-pattern.md` -- ReAct loop for tool-using agents, thought-action-observation format
 - `prompt-optimization.md` -- Token reduction, cost optimization, model tiering, prompt spec format
 
+## Upstream coverage (do not restate)
+
+These topics are covered by their vendors' own documentation. This skill points
+at them instead of teaching them; the rules above keep only our floors, ceilings
+and scars. Our delta on all of it is in `references/ork-delta.md`.
+
+| Topic | First-party source |
+|-------|--------------------|
+| Strict-mode tool schemas, structured outputs | https://platform.openai.com/docs/guides/function-calling |
+| Anthropic `input_schema` / `tool_use` | https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview |
+| SSE client mechanics, reconnection, cancellation | https://developer.mozilla.org/en-US/docs/Web/API/EventSource |
+| LoRA / QLoRA config, target modules, adapter merging | https://huggingface.co/docs/peft/developer_guides/lora |
+| Unsloth training loop, 4-bit loading | https://docs.unsloth.ai/get-started/fine-tuning-llms-guide |
+| DPO, preference pairs, beta tuning, RLHF comparison | https://huggingface.co/docs/trl/dpo_trainer |
+| SFT dataset formats (Alpaca, ChatML) | https://huggingface.co/docs/trl/sft_trainer |
+| Embedding similarity for dataset dedup | https://sbert.net/ |
+| Fine-tune vs prompt vs RAG decision framework | https://platform.openai.com/docs/guides/optimizing-llm-accuracy |
+| Vendor token pricing (never hardcode it here) | https://platform.openai.com/docs/pricing |
+
+## Supporting Files
+
+- `references/ork-delta.md` -- our delta: scars, house ceilings, retired-file provenance
+- `references/model-selection.md` -- local model comparison by task and hardware
+- `scripts/create-lora-config.md` -- LoRA config scaffold with auto-detected model type
+
 ## Key Decisions
 
 | Decision | Recommendation |

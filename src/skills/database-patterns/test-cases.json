@@ -3,17 +3,6 @@
   "version": "2.0.0",
   "testCases": [
     {
-      "id": "alembic-autogenerate",
-      "rule": "alembic-autogenerate",
-      "query": "Generate an Alembic migration from SQLAlchemy model changes",
-      "expectedBehavior": [
-        "Uses alembic revision --autogenerate to detect model changes and generate migrations",
-        "Configures async env.py with asyncpg for non-blocking migration execution",
-        "Reviews generated SQL before applying to catch incorrect or destructive operations",
-        "Sets target_metadata from Base.metadata to enable accurate schema introspection"
-      ]
-    },
-    {
       "id": "alembic-data-migration",
       "rule": "alembic-data-migration",
       "query": "Add a NOT NULL column to a large production table",
@@ -77,17 +66,6 @@
         "Uses semantic versioning (MAJOR.MINOR.PATCH) for schema change classification and compatibility",
         "Implements audit trail with row-level versioning or CDC",
         "Tracks applied_at, applied_by, and execution_time for complete migration audit history"
-      ]
-    },
-    {
-      "id": "versioning-rollback",
-      "rule": "versioning-rollback",
-      "query": "Test database migration rollback procedures",
-      "expectedBehavior": [
-        "Tests upgrade and downgrade cycle locally",
-        "Verifies data preservation after rollback to ensure no records are lost",
-        "Documents destructive rollbacks in migration docstring",
-        "Includes CI pipeline for migration testing"
       ]
     },
     {

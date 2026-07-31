@@ -18,144 +18,30 @@ Assess complexity for: $ARGUMENTS
 
 ## Your Task
 
-Analyze complexity for target: **$ARGUMENTS**
+Gather the per-target metrics, then score against the 1-5 table in `SKILL.md`
+("Complexity Scoring"). Do not restate that table here.
 
-Use the following commands to gather metrics:
 - Files: `find "$ARGUMENTS" -type f | wc -l`
 - Lines of code: `find "$ARGUMENTS" -type f \( -name "*.py" -o -name "*.ts" \) -exec awk 'END{print NR}' {} + | awk '{s+=$1} END{print s+0}'`
+- Dependencies: `grep -r "import\|from" "$ARGUMENTS" | wc -l`
 - Test files: `find "$ARGUMENTS" -name "*test*" | wc -l`
-- Recent changes: `git log --oneline --since="1 week ago" -- "$ARGUMENTS"`
+- Recent churn: `git log --oneline --since="1 week ago" -- "$ARGUMENTS"`
 
-> Line counts use `-exec awk` rather than `xargs wc -l`: xargs batches long file lists
-> and `wc` emits one total per batch, so `tail -1` silently drops all but the last.
-> See `shared/rules/shell-count-correctness.md`.
+For the batch version of the same scan (files, LOC, tests, churn, dependency count in
+one pass) run `scripts/analyze-codebase.sh "$ARGUMENTS"` instead.
 
-## Complexity Assessment
+> Line counts use `-exec awk 'END{print NR}'` rather than `xargs wc -l | tail -1`:
+> xargs batches long file lists and `wc` emits one total per batch, so `tail -1`
+> silently drops all but the last (measured 83% undercount on a 6k-file tree).
+> See `src/skills/shared/rules/shell-count-correctness.md` and
+> `references/ork-delta.md`.
 
-### Task: $ARGUMENTS
+## Output
 
-**Date:** !`date +%Y-%m-%d`
-**Assessor:** Quality Gates Agent
+Report the measured numbers, the assigned complexity level, and the gate decision:
 
----
+- **Level 1-3**: proceed to the gate check in `SKILL.md` ("Gate Decision Flow").
+- **Level 4-5**: BLOCKED until decomposed into Level 1-3 subtasks, then reassess each.
 
-## Assessment Criteria
-
-Score each criterion, then sum for total complexity assessment:
-
-### 1. Lines of Code Estimate
-
-- [ ] **< 50 lines** = 1 point
-- [ ] **50-200 lines** = 2 points
-- [ ] **200-500 lines** = 3 points
-- [ ] **500-1500 lines** = 4 points
-- [ ] **1500+ lines** = 5 points
-
-**Estimated LOC**: [Run: `find "$ARGUMENTS" -type f \( -name "*.py" -o -name "*.ts" \) -exec awk 'END{print NR}' {} + | awk '{s+=$1} END{print s+0}'`]
-**Score:** _____ / 5
-
----
-
-### 2. Time Estimate
-
-- [ ] **< 30 minutes** = 1 point
-- [ ] **30 minutes - 2 hours** = 2 points
-- [ ] **2-8 hours** = 3 points
-- [ ] **8-24 hours (1-3 days)** = 4 points
-- [ ] **24+ hours (3+ days)** = 5 points
-
-**Score:** _____ / 5
-
----
-
-### 3. Number of Files
-
-- [ ] **1 file** = 1 point
-- [ ] **2-3 files** = 2 points
-- [ ] **4-10 files** = 3 points
-- [ ] **11-25 files** = 4 points
-- [ ] **26+ files** = 5 points
-
-**Files Affected**: [Run: `find "$ARGUMENTS" -type f | wc -l`]
-**Score:** _____ / 5
-
----
-
-### 4. Dependencies Count
-
-- [ ] **0 dependencies** = 1 point
-- [ ] **1 dependency** = 2 points
-- [ ] **2-3 dependencies** = 3 points
-- [ ] **4-6 dependencies** = 4 points
-- [ ] **7+ dependencies** = 5 points
-
-**Imports Found**: [Run: `grep -r "import\|from" "$ARGUMENTS" | wc -l`]
-**Score:** _____ / 5
-
----
-
-### 5. Unknowns/Uncertainty
-
-- [ ] **No unknowns** - Everything clear = 1 point
-- [ ] **Minimal unknowns** - 1-2 minor questions = 2 points
-- [ ] **Some unknowns** - Several questions, researchable = 3 points
-- [ ] **Significant unknowns** - Many questions, requires exploration = 4 points
-- [ ] **Many unknowns** - Unclear scope, needs prototyping = 5 points
-
-**Score:** _____ / 5
-
----
-
-### 6. Cross-Cutting Concerns
-
-- [ ] **Isolated change** - Single module = 1 point
-- [ ] **Minor integration** - 2-3 modules = 2 points
-- [ ] **Multiple integrations** - 4-5 modules = 3 points
-- [ ] **Cross-cutting** - Affects many modules = 4 points
-- [ ] **Architectural** - System-wide impact = 5 points
-
-**Score:** _____ / 5
-
----
-
-### 7. Risk Level
-
-- [ ] **No risk** - Trivial change = 1 point
-- [ ] **Low risk** - Well-understood pattern = 2 points
-- [ ] **Medium risk** - Some complexity, testable = 3 points
-- [ ] **High risk** - Complex logic, many edge cases = 4 points
-- [ ] **Very high risk** - Mission-critical, high stakes = 5 points
-
-**Score:** _____ / 5
-
----
-
-## Total Complexity Score
-
-**Sum of all scores:** _____ / 35
-
-### Complexity Level Assignment
-
-Calculate average score: **Total ÷ 7 = _____**
-
-**Final Complexity Level:**
-
-- [ ] **Level 1 (Trivial)** - Average 1.0-1.4
-- [ ] **Level 2 (Simple)** - Average 1.5-2.4
-- [ ] **Level 3 (Moderate)** - Average 2.5-3.4
-- [ ] **Level 4 (Complex)** - Average 3.5-4.4
-- [ ] **Level 5 (Very Complex)** - Average 4.5-5.0
-
-**Assigned Level:** _____
-
----
-
-## Decision
-
-**Complexity Level:** [1-5]
-
-**Can Proceed Directly:** ✅ Yes (Level 1-3) / ❌ No (Level 4-5, needs breakdown)
-
-**Next Action:**
-- **If Level 1-3:** Proceed with gate check
-- **If Level 4-5:** Break down into subtasks, then reassess
+Complexity is `max(file_count, LOC, dependency_count, unknowns)` mapped onto the
+`SKILL.md` table, not an average: one Level 5 axis makes the task Level 5.

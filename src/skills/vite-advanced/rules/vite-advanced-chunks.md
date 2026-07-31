@@ -75,4 +75,5 @@ export default defineConfig({
 - When migrating Vite 7 to 8, convert package arrays to regex and make implicit ordering explicit via `priority`.
 - `manualChunks` is deprecated in Vite 8 — prefer `advancedChunks` for new projects.
 
-Reference: `references/chunk-optimization.md`
+Reference: full `advancedChunks` option list at https://vite.dev/guide/rolldown; house
+chunk-naming and verification rules in `references/ork-delta.md`.

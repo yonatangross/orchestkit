@@ -14,110 +14,106 @@ description: "Advanced Vite 8 patterns including Rolldown-powered builds, advanc
 
 # Vite Advanced Patterns
 
-Advanced configuration for **Vite 8** (Rolldown-powered, stable Mar 2026) with Environment API from Vite 7.
+A wrapper around **Vite 8** (Rolldown-powered), not a copy of its documentation.
+Vite's own docs are the source of truth for config keys, API surface, and migration
+mechanics. This skill carries the house delta plus four enforceable rules.
 
-## Vite 8: Rolldown-Powered Builds (Default)
+Vite 8 replaces the esbuild+Rollup pipeline with **Rolldown** (Rust-based unified
+bundler) and is the default for new projects. `advancedChunks` supersedes
+`manualChunks`; `build.rollupOptions` becomes `build.rolldownOptions`.
 
-Vite 8 replaces esbuild+Rollup with **Rolldown** (Rust-based unified bundler), delivering 7.7x faster builds and 50% less memory. This is now the default for all new projects.
+## Upstream coverage (do not restate)
 
-```bash
-npm install vite@8  # Direct upgrade
-```
+Fetch these from Vite rather than expecting them here. Rows marked with a rule keep a
+narrower, enforceable house subset in that rule file: read the rule for the house
+position, fetch the doc for the full API.
 
-**Key improvements:**
+| Topic | Fetch from |
+|-------|------------|
+| Vite 7 to 8 migration: `rolldownOptions`, `transformWithOxc`, `moduleType: 'js'`, removed hooks and output formats, browser target bumps | https://vite.dev/guide/migration |
+| Rolldown adoption path, `rolldown-vite`, Oxc, `advancedChunks` group syntax (house subset stays in `rules/vite-advanced-chunks.md`) | https://vite.dev/guide/rolldown |
+| Build options: `target`, `minify`, `sourcemap`, `cssCodeSplit`, `cssMinify`, `assetsInlineLimit`, `chunkSizeWarningLimit` | https://vite.dev/config/build-options |
+| Dependency pre-bundling and `optimizeDeps` include/exclude/force | https://vite.dev/guide/dep-pre-bundling |
+| SSR: client and server entry points, middleware-mode dev server, production server wiring, streaming | https://vite.dev/guide/ssr |
+| Environment API config and per-environment build output (house subset stays in `rules/vite-environments.md`) | https://vite.dev/guide/api-environment |
+| Environment API for plugins: `this.environment`, `perEnvironmentPlugin`, `applyToEnvironment` | https://vite.dev/guide/api-environment-plugins |
+| Environment API for frameworks: `createBuilder`, `buildApp`, `ModuleRunner` | https://vite.dev/guide/api-environment-frameworks |
+| Plugin hook reference, virtual modules, `enforce`/`apply`, `handleHotUpdate` (house subset stays in `rules/vite-plugin-hooks.md`) | https://vite.dev/guide/api-plugin |
+| Env variables and modes, `.env` files, the `VITE_` prefix | https://vite.dev/guide/env-and-mode |
+| Deploying a static site and verifying with `vite preview` | https://vite.dev/guide/static-deploy |
 
-| Metric | Vite 7 | Vite 8 | Improvement |
-|--------|--------|--------|-------------|
-| Build time (Linear) | 46s | 6s | **7.7x faster** |
-| Dev server startup | ~3s | ~1s | **3x faster** |
-| HMR updates | ~100ms | ~60ms | **40% faster** |
-| Memory usage | ~800MB | ~400MB | **50% reduction** |
+Library mode is not in the table: `references/library-mode.md` and
+`rules/vite-lib-config.md` still carry it in full.
 
-**Breaking changes from Vite 7:**
-- `build.rollupOptions` → `build.rolldownOptions` (auto-converted with deprecation warning)
-- `transformWithEsbuild` → `transformWithOxc`
-- Plugin `transform()` returning JS must add `moduleType: 'js'` to return value
-- `manualChunks` object form removed — use function form or `advancedChunks`
-- `'system'` / `'amd'` output formats no longer supported
-- Lightning CSS is now standard (replaces esbuild for CSS minification)
-- Browser target bump: Chrome 107→111, Firefox 104→114, Safari 16.0→16.4
+## House delta
 
-### advancedChunks (Replaces manualChunks)
+Read `$\{CLAUDE_SKILL_DIR\}/references/ork-delta.md` for the rules Vite's docs do not
+state: the Vite 8 adoption path for existing production apps, the `VITE_` secrets
+rule, the production sourcemap setting, the house build budget, the `vite preview`
+gate, chunk-name stability across the `advancedChunks` migration, the visualizer
+diff requirement, and the `node_modules/.vite` cache-clearing step.
 
-Vite 8 introduces declarative chunk grouping with priority control and size constraints:
+## House config
 
-```typescript
+Not a Vite tutorial: these are the settings the delta above makes non-negotiable, in the
+shape we actually ship them.
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+
 export default defineConfig({
   build: {
-    rolldownOptions: {
+    // 'hidden' emits maps for the error reporter without publishing source.
+    // Never true (publishes source) and never 'inline' (inflates every JS file).
+    sourcemap: 'hidden',
+    rollupOptions: {
       output: {
+        // Carry existing chunk NAMES across the manualChunks to advancedChunks
+        // migration. A renamed group changes its filename and invalidates that
+        // chunk for every returning visitor, even with identical contents.
         advancedChunks: {
           groups: [
-            { name: 'react-vendor', test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/, priority: 20 },
-            { name: 'ui-vendor', test: /[\\/]node_modules[\\/]@radix-ui[\\/]/, priority: 15, minShareCount: 2 },
-            { name: 'vendor', test: /[\\/]node_modules[\\/]/, priority: 10, maxSize: 500000 },
+            { name: 'vendor', test: /node_modules/, priority: 10 },
+            { name: 'app', priority: 0 },
           ],
         },
       },
     },
   },
-})
-```
-
-Load Read("$\{CLAUDE_SKILL_DIR\}/references/vite8-rolldown.md") for full migration options, benchmarks, advancedChunks syntax, Oxc benefits, and migration checklist.
-
-## Environment API (from Vite 7, stable)
-
-Multi-environment support (client/SSR/edge) is first-class:
-
-```typescript
-export default defineConfig({
-  environments: {
-    client: { build: { outDir: 'dist/client' } },
-    ssr: { build: { outDir: 'dist/server', ssr: true } },
-  },
 });
 ```
 
-Load Read("$\{CLAUDE_SKILL_DIR\}/references/environment-api.md") for full configuration, per-environment plugins, Builder API, and `buildApp` hook.
+```bash
+# Prove the build. `vite build` exiting 0 means the bundler finished, not that the
+# app runs: base-path mistakes and dev-only env vars survive a green build.
+vite build && vite preview      # then walk the routes, console must be clean
 
-## Plugin Development
+# Diff the chunk graph before and after any chunk-config change.
+npx vite-bundle-visualizer
 
-Hooks for `config`, `transform`, `resolveId`, `load`, virtual modules, HMR, and environment-aware transforms.
+# Stale pre-bundle cache mimics a broken plugin. Clear it BEFORE editing plugin code.
+rm -rf node_modules/.vite && vite --force
+```
 
-Load Read("$\{CLAUDE_SKILL_DIR\}/references/plugin-development.md") for plugin structure, hook execution order, and advanced patterns.
+> `VITE_`-prefixed variables are inlined into the client bundle at build time. They are
+> public bundle content, never secrets. Audit `.env.production` before deploy.
 
-## SSR Configuration
+## Rules
 
-Middleware mode for dev, separate client/server builds for prod, streaming SSR support.
-
-Load Read("$\{CLAUDE_SKILL_DIR\}/references/ssr-configuration.md") for entry points, dev/prod server setup, and streaming patterns.
-
-## Build Optimization
-
-Chunk splitting with `advancedChunks` (Vite 8, preferred) or `manualChunks` (Vite 7 legacy), tree shaking, minification, and bundle analysis.
-
-Load Read("$\{CLAUDE_SKILL_DIR\}/references/chunk-optimization.md") for chunk strategies, build targets, and optimization checklist.
-
-## Quick Reference
-
-| Feature | Vite 8 Status |
-|---------|---------------|
-| Rolldown bundler | **Default** (replaces esbuild+Rollup) |
-| Environment API | Stable (from Vite 7) |
-| ESM-only distribution | Default |
-| Node.js requirement | 20.19+ or 22.12+ |
-| `advancedChunks` | New (replaces `manualChunks`) |
-| `buildApp` hook | Stable (for multi-env plugins) |
-| `createBuilder` | Multi-env builds |
-| Oxc integration | Parsing 3x faster than SWC |
+| Rule | Covers |
+|------|--------|
+| `rules/vite-advanced-chunks.md` | Chunk splitting: `advancedChunks` groups, priority, `maxSize`, `minShareCount` |
+| `rules/vite-environments.md` | `environments` config for client, SSR, and edge; per-environment `outDir` |
+| `rules/vite-lib-config.md` | Library mode externals, dual ESM/CJS output, `exports` map, type declarations |
+| `rules/vite-plugin-hooks.md` | Hook order, virtual modules via `resolveId` + `load`, `enforce` and `apply` |
 
 ## Key Decisions
 
 | Decision | Recommendation |
 |----------|----------------|
 | New projects | **Vite 8** (default) |
-| Existing production apps | Evaluate Vite 8, use `rolldown-vite` for gradual migration |
+| Existing production apps | Stage the upgrade through `rolldown-vite` before committing |
 | Multi-env builds | Environment API (`environments` config) |
 | Plugin scope | Use `this.environment` for env-aware plugins |
 | SSR | Middleware mode for dev, separate builds for prod |
@@ -125,10 +121,9 @@ Load Read("$\{CLAUDE_SKILL_DIR\}/references/chunk-optimization.md") for chunk st
 
 ## Related Skills
 
-- `biome-linting` - Fast linting alongside Vite
 - `ork:react-server-components-framework` - SSR integration
-- `edge-computing-patterns` - Edge environment builds
 - `ork:storybook-testing` - Component testing with Vitest
+- `ork:performance` - Core Web Vitals targets behind the build budget
 
 ## References
 
@@ -136,12 +131,8 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 
 | File | Content |
 |------|---------|
-| `vite8-rolldown.md` | Rolldown migration, benchmarks, advancedChunks, Oxc benefits |
-| `environment-api.md` | Multi-environment builds, Builder API, per-env plugins |
-| `plugin-development.md` | Plugin hooks, virtual modules, HMR, env-aware transforms |
-| `ssr-configuration.md` | Entry points, dev/prod servers, streaming SSR |
+| `ork-delta.md` | House rules that Vite's docs do not state |
 | `library-mode.md` | Building publishable npm packages |
-| `chunk-optimization.md` | advancedChunks, manualChunks, tree shaking, bundle analysis |
 
 
 ---
@@ -220,7 +211,8 @@ export default defineConfig({
 - When migrating Vite 7 to 8, convert package arrays to regex and make implicit ordering explicit via `priority`.
 - `manualChunks` is deprecated in Vite 8 — prefer `advancedChunks` for new projects.
 
-Reference: `references/chunk-optimization.md`
+Reference: full `advancedChunks` option list at https://vite.dev/guide/rolldown; house
+chunk-naming and verification rules in `references/ork-delta.md`.
 
 
 ### Configure Vite environment API to separate client and SSR build targets correctly — MEDIUM
@@ -292,7 +284,9 @@ export function envAwarePlugin(): Plugin {
 - For edge runtimes, set `resolve.noExternal: true` and `resolve.conditions` for edge-specific package exports.
 - Vite 7 requires Node.js 20.19+ or 22.12+ for `require(esm)` support.
 
-Reference: `references/environment-api.md`
+Reference: https://vite.dev/guide/api-environment for the config surface and
+https://vite.dev/guide/api-environment-plugins for `this.environment` and
+`perEnvironmentPlugin`.
 
 
 ### Configure Vite library mode with correct externals, exports, and type declarations — HIGH
@@ -444,770 +438,13 @@ export function preProcessPlugin(): Plugin {
 - Set `apply: 'build'` or `apply: 'serve'` to restrict a plugin to one mode.
 - Access `this.environment` in hooks (Vite 6+) for environment-specific transforms.
 
-Reference: `references/plugin-development.md`
+Reference: full hook reference at https://vite.dev/guide/api-plugin.
 
 
 
 ---
 
-## References (6)
-
-### Chunk Optimization
-
-# Vite Build Optimization
-
-Chunk splitting and build performance.
-
-## advancedChunks (Vite 8+)
-
-Vite 8 introduces `advancedChunks` as the recommended approach for chunk splitting. It provides declarative configuration with priority control and size constraints.
-
-### Full Syntax
-
-```typescript
-export default defineConfig({
-  build: {
-    rolldownOptions: {
-      output: {
-        advancedChunks: {
-          groups: [
-            {
-              // Required: Chunk name
-              name: 'react-vendor',
-
-              // Required: Module matching (regex or function)
-              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
-
-              // Optional: Higher priority wins when module matches multiple groups
-              priority: 20,
-
-              // Optional: Minimum chunk size in bytes (default: 0)
-              minSize: 20000,  // 20KB
-
-              // Optional: Maximum chunk size in bytes (auto-splits if exceeded)
-              maxSize: 250000, // 250KB
-
-              // Optional: Minimum number of chunks that must share this module
-              minShareCount: 1,
-            },
-          ],
-        },
-      },
-    },
-  },
-})
-```
-
-### Configuration Options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `name` | `string` | Required | Output chunk name |
-| `test` | `RegExp \| (id: string) => boolean` | Required | Module matcher |
-| `priority` | `number` | `0` | Higher wins on conflicts |
-| `minSize` | `number` | `0` | Skip if chunk would be smaller |
-| `maxSize` | `number` | `Infinity` | Auto-split if exceeded |
-| `minShareCount` | `number` | `1` | Required shared imports |
-
-### Complete Example
-
-```typescript
-// vite.config.ts - Production-ready advancedChunks
-export default defineConfig({
-  build: {
-    rolldownOptions: {
-      output: {
-        advancedChunks: {
-          groups: [
-            // Framework core - highest priority, always separate
-            {
-              name: 'react-vendor',
-              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
-              priority: 30,
-              minSize: 20000,
-              maxSize: 200000,
-            },
-
-            // Router - medium-high priority
-            {
-              name: 'router',
-              test: /[\\/]node_modules[\\/](react-router|react-router-dom|@remix-run)[\\/]/,
-              priority: 25,
-            },
-
-            // UI library - group all Radix components
-            {
-              name: 'radix-ui',
-              test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
-              priority: 20,
-              minShareCount: 2, // Only if used by 2+ routes
-            },
-
-            // Charts - large, load on demand
-            {
-              name: 'charts',
-              test: /[\\/]node_modules[\\/](recharts|d3|victory)[\\/]/,
-              priority: 15,
-              maxSize: 300000, // Split if charts exceed 300KB
-            },
-
-            // Date libraries
-            {
-              name: 'dates',
-              test: /[\\/]node_modules[\\/](date-fns|dayjs|luxon)[\\/]/,
-              priority: 15,
-            },
-
-            // Catch-all vendor chunk
-            {
-              name: 'vendor',
-              test: /[\\/]node_modules[\\/]/,
-              priority: 5,
-              maxSize: 500000, // Auto-split large vendor chunks
-            },
-          ],
-        },
-      },
-    },
-  },
-})
-```
-
-### Function-Based Test
-
-For complex matching logic:
-
-```typescript
-advancedChunks: {
-  groups: [
-    {
-      name: 'heavy-deps',
-      test: (id) => {
-        if (!id.includes('node_modules')) return false
-        const heavyPackages = ['three', 'monaco-editor', 'pdf-lib']
-        return heavyPackages.some(pkg => id.includes(`node_modules/${pkg}`))
-      },
-      priority: 25,
-    },
-  ],
-}
-```
-
----
-
-## Manual Chunks (Vite 7 and Earlier)
-
-> **Deprecation Notice (Vite 8):** `manualChunks` still works in Vite 8 for backward compatibility, but `advancedChunks` is the recommended approach. Consider migrating to `advancedChunks` for new projects or when updating existing configurations.
-
-Split large dependencies into separate chunks:
-
-```typescript
-// vite.config.ts
-export default defineConfig({
-  build: {
-    rolldownOptions: {
-      output: {
-        manualChunks: {
-          // Vendor chunk for React
-          'react-vendor': ['react', 'react-dom'],
-
-          // Router chunk
-          'router': ['react-router-dom'],
-
-          // UI library chunk
-          'ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
-
-          // Chart libraries
-          'charts': ['recharts', 'd3'],
-        },
-      },
-    },
-  },
-})
-```
-
-## Dynamic Manual Chunks
-
-```typescript
-export default defineConfig({
-  build: {
-    rolldownOptions: {
-      output: {
-        manualChunks(id) {
-          // All node_modules in vendor chunk
-          if (id.includes('node_modules')) {
-            // Split by package name
-            const match = id.match(/node_modules\/([^/]+)/)
-            if (match) {
-              const packageName = match[1]
-
-              // Group related packages
-              if (['react', 'react-dom', 'scheduler'].includes(packageName)) {
-                return 'react-vendor'
-              }
-
-              if (packageName.startsWith('@radix-ui')) {
-                return 'radix-vendor'
-              }
-
-              // Large packages get their own chunk
-              if (['lodash', 'moment', 'three'].includes(packageName)) {
-                return packageName
-              }
-
-              // Everything else in common vendor
-              return 'vendor'
-            }
-          }
-        },
-      },
-    },
-  },
-})
-```
-
-## Build Target
-
-Vite 7 default: `'baseline-widely-available'`
-
-```typescript
-export default defineConfig({
-  build: {
-    target: 'baseline-widely-available', // Default in Vite 7
-    // Or specific targets:
-    // target: 'esnext',
-    // target: 'es2022',
-    // target: ['es2022', 'edge88', 'firefox78', 'chrome87', 'safari14'],
-  },
-})
-```
-
-## Minification
-
-```typescript
-export default defineConfig({
-  build: {
-    minify: 'esbuild', // Default, fastest
-    // minify: 'terser', // More aggressive, slower
-
-    // Terser options
-    terserOptions: {
-      compress: {
-        drop_console: true, // Remove console.log
-        drop_debugger: true,
-      },
-    },
-  },
-})
-```
-
-## Source Maps
-
-```typescript
-export default defineConfig({
-  build: {
-    sourcemap: false,           // No source maps (production)
-    // sourcemap: true,         // Separate .map files
-    // sourcemap: 'inline',     // Inline in JS (dev)
-    // sourcemap: 'hidden',     // Maps for error reporting only
-  },
-})
-```
-
-## Tree Shaking
-
-Ensure packages support tree shaking:
-
-```json
-// package.json of your lib
-{
-  "sideEffects": false,
-  // Or specify files with side effects:
-  "sideEffects": ["**/*.css", "./src/polyfills.js"]
-}
-```
-
-## Analyze Bundle
-
-```bash
-# Install visualizer
-npm install -D rollup-plugin-visualizer
-
-# Or use npx
-npx vite-bundle-visualizer
-```
-
-```typescript
-import { visualizer } from 'rollup-plugin-visualizer'
-
-export default defineConfig({
-  plugins: [
-    visualizer({
-      open: true,
-      filename: 'stats.html',
-      gzipSize: true,
-      brotliSize: true,
-    }),
-  ],
-})
-```
-
-## CSS Optimization
-
-```typescript
-export default defineConfig({
-  build: {
-    cssCodeSplit: true, // Split CSS per entry point
-    cssMinify: 'lightningcss', // Faster CSS minification
-  },
-
-  css: {
-    devSourcemap: true, // CSS source maps in dev
-  },
-})
-```
-
-## Asset Inlining
-
-```typescript
-export default defineConfig({
-  build: {
-    assetsInlineLimit: 4096, // Inline assets < 4kb as base64
-  },
-})
-```
-
-## Chunk Size Warnings
-
-```typescript
-export default defineConfig({
-  build: {
-    chunkSizeWarningLimit: 500, // Warn if chunk > 500kb
-  },
-})
-```
-
-## Dependency Optimization
-
-```typescript
-export default defineConfig({
-  optimizeDeps: {
-    // Pre-bundle these dependencies
-    include: ['lodash-es', 'axios'],
-
-    // Don't pre-bundle these
-    exclude: ['@my/local-package'],
-
-    // Force re-optimization
-    force: true,
-  },
-})
-```
-
-## Quick Optimization Checklist
-
-1. [ ] Use `advancedChunks` (Vite 8+) or `manualChunks` (Vite 7)
-2. [ ] Use dynamic imports for routes
-3. [ ] Set appropriate `target` for audience
-4. [ ] Remove console in production
-5. [ ] Analyze bundle with visualizer
-6. [ ] Check for duplicate dependencies
-7. [ ] Ensure tree-shakeable imports
-8. [ ] Set `sideEffects: false` in package.json
-9. [ ] Consider CSS code splitting
-10. [ ] Adjust `assetsInlineLimit` as needed
-
----
-
-## Migration: manualChunks to advancedChunks
-
-When upgrading to Vite 8, convert your `manualChunks` configuration to `advancedChunks`.
-
-### Example 1: Object-Based manualChunks
-
-**Before (Vite 7):**
-```typescript
-manualChunks: {
-  'react-vendor': ['react', 'react-dom'],
-  'router': ['react-router-dom'],
-  'ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
-}
-```
-
-**After (Vite 8):**
-```typescript
-advancedChunks: {
-  groups: [
-    {
-      name: 'react-vendor',
-      test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
-      priority: 20,
-    },
-    {
-      name: 'router',
-      test: /[\\/]node_modules[\\/]react-router-dom[\\/]/,
-      priority: 15,
-    },
-    {
-      name: 'ui',
-      test: /[\\/]node_modules[\\/]@radix-ui[\\/]react-(dialog|dropdown-menu)[\\/]/,
-      priority: 10,
-    },
-  ],
-}
-```
-
-### Example 2: Function-Based manualChunks
-
-**Before (Vite 7):**
-```typescript
-manualChunks(id) {
-  if (id.includes('node_modules')) {
-    if (id.includes('react') || id.includes('react-dom')) {
-      return 'react-vendor'
-    }
-    if (id.includes('@radix-ui')) {
-      return 'radix-vendor'
-    }
-    if (id.includes('lodash') || id.includes('moment')) {
-      return 'utils'
-    }
-    return 'vendor'
-  }
-}
-```
-
-**After (Vite 8):**
-```typescript
-advancedChunks: {
-  groups: [
-    {
-      name: 'react-vendor',
-      test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
-      priority: 30,
-    },
-    {
-      name: 'radix-vendor',
-      test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
-      priority: 20,
-    },
-    {
-      name: 'utils',
-      test: /[\\/]node_modules[\\/](lodash|moment)[\\/]/,
-      priority: 15,
-    },
-    {
-      name: 'vendor',
-      test: /[\\/]node_modules[\\/]/,
-      priority: 5,
-    },
-  ],
-}
-```
-
-### Example 3: Adding Size Constraints
-
-One key benefit of `advancedChunks` is automatic chunk splitting based on size.
-
-**Before (Vite 7):** No built-in size control
-```typescript
-manualChunks: {
-  'vendor': ['lodash', 'moment', 'axios', 'd3', 'three'],
-  // This could produce a 2MB chunk with no warning
-}
-```
-
-**After (Vite 8):** Automatic splitting with maxSize
-```typescript
-advancedChunks: {
-  groups: [
-    {
-      name: 'vendor',
-      test: /[\\/]node_modules[\\/]/,
-      priority: 5,
-      maxSize: 250000, // Auto-split into vendor, vendor-1, vendor-2, etc.
-    },
-  ],
-}
-```
-
-### Example 4: Shared Module Optimization
-
-Use `minShareCount` to only chunk modules used by multiple entry points.
-
-**After (Vite 8):**
-```typescript
-advancedChunks: {
-  groups: [
-    {
-      name: 'shared-ui',
-      test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
-      priority: 15,
-      minShareCount: 2, // Only if imported by 2+ chunks
-    },
-    {
-      name: 'shared-utils',
-      test: /[\\/]src[\\/]utils[\\/]/,
-      priority: 10,
-      minShareCount: 3, // Common utilities used across 3+ pages
-      minSize: 5000,    // At least 5KB
-    },
-  ],
-}
-```
-
-### Migration Tips
-
-1. **Start with existing chunk names** - Keep the same `name` values for cache consistency
-2. **Convert package arrays to regex** - `['react', 'react-dom']` becomes `/[\\/]node_modules[\\/](react|react-dom)[\\/]/`
-3. **Add priorities** - Earlier items in manualChunks had implicit priority; make it explicit
-4. **Add size constraints** - Use `maxSize` to prevent oversized chunks
-5. **Test thoroughly** - Compare bundle output before/after with `rollup-plugin-visualizer`
-
-### Compatibility Note
-
-Both `manualChunks` and `advancedChunks` can coexist during migration, but `advancedChunks` takes precedence when both match the same module. For cleanest results, fully migrate to `advancedChunks`.
-
-
-### Environment Api
-
-# Vite 7 Environment API
-
-Multi-environment builds for client, SSR, and edge runtimes.
-
-## Concept
-
-Vite 6+ formalizes environments as a first-class concept. Each environment has its own:
-- Module graph
-- Configuration
-- Plugin pipeline
-- Build output
-
-## Basic Configuration
-
-```typescript
-// vite.config.ts
-import { defineConfig } from 'vite'
-
-export default defineConfig({
-  // Shared config (inherited by all environments)
-  build: {
-    sourcemap: false,
-  },
-
-  environments: {
-    // Browser client (default)
-    client: {
-      build: {
-        outDir: 'dist/client',
-        manifest: true,
-      },
-    },
-
-    // Server-side rendering (Node.js)
-    ssr: {
-      build: {
-        outDir: 'dist/server',
-        target: 'node20',
-        rollupOptions: {
-          output: { format: 'esm' },
-        },
-      },
-    },
-
-    // Edge runtime (Cloudflare Workers, etc.)
-    edge: {
-      resolve: {
-        noExternal: true, // Bundle all dependencies
-        conditions: ['edge', 'worker'],
-      },
-      build: {
-        outDir: 'dist/edge',
-        rollupOptions: {
-          external: ['cloudflare:workers'],
-        },
-      },
-    },
-  },
-})
-```
-
-## Accessing Environments in Plugins
-
-Plugins can access the current environment via `this.environment`:
-
-```typescript
-export function myPlugin(): Plugin {
-  return {
-    name: 'my-plugin',
-
-    transform(code, id) {
-      // Environment available in all hooks
-      const env = this.environment
-
-      if (env.name === 'ssr') {
-        // SSR-specific transform
-        return transformForSSR(code)
-      }
-
-      if (env.name === 'edge') {
-        // Edge-specific transform
-        return transformForEdge(code)
-      }
-
-      // Default client transform
-      return transformForClient(code)
-    },
-
-    configureServer(server) {
-      // Access specific environments
-      const ssrEnv = server.environments.ssr
-      const clientEnv = server.environments.client
-    },
-  }
-}
-```
-
-## Per-Environment Plugins
-
-Use `perEnvironmentPlugin` helper:
-
-```typescript
-import { perEnvironmentPlugin } from 'vite'
-
-// Plugin only for SSR environment
-export const ssrOnlyPlugin = perEnvironmentPlugin('ssr-only', (environment) => {
-  if (environment.name !== 'ssr') {
-    return null // Don't apply to other environments
-  }
-
-  return {
-    transform(code, id) {
-      // SSR-only transformation
-    },
-  }
-})
-```
-
-## Builder API
-
-For coordinated multi-environment builds:
-
-```typescript
-import { createBuilder } from 'vite'
-
-async function build() {
-  const builder = await createBuilder({
-    environments: {
-      client: { build: { outDir: 'dist/client' } },
-      ssr: { build: { outDir: 'dist/server' } },
-    },
-  })
-
-  // Build all environments in parallel
-  await builder.build()
-
-  // Or build individually
-  await builder.build(builder.environments.client)
-  await builder.build(builder.environments.ssr)
-
-  // Cleanup
-  await builder.close()
-}
-```
-
-## buildApp Hook (Vite 7)
-
-Plugins can coordinate environment builds:
-
-```typescript
-export function frameworkPlugin(): Plugin {
-  return {
-    name: 'framework-plugin',
-
-    // Order: 'pre' runs before builder.buildApp, 'post' after
-    buildApp: {
-      order: 'pre',
-      async handler(builder) {
-        // Pre-build setup
-        await prepareAssets()
-
-        // Build specific environments
-        await builder.build(builder.environments.client)
-
-        // Check if environment already built
-        if (!builder.environments.ssr.isBuilt) {
-          await builder.build(builder.environments.ssr)
-        }
-      },
-    },
-  }
-}
-```
-
-## Environment Instance API
-
-```typescript
-// In dev server
-const server = await createServer()
-
-const clientEnv = server.environments.client
-const ssrEnv = server.environments.ssr
-
-// Transform module in specific environment
-const result = await ssrEnv.transformRequest('/src/app.js')
-
-// Hot module handling
-ssrEnv.hot.send({ type: 'custom', event: 'reload' })
-```
-
-## ModuleRunner (SSR)
-
-Execute modules in the SSR environment:
-
-```typescript
-const ssrEnv = server.environments.ssr
-
-// Import module through runner
-const { render } = await ssrEnv.runner.import('/src/entry-server.js')
-
-// Execute render
-const html = await render(url)
-```
-
-## Real-World: Cloudflare Workers
-
-The Cloudflare Vite plugin demonstrates Environment API:
-
-```typescript
-// Cloudflare plugin creates a custom environment
-export default defineConfig({
-  plugins: [cloudflare()],
-  environments: {
-    // Cloudflare Workers environment
-    worker: {
-      resolve: {
-        conditions: ['workerd', 'worker', 'browser'],
-      },
-      build: {
-        outDir: 'dist/worker',
-        rollupOptions: {
-          external: ['cloudflare:workers'],
-        },
-      },
-    },
-  },
-})
-```
-
-## Node.js Requirements
-
-Vite 7 requires:
-- Node.js 20.19+ or
-- Node.js 22.12+
-
-These versions support `require(esm)` without a flag, enabling ESM-only distribution.
-
+## References (2)
 
 ### Library Mode
 
@@ -1450,848 +687,110 @@ npm publish
 ```
 
 
-### Plugin Development
+### Ork Delta
 
-# Vite Plugin Development
+# Vite: the OrchestKit delta
 
-Creating custom Vite plugins.
+Vite's own documentation is the source of truth for API surface, config keys, and
+migration mechanics. This file holds only the house rules that vendor docs do not
+state, plus the ones we hold harder than upstream does.
 
-## Basic Plugin Structure
+Vendor topics and where to fetch them live in the "Upstream coverage" table in
+`SKILL.md`. The enforceable house subset for chunks, environments, library mode,
+and plugin hooks lives in `rules/*.md` and is not repeated here.
 
-```typescript
-import type { Plugin } from 'vite'
+## Default new Vite projects to 8; route existing production apps through rolldown-vite first
 
-export function myPlugin(options?: { debug?: boolean }): Plugin {
-  return {
-    name: 'my-plugin', // Required: unique plugin name
+Vite 8's Rolldown pipeline changes bundler internals, not just config names, so a
+large existing app can pass `vite build` and still ship different chunk graphs and
+different tree-shaking outcomes. `rolldown-vite` is a one-line import swap that runs
+the new bundler under the old package boundary, which makes it the cheap way to find
+plugin incompatibilities before committing the upgrade. Greenfield work skips the
+staging step and goes straight to `vite@8`.
 
-    // Hooks listed in execution order
-    config(config, env) {
-      // Modify config before resolution
-      return {
-        define: {
-          __MY_PLUGIN__: JSON.stringify(true),
-        },
-      }
-    },
+Why: house decision, distilled from the retired references/vite8-rolldown.md; no traced incident.
+Upstream: https://vite.dev/guide/rolldown
 
-    configResolved(config) {
-      // Called once config is fully resolved
-      if (options?.debug) {
-        console.log('Resolved config:', config)
-      }
-    },
+## Treat every VITE_-prefixed variable as public bundle content
 
-    configureServer(server) {
-      // Add middleware or modify dev server
-      server.middlewares.use((req, res, next) => {
-        if (req.url === '/my-plugin-endpoint') {
-          res.end('Hello from plugin')
-          return
-        }
-        next()
-      })
-    },
+Vite inlines `VITE_*` variables into the client bundle at build time. Anything put
+there is readable by any visitor with devtools, so it is not a secret, not a
+"private" API key, and not a soft-launch flag. Secrets belong on the server side of
+whatever renders the app. Check `.env.production` against this rule before deploy,
+not after.
 
-    buildStart() {
-      // Called at build start
-    },
+Why: house security posture, distilled from the retired checklists/production-build.md; no traced incident.
+Upstream: https://vite.dev/guide/env-and-mode
 
-    resolveId(id) {
-      // Custom module resolution
-      if (id === 'virtual:my-module') {
-        return '\0virtual:my-module'
-      }
-    },
+## Ship production sourcemaps as false or 'hidden', never true or inline
 
-    load(id) {
-      // Load virtual modules
-      if (id === '\0virtual:my-module') {
-        return `export const data = ${JSON.stringify({ version: '1.0' })}`
-      }
-    },
+`sourcemap: true` publishes readable source next to the bundle; `'inline'` also
+inflates every JS file. `'hidden'` emits the maps for an error reporter to upload
+without referencing them from the shipped bundle, which is the only setting that
+gives usable stack traces without publishing the source.
 
-    transform(code, id) {
-      // Transform individual modules
-      if (id.endsWith('.custom')) {
-        return {
-          code: transformCustomFormat(code),
-          map: null,
-        }
-      }
-    },
+Why: house decision, distilled from the retired checklists/production-build.md; no traced incident.
+Upstream: https://vite.dev/config/build-options
 
-    buildEnd() {
-      // Called after build completes
-    },
+## Hold the house production build budget before deploying
 
-    closeBundle() {
-      // Cleanup after bundle is written
-    },
-  }
-}
-```
+These are the numbers a build is measured against, not Vite defaults:
 
-## Hook Execution Order
+| Metric | Budget |
+|--------|--------|
+| Initial JS | &lt; 200 kb gzipped |
+| Main chunk | &lt; 150 kb |
+| Vendor chunk | &lt; 100 kb |
+| CSS | &lt; 50 kb |
+| LCP | &lt; 2.5 s |
+| TTI | &lt; 3.5 s |
 
-```
-1. config          - Modify/extend config
-2. configResolved  - Access final config
-3. configureServer - Dev server setup (dev only)
-4. buildStart      - Build begins
-5. resolveId       - Resolve import paths
-6. load            - Load module content
-7. transform       - Transform module code
-8. buildEnd        - Build complete
-9. closeBundle     - Bundle written
-```
+A build over budget is a blocked deploy, not a warning. Vite's own
+`chunkSizeWarningLimit` only prints a message and exits 0, so it cannot be the gate.
 
-## Virtual Modules
+Why: house budget, distilled from the retired checklists/production-build.md; no traced incident.
+Upstream: https://vite.dev/config/build-options
 
-Generate modules at runtime:
+## Prove a build with vite preview, not with a green vite build
 
-```typescript
-const virtualModuleId = 'virtual:my-data'
-const resolvedVirtualModuleId = '\0' + virtualModuleId
+`vite build` exiting 0 says the bundler finished, not that the app runs. Base-path
+mistakes, missing `public/` assets, and env vars that were only defined in dev all
+survive a successful build and fail on first load. Serve the built output with
+`vite preview`, walk the routes, and confirm the console is clean before calling a
+build shippable.
 
-export function virtualDataPlugin(data: Record<string, unknown>): Plugin {
-  return {
-    name: 'virtual-data',
+Why: house verification gate, distilled from the retired checklists/production-build.md; no traced incident.
+Upstream: https://vite.dev/guide/static-deploy
 
-    resolveId(id) {
-      if (id === virtualModuleId) {
-        return resolvedVirtualModuleId
-      }
-    },
+## Keep chunk names stable when migrating manualChunks to advancedChunks
 
-    load(id) {
-      if (id === resolvedVirtualModuleId) {
-        return `export default ${JSON.stringify(data)}`
-      }
-    },
-  }
-}
+Renaming a chunk group changes its output filename, which invalidates that chunk for
+every returning visitor even when its contents did not change. Carry the existing
+`name` values across the migration and make the old implicit ordering explicit with
+`priority` instead of reshuffling groups.
 
-// Usage in app:
-// import data from 'virtual:my-data'
-```
+Why: house decision, distilled from the retired references/chunk-optimization.md; no traced incident.
+Upstream: https://vite.dev/guide/rolldown
 
-## Transform Hook Patterns
+## Diff bundle-visualizer output before and after any chunk-config change
 
-```typescript
-export function transformPlugin(): Plugin {
-  return {
-    name: 'transform-plugin',
+Chunk config is guesswork until the graph is inspected. Capture a visualizer run
+before the change and one after, then compare chunk count, per-chunk size, and
+duplicate packages. A change that only moves bytes between chunks without shrinking
+the initial payload is not an improvement.
 
-    transform(code, id) {
-      // Only transform specific files
-      if (!id.endsWith('.special.ts')) {
-        return null
-      }
+Run it with `npx vite-bundle-visualizer`.
 
-      // Return transformed code
-      return {
-        code: code.replace(/PLACEHOLDER/g, 'REPLACED'),
-        map: null, // Or source map
-      }
-    },
-  }
-}
-```
+Why: house verification gate, distilled from the retired references/chunk-optimization.md; no traced incident.
+Upstream: https://github.com/btd/rollup-plugin-visualizer (the tool itself; Vite's build guide does not document it)
 
-## Using Rollup Plugins
+## Clear node_modules/.vite before blaming a plugin for an unresolved import
 
-Many Rollup plugins work in Vite:
-
-```typescript
-import { defineConfig } from 'vite'
-import commonjs from '@rollup/plugin-commonjs'
-
-export default defineConfig({
-  plugins: [
-    // Rollup plugins work in Vite
-    commonjs(),
-  ],
-})
-```
-
-## Environment-Aware Plugins (Vite 7)
-
-```typescript
-export function envAwarePlugin(): Plugin {
-  return {
-    name: 'env-aware',
-
-    transform(code, id) {
-      // Access current environment
-      const env = this.environment
-
-      if (env.name === 'ssr') {
-        return transformForServer(code)
-      }
-
-      return transformForClient(code)
-    },
-  }
-}
-```
-
-## Applying Plugins Conditionally
-
-```typescript
-export function conditionalPlugin(): Plugin {
-  let isDev: boolean
-
-  return {
-    name: 'conditional',
-
-    configResolved(config) {
-      isDev = config.command === 'serve'
-    },
-
-    transform(code, id) {
-      if (isDev) {
-        // Dev-only transformation
-        return injectDevHelpers(code)
-      }
-      return null
-    },
-  }
-}
-```
-
-## Plugin Ordering
-
-```typescript
-export function orderedPlugin(): Plugin {
-  return {
-    name: 'ordered',
-    enforce: 'pre', // Run before core plugins
-    // enforce: 'post' // Run after core plugins
-  }
-}
-```
-
-## Hot Module Replacement
-
-```typescript
-export function hmrPlugin(): Plugin {
-  return {
-    name: 'hmr-plugin',
-
-    handleHotUpdate({ file, server }) {
-      if (file.endsWith('.custom')) {
-        // Custom HMR handling
-        server.ws.send({
-          type: 'custom',
-          event: 'custom-update',
-          data: { file },
-        })
-        return [] // Prevent default HMR
-      }
-    },
-  }
-}
-
-// Client-side HMR handling:
-// if (import.meta.hot) {
-//   import.meta.hot.on('custom-update', (data) => {
-//     console.log('Custom file updated:', data.file)
-//   })
-// }
-```
-
-## TypeScript Declarations
-
-```typescript
-// Type declarations for virtual module
-declare module 'virtual:my-data' {
-  const data: { version: string }
-  export default data
-}
-```
-
-
-### Ssr Configuration
-
-# Vite SSR Configuration
-
-Server-side rendering setup for development and production.
-
-## Project Structure
-
-```
-project/
-├── index.html
-├── src/
-│   ├── main.tsx           # Client entry
-│   ├── entry-client.tsx   # Client-specific setup
-│   ├── entry-server.tsx   # Server render function
-│   └── App.tsx
-├── server.js              # Production server
-└── vite.config.ts
-```
-
-## Entry Points
-
-### Client Entry (entry-client.tsx)
-
-```tsx
-import { hydrateRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App'
-
-hydrateRoot(
-  document.getElementById('root')!,
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>
-)
-```
-
-### Server Entry (entry-server.tsx)
-
-```tsx
-import { renderToString } from 'react-dom/server'
-import { StaticRouter } from 'react-router-dom/server'
-import App from './App'
-
-export function render(url: string) {
-  return renderToString(
-    <StaticRouter location={url}>
-      <App />
-    </StaticRouter>
-  )
-}
-```
-
-## Development Server
-
-```typescript
-// server-dev.js
-import fs from 'node:fs'
-import path from 'node:path'
-import express from 'express'
-import { createServer as createViteServer } from 'vite'
-
-async function createServer() {
-  const app = express()
-
-  // Create Vite server in middleware mode
-  const vite = await createViteServer({
-    server: { middlewareMode: true },
-    appType: 'custom',
-  })
-
-  // Use Vite's middleware
-  app.use(vite.middlewares)
-
-  app.use('*', async (req, res, next) => {
-    const url = req.originalUrl
-
-    try {
-      // 1. Read index.html
-      let template = fs.readFileSync(
-        path.resolve('index.html'),
-        'utf-8'
-      )
-
-      // 2. Apply Vite HTML transforms (HMR client, etc.)
-      template = await vite.transformIndexHtml(url, template)
-
-      // 3. Load server entry with HMR support
-      const { render } = await vite.ssrLoadModule('/src/entry-server.tsx')
-
-      // 4. Render app HTML
-      const appHtml = await render(url)
-
-      // 5. Inject into template
-      const html = template.replace('<!--ssr-outlet-->', appHtml)
-
-      res.status(200).set({ 'Content-Type': 'text/html' }).end(html)
-    } catch (e) {
-      vite.ssrFixStacktrace(e as Error)
-      next(e)
-    }
-  })
-
-  app.listen(5173)
-}
-
-createServer()
-```
-
-## Production Build
-
-### Build Scripts (package.json)
-
-```json
-{
-  "scripts": {
-    "dev": "node server-dev.js",
-    "build": "npm run build:client && npm run build:server",
-    "build:client": "vite build --outDir dist/client",
-    "build:server": "vite build --outDir dist/server --ssr src/entry-server.tsx",
-    "preview": "node server-prod.js"
-  }
-}
-```
-
-### Production Server
-
-```typescript
-// server-prod.js
-import fs from 'node:fs'
-import path from 'node:path'
-import express from 'express'
-
-const app = express()
-
-// Serve static assets
-app.use(express.static('dist/client', { index: false }))
-
-app.use('*', async (req, res) => {
-  const url = req.originalUrl
-
-  // Read pre-built template
-  const template = fs.readFileSync(
-    path.resolve('dist/client/index.html'),
-    'utf-8'
-  )
-
-  // Import pre-built server bundle
-  const { render } = await import('./dist/server/entry-server.js')
-
-  const appHtml = await render(url)
-  const html = template.replace('<!--ssr-outlet-->', appHtml)
-
-  res.status(200).set({ 'Content-Type': 'text/html' }).end(html)
-})
-
-app.listen(3000)
-```
-
-## Vite Config for SSR
-
-```typescript
-// vite.config.ts
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-export default defineConfig({
-  plugins: [react()],
-
-  build: {
-    // Shared build options
-    sourcemap: true,
-  },
-
-  // SSR-specific options
-  ssr: {
-    // Externalize dependencies (not bundled)
-    external: ['express'],
-
-    // Force bundle specific packages
-    noExternal: ['some-ssr-unfriendly-package'],
-  },
-})
-```
-
-## Vite 7 Environment API (Alternative)
-
-```typescript
-export default defineConfig({
-  environments: {
-    client: {
-      build: {
-        outDir: 'dist/client',
-        manifest: true,
-      },
-    },
-    ssr: {
-      build: {
-        outDir: 'dist/server',
-        ssr: 'src/entry-server.tsx',
-        target: 'node20',
-      },
-    },
-  },
-})
-```
-
-## Streaming SSR
-
-```tsx
-// entry-server.tsx with streaming
-import { renderToPipeableStream } from 'react-dom/server'
-
-export function render(url: string, res: Response) {
-  const { pipe, abort } = renderToPipeableStream(
-    <StaticRouter location={url}>
-      <App />
-    </StaticRouter>,
-    {
-      onShellReady() {
-        res.setHeader('Content-Type', 'text/html')
-        pipe(res)
-      },
-      onError(error) {
-        console.error(error)
-      },
-    }
-  )
-
-  setTimeout(abort, 10000) // Timeout
-}
-```
-
-## index.html Template
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SSR App</title>
-  </head>
-  <body>
-    <div id="root"><!--ssr-outlet--></div>
-    <script type="module" src="/src/entry-client.tsx"></script>
-  </body>
-</html>
-```
-
-
-### Vite8 Rolldown
-
-# Vite 8: Rolldown-Powered Builds
-
-Vite 8 replaces the esbuild+Rollup pipeline with **Rolldown**, a Rust-based unified bundler delivering dramatic performance improvements.
-
-## Migration Options
-
-**Option 1: Direct Upgrade to Vite 8**
-```bash
-npm install vite@8
-```
-Best for: New projects, smaller codebases, teams ready to adopt cutting-edge tooling.
-
-**Option 2: Gradual Migration with rolldown-vite**
-```bash
-npm install rolldown-vite
-```
-```typescript
-// vite.config.ts - swap import only
-import { defineConfig } from 'rolldown-vite' // instead of 'vite'
-
-export default defineConfig({
-  // Existing config works unchanged
-})
-```
-Best for: Large production apps, risk-averse teams, testing Rolldown before full commitment.
-
-## Performance Benchmarks
-
-Real-world improvements from production deployments:
-
-| Metric | Before (Vite 7) | After (Vite 8) | Improvement |
-|--------|-----------------|----------------|-------------|
-| Linear build time | 46s | 6s | **7.7x faster** |
-| Dev server startup | ~3s | ~1s | **3x faster** |
-| HMR updates | ~100ms | ~60ms | **40% faster** |
-| Memory usage | ~800MB | ~400MB | **50% reduction** |
-
-## advancedChunks (Replaces manualChunks)
-
-Vite 8 introduces `advancedChunks` with declarative grouping, priority control, and size constraints:
-
-```typescript
-export default defineConfig({
-  build: {
-    rolldownOptions: {
-      output: {
-        advancedChunks: {
-          groups: [
-            {
-              name: 'react-vendor',
-              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
-              priority: 20,
-              minSize: 20000,
-              maxSize: 250000,
-            },
-            {
-              name: 'ui-vendor',
-              test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
-              priority: 15,
-              minShareCount: 2,
-            },
-            {
-              name: 'vendor',
-              test: /[\\/]node_modules[\\/]/,
-              priority: 10,
-              maxSize: 500000,
-            },
-          ],
-        },
-      },
-    },
-  },
-})
-```
-
-**Key Differences from manualChunks:**
-
-| Feature | manualChunks | advancedChunks |
-|---------|--------------|----------------|
-| Syntax | Function or object | Declarative groups array |
-| Priority control | Manual ordering | Explicit `priority` field |
-| Size constraints | None | `minSize`, `maxSize` |
-| Shared module handling | Manual | `minShareCount` |
-| Regex support | Via function | Native `test` field |
-
-## When to Use Vite 7 vs Vite 8
-
-| Scenario | Recommendation | Reason |
-|----------|----------------|--------|
-| New greenfield project | Vite 8 | Latest features, best performance |
-| Existing stable production app | Vite 7 (evaluate 8) | Stability, proven track record |
-| Build times > 30s | Vite 8 | Significant improvement |
-| Complex plugin ecosystem | Vite 7 (test 8) | Some plugins may need updates |
-| Monorepo with many packages | Vite 8 | Memory and speed benefits |
-| Enterprise with strict stability | Vite 7 | LTS-style support |
-
-## Full Bundle Mode (Upcoming)
-
-Vite 8.1+ will introduce optional **Full Bundle Mode** for production builds:
-
-```typescript
-export default defineConfig({
-  build: {
-    // Preview API - may change
-    fullBundleMode: true,
-  },
-})
-```
-
-Benefits: Single unified bundle (no code splitting), optimal for small apps/libraries/embedded contexts, eliminates chunk loading overhead, better for offline-first applications.
-
-## Breaking Changes from Vite 7
-
-### Config Renames
-```js
-build.rollupOptions      → build.rolldownOptions      // auto-converted w/ deprecation
-worker.rollupOptions     → worker.rolldownOptions
-transformWithEsbuild     → transformWithOxc
-esbuild.jsx              → oxc.jsx
-esbuild.define           → oxc.define
-```
-
-### Plugin API Changes
-```js
-// Plugins converting non-JS to JS MUST add moduleType
-transform(code, id) {
-  return { code: transformedCode, moduleType: 'js' }  // NEW — required in v8
-}
-```
-
-Removed hooks: `shouldTransformCachedModule`, `resolveImportMeta`, `renderDynamicImport`, `resolveFileUrl`
-
-### Other Breaking Changes
-- `manualChunks` object form removed — use function form or `advancedChunks`
-- `'system'` / `'amd'` output formats removed
-- `import.meta.hot.accept(url)` → `accept(id)` (relative module id, not full URL)
-- Lightning CSS is now standard (replaces esbuild for CSS minification)
-- Browser target bump: Chrome 107→111, Firefox 104→114, Safari 16.0→16.4
-- `@vitejs/plugin-react` v6: Babel removed, Oxc handles transforms
-
-### New Config Options
-```js
-export default {
-  devtools: true,                     // built-in Vite Devtools
-  resolve: { tsconfigPaths: true },   // auto-resolve tsconfig paths
-  server: { forwardConsole: true },   // forward browser console to CLI
-}
-```
-
-## Oxc Integration Benefits
-
-Rolldown is built on **Oxc** (Oxidation Compiler), providing:
-
-- **Parsing**: 3x faster than SWC, 100x faster than Babel
-- **Transformation**: Unified transform pipeline (replaces Babel in plugin-react v6)
-- **Tree-shaking**: More aggressive dead code elimination
-- **Scope hoisting**: Better than Rollup's implementation
-- **Minification**: Oxc minifier (replaces esbuild minifier)
-
-## Migration Checklist
-
-```
-[ ] build.rollupOptions → build.rolldownOptions
-[ ] Plugin transform() returning JS: add moduleType: 'js'
-[ ] Remove plugins using deleted hooks (shouldTransformCachedModule, etc.)
-[ ] manualChunks object form → function form or advancedChunks
-[ ] Remove 'system'/'amd' format usage
-[ ] transformWithEsbuild → transformWithOxc
-[ ] @vitejs/plugin-react → v6 (Babel config changes if using React Compiler)
-[ ] Browser target: Chrome 111+, Firefox 114+, Safari 16.4+
-[ ] Test with rolldown-vite first if risk-averse
-[ ] Update CI/CD build time expectations
-[ ] Verify source maps work correctly
-```
-
-**Status:** Vite 8.0.0 stable as of Mar 12, 2026. Recommended for all new projects; evaluate for existing production apps.
-
-
-
----
-
-## Checklists (1)
-
-### Production Build
-
-# Vite Production Build Checklist
-
-Pre-deployment build verification.
-
-## Configuration
-
-- [ ] `build.target` set appropriately for audience
-- [ ] `build.sourcemap` disabled or set to `'hidden'`
-- [ ] `build.minify` enabled (esbuild or terser)
-- [ ] Environment variables properly defined
-
-## Bundle Optimization
-
-- [ ] Run bundle analyzer: `npx vite-bundle-visualizer`
-- [ ] No unexpected large chunks (> 500kb)
-- [ ] Vendor chunks split appropriately
-- [ ] No duplicate dependencies
-- [ ] Tree shaking working (check for dead code)
-
-## Chunk Strategy
-
-```typescript
-// Recommended manual chunks
-manualChunks: {
-  'react-vendor': ['react', 'react-dom'],
-  'router': ['react-router-dom'],
-  'ui': ['@radix-ui/*'],
-}
-```
-
-- [ ] React/framework in separate vendor chunk
-- [ ] Route-based code splitting enabled
-- [ ] Large libraries in separate chunks
-
-## Assets
-
-- [ ] Images optimized (WebP, AVIF)
-- [ ] `assetsInlineLimit` set appropriately (default 4kb)
-- [ ] Static assets in `public/` folder
-- [ ] Asset filenames include hash for caching
-
-## CSS
-
-- [ ] CSS minified
-- [ ] CSS code split by entry point (if needed)
-- [ ] No unused CSS (PurgeCSS or similar)
-- [ ] PostCSS processing complete
-
-## Environment Variables
-
-- [ ] `.env.production` exists with production values
-- [ ] No secrets in client-side env vars
-- [ ] `VITE_*` prefix used for client vars
-- [ ] Build-time vars validated
-
-## TypeScript
-
-- [ ] `tsc --noEmit` passes
-- [ ] No type errors in build
-- [ ] Source maps working if enabled
-
-## SSR (If Applicable)
-
-- [ ] Server entry point builds correctly
-- [ ] External dependencies configured
-- [ ] Client manifest generated
-- [ ] Hydration working
-
-## Testing
-
-- [ ] Build completes without errors
-- [ ] Preview mode works: `vite preview`
-- [ ] All routes accessible
-- [ ] No console errors in production build
-- [ ] Performance metrics acceptable
-
-## Output Verification
-
-```bash
-# Check build output
-ls -la dist/
-
-# Check chunk sizes
-du -sh dist/assets/*
-
-# Preview locally
-vite preview
-
-# Test production server
-NODE_ENV=production node server.js
-```
-
-## Performance Targets
-
-| Metric | Target | Current |
-|--------|--------|---------|
-| Initial JS | &lt; 200kb gzipped | ___ |
-| Main chunk | &lt; 150kb | ___ |
-| Vendor chunk | &lt; 100kb | ___ |
-| CSS | &lt; 50kb | ___ |
-| LCP | &lt; 2.5s | ___ |
-| TTI | &lt; 3.5s | ___ |
-
-## Pre-Deploy Commands
-
-```bash
-# Full build
-npm run build
-
-# Type check
-npm run typecheck
-
-# Preview
-npm run preview
-
-# Analyze bundle
-npx vite-bundle-visualizer
-```
-
-## Common Issues
-
-### Large Bundle
-- Check for duplicate dependencies
-- Ensure tree shaking is working
-- Split vendor chunks
-- Use dynamic imports
-
-### Build Failures
-- Clear `.vite` cache: `rm -rf node_modules/.vite`
-- Check TypeScript errors
-- Verify all imports resolve
-
-### Missing Assets
-- Check `public/` folder structure
-- Verify asset paths in code
-- Check `base` config if using subpath
-
-## Sign-Off
-
-- [ ] Build size within budget
-- [ ] Preview works correctly
-- [ ] No console errors
-- [ ] Performance acceptable
-- [ ] Ready for deployment
+Vite caches pre-bundled dependencies under `node_modules/.vite`. After a dependency
+swap, a lockfile change, or a worktree switch, that cache can serve a stale module
+graph and produce "cannot find module" for modules that plainly exist. Delete the
+cache directory or rerun with `--force` and reproduce before editing plugin code.
+
+Why: house debugging order, distilled from the retired checklists/production-build.md; no traced incident.
+Upstream: https://vite.dev/guide/dep-pre-bundling
 

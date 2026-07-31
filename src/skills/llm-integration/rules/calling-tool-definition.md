@@ -7,151 +7,59 @@ tags: [tool, function, schema, strict-mode, openai, anthropic, langchain]
 
 # Tool Definition (Strict Mode)
 
-## OpenAI Strict Mode Schema (2026 Best Practice)
+Upstream (do not restate): OpenAI strict mode, structured outputs and the full
+parameter grammar live at https://platform.openai.com/docs/guides/function-calling.
+Anthropic `input_schema` / `tool_use` lives at
+https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview. LangChain
+`@tool` and `bind_tools` live in the LangChain docs. This rule keeps only the
+three constraints teams get wrong and our house ceilings.
+
+## The three strict-mode constraints
 
 ```python
-# OpenAI format with strict mode (2026 recommended)
 tools = [{
     "type": "function",
     "function": {
         "name": "search_documents",
         "description": "Search the document database for relevant content",
-        "strict": True,  # Enables structured output validation
+        "strict": True,
         "parameters": {
             "type": "object",
             "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "The search query"
-                },
-                "limit": {
-                    "type": "integer",
-                    "description": "Max results to return"
-                }
+                "query": {"type": "string", "description": "The search query"},
+                "limit": {"type": "integer", "description": "Max results to return"}
             },
-            "required": ["query", "limit"],  # All props required when strict
-            "additionalProperties": False     # Required for strict mode
+            "required": ["query", "limit"],   # 1. ALL properties, not just the mandatory ones
+            "additionalProperties": False      # 2. required, not optional, under strict
         }
     }
 }]
-
-# Note: With strict=True:
-# - All properties must be listed in "required"
-# - additionalProperties must be False
-# - No "default" values (provide via code instead)
+# 3. No "default" values anywhere in the schema. Apply defaults in code
+#    after the call, never in the parameter declaration.
 ```
 
-## Schema Factory Pattern
-
-```python
-def create_tool_schema(
-    name: str,
-    description: str,
-    parameters: dict,
-    strict: bool = True
-) -> dict:
-    """Create OpenAI-compatible tool schema with strict mode."""
-    return {
-        "type": "function",
-        "function": {
-            "name": name,
-            "description": description,
-            "strict": strict,
-            "parameters": {
-                "type": "object",
-                "properties": parameters,
-                "required": list(parameters.keys()),
-                "additionalProperties": False
-            }
-        }
-    }
-```
-
-## Anthropic Tool Schema
-
-```python
-def create_anthropic_tool(
-    name: str,
-    description: str,
-    input_schema: dict
-) -> dict:
-    """Create Anthropic-compatible tool definition."""
-    return {
-        "name": name,
-        "description": description,
-        "input_schema": {
-            "type": "object",
-            "properties": input_schema,
-            "required": list(input_schema.keys())
-        }
-    }
-```
-
-## LangChain Tool Binding
-
-```python
-from langchain_core.tools import tool
-from pydantic import BaseModel, Field
-
-@tool
-def search_documents(query: str, limit: int = 5) -> list[dict]:
-    """Search the document database.
-
-    Args:
-        query: Search query string
-        limit: Maximum results to return
-    """
-    return db.search(query, limit=limit)
-
-# Bind to model
-llm_with_tools = llm.bind_tools([search_documents])
-
-# Or with structured output
-class SearchResult(BaseModel):
-    query: str = Field(description="The search query used")
-    results: list[str] = Field(description="Matching documents")
-
-structured_llm = llm.with_structured_output(SearchResult)
-```
-
-## Structured Output (Guaranteed JSON)
-
-```python
-from pydantic import BaseModel
-
-class Analysis(BaseModel):
-    sentiment: str
-    confidence: float
-    key_points: list[str]
-
-# OpenAI structured output
-response = await client.beta.chat.completions.parse(
-    model="gpt-5.5",
-    messages=[{"role": "user", "content": "Analyze this text..."}],
-    response_format=Analysis
-)
-
-analysis = response.choices[0].message.parsed  # Typed Analysis object
-```
+Anthropic uses `input_schema` instead of `function.parameters` and has no
+`strict` flag; the "describe every parameter" discipline still applies.
 
 ## Key Decisions
 
 | Decision | Recommendation |
 |----------|----------------|
-| Schema mode | `strict: true` (2026 best practice) |
+| Schema mode | `strict: true` |
 | Description length | 1-2 sentences |
 | Tool count | 5-15 max (more = confusion) |
 | Output format | Structured Outputs > JSON mode |
 | Parameter validation | Use Pydantic/Zod |
+| Model ids in examples | Plain defaults only, never a hardcoded price |
 
 ## Common Mistakes
 
-- Vague tool descriptions (LLM won't know when to use)
+- Vague tool descriptions (LLM will not know when to use the tool)
 - Missing `additionalProperties: false` in strict mode
 - Using `default` values with strict mode (not supported)
 - Too many tools (LLM gets confused beyond 15)
 
-**Incorrect — invalid strict mode schema with optional parameters:**
+**Incorrect, invalid strict mode schema with optional parameters:**
 ```python
 tools = [{
     "type": "function",
@@ -170,7 +78,7 @@ tools = [{
 }]
 ```
 
-**Correct — strict mode with all properties required:**
+**Correct, strict mode with all properties required:**
 ```python
 tools = [{
     "type": "function",

@@ -31,32 +31,46 @@ path_patterns: ["**/metrics/**", "**/tracing/**", "prometheus.*", "grafana/**"]
 
 # Monitoring & Observability
 
-Comprehensive patterns for infrastructure monitoring, LLM observability, and quality drift detection. Each category has individual rule files in `rules/` loaded on-demand.
+A wrap around Prometheus, Grafana, OpenTelemetry and Langfuse, not a re-teaching of them. This
+skill carries OrchestKit's delta (version floors, house decisions, scars) and points at the
+vendor for everything else. Start at `references/ork-delta.md`.
+
+## Upstream coverage (do not restate)
+
+These topics are fully covered first-party. Read the source, do not add a local copy.
+
+| Topic | First-party source |
+|-------|--------------------|
+| Prometheus metric types, RED method, cardinality, PromQL | <https://prometheus.io/docs/practices/> |
+| Alertmanager grouping, inhibition, escalation, runbooks | <https://prometheus.io/docs/alerting/latest/configuration/> |
+| Grafana dashboards, Loki and LogQL, Promtail | <https://grafana.com/docs/> |
+| OpenTelemetry spans, sampling, context propagation | <https://opentelemetry.io/docs/> |
+| Langfuse Python SDK (`@observe`, `as_type`, `score_current_span`, `should_export_span`, `LangfuseMedia`) | <https://langfuse.com/docs/sdk/python> |
+| Langfuse v2 to v4 Python and v3 to v5 JS migration paths | <https://langfuse.com/docs/sdk/python/v4-migration> |
+| Langfuse self-hosting (ClickHouse, Redis, S3, Helm) | <https://langfuse.com/docs/deployment/self-host> |
+| Langfuse cost tracking, model pricing, Metrics API v2 | <https://langfuse.com/docs/model-usage-and-cost> |
+| Langfuse scores, online evaluators, annotation queues, prompt management | <https://langfuse.com/docs/scores/overview> |
+| Langfuse framework integrations (LangChain, LangGraph, CrewAI, Pydantic AI, Bedrock, LiveKit) | <https://langfuse.com/docs/integrations> |
+| Agent Graphs, observation types, rendered tool calls | <https://langfuse.com/docs/tracing-features/agent-graphs> |
+| PSI, KS test, KL and JS divergence, Wasserstein, embedding drift | <https://www.evidentlyai.com/blog/data-drift-detection-large-datasets> |
+| EWMA control charts | <https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc324.htm> |
+| structlog, Winston, correlation IDs, log sampling | <https://www.structlog.org/en/stable/> |
 
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
-| [Infrastructure Monitoring](#infrastructure-monitoring) | 3 | CRITICAL | Prometheus metrics, Grafana dashboards, alerting rules |
-| [LLM Observability](#llm-observability) | 3 | HIGH | Langfuse tracing, cost tracking, evaluation scoring |
-| [Drift Detection](#drift-detection) | 3 | HIGH | Statistical drift, quality regression, drift alerting |
+| [Infrastructure Monitoring](#infrastructure-monitoring) | 1 | CRITICAL | Grafana dashboards, Golden Signals, SLO/SLI |
+| [LLM Observability](#llm-observability) | 1 | HIGH | Langfuse tracing, observation types, agent graphs |
 | [Silent Failures](#silent-failures) | 3 | HIGH | Tool skipping, quality degradation, loop/token spike alerting |
 
-**Total: 12 rules across 4 categories**
+**Total: 5 rules across 3 categories.** Drift detection, cost tracking, eval scoring, Prometheus
+instrumentation and alert-rule authoring moved to the upstream sources listed above.
 
 ## Quick Start
 
 ```python
-# Prometheus metrics with RED method
-from prometheus_client import Counter, Histogram
-
-http_requests = Counter('http_requests_total', 'Total requests', ['method', 'endpoint', 'status'])
-http_duration = Histogram('http_request_duration_seconds', 'Request latency',
-    buckets=[0.01, 0.05, 0.1, 0.5, 1, 2, 5])
-```
-
-```python
-# Langfuse v4 LLM tracing — semantic as_type + inline scoring
+# Langfuse v4 LLM tracing: semantic as_type plus inline scoring
 from langfuse import observe, get_client
 
 @observe(as_type="generation", name="analyze_content")
@@ -71,45 +85,32 @@ async def analyze_content(content: str):
 ```
 
 ```python
-# PSI drift detection
-import numpy as np
+# Prometheus RED method, wired the way this repo expects (bounded labels only)
+from prometheus_client import Counter, Histogram
 
-psi_score = calculate_psi(baseline_scores, current_scores)
-if psi_score >= 0.25:
-    alert("Significant quality drift detected!")
+http_requests = Counter('http_requests_total', 'Total requests', ['method', 'endpoint', 'status'])
+http_duration = Histogram('http_request_duration_seconds', 'Request latency',
+    buckets=[0.01, 0.05, 0.1, 0.5, 1, 2, 5])
 ```
 
 ## Infrastructure Monitoring
 
-Prometheus metrics, Grafana dashboards, and alerting for application health.
+Dashboard and health-check patterns. Metric instrumentation and alert-rule syntax are upstream.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Prometheus Metrics | `rules/monitoring-prometheus.md` | RED method, counters, histograms, cardinality |
 | Grafana Dashboards | `rules/monitoring-grafana.md` | Golden Signals, SLO/SLI, health checks |
-| Alerting Rules | `rules/monitoring-alerting.md` | Severity levels, grouping, escalation, fatigue prevention |
 
 > **CC 2.1.161 — OTEL resource attributes as metric labels:** `OTEL_RESOURCE_ATTRIBUTES` values are now attached as labels on metric datapoints, so usage metrics can be sliced by custom dimensions (team, repo, environment). Add label selectors to dashboards for multi-tenant / per-team cost and usage tracking.
 
 ## LLM Observability
 
-Langfuse-based tracing, cost tracking, and evaluation for LLM applications.
+Langfuse-based tracing for LLM applications. Cost tracking, scoring and drift statistics are
+upstream; what stays here is how this repo wires traces.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
 | Langfuse Traces | `rules/llm-langfuse-traces.md` | @observe decorator, OTEL spans, agent graphs |
-| Cost Tracking | `rules/llm-cost-tracking.md` | Token usage, spend alerts, Metrics API v2 |
-| Eval Scoring | `rules/llm-eval-scoring.md` | Custom scores, evaluator tracing, quality monitoring |
-
-## Drift Detection
-
-Statistical and quality drift detection for production LLM systems.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| Statistical Drift | `rules/drift-statistical.md` | PSI, KS test, KL divergence, EWMA |
-| Quality Drift | `rules/drift-quality.md` | Score regression, baseline comparison, canary prompts |
-| Drift Alerting | `rules/drift-alerting.md` | Dynamic thresholds, correlation, anti-patterns |
 
 ## Silent Failures
 
@@ -133,19 +134,22 @@ Detection and alerting for silent failures in LLM agents.
 | LLM observability | Langfuse (not LangSmith) | Open-source, self-hosted, built-in prompt management |
 | LLM tracing API | `@observe(as_type=...)` + `score_current_span()` | v4: semantic types, inline scoring, span filtering |
 | Langfuse APIs | Observations API v2 + Metrics API v2 | v4 (Mar 2026): faster querying, aggregations at scale |
-| Drift method | PSI for production, KS for small samples | PSI is stable for large datasets, KS more sensitive |
-| Threshold strategy | Dynamic (95th percentile) over static | Reduces alert fatigue, context-aware |
-| Alert severity | 4 levels (Critical, High, Medium, Low) | Clear escalation paths, appropriate response times |
+| Hook telemetry transport | JSONL under `~/.claude/analytics/`, never an SDK in-process | Hooks are per-event processes; SDK init would be paid on every spawn (`references/ork-delta.md`) |
 
 ## Detailed Documentation
 
 | Resource | Description |
 |----------|-------------|
-| `${CLAUDE_SKILL_DIR}/references/` | Logging, metrics, tracing, Langfuse, drift analysis guides |
-| `${CLAUDE_SKILL_DIR}/references/langfuse-js-v5.md` | **JS/TS SDK v5** — different major and package layout from Python 4.x. Read before writing any JS Langfuse code |
-| `${CLAUDE_SKILL_DIR}/references/migration-v3-v4.md` | Python v2→v4 and JS/TS v3→v5 migration paths |
-| `${CLAUDE_SKILL_DIR}/checklists/` | Implementation checklists for monitoring and Langfuse setup |
-| `${CLAUDE_SKILL_DIR}/examples/` | Real-world monitoring dashboard and trace examples |
+| `${CLAUDE_SKILL_DIR}/references/ork-delta.md` | **Start here.** Floors, house decisions and scars that upstream docs do not carry |
+| `${CLAUDE_SKILL_DIR}/references/langfuse-js-v5.md` | **JS/TS SDK v5** delta from Python 4.x: package map, phantom packages, SpanProcessor vs exporter. Read before writing any JS Langfuse code |
+| `${CLAUDE_SKILL_DIR}/references/experiments-api.md` | Langfuse experiments and dataset runs as this repo uses them |
+| `${CLAUDE_SKILL_DIR}/references/evaluation-scores.md` | Score shapes and scoring pipeline wiring |
+| `${CLAUDE_SKILL_DIR}/references/session-tracking.md` | Session and user grouping across multi-step workflows |
+| `${CLAUDE_SKILL_DIR}/references/metrics-collection.md` | Claude Code OTEL metric inventory and collector-side joins |
+| `${CLAUDE_SKILL_DIR}/references/dashboards.md` | Dashboard layout conventions |
+| `${CLAUDE_SKILL_DIR}/references/structured-logging.md` | Structured log field conventions |
+| `${CLAUDE_SKILL_DIR}/references/dev-agent-lens.md` | LiteLLM proxy layer for API-boundary observability |
+| `${CLAUDE_SKILL_DIR}/examples/orchestkit-monitoring-dashboard.md` | Worked monitoring dashboard example |
 | `${CLAUDE_SKILL_DIR}/scripts/` | Templates: Prometheus, OpenTelemetry, health checks, Langfuse |
 
 ## Related Skills

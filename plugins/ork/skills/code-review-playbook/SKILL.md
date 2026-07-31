@@ -38,44 +38,22 @@ This skill provides a comprehensive framework for effective code reviews that im
 - Resolving disagreements about code quality
 - Improving review processes and efficiency
 
-## Code Review Philosophy
+## Upstream coverage (do not restate)
 
-### Purpose of Code Reviews
+This skill is a thin wrapper. General review craft is documented first-party elsewhere;
+only OrchestKit's own decisions live here. Load `Read("${CLAUDE_SKILL_DIR}/references/ork-delta.md")`
+for the house rules that survived the retired files.
 
-Code reviews serve multiple purposes:
-
-1. **Quality Assurance**: Catch bugs, logic errors, and edge cases
-2. **Knowledge Sharing**: Spread domain knowledge across the team
-3. **Consistency**: Ensure codebase follows conventions and patterns
-4. **Mentorship**: Help developers improve their skills
-5. **Collective Ownership**: Build shared responsibility for code
-6. **Documentation**: Create discussion history for future reference
-
-### Principles
-
-**Be Kind and Respectful:**
-- Review the code, not the person
-- Assume positive intent
-- Praise good solutions
-- Frame feedback constructively
-
-**Be Specific and Actionable:**
-- Point to specific lines of code
-- Explain *why* something should change
-- Suggest concrete improvements
-- Provide examples when helpful
-
-**Balance Speed with Thoroughness:**
-- Aim for timely feedback (< 24 hours)
-- Don't rush critical reviews
-- Use automation for routine checks
-- Focus human review on logic and design
-
-**Distinguish Must-Fix from Nice-to-Have:**
-- Use conventional comments to indicate severity
-- Block merges only for critical issues
-- Allow authors to defer minor improvements
-- Capture deferred work in follow-up tickets
+| Topic | Go here instead |
+|-------|-----------------|
+| Review philosophy, speed, tone, PR sizing | https://google.github.io/eng-practices/review/ |
+| Conventional comment labels and decorations | `references/conventional-comments.md`, https://conventionalcomments.org/ |
+| OWASP Top 10 review checks | `rules/security-baseline.md`, https://owasp.org/Top10/ |
+| Generic language and framework review checklists | `rules/typescript-quality.md`, `rules/python-quality.md`, `rules/linting-biome-rules.md` |
+| Review report shape and multi-agent full-PR review | `ork:review-pr` |
+| Applying findings to the working tree | `/code-review --fix`, `/simplify` (see below) |
+| Security-only pass over the current branch | `/security-review` |
+| GitHub review mechanics (approve, request changes, inline comments) | https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests |
 
 ---
 
@@ -223,7 +201,7 @@ Use the built-ins for fast diff-scoped passes; use `ork:review-pr` for the multi
 ## Related Skills
 
 - `ork:architecture-patterns` - Enforce testing and architectural best practices during code review
-- `security-scanning` - Automated security checks to complement manual review
+- `ork:security-patterns` - Auth, input validation, and OWASP patterns to complement manual review
 - `ork:testing-unit` - Unit testing patterns to verify during review
 
 ## Rules
@@ -248,5 +226,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
   - Requires: GitHub CLI (`gh`)
   - Uses `$ARGUMENTS` and `!command` for live PR data
 
-- **`assets/review-feedback-template.md`** - Static review feedback template
 - **`assets/pr-template.md`** - PR description template
+
+There is deliberately no review-report template here; `ork:review-pr` owns that output
+shape. See `references/ork-delta.md`.

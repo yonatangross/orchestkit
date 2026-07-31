@@ -238,7 +238,10 @@ github.reset()       // Synchronous state wipe
 await github.close() // Shut down server
 ```
 
-See `references/sdk-patterns.md` for advanced patterns (multi-service, lifecycle hooks).
+`seed` here is a parsed object, not a path. Only the CLI `--seed` flag takes a filename.
+For multi-service setup, lifecycle hooks, and the Vitest/Jest wiring, see
+`references/upstream.md`. For the ork-side corrections to that API, see
+`references/ork-delta.md`.
 
 ## Webhook Delivery
 
@@ -311,6 +314,29 @@ See `rules/parallel-ci.md` for full parallel isolation patterns.
 - You need in-browser interception (MSW)
 - Tests only need single request/response pairs
 
+## Upstream coverage (do not restate)
+
+This skill is a wrap plus our delta. emulate ships its own per-service reference docs;
+copying them here only produces something that goes stale on the next release. If a
+topic below comes up, read the first-party source, not a paraphrase.
+
+| Topic | First-party source |
+|---|---|
+| Programmatic API (`createEmulator`, `url`, `reset()`, `close()`), Vitest/Jest wiring, config auto-detection order, token fallback | `references/upstream.md` (synced from `vercel-labs/emulate`, `skills/emulate/SKILL.md`) |
+| GitHub endpoint recipes, GitHub App JWT seeding, Octokit and Auth.js base-URL wiring, GitHub OAuth flow | https://github.com/vercel-labs/emulate/blob/main/skills/github/SKILL.md |
+| Google OIDC discovery, JWKS, authorize/token/userinfo/revoke, PKCE, `google-auth-library`, Passport, `openid-client` | https://github.com/vercel-labs/emulate/blob/main/skills/google/SKILL.md |
+| Vercel endpoint recipes, cursor pagination, team scoping, integration OAuth flow | https://github.com/vercel-labs/emulate/blob/main/skills/vercel/SKILL.md |
+| Every other emulator (Slack, Apple, Entra, AWS, Okta, Resend, Stripe, MongoDB Atlas, Clerk, Linear, Twilio) | https://github.com/vercel-labs/emulate/tree/main/skills |
+
+**What stays ours:** `references/ork-delta.md` (the corrections and house conventions that
+are not in any vendor doc), `references/cli-reference.md`, `references/api-coverage.md`,
+`references/dep-to-emulator-map.json`, `scripts/auto-discover.sh`, and everything in `rules/`.
+
+Read `references/ork-delta.md` before copying any snippet out of a vendor doc. It records
+the two API facts vendor prose does not spell out (the exported factory is `createEmulator`,
+and `seed` in the programmatic options is an object rather than a path) plus the
+`*_API_BASE` env-var convention this repo uses instead of the vendor's `*_EMULATOR_URL`.
+
 ## Related Skills
 
 - `testing-integration` — Integration test patterns (emulate as first choice for API tests)
@@ -321,7 +347,3 @@ See `rules/parallel-ci.md` for full parallel isolation patterns.
 ## CLI Reference
 
 See `references/cli-reference.md` for all CLI flags and commands.
-
-## SDK Patterns
-
-See `references/sdk-patterns.md` for programmatic `createEmulate()` usage.

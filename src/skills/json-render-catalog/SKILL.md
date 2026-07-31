@@ -47,7 +47,7 @@ Storybook becomes the single source of truth — adding a story automatically ex
 - **`@json-render/next` (0.16)** — generate full Next.js apps (routes, layouts, SSR, metadata) from a single spec.
 - **`@json-render/shadcn-svelte` (0.16)** — 36-component Svelte 5 + Tailwind mirror of the React shadcn catalog.
 - **shadcn catalog at 36 components** (was documented as 29 — the count was wrong even at 0.13). Use `@json-render/shadcn` as-is, or spread `shadcnComponentDefinitions` together with your own definitions.
-- **`@json-render/react-three-fiber`** now ships 20 components including `GaussianSplat` (0.17).
+- **`@json-render/react-three-fiber`** ships 19 components (verified 2026-07-31 against the upstream skill; do not restate the roster here, see Upstream coverage).
 - **`@json-render/mcp`** — upgrade plain MCP tool JSON into interactive iframes inside Claude/Cursor/ChatGPT conversations. See the `ork:mcp-visual-output` skill.
 - **MCP multi-surface**: same spec renders to React, PDF (`@json-render/react-pdf`), email (`@json-render/react-email`), terminal (Ink), Next.js apps, and Remotion videos.
 
@@ -113,17 +113,35 @@ export const initialsDirective = defineDirective({
 
 Spread into the renderer alongside `standardDirectives`: `directives={[...standardDirectives, initialsDirective]}`. Keep the schema tight — directives are the only place where AI gets to emit non-catalog JSON, so let Zod enforce shape just like a component prop.
 
+## Upstream coverage (do not restate)
+
+json-render ships its own per-package skills. This skill wraps them and keeps only the
+delta: our Storybook import path, our catalog constraints, and the scars in
+`references/ork-delta.md`. Do not copy vendor rosters or API tables back in.
+
+| Topic | First-party source |
+|-------|--------------------|
+| Core API (`defineSchema`, `defineCatalog`, prompts, spec streaming, validation, `StateStore`) | https://github.com/vercel-labs/json-render `skills/core/SKILL.md` |
+| Spec format, dynamic prop expressions (`$state` / `$bindState` / `$cond` / `$template` / `$computed`), `watch`, visibility | https://github.com/vercel-labs/json-render `skills/core/SKILL.md` and `skills/react/SKILL.md` |
+| Built-in actions (`setState`, `pushState`, `removeState`, `validateForm`) and the event system | https://github.com/vercel-labs/json-render `skills/react/SKILL.md` |
+| shadcn component roster and prop schemas (36 components, React and Svelte) | `vercel:shadcn` skill, plus https://github.com/vercel-labs/json-render `skills/shadcn/SKILL.md` and `skills/shadcn-svelte/SKILL.md` |
+| Per-renderer components and APIs (Vue, Svelte, Solid, React Native, Ink, Next.js, PDF, email, image, Remotion, react-three-fiber) | https://github.com/vercel-labs/json-render `skills/<package>/SKILL.md` |
+| YAML wire format, fences, streaming compiler, edit modes | https://github.com/vercel-labs/json-render `skills/yaml/SKILL.md` |
+| State adapters (`zustandStateStore`, `reduxStateStore`, `jotaiStateStore`, `xstateStoreStateStore`) | https://github.com/vercel-labs/json-render `skills/zustand/SKILL.md`, `skills/redux/SKILL.md`, `skills/jotai/SKILL.md`, `skills/xstate/SKILL.md` |
+| MCP Apps integration (`createMcpApp`, iframe client) | `ork:mcp-visual-output`, plus https://github.com/vercel-labs/json-render `skills/mcp/SKILL.md` |
+| Migrating a hand-rolled JSON-to-component mapper | https://github.com/vercel-labs/json-render `skills/core/SKILL.md` (catalog + spec contract is the target shape) |
+
+Our delta, the part no upstream doc carries: `references/ork-delta.md`.
+
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
 | [Catalog Definition](#catalog-definition) | 1 | HIGH | Defining component catalogs with Zod |
 | [Prop Constraints](#prop-constraints) | 1 | HIGH | Constraining AI-generated props for safety |
-| [shadcn Catalog](#shadcn-catalog) | 1 | MEDIUM | Using pre-built shadcn components |
 | [Token Optimization](#token-optimization) | 1 | MEDIUM | Reducing token usage with YAML mode |
-| [Actions & State](#actions--state) | 1 | MEDIUM | Adding interactivity to specs |
 
-**Total: 5 rules across 5 categories**
+**Total: 3 rules across 3 categories**
 
 ## How json-render Works
 
@@ -229,7 +247,10 @@ function App({ spec }: { spec: JsonRenderSpec }) {
 
 ## Spec Format
 
-The JSON spec is a flat tree — no nesting, just IDs and references. Load `references/spec-format.md` for full documentation.
+The JSON spec is a flat tree — no nesting, just IDs and references. Field-by-field
+documentation (`root`, `elements`, `props`, `children`, `on`, `watch`, `state`, and the
+`$state` / `$bindState` / `$cond` / `$template` / `$computed` expressions) is upstream in
+https://github.com/vercel-labs/json-render `skills/core/SKILL.md`.
 
 ```json
 {
@@ -266,7 +287,10 @@ The JSON spec is a flat tree — no nesting, just IDs and references. Load `refe
 }
 ```
 
-Load `rules/action-state.md` for event handlers, watch bindings, and state adapter patterns.
+Event handlers, watch bindings, the built-in actions (`setState`, `pushState`,
+`removeState`, `validateForm`) and the state adapters are upstream in
+https://github.com/vercel-labs/json-render `skills/react/SKILL.md` and the per-adapter
+skills. Do not restate the roster here; see `references/ork-delta.md` for why.
 
 ## YAML Mode — 30% Fewer Tokens
 
@@ -303,7 +327,10 @@ Elements render as soon as their props are complete — no waiting for the full 
 
 ## @json-render/shadcn — 36 Pre-Built Components
 
-The `@json-render/shadcn` package provides a production-ready catalog of 36 components with Zod schemas already defined. Load `rules/shadcn-catalog.md` for the full component list and when to extend vs use as-is.
+The `@json-render/shadcn` package provides a production-ready catalog of 36 components
+with Zod schemas already defined. The component list and prop schemas are upstream in
+https://github.com/vercel-labs/json-render `skills/shadcn/SKILL.md`; shadcn/ui
+composition itself is the `vercel:shadcn` skill.
 
 > **Svelte:** `@json-render/shadcn-svelte` (added in 0.16) mirrors the same 36 components for Svelte 5 + Tailwind projects.
 
@@ -379,7 +406,7 @@ Core + 23 renderer/integration packages covering web, mobile, terminal, 3D, code
 - `@json-render/ink` (0.15) — terminal UI renderer (Ink-based, 20+ components)
 - `@json-render/next` (0.16) — generates full Next.js apps (routes, layouts, SSR, metadata)
 - `@json-render/shadcn-svelte` (0.16) — 36-component Svelte 5 mirror of the React shadcn catalog
-- `@json-render/react-three-fiber` now ships 20 components (includes `GaussianSplat` in 0.17)
+- `@json-render/react-three-fiber` ships 19 components (verified 2026-07-31; roster lives upstream)
 - `@json-render/devtools` + framework adapters (0.18) — six-tab inspector panel, DOM picker, tree-shakes to `null` in prod
 - `@json-render/directives` (0.19) — seven Intl/math/string directives + `createI18nDirective` + `standardDirectives` registration helper
 
@@ -399,7 +426,12 @@ Core + 23 renderer/integration packages covering web, mobile, terminal, 3D, code
 
 ## Migrating from Custom GenUI
 
-If you have existing custom generative UI (hand-rolled JSON-to-component mapping), load `references/migration-from-genui.md` for a step-by-step migration guide.
+If you have existing custom generative UI (hand-rolled JSON-to-component mapping), the
+target shape is the catalog plus flat-tree spec contract documented upstream in
+https://github.com/vercel-labs/json-render `skills/core/SKILL.md`. The order that works:
+inventory your existing types, give each one a Zod schema in `defineCatalog`, flatten the
+nested spec into `root` plus `elements`, move handler props onto the `on` field, then wrap
+your existing components as catalog implementations.
 
 ## Rule Details
 
@@ -419,14 +451,6 @@ Constraining props to prevent AI hallucination.
 |------|------|-------------|
 | Prop Constraints | `rules/prop-constraints.md` | z.enum, z.string().max(), z.array().max() |
 
-### shadcn Catalog
-
-Using the 36 pre-built shadcn components.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| shadcn Catalog | `rules/shadcn-catalog.md` | @json-render/shadcn components and extension |
-
 ### Token Optimization
 
 Choosing JSON vs YAML for token efficiency.
@@ -434,14 +458,6 @@ Choosing JSON vs YAML for token efficiency.
 | Rule | File | Key Pattern |
 |------|------|-------------|
 | Token Optimization | `rules/token-optimization.md` | YAML for standalone mode, JSON for inline/streaming |
-
-### Actions & State
-
-Adding interactivity with events, watchers, and state.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| Action & State | `rules/action-state.md` | on events, watch reactivity, state adapters |
 
 ## Key Decisions
 

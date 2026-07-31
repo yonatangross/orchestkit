@@ -75,4 +75,4 @@ persist((set) => ({ theme: 'light', fontSize: 14 }), {
 - Always `import type {} from '@redux-devtools/extension'` when using `devtools`
 - Always provide a `migrate` function when bumping persist `version`
 
-Reference: `references/middleware-composition.md` (Common Pitfalls)
+Reference: `references/ork-delta.md` (secret handling) and https://github.com/pmndrs/zustand/blob/main/docs/reference/middlewares/persist.md (version and migrate)

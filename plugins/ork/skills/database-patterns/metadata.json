@@ -2,9 +2,9 @@
   "version": "2.0.0",
   "organization": "OrchestKit",
   "date": "February 2026",
-  "abstract": "Database design and migration patterns covering Alembic migrations (autogenerate, data migrations, branching), schema design (normalization, indexing, NoSQL), and database versioning (changelogs, rollback, drift detection).",
-  "ruleCount": 9,
-  "categories": 3,
+  "abstract": "Database design and migration patterns covering Alembic migrations (data migrations, branching), schema design (normalization, indexing, NoSQL), database versioning (changelogs, drift detection), zero-downtime migration, and database selection. Wraps Alembic and PostgreSQL rather than restating them; see references/ork-delta.md for the OrchestKit-specific corrections.",
+  "ruleCount": 10,
+  "categories": 5,
   "consolidatedFrom": [
     "alembic-migrations",
     "database-schema-designer",

@@ -233,7 +233,10 @@ github.reset()       // Synchronous state wipe
 await github.close() // Shut down server
 ```
 
-See `references/sdk-patterns.md` for advanced patterns (multi-service, lifecycle hooks).
+`seed` here is a parsed object, not a path. Only the CLI `--seed` flag takes a filename.
+For multi-service setup, lifecycle hooks, and the Vitest/Jest wiring, see
+`references/upstream.md`. For the ork-side corrections to that API, see
+`references/ork-delta.md`.
 
 ## Webhook Delivery
 
@@ -306,6 +309,29 @@ See `rules/parallel-ci.md` for full parallel isolation patterns.
 - You need in-browser interception (MSW)
 - Tests only need single request/response pairs
 
+## Upstream coverage (do not restate)
+
+This skill is a wrap plus our delta. emulate ships its own per-service reference docs;
+copying them here only produces something that goes stale on the next release. If a
+topic below comes up, read the first-party source, not a paraphrase.
+
+| Topic | First-party source |
+|---|---|
+| Programmatic API (`createEmulator`, `url`, `reset()`, `close()`), Vitest/Jest wiring, config auto-detection order, token fallback | `references/upstream.md` (synced from `vercel-labs/emulate`, `skills/emulate/SKILL.md`) |
+| GitHub endpoint recipes, GitHub App JWT seeding, Octokit and Auth.js base-URL wiring, GitHub OAuth flow | https://github.com/vercel-labs/emulate/blob/main/skills/github/SKILL.md |
+| Google OIDC discovery, JWKS, authorize/token/userinfo/revoke, PKCE, `google-auth-library`, Passport, `openid-client` | https://github.com/vercel-labs/emulate/blob/main/skills/google/SKILL.md |
+| Vercel endpoint recipes, cursor pagination, team scoping, integration OAuth flow | https://github.com/vercel-labs/emulate/blob/main/skills/vercel/SKILL.md |
+| Every other emulator (Slack, Apple, Entra, AWS, Okta, Resend, Stripe, MongoDB Atlas, Clerk, Linear, Twilio) | https://github.com/vercel-labs/emulate/tree/main/skills |
+
+**What stays ours:** `references/ork-delta.md` (the corrections and house conventions that
+are not in any vendor doc), `references/cli-reference.md`, `references/api-coverage.md`,
+`references/dep-to-emulator-map.json`, `scripts/auto-discover.sh`, and everything in `rules/`.
+
+Read `references/ork-delta.md` before copying any snippet out of a vendor doc. It records
+the two API facts vendor prose does not spell out (the exported factory is `createEmulator`,
+and `seed` in the programmatic options is an object rather than a path) plus the
+`*_API_BASE` env-var convention this repo uses instead of the vendor's `*_EMULATOR_URL`.
+
 ## Related Skills
 
 - `testing-integration` — Integration test patterns (emulate as first choice for API tests)
@@ -316,10 +342,6 @@ See `rules/parallel-ci.md` for full parallel isolation patterns.
 ## CLI Reference
 
 See `references/cli-reference.md` for all CLI flags and commands.
-
-## SDK Patterns
-
-See `references/sdk-patterns.md` for programmatic `createEmulate()` usage.
 
 
 ---
@@ -445,19 +467,21 @@ When running tests in parallel (Vitest, Jest workers, CI matrix), each worker ne
 
 ```typescript
 // vitest.setup.ts — each worker gets a unique port
-import { createEmulate } from '@emulators/emulate'
-import type { Emulator } from '@emulators/emulate'
+import { readFileSync } from 'node:fs'
+import { parse } from 'yaml'
+import { createEmulator, type Emulator, type SeedConfig } from 'emulate'
 
 let github: Emulator
 
 const BASE_PORT = 4001
 const workerPort = BASE_PORT + parseInt(process.env.VITEST_WORKER_ID || '0')
+const seed = parse(readFileSync('./emulate.config.yaml', 'utf8')) as SeedConfig
 
 beforeAll(async () => {
-  github = await createEmulate({
+  github = await createEmulator({
     service: 'github',
     port: workerPort,
-    seed: './emulate.config.yaml'
+    seed
   })
   process.env.GITHUB_API_BASE = github.url
 })
@@ -482,7 +506,7 @@ const workerPort = 4001 + parseInt(process.env.JEST_WORKER_ID || '0')
 
 ```typescript
 // BAD: shared port causes race conditions
-const github = await createEmulate({ service: 'github', port: 4001 })
+const github = await createEmulator({ service: 'github', port: 4001 })
 
 // Worker 1 creates a PR, Worker 2 sees it — non-deterministic
 ```
@@ -492,7 +516,7 @@ const github = await createEmulate({ service: 'github', port: 4001 })
 ```typescript
 // GOOD: each worker has isolated state
 const workerPort = 4001 + parseInt(process.env.VITEST_WORKER_ID || '0')
-const github = await createEmulate({ service: 'github', port: workerPort })
+const github = await createEmulator({ service: 'github', port: workerPort })
 
 // Worker 1 on :4002, Worker 2 on :4003 — fully isolated
 ```
@@ -526,8 +550,11 @@ jobs:
 - In CI matrix builds, use shard index with a multiplier (e.g., `* 100`) to avoid port overlap between shards
 - Never rely on a single shared emulator instance for parallel test execution
 - Always set `GITHUB_API_BASE` per worker so test code uses the correct port
+- Import `createEmulator` from `emulate`; `createEmulate` and the `@emulators/emulate`
+  package do not exist (see `references/ork-delta.md`)
 
-Reference: `references/sdk-patterns.md`
+Reference: `references/upstream.md` for the emulator lifecycle API,
+`references/ork-delta.md` for the ork-side corrections to it.
 
 
 ### Seed Config: emulate.config.yaml Structure — HIGH
@@ -660,9 +687,9 @@ const mockCreatePR = jest.fn().mockResolvedValue({ number: 1 })
 **Correct — use emulate for stateful GitHub API testing:**
 
 ```typescript
-import { createEmulate } from '@emulators/emulate'
+import { createEmulator } from 'emulate'
 
-const github = await createEmulate({ service: 'github', port: 4001 })
+const github = await createEmulator({ service: 'github', port: 4001 })
 
 // Create PR via API
 await fetch(`${github.url}/repos/org/repo/pulls`, {
@@ -773,7 +800,8 @@ if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
 - Clean up the webhook server in `afterAll` to prevent port leaks
 - Emulate delivers webhooks on state mutations (create, update, delete) — not on reads
 
-Reference: `references/sdk-patterns.md`
+Reference: `references/upstream.md` for the emulator lifecycle API,
+`references/ork-delta.md` for the ork-side corrections to it.
 
 
 
@@ -1039,199 +1067,37 @@ Set these in your test runner or CI to redirect API calls to the emulator:
 | 130 | Interrupted (Ctrl+C) |
 
 
-### Sdk Patterns
+### Ork Delta
 
-# SDK Patterns
+# emulate-seed: the ork delta
 
-Programmatic usage of emulate via the `createEmulate()` API (v0.3.0+, `@emulators/*` scope).
+What this skill knows that emulate's own documentation does not. Everything else
+(endpoint lists, per-service curl recipes, OAuth walkthroughs, the programmatic API
+surface) lives upstream and is deliberately not restated here. See the
+"Upstream coverage (do not restate)" table in `SKILL.md` for where each topic went.
 
-## Basic Usage
+Every claim below was checked against the published `emulate@0.9.0` type
+declarations on 2026-07-31, which is also this skill's `upstream-version-tested`.
 
-```typescript
-import { createEmulate } from '@emulators/emulate'
+## Import `createEmulator` from `emulate`, never `createEmulate` from `@emulators/emulate`
+Why: the retired `sdk-patterns.md` reference used `createEmulate` from `@emulators/emulate` in every snippet and `rules/parallel-ci.md` copied it, but `@emulators/emulate` returns 404 on the npm registry and `emulate@0.9.0` `dist/api.d.ts` exports exactly one factory, `createEmulator`, so none of those snippets could ever have run. Same failure class the house rule in `.claude/rules/skill-authoring.md` calls out: every symbol in an import must actually be exported.
+Upstream: https://cdn.jsdelivr.net/npm/emulate@0.9.0/dist/api.d.ts
 
-const github = await createEmulate({
-  service: 'github',
-  port: 4001,
-  seed: './emulate.config.yaml'  // Optional seed file
-})
+## Pass `seed` to `createEmulator` as a parsed object, not a YAML path
+Why: `EmulatorOptions.seed` is typed `SeedConfig` (an object with a `tokens` map plus per-service keys) in `emulate@0.9.0` `dist/api.d.ts`; only the CLI `--seed` flag takes a file path. The retired `sdk-patterns.md` passed `seed: './emulate.config.yaml'` in six snippets, which type-errors before a test ever starts. Read and parse the YAML yourself, or drive the emulator from the CLI.
+Upstream: https://cdn.jsdelivr.net/npm/emulate@0.9.0/dist/api.d.ts
 
-console.log(github.url) // 'http://localhost:4001'
+## Point app code at the emulator with `*_API_BASE`, not the vendor's `*_EMULATOR_URL`
+Why: house convention. `references/cli-reference.md`, the CI snippet in `SKILL.md`, and every expectation in `test-cases.json` key on `GITHUB_API_BASE`, `VERCEL_API_BASE`, and `GOOGLE_OAUTH_BASE`, while the vendor docs use `GITHUB_EMULATOR_URL` and friends. Copying a variable name out of a vendor snippet leaves the SDK silently pointed at production instead of failing loudly.
+Upstream: references/upstream.md, section "Pointing Your App at the Emulator"
 
-// Use the emulated API
-const res = await fetch(`${github.url}/repos/org/repo`)
-const repo = await res.json()
+## Translate dep-map emulator labels into emulate service ids before passing `--service`
+Why: `references/dep-to-emulator-map.json` emits ork's own labels `google-oauth`, `apple-auth`, and `microsoft-entra`, but `emulate@0.9.0`'s `SERVICE_NAME_LIST` is vercel, github, google, slack, apple, microsoft, okta, aws, resend, stripe, mongoatlas, clerk, linear, twilio. Anything `scripts/auto-discover.sh` writes for those three needs mapping before it reaches the CLI or is used as a `SeedConfig` key, or emulate will not recognize the service.
+Upstream: https://cdn.jsdelivr.net/npm/emulate@0.9.0/dist/api.d.ts
 
-// Cleanup
-github.reset()       // Synchronous — wipes all state, keeps server running
-await github.close() // Async — shuts down server and frees port
-```
-
-## Multi-Service Setup
-
-```typescript
-import { createEmulate } from '@emulators/emulate'
-
-const [github, vercel] = await Promise.all([
-  createEmulate({ service: 'github', port: 4001, seed: './config.yaml' }),
-  createEmulate({ service: 'vercel', port: 4000, seed: './config.yaml' }),
-])
-
-// Both share the same seed config — tokens, users, projects
-const ghRes = await fetch(`${github.url}/repos/org/repo`)
-const vcRes = await fetch(`${vercel.url}/v9/projects`)
-
-// Cleanup both
-await Promise.all([github.close(), vercel.close()])
-```
-
-## Test Framework Integration
-
-### Vitest
-
-```typescript
-// vitest.setup.ts
-import { createEmulate, type Emulator } from '@emulators/emulate'
-
-let github: Emulator
-
-beforeAll(async () => {
-  const workerPort = 4001 + parseInt(process.env.VITEST_WORKER_ID || '0')
-  github = await createEmulate({
-    service: 'github',
-    port: workerPort,
-    seed: '.emulate/test.yaml'
-  })
-  process.env.GITHUB_API_BASE = github.url
-})
-
-afterAll(async () => {
-  await github.close()
-})
-
-beforeEach(() => {
-  github.reset() // Fresh state per test
-})
-```
-
-### Jest
-
-```typescript
-// jest.setup.ts
-import { createEmulate, type Emulator } from '@emulators/emulate'
-
-let github: Emulator
-
-beforeAll(async () => {
-  const workerPort = 4001 + parseInt(process.env.JEST_WORKER_ID || '0')
-  github = await createEmulate({
-    service: 'github',
-    port: workerPort,
-    seed: '.emulate/test.yaml'
-  })
-  process.env.GITHUB_API_BASE = github.url
-})
-
-afterAll(async () => {
-  await github.close()
-})
-
-beforeEach(() => {
-  github.reset()
-})
-```
-
-## Emulator API
-
-### `createEmulate(options)`
-
-Creates and starts an emulator instance.
-
-```typescript
-interface EmulatorOptions {
-  service: 'github' | 'vercel' | 'google'
-  port?: number      // Default: 4001 (github), 4000 (vercel), 4002 (google)
-  seed?: string      // Path to YAML seed config
-}
-
-const emulator: Emulator = await createEmulate(options)
-```
-
-### `emulator.url`
-
-The base URL of the running emulator.
-
-```typescript
-github.url // 'http://localhost:4001'
-```
-
-### `emulator.reset()`
-
-Synchronously wipes all state and re-applies the seed config. The server stays running — useful for resetting between tests without the overhead of restarting.
-
-```typescript
-github.reset() // Instant — no await needed
-```
-
-### `emulator.close()`
-
-Asynchronously shuts down the server and frees the port. Call in `afterAll`.
-
-```typescript
-await github.close()
-```
-
-## URL Patterns
-
-When using emulate with existing SDKs, set the base URL:
-
-### Octokit
-
-```typescript
-import { Octokit } from '@octokit/rest'
-
-const octokit = new Octokit({
-  baseUrl: process.env.GITHUB_API_BASE || 'https://api.github.com',
-  auth: 'dev_token'  // Seeded token name
-})
-
-const { data: repos } = await octokit.repos.listForOrg({ org: 'my-org' })
-```
-
-### Vercel SDK
-
-```typescript
-import { Vercel } from '@vercel/sdk'
-
-const vercel = new Vercel({
-  baseUrl: process.env.VERCEL_API_BASE || 'https://api.vercel.com',
-  bearerToken: 'dev_token'
-})
-```
-
-### fetch
-
-```typescript
-const base = process.env.GITHUB_API_BASE || 'https://api.github.com'
-
-const res = await fetch(`${base}/repos/org/repo/pulls`, {
-  headers: { Authorization: 'Bearer dev_token' }
-})
-```
-
-## State Lifecycle
-
-```
-createEmulate() -> seed applied -> tests run -> reset() -> tests run -> close()
-                     ^                            ^
-                     |                            |
-                     Initial state                State wiped, seed re-applied
-```
-
-- `createEmulate()` — Starts server, applies seed config
-- Tests run — State accumulates (created PRs, issues, etc.)
-- `reset()` — Wipes state, re-applies seed — server stays up
-- `close()` — Shuts down server, frees port
+## Do not vendor-sync emulate's per-service SKILL.md files into this skill
+Why: the retired `upstream-github.md`, `upstream-google.md`, and `upstream-vercel.md` were 1133 lines of verbatim output from the repo-root `sync-vercel-skills.sh` covering 3 of the 14 emulators, so they read as full coverage while going stale on every emulate release, and they duplicated `references/upstream.md`. Distilled from those three retired files; no traced incident.
+Upstream: https://github.com/vercel-labs/emulate/tree/main/skills
 
 
 ### Upstream Github

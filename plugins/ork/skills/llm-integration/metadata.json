@@ -3,8 +3,8 @@
   "organization": "OrchestKit",
   "date": "February 2026",
   "abstract": "LLM integration patterns covering function calling with strict mode schemas, streaming responses via SSE, local inference with Ollama, and fine-tuning with LoRA/QLoRA and DPO alignment.",
-  "ruleCount": 12,
-  "categories": 4,
+  "ruleCount": 20,
+  "categories": 7,
   "consolidatedFrom": [
     "function-calling",
     "llm-streaming",

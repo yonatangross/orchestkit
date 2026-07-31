@@ -1,9 +1,9 @@
 {
-  "version": "2.0.0",
+  "version": "3.0.0",
   "organization": "OrchestKit",
   "date": "February 2026",
-  "abstract": "Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse LLM tracing, and drift detection. Covers infrastructure monitoring, LLM cost tracking, evaluation scoring, and statistical/quality drift detection.",
-  "ruleCount": 9,
+  "abstract": "Wrap around Prometheus, Grafana, OpenTelemetry and Langfuse carrying OrchestKit's delta only: version floors, house decisions and scars. Vendor tutorials are pointed at, not restated. Retains Grafana dashboard patterns, Langfuse trace wiring, and silent-failure detection for LLM agents.",
+  "ruleCount": 5,
   "categories": 3,
   "consolidatedFrom": [
     "observability-monitoring",

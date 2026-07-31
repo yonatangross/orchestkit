@@ -37,14 +37,42 @@ Comprehensive patterns for database migrations, schema design, and version manag
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
-| [Alembic Migrations](#alembic-migrations) | 3 | CRITICAL | Autogenerate, data migrations, branch management |
+| [Alembic Migrations](#alembic-migrations) | 2 | CRITICAL | Data migrations, branch management |
 | [Schema Design](#schema-design) | 3 | HIGH | Normalization, indexing strategies, NoSQL patterns |
-| [Versioning](#versioning) | 3 | HIGH | Changelogs, rollback plans, schema drift detection |
+| [Versioning](#versioning) | 2 | HIGH | Changelogs, schema drift detection |
 | [Zero-Downtime Migration](#zero-downtime-migration) | 2 | CRITICAL | Expand-contract, pgroll, rollback monitoring |
 
 | [Database Selection](#database-selection) | 1 | HIGH | Choosing the right database, PostgreSQL vs MongoDB, cost analysis |
 
-**Total: 12 rules across 5 categories**
+**Total: 10 rules across 5 categories**
+
+This skill is a wrap around Alembic and PostgreSQL, not a replacement for their
+docs. Read `${CLAUDE_SKILL_DIR}/references/ork-delta.md` first: it holds the
+version floors, corrections and house conventions that upstream does not carry.
+Everything in the table below was removed on purpose.
+
+## Upstream coverage (do not restate)
+
+These topics are vendor documentation. Fetch them from the source instead of
+re-teaching them here.
+
+| Topic | First-party source |
+|-------|--------------------|
+| Alembic autogenerate, async `env.py` template, `revision`/`upgrade`/`downgrade`/`history` CLI | https://alembic.sqlalchemy.org/en/latest/autogenerate.html (our one correction to the async template is in `references/ork-delta.md`) |
+| Migration branches, merge revisions, tuple `down_revision`, branch labels | https://alembic.sqlalchemy.org/en/latest/branches.html |
+| Multi-database `env.py`, batched backfill recipes, migration hooks, environment-conditional migrations | https://alembic.sqlalchemy.org/en/latest/cookbook.html |
+| Rollback and data-integrity test harnesses | `${CLAUDE_SKILL_DIR}/references/migration-testing.md` |
+| JSONB operators, indexing and storage tradeoffs | https://www.postgresql.org/docs/current/datatype-json.html (normal forms and the house denormalization call stay in `rules/schema-normalization.md`) |
+| Full index-type reference and syntax (B-tree, GIN, partial, covering, `CREATE INDEX CONCURRENTLY`, `REINDEX`) | https://www.postgresql.org/docs/current/sql-createindex.html (the house subset we actually apply stays in `rules/schema-indexing.md`) |
+| `lock_timeout`, `statement_timeout`, advisory locks during migration | https://www.postgresql.org/docs/current/runtime-config-client.html and `${CLAUDE_SKILL_DIR}/rules/versioning-drift.md` |
+| Enum type changes | https://www.postgresql.org/docs/current/datatype-enum.html |
+| Table partitioning | https://www.postgresql.org/docs/current/ddl-partitioning.html |
+| Trigger functions | https://www.postgresql.org/docs/current/plpgsql-trigger.html |
+| Foreign-key cascade semantics | https://www.postgresql.org/docs/current/ddl-constraints.html |
+| Temporal and audit-trail tables, CDC change logs, stored-procedure and view versioning | https://www.postgresql.org/docs/18/sql-createtable.html (read `references/ork-delta.md` before assuming these give row history) |
+| HNSW and vector index tuning (`m`, `ef_construction`, `hnsw.ef_search`) | https://github.com/pgvector/pgvector |
+| Generic pre-deployment, backup and schema-review checklists | https://alembic.sqlalchemy.org/en/latest/tutorial.html |
+| Async SQLAlchemy sessions, FastAPI wiring, connection pool tuning | `ork:python-backend` skill |
 
 ## Quick Start
 
@@ -77,9 +105,11 @@ Migration management with Alembic for SQLAlchemy 2.0 async applications.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Autogenerate | `${CLAUDE_SKILL_DIR}/rules/alembic-autogenerate.md` | Auto-generate from models, async env.py, review workflow |
 | Data Migration | `${CLAUDE_SKILL_DIR}/rules/alembic-data-migration.md` | Batch backfill, two-phase NOT NULL, zero-downtime |
 | Branching | `${CLAUDE_SKILL_DIR}/rules/alembic-branching.md` | Feature branches, merge migrations, conflict resolution |
+
+Autogenerate setup is upstream. Our one deviation from Alembic's async `env.py`
+template (the `in_greenlet()` guard) is in `${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
 
 ## Schema Design
 
@@ -98,8 +128,11 @@ Database version control and change management across environments.
 | Rule | File | Key Pattern |
 |------|------|-------------|
 | Changelog | `${CLAUDE_SKILL_DIR}/rules/versioning-changelog.md` | Schema version table, semantic versioning, audit trails |
-| Rollback | `${CLAUDE_SKILL_DIR}/rules/versioning-rollback.md` | Rollback testing, destructive rollback docs, CI verification |
 | Drift Detection | `${CLAUDE_SKILL_DIR}/rules/versioning-drift.md` | Environment sync, checksum verification, migration locks |
+
+Rollback testing lives in `${CLAUDE_SKILL_DIR}/references/migration-testing.md`;
+the docstring convention for lossy downgrades is in
+`${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
 
 ## Database Selection
 
@@ -153,10 +186,13 @@ command.stamp(alembic_config, "head")  # Loses history
 
 | Resource | Description |
 |----------|-------------|
-| `${CLAUDE_SKILL_DIR}/references/` | Advanced patterns: Alembic, normalization, migration, audit, environment, versioning |
-| `${CLAUDE_SKILL_DIR}/checklists/` | Migration deployment and schema design checklists |
-| `${CLAUDE_SKILL_DIR}/examples/` | Complete migration examples, schema examples |
-| `${CLAUDE_SKILL_DIR}/scripts/` | Migration templates, model change detector |
+| `${CLAUDE_SKILL_DIR}/references/ork-delta.md` | Our corrections and house conventions. Read this first |
+| `${CLAUDE_SKILL_DIR}/references/migration-testing.md` | Upgrade/downgrade cycle and data-integrity test harnesses |
+| `${CLAUDE_SKILL_DIR}/references/postgres-vs-mongodb.md` | Head-to-head comparison behind the PostgreSQL-first default |
+| `${CLAUDE_SKILL_DIR}/references/db-migration-paths.md` | Cross-engine migration risk matrix |
+| `${CLAUDE_SKILL_DIR}/references/cost-comparison.md` | Managed database cost analysis |
+| `${CLAUDE_SKILL_DIR}/references/storage-and-cms.md` | Object storage and CMS selection |
+| `${CLAUDE_SKILL_DIR}/scripts/` | Migration template, model change detector |
 
 ## Zero-Downtime Migration
 

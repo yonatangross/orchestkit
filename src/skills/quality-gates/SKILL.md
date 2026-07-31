@@ -66,7 +66,7 @@ This skill teaches agents how to assess task complexity, enforce quality gates, 
 | 4 - Complex | 10-25 | 500-1500 | 8-24 hr | 4-6 deps, significant unknowns |
 | 5 - Very Complex | 25+ | 1500+ | 24+ hr | 7+ deps, many unknowns |
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/complexity-scoring.md")` for detailed examples and assessment formulas.
+The table above is the canonical rubric. Score with `max(file_count, LOC, dependency_count, unknowns)`, not an average: one Level 5 axis makes the task Level 5. Run `scripts/assess-complexity.md` or `scripts/analyze-codebase.sh <target>` to measure the inputs.
 
 ### Blocking Thresholds
 
@@ -85,7 +85,7 @@ Load: `Read("${CLAUDE_SKILL_DIR}/references/complexity-scoring.md")` for detaile
 - 1-2 unanswered questions
 - 1-2 failed attempts
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/blocking-thresholds.md")` for escalation protocols and decision logic.
+The escalation protocol and gate decision logic are both in "Quick Reference" below. The YAGNI ratio, tier LOC budgets, and simpler-alternative surfacing live in `rules/yagni-gate.md`.
 
 ---
 
@@ -94,11 +94,29 @@ Load: `Read("${CLAUDE_SKILL_DIR}/references/blocking-thresholds.md")` for escala
 Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
-| `complexity-scoring.md` | Detailed Level 1-5 characteristics, quick assessment formula, checklist |
-| `blocking-thresholds.md` | BLOCKING vs WARNING conditions, escalation protocol, gate decision logic, attempt tracking |
-| `workflows.md` | Pre-task gate validation, stuck detection, complexity breakdown (Level 4-5), requirements completeness |
-| `gate-patterns.md` | Gate validation process templates, context system integration, common pitfalls |
-| `llm-quality-validation.md` | LLM-as-judge patterns, quality aspects, fail-open/closed strategies, graceful degradation, triple-consumer artifacts |
+| `ork-delta.md` | OrchestKit-specific scars and house decisions: line-counting correctness, fail-open policy, gate self-monitoring, non-bypassable categories |
+| `unified-scoring-framework.md` | Canonical 0-10 dimensions, weights, grade thresholds, improvement prioritization. Also loaded by `ork:assess` and `ork:verify` |
+
+---
+
+## Upstream coverage (do not restate)
+
+This skill wraps generic quality-gate practice and keeps only the OrchestKit delta. When one of these topics comes up, go to the source instead of re-teaching it here.
+
+| Topic | Source |
+|-------|--------|
+| Complexity 1-5 rubric, per-level examples, assessment formula | "Complexity Scoring" table above, canonical |
+| BLOCKING vs WARNING conditions, escalation protocol, attempt tracking | "Blocking Thresholds" and "Quick Reference" above, canonical |
+| YAGNI ratio, project tier LOC budgets, simpler alternatives | `rules/yagni-gate.md` + `ork:scope-appropriate-architecture` |
+| Score dimensions, weights, grade thresholds | `references/unified-scoring-framework.md` |
+| LLM-as-judge, G-Eval, aspect scoring, metric APIs | `ork:testing-llm` |
+| Requirements completeness, acceptance criteria templates | `ork:write-prd` |
+| Test standards enforced as part of a gate | `ork:architecture-patterns` |
+| Repo metrics for a gate input (files, LOC, tests, churn) | `scripts/analyze-codebase.sh` in this skill |
+| LangGraph conditional routing for a gate node | https://langchain-ai.github.io/langgraph/ |
+| FastAPI error responses for a failed gate | https://fastapi.tiangolo.com/tutorial/handling-errors/ |
+| Pydantic validators for gate output schemas | https://docs.pydantic.dev/latest/concepts/validators/ |
+| Retry with exponential backoff, SLO-based alerting on gates | https://sre.google/workbook/alerting-on-slos/ |
 
 ---
 
@@ -233,7 +251,7 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 
 - `ork:scope-appropriate-architecture` - Project tier detection that feeds YAGNI gate
 - `ork:architecture-patterns` - Enforce testing standards as part of quality gates
-- `llm-evaluation` - LLM-as-judge patterns for quality validation
+- `ork:testing-llm` - LLM-as-judge patterns for quality validation (DeepEval, RAGAS)
 - `ork:golden-dataset` - Validate datasets meet quality thresholds
 
 ## Key Decisions
@@ -277,7 +295,7 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 
 ### requirements-completeness
 **Keywords:** requirements, incomplete, acceptance criteria
-**Solves:** Are requirements complete enough? Check functional/technical requirements
+**Solves:** Gate check only: is the requirement set complete enough to start? Authoring the requirements themselves belongs to `ork:write-prd` (see Upstream coverage)
 
 ### escalation-protocol
 **Keywords:** escalate, ask user, need help, human guidance
@@ -285,7 +303,7 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 
 ### llm-as-judge
 **Keywords:** llm as judge, g-eval, aspect scoring, quality validation
-**Solves:** How do I use LLM-as-judge? Evaluate relevance, depth, coherence with thresholds
+**Solves:** Gate thresholds only: what score must a judge return to pass? Building and running the judge belongs to `ork:testing-llm` (see Upstream coverage)
 
 ### yagni-gate
 **Keywords:** yagni, over-engineering, justified complexity, scope check, too complex, simplify

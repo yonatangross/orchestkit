@@ -106,4 +106,4 @@ agent-browser network requests --clear    # Reset tracked request log
 - Use `--action-policy <path>` (v0.16) to enforce a JSON policy file governing which actions are permitted
 - Use `--max-output <bytes>` (v0.16) to cap command output size — prevents context window blowup from large pages
 
-Reference: `references/anti-bot-handling.md` (Rate Limiting, Adaptive Rate Limiting, Retry Logic)
+Reference: `references/ork-delta.md` (the rate-limit budget is per hostname and shared machine-wide).

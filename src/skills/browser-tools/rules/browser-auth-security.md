@@ -121,4 +121,4 @@ agent-browser --confirm-interactive open https://admin.example.com
 - **v0.21+**: HAR captures contain auth tokens — never commit `.har` files, add to `.gitignore`
 - **v0.17+**: auth cookies now persist on browser close — clear cookies explicitly if you need a fresh session
 
-Reference: `references/auth-flows.md` (Security Considerations, Secure State Files)
+Reference: login flows, the auth vault and state files are upstream, see the `agent-browser` skill. Our delta: `references/ork-delta.md`.

@@ -16,7 +16,6 @@
     },
     {
       "id": "shadcn-components-available",
-      "rule": "shadcn-catalog",
       "query": "What components are available in json-render for building a settings page?",
       "expectedBehavior": [
         "References @json-render/shadcn package with its 36 pre-built components",
@@ -38,7 +37,6 @@
     },
     {
       "id": "add-interactivity",
-      "rule": "action-state",
       "query": "Add interactivity to a json-render spec — button clicks, data loading, and state",
       "expectedBehavior": [
         "Uses on field for event handlers (press, change) instead of onClick props",

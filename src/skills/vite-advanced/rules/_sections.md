@@ -9,7 +9,7 @@ version: 2.0.0
 
 Bundle splitting and library publishing configuration.
 
-- `vite-advanced-chunks.md` — Manual chunk splitting, vendor separation, avoiding circular chunks
+- `vite-advanced-chunks.md` - advancedChunks groups with priority and maxSize, vendor separation, manualChunks fallback for Vite 7
 - `vite-lib-config.md` — Library mode with proper externals and dual ESM/CJS output
 
 ## 2. Plugin & Environment (vite) — MEDIUM — 2 rules
