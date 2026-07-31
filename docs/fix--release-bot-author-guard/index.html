@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The guard that rejected its own bot</title>
+<style>
+ :root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+ --glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);
+ --ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%)}
+ *{box-sizing:border-box}
+ body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+ background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+ .wrap{max-width:880px;margin-inline:auto;padding:48px 24px 80px}
+ .eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+ color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+ h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+ .lede{color:var(--muted);max-width:64ch;margin:0 0 30px}.lede b{color:var(--ink)}
+ h2{font-size:18px;margin:30px 0 8px}
+ table{width:100%;border-collapse:collapse;font-size:13.5px;border:1px solid var(--edge);border-radius:14px;overflow:hidden;background:var(--glass)}
+ th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);padding:10px 12px;border-bottom:1px solid var(--edge)}
+ td{padding:10px 12px;border-bottom:1px solid hsl(0 0% 100% / .06);vertical-align:top}
+ tr:last-child td{border-bottom:none}
+ .bad{color:var(--bad)}.ok{color:var(--ok)}
+ code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+ pre{background:hsl(232 30% 4% / .6);border:1px solid var(--edge);border-radius:14px;padding:14px;overflow-x:auto;font-size:12px;color:var(--muted)}
+ .foot{margin-top:34px;font-size:12px;color:var(--faint);line-height:1.9}
+</style></head><body><div class="wrap">
+<div class="eyebrow">PR follow-up to #3226 &middot; 2026-07-31</div>
+<h1>The release guard <span>rejected its own bot</span> on every run</h1>
+<p class="lede">#3226 fixed <b>what</b> the release PR regenerates. It never fixed <b>whether</b> the
+refresh step gets that far. #3212 stayed red after regeneration because the author guard
+matched none of the forms <code>gh</code> actually returns.</p>
+
+<h2>The author form</h2>
+<table><thead><tr><th>login</th><th>original patterns</th></tr></thead><tbody>
+<tr><td><code>app/orchestkit-release-bot</code> &larr; real</td><td class="bad">REJECTED</td></tr>
+<tr><td><code>orchestkit-release-bot</code></td><td class="ok">accepted</td></tr>
+<tr><td><code>github-actions[bot]</code></td><td class="ok">accepted</td></tr>
+</tbody></table>
+<p class="lede" style="margin-top:14px"><code>gh pr list --json author</code> reports a GitHub App as
+<code>app/&lt;slug&gt;</code>. The guard checked for <code>*[bot]</code> or the bare slug, so it
+matched neither, warned, and exited 0.</p>
+
+<h2>Why nobody saw it</h2>
+<pre>PR_JSON=$(gh pr list ... 2>/dev/null || echo "")   # failure == "no PR"
+if [ -z "$PR_JSON" ]; then notice "No open release PR"; exit 0; fi
+
+step: continue-on-error: true                      # and the step can't go red</pre>
+<p class="lede">A failed query, a rate limit and an absent PR all produced the same empty string,
+and the step could not fail. The workflow stayed green while doing nothing. Now a failed query is
+<code>::error::</code> and exits 1; an absent PR stays a notice.</p>
+
+<h2>Proven, not assumed</h2>
+<pre>found PR #3212  author=app/orchestkit-release-bot
+guard verdict:  ACCEPTED (would now refresh)
+actionlint:     exit 0</pre>
+
+<p class="foot">Same failure class already recorded in this repo: the SubagentStop dispatcher that
+returned early on a condition true in 0 of 11,319 real rows, and the scheduled workflow that ran
+green while writing nothing. A check that cannot see reports success.</p>
+</div></body></html>

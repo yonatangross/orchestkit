@@ -173,8 +173,18 @@ jobs:
 
           # Require the release PR to actually be authored by the release bot,
           # rather than trusting the branch name alone.
-          PR_JSON=$(gh pr list --state open --json headRefName,author,number \
-                      --jq '[.[] | select(.headRefName | startswith("release-please--"))][0]' 2>/dev/null || echo "")
+          #
+          # Do NOT collapse "the query failed" into "there is no PR". The previous
+          # form ended in `2>/dev/null || echo ""`, so an auth error, a rate limit
+          # or a network blip all produced an empty string and the step reported
+          # "No open release PR" and exited 0 green. Separate the two outcomes:
+          # a failed query is an error, an empty result is a notice.
+          if ! PR_LIST=$(gh pr list --state open --json headRefName,author,number 2>&1); then
+            echo "::error::gh pr list failed while looking for the release PR: ${PR_LIST}"
+            exit 1
+          fi
+          PR_JSON=$(printf '%s' "$PR_LIST" \
+                      | jq -c '[.[] | select(.headRefName | startswith("release-please--"))][0]')
           if [ -z "$PR_JSON" ] || [ "$PR_JSON" = "null" ]; then
             echo "::notice::No open release PR — nothing to refresh."
             exit 0
@@ -182,8 +192,16 @@ jobs:
           BRANCH=$(printf '%s' "$PR_JSON" | jq -r '.headRefName')
           AUTHOR=$(printf '%s' "$PR_JSON" | jq -r '.author.login')
           NUM=$(printf '%s' "$PR_JSON" | jq -r '.number')
+          # `gh pr list --json author` reports a GitHub App author as
+          # "app/<slug>", NOT "<slug>" and NOT "<slug>[bot]". The original three
+          # patterns matched neither form, so this guard rejected the real release
+          # bot on every run: the step warned, exited 0, and the derived files were
+          # never refreshed. The widened drift gate then failed the release PR, and
+          # both halves looked green because this step is continue-on-error.
+          # Verified 2026-07-31: gh reports #3212's author as
+          # "app/orchestkit-release-bot".
           case "$AUTHOR" in
-            *"[bot]"|"orchestkit-release-bot"|"github-actions")
+            "app/orchestkit-release-bot"|*"[bot]"|"orchestkit-release-bot"|"github-actions")
               ;;
             *)
               echo "::warning::Release PR #${NUM} on ${BRANCH} is authored by '${AUTHOR}', not the release bot. Refusing to check it out."
