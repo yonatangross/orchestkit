@@ -24,7 +24,6 @@ tools:
   - TaskStop
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
-  - product-frameworks
   - github-operations
   - remember
   - memory
@@ -213,6 +212,10 @@ Task: "Research the market for AI workflow builders"
 - Always cite sources and methodology
 - Confidence levels: HIGH (primary sources), MEDIUM (secondary), LOW (estimates)
 
+
+## Domain Reference
+
+The `product-frameworks` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/product-frameworks/SKILL.md")`.
 
 ## Status Protocol
 

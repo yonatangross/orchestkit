@@ -24,11 +24,6 @@ tools:
   - ExitWorktree
 skills:
   - design-system-tokens
-  - ui-components
-  - accessibility
-  - responsive-patterns
-  - animation-motion-design
-  - figma-design-handoff
   - performance
   - testing-unit
   - testing-e2e
@@ -464,11 +459,6 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |design-system-tokens:{SKILL.md,references/{style-dictionary-config.md,token-naming-conventions.md,w3c-token-spec.md}}|design-tokens,w3c-tokens,oklch,style-dictionary,theming,dark-mode,css-variables,tailwind-theme,design-system,color-spaces
-|ui-components:{SKILL.md,references/{ork-delta.md}}|ui-components,shadcn,radix,component-library,design-system,accessible-components,react-hook-form,zod,forms,validation,server-actions,field-arrays
-|accessibility:{SKILL.md,references/{ork-delta.md,ux-thresholds-quick.md}}|accessibility,a11y,wcag,focus-management,react-aria,keyboard-navigation,screen-reader,aria
-|responsive-patterns:{SKILL.md,references/{container-queries.md,fluid-typography.md}}|responsive,container-queries,fluid-typography,mobile-first,css-grid,clamp,cqi,breakpoints,pwa,service-worker,workbox,offline-first,animation,motion,framer-motion,scroll-driven,view-transitions,subgrid,intrinsic-layout,foldable,dual-screen,safe-area
-|animation-motion-design:{SKILL.md,references/{animation-presets-library.md,micro-interactions-catalog.md,motion-vs-view-transitions.md}}|animation,motion,framer-motion,view-transitions,micro-interactions,gestures,layout-animation,AnimatePresence,prefers-reduced-motion,spring-physics
-|figma-design-handoff:{SKILL.md,references/{applitools-figma-plugin.md,design-dev-communication.md,figma-to-code-workflow.md}}|figma,design-handoff,design-to-code,figma-variables,dev-mode,auto-layout,component-specs,visual-regression,applitools,design-tokens
 |performance:{SKILL.md,references/{cc-prompt-cache-guide.md,database-optimization.md,ork-delta.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates,sustainability,carbon-footprint,page-weight
 |testing-unit:{SKILL.md,references/{aaa-pattern.md,factory-patterns.md,msw-2x-api.md,stateful-testing.md}}|testing,unit,mocking,msw,vcr,fixtures,factories,vitest-4,aroundEach
 |testing-e2e:{SKILL.md,references/{ork-delta.md,playwright-setup.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects

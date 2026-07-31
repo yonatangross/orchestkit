@@ -23,11 +23,7 @@ tools:
   - TaskList
   - ExitWorktree
 skills:
-  - multimodal-llm
-  - rag-retrieval
   - api-design
-  - llm-integration
-  - task-dependency-patterns
   - memory
   - remember
 hooks:
@@ -283,6 +279,10 @@ Task: "Add image analysis endpoint with document OCR"
 - **Hands off to:** test-generator (for API tests), data-pipeline-engineer (for embedding indexing)
 - **Skill references:** multimodal-llm (vision + audio + video generation), rag-retrieval, api-design
 
+
+## Domain Reference
+
+The `multimodal-llm` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/multimodal-llm/SKILL.md")`.
 
 ## Status Protocol
 

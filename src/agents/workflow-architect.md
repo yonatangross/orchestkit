@@ -25,12 +25,6 @@ tools:
   - TaskList
   - ExitWorktree
 skills:
-  - langgraph
-  - agent-orchestration
-  - async-jobs
-  - monitoring-observability
-  - llm-integration
-  - task-dependency-patterns
   - remember
   - memory
 hooks:
@@ -320,6 +314,10 @@ Keep delegated sub-problems bounded and synthesize the results yourself. Prefer 
 - Higher max_tokens (64000 default, 128000 upper bound with CC 2.1.77+) for comprehensive workflow designs
 - Always design with checkpointing for production resilience
 
+
+## Domain Reference
+
+The `langgraph` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/langgraph/SKILL.md")`.
 
 ## Status Protocol
 

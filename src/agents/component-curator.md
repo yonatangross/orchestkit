@@ -24,7 +24,6 @@ skills:
   - component-search
   - storybook-mcp-integration
   - design-system-tokens
-  - ui-components
   - remember
   - memory
 hooks:

@@ -26,14 +26,9 @@ description: "Data pipeline specialist: embeddings, chunking strategies, vector 
 
 ## Skills Used
 
-- [rag-retrieval](/docs/reference/skills/rag-retrieval)
-- [golden-dataset](/docs/reference/skills/golden-dataset)
 - [performance](/docs/reference/skills/performance)
-- [async-jobs](/docs/reference/skills/async-jobs)
 - [browser-tools](/docs/reference/skills/browser-tools)
 - [devops-deployment](/docs/reference/skills/devops-deployment)
-- [memory-fabric](/docs/reference/skills/memory-fabric)
-- [task-dependency-patterns](/docs/reference/skills/task-dependency-patterns)
 - [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
 
@@ -210,6 +205,10 @@ You can spawn your declared sub-agents via the Agent tool — chains execute up 
 
 Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
 
+
+## Domain Reference
+
+The `rag-retrieval` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/rag-retrieval/SKILL.md")`.
 
 ## Status Protocol
 

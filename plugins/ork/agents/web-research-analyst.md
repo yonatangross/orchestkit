@@ -24,10 +24,7 @@ tools:
   - TaskList
   - TaskStop
 skills:
-  - web-research-workflow
   - browser-tools
-  - product-frameworks
-  - rag-retrieval
   - remember
   - memory
 hooks:
@@ -471,6 +468,10 @@ agent-browser wait --fn "window.appReady"
 - Confidence levels: HIGH (direct observation), MEDIUM (inferred), LOW (estimated)
 
 
+## Domain Reference
+
+The `web-research-workflow` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/web-research-workflow/SKILL.md")`.
+
 ## Status Protocol
 
 Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`.
@@ -487,10 +488,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|web-research-workflow:{SKILL.md,references/{tavily-api.md}}|research,browser,webfetch,tavily,automation,scraping,content-extraction,competitive-intelligence,monitoring
 |browser-tools:{SKILL.md,references/{ork-delta.md,upstream-dogfood.md,upstream-electron.md,upstream-sandbox.md,upstream-slack.md,upstream.md}}|browser,automation,security,rate-limiting,scraping-ethics
-|product-frameworks:{SKILL.md,references/{build-buy-partner-decision.md,competitive-analysis-guide.md,interview-guide-template.md,journey-map-workshop.md,okr-workshop-guide.md,output-templates.md,rice-scoring-guide.md,roi-calculation-guide.md,tam-sam-som-guide.md,user-story-workshop-guide.md,value-prop-canvas-guide.md,wsjf-guide.md}}|product,strategy,business-case,market-analysis,prioritization,okr,kpi,persona,requirements,user-research,rice,prd
-|rag-retrieval:{SKILL.md}|rag,retrieval,llm,context,grounding,embeddings,hyde,reranking,pgvector,multimodal
 |remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

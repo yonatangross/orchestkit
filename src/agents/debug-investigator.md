@@ -22,7 +22,6 @@ tools:
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - fix-issue
-  - monitoring-observability
   - errors
   - remember
   - memory

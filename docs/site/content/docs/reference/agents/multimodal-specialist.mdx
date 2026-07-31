@@ -25,11 +25,7 @@ description: "Vision, audio, video generation, and multimodal processing special
 
 ## Skills Used
 
-- [multimodal-llm](/docs/reference/skills/multimodal-llm)
-- [rag-retrieval](/docs/reference/skills/rag-retrieval)
 - [api-design](/docs/reference/skills/api-design)
-- [llm-integration](/docs/reference/skills/llm-integration)
-- [task-dependency-patterns](/docs/reference/skills/task-dependency-patterns)
 - [memory](/docs/reference/skills/memory)
 - [remember](/docs/reference/skills/remember)
 
@@ -266,6 +262,10 @@ Task: "Add image analysis endpoint with document OCR"
 - **Hands off to:** test-generator (for API tests), data-pipeline-engineer (for embedding indexing)
 - **Skill references:** multimodal-llm (vision + audio + video generation), rag-retrieval, api-design
 
+
+## Domain Reference
+
+The `multimodal-llm` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/multimodal-llm/SKILL.md")`.
 
 ## Status Protocol
 

@@ -28,10 +28,7 @@ tools:
   - ExitWorktree
 skills:
   - devops-deployment
-  - monitoring-observability
   - security-patterns
-  - distributed-systems
-  - task-dependency-patterns
   - remember
   - memory
 hooks:

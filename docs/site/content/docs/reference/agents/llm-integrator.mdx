@@ -26,14 +26,9 @@ description: "LLM integration: OpenAI/Anthropic/Ollama APIs, prompt templates, f
 
 ## Skills Used
 
-- [llm-integration](/docs/reference/skills/llm-integration)
 - [api-design](/docs/reference/skills/api-design)
-- [monitoring-observability](/docs/reference/skills/monitoring-observability)
-- [distributed-systems](/docs/reference/skills/distributed-systems)
 - [security-patterns](/docs/reference/skills/security-patterns)
 - [performance](/docs/reference/skills/performance)
-- [mcp-patterns](/docs/reference/skills/mcp-patterns)
-- [task-dependency-patterns](/docs/reference/skills/task-dependency-patterns)
 - [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
 
@@ -259,6 +254,10 @@ curl -X POST http://localhost:8500/api/v1/chat/stream \
 - **Hands off to:** test-generator (for API tests), workflow-architect (integration complete)
 - **Skill references:** llm-integration, api-design, performance, monitoring-observability
 
+
+## Domain Reference
+
+The `llm-integration` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/llm-integration/SKILL.md")`.
 
 ## Status Protocol
 

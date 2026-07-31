@@ -24,10 +24,6 @@ tools:
 skills:
   - devops-deployment
   - github-operations
-  - release-management
-  - monitoring-observability
-  - distributed-systems
-  - task-dependency-patterns
   - remember
   - memory
 hooks:

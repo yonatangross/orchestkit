@@ -30,17 +30,12 @@ tools:
 skills:
   - api-design
   - database-patterns
-  - distributed-systems
   - architecture-decision-record
   - architecture-patterns
   - scope-appropriate-architecture
   - security-patterns
-  - monitoring-observability
   - performance
   - python-backend
-  - async-jobs
-  - domain-driven-design
-  - task-dependency-patterns
   - remember
   - memory
 hooks:

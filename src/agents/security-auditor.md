@@ -22,8 +22,6 @@ tools:
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - security-patterns
-  - mcp-patterns
-  - task-dependency-patterns
   - remember
   - memory
 mcpServers: []

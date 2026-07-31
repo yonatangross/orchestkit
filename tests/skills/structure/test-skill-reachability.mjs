@@ -240,13 +240,15 @@ function loadAgents(dir) {
 // Ratchet ceilings. Lower each whenever the count genuinely drops; never
 // raise one. See the header for why UNREACHABLE is not zero.
 //
-// AGENT_DEAD_EDGE starts at the measured baseline rather than zero because
-// clearing it is per-agent judgement, not a sweep: with ~331 tokens of budget
-// headroom, most of these must be fixed by DELETING the false declaration
-// rather than un-flagging the target (#3218). Skill-side DEAD-EDGE stays a
-// hard zero, since #3216 already took it there.
+// AGENT_DEAD_EDGE was introduced as a ratchet at 94 because clearing it was
+// per-agent judgement, not a sweep. It is now ZERO and therefore a hard gate:
+// 87 false declarations were deleted, and the 7 load-bearing ones were
+// CONVERTED to explicit `Read("${CLAUDE_PLUGIN_ROOT}/skills/<x>/SKILL.md")`
+// lines in the agent body, which is the mechanism that actually delivers the
+// skill's rules/ and references/ rather than just its table of contents.
+// Agent bodies are in no token budget, so the conversion cost nothing.
 const UNREACHABLE_BASELINE = 29;
-const AGENT_DEAD_EDGE_BASELINE = 94;
+const AGENT_DEAD_EDGE_BASELINE = 0;
 
 const skills = loadSkills(SKILLS_DIR);
 const agents = loadAgents(AGENTS_DIR);

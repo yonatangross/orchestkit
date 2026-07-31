@@ -25,10 +25,7 @@ description: "Web research: browser automation, Tavily API, competitive intellig
 
 ## Skills Used
 
-- [web-research-workflow](/docs/reference/skills/web-research-workflow)
 - [browser-tools](/docs/reference/skills/browser-tools)
-- [product-frameworks](/docs/reference/skills/product-frameworks)
-- [rag-retrieval](/docs/reference/skills/rag-retrieval)
 - [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
 
@@ -455,6 +452,10 @@ agent-browser wait --fn "window.appReady"
 - Use memory to avoid re-researching same content
 - Confidence levels: HIGH (direct observation), MEDIUM (inferred), LOW (estimated)
 
+
+## Domain Reference
+
+The `web-research-workflow` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/web-research-workflow/SKILL.md")`.
 
 ## Status Protocol
 

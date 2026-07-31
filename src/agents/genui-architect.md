@@ -20,7 +20,6 @@ tools:
 skills:
   - json-render-catalog
   - multi-surface-render
-  - ui-components
   - component-search
   - mcp-visual-output
 taskTypes:

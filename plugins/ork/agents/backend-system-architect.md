@@ -30,17 +30,12 @@ tools:
 skills:
   - api-design
   - database-patterns
-  - distributed-systems
   - architecture-decision-record
   - architecture-patterns
   - scope-appropriate-architecture
   - security-patterns
-  - monitoring-observability
   - performance
   - python-backend
-  - async-jobs
-  - domain-driven-design
-  - task-dependency-patterns
   - remember
   - memory
 hooks:
@@ -339,17 +334,12 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |api-design:{SKILL.md,references/{graphql-api.md,ork-delta.md,payload-vs-sanity.md,rest-patterns.md,telegram-bot-api.md,webhook-security.md,whatsapp-waha.md}}|api-design,rest,graphql,versioning,error-handling,rfc9457,openapi,problem-details
 |database-patterns:{SKILL.md,references/{cost-comparison.md,db-migration-paths.md,migration-testing.md,ork-delta.md,postgres-vs-mongodb.md,storage-and-cms.md}}|database,migrations,alembic,schema-design,versioning,postgresql,sql,nosql
-|distributed-systems:{SKILL.md,references/{ork-delta.md}}|distributed-systems,distributed-locks,resilience,circuit-breaker,idempotency,rate-limiting,retry,fault-tolerance,edge-computing,cloudflare-workers,vercel-edge,event-sourcing,cqrs,saga,outbox,message-queue,kafka
 |architecture-decision-record:{SKILL.md,references/{adr-best-practices.md}}|architecture,documentation,decision-making,backend
 |architecture-patterns:{SKILL.md,references/{naming-conventions.md,ork-delta.md,structure-import-direction.md,testing-naming-conventions.md}}|architecture,clean-architecture,validation,structure,enforcement,testing-standards,right-sizing,over-engineering,context-aware
 |scope-appropriate-architecture:{SKILL.md,references/{enterprise.md,interview-takehome.md,open-source.md,startup-mvp.md}}|architecture,yagni,over-engineering,scope,patterns
 |security-patterns:{SKILL.md,references/{audit-logging.md,cc-permission-model.md,context-separation.md,langfuse-mask-callback.md,ork-delta.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,presidio-integration.md,prompt-audit.md,request-context-pattern.md}}|security,authentication,authorization,defense-in-depth,owasp,input-validation,llm-safety,pii-masking,jwt,oauth
-|monitoring-observability:{SKILL.md,references/{dashboards.md,dev-agent-lens.md,evaluation-scores.md,experiments-api.md,langfuse-js-v5.md,metrics-collection.md,ork-delta.md,session-tracking.md,structured-logging.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
 |performance:{SKILL.md,references/{cc-prompt-cache-guide.md,database-optimization.md,ork-delta.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates,sustainability,carbon-footprint,page-weight
 |python-backend:{SKILL.md,references/{eager-loading.md,fastapi-app-boilerplate.md,ork-delta.md}}|python,asyncio,fastapi,sqlalchemy,connection-pooling,async,postgresql
-|async-jobs:{SKILL.md,references/{anti-patterns.md,capability-details.md,celery-config.md,ork-delta.md,quick-start-examples.md}}|async,jobs,celery,background-tasks,scheduling,queues
-|domain-driven-design:{SKILL.md,references/{ork-delta.md,repositories.md}}|ddd,domain-modeling,entities,value-objects,bounded-contexts,python
-|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

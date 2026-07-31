@@ -27,13 +27,10 @@ tools:
   - TaskStop
   - ExitWorktree
 skills:
-  - monitoring-observability
   - telemetry-inspect
-  - doctor
   - performance
   - testing-perf
   - testing-integration
-  - task-dependency-patterns
   - remember
   - memory
 hooks:
@@ -379,6 +376,10 @@ Task: "Set up monitoring for the order service"
 9. Document runbooks for each alert
 10. Return configuration files and instrumentation code
 
+
+## Domain Reference
+
+The `monitoring-observability` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/SKILL.md")`.
 
 ## Status Protocol
 

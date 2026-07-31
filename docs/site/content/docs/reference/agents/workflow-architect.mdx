@@ -26,12 +26,6 @@ description: "Multi-agent workflow: LangGraph pipelines, supervisor-worker patte
 
 ## Skills Used
 
-- [langgraph](/docs/reference/skills/langgraph)
-- [agent-orchestration](/docs/reference/skills/agent-orchestration)
-- [async-jobs](/docs/reference/skills/async-jobs)
-- [monitoring-observability](/docs/reference/skills/monitoring-observability)
-- [llm-integration](/docs/reference/skills/llm-integration)
-- [task-dependency-patterns](/docs/reference/skills/task-dependency-patterns)
 - [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
 
@@ -302,6 +296,10 @@ Keep delegated sub-problems bounded and synthesize the results yourself. Prefer 
 - Higher max_tokens (64000 default, 128000 upper bound with CC 2.1.77+) for comprehensive workflow designs
 - Always design with checkpointing for production resilience
 
+
+## Domain Reference
+
+The `langgraph` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/langgraph/SKILL.md")`.
 
 ## Status Protocol
 

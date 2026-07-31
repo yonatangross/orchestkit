@@ -24,11 +24,6 @@ tools:
   - ExitWorktree
 skills:
   - design-system-tokens
-  - ui-components
-  - accessibility
-  - responsive-patterns
-  - animation-motion-design
-  - figma-design-handoff
   - performance
   - testing-unit
   - testing-e2e

@@ -24,14 +24,9 @@ tools:
   - TaskList
   - ExitWorktree
 skills:
-  - llm-integration
   - api-design
-  - monitoring-observability
-  - distributed-systems
   - security-patterns
   - performance
-  - mcp-patterns
-  - task-dependency-patterns
   - remember
   - memory
 hooks:
@@ -275,6 +270,10 @@ curl -X POST http://localhost:8500/api/v1/chat/stream \
 - **Hands off to:** test-generator (for API tests), workflow-architect (integration complete)
 - **Skill references:** llm-integration, api-design, performance, monitoring-observability
 
+
+## Domain Reference
+
+The `llm-integration` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/llm-integration/SKILL.md")`.
 
 ## Status Protocol
 

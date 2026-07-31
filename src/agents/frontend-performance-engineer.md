@@ -23,9 +23,6 @@ tools:
   - ExitWorktree
 skills:
   - performance
-  - vite-advanced
-  - monitoring-observability
-  - task-dependency-patterns
   - remember
   - memory
 hooks:
@@ -312,6 +309,14 @@ console.time('render'); // Use web-vitals library
 // Always compare before/after metrics
 ```
 
+
+## Domain Reference
+
+These skills are slash-only, so they cannot be preloaded. Load them explicitly when the
+work needs them, RUM and dashboards for the first, bundle and build analysis for the second:
+
+- `Read("${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/SKILL.md")`
+- `Read("${CLAUDE_PLUGIN_ROOT}/skills/vite-advanced/SKILL.md")`
 
 ## Status Protocol
 

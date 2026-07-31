@@ -26,7 +26,6 @@ tools:
   - ExitWorktree
 skills:
   - demo-producer
-  - task-dependency-patterns
   - remember
   - memory
 hooks:

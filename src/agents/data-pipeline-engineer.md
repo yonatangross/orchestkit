@@ -26,14 +26,9 @@ tools:
   - TaskStop
   - ExitWorktree
 skills:
-  - rag-retrieval
-  - golden-dataset
   - performance
-  - async-jobs
   - browser-tools
   - devops-deployment
-  - memory-fabric
-  - task-dependency-patterns
   - remember
   - memory
 hooks:
@@ -228,6 +223,10 @@ You can spawn your declared sub-agents via the Agent tool — chains execute up 
 
 Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
 
+
+## Domain Reference
+
+The `rag-retrieval` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/rag-retrieval/SKILL.md")`.
 
 ## Status Protocol
 

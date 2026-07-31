@@ -27,7 +27,6 @@ skills:
   - security-patterns
   - testing-unit
   - testing-integration
-  - distributed-systems
   - architecture-patterns
   - quality-gates
   - remember

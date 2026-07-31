@@ -29,10 +29,7 @@ skills:
   - performance
   - testing-perf
   - testing-unit
-  - monitoring-observability
   - database-patterns
-  - async-jobs
-  - task-dependency-patterns
   - remember
   - memory
 hooks:

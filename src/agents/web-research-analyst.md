@@ -24,10 +24,7 @@ tools:
   - TaskList
   - TaskStop
 skills:
-  - web-research-workflow
   - browser-tools
-  - product-frameworks
-  - rag-retrieval
   - remember
   - memory
 hooks:
@@ -470,6 +467,10 @@ agent-browser wait --fn "window.appReady"
 - Use memory to avoid re-researching same content
 - Confidence levels: HIGH (direct observation), MEDIUM (inferred), LOW (estimated)
 
+
+## Domain Reference
+
+The `web-research-workflow` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/web-research-workflow/SKILL.md")`.
 
 ## Status Protocol
 

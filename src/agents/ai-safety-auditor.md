@@ -21,7 +21,6 @@ tools:
   - TaskList
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
-  - mcp-patterns
   - security-patterns
   - remember
   - memory

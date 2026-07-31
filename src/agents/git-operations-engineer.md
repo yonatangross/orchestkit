@@ -23,12 +23,7 @@ tools:
   - ExitWorktree
 skills:
   - github-operations
-  - commit
-  - release-management
-  - swarm-migrate
   - architecture-decision-record
-  - task-dependency-patterns
-  - issue-progress-tracking
   - remember
   - memory
 hooks:

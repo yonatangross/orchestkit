@@ -26,11 +26,8 @@ tools:
   - TaskList
   - ExitWorktree
 skills:
-  - distributed-systems
   - api-design
-  - async-jobs
   - python-backend
-  - task-dependency-patterns
   - remember
   - memory
 hooks:

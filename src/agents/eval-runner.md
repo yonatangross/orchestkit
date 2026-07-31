@@ -32,9 +32,6 @@ disallowedTools:
 skills:
   - testing-llm
   - testing-integration
-  - golden-dataset
-  - monitoring-observability
-  - task-dependency-patterns
   - remember
   - memory
 hooks:

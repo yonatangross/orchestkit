@@ -31,7 +31,6 @@ skills:
   - testing-perf
   - architecture-patterns
   - browser-tools
-  - task-dependency-patterns
   - remember
   - memory
 hooks:

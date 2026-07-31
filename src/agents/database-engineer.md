@@ -25,10 +25,8 @@ tools:
   - ExitWorktree
 skills:
   - database-patterns
-  - rag-retrieval
   - performance
   - python-backend
-  - task-dependency-patterns
   - remember
   - memory
 mcpServers: [context7]

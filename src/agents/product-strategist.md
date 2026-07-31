@@ -22,8 +22,6 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - product-frameworks
-  - brainstorm
   - write-prd
   - prd-to-goal
   - github-operations

@@ -29,10 +29,7 @@ skills:
   - devops-deployment
   - security-patterns
   - github-operations
-  - monitoring-observability
   - code-review-playbook
-  - vite-advanced
-  - task-dependency-patterns
   - remember
   - memory
 hooks:

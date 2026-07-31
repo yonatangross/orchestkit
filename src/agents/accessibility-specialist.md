@@ -24,12 +24,7 @@ tools:
   - TaskList
   - ExitWorktree
 skills:
-  - accessibility
   - testing-e2e
-  - ui-components
-  - responsive-patterns
-  - i18n-date-patterns
-  - task-dependency-patterns
   - remember
   - memory
 hooks:
