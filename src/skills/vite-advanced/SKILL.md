@@ -9,6 +9,7 @@ agent: frontend-ui-developer
 version: 2.0.0
 tags: [vite, vite8, rolldown, build, bundler, plugins, ssr, library-mode, environment-api, optimization, advancedchunks]
 user-invocable: false
+disable-model-invocation: true
 complexity: medium
 persuasion-type: reference
 targets:

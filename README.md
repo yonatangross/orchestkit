@@ -249,6 +249,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.3.0](https://github.com/yonatangross/orchestkit/compare/v9.2.1...v9.3.0)** · 2026-07-31
+
+- **agents:** key Tavily guidance on the tvly CLI rail (#3204)
+- **skills:** fix 5 shipped bugs and add 4 missing CI gates (#3181)
+- **ci:** decide the playground gate from the diff, not the branch (#3196)
+- **hooks:** stop output-validator killing five sibling SubagentStop hooks (#3201)
+- **marketplace:** prep official plugin directory submission (#3205)
+- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v9.2.1](https://github.com/yonatangross/orchestkit/compare/v9.2.0...v9.2.1)** · 2026-07-28
 
 - **evals:** propagate INCONCLUSIVE through the --changed fan-out (#3188)
@@ -293,15 +302,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **docs:** pin playground links to the commit SHA, not the branch (#3148)
 - **hooks:** bound hook-timing.jsonl, the one analytics file with no cap (#3151)
 - …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v8.85.0](https://github.com/yonatangross/orchestkit/compare/v8.84.10...v8.85.0)** · 2026-07-25
-
-- agent activation routing (M170) (#3133)
-- 3 defects found by /ork:assess on the M170 diff (#3136)
-- **build:** stop dropping argument-hint from generated commands (#3146)
-- **hooks:** make network-egress-guard DENY tier quote-aware (#3124)
-- **hooks:** redirect pipe-to-interpreter deny instead of dead-ending (#3121)
-- …and 8 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

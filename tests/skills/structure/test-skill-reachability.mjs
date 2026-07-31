@@ -53,10 +53,33 @@
 //
 //   Check 1 alone would have caught all 36 at authoring time, in one pass.
 //
-// NOT A RATCHET
-//   Both counts must be ZERO. Unlike check-skill-delta.mjs, this is not a
-//   pre-existing mass being driven down over time; #3215 took both to zero, so
-//   any reappearance is a new authoring mistake and should fail immediately.
+// WHY DEAD-EDGE IS HARD-ZERO BUT UNREACHABLE IS A RATCHET
+//   The obvious fix — drop `disable-model-invocation` from all 36 — fails the
+//   token budget. That flag does DOUBLE DUTY: it also keeps a skill's
+//   description out of every session's context. Un-flagging all 36 moved the
+//   model-facing skill index from 59 to 95 entries and pushed total session
+//   overhead from ~7.9k to ~10498 tokens against a 9300 budget, caught by
+//   tests/performance/test-token-overhead.sh (+2638t on EVERY session, forever).
+//
+//   So #3216 un-flagged only the SIX skills that are actually preload targets
+//   (chain-patterns, code-review-playbook, architecture-decision-record,
+//   scope-appropriate-architecture, browser-tools, configure). Those six carry
+//   all 32 dead edges, and cost ~405t. The other 30 are unreachable but nothing
+//   depends on them, so un-flagging them would buy zero repaired edges for
+//   ~2233t per session.
+//
+//   Hence the asymmetry:
+//     DEAD-EDGE    must be ZERO. A preload that cannot resolve is always a bug,
+//                  and fixing it is cheap because something already wants it.
+//     UNREACHABLE  is a RATCHET at UNREACHABLE_BASELINE. Those skills are inert
+//                  but harmless and, more to the point, cheap. Making them
+//                  reachable is a budget decision, not a correctness one. The
+//                  count may fall, never rise: a NEW unreachable skill is an
+//                  authoring mistake, while the existing 30 are a deliberate
+//                  cost trade recorded in #3215.
+//
+//   If you make one of the 30 a preload target, DEAD-EDGE fires and forces you
+//   to un-flag it, which lowers this baseline. That is the intended ratchet.
 //
 // USAGE
 //   node tests/skills/structure/test-skill-reachability.mjs
@@ -104,6 +127,10 @@ function loadSkills(dir) {
   return out;
 }
 
+// Ratchet ceiling for UNREACHABLE. Lower this whenever the count genuinely
+// drops; never raise it. See the header for why this is not zero.
+const UNREACHABLE_BASELINE = 30;
+
 const skills = loadSkills(SKILLS_DIR);
 
 const unreachable = [];
@@ -120,15 +147,26 @@ for (const [name, s] of skills) {
 console.log('='.repeat(70));
 console.log('  Skill Reachability Linter (#3215)');
 console.log('='.repeat(70));
-console.log(`  skills scanned : ${skills.size}`);
-console.log(`  UNREACHABLE    : ${unreachable.length}`);
-console.log(`  DEAD-EDGE      : ${deadEdges.length}`);
+const unreachableRegressed = unreachable.length > UNREACHABLE_BASELINE;
 
-if (unreachable.length) {
-  console.log(`\n== UNREACHABLE (${unreachable.length}) ==`);
-  console.log('   Carries BOTH user-invocable:false AND disable-model-invocation:true.');
-  console.log('   Nobody can invoke these. Drop disable-model-invocation.');
+console.log(`  skills scanned : ${skills.size}`);
+console.log(
+  `  UNREACHABLE    : ${unreachable.length} / ${UNREACHABLE_BASELINE} baseline` +
+    (unreachableRegressed ? '  <-- REGRESSION' : ''),
+);
+console.log(`  DEAD-EDGE      : ${deadEdges.length} (must be 0)`);
+
+if (unreachableRegressed) {
+  console.log(`\n== UNREACHABLE REGRESSION (${unreachable.length} > ${UNREACHABLE_BASELINE}) ==`);
+  console.log('   A skill carries BOTH user-invocable:false AND');
+  console.log('   disable-model-invocation:true, so nobody can invoke it.');
+  console.log('   Either drop disable-model-invocation, or drop user-invocable:false.');
   for (const n of unreachable) console.log(`   ${skills.get(n).file}`);
+} else if (unreachable.length < UNREACHABLE_BASELINE) {
+  console.log(
+    `\n  NOTE: unreachable count fell to ${unreachable.length}. Lower ` +
+      `UNREACHABLE_BASELINE to ${unreachable.length} to lock the gain in.`,
+  );
 }
 
 if (deadEdges.length) {
@@ -138,10 +176,16 @@ if (deadEdges.length) {
   for (const e of deadEdges) console.log(`   ${e.from}  ->  ${e.to}`);
 }
 
-if (unreachable.length || deadEdges.length) {
-  console.log(`\nFAILED: ${unreachable.length} unreachable, ${deadEdges.length} dead preload edges`);
+if (unreachableRegressed || deadEdges.length) {
+  const why = [];
+  if (unreachableRegressed) why.push(`unreachable rose to ${unreachable.length} (baseline ${UNREACHABLE_BASELINE})`);
+  if (deadEdges.length) why.push(`${deadEdges.length} dead preload edges`);
+  console.log(`\nFAILED: ${why.join('; ')}`);
   process.exit(1);
 }
 
-console.log('\nSUCCESS: every skill is reachable and every preload edge resolves');
+console.log(
+  `\nSUCCESS: every preload edge resolves; unreachable held at ${unreachable.length}` +
+    ` (baseline ${UNREACHABLE_BASELINE})`,
+);
 process.exit(0);

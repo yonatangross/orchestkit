@@ -7,6 +7,7 @@ tags: [documentation, readme, adr, api-docs, openapi, changelog, writing-style, 
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
+disable-model-invocation: true
 context: inherit
 agent: release-engineer
 complexity: low

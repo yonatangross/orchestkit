@@ -9,6 +9,7 @@ agent: frontend-ui-developer
 version: 1.1.0
 author: OrchestKit
 user-invocable: false
+disable-model-invocation: true
 complexity: medium
 persuasion-type: guidance
 targets:

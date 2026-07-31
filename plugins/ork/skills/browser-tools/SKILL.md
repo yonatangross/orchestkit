@@ -2,7 +2,7 @@
 name: browser-tools
 license: MIT
 compatibility: "Claude Code 2.1.220+. Requires network access."
-description: OrchestKit security wrapper for browser automation. Adds URL blocklisting, rate limiting, robots.txt enforcement, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows that need safety guardrails.
+description: Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.
 tags: [browser, automation, security, rate-limiting, scraping-ethics]
 context: fork
 agent: web-research-analyst

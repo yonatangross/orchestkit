@@ -84,16 +84,21 @@
   <p class="lede">
     A third of the skill library was configured so that neither the user nor the model could
     invoke it, and nothing reported the fault. Eighteen skills declared 32 dependency edges on
-    those stranded libraries, so the dependency lists silently resolved to nothing. This is the
-    sweep that repaired it, plus the linter that stops it recurring.
+    those stranded libraries, so the dependency lists silently resolved to nothing.
+  </p>
+  <p class="lede">
+    The obvious fix, un-flagging all 36, turned out to be the wrong one: that flag was also
+    keeping 36 descriptions out of every session's context, and removing it blew the token budget
+    by 1198 tokens per session. So this repairs all 32 edges by un-flagging only the six skills
+    anything actually depends on, and leaves the rest deliberately dormant.
   </p>
 
   <div class="kpis">
-    <div class="kpi bad"><div class="n">36</div><div class="k">unreachable before</div></div>
-    <div class="kpi good"><div class="n">0</div><div class="k">unreachable after</div></div>
     <div class="kpi bad"><div class="n">32</div><div class="k">dead preload edges</div></div>
     <div class="kpi good"><div class="n">0</div><div class="k">dead edges after</div></div>
-    <div class="kpi warn"><div class="n">34%</div><div class="k">of the library affected</div></div>
+    <div class="kpi good"><div class="n">6</div><div class="k">skills un-flagged</div></div>
+    <div class="kpi warn"><div class="n">30</div><div class="k">left dormant, by choice</div></div>
+    <div class="kpi good"><div class="n">8969</div><div class="k">session tokens (budget 9300)</div></div>
   </div>
 
   <h2>Why it stayed hidden: the errors point at each other</h2>
@@ -128,15 +133,45 @@
       <i style="flex:36;background:var(--pg-danger)">36 nobody</i>
     </div>
     <div class="lg">BEFORE &middot; 105 skills</div>
-    <div class="bar" role="img" aria-label="After: 61 fully reachable, 34 model only, 10 user only, 0 unreachable.">
-      <i style="flex:61;background:var(--pg-ok)">61 both</i>
-      <i style="flex:34;background:hsl(248 60% 60%)">34 model only</i>
+    <div class="bar" role="img" aria-label="After: 25 both, 40 model only, 10 user only, 30 still unreachable but dormant by choice.">
+      <i style="flex:25;background:var(--pg-ok)">25 both</i>
+      <i style="flex:40;background:hsl(248 60% 60%)">40 model only</i>
       <i style="flex:10;background:var(--pg-warm)">10 user only</i>
+      <i style="flex:30;background:hsl(354 40% 40%)">30 dormant</i>
     </div>
-    <div class="lg">AFTER &middot; the 36 become preloadable libraries, hidden from the menu but resolvable as dependencies</div>
+    <div class="lg">AFTER &middot; the six preload targets become resolvable libraries; the other 30 stay flagged and stay cheap</div>
+  </div>
+
+  <h2>The trade the token budget forced</h2>
+  <div class="card">
+<pre><code><span class="dim">tests/performance/test-token-overhead.sh, on the first attempt</span>
+
+  skill index    <span class="was">~8025t  (95 model-facing, was 59)</span>
+  TOTAL         <span class="was">~10498t  vs 9300 budget    over by 1198</span>
+
+<span class="dim">disable-model-invocation does DOUBLE DUTY. It blocks invocation AND
+keeps the description out of every session. Un-flagging all 36 adds
++2638t to every session, forever.</span>
+
+  un-flag all 36          +2638t  -> 10498t   <span class="was">over budget</span>
+  un-flag only the 6      <span class="now">+ 405t  ->  8969t   fits, 331t spare</span>
+
+<span class="dim">The six carry ALL 32 dead edges. The other 30 have no dependants, so
+un-flagging them buys zero repaired edges for ~2233t per session.</span></code></pre>
+    <p style="margin:12px 0 0;color:var(--pg-muted);font-size:13.5px">
+      Their six descriptions were also trimmed by 517 bytes. They were written while the skills
+      were invisible, so nobody paid for the extra words; now that they are model-facing, they
+      have to earn their place in the index.
+    </p>
   </div>
 
   <h2>The 36, by domain</h2>
+  <p style="margin:-4px 0 16px;color:var(--pg-muted);font-size:13.5px;max-width:70ch">
+    Every one of these was unreachable. The six marked <b style="color:var(--pg-ok)">&#9679; freed</b>
+    had dependants, so they were un-flagged and now resolve. The other 30 stay dormant until
+    something actually needs them, at which point the DEAD-EDGE check forces the same fix and the
+    ratchet drops.
+  </p>
 
   <div class="grp"><h3>Frontend and UI <b>9</b></h3><div class="sk">
     <div class="s"><b>accessibility</b><p>WCAG 2.2 compliance, keyboard focus, screen readers</p></div>
@@ -162,9 +197,9 @@
   </div></div>
 
   <div class="grp"><h3>Delivery and operations <b>8</b></h3><div class="sk">
-    <div class="s"><b>chain-patterns</b><p>Pipeline resilience, checkpoint-resume, handoff files</p></div>
-    <div class="s"><b>code-review-playbook</b><p>Conducting and improving code reviews</p></div>
-    <div class="s"><b>configure</b><p>Interactive plugin configuration wizard</p></div>
+    <div class="s" style="border-color:hsl(162 62% 52% / .55)"><b>chain-patterns</b> <span style="color:var(--pg-ok);font-size:11px">&#9679; freed</span><p>Pipeline resilience, checkpoint-resume, handoff files</p></div>
+    <div class="s" style="border-color:hsl(162 62% 52% / .55)"><b>code-review-playbook</b> <span style="color:var(--pg-ok);font-size:11px">&#9679; freed</span><p>Conducting and improving code reviews</p></div>
+    <div class="s" style="border-color:hsl(162 62% 52% / .55)"><b>configure</b> <span style="color:var(--pg-ok);font-size:11px">&#9679; freed</span><p>Interactive plugin configuration wizard</p></div>
     <div class="s"><b>documentation-patterns</b><p>READMEs, ADRs, API docs</p></div>
     <div class="s"><b>issue-progress-tracking</b><p>GitHub issue ceremony via gh CLI</p></div>
     <div class="s"><b>monitoring-observability</b><p>Prometheus metrics, dashboards, SLOs</p></div>
@@ -173,15 +208,15 @@
   </div></div>
 
   <div class="grp"><h3>Architecture <b>5</b></h3><div class="sk">
-    <div class="s"><b>architecture-decision-record</b><p>Documenting significant architectural decisions</p></div>
+    <div class="s" style="border-color:hsl(162 62% 52% / .55)"><b>architecture-decision-record</b> <span style="color:var(--pg-ok);font-size:11px">&#9679; freed</span><p>Documenting significant architectural decisions</p></div>
     <div class="s"><b>async-jobs</b><p>Background tasks, Celery workers</p></div>
     <div class="s"><b>distributed-systems</b><p>Locking, resilience, idempotency</p></div>
     <div class="s"><b>domain-driven-design</b><p>DDD tactical patterns, entities, aggregates</p></div>
-    <div class="s"><b>scope-appropriate-architecture</b><p>YAGNI, right-sizing, anti over-engineering</p></div>
+    <div class="s" style="border-color:hsl(162 62% 52% / .55)"><b>scope-appropriate-architecture</b> <span style="color:var(--pg-ok);font-size:11px">&#9679; freed</span><p>YAGNI, right-sizing, anti over-engineering</p></div>
   </div></div>
 
   <div class="grp"><h3>Research and build <b>4</b></h3><div class="sk">
-    <div class="s"><b>browser-tools</b><p>Security wrapper for browser automation, URL policy</p></div>
+    <div class="s" style="border-color:hsl(162 62% 52% / .55)"><b>browser-tools</b> <span style="color:var(--pg-ok);font-size:11px">&#9679; freed</span><p>Security wrapper for browser automation, URL policy</p></div>
     <div class="s"><b>product-frameworks</b><p>Business cases, market analysis</p></div>
     <div class="s"><b>vite-advanced</b><p>Vite 8, Rolldown-powered builds</p></div>
     <div class="s"><b>web-research-workflow</b><p>Web research and competitive monitoring</p></div>
@@ -214,7 +249,9 @@
 
   <h2>The fix, two shapes</h2>
   <div class="card">
-<pre><code><span class="dim">A. the 36 libraries: drop the flag, keep the hiding</span>
+<pre><code><span class="dim">A. the 6 preload targets: drop the flag, keep the hiding
+   chain-patterns · code-review-playbook · architecture-decision-record
+   scope-appropriate-architecture · browser-tools · configure</span>
   <span class="was">- disable-model-invocation: true</span>
     <span class="now">user-invocable: false</span>   <span class="dim">(kept: still hidden from the slash menu)</span>
 

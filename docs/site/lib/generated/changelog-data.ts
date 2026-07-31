@@ -17,6 +17,39 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "9.3.0",
+    "date": "2026-07-31",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**agents:** key Tavily guidance on the tvly CLI rail ([#3204](https://github.com/yonatangross/orchestkit/issues/3204)) ([7fd6ca2](https://github.com/yonatangross/orchestkit/commit/7fd6ca2a9c33153ff237cfbc296a8e790ccf920e))",
+          "**skills:** fix 5 shipped bugs and add 4 missing CI gates ([#3181](https://github.com/yonatangross/orchestkit/issues/3181)) ([d4422c3](https://github.com/yonatangross/orchestkit/commit/d4422c330f3aa03fb1f68cbea195330be27ad004))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** decide the playground gate from the diff, not the branch ([#3196](https://github.com/yonatangross/orchestkit/issues/3196)) ([33969f5](https://github.com/yonatangross/orchestkit/commit/33969f5a693e9a12a9120d2e9d74ee4cad1ff9be))",
+          "**hooks:** stop output-validator killing five sibling SubagentStop hooks ([#3201](https://github.com/yonatangross/orchestkit/issues/3201)) ([c5bea1e](https://github.com/yonatangross/orchestkit/commit/c5bea1ea1af380da7aea3fdfd1607e6f4e31c3b2))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**marketplace:** prep official plugin directory submission ([#3205](https://github.com/yonatangross/orchestkit/issues/3205)) ([d1297fb](https://github.com/yonatangross/orchestkit/commit/d1297fb60ede9a355135308ace30dd7b79d84b48))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**demos:** report Validate Renderer to the merge queue ([#3199](https://github.com/yonatangross/orchestkit/issues/3199)) ([356e9be](https://github.com/yonatangross/orchestkit/commit/356e9becab42307fa01a81ca35586c2b319abf01))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "9.2.1",
     "date": "2026-07-28",
     "compareUrl": "",

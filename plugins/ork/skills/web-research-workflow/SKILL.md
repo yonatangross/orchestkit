@@ -9,6 +9,7 @@ version: 1.3.0
 author: OrchestKit
 tags: [research, browser, webfetch, tavily, automation, scraping, content-extraction, competitive-intelligence, monitoring]
 user-invocable: false
+disable-model-invocation: true
 allowed-tools: [Bash, Read, Write, WebFetch]
 complexity: low
 persuasion-type: guidance
