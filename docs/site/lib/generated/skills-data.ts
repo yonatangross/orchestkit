@@ -307,9 +307,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "architecture-decision-record": {
     "name": "architecture-decision-record",
-    "description": "Use this skill when documenting significant architectural decisions. Provides ADR templates following the Nygard format with sections for context, decision, consequences, and alternatives. Use when writing ADRs, recording decisions, or evaluating options.",
+    "description": "ADR templates in the Nygard format with context, decision, consequences, and alternatives. Use when writing ADRs, recording an architectural decision, or evaluating options.",
     "version": "2.0.0",
-    "sha256": "ba5d4bb3aa82b08de8938fbb61070aa236fa74a2c829f68ae7fa1eaaa13ec738",
+    "sha256": "e1075d513aa2c1a6b3d21b4ba6b3ae0060628be47d1d33e92f5183e78960bb7e",
     "author": "OrchestKit",
     "tags": [
       "architecture",
@@ -789,9 +789,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "browser-tools": {
     "name": "browser-tools",
-    "description": "OrchestKit security wrapper for browser automation. Adds URL blocklisting, rate limiting, robots.txt enforcement, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows that need safety guardrails.",
+    "description": "Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.",
     "version": "5.0.0",
-    "sha256": "32adb6012f0b36d5f3df83087c7cba28002e516c2ad0f7b717d435005d670b70",
+    "sha256": "b14d8d2ce2d7942d26b859cb71ddd91b6a6fa7ab3e65eef35074ef85da687462",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -871,9 +871,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "chain-patterns": {
     "name": "chain-patterns",
-    "description": "Chain patterns for CC 2.1.71 pipelines — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building multi-phase pipeline skills. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable.",
+    "description": "Chain patterns for multi-phase pipelines: MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building or debugging a pipeline skill.",
     "version": "1.0.0",
-    "sha256": "5ab711fcb7cb11b9a021f65bbb992f42296784d9c816f51e80954c71fbc80e37",
+    "sha256": "604d4a057a3578a31f65fce0e6d75acc70cee5f431e874f8dccc4afb6381d8ae",
     "author": "OrchestKit",
     "tags": [
       "pipeline",
@@ -952,7 +952,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "ci-sentinel",
     "description": "Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply — NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over.",
     "version": "0.1.0",
-    "sha256": "8e4c602966bac0887df826e62c60cf0e499c49ca6704c0490885738d843260a1",
+    "sha256": "3c6a53d9f1efc56dc763372e2131f04e15f9af6bf6de54dee85bc3e0bafd7c88",
     "author": "OrchestKit",
     "tags": [
       "ci",
@@ -974,7 +974,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [
       "github-operations",
-      "ci-debug",
       "memory"
     ],
     "agent": null,
@@ -987,9 +986,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "code-review-playbook": {
     "name": "code-review-playbook",
-    "description": "Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices.",
+    "description": "Structured review processes, conventional comments, language-specific checklists, and feedback templates. Use when reviewing PRs, conducting code review, or standardizing review practice.",
     "version": "2.0.0",
-    "sha256": "8f020be99a9b90c129b0c558b0122480414cf0953c646b47923c5ac0854a09b6",
+    "sha256": "21c4d45e9f98282a6b2e778e64931c4e12bb9e35537984d25aa1bcfa76ddd942",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -1157,9 +1156,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "configure": {
     "name": "configure",
-    "description": "Interactive configuration wizard for OrchestKit plugin settings including MCP server enablement, hook permissions, keybindings, and installation presets (Complete/Standard/Lite). Supports preset shortcuts, per-category skill customization, and webhook configuration. Use when customizing plugin behavior or managing settings.",
+    "description": "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings.",
     "version": "1.0.1",
-    "sha256": "f4baab3488f9e2d9610f7ca5c769d3db35a56e4325e37d7b476eddada2c03f0c",
+    "sha256": "95301eda54578cf56b34dcb5e868b08399a9199d934c0231091af09829e72eaf",
     "author": "OrchestKit",
     "tags": [
       "configuration",
@@ -1262,7 +1261,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "create-pr",
     "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Use when opening PRs or submitting code for review.",
     "version": "2.5.0",
-    "sha256": "384debfa6e32bdb01a2b48c117f908bc6a2ec0c8794f1f8230fdc347eb1c6a7a",
+    "sha256": "fcc23eeb535cf10c5dab62ef3ffc140bc3d162bec7cad365a090142ec053f492",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -1287,7 +1286,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "CronDelete"
     ],
     "skills": [
-      "commit",
       "review-pr",
       "memory",
       "chain-patterns"
@@ -2298,7 +2296,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.6.0",
-    "sha256": "fad61d4ff6ffd1073ec8649bc36f2d252bdd6e0240d48bdfb531d3b7594ac836",
+    "sha256": "0945b7ce375babe2fcda48cb208e1161e6a4fdbd542ca652a14699d34038d68b",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2332,7 +2330,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "mcp__context7__get_library_docs"
     ],
     "skills": [
-      "commit",
       "explore",
       "verify",
       "memory",
@@ -4102,9 +4099,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "scope-appropriate-architecture": {
     "name": "scope-appropriate-architecture",
-    "description": "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorm/implement detect a project tier.",
+    "description": "Right-sizes architecture to project scope, classifying projects into 6 tiers to prevent over-engineering. Use when designing architecture, selecting patterns, or detecting a project tier.",
     "version": "1.0.0",
-    "sha256": "fe9302dabc2259bdd9757406869a143c65864174364fd6358bfa92e2902fdb7e",
+    "sha256": "8c696573f7bb05f70853d41498d3aeb899f723281c47f036bc250b26cf18d553",
     "author": "OrchestKit",
     "tags": [
       "architecture",
@@ -4211,7 +4208,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "setup",
     "description": "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.",
     "version": "2.0.0",
-    "sha256": "a262482125ca2c1404540638cb602d850c046a813d6564025a80f6d4ebdcfc5f",
+    "sha256": "e9f8e967517553e0da8dd695f73a20df57f0f073e8b68b931233bbed2e7b1660",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -4241,7 +4238,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "mcp__ork-elicit__ork_elicit"
     ],
     "skills": [
-      "doctor",
       "configure",
       "remember",
       "explore",
@@ -4357,7 +4353,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "swarm-migrate",
     "description": "Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work — that's /ork:implement.",
     "version": "0.1.0",
-    "sha256": "95759a80597af59334af75f949e21c2a398b2ea4e385eb62acdda0ab66915175",
+    "sha256": "985615ae79d40018a5dac40aa3e76ac9f30c80c5011467b23e920aa8051327d5",
     "author": "OrchestKit",
     "tags": [
       "migration",
@@ -4386,8 +4382,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [
       "github-operations",
-      "create-pr",
-      "ci-debug",
       "verify",
       "memory",
       "explore"
