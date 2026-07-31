@@ -34,7 +34,7 @@
 //   (fix-issue, implement, brainstorm, verify)" while carrying the one flag that
 //   prevents exactly that.
 //
-// THE TWO CHECKS
+// THE FIVE CHECKS
 //   [UNREACHABLE]  a skill carrying BOTH `user-invocable: false` and
 //                  `disable-model-invocation: true`. Reachable by nobody.
 //                  Fix: drop `disable-model-invocation`, keep `user-invocable:
@@ -51,7 +51,30 @@
 //                  preload entry rather than weakening the target. Never
 //                  weaken a mutating skill just to satisfy a preload.
 //
+//   [AGENT-DEAD-EDGE]  the same thing on `src/agents/*.md`. #3218.
+//
+//   [MISSING-TARGET]   a `skills:` entry naming a skill that does not exist.
+//
+//   [MISSING-AGENT]    a skill's `agent:` SCALAR, or an `Agent(ork:x)` tool
+//                      grant, naming an agent that does not exist.
+//
 //   Check 1 alone would have caught all 36 at authoring time, in one pass.
+//
+// WHAT "UNREACHABLE" COUNTS, AND WHY THE NUMBER IS DEFINITION-SENSITIVE
+//   An independent audit pointed out this ratchet is only meaningful once you
+//   say which question it answers. Measured at e2172dd9a:
+//
+//     disable-model-invocation AND not user-invocable ......... 30
+//     disable-model-invocation, zero LIVE inbound edge ......... 40
+//     not user-invocable, zero live inbound .................... 40
+//     not user-invocable (any) ................................ 70
+//
+//   All 40 DMI skills have zero live inbound edges BY CONSTRUCTION, since a DMI
+//   target cannot be preloaded, so every inbound edge to one is dead by
+//   definition. This linter deliberately counts the FIRST definition: "no path
+//   exists for anyone at all". The other 10 DMI skills are user-invocable, so a
+//   human can still reach them by typing the slash command; they are reachable,
+//   just not preloadable, which is a design choice rather than a defect.
 //
 // WHY DEAD-EDGE IS HARD-ZERO BUT UNREACHABLE IS A RATCHET
 //   The obvious fix — drop `disable-model-invocation` from all 36 — fails the
@@ -169,9 +192,34 @@ function loadSkills(dir) {
       modelBlocked: /^disable-model-invocation:\s*true/m.test(fm),
       userBlocked: /^user-invocable:\s*false/m.test(fm),
       preloads: parseListField(fm, 'skills'),
+      agentRef: parseScalarField(fm, 'agent'),
     });
   }
   return out;
+}
+
+/**
+ * Read a SCALAR frontmatter field, e.g. `agent: backend-system-architect`.
+ *
+ * This is the THIRD shape of the same trap, and it is the one a list parser
+ * silently skips. 58 of 105 skills name a preferred agent this way. A linter
+ * that only learned inline-vs-block would still be blind here, so the fix for
+ * the #3216 false clean is not "handle both list forms", it is "know which
+ * shape each field actually has".
+ */
+function parseScalarField(fm, key) {
+  const m = fm.match(new RegExp(`^${key}:\\s*(.+?)\\s*$`, 'm'));
+  if (!m) return null;
+  const v = m[1].trim().replace(/^['"]|['"]$/g, '');
+  return v.startsWith('[') || v === '' ? null : v;
+}
+
+/** `Agent(ork:foo)` grants are NAMESPACED. A resolver that fails to strip the
+ *  plugin prefix reports all 18 as dangling: the false-positive mirror of the
+ *  false-clean this file exists to prevent. Handles `Skill(...)` too, which
+ *  nothing uses today but someone will add. */
+function parseAgentGrants(fm) {
+  return [...fm.matchAll(/\bAgent\(([^)]+)\)/g)].map((m) => m[1].trim().split(':').pop());
 }
 
 function loadAgents(dir) {
@@ -183,6 +231,7 @@ function loadAgents(dir) {
     out.set(name.slice(0, -3), {
       file: `src/agents/${name}`,
       preloads: parseListField(fm, 'skills'),
+      grants: parseAgentGrants(fm),
     });
   }
   return out;
@@ -206,6 +255,7 @@ const unreachable = [];
 const deadEdges = [];
 const agentDeadEdges = [];
 const missingTargets = [];
+const missingAgents = [];
 
 for (const [name, s] of skills) {
   if (s.modelBlocked && s.userBlocked) unreachable.push(name);
@@ -216,7 +266,16 @@ for (const [name, s] of skills) {
   }
 }
 
+for (const [, s] of skills) {
+  if (s.agentRef && !agents.has(s.agentRef)) {
+    missingAgents.push({ from: s.file, to: s.agentRef });
+  }
+}
+
 for (const [name, a] of agents) {
+  for (const g of a.grants) {
+    if (!agents.has(g)) missingAgents.push({ from: a.file, to: `Agent(${g})` });
+  }
   for (const dep of a.preloads) {
     const target = skills.get(dep);
     if (!target) missingTargets.push({ from: a.file, to: dep });
@@ -242,6 +301,7 @@ console.log(
     (agentRegressed ? '  <-- REGRESSION' : ''),
 );
 console.log(`  MISSING-TARGET  : ${missingTargets.length} (must be 0)`);
+console.log(`  MISSING-AGENT   : ${missingAgents.length} (must be 0)`);
 
 if (unreachableRegressed) {
   console.log(`\n== UNREACHABLE REGRESSION (${unreachable.length} > ${UNREACHABLE_BASELINE}) ==`);
@@ -281,12 +341,20 @@ if (missingTargets.length) {
   for (const e of missingTargets) console.log(`   ${e.from}  ->  ${e.to}`);
 }
 
-if (unreachableRegressed || deadEdges.length || agentRegressed || missingTargets.length) {
+if (missingAgents.length) {
+  console.log(`\n== MISSING-AGENT (${missingAgents.length}) ==`);
+  console.log('   A skill `agent:` scalar, or an Agent(...) tool grant, naming');
+  console.log('   an agent that does not exist.');
+  for (const e of missingAgents) console.log(`   ${e.from}  ->  ${e.to}`);
+}
+
+if (unreachableRegressed || deadEdges.length || agentRegressed || missingTargets.length || missingAgents.length) {
   const why = [];
   if (unreachableRegressed) why.push(`unreachable rose to ${unreachable.length} (baseline ${UNREACHABLE_BASELINE})`);
   if (deadEdges.length) why.push(`${deadEdges.length} dead skill preload edges`);
   if (agentRegressed) why.push(`agent dead edges rose to ${agentDeadEdges.length} (baseline ${AGENT_DEAD_EDGE_BASELINE})`);
   if (missingTargets.length) why.push(`${missingTargets.length} preloads naming a nonexistent skill`);
+  if (missingAgents.length) why.push(`${missingAgents.length} references naming a nonexistent agent`);
   console.log(`\nFAILED: ${why.join('; ')}`);
   process.exit(1);
 }
