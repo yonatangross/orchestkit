@@ -97,16 +97,35 @@ package-lock.json   <span class="was">8.84.10</span>   <span class="dim">roughly
     <table>
       <thead><tr><th>Would it have caught this?</th><th></th></tr></thead>
       <tbody>
-        <tr><td>A build-drift check on every PR</td><td><span class="pill no">not present for these paths</span></td></tr>
+        <tr><td>A build-drift check on every PR</td><td><span class="pill no">existed, but too narrow</span></td></tr>
         <tr><td>The release-please File Guard</td><td><span class="pill no">guards edits, not staleness</span></td></tr>
         <tr><td>Someone running a full build locally</td><td><span class="pill yes">this is how it surfaced</span></td></tr>
       </tbody>
     </table>
     <p style="margin:12px 0 0;color:var(--pg-muted);font-size:13.5px">
-      It surfaced only because an unrelated change forced a rebuild and these three files appeared
-      in the diff. They were reverted out of that PR to keep its scope honest, which is why they
-      are here on their own. The durable fix is a CI step that runs the generators and fails on a
-      dirty tree, the same shape as the existing codegen check in <code>packages/hook-contract</code>.
+      The gate was not missing. <code>ci.yml</code> has run a build-drift check since #2360, but it
+      diffed only <code>plugins/</code> and <code>src/hooks/dist/</code>, while
+      <code>npm run build</code> also writes README and the docs-site generated data. Those outputs
+      could sit stale indefinitely.
+    </p>
+  </div>
+
+  <h2>The fix: widen the gate that already existed</h2>
+  <div class="card">
+<pre><code><span class="dim">.github/workflows/ci.yml, Check for uncommitted build changes</span>
+
+  <span class="was">- git diff --quiet plugins/ src/hooks/dist/</span>
+  <span class="now">+ GENERATED=(plugins/ src/hooks/dist/ README.md docs/site/lib/generated/)
+  + git diff --quiet -- "${GENERATED[@]}"</span></code></pre>
+    <p style="margin:12px 0 0;color:var(--pg-muted);font-size:13.5px">
+      Deliberately NOT added: <code>package-lock.json</code>. Its version field drifts because
+      release-please bumps <code>package.json</code> without running <code>npm install</code>, and
+      <code>npm run build</code> does not regenerate it, so gating it here would fail for a reason
+      this job cannot fix. That one is a release-process gap, tracked separately.
+    </p>
+    <p style="margin:10px 0 0;color:var(--pg-muted);font-size:13.5px">
+      Verified locally: appending a newline to README.md makes the widened check fire, and
+      <code>actionlint</code> is clean on the changed step.
     </p>
   </div>
 

@@ -59,11 +59,25 @@ jobs:
       # bundles from source before this diff — a stale committed lifecycle.mjs
       # (src/hooks/dist OR plugins/ork/hooks/dist) now fails here, including on
       # push to main (cross-PR staleness, the #2360 incident class).
+      #
+      # README.md and docs/site/lib/generated/ were ADDED to this list after
+      # v9.3.0 shipped with all three stale. `npm run build` also runs
+      # stamp-whats-new.mjs (README what's-new block) and the docs-site codegen
+      # (changelog-data.ts, skills-data.ts, skill-graph-data.ts), but the gate
+      # only diffed plugins/ and src/hooks/dist/, so those outputs could sit
+      # stale indefinitely. They surfaced only because an unrelated change
+      # forced a local rebuild. Same failure shape as #2360, wider blast radius.
+      #
+      # NOT covered here: package-lock.json. Its `version` field drifts from
+      # release-please bumping package.json without running npm install, which
+      # `npm run build` does not regenerate, so gating it here would fail for a
+      # reason this job cannot fix.
       - name: Check for uncommitted build changes
         run: |
-          if ! git diff --quiet plugins/ src/hooks/dist/; then
-            echo "::error::Build drift detected! Run 'npm run build' and commit the changes (plugins/ + src/hooks/dist/)."
-            git diff --stat plugins/ src/hooks/dist/
+          GENERATED=(plugins/ src/hooks/dist/ README.md docs/site/lib/generated/)
+          if ! git diff --quiet -- "${GENERATED[@]}"; then
+            echo "::error::Build drift detected! Run 'npm run build' and commit the changes (${GENERATED[*]})."
+            git diff --stat -- "${GENERATED[@]}"
             exit 1
           fi
 
