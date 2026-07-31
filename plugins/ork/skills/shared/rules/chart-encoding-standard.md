@@ -59,7 +59,7 @@ absent, or the validator returns a hard FAIL, **fall back to the ASCII-card layo
 output ork produced before this standard existed. `/dataviz` upgrades charts; it never blocks them.
 
 ```
-❌ WRONG:  assume /dataviz is present → chart breaks on a floor-CC or disabled install
+❌ WRONG:  assume /dataviz is present → chart breaks on a disableBundledSkills install
 ✅ RIGHT:  probe → present: validated chart · absent/FAIL: ASCII-card fallback (no regression)
 ```
 
