@@ -69,4 +69,4 @@ import { Trans } from 'react-i18next';
 - Prefer named component tags (`<link>`, `<bold>`) over indexed tags (`<0>`, `<1>`) in translation strings
 - Use `t()` for plain text and `<Trans>` only when JSX elements must appear inside the translated string
 
-Reference: `references/trans-component.md` (lines 23-38, 207-235)
+Reference: `references/ork-delta.md` for the plural-plus-rich-text ordering constraint. Full `<Trans>` API: https://react.i18next.com/latest/trans-component

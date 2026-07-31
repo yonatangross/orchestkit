@@ -261,7 +261,7 @@ The old `gh-sub-issue` third-party extension still works but is superseded. Grap
 - `ork:create-pr` - Create pull requests with proper formatting and review assignments
 - `ork:review-pr` - Comprehensive PR review with specialized agents
 - `ork:release-management` - GitHub release workflow with semantic versioning and changelogs
-- `stacked-prs` - Manage dependent PRs with rebase coordination
+- `ork:commit` - Stacked-PR workflow and rebase coordination live in `src/skills/commit/rules/` (`stacked-pr-workflow`, `stacked-pr-rebase`). There is no `stacked-prs` skill.
 - `ork:issue-progress-tracking` - Automatic issue progress updates from commits
 
 ## Key Decisions
@@ -274,21 +274,45 @@ The old `gh-sub-issue` third-party extension still works but is superseded. Grap
 | Projects v2 fields | GraphQL mutations | gh project commands limited, GraphQL required for custom fields |
 | Milestone lifecycle | Close, don't delete | Preserves history and progress tracking |
 
+## Upstream coverage (do not restate)
+
+These topics are documented first-party. Fetch them there instead of growing a copy
+in this skill.
+
+| Topic | Source |
+|-------|--------|
+| `gh issue` bulk create / edit / list loops, templates, transfer and pin | https://cli.github.com/manual/gh_issue |
+| Cross-repo label create / edit / clone | https://cli.github.com/manual/gh_label |
+| Org-wide issue search qualifiers | https://cli.github.com/manual/gh_search_issues |
+| Milestone REST CRUD: endpoints, payload fields, list filters and sorting | https://docs.github.com/en/rest/issues/milestones |
+| Projects v2 field mutations, value unions, field and option ID discovery | https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects |
+| Sub-issue endpoint payloads and pagination | https://docs.github.com/en/rest/issues/sub-issues |
+| Rate-limit headers, reset semantics, secondary limits | https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api |
+
+**What still stays ours, in full, in this skill:** PR review / merge gating including
+the `statusCheckRollup` array fold (`references/pr-workflows.md`); GraphQL queries,
+pagination, and node-id lookup (`references/graphql-api.md`); the CLI-NAME vs
+API-NUMBER identifier mapping for milestones and Projects v2
+(`references/cli-vs-api-identifiers.md`); the sub-issue quick reference above; and
+the rate-limit pre-flight guard (`examples/automation-scripts.md`). House rules with
+their rationale are collected in `references/ork-delta.md`.
+
 ## References
 
 Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | File | Content |
 |------|---------|
-| `issue-management.md` | Bulk operations, templates, sub-issues |
-| `pr-workflows.md` | Reviews, merge strategies, auto-merge |
-| `milestone-api.md` | REST API patterns for milestone CRUD |
-| `projects-v2.md` | Custom fields, GraphQL mutations |
+| `ork-delta.md` | House rules: hook contracts, close-don't-delete, rate-limit discipline, the file-set contract |
+| `pr-workflows.md` | Reviews, merge strategies, auto-merge, statusCheckRollup folding |
 | `graphql-api.md` | Complex queries, pagination, bulk operations |
 | `cli-vs-api-identifiers.md` | NAME vs NUMBER footguns, milestone/project ID mapping |
+| `issue-management.md` | Pointer stub: issue delta plus upstream links |
+| `milestone-api.md` | Pointer stub: milestone delta plus upstream links |
+| `projects-v2.md` | Pointer stub: Projects v2 delta plus upstream links |
 
 ## Examples
 
-Load: `Read("$\{CLAUDE_SKILL_DIR\}/examples/automation-scripts.md")` - Ready-to-use scripts for bulk operations, PR automation, milestone management
+Load: `Read("$\{CLAUDE_SKILL_DIR\}/examples/automation-scripts.md")` - Rate-limit discipline for long `gh` loops, plus pointers for the bulk-loop recipes
 
 
 ---
@@ -479,7 +503,7 @@ Files: src/validation.ts (+45)"
 
 ---
 
-## References (6)
+## References (7)
 
 ### Cli Vs Api Identifiers
 
@@ -999,474 +1023,155 @@ gh api graphql -f query='
 
 # Issue Management
 
-## Creating Issues
+Vendor mechanics for `gh issue` are not restated here. This file carries only the
+house delta and the pointers.
 
-### Basic Creation
+> Kept on disk deliberately: `tests/skills/test-github-operations-completeness.sh`
+> and `tests/unit/test-git-enforcement-hooks.sh` assert this exact filename.
 
-```bash
-# Non-interactive (ideal for automation)
-gh issue create \
-  --title "Bug: API returns 500 on invalid input" \
-  --body "Description of the issue..." \
-  --label "bug,backend" \
-  --assignee "@me" \
-  --milestone "Sprint 5"
-```
+## Upstream
 
-> **Note:** `--milestone` takes the milestone **NAME** (string), not a number. See [CLI vs API Identifiers](cli-vs-api-identifiers.md) for the full NAME/NUMBER mapping.
+| Topic | Source |
+|-------|--------|
+| `gh issue create/edit/list/close/view` flags, templates, `--body-file` | https://cli.github.com/manual/gh_issue |
+| Issue search qualifiers (`is:open`, `label:`, `no:assignee`) | https://cli.github.com/manual/gh_search_issues |
+| Native sub-issue endpoints and payloads | https://docs.github.com/en/rest/issues/sub-issues |
+| Keyword auto-close semantics (`Closes #N`) | https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue |
 
-### Batch Creation
+## Our delta
 
-Create multiple issues from an array — useful for seeding sprints or creating related tasks:
+Full rules with rationale: [ork-delta.md](ork-delta.md).
 
-```bash
-SPRINT="Sprint 9"
-ISSUES=(
-  "feat: Add user auth|enhancement,backend"
-  "fix: Login redirect loop|bug,high"
-  "chore: Update CI dependencies|maintenance"
-)
+1. **`--label` is mandatory.** `src/hooks/src/pretool/bash/gh-label-enforcer.ts`
+   denies a bare `gh issue create`. A seeding loop without it dies partway.
+2. **Never `gh issue close`.** Issues close only when their linked PR merges to the
+   default branch. Comment progress with `gh issue comment` instead.
+3. **Milestones go in by NAME, never by number.** The identifier mapping stays in
+   this skill: [cli-vs-api-identifiers.md](cli-vs-api-identifiers.md).
+4. **Sub-issues are native.** Do not install `yahsan2/gh-sub-issue`.
 
-for entry in "${ISSUES[@]}"; do
-  IFS='|' read -r title labels <<< "$entry"
-  NUM=$(gh issue create \
-    --title "$title" \
-    --label "$labels" \
-    --milestone "$SPRINT" \
-    --body "" \
-    --json number --jq '.number')
-  echo "Created #$NUM: $title"
-done
-```
-
-Capture the issue number at creation with `--json number --jq '.number'` so you can immediately add it to Projects v2 or link it elsewhere.
-
-### With Multi-line Body (Heredoc)
+House pattern worth keeping, capture the number at creation so the issue can be
+wired into Projects v2 or a PR body in the same run:
 
 ```bash
-gh issue create \
-  --title "feat: Implement hybrid search" \
-  --body "$(cat <<'EOF'
-## Description
-Implement hybrid search combining BM25 and vector similarity.
-
-## Acceptance Criteria
-- [ ] HNSW index on chunks table
-- [ ] RRF fusion algorithm
-- [ ] 95%+ test pass rate
-
-## Technical Notes
-See PGVector skill for implementation details.
-EOF
-)"
-```
-
-### Using Templates
-
-```bash
-# Use repo template from .github/ISSUE_TEMPLATE/
-gh issue create --template "bug_report.md"
-
-# Use local file as body
-gh issue create --title "..." --body-file ./issue-body.md
-```
-
----
-
-## Editing Issues
-
-```bash
-# Add labels
-gh issue edit 123 --add-label "high,backend"
-
-# Remove labels
-gh issue edit 123 --remove-label "low"
-
-# Set milestone
-gh issue edit 123 --milestone "Sprint 8"
-
-# Assign users
-gh issue edit 123 --add-assignee "username1,username2"
-
-# Update title/body
-gh issue edit 123 --title "New title" --body "Updated body"
-```
-
----
-
-## Listing and Filtering
-
-```bash
-# Open issues assigned to me
-gh issue list --state open --assignee @me
-
-# By label (multiple)
-gh issue list --label "bug" --label "backend"
-
-# By milestone
-gh issue list --milestone "Sprint 5"
-
-# Search with GitHub search syntax
-gh issue list --search "status:success author:@me"
-
-# Limit results
-gh issue list --limit 20
-```
-
-### JSON Output for Scripting
-
-```bash
-# Get issue data as JSON
-gh issue list --json number,title,labels,milestone,state
-
-# Filter with jq
-gh issue list --json number,labels \
-  --jq '[.[] | select(.labels[].name == "critical")] | .[].number'
-
-# Get specific fields
-gh issue view 123 --json title,body,labels,assignees
-```
-
----
-
-## Bulk Operations
-
-### Add Label to Multiple Issues
-
-```bash
-# Inline list
-gh issue edit 23 34 45 --add-label "needs-review"
-
-# From query result
-gh issue list --label "stale" --json number --jq '.[].number' | \
-  xargs -I {} gh issue edit {} --add-label "deprecated"
-```
-
-### Close Multiple Issues
-
-```bash
-# Close with comment
-gh issue list --label "duplicate" --json number --jq '.[].number' | \
-  while read num; do
-    gh issue close "$num" --comment "Closing as duplicate"
-  done
-```
-
-### Bulk Assign to Milestone
-
-```bash
-MILESTONE="Sprint 8"
-ISSUES=$(gh issue list --label "sprint-8" --json number --jq '.[].number')
-
-for issue in $ISSUES; do
-  gh issue edit "$issue" --milestone "$MILESTONE"
-  echo "Assigned #$issue to $MILESTONE"
-done
-```
-
----
-
-## Issue Comments
-
-```bash
-# Add comment
-gh issue comment 123 --body "Working on this now"
-
-# View comments
-gh issue view 123 --comments
-
-# Edit last comment (via web)
-gh issue view 123 --web
-```
-
----
-
-## Issue Development Flow
-
-```bash
-# Create branch linked to issue
-gh issue develop 123 --checkout
-
-# This creates: username/issue-123-title-slug
-# And checks it out locally
-```
-
----
-
-## Sub-Issues
-
-Native sub-issues are available but CLI support is limited:
-
-```bash
-# Install extension for sub-issue support
-gh extension install yahsan2/gh-sub-issue
-
-# Create sub-issue
-gh sub-issue create 123 --title "Implement API endpoint"
-
-# List sub-issues
-gh sub-issue list 123
-```
-
-**Alternative: Use GraphQL**
-
-```bash
-gh api graphql -f query='
-  mutation {
-    addSubIssue(input: {
-      parentId: "I_kwDOABCD1234"
-      subIssueId: "I_kwDOABCD5678"
-    }) {
-      parentIssue { title }
-      subIssue { title }
-    }
-  }
-'
-```
-
----
-
-## Transfer and Pin Issues
-
-```bash
-# Move issue to another repo
-gh issue transfer 123 owner/new-repo
-
-# Pin to repo (max 3)
-gh issue pin 123
-
-# Unpin
-gh issue unpin 123
-```
-
----
-
-## Common Patterns
-
-### Create Issue and Get Number
-
-```bash
-ISSUE_URL=$(gh issue create --title "..." --body "..." --json url --jq '.url')
-ISSUE_NUM=$(echo "$ISSUE_URL" | grep -o '[0-9]*$')
-echo "Created issue #$ISSUE_NUM"
-```
-
-### Find Untriaged Issues
-
-```bash
-# Issues with no labels
-gh issue list --json number,title,labels \
-  --jq '[.[] | select(.labels | length == 0)]'
-```
-
-### Issue Statistics
-
-```bash
-# Count by label
-gh issue list --state all --json labels \
-  --jq '[.[].labels[].name] | group_by(.) | map({label: .[0], count: length}) | sort_by(-.count)'
+NUM=$(gh issue create --title "$title" --label "$labels" \
+  --milestone "$SPRINT" --body "" --json number --jq '.number')
+echo "Created #$NUM"
 ```
 
 
 ### Milestone Api
 
-# Milestone API Reference
+# Milestone API
 
-GitHub CLI has NO native milestone commands. Use `gh api` REST calls for all milestone operations.
+`gh` has no native milestone commands, so milestones are REST-only. The endpoint
+list, payload fields, and query parameters are not restated here.
 
-> **Critical footgun — NAME vs NUMBER:**
-> - `gh issue edit --milestone` / `gh issue list --milestone` → accepts **milestone NAME** (string, e.g. `"Sprint 8"`)
-> - `gh api repos/:owner/:repo/milestones/:number` → accepts **milestone NUMBER** (integer, e.g. `5`)
->
-> These are **different identifiers**. Passing a number to `--milestone` silently fails. To get a number from a name: `gh api repos/:owner/:repo/milestones --jq '.[] | select(.title=="Sprint 8") | .number'`
+> Kept on disk deliberately: `tests/skills/test-github-operations-completeness.sh`
+> and `tests/unit/test-git-enforcement-hooks.sh` assert this exact filename.
 
-## API Endpoints
+## Upstream
 
-| Operation | Method | Endpoint |
-|-----------|--------|----------|
-| List | GET | `/repos/:owner/:repo/milestones` |
-| Get | GET | `/repos/:owner/:repo/milestones/:number` |
-| Create | POST | `/repos/:owner/:repo/milestones` |
-| Update | PATCH | `/repos/:owner/:repo/milestones/:number` |
-| Delete | DELETE | `/repos/:owner/:repo/milestones/:number` |
+| Topic | Source |
+|-------|--------|
+| Milestone REST CRUD, payload fields (`title`, `state`, `description`, `due_on`), list filters and sorting | https://docs.github.com/en/rest/issues/milestones |
+| `gh api` invocation, `:owner`/`:repo` placeholders, `--jq`, `--paginate` | https://cli.github.com/manual/gh_api |
+| Assigning a milestone from the CLI | https://cli.github.com/manual/gh_issue_create |
+
+## Our delta
+
+Full rules with rationale: [ork-delta.md](ork-delta.md).
+
+1. **Close, never DELETE.** `DELETE .../milestones/:number` detaches the milestone
+   from every issue that carried it and the progress history is unrecoverable.
+   Use `-f state=closed`.
+2. **NAME for the CLI, NUMBER for the API.** The full identifier mapping and the
+   name-to-number lookup helper stay in this skill:
+   [cli-vs-api-identifiers.md](cli-vs-api-identifiers.md).
+3. **ISO 8601 for `due_on`** (`YYYY-MM-DDTHH:MM:SSZ`). Anything else is accepted
+   and then silently misread.
+
+```bash
+# Close a sprint: resolve the number from the title, then PATCH state.
+MS=$(gh api repos/:owner/:repo/milestones \
+  --jq '.[] | select(.title=="Sprint 8") | .number')
+gh api -X PATCH "repos/:owner/:repo/milestones/$MS" -f state=closed
+```
+
+
+### Ork Delta
+
+# OrchestKit delta for GitHub operations
+
+What this repo does differently from the stock `gh` CLI and REST docs. Everything
+here is a house rule, a hook contract, or a scar. Vendor mechanics live upstream,
+linked per entry.
 
 ---
 
-## Create Milestone
+## Pass `--label` on every `gh issue create`
 
-```bash
-# Minimal
-gh api -X POST repos/:owner/:repo/milestones \
-  -f title="Sprint 10"
+Why: `src/hooks/src/pretool/bash/gh-label-enforcer.ts`, registered in
+`src/hooks/src/entries/pretool.ts`, returns a `deny` permission decision for a bare
+`gh issue create`. A label-less create inside a seeding loop does not warn, it is
+blocked, and the batch dies partway with issues already filed.
+Upstream: https://cli.github.com/manual/gh_issue_create
 
-# Full options
-gh api -X POST repos/:owner/:repo/milestones \
-  -f title="Sprint 10: Performance" \
-  -f state="open" \
-  -f description="Focus on frontend performance optimization" \
-  -f due_on="2026-03-15T00:00:00Z"
+## Treat the missing-`--milestone` message as advisory, not a failure
 
-# Create and capture number
-MILESTONE_NUM=$(gh api -X POST repos/:owner/:repo/milestones \
-  -f title="Sprint 8" \
-  --jq '.number')
-echo "Created milestone #$MILESTONE_NUM"
-```
+Why: `src/hooks/src/pretool/bash/gh-milestone-enforcer.ts` is registered in the same
+entries map but only emits context ("No --milestone set. Consider assigning to a
+milestone for sprint tracking."). It never blocks. Do not abort or retry a create
+because that line appeared in the transcript.
+Upstream: https://cli.github.com/manual/gh_issue_create
 
----
+## Never close an issue by hand; let the merged PR close it
 
-## List Milestones
+Why: the repo CLAUDE.md "GitHub CLI" rule states issues close on merge from
+`Closes #N` in the PR body, and closing by hand loses that PR link. The retired
+`references/issue-management.md` and `examples/automation-scripts.md` both shipped
+bulk `gh issue close` loops that strip the link from history permanently. Use
+`gh issue comment` for progress instead.
+Upstream: https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue
 
-```bash
-# All open (default)
-gh api repos/:owner/:repo/milestones
+## Stop the loop on the first `gh` rate-limit hint, do not retry
 
-# All milestones (including closed)
-gh api "repos/:owner/:repo/milestones?state=all"
+Why: on Claude Code 2.1.116+ the Bash tool surfaces a rate-limit hint when `gh`
+takes a 403, and that hint is the authoritative backoff signal. Before it existed,
+agents had no signal and burned the whole retry budget in roughly 13 seconds.
+`tests/evals/skills/github-operations-rate-limit.eval.yaml` grades this behaviour
+and asserts the pre-flight guard, so the `gh api rate_limit` check and the
+`remaining &lt; 100` threshold in `examples/automation-scripts.md` are contract, not
+taste. (Eval added under issue #1436, "test(evals): add eval coverage for CC
+2.1.116 behavioral knowledge in skills".)
+Upstream: https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api
 
-# Closed only
-gh api "repos/:owner/:repo/milestones?state=closed"
+## Close milestones, never DELETE them
 
-# Sorted by due date
-gh api "repos/:owner/:repo/milestones?sort=due_on&direction=asc"
+Why: `DELETE /repos/:owner/:repo/milestones/:number` detaches the milestone from
+every issue that carried it, so the sprint's progress history is gone with no undo.
+The house Key Decision in SKILL.md is close-don't-delete; `-f state=closed` keeps
+the closed/open counts queryable forever.
+Upstream: https://docs.github.com/en/rest/issues/milestones
 
-# With jq formatting
-gh api repos/:owner/:repo/milestones --jq '
-  .[] | {
-    number,
-    title,
-    state,
-    due: .due_on,
-    progress: "\(.closed_issues)/\(.open_issues + .closed_issues)"
-  }'
+## Treat sub-issues as native; do not install `gh-sub-issue`
 
-# Progress summary
-gh api repos/:owner/:repo/milestones --jq '.[] | "\(.title): \(.closed_issues)/\(.open_issues + .closed_issues) done"'
-```
+Why: distilled from the retired `references/issue-management.md`; no traced
+incident. That file told agents to `gh extension install yahsan2/gh-sub-issue`
+while the 2026 section of SKILL.md documents the native `sub_issues` REST
+endpoints, so the skill contradicted itself depending on which file got loaded.
+Upstream: https://docs.github.com/en/rest/issues/sub-issues
 
----
+## Keep the six named sub-files on disk when thinning this skill
 
-## Get Single Milestone
-
-```bash
-gh api repos/:owner/:repo/milestones/1
-```
-
----
-
-## Update Milestone
-
-```bash
-# Change title
-gh api -X PATCH repos/:owner/:repo/milestones/1 \
-  -f title="New Title"
-
-# Update description
-gh api -X PATCH repos/:owner/:repo/milestones/1 \
-  -f description="Updated scope: includes auth improvements"
-
-# Update due date
-gh api -X PATCH repos/:owner/:repo/milestones/1 \
-  -f due_on="2026-04-01T00:00:00Z"
-```
-
----
-
-## Close/Reopen Milestone
-
-```bash
-# Close milestone
-gh api -X PATCH repos/:owner/:repo/milestones/5 -f state=closed
-
-# Reopen milestone
-gh api -X PATCH repos/:owner/:repo/milestones/5 -f state=open
-```
-
----
-
-## Delete Milestone
-
-```bash
-# Warning: removes milestone from all issues!
-gh api -X DELETE repos/:owner/:repo/milestones/1
-```
-
----
-
-## Workflow Patterns
-
-### Sprint Workflow
-
-```bash
-# 1. Create sprint milestone
-gh api -X POST repos/:owner/:repo/milestones \
-  -f title="Sprint 8: Auth & Performance" \
-  -f due_on="2026-02-14T00:00:00Z"
-
-# 2. Assign issues to sprint
-gh issue edit 123 124 125 --milestone "Sprint 8: Auth & Performance"
-
-# 3. Check progress mid-sprint
-gh api repos/:owner/:repo/milestones --jq '
-  .[] | select(.title | contains("Sprint 8")) |
-  "Progress: \(.closed_issues)/\(.open_issues + .closed_issues) (\((.closed_issues / (.open_issues + .closed_issues) * 100) | floor)%)"'
-
-# 4. Close sprint when done
-MILESTONE_NUM=$(gh api repos/:owner/:repo/milestones --jq '.[] | select(.title | contains("Sprint 8")) | .number')
-gh api -X PATCH repos/:owner/:repo/milestones/$MILESTONE_NUM -f state=closed
-```
-
-### Release Workflow
-
-```bash
-# 1. Create release milestone
-gh api -X POST repos/:owner/:repo/milestones \
-  -f title="v2.0.0" \
-  -f description="Major release: New auth system, performance improvements" \
-  -f due_on="2026-03-01T00:00:00Z"
-
-# 2. Tag issues for release
-gh issue list --milestone "v2.0.0" --json number,title --jq '.[] | "#\(.number): \(.title)"'
-
-# 3. When ready, close and create release
-gh api -X PATCH repos/:owner/:repo/milestones/10 -f state=closed
-gh release create v2.0.0 --generate-notes
-```
-
----
-
-## Useful Aliases
-
-Add to `~/.config/gh/config.yml`:
-
-```yaml
-aliases:
-  ms: api repos/:owner/:repo/milestones --jq '.[] | "#\(.number) \(.title) [\(.state)] \(.closed_issues)/\(.open_issues+.closed_issues)"'
-  ms-create: '!f() { gh api -X POST repos/:owner/:repo/milestones -f title="$1" ${2:+-f due_on="$2"} ${3:+-f description="$3"}; }; f'
-  ms-close: '!f() { gh api -X PATCH repos/:owner/:repo/milestones/$1 -f state=closed; }; f'
-  ms-open: '!f() { gh api -X PATCH repos/:owner/:repo/milestones/$1 -f state=open; }; f'
-  ms-progress: '!f() { gh api repos/:owner/:repo/milestones/$1 --jq "\"Progress: \\(.closed_issues)/\\(.open_issues + .closed_issues) (\\((.closed_issues * 100 / (.open_issues + .closed_issues)) | floor)%)\""; }; f'
-```
-
-Usage:
-
-```bash
-gh ms                              # List all
-gh ms-create "Sprint 11"           # Create
-gh ms-create "v2.0" "2026-04-01"   # With due date
-gh ms-close 5                      # Close
-gh ms-progress 1                   # Check progress
-```
-
----
-
-## Best Practices
-
-1. **Use ISO 8601 dates** - `YYYY-MM-DDTHH:MM:SSZ` format for due_on
-2. **Meaningful titles** - Include sprint number and focus area
-3. **Close on time** - Even with open issues, close at deadline
-4. **Don't delete** - Close instead to preserve history
-5. **Link to Projects** - Use Projects v2 Iteration field for cross-repo tracking
+Why: `tests/skills/test-github-operations-completeness.sh` and
+`tests/unit/test-git-enforcement-hooks.sh` assert the exact file set frozen by
+issue #155 ("Skill: Create consolidated github-operations skill"), and the
+completeness test additionally greps `examples/automation-scripts.md` for a
+fenced bash block and resolves every relative markdown link in SKILL.md. Thin the
+contents, keep the names, keep one fence in the example file.
+Upstream: none, house-only contract enforced by
+`tests/skills/test-github-operations-completeness.sh`
 
 
 ### Pr Workflows
@@ -1824,322 +1529,39 @@ gh pr list --state merged --limit 20 --json createdAt,mergedAt \
 
 # GitHub Projects v2
 
-## Overview
+`gh project` covers listing and adding items; custom-field writes are GraphQL only.
+The mutation shapes, field-value unions, and field/option ID discovery queries are
+documented upstream and are not restated here.
 
-GitHub Projects v2 uses custom fields for advanced project management. The `gh project` commands provide basic operations, but setting custom fields requires GraphQL.
+> Kept on disk deliberately: `tests/skills/test-github-operations-completeness.sh`
+> asserts this exact filename.
 
----
+## Upstream
 
-## Basic Project Commands
+| Topic | Source |
+|-------|--------|
+| `updateProjectV2ItemFieldValue`, single-select / text / number / iteration value shapes, field and option ID discovery, org vs user project queries | https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects |
+| `gh project list/view/item-add/item-delete/field-list` | https://cli.github.com/manual/gh_project |
+| Adding items to a project | https://docs.github.com/en/issues/planning-and-tracking-with-projects/managing-items-in-your-project/adding-items-to-your-project |
+| GraphQL mutation reference | https://docs.github.com/en/graphql/reference/mutations |
+
+## Our delta
+
+Full rules with rationale: [ork-delta.md](ork-delta.md).
+
+1. **Two identifiers, one project.** `gh project` subcommands take the project
+   NUMBER from the URL; every GraphQL mutation needs the `PVT_...` node_id. Mixing
+   them fails without a useful error. Mapping stays in this skill:
+   [cli-vs-api-identifiers.md](cli-vs-api-identifiers.md).
+2. **Field IDs are per project, never hardcode them across repos.** Resolve
+   `field-list` output at run time, or the mutation silently writes the wrong field.
+3. **Order matters:** create the issue, capture its URL, `item-add` to get the item
+   id, then set fields. There is no single call that does all three.
 
 ```bash
-# List projects
-gh project list --owner @me
-
-# View project
-gh project view 1 --owner @me
-
-# List fields
+# Discover ids for a project before any field mutation.
 gh project field-list 1 --owner @me --format json
-
-# Add item to project
-gh project item-add 1 --owner @me \
-  --url "https://github.com/org/repo/issues/123"
-
-# Remove item from project
-gh project item-delete 1 --owner @me --id "PVTI_abc123"
-```
-
----
-
-## Setting Custom Fields (GraphQL)
-
-### Set Single Select Field (Status, Priority, etc.)
-
-```bash
-PROJECT_ID="PVT_kwHOAS8tks4BIL_t"
-ITEM_ID="PVTI_..."  # From item-add result
-FIELD_ID="PVTSSF_lAHOAS8tks4BIL_tzg4uOTk"
-OPTION_ID="92ee1ecd"  # Option value ID
-
-gh api graphql -f query='
-  mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-    updateProjectV2ItemFieldValue(input: {
-      projectId: $projectId
-      itemId: $itemId
-      fieldId: $fieldId
-      value: { singleSelectOptionId: $optionId }
-    }) {
-      projectV2Item {
-        id
-      }
-    }
-  }
-' \
-  -f projectId="$PROJECT_ID" \
-  -f itemId="$ITEM_ID" \
-  -f fieldId="$FIELD_ID" \
-  -f optionId="$OPTION_ID"
-```
-
-### Set Text Field
-
-```bash
-gh api graphql -f query='
-  mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $text: String!) {
-    updateProjectV2ItemFieldValue(input: {
-      projectId: $projectId
-      itemId: $itemId
-      fieldId: $fieldId
-      value: { text: $text }
-    }) {
-      projectV2Item { id }
-    }
-  }
-' \
-  -f projectId="$PROJECT_ID" \
-  -f itemId="$ITEM_ID" \
-  -f fieldId="$TEXT_FIELD_ID" \
-  -f text="Custom value"
-```
-
-### Set Number Field
-
-```bash
-gh api graphql -f query='
-  mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $number: Float!) {
-    updateProjectV2ItemFieldValue(input: {
-      projectId: $projectId
-      itemId: $itemId
-      fieldId: $fieldId
-      value: { number: $number }
-    }) {
-      projectV2Item { id }
-    }
-  }
-' \
-  -f projectId="$PROJECT_ID" \
-  -f itemId="$ITEM_ID" \
-  -f fieldId="$NUMBER_FIELD_ID" \
-  -F number=5
-```
-
----
-
-## Complete Workflow: Create Issue + Add to Project
-
-```bash
-#!/bin/bash
-# create-and-track.sh
-
-TITLE="$1"
-BODY="$2"
-LABELS="${3:-enhancement}"
-STATUS_OPTION="${4:-19303ae5}"  # Default: ready
-
-# Configuration
-PROJECT_NUMBER=1
-PROJECT_OWNER="username"
-PROJECT_ID="PVT_..."
-STATUS_FIELD_ID="PVTSSF_..."
-REPO="org/repo"
-
-# 1. Create issue
-ISSUE_URL=$(gh issue create \
-  --repo "$REPO" \
-  --title "$TITLE" \
-  --body "$BODY" \
-  --label "$LABELS" \
-  --json url --jq '.url')
-
-echo "Created: $ISSUE_URL"
-
-# 2. Add to project
-ITEM_ID=$(gh project item-add $PROJECT_NUMBER \
-  --owner $PROJECT_OWNER \
-  --url "$ISSUE_URL" \
-  --format json | jq -r '.id')
-
-echo "Added to project: $ITEM_ID"
-
-# 3. Set status
-gh api graphql -f query='
-  mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-    updateProjectV2ItemFieldValue(input: {
-      projectId: $projectId
-      itemId: $itemId
-      fieldId: $fieldId
-      value: { singleSelectOptionId: $optionId }
-    }) {
-      projectV2Item { id }
-    }
-  }
-' \
-  -f projectId="$PROJECT_ID" \
-  -f itemId="$ITEM_ID" \
-  -f fieldId="$STATUS_FIELD_ID" \
-  -f optionId="$STATUS_OPTION"
-
-echo "Set status"
-```
-
----
-
-## Query Project Items
-
-### Get All Items with Status
-
-```bash
-gh api graphql -f query='
-  query($owner: String!, $number: Int!) {
-    user(login: $owner) {
-      projectV2(number: $number) {
-        items(first: 50) {
-          nodes {
-            id
-            content {
-              ... on Issue {
-                number
-                title
-              }
-              ... on PullRequest {
-                number
-                title
-              }
-            }
-            fieldValues(first: 10) {
-              nodes {
-                ... on ProjectV2ItemFieldSingleSelectValue {
-                  name
-                  field { ... on ProjectV2SingleSelectField { name } }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-' -f owner="username" -F number=1
-```
-
-### Get Items by Status
-
-```bash
-# Get all "In Development" items
-gh api graphql -f query='
-  query($owner: String!, $number: Int!) {
-    user(login: $owner) {
-      projectV2(number: $number) {
-        items(first: 100) {
-          nodes {
-            content {
-              ... on Issue { number title }
-            }
-            fieldValues(first: 5) {
-              nodes {
-                ... on ProjectV2ItemFieldSingleSelectValue {
-                  name
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-' -f owner="username" -F number=1 \
-  --jq '.data.user.projectV2.items.nodes[] | select(.fieldValues.nodes[].name == "In Development") | .content'
-```
-
----
-
-## Discovering Field IDs
-
-If you need to find field/option IDs for a project:
-
-```bash
-# Get all fields with options
-gh api graphql -f query='
-  query($owner: String!, $number: Int!) {
-    user(login: $owner) {
-      projectV2(number: $number) {
-        id
-        fields(first: 20) {
-          nodes {
-            ... on ProjectV2Field {
-              id
-              name
-            }
-            ... on ProjectV2SingleSelectField {
-              id
-              name
-              options {
-                id
-                name
-              }
-            }
-            ... on ProjectV2IterationField {
-              id
-              name
-            }
-          }
-        }
-      }
-    }
-  }
-' -f owner="username" -F number=1 | jq '.data.user.projectV2'
-```
-
----
-
-## Move Item Between Statuses
-
-```bash
-# Helper function
-move_to_status() {
-  local ITEM_ID="$1"
-  local STATUS_OPTION_ID="$2"
-
-  gh api graphql -f query='
-    mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-      updateProjectV2ItemFieldValue(input: {
-        projectId: $projectId
-        itemId: $itemId
-        fieldId: $fieldId
-        value: { singleSelectOptionId: $optionId }
-      }) {
-        projectV2Item { id }
-      }
-    }
-  ' \
-    -f projectId="$PROJECT_ID" \
-    -f itemId="$ITEM_ID" \
-    -f fieldId="$STATUS_FIELD_ID" \
-    -f optionId="$STATUS_OPTION_ID"
-}
-
-# Usage
-move_to_status "PVTI_abc123" "92ee1ecd"  # Move to In Development
-```
-
----
-
-## Organization Projects
-
-For organization-owned projects, use `organization` instead of `user`:
-
-```bash
-gh api graphql -f query='
-  query($org: String!, $number: Int!) {
-    organization(login: $org) {
-      projectV2(number: $number) {
-        id
-        title
-      }
-    }
-  }
-' -f org="my-org" -F number=1
+gh project list --owner @me --format json --jq '.projects[] | {number, id}'
 ```
 
 
@@ -2152,262 +1574,73 @@ gh api graphql -f query='
 
 # GitHub Automation Scripts
 
-Ready-to-use scripts for common GitHub automation tasks.
+Loop-and-`gh` recipes (bulk label, bulk assign, cross-repo label sync, org-wide
+search, PR dashboards) are ordinary CLI usage and are not restated here. What
+survives is the part the vendor docs do not tell you: how this repo wants an agent
+to behave inside a long `gh` loop.
 
-## Bulk Issue Operations
+> Kept on disk deliberately: `tests/skills/test-github-operations-completeness.sh`
+> and `tests/unit/test-git-enforcement-hooks.sh` assert this exact filename, and
+> the completeness test greps it for a fenced bash block.
 
-### Add Label to Multiple Issues
+## Upstream
 
-```bash
-#!/usr/bin/env bash
-# Add label to all issues matching criteria
+| Topic | Source |
+|-------|--------|
+| `gh issue`/`gh pr` list, edit, and search flags used by every bulk loop | https://cli.github.com/manual/gh_issue |
+| Cross-repo label create/edit/clone | https://cli.github.com/manual/gh_label |
+| Org-wide issue search | https://cli.github.com/manual/gh_search_issues |
+| Rate-limit headers, reset semantics, secondary limits | https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api |
 
-LABEL="needs-review"
-QUERY="is:open label:bug"
+## Our delta: rate-limit discipline
 
-gh issue list --search "$QUERY" --json number --jq '.[].number' | \
-while read -r issue; do
-  echo "Adding '$LABEL' to #$issue"
-  gh issue edit "$issue" --add-label "$LABEL"
-done
-```
+Full rules with rationale: [../references/ork-delta.md](../references/ork-delta.md).
 
-### Assign Issues to Team Member
+On Claude Code 2.1.116+ the Bash tool surfaces a rate-limit hint in the transcript
+whenever a `gh` invocation takes a 403 rate-limit response. **That hint is the
+authoritative backoff signal: stop the loop and wait for the reset, do not retry
+the next call.** Before the hint existed, agents had no signal and exhausted the
+whole retry budget in roughly 13 seconds. Never work around a limit by swapping
+tokens.
 
-```bash
-#!/usr/bin/env bash
-# Assign unassigned issues in a milestone
-
-MILESTONE="Sprint 8"
-ASSIGNEE="@me"
-
-gh issue list --milestone "$MILESTONE" --assignee "" --json number --jq '.[].number' | \
-while read -r issue; do
-  echo "Assigning #$issue to $ASSIGNEE"
-  gh issue edit "$issue" --add-assignee "$ASSIGNEE"
-done
-```
-
-### Close Stale Issues
+The pre-flight guard below is the house pattern that keeps the loop from hitting
+the first 403 at all. The `remaining &lt; 100` floor and the `gh api rate_limit`
+probe are graded by `tests/evals/skills/github-operations-rate-limit.eval.yaml`,
+so keep both:
 
 ```bash
 #!/usr/bin/env bash
-# Close issues with no activity > 90 days
-
-DAYS=90
-CUTOFF=$(date -v-${DAYS}d +%Y-%m-%d 2>/dev/null || date -d "$DAYS days ago" +%Y-%m-%d)
-
-gh issue list --state open --json number,updatedAt --jq \
-  ".[] | select(.updatedAt < \"$CUTOFF\") | .number" | \
-while read -r issue; do
-  echo "Closing stale issue #$issue"
-  gh issue close "$issue" --comment "Closing due to inactivity. Reopen if still relevant."
-done
-```
-
----
-
-## PR Automation
-
-### Auto-Merge Approved PRs
-
-```bash
-#!/usr/bin/env bash
-# Enable auto-merge for approved PRs with passing checks
-
-# `statusCheckRollup` is an ARRAY of check objects (there is no scalar
-# `statusCheckRollupState` field), so aggregate it before filtering.
-gh pr list --json number,reviewDecision,statusCheckRollup --jq \
-  '.[] | select(.reviewDecision == "APPROVED"
-   and ([(.statusCheckRollup // [])[] | .conclusion // .state]
-        | length > 0 and all(IN("SUCCESS","SKIPPED","NEUTRAL")))) | .number' | \
-while read -r pr; do
-  echo "Enabling auto-merge for PR #$pr"
-  gh pr merge "$pr" --auto --squash --delete-branch
-done
-```
-
-### Request Reviews from CODEOWNERS
-
-```bash
-#!/usr/bin/env bash
-# Add reviewers based on changed files
-
-PR_NUMBER=$1
-
-# Get changed files
-CHANGED=$(gh pr diff "$PR_NUMBER" --name-only)
-
-# Map to reviewers (customize per team)
-REVIEWERS=""
-if echo "$CHANGED" | grep -q "^src/api/"; then
-  REVIEWERS="$REVIEWERS backend-team"
-fi
-if echo "$CHANGED" | grep -q "^src/components/"; then
-  REVIEWERS="$REVIEWERS frontend-team"
-fi
-
-if [[ -n "$REVIEWERS" ]]; then
-  gh pr edit "$PR_NUMBER" --add-reviewer $REVIEWERS
-fi
-```
-
-### PR Status Dashboard
-
-```bash
-#!/usr/bin/env bash
-# Generate PR status summary
-
-echo "=== PR Status Dashboard ==="
-echo ""
-
-echo "## Ready to Merge"
-gh pr list --json number,title,author --jq \
-  '.[] | "- #\(.number) \(.title) (@\(.author.login))"' \
-  --search "review:approved status:success"
-
-echo ""
-echo "## Needs Review"
-gh pr list --json number,title,author --jq \
-  '.[] | "- #\(.number) \(.title) (@\(.author.login))"' \
-  --search "review:none"
-
-echo ""
-echo "## Changes Requested"
-gh pr list --json number,title,author --jq \
-  '.[] | "- #\(.number) \(.title) (@\(.author.login))"' \
-  --search "review:changes-requested"
-```
-
----
-
-## Milestone Management
-
-### Milestone Progress Report
-
-```bash
-#!/usr/bin/env bash
-# Generate milestone progress report
-
-echo "=== Milestone Progress ==="
-echo ""
-
-gh api repos/:owner/:repo/milestones --jq '.[] |
-  "## \(.title)
-Due: \(.due_on // "No due date")
-Progress: \(.closed_issues)/\(.open_issues + .closed_issues) issues (\((.closed_issues * 100 / ((.open_issues + .closed_issues) | if . == 0 then 1 else . end)) | floor)%)
-"'
-```
-
-### Move Issues to Next Sprint
-
-```bash
-#!/usr/bin/env bash
-# Move open issues from current to next milestone
-
-CURRENT="Sprint 7"
-NEXT="Sprint 8"
-
-gh issue list --milestone "$CURRENT" --state open --json number --jq '.[].number' | \
-while read -r issue; do
-  echo "Moving #$issue to $NEXT"
-  gh issue edit "$issue" --milestone "$NEXT"
-done
-```
-
-### Create Sprint Milestone
-
-```bash
-#!/usr/bin/env bash
-# Create milestone with due date
-
-SPRINT_NUM=$1
-WEEKS=${2:-2}
-DUE_DATE=$(date -v+${WEEKS}w +%Y-%m-%dT00:00:00Z 2>/dev/null || \
-           date -d "+$WEEKS weeks" +%Y-%m-%dT00:00:00Z)
-
-gh api -X POST repos/:owner/:repo/milestones \
-  -f title="Sprint $SPRINT_NUM" \
-  -f description="Sprint $SPRINT_NUM goals and deliverables" \
-  -f due_on="$DUE_DATE"
-
-echo "Created Sprint $SPRINT_NUM (due $DUE_DATE)"
-```
-
----
-
-## Cross-Repo Operations
-
-### Sync Labels Across Repos
-
-```bash
-#!/usr/bin/env bash
-# Copy labels from source repo to target repos
-
-SOURCE_REPO="org/main-repo"
-TARGET_REPOS=("org/api" "org/frontend" "org/docs")
-
-# Get labels from source
-LABELS=$(gh label list --repo "$SOURCE_REPO" --json name,color,description)
-
-for repo in "${TARGET_REPOS[@]}"; do
-  echo "Syncing labels to $repo"
-  echo "$LABELS" | jq -c '.[]' | while read -r label; do
-    NAME=$(echo "$label" | jq -r '.name')
-    COLOR=$(echo "$label" | jq -r '.color')
-    DESC=$(echo "$label" | jq -r '.description // ""')
-
-    gh label create "$NAME" --repo "$repo" --color "$COLOR" --description "$DESC" 2>/dev/null || \
-    gh label edit "$NAME" --repo "$repo" --color "$COLOR" --description "$DESC"
-  done
-done
-```
-
-### Find Issues Across Repos
-
-```bash
-#!/usr/bin/env bash
-# Search issues across organization
-
-ORG="my-org"
-QUERY="is:open label:critical"
-
-gh search issues --owner "$ORG" "$QUERY" --json repository,number,title --jq \
-  '.[] | "\(.repository.nameWithOwner)#\(.number): \(.title)"'
-```
-
----
-
-## Rate Limit Handling
-
-**CC ≥ 2.1.116 note:** Claude Code's Bash tool now surfaces a rate-limit hint in the transcript whenever a `gh` invocation hits a 403 rate-limit response. Treat that hint as the authoritative backoff signal — agents should **stop the loop and wait for reset**, not retry blindly. On older CC versions the hint didn't exist and agents would exhaust retry budget in ~13 s.
-
-Pre-flight check remains useful to avoid the first 403:
-
-```bash
-#!/usr/bin/env bash
-# Check rate limits before bulk operations
+set -euo pipefail
 
 check_rate_limit() {
-  REMAINING=$(gh api rate_limit --jq '.rate.remaining')
-  if [[ "$REMAINING" -lt 100 ]]; then
-    RESET=$(gh api rate_limit --jq '.rate.reset')
-    WAIT=$((RESET - $(date +%s)))
-    echo "Rate limit low ($REMAINING). Waiting ${WAIT}s..."
-    sleep "$WAIT"
+  local remaining reset wait
+  remaining=$(gh api rate_limit --jq '.rate.remaining')
+  if [[ "$remaining" -lt 100 ]]; then
+    reset=$(gh api rate_limit --jq '.rate.reset')
+    wait=$((reset - $(date +%s)))
+    echo "Rate limit low ($remaining). Waiting ${wait}s..."
+    sleep "$wait"
   fi
 }
 
-# Use in loops
 for issue in $(gh issue list --json number --jq '.[].number'); do
   check_rate_limit
   gh issue edit "$issue" --add-label "processed"
 done
 ```
 
+Two more constraints that bite inside bulk loops:
+
+- **Never bulk `gh issue close`.** Issues close only when their linked PR merges;
+  a close loop strips the PR link from history.
+- **Every `gh issue create` needs `--label`.** The `gh-label-enforcer` hook denies
+  it otherwise, mid-batch.
+
 ## Related
 
 - [Issue Management](../references/issue-management.md)
 - [Milestone API](../references/milestone-api.md)
 - [GraphQL API](../references/graphql-api.md)
+- PR merge-gating (`statusCheckRollup` is an array, fold it before comparing):
+  [PR Workflows](../references/pr-workflows.md)
 

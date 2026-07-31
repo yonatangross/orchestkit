@@ -51,9 +51,8 @@ Focused patterns for testing API boundaries, cross-service contracts, component 
 
 | Topic | File |
 |-------|------|
+| **House rules not documented upstream** | `references/ork-delta.md` |
 | Consumer-side Pact tests | `references/consumer-tests.md` |
-| Pact Broker CI/CD | `references/pact-broker.md` |
-| Provider verification setup | `references/provider-verification.md` |
 | Hypothesis strategies guide | `references/strategies-guide.md` |
 
 ### Checklists
@@ -68,13 +67,39 @@ Focused patterns for testing API boundaries, cross-service contracts, component 
 | Script | File |
 |--------|------|
 | Create integration test | `scripts/create-integration-test.md` |
-| Test plan template | `scripts/test-plan-template.md` |
 
 ### Examples
 
 | Example | File |
 |---------|------|
 | Full testing strategy | `examples/orchestkit-test-strategy.md` |
+
+---
+
+## Upstream coverage (do not restate)
+
+This skill wraps Pact, the Pact Broker, and FastAPI testing. It carries only the OrchestKit
+delta. Fetch the vendor docs for the topics below instead of restating them here.
+
+| Topic | First-party source |
+|-------|--------------------|
+| Pact Broker publish CLI, pact versioning and tagging flags | https://docs.pact.io/pact_broker/publishing_and_retrieving_pacts |
+| `can-i-deploy`, `record-deployment`, `record-release` | https://docs.pact.io/pact_broker/can_i_deploy |
+| Deployment and release recording semantics | https://docs.pact.io/pact_broker/recording_deployments_and_releases |
+| Broker webhooks that trigger a provider build on contract change | https://docs.pact.io/pact_broker/webhooks |
+| Consumer version selector syntax (`mainBranch`, `deployedOrReleased`, `matchingBranch`) | https://docs.pact.io/pact_broker/advanced_topics/consumer_version_selectors |
+| Pending pact semantics | https://docs.pact.io/pact_broker/advanced_topics/pending_pacts |
+| Provider state setup hooks and state endpoint wiring | https://docs.pact.io/getting_started/provider_states |
+| FastAPI `TestClient` and `dependency_overrides` for a test database | https://fastapi.tiangolo.com/advanced/testing-dependencies/ |
+| GitHub Actions job ordering (`needs:`) and branch filters | https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions |
+| QA test-plan paperwork (schedule, roles, defect lifecycle, sign-off tables) | Tracker-owned; no single vendor page covers all four. Defect lifecycle: https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues . Schedule, roles and sign-off are org process, not a documented product feature. House quality budgets from the retired template survive in `references/ork-delta.md` |
+
+The house subset of those topics stays in this skill and is not routed away:
+`rules/verification-contract.md` keeps the two broker commands ork gates on plus the selector
+defaults; `checklists/contract-testing-checklist.md` keeps the CI/CD, isolation and security
+checkboxes; `references/consumer-tests.md` keeps the business-language provider-state naming
+convention and the matcher table. The rules that have no upstream home at all live in
+`references/ork-delta.md`.
 
 ---
 

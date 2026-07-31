@@ -76,7 +76,7 @@ class Order:
         return hash(self.id)
 ```
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/entities-value-objects.md")` for complete patterns.
+ID generation is a house rule, not a taste call: `Read("${CLAUDE_SKILL_DIR}/references/ork-delta.md")`.
 
 ### Value Object (Immutable)
 
@@ -96,7 +96,7 @@ class Money:
         return Money(self.amount + other.amount, self.currency)
 ```
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/entities-value-objects.md")` for Address, DateRange examples.
+Canonical Address / DateRange boilerplate is not restated here. See the upstream coverage table below.
 
 ## Key Decisions
 
@@ -154,9 +154,30 @@ class Money:
 async def get(self, id: UUID) -> OrderModel:  # WRONG - return domain!
 ```
 
+## Upstream coverage (do not restate)
+
+These topics are documented first-party. Read the source instead of re-deriving them here; only the
+house consequences are kept, in `references/ork-delta.md`.
+
+| Topic | Source |
+|-------|--------|
+| Entity / value-object dataclass mechanics: `frozen`, `__post_init__`, inherited field ordering, `kw_only` | https://docs.python.org/3/library/dataclasses.html |
+| Domain event definition, deferred dispatch, handler wiring, dispatch before vs after commit | https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/domain-events-design-implementation |
+| Bounded contexts, context map, ubiquitous language, integration patterns (shared kernel, customer-supplier, conformist, open host service, published language) | https://learn.microsoft.com/en-us/azure/architecture/microservices/model/domain-analysis |
+| Anti-corruption layer: what it translates and what it costs | https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer |
+| UUIDv7 generation, server side and in Python | https://www.postgresql.org/docs/18/functions-uuid.html and https://github.com/aminalaee/uuid-utils |
+| Payment amounts in minor units, zero-decimal currencies | https://docs.stripe.com/currencies |
+| Publishing events to a Redis Stream (`XADD` field maps, pipelining) | https://redis.io/docs/latest/commands/xadd/ |
+| Layered architecture enforcement, project-structure validation, test standards | the `architecture-patterns` skill in this plugin |
+
+Two subjects deliberately stay in this skill rather than routing upstream: the repository and
+Unit of Work implementation, which lives in full in `references/repositories.md`, and aggregate
+boundaries, invariants, and sizing, which live in full in `rules/`.
+
 ## Related Skills
 
-- `aggregate-patterns` - Deep dive on aggregate design
+- `rules/aggregate-boundaries.md`, `rules/aggregate-invariants.md`, `rules/aggregate-sizing.md` - aggregate design, in this skill
+- `ork:architecture-patterns` - Layer boundaries and project structure validation
 - `ork:distributed-systems` - Cross-aggregate coordination
 - `ork:database-patterns` - Schema design for DDD
 
@@ -165,20 +186,18 @@ async def get(self, id: UUID) -> OrderModel:  # WRONG - return domain!
 Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
-| `entities-value-objects.md` | Full entity and value object patterns |
-| `repositories.md` | Repository pattern implementation |
-| `domain-events.md` | Event collection and publishing |
-| `bounded-contexts.md` | Context mapping and ACL |
+| `ork-delta.md` | House rules: UUIDv7, event drain ordering, ACL boundary, source layout |
+| `repositories.md` | Repository pattern, Unit of Work, SQLAlchemy mapping |
 
 ## Capability Details
 
 ### entities
 **Keywords:** entity, identity, lifecycle, mutable, domain object
-**Solves:** Model entities in Python, identity equality, adding behavior
+**Solves:** Identity equality by ID, and the house UUIDv7 ID rule in `references/ork-delta.md`. Dataclass mechanics route upstream.
 
 ### value-objects
 **Keywords:** value object, immutable, frozen, dataclass, structural equality
-**Solves:** Create immutable value objects, when to use VO vs entity
+**Solves:** When to use VO vs entity. `frozen=True` semantics and inherited field ordering route upstream.
 
 ### domain-services
 **Keywords:** domain service, business logic, cross-aggregate, stateless
@@ -190,4 +209,4 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 ### bounded-contexts
 **Keywords:** bounded context, context map, ACL, subdomain, ubiquitous language
-**Solves:** Define bounded contexts, integrate with ACL, context relationships
+**Solves:** The house ACL boundary and context-first source layout in `references/ork-delta.md`. Context mapping and integration patterns route upstream.

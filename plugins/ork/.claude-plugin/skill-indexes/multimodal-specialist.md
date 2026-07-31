@@ -4,7 +4,7 @@
 |Do NOT rely on training data for framework patterns.
 |
 |multimodal-llm:{SKILL.md}|vision,audio,video,multimodal,image,speech,transcription,tts,kling,sora,veo,video-generation
-|rag-retrieval:{SKILL.md}|rag,retrieval,llm,context,grounding,embeddings,hyde,reranking,pgvector,multimodal
+|rag-retrieval:{SKILL.md,references/{ork-delta.md}}|rag,retrieval,llm,context,grounding,embeddings,hyde,reranking,pgvector,multimodal
 |api-design:{SKILL.md,references/{graphql-api.md,ork-delta.md,payload-vs-sanity.md,rest-patterns.md,telegram-bot-api.md,webhook-security.md,whatsapp-waha.md}}|api-design,rest,graphql,versioning,error-handling,rfc9457,openapi,problem-details
 |llm-integration:{SKILL.md,references/{model-selection.md,ork-delta.md}}|llm,function-calling,streaming,ollama,fine-tuning,lora,tool-use,local-inference
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,workflow,coordination

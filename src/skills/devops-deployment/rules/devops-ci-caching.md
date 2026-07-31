@@ -67,4 +67,4 @@ steps:
 - Cache multiple dependency directories in a single step when possible (npm + pip + venv)
 - Set artifact retention policies (`retention-days: 7`) to prevent storage bloat
 
-Reference: `references/ci-cd-pipelines.md` (lines 23-68)
+Reference: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows for `actions/cache` mechanics; `references/ork-delta.md` for the house CI feedback budget.

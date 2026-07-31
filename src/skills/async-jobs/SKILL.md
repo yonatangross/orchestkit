@@ -24,24 +24,29 @@ allowed-tools:
 
 # Async Jobs
 
-Patterns for background task processing with Celery, ARQ, and Redis. Covers task queues, canvas workflows, scheduling, retry strategies, rate limiting, and production monitoring. Each category has individual rule files in `references/` loaded on-demand.
+Background task processing with Celery, ARQ, Redis and Temporal. This skill is a wrapper, not a
+manual: Celery and ARQ document their own product well, so what lives here is our delta, the
+thresholds, working config, ordering constraints and tool-choice rules we picked. Product
+mechanics are linked, not restated.
+
+Start with `Read("${CLAUDE_SKILL_DIR}/references/ork-delta.md")`.
 
 ## Quick Reference
 
-| Category | Rules | Impact | When to Use |
-|----------|-------|--------|-------------|
-| [Configuration](#configuration) | celery-config | HIGH | Celery app setup, broker, serialization, worker tuning |
-| [Task Routing](#task-routing) | task-routing | HIGH | Priority queues, multi-queue workers, dynamic routing |
-| [Canvas Workflows](#canvas-workflows) | canvas-workflows | HIGH | Chain, group, chord, nested workflows |
-| [Retry Strategies](#retry-strategies) | retry-strategies | HIGH | Exponential backoff, idempotency, dead letter queues |
-| [Scheduling](#scheduling) | scheduled-tasks | MEDIUM | Celery Beat, crontab, database-backed schedules |
-| [Monitoring](#monitoring) | monitoring-health | MEDIUM | Flower, custom events, health checks, metrics |
-| [Result Backends](#result-backends) | result-backends | MEDIUM | Redis results, custom states, progress tracking |
-| [ARQ Patterns](#arq-patterns) | arq-patterns | MEDIUM | Async Redis Queue for FastAPI, lightweight jobs |
-| [Temporal Workflows](#temporal-workflows) | temporal-workflows | HIGH | Durable workflow definitions, sagas, signals, queries |
-| [Temporal Activities](#temporal-activities) | temporal-activities | HIGH | Activity patterns, workers, heartbeats, testing |
+| Topic | Where our part lives |
+|-------|----------------------|
+| [Configuration](#configuration) | `references/celery-config.md`, `rules/jobs-task-queue.md` |
+| [Task Routing](#task-routing) | `references/ork-delta.md` (queue taxonomy, prefetch tiers, Redis priority) |
+| [Canvas Workflows](#canvas-workflows) | `rules/celery-canvas.md` |
+| [Retry Strategies](#retry-strategies) | `references/ork-delta.md` (backoff cap, idempotency layers, lock TTLs) |
+| [Scheduling](#scheduling) | `rules/jobs-scheduling.md`, `references/ork-delta.md` (beat process model) |
+| [Monitoring](#monitoring) | `references/ork-delta.md` (alert thresholds, histogram buckets) |
+| [Result Backends](#result-backends) | `rules/jobs-monitoring.md`, `references/ork-delta.md` (return contract) |
+| [ARQ Patterns](#arq-patterns) | `rules/jobs-task-queue.md`, `references/ork-delta.md` (budgets, pool ownership) |
+| [Temporal Workflows](#temporal-workflows) | `rules/temporal-workflows.md` |
+| [Temporal Activities](#temporal-activities) | `rules/temporal-activities.md` |
 
-**Total: 10 rules across 9 categories**
+10 topic areas, 6 rule files in `rules/`, house delta in `references/ork-delta.md`.
 
 ## Quick Start
 
@@ -54,208 +59,133 @@ def process_payment(self, order_id: str):
         raise self.retry(exc=exc, countdown=2 ** self.request.retries * 60)
 ```
 
-Load more examples: `Read("${CLAUDE_SKILL_DIR}/references/quick-start-examples.md")` for Celery retry task and ARQ/FastAPI integration patterns.
+Load more examples: `Read("${CLAUDE_SKILL_DIR}/references/quick-start-examples.md")` for Celery
+retry task and ARQ/FastAPI integration patterns.
+
+## Upstream coverage (do not restate)
+
+Fetch these when you need product mechanics. The right-hand column is the part we keep, because
+it is a house threshold, a working config or an ordering constraint that upstream cannot know.
+
+| Topic | First-party source | House subset stays in |
+|-------|--------------------|-----------------------|
+| Celery settings, serializers, time limits, worker flags | https://docs.celeryq.dev/en/stable/userguide/configuration.html and .../optimizing.html | `references/celery-config.md`, `rules/jobs-task-queue.md` |
+| Queue declarations, router classes, Redis priority mechanics | https://docs.celeryq.dev/en/stable/userguide/routing.html | `references/ork-delta.md` |
+| chain / group / chord / signature semantics | https://docs.celeryq.dev/en/stable/userguide/canvas.html | `rules/celery-canvas.md` keeps the house canvas subset. Its `si()`-in-chords guidance is UNVERIFIED and contested: confirm the argument-passing behaviour against the upstream canvas page before relying on it |
+| `autoretry_for`, `retry_backoff`, `Reject`, task base classes | https://docs.celeryq.dev/en/stable/userguide/tasks.html | `references/ork-delta.md`, `rules/jobs-task-queue.md` |
+| Beat schedules, crontab syntax, DatabaseScheduler | https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html and https://django-celery-beat.readthedocs.io/en/latest/ | `rules/jobs-scheduling.md` keeps our `beat_schedule` shapes; `references/ork-delta.md` keeps the process model |
+| Flower flags, `inspect`, signal names | https://docs.celeryq.dev/en/stable/userguide/monitoring.html, https://docs.celeryq.dev/en/stable/userguide/signals.html, https://flower.readthedocs.io/en/latest/config.html | `references/ork-delta.md` |
+| Result backend, `AsyncResult`, custom states | https://docs.celeryq.dev/en/stable/userguide/configuration.html | `rules/jobs-monitoring.md` keeps our status endpoints and `update_state()` usage |
+| Per-task `rate_limit`, `control.rate_limit`, Redis Lua | https://docs.celeryq.dev/en/stable/userguide/workers.html, https://redis.io/docs/latest/develop/programmability/eval-intro/ | `references/ork-delta.md` |
+| ARQ `WorkerSettings`, `enqueue_job`, `_defer_by` / `_defer_until`, `Job` status | https://arq-docs.helpmanual.io/ | `rules/jobs-task-queue.md` keeps the worker skeleton; `references/ork-delta.md` keeps the budgets |
+| FastAPI lifespan and dependency wiring | https://fastapi.tiangolo.com/advanced/events/ | `references/ork-delta.md` |
+| Distributed locks with `SET NX EX` | https://redis.io/docs/latest/commands/set/ | `references/ork-delta.md` |
 
 ## Configuration
 
-Production Celery app configuration with secure defaults and worker tuning.
-
-### Key Patterns
-
-- **JSON serialization** with `task_serializer="json"` for safety
-- **Late acknowledgment** with `task_acks_late=True` to prevent task loss on crash
-- **Time limits** with both `task_time_limit` (hard) and `task_soft_time_limit` (soft)
-- **Fair distribution** with `worker_prefetch_multiplier=1`
-- **Reject on lost** with `task_reject_on_worker_lost=True`
-
-### Key Decisions
+Load: `Read("${CLAUDE_SKILL_DIR}/references/celery-config.md")`.
 
 | Decision | Recommendation |
 |----------|----------------|
 | Serializer | JSON (never pickle) |
 | Ack mode | Late ack (`task_acks_late=True`) |
 | Prefetch | 1 for fair, 4-8 for throughput |
-| Time limit | soft < hard (e.g., 540/600) |
+| Time limit | soft < hard (540 / 600) |
 | Timezone | UTC always |
 
 ## Task Routing
 
-Priority queue configuration with multi-queue workers and dynamic routing.
-
-### Key Patterns
-
-- **Named queues** for critical/high/default/low/bulk separation
-- **Redis priority** with `queue_order_strategy: "priority"` and 0-9 levels
-- **Task router classes** for dynamic routing based on task attributes
-- **Per-queue workers** with tuned concurrency and prefetch settings
-- **Content-based routing** for dynamic workflow dispatch
-
-### Key Decisions
-
 | Decision | Recommendation |
 |----------|----------------|
-| Queue count | 3-5 (critical/high/default/low/bulk) |
-| Priority levels | 0-9 with Redis `x-max-priority` |
-| Worker assignment | Dedicated workers per queue |
-| Prefetch | 1 for critical, 4-8 for bulk |
-| Routing | Router class for 5+ routing rules |
+| Queue count | 5: critical / high / default / low / bulk |
+| Priority levels | 0-9, with all four Redis priority switches set together |
+| Worker assignment | Dedicated worker per queue |
+| Prefetch | 1 critical, 2 high, 4 default, 8 low/bulk |
+| Routing | Router class once past 5 routing rules |
 
 ## Canvas Workflows
 
-Celery canvas primitives for sequential, parallel, and fan-in/fan-out workflows.
-
-### Key Patterns
-
-- **Chain** for sequential ETL pipelines with result passing
-- **Group** for parallel execution of independent tasks
-- **Chord** for fan-out/fan-in with aggregation callback
-- **Immutable signatures** (`si()`) for steps that ignore input
-- **Nested workflows** combining groups inside chains
-- **Link error** callbacks for workflow-level error handling
-
-### Key Decisions
+Load: `Read("${CLAUDE_SKILL_DIR}/rules/celery-canvas.md")`.
 
 | Decision | Recommendation |
 |----------|----------------|
 | Sequential | Chain with `s()` |
 | Parallel | Group for independent tasks |
-| Fan-in | Chord (all must succeed for callback) |
+| Fan-in | Chord (all header tasks must succeed for the body to run) |
 | Ignore input | Use `si()` immutable signature |
-| Error in chain | Reject stops chain, retry continues |
-| Partial failures | Return error dict in chord tasks |
+| Error in chain | `Reject` stops the chain, `retry` continues it |
+| Partial failures | Return an error dict from chord header tasks |
 
 ## Retry Strategies
 
-Retry patterns with exponential backoff, idempotency, and dead letter queues.
-
-### Key Patterns
-
-- **Exponential backoff** with `retry_backoff=True` and `retry_backoff_max`
-- **Jitter** with `retry_jitter=True` to prevent thundering herd
-- **Idempotency keys** in Redis to prevent duplicate processing
-- **Dead letter queues** for failed tasks requiring manual review
-- **Task locking** to prevent concurrent execution of singleton tasks
-- **Base task classes** with shared retry configuration
-
-### Key Decisions
-
 | Decision | Recommendation |
 |----------|----------------|
-| Retry delay | Exponential backoff with jitter |
+| Retry delay | Exponential backoff, jitter on, capped at 600s |
 | Max retries | 3-5 for transient, 0 for permanent |
-| Idempotency | Redis key with TTL |
+| Idempotency | Redis marker (86400s TTL) plus the vendor idempotency key |
 | Failed tasks | DLQ for manual review |
-| Singleton | Redis lock with TTL |
+| Singleton | Redis lock with a TTL longer than the hard time limit |
 
 ## Scheduling
 
-Celery Beat periodic task configuration with crontab, database-backed schedules, and overlap prevention.
-
-### Key Patterns
-
-- **Crontab** for time-based schedules (daily, weekly, monthly)
-- **Interval** for fixed-frequency tasks (every N seconds)
-- **Database scheduler** with `django-celery-beat` for dynamic schedules
-- **Schedule locks** to prevent overlapping long-running scheduled tasks
-- **Adaptive polling** with self-rescheduling tasks
-
-### Key Decisions
+Load: `Read("${CLAUDE_SKILL_DIR}/rules/jobs-scheduling.md")`.
 
 | Decision | Recommendation |
 |----------|----------------|
-| Schedule type | Crontab for time-based, interval for frequency |
-| Dynamic | Database scheduler (`django-celery-beat`) |
-| Overlap | Redis lock with timeout |
-| Beat process | Separate process (not embedded) |
+| Schedule type | Crontab for time-based, float interval for frequency |
+| Dynamic | DatabaseScheduler (`django-celery-beat`) |
+| Overlap | Redis lock, 3600s default and 7200s for long jobs |
+| Beat process | Separate process; embedded `--beat` is development only |
 | Timezone | UTC always |
 
 ## Monitoring
 
-Production monitoring with Flower, custom signals, health checks, and Prometheus metrics.
-
-### Key Patterns
-
-- **Flower** dashboard for real-time task monitoring
-- **Celery signals** (`task_prerun`, `task_postrun`, `task_failure`) for metrics
-- **Health check** endpoint verifying broker connection and active workers
-- **Queue depth** monitoring for autoscaling decisions
-- **Beat monitoring** for scheduled task dispatch tracking
-
-### Key Decisions
-
 | Decision | Recommendation |
 |----------|----------------|
 | Dashboard | Flower with persistent storage |
-| Metrics | Prometheus via celery signals |
-| Health | Broker + worker + queue depth |
-| Alerting | Signal on task_failure |
-| Autoscale | Queue depth > threshold |
+| Metrics | Prometheus wired to `task_prerun` / `task_postrun` / `task_failure` |
+| Health | Broker reachable, at least one worker, queue depths |
+| Alerting | critical > 100, default > 5000, workers < 1 |
+| Autoscale | Queue depth > 500 |
 
 ## Result Backends
 
-Task result storage, custom states, and progress tracking patterns.
-
-### Key Patterns
-
-- **Redis backend** for task status and small results
-- **Custom task states** (VALIDATING, PROCESSING, UPLOADING) for progress
-- **`update_state()`** for real-time progress reporting
-- **S3/database** for large result storage (never Redis)
-- **AsyncResult** for querying task state and progress
-
-### Key Decisions
+Load: `Read("${CLAUDE_SKILL_DIR}/rules/jobs-monitoring.md")`.
 
 | Decision | Recommendation |
 |----------|----------------|
-| Status storage | Redis result backend |
-| Large results | S3 or database (never Redis) |
+| Status storage | Redis result backend, status and small JSON only |
+| Large results | S3 or database, task returns a reference dict |
 | Progress | Custom states with `update_state()` |
-| Result query | AsyncResult with state checks |
+| Result query | `AsyncResult` with state checks |
 
 ## ARQ Patterns
 
-Lightweight async Redis Queue for FastAPI and simple background tasks.
-
-### Key Patterns
-
-- **Native async/await** with `arq` for FastAPI integration
-- **Worker lifecycle** with `startup`/`shutdown` hooks for resource management
-- **Job enqueue** from FastAPI routes with `enqueue_job()`
-- **Job status** tracking with `Job.status()` and `Job.result()`
-- **Delayed tasks** with `_delay=timedelta()` for deferred execution
-
-### Key Decisions
+Load: `Read("${CLAUDE_SKILL_DIR}/rules/jobs-task-queue.md")`.
 
 | Decision | Recommendation |
 |----------|----------------|
-| Simple async | ARQ (native async) |
-| Complex workflows | Celery (chains, chords) |
-| In-process quick | FastAPI BackgroundTasks |
-| LLM workflows | LangGraph (not Celery) |
+| Simple async | ARQ (native async), `max_jobs=10`, `job_timeout=300` |
+| Pool ownership | FastAPI lifespan, never a per-request `create_pool` |
+| Complex workflows | Celery (chains, chords, DLQ, per-task rate limits) |
+| In-process quick | FastAPI BackgroundTasks, under 30s, non-critical only |
+| LLM workflows | LangGraph, not Celery |
 
 ## Tool Selection
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/quick-start-examples.md")` for the full tool comparison table (ARQ, Celery, RQ, Dramatiq, FastAPI BackgroundTasks).
+Load: `Read("${CLAUDE_SKILL_DIR}/references/quick-start-examples.md")` for the full tool
+comparison table (ARQ, Celery, RQ, Dramatiq, FastAPI BackgroundTasks).
 
 ## Anti-Patterns (FORBIDDEN)
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/anti-patterns.md")` for full list.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/anti-patterns.md")` for the full list.
 
-Key rules: never run long tasks in request handlers, never block on results inside tasks, never store large results in Redis, always use idempotency for retried tasks.
+Key rules: never run long tasks in request handlers, never block on results inside tasks, never
+store large results in Redis, always use idempotency for retried tasks.
 
 ## Temporal Workflows
 
-Durable execution engine for reliable distributed applications with Temporal.io.
-
-### Key Patterns
-
-- **Workflow definitions** with `@workflow.defn` and deterministic code
-- **Saga pattern** with compensation for multi-step transactions
-- **Signals and queries** for external interaction with running workflows
-- **Timers** with `workflow.wait_condition()` for human-in-the-loop
-- **Parallel activities** via `asyncio.gather` inside workflows
-
-### Key Decisions
+Load: `Read("${CLAUDE_SKILL_DIR}/rules/temporal-workflows.md")`.
 
 | Decision | Recommendation |
 |----------|----------------|
@@ -265,23 +195,13 @@ Durable execution engine for reliable distributed applications with Temporal.io.
 
 ## Temporal Activities
 
-Activity and worker patterns for Temporal.io I/O operations.
-
-### Key Patterns
-
-- **Activity definitions** with `@activity.defn` for all I/O
-- **Heartbeating** for long-running activities (> 60s)
-- **Error classification** with `ApplicationError(non_retryable=True)` for business errors
-- **Worker configuration** with dedicated task queues
-- **Testing** with `WorkflowEnvironment.start_local()`
-
-### Key Decisions
+Load: `Read("${CLAUDE_SKILL_DIR}/rules/temporal-activities.md")`.
 
 | Decision | Recommendation |
 |----------|----------------|
 | Activity timeout | `start_to_close` for most cases |
 | Error handling | Non-retryable for business errors |
-| Testing | WorkflowEnvironment for integration tests |
+| Testing | `WorkflowEnvironment.start_local()` for integration tests |
 
 ## Related Skills
 
@@ -292,4 +212,5 @@ Activity and worker patterns for Temporal.io I/O operations.
 
 ## Capability Details
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/capability-details.md")` for full keyword index and problem-solution mapping across all 8 capabilities.
+Load details: `Read("${CLAUDE_SKILL_DIR}/references/capability-details.md")` for the keyword index
+and problem-to-capability mapping.

@@ -318,7 +318,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|github-operations:{SKILL.md,references/{cli-vs-api-identifiers.md,graphql-api.md,issue-management.md,milestone-api.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
+|github-operations:{SKILL.md,references/{cli-vs-api-identifiers.md,graphql-api.md,issue-management.md,milestone-api.md,ork-delta.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
 |commit:{SKILL.md,references/{conventional-commits.md,recovery.md}}|git,commit,version-control,conventional-commits
 |release-management:{SKILL.md,references/{changelog-generation.md,release-automation.md,release-workflows.md,semver.md}}|git,github,releases,versioning,changelog,automation
 |swarm-migrate:{SKILL.md}|migration,cross-repo,swarm,parallel-agents,worktree,ledger

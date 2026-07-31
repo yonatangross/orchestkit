@@ -29,7 +29,7 @@ allowed-tools:
 
 # LLM & AI Testing Patterns
 
-Patterns and tools for testing LLM integrations, evaluating AI output quality, mocking responses for deterministic CI, and applying agentic test workflows (planner, generator, healer).
+Patterns and tools for testing LLM integrations, evaluating AI output quality, mocking responses for deterministic CI, and applying agentic test workflows (planner, generator, healer). Of that trio only the healer keeps a local reference here; the planner and generator stages belong to the `testing-e2e` skill.
 
 ## Quick Reference
 
@@ -37,12 +37,27 @@ Patterns and tools for testing LLM integrations, evaluating AI output quality, m
 |------|------|---------|
 | **Rules** | `rules/llm-evaluation.md` | DeepEval quality metrics, Pydantic schema validation, timeout testing |
 | **Rules** | `rules/llm-mocking.md` | Mock LLM responses, VCR.py recording, custom request matchers |
-| **Reference** | `references/deepeval-ragas-api.md` | Full API reference for DeepEval and RAGAS metrics |
-| **Reference** | `references/generator-agent.md` | Transforms Markdown specs into Playwright tests |
+| **Reference** | `references/ork-delta.md` | House rules the vendor docs do not carry: GEval and RAGAS API corrections, threshold direction, cassette path, golden-dataset and latency budgets |
 | **Reference** | `references/healer-agent.md` | Auto-fixes failing tests (selectors, waits, dynamic content) |
-| **Reference** | `references/planner-agent.md` | Explores app and produces Markdown test plans |
 | **Checklist** | `checklists/llm-test-checklist.md` | Complete LLM testing checklist (setup, coverage, CI/CD) |
-| **Example** | `examples/llm-test-patterns.md` | Full examples: mocking, structured output, DeepEval, VCR, golden datasets |
+
+## Upstream coverage (do not restate)
+
+DeepEval, RAGAS, VCR.py and Playwright document themselves. This skill carries only the
+OrchestKit delta (`references/ork-delta.md`) plus the house subsets in `rules/` and
+`checklists/`. Fetch the source below instead of expecting the material here.
+
+| Topic | Source |
+|-------|--------|
+| Full DeepEval metric catalog and per-metric constructor arguments (the house threshold table and the two-metric quick start stay in this file, `rules/llm-evaluation.md` and `checklists/llm-test-checklist.md`) | https://deepeval.com/docs/metrics-introduction |
+| `GEval` custom criteria: `evaluation_params`, `evaluation_steps`, `criteria` (the house import correction stays in `references/ork-delta.md`) | https://deepeval.com/docs/metrics-llm-evals |
+| `HallucinationMetric` arguments (the house 0.3 ceiling and the inverted-direction warning stay in `references/ork-delta.md`) | https://deepeval.com/docs/metrics-hallucination |
+| RAGAS metric catalog (`Faithfulness`, `LLMContextRecall`, `FactualCorrectness`) | https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/ |
+| `EvaluationDataset` construction (the house note on the post-0.2 field names stays in `references/ork-delta.md`) | https://docs.ragas.io/en/stable/concepts/components/eval_dataset/ |
+| VCR.py configuration keys (the house record-mode gate and header filters stay in `rules/llm-mocking.md`) | https://vcrpy.readthedocs.io/en/latest/configuration.html |
+| Playwright Planner and Generator agents, `init-agents` CLI and generated files (the house healer subset stays in `references/healer-agent.md`) | https://playwright.dev/docs/test-agents |
+| Playwright semantic locator ladder used by generated tests | `testing-e2e` skill (`rules/e2e-playwright.md`) plus https://playwright.dev/docs/locators |
+| Confidence intervals over metric score samples | https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.t.html |
 
 ## When to Use This Skill
 
@@ -121,6 +136,11 @@ result = evaluate(
 
 > Bump floors: `deepeval >= 4.0`, `ragas >= 0.4`.
 
+House rules the vendor docs do not state (the inverted `HallucinationMetric` threshold,
+the `gpt-5-mini` grader default, the 95 percent confidence-interval recipe, and the
+latency, quality-gate and truncation numbers) are recorded in `references/ork-delta.md`.
+Read that before writing either library's setup code.
+
 ## Quality Metrics Thresholds
 
 | Metric | Threshold | Purpose |
@@ -176,11 +196,19 @@ The three-agent pattern for end-to-end test automation:
 Planner -> specs/*.md -> Generator -> tests/*.spec.ts -> Healer (auto-fix)
 ```
 
-1. **Planner** (`references/planner-agent.md`): Explores your app, produces Markdown test plans from PRDs or natural language requests. Requires `seed.spec.ts` for app context.
+1. **Planner**: Explores your app and produces Markdown test plans. Owned by the
+   `testing-e2e` skill (`rules/e2e-ai-agents.md`); the CLI and its generated files are
+   documented at https://playwright.dev/docs/test-agents.
 
-2. **Generator** (`references/generator-agent.md`): Converts Markdown specs into Playwright tests. Actively validates selectors against the running app. Uses semantic locators (getByRole, getByLabel, getByText).
+2. **Generator**: Converts Markdown specs into Playwright tests, validating selectors
+   against the running app. Also owned by `testing-e2e` (`rules/e2e-ai-agents.md`); the
+   locator ladder it follows lives in `testing-e2e` `rules/e2e-playwright.md`.
 
 3. **Healer** (`references/healer-agent.md`): Automatically fixes failing tests by replaying failures, inspecting the DOM, and patching locators/waits. Max 3 healing attempts per test.
+
+Agent initialization is CLI-only (`npx playwright init-agents`); there is no config key
+for it. Only the healing stage keeps a local reference, because its 3-attempt ceiling and
+its refusal to touch test logic are house limits rather than vendor defaults.
 
 ## Edge Cases to Always Test
 
@@ -211,3 +239,5 @@ See `checklists/llm-test-checklist.md` for the complete checklist.
 - `ork:testing-unit` — Unit testing fundamentals, AAA pattern
 - `ork:testing-integration` — Integration testing for AI pipelines
 - `ork:golden-dataset` — Evaluation dataset management
+- `ork:testing-e2e` owns the Planner and Generator agent workflow and the Playwright locator ladder
+- `ork:testing-perf` owns the latency and load budgets referenced in `references/ork-delta.md`

@@ -28,6 +28,10 @@ path_patterns: ["**/rag/**", "**/retrieval/**", "**/embeddings/**", "**/vector/*
 
 Comprehensive patterns for building production RAG systems. Each category has individual rule files in `rules/` loaded on-demand.
 
+House thresholds, fusion ordering, and the latency and quality budgets we assert live in
+`references/ork-delta.md`. Vendor documentation is linked, not restated (see
+[Upstream coverage](#upstream-coverage-do-not-restate)).
+
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |
@@ -172,6 +176,24 @@ async def rag_query(question: str, top_k: int = 5) -> dict:
 | HyDE timeout | 2-3 seconds with fallback |
 | Query decomposition | Heuristic first, LLM only if multi-concept |
 
+## Upstream coverage (do not restate)
+
+Fetch these from the source instead of restating them here. Where a row says the house
+subset stays, that named file carries only the tuned values and the reason, not a tutorial.
+
+| Topic | Source |
+|-------|--------|
+| pgvector install, operators, index build syntax, "why isn't my index used" | https://github.com/pgvector/pgvector; house subset (HNSW `m=16`, `ef_construction=64`, halfvec, binary quantize) stays in `rules/pgvector-indexing.md` and `rules/pgvector-schema.md` |
+| Postgres full-text search: tsvector, tsquery, GIN, `ts_rank_cd` | https://www.postgresql.org/docs/current/textsearch.html; house subset (generated STORED column) stays in `rules/pgvector-schema.md` |
+| Reading query plans, confirming an index is used, VACUUM/ANALYZE | https://www.postgresql.org/docs/current/using-explain.html |
+| RRF mechanics: rank constant, rank window size, tie handling | https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion; house subset (`k=60`, 3x fetch) stays in `rules/core-hybrid-search.md` and `rules/pgvector-hybrid-search.md` |
+| Field-weighted boosting and scoring profiles as a concept | https://learn.microsoft.com/en-us/azure/search/index-add-scoring-profiles; our boost factors and their ordering are in `references/ork-delta.md` |
+| Embedding API mechanics: batch limits, `input_type`, dimensions, pricing | https://docs.voyageai.com/docs/embeddings and https://platform.openai.com/docs/guides/embeddings; model choice stays in `rules/embeddings-models.md` |
+| Retrieval metric definitions (precision@k, recall@k, MRR, nDCG) and building the query set | ork skill `golden-dataset` |
+| Search endpoint shape, pagination, error bodies | ork skill `api-design` |
+| Tracing and dashboarding search calls | ork skill `monitoring-observability` |
+| Writing the integration test that runs these assertions | ork skill `testing-integration` |
+
 ## Common Mistakes
 
 1. No citation tracking (unverifiable answers)
@@ -187,16 +209,18 @@ async def rag_query(question: str, top_k: int = 5) -> dict:
 
 ## Evaluations
 
-See `test-cases.json` for 30 test cases across all categories.
+See `test-cases.json` for 30 test cases across all categories, and
+`references/ork-delta.md` for the pass-rate, precision, recall, MRR, and per-stage
+latency floors a retrieval change has to clear.
 
 ## Related Skills
 
 - `ork:langgraph` - LangGraph workflow patterns (for agentic RAG workflows)
-- `caching` - Cache RAG responses for repeated queries
 - `ork:golden-dataset` - Evaluate retrieval quality
 - `ork:llm-integration` - Local embeddings with nomic-embed-text
-- `vision-language-models` - Image analysis for multimodal RAG
+- `ork:multimodal-llm` - Image analysis for multimodal RAG
 - `ork:database-patterns` - Schema design for vector search
+- `ork:performance` - Caching repeated RAG responses
 
 ## Capability Details
 

@@ -122,7 +122,7 @@
 {
   "slug": "feat--skill-delta-gate",
   "updated": "2026-07-31",
-  "ratchet": { "orphanFiles": 146, "orphanLines": 27950, "restatementFiles": 175, "restatementLines": 41290, "overlapFiles": 1 },
+  "ratchet": { "orphanFiles": 42, "orphanLines": 4081, "restatementFiles": 58, "restatementLines": 11366, "overlapFiles": 0 },
   "targets": { "orphanFiles": 0, "restatementFiles": 60, "overlapFiles": 0 },
   "items": [
     {
@@ -142,9 +142,19 @@
       "skills": ["performance","security-patterns","agent-orchestration","distributed-systems","api-design","accessibility","react-server-components-framework","golden-dataset","architecture-patterns","ui-components"]
     },
     {
-      "id": "waves25", "title": "גלים 2-5: יתר 47 העוטפים", "status": "todo",
-      "desc": "אותו פייפליין, ~12 לגל, שער בדיקות בין גלים, הלוח מתעדכן אחרי כל גל.",
-      "evidence": "restatementFiles יורד מתחת ל-60; orphanFiles מגיע ל-0"
+      "id": "wave2", "title": "גל 2: 12 עוטפים (שכבה A+B)", "status": "done",
+      "desc": "שני באגים בסורק תוקנו בשורש: קבצי upstream מוחרגים, ותיקיות tests/ ו-bin/ נכנסו לחיפוש היתומים. שניהם גרמו לסוכנים למחוק קבצים חיים.",
+      "evidence": "קומיט 7da0350ea; 8 קבצי ונדור ו-3 סקריפטים שוחזרו; ראצ׳ט 146/175/1 ← 50/87/0"
+    },
+    {
+      "id": "wave3", "title": "גל 3: 12 עוטפים + תיקון ידני מלא", "status": "done",
+      "desc": "הסוורם נכשל כאן: 9 מתוך 10 נפלו באימות, 53 פריטי ידע אבדו, 4 ציטוטים מפוברקים. תוקן ידנית: 2 סקילים הוחזרו במלואם, 6 תוקנו, ~35 פריטי ידע חולצו מחדש.",
+      "evidence": "/ork:verify החזיר READY FOR MERGE; חמישה שערים ירוקים; ראצ׳ט 42/58/0"
+    },
+    {
+      "id": "waves45", "title": "גלים 4-5: מוקפאים בכוונה", "status": "todo",
+      "desc": "לא ממשיכים בסוורם. יחס העלות-תועלת התהפך בגל 3, והשאר דורש סקירה אנושית ולא אוטומציה.",
+      "evidence": "החלטה על בסיס /ork:assess; הראצ׳ט מגן על הרווח גם בלי גלים נוספים"
     },
     {
       "id": "agents", "title": "בהמשך: אותו טיפול ל-36 האייג׳נטים", "status": "todo",
@@ -153,6 +163,8 @@
     }
   ],
   "changelog": [
+    { "at": "2026-07-31 21:40", "what": "גל 3 + תיקון ידני נחתו. הסוורם הרס ערך בגל הזה, ולכן product-analytics ו-user-research הוחזרו במלואם (מחיקת rules/ ניתקה את שרשור הבדיקות), 6 סקילים תוקנו ידנית, ובאג API אמיתי נתפס: react-pdf מקבל handlers ולא includeStandard. ראצ׳ט סופי 222/314/7 ← 42/58/0" },
+    { "at": "2026-07-31 19:05", "what": "גל 2 נחת עם שני תיקוני שורש בסורק. הסורק עצמו הוא שהורה למחוק 8 קבצי ונדור ו-3 סקריפטים תחת חוזה בדיקה" },
     { "at": "2026-07-31 17:20", "what": "גל 1 נחת: 10/10 סקילים דוללו ואומתו. ראצ׳ט 222/314/7 ← 146/175/1. ~48k שורות טוטוריאל נמחקו, 10 קבצי ork-delta נכתבו. האימות האדוורסרי תפס פעמיים פרובננס מפוברק (issue-547, PR-411) ותוקן מול gh. golden-dataset דולל ידנית אחרי שני כשלוני agent, כולל מחיקת 1,273 שורות תיאטרון על backend שלא קיים" },
     { "at": "2026-07-31 15:05", "what": "שלב 0 נחת: סורק + ראצ׳ט + בסיס (222/314/7), קומיט 69c9eee33" },
     { "at": "2026-07-31 14:20", "what": "מדידה: 72% משורות הלא-SKILL.md ללא עוגן ork; 48k שורות יתומות" }

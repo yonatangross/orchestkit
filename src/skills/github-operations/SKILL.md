@@ -273,7 +273,7 @@ The old `gh-sub-issue` third-party extension still works but is superseded. Grap
 - `ork:create-pr` - Create pull requests with proper formatting and review assignments
 - `ork:review-pr` - Comprehensive PR review with specialized agents
 - `ork:release-management` - GitHub release workflow with semantic versioning and changelogs
-- `stacked-prs` - Manage dependent PRs with rebase coordination
+- `ork:commit` - Stacked-PR workflow and rebase coordination live in `src/skills/commit/rules/` (`stacked-pr-workflow`, `stacked-pr-rebase`). There is no `stacked-prs` skill.
 - `ork:issue-progress-tracking` - Automatic issue progress updates from commits
 
 ## Key Decisions
@@ -286,18 +286,42 @@ The old `gh-sub-issue` third-party extension still works but is superseded. Grap
 | Projects v2 fields | GraphQL mutations | gh project commands limited, GraphQL required for custom fields |
 | Milestone lifecycle | Close, don't delete | Preserves history and progress tracking |
 
+## Upstream coverage (do not restate)
+
+These topics are documented first-party. Fetch them there instead of growing a copy
+in this skill.
+
+| Topic | Source |
+|-------|--------|
+| `gh issue` bulk create / edit / list loops, templates, transfer and pin | https://cli.github.com/manual/gh_issue |
+| Cross-repo label create / edit / clone | https://cli.github.com/manual/gh_label |
+| Org-wide issue search qualifiers | https://cli.github.com/manual/gh_search_issues |
+| Milestone REST CRUD: endpoints, payload fields, list filters and sorting | https://docs.github.com/en/rest/issues/milestones |
+| Projects v2 field mutations, value unions, field and option ID discovery | https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects |
+| Sub-issue endpoint payloads and pagination | https://docs.github.com/en/rest/issues/sub-issues |
+| Rate-limit headers, reset semantics, secondary limits | https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api |
+
+**What still stays ours, in full, in this skill:** PR review / merge gating including
+the `statusCheckRollup` array fold (`references/pr-workflows.md`); GraphQL queries,
+pagination, and node-id lookup (`references/graphql-api.md`); the CLI-NAME vs
+API-NUMBER identifier mapping for milestones and Projects v2
+(`references/cli-vs-api-identifiers.md`); the sub-issue quick reference above; and
+the rate-limit pre-flight guard (`examples/automation-scripts.md`). House rules with
+their rationale are collected in `references/ork-delta.md`.
+
 ## References
 
 Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
-| `issue-management.md` | Bulk operations, templates, sub-issues |
-| `pr-workflows.md` | Reviews, merge strategies, auto-merge |
-| `milestone-api.md` | REST API patterns for milestone CRUD |
-| `projects-v2.md` | Custom fields, GraphQL mutations |
+| `ork-delta.md` | House rules: hook contracts, close-don't-delete, rate-limit discipline, the file-set contract |
+| `pr-workflows.md` | Reviews, merge strategies, auto-merge, statusCheckRollup folding |
 | `graphql-api.md` | Complex queries, pagination, bulk operations |
 | `cli-vs-api-identifiers.md` | NAME vs NUMBER footguns, milestone/project ID mapping |
+| `issue-management.md` | Pointer stub: issue delta plus upstream links |
+| `milestone-api.md` | Pointer stub: milestone delta plus upstream links |
+| `projects-v2.md` | Pointer stub: Projects v2 delta plus upstream links |
 
 ## Examples
 
-Load: `Read("${CLAUDE_SKILL_DIR}/examples/automation-scripts.md")` - Ready-to-use scripts for bulk operations, PR automation, milestone management
+Load: `Read("${CLAUDE_SKILL_DIR}/examples/automation-scripts.md")` - Rate-limit discipline for long `gh` loops, plus pointers for the bulk-loop recipes

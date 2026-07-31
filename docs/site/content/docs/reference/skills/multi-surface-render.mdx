@@ -90,7 +90,8 @@ export const Dashboard = ({ spec }) => (
 import { renderToBuffer, renderToFile } from '@json-render/react-pdf'
 import { pdfRegistry } from './registries/pdf'
 
-// Buffer for HTTP response — options are { registry, includeStandard?, state? }
+// Buffer for HTTP response. PDF options are { registry?, state?, handlers? }.
+// includeStandard is an EMAIL option, not a PDF one (see references/upstream-pdf.md).
 const buffer = await renderToBuffer(spec, { registry: pdfRegistry })
 
 // Direct file output — renderToFile(spec, filePath, options?)
@@ -204,6 +205,25 @@ All `@json-render/*` renderers are verified against **0.19.0** (`@json-render/co
 
 Load `rules/target-selection.md` for detailed selection criteria and trade-offs.
 
+## Upstream coverage (do not restate)
+
+This skill wraps `@json-render/*`. Vendor documentation is fetched, not repeated. What survives here
+is the house delta: `references/ork-delta.md` plus the five rules.
+
+| Topic | Source |
+|-------|--------|
+| Full renderer signatures and option objects (`renderToBuffer` / `renderToFile` / `renderToStream`, `renderToHtml` / `renderToPlainText`, `renderToSvg` / `renderToPng`, Remotion exports) | `references/upstream-pdf.md`, `upstream-email.md`, `upstream-image.md`, `upstream-remotion.md` (vendored verbatim; re-sync with `bash scripts/sync-vercel-skills.sh`) |
+| Standard component rosters per target (`Document`, `Page`, `Table`, email `Section` / `Row` / `Column`, Remotion transitions and effects) | the same four vendored `references/upstream-*.md` files |
+| `&lt;Renderer&gt;` props, `defineRegistry`, `useUIStream` | https://github.com/vercel-labs/json-render/tree/main/packages/react. The 0.19 prop-shape correction (no `catalog` prop, no top-level `onError`) is a house finding and stays in `rules/react-renderer.md` |
+| Email client constraints: 600px container, table layout, inline styles, absolute image URLs | `references/upstream-email.md` ("Email Best Practices") |
+| Satori CSS support matrix | https://github.com/vercel/satori. The working subset this skill designs image registries against stays in `rules/video-image-renderer.md` |
+| react-pdf style property support (flexbox set, no grid) | https://react-pdf.org/styling |
+| Remotion render cost and cloud rendering | https://www.remotion.dev/docs/lambda |
+| Per-package capability and output matrix | the house target picks stay in the Decision Matrix above and in `rules/target-selection.md`; per-package detail at https://github.com/vercel-labs/json-render |
+
+Read `references/ork-delta.md` before writing renderer code: it carries the API-drift rule, the
+Remotion and PDF latency budgets, and the PDF / React Native registry layout ceiling.
+
 ## PDF Renderer — Reports and Documents
 
 The `@json-render/react-pdf` package renders specs to PDF using react-pdf under the hood. Three output modes: buffer, file, and stream.
@@ -212,7 +232,7 @@ The `@json-render/react-pdf` package renders specs to PDF using react-pdf under 
 import { renderToBuffer, renderToFile, renderToStream } from '@json-render/react-pdf'
 
 // In-memory buffer (for HTTP responses, S3 upload)
-// options are { registry, includeStandard?, state? } — no catalog field
+// PDF options are { registry?, state?, handlers? }, no catalog field
 const buffer = await renderToBuffer(spec, { registry: pdfRegistry })
 res.setHeader('Content-Type', 'application/pdf')
 res.send(buffer)
@@ -795,285 +815,97 @@ const png = await renderToPng(spec, {
 
 ---
 
-## References (6)
+## References (5)
 
-### Renderer Api
+### Ork Delta
 
-# Renderer API Reference
+# ork delta: multi-surface-render
 
-## @json-render/react
+What this skill knows that the vendor docs do not say. Everything else was retired in favour of a
+pointer; see "Upstream coverage (do not restate)" in `SKILL.md`.
 
-### `&lt;Renderer&gt;` Component
+## Read json-render render options off the vendored upstream file, never a hand-copied API table
 
-```tsx
-import { Renderer } from '@json-render/react'
+Why: distilled from the retired `references/renderer-api.md`; no traced incident. That file claimed
+`catalog` was a required option on every renderer and that `renderToBuffer` accepted `pageSize`,
+`orientation` and `margins`. `references/upstream-pdf.md` ("Render APIs") documents the 0.19 second
+argument as `\{ registry?, state?, handlers? \}`, and page size, orientation and margins are props of
+the `Page` component, not render options. `SKILL.md` and `rules/react-renderer.md` already carried
+the corrected shape, so the skill shipped two contradicting answers to the same question.
 
-<Renderer
-  spec={spec}                    // JsonRenderSpec — flat-tree JSON/YAML
-  registry={registry}            // DefineRegistryResult from defineRegistry()
-  loading={isLoading}            // Optional: boolean, shows fallback while true
-  fallback={<Loading />}         // Optional: shown during streaming or loading
-/>
-```
+Upstream: `references/upstream-pdf.md` and `references/upstream-email.md` in this directory, vendored
+verbatim by `scripts/sync-vercel-skills.sh`; re-sync before trusting any API claim.
 
-### `useUIStream` Hook
+## Treat the vendored upstream export tables as authoritative when a snippet disagrees
 
-```tsx
-import { useUIStream } from '@json-render/react'
+Why: distilled from the retired `references/renderer-api.md`; no traced incident. The retired file
+and the surviving Remotion snippets both use `<JsonRenderComposition fps durationInFrames width
+height>`, while `references/upstream-remotion.md` lists `Renderer` under Key Exports and sources
+duration, fps, width and height from `spec.composition`. Hand-written snippets in this skill have
+already drifted from the synced file once, so the synced file breaks the tie and the snippet is the
+thing that gets corrected.
 
-const spec = useUIStream(stream) // ReadableStream of JSON Patch ops
-```
+Upstream: `references/upstream-remotion.md` ("Key Exports") in this directory.
 
----
+## Never render a Remotion video inside a request handler
 
-## @json-render/react-pdf
+Why: distilled from the retired `references/target-comparison.md`; no traced incident. Its budget put
+a full Remotion render at 10 to 60 seconds with high CPU and memory, against 50 to 500ms for every
+other target in the same table. Video is the one surface that cannot sit behind a synchronous HTTP
+response: queue it, or push it to cloud rendering.
 
-### `renderToBuffer(spec, options): Promise&lt;Buffer&gt;`
+Upstream: https://www.remotion.dev/docs/lambda
 
-Renders spec to an in-memory PDF buffer.
+## Pick the PDF output mode by document size, not by convenience
 
-```typescript
-import { renderToBuffer } from '@json-render/react-pdf'
+Why: distilled from the retired `references/target-comparison.md`; no traced incident. Its budget put
+`renderToBuffer` at 200 to 500ms with the whole document held in memory, against 100 to 300ms to
+first byte for `renderToStream`. Those numbers are the reason `rules/pdf-email-renderer.md` routes
+large documents through the stream path instead of buffering, and they are what makes the choice
+decidable instead of a coin flip.
 
-const buffer = await renderToBuffer(spec, {
-  registry: pdfRegistry,
-  pageSize: 'A4',               // Optional: 'A4' | 'LETTER' | { width, height }
-  orientation: 'portrait',      // Optional: 'portrait' | 'landscape'
-  margins: { top: 40, bottom: 40, left: 40, right: 40 }, // Optional
-})
-```
+Upstream: `references/upstream-pdf.md` ("Render APIs") in this directory.
 
-### `renderToFile(spec, path, options): Promise&lt;void&gt;`
+## Build PDF and React Native registries flexbox-only, with no className
 
-Renders spec directly to a PDF file on disk.
+Why: distilled from the retired `references/target-comparison.md`; no traced incident. Both surfaces
+run a layout engine that is a strict subset of CSS: no grid, no `className`, no `div` or `span`. PDF
+needs `View` and `Text` with `StyleSheet.create()`, React Native the same.
+`rules/registry-mapping.md` shows the primitives but not the layout ceiling, and the ceiling is what
+makes a copied web registry fail at render time rather than at type-check.
 
-```typescript
-import { renderToFile } from '@json-render/react-pdf'
+Upstream: https://react-pdf.org/styling and https://reactnative.dev/docs/flexbox
 
-await renderToFile(spec, './output/report.pdf', {
-  registry: pdfRegistry,
-  pageSize: 'A4',
-})
-```
+## Per-target latency budgets, the full table
 
-### `renderToStream(spec, options): Promise&lt;ReadableStream&gt;`
+Why: distilled from the retired `references/target-comparison.md`. Only the Remotion and
+PDF figures survived elsewhere, and a partial table invites the assumption that the
+missing targets are free. The house budgets are React under 50ms, Email 50 to 100ms,
+Image SVG 100 to 200ms, Image PNG 200 to 400ms, Codegen 50 to 100ms, PDF buffer 200 to
+500ms (100 to 300ms to first byte when streaming), Remotion 10 to 60s. These are the
+numbers that decide whether a target belongs in a request path or behind a job queue,
+and no vendor page publishes a cross-target comparison.
+Upstream: none; this is a house measurement across the json-render packages
 
-Renders spec to a readable stream for piping to HTTP responses.
+## Combine targets deliberately, from the house pairings
 
-```typescript
-import { renderToStream } from '@json-render/react-pdf'
+Why: distilled from the retired `references/target-comparison.md`; pure house guidance
+with no vendor equivalent. The pairings we actually ship are React plus PDF for a
+download button, React plus Email for a weekly digest, React plus Image for an OG
+preview, React plus Remotion for a landing-page demo, and all of them together for a
+full marketing suite. The point of the list is that one catalog serves each pair, so the
+second target is close to free once the first exists.
+Upstream: none; house composition guidance
 
-const stream = await renderToStream(spec, { registry: pdfRegistry })
-res.setHeader('Content-Type', 'application/pdf')
-res.setHeader('Content-Disposition', 'attachment; filename="report.pdf"')
-stream.pipe(res)
-```
+## Register custom fonts explicitly before rendering PDF
 
----
-
-## @json-render/react-email
-
-### `renderToHtml(spec, options): Promise&lt;string&gt;`
-
-Renders spec to an HTML string optimized for email clients.
-
-```typescript
-import { renderToHtml } from '@json-render/react-email'
-
-const html = await renderToHtml(spec, {
-  registry: emailRegistry,
-  preview: 'Your weekly report is ready', // Optional: email preview text
-  theme: 'light',                          // Optional: 'light' | 'dark'
-})
-```
-
-### `renderToPlainText(spec, options): Promise&lt;string&gt;`
-
-Renders spec to plain text (for text/plain multipart emails).
-
-```typescript
-import { renderToPlainText } from '@json-render/react-email'
-
-const text = await renderToPlainText(spec, { registry: emailRegistry })
-```
-
----
-
-## @json-render/image
-
-### `renderToSvg(spec, options): Promise&lt;string&gt;`
-
-Renders spec to an SVG string using Satori.
-
-```typescript
-import { renderToSvg } from '@json-render/image'
-
-const svg = await renderToSvg(spec, {
-  registry: imageRegistry,
-  width: 1200,              // Required
-  height: 630,              // Required
-  fonts: [{                 // Optional: custom fonts
-    name: 'Inter',
-    data: fontBuffer,
-    weight: 400,
-    style: 'normal',
-  }],
-})
-```
-
-### `renderToPng(spec, options): Promise&lt;Buffer&gt;`
-
-Renders spec to a PNG buffer (SVG -> PNG via Resvg).
-
-```typescript
-import { renderToPng } from '@json-render/image'
-
-const png = await renderToPng(spec, {
-  registry: imageRegistry,
-  width: 1200,
-  height: 630,
-})
-```
-
----
-
-## @json-render/remotion
-
-### `&lt;JsonRenderComposition&gt;` Component
-
-```tsx
-import { JsonRenderComposition } from '@json-render/remotion'
-
-<JsonRenderComposition
-  spec={spec}                    // JsonRenderSpec
-  catalog={catalog}              // Catalog from defineCatalog()
-  registry={remotionRegistry}    // Registry with Remotion animations
-  fps={30}                       // Frames per second
-  durationInFrames={150}         // Total duration
-  width={1920}                   // Video width
-  height={1080}                  // Video height
-/>
-```
-
-### Remotion Registry with Animations
-
-```tsx
-import { useCurrentFrame, interpolate, spring, useVideoConfig } from 'remotion'
-
-const remotionRegistry = {
-  Heading: ({ text, level }) => {
-    const frame = useCurrentFrame()
-    const opacity = interpolate(frame, [0, 20], [0, 1], { extrapolateRight: 'clamp' })
-    return <h1 style={{ opacity, fontSize: level === 'h1' ? 48 : 36 }}>{text}</h1>
-  },
-}
-```
-
----
-
-## Common Options (all renderers)
-
-| Option | Type | Description |
-|--------|------|-------------|
-| `catalog` | `Catalog` | Required. Zod-typed component definitions |
-| `registry` | `InferCatalogComponents&lt;typeof catalog&gt;` | Required. Platform-specific component map |
-| `spec` | `JsonRenderSpec` | Required. Flat-tree JSON/YAML spec |
-| `onError` | `(err: Error) => void` | Optional. Error handler |
-
-
-### Target Comparison
-
-# Target Comparison Matrix
-
-## All Targets — Capabilities Overview
-
-| Target | Package | Output | Server-Side | Streaming | File Output | Sizing |
-|--------|---------|--------|-------------|-----------|-------------|--------|
-| React | `@json-render/react` | JSX | No (client) | Yes (progressive) | No | Responsive |
-| Vue | `@json-render/vue` | Vue components | SSR supported | Yes | No | Responsive |
-| Svelte | `@json-render/svelte` | Svelte components | SSR supported | Yes | No | Responsive |
-| React Native | `@json-render/react-native` | Native views | No | Yes | No | Flex-based |
-| PDF | `@json-render/react-pdf` | Buffer/File/Stream | Yes | Via stream | Yes | Fixed (A4, Letter) |
-| Email | `@json-render/react-email` | HTML string | Yes | No | No | 600px max-width |
-| Remotion | `@json-render/remotion` | MP4/WebM | Yes (render) | No | Yes | Fixed (px) |
-| Image | `@json-render/image` | SVG/PNG | Yes | No | Yes (buffer) | Fixed (px) |
-| YAML | `@json-render/yaml` | YAML string | Yes | No | No | N/A |
-| MCP | `@json-render/mcp` | Sandboxed iframe | Yes | Yes | No | Constrained |
-| 3D | `@json-render/react-three-fiber` | Three.js canvas | No | No | No | Canvas-based |
-| Codegen | `@json-render/codegen` | TypeScript/JSX | Yes | No | Yes | N/A |
-
-## Registry Component Primitives by Target
-
-| Target | Base Elements | Styling | Layout |
-|--------|--------------|---------|--------|
-| React | `div`, `span`, `h1`-`h6`, `p`, `img` | className, CSS modules, Tailwind | Flexbox, Grid, any CSS |
-| PDF | `View`, `Text`, `Image` (react-pdf) | StyleSheet.create() | Flexbox only |
-| Email | `Section`, `Text`, `Heading`, `Button` (react-email) | Inline styles | Table-based (email compat) |
-| Image | `div`, `span`, `img` (Satori subset) | Inline styles only | Flexbox only (limited) |
-| Remotion | `div`, `span` + Remotion primitives | Inline styles, CSS | Flexbox, absolute positioning |
-| React Native | `View`, `Text`, `Image` (RN) | StyleSheet.create() | Flexbox only |
-
-## Limitations by Target
-
-### PDF (`@json-render/react-pdf`)
-- No CSS grid — flexbox only
-- No className — use `StyleSheet.create()`
-- No `<div>`/`<span>` — must use `&lt;View&gt;`/`&lt;Text&gt;`
-- Font embedding required for custom fonts
-- No interactive elements (buttons, links are display-only)
-
-### Email (`@json-render/react-email`)
-- 600px max-width (email client constraint)
-- Table-based layout for Outlook compatibility
-- Limited CSS support (no flexbox in Outlook, no grid)
-- Inline styles only for maximum compatibility
-- No JavaScript interactivity
-
-### Image (`@json-render/image` / Satori)
-- No CSS grid
-- Limited flexbox (no `flex-wrap`, limited `align-items`)
-- No `box-shadow`
-- No CSS animations or transitions
-- No external stylesheets — inline styles only
-- `position: absolute` has limited nesting support
-- Custom fonts must be loaded as ArrayBuffer
-
-### Remotion (`@json-render/remotion`)
-- No user interaction (pre-rendered video)
-- Rendering is CPU-intensive — use cloud rendering for production
-- Must specify exact `durationInFrames` and `fps`
-- All animations must be frame-based (`useCurrentFrame`)
-
-### React Native (`@json-render/react-native`)
-- No `div`/`span` — use `View`/`Text`
-- No CSS grid — flexbox only
-- No className — use `StyleSheet.create()`
-- Platform-specific behavior (iOS vs Android)
-
-## Performance Characteristics
-
-| Target | Render Time | Memory | CPU |
-|--------|-------------|--------|-----|
-| React | &lt;50ms (client) | Low | Low |
-| PDF (buffer) | 200-500ms | Medium | Medium |
-| PDF (stream) | 100-300ms start | Low | Medium |
-| Email | 50-100ms | Low | Low |
-| Image (SVG) | 100-200ms | Low | Low |
-| Image (PNG) | 200-400ms | Medium | Medium |
-| Remotion | 10-60s (full render) | High | High |
-| Codegen | 50-100ms | Low | Low |
-
-## When to Use Multiple Targets
-
-Common multi-target combinations:
-
-| Use Case | Targets | Example |
-|----------|---------|---------|
-| Dashboard + PDF export | React + PDF | Web dashboard with "Download PDF" button |
-| Dashboard + email digest | React + Email | Web view + weekly email summary |
-| Blog + social sharing | React + Image | Blog post + OG image preview |
-| Product page + demo | React + Remotion | Landing page + demo video |
-| Full marketing suite | React + PDF + Email + Image + Remotion | All surfaces from one spec |
+Why: distilled from the retired `references/target-comparison.md`; PDF is the one target
+where a custom font must be embedded rather than referenced, and neither
+`references/upstream-pdf.md` nor `rules/pdf-email-renderer.md` documents a
+font-registration API. A spec that renders correctly on web silently falls back to a
+default face in the PDF, which is a visual regression nobody catches in review because
+the web preview is fine.
+Upstream: https://react-pdf.org/fonts
 
 
 ### Upstream Email

@@ -46,7 +46,14 @@ const RESTATE_MIN_LINES = 150;
 // require them present. They are restatement BY DESIGN, and they carry no ork anchors, so
 // without this exemption the gate reports them forever and actively pushes a thinning agent
 // to delete them. That happened: wave 2 removed 8 vendored files and broke the sync check.
-// Source of truth is the same mapping the sync script reads, so the two cannot drift.
+//
+// HONEST SCOPE (corrected 2026-07-31 after /ork:assess): the exemption is carried by the
+// FILENAME CONVENTION regex below, which alone would have prevented every wave-2 deletion.
+// The mapping.json-derived set is a weaker secondary check: it stores bare filenames and
+// matches with endsWith, with no binding to the mapping's target_skill, so it does NOT
+// make this "the same mapping enforcing the rule twice". It is redundancy, not proof.
+// Tightening it to (target_skill, ref_filename) pairs is the real fix if the naming
+// convention ever slips.
 function loadVendoredPaths() {
   const mappingPath = join(ROOT, 'vendor', 'vercel-skills', 'mapping.json');
   const out = new Set();

@@ -65,4 +65,4 @@ dev branch:
 - Require branches to be up-to-date before merging to prevent integration gaps
 - Enable "Require linear history" to keep the commit graph clean and auditable
 
-Reference: `references/ci-cd-pipelines.md` (lines 5-21)
+Reference: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches for the full ruleset surface.

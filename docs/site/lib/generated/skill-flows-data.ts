@@ -725,6 +725,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Configuration",
             "does": "",
             "out": null,
@@ -2771,6 +2778,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Deployment Checklist & Templates",
             "does": "",
             "out": null,
@@ -3047,6 +3061,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "Anti-Patterns (FORBIDDEN)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Upstream coverage (do not restate)",
             "does": "",
             "out": null,
             "tag": null
@@ -3684,6 +3705,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Examples",
             "does": "",
             "out": null,
@@ -3829,6 +3857,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "Core Patterns",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Upstream coverage (do not restate)",
             "does": "",
             "out": null,
             "tag": null
@@ -4769,6 +4804,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "Decision Matrix — When to Use Each Target",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Upstream coverage (do not restate)",
             "does": "",
             "out": null,
             "tag": null
@@ -5733,6 +5775,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Common Mistakes",
             "does": "",
             "out": null,
@@ -5741,13 +5790,6 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "Evaluations",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Capability Details",
             "does": "",
             "out": null,
             "tag": null
@@ -6804,6 +6846,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Stateful API Testing (emulate — FIRST CHOIC…",
             "does": "",
             "out": null,
@@ -6848,6 +6897,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "id": "map",
         "label": "What it covers",
         "nodes": [
+          {
+            "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
           {
             "num": "",
             "label": "LLM Mock Quick Start",

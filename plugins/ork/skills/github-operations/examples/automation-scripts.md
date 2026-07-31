@@ -1,260 +1,71 @@
 # GitHub Automation Scripts
 
-Ready-to-use scripts for common GitHub automation tasks.
+Loop-and-`gh` recipes (bulk label, bulk assign, cross-repo label sync, org-wide
+search, PR dashboards) are ordinary CLI usage and are not restated here. What
+survives is the part the vendor docs do not tell you: how this repo wants an agent
+to behave inside a long `gh` loop.
 
-## Bulk Issue Operations
+> Kept on disk deliberately: `tests/skills/test-github-operations-completeness.sh`
+> and `tests/unit/test-git-enforcement-hooks.sh` assert this exact filename, and
+> the completeness test greps it for a fenced bash block.
 
-### Add Label to Multiple Issues
+## Upstream
 
-```bash
-#!/usr/bin/env bash
-# Add label to all issues matching criteria
+| Topic | Source |
+|-------|--------|
+| `gh issue`/`gh pr` list, edit, and search flags used by every bulk loop | https://cli.github.com/manual/gh_issue |
+| Cross-repo label create/edit/clone | https://cli.github.com/manual/gh_label |
+| Org-wide issue search | https://cli.github.com/manual/gh_search_issues |
+| Rate-limit headers, reset semantics, secondary limits | https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api |
 
-LABEL="needs-review"
-QUERY="is:open label:bug"
+## Our delta: rate-limit discipline
 
-gh issue list --search "$QUERY" --json number --jq '.[].number' | \
-while read -r issue; do
-  echo "Adding '$LABEL' to #$issue"
-  gh issue edit "$issue" --add-label "$LABEL"
-done
-```
+Full rules with rationale: [../references/ork-delta.md](../references/ork-delta.md).
 
-### Assign Issues to Team Member
+On Claude Code 2.1.116+ the Bash tool surfaces a rate-limit hint in the transcript
+whenever a `gh` invocation takes a 403 rate-limit response. **That hint is the
+authoritative backoff signal: stop the loop and wait for the reset, do not retry
+the next call.** Before the hint existed, agents had no signal and exhausted the
+whole retry budget in roughly 13 seconds. Never work around a limit by swapping
+tokens.
 
-```bash
-#!/usr/bin/env bash
-# Assign unassigned issues in a milestone
-
-MILESTONE="Sprint 8"
-ASSIGNEE="@me"
-
-gh issue list --milestone "$MILESTONE" --assignee "" --json number --jq '.[].number' | \
-while read -r issue; do
-  echo "Assigning #$issue to $ASSIGNEE"
-  gh issue edit "$issue" --add-assignee "$ASSIGNEE"
-done
-```
-
-### Close Stale Issues
+The pre-flight guard below is the house pattern that keeps the loop from hitting
+the first 403 at all. The `remaining < 100` floor and the `gh api rate_limit`
+probe are graded by `tests/evals/skills/github-operations-rate-limit.eval.yaml`,
+so keep both:
 
 ```bash
 #!/usr/bin/env bash
-# Close issues with no activity > 90 days
-
-DAYS=90
-CUTOFF=$(date -v-${DAYS}d +%Y-%m-%d 2>/dev/null || date -d "$DAYS days ago" +%Y-%m-%d)
-
-gh issue list --state open --json number,updatedAt --jq \
-  ".[] | select(.updatedAt < \"$CUTOFF\") | .number" | \
-while read -r issue; do
-  echo "Closing stale issue #$issue"
-  gh issue close "$issue" --comment "Closing due to inactivity. Reopen if still relevant."
-done
-```
-
----
-
-## PR Automation
-
-### Auto-Merge Approved PRs
-
-```bash
-#!/usr/bin/env bash
-# Enable auto-merge for approved PRs with passing checks
-
-# `statusCheckRollup` is an ARRAY of check objects (there is no scalar
-# `statusCheckRollupState` field), so aggregate it before filtering.
-gh pr list --json number,reviewDecision,statusCheckRollup --jq \
-  '.[] | select(.reviewDecision == "APPROVED"
-   and ([(.statusCheckRollup // [])[] | .conclusion // .state]
-        | length > 0 and all(IN("SUCCESS","SKIPPED","NEUTRAL")))) | .number' | \
-while read -r pr; do
-  echo "Enabling auto-merge for PR #$pr"
-  gh pr merge "$pr" --auto --squash --delete-branch
-done
-```
-
-### Request Reviews from CODEOWNERS
-
-```bash
-#!/usr/bin/env bash
-# Add reviewers based on changed files
-
-PR_NUMBER=$1
-
-# Get changed files
-CHANGED=$(gh pr diff "$PR_NUMBER" --name-only)
-
-# Map to reviewers (customize per team)
-REVIEWERS=""
-if echo "$CHANGED" | grep -q "^src/api/"; then
-  REVIEWERS="$REVIEWERS backend-team"
-fi
-if echo "$CHANGED" | grep -q "^src/components/"; then
-  REVIEWERS="$REVIEWERS frontend-team"
-fi
-
-if [[ -n "$REVIEWERS" ]]; then
-  gh pr edit "$PR_NUMBER" --add-reviewer $REVIEWERS
-fi
-```
-
-### PR Status Dashboard
-
-```bash
-#!/usr/bin/env bash
-# Generate PR status summary
-
-echo "=== PR Status Dashboard ==="
-echo ""
-
-echo "## Ready to Merge"
-gh pr list --json number,title,author --jq \
-  '.[] | "- #\(.number) \(.title) (@\(.author.login))"' \
-  --search "review:approved status:success"
-
-echo ""
-echo "## Needs Review"
-gh pr list --json number,title,author --jq \
-  '.[] | "- #\(.number) \(.title) (@\(.author.login))"' \
-  --search "review:none"
-
-echo ""
-echo "## Changes Requested"
-gh pr list --json number,title,author --jq \
-  '.[] | "- #\(.number) \(.title) (@\(.author.login))"' \
-  --search "review:changes-requested"
-```
-
----
-
-## Milestone Management
-
-### Milestone Progress Report
-
-```bash
-#!/usr/bin/env bash
-# Generate milestone progress report
-
-echo "=== Milestone Progress ==="
-echo ""
-
-gh api repos/:owner/:repo/milestones --jq '.[] |
-  "## \(.title)
-Due: \(.due_on // "No due date")
-Progress: \(.closed_issues)/\(.open_issues + .closed_issues) issues (\((.closed_issues * 100 / ((.open_issues + .closed_issues) | if . == 0 then 1 else . end)) | floor)%)
-"'
-```
-
-### Move Issues to Next Sprint
-
-```bash
-#!/usr/bin/env bash
-# Move open issues from current to next milestone
-
-CURRENT="Sprint 7"
-NEXT="Sprint 8"
-
-gh issue list --milestone "$CURRENT" --state open --json number --jq '.[].number' | \
-while read -r issue; do
-  echo "Moving #$issue to $NEXT"
-  gh issue edit "$issue" --milestone "$NEXT"
-done
-```
-
-### Create Sprint Milestone
-
-```bash
-#!/usr/bin/env bash
-# Create milestone with due date
-
-SPRINT_NUM=$1
-WEEKS=${2:-2}
-DUE_DATE=$(date -v+${WEEKS}w +%Y-%m-%dT00:00:00Z 2>/dev/null || \
-           date -d "+$WEEKS weeks" +%Y-%m-%dT00:00:00Z)
-
-gh api -X POST repos/:owner/:repo/milestones \
-  -f title="Sprint $SPRINT_NUM" \
-  -f description="Sprint $SPRINT_NUM goals and deliverables" \
-  -f due_on="$DUE_DATE"
-
-echo "Created Sprint $SPRINT_NUM (due $DUE_DATE)"
-```
-
----
-
-## Cross-Repo Operations
-
-### Sync Labels Across Repos
-
-```bash
-#!/usr/bin/env bash
-# Copy labels from source repo to target repos
-
-SOURCE_REPO="org/main-repo"
-TARGET_REPOS=("org/api" "org/frontend" "org/docs")
-
-# Get labels from source
-LABELS=$(gh label list --repo "$SOURCE_REPO" --json name,color,description)
-
-for repo in "${TARGET_REPOS[@]}"; do
-  echo "Syncing labels to $repo"
-  echo "$LABELS" | jq -c '.[]' | while read -r label; do
-    NAME=$(echo "$label" | jq -r '.name')
-    COLOR=$(echo "$label" | jq -r '.color')
-    DESC=$(echo "$label" | jq -r '.description // ""')
-
-    gh label create "$NAME" --repo "$repo" --color "$COLOR" --description "$DESC" 2>/dev/null || \
-    gh label edit "$NAME" --repo "$repo" --color "$COLOR" --description "$DESC"
-  done
-done
-```
-
-### Find Issues Across Repos
-
-```bash
-#!/usr/bin/env bash
-# Search issues across organization
-
-ORG="my-org"
-QUERY="is:open label:critical"
-
-gh search issues --owner "$ORG" "$QUERY" --json repository,number,title --jq \
-  '.[] | "\(.repository.nameWithOwner)#\(.number): \(.title)"'
-```
-
----
-
-## Rate Limit Handling
-
-**CC ≥ 2.1.116 note:** Claude Code's Bash tool now surfaces a rate-limit hint in the transcript whenever a `gh` invocation hits a 403 rate-limit response. Treat that hint as the authoritative backoff signal — agents should **stop the loop and wait for reset**, not retry blindly. On older CC versions the hint didn't exist and agents would exhaust retry budget in ~13 s.
-
-Pre-flight check remains useful to avoid the first 403:
-
-```bash
-#!/usr/bin/env bash
-# Check rate limits before bulk operations
+set -euo pipefail
 
 check_rate_limit() {
-  REMAINING=$(gh api rate_limit --jq '.rate.remaining')
-  if [[ "$REMAINING" -lt 100 ]]; then
-    RESET=$(gh api rate_limit --jq '.rate.reset')
-    WAIT=$((RESET - $(date +%s)))
-    echo "Rate limit low ($REMAINING). Waiting ${WAIT}s..."
-    sleep "$WAIT"
+  local remaining reset wait
+  remaining=$(gh api rate_limit --jq '.rate.remaining')
+  if [[ "$remaining" -lt 100 ]]; then
+    reset=$(gh api rate_limit --jq '.rate.reset')
+    wait=$((reset - $(date +%s)))
+    echo "Rate limit low ($remaining). Waiting ${wait}s..."
+    sleep "$wait"
   fi
 }
 
-# Use in loops
 for issue in $(gh issue list --json number --jq '.[].number'); do
   check_rate_limit
   gh issue edit "$issue" --add-label "processed"
 done
 ```
 
+Two more constraints that bite inside bulk loops:
+
+- **Never bulk `gh issue close`.** Issues close only when their linked PR merges;
+  a close loop strips the PR link from history.
+- **Every `gh issue create` needs `--label`.** The `gh-label-enforcer` hook denies
+  it otherwise, mid-batch.
+
 ## Related
 
 - [Issue Management](../references/issue-management.md)
 - [Milestone API](../references/milestone-api.md)
 - [GraphQL API](../references/graphql-api.md)
+- PR merge-gating (`statusCheckRollup` is an array, fold it before comparing):
+  [PR Workflows](../references/pr-workflows.md)

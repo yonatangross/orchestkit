@@ -339,7 +339,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |langgraph:{SKILL.md}|langgraph,workflow,state,delta-channel,resilience,timeout,routing,parallel,supervisor,tools,checkpoints,streaming,streaming-v2,subgraphs,functional,lts,python
 |agent-orchestration:{SKILL.md,references/{claude-code-instance-management.md,framework-comparison.md,langgraph-implementation.md,ork-delta.md}}|agents,orchestration,multi-agent,agent-loops,crewai,autogen,swarm,coordination
-|async-jobs:{SKILL.md,references/{anti-patterns.md,arq-patterns.md,canvas-workflows.md,capability-details.md,celery-config.md,monitoring-health.md,quick-start-examples.md,result-backends.md,retry-strategies.md,scheduled-tasks.md,task-routing.md}}|async,jobs,celery,background-tasks,scheduling,queues
+|async-jobs:{SKILL.md,references/{anti-patterns.md,capability-details.md,celery-config.md,ork-delta.md,quick-start-examples.md}}|async,jobs,celery,background-tasks,scheduling,queues
 |monitoring-observability:{SKILL.md,references/{dashboards.md,dev-agent-lens.md,evaluation-scores.md,experiments-api.md,langfuse-js-v5.md,metrics-collection.md,ork-delta.md,session-tracking.md,structured-logging.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
 |llm-integration:{SKILL.md,references/{model-selection.md,ork-delta.md}}|llm,function-calling,streaming,ollama,fine-tuning,lora,tool-use,local-inference
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,workflow,coordination

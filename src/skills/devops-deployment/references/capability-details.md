@@ -1,12 +1,16 @@
 # DevOps Deployment - Capability Details
 
+> Vendor mechanics for these capabilities are not restated in this skill. See the
+> "Upstream coverage (do not restate)" table in `SKILL.md` for where to fetch them, and
+> `references/ork-delta.md` for the house thresholds, configs and ordering constraints.
+
 ### ci-cd
 **Keywords:** ci, cd, pipeline, github actions, gitlab ci, jenkins, workflow
 **Solves:**
-- How do I set up CI/CD?
-- GitHub Actions workflow patterns
-- Pipeline caching strategies
-- Matrix testing setup
+- What is our CI feedback budget and how do we hold it? (`references/ork-delta.md`)
+- Cache-key discipline for dependency caching (`rules/devops-ci-caching.md`)
+- Which branch protections are required on main and dev (`rules/devops-branch-protection.md`)
+- Workflow syntax and matrix mechanics: fetch upstream (see `SKILL.md`)
 
 ### docker
 **Keywords:** docker, dockerfile, container, image, build, compose, multi-stage
@@ -19,18 +23,18 @@
 ### kubernetes
 **Keywords:** kubernetes, k8s, deployment, service, ingress, helm, statefulset, pdb
 **Solves:**
-- How do I deploy to Kubernetes?
-- K8s health probes and resource limits
-- Helm chart structure
-- StatefulSet for databases
+- What probe timings, request/limit baseline and PDB floor do we ship? (`references/ork-delta.md`)
+- Which manifests a service needs and the chart layout (`references/checklists-and-templates.md`)
+- Ready-to-copy manifests (`scripts/k8s-manifests.yaml`, `scripts/helm-values.yaml`)
+- Probe, quota, StatefulSet and Helm semantics: fetch upstream (see `SKILL.md`)
 
 ### infrastructure-as-code
 **Keywords:** terraform, pulumi, iac, infrastructure, provision, gitops, argocd
 **Solves:**
-- How do I set up infrastructure as code?
-- Terraform AWS patterns (VPC, EKS, RDS)
-- GitOps with ArgoCD
-- Secrets management patterns
+- What backend, locking and version floor does our Terraform use? (`references/ork-delta.md`)
+- Which ArgoCD sync policy and retry budget we run (`references/ork-delta.md`)
+- Ready-to-copy IaC (`scripts/terraform-aws.tf`, `scripts/argocd-application.yaml`, `scripts/external-secrets.yaml`)
+- Terraform, ArgoCD and External Secrets reference docs: fetch upstream (see `SKILL.md`)
 
 ### deployment-strategies
 **Keywords:** blue green, canary, rolling, deployment strategy, rollback, zero downtime
@@ -43,7 +47,7 @@
 ### observability
 **Keywords:** prometheus, grafana, metrics, alerting, monitoring, health check
 **Solves:**
-- How do I add monitoring to my app?
-- Prometheus metrics exposition
-- Grafana dashboard queries
-- Alerting rules for SLOs
+- Which alert thresholds and dwell windows do we page on? (`references/ork-delta.md`)
+- How request ids get bound into log context and echoed back (`references/ork-delta.md`)
+- Full monitoring and alerting design: `ork:monitoring-observability`
+- Prometheus client, PromQL and OpenTelemetry docs: fetch upstream (see `SKILL.md`)

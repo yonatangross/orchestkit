@@ -485,7 +485,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "async-jobs",
     "description": "Async job processing patterns for background tasks, Celery workflows, task scheduling, retry strategies, and distributed task execution. Use when implementing background job processing, task queues, or scheduled task systems.",
     "version": "2.0.0",
-    "sha256": "2c6aab9ba040eac23a66a754ac0cdd706c97eae102d0cf58aa0ce29cb8d752a9",
+    "sha256": "2a7c536f4a77bdfc9c190c8d79c5623ea47e3b7aa80002a068adf7a320438d7a",
     "author": "OrchestKit",
     "tags": [
       "async",
@@ -510,16 +510,10 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "anti-patterns.md",
-        "arq-patterns.md",
-        "canvas-workflows.md",
         "capability-details.md",
         "celery-config.md",
-        "monitoring-health.md",
-        "quick-start-examples.md",
-        "result-backends.md",
-        "retry-strategies.md",
-        "scheduled-tasks.md",
-        "task-routing.md"
+        "ork-delta.md",
+        "quick-start-examples.md"
       ]
     },
     "plugins": [
@@ -1755,7 +1749,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "devops-deployment",
     "description": "Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. DevOps & Deployment covers GitHub Actions, Docker, Helm, and Terraform patterns.",
     "version": "1.0.0",
-    "sha256": "789bdace71a44ef45735c2e44266ddaeb3a19dd4e0a4b1845b5aa46083781c09",
+    "sha256": "83ad6b0c38db189dababaec63bb05a6de74fb64e0033c39b7c665ff6d93e3f40",
     "author": "OrchestKit",
     "tags": [
       "devops",
@@ -1780,14 +1774,11 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "capability-details.md",
         "checklists-and-templates.md",
-        "ci-cd-pipelines.md",
         "deployment-strategies.md",
         "docker-patterns.md",
-        "environment-management.md",
-        "kubernetes-basics.md",
         "multi-service-setup.md",
         "nixpacks-customization.md",
-        "observability.md",
+        "ork-delta.md",
         "railway-json-config.md"
       ],
       "scripts": [
@@ -1801,9 +1792,6 @@ export const SKILLS: Record<string, SkillMeta> = {
         "helm-values.yaml",
         "k8s-manifests.yaml",
         "terraform-aws.tf"
-      ],
-      "checklists": [
-        "production-readiness.md"
       ]
     },
     "plugins": [
@@ -1975,7 +1963,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "domain-driven-design",
     "description": "DDD tactical patterns for complex business modeling including entities, value objects, aggregates, domain services, repositories, specifications, and bounded contexts. Python dataclass implementations with TypeScript alternatives. Use when building rich domain models, enforcing invariants, or separating domain logic from infrastructure.",
     "version": "1.0.0",
-    "sha256": "175629a36f47b72958104d02f2e2cd4c02c4b2a4d46ed16bc7da92e700e9aed8",
+    "sha256": "b2ec9b1d603288b3b57ea1640b8b8d1f3595c9a88a763b23c06bde302b8f7d1b",
     "author": "OrchestKit",
     "tags": [
       "ddd",
@@ -1999,18 +1987,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "medium",
     "structure": {
       "references": [
-        "bounded-contexts.md",
-        "domain-events.md",
-        "entities-value-objects.md",
+        "ork-delta.md",
         "repositories.md"
       ],
       "scripts": [
         "entity-template.py",
         "repository-template.py",
         "value-object-template.py"
-      ],
-      "checklists": [
-        "ddd-checklist.md"
       ]
     },
     "plugins": [
@@ -2394,7 +2377,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "github-operations",
     "description": "GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts. Use when managing GitHub issues, PRs, milestones, or Projects with gh.",
     "version": "1.1.0",
-    "sha256": "665bb1be528c6de99f3f1eeca3337fc3354f0af9b85c856e5f3946a42606bd00",
+    "sha256": "558c40f9a2f5624229f593506297b9fdf67cd6827ae7b8441254fbf9c6f2a6bd",
     "author": "OrchestKit",
     "tags": [
       "github",
@@ -2428,6 +2411,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "graphql-api.md",
         "issue-management.md",
         "milestone-api.md",
+        "ork-delta.md",
         "pr-workflows.md",
         "projects-v2.md"
       ]
@@ -2528,7 +2512,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "i18n-date-patterns",
     "description": "Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency.",
     "version": "1.2.0",
-    "sha256": "621fc6f82ad0e6ef07b06621f46978169c11dadb21b8e32c35857bdf1161b1bc",
+    "sha256": "75eeb19104f9a9eaf87d7886ead382d385cda07b9d949e48444790073930f11d",
     "author": "Yonatan Gross",
     "tags": [
       "i18n",
@@ -2558,8 +2542,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "formatting-utilities.md",
-        "icu-messageformat.md",
-        "trans-component.md"
+        "ork-delta.md"
       ],
       "checklists": [
         "i18n-checklist.md"
@@ -3186,7 +3169,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multi-surface-render",
     "description": "Multi-surface rendering with json-render — same JSON spec produces React web, Next.js apps, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform-specific APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for multiple platforms, creating PDF reports, email templates, demo videos, or social media images from a single component spec.",
     "version": "1.1.0",
-    "sha256": "46d734ab6814c0ddb47fbe6454305837bf974d6235b07a6b1dcd3003dca9569f",
+    "sha256": "ca8fb461e342f84f9028db1585fd5861e75a5d627c180f0aa092a91d45497a20",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -3209,8 +3192,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "medium",
     "structure": {
       "references": [
-        "renderer-api.md",
-        "target-comparison.md",
+        "ork-delta.md",
         "upstream-email.md",
         "upstream-image.md",
         "upstream-pdf.md",
@@ -3746,7 +3728,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "rag-retrieval",
     "description": "Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding documents, implementing hybrid search, contextual retrieval, HyDE, agentic RAG, multimodal RAG, query decomposition, reranking, or pgvector search.",
     "version": "2.0.0",
-    "sha256": "efecaac73a2eb4ce06e31ab1bd8f58d9815389787c744f93a7e8e48a80376061",
+    "sha256": "5ab375eb9cd3841fddb1ec93e2c827be16a320cde6598da42f865549fb7da43f",
     "author": "OrchestKit",
     "tags": [
       "rag",
@@ -3773,15 +3755,14 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "data-pipeline-engineer",
     "complexity": "high",
     "structure": {
+      "references": [
+        "ork-delta.md"
+      ],
       "scripts": [
         "chunk-repository.py",
         "rag-pipeline-template.ts",
         "scripts",
         "search-service.py"
-      ],
-      "checklists": [
-        "rag-quality.md",
-        "search-implementation-checklist.md"
       ]
     },
     "plugins": [
@@ -4582,7 +4563,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "testing-integration",
     "description": "Integration and contract testing patterns — API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration.",
     "version": "2.1.0",
-    "sha256": "22021104943a2b924c7cc6a364797d594c3be04b300abe8f82445ea73c8826bf",
+    "sha256": "c89745884eb806bf2b744e36f0e0d9b31b68b23fc5b7b212ebae6d5af24db0f1",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4608,13 +4589,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "consumer-tests.md",
-        "pact-broker.md",
-        "provider-verification.md",
+        "ork-delta.md",
         "strategies-guide.md"
       ],
       "scripts": [
-        "create-integration-test.md",
-        "test-plan-template.md"
+        "create-integration-test.md"
       ],
       "checklists": [
         "contract-testing-checklist.md",
@@ -4636,7 +4615,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "testing-llm",
     "description": "LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.",
     "version": "2.1.0",
-    "sha256": "7cc4430fafdc7b8878d71327f70d42a9a6357b21cb73c9673b8ea5a350422c5e",
+    "sha256": "098c0fe02d988a33321118aa17f2b046162099211c2d5606f967e2f58c29aa4a",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4661,10 +4640,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "medium",
     "structure": {
       "references": [
-        "deepeval-ragas-api.md",
-        "generator-agent.md",
         "healer-agent.md",
-        "planner-agent.md"
+        "ork-delta.md"
       ],
       "checklists": [
         "llm-test-checklist.md"

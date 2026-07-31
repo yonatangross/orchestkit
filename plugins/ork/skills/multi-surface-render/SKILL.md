@@ -94,7 +94,8 @@ export const Dashboard = ({ spec }) => (
 import { renderToBuffer, renderToFile } from '@json-render/react-pdf'
 import { pdfRegistry } from './registries/pdf'
 
-// Buffer for HTTP response — options are { registry, includeStandard?, state? }
+// Buffer for HTTP response. PDF options are { registry?, state?, handlers? }.
+// includeStandard is an EMAIL option, not a PDF one (see references/upstream-pdf.md).
 const buffer = await renderToBuffer(spec, { registry: pdfRegistry })
 
 // Direct file output — renderToFile(spec, filePath, options?)
@@ -208,6 +209,25 @@ All `@json-render/*` renderers are verified against **0.19.0** (`@json-render/co
 
 Load `rules/target-selection.md` for detailed selection criteria and trade-offs.
 
+## Upstream coverage (do not restate)
+
+This skill wraps `@json-render/*`. Vendor documentation is fetched, not repeated. What survives here
+is the house delta: `references/ork-delta.md` plus the five rules.
+
+| Topic | Source |
+|-------|--------|
+| Full renderer signatures and option objects (`renderToBuffer` / `renderToFile` / `renderToStream`, `renderToHtml` / `renderToPlainText`, `renderToSvg` / `renderToPng`, Remotion exports) | `references/upstream-pdf.md`, `upstream-email.md`, `upstream-image.md`, `upstream-remotion.md` (vendored verbatim; re-sync with `bash scripts/sync-vercel-skills.sh`) |
+| Standard component rosters per target (`Document`, `Page`, `Table`, email `Section` / `Row` / `Column`, Remotion transitions and effects) | the same four vendored `references/upstream-*.md` files |
+| `<Renderer>` props, `defineRegistry`, `useUIStream` | https://github.com/vercel-labs/json-render/tree/main/packages/react. The 0.19 prop-shape correction (no `catalog` prop, no top-level `onError`) is a house finding and stays in `rules/react-renderer.md` |
+| Email client constraints: 600px container, table layout, inline styles, absolute image URLs | `references/upstream-email.md` ("Email Best Practices") |
+| Satori CSS support matrix | https://github.com/vercel/satori. The working subset this skill designs image registries against stays in `rules/video-image-renderer.md` |
+| react-pdf style property support (flexbox set, no grid) | https://react-pdf.org/styling |
+| Remotion render cost and cloud rendering | https://www.remotion.dev/docs/lambda |
+| Per-package capability and output matrix | the house target picks stay in the Decision Matrix above and in `rules/target-selection.md`; per-package detail at https://github.com/vercel-labs/json-render |
+
+Read `references/ork-delta.md` before writing renderer code: it carries the API-drift rule, the
+Remotion and PDF latency budgets, and the PDF / React Native registry layout ceiling.
+
 ## PDF Renderer — Reports and Documents
 
 The `@json-render/react-pdf` package renders specs to PDF using react-pdf under the hood. Three output modes: buffer, file, and stream.
@@ -216,7 +236,7 @@ The `@json-render/react-pdf` package renders specs to PDF using react-pdf under 
 import { renderToBuffer, renderToFile, renderToStream } from '@json-render/react-pdf'
 
 // In-memory buffer (for HTTP responses, S3 upload)
-// options are { registry, includeStandard?, state? } — no catalog field
+// PDF options are { registry?, state?, handlers? }, no catalog field
 const buffer = await renderToBuffer(spec, { registry: pdfRegistry })
 res.setHeader('Content-Type', 'application/pdf')
 res.send(buffer)

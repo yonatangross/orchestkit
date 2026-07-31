@@ -76,4 +76,4 @@ Hebrew uses a `two` (dual) form. Arabic uses `zero`, `one`, `two`, `few`, `many`
 - Provide locale-specific categories (`two` for Hebrew, `few`/`many` for Arabic, Slavic languages) in the respective translation files
 - Use `=0` exact match for zero/empty states instead of relying on the `zero` plural category
 
-Reference: `references/icu-messageformat.md` (lines 13-28, 141-165)
+Reference: `references/ork-delta.md` for the house ICU decisions (i18next-icu plugin, ILS currency skeleton, formatOrdinal over selectordinal). Full ICU grammar: https://formatjs.github.io/docs/core-concepts/icu-syntax/ . Per-locale plural categories: https://cldr.unicode.org/index/cldr-spec/plural-rules

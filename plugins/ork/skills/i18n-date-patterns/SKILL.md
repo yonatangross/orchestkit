@@ -45,8 +45,7 @@ This skill provides comprehensive guidance for implementing internationalization
 
 **Bundled Resources** (load with `Read("${CLAUDE_SKILL_DIR}/<path>")`):
 - `references/formatting-utilities.md` - useFormatting hook API reference
-- `references/icu-messageformat.md` - ICU plural/select syntax
-- `references/trans-component.md` - Trans component for rich text
+- `references/ork-delta.md` - House decisions and working config that upstream docs do not carry
 - `checklists/i18n-checklist.md` - Implementation and review checklist
 - `examples/component-i18n-example.md` - Complete component example
 
@@ -122,7 +121,8 @@ Use ICU syntax in translation files for pluralization:
 t('patients', { count: 5 })  // → "5 patients"
 ```
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/icu-messageformat.md")` for full syntax.
+House rules for plurals live in `rules/i18n-icu-plurals.md`. For the full ICU grammar
+see the upstream table below.
 
 ### 5. Trans Component (Rich Text)
 
@@ -138,7 +138,26 @@ import { Trans } from 'react-i18next';
 />
 ```
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/trans-component.md")` for patterns.
+House rules for `<Trans>` live in `rules/i18n-trans-component.md`; the plural-plus-rich-text
+ordering constraint lives in `references/ork-delta.md`. For the full component API see the
+upstream table below.
+
+---
+
+## Upstream coverage (do not restate)
+
+These topics are owned by first-party docs. Read them there instead of re-deriving them here.
+
+| Topic | First-party source | House subset kept here |
+|-------|--------------------|------------------------|
+| ICU plural, select, selectordinal, offset and nested message grammar | https://formatjs.github.io/docs/core-concepts/icu-syntax/ and https://unicode-org.github.io/icu/userguide/format_parse/messages/ | `rules/i18n-icu-plurals.md` keeps the house subset in full: no ternary pluralization, the mandatory `other` arm, `=0` for zero states, Hebrew dual and Arabic categories |
+| Which plural categories a given locale actually has | https://cldr.unicode.org/index/cldr-spec/plural-rules | none, read upstream |
+| ICU number skeletons inside a message (`::currency/ILS`) | https://unicode-org.github.io/icu/userguide/format_parse/numbers/skeletons.html | `references/ork-delta.md` keeps only the ILS skeleton decision |
+| In-message date and time forms (`{date, date, medium}`) and `offset:` plurals | https://unicode-org.github.io/icu/userguide/format_parse/messages/ | nothing; fetch it upstream |
+| `<Trans>` API: named vs indexed tags, self-closing tags, `TransProps` typing | https://react.i18next.com/latest/trans-component | `rules/i18n-trans-component.md` keeps the house subset in full: never split a sentence across `t()` calls, never `dangerouslySetInnerHTML`, prefer named tags over indexed |
+| Wiring the ICU parser into i18next | https://github.com/i18next/i18next-icu | `references/ork-delta.md` keeps the decision and why suffix keys are not enough |
+| `Intl.ListFormat` primitive behind `useFormatting` | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat | `references/formatting-utilities.md` keeps the house hook API |
+| `Intl.NumberFormat` primitive behind `useFormatting` | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat | `references/formatting-utilities.md` keeps the house hook API |
 
 ---
 
@@ -228,7 +247,6 @@ Load `Read("${CLAUDE_SKILL_DIR}/checklists/i18n-checklist.md")` for complete imp
 ## Related Skills
 
 - `ork:testing-e2e` - E2E testing patterns including accessibility testing for i18n
-- `type-safety-validation` - Zod schemas for validating translation key structures and locale configs
 - `ork:react-server-components-framework` - Server-side locale detection and RSC i18n patterns
 - `ork:accessibility` - RTL-aware focus management for bidirectional UI navigation
 
@@ -259,10 +277,10 @@ Load `Read("${CLAUDE_SKILL_DIR}/checklists/i18n-checklist.md")` for complete imp
 - Handle ordinal numbers across locales
 
 ### icu-messageformat
-**Keywords:** ICU, MessageFormat, plural, select, pluralization
+**Keywords:** ICU, MessageFormat, plural, pluralization
 **Solves:**
-- Implement pluralization rules
-- Handle gender-specific translations
+- Apply the house Hebrew plural-category decision (see `references/ork-delta.md`)
+- ICU `select`, gender forms and nested message grammar are routed upstream (see Upstream coverage)
 - Build complex message patterns
 
 ### date-time-formatting

@@ -73,4 +73,4 @@ ALTER TABLE users ALTER COLUMN email SET NOT NULL;
 - Test rollback procedures regularly — do not assume `downgrade()` works without verification
 - Column renames require a view alias to maintain backward compatibility during rollout
 
-Reference: `references/environment-management.md` (lines 115-162)
+Reference: https://alembic.sqlalchemy.org/en/latest/tutorial.html for revision/upgrade/downgrade mechanics; `ork:database-patterns` for the Python migration workflow.

@@ -27,8 +27,7 @@ This skill provides comprehensive guidance for implementing internationalization
 
 **Bundled Resources** (load with `Read("$\{CLAUDE_SKILL_DIR\}/&lt;path&gt;")`):
 - `references/formatting-utilities.md` - useFormatting hook API reference
-- `references/icu-messageformat.md` - ICU plural/select syntax
-- `references/trans-component.md` - Trans component for rich text
+- `references/ork-delta.md` - House decisions and working config that upstream docs do not carry
 - `checklists/i18n-checklist.md` - Implementation and review checklist
 - `examples/component-i18n-example.md` - Complete component example
 
@@ -104,7 +103,8 @@ Use ICU syntax in translation files for pluralization:
 t('patients', { count: 5 })  // → "5 patients"
 ```
 
-Load `Read("$\{CLAUDE_SKILL_DIR\}/references/icu-messageformat.md")` for full syntax.
+House rules for plurals live in `rules/i18n-icu-plurals.md`. For the full ICU grammar
+see the upstream table below.
 
 ### 5. Trans Component (Rich Text)
 
@@ -120,7 +120,26 @@ import { Trans } from 'react-i18next';
 />
 ```
 
-Load `Read("$\{CLAUDE_SKILL_DIR\}/references/trans-component.md")` for patterns.
+House rules for `&lt;Trans&gt;` live in `rules/i18n-trans-component.md`; the plural-plus-rich-text
+ordering constraint lives in `references/ork-delta.md`. For the full component API see the
+upstream table below.
+
+---
+
+## Upstream coverage (do not restate)
+
+These topics are owned by first-party docs. Read them there instead of re-deriving them here.
+
+| Topic | First-party source | House subset kept here |
+|-------|--------------------|------------------------|
+| ICU plural, select, selectordinal, offset and nested message grammar | https://formatjs.github.io/docs/core-concepts/icu-syntax/ and https://unicode-org.github.io/icu/userguide/format_parse/messages/ | `rules/i18n-icu-plurals.md` keeps the house subset in full: no ternary pluralization, the mandatory `other` arm, `=0` for zero states, Hebrew dual and Arabic categories |
+| Which plural categories a given locale actually has | https://cldr.unicode.org/index/cldr-spec/plural-rules | none, read upstream |
+| ICU number skeletons inside a message (`::currency/ILS`) | https://unicode-org.github.io/icu/userguide/format_parse/numbers/skeletons.html | `references/ork-delta.md` keeps only the ILS skeleton decision |
+| In-message date and time forms (`\{date, date, medium\}`) and `offset:` plurals | https://unicode-org.github.io/icu/userguide/format_parse/messages/ | nothing; fetch it upstream |
+| `&lt;Trans&gt;` API: named vs indexed tags, self-closing tags, `TransProps` typing | https://react.i18next.com/latest/trans-component | `rules/i18n-trans-component.md` keeps the house subset in full: never split a sentence across `t()` calls, never `dangerouslySetInnerHTML`, prefer named tags over indexed |
+| Wiring the ICU parser into i18next | https://github.com/i18next/i18next-icu | `references/ork-delta.md` keeps the decision and why suffix keys are not enough |
+| `Intl.ListFormat` primitive behind `useFormatting` | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat | `references/formatting-utilities.md` keeps the house hook API |
+| `Intl.NumberFormat` primitive behind `useFormatting` | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat | `references/formatting-utilities.md` keeps the house hook API |
 
 ---
 
@@ -210,7 +229,6 @@ Load `Read("$\{CLAUDE_SKILL_DIR\}/checklists/i18n-checklist.md")` for complete i
 ## Related Skills
 
 - `ork:testing-e2e` - E2E testing patterns including accessibility testing for i18n
-- `type-safety-validation` - Zod schemas for validating translation key structures and locale configs
 - `ork:react-server-components-framework` - Server-side locale detection and RSC i18n patterns
 - `ork:accessibility` - RTL-aware focus management for bidirectional UI navigation
 
@@ -241,10 +259,10 @@ Load `Read("$\{CLAUDE_SKILL_DIR\}/checklists/i18n-checklist.md")` for complete i
 - Handle ordinal numbers across locales
 
 ### icu-messageformat
-**Keywords:** ICU, MessageFormat, plural, select, pluralization
+**Keywords:** ICU, MessageFormat, plural, pluralization
 **Solves:**
-- Implement pluralization rules
-- Handle gender-specific translations
+- Apply the house Hebrew plural-category decision (see `references/ork-delta.md`)
+- ICU `select`, gender forms and nested message grammar are routed upstream (see Upstream coverage)
 - Build complex message patterns
 
 ### date-time-formatting
@@ -422,7 +440,7 @@ Hebrew uses a `two` (dual) form. Arabic uses `zero`, `one`, `two`, `few`, `many`
 - Provide locale-specific categories (`two` for Hebrew, `few`/`many` for Arabic, Slavic languages) in the respective translation files
 - Use `=0` exact match for zero/empty states instead of relying on the `zero` plural category
 
-Reference: `references/icu-messageformat.md` (lines 13-28, 141-165)
+Reference: `references/ork-delta.md` for the house ICU decisions (i18next-icu plugin, ILS currency skeleton, formatOrdinal over selectordinal). Full ICU grammar: https://formatjs.github.io/docs/core-concepts/icu-syntax/ . Per-locale plural categories: https://cldr.unicode.org/index/cldr-spec/plural-rules
 
 
 ### Use the Trans component for JSX-embedded translations that preserve locale word order — HIGH
@@ -491,13 +509,13 @@ import { Trans } from 'react-i18next';
 - Prefer named component tags (`&lt;link&gt;`, `&lt;bold&gt;`) over indexed tags (`&lt;0&gt;`, `&lt;1&gt;`) in translation strings
 - Use `t()` for plain text and `&lt;Trans&gt;` only when JSX elements must appear inside the translated string
 
-Reference: `references/trans-component.md` (lines 23-38, 207-235)
+Reference: `references/ork-delta.md` for the plural-plus-rich-text ordering constraint. Full `&lt;Trans&gt;` API: https://react.i18next.com/latest/trans-component
 
 
 
 ---
 
-## References (3)
+## References (2)
 
 ### Formatting Utilities
 
@@ -709,434 +727,62 @@ const { locale, isRTL } = useFormatting();
 **Last Updated**: 2026-01-06
 
 
-### Icu Messageformat
-
-# ICU MessageFormat Reference
-
-## Overview
-
-ICU MessageFormat provides advanced pluralization and selection logic in translation files. the application uses `i18next-icu` for ICU support.
-
-**Dependencies:**
-- `i18next-icu v2.4.1`
-- ICU MessageFormat syntax
-
----
-
-## Plural Rules
-
-### Basic Plural
-
-```json
-{
-  "patients": "{count, plural, =0 {No patients} one {# patient} other {# patients}}"
-}
-```
-
-Usage:
-```tsx
-t('patients', { count: 0 })  // → "No patients"
-t('patients', { count: 1 })  // → "1 patient"
-t('patients', { count: 5 })  // → "5 patients"
-```
-
-### Hebrew Plural (with dual form)
-
-Hebrew has special forms for dual (two) numbers:
-
-```json
-{
-  "items": "{count, plural, =0 {אין פריטים} one {פריט #} two {# פריטים} other {# פריטים}}"
-}
-```
-
-### Offset Plurals
-
-```json
-{
-  "guests": "{count, plural, offset:1 =0 {No guests} =1 {One guest} one {# guests and one other} other {# guests and # others}}"
-}
-```
-
----
-
-## Select Rules
-
-For non-numeric selection (gender, type, etc.):
-
-```json
-{
-  "petGreeting": "{species, select, dog {Good boy!} cat {Nice kitty!} other {Hello pet!}}"
-}
-```
-
-Usage:
-```tsx
-t('petGreeting', { species: 'dog' })  // → "Good boy!"
-t('petGreeting', { species: 'cat' })  // → "Nice kitty!"
-t('petGreeting', { species: 'bird' }) // → "Hello pet!"
-```
-
----
-
-## Ordinal Rules
-
-```json
-{
-  "position": "{position, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}"
-}
-```
-
-Usage:
-```tsx
-t('position', { position: 1 })  // → "1st"
-t('position', { position: 2 })  // → "2nd"
-t('position', { position: 3 })  // → "3rd"
-t('position', { position: 4 })  // → "4th"
-```
-
----
-
-## Number Formatting in ICU
-
-```json
-{
-  "price": "The price is {amount, number, ::currency/ILS}"
-}
-```
-
----
-
-## Date Formatting in ICU
-
-```json
-{
-  "appointment": "Your appointment is on {date, date, medium}"
-}
-```
-
----
-
-## Nested Messages
-
-Combine plural and select:
-
-```json
-{
-  "petStatus": "{species, select, dog {{count, plural, =0 {No dogs} one {# dog} other {# dogs}}} cat {{count, plural, =0 {No cats} one {# cat} other {# cats}}} other {{count, plural, =0 {No pets} one {# pet} other {# pets}}}}"
-}
-```
-
----
-
-## Common Patterns for the application
-
-### Counts with Zero State
-
-```json
-{
-  "vaccinations": "{count, plural, =0 {No vaccinations recorded} one {# vaccination} other {# vaccinations}}",
-  "medications": "{count, plural, =0 {No active medications} one {# medication} other {# medications}}",
-  "appointments": "{count, plural, =0 {No upcoming appointments} one {# appointment} other {# appointments}}"
-}
-```
-
-### Time Remaining
-
-```json
-{
-  "daysRemaining": "{count, plural, =0 {Due today} one {# day remaining} other {# days remaining}}"
-}
-```
-
----
-
-## Anti-Patterns
-
-### ❌ NEVER use conditional logic in code for plurals
-
-```tsx
-// ❌ WRONG
-const message = count === 0 ? 'No items' : count === 1 ? '1 item' : `${count} items`;
-
-// ✅ CORRECT
-const message = t('items', { count });
-```
-
-### ❌ NEVER forget the "other" case
-
-```json
-// ❌ WRONG - missing "other"
-{
-  "items": "{count, plural, =0 {None} one {One}}"
-}
-
-// ✅ CORRECT
-{
-  "items": "{count, plural, =0 {None} one {One} other {#}}"
-}
-```
-
----
-
-**Last Updated**: 2026-01-06
-
-
-### Trans Component
-
-# Trans Component Reference
-
-## Overview
-
-The `&lt;Trans&gt;` component from `react-i18next` enables embedding React components within translated text. Use this for rich text formatting, links, and interactive elements.
-
----
-
-## Basic Usage
-
-### Translation File
-
-```json
-{
-  "richText": {
-    "welcome": "Welcome <strong>{{name}}</strong> to the application!",
-    "terms": "By continuing, you agree to our <link>Terms of Service</link>.",
-    "highlight": "Your pet <bold>{{petName}}</bold> has <count>{{count}}</count> upcoming appointments."
-  }
-}
-```
-
-### Component Usage
-
-```tsx
-import { Trans } from 'react-i18next';
-
-function WelcomeMessage({ userName }) {
-  return (
-    <Trans
-      i18nKey="richText.welcome"
-      values={{ name: userName }}
-      components={{ strong: <strong className="font-bold" /> }}
-    />
-  );
-}
-// Output: Welcome <strong>John</strong> to the application!
-```
-
----
-
-## Component Mapping
-
-### Named Components
-
-```tsx
-<Trans
-  i18nKey="richText.terms"
-  components={{
-    link: <a href="/terms" className="text-primary underline" />
-  }}
-/>
-```
-
-### Multiple Components
-
-```tsx
-<Trans
-  i18nKey="richText.highlight"
-  values={{ petName: 'Max', count: 3 }}
-  components={{
-    bold: <strong className="font-semibold" />,
-    count: <span className="text-primary font-bold" />
-  }}
-/>
-```
-
----
-
-## Self-Closing Tags
-
-For components without children (icons, line breaks):
-
-### Translation File
-
-```json
-{
-  "withIcon": "Click here <icon/> to continue",
-  "multiLine": "Line one<br/>Line two"
-}
-```
-
-### Component Usage
-
-```tsx
-import { AlertCircle } from 'lucide-react';
-
-<Trans
-  i18nKey="withIcon"
-  components={{
-    icon: <AlertCircle className="inline h-4 w-4" />
-  }}
-/>
-
-<Trans
-  i18nKey="multiLine"
-  components={{
-    br: <br />
-  }}
-/>
-```
-
----
-
-## Indexed Components
-
-For simpler cases, use indexed tags:
-
-### Translation File
-
-```json
-{
-  "simple": "Click <0>here</0> to <1>learn more</1>."
-}
-```
-
-### Component Usage
-
-```tsx
-<Trans
-  i18nKey="simple"
-  components={[
-    <a href="/action" className="text-primary" />,
-    <span className="font-bold" />
-  ]}
-/>
-```
-
----
-
-## With Interpolation
-
-Combine values and components:
-
-```tsx
-<Trans
-  i18nKey="message"
-  values={{
-    name: user.name,
-    date: formattedDate
-  }}
-  components={{
-    bold: <strong />,
-    link: <Link to="/profile" />
-  }}
-/>
-```
-
----
-
-## Pluralization with Trans
-
-```json
-{
-  "petCount": "{count, plural, =0 {You have <bold>no pets</bold>} one {You have <bold># pet</bold>} other {You have <bold># pets</bold>}}"
-}
-```
-
-```tsx
-<Trans
-  i18nKey="petCount"
-  values={{ count: petCount }}
-  components={{ bold: <strong /> }}
-/>
-```
-
----
-
-## Common Patterns for the application
-
-### Highlighted Pet Names
-
-```json
-{
-  "visitSummary": "Visit summary for <petName>{{name}}</petName>"
-}
-```
-
-```tsx
-<Trans
-  i18nKey="visitSummary"
-  values={{ name: pet.name }}
-  components={{
-    petName: <span className="font-semibold text-primary" />
-  }}
-/>
-```
-
-### Action Links
-
-```json
-{
-  "addPet": "Don't see your pet? <addLink>Add a new pet</addLink>"
-}
-```
-
-```tsx
-<Trans
-  i18nKey="addPet"
-  components={{
-    addLink: <button onClick={onAddPet} className="text-primary underline" />
-  }}
-/>
-```
-
----
-
-## Anti-Patterns
-
-### ❌ NEVER concatenate translated strings with JSX
-
-```tsx
-// ❌ WRONG
-<p>
-  {t('welcome')} <strong>{userName}</strong> {t('tothe application')}
-</p>
-
-// ✅ CORRECT
-<Trans
-  i18nKey="welcomeUser"
-  values={{ name: userName }}
-  components={{ strong: <strong /> }}
-/>
-```
-
-### ❌ NEVER use dangerouslySetInnerHTML for rich text
-
-```tsx
-// ❌ WRONG (security risk!)
-<p dangerouslySetInnerHTML={{ __html: t('richContent') }} />
-
-// ✅ CORRECT
-<Trans i18nKey="richContent" components={{ ... }} />
-```
-
----
-
-## TypeScript Support
-
-```tsx
-import { Trans, TransProps } from 'react-i18next';
-
-// Type-safe component props
-const transProps: TransProps<string> = {
-  i18nKey: 'myKey',
-  values: { name: 'John' },
-  components: { bold: <strong /> }
-};
-```
-
----
-
-**Last Updated**: 2026-01-06
+### Ork Delta
+
+# i18n and Date Patterns Skill: OrchestKit Delta
+
+Ork-specific house decisions and working config for `src/skills/i18n-date-patterns`.
+Vendor mechanics (the full ICU MessageFormat grammar, the react-i18next `&lt;Trans&gt;` API
+surface, per-locale CLDR plural category tables) are deliberately not restated here.
+See "Upstream coverage (do not restate)" in SKILL.md for the first-party source that
+owns each removed topic. The house subset of the ICU plural and `&lt;Trans&gt;` rules did
+not move: it still lives in `rules/i18n-icu-plurals.md` and `rules/i18n-trans-component.md`.
+
+## Load ICU support through the i18next-icu plugin, not i18next suffix keys
+Why: House config, distilled from the retired `icu-messageformat.md`, which
+pinned `i18next-icu v2.4.1` as the runtime that parses these messages; no traced incident.
+This matters because everything else in the skill assumes ICU syntax is live: every
+`\{count, plural, ...\}` string in `rules/i18n-icu-plurals.md`, the `=0` zero states in
+`checklists/i18n-checklist.md`, and the plural example in `examples/component-i18n-example.md`
+are inert text under a plain i18next install, which resolves plurals through `_one` / `_other`
+key suffixes instead. Suffix keys also cannot express Hebrew's dual or Arabic's six
+categories, which is the reason this skill chose ICU in the first place (SKILL.md
+"Key Decisions", Message Format row).
+Upstream: https://github.com/i18next/i18next-icu
+
+## Write money inside an ICU message as the ILS currency skeleton
+Why: House currency decision. `rules/i18n-formatting-antipatterns.md` bans a literal
+shekel sign in JSX and routes code-side money through `formatILS()` from `useFormatting`
+(`references/formatting-utilities.md`). The retired `icu-messageformat.md`
+carried the matching in-message form, `\{amount, number, ::currency/ILS\}`, and it is the
+only variant that keeps the two paths agreeing: a bare `\{amount, number\}` inside a message
+formats the digits and silently drops the currency, which pushes the author straight back
+to concatenating the symbol the rule forbids. Distilled from the retired file; no traced
+incident.
+Upstream: https://unicode-org.github.io/icu/userguide/format_parse/numbers/skeletons.html
+
+## Keep ICU plural branches inside the Trans i18nKey and map each tag once
+Why: Ordering constraint recovered from the retired `trans-component.md`;
+no traced incident. When a message is both pluralized and rich, ICU picks the plural
+branch first and `&lt;Trans&gt;` maps component tags afterwards, so every branch of the message
+has to repeat the same tag names (`&lt;bold&gt;` in the `=0`, `one` and `other` arms alike) and
+`count` has to arrive via `values`, not as a prop. One `components` map then covers all
+branches. The tempting alternative, choosing the plural in JSX and wrapping each outcome
+in its own `&lt;Trans&gt;`, re-creates exactly the split-sentence word-order break that
+`rules/i18n-trans-component.md` exists to stop in RTL locales.
+Upstream: https://react.i18next.com/latest/trans-component
+
+## Format a standalone ordinal with formatOrdinal, not a hand-written selectordinal ladder
+Why: House decision recorded in SKILL.md's Quick Reference and in
+`references/formatting-utilities.md`: ordinals come from `formatOrdinal()` in
+`useFormatting`, which reads the app's current locale, the same way `formatList` and
+`formatNumber` do. The retired `icu-messageformat.md` taught the alternative,
+`\{position, selectordinal, one \{#st\} two \{#nd\} few \{#rd\} other \{#th\}\}`, whose `st`/`nd`/`rd`/`th`
+suffixes are hardcoded English and go wrong the moment the app renders `he`. Reach for
+`selectordinal` only when the ordinal sits inside a translated sentence, and then write the
+suffix branches separately in each locale file. Distilled from the retired file; no traced
+incident.
+Upstream: https://formatjs.github.io/docs/core-concepts/icu-syntax/
 
 
 
