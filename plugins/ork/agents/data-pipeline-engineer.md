@@ -245,7 +245,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|rag-retrieval:{SKILL.md,references/{ork-delta.md}}|rag,retrieval,llm,context,grounding,embeddings,hyde,reranking,pgvector,multimodal
+|rag-retrieval:{SKILL.md}|rag,retrieval,llm,context,grounding,embeddings,hyde,reranking,pgvector,multimodal
 |golden-dataset:{SKILL.md,references/{ork-delta.md,quality-metrics.md,storage-patterns.md,versioning.md}}|golden-dataset,evaluation,dataset-curation,dataset-validation,quality,llm-testing
 |performance:{SKILL.md,references/{cc-prompt-cache-guide.md,database-optimization.md,ork-delta.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates,sustainability,carbon-footprint,page-weight
 |async-jobs:{SKILL.md,references/{anti-patterns.md,capability-details.md,celery-config.md,ork-delta.md,quick-start-examples.md}}|async,jobs,celery,background-tasks,scheduling,queues

@@ -2840,6 +2840,11 @@ export const SKILLS: Record<string, SkillMeta> = {
         "function-def.py",
         "lora-config.yaml",
         "ollama-provider-template.py"
+      ],
+      "checklists": [
+        "fine-tuning-decision.md",
+        "streaming-checklist.md",
+        "tool-checklist.md"
       ]
     },
     "plugins": [
@@ -3725,7 +3730,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "rag-retrieval",
     "description": "Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding documents, implementing hybrid search, contextual retrieval, HyDE, agentic RAG, multimodal RAG, query decomposition, reranking, or pgvector search.",
     "version": "2.0.0",
-    "sha256": "5ab375eb9cd3841fddb1ec93e2c827be16a320cde6598da42f865549fb7da43f",
+    "sha256": "d8e93d576f041b8916cfb3cad42165f9fa1c60813799d97ebc0bb82ef6c0590c",
     "author": "OrchestKit",
     "tags": [
       "rag",
@@ -3752,14 +3757,15 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "data-pipeline-engineer",
     "complexity": "high",
     "structure": {
-      "references": [
-        "ork-delta.md"
-      ],
       "scripts": [
         "chunk-repository.py",
         "rag-pipeline-template.ts",
         "scripts",
         "search-service.py"
+      ],
+      "checklists": [
+        "rag-quality.md",
+        "search-implementation-checklist.md"
       ]
     },
     "plugins": [
@@ -4187,6 +4193,13 @@ export const SKILLS: Record<string, SkillMeta> = {
         "safe_llm_call.py",
         "scan-vulnerabilities.sh",
         "validation-schemas.ts"
+      ],
+      "checklists": [
+        "auth-checklist.md",
+        "pre-deployment-security.md",
+        "pre-llm-call.md",
+        "safety-checklist.md",
+        "validation-checklist.md"
       ]
     },
     "plugins": [

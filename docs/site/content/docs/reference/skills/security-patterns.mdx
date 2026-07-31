@@ -3595,3 +3595,491 @@ def process(self):
     ctx = RequestContext(...)  # Should come from gateway!
 ```
 
+
+
+---
+
+## Checklists (5)
+
+### Auth Checklist
+
+# Authentication Security Checklist
+
+## Password Security
+
+- [ ] Use Argon2id (preferred) or bcrypt for hashing
+- [ ] Minimum 12 character password requirement
+- [ ] Check against common password lists
+- [ ] No password hints or security questions
+- [ ] Rate limit password attempts (5 per minute)
+- [ ] Account lockout after 10 failed attempts
+
+## Token Security
+
+- [ ] Access tokens: 15 min - 1 hour lifetime
+- [ ] Refresh tokens: 7-30 days with rotation
+- [ ] Store access tokens in memory only (not localStorage)
+- [ ] Store refresh tokens in HTTPOnly cookies
+- [ ] Implement refresh token rotation
+- [ ] Revoke all tokens on password change
+
+## Session Security
+
+- [ ] `SESSION_COOKIE_SECURE=True` (HTTPS only)
+- [ ] `SESSION_COOKIE_HTTPONLY=True` (no JS access)
+- [ ] `SESSION_COOKIE_SAMESITE='Strict'`
+- [ ] Session timeout (1 hour inactivity)
+- [ ] Regenerate session ID on login
+
+## OAuth 2.1 Compliance
+
+- [ ] Use PKCE for ALL clients
+- [ ] No implicit grant
+- [ ] No password grant
+- [ ] State parameter for CSRF protection
+- [ ] Validate redirect_uri exactly
+- [ ] Use HTTPS for all endpoints
+
+## Passkeys/WebAuthn (If Implemented)
+
+- [ ] Require user verification (biometric)
+- [ ] Require resident keys for passwordless
+- [ ] Validate RP ID matches origin
+- [ ] Track sign count for replay protection
+- [ ] Allow multiple passkeys per user
+
+## Multi-Factor Authentication
+
+- [ ] Offer MFA (TOTP, Passkeys)
+- [ ] TOTP: 6 digits, 30-second window
+- [ ] Backup codes (10 one-time use)
+- [ ] Remember device option (30 days max)
+- [ ] Require MFA for sensitive operations
+
+## Rate Limiting
+
+| Endpoint | Limit |
+|----------|-------|
+| Login | 5 per minute |
+| Password reset | 3 per hour |
+| MFA verify | 5 per minute |
+| Registration | 10 per hour |
+| API general | 100 per minute |
+
+## Error Messages
+
+- [ ] Generic "Invalid credentials" (don't reveal which is wrong)
+- [ ] Don't reveal if email exists in forgot password
+- [ ] Log detailed errors server-side only
+- [ ] No stack traces in production
+
+## Secure Headers
+
+```python
+response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+response.headers['X-Content-Type-Options'] = 'nosniff'
+response.headers['X-Frame-Options'] = 'DENY'
+response.headers['Content-Security-Policy'] = "default-src 'self'"
+```
+
+## Audit Logging
+
+- [ ] Log all authentication attempts
+- [ ] Log password changes
+- [ ] Log MFA setup/disable
+- [ ] Log token revocations
+- [ ] Log suspicious activity (multiple failed attempts)
+
+## Review Checklist
+
+Before deployment:
+
+- [ ] No hardcoded secrets in code
+- [ ] Secrets in environment variables
+- [ ] HTTPS enforced everywhere
+- [ ] Rate limiting configured
+- [ ] Audit logging enabled
+- [ ] Password hashing uses Argon2id or bcrypt
+- [ ] Token lifetimes appropriate
+- [ ] MFA available
+
+## Common Vulnerabilities to Avoid
+
+- [ ] No password in URL parameters
+- [ ] No session ID in URL
+- [ ] No sensitive data in JWT payload
+- [ ] No implicit OAuth grant
+- [ ] No predictable session IDs
+- [ ] No client-side token storage in localStorage
+
+
+### Pre Deployment Security
+
+# Pre-Deployment Security Checklist
+
+## Before deploying any AI feature, verify all 8 layers:
+
+### Layer 0: Edge Protection
+- [ ] WAF rules active for OWASP Top 10
+- [ ] Rate limiting configured per user/IP
+- [ ] DDoS protection enabled
+- [ ] HTTPS enforced (no HTTP)
+
+### Layer 1: Gateway / Authentication
+- [ ] JWT validation active
+- [ ] Token expiry enforced
+- [ ] RequestContext created from JWT (not user input)
+- [ ] Permissions extracted from token
+
+### Layer 2: Input Validation
+- [ ] Pydantic/Zod models for all request bodies
+- [ ] Size limits on all inputs
+- [ ] PII detection on user-provided content
+- [ ] Injection pattern detection (SQL, XSS, prompt)
+
+### Layer 3: Authorization
+- [ ] Every endpoint has authorization check
+- [ ] RBAC/ABAC policies defined
+- [ ] Cross-tenant access blocked
+- [ ] Resource-level access verified
+
+### Layer 4: Data Access
+- [ ] All queries use parameterized values (no f-strings)
+- [ ] All queries include tenant_id filter
+- [ ] Repository pattern enforces tenant scope
+- [ ] Vector search includes tenant filter
+
+### Layer 5: LLM Orchestration
+- [ ] No user_id in prompts
+- [ ] No tenant_id in prompts
+- [ ] No analysis_id in prompts
+- [ ] No document_id in prompts
+- [ ] No UUIDs in prompts
+- [ ] Prompt audit check passes
+
+### Layer 6: Output Validation
+- [ ] LLM output parsed with schema
+- [ ] Content guardrails active (toxicity, PII)
+- [ ] Hallucination detection for critical fields
+- [ ] Output size limits enforced
+
+### Layer 7: Attribution & Storage
+- [ ] Attribution uses RequestContext (not LLM output)
+- [ ] Source references from pre-LLM lookup
+- [ ] Audit event logged
+- [ ] Data encrypted at rest
+
+### Layer 8: Observability
+- [ ] Structured logging active
+- [ ] Sensitive data redacted from logs
+- [ ] Langfuse tracing enabled
+- [ ] Metrics exported (latency, errors, tokens)
+- [ ] Alerts configured for anomalies
+
+---
+
+## Quick Verification Commands
+
+```bash
+# Check for IDs in prompt templates
+grep -rn "user_id\|tenant_id\|analysis_id\|document_id" backend/app/**/prompts/
+
+# Check for raw SQL (should use parameterized)
+grep -rn "f\"SELECT\|f'SELECT" backend/app/
+
+# Check for missing tenant filter
+grep -rn "SELECT.*FROM" backend/app/ | grep -v "tenant_id"
+
+# Run security linter
+poetry run bandit -r backend/app/ -f json
+
+# Check for hardcoded secrets
+grep -rn "api_key\s*=\s*['\"]" backend/
+```
+
+---
+
+**Sign-off required before merge:**
+- [ ] Developer self-review
+- [ ] Security checklist verified
+- [ ] Code reviewer approved
+- [ ] CI/CD security scans pass
+
+
+### Pre Llm Call
+
+# Pre-LLM Call Checklist
+
+## Before ANY LLM Call in OrchestKit
+
+Use this checklist before sending any prompt to an LLM:
+
+### Phase 1: Context Available
+- [ ] RequestContext obtained from JWT (not user input)
+- [ ] user_id available in context
+- [ ] tenant_id available in context
+- [ ] trace_id set for observability
+
+### Phase 2: Data Isolation
+- [ ] Query includes `WHERE tenant_id = :tenant_id`
+- [ ] Query includes `WHERE user_id = :user_id` (if user-scoped)
+- [ ] Vector search filtered by tenant
+- [ ] Full-text search filtered by tenant
+
+### Phase 3: Source References Captured
+- [ ] document_ids saved for attribution
+- [ ] chunk_ids saved for attribution
+- [ ] Retrieval timestamp recorded
+- [ ] Similarity scores captured (for debugging)
+
+### Phase 4: Content Extraction
+- [ ] Only content text extracted (no metadata with IDs)
+- [ ] Content stripped of any embedded UUIDs
+- [ ] Content stripped of any ID field names
+
+### Phase 5: Prompt Building
+- [ ] Prompt contains ONLY content text
+- [ ] No user_id in prompt
+- [ ] No tenant_id in prompt
+- [ ] No analysis_id in prompt
+- [ ] No document_id in prompt
+- [ ] No UUIDs in prompt
+- [ ] No API keys or secrets in prompt
+
+### Phase 6: Prompt Audit
+- [ ] `audit_prompt()` called on final prompt
+- [ ] No critical violations detected
+- [ ] Warnings logged for review
+
+### Phase 7: LLM Call
+- [ ] Timeout configured
+- [ ] Error handling in place
+- [ ] Response parsing ready
+- [ ] Langfuse trace started
+
+---
+
+## Quick Verification Script
+
+```python
+from llm_safety import audit_prompt, has_critical_violations
+
+def verify_llm_ready(
+    prompt: str,
+    ctx: RequestContext,
+    source_refs: SourceReference,
+) -> bool:
+    """Quick verification before LLM call"""
+
+    # Check context
+    assert ctx.user_id is not None, "Missing user_id"
+    assert ctx.tenant_id is not None, "Missing tenant_id"
+
+    # Check source refs captured
+    assert len(source_refs.document_ids) >= 0, "Source refs not captured"
+
+    # Audit prompt
+    violations = audit_prompt(prompt)
+    if has_critical_violations(violations):
+        raise PromptSecurityError(violations)
+
+    return True
+```
+
+---
+
+## Post-LLM Attribution Checklist
+
+After LLM returns:
+
+- [ ] Output parsed with schema validation
+- [ ] Output checked for hallucinated IDs
+- [ ] Output checked for grounding
+- [ ] Content safety validated
+- [ ] Attribution attached from RequestContext
+- [ ] Source links created from captured refs
+- [ ] Audit event logged
+- [ ] Langfuse trace completed
+
+---
+
+**Sign-off:** Run `verify_llm_ready()` before every LLM call
+
+
+### Safety Checklist
+
+# LLM Safety Checklist
+
+## Input Safety
+
+- [ ] Validate input length
+- [ ] Detect prompt injection attempts
+- [ ] Sanitize user content
+- [ ] Rate limit requests
+
+## Output Safety
+
+- [ ] Content filtering
+- [ ] PII detection and redaction
+- [ ] Harmful content detection
+- [ ] Bias monitoring
+
+## System Prompts
+
+- [ ] Clear boundaries
+- [ ] Role definition
+- [ ] Refusal instructions
+- [ ] No secrets in prompts
+
+## Guardrails
+
+- [ ] Input guardrails
+- [ ] Output guardrails
+- [ ] Topic restrictions
+- [ ] Sensitive content handling
+
+## Monitoring
+
+- [ ] Log flagged content
+- [ ] Alert on violations
+- [ ] Human review queue
+- [ ] Incident response plan
+
+
+### Validation Checklist
+
+# Input Validation Checklist
+
+## Core Principles
+
+- [ ] **Never trust user input** - validate everything
+- [ ] **Validate server-side** - client-side is UX only
+- [ ] **Use allowlists** - not blocklists
+- [ ] **Validate type, length, format, range**
+- [ ] **Sanitize output** - escape when rendering
+
+## Schema Definition
+
+- [ ] Define schema for all API endpoints
+- [ ] Use strict types (no `any`)
+- [ ] Set reasonable min/max lengths
+- [ ] Use enums for fixed value sets
+- [ ] Add custom error messages
+- [ ] Handle optional vs required properly
+
+## String Validation
+
+- [ ] Trim whitespace where appropriate
+- [ ] Set maximum length (prevent DoS)
+- [ ] Use regex for format validation
+- [ ] Escape HTML for display
+- [ ] Validate email with proper regex
+- [ ] Validate URLs against allowlist domains
+
+## Number Validation
+
+- [ ] Use integer for IDs
+- [ ] Set min/max bounds
+- [ ] Handle NaN and Infinity
+- [ ] Use coercion for query params
+
+## File Validation
+
+- [ ] Check file extension
+- [ ] Validate MIME type
+- [ ] **Verify magic bytes** (actual content)
+- [ ] Set maximum file size
+- [ ] Scan for malware (production)
+- [ ] Generate new filename (no user input)
+
+## Database Query Safety
+
+- [ ] Use parameterized queries
+- [ ] Allowlist sort columns
+- [ ] Validate pagination limits
+- [ ] Escape identifiers if dynamic
+
+## Error Messages
+
+- [ ] Generic errors for users
+- [ ] Detailed errors in logs only
+- [ ] Don't reveal system internals
+- [ ] Don't reveal valid usernames/emails
+
+## Validation Libraries
+
+### TypeScript/JavaScript
+```typescript
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import DOMPurify from 'dompurify';
+```
+
+### Python
+```python
+from pydantic import BaseModel, EmailStr, Field
+from markupsafe import escape
+```
+
+## Common Patterns
+
+### Allowlist (✅ Do)
+```typescript
+const allowed = ['name', 'email', 'createdAt'];
+if (!allowed.includes(sortColumn)) throw new Error('Invalid');
+```
+
+### Blocklist (❌ Don't)
+```typescript
+const blocked = ['password', 'secret'];
+if (blocked.includes(field)) throw new Error('Invalid');
+// Problem: Forgets to block new sensitive fields
+```
+
+## Type Coercion
+
+- [ ] Use `z.coerce.*` for query parameters
+- [ ] Handle empty strings appropriately
+- [ ] Consider timezone for dates
+- [ ] Parse numbers from strings safely
+
+## Async Validation
+
+- [ ] Use for uniqueness checks (email, username)
+- [ ] Rate limit async validations
+- [ ] Cache validation results where appropriate
+- [ ] Handle race conditions
+
+## Security Headers
+
+```
+Content-Security-Policy: default-src 'self'
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-XSS-Protection: 1; mode=block
+```
+
+## Review Checklist
+
+Before PR:
+
+- [ ] All endpoints have input validation
+- [ ] Server-side validation implemented
+- [ ] Allowlists used instead of blocklists
+- [ ] Error messages don't leak info
+- [ ] File uploads validate content, not just extension
+- [ ] SQL queries use parameterized statements
+- [ ] HTML output is escaped
+- [ ] Maximum lengths set on all strings
+
+## Common Vulnerabilities to Prevent
+
+| Vulnerability | Prevention |
+|--------------|------------|
+| SQL Injection | Parameterized queries |
+| XSS | HTML escaping, CSP |
+| Path Traversal | Validate/sanitize paths |
+| SSRF | URL allowlist |
+| ReDoS | Avoid complex regex |
+| Buffer Overflow | Length limits |
+
