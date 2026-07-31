@@ -146,11 +146,32 @@ console.log('\n==========================================');
 console.log('  declared floors (targets:)');
 console.log('==========================================\n');
 
+// DECLARED UNRESOLVABLES.
+// `.claude/rules/skill-authoring.md` sanctions leaving a library unmapped when it
+// genuinely cannot be resolved from a package registry, on the grounds that "an honest
+// SKIP beats a confidently wrong answer". That is right, but an undeclared SKIP is
+// indistinguishable from someone forgetting to add a LIBRARY_REGISTRY entry, and it
+// prints in a column of `ok`s where it reads as coverage.
+//
+// So the exemption becomes explicit: a library listed here SKIPs with its reason, and
+// any OTHER unresolvable floor is a configuration error that fails --check. The rule is
+// preserved, the accident is not.
+const UNRESOLVABLE_BY_DESIGN = {
+  k6: 'ships as a Go binary via Grafana releases, not an npm or PyPI package',
+};
+
 const floorLag = [];
+const undeclaredUnresolvable = [];
 for (const { skill, library, floor } of collectFloors()) {
   const resolved = resolveLibrary(library);
   if (!resolved) {
-    console.log(`SKIP  ${library.padEnd(24)} (${skill}) — not in LIBRARY_REGISTRY`);
+    const reason = UNRESOLVABLE_BY_DESIGN[library];
+    if (reason) {
+      console.log(`SKIP  ${library.padEnd(24)} (${skill}) — unresolvable by design: ${reason}`);
+    } else {
+      console.log(`ERROR ${library.padEnd(24)} (${skill}) — declared floor, but not in LIBRARY_REGISTRY`);
+      undeclaredUnresolvable.push({ skill, library, floor });
+    }
     continue;
   }
   const registry = resolved.registry;
@@ -199,6 +220,18 @@ if (floorLag.length > 0) {
     console.error(`\n${unsat.length} floor(s) CANNOT be satisfied by any published release:`);
     for (const f of unsat) console.error(`  ${f.skill}: ${f.library} ${f.floor} but latest is ${f.latest}`);
   }
+}
+
+// A declared floor we can never evaluate is a configuration error, not a finding about
+// upstream. It fails --check regardless of pin state: fix it by adding a
+// LIBRARY_REGISTRY entry, or by declaring it in UNRESOLVABLE_BY_DESIGN with a reason.
+if (undeclaredUnresolvable.length > 0 && mode === 'check') {
+  console.error(`\n${undeclaredUnresolvable.length} declared floor(s) reference a library this script cannot resolve:`);
+  for (const u of undeclaredUnresolvable) {
+    console.error(`  ${u.skill}: ${u.library} ${u.floor}`);
+  }
+  console.error('Add the library to LIBRARY_REGISTRY, or to UNRESOLVABLE_BY_DESIGN with the reason.');
+  process.exit(1);
 }
 
 if (drift.length === 0 && trackingDrift.length === 0) {

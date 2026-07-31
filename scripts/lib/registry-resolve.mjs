@@ -30,6 +30,23 @@ import { execFileSync } from 'node:child_process';
  */
 export const LIBRARY_REGISTRY = {
   // --- npm ---
+  // Added 2026-07-31: every entry below was confirmed to exist on the npm registry
+  // before being listed. Coverage matters because an UNMAPPED package is invisible to
+  // check-import-symbols.mjs, and that blind spot is not theoretical: three rule files
+  // shipped `import { startEmulate, seedConfig } from '@orchestkit/emulate'`, a package
+  // that 404s, with two symbols the real `emulate` package has never exported. The gate
+  // could not see it because the phantom scope was never in this map.
+  '@json-render/image': 'npm',
+  '@json-render/remotion': 'npm',
+  '@storybook/addon-vitest': 'npm',
+  'react-router': 'npm',
+  '@applitools/eyes-playwright': 'npm',
+  'react-hook-form': 'npm',
+  'class-variance-authority': 'npm',
+  '@hookform/resolvers': 'npm',
+  '@react-pdf/renderer': 'npm',
+  '@tanstack/react-virtual': 'npm',
+
   emulate: 'npm',
   portless: 'npm',
   'agent-browser': 'npm',

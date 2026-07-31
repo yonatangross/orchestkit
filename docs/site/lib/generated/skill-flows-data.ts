@@ -1299,7 +1299,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "New in 2026-04 → 2026-07 (agent-browser 0.2…",
+            "label": "New in 2026-04 to 2026-07 (agent-browser 0.…",
             "does": "",
             "out": null,
             "tag": null

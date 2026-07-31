@@ -124,18 +124,14 @@ const png = await renderToPng(spec, {
 ### Render to Video (Remotion)
 
 ```tsx
-import { JsonRenderComposition } from '@json-render/remotion'
-import { catalog } from './catalog'
-import { remotionRegistry } from './registries/remotion'
+// Verified 2026-07-31 against @json-render/remotion@0.19.0: the export is
+// `Renderer` and its props are { spec, components }. fps and durationInFrames
+// belong on Remotion's own Composition, not on this renderer.
+import { Renderer } from '@json-render/remotion'
+import { remotionComponents } from './registries/remotion'
 
 export const DemoVideo = () => (
-  <JsonRenderComposition
-    spec={spec}
-    catalog={catalog}
-    registry={remotionRegistry}
-    fps={30}
-    durationInFrames={150}
-  />
+  <Renderer spec={spec} components={remotionComponents} />
 )
 ```
 
@@ -734,17 +730,21 @@ export const MyVideo = () => (
 )
 ```
 
-**Correct — JsonRenderComposition from spec:**
+**Correct, Renderer from spec:**
 ```tsx
-import { JsonRenderComposition } from '@json-render/remotion'
-import { catalog } from './catalog'
-import { remotionRegistry } from './registries/remotion'
+// Verified 2026-07-31 against @json-render/remotion@0.19.0 dist/index.d.ts.
+// The export is `Renderer`, and its props are { spec, components } only.
+import { Renderer } from '@json-render/remotion'
+import { remotionComponents } from './registries/remotion'
 
-export const DemoVideo = () => (
-  <JsonRenderComposition
-    spec={spec}
-    catalog={catalog}
-    registry={remotionRegistry}
+const DemoVideo = () => <Renderer spec={spec} components={remotionComponents} />
+
+// fps, durationInFrames and dimensions belong to Remotion's own Composition,
+// not to this renderer. Wire them where Remotion expects them:
+export const Root = () => (
+  <Composition
+    id="demo"
+    component={DemoVideo}
     fps={30}
     durationInFrames={150}
     width={1920}
@@ -785,7 +785,7 @@ const png = await renderToPng(spec, {
 ```
 
 **Key rules:**
-- Use `JsonRenderComposition` for Remotion videos — it validates specs against the catalog
+- Use `Renderer` from `@json-render/remotion` for videos, passing `\{ spec, components \}`. There is no `JsonRenderComposition` export, and no `catalog` or `registry` prop: timing and dimensions live on Remotion's `Composition`
 - Use `renderToPng` for OG images (1200x630 standard) — Satori is server-side, no browser needed
 - Satori has CSS limitations: no CSS grid, limited flexbox, no `position: absolute` nesting — design image registries accordingly
 - Image registries must use inline styles only — Satori does not support className or CSS files

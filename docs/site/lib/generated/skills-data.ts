@@ -791,7 +791,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "browser-tools",
     "description": "Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.",
     "version": "5.0.0",
-    "sha256": "b14d8d2ce2d7942d26b859cb71ddd91b6a6fa7ab3e65eef35074ef85da687462",
+    "sha256": "525607a86f3f58d6e801f22e1034c9d690f332e585c36ffe7234b6eadbe83156",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -2114,7 +2114,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser (Rust daemon + CDP, ARIA-tree-first). Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience.",
     "version": "1.1.0",
-    "sha256": "9c6f1195bde21c3cc65481914601e9d0d61101356d3c79642ecb99a115371c83",
+    "sha256": "cd94bbd0dd98cb668da7a99f8a8ae70ecd18e31c0d70390b34bc8fa692388ab7",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2759,7 +2759,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "langgraph",
     "description": "LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error handlers, graceful drain), routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",
     "version": "2.3.0",
-    "sha256": "a949e2e871b81fa26cb07efa2c4e24fbf38fe357c1c85f0867563ae50b39056b",
+    "sha256": "4065e51eadcf67d670510e601884c388ef06439b7be7d2abb9879db81ed67831",
     "author": "OrchestKit",
     "tags": [
       "langgraph",
@@ -3102,7 +3102,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "monitoring-observability",
     "description": "Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse v4 LLM tracing (as_type, score_current_span, should_export_span, LangfuseMedia), and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring.",
     "version": "3.0.0",
-    "sha256": "464f1d843924f35702ce0c3e6d8a9b2534fcf5622176b890b759857c1cbc7451",
+    "sha256": "b2717b7c3e2cda87168d3d15cb030557f979aa0efb6b6708bb03ded3d4862c68",
     "author": "OrchestKit",
     "tags": [
       "monitoring",
@@ -3170,7 +3170,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multi-surface-render",
     "description": "Multi-surface rendering with json-render — same JSON spec produces React web, Next.js apps, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform-specific APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for multiple platforms, creating PDF reports, email templates, demo videos, or social media images from a single component spec.",
     "version": "1.1.0",
-    "sha256": "ca8fb461e342f84f9028db1585fd5861e75a5d627c180f0aa092a91d45497a20",
+    "sha256": "138da65e0dd7b76d7b049f92f099cf8132225c2527957611551ff7d2c13f2bdc",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -3370,7 +3370,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "portless",
     "description": "Named HTTPS .localhost URLs with portless (v0.15.x). Eliminates port collisions, gives agents stable URLs, adds branch-named subdomains for git worktrees, LAN mode (--lan), and Tailscale sharing. Use when setting up a local dev environment or testing from phones and tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration.",
     "version": "1.2.0",
-    "sha256": "8fc0a5f6177ef911c9f87c081d421e21daa8a71456b30c28707378845968cec6",
+    "sha256": "249ae8c9b199f82925eb9d4ccc3bd5141eaead38ac70d400b1819306df917280",
     "author": "OrchestKit",
     "tags": [
       "dev-server",

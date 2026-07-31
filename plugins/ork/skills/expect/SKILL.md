@@ -19,7 +19,7 @@ metadata:
   category: testing
   milestone: M99
   upstream-package: agent-browser
-  upstream-version-tested: "0.33.0"
+  upstream-version-tested: "0.33.1"
 triggers:
   keywords: [expect, "test my changes", "browser test", "diff test", "test what I changed", "test the UI", "visual regression", "check my changes"]
   examples:
@@ -236,7 +236,7 @@ Load: `Read("${CLAUDE_SKILL_DIR}/references/test-plan.md")`
 
 ### agent-browser Quick Primer
 
-> Floor is `>= 0.25.0`; current tested release is **0.33.0** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. 0.33.0 adds `agent-browser a11y [url]`, an embedded axe-core audit (WCAG tag filtering, selector scoping, iframe-aware text/JSON output) available as both a CLI command and an MCP tool. The commands documented below are unchanged from 0.32.x through 0.33.0.
+> Floor is `>= 0.25.0`; current tested release is **0.33.1** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. 0.33.0 adds `agent-browser a11y [url]`, an embedded axe-core audit (WCAG tag filtering, selector scoping, iframe-aware text/JSON output) available as both a CLI command and an MCP tool. The commands documented below are unchanged from 0.32.x through 0.33.1.
 
 
 | Area | Command | Notes |

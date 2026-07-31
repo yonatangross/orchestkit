@@ -128,18 +128,14 @@ const png = await renderToPng(spec, {
 ### Render to Video (Remotion)
 
 ```tsx
-import { JsonRenderComposition } from '@json-render/remotion'
-import { catalog } from './catalog'
-import { remotionRegistry } from './registries/remotion'
+// Verified 2026-07-31 against @json-render/remotion@0.19.0: the export is
+// `Renderer` and its props are { spec, components }. fps and durationInFrames
+// belong on Remotion's own Composition, not on this renderer.
+import { Renderer } from '@json-render/remotion'
+import { remotionComponents } from './registries/remotion'
 
 export const DemoVideo = () => (
-  <JsonRenderComposition
-    spec={spec}
-    catalog={catalog}
-    registry={remotionRegistry}
-    fps={30}
-    durationInFrames={150}
-  />
+  <Renderer spec={spec} components={remotionComponents} />
 )
 ```
 

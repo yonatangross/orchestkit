@@ -288,23 +288,25 @@ async def test_create_user(client: AsyncClient):
 ## Pattern: Seed -> Start -> Test -> Assert State
 
 ```typescript
-import { startEmulate, seedConfig } from '@orchestkit/emulate';
+// Package is `emulate`, and the entry point is createEmulator.
+// Verified 2026-07-31 against emulate@0.9.0 dist/api.d.ts.
+import { createEmulator, type Emulator } from 'emulate';
 
 describe('GitHub PR workflow', () => {
-  let emulate: EmulateInstance;
+  let emulator: Emulator;
 
   beforeAll(async () => {
-    emulate = await startEmulate({
-      provider: 'github',
-      seed: seedConfig({
+    emulator = await createEmulator({
+      service: 'github', // ServiceName union, not `provider`
+      seed: {
         repos: [{ owner: 'acme', name: 'app', pulls: [{ number: 1, state: 'open' }] }],
-      }),
+      },
     });
-    // Point tests at emulate
-    process.env.GITHUB_API_BASE = `http://localhost:${emulate.port}`;
+    // Point tests at emulate. The instance exposes `url`, not a bare port.
+    process.env.GITHUB_API_BASE = emulator.url;
   });
 
-  afterAll(() => emulate.stop());
+  afterAll(() => emulator.close());
 
   test('merging PR transitions state correctly', async () => {
     const octokit = new Octokit({ baseUrl: process.env.GITHUB_API_BASE });
@@ -339,11 +341,11 @@ nock('https://api.github.com')
 
 **Correct -- using emulate with seed config for full state machine testing:**
 ```typescript
-const emulate = await startEmulate({
-  provider: 'github',
-  seed: seedConfig({
+const emulator = await createEmulator({
+  service: 'github',
+  seed: {
     repos: [{ owner: 'acme', name: 'app', pulls: [{ number: 1, state: 'open' }] }],
-  }),
+  },
 });
 // State transitions happen automatically — merge changes PR state
 await octokit.pulls.merge({ owner: 'acme', repo: 'app', pull_number: 1 });

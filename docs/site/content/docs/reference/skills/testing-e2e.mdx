@@ -700,21 +700,23 @@ Use emulate as the backend API layer for Playwright E2E tests. This eliminates f
 
 ```typescript
 import { test, expect } from '@playwright/test';
-import { startEmulate, seedConfig } from '@orchestkit/emulate';
+// Package is `emulate`, entry point createEmulator.
+// Verified 2026-07-31 against emulate@0.9.0 dist/api.d.ts.
+import { createEmulator, type Emulator } from 'emulate';
 
-let emulate: EmulateInstance;
+let emulator: Emulator;
 
 test.beforeAll(async () => {
-  emulate = await startEmulate({
-    provider: 'github',
-    seed: seedConfig({
+  emulator = await createEmulator({
+    service: 'github', // ServiceName union, not `provider`
+    seed: {
       repos: [{ owner: 'acme', name: 'app', issues: [{ number: 1, title: 'Bug fix', state: 'open' }] }],
-    }),
+    },
   });
 });
 
 test.afterAll(async () => {
-  await emulate.stop();
+  await emulator.close();
 });
 
 test('dashboard shows seeded issues', async ({ page }) => {
@@ -736,27 +738,29 @@ Playwright runs workers in parallel. Each worker needs its own emulate instance 
 ```typescript
 // fixtures/emulate.fixture.ts
 import { test as base } from '@playwright/test';
-import { startEmulate, seedConfig } from '@orchestkit/emulate';
+// Package is `emulate`, entry point createEmulator.
+// Verified 2026-07-31 against emulate@0.9.0 dist/api.d.ts.
+import { createEmulator } from 'emulate';
 
-type EmulateFixtures = { emulatePort: number };
+type EmulateFixtures = { emulateUrl: string };
 
 export const test = base.extend<EmulateFixtures>({
-  emulatePort: [async ({}, use, workerInfo) => {
-    const port = 4100 + workerInfo.workerIndex;
-    const emulate = await startEmulate({
-      provider: 'github',
-      port,
-      seed: seedConfig({ repos: [{ owner: 'acme', name: 'app' }] }),
+  emulateUrl: [async ({}, use, workerInfo) => {
+    // Per-worker port isolation: `port` is a real EmulatorOptions field.
+    const emulator = await createEmulator({
+      service: 'github',
+      port: 4100 + workerInfo.workerIndex,
+      seed: { repos: [{ owner: 'acme', name: 'app' }] },
     });
-    await use(port);
-    await emulate.stop();
+    await use(emulator.url); // hand tests the url, not a bare port
+    await emulator.close();
   }, { scope: 'worker' }],
 });
 
 // In tests:
-test('worker-isolated test', async ({ page, emulatePort }) => {
-  // App configured to use http://localhost:{emulatePort} as API base
-  await page.goto(`/dashboard?api_port=${emulatePort}`);
+test('worker-isolated test', async ({ page, emulateUrl }) => {
+  // App configured to use emulateUrl as its API base
+  await page.goto(`/dashboard?api_base=${encodeURIComponent(emulateUrl)}`);
 });
 ```
 
