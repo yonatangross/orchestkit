@@ -2240,7 +2240,11 @@ def node_b(state):
 
 **RemainingSteps (2026 pattern)** — proactive recursion handling:
 ```python
-from langgraph.types import RemainingSteps
+# RemainingSteps lives in langgraph.managed, not langgraph.types.
+# Verified against langgraph 1.2.10: langgraph/types.py has no such name;
+# it is defined in langgraph/managed/is_last_step.py and re-exported from
+# langgraph/managed/__init__.py.
+from langgraph.managed import RemainingSteps
 
 def agent_node(state: WorkflowState, remaining: RemainingSteps):
     if remaining.steps < 5:
@@ -2683,7 +2687,10 @@ def call_subgraph(state: ParentState):
 
 **Correct — config propagation and explicit mapping:**
 ```python
-from langgraph.config import get_runnable_config
+# The function is get_config, not get_runnable_config. Verified against
+# langgraph 1.2.10: langgraph/config.py exports get_config, get_store and
+# get_stream_writer; no get_runnable_config has ever existed there.
+from langgraph.config import get_config
 
 def call_subgraph_with_mapping(state: ParentState) -> dict:
     # 1. Extract relevant data
@@ -2694,7 +2701,7 @@ def call_subgraph_with_mapping(state: ParentState) -> dict:
     }
 
     # 2. Propagate config for tracing/checkpointing
-    config = get_runnable_config()
+    config = get_config()
     result = subgraph.invoke(subgraph_input, config)
 
     # 3. Transform output back

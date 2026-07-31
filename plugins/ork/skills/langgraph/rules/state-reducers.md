@@ -49,7 +49,11 @@ def node_b(state):
 
 **RemainingSteps (2026 pattern)** — proactive recursion handling:
 ```python
-from langgraph.types import RemainingSteps
+# RemainingSteps lives in langgraph.managed, not langgraph.types.
+# Verified against langgraph 1.2.10: langgraph/types.py has no such name;
+# it is defined in langgraph/managed/is_last_step.py and re-exported from
+# langgraph/managed/__init__.py.
+from langgraph.managed import RemainingSteps
 
 def agent_node(state: WorkflowState, remaining: RemainingSteps):
     if remaining.steps < 5:

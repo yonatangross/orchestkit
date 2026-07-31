@@ -18,7 +18,10 @@ def call_subgraph(state: ParentState):
 
 **Correct — config propagation and explicit mapping:**
 ```python
-from langgraph.config import get_runnable_config
+# The function is get_config, not get_runnable_config. Verified against
+# langgraph 1.2.10: langgraph/config.py exports get_config, get_store and
+# get_stream_writer; no get_runnable_config has ever existed there.
+from langgraph.config import get_config
 
 def call_subgraph_with_mapping(state: ParentState) -> dict:
     # 1. Extract relevant data
@@ -29,7 +32,7 @@ def call_subgraph_with_mapping(state: ParentState) -> dict:
     }
 
     # 2. Propagate config for tracing/checkpointing
-    config = get_runnable_config()
+    config = get_config()
     result = subgraph.invoke(subgraph_input, config)
 
     # 3. Transform output back

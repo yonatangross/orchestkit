@@ -219,7 +219,11 @@ if [[ "$RUN_UNIT" == "true" ]]; then
     run_test "Async Hooks" "$SCRIPT_DIR/unit/test-async-hooks.sh" || true
     run_test "Cdn Video Pipeline" "$SCRIPT_DIR/unit/test-cdn-video-pipeline.sh" || true
     run_test "Hook Stdin Consumption" "$SCRIPT_DIR/unit/test-hook-stdin-consumption.sh" || true
-    run_test "Import Symbols" "$SCRIPT_DIR/unit/test-import-symbols.mjs" || true
+    run_test "Import Symbols" "$SCRIPT_DIR/unit/test-import-symbols.mjs" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
+    # Python half of the phantom-symbol gate. Skips unless ORK_PYTHON_SYMBOLS=1
+    # because it downloads wheels from PyPI, and a network-dependent hard gate is
+    # one people learn to ignore. Wired here so it is not an orphaned test.
+    run_test "Python Symbols (network, opt-in)" "$SCRIPT_DIR/skills/structure/test-python-symbols.sh" || true  # silent: best-effort — run_test records FAIL in TOTAL_FAILED; || true keeps the suite running
     run_test "Parse Frontmatter" "$SCRIPT_DIR/unit/test-parse-frontmatter.sh" || true
     run_test "Registry Resolve" "$SCRIPT_DIR/unit/test-registry-resolve.mjs" || true
     run_test "Whats New" "$SCRIPT_DIR/unit/test-whats-new.sh" || true
