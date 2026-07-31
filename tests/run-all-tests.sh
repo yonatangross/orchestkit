@@ -116,11 +116,23 @@ run_test() {
         return 0
     fi
 
+    # Pick the interpreter from the file, do not assume bash. Wiring the
+    # reclaimed tests added .mjs suites here for the first time, and `bash`
+    # on a Node file is a shell syntax error (exit 2), so test-import-symbols
+    # and test-registry-resolve reported FAIL in the suite while passing
+    # standalone. That is the exact "suite context differs" trap, and it looked
+    # like a flaky test rather than a runner bug.
+    local runner=bash
+    case "$script" in
+        *.mjs|*.js) runner=node ;;
+        *.py)       runner=python3 ;;
+    esac
+
     local exit_code=0
     if [[ -n "$VERBOSE" ]]; then
-        bash "$script" $VERBOSE || exit_code=$?
+        "$runner" "$script" $VERBOSE || exit_code=$?
     else
-        bash "$script" 2>&1 || exit_code=$?
+        "$runner" "$script" 2>&1 || exit_code=$?
     fi
 
     echo ""
@@ -379,7 +391,17 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
         run_test "Agent Definitions" "$SCRIPT_DIR/subagents/definition/test-agent-definitions.sh" || true
         # Reachability gate: a skill with no slash command AND model invocation
         # disabled AND no skills: frontmatter wiring cannot be invoked by anyone.
-        run_test "Unreachable Skills" "$SCRIPT_DIR/orphans/test-unreachable-skills.sh" || true  # silent: best-effort (run_test records failures; suite exits non-zero at end)
+        #
+        # ADVISORY here on purpose. Two gates read the same signal and they are
+        # not redundant: tests/skills/structure/test-skill-reachability.mjs is
+        # the RATCHET (UNREACHABLE_BASELINE=29, fails only on an increase), and
+        # this script is the DETECTOR, which has no baseline and exits 1 on any
+        # unreachable skill at all. Running the detector as a hard gate would
+        # fail the suite on the 29 the ratchet has already accepted, i.e. it
+        # would report a regression that did not happen. Enforcement stays with
+        # the ratchet; this reports the current list.
+        ORK_UNREACHABLE_SKILLS_ADVISORY=1 \
+          run_test "Unreachable Skills (advisory)" "$SCRIPT_DIR/orphans/test-unreachable-skills.sh" || true  # silent: best-effort (run_test records failures; suite exits non-zero at end)
         # Policy gate: a workflow that invokes an LLM must be manually
         # triggered. Max-plan OAuth is $0 in dollars but draws on the shared
         # weekly quota, so an automatic run competes with the operator's own

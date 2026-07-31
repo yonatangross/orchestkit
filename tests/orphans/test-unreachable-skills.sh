@@ -125,10 +125,19 @@ wired_count="$(grep -c . < "$TMP/wired.txt" | tr -d ' ')"
 # ---- PARSER SELF-CHECK -----------------------------------------------------
 # Every accusation this gate makes is an argument from absence, so a parser
 # that reads nothing would accuse everything. Floors are set far below the
-# real values (36 agents / 96 names as of 2026-07-27) so ordinary churn never
-# trips them, but a broken regex or a moved directory does.
+# real values so ordinary churn never trips them, but a broken regex or a
+# moved directory does.
+#
+# 2026-07-27: 36 agents / 96 names, floors 30 / 60.
+# 2026-07-31: #3221 removed 94 DEAD skill preload declarations from src/agents,
+#   which legitimately cut distinct wired names 96 -> 52 and tripped the 60
+#   floor. Verified both directions: at 8e6213b4f~1 this gate exits 0 with
+#   "Every skill is reachable"; at #3221 it ABORTs on the name floor alone
+#   (agent count held at 36). The repo genuinely shrank, so the floor comes
+#   down. 45 still catches the failure this guard exists for, a parser
+#   returning near-zero, while leaving room for further dead-edge cleanup.
 MIN_AGENTS_DECLARING=30
-MIN_WIRED_NAMES=60
+MIN_WIRED_NAMES=45
 if [[ "$agents_declaring" -lt "$MIN_AGENTS_DECLARING" || "$wired_count" -lt "$MIN_WIRED_NAMES" ]]; then
     echo -e "${RED}${BOLD}ABORT: reference parser looks broken, refusing to accuse anything.${NC}"
     echo "  agents declaring 'skills:'  : $agents_declaring (floor $MIN_AGENTS_DECLARING)"
