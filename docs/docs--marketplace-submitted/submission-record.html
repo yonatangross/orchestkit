@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plugin directory submission · PR #3208</title>
+<style>
+:root{--bg:#0b0d10;--panel:#12161b;--panel2:#171c23;--line:#232a33;--tx:#e6edf3;
+--dim:#8b97a6;--faint:#5b6675;--ok:#3fb950;--bad:#f85149;--warn:#d29922;
+--info:#58a6ff;--acc:#bc8cff;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.55 -apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+header{padding:18px 24px 13px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#12161b,#0b0d10)}
+h1{margin:0 0 4px;font-size:19px}
+.sub{color:var(--dim);font-size:12.5px}
+nav{display:flex;gap:4px;padding:10px 24px 0;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+nav button{background:none;border:0;border-bottom:2px solid transparent;color:var(--dim);padding:9px 13px;cursor:pointer;font-size:13px;font-weight:500;border-radius:4px 4px 0 0}
+nav button:hover{color:var(--tx);background:var(--panel2)}
+nav button.on{color:var(--tx);border-bottom-color:var(--acc);background:var(--panel2)}
+main{padding:22px 24px 40px;max-width:1060px}
+.view{display:none}.view.on{display:block}
+h2{font-size:15px;margin:20px 0 6px}
+h3{font-size:12px;margin:20px 0 8px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;font-weight:600}
+p{margin:8px 0;color:#c9d4e0;max-width:78ch}
+.lede{color:var(--dim);font-size:13px;margin-bottom:16px;max-width:84ch}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:15px 17px;margin:11px 0}
+table{width:100%;border-collapse:collapse;font-size:12.6px;margin:8px 0}
+th{text-align:left;color:var(--faint);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;padding:7px 9px;border-bottom:1px solid var(--line)}
+td{padding:8px 9px;border-bottom:1px solid #1b2027;vertical-align:top}
+tr:last-child td{border-bottom:0}
+code,.mono{font-family:var(--mono);font-size:12px}
+pre{background:#0d1117;border:1px solid var(--line);border-radius:7px;padding:13px;overflow-x:auto;font-family:var(--mono);font-size:11.5px;line-height:1.5;color:#c9d4e0;margin:8px 0}
+.pill{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10.5px;font-weight:700}
+.p-ok{background:rgba(63,185,80,.16);color:var(--ok)}
+.p-bad{background:rgba(248,81,73,.16);color:var(--bad)}
+.p-warn{background:rgba(210,153,34,.16);color:var(--warn)}
+.note{border-left:3px solid var(--warn);padding:9px 14px;background:rgba(210,153,34,.06);color:#d8c9a3;font-size:12.7px;margin:12px 0;border-radius:0 6px 6px 0}
+.note.bad{border-left-color:var(--bad);background:rgba(248,81,73,.06);color:#e8b3b0}
+.note.ok{border-left-color:var(--ok);background:rgba(63,185,80,.06);color:#a9d5b0}
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}
+.box{border:1px solid var(--line);border-radius:7px;padding:10px 13px;background:var(--panel2);font-size:12.5px}
+.box.on{border-color:var(--ok);background:rgba(63,185,80,.08)}
+.box.off{border-color:var(--bad);background:rgba(248,81,73,.07);opacity:.65}
+.arrow{color:var(--faint);font-family:var(--mono)}
+.tgl{background:var(--panel2);border:1px solid var(--line);color:var(--dim);padding:7px 14px;border-radius:16px;cursor:pointer;font-size:12.5px;font-weight:600;margin:4px 6px 4px 0}
+.tgl.on{background:rgba(188,140,255,.14);color:var(--acc);border-color:var(--acc)}
+ul{padding-left:19px;color:#c9d4e0;max-width:78ch}li{margin:5px 0;font-size:13px}
+a{color:var(--info)}
+</style>
+</head>
+<body>
+<header>
+  <h1>OrchestKit was submitted to the plugin directory</h1>
+  <div class="sub">PR #3208 · records the submission and corrects two things the form revealed</div>
+</header>
+
+<nav>
+  <button class="on" data-v="where">🎯 Where it actually lands</button>
+  <button data-v="fields">📋 What was submitted</button>
+  <button data-v="fixes">✏️ Two corrections</button>
+</nav>
+
+<main>
+
+<!-- WHERE -->
+<section class="view on" id="v-where">
+  <h2>The correction that matters most</h2>
+  <p class="lede">This doc previously called it an "official marketplace submission". That was wrong, and the difference is not cosmetic.</p>
+
+  <div>
+    <button class="tgl on" id="t-real">What actually happens</button>
+    <button class="tgl" id="t-wrong">What we assumed</button>
+  </div>
+
+  <div class="flow" id="flow"></div>
+  <div class="note" id="wnote"></div>
+
+  <h3>Submission is a web form, not a pull request</h3>
+  <pre>submit at:  https://clau.de/plugin-directory-submission</pre>
+  <table>
+    <tr><th style="width:56%">fact</th><th>source</th></tr>
+    <tr><td>"To submit a new plugin, use the plugin directory submission form."</td><td><code>claude-plugins-official</code> README</td></tr>
+    <tr><td>"Pull requests opened directly against this repo are closed automatically."</td><td><code>claude-plugins-community</code> README</td></tr>
+    <tr><td>"A read-only mirror … synced nightly from Anthropic's internal review pipeline."</td><td>same</td></tr>
+    <tr><td>"Every plugin listed here has been submitted via claude.ai, passed automated security scanning, and been approved."</td><td>same</td></tr>
+  </table>
+
+  <div class="note bad"><b>Corroboration that PRs are the wrong channel.</b> The official repo ships <code>close-external-prs.yml</code> and <code>external-pr-scope-guard.yml</code>, and <code>validate-frontmatter.yml</code> is gated on <code>head.repo.full_name == github.repository</code>, so a fork PR never even runs validation. Opening one would have been silently closed.</div>
+</section>
+
+<!-- FIELDS -->
+<section class="view" id="v-fields">
+  <h2>Exactly what went in the form</h2>
+  <table>
+    <tr><th style="width:26%">field</th><th>value</th></tr>
+    <tr><td>slug</td><td><code>orchestkit</code></td></tr>
+    <tr><td>display name</td><td>OrchestKit</td></tr>
+    <tr><td>category</td><td>development</td></tr>
+    <tr><td>repo</td><td><code>yonatangross/orchestkit</code></td></tr>
+    <tr><td>plugin path</td><td><code>plugins/ork</code></td></tr>
+    <tr><td>homepage</td><td>orchestkit.yonyon.ai</td></tr>
+    <tr><td>license</td><td>MIT</td></tr>
+    <tr><td>privacy policy</td><td>orchestkit.yonyon.ai/privacy <span class="pill p-ok">verified live, HTTP 200</span></td></tr>
+    <tr><td>supported platform</td><td><b>Claude Code only</b> <span class="pill p-warn">Cowork deliberately unticked</span></td></tr>
+  </table>
+
+  <h3>Two fields the doc had not anticipated</h3>
+  <ul>
+    <li><code>Plugin description</code> — prose, directory-facing</li>
+    <li><code>Example use cases</code> — numbered examples</li>
+  </ul>
+  <p style="font-size:12.7px">Recorded so the next submission does not have to improvise them at the form.</p>
+
+  <div class="note"><b>No reviewer-notes field exists.</b> The disclosure text written for one lives in the README section "What OrchestKit observes", which the automated reviewer reads from the cloned repo. That is why PR #3205 was merged <i>before</i> submitting rather than after.</div>
+
+  <div class="note ok"><b>Confirmation received:</b> "Plugin submitted for review. Your plugin submission has been received. The review team will evaluate it and may reach out for additional information."</div>
+</section>
+
+<!-- FIXES -->
+<section class="view" id="v-fixes">
+  <h2>Two corrections this submission surfaced</h2>
+
+  <div class="card">
+    <h3 style="margin-top:0">1 · Target directory</h3>
+    <p style="font-size:12.8px">Approved submissions land in <code>anthropics/claude-plugins-community</code> after review, <b>not</b> the official marketplace. Per the Claude Code docs the official marketplace is curated by Anthropic at its discretion, has no application process, and the form does not add plugins to it.</p>
+    <p style="font-size:12.8px">The win here is a <b>community listing</b>. Framing it as "official marketplace" would have set the wrong expectation for anyone reading this later.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">2 · Claude Cowork was unticked</h3>
+    <p style="font-size:12.8px">The form asks submitters to test each selected surface first. OrchestKit has never been tested in Cowork, and a grep for <code>cowork</code> across <code>plugins/</code> returns only the word "coworker" in prose.</p>
+    <p style="font-size:12.8px">Ticking it would have been an untested claim on a form that explicitly asks you not to make one. Cowork can be added later via a new submission once actually exercised.</p>
+  </div>
+
+  <div class="note"><b>Both corrections share a shape.</b> Each is a claim that would have been convenient to make and was not verifiable: "official marketplace" was an assumption about where approval leads, "Cowork supported" an assumption about a surface never run. The doc records them so the next submission starts from what was checked rather than what was hoped.</div>
+
+  <h3>Why this PR needed a playground at all</h3>
+  <p style="font-size:12.7px">It changes exactly one file, <code>docs/marketplace-submission.md</code>, which looks like the docs-only case the gate skips. It is not: the inert list is only root-level <code>README.md</code>, <code>CHANGELOG.md</code>, <code>CONTRIBUTING.md</code>, <code>SECURITY.md</code>, <code>CODE_OF_CONDUCT.md</code>, <code>LICENSE</code>, <code>.github/**</code>, <code>vercel.json</code> and <code>*.toml</code>. Anything under <code>docs/</code> is not inert, so the gate fires fail-closed and wants <code>docs/docs--marketplace-submitted/</code> — a doubled "docs" that reads like a typo and is not, because the slug is the branch name with <code>/</code> replaced by <code>--</code>.</p>
+</section>
+
+</main>
+
+<script>
+const REAL = {
+  boxes: [
+    ['clau.de form', 'on'], ['automated security scan', 'on'],
+    ['Anthropic internal review', 'on'], ['claude-plugins-community', 'on'],
+  ],
+  note: ['note ok', '<b>This is the real path.</b> A community listing, mirrored read-only and synced nightly from Anthropic\'s internal review pipeline. Approval is real, but it is not the curated official marketplace.']
+};
+const WRONG = {
+  boxes: [
+    ['open a PR', 'off'], ['fork validation', 'off'],
+    ['claude-plugins-official', 'off'], ['official marketplace listing', 'off'],
+  ],
+  note: ['note bad', '<b>None of this happens.</b> External PRs are auto-closed, fork validation never runs, and the official marketplace has no application process at all. Every box here is a dead end.']
+};
+const el = id => document.getElementById(id);
+function show(which) {
+  const S = which === 'real' ? REAL : WRONG;
+  el('flow').innerHTML = S.boxes.map((b, i) =>
+    `<div class="box ${b[1]}">${b[0]}</div>` +
+    (i < S.boxes.length - 1 ? '<span class="arrow">──▶</span>' : '')).join('');
+  el('wnote').className = S.note[0];
+  el('wnote').innerHTML = S.note[1];
+  el('t-real').classList.toggle('on', which === 'real');
+  el('t-wrong').classList.toggle('on', which === 'wrong');
+}
+el('t-real').onclick = () => show('real');
+el('t-wrong').onclick = () => show('wrong');
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.view').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  document.getElementById('v-' + b.dataset.v).classList.add('on');
+});
+show('real');
+</script>
+</body>
+</html>
