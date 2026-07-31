@@ -19,7 +19,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
-PLUGIN_JSON="$PROJECT_ROOT/.claude-plugin/plugin.json"
+# The plugin is BUILT into plugins/ork/, so CC discovers it there, not at the
+# repo root. This path was never updated when the single-plugin layout landed,
+# and the test was orphaned from every runner, so nothing caught the rot (#3220).
+PLUGIN_ROOT="$PROJECT_ROOT/plugins/ork"
+PLUGIN_JSON="$PLUGIN_ROOT/.claude-plugin/plugin.json"
 
 FAILED=0
 
@@ -68,14 +72,14 @@ echo "────────────────────────�
 skills_config=$(jq -r '.skills // "null"' "$PLUGIN_JSON")
 
 if [[ "$skills_config" == "null" ]]; then
-    skills_dir="$PROJECT_ROOT/src/skills"
+    skills_dir="$PLUGIN_ROOT/skills"
 elif echo "$skills_config" | jq -e '.directory' >/dev/null 2>&1; then
     # Object format (legacy): {"directory": "skills"}
     skills_subdir=$(echo "$skills_config" | jq -r '.directory')
-    skills_dir="$PROJECT_ROOT/$skills_subdir"
+    skills_dir="$PLUGIN_ROOT/$skills_subdir"
 else
     # String format (correct): "./skills/"
-    skills_dir="$PROJECT_ROOT/${skills_config#./}"
+    skills_dir="$PLUGIN_ROOT/${skills_config#./}"
     skills_dir="${skills_dir%/}"
 fi
 
@@ -91,7 +95,7 @@ else
     internal_skills=()
 
     while IFS= read -r skill_file; do
-        ((total_skills++))
+        total_skills=$((total_skills + 1))
         skill_name=$(basename "$(dirname "$skill_file")")
 
         # Check user-invocable field
@@ -148,7 +152,7 @@ else
 
     for agent_file in "$agents_dir"/*.md; do
         [[ ! -f "$agent_file" ]] && continue
-        ((agent_count++))
+        agent_count=$((agent_count + 1))
 
         agent_name=$(basename "$agent_file" .md)
         agent_names+=("$agent_name")
@@ -185,7 +189,7 @@ for skill_file in "$skills_dir"/*/SKILL.md; do
 
     if [[ "$has_name" -eq 0 ]] || [[ "$has_desc" -eq 0 ]]; then
         echo -e "  ${RED}FAIL${NC}: $skill_name missing required frontmatter"
-        ((skills_with_issues++))
+        skills_with_issues=$((skills_with_issues + 1))
     fi
 
     # Check description has trigger phrases (for discoverability)
@@ -221,7 +225,7 @@ for agent_file in "$agents_dir"/*.md; do
 
     if [[ "$has_name" -eq 0 ]] || [[ "$has_desc" -eq 0 ]]; then
         echo -e "  ${RED}FAIL${NC}: $agent_name missing required frontmatter"
-        ((agents_with_issues++))
+        agents_with_issues=$((agents_with_issues + 1))
         FAILED=$((FAILED + 1))
     fi
 
