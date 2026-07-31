@@ -1518,7 +1518,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-ship",
     "description": "One-shot pipeline turning a claude.ai/design link into a pull request: scaffold via /ork:design-import, stories and specs via /ork:cover, browser verification via /ork:expect, then open the PR. Use when a design link should come back as a PR with no intermediate steps; if all you need is the components written to disk, run /ork:design-import instead.",
     "version": "1.0.0",
-    "sha256": "09297585f5f48a323284c19da88f9f8d5d6f6360d6939eacff0a05501da47dec",
+    "sha256": "3ec1bd844f3b192a72070486446eff106bb8514654675e1638d80a309a5d8752",
     "author": "OrchestKit",
     "tags": [
       "claude-design",
@@ -1549,7 +1549,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "design-import",
       "cover",
       "expect",
-      "create-pr",
       "remember",
       "memory"
     ],
@@ -1606,9 +1605,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "design-system-tokens": {
     "name": "design-system-tokens",
-    "description": "Design token management with W3C Design Token Community Group specification, three-tier token hierarchy (global/alias/component), OKLCH color spaces, Style Dictionary transformation, and dark mode theming. Use when creating design token files, implementing theme systems, managing token versioning, or building design-to-code pipelines.",
+    "description": "Design token management with the W3C Design Token spec, three-tier hierarchy (global/alias/component), OKLCH color, Style Dictionary transforms, and dark mode theming. Use when creating token files, implementing theme systems, or building design-to-code pipelines.",
     "version": "1.1.0",
-    "sha256": "e3e4766bba236a517a15900f56b2aa5be1fbd9765b8787538ce05e8a550ce5e3",
+    "sha256": "dafbabf034bdda0a924f44122dca8d98e56b0a036db9b29e4a8dcfe7fd17bbc4",
     "author": "OrchestKit",
     "tags": [
       "design-tokens",

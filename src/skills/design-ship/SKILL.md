@@ -31,7 +31,6 @@ skills:
   - design-import
   - cover
   - expect
-  - create-pr
   - remember
   - memory
 metadata:

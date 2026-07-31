@@ -272,7 +272,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": true,
     "depCount": 3,
-    "usedByCount": 1
+    "usedByCount": 0
   },
   {
     "id": "database-patterns",
@@ -321,7 +321,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "complex",
     "category": "workflow",
     "hasDeps": true,
-    "depCount": 6,
+    "depCount": 5,
     "usedByCount": 0
   },
   {
@@ -1276,10 +1276,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "design-ship",
     "target": "expect"
-  },
-  {
-    "source": "design-ship",
-    "target": "create-pr"
   },
   {
     "source": "design-ship",

@@ -83,7 +83,9 @@
 //
 // USAGE
 //   node tests/skills/structure/test-skill-reachability.mjs
-//   node tests/skills/structure/test-skill-reachability.mjs --dir <path>
+//   node tests/skills/structure/test-skill-reachability.mjs --dir <src-dir>
+//     <src-dir> must be a directory containing BOTH skills/ and agents/,
+//     i.e. a repo's src/. Used to run this against another checkout.
 // ============================================================================
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
@@ -91,17 +93,68 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const REPO = join(__dirname, '..', '..', '..');
 const argDir = process.argv.indexOf('--dir');
-const SKILLS_DIR =
-  argDir !== -1 && process.argv[argDir + 1]
-    ? process.argv[argDir + 1]
-    : join(__dirname, '..', '..', '..', 'src', 'skills');
+const ROOT =
+  argDir !== -1 && process.argv[argDir + 1] ? process.argv[argDir + 1] : join(REPO, 'src');
+const SKILLS_DIR = join(ROOT, 'skills');
+const AGENTS_DIR = join(ROOT, 'agents');
 
 /** Parse the YAML frontmatter block only. Body text must never match. */
 function frontmatter(text) {
   if (!text.startsWith('---')) return '';
   const parts = text.split('---');
   return parts.length >= 3 ? parts[1] : '';
+}
+
+/**
+ * Extract a YAML list field, handling BOTH forms this repo uses:
+ *
+ *   inline (skills):  skills: [a, b, c]      may wrap across lines
+ *   block  (agents):  skills:
+ *                       - a
+ *                       - b
+ *
+ * This function exists because the first version of this linter matched only
+ * the inline form. On block-form files the regex returned nothing and the
+ * linter printed DEAD-EDGE: 0, a false clean. That shipped in #3216 and hid
+ * five real skill edges (the design-* family) plus the ENTIRE agent surface,
+ * 98 edges, which is #3218. Parse the shape; never assume which one an author
+ * picked.
+ *
+ * Deliberately dependency-free: js-yaml resolves in this tree today but is a
+ * transitive package, not a declared dependency, so a test must not import it.
+ */
+function parseListField(fm, key) {
+  const lines = fm.split('\n');
+  const head = new RegExp(`^${key}:\\s*(.*)$`);
+  const clean = (s) => s.trim().replace(/^['"]|['"]$/g, '');
+
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(head);
+    if (!m) continue;
+    const rest = m[1].trim();
+
+    if (rest.startsWith('[')) {
+      let buf = rest;
+      while (!buf.includes(']') && i + 1 < lines.length) buf += ` ${lines[++i].trim()}`;
+      const inner = buf.slice(buf.indexOf('[') + 1, buf.lastIndexOf(']'));
+      return inner.split(',').map(clean).filter(Boolean);
+    }
+
+    if (rest === '') {
+      const out = [];
+      for (let j = i + 1; j < lines.length; j++) {
+        if (/^\s*#/.test(lines[j])) continue;
+        const item = lines[j].match(/^\s+-\s*(.+?)\s*$/);
+        if (!item) break;
+        out.push(clean(item[1]));
+      }
+      return out;
+    }
+    return [];
+  }
+  return [];
 }
 
 function loadSkills(dir) {
@@ -111,50 +164,84 @@ function loadSkills(dir) {
     const file = join(dir, name, 'SKILL.md');
     if (!existsSync(file)) continue;
     const fm = frontmatter(readFileSync(file, 'utf8'));
-    const preloadMatch = fm.match(/^skills:\s*\[(.*?)\]/ms);
     out.set(name, {
       file: `src/skills/${name}/SKILL.md`,
       modelBlocked: /^disable-model-invocation:\s*true/m.test(fm),
       userBlocked: /^user-invocable:\s*false/m.test(fm),
-      preloads: preloadMatch
-        ? preloadMatch[1]
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean)
-        : [],
+      preloads: parseListField(fm, 'skills'),
     });
   }
   return out;
 }
 
-// Ratchet ceiling for UNREACHABLE. Lower this whenever the count genuinely
-// drops; never raise it. See the header for why this is not zero.
-const UNREACHABLE_BASELINE = 30;
+function loadAgents(dir) {
+  const out = new Map();
+  if (!existsSync(dir)) return out;
+  for (const name of readdirSync(dir).sort()) {
+    if (!name.endsWith('.md') || name === 'README.md') continue;
+    const fm = frontmatter(readFileSync(join(dir, name), 'utf8'));
+    out.set(name.slice(0, -3), {
+      file: `src/agents/${name}`,
+      preloads: parseListField(fm, 'skills'),
+    });
+  }
+  return out;
+}
+
+// Ratchet ceilings. Lower each whenever the count genuinely drops; never
+// raise one. See the header for why UNREACHABLE is not zero.
+//
+// AGENT_DEAD_EDGE starts at the measured baseline rather than zero because
+// clearing it is per-agent judgement, not a sweep: with ~331 tokens of budget
+// headroom, most of these must be fixed by DELETING the false declaration
+// rather than un-flagging the target (#3218). Skill-side DEAD-EDGE stays a
+// hard zero, since #3216 already took it there.
+const UNREACHABLE_BASELINE = 29;
+const AGENT_DEAD_EDGE_BASELINE = 94;
 
 const skills = loadSkills(SKILLS_DIR);
+const agents = loadAgents(AGENTS_DIR);
 
 const unreachable = [];
 const deadEdges = [];
+const agentDeadEdges = [];
+const missingTargets = [];
 
 for (const [name, s] of skills) {
   if (s.modelBlocked && s.userBlocked) unreachable.push(name);
   for (const dep of s.preloads) {
     const target = skills.get(dep);
-    if (target?.modelBlocked) deadEdges.push({ from: name, to: dep });
+    if (!target) missingTargets.push({ from: s.file, to: dep });
+    else if (target.modelBlocked) deadEdges.push({ from: name, to: dep });
   }
 }
 
-console.log('='.repeat(70));
-console.log('  Skill Reachability Linter (#3215)');
-console.log('='.repeat(70));
-const unreachableRegressed = unreachable.length > UNREACHABLE_BASELINE;
+for (const [name, a] of agents) {
+  for (const dep of a.preloads) {
+    const target = skills.get(dep);
+    if (!target) missingTargets.push({ from: a.file, to: dep });
+    else if (target.modelBlocked) agentDeadEdges.push({ from: name, to: dep });
+  }
+}
 
-console.log(`  skills scanned : ${skills.size}`);
+const unreachableRegressed = unreachable.length > UNREACHABLE_BASELINE;
+const agentRegressed = agentDeadEdges.length > AGENT_DEAD_EDGE_BASELINE;
+
+console.log('='.repeat(70));
+console.log('  Skill + Agent Reachability Linter (#3215, #3218)');
+console.log('='.repeat(70));
+console.log(`  skills scanned  : ${skills.size}`);
+console.log(`  agents scanned  : ${agents.size}`);
 console.log(
-  `  UNREACHABLE    : ${unreachable.length} / ${UNREACHABLE_BASELINE} baseline` +
+  `  UNREACHABLE     : ${unreachable.length} / ${UNREACHABLE_BASELINE} baseline` +
     (unreachableRegressed ? '  <-- REGRESSION' : ''),
 );
-console.log(`  DEAD-EDGE      : ${deadEdges.length} (must be 0)`);
+console.log(`  DEAD-EDGE       : ${deadEdges.length} (must be 0)`);
+console.log(
+  `  AGENT-DEAD-EDGE : ${agentDeadEdges.length} / ${AGENT_DEAD_EDGE_BASELINE} baseline` +
+    (agentRegressed ? '  <-- REGRESSION' : ''),
+);
+console.log(`  MISSING-TARGET  : ${missingTargets.length} (must be 0)`);
 
 if (unreachableRegressed) {
   console.log(`\n== UNREACHABLE REGRESSION (${unreachable.length} > ${UNREACHABLE_BASELINE}) ==`);
@@ -164,7 +251,7 @@ if (unreachableRegressed) {
   for (const n of unreachable) console.log(`   ${skills.get(n).file}`);
 } else if (unreachable.length < UNREACHABLE_BASELINE) {
   console.log(
-    `\n  NOTE: unreachable count fell to ${unreachable.length}. Lower ` +
+    `\n  NOTE: unreachable fell to ${unreachable.length}. Lower ` +
       `UNREACHABLE_BASELINE to ${unreachable.length} to lock the gain in.`,
   );
 }
@@ -176,16 +263,37 @@ if (deadEdges.length) {
   for (const e of deadEdges) console.log(`   ${e.from}  ->  ${e.to}`);
 }
 
-if (unreachableRegressed || deadEdges.length) {
+if (agentRegressed) {
+  console.log(`\n== AGENT-DEAD-EDGE REGRESSION (${agentDeadEdges.length} > ${AGENT_DEAD_EDGE_BASELINE}) ==`);
+  console.log('   An agent skills: preload naming a disable-model-invocation:true');
+  console.log('   target. It cannot be preloaded into the subagent.');
+  for (const e of agentDeadEdges) console.log(`   ${e.from}  ->  ${e.to}`);
+} else if (agentDeadEdges.length < AGENT_DEAD_EDGE_BASELINE) {
+  console.log(
+    `\n  NOTE: agent dead edges fell to ${agentDeadEdges.length}. Lower ` +
+      `AGENT_DEAD_EDGE_BASELINE to ${agentDeadEdges.length} to lock the gain in.`,
+  );
+}
+
+if (missingTargets.length) {
+  console.log(`\n== MISSING-TARGET (${missingTargets.length}) ==`);
+  console.log('   A skills: preload naming a skill that does not exist at all.');
+  for (const e of missingTargets) console.log(`   ${e.from}  ->  ${e.to}`);
+}
+
+if (unreachableRegressed || deadEdges.length || agentRegressed || missingTargets.length) {
   const why = [];
   if (unreachableRegressed) why.push(`unreachable rose to ${unreachable.length} (baseline ${UNREACHABLE_BASELINE})`);
-  if (deadEdges.length) why.push(`${deadEdges.length} dead preload edges`);
+  if (deadEdges.length) why.push(`${deadEdges.length} dead skill preload edges`);
+  if (agentRegressed) why.push(`agent dead edges rose to ${agentDeadEdges.length} (baseline ${AGENT_DEAD_EDGE_BASELINE})`);
+  if (missingTargets.length) why.push(`${missingTargets.length} preloads naming a nonexistent skill`);
   console.log(`\nFAILED: ${why.join('; ')}`);
   process.exit(1);
 }
 
 console.log(
-  `\nSUCCESS: every preload edge resolves; unreachable held at ${unreachable.length}` +
-    ` (baseline ${UNREACHABLE_BASELINE})`,
+  `\nSUCCESS: 0 skill dead edges, 0 missing targets; unreachable held at ` +
+    `${unreachable.length}/${UNREACHABLE_BASELINE}, agent dead edges at ` +
+    `${agentDeadEdges.length}/${AGENT_DEAD_EDGE_BASELINE}`,
 );
 process.exit(0);

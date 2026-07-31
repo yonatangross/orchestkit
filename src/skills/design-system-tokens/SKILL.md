@@ -2,14 +2,13 @@
 name: design-system-tokens
 license: MIT
 compatibility: "Claude Code 2.1.220+."
-description: Design token management with W3C Design Token Community Group specification, three-tier token hierarchy (global/alias/component), OKLCH color spaces, Style Dictionary transformation, and dark mode theming. Use when creating design token files, implementing theme systems, managing token versioning, or building design-to-code pipelines.
+description: Design token management with the W3C Design Token spec, three-tier hierarchy (global/alias/component), OKLCH color, Style Dictionary transforms, and dark mode theming. Use when creating token files, implementing theme systems, or building design-to-code pipelines.
 tags: [design-tokens, w3c-tokens, oklch, style-dictionary, theming, dark-mode, css-variables, tailwind-theme, design-system, color-spaces]
 context: fork
 agent: frontend-ui-developer
 version: 1.1.0
 author: OrchestKit
 user-invocable: false
-disable-model-invocation: true
 complexity: medium
 persuasion-type: guidance
 targets:
