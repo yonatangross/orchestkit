@@ -1,6 +1,9 @@
+import { acceptFamily, uaFamily } from "@/lib/agent-surface";
+import { reportServerEvents } from "@/lib/analytics-server";
 import { SITE } from "@/lib/constants";
 import { getDocMarkdown } from "@/lib/doc-markdown";
 import { searchDocs } from "@/lib/doc-search";
+import { mcpTelemetryEvents } from "@/lib/mcp-telemetry";
 import { SEARCH_RESULTS_HTML, UI_SEARCH_RESULTS } from "@/lib/mcp-ui";
 
 // Stateless MCP server over Streamable HTTP (JSON-RPC 2.0 on POST). Dependency-
@@ -197,8 +200,22 @@ export async function POST(request: Request) {
 
 	const batch = Array.isArray(payload);
 	const requests = (batch ? payload : [payload]) as RpcRequest[];
-	const responses = (await Promise.all(requests.map(dispatch))).filter(
-		(r): r is object => r !== null,
+	const pairs = await Promise.all(
+		requests.map(async (r) => ({ request: r, response: await dispatch(r) })),
+	);
+	const responses = pairs
+		.map((p) => p.response)
+		.filter((r): r is object => r !== null);
+
+	// Fire-and-forget: `reportServerEvents` hands the send to Next's `after()`,
+	// so this adds nothing to the response path. The whole batch goes in ONE
+	// ingest POST rather than one per JSON-RPC request.
+	reportServerEvents(
+		request.headers,
+		mcpTelemetryEvents(pairs, {
+			ua_family: uaFamily(request.headers.get("user-agent")),
+			accept_family: acceptFamily(request.headers.get("accept") ?? ""),
+		}),
 	);
 
 	// A POST with only notifications produces no responses → 202 Accepted.

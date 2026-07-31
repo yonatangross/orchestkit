@@ -28,8 +28,14 @@ import {
 import {
   MAX_SNIPPETS_PER_PAGE,
   buildDisplayList,
+  toBlocks,
 } from "@/lib/search-display";
-import { reportZeroResultQuery } from "@/lib/search-beacon";
+import {
+  reportSearchPerformed,
+  reportSearchResultClicked,
+  reportZeroResultQuery,
+} from "@/lib/search-beacon";
+import { stripOrigin } from "@/lib/search-relevance";
 import { SearchZeroResults } from "@/components/search-zero-results";
 
 const FACETS: { value: string; name: string }[] = [
@@ -50,7 +56,14 @@ export default function CustomSearchDialog(props: SharedProps) {
     // 433 KB, re-fetched on each keystroke, then parsed and grouped client-side.
     // maxSnippets matches MAX_SNIPPETS_PER_PAGE; limit covers the display cap
     // (3 top + 6 groups x 4 = 27 pages, at most 3 rows each).
-    api: `/api/search?maxSnippets=${MAX_SNIPPETS_PER_PAGE}&limit=90`,
+    //
+    // client=dialog marks this as OUR OWN XHR, not agent traffic. fumadocs'
+    // fetchClient sends a bare fetch() with no headers, so the request arrives
+    // with `Accept: */*` and is otherwise indistinguishable from an agent
+    // calling the documented /api/search endpoint. Its debounce is 100ms, so
+    // without this marker middleware emitted one agent:api-request per settled
+    // keystroke. The API itself ignores the param.
+    api: `/api/search?maxSnippets=${MAX_SNIPPETS_PER_PAGE}&limit=90&client=dialog`,
     tag,
   });
 
@@ -82,11 +95,59 @@ export default function CustomSearchDialog(props: SharedProps) {
     return () => clearTimeout(timer);
   }, [isZeroResult, search]);
 
+  // search:performed is the denominator for click-through, and the only record
+  // of what people actually type. Debounced on the SAME 1500ms as the
+  // zero-result beacon because fumadocs' own delay is 100ms, i.e. roughly one
+  // settled result set per typed word: instrumenting the raw data change would
+  // emit several events per search.
+  //
+  // The dedupe key carries the facet as well as the text. Keyed on text alone,
+  // switching Skills -> Agents on the same query would emit nothing and the
+  // facet's effect on results would go unmeasured; a facet change re-runs the
+  // query with no debounce of its own, so it is a genuinely new result set.
+  const lastPerformed = useRef<string>("");
+  useEffect(() => {
+    const q = search.trim();
+    // rows is null until a search has actually run (fumadocs reports "empty"
+    // rather than an array for an empty query), so this is the real guard.
+    if (!q || query.isLoading || !rows) return;
+    const key = `${tag ?? "all"}::${q}`;
+    if (lastPerformed.current === key) return;
+    // Page blocks, not rendered rows: the flat array interleaves heading/text
+    // sub-rows. Still a post-cap count (limit=90), never the corpus total.
+    const resultCount = toBlocks(rows).length;
+    const timer = setTimeout(() => {
+      lastPerformed.current = key;
+      reportSearchPerformed({ query: q, resultCount, tag: tag ?? "all" });
+    }, BEACON_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [search, tag, rows, query.isLoading]);
+
   return (
     <SearchDialog
       search={search}
       onSearchChange={setSearch}
       isLoading={query.isLoading}
+      // One funnel for BOTH mouse clicks and keyboard Enter, so no per-item
+      // wiring. fumadocs calls this AFTER router.push and after closing the
+      // dialog, which is why the beacon must be sendBeacon/keepalive.
+      onSelect={(item) => {
+        // "action" items are fumadocs' own commands, not search results, and
+        // carry no url.
+        if (item.type === "action") return;
+        const items = display?.items ?? [];
+        const position = items.findIndex((i) => i.id === item.id);
+        // Unreachable by construction (the list is built from `display`), but a
+        // -1 would poison the rank math this event exists to feed, so drop it.
+        if (position < 0) return;
+        reportSearchResultClicked({
+          query: search,
+          url: stripOrigin(item.url),
+          position,
+          resultType: item.type,
+          tag: tag ?? "all",
+        });
+      }}
       {...props}
     >
       <SearchDialogOverlay />
