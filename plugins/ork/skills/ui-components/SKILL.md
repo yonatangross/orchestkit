@@ -24,21 +24,23 @@ allowed-tools:
 
 # UI Components
 
-Comprehensive patterns for building accessible UI component libraries with shadcn/ui and Radix Primitives. Covers CVA variants, OKLCH theming, cn() utility, component extension, asChild composition, dialog/menu patterns, and data-attribute styling. Each category has individual rule files in `rules/` loaded on-demand.
+Patterns for building accessible UI component libraries with shadcn/ui and Radix Primitives, as a thin wrap over the first-party docs: quick-start recipes, key decisions, anti-patterns, and the house delta. Vendor mechanics (CVA variants, cn() utility, component extension, asChild composition, dialog/menu patterns, data-attribute styling) are upstream's job; see [Upstream coverage (do not restate)](#upstream-coverage-do-not-restate). Each remaining category has individual rule files in `rules/` loaded on-demand.
 
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
-| [shadcn/ui](#shadcnui) | 4 | HIGH | CVA variants, component customization, form patterns, data tables, v4 styles |
-| [Radix Primitives](#radix-primitives) | 3 | HIGH | Dialogs, polymorphic composition, data-attribute styling |
-| [Design System](#design-system) | 5 | HIGH | W3C tokens, OKLCH theming, spacing scales, typography, component states, animation |
+| [shadcn/ui](#shadcnui) | 1 | HIGH | v4 styles, preset codes, style detection |
+| [Design System](#design-system) | 4 | HIGH | W3C tokens, OKLCH theming, spacing scales, typography, component states, animation |
 | [Design System Components](#design-system-components) | 1 | HIGH | Atomic design, CVA variants, accessibility, Storybook |
 | [Forms](#forms) | 2 | HIGH | React Hook Form v7, Zod validation, Server Actions |
 | [Modern CSS & Tooling](#modern-css--tooling) | 3 | HIGH | CSS cascade layers, Tailwind v4, Storybook CSF3 |
 | [UX Foundations](#ux-foundations) | 4 | HIGH | Visual hierarchy, typography thresholds, color system, empty states |
 
-**Total: 22 rules across 7 categories**
+**Total: 15 rules across 6 categories.** Radix primitive mechanics and shadcn
+customization tutorials are first-party documented; see
+[Upstream coverage (do not restate)](#upstream-coverage-do-not-restate) and
+[references/ork-delta.md](references/ork-delta.md) for what stays ours.
 
 ## Quick Start
 
@@ -93,10 +95,11 @@ Beautifully designed, accessible components built on CVA variants, cn() utility,
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Customization | `rules/shadcn-customization.md` | CVA variants, cn() utility, OKLCH theming, component extension |
-| Forms | `rules/shadcn-forms.md` | Form field wrappers, react-hook-form integration, validation |
-| Data Table | `rules/shadcn-data-table.md` | TanStack Table integration, column definitions, sorting/filtering |
 | v4 Styles | `rules/shadcn-v4-styles.md` | 6 styles (Vega→Luma), preset codes, style detection, class mapping |
+
+Customization, form, and data-table walkthroughs are upstream's job now; see
+[Upstream coverage (do not restate)](#upstream-coverage-do-not-restate). Our
+conventions on top of them live in [references/ork-delta.md](references/ork-delta.md).
 
 ### v4 Style System
 
@@ -124,16 +127,6 @@ Configure visually at [ui.shadcn.com/create](https://ui.shadcn.com/create) → p
 
 **Detection:** Read `components.json` → `"style"` field (e.g., `"radix-luma"`, `"base-nova"`). Old `"new-york"` and `"default"` styles are superseded by Vega.
 
-## Radix Primitives
-
-Unstyled, accessible React primitives for building high-quality design systems.
-
-| Rule | File | Key Pattern |
-|------|------|-------------|
-| Dialog | `rules/radix-dialog.md` | Dialog, AlertDialog, controlled state, animations |
-| Composition | `rules/radix-composition.md` | asChild, Slot, nested triggers, polymorphic rendering |
-| Styling | `rules/radix-styling.md` | Data attributes, Tailwind arbitrary variants, focus management |
-
 ## Key Decisions
 
 | Decision | Recommendation |
@@ -146,6 +139,7 @@ Unstyled, accessible React primitives for building high-quality design systems.
 | Composition | Use `asChild` to avoid wrapper divs |
 | Animation | CSS-only with data-state selectors |
 | Form components | Combine with react-hook-form |
+| Destructive confirmations | AlertDialog, never plain Dialog (see [references/ork-delta.md](references/ork-delta.md)) |
 
 ## Anti-Patterns (FORBIDDEN)
 
@@ -158,13 +152,32 @@ Unstyled, accessible React primitives for building high-quality design systems.
 - **Color-only states**: Use data attributes + multiple indicators
 - **Manual focus management**: Use Radix built-in focus trapping
 
+## Upstream coverage (do not restate)
+
+These topics were removed from this skill on 2026-07-31 because a first-party
+source owns them. Point sessions at the source; keep only floors, scars, and
+house decisions here (they live in [references/ork-delta.md](references/ork-delta.md)).
+
+| Topic | First-party source |
+|-------|--------------------|
+| shadcn setup, init checklist, adding components | vercel:shadcn (marketplace skill), https://ui.shadcn.com/docs/installation |
+| shadcn customization, CVA variants, cn() utility, component extension | vercel:shadcn (marketplace skill), https://ui.shadcn.com/docs and https://cva.style/docs |
+| OKLCH theming variables, light/dark CSS variable sets | https://ui.shadcn.com/docs/theming |
+| Dark mode toggle with next-themes | https://ui.shadcn.com/docs/dark-mode and https://github.com/pacocoursey/next-themes |
+| Data table with TanStack Table | https://ui.shadcn.com/docs/components/data-table and https://tanstack.com/table |
+| Form field wrappers and validation states | https://ui.shadcn.com/docs/components/form |
+| Radix Dialog and AlertDialog patterns | https://www.radix-ui.com/primitives/docs/components/dialog and .../components/alert-dialog |
+| Radix asChild / Slot composition | https://www.radix-ui.com/primitives/docs/guides/composition |
+| Radix data-attribute styling and focus management | https://www.radix-ui.com/primitives/docs/guides/styling |
+| Dropdown menu, popover, tooltip, hover card | https://www.radix-ui.com/primitives/docs/components/dropdown-menu (and sibling component pages) |
+| Radix accessibility audit checklist | https://www.radix-ui.com/primitives/docs/overview/accessibility plus `ork:accessibility` |
+
 ## Detailed Documentation
 
 | Resource | Description |
 |----------|-------------|
-| [scripts/](scripts/) | Templates: CVA component, extended button, dialog, dropdown |
-| [checklists/](checklists/) | shadcn setup, accessibility audit checklists |
-| [references/](references/) | CVA system, OKLCH theming, cn() utility, focus management |
+| [scripts/](scripts/) | Templates: CVA component, extended button, dialog, dropdown, theme CSS |
+| [references/ork-delta.md](references/ork-delta.md) | Ork floors, scars, and house decisions kept out of upstream docs |
 
 ## Design System
 

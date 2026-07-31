@@ -30,13 +30,13 @@ Code splitting and lazy loading with React.lazy and Suspense.
 - `loading-splitting.md` — Route-based code splitting with React Router 7.x
 - `loading-preload.md` — Prefetch on hover, modulepreload hints, intersection observer
 
-## 4. Image Optimization (images) — HIGH — 3 rules
+## 4. Image Optimization (images), HIGH, 2 rules
 
-Production image optimization for modern web applications.
+Production image optimization for modern web applications. Next.js Image
+component usage moved upstream (see "Upstream coverage" in SKILL.md).
 
-- `images-nextjs.md` — Next.js Image component with priority and blur
-- `images-formats.md` — AVIF/WebP format selection and quality settings
-- `images-responsive.md` — Responsive sizes, art direction, CDN loaders
+- `images-formats.md`: AVIF/WebP format selection and quality settings
+- `images-responsive.md`: Responsive sizes, art direction, CDN loaders
 
 ## 5. Profiling & Backend (profiling) — MEDIUM — 3 rules
 

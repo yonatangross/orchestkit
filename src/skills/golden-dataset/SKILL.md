@@ -30,12 +30,12 @@ Comprehensive patterns for building, managing, and validating golden datasets fo
 
 | Category | Rules | Impact | When to Use |
 | -------- | ----- | ------ | ----------- |
-| [Curation](#curation) | 3 | HIGH | Content collection, annotation pipelines, diversity analysis |
-| [Management](#management) | 3 | HIGH | Versioning, backup/restore, CI/CD automation |
-| [Validation](#validation) | 3 | CRITICAL | Quality scoring, drift detection, regression testing |
+| [Curation](#curation) | 2 | HIGH | Content collection, annotation pipelines |
+| [Management](#management) | 2 | HIGH | Versioning, backup/restore |
+| [Validation](#validation) | 1 | CRITICAL | Regression testing |
 | [Add Workflow](#add-workflow) | 1 | HIGH | 9-phase curation, quality scoring, bias detection, silver-to-gold |
 
-Total: 10 rules across 4 categories
+Total: 6 rules across 4 categories. House thresholds and scars: `references/ork-delta.md`.
 
 ## Curation
 
@@ -45,7 +45,8 @@ Content collection, multi-agent annotation, and diversity analysis for golden da
 | ---- | ---- | ----------- |
 | Collection | `rules/curation-collection.md` | Content type classification, quality thresholds, duplicate prevention |
 | Annotation | `rules/curation-annotation.md` | Multi-agent pipeline, consensus aggregation, Langfuse tracing |
-| Diversity | `rules/curation-diversity.md` | Difficulty stratification, domain coverage, balance guidelines |
+
+Difficulty ladder, coverage floors, and duplicate thresholds: `references/ork-delta.md`.
 
 ## Management
 
@@ -55,7 +56,8 @@ Versioning, storage, and CI/CD automation for golden datasets.
 | ---- | ---- | ----------- |
 | Versioning | `rules/management-versioning.md` | JSON backup format, embedding regeneration, disaster recovery |
 | Storage | `rules/management-storage.md` | Backup strategies, URL contract, data integrity checks |
-| CI Integration | `rules/management-ci.md` | GitHub Actions automation, pre-deployment validation, weekly backups |
+
+CI automation for backups is upstream's job; see "Upstream coverage" below.
 
 ## Validation
 
@@ -63,9 +65,10 @@ Quality scoring, drift detection, and regression testing for golden datasets.
 
 | Rule | File | Key Pattern |
 | ---- | ---- | ----------- |
-| Quality | `rules/validation-quality.md` | Schema validation, content quality, referential integrity |
-| Drift | `rules/validation-drift.md` | Duplicate detection, semantic similarity, coverage gap analysis |
 | Regression | `rules/validation-regression.md` | Difficulty distribution, pre-commit hooks, full dataset validation |
+
+Schema validation and duplicate detection are upstream's job (see "Upstream coverage"
+below); the house thresholds they must enforce live in `references/ork-delta.md`.
 
 ## Add Workflow
 
@@ -78,8 +81,6 @@ Structured workflow for adding new documents to the golden dataset.
 ## Quick Start Example
 
 ```python
-from app.shared.services.embeddings import embed_text
-
 async def validate_before_add(document: dict, source_url_map: dict) -> dict:
     """Pre-addition validation for golden dataset entries."""
     errors = []
@@ -163,12 +164,24 @@ Full JS surface: `monitoring-observability/references/langfuse-js-v5.md`.
 
 See `test-cases.json` for 9 test cases across all categories.
 
+## Upstream coverage (do not restate)
+
+| Topic | First-party source |
+| ----- | ------------------ |
+| Dataset schema validation (JSON Schema, field constraints) | https://json-schema.org and https://zod.dev |
+| Duplicate detection via embeddings, cosine similarity | https://github.com/pgvector/pgvector |
+| Scheduled backup automation (cron workflows, commit bots) | https://docs.github.com/actions/using-workflows/events-that-trigger-workflows#schedule |
+| Dataset runs, experiment scoring, annotation queues | https://langfuse.com/docs/datasets |
+| Backup and restore mechanics for postgres datasets | https://www.postgresql.org/docs/current/backup.html |
+
+House thresholds these must enforce: `references/ork-delta.md`.
+
 ## Related Skills
 
 - `ork:rag-retrieval` - Retrieval evaluation using golden dataset
-- `langfuse-observability` - Tracing patterns for curation workflows
+- `ork:monitoring-observability` - Langfuse tracing patterns for curation workflows
+- `ork:testing-llm` - Evaluation harnesses that consume golden datasets
 - `ork:testing-unit` - Unit testing patterns and strategies
-- `ai-native-development` - Embedding generation for restore
 
 ## Capability Details
 

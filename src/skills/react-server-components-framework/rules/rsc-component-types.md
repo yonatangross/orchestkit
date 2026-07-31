@@ -76,4 +76,4 @@ const inputRef = useRef<HTMLInputElement>(null)
 - Do not use `React.FC` or `React.FunctionComponent` in React 19 projects.
 - In React 19, pass `ref` as a regular prop — `forwardRef` is no longer required.
 
-Reference: `references/client-components.md` (React 19 Component Patterns, Ref as Prop)
+Reference: `references/ork-delta.md` (React.FC and forwardRef ban, house standard); react.dev React 19 upgrade guide

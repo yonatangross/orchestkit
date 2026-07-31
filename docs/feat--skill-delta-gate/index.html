@@ -122,7 +122,7 @@
 {
   "slug": "feat--skill-delta-gate",
   "updated": "2026-07-31",
-  "ratchet": { "orphanFiles": 222, "orphanLines": 48180, "restatementFiles": 314, "restatementLines": 79690, "overlapFiles": 7 },
+  "ratchet": { "orphanFiles": 146, "orphanLines": 27950, "restatementFiles": 175, "restatementLines": 41290, "overlapFiles": 1 },
   "targets": { "orphanFiles": 0, "restatementFiles": 60, "overlapFiles": 0 },
   "items": [
     {
@@ -131,12 +131,12 @@
       "evidence": "קומיט 69c9eee33; שלילי: הזרקת קובץ גנרי מאדימה את השער; חיובי: PASS at baseline"
     },
     {
-      "id": "phase0b", "title": "שלב 0ב: לוח חי + PR פתוח", "status": "doing",
+      "id": "phase0b", "title": "שלב 0ב: לוח חי + PR פתוח", "status": "done",
       "desc": "הלוח הזה + PR עם השער, כך שהסוורם עובד מול CI מגן.",
       "evidence": "gh pr view מציג את ה-PR פתוח וירוק"
     },
     {
-      "id": "wave1", "title": "גל 1: עשרת הכבדים", "status": "todo",
+      "id": "wave1", "title": "גל 1: עשרת הכבדים", "status": "done",
       "desc": "פייפליין לכל סקיל: דילול ← אימות אדוורסרי ← ציון. הקואורדינטור בונה ובודק בין גלים.",
       "evidence": "check-skill-delta --skill <name> נקי לכל עשרת הסקילים; npm test ירוק; קומיט לכל גל",
       "skills": ["performance","security-patterns","agent-orchestration","distributed-systems","api-design","accessibility","react-server-components-framework","golden-dataset","architecture-patterns","ui-components"]
@@ -153,6 +153,7 @@
     }
   ],
   "changelog": [
+    { "at": "2026-07-31 17:20", "what": "גל 1 נחת: 10/10 סקילים דוללו ואומתו. ראצ׳ט 222/314/7 ← 146/175/1. ~48k שורות טוטוריאל נמחקו, 10 קבצי ork-delta נכתבו. האימות האדוורסרי תפס פעמיים פרובננס מפוברק (issue-547, PR-411) ותוקן מול gh. golden-dataset דולל ידנית אחרי שני כשלוני agent, כולל מחיקת 1,273 שורות תיאטרון על backend שלא קיים" },
     { "at": "2026-07-31 15:05", "what": "שלב 0 נחת: סורק + ראצ׳ט + בסיס (222/314/7), קומיט 69c9eee33" },
     { "at": "2026-07-31 14:20", "what": "מדידה: 72% משורות הלא-SKILL.md ללא עוגן ork; 48k שורות יתומות" }
   ]

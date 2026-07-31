@@ -58,50 +58,6 @@
       ]
     },
     {
-      "id": "versioning-deprecation",
-      "rule": "versioning-deprecation",
-      "query": "Deprecate API v1 and sunset it in 6 months",
-      "expectedBehavior": [
-        "Adds Deprecation and Sunset headers to v1 responses",
-        "Includes Link header pointing to successor version",
-        "Distinguishes breaking vs non-breaking changes clearly",
-        "Shows version lifecycle: alpha -> beta -> stable -> deprecated -> sunset"
-      ]
-    },
-    {
-      "id": "errors-problem-details",
-      "rule": "errors-problem-details",
-      "query": "Implement RFC 9457 Problem Details for API errors",
-      "expectedBehavior": [
-        "Creates ProblemException base class with type, title, status, detail, instance",
-        "Returns application/problem+json media type in the Content-Type response header",
-        "Supports extension members for additional context",
-        "Registers FastAPI exception handler for ProblemException"
-      ]
-    },
-    {
-      "id": "errors-validation",
-      "rule": "errors-validation",
-      "query": "Handle validation errors with field-level details",
-      "expectedBehavior": [
-        "Returns 422 with field-level error array",
-        "Maps Pydantic RequestValidationError to Problem Details format",
-        "Includes field path, error code, and human-readable message",
-        "Uses consistent error structure across all validation failures"
-      ]
-    },
-    {
-      "id": "errors-error-catalog",
-      "rule": "errors-error-catalog",
-      "query": "Create a centralized error type registry for my API",
-      "expectedBehavior": [
-        "Defines problem type URIs for each error category",
-        "Maps standard HTTP status codes to problem types",
-        "Shows Python and TypeScript client handling examples",
-        "Includes specific exception subclasses for each problem type"
-      ]
-    },
-    {
       "id": "graphql-schema",
       "rule": "graphql-schema",
       "query": "Set up a GraphQL API with Strawberry and FastAPI that has authentication, authorization, and real-time subscriptions for user updates",

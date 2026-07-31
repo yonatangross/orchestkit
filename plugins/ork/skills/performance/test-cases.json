@@ -102,17 +102,6 @@
       ]
     },
     {
-      "id": "images-nextjs",
-      "rule": "images-nextjs",
-      "query": "How do I optimize images in my Next.js app?",
-      "expectedBehavior": [
-        "Uses next/image with priority for LCP images",
-        "Adds blur placeholder via static import",
-        "Sets quality to 75-85 for optimal size/quality",
-        "Configures remotePatterns in next.config.js to allow optimized loading of external images"
-      ]
-    },
-    {
       "id": "images-formats",
       "rule": "images-formats",
       "query": "Should I use AVIF or WebP for my images?",

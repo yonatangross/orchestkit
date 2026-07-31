@@ -3,8 +3,8 @@
   "organization": "OrchestKit",
   "date": "February 2026",
   "abstract": "Golden dataset lifecycle patterns covering curation (content collection, annotation, diversity), management (versioning, storage, CI integration), and validation (quality scoring, drift detection, regression testing).",
-  "ruleCount": 9,
-  "categories": 3,
+  "ruleCount": 6,
+  "categories": 4,
   "consolidatedFrom": [
     "golden-dataset-curation",
     "golden-dataset-management",

@@ -3,28 +3,6 @@
   "version": "2.0.0",
   "testCases": [
     {
-      "id": "locks-redis-redlock",
-      "rule": "locks-redis-redlock",
-      "query": "Implement a distributed lock using Redis for payment processing",
-      "expectedBehavior": [
-        "Uses Lua scripts for atomic acquire/release",
-        "Uses atomic acquire via Lua script with owner and ttl_ms parameters",
-        "Validates owner ID before release to prevent accidental lock theft",
-        "Describes Redlock quorum for HA across multiple independent Redis instances"
-      ]
-    },
-    {
-      "id": "locks-postgres-advisory",
-      "rule": "locks-postgres-advisory",
-      "query": "Use PostgreSQL advisory locks for a singleton cron job",
-      "expectedBehavior": [
-        "Uses pg_try_advisory_lock for non-blocking acquire to avoid blocking callers",
-        "Distinguishes session-level vs transaction-level locks for appropriate scope selection",
-        "Converts string names to bigint lock IDs via hash",
-        "Shows monitoring query with pg_locks for active lock visibility and debugging"
-      ]
-    },
-    {
       "id": "locks-fencing-tokens",
       "rule": "locks-fencing-tokens",
       "query": "Add heartbeat extension and fencing to a distributed lock",
@@ -80,28 +58,6 @@
       ]
     },
     {
-      "id": "idempotency-dedup",
-      "rule": "idempotency-dedup",
-      "query": "Deduplicate event processing in a Kafka consumer",
-      "expectedBehavior": [
-        "Checks Redis cache for fast dedup",
-        "Falls back to database for durability",
-        "Uses database unique constraint to prevent races",
-        "Tracks processed events with idempotency keys"
-      ]
-    },
-    {
-      "id": "idempotency-database",
-      "rule": "idempotency-database",
-      "query": "Implement database-backed idempotency with TTL cleanup",
-      "expectedBehavior": [
-        "Creates idempotency_records table with unique key",
-        "Uses ON CONFLICT DO NOTHING for upsert",
-        "Sets expires_at for TTL-based cleanup to prevent unbounded idempotency record growth",
-        "Validates request body hash to detect misuse"
-      ]
-    },
-    {
       "id": "ratelimit-token-bucket",
       "rule": "ratelimit-token-bucket",
       "query": "Implement token bucket rate limiting with Redis",
@@ -121,17 +77,6 @@
         "Removes expired entries with ZREMRANGEBYSCORE to maintain sliding window accuracy",
         "Counts current window with ZCARD to determine remaining request allowance",
         "Avoids fixed window boundary spike issues"
-      ]
-    },
-    {
-      "id": "ratelimit-distributed",
-      "rule": "ratelimit-distributed",
-      "query": "Add tiered rate limiting to a FastAPI application",
-      "expectedBehavior": [
-        "Configures SlowAPI with Redis backend for distributed rate limit state sharing",
-        "Defines per-tier limits (free/pro/enterprise) with distinct rate allowances per plan",
-        "Returns standard rate limit headers (X-RateLimit-*)",
-        "Returns 429 with Retry-After header when exceeded"
       ]
     },
     {

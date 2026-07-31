@@ -9,6 +9,8 @@ tags: rfc9457, agent, ai-agent, error-response, content-negotiation, retryable, 
 
 Extend RFC 9457 Problem Details with agent-specific operational fields that enable deterministic error handling without LLM reasoning.
 
+Provenance: OrchestKit house guidance, not vendor restatement. Landed via #1067 (v7.6.0, 2026-03-15) and maintained for src/skills/api-design; no first-party skill or spec covers agent-facing RFC 9457 extensions.
+
 **Why this matters:** A standard HTML error page costs ~14,000 tokens. A structured RFC 9457 response costs ~250 tokens — a 98% reduction. More importantly, explicit `retryable` and `error_category` fields let agents branch deterministically instead of guessing from status codes.
 
 ### Agent Extension Fields

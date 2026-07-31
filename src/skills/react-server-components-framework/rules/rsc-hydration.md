@@ -74,4 +74,4 @@ function ScreenWidth() {
 - Use `suppressHydrationWarning` only for intentional, harmless mismatches — never to silence bugs.
 - For components that depend entirely on browser APIs, use a `ClientOnly` wrapper (mount guard via `useEffect`) or `next/dynamic` with `ssr: false`.
 
-Reference: `references/client-components.md` (Avoiding Hydration Mismatches, Client-Only Rendering)
+Reference: first-party `next-best-practices` / `vercel:nextjs` skill (hydration); react.dev hydration-mismatch docs

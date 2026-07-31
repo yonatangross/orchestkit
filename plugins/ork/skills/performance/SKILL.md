@@ -34,14 +34,14 @@ Comprehensive performance optimization patterns for frontend, backend, and LLM i
 | [Core Web Vitals](#core-web-vitals) | 4 | CRITICAL | LCP, INP, CLS optimization with 2026 thresholds |
 | [Render Optimization](#render-optimization) | 3 | HIGH | React Compiler, memoization, virtualization |
 | [Lazy Loading](#lazy-loading) | 3 | HIGH | Code splitting, route splitting, preloading |
-| [Image Optimization](#image-optimization) | 3 | HIGH | Next.js Image, AVIF/WebP, responsive images |
+| [Image Optimization](#image-optimization) | 2 | HIGH | AVIF/WebP formats, responsive images |
 | [Profiling & Backend](#profiling--backend) | 3 | MEDIUM | React DevTools, py-spy, bundle analysis |
 | [LLM Inference](#llm-inference) | 3 | MEDIUM | vLLM, quantization, speculative decoding |
 | [Caching](#caching) | 2 | HIGH | Redis cache-aside, prompt caching, HTTP cache headers |
 | [Query & Data Fetching](#query--data-fetching) | 2 | HIGH | TanStack Query prefetching, optimistic updates, rollback |
 | [Sustainability](#sustainability) | 1 | MEDIUM | Page weight budgets, lazy loading, optimized formats, dark mode |
 
-**Total: 24 rules across 9 categories**
+**Total: 23 rules across 9 categories**
 
 ## Core Web Vitals
 
@@ -88,9 +88,10 @@ Production image optimization for modern web applications.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Next.js Image | `rules/images-nextjs.md` | Image component, priority, blur placeholder |
 | Format Selection | `rules/images-formats.md` | AVIF/WebP, quality 75-85, picture element |
 | Responsive Images | `rules/images-responsive.md` | sizes prop, art direction, CDN loaders |
+
+Next.js `Image` component usage and the v16 image config defaults are first-party territory; see "Upstream coverage (do not restate)" below.
 
 ## Profiling & Backend
 
@@ -301,15 +302,32 @@ export default async function Page() {
 - Choose quantization method for hardware
 - Accelerate generation with speculative decoding
 
+## Upstream coverage (do not restate)
+
+These topics used to be restated in this skill's references, checklists, and examples. They are owned by first-party sources now; consult those instead of re-adding tutorials here. The ork-specific floors and scars that survived the cut live in `references/ork-delta.md`.
+
+| Topic | First-party source |
+|-------|--------------------|
+| Core Web Vitals mechanics, audit checklists, before/after examples | skill: web-perf / cloudflare:web-perf (Chrome DevTools MCP); https://web.dev/vitals/ |
+| Real User Monitoring with the web-vitals library | skill: web-perf; https://github.com/GoogleChrome/web-vitals |
+| Next.js Image component, v16 image config defaults, image CDN loaders | skills: vercel:nextjs + vercel:next-upgrade; https://nextjs.org/docs/app/api-reference/components/image |
+| Image format selection and optimization checklists | skill: vercel:nextjs; https://web.dev/learn/images |
+| React Compiler migration, memoization escape hatches, state colocation | skill: vercel-react-best-practices; https://react.dev/learn/react-compiler |
+| React DevTools Profiler workflow, render audits | skill: vercel-react-best-practices; https://react.dev/reference/react/Profiler |
+| TanStack Virtual list/grid virtualization patterns | https://tanstack.com/virtual/latest/docs/introduction |
+| Route-based code splitting (React Router, Vite manual chunks) | https://reactrouter.com/ and https://vite.dev/guide/build |
+| Generic profiling workflows (Lighthouse, py-spy, bundle analyzers) | skill: web-perf; https://github.com/benfred/py-spy |
+| Redis and HTTP caching strategy patterns | skill: upstash-redis-js; https://redis.io/docs/latest/ |
+| vLLM deployment, quantization, speculative decoding, edge inference | https://docs.vllm.ai/ |
+| Full-stack performance audit walkthrough | https://developer.chrome.com/docs/lighthouse/; ork delta in `references/ork-delta.md` + `examples/orchestkit-performance-wins.md` |
+
 ## References
 
 Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
-| `rum-setup.md` | Real User Monitoring |
-| `react-compiler-migration.md` | Compiler adoption |
-| `tanstack-virtual-patterns.md` | Virtualization patterns |
-| `vllm-deployment.md` | Production vLLM config |
-| `quantization-guide.md` | Method comparison |
-| `cdn-setup.md` | Image CDN configuration |
+| `ork-delta.md` | OrchestKit floors, scars, and house decisions for this skill |
 | `cc-prompt-cache-guide.md` | CC 2.1.72 prompt cache optimization, stable-first prompt structure |
+| `database-optimization.md` | Postgres indexing and N+1 fixes backing the recorded audit wins |
+
+Real production before/after evidence (cache hierarchy, cost math): `examples/orchestkit-performance-wins.md`.

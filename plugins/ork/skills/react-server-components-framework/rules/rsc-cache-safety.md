@@ -64,4 +64,4 @@ async function Cached({ value }: { value: string }) {
 - Nested `"use cache"` functions have isolated scopes; `React.cache` values from an outer function are not visible in an inner one. Cache at the appropriate level and compose via `children`.
 - Use `cacheTag()` with user-scoped tags (e.g., `user-${userId}`) to enable targeted invalidation.
 
-Reference: `references/cache-components.md` (Constraints, Common Pitfalls)
+Reference: first-party `next-cache-components` / `vercel:next-cache-components` skill (constraints, pitfalls); house scars: `references/ork-delta.md`

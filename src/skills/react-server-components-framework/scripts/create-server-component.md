@@ -7,6 +7,8 @@ argument-hint: "[component-name]"
 
 Create server component: $ARGUMENTS
 
+<!-- House note (2026-07-31): kept as ork scaffolding despite the skill-delta ORPHAN flag. This command file is the script-invocation contract exercised by tests/skills/scripts/test-specific-skills.sh and tests/skills/scripts/integration/test-script-invocation.sh; it is not vendor documentation. -->
+
 ## Component Context (Auto-Detected)
 
 - **Next.js Version**: !`grep -r '"next"' package.json 2>/dev/null | grep -oE '"next":\s*"[^"]*"' | grep -oE '[0-9]+\.[0-9]+' || echo "Not detected"`

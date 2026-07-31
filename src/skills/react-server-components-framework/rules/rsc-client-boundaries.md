@@ -75,4 +75,4 @@ export function ProductFilters() {
 - Pass Server Components into Client Components via `children` or render-prop slots so they stay server-rendered.
 - Every module imported by a `'use client'` file is pulled into the client bundle — keep imports minimal.
 
-Reference: `references/client-components.md` (Common Mistakes), `references/component-patterns.md` (Composition Rules)
+Reference: first-party `next-best-practices` / `vercel:nextjs` skill (RSC boundaries, composition)

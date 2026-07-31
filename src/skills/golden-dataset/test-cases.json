@@ -26,7 +26,6 @@
     },
     {
       "id": "curation-diversity",
-      "rule": "curation-diversity",
       "query": "Ensure the golden dataset has balanced coverage across difficulty levels",
       "expectedBehavior": [
         "Stratifies entries into trivial/easy/medium/hard/adversarial difficulty levels for balance",
@@ -59,7 +58,6 @@
     },
     {
       "id": "management-ci",
-      "rule": "management-ci",
       "query": "Automate golden dataset backups with GitHub Actions",
       "expectedBehavior": [
         "Sets up weekly scheduled backup (Sunday 2am UTC)",
@@ -70,7 +68,6 @@
     },
     {
       "id": "validation-quality",
-      "rule": "validation-quality",
       "query": "Validate golden dataset entries against the document schema",
       "expectedBehavior": [
         "Validates required fields (id, title, source_url, content_type, sections)",
@@ -81,7 +78,6 @@
     },
     {
       "id": "validation-drift",
-      "rule": "validation-drift",
       "query": "Detect duplicate content in the golden dataset",
       "expectedBehavior": [
         "Runs semantic similarity check against existing embeddings",

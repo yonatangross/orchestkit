@@ -3,28 +3,6 @@
   "version": "2.0.0",
   "testCases": [
     {
-      "id": "loops-react",
-      "rule": "loops-react",
-      "query": "Build an agent that reasons step-by-step and uses tools to answer questions",
-      "expectedBehavior": [
-        "Uses ReAct pattern with Thought/Action/Observation format",
-        "Includes max step limit to prevent infinite loops",
-        "Parses tool calls and executes them",
-        "Returns Final Answer when reasoning is complete"
-      ]
-    },
-    {
-      "id": "loops-plan-execute",
-      "rule": "loops-plan-execute",
-      "query": "Create an agent that plans steps first then executes them with replanning",
-      "expectedBehavior": [
-        "Generates numbered plan before execution with clear step ordering",
-        "Executes steps sequentially with context passing",
-        "Detects when replanning is needed based on execution failures or new context",
-        "Synthesizes final answer from step results"
-      ]
-    },
-    {
       "id": "multi-supervisor",
       "rule": "multi-supervisor",
       "query": "Implement a supervisor that routes tasks to specialized agents",
@@ -44,50 +22,6 @@
         "Uses confidence scores or LLM arbitration",
         "Records resolution reasoning with detailed justification for each decision",
         "Applies resolutions to findings and updates the merged output accordingly"
-      ]
-    },
-    {
-      "id": "multi-synthesis",
-      "rule": "multi-synthesis",
-      "query": "Combine outputs from 4 parallel specialist agents into a report",
-      "expectedBehavior": [
-        "Groups findings by category for structured cross-agent result organization",
-        "Produces executive summary with key findings",
-        "Includes per-category recommendations with prioritized actionable next steps",
-        "Assigns overall confidence score based on weighted agent agreement levels"
-      ]
-    },
-    {
-      "id": "frameworks-crewai",
-      "rule": "frameworks-crewai",
-      "query": "Build a hierarchical CrewAI crew with manager delegation",
-      "expectedBehavior": [
-        "Creates manager agent with allow_delegation=True for hierarchical task routing",
-        "Defines specialist agents with specific roles",
-        "Uses Process.hierarchical with manager_llm for top-down task delegation",
-        "Enables memory for knowledge retention across sequential crew task executions"
-      ]
-    },
-    {
-      "id": "frameworks-autogen",
-      "rule": "frameworks-autogen",
-      "query": "Set up a Microsoft Agent Framework team with termination conditions",
-      "expectedBehavior": [
-        "Uses AssistantAgent from autogen_agentchat for conversable agent creation",
-        "Creates RoundRobinGroupChat or SelectorGroupChat for multi-agent coordination patterns",
-        "Sets explicit termination conditions to prevent unbounded agent conversation loops",
-        "Separates model client from agent definition"
-      ]
-    },
-    {
-      "id": "frameworks-comparison",
-      "rule": "frameworks-comparison",
-      "query": "Choose a multi-agent framework for a production customer support system",
-      "expectedBehavior": [
-        "Evaluates requirements against framework capabilities with structured comparison criteria",
-        "Considers team expertise and framework maturity",
-        "Provides decision tree or matrix for systematic framework selection guidance",
-        "Documents trade-offs and migration paths for long-term framework adoption planning"
       ]
     },
     {

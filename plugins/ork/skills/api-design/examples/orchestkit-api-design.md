@@ -190,7 +190,7 @@ data: {"type":"complete","stage":"artifact_generation","timestamp":"2025-12-21T1
 - **Benefit**: Simpler client code (native EventSource API), automatic reconnection
 - **Trade-off**: No client→server messaging (not needed for this use case)
 
-See `references/sse-deep-dive.md` in `streaming-api-patterns` skill for details.
+See `rules/streaming-sse.md` in this skill for details.
 
 ### Artifact Endpoints
 

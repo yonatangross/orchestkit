@@ -4,7 +4,6 @@
   "testCases": [
     {
       "id": "auth-jwt",
-      "rule": "auth-jwt",
       "query": "Implement JWT authentication with access and refresh tokens",
       "expectedBehavior": [
         "Uses Argon2id for secure password hashing with recommended parameters",
@@ -16,7 +15,6 @@
     },
     {
       "id": "auth-oauth",
-      "rule": "auth-oauth",
       "query": "Implement OAuth 2.1 login flow for a SPA",
       "expectedBehavior": [
         "Uses PKCE with S256 code challenge method",
@@ -27,7 +25,6 @@
     },
     {
       "id": "auth-rbac",
-      "rule": "auth-rbac",
       "query": "Add role-based access control to API endpoints",
       "expectedBehavior": [
         "Uses decorator pattern such as require_role and require_permission for access control",
@@ -50,7 +47,6 @@
     },
     {
       "id": "defense-zero-trust",
-      "rule": "defense-zero-trust",
       "query": "Implement tenant isolation for a multi-tenant SaaS",
       "expectedBehavior": [
         "Creates an immutable RequestContext object populated from the verified JWT claims",
@@ -85,7 +81,6 @@
     },
     {
       "id": "validation-schemas",
-      "rule": "validation-schemas",
       "query": "Validate file uploads and URL inputs",
       "expectedBehavior": [
         "Checks file magic bytes, not just extension",
@@ -96,7 +91,6 @@
     },
     {
       "id": "owasp-injection",
-      "rule": "owasp-injection",
       "query": "Fix SQL injection vulnerability in a search endpoint",
       "expectedBehavior": [
         "Uses parameterized queries or ORM methods to prevent SQL injection",
@@ -107,7 +101,6 @@
     },
     {
       "id": "owasp-broken-auth",
-      "rule": "owasp-broken-auth",
       "query": "Fix authentication bypass vulnerability",
       "expectedBehavior": [
         "Hardcodes JWT algorithm (never reads from header)",
@@ -118,7 +111,6 @@
     },
     {
       "id": "llm-prompt-injection",
-      "rule": "llm-prompt-injection",
       "query": "Implement context separation for LLM prompts",
       "expectedBehavior": [
         "No user_id, tenant_id, or UUIDs in prompts",
@@ -129,7 +121,6 @@
     },
     {
       "id": "llm-guardrails",
-      "rule": "llm-guardrails",
       "query": "Validate LLM output before using it",
       "expectedBehavior": [
         "Performs schema validation with Pydantic to enforce structured LLM output",
@@ -141,7 +132,6 @@
     },
     {
       "id": "llm-content-filtering",
-      "rule": "llm-content-filtering",
       "query": "Implement the three-phase LLM call pattern",
       "expectedBehavior": [
         "Pre-LLM phase performs tenant-scoped retrieval and content extraction without identifiers",
@@ -152,7 +142,6 @@
     },
     {
       "id": "pii-detection",
-      "rule": "pii-detection",
       "query": "Detect PII in user-provided text",
       "expectedBehavior": [
         "Uses Presidio or regex patterns for detection",
@@ -163,7 +152,6 @@
     },
     {
       "id": "pii-redaction",
-      "rule": "pii-redaction",
       "query": "Mask PII before sending to Langfuse",
       "expectedBehavior": [
         "Uses Langfuse mask callback at initialization",
@@ -174,7 +162,6 @@
     },
     {
       "id": "scanning",
-      "rule": "scanning",
       "query": "Set up a comprehensive security scanning pipeline for our CI with dependency auditing, secret detection, and SAST",
       "expectedBehavior": [
         "Runs npm audit or pip-audit with JSON output and blocks deployment on critical or high findings",

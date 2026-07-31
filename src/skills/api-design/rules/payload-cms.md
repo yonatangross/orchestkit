@@ -69,6 +69,5 @@ export const Posts: CollectionConfig = {
 
 ## References
 
-- `references/payload-collection-design.md` — Field types, relationships, blocks, validation
-- `references/payload-access-control.md` — RBAC patterns, field-level, multi-tenant
 - `references/payload-vs-sanity.md` — Detailed comparison, decision matrix, migration paths
+- Collection design (field types, relationships, blocks, validation) and access control (RBAC, field-level, multi-tenant) are first-party documented: https://payloadcms.com/docs

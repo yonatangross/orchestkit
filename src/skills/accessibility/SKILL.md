@@ -33,11 +33,11 @@ Comprehensive patterns for building accessible web applications: WCAG 2.2 AA com
 | [WCAG Compliance](#wcag-compliance) | 3 | CRITICAL | Color contrast, semantic HTML, automated testing |
 | [POUR Exit Criteria](#pour-exit-criteria) | 1 | CRITICAL | Falsifiable pass/fail thresholds for each WCAG 2.2 AA criterion |
 | [Static Anti-Patterns](#static-anti-patterns) | 1 | HIGH | Grep-able patterns detectable without a browser |
-| [Focus Management](#focus-management) | 3 | HIGH | Focus traps, focus restoration, keyboard navigation |
-| [React Aria](#react-aria) | 3 | HIGH | Accessible components, form hooks, overlay patterns |
-| [Modern Web Accessibility](#modern-web-accessibility) | 3 | CRITICAL/HIGH | Native HTML first, cognitive inclusion, user preferences |
+| [Focus Management](#focus-management) | 1 | HIGH | Keyboard navigation; trap/restoration mechanics live upstream |
+| [React Aria](#react-aria) | 2 | HIGH | Accessible components and form hooks; overlay APIs live upstream |
+| [Modern Web Accessibility](#modern-web-accessibility) | 2 | CRITICAL/HIGH | Native HTML first, user preferences; cognitive ceilings in `references/ork-delta.md` |
 
-**Total: 14 rules across 6 categories**
+**Total: 10 rules across 6 categories**
 
 ## Quick Start
 
@@ -96,9 +96,9 @@ Keyboard focus management patterns for accessible interactive widgets.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Focus Trap | `${CLAUDE_SKILL_DIR}/rules/focus-trap.md` | Modal focus trapping, FocusScope, Escape key |
-| Focus Restoration | `${CLAUDE_SKILL_DIR}/rules/focus-restoration.md` | Return focus to trigger, focus first error |
 | Keyboard Navigation | `${CLAUDE_SKILL_DIR}/rules/focus-keyboard-nav.md` | Roving tabindex, skip links, arrow keys |
+
+Focus trap and restoration mechanics are upstream's job: use React Aria `<FocusScope contain restoreFocus autoFocus>` (see [Upstream coverage](#upstream-coverage-do-not-restate)). When React Aria is unavailable, copy `${CLAUDE_SKILL_DIR}/scripts/focus-trap-template.tsx`; the house rules for both live in `${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
 
 ## React Aria
 
@@ -108,7 +108,8 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 |------|------|-------------|
 | Components | `${CLAUDE_SKILL_DIR}/rules/aria-components.md` | useButton, useDialog, useMenu, FocusScope |
 | Forms | `${CLAUDE_SKILL_DIR}/rules/aria-forms.md` | useComboBox, useTextField, useListBox |
-| Overlays | `${CLAUDE_SKILL_DIR}/rules/aria-overlays.md` | useModalOverlay, useTooltip, usePopover |
+
+Overlay hook APIs (useModalOverlay, useTooltip, usePopover) are documented upstream (see [Upstream coverage](#upstream-coverage-do-not-restate)); the house overlay recipe (FocusScope plus shared motion presets) is in `${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
 
 ## Modern Web Accessibility
 
@@ -117,8 +118,9 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 | Rule | File | Key Pattern |
 |------|------|-------------|
 | Native HTML First | `${CLAUDE_SKILL_DIR}/rules/wcag-native-html-first.md` | `<dialog>`, `<details>`, native over custom ARIA |
-| Cognitive Inclusion | `${CLAUDE_SKILL_DIR}/rules/wcag-cognitive-inclusion.md` | ADHD/autism/dyslexia support, chunked content, notification management |
 | User Preferences | `${CLAUDE_SKILL_DIR}/rules/wcag-user-preferences.md` | prefers-reduced-motion, forced-colors, prefers-contrast, zoom |
+
+Cognitive inclusion (ADHD/autism/dyslexia support) is covered upstream by W3C COGA (see [Upstream coverage](#upstream-coverage-do-not-restate)); the house cognitive-load ceilings (notification cap, nav-item cap, reading-level targets) are in `${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
 
 ## Key Decisions
 
@@ -146,15 +148,27 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 - **Auto-playing media**: Audio/video that plays without user action
 - **ARIA overuse**: Using ARIA when semantic HTML suffices
 
+## Upstream coverage (do not restate)
+
+Vendor tutorials, API references, and criterion walkthroughs removed in the 2026-07-31 wrap-plus-delta thinning. Consult the first-party source; only the ork delta (floors, scars, house decisions) lives in `${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
+
+| Topic | First-party source |
+|-------|--------------------|
+| WCAG 2.2 success-criterion walkthroughs and audit checklists | [WCAG 2.2 quick reference](https://www.w3.org/WAI/WCAG22/quickref/) and [WCAG 2.2 spec](https://www.w3.org/TR/WCAG22/) |
+| ARIA widget patterns and keyboard interaction models | [WAI-ARIA Authoring Practices Guide](https://www.w3.org/WAI/ARIA/apg/) |
+| React Aria hook APIs (useButton, useMenu, useComboBox, useModalOverlay, useTooltip, usePopover), component checklists, worked examples | [React Aria docs](https://react-spectrum.adobe.com/react-aria/) |
+| Focus trap, focus restoration, roving tabindex, and skip-link algorithms | [React Aria FocusScope](https://react-spectrum.adobe.com/react-aria/FocusScope.html) and [APG patterns](https://www.w3.org/WAI/ARIA/apg/patterns/) |
+| Cognitive accessibility guidance (COGA) | [W3C Making Content Usable](https://www.w3.org/TR/coga-usable/) |
+| Screen reader testing walkthroughs (NVDA, JAWS, VoiceOver, TalkBack) | [WebAIM screen reader testing](https://webaim.org/articles/screenreader_testing/) |
+
 ## Detailed Documentation
 
 | Resource | Description |
 |----------|-------------|
 | `${CLAUDE_SKILL_DIR}/scripts/` | Templates: accessible form, focus trap, React Aria components |
-| `${CLAUDE_SKILL_DIR}/checklists/` | WCAG audit, focus management, React Aria component checklists |
-| `${CLAUDE_SKILL_DIR}/references/` | WCAG criteria reference, focus patterns, React Aria hooks API |
+| `${CLAUDE_SKILL_DIR}/references/ork-delta.md` | Ork-specific floors, scars, and house decisions (cognitive ceilings, overlay recipe, canonical focus-trap selector) |
 | `${CLAUDE_SKILL_DIR}/references/ux-thresholds-quick.md` | UI/UX thresholds quick reference: contrast, touch targets, cognitive load, typography, forms |
-| `${CLAUDE_SKILL_DIR}/examples/` | Complete accessible component examples |
+| `${CLAUDE_SKILL_DIR}/examples/wcag-examples.md` | Complete accessible form, modal, and navigation examples |
 
 ## Related Skills
 

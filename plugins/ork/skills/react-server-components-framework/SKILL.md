@@ -155,7 +155,7 @@ export default async function PostPage({
 }
 ```
 
-**Note:** Also applies to `layout.tsx`, `generateMetadata()`, and route handlers. Load: `Read("${CLAUDE_SKILL_DIR}/references/nextjs-16-upgrade.md")` for complete migration guide.
+**Note:** Also applies to `layout.tsx`, `generateMetadata()`, and route handlers. Complete migration guide: first-party `next-upgrade` / `vercel:next-upgrade` skill. House scars: `Read("${CLAUDE_SKILL_DIR}/references/ork-delta.md")`.
 
 ### Dev Server (Next.js 16.2 LTS)
 
@@ -170,17 +170,30 @@ export default async function PostPage({
 Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | File | Content |
 |------|---------|
-| `server-components.md` | Async server components, data fetching patterns, route segment config, generateStaticParams, error handling |
-| `client-components.md` | `'use client'` directive, React 19 patterns, interactivity, hydration, composition via children |
-| `streaming-patterns.md` | Suspense boundaries, loading.tsx, parallel streaming, PPR, skeleton best practices |
-| `react-19-patterns.md` | Function declarations, ref as prop, useActionState, useFormStatus, useOptimistic, Activity, useEffectEvent |
-| `server-actions.md` | Progressive enhancement, useActionState forms, Zod validation, optimistic updates |
-| `routing-patterns.md` | Parallel routes, intercepting routes, route groups, dynamic and catch-all routes |
-| `migration-guide.md` | Pages Router to App Router migration, getServerSideProps/getStaticProps replacement |
-| `cache-components.md` | `"use cache"` directive (replaces `experimental_ppr`), cacheLife, cacheTag, revalidateTag, PPR integration |
-| `nextjs-16-upgrade.md` | Node.js 20.9+, breaking changes (async params, cookies, headers), proxy.ts migration, Turbopack, new caching APIs |
+| `ork-delta.md` | House rules and scars: fabricated-API corrections from PR #2143, React 19 house conventions (2026-07-31 distillation) |
 | `tanstack-router-patterns.md` | React 19 features without Next.js, route-based data fetching, client-rendered app patterns |
 | `capability-details.md` | Keyword and problem-mapping metadata for all 12 RSC capabilities |
+
+---
+
+## Upstream coverage (do not restate)
+
+Vendor tutorials for these topics live in first-party skills and docs. This skill keeps only floors, scars, and house decisions (`references/ork-delta.md`).
+
+| Topic | First-party source |
+|-------|--------------------|
+| Server Components fundamentals (async components, data fetching, route segment config, generateStaticParams, error handling) | `next-best-practices` / `vercel:nextjs` skill; nextjs.org/docs |
+| Client Components, `'use client'`, hydration, client-only rendering | `next-best-practices` / `vercel:nextjs` skill |
+| Server/Client boundary and composition patterns, serializable props | `next-best-practices` / `vercel:nextjs` skill; `vercel-composition-patterns` |
+| Data fetching and caching (fetch cache options, revalidate, tags) | `next-best-practices` / `vercel:nextjs` skill |
+| Streaming SSR, Suspense boundaries, loading.tsx, skeleton states | `vercel:nextjs` skill (streaming) |
+| Server Actions, progressive enhancement, useActionState forms, Zod validation | `vercel:nextjs` skill (Server Actions) |
+| Advanced routing (parallel, intercepting, route groups, dynamic and catch-all) | `vercel:nextjs` skill (routing) |
+| Pages Router to App Router migration | `next-upgrade` / `vercel:next-upgrade` skill |
+| Next.js 16 upgrade, breaking changes, codemods | `next-upgrade` / `vercel:next-upgrade` skill |
+| Cache Components: `use cache`, cacheLife, cacheTag, updateTag, PPR | `next-cache-components` / `vercel:next-cache-components` skill |
+| React 19 core APIs (useActionState, useFormStatus, useOptimistic, use(), ref as prop) | context7: `/vercel/next.js` + react.dev (query-docs) |
+| RSC implementation and deployment checklist | `next-best-practices` skill |
 
 ---
 
@@ -208,9 +221,10 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 ## Templates
 
-- **`scripts/ServerComponent.tsx`** - Basic async Server Component with data fetching
-- **`scripts/ClientComponent.tsx`** - Interactive Client Component with hooks
-- **`scripts/ServerAction.tsx`** - Server Action with validation and revalidation
+- **`scripts/server-component-template.tsx`** - Basic async Server Component with data fetching
+- **`scripts/client-component-template.tsx`** - Interactive Client Component with hooks
+- **`scripts/server-action-template.ts`** - Server Action with validation and revalidation
+- **`scripts/create-server-component.md`** - Command-style scaffold; kept as the script-invocation contract exercised by `tests/skills/scripts/`
 
 ---
 

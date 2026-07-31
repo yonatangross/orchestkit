@@ -5,60 +5,33 @@ version: 2.0.0
 
 # Rule Categories
 
-## 1. Authentication (auth) — CRITICAL — 3 rules
+Former auth, zero-trust, LLM safety, PII, and scanning rule files were removed as
+upstream restatement (wrap + delta, 2026-07-31). Their first-party sources are listed in
+SKILL.md under "Upstream coverage (do not restate)"; the ork delta lives in
+`references/ork-delta.md`.
 
-Secure authentication with OAuth 2.1, JWT tokens, Passkeys, and role-based access control.
-
-- `auth-jwt.md` — JWT creation, verification, Argon2id hashing, token expiry, refresh rotation
-- `auth-oauth.md` — OAuth 2.1 with PKCE, DPoP proof-of-possession, Passkeys/WebAuthn
-- `auth-rbac.md` — Role-based access control decorators, permission checks, MFA (TOTP)
-
-## 2. Defense-in-Depth (defense) — CRITICAL — 2 rules
+## 1. Defense-in-Depth (defense), CRITICAL, 1 rule
 
 Multi-layer security architecture ensuring no single point of failure.
 
-- `defense-layers.md` — 8-layer architecture: edge, gateway, input, authorization, data, LLM, output, observability
-- `defense-zero-trust.md` — Immutable RequestContext, tenant-scoped repositories, audit logging
+- `defense-layers.md`: 8-layer architecture: edge, gateway, input, authorization, data, LLM, output, observability
 
-## 3. Input Validation (validation) — HIGH — 3 rules
+## 2. Input Validation (validation), HIGH, 2 rules
 
 Validate and sanitize all untrusted input using Zod v4 and Pydantic.
 
-- `validation-input.md` — Zod v4 schemas, Pydantic models, type coercion, safeParse
-- `validation-output.md` — HTML sanitization (DOMPurify, markupsafe), XSS prevention, CSP headers
-- `validation-schemas.md` — Discriminated unions, file upload validation, URL domain allowlists
+- `validation-input.md`: Zod v4 schemas, Pydantic models, type coercion, safeParse
+- `validation-output.md`: HTML sanitization (DOMPurify, markupsafe), XSS prevention, CSP headers
 
-## 4. OWASP Top 10 (owasp) — CRITICAL — 2 rules
+## 3. OWASP Top 10 (owasp), CRITICAL, 1 rule
 
 Protection against the most critical web application security risks.
 
-- `owasp-injection.md` — SQL injection, command injection, SSRF, parameterized queries
-- `owasp-broken-auth.md` — JWT algorithm confusion, CSRF, timing attacks, SRI
+- `supply-chain.md`: Lockfile integrity, dependency confusion, provenance, SBOM (A03:2025)
 
-## 5. LLM Safety (llm) — HIGH — 3 rules
-
-Security patterns for LLM integrations including prompt injection defense and output validation.
-
-- `llm-prompt-injection.md` — Context separation, forbidden patterns, SafePromptBuilder, prompt audit
-- `llm-guardrails.md` — Output validation pipeline: schema, no-IDs, grounding, safety, size
-- `llm-content-filtering.md` — Pre-LLM filtering, post-LLM attribution, three-phase pattern
-
-## 6. PII Masking (pii) — HIGH — 2 rules
-
-PII detection and masking for LLM observability pipelines and logging.
-
-- `pii-detection.md` — Microsoft Presidio, regex patterns, LLM Guard Anonymize scanner
-- `pii-redaction.md` — Langfuse mask callback, structlog/loguru processors, Vault deanonymization
-
-## 7. Scanning (scanning) — HIGH — 1 rule
-
-Automated security scanning for dependencies, static analysis, and secret detection.
-
-- `scanning.md` — Dependency scanning (npm audit, pip-audit, Trivy), secret detection (Gitleaks, TruffleHog), SAST (Semgrep, Bandit)
-
-## 8. Advanced Guardrails (guardrails) — CRITICAL — 2 rules
+## 4. Advanced Guardrails (guardrails), CRITICAL, 2 rules
 
 Production LLM safety with NeMo Guardrails, Guardrails AI, and red-teaming.
 
-- `guardrails-nemo.md` — NeMo Guardrails, Colang 2.0, Guardrails AI validators, input/output validation
-- `guardrails-llm-validation.md` — DeepTeam red-teaming, OWASP LLM Top 10 compliance, adversarial testing
+- `guardrails-nemo.md`: NeMo Guardrails, Colang 2.0, Guardrails AI validators, input/output validation
+- `guardrails-llm-validation.md`: DeepTeam red-teaming, OWASP LLM Top 10 compliance, adversarial testing

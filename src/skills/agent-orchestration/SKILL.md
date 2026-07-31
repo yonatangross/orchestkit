@@ -25,7 +25,7 @@ allowed-tools:
 
 # Agent Orchestration
 
-Comprehensive patterns for building and coordinating AI agents -- from single-agent reasoning loops to multi-agent systems and framework selection. Each category has individual rule files in `rules/` loaded on-demand.
+Comprehensive patterns for building and coordinating AI agents -- from single-agent reasoning loops to multi-agent systems and framework selection. Coordination and multi-scenario categories have individual rule files in `rules/` loaded on-demand; loop and framework tutorials live upstream (see [Upstream coverage](#upstream-coverage-do-not-restate)), with house defaults in `references/ork-delta.md`.
 
 > **CC native `/workflows` (2.1.154):** Claude Code now ships *dynamic workflows* — ask Claude to create a workflow and it orchestrates tens-to-hundreds of agents in the background; view runs with `/workflows`. This is **complementary** to the patterns here: use CC `/workflows` for large-scale, fire-and-forget **background** fan-out (you check back later); use the bounded **foreground** Agent Teams / Task-tool patterns below when ≤8 agents must coordinate within a single skill invocation via shared memory (handoff files, mesh messaging). Different scale, not a replacement.
 >
@@ -35,12 +35,12 @@ Comprehensive patterns for building and coordinating AI agents -- from single-ag
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
-| [Agent Loops](#agent-loops) | 2 | HIGH | ReAct reasoning, plan-and-execute, self-correction |
-| [Multi-Agent Coordination](#multi-agent-coordination) | 3 | CRITICAL | Supervisor routing, agent debate, result synthesis |
-| [Alternative Frameworks](#alternative-frameworks) | 3 | HIGH | CrewAI crews, AutoGen teams, framework comparison |
+| [Agent Loops](#agent-loops) | upstream | HIGH | ReAct reasoning, plan-and-execute, self-correction |
+| [Multi-Agent Coordination](#multi-agent-coordination) | 2 | CRITICAL | Supervisor routing, agent debate, result synthesis |
+| [Alternative Frameworks](#alternative-frameworks) | upstream | HIGH | CrewAI crews, AutoGen teams, framework comparison |
 | [Multi-Scenario](#multi-scenario) | 2 | MEDIUM | Parallel scenario orchestration, difficulty routing |
 
-**Total: 10 rules across 4 categories**
+**Total: 4 rules across 4 categories.** Loop and framework tutorials moved to first-party sources; the rescued house defaults live in `references/ork-delta.md`.
 
 ## Quick Start
 
@@ -91,6 +91,27 @@ CrewAI hierarchical crews with Flows (1.8+), OpenAI Agents SDK handoffs and guar
 Orchestrate a single skill across 3 parallel scenarios (simple/medium/complex) with progressive difficulty scaling (1x/3x/8x), milestone synchronization, and cross-scenario result aggregation.
 
 **Key decisions:** Free-running with checkpoints, always 3 scenarios, 1x/3x/8x exponential scaling, 30s/90s/300s time budgets.
+
+## Upstream coverage (do not restate)
+
+Local tutorials for these topics were retired; consult the first-party source and keep only house deltas in `references/ork-delta.md`.
+
+| Topic | First-party source |
+|-------|--------------------|
+| ReAct / plan-and-execute / self-correction loop implementations | OpenAI function calling guide (https://platform.openai.com/docs/guides/function-calling); LangGraph tutorials (context7: /langchain-ai/langgraph) |
+| Fan-out coordination, result-synthesis boilerplate, and the generic multi-agent design checklist | Python asyncio docs (https://docs.python.org/3/library/asyncio-task.html); Anthropic "Building effective agents" (https://www.anthropic.com/research/building-effective-agents); `ork:langgraph` supervisor patterns |
+| CrewAI (crews, Flows, MCP tools, guardrails) | CrewAI docs (https://docs.crewai.com); context7: /crewaiinc/crewai |
+| OpenAI Agents SDK (handoffs, sessions, guardrails, MCP) | https://openai.github.io/openai-agents-python/ ; context7: /openai/openai-agents-python |
+| Microsoft Agent Framework / AutoGen (teams, termination, A2A) | https://learn.microsoft.com/en-us/agent-framework/ ; context7: /microsoft/autogen |
+| GPT-5.2-Codex capabilities, pricing, IDE integrations | OpenAI model docs (https://platform.openai.com/docs/models) |
+| Multi-scenario state machine, architecture and skill-agnostic template deep-dives | Superseded in-skill by `rules/scenario-orchestrator.md` and `rules/scenario-routing.md` |
+
+## References
+
+- `references/ork-delta.md` - House defaults and dated decisions rescued from retired tutorials
+- `references/framework-comparison.md` - Condensed framework decision matrix and use-case table
+- `references/langgraph-implementation.md` - LangGraph 1.2+ implementation of the multi-scenario orchestrator
+- `references/claude-code-instance-management.md` - Running 3 parallel Claude Code instances for scenario demos
 
 ## Key Decisions
 

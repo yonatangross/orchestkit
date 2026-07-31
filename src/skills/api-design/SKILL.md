@@ -32,15 +32,14 @@ Comprehensive API design patterns covering REST/GraphQL framework design, versio
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
 | [API Framework](#api-framework) | 3 | HIGH | REST conventions, resource modeling, OpenAPI specifications |
-| [Versioning](#versioning) | 3 | HIGH | URL path versioning, header versioning, deprecation/sunset policies |
-| [Error Handling](#error-handling) | 4 | HIGH | RFC 9457 Problem Details, agent-facing errors, validation errors, error type registries |
+| [Versioning](#versioning) | 2 | HIGH | URL path versioning, header versioning; deprecation windows are house policy in `references/ork-delta.md` |
+| [Error Handling](#error-handling) | 1 | HIGH | Agent-facing RFC 9457 extensions; base spec and FastAPI wiring are upstream |
 | [GraphQL](#graphql) | 2 | HIGH | Strawberry code-first, DataLoader, permissions, subscriptions |
 | [gRPC](#grpc) | 2 | HIGH | Protobuf services, streaming, interceptors, retry |
 | [Streaming](#streaming) | 2 | HIGH | SSE endpoints, WebSocket bidirectional, async generators |
-
 | [Integrations](#integrations) | 2 | HIGH | Messaging platforms (WhatsApp, Telegram), Payload CMS patterns |
 
-**Total: 18 rules across 7 categories**
+**Total: 14 rules across 7 categories.** House decisions rescued from thinned files live in `references/ork-delta.md`; vendor and spec material is linked, not restated (see [Upstream coverage](#upstream-coverage-do-not-restate)).
 
 ## API Framework
 
@@ -60,7 +59,8 @@ Strategies for API evolution without breaking clients.
 |------|------|-------------|
 | URL Path | `rules/versioning-url-path.md` | `/api/v1/` prefix routing, version-specific schemas |
 | Header | `rules/versioning-header.md` | `X-API-Version` header, content negotiation |
-| Deprecation | `rules/versioning-deprecation.md` | Sunset headers, lifecycle management, breaking change policy |
+
+Deprecation and sunset: the house window (3 months notice, 6 months sunset, current + 1 supported) is in `references/ork-delta.md`; header mechanics are upstream (RFC 8594, RFC 9745).
 
 ## Error Handling
 
@@ -68,10 +68,9 @@ RFC 9457 Problem Details for machine-readable, standardized error responses.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Problem Details | `rules/errors-problem-details.md` | RFC 9457 schema, `application/problem+json`, exception classes |
 | Agent-Facing Errors | `rules/errors-agent-facing.md` | Agent extensions: `retryable`, `error_category`, content negotiation, token efficiency |
-| Validation | `rules/errors-validation.md` | Field-level errors, Pydantic integration, 422 responses |
-| Error Catalog | `rules/errors-error-catalog.md` | Problem type registry, error type URIs, client handling |
+
+The RFC 9457 base format, FastAPI exception-handler wiring, and Pydantic 422 mapping are upstream (see [Upstream coverage](#upstream-coverage-do-not-restate)). The house pieces survive here: problem type URI convention and typed exception vocabulary in `references/ork-delta.md`, full working implementation in `examples/fastapi-problem-details.md`.
 
 ## GraphQL
 
@@ -162,9 +161,26 @@ async def get_user(user_id: str, service: UserService = Depends()):
 8. Supporting too many concurrent API versions (max 2-3)
 9. Caching without considering version isolation
 
+## Upstream coverage (do not restate)
+
+Topics removed in the 2026-07-31 wrap-plus-delta thinning. Consult the first-party source; only the ork delta (house policy, scars, working config) belongs in this skill.
+
+| Topic | First-party source |
+|-------|--------------------|
+| RFC 9457 Problem Details spec (members, media type, `about:blank`, client parsing) | https://www.rfc-editor.org/rfc/rfc9457.html |
+| FastAPI exception handlers, Pydantic validation errors (422), error catalog boilerplate | https://fastapi.tiangolo.com/tutorial/handling-errors/ |
+| API versioning strategy tutorials and FastAPI versioned-router walkthroughs | https://fastapi.tiangolo.com/tutorial/bigger-applications/ |
+| Deprecation and Sunset header mechanics | https://www.rfc-editor.org/rfc/rfc8594.html and https://www.rfc-editor.org/rfc/rfc9745.html |
+| Generic REST reference (methods, status codes, pagination shapes, auth headers) | https://www.rfc-editor.org/rfc/rfc9110.html and https://developer.mozilla.org/en-US/docs/Web/HTTP |
+| OpenAPI 3.1 spec authoring (template survives in `assets/openapi-template.yaml`) | https://spec.openapis.org/oas/v3.1.0 |
+| gRPC proto style, service definition, status codes | https://grpc.io/docs/ and https://protobuf.dev/programming-guides/style/ |
+| Payload CMS collection design, field types, access control | https://payloadcms.com/docs |
+| Frontend API consumption (Zod boundary validation, ky, TanStack Query) | https://zod.dev and https://tanstack.com/query/latest/docs |
+| API design / error handling / versioning review checklists | Derivable from the specs above; no checklist restatement kept |
+
 ## Evaluations
 
-See `test-cases.json` for 9 test cases across all categories.
+See `test-cases.json` for 13 test cases across all categories.
 
 ## Related Skills
 

@@ -71,6 +71,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "does": "",
             "out": null,
             "tag": null
+          },
+          {
+            "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
           }
         ]
       }
@@ -107,6 +114,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "Multi-Scenario",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Upstream coverage (do not restate)",
             "does": "",
             "out": null,
             "tag": null
@@ -451,6 +465,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Evaluations",
             "does": "",
             "out": null,
@@ -586,6 +607,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "Anti-Patterns (FORBIDDEN)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Upstream coverage (do not restate)",
             "does": "",
             "out": null,
             "tag": null
@@ -2803,6 +2831,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Key Decisions",
             "does": "",
             "out": null,
@@ -3710,6 +3745,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "Evaluations",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Upstream coverage (do not restate)",
             "does": "",
             "out": null,
             "tag": null
@@ -5681,6 +5723,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
+            "label": "Upstream coverage (do not restate)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Best Practices Summary",
             "does": "",
             "out": null,
@@ -6185,6 +6234,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "Advanced Guardrails",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Upstream coverage (do not restate)",
             "does": "",
             "out": null,
             "tag": null
@@ -6946,13 +7002,6 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Radix Primitives",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
             "label": "Key Decisions",
             "does": "",
             "out": null,
@@ -6961,6 +7010,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "Anti-Patterns (FORBIDDEN)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Upstream coverage (do not restate)",
             "does": "",
             "out": null,
             "tag": null

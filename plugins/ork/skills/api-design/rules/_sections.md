@@ -13,21 +13,18 @@ REST and GraphQL API design conventions for consistent, developer-friendly APIs.
 - `framework-resource-modeling.md` — Hierarchical URLs, filtering, sorting, field selection
 - `framework-openapi.md` — OpenAPI 3.1 specifications, documentation, schema definitions
 
-## 2. Versioning (versioning) — HIGH — 3 rules
+## 2. Versioning (versioning), HIGH, 2 rules
 
-Strategies for API evolution without breaking clients.
+Strategies for API evolution without breaking clients. Deprecation window policy lives in `references/ork-delta.md` (house decision); Sunset/Deprecation header mechanics are upstream (RFC 8594, RFC 9745).
 
-- `versioning-url-path.md` — URL path versioning with /api/v1/ prefix routing and version-specific schemas
-- `versioning-header.md` — X-API-Version header and content negotiation approaches
-- `versioning-deprecation.md` — Sunset headers, lifecycle management, breaking vs non-breaking changes
+- `versioning-url-path.md`: URL path versioning with /api/v1/ prefix routing and version-specific schemas
+- `versioning-header.md`: X-API-Version header and content negotiation approaches
 
-## 3. Error Handling (errors) — HIGH — 3 rules
+## 3. Error Handling (errors), HIGH, 1 rule
 
-RFC 9457 Problem Details for machine-readable, standardized error responses.
+Agent-facing RFC 9457 extensions (OrchestKit house guidance, #1067). Base spec and FastAPI wiring are upstream; house URI convention and typed exceptions are in `references/ork-delta.md`, full implementation in `examples/fastapi-problem-details.md`.
 
-- `errors-problem-details.md` — RFC 9457 schema, application/problem+json, ProblemException base class
-- `errors-validation.md` — Field-level validation errors, Pydantic integration, 422 responses
-- `errors-error-catalog.md` — Problem type registry, error type URIs, client handling patterns
+- `errors-agent-facing.md`: retryable/error_category extensions, content negotiation, token budget
 
 ## 4. GraphQL (graphql) — HIGH — 2 rules
 

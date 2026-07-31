@@ -75,4 +75,4 @@ export function ClientCard({ item, tags, isActive, onAction }: ClientCardProps) 
 - Convert class instances to plain objects before passing: `{ url: myUrl.toString() }` instead of `myUrl`.
 - When in doubt, check if `JSON.stringify(prop)` would succeed — that is a reasonable (though not exact) heuristic.
 
-Reference: `references/component-patterns.md` (Serializable Props Only)
+Reference: first-party `next-best-practices` / `vercel:nextjs` skill (RSC boundaries, serializable props)

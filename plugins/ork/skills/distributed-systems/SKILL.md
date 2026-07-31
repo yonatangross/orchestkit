@@ -30,14 +30,14 @@ Comprehensive patterns for building reliable distributed systems. Each category 
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
-| [Distributed Locks](#distributed-locks) | 3 | CRITICAL | Redis/Redlock locks, PostgreSQL advisory locks, fencing tokens |
+| [Distributed Locks](#distributed-locks) | 1 | CRITICAL | Fencing tokens, owner validation; Redis/Redlock and Postgres advisory via upstream docs |
 | [Resilience](#resilience) | 3 | CRITICAL | Circuit breakers, retry with backoff, bulkhead isolation |
-| [Idempotency](#idempotency) | 3 | HIGH | Idempotency keys, request dedup, database-backed idempotency |
-| [Rate Limiting](#rate-limiting) | 3 | HIGH | Token bucket, sliding window, distributed rate limits |
+| [Idempotency](#idempotency) | 1 | HIGH | Idempotency keys; dedup and database-backed storage via upstream docs |
+| [Rate Limiting](#rate-limiting) | 2 | HIGH | Token bucket, sliding window; SlowAPI integration via upstream docs |
 | [Edge Computing](#edge-computing) | 2 | HIGH | Edge workers, V8 isolates, CDN caching, geo-routing |
 | [Event-Driven](#event-driven) | 2 | HIGH | Event sourcing, CQRS, transactional outbox, sagas |
 
-**Total: 16 rules across 6 categories**
+**Total: 11 rules across 6 categories.** Removed topics point at first-party sources in [Upstream coverage](#upstream-coverage-do-not-restate); ork-specific scars live in `${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
 
 ## Quick Start
 
@@ -72,9 +72,9 @@ Coordinate exclusive access to resources across multiple service instances.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Redis & Redlock | `${CLAUDE_SKILL_DIR}/rules/locks-redis-redlock.md` | Lua scripts, SET NX, multi-node quorum |
-| PostgreSQL Advisory | `${CLAUDE_SKILL_DIR}/rules/locks-postgres-advisory.md` | Session/transaction locks, lock ID strategies |
 | Fencing Tokens | `${CLAUDE_SKILL_DIR}/rules/locks-fencing-tokens.md` | Owner validation, TTL, heartbeat extension |
+
+Redis single-node locks, Redlock quorum, and PostgreSQL advisory locks are first-party documented; see [Upstream coverage](#upstream-coverage-do-not-restate).
 
 ## Resilience
 
@@ -93,8 +93,8 @@ Ensure operations can be safely retried without unintended side effects.
 | Rule | File | Key Pattern |
 |------|------|-------------|
 | Idempotency Keys | `${CLAUDE_SKILL_DIR}/rules/idempotency-keys.md` | Deterministic hashing, Stripe-style headers |
-| Request Dedup | `${CLAUDE_SKILL_DIR}/rules/idempotency-dedup.md` | Event consumer dedup, Redis + DB dual layer |
-| Database-Backed | `${CLAUDE_SKILL_DIR}/rules/idempotency-database.md` | Unique constraints, upsert, TTL cleanup |
+
+Event-consumer dedup and database-backed idempotency storage follow the Stripe pattern; see [Upstream coverage](#upstream-coverage-do-not-restate).
 
 ## Rate Limiting
 
@@ -104,7 +104,8 @@ Protect APIs with distributed rate limiting using Redis.
 |------|------|-------------|
 | Token Bucket | `${CLAUDE_SKILL_DIR}/rules/ratelimit-token-bucket.md` | Redis Lua scripts, burst capacity, refill rate |
 | Sliding Window | `${CLAUDE_SKILL_DIR}/rules/ratelimit-sliding-window.md` | Sorted sets, precise counting, no boundary spikes |
-| Distributed Limits | `${CLAUDE_SKILL_DIR}/rules/ratelimit-distributed.md` | SlowAPI + Redis, tiered limits, response headers |
+
+SlowAPI + Redis wiring and tiered limits are first-party documented; see [Upstream coverage](#upstream-coverage-do-not-restate).
 
 ## Edge Computing
 
@@ -124,6 +125,23 @@ Event sourcing, CQRS, saga orchestration, and reliable messaging patterns.
 | Event Sourcing | `${CLAUDE_SKILL_DIR}/rules/event-sourcing.md` | Event-sourced aggregates, CQRS read models, optimistic concurrency |
 | Event Messaging | `${CLAUDE_SKILL_DIR}/rules/event-messaging.md` | Transactional outbox, saga compensation, idempotent consumers |
 
+## Upstream coverage (do not restate)
+
+These topics were removed from this skill on 2026-07-31 (wrap-plus-delta thinning) because a first-party source maintains them. Consult the source; do not re-add tutorials here. Ork-specific scars for these topics live in `${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
+
+| Topic | First-party source |
+|-------|--------------------|
+| Redis single-node locks, Redlock algorithm and quorum | https://redis.io/docs/latest/develop/use/patterns/distributed-locks/ |
+| PostgreSQL advisory locks (session and transaction level) | https://www.postgresql.org/docs/current/explicit-locking.html#ADVISORY-LOCKS |
+| Circuit breaker pattern, thresholds, setup and rollout guides | https://learn.microsoft.com/azure/architecture/patterns/circuit-breaker |
+| Bulkhead pattern deep dive (thread pool, semaphore, tiers) | https://learn.microsoft.com/azure/architecture/patterns/bulkhead |
+| Retry strategies, exponential backoff, jitter, retry budgets | https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/ and https://tenacity.readthedocs.io |
+| HTTP and LLM provider error classification (retryable vs not) | https://docs.claude.com/en/api/errors and https://platform.openai.com/docs/guides/error-codes |
+| Idempotency keys, request dedup, database-backed idempotency | https://docs.stripe.com/api/idempotent_requests |
+| Token bucket algorithm and Redis rate-limiting patterns | https://redis.io/glossary/rate-limiting/ |
+| FastAPI distributed rate limiting (SlowAPI middleware, tiers) | https://slowapi.readthedocs.io/ |
+| LLM fallback chains, provider failover, cost tracking | https://vercel.com/docs/ai-gateway; model ids and pricing at https://docs.claude.com/en/docs/about-claude/pricing |
+
 ## Key Decisions
 
 | Decision | Recommendation |
@@ -139,7 +157,7 @@ Event sourcing, CQRS, saga orchestration, and reliable messaging patterns.
 
 ## When NOT to Use
 
-No separate event-sourcing/saga/CQRS skills exist — they are rules within distributed-systems. But most projects never need them.
+No separate event-sourcing/saga/CQRS skills exist; they are rules within distributed-systems. But most projects never need them.
 
 | Pattern | Interview | Hackathon | MVP | Growth | Enterprise | Simpler Alternative |
 |---------|-----------|-----------|-----|--------|------------|---------------------|
@@ -186,9 +204,7 @@ request_counts = {}  # Lost on restart, not shared across instances
 | Resource | Description |
 |----------|-------------|
 | `${CLAUDE_SKILL_DIR}/scripts/` | Templates: lock implementations, circuit breaker, rate limiter |
-| `${CLAUDE_SKILL_DIR}/checklists/` | Pre-flight checklists for each pattern category |
-| `${CLAUDE_SKILL_DIR}/references/` | Deep dives: Redlock algorithm, bulkhead tiers, token bucket |
-| `${CLAUDE_SKILL_DIR}/examples/` | Complete integration examples |
+| `${CLAUDE_SKILL_DIR}/references/ork-delta.md` | Ork-specific scars and house decisions kept after the wrap-plus-delta thinning |
 
 ## Related Skills
 

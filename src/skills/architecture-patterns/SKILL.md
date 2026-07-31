@@ -29,7 +29,7 @@ paths: ["src/**", "package.json", "tsconfig.json"]
 
 # Architecture Patterns
 
-Consolidated architecture validation and enforcement patterns covering clean architecture, backend layer separation, project structure conventions, and test standards. Each category has individual rule files in `references/` loaded on-demand.
+Consolidated architecture validation and enforcement patterns covering clean architecture, backend layer separation, project structure conventions, and test standards. Each category has individual rule files in `rules/` loaded on-demand. House scars and dated decisions rescued from retired reference tutorials live in `references/ork-delta.md`; the tutorials themselves are upstream's job (see "Upstream coverage" below).
 
 ## Quick Reference
 
@@ -74,9 +74,11 @@ SOLID principles, hexagonal architecture, ports and adapters, and DDD tactical p
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Hexagonal Architecture | `${CLAUDE_SKILL_DIR}/references/clean-hexagonal-ports-adapters.md` | Driving/driven ports, adapter implementations, layer structure |
-| SOLID & Dependency Rule | `${CLAUDE_SKILL_DIR}/references/clean-solid-dependency-rule.md` | Protocol-based interfaces, dependency inversion, FastAPI DI |
-| DDD Tactical Patterns | `${CLAUDE_SKILL_DIR}/references/clean-ddd-tactical-patterns.md` | Entities, value objects, aggregate roots, domain events |
+| Hexagonal Architecture | `${CLAUDE_SKILL_DIR}/rules/clean-hexagonal.md` | Driving/driven ports, adapter implementations, layer structure |
+| SOLID & Dependency Rule | `${CLAUDE_SKILL_DIR}/rules/clean-dependency-rule.md` | Protocol-based interfaces, dependency inversion, FastAPI DI |
+| DDD Tactical Patterns | `${CLAUDE_SKILL_DIR}/rules/clean-ports-adapters.md` | Entities, value objects, aggregate roots, domain events |
+
+Design review checklist: `${CLAUDE_SKILL_DIR}/checklists/solid-checklist.md`. Domain entity scaffold: `${CLAUDE_SKILL_DIR}/scripts/domain-entity-template.py`.
 
 ### Key Decisions
 
@@ -94,7 +96,7 @@ Feature-based organization, max nesting depth, unidirectional imports, and barre
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Folder Structure & Nesting | `${CLAUDE_SKILL_DIR}/references/structure-folder-conventions.md` | React/Next.js and FastAPI layouts, 4-level max nesting, barrel file rules |
+| Folder Structure & Nesting | `${CLAUDE_SKILL_DIR}/rules/structure-folders.md` | React/Next.js and FastAPI layouts, 4-level max nesting, barrel file rules |
 | Import Direction & Location | `${CLAUDE_SKILL_DIR}/references/structure-import-direction.md` | Unidirectional imports, cross-feature prevention, component/hook placement |
 
 ### Blocking Rules
@@ -113,9 +115,11 @@ FastAPI Clean Architecture with router/service/repository layer separation and b
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Layer Separation | `${CLAUDE_SKILL_DIR}/references/backend-layer-separation.md` | Router/service/repository boundaries, forbidden patterns, async rules |
-| Dependency Injection | `${CLAUDE_SKILL_DIR}/references/backend-dependency-injection.md` | Depends() chains, auth patterns, testing with DI overrides |
-| File Naming & Exceptions | `${CLAUDE_SKILL_DIR}/references/backend-naming-exceptions.md` | Naming conventions, domain exceptions, violation detection |
+| Layer Separation | `${CLAUDE_SKILL_DIR}/rules/backend-layers.md` | Router/service/repository boundaries, forbidden patterns, async rules |
+| Dependency Injection | `${CLAUDE_SKILL_DIR}/rules/backend-di.md` | Depends() chains, blocked DI patterns, violation detection |
+| File Naming & Exceptions | `${CLAUDE_SKILL_DIR}/rules/backend-repository.md` | Naming conventions, async rules, domain exceptions |
+
+House scars for this category (exception-to-HTTP status map, import-level violation greps, DI override teardown): `${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
 
 ### Layer Boundaries
 
@@ -131,9 +135,9 @@ Testing best practices with AAA pattern, naming conventions, isolation, and cove
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| AAA Pattern & Isolation | `${CLAUDE_SKILL_DIR}/references/testing-aaa-isolation.md` | Arrange-Act-Assert, test isolation, parameterized tests |
+| AAA Pattern & Isolation | `${CLAUDE_SKILL_DIR}/rules/testing-aaa.md` | Arrange-Act-Assert, test isolation, parameterized tests |
 | Naming Conventions | `${CLAUDE_SKILL_DIR}/references/testing-naming-conventions.md` | Descriptive behavior-focused names for Python and TypeScript |
-| Coverage & Location | `${CLAUDE_SKILL_DIR}/references/testing-coverage-location.md` | Coverage thresholds, fixture scopes, test file placement rules |
+| Coverage & Location | `${CLAUDE_SKILL_DIR}/rules/testing-coverage.md` | Coverage thresholds, fixture scopes, and (per `references/ork-delta.md`) the no-co-location rule |
 
 ### Coverage Requirements
 
@@ -235,6 +239,21 @@ class UserService:
 # NEVER use non-descriptive test names (test1, test, works)
 # NEVER share mutable state between tests without reset
 ```
+
+## Upstream coverage (do not restate)
+
+Long-form tutorials on these topics were removed from this skill (2026-07-31 wrap-plus-delta campaign). Read them at the first-party source; only floors, scars, and house decisions belong here (see `references/ork-delta.md`).
+
+| Topic | First-party source |
+|-------|--------------------|
+| Hexagonal architecture, ports and adapters walkthrough | Alistair Cockburn, https://alistair.cockburn.us/hexagonal-architecture/ and Architecture Patterns with Python, https://www.cosmicpython.com/ |
+| SOLID principles tutorial (Protocol-based) | Architecture Patterns with Python, https://www.cosmicpython.com/ and Python Protocol spec, https://typing.python.org/en/latest/spec/protocol.html |
+| DDD tactical patterns (entities, value objects, aggregates, domain events) | Architecture Patterns with Python, https://www.cosmicpython.com/ |
+| FastAPI dependency injection, auth dependencies, DI test overrides | FastAPI docs (context7: /tiangolo/fastapi), https://fastapi.tiangolo.com/tutorial/dependencies/ and skill ork:python-backend |
+| Router/service/repository layer walkthrough | FastAPI bigger applications, https://fastapi.tiangolo.com/tutorial/bigger-applications/ and skill ork:python-backend |
+| Full FastAPI clean-architecture example app | FastAPI full-stack template, https://github.com/fastapi/full-stack-fastapi-template |
+| Next.js folder layout and structure-violation catalog | Next.js project structure docs, https://nextjs.org/docs/app/getting-started/project-structure (skill vercel:nextjs) |
+| AAA pattern, isolation, parameterized tests, fixture scoping, coverage config | Skill ork:testing-unit; pytest docs, https://docs.pytest.org/en/stable/ and Vitest coverage, https://vitest.dev/config/#coverage |
 
 ## Related Skills
 

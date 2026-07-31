@@ -38,16 +38,19 @@ Comprehensive security patterns for building hardened applications. Each categor
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
-| [Authentication](#authentication) | 3 | CRITICAL | JWT tokens, OAuth 2.1/PKCE, RBAC/permissions |
-| [Defense-in-Depth](#defense-in-depth) | 2 | CRITICAL | Multi-layer security, zero-trust architecture |
-| [Input Validation](#input-validation) | 3 | HIGH | Schema validation (Zod/Pydantic), output encoding, file uploads |
-| [OWASP Top 10](#owasp-top-10) | 2 | CRITICAL | Injection prevention, broken authentication fixes |
-| [LLM Safety](#llm-safety) | 3 | HIGH | Prompt injection defense, output guardrails, content filtering |
-| [PII Masking](#pii-masking) | 2 | HIGH | PII detection/redaction with Presidio, Langfuse, LLM Guard |
-| [Scanning](#scanning) | 3 | HIGH | Dependency audit, SAST (Semgrep/Bandit), secret detection |
+| [Authentication](#authentication) | upstream | CRITICAL | JWT tokens, OAuth 2.1/PKCE, RBAC/permissions |
+| [Defense-in-Depth](#defense-in-depth) | 1 | CRITICAL | Multi-layer security, zero-trust architecture |
+| [Input Validation](#input-validation) | 2 | HIGH | Schema validation (Zod/Pydantic), output encoding, file uploads |
+| [OWASP Top 10](#owasp-top-10) | 1 | CRITICAL | Injection prevention, broken authentication fixes |
+| [LLM Safety](#llm-safety) | refs | HIGH | Prompt injection defense, output guardrails, content filtering |
+| [PII Masking](#pii-masking) | refs | HIGH | PII detection/redaction with Presidio, Langfuse, LLM Guard |
+| [Scanning](#scanning) | upstream | HIGH | Dependency audit, SAST (Semgrep/Bandit), secret detection |
 | [Advanced Guardrails](#advanced-guardrails) | 2 | CRITICAL | NeMo/Guardrails AI validators, red-teaming, OWASP LLM |
 
-**Total: 20 rules across 8 categories**
+**Total: 6 rule files across 4 categories.** Topics marked "upstream" or "refs" keep only
+the ork delta here: floors and key decisions in this file, scars and house decisions in
+`references/ork-delta.md`, and first-party sources in
+[Upstream coverage](#upstream-coverage-do-not-restate).
 
 ## Quick Start
 
@@ -99,11 +102,9 @@ langfuse = Langfuse(mask=mask_pii)
 
 Secure authentication with OAuth 2.1, Passkeys/WebAuthn, JWT tokens, and role-based access control.
 
-| Rule | Description |
-|------|-------------|
-| `auth-jwt.md` | JWT creation, verification, expiry, refresh token rotation |
-| `auth-oauth.md` | OAuth 2.1 with PKCE, DPoP, Passkeys/WebAuthn |
-| `auth-rbac.md` | Role-based access control, permission decorators, MFA |
+Implementation tutorials for JWT, OAuth 2.1/PKCE/DPoP, Passkeys/WebAuthn, RBAC, and MFA
+are upstream-covered (see [Upstream coverage](#upstream-coverage-do-not-restate)). The
+ork delta, including the argon2-cffi-over-passlib scar, lives in `references/ork-delta.md`.
 
 **Key Decisions:** Argon2id > bcrypt | Access tokens 15 min | PKCE required | Passkeys > TOTP > SMS
 
@@ -114,7 +115,11 @@ Multi-layer security architecture with no single point of failure.
 | Rule | Description |
 |------|-------------|
 | `defense-layers.md` | 8-layer security architecture (edge to observability) |
-| `defense-zero-trust.md` | Immutable request context, tenant isolation, audit logging |
+
+Zero-trust and tenant-isolation implementation recipes (tenant-scoped repositories,
+RLS, tenant-keyed caches) are upstream-covered; the immutable RequestContext pattern
+survives in `references/request-context-pattern.md` and sanitized audit logging in
+`references/audit-logging.md`.
 
 **Key Decisions:** Immutable dataclass context | Query-level tenant filtering | No IDs in LLM prompts
 
@@ -155,7 +160,10 @@ Validate and sanitize all untrusted input using Zod v4 and Pydantic.
 |------|-------------|
 | `validation-input.md` | Schema validation with Zod v4 and Pydantic, type coercion |
 | `validation-output.md` | HTML sanitization, output encoding, XSS prevention |
-| `validation-schemas.md` | Discriminated unions, file upload validation, URL allowlists |
+
+Advanced schema recipes (discriminated unions, file upload validation, URL allowlists)
+and the full Zod v4 API are upstream-covered; the Zod v4-not-v3 trap list is in
+`references/ork-delta.md`, and typed schema examples in `scripts/validation-schemas.ts`.
 
 **Key Decisions:** Allowlist over blocklist | Server-side always | Validate magic bytes not extensions
 
@@ -165,9 +173,11 @@ Protection against the most critical web application security risks.
 
 | Rule | Description |
 |------|-------------|
-| `owasp-injection.md` | SQL/command injection, parameterized queries, SSRF prevention |
-| `owasp-broken-auth.md` | JWT algorithm confusion, CSRF protection, timing attacks |
 | `supply-chain.md` | Lockfile integrity, dependency confusion, provenance, SBOM (A03:2025) |
+
+Injection prevention (SQL/command/SSRF) and broken-auth fixes (JWT algorithm confusion,
+CSRF, timing attacks) plus vulnerable-vs-secure demos are upstream-covered; see
+[Upstream coverage](#upstream-coverage-do-not-restate).
 
 **Key Decisions:** Parameterized queries only | Hardcode JWT algorithm | SameSite=Strict cookies
 
@@ -175,11 +185,13 @@ Protection against the most critical web application security risks.
 
 Security patterns for LLM integrations including context separation and output validation.
 
-| Rule | Description |
-|------|-------------|
-| `llm-prompt-injection.md` | Context separation, prompt auditing, forbidden patterns |
-| `llm-guardrails.md` | Output validation pipeline: schema, grounding, safety, size |
-| `llm-content-filtering.md` | Pre-LLM filtering, post-LLM attribution, three-phase pattern |
+| Reference | Description |
+|-----------|-------------|
+| `references/context-separation.md` | Context separation architecture, forbidden patterns |
+| `references/prompt-audit.md` | Prompt auditing, safe prompt builder |
+| `references/output-guardrails.md` | Output validation pipeline: schema, grounding, safety, size |
+| `references/pre-llm-filtering.md` | Tenant-scoped retrieval, content extraction |
+| `references/post-llm-attribution.md` | Deterministic attribution (three-phase pattern) |
 
 **Key Decisions:** IDs flow around LLM, never through | Attribution is deterministic | Audit every prompt
 
@@ -216,22 +228,23 @@ def validate_llm_output(raw_output: str, schema, sources: list[str]) -> str:
 
 PII detection and masking for LLM observability pipelines and logging.
 
-| Rule | Description |
-|------|-------------|
-| `pii-detection.md` | Microsoft Presidio, regex patterns, LLM Guard Anonymize |
-| `pii-redaction.md` | Langfuse mask callback, structlog/loguru processors, Vault deanonymization |
+| Reference | Description |
+|-----------|-------------|
+| `references/presidio-integration.md` | Microsoft Presidio setup, custom recognizers |
+| `references/langfuse-mask-callback.md` | Langfuse SDK mask implementation |
+
+LLM Guard Anonymize/Deanonymize with Vault and structlog/loguru redaction processors are
+upstream-covered; see [Upstream coverage](#upstream-coverage-do-not-restate).
 
 **Key Decisions:** Presidio for enterprise | Replace with type tokens | Use mask callback at init
 
 ## Scanning
 
-Automated security scanning for dependencies, code, and secrets.
-
-| Rule | Description |
-|------|-------------|
-| `scanning-dependency.md` | npm audit, pip-audit, Trivy container scanning, CI gating |
-| `scanning-sast.md` | Semgrep and Bandit static analysis, custom rules, pre-commit |
-| `scanning-secrets.md` | Gitleaks, TruffleHog, detect-secrets with baseline management |
+Automated security scanning for dependencies, code, and secrets. Tool tutorials
+(npm audit, pip-audit, Trivy, Semgrep, Bandit, Gitleaks, TruffleHog, detect-secrets)
+are upstream-covered; the runnable house pipeline is `scripts/scan-vulnerabilities.sh`,
+and the enforced-not-advisory repo gates (pre-push security suite, CI gitleaks) are
+recorded in `references/ork-delta.md`.
 
 **Key Decisions:** Pre-commit hooks for shift-left | Block on critical/high | Gitleaks + detect-secrets baseline
 
@@ -245,6 +258,25 @@ Production LLM safety with NeMo Guardrails, Guardrails AI validators, and DeepTe
 | `guardrails-llm-validation.md` | DeepTeam red-teaming (40+ vulnerabilities), OWASP LLM Top 10 compliance |
 
 **Key Decisions:** NeMo for flows, Guardrails AI for validators | Toxicity 0.5 threshold | Red-team pre-release + quarterly
+
+## Upstream coverage (do not restate)
+
+These topics were removed from this skill as vendor restatement. Consult the first-party
+source; only the ork delta (floors, scars, house decisions) lives here, in
+`references/ork-delta.md`.
+
+| Topic | First-party source |
+|-------|--------------------|
+| JWT implementation + password hashing (PyJWT, Argon2id) | https://pyjwt.readthedocs.io/ + https://argon2-cffi.readthedocs.io/ |
+| OAuth 2.1, PKCE, DPoP, Passkeys/WebAuthn flows | https://oauth.net/2.1/ + https://www.w3.org/TR/webauthn-3/ + https://github.com/duo-labs/py_webauthn |
+| RBAC decorators, MFA/TOTP, rate limiting, auth checklists | OWASP Cheat Sheet Series: https://cheatsheetseries.owasp.org/ (Authentication, Session Management, MFA) |
+| Zero-trust tenant isolation (tenant-scoped repos, RLS, tenant-keyed caches) | PostgreSQL RLS: https://www.postgresql.org/docs/current/ddl-rowsecurity.html + OWASP LLM08: https://genai.owasp.org/ |
+| Zod v4 API + validation recipes (coercion, unions, file/URL schemas) | https://zod.dev (context7: /colinhacks/zod) + https://docs.pydantic.dev/ |
+| OWASP Top 10 vulnerable-vs-secure examples (injection, XSS, CSRF, JWT confusion, timing) | https://owasp.org/Top10/ + https://cheatsheetseries.owasp.org/ |
+| LLM prompt-injection defense + output guardrail tutorials | OWASP LLM Top 10: https://genai.owasp.org/llm-top-10/ |
+| PII sanitization with LLM Guard (Anonymize/Deanonymize/Vault) | https://protectai.github.io/llm-guard/ |
+| Pre-logging redaction with structlog/loguru | https://www.structlog.org/ + https://loguru.readthedocs.io/ |
+| Dependency, secret, and SAST scanning tools | https://semgrep.dev/docs/ + https://github.com/gitleaks/gitleaks + https://trufflesecurity.com/trufflehog + https://bandit.readthedocs.io/ |
 
 ## Managed Hook Hierarchy (CC 2.1.49)
 
@@ -291,13 +323,10 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 | File | Content |
 |------|---------|
+| `ork-delta.md` | Ork-specific scars and house decisions rescued from removed upstream restatement |
 | `cc-permission-model.md` | CC allow/ask/deny rule semantics (≥2.1.166): Read-deny hides from Glob/Grep, deny-globs, WebFetch precedence, cross-session auth, org-managed rules |
-| `oauth-2.1-passkeys.md` | OAuth 2.1, PKCE, DPoP, Passkeys/WebAuthn |
 | `request-context-pattern.md` | Immutable request context for identity flow |
-| `tenant-isolation.md` | Tenant-scoped repository, vector/full-text search |
 | `audit-logging.md` | Sanitized structured logging, compliance |
-| `zod-v4-api.md` | Zod v4 types, coercion, transforms, refinements |
-| `vulnerability-demos.md` | OWASP vulnerable vs secure code examples |
 | `context-separation.md` | LLM context separation architecture |
 | `output-guardrails.md` | Output validation pipeline implementation |
 | `pre-llm-filtering.md` | Tenant-scoped retrieval, content extraction |
@@ -305,8 +334,6 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `prompt-audit.md` | Prompt audit patterns, safe prompt builder |
 | `presidio-integration.md` | Microsoft Presidio setup, custom recognizers |
 | `langfuse-mask-callback.md` | Langfuse SDK mask implementation |
-| `llm-guard-sanitization.md` | LLM Guard Anonymize/Deanonymize with Vault |
-| `logging-redaction.md` | structlog/loguru pre-logging redaction |
 
 ## Related Skills
 

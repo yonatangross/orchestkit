@@ -36,28 +36,6 @@
       ]
     },
     {
-      "id": "focus-trap",
-      "rule": "focus-trap",
-      "query": "Implement focus trapping for a modal dialog",
-      "expectedBehavior": [
-        "Focus is trapped within modal using Tab/Shift+Tab wrapping",
-        "First focusable element receives focus on open",
-        "Escape key closes modal and releases trap",
-        "Uses role=dialog and aria-modal=true for proper screen reader semantics"
-      ]
-    },
-    {
-      "id": "focus-restoration",
-      "rule": "focus-restoration",
-      "query": "Restore focus after closing a confirmation dialog",
-      "expectedBehavior": [
-        "Stores trigger element reference before opening",
-        "Returns focus to trigger element on close",
-        "Handles case where trigger element is removed from DOM",
-        "Focuses first error field after form validation failure"
-      ]
-    },
-    {
       "id": "focus-keyboard-nav",
       "rule": "focus-keyboard-nav",
       "query": "Add keyboard navigation to a toolbar component",
@@ -88,28 +66,6 @@
         "Label properly associated with input via labelProps",
         "Arrow keys navigate options, Enter selects",
         "Uses useFilter hook for locale-aware type-ahead filtering"
-      ]
-    },
-    {
-      "id": "aria-overlays",
-      "rule": "aria-overlays",
-      "query": "Build a modal dialog with React Aria overlay hooks",
-      "expectedBehavior": [
-        "Uses useDialog + useModalOverlay hooks for accessible dialog behavior",
-        "Wrapped in FocusScope with contain, restoreFocus, autoFocus",
-        "Uses useOverlayTriggerState for managing open/close toggle state",
-        "Escape key closes, click outside dismisses if isDismissable"
-      ]
-    },
-    {
-      "id": "wcag-cognitive-inclusion",
-      "rule": "wcag-cognitive-inclusion",
-      "query": "Our app has long forms and multiple simultaneous notifications. How do I improve it for users with ADHD?",
-      "expectedBehavior": [
-        "Recommends breaking long forms into multi-step wizards with progress indicators",
-        "Limits visible notifications to one at a time with a queue for additional messages",
-        "Uses chunked content with clear headings and keeps paragraphs to two to four sentences",
-        "Implements progressive disclosure showing essential information first with details on demand"
       ]
     },
     {
