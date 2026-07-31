@@ -848,7 +848,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/design-system-tokens",
     "title": "Design System Tokens",
-    "description": "Design token management with W3C Design Token Community Group specification, three-tier token hierarchy (global/alias/component), OKLCH color spaces, Style Dictionary transformation, and dark mode theming. Use when creating design token files, implementing theme systems, managing token versioning, or building design-to-code pipelines."
+    "description": "Design token management with the W3C Design Token spec, three-tier hierarchy (global/alias/component), OKLCH color, Style Dictionary transforms, and dark mode theming. Use when creating token files, implementing theme systems, or building design-to-code pipelines."
   },
   {
     "url": "/docs/reference/skills/design-to-code",
