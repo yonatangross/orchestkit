@@ -20,10 +20,25 @@ import { expandQueryString } from "@/lib/search-synonyms";
 //        search dialog can filter by content type (?tag=skill) for the tabs.
 //  • results are post-reranked (lib/search-relevance): doc-type weighting
 //        (guide/concept/cookbook above reference) with an exact-title floor.
+// The underlying document-collection walk (source.getPages() + skills/agents/
+// hooks/compositions) is pure and synchronous, so memoize it per cold start.
+// fumadocs' `initAdvancedSearch` calls `indexes()` SYNCHRONOUSLY and
+// independently for each `createSearchAPI("advanced", ...)` instance (see
+// node_modules/fumadocs-core/dist/search/server.js: `createDB` does
+// `await indexes()` where the call itself happens before the await
+// suspends) -- without this cache, building both the strict and fuzzy
+// variant would re-run the full doc walk twice even though the records are
+// identical between them (only Orama's `search.tolerance` differs).
+let cachedIndexRecords: ReturnType<typeof buildSearchIndexes> | null = null;
+function getIndexRecords(): ReturnType<typeof buildSearchIndexes> {
+	cachedIndexRecords ??= buildSearchIndexes();
+	return cachedIndexRecords;
+}
+
 function makeSearchAPI(tolerance: number) {
 	return createSearchAPI("advanced", {
 		language: "english",
-		indexes: buildSearchIndexes,
+		indexes: getIndexRecords,
 		search: {
 			tolerance,
 			boost: { content: 1.5 },
@@ -31,8 +46,30 @@ function makeSearchAPI(tolerance: number) {
 	});
 }
 
-const strictAPI = makeSearchAPI(0);
-const fuzzyAPI = makeSearchAPI(1);
+// Lazily build each tolerance variant's Orama index on first request that
+// actually needs it, instead of eagerly building BOTH at module scope (the
+// original bug: every cold instance paid for the strict AND fuzzy index even
+// though a given request only ever uses one, selected by `typoToleranceFor`).
+//
+// Single-flight without an explicit lock/promise cache: `makeSearchAPI` is
+// synchronous up to and including the call that kicks off Orama's
+// `insertMultiple` build (the async indexing work continues in the
+// background after `createSearchAPI` returns), and there is no `await`
+// between the `??=` check and the assignment below. Node's single-threaded
+// event loop cannot interleave another request's call to `getSearchAPI`
+// between those two statements, so two "concurrent" cold requests on the
+// same warm instance cannot both trigger a duplicate build.
+let strictAPI: ReturnType<typeof makeSearchAPI> | null = null;
+let fuzzyAPI: ReturnType<typeof makeSearchAPI> | null = null;
+
+function getSearchAPI(tolerance: 0 | 1): ReturnType<typeof makeSearchAPI> {
+	if (tolerance === 0) {
+		strictAPI ??= makeSearchAPI(0);
+		return strictAPI;
+	}
+	fuzzyAPI ??= makeSearchAPI(1);
+	return fuzzyAPI;
+}
 
 type FumaResult = {
 	id: string;
@@ -137,8 +174,14 @@ export async function GET(req: Request) {
 	// tolerance only for queries ≥ 4 chars. Same response contract as before.
 	const searchUrl = new URL(url);
 	searchUrl.searchParams.set("query", expandQueryString(query));
-	const api = typoToleranceFor(query) === 1 ? fuzzyAPI : strictAPI;
+	const api = getSearchAPI(typoToleranceFor(query));
+	// Server-Timing wraps the actual search execution (index build on a cold
+	// variant + the Orama query itself) so search:performed can carry a
+	// server-measured duration_ms instead of a client-side estimate that also
+	// includes network latency and JSON parsing.
+	const searchStart = performance.now();
 	const res = await api.GET(new Request(searchUrl, { headers: req.headers }));
+	const searchDurationMs = performance.now() - searchStart;
 	if (!res.ok) return res;
 
 	const limitRaw = url.searchParams.get("limit");
@@ -175,6 +218,10 @@ export async function GET(req: Request) {
 			...rateLimitHeaders(rate),
 			"Cache-Control": "public, max-age=300",
 			Vary: "Accept",
+			// Standard Server-Timing (https://www.w3.org/TR/server-timing/), read by
+			// the client via res.headers.get("Server-Timing") and reported as
+			// duration_ms on the search:performed beacon (lib/search-beacon.ts).
+			"Server-Timing": `search;dur=${searchDurationMs.toFixed(1)}`,
 		},
 	});
 }

@@ -79,6 +79,19 @@ export default function CustomSearchDialog(props: SharedProps) {
 
   const display = useMemo(() => (rows ? buildDisplayList(rows) : null), [rows]);
 
+  // Client-side fallback timing for search:performed's duration_ms. The
+  // server measures its own Server-Timing header around the actual Orama
+  // search (app/api/search/route.ts), but fumadocs' `useDocsSearch({ type:
+  // "fetch" })` only ever surfaces the parsed result array, never the
+  // `Response` object, so that header is unreachable from here (see the
+  // comment on reportSearchPerformed). This instead times from
+  // debounce-settle (query.isLoading -> true) to results-arrived, which also
+  // captures network + JSON-parse time on top of the server's own number.
+  const searchStartRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (query.isLoading) searchStartRef.current = performance.now();
+  }, [query.isLoading]);
+
   // Zero-result beacon: debounced so mid-typing states don't fire, deduped
   // per query string, truncated to 80 chars inside the reporter.
   const lastReported = useRef<string>("");
@@ -116,9 +129,13 @@ export default function CustomSearchDialog(props: SharedProps) {
     // Page blocks, not rendered rows: the flat array interleaves heading/text
     // sub-rows. Still a post-cap count (limit=90), never the corpus total.
     const resultCount = toBlocks(rows).length;
+    const durationMs =
+      searchStartRef.current !== null
+        ? Math.round(performance.now() - searchStartRef.current)
+        : undefined;
     const timer = setTimeout(() => {
       lastPerformed.current = key;
-      reportSearchPerformed({ query: q, resultCount, tag: tag ?? "all" });
+      reportSearchPerformed({ query: q, resultCount, tag: tag ?? "all", durationMs });
     }, BEACON_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [search, tag, rows, query.isLoading]);

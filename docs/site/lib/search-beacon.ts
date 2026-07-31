@@ -92,6 +92,18 @@ export function reportSearchPerformed(input: {
 	query: string;
 	resultCount: number;
 	tag: string;
+	/**
+	 * Search execution time in milliseconds. Client-side `performance.now()`
+	 * measured from debounce-settle to results-arrived (see
+	 * components/search-dialog.tsx) — NOT the server's own Server-Timing
+	 * value. fumadocs' `useDocsSearch({ type: "fetch" })` wraps `fetch()`
+	 * internally (fumadocs-core/dist/search/client/fetch.js) and only
+	 * returns the parsed JSON body, never the `Response`, so the
+	 * `Server-Timing: search;dur=<ms>` header app/api/search/route.ts emits
+	 * is not reachable from this call site without forking fumadocs' client.
+	 * Omitted when unavailable (e.g. no search has completed yet).
+	 */
+	durationMs?: number;
 }): void {
 	const truncated = truncateQuery(input.query);
 	if (!truncated) return;
@@ -99,6 +111,7 @@ export function reportSearchPerformed(input: {
 		query: truncated,
 		result_count: input.resultCount,
 		tag: input.tag,
+		...(input.durationMs !== undefined ? { duration_ms: input.durationMs } : {}),
 	};
 	// This is the highest-volume search event, so the query stays first-party
 	// only; query_length keeps the mirror useful without exporting free text.
@@ -106,6 +119,7 @@ export function reportSearchPerformed(input: {
 		query_length: truncated.length,
 		result_count: input.resultCount,
 		tag: input.tag,
+		...(input.durationMs !== undefined ? { duration_ms: input.durationMs } : {}),
 	});
 }
 
