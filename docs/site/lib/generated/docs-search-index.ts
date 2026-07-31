@@ -713,7 +713,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/architecture-decision-record",
     "title": "Architecture Decision Record",
-    "description": "Use this skill when documenting significant architectural decisions. Provides ADR templates following the Nygard format with sections for context, decision, consequences, and alternatives. Use when writing ADRs, recording decisions, or evaluating options."
+    "description": "ADR templates in the Nygard format with context, decision, consequences, and alternatives. Use when writing ADRs, recording an architectural decision, or evaluating options."
   },
   {
     "url": "/docs/reference/skills/architecture-patterns",
@@ -758,7 +758,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/browser-tools",
     "title": "Browser Tools",
-    "description": "OrchestKit security wrapper for browser automation. Adds URL blocklisting, rate limiting, robots.txt enforcement, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows that need safety guardrails."
+    "description": "Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits."
   },
   {
     "url": "/docs/reference/skills/business-case",
@@ -768,7 +768,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/chain-patterns",
     "title": "Chain Patterns",
-    "description": "Chain patterns for CC 2.1.71 pipelines — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building multi-phase pipeline skills. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable."
+    "description": "Chain patterns for multi-phase pipelines: MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building or debugging a pipeline skill."
   },
   {
     "url": "/docs/reference/skills/ci-debug",
@@ -783,7 +783,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/code-review-playbook",
     "title": "Code Review Playbook",
-    "description": "Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices."
+    "description": "Structured review processes, conventional comments, language-specific checklists, and feedback templates. Use when reviewing PRs, conducting code review, or standardizing review practice."
   },
   {
     "url": "/docs/reference/skills/commit",
@@ -803,7 +803,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/configure",
     "title": "Configure",
-    "description": "Interactive configuration wizard for OrchestKit plugin settings including MCP server enablement, hook permissions, keybindings, and installation presets (Complete/Standard/Lite). Supports preset shortcuts, per-category skill customization, and webhook configuration. Use when customizing plugin behavior or managing settings."
+    "description": "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings."
   },
   {
     "url": "/docs/reference/skills/cover",
@@ -1103,7 +1103,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/scope-appropriate-architecture",
     "title": "Scope Appropriate Architecture",
-    "description": "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorm/implement detect a project tier."
+    "description": "Right-sizes architecture to project scope, classifying projects into 6 tiers to prevent over-engineering. Use when designing architecture, selecting patterns, or detecting a project tier."
   },
   {
     "url": "/docs/reference/skills/security-patterns",
