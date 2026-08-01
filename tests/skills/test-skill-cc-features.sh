@@ -146,10 +146,16 @@ for skill_file in "$SKILLS_DIR"/*/SKILL.md; do
     [[ -f "$skill_file" ]] || continue
     skill_name="$(basename "$(dirname "$skill_file")")"
 
-    is_invocable=$(grep -c 'user-invocable: true' "$skill_file" || true)
+    # FRONTMATTER ONLY. This selector used to grep the whole file, so a skill
+    # BODY merely *mentioning* the literal string "user-invocable: true" (as
+    # chain-patterns' 2.1.218 background note legitimately does) got counted
+    # as a command and failed the hint requirement. Frontmatter keys must be
+    # matched in frontmatter — the same body-vs-config class as #959's kin.
+    frontmatter=$(awk '/^---$/{c++; next} c==1' "$skill_file")
+    is_invocable=$(printf '%s\n' "$frontmatter" | grep -c '^user-invocable: true' || true)  # silent: best-effort (grep -c exits 1 on zero matches; 0 is a valid count here)
     if [[ "$is_invocable" -gt 0 ]]; then
         invocable_count=$((invocable_count + 1))
-        has_hint=$(grep -c 'argument-hint:' "$skill_file" || true)
+        has_hint=$(printf '%s\n' "$frontmatter" | grep -c '^argument-hint:' || true)  # silent: best-effort (grep -c exits 1 on zero matches; 0 is a valid count here)
         if [[ "$has_hint" -gt 0 ]]; then
             hint_count=$((hint_count + 1))
         else
