@@ -434,6 +434,8 @@ OTEL_SERVICE_NAME=my-app \
 
 **Action for OrchestKit**: None. OrchestKit hooks don't rely on inherited OTEL env. If you've been using `OTEL_EXPORTER_OTLP_ENDPOINT` to debug an MCP server by piggy-backing on the CLI's collector, switch to the explicit-env pattern above. Affected children: **Bash, hooks, MCP servers (stdio + Streamable HTTP), LSP**.
 
+**Managed endpoint governs all signals (CC 2.1.217)**: when a *managed* settings file sets `OTEL_EXPORTER_OTLP_ENDPOINT`, it now governs every signal — lower-scope signal-specific overrides (`OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`, `..._METRICS_ENDPOINT`, `..._LOGS_ENDPOINT` in user/project settings) can no longer redirect telemetry away from the managed endpoint. Pre-2.1.217, a per-signal override in a lower scope silently won, which let a workstation route (say) traces to a private collector while the org believed all telemetry landed centrally. **Action for OrchestKit**: none — ork ships no managed OTEL endpoint; documented for operators running managed fleets who point Claude Code telemetry at Langfuse or a central collector (#3066).
+
 ### MCP Reconnect Tool Summarization
 
 When an MCP server reconnects mid-session, CC 2.1.128 no longer flushes the full re-announced tool-name list into the conversation. Re-announced tools are summarized by server prefix instead — e.g., `mcp__github__* (37 tools re-registered)` rather than 37 separate lines.

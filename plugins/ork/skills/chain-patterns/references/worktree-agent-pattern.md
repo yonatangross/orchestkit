@@ -2,6 +2,8 @@
 
 Use `isolation: "worktree"` when spawning agents that write files in parallel. Each agent gets its own copy of the repo — no merge conflicts.
 
+> **Isolation is enforced, not advisory (CC 2.1.216+):** a worktree-isolated subagent can no longer redirect git into the shared checkout via `git -C <path>`, `--git-dir`, or the `GIT_DIR`/`GIT_WORK_TREE` env vars — CC 2.1.216 closed that escape. Write coordinator prompts accordingly: a worker that "helpfully" targets the parent repo with `git -C` now fails instead of silently mutating the shared tree, so route any parent-tree git through the coordinator, never through an isolated worker (#3068).
+
 ## When to Use
 
 | Scenario | Use Worktree? | Why |
