@@ -655,7 +655,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "bare-eval",
     "description": "Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill evaluation, trigger testing, and LLM grading without plugin/hook interference. Use when running eval pipelines, grading skill outputs, benchmarking prompt quality, or testing trigger accuracy in isolation.",
     "version": "1.1.0",
-    "sha256": "13bc9e042a8625b143b651cd7869569c0bec5907840a0d9856e2ced106bc0a8f",
+    "sha256": "e21abc99bc5747d5066ceb475e0ecca23eed88b11d1a45ec61bae69447b4c6a3",
     "author": "OrchestKit",
     "tags": [
       "eval",
