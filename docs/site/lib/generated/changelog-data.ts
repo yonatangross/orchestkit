@@ -17,6 +17,49 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "9.4.0",
+    "date": "2026-08-01",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**quality:** add the python half of the phantom-symbol gate ([#3230](https://github.com/yonatangross/orchestkit/issues/3230)) ([63bf412](https://github.com/yonatangross/orchestkit/commit/63bf412237cfbb297fcc91561472cdc39e240d21))",
+          "**quality:** skill-delta ratchet gate (campaign phase 0) ([#3211](https://github.com/yonatangross/orchestkit/issues/3211)) ([0e6a3a8](https://github.com/yonatangross/orchestkit/commit/0e6a3a8aea0b18a6bbf94c25694ca892ffcc3ca8))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**agents:** clear all 94 dead skill preload declarations ([#3221](https://github.com/yonatangross/orchestkit/issues/3221)) ([8e6213b](https://github.com/yonatangross/orchestkit/commit/8e6213b4f7983dbda54f1bb5687b96ead26f59cc))",
+          "**ci:** accept the app/ author form and stop swallowing gh failures ([#3227](https://github.com/yonatangross/orchestkit/issues/3227)) ([e08ee88](https://github.com/yonatangross/orchestkit/commit/e08ee8878bba106cafc24cdd758b43eb96561808))",
+          "**ci:** regenerate CHANGELOG-derived files on release PRs ([#3226](https://github.com/yonatangross/orchestkit/issues/3226)) ([113b67a](https://github.com/yonatangross/orchestkit/commit/113b67a5810ff8d7ea8597ea7bc5c4ed395d6190))",
+          "**drift:** schedule the currency probe and kill two phantom APIs ([#3222](https://github.com/yonatangross/orchestkit/issues/3222)) ([e267c5c](https://github.com/yonatangross/orchestkit/commit/e267c5ca5add9b67edc12a787770386352fda902))",
+          "**runner:** honour the interpreter and reclaim 56 orphaned tests ([#3228](https://github.com/yonatangross/orchestkit/issues/3228)) ([95836b4](https://github.com/yonatangross/orchestkit/commit/95836b418551988cf681992c72fcc264dc80bfbc))",
+          "**skills:** bound mcp below v2 and teach the gate about ceilings ([#3229](https://github.com/yonatangross/orchestkit/issues/3229)) ([33db0ef](https://github.com/yonatangross/orchestkit/commit/33db0ef41700bb7958c646b0553dc8a8e0b38431))",
+          "**skills:** drop impossible floor-CC path from dataviz gate ([#3213](https://github.com/yonatangross/orchestkit/issues/3213)) ([11e1dad](https://github.com/yonatangross/orchestkit/commit/11e1dadb279de80557762d144d5ec6c7313ee4ef))",
+          "**skills:** repair 32 dead skill preload edges ([#3216](https://github.com/yonatangross/orchestkit/issues/3216)) ([e2172dd](https://github.com/yonatangross/orchestkit/commit/e2172dd9a3372466ba1bc0f4554051646f52e82d))",
+          "**skills:** retire three stale JsonRenderComposition references ([#3225](https://github.com/yonatangross/orchestkit/issues/3225)) ([240a242](https://github.com/yonatangross/orchestkit/commit/240a2427d6bdedf3294922a3fd5a564f1af78f7f))",
+          "**tests:** ratchet orphaned tests and repair the one that failed ([#3223](https://github.com/yonatangross/orchestkit/issues/3223)) ([e9e74e3](https://github.com/yonatangross/orchestkit/commit/e9e74e3ea877b9f194626ea5e0778a2ca50686c8))",
+          "**tests:** reachability linter was blind to block-list YAML ([#3219](https://github.com/yonatangross/orchestkit/issues/3219)) ([4a88597](https://github.com/yonatangross/orchestkit/commit/4a8859752a0a2c448ee0f8f48321db3b4a542b35))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**ci:** bump internal CI Node pins from EOL Node 20 to 22 ([#3214](https://github.com/yonatangross/orchestkit/issues/3214)) ([bc0eced](https://github.com/yonatangross/orchestkit/commit/bc0ecedb0b8fcb9de9e4092022ac86087f4d0c85))",
+          "regen v9.3.0 build output and widen the drift gate ([#3217](https://github.com/yonatangross/orchestkit/issues/3217)) ([acfbc4f](https://github.com/yonatangross/orchestkit/commit/acfbc4f70d874b2d32b7e022b08569836d634626))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "add SECURITY.md and a commercial surface to the README ([#3209](https://github.com/yonatangross/orchestkit/issues/3209)) ([75eb781](https://github.com/yonatangross/orchestkit/commit/75eb781c80a877fc7ca3def5239dbe7aa9f5ff2f))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "9.3.0",
     "date": "2026-07-31",
     "compareUrl": "",

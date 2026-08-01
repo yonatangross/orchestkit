@@ -249,6 +249,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.4.0](https://github.com/yonatangross/orchestkit/compare/v9.3.0...v9.4.0)** · 2026-08-01
+
+- **quality:** add the python half of the phantom-symbol gate (#3230)
+- **quality:** skill-delta ratchet gate (campaign phase 0) (#3211)
+- **agents:** clear all 94 dead skill preload declarations (#3221)
+- **ci:** accept the app/ author form and stop swallowing gh failures (#3227)
+- **ci:** regenerate CHANGELOG-derived files on release PRs (#3226)
+- …and 11 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v9.3.0](https://github.com/yonatangross/orchestkit/compare/v9.2.1...v9.3.0)** · 2026-07-31
 
 - **agents:** key Tavily guidance on the tvly CLI rail (#3204)
@@ -293,15 +302,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **build:** default-deny frontmatter gate, pass all 10 fields (#3158)
 - **readme:** refresh What's New for 9.0.0 and isolate the RTL table cell (#3153)
 - **cc-watch:** snapshot upstream CHANGELOG (2.1.220) (#3155)
-
-**[v9.0.0](https://github.com/yonatangross/orchestkit/compare/v8.85.0...v9.0.0)** · 2026-07-25
-
-- **cc:** the Claude Code support floor is now 2.1.220. Claude Code 2.1.206 through 2.1.219 are no longer supported; hooks and skills may no-op or error on them, and that is not treated as a bug. Upgrade Claude Code before updating OrchestKit.
-- **cc:** adopt Opus 5, strict-renew the support floor to 2.1.220 (#3141)
-- **verify:** add the Reachability Proof axis (REACHED vs UNREACHED) (#3149)
-- **docs:** pin playground links to the commit SHA, not the branch (#3148)
-- **hooks:** bound hook-timing.jsonl, the one analytics file with no cap (#3151)
-- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
