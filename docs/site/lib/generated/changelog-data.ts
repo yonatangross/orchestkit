@@ -17,6 +17,41 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "9.5.0",
+    "date": "2026-08-01",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** nudge TaskCreate on 3+ step work and measure compliance ([#3232](https://github.com/yonatangross/orchestkit/issues/3232)) ([ec1ca84](https://github.com/yonatangross/orchestkit/commit/ec1ca847617c7b3a44bacc4feda13a86e3a840b4))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**docs-site:** fix count and command drift at source, add a drift gate ([#3231](https://github.com/yonatangross/orchestkit/issues/3231)) ([0ed071d](https://github.com/yonatangross/orchestkit/commit/0ed071d45229806277bcd2fdbbf178c1adc6efa1))",
+          "**skills:** keep user-typed fork skills interactive on CC 2.1.218+ ([#3239](https://github.com/yonatangross/orchestkit/issues/3239)) ([a47d763](https://github.com/yonatangross/orchestkit/commit/a47d763b3dc8dad08c7096044a0fda8f0136ea02))",
+          "**tests:** dead E2E wiring, gitignore-aware gates, warn ratchet ([#3236](https://github.com/yonatangross/orchestkit/issues/3236)) ([a4535bc](https://github.com/yonatangross/orchestkit/commit/a4535bca94b686ca50f12c1ffdf1325c8ac451f4))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**evals:** retire the prose-grading eval, wire the nudge reader ([#3237](https://github.com/yonatangross/orchestkit/issues/3237)) ([80b0e26](https://github.com/yonatangross/orchestkit/commit/80b0e26ffa38d522a273151dd6fad6af6cbd4ecf))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc:** adopt the 2.1.216-218 doc rows for worktree, OTEL, code-review ([#3240](https://github.com/yonatangross/orchestkit/issues/3240)) ([079b685](https://github.com/yonatangross/orchestkit/commit/079b6851d89f8bf309701c8eb66e520d96ebe5ff)), closes [#3092](https://github.com/yonatangross/orchestkit/issues/3092) [#3068](https://github.com/yonatangross/orchestkit/issues/3068) [#3066](https://github.com/yonatangross/orchestkit/issues/3066)",
+          "correct the task-existence-gate registration claim ([#3242](https://github.com/yonatangross/orchestkit/issues/3242)) ([0c65a46](https://github.com/yonatangross/orchestkit/commit/0c65a46f909118df0436fa2ab3e2af5cadf3a775))",
+          "**doctor:** verify fork backgrounding, retire [#3238](https://github.com/yonatangross/orchestkit/issues/3238) hedge ([#3241](https://github.com/yonatangross/orchestkit/issues/3241)) ([f6fea07](https://github.com/yonatangross/orchestkit/commit/f6fea07e84f7c4f48bfac6a667f6acda354b4cbe))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "9.4.0",
     "date": "2026-08-01",
     "compareUrl": "",

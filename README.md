@@ -249,6 +249,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.5.0](https://github.com/yonatangross/orchestkit/compare/v9.4.0...v9.5.0)** · 2026-08-01
+
+- **hooks:** nudge TaskCreate on 3+ step work and measure compliance (#3232)
+- **docs-site:** fix count and command drift at source, add a drift gate (#3231)
+- **skills:** keep user-typed fork skills interactive on CC 2.1.218+ (#3239)
+- **tests:** dead E2E wiring, gitignore-aware gates, warn ratchet (#3236)
+- **evals:** retire the prose-grading eval, wire the nudge reader (#3237)
+- …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v9.4.0](https://github.com/yonatangross/orchestkit/compare/v9.3.0...v9.4.0)** · 2026-08-01
 
 - **quality:** add the python half of the phantom-symbol gate (#3230)
@@ -295,13 +304,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v9.0.2](https://github.com/yonatangross/orchestkit/compare/v9.0.1...v9.0.2)** · 2026-07-26
 
 - **ci:** remove the Claude PR Review workflow and its labeler (#3159)
-
-**[v9.0.1](https://github.com/yonatangross/orchestkit/compare/v9.0.0...v9.0.1)** · 2026-07-26
-
-- bound rotated analytics archives, unstale the CC floor (#3156)
-- **build:** default-deny frontmatter gate, pass all 10 fields (#3158)
-- **readme:** refresh What's New for 9.0.0 and isolate the RTL table cell (#3153)
-- **cc-watch:** snapshot upstream CHANGELOG (2.1.220) (#3155)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
