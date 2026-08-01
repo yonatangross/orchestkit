@@ -66,6 +66,7 @@ import { cacheBreakDetector } from './cache-break-detector.js';
 import { handoffInjector } from './handoff-injector.js';
 import { executorRouteNudge } from './executor-route-nudge.js';
 import { visualStyleNudge } from './visual-style-nudge.js';
+import { multiStepTaskNudge } from './multi-step-task-nudge.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
@@ -121,6 +122,9 @@ const HOOKS: PromptHookConfig[] = [
   // prompt until the first build-shaped one arrives).
   { name: 'executor-route-nudge', fn: executorRouteNudge, producesContext: true },
   { name: 'visual-style-nudge', fn: visualStyleNudge, producesContext: true },
+  // 3+ step work with no task list — advisory TaskCreate re-anchor. Goes
+  // permanently silent for the session after the first TaskCreated event.
+  { name: 'multi-step-task-nudge', fn: multiStepTaskNudge, producesContext: true },
   // antipattern-warning removed (#972) — now a type:prompt hook in hooks.json
 ];
 

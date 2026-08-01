@@ -12,13 +12,13 @@
       "exports": 86
     },
     "posttool": {
-      "size": 86429,
-      "sizeKB": "84.40",
+      "size": 86499,
+      "sizeKB": "84.47",
       "exports": 68
     },
     "prompt": {
-      "size": 59280,
-      "sizeKB": "57.89",
+      "size": 61566,
+      "sizeKB": "60.12",
       "exports": 109
     },
     "lifecycle": {
@@ -27,8 +27,8 @@
       "exports": 68
     },
     "stop": {
-      "size": 34386,
-      "sizeKB": "33.58",
+      "size": 36554,
+      "sizeKB": "35.70",
       "exports": 52
     },
     "subagent": {
@@ -57,8 +57,8 @@
       "exports": 70
     }
   },
-  "totalSize": 681393,
-  "totalSizeKB": "665.42",
+  "totalSize": 685917,
+  "totalSizeKB": "669.84",
   "inputs": 113,
-  "avgBundleSizeKB": "60.49"
+  "avgBundleSizeKB": "60.89"
 }

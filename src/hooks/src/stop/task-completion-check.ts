@@ -10,6 +10,13 @@ import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { getOrphanedTasks, formatTaskDeleteForClaude } from '../lib/task-integration.js';
 import { getActiveTodosFile } from '../lib/paths.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { writeFileSync, mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { appendEventLog } from '../lib/event-logger.js';
+import { getSessionStorageDir } from '../lib/paths.js';
+import { safeIdentifier } from '../lib/safe-fs.js';
+import { sessionHasTasks } from '../lib/task-usage-signal.js';
+import { qualifyingPromptCount } from '../prompt/multi-step-task-nudge.js';
 
 interface TodoItem {
   status: string;
@@ -68,6 +75,44 @@ export function taskCompletionCheck(input: HookInput, ctx: HookContext = NOOP_CT
     } catch (error) {
       ctx.log('task-completion-check', `Error reading legacy todos: ${error}`);
     }
+  }
+
+  // Task-usage telemetry (2026-08-01): CLAUDE.md's "TaskCreate for 3+ step
+  // work" rule had no measurement, so compliance was anecdote. The prompt-side
+  // multi-step-task-nudge counts qualifying prompts per session; here that
+  // count is joined with whether the session ever created a task — the
+  // denominator and numerator a future ratchet needs. Silent: this leg
+  // measures, the prompt leg speaks.
+  //
+  // Stop fires on EVERY turn end (measured: 1,236 Stops across ~350 sessions),
+  // so a naive append here would write per-turn spam. A state file keyed on
+  // tasks_used caps it at two lines per session: the first qualifying Stop,
+  // and the false->true conversion if the operator opens tasks later. The
+  // LAST line per session_id is the session's verdict.
+  try {
+    const qualifying = qualifyingPromptCount(sessionId || '');
+    if (qualifying > 0 && projectDir && sessionId) {
+      const used = sessionHasTasks(projectDir, sessionId);
+      const statePath = join(
+        getSessionStorageDir(),
+        `${safeIdentifier(sessionId, 'invalid')}-task-outcome.state`,
+      );
+      const prev = existsSync(statePath) ? readFileSync(statePath, 'utf8').trim() : '';
+      const now = used ? 'true' : 'false';
+      if (prev !== now && prev !== 'true') {
+        appendEventLog('task-nudge-outcomes.jsonl', {
+          timestamp: new Date().toISOString(),
+          event: 'session_task_usage',
+          session_id: sessionId,
+          qualifying_prompts: qualifying,
+          tasks_used: used,
+        });
+        mkdirSync(getSessionStorageDir(), { recursive: true });
+        writeFileSync(statePath, now, 'utf8');
+      }
+    }
+  } catch (error) {
+    ctx.log('task-completion-check', `task-usage telemetry failed: ${error}`);
   }
 
   if (warnings.length > 0 || orphanInstructions) {

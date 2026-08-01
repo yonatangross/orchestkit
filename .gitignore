@@ -221,3 +221,10 @@ cellebrite-tech-stack.html
 # Per-session Claude telemetry (session-local, never committed)
 .claude/memory/sessions/
 docs/site/.claude/memory/sessions/
+
+# Session artifacts from agents working in SUBDIRECTORIES. The root patterns
+# above are all root-anchored, so a session whose cwd is e.g. src/hooks writes
+# src/hooks/src/.claude/{HANDOFF.md,memory/} and nothing ignores it — that
+# exact sweep contaminated two commits on 2026-08-01 before this was added.
+**/.claude/HANDOFF.md
+**/.claude/memory/
