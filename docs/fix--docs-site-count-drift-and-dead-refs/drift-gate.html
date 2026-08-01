@@ -217,14 +217,38 @@ function check(text){
   return findings;
 }
 
+/* Findings embed text taken straight from the textarea, so every one of them
+   is attacker-controlled as far as this page is concerned. Building innerHTML
+   out of them is a DOM XSS (CodeQL js/xss-through-dom, caught on this very
+   file). Build nodes and set textContent instead — the class name is ours, the
+   text never is. */
+function line(cls, text){
+  const s = document.createElement('span');
+  s.className = cls;
+  s.textContent = text;
+  return s;
+}
+
 function render(){
+  out.replaceChildren();
+  if (!inp.value.trim()) {
+    out.append(line('faint', 'Paste a line, or pick a sample below.'));
+    return;
+  }
   const f = check(inp.value);
-  if (!inp.value.trim()) { out.innerHTML = '<span class="faint">Paste a line, or pick a sample below.</span>'; return; }
-  if (!f.length) { out.innerHTML = '<span class="dim">No claim matched. The gate only checks lines that state a plugin-wide total or name an ork: command — everything else passes untouched.</span>'; return; }
+  if (!f.length) {
+    out.append(line('dim',
+      'No claim matched. The gate only checks lines that state a plugin-wide ' +
+      'total or name an ork: command; everything else passes untouched.'));
+    return;
+  }
   const fail = f.some(x => x[0]==='bad' || x[0]==='warn');
-  out.innerHTML =
-    '<span class="'+(fail?'bad':'ok')+'">'+(fail?'FAILED':'PASSED')+'</span>\n\n' +
-    f.map(([c,t]) => '<span class="'+c+'">'+t+'</span>').join('\n');
+  out.append(line(fail ? 'bad' : 'ok', fail ? 'FAILED' : 'PASSED'));
+  out.append(document.createTextNode('\n\n'));
+  f.forEach(([c,t], i) => {
+    if (i) out.append(document.createTextNode('\n'));
+    out.append(line(c, t));
+  });
 }
 
 const chips = document.getElementById('chips');
