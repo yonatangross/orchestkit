@@ -65,13 +65,13 @@ function seedTaskLog(sid: string): void {
   mkdirSync(logDir, { recursive: true });
   writeFileSync(
     join(logDir, 'task-creations.jsonl'),
-    JSON.stringify({
+    `${JSON.stringify({
       timestamp: '2026-08-01T08:00:00Z',
       event: 'task_created',
       task_id: '1',
       task_subject: 'Scout existing prompt-hook + task-state infrastructure',
       session_id: sid,
-    }) + '\n',
+    })}\n`,
     'utf8',
   );
 }
