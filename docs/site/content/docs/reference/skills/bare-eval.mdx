@@ -139,7 +139,7 @@ Without forking, sequential `claude -p --bare` graders inherit harness state:
 
 This produced ~5–10% retry rate and non-reproducible scores — the eval baseline drifted between runs, engineers chased phantom regressions.
 
-**Fix:** `tests/evals/scripts/lib/eval-common.sh` exports `CLAUDE_CODE_FORK_SUBAGENT=1`, so every script that sources it (run-trigger-eval, run-quality-eval, run-agent-eval, optimize-description, etc.) gets forked graders automatically. The CI workflow `.github/workflows/orchestkit-eval.yml` also sets it at the workflow level. Older CC silently ignores the env var (no-op).
+**Fix:** `tests/evals/scripts/lib/eval-common.sh` exports `CLAUDE_CODE_FORK_SUBAGENT=1`, so every script that sources it (run-trigger-eval, run-quality-eval, run-agent-eval, optimize-description, etc.) gets forked graders automatically. The CI workflow `.github/workflows/skill-eval.yml` also sets it at the workflow level (its predecessor `orchestkit-eval.yml` was retired 2026-08-01 — its grading phases rated description prose, not behavior). Older CC silently ignores the env var (no-op).
 
 **Determinism contract:** running the same grader on the same fixture twice in a row produces the **same score**. Verified by `tests/evals/scripts/test-grader-determinism.sh`.
 
