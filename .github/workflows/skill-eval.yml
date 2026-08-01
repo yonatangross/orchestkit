@@ -25,7 +25,8 @@ concurrency:
 
 # Fork each subagent invocation per #1545 (CC 2.1.121+): fresh context per
 # `claude -p` call, eliminating the cross-eval state leak that produced flaky
-# scores. Same rationale as orchestkit-eval.yml. Older CC ignores the var.
+# scores. Older CC ignores the var. (Guarded by
+# tests/evals/scripts/test-grader-determinism.sh.)
 env:
   CLAUDE_CODE_FORK_SUBAGENT: 1
 
@@ -76,7 +77,7 @@ jobs:
         if: env.CLAUDE_CODE_OAUTH_TOKEN != ''
         # Scorecard pinned-deps (npmCommand): accepted risk — npm has no
         # SHA-pin; --ignore-scripts mitigates the postinstall, then the native
-        # binary install is re-run explicitly (same as orchestkit-eval.yml).
+        # binary install is re-run explicitly.
         # Pinned to the supported floor (shared/cc-support.json). The previous
         # pin was 58 releases BELOW the then-current 2.1.206 floor and produced
         # systematically degraded `claude -p` eval generations on runners

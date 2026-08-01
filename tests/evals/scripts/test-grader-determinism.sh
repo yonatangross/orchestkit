@@ -14,7 +14,11 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../../.." && pwd)}"
 COMMON="$PROJECT_ROOT/tests/evals/scripts/lib/eval-common.sh"
-WORKFLOW="$PROJECT_ROOT/.github/workflows/orchestkit-eval.yml"
+# Repointed 2026-08-01: orchestkit-eval.yml was retired (its phases were
+# either fake — description-prose grading sold as skill quality — or worse
+# duplicates of blocking CI). skill-eval.yml is the live evaluator and sets
+# the same fork-subagent var this test guards.
+WORKFLOW="$PROJECT_ROOT/.github/workflows/skill-eval.yml"
 
 PASS=0
 FAIL=0
@@ -41,7 +45,7 @@ check "respects user override"                      grep -qE 'CLAUDE_CODE_FORK_S
 check "links to issue #1545 in comment"             grep -q "#1545" "$COMMON"
 echo
 
-echo "[orchestkit-eval workflow env]"
+echo "[skill-eval workflow env]"
 check "workflow exists"                             test -f "$WORKFLOW"
 check "workflow sets env CLAUDE_CODE_FORK_SUBAGENT" grep -qE "CLAUDE_CODE_FORK_SUBAGENT:\\s*1" "$WORKFLOW"
 echo

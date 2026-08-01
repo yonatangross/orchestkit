@@ -49,6 +49,7 @@ Note: `appendAnalytics` writes its own filename set (`task-usage.jsonl`, `team-a
 |------|--------|
 | `.claude/logs/task-completions.jsonl` | `task-completed/completion-tracker` (`appendEventLog`) |
 | `.claude/logs/task-creations.jsonl` | `task-created/creation-tracker` (`appendEventLog`) |
+| `.claude/logs/task-nudge-outcomes.jsonl` | `stop/task-completion-check` (`appendEventLog`, ≤2 lines/session; reader: `scripts/task-compliance.mjs`) |
 | `.claude/logs/memory-consult.jsonl` | `pretool/mcp/memory-validator` (`appendEventLog`) |
 | `.claude/logs/teammate-activity.jsonl` | `posttool/task/team-member-start`, `teammate-idle/progress-reporter` (`appendEventLog`) |
 | `.claude/logs/worktree-events.jsonl` | `worktree/exit-finalizer` (`appendEventLog`) |
