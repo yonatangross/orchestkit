@@ -5,6 +5,8 @@ compatibility: "Claude Code 2.1.220+. Requires memory MCP server, gh CLI."
 description: "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Use when opening PRs or submitting code for review."
 argument-hint: "[title]"
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 version: 2.5.0
 author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]

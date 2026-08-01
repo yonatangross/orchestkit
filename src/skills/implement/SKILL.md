@@ -5,6 +5,8 @@ compatibility: "Claude Code 2.1.220+. Requires memory MCP server, context7 MCP s
 description: "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability, for example 'build a user authentication system with JWT', 'add dark mode support to the dashboard', or 'set up rate limiting middleware'. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code."
 argument-hint: "[feature-description]"
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 version: 2.8.0
 disable-model-invocation: true  # M127 A/S5: slash-only — explicit /ork:implement only
 author: OrchestKit

@@ -6,6 +6,8 @@ description: "One-shot pipeline turning a claude.ai/design link into a pull requ
 argument-hint: "<handoff-url | path-to-bundle.json>"
 tags: [claude-design, design-ship, end-to-end, pr, handoff, ship-it, frontend]
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 version: 1.0.0
 author: OrchestKit
 user-invocable: true

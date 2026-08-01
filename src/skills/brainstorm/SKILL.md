@@ -6,6 +6,8 @@ description: "Design exploration using parallel agents through a 7-phase process
 argument-hint: "[topic-or-idea]"
 tags: [planning, ideation, creativity, design]
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 version: 4.10.0
 disable-model-invocation: true  # M127 A/S5: slash-only — explicit /ork:brainstorm only
 author: OrchestKit

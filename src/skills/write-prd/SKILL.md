@@ -5,6 +5,8 @@ compatibility: "Claude Code 2.1.220+."
 description: "Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks."
 tags: [prd, requirements, user-story, acceptance-criteria, invest, value-proposition, go-no-go]
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 agent: product-strategist
 version: 2.0.1
 author: OrchestKit

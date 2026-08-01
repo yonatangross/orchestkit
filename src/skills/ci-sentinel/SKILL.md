@@ -5,6 +5,8 @@ compatibility: "Claude Code 2.1.220+ (uses --permission-mode + --no-session-pers
 description: "Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply — NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over."
 argument-hint: "[install|status|enable|disable]"
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 version: 0.1.0
 disable-model-invocation: true
 author: OrchestKit

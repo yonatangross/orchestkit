@@ -5,6 +5,8 @@ compatibility: "Claude Code 2.1.220+. Requires memory MCP server, context7 MCP s
 description: "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues."
 argument-hint: "[issue-number]"
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 version: 2.6.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging, rca, prevention]

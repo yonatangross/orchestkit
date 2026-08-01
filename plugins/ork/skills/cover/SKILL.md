@@ -5,6 +5,8 @@ compatibility: "Claude Code 2.1.220+. Requires network access."
 description: "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration against real services via testcontainers/docker-compose, and Playwright E2E), spawning one test-generator agent per tier and healing failures for up to 3 iterations. Use when code has no tests, when raising coverage after implementation, or when building a suite from scratch. Chains naturally after /ork:implement. Do NOT use to grade or score tests that already exist (use /ork:verify), or to run a suite without writing anything new (use npm test directly)."
 argument-hint: "[scope-or-feature]"
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 version: 1.2.0
 author: OrchestKit
 tags: [testing, coverage, unit, integration, e2e, test-generation, real-services, testcontainers]

@@ -5,6 +5,8 @@ compatibility: "Claude Code 2.1.220+."
 description: "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes."
 argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure]"
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 version: 2.0.0
 author: OrchestKit
 tags: [onboarding, setup, wizard, configuration, stack-detection, mcp, personalization, telemetry, presets]

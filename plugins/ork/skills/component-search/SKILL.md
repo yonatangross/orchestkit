@@ -6,6 +6,8 @@ description: "Search 21st.dev component registry for production-ready React comp
 argument-hint: "[component description]"
 tags: [components, 21st-dev, react, ui, search, registry, tailwind, shadcn]
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 version: 1.1.0
 author: OrchestKit
 user-invocable: true

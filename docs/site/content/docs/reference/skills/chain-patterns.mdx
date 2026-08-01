@@ -141,6 +141,8 @@ Load patterns: `Read("$\{CLAUDE_SKILL_DIR\}/references/cron-monitoring.md")`
 Launch agents with `run_in_background=true` and output results as each returns — don't wait for all agents to finish. Gives ~60% faster perceived feedback.
 
 > **Background by default (CC 2.1.198+):** Agent-tool subagents launch in the background even when `run_in_background` is omitted. Pass `run_in_background: false` only when a stage must block on the result before continuing (e.g. a verdict gate ahead of a destructive step). The `Notification` hook fires `agent_needs_input` / `agent_completed` as background agents progress — ork's notification hooks surface both.
+>
+> **Skill-side twin (CC 2.1.218+):** skills with `context: fork` also background by default; the per-skill opt-out is `background: false` in frontmatter. ork's rule: every `user-invocable: true` fork skill declares it (a human typed the command and is waiting — verdict gates and AskUserQuestion turns need the interactive loop), while model-invoked fork skills deliberately keep the background default, which is the 2.1.218 win. When authoring a pipeline skill, decide this explicitly rather than inheriting whatever the current default is (#3093).
 
 ```python
 # Launch all agents in ONE message with run_in_background=true

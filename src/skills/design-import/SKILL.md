@@ -6,6 +6,8 @@ description: "Scaffolds React components from a Claude Design handoff bundle and
 argument-hint: "<handoff-url | path-to-bundle.json>"
 tags: [claude-design, handoff, design-import, design-to-code, bundle, scaffold, frontend]
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 version: 1.0.0
 author: OrchestKit
 user-invocable: true

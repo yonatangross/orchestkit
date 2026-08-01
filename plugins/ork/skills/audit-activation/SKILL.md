@@ -9,6 +9,8 @@ user-invocable: true
 disable-model-invocation: true
 argument-hint: "[--json]"
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 complexity: medium
 persuasion-type: discipline
 allowed-tools:

@@ -6,6 +6,8 @@ description: "Declarative catalog of named aesthetic recipes — exact shadow st
 argument-hint: "[list | <recipe-name> | apply <recipe> to <file>]"
 tags: [design, stylecards, shadows, glass, gradients, typography, tailwind, css, aesthetics]
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 version: 1.0.0
 author: OrchestKit
 user-invocable: true

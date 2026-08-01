@@ -5,6 +5,8 @@ compatibility: "Claude Code 2.1.220+. Requires memory MCP server."
 description: "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written."
 argument-hint: "[feature-or-scope]"
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 version: 4.6.0
 author: OrchestKit
 tags: [verification, testing, quality, validation, parallel-agents, grading]

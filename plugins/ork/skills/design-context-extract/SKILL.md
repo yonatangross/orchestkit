@@ -6,6 +6,8 @@ description: "Extract design DNA from existing app screenshots, live URLs, or sc
 argument-hint: "[screenshot-path | video-path | url | 'current project']"
 tags: [design-context, design-tokens, stitch, extraction, colors, typography, audit, visual-identity]
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 version: 1.0.1
 author: OrchestKit
 user-invocable: true

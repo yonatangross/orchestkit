@@ -4,6 +4,8 @@ license: MIT
 compatibility: "Claude Code 2.1.220+. Requires memory MCP server."
 description: "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches."
 context: fork
+# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
+background: false
 version: 1.8.0
 author: OrchestKit
 tags: [assessment, evaluation, quality, comparison, pros-cons, rating]
