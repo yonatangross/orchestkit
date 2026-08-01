@@ -268,12 +268,12 @@ Tokens:
   ✗ 0 conflicts unresolved
 
 Next: /ork:design-ship <bundle_id>   # to open PR
-      /ork:dogfood                    # to verify
+      /ork:expect                     # to verify
 ```
 
 ## Hooks
 
-- After completion, the `post-design-import` hook auto-runs `/ork:dogfood` + `/ork:expect` (non-blocking, see hook for details).
+- After completion, the `post-design-import` hook recommends `/ork:expect` (non-blocking, see hook for details).
 
 ## Composition
 
@@ -290,7 +290,7 @@ Next: /ork:design-ship <bundle_id>   # to open PR
 | Concern | Owned by |
 |---|---|
 | Open PR | `/ork:design-ship` |
-| Run tests | `post-design-import` hook → `/ork:dogfood`, `/ork:expect` |
+| Run tests | `post-design-import` hook → `/ork:expect` |
 | Generate Storybook stories | `/ork:cover` (called by `/ork:design-ship`) |
 | Re-prompt Claude Design | Not yet — no public API |
 

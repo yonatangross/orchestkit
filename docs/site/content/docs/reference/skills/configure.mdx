@@ -636,7 +636,7 @@ Configure CC 2.1.80-specific features:
 
 ### Effort Frontmatter
 
-Skills can now declare `effort:` in frontmatter to override the model effort level when invoked. OrchestKit sets effort on 40 skills (18 high, 22 low).
+Skills can now declare `effort:` in frontmatter to override the model effort level when invoked. OrchestKit sets effort on 42 skills (19 high, 23 low).
 
 ### Rate Limits Statusline
 
@@ -1324,7 +1324,7 @@ AskUserQuestion({
 // At our floor: returned answer is the full string[] of selected labels
 ```
 
-**Impact for OrchestKit**: Direct hit on any skill or agent that uses `AskUserQuestion` with `multiSelect: true`. The agent runtime relied on this — pre-2.1.136 a multi-select call would silently produce no answer and the agent would have to fall back to single-select or guess. At our floor the fix is implicit — no skill or agent frontmatter change required. If a skill body or agent description currently warns "don't use multiSelect, it drops answers" (a workaround for the pre-2.1.136 bug), that warning is stale and should be removed. The `ork:elicit` flow specifically benefits — questionnaires that branched on a single-select-only workaround can now use multiSelect natively.
+**Impact for OrchestKit**: Direct hit on any skill or agent that uses `AskUserQuestion` with `multiSelect: true`. The agent runtime relied on this — pre-2.1.136 a multi-select call would silently produce no answer and the agent would have to fall back to single-select or guess. At our floor the fix is implicit — no skill or agent frontmatter change required. If a skill body or agent description currently warns "don't use multiSelect, it drops answers" (a workaround for the pre-2.1.136 bug), that warning is stale and should be removed. The `ork-elicit` MCP elicitation flow specifically benefits — questionnaires that branched on a single-select-only workaround can now use multiSelect natively.
 
 ## CC 2.1.152 Settings
 

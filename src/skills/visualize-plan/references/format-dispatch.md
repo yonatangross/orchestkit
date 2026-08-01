@@ -49,7 +49,7 @@ Hide unavailable options from the AskUserQuestion list and add a one-line instal
 >
 > **Decision-router variant.** When the board is a *backlog the user must both prioritize and dispatch*
 > (issues to triage, PRD phases to schedule, a wave to route), use the **execution-router** board: each
-> card routes to an ork strategy (single/workflow/nested/teams/swarm) over the full 37-agent registry and
+> card routes to an ork strategy (single/workflow/nested/teams/swarm) over the full 36-agent registry and
 > emits a **plan-only** invocation. Seeding recipe + strategy→tooling map: `Read("${CLAUDE_SKILL_DIR}/references/decision-router.md")`.
 
 ## Living-plan update mode

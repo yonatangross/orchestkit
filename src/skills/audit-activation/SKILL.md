@@ -27,7 +27,7 @@ Reports whether OrchestKit's specialized sub-agents are actually being activated
 
 It answers: "Do my specialized agents get spawned, or does the model default to generic Explore/general-purpose?" Read-only — it never edits agents.
 
-> **Why this exists:** a 2026-06 audit found only ~14% of agent spawns hit the 37-agent catalog vs ~74% generic, with 17/37 agents dormant — and that agents fire ~1:1 with how often a high-traffic skill names them via `subagent_type=`. Description rewrites ("use proactively") were A/B-tested and gave Δ0, so this skill measures **wiring + usage**, not description prose. See `docs/feat--activation-audit/`.
+> **Why this exists:** a 2026-06 audit found only ~14% of agent spawns hit the 36-agent catalog vs ~74% generic, with 17/36 agents dormant — and that agents fire ~1:1 with how often a high-traffic skill names them via `subagent_type=`. Description rewrites ("use proactively") were A/B-tested and gave Δ0, so this skill measures **wiring + usage**, not description prose. See `docs/feat--activation-audit/`.
 
 ## Quick Reference
 

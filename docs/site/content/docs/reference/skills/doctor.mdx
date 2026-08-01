@@ -732,7 +732,7 @@ Channel: alpha (v7.0.0-alpha.1)
 
 ```
 Installed Plugins: 1
-- ork: 113 skills, 37 agents, 212 hook entries
+- ork: 105 skills, 36 agents, 218 hook entries
 ```
 
 ## Skills Validation
@@ -1806,7 +1806,7 @@ jq '.properties | to_entries | map({key: .key, type: .value.type})' \
 
 ## Overview
 
-OrchestKit includes 113 skills validated against frontmatter requirements and content standards.
+OrchestKit includes 105 skills validated against frontmatter requirements and content standards.
 
 ## Skill Types
 
@@ -2303,7 +2303,7 @@ skill is no longer marked `experimental:` in its frontmatter.
 | `/mcp` collapse unused connectors | 2.1.161 | `/mcp` collapses claude.ai connectors never signed in to behind a "Show unused connectors" row | Long connector list with dead entries |
 | `OTEL_LOG_ASSISTANT_RESPONSES` | 2.1.193 | New `claude_code.assistant_response` OTEL log event carries the model's response text. **Redacted unless `OTEL_LOG_ASSISTANT_RESPONSES=1`; when unset it follows `OTEL_LOG_USER_PROMPTS`** — deployments already logging prompts START logging response content on upgrade. Set `=0` to keep prompts-only. Same secret-leak class as `OTEL_LOG_RAW_API_BODIES` (2.1.111) | No response-text log event; prompt logging never implied response logging |
 | Notification agent events | 2.1.198 | `Notification` hook fires `agent_needs_input` / `agent_completed` for background agents. **Adopted:** ork's `notification/sound.ts` + `desktop.ts` map both — needs-input gets a desktop banner + Ping (actionable), completed is sound-only Glass so a fleet of finishing agents doesn't spam banners. `ORK_SOUND_AGENT_NEEDS_INPUT` / `ORK_SOUND_AGENT_COMPLETED` override the sounds | New types silently dropped by the notification hooks |
-| subagents background by default | 2.1.198 | Agent-tool subagents launch in the background by default; pass `run_in_background: false` when a synchronous result is required. ork: 15/38 agents already declare `background: true`; `cover`/`expect` pass the flag explicitly (`chain-patterns` has the await/Monitor note) | Subagents ran foreground unless requested |
+| subagents background by default | 2.1.198 | Agent-tool subagents launch in the background by default; pass `run_in_background: false` when a synchronous result is required. ork: 15/36 agents already declare `background: true`; `cover`/`expect` pass the flag explicitly (`chain-patterns` has the await/Monitor note) | Subagents ran foreground unless requested |
 | Explore inherits session model (≤ Opus) | 2.1.198 | Built-in Explore agent inherits the main session's model capped at Opus. **Cost note:** from a premium-model session (e.g. Fable 5), Explore bills at Opus — no longer haiku-floored, and there is no knob to pin it back | Explore always ran on haiku |
 | extended-thinking inheritance | 2.1.198 | Subagents and context compaction inherit the session's extended-thinking config automatically; no agent-frontmatter knob needed, no ork change | Extended thinking disabled in delegated tasks |
 | `--bg` + `--print` rejected up front | 2.1.198 | `claude --bg` combined with `--print`/`-p` is rejected at launch instead of silently creating an unattachable session. ork's `--bg` usages (`ci-sentinel`, `dev`) never combine the flags | Silent unattachable session |

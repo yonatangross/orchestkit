@@ -16,7 +16,7 @@ allowed-tools: [AskUserQuestion, Read, Grep, Glob, Skill, Task]
 
 The front door to OrchestKit. **You describe a goal in plain English; the router classifies it and hands off to the right specialist.** One entry point, many execution paths.
 
-> **Why this exists:** OrchestKit has 112 skills, but usage telemetry shows users fire only the handful they can name by memory (10 distinct skills across thousands of sessions). The dominant cause of "dead" skills is **no front door** — not low quality. This router turns "you must know the exact `/ork:<name>`" into "describe what you want."
+> **Why this exists:** OrchestKit has 105 skills, but usage telemetry shows users fire only the handful they can name by memory (10 distinct skills across thousands of sessions). The dominant cause of "dead" skills is **no front door** — not low quality. This router turns "you must know the exact `/ork:<name>`" into "describe what you want."
 
 **Core principle:** routing is a *deterministic workflow*, not an autonomous agent (Anthropic, *Building Effective Agents*). Classify → confirm → hand off. The router never does the work itself — it picks who does.
 

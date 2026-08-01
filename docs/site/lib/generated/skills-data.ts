@@ -101,7 +101,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "ai-ui-generation",
     "description": "AI-assisted UI generation patterns for json-render, v0.app, Google Stitch, Bolt Cloud, and Cursor workflows. Covers prompt engineering for component and full-stack app generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.",
     "version": "1.1.0",
-    "sha256": "3b83876c0265c0c4db69f73c1aa11f40d48696bea3951ed4ef5ad82f53e037a6",
+    "sha256": "c285961378e5c117a4d27aebed09b21775198d37e6cd3c740eca2ae6e9f37765",
     "author": "OrchestKit",
     "tags": [
       "ai-ui",
@@ -514,7 +514,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "audit-activation",
     "description": "Audits OrchestKit sub-agent activation from real spawn telemetry — computes the generic-vs-specialist spawn split, flags dormant agents (never fired), and classifies each as fires/mis-triggered/niche. The agent-side analogue of audit-skills. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths.",
     "version": "1.0.0",
-    "sha256": "3b837bc808c90c1e8b7b321848904b69083bae8fa318e26acc72fd0a68dc9f63",
+    "sha256": "047fe75cf77a07edf4f8be8447113878969be5f5c6f5bd4a9605399e14bcf1da",
     "author": "OrchestKit",
     "tags": [
       "audit",
@@ -618,7 +618,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:implement, /ork:review-pr, /ork:verify, a /goal loop). Routing is never overhead, so use it even when you think you know the target skill. Skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, get it to, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "40e254d89f1f2efa60eb7f2f7d1ecb1516b05adc78c30c30fd6a89f1c0811319",
+    "sha256": "aa95140802350ef4223d7afa3aa937f1612af282322e90659d94a53f4ce46b8a",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -1448,7 +1448,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-import",
     "description": "Scaffolds React components from a Claude Design handoff bundle and stops at files on disk: no stories, no tests, no pull request. Use when handed a claude.ai/design URL or a local bundle file; when that same scaffold should carry on through test generation, browser verification and an opened PR, run /ork:design-ship instead.",
     "version": "1.0.0",
-    "sha256": "56c9cdd75de8c695060894477daf3a7b7b7e87a8f7a475d1e0dcca2c36aab90c",
+    "sha256": "e2fec2a24b4799f4cc754ceae9eff827821e071799e76e3480044b4ee0ef6c36",
     "author": "OrchestKit",
     "tags": [
       "claude-design",
@@ -3411,7 +3411,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "product-analytics",
     "description": "A/B test evaluation, cohort retention analysis, funnel metrics, and experiment-driven product decisions. Use when analyzing experiments, measuring feature adoption, diagnosing conversion drop-offs, or evaluating statistical significance of product changes.",
     "version": "1.0.0",
-    "sha256": "2a44ca4fa2fecee980985dfef6462edfec2ebced21e0c457ae09a26ea7def662",
+    "sha256": "8b895e8746a9a2609f9568a10ad10f0289b3ad02df91d4a4a895a30797ee63d5",
     "author": "OrchestKit",
     "tags": [
       "ab-test",

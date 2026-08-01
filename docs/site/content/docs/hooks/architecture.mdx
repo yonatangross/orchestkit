@@ -336,7 +336,7 @@ Agent-scoped hooks implement agent-specific safety constraints. For example:
 | `ci-cd-engineer` | `agent/ci-safety-check` | Prevent CI config changes without review |
 | `database-engineer` | `agent/migration-safety-check` | Validate migration scripts before execution |
 
-The 44 agent-scoped hooks use 5 underlying hook functions from the `agent.mjs` bundle: `block-writes`, `ci-safety-check`, `deployment-safety-check`, `migration-safety-check`, and `security-command-audit`. Multiple agents may reference the same hook function.
+The 45 agent-scoped hooks use 5 underlying hook functions from the `agent.mjs` bundle: `block-writes`, `ci-safety-check`, `deployment-safety-check`, `migration-safety-check`, and `security-command-audit`. Multiple agents may reference the same hook function.
 
 </Tab>
 <Tab value="Skill-Scoped (19)">

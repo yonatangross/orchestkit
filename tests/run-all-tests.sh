@@ -406,6 +406,15 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
         # the ratchet; this reports the current list.
         ORK_UNREACHABLE_SKILLS_ADVISORY=1 \
           run_test "Unreachable Skills (advisory)" "$SCRIPT_DIR/orphans/test-unreachable-skills.sh" || true  # silent: best-effort (run_test records failures; suite exits non-zero at end)
+        # Docs-site drift gate: bin/validate-counts.sh gates the repo's own
+        # count surfaces but never looked at docs/site/content/**, which is how
+        # the 2026-08-01 audit found 12 wrong totals and 5 dead /ork: commands
+        # there while validate-counts.sh was green. Ground truth is derived from
+        # src/ at runtime, so this gate cannot itself go stale.
+        # Bare path, no `node ` prefix: run_test guards on `[[ ! -f "$script" ]]`,
+        # so "node <path>" is not a file and SKIPs silently every run. run_test
+        # already selects node for *.mjs a few lines below that guard.
+        run_test "Docs-Site Drift" "$SCRIPT_DIR/skills/structure/test-docs-site-drift.mjs" || true  # silent: best-effort (run_test records failures; suite exits non-zero at end)
         # Policy gate: a workflow that invokes an LLM must be manually
         # triggered. Max-plan OAuth is $0 in dollars but draws on the shared
         # weekly quota, so an automatic run competes with the operator's own

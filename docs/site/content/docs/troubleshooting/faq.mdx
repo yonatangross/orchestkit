@@ -54,8 +54,8 @@ The complexity field in skill frontmatter aligns with Opus 4.6's adaptive thinki
 |-------|----------------|----------|
 | `low` | Minimal | Simple workflows like `/ork:commit` |
 | `medium` | Moderate | Multi-agent workflows like `/ork:implement` |
-| `high` | Extended | Deep analysis like `/ork:audit-full` |
-| `max` | Maximum | Exhaustive evaluation like `/ork:upgrade-assessment` |
+| `high` | Extended | Deep analysis like `/ork:assess` |
+| `max` | Maximum | Exhaustive evaluation like the `audit-full` skill (model-invoked, not a slash command) |
 
 ### Can I write my own skills?
 
@@ -104,7 +104,7 @@ Yes. Create a markdown file in `src/agents/your-agent.md` with YAML frontmatter.
 
 ### How many hooks are there?
 
-218 total: 152 global hooks, 45 agent-scoped hooks, and 22 skill-scoped hooks. They are compiled into 11 split bundles for faster loading.
+218 total: 152 global hooks, 45 agent-scoped hooks, and 21 skill-scoped hooks. They are compiled into 11 split bundles for faster loading.
 
 ### What are fire-and-forget hooks?
 

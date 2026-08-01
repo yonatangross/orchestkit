@@ -54,7 +54,7 @@ mapping is the whole point:
 | teams | **Agent Teams** — implicit team, `Agent(name=)` + `SendMessage` mesh | ~60–70% · ~3× |
 | swarm | LLM council — parallel → blind review → chairman | ~50–65% · ~3–4× |
 
-Specialist picker = the **full 37-agent ork registry** (`all`/`none` bulk select). Caps are
+Specialist picker = the **full 36-agent ork registry** (`all`/`none` bulk select). Caps are
 **structural, not arbitrary**: workflow is uncapped (parallel work queues past 16); nested 6 / teams
 6 / swarm 7 because nesting is depth-bounded and mesh/council reliability collapses with N. Topology
 preview renders the chosen shape live.

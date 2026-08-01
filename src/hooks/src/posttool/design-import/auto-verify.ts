@@ -6,8 +6,13 @@
  *
  * PostToolUse hook that fires after /ork:design-import completes successfully.
  * Reads the most recent provenance file and injects a system reminder nudging
- * Claude to run /ork:dogfood + /ork:expect against the freshly-imported
- * components. Non-blocking — failures here never roll back the import.
+ * Claude to run /ork:expect against the freshly-imported components.
+ * Non-blocking — failures here never roll back the import.
+ *
+ * This used to also recommend /ork:dogfood, which OrchestKit has never shipped
+ * (there is no src/skills/dogfood; the name came from an upstream skill that
+ * ork does not bundle). Recommending it printed a command that resolves for
+ * nobody, so it is gone rather than renamed.
  *
  * Fires on: PostToolUse Skill (tool_input.skill === 'design-import')
  * Condition: tool_output indicates an import manifest was produced
@@ -72,8 +77,7 @@ export async function postDesignImportAutoVerify(
     refLine,
     '',
     'Recommended next steps (non-blocking):',
-    '  1. /ork:dogfood   — exploratory test the imported components',
-    '  2. /ork:expect    — diff-aware browser verification on the imported diff',
+    '  1. /ork:expect    — diff-aware browser verification on the imported diff',
     '',
     'When ready to ship: /ork:design-ship <bundle_id-or-url> opens a PR with screenshots + tests.',
   ].join('\n');

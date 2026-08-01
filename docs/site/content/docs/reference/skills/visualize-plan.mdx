@@ -885,7 +885,7 @@ mapping is the whole point:
 | teams | **Agent Teams** — implicit team, `Agent(name=)` + `SendMessage` mesh | ~60–70% · ~3× |
 | swarm | LLM council — parallel → blind review → chairman | ~50–65% · ~3–4× |
 
-Specialist picker = the **full 37-agent ork registry** (`all`/`none` bulk select). Caps are
+Specialist picker = the **full 36-agent ork registry** (`all`/`none` bulk select). Caps are
 **structural, not arbitrary**: workflow is uncapped (parallel work queues past 16); nested 6 / teams
 6 / swarm 7 because nesting is depth-bounded and mesh/council reliability collapses with N. Topology
 preview renders the chosen shape live.
@@ -1137,7 +1137,7 @@ Hide unavailable options from the AskUserQuestion list and add a one-line instal
 >
 > **Decision-router variant.** When the board is a *backlog the user must both prioritize and dispatch*
 > (issues to triage, PRD phases to schedule, a wave to route), use the **execution-router** board: each
-> card routes to an ork strategy (single/workflow/nested/teams/swarm) over the full 37-agent registry and
+> card routes to an ork strategy (single/workflow/nested/teams/swarm) over the full 36-agent registry and
 > emits a **plan-only** invocation. Seeding recipe + strategy→tooling map: `Read("$\{CLAUDE_SKILL_DIR\}/references/decision-router.md")`.
 
 ## Living-plan update mode
