@@ -84,6 +84,15 @@ NC='\033[0m'
 RESULTS_FILE=$(mktemp)
 TOTAL_PASSED=0
 TOTAL_FAILED=0
+# Advisory-warning ratchet (2026-08-01): sections printed "Warnings: N" lines
+# totalling 348 across a full run with nothing counting them — an unowned mass
+# that reads as noise precisely because no number ever moves. Summed here and
+# compared against a baseline at the summary; growth is reported LOUDLY but
+# stays advisory (a hard gate on 348 pre-existing advisories would report a
+# regression that did not happen — same reasoning as UNREACHABLE_BASELINE).
+# Ratchet DOWN as sections get cleaned; never raise it to quiet the summary.
+TOTAL_WARNINGS=0
+WARNINGS_BASELINE="${ORK_WARNINGS_BASELINE:-348}"
 
 trap "rm -f $RESULTS_FILE" EXIT
 
@@ -129,11 +138,22 @@ run_test() {
     esac
 
     local exit_code=0
+    # tee through a temp file so the warning ratchet can count "Warnings: N"
+    # lines without changing what the operator sees. PIPESTATUS[0] preserves
+    # the test's real exit code (the pipeline's own exit is tee's 0).
+    local section_out
+    section_out=$(mktemp)
     if [[ -n "$VERBOSE" ]]; then
-        "$runner" "$script" $VERBOSE || exit_code=$?
+        "$runner" "$script" $VERBOSE 2>&1 | tee "$section_out"
+        exit_code=${PIPESTATUS[0]}
     else
-        "$runner" "$script" 2>&1 || exit_code=$?
+        "$runner" "$script" 2>&1 | tee "$section_out"
+        exit_code=${PIPESTATUS[0]}
     fi
+    local section_warnings
+    section_warnings=$(grep -oE "Warnings:[[:space:]]+[0-9]+" "$section_out" | awk '{s+=$2} END {print s+0}')
+    TOTAL_WARNINGS=$((TOTAL_WARNINGS + section_warnings))
+    rm -f "$section_out"
 
     echo ""
 
@@ -361,7 +381,12 @@ if [[ "$RUN_E2E" == "true" ]]; then
 
     run_test "Agent Lifecycle E2E" "$SCRIPT_DIR/e2e/test-agent-lifecycle.sh" || true
     run_test "Coordination System E2E" "$SCRIPT_DIR/e2e/test-coordination-e2e.sh" || true
-    run_test "Hook Execution E2E" "bash tests/e2e/test-hook-execution.sh" || true
+    # Bare path, no `bash ` prefix: run_test's own `[[ ! -f "$script" ]]` guard
+    # sees a filename starting with "bash " and SKIPs silently — this exact
+    # line was dead in every local run until 2026-08-01 (CI's dir glob was the
+    # only thing executing the file). Same class as the Docs-Site Drift wiring
+    # fix; swept the file, this was the last interpreter-prefixed run_test.
+    run_test "Hook Execution E2E" "tests/e2e/test-hook-execution.sh" || true  # silent: best-effort (run_test records failures; suite exits non-zero at end)
 
     # Agent Lifecycle E2E Tests (v4.12.0)
     run_test "Agent Lifecycle E2E (New)" "$SCRIPT_DIR/agents/test-agent-lifecycle-e2e.sh" || true
@@ -515,6 +540,11 @@ done < "$RESULTS_FILE"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo -e "Total: ${GREEN}$TOTAL_PASSED passed${NC}, ${RED}$TOTAL_FAILED failed${NC}"
+if [[ $TOTAL_WARNINGS -gt $WARNINGS_BASELINE ]]; then
+    echo -e "${RED}Advisory warnings: $TOTAL_WARNINGS (baseline $WARNINGS_BASELINE) — GREW. New warnings were added; triage them or they join the unowned mass.${NC}"
+elif [[ $TOTAL_WARNINGS -gt 0 ]]; then
+    echo -e "${YELLOW}Advisory warnings: $TOTAL_WARNINGS (baseline $WARNINGS_BASELINE)${NC}"
+fi
 echo ""
 
 if [[ $TOTAL_FAILED -gt 0 ]]; then

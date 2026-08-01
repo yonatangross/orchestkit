@@ -116,8 +116,17 @@ fi
 
 # Validate session/state.json (runtime file — not tracked in git)
 # This file is created at runtime by hooks. In CI it won't exist, which is expected.
+# When it DOES exist it is gitignored live-session state that another process
+# owns mid-write (nullable fields while a session runs) — validating it made
+# this suite red on every machine with an active Claude session while CI
+# stayed green (2026-08-01 audit). A repo gate validates the repo: skip
+# anything git deliberately ignores.
 echo -n "Testing session/state.json... "
-if [[ -f "$CONTEXT_DIR/session/state.json" ]]; then
+# silent: fail-open (git absent/not-a-repo -> fall through to the elif and validate as before; the safe failure direction for a gate is more checking)
+if [[ -f "$CONTEXT_DIR/session/state.json" ]] && git -C "$PROJECT_ROOT" check-ignore -q ".claude/context/session/state.json" 2>/dev/null; then
+    echo -e "${GREEN}PASS${NC} (gitignored runtime state — a live session owns this file)"
+    PASSED=$((PASSED + 1))
+elif [[ -f "$CONTEXT_DIR/session/state.json" ]]; then
     if [[ "$VALIDATOR" == "ajv" ]]; then
         result=$(validate_with_ajv "$SCHEMAS_DIR/context-session.schema.json" "$CONTEXT_DIR/session/state.json" 2>&1) && status=0 || status=1
     elif [[ "$VALIDATOR" == "python" ]]; then

@@ -12,6 +12,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 
 const RED = '\x1b[31m';
 const GREEN = '\x1b[32m';
@@ -62,14 +63,41 @@ function validateFile(filePath) {
   }
 }
 
+/**
+ * Drop files git deliberately ignores. A repo gate validates the REPO;
+ * gitignored paths under .claude/ are live-session runtime state (memory
+ * journals, session/state.json) that another process may be mid-write —
+ * validating them made this suite red on every machine with an active Claude
+ * session while CI stayed green, which is how a permanent 2-FAIL baseline
+ * trained everyone to ignore the summary line (2026-08-01 audit).
+ *
+ * One batched `git check-ignore --stdin` call keeps the <0.5s promise.
+ * Exit 0 = some ignored, 1 = none ignored; anything else (no git, not a
+ * repo) falls back to validating EVERYTHING — for a validity gate the safe
+ * failure direction is more checking, not less.
+ */
+function dropGitignored(files) {
+  const res = spawnSync('git', ['-C', projectRoot, 'check-ignore', '--stdin'], {
+    input: files.join('\n'),
+    encoding: 'utf-8',
+  });
+  if (res.error || (res.status !== 0 && res.status !== 1)) return { kept: files, skipped: 0 };
+  const ignored = new Set(res.stdout.split('\n').filter(Boolean));
+  const kept = files.filter((f) => !ignored.has(f));
+  return { kept, skipped: files.length - kept.length };
+}
+
 // Main
 console.log('==========================================');
 console.log('  JSON Syntax Validation');
 console.log('==========================================');
 console.log('');
 
-// Validate all JSON files in .claude/
-const jsonFiles = collectJsonFiles(claudeDir);
+// Validate all tracked-or-trackable JSON files in .claude/
+const { kept: jsonFiles, skipped } = dropGitignored(collectJsonFiles(claudeDir));
+if (skipped > 0) {
+  console.log(`  (skipping ${skipped} gitignored runtime file(s) — live-session state, not repo content)`);
+}
 for (const file of jsonFiles) {
   validateFile(file);
 }

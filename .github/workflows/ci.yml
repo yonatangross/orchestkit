@@ -572,16 +572,13 @@ jobs:
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash scripts/ci/run-tests.sh tests/skills --verbose
 
-      # run-tests.sh globs only `test-*.sh`, so the .mjs structure tests below
-      # never ran in this blocking job — they lived only in the advisory,
-      # continue-on-error eval workflow. That gap let a labs pin bump (#2699)
-      # merge with skill bodies lagging their upstream-version-tested pin.
-      # Run them here so upstream drift blocks merges.
-      - name: Run skill structure tests (.mjs)
-        shell: bash
-        run: |
-          node tests/skills/structure/test-upstream-version-drift.mjs
-          node tests/skills/structure/test-agent-no-version-snapshot.mjs
+      # HISTORY, do not re-add explicit .mjs lines here: run-tests.sh once
+      # globbed only `test-*.sh`, so two .mjs structure tests were invoked
+      # explicitly at this spot to make upstream drift block merges (#2699).
+      # The runner's default glob has covered `test-*.mjs` since #3228, which
+      # made those explicit lines run the same tests twice in this job — they
+      # were removed 2026-08-01. The glob above is now the single execution
+      # path, and the tests still block merges through it.
 
       - name: Run subagent definition tests
         shell: bash
