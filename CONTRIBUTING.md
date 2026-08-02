@@ -4,6 +4,25 @@ Welcome to the OrchestKit plugin for Claude Code! We're excited that you're inte
 
 ## How to Contribute
 
+### Where to start
+
+If you want to contribute but do not have something specific in mind, these two
+labels are the front door:
+
+- **[`good first issue`](https://github.com/yonatangross/orchestkit/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)**
+  Self-contained, and the root cause is already identified in the issue itself.
+  You should not need deep familiarity with the repo to land one.
+- **[`help wanted`](https://github.com/yonatangross/orchestkit/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)**
+  Real work we would genuinely welcome help on, but it needs some judgement
+  calls or extra tooling, so it is a better second contribution than a first.
+
+Small fixes are welcome on their own merits and do not need an issue first. A
+corrected path in the docs is a real contribution; PR #3248 was exactly that.
+
+Comment on the issue before you start if you want to avoid duplicate work. If an
+issue looks stale or the description no longer matches the code, say so. That is
+useful signal in itself.
+
 ### Getting Started
 
 1. **Fork the repository** on GitHub
@@ -21,6 +40,21 @@ Welcome to the OrchestKit plugin for Claude Code! We're excited that you're inte
 4. **Make your changes** following the guidelines below
 5. **Test your changes** thoroughly
 6. **Submit a Pull Request** to the `main` branch
+
+### If you are contributing from a fork
+
+Your CI will not start on its own. Every required check will sit at
+`action_required` / "Waiting for approval" until a maintainer approves the
+workflow run. This is a GitHub default for first-time contributors, not
+something you did wrong, and it is not a failing build.
+
+What this looks like on your PR:
+
+- The merge box says **blocked**, but no check is red
+- Every workflow shows as queued or awaiting approval, with none of them started
+
+There is nothing to fix on your end. Ping the PR if it has been sitting for a
+while and nobody has approved the run yet.
 
 ### Branch Naming Convention
 
