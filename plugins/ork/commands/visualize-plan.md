@@ -6,6 +6,7 @@ context: fork
 agent: workflow-architect
 user-invocable: true
 name: visualize-plan
+background: false
 allowed-tools: [Read, Grep, Glob, Agent, TaskCreate, TaskUpdate, AskUserQuestion, Bash, Write, mcp__memory__search_nodes, mcp__memory__create_entities, ToolSearch]
 ---
 

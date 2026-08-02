@@ -9,7 +9,7 @@ context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
 version: 4.10.0
-disable-model-invocation: true  # M127 A/S5: slash-only — explicit /ork:brainstorm only
+disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations
 author: OrchestKit
 user-invocable: true
 allowed-tools: [AskUserQuestion, Agent, Read, Grep, Glob, Bash, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, ExitWorktree, PushNotification, mcp__memory__search_nodes]

@@ -6,6 +6,7 @@ effort: high
 context: fork
 user-invocable: true
 name: cover
+background: false
 allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, Workflow, CronCreate, CronDelete, Monitor, PushNotification, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
 ---
 

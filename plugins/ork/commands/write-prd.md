@@ -6,6 +6,7 @@ context: fork
 agent: product-strategist
 user-invocable: true
 name: write-prd
+background: false
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 

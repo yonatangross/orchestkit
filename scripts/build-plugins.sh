@@ -78,7 +78,12 @@ generate_command_from_skill() {
     # the only edit. Keep aligned with MUST_SURVIVE in
     # tests/plugins/test-command-frontmatter-passthrough.sh, which fails the build on any
     # unclassified key.
-    local PASSTHROUGH_KEYS=(disable-model-invocation model effort context agent user-invocable name)
+    # `background` joined the list on 2026-08-02: #3239 added `background: false` to 23
+    # user-invocable fork skills, but this function never forwarded it, so 0/35 command
+    # files carried it and the opt-out was INERT on the slash-command path it was written
+    # for. Exactly the drop this list exists to prevent — the third instance after
+    # argument-hint (#3146) and disable-model-invocation.
+    local PASSTHROUGH_KEYS=(disable-model-invocation model effort context agent user-invocable name background)
 
     # Default allowed tools if not specified
     if [[ -z "$allowed_tools" ]]; then

@@ -11,7 +11,7 @@ version: 2.0.0
 author: OrchestKit
 tags: [onboarding, setup, wizard, configuration, stack-detection, mcp, personalization, telemetry, presets]
 user-invocable: true
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: [Read, Write, Grep, Glob, Bash, AskUserQuestion, TaskCreate, TaskUpdate, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations, mcp__ork-elicit__ork_elicit]
 skills: [configure, remember, explore, help]
 complexity: medium

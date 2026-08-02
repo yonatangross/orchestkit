@@ -514,7 +514,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "audit-activation",
     "description": "Audits OrchestKit sub-agent activation from real spawn telemetry — computes the generic-vs-specialist spawn split, flags dormant agents (never fired), and classifies each as fires/mis-triggered/niche. The agent-side analogue of audit-skills. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths.",
     "version": "1.0.0",
-    "sha256": "a5e24369c7f3b70c1a794f5dfdaceb77d9dde0a324939a7c3d490c934befcba0",
+    "sha256": "201cbc9842753ef114c66e08da91587efa1d3b5bc229f03a63ba8045648699d8",
     "author": "OrchestKit",
     "tags": [
       "audit",
@@ -687,7 +687,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "d6e5ef5fc027ed68fdcec04bebb4b50e2aae55a8e00b167c59a3923a613b9057",
+    "sha256": "70b496e3e18bfe81a4eee1ab24e99c74bd72ef46fa2ec17acb7435158cff8af7",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -900,7 +900,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "ci-debug",
     "description": "Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command — but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific).",
     "version": "0.2.0",
-    "sha256": "aef1f446eebada0b59a61b9a01906096baab46e8b0e572d6bc60091c095f2168",
+    "sha256": "d862f70dcb1db6d3127bf394ad70ff28fb8f5a951d7c7221a459aa9d09817109",
     "author": "OrchestKit",
     "tags": [
       "ci",
@@ -933,7 +933,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "ci-sentinel",
     "description": "Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply — NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over.",
     "version": "0.1.0",
-    "sha256": "519fd4f9937e4cfd01a64955f18c18ac62c3c7abf36353549205288a5fc26c9d",
+    "sha256": "37e393c1b10c017ee863ce47d19113333034d67af4c3af11a4c64be40ba47a96",
     "author": "OrchestKit",
     "tags": [
       "ci",
@@ -1015,9 +1015,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "commit": {
     "name": "commit",
-    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use when committing changes or generating commit messages.",
+    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use ONLY when the user explicitly asks for this skill; routine `git commit` during ordinary work must stay a direct command. Use when committing changes or generating commit messages.",
     "version": "1.2.0",
-    "sha256": "04e84337ba321abcf868b35875987971aeb19e8e7ee8dd004570021c9abf9c1e",
+    "sha256": "5b1e88dca6e326bccf35c98def755028712ce97f580c418b095f235ee47ccde2",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -1238,9 +1238,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "create-pr": {
     "name": "create-pr",
-    "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Use when opening PRs or submitting code for review.",
+    "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Use ONLY when the user explicitly asks for this skill; a routine `gh pr create` during ordinary work must stay a direct command. Use when opening PRs or submitting code for review.",
     "version": "2.5.0",
-    "sha256": "7313595308abce573b89393d3634d677b4d5ec334dd51ef72880120962624a6d",
+    "sha256": "f51ba0684fbe66291a25b2cb0ab51f3f06505b9fa8148e5c92ac7d12b4c58afd",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -1841,7 +1841,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.2.0",
-    "sha256": "08f67c051422ebdaa84d68e4f61bd2654ee0ce7a32dbea15b65a0f804b590312",
+    "sha256": "cd42791e25b7a20999927cc4f352ab8950d46018bf73cd2c7003e7408abdcb0a",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -2514,7 +2514,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability, for example 'build a user authentication system with JWT', 'add dark mode support to the dashboard', or 'set up rate limiting middleware'. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "d6bcc10733837162d2498e62ef9febbb0d14de4959f4f2579ec636a1a2175a55",
+    "sha256": "5b42516f518a4020655821a6add86e4f9ddd013f4c95fbd78986e10943d0cbe2",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -4132,7 +4132,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "setup",
     "description": "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.",
     "version": "2.0.0",
-    "sha256": "5e28e428c1fe65d910ba017c1a6998e2c5fa16a5d7daf108b7cdd1a3174487d4",
+    "sha256": "d5833ba1e6be11be5f3e4c59bbb94e33b3f65347e381e3de46f34f0e764dc1e2",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -4275,7 +4275,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "swarm-migrate",
     "description": "Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work — that's /ork:implement.",
     "version": "0.1.0",
-    "sha256": "b45d80084e878f0d1b3024672e357cceee817b0d233002f74e283ffcdf325d68",
+    "sha256": "bb538815ef72ee60fd4b7731bd00ecfb6e395dca38a0ca9289752c193e3de153",
     "author": "OrchestKit",
     "tags": [
       "migration",

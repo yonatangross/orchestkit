@@ -9,7 +9,7 @@ version: 3.2.0
 author: OrchestKit
 tags: [health-check, diagnostics, validation, permissions, hooks, skills, agents, memory]
 user-invocable: true
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
 skills: [configure]
 complexity: low

@@ -2,14 +2,14 @@
 name: commit
 license: MIT
 compatibility: "Claude Code 2.1.220+."
-description: "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use when committing changes or generating commit messages."
+description: "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use ONLY when the user explicitly asks for this skill; routine `git commit` during ordinary work must stay a direct command. Use when committing changes or generating commit messages."
 argument-hint: "[message]"
 context: inherit
 version: 1.2.0
 author: OrchestKit
 tags: [git, commit, version-control, conventional-commits]
 user-invocable: true
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: [Bash, Read, Write, AskUserQuestion]
 skills: [chain-patterns]
 complexity: low

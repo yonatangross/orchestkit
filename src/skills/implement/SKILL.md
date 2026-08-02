@@ -8,7 +8,7 @@ context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
 version: 2.8.0
-disable-model-invocation: true  # M127 A/S5: slash-only — explicit /ork:implement only
+disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations
 author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true

@@ -67,6 +67,7 @@ MUST_SURVIVE=(
   agent                     # which subagent type when context: fork
   user-invocable            # false hides it from the / menu
   name                      # display name; interacts with the invoked name
+  background                # false keeps a user-typed fork skill FOREGROUND (#3239/#3238)
 )
 
 # SKILL_ONLY: legitimately does not cross the transform. Assert ABSENT from the

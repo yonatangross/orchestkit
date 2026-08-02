@@ -1,10 +1,11 @@
 ---
-description: "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Use when opening PRs or submitting code for review."
+description: "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Use ONLY when the user explicitly asks for this skill; a routine `gh pr create` during ordinary work must stay a direct command. Use when opening PRs or submitting code for review."
 argument-hint: "[title]"
-disable-model-invocation: true
+disable-model-invocation: false
 context: fork
 user-invocable: true
 name: create-pr
+background: false
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Agent, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
 ---
 

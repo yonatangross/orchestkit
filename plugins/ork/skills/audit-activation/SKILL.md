@@ -6,7 +6,7 @@ tags: [audit, agents, activation, telemetry, orchestkit]
 version: 1.0.0
 author: OrchestKit
 user-invocable: true
-disable-model-invocation: true
+disable-model-invocation: false
 argument-hint: "[--json]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)

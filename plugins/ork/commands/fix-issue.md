@@ -5,6 +5,7 @@ model: sonnet
 context: fork
 user-invocable: true
 name: fix-issue
+background: false
 allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Agent, TaskCreate, TaskUpdate, TaskStop, Grep, Glob, ToolSearch, ExitWorktree, CronCreate, CronDelete, PushNotification, mcp__memory__search_nodes, mcp__context7__get_library_docs]
 ---
 

@@ -8,7 +8,7 @@ context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
 version: 0.2.0
-disable-model-invocation: true
+disable-model-invocation: false
 author: OrchestKit
 tags: [ci, github-actions, debugging, classification, propose-dont-apply]
 user-invocable: true

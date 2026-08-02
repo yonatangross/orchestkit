@@ -5,6 +5,7 @@ model: sonnet
 context: fork
 user-invocable: true
 name: design-stylecards
+background: false
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 

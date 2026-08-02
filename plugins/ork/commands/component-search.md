@@ -6,6 +6,7 @@ effort: low
 context: fork
 user-invocable: true
 name: component-search
+background: false
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 

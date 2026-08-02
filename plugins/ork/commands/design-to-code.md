@@ -6,6 +6,7 @@ effort: high
 context: fork
 user-invocable: true
 name: design-to-code
+background: false
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 

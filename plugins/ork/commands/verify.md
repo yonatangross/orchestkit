@@ -6,6 +6,7 @@ effort: high
 context: fork
 user-invocable: true
 name: verify
+background: false
 allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, TaskStop, mcp__memory__search_nodes, ToolSearch, CronCreate, CronDelete, Monitor, PushNotification]
 ---
 

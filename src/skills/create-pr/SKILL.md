@@ -2,7 +2,7 @@
 name: create-pr
 license: MIT
 compatibility: "Claude Code 2.1.220+. Requires memory MCP server, gh CLI."
-description: "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Use when opening PRs or submitting code for review."
+description: "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Use ONLY when the user explicitly asks for this skill; a routine `gh pr create` during ordinary work must stay a direct command. Use when opening PRs or submitting code for review."
 argument-hint: "[title]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
@@ -11,7 +11,7 @@ version: 2.5.0
 author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Agent, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
 skills: [review-pr, memory, chain-patterns]
 complexity: medium

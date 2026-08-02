@@ -7,6 +7,7 @@ context: fork
 agent: claude-design-orchestrator
 user-invocable: true
 name: design-import
+background: false
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 

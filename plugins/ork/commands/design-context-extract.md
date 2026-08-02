@@ -6,6 +6,7 @@ context: fork
 agent: design-context-extractor
 user-invocable: true
 name: design-context-extract
+background: false
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 
