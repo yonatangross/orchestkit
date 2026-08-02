@@ -627,6 +627,31 @@ jobs:
       - name: Run index tests
         run: bash scripts/ci/run-tests.sh tests/indexes --verbose
 
+      # The five dirs below had ZERO blocking coverage until 2026-08-02: they sat
+      # outside every run-tests.sh glob, so their gates could go red on main with
+      # nothing failing. tests/plugins/test-command-frontmatter-passthrough.sh did
+      # exactly that — it was red on main naming the dropped `background` key
+      # (#3243) and nobody saw it. tests/fixtures is deliberately NOT globbed:
+      # test-helpers.sh is a sourced helper library whose standalone exit 0 would
+      # read as fake coverage.
+      - name: Run plugin structure tests
+        run: bash scripts/ci/run-tests.sh tests/plugins --verbose
+
+      - name: Run orphan tests
+        env:
+          # unreachable-skills holds a 29-skill baseline tracked in #3215; advisory
+          # here so wiring the OTHER three orphan gates does not import that debt
+          # as a permanent red. Drop this env once #3215 lands.
+          ORK_UNREACHABLE_SKILLS_ADVISORY: '1'
+        run: bash scripts/ci/run-tests.sh tests/orphans --verbose
+
+      - name: Run build, ci, worktree, external tests
+        run: |
+          bash scripts/ci/run-tests.sh tests/build --verbose
+          bash scripts/ci/run-tests.sh tests/ci --verbose
+          bash scripts/ci/run-tests.sh tests/worktree --verbose
+          bash scripts/ci/run-tests.sh tests/external --verbose
+
   # ============================================================================
   # STAGE 7c: Static Analysis Pipeline (eval:static)
   # ============================================================================
