@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "9.5.1",
+    "date": "2026-08-02",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**skills:** never block a user-typed invocation ([#3243](https://github.com/yonatangross/orchestkit/issues/3243)) ([a9f7ea3](https://github.com/yonatangross/orchestkit/commit/a9f7ea351ec2a716287247dd086a1e8fa3844c60))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "9.5.0",
     "date": "2026-08-01",
     "compareUrl": "",

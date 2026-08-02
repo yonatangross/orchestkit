@@ -249,6 +249,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.5.1](https://github.com/yonatangross/orchestkit/compare/v9.5.0...v9.5.1)** · 2026-08-02
+
+- **skills:** never block a user-typed invocation (#3243)
+
 **[v9.5.0](https://github.com/yonatangross/orchestkit/compare/v9.4.0...v9.5.0)** · 2026-08-01
 
 - **hooks:** nudge TaskCreate on 3+ step work and measure compliance (#3232)
@@ -300,10 +304,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - retro-hardening mechanisms 5+6 (invocability check, byte-budget guard) (#3161)
 - **viz:** re-anchor visual-style rule + quickviz on-ramp (#3164)
 - **viz:** stop throttling explicit visual asks (#3166)
-
-**[v9.0.2](https://github.com/yonatangross/orchestkit/compare/v9.0.1...v9.0.2)** · 2026-07-26
-
-- **ci:** remove the Claude PR Review workflow and its labeler (#3159)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
