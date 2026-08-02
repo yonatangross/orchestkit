@@ -616,9 +616,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "auto": {
     "name": "auto",
-    "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:implement, /ork:review-pr, /ork:verify, a /goal loop). Routing is never overhead, so use it even when you think you know the target skill. Skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, get it to, I want, help me, fix, build, improve, any goal description.",
+    "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "aa95140802350ef4223d7afa3aa937f1612af282322e90659d94a53f4ce46b8a",
+    "sha256": "294ca45e165f5478b5836584a9f08515145c94aeba112d99546914f1f7cebb73",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -1172,9 +1172,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "cover": {
     "name": "cover",
-    "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration against real services via testcontainers/docker-compose, and Playwright E2E), spawning one test-generator agent per tier and healing failures for up to 3 iterations. Use when code has no tests, when raising coverage after implementation, or when building a suite from scratch. Chains naturally after /ork:implement. Do NOT use to grade or score tests that already exist (use /ork:verify), or to run a suite without writing anything new (use npm test directly).",
+    "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new.",
     "version": "1.2.0",
-    "sha256": "1ab396e5fba43c1678ff1b422824973473bc20c5160c2ce705a9cf870ccdcab3",
+    "sha256": "11cff68d8565960eccf0e9008125e471f6f2d3ac7b0d7f40917b28aa74e7a8db",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -1398,9 +1398,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "design-context-extract": {
     "name": "design-context-extract",
-    "description": "Extract design DNA from existing app screenshots, live URLs, or screen recordings using Google Stitch. Produces color palettes, typography specs, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user provides, uploads, links, or points to a screenshot, URL, or video and asks to extract the design, analyze the animations or scroll behavior, audit an existing design, create a design system from a live app, or ensure new pages match an established visual identity.",
+    "description": "Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch — color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user points to a screenshot, URL, or video and asks to extract or audit the design, analyze animations or scroll behavior, or keep new pages matching an established visual identity.",
     "version": "1.0.1",
-    "sha256": "e617c983ca9c5c5f09d6592c1ec86ee16a0bff6ef223b690c486646dfbd453e9",
+    "sha256": "6e2bead3c284beb4c256a6ce0ed6e8a8c2f2285b59269936755f4638e4de681f",
     "author": "OrchestKit",
     "tags": [
       "design-context",
@@ -1683,9 +1683,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "dev": {
     "name": "dev",
-    "description": "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session — all using the current git branch as the namespace key. Replaces the 4-terminal manual setup with a single `/ork:dev` invocation. Use when starting a new feature branch, switching worktrees, or returning to a project after a break. Skip silently when prerequisite binaries (portless, emulate, agent-browser) are missing — emits install hints.",
+    "description": "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session, all keyed to the current git branch. Use when starting a feature branch, switching worktrees, or returning to a project after a break. Skips silently with install hints when prerequisite binaries are missing.",
     "version": "1.1.0",
-    "sha256": "d37a991276ff2a5f0c9204678a9de51a5598ee7a0d41be70f3b4fe8a3fd7d7ab",
+    "sha256": "605713e98263de11dcb9fef5d7d0baaa7efe4af542bc482004e43a0931aebe4b",
     "author": "OrchestKit",
     "tags": [
       "dev-loop",
@@ -1998,9 +1998,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "emulate-seed": {
     "name": "emulate-seed",
-    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list, send-an-email-and-retrieve-from-local-inbox. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
+    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs — full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
     "version": "1.3.0",
-    "sha256": "7e4152ba8b1078baf874ccb0f66f2ef7e3aacbfc8ba6fdedfd0dd008c46d8770",
+    "sha256": "0a8f1766e0a3fc2a4498dd39096e3c62b19b71a2c5dfb492be1752261ec6a355",
     "author": "OrchestKit",
     "tags": [
       "emulate",
@@ -2078,9 +2078,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "expect": {
     "name": "expect",
-    "description": "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser (Rust daemon + CDP, ARIA-tree-first). Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience.",
+    "description": "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.",
     "version": "1.1.0",
-    "sha256": "c582e5d3e757bea2f2d087d4ac36a8f3c9c139c50958b694a6015d9a020dc5e1",
+    "sha256": "4aaa0096eabc73df387a36d4bf87f7f9d1c13c5717d5d3ff02b12a7e46ffcf9c",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2512,9 +2512,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "implement": {
     "name": "implement",
-    "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability, for example 'build a user authentication system with JWT', 'add dark mode support to the dashboard', or 'set up rate limiting middleware'. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
+    "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "5b42516f518a4020655821a6add86e4f9ddd013f4c95fbd78986e10943d0cbe2",
+    "sha256": "386a52d14b35965c3c615e48b1940891c7ff39df48ce28212859c386e91cf026",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -3099,9 +3099,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "multi-surface-render": {
     "name": "multi-surface-render",
-    "description": "Multi-surface rendering with json-render — same JSON spec produces React web, Next.js apps, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform-specific APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for multiple platforms, creating PDF reports, email templates, demo videos, or social media images from a single component spec.",
+    "description": "Multi-surface rendering with json-render — one JSON spec produces React web, Next.js, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for several platforms or creating PDF reports, email templates, demo videos, or social images from one component spec.",
     "version": "1.1.0",
-    "sha256": "825d10da2d40db1c5711af3c70bce9baef54448bd985dd36a86e247c72ee8d33",
+    "sha256": "a9dbea2d62c54b8aa2ac644377356096e5d381f438e660fb07008297a12dd0eb",
     "author": "OrchestKit",
     "tags": [
       "json-render",

@@ -2,7 +2,7 @@
 name: expect
 license: MIT
 compatibility: "Claude Code 2.1.220+. Requires agent-browser >= 0.25.0 (Rust-native, no Playwright)."
-description: "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser (Rust daemon + CDP, ARIA-tree-first). Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience."
+description: "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components."
 argument-hint: "[-m <instruction>] [--target unstaged|branch|commit] [--flow <slug>] [-y]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)

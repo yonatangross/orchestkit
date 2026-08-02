@@ -1,5 +1,5 @@
 ---
-description: "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:implement, /ork:review-pr, /ork:verify, a /goal loop). Routing is never overhead, so use it even when you think you know the target skill. Skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, get it to, I want, help me, fix, build, improve, any goal description."
+description: "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description."
 argument-hint: "[plain-english goal]"
 model: sonnet
 context: inherit
