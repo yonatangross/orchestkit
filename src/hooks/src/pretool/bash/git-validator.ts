@@ -214,6 +214,47 @@ export function resolveEffectiveDir(
 }
 
 // =============================================================================
+// BRANCH-SWITCH-IN-COMMAND RESOLUTION (TOCTOU, 2026-08-02)
+// =============================================================================
+
+/**
+ * The branch the command will actually be on when it commits/pushes.
+ *
+ * `validateBranchProtection` used to judge only the branch at PreToolUse
+ * time, but a compound command may SWITCH branches before it commits:
+ *   git checkout -b feat/x -q && git commit ... && git push
+ * fired from main is the branch-based workflow working exactly as this
+ * hook's own error message prescribes — yet the current-branch check
+ * denied it (two live false positives on 2026-08-02, same day, same
+ * class as the worktree gap #2363 but on the branch axis).
+ *
+ * Returns the target of the LAST `git checkout <b>` / `git checkout -b <b>`
+ * / `git switch [-c] <b>` that appears BEFORE the first `git commit`/`git
+ * push`, or null when the command performs no branch switch. File
+ * restores are not switches: `git checkout -- <paths>` (target starts
+ * with `-`) and `git checkout <ref> -- <paths>` (target followed by
+ * ` -- `) are both ignored. A switch TO a protected branch is returned
+ * as-is so `git checkout main && git push` still blocks.
+ */
+export function extractPreCommitSwitchTarget(command: string): string | null {
+  const firstMutation = command.search(/\bgit\s+(commit|push)\b/);
+  const head = firstMutation === -1 ? command : command.slice(0, firstMutation);
+
+  let last: string | null = null;
+  const re = /\bgit\s+(?:checkout|switch)\s+(?:(?:-b|-B|-c)\s+)?([^\s;&|]+)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(head)) !== null) {
+    const target = m[1];
+    // Flags (`--`, `-q`, `--detach`, ...) are not branch names.
+    if (target.startsWith('-')) continue;
+    // `git checkout <ref> -- <paths>` restores paths; not a switch.
+    if (/^\s*--(\s|$)/.test(head.slice(m.index + m[0].length))) continue;
+    last = target;
+  }
+  return last;
+}
+
+// =============================================================================
 // VALIDATION FUNCTIONS
 // =============================================================================
 
@@ -224,6 +265,20 @@ function validateBranchProtection(
 ): HookResult | null {
   if (!isProtectedBranch(currentBranch)) {
     return null;
+  }
+
+  // Branch-switch awareness (TOCTOU): if the command itself moves to a
+  // non-protected branch before the first commit/push, judge THAT branch.
+  // A switch to another protected branch falls through to the block below.
+  const switchTarget = extractPreCommitSwitchTarget(gitCommand);
+  if (switchTarget && !isProtectedBranch(switchTarget)) {
+    logPermissionFeedback(
+      'allow',
+      `Branch-switch-aware: command checks out '${switchTarget}' before committing (session on '${currentBranch}')`,
+    );
+    return outputAllowWithContext(
+      `Command switches to branch '${switchTarget}' before commit/push — session dir is on '${currentBranch}', not blocking.`,
+    );
   }
 
   // Worktree-awareness (#2363): the session project dir is on a protected

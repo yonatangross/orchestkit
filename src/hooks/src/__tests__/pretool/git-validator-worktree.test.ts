@@ -377,3 +377,95 @@ describe('gitValidator worktree-awareness (#2363)', () => {
     expect(JSON.stringify(result)).toContain('INVALID COMMIT FORMAT');
   });
 });
+
+describe('branch-switch-in-command awareness (TOCTOU, 2026-08-02)', () => {
+  // The worktree tests above cover WHERE the command runs; these cover the
+  // other axis: WHICH BRANCH it will be on by the time it mutates. Both live
+  // false positives from 2026-08-02 are pinned verbatim.
+
+  it('allows checkout -b to a feature branch followed by commit (incident 1)', () => {
+    const result = gitValidator(
+      createBashInput(
+        'git checkout -b docs/3238-fork-background-verified -q && git add src && git commit -m "docs: x"',
+      ),
+      mainCtx(),
+    );
+
+    expect(result.continue).toBe(true);
+  });
+
+  it('allows checkout of an existing branch then rebase and push (incident 2)', () => {
+    const result = gitValidator(
+      createBashInput(
+        'git checkout ci/glob-orphan-test-dirs -q && git fetch -q origin && git rebase -q origin/main && git push -q --force-with-lease origin ci/glob-orphan-test-dirs',
+      ),
+      mainCtx(),
+    );
+
+    expect(result.continue).toBe(true);
+  });
+
+  it('allows git switch -c to a feature branch before commit', () => {
+    const result = gitValidator(
+      createBashInput('git switch -c feat/y && git commit -m "feat: y"'),
+      mainCtx(),
+    );
+
+    expect(result.continue).toBe(true);
+  });
+
+  it('still blocks a plain commit on main', () => {
+    const result = gitValidator(
+      createBashInput('git commit -m "feat: oops"'),
+      mainCtx(),
+    );
+
+    expect(result.continue).toBe(false);
+    expect(JSON.stringify(result)).toContain('Cannot commit or push directly');
+  });
+
+  it('still blocks when the switch target is itself protected', () => {
+    const result = gitValidator(
+      createBashInput('git checkout main && git push origin main'),
+      mainCtx(),
+    );
+
+    expect(result.continue).toBe(false);
+  });
+
+  it('judges the LAST switch before the mutation (feat then back to main)', () => {
+    const result = gitValidator(
+      createBashInput('git checkout feat/x && git checkout main && git push'),
+      mainCtx(),
+    );
+
+    expect(result.continue).toBe(false);
+  });
+
+  it('ignores file-restore checkouts: `git checkout -- <paths>`', () => {
+    const result = gitValidator(
+      createBashInput('git checkout -- tests/foo.json && git commit -m "fix: y"'),
+      mainCtx(),
+    );
+
+    expect(result.continue).toBe(false);
+  });
+
+  it('ignores file-restore checkouts: `git checkout <ref> -- <paths>`', () => {
+    const result = gitValidator(
+      createBashInput('git checkout HEAD~1 -- file.txt && git commit -m "fix: y"'),
+      mainCtx(),
+    );
+
+    expect(result.continue).toBe(false);
+  });
+
+  it('a switch AFTER the mutation does not rescue it', () => {
+    const result = gitValidator(
+      createBashInput('git commit -m "feat: oops" && git checkout feat/x'),
+      mainCtx(),
+    );
+
+    expect(result.continue).toBe(false);
+  });
+});
