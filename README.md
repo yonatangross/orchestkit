@@ -249,6 +249,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.5.2](https://github.com/yonatangross/orchestkit/compare/v9.5.1...v9.5.2)** · 2026-08-02
+
+- **hooks:** branch-switch awareness in git-validator protection (#3246)
+- glob the five orphan test dirs into blocking coverage (#3245)
+
 **[v9.5.1](https://github.com/yonatangross/orchestkit/compare/v9.5.0...v9.5.1)** · 2026-08-02
 
 - **skills:** never block a user-typed invocation (#3243)
@@ -298,12 +303,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v9.1.1](https://github.com/yonatangross/orchestkit/compare/v9.1.0...v9.1.1)** · 2026-07-26
 
 - sync README and changelog data to v9.1.0 (#3167)
-
-**[v9.1.0](https://github.com/yonatangross/orchestkit/compare/v9.0.2...v9.1.0)** · 2026-07-26
-
-- retro-hardening mechanisms 5+6 (invocability check, byte-budget guard) (#3161)
-- **viz:** re-anchor visual-style rule + quickviz on-ramp (#3164)
-- **viz:** stop throttling explicit visual asks (#3166)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

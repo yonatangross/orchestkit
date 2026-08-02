@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "9.5.2",
+    "date": "2026-08-02",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** branch-switch awareness in git-validator protection ([#3246](https://github.com/yonatangross/orchestkit/issues/3246)) ([9ef10e9](https://github.com/yonatangross/orchestkit/commit/9ef10e9436b5450db0c7465a3c37b7030c46a334))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "glob the five orphan test dirs into blocking coverage ([#3245](https://github.com/yonatangross/orchestkit/issues/3245)) ([79f9479](https://github.com/yonatangross/orchestkit/commit/79f9479a9fb986c6a7844e1b89ee425b324b70d7))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "9.5.1",
     "date": "2026-08-02",
     "compareUrl": "",
