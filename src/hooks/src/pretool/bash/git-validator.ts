@@ -242,8 +242,7 @@ export function extractPreCommitSwitchTarget(command: string): string | null {
 
   let last: string | null = null;
   const re = /\bgit\s+(?:checkout|switch)\s+(?:(?:-b|-B|-c)\s+)?([^\s;&|]+)/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(head)) !== null) {
+  for (const m of head.matchAll(re)) {
     const target = m[1];
     // Flags (`--`, `-q`, `--detach`, ...) are not branch names.
     if (target.startsWith('-')) continue;
