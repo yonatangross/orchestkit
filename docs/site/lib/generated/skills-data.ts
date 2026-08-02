@@ -1015,9 +1015,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "commit": {
     "name": "commit",
-    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use ONLY when the user explicitly asks for this skill; routine `git commit` during ordinary work must stay a direct command. Use when committing changes or generating commit messages.",
+    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Requires an explicit request naming this skill; plain `git commit` during normal work stays a bare CLI call. Use when committing changes or generating commit messages.",
     "version": "1.2.0",
-    "sha256": "5b1e88dca6e326bccf35c98def755028712ce97f580c418b095f235ee47ccde2",
+    "sha256": "ca422cf1799e58cffdc3a9e08abd43d92489423f27a1d93185dfd46b08b4c319",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -1238,9 +1238,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "create-pr": {
     "name": "create-pr",
-    "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Use ONLY when the user explicitly asks for this skill; a routine `gh pr create` during ordinary work must stay a direct command. Use when opening PRs or submitting code for review.",
+    "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Invoke only if the operator named it; an everyday `gh pr create` stays plain tooling. Use when opening PRs or submitting code for review.",
     "version": "2.5.0",
-    "sha256": "f51ba0684fbe66291a25b2cb0ab51f3f06505b9fa8148e5c92ac7d12b4c58afd",
+    "sha256": "99b02089b4307e34ab6c8b48750c0936f9594af2053020ea5b0461f0d60f83e0",
     "author": "OrchestKit",
     "tags": [
       "git",
