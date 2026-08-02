@@ -743,7 +743,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/auto",
     "title": "Auto",
-    "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill (/ork:fix-issue, /ork:cover, /ork:implement, /ork:review-pr, /ork:verify, a /goal loop). Routing is never overhead, so use it even when you think you know the target skill. Skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, get it to, I want, help me, fix, build, improve, any goal description."
+    "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description."
   },
   {
     "url": "/docs/reference/skills/bare-eval",
@@ -808,7 +808,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/cover",
     "title": "Cover",
-    "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration against real services via testcontainers/docker-compose, and Playwright E2E), spawning one test-generator agent per tier and healing failures for up to 3 iterations. Use when code has no tests, when raising coverage after implementation, or when building a suite from scratch. Chains naturally after /ork:implement. Do NOT use to grade or score tests that already exist (use /ork:verify), or to run a suite without writing anything new (use npm test directly)."
+    "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new."
   },
   {
     "url": "/docs/reference/skills/create-pr",
@@ -828,7 +828,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/design-context-extract",
     "title": "Design Context Extract",
-    "description": "Extract design DNA from existing app screenshots, live URLs, or screen recordings using Google Stitch. Produces color palettes, typography specs, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user provides, uploads, links, or points to a screenshot, URL, or video and asks to extract the design, analyze the animations or scroll behavior, audit an existing design, create a design system from a live app, or ensure new pages match an established visual identity."
+    "description": "Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch — color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user points to a screenshot, URL, or video and asks to extract or audit the design, analyze animations or scroll behavior, or keep new pages matching an established visual identity."
   },
   {
     "url": "/docs/reference/skills/design-import",
@@ -858,7 +858,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/dev",
     "title": "Dev",
-    "description": "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session — all using the current git branch as the namespace key. Replaces the 4-terminal manual setup with a single `/ork:dev` invocation. Use when starting a new feature branch, switching worktrees, or returning to a project after a break. Skip silently when prerequisite binaries (portless, emulate, agent-browser) are missing — emits install hints."
+    "description": "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session, all keyed to the current git branch. Use when starting a feature branch, switching worktrees, or returning to a project after a break. Skips silently with install hints when prerequisite binaries are missing."
   },
   {
     "url": "/docs/reference/skills/devops-deployment",
@@ -893,7 +893,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/emulate-seed",
     "title": "Emulate Seed",
-    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list, send-an-email-and-retrieve-from-local-inbox. Use when setting up test environments, CI pipelines, integration tests, or offline development."
+    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs — full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development."
   },
   {
     "url": "/docs/reference/skills/errors",
@@ -903,7 +903,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/expect",
     "title": "Expect",
-    "description": "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser (Rust daemon + CDP, ARIA-tree-first). Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience."
+    "description": "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components."
   },
   {
     "url": "/docs/reference/skills/explore",
@@ -943,7 +943,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/implement",
     "title": "Implement",
-    "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability, for example 'build a user authentication system with JWT', 'add dark mode support to the dashboard', or 'set up rate limiting middleware'. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code."
+    "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code."
   },
   {
     "url": "/docs/reference/skills",
@@ -1008,7 +1008,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/multi-surface-render",
     "title": "Multi Surface Render",
-    "description": "Multi-surface rendering with json-render — same JSON spec produces React web, Next.js apps, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform-specific APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for multiple platforms, creating PDF reports, email templates, demo videos, or social media images from a single component spec."
+    "description": "Multi-surface rendering with json-render — one JSON spec produces React web, Next.js, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for several platforms or creating PDF reports, email templates, demo videos, or social images from one component spec."
   },
   {
     "url": "/docs/reference/skills/multimodal-llm",
