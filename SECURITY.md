@@ -68,7 +68,7 @@ Out of scope:
 
 Hooks are the highest-privilege surface here: they run shell or Node/Python on
 your machine on agent events. If you are evaluating OrchestKit for a team, read
-`src/hooks/` and `scripts/hooks/README.md` first. Every hook is designed to
+`src/hooks/` and `src/hooks/README.md` first. Every hook is designed to
 **fail open** — an error must never block your work — and none should ever
 transmit repository contents off-machine. A hook that violates either property is
 a security bug under this policy; please report it.
