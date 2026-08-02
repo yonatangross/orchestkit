@@ -93,7 +93,7 @@ TOTAL_FAILED=0
 # reported LOUDLY but stays advisory. Ratchet DOWN as sections get cleaned;
 # never raise it to quiet the summary.
 TOTAL_WARNINGS=0
-WARNINGS_BASELINE="${ORK_WARNINGS_BASELINE:-348}"
+WARNINGS_BASELINE="${ORK_WARNINGS_BASELINE:-267}"  # ratcheted 348->267 (#3235): two consecutive full v4 runs measured exactly 267
 
 trap "rm -f $RESULTS_FILE" EXIT
 
