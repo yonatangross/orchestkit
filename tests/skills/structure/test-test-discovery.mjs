@@ -7,11 +7,12 @@
 //
 //     run_test "Hook Registry Closure (#959/#2886)" "$SCRIPT_DIR/unit/test-hook-registry-closure.sh"
 //
-//   There is no glob discovery anywhere. So a test file that nobody wires up
-//   never runs, forever. It cannot fail, therefore it cannot warn, and it rots
-//   silently against code that moved on. An orphaned test is worse than a
-//   missing one, because the file's existence implies coverage that is not
-//   there.
+//   HISTORY: at the time of writing there was no glob discovery anywhere, so
+//   a test file that nobody wired never ran, forever. Since v4 (#3235) the
+//   runner globs whole directories, so in-glob files are executed by
+//   construction; this ratchet now guards only the residue OUTSIDE the
+//   globbed dirs (see GLOBBED_DIRS below). The original failure mode — a
+//   file whose existence implies coverage that is not there — is unchanged.
 //
 //   Measured at the time of writing: 58 of 239 test files (24%) were
 //   referenced by nothing at all.
@@ -118,7 +119,28 @@ function buildReferencedSet() {
 }
 
 const referenced = buildReferencedSet();
-const orphans = candidates.filter((p) => !referenced.has(basename(p)));
+
+// v4 (#3235): run-all-tests.sh became an orchestrator over the same recursive
+// glob CI uses, so a test file inside any globbed tests/<dir> is EXECUTED by
+// construction — no by-name reference exists or is needed. This ratchet's job
+// therefore shrinks to the residue the glob cannot see: candidates OUTSIDE
+// every globbed directory that nothing references by name. Keep this list in
+// lockstep with the run_dir calls in tests/run-all-tests.sh and the
+// run-tests.sh invocations in .github/workflows/ci.yml. tests/fixtures is
+// deliberately absent on both surfaces (sourced library, not tests).
+const GLOBBED_DIRS = new Set([
+  'agents', 'build', 'ci', 'compliance', 'config', 'e2e', 'evals',
+  'external', 'feedback', 'hooks', 'indexes', 'integration', 'manifests',
+  'orphans', 'performance', 'plugins', 'schemas', 'security', 'skills',
+  'subagents', 'unit', 'worktree',
+]);
+const coveredByGlob = (p) => {
+  const rel = p.slice(REPO.length + 1); // tests/<dir>/...
+  const parts = rel.split('/');
+  return parts[0] === 'tests' && GLOBBED_DIRS.has(parts[1]) && basename(p).startsWith('test-');
+};
+
+const orphans = candidates.filter((p) => !coveredByGlob(p) && !referenced.has(basename(p)));
 
 if (process.argv.includes('--list')) {
   for (const o of orphans) console.log(o.slice(REPO.length + 1));
