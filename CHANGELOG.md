@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.5.2](https://github.com/yonatangross/orchestkit/compare/v9.5.1...v9.5.2) (2026-08-02)
+
+
+### Bug Fixes
+
+* **hooks:** branch-switch awareness in git-validator protection ([#3246](https://github.com/yonatangross/orchestkit/issues/3246)) ([9ef10e9](https://github.com/yonatangross/orchestkit/commit/9ef10e9436b5450db0c7465a3c37b7030c46a334))
+
+
+### CI/CD
+
+* glob the five orphan test dirs into blocking coverage ([#3245](https://github.com/yonatangross/orchestkit/issues/3245)) ([79f9479](https://github.com/yonatangross/orchestkit/commit/79f9479a9fb986c6a7844e1b89ee425b324b70d7))
+
 ## [9.5.1](https://github.com/yonatangross/orchestkit/compare/v9.5.0...v9.5.1) (2026-08-02)
 
 
