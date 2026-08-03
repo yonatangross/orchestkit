@@ -249,6 +249,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.5.3](https://github.com/yonatangross/orchestkit/compare/v9.5.2...v9.5.3)** · 2026-08-03
+
+- **deps-dev:** bump @types/node in the npm-minor-patch group (#3253)
+- **contributing:** add entry-point section and fork-CI expectation note (#3250)
+- fix nonexistent scripts/hooks path in SECURITY.md (#3248)
+
 **[v9.5.2](https://github.com/yonatangross/orchestkit/compare/v9.5.1...v9.5.2)** · 2026-08-02
 
 - **hooks:** branch-switch awareness in git-validator protection (#3246)
@@ -299,10 +305,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps:** bump the npm-minor-patch group across 1 directory with 4 updates (#3179)
 - **deps:** bump the remotion group across 1 directory with 21 updates (#3175)
 - …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v9.1.1](https://github.com/yonatangross/orchestkit/compare/v9.1.0...v9.1.1)** · 2026-07-26
-
-- sync README and changelog data to v9.1.0 (#3167)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

@@ -17,6 +17,26 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "9.5.3",
+    "date": "2026-08-03",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**deps-dev:** bump @types/node in the npm-minor-patch group ([#3253](https://github.com/yonatangross/orchestkit/issues/3253)) ([bc61e37](https://github.com/yonatangross/orchestkit/commit/bc61e37254777445c3958491351f90197de0f4c1))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**contributing:** add entry-point section and fork-CI expectation note ([#3250](https://github.com/yonatangross/orchestkit/issues/3250)) ([747321e](https://github.com/yonatangross/orchestkit/commit/747321ef4345776bf186a3adcafc11919bf293ea))",
+          "fix nonexistent scripts/hooks path in SECURITY.md ([#3248](https://github.com/yonatangross/orchestkit/issues/3248)) ([c7855ba](https://github.com/yonatangross/orchestkit/commit/c7855bac9be35d818de6f6e9a90004bf1d56e78f))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "9.5.2",
     "date": "2026-08-02",
     "compareUrl": "",
