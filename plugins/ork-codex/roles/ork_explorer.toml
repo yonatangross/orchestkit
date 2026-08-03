@@ -1,4 +1,4 @@
-name = "broken_explorer"
+name = "ork_explorer"
 description = "Read-only codebase explorer for evidence-backed architecture and execution-path discovery."
 model = "gpt-5.6-terra"
 model_reasoning_effort = "medium"
