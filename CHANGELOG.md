@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.5.3](https://github.com/yonatangross/orchestkit/compare/v9.5.2...v9.5.3) (2026-08-03)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/node in the npm-minor-patch group ([#3253](https://github.com/yonatangross/orchestkit/issues/3253)) ([bc61e37](https://github.com/yonatangross/orchestkit/commit/bc61e37254777445c3958491351f90197de0f4c1))
+
+
+### Documentation
+
+* **contributing:** add entry-point section and fork-CI expectation note ([#3250](https://github.com/yonatangross/orchestkit/issues/3250)) ([747321e](https://github.com/yonatangross/orchestkit/commit/747321ef4345776bf186a3adcafc11919bf293ea))
+* fix nonexistent scripts/hooks path in SECURITY.md ([#3248](https://github.com/yonatangross/orchestkit/issues/3248)) ([c7855ba](https://github.com/yonatangross/orchestkit/commit/c7855bac9be35d818de6f6e9a90004bf1d56e78f))
+
 ## [9.5.2](https://github.com/yonatangross/orchestkit/compare/v9.5.1...v9.5.2) (2026-08-02)
 
 
