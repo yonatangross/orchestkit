@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OrchestKit for Codex</title>
+  <style>
+    :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#e6edf3;--muted:#8b949e;--blue:#58a6ff;--green:#3fb950;--amber:#d29922;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,sans-serif;padding:28px}main{max-width:850px;margin:auto}h1{margin:0 0 6px}.sub{color:var(--muted);line-height:1.5}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin:24px 0}.card,section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:15px}.card button{width:100%;background:none;border:0;color:var(--text);text-align:left;cursor:pointer;font:inherit}.card.active{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}.tag{font:12px var(--mono);color:var(--blue)}.ok{color:var(--green)}.warn{color:var(--amber)}code,pre{font-family:var(--mono)}pre{white-space:pre-wrap;background:#010409;border:1px solid var(--line);border-radius:7px;padding:13px;line-height:1.5}li{margin:.45rem 0}footer{color:var(--muted);font-size:13px;margin-top:18px}
+  </style>
+</head>
+<body><main>
+  <h1>OrchestKit → Codex</h1>
+  <p class="sub">A host-native adapter: generic workflow skills in the Codex plugin, reusable role templates installed explicitly, and Yonatan HQ operations left to <code>hq-codex</code>.</p>
+  <div class="grid" id="modes">
+    <div class="card active" data-mode="brainstorm"><button><span class="tag">$ork-brainstorm</span><br>Frame choices</button></div>
+    <div class="card" data-mode="explore"><button><span class="tag">$ork-explore</span><br>Read-only map</button></div>
+    <div class="card" data-mode="verify"><button><span class="tag">$ork-verify</span><br>Evidence verdict</button></div>
+    <div class="card" data-mode="roles"><button><span class="tag">roles</span><br>Delegate deliberately</button></div>
+  </div>
+  <section><div class="tag" id="label">$ork-brainstorm</div><h2 id="title">Frame choices before implementation</h2><p id="body">Compare 2–4 viable paths, state trade-offs, then propose the smallest next action. This is generic reasoning, not HQ policy.</p><pre id="command">$ork-brainstorm “How should this service coordinate retries?”</pre><ul id="points"><li><span class="ok">✓</span> User-invoked and discoverable in Codex</li><li><span class="ok">✓</span> No Claude command or hook dependency</li><li><span class="warn">→</span> HQ knowledge and operations remain separate</li></ul></section>
+  <footer>Click a card to inspect the surface. After merge, install from the OrchestKit marketplace; roles use the bundled installer because Codex custom agents are standalone TOML files.</footer>
+</main><script>
+const data={brainstorm:['$ork-brainstorm','Frame choices before implementation','Compare 2–4 viable paths, state trade-offs, then propose the smallest next action.',' $ork-brainstorm “How should this service coordinate retries?”'],explore:['$ork-explore','Produce a read-only evidence map','Inspect only what is needed, report evidence and uncertainty, and fan out only independent questions.',' $ork-explore “Map authentication ownership and call sites.”'],verify:['$ork-verify','Return PASS, FAIL, or BLOCKED with evidence','Define the verification target first, run the relevant checks, then make an honest evidence-backed verdict.',' $ork-verify “Confirm the release artifact contains the Codex plugin.”'],roles:['roles','Use maker–checker roles deliberately','Install the four TOML roles, then delegate exploration, implementation, review, and verification as separate responsibilities.',' plugins/ork-codex/scripts/install-codex-roles.sh ~/.codex/agents']};
+for(const card of document.querySelectorAll('.card'))card.onclick=()=>{document.querySelector('.active').classList.remove('active');card.classList.add('active');const [label,title,body,command]=data[card.dataset.mode];document.querySelector('#label').textContent=label;document.querySelector('#title').textContent=title;document.querySelector('#body').textContent=body;document.querySelector('#command').textContent=command.trimStart()};
+</script></body></html>

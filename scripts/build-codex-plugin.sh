@@ -6,9 +6,15 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SOURCE_DIR="$PROJECT_ROOT/src/codex/ork-codex"
 OUTPUT_DIR="$PROJECT_ROOT/plugins/ork-codex"
 PACKAGE_JSON="$PROJECT_ROOT/package.json"
+CODEX_MANIFEST="$PROJECT_ROOT/manifests/codex/ork-codex.json"
 
 if [[ ! -f "$SOURCE_DIR/.codex-plugin/plugin.json" ]]; then
   echo "Codex plugin source is missing its manifest: $SOURCE_DIR" >&2
+  exit 1
+fi
+
+if [[ ! -f "$CODEX_MANIFEST" ]] || [[ "$(jq -r '.name' "$CODEX_MANIFEST")" != "ork-codex" ]]; then
+  echo "Codex plugin source manifest is missing or invalid: $CODEX_MANIFEST" >&2
   exit 1
 fi
 
