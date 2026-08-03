@@ -58,7 +58,7 @@
     "@types/web": "0.0.354",
     "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^10.8.0",
-    "jsdom": "^29.1.1",
+    "jsdom": "^30.0.1",
     "prettier": "3.9.6",
     "tsx": "^4.23.1",
     "typescript": "^6.0.3",
