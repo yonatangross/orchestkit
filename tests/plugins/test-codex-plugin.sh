@@ -6,8 +6,6 @@ PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 SOURCE_ROOT="$PROJECT_ROOT/src/codex/ork-codex"
 PLUGIN_ROOT="$PROJECT_ROOT/plugins/ork-codex"
 MARKETPLACE="$PROJECT_ROOT/.agents/plugins/marketplace.json"
-SKILL_VALIDATOR="/Users/yonatangross/.codex/skills/.system/skill-creator/scripts/quick_validate.py"
-PLUGIN_VALIDATOR="/Users/yonatangross/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py"
 
 for path in "$SOURCE_ROOT" "$PLUGIN_ROOT" "$MARKETPLACE"; do
   [[ -e "$path" ]] || { echo "FAIL: missing $path"; exit 1; }
@@ -15,8 +13,14 @@ done
 
 expected_skills=(ork-brainstorm ork-explore ork-assess ork-verify ork-review-pr)
 for skill in "${expected_skills[@]}"; do
-  [[ -f "$PLUGIN_ROOT/skills/$skill/SKILL.md" ]] || { echo "FAIL: missing $skill"; exit 1; }
-  python3 "$SKILL_VALIDATOR" "$PLUGIN_ROOT/skills/$skill" >/dev/null
+  skill_file="$PLUGIN_ROOT/skills/$skill/SKILL.md"
+  [[ -f "$skill_file" ]] || { echo "FAIL: missing $skill"; exit 1; }
+  sed -n '1,8p' "$skill_file" | grep -qx -- "name: $skill" || {
+    echo "FAIL: $skill has no matching skill name"; exit 1;
+  }
+  sed -n '1,8p' "$skill_file" | grep -qE '^description: .+' || {
+    echo "FAIL: $skill has no description"; exit 1;
+  }
 done
 
 expected_roles=(ork_explorer ork_implementer ork_reviewer ork_verifier)
@@ -33,9 +37,14 @@ for name in sys.argv[2:]:
         raise SystemExit(f"invalid role {name}: missing={sorted(missing)}")
 PY
 
-python3 "$PLUGIN_VALIDATOR" "$PLUGIN_ROOT" >/dev/null
 jq -e --arg version "$(jq -r '.version' "$PROJECT_ROOT/package.json")" '
-  .name == "ork-codex" and .version == $version and .skills == "./skills/"
+  .name == "ork-codex" and
+  .version == $version and
+  .skills == "./skills/" and
+  (.description | type == "string" and length > 0) and
+  (.author.name | type == "string" and length > 0) and
+  (.interface.displayName | type == "string" and length > 0) and
+  (.interface.shortDescription | type == "string" and length > 0)
 ' "$PLUGIN_ROOT/.codex-plugin/plugin.json" >/dev/null
 jq -e '
   .name == "orchestkit-codex" and
