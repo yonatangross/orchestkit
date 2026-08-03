@@ -40,7 +40,7 @@
 - [Community](#community)
 
 
-## Quick Start
+## Quick Start (Claude Code)
 
 ```bash
 /plugin marketplace add yonatangross/orchestkit
@@ -200,6 +200,33 @@ Not on Claude Code? Pull the skills into any agent (Cursor, Codex, OpenCode, …
 ```bash
 npx skills add yonatangross/orchestkit
 ```
+
+### Codex
+
+Codex uses its own plugin format, skill picker, and standalone role
+configuration. Add OrchestKit's Codex marketplace, then install the small
+portable workflow pack:
+
+```bash
+codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex
+codex plugin add ork-codex@orchestkit-codex
+```
+
+Restart Codex after installation. Invoke a workflow explicitly with
+`$ork-brainstorm`, `$ork-explore`, `$ork-assess`, `$ork-verify`, or
+`$ork-review-pr`; their narrow descriptions also let Codex select the relevant
+workflow automatically.
+
+The plugin intentionally ships roles as templates because Codex loads custom
+roles from `~/.codex/agents/`, not from a plugin manifest. From an OrchestKit
+checkout, run this one-time, non-overwriting install:
+
+```bash
+plugins/ork-codex/scripts/install-codex-roles.sh ~/.codex/agents
+```
+
+It installs `ork_explorer`, `ork_implementer`, `ork_reviewer`, and
+`ork_verifier`; restart Codex before spawning them.
 
 ---
 
