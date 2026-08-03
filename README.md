@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.6.0](https://github.com/yonatangross/orchestkit/compare/v9.5.4...v9.6.0)** · 2026-08-03
+
+- **codex:** add native OrchestKit adapter (#3265)
+
 **[v9.5.4](https://github.com/yonatangross/orchestkit/compare/v9.5.3...v9.5.4)** · 2026-08-03
 
 - **ci:** run the demos' 284 tests, stop chmod churn on .mjs (#3262)
@@ -326,12 +330,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** stop output-validator killing five sibling SubagentStop hooks (#3201)
 - **marketplace:** prep official plugin directory submission (#3205)
 - …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v9.2.1](https://github.com/yonatangross/orchestkit/compare/v9.2.0...v9.2.1)** · 2026-07-28
-
-- **evals:** propagate INCONCLUSIVE through the --changed fan-out (#3188)
-- **quickviz:** ship visual-style.md inside the skill bundle (#3185)
-- bump the github-actions group across 1 directory with 2 updates (#3174)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
