@@ -90,18 +90,25 @@ run_test() {
 
   echo -e "${BLUE}[RUN]${NC} $test_name"
 
-  # Check if test is executable
-  if [[ ! -x "$test_file" ]]; then
-    chmod +x "$test_file" 2>/dev/null || true
+  local runner=bash
+  [[ "$test_file" == *.mjs ]] && runner=node
+
+  # Ensure shell tests are executable. Deliberately NOT done for .mjs: they
+  # are invoked as `node <file>`, which never consults the exec bit, so the
+  # chmod only flipped their tracked mode 644 -> 755 and left the working
+  # tree dirty after every local suite run. Since #3235 made the local runner
+  # glob these directories too, that churn started showing up on every
+  # developer machine (test-docs-site-drift.mjs discarded three times in two
+  # days) and is exactly the kind of noise that trains people to ignore
+  # `git status`.
+  if [[ "$runner" == "bash" && ! -x "$test_file" ]]; then
+    chmod +x "$test_file" 2>/dev/null || true  # silent: best-effort — a read-only checkout still runs via `bash <file>`
   fi
 
   # Run the test
   local test_start
   test_start=$(date +%s)
   local exit_code=0
-
-  local runner=bash
-  [[ "$test_file" == *.mjs ]] && runner=node
 
   if [[ "$VERBOSE" == "true" ]]; then
     "$runner" "$test_file" || exit_code=$?

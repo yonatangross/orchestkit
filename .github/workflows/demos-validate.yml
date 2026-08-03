@@ -107,6 +107,20 @@ jobs:
         working-directory: orchestkit-demos
         run: npm ci
 
+      # The demos own 8 vitest files / 284 assertions that ran NOWHERE in CI
+      # until 2026-08-03: this job only bundled, so the jsdom test environment
+      # and every component test were invisible to the pipeline. That gap was
+      # found while reviewing #3259 (jsdom 29 -> 30, a MAJOR) — 43 checks were
+      # green and not one of them executed a line of jsdom. The bump turned out
+      # fine, but only because it was verified by hand; the next one should be
+      # verified here. `npm test` runs `vitest run -c vitest.demos.config.ts`
+      # (the bare `vitest` picks up the repo-root config and dies on its
+      # src/hooks project reference).
+      - name: Run demo unit tests
+        if: steps.changed.outputs.run == 'true'
+        working-directory: orchestkit-demos
+        run: npm test
+
       # Loads remotion.config.ts and bundles with the TS toolchain. A config
       # calling a removed API, or a TypeScript major that the bundler cannot
       # use, fails here rather than silently on the next 27 releases.
