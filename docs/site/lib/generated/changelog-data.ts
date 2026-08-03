@@ -17,6 +17,35 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "9.5.4",
+    "date": "2026-08-03",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** run the demos' 284 tests, stop chmod churn on .mjs ([#3262](https://github.com/yonatangross/orchestkit/issues/3262)) ([c0adbee](https://github.com/yonatangross/orchestkit/commit/c0adbee64bc5b843b230fa209d2cf100779a2f74))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**deps-dev:** bump jsdom from 29.1.1 to 30.0.1 in /orchestkit-demos ([#3259](https://github.com/yonatangross/orchestkit/issues/3259)) ([9204825](https://github.com/yonatangross/orchestkit/commit/9204825d53e0a88fbd987b6add821c2d65b2ac5f))",
+          "**deps-dev:** bump the npm-minor-patch group across 1 directory with 3 updates ([#3258](https://github.com/yonatangross/orchestkit/issues/3258)) ([bf71ee5](https://github.com/yonatangross/orchestkit/commit/bf71ee560da4df560a72a242a7958cf62abda24e))",
+          "**deps-dev:** bump the npm-minor-patch group in /src/hooks with 2 updates ([#3254](https://github.com/yonatangross/orchestkit/issues/3254)) ([8c3d018](https://github.com/yonatangross/orchestkit/commit/8c3d01825b64f306676ab42faac3996ac733dc9e))",
+          "**deps:** bump the npm-minor-patch group in /src/mcp-server with 2 updates ([#3255](https://github.com/yonatangross/orchestkit/issues/3255)) ([0c73383](https://github.com/yonatangross/orchestkit/commit/0c73383a40dca70e639fdc008a259cb8a49b87d9))",
+          "**deps:** bump the remotion group ([#3257](https://github.com/yonatangross/orchestkit/issues/3257)) ([2782ff3](https://github.com/yonatangross/orchestkit/commit/2782ff393e7f2e664efbf0fbcee2ce6fa0289fc1))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "bump the github-actions group with 5 updates ([#3260](https://github.com/yonatangross/orchestkit/issues/3260)) ([6b216b8](https://github.com/yonatangross/orchestkit/commit/6b216b80c2c507f84ffcbc104405794176e26ab8))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "9.5.3",
     "date": "2026-08-03",
     "compareUrl": "",

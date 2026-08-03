@@ -249,6 +249,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.5.4](https://github.com/yonatangross/orchestkit/compare/v9.5.3...v9.5.4)** · 2026-08-03
+
+- **ci:** run the demos' 284 tests, stop chmod churn on .mjs (#3262)
+- **deps-dev:** bump jsdom from 29.1.1 to 30.0.1 in /orchestkit-demos (#3259)
+- **deps-dev:** bump the npm-minor-patch group across 1 directory with 3 updates (#3258)
+- **deps-dev:** bump the npm-minor-patch group in /src/hooks with 2 updates (#3254)
+- **deps:** bump the npm-minor-patch group in /src/mcp-server with 2 updates (#3255)
+- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v9.5.3](https://github.com/yonatangross/orchestkit/compare/v9.5.2...v9.5.3)** · 2026-08-03
 
 - **deps-dev:** bump @types/node in the npm-minor-patch group (#3253)
@@ -296,15 +305,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **evals:** propagate INCONCLUSIVE through the --changed fan-out (#3188)
 - **quickviz:** ship visual-style.md inside the skill bundle (#3185)
 - bump the github-actions group across 1 directory with 2 updates (#3174)
-
-**[v9.2.0](https://github.com/yonatangross/orchestkit/compare/v9.1.1...v9.2.0)** · 2026-07-28
-
-- **docs:** derive a flow graph for every skill reference page (#3184)
-- **hooks:** skip ASK tiers in bypassPermissions mode (#3177)
-- **visual-style:** stop the emoji vocabulary rejecting the ASCII palette (#3169)
-- **deps:** bump the npm-minor-patch group across 1 directory with 4 updates (#3179)
-- **deps:** bump the remotion group across 1 directory with 21 updates (#3175)
-- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
