@@ -420,6 +420,14 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     echo -e "${GREEN}  Built $PLUGIN_NAME ($CURRENT/$MANIFEST_COUNT) - $skill_count skills, $agent_count agents, $command_count commands${NC}"
 done
 
+if [[ -x "$SCRIPT_DIR/build-codex-plugin.sh" ]]; then
+    echo -e "${BLUE}  Building Codex adapter...${NC}"
+    "$SCRIPT_DIR/build-codex-plugin.sh"
+else
+    echo -e "${RED}  ERROR: build-codex-plugin.sh is missing or not executable${NC}"
+    exit 1
+fi
+
 echo ""
 
 # ============================================================================
@@ -433,6 +441,14 @@ for plugin_dir in "$PLUGINS_DIR"/*; do
     [[ ! -d "$plugin_dir" ]] && continue
 
     plugin_name=$(basename "$plugin_dir")
+
+    if [[ -f "$plugin_dir/.codex-plugin/plugin.json" ]]; then
+        if ! jq empty "$plugin_dir/.codex-plugin/plugin.json" 2>/dev/null; then
+            echo -e "${RED}  $plugin_name: Invalid Codex plugin JSON${NC}"
+            VALIDATION_ERRORS=$((VALIDATION_ERRORS + 1))
+        fi
+        continue
+    fi
 
     # Check plugin.json exists
     if [[ ! -f "$plugin_dir/.claude-plugin/plugin.json" ]]; then

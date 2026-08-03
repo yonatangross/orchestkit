@@ -1,0 +1,22 @@
+{
+  "name": "orchestkit-codex",
+  "interface": {
+    "displayName": "OrchestKit Codex"
+  },
+  "plugins": [
+    {
+      "name": "ork-codex",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/yonatangross/orchestkit.git",
+        "path": "./plugins/ork-codex",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

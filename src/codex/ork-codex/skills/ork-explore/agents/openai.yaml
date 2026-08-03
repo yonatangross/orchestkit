@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ork Explore"
+  short_description: "Map a codebase or system with evidence."
+  default_prompt: "Use $ork-explore to map $ARGUMENTS."
