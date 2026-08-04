@@ -34,27 +34,45 @@ if [[ ! -f "$GATE" ]]; then
   exit 1
 fi
 
-# 1. Every tree with a package.json is audited. A tree silently dropped from the
+# 1. Every tree with a lockfile is audited. A tree silently dropped from the
 #    loop is the #3088 regression.
+#
+# The tree list is DERIVED from `git ls-files`, not hand-written. It used to be
+# the literal list `. docs/site src/hooks src/mcp-server`, which meant this test
+# could only ever check the four trees it already knew about. Its own comment
+# claimed "a NEW tree can't be added without wiring the gate", but a hardcoded
+# list cannot detect a new tree — it locks in whatever was true the day it was
+# written. Two trees (orchestkit-demos, hook-contract's example client) existed
+# with seven advisories between them, and this test passed the whole time
+# because they were absent from both lists. Deriving the list is the only form
+# that keeps the stated promise.
 mapfile -t TREES < <(cd "$PROJECT_ROOT" && \
-  for d in . docs/site src/hooks src/mcp-server; do
-    [[ -f "$d/package.json" ]] && echo "$d"
-  done)
+  git ls-files '*package-lock.json' | grep -v node_modules | xargs -n1 dirname)
+
 for tree in "${TREES[@]}"; do
-  label="$tree"; [[ "$tree" == "." ]] && label="root"
-  if grep -qE "^audit_project +\"${label}\"" "$GATE"; then
-    pass "audits ${label}"
+  # Match on the DIRECTORY argument, not the label: labels are free text and
+  # need not equal the path (the gate labels the example client
+  # "hook-contract/examples/generic-client" while its path lives under
+  # packages/). Matching the whole file rather than a single line also survives
+  # a call wrapped across a line continuation.
+  if [[ "$tree" == "." ]]; then
+    needle='"$PROJECT_ROOT"'
   else
-    fail "tree '${label}' has a package.json but the gate does not audit it"
+    needle="\"\$PROJECT_ROOT/${tree}\""
+  fi
+  if grep -qF "$needle" "$GATE"; then
+    pass "audits ${tree}"
+  else
+    fail "tree '${tree}' has a lockfile but the gate does not audit it"
   fi
 done
 
 # The count must match, so a NEW tree can't be added without wiring the gate.
 invocations=$(grep -cE '^audit_project +"' "$GATE")
 if [[ "$invocations" -eq "${#TREES[@]}" ]]; then
-  pass "audit_project invocation count (${invocations}) matches package.json trees (${#TREES[@]})"
+  pass "audit_project invocation count (${invocations}) matches tracked lockfiles (${#TREES[@]})"
 else
-  fail "gate audits ${invocations} trees but ${#TREES[@]} have package.json"
+  fail "gate audits ${invocations} trees but ${#TREES[@]} lockfiles are tracked"
 fi
 
 # 2. The audit reads the LOCKFILE, not node_modules. Dropping --package-lock-only
