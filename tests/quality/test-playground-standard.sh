@@ -7,8 +7,10 @@
 # =============================================================================
 # src/skills/shared/rules/playground-visual-standard.md §9/§10 were honor-system:
 # a checklist the model was asked to self-run, with nothing verifying it did.
-# Measured adoption across 191 shipped artifacts was accordingly bad —
-# --pg- tokens 39%, reduced-motion gate 29%, copy-prompt 24%.
+# Adoption was accordingly bad. Measured 2026-08-04 over the 191 artifacts that
+# existed before this gate landed: --pg- tokens 39%, reduced-motion gate 29%,
+# copy-prompt 24%. Those are dated observations, not a live count — the live
+# count is computed below and will drift as artifacts are added.
 #
 # This test makes the machine-checkable subset falsifiable. It does NOT try to
 # judge taste; it checks the rules that are literally greppable.
@@ -18,8 +20,14 @@
 #       These are the templates everything else is copied from. If the gold
 #       standard drifts, every artifact generated from it drifts too.
 #   ARTIFACTS (docs/**/*.html) -> ADVISORY, reported by count.
-#       191 pre-existing files are grandfathered; blocking them today would just
-#       get the test disabled. Set PLAYGROUND_STANDARD_ENFORCE=1 to gate them.
+#       Pre-existing files are grandfathered; blocking them today would just get
+#       the test disabled. Set PLAYGROUND_STANDARD_ENFORCE=1 to gate them.
+#
+#       The denominator is deliberately NOT hardcoded, because there are two of
+#       them and they differ: this scans the WORKING TREE, but many artifacts are
+#       untracked local scratch, so CI sees fewer. Measured 2026-08-04: 192 on
+#       disk, 171 tracked. Quoting one fixed number in the output would be wrong
+#       on somebody's machine within a day, so the count is always computed.
 #
 # Checks (each maps to a numbered rule):
 #   §2   --pg-* chrome tokens are defined
@@ -213,7 +221,7 @@ fi
 
 # ---------------------------------------------------------------------------
 echo
-echo "${YELLOW}2. Shipped artifacts (ADVISORY — 191 files grandfathered)${NC}"
+echo "${YELLOW}2. Shipped artifacts (ADVISORY — pre-existing files grandfathered)${NC}"
 # ---------------------------------------------------------------------------
 declare -A rule_counts=()
 artifact_count=0

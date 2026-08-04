@@ -89,7 +89,12 @@ jobs:
           # Here-string, not `printf | grep -q`: under pipefail, grep -q's
           # early-exit SIGPIPEs the producer (exit 141) and flips the result
           # non-deterministically. A here-string has no producer process.
-          if grep -qE '^(orchestkit-demos/|\.github/workflows/demos-validate\.yml)' <<<"$files"; then
+          # The exemplar templates are in the trigger set because
+          # orchestkit-demos/src/playground-exemplars.test.ts renders them from
+          # ../src/skills/shared/assets/playground-exemplars/. Without this path,
+          # editing a template alone would skip the only job that executes it and
+          # the render test would be a gate that never fires on its own subject.
+          if grep -qE '^(orchestkit-demos/|src/skills/shared/assets/playground-exemplars/|\.github/workflows/demos-validate\.yml)' <<<"$files"; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "::notice::orchestkit-demos untouched — renderer validation not needed. Reporting success."
