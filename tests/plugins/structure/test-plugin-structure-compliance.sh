@@ -300,7 +300,8 @@ for plugin_dir in "$PROJECT_ROOT/plugins"/*/; do
     if [[ -d "$plugin_dir" ]]; then
         PLUGIN_NAME=$(basename "$plugin_dir")
 
-        # Check for .claude-plugin/plugin.json
+        # Claude and Codex have distinct plugin manifests. A host-native
+        # adapter must satisfy its own manifest contract, not a Claude-only one.
         if [[ -f "$plugin_dir.claude-plugin/plugin.json" ]]; then
             # Validate plugin.json is valid JSON
             if jq empty "$plugin_dir.claude-plugin/plugin.json" 2>/dev/null; then
@@ -317,7 +318,15 @@ for plugin_dir in "$PROJECT_ROOT/plugins"/*/; do
                 warn "$PLUGIN_NAME: description missing skill count"
             fi
         else
-            fail "$PLUGIN_NAME: missing .claude-plugin/plugin.json"
+            if [[ -f "$plugin_dir/.codex-plugin/plugin.json" ]]; then
+                if jq empty "$plugin_dir/.codex-plugin/plugin.json" 2>/dev/null; then
+                    pass "$PLUGIN_NAME: valid Codex plugin manifest"
+                else
+                    fail "$PLUGIN_NAME: invalid JSON in Codex plugin manifest"
+                fi
+            else
+                fail "$PLUGIN_NAME: missing host plugin manifest"
+            fi
         fi
     fi
 done

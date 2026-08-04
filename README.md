@@ -40,7 +40,7 @@
 - [Community](#community)
 
 
-## Quick Start
+## Quick Start (Claude Code)
 
 ```bash
 /plugin marketplace add yonatangross/orchestkit
@@ -201,6 +201,33 @@ Not on Claude Code? Pull the skills into any agent (Cursor, Codex, OpenCode, …
 npx skills add yonatangross/orchestkit
 ```
 
+### Codex
+
+Codex uses its own plugin format, skill picker, and standalone role
+configuration. Add OrchestKit's Codex marketplace, then install the small
+portable workflow pack:
+
+```bash
+codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex
+codex plugin add ork-codex@orchestkit-codex
+```
+
+Restart Codex after installation. Invoke a workflow explicitly with
+`$ork-brainstorm`, `$ork-explore`, `$ork-assess`, `$ork-verify`, or
+`$ork-review-pr`; their narrow descriptions also let Codex select the relevant
+workflow automatically.
+
+The plugin intentionally ships roles as templates because Codex loads custom
+roles from `~/.codex/agents/`, not from a plugin manifest. From an OrchestKit
+checkout, run this one-time, non-overwriting install:
+
+```bash
+plugins/ork-codex/scripts/install-codex-roles.sh ~/.codex/agents
+```
+
+It installs `ork_explorer`, `ork_implementer`, `ork_reviewer`, and
+`ork_verifier`; restart Codex before spawning them.
+
 ---
 
 ## FAQ
@@ -249,6 +276,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.6.1](https://github.com/yonatangross/orchestkit/compare/v9.6.0...v9.6.1)** · 2026-08-04
+
+- **deps:** clear the npm-audit wave via in-range transitive updates (#3272)
+
+**[v9.6.0](https://github.com/yonatangross/orchestkit/compare/v9.5.4...v9.6.0)** · 2026-08-03
+
+- **codex:** add native OrchestKit adapter (#3265)
+
 **[v9.5.4](https://github.com/yonatangross/orchestkit/compare/v9.5.3...v9.5.4)** · 2026-08-03
 
 - **ci:** run the demos' 284 tests, stop chmod churn on .mjs (#3262)
@@ -290,21 +325,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** accept the app/ author form and stop swallowing gh failures (#3227)
 - **ci:** regenerate CHANGELOG-derived files on release PRs (#3226)
 - …and 11 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v9.3.0](https://github.com/yonatangross/orchestkit/compare/v9.2.1...v9.3.0)** · 2026-07-31
-
-- **agents:** key Tavily guidance on the tvly CLI rail (#3204)
-- **skills:** fix 5 shipped bugs and add 4 missing CI gates (#3181)
-- **ci:** decide the playground gate from the diff, not the branch (#3196)
-- **hooks:** stop output-validator killing five sibling SubagentStop hooks (#3201)
-- **marketplace:** prep official plugin directory submission (#3205)
-- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v9.2.1](https://github.com/yonatangross/orchestkit/compare/v9.2.0...v9.2.1)** · 2026-07-28
-
-- **evals:** propagate INCONCLUSIVE through the --changed fan-out (#3188)
-- **quickviz:** ship visual-style.md inside the skill bundle (#3185)
-- bump the github-actions group across 1 directory with 2 updates (#3174)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ork Verify"
+  short_description: "Produce an evidence-backed readiness verdict."
+  default_prompt: "Use $ork-verify to verify $ARGUMENTS."

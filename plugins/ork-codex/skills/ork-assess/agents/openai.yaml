@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ork Assess"
+  short_description: "Assess options and risks using evidence."
+  default_prompt: "Use $ork-assess to assess $ARGUMENTS."

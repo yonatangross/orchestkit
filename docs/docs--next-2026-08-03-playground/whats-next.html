@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrchestKit: what's next (2026-08-03)</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2129; --line:#30363d;
+    --fg:#e6edf3; --dim:#8b949e; --dim2:#6e7681;
+    --p0:#f85149; --p1:#d29922; --p2:#58a6ff; --p3:#8b949e;
+    --ok:#3fb950; --warn:#d29922; --bad:#f85149;
+    --accent:#a371f7;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font:14px/1.6 ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    padding:28px 20px 80px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  h1{font-size:20px;margin:0 0 4px;letter-spacing:-.2px}
+  .sub{color:var(--dim);font-size:12.5px;margin-bottom:22px}
+  .sub b{color:var(--fg);font-weight:600}
+
+  .bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+  button.f{
+    background:var(--panel);color:var(--dim);border:1px solid var(--line);
+    padding:6px 12px;border-radius:6px;cursor:pointer;font:inherit;font-size:12px;
+    transition:.12s;
+  }
+  button.f:hover{border-color:var(--dim);color:var(--fg)}
+  button.f[aria-pressed="true"]{background:var(--accent);color:#0d1117;border-color:var(--accent);font-weight:600}
+  .spacer{flex:1}
+  .count{color:var(--dim2);font-size:12px}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-left-width:3px;
+    border-radius:8px;padding:14px 16px;cursor:pointer;transition:.12s;
+  }
+  .card:hover{border-color:var(--dim);background:var(--panel2)}
+  .card[data-open="1"]{background:var(--panel2)}
+  .card.p0{border-left-color:var(--p0)}
+  .card.p1{border-left-color:var(--p1)}
+  .card.p2{border-left-color:var(--p2)}
+  .card.p3{border-left-color:var(--p3)}
+
+  .chd{display:flex;align-items:flex-start;gap:10px}
+  .rank{
+    font-size:11px;font-weight:700;color:var(--dim2);
+    border:1px solid var(--line);border-radius:4px;padding:1px 6px;flex:none;margin-top:2px;
+  }
+  .ttl{font-weight:600;font-size:14px;flex:1}
+  .tag{font-size:10.5px;padding:2px 7px;border-radius:99px;border:1px solid var(--line);color:var(--dim);flex:none}
+  .tag.now{color:var(--p0);border-color:#5a2321;background:#2d1513}
+  .tag.soon{color:var(--p1);border-color:#4a3a12;background:#241d0d}
+  .tag.later{color:var(--p2);border-color:#1f3a5c;background:#0f1f2e}
+  .tag.park{color:var(--p3)}
+
+  .meta{display:flex;gap:16px;margin-top:9px;font-size:11.5px;color:var(--dim);flex-wrap:wrap}
+  .meter{display:inline-flex;align-items:center;gap:6px}
+  .bars{letter-spacing:-1px;font-size:13px}
+  .bars .on{color:var(--ok)}
+  .bars .off{color:#2d333b}
+  .bars.eff .on{color:var(--warn)}
+
+  .body{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+  .card[data-open="1"] .body{display:block}
+  .body p{margin:0 0 9px;color:#c9d1d9;font-size:12.5px}
+  .lbl{color:var(--dim2);font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;margin:11px 0 5px}
+  pre{
+    background:#0b0f14;border:1px solid var(--line);border-radius:6px;
+    padding:9px 11px;overflow-x:auto;font-size:11.5px;color:#b9c4d0;margin:0;
+  }
+  .ev{color:var(--ok)}
+  .un{color:var(--warn)}
+  ul{margin:0;padding-left:17px;font-size:12.5px;color:#c9d1d9}
+  li{margin-bottom:3px}
+
+  .foot{
+    margin-top:26px;background:var(--panel);border:1px solid var(--line);
+    border-radius:8px;padding:15px 17px;
+  }
+  .foot h2{font-size:13px;margin:0 0 10px;color:var(--fg)}
+  .kv{display:flex;gap:10px;font-size:12px;margin-bottom:5px}
+  .kv .k{color:var(--dim);min-width:180px}
+  .warnbox{
+    border:1px solid #4a3a12;background:#1a1509;border-radius:6px;
+    padding:11px 13px;font-size:12.5px;color:#e3d7b0;margin-top:14px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>OrchestKit: what's next</h1>
+<div class="sub">
+  Ranked <b>2026-08-03</b>, after closing out PR #3248 (third-ever outside contribution).
+  Click any card for the evidence behind its rank. Impact and effort are my estimates;
+  the <span class="ev">green</span> lines are measured, the <span class="un">amber</span> lines are not.
+</div>
+
+<div class="bar">
+  <button class="f" data-f="all" aria-pressed="true">all</button>
+  <button class="f" data-f="now">do now</button>
+  <button class="f" data-f="soon">soon</button>
+  <button class="f" data-f="later">later</button>
+  <button class="f" data-f="cheap">cheap wins</button>
+  <span class="spacer"></span>
+  <span class="count" id="count"></span>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="foot">
+  <h2>Session ledger (all verified against origin/main)</h2>
+  <div class="kv"><span class="k">PR #3248 latent-9</span><span>merged c7855bac9, SECURITY.md dead link gone</span></div>
+  <div class="kv"><span class="k">PR #3250 on-ramp</span><span>merged 747321ef4, CONTRIBUTING 524 &rarr; 558 lines</span></div>
+  <div class="kv"><span class="k">thank-you comments</span><span>3 posted (#3248, #2864, #3193)</span></div>
+  <div class="kv"><span class="k">issues labelled</span><span>8 (5 good-first, 3 help-wanted), read per-issue</span></div>
+  <div class="kv"><span class="k">tracking issue</span><span>#3251 open, 4 done / 4 remaining</span></div>
+  <div class="kv"><span class="k">typecheck</span><span>clean on current main</span></div>
+
+  <div class="warnbox">
+    <b>Caveat on rank #1.</b> I observed the failure (3 tasks, 0 bytes, no process) but did
+    <b>not</b> confirm the cause. Three hypotheses are listed on the card, each with the command
+    that would settle it. Nothing should be fixed before one is confirmed. Filed as
+    <b>#3263</b> with that caveat stated in the issue body.
+  </div>
+</div>
+
+</div>
+<script>
+const ITEMS = [
+  {
+    rank:1, band:"now", impact:5, effort:2,
+    title:"/ork:verify silently produces no verdict",
+    why:"A shipped skill in your own plugin stalled three times in this session and would have waited forever. It never returns a wrong answer, it returns no answer, which is the failure mode that wastes the most operator time before anyone notices.",
+    evidence:`3 background test tasks spawned by /ork:verify:
+  b6tvprwm6  08:41   0 bytes
+  bdycijacv  08:45   0 bytes
+  brvhtn4h3  08:48   0 bytes
+pgrep vitest|npm test  ->  0 processes alive
+elapsed on last one    ->  36 min, still 0 bytes
+
+Not even npm's own banner ("> orchestkit@9.5.2 test")
+was written, so npm never started.
+
+CONTRAST: my own background tasks the same session
+worked fine (bybebr2ll 344B, bp2wt2s7p 389B), so
+backgrounding is not broken in general.
+
+skill instructs, SKILL.md:254
+  Bash(command="npm test 2>&1", run_in_background=true)
+  Monitor(pid=test_task_id)`,
+    hyp:[
+      "npm test dies instantly under the #3235 concurrency bug (sentinel writes + 4 live sessions). Settle: run npm test --quick solo, with no other session active.",
+      "The subagent's cwd or env differs so npm resolves nothing. Settle: have the skill echo `pwd && which npm` into the same background file first.",
+      "Monitor attaches to a task that already exited, so the skill waits on a signal that can never fire. Settle: check whether the task exits 0 with empty output."
+    ],
+    next:"FILED as #3263 with the repro above. Do not patch until one hypothesis is confirmed."
+  },
+  {
+    rank:2, band:"now", impact:4, effort:1,
+    title:"Automate the first-time contributor welcome",
+    why:"Closes the loop opened by PR #3250. That PR documents the fork-CI wait in CONTRIBUTING.md, but a first-time contributor has no reason to read CONTRIBUTING before their PR sits blocked. A bot comment lands the note at the exact moment of confusion.",
+    evidence:`3 of 3 outside PRs hit the silent action_required wall
+2 of 3 got NO human reply at all
+   #2864 thejesh23   3 weeks of silence
+   #3193 chrstphe    4 days of silence
+Both had only Vercel bot noise in their comment threads.
+
+Cost of the gap: thejesh23 found 34 silently-broken
+skills that your CI was not testing for, and heard
+nothing back.`,
+    hyp:[],
+    next:"actions/first-interaction posting the fork-CI note. ~20 lines of workflow YAML. Tracked as an open box on #3251."
+  },
+  {
+    rank:3, band:"soon", impact:4, effort:4,
+    title:"#3235 one dispatch model for the test suite",
+    why:"Already your own flagged next item, and it may be the upstream cause of rank #1. Two dispatch systems with opposite philosophies mean a test's coverage depends on which directory it sits in, not on any wiring declaration.",
+    evidence:`LOCAL  npm test -> run-all-tests.sh
+       hand-curated explicit run_test lines, || true
+       a test nobody wires never runs locally, ever
+
+CI     per-dir jobs -> scripts/ci/run-tests.sh <dir>
+       recursive glob over unit/ security/ integration/
+       e2e/ performance/ compliance/ agents/ skills/
+
+Your own comment on #3235 also notes test-sync-versions.sh
+writes a 999.888.777 sentinel into TRACKED files and
+restores after, making npm test unsafe to run concurrently
+with any other repo activity.`,
+    hyp:[],
+    next:"Worth doing regardless. If it also explains rank #1, that is two for one."
+  },
+  {
+    rank:4, band:"soon", impact:3, effort:2,
+    title:"Nobody owns restocking good-first-issues",
+    why:"I set the balance to 8 today. That is a starting balance, not a process. It drains as contributors take issues, and there is no trigger to refill it. The repo then silently returns to looking welcoming while offering nothing.",
+    evidence:`before today:  good first issue -> 0 open issues
+               help wanted     -> 0 open issues
+after today:   5 + 3 = 8 tagged
+
+No workflow, cron, or checklist references either label.`,
+    hyp:[],
+    next:"Cheapest version: a line in your release checklist. Richer: a scout that flags when the pool drops below N."
+  },
+  {
+    rank:5, band:"later", impact:3, effort:3,
+    title:"Decide the fork-approval posture deliberately",
+    why:"Currently every new contributor's CI stalls until you personally notice. That is a defensible security choice, but right now it is a GitHub default rather than a decision you made. Rank #2 makes the wait explainable; this decides whether the wait should exist.",
+    evidence:`repo setting: require approval for ALL first-time
+              contributors
+
+consequence: every outside PR blocks on your attention,
+             with no notification to you and no
+             explanation to them`,
+    hyp:[],
+    next:"Either keep it and rely on rank #2 to explain it, or narrow the scope. Both are fine; drifting is not."
+  },
+  {
+    rank:6, band:"later", impact:2, effort:3,
+    title:"CONTRIBUTING.md is still ~17KB and dense",
+    why:"PR #3250 improved the opening, but the file still front-loads build mechanics before a newcomer reaches anything actionable. Lower ceiling than the items above.",
+    evidence:`558 lines on current main
+new "Where to start" section sits at the top, but the
+bulk below it is internal build detail`,
+    hyp:[],
+    next:"Only worth doing if contributor volume actually rises. Park until then."
+  }
+];
+
+const grid = document.getElementById('grid');
+const countEl = document.getElementById('count');
+let filter = 'all';
+
+const bars = (n, cls) => {
+  let s = '<span class="bars ' + (cls||'') + '">';
+  for (let i=1;i<=5;i++) s += '<span class="'+(i<=n?'on':'off')+'">█</span>';
+  return s + '</span>';
+};
+
+function matches(it){
+  if (filter === 'all') return true;
+  if (filter === 'cheap') return it.effort <= 2;
+  return it.band === filter;
+}
+
+function render(){
+  const list = ITEMS.filter(matches);
+  countEl.textContent = list.length + ' of ' + ITEMS.length + ' shown';
+  grid.innerHTML = list.map(it => `
+    <div class="card p${it.rank<=2?0:(it.rank<=4?1:2)}" data-open="0">
+      <div class="chd">
+        <span class="rank">#${it.rank}</span>
+        <span class="ttl">${it.title}</span>
+        <span class="tag ${it.band}">${it.band}</span>
+      </div>
+      <div class="meta">
+        <span class="meter">impact ${bars(it.impact)}</span>
+        <span class="meter">effort ${bars(it.effort,'eff')}</span>
+      </div>
+      <div class="body">
+        <p>${it.why}</p>
+        <div class="lbl">Evidence (measured)</div>
+        <pre class="ev">${it.evidence}</pre>
+        ${it.hyp.length ? '<div class="lbl">Unconfirmed hypotheses, each with its settling command</div><ul>' +
+          it.hyp.map(h=>'<li>'+h+'</li>').join('') + '</ul>' : ''}
+        <div class="lbl">Next action</div>
+        <p style="margin-bottom:0">${it.next}</p>
+      </div>
+    </div>`).join('');
+
+  grid.querySelectorAll('.card').forEach(c=>{
+    c.addEventListener('click', e=>{
+      if (e.target.closest('pre')) return;
+      c.dataset.open = c.dataset.open === '1' ? '0' : '1';
+    });
+  });
+}
+
+document.querySelectorAll('button.f').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('button.f').forEach(x=>x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true');
+    filter = b.dataset.f;
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>
