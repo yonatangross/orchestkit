@@ -9,25 +9,22 @@
  * Version: 1.0.0 (TypeScript port)
  */
 
-import { existsSync, readFileSync, mkdirSync, readdirSync, renameSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync, renameSync, statSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join, dirname } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWithContext, getProjectDir } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { explainSpawnTarget } from '../lib/agent-registry.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
 // -----------------------------------------------------------------------------
 
-const BUILTIN_TYPES = new Set([
-  'general-purpose',
-  'Explore',
-  'Plan',
-  'claude-code-guide',
-  'statusline-setup',
-  'Bash',
-]);
+// The builtin list moved to lib/agent-registry.ts (BUILTIN_AGENT_TYPES). Two
+// copies of "which names need no namespace" is one copy too many: this one and
+// the PreToolUse validator would have drifted the first time CC shipped a new
+// builtin.
 
 // -----------------------------------------------------------------------------
 // Path Helpers (cross-platform using path.join)
@@ -35,10 +32,6 @@ const BUILTIN_TYPES = new Set([
 
 function getTrackingLog(): string {
   return join(getProjectDir(), '.claude', 'logs', 'subagent-spawns.jsonl');
-}
-
-function getPluginJson(): string {
-  return join(getProjectDir(), 'plugin.json');
 }
 
 function getAgentsDir(): string {
@@ -57,44 +50,14 @@ function getSkillsDir(): string {
 // Validation Functions
 // -----------------------------------------------------------------------------
 
-function getValidAgentTypes(): Set<string> {
-  const validTypes = new Set(BUILTIN_TYPES);
-
-  // Source 1: Load from plugin.json agents array
-  const pluginJson = getPluginJson();
-  if (existsSync(pluginJson)) {
-    try {
-      const plugin = JSON.parse(readFileSync(pluginJson, 'utf8'));
-      const agents = plugin.agents || [];
-      for (const agent of agents) {
-        if (agent.id) {
-          validTypes.add(agent.id);
-        }
-      }
-    } catch {
-      // Ignore
-    }
-  }
-
-  // Source 2: Scan agents/ directory
-  const agentsDirs = [getAgentsDir(), getClaudeAgentsDir()];
-  for (const agentsDir of agentsDirs) {
-    if (existsSync(agentsDir)) {
-      try {
-        const files = readdirSync(agentsDir);
-        for (const file of files) {
-          if (file.endsWith('.md')) {
-            validTypes.add(file.replace('.md', ''));
-          }
-        }
-      } catch {
-        // Ignore
-      }
-    }
-  }
-
-  return validTypes;
-}
+// getValidAgentTypes() lived here. Removed 2026-08-04: it unioned
+// plugin.json agents (a key that does not exist in this plugin), a
+// getProjectDir()-rooted agents dir (absent in every consumer project), and a
+// local copy of the builtin list. In practice it returned just the builtins,
+// so every ork:* type read as unknown and the warning it fed was never
+// actionable. Validity now comes from lib/agent-registry.ts, which reads the
+// plugin root and is namespace-strict, and is shared with the PreToolUse
+// validator so the two layers cannot disagree.
 
 function extractAgentSkills(agentType: string): string[] {
   const skills: string[] = [];
@@ -386,15 +349,26 @@ export function subagentValidator(input: HookInput, ctx: HookContext = NOOP_CTX)
     );
   }
 
-  // Extract agent type (strip namespace prefix like "ork:")
+  // Namespace stripped for the DOWNSTREAM lookups only (skills, tools), which
+  // key off the bare agent filename. It must not be used to decide validity:
+  // doing so made "ork:x", "foo:x" and bare "x" all validate identically, which
+  // is precisely the distinction the #2371 rule turns on.
   const agentTypeOnly = subagentType.replace(/^[^:]+:/, '');
 
-  // Get valid types from multiple sources
-  const validTypes = getValidAgentTypes();
-
-  // Validate
-  if (!validTypes.has(subagentType) && !validTypes.has(agentTypeOnly)) {
-    ctx.log('subagent-validator', `WARNING: Unknown subagent type: ${subagentType}`);
+  // Validity comes from the shared registry helper, which reads the PLUGIN
+  // root. The local getValidAgentTypes() read getProjectDir() instead, so in
+  // any consumer project there is no <project>/agents and no <project>/
+  // plugin.json, the valid set collapsed to the six builtins, and every ork:*
+  // read as unknown. Combined with the strip above and a log-file-only write,
+  // the check has been inert since it was added.
+  const spawnProblem = explainSpawnTarget(subagentType);
+  if (spawnProblem) {
+    ctx.log('subagent-validator', `WARNING: ${spawnProblem}`);
+    // Surface it the way the missing-skills branch below already does. This is
+    // post-dispatch and cannot block; agent-registry-validator asks at
+    // PreToolUse. Worth printing anyway: it names the cause of a failure that
+    // otherwise surfaces as a generic stage error (#3279).
+    console.error(`Warning: ${spawnProblem}`);
   }
 
   // Log spawn
