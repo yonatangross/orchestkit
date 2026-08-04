@@ -297,6 +297,7 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
     run_dir "Manifests" "manifests"
     run_dir "Schemas" "schemas"
     run_dir "Plugins" "plugins"
+    run_dir "Quality" "quality"
     # Detector-vs-ratchet split: see header. Same env CI uses (#3245).
     ORK_UNREACHABLE_SKILLS_ADVISORY=1 run_dir "Orphans" "orphans"
     run_script "Skill Efficiency Scorecard (advisory)" "$SCRIPT_DIR/skills/functional/skill-efficiency-scorecard.sh" "true"

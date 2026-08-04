@@ -58,9 +58,25 @@ A plan that executes over multiple sessions/waves is a **living plan**: one plan
 carries its own state and gets updated in place. Exemplar: `living-plan.template.html` (§0 dashboard
 sub-route in the visual standard). The contract:
 
-1. **Detect before authoring.** If the target path (or the plan's known slug under `docs/playgrounds/**`)
-   already contains `id="lpp-state"`, you are UPDATING, not authoring. Never fork a second file for the
-   same slug; rename = `git mv`, keep the slug.
+1. **Detect by SLUG, never by path.** Path-keyed detection is broken by design: the target path is
+   derived from the branch name, so renaming the branch moves the path, the check misses, and the
+   plan forks. That is not hypothetical — `langchain-ecosystem-currency` shipped as two files with
+   the same slug and the same `updated` date, under `docs/chore--…` and `docs/research--…`.
+
+   Run this **before authoring**, not after:
+
+   ```bash
+   # SLUG = the plan's stable slug (kebab-case, derived from the plan title — NOT the branch)
+   bash "$SKILL_DIR/scripts/find-living-plan.sh" "$SLUG"
+   ```
+
+   - **Exactly one hit** → you are UPDATING that file. Merge into it (step 2) wherever it lives.
+   - **No hits** → you are AUTHORING. Write `docs/<branch-dir>/plan-viz.html` (step 5).
+   - **More than one hit** → STOP. The plan already forked. Say so, name both paths, and ask which
+     survives; `git mv` the survivor and delete the other in the same commit. Do not write a third.
+
+   Renaming a branch is a `git mv` of the directory, never a new file. The slug is the identity;
+   the path is an address that can change.
 2. **Merge, never overwrite.** Parse the JSON, flip item `status` (`planned → in_progress → done`, or
    `dropped` with a changelog reason), append to `changelog` (append-only), bump `updated`. Removed work
    moves to `dropped`; items are never deleted.
@@ -70,6 +86,10 @@ sub-route in the visual standard). The contract:
 4. **State renders, prose doesn't.** The "Now" column and wave counters are computed from item statuses
    by the file's own renderer. Update the JSON; do not hand-edit rendered progress.
 5. **Git history is the timeline.** Each update is a normal commit; no side-channel progress files.
+6. **The filename is `plan-viz.html`.** Not `index.html`, not a topic name. The spec has always said
+   so and reality ran 5:1 against it (`index.html` ×79 vs `plan-viz.html` ×18, plus ~90 bespoke
+   names), which is exactly what breaks slug lookup and leaves 191 artifacts unindexable. One
+   filename, one glob, one `find-living-plan.sh` that works.
 
 Minimal state shape (v1): `{lpp, slug, title, created, updated, score{composite,target},
 waves[{id,title,status}], items[{id,wave,title,impact,effort,risk,status,detail,evidence,owner}],

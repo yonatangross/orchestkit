@@ -4853,7 +4853,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "visualize-plan",
     "description": "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
     "version": "2.1.0",
-    "sha256": "287c8531826bebdc21c7014b911befbbd25c0196b793b3d4ce3e6de4472bea8e",
+    "sha256": "8b98e9ed59571f9d959728263cdd2cf3e537960b2ca9bd391503b7a33bcf3b3a",
     "author": "OrchestKit",
     "tags": [
       "visualization",
@@ -4913,7 +4913,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       ],
       "scripts": [
         "analyze-impact.sh",
-        "detect-plan-context.sh"
+        "detect-plan-context.sh",
+        "find-living-plan.sh"
       ]
     },
     "plugins": [

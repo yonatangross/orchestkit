@@ -166,6 +166,21 @@
   .score-row .v{text-align:end;color:var(--pg-muted)}
   .wavehead{font-size:.78rem;color:var(--pg-faint);font-weight:400}
   a{color:var(--pg-accent)}
+
+  /* copy-prompt bar (§7): tertiary tier, 1 click, no modal to dismiss.
+     For a living plan the prompt is "what to do next", derived from the open items
+     in the active wave — not a dump of the whole state. */
+  .prompt{display:flex;gap:12px;align-items:center;padding:16px 20px;
+          border-radius:20px;margin-block-start:24px}
+  .prompt code{flex:1;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.8rem;
+               color:var(--pg-muted);line-height:1.5}
+  .prompt button{background:var(--pg-accent-deep);border:1px solid var(--pg-accent);
+    color:var(--pg-ink);font:inherit;font-size:.8rem;font-weight:600;cursor:pointer;
+    padding:8px 18px;border-radius:999px;flex:none;transition:background 100ms var(--pg-ease)}
+  .prompt button:hover{background:var(--pg-accent)}
+  .prompt button:focus-visible{outline:2px solid var(--pg-accent);outline-offset:3px}
+  .sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
   @media(max-width:760px){.ba{grid-template-columns:1fr}.hero{grid-template-columns:1fr}}
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -198,6 +213,12 @@
 
   <div class="tabs" id="lpp-tabs"></div>
   <div id="lpp-panels"></div>
+
+  <div class="prompt glass">
+    <code id="lpp-prompt"></code>
+    <button type="button" id="lpp-copy">Copy next wave</button>
+  </div>
+  <p class="sr" id="lpp-live" aria-live="polite"></p>
 </div>
 
 <!-- ═══════════ STATE — the only block sessions edit. Append, flip statuses, never fork. ═══════════ -->
@@ -387,6 +408,35 @@
     t.classList.add('active');
     document.getElementById('p-'+t.dataset.t).classList.add('active');
   }));
+
+  // ---- copy-prompt (§7): the NEXT wave as a natural-language instruction -------
+  // Not a value dump. It names the first wave that still has open work, lists those
+  // items with their evidence checks, and says nothing about waves already done.
+  const openItems = (st.items||[]).filter(i=>i.status!=='done'&&i.status!=='dropped');
+  const nextWaveId = openItems.length ? openItems[0].wave : null;
+  const nextWave = (st.waves||[]).find(w=>w.id===nextWaveId);
+  const waveItems = openItems.filter(i=>i.wave===nextWaveId);
+
+  const promptText = waveItems.length
+    ? 'Continue the "'+(st.title||st.slug)+'" plan at '
+      + (nextWave ? '"'+nextWave.title+'"' : 'the next wave')
+      + '. Open work: '
+      + waveItems.map(i=>i.title+(i.evidence?' (done when: '+i.evidence+')':'')).join('; ')
+      + '. Update this file in place — flip statuses only against real evidence, append to the changelog, never fork a second file for slug "'+st.slug+'".'
+    : 'Every item in "'+(st.title||st.slug)+'" is done or dropped. Nothing to continue.';
+
+  document.getElementById('lpp-prompt').textContent = promptText;
+  const copyBtn = document.getElementById('lpp-copy');
+  const liveRegion = document.getElementById('lpp-live');
+  copyBtn.addEventListener('click', async ()=>{
+    try { await navigator.clipboard.writeText(promptText); }
+    catch { const r=document.createRange(); r.selectNode(document.getElementById('lpp-prompt'));
+            getSelection().removeAllRanges(); getSelection().addRange(r); }
+    const was = copyBtn.textContent;
+    copyBtn.textContent = '✓ Copied';
+    liveRegion.textContent = 'Next-wave prompt copied to clipboard';
+    setTimeout(()=>{ copyBtn.textContent = was; }, 1500);
+  });
 })();
 </script>
 </body>

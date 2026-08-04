@@ -9,9 +9,15 @@ tags: [playground, design, visual, frontend, ui, drag-and-drop, glassmorphism, r
 
 <!-- Sync rule: edit this standard and its exemplars in assets/playground-exemplars/ in the SAME PR (colocation). -->
 
-> **Load when:** generating a single-file HTML playground that demonstrates a feature, user story,
-> flow, or decision — i.e. a *visual* playground.
-> **Skip for:** plan/config/data/architecture dashboards (their current card layout is fine).
+> **Load when:** generating **any** single-file HTML artifact — a playground that demonstrates a
+> feature, user story, flow, or decision, **or** a plan/config/data/architecture **dashboard**.
+> **Skip for:** the ASCII floor (no pixels, nothing here applies).
+>
+> Dashboards used to be exempt here ("their current card layout is fine"). They are not exempt any
+> more, and the exemption is why they drifted: across 191 shipped artifacts, ~93% were dashboards,
+> and only 39% carried `--pg-` tokens, 29% a reduced-motion gate, 24% a copy-prompt. The format that
+> governs almost all output had no template to copy and no self-audit. §0 now routes DASHBOARD to a
+> first-class archetype with `plan-dashboard.template.html` and its own §10 rows.
 
 A playground is not a slide. It is a thing the viewer can *operate*: play a user story, or make a
 decision by dragging. This standard makes that quality reproducible. Every rule carries a concrete,
@@ -28,6 +34,11 @@ Reference exemplars (read the one matching your archetype before building):
 - `decision-router.template.html` — execution-router variant of the decision board: triage (Now/Next/Later)
   **plus** routing each card to an ork strategy (single/workflow/nested/teams/swarm) + a plan-only
   invocation. Used by `visualize-plan` for backlogs the user must prioritize and dispatch.
+- `plan-dashboard.template.html` — **dashboard** (the volume archetype, ~93% of output). Sticky
+  tier-1 header, anchored `<details>` sections `[0]`–`[5]`, every chart paired with a table twin,
+  1-click copy-prompt, state in a `plan-state` JSON island. Both palettes are defined side by side
+  so the chrome↔marks seam is visible in the file. Used by `visualize-plan` for plan/config/data
+  views. Copy it; swap `STATE`.
 - `living-plan.template.html` — **living plan** (dashboard family): a plan that executes over multiple
   sessions/waves. Carries an embedded `lpp-state` JSON block; the visual layer renders FROM state.
   Sessions update the SAME file in place (flip item statuses, append changelog) — one plan = one file,
@@ -40,8 +51,10 @@ Reference exemplars (read the one matching your archetype before building):
 
 Decision, not vibe. Count the signals:
 
+The standard applies to **every** HTML artifact. §0 picks *which archetype*, never *whether to care*.
+
 ```
-PLAYGROUND (apply this standard) if ≥2 are true:
+OPERABLE (player / board) if ≥2 are true:
   □ device mockup (phone/tablet/app frame)     □ playback / step controls (▶ prev next)
   □ cause→effect flow arrows                    □ narrative user-story copy
   □ drag-and-drop decision surface              □ copy-prompt bar ("build / decide" affordance)
@@ -49,17 +62,26 @@ PLAYGROUND (apply this standard) if ≥2 are true:
 Then pick ONE archetype:
   • USER-STORY PLAYER  → the playground plays a flow over ≥2 steps/screens
   • DECISION BOARD     → the core is prioritization/management via drag-and-drop
-  • (neither, <2 signals) → DASHBOARD → not a full playground, but no longer a free pass:
-        chrome = §2 tokens · data marks follow the CHART-ENCODING standard
-        (/dataviz validated palette + table-view twin — chart-encoding-standard.md).
-        ASCII-card layout is the fallback only when /dataviz is unavailable.
+  • (neither, <2 signals) → DASHBOARD → a first-class archetype, not a free pass.
+        Template: plan-dashboard.template.html (copy it; do not free-hand CSS).
+        Required: §2 chrome tokens · sticky tier-1 header · sections as <details>
+        (anchored, keyboard-native) · a TABLE TWIN for every chart · 1-click copy-prompt
+        · the §6 reduced-motion gate.
+        Data marks follow the CHART-ENCODING standard (/dataviz validated palette —
+        chart-encoding-standard.md). ASCII-card layout is the fallback only when
+        /dataviz is unavailable; the table twin is NOT optional either way.
 
   DASHBOARD sub-route — LIVING PLAN if ≥1 is true:
   □ the plan executes over multiple sessions or waves   □ the user will ask "where are we" later
   □ item completion is verifiable by a command/check
         → use living-plan.template.html: embedded lpp-state JSON, update-in-place contract,
-          per-item "done when" evidence. One plan = one file; git history is the timeline.
+          per-item "done when" evidence. One plan = one file, keyed by SLUG not path;
+          git history is the timeline.
 ```
+
+**Dashboards are the volume case.** ~93% of shipped artifacts are dashboards, so a rule that
+exempts them governs almost nothing. If you are about to write a card grid from scratch, you are
+in the wrong branch of this decision — copy the template.
 
 ---
 
@@ -195,7 +217,10 @@ Glass reads as glass only against a dark, contrasted backdrop with a visible edg
 4. No glow-halo cards (§5).
 5. More than one signature animation → cut to one (§6).
 6. *Arbitrary, inconsistent* spacing (`13px` and `15px` for one role) → one value per role; layout rhythm on the §2 scale.
-7. Hex colors in tokens → convert to HSL.
+7. Hex colors in **chrome** tokens (`--pg-*`) → convert to HSL. This does **not** apply to
+   **data-mark** tokens (`--series-*`, `--status-*`), which are hex/OKLCH straight from the
+   `/dataviz` validated palette — converting those by hand un-validates them. Two palettes, two
+   rules, defined side by side (`chart-encoding-standard.md`).
 8. Native `draggable="true"` DnD → replace with the §7 pointer+keyboard engine.
 9. Physical `left`/`right` CSS in a playground that may be RTL → logical properties.
 10. Copy-prompt that dumps values instead of a natural-language instruction.
@@ -216,3 +241,16 @@ Glass reads as glass only against a dark, contrasted backdrop with a visible edg
 - [ ] Single file, zero external deps; copy-prompt is 1-click and natural-language.
 - [ ] Ran the §9 checklist; zero hits.
 - [ ] If the output contains any chart: its palette passed `validate_palette.js` (exit 0), or the ASCII-card fallback was used — no eyeballed chart colors shipped (`chart-encoding-standard.md`).
+
+**DASHBOARD archetype — additional rows (the ~93% case):**
+
+- [ ] Started from `plan-dashboard.template.html`, not from a blank file.
+- [ ] Tier-1 header is `position: sticky` and every field is populated — no `—` placeholders left.
+- [ ] Sections are `<details>` with stable `id`s, reachable by anchor and by keyboard alone.
+- [ ] **Every chart has a table twin** reachable in 1 click, with `aria-live` announcing the switch.
+- [ ] Single values render as **stat tiles**, never a one-bar bar chart (`/dataviz` form heuristic).
+- [ ] State lives in a JSON island and the renderer uses `textContent`/`createElementNS` — no
+      `innerHTML` with state, no raw `<` in the island (§9.11).
+- [ ] An empty section says *why* it is empty in one line; it is never padded to look full.
+- [ ] Opened it in a browser and looked at it. A dashboard that only passed a DOM assertion has
+      not been checked — the failure mode this archetype had for 191 files was visual, not structural.

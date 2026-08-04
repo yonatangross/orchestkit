@@ -7363,8 +7363,8 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "STEP 0.5",
-            "label": "Choose Output Format",
-            "does": "Decide how to render before gathering data. First probe capabilities, then ask only for what's available. Full procedure: Read(\"${CLAUDE_SKILL_DIR}/references/format-dispatch.md\").",
+            "label": "Probe Formats",
+            "does": "Probe capabilities now so STEP 5 can offer only what will actually work. Do not ask",
             "out": null,
             "tag": null
           }
@@ -7390,8 +7390,8 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "3",
-            "label": "Ask Which Sections to Expand",
-            "does": "Section [0] Before/After is rendered automatically as the lead whenever the Explore map shows structural changes (skipped with a one-line note otherwise) — so it is never buried behind a picker choice. The options below select among the remaining sections [1]–[5]; \"All sections\" includes [0].",
+            "label": "Select Sections",
+            "does": "Render all six sections. They are the content; asking which ones to render is asking the",
             "out": null,
             "tag": null
           },
@@ -7411,8 +7411,8 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "5",
-            "label": "Offer Actions",
-            "does": "After rendering, offer next steps:",
+            "label": "Offer Actions — the ONE question",
+            "does": "This is the only blocking question in a default run, and it carries the format choice that used to",
             "out": null,
             "tag": null
           }

@@ -131,8 +131,8 @@ const referenced = buildReferencedSet();
 const GLOBBED_DIRS = new Set([
   'agents', 'build', 'ci', 'compliance', 'config', 'e2e', 'evals',
   'external', 'feedback', 'hooks', 'indexes', 'integration', 'manifests',
-  'orphans', 'performance', 'plugins', 'schemas', 'security', 'skills',
-  'subagents', 'unit', 'worktree',
+  'orphans', 'performance', 'plugins', 'quality', 'schemas', 'security',
+  'skills', 'subagents', 'unit', 'worktree',
 ]);
 const coveredByGlob = (p) => {
   const rel = p.slice(REPO.length + 1); // tests/<dir>/...

@@ -44,6 +44,9 @@ Render planned changes as structured ASCII visualizations with risk analysis, ex
 /ork:visualize-plan                          # Auto-detect from current branch
 /ork:visualize-plan billing module redesign  # Describe the plan
 /ork:visualize-plan #234                     # Pull from GitHub issue
+/ork:visualize-plan --quick                  # Header + changes + impact, zero questions
+/ork:visualize-plan --playground             # Skip straight to the HTML dashboard
+/ork:visualize-plan --infographic            # Skip straight to NotebookLM
 ```
 
 ## Argument Resolution
@@ -53,11 +56,39 @@ PLAN_INPUT = "$ARGUMENTS"    # Full argument string
 PLAN_TOKEN = "$ARGUMENTS[0]" # First token — could be issue "#234" or plan description
 # If starts with "#", treat as GitHub issue number. Otherwise, plan description.
 # $ARGUMENTS (full string) for multi-word descriptions (CC 2.1.59 indexed access)
+
+# Flags are stripped from PLAN_INPUT before it is used as a description:
+#   --quick        → QUICK=true: tier-1 header + [1] Changes + [5] Impact, no Explore
+#                    agent, no questions at all, no memory write. The 15-second answer.
+#   --playground   → FORMATS=[ascii, playground]      (no format question)
+#   --infographic  → FORMATS=[ascii, infographic]     (no format question)
+#   --all          → FORMATS=[ascii, + everything the probe found]
 ```
+
+## Question budget: ZERO before the first render
+
+This skill used to ask three blocking questions (source, then format, then sections)
+before a single character rendered, plus a fourth after. That is why fast paths leaked to
+`quickviz` and to hand-written HTML.
+
+The format answer is **not needed** to render ASCII — the ASCII floor rule renders it
+first regardless of what the user picks. So asking up front buys nothing and costs a
+round-trip. The rule now:
+
+| Decision | When | How |
+|---|---|---|
+| Source | before | Auto-detect. Ask **only** if detection is genuinely ambiguous (STEP 0). |
+| Sections | never | Default to **all**. The tier-1 header is the progressive-disclosure layer. |
+| Format | **after** ASCII | One post-render question (STEP 5), merged with drill-deeper. |
+
+`--quick` skips even that one.
 
 ---
 
 ## CRITICAL: Task Tracking
+
+**`--quick` skips this whole block.** A 15-second render does not need a dependency graph; the
+task overhead would cost more than the work.
 
 ```python
 # 1. Create main task IMMEDIATELY
@@ -121,9 +152,10 @@ AskUserQuestion(
 
 ---
 
-## STEP 0.5: Choose Output Format (Front Door)
+## STEP 0.5: Probe Formats (silent — no question here)
 
-Decide **how** to render before gathering data. First **probe capabilities**, then ask only for what's available. Full procedure: `Read("${CLAUDE_SKILL_DIR}/references/format-dispatch.md")`.
+Probe **capabilities** now so STEP 5 can offer only what will actually work. **Do not ask
+anything at this step.** Full procedure: `Read("${CLAUDE_SKILL_DIR}/references/format-dispatch.md")`.
 
 Use the established MCP-probe pattern — `Read("${CLAUDE_SKILL_DIR}/../chain-patterns/references/mcp-detection.md")` — not ad-hoc checks:
 
@@ -135,25 +167,25 @@ ToolSearch(query="select:mcp__notebooklm-mcp__studio_create")
 # applied WITHIN a format, not a 4th format — see chart-encoding-standard.md.
 ```
 
-Gate the options: **ascii** always (the floor); **playground** if the `playground` skill is installed (ships with ork); **infographic** if `studio_create` resolved above (server reachable + `nlm login` done). If only ASCII is available, skip the question. Orthogonally, if the **`/dataviz`** skill resolved, upgrade the chart *marks* in the non-ASCII formats via its form-heuristic + validated palette; if it did not resolve, charts stay ASCII-card (today's behavior) — dataviz is never required.
+Record what is available as `AVAILABLE`: **ascii** always (the floor); **playground** if the
+`playground` skill is installed (ships with ork); **infographic** if `studio_create` resolved above
+(server reachable + `nlm login` done). Orthogonally, if the **`/dataviz`** skill resolved, upgrade
+the chart *marks* in the non-ASCII formats via its form-heuristic + validated palette; if it did not
+resolve, charts stay ASCII-card — dataviz is never required.
 
-If only ASCII is available, **skip the question** and render ASCII. Otherwise ask (hide ungated options, surface a one-line install/auth hint instead):
+`FORMATS` is then set **without asking**:
 
 ```python
-AskUserQuestion(questions=[{
-  "question": "How should I render this plan?",
-  "header": "Format",
-  "options": [
-    {"label": "ASCII + emojis (Recommended)", "description": "Fast, in-chat, zero-dependency. Always the floor — rendered first even if you also pick a richer format."},
-    {"label": "Interactive playground", "description": "Single-file HTML explorer written to docs/<branch-dir>/plan-viz.html (also satisfies the PR Playground gate). Delegates to the playground skill. Multi-wave plans become LIVING plans: the file carries lpp-state JSON and later sessions update it in place."},
-    {"label": "NotebookLM infographic", "description": "Stakeholder-ready infographic/slides via notebooklm studio_create. Async — fired and notified, never blocks."},
-    {"label": "All available", "description": "ASCII inline now + the richer formats linked as they finish."}
-  ],
-  "multiSelect": false
-}])
+if   "--quick" in flags:        FORMATS = ["ascii"]              # and STEP 5 is skipped too
+elif "--playground" in flags:   FORMATS = ["ascii", "playground"]
+elif "--infographic" in flags:  FORMATS = ["ascii", "infographic"]
+elif "--all" in flags:          FORMATS = AVAILABLE
+else:                           FORMATS = ["ascii"]              # upgrade offered in STEP 5
 ```
 
-**ASCII floor rule:** always render ASCII first/inline regardless of choice — never `await` the async NotebookLM job. Record the chosen format(s) as `FORMATS` for STEP 4 dispatch.
+**ASCII floor rule:** ASCII renders first/inline regardless — and because it never depends on the
+format choice, the choice is deferred to STEP 5 where it costs nothing. Never `await` the async
+NotebookLM job.
 
 ---
 
@@ -166,6 +198,9 @@ bash "$SKILL_DIR/scripts/analyze-impact.sh"
 ```
 
 This produces: files by action (add/modify/delete), line counts, test files affected, and dependency changes.
+
+**`--quick` stops here** — the impact script alone feeds the header, [1] Changes, and [5] Impact.
+No Explore agent, no before/after map, no memory write.
 
 For architecture-level understanding **and the default before/after section [0]**, spawn an Explore agent that maps the component graph at BOTH the base and the head:
 
@@ -197,25 +232,21 @@ Branch: {branch} -> {base_branch}
 
 ---
 
-## STEP 3: Ask Which Sections to Expand
+## STEP 3: Select Sections (no question — default to all)
 
-**Section [0] Before/After is rendered automatically as the lead** whenever the Explore map shows structural changes (skipped with a one-line note otherwise) — so it is never buried behind a picker choice. The options below select among the remaining sections [1]–[5]; "All sections" includes [0].
+**Render all six sections.** They are the content; asking which ones to render is asking the
+reviewer to choose before they have seen anything. The tier-1 header is already the
+progressive-disclosure layer, and a section with nothing to say is skipped with a one-line reason
+(not padded), so "all" never means "bloated".
 
 ```python
-AskUserQuestion(
-  questions=[{
-    "question": "Which sections to render?",
-    "header": "Sections",
-    "options": [
-      {"label": "All sections", "description": "Full visualization with all 6 core sections"},
-      {"label": "Changes + Execution", "description": "File diff tree and execution swimlane"},
-      {"label": "Risks + Decisions", "description": "Risk dashboard and decision log"},
-      {"label": "Impact only", "description": "Just the numbers: files, lines, tests, API surface"}
-    ],
-    "multiSelect": false
-  }]
-)
+SECTIONS = ["0","1","2","3","4","5"]      # default
+if QUICK: SECTIONS = ["1","5"]            # --quick: change manifest + impact only
 ```
+
+**Section [0] Before/After leads** whenever the Explore map shows structural changes, and is
+skipped with a one-line note otherwise. If the user asked for specific sections in their prompt
+("just the risks"), honor that — but do not *prompt* for it.
 
 ---
 
@@ -246,13 +277,19 @@ Render the selected sections into the `FORMATS` chosen in STEP 0.5. **ASCII alwa
 | All | ASCII inline now + the rest linked as they finish |
 | Charts (marks *within* Playground / Infographic) | For sections with quantitative marks — **[3] Risk, [5] Impact, [6] Blast Radius** — pick the form via `/dataviz` (`choosing-a-form`) and the palette via its 6-check formula, then run `validate_palette.js`. On validator FAIL **or** `/dataviz` absent, fall back to the ASCII-card layout. Chrome stays ork tokens (§2 of `playground-visual-standard.md`); only the data marks come from the validated palette. See `${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/chart-encoding-standard.md`. |
 
-`<branch-dir>` = branch with `/` → `--` (same path the PR Playground gate checks).
+`<branch-dir>` = branch with `/` → `--` (same path the PR Playground gate checks). The filename is
+**always `plan-viz.html`** — not `index.html`, not a topic name. One name is what makes slug lookup
+and the artifact gallery work at all.
 
-> **Playground archetype:** a plan visualization is usually a **DASHBOARD** (current behavior — fine).
-> But if the plan demonstrates a *user-facing flow* or a *prioritization/decision*, route to the
-> **user-story-player** or **decision-board** archetype instead of a flat card grid. Apply the §0 routing
-> rule in `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/playground-visual-standard.md")` and adapt the
-> matching exemplar under `skills/shared/assets/playground-exemplars/`.
+> **Playground archetype:** a plan visualization is usually a **DASHBOARD** — and as of 2026-08 that
+> is a first-class archetype with a template, not a free pass. **Copy
+> `skills/shared/assets/playground-exemplars/plan-dashboard.template.html` and swap the `plan-state`
+> island**; do not free-hand the CSS. It ships the §2 tokens, a sticky tier-1 header, `<details>`
+> sections `[0]`–`[5]`, a table twin per chart, the copy-prompt bar, and the reduced-motion gate.
+> If the plan instead demonstrates a *user-facing flow* or a *prioritization/decision*, route to the
+> **user-story-player** or **decision-board** archetype. Apply the §0 routing rule in
+> `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/playground-visual-standard.md")` and run its §10
+> self-audit — including the DASHBOARD rows — before declaring done.
 >
 > **Backlog to dispatch?** If the plan is a backlog the user must prioritize **and route to execution**,
 > use the **decision-router** variant — each card routes to an ork strategy and emits a plan-only
@@ -261,34 +298,56 @@ Render the selected sections into the `FORMATS` chosen in STEP 0.5. **ASCII alwa
 > **Living plan (multi-wave)?** If the plan executes over multiple sessions/waves, or completion is
 > verifiable by commands, use the **living-plan** exemplar (`living-plan.template.html`): the playground
 > embeds an `lpp-state` JSON block, every item carries a "done when" evidence check, and progress renders
-> FROM state. **Update mode:** before authoring, check whether `docs/<branch-dir>/plan-viz.html` (or the
-> plan's known path) already has `id="lpp-state"` — if yes, MERGE into it (flip statuses, append changelog,
-> move removed items to dropped) and never create a second file for the same slug. Full contract:
-> `Read("${CLAUDE_SKILL_DIR}/references/format-dispatch.md")` §Living-plan update mode.
+> FROM state.
+>
+> **Update mode — detect by SLUG, never by path.** The path is derived from the branch name, so a branch
+> rename moves it and a path-keyed check silently forks the plan into a second file. Run the finder
+> BEFORE authoring:
+>
+> ```bash
+> bash "$SKILL_DIR/scripts/find-living-plan.sh" "$SLUG"   # 0=update it · 1=author new · 2=already forked, STOP
+> ```
+>
+> On exit 0, MERGE into the file it printed (flip statuses, append changelog, move removed items to
+> dropped) wherever it lives. On exit 2, do not write a third file — name both paths and ask which
+> survives. Full contract: `Read("${CLAUDE_SKILL_DIR}/references/format-dispatch.md")` §Living-plan
+> update mode. Gated by `tests/orphans/test-duplicate-living-plans.sh`.
 
 ---
 
-## STEP 5: Offer Actions
+## STEP 5: Offer Actions — the ONE question
 
-After rendering, offer next steps:
+This is the only blocking question in a default run, and it carries the format choice that used to
+block at STEP 0.5. **Skip it entirely when `--quick`, or when the format was set by flag and there
+is nothing left to offer.** Build the option list from what the STEP 0.5 probe actually found —
+never offer a path that will fail.
 
 ```python
-AskUserQuestion(
-  questions=[{
-    "question": "What next?",
-    "header": "Actions",
-    "options": [
-      {"label": "Write to designs/", "description": "Save as designs/{branch}.md for PR review"},
-      {"label": "Generate GitHub issues", "description": "Create issues from execution phases with labels and milestones"},
-      {"label": "Drill deeper", "description": "Expand blast radius, cross-layer check, or migration checklist"},
-      {"label": "Done", "description": "Plan visualization complete"}
-    ],
-    "multiSelect": false
-  }]
-)
+options = []
+if "playground" in AVAILABLE and "playground" not in FORMATS:
+    options.append({"label": "Interactive dashboard (Recommended)",
+                    "description": "Single-file HTML at docs/<branch-dir>/plan-viz.html, from plan-dashboard.template.html. Also satisfies the PR Playground gate. Multi-wave plans become LIVING plans, updated in place."})
+if "infographic" in AVAILABLE and "infographic" not in FORMATS:
+    options.append({"label": "NotebookLM infographic",
+                    "description": "Stakeholder-ready infographic/slides. Async — fired and notified, never blocks."})
+options.append({"label": "Drill deeper",
+                "description": "Blast radius, cross-layer consistency, or migration checklist"})
+options.append({"label": "Generate GitHub issues",
+                "description": "One issue per execution phase, with labels, milestone, and blocked-by links"})
+
+# AskUserQuestion caps at 4 options. "Done" must ALWAYS survive that cap — an
+# actions menu with no exit is a trap — so reserve its slot instead of appending.
+DONE = {"label": "Done", "description": "Plan visualization complete"}
+AskUserQuestion(questions=[{"question": "What next?", "header": "Actions",
+                           "options": options[:3] + [DONE], "multiSelect": False}])
 ```
 
-**Progressive upgrade:** if ASCII-only was rendered and a richer format is still available (per the STEP 0.5 probe), replace the "Done" option with "Upgrade to playground / infographic" — it reuses the plan brief, no recomputation (see `references/format-dispatch.md`).
+Anything squeezed out by the cap stays reachable by asking — the menu is a shortcut, not the
+whole surface. `Write to designs/{branch}.md` (template: `assets/plan-report.md`) is one of these.
+
+Upgrading reuses the plan brief built in STEP 1 — **no recomputation**
+(see `references/format-dispatch.md`). If nothing richer is available, the question drops to
+drill-deeper / issues / done.
 
 **Write to file:** Save full report to `designs/{branch-name}.md` using `assets/plan-report.md` template.
 
@@ -356,6 +415,17 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `format-dispatch.md` | Output-format capability probe, ASCII-floor rule, delegation to playground/notebooklm |
 | `before-after-arch-patterns.md` | Section [0] before/after architecture per output format |
 
+## Examples (read one before your first run)
+
+Complete worked runs — real input, real ASCII output, real emitted artifact. The ASCII patterns in
+them match `references/*-patterns.md` exactly, so they are safe to imitate directly.
+
+| File | Shows |
+|------|-------|
+| `examples/01-dashboard-run.md` | The default path end to end: detect → gather → header → all six sections → the one question → the emitted HTML. Same scenario as the sample state in `plan-dashboard.template.html`. |
+| `examples/02-living-plan-update.md` | Update mode on a **renamed branch**: slug-keyed detection, the JSON merge, the evidence gate, and the exit-2 fork case. |
+| `examples/03-quick-run.md` | `--quick`: what is skipped, what the output looks like, and what it must never fabricate. |
+
 ## Assets
 
 Load on demand with `Read("${CLAUDE_SKILL_DIR}/assets/<file>")`:
@@ -373,7 +443,15 @@ Done means all of these hold:
 - Every rendered section answers its reviewer question; a section with no content is skipped with a one-line reason, never padded.
 - Section [0] Before/After maps base (`git show origin/main:<path>`) against head (working tree), marking each node `[+]`/`[~]`/`[-]`, and is skipped with a note when nothing structural changed.
 - ASCII renders first/inline regardless of chosen format; any async format (infographic) is fired-and-notified, never awaited.
-- The plan summary is stored to the memory knowledge graph for cross-session comparison.
+- The plan summary is stored to the memory knowledge graph for cross-session comparison (skipped under `--quick`).
+- **Zero blocking questions before the first render.** Source is auto-detected (asked only when
+  genuinely ambiguous), sections default to all, and format is chosen after the ASCII floor is
+  already on screen — at most one question per run, none under `--quick`.
+- A playground output started from `plan-dashboard.template.html` (or the living-plan / player /
+  board exemplar the §0 routing rule selected) — never hand-rolled CSS — and passed the §10
+  self-audit including the DASHBOARD rows.
+- A living plan was located by **slug** via `scripts/find-living-plan.sh` before authoring, so an
+  existing plan is updated in place rather than forked into a second file.
 
 ## Related Skills
 
