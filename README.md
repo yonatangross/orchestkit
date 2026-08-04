@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.6.1](https://github.com/yonatangross/orchestkit/compare/v9.6.0...v9.6.1)** · 2026-08-04
+
+- **deps:** clear the npm-audit wave via in-range transitive updates (#3272)
+
 **[v9.6.0](https://github.com/yonatangross/orchestkit/compare/v9.5.4...v9.6.0)** · 2026-08-03
 
 - **codex:** add native OrchestKit adapter (#3265)
@@ -321,15 +325,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** accept the app/ author form and stop swallowing gh failures (#3227)
 - **ci:** regenerate CHANGELOG-derived files on release PRs (#3226)
 - …and 11 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v9.3.0](https://github.com/yonatangross/orchestkit/compare/v9.2.1...v9.3.0)** · 2026-07-31
-
-- **agents:** key Tavily guidance on the tvly CLI rail (#3204)
-- **skills:** fix 5 shipped bugs and add 4 missing CI gates (#3181)
-- **ci:** decide the playground gate from the diff, not the branch (#3196)
-- **hooks:** stop output-validator killing five sibling SubagentStop hooks (#3201)
-- **marketplace:** prep official plugin directory submission (#3205)
-- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
