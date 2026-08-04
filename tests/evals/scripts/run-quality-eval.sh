@@ -975,9 +975,37 @@ write_results_json() {
     local duration="${10}"
 
     mkdir -p "$RESULTS_DIR"
-    local safe_skill; safe_skill=$(echo "$skill_id" | jq -Rs .)
-    local safe_verdict; safe_verdict=$(echo "$verdict" | jq -Rs .)
-    local safe_ts; safe_ts=$(date -u +%Y-%m-%dT%H:%M:%SZ | jq -Rs .)
+    # printf, not echo: `echo x | jq -Rs .` keeps the trailing newline, which is
+    # why shipped results read "skill": "visualize-plan\n" and
+    # "verdict": "PARTIAL\n". Those strings then fail any exact-match consumer.
+    local safe_skill; safe_skill=$(printf '%s' "$skill_id" | jq -Rs .)
+    local safe_verdict; safe_verdict=$(printf '%s' "$verdict" | jq -Rs .)
+    local ts; ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    local safe_ts; safe_ts=$(printf '%s' "$ts" | jq -Rs .)
+
+    # A SKIPPED baseline is not a baseline that scored 0. Emitting 0 turned
+    # "we did not measure" into "the model without the skill got everything
+    # wrong", and delta then reported the skill's own pass rate as its
+    # advantage: visualize-plan.quality.json shipped `delta: 66` from a run
+    # with no baseline arm, contradicting the per-eval deltas of 0 in the same
+    # file. null is the honest value, and no consumer reads these two fields
+    # (only .aggregate.skill_pass_rate is consumed, by
+    # scripts/eval/aggregate-quality-index.sh and run-skill-eval.sh).
+    local json_base_rate="$agg_base_rate"
+    local json_delta="$agg_delta"
+    if [[ "$SKIP_BASELINE" == "true" ]]; then
+        json_base_rate="null"
+        json_delta="null"
+    fi
+
+    # Provenance: a result that does not record how it was produced cannot be
+    # trusted or reproduced. Without these, a --force-skill unit run and a full
+    # A/B run are indistinguishable in the artifact.
+    # Mirror the defaults applied at the call sites (:229, :272, :594) so the
+    # record shows what actually ran, not an empty string.
+    local safe_model; safe_model=$(printf '%s' "${EVAL_MODEL:-haiku}" | jq -Rs .)
+    local safe_grader; safe_grader=$(printf '%s' "${GRADING_MODEL:-haiku}" | jq -Rs .)
+
     cat > "$RESULTS_DIR/$skill_id.quality.json" <<ENDJSON
 {
   "skill": $safe_skill,
@@ -985,12 +1013,20 @@ write_results_json() {
   "evals": $evals_json,
   "aggregate": {
     "skill_pass_rate": $agg_skill_rate,
-    "baseline_pass_rate": $agg_base_rate,
-    "delta": $agg_delta,
+    "baseline_pass_rate": $json_base_rate,
+    "delta": $json_delta,
     "discriminating_assertions": $agg_discriminating,
     "total_assertions": $agg_skill_total,
     "hook_rejections": $agg_hook_rejections,
     "verdict": $safe_verdict
+  },
+  "invocation": {
+    "skip_baseline": $SKIP_BASELINE,
+    "force_skill": $FORCE_SKILL,
+    "model": $safe_model,
+    "grader_model": $safe_grader,
+    "max_turns": $MAX_TURNS,
+    "reps": $REPS
   },
   "reps": $REPS,
   "duration_seconds": $duration
