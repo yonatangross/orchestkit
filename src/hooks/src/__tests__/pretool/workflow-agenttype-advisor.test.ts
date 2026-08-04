@@ -11,8 +11,12 @@
 
 import { describe, expect, test } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   countAgentCalls,
+  extractAgentTypes,
+  STAGE_MAP,
   workflowAgentTypeAdvisor,
 } from '../../pretool/task/workflow-agenttype-advisor.js';
 
@@ -101,6 +105,67 @@ describe('workflowAgentTypeAdvisor', () => {
       expect(result.continue).toBe(true);
       const decision = result.hookSpecificOutput?.permissionDecision;
       expect(decision === undefined || decision === 'allow').toBe(true);
+    }
+  });
+
+  describe('extractAgentTypes', () => {
+    test('reads single, double, and backtick quoted values', () => {
+      const s = `agent('a', {agentType: 'ork:x'}); agent('b', {agentType: "ork:y"}); agent('c', {agentType: \`ork:z\`})`;
+      expect(extractAgentTypes(s)).toEqual(['ork:x', 'ork:y', 'ork:z']);
+    });
+
+    test('skips a computed value rather than faulting a name it cannot read', () => {
+      expect(extractAgentTypes('agent("a", {agentType: chosen})')).toEqual([]);
+    });
+  });
+
+  // The regression this hook exists for: it used to go silent whenever the
+  // string agentType appeared anywhere, so a mixed script reported nothing.
+  describe('value validation (#3279)', () => {
+    test('flags a SKILL mistaken for an agent', () => {
+      const script = `agent('x', {agentType: 'ork:business-case'})`;
+      const ctx = contextOf(workflowAgentTypeAdvisor(makeInput({ script })));
+      expect(ctx).toContain('ork:business-case');
+      expect(ctx).toContain('not a registered agent');
+    });
+
+    test('flags the invalid stage in a script whose other stages are valid', () => {
+      const script = `
+        agent('a', {agentType: 'ork:security-auditor'})
+        agent('b', {agentType: 'ork:test-generator'})
+        agent('c', {agentType: 'ork:business-case'})
+      `;
+      const ctx = contextOf(workflowAgentTypeAdvisor(makeInput({ script })));
+      expect(ctx).toContain('ork:business-case');
+      expect(ctx).not.toContain('ork:security-auditor');
+    });
+
+    test('stays silent when every typed stage resolves', () => {
+      const script = `agent('a', {agentType: 'ork:security-auditor'})`;
+      expect(contextOf(workflowAgentTypeAdvisor(makeInput({ script })))).toBe('');
+    });
+
+    test('never blocks, even on an invalid value', () => {
+      const script = `agent('x', {agentType: 'ork:business-case'})`;
+      const r = workflowAgentTypeAdvisor(makeInput({ script }));
+      expect(r.continue).toBe(true);
+      const d = r.hookSpecificOutput?.permissionDecision;
+      expect(d === undefined || d === 'allow').toBe(true);
+    });
+  });
+
+  // The curated map is hand-written and nothing cross-checked it against the
+  // real registry, so a renamed or deleted agent could sit in the advice the
+  // hook prints while failing at dispatch.
+  test('every STAGE_MAP target is a real agent', () => {
+    const agentsDir = join(__dirname, '..', '..', '..', '..', 'agents');
+    // Self-decay floor: an emptied STAGE_MAP would make the loop below pass
+    // vacuously and this assertion would stop checking anything.
+    expect(STAGE_MAP.length).toBeGreaterThan(0);
+    for (const [, agent] of STAGE_MAP) {
+      expect(agent.startsWith('ork:')).toBe(true);
+      const file = join(agentsDir, `${agent.replace('ork:', '')}.md`);
+      expect(existsSync(file), `${agent} has no ${file}`).toBe(true);
     }
   });
 });

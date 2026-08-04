@@ -25,11 +25,12 @@
 import type { HookContext, HookInput, HookResult } from '../../types.js';
 import { outputAllowWithContext, outputSilentSuccess } from '../../lib/common.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { explainSpawnTarget } from '../../lib/agent-registry.js';
 
 const HOOK_NAME = 'workflow-agenttype-advisor';
 
 /** Stage-shape → specialist mapping, kept in sync with dynamic-workflow-patterns.md. */
-const STAGE_MAP: ReadonlyArray<readonly [string, string]> = [
+export const STAGE_MAP: ReadonlyArray<readonly [string, string]> = [
   ['security produce/verify stages', 'ork:security-auditor'],
   ['test generation / coverage / repair', 'ork:test-generator'],
   ['code-review dimensions over a diff', 'ork:code-quality-reviewer'],
@@ -48,6 +49,25 @@ export function countAgentCalls(script: string): number {
   return matches ? matches.length : 0;
 }
 
+/**
+ * Every agentType value in a workflow script.
+ *
+ * Covers the object-literal forms an author actually writes:
+ *   agentType: 'ork:x'   agentType: "ork:x"   agentType:`ork:x`
+ * A computed value (agentType: someVar) yields no literal and is skipped —
+ * this is an advisory, and a name we cannot read is not a name we can fault.
+ */
+export function extractAgentTypes(script: string): string[] {
+  const out: string[] = [];
+  const re = /agentType\s*:\s*['"`]([^'"`]+)['"`]/g;
+  let m: RegExpExecArray | null = re.exec(script);
+  while (m !== null) {
+    out.push(m[1]);
+    m = re.exec(script);
+  }
+  return out;
+}
+
 export function workflowAgentTypeAdvisor(
   input: HookInput,
   _ctx: HookContext = NOOP_CTX,
@@ -63,7 +83,28 @@ export function workflowAgentTypeAdvisor(
   const agentCalls = countAgentCalls(script);
   if (agentCalls === 0) return outputSilentSuccess();
 
-  // Author already reached for the catalog at least once — no nudge needed.
+  // Validate the VALUES before deciding anything else.
+  //
+  // This used to be `if (script.includes('agentType')) return silent`, on the
+  // theory that an author who reached for the catalog once needs no nudge.
+  // That muted the hook on any script mentioning agentType anywhere, so three
+  // valid stages plus one invalid produced total silence — and the invalid one
+  // then died at dispatch as a generic "parallel[N] failed" with no line naming
+  // the cause (#3279). The message two blocks below has always said "bare names
+  // fail to resolve"; the hook simply never checked.
+  const invalid = extractAgentTypes(script)
+    .map((value) => ({ value, reason: explainSpawnTarget(value) }))
+    .filter((r): r is { value: string; reason: string } => r.reason !== null);
+
+  if (invalid.length > 0) {
+    const lines = invalid.map((r) => `  - ${r.reason}`).join('\n');
+    return outputAllowWithContext(
+      `[${HOOK_NAME}] ${invalid.length} workflow stage(s) name an agent that does not resolve:\n${lines}\n` +
+        `The stage will fail at dispatch and the failure will not say why (#3279).`,
+    );
+  }
+
+  // At least one stage is typed and every typed value resolves — nothing to say.
   if (script.includes('agentType')) return outputSilentSuccess();
 
   const table = STAGE_MAP.map(([shape, agent]) => `  ${shape} -> ${agent}`).join('\n');
