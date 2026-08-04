@@ -131,7 +131,9 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "  --force-skill    TIER 1 unit eval: inject SKILL.md via --append-system-prompt."
             echo "                   Bypasses agent routing to test skill content quality in isolation."
-            echo "                   Implies --skip-baseline and --max-turns 1."
+            echo "                   Implies --skip-baseline. Tools ARE available in this mode"
+            echo "                   (measured: turns=3), so it tests behavior, not just prose."
+            echo "                   It does NOT exercise the real plugin-load path."
             exit 0
             ;;
         -*) echo -e "${RED}Unknown option: $1${NC}"; exit 1 ;;
@@ -256,8 +258,14 @@ run_with_forced_skill() {
     local skill_content
     skill_content=$(awk 'BEGIN{skip=0} /^---$/{skip++; next} skip>=2{print}' "$skill_path")
 
-    # Build flags: no --plugin-dir, no tool use (pure text generation)
-    # --print forces text-only output with no tool calls — ideal for quality eval
+    # Build flags: no --plugin-dir. SKILL.md goes in as a system prompt instead.
+    #
+    # `--print` here is a NO-OP: it is the long form of `-p`, which the invocation
+    # below already passes, so this line adds the same flag twice. It does NOT
+    # disable tools — the old comment claimed "forces text-only output with no
+    # tool calls" and that was simply false. Measured 2026-08-04: this exact flag
+    # set returned turns=3 with real tool rounds. Kept only because removing it
+    # would change nothing; the lie was the comment, not the flag.
     flags+=(--print)
     flags+=(--no-session-persistence)
     flags+=(--max-budget-usd "$MAX_BUDGET")
@@ -1015,8 +1023,8 @@ write_results_json() {
     # no tools, so it grades prose rather than behavior.
     local measures caveat
     if [[ "$FORCE_SKILL" == "true" ]]; then
-        measures="skill-content-prose"
-        caveat="SKILL.md was injected via --append-system-prompt, but this mode runs without tools, so it measures the skill's PROSE, not its behavior. The skill cannot run its own scripts here."
+        measures="skill-content-with-tools"
+        caveat="SKILL.md is injected as a SYSTEM PROMPT via --append-system-prompt, not loaded as a plugin skill. Tools ARE available and are used (probe 2026-08-04: turns=3, real tool rounds), so this measures whether the skill's CONTENT drives good behavior. It does NOT exercise the real plugin-load path, so it cannot catch routing, frontmatter, or preload defects."
     else
         measures="base-model"
         caveat="ROUTED MODE DOES NOT LOAD THE SKILL. Verified 2026-08-04: three probes with these exact flags produced 0/5 skill-specific output markers, and a slash-command invocation returned turns=0 with 'I don't see an actual request in your message'. Both arms are the base model, so skill_pass_rate describes the MODEL and any delta is noise between two baseline runs. Do not cite these numbers as evidence about the skill."
