@@ -478,7 +478,18 @@
         svg.append(svgEl('line', { x1: padL, x2: w - padR, y1: y + rowH - 4, y2: y + rowH - 4,
                                    stroke: 'var(--mark-grid)', 'stroke-width': 1 }));
         const name = svgEl('text', { x: padL - 12, y: y + 14, 'text-anchor': 'end', class: 'lbl' });
-        name.textContent = f.path;
+        // Right-anchored labels grow LEFTWARDS off the viewBox, so a long path is
+        // silently clipped at the edge — the head of the path disappears and the
+        // chart quietly lies about which file it is. Truncate from the front (the
+        // filename is the identifying part) and keep the full path in a <title>.
+        // The table twin remains authoritative for the untruncated value.
+        const MAXLBL = 34;
+        name.textContent = f.path.length > MAXLBL ? '…' + f.path.slice(-(MAXLBL - 1)) : f.path;
+        if (f.path.length > MAXLBL) {
+          const full = svgEl('title', {});
+          full.textContent = f.path;
+          name.append(full);
+        }
         svg.append(name);
         svg.append(svgEl('rect', { x: padL, y: y + 3, width: barW(f.added || 0), height: 9,
                                    rx: 3, fill: 'var(--series-3)' }));

@@ -271,86 +271,99 @@
 <script type="application/json" id="plan-state">
 {
   "pv": "1",
-  "slug": "billing-module-redesign",
-  "title": "Billing module redesign",
-  "issue": "#234",
-  "branch": "feat/billing-redesign",
+  "slug": "visualize-plan-dashboard-archetype",
+  "title": "DASHBOARD as a first-class archetype",
+  "issue": "visualize-plan quality",
+  "branch": "feat/visualize-plan-dashboard",
   "base": "main",
   "updated": "2026-08-04",
-  "risk": "medium",
+  "risk": "low",
   "confidence": "high",
-  "reversibleUntil": "P3 — schema migration",
-  "totals": { "phases": 4, "files": 7, "added": 1240, "removed": 486, "tests": 6 },
+  "reversibleUntil": "P4 — the advisory-to-blocking flip on shipped artifacts",
+  "totals": { "phases": 4, "files": 30, "added": 4031, "removed": 292, "tests": 2 },
   "arch": {
     "before": [
-      { "mark": "same", "node": "api/routes/billing.ts" },
-      { "mark": "same", "node": "  └ stripe.charge() inline" },
-      { "mark": "del",  "node": "lib/legacy-invoice.ts" },
-      { "mark": "same", "node": "db/schema/invoices" }
+      { "mark": "same", "node": "playground-visual-standard.md" },
+      { "mark": "del",  "node": "  └ 'Skip for: dashboards' exemption" },
+      { "mark": "same", "node": "playground-exemplars/ (6 files)" },
+      { "mark": "same", "node": "  └ no dashboard template  ->  93% of output" },
+      { "mark": "same", "node": "visualize-plan/ (no examples/)" },
+      { "mark": "same", "node": "living-plan detection: keyed on PATH" }
     ],
     "after": [
-      { "mark": "same", "node": "api/routes/billing.ts" },
-      { "mark": "chg",  "node": "  └ delegates to BillingService" },
-      { "mark": "add",  "node": "services/BillingService.ts" },
-      { "mark": "add",  "node": "  └ providers/StripeProvider.ts" },
-      { "mark": "chg",  "node": "db/schema/invoices (+ provider_ref)" }
+      { "mark": "chg",  "node": "playground-visual-standard.md" },
+      { "mark": "add",  "node": "  └ DASHBOARD archetype + 8 audit rows" },
+      { "mark": "chg",  "node": "playground-exemplars/ (7 files)" },
+      { "mark": "add",  "node": "  └ plan-dashboard.template.html" },
+      { "mark": "add",  "node": "visualize-plan/examples/ (3 worked runs)" },
+      { "mark": "chg",  "node": "living-plan detection: keyed on SLUG" },
+      { "mark": "add",  "node": "  └ scripts/find-living-plan.sh" },
+      { "mark": "add",  "node": "tests/quality/ + tests/orphans/ gates" }
     ]
   },
   "files": [
-    { "path": "services/BillingService.ts",        "action": "A", "added": 412, "removed": 0,   "area": "service" },
-    { "path": "services/providers/StripeProvider.ts","action": "A","added": 286, "removed": 0,   "area": "service" },
-    { "path": "api/routes/billing.ts",             "action": "M", "added": 174, "removed": 231, "area": "api" },
-    { "path": "db/migrations/0042_provider_ref.sql","action": "A","added": 38,  "removed": 0,   "area": "db" },
-    { "path": "tests/billing/service.test.ts",     "action": "A", "added": 264, "removed": 0,   "area": "test" },
-    { "path": "tests/billing/routes.test.ts",      "action": "M", "added": 66,  "removed": 41,  "area": "test" },
-    { "path": "lib/legacy-invoice.ts",             "action": "D", "added": 0,   "removed": 214, "area": "lib" }
+    { "path": "playground-exemplars/plan-dashboard.template.html", "action": "A", "added": 641, "removed": 0,  "area": "exemplar" },
+    { "path": "rules/playground-visual-standard.md",               "action": "M", "added": 74,  "removed": 21, "area": "standard" },
+    { "path": "playground-exemplars/living-plan.template.html",    "action": "M", "added": 52,  "removed": 1,  "area": "exemplar" },
+    { "path": "visualize-plan/examples/ (3 files)",                "action": "A", "added": 398, "removed": 0,  "area": "examples" },
+    { "path": "visualize-plan/SKILL.md",                           "action": "M", "added": 134, "removed": 67, "area": "skill" },
+    { "path": "visualize-plan/references/format-dispatch.md",      "action": "M", "added": 32,  "removed": 4,  "area": "skill" },
+    { "path": "visualize-plan/scripts/find-living-plan.sh",        "action": "A", "added": 87,  "removed": 0,  "area": "skill" },
+    { "path": "tests/quality/test-playground-standard.sh",         "action": "A", "added": 262, "removed": 0,  "area": "test" },
+    { "path": "tests/orphans/test-duplicate-living-plans.sh",      "action": "A", "added": 166, "removed": 0,  "area": "test" },
+    { "path": "3 test rosters (run-all-tests, ci.yml, ratchet)",   "action": "M", "added": 14,  "removed": 3,  "area": "test" }
   ],
   "phases": [
-    { "id": "P1", "title": "Extract BillingService + tests", "status": "done",
-      "deps": [], "detail": "Pure refactor, no behavior change. Green on 264 new assertions." },
-    { "id": "P2", "title": "StripeProvider behind the interface", "status": "active",
-      "deps": ["P1"], "detail": "Provider seam lands before any schema move, so P3 stays revertible." },
-    { "id": "P3", "title": "Schema migration (+ provider_ref)", "status": "blocked",
-      "deps": ["P2"], "detail": "Additive column, backfill nullable. Last reversible point." },
-    { "id": "P4", "title": "Delete lib/legacy-invoice.ts", "status": "planned",
-      "deps": ["P3"], "detail": "Only after 7 days of dual-write telemetry showing zero legacy reads." }
+    { "id": "P1", "title": "Dashboard template + promote the archetype", "status": "done", "deps": [],
+      "detail": "Template verified two ways: 20 jsdom assertions, then opened in a browser. The visual pass is the one that matters here, since the failure mode across 191 files was visual, not structural." },
+    { "id": "P2", "title": "Slug-keyed living-plan detection", "status": "done", "deps": [],
+      "detail": "Defect re-confirmed at HEAD before fixing: langchain-ecosystem-currency resolves to 2 files. find-living-plan.sh checked against all 4 exit paths on real repo data." },
+    { "id": "P3", "title": "Gates + worked examples + zero-question flow", "status": "done", "deps": ["P1", "P2"],
+      "detail": "Both failure paths of the duplicate gate proved against a throwaway git fixture rather than assumed. Conformance scan went 48s to 2.5s after batching python, and the first batched version was green-because-broken until the counts were cross-checked." },
+    { "id": "P4", "title": "Flip shipped artifacts from advisory to blocking", "status": "planned", "deps": ["P3"],
+      "detail": "21/191 artifacts conform today. Blocking now would just get the gate disabled. Burn the backlog down, then set PLAYGROUND_STANDARD_ENFORCE=1." }
   ],
   "risks": [
-    { "id": "R1", "title": "Double-charge during provider cutover", "severity": "critical",
-      "likelihood": 2, "impact": 5,
-      "premortem": "P2 ships while an in-flight retry queue still points at the inline charge path; the same invoice is charged twice.",
-      "containment": "Idempotency key derived from invoice id, asserted in service.test.ts before P2 merges." },
-    { "id": "R2", "title": "Migration locks the invoices table", "severity": "serious",
-      "likelihood": 3, "impact": 4,
-      "premortem": "0042 adds a NOT NULL column with a default; Postgres rewrites 4.2M rows and billing blocks for minutes.",
-      "containment": "Column lands nullable, backfill runs in batches, NOT NULL added in a separate later migration." },
-    { "id": "R3", "title": "Legacy reader still live at P4", "severity": "warning",
-      "likelihood": 3, "impact": 2,
-      "premortem": "A cron job nobody grepped for imports legacy-invoice and starts throwing after the delete.",
-      "containment": "7-day telemetry gate on legacy read count == 0 before P4 is unblocked." }
+    { "id": "R1", "title": "A conformance gate that reads green because it scanned nothing", "severity": "serious",
+      "likelihood": 2, "impact": 4,
+      "premortem": "The batched rewrite passed the python script on stdin via heredoc, so sys.stdin.read() returned empty and every file audited clean: 191/191 conformant in 3.9s. It looked like a successful optimisation.",
+      "containment": "Caught by cross-checking counts against an independent script. Now guarded: empty input exits 9 instead of printing a perfect score." },
+    { "id": "R2", "title": "New test dir in one roster but not the others", "severity": "warning",
+      "likelihood": 3, "impact": 3,
+      "premortem": "tests/quality was wired into run-all-tests.sh and ci.yml but not the discovery ratchet's GLOBBED_DIRS, which is the third roster nobody remembers.",
+      "containment": "The ratchet failed the build and named the file. Fixed; all three rosters now agree." },
+    { "id": "R3", "title": "The stale eval stays stale", "severity": "warning",
+      "likelihood": 4, "impact": 2,
+      "premortem": "visualize-plan.quality.json is the 2026-03-14 run at 66% PARTIAL. Its 3 failures match the section picker removed here, so the file now understates the skill and nobody re-runs it.",
+      "containment": "Explicitly NOT claimed as fixed. Eval-harness research is in flight before spending on a re-run." }
   ],
   "decisions": [
-    { "id": "D1", "title": "Provider interface over direct SDK calls",
-      "context": "Stripe calls were inlined in 3 route handlers; a second provider is on the 2027 roadmap.",
-      "decision": "Introduce a Provider interface; StripeProvider is the only implementation today.",
-      "alternatives": "Keep inline calls and wrap later · adapter package per provider",
-      "tradeoff": "One extra indirection now, in exchange for the second provider being additive instead of a rewrite." },
-    { "id": "D2", "title": "Additive column, not a new table",
-      "context": "provider_ref is 1:1 with invoice and always read together with it.",
-      "decision": "Add provider_ref to invoices rather than a provider_refs join table.",
-      "alternatives": "Separate table with FK · JSONB metadata blob",
-      "tradeoff": "Cheaper reads and no join, at the cost of a wider row and a migration on a hot table." }
+    { "id": "D1", "title": "Delete the dashboard exemption rather than write a second standard",
+      "context": "Dashboards were exempt from the visual standard. They are ~93% of shipped artifacts, so the standard governed ~7% of output.",
+      "decision": "Promote DASHBOARD to a first-class archetype inside the existing standard, with its own template and its own section 10 rows.",
+      "alternatives": "A separate dashboard-standard.md · leave the exemption and only add a template",
+      "tradeoff": "One longer standard instead of two that drift apart. The exemption was the bug, not the file layout." },
+    { "id": "D2", "title": "Exemplars block, shipped artifacts stay advisory",
+      "context": "21 of 191 artifacts conform. A blocking gate on all of them would be red on day one.",
+      "decision": "Exemplars are BLOCKING (they are what everything is copied from); artifacts report by count behind PLAYGROUND_STANDARD_ENFORCE=1.",
+      "alternatives": "Block everything now · advisory everywhere · ratchet on a numeric baseline",
+      "tradeoff": "Slower to fix the backlog, but a gate that is red on arrival gets disabled and then protects nothing." },
+    { "id": "D3", "title": "Detect living plans by slug, not by path",
+      "context": "The path is derived from the branch name, so renaming a branch made detection miss and forked the plan.",
+      "decision": "Grep the state islands for the slug. The slug is identity; the path is an address that can change.",
+      "alternatives": "Keep path detection and add a rename hook · a side-channel index file",
+      "tradeoff": "A scan of docs/ per run instead of one stat call, in exchange for a failure mode that already happened in this repo." }
   ],
   "impact": {
     "api": [
-      { "surface": "POST /billing/charge", "change": "unchanged (response shape asserted in routes.test.ts)" },
-      { "surface": "GET /billing/invoice/:id", "change": "adds provider_ref (additive, nullable)" }
+      { "surface": "/ork:visualize-plan", "change": "3 blocking questions before first render -> 0; adds --quick, --playground, --infographic, --all" },
+      { "surface": "docs/\u003cbranch-dir>/plan-viz.html", "change": "filename pinned; index.html and bespoke names no longer canonical" }
     ],
     "deps": [
-      { "name": "stripe", "from": "14.2.0", "to": "14.2.0", "note": "no bump — the seam is ours, not theirs" }
+      { "name": "/dataviz", "from": "probe", "to": "probe", "note": "still optional; absent means ASCII-card fallback, never a hard fail" }
     ]
   },
-  "prompt": "Implement the billing redesign in 4 phases, landing the provider seam before the schema migration so P3 stays revertible. Gate the legacy delete on 7 days of zero legacy reads."
+  "prompt": "Review the DASHBOARD archetype change: the visual standard no longer exempts dashboards, plan-dashboard.template.html is the copyable template, living-plan detection is slug-keyed, and two gates enforce it. Shipped artifacts stay advisory at 21/191 until the backlog is burned down."
 }
 </script>
 
