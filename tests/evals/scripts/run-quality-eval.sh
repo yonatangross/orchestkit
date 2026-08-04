@@ -860,7 +860,7 @@ grade_eval_entry() {
         local aname; aname=$(yq -r ".quality_evals[$ei].assertions[$ai].name" "$eval_file")
         local acheck; acheck=$(yq -r ".quality_evals[$ei].assertions[$ai].check" "$eval_file")
         [[ "$first_a" == "true" ]] && first_a=false || assertions_arr+=","
-        assertions_arr+="{\"name\":$(echo "$aname" | jq -Rs .),\"check\":$(echo "$acheck" | jq -Rs .)}"
+        assertions_arr+="{\"name\":$(printf '%s' "$aname" | jq -Rs .),\"check\":$(printf '%s' "$acheck" | jq -Rs .)}"
     done
     assertions_arr+="]"
 
@@ -1211,7 +1211,7 @@ eval_skill() {
             fi
 
             [[ "$first_assertion" == "true" ]] && first_assertion=false || assertions_json+=","
-            assertions_json+="{\"name\":$(echo "$aname" | jq -Rs .),\"check\":$(echo "$acheck" | jq -Rs .),\"with_skill\":\"$skill_verdict\",\"baseline\":\"$base_verdict\",\"discriminating\":$is_discriminating,\"grader_reason\":$(echo "$skill_reason" | jq -Rs .)}"
+            assertions_json+="{\"name\":$(printf '%s' "$aname" | jq -Rs .),\"check\":$(printf '%s' "$acheck" | jq -Rs .),\"with_skill\":\"$skill_verdict\",\"baseline\":\"$base_verdict\",\"discriminating\":$is_discriminating,\"grader_reason\":$(printf '%s' "$skill_reason" | jq -Rs .)}"
         done
 
         assertions_json+="]"
@@ -1232,7 +1232,7 @@ eval_skill() {
 
         # Accumulate eval JSON
         [[ "$first_eval" == "true" ]] && first_eval=false || evals_json+=","
-        evals_json+="{\"prompt\":$(echo "$prompt" | jq -Rs .),\"assertions\":$assertions_json,\"skill_pass_rate\":$_EVAL_SKILL_RATE,\"baseline_pass_rate\":$_EVAL_BASE_RATE,\"delta\":$_EVAL_DELTA}"
+        evals_json+="{\"prompt\":$(printf '%s' "$prompt" | jq -Rs .),\"assertions\":$assertions_json,\"skill_pass_rate\":$_EVAL_SKILL_RATE,\"baseline_pass_rate\":$_EVAL_BASE_RATE,\"delta\":$_EVAL_DELTA}"
 
         # Clean up temp files + scaffold for this eval entry
         if [[ "$GRADE_ONLY" != "true" ]]; then
