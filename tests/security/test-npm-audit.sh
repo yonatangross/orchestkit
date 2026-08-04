@@ -76,9 +76,12 @@ is_allowlisted() {
   return 1
 }
 
+AUDITED_DIRS=()
+
 audit_project() {
   local label="$1"
   local dir="$2"
+  AUDITED_DIRS+=("$dir")
 
   if [[ ! -f "$dir/package.json" ]]; then
     warn "$label: no package.json, skipping"
@@ -164,11 +167,56 @@ audit_project() {
   echo ""
 }
 
-# ─── run across the four package.json paths ─────────────────────────
+# ─── run across EVERY tracked lockfile ──────────────────────────────
+# The list below must stay equal to `git ls-files '*package-lock.json'`.
+# It walked four of six until 2026-08-04, and the two it skipped were not
+# idle: orchestkit-demos carried 6 high-severity advisories (5 brace-expansion
+# + fast-uri) and hook-contract's example client carried postcss, none of
+# which this gate could see. They surfaced only because Dependabot reports
+# per-manifest and this gate does not. A workspace missing from this list is
+# not "unaudited", it is silently PASSING — the same failure class the
+# --package-lock-only note above was written for.
 audit_project "root"           "$PROJECT_ROOT"
 audit_project "docs/site"      "$PROJECT_ROOT/docs/site"
 audit_project "src/hooks"      "$PROJECT_ROOT/src/hooks"
 audit_project "src/mcp-server" "$PROJECT_ROOT/src/mcp-server"
+audit_project "orchestkit-demos" "$PROJECT_ROOT/orchestkit-demos"
+audit_project "hook-contract/examples/generic-client" \
+              "$PROJECT_ROOT/packages/hook-contract/examples/generic-client"
+
+# ─── coverage assertion: every tracked lockfile must have been walked ──
+#
+# The list above is written by hand so it stays readable, which means it can
+# drift the moment someone adds a workspace. This closes that: it fails when a
+# tracked package-lock.json was never passed to audit_project. Fail-closed on
+# purpose — an unaudited workspace does not merely go unchecked, it silently
+# PASSES, which reads as safe and is therefore worse than a red build.
+if command -v git >/dev/null 2>&1 && git -C "$PROJECT_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+  missing=""
+  while IFS= read -r lock; do
+    [[ -z "$lock" ]] && continue
+    # dirname of a root-level lockfile is ".", which would build
+    # "$PROJECT_ROOT/." and fail a literal comparison against "$PROJECT_ROOT".
+    reldir=$(dirname "$lock")
+    if [[ "$reldir" == "." ]]; then
+      lockdir="$PROJECT_ROOT"
+    else
+      lockdir="$PROJECT_ROOT/$reldir"
+    fi
+    covered=0
+    for d in "${AUDITED_DIRS[@]}"; do
+      [[ "$d" == "$lockdir" ]] && { covered=1; break; }
+    done
+    [[ $covered -eq 0 ]] && missing="${missing}    $lock"$'\n'
+  done < <(git -C "$PROJECT_ROOT" ls-files '*package-lock.json' | grep -v node_modules)
+
+  if [[ -n "$missing" ]]; then
+    echo ""
+    fail "audit coverage gap: tracked lockfile(s) never audited"
+    printf '%s' "$missing"
+    echo "    Add an audit_project line for each, then re-run."
+  fi
+fi
 
 # ─── summary ───────────────────────────────────────────────────────
 echo "════════════════════════════════════════════════════════════════"
