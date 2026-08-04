@@ -48,10 +48,32 @@ if ! git rev-parse --show-toplevel > /dev/null; then
     echo "Error: not in a git repository" >&2
     exit 1
 fi
-# The main worktree, not whichever worktree we happen to be standing in.
+# The main worktree, not whichever worktree we happen to be standing in. This
+# is the SYMLINK SOURCE: the one checkout that holds the real installed trees.
 MAIN=$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')
 
-mapfile -t DIRS < <("$MAIN/bin/worktree-config.sh" --list)
+# Resolve the canonical-list script next to THIS file, not under $MAIN. The two
+# ship together, but the main worktree is routinely parked on a branch that
+# predates them, and then "$MAIN/bin/worktree-config.sh" does not exist.
+#
+# That is not hypothetical: it is how this bug was found. `mapfile < <(cmd)`
+# does not abort under `set -e` when cmd fails, so DIRS came back empty, every
+# loop body was skipped, and the script printed "links: 0 ... reclaims: 0 MB"
+# and exited 0. A no-op that reads as success is worse than a crash.
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_SCRIPT="$SELF_DIR/worktree-config.sh"
+
+if [[ ! -x "$CONFIG_SCRIPT" ]]; then
+    echo "Error: cannot find the canonical list at $CONFIG_SCRIPT" >&2
+    exit 1
+fi
+
+mapfile -t DIRS < <("$CONFIG_SCRIPT" --list)
+
+if [[ ${#DIRS[@]} -eq 0 ]]; then
+    echo "Error: $CONFIG_SCRIPT --list returned nothing; refusing to no-op." >&2
+    exit 1
+fi
 
 echo "main repository: $MAIN"
 echo "mode:            $MODE"

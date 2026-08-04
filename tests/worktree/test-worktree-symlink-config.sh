@@ -183,6 +183,40 @@ else
 fi
 
 echo ""
+echo "=== 6. worktree-reclaim.sh refuses to no-op ==="
+
+# The bug this catches, hit for real: worktree-reclaim.sh resolved the canonical
+# list as "$MAIN/bin/worktree-config.sh". The main worktree is routinely parked
+# on a branch that predates that file, so the lookup failed. `mapfile < <(cmd)`
+# does not abort under `set -e`, so the directory list came back EMPTY, every
+# loop body was skipped, and the script printed "links: 0 ... reclaims: 0 MB"
+# and exited 0. A silent no-op that reads as success.
+RECLAIM="$PROJECT_ROOT/bin/worktree-reclaim.sh"
+
+if [ -x "$RECLAIM" ]; then
+    if grep -q 'BASH_SOURCE' "$RECLAIM"; then
+        pass "reclaim resolves the canonical list next to itself, not under \$MAIN"
+    else
+        fail "reclaim still resolves the canonical list from the main worktree"
+        echo "  The main worktree is often on a branch without bin/worktree-config.sh."
+    fi
+
+    # Behavioural check: point it at an empty list and require a LOUD failure.
+    STUB_DIR=$(mktemp -d)
+    cp "$RECLAIM" "$STUB_DIR/worktree-reclaim.sh"
+    printf '#!/bin/bash\nexit 0\n' > "$STUB_DIR/worktree-config.sh"
+    chmod +x "$STUB_DIR"/*.sh
+    if (cd "$PROJECT_ROOT" && bash "$STUB_DIR/worktree-reclaim.sh" --dry-run > /dev/null 2>&1); then
+        fail "reclaim exited 0 on an empty directory list (silent no-op)"
+    else
+        pass "reclaim exits non-zero rather than silently doing nothing"
+    fi
+    rm -rf "$STUB_DIR"
+else
+    info "bin/worktree-reclaim.sh absent - skipped no-op checks"
+fi
+
+echo ""
 echo "=== Results ==="
 echo -e "${GREEN}Passed: $PASS${NC}"
 if [ "$FAIL" -gt 0 ]; then
