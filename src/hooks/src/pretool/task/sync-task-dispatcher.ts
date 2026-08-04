@@ -25,6 +25,7 @@ import { teamSizeGate } from './team-size-gate.js';
 import { fableSpendConsent } from './fable-spend-consent.js';
 import { taskExistenceGate } from './task-existence-gate.js';
 import { taskAgentAdvisor } from './task-agent-advisor.js';
+import { agentRegistryValidator } from './agent-registry-validator.js';
 import { spawnIntentLogger } from './spawn-intent-logger.js';
 import { toolInvocationLinter } from '../tool-invocation-linter.js';
 import { NOOP_CTX } from '../../lib/context.js';
@@ -57,6 +58,11 @@ const TASK_HOOKS: TaskHookConfig[] = [
   { name: 'task-existence-gate', fn: taskExistenceGate },
   // task-agent-advisor: suggests curated ork agents for ad-hoc names (#706).
   { name: 'task-agent-advisor', fn: taskAgentAdvisor },
+  // agent-registry-validator: the target must EXIST. Runs after the advisor so
+  // a name the advisor can rewrite is handled there first; what reaches here is
+  // a value nothing recognised, which used to fall through to silence and die
+  // at dispatch as a generic failure (#3279). Asks rather than denies for now.
+  { name: 'agent-registry-validator', fn: agentRegistryValidator },
   // tool-invocation-linter: registry-driven advisory for known-bad invocations
   // (e.g. Agent isolation:'worktree' — #1883). Runs LAST in the chain because
   // it's purely informational; never blocks at the warn/info severities.
