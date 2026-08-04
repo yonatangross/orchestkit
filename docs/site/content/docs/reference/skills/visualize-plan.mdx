@@ -421,6 +421,7 @@ Done means all of these hold:
 - The Tier 1 header always renders with every field populated — risk, confidence, reversibility, branch, and file/line counts.
 - File and line counts come from `scripts/analyze-impact.sh`, not estimated or guessed.
 - Every rendered section answers its reviewer question; a section with no content is skipped with a one-line reason, never padded.
+- **Section [3] names the point of no return by phase id** (`--- POINT OF NO RETURN (after P3) ---`), not by implication, and each pre-mortem states a **mechanism** — trigger, sequence, resulting bad state — not a category. "Migration risk" is a heading; "P2 ships while an in-flight retry queue still points at the inline charge path, so the same invoice is charged twice" is a pre-mortem. This is the section's measured failure mode, not a style preference: `rules/section-rendering.md` §[3] carries the falsifiable test for both.
 - Section [0] Before/After maps base (`git show origin/main:&lt;path&gt;`) against head (working tree), marking each node `[+]`/`[~]`/`[-]`, and is skipped with a note when nothing structural changed.
 - ASCII renders first/inline regardless of chosen format; any async format (infographic) is fired-and-notified, never awaited.
 - The plan summary is stored to the memory knowledge graph for cross-session comparison (skipped under `--quick`).
@@ -495,6 +496,30 @@ Summary: +107 -8 | 1 new | 1 modified | 0 deleted
 - Always identify the point of no return with `--- POINT OF NO RETURN ---`
 - Part B: Exactly 3 pre-mortem scenarios (most likely, most severe, most subtle)
 - Each scenario needs a concrete mitigation, not generic advice
+
+### Name the phase, do not imply it
+
+Measured failure, not hypothetical: a 2026-08-04 eval graded real output as
+*"Four execution phases shown but no explicit statement of which phase is the
+irreversible point"*. The rule above was already present and still not followed,
+so it now carries a test.
+
+The point of no return is a *phase identifier*, not a mood. If a reader cannot
+answer "after which phase can I no longer undo this?" by pointing at one token,
+the section failed.
+
+```
+❌ WRONG   "later phases are harder to reverse"
+❌ WRONG   "merging to main makes this permanent"      ← implied, unnamed
+✅ RIGHT   --- POINT OF NO RETURN (after P3) ---
+           P4 drops the legacy column; data is unrecoverable from that point.
+```
+
+Test: does the literal phase id appear on the same line as the marker?
+
+For the second measured failure — pre-mortems that name a *category* instead of a
+*mechanism* — see the "state a MECHANISM, not a category" rule in
+`references/risk-dashboard-patterns.md`, which is where the pre-mortem patterns live.
 
 ## Section [4]: Decision Log
 
@@ -1360,6 +1385,32 @@ Phase 4: Drop legacy_billing table
 ## Pre-Mortem Scenarios
 
 Frame risks as "what already went wrong" narratives. More memorable than probability tables.
+
+### The one rule: state a MECHANISM, not a category
+
+A category names *what kind* of bad thing could happen. A mechanism names *what runs,
+in what order, producing what bad state*. Only the second is actionable, because only a
+mechanism can be contained.
+
+This is the measured failure mode of this section, not a style preference. A 2026-08-04
+eval graded real output and the grader's words were: *"names categories … but describes
+no causal sequence of how failure occurs."*
+
+```
+❌ CATEGORY   "Migration risk — the schema change could cause problems"
+❌ CATEGORY   "Manual JWT validation"              ← a topic heading, not a failure
+✅ MECHANISM  "P2 ships while an in-flight retry queue still points at the inline
+               charge path, so the same invoice is charged twice."
+```
+
+Write it as `&lt;trigger&gt; → &lt;sequence&gt; → &lt;bad end state&gt;`. The test: can a reader say
+*when* it fires and *what state it leaves behind*? If it reads like a section heading,
+it is still a category.
+
+Containment must reference that specific mechanism. "Add tests" is not containment;
+"idempotency key derived from invoice id, asserted before P2 merges" is.
+
+Note how each scenario below names a trigger and an outcome, never just a topic.
 
 ### Standard Format (3 scenarios)
 

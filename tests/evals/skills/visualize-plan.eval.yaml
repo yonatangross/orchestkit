@@ -112,8 +112,14 @@ quality_evals:
       visualize the plan for this branch
     scaffold: git-repo
     assertions:
-      - name: "tier1: derives counts from a script, not from reading the diff"
-        check: "runs the skill's analyze-impact.sh (or an equivalent git command) and reports file and line counts that match its output. Reporting counts with no command run anywhere in the transcript FAILS."
+      # NOTE: do NOT write assertions about tool CALLS here. The grader is fed
+      # only the extracted `.result` text (run-quality-eval.sh:404) and never
+      # sees the tool-call trace, so "runs analyze-impact.sh" is unfalsifiable —
+      # it can only ever FAIL, permanently understating the skill. Assert on
+      # what the OUTPUT shows instead. (Learned the hard way: the first version
+      # of this assertion was exactly that unfalsifiable shape.)
+      - name: "tier1: reports exact counts, not round or hedged numbers"
+        check: "file and line counts are exact integers (e.g. '7 files, +1240 -486'). Round numbers used as estimates, ranges, or hedges such as 'roughly', 'about', '~', 'several' FAIL — those are the signature of a guess rather than a measurement."
       - name: "tier1: reversibility has an explicit point of no return"
         check: "names the specific phase after which the change can no longer be undone, as a distinct labelled point. A general statement that the change is risky or hard to reverse FAILS."
       - name: "tier1: pre-mortems state a MECHANISM, not a category"

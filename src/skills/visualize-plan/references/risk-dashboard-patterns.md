@@ -68,6 +68,32 @@ Phase 4: Drop legacy_billing table
 
 Frame risks as "what already went wrong" narratives. More memorable than probability tables.
 
+### The one rule: state a MECHANISM, not a category
+
+A category names *what kind* of bad thing could happen. A mechanism names *what runs,
+in what order, producing what bad state*. Only the second is actionable, because only a
+mechanism can be contained.
+
+This is the measured failure mode of this section, not a style preference. A 2026-08-04
+eval graded real output and the grader's words were: *"names categories … but describes
+no causal sequence of how failure occurs."*
+
+```
+❌ CATEGORY   "Migration risk — the schema change could cause problems"
+❌ CATEGORY   "Manual JWT validation"              ← a topic heading, not a failure
+✅ MECHANISM  "P2 ships while an in-flight retry queue still points at the inline
+               charge path, so the same invoice is charged twice."
+```
+
+Write it as `<trigger> → <sequence> → <bad end state>`. The test: can a reader say
+*when* it fires and *what state it leaves behind*? If it reads like a section heading,
+it is still a category.
+
+Containment must reference that specific mechanism. "Add tests" is not containment;
+"idempotency key derived from invoice id, asserted before P2 merges" is.
+
+Note how each scenario below names a trigger and an outcome, never just a topic.
+
 ### Standard Format (3 scenarios)
 
 ```

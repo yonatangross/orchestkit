@@ -411,6 +411,7 @@ Done means all of these hold:
 - The Tier 1 header always renders with every field populated — risk, confidence, reversibility, branch, and file/line counts.
 - File and line counts come from `scripts/analyze-impact.sh`, not estimated or guessed.
 - Every rendered section answers its reviewer question; a section with no content is skipped with a one-line reason, never padded.
+- **Section [3] names the point of no return by phase id** (`--- POINT OF NO RETURN (after P3) ---`), not by implication, and each pre-mortem states a **mechanism** — trigger, sequence, resulting bad state — not a category. "Migration risk" is a heading; "P2 ships while an in-flight retry queue still points at the inline charge path, so the same invoice is charged twice" is a pre-mortem. This is the section's measured failure mode, not a style preference: `rules/section-rendering.md` §[3] carries the falsifiable test for both.
 - Section [0] Before/After maps base (`git show origin/main:<path>`) against head (working tree), marking each node `[+]`/`[~]`/`[-]`, and is skipped with a note when nothing structural changed.
 - ASCII renders first/inline regardless of chosen format; any async format (infographic) is fired-and-notified, never awaited.
 - The plan summary is stored to the memory knowledge graph for cross-session comparison (skipped under `--quick`).

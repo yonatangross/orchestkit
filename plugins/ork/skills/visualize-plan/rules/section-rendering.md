@@ -54,6 +54,30 @@ Summary: +107 -8 | 1 new | 1 modified | 0 deleted
 - Part B: Exactly 3 pre-mortem scenarios (most likely, most severe, most subtle)
 - Each scenario needs a concrete mitigation, not generic advice
 
+### Name the phase, do not imply it
+
+Measured failure, not hypothetical: a 2026-08-04 eval graded real output as
+*"Four execution phases shown but no explicit statement of which phase is the
+irreversible point"*. The rule above was already present and still not followed,
+so it now carries a test.
+
+The point of no return is a *phase identifier*, not a mood. If a reader cannot
+answer "after which phase can I no longer undo this?" by pointing at one token,
+the section failed.
+
+```
+❌ WRONG   "later phases are harder to reverse"
+❌ WRONG   "merging to main makes this permanent"      ← implied, unnamed
+✅ RIGHT   --- POINT OF NO RETURN (after P3) ---
+           P4 drops the legacy column; data is unrecoverable from that point.
+```
+
+Test: does the literal phase id appear on the same line as the marker?
+
+For the second measured failure — pre-mortems that name a *category* instead of a
+*mechanism* — see the "state a MECHANISM, not a category" rule in
+`references/risk-dashboard-patterns.md`, which is where the pre-mortem patterns live.
+
 ## Section [4]: Decision Log
 
 - ADR-lite format: Context, Decision, Alternatives, Tradeoff

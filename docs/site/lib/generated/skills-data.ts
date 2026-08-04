@@ -4853,7 +4853,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "visualize-plan",
     "description": "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
     "version": "2.1.0",
-    "sha256": "8b98e9ed59571f9d959728263cdd2cf3e537960b2ca9bd391503b7a33bcf3b3a",
+    "sha256": "1b19ea1e1539df961778c5627c7e95d786c24f08bc4a8abc577b750e4028a27a",
     "author": "OrchestKit",
     "tags": [
       "visualization",
