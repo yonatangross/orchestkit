@@ -24,6 +24,7 @@ import { join } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, getProjectDir } from '../../lib/common.js';
 import { bufferWrite } from '../../lib/analytics-buffer.js';
+import { classifySpawnTarget } from '../../lib/agent-registry.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'spawn-intent-logger';
@@ -65,6 +66,22 @@ export function spawnIntentLogger(input: HookInput, ctx: HookContext = NOOP_CTX)
     return outputSilentSuccess();
   }
 
+  // Whether the target actually resolves. Recorded alongside the type so the
+  // invalid-spawn RATE is queryable with the tooling that already reads this
+  // stream (audit-activation correlates subagent_type against the agent
+  // inventory). That measurement is what lets agent-registry-validator move
+  // from ask to deny on evidence instead of on a guess.
+  let verdict: ReturnType<typeof classifySpawnTarget> | null = null;
+  try {
+    verdict = classifySpawnTarget(subagentType);
+  } catch {
+    // Registry unreadable — record the spawn without a verdict rather than
+    // losing the row. silent: telemetry
+    verdict = null;
+  }
+  const suggestion =
+    verdict && (verdict.kind === 'bare' || verdict.kind === 'unknown') ? verdict.suggestion : null;
+
   const entry = {
     timestamp: new Date().toISOString(),
     source: 'pretool' as const,
@@ -73,6 +90,10 @@ export function spawnIntentLogger(input: HookInput, ctx: HookContext = NOOP_CTX)
     description: deriveSpawnDescription(input),
     session_id: input.session_id,
     ...(input.tool_use_id ? { tool_use_id: input.tool_use_id } : {}),
+    // 'skip' (other plugins, placeholders) carries no signal, so it is omitted
+    // rather than recorded as a fourth state nobody can act on.
+    ...(verdict && verdict.kind !== 'skip' ? { spawn_verdict: verdict.kind } : {}),
+    ...(suggestion ? { spawn_suggestion: suggestion } : {}),
   };
 
   try {
