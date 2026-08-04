@@ -27,9 +27,23 @@
 #   entry is skipped with a log line, never an error.
 #
 # Trade-off, stated plainly: symlinked worktrees SHARE one installed tree with
-# the main repository. That is the point (5.2 GB -> 2.1 GB here) but it means an
-# `npm install` run inside a worktree mutates the main repo's node_modules.
-# Worktrees stop being dependency-isolated. Accept it, or drop the entry.
+# the main repository. That is the point (5.2 GB -> 2.1 GB here) but worktrees
+# stop being dependency-isolated. Two commands behave differently, and the
+# difference was measured, not assumed:
+#
+#   npm install   SAFE. Replaces the symlink with a real directory in the
+#                 worktree. The shared tree is untouched and nothing is written
+#                 into it. The worktree quietly stops sharing, so re-run
+#                 bin/worktree-reclaim.sh --apply to get the saving back.
+#
+#   npm ci        DESTRUCTIVE. Clears node_modules first and FOLLOWS the
+#                 symlink: it empties the MAIN repository's tree and breaks
+#                 every other worktree at once, while printing a normal
+#                 "added N packages" success line.
+#
+# The dangerous-command-blocker hook denies `npm ci` when node_modules is a
+# symlink, in every permission mode. If you remove that guard, remove these
+# entries too.
 
 set -euo pipefail
 

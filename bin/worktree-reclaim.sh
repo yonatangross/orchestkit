@@ -16,7 +16,12 @@
 #
 # Read bin/worktree-config.sh first. The same trade-off applies and is the
 # whole point: after this runs, worktrees are no longer dependency-isolated.
-# An `npm install` inside a worktree writes into the main repository's tree.
+# `npm install` inside a worktree is safe: it replaces the link with a real
+# directory and leaves the shared tree alone, so just re-run this script to
+# get the saving back. `npm ci` is NOT safe: it clears node_modules through
+# the symlink and empties the MAIN repository's tree, breaking every other
+# worktree at once. The dangerous-command-blocker hook denies that case in
+# every permission mode.
 #
 # Guards:
 #   - refuses to touch a worktree whose node_modules was modified in the last
