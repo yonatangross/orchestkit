@@ -1006,6 +1006,24 @@ write_results_json() {
     local safe_model; safe_model=$(printf '%s' "${EVAL_MODEL:-haiku}" | jq -Rs .)
     local safe_grader; safe_grader=$(printf '%s' "${GRADING_MODEL:-haiku}" | jq -Rs .)
 
+    # State what this artifact actually measures, IN the artifact. A result file
+    # gets read months later, out of context, by someone who was not here — and
+    # this lane's headline number does not mean what its field name implies.
+    # Proven 2026-08-04 with three probes (0/5 skill-specific output markers):
+    # in headless -p the skill never loads, so the routed mode's "with skill"
+    # arm is the base model. --force-skill does inject SKILL.md, but runs with
+    # no tools, so it grades prose rather than behavior.
+    local measures caveat
+    if [[ "$FORCE_SKILL" == "true" ]]; then
+        measures="skill-content-prose"
+        caveat="SKILL.md was injected via --append-system-prompt, but this mode runs without tools, so it measures the skill's PROSE, not its behavior. The skill cannot run its own scripts here."
+    else
+        measures="base-model"
+        caveat="ROUTED MODE DOES NOT LOAD THE SKILL. Verified 2026-08-04: three probes with these exact flags produced 0/5 skill-specific output markers, and a slash-command invocation returned turns=0 with 'I don't see an actual request in your message'. Both arms are the base model, so skill_pass_rate describes the MODEL and any delta is noise between two baseline runs. Do not cite these numbers as evidence about the skill."
+    fi
+    local safe_measures; safe_measures=$(printf '%s' "$measures" | jq -Rs .)
+    local safe_caveat; safe_caveat=$(printf '%s' "$caveat" | jq -Rs .)
+
     cat > "$RESULTS_DIR/$skill_id.quality.json" <<ENDJSON
 {
   "skill": $safe_skill,
@@ -1028,6 +1046,8 @@ write_results_json() {
     "max_turns": $MAX_TURNS,
     "reps": $REPS
   },
+  "measures": $safe_measures,
+  "caveat": $safe_caveat,
   "reps": $REPS,
   "duration_seconds": $duration
 }
@@ -1355,6 +1375,13 @@ elif [[ "$FORCE_SKILL" == "true" ]]; then
     echo -e "${BLUE}  Mode: ${CYAN}TIER 1 UNIT (SKILL.md injected, no routing)${NC}"
 else
     echo -e "${BLUE}  Mode: ${GREEN}LIVE (grading with ${REPS}x reps)${NC}"
+    # Say it every run, not once in a doc nobody re-reads. Proven 2026-08-04
+    # with three probes: in headless -p the skill does NOT load, so this mode's
+    # "with skill" arm is the baseline and the delta is noise between two
+    # baseline runs. Full evidence: the header of any skills/*.eval.yaml.
+    echo -e "${YELLOW}  ⚠ ROUTED MODE DOES NOT LOAD THE SKILL — both arms are the${NC}"
+    echo -e "${YELLOW}    base model. Scores describe the MODEL, not the skill.${NC}"
+    echo -e "${YELLOW}    Use --force-skill to actually put SKILL.md in context.${NC}"
 fi
 echo "  Max turns: $MAX_TURNS  |  Timeout: ${GEN_TIMEOUT}s  |  Budget: \$${MAX_BUDGET}  |  Grader: $GRADING_MODEL"
 [[ "$SKIP_BASELINE" == "true" ]] && echo -e "  Baseline: ${YELLOW}SKIPPED${NC}"
