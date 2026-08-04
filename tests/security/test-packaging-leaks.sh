@@ -128,7 +128,8 @@ log_section "Test 4: Only allowlisted file extensions in plugins/"
 
 # Allowlist of file extensions expected in plugins/.
 # Add new extensions here with a comment explaining why.
-ALLOWED_REGEX='\.(md|json|mjs|js|ts|tsx|py|sh|yaml|yml|html|css|tf|map)$'
+# .toml ships only as Codex custom-agent role templates under roles/.
+ALLOWED_REGEX='\.(md|json|mjs|js|ts|tsx|py|sh|toml|yaml|yml|html|css|tf|map)$'
 
 # Filter to files with extensions (skip extensionless like Dockerfile)
 FILES_WITH_EXT=$(echo "$TRACKED_LIST" | grep -E '\.[^/]+$' || true)

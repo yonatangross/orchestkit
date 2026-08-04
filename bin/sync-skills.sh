@@ -27,6 +27,16 @@ log() {
 errors=0
 checked=0
 
+# Claude skills live in src/skills. Codex-native plugins keep their canonical
+# skills beside their host manifest so they do not masquerade as Claude skills.
+canonical_skill_exists() {
+    local plugin_name="$1"
+    local skill_name="$2"
+
+    [[ -d "$PROJECT_ROOT/src/skills/$skill_name" ]] || \
+        [[ -d "$PROJECT_ROOT/src/codex/$plugin_name/skills/$skill_name" ]]
+}
+
 # Validate: Each skill in plugins points to existing root skill
 log "Checking plugin skill symlinks..."
 
@@ -70,10 +80,10 @@ for plugin_dir in "$PROJECT_ROOT"/plugins/*/skills; do
                 errors=$((errors + 1))
             fi
         else
-            # It's a directory (CI might convert symlinks to directories)
-            # Just verify the corresponding root skill exists
-            if [[ ! -d "$PROJECT_ROOT/src/skills/$skill_name" ]]; then
-                echo "ERROR: Plugin skill $plugin_name/$skill_name has no corresponding root skill"
+            # It's a directory (CI might convert symlinks to directories).
+            # Verify it has a canonical source for this host.
+            if ! canonical_skill_exists "$plugin_name" "$skill_name"; then
+                echo "ERROR: Plugin skill $plugin_name/$skill_name has no corresponding canonical skill"
                 errors=$((errors + 1))
             fi
         fi

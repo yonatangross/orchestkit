@@ -17,6 +17,32 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "9.6.1",
+    "date": "2026-08-04",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**deps:** clear the npm-audit wave via in-range transitive updates ([#3272](https://github.com/yonatangross/orchestkit/issues/3272)) ([4f76215](https://github.com/yonatangross/orchestkit/commit/4f76215b4a42c7cba000a6bce77a73caf988b06d))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "9.6.0",
+    "date": "2026-08-03",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**codex:** add native OrchestKit adapter ([#3265](https://github.com/yonatangross/orchestkit/issues/3265)) ([f1e7a49](https://github.com/yonatangross/orchestkit/commit/f1e7a4965a23d9fed961c1d590983599f2402866))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "9.5.4",
     "date": "2026-08-03",
     "compareUrl": "",

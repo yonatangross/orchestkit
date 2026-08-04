@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ork Brainstorm"
+  short_description: "Compare viable approaches before implementation."
+  default_prompt: "Use $ork-brainstorm to compare options for $ARGUMENTS."

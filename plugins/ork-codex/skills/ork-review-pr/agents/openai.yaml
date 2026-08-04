@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ork Review PR"
+  short_description: "Review a pull request for real risks."
+  default_prompt: "Use $ork-review-pr to review $ARGUMENTS."
