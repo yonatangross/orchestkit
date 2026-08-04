@@ -70,4 +70,73 @@ quality_evals:
       - name: "no hallucinated files"
         check: "does NOT list files that are not actually changed on the branch"
 
+  # ===========================================================================
+  # CASES BELOW ADDED 2026-08-04. The two cases above are unchanged golden
+  # ground truth (.claude/rules/eval-golden.md: add tests, do not modify old
+  # ones), including their known weaknesses, which are documented here instead.
+  #
+  # WHY THESE EXIST. The 2026-03-14 result scored 66% PARTIAL with
+  # discriminating_assertions: 0, i.e. it never demonstrated the skill beats a
+  # plain model. Two causes, both addressable in the SPEC rather than the code:
+  #
+  #  1. NON-DISCRIMINATING ASSERTIONS. "uses precise counts" and "no
+  #     hallucinated files" are things a competent baseline model already does
+  #     when asked for a diff; it will just run `git diff --stat`. An assertion
+  #     the baseline also passes measures the model, not the skill. Assertions
+  #     below are tagged tier1 (only the skill produces this), tier2 (generic
+  #     quality, kept for regression, NOT expected to discriminate) and tier3
+  #     (decision quality, a circularity check on the other two). This split is
+  #     the fix for the classic failure where a generic-quality rubric shows the
+  #     baseline winning and the skill looking useless.
+  #
+  #  2. ASKUSERQUESTION TRUNCATION. "offers next actions" in case 1 is an
+  #     AskUserQuestion-shaped output. In headless runs an unanswered
+  #     AskUserQuestion burns turns until max_turns and everything not yet
+  #     emitted grades FAIL. That mechanism is on the record in
+  #     tests/evals/results/skills/setup.quality.json, grader_reason: "The
+  #     session was cut short by max_turns and permission denial on
+  #     AskUserQuestion". As of 2026-08-04 visualize-plan asks NOTHING before
+  #     rendering (sections default to all, format moved after the ASCII floor),
+  #     so all six sections are emitted before the single trailing question.
+  #     The cases below deliberately assert on pre-question output only.
+  #
+  # RUN WITH THE BASELINE ARM. SKIP_BASELINE defaults to false, so a plain
+  # `npm run eval:quality -- visualize-plan` runs both arms. The March run
+  # opted out (--skip-baseline or --force-skill) and the artifact recorded no
+  # flags, which is fixed separately. Use --reps 3 or more: a single sample of a
+  # non-deterministic agent is not a verdict.
+  # ===========================================================================
+
+  # tier1 focus: the process discipline the skill uniquely teaches.
+  - prompt: |
+      visualize the plan for this branch
+    scaffold: git-repo
+    assertions:
+      - name: "tier1: derives counts from a script, not from reading the diff"
+        check: "runs the skill's analyze-impact.sh (or an equivalent git command) and reports file and line counts that match its output. Reporting counts with no command run anywhere in the transcript FAILS."
+      - name: "tier1: reversibility has an explicit point of no return"
+        check: "names the specific phase after which the change can no longer be undone, as a distinct labelled point. A general statement that the change is risky or hard to reverse FAILS."
+      - name: "tier1: pre-mortems state a MECHANISM, not a category"
+        check: "each risk describes HOW the failure occurs as a concrete causal sequence (what runs, in what order, producing what bad state). A risk named only by category, such as 'migration risk' or 'data loss', FAILS."
+      - name: "tier1: empty sections are skipped with a stated reason"
+        check: "any section with no content is omitted with a one-line reason, and is NOT padded with filler or generic advice"
+      - name: "tier2: renders the six canonical sections in order"
+        check: "emits Before/After, Changes, Execution, Risks, Decisions, Impact, using those labels in that order"
+      - name: "tier3: execution order is justified by the risk analysis"
+        check: "the phase ordering is explained by reference to reversibility or a named risk, rather than presented as an arbitrary sequence. This is the circularity check: correct sections with an unjustified order means the skill produced shape without judgment."
+
+  # Guards the 2026-08-04 ergonomics change: zero blocking questions pre-render.
+  - prompt: |
+      visualize the plan for this branch --quick
+    scaffold: git-repo
+    assertions:
+      - name: "tier1: honors --quick by rendering only changes and impact"
+        check: "emits the tier-1 header plus the change manifest and impact summary ONLY. Emitting the execution swimlane, risk dashboard or decision log FAILS."
+      - name: "tier1: asks nothing at all"
+        check: "the run completes without asking the user any question. Any question posed to the user before or after rendering FAILS this assertion."
+      - name: "tier1: omits rather than fabricates the fields it skipped"
+        check: "does NOT report a confidence level or reversibility point, because --quick skips the analysis that would establish them. Stating either one FAILS: an invented field is worse than a blank one."
+      - name: "tier2: still reports precise counts"
+        check: "file and line counts come from a command, not an estimate"
+
 tags: [visualize-plan, user-invocable, core]
