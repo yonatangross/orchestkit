@@ -71,6 +71,35 @@ quality_evals:
         check: "does NOT list files that are not actually changed on the branch"
 
   # ===========================================================================
+  # ⚠️ READ THIS BEFORE TRUSTING ANY SCORE FROM THIS FILE (2026-08-04)
+  #
+  # The "with skill" arm DOES NOT LOAD THE SKILL. Proven with three probes using
+  # the harness's exact flags, grepping output for markers only this skill emits
+  # (PLAN: header, "[0] Before", POINT OF NO RETURN, [A]/[M]/[D] manifest):
+  #
+  #   natural language + --plugin-dir      -> 0/5 markers
+  #   /ork:visualize-plan + --plugin-dir   -> 0/5 markers
+  #   /ork:visualize-plan, installed, none -> 0/4, turns=0, and the model said
+  #                                           "I don't see an actual request in
+  #                                           your message" — in headless -p the
+  #                                           slash command is DROPPED, never
+  #                                           expanded into a prompt.
+  #
+  # Consequences, measured not assumed:
+  #   - Both arms are the baseline, which is why 17 of 19 assertions came back
+  #     identical between them.
+  #   - Editing SKILL.md changed the skill arm by EXACTLY ZERO: a before/after
+  #     run on 2026-08-04 scored 20/50/16/75 per case both times.
+  #   - The delta that "improved" +5 -> +21 was baseline noise (31% -> 15%,
+  #     with one case swinging 40% -> 0%). n=1 haiku variance, nothing more.
+  #
+  # So a low score here is NOT evidence the skill is bad, and a positive delta
+  # is NOT evidence it is good. Fix the loading problem before quoting numbers.
+  # Only --force-skill puts skill text in front of the model, and it runs with
+  # no tools, so it tests prose rather than behavior.
+  # ===========================================================================
+
+  # ===========================================================================
   # CASES BELOW ADDED 2026-08-04. The two cases above are unchanged golden
   # ground truth (.claude/rules/eval-golden.md: add tests, do not modify old
   # ones), including their known weaknesses, which are documented here instead.
