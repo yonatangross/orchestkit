@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.7.0](https://github.com/yonatangross/orchestkit/compare/v9.6.1...v9.7.0) (2026-08-05)
+
+
+### Features
+
+* **visualize-plan:** make DASHBOARD a first-class archetype ([#3275](https://github.com/yonatangross/orchestkit/issues/3275)) ([2081957](https://github.com/yonatangross/orchestkit/commit/20819571e223da6d0c59612aa5f73d342189e6a9))
+
+
+### Bug Fixes
+
+* **hooks:** validate agent spawn targets against the real registry ([#3280](https://github.com/yonatangross/orchestkit/issues/3280)) ([de5ed6b](https://github.com/yonatangross/orchestkit/commit/de5ed6b7f2dd95cdb99fa73062804cfadab778bd))
+* **security:** audit every tracked lockfile, not four of six ([#3274](https://github.com/yonatangross/orchestkit/issues/3274)) ([607c88c](https://github.com/yonatangross/orchestkit/commit/607c88c388312e04e2c10ec7bb972284f51f859f))
+
+
+### Miscellaneous
+
+* **worktree:** fix a silent no-op and remove the dead worktree CLI ([#3282](https://github.com/yonatangross/orchestkit/issues/3282)) ([c5b2d28](https://github.com/yonatangross/orchestkit/commit/c5b2d28713de129051f4ad9a82660455e119f40c))
+* **worktree:** share one node_modules across worktrees ([#3281](https://github.com/yonatangross/orchestkit/issues/3281)) ([e2c788a](https://github.com/yonatangross/orchestkit/commit/e2c788adc8294398f42eebc19c628d6a0ed8b571))
+
 ## [9.6.1](https://github.com/yonatangross/orchestkit/compare/v9.6.0...v9.6.1) (2026-08-04)
 
 
