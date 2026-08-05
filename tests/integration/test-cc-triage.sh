@@ -1093,6 +1093,69 @@ else
   log_fail "#2757 thin plugin-surface guard" "exit=$EXIT thin='$THIN2' featureless='$FEATURELESS2' (expected neither)"
 fi
 
+# ============================================================================
+# Test 15: #2950 — the feature cap must ANNOUNCE itself
+#
+# The cap was a bare `.slice(0, 20)`. A release yielding 25 features silently
+# became 20, and downstream could not tell that from a release that genuinely
+# had 20: `filed == 20` reads as "covered". This asserts the drop is now both
+# logged and recorded, so truncation is a fact in the feed rather than an
+# inference from the count landing exactly on the cap.
+# ============================================================================
+write_gaps
+FIXTURE=/tmp/cc-triage-fixture-cap.txt
+python3 - "$FIXTURE" <<'PY'
+import json, sys
+# 25 valid, distinct features. Distinct slugs AND refs so neither dedup path
+# collapses them -- the cap must be the only thing that removes any.
+feats = [{
+    "feature_slug": f"capped_feature_{i:02d}",
+    "category": "new_command" if i % 2 else "new_attr",
+    "description": f"synthetic feature {i}",
+    "gap_score": 10,
+    "affected_skills": [],
+    "reference_changelog_line": f"synthetic bullet {i}",
+} for i in range(25)]
+open(sys.argv[1], "w").write(json.dumps(feats))
+PY
+
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+
+CAP_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
+if [ "$CAP_COUNT" = "20" ]; then
+  log_pass "#2950 cap: features[] still capped at 20"
+else
+  log_fail "#2950 cap" "expected 20 features, got $CAP_COUNT"
+fi
+
+EXTRACTED=$(jq -r '.[0].features_extracted // "absent"' shared/cc-adoption-gaps.json)
+if [ "$EXTRACTED" = "25" ]; then
+  log_pass "#2950 cap: features_extracted records the PRE-cap count (25)"
+else
+  log_fail "#2950 features_extracted" "expected 25, got $EXTRACTED"
+fi
+
+# The whole point of the issue: the drop must be visible in the run output.
+if grep -q "FEATURE CAP dropped 5 of 25" /tmp/cc-triage-out.txt; then
+  log_pass "#2950 cap: truncation is logged explicitly (5 of 25 dropped)"
+else
+  log_fail "#2950 cap log" "no explicit drop line in output: $(grep -c . /tmp/cc-triage-out.txt) line(s)"
+fi
+
+# An UNDER-cap release must NOT claim truncation, or the signal is noise.
+write_gaps
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE=/tmp/cc-triage-fixture-ok.txt \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out2.txt 2>&1
+UNDER_EXTRACTED=$(jq -r '.[0].features_extracted // "absent"' shared/cc-adoption-gaps.json)
+if [ "$UNDER_EXTRACTED" = "2" ] && ! grep -q "FEATURE CAP dropped" /tmp/cc-triage-out2.txt; then
+  log_pass "#2950 cap: under-cap run records 2 and does NOT claim truncation"
+else
+  log_fail "#2950 under-cap" "features_extracted='$UNDER_EXTRACTED', unexpected cap line present"
+fi
+
 echo ""
 echo "==================================="
 echo "  Results: $PASS passed, $FAIL failed"

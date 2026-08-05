@@ -460,7 +460,17 @@ function snapRefToSnapshot(ref, bullets) {
   return score >= SNAP_THRESHOLD ? best : ref;
 }
 
-function validateAndScore(features, bullets = []) {
+// Max features persisted per version. Mirrored by FEATURE_CAP in
+// scripts/cc-file-adoption-issues.sh — keep the two in step; the filer uses it
+// to sanity-check what it receives. Raising it is a scoping decision, not a
+// correctness fix: the point of #2950 is that whatever the cap is, exceeding
+// it must be VISIBLE (see the log + features_extracted below).
+const FEATURE_CAP = Number(process.env.CC_TRIAGE_FEATURE_CAP || 20);
+
+// `stats`, when passed, receives { extracted } = the validated feature count
+// BEFORE the cap is applied. The caller persists it so downstream consumers can
+// compare against features.length instead of guessing at truncation.
+function validateAndScore(features, bullets = [], stats = null) {
   // Drop malformed items, normalize gap_score to canonical (model can't drift it).
   const clean = [];
   const seenSlugs = new Set();
@@ -494,7 +504,24 @@ function validateAndScore(features, bullets = []) {
       reference_changelog_line: ref,
     });
   }
-  return clean.sort((a, b) => b.gap_score - a.gap_score).slice(0, 20);
+  const ranked = clean.sort((a, b) => b.gap_score - a.gap_score);
+
+  // #2950: the cap must announce itself. A silent `.slice(0, N)` makes a
+  // truncated wave indistinguishable downstream from a fully-covered one —
+  // 12 filed out of 48 bullets read as "covered" for 2.1.212.
+  //
+  // scripts/cc-file-adoption-issues.sh already infers truncation from
+  // `features.length === FEATURE_CAP`, but that guesses: it cannot tell a
+  // release that genuinely yielded exactly 20 from one that yielded 21+ and
+  // got cut. Recording the pre-cap count turns that inference into a fact.
+  if (stats) stats.extracted = ranked.length;
+  if (ranked.length > FEATURE_CAP) {
+    console.log(
+      `cc-triage: FEATURE CAP dropped ${ranked.length - FEATURE_CAP} of ${ranked.length} ` +
+        `validated feature(s) (cap ${FEATURE_CAP}); lowest-scoring dropped first — #2950`,
+    );
+  }
+  return ranked.slice(0, FEATURE_CAP);
 }
 
 // ---------------------------------------------------------------------------
@@ -798,8 +825,22 @@ function runExtraction(gaps, retryFailed) {
       entry.failed_at = new Date().toISOString();
       console.error(`cc-triage: ${entry.version} — both attempts failed; sentinel written.`);
     } else {
-      entry.features = validateAndScore(result, bullets);
-      console.log(`cc-triage: ${entry.version} — extracted ${entry.features.length} feature(s).`);
+      const stats = {};
+      entry.features = validateAndScore(result, bullets, stats);
+      // #2950: persist the PRE-cap count. raw_bullets_count was already
+      // written by cc-release-watch and never read by anything; with
+      // features_extracted the feed finally carries the whole chain:
+      //   raw_bullets_count -> features_extracted -> features.length
+      // so a consumer can tell "36 bullets weren't features" from "6 features
+      // were dropped by the cap". Only set when known, so entries triaged by
+      // an older build stay distinguishable from ones that genuinely hit 0.
+      if (typeof stats.extracted === 'number') entry.features_extracted = stats.extracted;
+      const dropped = (stats.extracted ?? entry.features.length) - entry.features.length;
+      console.log(
+        `cc-triage: ${entry.version} — extracted ${entry.features.length} feature(s)` +
+          `${dropped > 0 ? ` (${dropped} dropped by cap ${FEATURE_CAP})` : ''}` +
+          ` from ${entry.raw_bullets_count ?? '?'} raw bullet(s).`,
+      );
     }
     updated++;
   }

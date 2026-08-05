@@ -366,15 +366,25 @@ if [ "$EVIDENCE_GATE" != "0" ]; then
       done
 fi
 
-# ── Cap-saturation warning (#2950 aid) ───────────────────────────────────────
-# A version whose features[] length equals the extractor's hard cap may have had
-# additional features truncated. Warn loudly; the stamp is applied in the jq pass
-# below. This is a signal, not the truncation fix (#2950 stays open).
-while read -r cs_ver cs_len; do
-  if [ "$cs_len" = "$FEATURE_CAP" ]; then
-    echo "WARNING: version $cs_ver has exactly $FEATURE_CAP features (extractor hard cap) — additional features may have been truncated (#2950)." >&2
+# ── Cap-saturation reporting (#2950) ─────────────────────────────────────────
+# Two tiers, because entries triaged before cc-triage.mjs began recording the
+# pre-cap count still exist in the ledger:
+#
+#   features_extracted present  → EXACT. We know how many were dropped.
+#   absent (legacy entry)       → INFERRED. `length == cap` is a guess: a
+#                                 release that genuinely yielded exactly 20 is
+#                                 indistinguishable from one cut down from 21+.
+#
+# Reporting the two differently is the point. #2950's complaint is that a
+# truncated wave looked identical to a complete one, so a warning that cannot
+# tell which it is must not sound like one that can.
+while read -r cs_ver cs_len cs_ext; do
+  if [[ "$cs_ext" =~ ^[0-9]+$ ]] && [ "$cs_ext" -gt "$FEATURE_CAP" ]; then
+    echo "WARNING: version $cs_ver TRUNCATED — extractor validated $cs_ext feature(s), cap kept $cs_len, $((cs_ext - cs_len)) dropped (#2950)." >&2
+  elif [ "$cs_ext" = "null" ] && [ "$cs_len" = "$FEATURE_CAP" ]; then
+    echo "WARNING: version $cs_ver has exactly $FEATURE_CAP features and no features_extracted (pre-#2950 entry) — truncation possible but UNCONFIRMED." >&2
   fi
-done < <(jq -r '.[] | "\(.version) \((.features // []) | length)"' "$GAPS_FILE")
+done < <(jq -r '.[] | "\(.version) \((.features // []) | length) \(.features_extracted // "null")"' "$GAPS_FILE")
 
 # ── Merge per-feature dispositions back into the ledger ───────────────────────
 # The lanes recorded (version, feature_slug, disposition) triples to DISPO_FILE.
@@ -406,14 +416,20 @@ fi
 # UNSTAMPED so they stay carried for `cc-triage --retry-failed`. Reaching this
 # line means the loop completed (set -e aborts on any gh error), i.e. every
 # feature >= floor was filed or dedup-skipped — a true "processed" marker.
-# The same pass also stamps `cap_saturated: true` on any entry whose features[]
-# hit the extractor hard cap (#2950 aid) — folded in here so the ledger is
-# written once.
+# The same pass also stamps cap-saturation state (#2950) — folded in here so the
+# ledger is written once. `cap_saturated` keeps its original meaning (features[]
+# sits at the cap) for backwards compatibility with existing consumers, and
+# `cap_dropped` carries the EXACT number lost, but only when features_extracted
+# proves it. A legacy entry gets cap_saturated with no cap_dropped, which is the
+# honest encoding of "at the cap, cause unknown".
 TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 TMP_GAPS="$(mktemp)"
 jq --arg ts "$TS" --argjson cap "$FEATURE_CAP" \
   'map(
      (if ((.features // []) | length) == $cap then . + {cap_saturated: true} else . end)
+     | (if ((.features_extracted // 0) > $cap)
+        then . + {cap_dropped: (.features_extracted - ((.features // []) | length))}
+        else . end)
      | (if (.parse_failed // false) == true then . else . + {issues_filed_at: $ts} end)
    )' \
   "$GAPS_FILE" > "$TMP_GAPS" && mv "$TMP_GAPS" "$GAPS_FILE"
