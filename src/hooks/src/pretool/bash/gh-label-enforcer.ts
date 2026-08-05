@@ -14,7 +14,9 @@ import {
   outputSilentSuccess,
   outputDeny,
   outputAllowWithContext,
+  outputPreToolAdvisory,
 } from '../../lib/common.js';
+import { isCompoundCommand } from '../../lib/normalize-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 /**
@@ -39,13 +41,38 @@ export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): 
     return outputSilentSuccess();
   }
 
-  // Issue creation: BLOCK
+  // Issue creation: BLOCK when denying is free, ADVISE when it would destroy work.
+  //
+  // A PreToolUse deny aborts before execution, so refusing a COMPOUND command
+  // throws away every earlier segment too. Reported as #3283: a blocked
+  //   cat > issue.md <<'EOF' … EOF && gh issue create …
+  // never ran the heredoc, so the natural retry failed for an unrelated reason
+  // (the file the second half needed was absent). Destroying approved work over
+  // a labelling preference is not a trade this hook gets to make — a missing
+  // label is a policy nit, not a hazard, unlike the safety hooks that share
+  // this dispatcher and correctly deny compound commands outright.
   if (isIssueCreate) {
-    const msg = `Missing --label flag. Add a label to categorize this issue:
-  --label bug        (defect or error)
+    const labels = `  --label bug        (defect or error)
   --label enhancement (new feature or improvement)
   --label chore      (maintenance task)
-  --label docs       (documentation)
+  --label docs       (documentation)`;
+
+    if (isCompoundCommand(command)) {
+      const advisory = `[gh-label-enforcer] This \`gh issue create\` has no --label. Add one when you re-run it:
+${labels}
+
+(Not blocking: this command chains other work, and denying it here would
+discard the earlier segments without running them.)`;
+      ctx.log('gh-label-enforcer', 'Advisory: compound gh issue create without --label');
+      // outputPreToolAdvisory, NOT outputAllowWithContext: the latter sets
+      // permissionDecision:'allow', which silently skips the permission prompt
+      // as a side effect of a labelling nit. An advisory must inform without
+      // granting anything. Same reasoning display-lint records at its :125-130.
+      return outputPreToolAdvisory(advisory);
+    }
+
+    const msg = `Missing --label flag. Add a label to categorize this issue:
+${labels}
 
 Example: gh issue create --title "Fix auth" --label bug`;
 

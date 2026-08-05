@@ -302,6 +302,21 @@ export function detectSuspiciousShellFeatures(cmd: string): string[] {
 
 /**
  * Check if a command is a compound command (contains operators like &&, ||, ;, |, or newlines).
+ *
+ * Load-bearing for deny decisions: a PreToolUse deny aborts BEFORE execution,
+ * so refusing a compound command discards every earlier segment along with the
+ * one being objected to. Reported externally as #3283 — a blocked
+ *   `cat > issue.md <<'EOF' … EOF && gh issue create …`
+ * never ran the heredoc, so the obvious retry failed for an unrelated reason:
+ * the file the second half depended on did not exist. The deny was not merely
+ * strict, it was misleading.
+ *
+ * This is NOT a licence for every hook to stop denying. A SAFETY hook
+ * (dangerous-command-blocker, network-egress-guard, agent-browser-safety,
+ * git-validator) should still refuse a compound command — losing the earlier
+ * segments beats running the dangerous one. It is POLICY hooks, where the
+ * objection is a preference rather than a hazard, that must not destroy work
+ * the user already approved.
  */
 export function isCompoundCommand(cmd: string): boolean {
   // Check for newlines BEFORE normalization (normalization converts \n to space)
