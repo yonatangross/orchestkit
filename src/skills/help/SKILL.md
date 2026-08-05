@@ -181,9 +181,8 @@ Not OrchestKit skills — these are Claude Code built-ins:
 | `/clear` | Clear conversation (preserves background agents) | CC 2.1.72 |
 | `/fast` | Toggle fast mode (same model, faster output) | CC 2.1.59+ |
 | `/loop` | Recurring interval (e.g. `/loop 5m /foo`) | CC 2.1.71 |
-| `/plan` | Enter plan mode | CC 2.1.72 |
+| `/plan` | Enter plan mode (CC 2.1.222 removed the ultraplan feature, so `/ultraplan` and the "Refine with Ultraplan" hand-off no longer exist) | CC 2.1.72 |
 | `/team-onboarding` | Generate teammate ramp-up guide | CC 2.1.101 |
-| `/ultraplan` | Remote-session deep planning | CC 2.1.101 |
 | `/recap` | Session context restoration after idle | CC 2.1.108 |
 | `/undo` | Alias for `/rewind` | CC 2.1.108 |
 | `/skills` | Native skill picker — type to filter | CC 2.1.121 |

@@ -2435,7 +2435,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "help",
     "description": "OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities.",
     "version": "2.1.0",
-    "sha256": "1f1a28b175d3eb32b4f14676d21951269e34ceef181aba513f6024d931f7c0dc",
+    "sha256": "543a3fa5ebb8a3a77730e8bfa43753b3b0397f1df1ca869cb26bf3e29ee03209",
     "author": "OrchestKit",
     "tags": [
       "help",

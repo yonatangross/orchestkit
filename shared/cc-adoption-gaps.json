@@ -1,5 +1,17 @@
 [
   {
+    "version": "2.1.221",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 39
+  },
+  {
+    "version": "2.1.222",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 21
+  },
+  {
     "version": "2.1.219",
     "parse_failed": true,
     "features": [],
