@@ -350,28 +350,63 @@ vendor/vercel-skills/manifest.json → tracks content hashes for dedup
 
 ## Adding New Hooks
 
-Hooks provide lifecycle automation for Claude Code.
+Hooks are **TypeScript**, under `src/hooks/src/<category>/<name>.ts`, dispatched
+through `run-hook.mjs`. They are not bash scripts.
 
-### Hook Requirements
+> This section previously described a bash system with a top-level `hooks/`
+> directory, `../_lib/common.sh`, and registration in `.claude/settings.json`.
+> None of those exist. Following it produced a hook that never ran — the exact
+> #959 dead-hook class warned about below. `CLAUDE.md` and
+> `.claude/rules/hooks-development.md` were already correct; this file was not.
 
-1. **Shebang and strict mode**:
-   ```bash
-   #!/usr/bin/env bash
-   set -euo pipefail
-   ```
+### 1. Write the handler
 
-2. **JSON output** (for pretool hooks):
-   ```bash
-   echo '{"continue": true, "suppressOutput": true}'
-   exit 0
-   ```
+`src/hooks/src/<category>/<name>.ts`, exporting a function that takes
+`HookInput` and returns a `HookResult`:
 
-3. **Source common utilities** (if needed):
-   ```bash
-   source "$(dirname "$0")/../_lib/common.sh"
-   ```
+```ts
+import type { HookInput, HookResult, HookContext } from '../../types.js';
+import { outputSilentSuccess, outputDeny } from '../../lib/common.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
-### Hook Categories
+export function myHook(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  // Guard at the TOP: fast exit for anything this hook does not handle.
+  if (!input.tool_input?.command) return outputSilentSuccess();
+  return outputSilentSuccess();
+}
+```
+
+Use the output builders rather than hand-rolling JSON: `outputSilentSuccess()`,
+`outputDeny(reason)`, `outputPreToolAdvisory(text)`, `outputAllowWithContext(text)`.
+
+Picking between the last two matters. `outputAllowWithContext` sets
+`permissionDecision: 'allow'`, which **skips the permission prompt** — do not
+use it to deliver a mere advisory. `outputPreToolAdvisory` informs without
+granting anything.
+
+### 2. Register it in BOTH places
+
+```
+src/hooks/hooks.json                 <- when CC invokes it
+src/hooks/src/entries/<event>.ts     <- what the dispatcher resolves it to
+```
+
+**These are a pair.** In `hooks.json` but missing from the entries map dispatches
+to nothing; in the entries map but missing from `hooks.json` is never invoked.
+Either way it fails silently. That asymmetry is the #959 class and has cost this
+repo months of lost telemetry more than once.
+
+### 3. Build, re-stamp, record
+
+```bash
+cd src/hooks && npm run build
+bash bin/validate-counts.sh          # counts live in hooks.json's description
+```
+
+Then add a `Registry changelog` entry in `src/hooks/README.md` — `hooks.json`
+mandates that history lives there, not in the JSON.
+
+### Hook categories
 
 | Directory | Purpose |
 |-----------|---------|
@@ -381,19 +416,20 @@ Hooks provide lifecycle automation for Claude Code.
 | `lifecycle/` | Session start/end |
 | `stop/` | Conversation end handlers |
 
-### Register Hook
-
-Add to `.claude/settings.json` under appropriate matcher.
-
-### Test Hook
+### Test it
 
 ```bash
-# Syntax check
-bash -n hooks/your-hook.sh
+cd src/hooks && npx tsc --noEmit -p tsconfig.json
 
-# Full test suite
-./tests/unit/test-shell-syntax.sh
+# Run the real hook end to end and read its decision:
+echo '{"tool_name":"Bash","tool_input":{"command":"ls"}}' \
+  | node src/hooks/bin/run-hook.mjs pretool/bash/<name>
 ```
+
+Note `run-hook.mjs` always exits 0 and returns its verdict as JSON on stdout, so
+assert on the payload, never on the exit code. For `PreToolUse` it also strips
+`additionalContext` (CC does not read it for that event, #1794) and routes
+advisory text through `systemMessage`.
 
 ## Security Guidelines
 
@@ -468,7 +504,8 @@ npm run test:agents
 
 # Other tests
 ./tests/unit/test-shell-syntax.sh       # Shell syntax
-./tests/schemas/validate-all.sh         # Schema validation
+./tests/schemas/test-plugin-schema.sh   # Plugin schema
+./tests/schemas/test-marketplace-schema.sh  # Marketplace schema
 ./bin/validate-counts.sh                # Component counts
 ```
 

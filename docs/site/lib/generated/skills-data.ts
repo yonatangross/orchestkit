@@ -2217,7 +2217,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "figma-design-handoff",
     "description": "Figma-to-code design handoff patterns including Figma Variables to design tokens pipeline, component spec extraction, Dev Mode inspection, Auto Layout to CSS Flexbox/Grid mapping, and visual regression with Applitools. Use when converting Figma designs to code, documenting component specs, setting up design-dev workflows, or comparing production UI against Figma designs.",
     "version": "1.1.0",
-    "sha256": "a40e42f2214a5d9924e7f8e0af4fcb3f4061fcded2979da12280f193d9d7eba3",
+    "sha256": "749ec3c16a9982359cbe3f2d19cf41b7933eb176b9921853bf0248c12b4ef8c4",
     "author": "OrchestKit",
     "tags": [
       "figma",
@@ -3681,6 +3681,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "data-pipeline-engineer",
     "complexity": "high",
     "structure": {
+      "references": [
+        "ork-delta.md"
+      ],
       "scripts": [
         "chunk-repository.py",
         "rag-pipeline-template.ts",

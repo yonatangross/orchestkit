@@ -60,15 +60,23 @@ Key tools (16 documented — `developers.figma.com/docs/figma-mcp-server/tools-a
 ## Quick Start
 
 ```bash
-# 1. Export Figma Variables → tokens.json (using Figma REST API)
+# 1. Export Figma Variables (Figma REST API)
 curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
   "https://api.figma.com/v1/files/$FILE_KEY/variables/local" \
-  | node scripts/figma-to-w3c-tokens.js > tokens/figma-raw.json
+  > tokens/figma-local.json
 
-# 2. Transform with Style Dictionary
+# 2. Convert that response to W3C Design Tokens. This skill does NOT ship a
+#    converter — the mapping (variables, modes, aliases, and the $value/$type
+#    shape) is specified in rules/figma-variables-tokens.md, and the right
+#    implementation depends on which collections and modes your file uses.
+#    Earlier revisions of this Quick Start piped into a
+#    `scripts/figma-to-w3c-tokens.js` that has never existed in this skill.
+#    Result: tokens/figma-raw.json
+
+# 3. Transform with Style Dictionary
 npx style-dictionary build --config sd.config.js
 
-# 3. Output: CSS custom properties + Tailwind theme
+# 4. Output: CSS custom properties + Tailwind theme
 # tokens/
 #   figma-raw.json        ← W3C Design Tokens format
 #   css/variables.css     ← --color-primary: oklch(0.65 0.15 250);
