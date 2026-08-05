@@ -276,6 +276,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.7.0](https://github.com/yonatangross/orchestkit/compare/v9.6.1...v9.7.0)** · 2026-08-05
+
+- **visualize-plan:** make DASHBOARD a first-class archetype (#3275)
+- **hooks:** validate agent spawn targets against the real registry (#3280)
+- **security:** audit every tracked lockfile, not four of six (#3274)
+- **worktree:** fix a silent no-op and remove the dead worktree CLI (#3282)
+- **worktree:** share one node_modules across worktrees (#3281)
+
 **[v9.6.1](https://github.com/yonatangross/orchestkit/compare/v9.6.0...v9.6.1)** · 2026-08-04
 
 - **deps:** clear the npm-audit wave via in-range transitive updates (#3272)
@@ -316,15 +324,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **tests:** dead E2E wiring, gitignore-aware gates, warn ratchet (#3236)
 - **evals:** retire the prose-grading eval, wire the nudge reader (#3237)
 - …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v9.4.0](https://github.com/yonatangross/orchestkit/compare/v9.3.0...v9.4.0)** · 2026-08-01
-
-- **quality:** add the python half of the phantom-symbol gate (#3230)
-- **quality:** skill-delta ratchet gate (campaign phase 0) (#3211)
-- **agents:** clear all 94 dead skill preload declarations (#3221)
-- **ci:** accept the app/ author form and stop swallowing gh failures (#3227)
-- **ci:** regenerate CHANGELOG-derived files on release PRs (#3226)
-- …and 11 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
