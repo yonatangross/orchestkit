@@ -1,290 +1,110 @@
 #!/bin/bash
-# Security Tests: Command Injection
-# Tests for command injection vulnerabilities in bash-related hooks
+# Security Tests: dangerous-command-blocker
 #
-# Test Count: 5
-# Priority: HIGH
-# Reference: OWASP Command Injection, CWE-78
+# Priority: CRITICAL
+# Reference: OWASP Command Injection, CWE-77/78
+#
+# =============================================================================
+# WHAT THIS FILE USED TO BE
+# =============================================================================
+# 9 of 10 functions could not fail. Every one called
+# `pretool/input-mod/bash-defaults.sh` or `pretool/bash/git-branch-protection.sh`
+# through run_hook_capture. Neither has existed since the TypeScript migration,
+# so run_hook returned 127, the `if [[ $HOOK_EXIT_CODE -eq 0 ]]` branch was
+# skipped, and each function ended in an unconditional `return 0`.
+#
+# =============================================================================
+# WHY THE OLD FIXTURES ARE NOT SIMPLY RETARGETED
+# =============================================================================
+# The old tests asserted that subshells, backticks and ${IFS} expansion get
+# blocked. That was bash-defaults' threat model, and bash-defaults was deleted
+# on purpose (e844b4b25, "consolidate to 24 hooks").
+#
+# Measured against every current candidate before rewriting:
+#
+#   19 command_injection fixtures -> dangerous-command-blocker      2 deny
+#                                 -> compound-command-validator     1 deny
+#                                 -> network-egress-guard           0 deny
+#
+# That is not a hole. dangerous-command-blocker.ts:34 states its own scope:
+# "DENY tier — catastrophic system damage, NEVER legitimate". Blocking every
+# `$(whoami)` would break ordinary work, and it does not claim to. Pointing the
+# old fixtures at it would manufacture ~17 failures and create pressure to make
+# the hook over-block, which is worse than the theatre it replaced.
+#
+# So this file asserts what the hook DOES promise: the catastrophic set, matched
+# after compound-splitting, with no false positives on normal commands.
+# =============================================================================
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-# ============================================================================
-# COMMAND INJECTION TESTS
-# ============================================================================
-
-describe "Command Injection Security Tests"
-
-# Marker file for detecting successful injection
-INJECTION_MARKER="$TEMP_DIR/injection-marker-$$"
-
-# TEST 1.3.1: Command Chaining Injection
-test_command_chaining_injection() {
-  rm -f "$INJECTION_MARKER"
-
-  local payloads=(
-    "git status; touch $INJECTION_MARKER"
-    "git status && touch $INJECTION_MARKER"
-    "git status || touch $INJECTION_MARKER"
-    "git status | touch $INJECTION_MARKER"
-  )
-
-  for payload in "${payloads[@]}"; do
-    rm -f "$INJECTION_MARKER"
-
-    local input=$(jq -n --arg cmd "$payload" '{"tool_input":{"command":$cmd}}')
-
-    # Test bash-defaults hook
-    run_hook_capture "pretool/input-mod/bash-defaults.sh" "$input"
-
-    # Also test git-branch-protection as it parses commands
-    run_hook_capture "pretool/bash/git-branch-protection.sh" "$input"
-
-    # The marker file should NOT be created
-    if [[ -f "$INJECTION_MARKER" ]]; then
-      echo "VULNERABLE: Command injection succeeded with: $payload"
-      rm -f "$INJECTION_MARKER"
-      return 1
-    fi
-  done
-
-  return 0
-}
-
-# TEST 1.3.2: Subshell Injection
-test_subshell_injection() {
-  rm -f "$INJECTION_MARKER"
-
-  local payloads=(
-    "\$(touch $INJECTION_MARKER)"
-    "git \$(touch $INJECTION_MARKER)"
-    "test \$(cat /etc/passwd > $INJECTION_MARKER)"
-  )
-
-  for payload in "${payloads[@]}"; do
-    rm -f "$INJECTION_MARKER"
-
-    local input=$(jq -n --arg cmd "$payload" '{"tool_input":{"command":$cmd}}')
-
-    # Test all bash-related hooks
-    run_hook_capture "pretool/input-mod/bash-defaults.sh" "$input"
-
-    if [[ -f "$INJECTION_MARKER" ]]; then
-      echo "VULNERABLE: Subshell injection succeeded with: $payload"
-      rm -f "$INJECTION_MARKER"
-      return 1
-    fi
-  done
-
-  return 0
-}
-
-# TEST 1.3.3: Backtick Injection
-test_backtick_injection() {
-  rm -f "$INJECTION_MARKER"
-
-  local payloads=(
-    "\`touch $INJECTION_MARKER\`"
-    "git \`touch $INJECTION_MARKER\`"
-    "echo \`cat /etc/passwd\`"
-  )
-
-  for payload in "${payloads[@]}"; do
-    rm -f "$INJECTION_MARKER"
-
-    local input=$(jq -n --arg cmd "$payload" '{"tool_input":{"command":$cmd}}')
-
-    run_hook_capture "pretool/input-mod/bash-defaults.sh" "$input"
-
-    if [[ -f "$INJECTION_MARKER" ]]; then
-      echo "VULNERABLE: Backtick injection succeeded with: $payload"
-      rm -f "$INJECTION_MARKER"
-      return 1
-    fi
-  done
-
-  return 0
-}
-
-# TEST 1.3.4: Variable Expansion Injection
-test_variable_expansion_injection() {
-  rm -f "$INJECTION_MARKER"
-
-  local payloads=(
-    "\${IFS}touch\${IFS}$INJECTION_MARKER"
-    "git status; \$PATH"
-    "echo \${HOME}/.ssh/id_rsa"
-  )
-
-  for payload in "${payloads[@]}"; do
-    rm -f "$INJECTION_MARKER"
-
-    local input=$(jq -n --arg cmd "$payload" '{"tool_input":{"command":$cmd}}')
-
-    run_hook_capture "pretool/input-mod/bash-defaults.sh" "$input"
-
-    if [[ -f "$INJECTION_MARKER" ]]; then
-      echo "VULNERABLE: Variable expansion injection succeeded with: $payload"
-      rm -f "$INJECTION_MARKER"
-      return 1
-    fi
-  done
-
-  return 0
-}
-
-# TEST 1.3.5: Newline Injection
-test_newline_injection() {
-  rm -f "$INJECTION_MARKER"
-
-  # Payloads with literal newlines (using $'...' syntax)
-  local payloads=(
-    $'git status\ntouch '"$INJECTION_MARKER"
-    $'safe\n$(touch '"$INJECTION_MARKER"')'
-    $'git\nrm -rf /'
-  )
-
-  for payload in "${payloads[@]}"; do
-    rm -f "$INJECTION_MARKER"
-
-    local input=$(jq -n --arg cmd "$payload" '{"tool_input":{"command":$cmd}}')
-
-    run_hook_capture "pretool/input-mod/bash-defaults.sh" "$input"
-
-    if [[ -f "$INJECTION_MARKER" ]]; then
-      echo "VULNERABLE: Newline injection succeeded"
-      rm -f "$INJECTION_MARKER"
-      return 1
-    fi
-  done
-
-  return 0
-}
-
-# ============================================================================
-# ADDITIONAL COMMAND INJECTION TESTS
-# ============================================================================
-
-# Test dangerous command blocking
-test_dangerous_command_blocking() {
-  local dangerous_commands=(
-    "rm -rf /"
-    "rm -rf /*"
-    "git push --force"
-    "git push origin main --force"
-    "dd if=/dev/zero of=/dev/sda"
-    "mkfs.ext4 /dev/sda"
-    "> /dev/sda"
-    "chmod -R 777 /"
-  )
-
-  for cmd in "${dangerous_commands[@]}"; do
-    local input=$(jq -n --arg cmd "$cmd" '{"tool_input":{"command":$cmd}}')
-
-    # Test git-branch-protection for git commands
-    if [[ "$cmd" == git* ]]; then
-      run_hook_capture "pretool/bash/git-branch-protection.sh" "$input"
-
-      if [[ $HOOK_EXIT_CODE -eq 0 ]] && [[ "$cmd" == *"--force"* ]]; then
-        # Force push should be blocked or warned
-        if [[ "$HOOK_OUTPUT" != *"BLOCK"* ]] && [[ "$HOOK_OUTPUT" != *"WARNING"* ]] && [[ "$HOOK_OUTPUT" != *"protected"* ]]; then
-          echo "WARNING: Force push not blocked: $cmd"
-        fi
-      fi
-    fi
-
-    # TODO: Add more dangerous command checks as hooks are implemented
-  done
-
-  return 0
-}
-
-# Test command with special characters
-test_special_character_handling() {
-  local payloads=(
-    "git status > /tmp/out"
-    "git status >> /tmp/out"
-    "git status < /etc/passwd"
-    "git status 2>&1"
-  )
-
-  for payload in "${payloads[@]}"; do
-    local input=$(jq -n --arg cmd "$payload" '{"tool_input":{"command":$cmd}}')
-
-    # These are valid shell redirects but could be dangerous
-    run_hook_capture "pretool/input-mod/bash-defaults.sh" "$input"
-
-    # At minimum, hooks should not error on these
-    if [[ $HOOK_EXIT_CODE -ne 0 ]] && [[ $HOOK_EXIT_CODE -ne 2 ]]; then
-      echo "WARNING: Unexpected error on command: $payload (exit: $HOOK_EXIT_CODE)"
-    fi
-  done
-
-  return 0
-}
-
-# Test environment variable injection via hook
-test_env_var_injection_via_hook() {
-  # Test that hooks don't accidentally expand dangerous environment variables
-  export MALICIOUS_VAR='$(touch /tmp/pwned)'
-
-  local input='{"tool_input":{"command":"echo test"}}'
-
-  # Run hook with potentially dangerous env
-  run_hook_capture "pretool/input-mod/bash-defaults.sh" "$input"
-
-  # Verify the hook didn't expand the malicious var
-  if [[ -f "/tmp/pwned" ]]; then
-    echo "VULNERABLE: Environment variable injection via hook"
-    rm -f "/tmp/pwned"
-    return 1
-  fi
-
-  unset MALICIOUS_VAR
-  return 0
-}
-
-# Test for unsafe quote handling
-test_unsafe_quote_handling() {
-  local payloads=(
-    "git commit -m 'test'; touch $INJECTION_MARKER"
-    'git commit -m "test"; touch '"$INJECTION_MARKER"
-    "git commit -m \"test\"; touch $INJECTION_MARKER"
-    "git commit -m 'test\"'; touch $INJECTION_MARKER"
-  )
-
-  for payload in "${payloads[@]}"; do
-    rm -f "$INJECTION_MARKER"
-
-    local input=$(jq -n --arg cmd "$payload" '{"tool_input":{"command":$cmd}}')
-
-    run_hook_capture "pretool/input-mod/bash-defaults.sh" "$input"
-
-    if [[ -f "$INJECTION_MARKER" ]]; then
-      echo "VULNERABLE: Quote handling injection: $payload"
-      rm -f "$INJECTION_MARKER"
-      return 1
-    fi
-  done
-
-  return 0
-}
-
-# ============================================================================
-# CLEANUP
-# ============================================================================
-
-cleanup() {
-  rm -f "$INJECTION_MARKER"
-  rm -f "/tmp/pwned"
-}
-
-trap cleanup EXIT
-
-# ============================================================================
-# RUN TESTS
-# ============================================================================
-
-run_tests
+BLOCKER="pretool/bash/dangerous-command-blocker"
+PASS=0
+FAIL=0
+
+RED=$'\033[0;31m'; GREEN=$'\033[0;32m'; YELLOW=$'\033[1;33m'; NC=$'\033[0m'
+log_pass() { echo "  ${GREEN}✓${NC} $1"; }
+log_fail() { echo "  ${RED}✗${NC} $1"; }
+section()  { echo; echo "${YELLOW}$1${NC}"; }
+
+bash_input() { jq -n --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}'; }
+expect_cmd() { expect_decision "$1" "$BLOCKER" "$(bash_input "$2")" "$3"; }
+
+echo "=========================================="
+echo "  dangerous-command-blocker: DENY tier"
+echo "=========================================="
+
+if ! assert_hook_registered "$BLOCKER"; then
+  echo "${RED}✗ $BLOCKER is not registered — aborting rather than reporting green${NC}"
+  exit 1
+fi
+
+section "1. Filesystem destruction (DENY_PATTERNS + DENY_REGEX at :38-70)"
+expect_cmd deny 'rm -rf /'                            "rm -rf / (anchored regex)"
+expect_cmd deny 'rm -rf ~'                            "rm -rf ~ (home wipe)"
+expect_cmd deny 'rm -fr ~'                            "rm -fr ~ (flag order swapped)"
+
+section "2. Device wiping"
+expect_cmd deny 'dd if=/dev/zero of=/dev/sda'         "dd zero over a block device"
+expect_cmd deny 'mkfs.ext4 /dev/sda1'                 "mkfs on a device"
+
+section "3. Permission abuse and database destruction"
+expect_cmd deny 'chmod -R 777 /'                      "recursive 777 on root"
+expect_cmd deny 'psql -c "drop database prod"'        "drop database"
+
+section "4. Compound splitting — a dangerous segment anywhere is caught"
+# containsDangerousCommand() splits on && || | ; and newlines before matching,
+# so hiding the payload behind a benign first segment must not help.
+expect_cmd deny 'git status; rm -rf /'                "dangerous segment after ;"
+expect_cmd deny 'echo ok && rm -rf ~'                 "dangerous segment after &&"
+printf -v NEWLINE_CMD 'git status\nrm -rf /'
+expect_cmd deny "$NEWLINE_CMD"                        "dangerous segment on a new line"
+
+section "5. ASK tier — dangerous but sometimes legitimate (:73)"
+# Three tiers, not two: deny > ask > allow. ASK escalates to the user rather
+# than refusing, which is the right answer for a recursive delete of a path that
+# might be junk or might be someone's work.
+#
+# Found by this rewrite: `rm -rf ./node_modules` returns ask, and the first
+# draft of this file asserted allow. The hook was right and the assertion was
+# wrong, so the assertion changed. Tuning it the other way would have quietly
+# documented a weaker contract than the code actually provides.
+expect_cmd ask   'rm -rf ./node_modules'              "recursive delete of a relative path escalates"
+
+section "6. No false positives on ordinary work"
+# The hook is only useful if it stays out of the way. These are the commands the
+# old fixtures wrongly expected to be blocked.
+expect_cmd allow 'ls -la'                             "plain ls"
+expect_cmd allow 'git status && whoami'               "benign compound"
+expect_cmd allow 'echo "$(date)"'                     "subshell in normal use"
+expect_cmd allow 'npm install'                        "package install"
+expect_cmd allow 'git commit -m "wip"'                "ordinary git"
+
+echo
+echo "=========================================="
+echo "  ${GREEN}${PASS} passed${NC}, ${RED}${FAIL} failed${NC}"
+echo "=========================================="
+[[ $FAIL -eq 0 ]]
