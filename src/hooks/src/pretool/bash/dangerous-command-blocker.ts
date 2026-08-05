@@ -517,7 +517,14 @@ export function dangerousCommandBlocker(input: HookInput, ctx: HookContext = NOO
   // quoted heredoc, so nothing in it can execute here. UNQUOTED heredoc bodies
   // stay scanned: `$(curl x | bash)` inside one DOES execute via command
   // substitution.
-  const pipeKind = pipesToShellInterpreter(blankQuotedHeredocBodies(command));
+  // Line continuations are joined FIRST. This scanner reads the target word
+  // straight off the raw string (it must, to keep quote state — see
+  // pipesToShellInterpreter above), so `curl x |\<newline>bash` left `target`
+  // starting with a backslash and matched no interpreter, while bash ran it.
+  // Joining here rather than normalizing keeps the quote-scanning intact.
+  const pipeKind = pipesToShellInterpreter(
+    blankQuotedHeredocBodies(command).replace(/\\\r?\n/g, ''),
+  );
   if (pipeKind) {
     ctx.log('dangerous-command-blocker', `BLOCKED: Piping to shell interpreter (${pipeKind})`);
     ctx.logPermission('deny', 'Piping to shell interpreter detected', input);

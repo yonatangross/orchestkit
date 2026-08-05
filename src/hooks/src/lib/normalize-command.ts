@@ -64,8 +64,13 @@ export function normalizeSingle(cmd: string): string {
   result = expandOctalEscapes(result);
   result = stripBackslashEscapes(result);
   result = stripQuotes(result);
-  // Remove line continuations (backslash + newline)
-  result = result.replace(/\\\s*[\r\n]+/g, ' ');
+  // Remove line continuations. Bash JOINS the tokens on either side, it does
+  // not separate them: `rm -r\<newline>f /` executes as `rm -rf /`. Replacing
+  // the continuation with a SPACE produced `rm -r f /`, which no longer matched
+  // any dangerous pattern while bash still ran the destructive form.
+  // The backslash must be IMMEDIATELY followed by the newline; whitespace in
+  // between is an escaped space, which bash does not treat as a continuation.
+  result = result.replace(/\\\r?\n/g, '');
   // Replace remaining newlines
   result = result.replace(/\n/g, ' ');
   // Collapse whitespace
@@ -88,8 +93,11 @@ export function normalizeCommand(cmd: string): string[] {
   preprocessed = expandOctalEscapes(preprocessed);
   preprocessed = stripBackslashEscapes(preprocessed);
   preprocessed = stripQuotes(preprocessed);
-  // Remove line continuations (backslash + newline) — these join lines
-  preprocessed = preprocessed.replace(/\\\s*[\r\n]+/g, ' ');
+  // Remove line continuations. These JOIN lines, so they must collapse to the
+  // empty string, not to a space. See normalizeSingle above: substituting a
+  // space let `curl ... |\<newline>bash` split back into a benign-looking pair
+  // and evade the pipe-to-interpreter matcher.
+  preprocessed = preprocessed.replace(/\\\r?\n/g, '');
 
   // Split on compound operators (&&, ||, |, ;) AND newlines
   const parts = preprocessed.split(/\s*(?:&&|\|\||\||;|\n)\s*/);
