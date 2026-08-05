@@ -93,7 +93,7 @@ ToolSearch(query="+storybook list-all-documentation")
 
 ## Rule Details
 
-Load rules on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
+Load rules on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/storybook-mcp-integration/rules/<file>")`:
 
 | Rule | Impact | Description |
 |------|--------|-------------|

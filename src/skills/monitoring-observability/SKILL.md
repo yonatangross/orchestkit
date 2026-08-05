@@ -140,17 +140,17 @@ Detection and alerting for silent failures in LLM agents.
 
 | Resource | Description |
 |----------|-------------|
-| `${CLAUDE_SKILL_DIR}/references/ork-delta.md` | **Start here.** Floors, house decisions and scars that upstream docs do not carry |
-| `${CLAUDE_SKILL_DIR}/references/langfuse-js-v5.md` | **JS/TS SDK v5** delta from Python 4.x: package map, phantom packages, SpanProcessor vs exporter. Read before writing any JS Langfuse code |
-| `${CLAUDE_SKILL_DIR}/references/experiments-api.md` | Langfuse experiments and dataset runs as this repo uses them |
-| `${CLAUDE_SKILL_DIR}/references/evaluation-scores.md` | Score shapes and scoring pipeline wiring |
-| `${CLAUDE_SKILL_DIR}/references/session-tracking.md` | Session and user grouping across multi-step workflows |
-| `${CLAUDE_SKILL_DIR}/references/metrics-collection.md` | Claude Code OTEL metric inventory and collector-side joins |
-| `${CLAUDE_SKILL_DIR}/references/dashboards.md` | Dashboard layout conventions |
-| `${CLAUDE_SKILL_DIR}/references/structured-logging.md` | Structured log field conventions |
-| `${CLAUDE_SKILL_DIR}/references/dev-agent-lens.md` | LiteLLM proxy layer for API-boundary observability |
-| `${CLAUDE_SKILL_DIR}/examples/orchestkit-monitoring-dashboard.md` | Worked monitoring dashboard example |
-| `${CLAUDE_SKILL_DIR}/scripts/` | Templates: Prometheus, OpenTelemetry, health checks, Langfuse |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/references/ork-delta.md` | **Start here.** Floors, house decisions and scars that upstream docs do not carry |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/references/langfuse-js-v5.md` | **JS/TS SDK v5** delta from Python 4.x: package map, phantom packages, SpanProcessor vs exporter. Read before writing any JS Langfuse code |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/references/experiments-api.md` | Langfuse experiments and dataset runs as this repo uses them |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/references/evaluation-scores.md` | Score shapes and scoring pipeline wiring |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/references/session-tracking.md` | Session and user grouping across multi-step workflows |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/references/metrics-collection.md` | Claude Code OTEL metric inventory and collector-side joins |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/references/dashboards.md` | Dashboard layout conventions |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/references/structured-logging.md` | Structured log field conventions |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/references/dev-agent-lens.md` | LiteLLM proxy layer for API-boundary observability |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/examples/orchestkit-monitoring-dashboard.md` | Worked monitoring dashboard example |
+| `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/scripts` | Templates: Prometheus, OpenTelemetry, health checks, Langfuse |
 
 ## Related Skills
 

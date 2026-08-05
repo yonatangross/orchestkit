@@ -66,7 +66,7 @@ class Order:
         return hash(self.id)
 ```
 
-ID generation is a house rule, not a taste call: `Read("$\{CLAUDE_SKILL_DIR\}/references/ork-delta.md")`.
+ID generation is a house rule, not a taste call: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/references/ork-delta.md")`.
 
 ### Value Object (Immutable)
 
@@ -103,9 +103,9 @@ Canonical Address / DateRange boilerplate is not restated here. See the upstream
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| aggregate-boundaries (load `$\{CLAUDE_SKILL_DIR\}/rules/aggregate-boundaries.md`) | HIGH | Aggregate root design, reference by ID, one-per-transaction |
-| aggregate-invariants (load `$\{CLAUDE_SKILL_DIR\}/rules/aggregate-invariants.md`) | HIGH | Business rule enforcement, specification pattern |
-| aggregate-sizing (load `$\{CLAUDE_SKILL_DIR\}/rules/aggregate-sizing.md`) | HIGH | Right-sizing, when to split, eventual consistency |
+| aggregate-boundaries (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/rules/aggregate-boundaries.md`) | HIGH | Aggregate root design, reference by ID, one-per-transaction |
+| aggregate-invariants (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/rules/aggregate-invariants.md`) | HIGH | Business rule enforcement, specification pattern |
+| aggregate-sizing (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/rules/aggregate-sizing.md`) | HIGH | Right-sizing, when to split, eventual consistency |
 
 ## When NOT to Use
 
@@ -173,7 +173,7 @@ boundaries, invariants, and sizing, which live in full in `rules/`.
 
 ## References
 
-Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/references/&lt;file&gt;")`:
 | File | Content |
 |------|---------|
 | `ork-delta.md` | House rules: UUIDv7, event drain ordering, ACL boundary, source layout |

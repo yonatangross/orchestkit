@@ -114,7 +114,7 @@ This keeps the skill thin: built-in CLI wins for "ultra" depth; the OrchestKit s
 
 ## STEP 0b: Select Orchestration Mode
 
-Load orchestration guidance: `Read("${CLAUDE_SKILL_DIR}/references/orchestration-mode-selection.md")`
+Load orchestration guidance: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/orchestration-mode-selection.md")`
 
 ---
 
@@ -325,11 +325,11 @@ See [AI Code Review Agent](rules/ai-code-review-agent.md) for the optional 7th L
 
 CC 2.1.111's built-in `/ultrareview` (parallel multi-agent deep review; Pro/Max get 3 free per month) overlaps Phase 3 but goes deeper. **Never fire it by default** — only when a trigger justifies the cost, and always ask first.
 
-Load the gate: `Read("${CLAUDE_SKILL_DIR}/references/ultrareview-gate.md")` — trigger evaluation (large diff / sensitive path / reviewer disagreement / high-stakes label), the voice-friendly prompt + session-skip state, after-response handling, and the `ORK_DISABLE_ULTRAREVIEW` opt-out. If no trigger fires, skip silently to Phase 4.
+Load the gate: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/ultrareview-gate.md")` — trigger evaluation (large diff / sensitive path / reviewer disagreement / high-stakes label), the voice-friendly prompt + session-skip state, after-response handling, and the `ORK_DISABLE_ULTRAREVIEW` opt-out. If no trigger fires, skip silently to Phase 4.
 
 ## Phase 4: Run Validation
 
-Load validation commands: `Read("${CLAUDE_SKILL_DIR}/references/validation-commands.md")`
+Load validation commands: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/validation-commands.md")`
 
 ## Phase 4.5: Adversarial Refutation (effort-gated)
 
@@ -339,12 +339,12 @@ finding can't be its own fair judge). `low`/`medium` skip this phase; `high` run
 advisory refuters (no auto-flip); `xhigh` runs the engine's quorum (3 for a request-changes
 blocker, 2 for HIGH).
 
-Load the protocol + review-pr bindings: `Read("${CLAUDE_SKILL_DIR}/references/adversarial-refutation.md")`
+Load the protocol + review-pr bindings: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/adversarial-refutation.md")`
 (which loads the shared engine `${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/adversarial-refutation.md`).
 
 ### Cross-model refuter (optional, provenance-labeled, cost-gated)
 
-By default refuters are same-model Claude — variance reduction, not bias correction (N Claude agents share blind spots). When `ORK_ALT_MODEL_CMD` is configured AND effort is `high`/`xhigh`, one quorum slot per decision-bearing finding (request-changes blocker / CRITICAL / HIGH) can route to a different model family (Codex/GPT) for genuinely diverse failure modes. **Off by default**; the cross-model refuter SUBSTITUTES one same-model slot (never inflates the count or the §8 ceiling), is bound by the same blindness + citation-verify gates, stamps `refuter_model` for provenance, and CANNOT flip `request-changes`→`approve` on its own (engine §7). The skill owns no credentials and opens no egress — it shells out to the user-configured command (matches the egress guard #2533); absent command or down CLI → silent degrade to the same-model lane. Cost-capped by `ORK_CROSS_MODEL_MAX` (default 4); `ORK_CROSS_MODEL=0` kills it. Load the operational doc: `Read("${CLAUDE_SKILL_DIR}/references/cross-model-refuter.md")`.
+By default refuters are same-model Claude — variance reduction, not bias correction (N Claude agents share blind spots). When `ORK_ALT_MODEL_CMD` is configured AND effort is `high`/`xhigh`, one quorum slot per decision-bearing finding (request-changes blocker / CRITICAL / HIGH) can route to a different model family (Codex/GPT) for genuinely diverse failure modes. **Off by default**; the cross-model refuter SUBSTITUTES one same-model slot (never inflates the count or the §8 ceiling), is bound by the same blindness + citation-verify gates, stamps `refuter_model` for provenance, and CANNOT flip `request-changes`→`approve` on its own (engine §7). The skill owns no credentials and opens no egress — it shells out to the user-configured command (matches the egress guard #2533); absent command or down CLI → silent degrade to the same-model lane. Cost-capped by `ORK_CROSS_MODEL_MAX` (default 4); `ORK_CROSS_MODEL=0` kills it. Load the operational doc: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/cross-model-refuter.md")`.
 
 Runs after Phase 3 findings (and any Phase 3.5 ultrareview merge) and Phase 4 validation,
 before the Phase 5 synthesis and Phase 6 verdict. Refuters are ALWAYS isolated `Agent(...)`
@@ -356,7 +356,7 @@ and wrong KILLs — are auditable cross-session.
 
 ## Phase 5: Synthesize Review
 
-Combine all agent feedback into a structured report. Load template: `Read("${CLAUDE_SKILL_DIR}/references/review-report-template.md")`
+Combine all agent feedback into a structured report. Load template: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/review-report-template.md")`
 
 ### Memory Persistence
 
@@ -377,7 +377,7 @@ gh pr review $PR_NUMBER --request-changes -b "Review message"
 After the verdict is submitted, optionally invoke `scripts/verdict_writeback.py <review-dir>` to persist the verdict + findings to the memory MCP knowledge graph. Self-skips on every non-happy-path so it never breaks the review:
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/scripts/verdict_writeback.py "$CLAUDE_JOB_DIR"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/review-pr/scripts/verdict_writeback.py "$CLAUDE_JOB_DIR"
 ```
 
 Auto-skip conditions (all exit 0, all WARN-logged):
@@ -411,7 +411,7 @@ claude --from-pr https://github.com/org/repo/pull/123
 
 ### Task Metrics (CC 2.1.30)
 
-Load metrics template: `Read("${CLAUDE_SKILL_DIR}/references/task-metrics-template.md")`
+Load metrics template: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/task-metrics-template.md")`
 
 ## Conventional Comments
 
@@ -441,7 +441,7 @@ SendMessage(to="code-quality-reviewer", message="Security: auth middleware bypas
 For complex PRs (> 500 lines, 3+ domains), use mesh topology so reviewers can challenge each other:
 
 ```python
-# Load: Read("${CLAUDE_SKILL_DIR}/rules/agent-prompts-agent-teams.md")
+# Load: Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/rules/agent-prompts-agent-teams.md")
 ```
 
 ## Quality Bar
@@ -466,7 +466,7 @@ Reach for `/ork:review-pr` instead when you want the **full OrchestKit audit** �
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -479,7 +479,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `validation-commands.md` | Build/test/lint commands |
 | `task-metrics-template.md` | Task metrics format |
 
-Rules: `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
+Rules: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/rules/<file>")`:
 
 | File | Content |
 |------|---------|

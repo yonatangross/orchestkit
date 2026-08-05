@@ -29,7 +29,7 @@ manual: Celery and ARQ document their own product well, so what lives here is ou
 thresholds, working config, ordering constraints and tool-choice rules we picked. Product
 mechanics are linked, not restated.
 
-Start with `Read("${CLAUDE_SKILL_DIR}/references/ork-delta.md")`.
+Start with `Read("${CLAUDE_PLUGIN_ROOT}/skills/async-jobs/references/ork-delta.md")`.
 
 ## Quick Reference
 
@@ -59,7 +59,7 @@ def process_payment(self, order_id: str):
         raise self.retry(exc=exc, countdown=2 ** self.request.retries * 60)
 ```
 
-Load more examples: `Read("${CLAUDE_SKILL_DIR}/references/quick-start-examples.md")` for Celery
+Load more examples: `Read("${CLAUDE_PLUGIN_ROOT}/skills/async-jobs/references/quick-start-examples.md")` for Celery
 retry task and ARQ/FastAPI integration patterns.
 
 ## Upstream coverage (do not restate)
@@ -83,7 +83,7 @@ it is a house threshold, a working config or an ordering constraint that upstrea
 
 ## Configuration
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/celery-config.md")`.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/async-jobs/references/celery-config.md")`.
 
 | Decision | Recommendation |
 |----------|----------------|
@@ -105,7 +105,7 @@ Load: `Read("${CLAUDE_SKILL_DIR}/references/celery-config.md")`.
 
 ## Canvas Workflows
 
-Load: `Read("${CLAUDE_SKILL_DIR}/rules/celery-canvas.md")`.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/async-jobs/rules/celery-canvas.md")`.
 
 | Decision | Recommendation |
 |----------|----------------|
@@ -128,7 +128,7 @@ Load: `Read("${CLAUDE_SKILL_DIR}/rules/celery-canvas.md")`.
 
 ## Scheduling
 
-Load: `Read("${CLAUDE_SKILL_DIR}/rules/jobs-scheduling.md")`.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/async-jobs/rules/jobs-scheduling.md")`.
 
 | Decision | Recommendation |
 |----------|----------------|
@@ -150,7 +150,7 @@ Load: `Read("${CLAUDE_SKILL_DIR}/rules/jobs-scheduling.md")`.
 
 ## Result Backends
 
-Load: `Read("${CLAUDE_SKILL_DIR}/rules/jobs-monitoring.md")`.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/async-jobs/rules/jobs-monitoring.md")`.
 
 | Decision | Recommendation |
 |----------|----------------|
@@ -161,7 +161,7 @@ Load: `Read("${CLAUDE_SKILL_DIR}/rules/jobs-monitoring.md")`.
 
 ## ARQ Patterns
 
-Load: `Read("${CLAUDE_SKILL_DIR}/rules/jobs-task-queue.md")`.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/async-jobs/rules/jobs-task-queue.md")`.
 
 | Decision | Recommendation |
 |----------|----------------|
@@ -173,19 +173,19 @@ Load: `Read("${CLAUDE_SKILL_DIR}/rules/jobs-task-queue.md")`.
 
 ## Tool Selection
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/quick-start-examples.md")` for the full tool
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/async-jobs/references/quick-start-examples.md")` for the full tool
 comparison table (ARQ, Celery, RQ, Dramatiq, FastAPI BackgroundTasks).
 
 ## Anti-Patterns (FORBIDDEN)
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/anti-patterns.md")` for the full list.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/async-jobs/references/anti-patterns.md")` for the full list.
 
 Key rules: never run long tasks in request handlers, never block on results inside tasks, never
 store large results in Redis, always use idempotency for retried tasks.
 
 ## Temporal Workflows
 
-Load: `Read("${CLAUDE_SKILL_DIR}/rules/temporal-workflows.md")`.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/async-jobs/rules/temporal-workflows.md")`.
 
 | Decision | Recommendation |
 |----------|----------------|
@@ -195,7 +195,7 @@ Load: `Read("${CLAUDE_SKILL_DIR}/rules/temporal-workflows.md")`.
 
 ## Temporal Activities
 
-Load: `Read("${CLAUDE_SKILL_DIR}/rules/temporal-activities.md")`.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/async-jobs/rules/temporal-activities.md")`.
 
 | Decision | Recommendation |
 |----------|----------------|
@@ -212,5 +212,5 @@ Load: `Read("${CLAUDE_SKILL_DIR}/rules/temporal-activities.md")`.
 
 ## Capability Details
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/capability-details.md")` for the keyword index
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/async-jobs/references/capability-details.md")` for the keyword index
 and problem-to-capability mapping.

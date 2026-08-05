@@ -120,7 +120,7 @@ Use External Secrets Operator to sync from cloud providers:
 ## References
 
 ### Docker Patterns
-**Load: `Read("${CLAUDE_SKILL_DIR}/references/docker-patterns.md")`**
+**Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/devops-deployment/references/docker-patterns.md")`**
 
 Key topics covered:
 - Multi-stage build examples with 78% size reduction
@@ -130,7 +130,7 @@ Key topics covered:
 - Docker Compose development setup
 
 ### OrchestKit Delta (house rules)
-**Load: `Read("${CLAUDE_SKILL_DIR}/references/ork-delta.md")`**
+**Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/devops-deployment/references/ork-delta.md")`**
 
 Key topics covered:
 - CI concurrency groups, the sub-5-minute feedback budget, path filtering
@@ -140,16 +140,16 @@ Key topics covered:
 - Alert thresholds with dwell windows, request-id log binding, rollback rehearsal
 
 ### Railway Deployment
-**Load: `Read("${CLAUDE_SKILL_DIR}/rules/railway-deployment.md")`**
+**Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/devops-deployment/rules/railway-deployment.md")`**
 
 Key topics covered:
 - railway.json configuration, Nixpacks builds
 - Environment variable management, database provisioning
 - Multi-service setups, Railway CLI workflows
-- References: `${CLAUDE_SKILL_DIR}/references/railway-json-config.md`, `${CLAUDE_SKILL_DIR}/references/nixpacks-customization.md`, `${CLAUDE_SKILL_DIR}/references/multi-service-setup.md`
+- References: `${CLAUDE_PLUGIN_ROOT}/skills/devops-deployment/references/railway-json-config.md`, `${CLAUDE_PLUGIN_ROOT}/skills/devops-deployment/references/nixpacks-customization.md`, `${CLAUDE_PLUGIN_ROOT}/skills/devops-deployment/references/multi-service-setup.md`
 
 ### Deployment Strategies
-**Load: `Read("${CLAUDE_SKILL_DIR}/references/deployment-strategies.md")`**
+**Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/devops-deployment/references/deployment-strategies.md")`**
 
 Key topics covered:
 - Rolling deployment (`maxUnavailable` / `maxSurge`)
@@ -194,7 +194,7 @@ threshold, config or ordering decision, not the vendor tutorial.
 
 ## Deployment Checklist & Templates
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/checklists-and-templates.md")` for pre/during/post-deployment checklists, Helm chart structure, template reference table, and extended thinking triggers.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/devops-deployment/references/checklists-and-templates.md")` for pre/during/post-deployment checklists, Helm chart structure, template reference table, and extended thinking triggers.
 
 ---
 
@@ -216,4 +216,4 @@ Load: `Read("${CLAUDE_SKILL_DIR}/references/checklists-and-templates.md")` for p
 
 ## Capability Details
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/capability-details.md")` for full keyword index and problem-solution mapping across all 6 capabilities (ci-cd, docker, kubernetes, infrastructure-as-code, deployment-strategies, observability).
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/devops-deployment/references/capability-details.md")` for full keyword index and problem-solution mapping across all 6 capabilities (ci-cd, docker, kubernetes, infrastructure-as-code, deployment-strategies, observability).

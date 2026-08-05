@@ -51,6 +51,6 @@ table the upgrade split data into is not reversible, and the only place a
 reviewer reliably reads before running `alembic downgrade` is the revision
 docstring. `SKILL.md` already forbids an empty `downgrade()`; this rule covers the
 case where a correct `downgrade()` still destroys data. Rollback and data
-integrity test harnesses live in `${CLAUDE_SKILL_DIR}/references/migration-testing.md`.
+integrity test harnesses live in `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/references/migration-testing.md`.
 
 Upstream: https://alembic.sqlalchemy.org/en/latest/tutorial.html

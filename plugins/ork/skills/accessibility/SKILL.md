@@ -70,9 +70,9 @@ WCAG 2.2 AA implementation for inclusive, legally compliant web applications.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Color Contrast | `${CLAUDE_SKILL_DIR}/rules/wcag-color-contrast.md` | 4.5:1 text, 3:1 UI components, focus indicators |
-| Semantic HTML | `${CLAUDE_SKILL_DIR}/rules/wcag-semantic-html.md` | Landmarks, headings, ARIA labels, form structure |
-| Testing | `${CLAUDE_SKILL_DIR}/rules/wcag-testing.md` | axe-core, Playwright a11y, screen reader testing |
+| Color Contrast | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-color-contrast.md` | 4.5:1 text, 3:1 UI components, focus indicators |
+| Semantic HTML | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-semantic-html.md` | Landmarks, headings, ARIA labels, form structure |
+| Testing | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-testing.md` | axe-core, Playwright a11y, screen reader testing |
 
 ## POUR Exit Criteria
 
@@ -80,7 +80,7 @@ Concrete pass/fail thresholds for each WCAG 2.2 AA criterion — replaces vague 
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| POUR Exit Criteria | `${CLAUDE_SKILL_DIR}/rules/pour-exit-criteria.md` | Falsifiable checklist: image alt, contrast ratios, focus indicators, touch targets, ARIA states |
+| POUR Exit Criteria | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/pour-exit-criteria.md` | Falsifiable checklist: image alt, contrast ratios, focus indicators, touch targets, ARIA states |
 
 ## Static Anti-Patterns
 
@@ -88,7 +88,7 @@ Grep-able anti-patterns detectable via static analysis or code review — no bro
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| A11y Anti-Patterns (Static) | `${CLAUDE_SKILL_DIR}/rules/a11y-antipatterns-static.md` | Focus removal, missing labels, autoplay, icon-only buttons, div-click handlers |
+| A11y Anti-Patterns (Static) | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/a11y-antipatterns-static.md` | Focus removal, missing labels, autoplay, icon-only buttons, div-click handlers |
 
 ## Focus Management
 
@@ -96,9 +96,9 @@ Keyboard focus management patterns for accessible interactive widgets.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Keyboard Navigation | `${CLAUDE_SKILL_DIR}/rules/focus-keyboard-nav.md` | Roving tabindex, skip links, arrow keys |
+| Keyboard Navigation | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/focus-keyboard-nav.md` | Roving tabindex, skip links, arrow keys |
 
-Focus trap and restoration mechanics are upstream's job: use React Aria `<FocusScope contain restoreFocus autoFocus>` (see [Upstream coverage](#upstream-coverage-do-not-restate)). When React Aria is unavailable, copy `${CLAUDE_SKILL_DIR}/scripts/focus-trap-template.tsx`; the house rules for both live in `${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
+Focus trap and restoration mechanics are upstream's job: use React Aria `<FocusScope contain restoreFocus autoFocus>` (see [Upstream coverage](#upstream-coverage-do-not-restate)). When React Aria is unavailable, copy `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/scripts/focus-trap-template.tsx`; the house rules for both live in `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/references/ork-delta.md`.
 
 ## React Aria
 
@@ -106,10 +106,10 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Components | `${CLAUDE_SKILL_DIR}/rules/aria-components.md` | useButton, useDialog, useMenu, FocusScope |
-| Forms | `${CLAUDE_SKILL_DIR}/rules/aria-forms.md` | useComboBox, useTextField, useListBox |
+| Components | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/aria-components.md` | useButton, useDialog, useMenu, FocusScope |
+| Forms | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/aria-forms.md` | useComboBox, useTextField, useListBox |
 
-Overlay hook APIs (useModalOverlay, useTooltip, usePopover) are documented upstream (see [Upstream coverage](#upstream-coverage-do-not-restate)); the house overlay recipe (FocusScope plus shared motion presets) is in `${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
+Overlay hook APIs (useModalOverlay, useTooltip, usePopover) are documented upstream (see [Upstream coverage](#upstream-coverage-do-not-restate)); the house overlay recipe (FocusScope plus shared motion presets) is in `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/references/ork-delta.md`.
 
 ## Modern Web Accessibility
 
@@ -117,10 +117,10 @@ Overlay hook APIs (useModalOverlay, useTooltip, usePopover) are documented upstr
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Native HTML First | `${CLAUDE_SKILL_DIR}/rules/wcag-native-html-first.md` | `<dialog>`, `<details>`, native over custom ARIA |
-| User Preferences | `${CLAUDE_SKILL_DIR}/rules/wcag-user-preferences.md` | prefers-reduced-motion, forced-colors, prefers-contrast, zoom |
+| Native HTML First | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-native-html-first.md` | `<dialog>`, `<details>`, native over custom ARIA |
+| User Preferences | `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/rules/wcag-user-preferences.md` | prefers-reduced-motion, forced-colors, prefers-contrast, zoom |
 
-Cognitive inclusion (ADHD/autism/dyslexia support) is covered upstream by W3C COGA (see [Upstream coverage](#upstream-coverage-do-not-restate)); the house cognitive-load ceilings (notification cap, nav-item cap, reading-level targets) are in `${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
+Cognitive inclusion (ADHD/autism/dyslexia support) is covered upstream by W3C COGA (see [Upstream coverage](#upstream-coverage-do-not-restate)); the house cognitive-load ceilings (notification cap, nav-item cap, reading-level targets) are in `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/references/ork-delta.md`.
 
 ## Key Decisions
 
@@ -150,7 +150,7 @@ Cognitive inclusion (ADHD/autism/dyslexia support) is covered upstream by W3C CO
 
 ## Upstream coverage (do not restate)
 
-Vendor tutorials, API references, and criterion walkthroughs removed in the 2026-07-31 wrap-plus-delta thinning. Consult the first-party source; only the ork delta (floors, scars, house decisions) lives in `${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
+Vendor tutorials, API references, and criterion walkthroughs removed in the 2026-07-31 wrap-plus-delta thinning. Consult the first-party source; only the ork delta (floors, scars, house decisions) lives in `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/references/ork-delta.md`.
 
 | Topic | First-party source |
 |-------|--------------------|
@@ -165,10 +165,10 @@ Vendor tutorials, API references, and criterion walkthroughs removed in the 2026
 
 | Resource | Description |
 |----------|-------------|
-| `${CLAUDE_SKILL_DIR}/scripts/` | Templates: accessible form, focus trap, React Aria components |
-| `${CLAUDE_SKILL_DIR}/references/ork-delta.md` | Ork-specific floors, scars, and house decisions (cognitive ceilings, overlay recipe, canonical focus-trap selector) |
-| `${CLAUDE_SKILL_DIR}/references/ux-thresholds-quick.md` | UI/UX thresholds quick reference: contrast, touch targets, cognitive load, typography, forms |
-| `${CLAUDE_SKILL_DIR}/examples/wcag-examples.md` | Complete accessible form, modal, and navigation examples |
+| `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/scripts` | Templates: accessible form, focus trap, React Aria components |
+| `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/references/ork-delta.md` | Ork-specific floors, scars, and house decisions (cognitive ceilings, overlay recipe, canonical focus-trap selector) |
+| `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/references/ux-thresholds-quick.md` | UI/UX thresholds quick reference: contrast, touch targets, cognitive load, typography, forms |
+| `${CLAUDE_PLUGIN_ROOT}/skills/accessibility/examples/wcag-examples.md` | Complete accessible form, modal, and navigation examples |
 
 ## Related Skills
 

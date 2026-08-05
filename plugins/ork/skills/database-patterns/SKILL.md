@@ -47,7 +47,7 @@ Comprehensive patterns for database migrations, schema design, and version manag
 **Total: 10 rules across 5 categories**
 
 This skill is a wrap around Alembic and PostgreSQL, not a replacement for their
-docs. Read `${CLAUDE_SKILL_DIR}/references/ork-delta.md` first: it holds the
+docs. Read `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/references/ork-delta.md` first: it holds the
 version floors, corrections and house conventions that upstream does not carry.
 Everything in the table below was removed on purpose.
 
@@ -61,10 +61,10 @@ re-teaching them here.
 | Alembic autogenerate, async `env.py` template, `revision`/`upgrade`/`downgrade`/`history` CLI | https://alembic.sqlalchemy.org/en/latest/autogenerate.html (our one correction to the async template is in `references/ork-delta.md`) |
 | Migration branches, merge revisions, tuple `down_revision`, branch labels | https://alembic.sqlalchemy.org/en/latest/branches.html |
 | Multi-database `env.py`, batched backfill recipes, migration hooks, environment-conditional migrations | https://alembic.sqlalchemy.org/en/latest/cookbook.html |
-| Rollback and data-integrity test harnesses | `${CLAUDE_SKILL_DIR}/references/migration-testing.md` |
+| Rollback and data-integrity test harnesses | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/references/migration-testing.md` |
 | JSONB operators, indexing and storage tradeoffs | https://www.postgresql.org/docs/current/datatype-json.html (normal forms and the house denormalization call stay in `rules/schema-normalization.md`) |
 | Full index-type reference and syntax (B-tree, GIN, partial, covering, `CREATE INDEX CONCURRENTLY`, `REINDEX`) | https://www.postgresql.org/docs/current/sql-createindex.html (the house subset we actually apply stays in `rules/schema-indexing.md`) |
-| `lock_timeout`, `statement_timeout`, advisory locks during migration | https://www.postgresql.org/docs/current/runtime-config-client.html and `${CLAUDE_SKILL_DIR}/rules/versioning-drift.md` |
+| `lock_timeout`, `statement_timeout`, advisory locks during migration | https://www.postgresql.org/docs/current/runtime-config-client.html and `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/versioning-drift.md` |
 | Enum type changes | https://www.postgresql.org/docs/current/datatype-enum.html |
 | Table partitioning | https://www.postgresql.org/docs/current/ddl-partitioning.html |
 | Trigger functions | https://www.postgresql.org/docs/current/plpgsql-trigger.html |
@@ -105,11 +105,11 @@ Migration management with Alembic for SQLAlchemy 2.0 async applications.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Data Migration | `${CLAUDE_SKILL_DIR}/rules/alembic-data-migration.md` | Batch backfill, two-phase NOT NULL, zero-downtime |
-| Branching | `${CLAUDE_SKILL_DIR}/rules/alembic-branching.md` | Feature branches, merge migrations, conflict resolution |
+| Data Migration | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/alembic-data-migration.md` | Batch backfill, two-phase NOT NULL, zero-downtime |
+| Branching | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/alembic-branching.md` | Feature branches, merge migrations, conflict resolution |
 
 Autogenerate setup is upstream. Our one deviation from Alembic's async `env.py`
-template (the `in_greenlet()` guard) is in `${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
+template (the `in_greenlet()` guard) is in `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/references/ork-delta.md`.
 
 ## Schema Design
 
@@ -117,9 +117,9 @@ SQL and NoSQL schema design with normalization, indexing, and constraint pattern
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Normalization | `${CLAUDE_SKILL_DIR}/rules/schema-normalization.md` | 1NF-3NF, when to denormalize, JSON vs normalized |
-| Indexing | `${CLAUDE_SKILL_DIR}/rules/schema-indexing.md` | B-tree, GIN, HNSW, partial/covering indexes |
-| NoSQL Patterns | `${CLAUDE_SKILL_DIR}/rules/schema-nosql.md` | Embed vs reference, document design, sharding |
+| Normalization | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/schema-normalization.md` | 1NF-3NF, when to denormalize, JSON vs normalized |
+| Indexing | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/schema-indexing.md` | B-tree, GIN, HNSW, partial/covering indexes |
+| NoSQL Patterns | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/schema-nosql.md` | Embed vs reference, document design, sharding |
 
 ## Versioning
 
@@ -127,12 +127,12 @@ Database version control and change management across environments.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Changelog | `${CLAUDE_SKILL_DIR}/rules/versioning-changelog.md` | Schema version table, semantic versioning, audit trails |
-| Drift Detection | `${CLAUDE_SKILL_DIR}/rules/versioning-drift.md` | Environment sync, checksum verification, migration locks |
+| Changelog | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/versioning-changelog.md` | Schema version table, semantic versioning, audit trails |
+| Drift Detection | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/versioning-drift.md` | Environment sync, checksum verification, migration locks |
 
-Rollback testing lives in `${CLAUDE_SKILL_DIR}/references/migration-testing.md`;
+Rollback testing lives in `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/references/migration-testing.md`;
 the docstring convention for lossy downgrades is in
-`${CLAUDE_SKILL_DIR}/references/ork-delta.md`.
+`${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/references/ork-delta.md`.
 
 ## Database Selection
 
@@ -140,7 +140,7 @@ Decision frameworks for choosing the right database. Default: PostgreSQL.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Selection Guide | `${CLAUDE_SKILL_DIR}/rules/db-selection.md` | PostgreSQL-first, tier-based matrix, anti-patterns |
+| Selection Guide | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/db-selection.md` | PostgreSQL-first, tier-based matrix, anti-patterns |
 
 ## Key Decisions
 
@@ -186,13 +186,13 @@ command.stamp(alembic_config, "head")  # Loses history
 
 | Resource | Description |
 |----------|-------------|
-| `${CLAUDE_SKILL_DIR}/references/ork-delta.md` | Our corrections and house conventions. Read this first |
-| `${CLAUDE_SKILL_DIR}/references/migration-testing.md` | Upgrade/downgrade cycle and data-integrity test harnesses |
-| `${CLAUDE_SKILL_DIR}/references/postgres-vs-mongodb.md` | Head-to-head comparison behind the PostgreSQL-first default |
-| `${CLAUDE_SKILL_DIR}/references/db-migration-paths.md` | Cross-engine migration risk matrix |
-| `${CLAUDE_SKILL_DIR}/references/cost-comparison.md` | Managed database cost analysis |
-| `${CLAUDE_SKILL_DIR}/references/storage-and-cms.md` | Object storage and CMS selection |
-| `${CLAUDE_SKILL_DIR}/scripts/` | Migration template, model change detector |
+| `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/references/ork-delta.md` | Our corrections and house conventions. Read this first |
+| `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/references/migration-testing.md` | Upgrade/downgrade cycle and data-integrity test harnesses |
+| `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/references/postgres-vs-mongodb.md` | Head-to-head comparison behind the PostgreSQL-first default |
+| `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/references/db-migration-paths.md` | Cross-engine migration risk matrix |
+| `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/references/cost-comparison.md` | Managed database cost analysis |
+| `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/references/storage-and-cms.md` | Object storage and CMS selection |
+| `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/scripts` | Migration template, model change detector |
 
 ## Zero-Downtime Migration
 
@@ -200,8 +200,8 @@ Safe database schema changes without downtime using expand-contract pattern and 
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Expand-Contract | `${CLAUDE_SKILL_DIR}/rules/migration-zero-downtime.md` | Expand phase, backfill, contract phase, pgroll automation |
-| Rollback & Monitoring | `${CLAUDE_SKILL_DIR}/rules/migration-rollback.md` | pgroll rollback, lock monitoring, replication lag, backfill progress |
+| Expand-Contract | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/migration-zero-downtime.md` | Expand phase, backfill, contract phase, pgroll automation |
+| Rollback & Monitoring | `${CLAUDE_PLUGIN_ROOT}/skills/database-patterns/rules/migration-rollback.md` | pgroll rollback, lock monitoring, replication lag, backfill progress |
 
 ## Related Skills
 

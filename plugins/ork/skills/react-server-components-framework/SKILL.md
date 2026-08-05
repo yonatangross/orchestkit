@@ -155,7 +155,7 @@ export default async function PostPage({
 }
 ```
 
-**Note:** Also applies to `layout.tsx`, `generateMetadata()`, and route handlers. Complete migration guide: first-party `next-upgrade` / `vercel:next-upgrade` skill. House scars: `Read("${CLAUDE_SKILL_DIR}/references/ork-delta.md")`.
+**Note:** Also applies to `layout.tsx`, `generateMetadata()`, and route handlers. Complete migration guide: first-party `next-upgrade` / `vercel:next-upgrade` skill. House scars: `Read("${CLAUDE_PLUGIN_ROOT}/skills/react-server-components-framework/references/ork-delta.md")`.
 
 ### Dev Server (Next.js 16.2 LTS)
 
@@ -167,7 +167,7 @@ export default async function PostPage({
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/react-server-components-framework/references/<file>")`:
 | File | Content |
 |------|---------|
 | `ork-delta.md` | House rules and scars: fabricated-API corrections from PR #2143, React 19 house conventions (2026-07-31 distillation) |
@@ -265,4 +265,4 @@ After mastering React Server Components:
 
 Keyword and problem-mapping metadata for each RSC capability (react-19-patterns, use-hook-suspense, optimistic-updates-async, rsc-patterns, server-actions, data-fetching, streaming-ssr, caching, cache-components, tanstack-router-patterns, async-params, nextjs-16-upgrade).
 
-Load full capability details: `Read("${CLAUDE_SKILL_DIR}/references/capability-details.md")`
+Load full capability details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/react-server-components-framework/references/capability-details.md")`

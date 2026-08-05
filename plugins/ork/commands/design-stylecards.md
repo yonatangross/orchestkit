@@ -37,7 +37,7 @@ to avoid manifest sprawl.
 ### 1. Resolve the request to a recipe
 
 ```python
-Read("${CLAUDE_SKILL_DIR}/references/stylecards.md")   # The catalog — always read before choosing
+Read("${CLAUDE_PLUGIN_ROOT}/skills/design-stylecards/references/stylecards.md")   # The catalog — always read before choosing
 # Match the user's intent to ONE recipe by its Use-When line.
 # No match → say so and offer the closest two; never freehand values.
 ```

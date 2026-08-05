@@ -127,7 +127,7 @@ Decision test: would a regular Claude Code session finish this in five minutes? 
 need a workflow at all (the article's own first warning). Reach for one only for the long,
 parallel, structured, or adversarial classes above.
 
-**Committed templates in ork** (run via `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/workflows/<file>"})`):
+**Committed templates in ork** (run via `Workflow({scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/workflows/<file>"})`):
 
 | Template | Skill | Shape |
 |----------|-------|-------|

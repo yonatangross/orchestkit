@@ -59,7 +59,7 @@ const scored = await pipeline(
 Score 0-10 each:
 - freshness: no stale model IDs (Opus 4.6/4.7 cited as current), no CC version requirement below the floor, no drifting hardcoded counts
 - clarity: the YAML 'description' has clear trigger keywords + a "use when / NOT when"; a router could pick this skill correctly from intent alone
-- structure: valid frontmatter, body under ~500 lines, internal references resolve, no duplicate headings, no install-specific absolute paths (must use \${CLAUDE_SKILL_DIR}/\${CLAUDE_PLUGIN_ROOT})
+- structure: valid frontmatter, body under ~500 lines, internal references resolve, no duplicate headings, no install-specific absolute paths (must use \${CLAUDE_PLUGIN_ROOT})
 
 Set top_issue to the single biggest problem (or "none"). Strict grader — reserve 9-10 for genuinely exemplary.`,
     { label: `score:${s}`, phase: 'Score', schema: SCORE }

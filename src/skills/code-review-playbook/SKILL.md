@@ -41,7 +41,7 @@ This skill provides a comprehensive framework for effective code reviews that im
 ## Upstream coverage (do not restate)
 
 This skill is a thin wrapper. General review craft is documented first-party elsewhere;
-only OrchestKit's own decisions live here. Load `Read("${CLAUDE_SKILL_DIR}/references/ork-delta.md")`
+only OrchestKit's own decisions live here. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/code-review-playbook/references/ork-delta.md")`
 for the house rules that survived the retired files.
 
 | Topic | Go here instead |
@@ -67,7 +67,7 @@ security [blocking]: API endpoint is not authenticated
 The /api/admin/users endpoint is missing auth middleware.
 ```
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/conventional-comments.md")` for the full format, labels (praise, nitpick, suggestion, issue, question, security, bug, breaking), decorations ([blocking], [non-blocking], [if-minor]), and examples.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/code-review-playbook/references/conventional-comments.md")` for the full format, labels (praise, nitpick, suggestion, issue, question, security, bug, breaking), decorations ([blocking], [non-blocking], [if-minor]), and examples.
 
 ---
 

@@ -27,7 +27,7 @@ Comprehensive patterns for building reliable distributed systems. Each category 
 | [Edge Computing](#edge-computing) | 2 | HIGH | Edge workers, V8 isolates, CDN caching, geo-routing |
 | [Event-Driven](#event-driven) | 2 | HIGH | Event sourcing, CQRS, transactional outbox, sagas |
 
-**Total: 11 rules across 6 categories.** Removed topics point at first-party sources in [Upstream coverage](#upstream-coverage-do-not-restate); ork-specific scars live in `$\{CLAUDE_SKILL_DIR\}/references/ork-delta.md`.
+**Total: 11 rules across 6 categories.** Removed topics point at first-party sources in [Upstream coverage](#upstream-coverage-do-not-restate); ork-specific scars live in `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/references/ork-delta.md`.
 
 ## Quick Start
 
@@ -62,7 +62,7 @@ Coordinate exclusive access to resources across multiple service instances.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Fencing Tokens | `$\{CLAUDE_SKILL_DIR\}/rules/locks-fencing-tokens.md` | Owner validation, TTL, heartbeat extension |
+| Fencing Tokens | `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/rules/locks-fencing-tokens.md` | Owner validation, TTL, heartbeat extension |
 
 Redis single-node locks, Redlock quorum, and PostgreSQL advisory locks are first-party documented; see [Upstream coverage](#upstream-coverage-do-not-restate).
 
@@ -72,9 +72,9 @@ Production-grade fault tolerance for distributed systems.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Circuit Breaker | `$\{CLAUDE_SKILL_DIR\}/rules/resilience-circuit-breaker.md` | CLOSED/OPEN/HALF_OPEN states, sliding window |
-| Retry & Backoff | `$\{CLAUDE_SKILL_DIR\}/rules/resilience-retry-backoff.md` | Exponential backoff, jitter, error classification |
-| Bulkhead Isolation | `$\{CLAUDE_SKILL_DIR\}/rules/resilience-bulkhead.md` | Semaphore tiers, rejection policies, queue depth |
+| Circuit Breaker | `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/rules/resilience-circuit-breaker.md` | CLOSED/OPEN/HALF_OPEN states, sliding window |
+| Retry & Backoff | `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/rules/resilience-retry-backoff.md` | Exponential backoff, jitter, error classification |
+| Bulkhead Isolation | `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/rules/resilience-bulkhead.md` | Semaphore tiers, rejection policies, queue depth |
 
 ## Idempotency
 
@@ -82,7 +82,7 @@ Ensure operations can be safely retried without unintended side effects.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Idempotency Keys | `$\{CLAUDE_SKILL_DIR\}/rules/idempotency-keys.md` | Deterministic hashing, Stripe-style headers |
+| Idempotency Keys | `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/rules/idempotency-keys.md` | Deterministic hashing, Stripe-style headers |
 
 Event-consumer dedup and database-backed idempotency storage follow the Stripe pattern; see [Upstream coverage](#upstream-coverage-do-not-restate).
 
@@ -92,8 +92,8 @@ Protect APIs with distributed rate limiting using Redis.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Token Bucket | `$\{CLAUDE_SKILL_DIR\}/rules/ratelimit-token-bucket.md` | Redis Lua scripts, burst capacity, refill rate |
-| Sliding Window | `$\{CLAUDE_SKILL_DIR\}/rules/ratelimit-sliding-window.md` | Sorted sets, precise counting, no boundary spikes |
+| Token Bucket | `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/rules/ratelimit-token-bucket.md` | Redis Lua scripts, burst capacity, refill rate |
+| Sliding Window | `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/rules/ratelimit-sliding-window.md` | Sorted sets, precise counting, no boundary spikes |
 
 SlowAPI + Redis wiring and tiered limits are first-party documented; see [Upstream coverage](#upstream-coverage-do-not-restate).
 
@@ -103,8 +103,8 @@ Edge runtime patterns for Cloudflare Workers, Vercel Edge, and Deno Deploy.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Edge Workers | `$\{CLAUDE_SKILL_DIR\}/rules/edge-workers.md` | V8 isolate constraints, Web APIs, geo-routing, auth at edge |
-| Edge Caching | `$\{CLAUDE_SKILL_DIR\}/rules/edge-caching.md` | Cache-aside at edge, CDN headers, KV storage, stale-while-revalidate |
+| Edge Workers | `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/rules/edge-workers.md` | V8 isolate constraints, Web APIs, geo-routing, auth at edge |
+| Edge Caching | `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/rules/edge-caching.md` | Cache-aside at edge, CDN headers, KV storage, stale-while-revalidate |
 
 ## Event-Driven
 
@@ -112,12 +112,12 @@ Event sourcing, CQRS, saga orchestration, and reliable messaging patterns.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Event Sourcing | `$\{CLAUDE_SKILL_DIR\}/rules/event-sourcing.md` | Event-sourced aggregates, CQRS read models, optimistic concurrency |
-| Event Messaging | `$\{CLAUDE_SKILL_DIR\}/rules/event-messaging.md` | Transactional outbox, saga compensation, idempotent consumers |
+| Event Sourcing | `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/rules/event-sourcing.md` | Event-sourced aggregates, CQRS read models, optimistic concurrency |
+| Event Messaging | `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/rules/event-messaging.md` | Transactional outbox, saga compensation, idempotent consumers |
 
 ## Upstream coverage (do not restate)
 
-These topics were removed from this skill on 2026-07-31 (wrap-plus-delta thinning) because a first-party source maintains them. Consult the source; do not re-add tutorials here. Ork-specific scars for these topics live in `$\{CLAUDE_SKILL_DIR\}/references/ork-delta.md`.
+These topics were removed from this skill on 2026-07-31 (wrap-plus-delta thinning) because a first-party source maintains them. Consult the source; do not re-add tutorials here. Ork-specific scars for these topics live in `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/references/ork-delta.md`.
 
 | Topic | First-party source |
 |-------|--------------------|
@@ -193,8 +193,8 @@ request_counts = {}  # Lost on restart, not shared across instances
 
 | Resource | Description |
 |----------|-------------|
-| `$\{CLAUDE_SKILL_DIR\}/scripts/` | Templates: lock implementations, circuit breaker, rate limiter |
-| `$\{CLAUDE_SKILL_DIR\}/references/ork-delta.md` | Ork-specific scars and house decisions kept after the wrap-plus-delta thinning |
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/scripts` | Templates: lock implementations, circuit breaker, rate limiter |
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/distributed-systems/references/ork-delta.md` | Ork-specific scars and house decisions kept after the wrap-plus-delta thinning |
 
 ## Related Skills
 

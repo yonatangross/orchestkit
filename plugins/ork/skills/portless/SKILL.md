@@ -25,7 +25,7 @@ metadata:
 
 Named `.localhost` URLs for local development. Replaces `localhost:3000` with `https://myapp.localhost`.
 
-> **Full CLI reference**: Load `Read("${CLAUDE_SKILL_DIR}/references/upstream.md")` for complete command docs.
+> **Full CLI reference**: Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/portless/references/upstream.md")` for complete command docs.
 
 ## New in 2026-04 → 2026-07 (portless 0.10.x → 0.15.0)
 
@@ -92,7 +92,7 @@ portless service uninstall
 
 ## Framework-Specific Setup
 
-> Load `Read("${CLAUDE_SKILL_DIR}/references/framework-integration.md")` for full framework recipes.
+> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/portless/references/framework-integration.md")` for full framework recipes.
 
 Most frameworks (Next.js, Vite, Express) work with `portless run <cmd>`. Some need explicit flags:
 

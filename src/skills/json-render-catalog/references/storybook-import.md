@@ -34,7 +34,7 @@ Storybook stories
    ```
 3. Generate the catalog:
    ```bash
-   node "${CLAUDE_SKILL_DIR}/scripts/storybook-to-catalog.mjs" \
+   node "${CLAUDE_PLUGIN_ROOT}/skills/json-render-catalog/scripts/storybook-to-catalog.mjs" \
      storybook-manifest.json \
      --out src/genui/catalog.ts
    ```

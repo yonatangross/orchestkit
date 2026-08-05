@@ -109,4 +109,4 @@ If a worktree spawned via `EnterWorktree`, `--worktree`, or an agent run with `i
 
 After adding the setting, spawn a fresh worktree — the new one will branch from local `HEAD` and include your unpushed commits. Existing worktrees that were created without the setting need to be recreated; you can recover their work by cherry-picking commits from the original branch first.
 
-See `${CLAUDE_SKILL_DIR}/../chain-patterns/references/worktree-agent-pattern.md` for the full agent-isolation context, and `${CLAUDE_SKILL_DIR}/../configure/references/cc-version-settings.md` (CC 2.1.133 section) for the upstream change description.
+See `${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/worktree-agent-pattern.md` for the full agent-isolation context, and `${CLAUDE_PLUGIN_ROOT}/skills/configure/references/cc-version-settings.md` (CC 2.1.133 section) for the upstream change description.

@@ -219,7 +219,7 @@ Agent(
   4. Use agent-browser to screenshot each route (max 20)
   5. Read each screenshot PNG for AI vision evaluation
   6. Score layout, accessibility, content completeness (0-10 per route)
-  7. Read gallery template from ${CLAUDE_SKILL_DIR}/assets/gallery-template.html
+  7. Read gallery template from ${CLAUDE_PLUGIN_ROOT}/skills/verify/assets/gallery-template.html
   8. Generate gallery.html with base64-embedded screenshots
   9. Write to verification-output/{timestamp}/gallery.html
   10. Kill dev server

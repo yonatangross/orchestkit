@@ -26,9 +26,9 @@ It answers: "Do my specialized agents get spawned, or does the model default to 
 
 | Category | File | Impact | When to Use |
 |----------|------|--------|-------------|
-| Activation Checks | `$\{CLAUDE_SKILL_DIR\}/rules/activation-checks.md` | HIGH | What to compute per agent |
-| Classification | `$\{CLAUDE_SKILL_DIR\}/rules/activation-status.md` | HIGH | fires / mis-triggered / niche / dead buckets |
-| Output Format | `$\{CLAUDE_SKILL_DIR\}/references/output-format.md` | MEDIUM | Report layout + the spawn-split summary |
+| Activation Checks | `$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-activation/rules/activation-checks.md` | HIGH | What to compute per agent |
+| Classification | `$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-activation/rules/activation-status.md` | HIGH | fires / mis-triggered / niche / dead buckets |
+| Output Format | `$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-activation/references/output-format.md` | MEDIUM | Report layout + the spawn-split summary |
 
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
@@ -48,15 +48,15 @@ TaskUpdate(taskId="4", addBlockedBy=["3"])
 1. **Run the script FIRST** — every audit starts by running (or, when execution is impossible, explicitly referencing) the deterministic collector:
 
    ```bash
-   bash "${CLAUDE_SKILL_DIR}/scripts/run-activation-audit.sh"   # add --json for machine output
+   bash "${CLAUDE_PLUGIN_ROOT}/skills/audit-activation/scripts/run-activation-audit.sh"   # add --json for machine output
    ```
 
    It reads the spawn telemetry, joins it against `src/agents/`, and prints the split, per-agent fire counts, never-fired list, and top-5 concentration. Never eyeball the JSONL by hand when the script exists.
 2. **Inventory** — Glob `src/agents/*.md` (exclude README/INDEX/CONTRIBUTING) for the catalog.
 3. **Read telemetry** — the FRESH stream is `.claude/logs/subagent-spawns.jsonl` (writers: `pretool/task/spawn-intent-logger` + `subagent-start/subagent-validator`). The legacy `~/.claude/analytics/agent-usage.jsonl` is DEAD (orphaned in a refactor) — never read it.
-4. **Compute** — all checks from `Read("$\{CLAUDE_SKILL_DIR\}/rules/activation-checks.md")`; the Report Contract below lists the mandatory ones.
-5. **Classify** — bucket every agent using the Four Buckets below (full procedure: `Read("$\{CLAUDE_SKILL_DIR\}/rules/activation-status.md")`).
-6. **Render** — output per `Read("$\{CLAUDE_SKILL_DIR\}/references/output-format.md")`, satisfying the Report Contract.
+4. **Compute** — all checks from `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-activation/rules/activation-checks.md")`; the Report Contract below lists the mandatory ones.
+5. **Classify** — bucket every agent using the Four Buckets below (full procedure: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-activation/rules/activation-status.md")`).
+6. **Render** — output per `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-activation/references/output-format.md")`, satisfying the Report Contract.
 
 ## Report Contract (every audit MUST include all six)
 

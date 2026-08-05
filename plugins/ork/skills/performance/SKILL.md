@@ -323,7 +323,7 @@ These topics used to be restated in this skill's references, checklists, and exa
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/performance/references/<file>")`:
 | File | Content |
 |------|---------|
 | `ork-delta.md` | OrchestKit floors, scars, and house decisions for this skill |

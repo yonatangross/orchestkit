@@ -79,7 +79,7 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 ### Batch Size Governance (large refactors)
 
-For implementations touching **>10 files**, enforce max 5 files per agent batch, run tests between batches, commit green batches immediately, stop on red. Override via `--batch-size N`. Full rule: `Read("$\{CLAUDE_SKILL_DIR\}/rules/batch-governance.md")`.
+For implementations touching **>10 files**, enforce max 5 files per agent batch, run tests between batches, commit green batches immediately, stop on red. Override via `--batch-size N`. Full rule: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/rules/batch-governance.md")`.
 
 ### Budget Awareness (Opus 5 task budgets, public beta)
 
@@ -137,7 +137,7 @@ Read the `/effort` setting to scale implementation depth. The effort-aware conte
 
 Scan codebase signals and classify into tiers 1-6 (Interview through Open Source). Each tier sets an architecture ceiling and determines which phases/agents to use.
 
-Load tier details, workflow mapping, and orchestration mode: `Read("$\{CLAUDE_SKILL_DIR\}/references/tier-classification.md")`
+Load tier details, workflow mapping, and orchestration mode: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/tier-classification.md")`
 
 ### Worktree Isolation (CC 2.1.49)
 
@@ -187,13 +187,13 @@ If worktree selected:
 3. On completion, merge back: `git checkout \{original-branch\} && git merge feat-\{slug\}`
 4. If merge conflicts arise, present diff to user via `AskUserQuestion`
 
-Load worktree details: `Read("$\{CLAUDE_SKILL_DIR\}/references/worktree-isolation-mode.md")`
+Load worktree details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/worktree-isolation-mode.md")`
 
 ---
 
 ## Step 0b: Blast-Radius Clarification (ask "what" before "how")
 
-Before Phase 1, resolve the unknowns whose answers would **change the architecture**, in blast-radius order — schema/migration → auth → API contract → perf/scale → cosmetics (last). Grep first, then `AskUserQuestion` one at a time (highest first, cap ~5, skip the obvious). Each answer becomes a row in a Decisions table written to `.claude/chain/decisions.json` and the PR body, feeding Phase 4 (Architecture) as constraints. Do NOT start Phase 1 with an unresolved schema/auth question; skip in `low` effort. Full protocol: `Read("$\{CLAUDE_SKILL_DIR\}/references/blast-radius-clarification.md")`.
+Before Phase 1, resolve the unknowns whose answers would **change the architecture**, in blast-radius order — schema/migration → auth → API contract → perf/scale → cosmetics (last). Grep first, then `AskUserQuestion` one at a time (highest first, cap ~5, skip the obvious). Each answer becomes a row in a Decisions table written to `.claude/chain/decisions.json` and the PR body, feeding Phase 4 (Architecture) as constraints. Do NOT start Phase 1 with an unresolved schema/auth question; skip in `low` effort. Full protocol: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/blast-radius-clarification.md")`.
 
 ---
 
@@ -240,19 +240,19 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 | Phase | Activities | Agents |
 |-------|------------|--------|
 | **1. Discovery** | Research best practices, Context7 docs, break into tasks | — |
-| **2. Micro-Planning** | Detailed plan per task (load `$\{CLAUDE_SKILL_DIR\}/references/micro-planning-guide.md`) | — |
-| **3. Worktree** | Isolate in git worktree for 5+ file features (load `$\{CLAUDE_SKILL_DIR\}/references/worktree-workflow.md`) | — |
+| **2. Micro-Planning** | Detailed plan per task (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/micro-planning-guide.md`) | — |
+| **3. Worktree** | Isolate in git worktree for 5+ file features (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/worktree-workflow.md`) | — |
 | **4. Architecture** | 4 parallel background agents (+ event-driven-architect when event/CQRS/queue-shaped) | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator |
 | **5. Implementation + Tests** | Parallel agents, single-pass artifacts with mandatory tests | backend-system-architect, frontend-ui-developer, llm-integrator, test-generator |
 | **6. Integration Verification** | Code review + real-service integration tests | backend, frontend, code-quality-reviewer, security-auditor |
-| **7. Scope Creep** | Compare planned vs actual (load `$\{CLAUDE_SKILL_DIR\}/references/scope-creep-detection.md`) | workflow-architect |
-| **8. E2E Verification** | Browser + API E2E testing (load `$\{CLAUDE_SKILL_DIR\}/references/e2e-verification.md`) | — |
+| **7. Scope Creep** | Compare planned vs actual (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/scope-creep-detection.md`) | workflow-architect |
+| **8. E2E Verification** | Browser + API E2E testing (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/e2e-verification.md`) | — |
 | **9. Documentation** | Save decisions to memory graph | — |
 | **10. Reflection** | Lessons learned, estimation accuracy | workflow-architect |
 
-Load agent prompts: `Read("$\{CLAUDE_SKILL_DIR\}/references/agent-phases.md")`
+Load agent prompts: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/agent-phases.md")`
 
-For Agent Teams mode: `Read("$\{CLAUDE_SKILL_DIR\}/references/agent-teams-phases.md")`
+For Agent Teams mode: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/agent-teams-phases.md")`
 > **Nested delegation (CC 2.1.172+):** Phase 4-6 specialist agents MAY be instructed to delegate a bounded sub-problem to their own declared sub-agents (e.g. backend-system-architect → database-engineer for schema design) instead of doing everything inline. Keep chains ≤ 3 levels deep; when sub-tasks are independent, flatten to parallel dispatch from this orchestrator. See chain-patterns Pattern 9 (CC 2.1.172+).
 
 ### Phase Handoffs (CC 2.1.71)
@@ -348,7 +348,7 @@ If working on a GitHub issue, run the Start Work ceremony from `issue-progress-t
 
 ### Feedback Loop
 
-Maintain checkpoints after each task. Load triggers: `Read("$\{CLAUDE_SKILL_DIR\}/references/feedback-loop.md")`
+Maintain checkpoints after each task. Load triggers: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/feedback-loop.md")`
 
 ---
 
@@ -356,7 +356,7 @@ Maintain checkpoints after each task. Load triggers: `Read("$\{CLAUDE_SKILL_DIR\
 
 Phase 5 test-generator MUST produce tests matching the change type. Each change type maps to specific required tests and testing rules.
 
-Load test matrix, real-service detection, and phase 9 gate: `Read("$\{CLAUDE_SKILL_DIR\}/references/test-requirements-matrix.md")`
+Load test matrix, real-service detection, and phase 9 gate: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/test-requirements-matrix.md")`
 
 ---
 
@@ -463,7 +463,7 @@ Done means all of these hold:
 
 ## References
 
-Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/&lt;file&gt;")`:
 
 | File | Content |
 |------|---------|
@@ -2948,7 +2948,7 @@ Scan codebase for: README keywords (take-home, interview), `.github/workflows/`,
 
 | Signal | Tier | Architecture Ceiling |
 |--------|------|---------------------|
-| README says "take-home", time limit | **1. Interview** (load `$\{CLAUDE_SKILL_DIR\}/references/interview-mode.md`) | Flat files, 8-15 files |
+| README says "take-home", time limit | **1. Interview** (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/interview-mode.md`) | Flat files, 8-15 files |
 | &lt; 10 files, no CI | **2. Hackathon** | Single file if possible |
 | `.github/workflows/`, managed DB | **3. MVP** | MVC monolith |
 | Module boundaries, Redis, queues | **4. Growth** | Modular monolith, DI |
@@ -2973,7 +2973,7 @@ Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only
 
 - Agent Teams (mesh) when complexity >= 2.5 (GA since CC 2.1.33)
 - Task tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
-- Load orchestration modes: `Read("$\{CLAUDE_SKILL_DIR\}/references/orchestration-modes.md")`
+- Load orchestration modes: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/orchestration-modes.md")`
 
 ## Tier Override
 

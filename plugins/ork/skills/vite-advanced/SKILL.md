@@ -62,7 +62,7 @@ Library mode is not in the table: `references/library-mode.md` and
 
 ## House delta
 
-Read `${CLAUDE_SKILL_DIR}/references/ork-delta.md` for the rules Vite's docs do not
+Read `${CLAUDE_PLUGIN_ROOT}/skills/vite-advanced/references/ork-delta.md` for the rules Vite's docs do not
 state: the Vite 8 adoption path for existing production apps, the `VITE_` secrets
 rule, the production sourcemap setting, the house build budget, the `vite preview`
 gate, chunk-name stability across the `advancedChunks` migration, the visualizer
@@ -142,7 +142,7 @@ rm -rf node_modules/.vite && vite --force
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/vite-advanced/references/<file>")`:
 
 | File | Content |
 |------|---------|

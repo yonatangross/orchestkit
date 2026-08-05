@@ -207,4 +207,4 @@ sum(rate(claude_code.pull_request.count[5m])) by (provider)
 
 (In practice, hold a separate counter in your collector that increments only on `claude_code.tool.use{tool=~"mcp__.*"}` co-occurring with a PR-creation event.)
 
-**See also**: `${CLAUDE_SKILL_DIR}/../telemetry-inspect/SKILL.md` and `${CLAUDE_SKILL_DIR}/../configure/references/cc-version-settings.md` (CC 2.1.129 section) for the upstream changelog reference.
+**See also**: `${CLAUDE_PLUGIN_ROOT}/skills/telemetry-inspect/SKILL.md` and `${CLAUDE_PLUGIN_ROOT}/skills/configure/references/cc-version-settings.md` (CC 2.1.129 section) for the upstream changelog reference.

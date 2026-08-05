@@ -129,18 +129,31 @@ for (const t of all) {
     }
 
     // C3 — install-path portability: absolute /Users/ paths or hardcoded
-    // plugins/ork/skills/<name>/ (should be ${CLAUDE_SKILL_DIR} same-skill /
-    // ${CLAUDE_PLUGIN_ROOT} cross-skill). Skips the *-glob and already-portable lines.
-    // /Users/<real-name>/ is a non-portable author path; placeholder usernames
-    // (foo/dev/john/me/you/…) and docs-about-paths are illustrative — skip them.
+    // plugins/ork/skills/<name>/ paths. The portable form is
+    // ${CLAUDE_PLUGIN_ROOT}/skills/<name>/... for BOTH same-skill and
+    // cross-skill references.
+    //
+    // This rule used to recommend ${CLAUDE_SKILL_DIR} for same-skill paths.
+    // That placeholder does not exist: Claude Code documents exactly three path
+    // substitutions — CLAUDE_PLUGIN_ROOT, CLAUDE_PLUGIN_DATA, CLAUDE_PROJECT_DIR
+    // — and SKILL_DIR is not among them, so it was delivered to the model as a
+    // literal string and never resolved. Reported externally as #3083 after it
+    // had reached 442 references across 68 skills, growing partly BECAUSE this
+    // lint recommended it. Keep the recommendation and the codebase in agreement.
     const PLACEHOLDER = /\/Users\/(foo|bar|baz|john|jane|dev|me|you|user|username|alice|bob|example|test)\b/i;
-    if (!/\$\{CLAUDE_(SKILL_DIR|PLUGIN_ROOT)\}/.test(line)) {
+    if (!/\$\{CLAUDE_PLUGIN_ROOT\}/.test(line)) {
       // case-SENSITIVE: /Users/ is the macOS home dir; /users/ is a REST resource path (not a bug)
       if (/\/Users\/[A-Za-z0-9._-]+\//.test(line) && !PLACEHOLDER.test(line)) {
-        add('C3-install-path', t, lineno, 'absolute /Users/ path — non-portable; use ${CLAUDE_SKILL_DIR}/${CLAUDE_PLUGIN_ROOT} (or ~ for home paths)');
+        add('C3-install-path', t, lineno, 'absolute /Users/ path — non-portable; use ${CLAUDE_PLUGIN_ROOT}/skills/<name>/ (or ~ for home paths)');
       } else if (/plugins\/ork\/skills\/[a-z0-9-]+\//i.test(line) && !/plugins\/ork\/skills\/\*/.test(line)) {
-        add('C3-install-path', t, lineno, 'hardcoded plugins/ork/skills/<name>/ path — use ${CLAUDE_SKILL_DIR} (same-skill) or ${CLAUDE_PLUGIN_ROOT}/skills (cross-skill)');
+        add('C3-install-path', t, lineno, 'hardcoded plugins/ork/skills/<name>/ path — use ${CLAUDE_PLUGIN_ROOT}/skills/<name>/');
       }
+    }
+
+    // C3b — the invented placeholder itself. Fail on any reintroduction, or the
+    // 442-reference sweep silently grows back one skill at a time.
+    if (/\$\{CLAUDE_SKILL_DIR\}/.test(line)) {
+      add('C3-install-path', t, lineno, '${CLAUDE_SKILL_DIR} is not a Claude Code placeholder and is never expanded — use ${CLAUDE_PLUGIN_ROOT}/skills/<name>/');
     }
   });
 }

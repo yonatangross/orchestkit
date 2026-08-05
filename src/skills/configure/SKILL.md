@@ -162,7 +162,7 @@ Add to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist across sessions
 
 ## Steps 6-9: CC Version-Specific Settings
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/cc-version-settings.md")` for full configuration options.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/cc-version-settings.md")` for full configuration options.
 
 Covers CC 2.1.7 (MCP deferral threshold, effective context window), CC 2.1.20 (task deletion, PR enrichment, agent permissions, monorepo detection, team distribution), CC 2.1.23 (spinner verbs customization), and CC 2.1.79 (turn duration display).
 
@@ -226,7 +226,7 @@ Two channels now active:
 
 Save webhookUrl to config and remind about env var (same as above, skip generator step).
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/http-hooks.md")` for architecture details.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/http-hooks.md")` for architecture details.
 
 ## Step 11: Preview & Save
 
@@ -255,7 +255,7 @@ VSCode users can run `/remote-control` to bridge their terminal session to `clau
 - `ork:doctor`: Diagnose configuration issues
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/presets.md` | Preset definitions |

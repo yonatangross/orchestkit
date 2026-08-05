@@ -646,7 +646,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Select Orchestration Mode",
-            "does": "Load details: Read(\"${CLAUDE_SKILL_DIR}/references/orchestration-mode.md\") for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.",
+            "does": "Load details: Read(\"${CLAUDE_PLUGIN_ROOT}/skills/assess/references/orchestration-mode.md\") for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.",
             "out": null,
             "tag": null
           }
@@ -950,7 +950,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "2",
             "label": "Load Codebase into Context",
-            "does": "Load: Read(\"${CLAUDE_SKILL_DIR}/references/report-structure.md\") for loading strategy, inclusion patterns by language (TS/JS, Python, Config), and batch reading patterns.",
+            "does": "Load: Read(\"${CLAUDE_PLUGIN_ROOT}/skills/audit-full/references/report-structure.md\") for loading strategy, inclusion patterns by language (TS/JS, Python, Config), and batch reading patterns.",
             "out": null,
             "tag": null
           },
@@ -971,7 +971,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "4",
             "label": "Generate Report",
-            "does": "Load the report template: Read(\"${CLAUDE_SKILL_DIR}/assets/audit-report-template.md\").",
+            "does": "Load the report template: Read(\"${CLAUDE_PLUGIN_ROOT}/skills/audit-full/assets/audit-report-template.md\").",
             "out": null,
             "tag": null
           }
@@ -1968,7 +1968,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP -0.5",
             "label": "Effort-Aware Coverage Scaling",
-            "does": "Read ${CLAUDE_EFFORT} (CC 2.1.120+) first; explicit --effort= token wins as override. Default high when CC < 2.1.120 and no flag. Pattern matches assess + explore (#1540). Scale test generation depth:",
+            "does": "Read $CLAUDE_EFFORT (CC 2.1.120+) first; explicit --effort= token wins as override. Default high when CC < 2.1.120 and no flag. Pattern matches assess + explore (#1540). Scale test generation depth:",
             "out": null,
             "tag": null
           },
@@ -2068,14 +2068,14 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "1",
             "label": "Pre-Flight Checks",
-            "does": "Load: Read(\"${CLAUDE_SKILL_DIR}/rules/preflight-validation.md\") for the full checklist.",
+            "does": "Load: Read(\"${CLAUDE_PLUGIN_ROOT}/skills/create-pr/rules/preflight-validation.md\") for the full checklist.",
             "out": null,
             "tag": null
           },
           {
             "num": "2",
             "label": "Parallel Validation",
-            "does": "Launch agents in ONE message. Load Read(\"${CLAUDE_SKILL_DIR}/references/parallel-validation.md\") for full agent configs.",
+            "does": "Launch agents in ONE message. Load Read(\"${CLAUDE_PLUGIN_ROOT}/skills/create-pr/references/parallel-validation.md\") for full agent configs.",
             "out": null,
             "tag": null
           },
@@ -2096,7 +2096,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "4",
             "label": "Create PR",
-            "does": "Follow Read(\"${CLAUDE_SKILL_DIR}/rules/pr-title-format.md\") and Read(\"${CLAUDE_SKILL_DIR}/rules/pr-body-structure.md\"). Use HEREDOC pattern from Read(\"${CLAUDE_SKILL_DIR}/references/pr-body-templates.md\").",
+            "does": "Follow Read(\"${CLAUDE_PLUGIN_ROOT}/skills/create-pr/rules/pr-title-format.md\") and Read(\"${CLAUDE_PLUGIN_ROOT}/skills/create-pr/rules/pr-body-structure.md\"). Use HEREDOC pattern from Read(\"${CLAUDE_PLUGIN_ROOT}/skills/create-pr/references/pr-body-templates.md\").",
             "out": null,
             "tag": null
           },
@@ -3367,7 +3367,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP -0.5",
             "label": "Effort-Aware Agent Scaling",
-            "does": "Read ${CLAUDE_EFFORT} to scale exploration depth before any other decision.",
+            "does": "Read $CLAUDE_EFFORT to scale exploration depth before any other decision.",
             "out": null,
             "tag": null
           },
@@ -3549,7 +3549,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Select Orchestration Mode",
-            "does": "Choose Agent Teams (mesh) or Task tool (star). Load Read(\"${CLAUDE_SKILL_DIR}/references/agent-selection.md\") for the selection criteria, cost comparison, and task creation patterns.",
+            "does": "Choose Agent Teams (mesh) or Task tool (star). Load Read(\"${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/agent-selection.md\") for the selection criteria, cost comparison, and task creation patterns.",
             "out": null,
             "tag": null
           }
@@ -3952,7 +3952,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Blast-Radius Clarification",
-            "does": "Before Phase 1, resolve the unknowns whose answers would change the architecture, in blast-radius order — schema/migration → auth → API contract → perf/scale → cosmetics (last). Grep first, then AskUserQuestion one at a time (highest first, cap ~5, skip the obvious). Each answer becomes a row in a Decisions table written to .claude/chain/decisions.json and the PR body, feeding Phase 4 (Architecture) as constraints. Do NOT start Phase 1 with an unresolved schema/auth question; skip in low effort. Full protocol: Read(\"${CLAUDE_SKILL_DIR}/references/blast-radius-clarification.md\").",
+            "does": "Before Phase 1, resolve the unknowns whose answers would change the architecture, in blast-radius order — schema/migration → auth → API contract → perf/scale → cosmetics (last). Grep first, then AskUserQuestion one at a time (highest first, cap ~5, skip the obvious). Each answer becomes a row in a Decisions table written to .claude/chain/decisions.json and the PR body, feeding Phase 4 (Architecture) as constraints. Do NOT start Phase 1 with an unresolved schema/auth question; skip in low effort. Full protocol: Read(\"${CLAUDE_PLUGIN_ROOT}/skills/implement/references/blast-radius-clarification.md\").",
             "out": null,
             "tag": null
           }
@@ -3972,14 +3972,14 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "2",
             "label": "Micro-Planning",
-            "does": "Detailed plan per task (load ${CLAUDE_SKILL_DIR}/references/micro-planning-guide.md)",
+            "does": "Detailed plan per task (load ${CLAUDE_PLUGIN_ROOT}/skills/implement/references/micro-planning-guide.md)",
             "out": "—",
             "tag": null
           },
           {
             "num": "3",
             "label": "Worktree",
-            "does": "Isolate in git worktree for 5+ file features (load ${CLAUDE_SKILL_DIR}/references/worktree-workflow.md)",
+            "does": "Isolate in git worktree for 5+ file features (load ${CLAUDE_PLUGIN_ROOT}/skills/implement/references/worktree-workflow.md)",
             "out": "—",
             "tag": null
           },
@@ -4007,14 +4007,14 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "7",
             "label": "Scope Creep",
-            "does": "Compare planned vs actual (load ${CLAUDE_SKILL_DIR}/references/scope-creep-detection.md)",
+            "does": "Compare planned vs actual (load ${CLAUDE_PLUGIN_ROOT}/skills/implement/references/scope-creep-detection.md)",
             "out": "workflow-architect",
             "tag": null
           },
           {
             "num": "8",
             "label": "E2E Verification",
-            "does": "Browser + API E2E testing (load ${CLAUDE_SKILL_DIR}/references/e2e-verification.md)",
+            "does": "Browser + API E2E testing (load ${CLAUDE_PLUGIN_ROOT}/skills/implement/references/e2e-verification.md)",
             "out": "—",
             "tag": null
           },
@@ -6122,7 +6122,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Select Orchestration Mode",
-            "does": "Load orchestration guidance: Read(\"${CLAUDE_SKILL_DIR}/references/orchestration-mode-selection.md\")",
+            "does": "Load orchestration guidance: Read(\"${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/orchestration-mode-selection.md\")",
             "out": null,
             "tag": null
           }
@@ -6163,7 +6163,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "4",
             "label": "Run Validation",
-            "does": "Load validation commands: Read(\"${CLAUDE_SKILL_DIR}/references/validation-commands.md\")",
+            "does": "Load validation commands: Read(\"${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/validation-commands.md\")",
             "out": null,
             "tag": null
           },
@@ -6177,7 +6177,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "5",
             "label": "Synthesize Review",
-            "does": "Combine all agent feedback into a structured report. Load template: Read(\"${CLAUDE_SKILL_DIR}/references/review-report-template.md\")",
+            "does": "Combine all agent feedback into a structured report. Load template: Read(\"${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/review-report-template.md\")",
             "out": null,
             "tag": null
           },
@@ -7263,7 +7263,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Select Orchestration Mode",
-            "does": "Load details: Read(\"${CLAUDE_SKILL_DIR}/references/orchestration-mode.md\") for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.",
+            "does": "Load details: Read(\"${CLAUDE_PLUGIN_ROOT}/skills/verify/references/orchestration-mode.md\") for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.",
             "out": null,
             "tag": null
           }
@@ -7384,7 +7384,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "2",
             "label": "Render Tier 1 Header",
-            "does": "Use assets/tier1-header.md template. Load Read(\"${CLAUDE_SKILL_DIR}/references/visualization-tiers.md\") for field computation (risk level, confidence, reversibility).",
+            "does": "Use assets/tier1-header.md template. Load Read(\"${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/references/visualization-tiers.md\") for field computation (risk level, confidence, reversibility).",
             "out": null,
             "tag": null
           },
@@ -7398,14 +7398,14 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "4",
             "label": "Render Requested Sections",
-            "does": "Render each requested section following ${CLAUDE_SKILL_DIR}/rules/section-rendering.md conventions. Use the corresponding reference for ASCII patterns:",
+            "does": "Render each requested section following ${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/rules/section-rendering.md conventions. Use the corresponding reference for ASCII patterns:",
             "out": null,
             "tag": null
           },
           {
             "num": "4b",
             "label": "Dispatch to Format",
-            "does": "Render the selected sections into the FORMATS chosen in STEP 0.5. ASCII always renders first/inline — the other formats consume the same plan brief. Full table + delegation patterns: Read(\"${CLAUDE_SKILL_DIR}/references/format-dispatch.md\").",
+            "does": "Render the selected sections into the FORMATS chosen in STEP 0.5. ASCII always renders first/inline — the other formats consume the same plan brief. Full table + delegation patterns: Read(\"${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/references/format-dispatch.md\").",
             "out": null,
             "tag": null
           },

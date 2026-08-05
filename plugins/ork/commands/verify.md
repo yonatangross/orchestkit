@@ -97,7 +97,7 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
 
 Choose **Agent Teams** (mesh -- verifiers share findings) or **Task tool** (star -- all report to lead) based on the orchestration mode reference.
 
@@ -176,7 +176,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 ## 8-Phase Workflow
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/verification-phases.md")` for complete phase details, agent spawn definitions, Agent Teams alternative, and team teardown.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/verification-phases.md")` for complete phase details, agent spawn definitions, Agent Teams alternative, and team teardown.
 
 | Phase | Activities | Output |
 |-------|------------|--------|
@@ -245,7 +245,7 @@ for agent_result in verification_results:
 
 ### Phase 2.5: Visual Capture (NEW — runs in parallel with Phase 2)
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/visual-capture.md")` for auto-detection, route discovery, screenshot capture, and AI vision evaluation.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/visual-capture.md")` for auto-detection, route discovery, screenshot capture, and AI vision evaluation.
 
 **Summary**: Auto-detects project framework, starts dev server, discovers routes, uses agent-browser to screenshot each route, evaluates with Claude vision, generates self-contained `gallery.html` with base64-embedded images.
 
@@ -256,11 +256,11 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/visual-capture.md")` for aut
 
 ## Grading & Scoring
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade thresholds, and improvement prioritization. Load `Read("${CLAUDE_SKILL_DIR}/references/quality-model.md")` for verify-specific extensions (Visual dimension). Load `Read("${CLAUDE_SKILL_DIR}/references/grading-rubric.md")` for per-agent scoring criteria.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade thresholds, and improvement prioritization. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/quality-model.md")` for verify-specific extensions (Visual dimension). Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/grading-rubric.md")` for per-agent scoring criteria.
 
 ### Dimension-Level Blockers (ork-rubric/1.0)
 
-Composite is necessary but not sufficient — a strong composite can average away a critical dimension. In Phase 4 (Nuanced Grading), read per-dimension thresholds from `${CLAUDE_SKILL_DIR}/rubric.json` (schema: `${CLAUDE_PLUGIN_ROOT}/skills/shared/rubric.schema.json`): security `min_blocker` 4.0, compliance `min_pass` 6.0.
+Composite is necessary but not sufficient — a strong composite can average away a critical dimension. In Phase 4 (Nuanced Grading), read per-dimension thresholds from `${CLAUDE_PLUGIN_ROOT}/skills/verify/rubric.json` (schema: `${CLAUDE_PLUGIN_ROOT}/skills/shared/rubric.schema.json`): security `min_blocker` 4.0, compliance `min_pass` 6.0.
 
 - **ANY dimension below its `min_blocker` → verdict is BLOCKED regardless of composite.** Report it explicitly: `Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 4.0)`.
 - A dimension below its `min_pass` (but at/above `min_blocker`) caps the verdict at IMPROVEMENTS RECOMMENDED — it cannot grade READY FOR MERGE.
@@ -280,17 +280,17 @@ A single green is not proof — flaky and order-dependent suites pass once and f
 - The verdict surfaces the count: `STREAK 2/3 — one more green to merge`, or `streak reset to 0/3 (security 3.2 < 4.0)`.
 - This is the native mechanism the `prd-to-goal` quality-streak recipe (#2539) leans on. Pair it with a `/goal` loop, but **`rm` the ledger first** — `/goal` reads `until` before the turn's verify, so a stale `met:true` exits with zero runs (see streak-gate.md "Stale-ledger guard").
 
-Full protocol — ledger schema, run loop, `/goal` wiring, and `/ork:cover` reuse: `Read("${CLAUDE_SKILL_DIR}/references/streak-gate.md")`.
+Full protocol — ledger schema, run loop, `/goal` wiring, and `/ork:cover` reuse: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/streak-gate.md")`.
 
 
 ## Evidence & Test Execution
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/rules/evidence-collection.md")` for git commands, test execution patterns, metrics tracking, and post-verification feedback.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/rules/evidence-collection.md")` for git commands, test execution patterns, metrics tracking, and post-verification feedback.
 
 
 ## Policy-as-Code
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/policy-as-code.md")` for configuration.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/policy-as-code.md")` for configuration.
 
 Define verification rules in `.claude/policies/verification-policy.json`:
 
@@ -314,7 +314,7 @@ Agent scores, tool summaries, and every "X is clean / passing / fixed" sentence 
 
 > **Verdict rule:** any load-bearing claim still 🟡 CLAIMED or ⬜ UNCHECKED **caps the verdict at IMPROVEMENTS RECOMMENDED** (never READY FOR MERGE) until it is ✅ VERIFIED or ⚪ WAIVED — this stacks with the dimension-level blockers (both must clear), and under `--streak=N` it resets the streak.
 
-Protocol — claim sources, build step, template, and anti-patterns (laundering, optimism-marking, omission): `Read("${CLAUDE_SKILL_DIR}/references/verification-manifest.md")`.
+Protocol — claim sources, build step, template, and anti-patterns (laundering, optimism-marking, omission): `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/verification-manifest.md")`.
 
 ### Reachability: is the green load-bearing? (REACHED vs UNREACHED)
 
@@ -334,12 +334,12 @@ Two ordering rules make the proof safe, and both come from real damage: **commit
 
 **This skill does not perform the mutation** — it writes no test files and edits no source. The proof is produced upstream by `/ork:implement` or `/ork:cover` and graded here; absent a proof, the row is 🟡 UNREACHED and the verdict is capped.
 
-Protocol — scope, the 5-step proof, what makes a mutation load-bearing, template, and anti-patterns (coverage-as-proof, batch proof, cosmetic mutation): `Read("${CLAUDE_SKILL_DIR}/references/reachability-proof.md")`.
+Protocol — scope, the 5-step proof, what makes a mutation load-bearing, template, and anti-patterns (coverage-as-proof, batch proof, cosmetic mutation): `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/reachability-proof.md")`.
 
 
 ## Report Format
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/report-template.md")` for full format. Summary:
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/report-template.md")` for full format. Summary:
 
 ```markdown
 # Feature Verification Report
@@ -369,7 +369,7 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/report-template.md")` for fu
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -388,7 +388,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 ## Rules
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/rules/<file>")`:
 
 | File | Content |
 |------|---------|

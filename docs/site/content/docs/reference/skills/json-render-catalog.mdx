@@ -21,7 +21,7 @@ json-render (Vercel Labs, 12.9K stars, Apache-2.0) is a framework for AI-safe ge
 When the project ships a Storybook setup, **import the catalog from Storybook stories** instead of hand-writing one. The bundled importer at `scripts/storybook-to-catalog.mjs` reads a `@storybook/addon-mcp` `list-all-documentation` manifest and emits a Zod-typed `catalog.ts` plus a `components.tsx` registry.
 
 ```bash
-node "${CLAUDE_SKILL_DIR}/scripts/storybook-to-catalog.mjs" storybook-manifest.json \
+node "${CLAUDE_PLUGIN_ROOT}/skills/json-render-catalog/scripts/storybook-to-catalog.mjs" storybook-manifest.json \
   --out src/genui/catalog.ts \
   --components src/genui/components.tsx \
   --project-root .
@@ -993,7 +993,7 @@ Storybook stories
    ```
 3. Generate the catalog:
    ```bash
-   node "${CLAUDE_SKILL_DIR}/scripts/storybook-to-catalog.mjs" \
+   node "${CLAUDE_PLUGIN_ROOT}/skills/json-render-catalog/scripts/storybook-to-catalog.mjs" \
      storybook-manifest.json \
      --out src/genui/catalog.ts
    ```

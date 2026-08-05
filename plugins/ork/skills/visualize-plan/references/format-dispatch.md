@@ -11,7 +11,7 @@ The format front-door (STEP 0.5) picks **how** to render; STEP 2 picks **which**
 
 Gate the format options by what's actually available, so the picker never offers a path that will fail:
 
-Use the established MCP-probe pattern (`Read("${CLAUDE_SKILL_DIR}/../chain-patterns/references/mcp-detection.md")`) — not invented helpers:
+Use the established MCP-probe pattern (`Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")`) — not invented helpers:
 
 ```python
 ToolSearch(query="select:mcp__notebooklm-mcp__studio_create")   # infographic gate
@@ -50,7 +50,7 @@ Hide unavailable options from the AskUserQuestion list and add a one-line instal
 > **Decision-router variant.** When the board is a *backlog the user must both prioritize and dispatch*
 > (issues to triage, PRD phases to schedule, a wave to route), use the **execution-router** board: each
 > card routes to an ork strategy (single/workflow/nested/teams/swarm) over the full 36-agent registry and
-> emits a **plan-only** invocation. Seeding recipe + strategy→tooling map: `Read("${CLAUDE_SKILL_DIR}/references/decision-router.md")`.
+> emits a **plan-only** invocation. Seeding recipe + strategy→tooling map: `Read("${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/references/decision-router.md")`.
 
 ## Living-plan update mode
 

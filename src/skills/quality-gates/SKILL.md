@@ -91,7 +91,7 @@ The escalation protocol and gate decision logic are both in "Quick Reference" be
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/<file>")`:
 | File | Content |
 |------|---------|
 | `ork-delta.md` | OrchestKit-specific scars and house decisions: line-counting correctness, fail-open policy, gate self-monitoring, non-bypassable categories |

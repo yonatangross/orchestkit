@@ -59,7 +59,7 @@ Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. 
 
 ### Effort detection (CC 2.1.120+)
 
-`$\{CLAUDE_EFFORT\}` is the primary signal. CC 2.1.120 sets this env var from `/effort` or the model picker. `--effort=` token in `$ARGUMENTS` is the explicit override fallback (also covers older CC).
+`$CLAUDE_EFFORT` is the primary signal. CC 2.1.120 sets this env var from `/effort` or the model picker. `--effort=` token in `$ARGUMENTS` is the explicit override fallback (also covers older CC).
 
 ```python
 # Read env first (CC 2.1.120+), then check explicit override
@@ -138,7 +138,7 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/assess/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
 
 ---
 
@@ -218,7 +218,7 @@ mcp__memory__search_nodes(query="$ARGUMENTS[0]")  # Past decisions
 
 ## Phase 1.5: Scope Discovery
 
-Load `Read("$\{CLAUDE_SKILL_DIR\}/references/scope-discovery.md")` for the full file discovery, limit application (MAX 30 files), and sampling priority logic. **Always include the scoped file list** in every agent prompt.
+Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/assess/references/scope-discovery.md")` for the full file discovery, limit application (MAX 30 files), and sampling priority logic. **Always include the scoped file list** in every agent prompt.
 
 ### Progressive Output (CC 2.1.76)
 
@@ -237,9 +237,9 @@ For Phase 2 parallel agents, show each dimension's score **as soon as the evalua
 
 ## Phase 2: Quality Rating (6 Dimensions)
 
-Rate each dimension 0-10 with weighted composite score. Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade interpretation, and per-dimension criteria. Load `Read("$\{CLAUDE_SKILL_DIR\}/references/quality-model.md")` for assess-specific overrides.
+Rate each dimension 0-10 with weighted composite score. Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade interpretation, and per-dimension criteria. Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/assess/references/quality-model.md")` for assess-specific overrides.
 
-Load `Read("$\{CLAUDE_SKILL_DIR\}/references/agent-spawn-definitions.md")` for Task Tool mode spawn patterns and Agent Teams alternative.
+Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/assess/references/agent-spawn-definitions.md")` for Task Tool mode spawn patterns and Agent Teams alternative.
 
 **Composite Score:** Weighted average of all 6 dimensions (see quality-model.md).
 
@@ -252,7 +252,7 @@ A separate **blind refuter** verifies decision-bearing scores before they reach 
 composite. **Effort gate:** `low`/`medium` skip this phase entirely; `high` runs up-to-4
 single refuters (advisory, no auto-swing); `xhigh` runs 3-refuter majority with auto-revise.
 
-Load the protocol + assess bindings: `Read("$\{CLAUDE_SKILL_DIR\}/references/adversarial-refutation.md")`
+Load the protocol + assess bindings: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/assess/references/adversarial-refutation.md")`
 (which loads the shared engine `$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rules/adversarial-refutation.md`).
 
 ### Cross-model refuter (optional, provenance-labeled, cost-gated)
@@ -270,9 +270,9 @@ score — refutation never silently raises the grade.
 
 ## Phases 3-7: Analysis, Comparison & Report
 
-Load `Read("$\{CLAUDE_SKILL_DIR\}/references/phase-templates.md")` for output templates for pros/cons, alternatives, improvements, effort, and the final report.
+Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/assess/references/phase-templates.md")` for output templates for pros/cons, alternatives, improvements, effort, and the final report.
 
-See also: `Read("$\{CLAUDE_SKILL_DIR\}/references/alternative-analysis.md")` | `Read("$\{CLAUDE_SKILL_DIR\}/references/improvement-prioritization.md")`
+See also: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/assess/references/alternative-analysis.md")` | `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/assess/references/improvement-prioritization.md")`
 
 ---
 
@@ -288,14 +288,14 @@ Parse `--render=` from `$ARGUMENTS`. Default is `both`.
 
 When emitting a spec:
 
-1. Load format and catalog: `Read("$\{CLAUDE_SKILL_DIR\}/references/dashboard-spec.md")`. Example: `references/dashboard-example.json`.
+1. Load format and catalog: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/assess/references/dashboard-spec.md")`. Example: `references/dashboard-example.json`.
 2. Build the spec using only catalog types: `Card`, `StatGrid`, `DataTable`, `StatusBadge`, `BarMeter`, `Markdown`. Top-level fields `composite` (number) and `grade` (string) are required for assess specs.
 3. One `BarMeter` per dimension scored. The `verdict` element is a `StatusBadge` with status `success`/`warning`/`error` mapped from grade (A/B → success, C → warning, D/F → error).
 4. Write to `.claude/chain/assess-dashboard.json` with compact JSON.
 5. Validate before declaring success:
 
 ```bash
-node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json --check
+node "${CLAUDE_PLUGIN_ROOT}/skills/assess/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json --check
 ```
 
 If validation fails, fall back to markdown-only and surface the error. Never write a partial spec.
@@ -303,7 +303,7 @@ If validation fails, fall back to markdown-only and surface the error. Never wri
 6. For `--render=both`, render the markdown view from the spec:
 
 ```bash
-node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json
+node "${CLAUDE_PLUGIN_ROOT}/skills/assess/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json
 ```
 
 This guarantees JSON spec and markdown report stay in sync.
@@ -319,7 +319,7 @@ This guarantees JSON spec and markdown report stay in sync.
 When the assessment lands with a composite score, optionally persist scores + summary to the memory MCP knowledge graph as a typed entity. Future `/ork:memory` queries can then surface assessment lineage (which decisions did this codebase score 9/10 on testability? when did security regress below 7.0?).
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/scripts/memory_writeback.py "<assessment-dir>"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/assess/scripts/memory_writeback.py "<assessment-dir>"
 ```
 
 `&lt;assessment-dir&gt;` is the dir containing `assessment.json` (typically the session's `.claude/chain/`). The script writes a `memory-writeback.json` handoff alongside it.
@@ -360,7 +360,7 @@ After the composite and grade are final (post-refutation, Phase 2.5), ALWAYS wri
 }
 ```
 
-Verdict rules — thresholds come from `$\{CLAUDE_SKILL_DIR\}/rubric.json` (schema: `$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rubric.schema.json`):
+Verdict rules — thresholds come from `$\{CLAUDE_PLUGIN_ROOT\}/skills/assess/rubric.json` (schema: `$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rubric.schema.json`):
 
 - `verdict = "fail"` when `composite &lt; min_pass` (5.5) **OR** any dimension scores below its `min_blocker`. Otherwise `"pass"`.
 - Every dimension below its `min_blocker` gets a `blockers[]` entry — dimension, score, one evidence-backed reason. `blockers` is `[]` on pass.
@@ -419,8 +419,8 @@ Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/quality-gates/references/unified-scor
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| complexity-metrics (load `$\{CLAUDE_SKILL_DIR\}/rules/complexity-metrics.md`) | HIGH | 7-criterion scoring (1-5), complexity levels, thresholds |
-| complexity-breakdown (load `$\{CLAUDE_SKILL_DIR\}/rules/complexity-breakdown.md`) | HIGH | Task decomposition strategies, risk assessment |
+| complexity-metrics (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/assess/rules/complexity-metrics.md`) | HIGH | 7-criterion scoring (1-5), complexity levels, thresholds |
+| complexity-breakdown (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/assess/rules/complexity-breakdown.md`) | HIGH | Task decomposition strategies, risk assessment |
 
 ## Quality Bar
 

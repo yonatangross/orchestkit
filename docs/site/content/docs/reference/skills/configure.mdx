@@ -155,7 +155,7 @@ Add to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist across sessions
 
 ## Steps 6-9: CC Version-Specific Settings
 
-Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/cc-version-settings.md")` for full configuration options.
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/cc-version-settings.md")` for full configuration options.
 
 Covers CC 2.1.7 (MCP deferral threshold, effective context window), CC 2.1.20 (task deletion, PR enrichment, agent permissions, monorepo detection, team distribution), CC 2.1.23 (spinner verbs customization), and CC 2.1.79 (turn duration display).
 
@@ -219,7 +219,7 @@ Two channels now active:
 
 Save webhookUrl to config and remind about env var (same as above, skip generator step).
 
-Load `Read("$\{CLAUDE_SKILL_DIR\}/references/http-hooks.md")` for architecture details.
+Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/http-hooks.md")` for architecture details.
 
 ## Step 11: Preview & Save
 
@@ -248,7 +248,7 @@ VSCode users can run `/remote-control` to bridge their terminal session to `clau
 - `ork:doctor`: Diagnose configuration issues
 ## References
 
-Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/&lt;file&gt;")`:
 | File | Content |
 |------|---------|
 | `references/presets.md` | Preset definitions |
@@ -910,7 +910,7 @@ When an MCP server reconnects mid-session, CC 2.1.128 no longer flushes the full
 
 **Impact**: Cosmetic for end users (less noise in transcript). Material for anyone parsing audit logs or transcripts for tool-call surface area — the prior heuristic of grepping `mcp__&lt;server&gt;__` to enumerate connected tools breaks because reconnect events emit summaries, not enumerations. Use the initial connect event (still full enumeration) as the source of truth, and treat reconnect summaries as deltas only.
 
-See `$\{CLAUDE_SKILL_DIR\}/../mcp-patterns/references/mcp-audit-runbook.md` for the updated reconnect-event handling.
+See `$\{CLAUDE_PLUGIN_ROOT\}/skills/mcp-patterns/references/mcp-audit-runbook.md` for the updated reconnect-event handling.
 
 ### SDK Hosts: "Always allow" Writes to .claude/settings.local.json
 
@@ -994,7 +994,7 @@ claude
 
 **Breaking for**: Anyone who relied on `/model` listing custom gateway models in 2.1.126–2.1.128 — the picker now shows only the static built-in list unless the env var is set.
 
-**Action for OrchestKit**: None on the plugin side. `ork:setup` and `ork:llm-integration` reference the env var so users hitting "my fine-tuned model disappeared from `/model`" know the one-line fix. See also `$\{CLAUDE_SKILL_DIR\}/../llm-integration/references/model-selection.md`.
+**Action for OrchestKit**: None on the plugin side. `ork:setup` and `ork:llm-integration` reference the env var so users hitting "my fine-tuned model disappeared from `/model`" know the one-line fix. See also `$\{CLAUDE_PLUGIN_ROOT\}/skills/llm-integration/references/model-selection.md`.
 
 ### claude_code.pull_request.count Now Counts MCP-Filed PRs
 
@@ -1004,7 +1004,7 @@ The `claude_code.pull_request.count` OTel metric counted PRs/MRs created via the
 
 **Counter labels**: The metric still emits the same labels (`provider`, `result`); MCP-filed PRs are not specially labeled. If you need to distinguish MCP-vs-shell origins, add a derived metric in your collector that joins on tool-name from a separate `claude_code.tool.use` event stream.
 
-**Action for OrchestKit**: None on the plugin side. The `ork:telemetry-inspect` skill enumerates this metric — see `$\{CLAUDE_SKILL_DIR\}/../monitoring-observability/references/metrics-collection.md` for collector-side guidance.
+**Action for OrchestKit**: None on the plugin side. The `ork:telemetry-inspect` skill enumerates this metric — see `$\{CLAUDE_PLUGIN_ROOT\}/skills/monitoring-observability/references/metrics-collection.md` for collector-side guidance.
 
 ## CC 2.1.132 Settings
 
@@ -1040,7 +1040,7 @@ Before 2.1.133, when multiple CC sessions shared the same credentials and a refr
 
 **Impact for OrchestKit**: OrchestKit's worktree-isolation workflow (see `chain-patterns/references/worktree-agent-pattern.md`) routinely runs concurrent CC sessions against the same machine credentials — one per worktree per agent. Before 2.1.133, a single refresh-token race could 401 every session at once mid-run, killing in-flight `/ork:implement`, `/ork:cover`, and `/ork:verify` chains. No setting change required — the floor in `shared/cc-support.json` (≥ 2.1.220) already guarantees the fix is active.
 
-If you ever do hit a "all sessions 401 at the same moment" symptom on a supported floor, the cause is no longer this race — see `$\{CLAUDE_SKILL_DIR\}/../doctor/references/remediation-guide.md` for recovery steps.
+If you ever do hit a "all sessions 401 at the same moment" symptom on a supported floor, the cause is no longer this race — see `$\{CLAUDE_PLUGIN_ROOT\}/skills/doctor/references/remediation-guide.md` for recovery steps.
 
 ### Remote Control Stop/Interrupt Now Cancels CLI Session
 
@@ -1111,7 +1111,7 @@ This is a regression for OrchestKit users. From CC 2.1.128 through 2.1.132, `Ent
 
 **Choose `"fresh"` only if** you intentionally want every new worktree to start from `origin/&lt;default&gt;` (e.g., clean-room agent runs that should never inherit local WIP). For the common OrchestKit flow — spawn an agent in a worktree to do work on top of an in-progress local branch — `"head"` is the only correct value.
 
-**Impact for OrchestKit**: All of `ork:implement`, `ork:cover`, `ork:fix-issue`, `ork:verify`, and any custom skill that calls `Agent(... isolation: "worktree")` is affected. Without `worktree.baseRef: "head"`, agents start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, tests will run against stale source, and PRs will appear empty of your in-progress work. `ork:doctor` flags this — see `$\{CLAUDE_SKILL_DIR\}/../doctor/references/remediation-guide.md` ("EnterWorktree drops my unpushed commits").
+**Impact for OrchestKit**: All of `ork:implement`, `ork:cover`, `ork:fix-issue`, `ork:verify`, and any custom skill that calls `Agent(... isolation: "worktree")` is affected. Without `worktree.baseRef: "head"`, agents start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, tests will run against stale source, and PRs will appear empty of your in-progress work. `ork:doctor` flags this — see `$\{CLAUDE_PLUGIN_ROOT\}/skills/doctor/references/remediation-guide.md` ("EnterWorktree drops my unpushed commits").
 
 ### `sandbox.bwrapPath` / `sandbox.socatPath` Managed Settings (Linux/WSL)
 
@@ -1336,7 +1336,7 @@ When the primary model is not found (e.g. a pinned model ID that no longer resol
 
 **Action for OrchestKit**: Set a `--fallback-model` (or the `ANTHROPIC_SMALL_FAST_MODEL` / model settings your gateway supports) so a renamed or de-listed primary degrades gracefully rather than bricking the session. Pairs with the gateway model-discovery note above — if `/model` lists fewer models than expected, a fallback keeps long `ork:implement`/`ork:brainstorm` runs alive. No plugin-side change required.
 
-> **Related 2.1.152 items** (full table in `$\{CLAUDE_SKILL_DIR\}/../doctor/references/version-compatibility.md`): `permissionMode: "auto"` no longer needs opt-in consent; the sandbox-enabled warning now shows in condensed startup; and a new `MessageDisplay` hook event can transform/hide assistant text (ork ships no MessageDisplay hook — recognized in the `HookEvent` union for future use).
+> **Related 2.1.152 items** (full table in `$\{CLAUDE_PLUGIN_ROOT\}/skills/doctor/references/version-compatibility.md`): `permissionMode: "auto"` no longer needs opt-in consent; the sandbox-enabled warning now shows in condensed startup; and a new `MessageDisplay` hook event can transform/hide assistant text (ork ships no MessageDisplay hook — recognized in the `HookEvent` union for future use).
 
 ## CC 2.1.172–179 Settings
 

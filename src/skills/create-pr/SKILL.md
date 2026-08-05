@@ -156,7 +156,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 ### Phase 1: Pre-Flight Checks
 
-Load: `Read("${CLAUDE_SKILL_DIR}/rules/preflight-validation.md")` for the full checklist.
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/rules/preflight-validation.md")` for the full checklist.
 
 ```bash
 BRANCH=$(git branch --show-current)
@@ -169,7 +169,7 @@ git rev-parse --verify "origin/$BRANCH" &>/dev/null || git push -u origin "$BRAN
 
 ### Phase 2: Parallel Validation (Feature/Bug fix PRs)
 
-Launch agents in ONE message. Load `Read("${CLAUDE_SKILL_DIR}/references/parallel-validation.md")` for full agent configs.
+Launch agents in ONE message. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/references/parallel-validation.md")` for full agent configs.
 
 | PR Type | Agents to launch |
 |---------|-----------------|
@@ -214,7 +214,7 @@ If the ledger doesn't exist or is empty, skip this step — create PR normally.
 
 ### Phase 4: Create PR
 
-Follow `Read("${CLAUDE_SKILL_DIR}/rules/pr-title-format.md")` and `Read("${CLAUDE_SKILL_DIR}/rules/pr-body-structure.md")`. Use HEREDOC pattern from `Read("${CLAUDE_SKILL_DIR}/references/pr-body-templates.md")`.
+Follow `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/rules/pr-title-format.md")` and `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/rules/pr-body-structure.md")`. Use HEREDOC pattern from `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/references/pr-body-templates.md")`.
 
 Include agent attribution sections (from Phase 3b) after the Test Plan section in the PR body.
 
@@ -405,7 +405,7 @@ If the `AskUserQuestion` picker stalls (schema break, not a CC input bug — orc
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/pr-body-templates.md` | PR body templates |

@@ -113,20 +113,20 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 ## Health Check Categories
 
-> **Detailed check procedures**: Load `Read("${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md")` for bash commands and validation logic per category.
+> **Detailed check procedures**: Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/diagnostic-checks.md")` for bash commands and validation logic per category.
 >
-> **MCP-specific checks**: Load `Read("${CLAUDE_SKILL_DIR}/rules/mcp-status-checks.md")` for credential validation and misconfiguration detection.
+> **MCP-specific checks**: Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/mcp-status-checks.md")` for credential validation and misconfiguration detection.
 >
-> **Output examples**: Load `Read("${CLAUDE_SKILL_DIR}/references/health-check-outputs.md")` for sample output per category.
+> **Output examples**: Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/health-check-outputs.md")` for sample output per category.
 
 ### Categories 0-3: Core Validation
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **0. Installed Plugins** | Auto-detects ork plugin, counts skills/agents | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
-| **1. Skills** | Frontmatter, context field, token budget, links, **activation-channel reachability** (no orphaned user-invocable skills) | load `${CLAUDE_SKILL_DIR}/references/skills-validation.md` |
-| **2. Agents** | Frontmatter, model, skill refs, tool refs | load `${CLAUDE_SKILL_DIR}/references/agents-validation.md` |
-| **3. Hooks** | hooks.json schema, bundles, async patterns — across all three hook scopes: **global**, **agent-scoped**, and **skill-scoped**. Detects the common hook problems: missing files (registered but not on disk), syntax errors in hooks.json or bundles, permission issues (non-executable scripts), and stale references (entries pointing at renamed/removed handlers) | load `${CLAUDE_SKILL_DIR}/references/hook-validation.md` |
+| **0. Installed Plugins** | Auto-detects ork plugin, counts skills/agents | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/diagnostic-checks.md` |
+| **1. Skills** | Frontmatter, context field, token budget, links, **activation-channel reachability** (no orphaned user-invocable skills) | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/skills-validation.md` |
+| **2. Agents** | Frontmatter, model, skill refs, tool refs | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/agents-validation.md` |
+| **3. Hooks** | hooks.json schema, bundles, async patterns — across all three hook scopes: **global**, **agent-scoped**, and **skill-scoped**. Detects the common hook problems: missing files (registered but not on disk), syntax errors in hooks.json or bundles, permission issues (non-executable scripts), and stale references (entries pointing at renamed/removed handlers) | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/hook-validation.md` |
 
 > **Activation-channel orphans (repo / pre-release):** a user-invocable skill should be reachable by more than a human typing it — via a chain (another skill references `/ork:<skill>`), a subagent grant (`skills:` in `src/agents/*.md`), or a background trigger. A skill with none is an "island" that silently rots. In a repo checkout, run `npm run test:manifests:channels` (gated in CI via `test:manifests`). Fix an island by wiring any one channel, or add it to `STANDALONE_ALLOWLIST` with a justification.
 
@@ -134,8 +134,8 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **4. Memory** | .claude/memory/ graph integrity + queue depth; **auto-memory MEMORY.md index budget (≤24.4 KB; warns + recommends /ork:dream on re-bloat)** | load `${CLAUDE_SKILL_DIR}/references/memory-health.md` |
-| **5. Build** | plugins/ sync with src/, manifest counts, orphans | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
+| **4. Memory** | .claude/memory/ graph integrity + queue depth; **auto-memory MEMORY.md index budget (≤24.4 KB; warns + recommends /ork:dream on re-bloat)** | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/memory-health.md` |
+| **5. Build** | plugins/ sync with src/, manifest counts, orphans | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/diagnostic-checks.md` |
 
 > **Analytics writer liveness (System Health):** the local analytics pipeline has several independent JSONL writers under `~/.claude/analytics/` (skill-usage, agent-usage, hook-timing). A writer can die silently while its siblings stay hot — observed once for four months (skill-usage.jsonl, 2026-03 to 2026-07). The check is a peer comparison: flag any watched file whose last write is ≥48h old while a sibling wrote within 24h (`stat -f '%m %N' ~/.claude/analytics/*.jsonl`). The `lifecycle/analytics-liveness-check` SessionStart hook runs the same comparison continuously.
 >
@@ -156,12 +156,12 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **10. CC Version** | Runtime version against minimum required | load `${CLAUDE_SKILL_DIR}/references/version-compatibility.md` |
-| **11. External Deps** | Optional tools (agent-browser, portless) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
-| **12. MCP Status** | Enabled/disabled state, credential checks, **HIGH-tier `@latest` pinning warn** | load `${CLAUDE_SKILL_DIR}/rules/mcp-status-checks.md` + `${CLAUDE_SKILL_DIR}/references/mcp-pinning-check.md` |
-| **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
+| **10. CC Version** | Runtime version against minimum required | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/version-compatibility.md` |
+| **11. External Deps** | Optional tools (agent-browser, portless) | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/diagnostic-checks.md` |
+| **12. MCP Status** | Enabled/disabled state, credential checks, **HIGH-tier `@latest` pinning warn** | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/mcp-status-checks.md` + `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/mcp-pinning-check.md` |
+| **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/diagnostic-checks.md` |
 | **14. Effort/Model** | `xhigh` effort configured on a model that provably cannot run it (see below). Defaults to silence | inline |
-| **15. Sandbox Posture** | CC Bash-sandbox on/off + `/sandbox` nudge (opt-in, Bash-only; info-level) | load `${CLAUDE_SKILL_DIR}/references/sandbox-posture.md` |
+| **15. Sandbox Posture** | CC Bash-sandbox on/off + `/sandbox` nudge (opt-in, Bash-only; info-level) | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/sandbox-posture.md` |
 
 ### Category 14: Effort/Model Compatibility (CC 2.1.111+)
 
@@ -206,11 +206,11 @@ WARNING: effort is set to `xhigh`, but <model-id> matches XHIGH_UNSUPPORTED_PREF
 
 Every category reports an explicit **pass / warn / fail** status, and every warn or fail comes with **specific fix steps** for that failure type (the exact command to run, file to edit, or config to change) — doctor diagnoses AND prescribes, it never just lists problems.
 
-> Load `Read("${CLAUDE_SKILL_DIR}/references/report-format.md")` for ASCII report templates, JSON CI output schema, and exit codes.
+> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/report-format.md")` for ASCII report templates, JSON CI output schema, and exit codes.
 
 ## Interpreting Results & Troubleshooting
 
-> Load `Read("${CLAUDE_SKILL_DIR}/references/remediation-guide.md")` for the full results interpretation table and troubleshooting steps for common failures (skills validation, build sync, memory).
+> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/remediation-guide.md")` for the full results interpretation table and troubleshooting steps for common failures (skills validation, build sync, memory).
 
 > **Bisect with `--safe-mode` (CC 2.1.169+):** when doctor findings don't explain a misbehaving session, restart with `claude --safe-mode` (or `CLAUDE_CODE_SAFE_MODE=1`) — it disables ALL customizations (CLAUDE.md, plugins incl. ork, skills, hooks, MCP). If the problem disappears, it's a customization; re-enable halves to isolate. If it persists, it's CC itself — file upstream.
 
@@ -241,7 +241,7 @@ Every category reports an explicit **pass / warn / fail** status, and every warn
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")` or `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/<file>")` or `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/<file>")`:
 | File | Content |
 |------|---------|
 | `rules/diagnostic-checks.md` | Bash commands and validation logic per category |

@@ -45,7 +45,7 @@ if capabilities.memory:
 # else: skip gracefully, no error
 ```
 
-Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/mcp-detection.md")`
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/mcp-detection.md")`
 
 ## Pattern 2: Handoff Files
 
@@ -65,7 +65,7 @@ Write(".claude/chain/NN-phase-name.json", JSON.stringify({
 
 **Location:** `.claude/chain/` — numbered files for ordering, descriptive names for clarity.
 
-Load schema: `Read("$\{CLAUDE_SKILL_DIR\}/references/handoff-schema.md")`
+Load schema: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/handoff-schema.md")`
 
 ## Pattern 3: Checkpoint-Resume
 
@@ -93,7 +93,7 @@ Write(".claude/chain/state.json", JSON.stringify({
 # Update state.json with new current_phase and append to completed_phases
 ```
 
-Load protocol: `Read("$\{CLAUDE_SKILL_DIR\}/references/checkpoint-resume.md")`
+Load protocol: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/checkpoint-resume.md")`
 
 ## Pattern 4: Worktree-Isolated Agents
 
@@ -116,7 +116,7 @@ Agent(
 > **Session-aware worktree check (CC 2.1.145):** before parallel-worktree work, detect concurrent same-repo sessions with `claude agents --json` (filter by `working_dir`) rather than `ps`/`pgrep` — it returns `session_id`, `parent_agent_id`, `working_dir`, `awaiting_input`, and `elapsed` per live session, so you can tell *which* sessions share this repo.
 **When NOT to use:** Read-only agents (brainstorm, assessment, review).
 
-Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/worktree-agent-pattern.md")`
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/worktree-agent-pattern.md")`
 
 ## Pattern 5: CronCreate Monitoring
 
@@ -134,7 +134,7 @@ CronCreate(
 )
 ```
 
-Load patterns: `Read("$\{CLAUDE_SKILL_DIR\}/references/cron-monitoring.md")`
+Load patterns: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/cron-monitoring.md")`
 
 ## Pattern 6: Progressive Output (CC 2.1.76)
 
@@ -279,7 +279,7 @@ Grant chain: `infrastructure-architect` declares `Agent(ork:ci-cd-engineer)` + `
 
 ## References
 
-Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/&lt;file&gt;")`:
 
 | File | Content |
 |------|---------|
@@ -898,7 +898,7 @@ Decision test: would a regular Claude Code session finish this in five minutes? 
 need a workflow at all (the article's own first warning). Reach for one only for the long,
 parallel, structured, or adversarial classes above.
 
-**Committed templates in ork** (run via `Workflow(\{scriptPath: "$\{CLAUDE_SKILL_DIR\}/workflows/&lt;file&gt;"\})`):
+**Committed templates in ork** (run via `Workflow(\{scriptPath: "$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/workflows/&lt;file&gt;"\})`):
 
 | Template | Skill | Shape |
 |----------|-------|-------|
@@ -1986,7 +1986,7 @@ CC ≤ 2.1.127 branched from `origin/&lt;default-branch&gt;`, which silently dro
 >
 > **CC 2.1.222 — the guard's fourth patch**: worktree-isolated sessions **and** their subagents could still run destructive git commands against the main checkout; 2.1.222 fixes that and states isolation now applies to file edits and Bash in *every session type* (CC 2.1.222 changelog). The changelog does not enumerate which session types were leaking, so the honest reading is scope, not mechanism: the same guard has now been patched in 2.1.154, 2.1.203, 2.1.216 and 2.1.222, each release closing a hole the previous one left open. Two consequences. (1) ork's floor is `2.1.220`, so a session sitting exactly at the floor is still inside this leak window. Run parallel worktree agents on 2.1.222+ if the workers touch git. (2) Treat isolation as a strong default rather than a security boundary: keep the coordinator the only writer to the parent tree, which is the same instruction the 2.1.216 note at the top of this file already gives.
 
-> **CC 2.1.133 — concurrent-session stability**: Running multiple worktree-isolated agents in parallel shares one refresh token across sessions. Before 2.1.133 a refresh-token race could 401 every session at once. At our floor this is fixed — concurrent worktree sessions are stable. See `$\{CLAUDE_SKILL_DIR\}/../configure/references/cc-version-settings.md` (CC 2.1.133 section) for the full fix description.
+> **CC 2.1.133 — concurrent-session stability**: Running multiple worktree-isolated agents in parallel shares one refresh token across sessions. Before 2.1.133 a refresh-token race could 401 every session at once. At our floor this is fixed — concurrent worktree sessions are stable. See `$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/cc-version-settings.md` (CC 2.1.133 section) for the full fix description.
 
 ## Limitations
 

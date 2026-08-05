@@ -96,7 +96,7 @@ Write(".claude/chain/state.json", JSON.stringify({
 Before diagnosis kicks off, optionally invoke `scripts/prior_fix_lookup.py <session-dir>` to surface similar fixes already recorded in the memory MCP. READ-ONLY — no writeback. Self-skips on every non-happy-path so it never blocks the fix:
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/scripts/prior_fix_lookup.py "$CLAUDE_JOB_DIR"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/scripts/prior_fix_lookup.py "$CLAUDE_JOB_DIR"
 ```
 
 Auto-skip conditions (all exit 0, all WARN-logged):
@@ -230,11 +230,11 @@ ExitPlanMode()
 #    If "need more info" → re-enter investigation.
 ```
 
-Load `Read("${CLAUDE_SKILL_DIR}/rules/evidence-gathering.md")` for detailed workflow adjustments per approach.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/evidence-gathering.md")` for detailed workflow adjustments per approach.
 
 ## STEP 0b: Select Orchestration Mode
 
-Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("${CLAUDE_SKILL_DIR}/references/agent-selection.md")` for the selection criteria, cost comparison, and task creation patterns.
+Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/agent-selection.md")` for the selection criteria, cost comparison, and task creation patterns.
 
 ## Service Discovery & Visual Inspection
 
@@ -351,7 +351,7 @@ if capabilities.memory:
   }])
 ```
 
-> **Full phase details**: Load `Read("${CLAUDE_SKILL_DIR}/references/fix-phases.md")` for bash commands, templates, and procedures for each phase.
+> **Full phase details**: Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/fix-phases.md")` for bash commands, templates, and procedures for each phase.
 
 ## Critical Constraints
 
@@ -362,20 +362,20 @@ if capabilities.memory:
 
 ### Clarify the Fix's Blast-Radius (Phase 4 → 5 gate)
 
-Once RCA confirms the cause and BEFORE Phase 5 (Fix Design), run two checks: (1) **root cause vs symptom** — is this the real fix, or a `# type: ignore` / retag / downgrade patch of a symptom? (2) the fix's **blast-radius** via ordered `AskUserQuestion` (schema/migration → auth → public contract/breaking → backfill/scale; skip cosmetic, cap ~4). Each answer becomes a row in `.claude/chain/decisions.json` and the PR body, feeding Phase 5 and the regression test. Skip for **Hotfix** / `low` effort. Full protocol: `Read("${CLAUDE_SKILL_DIR}/references/fix-blast-radius.md")`.
+Once RCA confirms the cause and BEFORE Phase 5 (Fix Design), run two checks: (1) **root cause vs symptom** — is this the real fix, or a `# type: ignore` / retag / downgrade patch of a symptom? (2) the fix's **blast-radius** via ordered `AskUserQuestion` (schema/migration → auth → public contract/breaking → backfill/scale; skip cosmetic, cap ~4). Each answer becomes a row in `.claude/chain/decisions.json` and the PR body, feeding Phase 5 and the regression test. Skip for **Hotfix** / `low` effort. Full protocol: `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/fix-blast-radius.md")`.
 
 ## CC 2.1.49 Enhancements
 
-> Load `Read("${CLAUDE_SKILL_DIR}/references/cc-enhancements.md")` for session resume, task metrics, tool guidance, worktree isolation, and adaptive thinking.
+> Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/cc-enhancements.md")` for session resume, task metrics, tool guidance, worktree isolation, and adaptive thinking.
 
 ## Rules Quick Reference
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| evidence-gathering (load `${CLAUDE_SKILL_DIR}/rules/evidence-gathering.md`) | HIGH | User intent verification, confidence scale, key decisions |
-| rca-five-whys (load `${CLAUDE_SKILL_DIR}/rules/rca-five-whys.md`) | HIGH | 5 Whys iterative causal analysis |
-| rca-fishbone (load `${CLAUDE_SKILL_DIR}/rules/rca-fishbone.md`) | MEDIUM | Ishikawa diagram, multi-factor analysis |
-| rca-fault-tree (load `${CLAUDE_SKILL_DIR}/rules/rca-fault-tree.md`) | MEDIUM | Fault tree analysis, AND/OR gates, critical systems |
+| evidence-gathering (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/evidence-gathering.md`) | HIGH | User intent verification, confidence scale, key decisions |
+| rca-five-whys (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/rca-five-whys.md`) | HIGH | 5 Whys iterative causal analysis |
+| rca-fishbone (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/rca-fishbone.md`) | MEDIUM | Ishikawa diagram, multi-factor analysis |
+| rca-fault-tree (load `${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/rules/rca-fault-tree.md`) | MEDIUM | Fault tree analysis, AND/OR gates, critical systems |
 
 > **Push notifications (CC 2.1.110+):** Issue-fix flows can span 10–20 min with RCA → fix → test → PR. When the fix lands and tests pass, call `PushNotification` so the user knows the fix is ready for review. Requires Remote Control + "Push when Claude decides" config; fails silently if unavailable.
 >
@@ -460,7 +460,7 @@ If the `AskUserQuestion` picker stalls (schema break, not a CC input bug — orc
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/fix-issue/references/<file>")`:
 | File | Content |
 |------|---------|
 | `fix-phases.md` | Bash commands, templates, procedures per phase |

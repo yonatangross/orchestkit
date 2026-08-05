@@ -43,7 +43,7 @@ This skill provides comprehensive guidance for implementing internationalization
 - Embedding React components in translated text
 - Supporting RTL languages (Hebrew, Arabic)
 
-**Bundled Resources** (load with `Read("${CLAUDE_SKILL_DIR}/<path>")`):
+**Bundled Resources** (load with `Read("${CLAUDE_PLUGIN_ROOT}/skills/i18n-date-patterns/<path>")`):
 - `references/formatting-utilities.md` - useFormatting hook API reference
 - `references/ork-delta.md` - House decisions and working config that upstream docs do not carry
 - `checklists/i18n-checklist.md` - Implementation and review checklist
@@ -94,7 +94,7 @@ function PriceDisplay({ amount, items }) {
 }
 ```
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/formatting-utilities.md")` for the complete API.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/i18n-date-patterns/references/formatting-utilities.md")` for the complete API.
 
 ### 3. Date Formatting
 
@@ -222,7 +222,7 @@ dangerouslySetInnerHTML             // Use <Trans> component
 
 ## Checklist
 
-Load `Read("${CLAUDE_SKILL_DIR}/checklists/i18n-checklist.md")` for complete implementation and review checklists.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/i18n-date-patterns/checklists/i18n-checklist.md")` for complete implementation and review checklists.
 
 ---
 

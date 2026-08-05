@@ -10,7 +10,7 @@ Scan codebase for: README keywords (take-home, interview), `.github/workflows/`,
 
 | Signal | Tier | Architecture Ceiling |
 |--------|------|---------------------|
-| README says "take-home", time limit | **1. Interview** (load `${CLAUDE_SKILL_DIR}/references/interview-mode.md`) | Flat files, 8-15 files |
+| README says "take-home", time limit | **1. Interview** (load `${CLAUDE_PLUGIN_ROOT}/skills/implement/references/interview-mode.md`) | Flat files, 8-15 files |
 | < 10 files, no CI | **2. Hackathon** | Single file if possible |
 | `.github/workflows/`, managed DB | **3. MVP** | MVC monolith |
 | Module boundaries, Redis, queues | **4. Growth** | Modular monolith, DI |
@@ -35,7 +35,7 @@ Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only
 
 - Agent Teams (mesh) when complexity >= 2.5 (GA since CC 2.1.33)
 - Task tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
-- Load orchestration modes: `Read("${CLAUDE_SKILL_DIR}/references/orchestration-modes.md")`
+- Load orchestration modes: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/orchestration-modes.md")`
 
 ## Tier Override
 

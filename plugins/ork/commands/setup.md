@@ -87,7 +87,7 @@ TaskUpdate(taskId="2", status="completed")    # When done
 
 ## Phase 1: Scan
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/scan-phase.md")` for full scan commands (20 parallel Glob probes + dependency file reads + pattern detection counts).
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/scan-phase.md")` for full scan commands (20 parallel Glob probes + dependency file reads + pattern detection counts).
 
 Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, etc.), infrastructure (Docker, GitHub Actions, Terraform, K8s), and existing CC configuration. Pattern detection counts API routes, React components, models, and tests for custom skill suggestions.
 
@@ -95,14 +95,14 @@ Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, e
 
 Classify scan results into a stack profile and present to user (languages, frameworks, database, infra, testing, existing CC config).
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/stack-skill-mapping.md")` for the full stack-to-skill mapping table, MCP recommendation matrix, and custom skill suggestion patterns.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/stack-skill-mapping.md")` for the full stack-to-skill mapping table, MCP recommendation matrix, and custom skill suggestion patterns.
 
 ## Phase 2b: Channel Detection
 
 
 ## Phase 3: Safety Check
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/safety-check.md")` for the full AskUserQuestion prompt and conflict detection logic.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/safety-check.md")` for the full AskUserQuestion prompt and conflict detection logic.
 
 Offers three install scopes: User-only (recommended, invisible to teammates), Project-wide (committed to repo), or Already installed (skip to configure). Checks for existing OrchestKit installs and conflicting plugins.
 
@@ -122,18 +122,18 @@ Offers three install scopes: User-only (recommended, invisible to teammates), Pr
 
 ## Phase 3.5: Project Configuration Wizard
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity, webhook telemetry) and env var reference.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity, webhook telemetry) and env var reference.
 
 > Also reachable directly via `/ork:setup --configure` — skips phases 1-3.
 
 
 ## Phase 4: Skill Recommendations
 
-Present skill categories using `AskUserQuestion` with 4 focus options (Full-stack, Backend, Frontend, DevOps) with `multiSelect: true`. Load `Read("${CLAUDE_SKILL_DIR}/references/stack-skill-mapping.md")` for mapping tables and custom skill suggestions.
+Present skill categories using `AskUserQuestion` with 4 focus options (Full-stack, Backend, Frontend, DevOps) with `multiSelect: true`. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/stack-skill-mapping.md")` for mapping tables and custom skill suggestions.
 
 ## Phase 5: MCP Recommendations
 
-Check installed vs recommended MCPs by reading `.mcp.json` and `~/.claude/settings.json`. Load `Read("${CLAUDE_SKILL_DIR}/references/stack-skill-mapping.md")` for the MCP recommendation matrix. Present as toggles with install commands.
+Check installed vs recommended MCPs by reading `.mcp.json` and `~/.claude/settings.json`. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/stack-skill-mapping.md")` for the MCP recommendation matrix. Present as toggles with install commands.
 
 **CC 2.1.121+ tip (#1541):** for the universally-needed T2 trio (memory, context7, sequential-thinking), recommend setting `"alwaysLoad": true` in their `.mcp.json` entries. This skips per-skill `ToolSearch` probes and shaves ~150ms off cold starts. The key is silently ignored on older CC, so it's safe to add eagerly.
 
@@ -141,7 +141,7 @@ Check installed vs recommended MCPs by reading `.mcp.json` and `~/.claude/settin
 
 ## Phase 6: Readiness Score
 
-Compute a composite score (0-10) from 6 dimensions. Load `Read("${CLAUDE_SKILL_DIR}/references/readiness-scoring.md")` for dimension weights, score presentation template, memory integration, and improvement plan template.
+Compute a composite score (0-10) from 6 dimensions. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/readiness-scoring.md")` for dimension weights, score presentation template, memory integration, and improvement plan template.
 
 ## Phase 7: Improvement Plan
 
@@ -151,7 +151,7 @@ Generate prioritized, **runnable** recommendations in P0/P1/P2 tiers. See `readi
 
 After the improvement plan, check if the user's CLAUDE.md could benefit from CC 2.1.59+ modular structure.
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/claude-md-health.md")` for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/claude-md-health.md")` for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
 
 ```python
 # Quick check
@@ -163,7 +163,7 @@ If CLAUDE.md > 200 lines and no `.claude/rules/` exist, recommend splitting. Sho
 
 ## Phase 8: Keybindings
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/keybindings.md")` for the full keybinding prompt, default shortcuts, and merge logic.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/keybindings.md")` for the full keybinding prompt, default shortcuts, and merge logic.
 
 Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). Merges with existing `~/.claude/keybindings.json` without overwriting user-defined bindings.
 
@@ -177,7 +177,7 @@ Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). 
 
 > Previously in `/ork:configure`. Now part of setup for single entry point.
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/telemetry-setup.md")` for the full configuration flow.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/telemetry-setup.md")` for the full configuration flow.
 
 Ask user preference with AskUserQuestion:
 
@@ -195,7 +195,7 @@ If streaming selected:
 
 ## Phase 10: Optional Integrations
 
-Load details: `Read("${CLAUDE_SKILL_DIR}/references/integrations.md")` for setup steps.
+Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/integrations.md")` for setup steps.
 
 Covers CC version-specific settings (CC 2.1.7 MCP deferral, CC 2.1.20 task deletion, CC 2.1.23 spinner verbs, CC 2.1.79 turn duration display) and monorepo worktree optimization.
 
@@ -262,11 +262,11 @@ Apply a preset to quickly configure OrchestKit without the full wizard:
 | **hooks-only** | 0 | 0 | 96 | Just safety hooks |
 | **monorepo** | 91 | 31 | 96 | Complete + monorepo workspace detection |
 
-Load preset details: `Read("${CLAUDE_SKILL_DIR}/references/presets.md")`
+Load preset details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/presets.md")`
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/<file>")`:
 
 | File | Content |
 |------|---------|

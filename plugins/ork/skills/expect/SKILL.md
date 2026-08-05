@@ -160,7 +160,7 @@ Read(".expect/fingerprints.json")  # Previous run hashes
 # If no match or --force: continue to Phase 2
 ```
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/fingerprint.md")`
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/expect/references/fingerprint.md")`
 
 
 ## Phase 2: Diff Scan
@@ -184,7 +184,7 @@ Classify each changed file into 3 levels:
 2. **Imported** — a file that imports the changed file
 3. **Routed** — the page/route that renders the changed component
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/diff-scanner.md")`
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/expect/references/diff-scanner.md")`
 
 
 ## Phase 3: Route Map
@@ -202,7 +202,7 @@ route_map:
 
 If no route map exists, infer from Next.js App Router / Pages Router conventions.
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/route-map.md")`
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/expect/references/route-map.md")`
 
 
 ## Phase 4: Test Plan Generation
@@ -231,7 +231,7 @@ If `--flow` specified, load saved flow from `.expect/flows/{slug}.yaml` instead 
 
 If NOT `--y`, present plan to user via `AskUserQuestion` for review before executing.
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/test-plan.md")`
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/expect/references/test-plan.md")`
 
 
 ## Phase 5: Execution
@@ -289,7 +289,7 @@ if test_plan_duration_estimate > 180:
     )
 ```
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/execution.md")`
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/expect/references/execution.md")`
 
 
 ## Phase 6: Report
@@ -314,7 +314,7 @@ Artifacts:
   .expect/screenshots/dashboard-error.png
 ```
 
-Load: `Read("${CLAUDE_SKILL_DIR}/references/report.md")`
+Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/expect/references/report.md")`
 
 
 ## Saved Flows
@@ -382,7 +382,7 @@ Done means all of these hold:
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/expect/references/<file>")`:
 
 | File | Content |
 |------|---------|

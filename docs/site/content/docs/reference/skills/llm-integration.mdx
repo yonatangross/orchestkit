@@ -2387,7 +2387,7 @@ export CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1
 claude
 ```
 
-CC 2.1.126–2.1.128 queried `/v1/models` automatically; 2.1.129 made it opt-in to avoid unexpected gateway traffic and to keep the picker focused on the static built-in list. If a previously-visible custom model "disappeared" from `/model` after upgrading past 2.1.128, this env var is the one-line fix. See `$\{CLAUDE_SKILL_DIR\}/../configure/references/cc-version-settings.md` (CC 2.1.129 section) for the full rationale.
+CC 2.1.126–2.1.128 queried `/v1/models` automatically; 2.1.129 made it opt-in to avoid unexpected gateway traffic and to keep the picker focused on the static built-in list. If a previously-visible custom model "disappeared" from `/model` after upgrading past 2.1.128, this env var is the one-line fix. See `$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/cc-version-settings.md` (CC 2.1.129 section) for the full rationale.
 
 ### Ork Delta
 

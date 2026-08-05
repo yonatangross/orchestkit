@@ -113,19 +113,19 @@ mcp__memory__create_entities(entities=[{
 
 ## The 8-Section PRD Template
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/prd-template.md")` for the full template with all 8 sections (Summary, Contacts, Background, Objective, Market Segments, Value Propositions, Solution, Release), priority levels, and NFR categories.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/write-prd/references/prd-template.md")` for the full template with all 8 sections (Summary, Contacts, Background, Objective, Market Segments, Value Propositions, Solution, Release), priority levels, and NFR categories.
 
 ## User Stories & Acceptance Criteria
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/user-stories-guide.md")` for INVEST criteria, story format, Gherkin acceptance criteria, and Definition of Ready/Done.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/write-prd/references/user-stories-guide.md")` for INVEST criteria, story format, Gherkin acceptance criteria, and Definition of Ready/Done.
 
 ## Value Proposition Canvas
 
-Load `Read("${CLAUDE_SKILL_DIR}/references/value-prop-canvas-guide.md")` for the canvas template and fit check process. Every Value Map item must correspond to a Job, Pain, or Gain.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/write-prd/references/value-prop-canvas-guide.md")` for the canvas template and fit check process. Every Value Map item must correspond to a Job, Pain, or Gain.
 
 ## Go/No-Go Gate Criteria
 
-Load from rules: `Read("${CLAUDE_SKILL_DIR}/rules/strategy-go-no-go.md")` for stage gate criteria and scoring thresholds (Go >= 7.0 | Conditional 5.0-6.9 | No-Go < 5.0).
+Load from rules: `Read("${CLAUDE_PLUGIN_ROOT}/skills/write-prd/rules/strategy-go-no-go.md")` for stage gate criteria and scoring thresholds (Go >= 7.0 | Conditional 5.0-6.9 | No-Go < 5.0).
 
 ## Rules (Load On-Demand)
 

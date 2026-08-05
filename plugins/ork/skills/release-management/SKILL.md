@@ -155,7 +155,7 @@ Pre-release:
 
 Standard and hotfix release procedures using git tags and `gh release`.
 
-Load Read("${CLAUDE_SKILL_DIR}/references/release-workflows.md") for step-by-step standard and hotfix release workflows.
+Load Read("${CLAUDE_PLUGIN_ROOT}/skills/release-management/references/release-workflows.md") for step-by-step standard and hotfix release workflows.
 
 ---
 
@@ -163,7 +163,7 @@ Load Read("${CLAUDE_SKILL_DIR}/references/release-workflows.md") for step-by-ste
 
 Auto-generated from PRs, custom `.github/release.yml` templates, and manual CHANGELOG.md format.
 
-Load Read("${CLAUDE_SKILL_DIR}/references/changelog-generation.md") for changelog template examples and Keep-a-Changelog format.
+Load Read("${CLAUDE_PLUGIN_ROOT}/skills/release-management/references/changelog-generation.md") for changelog template examples and Keep-a-Changelog format.
 
 ---
 
@@ -171,7 +171,7 @@ Load Read("${CLAUDE_SKILL_DIR}/references/changelog-generation.md") for changelo
 
 GitHub Actions workflow for tag-triggered releases, version bumping script, and pre/post-release checklist.
 
-Load Read("${CLAUDE_SKILL_DIR}/references/release-automation.md") for CI workflow, bump script, and release checklist.
+Load Read("${CLAUDE_PLUGIN_ROOT}/skills/release-management/references/release-automation.md") for CI workflow, bump script, and release checklist.
 
 ---
 
@@ -191,7 +191,7 @@ Load Read("${CLAUDE_SKILL_DIR}/references/release-automation.md") for CI workflo
 
 ## References
 
-Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
+Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/release-management/references/<file>")`:
 
 | File | Content |
 |------|---------|

@@ -740,7 +740,8 @@ For complex skills where agents benefit from debate/cross-pollination, offer a m
 
 ```python
 # In SKILL.md — offer as alternative to star topology
-# Load Agent Teams config: Read("${CLAUDE_SKILL_DIR}/references/agent-teams-mode.md")
+# Load Agent Teams config:
+#   Read("${CLAUDE_PLUGIN_ROOT}/skills/<your-skill>/references/agent-teams-mode.md")
 ```
 
 Decision guidance:

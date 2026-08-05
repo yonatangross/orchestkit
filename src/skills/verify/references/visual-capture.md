@@ -216,7 +216,7 @@ Include this summary in `GALLERY_JSON` alongside `routes`.
 
 Read the gallery template:
 ```python
-Read(file_path="${CLAUDE_SKILL_DIR}/assets/gallery-template.html")
+Read(file_path="${CLAUDE_PLUGIN_ROOT}/skills/verify/assets/gallery-template.html")
 ```
 
 Build the `GALLERY_JSON` data structure:

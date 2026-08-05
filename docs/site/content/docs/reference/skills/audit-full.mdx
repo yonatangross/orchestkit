@@ -39,7 +39,7 @@ Single-pass whole-project analysis leveraging Opus 5's extended context window. 
 
 **BEFORE creating tasks**, clarify audit scope using the interactive dialog.
 
-Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/audit-scope-dialog.md")` for the full AskUserQuestion dialog with mode options (Full/Security/Architecture/Dependencies) and scope options (Entire codebase/Specific directory/Changed files).
+Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/references/audit-scope-dialog.md")` for the full AskUserQuestion dialog with mode options (Full/Security/Architecture/Dependencies) and scope options (Entire codebase/Specific directory/Changed files).
 
 ---
 
@@ -75,9 +75,9 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 Before loading files, estimate whether the codebase fits in context.
 
-Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/token-budget-planning.md")` for estimation rules (tokens/line by file type), budget allocation tables, auto-exclusion list, and fallback dialog when codebase exceeds budget.
+Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/references/token-budget-planning.md")` for estimation rules (tokens/line by file type), budget allocation tables, auto-exclusion list, and fallback dialog when codebase exceeds budget.
 
-Run estimation: `bash $\{CLAUDE_SKILL_DIR\}/scripts/estimate-tokens.sh /path/to/project`
+Run estimation: `bash $\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/scripts/estimate-tokens.sh /path/to/project`
 
 ### Two tiers — pick by the estimate
 
@@ -93,7 +93,7 @@ audit-full has **two execution tiers**. The estimate decides which:
 ```python
 # Derive shards from STEP 1 (top-level modules/dirs by size: src, apps/api, apps/web, packages/*).
 Workflow({
-  "scriptPath": "${CLAUDE_SKILL_DIR}/workflows/audit-full-mapreduce.mjs",
+  "scriptPath": "${CLAUDE_PLUGIN_ROOT}/skills/audit-full/workflows/audit-full-mapreduce.mjs",
   "args": { "shards": ["<repo-relative dirs>"], "mode": "<full|security|architecture|dependencies>", "effort": "<high|xhigh>" }
 })
 ```
@@ -104,7 +104,7 @@ It preserves cross-file reasoning *within* each shard and recovers cross-*shard*
 
 ## STEP 2: Load Codebase into Context
 
-Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/report-structure.md")` for loading strategy, inclusion patterns by language (TS/JS, Python, Config), and batch reading patterns.
+Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/references/report-structure.md")` for loading strategy, inclusion patterns by language (TS/JS, Python, Config), and batch reading patterns.
 
 ---
 
@@ -114,7 +114,7 @@ With codebase loaded, perform the selected audit mode(s).
 
 ### Security Audit
 
-Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/security-audit-guide.md")` for the full checklist.
+Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/references/security-audit-guide.md")` for the full checklist.
 
 Key cross-file analysis patterns:
 1. **Data flow tracing**: Track user input from entry point → processing → storage
@@ -125,7 +125,7 @@ Key cross-file analysis patterns:
 
 ### Architecture Review
 
-Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/architecture-review-guide.md")` for the full guide.
+Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/references/architecture-review-guide.md")` for the full guide.
 
 Key analysis patterns:
 1. **Dependency direction**: Verify imports flow inward (clean architecture)
@@ -136,7 +136,7 @@ Key analysis patterns:
 
 ### Dependency Audit
 
-Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/dependency-audit-guide.md")` for the full guide.
+Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/references/dependency-audit-guide.md")` for the full guide.
 
 Key analysis patterns:
 1. **Known CVEs**: Check versions against known vulnerabilities
@@ -164,7 +164,7 @@ structural fix for self-preferential bias (a single-context pass grading its own
 anchors on its own reasoning). `low`/`medium` skip this step; `high` runs single advisory
 refuters; `xhigh` runs the engine's quorum (3 for CRITICAL, 2 for HIGH).
 
-Load the protocol + audit-full bindings: `Read("$\{CLAUDE_SKILL_DIR\}/references/adversarial-refutation.md")`
+Load the protocol + audit-full bindings: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/references/adversarial-refutation.md")`
 (which loads the shared engine `$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rules/adversarial-refutation.md`).
 
 These refuters are audit-full's **only** sub-agent spawns (the producer is single-context),
@@ -179,15 +179,15 @@ survived/killed/downgraded, and removing a CRITICAL/HIGH from the report needs u
 
 ## STEP 4: Generate Report
 
-Load the report template: `Read("$\{CLAUDE_SKILL_DIR\}/assets/audit-report-template.md")`.
+Load the report template: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/assets/audit-report-template.md")`.
 
-Report structure and severity classification: `Read("$\{CLAUDE_SKILL_DIR\}/references/report-structure.md")` for finding table format, severity breakdown (CRITICAL/HIGH/MEDIUM/LOW with timelines), and architecture diagram conventions.
+Report structure and severity classification: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/references/report-structure.md")` for finding table format, severity breakdown (CRITICAL/HIGH/MEDIUM/LOW with timelines), and architecture diagram conventions.
 
-Severity matrix: `Read("$\{CLAUDE_SKILL_DIR\}/assets/severity-matrix.md")` for classification criteria.
+Severity matrix: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/assets/severity-matrix.md")` for classification criteria.
 
 ### Completion Checklist
 
-Before finalizing the report, verify with `Read("$\{CLAUDE_SKILL_DIR\}/checklists/audit-completion.md")`.
+Before finalizing the report, verify with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/checklists/audit-completion.md")`.
 
 ### PushNotification on Completion (CC 2.1.110+)
 
@@ -248,7 +248,7 @@ Stops when: zero critical issues remain across 3 consecutive passes, or a struct
 
 ## References
 
-Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/audit-full/references/&lt;file&gt;")`:
 | File | Content |
 |------|---------|
 | `references/security-audit-guide.md` | Cross-file vulnerability patterns |
@@ -1024,7 +1024,7 @@ if (!resolved.startsWith(uploadDir)) throw new Error('Blocked')
 
 ```bash
 # Use the estimation script
-bash ${CLAUDE_SKILL_DIR}/scripts/estimate-tokens.sh /path/to/project
+bash ${CLAUDE_PLUGIN_ROOT}/skills/audit-full/scripts/estimate-tokens.sh /path/to/project
 ```
 
 ## Manual Estimation Rules
