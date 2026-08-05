@@ -249,12 +249,31 @@ describe('gh-label-enforcer', () => {
   // -------------------------------------------------------------------------
 
   describe('edge cases', () => {
-    it('gh issue create block takes priority over gh pr create advisory when both appear', () => {
-      // Pathological command — gh issue create is matched first
+    it('advises rather than blocks when gh issue create is part of a compound command', () => {
+      // This command is COMPOUND, and that is the whole point. A PreToolUse deny
+      // aborts before execution, so blocking here would throw away every earlier
+      // segment of the chain — the #3283 report, where a heredoc that wrote the
+      // file the second half needed never ran, and the natural retry then failed
+      // for an unrelated reason.
       const input = createBashInput('gh issue create --title "A" && gh pr create --title "B"');
       const result = ghLabelEnforcer(input, testCtx);
 
-      // isIssueCreate is true → block path
+      // Advisory, not a block: a missing label is a policy nit, not a hazard.
+      expect(result.continue).toBe(true);
+
+      // An advisory must INFORM without GRANTING. outputAllowWithContext would
+      // set permissionDecision:'allow' and silently skip the permission prompt
+      // as a side effect of a labelling nit, so assert we did not do that.
+      expect(result.hookSpecificOutput?.permissionDecision).not.toBe('allow');
+    });
+
+    it('still BLOCKS a simple gh issue create with no --label', () => {
+      // The compound carve-out above must not leak into the simple case, which
+      // is the one the policy actually exists to enforce. Nothing is destroyed
+      // by denying a single command, so it is still denied.
+      const input = createBashInput('gh issue create --title "A"');
+      const result = ghLabelEnforcer(input, testCtx);
+
       expect(result.continue).toBe(false);
     });
 
