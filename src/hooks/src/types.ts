@@ -67,19 +67,25 @@ export interface HookInput {
    * Permission mode (CC 2.1.25: dontAsk mode makes quality gates warn-only;
    * CC 2.1.88: 'auto' mode, classifier-based approval).
    *
-   * The union mirrors `claude --permission-mode` verbatim (`acceptEdits`,
-   * `auto`, `bypassPermissions`, `manual`, `dontAsk`, `plan`) plus the
-   * `default` value CC sends when no flag was passed. It previously listed
-   * only 4 of the 7, so `bypassPermissions`, the mode
-   * `--dangerously-skip-permissions` selects, was not expressible and no
-   * hook could gate on it.
+   * The union mirrors CC 2.1.222's own mode enum verbatim, read from the
+   * binary: `acceptEdits | auto | bypassPermissions | default | dontAsk | plan`.
+   * It previously listed only 4, so `bypassPermissions` — the mode
+   * `--dangerously-skip-permissions` selects — was not expressible and no hook
+   * could gate on it.
+   *
+   * `manual` was in this union and is NOT in CC's enum; nothing can ever send
+   * it. Removed rather than left as a value a reader would reasonably code
+   * against.
+   *
+   * NOTE: CC serialises the mode SNAKE_CASE as `permission_mode` on the wire.
+   * Do not read this field directly — use the helpers in lib/guards.ts, which
+   * read the key CC actually sends.
    */
   permissionMode?:
     | 'default'
     | 'acceptEdits'
     | 'auto'
     | 'bypassPermissions'
-    | 'manual'
     | 'dontAsk'
     | 'plan';
   /** User prompt (UserPromptSubmit only) */

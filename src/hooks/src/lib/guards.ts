@@ -306,13 +306,38 @@ export function runGuards(input: HookInput, ...guards: ((input: HookInput) => Gu
 // -----------------------------------------------------------------------------
 
 /**
+ * The permission mode CC actually sent, or undefined when the event carries none.
+ *
+ * CC serialises this key SNAKE_CASE. Verified against the 2.1.222 binary: the
+ * hook envelope is built in exactly one place, and that object literal reads
+ *
+ *   {session_id, transcript_path, cwd, prompt_id, permission_mode, agent_id, ...}
+ *
+ * CC's own zod schema for the envelope agrees. The camelCase spelling occurs
+ * elsewhere in the binary (agent config, SDK options, chrome-bridge telemetry)
+ * but never in a hook payload, so a camelCase-only read is permanently false.
+ * That is not hypothetical: isDontAskMode and isAutoMode were camelCase-only
+ * and had never once returned true in production.
+ *
+ * camelCase is retained as a speculative fallback in case CC ever renames it —
+ * a mode gate that silently evaluates false is the worst failure shape here,
+ * because the symptom is just "the prompts came back" with nothing to blame.
+ */
+function permissionMode(input: HookInput): string | undefined {
+  const snake = (input as unknown as Record<string, unknown>).permission_mode;
+  if (typeof snake === 'string') return snake;
+  return input.permissionMode;
+}
+
+/**
  * Check if Claude Code is running in a non-interactive permission mode (CC 2.1.25, 2.1.88)
  * In dontAsk or auto mode, quality gates should warn instead of blocking.
  * - dontAsk: CC 2.1.25 — user pre-approved all tool calls
  * - auto: CC 2.1.88 — classifier-based approval, no interactive prompts
  */
 export function isDontAskMode(input: HookInput): boolean {
-  return input.permissionMode === 'dontAsk' || input.permissionMode === 'auto';
+  const mode = permissionMode(input);
+  return mode === 'dontAsk' || mode === 'auto';
 }
 
 /**
@@ -321,7 +346,7 @@ export function isDontAskMode(input: HookInput): boolean {
  * still has PermissionDenied events, dontAsk does not.
  */
 export function isAutoMode(input: HookInput): boolean {
-  return input.permissionMode === 'auto';
+  return permissionMode(input) === 'auto';
 }
 
 /**
@@ -337,13 +362,11 @@ export function isAutoMode(input: HookInput): boolean {
  * DENY tiers must NOT use this helper: catastrophic commands stay blocked in
  * bypass mode, which is exactly the unattended case they exist for.
  *
- * Reads a snake_case spelling as a fallback. CC has sent this key camelCase
- * since 2.1.25, but a gate that silently evaluates false on a key rename is
- * the worst failure shape here (the prompts simply come back), and the check
- * is free.
+ * Reads the key CC actually sends (snake_case) via permissionMode() above.
+ * This used to check camelCase first and treat snake_case as a "defensive
+ * fallback", with a comment asserting CC had sent camelCase since 2.1.25.
+ * That claim was unsourced and wrong: the fallback was doing 100% of the work.
  */
 export function isBypassMode(input: HookInput): boolean {
-  if (input.permissionMode === 'bypassPermissions') return true;
-  const snake = (input as unknown as Record<string, unknown>).permission_mode;
-  return snake === 'bypassPermissions';
+  return permissionMode(input) === 'bypassPermissions';
 }
