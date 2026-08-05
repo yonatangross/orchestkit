@@ -103,6 +103,11 @@ HOOK_SECURITY_*.txt
 # Worktrees (created by agent isolation, ephemeral)
 .claude/worktrees/
 
+# Worktrees checked out inside the repo. Each is its own checkout with its own
+# .git file, so git already refuses to descend into them, but without this they
+# still surface as one untracked "?? .worktrees/" line in every status call.
+.worktrees/
+
 # Negative count markers (runtime)
 .claude/.negative-count-*
 

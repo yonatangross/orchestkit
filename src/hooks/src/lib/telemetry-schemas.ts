@@ -167,6 +167,21 @@ export interface SubagentSpawnEntry {
   parent_agent_id?: string;
   /** 1-based nesting depth: 1 = spawned by the main loop, 2+ = nested (CC 2.1.172 allows up to 5) */
   spawn_depth?: number;
+  /**
+   * Whether subagent_type actually resolves against the agent registry.
+   * 'ok' resolves; 'bare' is a real ork agent named without its namespace
+   * (fails at dispatch, #2371); 'unknown' is a namespaced name with no such
+   * agent (usually a SKILL mistaken for an agent, #3279).
+   *
+   * Recorded here rather than in a new stream because this path is already
+   * schema-locked with only `timestamp` required, so an optional field is
+   * backward-compatible by construction and breaks none of its four readers.
+   * It makes the invalid-spawn RATE queryable, which is what turns the
+   * validator's ask-vs-deny posture into a data decision.
+   */
+  spawn_verdict?: 'ok' | 'bare' | 'unknown';
+  /** The namespaced form or nearest real agent, when one could be suggested. */
+  spawn_suggestion?: string;
 }
 
 export const SUBAGENT_SPAWN_REQUIRED_KEYS: ReadonlyArray<keyof SubagentSpawnEntry> = [
@@ -190,6 +205,15 @@ export function isValidSubagentSpawnEntry(raw: unknown): raw is SubagentSpawnEnt
   ) {
     return false;
   }
+  if (
+    entry.spawn_verdict !== undefined &&
+    entry.spawn_verdict !== 'ok' &&
+    entry.spawn_verdict !== 'bare' &&
+    entry.spawn_verdict !== 'unknown'
+  ) {
+    return false;
+  }
+  if (entry.spawn_suggestion !== undefined && typeof entry.spawn_suggestion !== 'string') return false;
   return true;
 }
 

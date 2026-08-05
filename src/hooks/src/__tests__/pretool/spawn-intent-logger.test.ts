@@ -140,4 +140,44 @@ describe('spawnIntentLogger', () => {
       spawnIntentLogger(makeInput({ subagent_type: 'Explore', description: 'x' })),
     ).not.toThrow();
   });
+
+  // The verdict is what makes the invalid-spawn rate measurable. Without these
+  // the field could silently never be written and the metric would read as a
+  // clean zero, which is the failure mode this whole change exists to kill.
+  describe('spawn_verdict', () => {
+    function writtenEntry(): Record<string, unknown> {
+      const calls = mockBufferWrite.mock.calls;
+      const [, line] = calls[calls.length - 1] as [string, string];
+      return JSON.parse(line);
+    }
+
+    test('records ok for a real namespaced agent', () => {
+      spawnIntentLogger(makeInput({ subagent_type: 'ork:security-auditor', description: 'x' }));
+      expect(writtenEntry().spawn_verdict).toBe('ok');
+    });
+
+    test('records bare, with the namespaced form as the suggestion', () => {
+      spawnIntentLogger(makeInput({ subagent_type: 'security-auditor', description: 'x' }));
+      const e = writtenEntry();
+      expect(e.spawn_verdict).toBe('bare');
+      expect(e.spawn_suggestion).toBe('ork:security-auditor');
+    });
+
+    test('records unknown for a SKILL mistaken for an agent (#3279)', () => {
+      spawnIntentLogger(makeInput({ subagent_type: 'ork:business-case', description: 'x' }));
+      expect(writtenEntry().spawn_verdict).toBe('unknown');
+    });
+
+    test('omits the field entirely for another plugin, rather than guessing', () => {
+      spawnIntentLogger(makeInput({ subagent_type: 'vercel:ai-architect', description: 'x' }));
+      const e = writtenEntry();
+      expect(e).not.toHaveProperty('spawn_verdict');
+      expect(e.subagent_type).toBe('vercel:ai-architect');
+    });
+
+    test('still records the spawn row when no verdict applies', () => {
+      spawnIntentLogger(makeInput({ subagent_type: 'Explore', description: 'x' }));
+      expect(writtenEntry().subagent_type).toBe('Explore');
+    });
+  });
 });
