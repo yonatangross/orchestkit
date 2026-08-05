@@ -292,6 +292,12 @@ assert_json_field() {
 
 # Run a hook script with input
 # Usage: run_hook "path/to/hook.sh" "$input"
+#
+# LEGACY (.sh hooks). Hooks are TypeScript now, dispatched through
+# run-hook.mjs, so this path resolves nothing for any current hook and returns
+# 127. That silently disabled most of tests/security/: a test would call a
+# vanished .sh, get 127, skip its `if [[ $HOOK_EXIT_CODE -eq 0 ]]` branch, and
+# return 0 green. Use hook_decision() below for anything in the live registry.
 run_hook() {
   local hook_path="$1"
   local input="${2:-{}}"
@@ -303,6 +309,99 @@ run_hook() {
   fi
 
   echo "$input" | bash "$full_path" 2>&1
+}
+
+# Ask a LIVE hook for its permission decision.
+# Usage: decision=$(hook_decision "pretool/bash/dangerous-command-blocker" "$json_input")
+# Echoes: deny | ask | allow
+#
+# run-hook.mjs always exits 0 and returns the HookResult as JSON on stdout, so
+# the verdict is in the payload, never in the exit code. That is why the
+# exit-code model above cannot express a modern hook's answer. jq's
+# `// "allow"` maps a silent success (hook emitted no decision) to "allow",
+# which is the dispatcher's own default and keeps this safe under `set -e`.
+#
+# A missing/misnamed hook key surfaces as a decision of "ERROR" rather than a
+# convenient "allow" — an unreachable hook must fail its test loudly, since
+# quietly reading as "allow" is exactly how the old suite went blind.
+hook_decision() {
+  local hook_key="$1"
+  # NOT `${2:-{}}` — bash closes the expansion at the FIRST `}`, so that idiom
+  # yields a default of `{` and then APPENDS a literal `}` to whatever was
+  # passed in. Every payload arrives as `{...}}`, which is invalid JSON; the
+  # dispatcher falls back to its default result and the caller reads "allow"
+  # for a command the hook would have denied. Measured: `rm -rf /` returned
+  # deny inline and allow through the function until this line changed.
+  # The same idiom is still in run_hook() above (dead path, but same trap).
+  local input="${2:-}"
+  [[ -n "$input" ]] || input='{}'
+  local runner="${PROJECT_ROOT}/src/hooks/bin/run-hook.mjs"
+  local out
+
+  if [[ ! -f "$runner" ]]; then
+    echo "ERROR"
+    echo "hook runner not found: $runner" >&2
+    return 0
+  fi
+
+  # silent: best-effort — hook stderr is debug noise; a real failure shows up as
+  # an empty/unparseable payload below and is reported as ERROR, not swallowed.
+  out=$(printf '%s' "$input" | node "$runner" "$hook_key" 2>/dev/null)
+
+  if [[ -z "$out" ]] || ! printf '%s' "$out" | jq -e . >/dev/null 2>&1; then
+    echo "ERROR"
+    echo "hook '$hook_key' returned no parseable JSON" >&2
+    return 0
+  fi
+
+  printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "allow"'
+}
+
+# Assert that a hook key is actually REGISTERED before trusting its verdict.
+#
+# An unknown key is NOT an error to run-hook.mjs: it returns
+# `{"continue":true,"suppressOutput":true}` and exit 0, which carries no
+# permissionDecision and therefore reads as "allow". A typo would silently pass
+# every "should be allowed" assertion — the same blindness that made the old
+# suite green. Output alone cannot distinguish "hook allowed it" from "hook does
+# not exist", so check the registry instead.
+assert_hook_registered() {
+  local hook_key="$1"
+  local entries_dir="${PROJECT_ROOT}/src/hooks/src/entries"
+  local rc=0
+  # grep exit 1 means "not registered", which is the answer we want, not an
+  # error. Anything >1 is a real failure and is surfaced below.
+  grep -rqF "'${hook_key}'" "$entries_dir" || rc=$?
+  if (( rc == 0 )); then
+    return 0
+  fi
+  if (( rc > 1 )); then
+    echo "ASSERTION FAILED: could not scan ${entries_dir} (grep exit ${rc})" >&2
+    return 1
+  fi
+  echo "ASSERTION FAILED: hook '${hook_key}' is not registered in ${entries_dir}" >&2
+  return 1
+}
+
+# Assert a live hook's decision.
+# Usage: expect_decision deny "pretool/bash/..." "$input" "label"
+#
+# Self-contained on purpose: log_pass/log_fail are defined per test script, not
+# in this library, so depending on them here breaks any caller that lacks them.
+# Uses them when present, falls back to plain output, and always maintains
+# PASS/FAIL so the calling script's `[[ $FAIL -eq 0 ]]` gate works either way.
+expect_decision() {
+  local want="$1" hook_key="$2" input="$3" label="$4" got
+  got=$(hook_decision "$hook_key" "$input")
+  if [[ "$got" == "$want" ]]; then
+    PASS=$((${PASS:-0} + 1))
+    if declare -F log_pass >/dev/null; then log_pass "$label (-> $got)"
+    else echo "  PASS: $label (-> $got)"; fi
+  else
+    FAIL=$((${FAIL:-0} + 1))
+    if declare -F log_fail >/dev/null; then log_fail "$label — expected $want, got $got"
+    else echo "  FAIL: $label — expected $want, got $got" >&2; fi
+  fi
 }
 
 # Run hook and capture exit code
