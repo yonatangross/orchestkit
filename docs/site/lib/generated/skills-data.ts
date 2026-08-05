@@ -3654,7 +3654,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "rag-retrieval",
     "description": "Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding documents, implementing hybrid search, contextual retrieval, HyDE, agentic RAG, multimodal RAG, query decomposition, reranking, or pgvector search.",
     "version": "2.0.0",
-    "sha256": "d8e93d576f041b8916cfb3cad42165f9fa1c60813799d97ebc0bb82ef6c0590c",
+    "sha256": "dc42c70721b6360c75af44c4b9bc1bbf4e432d4f23f6acb126a16dd058f51a4f",
     "author": "OrchestKit",
     "tags": [
       "rag",
@@ -3681,9 +3681,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "data-pipeline-engineer",
     "complexity": "high",
     "structure": {
-      "references": [
-        "ork-delta.md"
-      ],
       "scripts": [
         "chunk-repository.py",
         "rag-pipeline-template.ts",

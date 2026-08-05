@@ -29,7 +29,7 @@ path_patterns: ["**/rag/**", "**/retrieval/**", "**/embeddings/**", "**/vector/*
 Comprehensive patterns for building production RAG systems. Each category has individual rule files in `rules/` loaded on-demand.
 
 House thresholds, fusion ordering, and the latency and quality budgets we assert live in
-`references/ork-delta.md`. Vendor documentation is linked, not restated (see
+[House delta](#house-delta) below. Vendor documentation is linked, not restated (see
 [Upstream coverage](#upstream-coverage-do-not-restate)).
 
 ## Quick Reference
@@ -187,7 +187,7 @@ subset stays, that named file carries only the tuned values and the reason, not 
 | Postgres full-text search: tsvector, tsquery, GIN, `ts_rank_cd` | https://www.postgresql.org/docs/current/textsearch.html; house subset (generated STORED column) stays in `rules/pgvector-schema.md` |
 | Reading query plans, confirming an index is used, VACUUM/ANALYZE | https://www.postgresql.org/docs/current/using-explain.html |
 | RRF mechanics: rank constant, rank window size, tie handling | https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion; house subset (`k=60`, 3x fetch) stays in `rules/core-hybrid-search.md` and `rules/pgvector-hybrid-search.md` |
-| Field-weighted boosting and scoring profiles as a concept | https://learn.microsoft.com/en-us/azure/search/index-add-scoring-profiles; our boost factors and their ordering are in `references/ork-delta.md` |
+| Field-weighted boosting and scoring profiles as a concept | https://learn.microsoft.com/en-us/azure/search/index-add-scoring-profiles; our boost factors and their ordering are in [House delta](#house-delta) and `rules/pgvector-metadata.md` |
 | Embedding API mechanics: batch limits, `input_type`, dimensions, pricing | https://docs.voyageai.com/docs/embeddings and https://platform.openai.com/docs/guides/embeddings; model choice stays in `rules/embeddings-models.md` |
 | Retrieval metric definitions (precision@k, recall@k, MRR, nDCG) and building the query set | ork skill `golden-dataset` |
 | Search endpoint shape, pagination, error bodies | ork skill `api-design` |
@@ -209,9 +209,17 @@ subset stays, that named file carries only the tuned values and the reason, not 
 
 ## Evaluations
 
-See `test-cases.json` for 30 test cases across all categories, and
-`references/ork-delta.md` for the pass-rate, precision, recall, MRR, and per-stage
-latency floors a retrieval change has to clear.
+See `test-cases.json` for 30 test cases across all categories.
+
+There is **no** pass-rate, precision, recall, or MRR floor for this skill. Earlier
+wording here promised those numbers; they were never measured and are written down
+nowhere. They are left unset rather than filled in with plausible-looking values,
+because a threshold nobody measured is worse than an absent one: it gets cited in
+review as though it means something, and passes or fails changes for no defensible
+reason. `test-cases.json` is the right substrate for establishing real ones, and a
+baseline run over those 30 cases would produce numbers worth asserting.
+
+The one budget this skill does assert is latency, in [House delta](#house-delta).
 
 ## Related Skills
 
@@ -301,6 +309,28 @@ latency floors a retrieval change has to clear.
 Inlined rather than placed in `references/`: this skill carries its house knowledge
 in `rules/` (32 files) and has never had a `references/` directory, so a lone
 delta file there would be the only occupant.
+
+Embedding-model choice, chunking algorithms, vector-index tuning, reranker APIs and
+the query-rewriting literature are vendor and upstream territory; see
+[Upstream coverage](#upstream-coverage-do-not-restate) for where each lives. What
+follows is only what OrchestKit adds, contradicts, or has to warn about.
+
+### Retrieval latency budget: p95 under 500ms end to end
+
+Source: `checklists/rag-quality.md:57`, the only retrieval budget this skill has ever
+actually asserted. It covers the whole path a user waits on (embed the query, search,
+rerank, assemble context), not one stage in isolation. A pipeline that clears 500ms
+per stage and blows it in aggregate has failed this budget.
+
+Measure at p95, not mean. Retrieval latency is dominated by tail behaviour (cold index
+shards, reranker queueing), and a mean hides exactly the requests users complain about.
+
+### Corpus-specific tuning does not transfer
+
+Fusion weights, rerank depth and hybrid alpha are properties of a corpus, not of the
+technique. A weighting that lifts recall on prose documentation regularly hurts it on
+code or tabular data, so values copied between projects are noise rather than a
+starting point. Re-derive them per corpus against that corpus's own eval set.
 
 ## Apply metadata boosting after RRF fusion, never before
 
