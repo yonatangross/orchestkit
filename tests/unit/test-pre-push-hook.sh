@@ -167,6 +167,67 @@ test_skip_regex_parity() {
     fi
 }
 
+# Test 5: the hook parses and runs under the bash the shebang actually gets
+#
+# bin/git-hooks/pre-push declares `#!/bin/bash`. On macOS that is the bundled
+# bash 3.2.57, NOT whatever bash 4/5 is on PATH from brew. A bash-4-only
+# builtin therefore fails only on the machine the hook actually runs on, and
+# Tests 1-4 all passed with `mapfile` live in the discovery block because none
+# of them execute or parse the file under /bin/bash.
+#
+# Every branch below reports the REAL error text rather than discarding it —
+# a regression test that hides why it failed just moves the debugging cost.
+test_bash32_compatibility() {
+    echo ""
+    echo "Test 5: pre-push is compatible with /bin/bash (macOS bash 3.2)"
+
+    local hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+
+    # 5a: no bash-4-only builtins outside comments. awk (not grep|grep) so a
+    # zero-match result is exit 0 and a real scan failure stays distinguishable.
+    local offenders
+    offenders=$(awk '
+        /^[[:space:]]*#/ { next }
+        /(^|[^#[:alnum:]_])(mapfile|readarray)[[:space:]]/ { print NR ": " $0 }
+    ' "$hook")
+    if [[ -z "$offenders" ]]; then
+        log_pass "no mapfile/readarray invocation (bash 4+ builtins)"
+    else
+        log_fail "bash 4+ builtin in a #!/bin/bash script -> ${offenders}"
+    fi
+
+    # 5b: /bin/bash itself must be able to PARSE the hook. Keep the parse error.
+    local parse_err
+    if parse_err=$(/bin/bash -n "$hook" 2>&1); then
+        log_pass "/bin/bash -n parses the hook"
+    else
+        log_fail "/bin/bash -n rejected the hook -> ${parse_err}"
+    fi
+
+    # 5c: discovery must actually find tests under /bin/bash. This is the
+    # assertion that fails loudly on the real bug: with mapfile the array came
+    # back empty and the hook exited 1 claiming no tests exist.
+    local discover_out
+    if discover_out=$(/bin/bash -c '
+        cd "$1" || exit 1
+        SKIP_UNIT_TESTS=()
+        CI_UNIT_TESTS=()
+        while IFS= read -r file; do
+            [[ -n "$file" ]] || continue
+            CI_UNIT_TESTS+=("$file")
+        done < <(find tests/unit \( -name "test-*.sh" -o -name "test-*.mjs" \) -type f | sort)
+        echo "${#CI_UNIT_TESTS[@]}"
+    ' _ "$PROJECT_ROOT" 2>&1); then
+        if [[ "$discover_out" =~ ^[0-9]+$ ]] && (( discover_out > 0 )); then
+            log_pass "discovery yields ${discover_out} unit tests under /bin/bash"
+        else
+            log_fail "discovery returned no usable count -> ${discover_out}"
+        fi
+    else
+        log_fail "discovery errored under /bin/bash -> ${discover_out}"
+    fi
+}
+
 # Main
 main() {
     echo "╔═══════════════════════════════════════════════════════════════╗"
@@ -177,6 +238,7 @@ main() {
     test_changelog_variable_capture
     test_run_with_timeout_spaces
     test_skip_regex_parity
+    test_bash32_compatibility
 
     # Summary
     echo ""

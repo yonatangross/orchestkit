@@ -239,7 +239,18 @@ echo -n "  Running unit tests... "
 # explicit, justified skip stays visible; a stale array does not.
 SKIP_UNIT_TESTS=()
 
-mapfile -t CI_UNIT_TESTS < <(
+# NOT `mapfile` — it is a bash 4+ builtin and this script's shebang is
+# `#!/bin/bash`, which on macOS is the bundled bash 3.2.57. There, `mapfile`
+# is "command not found", CI_UNIT_TESTS stays empty, and the guard below then
+# fires with "no unit tests discovered" on a repo that plainly has 61 of them.
+# `scripts/ci/run-tests.sh:61` already reads its glob with this while-read
+# loop for exactly that reason; sharing CI's discovery rule means sharing the
+# way CI reads it.
+CI_UNIT_TESTS=()
+while IFS= read -r file; do
+  [[ -n "$file" ]] || continue
+  CI_UNIT_TESTS+=("$file")
+done < <(
   find tests/unit \( -name "test-*.sh" -o -name "test-*.mjs" \) -type f \
     | sort \
     | { if ((${#SKIP_UNIT_TESTS[@]})); then grep -vFx -f <(printf '%s\n' "${SKIP_UNIT_TESTS[@]}"); else cat; fi; }

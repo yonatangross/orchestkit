@@ -344,6 +344,22 @@ hook_decision() {
     return 0
   fi
 
+  # Honour the contract documented above. Without this, the promise is false:
+  # run-hook.mjs answers an UNKNOWN key with `{"continue":true,
+  # "suppressOutput":true}` and exit 0, which carries no permissionDecision, so
+  # the `// "allow"` below turns every typo into a silent "allow" — the exact
+  # blindness this helper exists to end. The payload alone cannot tell "hook
+  # allowed it" from "hook does not exist", so ask the registry.
+  #
+  # assert_hook_registered's stderr is deliberately NOT swallowed: it
+  # distinguishes "not registered" from "could not scan the entries dir", and
+  # the second is a real failure that must stay visible.
+  # It is defined below; order is irrelevant since the file is sourced whole.
+  if ! assert_hook_registered "$hook_key"; then
+    echo "ERROR"
+    return 0
+  fi
+
   # silent: best-effort — hook stderr is debug noise; a real failure shows up as
   # an empty/unparseable payload below and is reported as ERROR, not swallowed.
   out=$(printf '%s' "$input" | node "$runner" "$hook_key" 2>/dev/null)
