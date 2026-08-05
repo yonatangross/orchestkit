@@ -14,6 +14,8 @@
  * handler.
  */
 
+import { lstatSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
@@ -424,6 +426,39 @@ const PIPE_TO_INTERPRETER_DENY =
 // Main handler
 // =============================================================================
 
+/**
+ * Returns the node_modules path that `npm ci` would clear, when that path is a
+ * symlink (a worktree sharing the main repository's installed tree). Returns
+ * null when the command is not an `npm ci`, when no cwd is known, or when
+ * node_modules is a real directory / absent.
+ *
+ * Matches `npm ci` and `npm clean-install` per compound segment, so
+ * `git pull && npm ci` is caught. Does NOT match `npm cit`, `npm ci-foo`, or a
+ * `--dry-run` invocation (npm ci has no dry-run that skips the clear, but the
+ * flag is checked so a future one is not blocked spuriously).
+ */
+export function npmCiAgainstSymlink(command: string, cwd?: string): string | null {
+  if (!cwd) return null;
+  const normalized = normalizeSingle(command);
+  const segments = normalized.split(/&&|\|\||;|\|/);
+  const isNpmCi = segments.some((s) => /(^|\s)npm\s+(ci|clean-install)(\s|$)/.test(s));
+  if (!isNpmCi) return null;
+
+  // `cd <dir> && npm ci` is the realistic shape: a session rooted in the main
+  // repository stepping into a worktree. Resolve that hop, or the check reads
+  // the wrong node_modules and waves the destructive case through.
+  const cdMatch = normalized.match(/(^|\s)cd\s+([^\s;&|]+)/);
+  const base = cdMatch ? resolve(cwd, cdMatch[2]) : cwd;
+
+  const target = join(base, 'node_modules');
+  try {
+    if (!lstatSync(target).isSymbolicLink()) return null;
+  } catch {
+    return null; // absent: npm ci has nothing shared to destroy
+  }
+  return target;
+}
+
 export function dangerousCommandBlocker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
   if (!command) return outputSilentSuccess();
@@ -487,6 +522,35 @@ export function dangerousCommandBlocker(input: HookInput, ctx: HookContext = NOO
     ctx.log('dangerous-command-blocker', `BLOCKED: Piping to shell interpreter (${pipeKind})`);
     ctx.logPermission('deny', 'Piping to shell interpreter detected', input);
     return outputDeny(pipeKind === 'exec' ? PIPE_TO_SHELL_DENY : PIPE_TO_INTERPRETER_DENY);
+  }
+
+  // --- DENY tier: `npm ci` against a SHARED node_modules ---
+  // worktree.symlinkDirectories (see bin/worktree-config.sh) makes every
+  // worktree's node_modules a symlink into the main repository. `npm ci` starts
+  // by clearing node_modules, and it FOLLOWS that symlink: measured in a
+  // sandbox, one `npm ci` emptied the shared tree and replaced the link with a
+  // local directory. In this repo that is ~2 GB destroyed and all 13 worktrees
+  // broken at once, from a command that looks routine and prints "added 1
+  // package" on success.
+  //
+  // `npm install` is NOT affected: it replaces the symlink with a real
+  // directory and leaves the shared tree intact. Only `ci` clears first.
+  //
+  // DENY, not ASK, and deliberately above the bypass gate: the damage is
+  // instant, silent, and hits worktrees the operator is not looking at.
+  const npmCiSegment = npmCiAgainstSymlink(command, ctx.projectDir);
+  if (npmCiSegment) {
+    ctx.log('dangerous-command-blocker', `BLOCKED: npm ci against symlinked node_modules`);
+    ctx.logPermission('deny', 'npm ci would clear the shared node_modules', input);
+    return outputDeny(
+      `\`npm ci\` here would destroy the SHARED node_modules.\n\n` +
+        `${npmCiSegment} is a symlink into the main repository (worktree.symlinkDirectories). ` +
+        `npm ci clears node_modules before installing and follows the link, ` +
+        `so it empties the main repo's tree and breaks every other worktree.\n\n` +
+        `Use \`npm install\` instead: it replaces the symlink with a local ` +
+        `directory and leaves the shared tree alone. Re-share afterwards with ` +
+        `\`bin/worktree-reclaim.sh --apply\`.`,
+    );
   }
 
   // --- ASK tier gate: bypassPermissions means the user opted out of prompts ---

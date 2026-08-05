@@ -195,6 +195,13 @@ while IFS= read -r skill_md; do
             continue
         fi
 
+        # Prose writes the shape, not a value: `subagent_type=ork:<name>`.
+        # The unquoted extraction stops at the '<', leaving a namespace with an
+        # empty name. That is documentation, not a spawn.
+        if [[ "$agent_type" == *: ]]; then
+            continue
+        fi
+
         # ork agents MUST be spawned by their registry name — bare names fail
         # at dispatch ("Agent type 'x' not found", live-verified #2371).
         # CC builtins (Explore, general-purpose, ...) stay bare.
@@ -220,8 +227,72 @@ while IFS= read -r skill_md; do
         else
             info "$skill_name: agent '$agent_type' exists (OK)"
         fi
-    done < <(grep -oE 'subagent_type="[^"]*"' "$skill_md" 2>/dev/null | sed 's/subagent_type="//;s/"//')
+    # Extraction covers the forms authors actually write:
+    #   subagent_type="ork:x"   subagent_type='ork:x'   subagent_type: ork:x
+    #   agentType: 'ork:x'      agentType: "ork:x"
+    # It used to be double-quoted subagent_type ONLY, which is how the assess
+    # regression survived: its spawn is Agent(subagent_type=agent_type, ...),
+    # a VARIABLE. The computed-target sweep below covers that case.
+    # No 2>/dev/null on these greps: find produced the paths, so the files
+    # exist, and a redirect would only hide a real read error.
+    done < <(
+        {
+            grep -oE 'subagent_type[=:][[:space:]]*"[^"]*"' "$skill_md" |
+                sed -E 's/subagent_type[=:][[:space:]]*"//; s/"$//'
+            grep -oE "subagent_type[=:][[:space:]]*'[^']*'" "$skill_md" |
+                sed -E "s/subagent_type[=:][[:space:]]*'//; s/'$//"
+            grep -oE 'subagent_type:[[:space:]]*[A-Za-z0-9:_-]+' "$skill_md" |
+                sed -E 's/subagent_type:[[:space:]]*//'
+            grep -oE "agentType:[[:space:]]*['\"][^'\"]*['\"]" "$skill_md" |
+                sed -E "s/agentType:[[:space:]]*['\"]//; s/['\"]\$//"
+        } | sort -u
+    )
 done < <(find "$SKILLS_DIR" -name '*.md' -type f | sort)
+
+# ── Computed spawn targets ───────────────────────────────────────────────────
+# A spawn whose type is a variable — Agent(subagent_type=agent_type, ...) — is
+# invisible to every extraction above, because there is no literal to read.
+# That is not hypothetical: /ork:assess shipped four bare names inside a list
+# feeding exactly that call, its default path failed at dispatch, and this
+# guard reported success the whole time.
+#
+# We cannot resolve a variable statically. What we CAN do is check the file's
+# own string literals: in a file that spawns, a literal equal to a real ork
+# agent name and missing the ork: prefix is a spawn target in all but syntax.
+echo ""
+info "Scanning for computed spawn targets with bare agent-name literals"
+COMPUTED_HITS=0
+while IFS= read -r skill_md; do
+    grep -qE 'subagent_type[[:space:]]*=[[:space:]]*[a-z_][a-z0-9_]*[,)[:space:]]' "$skill_md" || continue
+    computed_file="${skill_md#"$SKILLS_DIR"/}"
+    # (a) BARE literal naming a real agent — the #2371 shape, and the exact
+    #     form the assess regression shipped.
+    for agent_name in "${!KNOWN_AGENTS[@]}"; do
+        if grep -qE "[\"']${agent_name}[\"']" "$skill_md"; then
+            COMPUTED_HITS=$((COMPUTED_HITS + 1))
+            MISSING_AGENTS+=("$computed_file → \"$agent_name\" (bare literal feeding a computed spawn)")
+            fail "$computed_file: bare literal \"$agent_name\" feeds a computed subagent_type — use \"ork:$agent_name\" (#2371)"
+        fi
+    done
+
+    # (b) NAMESPACED literal naming an agent that does not exist — the #3279
+    #     shape, usually a SKILL mistaken for an agent. Symmetric with (a):
+    #     without it, ork:business-case sitting in the same list would pass.
+    while IFS= read -r ns_literal; do
+        [[ -z "$ns_literal" ]] && continue
+        ns_base="${ns_literal#ork:}"
+        [[ -z "$ns_base" || "$ns_base" == \<* ]] && continue
+        if [[ -z "${KNOWN_AGENTS[$ns_base]+_}" ]]; then
+            COMPUTED_HITS=$((COMPUTED_HITS + 1))
+            MISSING_AGENTS+=("$computed_file → $ns_literal (no such agent)")
+            fail "$computed_file: literal \"$ns_literal\" feeds a computed subagent_type but no $AGENTS_DIR/$ns_base.md exists (#3279)"
+        fi
+    done < <(grep -ohE "[\"']ork:[A-Za-z0-9_-]+[\"']" "$skill_md" | tr -d "\"'" | sort -u)
+done < <(find "$SKILLS_DIR" -name '*.md' -type f | sort)
+
+if [[ "$COMPUTED_HITS" -eq 0 ]]; then
+    pass "No computed spawn targets carry bare agent-name literals"
+fi
 
 if [[ ${#MISSING_AGENTS[@]} -eq 0 ]]; then
     pass "All referenced agent types have matching definitions"
