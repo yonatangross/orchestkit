@@ -352,28 +352,57 @@ const EXEC_WRAPPER_RE =
  */
 function resolveInterpreterWord(tail: string): string {
   let rest = tail.replace(/['"]/g, '').trimStart();
+  // True once anything has been skipped. After that the interpreter can be at
+  // ANY later position, so the walk keeps going instead of stopping at the
+  // first word it does not recognise.
+  let skipped = false;
 
-  for (let hop = 0; hop < 8; hop++) {
+  for (let hop = 0; hop < 16; hop++) {
+    // Flags and VAR=value assignments are skippable at ANY position, not only
+    // after a recognised wrapper. `FOO=bar bash` is plain POSIX shell and needs
+    // no `env` at all; handling assignments only inside the wrapper branch left
+    // it a silent allow, and it is more idiomatic than the `env FOO=1 bash`
+    // form that WAS handled.
+    const opt = /^(-{1,2}[^\s]*|[A-Za-z_][A-Za-z0-9_]*=[^\s]*)\s*/.exec(rest);
+    if (opt) {
+      rest = rest.slice(opt[0].length);
+      skipped = true;
+      continue;
+    }
+
     const m = /^(\S+)\s*/.exec(rest);
     if (!m) return rest;
 
     const word = m[1];
     const base = word.slice(word.lastIndexOf('/') + 1);
+    const reduced = base + rest.slice(word.length);
 
-    // Not a wrapper: this is the command being run. Hand back the tail with
-    // the leading path stripped so the ^-anchored patterns see the name.
-    if (!EXEC_WRAPPER_RE.test(base)) return base + rest.slice(word.length);
-
-    // A wrapper: drop it, then its own flags and VAR=value assignments.
-    rest = rest.slice(m[0].length);
-    for (;;) {
-      const opt = /^(-{1,2}[^\s]*|[A-Za-z_][A-Za-z0-9_]*=[^\s]*)\s*/.exec(rest);
-      if (!opt) break;
-      rest = rest.slice(opt[0].length);
+    if (EXEC_WRAPPER_RE.test(base)) {
+      rest = rest.slice(m[0].length);
+      skipped = true;
+      continue;
     }
+
+    // Nothing skipped yet: this is the command itself, at position zero.
+    if (!skipped) return reduced;
+
+    // Past a wrapper. Return only on an actual interpreter, otherwise keep
+    // walking: a wrapper's operand may sit between it and the real command
+    // (`sudo -u root bash` leaves `root` here). Stopping at that operand made
+    // the DENY tier miss entirely, and the input then fell through to an
+    // unrelated sudo ASK rule that is itself skipped under bypassPermissions —
+    // a fully silent allow in the one mode DENY exists to backstop.
+    if (SHELL_EXEC_RE.test(base) || SCRIPT_INTERPRETER_RE.test(base)) return reduced;
+    rest = rest.slice(m[0].length);
   }
 
-  return rest;
+  // Bound exhausted. Return the tail BASENAMED rather than raw: the previous
+  // version fell through with `rest` untouched, so a padded wrapper chain
+  // (`env env env … /usr/bin/python3`) skipped path-stripping and failed OPEN.
+  // Real commands do not nest 16 wrappers deep; erring toward a match here is
+  // the safe direction for a DENY-tier guard.
+  const last = /^(\S+)/.exec(rest);
+  return last ? last[1].slice(last[1].lastIndexOf('/') + 1) + rest.slice(last[1].length) : rest;
 }
 
 /**
