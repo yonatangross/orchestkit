@@ -142,6 +142,31 @@ _mutate_one() {
   fi
 
   verdict="$(printf '%s\n' "$line" | sed -n 's/.*verdict=\([A-Z_]*\).*/\1/p')"
+
+  # -------------------------------------------------------------------------
+  # Probe B: does the FILE propagate the failure?
+  #
+  # Probe A above proves the ASSERTION bites, and stops there — it exits from
+  # inside expect_decision, so the file's own `[[ $FAIL -eq 0 ]]` line never
+  # runs. That leaves a hole: a file that detects the flip and then discards it
+  # (`expect_decision ... || true`, or a trailing unconditional `exit 0`) scored
+  # CAN FAIL while being incapable of failing. Confirmed with a planted probe.
+  # Swallowed exit codes are one of the three root causes of the original 47
+  # no-op functions, so the gate has to see them.
+  #
+  # ORK_MUTATE_NOEXIT adopts the inverted expectation and lets the file finish.
+  # The assertion must then be red AND the file must exit non-zero.
+  if [[ "$verdict" == "DETECTED" ]]; then
+    local bcode
+    ORK_MUTATE_INDEX=1 ORK_MUTATE_NOEXIT=1 bash "$file" >/dev/null 2>&1
+    bcode=$?
+    if (( bcode == 0 )); then
+      printf 'SWALLOWED|%s|assertion bites but the file still exits 0 (gate discarded or missing)\n' \
+        "$base" > "$RESULT_DIR/$base"
+      return 0
+    fi
+  fi
+
   printf '%s|%s|%s\n' "$verdict" "$base" "$line" > "$RESULT_DIR/$base"
 }
 export -f _mutate_one
@@ -174,6 +199,11 @@ for base in $(ls "$RESULT_DIR" | sort); do
     ERROR)
       NOT_PROVABLE+=("$name")
       echo -e "  ${RED}HOOK ERROR${NC}   : $name (hook unreachable — never a pass)"
+      echo "                 $detail"
+      ;;
+    SWALLOWED)
+      NOT_PROVABLE+=("$name")
+      echo -e "  ${RED}SWALLOWED${NC}    : $name (assertion bites, file still exits 0)"
       echo "                 $detail"
       ;;
     *)

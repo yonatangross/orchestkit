@@ -479,15 +479,30 @@ expect_decision() {
     fi
     printf 'ORK_MUTATION_RESULT index=%s verdict=%s hook=%s want=%s mutated=%s got=%s label=%s\n' \
       "$ORK_MUTATE_INDEX" "$verdict" "$hook_key" "$want" "$_mut_want" "$got" "$label"
-    # Exit immediately. Reaching this line at all is half the signal: a file
-    # whose assertions are skipped, short-circuited, or never executed emits no
-    # result line and the driver fails it for that alone.
-    # 87 and 88 cannot collide with a normal bash failure code.
-    case "$verdict" in
-      DETECTED) exit 0 ;;
-      BLIND) exit 87 ;;
-      *) exit 88 ;;
-    esac
+    # ORK_MUTATE_NOEXIT: do NOT exit. Adopt the inverted expectation and let the
+    # file run to completion so its OWN gate decides the exit code.
+    #
+    # Why this second mode exists. The early exit below proves an ASSERTION
+    # bites; it cannot prove the FILE fails, because control never returns to
+    # the file's `[[ $FAIL -eq 0 ]]` line. A file that detects the flip and then
+    # throws the result away — `expect_decision ... || true`, or a trailing
+    # unconditional `exit 0` — was reported CAN FAIL while being unable to fail.
+    # Verified with a planted probe. That swallowed-exit shape is one of the
+    # three root causes behind the original 47 no-op functions, so a gate built
+    # in response to them that cannot see it is missing a third of its job.
+    if [[ -n "${ORK_MUTATE_NOEXIT:-}" ]]; then
+      want="$_mut_want"
+    else
+      # Exit immediately. Reaching this line at all is half the signal: a file
+      # whose assertions are skipped, short-circuited, or never executed emits no
+      # result line and the driver fails it for that alone.
+      # 87 and 88 cannot collide with a normal bash failure code.
+      case "$verdict" in
+        DETECTED) exit 0 ;;
+        BLIND) exit 87 ;;
+        *) exit 88 ;;
+      esac
+    fi
   fi
 
   if [[ "$got" == "$want" ]]; then
