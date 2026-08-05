@@ -41,12 +41,44 @@ echo "=========================================="
 # ---------------------------------------------------------------------------
 section "1. No shipped playground contains a raw breakout sequence"
 # ---------------------------------------------------------------------------
-# Scan every HTML file that declares a JSON island. Within the island body only,
-# a literal `</script` (other than the island's own closing tag) is a breakout.
-VIOLATIONS=$(python3 - "$PROJECT_ROOT" <<'PY'
-import os, re, sys
+# Scan every HTML file that declares a JSON island and check that each island
+# survives the HTML tokenizer intact.
+#
+# THE DETECTOR THIS REPLACES DID NOT WORK. It captured the island body with a
+# non-greedy `(.*?)</script\s*>` and then searched that body for `</script`. The
+# non-greedy match ENDS at the first `</script>` — which, for the attack in this
+# file's own header, is the injected breakout itself. The captured body was
+# therefore always the truncated prefix (`{"t":"x`) and never contained the
+# sequence being searched for. Measured: a planted
+# `{"t":"x</script><img src=x onerror=alert(1)>"}` island scanned CLEAN. The
+# section only ever caught malformed variants like `</script foo`, never the
+# real thing.
+#
+# What it does now mirrors the actual vulnerability. Per the HTML spec, script
+# data ends at the first `</script` followed by whitespace, `/`, or `>`, whatever
+# the type= attribute says. So: cut the island at that first terminator and hand
+# the result to a JSON parser. A clean island's JSON is complete at that point; a
+# broken-out island's JSON is truncated mid-token and fails to parse. Verified
+# against all 11 real islands in the tree — zero false positives — and it turns
+# the planted attack RED.
+#
+# If a future template holds a non-JSON placeholder inside an island, this fires.
+# That is the correct answer, not a bug: keep the placeholder JSON-shaped.
+#
+# The scanner also reports how many islands it matched. A clean scan over ZERO
+# islands is not evidence of anything — if the island markup were renamed or the
+# playgrounds moved out of the walked tree, this section would report green
+# forever while guarding nothing. Measured at authoring time: 11 islands across
+# 926 HTML files, so the count assertion below is live, not decorative.
+SCAN=$(python3 - "$PROJECT_ROOT" <<'PY'
+import json, os, re, sys
+
 root = sys.argv[1]
+OPEN_RE = re.compile(r'<script[^>]*type=["\']application/json["\'][^>]*>', re.I)
+END_RE = re.compile(r'</script[\s/>]', re.I)
+
 bad = []
+islands = 0
 for base, dirs, files in os.walk(root):
     dirs[:] = [d for d in dirs if d not in {".git", "node_modules", ".worktrees"}]
     for name in files:
@@ -57,19 +89,33 @@ for base, dirs, files in os.walk(root):
             text = open(p, encoding="utf-8", errors="replace").read()
         except OSError:
             continue
-        for m in re.finditer(
-            r'<script[^>]*type=["\']application/json["\'][^>]*>(.*?)</script\s*>',
-            text, re.S | re.I,
-        ):
-            body = m.group(1)
-            if re.search(r'</script', body, re.I):
-                bad.append(os.path.relpath(p, root))
-for b in sorted(set(bad)):
-    print(b)
+        for m in OPEN_RE.finditer(text):
+            islands += 1
+            rest = text[m.end():]
+            end = END_RE.search(rest)
+            if end is None:
+                bad.append((os.path.relpath(p, root), "island is never terminated"))
+                continue
+            body = rest[: end.start()]
+            try:
+                json.loads(body)
+            except ValueError as exc:
+                bad.append((
+                    os.path.relpath(p, root),
+                    "island truncated at the tokenizer's first </script (%s)" % exc,
+                ))
+print("ISLANDS %d" % islands)
+for path, why in sorted(set(bad)):
+    print("BAD %s :: %s" % (path, why))
 PY
 )
-if [ -z "$VIOLATIONS" ]; then
-  log_pass "no JSON island contains a raw </script sequence"
+ISLANDS=$(printf '%s\n' "$SCAN" | awk '$1 == "ISLANDS" { print $2 }')
+VIOLATIONS=$(printf '%s\n' "$SCAN" | awk '$1 == "BAD" { sub(/^BAD /, ""); print }')
+
+if [ "${ISLANDS:-0}" -eq 0 ]; then
+  log_fail "scanner matched NO JSON islands — the scan below is vacuous, not clean"
+elif [ -z "$VIOLATIONS" ]; then
+  log_pass "no JSON island contains a raw </script sequence (${ISLANDS} islands scanned)"
 else
   log_fail "JSON island breakout present in:"
   echo "$VIOLATIONS" | sed 's/^/      /'

@@ -1,428 +1,121 @@
-#!/usr/bin/env bash
-# ============================================================================
-# Symlink Attack Security Tests
-# ============================================================================
-# Tests for symlink-based security attacks:
-# 1. Symlink following to sensitive files
-# 2. TOCTOU (Time-of-check to time-of-use) race conditions
-# 3. Symlink creation in world-writable directories
-# 4. Hardlink attacks
-# 5. Directory symlink attacks
-# ============================================================================
+#!/bin/bash
+# Security Tests: symlink resolution in file-guard (CWE-59)
+#
+# Priority: HIGH
+# Reference: CWE-59 (Link Following), OWASP Path Traversal
+#
+# =============================================================================
+# WHAT THIS FILE USED TO BE
+# =============================================================================
+# 427 lines, ZERO hook invocations. It defined is_symlink(), safe_read_file(),
+# safe_write_file(), resolve_safe_path(), safe_atomic_operation(),
+# handle_dangling_symlink() and create_safe_temp_file() INSIDE the test file,
+# then asserted that its own definitions behaved as written. Nine "attack"
+# sections tested `[ -L ]`, `ls -i`, `stat` and `mktemp`, i.e. bash builtins
+# and coreutils, not OrchestKit. No production code could have broken any of it.
+#
+# Of the nine classes, seven were reimplementation or are now covered by
+# tests/security/test-path-traversal.sh (leaf symlink onto .env, dangling
+# symlink). What survives is the one class path-traversal does NOT reach.
+#
+# =============================================================================
+# WHAT IT TESTS NOW: symlink resolution on an INTERMEDIATE path component
+# =============================================================================
+# file-guard.ts:153 resolveRealPath() calls realpathSync on the whole path, so
+# resolution applies to every component, not just the leaf. test-path-traversal
+# only ever symlinks the LEAF (harmless-name.txt -> .env), which the filename
+# patterns would arguably catch anyway once resolved.
+#
+# The case only realpath can catch is a symlinked DIRECTORY combined with the
+# one directory-scoped pattern, /\/\.husky\//  (file-guard.ts:137):
+#
+#     hooksdir -> .husky        write to  hooksdir/pre-commit
+#
+# The literal path contains no "/.husky/" anywhere. If resolveRealPath were
+# removed, or narrowed to leaf-only, this write would be ALLOWED and the git
+# hooks would be tamperable, the exact bypass the ME-001 fix exists to stop.
+# Every decision below was measured against the live hook before being asserted.
+#
+# NOT asserted here, deliberately: hardlinks. Measured: a hardlink named
+# harmless.txt pointing at the same inode as .env is ALLOWED, because realpath
+# cannot see hardlinks. That is a structural limit of path-pattern protection,
+# reported rather than frozen into a green checkmark.
+# =============================================================================
 
 set -euo pipefail
 
-# Skip on Windows where symlinks require admin privileges or Developer Mode
-if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "${OS:-}" == "Windows_NT" ]]; then
-  echo "Skipping symlink tests on Windows (requires admin privileges)"
-  echo "  Windows symlink creation requires elevated privileges or Developer Mode"
-  exit 0
-fi
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
+source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+GUARD="pretool/write-edit/file-guard"
+PASS=0
+FAIL=0
 
-PASS_COUNT=0
-FAIL_COUNT=0
+RED=$'\033[0;31m'; GREEN=$'\033[0;32m'; YELLOW=$'\033[1;33m'; NC=$'\033[0m'
+log_pass() { echo "  ${GREEN}✓${NC} $1"; }
+log_fail() { echo "  ${RED}✗${NC} $1"; }
+section()  { echo; echo "${YELLOW}$1${NC}"; }
 
-pass() { echo -e "  ${GREEN}✓${NC} $1"; PASS_COUNT=$((PASS_COUNT + 1)); }
-fail() { echo -e "  ${RED}✗${NC} $1"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
-info() { echo -e "  ${BLUE}ℹ${NC} $1"; }
-warn() { echo -e "  ${YELLOW}⚠${NC} $1"; }
+write_input() { jq -n --arg p "$1" '{tool_name:"Write",tool_input:{file_path:$p,content:"x"}}'; }
 
-# Test temp directory
-TEST_TEMP_DIR=$(mktemp -d)
-trap 'rm -rf "$TEST_TEMP_DIR"' EXIT
-
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  Symlink Attack Security Tests"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-
-# ============================================================================
-# Test 1: Symlink Detection
-# ============================================================================
-echo "▶ Test 1: Symlink Detection"
-echo "────────────────────────────────────────"
-
-# Create test files and symlinks
-echo "safe content" > "$TEST_TEMP_DIR/safe_file.txt"
-ln -s "$TEST_TEMP_DIR/safe_file.txt" "$TEST_TEMP_DIR/symlink_to_safe.txt"
-ln -s "/etc/passwd" "$TEST_TEMP_DIR/symlink_to_passwd"
-
-is_symlink() {
-    [ -L "$1" ]
+expect_write() { # expect_write <deny|allow> <path> <label>
+  expect_decision "$1" "$GUARD" "$(write_input "$2")" "$3"
 }
 
-# Test symlink detection
-if is_symlink "$TEST_TEMP_DIR/symlink_to_safe.txt"; then
-    pass "Symlink detected correctly"
+echo "=========================================="
+echo "  file-guard: symlink resolution (CWE-59)"
+echo "=========================================="
+
+# An unregistered key returns {"continue":true} with no permissionDecision,
+# which reads as "allow". Without this check a renamed hook would turn the
+# control assertion below green while every deny assertion went red for the
+# wrong reason.
+if ! assert_hook_registered "$GUARD"; then
+  echo "${RED}✗ $GUARD is not registered, aborting rather than reporting green${NC}"
+  exit 1
+fi
+
+TMPD="$(mktemp -d)"
+trap 'rm -rf "$TMPD"' EXIT
+
+mkdir -p "$TMPD/.husky"
+printf '#!/bin/sh\n' > "$TMPD/.husky/pre-commit"
+ln -s "$TMPD/.husky" "$TMPD/hooksdir"
+
+mkdir -p "$TMPD/plain"
+printf 'x\n' > "$TMPD/plain/pre-commit"
+ln -s "$TMPD/plain" "$TMPD/plainlink"
+
+section "1. Baseline: the directory pattern fires on a literal path"
+expect_write deny  "$TMPD/.husky/pre-commit"      "literal .husky/pre-commit denied"
+
+section "2. Intermediate-component symlink cannot launder a protected directory"
+# The assertion that carries this file. Literal path has no '/.husky/' in it.
+expect_write deny  "$TMPD/hooksdir/pre-commit"    "symlinked dir onto .husky denied by RESOLVED path"
+
+section "3. Control: a symlinked directory is not blocked for being a symlink"
+# Without this, section 2 would also pass if file-guard denied every path with
+# a symlink in it, a much blunter behaviour than the one being claimed.
+# `abstain`, not `allow`: the hook stays silent on an unprotected resolved path.
+expect_write abstain "$TMPD/plainlink/pre-commit" "symlinked dir to unprotected target"
+
+section "4. A symlink cycle (ELOOP) must not crash the hook"
+# Distinct from the dangling-symlink (ENOENT) case in test-path-traversal.sh:
+# realpathSync throws a different error class here, and both must land in
+# resolveRealPath's catch. A catch narrowed to ENOENT would fail this.
+mkdir -p "$TMPD/rec"
+ln -s "../rec" "$TMPD/rec/loop"
+got="$(hook_decision "$GUARD" "$(write_input "$TMPD/rec/loop/loop/loop/x")")"
+if [[ "$got" == "ERROR" ]]; then
+  log_fail "symlink cycle produced ERROR (hook crashed or was unreachable)"
+  FAIL=$((FAIL + 1))
 else
-    fail "Failed to detect symlink"
+  log_pass "symlink cycle handled without crashing (-> $got)"
+  PASS=$((PASS + 1))
 fi
 
-# Test regular file detection
-if ! is_symlink "$TEST_TEMP_DIR/safe_file.txt"; then
-    pass "Regular file correctly identified as non-symlink"
-else
-    fail "Regular file incorrectly identified as symlink"
-fi
-
-echo ""
-
-# ============================================================================
-# Test 2: Safe File Reading (No Symlink Following)
-# ============================================================================
-echo "▶ Test 2: Safe File Reading (No Symlink Following)"
-echo "────────────────────────────────────────"
-
-safe_read_file() {
-    local filepath="$1"
-
-    # Reject symlinks
-    if [ -L "$filepath" ]; then
-        echo "ERROR: Refusing to read symlink" >&2
-        return 1
-    fi
-
-    # Reject if doesn't exist or isn't a regular file
-    if [ ! -f "$filepath" ]; then
-        echo "ERROR: Not a regular file" >&2
-        return 1
-    fi
-
-    cat "$filepath"
-}
-
-# Should succeed on regular file
-if safe_read_file "$TEST_TEMP_DIR/safe_file.txt" >/dev/null 2>&1; then
-    pass "Regular file read succeeds"
-else
-    fail "Regular file read failed"
-fi
-
-# Should fail on symlink
-if ! safe_read_file "$TEST_TEMP_DIR/symlink_to_safe.txt" >/dev/null 2>&1; then
-    pass "Symlink read correctly blocked"
-else
-    fail "Symlink read was not blocked"
-fi
-
-# Should fail on symlink to sensitive file
-if ! safe_read_file "$TEST_TEMP_DIR/symlink_to_passwd" >/dev/null 2>&1; then
-    pass "Symlink to sensitive file blocked"
-else
-    fail "Symlink to sensitive file was not blocked"
-fi
-
-echo ""
-
-# ============================================================================
-# Test 3: Safe File Writing (No Symlink Following)
-# ============================================================================
-echo "▶ Test 3: Safe File Writing (No Symlink Following)"
-echo "────────────────────────────────────────"
-
-safe_write_file() {
-    local filepath="$1"
-    local content="$2"
-
-    # Reject symlinks
-    if [ -L "$filepath" ]; then
-        echo "ERROR: Refusing to write to symlink" >&2
-        return 1
-    fi
-
-    # Check parent directory exists and is not a symlink
-    local parent_dir
-    parent_dir=$(dirname "$filepath")
-    if [ -L "$parent_dir" ]; then
-        echo "ERROR: Parent directory is a symlink" >&2
-        return 1
-    fi
-
-    # Write atomically via temp file
-    local temp_file
-    temp_file=$(mktemp "${filepath}.XXXXXX")
-    echo "$content" > "$temp_file"
-    mv "$temp_file" "$filepath"
-}
-
-# Should succeed on new file
-if safe_write_file "$TEST_TEMP_DIR/new_file.txt" "test content" 2>/dev/null; then
-    if [ "$(cat "$TEST_TEMP_DIR/new_file.txt")" = "test content" ]; then
-        pass "Safe write to new file succeeds"
-    else
-        fail "File content mismatch"
-    fi
-else
-    fail "Safe write failed"
-fi
-
-# Create a symlink where we want to write
-ln -sf "/tmp/should_not_exist_$$" "$TEST_TEMP_DIR/write_symlink.txt"
-
-# Should fail when trying to write to symlink
-if ! safe_write_file "$TEST_TEMP_DIR/write_symlink.txt" "malicious" 2>/dev/null; then
-    pass "Write to symlink correctly blocked"
-else
-    fail "Write to symlink was not blocked"
-fi
-
-echo ""
-
-# ============================================================================
-# Test 4: Directory Traversal via Symlinks
-# ============================================================================
-echo "▶ Test 4: Directory Traversal via Symlinks"
-echo "────────────────────────────────────────"
-
-# Create a symlink to parent directory
-mkdir -p "$TEST_TEMP_DIR/subdir"
-ln -s ".." "$TEST_TEMP_DIR/subdir/parent_link"
-
-# Portable resolve_safe_path function
-resolve_safe_path() {
-    local base_dir="$1"
-    local requested_path="$2"
-
-    # Resolve the full path
-    local full_path="$base_dir/$requested_path"
-
-    # Get canonical paths (portable: cd && pwd)
-    local resolved resolved_base
-
-    # Resolve base directory
-    resolved_base=$(cd "$base_dir" 2>/dev/null && pwd -P) || return 1
-
-    # Check if the full_path exists to determine how to resolve it
-    if [ -e "$full_path" ]; then
-        # Path exists, resolve it
-        resolved=$(cd "$(dirname "$full_path")" 2>/dev/null && pwd -P)/$(basename "$full_path") || return 1
-    else
-        # Path doesn't exist - check parent and construct
-        local parent_dir
-        parent_dir=$(dirname "$full_path")
-        if [ -d "$parent_dir" ]; then
-            resolved=$(cd "$parent_dir" 2>/dev/null && pwd -P)/$(basename "$full_path") || return 1
-        else
-            # Parent doesn't exist either, reject
-            return 1
-        fi
-    fi
-
-    # Check if resolved path is still under base_dir
-    case "$resolved" in
-        "$resolved_base"/*|"$resolved_base")
-            echo "$resolved"
-            return 0
-            ;;
-        *)
-            echo "ERROR: Path escapes base directory" >&2
-            return 1
-            ;;
-    esac
-}
-
-# Should block path that escapes via symlink
-if ! resolve_safe_path "$TEST_TEMP_DIR/subdir" "parent_link/../../etc/passwd" >/dev/null 2>&1; then
-    pass "Symlink-based directory escape blocked"
-else
-    fail "Symlink-based directory escape not blocked"
-fi
-
-# Should allow safe path
-if resolve_safe_path "$TEST_TEMP_DIR" "safe_file.txt" >/dev/null 2>&1; then
-    pass "Safe path within base allowed"
-else
-    fail "Safe path incorrectly blocked"
-fi
-
-echo ""
-
-# ============================================================================
-# Test 5: TOCTOU Protection Simulation
-# ============================================================================
-echo "▶ Test 5: TOCTOU Protection Simulation"
-echo "────────────────────────────────────────"
-
-safe_atomic_operation() {
-    local filepath="$1"
-
-    if [ -L "$filepath" ]; then
-        return 1
-    fi
-
-    if [ ! -f "$filepath" ]; then
-        return 1
-    fi
-
-    return 0
-}
-
-# Test the function
-if safe_atomic_operation "$TEST_TEMP_DIR/safe_file.txt"; then
-    pass "TOCTOU-safe operation on regular file"
-else
-    fail "TOCTOU-safe operation failed on regular file"
-fi
-
-if ! safe_atomic_operation "$TEST_TEMP_DIR/symlink_to_safe.txt"; then
-    pass "TOCTOU-safe operation rejects symlink"
-else
-    fail "TOCTOU-safe operation accepted symlink"
-fi
-
-info "Note: Full TOCTOU protection requires O_NOFOLLOW (not in pure bash)"
-
-echo ""
-
-# ============================================================================
-# Test 6: Hardlink Detection
-# ============================================================================
-echo "▶ Test 6: Hardlink Detection"
-echo "────────────────────────────────────────"
-
-echo "original content" > "$TEST_TEMP_DIR/original.txt"
-ln "$TEST_TEMP_DIR/original.txt" "$TEST_TEMP_DIR/hardlink.txt" 2>/dev/null || {
-    info "Hardlinks not supported on this filesystem"
-    pass "Hardlink test skipped (not supported)"
-    echo ""
-    goto_next=true
-}
-
-if [ "${goto_next:-false}" != "true" ]; then
-    get_inode() {
-        ls -i "$1" 2>/dev/null | awk '{print $1}'
-    }
-
-    get_link_count() {
-        # GNU/Linux (CI) uses `stat -c %h`; BSD/macOS uses `stat -f %l`.
-        # Try GNU first: on Linux `stat -f %l` is filesystem-status mode and
-        # emits non-integer output that breaks the `-gt` comparison below.
-        local c
-        # silent: provider-chain-fallback (stat flavour differs per platform; chain falls through)
-        c=$(stat -c %h "$1" 2>/dev/null) || c=$(stat -f %l "$1" 2>/dev/null) || c=1
-        [[ "$c" =~ ^[0-9]+$ ]] || c=1
-        echo "$c"
-    }
-
-    original_inode=$(get_inode "$TEST_TEMP_DIR/original.txt")
-    hardlink_inode=$(get_inode "$TEST_TEMP_DIR/hardlink.txt")
-
-    if [ "$original_inode" = "$hardlink_inode" ]; then
-        pass "Hardlink detected (same inode: $original_inode)"
-    else
-        fail "Hardlink not detected"
-    fi
-
-    link_count=$(get_link_count "$TEST_TEMP_DIR/original.txt")
-    if [ "$link_count" -gt 1 ]; then
-        pass "File has multiple hardlinks (count: $link_count)"
-    fi
-fi
-
-echo ""
-
-# ============================================================================
-# Test 7: Dangling Symlink Handling
-# ============================================================================
-echo "▶ Test 7: Dangling Symlink Handling"
-echo "────────────────────────────────────────"
-
-ln -s "$TEST_TEMP_DIR/nonexistent_target" "$TEST_TEMP_DIR/dangling_symlink"
-
-handle_dangling_symlink() {
-    local filepath="$1"
-
-    if [ -L "$filepath" ]; then
-        if [ ! -e "$filepath" ]; then
-            echo "ERROR: Dangling symlink" >&2
-            return 1
-        fi
-    fi
-
-    return 0
-}
-
-if ! handle_dangling_symlink "$TEST_TEMP_DIR/dangling_symlink"; then
-    pass "Dangling symlink correctly detected"
-else
-    fail "Dangling symlink not detected"
-fi
-
-echo ""
-
-# ============================================================================
-# Test 8: Recursive Symlink Detection
-# ============================================================================
-echo "▶ Test 8: Recursive Symlink Detection"
-echo "────────────────────────────────────────"
-
-mkdir -p "$TEST_TEMP_DIR/recursive_test"
-ln -s "../recursive_test" "$TEST_TEMP_DIR/recursive_test/loop" 2>/dev/null || true
-
-# Test loop detection - try to access deep path
-if ! cd "$TEST_TEMP_DIR/recursive_test/loop/loop/loop/loop" 2>/dev/null; then
-    pass "Recursive symlink loop handled safely"
-else
-    cd - >/dev/null
-    info "System allows some recursive symlink traversal"
-    pass "Recursive symlink test completed"
-fi
-
-echo ""
-
-# ============================================================================
-# Test 9: Temp Directory Safety
-# ============================================================================
-echo "▶ Test 9: Temp Directory Safety"
-echo "────────────────────────────────────────"
-
-create_safe_temp_file() {
-    local temp_file
-    temp_file=$(mktemp) || return 1
-
-    if [ -L "$temp_file" ]; then
-        rm -f "$temp_file"
-        return 1
-    fi
-
-    if [ ! -O "$temp_file" ]; then
-        rm -f "$temp_file"
-        return 1
-    fi
-
-    echo "$temp_file"
-    return 0
-}
-
-temp_file=$(create_safe_temp_file)
-if [ -n "$temp_file" ] && [ -f "$temp_file" ] && [ ! -L "$temp_file" ]; then
-    pass "Safe temp file created"
-    rm -f "$temp_file"
-else
-    fail "Safe temp file creation failed"
-fi
-
-echo ""
-
-# ============================================================================
-# Summary
-# ============================================================================
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  Results: $PASS_COUNT passed, $FAIL_COUNT failed"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-if [ "$FAIL_COUNT" -gt 0 ]; then
-    exit 1
-fi
-
-exit 0
+echo
+echo "=========================================="
+echo "  ${GREEN}${PASS} passed${NC}, ${RED}${FAIL} failed${NC}"
+echo "=========================================="
+[[ $FAIL -eq 0 ]]

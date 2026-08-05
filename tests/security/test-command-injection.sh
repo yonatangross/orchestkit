@@ -97,11 +97,14 @@ expect_cmd ask   'rm -rf ./node_modules'              "recursive delete of a rel
 section "6. No false positives on ordinary work"
 # The hook is only useful if it stays out of the way. These are the commands the
 # old fixtures wrongly expected to be blocked.
-expect_cmd allow 'ls -la'                             "plain ls"
-expect_cmd allow 'git status && whoami'               "benign compound"
-expect_cmd allow 'echo "$(date)"'                     "subshell in normal use"
-expect_cmd allow 'npm install'                        "package install"
-expect_cmd allow 'git commit -m "wip"'                "ordinary git"
+# Verdict is `abstain`, not `allow`: the blocker emits no permissionDecision here,
+# so the request falls through to the normal permission flow. It does not
+# auto-approve and skip the prompt, which is what `allow` would claim.
+expect_cmd abstain 'ls -la'                           "plain ls"
+expect_cmd abstain 'git status && whoami'             "benign compound"
+expect_cmd abstain 'echo "$(date)"'                   "subshell in normal use"
+expect_cmd abstain 'npm install'                      "package install"
+expect_cmd abstain 'git commit -m "wip"'              "ordinary git"
 
 echo
 echo "=========================================="

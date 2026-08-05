@@ -60,44 +60,69 @@ echo "╚═══════════════════════�
 echo -e "\n${YELLOW}Self-test: denylist regex catches the known-bad pattern${NC}"
 SELF_BAD='npm install @anthropic-ai/claude@latest'
 SELF_OK='npm install @anthropic-ai/claude-code@latest'
-if echo "$SELF_BAD" | grep -qE "${DENY_PATTERNS[0]}"; then
+# Here-strings, not `echo | grep -q`: grep -q early-exits on the first match and
+# SIGPIPEs the producer, which under `set -o pipefail` propagates exit 141 and
+# flips this `if` FALSE non-deterministically under load (#603). Both payloads
+# are ~40 bytes, far under the 512B PIPE_BUF that makes here-strings unsafe.
+if grep -qE "${DENY_PATTERNS[0]}" <<<"$SELF_BAD"; then
   log_pass "regex flags bare @anthropic-ai/claude"
 else
   log_fail "regex FAILED to flag bare @anthropic-ai/claude (guard is broken)"
 fi
-if echo "$SELF_OK" | grep -qE "${DENY_PATTERNS[0]}"; then
+if grep -qE "${DENY_PATTERNS[0]}" <<<"$SELF_OK"; then
   log_fail "regex false-positives on valid @anthropic-ai/claude-code"
 else
   log_pass "regex allows valid @anthropic-ai/claude-code"
 fi
 
-# --- Repo scan: no authored file may reference a denied package --------------
-echo -e "\n${YELLOW}Repo scan: no source references an unclaimed package${NC}"
-EXISTING_DIRS=()
+# --- Scan surface must exist: a silently-narrowed scan is a blind scan --------
+# This used to filter SCAN_DIRS down to whatever happened to exist. A renamed or
+# moved directory therefore shrank coverage with no signal, and the section still
+# reported "no references" — the static-test equivalent of grepping a deleted
+# path. A missing scan dir is now a hard failure that names itself.
+echo -e "\n${YELLOW}Scan surface: every declared directory is present${NC}"
+missing_dirs=0
 for d in "${SCAN_DIRS[@]}"; do
-  [ -d "$d" ] && EXISTING_DIRS+=("$d")
-done
-
-violations_total=0
-for pat in "${DENY_PATTERNS[@]}"; do
-  # Exclusions:
-  #  - node_modules / dist: third-party + generated (dist sourcemaps embed the
-  #    scanner's own detection pattern; source is the authored surface).
-  #  - this script + the scanner hook/test: they hold the denied literal on
-  #    purpose (as documentation, a detection regex, and test fixtures).
-  hits=$(grep -rnE \
-    --exclude-dir=node_modules --exclude-dir=dist \
-    --exclude="test-dependency-confusion.sh" \
-    --exclude="dependency-confusion-scanner.*" \
-    "$pat" "${EXISTING_DIRS[@]}" 2>/dev/null || true)
-  if [ -n "$hits" ]; then
-    log_fail "denied package pattern found: $pat"
-    echo "$hits" | sed 's/^/      /'
-    violations_total=$((violations_total + 1))
+  if [ -d "$d" ]; then
+    log_pass "scan dir present: $d"
   else
-    log_pass "no references to denied pattern: $pat"
+    log_fail "scan dir MISSING: $d — coverage silently lost, fix SCAN_DIRS"
+    missing_dirs=$((missing_dirs + 1))
   fi
 done
+
+# --- Repo scan: no authored file may reference a denied package --------------
+echo -e "\n${YELLOW}Repo scan: no source references an unclaimed package${NC}"
+if [ "$missing_dirs" -gt 0 ]; then
+  log_fail "skipping repo scan: $missing_dirs declared scan dir(s) missing"
+else
+  for pat in "${DENY_PATTERNS[@]}"; do
+    # Exclusions:
+    #  - node_modules / dist: third-party + generated (dist sourcemaps embed the
+    #    scanner's own detection pattern; source is the authored surface).
+    #  - this script + the scanner hook/test: they hold the denied literal on
+    #    purpose (as documentation, a detection regex, and test fixtures).
+    #
+    # grep's exit code is load-bearing and must NOT be flattened with `|| true`:
+    #   0 = matches found (violation), 1 = clean (the answer we want),
+    #   >1 = grep itself failed (unreadable dir, bad pattern) — which the old
+    #   `2>/dev/null || true` turned into an indistinguishable "clean".
+    rc=0
+    hits=$(grep -rnE \
+      --exclude-dir=node_modules --exclude-dir=dist \
+      --exclude="test-dependency-confusion.sh" \
+      --exclude="dependency-confusion-scanner.*" \
+      "$pat" "${SCAN_DIRS[@]}") || rc=$?
+    if [ "$rc" -gt 1 ]; then
+      log_fail "grep failed (exit $rc) scanning for: $pat — result is unknown, not clean"
+    elif [ "$rc" -eq 0 ]; then
+      log_fail "denied package pattern found: $pat"
+      echo "$hits" | sed 's/^/      /'
+    else
+      log_pass "no references to denied pattern: $pat"
+    fi
+  done
+fi
 
 echo ""
 echo "=========================================="

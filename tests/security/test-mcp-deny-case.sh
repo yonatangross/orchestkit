@@ -26,35 +26,66 @@ FAIL=0
 log_pass() { echo -e "  ${GREEN}✓${NC} $1"; PASS=$((PASS + 1)); }
 log_fail() { echo -e "  ${RED}✗${NC} $1 — $2"; FAIL=$((FAIL + 1)); }
 
+# The stale-guidance pattern, named once so the self-test below and the repo
+# scan cannot drift apart.
+STALE_RE="defensive case.*deniedMcp|enumerate.*case.*MCP"
+DOC="src/skills/configure/references/mcp-config.md"
+
 echo "MCP deny-rules case-insensitivity guidance"
 echo "=========================================="
 
 cd "$PROJECT_ROOT"
 
-# Test 1: configure/references/mcp-config.md mentions case-insensitive matching.
-if grep -qE "case-insensitive|deniedMcpServers.*case" src/skills/configure/references/mcp-config.md; then
+# Test 1: the documented file must exist before its content means anything.
+# A grep against a path that no longer exists is exactly as blind as a call to a
+# deleted hook, so the path is asserted separately from the sentence.
+if [ -f "$DOC" ]; then
+  log_pass "documented file exists: $DOC"
+else
+  log_fail "missing $DOC" "the case-insensitivity guidance has no home — fix the path or restore the file"
+fi
+
+# Test 2: that file mentions case-insensitive matching.
+# Verified on-point at authoring time: matches mcp-config.md:243 and :245, the
+# CC 2.1.129 section itself, not an incidental use of the phrase elsewhere.
+if [ -f "$DOC" ] && grep -qE "case-insensitive|deniedMcpServers.*case" "$DOC"; then
   log_pass "mcp-config.md documents case-insensitive deny matching"
 else
   log_fail "mcp-config.md missing case-insensitive deny note" \
     "expected a sentence about CC 2.1.129+ case-insensitive deniedMcpServers matching"
 fi
 
-# Test 2: no skill should advise users to defensively enumerate case variants.
-# That's outdated guidance pre-CC 2.1.129 and we floor higher.
-# grep -rE returns exit 1 when there are no matches (the success signal here),
-# so we explicitly capture status with set +e/-e.
-set +e
-matches=$(grep -rE "defensive case.*deniedMcp|enumerate.*case.*MCP" src/skills/ \
-  --include="*.md" \
-  --exclude-dir="references" \
-  | wc -l | tr -d ' ')
-set -e
-
-if [ "$matches" -eq 0 ]; then
-  log_pass "no stale defensive case-enumeration guidance"
+# Test 3 (self-test): an absence assertion is only worth the regex behind it.
+# Nothing in the repo matches STALE_RE — which is the pass condition — so a
+# broken or over-narrow pattern would read as "clean" forever and never be
+# noticed. Prove the pattern still fires on a synthetic violation.
+if grep -qE "$STALE_RE" <<<'add defensive case variants to deniedMcpServers'; then
+  log_pass "stale-guidance regex still fires on a synthetic violation"
 else
+  log_fail "stale-guidance regex matches nothing" \
+    "the absence check below is unfalsifiable until this pattern works"
+fi
+
+# Test 4: no skill should advise users to defensively enumerate case variants.
+# That's outdated guidance pre-CC 2.1.129 and we floor higher.
+#
+# grep's exit code is the result and is captured explicitly: 1 = clean (what we
+# want), 0 = violations, >1 = grep failed. The old form piped into `wc -l` under
+# `set +e`, which turned a grep error into a count of 0 and reported green.
+# `--exclude-dir=references` was also dropped: it excluded the very directory
+# holding mcp-config.md, and re-including it produces no false positives
+# (verified: zero matches repo-wide, references included).
+rc=0
+hits=$(grep -rnE "$STALE_RE" src/skills/ --include="*.md") || rc=$?
+if [ "$rc" -gt 1 ]; then
+  log_fail "grep failed (exit $rc) scanning src/skills/" \
+    "the result is unknown, not clean"
+elif [ "$rc" -eq 0 ]; then
   log_fail "stale defensive-case-enumeration guidance found" \
-    "remove — CC 2.1.129+ matches case-insensitively (saw $matches occurrences)"
+    "remove — CC 2.1.129+ matches case-insensitively"
+  echo "$hits" | sed 's/^/      /'
+else
+  log_pass "no stale defensive case-enumeration guidance"
 fi
 
 echo ""

@@ -64,23 +64,52 @@ run_test() {
     fi
 }
 
-run_test "Command Injection Tests" "$SCRIPT_DIR/test-command-injection.sh"
-run_test "JQ Injection Tests" "$SCRIPT_DIR/test-jq-injection.sh"
-run_test "Path Traversal Tests" "$SCRIPT_DIR/test-path-traversal.sh"
-run_test "Unicode Attack Tests" "$SCRIPT_DIR/test-unicode-attacks.sh"
-run_test "Symlink Attack Tests" "$SCRIPT_DIR/test-symlink-attacks.sh"
-run_test "Input Validation Tests" "$SCRIPT_DIR/test-input-validation.sh"
-run_test "Additional Security Tests" "$SCRIPT_DIR/test-additional-security.sh"
-run_test "Compound Command Tests" "$SCRIPT_DIR/test-compound-commands.sh"
-run_test "Network Egress Guard Tests" "$SCRIPT_DIR/test-egress-guard.sh"
-run_test "Line Continuation Bypass Tests" "$SCRIPT_DIR/test-line-continuation-bypass.sh"
-run_test "SQLite Injection Tests" "$SCRIPT_DIR/test-sqlite-injection.sh"
-run_test "JSON Island Breakout Tests" "$SCRIPT_DIR/test-json-island-breakout.sh"
-run_test "Secret Scanning Tests" "$SCRIPT_DIR/test-secret-scanning.sh"
-run_test "MCP Deny Case Guidance" "$SCRIPT_DIR/test-mcp-deny-case.sh"
-run_test "Packaging Leak Prevention" "$SCRIPT_DIR/test-packaging-leaks.sh"
-run_test "npm audit gate" "$SCRIPT_DIR/test-npm-audit.sh"
-run_test "Dependency-Confusion Package Refs" "$SCRIPT_DIR/test-dependency-confusion.sh"
+# --mutate: after the normal run, also prove each file CAN fail (mutation-gate.sh).
+#
+# DEFAULT OFF, and parsed before discovery so it never reaches the glob. A green
+# suite is not evidence a test bites, but the proof costs a second process per
+# file, so `npm run test:security` keeps its current cost and CI runs the gate as
+# its own step (.github/workflows/ci.yml, security-tests job).
+MUTATE=0
+for arg in "$@"; do
+    case "$arg" in
+        --mutate) MUTATE=1 ;;
+        *) echo "unknown argument: $arg" >&2; exit 2 ;;
+    esac
+done
+
+# Discover test files by glob rather than a hand-maintained list.
+#
+# The list this replaces named 17 of the 18 files on disk. test-npm-audit-coverage.sh
+# was never added, so local pre-push never ran it while CI did — CI discovers the
+# directory with a glob (.github/workflows/ci.yml:419 -> scripts/ci/run-tests.sh).
+# A file that exists but is in no roster is a gate that silently does not run, and
+# a hand-list guarantees the 19th file repeats it. Globbing here makes local and CI
+# read the same source of truth: the filesystem.
+#
+# Sorted for a stable, reproducible run order.
+shopt -s nullglob
+SECURITY_TESTS=("$SCRIPT_DIR"/test-*.sh)
+shopt -u nullglob
+
+if [ ${#SECURITY_TESTS[@]} -eq 0 ]; then
+    echo -e "${RED}No test-*.sh files found in $SCRIPT_DIR — refusing to report success${NC}"
+    exit 1
+fi
+
+for test_file in $(printf '%s\n' "${SECURITY_TESTS[@]}" | sort); do
+    # Derive a readable name: test-command-injection.sh -> "command injection"
+    test_name="$(basename "$test_file" .sh)"
+    test_name="${test_name#test-}"
+    test_name="${test_name//-/ }"
+    run_test "$test_name" "$test_file"
+done
+
+if [ "$MUTATE" -eq 1 ]; then
+    if ! bash "$SCRIPT_DIR/mutation-gate.sh"; then
+        FAILED=$((FAILED + 1))
+    fi
+fi
 
 echo ""
 echo "============================================================================"

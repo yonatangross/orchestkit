@@ -73,10 +73,13 @@ expect_write deny "config/server.pem"           "deny .pem private key"
 expect_write deny "$HOME/.ssh/id_rsa"           "deny id_rsa"
 
 section "2. Ordinary files are untouched (no false positives)"
-expect_write allow "src/index.ts"               "allow ordinary source file"
-expect_write allow "README.md"                  "allow markdown"
-expect_write allow ".envrc"                     "allow .envrc (not .env)"
-expect_write allow "docs/environment.md"        "allow filename merely containing 'environment'"
+# file-guard abstains on unprotected paths — it emits no permissionDecision and
+# the write falls through to the normal permission flow. It never affirmatively
+# allows, which would auto-approve the write.
+expect_write abstain "src/index.ts"             "ordinary source file"
+expect_write abstain "README.md"                "markdown"
+expect_write abstain ".envrc"                   ".envrc (not .env)"
+expect_write abstain "docs/environment.md"      "filename merely containing 'environment'"
 
 section "3. Traversal cannot reach a protected file"
 # The concern is not '..' itself but whether a traversal-built path that RESOLVES

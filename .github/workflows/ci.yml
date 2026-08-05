@@ -418,6 +418,20 @@ jobs:
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash scripts/ci/run-tests.sh tests/security --verbose
 
+      # A green security suite is not evidence: 47 of 103 functions could not
+      # fail and it stayed green for months. This inverts one deny/ask
+      # expectation per file and demands the file notice. A new security test
+      # must be either mutation-provable or explicitly declared static.
+      # Deliberately a step in THIS job, not a job of its own: the runtime is a
+      # small fraction of the suite it follows, and integration-tests already
+      # `needs: security-tests`, so a separate job would cost a runner and a
+      # checkout to gate the same thing.
+      - name: Security mutation gate (can these tests fail?)
+        shell: bash
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash tests/security/mutation-gate.sh
+
   # ============================================================================
   # STAGE 4: Integration Tests (< 5m)
   # Uses dynamic test discovery

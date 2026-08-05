@@ -370,7 +370,22 @@ hook_decision() {
     return 0
   fi
 
-  printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "allow"'
+  # NOT `// "allow"`. An ABSENT permissionDecision does not mean the hook
+  # approved the call, it means the hook ABSTAINED and the request falls through
+  # to the normal permission flow. `allow` is a much stronger claim: it
+  # auto-approves and SKIPS the user prompt entirely. Conflating the two reports
+  # a security hook as permissive when it merely declined to decide, which is the
+  # same class of bug as the dead-hook blindness this suite exists to catch.
+  #
+  # Four legal values, per the CC hook contract (types.ts HookSpecificOutput):
+  # allow | deny | ask | defer. `defer` arrived in CC 2.1.89 and is a synonym for
+  # `ask`; it is reported verbatim rather than folded, so a test can tell which
+  # spelling a hook actually emits.
+  #
+  # `abstain` is this helper's own token for "envelope parsed, no decision in
+  # it". It is deliberately NOT one of the four, so an assertion has to name it
+  # on purpose and cannot arrive at it by defaulting.
+  printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "abstain"'
 }
 
 # Assert that a hook key is actually REGISTERED before trusting its verdict.
@@ -399,6 +414,33 @@ assert_hook_registered() {
   return 1
 }
 
+# ---------------------------------------------------------------------------
+# Mutation chokepoint (driven by tests/security/mutation-gate.sh)
+# ---------------------------------------------------------------------------
+# Counts verdict-bearing assertions as they execute and, when
+# ORK_MUTATE_INDEX is set, INVERTS the expectation of the Nth one so the gate
+# can prove the assertion is wired to a live hook instead of being decoration.
+#
+# An env-var chokepoint rather than sed-ing the file: nothing is written to
+# disk, so there is no restore step to skip and nothing is left behind if the
+# run is killed. It is also immune to the trailing-newline bug that made an
+# earlier diff-based census report test-compound-commands.sh as blind when no
+# mutation had in fact been applied.
+#
+# Only deny/ask/defer expectations are counted. Several files open with a
+# benign `allow` control ("a normal command is not blocked"), and targeting
+# that would prove nothing about the security assertion underneath it.
+# ORK_MUTATE_FILTER can widen the set for ad-hoc probing.
+ORK_MUTATE_SEEN=0
+
+_ork_mutate_invert() {
+  case "$1" in
+    deny | ask | defer) echo allow ;;
+    allow | abstain) echo deny ;;
+    *) echo "" ;;
+  esac
+}
+
 # Assert a live hook's decision.
 # Usage: expect_decision deny "pretool/bash/..." "$input" "label"
 #
@@ -408,7 +450,46 @@ assert_hook_registered() {
 # PASS/FAIL so the calling script's `[[ $FAIL -eq 0 ]]` gate works either way.
 expect_decision() {
   local want="$1" hook_key="$2" input="$3" label="$4" got
+  local _mut_want=""
+
+  if [[ -n "${ORK_MUTATE_INDEX:-}" ]] &&
+     [[ "$want" =~ ${ORK_MUTATE_FILTER:-^(deny|ask|defer)$} ]]; then
+    ORK_MUTATE_SEEN=$((ORK_MUTATE_SEEN + 1))
+    if (( ORK_MUTATE_SEEN == ORK_MUTATE_INDEX )); then
+      _mut_want="$(_ork_mutate_invert "$want")"
+    fi
+  fi
+
   got=$(hook_decision "$hook_key" "$input")
+
+  if [[ -n "$_mut_want" ]]; then
+    # ERROR is NOT a pass. A hook that cannot be reached answers ERROR, which
+    # differs from BOTH the original and the inverted expectation, so a naive
+    # comparison would score the flip as "detected" for a file whose hook has
+    # been deleted — the exact blindness this gate exists to end. Hard failure.
+    local verdict
+    if [[ "$got" == "ERROR" ]]; then
+      verdict=ERROR
+    elif [[ "$got" == "$_mut_want" ]]; then
+      # The inverted expectation PASSES, so a wrong expectation here would not
+      # be caught. (Equivalently: the real assertion is already red.)
+      verdict=BLIND
+    else
+      verdict=DETECTED
+    fi
+    printf 'ORK_MUTATION_RESULT index=%s verdict=%s hook=%s want=%s mutated=%s got=%s label=%s\n' \
+      "$ORK_MUTATE_INDEX" "$verdict" "$hook_key" "$want" "$_mut_want" "$got" "$label"
+    # Exit immediately. Reaching this line at all is half the signal: a file
+    # whose assertions are skipped, short-circuited, or never executed emits no
+    # result line and the driver fails it for that alone.
+    # 87 and 88 cannot collide with a normal bash failure code.
+    case "$verdict" in
+      DETECTED) exit 0 ;;
+      BLIND) exit 87 ;;
+      *) exit 88 ;;
+    esac
+  fi
+
   if [[ "$got" == "$want" ]]; then
     PASS=$((${PASS:-0} + 1))
     if declare -F log_pass >/dev/null; then log_pass "$label (-> $got)"

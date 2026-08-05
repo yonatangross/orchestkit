@@ -1,191 +1,385 @@
 #!/bin/bash
-# Security Tests: JQ Filter Injection
-# Tests for potential jq injection vulnerabilities in hook scripts
+# Security Tests: jq program-argument injection in shell scripts
 #
-# Test Count: 4
 # Priority: CRITICAL
-# Reference: OWASP Injection Prevention
+# Reference: OWASP Injection Prevention, CWE-78 (argument injection)
+#
+# =============================================================================
+# WHAT THIS FILE USED TO BE
+# =============================================================================
+# It tested a runtime premise that died with the TypeScript hook migration.
+# Hooks parse stdin with JSON.parse; they do not shell out to jq. Concretely:
+#
+#   * Both "scan the hooks for dangerous patterns" loops (old :110 and :154) ran
+#     `find "$HOOKS_DIR" -name "*.sh"` against src/hooks, which contains exactly
+#     ONE .sh file (src/hooks/bin/file-suggestion.sh) whose only jq line is
+#     `jq -r '.query // ""'` - single-quoted, no variable. The loops could never
+#     find anything.
+#   * Old :114-116 printed "WARNING: Potential jq injection" to stdout and then
+#     old :119 hit an unconditional `return 0`. A hit could not fail the test.
+#   * Old :158-165 assigned `$line`, never read it, `continue`d, and old :167
+#     was another unconditional `return 0`.
+#   * Old :96-106 grepped src/hooks/src/lib/common.ts for "jq.*-r". That file is
+#     a pure barrel re-export with zero occurrences of jq, so the block was
+#     never entered.
+#   * The remaining assertions (old :41, :59, :69, :132, :180) piped a static
+#     literal through a STATIC jq filter and asserted the result. They tested
+#     that upstream jq works, not that anything in this repo is safe.
+#
+# So the suite reported green because the thing it looked for was unreachable.
+#
+# =============================================================================
+# WHAT IT TESTS NOW: a static property of this repo's shell scripts
+# =============================================================================
+# The real, checkable jq-injection property is static, not runtime:
+#
+#   Does any shell script interpolate a variable into the jq PROGRAM argument
+#   instead of passing it as DATA via --arg / --argjson?
+#
+#   VULNERABLE   jq -r ".${key}"           <- $key becomes part of the program
+#   CORRECT      jq --arg k "$key" '.[$k]' <- $key is data; program is a literal
+#
+# The distinction matters because the jq program is a language: a value that
+# lands inside it can add filters, read sibling keys, or call `env`. A value
+# passed via --arg cannot - it is a string binding.
+#
+# The scanner below locates the jq PROGRAM argument properly (it tokenises the
+# invocation and skips option values, so `jq --arg v "$x" '.a=$v'` and
+# `jq -r '.v' "$FILE"` are correctly NOT flagged) and fails on any program that
+# is not single-quoted and contains a `$`.
+#
+# ALLOWLIST KEYING: entries are keyed on `path ==> program-text`, NOT on a line
+# number. Line numbers in these files churn constantly, and a stale allowlist
+# that silently stops matching turns straight back into the green-because-blind
+# failure this rewrite exists to remove. The program text is the thing actually
+# reviewed, so it is the thing keyed on.
+# =============================================================================
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+PASS=0
+FAIL=0
+
+RED=$'\033[0;31m'; GREEN=$'\033[0;32m'; YELLOW=$'\033[1;33m'; NC=$'\033[0m'
+log_pass() { echo "  ${GREEN}✓${NC} $1"; }
+log_fail() { echo "  ${RED}✗${NC} $1"; }
+section()  { echo; echo "${YELLOW}$1${NC}"; }
+
+TMPD="$(mktemp -d)"
+trap 'rm -rf "$TMPD"' EXIT
 
 # ============================================================================
-# JQ INJECTION TESTS
+# THE DETECTOR
 # ============================================================================
 
-describe "JQ Filter Injection Tests"
+# Join backslash-continued lines so a program on a continuation line is still
+# attributed to the invocation that owns it, and report the STARTING line.
+JOIN_CONTINUATIONS='
+{
+  if (buf == "") start = FNR
+  if ($0 ~ /\\[ \t]*$/) { sub(/\\[ \t]*$/, " ", $0); buf = buf $0; next }
+  print start "\t" buf $0
+  buf = ""
+}
+END { if (buf != "") print start "\t" buf }
+'
 
-# TEST 1.1.1: JQ Filter Injection - Debug Function
-test_jq_injection_debug_function() {
-  # Attempt to inject debug function into jq filter
-  local malicious_filter='.tool_input) | debug | (.'
+# jq_program <text-after-the-jq-word>
+#
+# Tokenises a jq invocation with shell quoting rules and prints the PROGRAM
+# argument verbatim (quotes included). Returns 1 when the invocation has no
+# inline program (e.g. `jq -f prog.jq`, or a truncated/continued line).
+jq_program() {
+  local s="$1" tok="" q="" i=0 n c
+  local -a toks=()
+  n=${#s}
 
-  # This should fail or return empty - NOT execute debug
-  local result
-  result=$(echo '{"tool_input":{"command":"test"}}' | jq -r "$malicious_filter // \"\"" 2>&1) || true
+  while ((i < n)); do
+    c="${s:i:1}"
+    if [[ -z "$q" ]]; then
+      case "$c" in
+        \'|\")
+          q="$c"; tok+="$c"
+          ;;
+        ' '|$'\t')
+          if [[ -n "$tok" ]]; then toks+=("$tok"); tok=""; fi
+          ;;
+        '|'|';'|'&'|'>'|'<'|')')
+          # End of this simple command. Anything past here belongs to another
+          # command, and gluing it on would corrupt the program text.
+          break
+          ;;
+        '\')
+          i=$((i + 1)); tok+="${s:i:1}"
+          ;;
+        *)
+          tok+="$c"
+          ;;
+      esac
+    elif [[ "$q" == '"' && "$c" == '\' ]]; then
+      # Backslash escapes are live inside double quotes, so \" does NOT close
+      # the string. Without this, every program containing \" gets mis-split.
+      tok+="$c"; i=$((i + 1)); tok+="${s:i:1}"
+    else
+      tok+="$c"
+      if [[ "$c" == "$q" ]]; then q=""; fi
+    fi
+    i=$((i + 1))
+  done
+  if [[ -n "$tok" ]]; then toks+=("$tok"); fi
 
-  # If debug was executed, we'd see debug output
-  if [[ "$result" == *"[\"DEBUG\":"* ]]; then
-    echo "VULNERABLE: jq debug function was executed"
-    return 1
-  fi
-
-  # Test with inline get_field function (simulating TypeScript hook behavior)
-  # TypeScript hooks use jq with static filters only
-  local safe_output
-  safe_output=$(
-    _HOOK_INPUT='{"tool_input":{"command":"test"}}'
-    # Inline get_field - same pattern used in TypeScript-delegated hooks
-    echo "$_HOOK_INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo ""
-  )
-
-  if [[ "$safe_output" == "test" ]]; then
-    return 0
-  fi
-
+  # Walk the tokens, consuming option values, and return the first positional.
+  local skip=0 t
+  for t in ${toks+"${toks[@]}"}; do
+    if ((skip > 0)); then skip=$((skip - 1)); continue; fi
+    case "$t" in
+      --arg|--argjson|--slurpfile|--rawfile) skip=2 ;;
+      -f|--from-file)                        return 1 ;;   # program is in a file
+      --indent|-L)                           skip=1 ;;
+      --)                                    skip=0 ;;
+      -*)                                    ;;            # valueless flag
+      *)  printf '%s' "$t"; return 0 ;;
+    esac
+  done
   return 1
 }
 
-# TEST 1.1.2: JQ Filter Injection - Data Exfiltration
-test_jq_injection_data_exfiltration() {
-  # Attempt to access unintended fields
-  local test_json='{"tool_input":{"command":"test"},"secret_key":"SUPER_SECRET_123"}'
-  local malicious_filter='["secret_key"][]'
+# scan_files: reads file paths on stdin, writes "path<TAB>program<TAB>line" for
+# every jq invocation whose PROGRAM argument is not single-quoted and contains $.
+scan_files() {
+  local file lineno text rest pre before after prog
+  while IFS= read -r file; do
+    [[ -r "$file" ]] || continue
+    while IFS=$'\t' read -r lineno text; do
+      rest="$text"
+      while [[ "$rest" == *jq* ]]; do
+        pre="${rest%%jq*}"
+        rest="${rest#*jq}"
+        before="${pre: -1}"
+        after="${rest:0:1}"
+        # `jq` must be its own word, and must be followed by whitespace.
+        [[ -n "$before" && "$before" =~ [A-Za-z0-9_./-] ]] && continue
+        [[ "$after" =~ [[:space:]] ]] || continue
 
-  # This filter shouldn't be usable to extract the secret when using get_field
-  local result
-  result=$(echo "$test_json" | jq -r '.tool_input.command' 2>/dev/null)
-
-  # Normal usage should only get intended field
-  assert_equals "test" "$result"
-
-  # Verify secret is not accessible through normal operations
-  # Using inline get_field pattern (simulating TypeScript hook behavior)
-  local hook_output
-  hook_output=$(
-    _HOOK_INPUT="$test_json"
-    echo "$_HOOK_INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo ""
-  )
-
-  # Should only get the command, not the secret
-  assert_equals "test" "$hook_output"
-  assert_not_contains "$hook_output" "SUPER_SECRET"
+        prog="$(jq_program "$rest")" || continue
+        [[ "$prog" == \'* ]] && continue      # single-quoted: literal program
+        [[ "$prog" == *'$'* ]] || continue    # no interpolation: nothing to do
+        printf '%s\t%s\t%s\n' "$file" "$prog" "$lineno"
+      done
+    done < <(awk "$JOIN_CONTINUATIONS" "$file")
+  done
+  return 0
 }
 
-# TEST 1.1.3: JQ Filter Injection - Recursive Descent
-test_jq_injection_recursive_descent() {
-  # Test that recursive descent cannot be injected
-  local test_json='{
-    "tool_input": {"command": "git status"},
-    "internal": {"api_key": "sk-secret-key-12345"}
-  }'
+# repo_targets: every shell script the property applies to.
+#   .worktrees/  - sibling checkouts, not this tree's code
+#   node_modules - vendored
+#   plugins/     - GENERATED from src/ by npm run build; src/ is the real target
+#   this file    - necessarily contains example jq lines of both shapes
+repo_targets() {
+  find "$REPO_ROOT" -name '*.sh' -type f \
+    -not -path "$REPO_ROOT/.worktrees/*" \
+    -not -path '*/node_modules/*' \
+    -not -path "$REPO_ROOT/plugins/*" \
+    -not -name 'test-jq-injection.sh' \
+    | sort
+}
 
-  local malicious_filter='.. | objects | select(.api_key) | .api_key'
+# ============================================================================
+# ALLOWLIST - reviewed existing hits, one reason each
+# ============================================================================
+# Format: a `#` comment carrying the reason, then `path ==> program`.
+# Paths are relative to the repo root. Adding an entry here is a review claim:
+# that the value reaching the jq program cannot be attacker-controlled.
+#
+# NOTHING below is on the hook-input path. Hooks are TypeScript and parse stdin
+# with JSON.parse, so no tool input, prompt text, or network data reaches any
+# jq program in this repo. That is what makes these reviewable at all.
 
-  # Direct jq execution with malicious filter WOULD find the key
-  local direct_result
-  direct_result=$(echo "$test_json" | jq -r "$malicious_filter" 2>/dev/null) || true
+ALLOWLIST_RAW="$(cat <<'ALLOWLIST'
+# --- .claude/scripts/config-loader.sh - local config reader, no hook-input path
+# $path is get_bool's 2nd arg; all call sites (:91,:118,:156,:174,:308+) pass literals
+.claude/scripts/config-loader.sh ==> "if $path == null then \"$default\" else ($path | tostring) end"
+# $skill_id is is_skill_enabled's parameter, supplied by in-repo callers as a literal
+.claude/scripts/config-loader.sh ==> ".skills.disabled | index(\"$skill_id\")"
+# $agent_id is is_agent_enabled's parameter, same literal-only call pattern
+.claude/scripts/config-loader.sh ==> ".agents.disabled | index(\"$agent_id\")"
+# $hook_name is is_hook_enabled's parameter, same literal-only call pattern
+.claude/scripts/config-loader.sh ==> ".hooks.disabled | index(\"$hook_name\")"
+# $command_id is is_command_enabled's parameter, same literal-only call pattern
+.claude/scripts/config-loader.sh ==> ".commands.disabled | index(\"$command_id\")"
 
-  # But our hooks use static filters, so this pattern shouldn't be exploitable
-  # through normal hook operation
+# --- .claude/scripts/feedback-lib.sh
+# $key/$default are get_preference args; all call sites (:587,:938,:940,:942) pass literals
+.claude/scripts/feedback-lib.sh ==> ".${key} // \"${default}\""
+# $key/$value are set_preference args, same literal-only call pattern
+.claude/scripts/feedback-lib.sh ==> ".${key} = ${value}"
 
-  # Verify TypeScript hooks use static filters by checking the source
-  # TypeScript hooks compile to JS that uses jq with static filter strings
-  local ts_lib="$HOOKS_DIR/src/lib/common.ts"
-  if [[ -f "$ts_lib" ]]; then
-    # TypeScript version uses type-safe jq calls
-    if grep -q "jq.*-r" "$ts_lib" 2>/dev/null; then
-      # Check that variable interpolation has proper escaping comments
-      if grep -q "filter.*string" "$ts_lib" 2>/dev/null || grep -q "jq -r '\$" "$ts_lib" 2>/dev/null; then
-        # TypeScript type system prevents injection when filter is a literal
-        return 0
-      fi
-    fi
+# --- shared/_lib/common.sh
+# get_field's $filter: the ONE dynamic program that was ever on the hook-input
+# path. :74-79 rejects a filter containing a backtick, `$(` or `;` before it
+# runs, and every in-repo caller passes a literal like '.tool_name'. Weakest
+# entry here - if any caller ever forwards external data, delete this line.
+shared/_lib/common.sh ==> "$filter"
+# atomic_json_update: the detector resolves the "${jq_args[@]}" expansion as the
+# program token; the real program is the $jq_filter positional, a caller-supplied
+# literal. Function has no non-doc call sites in this tree.
+shared/_lib/common.sh ==> "${jq_args[@]}"
+
+# --- scripts/
+# read_metric's $filter; all 3 call sites (:98,:99,:103) pass single-quoted literals
+scripts/eval/aggregate-quality-index.sh ==> "$filter // empty"
+# dev CLI: $SET comes from the --set flag, $1 from the literal g() calls at :40-42
+scripts/render-ascii.sh ==> ".sets.\"$SET\".$1"
+
+# --- src/
+# ${q} is a file-local literal program defined immediately above at :52-59
+src/skills/dev/scripts/boot.sh ==> "${q}"
+
+# --- tests/evals/scripts/ - eval harnesses; indices come from C-style for loops
+# $ai is the integer loop counter of `for ((ai=0; ai<assertion_count; ai++))`
+tests/evals/scripts/run-agent-eval.sh ==> ".[$ai].verdict"
+tests/evals/scripts/run-agent-eval.sh ==> ".[$ai].reason // \"\""
+tests/evals/scripts/run-quality-eval.sh ==> ".[$ai].verdict"
+tests/evals/scripts/run-quality-eval.sh ==> ".[$ai].reason // \"\""
+# $DEAD_ENVELOPE_JQ is a file-local literal program defined at :432
+tests/evals/scripts/run-quality-eval.sh ==> "$DEAD_ENVELOPE_JQ"
+
+# --- tests/fixtures/test-helpers.sh - shared harness, parameters are literals
+# $field is assert_json_field's parameter, passed as a literal by every test
+tests/fixtures/test-helpers.sh ==> "$field"
+# $hook_type/$matcher are run_hook_chain's parameters, e.g. "PreToolUse" "Bash"
+tests/fixtures/test-helpers.sh ==> ".hooks.\"$hook_type\"[] | select(.matcher == \"$matcher\" or .matcher == \"*\") | .hooks[].command"
+# $fixture_key is load_fixture's parameter, a literal key into a checked-in fixture
+tests/fixtures/test-helpers.sh ==> ".\"$fixture_key\""
+# check_jq_injection: hostile input is the POINT - this helper exists to feed a
+# malicious filter to jq and observe the result. Flagging it would be a category error.
+tests/fixtures/test-helpers.sh ==> "$malicious_filter // \"\""
+
+# --- tests/integration/
+# $field/$path are assert_* helper parameters, literal jq paths written by the test
+tests/integration/hooks/test-output-guard-dispatcher.sh ==> ".hookSpecificOutput.${field}"
+tests/integration/hooks/test-output-guard-dispatcher.sh ==> "$path"
+# $event/$matcher are get_hooks_for_event's parameters, e.g. "PreToolUse" "Bash"
+tests/integration/test-hook-chains.sh ==> ".hooks.${event}[] | select(.matcher == \"$matcher\" or .matcher == null) | .hooks[] | (.command + (if has(\"args\") and (.args|type) == \"array\" then \" \" + (.args | join(\" \")) else \"\" end))"
+
+# --- tests/plugins/ + tests/schemas/ - schema validators over checked-in JSON
+# $hook_type iterates the literal list `PreToolUse PostToolUse SessionStart Stop ...`
+tests/plugins/structure/test-plugin-structure-compliance.sh ==> ".hooks.$hook_type"
+# $field iterates the literal list `name version description author`
+tests/plugins/structure/test-plugin-structure-compliance.sh ==> ".$field"
+# $event is a key read from the repo's own checked-in plugin.json
+tests/plugins/test-cc-discovery-simulation.sh ==> ".hooks.$event | if type == \"array\" then .[0].hooks | length else 0 end"
+# $field is get_field_type's parameter, a literal field name
+tests/plugins/test-plugin-json-schema.sh ==> "if .$field == null then \"null\" elif .$field | type == \"object\" then \"object\" elif .$field | type == \"array\" then \"array\" elif .$field | type == \"string\" then \"string\" else \"other\" end"
+# $field iterates the literal list `name version`
+tests/plugins/test-plugin-json-schema.sh ==> ".$field // empty"
+# $event is a key read from the repo's own checked-in plugin.json
+tests/plugins/test-plugin-json-schema.sh ==> ".hooks[\"$event\"][] | .hooks[]? // . | select(.type == \"command\" and .command == null) | \"$event\""
+tests/plugins/test-plugin-json-schema.sh ==> ".hooks[\"$event\"][] | .hooks[]? // . | select(.type == \"http\" and .url == null) | \"$event\""
+# $plugin_name is read from the repo's own checked-in marketplace.json
+tests/plugins/validate-all.sh ==> ".plugins[] | select(.name == \"$plugin_name\") | .source"
+# $dir_name is a basename of a directory under plugins/, repo-controlled
+tests/plugins/validate-all.sh ==> ".plugins[] | select(.name == \"$dir_name\") | .name // empty"
+# $field iterates the literal list `name version description plugins`
+tests/schemas/test-marketplace-schema.sh ==> ".$field // empty"
+# $i is the integer index from `seq 0 $((plugin_count - 1))`
+tests/schemas/test-marketplace-schema.sh ==> ".plugins[$i].name // \"plugin_$i\""
+tests/schemas/test-marketplace-schema.sh ==> ".plugins[$i] | keys - \$valid | .[]"
+tests/schemas/test-marketplace-schema.sh ==> ".plugins[$i].version // \"\""
+tests/schemas/test-marketplace-schema.sh ==> ".plugins[$i].source // \"\""
+# $i is that same integer index; $field iterates a literal required-fields array
+tests/schemas/test-marketplace-schema.sh ==> ".plugins[$i].$field // empty"
+# $field iterates the literal list `name version description`
+tests/schemas/test-plugin-schema.sh ==> ".$field // empty"
+
+# --- tests/skills/ + tests/unit/
+# $i and $b are integer indices from `seq 0 $((count - 1))`
+tests/skills/functional/test-rule-traceability.sh ==> ".testCases[$i].id"
+tests/skills/functional/test-rule-traceability.sh ==> ".testCases[$i].rule // empty"
+tests/skills/functional/test-rule-traceability.sh ==> ".testCases[$i].expectedBehavior | length"
+tests/skills/functional/test-rule-traceability.sh ==> ".testCases[$i].expectedBehavior[$b]"
+# get_fixture's $1 is a literal fixture key written by the test
+tests/unit/test-hooks-unit.sh ==> ".$1"
+ALLOWLIST
+)"
+
+# ============================================================================
+# CONTROLS - prove the detector can both fire and stay quiet
+# ============================================================================
+
+section "1. Positive control - the detector must flag a real vulnerable shape"
+cat > "$TMPD/vulnerable.sh" <<'FIXTURE'
+#!/bin/bash
+# Positive control: $UNTRUSTED becomes part of the jq PROGRAM.
+UNTRUSTED="$1"
+jq -r ".$UNTRUSTED" data.json
+FIXTURE
+
+printf '%s\n' "$TMPD/vulnerable.sh" | scan_files > "$TMPD/positive.tsv"
+if [[ -s "$TMPD/positive.tsv" ]]; then
+  log_pass "flagged \`jq -r \".\$UNTRUSTED\"\` (detector can fire)"
+  PASS=$((PASS + 1))
+else
+  log_fail "MISSED the positive control - the scan below cannot fail, so its green would be meaningless"
+  FAIL=$((FAIL + 1))
+fi
+
+section "2. Negative control - --arg usage must NOT be flagged"
+# bin/bump-version.sh is correct-by-construction: every dynamic value is bound
+# with --arg and every program is a single-quoted literal.
+printf '%s\n' "$REPO_ROOT/bin/bump-version.sh" | scan_files > "$TMPD/negative.tsv"
+if [[ -s "$TMPD/negative.tsv" ]]; then
+  log_fail "false positive on correct --arg usage:"
+  sed 's/^/      /' "$TMPD/negative.tsv"
+  FAIL=$((FAIL + 1))
+else
+  log_pass "bin/bump-version.sh (--arg bindings, literal programs) is clean"
+  PASS=$((PASS + 1))
+fi
+
+# ============================================================================
+# THE SCAN
+# ============================================================================
+
+section "3. Repo-wide scan for interpolation into the jq program"
+
+# sed (not grep -v) so an empty allowlist still exits 0, and a FILE (not a
+# here-string) so the lookup neither SIGPIPEs the producer under pipefail nor
+# trips the bash 5.3 here-string PIPE_BUF deadlock.
+printf '%s\n' "$ALLOWLIST_RAW" \
+  | sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' > "$TMPD/allow.keys"
+
+repo_targets | scan_files > "$TMPD/findings.tsv"
+
+unreviewed=0
+while IFS=$'\t' read -r file prog lineno; do
+  [[ -n "$file" ]] || continue
+  rel="${file#"$REPO_ROOT"/}"
+  if grep -Fxq -- "$rel ==> $prog" "$TMPD/allow.keys"; then
+    continue
   fi
+  log_fail "$rel:$lineno interpolates into the jq PROGRAM: $prog"
+  unreviewed=$((unreviewed + 1))
+done < "$TMPD/findings.tsv"
 
-  # Fallback: check that Bash hooks don't use dangerous patterns
-  local hook_files
-  hook_files=$(find "$HOOKS_DIR" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null) || true
+if ((unreviewed == 0)); then
+  log_pass "no unreviewed interpolation into a jq program"
+  PASS=$((PASS + 1))
+else
+  echo
+  echo "  ${YELLOW}Fix by passing the value as DATA, not as program text:${NC}"
+  echo "      jq --arg k \"\$key\" '.[\$k]'      # instead of  jq \".\${key}\""
+  echo "  If the value is provably a local literal, add it to the ALLOWLIST"
+  echo "  above with a one-line reason."
+  FAIL=$((FAIL + unreviewed))
+fi
 
-  for hook in $hook_files; do
-    # Check for variable expansion directly in jq filter (dangerous)
-    if grep -E "jq.*\"\\\$[^\"]*\"" "$hook" 2>/dev/null | grep -v "# " >/dev/null; then
-      echo "WARNING: Potential jq injection in $hook"
-    fi
-  done
-
-  return 0
-}
-
-# TEST 1.1.4: JQ Filter Injection - Alternative Operators
-test_jq_injection_alternative_operators() {
-  local test_json='{"tool_input":{"file_path":"/safe/path"},"config":{"db_host":"localhost"}}'
-  local malicious_filter='.config.db_host as $x | $x'
-
-  # Test that variable binding cannot be injected
-  # Using inline get_field pattern (simulating TypeScript hook behavior)
-  local result
-  result=$(
-    _HOOK_INPUT="$test_json"
-    echo "$_HOOK_INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null || echo ""
-  )
-
-  assert_equals "/safe/path" "$result"
-  assert_not_contains "$result" "localhost"
-}
-
-# ============================================================================
-# ADDITIONAL JQ SECURITY TESTS
-# ============================================================================
-
-# Test that env function cannot be used
-test_jq_env_function_blocked() {
-  local test_json='{"tool_input":{"command":"test"}}'
-
-  # Attempt to use env function
-  local result
-  result=$(echo "$test_json" | jq -r 'env.HOME // "blocked"' 2>&1) || true
-
-  # env access should work in jq but our hooks don't expose this
-  # Verify hooks don't pass user input to jq filters
-  local hook_files
-  hook_files=$(find "$HOOKS_DIR" -name "*.sh" -type f 2>/dev/null) || true
-
-  for hook in $hook_files; do
-    # Check for dangerous patterns (use || true to handle no matches)
-    if grep -E 'jq.*\$\{?[A-Za-z_]+' "$hook" 2>/dev/null | grep -v "# " 2>/dev/null | grep -qv "jq.*-r.*'" 2>/dev/null; then
-      # Variable in jq command that's not in single quotes
-      local line
-      line=$(grep -n -E 'jq.*\$' "$hook" 2>/dev/null | head -1) || true
-      # This might be intentional, just flag for review
-      continue
-    fi
-  done
-
-  return 0
-}
-
-# Test that @base64d cannot be used to decode hidden data
-test_jq_base64_decode_blocked() {
-  local encoded_secret=$(echo "secret_password" | base64)
-  local test_json='{"tool_input":{"command":"test"},"data":"'$encoded_secret'"}'
-
-  # Verify normal hook operation doesn't decode base64
-  # Using inline get_field pattern (simulating TypeScript hook behavior)
-  local result
-  result=$(
-    _HOOK_INPUT="$test_json"
-    echo "$_HOOK_INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null || echo ""
-  )
-
-  assert_equals "test" "$result"
-  assert_not_contains "$result" "secret_password"
-}
-
-# ============================================================================
-# RUN TESTS
-# ============================================================================
-
-run_tests
+echo
+echo "=========================================="
+echo "  ${GREEN}${PASS} passed${NC}, ${RED}${FAIL} failed${NC}"
+echo "=========================================="
+[[ $FAIL -eq 0 ]]
