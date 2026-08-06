@@ -350,6 +350,7 @@ Output a summary table after consolidation:
 | Evergreen (no external refs) | N |
 | Surviving memories | N |
 | MEMORY.md indexes rebuilt | N |
+| Promotion candidates (2+ repos, STEP 9) | N |
 
 ### Changes Made
 
@@ -428,6 +429,36 @@ fi
 **Strict rules:** always `--dry-run`, never `--yes`. Users who moved (not deleted) a project need to keep the directory; the purge is irreversible. Surface the suggestion, let the user decide.
 
 **Why parse `claude project purge --dry-run --all` instead of `~/.claude/projects/`:** the directory naming under `~/.claude/projects/` is a lossy collapse of the original path (`/` and `.` both become `-`). A naive `sed 's|-|/|g'` decode misidentifies any path containing `-` (e.g. `my-project` → `/my/project`). The CLI's dry-run output reads canonical paths from `~/.claude.json` and is the only reliable source.
+
+
+## STEP 9: Cross-Repo Promotion Candidates (#3295)
+
+A memory pattern that shows up in **2+ projects** is a capability that outgrew its repo.
+While consolidating, detect these deterministically and **offer** promotion -- dream never
+moves content itself, so this step stays safe when dream is model-invoked.
+
+```bash
+# For each memory file touched in this run, derive a topic key: the filename slug minus
+# scope words (dates, project names). Then look for the same key in OTHER projects'
+# memory indexes (index lines are "- [Title](file.md) -- hook"):
+grep -l -i "<topic-key>" ~/.claude/projects/*/memory/MEMORY.md \
+  | grep -v "<current-project-dir>"
+```
+
+- **2+ distinct projects match** -> the memory is a promotion candidate.
+- Deterministic only: match on normalized slug/title tokens, never on semantic judgment.
+- False positives are cheap (the user declines); silent misses are the failure mode this
+  step exists for -- the same infra lesson re-learned per repo, N times, with nothing watching.
+
+**Interactive runs:** AskUserQuestion per candidate (batch when more than 3):
+- "Promote to a shared plugin" -- org-specific patterns go to the org's private plugin,
+  generic ones to a public plugin; dream only opens the door, the user routes.
+- "Keep local" -- legitimately repo-specific overlap.
+- "Stop suggesting this one" -- append `promotion: declined` to the memory's frontmatter
+  metadata so future runs skip it.
+
+**Non-interactive / dry runs:** list candidates in the Dream Consolidation Report under
+`Promotion candidates:` with the matching project paths. No prompt, no mutation.
 
 
 ## When NOT to Use

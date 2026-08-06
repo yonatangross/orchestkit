@@ -3152,6 +3152,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "does": "After plugin housekeeping, surface a non-blocking suggestion when stale project state exists. Never execute the purge — only preview it.",
             "out": null,
             "tag": null
+          },
+          {
+            "num": "9",
+            "label": "Cross-Repo Promotion Candidates",
+            "does": "A memory pattern that shows up in 2+ projects is a capability that outgrew its repo.",
+            "out": null,
+            "tag": null
           }
         ]
       }
