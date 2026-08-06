@@ -8,7 +8,40 @@ set -uo pipefail
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 cd "$PROJECT_ROOT"
 
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
+# Resolve the branch actually being PUSHED, not the one checked out (#3290).
+#
+# git feeds pre-push one line per ref on stdin:
+#   <local ref> <local sha> <remote ref> <remote sha>
+#
+# `git rev-parse --abbrev-ref HEAD` returns the literal string "HEAD" in a
+# DETACHED worktree, so the conventional-commit prefix exemptions below never
+# matched and the version gate fired on branches that are explicitly exempt.
+# That is not an edge case: git refuses to check out one branch in two
+# worktrees, so pushing a branch another worktree holds REQUIRES detached HEAD
+# plus `git push origin HEAD:<branch>`. The hook penalised the only safe way to
+# do it, and left --no-verify looking like the way out — which would relocate
+# the security suite this hook also runs, not skip it.
+#
+# Falls back to the old behaviour when stdin is a tty (hook run by hand) or
+# carries no branch ref, so nothing changes for a normal push.
+resolve_push_branch() {
+  local lref lsha rref rsha branch=""
+  if [ ! -t 0 ]; then
+    while read -r lref lsha rref rsha; do
+      [ -n "${rref:-}" ] || continue
+      case "$rref" in
+        refs/heads/*)
+          branch="${rref#refs/heads/}"
+          break
+          ;;
+      esac
+    done
+  fi
+  [ -n "$branch" ] || branch=$(git rev-parse --abbrev-ref HEAD)
+  printf '%s\n' "$branch"
+}
+
+BRANCH=$(resolve_push_branch)
 REMOTE="$1"
 REMOTE_URL="$2"
 
