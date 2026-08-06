@@ -1,0 +1,52 @@
+name: Feature request
+description: Propose a new skill, agent, hook, or a change to an existing one.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        OrchestKit is a large catalog already, so the most useful proposals lead
+        with the workflow that is currently awkward rather than with the feature.
+        That makes it much easier to tell whether an existing skill covers it.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is awkward today
+      description: >
+        The task you are trying to do and where the current path breaks down.
+        Concrete beats general.
+      placeholder: |
+        When a PR touches both the API and the web app I run two separate
+        skills and reconcile the types by hand, and I usually miss one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like instead
+      description: Roughly what it would do. A sketch is fine, it does not need a design.
+    validations:
+      required: true
+
+  - type: input
+    id: existing
+    attributes:
+      label: Closest existing skill or agent
+      description: >
+        If you looked and found nothing, say so. Either answer is genuinely
+        useful, since "I could not find one" is a discoverability bug worth
+        knowing about on its own.
+      placeholder: "checked /ork:help, nothing matched"
+
+  - type: dropdown
+    id: contribute
+    attributes:
+      label: Would you like to implement this
+      options:
+        - "Not sure yet"
+        - "Yes, if the direction is welcome"
+        - "No, just proposing"
+    validations:
+      required: true

@@ -1,0 +1,65 @@
+name: Bug report
+description: Something in OrchestKit behaves differently than documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing. The most useful bug report is one where someone else
+        can reproduce the behaviour without asking you a follow-up question, so
+        the fields below are aimed at that rather than at being thorough.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: The actual behaviour, and what you expected instead.
+      placeholder: |
+        Ran /ork:verify on a repo with no test suite. It reported 10/10 for
+        testability. I expected it to report that it found nothing to score.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: >
+        The smallest sequence that shows it. If a specific skill, agent, or hook
+        is involved, name it, since that usually points straight at the file.
+      placeholder: |
+        1. In any repo with no tests
+        2. Run /ork:verify
+        3. Read the testability line
+    validations:
+      required: true
+
+  - type: input
+    id: component
+    attributes:
+      label: Which skill, agent, or hook
+      description: If you know. Leave blank if you do not.
+      placeholder: "/ork:verify"
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: >
+        Claude Code version (`claude --version`), OrchestKit version, and OS.
+        Version mismatches explain a real share of reports, so this is worth
+        pasting even when it looks irrelevant.
+      render: text
+      placeholder: |
+        claude 2.1.219
+        orchestkit 1.x.x
+        macOS 15.5
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Relevant output
+      description: Error text, hook output, or a transcript excerpt. Redact any secrets.
+      render: text
