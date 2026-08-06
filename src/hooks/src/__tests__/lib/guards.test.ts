@@ -486,3 +486,35 @@ describe('isBypassMode', () => {
     expect(isBypassMode(input)).toBe(false);
   });
 });
+
+// The precedence rule these three pin down was argued in a docstring and
+// asserted nowhere. CC only ever emits `permission_mode`, so a conflict cannot
+// arise from a real payload — but that is exactly why the rule needs a test:
+// nothing in production would ever contradict a wrong implementation, and the
+// two camelCase-only helpers stayed silently dead for months on that basis.
+//
+// snake_case is what CC sends (verified against the 2.1.222 hook-envelope
+// builder and the published hooks reference), so it must win.
+describe('permission mode key precedence', () => {
+  const withBoth = (snake: string, camel: string): HookInput => {
+    const input = makeInput();
+    (input as unknown as Record<string, unknown>).permission_mode = snake;
+    (input as unknown as Record<string, unknown>).permissionMode = camel;
+    return input;
+  };
+
+  it('isBypassMode follows snake_case when the two keys disagree', () => {
+    expect(isBypassMode(withBoth('bypassPermissions', 'default'))).toBe(true);
+    expect(isBypassMode(withBoth('default', 'bypassPermissions'))).toBe(false);
+  });
+
+  it('isDontAskMode follows snake_case when the two keys disagree', () => {
+    expect(isDontAskMode(withBoth('dontAsk', 'default'))).toBe(true);
+    expect(isDontAskMode(withBoth('default', 'dontAsk'))).toBe(false);
+  });
+
+  it('isAutoMode follows snake_case when the two keys disagree', () => {
+    expect(isAutoMode(withBoth('auto', 'default'))).toBe(true);
+    expect(isAutoMode(withBoth('default', 'auto'))).toBe(false);
+  });
+});
