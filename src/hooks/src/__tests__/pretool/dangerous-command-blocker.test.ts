@@ -692,7 +692,8 @@ describe('dangerous-command-blocker', () => {
     });
 
     it('still asks in every other permission mode', () => {
-      for (const mode of ['default', 'acceptEdits', 'plan', 'manual', undefined] as const) {
+      // 'manual' dropped — not in CC's mode enum; Manual arrives as 'default'.
+      for (const mode of ['default', 'acceptEdits', 'plan', undefined] as const) {
         const result = dangerousCommandBlocker(
           createBashInput('sudo apt install nginx', { permissionMode: mode }),
         );

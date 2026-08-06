@@ -465,7 +465,9 @@ describe('isBypassMode', () => {
   });
 
   it('returns false for every other mode', () => {
-    for (const mode of ['default', 'acceptEdits', 'auto', 'dontAsk', 'manual', 'plan'] as const) {
+    // 'manual' is gone: CC 2.1.222's enum has no such value, and the docs state
+    // the mode labelled Manual arrives as 'default'. Nothing can send it.
+    for (const mode of ['default', 'acceptEdits', 'auto', 'dontAsk', 'plan'] as const) {
       expect(isBypassMode(makeInput({ permissionMode: mode })), mode).toBe(false);
     }
   });
