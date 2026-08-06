@@ -247,13 +247,19 @@ This gives users real-time visibility into multi-agent verification. If any dime
 
 ### Monitor + Partial Results (CC 2.1.98)
 
-Use `Monitor` for streaming test execution output from background scripts:
+Use `Monitor` for streaming test output. **A `run_in_background` request may not be honoured, so never wait unconditionally on the result.**
 
 ```python
-# Stream test output in real-time instead of waiting for completion
-Bash(command="npm test 2>&1", run_in_background=true)
-Monitor(pid=test_task_id)  # Each line → notification
+task = Bash(command="npm test 2>&1", run_in_background=true)
+if not task.id:                 # request ignored → output already returned inline
+    use_inline_output(task)     # do NOT wait; there is no task to wait for
+else:
+    Monitor(pid=task.id)        # bounded: see the contract reference below
+    # Still empty AND no live process → the run never happened.
+    # Report NO VERDICT as a FAILURE. Never emit a grade from an empty run.
 ```
+
+Measured (#3263): three backgrounded suites wrote **0 bytes**, npm's own banner never appeared, and the skill waited ~40 min on a completion signal that could not fire. An empty run must be loud, not pending. Contract and the refuted hypotheses: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/background-task-contract.md")`.
 
 Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, anti-patterns): `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/monitor-patterns.md")`.
 
