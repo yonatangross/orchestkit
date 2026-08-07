@@ -276,6 +276,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v9.8.0](https://github.com/yonatangross/orchestkit/compare/v9.7.0...v9.8.0)** · 2026-08-07
+
+- **dream:** STEP 9 cross-repo promotion candidates (#3296)
+- **hooks:** read the permission mode key CC actually sends (#3294)
+- **pre-push:** replace mapfile so the hook runs on macOS bash 3.2 (#3287)
+- **release:** let release-please own the lockfile version (#3293)
+- repair two reported bugs and make 26 blind security tests able to fail (#3288)
+- …and 5 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v9.7.0](https://github.com/yonatangross/orchestkit/compare/v9.6.1...v9.7.0)** · 2026-08-05
 
 - **visualize-plan:** make DASHBOARD a first-class archetype (#3275)
@@ -315,15 +324,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v9.5.1](https://github.com/yonatangross/orchestkit/compare/v9.5.0...v9.5.1)** · 2026-08-02
 
 - **skills:** never block a user-typed invocation (#3243)
-
-**[v9.5.0](https://github.com/yonatangross/orchestkit/compare/v9.4.0...v9.5.0)** · 2026-08-01
-
-- **hooks:** nudge TaskCreate on 3+ step work and measure compliance (#3232)
-- **docs-site:** fix count and command drift at source, add a drift gate (#3231)
-- **skills:** keep user-typed fork skills interactive on CC 2.1.218+ (#3239)
-- **tests:** dead E2E wiring, gitignore-aware gates, warn ratchet (#3236)
-- **evals:** retire the prose-grading eval, wire the nudge reader (#3237)
-- …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

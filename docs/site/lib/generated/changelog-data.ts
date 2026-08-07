@@ -17,6 +17,38 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "9.8.0",
+    "date": "2026-08-07",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**dream:** STEP 9 cross-repo promotion candidates ([#3296](https://github.com/yonatangross/orchestkit/issues/3296)) ([b6e6524](https://github.com/yonatangross/orchestkit/commit/b6e65248f2e032afda66afc38b4193bebc79048b))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** read the permission mode key CC actually sends ([#3294](https://github.com/yonatangross/orchestkit/issues/3294)) ([6b14358](https://github.com/yonatangross/orchestkit/commit/6b1435886c65f731f562e1016b0277091e609213))",
+          "**pre-push:** replace mapfile so the hook runs on macOS bash 3.2 ([#3287](https://github.com/yonatangross/orchestkit/issues/3287)) ([5c98332](https://github.com/yonatangross/orchestkit/commit/5c98332e2288d4daa838761e7c74374a46a8d64c))",
+          "**release:** let release-please own the lockfile version ([#3293](https://github.com/yonatangross/orchestkit/issues/3293)) ([e9c217d](https://github.com/yonatangross/orchestkit/commit/e9c217d0d121971cc875fe4dbc308e24b254484f))",
+          "repair two reported bugs and make 26 blind security tests able to fail ([#3288](https://github.com/yonatangross/orchestkit/issues/3288)) ([1f4cf61](https://github.com/yonatangross/orchestkit/commit/1f4cf612598dc238ce0739d95a71e1227d681b10))",
+          "**security:** close the interpreter-pipe path bypass ([#3292](https://github.com/yonatangross/orchestkit/issues/3292)) ([a64613c](https://github.com/yonatangross/orchestkit/commit/a64613c8442dae06c7c2af0ea29e6cc6087e01c1))",
+          "**security:** close the line-continuation bypass of the command blocker ([#3289](https://github.com/yonatangross/orchestkit/issues/3289)) ([9839bf8](https://github.com/yonatangross/orchestkit/commit/9839bf8e8c77add68bcc3368e2ee50a6ad558522))",
+          "**verify:** stop waiting forever on a background task that never ran ([#3297](https://github.com/yonatangross/orchestkit/issues/3297)) ([6fd73ff](https://github.com/yonatangross/orchestkit/commit/6fd73ff7a0dcda3d35a794dd42a6ff6ad3b0212d))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc:** adopt 2.1.221 and 2.1.222, bump cc-support latest_known ([#3284](https://github.com/yonatangross/orchestkit/issues/3284)) ([a28e2b3](https://github.com/yonatangross/orchestkit/commit/a28e2b3ed1dc3dcf59d89e8297a0697c571d52c7))",
+          "**community:** add code of conduct and user-facing issue templates ([#3300](https://github.com/yonatangross/orchestkit/issues/3300)) ([e0edf17](https://github.com/yonatangross/orchestkit/commit/e0edf17d0d5bc523d1375cc0e139b5cbcd5306d8))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "9.7.0",
     "date": "2026-08-05",
     "compareUrl": "",
