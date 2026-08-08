@@ -164,25 +164,25 @@ for i in $(seq 0 $((plugin_count - 1))); do
     #
     #   github      repo (required) · ref · sha (40-hex, format-checked)
     #   git-subdir  url (required) · path (required) · ref
-    source_type=$(jq -r ".plugins[$i].source | type" "$MARKETPLACE_FILE")
+    source_type=$(jq -r --argjson i "$i" '.plugins[$i].source | type' "$MARKETPLACE_FILE")
     case "$source_type" in
       string)
-        source=$(jq -r ".plugins[$i].source" "$MARKETPLACE_FILE")
+        source=$(jq -r --argjson i "$i" '.plugins[$i].source' "$MARKETPLACE_FILE")
         if [[ ! "$source" =~ ^\.(/|$) ]]; then
             log_warning "Plugin '$plugin_name' source '$source' should be relative path (e.g., './plugins/...')"
         fi
         ;;
       object)
-        kind=$(jq -r ".plugins[$i].source.source // \"\"" "$MARKETPLACE_FILE")
+        kind=$(jq -r --argjson i "$i" '.plugins[$i].source.source // ""' "$MARKETPLACE_FILE")
         case "$kind" in
           github)
-            [[ -n "$(jq -r ".plugins[$i].source.repo // \"\"" "$MARKETPLACE_FILE")" ]] \
+            [[ -n "$(jq -r --argjson i "$i" '.plugins[$i].source.repo // ""' "$MARKETPLACE_FILE")" ]] \
               || log_error "Plugin '$plugin_name' github source is missing 'repo'"
             ;;
           git-subdir)
-            [[ -n "$(jq -r ".plugins[$i].source.url // \"\"" "$MARKETPLACE_FILE")" ]] \
+            [[ -n "$(jq -r --argjson i "$i" '.plugins[$i].source.url // ""' "$MARKETPLACE_FILE")" ]] \
               || log_error "Plugin '$plugin_name' git-subdir source is missing 'url'"
-            [[ -n "$(jq -r ".plugins[$i].source.path // \"\"" "$MARKETPLACE_FILE")" ]] \
+            [[ -n "$(jq -r --argjson i "$i" '.plugins[$i].source.path // ""' "$MARKETPLACE_FILE")" ]] \
               || log_error "Plugin '$plugin_name' git-subdir source is missing 'path'"
             ;;
           npm|url|archive)
@@ -211,15 +211,15 @@ for i in $(seq 0 $((plugin_count - 1))); do
     # asserting one would fail every entry in the alpha-channel layout. The
     # in-repo path those entries point at is covered by the git-subdir check
     # below instead.
-    if [[ "$(jq -r ".plugins[$i].source | type" "$MARKETPLACE_FILE")" != "string" ]]; then
-        subpath=$(jq -r ".plugins[$i].source.path // \"\"" "$MARKETPLACE_FILE")
+    if [[ "$(jq -r --argjson i "$i" '.plugins[$i].source | type' "$MARKETPLACE_FILE")" != "string" ]]; then
+        subpath=$(jq -r --argjson i "$i" '.plugins[$i].source.path // ""' "$MARKETPLACE_FILE")
         if [[ -n "$subpath" && ! -d "${ROOT_DIR}/${subpath}" ]]; then
             log_error "Plugin '$plugin_name' git-subdir path '$subpath' does not exist in this repo"
         fi
         continue
     fi
 
-    source=$(jq -r ".plugins[$i].source" "$MARKETPLACE_FILE")
+    source=$(jq -r --argjson i "$i" '.plugins[$i].source' "$MARKETPLACE_FILE")
     if [[ -n "$source" ]]; then
         # Resolve relative to ROOT_DIR
         full_path="${ROOT_DIR}/${source}"
