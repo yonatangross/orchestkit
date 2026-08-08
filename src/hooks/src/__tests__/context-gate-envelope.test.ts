@@ -56,7 +56,7 @@ function seedSpawns(n: number, ageMs = 0): void {
   const lines = Array.from({ length: n }, (_, i) =>
     JSON.stringify({ timestamp: ts, agent: `a${i}` }),
   );
-  writeFileSync(join(TMP, '.claude/logs/subagent-spawns.jsonl'), lines.join('\n') + '\n');
+  writeFileSync(join(TMP, '.claude/logs/subagent-spawns.jsonl'), `${lines.join('\n')}\n`);
 }
 
 function spawnInput(overrides: Record<string, unknown> = {}): HookInput {
