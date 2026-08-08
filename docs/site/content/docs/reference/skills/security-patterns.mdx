@@ -134,6 +134,13 @@ Blocks sandboxed Bash from reading credential **files** and secret **env vars** 
 
 Plugins ship a baseline in `src/settings/ork.settings.json` (denies `~/.aws/credentials`, `~/.ssh`, `~/.gnupg`, `~/.netrc`, `~/.npmrc` plus the token env vars that can hijack git-push auth). Pair with `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` to scrub all subprocess credentials regardless of sandboxing.
 
+**Masking instead of denial (CC 2.1.224+).** Beyond `mode: deny`, credentials can be masked so the command still runs against a redacted value: `extract` plus `onExtractNoMatch` pulls a secret out of a structured env value, `decode: "jwt"` with `maskClaims` masks named JWT claims, and `awsPairs`/`sigv4` re-signs AWS SigV4 requests after masking. Two constraints decide whether these are usable at all:
+
+- They require `sandbox.network.tlsTerminate`, so they only apply to traffic CC terminates.
+- They are honored **only** from user settings, managed settings, or `--settings`. A value shipped by a plugin or set in project `.claude/settings.json` is ignored, so ork cannot ship these as a baseline the way it ships the deny list. Document them for operators; do not add them to `src/settings/ork.settings.json` expecting them to take effect.
+
+**Never write a deny path with a trailing slash.** Through CC 2.1.223, a `sandbox.filesystem` deny entry ending in `/` (for example `denyRead: "~/.aws/"`) was silently bypassable on Linux and macOS: the rule parsed, reported clean, and protected nothing. Fixed in 2.1.224, but the shape is still worth avoiding because it reads as protection either way. ork's shipped values (`~/.aws/credentials`, `~/.ssh/*`, `~/.gnupg/*`) were never affected.
+
 ## Input Validation
 
 Validate and sanitize all untrusted input using Zod v4 and Pydantic.
