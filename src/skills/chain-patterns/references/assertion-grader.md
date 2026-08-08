@@ -6,7 +6,7 @@ Fresh-context audit of a `/goal` assertion set after the loop times out, stalls,
 
 | Trigger | Signal | Why grade the assertions |
 |---|---|---|
-| Timeout | `abort-if turns > N` or token cap hit | Assertions may be unsatisfiable — tokens are burning on an impossible bound |
+| Timeout | the `, or stop after N turns` bound was reached | Assertions may be unsatisfiable — tokens are burning on an impossible bound |
 | Stall | `no_progress_for_K_turns` tripped | Loop plateaued; assertions may not discriminate real progress |
 | Suspicious quick success | All assertions green in 1–2 turns on a non-trivial spec | Assertions probably too weak — the letter was satisfied, not the intent |
 
@@ -20,7 +20,7 @@ Spawn bare (`CLAUDE_CODE_FORK_SUBAGENT=1 claude -p --bare "..."`) or as an `Agen
 You are auditing the ASSERTION SET of a /goal loop — not the work itself.
 
 INPUTS
-1. /goal line:        {exact /goal until ... and abort-if ... lines}
+1. /goal line:        {the exact single /goal until ..., or stop after N turns line}
 2. Rubric (optional): {contents of .claude/rubric.json, ork-rubric/1.0, if emitted}
 3. Run summary:       {last N turns, mechanical: actions taken, assertion results per turn}
 4. Repo evidence:     {git diff --stat, re-run assertion command output, ls of expected paths}
@@ -66,8 +66,7 @@ One grader call per timeout/stall event. The grader itself never loops:
 Producer line that timed out after 15 turns:
 
 ```
-/goal until file_exists('src/x.ts') AND tests_pass AND lint_clean
-/goal abort-if turns > 15 OR tokens > 100000 OR no_progress_for_3_turns
+/goal until file_exists('src/x.ts') AND tests_pass AND lint_clean, or stop after 15 turns
 ```
 
 Evidence regenerated at grading time: `src/x.ts` exists (created turn 3); `npm test` fails with 2 failures in `tests/y.spec.ts` that also fail on a clean checkout of `main`; `npm run lint` exits 0.
@@ -86,5 +85,5 @@ Grader output:
 Counter-case (same line, different evidence): `src/x.ts` exists but contains only `export {}`, and `tests_pass` is green because no test imports it. Verdict is `tighten` — the revised line adds substance checks so an empty stub can no longer satisfy the set:
 
 ```
-/goal until grep -q "export function transform" src/x.ts AND npm test -- tests/x.spec.ts passes AND lint_clean
+/goal until grep -q "export function transform" src/x.ts AND npm test -- tests/x.spec.ts passes AND lint_clean, or stop after 15 turns
 ```
