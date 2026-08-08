@@ -554,7 +554,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "audit-full",
     "description": "Single-pass codebase analysis leveraging a 1M-token context window for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews.",
     "version": "1.2.0",
-    "sha256": "cf9ab8781044178e2630be2ab680742a49eb59242f13a6f35a5c61a4fba31ad4",
+    "sha256": "0bae641f8a93ce5b71a4c4acdc9a46187db5bd25b31b6a99114fa4b7bc88e4e8",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -687,7 +687,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "23d1ba2407676463f6fc3daab9bf93b693cfa550e6748a3f99da827c7f84a0d7",
+    "sha256": "f06fbb59b7c9fdd8466ec250bef75c82be59deea1386580eb8d6f77fc5280af6",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -1685,7 +1685,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "dev",
     "description": "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session, all keyed to the current git branch. Use when starting a feature branch, switching worktrees, or returning to a project after a break. Skips silently with install hints when prerequisite binaries are missing.",
     "version": "1.1.0",
-    "sha256": "605713e98263de11dcb9fef5d7d0baaa7efe4af542bc482004e43a0931aebe4b",
+    "sha256": "c4db2c0a2dba766e8a7dfe50f21dda0f805b4ea66903aaf565fb36900d5bade9",
     "author": "OrchestKit",
     "tags": [
       "dev-loop",
@@ -2155,7 +2155,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "explore",
     "description": "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns.",
     "version": "2.6.0",
-    "sha256": "89206b2e8a0eb77b2660ef9b70869cb6cbf2e3127afeebfd78056d0e43a165b6",
+    "sha256": "c913404236d31555fe047fdb1a70aad27a24480ba28bcedb45e67a30800d2948",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -3363,9 +3363,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "prd-to-goal": {
     "name": "prd-to-goal",
-    "description": "Decomposes a PRD, issue, or spec into a copy-pasteable `/goal until ... abort-if ...` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions.",
+    "description": "Decomposes a PRD, issue, or spec into a copy-pasteable single `/goal until ..., or stop after N turns` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions.",
     "version": "0.1.0",
-    "sha256": "381a70fde62d01db5e84a4b1a6d0ec5e930bc33e92f4893aa5193a8ee012de10",
+    "sha256": "888910e56809ae253821347cc5ebe9ee732fc1adc35606a44514fcb4418d4df8",
     "author": "OrchestKit",
     "tags": [
       "/goal",
@@ -5014,7 +5014,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "write-prd",
     "description": "Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
     "version": "2.0.1",
-    "sha256": "f3ee362c6fd043395bda2fad550a110881371b24b5828bc74ffb99055a3cddfd",
+    "sha256": "5490929dc09bc27f891655fbd65807e3679a91c0a5f33383ffaee0280d09c574",
     "author": "OrchestKit",
     "tags": [
       "prd",
