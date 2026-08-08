@@ -7,25 +7,61 @@
  */
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
-import { listAllTeams, isStaleTeam, cleanupTeam } from '../lib/agent-teams.js';
+import { listAllTeams, teamStaleness, cleanupTeam } from '../lib/agent-teams.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 const MAX_AGE_HOURS = 4;
+const HOOK = 'stale-team-cleanup';
 
+const hours = (ms: number): string => (ms / 3600_000).toFixed(1);
+
+/**
+ * This hook performs the only IRREVERSIBLE action in the lifecycle set: it
+ * rmSync's CC's own ~/.claude/teams/<name> and ~/.claude/tasks/<name>.
+ *
+ * It used to log a bare count ("Cleaned 2 stale team(s)"). When it deleted a
+ * live session's task list there was no name, no age, no path and no reason to
+ * read afterwards, so the misfire was invisible from the outside for as long as
+ * it existed. Every delete now records what was removed and the measurement
+ * that justified it, and every KEEP decision is recorded too — a hook that only
+ * logs when it acts cannot be distinguished from one that never ran.
+ */
 export function staleTeamCleanup(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const teams = listAllTeams();
   if (teams.length === 0) return outputSilentSuccess();
 
   let cleaned = 0;
+  const kept: string[] = [];
+
   for (const name of teams) {
-    if (isStaleTeam(name, MAX_AGE_HOURS)) {
-      if (cleanupTeam(name)) cleaned++;
-      else ctx.log('stale-team-cleanup', `Failed to clean team "${name}"`);
+    const v = teamStaleness(name, MAX_AGE_HOURS);
+
+    if (!v.stale) {
+      kept.push(`${name}(${v.reason}${v.ageMs !== undefined ? ` ${hours(v.ageMs)}h` : ''})`);
+      // An unreadable directory is the one keep worth surfacing on its own: it
+      // means the predicate could not decide, not that the team is healthy.
+      if (v.reason === 'unobservable') {
+        ctx.log(HOOK, `KEEP "${name}": could not observe the tree, refusing to delete`);
+      }
+      continue;
     }
+
+    // State the case for deletion BEFORE deleting, so a wrong delete leaves a
+    // record even if the process dies mid-rmSync.
+    ctx.log(
+      HOOK,
+      `DELETE "${name}": idle ${hours(v.ageMs ?? 0)}h (window ${MAX_AGE_HOURS}h), ` +
+        `newest=${v.newestPath ?? 'unknown'} -> removing ~/.claude/teams/${name} and ~/.claude/tasks/${name}`
+    );
+
+    if (cleanupTeam(name)) cleaned++;
+    else ctx.log(HOOK, `FAILED to remove team "${name}" — directories may be partially deleted`);
   }
 
-  if (cleaned > 0) {
-    ctx.log('stale-team-cleanup', `Cleaned ${cleaned} stale team(s)`);
-  }
+  ctx.log(
+    HOOK,
+    `${teams.length} team(s) examined, ${cleaned} removed, ${kept.length} kept` +
+      (kept.length > 0 ? `: ${kept.join(', ')}` : '')
+  );
   return outputSilentSuccess();
 }

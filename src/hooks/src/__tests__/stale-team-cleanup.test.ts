@@ -19,7 +19,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, utimesSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { isStaleTeam } from '../lib/agent-teams.js';
+import { isStaleTeam, teamStaleness } from '../lib/agent-teams.js';
 
 const HOURS = 3600_000;
 let home: string;
@@ -93,5 +93,52 @@ describe('isStaleTeam fails closed', () => {
     const p = team('old-orphan');
     backdate(p, 9);
     expect(isStaleTeam('old-orphan', 4)).toBe(true);
+  });
+});
+
+/**
+ * The predicate performs an irreversible rmSync of two directories. A verdict
+ * that is only a boolean leaves nothing to read when it deletes the wrong
+ * thing, which is how the misfire above stayed invisible for as long as it did.
+ */
+describe('teamStaleness reports WHY, not just whether', () => {
+  it('names the reason and the path that supplied the mtime', () => {
+    const p = team('busy');
+    const nested = join(p, 'tasks', 't1');
+    mkdirSync(nested, { recursive: true });
+    const witness = join(nested, 'state.json');
+    writeFileSync(witness, '{}');
+    backdate(p, 9);
+
+    const v = teamStaleness('busy', 4);
+    expect(v.stale).toBe(false);
+    expect(v.reason).toBe('recent-activity');
+    expect(v.newestPath).toBe(witness);   // the forensic breadcrumb
+    expect(v.ageMs).toBeTypeOf('number');
+  });
+
+  it('distinguishes not-found from abandoned', () => {
+    expect(teamStaleness('nope', 4).reason).toBe('not-found');
+  });
+
+  it('reports an abandoned team with the age that justified it', () => {
+    const p = team('gone');
+    backdate(p, 9);
+    const v = teamStaleness('gone', 4);
+    expect(v.stale).toBe(true);
+    expect(v.reason).toBe('past-window');
+    expect(v.ageMs!).toBeGreaterThan(4 * HOURS);
+  });
+
+  it('reports no-home rather than guessing', () => {
+    delete process.env.HOME;
+    const prevUser = process.env.USERPROFILE;
+    delete process.env.USERPROFILE;
+    try {
+      expect(teamStaleness('anything', 4)).toEqual({ stale: false, reason: 'no-home' });
+    } finally {
+      process.env.HOME = home;
+      if (prevUser !== undefined) process.env.USERPROFILE = prevUser;
+    }
   });
 });

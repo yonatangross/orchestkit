@@ -100,8 +100,8 @@ export function listAllTeams(): string[] {
  * Throws if the root cannot be observed. Callers must treat that as
  * "cannot decide", never as "old".
  */
-function newestMtimeMs(root: string, maxDepth = 3): number {
-  let newest = statSync(root).mtimeMs;
+function newestMtimeMs(root: string, maxDepth = 3): { ms: number; path: string } {
+  let newest = { ms: statSync(root).mtimeMs, path: root };
   const walk = (dir: string, depth: number): void => {
     if (depth > maxDepth) return;
     let entries: import('node:fs').Dirent[];
@@ -110,7 +110,7 @@ function newestMtimeMs(root: string, maxDepth = 3): number {
       const p = join(dir, e.name);
       try {
         const st = statSync(p);
-        if (st.mtimeMs > newest) newest = st.mtimeMs;
+        if (st.mtimeMs > newest.ms) newest = { ms: st.mtimeMs, path: p };
         if (e.isDirectory() && !e.isSymbolicLink()) walk(p, depth + 1);
       } catch { /* a racing delete is not evidence of age */ }
     }
@@ -135,24 +135,61 @@ function newestMtimeMs(root: string, maxDepth = 3): number {
  *  2. The age came from the team dir's own mtime, which does not move when a
  *     nested task file is written, so active teams read as idle.
  */
-export function isStaleTeam(teamName: string, maxAgeHours: number = 4): boolean {
+export interface StalenessVerdict {
+  /** True only when abandonment was positively established. */
+  stale: boolean;
+  /** Machine-readable reason, stable enough to grep for in logs. */
+  reason:
+    | 'no-home'
+    | 'not-found'
+    | 'unobservable'
+    | 'recent-activity'
+    | 'past-window';
+  /** Age of the newest mtime in the tree, in ms. Absent when undecidable. */
+  ageMs?: number;
+  /** Which path supplied that mtime — the forensic breadcrumb. */
+  newestPath?: string;
+}
+
+/**
+ * Decide, and SAY WHY.
+ *
+ * The boolean-only predicate this replaces made an irreversible decision
+ * (rmSync of two directories) and left no record of the age it measured, the
+ * path it measured, or which branch it took. When it deleted the wrong thing
+ * there was nothing to read afterwards — the caller only logged a count.
+ * That silence is why the misfire survived: nobody could see it happen.
+ */
+export function teamStaleness(
+  teamName: string,
+  maxAgeHours: number = 4
+): StalenessVerdict {
   const homeDir = process.env.HOME || process.env.USERPROFILE || '';
-  if (!homeDir) return false;
+  if (!homeDir) return { stale: false, reason: 'no-home' };
   const teamPath = join(homeDir, '.claude', 'teams', teamName);
-  if (!existsSync(teamPath)) return false;
+  if (!existsSync(teamPath)) return { stale: false, reason: 'not-found' };
 
   // Age gate FIRST, and it applies with or without a config. A team younger
   // than the window is never stale — that is the window's entire purpose.
-  let newestMs: number;
+  let newest: { ms: number; path: string };
   try {
-    newestMs = newestMtimeMs(teamPath);
+    newest = newestMtimeMs(teamPath);
   } catch {
-    return false; // could not observe != old
+    return { stale: false, reason: 'unobservable' }; // could not observe != old
   }
-  if (Date.now() - newestMs <= maxAgeHours * 3600_000) return false;
+
+  const ageMs = Date.now() - newest.ms;
+  if (ageMs <= maxAgeHours * 3600_000) {
+    return { stale: false, reason: 'recent-activity', ageMs, newestPath: newest.path };
+  }
 
   // Past the window with nothing recent underneath it: abandoned.
-  return true;
+  return { stale: true, reason: 'past-window', ageMs, newestPath: newest.path };
+}
+
+/** Boolean form, for callers that do not log. Prefer teamStaleness(). */
+export function isStaleTeam(teamName: string, maxAgeHours: number = 4): boolean {
+  return teamStaleness(teamName, maxAgeHours).stale;
 }
 
 /** Remove team + task directories */
