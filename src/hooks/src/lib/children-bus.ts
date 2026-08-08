@@ -2,34 +2,27 @@
 // Created: 2026-05-22
 
 /**
- * Children Bus — M168 Phase 4 (#1914)
+ * Children Bus — M168 Phase 4 (#1914), trimmed to what production calls
+ * (#3328, 2026-08-08).
  *
  * File-backed advisory channel between a parent CC session and its worktree
- * children. Each child writes its current state (payload) to
- * `<parentDir>/.claude/state/children/<sid>.json` so the parent can read
- * lightweight progress without querying SQLite.
+ * children: `<parentDir>/.claude/state/children/<sid>.json`, one file per
+ * child.
  *
- * Layer 4 of the 4-layer coordination architecture (#1908). Strictly
- * advisory: every write is best-effort, atomic (tmp+rename), and crash-safe.
- * Readers never block on writers; orphan files are reaped via
- * `sweepOrphanChildren` on parent SessionStart.
- *
- * Path layout:
- *   <parentDir>/.claude/state/children/         — children directory
- *   <parentDir>/.claude/state/children/<sid>.json   — one file per child
- *
- * The directory is created lazily on first write.
+ * HISTORY OF THE TRIM. This module shipped a full bus API — writeChildState,
+ * readChildState, listChildren, sweepOrphanChildren — and the 2026-08-08
+ * activation audit found that no production code ever called any of them.
+ * The writing side of the bus was authored and never wired, so the reading
+ * side had nothing to read. What production DOES use is the path helper
+ * (worktree-provisioner) and deleteChild (exit-finalizer cleaning up after a
+ * child exits). The four dead exports were removed rather than kept "just in
+ * case"; test fixtures that used them as seed/inspect helpers live on in
+ * __tests__/fixtures/bus-test-readers.ts. If a real subscriber appears,
+ * design the API it needs then — do not resurrect this one from git blame
+ * without a caller.
  */
 
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  renameSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs';
+import { existsSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 
 /** Relative path (under parentDir) where child-state files live. */
@@ -45,64 +38,6 @@ function childPath(parentDir: string, sid: string): string {
   return join(childrenDir(parentDir), `${sid}.json`);
 }
 
-/**
- * Atomic write of `payload` to <parentDir>/.claude/state/children/<sid>.json.
- * Uses tmp+rename so a crash mid-write never produces a half-written JSON.
- * Errors are swallowed (best-effort; advisory channel never blocks).
- */
-export function writeChildState(parentDir: string, sid: string, payload: object): void {
-  try {
-    const dir = childrenDir(parentDir);
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true, mode: 0o700 });
-    }
-    const target = childPath(parentDir, sid);
-    const tmp = `${target}.tmp.${process.pid}`;
-    writeFileSync(tmp, JSON.stringify(payload), 'utf8');
-    renameSync(tmp, target);
-  } catch {
-    /* best-effort — advisory channel */
-  }
-}
-
-/** Read the most recent payload for `sid`, or `null` if missing/corrupt. */
-export function readChildState(parentDir: string, sid: string): object | null {
-  const target = childPath(parentDir, sid);
-  if (!existsSync(target)) return null;
-  try {
-    const raw = readFileSync(target, 'utf8');
-    return JSON.parse(raw) as object;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Enumerate every child currently registered under `parentDir`. Returns one
- * `{ sid, payload }` pair per `<sid>.json` file. Corrupt files are skipped
- * silently (advisory channel; no caller should crash on partial reads).
- */
-export function listChildren(parentDir: string): { sid: string; payload: object }[] {
-  const dir = childrenDir(parentDir);
-  if (!existsSync(dir)) return [];
-  let entries: string[];
-  try {
-    entries = readdirSync(dir);
-  } catch {
-    return [];
-  }
-  const out: { sid: string; payload: object }[] = [];
-  for (const name of entries) {
-    if (!name.endsWith('.json')) continue;
-    const sid = name.slice(0, -'.json'.length);
-    if (sid.length === 0) continue;
-    const payload = readChildState(parentDir, sid);
-    if (payload === null) continue;
-    out.push({ sid, payload });
-  }
-  return out;
-}
-
 /** Remove a single child-state file. Silent on missing/permission errors. */
 export function deleteChild(parentDir: string, sid: string): void {
   const target = childPath(parentDir, sid);
@@ -110,32 +45,5 @@ export function deleteChild(parentDir: string, sid: string): void {
     if (existsSync(target)) unlinkSync(target);
   } catch {
     /* ignore */
-  }
-}
-
-/**
- * Sweep orphan children: remove any `<sid>.json` whose sid is NOT in
- * `liveSids`. Intended for SessionStart cleanup so stale entries from
- * crashed children don't accumulate.
- */
-export function sweepOrphanChildren(parentDir: string, liveSids: Set<string>): void {
-  const dir = childrenDir(parentDir);
-  if (!existsSync(dir)) return;
-  let entries: string[];
-  try {
-    entries = readdirSync(dir);
-  } catch {
-    return;
-  }
-  for (const name of entries) {
-    if (!name.endsWith('.json')) continue;
-    const sid = name.slice(0, -'.json'.length);
-    if (sid.length === 0) continue;
-    if (liveSids.has(sid)) continue;
-    try {
-      unlinkSync(join(dir, name));
-    } catch {
-      /* ignore */
-    }
   }
 }

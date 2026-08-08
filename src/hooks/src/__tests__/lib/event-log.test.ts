@@ -8,11 +8,8 @@
  *   - appendEvent writes a valid JSONL line, atomically.
  *   - 1000 concurrent appends from the same process produce 1000 valid
  *     lines with no torn writes (POSIX O_APPEND atomicity).
- *   - getTailCursor + readEventsSince round-trip.
  *   - 10 MB rotation moves the active file to .1 and re-creates the
  *     active file on the next append; a prior .1 is replaced.
- *   - readEventsSince returns [] when cursor exceeds file size
- *     (rotation/truncation safety).
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -30,8 +27,6 @@ import { join } from 'node:path';
 
 import {
   appendEvent,
-  getTailCursor,
-  readEventsSince,
   rotateIfNeeded,
   ROTATE_BYTES,
   type Event,
@@ -96,57 +91,6 @@ describe('lib/event-log (#1913)', () => {
     }
   });
 
-  it('getTailCursor returns "0" when the file does not exist', () => {
-    expect(getTailCursor()).toBe('0');
-  });
-
-  it('getTailCursor advances after each append; readEventsSince round-trips', () => {
-    const c0 = getTailCursor();
-    expect(c0).toBe('0');
-
-    appendEvent(mkEvent({ sid: 's-A', ts: 1 }));
-    const c1 = getTailCursor();
-    expect(Number(c1)).toBeGreaterThan(0);
-
-    appendEvent(mkEvent({ sid: 's-B', ts: 2 }));
-    const c2 = getTailCursor();
-    expect(Number(c2)).toBeGreaterThan(Number(c1));
-
-    // readEventsSince(null) reads everything.
-    const all = readEventsSince(null);
-    expect(all).toHaveLength(2);
-    expect(all[0].sid).toBe('s-A');
-    expect(all[1].sid).toBe('s-B');
-
-    // readEventsSince(c1) returns just the B event.
-    const delta = readEventsSince(c1);
-    expect(delta).toHaveLength(1);
-    expect(delta[0].sid).toBe('s-B');
-
-    // readEventsSince(c2) returns [] (nothing new).
-    expect(readEventsSince(c2)).toEqual([]);
-  });
-
-  it('readEventsSince returns [] when cursor exceeds file size', () => {
-    appendEvent(mkEvent({ sid: 's-X' }));
-    const beyond = String(statSync(logPath).size + 9999);
-    expect(readEventsSince(beyond)).toEqual([]);
-  });
-
-  it('readEventsSince skips malformed lines without throwing', () => {
-    // Pre-seed the file with a mix of valid + garbage.
-    writeFileSync(
-      logPath,
-      `${JSON.stringify(mkEvent({ sid: 'ok-1' }))}\n` +
-        `not-json-{{{\n` +
-        `${JSON.stringify(mkEvent({ sid: 'ok-2' }))}\n`,
-    );
-    const events = readEventsSince(null);
-    expect(events).toHaveLength(2);
-    expect(events[0].sid).toBe('ok-1');
-    expect(events[1].sid).toBe('ok-2');
-  });
-
   it('rotateIfNeeded moves active file to .1 when over ROTATE_BYTES', () => {
     // Seed an 11 MB file to force rotation.
     const blob = Buffer.alloc(ROTATE_BYTES + 1024, 0x61); // 'a' bytes
@@ -193,53 +137,5 @@ describe('lib/event-log (#1913)', () => {
     expect(existsSync(rotatedPath)).toBe(false);
   });
 
-  it('appendEvent + readEventsSince handle multi-event mixed types', () => {
-    appendEvent({
-      type: 'goal_converged',
-      ts: 1,
-      repo_hash: 'r1',
-      sid: 's1',
-      condition: 'tests pass',
-      status: 'converged',
-      turn_count: 4,
-    });
-    appendEvent({
-      type: 'chain_stale',
-      ts: 2,
-      repo_hash: 'r1',
-      sid: 's1',
-      chain_id: 'c-7',
-      phase: 'review',
-      stale_for_ms: 1_800_000,
-    });
-    appendEvent({
-      type: 'session_end',
-      ts: 3,
-      repo_hash: 'r1',
-      sid: 's1',
-      reason: 'exit',
-    });
-
-    const events = readEventsSince(null);
-    expect(events).toHaveLength(3);
-    expect(events.map(e => e.type)).toEqual([
-      'goal_converged',
-      'chain_stale',
-      'session_end',
-    ]);
-  });
-
-  it('appendEvent preserves data when prior writer left a trailing fragment', () => {
-    // Simulate a previous append that didn't end with \n (shouldn't happen
-    // in production but verify defensive reader behavior).
-    appendFileSync(logPath, JSON.stringify(mkEvent({ sid: 's-frag' })));
-    // appendEvent should still write its own line. Reader will treat the
-    // missing trailing newline as a fragment that gets joined with the
-    // next append.
-    const events = readEventsSince(null);
-    // First read picks up the fragment as a parseable line (no newline →
-    // remainder is parsed at EOF).
-    expect(events).toHaveLength(1);
-    expect(events[0].sid).toBe('s-frag');
-  });
 });
+

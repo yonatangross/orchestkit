@@ -18,7 +18,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { exitFinalizer } from '../../worktree/exit-finalizer.js';
 import { NOOP_CTX } from '../../lib/context.js';
 import { __resetDbForTests, openDb } from '../../lib/session-registry.js';
-import { writeChildState, readChildState } from '../../lib/children-bus.js';
+import { writeChildState, readChildState } from '../fixtures/bus-test-readers.js';
 import type { HookInput } from '../../types.js';
 
 function makeInput(sid: string, projectDir: string, worktreePath: string): HookInput {

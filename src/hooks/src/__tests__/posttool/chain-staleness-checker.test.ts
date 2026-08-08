@@ -29,7 +29,7 @@ import {
   chainStalenessChecker,
   __internals as chainInternals,
 } from '../../posttool/chain-staleness-checker.js';
-import { readEventsSince } from '../../lib/event-log.js';
+import { readAllEvents } from '../fixtures/bus-test-readers.js';
 import { createTestContext } from '../fixtures/test-context.js';
 import type { HookInput } from '../../types.js';
 
@@ -92,7 +92,7 @@ describe('posttool/chain-staleness-checker (#1913)', () => {
     const res = chainStalenessChecker(input('sid-stale'), ctx);
     expect(res).toEqual({ continue: true, suppressOutput: true });
 
-    const events = readEventsSince(null);
+    const events = readAllEvents();
     expect(events).toHaveLength(1);
     const ev = events[0];
     expect(ev.type).toBe('chain_stale');
@@ -148,7 +148,7 @@ describe('posttool/chain-staleness-checker (#1913)', () => {
     // Second call inside the rate-limit window: should be skipped.
     chainStalenessChecker(input('sid-rate'), ctx);
 
-    const events = readEventsSince(null);
+    const events = readAllEvents();
     expect(events).toHaveLength(1);
   });
 
@@ -165,7 +165,7 @@ describe('posttool/chain-staleness-checker (#1913)', () => {
     chainStalenessChecker(input('sid-a'), ctx1);
     chainStalenessChecker(input('sid-b'), ctx2);
 
-    const events = readEventsSince(null);
+    const events = readAllEvents();
     expect(events).toHaveLength(2);
     expect(new Set(events.map(e => e.sid))).toEqual(new Set(['sid-a', 'sid-b']));
   });
@@ -183,7 +183,7 @@ describe('posttool/chain-staleness-checker (#1913)', () => {
     const ctx = createTestContext({ projectDir, sessionId: 'sid-mtime' });
     chainStalenessChecker(input('sid-mtime'), ctx);
 
-    const events = readEventsSince(null);
+    const events = readAllEvents();
     expect(events).toHaveLength(1);
     expect(events[0].type).toBe('chain_stale');
   });
