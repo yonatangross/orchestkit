@@ -276,6 +276,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha](https://github.com/yonatangross/orchestkit/compare/v9.8.0...v10.0.0-alpha)** · 2026-08-08
+
+- **glyph:** the skill formerly invoked as `/ork:quickviz` is now `/ork:glyph`. There is no alias, because a stub named quickviz would reintroduce the `/quit` prefix collision this change exists to remove.
+- **marketplace:** split stable and prerelease into two channels (#3340), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)
+- **release:** arm the prerelease train and unblock 10.0.0-alpha.1 (#3337), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)
+- **build:** keep the version sync off pinned channel entries (#3344), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)
+- **counts:** read the release version off the tracking entry by name (#3341), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)
+- …and 7 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v9.8.0](https://github.com/yonatangross/orchestkit/compare/v9.7.0...v9.8.0)** · 2026-08-07
 
 - **dream:** STEP 9 cross-repo promotion candidates (#3296)
@@ -320,10 +329,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **hooks:** branch-switch awareness in git-validator protection (#3246)
 - glob the five orphan test dirs into blocking coverage (#3245)
-
-**[v9.5.1](https://github.com/yonatangross/orchestkit/compare/v9.5.0...v9.5.1)** · 2026-08-02
-
-- **skills:** never block a user-typed invocation (#3243)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

@@ -17,6 +17,44 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha",
+    "date": "2026-08-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**marketplace:** split stable and prerelease into two channels ([#3340](https://github.com/yonatangross/orchestkit/issues/3340)) ([147b1f9](https://github.com/yonatangross/orchestkit/commit/147b1f9ae0f8d921099dc3dab7b657b392ee0fd6)), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)",
+          "**release:** arm the prerelease train and unblock 10.0.0-alpha.1 ([#3337](https://github.com/yonatangross/orchestkit/issues/3337)) ([9cbc02b](https://github.com/yonatangross/orchestkit/commit/9cbc02bf8e187c33d4435e1259f403606551b2c7)), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**build:** keep the version sync off pinned channel entries ([#3344](https://github.com/yonatangross/orchestkit/issues/3344)) ([6c80f65](https://github.com/yonatangross/orchestkit/commit/6c80f657d873fd041ae5b989317cfdf8d01cc490)), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)",
+          "**counts:** read the release version off the tracking entry by name ([#3341](https://github.com/yonatangross/orchestkit/issues/3341)) ([18fdb71](https://github.com/yonatangross/orchestkit/commit/18fdb71f9b1ad3448389c2673415218e2ddf5748)), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)",
+          "**gate:** the README command check reads history as advertisement ([#3343](https://github.com/yonatangross/orchestkit/issues/3343)) ([ebd8e3d](https://github.com/yonatangross/orchestkit/commit/ebd8e3dcfac716e9f56572f480059ff0827357d0)), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)",
+          "**hooks:** stop stale-team-cleanup deleting a live session's task list ([#3305](https://github.com/yonatangross/orchestkit/issues/3305)) ([a0e56f7](https://github.com/yonatangross/orchestkit/commit/a0e56f7aa1c34b8478d34f9937fb8fbd6b1a3dc9))",
+          "**release:** make version comparison semver-correct across 8 sites ([#3339](https://github.com/yonatangross/orchestkit/issues/3339)) ([d9d9387](https://github.com/yonatangross/orchestkit/commit/d9d938759f072befe60f0281949b9a5ff255bfd1)), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)",
+          "**release:** stop the build stamping the pinned channel entry ([#3342](https://github.com/yonatangross/orchestkit/issues/3342)) ([263840f](https://github.com/yonatangross/orchestkit/commit/263840fc1623689c4bae75b80cd24305bc9314fb)), closes [#164](https://github.com/yonatangross/orchestkit/issues/164)",
+          "**security:** clear the nanoid and DOMPurify advisories blocking main ([#3303](https://github.com/yonatangross/orchestkit/issues/3303)) ([d4ce3c4](https://github.com/yonatangross/orchestkit/commit/d4ce3c4716523eb09a0338127e6bb0a8536e1ebf))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc:** triage 2.1.223 through 2.1.226, advance latest_known to 2.1.226 ([#3338](https://github.com/yonatangross/orchestkit/issues/3338)) ([c80783c](https://github.com/yonatangross/orchestkit/commit/c80783cf8453d7e2f748433ba3ec8fcc04ac6a89)), closes [#3334](https://github.com/yonatangross/orchestkit/issues/3334)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**glyph:** rename quickviz, its prefix collided with /quit ([#3301](https://github.com/yonatangross/orchestkit/issues/3301)) ([bdce685](https://github.com/yonatangross/orchestkit/commit/bdce68503f4d5934415cac37673807ff289a6f4c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "9.8.0",
     "date": "2026-08-07",
     "compareUrl": "",
