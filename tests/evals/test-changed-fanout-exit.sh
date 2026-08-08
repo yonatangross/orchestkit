@@ -30,7 +30,7 @@ WORKFLOW="$PROJECT_ROOT/.github/workflows/skill-eval.yml"
 # matched, and the check went red on an outage, reintroducing exactly the false
 # signal exit 2 exists to prevent.
 #
-# Real instance: run 30328867969 on fix/quickviz-visual-style-path. quickviz,
+# Real instance: run 30328867969 on fix/glyph-visual-style-path. glyph,
 # 7/7 prompts "NO ANSWER (dead generation)", harness printed Trigger /
 # Quality / Overall all INCONCLUSIVE, job still concluded failure.
 

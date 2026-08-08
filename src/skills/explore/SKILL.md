@@ -12,7 +12,7 @@ author: OrchestKit
 tags: [exploration, code-search, architecture, codebase, health-assessment]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Read, Write, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, Bash, ToolSearch]
-skills: [quickviz, architecture-decision-record, memory, architecture-patterns, chain-patterns]
+skills: [glyph, architecture-decision-record, memory, architecture-patterns, chain-patterns]
 complexity: high
 persuasion-type: guidance
 effort: high

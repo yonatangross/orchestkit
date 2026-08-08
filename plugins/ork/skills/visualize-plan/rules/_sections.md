@@ -7,9 +7,9 @@ version: 1.0.0
 
 ## 1. ASCII Diagram Patterns (diagrams) — MEDIUM — external
 
-ASCII diagram patterns live in the `quickviz` skill. Plan-viz depends on `quickviz` via the `skills:` frontmatter field.
+ASCII diagram patterns live in the `glyph` skill. Plan-viz depends on `glyph` via the `skills:` frontmatter field.
 
-See: `quickviz` skill rules for box-drawing characters, file trees, progress bars, workflow diagrams, layered architecture, blast radius, reversibility timelines, and comparisons.
+See: `glyph` skill rules for box-drawing characters, file trees, progress bars, workflow diagrams, layered architecture, blast radius, reversibility timelines, and comparisons.
 
 ## 2. Section Rendering Conventions (visualization) — HIGH — 1 rule
 

@@ -926,6 +926,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts. Use when managing GitHub issues, PRs, milestones, or Projects with gh."
   },
   {
+    "url": "/docs/reference/skills/glyph",
+    "title": "Glyph",
+    "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead."
+  },
+  {
     "url": "/docs/reference/skills/golden-dataset",
     "title": "Golden Dataset",
     "description": "Golden dataset lifecycle patterns for curation, versioning, quality validation, and CI integration. Use when building evaluation datasets, managing dataset versions, validating quality scores, or integrating golden tests into pipelines."
@@ -1059,11 +1064,6 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference/skills/quality-gates",
     "title": "Quality Gates",
     "description": "Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing code against best practices. Provides quality-gates scoring (1-5), escalation workflows, and pattern library management."
-  },
-  {
-    "url": "/docs/reference/skills/quickviz",
-    "title": "Quickviz",
-    "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead."
   },
   {
     "url": "/docs/reference/skills/rag-retrieval",

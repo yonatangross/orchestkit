@@ -1,11 +1,11 @@
 {
-  "skill": "quickviz",
+  "skill": "glyph",
   "version": "1.0.0",
   "testCases": [
     {
       "id": "basic-no-argument-render-current-state",
       "rule": "",
-      "query": "/ork:quickviz",
+      "query": "/ork:glyph",
       "expectedBehavior": [
         "Renders the state of the CURRENT conversation, since no topic was supplied",
         "Does not ask which topic or format to use before rendering",
@@ -39,9 +39,9 @@
       "rule": "",
       "query": "Generate a PNG diagram of our microservices architecture for the README",
       "expectedBehavior": [
-        "Claude does NOT invoke the quickviz skill",
+        "Claude does NOT invoke the glyph skill",
         "Suggests using Mermaid, PlantUML, or an image generation tool instead",
-        "Quickviz is for terminal-rendered monospace output, not image files"
+        "Glyph is for terminal-rendered monospace output, not image files"
       ]
     },
     {
@@ -49,9 +49,9 @@
       "rule": "",
       "query": "Build me an interactive HTML playground comparing these four migration options",
       "expectedBehavior": [
-        "Claude does NOT invoke the quickviz skill",
+        "Claude does NOT invoke the glyph skill",
         "Routes to visualize-plan instead, which owns multi-artifact file output",
-        "Quickviz is the inline chat path and writes no files"
+        "Glyph is the inline chat path and writes no files"
       ]
     },
     {

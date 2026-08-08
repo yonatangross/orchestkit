@@ -151,11 +151,11 @@ fi
 # --- shipped-copy guard ------------------------------------------------------
 # src/rules/visual-style.md is the source of truth, but it lives OUTSIDE any
 # skill bundle, so a repo-relative pointer to it dangles wherever the plugin is
-# actually installed. quickviz therefore ships a byte-identical copy at
-# skills/quickviz/rules/visual-style.md. These two must never drift.
-SHIPPED="src/skills/quickviz/rules/visual-style.md"
+# actually installed. glyph therefore ships a byte-identical copy at
+# skills/glyph/rules/visual-style.md. These two must never drift.
+SHIPPED="src/skills/glyph/rules/visual-style.md"
 if [ ! -f "$SHIPPED" ]; then
-  log_fail "shipped copy exists" "$SHIPPED is missing — quickviz step 4 would dangle at runtime"
+  log_fail "shipped copy exists" "$SHIPPED is missing — glyph step 4 would dangle at runtime"
 elif cmp -s src/rules/visual-style.md "$SHIPPED"; then
   log_pass "shipped copy byte-identical to src/rules/visual-style.md"
 else
@@ -163,7 +163,7 @@ else
 fi
 
 # The pointer inside the skill must stay bundle-relative, never repo-relative.
-if grep -q 'src/rules/visual-style\.md' src/skills/quickviz/SKILL.md; then
+if grep -q 'src/rules/visual-style\.md' src/skills/glyph/SKILL.md; then
   log_fail "skill pointer" "SKILL.md uses a repo-relative path that dangles outside orchestkit"
 else
   log_pass "skill pointer is bundle-relative"

@@ -509,7 +509,7 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=35  # +1: quickviz (repurposed ascii-visualizer) flipped from inert to invocable — cheap inline viz on-ramp beside visualize-plan's full pipeline
+EXPECTED_USER_INVOCABLE=35  # +1: glyph (repurposed ascii-visualizer) flipped from inert to invocable — cheap inline viz on-ramp beside visualize-plan's full pipeline
 EXPECTED_INTERNAL=70  # -9: audit-skills, checkpoint-resume, feedback, notebooklm, presentation-builder, release-checklist, skill-evolution, upgrade-assessment, validate-counts deleted as unreachable orphans (all were user-invocable: false)
 
 missing_user_invocable=()

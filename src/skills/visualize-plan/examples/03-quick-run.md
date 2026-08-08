@@ -7,7 +7,7 @@ description: The 15-second answer. No agents, no tasks, no questions, no memory 
 
 `--quick` exists because the full path costs an Explore agent, a six-task dependency graph, and a
 question. Sometimes the honest answer to "what does this branch touch?" is a header and two
-sections, and paying for the rest is why fast questions leaked to `/ork:quickviz` and to
+sections, and paying for the rest is why fast questions leaked to `/ork:glyph` and to
 hand-written HTML instead.
 
 ## Input

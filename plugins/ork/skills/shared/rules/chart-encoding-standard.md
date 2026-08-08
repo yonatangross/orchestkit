@@ -17,7 +17,7 @@ tags: [chart, dataviz, color, accessibility, palette, cvd, visualization, playgr
 
 **OrchestKit does not own chart form or color.** For the data-mark layer, defer to Claude
 Code's bundled **`/dataviz`** skill exactly the way `visualize-plan` defers ASCII to
-`quickviz` — it is an upstream dependency, not something ork reimplements. ork owns
+`glyph` — it is an upstream dependency, not something ork reimplements. ork owns
 the **domain** (what the chart is about) and the **chrome** (frame/persona); `/dataviz` owns
 the **marks** (which form, which colors, is it accessible).
 

@@ -3728,6 +3728,52 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
       }
     ]
   },
+  "glyph": {
+    "tier": "sections",
+    "lanes": [
+      {
+        "id": "map",
+        "label": "What it covers",
+        "nodes": [
+          {
+            "num": "",
+            "label": "Execution (run this, do not ask first)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Box-Drawing Character Reference",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Diagram Patterns",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Key Rules",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "When to Use Each Pattern",
+            "does": "",
+            "out": null,
+            "tag": null
+          }
+        ]
+      }
+    ]
+  },
   "golden-dataset": {
     "tier": "sections",
     "lanes": [
@@ -5642,52 +5688,6 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "Capability Details",
-            "does": "",
-            "out": null,
-            "tag": null
-          }
-        ]
-      }
-    ]
-  },
-  "quickviz": {
-    "tier": "sections",
-    "lanes": [
-      {
-        "id": "map",
-        "label": "What it covers",
-        "nodes": [
-          {
-            "num": "",
-            "label": "Execution (run this, do not ask first)",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Box-Drawing Character Reference",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Diagram Patterns",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Key Rules",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "When to Use Each Pattern",
             "does": "",
             "out": null,
             "tag": null

@@ -495,6 +495,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 3
   },
   {
+    "id": "glyph",
+    "label": "Glyph",
+    "type": "command",
+    "complexity": "low",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 2
+  },
+  {
     "id": "golden-dataset",
     "label": "Golden Dataset",
     "type": "reference",
@@ -753,16 +763,6 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "hasDeps": true,
     "depCount": 1,
     "usedByCount": 4
-  },
-  {
-    "id": "quickviz",
-    "label": "Quickviz",
-    "type": "command",
-    "complexity": "low",
-    "category": "workflow",
-    "hasDeps": false,
-    "depCount": 0,
-    "usedByCount": 2
   },
   {
     "id": "rag-retrieval",
@@ -1331,7 +1331,7 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   },
   {
     "source": "explore",
-    "target": "quickviz"
+    "target": "glyph"
   },
   {
     "source": "explore",
@@ -1511,7 +1511,7 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   },
   {
     "source": "visualize-plan",
-    "target": "quickviz"
+    "target": "glyph"
   },
   {
     "source": "visualize-plan",

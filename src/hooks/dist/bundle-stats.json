@@ -12,13 +12,13 @@
       "exports": 86
     },
     "posttool": {
-      "size": 86429,
+      "size": 86426,
       "sizeKB": "84.40",
       "exports": 68
     },
     "prompt": {
-      "size": 61566,
-      "sizeKB": "60.12",
+      "size": 61557,
+      "sizeKB": "60.11",
       "exports": 109
     },
     "lifecycle": {
@@ -57,8 +57,8 @@
       "exports": 70
     }
   },
-  "totalSize": 692953,
-  "totalSizeKB": "676.71",
+  "totalSize": 692941,
+  "totalSizeKB": "676.70",
   "inputs": 113,
   "avgBundleSizeKB": "61.52"
 }

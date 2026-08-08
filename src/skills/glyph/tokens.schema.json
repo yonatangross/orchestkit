@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://orchestkit.dev/schemas/quickviz/tokens.schema.json",
+  "$id": "https://orchestkit.dev/schemas/glyph/tokens.schema.json",
   "title": "ASCII Design System Tokens",
   "description": "Semantic char-set tier for OrchestKit ASCII design system. Validates structure; glyph membership in primitives.json is checked by scripts/validate-tokens.sh.",
   "type": "object",

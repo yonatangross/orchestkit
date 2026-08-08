@@ -14,7 +14,7 @@ author: OrchestKit
 tags: [visualization, planning, before-after, architecture, diff, risk, impact, migration, playground, infographic, multi-format]
 user-invocable: true
 allowed-tools: [Read, Grep, Glob, Agent, TaskCreate, TaskUpdate, AskUserQuestion, Bash, Write, mcp__memory__search_nodes, mcp__memory__create_entities, ToolSearch]
-skills: [quickviz, explore, architecture-decision-record, memory, remember]
+skills: [glyph, explore, architecture-decision-record, memory, remember]
 complexity: medium
 persuasion-type: guidance
 hooks:
@@ -69,7 +69,7 @@ PLAN_TOKEN = "$ARGUMENTS[0]" # First token — could be issue "#234" or plan des
 
 This skill used to ask three blocking questions (source, then format, then sections)
 before a single character rendered, plus a fourth after. That is why fast paths leaked to
-`quickviz` and to hand-written HTML.
+`glyph` and to hand-written HTML.
 
 The format answer is **not needed** to render ASCII — the ASCII floor rule renders it
 first regardless of what the user picks. So asking up front buys nothing and costs a
@@ -207,7 +207,7 @@ For architecture-level understanding **and the default before/after section [0]*
 ```python
 Agent(
   subagent_type="Explore",
-  prompt="Map component architecture of {affected_directories} at TWO points: (a) base = each file as returned by `git show origin/main:<path>` (NOT the working tree — avoids conflating uncommitted edits), (b) head = current working tree. Return per point: components, dependencies, data flows; mark what is added [+], removed [-], or changed [~] between them. Use the quickviz skill for diagrams.",
+  prompt="Map component architecture of {affected_directories} at TWO points: (a) base = each file as returned by `git show origin/main:<path>` (NOT the working tree — avoids conflating uncommitted edits), (b) head = current working tree. Return per point: components, dependencies, data flows; mark what is added [+], removed [-], or changed [~] between them. Use the glyph skill for diagrams.",
   model="haiku"
 )
 ```
@@ -398,7 +398,7 @@ Available when user selects "Drill deeper". Load `Read("${CLAUDE_PLUGIN_ROOT}/sk
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
 | section-rendering (load `${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/rules/section-rendering.md`) | HIGH | Rendering conventions for all 6 core sections ([0]–[5]) |
-| ASCII diagrams | MEDIUM | Via `quickviz` skill (box-drawing, file trees, workflows) |
+| ASCII diagrams | MEDIUM | Via `glyph` skill (box-drawing, file trees, workflows) |
 
 ## References
 

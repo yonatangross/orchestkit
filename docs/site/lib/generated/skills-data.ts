@@ -2155,7 +2155,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "explore",
     "description": "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns.",
     "version": "2.6.0",
-    "sha256": "69cac12a4a5483996b1f4840db1a47b8ce30fb9406674d77725e3847677329c0",
+    "sha256": "89206b2e8a0eb77b2660ef9b70869cb6cbf2e3127afeebfd78056d0e43a165b6",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -2181,7 +2181,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ToolSearch"
     ],
     "skills": [
-      "quickviz",
+      "glyph",
       "architecture-decision-record",
       "memory",
       "architecture-patterns",
@@ -2387,6 +2387,36 @@ export const SKILLS: Record<string, SkillMeta> = {
       "product-strategist",
       "release-engineer"
     ]
+  },
+  "glyph": {
+    "name": "glyph",
+    "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead.",
+    "version": "2.0.0",
+    "sha256": "9f0ff2892daa0e68c9ef42df48859461579fa9990dfb53a61e881dd0c011d492",
+    "author": "OrchestKit",
+    "tags": [
+      "ascii",
+      "diagrams",
+      "visualization",
+      "box-drawing",
+      "terminal",
+      "quick"
+    ],
+    "userInvocable": true,
+    "context": "inherit",
+    "allowedTools": [
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "golden-dataset": {
     "name": "golden-dataset",
@@ -3620,36 +3650,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "code-quality-reviewer"
     ]
   },
-  "quickviz": {
-    "name": "quickviz",
-    "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead.",
-    "version": "2.0.0",
-    "sha256": "5609b1924491588c21e8e25aae4b4fcd6db97e42a9cc034de6f0dbcb0369c5ee",
-    "author": "OrchestKit",
-    "tags": [
-      "ascii",
-      "diagrams",
-      "visualization",
-      "box-drawing",
-      "terminal",
-      "quick"
-    ],
-    "userInvocable": true,
-    "context": "inherit",
-    "allowedTools": [
-      "Read",
-      "Grep",
-      "Glob"
-    ],
-    "skills": [],
-    "agent": null,
-    "complexity": "low",
-    "structure": {},
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": []
-  },
   "rag-retrieval": {
     "name": "rag-retrieval",
     "description": "Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding documents, implementing hybrid search, contextual retrieval, HyDE, agentic RAG, multimodal RAG, query decomposition, reranking, or pgvector search.",
@@ -4854,7 +4854,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "visualize-plan",
     "description": "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
     "version": "2.1.0",
-    "sha256": "a99ce4365c3913fe20033b5e17a901a4075dbc33420baca3da329b0c93b7f50d",
+    "sha256": "82131f27dea67af2a45295911f0f23497ad2ab1373c8340edac9babb77438b9e",
     "author": "OrchestKit",
     "tags": [
       "visualization",
@@ -4886,7 +4886,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ToolSearch"
     ],
     "skills": [
-      "quickviz",
+      "glyph",
       "explore",
       "architecture-decision-record",
       "memory",

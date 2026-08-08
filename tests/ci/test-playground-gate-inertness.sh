@@ -66,7 +66,7 @@ check "vercel.json"                            no  "deploy config only"
 check "pyproject.toml"                         no  "root toml only"
 
 section "3. Anything user-facing still REQUIRES a playground"
-check "src/skills/quickviz/SKILL.md"           yes "a skill change"
+check "src/skills/glyph/SKILL.md"           yes "a skill change"
 check "src/hooks/src/prompt/foo.ts"            yes "a hook change"
 check "src/agents/explore.md"                  yes "an agent change"
 check "docs/site/components/world/x.tsx"       yes "docs-site component"
@@ -74,7 +74,7 @@ check "tests/evals/scripts/run-skill-eval.sh"  yes "eval harness change"
 check "manifests/ork.json"                     yes "manifest change"
 
 section "4. Mixed diffs are decided by the non-inert file"
-check $'README.md\nsrc/skills/quickviz/SKILL.md' yes "docs + a skill"
+check $'README.md\nsrc/skills/glyph/SKILL.md' yes "docs + a skill"
 check $'.github/workflows/ci.yml\ntests/x.sh'    yes "config + a test"
 
 section "5. Fail-closed on unknown paths"

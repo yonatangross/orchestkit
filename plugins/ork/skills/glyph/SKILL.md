@@ -1,5 +1,5 @@
 ---
-name: quickviz
+name: glyph
 license: MIT
 compatibility: "Claude Code 2.1.220+."
 description: "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead."
@@ -18,7 +18,7 @@ metadata:
   category: document-asset-creation
 ---
 
-# Quickviz
+# Glyph
 
 Render the answer as ASCII art plus semantic emojis, inline, immediately. All output renders in a monospace terminal with no external tools.
 
@@ -28,7 +28,7 @@ Render the answer as ASCII art plus semantic emojis, inline, immediately. All ou
 
 The whole point is speed, so there is no setup phase.
 
-**With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `/ork:quickviz` on its own means "render where we are right now" — the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.
+**With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `/ork:glyph` on its own means "render where we are right now" — the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.
 
 Given a topic (or the conversation, when none is given):
 
@@ -49,7 +49,7 @@ Given a topic (or the conversation, when none is given):
 5. **Lead with the answer.** The visual comes first; prose after it only if it adds something the diagram cannot carry.
 6. **Stay honest.** If a number is unknown, print `?` rather than inventing one. A confident-looking chart built on guesses is worse than prose.
 
-**When NOT to use this skill:** if the deliverable is a multi-section HTML playground, a persisted plan artifact, or anything needing file output, use `visualize-plan` instead. Quickviz is the cheap inline path; visualize-plan is the full pipeline.
+**When NOT to use this skill:** if the deliverable is a multi-section HTML playground, a persisted plan artifact, or anything needing file output, use `visualize-plan` instead. Glyph is the cheap inline path; visualize-plan is the full pipeline.
 
 
 ## Box-Drawing Character Reference
