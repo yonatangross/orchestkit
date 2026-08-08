@@ -276,6 +276,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha...v10.0.0-alpha.1)** · 2026-08-08
+
+- **hooks:** advisory context-gate on SubagentStart, arm sandbox (#3345)
+- **build:** probe the command wrappers, verdict KEEP, add tripwire (#3347), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3314](https://github.com/yonatangross/orchestkit/issues/3314)
+- **hooks:** trim the bus halves nothing ever called (#3351)
+
 **[v10.0.0-alpha](https://github.com/yonatangross/orchestkit/compare/v9.8.0...v10.0.0-alpha)** · 2026-08-08
 
 - **glyph:** the skill formerly invoked as `/ork:quickviz` is now `/ork:glyph`. There is no alias, because a stub named quickviz would reintroduce the `/quit` prefix collision this change exists to remove.
@@ -324,11 +330,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps-dev:** bump @types/node in the npm-minor-patch group (#3253)
 - **contributing:** add entry-point section and fork-CI expectation note (#3250)
 - fix nonexistent scripts/hooks path in SECURITY.md (#3248)
-
-**[v9.5.2](https://github.com/yonatangross/orchestkit/compare/v9.5.1...v9.5.2)** · 2026-08-02
-
-- **hooks:** branch-switch awareness in git-validator protection (#3246)
-- glob the five orphan test dirs into blocking coverage (#3245)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

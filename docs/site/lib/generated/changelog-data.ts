@@ -17,6 +17,31 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.1",
+    "date": "2026-08-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** advisory context-gate on SubagentStart, arm sandbox ([#3345](https://github.com/yonatangross/orchestkit/issues/3345)) ([7658118](https://github.com/yonatangross/orchestkit/commit/76581187bd698060aec8a60777e198791e7b464b))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**build:** probe the command wrappers, verdict KEEP, add tripwire ([#3347](https://github.com/yonatangross/orchestkit/issues/3347)) ([6eff4eb](https://github.com/yonatangross/orchestkit/commit/6eff4ebe3314129077bce1ddeca13e3495c3ca6d)), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3314](https://github.com/yonatangross/orchestkit/issues/3314)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** trim the bus halves nothing ever called ([#3351](https://github.com/yonatangross/orchestkit/issues/3351)) ([7bf5153](https://github.com/yonatangross/orchestkit/commit/7bf5153fde36058711f259f5eeb415d7a5df3e9e))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha",
     "date": "2026-08-08",
     "compareUrl": "",
