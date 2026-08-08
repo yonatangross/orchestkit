@@ -74,8 +74,12 @@ echo "▶ Stable channel is pinned, not floating"
 echo "──────────────────────────────────────"
 
 if [[ "$stable_idx" != "none" ]]; then
-    stable_ref=$(jq -r ".plugins[$stable_idx].source.ref // \"\"" "$MARKETPLACE")
-    stable_ver=$(jq -r ".plugins[$stable_idx].version // \"\"" "$MARKETPLACE")
+    # Indexes are passed with --argjson, never interpolated into the program
+    # text. These values come from jq itself so they are integers today, but
+    # the security gate bans the interpolation shape wholesale, and it is right
+    # to: data in the program string is how injection starts.
+    stable_ref=$(jq -r --argjson i "$stable_idx" '.plugins[$i].source.ref // ""' "$MARKETPLACE")
+    stable_ver=$(jq -r --argjson i "$stable_idx" '.plugins[$i].version // ""' "$MARKETPLACE")
 
     if [[ -z "$stable_ref" ]]; then
         bad "'ork' has no source.ref — it would float to whatever main carries"
@@ -130,23 +134,23 @@ echo "▶ Both channels point at the same plugin"
 echo "──────────────────────────────────────"
 
 if [[ "$stable_idx" != "none" && "$alpha_idx" != "none" ]]; then
-    sp=$(jq -r ".plugins[$stable_idx].source.path // \"\"" "$MARKETPLACE")
-    ap=$(jq -r ".plugins[$alpha_idx].source.path // \"\"" "$MARKETPLACE")
+    sp=$(jq -r --argjson i "$stable_idx" '.plugins[$i].source.path // ""' "$MARKETPLACE")
+    ap=$(jq -r --argjson i "$alpha_idx" '.plugins[$i].source.path // ""' "$MARKETPLACE")
     if [[ -n "$sp" && "$sp" == "$ap" ]]; then
         ok "both resolve path '$sp'"
     else
         bad "channels disagree on path: stable='$sp' alpha='$ap'"
     fi
 
-    su=$(jq -r ".plugins[$stable_idx].source.url // \"\"" "$MARKETPLACE")
-    au=$(jq -r ".plugins[$alpha_idx].source.url // \"\"" "$MARKETPLACE")
+    su=$(jq -r --argjson i "$stable_idx" '.plugins[$i].source.url // ""' "$MARKETPLACE")
+    au=$(jq -r --argjson i "$alpha_idx" '.plugins[$i].source.url // ""' "$MARKETPLACE")
     if [[ -n "$su" && "$su" == "$au" ]]; then
         ok "both resolve the same repository"
     else
         bad "channels disagree on url: stable='$su' alpha='$au'"
     fi
 
-    aref=$(jq -r ".plugins[$alpha_idx].source.ref // \"\"" "$MARKETPLACE")
+    aref=$(jq -r --argjson i "$alpha_idx" '.plugins[$i].source.ref // ""' "$MARKETPLACE")
     if [[ "$aref" == "main" ]]; then
         ok "'ork-alpha' tracks main"
     else

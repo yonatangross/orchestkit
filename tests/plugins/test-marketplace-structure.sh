@@ -46,15 +46,32 @@ fi
 # Test 2: All plugins should use ./plugins/* format
 echo ""
 echo "--- Test 2: Validate source path format ---"
-# Extract all source values that are strings (not objects) and check they start with ./plugins/
-INVALID_SOURCES=$(grep -E '"source"[[:space:]]*:[[:space:]]*"[^{]' "$MARKETPLACE_JSON" | grep -v './plugins/' || true)
-if [[ -n "$INVALID_SOURCES" ]]; then
+# Parse with jq, not by grepping raw JSON text. The old text-grep matched any
+# line of the form `"source": "<string>"` — which, once a plugin uses an OBJECT
+# source, also matches the object's inner discriminator (`"source": "git-subdir"`)
+# and flags a perfectly valid entry. Structure questions get structural parsers.
+#
+# The invariant, per shape:
+#   string source  -> must start "./plugins/"
+#   object source  -> its .path must start "plugins/" (same rule, repo-relative)
+INVALID_SOURCES=$(jq -r '
+  .plugins[]
+  | select((.source | type) == "string")
+  | select(.source | startswith("./plugins/") | not)
+  | "  \(.name): \(.source)"' "$MARKETPLACE_JSON")
+INVALID_OBJECT_PATHS=$(jq -r '
+  .plugins[]
+  | select((.source | type) == "object")
+  | select((.source.path // "") | startswith("plugins/") | not)
+  | "  \(.name): path=\(.source.path // "<missing>")"' "$MARKETPLACE_JSON")
+if [[ -n "$INVALID_SOURCES" || -n "$INVALID_OBJECT_PATHS" ]]; then
   echo "❌ ERROR: Found plugins with invalid source format:"
-  echo "$INVALID_SOURCES"
-  echo "   All local plugins should use 'source: \"./plugins/{name}\"'"
+  [[ -n "$INVALID_SOURCES" ]] && echo "$INVALID_SOURCES"
+  [[ -n "$INVALID_OBJECT_PATHS" ]] && echo "$INVALID_OBJECT_PATHS"
+  echo "   String sources must be './plugins/{name}'; object sources must set path 'plugins/{name}'"
   ERRORS=$((ERRORS + 1))
 else
-  echo "✓ All plugins use correct ./plugins/* source format"
+  echo "✓ All plugins resolve under plugins/ (string or object source)"
 fi
 
 # Test 3: Root .claude-plugin should only contain marketplace.json
