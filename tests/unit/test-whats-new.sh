@@ -66,12 +66,48 @@ ROOT=$(make_root '# Changelog
 * **real:** belongs to 8.84.7 ([#2](u))')
 run_gen "$ROOT" >/dev/null
 block=$(sed -n '/ork:whats-new/,/\/ork/p' "$ROOT/README.md")
-if grep -q 'belongs to 8.84.7' <<<"$block" \
-   && ! grep -q 'should NOT appear under 8.84.7' <<<"$block"; then
-  pass "prerelease bullet is not merged into the previous release"
-else
+
+# Assert ATTRIBUTION, not absence.
+#
+# This used to grep the whole block for the rc bullet and fail if it appeared
+# anywhere. That was a valid proxy only while a prerelease header was
+# unparseable and its bullets were dropped outright — the test's own name and
+# the comment above it describe the narrower property, "must not leak into the
+# PREVIOUS release". Once stamp-whats-new.mjs learned to parse prereleases
+# (#3333), the rc bullet correctly appears under its own v8.85.0-rc.1 heading
+# and the old assertion failed while nothing had leaked.
+#
+# So slice the block per release and check where each bullet actually landed.
+# That is strictly stronger: it now also catches the reverse mistake, a
+# prerelease block that parses but swallows the next release's bullets.
+#
+# Substring tests, not `grep -q <<<"$block"`: the generated block runs past
+# macOS's 512-byte PIPE_BUF, and bash 5.3 backs a here-string with a pipe, so
+# that spelling deadlocks locally while passing in CI.
+section_of() {  # section_of <heading-substring> <block> — bullets under it
+  # Process substitution, NOT `<<< "$2"`. The generated block runs past 512
+  # bytes and bash 5.3 backs a here-string with a pipe, so that spelling hangs
+  # forever on macOS with no output and no timeout. I wrote the warning above
+  # and then did it anyway in this exact function; it cost the run.
+  awk -v want="$1" '
+    /^\*\*\[v/ { inside = (index($0, want) > 0); next }
+    inside     { print }
+  ' < <(printf '%s\n' "$2")
+}
+sec_rc=$(section_of 'v8.85.0-rc.1' "$block")
+sec_ga=$(section_of 'v8.84.7' "$block")
+
+if   [[ "$sec_ga" != *"belongs to 8.84.7"* ]]; then
+  fail "8.84.7's own bullet is missing from its section"
+  sed 's/^/      /' <<< "$block"
+elif [[ "$sec_ga" == *"should NOT appear under 8.84.7"* ]]; then
   fail "prerelease bullet leaked into 8.84.7 (parser regression)"
-  sed 's/^/      /' <<<"$block"
+  sed 's/^/      /' <<< "$block"
+elif [[ "$sec_rc" != *"should NOT appear under 8.84.7"* ]]; then
+  fail "prerelease bullet was dropped instead of attributed to 8.85.0-rc.1"
+  sed 's/^/      /' <<< "$block"
+else
+  pass "prerelease bullet lands under its own release, not the previous one"
 fi
 rm -rf "$ROOT"
 

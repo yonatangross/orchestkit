@@ -317,13 +317,36 @@ if [ "$VERSION" = "$HIGHEST" ]; then TAGS+=(-t "$IMAGE:latest"); fi
     chips.appendChild(btn);
   });
 
-  document.getElementById('tbl').innerHTML = data.pairs.map(function(p){
-    var lo = p[0], hi = p[1];
-    var oldOk = maxPlain(lo, hi) === hi, newOk = maxSemver(lo, hi) === hi;
-    return '<tr><td class="mono">' + lo + '</td><td class="mono">' + hi + '</td>' +
-      '<td><span class="pill ' + (oldOk ? 'ok' : 'bad') + '">' + (oldOk ? 'correct' : 'backwards') + '</span></td>' +
-      '<td><span class="pill ' + (newOk ? 'ok' : 'bad') + '">' + (newOk ? 'correct' : 'backwards') + '</span></td></tr>';
-  }).join('');
+  // Built with DOM nodes, not innerHTML. The pair strings come from the JSON
+  // island, which is page text, so concatenating them into markup is a
+  // text-reinterpreted-as-HTML path (CodeQL js/xss-through-dom, high). Nothing
+  // here is attacker-controlled today, but a version string is data and the
+  // rule is right that data should not become markup. textContent cannot.
+  (function(){
+    var tbody = document.getElementById('tbl');
+    data.pairs.forEach(function(p){
+      var lo = p[0], hi = p[1];
+      var tr = document.createElement('tr');
+
+      [lo, hi].forEach(function(v){
+        var td = document.createElement('td');
+        td.className = 'mono';
+        td.textContent = v;
+        tr.appendChild(td);
+      });
+
+      [maxPlain(lo, hi) === hi, maxSemver(lo, hi) === hi].forEach(function(good){
+        var td = document.createElement('td');
+        var span = document.createElement('span');
+        span.className = 'pill ' + (good ? 'ok' : 'bad');
+        span.textContent = good ? 'correct' : 'backwards';
+        td.appendChild(span);
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+  })();
 
   document.getElementById('copy').addEventListener('click', function(){
     var prompt = 'Finish #3333 on orchestkit. Remaining: ' + data.remaining.join('; ') +
