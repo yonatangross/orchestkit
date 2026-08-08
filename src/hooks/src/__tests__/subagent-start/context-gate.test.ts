@@ -170,7 +170,7 @@ describe('contextGate', () => {
   // -----------------------------------------------------------------------
 
   describe('response agent limit', () => {
-    test('denies when 8+ agents spawned in last 2 seconds', () => {
+    test('advises when 8+ agents spawned in last 2 seconds', () => {
       // Arrange - spawn log with 8 very recent entries (within 2 seconds)
       const recentEntries = generateSpawnEntries(8, 500);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
@@ -191,10 +191,10 @@ describe('contextGate', () => {
       const result = contextGate(input);
 
       // Assert
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('Too many agents in one response');
-      expect(result.stopReason).toContain('Split into multiple responses');
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('deny');
+      expect(result.continue).toBe(true);
+      expect(result.systemMessage).toContain('Too many agents in one response');
+      expect(result.systemMessage).toContain('Split into multiple responses');
+      expect(result.hookSpecificOutput).toBeUndefined();
     });
 
     test('allows when fewer than 8 agents in response window', () => {
@@ -221,7 +221,7 @@ describe('contextGate', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('deny message includes attempted agent type and description', () => {
+    test('advisory message includes attempted agent type and description', () => {
       // Arrange
       const recentEntries = generateSpawnEntries(9, 500);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
@@ -241,9 +241,9 @@ describe('contextGate', () => {
       const result = contextGate(input);
 
       // Assert
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('security-auditor');
-      expect(result.stopReason).toContain('Audit the authentication module');
+      expect(result.continue).toBe(true);
+      expect(result.systemMessage).toContain('security-auditor');
+      expect(result.systemMessage).toContain('Audit the authentication module');
     });
   });
 
@@ -252,7 +252,7 @@ describe('contextGate', () => {
   // -----------------------------------------------------------------------
 
   describe('background agent limit', () => {
-    test('denies background spawn when 6+ active in last 5 minutes', () => {
+    test('advises background spawn when 6+ active in last 5 minutes', () => {
       // Arrange - spawn log with 6 entries within 5 minutes
       const entries = generateSpawnEntries(6, 60_000); // 1 minute old
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
@@ -274,9 +274,9 @@ describe('contextGate', () => {
       const result = contextGate(input);
 
       // Assert
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('Too many background agents');
-      expect(result.stopReason).toContain('Wait for existing agents');
+      expect(result.continue).toBe(true);
+      expect(result.systemMessage).toContain('Too many background agents');
+      expect(result.systemMessage).toContain('Prefer waiting for existing agents');
     });
 
     test('allows foreground spawn even with 6+ active background agents', () => {
@@ -304,7 +304,7 @@ describe('contextGate', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('background limit deny message suggests solutions', () => {
+    test('background limit advisory message suggests solutions', () => {
       // Arrange
       const entries = generateSpawnEntries(7, 60_000);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
@@ -325,9 +325,9 @@ describe('contextGate', () => {
       const result = contextGate(input);
 
       // Assert
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('Too many background agents');
-      expect(result.stopReason).toContain('Wait for existing agents');
+      expect(result.continue).toBe(true);
+      expect(result.systemMessage).toContain('Too many background agents');
+      expect(result.systemMessage).toContain('Prefer waiting for existing agents');
     });
 
     test('accepts run_in_background as string "true"', () => {
@@ -351,8 +351,8 @@ describe('contextGate', () => {
       const result = contextGate(input);
 
       // Assert - string "true" should be treated as background
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('Too many background agents');
+      expect(result.continue).toBe(true);
+      expect(result.systemMessage).toContain('Too many background agents');
     });
   });
 
@@ -586,7 +586,7 @@ describe('contextGate', () => {
   // -----------------------------------------------------------------------
 
   describe('CC compliance', () => {
-    test('deny result has proper hookSpecificOutput with deny decision', () => {
+    test('over-limit advisory is CC-consumable, no PreToolUse envelope', () => {
       // Arrange - trigger response limit
       const entries = generateSpawnEntries(9, 500);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
@@ -606,13 +606,13 @@ describe('contextGate', () => {
       const result = contextGate(input);
 
       // Assert
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toBeDefined();
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('deny');
-      expect(result.hookSpecificOutput?.permissionDecisionReason).toBe(result.stopReason);
+      expect(result.continue).toBe(true);
+      expect(result.systemMessage).toBeDefined();
+      expect(result.hookSpecificOutput).toBeUndefined();
+      expect(result.systemMessage).toBeDefined();
     });
 
-    test('deny messages explain the limit and suggest solutions', () => {
+    test('advisory messages explain the limit and suggest solutions', () => {
       // Arrange - trigger background limit
       const entries = generateSpawnEntries(7, 60_000);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
@@ -633,8 +633,8 @@ describe('contextGate', () => {
       const result = contextGate(input);
 
       // Assert
-      expect(result.stopReason).toContain('Too many background agents');
-      expect(result.stopReason).toContain('Wait for existing agents');
+      expect(result.systemMessage).toContain('Too many background agents');
+      expect(result.systemMessage).toContain('Prefer waiting for existing agents');
     });
 
     test('warning result has continue: true and systemMessage', () => {
@@ -760,7 +760,7 @@ describe('contextGate', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('incrementBlockedCount updates state file when deny occurs', () => {
+    test('incrementBlockedCount updates state file when the over-limit advisory fires', () => {
       // Arrange - trigger background limit
       const entries = generateSpawnEntries(7, 60_000);
       (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
@@ -794,7 +794,7 @@ describe('contextGate', () => {
       const result = contextGate(input);
 
       // Assert
-      expect(result.continue).toBe(false);
+      expect(result.continue).toBe(true);
       // writeFileSync should be called to update blocked_count
       const writeCalls = (writeFileSync as ReturnType<typeof vi.fn>).mock.calls;
       const stateUpdate = writeCalls.find(

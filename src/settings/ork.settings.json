@@ -28,6 +28,11 @@
       "mcp__ork-elicit__ork_elicit"
     ],
     "deny": [
+      "Read(~/.aws/credentials)",
+      "Read(~/.ssh/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.netrc)",
+      "Read(~/.npmrc)",
       "Bash(rm -rf /)",
       "Bash(rm -rf ~)",
       "Bash(rm -rf .)",
@@ -75,6 +80,7 @@
     ]
   },
   "sandbox": {
+    "enabled": true,
     "failIfUnavailable": true,
     "autoAllowBashIfSandboxed": true,
     "filesystem": {

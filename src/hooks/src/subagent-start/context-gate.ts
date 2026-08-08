@@ -17,7 +17,7 @@
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputDeny, outputWarning, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, outputWarning, getProjectDir } from '../lib/common.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { NOOP_CTX } from '../lib/context.js';
 
@@ -30,10 +30,17 @@ const MAX_AGENTS_PER_RESPONSE = 8;
 const WARNING_THRESHOLD = 5;
 const EXPENSIVE_TYPES = /^(test-generator|backend-system-architect|workflow-architect|security-auditor|llm-integrator)$/;
 
-// Worktree isolation: raise limits when in worktree (CC 2.1.49)
+// Worktree isolation: raise limits when in worktree (CC 2.1.49).
+//
+// Two layouts exist in practice (#3310): CC's own EnterWorktree creates
+// `.claude/worktrees/<name>`, and the mandated hand-rolled layout (global
+// CLAUDE.md, worktree-new.sh) is `<repo>/.worktrees/<task>`. The old second
+// test, '/.git/worktrees/', matched NEITHER — that path holds git metadata,
+// never a checkout a process could cwd into — so the raised limits had never
+// applied exactly where parallel agents are routine.
 function isInWorktree(): boolean {
   const cwd = process.cwd();
-  return cwd.includes('.claude/worktrees/') || cwd.includes('/.git/worktrees/');
+  return cwd.includes('.claude/worktrees/') || cwd.includes('/.worktrees/');
 }
 
 function getEffectiveLimits(): { maxBackground: number; maxPerResponse: number } {
@@ -200,25 +207,36 @@ export function contextGate(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
 
   const limits = getEffectiveLimits();
 
+  // Over-limit paths ADVISE rather than deny (#3310).
+  //
+  // The old outputDeny() envelope hardcodes hookEventName:'PreToolUse' and a
+  // permissionDecision — a shape CC reads NOTHING of on SubagentStart, so the
+  // "block" never blocked anything, once, while logging that it had. CC's own
+  // runtime caps (16 concurrent / 1000 per run) are the real governor; this
+  // hook's value is telling the model it is over budget, which the universal
+  // { continue:true, systemMessage } shape delivers on every event.
+  // incrementBlockedCount() stays: it now counts would-have-advised events,
+  // and losing that telemetry would hide how often the situation occurs.
+
   // Check 1: Too many agents in single response
   if (responseCount >= limits.maxPerResponse) {
-    ctx.log('context-gate', `BLOCKED: Too many agents in single response (${responseCount} >= ${limits.maxPerResponse})`);
+    ctx.log('context-gate', `ADVISORY: Too many agents in single response (${responseCount} >= ${limits.maxPerResponse})`);
 
-    return outputDeny(
+    return outputWarning(
       `Too many agents in one response (${responseCount}/${limits.maxPerResponse}). ` +
-        `Split into multiple responses or run sequentially. Attempted: ${subagentType} — ${description}`,
+        `Split into multiple responses or run sequentially. Spawning anyway: ${subagentType} — ${description}`,
     );
   }
 
   // Check 2: Too many concurrent background agents
   if (runInBackground && activeCount >= limits.maxBackground) {
-    ctx.log('context-gate', `BLOCKED: Too many concurrent background agents (${activeCount} >= ${limits.maxBackground})`);
+    ctx.log('context-gate', `ADVISORY: Too many concurrent background agents (${activeCount} >= ${limits.maxBackground})`);
 
     incrementBlockedCount();
 
-    return outputDeny(
+    return outputWarning(
       `Too many background agents (${activeCount}/${limits.maxBackground}). ` +
-        `Wait for existing agents or run in foreground. Attempted: ${subagentType} — ${description}`,
+        `Prefer waiting for existing agents or running in foreground. Spawning anyway: ${subagentType} — ${description}`,
     );
   }
 
