@@ -207,14 +207,32 @@ echo ""
 echo "Test 8: marketplace.json validation"
 MARKETPLACE_JSON="$PROJECT_ROOT/.claude-plugin/marketplace.json"
 if [[ -f "$MARKETPLACE_JSON" ]]; then
-    # Check main ork plugin source (should be ./plugins/ork, NOT ./ to prevent auto-install)
-    ORK_SOURCE=$(jq -r '.plugins[] | select(.name == "ork") | .source' "$MARKETPLACE_JSON" 2>/dev/null)
-    if [[ "$ORK_SOURCE" == "./plugins/ork" ]]; then
-        pass "Main ork plugin has correct source (./plugins/ork)"
-    elif [[ "$ORK_SOURCE" == "./" ]]; then
-        fail "Main ork plugin uses root source (./) - this causes auto-install! Use ./plugins/ork"
+    # Check main ork plugin source. The invariant this test protects is "the
+    # entry resolves plugins/ork, never the repo root" (a root source triggers
+    # auto-install of everything). Since the alpha-channel split (#3340) the
+    # source is an OBJECT — {"source":"git-subdir", url, path, ref} — where the
+    # same invariant lives in .path, so assert it per shape instead of
+    # string-comparing the whole field. The file's existence is guarded by the
+    # enclosing -f check, so jq failures here should be loud, not silenced.
+    ORK_SOURCE_TYPE=$(jq -r '.plugins[] | select(.name == "ork") | .source | type' "$MARKETPLACE_JSON")
+    if [[ "$ORK_SOURCE_TYPE" == "object" ]]; then
+        ORK_PATH=$(jq -r '.plugins[] | select(.name == "ork") | .source.path // empty' "$MARKETPLACE_JSON")
+        if [[ "$ORK_PATH" == "plugins/ork" ]]; then
+            pass "Main ork plugin resolves plugins/ork (remote source, path field)"
+        elif [[ -z "$ORK_PATH" || "$ORK_PATH" == "." || "$ORK_PATH" == "./" ]]; then
+            fail "Main ork plugin remote source resolves the repo root - this causes auto-install! Set path to plugins/ork"
+        else
+            fail "Main ork plugin has incorrect source path: $ORK_PATH (expected plugins/ork)"
+        fi
     else
-        fail "Main ork plugin has incorrect source: $ORK_SOURCE (expected ./plugins/ork)"
+        ORK_SOURCE=$(jq -r '.plugins[] | select(.name == "ork") | .source' "$MARKETPLACE_JSON")
+        if [[ "$ORK_SOURCE" == "./plugins/ork" ]]; then
+            pass "Main ork plugin has correct source (./plugins/ork)"
+        elif [[ "$ORK_SOURCE" == "./" ]]; then
+            fail "Main ork plugin uses root source (./) - this causes auto-install! Use ./plugins/ork"
+        else
+            fail "Main ork plugin has incorrect source: $ORK_SOURCE (expected ./plugins/ork)"
+        fi
     fi
 
     # Check engine requirement
