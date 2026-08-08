@@ -224,9 +224,14 @@ jobs:
             echo "  $field: $value"
           done
 
-          # Validate version format
+          # Validate version format (semver 2.0.0, prerelease and build metadata
+          # allowed). This is a REQUIRED check, so the old ^\d+\.\d+\.\d+$ made
+          # any prerelease unshippable: 10.0.0-alpha.1 was rejected outright and
+          # the v10 alpha train could never go green. Anchored on both ends, so
+          # it still rejects the junk it was written to catch.
           version=$(jq -r '.version' plugins/ork/.claude-plugin/plugin.json)
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          semver='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
+          if [[ ! "$version" =~ $semver ]]; then
             echo "ERROR: Invalid version format: $version"
             exit 1
           fi

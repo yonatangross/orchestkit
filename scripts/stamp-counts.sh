@@ -283,12 +283,19 @@ sync_versions() {
   fi
 
   # CLAUDE.md — line: - **Current**: X.Y.Z · **Claude Code**: >= ... <!-- x-release-please-version -->
+  #
+  # The prerelease and build-metadata groups are what make this idempotent.
+  # With a bare X.Y.Z pattern the second alpha stamp matches only the numeric
+  # head of the version already on the line, so 10.0.0-alpha.1 restamped with
+  # 10.0.0-alpha.2 yields "10.0.0-alpha.2-alpha.1" and every version gate then
+  # disagrees with package.json. Proven on a fixture before this change.
   local claude_md="$PROJECT_ROOT/CLAUDE.md"
+  local semver_re='[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?'
   if [[ -f "$claude_md" ]]; then
     if [[ "$(uname)" == "Darwin" ]]; then
-      sed -i '' -E "s/(\\*\\*Current\\*\\*: )[0-9]+\\.[0-9]+\\.[0-9]+/\\1${version}/" "$claude_md"
+      sed -i '' -E "s/(\\*\\*Current\\*\\*: )${semver_re}/\\1${version}/" "$claude_md"
     else
-      sed -i -E "s/(\\*\\*Current\\*\\*: )[0-9]+\\.[0-9]+\\.[0-9]+/\\1${version}/" "$claude_md"
+      sed -i -E "s/(\\*\\*Current\\*\\*: )${semver_re}/\\1${version}/" "$claude_md"
     fi
     synced=$((synced + 1))
   fi

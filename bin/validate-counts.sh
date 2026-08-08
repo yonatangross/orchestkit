@@ -129,7 +129,12 @@ if [[ -f "$PROJECT_ROOT/.release-please-manifest.json" ]]; then
 fi
 
 if [[ -f "$PROJECT_ROOT/CLAUDE.md" ]]; then
-    CM_VERSION=$(grep -E '\*\*Current\*\*: [0-9]+\.[0-9]+\.[0-9]+' "$PROJECT_ROOT/CLAUDE.md" | head -1 | sed -E 's/.*\*\*Current\*\*: ([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+    # Capture the prerelease and build-metadata parts too. A bare X.Y.Z capture
+    # reads "10.0.0-alpha.1" as "10.0.0", so check_version compares a truncated
+    # string against package.json's full one and fails a release that is in
+    # fact consistent. `head -1` is fine here: grep has already finished the
+    # file, so there is no SIGPIPE race with pipefail.
+    CM_VERSION=$(grep -E '\*\*Current\*\*: [0-9]+\.[0-9]+\.[0-9]+' "$PROJECT_ROOT/CLAUDE.md" | head -1 | sed -E 's/.*\*\*Current\*\*: ([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?).*/\1/')
     check_version "CLAUDE.md" "CLAUDE.md" "$CM_VERSION"
 fi
 
