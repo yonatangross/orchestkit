@@ -119,8 +119,15 @@ fi
 if [[ -f "$PROJECT_ROOT/.claude-plugin/marketplace.json" ]]; then
     MKT_TOP=$(jq -r '.version' "$PROJECT_ROOT/.claude-plugin/marketplace.json")
     check_version "marketplace.json (top)" ".claude-plugin/marketplace.json" "$MKT_TOP"
-    MKT_PLUGIN=$(jq -r '.plugins[0].version' "$PROJECT_ROOT/.claude-plugin/marketplace.json")
-    check_version "marketplace.json (plugins[0])" ".claude-plugin/marketplace.json (plugins[0])" "$MKT_PLUGIN"
+    # Since the channel split (#3340), the entry that carries the release
+    # version is the one whose ref TRACKS main — ork-alpha — addressed by
+    # NAME, not by array position. plugins[0] is the stable channel, pinned to
+    # a released tag on purpose; comparing it against package.json fails every
+    # release PR by design, which is exactly what happened to the first
+    # recomputed #3304. The pin/version agreement of the stable entry has its
+    # own guard (tests/schemas/test-alpha-channel.sh).
+    MKT_PLUGIN=$(jq -r '[.plugins[] | select(.source.ref? == "main")][0].version // .plugins[0].version' "$PROJECT_ROOT/.claude-plugin/marketplace.json")
+    check_version "marketplace.json (tracking entry)" ".claude-plugin/marketplace.json (ref=main entry)" "$MKT_PLUGIN"
 fi
 
 if [[ -f "$PROJECT_ROOT/.release-please-manifest.json" ]]; then
