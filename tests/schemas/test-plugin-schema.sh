@@ -93,7 +93,7 @@ validate_plugin() {
             if [[ -n "$invalid_events" ]]; then
                 while IFS= read -r event; do
                     [[ -n "$event" ]] && log_warning "[$plugin_name] Unknown hook event: '$event'"
-                done <<< "$invalid_events"
+                done < <(printf '%s\n' "$invalid_events")
             fi
         fi
     fi

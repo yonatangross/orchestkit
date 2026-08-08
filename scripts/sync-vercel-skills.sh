@@ -182,7 +182,7 @@ EOF
   echo -e "${GREEN}  SYNCED${NC}: $hash_key"
   SYNCED=$((SYNCED + 1))
 
-done <<< "$REFS"
+done < <(printf '%s\n' "$REFS")
 
 echo ""
 echo -e "${CYAN}============================================================${NC}"

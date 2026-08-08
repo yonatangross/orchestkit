@@ -61,7 +61,7 @@ for agent_file in "$AGENTS_DIR"/*.md; do
         in_skills=0
       fi
     fi
-  done <<< "$frontmatter"
+  done < <(printf '%s\n' "$frontmatter")
 done
 
 echo ""

@@ -58,9 +58,21 @@ if [[ "$PATTERN" == "test-*.sh" ]]; then
 else
   FOUND="$(find "$TEST_DIR" -name "$PATTERN" -type f | sort)"
 fi
+# Fed by process substitution, NOT `<<< "$FOUND"`.
+#
+# bash 5.3 backs a here-string with a pipe instead of a temp file and writes it
+# from the current shell before the loop starts reading. macOS PIPE_BUF is 512
+# bytes, so the write blocks forever once $FOUND exceeds that and nothing has
+# drained it yet. tests/indexes is 543 bytes of absolute paths — six files —
+# which is why the whole local gate hung there with no output and no timeout.
+#
+# That makes the failure a function of how long the checkout path is and how
+# many tests a directory holds: it appears when someone adds a test or clones
+# somewhere deeper, and it never reproduces on CI's bash. Process substitution
+# forks the writer, so there is no shared buffer to fill. Fine on bash 3.2 too.
 while IFS= read -r file; do
   [[ -n "$file" ]] && TEST_FILES+=("$file")
-done <<< "$FOUND"
+done < <(printf '%s\n' "$FOUND")
 
 if [[ ${#TEST_FILES[@]} -eq 0 ]]; then
   echo -e "${YELLOW}WARNING: No tests found matching '$PATTERN' in $TEST_DIR${NC}"

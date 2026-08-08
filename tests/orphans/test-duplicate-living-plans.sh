@@ -82,7 +82,7 @@ except ValueError as exc:
 if slug:
     print("%s\t%s" % (slug, path))
 PY
-    done <<< "$candidates"
+    done < <(printf '%s\n' "$candidates")
 )"
 
 total=$(printf '%s\n' "$pairs" | sed '/^$/d' | wc -l | tr -d ' ')
@@ -110,7 +110,7 @@ if [[ -n "$dupe_slugs" ]]; then
             else
                 rendered+="      ${YELLOW}untracked${NC}  $f"$'\n'
             fi
-        done <<< "$files"
+        done < <(printf '%s\n' "$files")
 
         if (( n_tracked > 1 )); then
             tracked_dupes=$((tracked_dupes + 1))
@@ -122,7 +122,7 @@ if [[ -n "$dupe_slugs" ]]; then
             echo "  ${YELLOW}! forked (working tree):${NC} ${BOLD}${slug}${NC}"
         fi
         printf '%s' "$rendered"
-    done <<< "$dupe_slugs"
+    done < <(printf '%s\n' "$dupe_slugs")
 fi
 
 # --- filename convention (advisory) -------------------------------------------
@@ -131,7 +131,7 @@ while IFS= read -r line; do
     [[ -n "$line" ]] || continue
     p="${line#*$'\t'}"
     [[ "$(basename "$p")" == "plan-viz.html" ]] || badname=$((badname + 1))
-done <<< "$pairs"
+done < <(printf '%s\n' "$pairs")
 
 echo ""
 echo "  ${GREEN}●${NC} slugs unique:            $(( total - tracked_dupes - untracked_dupes ))"

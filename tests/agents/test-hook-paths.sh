@@ -132,7 +132,7 @@ if command -v jq >/dev/null 2>&1; then
                     fi
                 fi
             fi
-        done <<< "$hook_commands"
+        done < <(printf '%s\n' "$hook_commands")
     fi
 else
     echo "WARN: jq not available, skipping plugin.json hook validation"

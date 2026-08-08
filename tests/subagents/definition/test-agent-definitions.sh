@@ -104,7 +104,7 @@ extract_skills() {
                 break
             fi
         fi
-    done <<< "$frontmatter"
+    done < <(printf '%s\n' "$frontmatter")
 }
 
 echo ""
@@ -258,7 +258,7 @@ for agent_file in $AGENT_FILES; do
         if ! skill_exists "$skill"; then
             invalid_skills="$invalid_skills $skill"
         fi
-    done <<< "$skills"
+    done < <(printf '%s\n' "$skills")
 
     if [[ -z "$invalid_skills" ]]; then
         log_pass "$agent_id skill references are valid"
@@ -303,7 +303,7 @@ for agent_file in $AGENT_FILES; do
                 break
             fi
         fi
-    done <<< "$frontmatter"
+    done < <(printf '%s\n' "$frontmatter")
 
     if [[ $tools_count -gt 0 ]]; then
         log_pass "$agent_id has tools declared"

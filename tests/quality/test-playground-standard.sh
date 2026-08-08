@@ -200,14 +200,14 @@ for f in "${exemplars[@]}"; do
         while IFS='|' read -r rule msg; do
             [[ -n "$rule" ]] || continue
             echo "      ${BLUE}${rule}${NC}  ${msg}"
-        done <<< "$findings"
+        done < <(printf '%s\n' "$findings")
     else
         echo "  ${RED}✗${NC} $name"
         while IFS='|' read -r rule msg; do
             [[ -n "$rule" ]] || continue
             echo "      ${RED}${rule}${NC}  ${msg}"
             exemplar_violations=$((exemplar_violations + 1))
-        done <<< "$findings"
+        done < <(printf '%s\n' "$findings")
     fi
 done
 

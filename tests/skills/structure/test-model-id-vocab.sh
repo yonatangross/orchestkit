@@ -48,7 +48,7 @@ while IFS=: read -r file line token; do
       ok=1
       break
     fi
-  done <<< "$KNOWN_IDS"
+  done < <(printf '%s\n' "$KNOWN_IDS")
   if [[ $ok -eq 0 ]]; then
     echo "FAIL: ${file#"$REPO_ROOT"/}:$line — unknown model ID '$token' (not in models.vocab.json fullIds/historicalIds)"
     FAILED=1

@@ -47,7 +47,7 @@ parse_skills_field() {
       [[ "$line" == "skills:" ]] && { in=1; continue; }
       [[ $in -eq 1 && "$line" =~ ^[a-zA-Z] ]] && break
       [[ $in -eq 1 && "$line" =~ ^[[:space:]]*-[[:space:]]+(.*) ]] && echo "${BASH_REMATCH[1]}" | tr -d ' "'"'"''
-    done <<< "$fm"
+    done < <(printf '%s\n' "$fm")
   fi
 }
 

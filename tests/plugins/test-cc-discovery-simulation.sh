@@ -265,7 +265,7 @@ else
         while IFS= read -r event; do
             hook_count=$(jq -r ".hooks.$event | if type == \"array\" then .[0].hooks | length else 0 end" "$PLUGIN_JSON" 2>/dev/null || echo 0)
             echo "    - $event: $hook_count hooks"
-        done <<< "$hook_events"
+        done < <(printf '%s\n' "$hook_events")
     fi
 fi
 echo ""

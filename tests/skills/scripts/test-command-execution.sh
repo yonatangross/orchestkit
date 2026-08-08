@@ -144,7 +144,7 @@ while IFS= read -r script_file; do
             else
                 ((no_fallback_count++)) || true
             fi
-        done <<< "$commands"
+        done < <(printf '%s\n' "$commands")
         
         if [[ $no_fallback_count -gt 0 ]]; then
             NO_FALLBACK+=("$skill_name/scripts/$script_name ($no_fallback_count command(s) without fallback)")

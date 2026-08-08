@@ -227,7 +227,7 @@ if [[ -n "$PERM_OUTPUT" ]]; then
         PERM_DETAILS+="$agent_name: $detail; "
         ;;
     esac
-  done <<< "$PERM_OUTPUT"
+  done < <(printf '%s\n' "$PERM_OUTPUT")
 fi
 
 if [[ $PERM_FAILS -eq 0 ]]; then
@@ -329,7 +329,7 @@ if [[ ${#RULE_FILES[@]} -gt 0 ]]; then
       fail "Security: $skill_name/$rule_name has '$pattern_name' in good code block"
       SEC_DETAILS+="$skill_name/$rule_name has $pattern_name; "
       SEC_FAILS=$((SEC_FAILS + 1))
-    done <<< "$SEC_OUTPUT"
+    done < <(printf '%s\n' "$SEC_OUTPUT")
   fi
 fi
 
@@ -397,7 +397,7 @@ if [[ -n "$UNK_OUTPUT" ]]; then
         fi
         ;;
     esac
-  done <<< "$UNK_OUTPUT"
+  done < <(printf '%s\n' "$UNK_OUTPUT")
 fi
 
 if [[ $UNK_WARNS -eq 0 ]]; then

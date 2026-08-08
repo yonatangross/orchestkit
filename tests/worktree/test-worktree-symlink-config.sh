@@ -118,7 +118,7 @@ while IFS= read -r entry; do
         /*)   BAD="$BAD $entry(absolute)" ;;
         *..*) BAD="$BAD $entry(traversal)" ;;
     esac
-done <<< "$SYMLINKED"
+done < <(printf '%s\n' "$SYMLINKED")
 
 if [ -z "$BAD" ]; then
     pass "all $(wc -l <<< "$SYMLINKED" | tr -d ' ') entries are relative and traversal-free"

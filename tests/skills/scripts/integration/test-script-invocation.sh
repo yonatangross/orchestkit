@@ -103,7 +103,7 @@ simulate_skill_invocation() {
         else
             echo "$line"
         fi
-    done <<< "$skill_content" > "$temp_output"
+    done < <(printf '%s\n' "$skill_content") > "$temp_output"
     
     # Step 3: Substitute $ARGUMENTS (AFTER !command execution)
     if [[ -n "$arguments" ]]; then

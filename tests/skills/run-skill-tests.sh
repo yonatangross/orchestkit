@@ -229,7 +229,7 @@ list_tests() {
                         echo "    - $test_name"
                         found_skills=$((found_skills + 1))
                     fi
-                done <<< "$tests"
+                done < <(printf '%s\n' "$tests")
             else
                 echo -e "  ${DIM}$category/ (no tests)${NC}"
             fi
@@ -261,7 +261,7 @@ list_tests() {
                         echo "    - $test_name"
                         found_subagents=$((found_subagents + 1))
                     fi
-                done <<< "$tests"
+                done < <(printf '%s\n' "$tests")
             else
                 echo -e "  ${DIM}$category/ (no tests)${NC}"
             fi
@@ -426,7 +426,7 @@ run_category() {
         if [[ -n "$test_file" ]]; then
             run_test_file "$test_file" "$category" || category_failed=1
         fi
-    done <<< "$tests"
+    done < <(printf '%s\n' "$tests")
 
     return $category_failed
 }

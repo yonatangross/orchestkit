@@ -126,7 +126,7 @@ run_hook_chain() {
         fi
 
         ((hook_num++))
-    done <<< "$hooks"
+    done < <(printf '%s\n' "$hooks")
 
     return $chain_exit
 }

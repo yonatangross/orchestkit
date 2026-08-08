@@ -182,7 +182,7 @@ has_evidence() {
     if grep -vqE "$PROSE_EXT_RE" <<< "$files"; then
       echo hit; return
     fi
-  done <<< "$classified"
+  done < <(printf '%s\n' "$classified")
   echo miss
 }
 

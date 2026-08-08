@@ -98,7 +98,7 @@ render_tree() {
   local tee_r tee_l
   if [ "$SET" = "portable" ]; then tee_r="+"; tee_l="\`"; else tee_r="├"; tee_l="└"; fi
   local lines=()
-  while IFS= read -r line; do lines+=("$line"); done <<< "$input"
+  while IFS= read -r line; do lines+=("$line"); done < <(printf '%s\n' "$input")
   local i=0 n=${#lines[@]}
   while [ "$i" -lt "$n" ]; do
     local raw="${lines[$i]}"

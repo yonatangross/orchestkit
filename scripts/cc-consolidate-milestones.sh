@@ -119,6 +119,6 @@ while IFS=$'\t' read -r M_NUM M_TITLE; do
     fi
   fi
   swept=$((swept + 1))
-done <<<"$STRAYS"
+done < <(printf '%s\n' "$STRAYS")
 
 note "done: swept=${swept} milestone(s), moved=${moved} issue(s), closed=${closed}."

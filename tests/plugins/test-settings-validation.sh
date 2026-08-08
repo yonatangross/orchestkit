@@ -65,7 +65,7 @@ for settings_file in "$PROJECT_ROOT"/plugins/*/settings.json; do
                 if [[ ! -d "$skills_dir/$skill" ]]; then
                     missing_skills="$missing_skills $skill"
                 fi
-            done <<< "$kb_skills"
+            done < <(printf '%s\n' "$kb_skills")
             if [[ -z "$missing_skills" ]]; then
                 pass "Keybinding skills: all reference existing skills"
             else

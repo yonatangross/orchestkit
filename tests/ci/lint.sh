@@ -28,6 +28,16 @@ WARN_COUNT=0
 pass() { echo -e "  ${GREEN}✓${NC} $1"; PASS_COUNT=$((PASS_COUNT + 1)); }
 fail() { echo -e "  ${RED}✗${NC} $1"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
 warn() { echo -e "  ${YELLOW}⚠${NC} $1"; WARN_COUNT=$((WARN_COUNT + 1)); }
+
+# has_frontmatter_key <text> <key> — is there a line starting `<key>:` in <text>?
+#
+# Pure bash on purpose. No pipe, so no SIGPIPE race; no here-string, so no
+# bash 5.3 PIPE_BUF deadlock. See the note at the agent-frontmatter loop.
+has_frontmatter_key() {
+    local nl=$'\n' re
+    re="(^|${nl})$2:"
+    [[ "$1" =~ $re ]]
+}
 info() { echo -e "  ${BLUE}ℹ${NC} $1"; }
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -180,18 +190,29 @@ for agent_file in "$PROJECT_ROOT/src/agents"/*.md; do
         # reports a MISSING field for a file that plainly has it. It flips on
         # timing, so the same tree lints green one run and red the next.
         # Observed reporting all 35 agents as missing `model:` on a clean main.
+        #
+        # The first repair for that used `grep -q ... <<< "$agent_head"`, which
+        # traded the race for a hang. bash 5.3 writes a here-string through a
+        # pipe instead of a temp file, PIPE_BUF is 512 bytes on macOS, and
+        # `head -50` of an agent is ~1KB — so bash blocks on the write while
+        # `grep -q` has already exited on its match. Nothing times out; the
+        # whole pre-commit gate simply stops. bash 3.2 is unaffected, which is
+        # why this only bites locally and never in CI.
+        #
+        # `[[ =~ ]]` needs no subprocess, so there is no pipe to deadlock on
+        # and no exit status to misread. Correct on both bash versions.
         agent_head=$(head -50 "$agent_file")
 
-        if ! grep -q "^model:" <<< "$agent_head"; then
+        if ! has_frontmatter_key "$agent_head" model; then
             fail "$agent_name missing 'model:' field"
             ((agent_errors++)) || true  # silent: known-noise ((x++)) returns 1 when x was 0
         fi
 
-        if ! grep -q "^skills:" <<< "$agent_head"; then
+        if ! has_frontmatter_key "$agent_head" skills; then
             warn "$agent_name missing 'skills:' array (CC 2.1.6)"
         fi
 
-        if ! grep -q "^tools:" <<< "$agent_head"; then
+        if ! has_frontmatter_key "$agent_head" tools; then
             fail "$agent_name missing 'tools:' array"
             ((agent_errors++)) || true  # silent: known-noise ((x++)) returns 1 when x was 0
         fi
@@ -318,7 +339,7 @@ else
             note=$(sed 's/.*#[[:space:]]*//' <<<"$allow_line")
             warn "$where pins '$model_id' — $note"
         fi
-    done <<< "$model_pins"
+    done < <(printf '%s\n' "$model_pins")
 
     if [ "$model_checked" -eq 0 ]; then
         warn "No pinned Claude model IDs found in .github/workflows — the match pattern may need updating"

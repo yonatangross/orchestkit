@@ -24,6 +24,23 @@ FAIL_COUNT=0
 pass() { echo -e "  ${GREEN}✓${NC} $1"; PASS_COUNT=$((PASS_COUNT + 1)); }
 fail() { echo -e "  ${RED}✗${NC} $1"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
 
+# Read one frontmatter field. Prints the value, or nothing when absent.
+#
+# Deliberately a single awk process rather than `sed -n '/^---$/,/^---$/p' | grep`.
+# That pipeline is wrong under the `set -o pipefail` on line 9: grep exits at the
+# first match, sed is then killed by SIGPIPE, and the pipeline reports 141 — so a
+# field that IS present reads as missing. It failed 33 of the 36 agents here while
+# only README.md (already skipped below) actually lacks the field, and it was
+# racy enough to stay green in CI while failing the local pre-commit gate.
+frontmatter_value() {
+    awk -v key="$2" '
+        /^---$/          { fence++; if (fence >= 2) exit; next }
+        fence == 1 && index($0, key ":") == 1 {
+            sub("^" key ":[[:space:]]*", ""); print; exit
+        }
+    ' "$1"
+}
+
 # Valid categories (must match generate-indexes.sh CATEGORY_ORDER)
 VALID_CATEGORIES="backend frontend security devops llm testing product docs data git design research other"
 
@@ -52,7 +69,7 @@ for agent_md in "$SRC_AGENTS"/*.md; do
     TOTAL_AGENTS=$((TOTAL_AGENTS + 1))
 
     # Check if category exists in frontmatter
-    if ! sed -n '/^---$/,/^---$/p' "$agent_md" | grep -q "^category:"; then
+    if [[ -z "$(frontmatter_value "$agent_md" category)" ]]; then
         fail "Agent '$agent_name' missing category field"
         AGENTS_WITHOUT_CATEGORY=$((AGENTS_WITHOUT_CATEGORY + 1))
     fi
@@ -83,7 +100,7 @@ for agent_md in "$SRC_AGENTS"/*.md; do
     esac
 
     # Extract category value
-    category=$(sed -n '/^---$/,/^---$/p' "$agent_md" | grep "^category:" | head -1 | sed 's/^category:[[:space:]]*//')
+    category=$(frontmatter_value "$agent_md" category)
 
     if [[ -z "$category" ]]; then
         continue  # Already reported in Test 1

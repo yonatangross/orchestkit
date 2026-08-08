@@ -551,7 +551,7 @@ run_hook_chain() {
 
       chain_output=$(echo "$chain_output" | bash -c "$hook_cmd" 2>&1) || return $?
     fi
-  done <<< "$hooks"
+  done < <(printf '%s\n' "$hooks")
 
   echo "$chain_output"
 }

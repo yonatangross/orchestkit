@@ -153,7 +153,7 @@ while IFS= read -r hook_name; do
         log_fail "hook $hook_name does not leak image data" "Image data found in output"
         ALL_HOOKS_SAFE=false
     fi
-done <<< "$PROMPT_HOOKS"
+done < <(printf '%s\n' "$PROMPT_HOOKS")
 
 if [[ "$ALL_HOOKS_SAFE" == "true" && "$HOOK_COUNT" -gt 0 ]]; then
     log_pass "all $HOOK_COUNT UserPromptSubmit hooks handle image data safely"
@@ -195,7 +195,7 @@ while IFS= read -r hook_name; do
         log_fail "hook $hook_name completes in <${HOOK_TIMING_BUDGET_MS}ms on 60KB" "Took ${local_elapsed}ms"
         HOOK_TIMING_OK=false
     fi
-done <<< "$PROMPT_HOOKS"
+done < <(printf '%s\n' "$PROMPT_HOOKS")
 
 if [[ "$HOOK_TIMING_OK" == "true" ]]; then
     log_pass "all hooks complete in <${HOOK_TIMING_BUDGET_MS}ms individually on 60KB payload"
@@ -207,7 +207,7 @@ START_MS=$(python3 -c "import time; print(int(time.time()*1000))")
 while IFS= read -r hook_name; do
     [[ -z "$hook_name" ]] && continue
     run_hook "$hook_name" "$OVERSIZED_INPUT" 5 >/dev/null
-done <<< "$PROMPT_HOOKS"
+done < <(printf '%s\n' "$PROMPT_HOOKS")
 
 END_MS=$(python3 -c "import time; print(int(time.time()*1000))")
 TOTAL_MS=$((END_MS - START_MS))
@@ -311,7 +311,7 @@ while IFS= read -r hook_name; do
         log_fail "hook $hook_name processes normal prompt" "Invalid output: ${local_output:0:100}"
         NORMAL_OK=false
     fi
-done <<< "$PROMPT_HOOKS"
+done < <(printf '%s\n' "$PROMPT_HOOKS")
 
 if [[ "$NORMAL_OK" == "true" ]]; then
     log_pass "all hooks process normal text prompts correctly"

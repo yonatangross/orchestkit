@@ -508,7 +508,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
             echo -e "${YELLOW}  WARNING: $PLUGIN_NAME depends on '$dep' but no manifest found${NC}"
             DEP_WARNINGS=$((DEP_WARNINGS + 1))
         fi
-    done <<< "$DEPS"
+    done < <(printf '%s\n' "$DEPS")
 done
 
 if [[ $DEP_WARNINGS -gt 0 ]]; then

@@ -45,7 +45,7 @@ for sd in "$SKILLS_DIR"/*/; do
         else
             KW_OWNER[$kw]="$sn"
         fi
-    done <<< "$kws"
+    done < <(printf '%s\n' "$kws")
     SKILL_KW[$sn]="$kw_list"
 done
 

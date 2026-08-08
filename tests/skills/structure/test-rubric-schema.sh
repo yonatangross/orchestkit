@@ -135,7 +135,7 @@ while IFS= read -r rubric_file; do
   if [[ -n "$errors" ]]; then
     while IFS= read -r err; do
       echo "FAIL: $rel — $err"
-    done <<< "$errors"
+    done < <(printf '%s\n' "$errors")
     FAILED=1
   fi
 done < <(find "$REPO_ROOT/src/skills" -mindepth 2 -maxdepth 2 -name "rubric.json" | sort)

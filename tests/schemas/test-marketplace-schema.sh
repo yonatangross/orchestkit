@@ -107,7 +107,7 @@ invalid_root=$(jq -r --argjson valid "$valid_root_fields" 'keys - $valid | .[]' 
 if [[ -n "$invalid_root" ]]; then
     while IFS= read -r field; do
         log_error "Invalid root field: '$field'"
-    done <<< "$invalid_root"
+    done < <(printf '%s\n' "$invalid_root")
 else
     log_success "No invalid root fields"
 fi
@@ -136,7 +136,7 @@ for i in $(seq 0 $((plugin_count - 1))); do
     if [[ -n "$unrecognized_fields" ]]; then
         while IFS= read -r field; do
             log_error "Plugin '$plugin_name' has unrecognized field: '$field' (CC schema only allows: name, description, source, category, version, author)"
-        done <<< "$unrecognized_fields"
+        done < <(printf '%s\n' "$unrecognized_fields")
     fi
 
     # Check required fields
