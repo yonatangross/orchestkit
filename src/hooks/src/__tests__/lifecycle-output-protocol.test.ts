@@ -395,7 +395,7 @@ describe('sanitizeOutput (dispatcher output guard)', () => {
     const result = sanitizeOutput(input, 'WorktreeCreate') as Record<string, unknown>;
     expect(result.hookSpecificOutput).toBeUndefined();
     expect(stderrSpy).toHaveBeenCalledWith(
-      expect.stringContaining('declared hookEventName=UserPromptSubmit on a WorktreeCreate event')
+      expect.stringContaining('stripped hookEventName=UserPromptSubmit from WorktreeCreate')
     );
   });
 
@@ -411,7 +411,7 @@ describe('sanitizeOutput (dispatcher output guard)', () => {
     const result = sanitizeOutput(input, 'WorktreeRemove') as Record<string, unknown>;
     expect(result.hookSpecificOutput).toBeUndefined();
     expect(stderrSpy).toHaveBeenCalledWith(
-      expect.stringContaining('declared hookEventName=UserPromptSubmit on a WorktreeRemove event')
+      expect.stringContaining('stripped hookEventName=UserPromptSubmit from WorktreeRemove')
     );
   });
 
@@ -567,6 +567,13 @@ describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
   // Note: SessionStart and PostCompact are EXCLUDED here — they're allow-listed
   // for additionalContext + hookEventName (#1234 audit, hq-ext session banner
   // observed consuming it). See "SessionStart allow-listed" describe block below.
+  //
+  // Stop is EXCLUDED too, as of #3307. It used to sit in this list, so this
+  // suite asserted the very defect that issue reports: CC's shipped binary
+  // documents "Hook-specific output for the Stop event. additionalContext is
+  // non-error feedback delivered to the model", and the guard was deleting it
+  // from three live stop hooks. Stop, SubagentStop and PostToolBatch are now
+  // allow-listed, and output-guard-cc-contract.test.ts asserts they survive.
   const SANITIZE_EVENTS = [
     'WorktreeCreate',
     'WorktreeRemove',
@@ -576,7 +583,6 @@ describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
     'InstructionsLoaded',
     'TaskCreated',
     'Notification',
-    'Stop',
     'StopFailure',
     'SessionEnd',
     'PreCompact',
@@ -597,7 +603,7 @@ describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
       expect(result.hookSpecificOutput, `${event} must have empty/dropped hookSpecificOutput`).toBeUndefined();
       expect(result.continue).toBe(true);
       expect(stderrSpy).toHaveBeenCalledWith(
-        expect.stringMatching(new RegExp(`declared hookEventName=UserPromptSubmit on a ${event} event`)),
+        expect.stringMatching(new RegExp(`stripped hookEventName=UserPromptSubmit from ${event}`)),
       );
     });
   }
