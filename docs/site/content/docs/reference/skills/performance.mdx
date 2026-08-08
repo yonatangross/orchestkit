@@ -1,0 +1,3571 @@
+---
+title: "Performance"
+description: "Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, LLM inference, and sustainability UX. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, deploying LLMs efficiently, or reducing digital carbon footprint."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="performance" />
+
+> **Performance** Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, LLM inference, and sustainability UX. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, deploying LLMs efficiently, or reducing digital carbon footprint.
+
+
+# Performance
+
+Comprehensive performance optimization patterns for frontend, backend, and LLM inference.
+
+## Quick Reference
+
+| Category | Rules | Impact | When to Use |
+|----------|-------|--------|-------------|
+| [Core Web Vitals](#core-web-vitals) | 4 | CRITICAL | LCP, INP, CLS optimization with 2026 thresholds |
+| [Render Optimization](#render-optimization) | 3 | HIGH | React Compiler, memoization, virtualization |
+| [Lazy Loading](#lazy-loading) | 3 | HIGH | Code splitting, route splitting, preloading |
+| [Image Optimization](#image-optimization) | 2 | HIGH | AVIF/WebP formats, responsive images |
+| [Profiling & Backend](#profiling--backend) | 3 | MEDIUM | React DevTools, py-spy, bundle analysis |
+| [LLM Inference](#llm-inference) | 3 | MEDIUM | vLLM, quantization, speculative decoding |
+| [Caching](#caching) | 2 | HIGH | Redis cache-aside, prompt caching, HTTP cache headers |
+| [Query & Data Fetching](#query--data-fetching) | 2 | HIGH | TanStack Query prefetching, optimistic updates, rollback |
+| [Sustainability](#sustainability) | 1 | MEDIUM | Page weight budgets, lazy loading, optimized formats, dark mode |
+
+**Total: 23 rules across 9 categories**
+
+## Core Web Vitals
+
+Google's Core Web Vitals with 2026 stricter thresholds.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| LCP Optimization | `rules/cwv-lcp.md` | Preload hero, SSR, fetchpriority="high" |
+| INP Optimization | `rules/cwv-inp.md` | scheduler.yield, useTransition, requestIdleCallback |
+| INP Advanced | `rules/cwv-inp-advanced.md` | Layout thrashing, third-party scripts, rAF patterns |
+| CLS Prevention | `rules/cwv-cls.md` | Explicit dimensions, aspect-ratio, font-display |
+
+### 2026 Thresholds
+
+| Metric | Current Good | 2026 Good |
+|--------|--------------|-----------|
+| LCP | &lt;= 2.5s | &lt;= 2.0s |
+| INP | &lt;= 200ms | &lt;= 150ms |
+| CLS | &lt;= 0.1 | &lt;= 0.08 |
+
+## Render Optimization
+
+React render performance patterns for React 19+.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| React Compiler | `rules/render-compiler.md` | Auto-memoization, "Memo" badge verification |
+| Manual Memoization | `rules/render-memo.md` | useMemo/useCallback escape hatches, state colocation |
+| Virtualization | `rules/render-virtual.md` | TanStack Virtual for 100+ item lists |
+
+## Lazy Loading
+
+Code splitting and lazy loading with React.lazy and Suspense.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| React.lazy + Suspense | `rules/loading-lazy.md` | Component lazy loading, error boundaries |
+| Route Splitting | `rules/loading-splitting.md` | React Router 7.x, Vite manual chunks |
+| Preloading | `rules/loading-preload.md` | Prefetch on hover, modulepreload hints |
+
+## Image Optimization
+
+Production image optimization for modern web applications.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Format Selection | `rules/images-formats.md` | AVIF/WebP, quality 75-85, picture element |
+| Responsive Images | `rules/images-responsive.md` | sizes prop, art direction, CDN loaders |
+
+Next.js `Image` component usage and the v16 image config defaults are first-party territory; see "Upstream coverage (do not restate)" below.
+
+## Profiling & Backend
+
+Profiling tools and backend optimization patterns.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| React Profiling | `rules/profiling-react.md` | DevTools Profiler, flamegraph, render counts |
+| Backend Profiling | `rules/profiling-backend.md` | py-spy, cProfile, memory_profiler, flame graphs |
+| Bundle Analysis | `rules/profiling-bundle.md` | vite-bundle-visualizer, tree shaking, performance budgets |
+
+## LLM Inference
+
+High-performance LLM inference with vLLM, quantization, and speculative decoding.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| vLLM Deployment | `rules/inference-vllm.md` | PagedAttention, continuous batching, tensor parallelism |
+| Quantization | `rules/inference-quantization.md` | AWQ, GPTQ, FP8, INT8 method selection |
+| Speculative Decoding | `rules/inference-speculative.md` | N-gram, draft model, 1.5-2.5x throughput |
+
+## Caching
+
+Backend Redis caching and LLM prompt caching for cost savings and performance.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Redis & Backend | `rules/caching-redis.md` | Cache-aside, write-through, invalidation, stampede prevention |
+| HTTP & Prompt | `rules/caching-http.md` | HTTP cache headers, LLM prompt caching, semantic caching |
+
+## Query & Data Fetching
+
+TanStack Query v5 patterns for prefetching and optimistic updates.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Prefetching | `rules/query-prefetching.md` | Hover prefetch, route loaders, queryOptions, Suspense |
+| Optimistic Updates | `rules/query-optimistic.md` | Optimistic mutations, rollback, cache invalidation |
+
+## Sustainability
+
+Digital sustainability patterns for reducing carbon footprint and energy usage.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Sustainability UX | `rules/sustainability-ux.md` | Page weight budgets, AVIF/WebP, lazy loading, dark mode |
+
+## Local Profiling Target
+
+When profiling a local app (Lighthouse, Core Web Vitals, bundle analysis), use Portless named URLs for stable, self-documenting targets:
+
+```bash
+# Discover services
+portless list
+# app → app.localhost (port 3000)
+
+# Profile with agent-browser (preferred for visual metrics)
+agent-browser open "https://app.localhost"
+agent-browser profiler start
+agent-browser wait --load networkidle
+agent-browser profiler stop /tmp/profile.json
+
+# Lighthouse via agent-browser
+agent-browser open "https://app.localhost"
+agent-browser screenshot /tmp/perf-baseline.png
+
+# Or direct Lighthouse CLI
+npx lighthouse https://app.localhost --output=json --output-path=/tmp/lighthouse.json
+```
+
+Named URLs are stable across restarts and self-documenting in performance reports. Install Portless with `npm i -g portless`.
+
+## Quick Start Example
+
+```tsx
+// LCP: Priority hero image with SSR
+import Image from 'next/image';
+
+export default async function Page() {
+  const data = await fetchHeroData();
+  return (
+    <Image
+      src={data.heroImage}
+      alt="Hero"
+      priority
+      placeholder="blur"
+      sizes="100vw"
+      fill
+    />
+  );
+}
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Memoization | Let React Compiler handle it (2026 default) |
+| Lists 100+ items | Use TanStack Virtual |
+| Image format | AVIF with WebP fallback (30-50% smaller) |
+| LCP content | SSR/SSG, never client-side fetch |
+| Code splitting | Per-route for most apps, per-component for heavy widgets |
+| Prefetch strategy | On hover for nav links, viewport for content |
+| Quantization | AWQ for 4-bit, FP8 for H100/H200 |
+| Bundle budget | Hard fail in CI to prevent regression |
+
+## Common Mistakes
+
+1. Client-side fetching LCP content (delays render)
+2. Images without explicit dimensions (causes CLS)
+3. Lazy loading LCP images (delays largest paint)
+4. Heavy computation in event handlers (blocks INP)
+5. Layout-shifting animations (use transform instead)
+6. Lazy loading tiny components &lt; 5KB (overhead &gt; savings)
+7. Missing error boundaries on lazy components
+8. Using GPTQ without calibration data
+9. Not benchmarking actual workload patterns
+10. Only measuring in lab environment (need RUM)
+
+## Related Skills
+
+- `ork:react-server-components-framework` - Server-first rendering
+- `ork:vite-advanced` - Build optimization
+- `browser-tools` - Visual profiling with agent-browser + Portless
+- `caching` - Cache strategies for responses
+- `ork:monitoring-observability` - Production monitoring and alerting
+- `ork:database-patterns` - Query and index optimization
+- `ork:llm-integration` - Local inference with Ollama
+
+## Capability Details
+
+### lcp-optimization
+**Keywords:** LCP, largest-contentful-paint, hero, preload, priority, SSR
+**Solves:**
+- Optimize hero image loading
+- Server-render critical content
+- Preload and prioritize LCP resources
+
+### inp-optimization
+**Keywords:** INP, interaction, responsiveness, long-task, transition, yield
+**Solves:**
+- Break up long tasks with scheduler.yield
+- Defer non-urgent updates with useTransition
+- Optimize event handler performance
+
+### cls-prevention
+**Keywords:** CLS, layout-shift, dimensions, aspect-ratio, font-display
+**Solves:**
+- Reserve space for dynamic content
+- Prevent font flash and image pop-in
+- Use transform for animations
+
+### react-compiler
+**Keywords:** react-compiler, auto-memo, memoization, React 19
+**Solves:**
+- Enable automatic memoization
+- Identify when manual memoization needed
+- Verify compiler is working
+
+### virtualization
+**Keywords:** virtual, TanStack, large-list, scroll, overscan
+**Solves:**
+- Render 100+ item lists efficiently
+- Dynamic height virtualization
+- Window scrolling patterns
+
+### lazy-loading
+**Keywords:** React.lazy, Suspense, code-splitting, dynamic-import
+**Solves:**
+- Route-based code splitting
+- Component lazy loading with error boundaries
+- Prefetch on hover and viewport
+
+### image-optimization
+**Keywords:** next/image, AVIF, WebP, responsive, blur-placeholder
+**Solves:**
+- Next.js Image component patterns
+- Format selection and quality settings
+- Responsive sizing and CDN configuration
+
+### profiling
+**Keywords:** profiler, flame-graph, py-spy, DevTools, bundle-analyzer
+**Solves:**
+- Profile React renders and backend code
+- Generate and interpret flame graphs
+- Analyze and optimize bundle size
+
+### inp-advanced
+**Keywords:** INP, scheduler-yield, layout-thrashing, third-party-scripts, requestAnimationFrame
+**Solves:**
+- Break long tasks with scheduler.yield()
+- Audit and defer blocking third-party scripts
+- Avoid synchronous layout thrashing in event handlers
+- Optimize form submissions, dropdowns, accordions, filters
+
+### sustainability
+**Keywords:** sustainability, carbon-footprint, page-weight, green-ux, dark-mode, lazy-loading
+**Solves:**
+- Enforce page weight budgets (&lt; 1MB)
+- Eliminate auto-playing videos and heavy decorative animations
+- Serve optimized image formats (AVIF/WebP)
+- Implement cursor-based pagination to prevent over-fetching
+
+### llm-inference
+**Keywords:** vllm, quantization, speculative-decoding, inference, throughput
+**Solves:**
+- Deploy LLMs with vLLM for production
+- Choose quantization method for hardware
+- Accelerate generation with speculative decoding
+
+## Upstream coverage (do not restate)
+
+These topics used to be restated in this skill's references, checklists, and examples. They are owned by first-party sources now; consult those instead of re-adding tutorials here. The ork-specific floors and scars that survived the cut live in `references/ork-delta.md`.
+
+| Topic | First-party source |
+|-------|--------------------|
+| Core Web Vitals mechanics, audit checklists, before/after examples | skill: web-perf / cloudflare:web-perf (Chrome DevTools MCP); https://web.dev/vitals/ |
+| Real User Monitoring with the web-vitals library | skill: web-perf; https://github.com/GoogleChrome/web-vitals |
+| Next.js Image component, v16 image config defaults, image CDN loaders | skills: vercel:nextjs + vercel:next-upgrade; https://nextjs.org/docs/app/api-reference/components/image |
+| Image format selection and optimization checklists | skill: vercel:nextjs; https://web.dev/learn/images |
+| React Compiler migration, memoization escape hatches, state colocation | skill: vercel-react-best-practices; https://react.dev/learn/react-compiler |
+| React DevTools Profiler workflow, render audits | skill: vercel-react-best-practices; https://react.dev/reference/react/Profiler |
+| TanStack Virtual list/grid virtualization patterns | https://tanstack.com/virtual/latest/docs/introduction |
+| Route-based code splitting (React Router, Vite manual chunks) | https://reactrouter.com/ and https://vite.dev/guide/build |
+| Generic profiling workflows (Lighthouse, py-spy, bundle analyzers) | skill: web-perf; https://github.com/benfred/py-spy |
+| Redis and HTTP caching strategy patterns | skill: upstash-redis-js; https://redis.io/docs/latest/ |
+| vLLM deployment, quantization, speculative decoding, edge inference | https://docs.vllm.ai/ |
+| Full-stack performance audit walkthrough | https://developer.chrome.com/docs/lighthouse/; ork delta in `references/ork-delta.md` + `examples/orchestkit-performance-wins.md` |
+
+## References
+
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/performance/references/&lt;file&gt;")`:
+| File | Content |
+|------|---------|
+| `ork-delta.md` | OrchestKit floors, scars, and house decisions for this skill |
+| `cc-prompt-cache-guide.md` | CC 2.1.72 prompt cache optimization, stable-first prompt structure |
+| `database-optimization.md` | Postgres indexing and N+1 fixes backing the recorded audit wins |
+
+Real production before/after evidence (cache hierarchy, cost math): `examples/orchestkit-performance-wins.md`.
+
+
+---
+
+## Rules (23)
+
+### Configure HTTP and LLM prompt caching with correct breakpoint ordering for maximum savings — HIGH
+
+
+## HTTP & Prompt Caching
+
+HTTP cache headers for CDN/browser caching and LLM prompt caching for 90% token savings.
+
+**Incorrect — variable content before cached prefix:**
+```python
+# WRONG: Variable content before static content breaks prompt cache
+messages = [
+    {"role": "user", "content": f"User {user_id} asks: {question}"},  # Variable first!
+    {"role": "system", "content": long_system_prompt},  # Static content after = never cached
+]
+```
+
+**Correct — static prefix first, then variable content:**
+```python
+# Claude prompt caching: static content first with cache_control
+response = await client.messages.create(
+    model="claude-sonnet-5",
+    system=[
+        {
+            "type": "text",
+            "text": long_system_prompt,  # Static: cached across calls
+            "cache_control": {"type": "ephemeral"},  # 5-minute TTL
+        },
+    ],
+    messages=[
+        {"role": "user", "content": user_question},  # Variable: after cache breakpoint
+    ],
+)
+# Result: ~90% token savings on system prompt after first call
+
+# OpenAI: automatic prefix caching (no markers needed)
+# Just ensure static content comes first in messages array
+response = await openai.chat.completions.create(
+    model="gpt-5.5",
+    messages=[
+        {"role": "system", "content": long_system_prompt},  # Cached automatically
+        {"role": "user", "content": user_question},
+    ],
+)
+```
+
+**HTTP cache headers for API responses:**
+```python
+from fastapi import FastAPI, Response
+
+app = FastAPI()
+
+@app.get("/api/products/{product_id}")
+async def get_product(product_id: str, response: Response):
+    product = await fetch_product(product_id)
+    # Browser caches 60s, CDN caches 1h
+    response.headers["Cache-Control"] = "public, max-age=60, s-maxage=3600"
+    response.headers["CDN-Cache-Control"] = "max-age=3600"
+    return product
+
+@app.get("/api/user/profile")
+async def get_profile(response: Response):
+    # Private: only browser cache, not CDN
+    response.headers["Cache-Control"] = "private, max-age=300"
+    return await get_current_user_profile()
+```
+
+**Key rules:**
+- Claude: use `cache_control` with `ephemeral` type (5min default, 1h if >10 reads/hour)
+- OpenAI: automatic prefix caching, no markers needed — just put static content first
+- HTTP: `public, max-age=60, stale-while-revalidate=300` for API responses
+- Use `s-maxage` or `CDN-Cache-Control` for different CDN vs browser TTLs
+- Semantic caching: start threshold at 0.92, tune based on hit rate
+- Never cache error responses or authentication tokens
+
+
+### Implement Redis cache-aside pattern with TTL and stampede prevention for backend caching — HIGH
+
+
+## Redis & Backend Caching
+
+Cache-aside, write-through, and invalidation patterns for Redis-backed backend services.
+
+**Incorrect — caching without TTL (memory leak):**
+```python
+# WRONG: No TTL = memory grows forever
+async def get_user(user_id: str):
+    cached = await redis.get(f"user:{user_id}")
+    if cached:
+        return json.loads(cached)
+    user = await db.fetch_user(user_id)
+    await redis.set(f"user:{user_id}", json.dumps(user))  # No expiry!
+    return user
+```
+
+**Correct — cache-aside with TTL and stampede prevention:**
+```python
+import redis.asyncio as redis
+import json
+import asyncio
+
+class CacheAside:
+    def __init__(self, redis_client: redis.Redis, default_ttl: int = 3600):
+        self.redis = redis_client
+        self.ttl = default_ttl
+
+    async def get_or_set(self, key: str, fetch_fn, ttl: int | None = None):
+        """Cache-aside with stampede prevention via lock."""
+        cached = await self.redis.get(key)
+        if cached:
+            return json.loads(cached)
+
+        # Stampede prevention: only one caller computes
+        lock_key = f"lock:{key}"
+        acquired = await self.redis.set(lock_key, "1", ex=30, nx=True)
+        if not acquired:
+            # Another process is computing, wait and retry
+            await asyncio.sleep(0.1)
+            cached = await self.redis.get(key)
+            if cached:
+                return json.loads(cached)
+
+        try:
+            value = await fetch_fn()
+            await self.redis.setex(key, ttl or self.ttl, json.dumps(value))
+            return value
+        finally:
+            await self.redis.delete(lock_key)
+
+# Write-through: update cache and DB atomically
+async def update_user(user_id: str, data: dict, db, cache: CacheAside):
+    async with db.transaction():
+        await db.execute("UPDATE users SET ... WHERE id = $1", user_id)
+        await cache.redis.setex(
+            f"user:{user_id}",
+            cache.ttl,
+            json.dumps(data),
+        )
+
+# Event-based invalidation
+async def on_user_updated(event: UserUpdatedEvent, cache: CacheAside):
+    await cache.redis.delete(f"user:{event.user_id}")
+    # Related caches too
+    await cache.redis.delete(f"user-profile:{event.user_id}")
+```
+
+**Key rules:**
+- Always set TTL (1h default, 5min for volatile data)
+- Use `orjson` for serialization performance over `json`
+- Key naming: `\{entity\}:\{id\}` or `\{entity\}:\{id\}:\{field\}`
+- Stampede prevention: use distributed locks for expensive computations
+- Event-based invalidation for writes, TTL for reads
+- Never use cache as primary storage (data loss risk)
+
+
+### Prevent Cumulative Layout Shift that causes content jumping and hurts search rankings — CRITICAL
+
+
+# CLS Prevention
+
+Prevent Cumulative Layout Shift for the 2026 threshold of &lt;= 0.08.
+
+## Reserve Space for Dynamic Content
+
+```css
+/* Reserve space for images */
+.image-container {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+
+/* Reserve space for ads */
+.ad-slot {
+  min-height: 250px;
+}
+```
+
+## Explicit Dimensions
+
+```tsx
+// Always set width and height
+<img src="/photo.jpg" width={800} height={600} alt="Photo" />
+
+// Next.js Image handles this automatically
+<Image src="/photo.jpg" width={800} height={600} alt="Photo" />
+
+// For responsive images
+<Image src="/photo.jpg" fill sizes="(max-width: 768px) 100vw, 50vw" />
+```
+
+## Avoid Layout-Shifting Fonts
+
+```css
+/* Use font-display: optional for non-critical fonts */
+@font-face {
+  font-family: 'CustomFont';
+  src: url('/fonts/custom.woff2') format('woff2');
+  font-display: optional;
+}
+
+/* Or use size-adjust for fallback */
+@font-face {
+  font-family: 'Fallback';
+  src: local('Arial');
+  size-adjust: 105%;
+  ascent-override: 95%;
+}
+```
+
+## Animations That Don't Cause Layout Shift
+
+```css
+/* BAD: Changes layout properties */
+.expanding {
+  height: 0;
+  transition: height 0.3s;
+}
+.expanding.open {
+  height: 200px; /* Causes layout shift */
+}
+
+/* GOOD: Use transform */
+.expanding {
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.3s;
+}
+.expanding.open {
+  transform: scaleY(1);
+}
+```
+
+**Incorrect — Image without dimensions causes layout shift:**
+```tsx
+<img src="/photo.jpg" alt="Photo" />
+```
+
+**Correct — Explicit dimensions reserve space:**
+```tsx
+<img src="/photo.jpg" width={800} height={600} alt="Photo" />
+```
+
+## Key Rules
+
+1. **Always** set width/height on images
+2. **Use** `aspect-ratio` for responsive containers
+3. **Use** `font-display: optional` for non-critical fonts
+4. **Never** animate layout properties (width, height, top, left)
+5. **Use** `transform` and `opacity` for animations
+6. **Reserve** space for ads, embeds, and dynamic content
+7. Target **&lt;= 0.08** for 2026 thresholds
+
+
+### Advanced INP optimization with scheduler.yield and third-party script management — CRITICAL
+
+
+# Advanced INP Optimization
+
+Advanced patterns for Interaction to Next Paint — 43% of sites fail INP in 2026, making it the most commonly failed Core Web Vital.
+
+## Common INP Culprits
+
+Form submissions, dropdown opens, accordion expansions, and filter applications are the top offenders. Each involves synchronous DOM reads/writes that block the main thread.
+
+## scheduler.yield() for Breaking Long Tasks
+
+**Incorrect — long synchronous event handler blocks paint:**
+```typescript
+async function handleFilterApply(filters: Filter[]) {
+  const results = applyAllFilters(data, filters); // 200ms+ blocking
+  updateDOM(results);
+  trackAnalytics('filter_applied', filters);
+}
+```
+
+**Correct — yield between chunks to let browser paint:**
+```typescript
+async function handleFilterApply(filters: Filter[]) {
+  // Yield after each filter category to keep INP < 150ms
+  let results = data;
+  for (const filter of filters) {
+    results = applySingleFilter(results, filter);
+    await scheduler.yield();
+  }
+  updateDOM(results);
+  // Defer non-visual work
+  await scheduler.yield();
+  trackAnalytics('filter_applied', filters);
+}
+```
+
+## Avoid Synchronous Layout Thrashing
+
+**Incorrect — forced reflow in a loop:**
+```typescript
+function resizeCards(cards: HTMLElement[]) {
+  cards.forEach(card => {
+    const height = card.offsetHeight; // Read (forces layout)
+    card.style.height = `${height + 20}px`; // Write (invalidates layout)
+  });
+}
+```
+
+**Correct — batch reads then batch writes:**
+```typescript
+function resizeCards(cards: HTMLElement[]) {
+  // Batch all reads first
+  const heights = cards.map(card => card.offsetHeight);
+  // Then batch all writes
+  requestAnimationFrame(() => {
+    cards.forEach((card, i) => {
+      card.style.height = `${heights[i] + 20}px`;
+    });
+  });
+}
+```
+
+## Audit and Defer Third-Party Scripts
+
+**Incorrect — blocking third-party scripts in critical path:**
+```html
+<head>
+  <script src="https://analytics.example.com/tracker.js"></script>
+  <script src="https://ads.example.com/loader.js"></script>
+  <script src="/app.js"></script>
+</head>
+```
+
+**Correct — defer third-party scripts after interaction readiness:**
+```html
+<head>
+  <script src="/app.js"></script>
+</head>
+<body>
+  <!-- Load third-party after first interaction or idle -->
+  <script>
+    const loadThirdParty = () => {
+      const scripts = [
+        'https://analytics.example.com/tracker.js',
+        'https://ads.example.com/loader.js',
+      ];
+      scripts.forEach(src => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.async = true;
+        document.body.appendChild(s);
+      });
+    };
+    // Load on first interaction or after 3s, whichever comes first
+    ['click', 'scroll', 'keydown'].forEach(evt =>
+      addEventListener(evt, loadThirdParty, { once: true })
+    );
+    setTimeout(loadThirdParty, 3000);
+  </script>
+</body>
+```
+
+## requestAnimationFrame for Visual Updates
+
+**Incorrect — updating DOM outside rAF causes jank:**
+```typescript
+function handleAccordionToggle(panel: HTMLElement) {
+  panel.style.height = panel.scrollHeight + 'px'; // May miss frame
+  panel.classList.toggle('open');
+}
+```
+
+**Correct — schedule visual updates in rAF:**
+```typescript
+function handleAccordionToggle(panel: HTMLElement) {
+  requestAnimationFrame(() => {
+    panel.style.height = panel.scrollHeight + 'px';
+    panel.classList.toggle('open');
+  });
+}
+```
+
+## Key Rules
+
+1. **Use** `scheduler.yield()` between chunks — target &lt; 50ms per task (supported in Chrome 129+, Firefox 135+; use `'scheduler' in globalThis && 'yield' in scheduler` feature detection with `setTimeout(resolve, 0)` fallback)
+2. **Audit** third-party scripts — defer or lazy-load non-critical ones
+3. **Batch** DOM reads before writes to avoid layout thrashing
+4. **Wrap** visual DOM updates in `requestAnimationFrame`
+5. **Profile** real user interactions (form submit, dropdown, accordion, filter) — not just page load
+6. Target **&lt;= 150ms** INP for 2026 thresholds
+
+
+### Optimize Interaction to Next Paint to ensure responsive button clicks and interactions — CRITICAL
+
+
+# INP Optimization
+
+Optimize Interaction to Next Paint for the 2026 threshold of &lt;= 150ms.
+
+## Break Up Long Tasks
+
+```typescript
+// BAD: Long synchronous task (blocks main thread)
+function processLargeArray(items: Item[]) {
+  items.forEach(processItem); // Blocks for entire duration
+}
+
+// GOOD: Yield to main thread
+async function processLargeArray(items: Item[]) {
+  for (const item of items) {
+    processItem(item);
+    if (performance.now() % 50 < 1) {
+      await scheduler.yield?.() ?? new Promise(r => setTimeout(r, 0));
+    }
+  }
+}
+```
+
+## Use Transitions for Non-Urgent Updates
+
+```typescript
+import { useTransition, useDeferredValue } from 'react';
+
+function SearchResults() {
+  const [query, setQuery] = useState('');
+  const [isPending, startTransition] = useTransition();
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    // Urgent: Update input immediately
+    setQuery(e.target.value);
+
+    // Non-urgent: Defer expensive filter
+    startTransition(() => {
+      setFilteredResults(filterResults(e.target.value));
+    });
+  };
+
+  return (
+    <>
+      <input value={query} onChange={handleChange} />
+      {isPending && <Spinner />}
+      <ResultsList results={filteredResults} />
+    </>
+  );
+}
+```
+
+## Optimize Event Handlers
+
+```typescript
+// BAD: Heavy computation in click handler
+<button onClick={() => {
+  const result = heavyComputation(); // Blocks paint
+  setResult(result);
+}}>Calculate</button>
+
+// GOOD: Defer heavy work
+<button onClick={() => {
+  setLoading(true);
+  requestIdleCallback(() => {
+    const result = heavyComputation();
+    setResult(result);
+    setLoading(false);
+  });
+}}>Calculate</button>
+```
+
+**Incorrect — Blocking click handler delays visual feedback:**
+```tsx
+<button onClick={() => {
+  const result = heavyComputation(); // Blocks paint
+  setResult(result);
+}}>Calculate</button>
+```
+
+**Correct — Deferred work keeps UI responsive:**
+```tsx
+<button onClick={() => {
+  setLoading(true);
+  requestIdleCallback(() => {
+    const result = heavyComputation();
+    setResult(result);
+    setLoading(false);
+  });
+}}>Calculate</button>
+```
+
+## Key Rules
+
+1. **Break** long tasks > 50ms with `scheduler.yield()`
+2. **Use** `useTransition` for non-urgent state updates
+3. **Defer** heavy computation with `requestIdleCallback`
+4. **Never** block the main thread in event handlers
+5. **Use** `useDeferredValue` for expensive derived values
+6. Target **&lt;= 150ms** for 2026 thresholds
+
+
+### Optimize Largest Contentful Paint to improve search rankings and perceived page speed — CRITICAL
+
+
+# LCP Optimization
+
+Optimize Largest Contentful Paint for the 2026 threshold of &lt;= 2.0s.
+
+## Identify LCP Element
+
+```javascript
+new PerformanceObserver((entryList) => {
+  const entries = entryList.getEntries();
+  const lastEntry = entries[entries.length - 1];
+  console.log('LCP element:', lastEntry.element);
+  console.log('LCP time:', lastEntry.startTime);
+}).observe({ type: 'largest-contentful-paint', buffered: true });
+```
+
+## Optimize LCP Images
+
+```tsx
+// Priority loading for hero image
+<img
+  src="/hero.webp"
+  alt="Hero"
+  fetchpriority="high"
+  loading="eager"
+  decoding="async"
+/>
+
+// Next.js Image with priority
+import Image from 'next/image';
+
+<Image
+  src="/hero.webp"
+  alt="Hero"
+  priority
+  sizes="100vw"
+  quality={85}
+/>
+```
+
+## Preload Critical Resources
+
+```html
+<!-- Preload LCP image -->
+<link rel="preload" as="image" href="/hero.webp" fetchpriority="high" />
+
+<!-- Preload critical font -->
+<link rel="preload" as="font" href="/fonts/inter.woff2" type="font/woff2" crossorigin />
+
+<!-- Preconnect to critical origins -->
+<link rel="preconnect" href="https://api.example.com" />
+<link rel="dns-prefetch" href="https://analytics.example.com" />
+```
+
+## Server-Side Rendering
+
+```typescript
+// Next.js - ensure SSR for LCP content
+export default async function Page() {
+  const data = await fetchCriticalData();
+  return <HeroSection data={data} />; // Rendered on server
+}
+
+// BAD: LCP content loaded client-side
+const [data, setData] = useState(null);
+useEffect(() => { fetchData().then(setData); }, []);
+```
+
+**Incorrect — Lazy-loading LCP image delays paint:**
+```tsx
+<img src="/hero.webp" alt="Hero" loading="lazy" />
+```
+
+**Correct — Priority loading for LCP image:**
+```tsx
+<img
+  src="/hero.webp"
+  alt="Hero"
+  fetchpriority="high"
+  loading="eager"
+  decoding="async"
+/>
+```
+
+## Key Rules
+
+1. **Never** lazy-load the LCP image
+2. **Always** use `fetchpriority="high"` on LCP images
+3. **Always** server-render LCP content
+4. **Preload** critical resources in `&lt;head&gt;`
+5. **Preconnect** to third-party origins used for LCP
+6. Target **&lt;= 2.0s** for 2026 thresholds
+
+
+### Serve AVIF and WebP formats for 30-50% smaller files than JPEG at equivalent quality — HIGH
+
+
+# Modern Image Formats
+
+Choose the right image format and quality settings for optimal compression.
+
+## Format Decision Matrix
+
+| Format | Best For | Browser Support | Quality Setting |
+|--------|----------|----------------|-----------------|
+| AVIF | Photos, gradients | 93%+ (2026) | 60-75 |
+| WebP | Universal fallback | 97%+ | 75-82 |
+| JPEG | Legacy fallback | 100% | 80-85 |
+| PNG | Transparency, icons | 100% | N/A |
+| SVG | Icons, logos | 100% | N/A |
+
+## Picture Element with Fallback
+
+```html
+<picture>
+  <source srcset="/photo.avif" type="image/avif" />
+  <source srcset="/photo.webp" type="image/webp" />
+  <img src="/photo.jpg" alt="Photo" width="800" height="600" loading="lazy" />
+</picture>
+```
+
+## Build-Time Conversion
+
+```typescript
+// vite.config.ts with vite-plugin-image-optimizer
+import { imageOptimizer } from 'vite-plugin-image-optimizer';
+
+export default defineConfig({
+  plugins: [
+    imageOptimizer({
+      avif: { quality: 72, effort: 4 },
+      webp: { quality: 78 },
+      jpeg: { quality: 82, progressive: true },
+    }),
+  ],
+});
+```
+
+## Quality Guidelines
+
+```
+AVIF  60-75  — Best compression, slight encoding time cost
+WebP  75-82  — Good balance, fastest encoding
+JPEG  80-85  — Legacy only, use progressive encoding
+
+Rule of thumb: lower quality for large hero images (more compression gain),
+higher quality for small thumbnails (already small files).
+```
+
+**Incorrect — Single JPEG format misses 30-50% compression savings:**
+```html
+<img src="/photo.jpg" alt="Photo" width="800" height="600" />
+```
+
+**Correct — Modern formats with fallback:**
+```html
+<picture>
+  <source srcset="/photo.avif" type="image/avif" />
+  <source srcset="/photo.webp" type="image/webp" />
+  <img src="/photo.jpg" alt="Photo" width="800" height="600" />
+</picture>
+```
+
+**Key rules:**
+- **Prefer** AVIF as primary format with WebP fallback
+- **Use** quality 72-78 for AVIF and WebP (visually lossless for most photos)
+- **Always** include a JPEG/PNG fallback in `&lt;picture&gt;`
+- **Use** progressive JPEG for any remaining JPEG images
+- **Automate** format conversion in the build pipeline, not manually
+
+
+### Serve appropriately sized responsive images per viewport to avoid oversized mobile downloads — HIGH
+
+
+# Responsive Images
+
+Serve the right image size for every viewport and device pixel ratio.
+
+## Srcset with Sizes
+
+```html
+<img
+  src="/photo-800.jpg"
+  srcset="
+    /photo-400.jpg   400w,
+    /photo-800.jpg   800w,
+    /photo-1200.jpg 1200w,
+    /photo-1600.jpg 1600w
+  "
+  sizes="(max-width: 640px) 100vw,
+         (max-width: 1024px) 50vw,
+         33vw"
+  alt="Product photo"
+  loading="lazy"
+  width="800"
+  height="600"
+/>
+```
+
+## Art Direction with Picture
+
+```html
+<!-- Different crops for different viewports -->
+<picture>
+  <source
+    media="(max-width: 640px)"
+    srcset="/hero-mobile.avif 640w, /hero-mobile-2x.avif 1280w"
+    sizes="100vw"
+    type="image/avif"
+  />
+  <source
+    media="(min-width: 641px)"
+    srcset="/hero-desktop.avif 1200w, /hero-desktop-2x.avif 2400w"
+    sizes="66vw"
+    type="image/avif"
+  />
+  <img src="/hero-desktop.jpg" alt="Hero" width="1200" height="630" />
+</picture>
+```
+
+## CDN Image Transformation URLs
+
+```tsx
+// Cloudflare Image Resizing
+function cfImage(src: string, width: number, quality = 80) {
+  return `https://cdn.example.com/cdn-cgi/image/w=${width},q=${quality},f=auto/${src}`;
+}
+
+// Imgix
+function imgixUrl(src: string, width: number, quality = 80) {
+  return `${src}?w=${width}&q=${quality}&auto=format,compress`;
+}
+
+// Usage in React
+<img
+  src={cfImage('/photos/product.jpg', 800)}
+  srcset={`
+    ${cfImage('/photos/product.jpg', 400)} 400w,
+    ${cfImage('/photos/product.jpg', 800)} 800w,
+    ${cfImage('/photos/product.jpg', 1200)} 1200w
+  `}
+  sizes="(max-width: 768px) 100vw, 50vw"
+  alt="Product"
+  loading="lazy"
+/>
+```
+
+**Incorrect — srcset without sizes lets browser guess:**
+```html
+<img
+  srcset="/photo-400.jpg 400w, /photo-800.jpg 800w"
+  src="/photo-800.jpg"
+  alt="Photo"
+/>
+```
+
+**Correct — sizes guides browser to optimal choice:**
+```html
+<img
+  srcset="/photo-400.jpg 400w, /photo-800.jpg 800w"
+  sizes="(max-width: 640px) 100vw, 50vw"
+  src="/photo-800.jpg"
+  alt="Photo"
+  width="800"
+  height="600"
+/>
+```
+
+**Key rules:**
+- **Always** provide `sizes` alongside `srcset` for width descriptors
+- **Use** 3-4 srcset breakpoints (400, 800, 1200, 1600) for most images
+- **Use** `&lt;picture&gt;` with `media` for art direction (different crops)
+- **Delegate** resizing to a CDN rather than shipping multiple static files
+- **Set** explicit `width` and `height` to prevent CLS
+
+
+### Quantize models to reduce size 2-4x with minimal quality loss for fewer GPUs — MEDIUM
+
+
+# Model Quantization
+
+Reduce model memory footprint and increase throughput with quantization.
+
+## Method Decision Matrix
+
+| Method | Precision | Speed | Quality | Best For |
+|--------|-----------|-------|---------|----------|
+| FP16 | 16-bit | Baseline | Best | When VRAM allows |
+| FP8 | 8-bit | 1.5x | Near-FP16 | Hopper/Ada GPUs (H100, L40S) |
+| AWQ | 4-bit | 1.8x | Good | Production serving, speed priority |
+| GPTQ | 4-bit | 1.6x | Better | Quality-sensitive tasks |
+| GGUF | 2-8 bit | Varies | Varies | CPU/hybrid inference (llama.cpp) |
+
+## vLLM with AWQ
+
+```bash
+# Serve a pre-quantized AWQ model
+docker run --gpus '"device=0"' \
+  -p 8000:8000 \
+  vllm/vllm-openai:latest \
+  --model TheBloke/Llama-3.1-8B-Instruct-AWQ \
+  --quantization awq \
+  --max-model-len 8192
+```
+
+## vLLM with FP8 (Hopper GPUs)
+
+```bash
+# FP8 on H100 — native hardware support, no pre-quantized model needed
+docker run --gpus all \
+  -p 8000:8000 \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-70B-Instruct \
+  --quantization fp8 \
+  --tensor-parallel-size 4
+```
+
+## VRAM Requirements (Approximate)
+
+```
+Model       FP16    FP8     AWQ/GPTQ (4-bit)
+7-8B        16 GB   9 GB    5 GB
+13B         26 GB   14 GB   8 GB
+70B         140 GB  75 GB   40 GB
+
+Formula: VRAM ≈ params × bytes_per_param × 1.2 (KV cache overhead)
+```
+
+## Quality Validation
+
+```python
+# Always benchmark quantized vs full precision on YOUR task
+def eval_quantized(client, test_cases):
+    results = []
+    for case in test_cases:
+        response = client.chat.completions.create(
+            model="quantized-model",
+            messages=case["messages"],
+            max_tokens=case["max_tokens"],
+        )
+        results.append(score(response, case["expected"]))
+    return sum(results) / len(results)
+
+# Accept quantization if quality >= 95% of FP16 baseline
+```
+
+**Incorrect — FP16 on smaller GPUs wastes VRAM:**
+```bash
+docker run --gpus all \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-70B-Instruct \
+  --tensor-parallel-size 8
+# Requires 140 GB VRAM
+```
+
+**Correct — FP8 quantization reduces VRAM by ~45%:**
+```bash
+docker run --gpus all \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-70B-Instruct \
+  --quantization fp8 \
+  --tensor-parallel-size 4
+# Requires 75 GB VRAM
+```
+
+**Key rules:**
+- **Use** FP8 on Hopper/Ada GPUs (best speed/quality tradeoff)
+- **Use** AWQ for maximum throughput on older GPUs
+- **Use** GPTQ when quality matters more than speed
+- **Always** validate quantized model quality on your specific task
+- **Pre-quantized** models (e.g., TheBloke) save quantization time
+
+
+### Apply speculative decoding to generate draft tokens in parallel and reduce inference latency — MEDIUM
+
+
+# Speculative Decoding
+
+Use speculative decoding to reduce per-token latency without sacrificing output quality.
+
+## How It Works
+
+```
+Traditional:     token1 → token2 → token3 → token4  (4 forward passes)
+
+Speculative:     draft: token1, token2, token3       (fast, cheap)
+                 verify: accept/reject all 3          (1 forward pass)
+                 Result: 3 tokens in ~1.3 forward passes
+```
+
+## N-Gram Speculation (No Draft Model)
+
+```bash
+# vLLM n-gram speculation — uses prompt tokens as draft source
+# Best for repetitive/structured output (JSON, code, templates)
+docker run --gpus '"device=0"' \
+  -p 8000:8000 \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --speculative-model [ngram] \
+  --num-speculative-tokens 5 \
+  --ngram-prompt-lookup-max 4
+```
+
+## Draft Model Speculation
+
+```bash
+# Use a smaller model as the draft (must share tokenizer)
+docker run --gpus '"device=0"' \
+  -p 8000:8000 \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-70B-Instruct \
+  --speculative-model meta-llama/Llama-3.1-8B-Instruct \
+  --num-speculative-tokens 5 \
+  --tensor-parallel-size 4
+```
+
+## Acceptance Rate Tuning
+
+```
+--num-speculative-tokens:
+  3  → Conservative, high acceptance rate (~85%)
+  5  → Balanced (default recommendation)
+  8  → Aggressive, lower acceptance rate (~60%)
+
+Monitor via vLLM metrics:
+  vllm:spec_decode_acceptance_rate  → target > 70%
+
+If acceptance < 60%:
+  1. Reduce --num-speculative-tokens
+  2. Try n-gram for structured output
+  3. Verify draft model matches target model's style
+```
+
+## When to Use Each Approach
+
+```
+N-gram speculation:
+  + Structured output (JSON, SQL, code)
+  + Repetitive patterns
+  + No extra GPU memory needed
+  - Creative / diverse text
+
+Draft model speculation:
+  + General text generation
+  + Large target models (70B+)
+  + Higher acceptance rates on diverse tasks
+  - Requires extra GPU memory for draft model
+```
+
+**Incorrect — No speculation means sequential token generation:**
+```bash
+docker run --gpus '"device=0"' \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct
+# 4 tokens = 4 forward passes
+```
+
+**Correct — N-gram speculation reduces passes by 30-60%:**
+```bash
+docker run --gpus '"device=0"' \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --speculative-model [ngram] \
+  --num-speculative-tokens 5
+# 4 tokens ≈ 1.3 forward passes
+```
+
+**Key rules:**
+- **Use** n-gram speculation for structured/repetitive output (free, no extra VRAM)
+- **Use** draft model speculation for general text with large target models
+- **Start** with `--num-speculative-tokens 5` and tune based on acceptance rate
+- **Monitor** acceptance rate; reduce tokens if below 60%
+- **Output quality** is identical to non-speculative decoding (mathematically guaranteed)
+
+
+### Deploy vLLM with PagedAttention and continuous batching for 2-4x higher inference throughput — MEDIUM
+
+
+# vLLM Deployment
+
+Deploy LLMs with vLLM for high-throughput, low-latency inference.
+
+## Docker Deployment
+
+```bash
+# Single GPU
+docker run --gpus '"device=0"' \
+  -v ~/.cache/huggingface:/root/.cache/huggingface \
+  -p 8000:8000 \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --max-model-len 8192 \
+  --gpu-memory-utilization 0.90
+
+# Multi-GPU with tensor parallelism
+docker run --gpus all \
+  -v ~/.cache/huggingface:/root/.cache/huggingface \
+  -p 8000:8000 \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-70B-Instruct \
+  --tensor-parallel-size 4 \
+  --max-model-len 8192 \
+  --gpu-memory-utilization 0.92
+```
+
+## Python Client
+
+```python
+from openai import OpenAI
+
+client = OpenAI(base_url="http://localhost:8000/v1", api_key="unused")
+
+response = client.chat.completions.create(
+    model="meta-llama/Llama-3.1-8B-Instruct",
+    messages=[{"role": "user", "content": "Explain PagedAttention briefly."}],
+    max_tokens=256,
+    temperature=0.7,
+)
+print(response.choices[0].message.content)
+```
+
+## Key Architecture Concepts
+
+```
+PagedAttention:
+  - KV cache stored in non-contiguous pages (like OS virtual memory)
+  - Eliminates memory waste from pre-allocated contiguous blocks
+  - Enables 2-4x more concurrent sequences
+
+Continuous Batching:
+  - New requests join running batch immediately
+  - No waiting for longest sequence to finish
+  - Throughput: 10-30 requests/second on single A100 (8B model)
+
+Tensor Parallelism:
+  - Splits model across GPUs (--tensor-parallel-size N)
+  - Rule: N = number of GPUs, must evenly divide model layers
+  - Use for models > single GPU VRAM
+```
+
+**Incorrect — Default memory utilization wastes KV cache space:**
+```bash
+docker run --gpus '"device=0"' \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct
+# Uses default 0.70 GPU memory
+```
+
+**Correct — Higher utilization enables more concurrent requests:**
+```bash
+docker run --gpus '"device=0"' \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --gpu-memory-utilization 0.90 \
+  --max-model-len 8192
+# 2-4x more concurrent requests
+```
+
+**Key rules:**
+- **Set** `--gpu-memory-utilization 0.90` (leave headroom for KV cache)
+- **Use** `--tensor-parallel-size` equal to the number of GPUs
+- **Use** the OpenAI-compatible API for drop-in compatibility
+- **Monitor** `vllm:num_requests_running` Prometheus metric for load
+- **Set** `--max-model-len` to the actual max you need (lower = more concurrent requests)
+
+
+### Defer component loading with React.lazy to reduce initial bundle size and improve TTI — HIGH
+
+
+# Lazy Component Loading
+
+Use `React.lazy` with `Suspense` to load components on demand and reduce initial bundle size.
+
+## Basic Pattern
+
+```tsx
+import { lazy, Suspense } from 'react';
+
+const Dashboard = lazy(() => import('./Dashboard'));
+const Settings = lazy(() => import('./Settings'));
+
+function App() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <Dashboard />
+    </Suspense>
+  );
+}
+```
+
+## Error Boundary for Failed Imports
+
+```tsx
+import { Component, lazy, Suspense } from 'react';
+
+class LazyErrorBoundary extends Component<
+  { fallback: React.ReactNode; children: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  retry = () => this.setState({ hasError: false });
+
+  render() {
+    if (this.state.hasError) {
+      return <button onClick={this.retry}>Retry</button>;
+    }
+    return this.props.children;
+  }
+}
+
+// Usage
+<LazyErrorBoundary fallback={<p>Failed to load</p>}>
+  <Suspense fallback={<Skeleton />}>
+    <LazyComponent />
+  </Suspense>
+</LazyErrorBoundary>
+```
+
+## Skeleton Fallback
+
+```tsx
+function DashboardSkeleton() {
+  return (
+    <div className="animate-pulse space-y-4">
+      <div className="h-8 bg-gray-200 rounded w-1/3" />
+      <div className="h-64 bg-gray-200 rounded" />
+    </div>
+  );
+}
+```
+
+**Incorrect — Missing Suspense fallback causes error:**
+```tsx
+const Dashboard = lazy(() => import('./Dashboard'));
+
+function App() {
+  return <Dashboard />; // Error: no Suspense boundary
+}
+```
+
+**Correct — Suspense with skeleton fallback:**
+```tsx
+const Dashboard = lazy(() => import('./Dashboard'));
+
+function App() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <Dashboard />
+    </Suspense>
+  );
+}
+```
+
+**Key rules:**
+- **Wrap** every `lazy()` component in a `Suspense` boundary
+- **Add** an error boundary around Suspense for network failures
+- **Use** skeleton fallbacks that match the loaded component's layout
+- **Never** lazy-load above-the-fold or LCP-critical components
+- **Group** related lazy components under a single Suspense boundary
+
+
+### Prefetch resources before user needs them to make navigation feel instant — HIGH
+
+
+# Prefetch Strategies
+
+Proactively load resources before the user navigates to reduce perceived latency.
+
+## Module Preload Hints
+
+```html
+<!-- Preload critical JS modules -->
+<link rel="modulepreload" href="/assets/dashboard-abc123.js" />
+<link rel="modulepreload" href="/assets/shared-chunk-def456.js" />
+
+<!-- Prefetch likely next pages (low priority) -->
+<link rel="prefetch" href="/assets/settings-ghi789.js" />
+```
+
+## Prefetch on Hover
+
+```tsx
+function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
+  const prefetchRef = useRef(false);
+
+  const handlePointerEnter = () => {
+    if (prefetchRef.current) return;
+    prefetchRef.current = true;
+    import(`./pages/${to}.tsx`); // Triggers prefetch
+  };
+
+  return (
+    <a href={`/${to}`} onPointerEnter={handlePointerEnter}>
+      {children}
+    </a>
+  );
+}
+```
+
+## Prefetch on Viewport Intersection
+
+```tsx
+function usePrefetchOnVisible(importFn: () => Promise<unknown>) {
+  const ref = useRef<HTMLElement>(null);
+  const loaded = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !loaded.current) {
+        loaded.current = true;
+        importFn();
+        observer.disconnect();
+      }
+    }, { rootMargin: '200px' });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [importFn]);
+
+  return ref;
+}
+
+// Usage
+const ref = usePrefetchOnVisible(() => import('./HeavySection'));
+<div ref={ref}><Suspense fallback={null}><HeavySection /></Suspense></div>
+```
+
+## Import on Interaction
+
+```tsx
+// Load a heavy module only when the user clicks
+async function handleExport() {
+  const { exportToPDF } = await import('./exportUtils');
+  await exportToPDF(data);
+}
+
+<button onClick={handleExport}>Export PDF</button>
+```
+
+**Incorrect — No prefetching causes delayed navigation:**
+```tsx
+<a href="/dashboard">Dashboard</a>
+```
+
+**Correct — Hover prefetch gives 200-400ms head start:**
+```tsx
+function NavLink({ to, children }) {
+  const prefetchRef = useRef(false);
+
+  const handlePointerEnter = () => {
+    if (prefetchRef.current) return;
+    prefetchRef.current = true;
+    import(`./pages/${to}.tsx`);
+  };
+
+  return (
+    <a href={`/${to}`} onPointerEnter={handlePointerEnter}>
+      {children}
+    </a>
+  );
+}
+```
+
+**Key rules:**
+- **Use** `modulepreload` for critical JS the current page needs
+- **Use** `prefetch` for resources the user will likely need next
+- **Prefetch on hover** for navigation links (200-400ms head start)
+- **Prefetch on intersection** for below-the-fold heavy sections
+- **Import on interaction** for rarely-used heavy features
+
+
+### Split code at route boundaries so users only download code for the visited page — HIGH
+
+
+# Route-Based Code Splitting
+
+Split your bundle at route boundaries so each page loads only its own code.
+
+## React Router 7.x Lazy Routes
+
+```tsx
+import { createBrowserRouter } from 'react-router';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    lazy: () => import('./pages/Home'),
+  },
+  {
+    path: '/dashboard',
+    lazy: () => import('./pages/Dashboard'),
+  },
+  {
+    path: '/settings',
+    lazy: () => import('./pages/Settings'),
+  },
+]);
+```
+
+## Named Exports for Lazy Routes
+
+```tsx
+// pages/Dashboard.tsx — export Component and loader
+export async function loader() {
+  return fetchDashboardData();
+}
+
+export function Component() {
+  const data = useLoaderData();
+  return <DashboardView data={data} />;
+}
+
+Component.displayName = 'Dashboard';
+```
+
+## Chunk Naming
+
+```tsx
+// Webpack — webpackChunkName magic comment
+const Dashboard = lazy(
+  () => import(/* webpackChunkName: "dashboard" */ './pages/Dashboard')
+);
+
+// Vite/Rollup — use rollupOptions for manual chunks
+// vite.config.ts
+export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          charts: ['recharts', 'd3'],
+        },
+      },
+    },
+  },
+});
+```
+
+**Incorrect — Eager imports bundle all routes together:**
+```tsx
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
+
+const router = createBrowserRouter([
+  { path: '/', element: <Home /> },
+  { path: '/dashboard', element: <Dashboard /> },
+  { path: '/settings', element: <Settings /> },
+]);
+```
+
+**Correct — Lazy routes split per-page bundles:**
+```tsx
+const router = createBrowserRouter([
+  { path: '/', lazy: () => import('./pages/Home') },
+  { path: '/dashboard', lazy: () => import('./pages/Dashboard') },
+  { path: '/settings', lazy: () => import('./pages/Settings') },
+]);
+```
+
+**Key rules:**
+- **Split** at route boundaries as the minimum splitting strategy
+- **Use** React Router `lazy` for automatic route-level splitting
+- **Export** `Component` and `loader` as named exports for lazy routes
+- **Name** chunks for readable build output and caching
+- **Group** vendor libraries into shared chunks to avoid duplication
+
+
+### Profile Python backends with py-spy to find CPU hotspots and memory leaks in production — MEDIUM
+
+
+# Python Backend Profiling
+
+Profile Python services to find CPU bottlenecks and memory leaks.
+
+## py-spy for Production Sampling
+
+```bash
+# Attach to running process (no restart needed)
+py-spy top --pid 12345
+
+# Generate flamegraph SVG
+py-spy record -o profile.svg --pid 12345 --duration 30
+
+# Profile a script directly
+py-spy record -o profile.svg -- python manage.py runserver
+
+# Sample at higher rate for short-lived operations
+py-spy record --rate 250 -o profile.svg -- python batch_job.py
+```
+
+## cProfile for Development
+
+```python
+import cProfile
+import pstats
+
+# Profile a function
+with cProfile.Profile() as pr:
+    result = expensive_function()
+
+stats = pstats.Stats(pr)
+stats.sort_stats('cumulative')
+stats.print_stats(20)  # Top 20 functions
+
+# One-liner from command line
+# python -m cProfile -s cumulative app.py
+```
+
+## memory_profiler for Memory Leaks
+
+```python
+from memory_profiler import profile
+
+@profile
+def process_data():
+    data = load_large_dataset()     # +500 MiB
+    filtered = filter_items(data)   # +200 MiB
+    del data                        # -500 MiB
+    return summarize(filtered)
+
+# Command line: python -m memory_profiler script.py
+```
+
+## FastAPI Middleware Profiling
+
+```python
+import time
+from fastapi import Request
+
+@app.middleware("http")
+async def profile_requests(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration = time.perf_counter() - start
+    if duration > 0.5:  # Log slow requests
+        print(f"SLOW: {request.method} {request.url.path} took {duration:.2f}s")
+    response.headers["X-Response-Time"] = f"{duration:.3f}"
+    return response
+```
+
+**Incorrect — cProfile in production requires code changes:**
+```python
+# Must instrument code manually
+with cProfile.Profile() as pr:
+    result = expensive_function()
+```
+
+**Correct — py-spy attaches to running process with zero overhead:**
+```bash
+# No code changes, no restart needed
+py-spy record -o profile.svg --pid 12345 --duration 30
+```
+
+**Key rules:**
+- **Use** py-spy in production (zero overhead when not profiling, no code changes)
+- **Use** cProfile in development for detailed call graphs
+- **Use** memory_profiler to track per-line memory allocation
+- **Profile** under realistic load, not just unit test conditions
+- **Focus** on the top 3-5 hotspots by cumulative time
+
+
+### Analyze bundles to reveal bloated dependencies and missed tree-shaking that inflate load times — MEDIUM
+
+
+# Bundle Analysis
+
+Analyze and optimize JavaScript bundle size with visualization tools and CI budgets.
+
+## Webpack Bundle Analyzer
+
+```javascript
+// webpack.config.js
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+
+module.exports = {
+  plugins: [
+    new BundleAnalyzerPlugin({
+      analyzerMode: 'static',      // Generates HTML report
+      openAnalyzer: false,
+      reportFilename: 'bundle-report.html',
+    }),
+  ],
+};
+```
+
+## Vite / Rollup Visualizer
+
+```typescript
+// vite.config.ts
+import { visualizer } from 'rollup-plugin-visualizer';
+
+export default defineConfig({
+  plugins: [
+    visualizer({
+      filename: 'bundle-report.html',
+      gzipSize: true,
+      brotliSize: true,
+    }),
+  ],
+});
+```
+
+## Performance Budgets in CI
+
+```json
+// bundlesize.config.json
+{
+  "files": [
+    { "path": "dist/assets/index-*.js", "maxSize": "150 kB", "compression": "gzip" },
+    { "path": "dist/assets/vendor-*.js", "maxSize": "80 kB", "compression": "gzip" },
+    { "path": "dist/assets/*.css", "maxSize": "30 kB", "compression": "gzip" }
+  ]
+}
+```
+
+```yaml
+# .github/workflows/bundle-check.yml
+- name: Check bundle size
+  run: npx bundlesize
+  env:
+    BUNDLESIZE_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+## Import Cost Awareness
+
+```typescript
+// BAD: Imports entire library (70 kB)
+import _ from 'lodash';
+const sorted = _.sortBy(items, 'name');
+
+// GOOD: Import single function (4 kB)
+import sortBy from 'lodash/sortBy';
+const sorted = sortBy(items, 'name');
+
+// BEST: Use native (0 kB)
+const sorted = items.toSorted((a, b) => a.name.localeCompare(b.name));
+```
+
+**Incorrect — Importing entire lodash adds 70 kB:**
+```typescript
+import _ from 'lodash';
+const sorted = _.sortBy(items, 'name');
+```
+
+**Correct — Import single function or use native API:**
+```typescript
+// Option 1: Import only what you need (4 kB)
+import sortBy from 'lodash/sortBy';
+const sorted = sortBy(items, 'name');
+
+// Option 2: Use native API (0 kB)
+const sorted = items.toSorted((a, b) => a.name.localeCompare(b.name));
+```
+
+**Key rules:**
+- **Run** bundle analysis on every release to catch regressions
+- **Set** CI performance budgets (fail build if exceeded)
+- **Import** only what you use from large libraries
+- **Check** gzip/brotli sizes, not raw sizes
+- **Replace** large dependencies with native APIs when possible
+
+
+### Profile React components with DevTools to identify unnecessary re-renders and their causes — MEDIUM
+
+
+# React DevTools Profiler
+
+Use the React DevTools Profiler to identify and fix unnecessary re-renders.
+
+## Flamegraph Workflow
+
+```
+1. Open React DevTools → Profiler tab
+2. Click "Record" → Interact with the UI → Click "Stop"
+3. Read the flamegraph:
+   - Yellow/red bars = slow renders (> 16ms)
+   - Gray bars = did not render
+   - Click a bar → see "Why did this render?"
+4. Focus on components that render often AND take long
+```
+
+## Programmatic Profiler
+
+```tsx
+import { Profiler } from 'react';
+
+function onRenderCallback(
+  id: string,
+  phase: 'mount' | 'update',
+  actualDuration: number,
+) {
+  if (actualDuration > 16) {
+    console.warn(`Slow render: ${id} (${phase}) took ${actualDuration.toFixed(1)}ms`);
+  }
+}
+
+<Profiler id="Dashboard" onRender={onRenderCallback}>
+  <Dashboard />
+</Profiler>
+```
+
+## Why Did You Render Setup
+
+```tsx
+// wdyr.ts — import BEFORE React in development
+import React from 'react';
+
+if (process.env.NODE_ENV === 'development') {
+  const { default: whyDidYouRender } = await import(
+    '@welldone-software/why-did-you-render'
+  );
+  whyDidYouRender(React, {
+    trackAllPureComponents: true,
+    logOnDifferentValues: true,
+  });
+}
+
+// Mark specific components for tracking
+MyComponent.whyDidYouRender = true;
+```
+
+## Interpreting Render Reasons
+
+```
+"Props changed"       → Check which prop, was it a new object/array?
+"State changed"       → Expected, verify state is colocated
+"Parent rendered"     → Parent re-renders, child doesn't memo
+"Context changed"     → Split context or use selectors
+"Hooks changed"       → useMemo/useCallback dependency changed
+```
+
+**Incorrect — Blind memoization without profiling:**
+```tsx
+const MemoizedComponent = memo(Component);
+const memoizedValue = useMemo(() => value, []);
+const callback = useCallback(() => {}, []);
+// Added optimization without measurement
+```
+
+**Correct — Profile first, then optimize actual bottlenecks:**
+```tsx
+// 1. Open React DevTools Profiler
+// 2. Record interaction
+// 3. Identify slow renders (yellow/red bars > 16ms)
+// 4. Check "Why did this render?"
+// 5. Apply targeted fix only where needed
+```
+
+**Key rules:**
+- **Profile first** before adding any memoization
+- **Focus** on components that are both frequent AND slow (> 16ms)
+- **Use** "Why did this render?" to find the root cause
+- **Use** Why Did You Render in development for automatic detection
+- **Ignore** gray (not rendered) components in the flamegraph
+
+
+### Apply TanStack Query optimistic updates for instant UI feedback with automatic rollback — HIGH
+
+
+## TanStack Query Optimistic Updates
+
+Show immediate UI feedback before server confirmation with proper rollback on error.
+
+**Incorrect — mutation without optimistic update:**
+```tsx
+// WRONG: User waits for server roundtrip
+const mutation = useMutation({
+  mutationFn: updateTodo,
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['todos'] }); // Refetches after delay
+  },
+});
+// UI feels sluggish — user sees spinner for 200-500ms
+```
+
+**Correct — optimistic update with rollback:**
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+function useUpdateTodo() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateTodo,
+    onMutate: async (newTodo) => {
+      // 1. Cancel outgoing refetches (prevent race condition)
+      await queryClient.cancelQueries({ queryKey: ['todos', newTodo.id] });
+
+      // 2. Snapshot previous value for rollback
+      const previousTodo = queryClient.getQueryData(['todos', newTodo.id]);
+
+      // 3. Optimistically update cache
+      queryClient.setQueryData(['todos', newTodo.id], newTodo);
+
+      // 4. Return context for rollback
+      return { previousTodo };
+    },
+    onError: (_err, newTodo, context) => {
+      // Rollback to previous value on error
+      queryClient.setQueryData(['todos', newTodo.id], context?.previousTodo);
+    },
+    onSettled: (_data, _error, variables) => {
+      // Always reconcile with server after mutation
+      queryClient.invalidateQueries({ queryKey: ['todos', variables.id] });
+    },
+  });
+}
+
+// Optimistic list update (add to list)
+function useAddTodo() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createTodo,
+    onMutate: async (newTodo) => {
+      await queryClient.cancelQueries({ queryKey: ['todos'] });
+      const previousTodos = queryClient.getQueryData<Todo[]>(['todos']);
+
+      // Immutable update (NEVER mutate cache directly)
+      queryClient.setQueryData<Todo[]>(['todos'], (old) =>
+        old ? [...old, { ...newTodo, id: 'temp-id' }] : [newTodo]
+      );
+
+      return { previousTodos };
+    },
+    onError: (_err, _newTodo, context) => {
+      queryClient.setQueryData(['todos'], context?.previousTodos);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+    },
+  });
+}
+```
+
+**Track pending mutations:**
+```typescript
+import { useMutationState } from '@tanstack/react-query';
+
+function PendingTodos() {
+  const pendingMutations = useMutationState({
+    filters: { mutationKey: ['addTodo'], status: 'pending' },
+    select: (mutation) => mutation.state.variables as Todo,
+  });
+
+  return (
+    <>
+      {pendingMutations.map((todo) => (
+        <TodoItem key={todo.id} todo={todo} isPending />
+      ))}
+    </>
+  );
+}
+```
+
+**Key rules:**
+- Always cancel outgoing queries in `onMutate` to prevent race conditions
+- Always return context from `onMutate` for rollback capability
+- Use immutable updates: `[...old, newItem]` not `old.push(newItem)`
+- Always `invalidateQueries` in `onSettled` to reconcile with server
+- Use `useMutationState` to show pending items in the UI
+- Selective invalidation: `queryKey: ['todos', id]` not `queryClient.invalidateQueries()` (invalidates everything)
+
+
+### Prefetch TanStack queries on hover or in route loaders for instant page transitions — HIGH
+
+
+## TanStack Query Prefetching
+
+Prefetch data before navigation for instant page transitions using TanStack Query v5.
+
+**Incorrect — fetching data only when component mounts:**
+```tsx
+// WRONG: User clicks link, waits for data to load
+function UserProfile({ userId }: { userId: string }) {
+  const { data, isPending } = useQuery({
+    queryKey: ['user', userId],
+    queryFn: () => fetchUser(userId),
+  });
+
+  if (isPending) return <Skeleton />; // User sees skeleton every time
+  return <div>{data.name}</div>;
+}
+```
+
+**Correct — prefetch on hover and in route loaders:**
+```typescript
+// 1. Define reusable query options (v5 pattern)
+const userQueryOptions = (id: string) => queryOptions({
+  queryKey: ['user', id] as const,
+  queryFn: () => fetchUser(id),
+  staleTime: 5 * 60 * 1000, // Fresh for 5 min
+});
+
+// 2. Prefetch on hover
+function UserLink({ userId }: { userId: string }) {
+  const queryClient = useQueryClient();
+
+  const prefetchUser = () => {
+    queryClient.prefetchQuery(userQueryOptions(userId));
+  };
+
+  return (
+    <Link
+      to={`/users/${userId}`}
+      onMouseEnter={prefetchUser}
+      onFocus={prefetchUser}
+    >
+      View User
+    </Link>
+  );
+}
+
+// 3. Prefetch in route loader (React Router 7.x)
+export const loader = (queryClient: QueryClient) =>
+  async ({ params }: { params: { id: string } }) => {
+    await queryClient.ensureQueryData(userQueryOptions(params.id));
+    return null;
+  };
+
+// 4. Use with Suspense for instant render
+function UserProfile({ userId }: { userId: string }) {
+  // Data already loaded by prefetch — no loading state!
+  const { data } = useSuspenseQuery(userQueryOptions(userId));
+  return <div>{data.name}</div>;
+}
+```
+
+**QueryClient configuration:**
+```typescript
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60,       // 1 min fresh
+      gcTime: 1000 * 60 * 5,      // 5 min in cache (formerly cacheTime)
+      refetchOnWindowFocus: true,  // Refetch on tab focus
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
+  },
+});
+```
+
+**Key rules:**
+- Use `queryOptions()` helper for reusable query definitions across prefetch/useQuery/loader
+- Prefetch on `onMouseEnter` AND `onFocus` for keyboard users
+- Use `ensureQueryData` in loaders (waits for data), `prefetchQuery` for fire-and-forget
+- `useSuspenseQuery` for components where data is guaranteed by loader
+- `gcTime` (v5) replaces `cacheTime` (v4) — controls how long unused data stays in memory
+- `isPending` (v5) replaces `isLoading` for initial load state
+
+
+### Let React Compiler auto-memoize components, values, callbacks, and JSX automatically — HIGH
+
+
+# React Compiler
+
+React 19's compiler is the primary approach to render optimization in 2026.
+
+## Decision Tree
+
+```
+Is React Compiler enabled?
+├─ YES → Let compiler handle memoization automatically
+│        Only use useMemo/useCallback as escape hatches
+│        DevTools shows "Memo ✨" badge
+│
+└─ NO → Profile first, then optimize
+         1. React DevTools Profiler
+         2. Identify actual bottlenecks
+         3. Apply targeted optimizations
+```
+
+## What the Compiler Memoizes
+
+- Component re-renders
+- Intermediate values (like useMemo)
+- Callback references (like useCallback)
+- JSX elements
+
+## Enabling the Compiler
+
+```tsx
+// next.config.js (Next.js 16+)
+const nextConfig = {
+  reactCompiler: true,
+}
+
+// Expo SDK 54+ enables by default
+```
+
+## Verification
+
+Open React DevTools and look for the "Memo ✨" badge on components. If present, the compiler is successfully memoizing that component.
+
+**Incorrect — Manual memoization when compiler is enabled:**
+```tsx
+// next.config.js has reactCompiler: true
+const value = useMemo(() => compute(data), [data]);
+const callback = useCallback(() => handle(), []);
+// Compiler already handles this automatically
+```
+
+**Correct — Let compiler auto-memoize:**
+```tsx
+// Compiler handles memoization automatically
+function Component({ data }) {
+  const value = compute(data); // Auto-memoized
+  const handle = () => {}; // Auto-memoized
+  return <div onClick={handle}>{value}</div>;
+}
+// Check DevTools for "Memo ✨" badge
+```
+
+## Key Rules
+
+1. **Enable** React Compiler as the first step
+2. **Let** the compiler handle memoization automatically
+3. **Verify** with DevTools "Memo ✨" badge
+4. **Only** use manual memoization as escape hatches
+5. **Profile** before adding any manual optimization
+
+
+### Use manual useMemo and useCallback escape hatches when React Compiler cannot optimize — HIGH
+
+
+# Manual Memoization Escape Hatches
+
+Use `useMemo`/`useCallback` as escape hatches when React Compiler is insufficient.
+
+## When Manual Memoization Is Needed
+
+```tsx
+// 1. Effect dependencies that shouldn't trigger re-runs
+const stableConfig = useMemo(() => ({
+  apiUrl: process.env.API_URL
+}), [])
+
+useEffect(() => {
+  initializeSDK(stableConfig)
+}, [stableConfig])
+
+// 2. Third-party libraries without compiler support
+const memoizedValue = useMemo(() =>
+  expensiveThirdPartyComputation(data), [data])
+
+// 3. Precise control over memoization boundaries
+const handleClick = useCallback(() => {
+  // Critical callback that must be stable
+}, [dependency])
+```
+
+## State Colocation
+
+Move state as close to where it's used as possible:
+
+```tsx
+// BAD: State too high - causes unnecessary re-renders
+function App() {
+  const [filter, setFilter] = useState('')
+  return (
+    <Header />  {/* Re-renders on filter change! */}
+    <FilterInput value={filter} onChange={setFilter} />
+    <List filter={filter} />
+  )
+}
+
+// GOOD: State colocated - minimal re-renders
+function App() {
+  return (
+    <Header />
+    <FilterableList />  {/* State inside */}
+  )
+}
+```
+
+## Profiling Workflow
+
+1. **React DevTools Profiler**: Record, interact, analyze
+2. **Identify**: Components with high render counts or duration
+3. **Verify**: Is the re-render actually causing perf issues?
+4. **Fix**: Apply targeted optimization
+5. **Measure**: Confirm improvement
+
+**Incorrect — State too high causes unnecessary re-renders:**
+```tsx
+function App() {
+  const [filter, setFilter] = useState('');
+  return (
+    <>
+      <Header />  {/* Re-renders on filter change! */}
+      <FilterInput value={filter} onChange={setFilter} />
+      <List filter={filter} />
+    </>
+  );
+}
+```
+
+**Correct — State colocated minimizes re-renders:**
+```tsx
+function App() {
+  return (
+    <>
+      <Header />
+      <FilterableList />  {/* State inside, Header unaffected */}
+    </>
+  );
+}
+```
+
+## Key Rules
+
+1. **Profile first** — never optimize without measurement
+2. **Colocate state** as close to usage as possible
+3. **Use** `useMemo` for effect dependencies that must be stable
+4. **Use** `useCallback` for callbacks passed to memoized children
+5. **Split** context into state and dispatch providers
+
+
+### Virtualize long lists to render only visible items for smooth scrolling performance — HIGH
+
+
+# List Virtualization
+
+Use TanStack Virtual for efficient rendering of large lists.
+
+## Virtualization Thresholds
+
+| Item Count | Recommendation |
+|------------|----------------|
+| &lt; 100 | Regular rendering usually fine |
+| 100-500 | Consider virtualization |
+| 500+ | Virtualization required |
+
+## Basic Setup
+
+```tsx
+import { useVirtualizer } from '@tanstack/react-virtual'
+
+function VirtualList({ items }) {
+  const parentRef = useRef(null)
+
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 50,
+    overscan: 5,
+  })
+
+  return (
+    <div ref={parentRef} style={{ height: '400px', overflow: 'auto' }}>
+      <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
+        {virtualizer.getVirtualItems().map((virtualRow) => (
+          <div
+            key={virtualRow.key}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: `${virtualRow.size}px`,
+              transform: `translateY(${virtualRow.start}px)`,
+            }}
+          >
+            {items[virtualRow.index].name}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+## Dynamic Height
+
+```tsx
+const virtualizer = useVirtualizer({
+  count: items.length,
+  getScrollElement: () => parentRef.current,
+  estimateSize: () => 50,
+  overscan: 5,
+  measureElement: (element) => element.getBoundingClientRect().height,
+})
+```
+
+**Incorrect — Rendering 1000 items causes scroll jank:**
+```tsx
+function List({ items }) {
+  return (
+    <div style={{ height: '400px', overflow: 'auto' }}>
+      {items.map(item => (
+        <div key={item.id}>{item.name}</div>
+      ))}
+    </div>
+  );
+}
+```
+
+**Correct — Virtualization renders only visible items:**
+```tsx
+import { useVirtualizer } from '@tanstack/react-virtual';
+
+function VirtualList({ items }) {
+  const parentRef = useRef(null);
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 50,
+    overscan: 5,
+  });
+
+  return (
+    <div ref={parentRef} style={{ height: '400px', overflow: 'auto' }}>
+      <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
+        {virtualizer.getVirtualItems().map(virtualRow => (
+          <div
+            key={virtualRow.key}
+            style={{
+              position: 'absolute',
+              transform: `translateY(${virtualRow.start}px)`,
+            }}
+          >
+            {items[virtualRow.index].name}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+## Key Rules
+
+1. **Virtualize** lists with 100+ items
+2. **Set** `overscan: 5` for smooth scrolling
+3. **Use** `estimateSize` close to actual average
+4. **Use** `measureElement` for variable height items
+5. **Position** items with `transform: translateY()` (avoids layout recalculation)
+
+
+### Sustainability UX patterns for reducing digital carbon footprint — MEDIUM
+
+
+# Sustainability UX
+
+2026 digital sustainability patterns — reduce carbon footprint through efficient resource usage, optimized assets, and intentional UX.
+
+## Avoid Heavy Animations When Not Needed
+
+**Incorrect — auto-playing decorative video wastes bandwidth and energy:**
+```html
+<video autoplay loop muted playsinline>
+  <source src="/hero-bg.mp4" type="video/mp4" />
+</video>
+```
+
+**Correct — use CSS animation or static image, offer video opt-in:**
+```html
+<!-- Static hero with optional video -->
+<picture>
+  <source srcset="/hero.avif" type="image/avif" />
+  <source srcset="/hero.webp" type="image/webp" />
+  <img src="/hero.jpg" alt="Hero" loading="eager" />
+</picture>
+<button onclick="loadHeroVideo()">Play video</button>
+```
+
+## Prevent Over-Fetching
+
+**Incorrect — fetching entire dataset for a paginated view:**
+```typescript
+// Loads ALL 10,000 records on mount
+const { data } = useQuery({
+  queryKey: ['products'],
+  queryFn: () => fetch('/api/products').then(r => r.json()),
+});
+const page = data?.slice(offset, offset + 20);
+```
+
+**Correct — cursor-based pagination fetches only what is needed:**
+```typescript
+const { data, fetchNextPage } = useInfiniteQuery({
+  queryKey: ['products'],
+  queryFn: ({ pageParam }) =>
+    fetch(`/api/products?cursor=${pageParam}&limit=20`).then(r => r.json()),
+  getNextPageParam: (last) => last.nextCursor,
+  initialPageParam: '',
+});
+```
+
+## Serve Optimized Image Formats
+
+**Incorrect — serving unoptimized PNG/JPEG:**
+```html
+<img src="/photo.png" alt="Product" width="800" height="600" />
+```
+
+**Correct — AVIF/WebP with fallback, sized appropriately:**
+```html
+<picture>
+  <source srcset="/photo.avif" type="image/avif" />
+  <source srcset="/photo.webp" type="image/webp" />
+  <img src="/photo.jpg" alt="Product" width="800" height="600"
+       loading="lazy" decoding="async" />
+</picture>
+```
+
+## Lazy Load Below-Fold Content
+
+**Incorrect — loading all images eagerly:**
+```tsx
+function Gallery({ images }: { images: string[] }) {
+  return images.map(src => <img src={src} alt="" />);
+}
+```
+
+**Correct — lazy load below-fold, eager only for above-fold:**
+```tsx
+function Gallery({ images }: { images: string[] }) {
+  return images.map((src, i) => (
+    <img
+      src={src}
+      alt=""
+      loading={i < 2 ? 'eager' : 'lazy'}
+      decoding="async"
+    />
+  ));
+}
+```
+
+## Dark Mode Reduces OLED Power
+
+Offer dark mode to reduce power consumption on OLED displays (up to 60% less power for dark UI).
+
+```css
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a1a;
+    --text: #e0e0e0;
+  }
+}
+```
+
+## Enforce Page Weight Budget
+
+Target &lt; 1MB total page weight (HTML + CSS + JS + images + fonts). Set up CI enforcement:
+
+```javascript
+// lighthouse-ci config or bundlesize
+const budgets = [
+  { resourceType: 'total', budget: 1000 }, // 1MB total
+  { resourceType: 'script', budget: 300 },  // 300KB JS
+  { resourceType: 'image', budget: 500 },   // 500KB images
+  { resourceType: 'font', budget: 100 },    // 100KB fonts
+];
+```
+
+## Key Rules
+
+1. **Avoid** auto-playing videos and heavy animations for decoration
+2. **Use** cursor-based pagination — never fetch entire datasets
+3. **Serve** AVIF with WebP fallback — 30-50% smaller than JPEG/PNG
+4. **Lazy load** all below-fold images and components
+5. **Offer** dark mode — reduces OLED power by up to 60%
+6. **Enforce** &lt; 1MB page weight budget in CI
+7. **Measure** page weight on every PR — prevent creep
+
+
+
+---
+
+## References (3)
+
+### Cc Prompt Cache Guide
+
+# CC Prompt Cache Optimization Guide
+
+## Why This Matters
+CC 2.1.72 includes a prompt cache fix in SDK query() that reduces input token costs up to 12x. The cache works by recognizing repeated prefixes in prompts — if the first N tokens of a prompt match a cached entry, only the remaining tokens are billed at full rate.
+
+## The Golden Rule
+**Stable content FIRST, variable content LAST.**
+
+## Prompt Structure Template
+```
+[1. SYSTEM ROLE & MODE]        ← stable, cached across invocations
+[2. EVALUATION DIMENSIONS]     ← stable
+[3. SCORING FORMULA]           ← stable
+[4. TOOL BUDGET / CONSTRAINTS] ← stable
+[5. OUTPUT FORMAT]             ← stable
+[6. VARIABLE CONTENT]          ← unique per invocation (feature, topic, files)
+```
+
+## Before / After Examples
+
+### Bad (cache-hostile):
+```python
+Agent(prompt=f"""BACKEND ARCH: {feature}
+  Standards: FastAPI, Pydantic v2...
+  Deliverables: API, schemas, models...""")
+```
+Cache reuse: ~10% (variable content invalidates prefix)
+
+### Good (cache-friendly):
+```python
+Agent(prompt=f"""BACKEND ARCHITECTURE DESIGN
+
+STANDARDS: FastAPI, Pydantic v2, SQLAlchemy 2.0 async
+DELIVERABLES:
+1. API endpoint design
+2. Pydantic schemas
+3. SQLAlchemy models
+...
+FEATURE: {feature}""")
+```
+Cache reuse: ~70% (stable prefix cached, only variable suffix is new)
+
+## once:true Hook Pattern
+Skills that spawn multiple agents with similar instructions should use `once: true` hooks to inject stable content once:
+
+```yaml
+hooks:
+  PreToolUse:
+    - matcher: "Agent"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/standards-loader"
+      once: true  # Inject standards ONCE, all Agent spawns benefit
+```
+
+## Measuring Cache Efficiency
+- Longer stable prefixes = higher cache hit rate
+- Same role + same dimensions across agents = cache hits
+- Variable content (feature names, file lists) should be &lt; 30% of prompt
+
+## Skills with Highest Cache Benefit
+| Skill | Agents | Est. Savings |
+|-------|--------|-------------|
+| implement | 10 | ~400-500 tokens |
+| review-pr | 6 | ~270-330 tokens |
+| verify | 6 | ~210-270 tokens |
+| fix-issue | 5 | ~150-175 tokens |
+| brainstorm | 4 | ~100-120 tokens |
+
+
+### Database Optimization
+
+# Database Query Optimization
+
+Strategies for optimizing database performance and eliminating slow queries.
+
+## Key Patterns
+
+1. **Add Missing Indexes** - Turn `Seq Scan` into `Index Scan`
+2. **Fix N+1 Queries** - Use JOINs or `include` instead of loops
+3. **Cursor Pagination** - Never load all records
+4. **Connection Pooling** - Manage connection lifecycle
+
+## Quick Diagnostics
+
+```sql
+-- Find slow queries (PostgreSQL)
+SELECT query, calls, mean_time / 1000 as mean_seconds
+FROM pg_stat_statements ORDER BY total_time DESC LIMIT 10;
+
+-- Verify index usage
+EXPLAIN ANALYZE SELECT * FROM orders WHERE user_id = 123;
+
+-- Check for sequential scans
+SELECT schemaname, tablename, seq_scan, seq_tup_read
+FROM pg_stat_user_tables
+WHERE seq_scan > 0
+ORDER BY seq_tup_read DESC
+LIMIT 10;
+```
+
+## N+1 Query Detection
+
+**Symptoms:**
+- One query to get parent records, then N queries for related data
+- Rapid sequential database calls in logs
+- Linear growth in query count with data size
+
+**Example Problem:**
+```python
+# ❌ BAD: N+1 query (1 + 8 queries)
+analyses = await session.execute(select(Analysis).limit(8)).scalars().all()
+for analysis in analyses:
+    # Each iteration hits DB again!
+    chunks = await session.execute(
+        select(Chunk).where(Chunk.analysis_id == analysis.id)
+    ).scalars().all()
+```
+
+**Solution:**
+```python
+# ✅ GOOD: Single query with JOIN (1 query)
+from sqlalchemy.orm import selectinload
+
+analyses = await session.execute(
+    select(Analysis)
+    .options(selectinload(Analysis.chunks))  # Eager load
+    .limit(8)
+).scalars().all()
+
+# Now analyses[0].chunks is already loaded (no extra query)
+```
+
+## Index Selection Strategies
+
+| Index Type | Use Case | Example |
+|------------|----------|---------|
+| **B-tree** | Equality, range queries | `WHERE created_at > '2025-01-01'` |
+| **GIN** | Full-text search, JSONB | `WHERE content_tsvector @@ to_tsquery('python')` |
+| **HNSW** | Vector similarity | `ORDER BY embedding &lt;=&gt; '[0.1, 0.2, ...]'` |
+| **Hash** | Exact equality only | `WHERE id = 'abc123'` (rare) |
+
+**Index Creation Examples:**
+```sql
+-- B-tree index for range queries
+CREATE INDEX idx_analyses_created_at ON analyses(created_at);
+
+-- GIN index for full-text search
+CREATE INDEX idx_chunks_tsvector ON chunks USING GIN(content_tsvector);
+
+-- HNSW index for vector similarity
+CREATE INDEX idx_chunks_embedding ON chunks
+USING hnsw (embedding vector_cosine_ops);
+
+-- Partial index for active records only
+CREATE INDEX idx_active_users ON users(email)
+WHERE deleted_at IS NULL;
+
+-- Composite index for common query pattern
+CREATE INDEX idx_analyses_user_status ON analyses(user_id, status);
+```
+
+## Connection Pooling
+
+**Problem:** Creating new connections is expensive (50-100ms overhead)
+
+**Solution:** Use connection pools
+```python
+# SQLAlchemy async pool
+engine = create_async_engine(
+    DATABASE_URL,
+    pool_size=20,  # Base connections
+    max_overflow=10,  # Additional if needed
+    pool_pre_ping=True,  # Verify connections are alive
+    pool_recycle=3600  # Recycle after 1 hour
+)
+```
+
+## Pagination: Cursor vs Offset
+
+### Offset-Based (❌ Slow for large datasets)
+```sql
+SELECT * FROM analyses ORDER BY created_at DESC
+LIMIT 20 OFFSET 1000;  -- Must scan 1020 rows!
+```
+
+### Cursor-Based (✅ Fast, scales to millions)
+```sql
+SELECT * FROM analyses
+WHERE created_at < '2025-01-15 10:00:00'  -- Last cursor
+ORDER BY created_at DESC
+LIMIT 20;  -- Only scans 20 rows
+```
+
+## Best Practices
+
+1. **Always use EXPLAIN ANALYZE** before deploying queries
+2. **Index foreign keys** used in JOINs
+3. **Avoid SELECT \*** - request only needed columns
+4. **Use prepared statements** to prevent SQL injection and enable query caching
+5. **Monitor pg_stat_statements** weekly
+6. **Set query timeouts** to prevent runaway queries
+
+## References
+
+- [PostgreSQL Performance Tips](https://wiki.postgresql.org/wiki/Performance_Optimization)
+- [Use The Index, Luke](https://use-the-index-luke.com/)
+- See `scripts/database-optimization.ts` for implementation patterns
+
+
+### Ork Delta
+
+# Performance Skill: OrchestKit Delta
+
+Ork-specific floors, scars, and house decisions for `src/skills/performance`.
+Vendor mechanics (CWV tuning, image pipelines, profiling tool walkthroughs,
+vLLM internals) are deliberately not restated here. See the section
+"Upstream coverage (do not restate)" in SKILL.md for the first-party source
+that owns each removed topic.
+
+## Hold Core Web Vitals to the 2026 stricter thresholds, not the current official ones
+Why: House decision carried in this skill since v2.x: budgets target LCP &lt;= 2.0s, INP &lt;= 150ms, CLS &lt;= 0.08 (versus the official 2.5s / 200ms / 0.1) so performance budgets set today survive the tightening without re-litigating every page. The targets are test-enforced: `test-cases.json` (cases `cwv-lcp`, `cwv-inp`) asserts answers cite the 2026 numbers, and `tests/skills/functional/test-rule-traceability.sh` traces those expectations into the rule files, so silently reverting to the official thresholds fails traceability.
+Upstream: skill web-perf / cloudflare:web-perf (Chrome DevTools MCP); official thresholds at https://web.dev/vitals/
+
+## Start performance audits from the recorded OrchestKit wins, not a generic checklist
+Why: The audit flow (baseline, profile, cache, measure savings) was distilled from OrchestKit's production optimization pass, recorded with before/after evidence in `examples/orchestkit-performance-wins.md`: LLM spend cut from $35k/yr to $2-5k/yr via a 3-level cache (L1 Claude prompt cache, L2 Redis semantic cache at 0.92 similarity, L3 real LLM call), and vector search cut from 85ms to 5ms (17x) via HNSW indexes. Re-deriving audit phases from vendor docs loses the measured hit rates and cost math that justify each step; start from the wins file and its companion `references/database-optimization.md` and `scripts/caching-patterns.ts`.
+Upstream: https://developer.chrome.com/docs/lighthouse/ and https://developer.chrome.com/docs/devtools/performance/ (frontend side); https://www.postgresql.org/docs/current/performance-tips.html (database side)
+
+
+
+---
+
+## Examples (1)
+
+### Orchestkit Performance Wins
+
+# OrchestKit Performance Wins - Real Optimization Examples
+
+This document showcases actual performance optimizations from OrchestKit's production implementation with before/after metrics.
+
+## Overview
+
+**Key Performance Achievements:**
+- LLM costs: $35k/year → $2-5k/year (85-95% reduction)
+- Vector search: 85ms → 5ms (17x faster)
+- Retrieval accuracy: 87.2% → 91.6% (5.1% improvement)
+- Quality gate pass rate: Increased from 67-77% → 85%+ (stable)
+- Cache hit rate: 0% → 90% (L1) + 75% (L2)
+
+## Win 1: Multi-Level LLM Caching
+
+### Problem
+
+**Projected annual LLM costs: $35,000**
+
+- 8 agents per analysis, 1,500-1,800 tokens each
+- Average 145 analyses/month
+- No caching = every query hits LLM
+- Claude Sonnet 4.5: $3/MTok input, $15/MTok output
+
+### Investigation
+
+**Cost breakdown by agent:**
+```sql
+-- Langfuse query
+SELECT
+    metadata->>'agent_type' as agent,
+    SUM(calculated_total_cost) as total_cost,
+    AVG(input_tokens) as avg_input,
+    AVG(output_tokens) as avg_output
+FROM traces
+GROUP BY agent
+ORDER BY total_cost DESC;
+```
+
+**Results:**
+| Agent | Monthly Cost | Avg Input | Avg Output |
+|-------|--------------|-----------|------------|
+| security_auditor | $3.05 | 1,800 | 1,200 |
+| implementation_planner | $2.76 | 1,600 | 1,100 |
+| tech_comparator | $2.61 | 1,500 | 1,000 |
+| Total (8 agents) | $18.73 | - | - |
+
+**Pain points:**
+- Analyzing similar content (React tutorials, FastAPI guides) repeatedly
+- Security patterns (XSS, SQL injection) are common across codebases
+- Implementation patterns (CRUD, auth) are highly repetitive
+
+### Solution: 3-Level Cache Hierarchy
+
+**Architecture:**
+```
+Request → L1: Prompt Cache (Claude native)
+         ↓ miss (10%)
+         → L2: Semantic Cache (Redis vector search)
+         ↓ miss (25% of L1 misses)
+         → L3: LLM Call (actual cost)
+```
+
+**L1: Claude Prompt Caching (Native)**
+
+**File:** `backend/app/shared/services/llm/anthropic_client.py`
+
+```python
+from anthropic import AsyncAnthropic
+
+async def call_claude_with_prompt_cache(
+    system_prompt: str,
+    user_message: str,
+    model: str = "claude-sonnet-4-6"
+) -> str:
+    """Call Claude with prompt caching for system prompts."""
+
+    response = await anthropic_client.messages.create(
+        model=model,
+        max_tokens=4096,
+        system=[
+            {
+                "type": "text",
+                "text": system_prompt,
+                "cache_control": {"type": "ephemeral"}  # Cache this!
+            }
+        ],
+        messages=[
+            {"role": "user", "content": user_message}
+        ]
+    )
+
+    # Log cache usage
+    cache_hit = response.usage.cache_read_input_tokens > 0
+    logger.info("claude_prompt_cache",
+        cache_hit=cache_hit,
+        cache_read_tokens=response.usage.cache_read_input_tokens,
+        input_tokens=response.usage.input_tokens,
+        output_tokens=response.usage.output_tokens
+    )
+
+    return response.content[0].text
+```
+
+**Cost savings:**
+- Cache hit: 90% discount on cached tokens
+- Cache duration: 5 minutes
+- Effective for: Agent system prompts (1,500+ tokens each)
+
+**L2: Semantic Cache (Redis + Vector Search)**
+
+**File:** `backend/app/shared/services/cache/semantic_cache.py`
+
+```python
+from redis import Redis
+from app.shared.services.embeddings import embed_text
+import numpy as np
+
+class SemanticCache:
+    """Vector similarity-based cache for LLM responses."""
+
+    def __init__(self, redis_client: Redis, threshold: float = 0.92):
+        self.redis = redis_client
+        self.threshold = threshold  # Cosine similarity threshold
+
+    async def get(self, query: str) -> str | None:
+        """Check if semantically similar query exists in cache."""
+
+        # Generate query embedding
+        query_embedding = await embed_text(query)
+
+        # Search for similar cached queries
+        # (Using Redis VSS or dedicated vector store)
+        cached_queries = await self._vector_search(query_embedding, top_k=5)
+
+        for cached_query, cached_embedding, cached_response in cached_queries:
+            similarity = cosine_similarity(query_embedding, cached_embedding)
+
+            if similarity >= self.threshold:
+                logger.info("semantic_cache_hit",
+                    similarity=similarity,
+                    cached_query=cached_query[:100]
+                )
+                return cached_response
+
+        return None  # Cache miss
+
+    async def set(self, query: str, response: str, ttl: int = 3600):
+        """Store query-response pair with embedding."""
+
+        # Generate embedding
+        embedding = await embed_text(query)
+
+        # Store in Redis (with vector index)
+        cache_key = f"semantic_cache:{hash(query)}"
+        await self.redis.setex(
+            cache_key,
+            ttl,
+            json.dumps({
+                "query": query,
+                "response": response,
+                "embedding": embedding.tolist(),
+                "timestamp": datetime.now().isoformat()
+            })
+        )
+```
+
+**Cost savings:**
+- 75% hit rate on L1 misses
+- Near-instant responses (5-10ms vs 2000ms)
+- Effective for: Similar technical queries
+
+**Implementation in agent calls:**
+
+```python
+@observe(name="agent_execution")
+async def execute_agent(agent_type: str, content: str) -> Finding:
+    """Execute agent with 3-level caching."""
+
+    # Build query
+    system_prompt = get_agent_system_prompt(agent_type)  # 1,500+ tokens
+    user_message = f"Analyze this content:\n\n{content[:8000]}"
+
+    # L2: Check semantic cache
+    cache_key = f"{agent_type}:{content[:200]}"  # Simple key for demo
+    cached_response = await semantic_cache.get(cache_key)
+
+    if cached_response:
+        logger.info("cache_hit", level="L2_semantic", agent=agent_type)
+        return parse_finding(cached_response)
+
+    # L1 + L3: Call Claude (with prompt caching)
+    response = await call_claude_with_prompt_cache(
+        system_prompt=system_prompt,  # Cached by Claude
+        user_message=user_message
+    )
+
+    # Store in semantic cache
+    await semantic_cache.set(cache_key, response, ttl=3600)
+
+    return parse_finding(response)
+```
+
+### Results
+
+**Cost Reduction:**
+```
+Baseline (no cache):     $35,000/year
+L1 savings (90% hit):    -$28,350  (90% discount on 90% of queries)
+L2 savings (75% hit):    -$4,650   (85% discount on 75% of L1 misses)
+Final cost:              $2,000-5,000/year
+
+Total savings: 85-95%
+```
+
+**Latency Improvement:**
+| Cache Level | Hit Rate | Latency | Cost Savings |
+|-------------|----------|---------|--------------|
+| L1 (Prompt) | 90% | 2000ms (same) | 90% on cached tokens |
+| L2 (Semantic) | 75% (of L1 misses) | 5-10ms | 85% (full skip) |
+| L3 (LLM) | 2.5% (fallback) | 2000ms | 0% (full cost) |
+
+**Implementation effort:** 2 days
+**Maintenance overhead:** Low (cache TTL auto-expires stale data)
+
+## Win 2: Vector Index Optimization (HNSW vs IVFFlat)
+
+### Problem
+
+**Vector search taking 85ms, needed &lt;10ms**
+
+- Golden dataset: 415 chunks, 1536-dim embeddings
+- IVFFlat index (lists=10)
+- Hybrid search (vector + BM25 RRF) bottlenecked by vector search
+
+### Investigation
+
+**Benchmark both index types:**
+
+```sql
+-- IVFFlat performance
+EXPLAIN ANALYZE
+SELECT * FROM chunks
+ORDER BY embedding <=> '[0.1, 0.2, ...]'::vector
+LIMIT 10;
+
+-- Result:
+-- Planning Time: 2.1 ms
+-- Execution Time: 85.3 ms
+```
+
+```sql
+-- HNSW performance
+CREATE INDEX idx_chunk_embedding_hnsw ON chunks
+USING hnsw (embedding vector_cosine_ops)
+WITH (m = 16, ef_construction = 64);
+
+EXPLAIN ANALYZE
+SELECT * FROM chunks
+ORDER BY embedding <=> '[0.1, 0.2, ...]'::vector
+LIMIT 10;
+
+-- Result:
+-- Planning Time: 2.0 ms
+-- Execution Time: 5.1 ms
+```
+
+**Trade-offs:**
+| Index | Build Time | Query Time | Accuracy | Memory |
+|-------|------------|------------|----------|--------|
+| IVFFlat (lists=10) | 2s | 85ms | 95% | Low |
+| HNSW (m=16) | 8s | 5ms | 98% | Medium |
+
+### Solution: HNSW Index with Optimized Parameters
+
+**File:** `backend/alembic/versions/xxx_add_hnsw_index.py`
+
+```python
+def upgrade():
+    """Add HNSW index for vector similarity search."""
+
+    op.execute("""
+        CREATE INDEX CONCURRENTLY idx_chunk_embedding_hnsw
+        ON chunks USING hnsw (embedding vector_cosine_ops)
+        WITH (m = 16, ef_construction = 64);
+    """)
+
+    # Drop old IVFFlat index
+    op.execute("DROP INDEX IF EXISTS idx_chunk_embedding_ivfflat;")
+```
+
+**Parameters chosen:**
+- `m = 16`: Connections per layer (sweet spot for 1k-10k vectors)
+- `ef_construction = 64`: Build-time quality (higher = better accuracy, slower build)
+- `ef_search = 64`: Query-time quality (can tune per query)
+
+**Runtime tuning:**
+
+```python
+async def search_similar_chunks(
+    embedding: list[float],
+    top_k: int = 10
+) -> list[Chunk]:
+    """Vector similarity search with HNSW index."""
+
+    # Tune ef_search for accuracy vs speed trade-off
+    await session.execute(text("SET hnsw.ef_search = 64;"))
+
+    results = await session.execute(
+        select(Chunk)
+        .order_by(Chunk.embedding.cosine_distance(embedding))
+        .limit(top_k)
+    )
+
+    return results.scalars().all()
+```
+
+### Results
+
+**Performance:**
+- Query latency: 85ms → **5ms** (17x faster)
+- Accuracy: 95% → **98%** (3% improvement)
+- Build time: 2s → 8s (acceptable for 415 chunks)
+
+**Impact on retrieval:**
+- Hybrid search latency: 95ms → 15ms (p95)
+- Throughput: 10.5 req/s → 66 req/s (6x improvement)
+
+**Implementation effort:** 4 hours (index creation + testing)
+
+## Win 3: Hybrid Search Ranking Optimization
+
+### Problem
+
+**Retrieval pass rate: 87.2%, target: >90%**
+
+- Expected chunks ranked 6-10 instead of top-5
+- RRF fusion not getting enough candidates
+- No metadata boosting
+
+### Investigation
+
+**Golden dataset analysis (203 queries):**
+
+```python
+# Evaluate current ranking
+results = []
+for query in golden_queries:
+    retrieved = await hybrid_search(query.text, top_k=10)
+    expected_in_top_k = any(chunk.id in query.expected_chunk_ids for chunk in retrieved)
+    rank = next((i for i, c in enumerate(retrieved) if c.id in query.expected_chunk_ids), -1)
+
+    results.append({
+        "query": query.text,
+        "expected_rank": rank,
+        "found": rank != -1,
+        "passed": rank < 10
+    })
+
+# Results:
+# Pass rate: 177/203 = 87.2%
+# MRR: 0.723
+```
+
+**Failure analysis:**
+- 26 queries failed (expected chunk not in top-10)
+- Common issue: Expected chunk ranked 11-15
+- Root cause: RRF fusion only fetching 2x candidates (20 for top-10)
+
+### Solution: Multi-Pronged Optimization
+
+**1. Increase RRF Fetch Multiplier**
+
+**File:** `backend/app/core/constants.py`
+
+```python
+# Before
+HYBRID_FETCH_MULTIPLIER = 2  # Fetch 20 for top-10
+
+# After
+HYBRID_FETCH_MULTIPLIER = 3  # Fetch 30 for top-10
+```
+
+**Rationale:** More candidates → better RRF coverage → higher recall
+
+**2. Add Metadata Boosting**
+
+**File:** `backend/app/shared/services/search/search_service.py`
+
+```python
+def apply_metadata_boosts(
+    chunks: list[Chunk],
+    query: str
+) -> list[Chunk]:
+    """Boost scores based on metadata signals."""
+
+    query_lower = query.lower()
+
+    for chunk in chunks:
+        # Boost if query matches section title
+        if chunk.section_title and any(
+            term in chunk.section_title.lower()
+            for term in query_lower.split()
+        ):
+            chunk.score *= SECTION_TITLE_BOOST_FACTOR  # 2.0
+
+        # Boost if query matches document path
+        if chunk.document_path and any(
+            term in chunk.document_path.lower()
+            for term in query_lower.split()
+        ):
+            chunk.score *= DOCUMENT_PATH_BOOST_FACTOR  # 1.15
+
+        # Boost code blocks for technical queries
+        if chunk.chunk_type == "code_block" and is_technical_query(query):
+            chunk.score *= TECHNICAL_KEYWORD_BOOST  # 1.2
+
+    return sorted(chunks, key=lambda c: c.score, reverse=True)
+```
+
+**3. Pre-Compute tsvector for BM25**
+
+**Before:**
+```sql
+-- Compute tsvector on-the-fly (slow!)
+SELECT *, ts_rank(to_tsvector('english', content), query) as rank
+FROM chunks
+WHERE to_tsvector('english', content) @@ query
+ORDER BY rank DESC;
+```
+
+**After:**
+```sql
+-- Use pre-computed tsvector column (fast!)
+SELECT *, ts_rank(content_tsvector, query) as rank
+FROM chunks
+WHERE content_tsvector @@ query
+ORDER BY rank DESC;
+```
+
+**Migration:**
+
+```python
+def upgrade():
+    """Add pre-computed tsvector column."""
+
+    # Add column
+    op.add_column('chunks', sa.Column('content_tsvector', TSVECTOR))
+
+    # Populate
+    op.execute("""
+        UPDATE chunks
+        SET content_tsvector = to_tsvector('english', content);
+    """)
+
+    # Create GIN index
+    op.execute("""
+        CREATE INDEX idx_chunk_tsvector
+        ON chunks USING GIN(content_tsvector);
+    """)
+
+    # Add trigger to keep it updated
+    op.execute("""
+        CREATE TRIGGER tsvector_update BEFORE INSERT OR UPDATE
+        ON chunks FOR EACH ROW EXECUTE FUNCTION
+        tsvector_update_trigger(content_tsvector, 'pg_catalog.english', content);
+    """)
+```
+
+### Results
+
+**Ranking Quality:**
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Pass rate | 177/203 (87.2%) | 186/203 (91.6%) | +5.1% |
+| MRR (overall) | 0.723 | 0.777 | +7.4% |
+| MRR (hard queries) | 0.647 | 0.686 | +6.0% |
+
+**Query Performance:**
+| Operation | Before | After | Change |
+|-----------|--------|-------|--------|
+| BM25 search | 45ms | 4ms | 11x faster |
+| Vector search | 5ms | 5ms | Same |
+| RRF fusion | 2ms | 3ms | Slightly slower (more candidates) |
+| **Total** | **52ms** | **12ms** | **4.3x faster** |
+
+**Impact by boost factor:**
+- Section title boost: +7.4% MRR (most impactful)
+- Document path boost: +2.1% MRR
+- Code block boost: +1.3% MRR (for technical queries)
+
+**Implementation effort:** 1 day (constants, migration, testing)
+
+## Win 4: SSE Event Buffering (Race Condition Fix)
+
+### Problem
+
+**Frontend showed 0% progress while backend was running**
+
+- Real-time progress updates missing
+- EventSource connection established AFTER events published
+- No event replay mechanism
+
+### Investigation
+
+**Reproduce issue:**
+1. Start analysis via API
+2. Frontend subscribes to SSE `/progress/\{analysis_id\}`
+3. Backend immediately publishes "analysis_started" event
+4. Frontend connects 200ms later → misses early events
+
+**Root cause:**
+
+```python
+# ❌ BAD: Events lost if no subscriber yet
+class EventBroadcaster:
+    def publish(self, channel: str, event: dict):
+        if channel not in self._subscribers:
+            return  # Event lost!
+
+        for subscriber in self._subscribers[channel]:
+            subscriber.send(event)
+```
+
+### Solution: Event Buffering with Replay
+
+**File:** `backend/app/services/event_broadcaster.py`
+
+```python
+from collections import deque
+from dataclasses import dataclass
+from datetime import datetime
+
+@dataclass
+class BufferedEvent:
+    """Event with timestamp for replay."""
+    data: dict
+    timestamp: datetime
+
+class EventBroadcaster:
+    """SSE broadcaster with event buffering."""
+
+    def __init__(self, buffer_size: int = 100):
+        self._subscribers: dict[str, list] = {}
+        self._buffers: dict[str, deque[BufferedEvent]] = {}
+        self._buffer_size = buffer_size
+
+    def publish(self, channel: str, event: dict):
+        """Publish event and store in buffer."""
+
+        # Create buffer if needed
+        if channel not in self._buffers:
+            self._buffers[channel] = deque(maxlen=self._buffer_size)
+
+        # Add to buffer
+        buffered_event = BufferedEvent(
+            data=event,
+            timestamp=datetime.now()
+        )
+        self._buffers[channel].append(buffered_event)
+
+        # Send to active subscribers
+        for subscriber in self._subscribers.get(channel, []):
+            try:
+                subscriber.send(event)
+            except Exception as e:
+                logger.error("failed_to_send_event", error=str(e))
+
+    async def subscribe(self, channel: str):
+        """Subscribe to channel and replay buffered events."""
+
+        # Replay buffered events first
+        for buffered_event in self._buffers.get(channel, []):
+            yield {
+                "event": "message",
+                "data": json.dumps(buffered_event.data)
+            }
+
+        # Then stream new events
+        queue = asyncio.Queue()
+        self._subscribers.setdefault(channel, []).append(queue)
+
+        try:
+            while True:
+                event = await queue.get()
+                yield {
+                    "event": "message",
+                    "data": json.dumps(event)
+                }
+        finally:
+            self._subscribers[channel].remove(queue)
+```
+
+**API endpoint:**
+
+```python
+@app.get("/progress/{analysis_id}")
+async def stream_progress(analysis_id: str):
+    """Stream analysis progress with buffered event replay."""
+
+    channel = f"analysis:{analysis_id}"
+
+    async def event_generator():
+        async for event in event_broadcaster.subscribe(channel):
+            yield f"data: {event['data']}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream"
+    )
+```
+
+### Results
+
+**Before (with race condition):**
+- 0% progress shown until agent completion (30-60 seconds)
+- Users confused, thought app was frozen
+- Support tickets: "Analysis stuck at 0%"
+
+**After (with buffering):**
+- All events delivered (100% replay rate)
+- Progress updates appear immediately
+- Memory overhead: ~10KB per active analysis (100 events × 100 bytes)
+
+**Implementation effort:** 3 hours (buffer logic + tests)
+
+## Win 5: Quality Gate Content Truncation Fix
+
+### Problem
+
+**Quality scores artificially low due to content truncation**
+
+- Depth scores: 5/10 (AWFUL) → required retries
+- G-Eval only seeing truncated summaries
+- 4 stages of truncation compounding
+
+### Investigation
+
+**Trace truncation points:**
+
+```python
+# Stage 1: compress_findings.py
+MAX_STRING_LENGTH = 200  # ❌ Too aggressive!
+
+# Stage 2: scorer.py
+input_text = content[:2000]  # ❌ Truncated again!
+output_text = response[:3000]
+
+# Stage 3: quality.py
+MAX_CONTENT_LENGTH = 8000  # ❌ Insufficient!
+
+# Stage 4: quality_gate_node.py
+insights = findings[:2000]  # ❌ Final truncation!
+```
+
+**Example:**
+1. Original finding: 5,000 chars (detailed security analysis)
+2. After Stage 1: 200 chars ("Found 3 vulnerabilities...")
+3. After synthesis: 1,500 chars (includes other findings)
+4. After Stage 2: 1,500 chars (same)
+5. After G-Eval: Depth score = 5/10 (insufficient detail)
+
+### Solution: Increase All Truncation Limits
+
+**Changes:**
+
+| File | Before | After | Rationale |
+|------|--------|-------|-----------|
+| compress_findings.py | 200 | 500 | Allow key insights |
+| scorer.py (input) | 2,000 | 8,000 | Full context for eval |
+| scorer.py (output) | 3,000 | 12,000 | Detailed responses |
+| quality.py | 8,000 | 15,000 | Complete synthesis |
+| quality_gate_node.py | 2,000 | 8,000 | All findings visible |
+
+**Implementation:**
+
+```python
+# backend/app/shared/services/g_eval/scorer.py
+MAX_INPUT_LENGTH = 8000  # Increased from 2000
+MAX_OUTPUT_LENGTH = 12000  # Increased from 3000
+
+# backend/app/evaluation/evaluators/quality.py
+MAX_CONTENT_LENGTH = 15000  # Increased from 8000
+
+# backend/app/domains/analysis/workflows/tasks/aggregation/compress_findings.py
+MAX_STRING_LENGTH = 500  # Increased from 200
+```
+
+### Results
+
+**Quality Scores:**
+| Criterion | Before | After | Change |
+|-----------|--------|-------|--------|
+| Completeness | 0.75 | 0.85 | +13% |
+| Accuracy | 0.88 | 0.92 | +5% |
+| Coherence | 0.84 | 0.88 | +5% |
+| Depth | 0.58 | 0.78 | **+34%** |
+| Overall | 0.76 | 0.86 | +13% |
+
+**Pass rate:** 67-77% (variable) → **85%+** (stable)
+
+**Trade-offs:**
+- Token usage: +15% (from 8k → 12k avg)
+- Cost impact: +$0.02 per analysis (acceptable)
+- Quality improvement: Worth the extra cost
+
+**Implementation effort:** 2 hours (find all truncation points + update tests)
+
+## Summary Table
+
+| Optimization | Metric | Before | After | Improvement | Effort |
+|--------------|--------|--------|-------|-------------|--------|
+| Multi-level caching | Annual cost | $35k | $2-5k | 85-95% | 2 days |
+| HNSW index | Query latency | 85ms | 5ms | 17x faster | 4 hours |
+| Hybrid search | Pass rate | 87.2% | 91.6% | +5.1% | 1 day |
+| SSE buffering | Event delivery | 60% | 100% | +67% | 3 hours |
+| Content truncation | Depth score | 0.58 | 0.78 | +34% | 2 hours |
+
+**Total implementation time:** 4 days
+**Annual cost savings:** $30-33k
+**Quality improvement:** 13% overall, 34% depth
+
+## References
+
+- [OrchestKit Quality Initiative](../../../../docs/QUALITY_INITIATIVE_FIXES.md)
+- [Redis Connection Keepalive](../../../../backend/app/shared/services/cache/redis_connection.py)
+- [Hybrid Search Constants](../../../../backend/app/core/constants.py)
+- Template: `../scripts/caching-patterns.ts`
+- Template: `../scripts/database-optimization.ts`
+

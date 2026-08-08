@@ -1,0 +1,1033 @@
+---
+title: "I18n Date Patterns"
+description: "Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="i18n-date-patterns" />
+
+> **I18n Date Patterns** Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency.
+
+
+# i18n and Localization Patterns
+
+## Overview
+
+This skill provides comprehensive guidance for implementing internationalization in React applications. It ensures ALL user-facing strings, date displays, currency, lists, and time calculations are locale-aware.
+
+**When to use this skill:**
+- Adding ANY user-facing text to components
+- Formatting dates, times, currency, lists, or ordinals
+- Implementing complex pluralization
+- Embedding React components in translated text
+- Supporting RTL languages (Hebrew, Arabic)
+
+**Bundled Resources** (load with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/i18n-date-patterns/&lt;path&gt;")`):
+- `references/formatting-utilities.md` - useFormatting hook API reference
+- `references/ork-delta.md` - House decisions and working config that upstream docs do not carry
+- `checklists/i18n-checklist.md` - Implementation and review checklist
+- `examples/component-i18n-example.md` - Complete component example
+
+**Canonical Reference:** See `docs/i18n-standards.md` for the full i18n standards document.
+
+---
+
+## Core Patterns
+
+### 1. useTranslation Hook (All UI Strings)
+
+Every visible string MUST use the translation function:
+
+```tsx
+import { useTranslation } from 'react-i18next';
+
+function MyComponent() {
+  const { t } = useTranslation(['patients', 'common']);
+  
+  return (
+    <div>
+      <h1>{t('patients:title')}</h1>
+      <button>{t('common:actions.save')}</button>
+    </div>
+  );
+}
+```
+
+### 2. useFormatting Hook (Locale-Aware Data)
+
+All locale-sensitive formatting MUST use the centralized hook:
+
+```tsx
+import { useFormatting } from '@/hooks';
+
+function PriceDisplay({ amount, items }) {
+  const { formatILS, formatList, formatOrdinal } = useFormatting();
+  
+  return (
+    <div>
+      <p>Price: {formatILS(amount)}</p>        {/* ₪1,500.00 */}
+      <p>Items: {formatList(items)}</p>        {/* "a, b, and c" */}
+      <p>Position: {formatOrdinal(3)}</p>      {/* "3rd" */}
+    </div>
+  );
+}
+```
+
+Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/i18n-date-patterns/references/formatting-utilities.md")` for the complete API.
+
+### 3. Date Formatting
+
+All dates MUST use the centralized `@/lib/dates` library:
+
+```tsx
+import { formatDate, formatDateShort, calculateWaitTime } from '@/lib/dates';
+
+const date = formatDate(appointment.date);    // "Jan 6, 2026"
+const waitTime = calculateWaitTime('09:30');  // "15 min"
+```
+
+### 4. ICU MessageFormat (Complex Plurals)
+
+Use ICU syntax in translation files for pluralization:
+
+```json
+{
+  "patients": "{count, plural, =0 {No patients} one {# patient} other {# patients}}"
+}
+```
+
+```tsx
+t('patients', { count: 5 })  // → "5 patients"
+```
+
+House rules for plurals live in `rules/i18n-icu-plurals.md`. For the full ICU grammar
+see the upstream table below.
+
+### 5. Trans Component (Rich Text)
+
+For embedded React components in translated text:
+
+```tsx
+import { Trans } from 'react-i18next';
+
+<Trans
+  i18nKey="richText.welcome"
+  values={{ name: userName }}
+  components={{ strong: <strong /> }}
+/>
+```
+
+House rules for `&lt;Trans&gt;` live in `rules/i18n-trans-component.md`; the plural-plus-rich-text
+ordering constraint lives in `references/ork-delta.md`. For the full component API see the
+upstream table below.
+
+---
+
+## Upstream coverage (do not restate)
+
+These topics are owned by first-party docs. Read them there instead of re-deriving them here.
+
+| Topic | First-party source | House subset kept here |
+|-------|--------------------|------------------------|
+| ICU plural, select, selectordinal, offset and nested message grammar | https://formatjs.github.io/docs/core-concepts/icu-syntax/ and https://unicode-org.github.io/icu/userguide/format_parse/messages/ | `rules/i18n-icu-plurals.md` keeps the house subset in full: no ternary pluralization, the mandatory `other` arm, `=0` for zero states, Hebrew dual and Arabic categories |
+| Which plural categories a given locale actually has | https://cldr.unicode.org/index/cldr-spec/plural-rules | none, read upstream |
+| ICU number skeletons inside a message (`::currency/ILS`) | https://unicode-org.github.io/icu/userguide/format_parse/numbers/skeletons.html | `references/ork-delta.md` keeps only the ILS skeleton decision |
+| In-message date and time forms (`\{date, date, medium\}`) and `offset:` plurals | https://unicode-org.github.io/icu/userguide/format_parse/messages/ | nothing; fetch it upstream |
+| `&lt;Trans&gt;` API: named vs indexed tags, self-closing tags, `TransProps` typing | https://react.i18next.com/latest/trans-component | `rules/i18n-trans-component.md` keeps the house subset in full: never split a sentence across `t()` calls, never `dangerouslySetInnerHTML`, prefer named tags over indexed |
+| Wiring the ICU parser into i18next | https://github.com/i18next/i18next-icu | `references/ork-delta.md` keeps the decision and why suffix keys are not enough |
+| `Intl.ListFormat` primitive behind `useFormatting` | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat | `references/formatting-utilities.md` keeps the house hook API |
+| `Intl.NumberFormat` primitive behind `useFormatting` | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat | `references/formatting-utilities.md` keeps the house hook API |
+
+---
+
+## Translation File Structure
+
+```
+frontend/src/i18n/locales/
+├── en/
+│   ├── common.json      # Shared: actions, status, time
+│   ├── patients.json    # Patient-related strings
+│   ├── dashboard.json   # Dashboard strings
+│   ├── owner.json       # Owner portal strings
+│   └── invoices.json    # Invoice strings
+└── he/
+    └── (same structure)
+```
+
+---
+
+## Anti-Patterns (FORBIDDEN)
+
+```typescript
+// ❌ NEVER hardcode strings
+<h1>מטופלים</h1>                    // Use t('patients:title')
+<button>Save</button>               // Use t('common:actions.save')
+
+// ❌ NEVER use .join() for lists
+items.join(', ')                    // Use formatList(items)
+
+// ❌ NEVER hardcode currency
+"₪" + price                         // Use formatILS(price)
+
+// ❌ NEVER use new Date() for formatting
+new Date().toLocaleDateString()     // Use formatDate() from @/lib/dates
+
+// ❌ NEVER use inline plural logic
+count === 1 ? 'item' : 'items'      // Use ICU MessageFormat
+
+// ❌ NEVER leave console.log in production
+console.log('debug')                // Remove before commit
+
+// ❌ NEVER use dangerouslySetInnerHTML for i18n
+dangerouslySetInnerHTML             // Use <Trans> component
+```
+
+---
+
+## Quick Reference
+
+| Need | Solution |
+|------|----------|
+| UI text | `t('namespace:key')` from `useTranslation` |
+| Currency | `formatILS(amount)` from `useFormatting` |
+| Lists | `formatList(items)` from `useFormatting` |
+| Ordinals | `formatOrdinal(n)` from `useFormatting` |
+| Dates | `formatDate(date)` from `@/lib/dates` |
+| Plurals | ICU MessageFormat in translation files |
+| Rich text | `&lt;Trans&gt;` component |
+| RTL check | `isRTL` from `useFormatting` |
+
+---
+
+## Checklist
+
+Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/i18n-date-patterns/checklists/i18n-checklist.md")` for complete implementation and review checklists.
+
+---
+
+## Integration with Agents
+
+### Frontend UI Developer
+- Uses all i18n patterns for components
+- References this skill for formatting
+- Ensures no hardcoded strings
+
+### Code Quality Reviewer
+- Checks for anti-patterns (`.join()`, `console.log`, etc.)
+- Validates translation key coverage
+- Ensures RTL compatibility
+
+---
+
+**Skill Version**: 1.2.0
+**Last Updated**: 2026-01-06
+**Maintained by**: Yonatan Gross
+
+## Related Skills
+
+- `ork:testing-e2e` - E2E testing patterns including accessibility testing for i18n
+- `ork:react-server-components-framework` - Server-side locale detection and RSC i18n patterns
+- `ork:accessibility` - RTL-aware focus management for bidirectional UI navigation
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Translation Library | react-i18next | React-native hooks, namespace support, ICU format |
+| Date Library | dayjs | Lightweight, locale plugins, immutable API |
+| Message Format | ICU MessageFormat | Industry standard, complex plural/select support |
+| Locale Storage | Per-namespace JSON | Code-splitting, lazy loading per feature |
+| RTL Detection | CSS logical properties | Native browser support, no JS overhead |
+
+## Capability Details
+
+### translation-hooks
+**Keywords:** useTranslation, t(), i18n hook, translation hook
+**Solves:**
+- Translate UI strings with useTranslation
+- Implement namespaced translations
+- Handle missing translation keys
+
+### formatting-hooks
+**Keywords:** useFormatting, formatCurrency, formatList, formatOrdinal
+**Solves:**
+- Format currency values with locale
+- Format lists with proper separators
+- Handle ordinal numbers across locales
+
+### icu-messageformat
+**Keywords:** ICU, MessageFormat, plural, pluralization
+**Solves:**
+- Apply the house Hebrew plural-category decision (see `references/ork-delta.md`)
+- ICU `select`, gender forms and nested message grammar are routed upstream (see Upstream coverage)
+- Build complex message patterns
+
+### date-time-formatting
+**Keywords:** date format, time format, dayjs, locale date, calendar
+**Solves:**
+- Format dates with dayjs and locale
+- Handle timezone-aware formatting
+- Build calendar components with i18n
+
+### rtl-support
+**Keywords:** RTL, right-to-left, hebrew, arabic, direction
+**Solves:**
+- Support RTL languages like Hebrew
+- Handle bidirectional text
+- Configure RTL-aware layouts
+
+### trans-component
+**Keywords:** Trans, rich text, embedded JSX, interpolation
+**Solves:**
+- Embed React components in translations
+- Handle rich text formatting
+- Implement safe HTML in translations
+
+
+---
+
+## Rules (3)
+
+### Avoid hardcoded date and number formats that break in non-English locales — CRITICAL
+
+
+## i18n: Formatting Anti-Patterns
+
+String concatenation, hardcoded currency symbols, manual list joining, and direct `toLocaleString` calls bypass the locale-aware formatting layer. These patterns silently break in RTL languages, produce incorrect currency symbols, and ignore locale-specific list conjunction rules.
+
+### Never concatenate or interpolate raw values into user-facing strings
+
+**Incorrect:**
+```tsx
+// String concatenation — breaks word order in RTL locales
+const greeting = "Hello " + userName + "!";
+
+// Template literal — same problem, locale-unaware
+const message = `Welcome ${userName} to the dashboard`;
+
+// Hardcoded currency symbol — wrong for non-ILS locales
+<p>Price: ₪{price}</p>
+<p>Total: ${price.toFixed(2)}</p>
+```
+
+**Correct:**
+```tsx
+import { useTranslation } from 'react-i18next';
+import { useFormatting } from '@/hooks';
+
+const { t } = useTranslation();
+const { formatILS } = useFormatting();
+
+// Translation key handles word order per locale
+<p>{t('greeting', { name: userName })}</p>
+// Locale-aware currency formatting
+<p>{t('price_label')}: {formatILS(price)}</p>
+```
+
+### Never use `.join()` for user-facing lists
+
+**Incorrect:**
+```tsx
+const pets = ['Max', 'Bella', 'Charlie'];
+// English-only comma joining — Hebrew uses "ו-" as conjunction
+<p>Pets: {pets.join(', ')}</p>
+```
+
+**Correct:**
+```tsx
+const { formatList } = useFormatting();
+// Produces "Max, Bella, and Charlie" (en) or "מקס, בלה ו-צ'רלי" (he)
+<p>Pets: {formatList(pets)}</p>
+```
+
+### Never call `toLocaleString` directly
+
+**Incorrect:**
+```tsx
+// Hardcodes locale string, bypasses app-wide locale setting
+const formatted = number.toLocaleString('he-IL');
+```
+
+**Correct:**
+```tsx
+const { formatNumber } = useFormatting();
+// Automatically uses the app's current locale
+const formatted = formatNumber(number);
+```
+
+**Key rules:**
+- Use `t('key', \{ variable \})` with ICU MessageFormat placeholders instead of string concatenation or template literals
+- Use `useFormatting()` hooks (`formatILS`, `formatList`, `formatNumber`, `formatPercent`) instead of hardcoded symbols or manual formatting
+- Never call `.join()` on arrays for user-facing list display — use `formatList()` or `formatListOr()` which handle locale-specific conjunctions
+- Never call `toLocaleString()` directly — it bypasses the app's locale management and cannot react to language changes
+
+Reference: `references/formatting-utilities.md` (lines 132-167)
+
+
+### Use ICU plural rules to handle complex plural forms across all locales correctly — HIGH
+
+
+## i18n: ICU Plural Rules
+
+ICU MessageFormat provides locale-aware pluralization via `\{variable, plural, ...\}` syntax in translation files. Hardcoding plural logic in JavaScript with ternaries or conditionals only works for English (`one`/`other`) and breaks for languages with more plural categories — Hebrew has a dual form, Arabic has six forms (zero, one, two, few, many, other).
+
+### Never use conditional logic in code for plurals
+
+**Incorrect:**
+```tsx
+// Ternary pluralization — only handles English
+const message = count === 0
+  ? 'No items'
+  : count === 1
+    ? '1 item'
+    : `${count} items`;
+
+// Conditional with template literal — same problem
+const label = `${count} patient${count !== 1 ? 's' : ''}`;
+```
+
+**Correct:**
+```tsx
+// Translation file (en.json):
+// "items": "{count, plural, =0 {No items} one {# item} other {# items}}"
+// "patients": "{count, plural, =0 {No patients} one {# patient} other {# patients}}"
+
+import { useTranslation } from 'react-i18next';
+
+function PatientCount({ count }) {
+  const { t } = useTranslation();
+  // ICU handles plural category selection per locale
+  return <span>{t('patients', { count })}</span>;
+}
+```
+
+### Always include the `other` category
+
+Every ICU plural message MUST include the `other` case. It is the mandatory fallback category used by all locales. Omitting it causes runtime errors or blank output for unmatched counts.
+
+**Incorrect:**
+```json
+{
+  "items": "{count, plural, =0 {None} one {One item}}"
+}
+```
+
+**Correct:**
+```json
+{
+  "items": "{count, plural, =0 {None} one {One item} other {# items}}"
+}
+```
+
+### Handle locale-specific plural categories and `=0` for zero states
+
+Hebrew uses a `two` (dual) form. Arabic uses `zero`, `one`, `two`, `few`, `many`, and `other`. The `=0` exact-match takes priority over the `zero` category and works across all locales.
+
+```json
+// Hebrew (he.json) — includes dual form:
+{ "items": "{count, plural, =0 {אין פריטים} one {פריט #} two {# פריטים} other {# פריטים}}" }
+
+// English — use =0 for empty states:
+{ "appointments": "{count, plural, =0 {No upcoming appointments} one {# appointment} other {# appointments}}" }
+```
+
+**Key rules:**
+- Never use ternaries, conditionals, or template literals for pluralization — always use ICU `\{count, plural, ...\}` in translation files
+- Every `plural` message must include the `other` category as a mandatory fallback
+- Provide locale-specific categories (`two` for Hebrew, `few`/`many` for Arabic, Slavic languages) in the respective translation files
+- Use `=0` exact match for zero/empty states instead of relying on the `zero` plural category
+
+Reference: `references/ork-delta.md` for the house ICU decisions (i18next-icu plugin, ILS currency skeleton, formatOrdinal over selectordinal). Full ICU grammar: https://formatjs.github.io/docs/core-concepts/icu-syntax/ . Per-locale plural categories: https://cldr.unicode.org/index/cldr-spec/plural-rules
+
+
+### Use the Trans component for JSX-embedded translations that preserve locale word order — HIGH
+
+
+## i18n: Trans Component
+
+The `&lt;Trans&gt;` component from `react-i18next` embeds React elements (links, bold, icons) inside translated strings. Without it, developers split translations around JSX — breaking word order in other locales — or resort to `dangerouslySetInnerHTML`, which introduces XSS vulnerabilities.
+
+### Never concatenate translated strings with JSX between them
+
+**Incorrect:**
+```tsx
+// Splitting translation around JSX — word order breaks in RTL/other locales
+<p>{t('welcome')} <strong>{userName}</strong> {t('toDashboard')}</p>
+```
+
+**Correct:**
+```tsx
+import { Trans } from 'react-i18next';
+
+// Translation: "Welcome <strong>{{name}}</strong> to the dashboard!"
+<Trans
+  i18nKey="welcomeUser"
+  values={{ name: userName }}
+  components={{ strong: <strong className="font-bold" /> }}
+/>
+```
+
+### Never use dangerouslySetInnerHTML for rich translated text
+
+**Incorrect:**
+```tsx
+<p dangerouslySetInnerHTML={{ __html: t('richContent') }} /> // XSS risk!
+```
+
+**Correct:**
+```tsx
+<Trans i18nKey="richContent" components={{ bold: <strong />, link: <a href="/help" /> }} />
+```
+
+### Prefer named components over indexed tags
+
+**Incorrect:**
+```tsx
+// Indexed tags — fragile, order-dependent
+// Translation: "Click <0>here</0> to <1>learn more</1>."
+<Trans i18nKey="simple" components={[
+  <a href="/action" />, <span className="font-bold" />
+]} />
+```
+
+**Correct:**
+```tsx
+// Named tags — self-documenting, order-independent
+// Translation: "Click <link>here</link> to <bold>learn more</bold>."
+<Trans i18nKey="simple" components={{
+  link: <a href="/action" />,
+  bold: <span className="font-bold" />
+}} />
+```
+
+**Key rules:**
+- Never split a sentence across multiple `t()` calls with JSX between them — use a single `&lt;Trans&gt;` with `components` mapping
+- Never use `dangerouslySetInnerHTML` for rich translated text — `&lt;Trans&gt;` provides safe component interpolation
+- Prefer named component tags (`&lt;link&gt;`, `&lt;bold&gt;`) over indexed tags (`&lt;0&gt;`, `&lt;1&gt;`) in translation strings
+- Use `t()` for plain text and `&lt;Trans&gt;` only when JSX elements must appear inside the translated string
+
+Reference: `references/ork-delta.md` for the plural-plus-rich-text ordering constraint. Full `&lt;Trans&gt;` API: https://react.i18next.com/latest/trans-component
+
+
+
+---
+
+## References (2)
+
+### Formatting Utilities
+
+# Formatting Utilities Reference
+
+## Overview
+
+This reference documents the `useFormatting` hook and related formatting utilities for locale-aware data display in the application React components.
+
+**Primary Source:** `frontend/src/hooks/useFormatting.ts`
+**Implementation:** `frontend/src/lib/formatting.ts`
+**Standards Doc:** `docs/i18n-standards.md`
+
+---
+
+## useFormatting Hook
+
+The `useFormatting` hook provides locale-aware formatting functions that automatically re-render when the language changes.
+
+### Basic Usage
+
+```tsx
+import { useFormatting } from '@/hooks';
+
+function MyComponent() {
+  const {
+    formatILS,
+    formatList,
+    formatListOr,
+    formatOrdinal,
+    formatDuration,
+    formatRelativeTime,
+    formatPercent,
+    formatWeight,
+    isRTL,
+    locale
+  } = useFormatting();
+
+  return (
+    <div dir={isRTL ? 'rtl' : 'ltr'}>
+      <p>Price: {formatILS(1500)}</p>
+      <p>Pets: {formatList(['Max', 'Bella', 'Charlie'])}</p>
+      <p>Position: {formatOrdinal(3)}</p>
+    </div>
+  );
+}
+```
+
+---
+
+## Available Formatters
+
+### Currency Formatting
+
+| Function | Purpose | Hebrew Output | English Output |
+|----------|---------|---------------|----------------|
+| `formatILS(amount)` | Israeli Shekel with locale | `₪1,234.56` | `$1,234.56` |
+| `formatCurrency(amount, code)` | Any currency | Varies | Varies |
+
+```tsx
+formatILS(1500)      // → "₪1,500.00" (he) / "$1,500.00" (en)
+formatCurrency(99.99, 'EUR') // → "€99.99"
+```
+
+### Number Formatting
+
+| Function | Purpose | Example |
+|----------|---------|---------|
+| `formatNumber(n)` | Locale-aware number | `1,234.56` |
+| `formatPercent(n)` | Percentage | `85%` |
+| `formatCompact(n)` | Compact notation | `1.5K` |
+| `formatWeight(n)` | Weight with units | `5.5 kg` / `5.5 ק"ג` |
+| `formatDecimal(n, places)` | Fixed decimal places | `3.14` |
+
+```tsx
+formatPercent(0.85)   // → "85%"
+formatCompact(1500)   // → "1.5K"
+formatWeight(5.5)     // → "5.5 kg" (en) / '5.5 ק"ג' (he)
+```
+
+### List Formatting
+
+| Function | Purpose | Hebrew Output | English Output |
+|----------|---------|---------------|----------------|
+| `formatList(items)` | "and" conjunction | `א, ב ו-ג` | `a, b, and c` |
+| `formatListOr(items)` | "or" conjunction | `א, ב או ג` | `a, b, or c` |
+| `formatListUnits(items)` | Unit list | `א, ב, ג` | `a, b, c` |
+
+```tsx
+formatList(['Max', 'Bella', 'Charlie'])
+// → "Max, Bella, and Charlie" (en)
+// → "מקס, בלה ו-צ'רלי" (he)
+
+formatListOr(['dog', 'cat'])
+// → "dog or cat" (en)
+// → "כלב או חתול" (he)
+```
+
+### Time Formatting
+
+| Function | Purpose | Example |
+|----------|---------|---------|
+| `formatRelativeTime(date)` | Time ago/until | `2 days ago` |
+| `formatTimeUntil(date)` | Time until future | `in 3 hours` |
+| `formatTimeSince(date)` | Time since past | `5 minutes ago` |
+| `formatDuration(seconds)` | Human-readable duration | `1 hr 30 min` |
+| `formatDurationClock(seconds)` | Clock format | `01:30:00` |
+
+```tsx
+formatRelativeTime(yesterday)  // → "yesterday" / "אתמול"
+formatDuration(3661)           // → "1 hr 1 min 1 sec"
+```
+
+### Ordinal Formatting
+
+| Function | Purpose | Hebrew Output | English Output |
+|----------|---------|---------------|----------------|
+| `formatOrdinal(n)` | Ordinal number | `3.` | `3rd` |
+| `formatPosition(n)` | Position label | `מקום 3` | `3rd place` |
+
+```tsx
+formatOrdinal(1)   // → "1st" (en) / "1." (he)
+formatOrdinal(3)   // → "3rd" (en) / "3." (he)
+formatOrdinal(22)  // → "22nd" (en) / "22." (he)
+```
+
+### Date Range Formatting
+
+| Function | Purpose | Example |
+|----------|---------|---------|
+| `formatDateRange(start, end)` | Date range | `Jan 5 – 10, 2026` |
+
+---
+
+## Anti-Patterns
+
+### ❌ NEVER use `.join()` for user-facing lists
+
+```tsx
+// ❌ WRONG
+const pets = ['Max', 'Bella', 'Charlie'];
+<p>Pets: {pets.join(', ')}</p>
+
+// ✅ CORRECT
+const { formatList } = useFormatting();
+<p>Pets: {formatList(pets)}</p>
+```
+
+### ❌ NEVER hardcode currency symbols
+
+```tsx
+// ❌ WRONG
+<p>Price: ₪{price}</p>
+<p>Price: ${price.toFixed(2)}</p>
+
+// ✅ CORRECT
+const { formatILS } = useFormatting();
+<p>Price: {formatILS(price)}</p>
+```
+
+### ❌ NEVER use toLocaleString directly
+
+```tsx
+// ❌ WRONG
+const formatted = number.toLocaleString('he-IL');
+
+// ✅ CORRECT
+const { formatNumber } = useFormatting();
+const formatted = formatNumber(number);
+```
+
+---
+
+## Integration with useTranslation
+
+The `useFormatting` hook complements `useTranslation`:
+
+```tsx
+import { useTranslation } from 'react-i18next';
+import { useFormatting } from '@/hooks';
+
+function InvoiceSummary({ total, items }) {
+  const { t } = useTranslation('invoices');
+  const { formatILS, formatList } = useFormatting();
+
+  return (
+    <div>
+      <h2>{t('summary.title')}</h2>
+      <p>{t('summary.total')}: {formatILS(total)}</p>
+      <p>{t('summary.items')}: {formatList(items.map(i => i.name))}</p>
+    </div>
+  );
+}
+```
+
+---
+
+## Locale Properties
+
+```tsx
+const { locale, isRTL } = useFormatting();
+
+// locale: 'he-IL' | 'en-US'
+// isRTL: true (Hebrew) | false (English)
+```
+
+---
+
+**Last Updated**: 2026-01-06
+
+
+### Ork Delta
+
+# i18n and Date Patterns Skill: OrchestKit Delta
+
+Ork-specific house decisions and working config for `src/skills/i18n-date-patterns`.
+Vendor mechanics (the full ICU MessageFormat grammar, the react-i18next `&lt;Trans&gt;` API
+surface, per-locale CLDR plural category tables) are deliberately not restated here.
+See "Upstream coverage (do not restate)" in SKILL.md for the first-party source that
+owns each removed topic. The house subset of the ICU plural and `&lt;Trans&gt;` rules did
+not move: it still lives in `rules/i18n-icu-plurals.md` and `rules/i18n-trans-component.md`.
+
+## Load ICU support through the i18next-icu plugin, not i18next suffix keys
+Why: House config, distilled from the retired `icu-messageformat.md`, which
+pinned `i18next-icu v2.4.1` as the runtime that parses these messages; no traced incident.
+This matters because everything else in the skill assumes ICU syntax is live: every
+`\{count, plural, ...\}` string in `rules/i18n-icu-plurals.md`, the `=0` zero states in
+`checklists/i18n-checklist.md`, and the plural example in `examples/component-i18n-example.md`
+are inert text under a plain i18next install, which resolves plurals through `_one` / `_other`
+key suffixes instead. Suffix keys also cannot express Hebrew's dual or Arabic's six
+categories, which is the reason this skill chose ICU in the first place (SKILL.md
+"Key Decisions", Message Format row).
+Upstream: https://github.com/i18next/i18next-icu
+
+## Write money inside an ICU message as the ILS currency skeleton
+Why: House currency decision. `rules/i18n-formatting-antipatterns.md` bans a literal
+shekel sign in JSX and routes code-side money through `formatILS()` from `useFormatting`
+(`references/formatting-utilities.md`). The retired `icu-messageformat.md`
+carried the matching in-message form, `\{amount, number, ::currency/ILS\}`, and it is the
+only variant that keeps the two paths agreeing: a bare `\{amount, number\}` inside a message
+formats the digits and silently drops the currency, which pushes the author straight back
+to concatenating the symbol the rule forbids. Distilled from the retired file; no traced
+incident.
+Upstream: https://unicode-org.github.io/icu/userguide/format_parse/numbers/skeletons.html
+
+## Keep ICU plural branches inside the Trans i18nKey and map each tag once
+Why: Ordering constraint recovered from the retired `trans-component.md`;
+no traced incident. When a message is both pluralized and rich, ICU picks the plural
+branch first and `&lt;Trans&gt;` maps component tags afterwards, so every branch of the message
+has to repeat the same tag names (`&lt;bold&gt;` in the `=0`, `one` and `other` arms alike) and
+`count` has to arrive via `values`, not as a prop. One `components` map then covers all
+branches. The tempting alternative, choosing the plural in JSX and wrapping each outcome
+in its own `&lt;Trans&gt;`, re-creates exactly the split-sentence word-order break that
+`rules/i18n-trans-component.md` exists to stop in RTL locales.
+Upstream: https://react.i18next.com/latest/trans-component
+
+## Format a standalone ordinal with formatOrdinal, not a hand-written selectordinal ladder
+Why: House decision recorded in SKILL.md's Quick Reference and in
+`references/formatting-utilities.md`: ordinals come from `formatOrdinal()` in
+`useFormatting`, which reads the app's current locale, the same way `formatList` and
+`formatNumber` do. The retired `icu-messageformat.md` taught the alternative,
+`\{position, selectordinal, one \{#st\} two \{#nd\} few \{#rd\} other \{#th\}\}`, whose `st`/`nd`/`rd`/`th`
+suffixes are hardcoded English and go wrong the moment the app renders `he`. Reach for
+`selectordinal` only when the ordinal sits inside a translated sentence, and then write the
+suffix branches separately in each locale file. Distilled from the retired file; no traced
+incident.
+Upstream: https://formatjs.github.io/docs/core-concepts/icu-syntax/
+
+
+
+---
+
+## Checklists (1)
+
+### I18n Checklist
+
+# i18n Implementation Checklist
+
+Use this checklist when adding or reviewing i18n in the application components.
+
+---
+
+## New Component Checklist
+
+### UI Strings
+
+- [ ] Import `useTranslation` from `react-i18next`
+- [ ] All visible text uses `t('namespace:key')` function
+- [ ] No hardcoded Hebrew strings (e.g., `מטופלים`)
+- [ ] No hardcoded English strings (e.g., `Save`, `Cancel`)
+- [ ] Translation keys added to both `en/*.json` and `he/*.json`
+- [ ] Key naming follows convention: `category.subcategory.action`
+
+### Formatting
+
+- [ ] Import `useFormatting` from `@/hooks` for locale-aware data
+- [ ] Currency uses `formatILS()` not `₪$\{price\}`
+- [ ] Lists use `formatList()` not `.join(', ')`
+- [ ] Ordinals use `formatOrdinal()` not hardcoded suffixes
+- [ ] Percentages use `formatPercent()` not `$\{n\}%`
+
+### Dates & Times
+
+- [ ] Import from `@/lib/dates`, not `dayjs` directly
+- [ ] No `new Date().toLocaleDateString()`
+- [ ] No hardcoded date formats (e.g., `DD/MM/YYYY`)
+- [ ] Use appropriate helper: `formatDate`, `formatDateShort`, `formatFullDate`
+- [ ] Wait times use `calculateWaitTime()`
+
+### Pluralization
+
+- [ ] Complex plurals use ICU MessageFormat in translation files
+- [ ] No conditional ternary logic for plural forms in code
+- [ ] Hebrew dual forms (two) handled when applicable
+- [ ] All plural keys include `other` case
+
+### Rich Text
+
+- [ ] Embedded components use `&lt;Trans&gt;` component
+- [ ] No string concatenation with JSX
+- [ ] No `dangerouslySetInnerHTML` for translated content
+
+### RTL Support
+
+- [ ] Component respects `isRTL` for directional styling
+- [ ] Text alignment adapts to locale
+- [ ] Icons/arrows flip appropriately in RTL
+
+---
+
+## Code Review Checklist
+
+### Forbidden Patterns
+
+- [ ] ❌ No `.join(', ')` for user-facing lists
+- [ ] ❌ No `console.log` statements in production code
+- [ ] ❌ No hardcoded currency symbols (`₪`, `$`)
+- [ ] ❌ No `new Date()` for formatting
+- [ ] ❌ No inline locale strings (`דקות`, `minutes`)
+- [ ] ❌ No conditional pluralization in code
+
+### Required Patterns
+
+- [ ] ✅ `useTranslation` hook present
+- [ ] ✅ `useFormatting` hook for locale-sensitive data
+- [ ] ✅ All translation keys exist in both locales
+- [ ] ✅ Component tested with language switch
+
+---
+
+## Migration Checklist (Existing Component)
+
+When updating a component to use proper i18n:
+
+1. [ ] Identify all hardcoded strings
+2. [ ] Create translation keys in appropriate namespace
+3. [ ] Add translations to `en/*.json` and `he/*.json`
+4. [ ] Replace hardcoded strings with `t()` calls
+5. [ ] Replace `.join()` with `formatList()`
+6. [ ] Replace date formatting with `@/lib/dates` helpers
+7. [ ] Replace currency with `formatILS()`
+8. [ ] Remove any `console.log` statements
+9. [ ] Test language switching
+10. [ ] Test RTL layout (if applicable)
+
+---
+
+## Quality Metrics
+
+| Metric | Target | How to Check |
+|--------|--------|--------------|
+| Components with `useTranslation` | 100% | `grep -r "useTranslation" --include="*.tsx"` |
+| Components with `useFormatting` | 80%+ | `grep -r "useFormatting" --include="*.tsx"` |
+| Console.log statements | 0 | `grep -r "console.log" --include="*.tsx"` |
+| Hardcoded `.join()` | 0 | `grep -r "\.join(" --include="*.tsx"` |
+| Raw `dayjs().format()` | 0 | `grep -r "dayjs().format" --include="*.tsx"` |
+
+---
+
+**Last Updated**: 2026-01-06
+
+
+
+---
+
+## Examples (1)
+
+### Component I18n Example
+
+# Component i18n Example
+
+## Complete Example: Invoice Summary Component
+
+This example demonstrates all i18n patterns in a single component.
+
+### Before (Anti-Patterns)
+
+```tsx
+// ❌ WRONG: Multiple i18n anti-patterns
+function InvoiceSummary({ invoice }) {
+  const items = invoice.items.map(i => i.name);
+  const dueDate = new Date(invoice.dueDate);
+  
+  console.log('Rendering invoice:', invoice.id); // ❌ console.log
+  
+  return (
+    <div>
+      <h2>Invoice Summary</h2> {/* ❌ Hardcoded string */}
+      <p>Total: ₪{invoice.total.toFixed(2)}</p> {/* ❌ Hardcoded currency */}
+      <p>Items: {items.join(', ')}</p> {/* ❌ .join() for list */}
+      <p>Due: {dueDate.toLocaleDateString('he-IL')}</p> {/* ❌ Raw Date */}
+      <p>
+        {invoice.itemCount === 1 ? '1 item' : `${invoice.itemCount} items`} {/* ❌ Inline plural */}
+      </p>
+      <p>Position: {invoice.priority}st</p> {/* ❌ Hardcoded ordinal */}
+    </div>
+  );
+}
+```
+
+### After (Correct Patterns)
+
+```tsx
+// ✅ CORRECT: All i18n patterns properly implemented
+import { useTranslation, Trans } from 'react-i18next';
+import { useFormatting } from '@/hooks';
+import { formatDate } from '@/lib/dates';
+
+function InvoiceSummary({ invoice }) {
+  const { t } = useTranslation('invoices');
+  const { formatILS, formatList, formatOrdinal } = useFormatting();
+  
+  const itemNames = invoice.items.map(i => i.name);
+  
+  return (
+    <div>
+      <h2>{t('summary.title')}</h2>
+      
+      {/* Currency formatting */}
+      <p>{t('summary.total')}: {formatILS(invoice.total)}</p>
+      
+      {/* List formatting */}
+      <p>{t('summary.items')}: {formatList(itemNames)}</p>
+      
+      {/* Date formatting */}
+      <p>{t('summary.dueDate')}: {formatDate(invoice.dueDate)}</p>
+      
+      {/* ICU plural (in translation file) */}
+      <p>{t('summary.itemCount', { count: invoice.itemCount })}</p>
+      
+      {/* Ordinal formatting */}
+      <p>{t('summary.priority')}: {formatOrdinal(invoice.priority)}</p>
+      
+      {/* Rich text with Trans */}
+      <Trans
+        i18nKey="invoices:summary.paymentNote"
+        values={{ amount: formatILS(invoice.total) }}
+        components={{ bold: <strong className="font-semibold" /> }}
+      />
+    </div>
+  );
+}
+```
+
+### Translation Files
+
+**en/invoices.json:**
+```json
+{
+  "summary": {
+    "title": "Invoice Summary",
+    "total": "Total",
+    "items": "Items",
+    "dueDate": "Due Date",
+    "itemCount": "{count, plural, =0 {No items} one {# item} other {# items}}",
+    "priority": "Priority",
+    "paymentNote": "Please pay <bold>{{amount}}</bold> by the due date."
+  }
+}
+```
+
+**he/invoices.json:**
+```json
+{
+  "summary": {
+    "title": "סיכום חשבונית",
+    "total": "סה״כ",
+    "items": "פריטים",
+    "dueDate": "תאריך יעד",
+    "itemCount": "{count, plural, =0 {אין פריטים} one {פריט #} two {# פריטים} other {# פריטים}}",
+    "priority": "עדיפות",
+    "paymentNote": "אנא שלם <bold>{{amount}}</bold> עד תאריך היעד."
+  }
+}
+```
+
+---
+
+## Pattern Summary
+
+| Pattern | Wrong | Correct |
+|---------|-------|---------|
+| Strings | `"Invoice"` | `t('invoices:title')` |
+| Currency | `₪$\{total\}` | `formatILS(total)` |
+| Lists | `items.join(', ')` | `formatList(items)` |
+| Dates | `date.toLocaleDateString()` | `formatDate(date)` |
+| Plurals | `count === 1 ? 'item' : 'items'` | `t('key', \{ count \})` |
+| Ordinals | `$\{n\}st` | `formatOrdinal(n)` |
+| Rich text | String concat with JSX | `&lt;Trans&gt;` component |
+| Debug | `console.log()` | Remove before commit |
+
+---
+
+**Last Updated**: 2026-01-06
+

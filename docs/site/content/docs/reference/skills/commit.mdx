@@ -1,0 +1,1063 @@
+---
+title: "Commit"
+description: "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Requires an explicit request naming this skill; plain `git commit` during normal work stays a bare CLI call. Use when committing changes or generating commit messages."
+---
+
+<span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
+
+```bash title="Invoke"
+/ork:commit
+```
+
+<ContextualSkillSidebar slug="commit" />
+
+> **Commit** Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Requires an explicit request naming this skill; plain `git commit` during normal work stays a bare CLI call.
+
+
+# Smart Commit
+
+Simple, validated commit creation. Run checks locally, no agents needed for standard commits.
+
+> **Note:** If `disableSkillShellExecution` is enabled (CC 2.1.91), the git repository check won't run. This skill requires a git repository.
+
+## Quick Start
+
+```bash
+/ork:commit
+/ork:commit fix typo in auth module
+```
+
+## Argument Resolution
+
+```python
+COMMIT_MSG = "$ARGUMENTS"  # Optional commit message, e.g., "fix typo in auth module"
+# If provided, use as commit message. If empty, generate from staged changes.
+# $ARGUMENTS[0] is the first token (CC 2.1.59 indexed access)
+```
+
+## STEP 0: Choose Commit Mode (AskUserQuestion — M118 #1465)
+
+Default is "new commit", but voice-flow needs explicit choice when amend / push / stash is wanted:
+
+```python
+# Skip when a flag in the invocation makes the mode unambiguous:
+#   /ork:commit --amend  → skip, mode=amend
+#   /ork:commit --push   → skip, mode=new+push
+#   /ork:commit --stash  → skip, mode=stash-first
+#   ORK_COMMIT_DEFAULT_MODE=new (or amend|push|stash) → skip, use env value
+#
+# Otherwise, ask:
+AskUserQuestion(questions=[{
+  "question": "How should this commit land?",
+  "header": "Commit mode",
+  "options": [
+    {"label": "New commit (default)", "description": "Create a new commit, leave HEAD intact"},
+    {"label": "Amend HEAD", "description": "Fold staged changes into the last commit (LOCAL ONLY — refuses if HEAD is published)"},
+    {"label": "New commit + push", "description": "Commit then `git push` (refuses on protected branches)"},
+    {"label": "Stash first", "description": "Stash unrelated working-tree changes, then commit only what was already staged"}
+  ]
+}])
+```
+
+**Mode-specific guards:**
+
+- **Amend HEAD** — verify HEAD is not on origin (`git rev-list HEAD..origin/&lt;branch&gt;` empty); if it is published, refuse and recommend "New commit" instead.
+- **New commit + push** — re-check the protected-branch rule from Phase 1 before pushing; if HEAD's branch is `main`/`master`/`dev`, abort.
+- **Stash first** — `git stash push -k -m "ork:commit autostash"` (keep-index), commit, then `git stash pop` after push success.
+
+## Workflow
+
+### Phase 1: Pre-Commit Safety Check
+
+```bash
+# CRITICAL: Verify we're not on dev/main
+BRANCH=$(git branch --show-current)
+if [[ "$BRANCH" == "dev" || "$BRANCH" == "main" || "$BRANCH" == "master" ]]; then
+  echo "STOP! Cannot commit directly to $BRANCH"
+  echo "Create a feature branch: git checkout -b issue/<number>-<description>"
+  exit 1
+fi
+```
+
+### Phase 2: Run Validation Locally
+
+Run every check that CI runs:
+
+```bash
+# Backend (Python)
+poetry run ruff format --check app/
+poetry run ruff check app/
+poetry run mypy app/
+
+# Frontend (Node.js)
+npm run format:check
+npm run lint
+npm run typecheck
+```
+
+Fix any failures before proceeding.
+
+### Phase 3: Review Changes
+
+```bash
+git status
+git diff --staged   # What will be committed
+git diff            # Unstaged changes
+```
+
+### Phase 3b: Agent Attribution (automatic)
+
+Before committing, check for the branch activity ledger at `.claude/agents/activity/\{branch\}.jsonl`.
+If it exists and has entries since the last commit, include them in the commit message:
+
+1. Read `.claude/agents/activity/\{branch\}.jsonl` (one JSON object per line)
+2. Filter entries where `ts` is after the last commit timestamp (`git log -1 --format=%cI`)
+3. Skip agents with `duration_ms &lt; 5000` (advisory-only agents go in PR, not commits)
+4. Add an **"Agents Involved:"** section between the commit body and the Co-Authored-By trailer
+5. Add per-agent `Co-Authored-By` trailers: `Co-Authored-By: ork:\{agent\} &lt;noreply@orchestkit.dev&gt;`
+
+If the ledger doesn't exist or is empty, skip this step — commit normally.
+
+### Phase 4: Stage and Commit
+
+> **CC 2.1.113 idiom:** Multi-line Bash with leading `# intent:` comments now shows the full command in the transcript — prefix complex scripts with a one-line intent comment so future readers (and `/recap` scans) can grep the transcript for what happened without re-reading the diff.
+
+```bash
+# intent: stage the hook change + its test + built artifacts
+# Stage files
+git add <files>
+# Or all: git add .
+
+# Commit with conventional format (with agent attribution if ledger exists)
+git commit -m "<type>(#<issue>): <brief description>
+
+- [Change 1]
+- [Change 2]
+
+Agents Involved:
+  backend-system-architect — API design + data models (2m14s)
+  security-auditor — Dependency audit (0m42s)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+Co-Authored-By: ork:backend-system-architect <noreply@orchestkit.dev>
+Co-Authored-By: ork:security-auditor <noreply@orchestkit.dev>"
+
+# Verify
+git log -1 --stat
+```
+
+> **CC 2.1.183 — `attribution.sessionUrl`:** In web and Remote Control sessions, CC appends a claude.ai session link to commit/PR attribution. Set `attribution.sessionUrl: false` (`/config attribution.sessionUrl=false`) to omit it — useful for public repos where the session link should not leak. The `Co-Authored-By` trailers above are unaffected.
+
+### Handoff File
+
+After successful commit, write handoff:
+
+```python
+Write(".claude/chain/committed.json", JSON.stringify({
+  "phase": "commit", "sha": "<commit-sha>",
+  "message": "<commit-message>", "branch": "<branch>",
+  "files": [<staged-files>]
+}))
+```
+
+## Commit Types
+
+| Type | Use For |
+|------|---------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `refactor` | Code improvement |
+| `docs` | Documentation |
+| `test` | Tests only |
+| `chore` | Build/deps/CI |
+
+## Quick Rules
+
+1. **Run validation locally** - Don't spawn agents to run lint/test
+2. **NO file creation** - Don't create MD files or documentation
+3. **One logical change per commit** - Keep commits focused
+4. **Reference issues** - Use `#123` format in commit message
+5. **Subject line &lt; 72 chars** - Keep it concise
+
+## Quick Commit
+
+For trivial changes (typos, single-line fixes):
+
+```bash
+git add . && git commit -m "fix(#123): Fix typo in error message
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+## Verification Gate
+
+Before committing, apply the 5-step gate: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rules/verification-gate.md")`. Run tests fresh. Read the output. Only commit if tests pass. "Should be fine" is not evidence.
+
+## Quality Bar
+
+Done means all of these hold:
+- Commit landed on a feature branch, never dev/main/master (Phase 1 guard held)
+- Subject uses a conventional type (feat/fix/docs/refactor/test/chore) matching the diff content, &lt;=72 chars
+- Issue reference (#N) present in the message whenever HEAD is on an issue branch
+- Local validation for the touched stack (lint/type/test) ran and passed before the commit
+- `Co-Authored-By: Claude` trailer present; per-agent trailers added only when the activity ledger has post-last-commit entries
+- `git log -1 --stat` shows exactly the intended files, no secrets and no generated-only-noise commit
+
+## Related Skills
+- `ork:create-pr`: Create pull requests from commits
+- `ork:review-pr`: Review changes before committing
+- `ork:fix-issue`: Fix issues and commit the fixes
+- `ork:issue-progress-tracking`: Auto-updates GitHub issues with commit progress
+
+## Rules
+
+Each category has individual rule files in `rules/` loaded on-demand:
+
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| Atomic Commits | `$\{CLAUDE_PLUGIN_ROOT\}/skills/commit/rules/atomic-commit.md` | CRITICAL | One logical change per commit, atomicity test |
+| Branch Protection | `$\{CLAUDE_PLUGIN_ROOT\}/skills/commit/rules/branch-protection.md` | CRITICAL | Protected branches, required PR workflow |
+| Commit Splitting | `$\{CLAUDE_PLUGIN_ROOT\}/skills/commit/rules/commit-splitting.md` | HIGH | `git add -p`, interactive staging, separation strategies |
+| Conventional Format | `$\{CLAUDE_PLUGIN_ROOT\}/skills/commit/rules/conventional-format.md` | HIGH | type(scope): description, breaking changes |
+| History Hygiene | `$\{CLAUDE_PLUGIN_ROOT\}/skills/commit/rules/history-hygiene.md` | HIGH | Squash WIP, fixup commits, clean history |
+| Issue Reference | `$\{CLAUDE_PLUGIN_ROOT\}/skills/commit/rules/issue-reference-required.md` | HIGH | Reference issue `#N` in commits on issue branches |
+| Merge Strategy | `$\{CLAUDE_PLUGIN_ROOT\}/skills/commit/rules/merge-strategy.md` | HIGH | Rebase-first, conflict resolution, force-with-lease |
+| Stacked PRs | `$\{CLAUDE_PLUGIN_ROOT\}/skills/commit/rules/stacked-pr-workflow.md` | HIGH | Stack planning, PR creation, dependency tracking |
+| Stacked PRs | `$\{CLAUDE_PLUGIN_ROOT\}/skills/commit/rules/stacked-pr-rebase.md` | HIGH | Rebase management, force-with-lease, retargeting |
+
+**Total: 9 rules across 8 categories**
+
+## References
+
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/commit/references/&lt;file&gt;")`:
+| File | Content |
+|------|---------|
+| `references/conventional-commits.md` | Conventional commits specification |
+| `references/recovery.md` | Recovery procedures |
+
+---
+
+## Rules (9)
+
+### Create atomic commits that bundle one logical change for safe revert and bisect — CRITICAL
+
+
+## Atomic Commit Rules
+
+A commit is atomic when it contains exactly ONE logical change that can be understood, reviewed, and reverted independently.
+
+### The Atomicity Test
+
+A commit is atomic if ALL of these are true:
+
+```
+[x] Does ONE logical thing
+[x] Leaves the codebase in a working state (tests pass)
+[x] Commit message doesn't need "and" in the title
+[x] Can be reverted independently without breaking other features
+[x] A reviewer can understand the full change without external context
+```
+
+### Detection Heuristics
+
+**Directory Spread** — Changes spanning unrelated directories signal mixed concerns:
+
+```
+# ATOMIC: Related files in same domain
+src/auth/login.ts
+src/auth/login.test.ts
+src/auth/types.ts
+
+# NOT ATOMIC: Unrelated directories
+src/auth/login.ts        ← auth feature
+src/billing/invoice.ts   ← billing feature
+config/webpack.config.js ← build config
+```
+
+**Commit Type Mixing** — A single commit shouldn't mix types:
+
+```
+# NOT ATOMIC: feat + fix in one commit
+feat: Add user dashboard
+fix: Resolve login timeout     ← separate commit
+
+# NOT ATOMIC: feat + chore in one commit
+feat: Add API caching
+chore: Update eslint config     ← separate commit
+```
+
+**File Count Threshold** — More than 10 staged files warrants inspection. Not always wrong, but should be verified:
+
+```
+# OK: 15 files, all test fixtures for one feature
+tests/fixtures/user-*.json (15 files)
+
+# NOT OK: 12 files across 6 unrelated modules
+```
+
+**"And" Test** — If describing the commit requires "and", it's two commits:
+
+```
+# Fails "and" test → split it
+"Add user authentication AND fix logging format"
+
+# Passes "and" test → atomic
+"Add JWT token validation for login endpoint"
+```
+
+### Common Atomic Patterns
+
+| Pattern | Files | Why Atomic |
+|---------|-------|------------|
+| Feature + its tests | `feature.ts` + `feature.test.ts` | Tests validate the feature |
+| Migration + model update | `migration.sql` + `model.ts` | Schema change is one concern |
+| Refactor across files | Multiple files, same pattern | One refactoring decision |
+| Config change | `.env.example` + `config.ts` | One configuration concern |
+| Dependency update | `package.json` + `package-lock.json` | One dependency decision |
+
+### Common Non-Atomic Patterns
+
+| Pattern | Problem | Fix |
+|---------|---------|-----|
+| Feature + unrelated fix | Two concerns | Two separate commits |
+| Code change + formatting | Formatting is noise | Format first, then change |
+| Multiple features | Can't revert independently | One commit per feature |
+| Feature + config change | Different review concerns | Separate unless config IS the feature |
+
+**Incorrect — non-atomic commit mixing concerns:**
+```bash
+# Mixed commit spanning unrelated areas
+git add src/auth/login.ts \
+        src/billing/invoice.ts \
+        config/webpack.config.js
+git commit -m "feat: Add login AND fix invoice AND update webpack"
+# Three unrelated changes - can't revert independently!
+```
+
+**Correct — atomic commits with single concerns:**
+```bash
+# Commit 1: Auth feature + its tests (related)
+git add src/auth/login.ts src/auth/login.test.ts
+git commit -m "feat(#123): Add JWT token validation for login endpoint"
+
+# Commit 2: Billing feature + its tests (related)
+git add src/billing/invoice.ts src/billing/invoice.test.ts
+git commit -m "feat(#124): Add invoice generation service"
+
+# Commit 3: Config change (separate concern)
+git add config/webpack.config.js
+git commit -m "chore: Update webpack for tree shaking"
+```
+
+### Key Rules
+
+- One logical change per commit — if you say "and", split it
+- Tests belong with the code they test — same commit
+- Formatting/linting changes are separate commits
+- Database migrations go with the code that uses them
+- Never mix feature work with unrelated refactoring
+
+
+### Configure branch protection rules to prevent direct commits to protected branches — CRITICAL
+
+
+## Branch Protection Rules
+
+Protected branches are the deployment pipeline. Never commit or push directly to them.
+
+### Protected Branches
+
+| Branch | Purpose | Direct Commit | Force Push |
+|--------|---------|---------------|------------|
+| `main` | Production-ready code | BLOCKED | BLOCKED |
+| `master` | Legacy production | BLOCKED | BLOCKED |
+| `dev` | Integration branch | BLOCKED | BLOCKED |
+| `release/*` | Release candidates | BLOCKED | BLOCKED |
+
+### Branch Naming Convention
+
+```bash
+# Issue-linked (preferred)
+issue/<number>-<brief-description>
+issue/123-add-user-auth
+
+# Type-based (when no issue exists)
+feature/<description>
+fix/<description>
+hotfix/<description>
+```
+
+**Incorrect — Direct commit to main:**
+```bash
+git checkout main
+git commit -m "quick fix"
+git push origin main
+```
+
+**Correct — Feature branch workflow:**
+```bash
+git checkout -b fix/issue-123
+git commit -m "fix(#123): Resolve auth bug"
+git push -u origin fix/issue-123
+gh pr create --base main
+```
+
+### Key Rules
+
+- Never commit directly to main, dev, or release branches
+- Always use feature branches with descriptive names
+- All changes reach protected branches through PRs only
+- Force push is only allowed on your own feature branches with `--force-with-lease`
+- Delete feature branches after merge
+
+
+### Split large mixed commits into focused, reviewable units with clean boundaries — HIGH
+
+
+## Commit Splitting Strategies
+
+When you have mixed changes in your working directory, use these strategies to create atomic commits.
+
+### Strategy 1: Interactive Staging (`git add -p`)
+
+Stage changes hunk-by-hunk to separate concerns:
+
+```bash
+# Stage changes interactively
+git add -p
+
+# Options at each hunk:
+# y - stage this hunk
+# n - skip this hunk
+# s - split into smaller hunks (if hunk has gaps)
+# e - manually edit the hunk boundaries
+# q - quit, leave remaining unstaged
+
+# Review what's staged vs unstaged
+git diff --staged    # Will be committed
+git diff             # Won't be committed
+
+# Commit the staged portion
+git commit -m "feat(#123): Add user validation"
+
+# Repeat for next logical change
+git add -p
+git commit -m "fix(#456): Resolve timeout in auth"
+```
+
+### Strategy 2: File-Based Splitting
+
+When changes are in separate files, stage by file:
+
+```bash
+# Stage only auth-related files
+git add src/auth/login.ts src/auth/login.test.ts
+git commit -m "feat(#123): Add login validation"
+
+# Stage only billing-related files
+git add src/billing/invoice.ts src/billing/invoice.test.ts
+git commit -m "feat(#124): Add invoice generation"
+```
+
+### Strategy 3: Stash-Based Splitting
+
+For complex mixed changes, use stash to isolate:
+
+```bash
+# Stash everything
+git stash
+
+# Apply and stage only what you need
+git stash pop
+git add -p  # Stage only feature A
+git stash   # Re-stash the rest
+git commit -m "feat: Feature A"
+
+# Recover remaining changes
+git stash pop
+git add -p  # Stage feature B
+git commit -m "feat: Feature B"
+```
+
+### Strategy 4: Pre-Commit Formatting Split
+
+Always format BEFORE making logical changes:
+
+```bash
+# Step 1: Format first (separate commit)
+npx prettier --write src/
+git add -A
+git commit -m "style: Format files with prettier"
+
+# Step 2: Now make your logical changes
+# ... edit files ...
+git add -p
+git commit -m "feat(#123): Add user dashboard"
+```
+
+### When to Split
+
+| Signal | Action |
+|--------|--------|
+| `git diff --staged` shows > 10 files | Review if all related |
+| Commit message needs "and" | Split into separate commits |
+| Changes span > 3 unrelated directories | Split by directory/concern |
+| Mix of feat + fix + chore | One commit per type |
+| Formatting mixed with logic changes | Format first, then logic |
+
+**Incorrect — staging everything at once, mixed concerns:**
+```bash
+# Staging all files including mixed changes
+git add .
+git commit -m "feat: Add login and fix billing and update config"
+# Unreviewable, can't revert parts!
+```
+
+**Correct — interactive staging for separate atomic commits:**
+```bash
+# Stage auth changes interactively
+git add -p src/auth/login.ts
+# y - stage login validation hunks
+# n - skip other hunks
+git add src/auth/login.test.ts
+git commit -m "feat(#123): Add login validation"
+
+# Stage billing changes interactively
+git add -p src/billing/invoice.ts
+git add src/billing/invoice.test.ts
+git commit -m "fix(#456): Resolve invoice calculation bug"
+
+# Stage config separately
+git add config/webpack.config.js
+git commit -m "chore: Update webpack config"
+```
+
+### Key Rules
+
+- Use `git add -p` as the default — stage interactively, not `git add .`
+- Format changes always go in their own commit
+- Test files go with the code they test, not in separate commits
+- When in doubt, split — smaller commits are always safer
+- Each commit should pass tests independently
+
+
+### Format commit messages with conventional commit prefixes for automated changelogs — HIGH
+
+
+## Conventional Commit Format
+
+All commits must follow the Conventional Commits specification for automated tooling.
+
+### Format
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+### Types
+
+| Type | When | Bumps |
+|------|------|-------|
+| `feat` | New feature or capability | MINOR |
+| `fix` | Bug fix | PATCH |
+| `refactor` | Code restructuring, no behavior change | — |
+| `docs` | Documentation only | — |
+| `test` | Adding or fixing tests | — |
+| `chore` | Build, deps, CI, tooling | — |
+| `style` | Formatting, whitespace, semicolons | — |
+| `perf` | Performance improvement | PATCH |
+| `ci` | CI/CD configuration | — |
+| `build` | Build system changes | — |
+
+### Scope
+
+Optional, identifies the area of change:
+
+```bash
+# Issue reference (preferred)
+feat(#123): Add user authentication
+
+# Module name
+fix(auth): Resolve token expiration
+
+# No scope (acceptable for small changes)
+chore: Update dependencies
+```
+
+### Breaking Changes
+
+Use `!` after type/scope OR `BREAKING CHANGE:` footer:
+
+```bash
+# With ! marker (bumps MAJOR)
+feat(api)!: Change authentication endpoint structure
+
+# With footer
+feat(api): Change auth endpoints
+
+BREAKING CHANGE: /api/auth/login now requires email instead of username
+```
+
+### Title Rules
+
+```
+[x] Imperative mood ("Add feature" not "Added feature")
+[x] No period at end
+[x] < 72 characters (< 50 preferred)
+[x] Lowercase after colon
+[x] Meaningful — describes WHY, not just WHAT
+```
+
+**Incorrect:**
+```
+Fixed the bug.                          # Past tense, period, no type
+feat: stuff                             # Vague
+feat: Add user authentication and fix billing  # Two concerns
+FEAT: Add Auth                          # Uppercase
+```
+
+**Correct:**
+```
+feat(#123): Add JWT token validation for login
+fix(#456): Resolve race condition in payment processing
+refactor: Extract database connection pool to shared module
+```
+
+### Body (Optional)
+
+Use for context that doesn't fit in the title:
+
+```bash
+git commit -m "$(cat <<'EOF'
+feat(#123): Add rate limiting to API endpoints
+
+Applied token bucket algorithm with 100 req/min per user.
+Redis-backed for distributed deployments.
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+### Key Rules
+
+- Type is mandatory — no untyped commits
+- Scope with issue number when available (`#123`)
+- Title &lt; 72 chars, imperative mood, no period
+- One type per commit — if you need `feat` AND `fix`, make two commits
+- Always include `Co-Authored-By` when Claude assists
+- Breaking changes must use `!` or `BREAKING CHANGE:` footer
+
+
+### Keep git history clean by squashing WIP commits and fixups before merge — HIGH
+
+
+## History Hygiene Rules
+
+A clean git history makes debugging (bisect), code review, and onboarding dramatically easier.
+
+### Before Pushing: Clean Up
+
+```bash
+# Squash WIP commits before pushing
+git rebase -i HEAD~3
+
+# In the editor:
+pick abc1234 feat(#123): Add user validation
+fixup def5678 WIP: more validation
+fixup ghi9012 fix typo
+```
+
+### Fixup Commits (During Development)
+
+```bash
+git commit --fixup HEAD        # Auto-squash into previous
+git commit --fixup HEAD~2      # Auto-squash into specific commit
+
+# Before pushing, auto-squash all fixups
+git rebase -i --autosquash HEAD~5
+```
+
+### What to Squash
+
+| Squash | Keep Separate |
+|--------|---------------|
+| WIP commits | Each logical feature |
+| "Fix typo" after feature | Bug fixes (different concern) |
+| "Address review feedback" | Refactoring (different intent) |
+| Multiple attempts at same thing | Test additions (reviewable unit) |
+
+**Incorrect — Dirty WIP history:**
+```bash
+abc1234 WIP
+def5678 fix
+ghi9012 more fixes
+```
+
+**Correct — Cleaned history:**
+```bash
+git rebase -i --autosquash HEAD~4
+# Result: One clean commit
+abc1234 feat(#123): Add user validation with edge case handling
+```
+
+### Key Rules
+
+- Clean up history before pushing — squash WIP and fixup commits
+- Each commit in final history should be meaningful and atomic
+- Use `--fixup` during development, `--autosquash` before pushing
+- Never rewrite published history (commits others have pulled)
+
+
+### Include issue references in commits to maintain traceability to GitHub issues — HIGH
+
+
+## Issue Reference Required
+
+When on an issue branch (`issue/*`, `fix/*`, `feat/*`), commit messages MUST reference the issue number using `#N` format.
+
+### Why
+
+- Links commits to issues automatically in GitHub
+- Enables automated issue closing via `Closes #N` or `Fixes #N`
+- Provides traceability for code review and auditing
+
+### Good Examples
+
+```bash
+# Issue number in scope
+git commit -m "fix(#42): resolve null pointer in auth handler"
+
+# Issue number in body
+git commit -m "feat(auth): add OAuth2 support
+
+Implements #42"
+
+# Closing reference
+git commit -m "fix(api): validate input length
+
+Closes #42"
+```
+
+### Bad Examples
+
+```bash
+# No issue reference on an issue branch
+git commit -m "fix: resolve null pointer in auth handler"
+
+# Issue number without # prefix
+git commit -m "fix(42): resolve null pointer"
+```
+
+### When to Apply
+
+- **Always** when the branch name contains an issue number (e.g., `issue/42-fix-auth`, `fix/42-null-pointer`)
+- **Recommended** for any branch linked to a known GitHub issue
+- **Skip** for branches unrelated to issues (e.g., `chore/update-deps`)
+
+**Incorrect — missing issue reference on issue branch:**
+```bash
+# On branch: issue/42-fix-auth
+# No issue reference - breaks traceability!
+git commit -m "fix: resolve null pointer in auth handler"
+```
+
+**Correct — issue reference in commit message:**
+```bash
+# On branch: issue/42-fix-auth
+# Issue number in scope
+git commit -m "fix(#42): resolve null pointer in auth handler"
+
+# Or in body
+git commit -m "fix(auth): resolve null pointer in auth handler
+
+Fixes #42"
+```
+
+### Soft Rule
+
+This is a soft rule enforced by the `issue-reference-checker` hook, which nudges the developer to add the reference. The commit will not be blocked if the reference is missing.
+
+
+### Choose the right merge strategy for clean, bisectable commit history — HIGH
+
+
+## Merge Strategy Rules
+
+Use rebase-first workflow to maintain clean, linear history on feature branches.
+
+### Decision Table
+
+| Scenario | Strategy | Command |
+|----------|----------|---------|
+| Update feature branch with main | Rebase | `git rebase origin/main` |
+| Merge PR into main | Squash merge or merge commit | Via GitHub PR |
+| Shared feature branch | Merge (preserve history) | `git merge origin/main` |
+
+### Rebase-First Workflow
+
+```bash
+git fetch origin
+git rebase origin/main
+
+# If conflicts: resolve, stage, continue
+git add <resolved-files>
+git rebase --continue
+
+# If rebase goes wrong
+git rebase --abort
+```
+
+### Force Push Safety
+
+```bash
+# SAFE: Force push your own feature branch
+git push --force-with-lease origin issue/123-feature
+
+# DANGEROUS: Never force push protected branches
+git push --force origin main  # NEVER DO THIS
+```
+
+**Incorrect — Merge main into feature:**
+```bash
+git checkout feature-branch
+git merge origin/main  # Creates noisy merge commits
+```
+
+**Correct — Rebase onto main:**
+```bash
+git checkout feature-branch
+git rebase origin/main
+git push --force-with-lease
+```
+
+### Key Rules
+
+- Rebase feature branches onto main — don't merge main into feature branches
+- Use `--force-with-lease` instead of `--force` for rebased branches
+- Resolve conflicts during rebase, not with merge commits
+- Test after every conflict resolution
+
+
+### Rebase dependent PRs systematically after base branch changes to prevent conflicts — HIGH
+
+
+## Stacked PR Rebase Management
+
+Keep stacked PR branches synchronized after feedback, merges, or base branch changes.
+
+**Incorrect — merging main into feature branches:**
+```bash
+git checkout feature/auth-service
+git merge main  # Creates unnecessary merge commit
+```
+
+**Correct — rebase after base PR feedback:**
+```bash
+# Rebase dependent branches in order:
+git checkout feature/auth-service
+git rebase feature/auth-base
+git push --force-with-lease
+
+git checkout feature/auth-ui
+git rebase feature/auth-service
+git push --force-with-lease
+```
+
+**After base PR merges to main:**
+```bash
+git checkout main && git pull origin main
+
+# Retarget PR #2 to main
+gh pr edit 102 --base main
+
+# Rebase PR #2 on updated main
+git checkout feature/auth-service
+git rebase main
+git push --force-with-lease
+```
+
+**Key rules:**
+- Always rebase, never merge main into feature branches
+- Use `--force-with-lease` (never `--force`) to prevent overwriting others' work
+- Rebase in dependency order: base first, then each dependent branch
+- After a base PR merges, retarget the next PR to `main` via `gh pr edit`
+
+
+### Split large features into small, reviewable, independently mergeable stacked PRs — HIGH
+
+
+## Stacked PR Workflow
+
+Break large features into small, dependent PRs that merge in sequence.
+
+**Incorrect — single massive PR:**
+```bash
+# One 1500-line PR that takes days to review
+git checkout -b feature/auth
+gh pr create --title "feat: Add complete auth system"
+```
+
+**Correct — stacked PRs with clear dependencies:**
+```bash
+# PR 1: User model (base) — targets main
+git checkout -b feature/auth-base
+gh pr create --base main --title "feat(#100): Add User model [1/3]"
+
+# PR 2: Auth service — targets PR 1's branch
+git checkout -b feature/auth-service
+gh pr create --base feature/auth-base --title "feat(#100): Add auth service [2/3]"
+
+# PR 3: Login UI — targets PR 2's branch
+git checkout -b feature/auth-ui
+gh pr create --base feature/auth-service --title "feat(#100): Add login UI [3/3]"
+```
+
+**Key rules:**
+- Keep each PR under 400 lines for effective review
+- Number PRs clearly: `[1/3]`, `[2/3]`, `[3/3]`
+- Each PR should be independently reviewable and leave tests passing
+- Use draft PRs for incomplete stack items
+- Do not stack more than 4-5 PRs deep
+- Never merge out of order
+
+
+
+---
+
+## References (2)
+
+### Conventional Commits
+
+# Conventional Commits
+
+## Format
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+## Types
+
+| Type | Description | Bumps |
+|------|-------------|-------|
+| `feat` | New feature for users | MINOR |
+| `fix` | Bug fix for users | PATCH |
+| `docs` | Documentation only | - |
+| `style` | Formatting, no code change | - |
+| `refactor` | Code change, no feature/fix | - |
+| `perf` | Performance improvement | PATCH |
+| `test` | Adding/fixing tests | - |
+| `chore` | Build process, deps | - |
+| `ci` | CI configuration | - |
+| `revert` | Revert previous commit | - |
+
+## Breaking Changes
+
+Add `!` after type or `BREAKING CHANGE:` in footer:
+
+```
+feat!: drop support for Node 14
+
+BREAKING CHANGE: Node 14 is no longer supported
+```
+
+## Scope Examples
+
+- `feat(auth): add OAuth2 support`
+- `fix(api): handle null response`
+- `docs(readme): update install steps`
+- `refactor(core): extract helper functions`
+
+## Good Examples
+
+```
+feat(#123): add user profile page
+
+- Create ProfilePage component
+- Add profile API endpoint
+- Include unit tests
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+```
+fix(#456): prevent XSS in comment display
+
+Sanitize HTML in user comments before rendering.
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+### Recovery
+
+# Git Recovery
+
+## Committed to Wrong Branch
+
+```bash
+# Save work to new branch
+git checkout -b issue/<number>-<description>
+
+# Reset original branch
+git checkout dev
+git reset --hard origin/dev
+
+# Return to feature branch
+git checkout issue/<number>-<description>
+```
+
+## Undo Last Commit (Keep Changes)
+
+```bash
+git reset --soft HEAD~1
+```
+
+## Undo Last Commit (Discard Changes)
+
+```bash
+git reset --hard HEAD~1
+```
+
+## Amend Last Commit
+
+```bash
+# Fix message only
+git commit --amend -m "new message"
+
+# Add forgotten files
+git add forgotten-file.txt
+git commit --amend --no-edit
+```
+
+## Revert Published Commit
+
+```bash
+git revert <commit-hash>
+git push
+```
+
+## Unstage Files
+
+```bash
+git restore --staged <file>
+```
+
+## Discard Local Changes
+
+```bash
+# Single file
+git restore <file>
+
+# All files
+git restore .
+```

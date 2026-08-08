@@ -1,0 +1,1878 @@
+---
+title: "Database Patterns"
+description: "Database design and migration patterns for Alembic migrations, schema design (SQL/NoSQL), and database versioning. Use when creating migrations, designing schemas, normalizing data, managing database versions, or handling schema drift."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="database-patterns" />
+
+> **Database Patterns** Database design and migration patterns for Alembic migrations, schema design (SQL/NoSQL), and database versioning. Use when creating migrations, designing schemas, normalizing data, managing database versions, or handling schema drift.
+
+
+&lt;!-- directive-density: intentional (teaches migration anti-patterns; NEVER markers describe real production-break conditions, not aspirational guidance) --&gt;
+
+# Database Patterns
+
+Comprehensive patterns for database migrations, schema design, and version management. Each category has individual rule files in `rules/` loaded on-demand.
+
+## Quick Reference
+
+| Category | Rules | Impact | When to Use |
+|----------|-------|--------|-------------|
+| [Alembic Migrations](#alembic-migrations) | 2 | CRITICAL | Data migrations, branch management |
+| [Schema Design](#schema-design) | 3 | HIGH | Normalization, indexing strategies, NoSQL patterns |
+| [Versioning](#versioning) | 2 | HIGH | Changelogs, schema drift detection |
+| [Zero-Downtime Migration](#zero-downtime-migration) | 2 | CRITICAL | Expand-contract, pgroll, rollback monitoring |
+
+| [Database Selection](#database-selection) | 1 | HIGH | Choosing the right database, PostgreSQL vs MongoDB, cost analysis |
+
+**Total: 10 rules across 5 categories**
+
+This skill is a wrap around Alembic and PostgreSQL, not a replacement for their
+docs. Read `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/references/ork-delta.md` first: it holds the
+version floors, corrections and house conventions that upstream does not carry.
+Everything in the table below was removed on purpose.
+
+## Upstream coverage (do not restate)
+
+These topics are vendor documentation. Fetch them from the source instead of
+re-teaching them here.
+
+| Topic | First-party source |
+|-------|--------------------|
+| Alembic autogenerate, async `env.py` template, `revision`/`upgrade`/`downgrade`/`history` CLI | https://alembic.sqlalchemy.org/en/latest/autogenerate.html (our one correction to the async template is in `references/ork-delta.md`) |
+| Migration branches, merge revisions, tuple `down_revision`, branch labels | https://alembic.sqlalchemy.org/en/latest/branches.html |
+| Multi-database `env.py`, batched backfill recipes, migration hooks, environment-conditional migrations | https://alembic.sqlalchemy.org/en/latest/cookbook.html |
+| Rollback and data-integrity test harnesses | `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/references/migration-testing.md` |
+| JSONB operators, indexing and storage tradeoffs | https://www.postgresql.org/docs/current/datatype-json.html (normal forms and the house denormalization call stay in `rules/schema-normalization.md`) |
+| Full index-type reference and syntax (B-tree, GIN, partial, covering, `CREATE INDEX CONCURRENTLY`, `REINDEX`) | https://www.postgresql.org/docs/current/sql-createindex.html (the house subset we actually apply stays in `rules/schema-indexing.md`) |
+| `lock_timeout`, `statement_timeout`, advisory locks during migration | https://www.postgresql.org/docs/current/runtime-config-client.html and `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/rules/versioning-drift.md` |
+| Enum type changes | https://www.postgresql.org/docs/current/datatype-enum.html |
+| Table partitioning | https://www.postgresql.org/docs/current/ddl-partitioning.html |
+| Trigger functions | https://www.postgresql.org/docs/current/plpgsql-trigger.html |
+| Foreign-key cascade semantics | https://www.postgresql.org/docs/current/ddl-constraints.html |
+| Temporal and audit-trail tables, CDC change logs, stored-procedure and view versioning | https://www.postgresql.org/docs/18/sql-createtable.html (read `references/ork-delta.md` before assuming these give row history) |
+| HNSW and vector index tuning (`m`, `ef_construction`, `hnsw.ef_search`) | https://github.com/pgvector/pgvector |
+| Generic pre-deployment, backup and schema-review checklists | https://alembic.sqlalchemy.org/en/latest/tutorial.html |
+| Async SQLAlchemy sessions, FastAPI wiring, connection pool tuning | `ork:python-backend` skill |
+
+## Quick Start
+
+```python
+# Alembic: Auto-generate migration from model changes
+# alembic revision --autogenerate -m "add user preferences"
+
+def upgrade() -> None:
+    op.add_column('users', sa.Column('org_id', UUID(as_uuid=True), nullable=True))
+    op.execute("UPDATE users SET org_id = 'default-org-uuid' WHERE org_id IS NULL")
+
+def downgrade() -> None:
+    op.drop_column('users', 'org_id')
+```
+
+```sql
+-- Schema: Normalization to 3NF with proper indexing
+-- PG18: prefer uuidv7() (time-ordered, better B-tree locality) over gen_random_uuid() (random v4)
+CREATE TABLE orders (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    customer_id UUID NOT NULL REFERENCES customers(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+```
+
+## Alembic Migrations
+
+Migration management with Alembic for SQLAlchemy 2.0 async applications.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Data Migration | `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/rules/alembic-data-migration.md` | Batch backfill, two-phase NOT NULL, zero-downtime |
+| Branching | `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/rules/alembic-branching.md` | Feature branches, merge migrations, conflict resolution |
+
+Autogenerate setup is upstream. Our one deviation from Alembic's async `env.py`
+template (the `in_greenlet()` guard) is in `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/references/ork-delta.md`.
+
+## Schema Design
+
+SQL and NoSQL schema design with normalization, indexing, and constraint patterns.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Normalization | `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/rules/schema-normalization.md` | 1NF-3NF, when to denormalize, JSON vs normalized |
+| Indexing | `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/rules/schema-indexing.md` | B-tree, GIN, HNSW, partial/covering indexes |
+| NoSQL Patterns | `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/rules/schema-nosql.md` | Embed vs reference, document design, sharding |
+
+## Versioning
+
+Database version control and change management across environments.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Changelog | `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/rules/versioning-changelog.md` | Schema version table, semantic versioning, audit trails |
+| Drift Detection | `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/rules/versioning-drift.md` | Environment sync, checksum verification, migration locks |
+
+Rollback testing lives in `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/references/migration-testing.md`;
+the docstring convention for lossy downgrades is in
+`$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/references/ork-delta.md`.
+
+## Database Selection
+
+Decision frameworks for choosing the right database. Default: PostgreSQL.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Selection Guide | `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/rules/db-selection.md` | PostgreSQL-first, tier-based matrix, anti-patterns |
+
+## Key Decisions
+
+| Decision | Recommendation | Rationale |
+|----------|----------------|-----------|
+| Async dialect | `postgresql+asyncpg` | Native async support for SQLAlchemy 2.0 |
+| NOT NULL column | Two-phase: nullable first, then alter | Avoids locking, backward compatible |
+| Large table index | `CREATE INDEX CONCURRENTLY` | Zero-downtime, no table locks |
+| Normalization target | 3NF for OLTP | Reduces redundancy while maintaining query performance |
+| Primary key strategy | UUID for distributed, INT for single-DB | Context-appropriate key generation |
+| Soft deletes | `deleted_at` timestamp column | Preserves audit trail, enables recovery |
+| Migration granularity | One logical change per file | Easier rollback and debugging |
+| Production deployment | Generate SQL, review, then apply | Never auto-run in production |
+
+## Anti-Patterns (FORBIDDEN)
+
+```python
+# NEVER: Add NOT NULL without default or two-phase approach
+op.add_column('users', sa.Column('org_id', UUID, nullable=False))  # LOCKS TABLE!
+
+# NEVER: Use blocking index creation on large tables
+op.create_index('idx_large', 'big_table', ['col'])  # Use CONCURRENTLY
+
+# NEVER: Skip downgrade implementation
+def downgrade():
+    pass  # WRONG - implement proper rollback
+
+# NEVER: Modify migration after deployment - create new migration instead
+
+# NEVER: Run migrations automatically in production
+# Use: alembic upgrade head --sql > review.sql
+
+# NEVER: Run CONCURRENTLY inside transaction
+op.execute("BEGIN; CREATE INDEX CONCURRENTLY ...; COMMIT;")  # FAILS
+
+# NEVER: Delete migration history
+command.stamp(alembic_config, "head")  # Loses history
+
+# NEVER: Skip environments (Always: local -> CI -> staging -> production)
+```
+
+## Detailed Documentation
+
+| Resource | Description |
+|----------|-------------|
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/references/ork-delta.md` | Our corrections and house conventions. Read this first |
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/references/migration-testing.md` | Upgrade/downgrade cycle and data-integrity test harnesses |
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/references/postgres-vs-mongodb.md` | Head-to-head comparison behind the PostgreSQL-first default |
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/references/db-migration-paths.md` | Cross-engine migration risk matrix |
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/references/cost-comparison.md` | Managed database cost analysis |
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/references/storage-and-cms.md` | Object storage and CMS selection |
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/scripts` | Migration template, model change detector |
+
+## Zero-Downtime Migration
+
+Safe database schema changes without downtime using expand-contract pattern and online schema changes.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Expand-Contract | `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/rules/migration-zero-downtime.md` | Expand phase, backfill, contract phase, pgroll automation |
+| Rollback & Monitoring | `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/rules/migration-rollback.md` | pgroll rollback, lock monitoring, replication lag, backfill progress |
+
+## Related Skills
+
+- `sqlalchemy-2-async` - Async SQLAlchemy session patterns
+- `ork:testing-integration` - Integration testing patterns including migration testing
+- `caching` - Cache layer design to complement database performance
+- `ork:performance` - Performance optimization patterns
+
+
+---
+
+## Rules (10)
+
+### Handle Alembic migration branch conflicts with proper merge strategies — CRITICAL
+
+
+# Alembic Branching & Merge Patterns
+
+## Creating Feature Branches
+
+```bash
+# Create a feature branch
+alembic revision --branch-label=feature_payments -m "start payments feature"
+
+# Create revision on branch
+alembic revision --head=feature_payments@head -m "add payment_methods table"
+
+# View branch structure
+alembic branches
+
+# Merge branches before deployment
+alembic merge feature_payments@head main@head -m "merge payments feature"
+```
+
+## Merge Migration
+
+```python
+"""Merge feature_payments and main branches.
+
+Revision ID: merge_abc
+Revises: ('abc123', 'def456')
+"""
+revision = 'merge_abc'
+down_revision = ('abc123', 'def456')  # Tuple for merge
+
+def upgrade() -> None:
+    pass  # No operations - marks merge point
+
+def downgrade() -> None:
+    raise Exception("Cannot downgrade past merge point")
+```
+
+## Multi-Database Migrations
+
+```python
+# alembic/env.py - Multi-database support
+DATABASES = {
+    'default': 'postgresql://user:pass@localhost/main',
+    'analytics': 'postgresql://user:pass@localhost/analytics',
+}
+
+def run_migrations_online():
+    for db_name, url in DATABASES.items():
+        config = context.config
+        config.set_main_option('sqlalchemy.url', url)
+        connectable = engine_from_config(
+            config.get_section(config.config_ini_section),
+            prefix='sqlalchemy.', poolclass=pool.NullPool,
+        )
+        with connectable.connect() as connection:
+            context.configure(
+                connection=connection,
+                target_metadata=get_metadata(db_name),
+                version_table=f'alembic_version_{db_name}',
+            )
+            with context.begin_transaction():
+                context.run_migrations()
+```
+
+## Column Rename (Expand-Contract)
+
+```python
+"""Phase 1: Add new column alongside old."""
+def upgrade() -> None:
+    op.add_column('users', sa.Column('full_name', sa.String(255), nullable=True))
+
+    # Create trigger to sync during transition
+    op.execute("""
+        CREATE OR REPLACE FUNCTION sync_user_name()
+        RETURNS TRIGGER AS $$
+        BEGIN
+            NEW.full_name = COALESCE(NEW.full_name, NEW.name);
+            NEW.name = COALESCE(NEW.name, NEW.full_name);
+            RETURN NEW;
+        END; $$ LANGUAGE plpgsql;
+
+        CREATE TRIGGER trg_sync_user_name
+        BEFORE INSERT OR UPDATE ON users
+        FOR EACH ROW EXECUTE FUNCTION sync_user_name();
+    """)
+
+def downgrade() -> None:
+    op.execute("DROP TRIGGER IF EXISTS trg_sync_user_name ON users")
+    op.execute("DROP FUNCTION IF EXISTS sync_user_name()")
+    op.drop_column('users', 'full_name')
+```
+
+## Key Decisions
+
+| Decision | Recommendation | Rationale |
+|----------|----------------|-----------|
+| Column rename | 4-phase expand/contract | Safe migration without downtime |
+| Branch merge | Merge before deployment | Prevents version conflicts |
+| Multi-database | Separate version tables | Independent migration tracking |
+| Transaction mode | Default on, disable for CONCURRENTLY | CONCURRENTLY requires no transaction |
+
+**Incorrect — Immediate column rename:**
+```python
+# Causes downtime - app breaks immediately
+def upgrade():
+    op.alter_column('users', 'name', new_column_name='full_name')
+```
+
+**Correct — Expand-contract pattern:**
+```python
+# Phase 1: Add new column, sync with trigger
+def upgrade():
+    op.add_column('users', sa.Column('full_name', sa.String(255)))
+    op.execute("""
+        CREATE TRIGGER trg_sync_user_name
+        BEFORE INSERT OR UPDATE ON users
+        FOR EACH ROW EXECUTE FUNCTION sync_user_name()
+    """)
+# Phase 2 (separate migration): Drop old column after app updated
+```
+
+## Common Mistakes
+
+- Merging branches without testing both paths first
+- Skipping expand-contract for column renames (causes downtime)
+- Using shared version table for multiple databases
+- Not using `--branch-label` for feature isolation
+
+
+### Run Alembic data migrations safely with batch processing and two-phase approaches — CRITICAL
+
+
+# Alembic Data Migration Patterns
+
+## Two-Phase NOT NULL Migration
+
+```python
+"""Add org_id column (phase 1 - nullable).
+
+Phase 1: Add nullable column
+Phase 2: Backfill data
+Phase 3: Add NOT NULL (separate migration after verification)
+"""
+def upgrade() -> None:
+    # Phase 1: Add as nullable first
+    op.add_column('users', sa.Column('org_id', UUID(as_uuid=True), nullable=True))
+
+    # Phase 2: Backfill with default org
+    op.execute("""
+        UPDATE users SET org_id = 'default-org-uuid' WHERE org_id IS NULL
+    """)
+
+    # Phase 3 in SEPARATE migration after app updated:
+    # op.alter_column('users', 'org_id', nullable=False)
+
+def downgrade() -> None:
+    op.drop_column('users', 'org_id')
+```
+
+## Batch Processing Pattern
+
+```python
+BATCH_SIZE = 1000
+
+def upgrade() -> None:
+    op.add_column('users', sa.Column('status', sa.String(20), nullable=True))
+
+    conn = op.get_bind()
+    total_updated = 0
+
+    while True:
+        result = conn.execute(sa.text("""
+            SELECT id FROM users
+            WHERE status IS NULL
+            LIMIT :batch_size
+            FOR UPDATE SKIP LOCKED
+        """), {'batch_size': BATCH_SIZE})
+
+        ids = [row[0] for row in result]
+        if not ids:
+            break
+
+        conn.execute(sa.text("""
+            UPDATE users
+            SET status = CASE WHEN is_active THEN 'active' ELSE 'inactive' END
+            WHERE id = ANY(:ids)
+        """), {'ids': ids})
+
+        total_updated += len(ids)
+        conn.commit()  # Commit per batch to release locks
+
+def downgrade() -> None:
+    op.drop_column('users', 'status')
+```
+
+## Concurrent Index (Zero-Downtime)
+
+```python
+def upgrade() -> None:
+    # CONCURRENTLY avoids table locks on large tables
+    # IMPORTANT: Cannot run inside transaction block
+    op.execute("COMMIT")
+    op.execute("""
+        CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_org
+        ON users (organization_id, created_at DESC)
+    """)
+
+def downgrade() -> None:
+    op.execute("COMMIT")
+    op.execute("DROP INDEX CONCURRENTLY IF EXISTS idx_users_org")
+```
+
+## Running Async Code in Migrations
+
+```python
+from sqlalchemy.util import await_only
+
+def upgrade() -> None:
+    connection = op.get_bind()
+    # Alembic runs in greenlet context, so await_only works
+    result = await_only(
+        connection.execute(text("SELECT count(*) FROM users"))
+    )
+```
+
+## Backfill Size Guide
+
+| Table Size | Strategy | Notes |
+|------------|----------|-------|
+| &lt; 10K rows | Single UPDATE | Fast enough |
+| 10K-1M rows | Batched UPDATE in migration | LIMIT + commit per batch |
+| > 1M rows | Background script + trigger | Trigger for new rows, script for old |
+
+**Incorrect — Single-phase NOT NULL:**
+```python
+# Locks table for entire backfill duration
+def upgrade():
+    op.add_column('users', sa.Column('org_id', UUID, nullable=False))
+    op.execute("UPDATE users SET org_id = 'default-uuid'")
+```
+
+**Correct — Two-phase NOT NULL:**
+```python
+# Phase 1: Add as nullable, backfill
+def upgrade():
+    op.add_column('users', sa.Column('org_id', UUID, nullable=True))
+    op.execute("UPDATE users SET org_id = 'default-uuid' WHERE org_id IS NULL")
+# Phase 2 (separate migration): Add NOT NULL after verification
+```
+
+## Common Mistakes
+
+- Adding NOT NULL without two-phase approach (locks entire table)
+- Using blocking index creation on large tables (use CONCURRENTLY)
+- Running CONCURRENTLY inside a transaction block (fails)
+- Not committing between batches (holds locks too long)
+- Skipping `FOR UPDATE SKIP LOCKED` in batch queries (deadlocks)
+
+
+### Select the right database engine based on workload requirements and trade-offs — HIGH
+
+
+# Database Selection Guide
+
+## The Default: PostgreSQL
+
+PostgreSQL is the #1 most-loved database for good reason. **Start with PostgreSQL unless you have a specific, validated reason not to.**
+
+```sql
+-- PostgreSQL handles "document store" workloads with JSONB
+CREATE TABLE products (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}'
+);
+CREATE INDEX idx_products_metadata ON products USING GIN (metadata);
+SELECT * FROM products WHERE metadata @> '{"category": "electronics"}';
+```
+
+Key strengths: JSONB (90% of MongoDB use cases), full-text search (tsvector), extensions (PostGIS, pgvector, TimescaleDB), ACID transactions, universal ecosystem support.
+
+## Decision Matrix by Project Tier
+
+| Tier | Recommendation | Rationale |
+|------|---------------|-----------|
+| Interview / Take-home | SQLite or PostgreSQL | Zero config or standard choice |
+| Hackathon / Prototype | PostgreSQL | Don't waste time on exotic choices |
+| MVP (&lt; 6 months) | PostgreSQL | One database, learn it well |
+| Growth (1-5 engineers) | PostgreSQL + Redis (cache) | Add Redis only when measured |
+| Enterprise (5+) | PostgreSQL primary + purpose-built secondaries | Specialized stores for validated bottlenecks |
+
+## Decision Matrix by Data Model
+
+| Data Shape | Best Fit | Why |
+|------------|----------|-----|
+| Relational with joins | PostgreSQL | Built for this |
+| JSON documents with queries | PostgreSQL (JSONB) | Indexed JSON with SQL power |
+| Truly schema-less, evolving weekly | MongoDB | Only if you never join |
+| Key-value lookups | Redis | Sub-ms reads, ephemeral data |
+| Time-series metrics | PostgreSQL + TimescaleDB | Or InfluxDB for extreme scale |
+| Vector embeddings | PostgreSQL + pgvector | Or Pinecone for 100M+ vectors |
+
+## When to Use Each
+
+- **PostgreSQL**: Everything, unless proven otherwise. Web apps, APIs, SaaS, complex queries, JSON, full-text search, geo, vectors.
+- **MongoDB**: Truly document-shaped data with no relational needs. Content where schema changes weekly AND you never join.
+- **Redis**: Caching, sessions, ephemeral data. **Never as primary datastore.**
+- **SQLite**: Embedded, single-user, dev/testing, edge computing. **Never for concurrent multi-user writes.**
+
+## Anti-Patterns
+
+**Incorrect:**
+- Choosing MongoDB because "it's trendy" or "JSON is easier" without evaluating PostgreSQL JSONB
+- Premature sharding before exhausting indexing, query optimization, read replicas, connection pooling
+- SQLite in production with concurrent writes (causes `SQLITE_BUSY`)
+- Redis as primary datastore (data persistence is best-effort)
+- Running PostgreSQL + MongoDB + Redis + Elasticsearch when PostgreSQL alone covers it
+
+**Correct:**
+- Default to PostgreSQL, add specialized stores only for validated bottlenecks
+- Before choosing non-PostgreSQL: benchmark (not assume), verify data model incompatibility, confirm team expertise
+- Use Redis only as cache layer in front of PostgreSQL
+- Use SQLite only for embedded/single-user/dev
+
+## References
+
+- `references/postgres-vs-mongodb.md` — Head-to-head comparison, JSONB examples
+- `references/cost-comparison.md` — Hosting costs, license, operational complexity
+- `references/db-migration-paths.md` — MongoDB→PostgreSQL, SQLite→PostgreSQL strategies
+- `references/storage-and-cms.md` — CMS backends, file/blob storage decisions
+
+
+### Plan migration rollbacks and monitor execution to prevent extended outages — HIGH
+
+
+## Migration Rollback and Monitoring
+
+**Incorrect — no rollback plan or monitoring:**
+```sql
+-- FORBIDDEN: Constraint validation in same transaction as creation
+ALTER TABLE orders ADD CONSTRAINT fk_org
+FOREIGN KEY (org_id) REFERENCES orgs(id);
+-- Impact: Full table scan with exclusive lock
+
+-- FORBIDDEN: Backfill without batching
+UPDATE users SET new_col = old_col;
+-- Impact: Locks entire table, fills transaction log
+
+-- FORBIDDEN: Skip environments
+-- Always: local -> CI -> staging -> production
+```
+
+**Correct — pgroll automated rollback:**
+```bash
+# Install pgroll
+brew install xataio/pgroll/pgroll
+
+# Initialize pgroll in your database
+pgroll init --postgres-url "postgres://user:pass@localhost/db"
+```
+
+```json
+{
+  "name": "001_add_email_verified",
+  "operations": [
+    {
+      "add_column": {
+        "table": "users",
+        "column": {
+          "name": "email_verified",
+          "type": "boolean",
+          "default": "false",
+          "nullable": false
+        },
+        "up": "false"
+      }
+    }
+  ]
+}
+```
+
+```bash
+# Start migration (creates versioned schema)
+pgroll start migrations/001_add_email_verified.json
+
+# After verification, complete migration
+pgroll complete
+
+# Rollback if issues
+pgroll rollback
+```
+
+### Monitoring During Migration
+
+```sql
+-- Check for locks during migration
+SELECT pid, now() - pg_stat_activity.query_start AS duration, query, state
+FROM pg_stat_activity
+WHERE (now() - pg_stat_activity.query_start) > interval '5 minutes'
+AND state != 'idle';
+
+-- Check replication lag (if using replicas)
+SELECT client_addr, state, (sent_lsn - replay_lsn) AS replication_lag
+FROM pg_stat_replication;
+
+-- Monitor backfill progress
+SELECT
+  COUNT(*) FILTER (WHERE display_name IS NOT NULL) as migrated,
+  COUNT(*) FILTER (WHERE display_name IS NULL) as remaining,
+  ROUND(100.0 * COUNT(*) FILTER (WHERE display_name IS NOT NULL) / COUNT(*), 2) as pct_complete
+FROM users;
+```
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Automated rollback | Use pgroll for dual-schema versioning |
+| Verification | Check pg_stat_statements before contract phase |
+| Lock monitoring | Query pg_stat_activity during migration |
+| Replication | Monitor lag before completing migration |
+| Environment order | local -> CI -> staging -> production (never skip) |
+
+
+### Apply zero-downtime migration patterns to avoid table locks and production outages — CRITICAL
+
+
+## Zero-Downtime Migration Patterns
+
+**Incorrect — blocking schema changes:**
+```sql
+-- FORBIDDEN: Single-step ALTER that locks table
+ALTER TABLE users RENAME COLUMN name TO full_name;
+-- Impact: Blocks ALL queries during metadata lock
+
+-- FORBIDDEN: Add NOT NULL to existing column directly
+ALTER TABLE orders ADD COLUMN org_id UUID NOT NULL;
+-- Impact: Fails immediately if table has data
+
+-- FORBIDDEN: Regular CREATE INDEX on large table
+CREATE INDEX idx_big_table_col ON big_table(col);
+-- Impact: Locks table for minutes/hours
+
+-- FORBIDDEN: Drop column without verification period
+ALTER TABLE users DROP COLUMN legacy_field;
+-- Impact: No rollback if application still references it
+```
+
+**Correct — expand-contract pattern:**
+```
+Phase 1: EXPAND              Phase 2: MIGRATE           Phase 3: CONTRACT
+Add new column               Backfill data              Remove old column
+(nullable)                   Update app to use new      (after app migrated)
+                             Both versions work
+```
+
+### Manual Expand Phase
+
+```sql
+-- Step 1: Add new column (nullable, no default constraint yet)
+ALTER TABLE users ADD COLUMN display_name VARCHAR(200);
+
+-- Step 2: Create trigger for dual-write (if app can't dual-write)
+CREATE OR REPLACE FUNCTION sync_display_name() RETURNS TRIGGER AS $$
+BEGIN
+  NEW.display_name := CONCAT(NEW.first_name, ' ', NEW.last_name);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_sync_display_name
+  BEFORE INSERT OR UPDATE ON users
+  FOR EACH ROW EXECUTE FUNCTION sync_display_name();
+
+-- Step 3: Backfill existing data (in batches)
+UPDATE users SET display_name = CONCAT(first_name, ' ', last_name)
+WHERE display_name IS NULL
+AND id IN (SELECT id FROM users WHERE display_name IS NULL LIMIT 1000);
+```
+
+### Manual Contract Phase
+
+```sql
+-- Step 1: Verify no readers of old column
+SELECT * FROM pg_stat_statements
+WHERE query LIKE '%first_name%' OR query LIKE '%last_name%';
+
+-- Step 2: Drop trigger, then old columns ONLY after app fully migrated
+DROP TRIGGER IF EXISTS trg_sync_display_name ON users;
+ALTER TABLE users DROP COLUMN first_name;
+ALTER TABLE users DROP COLUMN last_name;
+ALTER TABLE users ALTER COLUMN display_name SET NOT NULL;
+```
+
+### NOT VALID Constraint Pattern
+
+```sql
+-- Step 1: Add constraint without validating existing rows (instant)
+ALTER TABLE orders ADD CONSTRAINT chk_amount_positive
+CHECK (amount > 0) NOT VALID;
+
+-- Step 2: Validate constraint (scans table but allows writes)
+ALTER TABLE orders VALIDATE CONSTRAINT chk_amount_positive;
+```
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Tool choice | pgroll for automation, manual for simple cases |
+| Column rename | Add new + copy + drop old (never RENAME) |
+| Constraint timing | Add NOT VALID first, VALIDATE separately |
+| Rollback window | Keep old schema 24-72 hours |
+| Backfill batch size | 1000-10000 rows per batch |
+| Index strategy | CONCURRENTLY always |
+
+
+### Design database indexes to optimize query performance without slowing writes — HIGH
+
+
+# Schema Indexing Strategies
+
+## When to Create Indexes
+
+```sql
+-- Index foreign keys (required for join/cascade performance)
+CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+
+-- Index columns in WHERE clauses
+CREATE INDEX idx_users_email ON users(email);
+
+-- Index ORDER BY / GROUP BY columns
+CREATE INDEX idx_orders_created_at ON orders(created_at);
+
+-- Composite index for multi-column queries
+CREATE INDEX idx_orders_customer_status ON orders(customer_id, status);
+```
+
+## Composite Index Column Order
+
+```sql
+-- Good: Supports both queries
+CREATE INDEX idx_orders_customer_status ON orders(customer_id, status);
+
+-- Uses index: WHERE customer_id = 123 AND status = 'pending'
+-- Uses index: WHERE customer_id = 123 (leftmost prefix)
+-- Typically skips index: WHERE status = 'pending' (not leftmost)
+--   PG18 B-tree skip scan may use it when customer_id has few distinct values,
+--   but leftmost-first remains the correct design heuristic.
+```
+
+**Rule:** Put most selective column first, or most frequently queried alone.
+
+## Index Types
+
+### B-Tree (Default)
+Equality, range queries, sorting.
+
+```sql
+CREATE INDEX idx_analyses_url ON analyses(url);
+CREATE INDEX idx_analyses_status ON analyses(status);
+```
+
+### GIN (Inverted Index)
+Full-text search (TSVECTOR), JSONB, arrays.
+
+```sql
+CREATE INDEX idx_analyses_search_vector ON analyses USING GIN(search_vector);
+CREATE INDEX idx_artifact_metadata_gin ON artifacts USING GIN(artifact_metadata);
+```
+
+### HNSW (Vector Similarity)
+Approximate nearest neighbor search (embeddings).
+
+```sql
+CREATE INDEX idx_chunks_vector_hnsw
+ON analysis_chunks
+USING hnsw (vector vector_cosine_ops)
+WITH (m = 16, ef_construction = 64);
+-- m=16: connections per layer | ef_construction=64: build quality
+```
+
+### Partial Indexes
+Filter frequently queried subsets.
+
+```sql
+-- Only index completed analyses (common query)
+CREATE INDEX idx_analyses_completed ON analyses(created_at DESC) WHERE status = 'complete';
+```
+
+### Covering Indexes (Index-Only Scans)
+Include all queried columns.
+
+```sql
+CREATE INDEX idx_analyses_status_covering
+ON analyses(status, created_at DESC) INCLUDE (id, title);
+-- PostgreSQL can satisfy query entirely from index
+```
+
+## Index Maintenance
+
+```sql
+-- Find unused indexes (candidates for removal)
+SELECT indexname, idx_scan FROM pg_stat_user_indexes
+WHERE idx_scan = 0 AND indexname NOT LIKE '%_pkey';
+
+-- Rebuild bloated indexes
+REINDEX INDEX CONCURRENTLY idx_chunks_vector_hnsw;
+```
+
+## Constraints as Validation
+
+```sql
+CREATE TABLE products (
+  id INT PRIMARY KEY,
+  price DECIMAL(10, 2) CHECK (price >= 0),
+  stock INT CHECK (stock >= 0),
+  discount_percent INT CHECK (discount_percent BETWEEN 0 AND 100)
+);
+```
+
+**Incorrect — Missing foreign key index:**
+```sql
+-- FK without index causes slow joins
+CREATE TABLE orders (
+  id UUID PRIMARY KEY,
+  customer_id UUID REFERENCES customers(id)
+  -- Missing: CREATE INDEX idx_orders_customer ON orders(customer_id)
+);
+```
+
+**Correct — Index all foreign keys:**
+```sql
+-- Index enables fast joins and cascade deletes
+CREATE TABLE orders (
+  id UUID PRIMARY KEY,
+  customer_id UUID REFERENCES customers(id)
+);
+CREATE INDEX idx_orders_customer ON orders(customer_id);
+```
+
+## Anti-Patterns
+
+- **Over-indexing:** Every index slows writes. Only index actual query patterns.
+- **Missing FK indexes:** Causes slow joins and cascading deletes.
+- **Wrong column order:** Composite indexes primarily benefit leftmost prefix queries; PG18 skip scan can help non-leftmost queries when the leading column has few distinct values, but leftmost-first is still the correct design heuristic.
+- **FLOAT for money:** Use DECIMAL(10, 2) for financial values.
+
+
+### Apply normalization rules to eliminate data redundancy and update anomalies — HIGH
+
+
+# Schema Normalization Patterns
+
+## Normal Forms
+
+### 1st Normal Form (1NF)
+Each column contains atomic values, no repeating groups.
+
+```sql
+-- WRONG: Multiple values in one column
+CREATE TABLE orders (
+  id INT PRIMARY KEY,
+  product_ids VARCHAR(255)  -- '101,102,103' (bad!)
+);
+
+-- CORRECT: Separate junction table
+CREATE TABLE orders (id INT PRIMARY KEY, customer_id INT);
+CREATE TABLE order_items (
+  id INT PRIMARY KEY,
+  order_id INT REFERENCES orders(id),
+  product_id INT
+);
+```
+
+### 2nd Normal Form (2NF)
+All non-key columns depend on the entire primary key.
+
+```sql
+-- WRONG: order_date depends only on order_id
+CREATE TABLE order_items (
+  order_id UUID, product_id UUID,
+  order_date TIMESTAMP,  -- Partial dependency!
+  PRIMARY KEY (order_id, product_id)
+);
+
+-- CORRECT: Separate tables
+CREATE TABLE orders (id UUID PRIMARY KEY, order_date TIMESTAMP NOT NULL);
+CREATE TABLE order_items (
+  id UUID PRIMARY KEY,
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL, quantity INTEGER NOT NULL CHECK (quantity > 0)
+);
+```
+
+### 3rd Normal Form (3NF)
+No transitive dependencies (non-key columns depend only on primary key).
+
+```sql
+-- WRONG: country_name depends on country_code
+CREATE TABLE users (id UUID PRIMARY KEY, country_code TEXT, country_name TEXT);
+
+-- CORRECT: Extract to separate table
+CREATE TABLE countries (code TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE);
+CREATE TABLE users (id UUID PRIMARY KEY, country_code TEXT REFERENCES countries(code));
+```
+
+## When to Denormalize
+
+Denormalize only after profiling shows bottlenecks.
+
+```sql
+-- Denormalized counter (faster reads)
+CREATE TABLE analyses (
+  id UUID PRIMARY KEY,
+  artifact_count INTEGER DEFAULT 0  -- Maintained by trigger
+);
+
+CREATE FUNCTION update_artifact_count() RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE analyses SET artifact_count = artifact_count + 1 WHERE id = NEW.analysis_id;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE analyses SET artifact_count = artifact_count - 1 WHERE id = OLD.analysis_id;
+  END IF;
+  RETURN NULL;
+END; $$ LANGUAGE plpgsql;
+```
+
+## JSON vs Normalized Tables
+
+| Use JSON When | Use Normalized When |
+|---------------|---------------------|
+| Schema is flexible/evolving | Need foreign key constraints |
+| Data rarely queried individually | Frequent filtering/sorting |
+| Structure varies per row | Complex queries (joins, aggregations) |
+
+```sql
+-- JSON: Flexible metadata
+extraction_metadata JSONB  -- {"fetch_time_ms": 1234, "charset": "utf-8"}
+
+-- Normalized: Structured queryable data
+CREATE TABLE agent_findings (
+  analysis_id UUID NOT NULL REFERENCES analyses(id) ON DELETE CASCADE,
+  agent_type TEXT NOT NULL,
+  findings JSONB NOT NULL  -- Hybrid: FK + JSONB
+);
+```
+
+**Incorrect — Violating 1NF (repeating groups):**
+```sql
+-- Multiple values in one column
+CREATE TABLE orders (
+  id UUID PRIMARY KEY,
+  product_ids TEXT  -- '101,102,103' stored as CSV
+);
+```
+
+**Correct — Junction table (1NF compliant):**
+```sql
+-- Atomic values, no repeating groups
+CREATE TABLE orders (id UUID PRIMARY KEY);
+CREATE TABLE order_items (
+  order_id UUID REFERENCES orders(id),
+  product_id UUID,
+  PRIMARY KEY (order_id, product_id)
+);
+```
+
+## Design Philosophy
+
+1. **Model the domain, not the UI** - Schema reflects business entities
+2. **Optimize for reads OR writes** - OLTP normalized, OLAP denormalized
+3. **Data integrity over performance** - Constraints first, optimize later
+4. **Plan for scale from day one** - Indexing, partitioning, caching strategy
+
+
+### Design NoSQL schemas with embed vs reference trade-offs for query performance — HIGH
+
+
+# NoSQL Schema Design Patterns
+
+## SQL vs NoSQL Decision
+
+| Factor | SQL (PostgreSQL) | NoSQL (MongoDB) |
+|--------|------------------|-----------------|
+| Data relationships | Complex, many-to-many | Simple, hierarchical |
+| Query patterns | Ad-hoc, complex joins | Known access patterns |
+| Consistency | Strong (ACID) | Eventual (configurable) |
+| Schema | Rigid, enforced | Flexible, evolving |
+| Scale | Vertical + read replicas | Horizontal sharding |
+
+## Embed vs Reference
+
+### Embed When:
+- Data is always accessed together
+- Relationship is 1:1 or 1:few
+- Embedded data rarely changes independently
+
+```json
+{
+  "_id": "user-123",
+  "name": "Alice",
+  "address": {
+    "street": "123 Main St",
+    "city": "Portland",
+    "state": "OR"
+  }
+}
+```
+
+### Reference When:
+- Data is accessed independently
+- Relationship is 1:many or many:many
+- Referenced data changes frequently
+
+```json
+// users collection
+{ "_id": "user-123", "name": "Alice", "org_id": "org-456" }
+
+// organizations collection
+{ "_id": "org-456", "name": "Acme Corp", "plan": "enterprise" }
+```
+
+## Document Size Limits
+
+| Database | Max Document Size | Recommendation |
+|----------|-------------------|----------------|
+| MongoDB | 16 MB | Keep under 1 MB for performance |
+| DynamoDB | 400 KB | Split large items across multiple records |
+| Firestore | 1 MB | Use subcollections for large data |
+
+## Sharding Strategy
+
+Choose a shard key that ensures even distribution:
+
+```javascript
+// Good: High cardinality, even distribution
+db.orders.createIndex({ customer_id: 1, created_at: 1 });
+sh.shardCollection("mydb.orders", { customer_id: "hashed" });
+
+// Bad: Low cardinality (hot shard)
+sh.shardCollection("mydb.orders", { status: 1 });  // Only 3-5 values!
+```
+
+## Schema Validation (MongoDB)
+
+```javascript
+db.createCollection("users", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name", "email", "created_at"],
+      properties: {
+        name: { bsonType: "string", minLength: 1 },
+        email: { bsonType: "string", pattern: "^.+@.+\\..+$" },
+        status: { enum: ["active", "inactive", "suspended"] },
+        created_at: { bsonType: "date" }
+      }
+    }
+  }
+});
+```
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Embed vs reference | Based on access patterns | Co-located reads are faster |
+| Sharding key | High cardinality, hashed | Even data distribution |
+| Consistency level | Start with strong, relax if needed | Data integrity first |
+| Schema validation | Always define for core collections | Catches bugs early |
+
+**Incorrect — Unbounded embedded array:**
+```json
+{
+  "_id": "user-123",
+  "orders": [
+    {"id": "order-1", "total": 100},
+    {"id": "order-2", "total": 200}
+  ]
+}
+```
+
+**Correct — Reference pattern for 1:many:**
+```json
+// users collection
+{"_id": "user-123", "name": "Alice"}
+
+// orders collection (separate)
+{"_id": "order-1", "user_id": "user-123", "total": 100}
+{"_id": "order-2", "user_id": "user-123", "total": 200}
+```
+
+## Common Mistakes
+
+- Embedding unbounded arrays (document grows forever)
+- Using sequential shard keys (hot partition)
+- Not defining schema validation (schema chaos)
+- Treating NoSQL as "no schema" (still needs design)
+
+
+### Track schema version history with changelogs and audit trails for rollback safety — HIGH
+
+
+# Versioning Changelog & Audit Trails
+
+## Schema Version Table
+
+```sql
+CREATE TABLE schema_version (
+    version_id SERIAL PRIMARY KEY,
+    version_number VARCHAR(20) NOT NULL,
+    description TEXT NOT NULL,
+    applied_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    applied_by VARCHAR(100),
+    execution_time_ms INTEGER,
+    checksum VARCHAR(64),
+    CONSTRAINT uq_version_number UNIQUE (version_number)
+);
+```
+
+## Semantic Versioning for Databases
+
+```
+MAJOR.MINOR.PATCH
+
+MAJOR: Breaking changes (drop tables, rename columns)
+MINOR: Backward-compatible additions (new tables, nullable columns)
+PATCH: Bug fixes, index changes, data migrations
+```
+
+## Row-Level Versioning
+
+```sql
+CREATE TABLE products (
+    id UUID PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1,
+    valid_from TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    valid_to TIMESTAMP WITH TIME ZONE,
+    is_current BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by VARCHAR(100) NOT NULL,
+    updated_by VARCHAR(100)
+);
+
+CREATE INDEX idx_products_current ON products (id) WHERE is_current = TRUE;
+CREATE INDEX idx_products_temporal ON products (id, valid_from, valid_to);
+```
+
+## Change Data Capture (CDC)
+
+```sql
+CREATE TABLE change_log (
+    id BIGSERIAL PRIMARY KEY,
+    table_name VARCHAR(100) NOT NULL,
+    operation VARCHAR(10) NOT NULL,  -- INSERT, UPDATE, DELETE
+    record_id UUID NOT NULL,
+    old_data JSONB,
+    new_data JSONB,
+    changed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    changed_by VARCHAR(100),
+    transaction_id BIGINT DEFAULT txid_current()
+);
+
+CREATE OR REPLACE FUNCTION log_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO change_log (table_name, operation, record_id, new_data, changed_by)
+        VALUES (TG_TABLE_NAME, 'INSERT', NEW.id, to_jsonb(NEW), current_user);
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO change_log (table_name, operation, record_id, old_data, new_data, changed_by)
+        VALUES (TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(OLD), to_jsonb(NEW), current_user);
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO change_log (table_name, operation, record_id, old_data, changed_by)
+        VALUES (TG_TABLE_NAME, 'DELETE', OLD.id, to_jsonb(OLD), current_user);
+    END IF;
+    RETURN COALESCE(NEW, OLD);
+END; $$ LANGUAGE plpgsql;
+```
+
+## Audit Pattern Decision Matrix
+
+| Pattern | Use Case | Complexity |
+|---------|----------|------------|
+| Row-level versioning | Simple history needs | Low |
+| Temporal tables | Point-in-time queries | Medium |
+| CDC (change_log) | Full audit compliance | High |
+
+## Object Versioning
+
+```sql
+-- Versioned views
+CREATE VIEW orders_summary_v1 AS SELECT order_id, customer_id, total FROM orders;
+CREATE VIEW orders_summary_v2 AS SELECT order_id, customer_id, total, shipping_cost FROM orders;
+CREATE VIEW orders_summary AS SELECT * FROM orders_summary_v2;  -- Current alias
+```
+
+**Incorrect — Mutable audit log:**
+```sql
+-- Allows modification/deletion of history
+CREATE TABLE audit_log (
+  id SERIAL PRIMARY KEY,
+  action TEXT,
+  changed_at TIMESTAMP
+);
+-- Missing: Triggers, permissions to prevent changes
+```
+
+**Correct — Immutable audit trail:**
+```sql
+-- Append-only with JSONB for full history
+CREATE TABLE change_log (
+  id BIGSERIAL PRIMARY KEY,
+  old_data JSONB,
+  new_data JSONB,
+  changed_at TIMESTAMP DEFAULT NOW()
+);
+REVOKE DELETE, UPDATE ON change_log FROM app_user;
+```
+
+## Best Practices
+
+| Practice | Reason |
+|----------|--------|
+| Version everything | Full traceability |
+| Immutable history | Audit compliance |
+| Checksum verification | Detect unauthorized changes |
+| Semantic versioning | Clear impact communication |
+
+
+### Detect schema drift between environments using checksum verification and coordination — HIGH
+
+
+# Versioning Drift Detection
+
+## Multi-Environment Migration Flow
+
+```
+Local (dev) -> CI (test) -> Staging (preview) -> Production (live)
+  alembic       alembic       alembic            alembic
+  upgrade       upgrade       upgrade            upgrade
+   head          head          head               head
+```
+
+**Never skip environments.** Always: local -> CI -> staging -> production.
+
+## Checksum Verification
+
+```python
+def test_migration_checksums(alembic_config):
+    """Verify migrations haven't been modified after deployment."""
+    script = ScriptDirectory.from_config(alembic_config)
+
+    for revision in script.walk_revisions():
+        if revision.revision in DEPLOYED_MIGRATIONS:
+            current_checksum = calculate_checksum(revision.path)
+            expected_checksum = DEPLOYED_MIGRATIONS[revision.revision]
+            assert current_checksum == expected_checksum, \
+                f"Migration {revision.revision} was modified after deployment!"
+```
+
+## Environment-Specific Settings
+
+```python
+# alembic/env.py
+import os
+
+def run_migrations_online():
+    env = os.getenv("ENVIRONMENT", "development")
+
+    if env == "production":
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            transaction_per_migration=True,
+            postgresql_set_session_options={
+                "statement_timeout": "30s",
+                "lock_timeout": "10s"
+            }
+        )
+    else:
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata
+        )
+```
+
+## Migration Locks (Prevent Concurrent Migrations)
+
+```python
+"""Migration with advisory lock.
+
+Prevents multiple instances from running migrations simultaneously.
+"""
+def upgrade():
+    # Acquire advisory lock (blocks until available)
+    op.execute(text("SELECT pg_advisory_lock(12345)"))
+
+    try:
+        op.create_table('new_table', ...)
+    finally:
+        op.execute(text("SELECT pg_advisory_unlock(12345)"))
+```
+
+## Migration Numbering Schemes
+
+```
+Option 1: Sequential       001_initial.sql, 002_add_users.sql
+Option 2: Timestamp         20260115120000_initial.sql
+Option 3: Hybrid            2026_01_15_001_initial.sql
+```
+
+Recommendation: Timestamp-based (avoids conflicts in parallel development).
+
+## Conditional Migration Logic
+
+```python
+"""Add analytics index (production only)."""
+def upgrade() -> None:
+    if os.getenv('ENVIRONMENT') == 'production':
+        op.execute("COMMIT")
+        op.execute("""
+            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_events_timestamp
+            ON events (timestamp DESC)
+        """)
+    else:
+        op.create_index('idx_events_timestamp', 'events', ['timestamp'])
+```
+
+## Best Practices
+
+| Practice | Reason |
+|----------|--------|
+| Always test migrations locally first | Catch errors early |
+| Use transaction per migration | Atomic rollback on failure |
+| Set lock timeouts in production | Prevent long-held locks |
+| Never skip environments | Ensure consistency |
+| Checksum deployed migrations | Detect unauthorized changes |
+| Environment parity | Consistent deployments |
+
+**Incorrect — Skipping environments:**
+```bash
+# Dangerous: Deploy to prod without staging test
+alembic upgrade head  # On production DB directly
+```
+
+**Correct — Progressive deployment:**
+```bash
+# Safe: Test in each environment sequentially
+alembic upgrade head  # Local
+# CI tests pass
+alembic upgrade head  # Staging
+# Smoke tests pass
+alembic upgrade head  # Production
+```
+
+## Anti-Patterns
+
+- Modifying deployed migrations (create new migration instead)
+- Skipping staging and deploying directly to production
+- Running concurrent migrations without advisory locks
+- Versioning sensitive data in migrations (security risk)
+
+
+
+---
+
+## References (6)
+
+### Cost Comparison
+
+# Database Cost Comparison
+
+Hosting and operational cost analysis to inform database selection decisions.
+
+## Managed Hosting Costs (Approximate Monthly)
+
+| Provider | PostgreSQL | MongoDB | Redis |
+|----------|-----------|---------|-------|
+| **Free tier** | Supabase, Neon, Render | Atlas M0 (512 MB) | Upstash (10K cmds/day) |
+| **Hobby ($5-25)** | Supabase Pro ($25), Railway ($5+), Render ($7+) | Atlas M10 ($57+) | Upstash Pay-as-go, Redis Cloud ($5+) |
+| **Production ($50-200)** | Supabase Pro, RDS db.t3.medium (~$65), Cloud SQL (~$50) | Atlas M30 ($230+) | ElastiCache t3.small (~$25), Memorystore (~$35) |
+| **Scale ($200-1000)** | RDS db.r6g.large (~$200), Aurora (~$250) | Atlas M50 ($500+) | ElastiCache r6g.large (~$150) |
+
+Key takeaway: **MongoDB managed hosting costs 2-3x more than PostgreSQL** at equivalent tiers. MongoDB Atlas pricing reflects the vendor lock-in premium.
+
+## License Considerations
+
+| Database | License | Impact |
+|----------|---------|--------|
+| PostgreSQL | PostgreSQL License | Fully permissive. Host anywhere, modify freely. |
+| MongoDB | SSPL | Cannot offer MongoDB as a managed service. Limits cloud provider hosting options. |
+| Redis | RSALv2 + SSPLv1 (since 2024) | Source-available but not OSS. Alternatives: Valkey (Linux Foundation fork), KeyDB, DragonflyDB. |
+| SQLite | Public Domain | Zero restrictions. Embedded in everything. |
+
+## Operational Complexity
+
+| Factor | PostgreSQL | MongoDB | Redis | SQLite |
+|--------|-----------|---------|-------|--------|
+| Backup/restore | pg_dump, pg_basebackup, WAL archiving | mongodump, oplog | RDB snapshots, AOF | File copy |
+| Monitoring | pg_stat_statements, pgBadger | Atlas monitoring, mongotop | redis-cli INFO, RedisInsight | N/A |
+| Scaling reads | Read replicas (simple) | Replica sets (moderate) | Redis Cluster (moderate) | N/A |
+| Scaling writes | Partitioning, Citus (moderate) | Sharding (complex) | Redis Cluster (moderate) | N/A |
+| Team expertise needed | Moderate (widely known) | Moderate (less common) | Low (simple API) | Minimal |
+| Connection pooling | PgBouncer (essential at scale) | Built-in driver pooling | Built-in | N/A |
+
+## Total Cost of Ownership Factors
+
+Beyond hosting, consider:
+
+1. **Developer time**: PostgreSQL has more tutorials, Stack Overflow answers, and ORM support than any alternative
+2. **Hiring**: PostgreSQL/SQL skills are universal; MongoDB-specific expertise is niche
+3. **Migration cost**: Starting with PostgreSQL avoids expensive future migrations
+4. **Extension ecosystem**: PostGIS, pgvector, TimescaleDB, pg_cron are free — equivalent MongoDB features require paid Atlas tiers
+5. **Vendor lock-in**: MongoDB Atlas features (Atlas Search, Charts, App Services) don't transfer to self-hosted
+
+## Budget Decision Tree
+
+```
+Budget = $0?
+  YES --> SQLite (embedded) or Supabase/Neon free tier (managed Postgres)
+  NO  -->
+
+Budget < $50/mo?
+  YES --> Managed PostgreSQL (Supabase, Railway, Render)
+  NO  -->
+
+Budget < $500/mo?
+  YES --> PostgreSQL (managed) + Redis (Upstash or small ElastiCache)
+  NO  -->
+
+Budget $500+/mo?
+  YES --> PostgreSQL (RDS/Aurora/Cloud SQL) + Redis + purpose-built stores as needed
+```
+
+
+### Db Migration Paths
+
+# Database Migration Paths
+
+Common migration scenarios, tools, and risk assessment.
+
+## Migration Risk Matrix
+
+| Migration | Difficulty | Risk | Downtime | Typical Duration |
+|-----------|-----------|------|----------|-----------------|
+| SQLite to PostgreSQL | Low | Low | Minutes | 1-2 days dev work |
+| MongoDB to PostgreSQL | Medium-High | Medium | Hours (with planning) | 1-4 weeks |
+| MySQL to PostgreSQL | Medium | Low-Medium | Hours | 1-2 weeks |
+| PostgreSQL to PostgreSQL (version upgrade) | Low | Low | Minutes (pg_upgrade) | Hours |
+| Single PostgreSQL to read replicas | Low | Low | Near-zero | 1-2 days |
+| Redis cache swap (e.g., to Valkey) | Low | Low | Minutes | 1 day |
+
+## SQLite to PostgreSQL
+
+The most common migration path for growing projects.
+
+**When**: App outgrows single-user/embedded model and needs concurrent writes.
+
+**Steps**:
+1. Install PostgreSQL and create target database
+2. Use `pgloader` (recommended) for automated schema + data migration
+3. Update connection string and ORM configuration
+4. Replace SQLite-specific syntax (e.g., `AUTOINCREMENT` to `SERIAL`)
+5. Add connection pooling (PgBouncer for production)
+6. Test concurrent write scenarios
+
+**Tools**: `pgloader` (handles schema conversion automatically), `sqlite3 .dump` + manual SQL cleanup.
+
+**Common gotchas**:
+- SQLite `INTEGER PRIMARY KEY` is auto-increment; PostgreSQL needs `SERIAL` or `GENERATED ALWAYS AS IDENTITY`
+- SQLite has loose typing; PostgreSQL enforces column types strictly
+- Date/time handling differs — SQLite stores as text, PostgreSQL has native types
+
+## MongoDB to PostgreSQL
+
+The most impactful migration. Plan carefully.
+
+**When**: Team realizes relational queries, JOINs, or ACID transactions are needed.
+
+**Strategy**:
+
+1. **Schema mapping**: Map each collection to a table. For truly variable documents, use a typed columns + JSONB hybrid:
+   ```sql
+   CREATE TABLE products (
+       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+       name TEXT NOT NULL,
+       category TEXT NOT NULL,
+       price NUMERIC(10,2) NOT NULL,
+       metadata JSONB  -- Variable fields go here
+   );
+   ```
+
+2. **Data extraction**: `mongoexport --jsonArray` per collection, transform with scripts, load with `COPY`
+
+3. **Query rewriting**: Convert aggregation pipelines to SQL
+   - `$match` becomes `WHERE`
+   - `$group` becomes `GROUP BY`
+   - `$lookup` becomes `JOIN`
+   - `$unwind` becomes `LATERAL JOIN` or `jsonb_array_elements`
+
+4. **Dual-write period**: Write to both databases during transition, read from PostgreSQL, compare results
+
+5. **Cutover**: Switch reads to PostgreSQL, decommission MongoDB
+
+**Tools**: `mongoexport`, custom ETL scripts (Python recommended), `pgloader` (limited MongoDB support).
+
+**Risk mitigations**:
+- Run dual-write for at least 1 week in production
+- Compare query results between both databases automatically
+- Keep MongoDB running (read-only) for 30 days post-migration as rollback
+
+## MySQL to PostgreSQL
+
+**When**: Need advanced features (JSONB, CTEs, window functions, extensions) or better standards compliance.
+
+**Steps**:
+1. Use `pgloader` for automated migration (handles most type conversions)
+2. Review and fix: `ENUM` types, `UNSIGNED` integers, `AUTO_INCREMENT` to `SERIAL`
+3. Replace MySQL-specific functions (`IFNULL` to `COALESCE`, `LIMIT x,y` to `LIMIT y OFFSET x`)
+4. Update stored procedures (PL/pgSQL syntax differs from MySQL procedures)
+
+**Tools**: `pgloader` (best option), AWS DMS (for RDS-to-RDS), `mysqldump` + manual conversion.
+
+## Adding Read Replicas (PostgreSQL)
+
+**When**: Read-heavy workload saturates primary, measured (not assumed).
+
+**Steps**:
+1. Set up streaming replication (`primary_conninfo` in `recovery.conf` / `postgresql.auto.conf`)
+2. Configure application for read/write splitting (write to primary, read from replica)
+3. Handle replication lag in application logic (eventual consistency for reads)
+
+**Tools**: Built-in streaming replication, Patroni (HA), PgBouncer (connection routing).
+
+
+### Migration Testing
+
+# Migration Testing Patterns
+
+## Full Cycle Testing
+
+```python
+# tests/test_migrations.py
+import pytest
+from alembic.config import Config
+from alembic import command
+from alembic.script import ScriptDirectory
+
+@pytest.fixture
+def alembic_config():
+    return Config("alembic.ini")
+
+def test_migrations_upgrade_downgrade(alembic_config, test_db):
+    """Test all migrations can be applied and rolled back."""
+    # Get all revisions
+    script = ScriptDirectory.from_config(alembic_config)
+    revisions = list(script.walk_revisions())
+
+    # Apply all migrations
+    command.upgrade(alembic_config, "head")
+
+    # Downgrade all migrations
+    command.downgrade(alembic_config, "base")
+
+    # Verify clean state
+    assert get_table_count(test_db) == 0
+```
+
+## Checksum Verification
+
+```python
+def test_migration_checksums(alembic_config):
+    """Verify migrations haven't been modified after deployment."""
+    script = ScriptDirectory.from_config(alembic_config)
+
+    for revision in script.walk_revisions():
+        if revision.revision in DEPLOYED_MIGRATIONS:
+            current_checksum = calculate_checksum(revision.path)
+            expected_checksum = DEPLOYED_MIGRATIONS[revision.revision]
+            assert current_checksum == expected_checksum, \
+                f"Migration {revision.revision} was modified after deployment!"
+```
+
+## Data Integrity Testing
+
+```python
+def test_migration_preserves_data(alembic_config, test_db):
+    """Verify migration doesn't lose data."""
+    # Insert test data
+    insert_test_records(test_db, count=100)
+    original_count = get_record_count(test_db)
+
+    # Run migration
+    command.upgrade(alembic_config, "+1")
+
+    # Verify data preserved
+    new_count = get_record_count(test_db)
+    assert new_count == original_count
+```
+
+## Rollback Testing
+
+```python
+def test_rollback_safety(alembic_config, test_db):
+    """Verify rollback restores previous state."""
+    # Get initial state
+    command.upgrade(alembic_config, "head")
+    pre_rollback_schema = get_schema_snapshot(test_db)
+
+    # Apply new migration
+    apply_pending_migration(alembic_config)
+
+    # Rollback
+    command.downgrade(alembic_config, "-1")
+
+    # Verify schema restored
+    post_rollback_schema = get_schema_snapshot(test_db)
+    assert pre_rollback_schema == post_rollback_schema
+```
+
+## CI Integration
+
+```yaml
+# .github/workflows/migrations.yml
+migration-test:
+  runs-on: ubuntu-latest
+  services:
+    postgres:
+      image: postgres:16
+      env:
+        POSTGRES_PASSWORD: test
+  steps:
+    - uses: actions/checkout@v4
+    - name: Test migrations
+      run: |
+        pytest tests/test_migrations.py -v
+```
+
+
+### Ork Delta
+
+# OrchestKit delta: database-patterns
+
+What this skill knows that upstream docs do not. Everything else (normal forms,
+Alembic command syntax, PostgreSQL index types, generic migration checklists) is
+vendor documentation and was removed; see the "Upstream coverage" table in
+`SKILL.md` for where each removed topic now lives.
+
+## Guard the async Alembic env.py with in_greenlet() before calling asyncio.run()
+
+Why: this skill shipped a bare `asyncio.run(run_async_migrations())` in its
+`env.py` template until PR #2143 (commit e4854df83) replaced it with an
+`in_greenlet()` branch that calls `await_only()` instead. Driving `alembic
+upgrade` from inside an already-running loop (a FastAPI lifespan hook is the
+common case) raises "loop already running" with the bare form. Import both names
+from `sqlalchemy.util.concurrency`.
+
+Upstream: https://alembic.sqlalchemy.org/en/latest/cookbook.html
+
+## Read PG18 WITHOUT OVERLAPS as a uniqueness constraint, never as row history
+
+Why: this skill's audit-trail guidance was headed "Temporal Tables (PostgreSQL
+15+)" and conflated two different features until PR #2143 (commit e4854df83)
+split them. PG18 native `PRIMARY KEY ... WITHOUT OVERLAPS` and `FOREIGN KEY ...
+PERIOD` give temporal uniqueness and referential integrity only. They do not
+capture system-versioned history, which still needs the `temporal_tables`
+extension. The native constraints are GiST backed, so a range column sharing a
+primary key with scalar columns also needs `CREATE EXTENSION btree_gist`.
+
+Upstream: https://www.postgresql.org/docs/18/sql-createtable.html
+
+## Never present a concrete database schema as OrchestKit's own
+
+Why: the retired `orchestkit-database-schema.md` example documented `analyses`,
+`artifacts`, `analysis_chunks` and `agent_findings` tables as "the OrchestKit
+schema" and sourced two columns to "Issue #244 (Handle Pattern)" and "Issue
+#220 (PII)". In this repo `gh issue view 244` returns "feat(ci): cross-platform
+CI with Node 20/22/24 matrix" and `gh issue view 220` returns "feat(#212): CC
+2.1.19 full modernization", and the tree contains no `alembic.ini` and no
+`env.py`. OrchestKit is a Claude Code plugin with no database, so that schema and
+its issue trail came from a different project. Write examples as generic, or cite
+a file path that exists.
+
+Upstream: https://github.com/pgvector/pgvector (first-party home of the pgvector
+and HNSW patterns that file was actually teaching)
+
+## Spell out data loss in the migration docstring when downgrade cannot restore it
+
+Why: house documentation convention, distilled from the retired
+`versioning-rollback.md` rule; no traced incident. A `downgrade()` that drops a
+table the upgrade split data into is not reversible, and the only place a
+reviewer reliably reads before running `alembic downgrade` is the revision
+docstring. `SKILL.md` already forbids an empty `downgrade()`; this rule covers the
+case where a correct `downgrade()` still destroys data. Rollback and data
+integrity test harnesses live in `$\{CLAUDE_PLUGIN_ROOT\}/skills/database-patterns/references/migration-testing.md`.
+
+Upstream: https://alembic.sqlalchemy.org/en/latest/tutorial.html
+
+
+### Postgres Vs Mongodb
+
+# PostgreSQL vs MongoDB
+
+Head-to-head comparison for the most common database decision. TL;DR: PostgreSQL wins for almost every use case.
+
+## Feature Comparison
+
+| Feature | PostgreSQL | MongoDB |
+|---------|-----------|---------|
+| Data model | Relational + JSONB | Document (BSON) |
+| Schema | Enforced (with flexible JSONB) | Schema-less (optional validation) |
+| Transactions | Full ACID, multi-table | Multi-document (since 4.0, slower) |
+| Joins | Native, optimized | $lookup (slow, limited) |
+| JSON support | JSONB with GIN indexes | Native BSON |
+| Full-text search | Built-in tsvector | Atlas Search (paid) |
+| Geospatial | PostGIS (industry standard) | Built-in (basic) |
+| Aggregation | SQL (window functions, CTEs) | Aggregation pipeline (verbose) |
+| Replication | Streaming replication | Replica sets |
+| Sharding | Citus extension / partitioning | Built-in (complex to operate) |
+| License | PostgreSQL License (permissive) | SSPL (restrictive) |
+| Hosting | Every cloud, many managed options | Atlas (MongoDB Inc.) or self-host |
+
+## PostgreSQL JSONB: The MongoDB Killer
+
+PostgreSQL's JSONB type handles document workloads with full SQL power:
+
+```sql
+-- Store JSON documents
+CREATE TABLE products (
+    id SERIAL PRIMARY KEY,
+    data JSONB NOT NULL
+);
+
+-- Index nested fields
+CREATE INDEX idx_products_category ON products USING GIN ((data->'category'));
+
+-- Query JSON with SQL
+SELECT data->>'name' AS name, data->'price' AS price
+FROM products
+WHERE data @> '{"category": "electronics"}'
+  AND (data->>'price')::numeric < 500
+ORDER BY (data->>'price')::numeric;
+
+-- Combine relational joins WITH JSON queries
+SELECT u.email, p.data->>'name'
+FROM users u
+JOIN products p ON p.data->>'seller_id' = u.id::text
+WHERE p.data @> '{"in_stock": true}';
+```
+
+Key advantages over MongoDB:
+- **ACID transactions** across relational and JSON data in one query
+- **JOIN** JSON documents with relational tables
+- **GIN indexes** on JSONB are fast and flexible
+- **Partial indexes** on JSON fields for targeted performance
+- **No vendor lock-in** — SSPL license limits MongoDB hosting options
+
+## When MongoDB Actually Makes Sense
+
+These cases are rare but legitimate:
+
+1. **Rapidly evolving schemas**: Data shape changes multiple times per week, and you never need cross-document joins. Example: IoT with hundreds of device types each sending different telemetry shapes.
+
+2. **Existing MongoDB codebase**: Migration cost exceeds benefit. The team has deep MongoDB operational expertise and the application works well.
+
+3. **Content catalogs with embedded data**: Self-contained documents that are always read/written as a whole, never joined. Example: a product catalog where each product document contains all its variants, reviews, and metadata.
+
+4. **Time-series with variable schemas**: Each data point has different fields. Note: TimescaleDB (PostgreSQL extension) often handles this better.
+
+## Common MongoDB Pitfalls
+
+| Pitfall | What Happens | PostgreSQL Equivalent |
+|---------|-------------|----------------------|
+| No joins | Denormalize everything, data duplication | Native JOINs |
+| Schema drift | Documents with inconsistent fields | Schema enforcement |
+| $lookup performance | Cross-collection queries are slow | Optimized JOIN planner |
+| Transaction overhead | Multi-doc transactions are 2-5x slower than single-doc | Negligible transaction overhead |
+| SSPL license | Cannot offer as managed service | Permissive license |
+| ObjectId ordering | Time-based, leaks creation timestamps | UUID v7 or SERIAL |
+
+## Migration: MongoDB to PostgreSQL
+
+See `references/db-migration-paths.md` for detailed migration strategies.
+
+Quick summary:
+1. Map collections to tables (or JSONB columns for truly flexible data)
+2. Extract commonly queried fields into typed columns
+3. Use `mongodump` + transformation scripts + `COPY` for data migration
+4. Rewrite aggregation pipelines as SQL queries (usually simpler)
+
+
+### Storage And Cms
+
+# Storage and CMS Database Selection
+
+Guidance for choosing databases in content management and file storage contexts.
+
+## CMS Backend Database Selection
+
+| CMS Type | Recommended Database | Rationale |
+|----------|---------------------|-----------|
+| Traditional CMS (WordPress-like) | PostgreSQL | Structured content with relationships, taxonomies, user roles |
+| Headless CMS (API-first) | PostgreSQL | Content types, versioning, localization all benefit from relational model |
+| Blog / Documentation | PostgreSQL or SQLite | Simple schema; SQLite works for single-author static-gen |
+| E-commerce catalog | PostgreSQL | Products, variants, inventory, orders — heavily relational |
+| User-generated content | PostgreSQL | Moderation workflows, reporting, search — needs JOINs and transactions |
+
+### Why Not MongoDB for CMS?
+
+The "documents for content" intuition is wrong. CMS content is deeply relational:
+
+- Content references other content (related posts, linked products)
+- Taxonomies (categories, tags) are many-to-many relationships
+- User roles and permissions are relational
+- Content versioning needs transactions
+- Localization multiplies content with locale relationships
+
+PostgreSQL JSONB handles the flexible parts (custom fields, metadata) while maintaining relational integrity for the structural parts.
+
+## File and Blob Storage
+
+**Rule: Never store large files in a database.**
+
+| Storage Type | Use | Technology |
+|-------------|-----|------------|
+| File metadata | Database (PostgreSQL) | Store filename, size, mime type, S3 key, upload timestamp |
+| Small files (&lt; 1 MB) | Database acceptable | Profile avatars, thumbnails — `BYTEA` column or JSONB base64 |
+| Medium files (1-100 MB) | Object storage | S3, GCS, R2, MinIO — store URL/key in database |
+| Large files (100 MB+) | Object storage + multipart | S3 multipart upload, presigned URLs |
+| Temporary files | Object storage with lifecycle | S3 lifecycle rules for auto-deletion |
+
+### Recommended Architecture
+
+```
+User Upload --> API Server --> Object Storage (S3/R2/GCS)
+                    |
+                    v
+              PostgreSQL (metadata only)
+              - file_id, s3_key, filename
+              - mime_type, size_bytes
+              - uploaded_by, uploaded_at
+```
+
+This pattern:
+- Keeps database small and fast (metadata only)
+- Leverages CDN for file delivery (CloudFront, Cloudflare)
+- Enables presigned URLs for direct upload/download (bypasses API server)
+- Works with any object storage provider (no vendor lock-in)
+
+### When to Use Database for Storage
+
+Acceptable cases for storing data directly in PostgreSQL:
+
+1. **Small, frequently accessed blobs**: User avatars under 100 KB, stored as `BYTEA`
+2. **Generated documents**: PDF invoices, reports — if total volume is small (&lt; 10 GB)
+3. **Configuration files**: YAML/JSON configs under 1 MB
+4. **Embedded SQLite**: Single-user apps where adding object storage is overkill
+
+### Object Storage Comparison
+
+| Provider | Free Tier | Cost (per GB/mo) | Egress | Best For |
+|----------|-----------|-------------------|--------|----------|
+| Cloudflare R2 | 10 GB | $0.015 | Free | Cost-sensitive, no egress fees |
+| AWS S3 | 5 GB (12 months) | $0.023 | $0.09/GB | AWS ecosystem, mature tooling |
+| GCS | 5 GB | $0.020 | $0.12/GB | GCP ecosystem |
+| MinIO | Unlimited (self-hosted) | Infrastructure cost | N/A | On-premise, air-gapped |
+| Supabase Storage | 1 GB | $0.021 | Included in plan | Already using Supabase |
+
+**Default recommendation**: Cloudflare R2 for new projects (zero egress fees), S3 for AWS-native stacks.
+

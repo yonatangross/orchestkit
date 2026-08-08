@@ -1,0 +1,1689 @@
+---
+title: "Python Backend"
+description: "Production Python async patterns including asyncio TaskGroup, FastAPI dependency injection and middleware, SQLAlchemy 2.0 async sessions, and database connection pool tuning. Python 3.11+ runtime concerns such as ExceptionGroup, cancellation semantics, and session rollback. Use when building async services, wiring FastAPI dependencies, or tuning database connection pools. Runtime implementation layer, not the API wire contract."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="python-backend" />
+
+> **Python Backend** Production Python async patterns including asyncio TaskGroup, FastAPI dependency injection and middleware, SQLAlchemy 2.0 async sessions, and database connection pool tuning. Python 3.11+ runtime concerns such as ExceptionGroup, cancellation semantics, and session rollback. Use when building async services, wiring FastAPI dependencies, or tuning database connection pools. Runtime implementation layer, not the API wire contract.
+
+
+&lt;!-- directive-density: intentional (teaches asyncio/SQLAlchemy anti-patterns; NEVER markers describe real event-loop/race-condition bugs, not aspirational guidance) --&gt;
+
+# Python Backend
+
+Patterns for building production Python backends with asyncio, FastAPI, SQLAlchemy 2.0, and connection pooling. Each category has individual rule files in `rules/` loaded on-demand.
+
+## Quick Reference
+
+| Category | Rules | Impact | When to Use |
+|----------|-------|--------|-------------|
+| [Asyncio](#asyncio) | 3 | HIGH | TaskGroup, structured concurrency, cancellation handling |
+| [FastAPI](#fastapi) | 3 | HIGH | Dependencies, middleware, background tasks |
+| [SQLAlchemy](#sqlalchemy) | 3 | HIGH | Async sessions, relationships, migrations |
+| [Pooling](#pooling) | 3 | MEDIUM | Database pools, HTTP sessions, tuning |
+
+**Total: 12 rules across 4 categories.** House decisions rescued from thinned files live in `references/ork-delta.md`; vendor material is linked, not restated (see [Upstream coverage](#upstream-coverage-do-not-restate)).
+
+## Quick Start
+
+```python
+# FastAPI + SQLAlchemy async session
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_factory() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+
+# Reusable dependency alias (FastAPI's recommended Annotated form)
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
+
+@router.get("/users/{user_id}")
+async def get_user(user_id: UUID, db: SessionDep):
+    result = await db.execute(select(User).where(User.id == user_id))
+    return result.scalar_one_or_none()
+```
+
+```python
+# Asyncio TaskGroup with timeout
+async def fetch_all(urls: list[str]) -> list[dict]:
+    async with asyncio.timeout(30):
+        async with asyncio.TaskGroup() as tg:
+            tasks = [tg.create_task(fetch_url(url)) for url in urls]
+    return [t.result() for t in tasks]
+```
+
+## Asyncio
+
+Modern Python asyncio patterns using structured concurrency, TaskGroup, and Python 3.11+ features.
+
+### Key Patterns
+
+- **TaskGroup** replaces `gather()` with structured concurrency and auto-cancellation
+- **`asyncio.timeout()`** context manager for composable timeouts
+- **Semaphore** for concurrency limiting (rate-limit HTTP requests)
+- **`except*`** with ExceptionGroup for handling multiple task failures
+- **`asyncio.to_thread()`** for bridging sync code to async
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Task spawning | TaskGroup not gather() |
+| Timeouts | asyncio.timeout() context manager |
+| Concurrency limit | asyncio.Semaphore |
+| Sync bridge | asyncio.to_thread() |
+| Cancellation | Always re-raise CancelledError |
+
+## FastAPI
+
+Production-ready FastAPI patterns for lifespan, dependencies, middleware, and settings.
+
+### Key Patterns
+
+- **Lifespan** with `asynccontextmanager` for startup/shutdown resource management
+- **Dependency injection** with class-based services and `Depends()`
+- **Middleware stack**: CORS -> RequestID -> Timing -> Logging
+- **Pydantic Settings** with `.env` and field validation
+- **Exception handlers** wired to RFC 9457 Problem Details bodies (the body format itself is `ork:api-design`)
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Lifespan | asynccontextmanager (not events) |
+| Dependencies | Class-based services with DI |
+| Settings | Pydantic Settings with .env |
+| Response | ORJSONResponse for performance |
+| Health | Check all critical dependencies |
+
+## SQLAlchemy
+
+Async database patterns with SQLAlchemy 2.0, AsyncSession, and FastAPI integration.
+
+### Key Patterns
+
+- **One AsyncSession per request** with `expire_on_commit=False`
+- **`lazy="raise"`** on relationships to prevent accidental N+1 queries
+- **`selectinload`** for eager loading collections
+- **Repository pattern** with generic async CRUD
+- **Bulk inserts** chunked 1000-10000 rows for memory management
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Session scope | One AsyncSession per request |
+| Lazy loading | lazy="raise" + explicit loads |
+| Eager loading | selectinload for collections |
+| expire_on_commit | False (prevents lazy load errors) |
+| Pool | pool_pre_ping=True |
+
+## Pooling
+
+Database and HTTP connection pooling for high-performance async Python applications.
+
+### Key Patterns
+
+- **SQLAlchemy pool** with `pool_size`, `max_overflow`, `pool_pre_ping`
+- **Direct asyncpg pool** with `min_size`/`max_size` and connection lifecycle
+- **aiohttp session** with `TCPConnector` limits and DNS caching
+- **FastAPI lifespan** creating and closing pools at startup/shutdown
+- **Pool monitoring** with Prometheus metrics
+
+### Pool Sizing Formula
+
+```
+pool_size = (concurrent_requests / avg_queries_per_request) * 1.5
+```
+
+That formula sizes one process. The fleet-level cap against the server's
+`max_connections`, and the pool alert thresholds, are in `references/ork-delta.md`.
+
+## Anti-Patterns (FORBIDDEN)
+
+```python
+# NEVER use gather() for new code - no structured concurrency
+# NEVER swallow CancelledError - breaks TaskGroup and timeout
+# NEVER block the event loop with sync calls (time.sleep, requests.get)
+# NEVER use global mutable state for db sessions
+# NEVER skip dependency injection (create sessions in routes)
+# NEVER share AsyncSession across tasks (race condition)
+# NEVER use sync Session in async code (blocks event loop)
+# NEVER create engine/pool per request
+# NEVER forget to close pools on shutdown
+```
+
+## Upstream coverage (do not restate)
+
+Topics removed in the 2026-07-31 wrap-plus-delta thinning. Consult the first-party source; only the ork delta (house policy, scars, working config) belongs in this skill. Where a row says a house subset stays in a `rules/` file, that file is still the authority for the OrchestKit position and the link only covers the vendor surface around it.
+
+| Topic | First-party source |
+|-------|--------------------|
+| asyncio task API reference: TaskGroup vs `gather()`, `asyncio.timeout()`, `ExceptionGroup` and `except*`, `to_thread()`. House subset stays in `rules/asyncio-taskgroup.md` and `rules/asyncio-cancellation.md`. | https://docs.python.org/3/library/asyncio-task.html |
+| `asyncio.Semaphore`, `Lock`, `Event`, `Queue` semantics. House subset stays in `rules/asyncio-structured.md`; the create-once-plus-timeout rule is in `references/ork-delta.md`. | https://docs.python.org/3/library/asyncio-sync.html |
+| Event-loop debug mode, `slow_callback_duration`, detecting blocking calls (the house 100 ms threshold is in `references/ork-delta.md`) | https://docs.python.org/3/library/asyncio-dev.html |
+| FastAPI project scaffolding: app layout, `APIRouter` composition, Pydantic Settings wiring, uvicorn entry point | https://fastapi.tiangolo.com/tutorial/bigger-applications/ |
+| FastAPI lifespan API and startup/shutdown mechanics. House subset stays in `rules/fastapi-background.md`; the reverse-order teardown rule is in `references/ork-delta.md`. | https://fastapi.tiangolo.com/advanced/events/ |
+| Starlette/FastAPI middleware API, `BaseHTTPMiddleware`, `call_next`, CORS options. House subset stays in `rules/fastapi-middleware.md` and `references/fastapi-app-boilerplate.md`; the middleware-vs-dependency split is in `references/ork-delta.md`. | https://fastapi.tiangolo.com/tutorial/middleware/ |
+| SQLAlchemy 2.0 asyncio API: `create_async_engine`, `async_sessionmaker`, `expire_on_commit`, `Mapped`/`mapped_column`, `with_for_update`, bulk insert and update. House subset stays in `rules/sqlalchemy-sessions.md`, `rules/sqlalchemy-relationships.md`, `rules/sqlalchemy-migrations.md`, and `references/eager-loading.md`. | https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html |
+| SQLAlchemy pool implementations and options (`pool_size`, `max_overflow`, `pool_pre_ping`, `pool_recycle`, `pool_timeout`). House subset stays in `rules/pooling-database.md`. | https://docs.sqlalchemy.org/en/20/core/pooling.html |
+| SQLAlchemy pool events (`checkout`, `checkin`, `connect`) for instrumentation. House subset stays in `rules/pooling-tuning.md`; the alert thresholds are in `references/ork-delta.md`. | https://docs.sqlalchemy.org/en/20/core/events.html |
+| asyncpg pool API: `create_pool`, `min_size`/`max_size`, `max_inactive_connection_lifetime`, `setup` hook, type codecs | https://magicstack.github.io/asyncpg/current/api/index.html |
+| aiohttp client reference: `ClientSession`, `TCPConnector` limits, keep-alive, DNS caching, `ClientTimeout`. House subset stays in `rules/pooling-http.md`. | https://docs.aiohttp.org/en/stable/client_reference.html |
+| PostgreSQL server-side connection limits (`max_connections`, `superuser_reserved_connections`) | https://www.postgresql.org/docs/current/runtime-config-connection.html |
+| pytest-asyncio fixtures and async test setup | https://pytest-asyncio.readthedocs.io/en/stable/reference/fixtures/index.html |
+| Container and Kubernetes packaging, readiness/liveness probes, resource limits | https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/ |
+| Auth flows, password hashing, token expiry policy, security headers | Owned by `ork:security-patterns` (`src/skills/security-patterns/`); the FastAPI `Depends()` auth chain stays in `rules/fastapi-dependencies.md` |
+| RFC 9457 problem-details body format, API versioning, SSE and WebSocket wire contracts | Owned by `ork:api-design` (`src/skills/api-design/`); the FastAPI exception-handler wiring stays in `rules/fastapi-background.md` and `references/fastapi-app-boilerplate.md` |
+| Production checklists for FastAPI, asyncio, SQLAlchemy, and pooling | Derivable from the sources above; no checklist restatement kept |
+
+## Related Skills
+
+- `ork:architecture-patterns` - Clean architecture and layer separation
+- `ork:async-jobs` - Celery/ARQ for background processing
+- `ork:api-design` - Wire contract, RFC 9457 errors, SSE/WebSocket streaming
+- `ork:database-patterns` - Database schema design
+- `ork:security-patterns` - Auth, password hashing, token policy
+- `ork:testing-integration` - pytest-asyncio and httpx ASGI test setup
+- `ork:devops-deployment` - Docker and Kubernetes packaging
+
+
+---
+
+## Rules (12)
+
+### Handle asyncio cancellation correctly for proper TaskGroup and timeout behavior — HIGH
+
+
+# Cancellation Handling
+
+## Proper Cancellation Pattern
+
+```python
+async def cancellable_operation(resource_id: str) -> dict:
+    """Properly handle cancellation - NEVER swallow CancelledError."""
+    resource = await acquire_resource(resource_id)
+    try:
+        return await process_resource(resource)
+    except asyncio.CancelledError:
+        # Clean up but RE-RAISE - this is critical!
+        await cleanup_resource(resource)
+        raise  # ALWAYS re-raise CancelledError
+    finally:
+        await release_resource(resource)
+```
+
+## Anti-Patterns
+
+```python
+# NEVER swallow CancelledError - breaks structured concurrency
+except asyncio.CancelledError:
+    return None  # BREAKS TaskGroup and timeout!
+
+# NEVER use create_task() without TaskGroup - tasks leak
+asyncio.create_task(background_work())  # Fire and forget = leaked task
+
+# NEVER yield inside async context managers (PEP 789)
+async with asyncio.timeout(10):
+    yield item  # DANGEROUS - cancellation bugs!
+```
+
+## Key Principles
+
+- **Always re-raise** `CancelledError` after cleanup
+- Breaking this rule breaks TaskGroup and timeout behavior
+- Use `try/finally` for guaranteed resource cleanup
+- Never use bare `create_task()` outside a TaskGroup
+
+**Incorrect — Swallowing CancelledError breaks TaskGroup cancellation propagation:**
+```python
+async def broken_task():
+    try:
+        await long_running_operation()
+    except asyncio.CancelledError:
+        return None  # BUG: TaskGroup cannot cancel properly!
+```
+
+**Correct — Re-raising CancelledError allows proper cleanup and cancellation flow:**
+```python
+async def proper_task():
+    try:
+        await long_running_operation()
+    except asyncio.CancelledError:
+        await cleanup()
+        raise  # CRITICAL: Propagate cancellation
+```
+
+
+### Use semaphores and sync bridges to prevent resource exhaustion and event loop blocking — HIGH
+
+
+# Structured Concurrency Patterns
+
+## Semaphore for Concurrency Limiting
+
+```python
+class RateLimitedClient:
+    """HTTP client with concurrency limiting."""
+
+    def __init__(self, max_concurrent: int = 10):
+        self._semaphore = asyncio.Semaphore(max_concurrent)
+        self._session: aiohttp.ClientSession | None = None
+
+    async def fetch(self, url: str) -> dict:
+        async with self._semaphore:  # Limit concurrent requests
+            async with self._session.get(url) as response:
+                return await response.json()
+
+    async def fetch_many(self, urls: list[str]) -> list[dict]:
+        async with asyncio.TaskGroup() as tg:
+            tasks = [tg.create_task(self.fetch(url)) for url in urls]
+        return [t.result() for t in tasks]
+```
+
+## Sync-to-Async Bridge
+
+```python
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+
+# For CPU-bound or blocking sync code
+async def run_blocking_operation(data: bytes) -> dict:
+    """Run blocking sync code in thread pool."""
+    return await asyncio.to_thread(cpu_intensive_parse, data)
+
+# For sync code that needs async context
+def sync_caller():
+    """Call async code from sync context (not in existing loop)."""
+    return asyncio.run(async_main())
+
+# For sync code within existing async context
+async def wrapper_for_sync_lib():
+    """Bridge sync library to async - use with care."""
+    loop = asyncio.get_running_loop()
+    with ThreadPoolExecutor() as pool:
+        result = await loop.run_in_executor(pool, sync_blocking_call)
+    return result
+```
+
+## Key Principles
+
+- Use `asyncio.Semaphore` to prevent connection pool exhaustion
+- Use `asyncio.to_thread()` for clean sync-to-async bridging
+- Never call `asyncio.run()` inside an existing event loop
+- Never block the event loop with `time.sleep()` or `requests.get()`
+
+**Incorrect — Unlimited concurrent requests exhaust connection pools and memory:**
+```python
+async def fetch_all(urls: list[str]):
+    tasks = [fetch_url(url) for url in urls]  # 10,000 concurrent!
+    return await asyncio.gather(*tasks)
+```
+
+**Correct — Semaphore limits concurrency to prevent resource exhaustion:**
+```python
+async def fetch_all(urls: list[str], max_concurrent: int = 10):
+    sem = asyncio.Semaphore(max_concurrent)
+    async def limited_fetch(url):
+        async with sem:
+            return await fetch_url(url)
+    async with asyncio.TaskGroup() as tg:
+        tasks = [tg.create_task(limited_fetch(url)) for url in urls]
+    return [t.result() for t in tasks]
+```
+
+
+### Apply TaskGroup for structured concurrency with automatic cancellation on failure — HIGH
+
+
+# TaskGroup & Timeout Patterns
+
+## TaskGroup (Replaces gather)
+
+```python
+import asyncio
+
+async def fetch_user_data(user_id: str) -> dict:
+    """Fetch user data concurrently - all tasks complete or all cancelled."""
+    async with asyncio.TaskGroup() as tg:
+        user_task = tg.create_task(fetch_user(user_id))
+        orders_task = tg.create_task(fetch_orders(user_id))
+        preferences_task = tg.create_task(fetch_preferences(user_id))
+
+    # All tasks guaranteed complete here
+    return {
+        "user": user_task.result(),
+        "orders": orders_task.result(),
+        "preferences": preferences_task.result(),
+    }
+```
+
+## TaskGroup with Timeout
+
+```python
+async def fetch_with_timeout(urls: list[str], timeout_sec: float = 30) -> list[dict]:
+    """Fetch all URLs with overall timeout - structured concurrency."""
+    results = []
+
+    async with asyncio.timeout(timeout_sec):
+        async with asyncio.TaskGroup() as tg:
+            tasks = [tg.create_task(fetch_url(url)) for url in urls]
+
+    return [t.result() for t in tasks]
+```
+
+## Exception Group Handling
+
+```python
+async def process_batch(items: list[dict]) -> tuple[list[dict], list[Exception]]:
+    """Process batch, collecting both successes and failures."""
+    results = []
+    errors = []
+
+    try:
+        async with asyncio.TaskGroup() as tg:
+            tasks = [tg.create_task(process_item(item)) for item in items]
+    except* ValueError as eg:
+        errors.extend(eg.exceptions)
+    except* Exception as eg:
+        errors.extend(eg.exceptions)
+    else:
+        results = [t.result() for t in tasks]
+
+    return results, errors
+```
+
+## Key Principles
+
+- Use **TaskGroup** not `gather()` for all new code
+- Use **`asyncio.timeout()`** context manager for deadlines
+- Handle **ExceptionGroup** with `except*` for multiple failures
+- TaskGroup auto-cancels remaining tasks when one fails
+
+**Incorrect — gather() doesn't cancel remaining tasks when one fails:**
+```python
+results = await asyncio.gather(
+    fetch_user(user_id),
+    fetch_orders(user_id),
+    fetch_preferences(user_id),
+)  # If one fails, others keep running (resource leak)
+```
+
+**Correct — TaskGroup auto-cancels all tasks when any fails (structured concurrency):**
+```python
+async with asyncio.TaskGroup() as tg:
+    user_task = tg.create_task(fetch_user(user_id))
+    orders_task = tg.create_task(fetch_orders(user_id))
+    prefs_task = tg.create_task(fetch_preferences(user_id))
+# If any fails, all are cancelled automatically
+```
+
+
+### Configure FastAPI lifespan management to prevent resource leaks during startup and shutdown — HIGH
+
+
+# FastAPI Lifespan & Health
+
+## Lifespan Context Manager
+
+```python
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan with resource management."""
+    # Startup
+    app.state.db_engine = create_async_engine(
+        settings.database_url, pool_size=5, max_overflow=10,
+    )
+    app.state.redis = redis.from_url(settings.redis_url)
+
+    # Health check connections
+    async with app.state.db_engine.connect() as conn:
+        await conn.execute(text("SELECT 1"))
+    await app.state.redis.ping()
+
+    yield  # Application runs
+
+    # Shutdown
+    await app.state.db_engine.dispose()
+    await app.state.redis.close()
+
+app = FastAPI(lifespan=lifespan)
+```
+
+## Health Check Endpoint
+
+```python
+@health_router.get("/health")
+async def health_check(request: Request):
+    checks = {}
+    try:
+        async with request.app.state.db_engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        checks["database"] = "healthy"
+    except Exception as e:
+        checks["database"] = f"unhealthy: {e}"
+
+    try:
+        await request.app.state.redis.ping()
+        checks["redis"] = "healthy"
+    except Exception as e:
+        checks["redis"] = f"unhealthy: {e}"
+
+    status = "healthy" if all(v == "healthy" for v in checks.values()) else "unhealthy"
+    return {"status": status, "checks": checks}
+```
+
+## Pydantic Settings
+
+```python
+from pydantic import Field, field_validator, PostgresDsn
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
+
+    database_url: PostgresDsn
+    db_pool_size: int = Field(default=5, ge=1, le=20)
+    redis_url: str = "redis://localhost:6379"
+    api_key: str = Field(min_length=32)
+    debug: bool = False
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def validate_database_url(cls, v: str) -> str:
+        if v and "+asyncpg" not in v:
+            return v.replace("postgresql://", "postgresql+asyncpg://")
+        return v
+```
+
+## Exception Handlers
+
+```python
+@app.exception_handler(ProblemException)
+async def problem_exception_handler(request: Request, exc: ProblemException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=exc.to_problem_detail(),
+        media_type="application/problem+json",
+    )
+```
+
+## Response Optimization
+
+```python
+from fastapi.responses import ORJSONResponse
+
+app = FastAPI(default_response_class=ORJSONResponse)
+```
+
+**Incorrect — Creating resources at module level leads to connection leaks:**
+```python
+# Module-level connection (never closed!)
+db_engine = create_async_engine(DATABASE_URL)
+
+app = FastAPI()
+
+@app.on_event("startup")  # Deprecated
+async def startup():
+    await db_engine.connect()
+```
+
+**Correct — Lifespan context manager ensures proper resource cleanup:**
+```python
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: create resources
+    app.state.db_engine = create_async_engine(DATABASE_URL)
+    yield
+    # Shutdown: guaranteed cleanup
+    await app.state.db_engine.dispose()
+
+app = FastAPI(lifespan=lifespan)
+```
+
+
+### Design FastAPI dependency injection for testable and maintainable application architecture — HIGH
+
+
+# FastAPI Dependency Injection
+
+## Database Session Dependency
+
+```python
+from typing import Annotated, AsyncGenerator
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends, Request
+
+async def get_db(request: Request) -> AsyncGenerator[AsyncSession, None]:
+    """Yield database session from app state."""
+    async with AsyncSession(
+        request.app.state.db_engine,
+        expire_on_commit=False,
+    ) as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+
+# Reusable dependency alias (FastAPI's recommended Annotated form)
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
+```
+
+## Service Dependencies
+
+```python
+class AnalysisService:
+    def __init__(self, db: AsyncSession, embeddings: EmbeddingsService, llm: LLMService):
+        self.db = db
+        self.embeddings = embeddings
+        self.llm = llm
+
+def get_analysis_service(
+    db: SessionDep,
+    request: Request = None,
+) -> AnalysisService:
+    return AnalysisService(
+        db=db,
+        embeddings=request.app.state.embeddings,
+        llm=request.app.state.llm,
+    )
+
+AnalysisServiceDep = Annotated[AnalysisService, Depends(get_analysis_service)]
+
+@router.post("/analyses")
+async def create_analysis(
+    data: AnalysisCreate,
+    service: AnalysisServiceDep,
+):
+    return await service.create(data)
+```
+
+## Cached Settings
+
+```python
+from functools import lru_cache
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    database_url: str
+    redis_url: str
+    api_key: str
+    model_config = {"env_file": ".env"}
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+```
+
+## Authentication Chain
+
+```python
+from fastapi import Depends, HTTPException, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+security = HTTPBearer()
+
+async def get_current_user(
+    credentials: Annotated[HTTPAuthorizationCredentials, Security(security)],
+    db: SessionDep,
+) -> User:
+    token = credentials.credentials
+    payload = decode_jwt(token)
+    user = await db.get(User, payload["sub"])
+    if not user:
+        raise HTTPException(401, "Invalid credentials")
+    return user
+
+CurrentUserDep = Annotated[User, Depends(get_current_user)]
+
+async def get_admin_user(user: CurrentUserDep) -> User:
+    if not user.is_admin:
+        raise HTTPException(403, "Admin access required")
+    return user
+```
+
+**Incorrect — Manually creating dependencies couples code and breaks testability:**
+```python
+@router.post("/analyses")
+async def create_analysis(data: AnalysisCreate, request: Request):
+    db = AsyncSession(request.app.state.db_engine)
+    service = AnalysisService(db)  # Cannot mock in tests
+    return await service.create(data)
+```
+
+**Correct — Annotated Depends() enables dependency injection and easy testing:**
+```python
+@router.post("/analyses")
+async def create_analysis(
+    data: AnalysisCreate,
+    service: AnalysisServiceDep,
+):
+    return await service.create(data)
+# Tests can override get_analysis_service with mocks
+```
+
+
+### Order FastAPI middleware correctly since it affects every request in the application — HIGH
+
+
+# FastAPI Middleware Patterns
+
+## Request ID Middleware
+
+```python
+import uuid
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+
+class RequestIDMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+        request.state.request_id = request_id
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
+```
+
+## Timing Middleware
+
+```python
+import time
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class TimingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start = time.perf_counter()
+        response = await call_next(request)
+        duration = time.perf_counter() - start
+        response.headers["X-Response-Time"] = f"{duration:.3f}s"
+        return response
+```
+
+## Structured Logging Middleware
+
+```python
+import structlog
+from starlette.middleware.base import BaseHTTPMiddleware
+
+logger = structlog.get_logger()
+
+class LoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        log = logger.bind(
+            request_id=getattr(request.state, "request_id", None),
+            method=request.method,
+            path=request.url.path,
+        )
+        try:
+            response = await call_next(request)
+            log.info("request_completed", status_code=response.status_code)
+            return response
+        except Exception as exc:
+            log.exception("request_failed", error=str(exc))
+            raise
+```
+
+## CORS Configuration
+
+```python
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allow_headers=["*"],
+    expose_headers=["X-Request-ID", "X-Response-Time"],
+)
+```
+
+## Middleware Order
+
+Add middleware in this order (last added runs first):
+
+1. CORS (outermost)
+2. RequestID
+3. Timing
+4. Logging (innermost)
+
+**Incorrect — Wrong middleware order causes missing request IDs in logs:**
+```python
+app.add_middleware(LoggingMiddleware)  # Runs first, no request_id yet
+app.add_middleware(RequestIDMiddleware)  # Runs second, sets request_id
+# Result: Logs missing request_id
+```
+
+**Correct — Correct order ensures request_id available for logging:**
+```python
+app.add_middleware(LoggingMiddleware)  # Runs last, has request_id
+app.add_middleware(RequestIDMiddleware)  # Runs first, sets request_id
+# Last added = outermost = runs first
+```
+
+
+### Configure database connection pools correctly to prevent connection exhaustion under load — MEDIUM
+
+
+# Database Connection Pooling
+
+## SQLAlchemy Async Pool Configuration
+
+```python
+from sqlalchemy.ext.asyncio import create_async_engine
+
+engine = create_async_engine(
+    "postgresql+asyncpg://user:pass@localhost/db",
+    pool_size=20,           # Steady-state connections
+    max_overflow=10,        # Burst capacity (total max = 30)
+    pool_pre_ping=True,     # Validate before use
+    pool_recycle=3600,      # Recreate connections after 1 hour
+    pool_timeout=30,        # Wait for connection from pool
+    connect_args={
+        "command_timeout": 60,
+        "server_settings": {"statement_timeout": "60000"},
+    },
+)
+```
+
+## Direct asyncpg Pool
+
+```python
+import asyncpg
+
+pool = await asyncpg.create_pool(
+    "postgresql://user:pass@localhost/db",
+    min_size=10,
+    max_size=20,
+    max_inactive_connection_lifetime=300,
+    command_timeout=60,
+    timeout=30,
+    setup=setup_connection,
+)
+
+async def setup_connection(conn):
+    await conn.execute("SET timezone TO 'UTC'")
+    await conn.execute("SET statement_timeout TO '60s'")
+```
+
+## Pool Sizing
+
+| Parameter | Small Service | Medium Service | High Load |
+|-----------|---------------|----------------|-----------|
+| pool_size | 5-10 | 20-50 | 50-100 |
+| max_overflow | 5 | 10-20 | 20-50 |
+| pool_pre_ping | True | True | Consider False* |
+| pool_recycle | 3600 | 1800 | 900 |
+
+```
+pool_size = (concurrent_requests / avg_queries_per_request) * 1.5
+Example: 100 concurrent / 3 queries = 50
+```
+
+**Incorrect — Creating engine per request exhausts database connections:**
+```python
+@app.get("/users")
+async def get_users():
+    engine = create_async_engine(DATABASE_URL)  # New pool every request!
+    async with AsyncSession(engine) as session:
+        return await session.execute(select(User))
+```
+
+**Correct — Reuse single engine from lifespan for all requests:**
+```python
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.engine = create_async_engine(DATABASE_URL, pool_size=20)
+    yield
+    await app.state.engine.dispose()
+
+@app.get("/users")
+async def get_users(request: Request):
+    async with AsyncSession(request.app.state.engine) as session:
+        return await session.execute(select(User))
+```
+
+
+### Reuse HTTP sessions with connection pooling to prevent churn and improve throughput — MEDIUM
+
+
+# HTTP Connection Pooling
+
+## aiohttp Session Pool
+
+```python
+import aiohttp
+from aiohttp import TCPConnector
+
+connector = TCPConnector(
+    limit=100,              # Total connections
+    limit_per_host=20,      # Per-host limit
+    keepalive_timeout=30,   # Keep-alive duration
+    ssl=False,              # Or ssl.SSLContext for HTTPS
+    ttl_dns_cache=300,      # DNS cache TTL
+)
+
+session = aiohttp.ClientSession(
+    connector=connector,
+    timeout=aiohttp.ClientTimeout(
+        total=30,           # Total request timeout
+        connect=10,         # Connection timeout
+        sock_read=20,       # Read timeout
+    ),
+)
+
+# IMPORTANT: Reuse session across requests
+# Create once at startup, close at shutdown
+```
+
+## FastAPI Lifespan Integration
+
+```python
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.db_pool = await asyncpg.create_pool(DATABASE_URL)
+    app.state.http_session = aiohttp.ClientSession(
+        connector=TCPConnector(limit=100)
+    )
+    yield
+    await app.state.db_pool.close()
+    await app.state.http_session.close()
+
+app = FastAPI(lifespan=lifespan)
+```
+
+## Key Principles
+
+- **Never** create ClientSession per request (connection churn)
+- Create session at startup, close at shutdown
+- Set `limit_per_host` to prevent overwhelming a single service
+- Configure DNS caching for high-throughput scenarios
+
+**Incorrect — Creating session per request causes connection churn and poor performance:**
+```python
+@app.get("/fetch")
+async def fetch_data():
+    async with aiohttp.ClientSession() as session:  # New session every request!
+        async with session.get("https://api.example.com") as resp:
+            return await resp.json()
+```
+
+**Correct — Reuse session from lifespan for connection pooling and keep-alive:**
+```python
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.http_session = aiohttp.ClientSession(
+        connector=TCPConnector(limit=100, limit_per_host=20)
+    )
+    yield
+    await app.state.http_session.close()
+
+@app.get("/fetch")
+async def fetch_data(request: Request):
+    async with request.app.state.http_session.get("https://api.example.com") as resp:
+        return await resp.json()
+```
+
+
+### Monitor connection pools to prevent silent exhaustion and stale connection errors — MEDIUM
+
+
+# Pool Monitoring & Tuning
+
+## Pool Monitoring with Prometheus
+
+```python
+from prometheus_client import Gauge
+
+pool_size = Gauge("db_pool_size", "Current pool size")
+pool_available = Gauge("db_pool_available", "Available connections")
+
+async def collect_pool_metrics(pool: asyncpg.Pool):
+    pool_size.set(pool.get_size())
+    pool_available.set(pool.get_idle_size())
+```
+
+## Connection Exhaustion Diagnosis
+
+```python
+# Symptom: "QueuePool limit reached" or timeouts
+from sqlalchemy import event
+
+@event.listens_for(engine.sync_engine, "checkout")
+def log_checkout(dbapi_conn, conn_record, conn_proxy):
+    print(f"Connection checked out: {id(dbapi_conn)}")
+
+@event.listens_for(engine.sync_engine, "checkin")
+def log_checkin(dbapi_conn, conn_record):
+    print(f"Connection returned: {id(dbapi_conn)}")
+
+# Fix: Ensure connections are returned
+async with session.begin():
+    pass  # Connection returned here
+```
+
+## Stale Connection Handling
+
+```python
+# Fix 1: Enable pool_pre_ping
+engine = create_async_engine(url, pool_pre_ping=True)
+
+# Fix 2: Reduce pool_recycle
+engine = create_async_engine(url, pool_recycle=900)
+
+# Fix 3: Application-level retry
+from sqlalchemy.exc import DBAPIError
+
+async def with_retry(session, operation, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return await operation(session)
+        except DBAPIError as e:
+            if attempt == max_retries - 1:
+                raise
+            await session.rollback()
+```
+
+## Anti-Patterns
+
+```python
+# NEVER create engine/pool per request
+async def get_data():
+    engine = create_async_engine(url)  # WRONG - pool per request!
+
+# NEVER create ClientSession per request
+async def fetch():
+    async with aiohttp.ClientSession() as session:  # WRONG!
+        return await session.get(url)
+
+# NEVER forget to close pools on shutdown
+# NEVER set pool_size too high (exhausts DB connections)
+```
+
+**Incorrect — No pool monitoring leads to silent connection exhaustion:**
+```python
+# No visibility into pool state
+engine = create_async_engine(url, pool_size=20)
+# App runs slow, no idea why (pool exhausted)
+```
+
+**Correct — Prometheus metrics reveal pool exhaustion before timeouts occur:**
+```python
+from prometheus_client import Gauge
+
+pool_size_gauge = Gauge("db_pool_size", "DB pool size")
+pool_available_gauge = Gauge("db_pool_available", "Available connections")
+
+async def collect_metrics(pool):
+    pool_size_gauge.set(pool.get_size())
+    pool_available_gauge.set(pool.get_idle_size())
+# Alert when pool_available approaches 0
+```
+
+
+### Implement repository pattern and bulk operations for maintainable SQLAlchemy data access — HIGH
+
+
+# Repository & Bulk Operations
+
+## Generic Repository Pattern
+
+```python
+from typing import Generic, TypeVar
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+T = TypeVar("T", bound=Base)
+
+class AsyncRepository(Generic[T]):
+    """Generic async repository for CRUD operations."""
+
+    def __init__(self, session: AsyncSession, model: type[T]):
+        self.session = session
+        self.model = model
+
+    async def get(self, id: UUID) -> T | None:
+        return await self.session.get(self.model, id)
+
+    async def get_many(self, ids: list[UUID]) -> list[T]:
+        result = await self.session.execute(
+            select(self.model).where(self.model.id.in_(ids))
+        )
+        return list(result.scalars().all())
+
+    async def create(self, **kwargs) -> T:
+        instance = self.model(**kwargs)
+        self.session.add(instance)
+        await self.session.flush()
+        return instance
+
+    async def update(self, instance: T, **kwargs) -> T:
+        for key, value in kwargs.items():
+            setattr(instance, key, value)
+        await self.session.flush()
+        return instance
+
+    async def delete(self, instance: T) -> None:
+        await self.session.delete(instance)
+        await self.session.flush()
+```
+
+## Bulk Operations
+
+```python
+async def bulk_insert_users(db: AsyncSession, users_data: list[dict]) -> int:
+    """Efficient bulk insert."""
+    users = [User(**data) for data in users_data]
+    db.add_all(users)
+    await db.flush()
+    return len(users)
+
+async def bulk_insert_chunked(
+    db: AsyncSession, items: list[dict], chunk_size: int = 1000,
+) -> int:
+    """Insert large datasets in chunks to manage memory."""
+    total = 0
+    for i in range(0, len(items), chunk_size):
+        chunk = items[i:i + chunk_size]
+        db.add_all([Item(**data) for data in chunk])
+        await db.flush()
+        total += len(chunk)
+    return total
+```
+
+## Key Principles
+
+- Use `flush()` for ID generation without committing the transaction
+- Chunk bulk inserts at 1000-10000 rows for memory management
+- One repository per aggregate root
+- Transaction boundary at the service layer, not repository
+
+**Incorrect — Adding entities one-by-one in loop causes N round trips:**
+```python
+async def create_users(db: AsyncSession, users_data: list[dict]):
+    for user_data in users_data:  # 1000 loop iterations
+        user = User(**user_data)
+        db.add(user)
+        await db.flush()  # 1000 round trips to DB!
+```
+
+**Correct — Bulk operations reduce round trips and improve performance:**
+```python
+async def create_users(db: AsyncSession, users_data: list[dict]):
+    users = [User(**data) for data in users_data]
+    db.add_all(users)  # Single round trip
+    await db.flush()
+```
+
+
+### Configure eager loading for SQLAlchemy relationships to prevent N+1 query performance problems — HIGH
+
+
+# Relationships & Eager Loading
+
+## Eager Loading (Avoid N+1)
+
+```python
+from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy import select
+
+async def get_user_with_orders(db: AsyncSession, user_id: UUID) -> User | None:
+    """Load user with orders in single query - NO N+1."""
+    result = await db.execute(
+        select(User)
+        .options(selectinload(User.orders))
+        .where(User.id == user_id)
+    )
+    return result.scalar_one_or_none()
+
+async def get_users_with_orders(db: AsyncSession, limit: int = 100) -> list[User]:
+    """Load multiple users with orders efficiently."""
+    result = await db.execute(
+        select(User)
+        .options(selectinload(User.orders))
+        .limit(limit)
+    )
+    return list(result.scalars().all())
+```
+
+## Concurrent Queries (Session Safety)
+
+```python
+async def get_dashboard_data(db: AsyncSession, user_id: UUID) -> dict:
+    """Sequential queries with same session (safe)."""
+    # WRONG: Don't share AsyncSession across tasks
+    # async with asyncio.TaskGroup() as tg:
+    #     tg.create_task(db.execute(...))  # NOT SAFE
+
+    # CORRECT: Sequential queries with same session
+    user = await db.get(User, user_id)
+    orders_result = await db.execute(
+        select(Order).where(Order.user_id == user_id).limit(10)
+    )
+    return {"user": user, "recent_orders": list(orders_result.scalars().all())}
+
+async def get_data_from_multiple_users(user_ids: list[UUID]) -> list[dict]:
+    """Concurrent queries - each task gets its own session."""
+    async def fetch_user(user_id: UUID) -> dict:
+        async with async_session_factory() as session:
+            user = await session.get(User, user_id)
+            return {"id": user_id, "email": user.email if user else None}
+
+    async with asyncio.TaskGroup() as tg:
+        tasks = [tg.create_task(fetch_user(uid)) for uid in user_ids]
+    return [t.result() for t in tasks]
+```
+
+## Key Decisions
+
+| Decision | Recommendation | Rationale |
+|----------|----------------|-----------|
+| Lazy loading | `lazy="raise"` + explicit loads | Prevents accidental N+1 |
+| Eager loading | `selectinload` for collections | Better than joinedload for async |
+| Concurrent queries | Separate sessions per task | AsyncSession is NOT thread-safe |
+
+**Incorrect — Lazy loading causes N+1 query problem (1 + 100 queries):**
+```python
+users = await db.execute(select(User).limit(100))
+for user in users.scalars():
+    print(user.orders)  # Separate query for EACH user's orders!
+# Total queries: 1 (users) + 100 (orders) = 101 queries
+```
+
+**Correct — Eager loading with selectinload fetches all data in 2 queries:**
+```python
+users = await db.execute(
+    select(User).options(selectinload(User.orders)).limit(100)
+)
+for user in users.scalars():
+    print(user.orders)  # Already loaded, no extra query
+# Total queries: 2 (users + orders in batch)
+```
+
+
+### Configure SQLAlchemy sessions and engines correctly to prevent connection leaks and lazy load errors — HIGH
+
+
+# SQLAlchemy Sessions & Models
+
+## Engine and Session Factory
+
+```python
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+
+# Create async engine - ONE per application
+engine = create_async_engine(
+    "postgresql+asyncpg://user:pass@localhost/db",
+    pool_size=20,
+    max_overflow=10,
+    pool_pre_ping=True,
+    pool_recycle=3600,
+    echo=False,
+)
+
+# Session factory
+async_session_factory = async_sessionmaker(
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False,  # Prevent lazy load issues
+    autoflush=False,
+)
+```
+
+## FastAPI Dependency
+
+```python
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_factory() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+
+# Reusable dependency alias (FastAPI's recommended Annotated form)
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
+
+@router.get("/users/{user_id}")
+async def get_user(user_id: UUID, db: SessionDep) -> UserResponse:
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(404, "User not found")
+    return UserResponse.model_validate(user)
+```
+
+## Model Definition
+
+```python
+from sqlalchemy import String, ForeignKey
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+class Base(DeclarativeBase):
+    pass
+
+class User(Base):
+    __tablename__ = "users"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+
+    orders: Mapped[list["Order"]] = relationship(
+        back_populates="user",
+        lazy="raise",  # Prevent accidental lazy loads
+    )
+```
+
+## Key Principles
+
+- One `create_async_engine()` per application
+- Set `expire_on_commit=False` to prevent lazy load errors after commit
+- Set `pool_pre_ping=True` for production connection validation
+- Use `lazy="raise"` on all relationships
+
+**Incorrect — expire_on_commit=True causes lazy load errors after commit:**
+```python
+async_session_factory = async_sessionmaker(
+    engine, expire_on_commit=True  # Default, causes issues
+)
+user = await session.execute(select(User).where(User.id == user_id))
+await session.commit()
+print(user.email)  # ERROR: Instance is not bound to a Session
+```
+
+**Correct — expire_on_commit=False allows access after commit:**
+```python
+async_session_factory = async_sessionmaker(
+    engine, expire_on_commit=False  # Prevents lazy load errors
+)
+user = await session.execute(select(User).where(User.id == user_id))
+await session.commit()
+print(user.email)  # Works - object still accessible
+```
+
+
+
+---
+
+## References (3)
+
+### Eager Loading
+
+# Eager Loading Patterns for Async SQLAlchemy
+
+## The N+1 Problem in Async
+
+```python
+# BAD: N+1 queries - one for users, N for orders
+async def get_users_bad(db: AsyncSession) -> list[User]:
+    result = await db.execute(select(User))
+    users = result.scalars().all()
+    for user in users:
+        # This triggers N additional queries (or raises if lazy="raise")
+        print(user.orders)
+    return users
+
+# GOOD: Single query with eager loading
+async def get_users_good(db: AsyncSession) -> list[User]:
+    result = await db.execute(
+        select(User).options(selectinload(User.orders))
+    )
+    users = result.scalars().all()
+    for user in users:
+        print(user.orders)  # Already loaded
+    return users
+```
+
+## Loading Strategies
+
+### selectinload (Recommended for Collections)
+
+```python
+from sqlalchemy.orm import selectinload
+
+# Loads orders in separate SELECT ... WHERE user_id IN (...)
+result = await db.execute(
+    select(User)
+    .options(selectinload(User.orders))
+    .limit(100)
+)
+```
+
+### joinedload (Best for Single Relations)
+
+```python
+from sqlalchemy.orm import joinedload
+
+# Uses LEFT JOIN - good for to-one relationships
+result = await db.execute(
+    select(Order)
+    .options(joinedload(Order.user))
+    .where(Order.status == "pending")
+)
+```
+
+### Nested Eager Loading
+
+```python
+# Load user -> orders -> order_items
+result = await db.execute(
+    select(User)
+    .options(
+        selectinload(User.orders).selectinload(Order.items)
+    )
+)
+
+# Load user -> orders and user -> addresses
+result = await db.execute(
+    select(User)
+    .options(
+        selectinload(User.orders),
+        selectinload(User.addresses),
+    )
+)
+```
+
+## Configuring Models to Prevent Lazy Load
+
+```python
+from sqlalchemy.orm import relationship, Mapped
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+
+    # lazy="raise" prevents accidental lazy loading
+    # Forces explicit eager loading
+    orders: Mapped[list["Order"]] = relationship(
+        back_populates="user",
+        lazy="raise",  # Raises if accessed without eager load
+    )
+
+    # For optional relationships you might want loaded
+    profile: Mapped["Profile"] = relationship(
+        lazy="joined",  # Always joined (use sparingly)
+    )
+```
+
+## Strategy Comparison
+
+| Strategy | SQL | Best For | Async Safe |
+|----------|-----|----------|------------|
+| `selectinload` | Separate IN query | Collections | Yes |
+| `joinedload` | LEFT JOIN | Single/to-one | Yes |
+| `subqueryload` | Subquery | Large collections | Yes |
+| `lazy="select"` | On access | Never in async | No |
+| `lazy="raise"` | Raises error | Forcing explicit | Yes |
+
+## Dynamic Loading for Large Collections
+
+```python
+class User(Base):
+    # For very large collections, use dynamic loading
+    orders: Mapped[list["Order"]] = relationship(
+        lazy="dynamic",  # Returns query, not collection
+    )
+
+# Usage
+async def get_recent_orders(db: AsyncSession, user_id: UUID) -> list[Order]:
+    user = await db.get(User, user_id)
+    # Dynamic relationship returns a query
+    result = await db.execute(
+        user.orders.limit(10).order_by(Order.created_at.desc())
+    )
+    return list(result.scalars().all())
+```
+
+
+### Fastapi App Boilerplate
+
+# FastAPI App Boilerplate
+
+## Middleware Classes
+
+```python
+class RequestIDMiddleware(BaseHTTPMiddleware):
+    """Add unique request ID to each request."""
+
+    async def dispatch(self, request: Request, call_next):
+        request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+        request.state.request_id = request_id
+
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+
+        return response
+
+
+class TimingMiddleware(BaseHTTPMiddleware):
+    """Track request processing time."""
+
+    async def dispatch(self, request: Request, call_next):
+        import time
+
+        start = time.perf_counter()
+        response = await call_next(request)
+        duration = time.perf_counter() - start
+
+        response.headers["X-Response-Time"] = f"{duration:.4f}s"
+        request.state.duration = duration
+
+        return response
+
+
+class LoggingMiddleware(BaseHTTPMiddleware):
+    """Structured logging for all requests."""
+
+    async def dispatch(self, request: Request, call_next):
+        log = logger.bind(
+            request_id=getattr(request.state, "request_id", None),
+            method=request.method,
+            path=request.url.path,
+        )
+
+        try:
+            response = await call_next(request)
+
+            log.info(
+                "request_completed",
+                status_code=response.status_code,
+                duration=getattr(request.state, "duration", None),
+            )
+
+            return response
+
+        except Exception as exc:
+            log.exception("request_failed", error=str(exc))
+            raise
+```
+
+## Exception Handlers
+
+```python
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Handle HTTP exceptions with RFC 9457 format."""
+    return ORJSONResponse(
+        status_code=exc.status_code,
+        content={
+            "type": f"https://api.example.com/problems/{exc.status_code}",
+            "title": exc.detail,
+            "status": exc.status_code,
+            "instance": request.url.path,
+            "trace_id": getattr(request.state, "request_id", None),
+        },
+        media_type="application/problem+json",
+    )
+
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    """Handle unexpected exceptions."""
+    logger.exception(
+        "unhandled_exception",
+        request_id=getattr(request.state, "request_id", None),
+        error=str(exc),
+    )
+
+    return ORJSONResponse(
+        status_code=500,
+        content={
+            "type": "https://api.example.com/problems/internal-error",
+            "title": "Internal Server Error",
+            "status": 500,
+            "detail": "An unexpected error occurred",
+            "instance": request.url.path,
+            "trace_id": getattr(request.state, "request_id", None),
+        },
+        media_type="application/problem+json",
+    )
+```
+
+
+### Ork Delta
+
+# ork delta: python-backend
+
+OrchestKit-specific decisions rescued during the wrap-plus-delta thinning of
+src/skills/python-backend (2026-07-31). The asyncio, FastAPI, SQLAlchemy, and
+connection-pool tutorials that used to sit beside these entries were deleted;
+the "Upstream coverage (do not restate)" table in SKILL.md points at their
+first-party sources. Only rules with a house decision behind them live here.
+Every rule the 12 files in `rules/` already teach in full stays there, not here.
+
+## Create the semaphore once and pair every acquisition with a timeout
+
+Why: The retired references/semaphore-patterns.md carried exactly one thing the
+vendor docs do not say. A `asyncio.Semaphore(10)` constructed inside the
+coroutine reads correctly, type-checks, and limits nothing, because every call
+gets a fresh counter; and an untimed acquisition converts one slow downstream
+call into a stall for every task waiting on that semaphore. House rule: the
+semaphore is built once at client or module scope, and the acquisition is always
+nested inside `asyncio.timeout(...)`. `rules/asyncio-structured.md` keeps the
+semaphore pattern itself, so only this pairing constraint lives here. Distilled
+from the retired references/semaphore-patterns.md; no traced incident.
+Upstream: Python asyncio synchronization primitives, https://docs.python.org/3/library/asyncio-sync.html
+
+## Cap fleet-wide pool size against the server max_connections, not just per process
+
+Why: Both pool-sizing formulas OrchestKit has shipped size a single process.
+The retired references/pool-sizing.md added the fleet-level check that
+`rules/pooling-database.md` does not: reserve roughly 10 connections for admin
+and superuser access, then divide the remainder by the number of running app
+instances before setting `pool_size`. `pool_size=20` on five replicas against
+PostgreSQL's default `max_connections=100` exhausts the server while every
+instance looks individually well tuned, and the first symptom is a connection
+refusal on deploy, not under load. Distilled from the retired
+references/pool-sizing.md; no traced incident.
+Upstream: PostgreSQL connection settings (max_connections, superuser_reserved_connections), https://www.postgresql.org/docs/current/runtime-config-connection.html
+
+## Alert on pool utilization at 70 percent and checkout wait at 100 ms
+
+Why: House alert thresholds from the retired references/pool-sizing.md.
+Utilization above 70 percent is a warning and above 90 percent is critical;
+connection checkout wait above 100 ms is a warning and above 1 s is critical;
+overflow usage above 50 percent is a warning and above 80 percent is critical.
+Size the HTTP-client pool by the same arithmetic the retired file used:
+`limit = num_external_services * connections_per_service * safety_factor`.
+`rules/pooling-tuning.md` ships
+the Prometheus gauges and the checkout/checkin listeners but only says to alert
+when available connections approach zero, which fires after the request queue
+has already backed up. These numbers are OrchestKit defaults, not a vendor
+recommendation. Distilled from the retired references/pool-sizing.md; no traced
+incident.
+Upstream: SQLAlchemy connection pool events (checkout, checkin), https://docs.sqlalchemy.org/en/20/core/events.html
+
+## Put cross-cutting concerns in middleware and per-route concerns in dependencies
+
+Why: The retired references/middleware-stack.md is the only place the split was
+written down. Middleware runs before route matching and cannot see path
+parameters, so request ID, timing, structured logging, and CORS belong there,
+while authentication, per-endpoint rate limiting, request validation, and
+database sessions belong in `Depends()`. Teams that put auth in middleware lose
+per-route scoping and end up re-implementing route exclusion lists inside the
+middleware. `rules/fastapi-middleware.md` keeps the middleware implementations
+and ordering, and `rules/fastapi-dependencies.md` keeps the DI patterns; this
+entry is only the routing decision between them. Distilled from the retired
+references/middleware-stack.md; no traced incident.
+Upstream: FastAPI middleware, https://fastapi.tiangolo.com/tutorial/middleware/ and FastAPI dependencies, https://fastapi.tiangolo.com/tutorial/dependencies/
+
+## Close lifespan resources in reverse acquisition order
+
+Why: The retired examples/fastapi-lifespan.md tore down embeddings, LLM
+clients, the task queue, Redis, and the database engine in the exact reverse of
+the startup order, and that ordering is load-bearing: a task queue that flushes
+on close still needs the Redis connection it was built on, so disposing Redis
+first turns a clean shutdown into a shutdown-time exception that hides the real
+stop reason. `rules/fastapi-background.md` keeps the lifespan shape but states
+no ordering constraint, so the constraint lives here. Distilled from the retired
+examples/fastapi-lifespan.md; no traced incident.
+Upstream: FastAPI lifespan events, https://fastapi.tiangolo.com/advanced/events/
+
+## Drain in-flight requests on SIGTERM behind a 503, for up to 30 seconds
+
+Why: The retired examples/fastapi-lifespan.md carried the house shutdown
+contract, and nothing in `rules/` restates it. On SIGTERM or SIGINT, set
+`app.state.shutting_down = True`, have the health endpoint answer `503` from
+that moment so the load balancer stops routing new work, then wait up to 30
+seconds for active requests to finish before tearing resources down (in reverse
+acquisition order, per the entry above). Exiting immediately on SIGTERM drops
+in-flight requests during every rolling deploy, and the failure is invisible in
+app logs because the process is already gone. Distilled from the retired
+examples/fastapi-lifespan.md; no traced incident.
+Upstream: FastAPI lifespan events, https://fastapi.tiangolo.com/advanced/events/ and Uvicorn deployment, https://www.uvicorn.org/deployment/
+
+## Order the middleware stack six deep, with auth at 5 and rate limiting at 6
+
+Why: `rules/fastapi-middleware.md` documents only the outer four layers (CORS,
+RequestID, Timing, Logging). The retired references/middleware-stack.md carried
+the full house order, and the last two are the ones that matter for correctness:
+authentication sits at position 5 and rate limiting at position 6, closest to
+the route, returning `429` with rate-limit headers. Rate limiting placed outside
+auth cannot key a limit on the authenticated principal, so a per-user quota
+silently degrades into a per-IP one. Distilled from the retired
+references/middleware-stack.md; no traced incident.
+Upstream: FastAPI middleware, https://fastapi.tiangolo.com/tutorial/middleware/
+
+## Size read and write pools separately, and set lock_timeout on the connection
+
+Why: The retired examples/connection-pooling-examples.md held the house working
+config that no rule file repeats: split the primary and replica pools rather
+than sharing one (primary 20, read replica 30 for read-heavy traffic, 5 for
+analytics), pass `lock_timeout: '10000'` in `connect_args` alongside the
+`statement_timeout` that `rules/pooling-database.md` already sets, and cap
+asyncpg connection reuse with `max_queries=50000` so long-lived connections get
+recycled. `statement_timeout` alone bounds query execution but not the time
+spent waiting to acquire a lock, which is the failure mode during migrations.
+Distilled from the retired examples/connection-pooling-examples.md; no traced
+incident.
+Upstream: SQLAlchemy engine and pool configuration, https://docs.sqlalchemy.org/en/20/core/pooling.html and PostgreSQL client connection defaults, https://www.postgresql.org/docs/current/runtime-config-client.html
+
+## Treat more than 100 ms of event-loop blocking as a defect
+
+Why: The retired checklists/async-implementation-checklist.md carried the only
+number OrchestKit has ever put on this: monitor for event-loop blocking above
+100 ms and treat a breach as a bug to fix, not a latency figure to accept. The
+fix is always the same, move the blocking call to `asyncio.to_thread()` or a
+process pool. `rules/asyncio-structured.md` teaches the bridge itself; the
+threshold that says when to reach for it is the house part. Distilled from the
+retired checklists/async-implementation-checklist.md; no traced incident.
+Upstream: Python asyncio developer guide (debug mode and slow callback detection), https://docs.python.org/3/library/asyncio-dev.html
+

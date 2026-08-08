@@ -1,0 +1,4085 @@
+---
+title: "Security Patterns"
+description: "Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="security-patterns" />
+
+> **Security Patterns** Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.
+
+
+# Security Patterns
+
+Comprehensive security patterns for building hardened applications. Each category has individual rule files in `rules/` loaded on-demand.
+
+## Quick Reference
+
+| Category | Rules | Impact | When to Use |
+|----------|-------|--------|-------------|
+| [Authentication](#authentication) | upstream | CRITICAL | JWT tokens, OAuth 2.1/PKCE, RBAC/permissions |
+| [Defense-in-Depth](#defense-in-depth) | 1 | CRITICAL | Multi-layer security, zero-trust architecture |
+| [Input Validation](#input-validation) | 2 | HIGH | Schema validation (Zod/Pydantic), output encoding, file uploads |
+| [OWASP Top 10](#owasp-top-10) | 1 | CRITICAL | Injection prevention, broken authentication fixes |
+| [LLM Safety](#llm-safety) | refs | HIGH | Prompt injection defense, output guardrails, content filtering |
+| [PII Masking](#pii-masking) | refs | HIGH | PII detection/redaction with Presidio, Langfuse, LLM Guard |
+| [Scanning](#scanning) | upstream | HIGH | Dependency audit, SAST (Semgrep/Bandit), secret detection |
+| [Advanced Guardrails](#advanced-guardrails) | 2 | CRITICAL | NeMo/Guardrails AI validators, red-teaming, OWASP LLM |
+
+**Total: 6 rule files across 4 categories.** Topics marked "upstream" or "refs" keep only
+the ork delta here: floors and key decisions in this file, scars and house decisions in
+`references/ork-delta.md`, and first-party sources in
+[Upstream coverage](#upstream-coverage-do-not-restate).
+
+## Quick Start
+
+```python
+# Argon2id password hashing
+from argon2 import PasswordHasher
+ph = PasswordHasher()
+password_hash = ph.hash(password)
+ph.verify(password_hash, password)
+```
+
+```python
+# JWT access token (15-min expiry)
+import jwt
+from datetime import datetime, timedelta, timezone
+payload = {
+    'sub': user_id, 'type': 'access',
+    'exp': datetime.now(timezone.utc) + timedelta(minutes=15),
+}
+token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+```
+
+```typescript
+// Zod v4 schema validation
+import { z } from 'zod';
+const UserSchema = z.object({
+  email: z.email(),
+  name: z.string().min(2).max(100),
+  role: z.enum(['user', 'admin']).default('user'),
+});
+const result = UserSchema.safeParse(req.body);
+```
+
+```python
+# PII masking with Langfuse
+import re
+from langfuse import Langfuse
+
+def mask_pii(data, **kwargs):
+    if isinstance(data, str):
+        data = re.sub(r'\b[\w.-]+@[\w.-]+\.\w+\b', '[REDACTED_EMAIL]', data)
+        data = re.sub(r'\b\d{3}-\d{2}-\d{4}\b', '[REDACTED_SSN]', data)
+    return data
+
+langfuse = Langfuse(mask=mask_pii)
+```
+
+## Authentication
+
+Secure authentication with OAuth 2.1, Passkeys/WebAuthn, JWT tokens, and role-based access control.
+
+Implementation tutorials for JWT, OAuth 2.1/PKCE/DPoP, Passkeys/WebAuthn, RBAC, and MFA
+are upstream-covered (see [Upstream coverage](#upstream-coverage-do-not-restate)). The
+ork delta, including the argon2-cffi-over-passlib scar, lives in `references/ork-delta.md`.
+
+**Key Decisions:** Argon2id > bcrypt | Access tokens 15 min | PKCE required | Passkeys > TOTP > SMS
+
+## Defense-in-Depth
+
+Multi-layer security architecture with no single point of failure.
+
+| Rule | Description |
+|------|-------------|
+| `defense-layers.md` | 8-layer security architecture (edge to observability) |
+
+Zero-trust and tenant-isolation implementation recipes (tenant-scoped repositories,
+RLS, tenant-keyed caches) are upstream-covered; the immutable RequestContext pattern
+survives in `references/request-context-pattern.md` and sanitized audit logging in
+`references/audit-logging.md`.
+
+**Key Decisions:** Immutable dataclass context | Query-level tenant filtering | No IDs in LLM prompts
+
+### `sandbox.network.deniedDomains` (CC 2.1.113+)
+
+Network-layer blocklist enforced before Bash/WebFetch egress — pair with the hook-layer `DENY_PATTERNS` for defense in depth. Settings example:
+
+```json
+"sandbox": {
+  "network": {
+    "deniedDomains": ["*.evil.com", "pastebin.com", "transfer.sh"]
+  }
+}
+```
+
+Wildcards supported (`*.example.com`, `evil.com/*/malicious/*`). Plugins ship a baseline list in `src/settings/ork.settings.json`; project settings can extend it. Use for: prompt-injection exfil sinks, known-bad registries, paste services that bypass audit.
+
+### `sandbox.credentials` (CC 2.1.187+)
+
+Blocks sandboxed Bash from reading credential **files** and secret **env vars** — defense-in-depth beside `sandbox.filesystem.denyRead`. Deny-only and merged across scopes (any scope can add, none can remove); older CC ignores the key. Settings example:
+
+```json
+"sandbox": {
+  "credentials": {
+    "files": [{ "path": "~/.aws/credentials", "mode": "deny" }],
+    "envVars": [{ "name": "GITHUB_TOKEN", "mode": "deny" }]
+  }
+}
+```
+
+Plugins ship a baseline in `src/settings/ork.settings.json` (denies `~/.aws/credentials`, `~/.ssh`, `~/.gnupg`, `~/.netrc`, `~/.npmrc` plus the token env vars that can hijack git-push auth). Pair with `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` to scrub all subprocess credentials regardless of sandboxing.
+
+## Input Validation
+
+Validate and sanitize all untrusted input using Zod v4 and Pydantic.
+
+| Rule | Description |
+|------|-------------|
+| `validation-input.md` | Schema validation with Zod v4 and Pydantic, type coercion |
+| `validation-output.md` | HTML sanitization, output encoding, XSS prevention |
+
+Advanced schema recipes (discriminated unions, file upload validation, URL allowlists)
+and the full Zod v4 API are upstream-covered; the Zod v4-not-v3 trap list is in
+`references/ork-delta.md`, and typed schema examples in `scripts/validation-schemas.ts`.
+
+**Key Decisions:** Allowlist over blocklist | Server-side always | Validate magic bytes not extensions
+
+## OWASP Top 10
+
+Protection against the most critical web application security risks.
+
+| Rule | Description |
+|------|-------------|
+| `supply-chain.md` | Lockfile integrity, dependency confusion, provenance, SBOM (A03:2025) |
+
+Injection prevention (SQL/command/SSRF) and broken-auth fixes (JWT algorithm confusion,
+CSRF, timing attacks) plus vulnerable-vs-secure demos are upstream-covered; see
+[Upstream coverage](#upstream-coverage-do-not-restate).
+
+**Key Decisions:** Parameterized queries only | Hardcode JWT algorithm | SameSite=Strict cookies
+
+## LLM Safety
+
+Security patterns for LLM integrations including context separation and output validation.
+
+| Reference | Description |
+|-----------|-------------|
+| `references/context-separation.md` | Context separation architecture, forbidden patterns |
+| `references/prompt-audit.md` | Prompt auditing, safe prompt builder |
+| `references/output-guardrails.md` | Output validation pipeline: schema, grounding, safety, size |
+| `references/pre-llm-filtering.md` | Tenant-scoped retrieval, content extraction |
+| `references/post-llm-attribution.md` | Deterministic attribution (three-phase pattern) |
+
+**Key Decisions:** IDs flow around LLM, never through | Attribution is deterministic | Audit every prompt
+
+### Context Separation (CRITICAL)
+
+Sensitive IDs and data flow AROUND the LLM, never through it. The LLM sees only content — mapping back to entities happens deterministically after.
+
+```python
+# CORRECT: IDs bypass the LLM
+context = {"user_id": user_id, "tenant_id": tenant_id}  # kept server-side
+llm_input = f"Summarize this document:\n{doc_text}"       # no IDs in prompt
+llm_output = call_llm(llm_input)
+result = {"summary": llm_output, **context}               # IDs reattached after
+```
+
+### Output Validation Pipeline
+
+Every LLM response MUST pass a 4-stage guardrail pipeline before reaching the user:
+
+```python
+def validate_llm_output(raw_output: str, schema, sources: list[str]) -> str:
+    # 1. Schema — does it match expected structure?
+    parsed = schema.parse(raw_output)
+    # 2. Grounding — are claims supported by source documents?
+    assert_grounded(parsed, sources)
+    # 3. Safety — toxicity, PII leakage, prompt leakage
+    assert_safe(parsed, max_toxicity=0.5)
+    # 4. Size — prevent token-bomb responses
+    assert len(parsed.text) < MAX_OUTPUT_CHARS
+    return parsed.text
+```
+
+## PII Masking
+
+PII detection and masking for LLM observability pipelines and logging.
+
+| Reference | Description |
+|-----------|-------------|
+| `references/presidio-integration.md` | Microsoft Presidio setup, custom recognizers |
+| `references/langfuse-mask-callback.md` | Langfuse SDK mask implementation |
+
+LLM Guard Anonymize/Deanonymize with Vault and structlog/loguru redaction processors are
+upstream-covered; see [Upstream coverage](#upstream-coverage-do-not-restate).
+
+**Key Decisions:** Presidio for enterprise | Replace with type tokens | Use mask callback at init
+
+## Scanning
+
+Automated security scanning for dependencies, code, and secrets. Tool tutorials
+(npm audit, pip-audit, Trivy, Semgrep, Bandit, Gitleaks, TruffleHog, detect-secrets)
+are upstream-covered; the runnable house pipeline is `scripts/scan-vulnerabilities.sh`,
+and the enforced-not-advisory repo gates (pre-push security suite, CI gitleaks) are
+recorded in `references/ork-delta.md`.
+
+**Key Decisions:** Pre-commit hooks for shift-left | Block on critical/high | Gitleaks + detect-secrets baseline
+
+## Advanced Guardrails
+
+Production LLM safety with NeMo Guardrails, Guardrails AI validators, and DeepTeam red-teaming.
+
+| Rule | Description |
+|------|-------------|
+| `guardrails-nemo.md` | NeMo Guardrails, Colang 2.0 flows, Guardrails AI validators, layered validation |
+| `guardrails-llm-validation.md` | DeepTeam red-teaming (40+ vulnerabilities), OWASP LLM Top 10 compliance |
+
+**Key Decisions:** NeMo for flows, Guardrails AI for validators | Toxicity 0.5 threshold | Red-team pre-release + quarterly
+
+## Upstream coverage (do not restate)
+
+These topics were removed from this skill as vendor restatement. Consult the first-party
+source; only the ork delta (floors, scars, house decisions) lives here, in
+`references/ork-delta.md`.
+
+| Topic | First-party source |
+|-------|--------------------|
+| JWT implementation + password hashing (PyJWT, Argon2id) | https://pyjwt.readthedocs.io/ + https://argon2-cffi.readthedocs.io/ |
+| OAuth 2.1, PKCE, DPoP, Passkeys/WebAuthn flows | https://oauth.net/2.1/ + https://www.w3.org/TR/webauthn-3/ + https://github.com/duo-labs/py_webauthn |
+| RBAC decorators, MFA/TOTP, rate limiting, auth checklists | OWASP Cheat Sheet Series: https://cheatsheetseries.owasp.org/ (Authentication, Session Management, MFA) |
+| Zero-trust tenant isolation (tenant-scoped repos, RLS, tenant-keyed caches) | PostgreSQL RLS: https://www.postgresql.org/docs/current/ddl-rowsecurity.html + OWASP LLM08: https://genai.owasp.org/ |
+| Zod v4 API + validation recipes (coercion, unions, file/URL schemas) | https://zod.dev (context7: /colinhacks/zod) + https://docs.pydantic.dev/ |
+| OWASP Top 10 vulnerable-vs-secure examples (injection, XSS, CSRF, JWT confusion, timing) | https://owasp.org/Top10/ + https://cheatsheetseries.owasp.org/ |
+| LLM prompt-injection defense + output guardrail tutorials | OWASP LLM Top 10: https://genai.owasp.org/llm-top-10/ |
+| PII sanitization with LLM Guard (Anonymize/Deanonymize/Vault) | https://protectai.github.io/llm-guard/ |
+| Pre-logging redaction with structlog/loguru | https://www.structlog.org/ + https://loguru.readthedocs.io/ |
+| Dependency, secret, and SAST scanning tools | https://semgrep.dev/docs/ + https://github.com/gitleaks/gitleaks + https://trufflesecurity.com/trufflehog + https://bandit.readthedocs.io/ |
+
+## Managed Hook Hierarchy (CC 2.1.49)
+
+Plugin settings follow a 3-tier precedence:
+
+| Tier | Source | Overridable? |
+|------|--------|-------------|
+| 1. Managed (plugin `settings.json`) | Plugin author ships defaults | Yes, by user |
+| 2. Project (`.claude/settings.json`) | Repository config | Yes, by user |
+| 3. User (`~/.claude/settings.json`) | Personal preferences | Final authority |
+
+Security hooks shipped by OrchestKit are **managed defaults** — users can disable them but are warned. Enterprise admins can lock settings via managed profiles.
+
+> **CC 2.1.166 — managed-settings enforcement fix:** before 2.1.166 a single invalid entry in managed settings silently disabled enforcement of *all* remaining valid policies — one typo could void your entire security lockdown. Require 2.1.166+ when relying on managed profiles, and validate the file before deploying it. The same release fixed `allowedMcpServers`/`deniedMcpServers` predicates not matching when they use `$\{VAR\}` references.
+
+> **CC 2.1.160 — write prompts:** Claude Code now prompts before writing shell startup files (`.zshenv`, `.zlogin`, `.bash_login`, `~/.config/git/`) and — under `acceptEdits` — build-tool configs that grant code execution (`.npmrc`, `.yarnrc*`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`). Treat these as defense-in-depth defaults: approve deliberately rather than blanket-allowing.
+
+> **Permission-rule semantics (≥ 2.1.166):** `allow`/`ask`/`deny` rules gained security-relevant behavior — `Read` deny now hides files from Glob/Grep, deny tool-names accept globs (`"*"` = default-deny), explicit `WebFetch(domain:…)` overrides the preapproved-host auto-allow, relayed `SendMessage` from other sessions carries no authority, and org-managed rules apply for the whole session. See `references/cc-permission-model.md` for the full model + a recommended baseline `settings.json`.
+
+## Anti-Patterns (FORBIDDEN)
+
+```python
+# Authentication
+user.password = request.form['password']       # Plaintext password storage
+response_type=token                             # Implicit OAuth grant (deprecated)
+return "Email not found"                        # Information disclosure
+
+# Input Validation
+"SELECT * FROM users WHERE name = '" + name + "'"  # SQL injection
+if (file.type === 'image/png') {...}               # Trusting Content-Type header
+
+# LLM Safety
+prompt = f"Analyze for user {user_id}"             # ID in prompt
+artifact.user_id = llm_output["user_id"]           # Trusting LLM-generated IDs
+
+# PII
+logger.info(f"User email: {user.email}")           # Raw PII in logs
+langfuse.trace(input=raw_prompt)                   # Unmasked observability data
+```
+
+## Detailed Documentation
+
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/security-patterns/references/&lt;file&gt;")`:
+
+| File | Content |
+|------|---------|
+| `ork-delta.md` | Ork-specific scars and house decisions rescued from removed upstream restatement |
+| `cc-permission-model.md` | CC allow/ask/deny rule semantics (≥2.1.166): Read-deny hides from Glob/Grep, deny-globs, WebFetch precedence, cross-session auth, org-managed rules |
+| `request-context-pattern.md` | Immutable request context for identity flow |
+| `audit-logging.md` | Sanitized structured logging, compliance |
+| `context-separation.md` | LLM context separation architecture |
+| `output-guardrails.md` | Output validation pipeline implementation |
+| `pre-llm-filtering.md` | Tenant-scoped retrieval, content extraction |
+| `post-llm-attribution.md` | Deterministic attribution pattern |
+| `prompt-audit.md` | Prompt audit patterns, safe prompt builder |
+| `presidio-integration.md` | Microsoft Presidio setup, custom recognizers |
+| `langfuse-mask-callback.md` | Langfuse SDK mask implementation |
+
+## Related Skills
+
+- `api-design-framework` - API security patterns
+- `ork:rag-retrieval` - RAG pipeline patterns requiring tenant-scoped retrieval
+- `llm-evaluation` - Output quality assessment including hallucination detection
+
+## Capability Details
+
+### authentication
+**Keywords:** password, hashing, JWT, token, OAuth, PKCE, passkey, WebAuthn, RBAC, session
+**Solves:**
+- Implement secure authentication with modern standards
+- JWT token management with proper expiry
+- OAuth 2.1 with PKCE flow
+- Passkeys/WebAuthn registration and login
+- Role-based access control
+
+### defense-in-depth
+**Keywords:** defense in depth, security layers, multi-layer, request context, tenant isolation
+**Solves:**
+- How to secure AI applications end-to-end
+- Implement 8-layer security architecture
+- Create immutable request context
+- Ensure tenant isolation at query level
+
+### cc-subprocess-hardening (CC 2.1.98)
+**Keywords:** subprocess, sandbox, PID namespace, env scrub, script caps
+**Solves:**
+- Limit runaway hook scripts: `CLAUDE_CODE_SCRIPT_CAPS=100`
+- Strip credentials from subprocesses: `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1`
+- PID namespace isolation on Linux for subprocess sandboxing
+- Prevent Bash permission bypasses via backslash escapes and compound commands
+
+> **CC 2.1.128 — SDK host "Always allow" persistence**: when a user picks "Always allow" from a Bash permission prompt in an SDK host, the grant now persists via `.claude/settings.local.json` instead of evaporating at session end. Audit your SDK consumers' `.gitignore` to confirm `.claude/settings.local.json` is excluded — committing it leaks per-developer Bash auth grants. Project-committed `.claude/settings.json` is unchanged; only the user-machine-local file receives the new entries.
+
+> **CC 2.1.169 — managed MCP enforcement + OTEL cert-path trust:** two policy-bypass classes closed. Enterprise `allowedMcpServers`/`deniedMcpServers` policies were NOT enforced on reconnect, IDE-typed configs, `--mcp-config` servers in the first post-install session, or before remote settings loaded — treat any pre-2.1.169 managed-MCP audit as incomplete on those paths. And untrusted project settings could set OTEL client-certificate paths without trust confirmation (a cloned repo could point telemetry at an attacker cert); now gated behind trust. Both fixes are active at ork's floor (2.1.220).
+
+> **CC 2.1.163 — home-path deny rules now cover `$HOME` Bash refs**: before this fix a `Read(~/.ssh/**)`-style deny rule blocked the Read tool but NOT a Bash command that reached the same file via `$HOME/.ssh/...` — a silent secrets-read bypass. If you gate home-directory secrets (e.g. `~/.aws/credentials`, `~/.ssh/*`, `~/.gnupg/*`) through permission deny rules, pin your CC floor to `>= 2.1.163`; older builds (`&lt; 2.1.163`) leave the Bash path open — ork's floor is now `2.1.220`, which already includes this fix.
+
+### input-validation
+**Keywords:** schema, validate, Zod, Pydantic, sanitize, HTML, XSS, file upload
+**Solves:**
+- Validate input against schemas (Zod v4, Pydantic)
+- Prevent injection attacks with allowlists
+- Sanitize HTML and prevent XSS
+- Validate file uploads by magic bytes
+
+### owasp-top-10
+**Keywords:** OWASP, sql injection, broken access control, CSRF, XSS, SSRF
+**Solves:**
+- Fix OWASP Top 10 vulnerabilities
+- Prevent SQL and command injection
+- Implement CSRF protection
+- Fix broken authentication
+
+### llm-safety
+**Keywords:** prompt injection, context separation, guardrails, hallucination, LLM output
+**Solves:**
+- Prevent prompt injection attacks
+- Implement context separation (IDs around LLM)
+- Validate LLM output with guardrail pipeline
+- Deterministic post-LLM attribution
+
+### pii-masking
+**Keywords:** PII, masking, Presidio, Langfuse, redact, GDPR, privacy
+**Solves:**
+- Detect and mask PII in LLM pipelines
+- Integrate masking with Langfuse observability
+- Implement pre-logging redaction
+- GDPR-compliant data handling
+
+
+---
+
+## Rules (6)
+
+### Design defense-in-depth with eight security layers from edge protection to observability — CRITICAL
+
+
+# 8-Layer Security Architecture
+
+## Overview
+
+Defense in depth applies multiple security layers so that if one fails, others still protect the system.
+
+**Core Principle:** No single security control should be the only thing protecting sensitive operations.
+
+## The Architecture
+
+```
+Layer 0: EDGE           | WAF, Rate Limiting, DDoS, Bot Detection
+Layer 1: GATEWAY        | JWT Verify, Extract Claims, Build Context
+Layer 2: INPUT          | Schema Validation, PII Detection, Injection Defense
+Layer 3: AUTHORIZATION  | RBAC/ABAC, Tenant Check, Resource Access
+Layer 4: DATA ACCESS    | Parameterized Queries, Tenant Filter
+Layer 5: LLM            | Prompt Building (no IDs), Context Separation
+Layer 6: OUTPUT         | Schema Validation, Guardrails, Hallucination Check
+Layer 7: STORAGE        | Attribution, Audit Trail, Encryption
+Layer 8: OBSERVABILITY  | Logging (sanitized), Tracing, Metrics
+```
+
+## Layer Details
+
+### Layer 0: Edge Protection
+- WAF rules for OWASP Top 10
+- Rate limiting per user/IP
+- DDoS protection
+- Bot detection and geo-blocking
+
+### Layer 1: Gateway / Authentication
+
+```python
+@dataclass(frozen=True)
+class RequestContext:
+    """Immutable context that flows through the system"""
+    user_id: UUID
+    tenant_id: UUID
+    session_id: str
+    permissions: frozenset[str]
+    request_id: str
+    trace_id: str
+    timestamp: datetime
+    client_ip: str
+```
+
+### Layer 2: Input Validation
+- **Schema validation:** Pydantic/Zod for structure
+- **Content validation:** PII detection, malware scan
+- **Injection defense:** SQL, XSS, prompt injection patterns
+
+### Layer 3: Authorization
+
+```python
+async def authorize(ctx: RequestContext, action: str, resource: Resource) -> bool:
+    if action not in ctx.permissions:
+        raise Forbidden("Missing permission")
+    if resource.tenant_id != ctx.tenant_id:
+        raise Forbidden("Cross-tenant access denied")
+    if not await check_resource_access(ctx.user_id, resource):
+        raise Forbidden("No access to resource")
+    return True
+```
+
+### Layer 4: Data Access
+
+```python
+class TenantScopedRepository:
+    def __init__(self, ctx: RequestContext):
+        self.ctx = ctx
+        self._base_filter = {"tenant_id": ctx.tenant_id}
+
+    async def find(self, query: dict) -> list[Model]:
+        safe_query = {**self._base_filter, **query}
+        return await self.db.find(safe_query)
+```
+
+### Layer 5: LLM Orchestration
+- Identifiers flow AROUND the LLM, not THROUGH it
+- Prompts contain only content text
+- No user_id, tenant_id, document_id in prompt text
+
+### Layer 6: Output Validation
+- Schema validation (JSON structure)
+- Content guardrails (toxicity, PII generation)
+- Hallucination detection (grounding check)
+
+### Layer 7: Attribution & Storage
+- Attribution is deterministic, not LLM-generated
+- Context from Layer 1 is attached to results
+- Audit trail recorded
+
+### Layer 8: Observability
+- Structured logging with sanitization
+- Distributed tracing (Langfuse)
+- Metrics (latency, errors, costs)
+
+## Implementation Checklist
+
+- [ ] Layer 0: Rate limiting configured
+- [ ] Layer 1: JWT validation active, RequestContext created
+- [ ] Layer 2: Pydantic models validate all input
+- [ ] Layer 3: Authorization check on every endpoint
+- [ ] Layer 4: All queries include tenant_id filter
+- [ ] Layer 5: No IDs in LLM prompts (run audit)
+- [ ] Layer 6: Output schema validation active
+- [ ] Layer 7: Attribution uses context, not LLM output
+- [ ] Layer 8: Logging sanitized, tracing enabled
+
+## Industry Sources
+
+| Pattern | Source | Application |
+|---------|--------|-------------|
+| Defense in Depth | NIST | Multiple validation layers |
+| Zero Trust | Google BeyondCorp | Every request verified |
+| Least Privilege | AWS IAM | Minimal permissions |
+| Complete Mediation | Saltzer & Schroeder | Every access checked |
+
+**Incorrect — Single-layer auth check is vulnerable if JWT verification is bypassed:**
+```python
+@app.get("/documents/{doc_id}")
+def get_document(doc_id: UUID, token: str = Header(...)):
+    claims = verify_jwt(token)  # Only layer
+    return db.query(Document).get(doc_id)
+```
+
+**Correct — Multi-layer defense verifies auth, validates input, checks authorization, and filters data:**
+```python
+@app.get("/documents/{doc_id}")
+async def get_document(doc_id: UUID, ctx: RequestContext = Depends(get_context)):
+    # Layer 1: Gateway verified JWT
+    # Layer 2: UUID validation (Pydantic)
+    # Layer 3: Authorization
+    await authorize(ctx, "documents:read", doc_id)
+    # Layer 4: Tenant-scoped query
+    repo = TenantScopedRepository(db, ctx, Document)
+    return await repo.find_by_id(doc_id)
+```
+
+
+### LLM Red-Teaming and OWASP LLM Compliance — CRITICAL
+
+
+## LLM Red-Teaming and OWASP LLM Compliance
+
+**Incorrect -- shipping LLM system without adversarial testing:**
+```python
+# Only testing happy path, no adversarial inputs
+def test_chatbot():
+    response = chatbot.respond("What's the weather?")
+    assert response  # No jailbreak, injection, or bias testing!
+```
+
+**Correct -- DeepTeam red-teaming audit:**
+```python
+from deepteam import red_team
+from deepteam.vulnerabilities import (
+    Bias, Toxicity, PIILeakage,
+    PromptInjection, Jailbreaking,
+    Misinformation, CompetitorEndorsement
+)
+
+async def run_red_team_audit(target_model: callable, attacks_per_vulnerability: int = 10) -> dict:
+    results = await red_team(
+        model=target_model,
+        vulnerabilities=[
+            Bias(categories=["gender", "race", "religion", "age"]),
+            Toxicity(threshold=0.7),
+            PIILeakage(types=["email", "phone", "ssn", "credit_card"]),
+            PromptInjection(techniques=["direct", "indirect", "context"]),
+            Jailbreaking(multi_turn=True, techniques=["dan", "roleplay", "context_manipulation"]),
+            Misinformation(domains=["health", "finance", "legal"]),
+        ],
+        attacks_per_vulnerability=attacks_per_vulnerability,
+    )
+
+    return {
+        "total_attacks": results.total_attacks,
+        "successful_attacks": results.successful_attacks,
+        "attack_success_rate": results.successful_attacks / results.total_attacks,
+        "vulnerabilities": [
+            {"type": v.type, "severity": v.severity, "mitigation": v.suggested_mitigation}
+            for v in results.vulnerabilities
+        ],
+    }
+```
+
+**OWASP Top 10 for LLMs (2025) mapping:**
+
+| OWASP LLM Risk | Guardrail Solution |
+|----------------|-------------------|
+| LLM01: Prompt Injection | NeMo input rails, Guardrails AI validators |
+| LLM02: Sensitive Information Disclosure | PII detection, context separation |
+| LLM05: Improper Output Handling | Output rails, structured validation |
+| LLM06: Excessive Agency | Human-in-loop rails, action confirmation |
+| LLM07: System Prompt Leakage | Tool validation, permission boundaries |
+| LLM08: Vector and Embedding Weaknesses | Embedding access controls, tenant isolation |
+| LLM09: Misinformation | Factuality checking, confidence thresholds |
+| LLM10: Unbounded Consumption | Rate limiting, token budgets, timeout rails |
+
+**Framework comparison:**
+
+| Framework | Best For | Key Features |
+|-----------|----------|--------------|
+| NeMo Guardrails | Programmable flows, Colang 2.0 | Input/output rails, fact-checking |
+| Guardrails AI | Validator-based, modular | 100+ validators, PII, toxicity |
+| OpenAI Guardrails | Drop-in wrapper | Simple integration |
+| DeepTeam | Red teaming, adversarial | 40+ vulnerabilities, GOAT attacks |
+
+Key decisions:
+- Red-teaming frequency: Pre-release + quarterly
+- Fact-checking: Required for factual domains (health, finance, legal)
+- DeepTeam for 40+ vulnerability types with OWASP alignment
+- Always test multi-turn jailbreaking (GOAT-style attacks)
+
+
+### Deploy NeMo Guardrails and Guardrails AI to defend against prompt injection and toxicity — CRITICAL
+
+
+## NeMo Guardrails and Guardrails AI
+
+**Incorrect -- returning raw LLM output without validation:**
+```python
+# No input sanitization, no output validation
+user_input = request.json["message"]
+response = llm.generate(user_input)  # Prompt injection risk!
+return response  # Raw, unvalidated output!
+```
+
+**Correct -- NeMo Guardrails with Guardrails AI integration:**
+```yaml
+# config.yml
+models:
+  - type: main
+    engine: openai
+    model: gpt-5.5
+
+rails:
+  config:
+    guardrails_ai:
+      validators:
+        - name: toxic_language
+          parameters:
+            threshold: 0.5
+            validation_method: "sentence"
+        - name: guardrails_pii
+          parameters:
+            entities: ["phone_number", "email", "ssn", "credit_card"]
+        - name: restricttotopic
+          parameters:
+            valid_topics: ["technology", "support"]
+
+  input:
+    flows:
+      - guardrailsai check input $validator="guardrails_pii"
+  output:
+    flows:
+      - guardrailsai check output $validator="toxic_language"
+      - guardrailsai check output $validator="restricttotopic"
+```
+
+**Correct -- Colang 2.0 fact-checking rails:**
+```text
+define flow answer question with facts
+  """Enable fact-checking for RAG responses."""
+  user ...
+  $answer = execute rag()
+  $check_facts = True
+  bot $answer
+
+define flow check hallucination
+  """Block responses about people without verification."""
+  user ask about people
+  $check_hallucination = True
+  bot respond about people
+```
+
+**Correct -- Guardrails AI validators in Python:**
+```python
+from guardrails import Guard
+from guardrails.hub import ToxicLanguage, DetectPII, RestrictToTopic, ValidLength
+
+guard = Guard().use_many(
+    ToxicLanguage(threshold=0.5, on_fail="filter"),
+    DetectPII(pii_entities=["EMAIL_ADDRESS", "PHONE_NUMBER", "SSN"], on_fail="fix"),
+    RestrictToTopic(valid_topics=["technology", "support"], on_fail="refrain"),
+    ValidLength(min=10, max=500, on_fail="reask"),
+)
+
+# Always validate BOTH input and output
+input_result = input_guard.validate(user_input)
+if not input_result.validation_passed:
+    return "Invalid input"
+
+llm_output = llm.generate(input_result.validated_output)
+output_result = guard(llm_api=openai.chat.completions.create, model="gpt-5.5",
+                      messages=[{"role": "user", "content": user_input}])
+
+if output_result.validation_passed:
+    return output_result.validated_output
+```
+
+Key decisions:
+- NeMo for programmable flows (Colang 2.0), Guardrails AI for validators
+- Toxicity threshold: 0.5 for content apps, 0.3 for children's apps
+- PII handling: Redact for logs, block for outputs
+- Topic restriction: Allowlist preferred over blocklist
+- Always validate both input AND output
+- Never use single validation layer
+
+
+### Verify what you install, not just what you wrote — lockfile integrity, provenance, and dependency confusion — CRITICAL
+
+
+## Supply Chain Integrity
+
+`scanning.md` answers "does anything I depend on have a known CVE?". This rule
+answers a different question: "is the thing I installed the thing the maintainer
+published?". A package can be fully CVE-clean and still malicious.
+
+## Lockfile integrity
+
+**Incorrect — install resolves fresh every time:**
+```bash
+npm install          # may pick up a newer transitive release
+pip install -r requirements.txt   # unpinned transitives
+```
+
+**Correct — install exactly what was reviewed:**
+```bash
+npm ci               # fails if package.json and the lockfile disagree
+pip install --require-hashes -r requirements.txt
+uv sync --frozen
+```
+
+`npm ci` is not a faster `npm install`. It refuses to proceed when the lockfile
+does not match, which is precisely the signal you want in CI.
+
+## Dependency confusion
+
+An internal package name that also exists on a public registry can be shadowed,
+because many resolvers prefer the highest version across all configured sources.
+
+**Correct — scope internal packages and pin the source:**
+```
+# .npmrc
+@yourorg:registry=https://registry.internal.example/
+```
+```toml
+# pyproject.toml — do not let a public index satisfy an internal name
+[[tool.uv.index]]
+name = "internal"
+url = "https://pypi.internal.example/simple"
+explicit = true
+```
+
+Publish a placeholder of every internal name to the public registry, or use a
+scope you own. An unscoped internal name is a standing invitation.
+
+## Provenance and attestation
+
+Verify that a release was built by the pipeline it claims, not uploaded by hand.
+
+```bash
+npm audit signatures                  # registry signing + provenance
+gh attestation verify ./dist.tgz --owner yourorg
+cosign verify-blob --bundle dist.sig ./dist.tgz
+```
+
+SLSA build levels describe how much this is worth: L1 means provenance exists,
+L2 means it is signed by a hosted builder, L3 means the build is isolated and
+non-falsifiable. Ask which level a critical dependency actually meets rather
+than assuming a green badge implies L3.
+
+## Typosquatting and install-time execution
+
+Most supply-chain compromise runs at INSTALL time, before any of your code does.
+
+```bash
+npm ci --ignore-scripts               # then run known-good scripts explicitly
+```
+
+Check a new dependency before adding it: publish date versus first release,
+download counts against its age, whether the repo link resolves, and whether the
+name is one character from something popular.
+
+## SBOM
+
+Generate an SBOM per release so an advisory can be answered with a query instead
+of a guess.
+
+```bash
+syft dir:. -o cyclonedx-json > sbom.json
+grype sbom:sbom.json --fail-on high
+```
+
+**Key rules:**
+- Use `npm ci` / `--require-hashes` / `--frozen` in CI. Never a fresh resolve.
+- Scope internal packages and pin their registry. Unscoped internal names are shadowable.
+- Verify provenance for anything in the build or release path, not just runtime deps.
+- Treat install scripts as executable untrusted code: `--ignore-scripts` by default.
+- Emit an SBOM per release. Without one, "are we affected?" has no cheap answer.
+- A CVE scan does not detect a compromised release. These are different controls.
+
+Reference: OWASP Top 10:2025 A03 Software Supply Chain Failures · SLSA v1.0 · CycloneDX
+
+
+### Validate input with server-side schemas using Zod and Pydantic with allowlist patterns — HIGH
+
+
+# Input Schema Validation
+
+## Core Principles
+
+1. **Never trust user input**
+2. **Validate on server-side** (client-side is UX only)
+3. **Use allowlists** (not blocklists)
+4. **Validate type, length, format, range**
+
+## Zod v4 Schema
+
+```typescript
+import { z } from 'zod';
+
+const UserSchema = z.object({
+  email: z.email(),
+  name: z.string().min(2).max(100),
+  age: z.coerce.number().int().min(0).max(150),
+  role: z.enum(['user', 'admin']).default('user'),
+});
+
+const result = UserSchema.safeParse(req.body);
+if (!result.success) {
+  return res.status(400).json({ errors: result.error.flatten() });
+}
+```
+
+## Type Coercion (v4)
+
+```typescript
+// Query params come as strings - coerce to proper types
+z.coerce.number()  // "123" -> 123
+z.coerce.boolean() // "true" -> true
+z.coerce.date()    // "2024-01-01" -> Date
+```
+
+## Pydantic (Python)
+
+```python
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+class User(BaseModel):
+    email: EmailStr
+    name: str = Field(min_length=2, max_length=100)
+    age: int = Field(ge=0, le=150)
+
+    @field_validator('name')
+    @classmethod
+    def strip_and_title(cls, v: str) -> str:
+        return v.strip().title()
+```
+
+## Express Middleware
+
+```typescript
+function validateBody<T extends z.ZodSchema>(schema: T) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: result.error.flatten().fieldErrors,
+      });
+    }
+    req.body = result.data;
+    next();
+  };
+}
+
+app.post('/api/users', validateBody(CreateUserSchema), async (req, res) => {
+  const user = req.body;  // fully typed and validated
+});
+```
+
+## Query Parameter Validation
+
+```typescript
+const PaginationSchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  sort: z.enum(['name', 'email', 'createdAt']).default('createdAt'),
+  order: z.enum(['asc', 'desc']).default('desc'),
+});
+```
+
+## Anti-Patterns
+
+```typescript
+// NEVER rely on client-side validation only
+if (formIsValid) submit();  // No server validation
+
+// NEVER use blocklists
+const blocked = ['password', 'secret'];  // Easy to miss fields
+
+// NEVER build queries with string concat
+"SELECT * FROM users WHERE name = '" + name + "'"  // SQL injection
+
+// ALWAYS validate server-side
+const result = schema.safeParse(req.body);
+
+// ALWAYS use allowlists
+const allowed = ['name', 'email', 'createdAt'];
+
+// ALWAYS use parameterized queries
+db.query('SELECT * FROM users WHERE name = ?', [name]);
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Validation library | Zod (TS), Pydantic (Python) |
+| Strategy | Allowlist over blocklist |
+| Location | Server-side always |
+| Error messages | Generic (don't leak info) |
+
+**Incorrect — Trusting client-side validation allows attackers to bypass checks:**
+```typescript
+// Client-side only
+const email = document.getElementById('email').value;
+if (email.includes('@')) {
+  await fetch('/api/users', { method: 'POST', body: JSON.stringify({ email }) });
+}
+// Attacker can bypass with curl/Postman
+```
+
+**Correct — Server-side schema validation with Zod ensures all input is validated:**
+```typescript
+app.post('/api/users', validateBody(z.object({
+  email: z.email(),
+})), async (req, res) => {
+  // req.body.email is validated regardless of client
+});
+```
+
+
+### Validation: Output Encoding & XSS Prevention — HIGH
+
+
+# Output Encoding & XSS Prevention
+
+## HTML Sanitization (Python)
+
+```python
+from markupsafe import escape
+
+@app.route('/comment', methods=['POST'])
+def create_comment():
+    content = escape(request.form['content'])
+    db.execute("INSERT INTO comments (content) VALUES (?)", [content])
+```
+
+## HTML Sanitization (JavaScript)
+
+```typescript
+import DOMPurify from 'dompurify';
+
+// Sanitize HTML input with allowed tags
+const sanitizedHtml = DOMPurify.sanitize(userInput, {
+  ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a'],
+  ALLOWED_ATTR: ['href'],
+});
+```
+
+## XSS Prevention
+
+**Safe — textContent and React auto-escaping:**
+```javascript
+// SAFE: textContent escapes HTML entities
+element.textContent = userInput;
+
+// React is safe by default
+<div>{userInput}</div>  // Auto-escaped
+```
+
+**Dangerous — innerHTML and dangerouslySetInnerHTML bypass escaping:**
+```javascript
+// DANGEROUS: innerHTML can execute scripts
+element.innerHTML = userInput;  // NEVER do this with user input
+
+// DANGEROUS: bypasses React escaping
+<div dangerouslySetInnerHTML={{__html: userInput}} />
+```
+
+## Server-Side XSS Prevention (Flask)
+
+```python
+from flask import request, render_template_string
+from markupsafe import escape
+
+@app.route('/greet')
+def greet():
+    name = request.args.get('name', '')
+    return f"<h1>Hello, {escape(name)}!</h1>"
+
+# Or use Jinja2 templates (auto-escape by default)
+@app.route('/greet-template')
+def greet_template():
+    return render_template_string(
+        "<h1>Hello, {{ name }}!</h1>",
+        name=request.args.get('name', '')
+    )
+```
+
+## Security Headers
+
+```python
+SECURITY_HEADERS = {
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Content-Security-Policy": "default-src 'self'",
+}
+
+@app.after_request
+def add_security_headers(response):
+    for header, value in SECURITY_HEADERS.items():
+        response.headers[header] = value
+    return response
+```
+
+## SRI for CDN Scripts
+
+```html
+<script src="https://cdn.example.com/lib.js"
+        integrity="sha384-..."
+        crossorigin="anonymous"></script>
+```
+
+## Anti-Patterns
+
+```javascript
+// NEVER use innerHTML with user input
+element.innerHTML = userInput;
+
+// NEVER use dangerouslySetInnerHTML without sanitization
+<div dangerouslySetInnerHTML={{__html: userInput}} />
+
+// NEVER trust Content-Type header for file validation
+if (file.type === 'image/png') {...}  // Can be spoofed
+
+// ALWAYS use textContent or DOMPurify
+element.textContent = userInput;
+const safe = DOMPurify.sanitize(userInput);
+```
+
+**Incorrect — Using innerHTML with user content allows XSS script injection:**
+```javascript
+const userComment = "<script>alert('XSS')</script>";
+element.innerHTML = userComment;
+// Script executes, stealing cookies/tokens
+```
+
+**Correct — Using textContent automatically escapes HTML and prevents XSS:**
+```javascript
+const userComment = "<script>alert('XSS')</script>";
+element.textContent = userComment;
+// Renders as plain text: "<script>alert('XSS')</script>"
+```
+
+
+
+---
+
+## References (11)
+
+### Audit Logging
+
+# Audit Logging
+
+## Purpose
+
+Audit logs answer: **Who did What, When, Where, and Why?**
+
+They're required for:
+- Security incident investigation
+- Compliance (SOC2, GDPR, HIPAA)
+- Debugging production issues
+- Usage analytics
+
+## What to Log
+
+### Always Log (Audit Events)
+
+| Event Type | What to Log | Example |
+|------------|-------------|---------|
+| Authentication | Success/failure, method | "User login via OAuth" |
+| Authorization | Decision, resource, action | "Access granted to analysis_123" |
+| Data Access | Read/write, resource type | "Read 10 documents" |
+| Data Modification | Before/after (hashed), resource | "Updated analysis status" |
+| LLM Calls | Model, tokens, latency (NOT prompt) | "GPT-4, 1500 tokens, 2.3s" |
+| Errors | Type, context (sanitized) | "ValidationError on /api/analyze" |
+
+### Never Log (Sensitive Data)
+
+| Data Type | Why Not | Alternative |
+|-----------|---------|-------------|
+| Passwords | Security | Log "password changed" event |
+| API Keys | Security | Log key ID, not value |
+| Full Prompts | May contain PII | Log prompt hash, token count |
+| LLM Responses | May contain generated PII | Log response hash, length |
+| User Content | Privacy | Log content hash, length |
+| PII | GDPR/Privacy | Log anonymized or redacted |
+
+## Implementation
+
+### Sanitized Logger
+
+```python
+import structlog
+import re
+import hashlib
+from typing import Any
+
+class SanitizedLogger:
+    """Logger that automatically redacts sensitive data"""
+
+    REDACT_PATTERNS = {
+        r"password": "[PASSWORD_REDACTED]",
+        r"api[_-]?key": "[API_KEY_REDACTED]",
+        r"secret": "[SECRET_REDACTED]",
+        r"token": "[TOKEN_REDACTED]",
+        r"authorization": "[AUTH_REDACTED]",
+        r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}": "[EMAIL_REDACTED]",
+    }
+
+    HASH_FIELDS = {"prompt", "response", "content"}
+
+    def __init__(self):
+        self._logger = structlog.get_logger()
+
+    def _sanitize(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Sanitize sensitive fields"""
+        result = {}
+        for key, value in data.items():
+            # Hash content fields instead of logging
+            if key.lower() in self.HASH_FIELDS:
+                result[f"{key}_hash"] = hashlib.sha256(
+                    str(value).encode()
+                ).hexdigest()[:16]
+                result[f"{key}_length"] = len(str(value))
+                continue
+
+            # Redact sensitive patterns
+            str_value = str(value)
+            for pattern, replacement in self.REDACT_PATTERNS.items():
+                if re.search(pattern, key, re.IGNORECASE):
+                    result[key] = replacement
+                    break
+                str_value = re.sub(pattern, replacement, str_value, flags=re.IGNORECASE)
+            else:
+                result[key] = str_value
+
+        return result
+
+    def audit(self, event: str, **kwargs):
+        """Log an audit event with automatic sanitization"""
+        sanitized = self._sanitize(kwargs)
+        self._logger.info(
+            event,
+            audit=True,
+            **sanitized,
+        )
+
+    def info(self, msg: str, **kwargs):
+        self._logger.info(msg, **self._sanitize(kwargs))
+
+    def error(self, msg: str, **kwargs):
+        self._logger.error(msg, **self._sanitize(kwargs))
+```
+
+### Audit Event Structure
+
+```python
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from uuid import UUID
+
+class AuditAction(Enum):
+    CREATE = "create"
+    READ = "read"
+    UPDATE = "update"
+    DELETE = "delete"
+    LOGIN = "login"
+    LOGOUT = "logout"
+    LLM_CALL = "llm_call"
+    SEARCH = "search"
+
+@dataclass
+class AuditEvent:
+    """Structured audit event"""
+    # WHO
+    user_id: UUID
+    tenant_id: UUID
+    session_id: str
+
+    # WHAT
+    action: AuditAction
+    resource_type: str
+    resource_id: UUID | None
+
+    # WHEN
+    timestamp: datetime
+
+    # WHERE
+    request_id: str
+    trace_id: str
+    ip_address: str
+    user_agent: str
+
+    # OUTCOME
+    success: bool
+    error_code: str | None = None
+
+    # CONTEXT (sanitized)
+    metadata: dict | None = None
+```
+
+### Usage in OrchestKit
+
+```python
+# Authentication
+logger.audit(
+    "user.login",
+    user_id=user.id,
+    tenant_id=user.tenant_id,
+    method="oauth",
+    success=True,
+)
+
+# Data Access
+logger.audit(
+    "documents.search",
+    user_id=ctx.user_id,
+    tenant_id=ctx.tenant_id,
+    query_hash=hash(query),  # Not the actual query
+    result_count=len(results),
+    success=True,
+)
+
+# LLM Call
+logger.audit(
+    "llm.generate",
+    user_id=ctx.user_id,
+    tenant_id=ctx.tenant_id,
+    model="gpt-4",
+    input_tokens=1500,
+    output_tokens=500,
+    latency_ms=2300,
+    prompt_hash=hash(prompt),  # Not the actual prompt!
+    success=True,
+)
+
+# Authorization Failure
+logger.audit(
+    "authorization.denied",
+    user_id=ctx.user_id,
+    tenant_id=ctx.tenant_id,
+    action="analysis:delete",
+    resource_id=analysis_id,
+    reason="missing permission",
+    success=False,
+)
+```
+
+## Log Retention
+
+| Environment | Retention | Reason |
+|-------------|-----------|--------|
+| Development | 7 days | Debugging |
+| Staging | 30 days | Testing |
+| Production | 1 year | Compliance |
+| Security Events | 7 years | Legal requirements |
+
+## Integration with Langfuse
+
+```python
+from langfuse import Langfuse
+
+langfuse = Langfuse()
+
+# Create trace for observability
+trace = langfuse.trace(
+    name="analysis",
+    user_id=str(ctx.user_id),  # Langfuse supports user tracking
+    session_id=ctx.session_id,
+    metadata={
+        "tenant_id": str(ctx.tenant_id),
+        "request_id": ctx.request_id,
+    },
+)
+
+# Log LLM call
+generation = trace.generation(
+    name="content_analysis",
+    model="gpt-4",
+    input=prompt,  # Langfuse handles securely
+    output=response,
+)
+```
+
+## Compliance Considerations
+
+### GDPR
+- Log data access but not the data itself
+- Provide audit trail for subject access requests
+- Log data deletion events
+
+### SOC2
+- Log all authentication events
+- Log all authorization decisions
+- Log all data modifications
+- Retain logs for audit period
+
+### HIPAA
+- Log all access to PHI
+- Log user ID, timestamp, action
+- Never log PHI content in logs
+
+
+### Cc Permission Model
+
+# Claude Code Permission-Rule Semantics (security-relevant)
+
+How Claude Code's `allow` / `ask` / `deny` permission rules actually behave as of
+the supported floor (every behavior below had shipped by 2.1.166; current floor 2.1.220).
+These are the facts OrchestKit security guidance depends on — get them wrong and a
+"locked down" config has holes. Each behavior shipped in a specific release; all
+are guaranteed present at the floor.
+
+## 1. Read deny rules hide files from Glob/Grep (2.1.162)
+
+A `Read` deny rule is now a real **secrecy** boundary, not just a read block:
+
+```jsonc
+// .claude/settings.json
+{ "permissions": { "deny": ["Read(./.env*)", "Read(./secrets/**)"] } }
+```
+
+Matching files no longer appear in `Glob` or `Grep` results either — before 2.1.162
+the agent could still *discover* (and infer from) denied paths via search even though
+it couldn't read them. Treat `Read(deny)` as "this path does not exist for the agent."
+
+- **Use it for:** secrets, key material, customer data dumps, `.env` families.
+- **Pitfall:** a deny rule with a typo silently protects nothing — there is no
+  "unknown path" warning (unlike deny *tool names*, see §2). Verify with a probe
+  `Glob` after deploying.
+
+## 2. Glob support in deny-rule tool-name position (2.1.166)
+
+The tool-name slot of a deny rule accepts globs, enabling a **default-deny baseline**:
+
+```jsonc
+{ "permissions": {
+    "deny":  ["*"],                       // deny ALL tools…
+    "allow": ["Read(./src/**)", "Grep", "Glob"]   // …then re-allow the minimum
+} }
+```
+
+- `"*"` in a deny rule denies every tool.
+- **Allow** rules *reject* non-MCP globs (you cannot `allow: ["*"]`) — allow stays explicit by design.
+- Unknown tool names in **deny** rules emit a startup **warning** (catches typos — the
+  safety net §1 lacks). Watch the startup log when authoring deny lists.
+
+## 3. Explicit WebFetch rules override the preapproved-host auto-allow (2.1.162)
+
+CC auto-allows a built-in set of preapproved WebFetch domains. Before 2.1.162 your
+explicit rules were ignored for those hosts; now **explicit `WebFetch(domain:…)`
+deny/ask/allow takes precedence**:
+
+```jsonc
+{ "permissions": { "deny": ["WebFetch(domain:raw.githubusercontent.com)"] } }
+// now actually blocks it, even though it's normally preapproved
+```
+
+- **Use it for:** blocking exfiltration sinks / paste hosts even when they're on the
+  default allow-list; forcing `ask` on a sensitive internal domain.
+
+## 4. Cross-session `SendMessage` relays carry no user authority (2.1.166)
+
+Multi-agent hardening: a message relayed via `SendMessage` from **another** Claude
+session no longer inherits the originating user's authority.
+
+- Receivers **refuse** relayed permission requests.
+- **auto mode blocks** them outright.
+
+Implication for OrchestKit's multi-agent flows (agent-orchestration, mcp-patterns):
+a peer or compromised session **cannot escalate** by asking your session to approve a
+tool call on its behalf. Design fan-out so privileged actions run in the session that
+legitimately holds the authority — do not route approvals through relays.
+
+## 5. Org-managed permission rules apply for the whole session (2.1.163)
+
+Enterprise lockdown reliability fix: org-managed permission rules now apply for the
+**entire session** even when the managed-settings fetch completes during startup on a
+fresh config directory (previously a first-run race left the session unmanaged). Also
+in 2.1.163: a `Read(~/Desktop/**)`-style home-dir deny now also blocks `Bash` commands
+that reach the path via `$HOME`.
+
+- **Require 2.1.163+** when relying on org-managed profiles for a security boundary.
+- Pairs with the 2.1.166 managed-settings enforcement fix (see SKILL.md "Managed Hook
+  Hierarchy") — one invalid entry no longer voids the rest of the policy.
+
+## 6. Permission rules can match tool input parameters (2.1.178)
+
+Rules now match against a tool's **input parameters**, not just its name, with `*`
+wildcard support. Syntax: `Tool(param:value)`. The headline use is gating subagent
+spawns by model — `Agent(model:opus)` in a deny rule blocks any subagent attempted
+with Opus; `Agent(model:*)` denies all model-pinned subagent spawns.
+
+```jsonc
+{ "permissions": { "deny": ["Agent(model:opus)", "Bash(rm:*)"] } }
+```
+
+- **Use it for:** a *hard* block on expensive or capability-risky subagent models, or
+  parameter-level gates (e.g. specific `Bash` subcommands) that tool-name rules can't
+  express. Combine with tool-name + file-path rules for defense-in-depth.
+- **It is static** — a permission rule cannot run logic, read state, output advisory
+  context, or prompt the user. For *advisory* model control (warn-don't-block, cost
+  estimates, consent prompts) ork keeps its `model-cost-advisor` and
+  `fable-spend-consent` hooks; the two are orthogonal (see `shared/rules/cc-native-first.md`).
+
+## Recommended baseline posture
+
+```jsonc
+// .claude/settings.json — default-deny, explicit re-allow, secrecy on secrets
+{ "permissions": {
+    "deny":  ["*", "Read(./.env*)", "Read(./secrets/**)",
+              "WebFetch(domain:pastebin.com)"],
+    "allow": ["Read(./src/**)", "Read(./docs/**)", "Grep", "Glob",
+              "Bash(npm run test:*)"],
+    "ask":   ["Bash(git push:*)"]
+} }
+```
+
+Verify after deploy: a `Grep` for a denied secret returns nothing (§1), the startup log
+shows no "unknown tool" warnings (§2), and a denied preapproved WebFetch domain is
+actually refused (§3).
+
+
+### Context Separation
+
+# Context Separation Pattern
+
+> **OWASP LLM Top 10 (2025):** This pattern mitigates **LLM07: System Prompt Leakage** — keeping identifiers and internal context out of prompts prevents the model from echoing or leaking system-level data.
+
+## The Problem
+
+When identifiers appear in LLM prompts, several security issues arise:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  WHAT HAPPENS WHEN IDs GO INTO PROMPTS                  │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  "Analyze document doc_abc123 for user usr_xyz789"      │
+│                     │                    │              │
+│                     ▼                    ▼              │
+│              ┌──────────────────────────────┐           │
+│              │           LLM                │           │
+│              │                              │           │
+│              │  May hallucinate:            │           │
+│              │  - doc_abc124 (off by one)   │           │
+│              │  - doc_xyz789 (mixed up)     │           │
+│              │  - usr_other (cross-tenant)  │           │
+│              └──────────────────────────────┘           │
+│                                                         │
+│  RISKS:                                                 │
+│  • Hallucinated IDs don't exist → crashes              │
+│  • Mixed IDs → wrong data attribution                  │
+│  • Cross-tenant IDs → security breach                  │
+│  • IDs in logs/traces → data leakage                   │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+## The Solution: Context Separation
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  CORRECT: CONTEXT FLOWS AROUND LLM                      │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  RequestContext ─────────────────────────────────────►  │
+│  (user_id, tenant_id, etc.)                    │        │
+│         │                                      │        │
+│         │   ┌──────────────────────┐          │        │
+│         │   │                      │          │        │
+│         ▼   │       LLM            │          ▼        │
+│  ┌──────────┤                      ├─────────────┐     │
+│  │ Content  │  Sees ONLY:          │  Content +  │     │
+│  │ (text)   │  - Document text     │  Context    │     │
+│  │          │  - Query text        │  (merged)   │     │
+│  └──────────┤  - Instructions      ├─────────────┘     │
+│             │                      │                    │
+│             │  NO IDs!             │                    │
+│             └──────────────────────┘                    │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Implementation
+
+### 1. Define What's Forbidden
+
+```python
+# OrchestKit parameters that NEVER go in prompts
+FORBIDDEN_IN_PROMPTS = {
+    # User identity
+    "user_id",      # UUID - hallucination risk
+    "tenant_id",    # UUID - cross-tenant risk
+    "session_id",   # String - auth context
+
+    # Resource references
+    "analysis_id",  # UUID - job tracking
+    "document_id",  # UUID - source tracking
+    "artifact_id",  # UUID - output tracking
+    "chunk_id",     # UUID - RAG reference
+
+    # System context
+    "trace_id",     # String - observability
+    "request_id",   # String - request tracking
+    "workflow_run_id",  # UUID - workflow tracking
+
+    # Secrets
+    "api_key",      # String - never!
+    "token",        # String - never!
+}
+```
+
+### 2. Separate Context from Content
+
+```python
+from dataclasses import dataclass
+from uuid import UUID
+
+@dataclass
+class ContentPayload:
+    """What the LLM sees - content only"""
+    query: str
+    context_texts: list[str]
+    instructions: str
+
+@dataclass
+class ContextPayload:
+    """What flows around the LLM - never in prompt"""
+    user_id: UUID
+    tenant_id: UUID
+    analysis_id: UUID
+    source_refs: list[UUID]
+    trace_id: str
+
+async def analyze_content(
+    content: ContentPayload,
+    context: ContextPayload,
+) -> AnalysisResult:
+    """
+    Content goes TO the LLM.
+    Context goes AROUND the LLM.
+    """
+    # Build prompt from content only
+    prompt = build_prompt(
+        query=content.query,
+        context_texts=content.context_texts,
+        instructions=content.instructions,
+        # NO context payload fields here!
+    )
+
+    # LLM sees content only
+    llm_output = await llm.generate(prompt)
+
+    # Reattach context to output
+    return AnalysisResult(
+        content=llm_output,
+        user_id=context.user_id,      # From context
+        tenant_id=context.tenant_id,   # From context
+        analysis_id=context.analysis_id,  # From context
+        sources=context.source_refs,   # From context
+    )
+```
+
+### 3. Audit Prompts Before Sending
+
+```python
+import re
+
+UUID_PATTERN = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+
+def audit_prompt(prompt: str) -> list[str]:
+    """
+    Check for forbidden patterns before sending to LLM.
+    Raises if any IDs detected.
+    """
+    violations = []
+
+    # Check for UUIDs
+    if re.search(UUID_PATTERN, prompt, re.IGNORECASE):
+        violations.append("UUID detected in prompt")
+
+    # Check for ID field names
+    for forbidden in FORBIDDEN_IN_PROMPTS:
+        pattern = rf'\b{forbidden}\b'
+        if re.search(pattern, prompt, re.IGNORECASE):
+            violations.append(f"Forbidden field '{forbidden}' in prompt")
+
+    return violations
+
+# Usage in prompt building
+def build_safe_prompt(content: ContentPayload) -> str:
+    prompt = f"""
+    Analyze the following content:
+
+    {content.query}
+
+    Context:
+    {chr(10).join(content.context_texts)}
+    """
+
+    # Audit before returning
+    violations = audit_prompt(prompt)
+    if violations:
+        raise PromptSecurityError(
+            f"Prompt contains forbidden content: {violations}"
+        )
+
+    return prompt
+```
+
+## OrchestKit Integration Points
+
+### Content Analysis Workflow
+
+```python
+# backend/app/workflows/agents/content_analyzer.py
+
+async def analyze(state: AnalysisState) -> AnalysisState:
+    # Context is in state, but NOT passed to prompt
+    ctx = state.request_context
+
+    # Build content-only payload
+    content = ContentPayload(
+        query=state.analysis_request.query,
+        context_texts=[doc.content for doc in state.retrieved_docs],
+        instructions=get_analysis_instructions(),
+    )
+
+    # Context payload for attribution
+    context = ContextPayload(
+        user_id=ctx.user_id,
+        tenant_id=ctx.tenant_id,
+        analysis_id=state.analysis_id,
+        source_refs=[doc.id for doc in state.retrieved_docs],
+        trace_id=ctx.trace_id,
+    )
+
+    result = await analyze_content(content, context)
+    return state.with_result(result)
+```
+
+## Common Mistakes
+
+```python
+# ❌ BAD: ID in prompt
+prompt = f"Analyze document {doc_id} for user {user_id}"
+
+# ❌ BAD: ID in f-string
+prompt = f"Context from analysis {analysis_id}:\n{context}"
+
+# ❌ BAD: ID in instruction
+prompt = f"You are analyzing for tenant {tenant_id}. Be helpful."
+
+# ✅ GOOD: Content only
+prompt = f"Analyze the following document:\n{document_content}"
+
+# ✅ GOOD: No IDs visible
+prompt = f"""
+Analyze this content and provide insights:
+
+{content}
+
+Relevant context:
+{context_texts}
+"""
+```
+
+## Testing Context Separation
+
+```python
+import pytest
+
+class TestContextSeparation:
+
+    def test_prompt_contains_no_uuids(self):
+        content = ContentPayload(
+            query="What are the key concepts?",
+            context_texts=["Machine learning basics..."],
+            instructions="Provide clear analysis",
+        )
+
+        prompt = build_safe_prompt(content)
+
+        assert not re.search(UUID_PATTERN, prompt)
+
+    def test_prompt_contains_no_forbidden_fields(self):
+        content = ContentPayload(...)
+        prompt = build_safe_prompt(content)
+
+        for forbidden in FORBIDDEN_IN_PROMPTS:
+            assert forbidden not in prompt.lower()
+
+    def test_audit_catches_leaked_uuid(self):
+        bad_prompt = "Analyze doc 123e4567-e89b-12d3-a456-426614174000"
+
+        violations = audit_prompt(bad_prompt)
+
+        assert len(violations) > 0
+        assert "UUID" in violations[0]
+```
+
+
+### Langfuse Mask Callback
+
+# Langfuse Mask Callback
+
+Pre-trace PII masking using Langfuse's mask callback for automatic redaction before data reaches the server.
+
+## Basic Setup
+
+```python
+from langfuse import Langfuse
+import re
+
+PII_PATTERNS = {
+    "email": re.compile(r'\b[\w.-]+@[\w.-]+\.\w{2,}\b'),
+    "phone": re.compile(r'\b(?:\+1[-.]?)?\(?\d{3}\)?[-.]?\d{3}[-.]?\d{4}\b'),
+    "ssn": re.compile(r'\b\d{3}-\d{2}-\d{4}\b'),
+}
+
+def mask_pii(data: dict) -> dict:
+    """Mask PII in Langfuse trace data before sending."""
+    def redact_string(value: str) -> str:
+        for entity_type, pattern in PII_PATTERNS.items():
+            value = pattern.sub(f'[REDACTED_{entity_type.upper()}]', value)
+        return value
+
+    def redact_recursive(obj):
+        if isinstance(obj, str):
+            return redact_string(obj)
+        elif isinstance(obj, dict):
+            return {k: redact_recursive(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [redact_recursive(item) for item in obj]
+        return obj
+
+    return redact_recursive(data)
+
+langfuse = Langfuse(mask=mask_pii)
+```
+
+## With Presidio
+
+```python
+from presidio_analyzer import AnalyzerEngine
+from presidio_anonymizer import AnonymizerEngine
+
+analyzer = AnalyzerEngine()
+anonymizer = AnonymizerEngine()
+
+def presidio_mask(data: dict) -> dict:
+    """Enterprise-grade PII masking with Presidio."""
+    def anonymize_string(value: str) -> str:
+        if len(value) < 5:
+            return value
+        results = analyzer.analyze(text=value, language="en")
+        if results:
+            return anonymizer.anonymize(text=value, analyzer_results=results).text
+        return value
+
+    def process_recursive(obj):
+        if isinstance(obj, str):
+            return anonymize_string(obj)
+        elif isinstance(obj, dict):
+            return {k: process_recursive(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [process_recursive(item) for item in obj]
+        return obj
+
+    return process_recursive(data)
+
+langfuse = Langfuse(mask=presidio_mask)
+```
+
+## References
+
+- [Langfuse Mask Callback](https://langfuse.com/docs/sdk/python#mask-callback)
+- [Langfuse Privacy](https://langfuse.com/docs/data-security-privacy)
+
+
+### Ork Delta
+
+# Ork Delta: security-patterns
+
+OrchestKit-specific knowledge rescued when this skill's vendor-restatement files were
+removed (wrap + delta campaign, 2026-07-31). Each entry is a floor, scar, or house
+decision that upstream documentation will never carry. For everything else, see the
+"Upstream coverage (do not restate)" table in SKILL.md.
+
+## Hash passwords with argon2-cffi, never passlib
+
+Why: House correction shipped in this skill's OWASP example files (v2.0.0, February 2026):
+passlib last released in 2020 and breaks on Python 3.13+ after PEP 594 removed the stdlib
+crypt module. The demos that showed passlib were rewritten to argon2-cffi; this line is
+the surviving record of that fix.
+
+Upstream: https://argon2-cffi.readthedocs.io/ and the OWASP Password Storage Cheat Sheet
+(https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+
+## Write Zod v4 API shapes, never v3
+
+Why: security-patterns 2.0.0 (February 2026) standardized every example on Zod v4 after
+v3 shapes kept creeping back in from training-data bias. The four traps that fail at
+runtime on v4: `z.string().email()/.url()/.uuid()` are removed (use top-level `z.email()`,
+`z.url()`, `z.uuid()`); `ZodError.errors` is removed (use `.issues`); the `ZodIssueCode`
+enum is removed (issue codes live on `z.core`, pass string codes like `"custom"`);
+`z.setErrorMap`/`ZodErrorMap` are removed (pass the unified `error` param per schema, or
+`z.config(\{ customError \})` globally).
+
+Upstream: https://zod.dev/v4/changelog (context7: /colinhacks/zod)
+
+## Keep identifiers out of LLM prompts; attribute deterministically after the call
+
+Why: OrchestKit house doctrine, carried through security-patterns since v1: `user_id`,
+`tenant_id`, and any UUID flow AROUND the model, never through it, and attribution comes
+from RequestContext plus pre-LLM source refs, never from model output. The forbidden
+pattern audit and builder implementations live in this skill at
+`references/prompt-audit.md` and `scripts/prompt_builder.py`.
+
+Upstream: OWASP LLM01 Prompt Injection (https://genai.owasp.org/llm-top-10/)
+
+## Never bypass this repo's scanning gates with --no-verify
+
+Why: In OrchestKit itself the scanning rules are enforced, not advisory:
+`bin/git-hooks/pre-push:324` runs `tests/security/run-security-tests.sh` and
+`.github/workflows/ci.yml:162` runs gitleaks, so skipping the hook only relocates a
+secret or security failure to CI (repo CLAUDE.md house rule).
+
+Upstream: https://github.com/gitleaks/gitleaks and https://semgrep.dev/docs/
+
+
+### Output Guardrails
+
+# Output Guardrails
+
+## Purpose
+
+After LLM returns, validate the output before using it:
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                  OUTPUT VALIDATION                         │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│  LLM Response ──► Guardrails ──► Validated Output          │
+│                       │                                    │
+│                       ▼                                    │
+│              ┌────────────────┐                            │
+│              │   VALIDATORS   │                            │
+│              ├────────────────┤                            │
+│              │ □ Schema       │  Does it match expected?   │
+│              │ □ No IDs       │  No hallucinated UUIDs?    │
+│              │ □ Grounded     │  Supported by context?     │
+│              │ □ Safe         │  No toxic content?         │
+│              │ □ Size         │  Within limits?            │
+│              └────────────────┘                            │
+│                       │                                    │
+│           ┌──────────┴──────────┐                         │
+│           ▼                     ▼                         │
+│    ┌──────────┐          ┌──────────┐                     │
+│    │   PASS   │          │   FAIL   │                     │
+│    │          │          │          │                     │
+│    │ Continue │          │ Retry or │                     │
+│    │          │          │ Error    │                     │
+│    └──────────┘          └──────────┘                     │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+```
+
+## Implementation
+
+### 1. Validation Result Type
+
+```python
+from dataclasses import dataclass
+from enum import Enum
+
+class ValidationStatus(Enum):
+    PASSED = "passed"
+    FAILED = "failed"
+    WARNING = "warning"
+
+@dataclass
+class ValidationResult:
+    status: ValidationStatus
+    reason: str | None = None
+    details: dict | None = None
+
+    @property
+    def is_valid(self) -> bool:
+        return self.status in (ValidationStatus.PASSED, ValidationStatus.WARNING)
+```
+
+### 2. Schema Validation
+
+```python
+from pydantic import BaseModel, ValidationError
+from typing import TypeVar
+
+T = TypeVar("T", bound=BaseModel)
+
+def validate_schema(
+    llm_output: dict,
+    schema: type[T],
+) -> tuple[T | None, ValidationResult]:
+    """
+    Validate LLM output matches expected schema.
+    """
+    try:
+        parsed = schema.model_validate(llm_output)
+        return parsed, ValidationResult(
+            status=ValidationStatus.PASSED,
+        )
+    except ValidationError as e:
+        return None, ValidationResult(
+            status=ValidationStatus.FAILED,
+            reason=f"Schema validation failed: {e.error_count()} errors",
+            details={"errors": e.errors()},
+        )
+
+# Usage
+class AnalysisOutput(BaseModel):
+    summary: str
+    key_concepts: list[str]
+    difficulty: str
+
+parsed, result = validate_schema(llm_response, AnalysisOutput)
+if not result.is_valid:
+    raise ValidationError(result.reason)
+```
+
+### 3. No Hallucinated IDs
+
+```python
+import re
+
+UUID_PATTERN = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+
+def validate_no_ids(output: str) -> ValidationResult:
+    """
+    Ensure LLM didn't hallucinate any identifiers.
+    """
+    # Check for UUIDs
+    uuids = re.findall(UUID_PATTERN, output, re.IGNORECASE)
+    if uuids:
+        return ValidationResult(
+            status=ValidationStatus.FAILED,
+            reason=f"Found {len(uuids)} hallucinated UUIDs",
+            details={"uuids": uuids},
+        )
+
+    # Check for ID-like patterns
+    id_patterns = [
+        r'user_id[:\s]+\S+',
+        r'doc_id[:\s]+\S+',
+        r'id[:\s]+[a-f0-9]{8,}',
+    ]
+
+    for pattern in id_patterns:
+        matches = re.findall(pattern, output, re.IGNORECASE)
+        if matches:
+            return ValidationResult(
+                status=ValidationStatus.WARNING,
+                reason=f"Found ID-like pattern: {matches[0]}",
+                details={"matches": matches},
+            )
+
+    return ValidationResult(status=ValidationStatus.PASSED)
+```
+
+### 4. Grounding Validation
+
+```python
+def validate_grounding(
+    output: str,
+    context_texts: list[str],
+    threshold: float = 0.3,
+) -> ValidationResult:
+    """
+    Check if LLM output is grounded in provided context.
+    Uses simple keyword overlap for speed.
+    """
+    # Extract key terms from output
+    output_terms = set(extract_key_terms(output))
+
+    # Extract key terms from context
+    context_terms = set()
+    for text in context_texts:
+        context_terms.update(extract_key_terms(text))
+
+    # Calculate overlap
+    if not output_terms:
+        return ValidationResult(
+            status=ValidationStatus.WARNING,
+            reason="No key terms in output",
+        )
+
+    overlap = len(output_terms & context_terms) / len(output_terms)
+
+    if overlap < threshold:
+        return ValidationResult(
+            status=ValidationStatus.WARNING,
+            reason=f"Low grounding score: {overlap:.2%}",
+            details={
+                "overlap": overlap,
+                "threshold": threshold,
+                "ungrounded_terms": list(output_terms - context_terms)[:10],
+            },
+        )
+
+    return ValidationResult(
+        status=ValidationStatus.PASSED,
+        details={"grounding_score": overlap},
+    )
+
+def extract_key_terms(text: str) -> list[str]:
+    """Extract meaningful terms from text"""
+    import re
+    # Simple: words 4+ chars, lowercased
+    words = re.findall(r'\b[a-zA-Z]{4,}\b', text.lower())
+    # Filter common words
+    stopwords = {'this', 'that', 'with', 'from', 'have', 'been', 'will', 'would'}
+    return [w for w in words if w not in stopwords]
+```
+
+### 5. Content Safety
+
+```python
+async def validate_content_safety(
+    output: str,
+) -> ValidationResult:
+    """
+    Check for toxic/harmful content.
+    Uses simple pattern matching + optional LLM check.
+    """
+    # Quick pattern check
+    toxic_patterns = [
+        r'\b(hate|violence|harm|kill)\b',
+        r'\b(password|secret|api.?key)\b',
+    ]
+
+    for pattern in toxic_patterns:
+        if re.search(pattern, output, re.IGNORECASE):
+            return ValidationResult(
+                status=ValidationStatus.FAILED,
+                reason=f"Potentially unsafe content detected",
+            )
+
+    # PII detection
+    pii_patterns = {
+        "email": r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+        "phone": r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b',
+        "ssn": r'\b\d{3}-\d{2}-\d{4}\b',
+    }
+
+    detected_pii = []
+    for pii_type, pattern in pii_patterns.items():
+        if re.search(pattern, output):
+            detected_pii.append(pii_type)
+
+    if detected_pii:
+        return ValidationResult(
+            status=ValidationStatus.WARNING,
+            reason=f"Potential PII detected: {detected_pii}",
+            details={"pii_types": detected_pii},
+        )
+
+    return ValidationResult(status=ValidationStatus.PASSED)
+```
+
+### 6. Size Limits
+
+```python
+def validate_size(
+    output: str,
+    max_chars: int = 50000,
+    max_tokens: int = 10000,
+) -> ValidationResult:
+    """
+    Ensure output is within size limits.
+    """
+    if len(output) > max_chars:
+        return ValidationResult(
+            status=ValidationStatus.FAILED,
+            reason=f"Output exceeds {max_chars} chars: {len(output)}",
+        )
+
+    # Rough token estimate
+    estimated_tokens = len(output) // 4
+    if estimated_tokens > max_tokens:
+        return ValidationResult(
+            status=ValidationStatus.WARNING,
+            reason=f"Output may exceed token limit: ~{estimated_tokens}",
+        )
+
+    return ValidationResult(status=ValidationStatus.PASSED)
+```
+
+### 7. Combined Validator
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class GuardrailsConfig:
+    validate_schema: bool = True
+    validate_no_ids: bool = True
+    validate_grounding: bool = True
+    validate_safety: bool = True
+    validate_size: bool = True
+    grounding_threshold: float = 0.3
+    max_output_chars: int = 50000
+
+async def run_guardrails(
+    llm_output: dict,
+    context_texts: list[str],
+    schema: type[BaseModel],
+    config: GuardrailsConfig = GuardrailsConfig(),
+) -> tuple[BaseModel | None, list[ValidationResult]]:
+    """
+    Run all guardrails on LLM output.
+    Returns parsed output and all validation results.
+    """
+    results = []
+    parsed = None
+
+    # 1. Schema validation
+    if config.validate_schema:
+        parsed, result = validate_schema(llm_output, schema)
+        results.append(result)
+        if not result.is_valid:
+            return None, results  # Stop early
+
+    output_str = str(llm_output)
+
+    # 2. No hallucinated IDs
+    if config.validate_no_ids:
+        result = validate_no_ids(output_str)
+        results.append(result)
+
+    # 3. Grounding check
+    if config.validate_grounding:
+        result = validate_grounding(
+            output_str,
+            context_texts,
+            config.grounding_threshold,
+        )
+        results.append(result)
+
+    # 4. Content safety
+    if config.validate_safety:
+        result = await validate_content_safety(output_str)
+        results.append(result)
+
+    # 5. Size limits
+    if config.validate_size:
+        result = validate_size(output_str, config.max_output_chars)
+        results.append(result)
+
+    # Check for failures
+    failures = [r for r in results if r.status == ValidationStatus.FAILED]
+    if failures:
+        return None, results
+
+    return parsed, results
+```
+
+## OrchestKit Integration
+
+```python
+# backend/app/workflows/agents/content_analyzer.py
+
+async def analyze_with_guardrails(state: AnalysisState) -> AnalysisState:
+    """Run LLM with output guardrails"""
+
+    # Call LLM
+    llm_response = await llm.generate(state.prompt)
+
+    # Run guardrails
+    parsed, validations = await run_guardrails(
+        llm_output=llm_response,
+        context_texts=state.context_texts,
+        schema=AnalysisOutput,
+    )
+
+    # Log validations
+    for v in validations:
+        if v.status != ValidationStatus.PASSED:
+            logger.warning(
+                "guardrail_issue",
+                status=v.status.value,
+                reason=v.reason,
+                trace_id=state.request_context.trace_id,
+            )
+
+    if parsed is None:
+        raise GuardrailError(
+            "LLM output failed validation",
+            validations=[v for v in validations if not v.is_valid],
+        )
+
+    return state.with_output(parsed)
+```
+
+## Common Mistakes
+
+```python
+# ❌ BAD: No validation
+artifact.content = llm_response["content"]  # Could be anything!
+
+# ❌ BAD: Only schema validation
+parsed = AnalysisOutput.parse_obj(response)  # Ignores content issues
+
+# ❌ BAD: Trusting LLM completely
+if llm_response.get("is_safe", True):  # LLM said it's safe!
+    use_response(llm_response)
+
+# ✅ GOOD: Full guardrail pipeline
+parsed, results = await run_guardrails(
+    llm_output=response,
+    context_texts=context,
+    schema=AnalysisOutput,
+)
+```
+
+## Testing Guardrails
+
+```python
+class TestGuardrails:
+
+    def test_detects_hallucinated_uuid(self):
+        output = "Analysis for doc 123e4567-e89b-12d3-a456-426614174000"
+        result = validate_no_ids(output)
+        assert result.status == ValidationStatus.FAILED
+
+    def test_detects_low_grounding(self):
+        output = "This is about quantum physics and black holes"
+        context = ["Python programming tutorial"]
+        result = validate_grounding(output, context)
+        assert result.status == ValidationStatus.WARNING
+
+    async def test_detects_pii(self):
+        output = "Contact john@example.com for details"
+        result = await validate_content_safety(output)
+        assert result.status == ValidationStatus.WARNING
+        assert "email" in result.details["pii_types"]
+
+    async def test_full_pipeline_passes(self):
+        valid_output = {
+            "summary": "Introduction to machine learning",
+            "key_concepts": ["ML", "training", "models"],
+            "difficulty": "intermediate",
+        }
+        context = ["Machine learning is a subset of AI..."]
+
+        parsed, results = await run_guardrails(
+            llm_output=valid_output,
+            context_texts=context,
+            schema=AnalysisOutput,
+        )
+
+        assert parsed is not None
+        assert all(r.is_valid for r in results)
+```
+
+
+### Post Llm Attribution
+
+# Post-LLM Attribution
+
+## The Principle
+
+> **Attribution is DETERMINISTIC, not LLM-generated.**
+>
+> The LLM produces content. We attach context from our records.
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                   POST-LLM PHASE                           │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│                ┌─────────────────────┐                     │
+│                │       LLM           │                     │
+│                │                     │                     │
+│                │  Output: content    │                     │
+│                │  (text, analysis)   │                     │
+│                └──────────┬──────────┘                     │
+│                           │                                │
+│                           ▼                                │
+│              ┌────────────────────────┐                    │
+│              │   ATTRIBUTION LAYER    │                    │
+│              │                        │                    │
+│  From Pre-LLM:                        From Context:        │
+│  ├─ source_refs ─────────────────────► source_ids         │
+│  └─ chunk_ids                          │                   │
+│                                        │                   │
+│  From RequestContext:                  │                   │
+│  ├─ user_id ─────────────────────────► user_id            │
+│  ├─ tenant_id ───────────────────────► tenant_id          │
+│  ├─ trace_id ────────────────────────► trace_id           │
+│  └─ analysis_id ─────────────────────► analysis_id        │
+│                                        │                   │
+│  Generated:                            │                   │
+│  ├─ new UUID ────────────────────────► artifact_id        │
+│  └─ timestamp ───────────────────────► created_at         │
+│              │                        │                    │
+│              └────────────┬───────────┘                    │
+│                           │                                │
+│                           ▼                                │
+│              ┌────────────────────────┐                    │
+│              │    COMPLETE RESULT     │                    │
+│              │                        │                    │
+│              │  content + attribution │                    │
+│              │  (ready for storage)   │                    │
+│              └────────────────────────┘                    │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+```
+
+## Implementation
+
+### 1. Attribution Data Structure
+
+```python
+from dataclasses import dataclass
+from datetime import datetime
+from uuid import UUID, uuid4
+
+@dataclass
+class AttributedResult:
+    """LLM output with deterministic attribution"""
+
+    # Generated identifier
+    id: UUID
+
+    # From RequestContext (system-provided)
+    user_id: UUID
+    tenant_id: UUID
+    analysis_id: UUID
+    trace_id: str
+
+    # From Pre-LLM refs (deterministic)
+    source_document_ids: list[UUID]
+    source_chunk_ids: list[UUID]
+
+    # From LLM (content only)
+    content: str
+    key_concepts: list[str]
+    difficulty_level: str
+    summary: str
+
+    # Metadata
+    created_at: datetime
+    model_used: str
+    processing_time_ms: float
+```
+
+### 2. Attribution Function
+
+```python
+async def attribute_llm_output(
+    llm_output: dict,
+    ctx: RequestContext,
+    source_refs: SourceReference,
+    model_name: str,
+    processing_time_ms: float,
+) -> AttributedResult:
+    """
+    Attach context to LLM output.
+    All attribution comes from our records, not the LLM.
+    """
+
+    # Validate LLM output has no IDs
+    if contains_identifiers(llm_output):
+        raise SecurityError("LLM output contains identifiers")
+
+    return AttributedResult(
+        # New ID for this artifact
+        id=uuid4(),
+
+        # From RequestContext (verified from JWT)
+        user_id=ctx.user_id,
+        tenant_id=ctx.tenant_id,
+        analysis_id=ctx.resource_id,
+        trace_id=ctx.trace_id,
+
+        # From Pre-LLM capture (deterministic)
+        source_document_ids=source_refs.document_ids,
+        source_chunk_ids=source_refs.chunk_ids,
+
+        # From LLM (content only)
+        content=llm_output["analysis"],
+        key_concepts=llm_output.get("key_concepts", []),
+        difficulty_level=llm_output.get("difficulty", "intermediate"),
+        summary=llm_output.get("summary", ""),
+
+        # Metadata
+        created_at=datetime.now(timezone.utc),
+        model_used=model_name,
+        processing_time_ms=processing_time_ms,
+    )
+
+def contains_identifiers(output: dict) -> bool:
+    """Check if LLM output contains any identifiers"""
+    import re
+
+    output_str = str(output)
+
+    # Check for UUIDs
+    if re.search(UUID_PATTERN, output_str):
+        return True
+
+    # Check for ID field names in content
+    for field in ["user_id", "tenant_id", "document_id"]:
+        if field in output_str.lower():
+            return True
+
+    return False
+```
+
+### 3. Storage with Attribution
+
+```python
+async def save_attributed_result(
+    result: AttributedResult,
+    db: AsyncSession,
+) -> None:
+    """
+    Save result with all attribution intact.
+    Attribution comes from our context, not LLM.
+    """
+
+    # Create artifact record
+    artifact = Artifact(
+        id=result.id,
+        user_id=result.user_id,
+        tenant_id=result.tenant_id,
+        analysis_id=result.analysis_id,
+        content=result.content,
+        key_concepts=result.key_concepts,
+        difficulty_level=result.difficulty_level,
+        summary=result.summary,
+        created_at=result.created_at,
+        model_used=result.model_used,
+    )
+    db.add(artifact)
+
+    # Create source links
+    for doc_id in result.source_document_ids:
+        link = ArtifactSourceLink(
+            artifact_id=result.id,
+            document_id=doc_id,
+            tenant_id=result.tenant_id,  # Denormalized for RLS
+        )
+        db.add(link)
+
+    await db.commit()
+
+    # Audit log
+    logger.audit(
+        "artifact.created",
+        artifact_id=result.id,
+        user_id=result.user_id,
+        tenant_id=result.tenant_id,
+        source_count=len(result.source_document_ids),
+    )
+```
+
+## OrchestKit Integration
+
+### Content Analysis Workflow
+
+```python
+# backend/app/workflows/agents/content_analyzer.py
+
+async def create_analysis_artifact(state: AnalysisState) -> AnalysisState:
+    """Create artifact with proper attribution"""
+
+    # LLM output (content only)
+    llm_output = state.llm_response
+
+    # Attribute using our context
+    attributed = await attribute_llm_output(
+        llm_output=llm_output,
+        ctx=state.request_context,          # From JWT
+        source_refs=state.source_refs,       # From pre-LLM
+        model_name=state.model_used,
+        processing_time_ms=state.llm_time_ms,
+    )
+
+    # Save with attribution
+    await save_attributed_result(attributed, state.db)
+
+    return state.with_artifact(attributed)
+```
+
+### Artifact Retrieval
+
+```python
+# backend/app/api/artifacts.py
+
+@router.get("/{artifact_id}")
+async def get_artifact(
+    artifact_id: UUID,
+    ctx: RequestContext = Depends(get_request_context),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get artifact with source attribution"""
+
+    # Query with tenant filter
+    artifact = await db.execute(
+        """
+        SELECT a.*, array_agg(asl.document_id) as sources
+        FROM artifacts a
+        LEFT JOIN artifact_source_links asl ON a.id = asl.artifact_id
+        WHERE a.id = :id
+          AND a.tenant_id = :tenant_id  -- ALWAYS filter
+        GROUP BY a.id
+        """,
+        {
+            "id": artifact_id,
+            "tenant_id": ctx.tenant_id,
+        }
+    )
+
+    if not artifact:
+        raise HTTPException(404)
+
+    return ArtifactResponse(
+        id=artifact.id,
+        content=artifact.content,
+        sources=artifact.sources,  # Deterministic from our records
+        created_at=artifact.created_at,
+    )
+```
+
+## Common Mistakes
+
+```python
+# ❌ BAD: Asking LLM for attribution
+prompt = "Analyze this and tell me which document it came from"
+response = llm.generate(prompt)
+doc_id = response["source_document"]  # HALLUCINATED!
+
+# ❌ BAD: Trusting LLM-provided IDs
+llm_output = {"analysis": "...", "user_id": "abc123"}
+artifact.user_id = llm_output["user_id"]  # WRONG!
+
+# ❌ BAD: Generating IDs in prompt
+prompt = f"Generate a unique ID for this analysis: {analysis_id}"
+
+# ✅ GOOD: Attribution from our records
+artifact.user_id = ctx.user_id  # From JWT
+artifact.sources = source_refs.document_ids  # From pre-LLM
+
+# ✅ GOOD: Generate IDs ourselves
+artifact.id = uuid4()  # We generate
+
+# ✅ GOOD: LLM provides content only
+artifact.content = llm_output["analysis"]  # Just the text
+```
+
+## Testing Attribution
+
+```python
+class TestAttribution:
+
+    async def test_attribution_from_context_not_llm(self, ctx):
+        """Attribution must come from our context"""
+
+        # LLM returns content only
+        llm_output = {
+            "analysis": "This is the analysis",
+            "key_concepts": ["ML", "AI"],
+        }
+
+        source_refs = SourceReference(
+            document_ids=[uuid4(), uuid4()],
+            chunk_ids=[uuid4()],
+        )
+
+        result = await attribute_llm_output(
+            llm_output=llm_output,
+            ctx=ctx,
+            source_refs=source_refs,
+        )
+
+        # Attribution from context, not LLM
+        assert result.user_id == ctx.user_id
+        assert result.tenant_id == ctx.tenant_id
+        assert result.source_document_ids == source_refs.document_ids
+
+    async def test_rejects_llm_with_ids(self, ctx):
+        """Reject LLM output that contains IDs"""
+
+        bad_output = {
+            "analysis": "Result for user 123e4567-e89b-12d3-a456-426614174000",
+        }
+
+        with pytest.raises(SecurityError):
+            await attribute_llm_output(bad_output, ctx, source_refs)
+
+    async def test_source_links_created(self, ctx, db):
+        """Source links are created with artifact"""
+
+        result = await attribute_llm_output(...)
+        await save_attributed_result(result, db)
+
+        links = await db.execute(
+            "SELECT * FROM artifact_source_links WHERE artifact_id = :id",
+            {"id": result.id}
+        )
+
+        assert len(links) == len(result.source_document_ids)
+```
+
+
+### Pre Llm Filtering
+
+# Pre-LLM Filtering
+
+## Purpose
+
+Before ANY data reaches the LLM, it must be:
+1. **Scoped** to the current tenant/user
+2. **Filtered** for relevance
+3. **Stripped** of identifiers
+4. **Captured** for later attribution
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                    PRE-LLM PHASE                           │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│  User Query ──► Tenant Filter ──► Content Extract ──► LLM  │
+│       │              │                   │                 │
+│       │              │                   │                 │
+│       ▼              ▼                   ▼                 │
+│  ┌─────────┐   ┌───────────┐     ┌─────────────┐          │
+│  │ Query   │   │ Documents │     │ Text Only   │          │
+│  │ Text    │   │ for THIS  │     │ (no IDs)    │          │
+│  │         │   │ tenant    │     │             │          │
+│  └─────────┘   └───────────┘     └─────────────┘          │
+│                      │                                     │
+│                      ▼                                     │
+│              ┌─────────────┐                              │
+│              │ Save Refs   │                              │
+│              │ for Later   │  ◄── For post-LLM attribution│
+│              │ Attribution │                              │
+│              └─────────────┘                              │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+```
+
+## Implementation
+
+### 1. Tenant-Scoped Retrieval
+
+```python
+from uuid import UUID
+from dataclasses import dataclass
+
+@dataclass
+class SourceReference:
+    """Tracks what was retrieved for attribution"""
+    document_ids: list[UUID]
+    chunk_ids: list[UUID]
+    similarity_scores: list[float]
+    retrieval_timestamp: datetime
+
+async def retrieve_with_isolation(
+    query: str,
+    ctx: RequestContext,
+    limit: int = 10,
+) -> tuple[list[str], SourceReference]:
+    """
+    Retrieve documents scoped to tenant/user.
+    Returns: (content_texts, source_references)
+    """
+    # Embed query
+    query_embedding = await embed(query)
+
+    # Search with MANDATORY tenant filter
+    results = await db.execute(
+        """
+        SELECT id, chunk_id, content,
+               1 - (embedding <-> :query) as similarity
+        FROM document_chunks
+        WHERE tenant_id = :tenant_id    -- REQUIRED
+          AND user_id = :user_id        -- REQUIRED
+          AND embedding <-> :query < 0.5
+        ORDER BY embedding <-> :query
+        LIMIT :limit
+        """,
+        {
+            "tenant_id": ctx.tenant_id,  # From JWT
+            "user_id": ctx.user_id,       # From JWT
+            "query": query_embedding,
+            "limit": limit,
+        }
+    )
+
+    # Separate content from references
+    content_texts = [r.content for r in results]
+    source_refs = SourceReference(
+        document_ids=[r.id for r in results],
+        chunk_ids=[r.chunk_id for r in results],
+        similarity_scores=[r.similarity for r in results],
+        retrieval_timestamp=datetime.now(timezone.utc),
+    )
+
+    return content_texts, source_refs
+```
+
+### 2. Content Extraction (Strip IDs)
+
+```python
+def extract_content_only(documents: list[Document]) -> list[str]:
+    """
+    Extract text content, stripping any embedded IDs.
+    """
+    contents = []
+    for doc in documents:
+        # Get content
+        text = doc.content
+
+        # Remove any embedded IDs (defensive)
+        text = strip_identifiers(text)
+
+        contents.append(text)
+
+    return contents
+
+def strip_identifiers(text: str) -> str:
+    """Remove any identifiers that might have leaked into content"""
+    import re
+
+    # Remove UUIDs
+    text = re.sub(
+        r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
+        '[REDACTED]',
+        text,
+        flags=re.IGNORECASE
+    )
+
+    # Remove common ID patterns
+    patterns = [
+        r'user_id:\s*\S+',
+        r'tenant_id:\s*\S+',
+        r'doc_id:\s*\S+',
+    ]
+    for pattern in patterns:
+        text = re.sub(pattern, '[REDACTED]', text, flags=re.IGNORECASE)
+
+    return text
+```
+
+### 3. Full Pre-LLM Pipeline
+
+```python
+@dataclass
+class PreLLMResult:
+    """Complete pre-LLM preparation result"""
+    query: str
+    context_texts: list[str]
+    source_refs: SourceReference
+    preparation_time_ms: float
+
+async def prepare_for_llm(
+    query: str,
+    ctx: RequestContext,
+) -> PreLLMResult:
+    """
+    Complete pre-LLM preparation:
+    1. Retrieve with tenant isolation
+    2. Extract content only
+    3. Save references for attribution
+    """
+    start = time.monotonic()
+
+    # Step 1: Tenant-scoped retrieval
+    raw_results, source_refs = await retrieve_with_isolation(
+        query=query,
+        ctx=ctx,
+    )
+
+    # Step 2: Extract and clean content
+    context_texts = [strip_identifiers(text) for text in raw_results]
+
+    # Step 3: Audit for any remaining IDs
+    for text in context_texts:
+        violations = audit_prompt(text)
+        if violations:
+            logger.warning(
+                "ID found in content, redacting",
+                violations=violations,
+            )
+
+    elapsed = (time.monotonic() - start) * 1000
+
+    return PreLLMResult(
+        query=query,
+        context_texts=context_texts,
+        source_refs=source_refs,
+        preparation_time_ms=elapsed,
+    )
+```
+
+## OrchestKit Integration
+
+### In Content Analysis Workflow
+
+```python
+# backend/app/workflows/agents/retriever.py
+
+async def retrieve_context(state: AnalysisState) -> AnalysisState:
+    """RAG retrieval with tenant isolation"""
+
+    ctx = state.request_context
+
+    # Pre-LLM preparation
+    pre_llm = await prepare_for_llm(
+        query=state.analysis_request.query,
+        ctx=ctx,
+    )
+
+    # Store for later phases
+    return state.copy(
+        context_texts=pre_llm.context_texts,
+        source_refs=pre_llm.source_refs,
+        # NO IDs in state that goes to LLM
+    )
+```
+
+### In Library Search
+
+```python
+# backend/app/services/search.py
+
+async def search_libraries(
+    query: str,
+    ctx: RequestContext,
+) -> SearchResult:
+    """Search golden dataset with isolation"""
+
+    # Always filter by tenant
+    results = await db.execute(
+        """
+        SELECT id, title, url, summary, content
+        FROM golden_dataset
+        WHERE tenant_id = :tenant_id
+          AND search_vector @@ plainto_tsquery(:query)
+        ORDER BY ts_rank(search_vector, plainto_tsquery(:query)) DESC
+        LIMIT 20
+        """,
+        {
+            "tenant_id": ctx.tenant_id,
+            "query": query,
+        }
+    )
+
+    # Return content and refs separately
+    return SearchResult(
+        items=[r.content for r in results],  # Content for LLM
+        refs=[r.id for r in results],         # IDs for attribution
+    )
+```
+
+## Common Mistakes
+
+```python
+# ❌ BAD: Query without tenant filter
+results = await db.execute("SELECT * FROM documents")
+
+# ❌ BAD: Tenant filter as optional
+async def search(tenant_id: UUID | None = None):
+    query = "SELECT * FROM documents"
+    if tenant_id:  # Can be bypassed!
+        query += f" WHERE tenant_id = '{tenant_id}'"
+
+# ❌ BAD: Trusting client-provided tenant
+async def search(request: Request):
+    tenant_id = request.query_params["tenant_id"]  # Attacker controls!
+
+# ❌ BAD: Including IDs in content
+results = [{"id": doc.id, "content": doc.content} for doc in docs]
+
+# ✅ GOOD: Mandatory tenant filter from context
+results = await db.execute(
+    "SELECT content FROM documents WHERE tenant_id = :tid",
+    {"tid": ctx.tenant_id}  # From verified JWT
+)
+
+# ✅ GOOD: Content separate from refs
+content = [doc.content for doc in docs]  # For LLM
+refs = [doc.id for doc in docs]           # For attribution
+```
+
+## Testing Pre-LLM Filtering
+
+```python
+class TestPreLLMFiltering:
+
+    async def test_retrieval_respects_tenant(
+        self,
+        tenant_a_ctx,
+        tenant_b_ctx,
+    ):
+        # Create doc for tenant B
+        await create_document(
+            tenant_id=tenant_b_ctx.tenant_id,
+            content="Secret data",
+        )
+
+        # Search as tenant A
+        result = await prepare_for_llm(
+            query="secret",
+            ctx=tenant_a_ctx,
+        )
+
+        # Must not find tenant B's data
+        assert len(result.context_texts) == 0
+
+    async def test_content_has_no_uuids(self, ctx):
+        result = await prepare_for_llm(
+            query="test query",
+            ctx=ctx,
+        )
+
+        for text in result.context_texts:
+            assert not re.search(UUID_PATTERN, text)
+
+    async def test_source_refs_captured(self, ctx):
+        result = await prepare_for_llm(
+            query="test query",
+            ctx=ctx,
+        )
+
+        # Refs saved for attribution
+        assert len(result.source_refs.document_ids) > 0
+        assert result.source_refs.retrieval_timestamp is not None
+```
+
+
+### Presidio Integration
+
+# Microsoft Presidio Integration
+
+Enterprise-grade PII detection and anonymization with Microsoft Presidio.
+
+## Installation
+
+```bash
+pip install presidio-analyzer presidio-anonymizer
+python -m spacy download en_core_web_lg
+```
+
+## Basic Usage
+
+```python
+from presidio_analyzer import AnalyzerEngine
+from presidio_anonymizer import AnonymizerEngine
+
+# Initialize engines (singleton recommended)
+analyzer = AnalyzerEngine()
+anonymizer = AnonymizerEngine()
+
+def detect_pii(text: str, language: str = "en") -> list:
+    """Detect PII entities in text."""
+    return analyzer.analyze(
+        text=text,
+        language=language,
+        entities=["PERSON", "EMAIL_ADDRESS", "PHONE_NUMBER", "CREDIT_CARD", "US_SSN"]
+    )
+
+def anonymize_text(text: str, language: str = "en") -> str:
+    """Detect and anonymize PII in text."""
+    results = analyzer.analyze(text=text, language=language)
+    return anonymizer.anonymize(text=text, analyzer_results=results).text
+```
+
+## Custom Operators
+
+```python
+from presidio_anonymizer.entities import OperatorConfig
+
+operators = {
+    "PERSON": OperatorConfig("replace", {"new_value": "[PERSON]"}),
+    "CREDIT_CARD": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 12}),
+    "EMAIL_ADDRESS": OperatorConfig("hash", {"hash_type": "sha256"}),
+    "US_SSN": OperatorConfig("redact"),
+}
+
+anonymized = anonymizer.anonymize(text=text, analyzer_results=results, operators=operators)
+```
+
+## Custom Recognizers
+
+```python
+from presidio_analyzer import Pattern, PatternRecognizer
+
+internal_id_recognizer = PatternRecognizer(
+    supported_entity="INTERNAL_ID",
+    patterns=[Pattern(name="internal_id", regex=r"ID-[A-Z]{2}-\d{6}", score=0.9)]
+)
+analyzer.registry.add_recognizer(internal_id_recognizer)
+```
+
+## References
+
+- [Presidio Documentation](https://microsoft.github.io/presidio/)
+- [Supported Entities](https://microsoft.github.io/presidio/supported_entities/)
+
+
+### Prompt Audit
+
+# Prompt Audit
+
+## Purpose
+
+Before any prompt is sent to an LLM, audit it for forbidden content:
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                     PROMPT AUDIT                           │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│  Prompt Template + Variables ──► Audit ──► Send to LLM     │
+│                                    │                       │
+│                                    ▼                       │
+│                          ┌──────────────┐                  │
+│                          │  FORBIDDEN   │                  │
+│                          │  PATTERNS    │                  │
+│                          ├──────────────┤                  │
+│                          │ • user_id    │                  │
+│                          │ • tenant_id  │                  │
+│                          │ • UUIDs      │                  │
+│                          │ • API keys   │                  │
+│                          │ • Tokens     │                  │
+│                          │ • Secrets    │                  │
+│                          └──────────────┘                  │
+│                                    │                       │
+│                    ┌───────────────┼───────────────┐       │
+│                    ▼               ▼               ▼       │
+│              ┌──────────┐   ┌──────────┐   ┌──────────┐   │
+│              │  CLEAN   │   │ WARNING  │   │  BLOCK   │   │
+│              │          │   │          │   │          │   │
+│              │ Proceed  │   │ Log +    │   │ Reject   │   │
+│              │          │   │ Proceed  │   │          │   │
+│              └──────────┘   └──────────┘   └──────────┘   │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+```
+
+## OrchestKit Forbidden Patterns
+
+### Critical (Block Immediately)
+
+| Pattern | Regex | Why Block |
+|---------|-------|-----------|
+| UUID | `[0-9a-f]\{8\}-[0-9a-f]\{4\}-...` | Hallucination, cross-tenant |
+| API Key | `api[_-]?key` | Secret exposure |
+| Token | `token\s*[:=]` | Auth exposure |
+| Password | `password\s*[:=]` | Credential exposure |
+| Secret | `secret\s*[:=]` | Generic secret |
+
+### Warning (Log and Review)
+
+| Pattern | Regex | Why Warn |
+|---------|-------|----------|
+| user_id | `user[_-]?id` | Likely context leak |
+| tenant_id | `tenant[_-]?id` | Likely isolation leak |
+| analysis_id | `analysis[_-]?id` | Likely tracking leak |
+| document_id | `document[_-]?id` | Likely reference leak |
+| session_id | `session[_-]?id` | Likely auth leak |
+
+## Implementation
+
+### 1. Pattern Definitions
+
+```python
+import re
+from enum import Enum
+from dataclasses import dataclass
+
+class AuditSeverity(Enum):
+    CLEAN = "clean"
+    WARNING = "warning"
+    CRITICAL = "critical"
+
+@dataclass
+class AuditViolation:
+    pattern: str
+    severity: AuditSeverity
+    match: str
+    position: int
+
+# OrchestKit-specific patterns
+CRITICAL_PATTERNS = [
+    # UUIDs
+    (r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', "UUID"),
+    # Secrets
+    (r'api[_-]?key\s*[:=]\s*["\']?\S+', "API_KEY"),
+    (r'password\s*[:=]\s*["\']?\S+', "PASSWORD"),
+    (r'secret\s*[:=]\s*["\']?\S+', "SECRET"),
+    (r'token\s*[:=]\s*["\']?\S+', "TOKEN"),
+    (r'bearer\s+\S+', "BEARER_TOKEN"),
+]
+
+WARNING_PATTERNS = [
+    # OrchestKit identifiers
+    (r'\buser[_-]?id\b', "USER_ID_FIELD"),
+    (r'\btenant[_-]?id\b', "TENANT_ID_FIELD"),
+    (r'\banalysis[_-]?id\b', "ANALYSIS_ID_FIELD"),
+    (r'\bdocument[_-]?id\b', "DOCUMENT_ID_FIELD"),
+    (r'\bartifact[_-]?id\b', "ARTIFACT_ID_FIELD"),
+    (r'\bchunk[_-]?id\b', "CHUNK_ID_FIELD"),
+    (r'\bsession[_-]?id\b', "SESSION_ID_FIELD"),
+    (r'\btrace[_-]?id\b', "TRACE_ID_FIELD"),
+    (r'\bworkflow[_-]?run[_-]?id\b', "WORKFLOW_ID_FIELD"),
+]
+```
+
+### 2. Audit Function
+
+```python
+def audit_prompt(prompt: str) -> list[AuditViolation]:
+    """
+    Audit prompt for forbidden patterns.
+    Returns list of violations.
+    """
+    violations = []
+
+    # Check critical patterns
+    for pattern, name in CRITICAL_PATTERNS:
+        for match in re.finditer(pattern, prompt, re.IGNORECASE):
+            violations.append(AuditViolation(
+                pattern=name,
+                severity=AuditSeverity.CRITICAL,
+                match=match.group()[:50],  # Truncate for logging
+                position=match.start(),
+            ))
+
+    # Check warning patterns
+    for pattern, name in WARNING_PATTERNS:
+        for match in re.finditer(pattern, prompt, re.IGNORECASE):
+            violations.append(AuditViolation(
+                pattern=name,
+                severity=AuditSeverity.WARNING,
+                match=match.group(),
+                position=match.start(),
+            ))
+
+    return violations
+
+def has_critical_violations(violations: list[AuditViolation]) -> bool:
+    """Check if any violations are critical"""
+    return any(v.severity == AuditSeverity.CRITICAL for v in violations)
+```
+
+### 3. Audit Decorator
+
+```python
+from functools import wraps
+import structlog
+
+logger = structlog.get_logger()
+
+def audit_before_llm(func):
+    """
+    Decorator that audits prompts before LLM call.
+    Blocks on critical violations, logs warnings.
+    """
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        # Extract prompt from args/kwargs
+        prompt = kwargs.get("prompt") or args[0]
+
+        # Audit
+        violations = audit_prompt(prompt)
+
+        # Log warnings
+        for v in violations:
+            if v.severity == AuditSeverity.WARNING:
+                logger.warning(
+                    "prompt_audit_warning",
+                    pattern=v.pattern,
+                    position=v.position,
+                )
+
+        # Block on critical
+        if has_critical_violations(violations):
+            critical = [v for v in violations
+                       if v.severity == AuditSeverity.CRITICAL]
+            raise PromptSecurityError(
+                f"Prompt contains forbidden content: {[v.pattern for v in critical]}"
+            )
+
+        # Proceed
+        return await func(*args, **kwargs)
+
+    return wrapper
+
+# Usage
+@audit_before_llm
+async def call_llm(prompt: str) -> str:
+    return await llm.generate(prompt)
+```
+
+### 4. Safe Prompt Builder
+
+```python
+class SafePromptBuilder:
+    """
+    Builds prompts with built-in audit.
+    Prevents accidental ID inclusion.
+    """
+
+    def __init__(self):
+        self._parts: list[str] = []
+        self._context_ids: dict[str, Any] = {}  # Stored but never in prompt
+
+    def add_instruction(self, text: str) -> "SafePromptBuilder":
+        """Add instruction text (audited)"""
+        violations = audit_prompt(text)
+        if has_critical_violations(violations):
+            raise PromptSecurityError("Instruction contains forbidden content")
+        self._parts.append(text)
+        return self
+
+    def add_content(self, content: str) -> "SafePromptBuilder":
+        """Add user content (sanitized)"""
+        # Strip any IDs from content
+        clean_content = self._sanitize(content)
+        self._parts.append(clean_content)
+        return self
+
+    def add_context_texts(self, texts: list[str]) -> "SafePromptBuilder":
+        """Add context texts (sanitized)"""
+        for text in texts:
+            clean = self._sanitize(text)
+            self._parts.append(f"- {clean}")
+        return self
+
+    def store_context_id(self, key: str, value: Any) -> "SafePromptBuilder":
+        """Store ID for post-LLM attribution (never in prompt)"""
+        self._context_ids[key] = value
+        return self
+
+    def _sanitize(self, text: str) -> str:
+        """Remove any IDs from text"""
+        # Remove UUIDs
+        text = re.sub(
+            r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
+            '[ID]',
+            text,
+            flags=re.IGNORECASE
+        )
+        return text
+
+    def build(self) -> tuple[str, dict]:
+        """
+        Build prompt and return with stored context.
+        Returns: (prompt, context_ids)
+        """
+        prompt = "\n\n".join(self._parts)
+
+        # Final audit
+        violations = audit_prompt(prompt)
+        if violations:
+            logger.warning(
+                "prompt_audit_final",
+                violation_count=len(violations),
+            )
+
+        if has_critical_violations(violations):
+            raise PromptSecurityError("Built prompt contains forbidden content")
+
+        return prompt, self._context_ids
+
+# Usage
+builder = SafePromptBuilder()
+prompt, context = (
+    builder
+    .add_instruction("Analyze the following content:")
+    .add_content(user_query)
+    .add_context_texts(retrieved_docs)
+    .store_context_id("user_id", ctx.user_id)  # Stored, not in prompt
+    .store_context_id("sources", source_refs)   # Stored, not in prompt
+    .build()
+)
+```
+
+## OrchestKit Integration
+
+### Workflow Integration
+
+```python
+# backend/app/workflows/agents/prompts/content_analysis.py
+
+from llm_safety import SafePromptBuilder
+
+def build_analysis_prompt(
+    query: str,
+    context_texts: list[str],
+    ctx: RequestContext,
+) -> tuple[str, dict]:
+    """
+    Build content analysis prompt safely.
+    Context IDs stored separately for attribution.
+    """
+    return (
+        SafePromptBuilder()
+        .add_instruction("""
+        You are an expert content analyzer. Analyze the following
+        content and provide insights about:
+        1. Key concepts
+        2. Difficulty level
+        3. Prerequisites
+        4. Summary
+        """)
+        .add_instruction(f"User query: {query}")
+        .add_instruction("Relevant context:")
+        .add_context_texts(context_texts)
+        .store_context_id("user_id", ctx.user_id)
+        .store_context_id("tenant_id", ctx.tenant_id)
+        .store_context_id("trace_id", ctx.trace_id)
+        .build()
+    )
+```
+
+### CI/CD Integration
+
+```bash
+#!/bin/bash
+# scripts/audit_prompts.sh
+
+echo "Auditing prompt templates..."
+
+# Check for IDs in prompt files
+grep -rn \
+    "user_id\|tenant_id\|analysis_id\|document_id\|[0-9a-f]\{8\}-[0-9a-f]\{4\}" \
+    backend/app/**/prompts/ \
+    --include="*.py" \
+    --include="*.txt" \
+    --include="*.jinja2"
+
+if [ $? -eq 0 ]; then
+    echo "❌ Found potential ID leaks in prompts!"
+    exit 1
+fi
+
+echo "✅ Prompt audit passed"
+```
+
+## Testing
+
+```python
+class TestPromptAudit:
+
+    def test_detects_uuid(self):
+        prompt = "Analyze doc 123e4567-e89b-12d3-a456-426614174000"
+        violations = audit_prompt(prompt)
+
+        assert len(violations) == 1
+        assert violations[0].severity == AuditSeverity.CRITICAL
+        assert violations[0].pattern == "UUID"
+
+    def test_detects_api_key(self):
+        prompt = "Use api_key: sk-1234567890abcdef"
+        violations = audit_prompt(prompt)
+
+        assert any(v.pattern == "API_KEY" for v in violations)
+
+    def test_warns_on_user_id_field(self):
+        prompt = "For user_id please provide analysis"
+        violations = audit_prompt(prompt)
+
+        assert len(violations) == 1
+        assert violations[0].severity == AuditSeverity.WARNING
+
+    def test_safe_builder_blocks_id(self):
+        with pytest.raises(PromptSecurityError):
+            (
+                SafePromptBuilder()
+                .add_instruction("Analyze for user 123e4567-e89b-12d3-a456-426614174000")
+                .build()
+            )
+
+    def test_safe_builder_sanitizes_content(self):
+        prompt, _ = (
+            SafePromptBuilder()
+            .add_content("Doc ID: 123e4567-e89b-12d3-a456-426614174000")
+            .build()
+        )
+
+        assert "123e4567" not in prompt
+        assert "[ID]" in prompt
+
+    def test_context_ids_not_in_prompt(self):
+        from uuid import uuid4
+
+        user_id = uuid4()
+        prompt, context = (
+            SafePromptBuilder()
+            .add_instruction("Analyze this")
+            .store_context_id("user_id", user_id)
+            .build()
+        )
+
+        assert str(user_id) not in prompt
+        assert context["user_id"] == user_id
+```
+
+
+### Request Context Pattern
+
+# Request Context Pattern
+
+## Purpose
+
+The RequestContext is an immutable object created at the gateway that carries identity and tracing information through the entire request lifecycle. It flows AROUND the LLM (never in prompts) and is used for:
+
+1. **Authorization** - Who is making the request
+2. **Data Filtering** - Scope queries to tenant/user
+3. **Attribution** - Tag results with proper ownership
+4. **Observability** - Correlate logs and traces
+
+## Implementation
+
+```python
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from uuid import UUID
+from typing import FrozenSet
+
+@dataclass(frozen=True)  # Immutable!
+class RequestContext:
+    """
+    System context that NEVER appears in LLM prompts.
+    Created at gateway, flows through all layers.
+    """
+
+    # === Identity (WHO) ===
+    user_id: UUID
+    tenant_id: UUID  # For B2B multi-tenant
+    session_id: str
+    permissions: FrozenSet[str]
+
+    # === Tracing (OBSERVABILITY) ===
+    request_id: str  # Unique per request
+    trace_id: str    # Distributed tracing
+    span_id: str     # Current span
+
+    # === Resource (WHAT) ===
+    resource_id: UUID | None = None  # analysis_id, document_id, etc.
+    resource_type: str | None = None
+
+    # === Metadata (WHEN, WHERE) ===
+    timestamp: datetime = None
+    client_ip: str = ""
+    user_agent: str = ""
+
+    def __post_init__(self):
+        if self.timestamp is None:
+            object.__setattr__(self, 'timestamp', datetime.now(timezone.utc))
+```
+
+## Creation at Gateway
+
+```python
+from fastapi import Request, Depends
+import jwt  # PyJWT
+
+async def get_request_context(request: Request) -> RequestContext:
+    """FastAPI dependency that creates RequestContext from JWT"""
+
+    # 1. Extract and verify JWT
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(401, "Missing authorization")
+
+    token = auth_header[7:]
+    try:
+        claims = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    except jwt.InvalidTokenError:
+        raise HTTPException(401, "Invalid token")
+
+    # 2. Build immutable context
+    return RequestContext(
+        user_id=UUID(claims["sub"]),
+        tenant_id=UUID(claims["tenant_id"]),
+        session_id=claims["session_id"],
+        permissions=frozenset(claims.get("permissions", [])),
+        request_id=request.headers.get("X-Request-ID", str(uuid4())),
+        trace_id=generate_trace_id(),
+        span_id=generate_span_id(),
+        client_ip=request.client.host,
+        user_agent=request.headers.get("User-Agent", ""),
+    )
+```
+
+## Usage in Endpoints
+
+```python
+@router.post("/api/v1/analyze")
+async def create_analysis(
+    request: AnalyzeRequest,
+    ctx: RequestContext = Depends(get_request_context),
+):
+    # Context is available throughout the request
+    # Pass it to services, repositories, etc.
+
+    # Authorization uses context
+    await authorize(ctx, "analysis:create", None)
+
+    # Data access uses context for filtering
+    documents = await repo.find_by_user(ctx)
+
+    # LLM call does NOT receive context
+    # (see llm-safety-patterns skill)
+
+    # Attribution uses context
+    result = await save_result(llm_output, ctx)
+
+    return result
+```
+
+## OrchestKit Parameters
+
+In OrchestKit, these identifiers should be in RequestContext:
+
+| Parameter | Type | Source | Purpose |
+|-----------|------|--------|---------|
+| `user_id` | UUID | JWT | Data ownership |
+| `tenant_id` | UUID | JWT | Multi-tenant isolation |
+| `session_id` | str | JWT | Session tracking |
+| `analysis_id` | UUID | Generated | Current analysis job |
+| `trace_id` | str | Generated | Langfuse tracing |
+| `request_id` | str | Header/Generated | Request correlation |
+
+## Why Immutable?
+
+The context is frozen (`frozen=True`) to prevent:
+
+1. **Accidental modification** - Can't change user_id mid-request
+2. **Security bypass** - Can't escalate permissions
+3. **Thread safety** - Safe to pass between async tasks
+4. **Hashability** - Can be used as dict key for caching
+
+## Anti-Patterns
+
+```python
+# BAD: Mutable context
+class RequestContext:
+    user_id: UUID  # Can be changed!
+
+# BAD: Context in prompt
+prompt = f"User {ctx.user_id} wants to analyze..."
+
+# BAD: Context not passed to services
+result = await service.process(content)  # Missing ctx!
+
+# BAD: Context created inside service
+def process(self):
+    ctx = RequestContext(...)  # Should come from gateway!
+```
+
+
+
+---
+
+## Checklists (5)
+
+### Auth Checklist
+
+# Authentication Security Checklist
+
+## Password Security
+
+- [ ] Use Argon2id (preferred) or bcrypt for hashing
+- [ ] Minimum 12 character password requirement
+- [ ] Check against common password lists
+- [ ] No password hints or security questions
+- [ ] Rate limit password attempts (5 per minute)
+- [ ] Account lockout after 10 failed attempts
+
+## Token Security
+
+- [ ] Access tokens: 15 min - 1 hour lifetime
+- [ ] Refresh tokens: 7-30 days with rotation
+- [ ] Store access tokens in memory only (not localStorage)
+- [ ] Store refresh tokens in HTTPOnly cookies
+- [ ] Implement refresh token rotation
+- [ ] Revoke all tokens on password change
+
+## Session Security
+
+- [ ] `SESSION_COOKIE_SECURE=True` (HTTPS only)
+- [ ] `SESSION_COOKIE_HTTPONLY=True` (no JS access)
+- [ ] `SESSION_COOKIE_SAMESITE='Strict'`
+- [ ] Session timeout (1 hour inactivity)
+- [ ] Regenerate session ID on login
+
+## OAuth 2.1 Compliance
+
+- [ ] Use PKCE for ALL clients
+- [ ] No implicit grant
+- [ ] No password grant
+- [ ] State parameter for CSRF protection
+- [ ] Validate redirect_uri exactly
+- [ ] Use HTTPS for all endpoints
+
+## Passkeys/WebAuthn (If Implemented)
+
+- [ ] Require user verification (biometric)
+- [ ] Require resident keys for passwordless
+- [ ] Validate RP ID matches origin
+- [ ] Track sign count for replay protection
+- [ ] Allow multiple passkeys per user
+
+## Multi-Factor Authentication
+
+- [ ] Offer MFA (TOTP, Passkeys)
+- [ ] TOTP: 6 digits, 30-second window
+- [ ] Backup codes (10 one-time use)
+- [ ] Remember device option (30 days max)
+- [ ] Require MFA for sensitive operations
+
+## Rate Limiting
+
+| Endpoint | Limit |
+|----------|-------|
+| Login | 5 per minute |
+| Password reset | 3 per hour |
+| MFA verify | 5 per minute |
+| Registration | 10 per hour |
+| API general | 100 per minute |
+
+## Error Messages
+
+- [ ] Generic "Invalid credentials" (don't reveal which is wrong)
+- [ ] Don't reveal if email exists in forgot password
+- [ ] Log detailed errors server-side only
+- [ ] No stack traces in production
+
+## Secure Headers
+
+```python
+response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+response.headers['X-Content-Type-Options'] = 'nosniff'
+response.headers['X-Frame-Options'] = 'DENY'
+response.headers['Content-Security-Policy'] = "default-src 'self'"
+```
+
+## Audit Logging
+
+- [ ] Log all authentication attempts
+- [ ] Log password changes
+- [ ] Log MFA setup/disable
+- [ ] Log token revocations
+- [ ] Log suspicious activity (multiple failed attempts)
+
+## Review Checklist
+
+Before deployment:
+
+- [ ] No hardcoded secrets in code
+- [ ] Secrets in environment variables
+- [ ] HTTPS enforced everywhere
+- [ ] Rate limiting configured
+- [ ] Audit logging enabled
+- [ ] Password hashing uses Argon2id or bcrypt
+- [ ] Token lifetimes appropriate
+- [ ] MFA available
+
+## Common Vulnerabilities to Avoid
+
+- [ ] No password in URL parameters
+- [ ] No session ID in URL
+- [ ] No sensitive data in JWT payload
+- [ ] No implicit OAuth grant
+- [ ] No predictable session IDs
+- [ ] No client-side token storage in localStorage
+
+
+### Pre Deployment Security
+
+# Pre-Deployment Security Checklist
+
+## Before deploying any AI feature, verify all 8 layers:
+
+### Layer 0: Edge Protection
+- [ ] WAF rules active for OWASP Top 10
+- [ ] Rate limiting configured per user/IP
+- [ ] DDoS protection enabled
+- [ ] HTTPS enforced (no HTTP)
+
+### Layer 1: Gateway / Authentication
+- [ ] JWT validation active
+- [ ] Token expiry enforced
+- [ ] RequestContext created from JWT (not user input)
+- [ ] Permissions extracted from token
+
+### Layer 2: Input Validation
+- [ ] Pydantic/Zod models for all request bodies
+- [ ] Size limits on all inputs
+- [ ] PII detection on user-provided content
+- [ ] Injection pattern detection (SQL, XSS, prompt)
+
+### Layer 3: Authorization
+- [ ] Every endpoint has authorization check
+- [ ] RBAC/ABAC policies defined
+- [ ] Cross-tenant access blocked
+- [ ] Resource-level access verified
+
+### Layer 4: Data Access
+- [ ] All queries use parameterized values (no f-strings)
+- [ ] All queries include tenant_id filter
+- [ ] Repository pattern enforces tenant scope
+- [ ] Vector search includes tenant filter
+
+### Layer 5: LLM Orchestration
+- [ ] No user_id in prompts
+- [ ] No tenant_id in prompts
+- [ ] No analysis_id in prompts
+- [ ] No document_id in prompts
+- [ ] No UUIDs in prompts
+- [ ] Prompt audit check passes
+
+### Layer 6: Output Validation
+- [ ] LLM output parsed with schema
+- [ ] Content guardrails active (toxicity, PII)
+- [ ] Hallucination detection for critical fields
+- [ ] Output size limits enforced
+
+### Layer 7: Attribution & Storage
+- [ ] Attribution uses RequestContext (not LLM output)
+- [ ] Source references from pre-LLM lookup
+- [ ] Audit event logged
+- [ ] Data encrypted at rest
+
+### Layer 8: Observability
+- [ ] Structured logging active
+- [ ] Sensitive data redacted from logs
+- [ ] Langfuse tracing enabled
+- [ ] Metrics exported (latency, errors, tokens)
+- [ ] Alerts configured for anomalies
+
+---
+
+## Quick Verification Commands
+
+```bash
+# Check for IDs in prompt templates
+grep -rn "user_id\|tenant_id\|analysis_id\|document_id" backend/app/**/prompts/
+
+# Check for raw SQL (should use parameterized)
+grep -rn "f\"SELECT\|f'SELECT" backend/app/
+
+# Check for missing tenant filter
+grep -rn "SELECT.*FROM" backend/app/ | grep -v "tenant_id"
+
+# Run security linter
+poetry run bandit -r backend/app/ -f json
+
+# Check for hardcoded secrets
+grep -rn "api_key\s*=\s*['\"]" backend/
+```
+
+---
+
+**Sign-off required before merge:**
+- [ ] Developer self-review
+- [ ] Security checklist verified
+- [ ] Code reviewer approved
+- [ ] CI/CD security scans pass
+
+
+### Pre Llm Call
+
+# Pre-LLM Call Checklist
+
+## Before ANY LLM Call in OrchestKit
+
+Use this checklist before sending any prompt to an LLM:
+
+### Phase 1: Context Available
+- [ ] RequestContext obtained from JWT (not user input)
+- [ ] user_id available in context
+- [ ] tenant_id available in context
+- [ ] trace_id set for observability
+
+### Phase 2: Data Isolation
+- [ ] Query includes `WHERE tenant_id = :tenant_id`
+- [ ] Query includes `WHERE user_id = :user_id` (if user-scoped)
+- [ ] Vector search filtered by tenant
+- [ ] Full-text search filtered by tenant
+
+### Phase 3: Source References Captured
+- [ ] document_ids saved for attribution
+- [ ] chunk_ids saved for attribution
+- [ ] Retrieval timestamp recorded
+- [ ] Similarity scores captured (for debugging)
+
+### Phase 4: Content Extraction
+- [ ] Only content text extracted (no metadata with IDs)
+- [ ] Content stripped of any embedded UUIDs
+- [ ] Content stripped of any ID field names
+
+### Phase 5: Prompt Building
+- [ ] Prompt contains ONLY content text
+- [ ] No user_id in prompt
+- [ ] No tenant_id in prompt
+- [ ] No analysis_id in prompt
+- [ ] No document_id in prompt
+- [ ] No UUIDs in prompt
+- [ ] No API keys or secrets in prompt
+
+### Phase 6: Prompt Audit
+- [ ] `audit_prompt()` called on final prompt
+- [ ] No critical violations detected
+- [ ] Warnings logged for review
+
+### Phase 7: LLM Call
+- [ ] Timeout configured
+- [ ] Error handling in place
+- [ ] Response parsing ready
+- [ ] Langfuse trace started
+
+---
+
+## Quick Verification Script
+
+```python
+from llm_safety import audit_prompt, has_critical_violations
+
+def verify_llm_ready(
+    prompt: str,
+    ctx: RequestContext,
+    source_refs: SourceReference,
+) -> bool:
+    """Quick verification before LLM call"""
+
+    # Check context
+    assert ctx.user_id is not None, "Missing user_id"
+    assert ctx.tenant_id is not None, "Missing tenant_id"
+
+    # Check source refs captured
+    assert len(source_refs.document_ids) >= 0, "Source refs not captured"
+
+    # Audit prompt
+    violations = audit_prompt(prompt)
+    if has_critical_violations(violations):
+        raise PromptSecurityError(violations)
+
+    return True
+```
+
+---
+
+## Post-LLM Attribution Checklist
+
+After LLM returns:
+
+- [ ] Output parsed with schema validation
+- [ ] Output checked for hallucinated IDs
+- [ ] Output checked for grounding
+- [ ] Content safety validated
+- [ ] Attribution attached from RequestContext
+- [ ] Source links created from captured refs
+- [ ] Audit event logged
+- [ ] Langfuse trace completed
+
+---
+
+**Sign-off:** Run `verify_llm_ready()` before every LLM call
+
+
+### Safety Checklist
+
+# LLM Safety Checklist
+
+## Input Safety
+
+- [ ] Validate input length
+- [ ] Detect prompt injection attempts
+- [ ] Sanitize user content
+- [ ] Rate limit requests
+
+## Output Safety
+
+- [ ] Content filtering
+- [ ] PII detection and redaction
+- [ ] Harmful content detection
+- [ ] Bias monitoring
+
+## System Prompts
+
+- [ ] Clear boundaries
+- [ ] Role definition
+- [ ] Refusal instructions
+- [ ] No secrets in prompts
+
+## Guardrails
+
+- [ ] Input guardrails
+- [ ] Output guardrails
+- [ ] Topic restrictions
+- [ ] Sensitive content handling
+
+## Monitoring
+
+- [ ] Log flagged content
+- [ ] Alert on violations
+- [ ] Human review queue
+- [ ] Incident response plan
+
+
+### Validation Checklist
+
+# Input Validation Checklist
+
+## Core Principles
+
+- [ ] **Never trust user input** - validate everything
+- [ ] **Validate server-side** - client-side is UX only
+- [ ] **Use allowlists** - not blocklists
+- [ ] **Validate type, length, format, range**
+- [ ] **Sanitize output** - escape when rendering
+
+## Schema Definition
+
+- [ ] Define schema for all API endpoints
+- [ ] Use strict types (no `any`)
+- [ ] Set reasonable min/max lengths
+- [ ] Use enums for fixed value sets
+- [ ] Add custom error messages
+- [ ] Handle optional vs required properly
+
+## String Validation
+
+- [ ] Trim whitespace where appropriate
+- [ ] Set maximum length (prevent DoS)
+- [ ] Use regex for format validation
+- [ ] Escape HTML for display
+- [ ] Validate email with proper regex
+- [ ] Validate URLs against allowlist domains
+
+## Number Validation
+
+- [ ] Use integer for IDs
+- [ ] Set min/max bounds
+- [ ] Handle NaN and Infinity
+- [ ] Use coercion for query params
+
+## File Validation
+
+- [ ] Check file extension
+- [ ] Validate MIME type
+- [ ] **Verify magic bytes** (actual content)
+- [ ] Set maximum file size
+- [ ] Scan for malware (production)
+- [ ] Generate new filename (no user input)
+
+## Database Query Safety
+
+- [ ] Use parameterized queries
+- [ ] Allowlist sort columns
+- [ ] Validate pagination limits
+- [ ] Escape identifiers if dynamic
+
+## Error Messages
+
+- [ ] Generic errors for users
+- [ ] Detailed errors in logs only
+- [ ] Don't reveal system internals
+- [ ] Don't reveal valid usernames/emails
+
+## Validation Libraries
+
+### TypeScript/JavaScript
+```typescript
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import DOMPurify from 'dompurify';
+```
+
+### Python
+```python
+from pydantic import BaseModel, EmailStr, Field
+from markupsafe import escape
+```
+
+## Common Patterns
+
+### Allowlist (✅ Do)
+```typescript
+const allowed = ['name', 'email', 'createdAt'];
+if (!allowed.includes(sortColumn)) throw new Error('Invalid');
+```
+
+### Blocklist (❌ Don't)
+```typescript
+const blocked = ['password', 'secret'];
+if (blocked.includes(field)) throw new Error('Invalid');
+// Problem: Forgets to block new sensitive fields
+```
+
+## Type Coercion
+
+- [ ] Use `z.coerce.*` for query parameters
+- [ ] Handle empty strings appropriately
+- [ ] Consider timezone for dates
+- [ ] Parse numbers from strings safely
+
+## Async Validation
+
+- [ ] Use for uniqueness checks (email, username)
+- [ ] Rate limit async validations
+- [ ] Cache validation results where appropriate
+- [ ] Handle race conditions
+
+## Security Headers
+
+```
+Content-Security-Policy: default-src 'self'
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-XSS-Protection: 1; mode=block
+```
+
+## Review Checklist
+
+Before PR:
+
+- [ ] All endpoints have input validation
+- [ ] Server-side validation implemented
+- [ ] Allowlists used instead of blocklists
+- [ ] Error messages don't leak info
+- [ ] File uploads validate content, not just extension
+- [ ] SQL queries use parameterized statements
+- [ ] HTML output is escaped
+- [ ] Maximum lengths set on all strings
+
+## Common Vulnerabilities to Prevent
+
+| Vulnerability | Prevention |
+|--------------|------------|
+| SQL Injection | Parameterized queries |
+| XSS | HTML escaping, CSP |
+| Path Traversal | Validate/sanitize paths |
+| SSRF | URL allowlist |
+| ReDoS | Avoid complex regex |
+| Buffer Overflow | Length limits |
+

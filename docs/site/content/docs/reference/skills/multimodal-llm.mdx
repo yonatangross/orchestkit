@@ -1,0 +1,953 @@
+---
+title: "Multimodal Llm"
+description: "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="multimodal-llm" />
+
+> **Multimodal Llm** Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines.
+
+
+# Multimodal LLM Patterns
+
+Integrate vision, audio, and video generation capabilities from leading multimodal models. Covers image analysis, document understanding, real-time voice agents, speech-to-text, text-to-speech, and AI video generation (Kling v3, Sora 2, Veo 3.1 std/lite/fast tiers, Runway Gen-4.5 via `gen4_turbo`).
+
+> **Canonical model IDs** (pinned against `yonatan-hq/platform/apps/api/app/config.py`):
+>
+> | Provider | Model IDs |
+> |----------|-----------|
+> | Anthropic | `claude-opus-5` (recommended, 2,576 px budget, production default), `claude-opus-4-8`, `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001`. `claude-fable-5` is Anthropic's **frontier tier above Opus** (GA 2026-07). Premium cost — never auto-pin it; the fable-spend-consent gate requires explicit user consent before any Fable spend |
+> | OpenAI    | `gpt-5.5` (current flagship) |
+> | Google    | `gemini-3.1-pro-preview` (flagship), `gemini-3.1-flash-lite-preview` (cost) |
+> | Veo       | `veo-3.1-generate-preview` / `veo-3.1-lite-generate-preview` / `veo-3.1-fast-generate-preview` |
+> | Kling     | `kling-v3` (model_name field in Kling API) |
+> | Runway    | `gen4_turbo` (product label: Gen-4.5) |
+
+## Quick Reference
+
+| Category | Rules | Impact | When to Use |
+|----------|-------|--------|-------------|
+| [Vision: Image Analysis](#vision-image-analysis) | 1 | HIGH | Image captioning, VQA, multi-image comparison, object detection |
+| [Vision: Document Understanding](#vision-document-understanding) | 1 | HIGH | OCR, chart/diagram analysis, PDF processing, table extraction |
+| [Vision: Model Selection](#vision-model-selection) | 1 | MEDIUM | Choosing provider, cost optimization, image size limits |
+| [Audio: Speech-to-Text](#audio-speech-to-text) | 1 | HIGH | Transcription, speaker diarization, long-form audio |
+| [Audio: Text-to-Speech](#audio-text-to-speech) | 1 | MEDIUM | Voice synthesis, expressive TTS, multi-speaker dialogue |
+| [Audio: Model Selection](#audio-model-selection) | 1 | MEDIUM | Real-time voice agents, provider comparison, pricing |
+| [Video: Model Selection](#video-model-selection) | 1 | HIGH | Choosing video gen provider (Kling, Sora, Veo, Runway) |
+| [Video: API Patterns](#video-api-patterns) | 1 | HIGH | Async task polling, SDK integration, webhook callbacks |
+| [Video: Multi-Shot](#video-multi-shot) | 1 | HIGH | Storyboarding, character elements, scene consistency |
+
+**Total: 9 rules across 3 categories (Vision, Audio, Video Generation)**
+
+## Vision: Image Analysis
+
+Send images to multimodal LLMs for captioning, visual QA, and object detection. Always set `max_tokens` and resize images before encoding.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Image Analysis | `rules/vision-image-analysis.md` | Base64 encoding, multi-image, bounding boxes |
+
+## Vision: Document Understanding
+
+Extract structured data from documents, charts, and PDFs using vision models.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Document Vision | `rules/vision-document.md` | PDF page ranges, detail levels, OCR strategies |
+
+## Vision: Model Selection
+
+Choose the right vision provider based on accuracy, cost, and context window needs.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Vision Models | `rules/vision-models.md` | Provider comparison, token costs, image limits |
+
+## Audio: Speech-to-Text
+
+Convert audio to text with speaker diarization, timestamps, and sentiment analysis.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Speech-to-Text | `rules/audio-speech-to-text.md` | Gemini long-form, GPT-4o-Transcribe, AssemblyAI features |
+
+## Audio: Text-to-Speech
+
+Generate natural speech from text with voice selection and expressive cues.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Text-to-Speech | `rules/audio-text-to-speech.md` | Gemini TTS, voice config, auditory cues |
+
+## Audio: Model Selection
+
+Select the right audio/voice provider for real-time, transcription, or TTS use cases.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Audio Models | `rules/audio-models.md` | Real-time voice comparison, STT benchmarks, pricing |
+
+## Video: Model Selection
+
+Choose the right video generation provider based on use case, duration, and budget.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Video Models | `rules/video-generation-models.md` | Kling vs Sora vs Veo vs Runway, pricing, capabilities |
+
+## Video: API Patterns
+
+Integrate video generation APIs with proper async polling, SDKs, and webhook callbacks.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| API Integration | `rules/video-generation-patterns.md` | Kling REST, fal.ai SDK, Vercel AI SDK, task polling |
+
+## Video: Multi-Shot
+
+Generate multi-scene videos with consistent characters using storyboarding and character elements.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Multi-Shot | `rules/video-multi-shot.md` | Kling v3 character elements, 6-shot storyboards, identity binding |
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| High accuracy vision | `claude-opus-5` (production default, 2,576 px vision budget, 3× what Opus 4.6 allotted; give it crop/analyze tools rather than more thinking, which is the cheaper lever on this model). (`claude-fable-5` is the frontier SOTA option, GA 2026-07 — premium cost, use only with explicit consent via the fable-spend-consent gate) |
+| Long documents | `gemini-3.1-pro-preview` (1M+ context) |
+| Cost-efficient vision | `gemini-3.1-flash-lite-preview` (**replaces Gemini 2.5 Flash**, deprecates Oct 2026) |
+| Video analysis | `gemini-3.1-pro-preview` (native video, supersedes 2.5 Pro) |
+| Voice assistant | Grok Voice Agent on Grok 4.20 (fastest, &lt;1s) |
+| Emotional voice AI | Gemini Live API |
+| Long audio transcription | `gemini-3.1-pro-preview` (9.5hr) |
+| Speaker diarization | AssemblyAI or Gemini |
+| Self-hosted STT | Whisper Large V3 |
+| Character-consistent video | `kling-v3` (Character Elements 3.0) |
+| Narrative video / storytelling | Sora 2 (best cause-and-effect coherence) |
+| Cinematic B-roll | `veo-3.1-generate-preview` (camera control + polished motion) |
+| Budget drafts | `veo-3.1-lite-generate-preview` (~$0.05/s, 720/1080p) |
+| Mid-tier fast renders | `veo-3.1-fast-generate-preview` |
+| Professional VFX | Runway `gen4_turbo` (Act-Two motion transfer) |
+| High-volume social video | `kling-v3` Standard (~$0.20/video) |
+| Open-source video gen | Wan 2.6 or LTX-2 |
+| Lip-sync / avatar video | `kling-v3` (native lip-sync API) |
+
+## Example
+
+```python
+import anthropic, base64
+
+client = anthropic.Anthropic()
+with open("image.png", "rb") as f:
+    b64 = base64.standard_b64encode(f.read()).decode("utf-8")
+
+response = client.messages.create(
+    model="claude-opus-5",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": [
+        {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": b64}},
+        {"type": "text", "text": "Describe this image"}
+    ]}]
+)
+```
+
+## Common Mistakes
+
+1. Not setting `max_tokens` on vision requests (responses truncated)
+2. Sending oversized images without resizing (>2048px)
+3. Using `high` detail level for simple yes/no classification
+4. Using STT+LLM+TTS pipeline instead of native speech-to-speech
+5. Not leveraging barge-in support for natural voice conversations
+6. Using deprecated models (GPT-4V, Whisper-1)
+7. Ignoring rate limits on vision and audio endpoints
+8. Calling video generation APIs synchronously (they're async — poll or use callbacks)
+9. Generating separate clips without character elements (characters look different each time)
+10. Using Sora for high-volume social content (expensive, slow — use Kling Standard instead)
+
+## Related Skills
+
+- `ork:rag-retrieval` - Multimodal RAG with image + text retrieval
+- `ork:llm-integration` - General LLM function calling patterns
+- `streaming-api-patterns` - WebSocket patterns for real-time audio
+- `ork:demo-producer` - Terminal demo videos (VHS, asciinema) — not AI video gen
+
+
+---
+
+## Rules (9)
+
+### Select the right audio model architecture to avoid unnecessary pipeline latency — MEDIUM
+
+
+## Audio Model Selection
+
+Choose the right audio provider based on latency, features, and cost.
+
+**Incorrect — building STT+LLM+TTS pipeline for voice assistants:**
+```python
+# 3-step pipeline adds 2-5x latency vs native speech-to-speech
+text = transcribe(audio)          # STT: ~500ms
+response = llm.generate(text)     # LLM: ~1000ms
+audio = text_to_speech(response)  # TTS: ~500ms
+# Total: ~2000ms minimum
+```
+
+**Correct — use native speech-to-speech for voice assistants:**
+```python
+# Grok Voice Agent: <1s time-to-first-audio (5x faster)
+async with websockets.connect("wss://api.x.ai/v1/realtime", extra_headers=headers) as ws:
+    await ws.send(json.dumps({
+        "type": "session.update",
+        "session": {
+            "model": "grok-4-voice",
+            "voice": "Aria",
+            "input_audio_format": "pcm16",
+            "output_audio_format": "pcm16",
+            "turn_detection": {"type": "server_vad"}
+        }
+    }))
+    # Direct audio in -> audio out, no intermediary transcription
+```
+
+**Real-time voice provider comparison:**
+
+| Model | Latency | Languages | Price | Best For |
+|-------|---------|-----------|-------|----------|
+| **Grok Voice Agent** | &lt;1s TTFA | 100+ | $0.05/min | Fastest, lowest cost |
+| **Gemini Live API** | Low | 24 (30 voices) | Usage-based | Emotional awareness |
+| **OpenAI Realtime** | ~1s | 50+ | $0.10/min | Ecosystem integration |
+
+**Gemini Live — emotional awareness and barge-in:**
+```python
+async with model.connect(config=config) as session:
+    # Supports barge-in (user can interrupt anytime)
+    # Affective dialog (understands and responds to emotions)
+    # Proactive audio (responds only when relevant)
+    async for response in session.receive():
+        if response.data:
+            yield response.data  # Audio bytes
+```
+
+**Pricing comparison:**
+
+| Provider | Type | Price | Notes |
+|----------|------|-------|-------|
+| Grok Voice Agent | Real-time | $0.05/min | Cheapest real-time |
+| Gemini Live | Real-time | Usage-based | 30 HD voices |
+| OpenAI Realtime | Real-time | $0.10/min | |
+| Gemini 2.5 Pro | Transcription | $1.25/M tokens | 9.5hr audio |
+| GPT-4o-Transcribe | Transcription | $0.01/min | |
+| AssemblyAI | Transcription | ~$0.15/hr | Best features |
+| Deepgram | Transcription | ~$0.0043/min | Cheapest STT |
+
+**Selection guide:**
+
+| Scenario | Recommendation |
+|----------|----------------|
+| Voice assistant (speed) | Grok Voice Agent (&lt;1s) |
+| Emotional AI | Gemini Live API |
+| Long audio (hours) | Gemini 2.5 Pro (9.5hr) |
+| Speaker diarization | AssemblyAI or Gemini |
+| Lowest latency STT | Deepgram Nova-3 (&lt;300ms) |
+| Self-hosted STT | Whisper Large V3 |
+| Cheapest real-time | Grok ($0.05/min) |
+
+**Key rules:**
+- Use native speech-to-speech for voice assistants — never chain STT+LLM+TTS
+- Grok Voice Agent is OpenAI Realtime API compatible (easy migration)
+- Gemini Live supports barge-in — essential for natural conversations
+- Always test latency with real users under realistic network conditions
+- For phone agents, &lt;1s time-to-first-audio is the quality threshold
+
+
+### Configure speech-to-text with the right provider and model for accuracy and cost — HIGH
+
+
+## Audio Speech-to-Text
+
+Convert audio to text with speaker labels, timestamps, and structured output.
+
+**Incorrect — using deprecated model:**
+```python
+# Whisper-1 is deprecated — use GPT-4o-Transcribe for better accuracy
+response = client.audio.transcriptions.create(model="whisper-1", file=audio_file)
+```
+
+**Correct — GPT-4o-Transcribe with structured output:**
+```python
+from openai import OpenAI
+client = OpenAI()
+
+with open(audio_path, "rb") as audio_file:
+    response = client.audio.transcriptions.create(
+        model="gpt-4o-transcribe",
+        file=audio_file,
+        language="en",  # Optional: improves accuracy for known language
+        response_format="verbose_json",
+        timestamp_granularities=["word", "segment"]
+    )
+
+result = {
+    "text": response.text,
+    "words": response.words,        # Word-level timestamps
+    "segments": response.segments,  # Segment-level with speaker info
+    "duration": response.duration
+}
+```
+
+**Gemini — best for long-form audio (up to 9.5 hours):**
+```python
+from google import genai
+client = genai.Client()
+
+audio_file = client.files.upload(file=audio_path)
+response = client.models.generate_content(
+    model="gemini-3.1-pro-preview",
+    contents=[
+        audio_file,
+        """Transcribe with:
+    1. Speaker labels (Speaker 1, Speaker 2)
+    2. Timestamps: [HH:MM:SS]
+    3. Punctuation and formatting""",
+    ],
+)
+```
+
+**AssemblyAI — best feature set (diarization + sentiment + entities):**
+```python
+import assemblyai as aai
+aai.settings.api_key = "YOUR_API_KEY"
+
+config = aai.TranscriptionConfig(
+    speaker_labels=True,
+    sentiment_analysis=True,
+    entity_detection=True,
+    auto_highlights=True,
+    language_detection=True
+)
+transcript = aai.Transcriber().transcribe(audio_url, config=config)
+```
+
+**STT model comparison:**
+
+| Model | WER | Latency | Best For |
+|-------|-----|---------|----------|
+| Gemini 2.5 Pro | ~5% | Medium | 9.5hr audio, diarization |
+| GPT-4o-Transcribe | ~7% | Medium | Accuracy + accents |
+| AssemblyAI Universal-2 | 8.4% | 200ms | Best features |
+| Deepgram Nova-3 | ~18% | &lt;300ms | Lowest latency |
+| Whisper Large V3 | 7.4% | Slow | Self-host, 99+ langs |
+
+**Key rules:**
+- Use GPT-4o-Transcribe, not Whisper-1 (deprecated)
+- For audio >1 hour, prefer Gemini 2.5 Pro (handles up to 9.5 hours natively)
+- AssemblyAI provides the richest metadata (sentiment, entities, highlights)
+- Deepgram Nova-3 for lowest latency STT (&lt;300ms)
+- Whisper Large V3 only for self-hosted / air-gapped environments
+- Always specify language when known — improves accuracy significantly
+
+
+### Configure text-to-speech voice selection and style prompts for natural-sounding output — MEDIUM
+
+
+## Audio Text-to-Speech
+
+Generate natural speech from text with voice selection and expressive control.
+
+**Incorrect — no voice configuration:**
+```python
+# Default voice with no style control — sounds robotic
+response = model.generate_content(contents=text)
+```
+
+**Correct — Gemini TTS with voice and style config:**
+```python
+from google import genai
+from google.genai import types
+
+client = genai.Client()
+
+def text_to_speech(text: str, voice: str = "Kore") -> bytes:
+    """Gemini 2.5 Flash TTS with voice selection.
+
+    Available voices: Puck, Charon, Kore, Fenrir, Aoede (30 total)
+    """
+    response = client.models.generate_content(
+        model="gemini-2.5-flash-tts",
+        contents=text,
+        config=types.GenerateContentConfig(
+            response_mime_type="audio/mp3",
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                        voice_name=voice
+                    )
+                )
+            ),
+        ),
+    )
+    return response.audio
+```
+
+**Expressive voice with auditory cues (Grok Voice Agent):**
+```python
+# Supports: [whisper], [sigh], [laugh], [pause]
+await ws.send(json.dumps({
+    "type": "response.create",
+    "response": {
+        "instructions": "[sigh] Let me think about that... [pause] Here's what I found."
+    }
+}))
+```
+
+**Gemini Live — real-time TTS with emotional awareness:**
+```python
+config = live.LiveConnectConfig(
+    response_modalities=["AUDIO"],
+    speech_config=live.SpeechConfig(
+        voice_config=live.VoiceConfig(
+            prebuilt_voice_config=live.PrebuiltVoiceConfig(
+                voice_name="Puck"  # 30 HD voices in 24 languages
+            )
+        )
+    ),
+    system_instruction="Speak warmly and naturally."
+)
+```
+
+**Key rules:**
+- Always configure voice explicitly — defaults vary by provider
+- Gemini TTS supports enhanced expressivity with style prompts in system instructions
+- Grok supports inline auditory cues: `[whisper]`, `[sigh]`, `[laugh]`, `[pause]`
+- For multi-speaker dialogue, use consistent voice assignments per character
+- Gemini offers 30 HD voices across 24 languages
+- Test with real users — perceived quality varies by use case and language
+
+
+### Select the right video generation model by use case, cost, and output quality — HIGH
+
+
+## Video Generation Model Selection
+
+Choose the right video generation provider based on use case, quality needs, and budget.
+
+**Model comparison (February 2026):**
+
+| Model | Max Duration | Resolution | Native Audio | Multi-Shot | Character Consistency | Best For |
+|-------|-------------|------------|-------------|------------|----------------------|----------|
+| **Kling 3.0/O3** | 15s | 4K/60fps | Yes (multi-speaker) | Yes (6 shots) | Excellent (3+ chars) | Social content, IP, ads |
+| **Sora 2** | 60s | 1080p | Yes | No | Moderate | Narrative, storytelling |
+| **Veo 3.1** | 8s | 4K | Yes | No | Good | Cinematic B-roll, polished explainers |
+| **Runway Gen-4.5** | 10s | 4K | Limited | No | Excellent (Act-Two) | Professional filmmaking |
+| **Wan 2.6** | varies | 1080p | No | No | Good | Open-source, brand narrative |
+| **Pika 2.5** | 5s | 1080p | Limited | No | Low | Viral effects, social |
+
+**Incorrect — using Sora for high-volume social content:**
+```python
+# Wrong: Sora is expensive and slow for volume work
+# $1+ per video, 300-600s generation time
+result = openai.videos.generate(
+    model="sora-2",
+    prompt="Product showcase with character",
+    duration=10,
+)
+# Better: Use Kling 3.0 Standard — $0.20/video, 60-90s, character elements
+```
+
+**Correct — matching model to use case:**
+```python
+# Social/ads volume → Kling 3.0 (cheap, fast, character consistent)
+# Narrative film → Sora 2 (realism, cause-and-effect, 60s duration)
+# Cinematic B-roll → Veo 3.1 (camera control, polished motion)
+# Professional VFX → Runway Gen-4.5 (Act-Two motion transfer)
+# Self-hosted/private → Wan 2.6 or LTX-2 (open-source)
+```
+
+**Pricing comparison (5s video, standard mode):**
+
+| Provider | Kling 3.0 | Sora 2 | Veo 3.1 | Runway Gen-4.5 | LTX 2.0 | Wan 2.5 |
+|----------|-----------|--------|---------|----------------|---------|---------|
+| Official API | ~$0.20 | ChatGPT Plus ($20/mo) | Google AI Pro ($29/mo) | From $12/mo | — | — |
+| fal.ai | $0.07/s ($0.14 w/audio) | Available | $0.40/s | — | Available | $0.05/s |
+| Third-party (PiAPI, Segmind) | $0.20-$0.96 | — | — | — | — | — |
+
+**Selection guide:**
+
+| Scenario | Recommendation |
+|----------|----------------|
+| Character consistency across shots | Kling 3.0 (Character Elements 3.0, 3+ chars) |
+| Realistic narrative storytelling | Sora 2 (best cause-and-effect coherence) |
+| Cinematic B-roll / product shots | Veo 3.1 (best camera control + motion) |
+| Professional VFX / motion capture | Runway Gen-4.5 (Act-Two motion transfer) |
+| High-volume social content | Kling 3.0 Standard (cheapest, 60-90s gen) |
+| Open-source / self-hosted | Wan 2.6 or LTX-2 |
+| Lip-sync / avatar | Kling 3.0 (native lip-sync API) |
+
+**Key rules:**
+- Kling 3.0 has two variants: **V3** (standard generation) and **O3** (AI Director — better scene composition and physics)
+- Native audio generation doubles credit cost on Kling — disable `sound: false` for silent clips
+- Sora 2 is region-restricted (US/Canada primarily) — check availability before committing
+- Runway Gen-4.5 has no third-party API access — must use Runway's own API
+- Video generation is async — always implement polling or callback patterns for task status
+
+
+### Use async task polling and provider-specific SDKs for reliable video generation — HIGH
+
+
+## Video Generation API Patterns
+
+All video generation APIs are async — submit a task, poll for completion. Never attempt synchronous generation.
+
+**Incorrect — synchronous call expecting immediate result:**
+```python
+# WRONG: Video generation takes 60-300s, this will timeout
+response = requests.post(url, json={"prompt": "..."}, timeout=30)
+video_url = response.json()["video_url"]  # Not available yet!
+```
+
+**Correct — Kling API with task polling:**
+```python
+import requests
+import time
+
+API_KEY = "your-api-key"
+BASE_URL = "https://api.klingai.com/v1"
+
+# 1. Submit generation task
+response = requests.post(
+    f"{BASE_URL}/videos/text2video",
+    headers={"Authorization": f"Bearer {API_KEY}"},
+    json={
+        "model": "kling-v3.0",
+        "prompt": "A chef plating a dish in a modern kitchen, warm lighting",
+        "duration": "5",
+        "aspect_ratio": "16:9",
+        "mode": "std",  # std | pro
+    }
+)
+task_id = response.json()["data"]["task_id"]
+
+# 2. Poll for completion (60-90s typical for Kling)
+while True:
+    status = requests.get(
+        f"{BASE_URL}/videos/text2video/{task_id}",
+        headers={"Authorization": f"Bearer {API_KEY}"},
+    ).json()
+    if status["data"]["status"] == "completed":
+        video_url = status["data"]["video_url"]
+        break
+    elif status["data"]["status"] == "failed":
+        raise RuntimeError(f"Generation failed: {status['data']['error']}")
+    time.sleep(10)
+```
+
+**Correct — fal.ai SDK (serverless, no GPU management):**
+```python
+import fal_client
+
+# Kling V3 text-to-video via fal.ai
+result = fal_client.run(
+    "fal-ai/kling-video/v3/pro/text-to-video",
+    arguments={
+        "prompt": "A knight in weathered armor, cinematic lighting",
+        "duration": "10",
+        "aspect_ratio": "16:9",
+    }
+)
+video_url = result["video"]["url"]
+```
+
+**Correct — Vercel AI SDK (TypeScript):**
+```typescript
+import { klingai, type KlingAIVideoModelOptions } from '@ai-sdk/klingai';
+import { experimental_generateVideo as generateVideo } from 'ai';
+
+// Text-to-video
+const { videos } = await generateVideo({
+  model: klingai.video('kling-v3.0-t2v'),
+  prompt: 'A cat playing in autumn leaves, warm afternoon light',
+  aspectRatio: '16:9',
+  duration: 5,
+  providerOptions: {
+    klingai: { mode: 'std' } satisfies KlingAIVideoModelOptions,
+  },
+});
+
+// Image-to-video with start + end frame
+const { videos: i2v } = await generateVideo({
+  model: klingai.video('kling-v3.0-i2v'),
+  prompt: { image: startFrameUrl, text: 'The subject turns and smiles' },
+  duration: 5,
+  providerOptions: {
+    klingai: {
+      mode: 'pro',        // Pro required for end-frame
+      imageTail: endFrameUrl,
+    } satisfies KlingAIVideoModelOptions,
+  },
+});
+```
+
+**Callback pattern (preferred over polling for production):**
+```python
+# Register a webhook URL when creating the task
+response = requests.post(
+    f"{BASE_URL}/videos/text2video",
+    headers={"Authorization": f"Bearer {API_KEY}"},
+    json={
+        "prompt": "...",
+        "callback_url": "https://your-app.com/api/video-webhook",
+    }
+)
+# Your webhook receives POST with task_id + video_url on completion
+```
+
+**Key rules:**
+- Always implement exponential backoff on polling — don't hammer the API every second
+- Set generation timeout at 10 minutes minimum — complex scenes take longer
+- Kling `mode: "pro"` costs ~2x more than `mode: "std"` but enables end-frame control and higher quality
+- fal.ai and AI SDK abstract the polling — prefer these over raw REST for new projects
+- fal MCP server (`mcp.fal.ai`) gives Claude Code / Cursor direct access to all fal models via `run_model` / `submit_job` tools — no SDK code needed for prototyping
+- Store `task_id` persistently — if your process crashes, you can resume polling
+- Validate image URLs are publicly accessible before passing to image-to-video endpoints
+
+
+### Use multi-shot storyboarding and character elements for consistent multi-scene video — HIGH
+
+
+## Multi-Shot Storyboarding & Character Consistency
+
+Kling 3.0+ supports multi-shot generation with character elements for identity-consistent scenes. Without this, characters look different in every clip.
+
+**Incorrect — generating separate clips and hoping characters match:**
+```python
+# WRONG: Each generation creates a different-looking character
+clip1 = generate_video("A woman walks into a café")
+clip2 = generate_video("A woman orders coffee at a counter")
+clip3 = generate_video("A woman sits down and opens a laptop")
+# Result: 3 different women, inconsistent clothing, hair, face
+```
+
+**Correct — Kling 3.0 multi-shot with character elements:**
+```typescript
+import { klingai, type KlingAIVideoModelOptions } from '@ai-sdk/klingai';
+import { experimental_generateVideo as generateVideo } from 'ai';
+
+const { videos } = await generateVideo({
+  model: klingai.video('kling-v3.0-t2v'),
+  prompt: 'A woman walks into a café, orders coffee, and sits down',
+  providerOptions: {
+    klingai: {
+      shot_type: 'customize',
+      // Multi-shot: each shot gets its own prompt and duration
+      multi_prompt: [
+        { prompt: '@Element1 walks into a bright café', duration: 5 },
+        { prompt: '@Element1 orders coffee at the counter, smiling', duration: 5 },
+        { prompt: '@Element1 sits by the window and opens a laptop', duration: 5 },
+      ],
+      // Character element: up to 3 reference images for identity lock
+      elements: [{
+        images: [
+          'https://...frontal-face.jpg',   // Required: frontal view
+          'https://...side-profile.jpg',    // Optional: side angle
+          'https://...full-body.jpg',       // Optional: full body
+        ],
+        // Optional: assign a voice to this character
+        voice_id: 'voice_abc123',
+      }],
+    } satisfies KlingAIVideoModelOptions,
+  },
+});
+```
+
+**Correct — Kling REST API multi-shot (direct):**
+```python
+response = requests.post(
+    f"{BASE_URL}/videos/text2video",
+    headers={"Authorization": f"Bearer {API_KEY}"},
+    json={
+        "model": "kling-v3.0",
+        "mode": "pro",
+        "shot_type": "customize",
+        "multi_prompt": [
+            {"prompt": "@Element1 enters a modern office", "duration": 5},
+            {"prompt": "@Element1 presents to a group, gesturing at a screen", "duration": 5},
+        ],
+        "elements": [{
+            "images": ["https://...frontal.jpg", "https://...profile.jpg"]
+        }],
+        "aspect_ratio": "16:9",
+    }
+)
+```
+
+**Character element best practices:**
+
+| Guideline | Reason |
+|-----------|--------|
+| Always include a **frontal face** image | Required for identity lock — model needs clear face features |
+| Add **side profile** as 2nd image | Prevents hallucination when character turns |
+| Add **full body** as 3rd image | Locks clothing, posture, proportions across shots |
+| Max 3 images per element | API limit — choose the 3 most informative angles |
+| Reference as `@Element1`, `@Element2` | Prompt syntax for character binding in multi-shot |
+| Max 3+ characters in one scene | Kling O3 supports multi-character coreference |
+
+**Scene transition controls:**
+- Up to **6 shots** per generation with customizable per-shot duration
+- Each shot can have independent camera movement and prompt
+- Kling handles transitions between shots automatically
+- Total duration: sum of all shot durations (max 15s total)
+
+**Key rules:**
+- Multi-shot requires `mode: "pro"` — standard mode only supports single-shot
+- Character elements only work with Kling 3.0+ — earlier versions have no identity binding
+- Reference images must be publicly accessible HTTPS URLs (no local files)
+- Use descriptive prompts per shot — "walks left" is better than "moves" for camera planning
+- For 3+ character scenes, use Kling O3 (not V3) — O3 has better multi-character coreference
+- Voice IDs are optional — get them from the Kling create-voice endpoint first
+
+
+### Process documents with vision models using page ranges to avoid context overflow — HIGH
+
+
+## Vision Document Understanding
+
+Extract structured data from documents, charts, and PDFs using vision models.
+
+**Incorrect — sending entire large PDF at once:**
+```python
+# Exceeds context window or times out on 100+ page PDFs
+response = model.generate_content([genai.upload_file("large_doc.pdf"), "Summarize this"])
+```
+
+**Correct — incremental PDF processing:**
+```python
+# Claude Code Read tool with page ranges (max 20 pages per request)
+Read(file_path="/path/to/document.pdf", pages="1-5")    # TOC/structure scan
+Read(file_path="/path/to/document.pdf", pages="45-55")   # Target section
+Read(file_path="/path/to/document.pdf", pages="80-90")   # Appendix
+```
+
+**Chart/diagram analysis — use high detail and explicit extraction prompt:**
+```python
+response = client.chat.completions.create(
+    model="gpt-5.5",
+    max_tokens=4096,
+    messages=[{
+        "role": "user",
+        "content": [
+            {"type": "text", "text": (
+                "Extract all data from this chart. Return as structured JSON with:\n"
+                "1. Chart type (bar, line, pie, etc.)\n"
+                "2. Axis labels and units\n"
+                "3. All data points with values\n"
+                "4. Title and legend entries"
+            )},
+            {"type": "image_url", "image_url": {
+                "url": f"data:{mime_type};base64,{base64_data}",
+                "detail": "high"  # Required for chart OCR accuracy
+            }}
+        ]
+    }]
+)
+```
+
+**Key rules:**
+- For PDFs >10 pages, always use page ranges — never send all at once
+- Max 20 pages per Read request in Claude Code
+- Use `detail: "high"` for documents with small text, tables, or charts
+- Gemini 2.5 Pro handles longest documents (1M+ context)
+- Always validate extracted numbers against source when accuracy is critical
+- Claude supports up to 600 images or PDF pages per request (useful for multi-page document analysis)
+
+**PDF constraints:**
+
+| Constraint | Value |
+|------------|-------|
+| Max pages per request | 20 |
+| Max file size | 20MB |
+| Large PDF threshold | >10 pages |
+
+
+### Encode images correctly with content array structure to prevent silent vision failures — HIGH
+
+
+## Vision Image Analysis
+
+Encode images correctly and structure multi-modal messages for each provider.
+
+**Incorrect — string content instead of content array:**
+```python
+# OpenAI — image silently ignored
+response = client.chat.completions.create(
+    model="gpt-5.5",
+    messages=[{"role": "user", "content": f"Describe this image: {base64_data}"}]
+)
+```
+
+**Correct — structured content array with image_url:**
+```python
+import base64, mimetypes
+
+def encode_image(path: str) -> tuple[str, str]:
+    mime_type = mimetypes.guess_type(path)[0] or "image/png"
+    with open(path, "rb") as f:
+        return base64.standard_b64encode(f.read()).decode("utf-8"), mime_type
+
+# OpenAI (GPT-5, GPT-4o)
+base64_data, mime_type = encode_image(image_path)
+response = client.chat.completions.create(
+    model="gpt-5.5",
+    max_tokens=4096,  # Required for vision — omitting truncates response
+    messages=[{
+        "role": "user",
+        "content": [
+            {"type": "text", "text": prompt},
+            {"type": "image_url", "image_url": {
+                "url": f"data:{mime_type};base64,{base64_data}",
+                "detail": "high"  # low=65 tokens, high=129+ tokens/tile
+            }}
+        ]
+    }]
+)
+```
+
+**Claude — different content structure (type: "image", not "image_url"):**
+```python
+response = client.messages.create(
+    model="claude-opus-5",
+    max_tokens=4096,
+    messages=[{
+        "role": "user",
+        "content": [
+            {"type": "image", "source": {
+                "type": "base64",
+                "media_type": media_type,
+                "data": base64_data
+            }},
+            {"type": "text", "text": prompt}
+        ]
+    }]
+)
+```
+
+**Gemini — uses PIL Image directly:**
+```python
+from PIL import Image
+from google import genai
+
+client = genai.Client()
+image = Image.open(image_path)
+response = client.models.generate_content(
+    model="gemini-3.1-pro-preview",
+    contents=[prompt, image],
+)
+```
+
+**Multi-image comparison (Claude supports up to 100):**
+```python
+content = []
+for img_path in images:
+    b64, mt = encode_image(img_path)
+    content.append({"type": "image", "source": {"type": "base64", "media_type": mt, "data": b64}})
+content.append({"type": "text", "text": "Compare these images..."})
+response = client.messages.create(model="claude-opus-5", max_tokens=8192, messages=[{"role": "user", "content": content}])
+```
+
+**Object detection with bounding boxes (Gemini 2.5+):**
+```python
+response = model.generate_content([
+    "Detect all objects. Return JSON: {objects: [{label, box: [x1,y1,x2,y2]}]}",
+    image
+])
+```
+
+**Key rules:**
+- Always set `max_tokens` on vision requests (responses truncated without it)
+- Resize images to max 2048px before encoding (reduces cost and latency)
+- Use `detail: "low"` (65 tokens) for simple classification, `"high"` for OCR/charts
+- Each provider has different content structure — do not mix formats
+- Claude uses `media_type`, OpenAI uses `mime` in the data URI
+
+
+### Select the right vision model to balance cost against task complexity requirements — MEDIUM
+
+
+## Vision Model Selection
+
+Choose the right vision provider based on accuracy, cost, and context needs.
+
+**Model comparison:**
+
+| Model | Context | Strengths | Max Images |
+|-------|---------|-----------|------------|
+| **GPT-5.5** | 128K | Best general reasoning | 10/request |
+| **Claude Opus 4.8** | 1M | Best coding, sustained agent tasks | 600/request |
+| **Gemini 2.5 Pro** | 1M+ | Longest context, native video | 3,600/request |
+| **Gemini 3 Pro** | 1M | Deep Think, enhanced segmentation | 3,600/request |
+| **Grok 4** | 2M | Real-time X integration | Limited |
+
+**Token cost by detail level:**
+
+| Provider | Detail Level | Token Cost | Use For |
+|----------|-------------|------------|---------|
+| OpenAI | `low` | 65 tokens | Classification (yes/no) |
+| OpenAI | `high` | 129+ tokens/tile | OCR, charts, detailed analysis |
+| Gemini | base | 258 tokens | Scales with resolution |
+| Claude | per-image | Fixed | Batch for efficiency |
+
+**Incorrect — using expensive model for simple classification:**
+```python
+# Wastes tokens: high detail + large model for yes/no
+response = client.chat.completions.create(
+    model="gpt-5.5",
+    messages=[{"role": "user", "content": [
+        {"type": "text", "text": "Is there a person? Reply: yes/no"},
+        {"type": "image_url", "image_url": {"url": img_url, "detail": "high"}}
+    ]}]
+)
+```
+
+**Correct — cost-optimized for simple tasks:**
+```python
+response = client.chat.completions.create(
+    model="gpt-5.5-mini",  # Cheaper model
+    messages=[{"role": "user", "content": [
+        {"type": "text", "text": "Is there a person? Reply: yes/no"},
+        {"type": "image_url", "image_url": {"url": img_url, "detail": "low"}}  # 65 tokens
+    ]}]
+)
+```
+
+**Image size limits:**
+
+| Provider | Max Size | Max Images | Notes |
+|----------|----------|------------|-------|
+| OpenAI | 20MB | 10/request | GPT-5 series |
+| Claude | 8000x8000 px | 600/request | 2000px if >20 images |
+| Gemini | 20MB | 3,600/request | Best for batch |
+| Grok | 20MB | Limited | |
+
+**Selection guide:**
+
+| Scenario | Recommendation |
+|----------|----------------|
+| High accuracy | Claude Opus 4.8 or GPT-5.5 |
+| Long documents | Gemini 2.5 Pro (1M context) |
+| Cost efficiency | Gemini 2.5 Flash ($0.15/M tokens) |
+| Real-time/X data | Grok 4 with DeepSearch |
+| Video analysis | Gemini 2.5/3 Pro (native) |
+| Batch images | Claude (600/req) or Gemini (3,600/req) |
+
+**Key rules:**
+- Cannot identify specific people (privacy restriction, all providers)
+- May hallucinate on low-quality or rotated images (&lt;200px)
+- No real-time video except Gemini — use frame extraction for others
+- Validate image format before encoding (corrupt files cause silent failures)
+- Always check rate limits on vision endpoints — they are lower than text-only
+

@@ -1,0 +1,1056 @@
+---
+title: "Code Review Playbook"
+description: "Structured review processes, conventional comments, language-specific checklists, and feedback templates. Use when reviewing PRs, conducting code review, or standardizing review practice."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="code-review-playbook" />
+
+> **Code Review Playbook** Structured review processes, conventional comments, language-specific checklists, and feedback templates. Use when reviewing PRs, conducting code review, or standardizing review practice.
+
+
+# Code Review Playbook
+This skill provides a comprehensive framework for effective code reviews that improve code quality, share knowledge, and foster collaboration. Whether you're a reviewer giving feedback or an author preparing code for review, this playbook ensures reviews are thorough, consistent, and constructive.
+
+## Overview
+- Reviewing pull requests or merge requests
+- Preparing code for review (self-review)
+- Establishing code review standards for teams
+- Training new developers on review best practices
+- Resolving disagreements about code quality
+- Improving review processes and efficiency
+
+## Upstream coverage (do not restate)
+
+This skill is a thin wrapper. General review craft is documented first-party elsewhere;
+only OrchestKit's own decisions live here. Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/code-review-playbook/references/ork-delta.md")`
+for the house rules that survived the retired files.
+
+| Topic | Go here instead |
+|-------|-----------------|
+| Review philosophy, speed, tone, PR sizing | https://google.github.io/eng-practices/review/ |
+| Conventional comment labels and decorations | `references/conventional-comments.md`, https://conventionalcomments.org/ |
+| OWASP Top 10 review checks | `rules/security-baseline.md`, https://owasp.org/Top10/ |
+| Generic language and framework review checklists | `rules/typescript-quality.md`, `rules/python-quality.md`, `rules/linting-biome-rules.md` |
+| Review report shape and multi-agent full-PR review | `ork:review-pr` |
+| Applying findings to the working tree | `/code-review --fix`, `/simplify` (see below) |
+| Security-only pass over the current branch | `/security-review` |
+| GitHub review mechanics (approve, request changes, inline comments) | https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests |
+
+---
+
+## Conventional Comments
+
+```
+issue [blocking]: Missing error handling for API call
+If the API returns a 500 error, this will crash. Add try/catch.
+
+security [blocking]: API endpoint is not authenticated
+The /api/admin/users endpoint is missing auth middleware.
+```
+
+Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/code-review-playbook/references/conventional-comments.md")` for the full format, labels (praise, nitpick, suggestion, issue, question, security, bug, breaking), decorations ([blocking], [non-blocking], [if-minor]), and examples.
+
+---
+
+## Review Process
+
+### 1. Before Reviewing
+
+**Check Context:**
+- Read the PR/MR description
+- Understand the purpose and scope
+- Review linked tickets or issues
+- Check CI/CD pipeline status
+
+**Verify Automated Checks:**
+- [ ] Tests are passing
+- [ ] Linting has no errors
+- [ ] Type checking passes
+- [ ] Code coverage meets targets
+- [ ] No merge conflicts
+
+**Set Aside Time:**
+- Small PR (&lt; 200 lines): 15-30 minutes
+- Medium PR (200-500 lines): 30-60 minutes
+- Large PR (> 500 lines): 1-2 hours (or ask to split)
+
+### 2. During Review
+
+**Follow a Pattern:**
+
+1. **High-Level Review** (5-10 minutes)
+   - Read PR description and understand intent
+   - Skim all changed files to get overview
+   - Verify approach makes sense architecturally
+   - Check that changes align with stated purpose
+
+2. **Detailed Review** (20-45 minutes)
+   - Line-by-line code review
+   - Check logic, edge cases, error handling
+   - Verify tests cover new code
+   - Look for security vulnerabilities
+   - Ensure code follows team conventions
+
+3. **Testing Considerations** (5-10 minutes)
+   - Are tests comprehensive?
+   - Do tests test the right things?
+   - Are edge cases covered?
+   - Is test data realistic?
+
+4. **Documentation Check** (5 minutes)
+   - Are complex sections commented?
+   - Is public API documented?
+   - Are breaking changes noted?
+   - Is README updated if needed?
+
+### 3. After Reviewing
+
+**Provide Clear Decision:**
+- ✅ **Approve**: Code is ready to merge
+- 💬 **Comment**: Feedback provided, no action required
+- 🔄 **Request Changes**: Issues must be addressed before merge
+
+**Respond to Author:**
+- Answer questions promptly
+- Re-review after changes made
+- Approve when issues resolved
+- Thank author for addressing feedback
+
+---
+
+## Review Checklists
+
+### General Code Quality
+
+- [ ] **Readability**: Code is easy to understand
+- [ ] **Naming**: Variables and functions have clear, descriptive names
+- [ ] **Comments**: Complex logic is explained
+- [ ] **Formatting**: Code follows team style guide
+- [ ] **DRY**: No unnecessary duplication
+- [ ] **SOLID Principles**: Code follows SOLID where applicable
+- [ ] **Function Size**: Functions are focused and &lt; 50 lines
+- [ ] **Cyclomatic Complexity**: Functions have complexity &lt; 10
+
+### Security
+
+- [ ] **Authentication**: Protected endpoints require auth
+- [ ] **Authorization**: Users can only access their own data
+- [ ] **Input Sanitization**: SQL injection, XSS prevented
+- [ ] **Secrets Management**: No hardcoded credentials or API keys
+- [ ] **Encryption**: Sensitive data encrypted at rest and in transit
+- [ ] **Rate Limiting**: Endpoints protected from abuse
+
+---
+
+## Quick Start Guide
+
+**For Reviewers:**
+1. Read PR description and understand intent
+2. Check that automated checks pass
+3. Do high-level review (architecture, approach)
+4. Do detailed review (logic, edge cases, tests)
+5. Use conventional comments for clear communication
+6. Provide decision: Approve, Comment, or Request Changes
+
+**For Authors:**
+1. Write clear PR description
+2. Perform self-review before requesting review
+3. Ensure all automated checks pass
+4. Keep PR focused and reasonably sized (&lt; 400 lines)
+5. Respond to feedback promptly and respectfully
+6. Make requested changes or explain reasoning
+
+---
+
+## CC Built-in Review Commands (2.1.152+)
+
+This playbook is the manual framework; Claude Code ships built-in commands that automate parts of it:
+
+- **`/code-review`** — reviews the current diff for correctness bugs and reuse/simplification/efficiency cleanups.
+- **`/code-review --fix`** (CC 2.1.152+) — runs the review then applies the findings to your working tree (a bug-hunting review covering correctness plus reuse/simplification/efficiency).
+- **`/code-review --comment`** — posts findings as inline PR comments.
+- **`/simplify`** — **CC 2.1.154 changed this**: it now runs a **cleanup-only** review (reuse, simplification, efficiency, altitude) and applies the fixes — it no longer invokes the full `/code-review --fix` bug-hunt. Reach for `/simplify` for tidy-ups, `/code-review --fix` for bug-finding-plus-fix.
+
+Use the built-ins for fast diff-scoped passes; use `ork:review-pr` for the multi-agent, full-PR review (security + testing + architecture).
+
+---
+
+**Skill Version**: 2.0.0
+**Last Updated**: 2026-01-08
+**Maintained by**: OrchestKit
+
+## Related Skills
+
+- `ork:architecture-patterns` - Enforce testing and architectural best practices during code review
+- `ork:security-patterns` - Auth, input validation, and OWASP patterns to complement manual review
+- `ork:testing-unit` - Unit testing patterns to verify during review
+
+## Rules
+
+Each category has individual rule files in `rules/` loaded on-demand:
+
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| TypeScript Quality | `rules/typescript-quality.md` | HIGH | No `any`, Zod validation, exhaustive switches, React 19 |
+| Python Quality | `rules/python-quality.md` | HIGH | Pydantic v2, ruff, mypy strict, async timeouts |
+| Security Baseline | `rules/security-baseline.md` | CRITICAL | No secrets, auth on endpoints, input validation |
+| Linting | `rules/linting-biome-setup.md` | HIGH | Biome setup, ESLint migration, gradual adoption |
+| Linting | `rules/linting-biome-rules.md` | HIGH | Biome config, type-aware rules, CI integration |
+
+**Total: 5 rules across 4 categories**
+
+## Available Scripts
+
+- **`scripts/review-pr.md`** - Dynamic PR review with auto-fetched GitHub data
+  - Auto-fetches: PR title, author, state, changed files, diff stats, comments count
+  - Usage: `/ork:review-pr [PR-number]`
+  - Requires: GitHub CLI (`gh`)
+  - Uses `$ARGUMENTS` and `!command` for live PR data
+
+- **`assets/pr-template.md`** - PR description template
+
+There is deliberately no review-report template here; `ork:review-pr` owns that output
+shape. See `references/ork-delta.md`.
+
+
+---
+
+## Rules (5)
+
+### Biome Rule Configuration and CI Integration — HIGH
+
+
+## Biome Rule Configuration and CI Integration
+
+**Incorrect — default config without key rules enabled:**
+```json
+{
+  "linter": { "enabled": true }
+  // Missing: noUnusedVariables, noUnusedImports, noExplicitAny
+  // Missing: type-aware rules (Biome 2.0+)
+}
+```
+
+**Correct — production Biome configuration:**
+```json
+{
+  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "linter": {
+    "enabled": true,
+    "domains": {
+      "types": "recommended"
+    },
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingCommas": "all"
+    }
+  }
+}
+```
+
+**Biome 2.0+ type inference features:**
+- Reads `.d.ts` from node_modules for type-aware rules
+- `noFloatingPromises`: Catches unhandled promises — Biome 2.4 moved this to the `types` domain, so set `linter.domains.types: "recommended"` or the rule silently under-functions
+- Multi-file analysis: Cross-module diagnostics
+
+**Correct — CI integration (GitHub Actions):**
+```yaml
+# .github/workflows/lint.yml
+name: Lint
+on: [push, pull_request]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: biomejs/setup-biome@v2
+      - run: biome ci .
+```
+
+**Biome vs ESLint comparison:**
+
+| Aspect | Biome | ESLint + Prettier |
+|--------|-------|-------------------|
+| Speed | ~200ms for 10k lines | 3-5s |
+| Config files | 1 (biome.json) | 4+ |
+| npm packages | 1 binary | 127+ |
+| Rules | 421 | Varies by plugins |
+| Type inference | Yes (v2.0+) | Requires tsconfig |
+
+Key decisions:
+- Start with `recommended` rules, tighten over time
+- Enable `noUnusedVariables` and `noUnusedImports` as errors
+- Enable `noFloatingPromises` for TypeScript projects (v2.0+)
+- Use `biome ci` in CI (strict), `biome check` locally
+- Config strictness: recommended -> warn -> error progression
+
+
+### Set up Biome as a single-tool replacement for ESLint and Prettier with 10-25x speedup — HIGH
+
+
+## Biome Linting Setup and Migration
+
+**Incorrect — complex multi-tool setup:**
+```json
+// 4+ config files: .eslintrc, .prettierrc, .prettierignore, .editorconfig
+// 127+ npm packages for ESLint + Prettier + plugins
+// 3-5s lint time for 10k lines
+```
+
+**Correct — Biome single-tool setup:**
+```bash
+# Install (single binary, no plugins needed)
+npm install --save-dev --save-exact @biomejs/biome
+
+# Initialize config
+npx @biomejs/biome init
+
+# Check (lint + format in one command)
+npx @biomejs/biome check .
+
+# Fix all auto-fixable issues
+npx @biomejs/biome check --write .
+
+# CI mode (strict, fails on errors)
+npx @biomejs/biome ci .
+```
+
+**Correct — ESLint migration:**
+```bash
+# Auto-migrate ESLint configuration
+npx @biomejs/biome migrate eslint --write
+```
+
+Common rule mappings:
+
+| ESLint | Biome |
+|--------|-------|
+| no-unused-vars | correctness/noUnusedVariables |
+| no-console | suspicious/noConsole |
+| @typescript-eslint/* | Most supported |
+| eslint-plugin-react | Most supported |
+| eslint-plugin-jsx-a11y | Most supported |
+
+**Correct — gradual adoption with overrides:**
+```json
+{
+  "overrides": [
+    {
+      "include": ["*.test.ts", "*.spec.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": { "noExplicitAny": "off" }
+        }
+      }
+    },
+    {
+      "include": ["legacy/**"],
+      "linter": { "enabled": false }
+    }
+  ]
+}
+```
+
+Key decisions:
+- New projects: Start with Biome directly
+- Existing projects: Migrate gradually with overrides
+- CI: Use `biome ci` for strict mode, `biome check` for local dev
+- Speed: ~200ms for 10k lines vs 3-5s with ESLint+Prettier
+
+
+### Review Python code for missing validators, untyped functions, and unsafe async patterns — HIGH
+
+
+## Python Quality Review Rules
+
+Review rules for Python code. Focused on Pydantic v2, async safety, and type strictness.
+
+### Pydantic v2 Patterns
+
+```python
+# VIOLATION: No validation on input models
+class UserInput(BaseModel):
+    email: str      # Accepts any string
+    age: int        # Accepts negative numbers
+
+# CORRECT: Constrained fields + validators
+from pydantic import BaseModel, Field, model_validator
+
+class UserInput(BaseModel):
+    email: str = Field(pattern=r'^[\w\.-]+@[\w\.-]+\.\w+$')
+    age: int = Field(ge=0, le=150)
+
+    @model_validator(mode='after')
+    def validate_fields(self) -> 'UserInput':
+        if self.age < 13 and '@' not in self.email:
+            raise ValueError('Minors require valid parent email')
+        return self
+```
+
+### Type Hints (mypy Strict)
+
+```python
+# VIOLATION: Missing type hints
+def process(data):
+    result = []
+    for item in data:
+        result.append(item.name)
+    return result
+
+# CORRECT: Full type hints
+def process(data: list[UserModel]) -> list[str]:
+    result: list[str] = []
+    for item in data:
+        result.append(item.name)
+    return result
+```
+
+### Async Safety
+
+```python
+# VIOLATION: No timeout on external calls
+async def fetch_user(user_id: str) -> User:
+    response = await httpx.get(f"/users/{user_id}")
+    return User(**response.json())
+
+# CORRECT: Timeout protection
+import asyncio
+
+async def fetch_user(user_id: str) -> User:
+    async with asyncio.timeout(10):
+        response = await httpx.get(f"/users/{user_id}")
+        response.raise_for_status()
+        return User.model_validate(response.json())
+```
+
+### Ruff Compliance
+
+```python
+# All Python files must pass:
+# ruff check --select ALL
+# ruff format --check
+
+# Key rules enforced:
+# - No unused imports
+# - No f-strings in logging (use % formatting)
+# - No bare except clauses
+# - No mutable default arguments
+```
+
+**Incorrect — missing validation and timeout:**
+```python
+class UserInput(BaseModel):
+    email: str  # No validation!
+    age: int    # Accepts negative
+
+async def fetch_user(user_id: str) -> User:
+    # No timeout! May hang forever
+    response = await httpx.get(f"/users/{user_id}")
+    return User(**response.json())
+```
+
+**Correct — constrained fields with timeout protection:**
+```python
+from pydantic import BaseModel, Field, model_validator
+import asyncio
+
+class UserInput(BaseModel):
+    email: str = Field(pattern=r'^[\w\.-]+@[\w\.-]+\.\w+$')
+    age: int = Field(ge=0, le=150)
+
+    @model_validator(mode='after')
+    def validate_fields(self) -> 'UserInput':
+        if self.age < 13 and '@' not in self.email:
+            raise ValueError('Minors require valid parent email')
+        return self
+
+async def fetch_user(user_id: str) -> User:
+    async with asyncio.timeout(10):  # Timeout protection
+        response = await httpx.get(f"/users/{user_id}")
+        response.raise_for_status()
+        return User.model_validate(response.json())
+```
+
+### Review Checklist
+
+| Check | Severity | What to Look For |
+|-------|----------|-----------------|
+| Pydantic validators | HIGH | Missing `Field()` constraints, no `model_validator` |
+| Type hints | HIGH | Functions without return types, `Any` usage |
+| Async timeouts | CRITICAL | External calls without `asyncio.timeout()` |
+| Ruff compliance | MEDIUM | Formatting violations, unused imports |
+| Exception handling | HIGH | Bare `except:`, swallowing exceptions |
+| Division safety | MEDIUM | Division without checking `len() > 0` |
+
+
+### Apply security baseline checks during code review to prevent data breaches and unauthorized access — CRITICAL
+
+
+## Security Baseline Review Rules
+
+Security checks that apply to ALL languages. These are merge-blocking findings.
+
+### No Hardcoded Secrets
+
+```python
+# VIOLATION: Secrets in code
+API_KEY = "sk-1234567890abcdef"
+DB_PASSWORD = "admin123"
+JWT_SECRET = "mysecret"
+
+# CORRECT: Environment variables
+API_KEY = os.environ["API_KEY"]
+DB_PASSWORD = os.environ.get("DB_PASSWORD")
+```
+
+```typescript
+// VIOLATION: Secrets in code
+const apiKey = "sk-1234567890abcdef";
+
+// CORRECT: Environment variables
+const apiKey = process.env.API_KEY;
+```
+
+**Detection patterns**: Look for variables named `*_KEY`, `*_SECRET`, `*_PASSWORD`, `*_TOKEN` with string literal values.
+
+### Authentication on All Endpoints
+
+```python
+# VIOLATION: Unprotected endpoint
+@app.get("/api/admin/users")
+async def list_users():
+    return await db.get_all_users()
+
+# CORRECT: Auth middleware
+@app.get("/api/admin/users")
+async def list_users(user: User = Depends(require_admin)):
+    return await db.get_all_users()
+```
+
+```typescript
+// VIOLATION: No auth
+router.get('/api/users', getUsers);
+
+// CORRECT: Auth middleware
+router.get('/api/users', requireAuth, getUsers);
+```
+
+### Input Validation
+
+**Violation — SQL injection via f-string interpolation:**
+```python
+# VIOLATION: SQL injection
+query = f"SELECT * FROM users WHERE id = {user_id}"
+```
+
+**Correct — parameterized query prevents injection:**
+```python
+query = "SELECT * FROM users WHERE id = $1"
+await db.execute(query, user_id)
+```
+
+**Violation — XSS via raw innerHTML assignment:**
+```typescript
+// VIOLATION: XSS — raw HTML insertion
+element.innerHTML = userInput;
+```
+
+**Correct — textContent auto-escapes HTML entities:**
+```typescript
+element.textContent = userInput;
+```
+
+### Dependency Audit
+
+```bash
+# Must run before merge:
+npm audit          # JavaScript/TypeScript
+pip-audit          # Python
+```
+
+| Finding | Action |
+|---------|--------|
+| Critical vulnerability | BLOCK merge |
+| High vulnerability (> 5) | BLOCK merge |
+| Moderate vulnerability | WARN, track |
+| Low vulnerability | INFORM only |
+
+### Debug/Development Code
+
+```python
+# VIOLATION: Debug code in production
+import pdb; pdb.set_trace()
+print(f"DEBUG: user password is {password}")
+set -x  # In scripts with secrets in scope
+
+# CORRECT: Remove before commit
+logger.debug("User authenticated", extra={"user_id": user.id})
+```
+
+**Incorrect — hardcoded secrets, no auth, SQL injection:**
+```python
+# Hardcoded secret
+API_KEY = "sk-1234567890abcdef"
+
+# No auth protection
+@app.get("/api/admin/users")
+async def list_users():
+    return await db.get_all_users()
+
+# SQL injection vulnerability
+query = f"SELECT * FROM users WHERE id = {user_id}"
+```
+
+**Correct — env vars, auth middleware, parameterized queries:**
+```python
+# Environment variables
+API_KEY = os.environ["API_KEY"]
+
+# Auth middleware
+@app.get("/api/admin/users")
+async def list_users(user: User = Depends(require_admin)):
+    return await db.get_all_users()
+
+# Parameterized query
+query = "SELECT * FROM users WHERE id = $1"
+await db.execute(query, user_id)
+```
+
+### Review Checklist
+
+| Check | Severity | Action |
+|-------|----------|--------|
+| Hardcoded secrets | CRITICAL | BLOCK — use env vars |
+| Missing auth | CRITICAL | BLOCK — add middleware |
+| SQL injection | CRITICAL | BLOCK — parameterize |
+| XSS vulnerability | CRITICAL | BLOCK — sanitize |
+| Missing input validation | HIGH | BLOCK — validate at boundary |
+| Debug code | HIGH | BLOCK — remove before merge |
+| Dependency vulnerabilities | VARIES | See audit table above |
+| `set -x` with secrets | HIGH | BLOCK — never expose secrets in logs |
+
+
+### Review TypeScript code for any types, missing validation, and weak type usage — HIGH
+
+
+## TypeScript Quality Review Rules
+
+Review rules for TypeScript and React code. Flag violations, suggest fixes.
+
+### No `any` Types
+
+```typescript
+// VIOLATION: any defeats the type system
+function processData(data: any) { ... }
+const result: any = await fetch(url);
+
+// CORRECT: Use proper types or unknown
+function processData(data: UserInput) { ... }
+const result: unknown = await fetch(url);
+```
+
+### Zod Runtime Validation
+
+All API responses MUST be validated with Zod at the boundary:
+
+```typescript
+// VIOLATION: Trust the network
+const data = await response.json();
+const data = await response.json() as User;  // Type assertion, not validation
+
+// CORRECT: Validate at boundary
+import { z } from 'zod';
+const UserSchema = z.object({
+  id: z.uuid(),       // z.guid() for the permissive (non-RFC9562) variant
+  email: z.email(),
+  role: z.enum(['admin', 'user']),
+});
+const data = UserSchema.parse(await response.json());
+```
+
+### Exhaustive Switch Statements
+
+All switch statements MUST have `assertNever` default:
+
+```typescript
+// VIOLATION: Non-exhaustive — adding a new status silently falls through
+switch (status) {
+  case 'active': return 'Active';
+  case 'inactive': return 'Inactive';
+}
+
+// CORRECT: Compiler catches missing cases
+function assertNever(x: never): never {
+  throw new Error(`Unexpected value: ${x}`);
+}
+
+switch (status) {
+  case 'active': return 'Active';
+  case 'inactive': return 'Inactive';
+  default: return assertNever(status);
+}
+```
+
+### React 19 APIs
+
+```typescript
+// REQUIRE: useOptimistic for mutations
+const [optimistic, addOptimistic] = useOptimistic(state, reducer);
+
+// REQUIRE: useFormStatus in form submit buttons
+const { pending } = useFormStatus();
+
+// REQUIRE: use() for Suspense-aware data fetching
+const data = use(promise);
+
+// REQUIRE: Skeleton loading, not spinners
+function CardSkeleton() {
+  return <div className="animate-pulse">...</div>;
+}
+```
+
+**Incorrect — any types, no validation, non-exhaustive switch:**
+```typescript
+// Defeats type system
+function processData(data: any) { return data.email; }
+
+// Trust the network - no validation!
+const data = await response.json();
+
+// Non-exhaustive switch
+switch (status) {
+  case 'active': return 'Active';
+  case 'inactive': return 'Inactive';
+}  // Adding 'pending' silently breaks
+```
+
+**Correct — proper types, Zod validation, exhaustive switch:**
+```typescript
+import { z } from 'zod';
+
+// Proper types
+const UserSchema = z.object({
+  id: z.uuid(),
+  email: z.email(),
+});
+function processData(data: z.infer<typeof UserSchema>) { return data.email; }
+
+// Validate at boundary
+const data = UserSchema.parse(await response.json());
+
+// Exhaustive switch with assertNever
+function assertNever(x: never): never {
+  throw new Error(`Unexpected: ${x}`);
+}
+switch (status) {
+  case 'active': return 'Active';
+  case 'inactive': return 'Inactive';
+  default: return assertNever(status);  // Compiler catches missing cases
+}
+```
+
+### Review Checklist
+
+| Check | Severity | What to Look For |
+|-------|----------|-----------------|
+| No `any` types | HIGH | `any` in params, returns, variables |
+| Zod validation | CRITICAL | Raw `.json()` without `.parse()` |
+| Exhaustive switches | HIGH | Missing `assertNever` default |
+| React 19 APIs | MEDIUM | Missing `useOptimistic`, `useFormStatus` |
+| Skeleton loading | MEDIUM | Spinners instead of skeletons |
+| Prefetching | MEDIUM | Links without `preload="intent"` |
+| MSW for tests | HIGH | `jest.mock(fetch)` instead of MSW |
+
+
+
+---
+
+## References (2)
+
+### Conventional Comments
+
+# Conventional Comments
+
+A standardized format for review comments that makes intent clear.
+
+## Format
+
+```
+<label> [decorations]: <subject>
+
+[discussion]
+```
+
+## Labels
+
+| Label | Meaning | Blocks Merge? |
+|-------|---------|---------------|
+| **praise** | Highlight something positive | No |
+| **nitpick** | Minor, optional suggestion | No |
+| **suggestion** | Propose an improvement | No |
+| **issue** | Problem that should be addressed | Usually |
+| **question** | Request clarification | No |
+| **thought** | Idea to consider | No |
+| **chore** | Routine task (formatting, deps) | No |
+| **note** | Informational comment | No |
+| **todo** | Follow-up work needed | Maybe |
+| **security** | Security concern | **Yes** |
+| **bug** | Potential bug | **Yes** |
+| **breaking** | Breaking change | **Yes** |
+
+## Decorations
+
+| Decoration | Meaning |
+|------------|---------|
+| **[blocking]** | Must be addressed before merge |
+| **[non-blocking]** | Optional, can be deferred |
+| **[if-minor]** | Only if it's a quick fix |
+
+## Examples
+
+```typescript
+// Good: Clear, specific, actionable
+
+praise: Excellent use of TypeScript generics here!
+This makes the function much more reusable while maintaining type safety.
+
+---
+
+nitpick [non-blocking]: Consider using const instead of let
+This variable is never reassigned, so `const` would be more appropriate.
+
+---
+
+issue: Missing error handling for API call
+If the API returns a 500 error, this will crash the application.
+Add a try/catch block with proper error logging.
+
+---
+
+security [blocking]: API endpoint is not authenticated
+The `/api/admin/users` endpoint is missing authentication middleware.
+
+---
+
+suggestion [if-minor]: Extract magic number to named constant
+```
+
+
+### Ork Delta
+
+# Code Review: ork delta
+
+What survives after the vendor tutorials were retired. Everything here is a house
+decision or a scar specific to OrchestKit. General code-review craft belongs to the
+upstream sources named on each entry, not to this repo.
+
+---
+
+## Flag any PR over 500 changed lines as too large before reviewing it
+
+Why: this skill shipped two contradicting thresholds. `SKILL.md` budgets "Large PR
+(> 500 lines): 1-2 hours (or ask to split)" and the eval case
+`edge-review-this-800line-pr` in `src/skills/code-review-playbook/test-cases.json`
+grades on "Flags the PR as too large (> 500 lines) and suggests splitting", while the
+retired `checklists/code-review-checklist.md` told reviewers to flag only above 800.
+The graded number is 500; the 800 line is gone with the checklist.
+Upstream: https://google.github.io/eng-practices/review/reviewer/speed.html
+
+## Write conventional-comment decorations in square brackets, never parentheses
+
+Why: `references/conventional-comments.md` and `SKILL.md` both use
+`security [blocking]: subject`, but the retired `references/review-patterns.md` used
+`issue (blocking): subject`. One skill was teaching two syntaxes for the same label
+grammar. `references/conventional-comments.md` is now the single source in this skill.
+Upstream: https://conventionalcomments.org/
+
+## Keep OWASP coverage in rules/security-baseline.md only
+
+Why: three retired files (the code-review-checklist, the review-patterns reference, and
+the review-feedback-template asset) each carried a partial, differently-worded OWASP
+list, none of which was the file the
+`security-baseline` eval case in `test-cases.json` actually grades. Copies of a
+security list drift silently; the rule file is the one that gets tested.
+Upstream: https://owasp.org/Top10/
+
+## Do not add a second review-report template to this skill
+
+Why: the retired review-feedback-template asset was a 394-line report skeleton
+covering summary, per-file notes, coverage, performance, security, timeline, and
+sign-off. `ork:review-pr` already owns the multi-agent, full-PR review output shape
+(conventional comments plus an approve or request-changes verdict), so the template was
+a parallel format that nothing rendered and nothing tested. This playbook stays the
+manual framework; the report shape lives in `src/skills/review-pr/`.
+Upstream: src/skills/review-pr/SKILL.md
+
+## Reject a jwt.decode call that omits an explicit algorithms argument
+
+Why: `.claude/rules/antipatterns.md` lists "manual jwt validation" as a repo-level
+anti-pattern, and this was the one concrete, non-generic finding in the retired
+`examples/pr-review-walkthrough.md`. Without `algorithms=[...]` a forged `none`-algorithm
+token verifies. Distilled from the retired examples/pr-review-walkthrough.md; no traced
+incident.
+Upstream: https://pyjwt.readthedocs.io/en/stable/api.html
+
+
+
+---
+
+## Examples (1)
+
+### Conventional Comments
+
+# Conventional Comments Examples
+
+Real-world examples of conventional comments for different scenarios.
+
+## Comment Format
+
+```
+<label> (<category>): <subject>
+
+<discussion>
+```
+
+## Labels & When to Use
+
+### 🔴 `issue` - Must Fix (Blocking)
+
+**Security vulnerability:**
+```
+issue (security): SQL injection vulnerability in user lookup.
+
+The `user_id` parameter is concatenated directly into the query.
+
+Instead of:
+  cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
+
+Use parameterized queries:
+  cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+```
+
+**Breaking bug:**
+```
+issue (bug): This will crash when `items` is empty.
+
+`items[0]` throws IndexError. Add a guard:
+  if not items:
+      return default_value
+```
+
+### 🟡 `suggestion` - Should Consider
+
+**Better approach:**
+```
+suggestion (performance): Consider using `dict.get()` for O(1) lookup.
+
+Current loop is O(n) for each check:
+  for item in items:
+      if item['id'] == target_id: ...
+
+With a dict:
+  items_by_id = {item['id']: item for item in items}
+  result = items_by_id.get(target_id)
+```
+
+**Readability improvement:**
+```
+suggestion (readability): Extract this into a well-named function.
+
+This 15-line block calculates shipping cost. A function like
+`calculate_shipping_cost(order, destination)` would make the
+caller's intent clearer and enable reuse.
+```
+
+### ⚪ `nitpick` - Non-blocking Polish
+
+**Style:**
+```
+nitpick (style): Prefer `is None` over `== None` per PEP 8.
+
+  if value is None:  # ✓
+  if value == None:  # ✗
+```
+
+**Naming:**
+```
+nitpick (naming): `data` is generic. Consider `user_profile` or `response_payload`.
+```
+
+### 🟢 `praise` - Positive Reinforcement
+
+```
+praise: Excellent test coverage! These edge cases would have caught
+real bugs. The property-based test for serialization roundtrips is
+particularly clever.
+```
+
+```
+praise: This refactor reduced complexity from 15 to 4. Much easier
+to reason about now. Great work!
+```
+
+### 🔵 `question` - Clarification Needed
+
+```
+question (design): Why did we choose Redis over PostgreSQL for sessions?
+
+Not blocking, just want to understand the tradeoff for the ADR.
+```
+
+```
+question: Is `timeout=30` intentional? Other endpoints use 60s.
+```
+
+### 📝 `thought` - Non-blocking Observation
+
+```
+thought: We might want to add rate limiting here eventually.
+Not for this PR, but worth a follow-up issue.
+```
+
+## Anti-Patterns to Avoid
+
+❌ **Vague criticism:**
+```
+This code is bad.
+```
+
+✅ **Specific and actionable:**
+```
+issue (complexity): This function has 6 levels of nesting.
+Consider early returns or extracting helper functions.
+```
+
+❌ **Demanding tone:**
+```
+You need to fix this. This is wrong.
+```
+
+✅ **Collaborative tone:**
+```
+suggestion: Consider using X because Y. What do you think?
+```
+

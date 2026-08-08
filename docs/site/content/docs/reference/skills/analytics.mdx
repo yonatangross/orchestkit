@@ -1,0 +1,1208 @@
+---
+title: "Analytics"
+description: "Queries local analytics across OrchestKit projects for agent usage, skill frequency, hook timing, team activity, session replay, cost estimation, and model delegation trends. Privacy-safe with hashed project IDs. Supports time-range filtering and comparative analysis. Use when reviewing performance, estimating costs, or understanding usage patterns."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="analytics" />
+
+> **Analytics** Queries local analytics across OrchestKit projects for agent usage, skill frequency, hook timing, team activity, session replay, cost estimation, and model delegation trends. Privacy-safe with hashed project IDs. Supports time-range filtering and comparative analysis. Use when reviewing performance, estimating costs, or understanding usage patterns.
+
+
+# Cross-Project Analytics
+
+Query local analytics data from `~/.claude/analytics/`. All data is local-only, privacy-safe (hashed project IDs, no PII).
+
+Answer usage questions from the local files, never from guesswork: agent usage (which agents and how often — not which model, see the caveats) lives in `~/.claude/analytics/agent-usage.jsonl`; hook performance and failures live in `~/.claude/analytics/hook-timing.jsonl`; token and cost totals live in `~/.claude/stats-cache.json`. Query them with `jq` one-liners (below) and present real counts, not pointers to dashboards.
+
+## Subcommands
+
+Parse the user's argument to determine which report to show. If no argument provided, use AskUserQuestion to let them pick.
+
+| Subcommand | Description | Data Source | Reference |
+|------------|-------------|-------------|-----------|
+| `agents` | Top agents by frequency and success rate (duration/model unavailable — #3034) | `agent-usage.jsonl` | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/jq-queries.md` |
+| `models` | Model delegation from **token totals** in `stats-cache.json`. Per-spawn attribution is unavailable (#3034) | `stats-cache.json` | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/jq-queries.md` |
+| `skills` | Top skills by invocation count | `skill-usage.jsonl` | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/jq-queries.md` |
+| `hooks` | Slowest hooks and failure rates | `hook-timing.jsonl` | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/jq-queries.md` |
+| `teams` | Team spawn counts, idle time, task completions | `team-activity.jsonl` | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/jq-queries.md` |
+| `session` | Replay a session timeline with tools, tokens, timing | CC session JSONL | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/session-replay.md` |
+| `cost` | Token cost estimation with cache savings | `stats-cache.json` | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/cost-estimation.md` |
+| `trends` | Daily activity, model delegation, peak hours | `stats-cache.json` | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/trends-analysis.md` |
+| `summary` | Unified view of all categories | All files | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/jq-queries.md` |
+| `otel` | CC 2.1.117 + 2.1.122 + 2.1.126 OTEL enrichments: top slash commands (user vs model), per-effort cost, effort-vs-success correlation, skill activation by trigger type, most-mentioned `@` targets | `~/.claude/otel/*.jsonl` | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/otel-fields.md` |
+
+### Quick Start Example
+
+```bash
+# Top agents by spawn frequency. Excludes phantom rows (see caveat below).
+jq -s 'map(select(.agent != "unknown")) | group_by(.agent) | map({agent: .[0].agent, count: length}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
+
+# Cost per model: input + output token counts (multiply by per-model pricing;
+# count cache-read tokens separately — prompt-cache hits are ~90% cheaper, so
+# cache savings materially lower the real total)
+jq '.modelUsage | to_entries | map({model: .key, input: .value.inputTokens, output: .value.outputTokens, cacheRead: .value.cacheReadInputTokens})' ~/.claude/stats-cache.json
+
+# Slowest hooks by average duration, and failure rate as a percentage
+jq -s 'group_by(.hook) | map({hook: .[0].hook, avg_ms: (map(.duration_ms) | add / length), fail_pct: (100 * (map(select(.ok != true)) | length) / length)}) | sort_by(-.avg_ms)' ~/.claude/analytics/hook-timing.jsonl
+```
+
+### Quick Subcommand Guide
+
+**`agents`, `models`, `skills`, `hooks`, `teams`, `summary`** — Run the jq query from `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/jq-queries.md")` for the matching subcommand. Present results as a markdown table.
+
+**`session`** — Follow the 4-step process in `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/session-replay.md")`: locate session file, resolve reference (latest/partial/full ID), parse JSONL, present timeline.
+
+**`cost`** — Apply model-specific pricing from `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/cost-estimation.md")` to CC's stats-cache.json. Show per-model breakdown, totals, and cache savings. On CC >= 2.1.174, cross-check against CC-native `/usage` per-component attribution (see 'CC-Native /usage Attribution' below).
+
+**`trends`** — Follow the 4-step process in `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/trends-analysis.md")`: daily activity, model delegation, peak hours, all-time stats.
+
+**`summary`** — Run all subcommands and present a unified view: total sessions, top 5 agents, top 5 skills, team activity, unique projects. If `~/.claude/otel/*.jsonl` exists with non-empty content, append the three OTEL panels from `otel-fields.md`; otherwise omit them (do not render empty panels).
+
+**`otel`** — Render the OTEL panels: 3 from CC 2.1.117 (top slash commands user-vs-model, per-effort cost, effort-vs-success correlation), 3 from CC 2.1.119 (oversized inputs, pre/post latency, see `otel-fields.md`), 1 from CC 2.1.122 (most-mentioned `@` targets), and 1 from CC 2.1.126 (skill activation by trigger type). See `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/otel-fields.md")` for queries, graceful-fallback rules, and panel semantics. Each panel falls back cleanly to "no OTEL data available (upgrade to CC ≥ X)" when its specific file is absent or empty — render only the panels with data.
+
+## Data-Quality Caveats — read before reporting any number
+
+Two measured defects in `agent-usage.jsonl` change what this file can honestly answer. Verified against 11,249 real rows on 2026-07-20.
+
+**1. Four of eight fields are dead for 100% of rows (#3034).** `model` is the literal string `"unknown"` on every row, `agent_name` is null on every row, `output_len` is 0 on every row, and `duration_ms` is absent entirely. Only `ts`, `pid`, `agent`, and `success` carry signal. Do NOT report model delegation, agent duration, or output size from this file — grouping by `.model` returns one `unknown` bucket, not a breakdown. If asked, say the data is unavailable and cite #3034 rather than presenting a single-bucket result as if it were an answer.
+
+**2. ~38% of rows are phantom events, not spawns (#3035).** Rows with `agent == "unknown"` have no SubagentStart, no readable transcript, and their agent ids appear nowhere in Claude Code's own session data. They are an inflated denominator: any activation ratio computed over the full file is wrong. **Filter `select(.agent != "unknown")` before computing any share, percentage, or ranking.** A specialist-vs-generic split over the raw file understates specialists by roughly a third.
+
+Both are writer-side defects, not query bugs — a better jq expression cannot recover the missing signal.
+
+## Data Files
+
+Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/data-locations.md")` for complete data source documentation.
+
+| File | Contents |
+|------|----------|
+| `agent-usage.jsonl` | Agent spawns — usable fields are `ts`, `pid`, `agent`, `success` only. `model`/`agent_name`/`output_len`/`duration_ms` are dead (#3034) and ~38% of rows are phantoms (#3035) |
+| `skill-usage.jsonl` | Skill invocations |
+| `hook-timing.jsonl` | Hook execution timing and failure rates |
+| `session-summary.jsonl` | Session end summaries |
+| `task-usage.jsonl` | Task completions |
+| `team-activity.jsonl` | Team spawns and idle events |
+
+## Rules
+
+Each category has individual rule files in `rules/` loaded on-demand:
+
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| Data Integrity | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/rules/data-privacy.md` | CRITICAL | Hash project IDs, never log PII, local-only |
+| Cost & Tokens | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/rules/cost-calculation.md` | HIGH | Separate pricing per token type, cache savings |
+| Performance | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/rules/large-file-streaming.md` | HIGH | Streaming jq for >50MB, rotation-aware queries |
+| Visualization | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/rules/visualization-recharts.md` | HIGH | Recharts charts, ResponsiveContainer, tooltips |
+| Visualization | `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/rules/visualization-dashboards.md` | HIGH | Dashboard grids, stat cards, widget registry |
+
+**Total: 5 rules across 4 categories**
+
+## References
+
+| Reference | Contents |
+|-----------|----------|
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/jq-queries.md` | Ready-to-run jq queries for all JSONL subcommands |
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/session-replay.md` | Session JSONL parsing, timeline extraction, presentation |
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/cost-estimation.md` | Pricing table, cost formula, daily cost queries |
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/trends-analysis.md` | Daily activity, model delegation, peak hours queries |
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/data-locations.md` | All data sources, file formats, CC session structure |
+| `$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/references/otel-fields.md` | CC 2.1.117 OTEL fields (command_name, command_source, effort), queries, and dashboard panels |
+
+## Important Notes
+
+- All files are JSONL (newline-delimited JSON) format
+- For large files (>50MB), use streaming `jq` without `-s` — load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/analytics/rules/large-file-streaming.md")`
+- Rotated files: `&lt;name&gt;.&lt;YYYY-MM&gt;.jsonl` — include for historical queries
+- `team` field only present during team/swarm sessions
+- `pid` is a 12-char SHA256 hash — irreversible, for grouping only
+
+## CC-Native /usage Attribution (2.1.174+)
+
+CC 2.1.174 added per-component attribution to `/usage`: cache misses, long-context usage, subagent costs, and per-skill / per-agent / per-plugin / per-MCP cost breakdowns over the last 24h / 7d. It currently surfaces in the VSCode "Account & usage" dialog; in the terminal, run `/usage`.
+
+When the user asks "which skill/agent actually costs the most" or questions ork's local estimates, direct them to `/usage` as the authoritative source — CC's own attribution supersedes ork's heuristic `cost` estimates for the windows it covers. Use ork's `cost`/`otel` views for history beyond CC's 7-day window and for cross-project slicing; use `/usage` for ground truth on the last 24h/7d.
+
+## Output Format
+
+Present results as clean markdown tables. Include counts, percentages, and averages. If a file doesn't exist, note that no data has been collected yet for that category.
+
+## Related Skills
+
+- `ork:explore` - Codebase exploration and analysis
+- `ork:remember` - Store project knowledge
+- `ork:doctor` - Health check diagnostics
+
+
+---
+
+## Rules (5)
+
+### Calculate token costs accurately by separating cache reads from regular input pricing — HIGH
+
+
+## Token Cost Calculation
+
+Calculate accurate token costs using model-specific pricing with cache-aware formulas.
+
+**Incorrect — treating all tokens equally:**
+```typescript
+// WRONG: ignores cache pricing difference (10x cheaper for reads)
+const cost = totalTokens / 1_000_000 * 5.00;
+```
+
+**Correct — separate pricing per token type:**
+```typescript
+const mtok = 1_000_000;
+const pricing = { input: 5.00, output: 25.00, cache_read: 0.50, cache_write: 6.25 };
+
+const cost =
+  (tokens.input / mtok) * pricing.input +
+  (tokens.output / mtok) * pricing.output +
+  (tokens.cache_read / mtok) * pricing.cache_read +
+  (tokens.cache_write / mtok) * pricing.cache_write;
+
+// Cache savings: what it would cost if cache reads were full-price input
+const withoutCache =
+  ((tokens.input + tokens.cache_read) / mtok) * pricing.input +
+  (tokens.output / mtok) * pricing.output;
+
+const savings = withoutCache - cost;
+```
+
+**Key rules:**
+- Always calculate 4 token types separately: input, output, cache_read, cache_write
+- Cache reads are 10x cheaper than regular input — this is the biggest cost factor
+- Show cache savings prominently — users want to know caching is working
+- When daily data only has total tokens (no split), estimate 70% input / 30% output
+- Use `formatCost()` from `cost-estimator.ts` for consistent formatting
+- Pricing is user-overridable via `~/.claude/orchestkit-pricing.json`
+
+
+### Protect analytics data privacy by hashing identifiers and stripping sensitive fields — CRITICAL
+
+
+## Analytics Data Privacy
+
+All analytics data must be local-only and privacy-safe. Never log PII or reversible identifiers.
+
+**Incorrect — logging raw paths and usernames:**
+```typescript
+// WRONG: raw project path is PII
+appendAnalytics('agent-usage.jsonl', {
+  project: process.env.CLAUDE_PROJECT_DIR,  // /Users/john/secret-project
+  user: os.userInfo().username,              // john
+  file: input.file_path,                     // /Users/john/secret-project/auth.ts
+});
+```
+
+**Correct — hashed identifiers, no PII:**
+```typescript
+// RIGHT: irreversible 12-char hash, no PII
+appendAnalytics('agent-usage.jsonl', {
+  ts: new Date().toISOString(),
+  pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),  // "a3f8b2c1d4e5"
+  agent: agentType,       // "code-quality-reviewer" (not PII)
+  model: modelName,       // "claude-opus-4-7" (not PII)
+  duration_ms: durationMs,
+  success: true,
+});
+```
+
+**Key rules:**
+- Use `hashProject()` (12-char SHA256 truncation) for project identifiers — irreversible
+- Never log file paths, usernames, environment variables, or file contents
+- Agent names, skill names, and hook names are safe to log (not PII)
+- All data stays in `~/.claude/analytics/` — never transmitted externally
+- The `team` field uses team names (user-chosen), not paths
+
+
+### Stream large analytics files with jq instead of slurping to prevent OOM crashes — HIGH
+
+
+## Large File Streaming
+
+Handle large JSONL files (>50MB) with streaming queries and rotation-aware patterns.
+
+**Incorrect — slurping large files into memory:**
+```bash
+# WRONG: -s loads entire file into memory — OOM on 500MB file
+jq -s 'map(select(.agent != "unknown")) | group_by(.agent) | map({agent: .[0].agent, count: length})' ~/.claude/analytics/agent-usage.jsonl
+```
+
+**Correct — streaming without slurp:**
+```bash
+# RIGHT: stream-process line by line, then aggregate
+jq -r 'select(.agent != "unknown") | .agent' ~/.claude/analytics/agent-usage.jsonl | sort | uniq -c | sort -rn
+
+# RIGHT: for complex aggregations, use reduce
+jq -n '[inputs | select(.agent != "unknown") | .agent] | group_by(.) | map({agent: .[0], count: length}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
+```
+
+**Including rotated files for historical queries:**
+```bash
+# Rotated files follow pattern: <name>.<YYYY-MM>.jsonl
+# Include all months for full history
+jq -r 'select(.agent != "unknown") | .agent' ~/.claude/analytics/agent-usage.*.jsonl ~/.claude/analytics/agent-usage.jsonl 2>/dev/null | sort | uniq -c | sort -rn
+```
+
+**Key rules:**
+- Check file size before querying: `ls -lh` the target file
+- Files >50MB: use streaming `jq` without `-s` (slurp) flag
+- Files &lt;50MB: `-s` is fine for `group_by` operations
+- Include rotated files (`*.YYYY-MM.jsonl`) when user asks for historical data
+- For date-range queries, filter by `ts` field before aggregating
+
+
+### Design dashboard layouts with shared query keys and grid widgets for performance — HIGH
+
+
+## Dashboard Layout & Widgets
+
+Build responsive dashboard grids with stat cards, widget composition, and real-time data patterns.
+
+**Incorrect — each widget fetches independently:**
+```tsx
+// WRONG: 5 widgets = 5 duplicate API calls
+function Dashboard() {
+  return (
+    <div>
+      <RevenueWidget /> {/* fetches /api/metrics */}
+      <UsersWidget />   {/* fetches /api/metrics AGAIN */}
+      <OrdersWidget />  {/* fetches /api/metrics AGAIN */}
+    </div>
+  );
+}
+```
+
+**Correct — shared query with responsive grid layout:**
+```tsx
+// Dashboard grid with responsive breakpoints
+function DashboardGrid() {
+  return (
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <StatCard title="Revenue" value="$45,231" change="+12%" trend="up" />
+      <StatCard title="Users" value="2,350" change="+5.2%" trend="up" />
+      <StatCard title="Orders" value="1,234" change="-2.1%" trend="down" />
+      <StatCard title="Conversion" value="3.2%" change="+0.4%" trend="up" />
+
+      {/* Full-width chart spanning all columns */}
+      <div className="col-span-full">
+        <RevenueChart />
+      </div>
+
+      {/* Two-column layout for secondary charts */}
+      <div className="col-span-1 lg:col-span-2">
+        <TrafficChart />
+      </div>
+      <div className="col-span-1 lg:col-span-2">
+        <TopProductsTable />
+      </div>
+    </div>
+  );
+}
+
+// Stat card component
+function StatCard({
+  title, value, change, trend,
+}: {
+  title: string; value: string; change: string; trend: 'up' | 'down';
+}) {
+  return (
+    <div className="rounded-lg border bg-card p-6">
+      <p className="text-sm text-muted-foreground">{title}</p>
+      <p className="text-2xl font-bold">{value}</p>
+      <p className={trend === 'up' ? 'text-green-600' : 'text-red-600'}>
+        {change}
+      </p>
+    </div>
+  );
+}
+```
+
+**Widget registry pattern for dynamic dashboards:**
+```tsx
+const widgetRegistry: Record<string, React.ComponentType<WidgetProps>> = {
+  'stat-card': StatCard,
+  'line-chart': LineChartWidget,
+  'bar-chart': BarChartWidget,
+  'data-table': DataTableWidget,
+};
+
+function DynamicDashboard({ config }: { config: DashboardConfig }) {
+  return (
+    <div className="grid gap-4 grid-cols-12">
+      {config.widgets.map((widget) => {
+        const Widget = widgetRegistry[widget.type];
+        return (
+          <div key={widget.id} className={`col-span-${widget.colSpan}`}>
+            <Suspense fallback={<WidgetSkeleton />}>
+              <Widget {...widget.props} />
+            </Suspense>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+```
+
+**Real-time updates with SSE + TanStack Query:**
+```tsx
+function useRealtimeMetrics() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const source = new EventSource('/api/metrics/stream');
+    source.onmessage = (event) => {
+      const metric = JSON.parse(event.data);
+      // Update specific query, not entire dashboard
+      queryClient.setQueryData(['metrics', metric.key], metric.value);
+    };
+    return () => source.close();
+  }, [queryClient]);
+}
+```
+
+**Key rules:**
+- Use CSS Grid with responsive breakpoints (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`)
+- Share data via TanStack Query with granular query keys (not per-widget fetch)
+- Use `col-span-full` for full-width charts, `col-span-2` for half-width
+- Skeleton loading for content areas during initial load
+- SSE for server-to-client real-time, WebSocket for bidirectional
+- Update specific query keys on real-time events, not entire cache
+
+
+### Configure Recharts with ResponsiveContainer and animation control for stable rendering — HIGH
+
+
+## Recharts Chart Components
+
+Build Recharts 3.x chart components with responsive containers, custom tooltips, and accessibility.
+
+**Incorrect — chart without responsive container:**
+```tsx
+// WRONG: Fixed width, no container, animations on real-time data
+function BrokenChart({ data }: { data: ChartData[] }) {
+  return (
+    <LineChart width={800} height={400} data={data}>
+      {/* Fixed width overflows on mobile */}
+      {/* Animation on every data update = jank */}
+      <Line type="monotone" dataKey="value" />
+    </LineChart>
+  );
+}
+```
+
+**Correct — responsive chart with proper setup:**
+```tsx
+import {
+  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  CartesianGrid, XAxis, YAxis, Tooltip, Legend,
+  ResponsiveContainer, AreaChart, Area,
+} from 'recharts';
+
+// Line chart (trends over time)
+function RevenueChart({ data }: { data: ChartData[] }) {
+  return (
+    <div className="h-[400px]"> {/* Parent MUST have height */}
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="date" />
+          <YAxis />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend />
+          <Line
+            type="monotone"
+            dataKey="revenue"
+            stroke="#8884d8"
+            strokeWidth={2}
+            dot={{ r: 4 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// Custom tooltip for branded UX
+function CustomTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border bg-background p-3 shadow-md">
+      <p className="font-medium">{label}</p>
+      {payload.map((entry: any, i: number) => (
+        <p key={i} style={{ color: entry.color }}>
+          {entry.name}: {entry.value.toLocaleString()}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+// Real-time chart: disable animations
+function LiveMetricChart({ data }: { data: MetricData[] }) {
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <AreaChart data={data}>
+        <Area
+          type="monotone"
+          dataKey="value"
+          isAnimationActive={false}  // No animation on real-time data
+          dot={false}                // No dots for performance
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+// Accessible chart with figure role
+function AccessibleChart({ data, title }: { data: ChartData[]; title: string }) {
+  return (
+    <figure role="figure" aria-label={title}>
+      <figcaption className="sr-only">{title}</figcaption>
+      <ResponsiveContainer width="100%" height={400}>
+        <BarChart data={data}>
+          <Bar dataKey="value" fill="#8884d8" />
+        </BarChart>
+      </ResponsiveContainer>
+    </figure>
+  );
+}
+```
+
+**Chart type selection guide:**
+
+| Chart | Component | Best For |
+|-------|-----------|----------|
+| Line | `LineChart` | Trends over time |
+| Bar | `BarChart` | Comparisons between categories |
+| Pie/Donut | `PieChart` with `innerRadius` | Proportions/percentages |
+| Area | `AreaChart` with gradient | Volume over time |
+
+**Key rules:**
+- Always wrap charts in `ResponsiveContainer` with a parent that has explicit height
+- Disable animations on real-time/frequently-updating charts (`isAnimationActive=\{false\}`)
+- Use custom tooltips for branded UX instead of default
+- Add `figure` role and `aria-label` for accessibility
+- Limit data points to prevent rendering performance issues
+- Memoize data calculations outside the render function
+
+
+
+---
+
+## References (6)
+
+### Cost Estimation
+
+# Cost Estimation
+
+Estimate token costs from CC's `~/.claude/stats-cache.json` using model-specific pricing.
+
+## Pricing Table (Jun 2026)
+
+Authoritative source: `src/hooks/src/lib/models.vocab.json` (`pricing`). Keep in sync.
+
+| Model | Input/MTok | Output/MTok | Cache Read/MTok | Cache Write/MTok |
+|-------|-----------|------------|----------------|-----------------|
+| claude-opus-4-8 | $5.00 | $25.00 | $0.50 | $6.25 |
+| claude-sonnet-5 | $3.00 | $15.00 | $0.30 | $3.75 |
+| claude-sonnet-4-6 | $3.00 | $15.00 | $0.30 | $3.75 |
+| claude-haiku-4-5 | $1.00 | $5.00 | $0.10 | $1.25 |
+
+> `claude-sonnet-5` has an intro rate of $2/$10 per MTok through 2026-08-31; the durable $3/$15 sticker is used here for stable cost projections.
+
+> **Expiry: 2026-08-31.** That intro rate ends on this date, and the table above is dated Jun 2026. If you are reading this on or after 2026-09-01, treat every figure here as unverified and re-check it against `src/hooks/src/lib/models.vocab.json` (`pricing`) before quoting a cost.
+
+## Cost Formula
+
+```
+cost = (input_tokens / 1M * input_price)
+     + (output_tokens / 1M * output_price)
+     + (cache_read_tokens / 1M * cache_read_price)
+     + (cache_write_tokens / 1M * cache_write_price)
+```
+
+**Cache savings** = cost if all cache reads were full-price input minus actual cost.
+
+## All-Time Model Usage Query
+
+```bash
+jq '.modelUsage | to_entries | map({
+  model: .key,
+  input: .value.inputTokens,
+  output: .value.outputTokens,
+  cache_read: .value.cacheReadInputTokens,
+  cache_write: .value.cacheCreationInputTokens
+})' ~/.claude/stats-cache.json
+```
+
+## Daily Costs (Last 7 Days)
+
+```bash
+jq '.dailyModelTokens[-7:] | .[] | {date: .date, tokens: .tokensByModel}' ~/.claude/stats-cache.json
+```
+
+Note: `dailyModelTokens` only has total tokens per model, not split by type. Estimate with 70% input / 30% output ratio as a rough average for CC usage.
+
+## Presentation Format
+
+```markdown
+## Token Cost Estimate
+
+| Model | Input Tokens | Output Tokens | Cache Read | Cache Write | Est. Cost |
+|-------|-------------|--------------|------------|-------------|-----------|
+| claude-opus-4-6 | 5.2M | 1.4M | 42.0M | 2.1M | $16.20 |
+| claude-sonnet-4-6 | 200K | 50K | -- | -- | $1.85 |
+| **Total** | | | | | **$18.50** |
+
+**Cache savings:** $8.20 (what it would cost without prompt caching)
+
+### Daily Costs (Last 7 Days)
+| Date | Est. Cost |
+|------|-----------|
+| Feb 12 | $2.10 |
+| Feb 13 | $1.85 |
+| **Total** | **$18.50** |
+```
+
+## User-Overridable Config
+
+Users can override pricing by creating `~/.claude/orchestkit-pricing.json` — see `src/hooks/src/lib/cost-estimator.ts` for the schema.
+
+
+### Data Locations
+
+# Data Sources & File Locations
+
+All analytics data sources used by the analytics skill.
+
+## OrchestKit Analytics Files
+
+Location: `~/.claude/analytics/`
+
+| File | Contents | Key Fields |
+|------|----------|-----------|
+| `agent-usage.jsonl` | Agent spawn events | `ts, pid, agent, model, duration_ms, success, output_len, team?` |
+| `skill-usage.jsonl` | Skill invocations | `ts, pid, skill, team?` |
+| `hook-timing.jsonl` | Hook execution timing | `ts, hook, duration_ms, ok, pid, team?` |
+| `session-summary.jsonl` | Session end summaries | `ts, pid, total_tools, team?` |
+| `task-usage.jsonl` | Task completions | `ts, pid, task_status, duration_ms, team?` |
+| `team-activity.jsonl` | Team spawns and idle | `ts, pid, event, agent, member?, idle_ms?, model?, team` |
+
+## CC Native Data Sources
+
+| Source | Path | Contents |
+|--------|------|----------|
+| CC session logs | `~/.claude/projects/\{encoded-path\}/*.jsonl` | Full conversation with per-turn token usage |
+| CC stats cache | `~/.claude/stats-cache.json` | Pre-aggregated daily model tokens, session counts |
+| CC history | `~/.claude/history.jsonl` | Command history across all projects |
+
+## JSONL Format Notes
+
+- All OrchestKit files use newline-delimited JSON (JSONL)
+- Each line is a self-contained JSON object
+- Rotated files follow pattern `&lt;name&gt;.&lt;YYYY-MM&gt;.jsonl` — include them in queries for historical data
+- The `team` field is only present for entries recorded during team/swarm sessions
+- `pid` is a 12-char SHA256 hash of the project path — irreversible, used for grouping
+
+## CC Session JSONL Structure
+
+Each line in a CC session JSONL file is a JSON object. Key entry types:
+
+| Entry Pattern | How to Identify | Key Fields |
+|---------------|-----------------|------------|
+| Session metadata | Has `sessionId`, `gitBranch`, `version` | First entries in file |
+| Assistant message | `.message.role == "assistant"` | `.message.content[]`, `.message.usage` |
+| User message | `.message.role == "user"` | `.message.content` |
+| Tool use | `.message.content[].type == "tool_use"` | `.name`, `.input` |
+| Hook progress | `.type == "progress"` + `.data.type == "hook_progress"` | `.data.hookName` |
+
+## Encoded Project Path
+
+CC encodes project paths by replacing `/` with `-`:
+- `/Users/foo/coding/bar` becomes `-Users-foo-coding-bar`
+- The encoded path is the directory name under `~/.claude/projects/`
+
+
+### Jq Queries
+
+# Analytics jq Queries
+
+Ready-to-run jq queries for each analytics subcommand. All queries target `~/.claude/analytics/*.jsonl`.
+
+> **`agent-usage.jsonl` carries less signal than its schema suggests.** Measured against
+> 11,249 real rows: `model`, `agent_name`, `output_len` and `duration_ms` are constant or
+> absent on 100% of rows (#3034), and ~38% of rows are phantom `SubagentStop` events with no
+> originating spawn (#3035). Only `ts`, `pid`, `agent` and `success` are usable. Every query
+> below therefore filters phantoms before counting, and none of them group by `model` or
+> average `duration_ms` — those columns cannot be recovered by a better query. See the
+> Data-Quality Caveats section of `SKILL.md`.
+
+## agents — Top agents by frequency and success rate
+
+```bash
+jq -s 'map(select(.agent != "unknown")) | group_by(.agent) | map({
+  agent: .[0].agent,
+  count: length,
+  success_rate: (map(select(.success)) | length) / length * 100 | floor
+}) | sort_by(-.count)' ~/.claude/analytics/agent-usage.jsonl
+```
+
+## models — Model delegation breakdown
+
+Per-**spawn** model attribution is unavailable (#3034): `.model` is the literal string
+`unknown` on every row of `agent-usage.jsonl`, so grouping by it yields one bucket. Answer
+this question from token-level data in `stats-cache.json` instead, and say plainly that
+per-spawn attribution is not recoverable.
+
+```bash
+jq '.modelUsage | to_entries | map({
+  model: .key,
+  input: .value.inputTokens,
+  output: .value.outputTokens,
+  cacheRead: .value.cacheReadInputTokens,
+  costUSD: .value.costUSD
+}) | sort_by(-.costUSD)' ~/.claude/stats-cache.json
+```
+
+## skills — Top skills by invocation count
+
+```bash
+jq -s 'group_by(.skill) | map({skill: .[0].skill, count: length}) | sort_by(-.count)' ~/.claude/analytics/skill-usage.jsonl
+```
+
+## hooks — Slowest hooks and failure rates
+
+```bash
+jq -s 'group_by(.hook) | map({
+  hook: .[0].hook,
+  count: length,
+  avg_ms: (map(.duration_ms) | add / length | floor),
+  fail_rate: (map(select(.ok == false)) | length) / length * 100 | floor
+}) | sort_by(-.avg_ms) | .[0:15]' ~/.claude/analytics/hook-timing.jsonl
+```
+
+## teams — Team spawn counts, idle time, task completions
+
+```bash
+# Team activity (spawns + idle)
+jq -s 'group_by(.team) | map({
+  team: .[0].team,
+  spawns: [.[] | select(.event == "spawn")] | length,
+  idles: [.[] | select(.event == "idle")] | length,
+  agents: [.[].agent] | unique
+}) | sort_by(-.spawns)' ~/.claude/analytics/team-activity.jsonl
+
+# Task completions by team
+jq -s '[.[] | select(.team != null)] | group_by(.team) | map({
+  team: .[0].team,
+  tasks: length,
+  avg_ms: (map(.duration_ms // 0) | add / length | floor)
+})' ~/.claude/analytics/task-usage.jsonl
+```
+
+## summary — Quick counts
+
+```bash
+# Total sessions (excluding zero-tool sessions)
+jq -s '[.[] | select(.total_tools > 0)] | length' ~/.claude/analytics/session-summary.jsonl
+
+# Line counts per file
+wc -l ~/.claude/analytics/*.jsonl 2>/dev/null
+
+# Unique projects
+jq -r .pid ~/.claude/analytics/agent-usage.jsonl 2>/dev/null | sort -u | wc -l
+```
+
+## Presentation Format
+
+Present all results as clean markdown tables with counts, percentages, and averages. If a file doesn't exist, note that no data has been collected yet for that category. If the file exists but the field is dead (#3034), say the data is unavailable and cite the issue — never render a single-bucket group as if it were a breakdown.
+
+Example output — note there is deliberately no Avg Duration or Top Model column, because
+`agent-usage.jsonl` cannot support either (#3034):
+
+```markdown
+| Agent | Count | Success Rate |
+|-------|-------|-------------|
+| code-quality-reviewer | 45 | 98% |
+| test-generator | 32 | 94% |
+```
+
+## Routing Analysis (SQLite)
+
+The coordination DB (`~/.local/state/orchestkit/sessions.db`, populated by the
+skill-tracker hook since 2026-07-10) ships a `routing_edge` view (migration 003):
+for each `/ork:auto` or `/hq-ext:auto` invocation, the next skill invoked in the
+same session **within 120 seconds** is treated as the route taken. No jq needed.
+
+**Read the output as a lower bound, not a census.** The 120s window is
+load-bearing: measured against real data, the unbounded version of this join had
+a median gap of 43 minutes and a max of 27 hours, i.e. it was reporting "what the
+user ran later in a long session", not routing. Bounding it cut 53 apparent
+edges to 3 real ones. Rows are also missing whenever a router answers inline or
+dispatches into a forked subagent whose skill calls land under a different
+session id. Treat a low edge count as "not measurable this way", never as
+"routing did not happen".
+
+```bash
+# Route distribution per router
+sqlite3 -column ~/.local/state/orchestkit/sessions.db \
+  "SELECT router, routed_to, COUNT(*) n FROM routing_edge
+   GROUP BY router, routed_to ORDER BY router, n DESC;"
+
+# Gap between the router call and the skill that followed it
+sqlite3 -column ~/.local/state/orchestkit/sessions.db \
+  "SELECT router, COUNT(*) n, AVG(gap_ms)/1000.0 avg_s FROM routing_edge
+   GROUP BY router;"
+
+# Per-project routing volume (join sessions for cwd)
+sqlite3 -column ~/.local/state/orchestkit/sessions.db \
+  "SELECT replace(s.cwd,'/Users/','~') proj, e.router, COUNT(*) n
+   FROM routing_edge e JOIN sessions s ON s.sid = e.session_id
+   GROUP BY proj, e.router ORDER BY n DESC LIMIT 20;"
+```
+
+Router-to-same-router pairs are excluded by the view: those are session
+re-entries for a new goal, not a dispatch. Decision-level context (goal text,
+chosen intent, mutating?) is NOT captured here and cannot be — routing decisions
+are made in-prompt and never written anywhere. Capturing them needs a dedicated
+decision-phase telemetry stream; this view is the zero-new-writers
+approximation, not a substitute for it.
+
+
+### Otel Fields
+
+# CC 2.1.117 + 2.1.119 + 2.1.122 + 2.1.126 OTEL Enrichments
+
+OpenTelemetry attributes shipped in CC 2.1.117 (3 fields), CC 2.1.119 (3 more), CC 2.1.122 (1 new event + numeric-attr fix), and CC 2.1.126 (1 new attribute on existing event) that enable cross-cutting analytics this skill did not previously surface. All are **optional** — data from older CC versions lacks them and every query here falls back cleanly.
+
+> **CC 2.1.122 numeric-attribute fix (#1584):** numeric attributes on `api_request` / `api_error` log events are now emitted as numbers, not strings. Queries that compared numeric strings lexicographically (e.g. `select(.input_tokens > "1000")`) silently broke after upgrading. Prefer JSON-numeric comparisons (`select(.input_tokens > 1000)`) — jq compares numbers and numeric-strings differently. The queries below all use numeric comparisons and are correct on CC 2.1.122+.
+
+## The fields
+
+### From 2.1.117 (M117 adoption)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| `command_name` | `user_prompt` | `/ork:implement`, `/commit`, `/effort`, … (string, may be null) | Which slash command triggered this prompt. Null for free-text prompts. |
+| `command_source` | `user_prompt` | `user` \| `model` | `user` = user typed the slash; `model` = model invoked it via `SlashCommand` tool. |
+| `effort` | `cost.usage`, `token.usage`, `api_request`, `api_error` | `low` \| `medium` \| `high` \| `xhigh` | Effort tier set via `/effort` or `xhigh` (CC 2.1.111+). |
+
+### From 2.1.119 (M122 adoption)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| `duration_ms` | `tool_result`, `tool_decision` (PostToolUse + PostToolUseFailure inputs) | non-negative integer (ms) | Server-measured per-tool latency. Accurate for streaming/async tools where local timing misses dispatch/queue overhead. |
+| `tool_use_id` | `tool_result`, `tool_decision` | string (UUID-like) | Correlates a PreToolUse span with its PostToolUse span — enables pre/post pair queries in tracing backends. |
+| `tool_input_size_bytes` | `tool_result` | non-negative integer | Byte size of the serialized tool input. Surfaces oversized inputs that bloat context (e.g., 100K-byte file_path lists from broken tool callers). |
+
+### From 2.1.122 (M128 adoption)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| `target` | `claude_code.at_mention` | string (file path, directory, or URL) | What was resolved by an `@`-mention in the prompt. New event in 2.1.122 — captures every `@file.ts`, `@docs/`, `@https://...` reference. Lets us see which files/dirs users repeatedly pull into context. |
+
+### From 2.1.126 (M128 adoption)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| `invocation_trigger` | `claude_code.skill_activated` | `user-slash` \| `claude-proactive` \| `nested-skill` | Disambiguates how a skill was activated: user typed `/ork:foo`, model auto-invoked it via Skill tool, or another skill chained into it. Critical for measuring "is the model finding our skills" vs "are users using them". The event now also fires for user-typed slash commands (it previously fired only for proactive activations). |
+
+### From 2.1.202 (workflow-run correlation)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| `workflow.run_id` | any event emitted by a workflow-spawned agent | string (per-run id) | Correlates every span/log a single `/workflows` run produced. Lets a whole dynamic-workflow run's activity be reconstructed from OTel data — group all agent events by `workflow.run_id` to see the fan-out of one run. |
+| `workflow.name` | any event emitted by a workflow-spawned agent | string (workflow name) | Which named workflow the emitting agent belonged to. Slices cost/latency/skill-activation panels **by workflow**, not just by session or command. |
+
+Both attributes are attached only to telemetry from **workflow-spawned** agents (a `/workflows` run); ordinary session events lack them, so every `group_by(.["workflow.run_id"])` query must `select(... != null)` first. Emitted in CC 2.1.202. **HQ note:** these two attributes are the last unwired input for the Langfuse OTEL trigger bridge (Yonatan-HQ/platform#6631) — with `workflow.run_id`/`workflow.name` on the wire, HQ can reconstruct a run trace end-to-end. Tracked there as an HQ observability track; nothing to build in ork beyond documenting the fields for `/ork:analytics` consumers.
+
+### From 2.1.214 (message/tool provenance)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| `message.uuid` | log events | string (UUID) | Stable per-message identifier — joins a log event back to the exact transcript message that produced it. |
+| `client_request_id` | log events | string | Correlates all events belonging to one client-side API request (retries share the underlying request identity). |
+| `tool_source` | tool events | string | Where the tool came from (built-in, MCP server, plugin) — slices tool-usage panels by provider instead of lumping `mcp__*` names together. |
+
+New in CC 2.1.214; older data lacks them, so queries must null-check before grouping. The truncation limit for captured content on these events is configurable via `CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH` (default 60 KB) — see configure's `cc-version-settings.md`.
+
+Exports land in `~/.claude/otel/` (when OTEL export is enabled in `settings.json`) and in the same JSONL streams this skill already reads if OTEL-to-JSONL bridging is on.
+
+## Data location
+
+```
+~/.claude/otel/user-prompts.jsonl       # command_name, command_source         (2.1.117)
+~/.claude/otel/usage.jsonl              # effort                                (2.1.117)
+~/.claude/otel/api-requests.jsonl       # effort, numeric attrs as numbers     (2.1.117 + 2.1.122 fix)
+~/.claude/otel/tool-results.jsonl       # duration_ms, tool_use_id, tool_input_size_bytes  (2.1.119)
+~/.claude/otel/tool-decisions.jsonl     # duration_ms, tool_use_id              (2.1.119)
+~/.claude/otel/at-mentions.jsonl        # target                                (2.1.122)
+~/.claude/otel/skill-activated.jsonl    # invocation_trigger                    (2.1.126)
+```
+
+When OTEL export is disabled the files simply do not exist — queries below handle this with `2>/dev/null` and empty-result fallbacks.
+
+## Dashboard panels
+
+Three new panels compose a CC-2.1.117-aware extension of the existing `summary` subcommand.
+
+### Panel 1 — Top invoked slash commands (user-typed vs model-delegated)
+
+```bash
+jq -s 'map(select(.command_name != null))
+  | group_by(.command_name)
+  | map({
+      command: .[0].command_name,
+      total: length,
+      user: (map(select(.command_source == "user")) | length),
+      model: (map(select(.command_source == "model")) | length)
+    })
+  | sort_by(-.total)' ~/.claude/otel/user-prompts.jsonl 2>/dev/null
+```
+
+Output shape: `[\{command: "/ork:implement", total: 47, user: 42, model: 5\}, …]`.
+
+Falls back to `[]` if the file is absent — render as "no OTEL data available (upgrade to CC ≥ 2.1.117)".
+
+### Panel 2 — Per-effort-level cost breakdown
+
+```bash
+jq -s 'map(select(.effort != null))
+  | group_by(.effort)
+  | map({
+      effort: .[0].effort,
+      runs: length,
+      input_tokens: (map(.input_tokens // 0) | add),
+      output_tokens: (map(.output_tokens // 0) | add),
+      est_cost_usd: (map(.cost_usd // 0) | add | . * 100 | floor / 100)
+    })
+  | sort_by(.effort)' ~/.claude/otel/usage.jsonl 2>/dev/null
+```
+
+Expected order when rendered: `low → medium → high → xhigh`. If all rows share one effort tier, present as a single-row table rather than an empty-panel error.
+
+### Panel 3 — Effort-vs-success rate correlation
+
+```bash
+jq -s 'map(select(.effort != null))
+  | group_by(.effort)
+  | map({
+      effort: .[0].effort,
+      runs: length,
+      success_rate: ((map(select(.success == true)) | length) / length * 100 | floor),
+      error_rate: ((map(select(.error != null)) | length) / length * 100 | floor),
+      avg_duration_ms: (map(.duration_ms // 0) | add / length | floor)
+    })
+  | sort_by(.effort)' ~/.claude/otel/api-requests.jsonl 2>/dev/null
+```
+
+Interpretation: a monotonic success-rate increase from `low → xhigh` is the expected signal. A dip in the middle (e.g., medium worse than low) often indicates context-budget thrash at that tier.
+
+### Panel 4 — Per-tool latency p50/p95 (CC 2.1.119)
+
+```bash
+jq -s 'map(select(.duration_ms != null))
+  | group_by(.tool_name)
+  | map({
+      tool: .[0].tool_name,
+      runs: length,
+      p50: ((map(.duration_ms) | sort)[length / 2 | floor]),
+      p95: ((map(.duration_ms) | sort)[(length * 0.95) | floor]),
+      max: (map(.duration_ms) | max)
+    })
+  | sort_by(-.p95)' ~/.claude/otel/tool-results.jsonl 2>/dev/null
+```
+
+Use this to spot tools whose tail latency dominates session time. p95 ≫ p50 typically indicates either (a) variable input size or (b) backend-throttling on a particular MCP server.
+
+### Panel 5 — Oversized tool inputs (CC 2.1.119)
+
+```bash
+jq -s 'map(select(.tool_input_size_bytes != null and .tool_input_size_bytes > 10000))
+  | sort_by(-.tool_input_size_bytes)
+  | .[0:10]
+  | map({
+      tool: .tool_name,
+      bytes: .tool_input_size_bytes,
+      kb: (.tool_input_size_bytes / 1024 | floor),
+      tool_use_id: .tool_use_id
+    })' ~/.claude/otel/tool-results.jsonl 2>/dev/null
+```
+
+Top 10 tool inputs over 10 KB. Repeated offenders are usually broken tool callers or unexpected large file_path lists — investigate the matching `tool_use_id` in your traces.
+
+### Panel 6 — Pre/post latency correlation (CC 2.1.119)
+
+```bash
+jq -s 'map(select(.tool_use_id != null and .duration_ms != null))
+  | group_by(.tool_use_id)
+  | map(select(length == 2))    # only pairs (PreToolUse + PostToolUse)
+  | map({
+      tool_use_id: .[0].tool_use_id,
+      tool: .[0].tool_name,
+      pre_ms: ((map(select(.event == "tool_decision")) | .[0]?.duration_ms) // 0),
+      post_ms: ((map(select(.event == "tool_result")) | .[0]?.duration_ms) // 0)
+    })' ~/.claude/otel/tool-decisions.jsonl ~/.claude/otel/tool-results.jsonl 2>/dev/null
+```
+
+Reveals hooks that add significant pre-tool latency. If `pre_ms` rivals `post_ms`, the hook chain is the bottleneck — candidate for `type: "mcp_tool"` direct dispatch (see `src/skills/chain-patterns/references/mcp-tool-hooks.md`).
+
+### Panel 7 — Skill activation by trigger type (CC 2.1.126, #1581)
+
+```bash
+jq -s 'map(select(.invocation_trigger != null))
+  | group_by(.skill_name)
+  | map({
+      skill: .[0].skill_name,
+      total: length,
+      user_slash: (map(select(.invocation_trigger == "user-slash")) | length),
+      claude_proactive: (map(select(.invocation_trigger == "claude-proactive")) | length),
+      nested_skill: (map(select(.invocation_trigger == "nested-skill")) | length),
+      proactive_ratio: ((map(select(.invocation_trigger == "claude-proactive")) | length) / length * 100 | floor)
+    })
+  | sort_by(-.total)' ~/.claude/otel/skill-activated.jsonl 2>/dev/null
+```
+
+Output shape: `[\{skill: "frontend-design", total: 23, user_slash: 4, claude_proactive: 17, nested_skill: 2, proactive_ratio: 73\}, …]`.
+
+**Reading the data:**
+- High `proactive_ratio` (>50%) → description is doing its job; model is finding the skill from intent.
+- Low `proactive_ratio` (&lt;10%) and low `total` → description may be too narrow, or skill not user-invocable. Candidate for sharpening or for `user-invocable: true`.
+- High `nested_skill` → skill is composed by other skills (e.g., `/ork:design-import` → `component-search`). Verify the chain is intentional.
+
+Falls back to `[]` when the file is absent — render as "no OTEL data available (upgrade to CC ≥ 2.1.126)".
+
+### Panel 8 — Most-mentioned `@` targets (CC 2.1.122, #1584)
+
+```bash
+jq -s 'map(select(.target != null))
+  | group_by(.target)
+  | map({target: .[0].target, count: length})
+  | sort_by(-.count)
+  | .[0:20]' ~/.claude/otel/at-mentions.jsonl 2>/dev/null
+```
+
+Top 20 `@`-referenced files, dirs, or URLs across the time range. Repeatedly-mentioned targets are candidates for inclusion in CLAUDE.md or for a custom slash-command shortcut. Falls back to `[]` when the file is absent — render as "no OTEL data available (upgrade to CC ≥ 2.1.122)".
+
+## Graceful fallback
+
+All three queries:
+
+1. Use `2>/dev/null` on the file read — missing file → empty stream.
+2. Filter `select(.command_name != null)` / `select(.effort != null)` — events from older CC versions lack the attributes and are skipped, not rendered as "unknown" bars.
+3. Return `[]` on empty input so the dashboard renders a placeholder instead of crashing.
+
+## When to use
+
+Include these panels in `summary` when **any** of the three OTEL files are present with non-empty content for the time range. Otherwise fall back to the legacy `summary` output — do not render empty OTEL panels just because the fields exist in recent events.
+
+## Related
+
+- `src/skills/analytics/references/jq-queries.md` — base queries for non-OTEL JSONL sources.
+- `src/skills/analytics/references/cost-estimation.md` — per-model pricing; combines with Panel 2 for dollar-denominated breakdowns.
+- `src/hooks/src/lib/cc-version-matrix.ts` — `otel_command_attrs` entry gates these fields behind `MIN_CC_VERSION = 2.1.117`.
+
+
+### Session Replay
+
+# Session Replay
+
+Parse and visualize CC session JSONL files to understand what happened in a session.
+
+## Usage
+
+- `/ork:analytics session latest` — most recent session
+- `/ork:analytics session &lt;partial-id&gt;` — match by prefix (e.g., `08ed1436`)
+- `/ork:analytics session &lt;full-uuid&gt;` — exact match
+
+## Step 1: Locate the Session File
+
+CC session logs live at `~/.claude/projects/\{encoded-project-path\}/`.
+
+The encoded path replaces `/` with `-` in the project directory path.
+Example: `/Users/foo/coding/bar` becomes `-Users-foo-coding-bar`
+
+```bash
+# Find project session dir
+PROJECT_DIR=$(echo "$CLAUDE_PROJECT_DIR" | sed 's|/|-|g')
+SESSION_DIR="$HOME/.claude/projects/$PROJECT_DIR"
+
+# List recent sessions (newest first)
+ls -t "$SESSION_DIR"/*.jsonl 2>/dev/null | head -5
+
+# For "latest": use the first result
+LATEST=$(ls -t "$SESSION_DIR"/*.jsonl 2>/dev/null | head -1)
+```
+
+## Step 2: Resolve the Session Reference
+
+- `latest` — find the most recently modified `.jsonl` file in the project directory
+- Partial ID (e.g., `08ed1436`) — find file starting with that prefix
+- Full UUID — exact match
+
+## Step 3: Parse JSONL and Extract Timeline
+
+Each line is a JSON object. Key extraction patterns:
+
+```bash
+# Count messages by role
+jq -r '.message.role // empty' "$SESSION_FILE" | sort | uniq -c | sort -rn
+
+# Extract tool calls with timestamps
+jq -r 'select(.message.role == "assistant") | .message.content[]? | select(.type == "tool_use") | .name' "$SESSION_FILE" | sort | uniq -c | sort -rn
+
+# Sum token usage
+jq -s '[.[].message.usage // empty | {
+  i: .input_tokens, o: .output_tokens,
+  cr: .cache_read_input_tokens, cw: .cache_creation_input_tokens
+}] | {
+  input: (map(.i) | add), output: (map(.o) | add),
+  cache_read: (map(.cr) | add), cache_write: (map(.cw) | add)
+}' "$SESSION_FILE"
+
+# Get session metadata
+jq -r 'select(.gitBranch) | .gitBranch' "$SESSION_FILE" | head -1
+jq -r 'select(.version) | .version' "$SESSION_FILE" | head -1
+
+# Get start/end timestamps
+jq -r '.timestamp' "$SESSION_FILE" | head -1   # start
+jq -r '.timestamp' "$SESSION_FILE" | tail -1   # end
+
+# Count agent spawns by type
+jq -r '.message.content[]? | select(.type == "tool_use" and .name == "Task") | .input.subagent_type' "$SESSION_FILE" | sort | uniq -c | sort -rn
+```
+
+## Step 4: Present as Timeline
+
+```markdown
+## Session: 08ed1436 — 2026-02-18 10:50 -> 11:35 (45min)
+**Branch:** bugfix/windows-spawn | **CC Version:** 2.1.45
+**Tokens:** 152K in, 38K out | **Cache hit rate:** 89%
+
+### Timeline
+| Time | Event | Details |
+|------|-------|---------|
+| 10:50:00 | SESSION START | branch: bugfix/windows-spawn |
+| 10:50:01 | HOOK | SessionStart:startup |
+| 10:50:05 | Read | src/hooks/bin/spawn-worker.mjs |
+| 10:50:08 | Grep | "spawn" in src/ |
+| 10:50:15 | Task (agent) | code-quality-reviewer |
+| 10:51:00 | Edit | src/hooks/bin/spawn-worker.mjs |
+| 10:52:30 | Bash | npm test -> 8.3s |
+| 11:35:00 | SESSION END | 23 tool calls, 3 agents |
+
+### Tool Usage
+| Tool | Count |
+|------|-------|
+| Read | 12 |
+| Edit | 5 |
+| Bash | 4 |
+| Task | 2 |
+
+### Token Breakdown
+| Metric | Value |
+|--------|-------|
+| Input tokens | 152,340 |
+| Output tokens | 38,210 |
+| Cache read | 1,245,000 |
+| Cache write | 18,500 |
+| Cache hit rate | 89% |
+```
+
+
+### Trends Analysis
+
+# Trends Analysis
+
+Show daily activity, model delegation trends, and cost patterns over time.
+
+## Usage
+
+- `/ork:analytics trends` — default 7 days
+- `/ork:analytics trends 30` — last 30 days
+
+## Step 1: Daily Activity (sessions, messages, tool calls)
+
+```bash
+jq '.dailyActivity[-7:]' ~/.claude/stats-cache.json
+```
+
+## Step 2: Daily Model Token Breakdown
+
+```bash
+jq '.dailyModelTokens[-7:] | .[] | {
+  date: .date,
+  models: (.tokensByModel | to_entries | map({model: .key, tokens: .value}) | sort_by(-.tokens))
+}' ~/.claude/stats-cache.json
+```
+
+## Step 3: Peak Productivity Hours
+
+```bash
+jq '.hourCounts | to_entries | sort_by(-.value) | .[0:5] | map({
+  hour: (.key + ":00"),
+  sessions: .value
+})' ~/.claude/stats-cache.json
+```
+
+## Step 4: All-Time Stats
+
+```bash
+jq '{
+  totalSessions: .totalSessions,
+  totalMessages: .totalMessages,
+  longestSession: {
+    id: .longestSession.sessionId,
+    duration_min: (.longestSession.duration / 60000 | floor),
+    messages: .longestSession.messageCount
+  }
+}' ~/.claude/stats-cache.json
+```
+
+## Presentation Format
+
+```markdown
+## Trends -- Last 7 Days
+
+### Daily Activity
+| Date | Sessions | Messages | Tools | Est. Cost |
+|------|----------|----------|-------|-----------|
+| Feb 12 | 6 | 1,200 | 450 | $2.10 |
+| Feb 13 | 5 | 980 | 380 | $1.85 |
+| ... | ... | ... | ... | ... |
+| **Total** | **42** | **8,380** | **3,390** | **$18.50** |
+
+### Model Delegation Trend
+| Date | opus | sonnet | haiku |
+|------|------|--------|-------|
+| Feb 12 | 452K | 31K | -- |
+| Feb 13 | 380K | 25K | 12K |
+| ... | ... | ... | ... |
+
+### Peak Productivity Hours
+| Hour | Sessions |
+|------|----------|
+| 10:00 | 78 |
+| 9:00 | 71 |
+| 14:00 | 65 |
+
+### All-Time Stats
+- **Total sessions:** [N]
+- **Total messages:** [N]
+- **Longest session:** [id] -- [N] min, [N] messages
+```
+
+## Cost Per Day
+
+Apply pricing from `references/cost-estimation.md` to daily token counts:
+- Split daily tokens by model
+- Apply per-model pricing (70/30 input/output estimate for daily totals)
+- Show daily cost in the activity table
+

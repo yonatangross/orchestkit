@@ -1,0 +1,2064 @@
+---
+title: "Configure"
+description: "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="configure" />
+
+> **Configure** Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings.
+
+
+# OrchestKit Configuration
+
+Interactive setup for customizing your OrchestKit installation.
+
+## Quick Start
+
+```bash
+/ork:configure
+/ork:configure mcp memory
+```
+
+## Argument Resolution
+
+```python
+PRESET = "$ARGUMENTS[0]"   # Optional preset name or subcommand, e.g., "mcp"
+TARGET = "$ARGUMENTS[1]"   # Optional target, e.g., "memory"
+# If no arguments, run interactive wizard.
+# $ARGUMENTS is the full string (CC 2.1.59 indexed access)
+```
+
+## Step 1: Choose Preset
+
+Use AskUserQuestion:
+
+| Preset | Skills | Agents | Hooks | Description |
+|--------|--------|--------|-------|-------------|
+| **Complete** | 91 | 31 | 96 | Everything |
+| **Standard** | 91 | 0 | 96 | Skills, no agents |
+| **Lite** | 10 | 0 | 96 | Essential only |
+| **Hooks-only** | 0 | 0 | 96 | Just safety |
+| **Monorepo** | 91 | 31 | 96 | Complete + monorepo detection |
+
+## Step 2: Customize Skill Categories
+
+Categories available:
+- AI/ML (28 skills)
+- Backend (16 skills)
+- Frontend (9 skills)
+- Testing (14 skills)
+- Security (7 skills)
+- DevOps (5 skills)
+- Planning (7 skills)
+- Workflow (5 skills)
+
+## Step 3: Customize Agents
+
+**Product Agents (2):**
+- market-intelligence
+- product-strategist
+
+**Technical Agents (17):**
+- backend-system-architect
+- frontend-ui-developer
+- database-engineer
+- llm-integrator
+- workflow-architect
+- data-pipeline-engineer
+- test-generator
+- code-quality-reviewer
+- security-auditor
+- security-layer-auditor
+- debug-investigator
+- system-design-reviewer
+- python-performance-engineer
+- frontend-performance-engineer
+- monitoring-engineer
+- event-driven-architect
+- infrastructure-architect
+
+**Operations Agents (6):**
+- ci-cd-engineer
+- deployment-manager
+- git-operations-engineer
+- release-engineer
+- ai-safety-auditor
+- multimodal-specialist
+
+**Research Agents (4):**
+- web-research-analyst
+- market-intelligence
+- design-system-architect
+- demo-producer
+
+## Step 4: Configure Hooks
+
+**Safety Hooks (Always On):**
+- git-branch-protection
+- file-guard
+- redact-secrets
+
+**Toggleable Hooks:**
+- Productivity (auto-approve, logging)
+- Quality Gates (coverage, patterns)
+- Team Coordination (locks, conflicts)
+- Notifications (desktop, sound)
+
+> **CC 2.1.49 Managed Settings:** OrchestKit ships plugin `settings.json` with default hook permissions. These are *managed defaults* — users can override them in project or user settings. Enterprise admins can lock managed settings via managed profiles.
+
+> **CC 2.1.111 — prune overbroad Bash permissions:** Since 2.1.111, read-only Bash commands with glob patterns (`ls:*`, `head:*`, `grep:*`, `wc:*`, `find:*`, etc.) no longer trigger permission prompts by default. If your `.claude/settings.local.json` has explicit `Bash(ls:*)` / `Bash(grep:*)` style allows added to silence old prompts, they are now redundant. The built-in `/less-permission-prompts` skill scans your transcripts and proposes a prune diff — run it once per project and once per user profile, then commit the accepted subset. The committed OrchestKit `src/settings/ork.settings.json` is already minimal (allow = `Read`, `Glob`, `Grep`, a small set of MCP entries) and doesn't need changes.
+
+> **CC 2.1.129 — `Bash(mkdir *)` / `Bash(touch *)` allow rules now work for in-project paths:** previously silently rejected for project-relative paths; now honored as documented. Workaround entries enumerating explicit subpaths (`Bash(mkdir:./src/*)`, etc.) can be collapsed back to the canonical glob form. See `references/cc-version-settings.md` § CC 2.1.129.
+
+> **CC 2.1.157 — plugin auto-load + workflow-trigger control:** Plugins in `.claude/skills` auto-load (no marketplace required); `claude plugin init &lt;name&gt;` scaffolds one there. The "Workflow keyword trigger" toggle in `/config` — and pressing backspace right after the keyword — stops a bare "workflow"/"ultracode" from launching a dynamic workflow. `claude agents` honors the `agent` field in `settings.json`, with `--agent &lt;name&gt;` to override.
+
+> **CC 2.1.160 — write prompts for startup files & build configs:** Expect approval prompts before Claude writes shell startup files (`.zshenv`/`.zlogin`/`.bash_login`, `~/.config/git/`) or — in `acceptEdits` mode — build-tool configs that grant code execution (`.npmrc`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`). These are security defaults; approve them deliberately, don't pre-allow.
+
+> **CC 2.1.141 — `ANTHROPIC_WORKSPACE_ID` for workload identity federation:** When authenticating headless/CI agents (e.g. `/ork:ci-sentinel`, `/ork:bare-eval`) through Anthropic's WIF flow, set `ANTHROPIC_WORKSPACE_ID` to scope the minted token to one workspace when the federation rule covers more than one. Without it, a multi-workspace rule mints an unscoped token.
+
+> **CC 2.1.142 — `MCP_TOOL_TIMEOUT` for remote MCP:** the per-request timeout now actually applies to remote **HTTP/SSE** MCP servers (previously capped at 60s regardless of the configured value). Raise it (e.g. `MCP_TOOL_TIMEOUT=180000`) for long-poll tools — NotebookLM `studio_status`, knowledge-base ingest, index rebuilds — that legitimately run past 60s, so they don't silently time out and self-skip.
+
+> **CC 2.1.169 — safe-mode + policy-enforcement fixes:** `--safe-mode` (or `CLAUDE_CODE_SAFE_MODE=1`) starts CC with ALL customizations disabled — CLAUDE.md, plugins, skills, hooks, MCP servers — the fastest way to bisect "is ork (or any plugin) causing this?" before filing a bug. Enterprise managed MCP policies (`allowedMcpServers`/`deniedMcpServers`) are now enforced on reconnect, IDE-typed configs, `--mcp-config` servers in the first post-install session, and before remote settings load — if your org sets them, previously-working unlisted servers may now be (correctly) blocked. Untrusted project settings can no longer set OTEL client-certificate paths without trust confirmation. Self-hosted runners get a `post-session` lifecycle hook (after session end, before workspace deletion) for snapshotting uncommitted work or exporting logs, plus a configurable SIGTERM→SIGKILL window (default 5s).
+
+> **CC 2.1.166 — `fallbackModel` setting (up to 3 models):** the `fallbackModel` setting now accepts up to three models, tried in order when the primary is overloaded or unavailable, and `--fallback-model` now also applies to **interactive** sessions (not just headless). Set it for long `ork:implement` / `ork:brainstorm` runs so an overloaded primary degrades to the next model instead of stalling the run. Extends the 2.1.152 fallback note in `references/cc-version-settings.md`.
+
+> **CC 2.1.181 — `/config key=value` for one-off settings:** set any single setting straight from the prompt — `/config thinking=false`, `/config model=opus` — without opening the `/config` menu or hand-editing a settings file. Works in interactive, `-p`, and Remote Control. This is the fast path for a **one-off, ad-hoc** setting change. It does **not** replace durable automation: a "whenever X, do Y" behavior still requires a **hook in `settings.json`** (the harness executes hooks; `/config` only writes a setting value). Use `/config key=value` to flip a setting now; use this skill's hook flow when the change must fire automatically every session. See `references/cc-version-settings.md` § CC 2.1.181.
+
+## Step 5: Configure MCPs (Optional)
+
+All 4 MCPs ship **enabled by default**. Tavily requires an API key.
+
+| MCP | Purpose | Default | Requires |
+|-----|---------|---------|----------|
+| context7 | Library documentation | enabled | Nothing |
+| memory | Cross-session persistence | enabled | Nothing |
+| sequential-thinking | Structured reasoning for subagents | enabled | Nothing |
+| tavily | Web search + extraction | enabled | API key (free tier: app.tavily.com) |
+
+> **Why enabled?** OrchestKit ships 30+ Sonnet/Haiku subagents. While Opus 5 has native extended thinking, Sonnet and Haiku do not — they benefit from sequential-thinking. Tavily is used by specific agents (see `mcpServers` in agent frontmatter). CC's MCPSearch auto-defers schemas when overhead exceeds 10% of context, so token cost is managed automatically.
+
+> **Background agents:** MCP tools are NOT available in background subagents (hard CC platform limitation). Agents that need MCP tools must run in the foreground.
+
+**Already have these MCPs installed globally?** If Tavily or memory are already in your `~/.claude/mcp.json`, skip enabling them here to avoid duplicate entries. OrchestKit agents will use whichever instance Claude Code resolves first.
+
+**Opt out of claude.ai MCP servers (CC 2.1.63+):** Claude Code may load MCP servers from claude.ai by default. To disable this and only use locally-configured MCPs:
+
+```bash
+export ENABLE_CLAUDEAI_MCP_SERVERS=false
+```
+
+Add to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist across sessions. This only affects MCP servers sourced from claude.ai — locally-configured MCPs in `.mcp.json` and `~/.claude/mcp.json` are unaffected.
+
+## Steps 6-9: CC Version-Specific Settings
+
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/cc-version-settings.md")` for full configuration options.
+
+Covers CC 2.1.7 (MCP deferral threshold, effective context window), CC 2.1.20 (task deletion, PR enrichment, agent permissions, monorepo detection, team distribution), CC 2.1.23 (spinner verbs customization), and CC 2.1.79 (turn duration display).
+
+### CC 2.1.119: `prUrlTemplate` (M122)
+
+For enterprise GitLab / GitHub Enterprise / Bitbucket installations with non-standard URL shapes, set `prUrlTemplate` in `~/.claude/settings.json` (or project-level) to override URL construction in `review-pr` / `create-pr` / `fix-issue`:
+
+```json
+{
+  "prUrlTemplate": "https://gitlab.acme.com/{owner}/{repo}/-/merge_requests/{n}"
+}
+```
+
+Tokens: `\{host\}`, `\{owner\}`, `\{repo\}`, `\{n\}`. See `src/skills/chain-patterns/references/pr-from-platform.md` for the full host-family table and skill-side branching pattern.
+
+## Step 10: Webhook & Telemetry Configuration
+
+Configure dual-channel telemetry for streaming session data to HQ or your own API.
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Set up session telemetry?",
+  "header": "Telemetry",
+  "options": [
+    {"label": "Full streaming (Recommended)", "description": "All 18 events stream via native HTTP + enriched summaries"},
+    {"label": "Summary only", "description": "SessionEnd and worktree events only (command hooks)"},
+    {"label": "Skip", "description": "No telemetry — hooks run locally only"}
+  ],
+  "multiSelect": false
+}])
+```
+
+### If "Full streaming"
+
+1. Ask for the webhook URL in plain text — AskUserQuestion needs ≥2 options (CC schema `minItems: 2`) and can't capture a free-form URL, so prompt directly:
+
+   > What is your webhook endpoint URL? Reply with the full URL (e.g., `https://api.example.com/hooks`).
+
+2. Run the HTTP hook generator:
+```bash
+npm run generate:http-hooks -- <webhook-url> --write
+```
+
+3. Save webhookUrl to orchestration config for command hooks:
+```bash
+# File: .claude/orchestration/config.json
+saveConfig({ webhookUrl: "<webhook-url>" })
+```
+
+4. Remind the user to set the auth token:
+```
+Set ORCHESTKIT_HOOK_TOKEN in your environment (never in config files):
+  export ORCHESTKIT_HOOK_TOKEN=your-secret
+
+Two channels now active:
+  Channel 1 (HTTP):    All 18 events → /cc-event (Bearer auth, zero overhead)
+  Channel 2 (Command): SessionEnd → /ingest (HMAC auth, enriched data)
+```
+
+### If "Summary only"
+
+Save webhookUrl to config and remind about env var (same as above, skip generator step).
+
+Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/http-hooks.md")` for architecture details.
+
+## Step 11: Preview & Save
+
+> **Tip (CC 2.1.69+):** After saving configuration changes, run `/reload-plugins` to activate them without restarting your session.
+>
+> **Tip (CC 2.1.152+):** If you edited or added **skills** in a skill directory (personal `~/.claude/skills/` or project `.claude/skills/` — not plugin-packaged ones), run `/reload-skills` to re-scan and pick them up in the same session. A `SessionStart` hook can do the same by returning `reloadSkills: true`.
+
+Save to: `~/.claude/plugins/orchestkit/config.json`
+
+```json
+{
+  "version": "1.0.0",
+  "preset": "complete",
+  "skills": { "ai_ml": true, "backend": true, ... },
+  "agents": { "product": true, "technical": true },
+  "hooks": { "safety": true, "productivity": true, ... },
+  "mcps": { "context7": false, ... }
+}
+```
+
+## VSCode: Remote Control (CC 2.1.79+)
+
+VSCode users can run `/remote-control` to bridge their terminal session to `claude.ai/code`. This lets you continue the same session from a browser or phone — useful for monitoring long-running configurations or agent tasks away from your desk.
+
+## Related Skills
+- `ork:doctor`: Diagnose configuration issues
+## References
+
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/&lt;file&gt;")`:
+| File | Content |
+|------|---------|
+| `references/presets.md` | Preset definitions |
+| `references/mcp-config.md` | MCP configuration |
+| `references/http-hooks.md` | CC 2.1.63+ observability hooks (Langfuse, Datadog, custom endpoints) |
+| `references/cc-version-settings.md` | CC 2.1.7, 2.1.20, 2.1.23, 2.1.79 version-specific settings |
+
+---
+
+## Rules (2)
+
+### Backup existing configuration before making changes to enable safe rollback — HIGH
+
+
+# Backup Config Before Modification
+
+## Why
+
+Configuration files accumulate user customizations over time (MCP servers, hook permissions, keybindings). Overwriting without backup means one bad write can destroy hours of setup with no recovery path.
+
+## Rule
+
+Before modifying any configuration file:
+1. Check if the file exists
+2. If it exists, create a timestamped backup
+3. Apply changes to the original
+4. Report the backup location to the user
+
+## Incorrect — overwrite config without backup
+
+```bash
+# Directly overwrite existing config
+cat > ~/.claude/plugins/orchestkit/config.json << 'EOF'
+{
+  "version": "1.0.0",
+  "preset": "complete",
+  "skills": { "ai_ml": true }
+}
+EOF
+```
+
+```typescript
+// Blind write — existing customizations lost
+import { writeFileSync } from "fs";
+
+writeFileSync(configPath, JSON.stringify(newConfig, null, 2));
+```
+
+**Problems:**
+- User's existing MCP server config is destroyed
+- Custom hook permissions are lost
+- No way to revert if new config causes failures
+
+## Correct — backup then modify
+
+```bash
+# Backup existing config with timestamp
+CONFIG="$HOME/.claude/plugins/orchestkit/config.json"
+if [ -f "$CONFIG" ]; then
+  BACKUP="${CONFIG}.backup.$(date +%Y%m%d_%H%M%S)"
+  cp "$CONFIG" "$BACKUP"
+  echo "Backup saved: $BACKUP"
+fi
+
+# Now safe to write new config
+cat > "$CONFIG" << 'EOF'
+{
+  "version": "1.0.0",
+  "preset": "complete",
+  "skills": { "ai_ml": true }
+}
+EOF
+```
+
+```typescript
+import { existsSync, copyFileSync, writeFileSync } from "fs";
+
+function safeWriteConfig(configPath: string, newConfig: object): string | null {
+  let backupPath: string | null = null;
+
+  if (existsSync(configPath)) {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    backupPath = `${configPath}.backup.${timestamp}`;
+    copyFileSync(configPath, backupPath);
+  }
+
+  writeFileSync(configPath, JSON.stringify(newConfig, null, 2));
+  return backupPath;
+}
+```
+
+## Rollback Pattern
+
+```bash
+# If something goes wrong, restore from backup
+CONFIG="$HOME/.claude/plugins/orchestkit/config.json"
+LATEST_BACKUP=$(ls -t "${CONFIG}.backup."* 2>/dev/null | head -1)
+if [ -n "$LATEST_BACKUP" ]; then
+  cp "$LATEST_BACKUP" "$CONFIG"
+  echo "Restored from: $LATEST_BACKUP"
+fi
+```
+
+
+### Validate configuration after writing to catch malformed JSON and invalid settings — HIGH
+
+
+# Validate Config After Writing
+
+## Why
+
+Configuration files are consumed by Claude Code's plugin loader. A malformed JSON file, a missing required field, or an invalid enum value will silently fail to load — the user sees no error, just missing functionality.
+
+## Rule
+
+After every config write:
+1. Parse the written file as JSON to verify syntax
+2. Validate required fields exist
+3. Validate field values against allowed enums
+4. Report success or failure to the user
+
+## Incorrect — write config and assume success
+
+```bash
+# Write config, no verification
+cat > config.json << 'EOF'
+{
+  "version": "1.0.0",
+  "preset": "complete",
+  "skills": { "ai_ml": true }
+}
+EOF
+echo "Configuration saved successfully!"
+```
+
+```typescript
+writeFileSync(configPath, JSON.stringify(config, null, 2));
+console.log("Done!"); // No verification that file is valid
+```
+
+**Problems:**
+- Truncated writes (disk full) produce invalid JSON
+- Missing trailing brace from template errors breaks parsing
+- Typo in preset name ("compelte") silently falls back to defaults
+
+## Correct — write then validate
+
+```bash
+CONFIG="$HOME/.claude/plugins/orchestkit/config.json"
+
+cat > "$CONFIG" << 'EOF'
+{
+  "version": "1.0.0",
+  "preset": "complete",
+  "skills": { "ai_ml": true }
+}
+EOF
+
+# Validate JSON syntax
+if ! python3 -c "import json; json.load(open('$CONFIG'))"; then
+  echo "ERROR: Written config is not valid JSON"
+  exit 1
+fi
+
+# Validate required fields
+python3 -c "
+import json, sys
+config = json.load(open('$CONFIG'))
+required = ['version', 'preset']
+missing = [f for f in required if f not in config]
+if missing:
+    print(f'ERROR: Missing required fields: {missing}')
+    sys.exit(1)
+valid_presets = ['complete', 'standard', 'lite', 'hooks-only', 'monorepo']
+if config.get('preset') not in valid_presets:
+    print(f'ERROR: Invalid preset \"{config[\"preset\"]}\". Must be one of: {valid_presets}')
+    sys.exit(1)
+print('Config validated successfully')
+"
+```
+
+```typescript
+import { readFileSync, writeFileSync } from "fs";
+
+function writeAndValidateConfig(path: string, config: PluginConfig): void {
+  const content = JSON.stringify(config, null, 2);
+  writeFileSync(path, content);
+
+  // Read back and validate
+  const written = readFileSync(path, "utf-8");
+  const parsed = JSON.parse(written); // Throws on malformed JSON
+
+  const VALID_PRESETS = ["complete", "standard", "lite", "hooks-only", "monorepo"];
+  if (!parsed.version) throw new Error("Missing required field: version");
+  if (!VALID_PRESETS.includes(parsed.preset)) {
+    throw new Error(`Invalid preset "${parsed.preset}"`);
+  }
+}
+```
+
+## Validation Checklist
+
+| Check | Action on Failure |
+|-------|-------------------|
+| Valid JSON syntax | Restore from backup |
+| Required fields present | Report missing fields |
+| Preset value valid | Suggest closest match |
+| Version format valid | Default to current |
+
+
+
+---
+
+## References (4)
+
+### Cc Version Settings
+
+# CC Version-Specific Settings
+
+## Step 6: CC 2.1.7 Settings
+
+Configure CC 2.1.7-specific features:
+
+### MCP Auto-Deferral Threshold
+
+```
+MCP deferral threshold (default 10%): 10
+```
+
+Adds to config.json:
+```json
+{
+  "cc217": {
+    "mcp_defer_threshold": 0.10,
+    "use_effective_window": true
+  }
+}
+```
+
+### Effective Context Window Mode
+
+```
+Use effective context window for calculations? [Y/n]: y
+```
+
+When enabled:
+- Statusline shows `context_window.effective_percentage`
+- Compression triggers use effective window
+- MCP deferral more accurate
+
+## Step 7: CC 2.1.20 Settings
+
+Configure CC 2.1.20-specific features:
+
+### Task Deletion Support
+
+```
+Enable task deletion (status: "deleted")? [Y/n]: y
+```
+
+Enables orphan detection and automatic cleanup of blocked tasks.
+
+### PR Status Enrichment
+
+```
+Enable PR status enrichment at session start? [Y/n]: y
+```
+
+Detects open PRs on current branch and sets `ORCHESTKIT_PR_URL` / `ORCHESTKIT_PR_STATE` env vars.
+
+### Background Agent Permission Pre-Mapping
+
+```
+Enable permission profile suggestions for agents? [Y/n]: y
+```
+
+Shows recommended permission profiles when spawning agents.
+
+### Monorepo Multi-Directory Detection
+
+```
+Enable monorepo detection? [Y/n]: y
+```
+
+Detects monorepo indicators and suggests `--add-dir` usage.
+
+> **CC 2.1.47**: When `added_dirs` are already active, the monorepo detector automatically skips the `--add-dir` suggestion. The `added_dirs` field is now available in hook inputs for multi-directory awareness.
+
+### Team Plugin Distribution (CC 2.1.45+)
+
+Share OrchestKit across a team using a shared directory:
+
+```bash
+# Create shared plugin directory
+mkdir -p /shared/team/plugins/orchestkit
+
+# Copy plugin files
+cp -r plugins/ork/* /shared/team/plugins/orchestkit/
+
+# Team members use --add-dir to pick up the shared plugin
+claude --add-dir /shared/team/plugins
+```
+
+CC 2.1.45+ supports `plugin_hot_reload` — team members get updates without restarting their sessions.
+
+> **`enabledPlugins` vs `added_dirs`**: `enabledPlugins` is a CC-internal concept and is NOT exposed to hooks. The hook-accessible field for multi-directory awareness is `added_dirs` (available in `HookInput` since CC 2.1.47). Hooks can read `input.added_dirs` to detect which additional directories are active — useful for adapting behavior in multi-repo workspaces.
+
+### Monorepo Package Context (CC 2.1.49)
+
+When `added_dirs` are active, OrchestKit's monorepo detector surfaces package names from each directory as session context. This helps agents understand which packages are in scope:
+
+```
+Multi-directory context active (3 dirs)
+Packages: @myapp/api, @myapp/web, @myapp/shared
+Each directory may have its own CLAUDE.md with targeted instructions.
+```
+
+Use `claude --add-dir ./packages/api --add-dir ./packages/web` to include specific packages.
+
+## Step 8: CC 2.1.23 Settings
+
+Configure CC 2.1.23-specific features:
+
+### Spinner Verbs Customization
+
+Replace default Claude Code spinner verbs ("Thinking", "Working", etc.) with custom branding:
+
+```
+Customize spinner verbs? [Y/n]: y
+```
+
+Adds to `.claude/settings.json`:
+```json
+{
+  "spinnerVerbs": {
+    "mode": "replace",
+    "verbs": [
+      "Orchestrating",
+      "Coordinating",
+      "Synthesizing",
+      "Analyzing",
+      "Reasoning",
+      "Crafting",
+      "Architecting",
+      "Validating",
+      "Dispatching",
+      "Assembling",
+      "Engineering",
+      "Composing"
+    ]
+  }
+}
+```
+
+**Options:**
+- `mode: "replace"` - Use only your custom verbs
+- `mode: "append"` - Add your verbs to the defaults
+
+**OrchestKit-themed verbs** focus on orchestration, architecture, and engineering actions.
+
+## Step 9: CC 2.1.79 Settings
+
+Configure CC 2.1.79-specific features:
+
+### Turn Duration Display
+
+The `/config` menu now includes a "Show turn duration" toggle.
+
+```
+Enable turn duration in statusline? [y/N]: y
+```
+
+Adds to settings.json:
+```json
+{
+  "statusline": {
+    "showTurnDuration": true
+  }
+}
+```
+
+## Step 10: CC 2.1.80 Settings
+
+Configure CC 2.1.80-specific features:
+
+### Effort Frontmatter
+
+Skills can now declare `effort:` in frontmatter to override the model effort level when invoked. OrchestKit sets effort on 42 skills (19 high, 23 low).
+
+### Rate Limits Statusline
+
+The statusline now receives `rate_limits` with 5-hour and 7-day usage windows. OrchestKit surfaces this in the status bar.
+
+### Source: Settings Marketplace
+
+Plugin entries can be declared inline in settings.json:
+
+```json
+{
+  "plugins": {
+    "sources": [
+      { "type": "settings", "url": "github:yonatangross/orchestkit" }
+    ]
+  }
+}
+```
+
+### Channels (Research Preview)
+
+MCP servers can push messages into sessions via `--channels`. Experimental — monitor for GA.
+
+Shows elapsed time per turn in the statusline — useful for profiling slow tool calls and understanding agent performance.
+
+## Step 11: CC 2.1.81 Settings
+
+### Bare Mode for Scripted Calls
+
+The `--bare` flag skips hooks, LSP, plugin sync, and skill directory walks for scripted `-p` calls. Ideal for eval pipelines and CI grading where plugin context is unnecessary.
+
+Requirements:
+- `ANTHROPIC_API_KEY` must be set (OAuth and keychain auth disabled in bare mode)
+- Use with `--settings` to provide an apiKeyHelper if not using env var
+
+```bash
+# Fast grading call — no plugin overhead
+claude -p "Grade this output..." --bare --max-turns 1 --output-format text
+
+# With custom settings
+claude -p "Classify..." --bare --settings ./eval-settings.json --json-schema schema.json
+```
+
+### Channels Permission Relay
+
+Channel servers that declare the `permission` capability can forward tool approval prompts to your phone. Useful for long-running multi-agent workflows (brainstorm, implement, verify) where you're away from terminal.
+
+```bash
+# Start session with channels enabled
+claude --channels
+
+# Channel server receives permission prompts and relays approval/denial
+```
+
+Configure channel servers in settings.json:
+
+```json
+{
+  "channels": {
+    "servers": [
+      { "url": "https://your-channel-server.example.com" }
+    ]
+  }
+}
+```
+
+### Plan Mode Context Clearing
+
+Plan mode now hides the "clear context" option by default when accepting a plan. Restore with:
+
+```json
+{
+  "showClearContextOnPlanAccept": true
+}
+```
+
+### Plugin Freshness
+
+Ref-tracked plugins now re-clone on every load to pick up upstream changes. For stability, pin to a specific version tag:
+
+```json
+{
+  "plugins": {
+    "sources": [
+      { "type": "settings", "url": "github:yonatangross/orchestkit@v7.20.0" }
+    ]
+  }
+}
+```
+
+Use `@main` for bleeding edge, `@v7.x.x` for stability.
+
+## CC 2.1.90 Settings
+
+### Offline Plugin Resilience
+
+Keep marketplace cache when `git pull` fails (useful for offline or restricted network environments):
+
+```bash
+export CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1
+```
+
+### Format-on-Save Hooks (now viable)
+
+CC 2.1.90 fixed the "File content has changed" race condition when a PostToolUse hook reformats files between consecutive edits. This enables format-on-save patterns:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [{
+      "matcher": "Write|Edit",
+      "command": "prettier --write \"$CLAUDE_FILE_PATH\"",
+      "timeout": 5
+    }]
+  }
+}
+```
+
+### /powerup Lessons
+
+CC 2.1.90 adds `/powerup` — interactive lessons teaching features with animated demos. Reference this in onboarding or setup flows for new users.
+
+## CC 2.1.91 Settings
+
+### MCP Tool Result Persistence Override
+
+MCP servers can now declare large results (up to 500K chars) that should not be truncated, using the `_meta` annotation:
+
+```json
+{
+  "_meta": {
+    "anthropic/maxResultSizeChars": 500000
+  },
+  "content": [{ "type": "text", "text": "..." }]
+}
+```
+
+Use this for results like database schemas, API specs, or code analysis that lose meaning when truncated. OrchestKit's `mcp-output-transform` hook respects this annotation and skips truncation when present.
+
+### Disable Skill Shell Execution
+
+New `disableSkillShellExecution` setting prevents inline shell commands in skills, custom slash commands, and plugin commands from executing:
+
+```json
+{
+  "disableSkillShellExecution": true
+}
+```
+
+Useful for enterprise environments where skills should only provide guidance, not execute commands. OrchestKit skills with `invocation_hooks` (cover, expect, commit, devops-deployment) will have their shell preconditions skipped when this is enabled.
+
+### Plugin Executables (bin/)
+
+Plugins can now ship executables under a `bin/` directory. These are invokable as bare commands from the Bash tool without full path qualification. OrchestKit uses this for `run-hook.mjs` and `file-suggestion.sh`.
+
+### Edit Tool Shorter Anchors
+
+CC 2.1.91 uses shorter `old_string` anchors in the Edit tool, reducing output tokens. No configuration needed — this is an automatic optimization that benefits all users.
+
+### permissions.defaultMode: "auto" Validation
+
+`permissions.defaultMode: "auto"` is now validated by JSON schema in settings.json. Previously this value was silently accepted but could cause issues. OrchestKit's settings already use valid permission modes.
+
+## CC 2.1.92 Settings
+
+### forceRemoteSettingsRefresh Policy
+
+New managed policy setting for enterprise deployments. When set, CC blocks startup until remote managed settings are freshly fetched and exits if the fetch fails (fail-closed):
+
+```json
+{
+  "policy": {
+    "forceRemoteSettingsRefresh": true
+  }
+}
+```
+
+**Use case**: Enterprise environments where stale managed settings (permission policies, plugin allowlists, sandbox rules) are a compliance risk. Without this, CC falls back to cached `remote-settings.json` from a prior session.
+
+**Trade-off**: Startup requires network access — offline/air-gapped environments will fail to launch. Combine with `managed-settings.d/` (CC 2.1.83) for local policy fragments as fallback.
+
+**Doctor check**: `ork:doctor` warns if `forceRemoteSettingsRefresh` is set without a configured remote settings endpoint.
+
+### Remote Control Session Naming
+
+Remote Control session names now default to your hostname as prefix (e.g. `myhost-graceful-unicorn`). Override with:
+
+```bash
+claude --remote-control-session-name-prefix "my-prefix"
+```
+
+### Removed Commands
+
+- `/tag` — removed. No replacement needed.
+- `/vim` — removed. Toggle vim mode via `/config` → Editor mode instead.
+
+## CC 2.1.116 Settings
+
+### Sandbox `rm`/`rmdir` Dangerous-Path Hardening
+
+CC 2.1.116 closes a prior escape where sandbox auto-allow could bypass the dangerous-path safety check for `rm`/`rmdir` targeting `/`, `$HOME`, or critical system directories. No configuration change required — existing `sandbox.enabled: true` configs are now safer by default.
+
+**What changed**: Previously, commands the sandbox classified as auto-allowable could still slip past the dangerous-path check. Now the safety check runs regardless of auto-allow classification. If OrchestKit's `security-layer-auditor` agent flagged this as a residual risk in prior reviews, the gap is closed.
+
+**Action**: None. This is a pure hardening — no settings to add. `ork:doctor` reports CC version; if ≥ 2.1.116 the check is active.
+
+### `/reload-plugins` Auto-Installs Missing Dependencies
+
+`/reload-plugins` and the background plugin auto-update now auto-install missing plugin dependencies from marketplaces you've already added. Previously, a plugin whose declared dependency wasn't yet installed would fail silently on reload.
+
+**Impact for OrchestKit**: `ork` declares no external plugin deps, so no behavior change. Users who layer additional plugins on top of `ork` get cleaner reloads — no more "plugin not found in marketplace" on first startup after install.
+
+### Agent Frontmatter `hooks:` Fire in `--agent` Main-Thread Mode
+
+Before 2.1.116, agent-scoped hooks (defined in `src/agents/&lt;name&gt;.md` frontmatter) only fired when the agent ran as a subagent via the `Task` tool. As of 2.1.116, they also fire when a user invokes the agent as their main thread via `claude --agent &lt;name&gt;`.
+
+**Impact for OrchestKit**: All 14 agent hooks in OrchestKit are defensive `PreToolUse`/`PostToolUse` blockers (dangerous-command-blocker, ci-safety-check, deployment-safety-check, migration-safety-check, etc.). Main-thread firing is a **net positive** — users who pick an OrchestKit agent as their default get the same safety rails that subagent runs get.
+
+**No action required.** The audit in PR "chore(compat): CC 2.1.116 adoption" confirmed all existing agent hooks are main-thread safe.
+
+### Other Quality-of-Life Changes
+
+- `/doctor` now runs while Claude is responding (was queued to end of turn). Useful mid-session for diagnosing a hang or runaway tool loop.
+- `/config` search matches option values, not just keys (e.g. search `vim` finds the Editor mode setting).
+- Slash command menu shows explicit "No commands match" when filter has zero results (was disappearing).
+- Bash tool surfaces a GitHub API rate-limit hint when `gh` commands hit 403 — helps OrchestKit's commit/create-pr/review-pr skills back off instead of retrying.
+- Settings Usage tab renders 5-hour and weekly usage immediately with a fallback when `/usage` endpoint is rate-limited.
+- `/terminal-setup` configures VS Code/Cursor/Windsurf editor scroll sensitivity for smoother fullscreen-mode scrolling.
+
+## CC 2.1.128 Settings
+
+### `--plugin-dir` Now Accepts `.zip` Archives
+
+CC 2.1.128 extends `--plugin-dir` so it accepts a path to a `.zip` plugin archive in addition to an unpacked directory. Combined with the new `--plugin-url &lt;url&gt;` flag in 2.1.129 (see below), this enables a URL → download → load workflow for one-off plugin trials without committing the plugin to a marketplace or unpacking it manually.
+
+```bash
+# Load a plugin from a local zip
+claude --plugin-dir ./vendor/some-plugin.zip
+
+# Or from a download (chains naturally with --plugin-url; see 2.1.129)
+curl -LO https://example.com/some-plugin.zip
+claude --plugin-dir ./some-plugin.zip
+```
+
+**Action**: None for OrchestKit's own install path (we ship as a directory under `plugins/ork/`). Useful when evaluating third-party plugins side-by-side without polluting `~/.claude/plugins/`. The companion fix that stopped `/plugin` Components panel from reporting "Marketplace 'inline' not found" for `--plugin-dir`-loaded plugins (also in 2.1.128) means zip-loaded plugins now show in `/plugin` correctly.
+
+### Subprocesses No Longer Inherit OTEL_* Env Vars
+
+CC 2.1.128 stops propagating `OTEL_*` environment variables from the CLI process into spawned subprocesses (Bash, hooks, MCP, LSP). OTEL-instrumented apps run via the Bash tool no longer accidentally pick up the CLI's own OTLP endpoint and report into Claude Code's telemetry stream.
+
+**Before (≤ 2.1.127)**: A user who ran `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318 claude` would see every Bash-tool-launched subprocess (their app under test, their CI script, an MCP stdio server) inherit that env and emit spans into the CLI's collector.
+
+**After (≥ 2.1.128)**: Subprocesses start with `OTEL_*` stripped. The CLI keeps emitting its own metrics; child apps emit nothing unless their environment is configured independently.
+
+**If you need OTEL in a subprocess** — e.g., a Bash tool wrapper that shells into an OTEL-instrumented Python app — set the env explicitly inside the wrapper:
+
+```bash
+# In the wrapped command, not the CLI environment
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318 \
+OTEL_SERVICE_NAME=my-app \
+  python -m my_app
+```
+
+**Action for OrchestKit**: None. OrchestKit hooks don't rely on inherited OTEL env. If you've been using `OTEL_EXPORTER_OTLP_ENDPOINT` to debug an MCP server by piggy-backing on the CLI's collector, switch to the explicit-env pattern above. Affected children: **Bash, hooks, MCP servers (stdio + Streamable HTTP), LSP**.
+
+**Managed endpoint governs all signals (CC 2.1.217)**: when a *managed* settings file sets `OTEL_EXPORTER_OTLP_ENDPOINT`, it now governs every signal — lower-scope signal-specific overrides (`OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`, `..._METRICS_ENDPOINT`, `..._LOGS_ENDPOINT` in user/project settings) can no longer redirect telemetry away from the managed endpoint. Pre-2.1.217, a per-signal override in a lower scope silently won, which let a workstation route (say) traces to a private collector while the org believed all telemetry landed centrally. **Action for OrchestKit**: none — ork ships no managed OTEL endpoint; documented for operators running managed fleets who point Claude Code telemetry at Langfuse or a central collector (#3066).
+
+### MCP Reconnect Tool Summarization
+
+When an MCP server reconnects mid-session, CC 2.1.128 no longer flushes the full re-announced tool-name list into the conversation. Re-announced tools are summarized by server prefix instead — e.g., `mcp__github__* (37 tools re-registered)` rather than 37 separate lines.
+
+**Impact**: Cosmetic for end users (less noise in transcript). Material for anyone parsing audit logs or transcripts for tool-call surface area — the prior heuristic of grepping `mcp__&lt;server&gt;__` to enumerate connected tools breaks because reconnect events emit summaries, not enumerations. Use the initial connect event (still full enumeration) as the source of truth, and treat reconnect summaries as deltas only.
+
+See `$\{CLAUDE_PLUGIN_ROOT\}/skills/mcp-patterns/references/mcp-audit-runbook.md` for the updated reconnect-event handling.
+
+### SDK Hosts: "Always allow" Writes to .claude/settings.local.json
+
+CC 2.1.128 ships a persistent `localSettings` suggestion for Bash permission prompts in SDK hosts. When the user picks **"Always allow"** from a Bash permission prompt, the SDK host now writes the new allow rule into `.claude/settings.local.json` instead of letting it evaporate at session end.
+
+**Before**: SDK-host "Always allow" was effectively "always allow for this session" — a fresh session prompted again.
+
+**After**: The grant persists across sessions via `.claude/settings.local.json` (the existing user-machine-local file already used for personal overrides). Project `.claude/settings.json` is unchanged — these are user-local grants, not committed.
+
+**Action for OrchestKit**: None for the CLI host (which already persisted these grants). For SDK consumers (`claude-code-sdk-*` integrations), audit your `.gitignore` to confirm `.claude/settings.local.json` is excluded — committing it leaks per-developer auth grants. OrchestKit's `fewer-permission-prompts` skill takes advantage of this: `localSettings` writes are now durable for SDK hosts too, so the prompt-coalescing analysis applies there.
+
+### --channels Now Works with Console Auth (channelsEnabled managed setting)
+
+CC 2.1.128 extends `--channels` (the MCP-server-pushes-into-session feature, originally Pro/Team subscription only) to **console (API key) authentication**. Console orgs that ship managed settings must opt in by declaring `channelsEnabled: true`, otherwise `--channels` no-ops with a warning even on 2.1.128+.
+
+```json
+{
+  "channelsEnabled": true
+}
+```
+
+Place in the org's managed settings file (typically `/etc/claude-code/managed-settings.json` or the path your enterprise installer writes to). Without this flag, console-auth users on managed orgs see a "channels disabled by managed policy" message when invoking `--channels`.
+
+**Action for OrchestKit**: None for personal use. Enterprise admins shipping OrchestKit alongside `claude` for API-key-auth teams should add `channelsEnabled: true` to the managed-settings bundle if channel-relayed permission prompts (the `ork:portless` + channels combo, the brainstorm-on-mobile flow) are part of the rollout.
+
+## CC 2.1.129 Settings
+
+### `Bash(mkdir *)` / `Bash(touch *)` Allow Rules Now Honored for In-Project Paths
+
+Before 2.1.129, `Bash(mkdir *)` and `Bash(touch *)` allow rules in `.claude/settings.json` were silently rejected for in-project relative paths — the prompt fired anyway, even though the rule was syntactically valid. As of 2.1.129 these rules are honored as documented.
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir *)",
+      "Bash(touch *)"
+    ]
+  }
+}
+```
+
+**Impact for OrchestKit**: Skills that scaffold project structure (`ork:implement`, `ork:cover`, `ork:portless`) no longer need `Bash(mkdir:./*)`-style explicit path enumeration to silence prompts on project-relative `mkdir`/`touch` calls. If your `.claude/settings.local.json` has accumulated workaround entries from older CC, they're now redundant — the canonical glob form works.
+
+### `--plugin-url &lt;url&gt;` for One-Off `.zip` Plugin Loading
+
+CC 2.1.129 adds `--plugin-url &lt;url&gt;` which fetches a plugin `.zip` archive from a URL and loads it for the current session only. Pairs with the `.zip` support in `--plugin-dir` (CC 2.1.128, see above) — `--plugin-url` is the network-fetch convenience wrapper.
+
+```bash
+# Try a plugin without committing to a marketplace install
+claude --plugin-url https://example.com/some-plugin.zip
+```
+
+**Use case**: Ad-hoc trial of an externally distributed plugin (e.g., a coworker's branch build, a release artifact from a GitHub Actions run) without modifying `~/.claude/plugins/` or adding a marketplace entry. The plugin is scoped to the session and discarded when CC exits. For long-term install, use the standard `/plugin install` flow against a marketplace.
+
+**Action for OrchestKit**: None for shipping. Mention this in `ork:setup` as a way to demo OrchestKit pre-release builds (e.g., a CI-produced `.zip` from a PR branch) without disturbing the user's existing install.
+
+### Server-Managed Settings Now Apply to Pre-`user:inference` OAuth Tokens
+
+Before CC 2.1.129, enterprise/team users whose stored OAuth credentials predated the `user:inference` scope rollout silently bypassed server-managed settings policy — the policy file was fetched but not enforced. As of 2.1.129 the policy applies regardless of whether the cached token carries `user:inference`.
+
+**Impact for OrchestKit**: If your org publishes a managed `permissions`/`disableSkillShellExecution`/`forceRemoteSettingsRefresh` policy and some seats appeared to ignore it, those seats are now enforced after upgrade. No setting to change — re-login (`claude /login`) is only needed if a user is still on a pre-2.1.129 token AND wants the new scope locally; the server-side enforcement does not require re-login.
+
+### OAuth Refresh Race Fix After Wake-from-Sleep
+
+Before 2.1.129, when a laptop woke from sleep with multiple CC sessions open, the OAuth refresh attempt could race itself across sessions and invalidate the active token, logging every running session out at once. CC 2.1.129 serializes the wake-time refresh.
+
+**Impact for OrchestKit**: Long-running `/ork:implement` / `/ork:cover` / checkpoint-resume chains that span a sleep cycle no longer get killed by a phantom logout. If you still see "logged out after wake" on CC ≥ 2.1.129, it's a credential issue (expired refresh token, keychain ACL, 1Password unlock), not the race — see `doctor/references/remediation-guide.md`.
+
+### Gateway /v1/models Discovery Now Opt-In via CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1
+
+CC 2.1.126 through 2.1.128 automatically queried the configured gateway's `/v1/models` endpoint to populate the `/model` picker. CC 2.1.129 makes this **opt-in** — the picker will only show gateway-discovered models when `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1` is set.
+
+**Why**: The auto-discovery in 2.1.126–2.1.128 caused unexpected `/v1/models` traffic for sites that proxied via `ANTHROPIC_BASE_URL` to a gateway (LiteLLM, Bedrock-via-gateway, custom auth proxies) without intending to expose every backend model in the picker. 2.1.129 rolls discovery back to opt-in.
+
+```bash
+# Re-enable gateway model discovery for /model picker
+export CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1
+claude
+```
+
+**Breaking for**: Anyone who relied on `/model` listing custom gateway models in 2.1.126–2.1.128 — the picker now shows only the static built-in list unless the env var is set.
+
+**Action for OrchestKit**: None on the plugin side. `ork:setup` and `ork:llm-integration` reference the env var so users hitting "my fine-tuned model disappeared from `/model`" know the one-line fix. See also `$\{CLAUDE_PLUGIN_ROOT\}/skills/llm-integration/references/model-selection.md`.
+
+### claude_code.pull_request.count Now Counts MCP-Filed PRs
+
+The `claude_code.pull_request.count` OTel metric counted PRs/MRs created via the Bash tool (`gh pr create`, `glab mr create`, etc.). As of CC 2.1.129 it **also counts PRs/MRs filed via MCP tools** — e.g., GitHub MCP server's `create_pull_request`, GitLab MCP equivalents, custom MCP servers exposing PR-creation tools.
+
+**Impact on dashboards**: PR-velocity dashboards built on this metric will see a step-function increase at the 2.1.129 cutover for any team where MCP-driven PR creation is non-trivial. Annotate the dashboard with the version bump so the apparent "spike" isn't misread as a behavioral change.
+
+**Counter labels**: The metric still emits the same labels (`provider`, `result`); MCP-filed PRs are not specially labeled. If you need to distinguish MCP-vs-shell origins, add a derived metric in your collector that joins on tool-name from a separate `claude_code.tool.use` event stream.
+
+**Action for OrchestKit**: None on the plugin side. The `ork:telemetry-inspect` skill enumerates this metric — see `$\{CLAUDE_PLUGIN_ROOT\}/skills/monitoring-observability/references/metrics-collection.md` for collector-side guidance.
+
+## CC 2.1.132 Settings
+
+### `--permission-mode` Honored on Plan-Mode Resume
+
+Before 2.1.132, the `--permission-mode` flag was silently ignored when resuming a plan-mode session via `-p --continue` or `--resume`, and `ExitPlanMode` did not re-apply plan mode for the rest of the same session. Both gaps closed the wrong way (more permissive than declared), so this is a security-relevant fix, not just UX.
+
+```bash
+# At our floor (CC ≥ 2.1.220): plan mode survives resume as declared
+claude --resume <session-id> --permission-mode plan
+```
+
+**Impact for OrchestKit**: Skills that drive plan-mode workflows (`ork:implement`, `ork:fix-issue`, `ork:brainstorm`) and the checkpoint-resume / chain-patterns flows that re-enter sessions with `--resume` no longer leak past plan-mode constraints. No setting change — the floor in `shared/cc-support.json` already guarantees the fix.
+
+### MCP Unauthorized Connector Status Visibility
+
+Before 2.1.132, claude.ai MCP connectors that returned `401 Unauthorized` were displayed in `/mcp` as `failed`, masking the real cause (the user just needs to authorize). Headless `-p` mode also retried these non-transient 4xx auth failures as if they were network blips. CC 2.1.132 splits the two: connectors needing auth show as `needs auth` and `-p` stops retrying them.
+
+```
+$ claude  /mcp
+  github       connected · 12 tools
+  notion       needs auth     ← was "failed" pre-2.1.132
+  myserver     connected · tools fetch failed
+```
+
+**Impact for OrchestKit**: `/ork:doctor` and `mcp-visual-output` skills can rely on `/mcp` status text to distinguish auth-required from genuinely broken servers. No config change at our floor.
+
+## CC 2.1.133 Settings
+
+### Parallel-Session Refresh-Token Race Fix
+
+Before 2.1.133, when multiple CC sessions shared the same credentials and a refresh-token rotation fired in one session, the other sessions could race against it and end up using the now-invalidated token — all of them dead-ending at `401 Unauthorized` simultaneously. CC 2.1.133 serializes the rotation so concurrent sessions see the same fresh token.
+
+**Impact for OrchestKit**: OrchestKit's worktree-isolation workflow (see `chain-patterns/references/worktree-agent-pattern.md`) routinely runs concurrent CC sessions against the same machine credentials — one per worktree per agent. Before 2.1.133, a single refresh-token race could 401 every session at once mid-run, killing in-flight `/ork:implement`, `/ork:cover`, and `/ork:verify` chains. No setting change required — the floor in `shared/cc-support.json` (≥ 2.1.220) already guarantees the fix is active.
+
+If you ever do hit a "all sessions 401 at the same moment" symptom on a supported floor, the cause is no longer this race — see `$\{CLAUDE_PLUGIN_ROOT\}/skills/doctor/references/remediation-guide.md` for recovery steps.
+
+### Remote Control Stop/Interrupt Now Cancels CLI Session
+
+Before 2.1.133, pressing **Stop** in claude.ai's Remote Control surface (the web-side stop/interrupt button) did not fully cancel the underlying CLI session the same way a local `Esc` keypress would. The CLI was nominally interrupted but queued messages never advanced after the user had aborted a stuck tool call or prompt — the session stayed wedged until manually killed.
+
+CC 2.1.133 makes the Remote Control stop path identical to local `Esc`: the current tool/prompt aborts, the message queue resumes, and the session is immediately usable again.
+
+**Impact for OrchestKit**: No OrchestKit skill currently drives a Remote Control flow, so there's no end-user-facing change today. The fix matters as forward-compat for any future `channels`-style surface that exposes a remote stop button — any OrchestKit chain that gets driven from claude.ai now interrupts cleanly without leaving a hung CLI side.
+
+### MCP OAuth Honors HTTP(S)_PROXY / NO_PROXY / mTLS
+
+Before 2.1.133, CC's MCP OAuth client opened HTTP connections directly to the OAuth endpoints regardless of `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, or mTLS client-certificate settings. The MCP server itself was reachable via the proxy (because the MCP transport layer respected it) but every OAuth step bypassed it — discovery (`/.well-known/oauth-authorization-server`), **dynamic client registration (DCR)**, the initial token exchange, and every subsequent refresh.
+
+CC 2.1.133 routes the entire MCP OAuth flow through the same proxy/mTLS configuration as other HTTP traffic.
+
+```bash
+# Enterprise behind a corporate proxy with mTLS to internal MCP servers
+export HTTPS_PROXY=http://proxy.corp.example.com:3128
+export NO_PROXY=localhost,127.0.0.1,.internal.example.com
+export NODE_EXTRA_CA_CERTS=/etc/ssl/corp-ca-bundle.pem
+# mTLS client cert + key for the OAuth endpoint
+export CLAUDE_CODE_MCP_CLIENT_CERT=/etc/ssl/claude-client.pem
+export CLAUDE_CODE_MCP_CLIENT_KEY=/etc/ssl/claude-client.key
+claude
+```
+
+**Impact for OrchestKit**: Direct hit on enterprise MCP deployments behind corporate proxies — the `mcp-patterns` skill (the OrchestKit in-tree equivalent of `building-mcp-server-on-cloudflare`) can now confidently document an enterprise OAuth flow without warning users away on proxy/mTLS environments. If you support MCP-server connectivity guidance in a customer skill, drop the "proxy-aware OAuth requires manual workaround" caveat for CC ≥ 2.1.133. Also relevant to `mcp-config.md` (see CC 2.1.133 changes section there).
+
+### `--add-dir` / SDK `additionalDirectories` Works for Windows Mapped Network Drives
+
+Before 2.1.133, passing a Windows **mapped network drive** path (e.g., `Z:\\share\\project`, `\\\\server\\share`) via `claude --add-dir` or the SDK's `additionalDirectories` resulted in every subsequent `Read`/`Write`/`Edit` against that directory being denied at the permission layer — the path matched the allowlist textually but failed an internal "is real local filesystem" check that misidentified mapped drives.
+
+```powershell
+# Before 2.1.133 — denied even though --add-dir accepted it
+claude --add-dir Z:\share\project
+# Read tool on Z:\share\project\file.ts → "path not in allowed directories"
+
+# At our floor (CC ≥ 2.1.220) — works as documented
+claude --add-dir Z:\share\project
+# Read/Write/Edit succeed
+```
+
+**Impact for OrchestKit**: Windows users running CC against shared team drives — common in Citrix/VDI corporate setups, dev-shared NAS mounts, and OneDrive/SharePoint-as-drive workflows — can now use `--add-dir` and the SDK's `additionalDirectories` without a UNC-vs-letter workaround. No OrchestKit skill change required — the fix is implicit at our floor.
+
+### `worktree.baseRef` Setting — Default Changed to `"fresh"` ⚠ behavior change
+
+CC 2.1.133 adds the `worktree.baseRef` setting (`"fresh"` | `"head"`) that controls where `--worktree`, `EnterWorktree`, and agent-isolation worktrees branch from. **The default is `"fresh"`**, which means new worktrees branch from `origin/&lt;default-branch&gt;` — **not** from your local `HEAD`.
+
+This is a regression for OrchestKit users. From CC 2.1.128 through 2.1.132, `EnterWorktree` branched from local `HEAD`, which is what OrchestKit's worktree-isolation pattern (`chain-patterns/references/worktree-agent-pattern.md`) relies on: unpushed commits in the parent worktree need to be visible to spawned agents. With the new `"fresh"` default, those unpushed commits are silently dropped when the worktree is created.
+
+**Recommended OrchestKit setting** — in `.claude/settings.json`:
+
+```json
+{
+  "worktree": {
+    "baseRef": "head"
+  }
+}
+```
+
+```json
+// All three forms re-acquire the 2.1.128–2.1.132 behavior:
+//   --worktree
+//   EnterWorktree tool
+//   agent-isolation worktrees (Task tool, isolation: "worktree")
+{ "worktree": { "baseRef": "head" } }
+```
+
+**Choose `"fresh"` only if** you intentionally want every new worktree to start from `origin/&lt;default&gt;` (e.g., clean-room agent runs that should never inherit local WIP). For the common OrchestKit flow — spawn an agent in a worktree to do work on top of an in-progress local branch — `"head"` is the only correct value.
+
+**Impact for OrchestKit**: All of `ork:implement`, `ork:cover`, `ork:fix-issue`, `ork:verify`, and any custom skill that calls `Agent(... isolation: "worktree")` is affected. Without `worktree.baseRef: "head"`, agents start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, tests will run against stale source, and PRs will appear empty of your in-progress work. `ork:doctor` flags this — see `$\{CLAUDE_PLUGIN_ROOT\}/skills/doctor/references/remediation-guide.md` ("EnterWorktree drops my unpushed commits").
+
+### `sandbox.bwrapPath` / `sandbox.socatPath` Managed Settings (Linux/WSL)
+
+CC 2.1.133 adds two managed-tier settings for Linux and WSL sandbox deployments: `sandbox.bwrapPath` (custom **bubblewrap** binary location) and `sandbox.socatPath` (custom **socat** binary location). These let enterprise admins point the sandbox at vendored binaries on hosts where `bwrap` / `socat` are not on `$PATH`, are at non-standard paths (e.g., `/opt/corp-tools/bin/bwrap`), or where the default-PATH copy is too old / has the wrong capability set.
+
+```json
+// /etc/claude-code/managed-settings.json (or equivalent managed path)
+{
+  "sandbox": {
+    "bwrapPath": "/opt/corp-tools/bin/bwrap",
+    "socatPath": "/opt/corp-tools/bin/socat"
+  }
+}
+```
+
+**Tier**: managed (admin-only) — these are not user-settable in `.claude/settings.json`. They live in `managed-settings.json` (or any of the `managed-settings.d/` fragments, CC 2.1.83+).
+
+**Impact for OrchestKit**: None for personal use — OrchestKit doesn't ship a sandbox config. For enterprise rollouts that bundle OrchestKit with a corporate `claude` install on Linux/WSL fleets, add `sandbox.bwrapPath` / `sandbox.socatPath` to the managed-settings bundle if `bwrap` / `socat` are not on the default `$PATH` for the target hosts. macOS and native Windows are unaffected (no bwrap/socat dependency).
+
+### `parentSettingsBehavior` Admin Key — Opt SDK `managedSettings` into Policy Merge
+
+CC 2.1.133 adds the `parentSettingsBehavior` admin-tier key with values `"first-wins"` | `"merge"`. SDK hosts can pass a `managedSettings` block as the "parent tier" of the precedence chain — this key controls whether that parent tier participates in the merge against the admin-managed policy, or is overridden first-wins-style by the admin tier.
+
+```json
+// /etc/claude-code/managed-settings.json
+{
+  "parentSettingsBehavior": "merge"
+  // or
+  // "parentSettingsBehavior": "first-wins"
+}
+```
+
+| Value | Effect |
+|-------|--------|
+| `"first-wins"` (default) | Admin-managed settings win — SDK-passed `managedSettings` are ignored where keys conflict |
+| `"merge"` | SDK `managedSettings` participate in the precedence merge alongside the admin tier — useful when the SDK host needs to declare a stricter policy than the admin baseline |
+
+**Impact for OrchestKit**: None for the CLI host. Relevant only for SDK consumers (`claude-code-sdk-*` integrations) that ship their own `managedSettings` and need that policy to compose with an org-level managed-settings bundle rather than be overridden by it. If you build an SDK host on top of OrchestKit, set `parentSettingsBehavior: "merge"` on the admin side so your host's `managedSettings` block isn't silently dropped.
+
+### `Edit`/`Write` Allow Rules at Drive Root or POSIX `/` Now Match Correctly
+
+Before 2.1.133, `Edit` and `Write` allow rules scoped to a Windows **drive root** (e.g., `Edit(C:\\**)`) or to the POSIX root (`Edit(/**)`) matched incorrectly and always fired the permission prompt anyway — the rule was syntactically valid and accepted but the path-match step misclassified the rule as not covering the target path. CC 2.1.133 fixes the match logic so these rules now behave as documented.
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Edit(/**)",
+      "Write(/**)",
+      "Edit(C:\\**)",
+      "Write(C:\\**)"
+    ]
+  }
+}
+```
+
+**Impact for OrchestKit**: None for the standard OrchestKit setup — OrchestKit recommends per-project allow rules under `.claude/settings.json` for the project directory, not a system-wide drive-root grant. Relevant if you've added a drive-root rule as a workaround in `.claude/settings.local.json` to silence the prompt-every-time symptom of this bug — at our floor the workaround is no longer needed and the rule actually means what it says. Audit any `Edit(C:\\**)`-shaped rules with that history; if they were added as workarounds, narrow them now that the canonical glob form works.
+
+### Hooks Now Receive `effort.level` Input + `$CLAUDE_EFFORT` Env
+
+CC 2.1.133 surfaces the active effort level to every hook invocation in two new ways:
+
+1. **`effort.level` JSON input field** — the hook stdin payload now includes the active effort as a top-level `effort.level` string (`"low"` | `"medium"` | `"high"` | `"xhigh"`).
+2. **`$CLAUDE_EFFORT` environment variable** — set in the hook process env and inherited by anything the hook spawns. Bash tool invocations also see `$CLAUDE_EFFORT`, so shell commands can branch on it without going through the hook.
+
+```typescript
+// PreToolUse hook reading effort from JSON stdin
+import { readFileSync } from 'node:fs';
+
+const input = JSON.parse(readFileSync(0, 'utf-8'));
+const effort = input.effort?.level ?? process.env.CLAUDE_EFFORT ?? 'medium';
+
+if (effort === 'low') {
+  // Skip expensive validation — user signaled fast iteration
+  process.exit(0);
+}
+```
+
+```bash
+# Bash tool / hook script reading effort directly
+if [ "${CLAUDE_EFFORT:-medium}" = "xhigh" ]; then
+  # Run the full audit suite — user explicitly opted in
+  npm run test:all
+else
+  npm run test:quick
+fi
+```
+
+**Impact for OrchestKit**: Direct hit on `src/hooks/src/**` — every OrchestKit hook can now be effort-aware. Concrete opportunities:
+
+- **`quality-gates`** hooks can gate expensive correctness checks (full type-check, security scan, integration suite) to `high` / `xhigh` and skip them on `low` for fast iteration.
+- **`ci-debug`**, **`assess`**, and **`verify`** chains can scale the number of parallel agents spawned with effort level.
+- **`pre-commit`** style gates can downgrade strict checks to advisory at `low` and enforce blocking at `high`.
+
+No setting change required — the JSON field and env var are always present at our floor (CC ≥ 2.1.220). Hook authors should treat absence as `medium` for forward compat.
+
+### `/effort` Now Session-Scoped (No Cross-Session Leak)
+
+Before 2.1.133, running `/effort high` (or any effort change) in one CC session could **silently bump the effort level of every other concurrent session** on the same machine — the effort state was stored in a shared global rather than per-session. A related bug also caused IDE-driven effort changes (the VSCode/JetBrains effort picker) to be silently dropped when another session held the lock.
+
+CC 2.1.133 makes `/effort` session-local: each session has its own effort state, IDE effort changes are reliably applied to the active session, and concurrent sessions no longer trample each other.
+
+```bash
+# Session A
+/effort xhigh
+# → Session A is now xhigh
+
+# Session B (concurrent, started before or after)
+/effort low
+# → Session B is now low; Session A stays at xhigh (was previously also forced to low)
+```
+
+**Impact for OrchestKit**: Direct hit on OrchestKit's worktree-isolation workflow — running parallel `/ork:implement` and `/ork:verify` in separate worktrees with different effort levels (e.g., `xhigh` for the implement run, `medium` for verify) now works as expected. Before 2.1.133, the second `/effort` call would silently retarget the first session, defeating the whole point of per-task effort tuning. Combined with the new `effort.level` hook input (#1702), this makes effort-aware hooks safe to deploy without worrying about cross-session contamination. No setting change required; the floor in `shared/cc-support.json` (≥ 2.1.220) already guarantees the fix.
+
+### Subagents Now Discover Project/User/Plugin Skills
+
+Before 2.1.133, subagents spawned via the **Task tool** could not discover skills from any source — project (`.claude/skills/`), user (`~/.claude/skills/`), or plugin (e.g., OrchestKit's bundled skills). The Skill tool inside a subagent saw an empty registry even when the parent session could list dozens of skills. This was a **direct regression** for OrchestKit because every agent in `src/agents/*` that delegates work via Task and relies on a Skill call inside the subagent was broken at the discovery step.
+
+CC 2.1.133 restores documented behavior: subagents inherit the full skill registry (project + user + plugin tiers) and can invoke any skill the parent session sees.
+
+```typescript
+// Inside a subagent body (e.g., src/agents/backend-system-architect.md):
+// Before 2.1.133: this would fail — Skill not found
+// At our floor (CC ≥ 2.1.220): works as documented
+Skill({ name: 'ork:architecture-patterns' });
+```
+
+**Impact for OrchestKit**: **Direct, immediate** — every OrchestKit agent in `src/agents/*` that uses `skills:` in its frontmatter relies on this discovery path. Before 2.1.133, Task-delegated work in `ork:implement`, `ork:cover`, `ork:verify`, `ork:fix-issue`, `ork:review-pr`, and `ork:explore` could silently fall back to non-skill behavior because the Skill tool returned "skill not found" inside the subagent. At our floor the fix is implicit — no agent-frontmatter or settings change is required. If you maintain custom agents that worked around this by inlining skill content into the agent body, you can now revert to a clean `Skill(\{ name: ... \})` call.
+
+## CC 2.1.136 Settings
+
+### `settings.autoMode.hard_deny` — Unconditional Auto-Mode Block Tier
+
+CC 2.1.136 adds a new permission-classifier tier: `settings.autoMode.hard_deny`. Rules in this list **block unconditionally** — regardless of user intent, regardless of any matching `allow` entry, regardless of permission mode. This is stronger than the existing auto-mode deny list (which a user-confirmed allow can override) and is the right home for patterns that should never run, full stop.
+
+```json
+// .claude/settings.json
+{
+  "autoMode": {
+    "hard_deny": [
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf $HOME*)",
+      "Bash(git push --force origin main)",
+      "Bash(git push --force origin master)",
+      "Bash(git reset --hard origin/main)",
+      "Bash(curl * | sh)",
+      "Bash(curl * | bash)",
+      "Bash(wget * | sh)"
+    ]
+  }
+}
+```
+
+| Tier | Behavior | Override path |
+|------|----------|---------------|
+| `permissions.deny` | Blocks; user can re-issue with explicit allow | Bypassable with allow rule or `--permission-mode acceptEdits` |
+| `autoMode.deny` (classifier) | Blocks in auto mode only; user prompt in default mode | Bypassable with allow rule |
+| `autoMode.hard_deny` (NEW) | Blocks unconditionally; allow rules ignored | **None** — only way around is removing the rule |
+
+**Impact for OrchestKit**: Direct hit on `src/settings/*.settings.json` and the `permission-design`-style guidance. The recommended OrchestKit baseline should promote a small set of catastrophic patterns from `autoMode.deny` to `autoMode.hard_deny` — specifically the ones that no real workflow should ever need to override interactively. Audit existing classifier rules: anything documented as "deny unless user explicitly confirms" stays in `autoMode.deny`; anything documented as "never run, period" (destructive recursive removes, force-push to default branch, pipe-to-shell from network) should move to `hard_deny`. Skills documenting permission patterns (`security-patterns`, `permission-design` if added) should cover the new tier.
+
+### Plan Mode Now Blocks Writes Even With Matching `Edit(...)` Allow Rule ⚠ behavior change
+
+Before 2.1.136, plan mode had a security gap: if a user had an `Edit(&lt;path&gt;)` allow rule defined for normal sessions, that rule **bypassed plan mode's no-write contract** — the rule's allow effect leaked into plan mode and let writes through silently. Plan mode is supposed to be a read-only / proposal-only context; the bypass meant a session running in plan mode could still mutate files if the path matched any persisted allow rule.
+
+CC 2.1.136 fixes the bypass: plan mode now blocks writes regardless of allow rules. The only way to write in plan mode is to exit plan mode (`ExitPlanMode`) first.
+
+```bash
+# Pre-2.1.136 (BROKEN): plan mode + Edit(src/**) allow rule = writes go through
+claude --permission-mode plan
+# Edit on src/foo.ts → silently allowed by the Edit(src/**) rule
+
+# At our floor (CC ≥ 2.1.220, includes 2.1.136 fix): plan mode blocks writes
+claude --permission-mode plan
+# Edit on src/foo.ts → blocked by plan mode (allow rule has no effect)
+```
+
+**Impact for OrchestKit**: Security-relevant fix, not just UX. Skills that drive plan-mode workflows (`ork:implement`, `ork:fix-issue`, `ork:brainstorm`) can now rely on plan mode actually being read-only — pre-2.1.136 a session-scoped `Edit(...)` allow rule could turn a "let me think first" into "let me silently rewrite". No setting change required at our floor (≥ 2.1.220). If a skill or agent body has language saying "Edit allow rules bypass plan mode" (a workaround documented for the broken behavior), that text is now wrong and should be removed — `ExitPlanMode` is the only path to writes in plan mode.
+
+### `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL` — Re-Enable Session Quality Survey for OTEL Capture
+
+CC 2.1.136 adds `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL=1` to re-enable the in-session feedback survey for enterprises that capture survey responses via OpenTelemetry. The survey is normally suppressed in enterprise / OTEL-emitting deployments to avoid noise; this env var opts back in when the org actually wants to ingest the responses.
+
+```bash
+# Enterprise deployment that captures CC OTEL traces and wants survey signal
+export CLAUDE_CODE_ENABLE_OTEL=1
+export CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL=1
+claude
+```
+
+**Impact for OrchestKit**: None for personal use — OrchestKit doesn't ship an OTEL config. Relevant for enterprise rollouts that bundle OrchestKit with a corporate `claude` install and pipe CC telemetry to an internal OTEL collector. If you maintain such a deployment and want survey responses in your telemetry stream alongside the existing tool-use traces, set the env var on the host that launches `claude` (managed-env or shell init, not in OrchestKit's per-project config).
+
+### `AskUserQuestion` Preserves Multi-Select Array Answers ⚠ behavior change
+
+Before 2.1.136, `AskUserQuestion` with `multiSelect: true` silently **discarded** the answer when the runtime supplied it as an array (the documented shape). The question dispatched, the user clicked their selections, but the agent received no usable answer — effectively a soft hang on multi-select questions. CC 2.1.136 fixes the array path so multi-select answers are preserved end-to-end.
+
+```typescript
+// Multi-select question that now works at our floor (CC ≥ 2.1.220)
+AskUserQuestion({
+  questions: [{
+    question: 'Which test tiers should I generate?',
+    header: 'Test tiers',
+    multiSelect: true,
+    options: [
+      { label: 'Unit', description: 'Vitest unit tests' },
+      { label: 'Integration', description: 'Testcontainers + real DB' },
+      { label: 'E2E', description: 'Playwright user flows' },
+    ],
+  }],
+});
+// Pre-2.1.136: returned answer object had multi-select silently dropped
+// At our floor: returned answer is the full string[] of selected labels
+```
+
+**Impact for OrchestKit**: Direct hit on any skill or agent that uses `AskUserQuestion` with `multiSelect: true`. The agent runtime relied on this — pre-2.1.136 a multi-select call would silently produce no answer and the agent would have to fall back to single-select or guess. At our floor the fix is implicit — no skill or agent frontmatter change required. If a skill body or agent description currently warns "don't use multiSelect, it drops answers" (a workaround for the pre-2.1.136 bug), that warning is stale and should be removed. The `ork-elicit` MCP elicitation flow specifically benefits — questionnaires that branched on a single-select-only workaround can now use multiSelect natively.
+
+## CC 2.1.152 Settings
+
+### `--fallback-model` Now Switches for the Whole Session
+
+When the primary model is not found (e.g. a pinned model ID that no longer resolves, or a gateway that dropped it), CC 2.1.152 switches to your configured `--fallback-model` for the **rest of the session** instead of erroring on every request. Previously a missing primary model failed each request individually.
+
+**Action for OrchestKit**: Set a `--fallback-model` (or the `ANTHROPIC_SMALL_FAST_MODEL` / model settings your gateway supports) so a renamed or de-listed primary degrades gracefully rather than bricking the session. Pairs with the gateway model-discovery note above — if `/model` lists fewer models than expected, a fallback keeps long `ork:implement`/`ork:brainstorm` runs alive. No plugin-side change required.
+
+> **Related 2.1.152 items** (full table in `$\{CLAUDE_PLUGIN_ROOT\}/skills/doctor/references/version-compatibility.md`): `permissionMode: "auto"` no longer needs opt-in consent; the sandbox-enabled warning now shows in condensed startup; and a new `MessageDisplay` hook event can transform/hide assistant text (ork ships no MessageDisplay hook — recognized in the `HookEvent` union for future use).
+
+## CC 2.1.172–179 Settings
+
+Settings introduced since the 2.1.152 entries above, current to the adoption head (`latest_known` 2.1.179). Bugfix-only releases (2.1.171/173/177/179) add no settings.
+
+### `availableModels` Enforcement Tightened (2.1.172 / 2.1.176)
+
+`availableModels` (an allowlist of model IDs/aliases) existed earlier, but its enforcement hardened: CC 2.1.172 applies the allowlist to **subagent model overrides, the agent-dispatch picker, and the advisor model**; CC 2.1.176 closes two bypasses — alias picks can **no longer be redirected to a blocked model via `ANTHROPIC_DEFAULT_*_MODEL`** env vars, and `/fast` **refuses to toggle** when it would switch to a model outside the allowlist.
+
+```json
+{ "availableModels": ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5-20251001"] }
+```
+
+**Action for OrchestKit**: ork's `model-cost-advisor` hook is allowlist-aware (PR #2420) — when an agent's pinned tier is excluded it emits a **visible warning** instead of letting CC silently substitute a weaker model (a correctness trap for capability-pinned agents like `security-auditor`). ork agents use bare aliases, so they survive the picker fix; no frontmatter change needed.
+
+### `enforceAvailableModels` Managed Setting (2.1.175)
+
+A **managed** setting (managed-settings.json only): when enabled, the `availableModels` allowlist also constrains the **Default** model (a Default that would resolve to a disallowed model falls back to the first allowed model), and user/project settings can **no longer widen** a managed `availableModels` list.
+
+```json
+{ "enforceAvailableModels": true }
+```
+
+**Action for OrchestKit**: handled by the same `model-cost-advisor` hardening (PR #2420) — the advisor detects `enforceAvailableModels` and notes Default is constrained too. No plugin-side change required; relevant to orgs that centrally restrict tiers.
+
+### `wheelScrollAccelerationEnabled` (2.1.174)
+
+Disables mouse-wheel scroll acceleration in fullscreen (`tui: fullscreen`) mode for users who find accelerated scroll jumpy.
+
+```json
+{ "wheelScrollAccelerationEnabled": false }
+```
+
+**Action for OrchestKit**: UX-only, no plugin surface. Mention for users on fullscreen TUI.
+
+### `language` — Session-Title Localization (2.1.176)
+
+CC 2.1.176 generates session titles in the **language of the conversation**; set `language` to pin a specific language for titles.
+
+```json
+{ "language": "ja" }
+```
+
+**Action for OrchestKit**: ork's haiku session auto-rename hook (`session-identity.ts`, PR #2449) builds an English title prompt; issue #2443 will thread this `language` setting into `buildGeneratorPrompt` so the prompt-bar title matches CC's localized session-list title. Until then, set `language` and expect a minor English/localized mismatch in the prompt bar.
+
+### `footerLinksRegexes` (2.1.176)
+
+Regex-matched link badges in the footer row, configurable via user or managed settings — turns matching tokens in the footer into clickable link badges.
+
+```json
+{ "footerLinksRegexes": [{ "pattern": "ORK-\\d+", "url": "https://github.com/yonatangross/orchestkit/issues/$1" }] }
+```
+
+**Action for OrchestKit**: ork ships no footer/statusline surface, so nothing to integrate — informational. Users can wire issue/PR badges themselves.
+
+### `Tool(param:value)` Permission Rules (2.1.178)
+
+Permission rules now match a tool's **input parameters** (not just its name), with `*` wildcard support. Syntax: `Tool(param:value)`. The canonical example from the changelog is `Agent(model:opus)` to block any subagent spawned with Opus.
+
+```json
+{ "permissions": { "deny": ["Agent(model:opus)", "Agent(model:fable)"] } }
+```
+
+**Action for OrchestKit**: ork stays **docs-only** here — it does NOT add param-deny rules to the committed `src/settings/ork.settings.json` (a publicly distributed plugin must not silently constrain a user's model choice). Critically, this native syntax does **not** replace ork's model hooks: `Tool(param:value)` is a *static* allow/deny gate, whereas `subagent-start/model-cost-advisor.ts` reads agent frontmatter at runtime + warns when a pinned tier is excluded by `availableModels`, and `pretool/task/fable-spend-consent.ts` issues an interactive consent prompt with an `ORK_FABLE_OK` bypass. The 2.1.178 subtraction pass (`shared/rules/cc-native-first.md`) confirmed both as **KEEP** — orthogonal, not redundant. Users wanting a hard block (no prompt) can add `Agent(model:…)` deny rules in their own settings.
+
+### MCP `disallowedTools` Enforced in Subagents (2.1.178)
+
+CC 2.1.178 fixes a bug where MCP server-level specs (`mcp__server`, `mcp__server__*`, `mcp__*`) listed in an agent's `disallowedTools` were **silently ignored** when the agent ran as a subagent. They are now enforced at spawn.
+
+```yaml
+# agent frontmatter — now actually blocks all Tavily tools in the subagent
+disallowedTools: [mcp__tavily, mcp__tavily__*]
+```
+
+**Action for OrchestKit**: agent authors can now rely on `disallowedTools: [mcp__*]` to scope MCP access in spawned subagents (e.g. deny expensive/untrusted MCP servers to a background agent). ork had **no workaround** for the old bug, so nothing is retired — see `.claude/rules/agent-authoring.md`.
+
+### Nested `.claude/skills` + Closest-Wins Precedence (2.1.178)
+
+Skills in nested `.claude/skills/` directories now load when you work on files there; on a name clash the nested skill appears as `&lt;dir&gt;:&lt;name&gt;` so both stay reachable. More broadly, the agent / workflow / output-style **closest to the working directory wins** on a name collision, and project-scope workflow saves now target the closest existing `.claude/workflows/`.
+
+**Action for OrchestKit**: informational for monorepo users — a package can host its own `packages/api/.claude/skills/` without colliding with the root. ork ships its skills via the `ork` plugin, not `.claude/skills`, so no packaging change.
+
+### Workflow Keyword Now Explicit-Phrase Only (2.1.178)
+
+The dynamic-workflow trigger now fires **only** on explicit phrases like "run a workflow" or "workflow:" (with a purple-shimmer highlight) — a bare mention of the word "workflow" no longer launches one.
+
+**Action for OrchestKit**: removes accidental triggers from skill descriptions and docs that merely mention "workflow". Complements the 2.1.157 keyword-trigger toggle; no plugin change needed. (Also in 2.1.178: auto-mode now runs the classifier on a subagent spawn *before* launch, closing a gap where a subagent could request a blocked action without review — a platform safety improvement, no frontmatter change.)
+
+## CC 2.1.181 Settings
+
+### `/config key=value` — Set Any Setting From the Prompt
+
+CC 2.1.181 adds `/config key=value` syntax to set any setting directly from the prompt, without opening the `/config` menu or editing a settings file by hand:
+
+```
+/config thinking=false
+/config model=opus
+```
+
+Works in **interactive**, **`-p`** (headless), and **Remote Control**.
+
+**One-off vs. durable — the distinction OrchestKit must preserve:** `/config key=value` writes a single setting value. It is the fast path for an **ad-hoc, one-off** change. It does **not** create automation. A durable "whenever X happens, do Y" behavior still requires a **hook in `settings.json`** — the harness executes hooks, the model does not, so a setting value can't stand in for one. When a user asks to flip one setting now, reach for `/config key=value`; when they ask for a recurring on-event behavior, route to the hook flow in the `configure` (update-config) skill.
+
+**Action for OrchestKit**: docs-only. No change to the committed `src/settings/ork.settings.json` — this is a user-facing convenience, not a plugin surface. Mention it in `update-config` as the quick path for single ad-hoc settings, while keeping hook-based automation as the answer for "from now on / each time / whenever" requests.
+
+## CC 2.1.200 Settings
+
+### AskUserQuestion no longer auto-continues
+
+CC 2.1.200 removes the default auto-continue on `AskUserQuestion` dialogs — an unanswered question now
+waits indefinitely unless the user opts into an idle timeout via `/config`. ork's skills use
+`AskUserQuestion` as **blocking intent gates** (mode selection, scope confirmation), so nothing in the
+plugin relied on auto-continue; the `ORK_ASK_FALLBACK=text` fallback path is likewise unaffected.
+
+**Action for OrchestKit**: none in settings. For unattended/headless flows that must not stall on a
+question, prefer passing the decision as skill args (or a `/goal` condition) over expecting a dialog
+to time out.
+
+### Permission mode "default" displays as "Manual"
+
+The "default" permission mode is renamed to **"Manual"** in the CLI, `--help`, VS Code, and JetBrains.
+`--permission-mode manual` and `"defaultMode": "manual"` are accepted as aliases; `default` remains
+valid — no deprecation.
+
+**Action for OrchestKit**: none. ork's committed settings define no `defaultMode`, and skill-issued
+flags use explicit mode values (`acceptEdits`, `dontAsk`, `plan`). When *describing* the no-mode state
+in docs or prompts, prefer the new "Manual" label.
+
+## CC 2.1.214 Settings
+
+### `CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH` — OTEL content truncation limit
+
+CC 2.1.214 makes the truncation limit for content captured on OTEL log events configurable. The
+default stays 60 KB; set the env var (bytes) to raise or lower it:
+
+```bash
+# Capture up to 200 KB of content per OTEL log event
+export CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH=200000
+```
+
+Pairs with the new 2.1.214 log-event attributes (`message.uuid`, `client_request_id`, `tool_source`)
+documented in analytics' `otel-fields.md`.
+
+**Action for OrchestKit**: none in settings — ork ships no OTEL config. Relevant when debugging
+truncated prompt/tool content in an OTEL pipeline (or the HQ Langfuse bridge): raise the limit on the
+host that launches `claude`, not in per-project config.
+
+
+### Http Hooks
+
+# HTTP Hooks — Dual-Channel Telemetry (CC 2.1.63+)
+
+> ⚠️ **Channel 1 is DEPRECATED (#1861).** Do not configure it for new installs.
+>
+> Both channels POST to the **same** downstream endpoint, so running both delivers
+> **every hook event twice**. That duplication is not free — it drove a **61% rate-limit
+> reject rate** on the yonatan-hq platform (2026-05-13) and forced a per-session bucketing
+> workaround server-side that exists only to absorb the double-send.
+>
+> **Channel 4 (the HMAC-signed `http-sink`) is now canonical**: batched, retried with
+> exponential backoff + jitter, circuit-broken, and verified end-to-end against the
+> published hook contract (`@orchestkit/hook-contract` / `orchestkit-hook-contract` on
+> PyPI — M141). Nothing depends on channel 1.
+>
+> `npm run generate:http-hooks` still works but **warns on every run**, and becomes a
+> **no-op in v9.x** (breaking). Track #1861.
+
+OrchestKit supports two parallel channels for streaming session data:
+
+- **Channel 1: Native HTTP hooks** — ⚠️ *deprecated* — CC POSTs raw JSON to HQ for ALL 18 event types (Bearer auth, no batching, no retry, no dedupe)
+- **Channel 2: Command hooks** — Node spawn for enriched reporting (token usage, metrics, HMAC auth)
+
+## Quick Start
+
+```bash
+# 1. Generate native HTTP hook config for all 18 events
+npm run generate:http-hooks -- https://your-api.com/hooks --write
+
+# 2. Set auth token
+export ORCHESTKIT_HOOK_TOKEN=your-secret-token
+```
+
+This writes to `.claude/settings.local.json` (not committed). CC merges plugin `hooks.json` + user `settings.local.json` — both channels fire in parallel.
+
+> **Known Limitation (CC 2.1.71+):** HTTP hooks must use real URLs, not env var placeholders. CC validates `url` fields as proper URLs *before* expanding `$\{ENV_VAR\}` — so `"url": "$\{ORCHESTKIT_HOOK_URL\}"` fails validation and breaks ALL hooks. This is why HTTP hooks are generated per-user with real URLs (not shipped in the plugin). Env var expansion in `headers` (e.g., `$ORCHESTKIT_HOOK_TOKEN`) works fine — only the `url` field is affected.
+
+## User Tiers
+
+| Tier | Setup | What You Get |
+|------|-------|-------------|
+| **1. Default** | Nothing | All hooks local (command only), JSONL analytics |
+| **2. Streaming** | Generator + env var | All 18 events stream via native HTTP (zero overhead) |
+| **3. Full HQ** | Both channels | Real-time stream + enriched summaries (token usage, metrics) |
+
+## Channel Comparison
+
+| | Channel 1: Native HTTP | Channel 2: Command |
+|---|---|---|
+| Coverage | All 18 events, real-time | SessionEnd + worktree only |
+| Overhead | Zero (CC native) | Node spawn per event |
+| Data | Raw CC payload | Enriched (tokens, metrics, branch) |
+| Auth | Bearer token | HMAC-SHA256 |
+| Config | `.claude/settings.local.json` | `hooks.json` (plugin-level) |
+
+## Generator CLI
+
+```bash
+# Print to stdout
+npm run generate:http-hooks -- https://your-api.com/hooks
+
+# Write to default location (.claude/settings.local.json)
+npm run generate:http-hooks -- https://your-api.com/hooks --write
+
+# Dry run (preview without writing)
+npm run generate:http-hooks -- https://your-api.com/hooks --dry-run
+
+# Custom path
+npm run generate:http-hooks -- https://your-api.com/hooks --write --path ~/.claude/settings.local.json
+```
+
+The generator is idempotent — running twice replaces existing cc-event entries without duplicating.
+
+## Generated Config Format
+
+Each event type gets a native HTTP hook entry:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [{
+      "type": "http",
+      "url": "https://your-api.com/hooks/cc-event",
+      "headers": { "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN" },
+      "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN"],
+      "timeout": 5
+    }],
+    "UserPromptSubmit": [{ "...same..." }],
+    "PreToolUse": [{ "...same..." }],
+    "...": "...all 18 events..."
+  }
+}
+```
+
+## What HQ Gets Per Event (natively from CC)
+
+| Event | Key Data |
+|-------|----------|
+| SessionStart | model, source, cwd, permission_mode |
+| UserPromptSubmit | prompt text |
+| PreToolUse | tool_name, tool_input |
+| PostToolUse | tool_name, tool_input, tool_result |
+| PostToolUseFailure | tool_name, error |
+| SubagentStart/Stop | agent lifecycle |
+| Stop | transcript_path |
+| WorktreeCreate/Remove | worktree lifecycle |
+| SessionEnd | session cleanup |
+
+## Security
+
+- Bearer token auth via `ORCHESTKIT_HOOK_TOKEN`
+- `allowedEnvVars` whitelist prevents env var leakage
+- HTTP errors are non-blocking (graceful degradation)
+- Security hooks (blocker, scanner, guard) stay `type: "command"` — never HTTP
+- Token never stored in config files — env var only
+
+## Disabling
+
+Remove the generated entries from `.claude/settings.local.json`, or delete the file entirely. Plugin command hooks continue working independently.
+
+
+### Mcp Config
+
+# MCP Configuration
+
+MCPs (Model Context Protocol servers) enhance OrchestKit commands but are **NOT required**.
+Commands work without them - MCPs just add extra capabilities.
+
+## Available MCPs
+
+| MCP | Purpose | Storage | Enhances |
+|-----|---------|---------|----------|
+| **context7** | Up-to-date library docs | Cloud (Upstash) | /ork:implement, /ork:verify, /ork:review-pr |
+| **sequential-thinking** | Structured reasoning | None | Sonnet/Haiku subagents needing multi-step reasoning |
+| **memory** | Knowledge graph | Local file | Decisions, patterns, entities |
+| **tavily** | Web search, extract, crawl | Cloud (Tavily) | /ork:explore, /ork:implement, web-research agents |
+| **stitch** | Official Google Stitch MCP — AI design → HTML/screenshots | Cloud (Google) | /ork:design-to-code, design-context-extractor |
+| **21st-dev-magic** | React component registry (1.4M devs) | Cloud (21st.dev) | /ork:component-search, frontend-ui-developer |
+| **storybook-mcp** | Project component discovery, testing, previews via Storybook 10.3+ | Local (localhost:6006) | /ork:design-to-code, component-curator, frontend-ui-developer |
+| **notebooklm-mcp** | Google NotebookLM RAG | Cloud (Google) | External knowledge base, research synthesis, studio content |
+| **fal** | AI inference (1000+ models: FLUX.2, Kling, LTX, TTS) | Cloud (fal.ai) | multimodal-specialist, demo-producer, design-to-code |
+
+> **Subagent Model Note:** Sequential-thinking MCP is redundant for Opus 4.6+ (which has native adaptive thinking), but OrchestKit ships 30+ Sonnet/Haiku subagents that **do not** have native extended thinking. These subagents benefit from sequential-thinking for complex multi-step reasoning. Enable it for the subagent mix, not the parent model.
+
+## Recommended MCPs by Project Type
+
+Not sure which MCPs to enable? Match your project type:
+
+| Project Type | Recommended MCPs | Why |
+|---|---|---|
+| **Full-stack React** | context7, memory, storybook-mcp, 21st-dev-magic, stitch | Component reuse, design extraction, latest API docs |
+| **Backend Python/Node** | context7, memory, tavily | Library docs, decision persistence, web research |
+| **Design system** | stitch, storybook-mcp, 21st-dev-magic, context7 | Figma extraction, component discovery, registry search |
+| **AI/LLM project** | context7, memory, tavily, fal, sequential-thinking | API docs, pattern memory, research, image/video/TTS inference, structured reasoning |
+| **Generative media** | fal, memory, stitch, 21st-dev-magic | Image/video/audio generation, design extraction, component registry |
+| **Open source library** | context7, memory | Minimal footprint — docs + decision tracking |
+| **Research/analysis** | tavily, memory, notebooklm-mcp | Web search, knowledge graph, RAG synthesis |
+
+All MCPs are optional — OrchestKit works without any. Enable what fits your workflow. See setup instructions for each MCP in the Dependencies section below.
+
+## Default State
+
+OrchestKit ships **all 4 MCPs enabled** in `.mcp.json`. Tavily requires an API key (`TAVILY_API_KEY` via 1Password) — it connects but tools fail without the key.
+
+## Two-Layer MCP Control (CC 2.1.49)
+
+CC uses two layers to determine which MCP servers are active. Understanding both prevents configuration contradictions.
+
+**Layer 1: `.mcp.json`** — Server definitions and self-declaration
+- `"disabled": false` (or omitted) → server process starts, tools load
+- `"disabled": true` → server process does NOT start, 0 tokens consumed
+
+**Layer 2: `settings.json` / `settings.local.json`** — User approval
+- `enableAllProjectMcpServers: true` → **overrides** Layer 1's `disabled` flag for all servers
+- `enabledMcpjsonServers: [...]` → allowlist of approved servers
+- `disabledMcpjsonServers: [...]` → denylist (takes precedence over allowlist)
+
+**Important:** `enableAllProjectMcpServers: true` overrides `disabled: true` in `.mcp.json`. If you want a server truly off, either remove it from `.mcp.json` entirely or add it to `disabledMcpjsonServers` in settings.
+
+OrchestKit ships `.mcp.json` with all servers `disabled: false` and `settings.local.json` with an `enabledMcpjsonServers` allowlist. No contradictions.
+
+## Per-Agent MCP Scoping (CC 2.1.49)
+
+Agent frontmatter supports `mcpServers` to control which MCP servers a subagent can access:
+
+```yaml
+---
+name: web-research-analyst
+mcpServers: [tavily]
+---
+```
+
+- **`mcpServers` omitted** → agent inherits ALL MCP tools from parent session
+- **`mcpServers: [tavily]`** → agent ONLY sees tavily tools
+- **`mcpServers: []`** → agent sees NO MCP tools
+
+OrchestKit agents declare `mcpServers` explicitly to avoid inheriting unnecessary tool definitions into their smaller context windows (Sonnet: 128K vs Opus: 200K).
+
+## Background Agent Limitation
+
+**MCP tools are NOT available in background subagents.** This is a hard CC platform limitation.
+
+Agents spawned with `run_in_background: true` or `background: true` cannot call any MCP tools (tavily, context7, memory, sequential-thinking). Design background agents to use only built-in CC tools (Read, Grep, Glob, Bash, etc.).
+
+If a background agent needs MCP tools, run it in the foreground instead.
+
+## Token Overhead & MCPSearch
+
+Each connected MCP adds tool definitions to the context window:
+
+| MCP | Tools | ~Tokens |
+|-----|-------|---------|
+| context7 | 2 | ~400 |
+| memory | 8 | ~1200 |
+| sequential-thinking | 1 | ~600 |
+| tavily | 5 | ~2000 |
+| **Total** | **16** | **~4200** |
+
+**MCPSearch (default since CC 2.1.7):** When MCP tool schemas exceed 10% of the context window, CC automatically defers schema loading and uses an `MCPSearch` tool to discover tools on demand — reducing overhead by ~85%.
+
+With 4 MCPs (~4.2K tokens = 2.1% of 200K), schemas load upfront. This is acceptable. If you add more MCPs and cross the 10% threshold, MCPSearch activates automatically.
+
+**Tighten the threshold:** Set `ENABLE_TOOL_SEARCH=auto:5` in your shell profile to defer at 5% instead of 10%.
+
+**Note:** MCPSearch requires Sonnet 4+ or Opus 4+ — Haiku agents cannot use it and always get full schema overhead. OrchestKit's 2 Haiku agents (ci-cd-engineer, release-engineer) use `mcpServers` scoping to minimize their MCP exposure.
+
+## Enabling/Disabling MCPs
+
+Edit `.mcp.json` and set `"disabled": true` or `false` for each MCP:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schemas/mcp.schema.json",
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "disabled": false
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "disabled": false
+    },
+    "memory": {
+      "command": "sh",
+      "args": ["-c", "DIR=\"$CLAUDE_PROJECT_DIR\"; [ -n \"$DIR\" ] || DIR=\"$PWD\"; export MEMORY_FILE_PATH=\"$DIR/.claude/memory/memory.json\"; mkdir -p \"$DIR/.claude/memory\"; exec npx -y @modelcontextprotocol/server-memory"],
+      "disabled": false
+    },
+    "tavily": {
+      "command": "sh",
+      "args": ["-c", "TAVILY_API_KEY=$(op read 'op://<vault>/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
+      "disabled": false
+    },
+    "21st-dev-magic": {
+      "command": "npx",
+      "args": ["-y", "@21st-dev/magic@latest"],
+      "env": { "API_KEY": "${TWENTYFIRST_DEV_API_KEY}" },
+      "disabled": false
+    }
+  }
+}
+```
+
+To disable a specific MCP, set `"disabled": true` in `.mcp.json`. Ensure `settings.local.json` does NOT have `enableAllProjectMcpServers: true` (which would override the disabled flag).
+
+## Tavily MCP
+
+When `TAVILY_API_KEY` is set and the Tavily MCP is enabled, agents gain access to production-grade web research tools.
+
+### Tools
+
+| Tool | Purpose | Credits |
+|------|---------|---------|
+| `tavily_search` | AI-optimized semantic web search with relevance scoring | 1 (basic) / 2 (advanced) |
+| `tavily_extract` | Extract markdown content from up to 20 URLs | 1 per 5 pages |
+| `tavily_map` | Discover all URLs on a site (sitemap) | 1 per 10 pages |
+| `tavily_crawl` | Full site crawl with content extraction | 1-2 per 5 pages |
+| `tavily_research` | Deep multi-source research with citations (async) | Variable |
+
+### Which agents and skills use Tavily?
+
+| Component | Type | How it uses Tavily |
+|-----------|------|-------------------|
+| `web-research-analyst` | Agent | Primary research tool — search, extract, crawl |
+| `market-intelligence` | Agent | Market analysis with `"topic": "finance"` search |
+| `product-strategist` | Agent | Competitive landscape with `include_domains` filtering |
+| `ai-safety-auditor` | Agent | Content extraction with injection detection |
+| `web-research-workflow` | Skill | 3-tier decision tree: WebFetch → Tavily → agent-browser |
+| `rag-retrieval` | Skill | CRAG workflow web search fallback |
+
+### Setup
+
+**Option A: Local MCP with 1Password (recommended)**
+1. Get a free API key (1,000 credits/month): https://app.tavily.com
+2. Store in 1Password: `op item create --category "API Credential" --title "Tavily API Key" "API Key=tvly-..."`
+3. Use `op read` in `.mcp.json` (see example config above) — the `sh -c` wrapper fetches the key from 1Password at MCP startup
+
+> **Note:** Claude Code's MCP `env` block only resolves `$\{ENV_VAR\}` syntax, not `op://` references directly. Use the `sh -c "TAVILY_API_KEY=$(op read '...') exec npx ..."` wrapper pattern to read from 1Password at startup.
+
+> **`&lt;vault&gt;` placeholder:** replace the `&lt;vault&gt;` segment above with your 1Password vault name. For individual accounts the default vault is named `Private`; for team/org accounts use your vault name (e.g. `op://YourTeam/Tavily API Key/API Key`).
+
+**Option B: Remote MCP (hosted, no npx)**
+
+Tavily offers a hosted MCP server — no local process needed. Generate the URL at https://app.tavily.com → "Remote MCP" → "Generate MCP Link":
+
+```json
+"tavily": {
+  "type": "url",
+  "url": "https://mcp.tavily.com/mcp/?tavilyApiKey=YOUR_KEY",
+  "disabled": false
+}
+```
+
+### Without Tavily
+
+Agents fall back to WebFetch (Haiku-summarized) → agent-browser (full headless). Tavily fills the middle tier with raw markdown extraction and semantic search.
+
+## MCP Dependencies
+
+| MCP | Requirements |
+|-----|-------------|
+| context7 | None |
+| sequential-thinking | None |
+| memory | None (creates `.claude/memory/` automatically) |
+| tavily | 1Password: `op read 'op://&lt;vault&gt;/Tavily API Key/API Key'` (free: https://app.tavily.com) |
+| notebooklm-mcp | `uv tool install notebooklm-mcp-cli` + `nlm login` + `nlm setup add claude-code` |
+| stitch | API key from [stitch.withgoogle.com/settings](https://stitch.withgoogle.com/settings). Add via: `claude mcp add stitch --transport http https://stitch.googleapis.com/mcp --header "X-Goog-Api-Key: YOUR-KEY" -s user` |
+| 21st-dev-magic | API key from https://21st.dev (free tier available). Set `TWENTYFIRST_DEV_API_KEY` env var |
+| storybook-mcp | Storybook 10.3+ with `@storybook/addon-mcp`. Setup: `npx storybook add @storybook/addon-mcp && npx mcp-add --type http --url "http://localhost:6006/mcp" --scope project`. Requires Vite builder + running Storybook |
+
+## Plugin Integration
+
+OrchestKit agents and skills integrate with these MCPs:
+
+| Component | MCP Used | Purpose |
+|-----------|----------|---------|
+| /ork:implement, /ork:verify, /ork:review-pr | context7 | Fetch current library docs |
+| web-research-analyst, market-intelligence | tavily | Web search and content extraction |
+| /ork:remember, /ork:memory | memory | Persist decisions across sessions |
+| /ork:release-sync, /ork:visualize-plan | notebooklm-mcp | External RAG, research, studio content |
+| Sonnet/Haiku subagents | sequential-thinking | Structured reasoning for non-Opus models |
+| /ork:design-to-code, design-context-extractor | stitch | AI design → HTML, screenshot extraction, design context |
+| /ork:component-search, component-curator | 21st-dev-magic | Search + retrieve production React components |
+| /ork:design-to-code, component-curator, frontend-ui-developer | storybook-mcp | Component discovery, story previews, test verification |
+
+## Without MCPs
+
+Commands still work - MCPs just enhance them:
+- `/ork:implement` works, but without latest library docs (context7)
+- Web research works via WebFetch/WebSearch, but without raw markdown extraction (tavily)
+- Session continuity works via local files and knowledge graph
+
+## Browser Automation
+
+For browser automation and testing, use the `agent-browser` skill instead of an MCP.
+
+## CC 2.1.128/129 changes that affect `.mcp.json` and plugin manifests
+
+We floor at `2.1.220`, so all of these apply by default.
+
+### Reserved server name: `workspace` (CC 2.1.128)
+
+`workspace` is a reserved MCP server name in CC 2.1.128+. Any `.mcp.json` entry using it is silently skipped with a warning. Pick any other identifier — none of OrchestKit's bundled servers use this name.
+
+### `deniedMcpServers` is case-insensitive on hostnames (CC 2.1.129)
+
+`deniedMcpServers` patterns with `*://` scheme wildcards now match hostnames case-insensitively (RFC-correct). You no longer need defensive case-variant duplication:
+
+```jsonc
+// before (CC ≤ 2.1.128 — both required to actually deny)
+"deniedMcpServers": ["*://example.com", "*://EXAMPLE.com"]
+
+// at our floor (one entry covers all case variants)
+"deniedMcpServers": ["*://example.com"]
+```
+
+### `/mcp` shows tool counts and flags zero-tool servers (CC 2.1.128)
+
+```
+$ claude  /mcp
+  github       connected · 12 tools
+  notebooklm   connected · 24 tools
+  myserver     connected · 0 tools  ⚠
+```
+
+A zero-tool count after a successful connection means `tools/list` failed silently — usually a stdio MCP server crashed during the handshake. CC 2.1.132+ retries `tools/list` once automatically, but if the count stays zero, the server is misconfigured.
+
+### Paginated `tools/list` truncation fixed (CC 2.1.144)
+
+Pre-2.1.144, CC only read the FIRST page of a paginated `tools/list` response — servers exposing 50+ tools silently lost everything past page 1, a classic cause of "why doesn't this MCP tool show up". CC 2.1.144 fixed tools; 2.1.146 fixed the same family for `resources/list`, `resources/templates/list`, and `prompts/list`.
+
+After upgrading past the fix, verify once per large server: compare the `/mcp` tool count against the server's own registry. If the count is still short on CC ≥ 2.1.144, the bug is in the SERVER's pagination (file upstream there — CC is fixed).
+
+### Experimental plugin manifest fields move under `experimental` (CC 2.1.129)
+
+CC 2.1.129+ expects plugin manifests to declare experimental fields (e.g. `themes`) under an `"experimental"` block. Top-level still works but `claude plugin validate` warns. Future CC versions are expected to error on top-level entries.
+
+```jsonc
+// .claude-plugin/plugin.json (post-CC 2.1.129 shape)
+{
+  "name": "your-plugin",
+  "version": "1.0.0",
+  "skills": "./skills/",
+  "experimental": {
+    "themes": "./themes/"
+  }
+}
+```
+
+OrchestKit no longer ships any experimental fields as of v7.94.0 (the prior `monitors` registration was removed in M168 Phase 1) — see `scripts/build-plugins.sh` for the codegen.
+
+### `CLAUDE_CODE_SHELL_PREFIX` no longer corrupts MCP stdio argv (CC 2.1.128)
+
+If you wrap CC in `nix-shell --run`, `direnv exec`, or similar via `CLAUDE_CODE_SHELL_PREFIX`, stdio MCP servers used to receive corrupted argv when their command-line args contained spaces or shell metacharacters. CC 2.1.128 preserves quoting through the prefix wrap. No action required at our floor — just notable history.
+
+## CC 2.1.132 changes
+
+### `/mcp` shows `needs auth` instead of `failed` for unauthorized claude.ai connectors
+
+Before 2.1.132, an unauthorized claude.ai MCP connector (HTTP 401) showed up in `/mcp` as `failed` — indistinguishable from a server that crashed during connect. CC 2.1.132 reports it as `needs auth`, so the user knows to run the connector's authorization flow.
+
+```
+$ claude  /mcp
+  github       connected · 12 tools
+  notion       needs auth                       ← run the connector's authorize flow
+  brokensvr    failed                           ← genuinely broken — investigate
+  flakysvr     connected · tools fetch failed   ← retried tools/list once and gave up (see below)
+```
+
+### Headless `-p` retries `tools/list` once then surfaces `connected · tools fetch failed`
+
+Before 2.1.132, MCP servers that connected successfully but then failed `tools/list` (for example, a stdio server crashing right after the handshake) silently appeared as `0 tools` with no error surface. CC 2.1.132 retries `tools/list` exactly once and, if it still fails, displays `connected · tools fetch failed` in `/mcp`. In headless `-p` mode the same status string lands in stderr/output so CI scripts can detect it.
+
+CC 2.1.132 also stops retrying non-transient 4xx connection failures in `-p` mode — auth-required connectors now fail fast instead of consuming the retry budget.
+
+**OrchestKit impact**: `/ork:doctor`'s MCP check can branch on three concrete states (`needs auth`, `connected · tools fetch failed`, `failed`) instead of conflating all of them as "broken". No `.mcp.json` change needed at our floor.
+
+## CC 2.1.133 changes
+
+### MCP OAuth flow now respects `HTTP(S)_PROXY` / `NO_PROXY` / mTLS
+
+Before 2.1.133, CC's MCP OAuth client opened HTTP connections directly to the OAuth endpoints regardless of `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, or mTLS client-cert settings. The MCP server itself was reachable via the proxy (because the MCP transport already respected it) but every OAuth step bypassed the proxy: discovery (`/.well-known/oauth-authorization-server`), **dynamic client registration (DCR)**, the initial token exchange, and every subsequent refresh.
+
+CC 2.1.133 routes the entire MCP OAuth flow through the same proxy/mTLS configuration as the rest of CC's HTTP traffic.
+
+```bash
+# Enterprise behind a corporate proxy with mTLS to internal MCP servers
+export HTTPS_PROXY=http://proxy.corp.example.com:3128
+export NO_PROXY=localhost,127.0.0.1,.internal.example.com
+export NODE_EXTRA_CA_CERTS=/etc/ssl/corp-ca-bundle.pem
+# Optional mTLS client cert + key for the OAuth endpoint
+export CLAUDE_CODE_MCP_CLIENT_CERT=/etc/ssl/claude-client.pem
+export CLAUDE_CODE_MCP_CLIENT_KEY=/etc/ssl/claude-client.key
+claude
+```
+
+**OrchestKit impact**: Enterprise deployments behind corporate proxies (Citrix/VDI, BYOK gateway, ZTNA) can connect to OAuth-protected MCP servers without per-flow workarounds. `.mcp.json` entries for OAuth-protected servers need no special config — the env-var-driven proxy/mTLS setup is honored end-to-end. The `mcp-patterns` SKILL.md and the `building-mcp-server-on-cloudflare` skill both reference this fix; if your customer skill warned users that "MCP OAuth bypasses HTTPS_PROXY", that caveat can be removed at our floor.
+
+See the `agent-browser` skill for Vercel's headless browser CLI.
+
+### Presets
+
+# Preset Definitions
+
+## Complete (Default)
+
+Everything enabled - full AI-assisted development.
+
+```json
+{
+  "preset": "complete",
+  "skills": {
+    "ai_ml": true,
+    "backend": true,
+    "frontend": true,
+    "testing": true,
+    "security": true,
+    "devops": true,
+    "planning": true
+  },
+  "agents": {
+    "product": true,
+    "technical": true
+  },
+  "hooks": {
+    "safety": true,
+    "productivity": true,
+    "quality_gates": true,
+    "team_coordination": true,
+    "notifications": false
+  },
+  "commands": { "enabled": true },
+  "mcps": {
+    "context7": false,
+    "sequential_thinking": false,
+    "memory": false
+  }
+}
+```
+
+## Standard
+
+All skills, no agents (spawn manually).
+
+```json
+{
+  "preset": "standard",
+  "skills": { "ai_ml": true, "backend": true, "frontend": true, "testing": true, "security": true, "devops": true, "planning": true },
+  "agents": { "product": false, "technical": false },
+  "hooks": { "safety": true, "productivity": true, "quality_gates": true, "team_coordination": true, "notifications": false },
+  "commands": { "enabled": true },
+  "mcps": { "context7": false, "sequential_thinking": false, "memory": false }
+}
+```
+
+## Lite
+
+Essential skills only, minimal overhead.
+
+```json
+{
+  "preset": "lite",
+  "skills": {
+    "ai_ml": false,
+    "backend": false,
+    "frontend": false,
+    "testing": true,
+    "security": true,
+    "devops": false,
+    "planning": true
+  },
+  "agents": { "product": false, "technical": false },
+  "hooks": {
+    "safety": true,
+    "productivity": true,
+    "quality_gates": false,
+    "team_coordination": false,
+    "notifications": false
+  },
+  "commands": {
+    "enabled": true,
+    "disabled": ["add-golden", "implement", "fix-issue", "review-pr", "run-tests", "create-pr"]
+  },
+  "mcps": { "context7": false, "sequential_thinking": false, "memory": false }
+}
+```
+
+## Hooks-only
+
+Just safety guardrails, no skills or agents.
+
+```json
+{
+  "preset": "hooks-only",
+  "skills": {
+    "ai_ml": false,
+    "backend": false,
+    "frontend": false,
+    "testing": false,
+    "security": false,
+    "devops": false,
+    "planning": false
+  },
+  "agents": { "product": false, "technical": false },
+  "hooks": {
+    "safety": true,
+    "productivity": true,
+    "quality_gates": false,
+    "team_coordination": true,
+    "notifications": false
+  },
+  "commands": { "enabled": false },
+  "mcps": { "context7": false, "sequential_thinking": false, "memory": false }
+}
+```

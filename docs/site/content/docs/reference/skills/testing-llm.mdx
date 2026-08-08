@@ -1,0 +1,797 @@
+---
+title: "Testing Llm"
+description: "LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="testing-llm" />
+
+> **Testing Llm** LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.
+
+
+# LLM & AI Testing Patterns
+
+Patterns and tools for testing LLM integrations, evaluating AI output quality, mocking responses for deterministic CI, and applying agentic test workflows (planner, generator, healer). Of that trio only the healer keeps a local reference here; the planner and generator stages belong to the `testing-e2e` skill.
+
+## Quick Reference
+
+| Area | File | Purpose |
+|------|------|---------|
+| **Rules** | `rules/llm-evaluation.md` | DeepEval quality metrics, Pydantic schema validation, timeout testing |
+| **Rules** | `rules/llm-mocking.md` | Mock LLM responses, VCR.py recording, custom request matchers |
+| **Reference** | `references/ork-delta.md` | House rules the vendor docs do not carry: GEval and RAGAS API corrections, threshold direction, cassette path, golden-dataset and latency budgets |
+| **Reference** | `references/healer-agent.md` | Auto-fixes failing tests (selectors, waits, dynamic content) |
+| **Checklist** | `checklists/llm-test-checklist.md` | Complete LLM testing checklist (setup, coverage, CI/CD) |
+
+## Upstream coverage (do not restate)
+
+DeepEval, RAGAS, VCR.py and Playwright document themselves. This skill carries only the
+OrchestKit delta (`references/ork-delta.md`) plus the house subsets in `rules/` and
+`checklists/`. Fetch the source below instead of expecting the material here.
+
+| Topic | Source |
+|-------|--------|
+| Full DeepEval metric catalog and per-metric constructor arguments (the house threshold table and the two-metric quick start stay in this file, `rules/llm-evaluation.md` and `checklists/llm-test-checklist.md`) | https://deepeval.com/docs/metrics-introduction |
+| `GEval` custom criteria: `evaluation_params`, `evaluation_steps`, `criteria` (the house import correction stays in `references/ork-delta.md`) | https://deepeval.com/docs/metrics-llm-evals |
+| `HallucinationMetric` arguments (the house 0.3 ceiling and the inverted-direction warning stay in `references/ork-delta.md`) | https://deepeval.com/docs/metrics-hallucination |
+| RAGAS metric catalog (`Faithfulness`, `LLMContextRecall`, `FactualCorrectness`) | https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/ |
+| `EvaluationDataset` construction (the house note on the post-0.2 field names stays in `references/ork-delta.md`) | https://docs.ragas.io/en/stable/concepts/components/eval_dataset/ |
+| VCR.py configuration keys (the house record-mode gate and header filters stay in `rules/llm-mocking.md`) | https://vcrpy.readthedocs.io/en/latest/configuration.html |
+| Playwright Planner and Generator agents, `init-agents` CLI and generated files (the house healer subset stays in `references/healer-agent.md`) | https://playwright.dev/docs/test-agents |
+| Playwright semantic locator ladder used by generated tests | `testing-e2e` skill (`rules/e2e-playwright.md`) plus https://playwright.dev/docs/locators |
+| Confidence intervals over metric score samples | https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.t.html |
+
+## When to Use This Skill
+
+- Testing code that calls LLM APIs (OpenAI, Anthropic, etc.)
+- Validating RAG pipeline output quality
+- Setting up deterministic LLM tests in CI
+- Building evaluation pipelines with quality gates
+- Applying agentic test patterns (plan -> generate -> heal)
+
+## LLM Mock Quick Start
+
+Mock LLM responses for fast, deterministic unit tests:
+
+```python
+from unittest.mock import AsyncMock, patch
+import pytest
+
+@pytest.fixture
+def mock_llm():
+    mock = AsyncMock()
+    mock.return_value = {"content": "Mocked response", "confidence": 0.85}
+    return mock
+
+@pytest.mark.asyncio
+async def test_with_mocked_llm(mock_llm):
+    with patch("app.core.model_factory.get_model", return_value=mock_llm):
+        result = await synthesize_findings(sample_findings)
+    assert result["summary"] is not None
+```
+
+**Key rule:** NEVER call live LLM APIs in CI. Use mocks for unit tests, VCR.py for integration tests.
+
+## DeepEval Quality Quick Start
+
+Validate LLM output quality with multi-dimensional metrics:
+
+```python
+from deepeval import assert_test
+from deepeval.test_case import LLMTestCase
+from deepeval.metrics import AnswerRelevancyMetric, FaithfulnessMetric
+
+test_case = LLMTestCase(
+    input="What is the capital of France?",
+    actual_output="The capital of France is Paris.",
+    retrieval_context=["Paris is the capital of France."],
+)
+
+assert_test(test_case, [
+    AnswerRelevancyMetric(threshold=0.7),
+    FaithfulnessMetric(threshold=0.8),
+])
+```
+
+## Library notes (DeepEval, RAGAS)
+
+**DeepEval** metrics expose a `reason` field alongside the numeric score when `include_reason=True`, so a failing CI build gets a human-readable explanation without a second LLM call:
+
+```python
+metric = AnswerRelevancyMetric(threshold=0.7, include_reason=True)
+metric.measure(test_case)
+print(metric.score, metric.reason)
+# 0.62  "Response addresses the topic but omits the date asked for."
+```
+
+**RAGAS** uses a class-based metric API — instantiate metric classes and pass an `EvaluationDataset`. `llm=` is optional; omit it to use the configured default grader:
+
+```python
+from ragas import evaluate
+from ragas.metrics import Faithfulness, LLMContextRecall
+
+result = evaluate(
+    dataset,
+    metrics=[Faithfulness(), LLMContextRecall()],
+)
+```
+
+> Bump floors: `deepeval >= 4.0`, `ragas >= 0.4`.
+
+House rules the vendor docs do not state (the inverted `HallucinationMetric` threshold,
+the `gpt-5-mini` grader default, the 95 percent confidence-interval recipe, and the
+latency, quality-gate and truncation numbers) are recorded in `references/ork-delta.md`.
+Read that before writing either library's setup code.
+
+## Quality Metrics Thresholds
+
+| Metric | Threshold | Purpose |
+|--------|-----------|---------|
+| Answer Relevancy | >= 0.7 | Response addresses question |
+| Faithfulness | >= 0.8 | Output matches context |
+| Hallucination | &lt;= 0.3 | No fabricated facts |
+| Context Precision | >= 0.7 | Retrieved contexts relevant |
+| Context Recall | >= 0.7 | All relevant contexts retrieved |
+
+## Structured Output Validation
+
+Always validate LLM output with Pydantic schemas:
+
+```python
+from pydantic import BaseModel, Field
+
+class LLMResponse(BaseModel):
+    answer: str = Field(min_length=1)
+    confidence: float = Field(ge=0.0, le=1.0)
+    sources: list[str] = Field(default_factory=list)
+
+async def test_structured_output():
+    result = await get_llm_response("test query")
+    parsed = LLMResponse.model_validate(result)
+    assert 0 <= parsed.confidence <= 1.0
+```
+
+## VCR.py for Integration Tests
+
+Record and replay LLM API calls for deterministic integration tests:
+
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    import os
+    return {
+        "record_mode": "none" if os.environ.get("CI") else "new_episodes",
+        "filter_headers": ["authorization", "x-api-key"],
+    }
+
+@pytest.mark.vcr()
+async def test_llm_integration():
+    response = await llm_client.complete("Say hello")
+    assert "hello" in response.content.lower()
+```
+
+## Agentic Test Workflow
+
+The three-agent pattern for end-to-end test automation:
+
+```
+Planner -> specs/*.md -> Generator -> tests/*.spec.ts -> Healer (auto-fix)
+```
+
+1. **Planner**: Explores your app and produces Markdown test plans. Owned by the
+   `testing-e2e` skill (`rules/e2e-ai-agents.md`); the CLI and its generated files are
+   documented at https://playwright.dev/docs/test-agents.
+
+2. **Generator**: Converts Markdown specs into Playwright tests, validating selectors
+   against the running app. Also owned by `testing-e2e` (`rules/e2e-ai-agents.md`); the
+   locator ladder it follows lives in `testing-e2e` `rules/e2e-playwright.md`.
+
+3. **Healer** (`references/healer-agent.md`): Automatically fixes failing tests by replaying failures, inspecting the DOM, and patching locators/waits. Max 3 healing attempts per test.
+
+Agent initialization is CLI-only (`npx playwright init-agents`); there is no config key
+for it. Only the healing stage keeps a local reference, because its 3-attempt ceiling and
+its refusal to touch test logic are house limits rather than vendor defaults.
+
+## Edge Cases to Always Test
+
+For every LLM integration, cover these paths:
+
+- **Empty/null inputs** -- empty strings, None values
+- **Long inputs** -- truncation behavior near token limits
+- **Timeouts** -- fail-open vs fail-closed behavior
+- **Schema violations** -- invalid structured output
+- **Prompt injection** -- adversarial input resistance
+- **Unicode** -- non-ASCII characters in prompts and responses
+
+See `checklists/llm-test-checklist.md` for the complete checklist.
+
+## Anti-Patterns
+
+| Anti-Pattern | Correct Approach |
+|-------------|-----------------|
+| Live LLM calls in CI | Mock for unit, VCR for integration |
+| Random seeds | Fixed seeds or mocked responses |
+| Single metric evaluation | 3-5 quality dimensions |
+| No timeout handling | Always set &lt; 1s timeout in tests |
+| Hardcoded API keys | Environment variables, filtered in VCR |
+| Asserting only `is not None` | Schema validation + quality metrics |
+
+## Related Skills
+
+- `ork:testing-unit` — Unit testing fundamentals, AAA pattern
+- `ork:testing-integration` — Integration testing for AI pipelines
+- `ork:golden-dataset` — Evaluation dataset management
+- `ork:testing-e2e` owns the Planner and Generator agent workflow and the Playwright locator ladder
+- `ork:testing-perf` owns the latency and load budgets referenced in `references/ork-delta.md`
+
+
+---
+
+## Rules (2)
+
+### Validate LLM output quality and structured schemas using DeepEval metrics and Pydantic testing — HIGH
+
+
+# DeepEval Quality Testing
+
+```python
+from deepeval import assert_test
+from deepeval.test_case import LLMTestCase
+from deepeval.metrics import AnswerRelevancyMetric, FaithfulnessMetric
+
+test_case = LLMTestCase(
+    input="What is the capital of France?",
+    actual_output="The capital of France is Paris.",
+    retrieval_context=["Paris is the capital of France."],
+)
+
+metrics = [
+    AnswerRelevancyMetric(threshold=0.7),
+    FaithfulnessMetric(threshold=0.8),
+]
+
+assert_test(test_case, metrics)
+```
+
+## Quality Metrics
+
+| Metric | Threshold | Purpose |
+|--------|-----------|---------|
+| Answer Relevancy | >= 0.7 | Response addresses question |
+| Faithfulness | >= 0.8 | Output matches context |
+| Hallucination | &lt;= 0.3 | No fabricated facts |
+| Context Precision | >= 0.7 | Retrieved contexts relevant |
+
+**Incorrect — Testing only the output exists:**
+```python
+def test_llm_response():
+    result = get_llm_answer("What is Paris?")
+    assert result is not None
+    # No quality validation
+```
+
+**Correct — Testing multiple quality dimensions:**
+```python
+test_case = LLMTestCase(
+    input="What is the capital of France?",
+    actual_output="The capital of France is Paris.",
+    retrieval_context=["Paris is the capital of France."]
+)
+assert_test(test_case, [
+    AnswerRelevancyMetric(threshold=0.7),
+    FaithfulnessMetric(threshold=0.8)
+])
+```
+
+---
+
+# Structured Output and Timeout Testing
+
+## Timeout Testing
+
+```python
+import asyncio
+import pytest
+
+@pytest.mark.asyncio
+async def test_respects_timeout():
+    with pytest.raises(asyncio.TimeoutError):
+        async with asyncio.timeout(0.1):
+            await slow_llm_call()
+```
+
+## Schema Validation
+
+```python
+from pydantic import BaseModel, Field
+
+class LLMResponse(BaseModel):
+    answer: str = Field(min_length=1)
+    confidence: float = Field(ge=0.0, le=1.0)
+    sources: list[str] = Field(default_factory=list)
+
+@pytest.mark.asyncio
+async def test_structured_output():
+    result = await get_llm_response("test query")
+    parsed = LLMResponse.model_validate(result)
+    assert parsed.confidence > 0
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Quality metrics | Use multiple dimensions (3-5) |
+| Schema validation | Test both valid and invalid |
+| Timeout | Always test with &lt; 1s timeout |
+| Edge cases | Test all null/empty paths |
+
+**Incorrect — No schema validation on LLM output:**
+```python
+async def test_llm_response():
+    result = await get_llm_response("test query")
+    assert result["answer"]  # Crashes if "answer" missing
+    assert result["confidence"] > 0  # No type checking
+```
+
+**Correct — Pydantic validation ensures schema correctness:**
+```python
+class LLMResponse(BaseModel):
+    answer: str = Field(min_length=1)
+    confidence: float = Field(ge=0.0, le=1.0)
+
+async def test_structured_output():
+    result = await get_llm_response("test query")
+    parsed = LLMResponse.model_validate(result)
+    assert 0 <= parsed.confidence <= 1.0
+```
+
+
+### Mock LLM responses for deterministic fast unit tests using VCR recording patterns and custom matchers — HIGH
+
+
+# LLM Response Mocking
+
+```python
+from unittest.mock import AsyncMock, patch
+
+@pytest.fixture
+def mock_llm():
+    mock = AsyncMock()
+    mock.return_value = {"content": "Mocked response", "confidence": 0.85}
+    return mock
+
+@pytest.mark.asyncio
+async def test_with_mocked_llm(mock_llm):
+    with patch("app.core.model_factory.get_model", return_value=mock_llm):
+        result = await synthesize_findings(sample_findings)
+    assert result["summary"] is not None
+```
+
+## Anti-Patterns (FORBIDDEN)
+
+```python
+# NEVER test against live LLM APIs in CI
+response = await openai.chat.completions.create(...)
+
+# NEVER use random seeds (non-deterministic)
+model.generate(seed=random.randint(0, 100))
+
+# ALWAYS mock LLM in unit tests
+with patch("app.llm", mock_llm):
+    result = await function_under_test()
+
+# ALWAYS use VCR.py for integration tests
+@pytest.mark.vcr()
+async def test_llm_integration():
+    ...
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Mock vs VCR | VCR for integration, mock for unit |
+| Timeout | Always test with &lt; 1s timeout |
+| Edge cases | Test all null/empty paths |
+
+**Incorrect — Testing against live LLM API in CI:**
+```python
+async def test_summarize():
+    response = await openai.chat.completions.create(
+        model="gpt-4", messages=[...]
+    )
+    assert response.choices[0].message.content
+    # Slow, expensive, non-deterministic
+```
+
+**Correct — Mocking LLM for fast, deterministic tests:**
+```python
+@pytest.fixture
+def mock_llm():
+    mock = AsyncMock()
+    mock.return_value = {"content": "Mocked summary", "confidence": 0.85}
+    return mock
+
+async def test_summarize(mock_llm):
+    with patch("app.llm.get_model", return_value=mock_llm):
+        result = await summarize("input text")
+    assert result["content"] == "Mocked summary"
+```
+
+---
+
+# VCR.py for LLM API Recording
+
+## Custom Matchers for LLM Requests
+
+```python
+def llm_request_matcher(r1, r2):
+    """Match LLM requests ignoring dynamic fields."""
+    import json
+
+    if r1.uri != r2.uri or r1.method != r2.method:
+        return False
+
+    body1 = json.loads(r1.body)
+    body2 = json.loads(r2.body)
+
+    for field in ["request_id", "timestamp"]:
+        body1.pop(field, None)
+        body2.pop(field, None)
+
+    return body1 == body2
+
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {"custom_matchers": [llm_request_matcher]}
+```
+
+## CI Configuration
+
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    import os
+    # CI: never record, only replay
+    if os.environ.get("CI"):
+        record_mode = "none"
+    else:
+        record_mode = "new_episodes"
+    return {"record_mode": record_mode}
+```
+
+## Common Mistakes
+
+- Committing cassettes with real API keys
+- Using `all` mode in CI (makes live calls)
+- Not filtering sensitive data
+- Missing cassettes in git
+
+**Incorrect — Recording mode allows live API calls in CI:**
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {"record_mode": "all"}  # Makes live calls in CI
+```
+
+**Correct — CI uses 'none' mode to prevent live calls:**
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    import os
+    return {
+        "record_mode": "none" if os.environ.get("CI") else "new_episodes",
+        "filter_headers": ["authorization", "x-api-key"]
+    }
+```
+
+
+
+---
+
+## References (2)
+
+### Healer Agent
+
+# Healer Agent
+
+Automatically fixes failing tests.
+
+## What It Does
+
+1. **Replays failing test** - Identifies failure point
+2. **Inspects current UI** - Finds equivalent elements
+3. **Suggests patch** - Updates locators/waits
+4. **Retries test** - Validates fix
+
+## Common Fixes
+
+### 1. Updated Selectors
+```typescript
+// Before (broken after UI change)
+await page.getByRole('button', { name: 'Submit' });
+
+// After (healed)
+await page.getByRole('button', { name: 'Submit Order' });  // Button text changed
+```
+
+### 2. Added Waits
+```typescript
+// Before (flaky)
+await page.click('button');
+await expect(page.getByText('Success')).toBeVisible();
+
+// After (healed)
+await page.click('button');
+await page.waitForLoadState('networkidle');  // Wait for API call
+await expect(page.getByText('Success')).toBeVisible();
+```
+
+### 3. Dynamic Content
+```typescript
+// Before (fails with changing data)
+await expect(page.getByText('Total: $45.00')).toBeVisible();
+
+// After (healed)
+await expect(page.getByText(/Total: \$\d+\.\d{2}/)).toBeVisible();  // Regex match
+```
+
+## How It Works
+
+```
+Test fails -> Healer replays -> Inspects DOM -> Suggests fix -> Retries
+                                     |                              |
+                                     |                              v
+                                     +---------------------- Still fails? -> Manual review
+```
+
+## Safety Limits
+
+- Maximum 3 healing attempts per test
+- Won't change test logic (only locators/waits)
+- Logs all changes for review
+
+## Best Practices
+
+1. **Review healed tests** - Ensure semantics unchanged
+2. **Update test plan** - If UI intentionally changed
+3. **Add regression tests** - For fixed issues
+
+## Limitations
+
+Healer can't fix:
+- Changed business logic
+- Removed features
+- Backend API changes
+- Auth/permission issues
+
+These require manual intervention.
+
+
+### Ork Delta
+
+# OrchestKit delta for LLM testing
+
+House rules that are NOT in the vendor docs. Everything else about DeepEval, RAGAS,
+VCR.py and the Playwright test agents is upstream: see the "Upstream coverage" table
+in `SKILL.md`.
+
+Provenance lines below name retired files. Those files were deleted in this change and
+are recorded only to say where a rule came from; they are not live pointers.
+
+> Three entries were removed from this file on 2026-07-31 after verification. They
+> described DeepEval and RAGAS API defects as if the retired
+> `references/deepeval-ragas-api.md` still contained them. It did not: those findings
+> came from `docs/playgrounds/lib-currency-audit-2026-05-31.html` and were remediated
+> the same day. `git show` of the retired file confirms it imported `GEval`, documented
+> "Pass EITHER criteria OR evaluation_steps", used `EvaluationDataset.from_list` with
+> class metrics, and carried the correct `gpt-5-mini` id. Stripped of the false
+> incident, all three were plain restatement of vendor docs already routed in SKILL.md.
+
+## Read HallucinationMetric's threshold as a ceiling, not a floor
+
+Why: DeepEval scores hallucination in the inverted direction, a score near 1 means
+hallucination was detected, so `threshold=` on this one metric is a maximum where every
+other metric's is a minimum. The retired reference set it to 0.5 while the house table
+one file over sets it to 0.3, and nothing flagged the disagreement because both look
+like ordinary thresholds. The house number itself is not routed away: it stays in
+`SKILL.md`, `rules/llm-evaluation.md` and `checklists/llm-test-checklist.md`.
+Distilled from the retired references/deepeval-ragas-api.md; no traced incident.
+Upstream: https://deepeval.com/docs/metrics-hallucination
+
+## Grade with gpt-5-mini unless a test states otherwise
+
+Why: house default. The retired `references/deepeval-ragas-api.md` used
+`model="gpt-5-mini"` in all four graders it configured, and that consistency is the
+point: a suite that mixes grader models cannot compare scores across metrics or across
+runs, because the grader is part of the measurement. Pin one id per suite, and resolve
+it against the provider catalog before writing it into a skill, since a wrong grader id
+costs nothing at lint or import time and fails only inside a live eval run.
+Distilled from the retired references/deepeval-ragas-api.md; no traced incident.
+Upstream: https://platform.openai.com/docs/models
+
+## Give SummarizationMetric explicit assessment_questions
+
+Why: house pattern from the retired reference: construct the metric with a short list of
+closed questions covering main points, conciseness, and factual accuracy, rather than
+letting the metric infer what "good summary" means per run. Without the list the score
+drifts between runs on the same input, because the judge re-derives the rubric each time.
+Distilled from the retired references/deepeval-ragas-api.md; no traced incident.
+Upstream: https://deepeval.com/docs/metrics-summarization
+
+## Report metric scores with a 95 percent confidence interval, not a bare mean
+
+Why: house reporting rule and its working recipe, which the retired reference carried and
+no vendor page states: `stderr = stats.sem(scores)`, then
+`h = stderr * stats.t.ppf((1 + confidence) / 2, n - 1)` at a default `confidence=0.95`,
+reported as `(mean, mean - h, mean + h)`. A bare mean over a handful of eval runs invites
+reading a 0.02 move as a regression when the interval is 0.1 wide. Use the t
+distribution, not the normal, because eval sample counts here are small.
+Distilled from the retired references/deepeval-ragas-api.md; no traced incident.
+Upstream: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.t.html
+
+## Keep LLM cassettes in tests/cassettes/llm
+
+Why: `cassette_library_dir: "tests/cassettes/llm"` is the house path, and it is what
+makes the same cassette resolve from both the unit and the integration run instead of
+each suite recording its own copy under pytest's default sibling directory. Only the
+directory convention is rescued here: the record-mode gate (`"none"` under CI) and the
+`filter_headers` list are NOT routed away and stay in full in `rules/llm-mocking.md`.
+Distilled from the retired examples/llm-test-patterns.md; no traced incident.
+Upstream: https://vcrpy.readthedocs.io/en/latest/configuration.html
+
+## Golden-dataset regression floor: 50 cases minimum, semantic similarity >= 0.85
+
+Why: house numbers. Under 50 cases a single flipped output swings the pass rate by more
+than two points, so the suite reports sampling noise as a regression and gets muted;
+0.85 is the house similarity floor for calling two answers equivalent, below which
+paraphrase and contradiction stop being distinguishable. The 50-case line survives in
+`checklists/llm-test-checklist.md`; the 0.85 floor lived only in the retired example.
+Distilled from the retired examples/llm-test-patterns.md; no traced incident.
+Upstream: the in-repo `golden-dataset` skill (`src/skills/golden-dataset/SKILL.md`)
+
+## Assert an LLM latency budget of p50 &lt; 2s and p95 &lt; 5s across 10 samples
+
+Why: house budget. A single-sample latency assertion against a hosted model is pure
+flake, and a mean hides the tail that actually times out user requests. Ten samples with
+a median plus a p95 quantile is the smallest shape that separates "the service is slow"
+from "one call was slow", and the two numbers are the house ceilings a test may assert
+before the call needs a cache or a smaller model. Compute p95 from those 10 samples with
+`statistics.quantiles(latencies, n=20)[18]`, which is the non-obvious half: at n=20 the
+19th cut point is the 95th percentile, and `quantiles` needs at least 2 data points.
+Distilled from the retired examples/llm-test-patterns.md; no traced incident.
+Upstream: the in-repo `testing-perf` skill (`src/skills/testing-perf/SKILL.md`)
+
+## Gate an agent step at quality_score 0.85 pass, 0.5 retry with a reason
+
+Why: house quality-gate numbers from the retired example: a state carrying
+`quality_score=0.85` passes the gate, `quality_score=0.5` fails it, and a failing gate
+must set `retry_reason` rather than returning a bare False, so the retry loop can log why
+it fired instead of spinning silently. SKILL.md still lists quality gates as a use case
+and the checklist still has a "Test quality gates" line, so without these numbers the
+gate is named but unspecified.
+Distilled from the retired examples/llm-test-patterns.md; no traced incident.
+Upstream: the in-repo `quality-gates` skill (`src/skills/quality-gates/SKILL.md`)
+
+## Test the truncation boundary at 100,000 characters
+
+Why: house edge-case number. The retired example asserted that an input of `"x" * 100_000`
+comes back with `result["truncated"] is True`. SKILL.md's "Edge Cases to Always Test"
+section survives but carries no size, and an edge-case suite with no boundary value is
+untestable prose. Keep the number with the case.
+Distilled from the retired examples/llm-test-patterns.md; no traced incident.
+Upstream: https://deepeval.com/docs/evaluation-test-cases
+
+
+
+---
+
+## Checklists (1)
+
+### Llm Test Checklist
+
+# LLM Testing Checklist
+
+## Test Environment Setup
+
+- [ ] Install DeepEval: `pip install deepeval`
+- [ ] Install RAGAS: `pip install ragas`
+- [ ] Configure VCR.py for API recording
+- [ ] Set up golden dataset fixtures
+- [ ] Configure mock LLM for unit tests
+- [ ] Set API keys for integration tests (not hardcoded!)
+
+## Test Coverage Checklist
+
+### Unit Tests
+
+- [ ] Mock LLM responses for deterministic tests
+- [ ] Test structured output schema validation
+- [ ] Test timeout handling
+- [ ] Test error handling (API errors, rate limits)
+- [ ] Test input validation
+- [ ] Test output parsing
+
+### Integration Tests
+
+- [ ] Test against recorded responses (VCR.py)
+- [ ] Test with golden dataset
+- [ ] Test quality gates
+- [ ] Test retry logic
+- [ ] Test fallback behavior
+
+### Quality Tests
+
+- [ ] Answer relevancy (DeepEval/RAGAS)
+- [ ] Faithfulness to context
+- [ ] Hallucination detection
+- [ ] Contextual precision/recall
+- [ ] Custom criteria (G-Eval)
+
+## Edge Cases to Test
+
+For every LLM integration, test:
+
+- [ ] **Empty inputs:** Empty strings, None values
+- [ ] **Very long inputs:** Truncation behavior
+- [ ] **Timeouts:** Fail-open behavior
+- [ ] **Partial responses:** Incomplete outputs
+- [ ] **Invalid schema:** Validation failures
+- [ ] **Division by zero:** Empty list averaging
+- [ ] **Nested nulls:** Parent exists, child is None
+- [ ] **Unicode:** Non-ASCII characters
+- [ ] **Injection:** Prompt injection attempts
+
+## Quality Metrics Checklist
+
+| Metric | Threshold | Purpose |
+|--------|-----------|---------|
+| Answer Relevancy | >= 0.7 | Response addresses question |
+| Faithfulness | >= 0.8 | Output matches context |
+| Hallucination | &lt;= 0.3 | No fabricated facts |
+| Context Precision | >= 0.7 | Retrieved contexts relevant |
+| Context Recall | >= 0.7 | All relevant contexts retrieved |
+
+## CI/CD Checklist
+
+- [ ] LLM tests use mocks or VCR (no live API calls)
+- [ ] API keys not exposed in logs
+- [ ] Timeout configured for all LLM calls
+- [ ] Quality gate tests run on PR
+- [ ] Golden dataset regression tests run on merge
+
+## Golden Dataset Requirements
+
+- [ ] Minimum 50 test cases for statistical significance
+- [ ] Cover all major use cases
+- [ ] Include edge cases
+- [ ] Include expected failures
+- [ ] Version controlled
+- [ ] Updated when behavior changes intentionally
+
+## Review Checklist
+
+Before PR:
+
+- [ ] All LLM calls are mocked in unit tests
+- [ ] VCR cassettes recorded for integration tests
+- [ ] Timeout handling tested
+- [ ] Error scenarios covered
+- [ ] Schema validation tested
+- [ ] Quality metrics meet thresholds
+- [ ] No hardcoded API keys
+
+## Anti-Patterns to Avoid
+
+- [ ] Testing against live LLM APIs in CI
+- [ ] Using random seeds (non-deterministic)
+- [ ] No timeout handling
+- [ ] Single metric evaluation
+- [ ] Hardcoded API keys in tests
+- [ ] Ignoring rate limits
+- [ ] Not testing error paths
+

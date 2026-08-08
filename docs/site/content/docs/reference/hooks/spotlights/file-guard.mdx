@@ -1,0 +1,71 @@
+---
+title: "File Guard"
+description: "Protects sensitive files and enforces file size limits on writes"
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+<span className="badge badge-red">Blocks</span> <span className="badge badge-gray">Global</span>
+
+> Prevents modification of sensitive files (secrets, keys, credentials) and blocks oversized source files to enforce modular code structure.
+
+## When It Fires
+
+**Event:** PreToolUse · **Matcher:** `Write`, `Edit` · **Bundle:** `pretool.mjs`
+
+## What It Does
+
+File guard serves two purposes: **security enforcement** and **code quality gating**.
+
+For every Write or Edit operation, the hook resolves the target file path --- including following symlinks to prevent bypass attacks (ME-001 security fix) --- and checks it against a blocklist of protected file patterns. If the file matches, the operation is denied outright.
+
+For Write operations on code files, the hook also enforces maximum line counts and detects structural bloat patterns. Files that exceed the line limit are blocked with a message suggesting how to split them. Files under the limit but showing multiple bloat signals get a warning logged (non-blocking).
+
+## Protected Paths
+
+These file patterns are **always blocked** --- Claude cannot write to them:
+
+| Pattern | What It Protects |
+|---------|-----------------|
+| `.env`, `.env.local`, `.env.production` | Environment variables and secrets |
+| `credentials.json`, `secrets.json` | Application credentials |
+| `.pem`, `private.key` | TLS/SSL certificates |
+| `id_rsa`, `id_ed25519` | SSH private keys |
+
+## File Size Limits
+
+| File Type | Default Limit | Environment Variable |
+|-----------|--------------|---------------------|
+| Source files (`.py`, `.ts`, `.tsx`, `.js`, `.jsx`, `.go`, `.rs`, `.java`) | 300 lines | `ORCHESTKIT_MAX_FILE_LINES` |
+| Test files (`*.test.*`, `*.spec.*`, `test_*`, `*_test.*`) | 500 lines | `ORCHESTKIT_MAX_TEST_FILE_LINES` |
+
+## Bloat Detection
+
+When writing code files, the hook scans for structural problems:
+
+- **God file** --- more than 15 exports in a single file
+- **Mixed concerns** --- types and logic in the same file (over 150 lines)
+- **High coupling** --- more than 20 imports
+- **Multi-class** --- multiple class declarations in one file
+- **Multi-component** --- more than 3 component declarations in one file
+
+Files over the line limit with bloat signals get a detailed denial message listing each detected pattern.
+
+## Configuration
+
+Override file size limits with environment variables:
+
+```bash
+# Allow larger source files (default: 300)
+ORCHESTKIT_MAX_FILE_LINES=500
+
+# Allow larger test files (default: 500)
+ORCHESTKIT_MAX_TEST_FILE_LINES=800
+```
+
+Config files (`package.json`, `pyproject.toml`, `tsconfig.json`) trigger a logged warning but are **not** blocked.
+
+## Related Hooks
+
+- [unified-quality-dispatcher](/docs/hooks/reference/pretool-write-edit#unified-quality-dispatcher) --- runs additional quality checks on write operations
+- [block-writes](/docs/hooks/spotlights/block-writes) --- agent-scoped write blocking for read-only agents

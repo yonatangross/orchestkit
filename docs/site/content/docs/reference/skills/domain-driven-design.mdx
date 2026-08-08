@@ -1,0 +1,827 @@
+---
+title: "Domain Driven Design"
+description: "DDD tactical patterns for complex business modeling including entities, value objects, aggregates, domain services, repositories, specifications, and bounded contexts. Python dataclass implementations with TypeScript alternatives. Use when building rich domain models, enforcing invariants, or separating domain logic from infrastructure."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="domain-driven-design" />
+
+> **Domain Driven Design** DDD tactical patterns for complex business modeling including entities, value objects, aggregates, domain services, repositories, specifications, and bounded contexts. Python dataclass implementations with TypeScript alternatives. Use when building rich domain models, enforcing invariants, or separating domain logic from infrastructure.
+
+
+# Domain-Driven Design Tactical Patterns
+
+Model complex business domains with entities, value objects, and bounded contexts.
+
+## Overview
+
+- Modeling complex business logic
+- Separating domain from infrastructure
+- Establishing clear boundaries between subdomains
+- Building rich domain models with behavior
+- Implementing ubiquitous language in code
+
+## Building Blocks Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    DDD Building Blocks                       │
+├─────────────────────────────────────────────────────────────┤
+│  ENTITIES           VALUE OBJECTS        AGGREGATES         │
+│  Order (has ID)     Money (no ID)        [Order]→Items      │
+│                                                              │
+│  DOMAIN SERVICES    REPOSITORIES         DOMAIN EVENTS      │
+│  PricingService     IOrderRepository     OrderSubmitted     │
+│                                                              │
+│  FACTORIES          SPECIFICATIONS       MODULES            │
+│  OrderFactory       OverdueOrderSpec     orders/, payments/ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Quick Reference
+
+### Entity (Has Identity)
+
+```python
+from dataclasses import dataclass, field
+from uuid import UUID
+from uuid_utils import uuid7
+
+@dataclass
+class Order:
+    """Entity: Has identity, mutable state, lifecycle."""
+    id: UUID = field(default_factory=uuid7)
+    customer_id: UUID = field(default=None)
+    status: str = "draft"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Order):
+            return NotImplemented
+        return self.id == other.id  # Identity equality
+
+    def __hash__(self) -> int:
+        return hash(self.id)
+```
+
+ID generation is a house rule, not a taste call: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/references/ork-delta.md")`.
+
+### Value Object (Immutable)
+
+```python
+from dataclasses import dataclass
+from decimal import Decimal
+
+@dataclass(frozen=True)  # MUST be frozen!
+class Money:
+    """Value Object: Defined by attributes, not identity."""
+    amount: Decimal
+    currency: str
+
+    def __add__(self, other: "Money") -> "Money":
+        if self.currency != other.currency:
+            raise ValueError("Cannot add different currencies")
+        return Money(self.amount + other.amount, self.currency)
+```
+
+Canonical Address / DateRange boilerplate is not restated here. See the upstream coverage table below.
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Entity vs VO | Has unique ID + lifecycle? Entity. Otherwise VO |
+| Entity equality | By ID, not attributes |
+| Value object mutability | Always immutable (`frozen=True`) |
+| Repository scope | One per aggregate root |
+| Domain events | Collect in entity, publish after persist |
+| Context boundaries | By business capability, not technical |
+
+## Rules Quick Reference
+
+| Rule | Impact | What It Covers |
+|------|--------|----------------|
+| aggregate-boundaries (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/rules/aggregate-boundaries.md`) | HIGH | Aggregate root design, reference by ID, one-per-transaction |
+| aggregate-invariants (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/rules/aggregate-invariants.md`) | HIGH | Business rule enforcement, specification pattern |
+| aggregate-sizing (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/rules/aggregate-sizing.md`) | HIGH | Right-sizing, when to split, eventual consistency |
+
+## When NOT to Use
+
+Under 5 entities? Skip DDD entirely. The ceremony costs more than the benefit.
+
+| Pattern | Interview | Hackathon | MVP | Growth | Enterprise | Simpler Alternative |
+|---------|-----------|-----------|-----|--------|------------|---------------------|
+| Aggregates | OVERKILL | OVERKILL | OVERKILL | SELECTIVE | APPROPRIATE | Plain dataclasses with validation |
+| Bounded contexts | OVERKILL | OVERKILL | OVERKILL | BORDERLINE | APPROPRIATE | Python packages with clear imports |
+| CQRS | OVERKILL | OVERKILL | OVERKILL | OVERKILL | WHEN JUSTIFIED | Single model for read/write |
+| Value objects | OVERKILL | OVERKILL | BORDERLINE | APPROPRIATE | REQUIRED | Typed fields on the entity |
+| Domain events | OVERKILL | OVERKILL | OVERKILL | SELECTIVE | APPROPRIATE | Direct method calls between services |
+| Repository pattern | OVERKILL | OVERKILL | BORDERLINE | APPROPRIATE | REQUIRED | Direct ORM queries in service layer |
+
+**Rule of thumb:** DDD adds ~40% code overhead. Only worth it when domain complexity genuinely demands it (5+ entities with invariants spanning multiple objects). A CRUD app with DDD is a red flag.
+
+## Anti-Patterns (FORBIDDEN)
+
+```python
+# NEVER have anemic domain models (data-only classes)
+@dataclass
+class Order:
+    id: UUID
+    items: list  # WRONG - no behavior!
+
+# NEVER leak infrastructure into domain
+class Order:
+    def save(self, session: Session):  # WRONG - knows about DB!
+
+# NEVER use mutable value objects
+@dataclass  # WRONG - missing frozen=True
+class Money:
+    amount: Decimal
+
+# NEVER have repositories return ORM models
+async def get(self, id: UUID) -> OrderModel:  # WRONG - return domain!
+```
+
+## Upstream coverage (do not restate)
+
+These topics are documented first-party. Read the source instead of re-deriving them here; only the
+house consequences are kept, in `references/ork-delta.md`.
+
+| Topic | Source |
+|-------|--------|
+| Entity / value-object dataclass mechanics: `frozen`, `__post_init__`, inherited field ordering, `kw_only` | https://docs.python.org/3/library/dataclasses.html |
+| Domain event definition, deferred dispatch, handler wiring, dispatch before vs after commit | https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/domain-events-design-implementation |
+| Bounded contexts, context map, ubiquitous language, integration patterns (shared kernel, customer-supplier, conformist, open host service, published language) | https://learn.microsoft.com/en-us/azure/architecture/microservices/model/domain-analysis |
+| Anti-corruption layer: what it translates and what it costs | https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer |
+| UUIDv7 generation, server side and in Python | https://www.postgresql.org/docs/18/functions-uuid.html and https://github.com/aminalaee/uuid-utils |
+| Payment amounts in minor units, zero-decimal currencies | https://docs.stripe.com/currencies |
+| Publishing events to a Redis Stream (`XADD` field maps, pipelining) | https://redis.io/docs/latest/commands/xadd/ |
+| Layered architecture enforcement, project-structure validation, test standards | the `architecture-patterns` skill in this plugin |
+
+Two subjects deliberately stay in this skill rather than routing upstream: the repository and
+Unit of Work implementation, which lives in full in `references/repositories.md`, and aggregate
+boundaries, invariants, and sizing, which live in full in `rules/`.
+
+## Related Skills
+
+- `rules/aggregate-boundaries.md`, `rules/aggregate-invariants.md`, `rules/aggregate-sizing.md` - aggregate design, in this skill
+- `ork:architecture-patterns` - Layer boundaries and project structure validation
+- `ork:distributed-systems` - Cross-aggregate coordination
+- `ork:database-patterns` - Schema design for DDD
+
+## References
+
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/domain-driven-design/references/&lt;file&gt;")`:
+| File | Content |
+|------|---------|
+| `ork-delta.md` | House rules: UUIDv7, event drain ordering, ACL boundary, source layout |
+| `repositories.md` | Repository pattern, Unit of Work, SQLAlchemy mapping |
+
+## Capability Details
+
+### entities
+**Keywords:** entity, identity, lifecycle, mutable, domain object
+**Solves:** Identity equality by ID, and the house UUIDv7 ID rule in `references/ork-delta.md`. Dataclass mechanics route upstream.
+
+### value-objects
+**Keywords:** value object, immutable, frozen, dataclass, structural equality
+**Solves:** When to use VO vs entity. `frozen=True` semantics and inherited field ordering route upstream.
+
+### domain-services
+**Keywords:** domain service, business logic, cross-aggregate, stateless
+**Solves:** When to use domain service, logic spanning aggregates
+
+### repositories
+**Keywords:** repository, persistence, collection, IRepository, protocol
+**Solves:** Implement repository pattern, abstract DB access, ORM mapping
+
+### bounded-contexts
+**Keywords:** bounded context, context map, ACL, subdomain, ubiquitous language
+**Solves:** The house ACL boundary and context-first source layout in `references/ork-delta.md`. Context mapping and integration patterns route upstream.
+
+
+---
+
+## Rules (3)
+
+### Define aggregate root boundaries correctly to prevent cross-transaction data corruption — HIGH
+
+
+## Aggregate Root Boundaries and Consistency
+
+Aggregates define transactional consistency boundaries. The root controls all access to children and enforces the one-aggregate-per-transaction rule.
+
+### Four Core Rules
+
+1. **Root controls access** — External code only references aggregate root
+2. **Transactional boundary** — One aggregate per transaction
+3. **Reference by ID** — Never hold object references to other aggregates
+4. **Invariants enforced** — Root ensures all business rules before state changes
+
+### Correct — Aggregate Root Pattern
+
+```python
+from dataclasses import dataclass, field
+from uuid import UUID
+from uuid_utils import uuid7
+
+@dataclass
+class OrderAggregate:
+    """Aggregate root — all access goes through here."""
+
+    id: UUID = field(default_factory=uuid7)
+    customer_id: UUID  # Reference by ID, not Customer object!
+    _items: list["OrderItem"] = field(default_factory=list)
+    status: str = "draft"
+
+    @property
+    def items(self) -> tuple["OrderItem", ...]:
+        return tuple(self._items)  # Expose immutable view
+
+    def add_item(self, product_id: UUID, quantity: int, price: "Money") -> None:
+        self._ensure_modifiable()
+        if len(self._items) >= self.MAX_ITEMS:
+            raise DomainError("Max items exceeded")
+        self._items.append(OrderItem(product_id, quantity, price))
+```
+
+### Incorrect — Cross-Aggregate References
+
+```python
+# NEVER reference aggregates by object
+@dataclass
+class Order:
+    customer: Customer  # WRONG — holds object reference
+    # Correct: customer_id: UUID
+
+# NEVER modify multiple aggregates in one transaction
+def submit_order(order, inventory):
+    order.submit()
+    inventory.reserve(order.items)  # WRONG — two aggregates in one tx
+    # Correct: use domain events for cross-aggregate coordination
+
+# NEVER expose mutable collections
+def items(self) -> list:
+    return self._items  # WRONG — caller can mutate
+    # Correct: return tuple(self._items)
+```
+
+### Key Rules
+
+- External code accesses children **only** through the aggregate root
+- Cross-aggregate coordination uses **domain events**, not shared transactions
+- Reference other aggregates by **ID**, never by object
+- Expose collections as **immutable views** (tuple, frozenset)
+- One aggregate = one repository = one transaction boundary
+
+
+### Enforce business invariants within aggregates to prevent invalid domain state propagation — HIGH
+
+
+## Enforcing Business Invariants
+
+The aggregate root is responsible for enforcing all business rules before allowing state transitions. Invariants must be checked on every mutation.
+
+### Invariant Enforcement Pattern
+
+```python
+from dataclasses import dataclass, field
+from uuid import UUID
+
+@dataclass
+class OrderAggregate:
+    MAX_ITEMS = 100
+
+    id: UUID
+    _items: list["OrderItem"] = field(default_factory=list)
+    status: str = "draft"
+    _events: list["DomainEvent"] = field(default_factory=list)
+
+    def add_item(self, product_id: UUID, quantity: int, price: "Money") -> None:
+        """Add item with invariant checks."""
+        self._ensure_modifiable()
+        if len(self._items) >= self.MAX_ITEMS:
+            raise DomainError("Max items exceeded")
+        if quantity <= 0:
+            raise DomainError("Quantity must be positive")
+        self._items.append(OrderItem(product_id, quantity, price))
+
+    def submit(self) -> None:
+        """Submit with business rule validation."""
+        self._ensure_modifiable()
+        if not self._items:
+            raise DomainError("Cannot submit empty order")
+        self.status = "submitted"
+        self._events.append(OrderSubmitted(self.id))
+
+    def _ensure_modifiable(self) -> None:
+        if self.status != "draft":
+            raise DomainError(f"Cannot modify {self.status} order")
+```
+
+### Specification Pattern for Complex Invariants
+
+```python
+from abc import ABC, abstractmethod
+
+class Specification(ABC):
+    @abstractmethod
+    def is_satisfied_by(self, candidate) -> bool: ...
+
+    def and_(self, other: "Specification") -> "Specification":
+        return AndSpecification(self, other)
+
+class OverdueOrderSpec(Specification):
+    def is_satisfied_by(self, order: Order) -> bool:
+        return (
+            order.status == "submitted"
+            and order.created_at < datetime.now() - timedelta(days=30)
+        )
+
+# Usage
+overdue = OverdueOrderSpec()
+overdue_orders = [o for o in orders if overdue.is_satisfied_by(o)]
+```
+
+### Domain Event Collection
+
+```python
+@dataclass
+class OrderAggregate:
+    _events: list["DomainEvent"] = field(default_factory=list)
+
+    def collect_events(self) -> list["DomainEvent"]:
+        """Collect and clear events — publish AFTER persist."""
+        events = list(self._events)
+        self._events.clear()
+        return events
+```
+
+**Incorrect — no invariant checks, allows invalid state:**
+```python
+@dataclass
+class OrderAggregate:
+    id: UUID
+    _items: list["OrderItem"] = field(default_factory=list)
+    status: str = "draft"
+
+    def add_item(self, product_id: UUID, quantity: int, price: "Money") -> None:
+        # No checks! Allows negative quantity, submitted order modification
+        self._items.append(OrderItem(product_id, quantity, price))
+
+    def submit(self) -> None:
+        # No check for empty order!
+        self.status = "submitted"
+```
+
+**Correct — enforce invariants on every mutation:**
+```python
+@dataclass
+class OrderAggregate:
+    MAX_ITEMS = 100
+    id: UUID
+    _items: list["OrderItem"] = field(default_factory=list)
+    status: str = "draft"
+
+    def add_item(self, product_id: UUID, quantity: int, price: "Money") -> None:
+        self._ensure_modifiable()  # Guard clause
+        if len(self._items) >= self.MAX_ITEMS:
+            raise DomainError("Max items exceeded")
+        if quantity <= 0:
+            raise DomainError("Quantity must be positive")
+        self._items.append(OrderItem(product_id, quantity, price))
+
+    def submit(self) -> None:
+        self._ensure_modifiable()
+        if not self._items:
+            raise DomainError("Cannot submit empty order")
+        self.status = "submitted"
+
+    def _ensure_modifiable(self) -> None:
+        if self.status != "draft":
+            raise DomainError(f"Cannot modify {self.status} order")
+```
+
+### Key Rules
+
+- Every mutation method **checks invariants** before modifying state
+- Guard clauses at the **top** of every public method
+- Use the **specification pattern** for complex, reusable business rules
+- Collect domain events in the aggregate, publish **after** successful persistence
+- Raise `DomainError` (not generic exceptions) for invariant violations
+- Status transitions follow explicit state machine rules
+
+
+### Right-size aggregates to balance lock contention against consistency guarantee requirements — HIGH
+
+
+## Right-Sizing Aggregates
+
+Keep aggregates small. Large aggregates cause lock contention and slow operations. Split when collections grow unbounded or when different parts change at different rates.
+
+### Sizing Guidelines
+
+| Signal | Action |
+|--------|--------|
+| &lt; 20 children | Keep as single aggregate |
+| 20-100 children | Consider splitting by access pattern |
+| 100+ children | Must split — use reference by ID |
+| Unbounded collection | Always split — never allow unbounded growth |
+| Different change rates | Split into separate aggregates |
+
+### Correct — Small, Focused Aggregates
+
+```python
+@dataclass
+class OrderAggregate:
+    """Small aggregate — bounded items list."""
+    id: UUID
+    customer_id: UUID  # Reference by ID
+    _items: list["OrderItem"]  # Bounded: max 100
+
+    MAX_ITEMS = 100
+
+@dataclass
+class CustomerAggregate:
+    """Separate aggregate — customer has different lifecycle."""
+    id: UUID
+    name: str
+    email: str
+    # NO orders list here — unbounded!
+```
+
+### Incorrect — Oversized Aggregate
+
+```python
+@dataclass
+class CustomerAggregate:
+    id: UUID
+    name: str
+    orders: list["Order"]  # WRONG — unbounded growth
+    reviews: list["Review"]  # WRONG — different change rate
+    notifications: list["Notification"]  # WRONG — unrelated concern
+```
+
+### When to Split
+
+1. **Unbounded collections** — If a collection can grow without limit, extract it
+2. **Different change rates** — If parts of the aggregate change at different frequencies
+3. **Lock contention** — If concurrent modifications frequently conflict
+4. **Performance** — If loading the full aggregate is slow
+
+### Cross-Aggregate Consistency
+
+After splitting, use eventual consistency between aggregates:
+
+```python
+# Order aggregate publishes event
+class OrderSubmitted(DomainEvent):
+    order_id: UUID
+    customer_id: UUID
+
+# Inventory aggregate handles event (eventually consistent)
+class InventoryEventHandler:
+    async def handle_order_submitted(self, event: OrderSubmitted) -> None:
+        inventory = await self.repo.get_for_order(event.order_id)
+        inventory.reserve_items(event.order_id)
+        await self.repo.save(inventory)
+```
+
+### Key Rules
+
+- Prefer **small aggregates** (&lt; 20 children)
+- Never allow **unbounded collections** inside an aggregate
+- Use **reference by ID** for cross-aggregate relationships
+- Apply **eventual consistency** across aggregate boundaries via domain events
+- Split by **change rate** — parts that change together stay together
+- Measure **lock contention** — split if concurrent modifications conflict
+
+
+
+---
+
+## References (2)
+
+### Ork Delta
+
+# ork delta: domain-driven-design
+
+What this skill knows that the upstream DDD literature does not. Canonical pattern definitions
+live upstream (see the "Upstream coverage" table in SKILL.md; the surviving `rules/` files carry
+house enforcement only and deliberately have no Upstream lines of their own); what stays
+here is the house decision, the ordering constraint, or the numeric budget that a reader cannot
+recover from a vendor page.
+
+## Generate entity and event IDs with UUIDv7, never UUIDv4
+
+Why: house decision, because the btree index on the ID column doubles as the recency index, so ork DDD schemas ship no separate `created_at` index for sorting; UUIDv4 scatters inserts across the index and forfeits both that index and the cache locality. Distilled from the retired `checklists/ddd-checklist.md` and `references/entities-value-objects.md`; no traced incident. Correction carried forward: both retired files named the Postgres default `gen_random_uuid_v7()`, which has never existed; PostgreSQL 18 shipped the function as `uuidv7()`.
+Upstream: https://www.postgresql.org/docs/18/functions-uuid.html for `uuidv7()`, and https://github.com/aminalaee/uuid-utils for the Python `uuid7()` used for app-generated IDs.
+
+## Drain domain events in the application service after the repository persists
+
+Why: ordering constraint the house code depends on, because aggregate mutation methods only append to `_domain_events` and `collect_events()` is called by the application service after `repo.update()` returns, so a transaction that rolls back never emits; publishing from inside the mutation method emits events for writes that never landed, and subscribers in other contexts cannot un-see them. Distilled from the retired `references/domain-events.md`; no traced incident.
+Upstream: https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/domain-events-design-implementation covers the deferred raise-then-dispatch pattern and the before-vs-after-commit trade-off.
+
+## Give every field on a DomainEvent subclass a default, or make the base kw_only
+
+Why: mechanical constraint that shaped the house base class, because `DomainEvent` carries defaulted fields (`event_id`, `occurred_at`), so any subclass field declared without a default raises `TypeError` at class creation; that is why `event_type` is a `ClassVar` (never a dataclass field) and every payload field carries an explicit `field(default_factory=...)`. Distilled from the retired `references/domain-events.md`; no traced incident.
+Upstream: https://docs.python.org/3/library/dataclasses.html states the rule ("a field without a default value follows a field with a default value ... whether in a single class, or as a result of class inheritance") and documents `kw_only` as the alternative fix.
+
+## Cross-context reads go through an ACL that returns a frozen local value object
+
+Why: house boundary decision, because Orders holds a `ProductSnapshot` frozen at order time rather than a Catalog `Product`, so a Catalog model change cannot reach the Orders domain and an order keeps the price it was placed at; `shared_kernel/` is deliberately capped at `Money`, `Email`, and `Address` (everything else is duplicated per context on purpose), and ACLs live at `&lt;context&gt;/infrastructure/acl/` so a cross-context import is visible in the path itself. Distilled from the retired `references/bounded-contexts.md`; no traced incident.
+Upstream: https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer for the translation-layer pattern and its cost.
+
+## Convert Money to integer minor units inside the payment ACL, never in the domain
+
+Why: house boundary decision plus a live bug in the retired snippet, because the payment gateway wants amounts in the currency's minor unit and the retired ACL hardcoded `int(amount * 100)`; that multiplier is wrong for zero-decimal currencies (JPY takes `500` for 500 yen, not `50000`), so the multiplier must be keyed off the currency, and the whole conversion belongs at the ACL so a vendor encoding never leaks into `Money`. Distilled from the retired `references/bounded-contexts.md`; no traced incident.
+Upstream: https://docs.stripe.com/currencies documents the minor-unit convention and lists the zero-decimal currencies.
+
+## Events carry IDs and primitives, never whole entities
+
+Why: house serialization contract, because events are published to a Redis Stream via `XADD`, whose value is a flat field map, so an embedded entity both fails to serialize cleanly and ships mutable state that is already stale by the time a subscriber reads it; the house payload is IDs plus an explicit `\{amount, currency\}` pair, and event class names stay past tense (`OrderPlaced`, not `PlaceOrder`) because the name is the wire contract other contexts subscribe to. Distilled from the retired `references/domain-events.md`; no traced incident.
+Upstream: https://redis.io/docs/latest/commands/xadd/ for the field-map value shape, and the Microsoft domain-events page above for past-tense naming and event immutability.
+
+## Layer the source tree by bounded context first, architectural layer second
+
+Why: house layout, because `src/&lt;context&gt;/\{domain,application,infrastructure\}` with `shared_kernel/` as a sibling makes an illegal import (`orders.domain` reaching into `catalog.domain`) readable as a path violation in review and in a lint rule, which a layer-first tree (`src/domain/orders`, `src/domain/catalog`) cannot express. Distilled from the retired `references/bounded-contexts.md`; no traced incident.
+Upstream: the `architecture-patterns` skill in this plugin owns layered-architecture enforcement and project-structure validation.
+
+## Validate Money in __post_init__: non-negative amount, exactly 3-character currency
+
+Why: distilled from the retired `references/entities-value-objects.md`. The house Money
+value object raised `ValueError` on a negative amount and on any currency code whose
+length was not 3. The surviving SKILL.md snippet shows the dataclass without
+`__post_init__`, so the invariants that make it a value object rather than a named tuple
+are currently undocumented. A value object that can hold an invalid value is just a
+struct, and no upstream DDD page can supply these two specific checks.
+Upstream: https://docs.python.org/3/library/dataclasses.html
+
+## Keep created_at and updated_at on the base Entity, and bump updated_at on every mutation
+
+Why: distilled from the retired `references/entities-value-objects.md`; the base Entity
+carried both timestamps and every mutation method (for example `User.activate`,
+`User.change_email`) set `updated_at`. This is load-bearing for the UUIDv7 rule above:
+the reason a UUIDv7 primary key can replace a dedicated `created_at` sort index is that
+`created_at` exists as a column in the first place. Drop the convention and the UUIDv7
+rationale stops parsing.
+Upstream: none; house entity convention
+
+## Domain events carry the flat four-key envelope
+
+Why: distilled from the retired `references/domain-events.md`; `to_dict()` returned
+exactly `\{event_id, event_type, occurred_at, payload\}` with `occurred_at` in ISO 8601.
+Subscribing bounded contexts parse those four keys, so the envelope is a wire contract
+between contexts, not an implementation detail. The delta entry above covers the payload
+interior; this covers the envelope around it. Redis stream docs describe XADD field pairs
+and cannot supply the envelope shape.
+Upstream: https://redis.io/docs/latest/commands/xadd/
+
+## Publish to the 'domain-events' stream, and batch publish_all through a pipeline
+
+Why: distilled from the retired `references/domain-events.md`; `domain-events` is the
+house default stream name for RedisEventPublisher, and `publish_all` batches through an
+async Redis pipeline rather than issuing one round trip per event. The stream name is a
+house constant that consumers hardcode, so it is not recoverable from any vendor page,
+and the batching is what keeps a large aggregate commit from turning into N network hops.
+Upstream: https://redis.io/docs/latest/commands/xadd/
+
+## Domain services: stateless, verb-named, coordinating rather than replacing entity logic
+
+Why: distilled from the retired `checklists/ddd-checklist.md`, and SKILL.md still
+advertises a `domain-services` capability, so the guidance has to live somewhere. A
+domain service is for an operation that genuinely spans entities, it holds no state, it
+is named with a domain verb, and it coordinates entities instead of absorbing their
+behaviour. The failure mode this prevents is the anemic model: logic drains out of
+entities into services until the entities are data bags.
+Upstream: none; house DDD position
+
+
+### Repositories
+
+# Repository Pattern
+
+## Repository Protocol (Interface)
+
+```python
+from abc import abstractmethod
+from typing import Protocol, TypeVar
+from uuid import UUID
+
+from app.domain.entities import Entity
+
+T = TypeVar("T", bound=Entity)
+
+
+class Repository(Protocol[T]):
+    """Generic repository protocol for domain entities."""
+
+    @abstractmethod
+    async def get(self, id: UUID) -> T | None:
+        """Get entity by ID, returns None if not found."""
+        ...
+
+    @abstractmethod
+    async def get_or_raise(self, id: UUID) -> T:
+        """Get entity by ID, raises if not found."""
+        ...
+
+    @abstractmethod
+    async def add(self, entity: T) -> T:
+        """Add new entity to repository."""
+        ...
+
+    @abstractmethod
+    async def update(self, entity: T) -> T:
+        """Update existing entity."""
+        ...
+
+    @abstractmethod
+    async def delete(self, id: UUID) -> None:
+        """Delete entity by ID."""
+        ...
+
+
+class UserRepository(Protocol):
+    """User-specific repository with domain queries."""
+
+    async def get(self, id: UUID) -> "User | None": ...
+    async def get_or_raise(self, id: UUID) -> "User": ...
+    async def add(self, user: "User") -> "User": ...
+    async def update(self, user: "User") -> "User": ...
+    async def delete(self, id: UUID) -> None: ...
+
+    # Domain-specific queries
+    async def find_by_email(self, email: str) -> "User | None": ...
+    async def find_active_users(self, limit: int = 100) -> list["User"]: ...
+    async def exists_by_email(self, email: str) -> bool: ...
+```
+
+## SQLAlchemy Implementation
+
+```python
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.domain.entities import User
+from app.domain.repositories import UserRepository
+from app.infrastructure.models import UserModel
+
+
+class SQLAlchemyUserRepository(UserRepository):
+    """SQLAlchemy implementation of UserRepository."""
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    async def get(self, id: UUID) -> User | None:
+        result = await self._session.get(UserModel, id)
+        return self._to_entity(result) if result else None
+
+    async def get_or_raise(self, id: UUID) -> User:
+        user = await self.get(id)
+        if not user:
+            raise UserNotFoundError(f"User {id} not found")
+        return user
+
+    async def add(self, user: User) -> User:
+        model = self._to_model(user)
+        self._session.add(model)
+        await self._session.flush()
+        return user
+
+    async def update(self, user: User) -> User:
+        model = await self._session.get(UserModel, user.id)
+        if not model:
+            raise UserNotFoundError(f"User {user.id} not found")
+
+        # Update model from entity
+        model.email = user.email
+        model.name = user.name
+        model.status = user.status
+        model.updated_at = user.updated_at
+
+        await self._session.flush()
+        return user
+
+    async def delete(self, id: UUID) -> None:
+        model = await self._session.get(UserModel, id)
+        if model:
+            await self._session.delete(model)
+            await self._session.flush()
+
+    async def find_by_email(self, email: str) -> User | None:
+        stmt = select(UserModel).where(UserModel.email == email)
+        result = await self._session.execute(stmt)
+        model = result.scalar_one_or_none()
+        return self._to_entity(model) if model else None
+
+    async def find_active_users(self, limit: int = 100) -> list[User]:
+        stmt = (
+            select(UserModel)
+            .where(UserModel.status == "active")
+            .limit(limit)
+        )
+        result = await self._session.execute(stmt)
+        return [self._to_entity(m) for m in result.scalars()]
+
+    async def exists_by_email(self, email: str) -> bool:
+        stmt = select(UserModel.id).where(UserModel.email == email).limit(1)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none() is not None
+
+    def _to_entity(self, model: UserModel) -> User:
+        """Map database model to domain entity."""
+        return User(
+            id=model.id,
+            email=model.email,
+            name=model.name,
+            status=model.status,
+            created_at=model.created_at,
+            updated_at=model.updated_at,
+        )
+
+    def _to_model(self, entity: User) -> UserModel:
+        """Map domain entity to database model."""
+        return UserModel(
+            id=entity.id,
+            email=entity.email,
+            name=entity.name,
+            status=entity.status,
+            created_at=entity.created_at,
+            updated_at=entity.updated_at,
+        )
+```
+
+## Unit of Work Pattern
+
+```python
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+
+class UnitOfWork:
+    """Coordinates repositories and transaction management."""
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+        self.users = SQLAlchemyUserRepository(session)
+        self.orders = SQLAlchemyOrderRepository(session)
+
+    async def commit(self) -> None:
+        """Commit transaction."""
+        await self._session.commit()
+
+    async def rollback(self) -> None:
+        """Rollback transaction."""
+        await self._session.rollback()
+
+
+@asynccontextmanager
+async def unit_of_work(
+    session_factory,
+) -> AsyncGenerator[UnitOfWork, None]:
+    """Create unit of work context."""
+    async with session_factory() as session:
+        uow = UnitOfWork(session)
+        try:
+            yield uow
+            await uow.commit()
+        except Exception:
+            await uow.rollback()
+            raise
+```
+
+## Repository Best Practices
+
+```python
+# GOOD: Repository returns domain entities
+async def get(self, id: UUID) -> User | None:
+    model = await self._session.get(UserModel, id)
+    return self._to_entity(model) if model else None
+
+# BAD: Repository returns ORM models
+async def get(self, id: UUID) -> UserModel | None:  # Leaks infrastructure!
+    return await self._session.get(UserModel, id)
+
+# GOOD: Domain-specific queries
+async def find_eligible_for_discount(self) -> list[User]:
+    """Find users eligible for loyalty discount."""
+    ...
+
+# BAD: Generic SQL queries in repository
+async def find_by_query(self, query: str) -> list[User]:  # Too generic!
+    ...
+
+# GOOD: Repository handles mapping
+def _to_entity(self, model: UserModel) -> User:
+    return User(...)
+
+# BAD: Caller handles mapping
+user_dict = await repo.get_raw(id)  # Returns dict, caller maps
+```
+

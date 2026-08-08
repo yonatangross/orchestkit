@@ -1,0 +1,1452 @@
+---
+title: "Setup"
+description: "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes."
+---
+
+<span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
+
+```bash title="Invoke"
+/ork:setup
+```
+
+<ContextualSkillSidebar slug="setup" />
+
+> **Setup** Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.
+
+
+# OrchestKit Setup Wizard
+
+Personalized onboarding that scans your codebase, detects your stack, recommends skills and MCPs, and generates an actionable improvement plan.
+
+## When to Use
+
+- First time after installing OrchestKit (`/plugin install ork`)
+- Joining a new project and want OrchestKit tuned for it
+- Periodically with `--rescan` to track improvement
+- Enterprise users who need safe, user-scoped install confirmation
+
+## Quick Start
+
+```bash
+/ork:setup              # Full 8-phase wizard
+/ork:setup --rescan     # Re-scan after changes (skip safety phase)
+/ork:setup --score-only # Just show readiness score
+/ork:setup --plan-only  # Just show improvement plan
+/ork:setup --configure  # Jump directly to Phase 3.5: project configuration wizard
+```
+
+## Argument Resolution
+
+```python
+FLAG = "$ARGUMENTS[0]"  # First token: --rescan, --score-only, --plan-only, --channel
+# If no arguments, run full 8-phase wizard.
+# $ARGUMENTS is the full string (CC 2.1.59 indexed access)
+```
+
+## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+**BEFORE doing ANYTHING else, create tasks to track progress:**
+
+```python
+# 1. Create main task IMMEDIATELY
+TaskCreate(
+  subject="Setup: onboarding wizard",
+  description="Personalized setup scanning codebase and configuring OrchestKit",
+  activeForm="Running setup wizard"
+)
+
+# 2. Create subtasks for key phase groups
+TaskCreate(subject="Scan & detect stack", activeForm="Scanning codebase and detecting stack")
+TaskCreate(subject="Safety & configure", activeForm="Checking config and running configuration wizard")
+TaskCreate(subject="Recommend skills & MCPs", activeForm="Matching stack to skills and MCPs")
+TaskCreate(subject="Score & plan", activeForm="Computing readiness score and improvement plan")
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])
+TaskUpdate(taskId="4", addBlockedBy=["3"])
+TaskUpdate(taskId="5", addBlockedBy=["4"])
+
+# 4. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done
+```
+
+## The Nine Phases
+
+| Phase | What | Tools Used | Output |
+|-------|------|-----------|--------|
+| 1. Scan | Detect languages, frameworks, infra, existing config | Glob, Grep, Read | Raw scan data |
+| 2. Stack | Classify detected stack, confidence levels | — | Stack profile |
+| 3. Safety | Check existing config, confirm scope (user/project) | Read, AskUserQuestion | Install confirmation |
+| 3.5. Configure | Interactive project configuration wizard → writes env block to per-project settings | Read, Write, AskUserQuestion | Configured settings file |
+| 4. Skills | Match stack to skills, suggest custom skills | Grep, Glob | Skill recommendations |
+| 5. MCPs | Recommend MCPs based on stack and gaps | Read, Bash | MCP recommendations |
+| 6. Score | Compute readiness score (0-10, 6 dimensions) | All above data | Readiness score |
+| 7. Plan | Prioritized improvements with runnable commands | — | Action plan |
+| 8. Keys | Install recommended keyboard shortcuts | Read, Bash, AskUserQuestion | Keybindings |
+
+---
+
+## Phase 1: Scan
+
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/scan-phase.md")` for full scan commands (20 parallel Glob probes + dependency file reads + pattern detection counts).
+
+Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, etc.), infrastructure (Docker, GitHub Actions, Terraform, K8s), and existing CC configuration. Pattern detection counts API routes, React components, models, and tests for custom skill suggestions.
+
+## Phase 2: Stack Detection
+
+Classify scan results into a stack profile and present to user (languages, frameworks, database, infra, testing, existing CC config).
+
+Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/stack-skill-mapping.md")` for the full stack-to-skill mapping table, MCP recommendation matrix, and custom skill suggestion patterns.
+
+## Phase 2b: Channel Detection
+
+
+## Phase 3: Safety Check
+
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/safety-check.md")` for the full AskUserQuestion prompt and conflict detection logic.
+
+Offers three install scopes: User-only (recommended, invisible to teammates), Project-wide (committed to repo), or Already installed (skip to configure). Checks for existing OrchestKit installs and conflicting plugins.
+
+> **Console auth (CC 2.1.79+):** Users authenticating via Anthropic Console (API billing) can run `claude auth login --console` instead of the default OAuth flow. Useful for teams on usage-based API billing rather than Pro/Team subscriptions.
+
+> **Team onboarding (CC 2.1.101+):** `/team-onboarding` generates a teammate ramp-up guide from your local CC usage patterns. Suggest running it after setup to create onboarding docs for new team members.
+
+> **Enterprise TLS (CC 2.1.101+):** OS CA certificate store is trusted by default — enterprise TLS proxies work without extra setup. Set `CLAUDE_CODE_CERT_STORE=bundled` to use only bundled CAs if needed.
+
+> **Prompt caching (CC 2.1.108+):** For API-key, Bedrock, Vertex, or Foundry users, recommend setting `ENABLE_PROMPT_CACHING_1H=1` to extend the prompt cache TTL from 5 minutes to 1 hour. This significantly reduces token costs for long OrchestKit sessions (brainstorm, implement, cover chains). Session recap is enabled by default since CC 2.1.110 (even with telemetry disabled).
+
+> **TUI mode (CC 2.1.110+):** Recommend `/tui fullscreen` for flicker-free rendering during long sessions. Pair with `autoScrollEnabled: false` in `/config` for manual scroll control during brainstorm/implement output review. The `/focus` command provides a condensed view (prompt + one-line tool summaries + final response).
+
+> **Plugin install (CC 2.1.157+):** Plugins in `.claude/skills` auto-load without a marketplace — for local/dev installs, placing a plugin there is enough. `claude plugin init &lt;name&gt;` scaffolds a new plugin skeleton in `.claude/skills`.
+
+> **`--dangerously-skip-permissions` policy (CC 2.1.121 + 2.1.126, #1583):** the flag's scope expanded substantially. As of 2.1.126 it bypasses prompts for writes to `.claude/`, `.git/`, `.vscode/`, shell config files (`~/.bashrc`, `~/.zshrc`, etc.), and "other previously-protected paths" — on top of `.claude/skills/`, `.claude/agents/`, `.claude/commands/` already bypassed since 2.1.121. Only catastrophic removal commands (e.g., `rm -rf /`) still prompt. **Recommend against this flag for shared workstations, CI runners, and onboarding sessions.** Suggest the auto-approve permission hooks in `src/hooks/README.md` instead — they offer fine-grained allow-listing without disabling the safety net wholesale. The setup wizard should warn (not block) if the user enables this flag during configure.
+
+## Phase 3.5: Project Configuration Wizard
+
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity, webhook telemetry) and env var reference.
+
+> Also reachable directly via `/ork:setup --configure` — skips phases 1-3.
+
+---
+
+## Phase 4: Skill Recommendations
+
+Present skill categories using `AskUserQuestion` with 4 focus options (Full-stack, Backend, Frontend, DevOps) with `multiSelect: true`. Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/stack-skill-mapping.md")` for mapping tables and custom skill suggestions.
+
+## Phase 5: MCP Recommendations
+
+Check installed vs recommended MCPs by reading `.mcp.json` and `~/.claude/settings.json`. Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/stack-skill-mapping.md")` for the MCP recommendation matrix. Present as toggles with install commands.
+
+**CC 2.1.121+ tip (#1541):** for the universally-needed T2 trio (memory, context7, sequential-thinking), recommend setting `"alwaysLoad": true` in their `.mcp.json` entries. This skips per-skill `ToolSearch` probes and shaves ~150ms off cold starts. The key is silently ignored on older CC, so it's safe to add eagerly.
+
+**Plugin lifecycle cleanup (CC 2.1.121+, #1544):** mention `claude plugin uninstall &lt;name&gt; --prune` in the cleanup section — it cascades and removes auto-installed deps that became orphaned. Standalone `claude plugin prune` runs the same cleanup without uninstalling anything; `/ork:dream` runs it weekly.
+
+## Phase 6: Readiness Score
+
+Compute a composite score (0-10) from 6 dimensions. Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/readiness-scoring.md")` for dimension weights, score presentation template, memory integration, and improvement plan template.
+
+## Phase 7: Improvement Plan
+
+Generate prioritized, **runnable** recommendations in P0/P1/P2 tiers. See `readiness-scoring.md` for the template and memory persistence pattern.
+
+## Phase 7b: CLAUDE.md Health Check
+
+After the improvement plan, check if the user's CLAUDE.md could benefit from CC 2.1.59+ modular structure.
+
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/claude-md-health.md")` for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
+
+```python
+# Quick check
+Bash(command="wc -l CLAUDE.md 2>/dev/null | awk '{print $1}'")
+Glob(pattern=".claude/rules/*.md")
+```
+
+If CLAUDE.md > 200 lines and no `.claude/rules/` exist, recommend splitting. Show the output template from the reference doc.
+
+## Phase 8: Keybindings
+
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/keybindings.md")` for the full keybinding prompt, default shortcuts, and merge logic.
+
+Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). Merges with existing `~/.claude/keybindings.json` without overwriting user-defined bindings.
+
+## Post-Setup
+
+> **Tip (CC 2.1.69+):** After setup completes, run `/reload-plugins` to activate all plugin changes without restarting your session.
+>
+> **Tip (CC 2.1.90+):** New to Claude Code? Try `/powerup` for interactive lessons with animated demos teaching core features.
+
+## Phase 9: Telemetry & Webhooks
+
+> Previously in `/ork:configure`. Now part of setup for single entry point.
+
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/telemetry-setup.md")` for the full configuration flow.
+
+Ask user preference with AskUserQuestion:
+
+| Mode | Events | Auth | Overhead |
+|------|--------|------|----------|
+| **Full streaming** | All 18 CC events via HTTP hooks | Bearer token | Near-zero |
+| **Summary only** | SessionEnd + worktree events | HMAC auth | None |
+| **Skip** | No telemetry | — | None |
+
+If streaming selected:
+1. Ask for webhook URL
+2. Run `npm run generate:http-hooks -- &lt;url&gt; --write`
+3. Save to `.claude/orchestration/config.json`
+4. Remind about `ORCHESTKIT_HOOK_TOKEN` env var
+
+## Phase 10: Optional Integrations
+
+Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/integrations.md")` for setup steps.
+
+Covers CC version-specific settings (CC 2.1.7 MCP deferral, CC 2.1.20 task deletion, CC 2.1.23 spinner verbs, CC 2.1.79 turn duration display) and monorepo worktree optimization.
+
+### Monorepo Sparse Paths (CC 2.1.76+)
+
+If Phase 1 scan detected a monorepo (pnpm-workspace.yaml, nx.json, lerna.json, turbo.json, or package.json workspaces), suggest configuring `worktree.sparsePaths` in `.claude/settings.json`:
+
+```json
+{
+  "worktree": {
+    "sparsePaths": ["src/", "packages/core/", "tests/", "scripts/"]
+  }
+}
+```
+
+This makes `--worktree` and agent `isolation: worktree` check out only the listed directories via git sparse-checkout — significantly faster in large monorepos.
+
+### Multi-Directory Plugin Seeding (CC 2.1.79+)
+
+`CLAUDE_CODE_PLUGIN_SEED_DIR` now supports multiple directories separated by the platform path delimiter (`:` on Unix, `;` on Windows):
+
+```bash
+export CLAUDE_CODE_PLUGIN_SEED_DIR="/shared/team/plugins:/shared/org/plugins"
+```
+
+This is useful for teams with multiple plugin sources — e.g., a shared org-wide plugin directory alongside a team-specific one. Claude Code scans all listed directories for plugin definitions at startup.
+
+### One-Off Plugin Loading from `.zip` (CC 2.1.128 / 2.1.129)
+
+For evaluating a plugin without committing to a marketplace install — useful for trialing a coworker's branch build, a CI-produced PR artifact, or an OrchestKit pre-release `.zip` before it's published:
+
+- **`--plugin-dir &lt;path-to-zip&gt;`** (CC 2.1.128+): load a local `.zip` archive as a plugin for the session. Same flag that previously only accepted directories, now also accepts archives.
+  ```bash
+  claude --plugin-dir ./vendor/some-plugin.zip
+  ```
+- **`--plugin-url &lt;url&gt;`** (CC 2.1.129+): fetch a `.zip` from a URL and load it for the current session only. The plugin is discarded when CC exits — nothing is written to `~/.claude/plugins/`.
+  ```bash
+  claude --plugin-url https://example.com/some-plugin.zip
+  ```
+
+Both are session-scoped trial paths; for permanent install, use the standard `/plugin install` flow against a marketplace. See `$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/cc-version-settings.md` § CC 2.1.128/2.1.129 for the full notes.
+
+## CLI Flags
+
+| Flag | Behavior |
+|------|----------|
+| (none) | Full wizard (phases 1-10) |
+| `--rescan` | Re-run scan + score, skip safety phase |
+| `--configure` | Jump directly to Phase 3.5: project configuration wizard |
+| `--score-only` | Show current readiness score (Phase 6 only) |
+| `--plan-only` | Show improvement plan (Phase 7 only) |
+| `--telemetry` | Jump to Phase 9: telemetry/webhook setup |
+| `--preset` | Apply a preset (complete/standard/lite/hooks-only/monorepo) |
+
+## Presets (via --preset)
+
+Apply a preset to quickly configure OrchestKit without the full wizard:
+
+| Preset | Skills | Agents | Hooks | Best For |
+|--------|--------|--------|-------|----------|
+| **complete** | 91 | 31 | 96 | Full power — everything enabled |
+| **standard** | 91 | 0 | 96 | Skills + hooks, no agents |
+| **lite** | 10 | 0 | 96 | Essential workflow skills only |
+| **hooks-only** | 0 | 0 | 96 | Just safety hooks |
+| **monorepo** | 91 | 31 | 96 | Complete + monorepo workspace detection |
+
+Load preset details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/presets.md")`
+
+## References
+
+Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/&lt;file&gt;")`:
+
+| File | Content |
+|------|---------|
+| `scan-phase.md` | Phase 1: 20 parallel Glob probes + pattern detection |
+| `safety-check.md` | Phase 3: Install scope and conflict detection |
+| `configure-wizard.md` | Phase 3.5: 6-step interactive project config |
+| `claude-md-health.md` | Phase 7b: CLAUDE.md modular structure analysis |
+| `keybindings.md` | Phase 8: Keyboard shortcut recommendations |
+| `telemetry-setup.md` | Phase 9: Webhook/telemetry configuration |
+| `integrations.md` | Phase 10: CC version settings |
+| `presets.md` | Preset definitions and skill/agent matrices |
+
+## CC `--channels` + console auth (2.1.128+)
+
+`--channels` (per-org notification channel routing) now works under console (API key) authentication, not just OAuth — but the org must have `channelsEnabled: true` set via the admin API. If the user runs `claude --channels=...` with API-key auth and the org config lacks the flag, the channel selection is silently ignored. Setup wizard surfaces this when API-key auth is detected and any channel-routing skill or agent is selected for install.
+
+## Related Skills
+
+- `ork:doctor` — Health diagnostics (wizard uses its checks)
+- `ork:configure` — Internal configuration (called by wizard phases 3.5, 9, 10)
+- `ork:remember` — Knowledge persistence (wizard seeds initial patterns)
+- `ork:explore` — Deep codebase analysis (wizard links for follow-up)
+- `ork:help` — Skill directory (wizard surfaces relevant subset)
+
+
+---
+
+## Rules (5)
+
+### Never overwrite existing CLAUDE.md without user confirmation — HIGH
+
+
+## Existing Config Preservation
+
+The setup wizard must treat existing `CLAUDE.md` and `.claude/rules/*.md` files as user-owned content that must never be overwritten or modified without explicit consent.
+
+## Problem
+
+A project has a carefully maintained `CLAUDE.md` with team coding standards, architecture decisions, and project-specific instructions. The setup wizard's Phase 7b (CLAUDE.md Health Check) decides the file is "too long" and rewrites it into a modular structure, destroying custom content that isn't recoverable from git if the user doesn't notice.
+
+**Incorrect -- rewrite CLAUDE.md when it exceeds threshold:**
+```python
+# Phase 7b: Check CLAUDE.md health
+line_count = Bash(command="wc -l CLAUDE.md | awk '{print $1}'")
+
+if int(line_count) > 200:
+    # Split into modular structure without asking
+    sections = parse_sections("CLAUDE.md")
+    for section in sections:
+        Write(
+            file_path=f".claude/rules/{section['name']}.md",
+            content=section["content"]
+        )
+    # Rewrite CLAUDE.md with @imports
+    Write(file_path="CLAUDE.md", content=generate_import_stub(sections))
+    # Original CLAUDE.md content is now gone
+```
+
+**Correct -- analyze and recommend, never auto-modify:**
+```python
+# Phase 7b: Check CLAUDE.md health
+line_count = Bash(command="wc -l CLAUDE.md 2>/dev/null | awk '{print $1}'")
+existing_rules = Glob(pattern=".claude/rules/*.md")
+
+if int(line_count) > 200 and not existing_rules:
+    # Present analysis and recommendation only
+    AskUserQuestion(questions=[{
+        "question": "Your CLAUDE.md is " + line_count + " lines. "
+            + "Modular structure (.claude/rules/) improves cache efficiency. "
+            + "What would you like to do?",
+        "options": [
+            {"label": "Show split plan", "description": "Preview proposed sections without making changes"},
+            {"label": "Skip", "description": "Keep current CLAUDE.md as-is"},
+            {"label": "Add to plan", "description": "Add this to the P2 improvement plan for later"}
+        ]
+    }])
+    # Never write to CLAUDE.md or .claude/rules/ without explicit "proceed" confirmation
+```
+
+**Key rules:**
+- Never call `Write()` on `CLAUDE.md` or any `.claude/rules/*.md` without prior `AskUserQuestion` confirmation
+- Phase 7b must only analyze and recommend -- never auto-modify
+- If the user confirms a split, create new `.claude/rules/` files but keep the original `CLAUDE.md` intact until the user verifies the split is correct
+- Preserve all existing `.claude/rules/*.md` files -- never delete or rename them
+- When adding OrchestKit-specific rules, use a distinct prefix (e.g., `ork-`) to avoid collision with user rules
+- On `--rescan`, re-read existing config files fresh rather than relying on cached state from a previous run
+
+
+### Validate MCP server URLs are reachable before configuring — MEDIUM
+
+
+## MCP Server Verification
+
+During Phase 5 (MCP Recommendations), validate that recommended MCP servers are actually reachable or installable before adding them to configuration.
+
+## Problem
+
+Setup recommends and configures a cloud MCP server (e.g., Context7) but the user is behind a corporate proxy or firewall. The server entry is written to `.mcp.json`, but every tool call fails silently. The user sees degraded skill behavior with no clear cause.
+
+**Incorrect -- configure MCP without reachability check:**
+```python
+# Phase 5: Add recommended MCPs directly
+mcp_config = Read(".mcp.json") or {"mcpServers": {}}
+
+# No verification -- assumes network access
+mcp_config["mcpServers"]["context7"] = {
+    "command": "npx",
+    "args": ["-y", "@upstash/context7-mcp@latest"]
+}
+Write(file_path=".mcp.json", content=json.dumps(mcp_config, indent=2))
+# If npx can't reach npm registry, this silently fails at runtime
+```
+
+**Correct -- verify before configuring:**
+```python
+# Phase 5: Verify MCP availability before adding
+mcp_config = Read(".mcp.json") or {"mcpServers": {}}
+
+# For npx-based servers: check npm registry reachability
+npm_check = Bash(command="npm ping --registry https://registry.npmjs.org 2>&1; echo $?")
+npm_available = npm_check.strip().endswith("0")
+
+# For local servers: check if binary exists
+local_check = Bash(command="which uvx 2>/dev/null && echo 'available' || echo 'missing'")
+
+recommendations = []
+for server in recommended_mcps:
+    if server["type"] == "npx" and not npm_available:
+        recommendations.append({
+            "server": server["name"],
+            "status": "skipped",
+            "reason": "npm registry unreachable -- check network/proxy settings"
+        })
+    elif server["type"] == "local" and "missing" in local_check:
+        recommendations.append({
+            "server": server["name"],
+            "status": "skipped",
+            "reason": f"Required binary '{server['binary']}' not found -- install it first"
+        })
+    else:
+        recommendations.append({"server": server["name"], "status": "ready"})
+
+# Present results to user before writing config
+AskUserQuestion(questions=[{
+    "question": f"Configure {len([r for r in recommendations if r['status'] == 'ready'])} available MCP servers?",
+    "options": [
+        {"label": "Yes", "description": "Add verified servers to .mcp.json"},
+        {"label": "Show details", "description": "See full availability report first"},
+        {"label": "Skip", "description": "Configure MCPs later via /ork:configure"}
+    ]
+}])
+```
+
+**Key rules:**
+- Run `npm ping` before configuring any npx-based MCP server
+- Check for required local binaries (uvx, docker) before configuring local MCP servers
+- Mark unreachable servers as "skipped" with a clear reason, not as errors
+- Never write an MCP server entry to `.mcp.json` that is known to be unreachable
+- Include remediation steps (proxy config, install commands) for skipped servers
+- Re-check MCP availability on `--rescan` runs
+
+
+### Warn if chosen preset conflicts with existing .claude/ configuration — HIGH
+
+
+## Preset Conflict Detection
+
+Before applying any preset (complete, standard, lite, hooks-only, monorepo), check for existing `.claude/` configuration and warn the user about conflicts.
+
+## Problem
+
+A team has carefully configured `.claude/settings.json` with custom tool permissions and deny patterns. Running `/ork:setup --preset complete` overwrites these settings without warning, breaking their security posture and removing deny-listed commands.
+
+**Incorrect -- apply preset without conflict check:**
+```python
+# Apply preset directly
+preset = load_preset("complete")
+
+# Overwrites any existing config
+Write(file_path=".claude/settings.json", content=preset["settings"])
+Write(file_path=".mcp.json", content=preset["mcp_config"])
+# User's custom deny patterns and MCP servers are gone
+```
+
+**Correct -- detect conflicts and merge with user confirmation:**
+```python
+# Check for existing configuration first
+existing_settings = Read(".claude/settings.json")  # may not exist
+existing_mcp = Read(".mcp.json")                   # may not exist
+
+preset = load_preset("complete")
+conflicts = []
+
+if existing_settings:
+    if existing_settings.get("deny"):
+        conflicts.append("Existing deny patterns in .claude/settings.json will be preserved")
+    if existing_settings.get("permissions"):
+        conflicts.append(f"{len(existing_settings['permissions'])} custom permissions detected")
+
+if existing_mcp:
+    existing_servers = set(existing_mcp.get("mcpServers", {}).keys())
+    preset_servers = set(preset["mcp_config"].get("mcpServers", {}).keys())
+    overlap = existing_servers & preset_servers
+    if overlap:
+        conflicts.append(f"MCP servers will be updated: {', '.join(overlap)}")
+
+if conflicts:
+    AskUserQuestion(questions=[{
+        "question": "Existing configuration detected. How should we proceed?",
+        "options": [
+            {"label": "Merge (Recommended)", "description": "Keep existing settings, add preset additions"},
+            {"label": "Replace", "description": "Overwrite with preset defaults"},
+            {"label": "Cancel", "description": "Abort preset application"}
+        ]
+    }])
+```
+
+**Key rules:**
+- Always read existing `.claude/settings.json`, `.mcp.json`, and `CLAUDE.md` before applying a preset
+- Never overwrite `deny` patterns -- these are security-critical and must be preserved
+- Present a diff-style summary of what will change before writing any files
+- Default to merge strategy: keep user customizations, add preset additions
+- Log which files were modified and what was preserved for the improvement plan
+
+
+### Verify detected stack matches actual project files before applying presets — HIGH
+
+
+## Stack Detection Validation
+
+After Phase 1 scan and Phase 2 classification, validate that detected frameworks have corroborating evidence in actual project files before recommending skills or applying presets.
+
+## Problem
+
+Glob probes can produce false positives. A `next.config.js` file left over from a deleted experiment causes Next.js skills to be recommended for a pure Express project. A `docker-compose.yml` with only a database service triggers full Docker/K8s skill recommendations.
+
+**Incorrect -- trust Glob results without validation:**
+```python
+# Phase 2: Classify scan results directly
+scan = glob_results  # {"next.config.js": True, "package.json": True}
+
+stack = []
+if scan.get("next.config.js"):
+    stack.append("Next.js")  # No check if Next.js is an actual dependency
+    recommend_skills(["react-server-components-framework", "vite-advanced"])
+```
+
+**Correct -- cross-reference with dependency manifests:**
+```python
+# Phase 2: Validate detection against dependency files
+scan = glob_results  # {"next.config.js": True, "package.json": True}
+package_json = Read("package.json")
+deps = {**package_json.get("dependencies", {}), **package_json.get("devDependencies", {})}
+
+stack = []
+if scan.get("next.config.js") and "next" in deps:
+    stack.append({"name": "Next.js", "version": deps["next"], "confidence": "high"})
+elif scan.get("next.config.js"):
+    stack.append({"name": "Next.js", "version": "unknown", "confidence": "low"})
+    # Flag for user confirmation before recommending skills
+    flag_for_confirmation("Next.js detected via config file but not in package.json dependencies")
+```
+
+**Key rules:**
+- Cross-reference config file detection with dependency manifests (package.json, pyproject.toml, go.mod, Cargo.toml)
+- Assign confidence levels: `high` (in deps + config), `medium` (deps only), `low` (config only)
+- Present low-confidence detections to user for confirmation before applying preset skills
+- Never silently apply a preset based on a single file match without dependency corroboration
+- When `--rescan` is used, re-validate all previously detected stack items against current state
+- For monorepo projects, scan each workspace root independently -- a framework in `packages/web/` should not trigger recommendations for `packages/api/`
+- Display the confidence level next to each detected item in the Phase 2 stack profile output
+- If zero high-confidence items are detected, prompt the user to manually specify their stack before proceeding to Phase 4
+
+
+### Require explicit opt-in before enabling any telemetry or analytics — HIGH
+
+
+## Telemetry Consent Gate
+
+Phase 9 (Telemetry & Webhooks) must require explicit, informed opt-in before configuring any data collection. Never default to enabled, never bundle telemetry with other setup steps.
+
+## Problem
+
+The setup wizard configures "full streaming" telemetry as part of a batch operation, or pre-selects it as the default option. The user clicks through quickly and doesn't realize 18 Claude Code events are now being sent to an external webhook URL, potentially including file paths, tool invocations, and session metadata.
+
+**Incorrect -- telemetry enabled by default or bundled with other config:**
+```python
+# Phase 9: Configure telemetry (default: full streaming)
+AskUserQuestion(questions=[{
+    "question": "Configure telemetry?",
+    "options": [
+        {"label": "Full streaming (Recommended)", "description": "All 18 CC events"},  # Pre-selected
+        {"label": "Summary only", "description": "SessionEnd + worktree events"},
+        {"label": "Skip", "description": "No telemetry"}
+    ]
+}])
+
+# If user picked "Full streaming", immediately configure
+webhook_url = "https://company-default.example.com/hooks"  # Hardcoded default
+Bash(command=f'npm run generate:http-hooks -- {webhook_url} --write')
+# No explanation of what data is sent, no consent trail
+```
+
+**Correct -- informed consent with explicit opt-in, no pre-selection:**
+```python
+# Phase 9: Telemetry requires separate, informed consent
+# Step 1: Explain what telemetry collects
+AskUserQuestion(questions=[{
+    "question": "OrchestKit can send usage events to a webhook for team analytics. "
+        + "This is fully optional and disabled by default.\n\n"
+        + "Data sent includes: tool invocations, session duration, skill usage, "
+        + "error counts. NO file contents, NO prompts, NO code snippets.",
+    "header": "Telemetry Setup (Optional)",
+    "options": [
+        {"label": "Skip (Default)", "description": "No telemetry -- no data leaves your machine"},
+        {"label": "Summary only", "description": "Only session-end summaries"},
+        {"label": "Full streaming", "description": "All 18 event types -- requires webhook URL"}
+    ]
+}])
+
+# Step 2: If user explicitly chose telemetry, require their own URL
+if user_choice != "Skip":
+    webhook_url = AskUserQuestion(questions=[{
+        "question": "Enter your webhook URL (no default -- you must provide your own):",
+    }])
+    if not webhook_url or not webhook_url.startswith("https://"):
+        # Refuse non-HTTPS endpoints
+        report("Webhook URL must use HTTPS. Skipping telemetry configuration.")
+        return
+
+    # Step 3: Confirm before writing
+    AskUserQuestion(questions=[{
+        "question": f"Confirm: send {user_choice} events to {webhook_url}?",
+        "options": [
+            {"label": "Confirm", "description": "Write config and enable"},
+            {"label": "Cancel", "description": "Do not enable telemetry"}
+        ]
+    }])
+```
+
+**Key rules:**
+- "Skip" / disabled must always be the default option (listed first, no pre-selection)
+- Explain exactly what data is collected before asking for consent
+- Never hardcode or suggest a default webhook URL -- the user must provide their own
+- Require HTTPS for all webhook endpoints -- reject plain HTTP
+- Require a separate confirmation step after the user provides their URL
+- Store consent choice in `.claude/orchestration/config.json` with a timestamp for audit
+- On `--rescan`, never re-enable telemetry that was previously skipped
+
+
+
+---
+
+## References (10)
+
+### Claude Md Health
+
+# CLAUDE.md Health Check
+
+## When to Run
+
+Phase 7b of the setup wizard — after the improvement plan, check if the user's CLAUDE.md could benefit from modular structure.
+
+## Analysis Steps
+
+```python
+# Count CLAUDE.md lines
+Bash(command="wc -l CLAUDE.md 2>/dev/null | awk '{print $1}'")
+
+# Check for existing @imports
+Grep(pattern="^@", path="CLAUDE.md", output_mode="count")
+
+# Check for .claude/rules/ directory
+Glob(pattern=".claude/rules/*.md")
+```
+
+## Thresholds
+
+| Lines | Verdict | Recommendation |
+|-------|---------|----------------|
+| &lt; 100 | Healthy | No action needed |
+| 100-200 | Fine | Mention @imports exist, no pressure |
+| 200-500 | Recommend split | Suggest @imports or .claude/rules/ |
+| > 500 | Strongly recommend | Show concrete split example |
+
+## @import Syntax (CC 2.1.59+)
+
+CLAUDE.md can import other files with `@path/to/file` syntax:
+
+```markdown
+# Project Overview
+Brief description here.
+
+# Standards
+@docs/coding-standards.md
+@docs/api-conventions.md
+@docs/testing-guide.md
+```
+
+- Relative paths resolve from the file containing the import
+- Recursive imports supported (max depth 5)
+- Not evaluated inside code blocks
+- First use in a project triggers an approval dialog
+
+## .claude/rules/ Directory (CC 2.1.59+)
+
+Alternative to @imports — auto-loaded markdown files:
+
+```
+.claude/rules/
+├── code-style.md      # Always loaded (no frontmatter)
+├── testing.md         # Always loaded
+└── hooks-dev.md       # Conditionally loaded (has paths:)
+```
+
+### Path-Scoped Rules
+
+Add `paths:` YAML frontmatter to scope rules to specific directories:
+
+```markdown
+---
+paths:
+  - "src/api/**/*.ts"
+---
+# API Development Rules
+- All endpoints must include input validation
+- Use standard error response format
+```
+
+Rules without `paths:` load unconditionally. Glob patterns supported: `**/*.ts`, `src/**/*`, `*.\{ts,tsx\}`.
+
+### User-Level Rules
+
+Personal rules at `~/.claude/rules/` apply to all projects (lower priority than project rules).
+
+## Output Template
+
+### Healthy (&lt; 200 lines)
+
+```
+CLAUDE.md Health: Good (87 lines)
+  No changes needed.
+```
+
+### Recommend Split (200-500 lines)
+
+```
+CLAUDE.md Health: Consider splitting (312 lines)
+
+  CC 2.1.59+ supports modular instructions. Two options:
+
+  Option A — @imports in CLAUDE.md:
+    @docs/coding-standards.md
+    @docs/api-conventions.md
+
+  Option B — .claude/rules/ directory:
+    .claude/rules/code-style.md     (always loaded)
+    .claude/rules/api-rules.md      (loaded only for src/api/**)
+
+  Benefits: less context noise per task, team can own separate rule files.
+```
+
+### Strongly Recommend (> 500 lines)
+
+```
+CLAUDE.md Health: Too large (634 lines)
+
+  Large CLAUDE.md files degrade Claude's performance — too much context
+  loaded for every task regardless of relevance.
+
+  Recommended structure:
+    CLAUDE.md (< 100 lines) — project overview + @imports
+    .claude/rules/code-style.md — coding conventions
+    .claude/rules/testing.md — test patterns
+    .claude/rules/api.md — API standards (paths: src/api/**)
+    .claude/rules/frontend.md — UI rules (paths: src/components/**)
+```
+
+
+### Configure Wizard
+
+# Phase 3.5: Project Configuration Wizard
+
+> Also reachable directly via `/ork:setup --configure` — skips phases 1-3.
+
+This phase walks users through every configurable OrchestKit behaviour and writes the result to the correct project settings file. When running the full wizard, show this phase AFTER the safety/install check. When running `--configure` alone, start here.
+
+## Step 0: Detect config target and read current settings
+
+The write target depends on the project type:
+
+- **Developing OrchestKit itself** (`src/settings/ork.settings.json` exists): write to `src/settings/ork.settings.json` — this is the plugin's global defaults file.
+- **Any other project** (your app, client repos, etc.): write to `.claude/settings.json` — this is per-project CC settings that override plugin defaults without touching global config.
+
+```python
+# Detect config target
+is_orchestkit_dev = len(Glob(pattern="src/settings/ork.settings.json")) > 0
+
+if is_orchestkit_dev:
+    config_target = "src/settings/ork.settings.json"
+    existing_settings = Read(file_path="src/settings/ork.settings.json") or {}
+else:
+    config_target = ".claude/settings.json"
+    existing_settings = Read(file_path=".claude/settings.json") or {}
+
+# Extract current env block if present
+current_env = existing_settings.get("env", {})
+```
+
+Show the user what's already set so they aren't surprised by overwrites.
+
+## Step 0.5: Check elicitation availability
+
+Check if the `mcp__ork-elicit__ork_elicit` tool is available in the current session. This determines whether to use the single-form elicitation path (steps 1-5 consolidated) or the legacy 5x AskUserQuestion fallback.
+
+```python
+# The tool is available if ork-elicit MCP server is registered in .mcp.json
+# and the CC version supports elicitation (>= 2.1.76).
+# Check by looking at available tools — if mcp__ork-elicit__ork_elicit is NOT
+# in the tool list, fall through to legacy.
+elicit_available = "mcp__ork-elicit__ork_elicit" in available_tools
+```
+
+## Steps 1-5: Elicitation Path (preferred)
+
+If `elicit_available` is true, consolidate steps 1-5 into a single form dialog:
+
+```python
+if elicit_available:
+    result = mcp__ork-elicit__ork_elicit(preset="project-config")
+    parsed = json.loads(result)
+
+    if parsed.get("action") == "accept":
+        # Use the mapped env vars directly
+        env_from_wizard = parsed["env_vars"]
+        # env_from_wizard contains:
+        #   ORCHESTKIT_PROTECTED_BRANCHES
+        #   ORCHESTKIT_COMMIT_SCOPE
+        #   ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST
+        #   ORCHESTKIT_PERF_SNAPSHOT_ENABLED
+        #   ORCHESTKIT_LOG_LEVEL
+    elif parsed.get("action") in ("decline", "cancel"):
+        # User declined — use current defaults, skip to step 6
+        env_from_wizard = {}
+    elif parsed.get("fallback"):
+        # Elicitation failed (e.g. CC version mismatch) — fall through to legacy
+        elicit_available = false
+    else:
+        # Error — fall through to legacy
+        elicit_available = false
+```
+
+If the elicitation result has `action: "accept"`, skip directly to Step 6 (webhooks).
+
+## Steps 1-5: Legacy Fallback (AskUserQuestion)
+
+If `elicit_available` is false (server not registered, CC &lt; 2.1.76, or elicitation failed), use the existing 5-step AskUserQuestion flow:
+
+### Step 1: Branch Strategy
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Which branches should block direct commits and pushes?",
+  "header": "Protected branches",
+  "options": [
+    {
+      "label": "main, master (Recommended)",
+      "description": "Standard Git Flow defaults. Feature work goes on branches."
+    },
+    {
+      "label": "main, master, dev",
+      "description": "Adds dev as a protected integration branch."
+    },
+    {
+      "label": "main only",
+      "description": "Minimal protection — only main is locked."
+    },
+    {
+      "label": "Custom",
+      "description": "I'll specify my own comma-separated branch list."
+    }
+  ],
+  "multiSelect": false
+}])
+```
+
+If **Custom** selected: ask for the comma-separated list inline.
+
+Generated env var: `ORCHESTKIT_PROTECTED_BRANCHES=&lt;value&gt;`
+
+### Step 2: Commit Format Enforcement
+
+```python
+AskUserQuestion(questions=[{
+  "question": "How strictly should commit message format be enforced?",
+  "header": "Commit scope",
+  "options": [
+    {
+      "label": "Optional scope (Recommended)",
+      "description": "Both `feat: msg` and `feat(scope): msg` are valid."
+    },
+    {
+      "label": "Required scope",
+      "description": "Every commit must include a scope: `type(scope): msg`"
+    },
+    {
+      "label": "Scope disabled",
+      "description": "Only type+colon required. Scopes ignored in validation."
+    }
+  ],
+  "multiSelect": false
+}])
+```
+
+Generated env var: `ORCHESTKIT_COMMIT_SCOPE=&lt;value&gt;`
+
+### Step 3: Local Dev Browser Access
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Should agents be allowed to browse *.localhost URLs (e.g. hq-web.localhost)?",
+  "header": "Localhost browser",
+  "options": [
+    {
+      "label": "Yes, allow *.localhost (Recommended)",
+      "description": "RFC 6761 reserved TLD — cannot route to external hosts. Enables visual verification of local dev servers."
+    },
+    {
+      "label": "No, block all localhost",
+      "description": "Stricter mode — blocks *.localhost AND bare localhost. Use for enterprise/sandboxed environments."
+    }
+  ],
+  "multiSelect": false
+}])
+```
+
+Generated env var: `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST=&lt;value&gt;`
+
+### Step 4: Performance Telemetry
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Should OrchestKit write a token-usage snapshot at session end?",
+  "header": "Perf snapshot",
+  "options": [
+    {
+      "label": "Yes, enable perf snapshots (Recommended)",
+      "description": "Writes ~/.claude/perf/snap-YYYY-MM-DD-HH.json. Used by /ork:assess and perf-compare.sh."
+    },
+    {
+      "label": "No, disable perf snapshots",
+      "description": "Skip writing snapshot files. Useful in CI or shared environments."
+    }
+  ],
+  "multiSelect": false
+}])
+```
+
+Generated env var: `ORCHESTKIT_PERF_SNAPSHOT_ENABLED=&lt;value&gt;`
+
+### Step 5: Log Verbosity
+
+```python
+AskUserQuestion(questions=[{
+  "question": "What log level should OrchestKit hooks use?",
+  "header": "Log level",
+  "options": [
+    {
+      "label": "warn — quiet (Recommended)",
+      "description": "Only warnings and errors. Minimal noise."
+    },
+    {
+      "label": "info — moderate",
+      "description": "Key events logged. Good for onboarding."
+    },
+    {
+      "label": "debug — verbose",
+      "description": "Full trace of every hook decision."
+    }
+  ],
+  "multiSelect": false
+}])
+```
+
+Generated env var: `ORCHESTKIT_LOG_LEVEL=&lt;value&gt;`
+
+## Step 6: Webhook Telemetry (HTTP Hooks)
+
+> This step always uses AskUserQuestion — the conditional webhook URL follow-up requires interactive flow that elicitation cannot handle.
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Send CC hook events to an external API for observability (Langfuse traces, metrics)?",
+  "header": "Webhook telemetry",
+  "options": [
+    {
+      "label": "Yes, enable webhooks",
+      "description": "Runs `generate-http-hooks` to write native CC HTTP hooks to settings.local.json."
+    },
+    {
+      "label": "No, skip webhooks (Recommended for most users)",
+      "description": "No HTTP hooks. All hook processing stays local."
+    }
+  ],
+  "multiSelect": false
+}])
+```
+
+If **Yes** selected, ask for the webhook URL:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Webhook base URL (the API that receives CC hook events):",
+  "header": "Webhook URL",
+  "options": [
+    {
+      "label": "https://hq.yonatangross.com/api/hooks",
+      "description": "Yonatan HQ production API"
+    },
+    {
+      "label": "https://hq-api.localhost/api/hooks",
+      "description": "Local dev API (Portless)"
+    },
+    {
+      "label": "Custom URL",
+      "description": "I'll provide my own webhook endpoint"
+    }
+  ],
+  "multiSelect": false
+}])
+```
+
+Then run the generator:
+
+```python
+Bash(command=f"npx tsx ${{CLAUDE_PLUGIN_ROOT}}/hooks/../src/hooks/src/cli/generate-http-hooks.ts {webhook_url} --write")
+```
+
+This writes 19 HTTP hook entries to `.claude/settings.local.json`. The hooks use `Bearer $ORCHESTKIT_HOOK_TOKEN` — the user must set this env var in their shell (e.g. `.zshrc`).
+
+Remind the user:
+```
+Webhook hooks written to .claude/settings.local.json
+Set ORCHESTKIT_HOOK_TOKEN in your shell:
+  export ORCHESTKIT_HOOK_TOKEN="your-token-here"
+```
+
+## Writing the Configuration
+
+After all steps complete (whether via elicitation or legacy), write (or merge) the env block into `config_target` (set in Step 0):
+
+```python
+# Merge new env values (preserving existing keys not in wizard scope)
+new_env = {
+  **current_env,  # preserve all keys we didn't ask about (e.g. ENABLE_TOOL_SEARCH)
+  **env_from_wizard,  # from elicitation path or legacy AskUserQuestion steps
+}
+
+# If legacy path was used, env_from_wizard was built step-by-step:
+# env_from_wizard = {
+#   "ORCHESTKIT_PROTECTED_BRANCHES": <from step 1>,
+#   "ORCHESTKIT_COMMIT_SCOPE": <from step 2>,
+#   "ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST": <from step 3>,
+#   "ORCHESTKIT_PERF_SNAPSHOT_ENABLED": <from step 4>,
+#   "ORCHESTKIT_LOG_LEVEL": <from step 5>,
+# }
+
+updated_settings = {**existing_settings, "env": new_env}
+
+Write(file_path=config_target, content=json.dumps(updated_settings, indent=2))
+```
+
+> **Note on per-project vs global:** Writing to `.claude/settings.json` overrides the plugin defaults for THIS project only — other projects remain unaffected. Writing to `src/settings/ork.settings.json` changes the global defaults shipped with the plugin itself. Only do that when developing OrchestKit.
+
+## Configuration Summary
+
+After writing, present a confirmation table (use `config_target` in the header):
+
+```
+OrchestKit Configuration Written → .claude/settings.json
+──────────────────────────────────────────────────────────
+  Protected branches    main,master
+  Commit scope          optional
+  Localhost browser     allowed (RFC 6761)
+  Perf snapshot         enabled
+  Log level             warn
+
+Settings are in effect immediately for this project.
+Other projects using ork are unaffected.
+To reconfigure: /ork:setup --configure
+To see full readiness: /ork:setup --score-only
+```
+
+## Env Var Quick Reference
+
+| Env Var | Default | Values | Effect |
+|---------|---------|--------|--------|
+| `ORCHESTKIT_PROTECTED_BRANCHES` | `main,master` | comma-separated branches | Blocks direct commits/pushes |
+| `ORCHESTKIT_COMMIT_SCOPE` | `optional` | `optional` \| `required` \| `none` | Commit message scope enforcement |
+| `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | `1` | `1` \| `0` | Allow `*.localhost` browser access |
+| `ORCHESTKIT_PERF_SNAPSHOT_ENABLED` | `1` | `1` \| `0` | Write session token snapshots |
+| `ORCHESTKIT_LOG_LEVEL` | `warn` | `debug` \| `info` \| `warn` \| `error` | Hook log verbosity |
+| `ORCHESTKIT_HOOK_TOKEN` | (unset) | Bearer token string | Auth for webhook HTTP hooks |
+| `ENABLE_TOOL_SEARCH` | `auto:5` | `auto:N` \| `off` | MCP tool discovery limit |
+| `CLAUDE_CODE_SCRIPT_CAPS` | (unset) | integer | Limit per-session script invocations (CC 2.1.98). Recommended for production. |
+| `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` | (unset) | `1` | Strip credentials from subprocess env vars (CC 2.1.98). Enables PID namespace isolation on Linux. |
+| `CLAUDE_CODE_PERFORCE_MODE` | (unset) | `1` | Edit/Write fail on read-only files with `p4 edit` hint (CC 2.1.98). For Perforce workflows. |
+| `CLAUDE_CODE_NO_FLICKER` | (unset) | `1` | Flicker-free alt-screen rendering (CC 2.1.88). |
+| `CLAUDE_CODE_CERT_STORE` | `system` | `system` \| `bundled` | CA certificate store (CC 2.1.101). Default `system` trusts OS CA store for enterprise TLS proxies. Set `bundled` to use only bundled CAs. |
+
+
+### Integrations
+
+# Phase 10: Optional Integrations
+
+## CC Version-Specific Settings
+
+### CC 2.1.7+
+- Turn duration limits
+- MCP deferral threshold
+- Effective context window size
+
+### CC 2.1.20+
+- Task deletion support
+- PR enrichment
+- Agent permissions
+- Monorepo workspace detection
+- Team distribution settings
+
+### CC 2.1.23+
+- Spinner verb customization
+
+### CC 2.1.72+
+- Reasoning effort levels (low/medium/high/auto)
+- Plan mode (`/plan`)
+- Background agent preservation across `/clear`
+
+Present as toggles — only show settings relevant to detected CC version:
+
+```python
+Bash(command="claude --version 2>/dev/null | head -1")
+```
+
+
+### Keybindings
+
+# Phase 8: Keybindings
+
+Check for existing keybindings and offer to install recommended shortcuts:
+
+```python
+# Check existing keybindings
+Bash(command="cat ~/.claude/keybindings.json 2>/dev/null || echo '[]'")
+```
+
+Prompt the user:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Install recommended keybindings for top OrchestKit skills?",
+  "header": "Keyboard shortcuts",
+  "options": [
+    {"label": "Yes, install keybindings (Recommended)", "description": "Adds 5 shortcuts: commit, verify, implement, explore, review-pr"},
+    {"label": "Skip", "description": "No keyboard shortcuts"}
+  ],
+  "multiSelect": false
+}])
+```
+
+If **Yes**: write or merge into `~/.claude/keybindings.json`:
+
+```json
+[
+  {"key": "ctrl+shift+c", "command": "/ork:commit", "description": "Git commit with validation"},
+  {"key": "ctrl+shift+v", "command": "/ork:verify", "description": "Run verification suite"},
+  {"key": "ctrl+shift+i", "command": "/ork:implement", "description": "Implement feature"},
+  {"key": "ctrl+shift+e", "command": "/ork:explore", "description": "Deep codebase exploration"},
+  {"key": "ctrl+shift+r", "command": "/ork:review-pr", "description": "Review pull request"}
+]
+```
+
+If the file already exists, **merge** — read existing entries, add only keybindings whose `key` is not already bound, then write back. Never overwrite user-defined bindings.
+
+## CC built-in keys worth knowing (CC 2.1.129+)
+
+- **Ctrl+R** opens the reverse-search history picker. As of CC 2.1.129 it defaults to **all prompts across all projects** (matching pre-2.1.124 behavior). Press **Ctrl+S** while the picker is open to narrow to the current project / session. Avoid binding `Ctrl+R` or `Ctrl+S` in user keybindings — both are reserved.
+- **`/model` picker — `s` for session-only (CC 2.1.153+, BREAKING):** `/model` now saves your selection as the **default for new sessions** (matching the IDE); press **`s`** in the picker to scope the change to the current session only. The old `d` action was **renamed** — if your `keybindings.json` customized `modelPicker:setAsDefault`, rename it to **`modelPicker:thisSessionOnly`** or the binding silently stops working.
+
+
+### Presets
+
+# Presets
+
+Quick-start configurations for different use cases.
+
+## Preset Matrix
+
+| Preset | Skills | Agents | Hooks | Use Case |
+|--------|--------|--------|-------|----------|
+| **complete** | 91 | 31 | 96 | Full power — recommended for most users |
+| **standard** | 91 | 0 | 96 | No agent delegation — lower token cost |
+| **lite** | 10 | 0 | 96 | Essential: commit, implement, verify, explore, fix-issue, create-pr, review-pr, remember, memory, help |
+| **hooks-only** | 0 | 0 | 96 | Just safety hooks (git protection, secret redaction, file guards) |
+| **monorepo** | 91 | 31 | 96 | Complete + monorepo workspace detection enabled |
+
+## Lite Preset Skills
+
+The 10 essential skills for any project:
+
+1. `commit` — Conventional commits with safety hooks
+2. `implement` — Feature implementation with parallel agents
+3. `verify` — Test and grade implementations
+4. `explore` — Codebase exploration
+5. `fix-issue` — GitHub issue resolution
+6. `create-pr` — PR creation with validation
+7. `review-pr` — PR review with 6 agents
+8. `remember` — Store decisions in knowledge graph
+9. `memory` — Search and recall past decisions
+10. `help` — Skill directory
+
+## Applying a Preset
+
+```bash
+/ork:setup --preset complete
+/ork:setup --preset lite
+```
+
+Presets set the base, then user can toggle individual categories on/off.
+
+
+### Readiness Scoring
+
+# Readiness Scoring
+
+Computes a composite readiness score (0-10) from 6 dimensions.
+
+## Dimensions
+
+| Dimension | Weight | Calculation |
+|-----------|--------|-------------|
+| **Stack Coverage** | 25% | matched_skills / relevant_skills_for_detected_stack |
+| **Hook Protection** | 20% | hooks_active / total_hooks (from /ork:doctor logic) |
+| **MCP Enhancement** | 15% | installed_mcps / recommended_mcps |
+| **Memory Depth** | 15% | entity_count from `mcp__memory__search_nodes` (target: 50+) |
+| **Custom Skills** | 15% | custom_skills_created / suggested_customs |
+| **Agent Utilization** | 10% | 1.0 if agents accessible, 0.5 if no MCPs limit capability |
+
+## Score Presentation
+
+```
+OrchestKit Readiness Score: 7.2 / 10  (stable channel, v7.0.0)
+
+  Stack Coverage  ████████░░  9/10  Python + React fully covered
+  Hook Protection ████████░░  8/10  218 hooks active
+  MCP Enhancement ██████░░░░  6/10  2/3 recommended MCPs active
+  Memory Depth    ████░░░░░░  4/10  12 entities (target: 50+)
+  Custom Skills   ██░░░░░░░░  2/10  0/3 suggested skills created
+  Agent Utilization ████████░░  8/10  36 agents available
+
+  Top improvement: Add /ork:remember patterns → +1.5 points
+```
+
+## Memory Integration
+
+Store the score for tracking over time:
+
+```python
+mcp__memory__create_entities(entities=[{
+  "name": "OrchestKit Setup Score",
+  "entityType": "metric",
+  "observations": [
+    "Score: 7.2/10 on 2026-02-26",
+    "Stack: Python + React + Next.js",
+    "Gap: Memory depth (12/50 entities), Custom skills (0/3)"
+  ]
+}])
+```
+
+## Improvement Plan Template
+
+Generate prioritized, **runnable** recommendations in 3 tiers:
+
+- **P0 (do now)**: Seed knowledge graph with `/ork:remember` patterns
+- **P1 (this week)**: Configure recommended MCPs, create custom skills for repeated patterns
+- **P2 (ongoing)**: Run `/ork:explore architecture`, rescan with `/ork:setup --rescan` in 2 weeks
+
+Save plan to memory as entity type "plan".
+
+
+### Safety Check
+
+# Phase 3: Safety Check
+
+Use `AskUserQuestion` to confirm installation scope:
+
+```python
+AskUserQuestion(questions=[{
+  "question": "How should OrchestKit be installed?",
+  "header": "Install scope",
+  "options": [
+    {"label": "User-only (Recommended)", "description": "Plugin loads only for you. Invisible to teammates. Safe for enterprise."},
+    {"label": "Project-wide", "description": "Adds to .claude/plugins — loads for everyone in this repo."},
+    {"label": "Already installed", "description": "Skip installation, just configure."}
+  ],
+  "multiSelect": false
+}])
+```
+
+## Conflict Detection
+
+Check for existing OrchestKit installs or conflicting plugins:
+
+```python
+Grep(pattern="ork", path="~/.claude/settings.json", output_mode="content")
+Glob(pattern="~/.claude/plugins/ork*")
+```
+
+Report: "No conflicts detected" or "Found existing ork install — version \{version\}."
+
+
+### Scan Phase
+
+# Phase 1: Scan Details
+
+Run ALL scan commands in **one parallel batch** for speed:
+
+```python
+# PARALLEL — launch all in ONE message
+Glob(pattern="**/package.json")
+Glob(pattern="**/pyproject.toml")
+Glob(pattern="**/go.mod")
+Glob(pattern="**/Cargo.toml")
+Glob(pattern="**/pom.xml")
+Glob(pattern="**/*.csproj")
+Glob(pattern="**/Gemfile")
+Glob(pattern="**/composer.json")
+Glob(pattern="**/.claude/settings.json")
+Glob(pattern="**/.mcp.json")
+Glob(pattern="**/docker-compose*.yml")
+Glob(pattern="**/Dockerfile*")
+Glob(pattern="**/.github/workflows/*.yml")
+Glob(pattern="**/terraform/**/*.tf")
+Glob(pattern="**/k8s/**/*.yaml")
+Glob(pattern="**/CONTRIBUTING.md")
+Glob(pattern="**/tsconfig.json")
+Glob(pattern="**/next.config.*")
+Glob(pattern="**/vite.config.*")
+Glob(pattern="**/alembic.ini")
+```
+
+Then read key dependency files found:
+
+```python
+# PARALLEL — read detected package manifests
+Read(file_path="package.json")       # if found
+Read(file_path="pyproject.toml")     # if found
+Read(file_path="requirements.txt")   # if found
+Read(file_path=".mcp.json")          # if found
+Read(file_path=".claude/settings.json")  # if found
+```
+
+## Pattern Detection (for custom skill suggestions)
+
+```python
+# PARALLEL — count repeated patterns
+Grep(pattern="@app\\.(route|get|post|put|delete|patch)", glob="**/*.py", output_mode="count")
+Grep(pattern="@router\\.(get|post|put|delete|patch)", glob="**/*.py", output_mode="count")
+Grep(pattern="export (default |)function", glob="**/*.tsx", output_mode="count")
+Grep(pattern="export (default |)function", glob="**/*.jsx", output_mode="count")
+Grep(pattern="class.*Model\\)", glob="**/*.py", output_mode="count")
+Grep(pattern="def test_", glob="**/*.py", output_mode="count")
+Grep(pattern="(describe|it|test)\\(", glob="**/*.{ts,tsx,js}", output_mode="count")
+```
+
+
+### Stack Skill Mapping
+
+# Stack-to-Skill Mapping
+
+Maps detected technologies to recommended OrchestKit skills.
+
+## Language/Framework Mapping
+
+| Detected | Recommended Skills |
+|----------|--------------------|
+| Python | `python-backend`, `async-jobs`, `database-patterns` |
+| FastAPI | `api-design`, `testing-unit`, `testing-integration` |
+| React | `react-server-components-framework`, `ui-components`, `responsive-patterns` |
+| Next.js | `react-server-components-framework`, `performance`, `vite-advanced` |
+| Zustand | `zustand-patterns` |
+| SQLAlchemy/Alembic | `database-patterns` |
+| Docker/K8s | `devops-deployment`, `distributed-systems` |
+| Terraform | `devops-deployment` |
+| GitHub Actions | `devops-deployment` |
+| LLM/AI deps | `llm-integration`, `rag-retrieval`, `langgraph`, `mcp-patterns` |
+| Test frameworks | `testing-unit`, `testing-e2e`, `testing-integration`, `golden-dataset` |
+| Security concerns | `security-patterns` |
+
+**All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `remember`, `brainstorm`, `help`
+
+## MCP Recommendation Matrix
+
+| MCP | When to Recommend | Install Effort |
+|-----|-------------------|---------------|
+| **Context7** | Always — eliminates doc hallucination | Zero (cloud, free) |
+| **Memory** | Always — knowledge graph persistence | Low (local npx) |
+| **Sequential Thinking** | If using Sonnet/Haiku subagents | Low (local npx) |
+| **Tavily** | If web-research-workflow relevant | Medium (needs API key, free tier) |
+| **NotebookLM** | If many docs/READMEs for team RAG | Medium (Google auth) |
+| **Phoenix/Langfuse** | If LLM observability desired | Medium (Docker, optional) |
+
+Present as toggles with impact labels. Show install commands for selected MCPs.
+
+## Custom Skill Suggestions
+
+Based on pattern detection from Phase 1 scan:
+
+```
+Detected patterns that could become custom skills:
+  47 API routes   → Create "api-endpoint" skill
+  83 React comps  → Create "component" skill
+  8 deploy steps  → Create "deploy-checklist" skill
+
+To create any of these: see CONTRIBUTING-SKILLS.md
+```
+
+
+### Telemetry Setup
+
+# Phase 9: Telemetry & Webhook Configuration
+
+Dual-channel telemetry for streaming session data to your API.
+
+## Channel Architecture
+
+```
+Channel 1 (HTTP hooks):     All 18 CC events → /cc-event (Bearer auth)
+Channel 2 (Command hooks):  SessionEnd → /ingest (HMAC auth, enriched)
+```
+
+## AskUserQuestion Prompt
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Set up session telemetry?",
+  "header": "Telemetry",
+  "options": [
+    {"label": "Full streaming (Recommended)", "description": "All 18 events stream via native HTTP + enriched summaries"},
+    {"label": "Summary only", "description": "SessionEnd and worktree events only (command hooks)"},
+    {"label": "Skip", "description": "No telemetry — hooks run locally only"}
+  ],
+  "multiSelect": false
+}])
+```
+
+## If Full Streaming
+
+1. Ask for webhook URL
+2. Generate HTTP hooks: `npm run generate:http-hooks -- &lt;url&gt; --write`
+3. Save config:
+```json
+// .claude/orchestration/config.json
+{ "webhookUrl": "<url>" }
+```
+4. Remind about auth:
+```
+Set ORCHESTKIT_HOOK_TOKEN in your environment (never in config files):
+  export ORCHESTKIT_HOOK_TOKEN=your-secret
+```
+
+## If Summary Only
+
+Save webhookUrl to config, skip HTTP hook generation.
+
+## Security Notes
+
+- Never store tokens in config files — use environment variables
+- Never use `set -x` with secrets in scope
+- Bearer token for HTTP hooks, HMAC for command hooks
+
