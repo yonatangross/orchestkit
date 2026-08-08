@@ -240,7 +240,10 @@ PLUGIN_VERSION=$(jq -r '.version' "$PLUGIN_ROOT/.claude-plugin/plugin.json" 2>/d
 
 if [[ -n "$PLUGIN_VERSION" && "$PLUGIN_VERSION" != "null" ]]; then
   # Validate semver format (basic check)
-  if [[ "$PLUGIN_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  # Full semver 2.0.0, prerelease and build metadata included. The bare
+  # X.Y.Z form rejected 10.0.0-alpha and failed the first v10 release PR —
+  # the same defect as plugin-validation.yml:229, fixed in #3337.
+  if [[ "$PLUGIN_VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
     pass "Version valid: $PLUGIN_VERSION"
   else
     fail "Version format invalid: $PLUGIN_VERSION (expected semver)"

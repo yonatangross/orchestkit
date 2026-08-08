@@ -630,11 +630,23 @@ if [[ -f "$MARKETPLACE_FILE" ]]; then
   for manifest in "$MANIFESTS_DIR"/*.json; do
     PLUGIN_NAME=$(jq -r '.name' "$manifest")
 
-    # Set version to project version
-    CURRENT_VERSION=$(jq -r --arg name "$PLUGIN_NAME" '.plugins[] | select(.name == $name) | .version' "$MARKETPLACE_FILE" 2>/dev/null || echo "")
+    # Set version to project version — but NEVER on a pinned channel entry.
+    # An entry whose source.ref names anything other than "main" is pinned to a
+    # released tag on purpose (#3340), and its version must keep agreeing with
+    # that tag, not with the project version. This loop was the SECOND writer
+    # breaking the release branch in CI: #3342 fixed stamp-counts, then this
+    # by-name sync re-stamped the pinned `ork` entry to 10.0.0-alpha during the
+    # fresh build, and test-alpha-channel failed the pin agreement again.
+    # The marketplace file's existence is guarded above; jq errors stay loud.
+    CURRENT_VERSION=$(jq -r --arg name "$PLUGIN_NAME" \
+      '.plugins[] | select(.name == $name)
+       | select((.source | type) != "object" or (.source.ref // "main") == "main")
+       | .version' "$MARKETPLACE_FILE")
     if [[ -n "$CURRENT_VERSION" && "$CURRENT_VERSION" != "$PROJECT_VERSION" ]]; then
       jq --arg name "$PLUGIN_NAME" --arg ver "$PROJECT_VERSION" \
-        '(.plugins[] | select(.name == $name)).version = $ver' \
+        '(.plugins[] | select(.name == $name)
+          | select((.source | type) != "object" or (.source.ref // "main") == "main")
+         ).version = $ver' \
         "$MARKETPLACE_FILE" > "${MARKETPLACE_FILE}.tmp" && mv "${MARKETPLACE_FILE}.tmp" "$MARKETPLACE_FILE"
       VER_SYNC_COUNT=$((VER_SYNC_COUNT + 1))
     fi
