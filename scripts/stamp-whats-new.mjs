@@ -48,7 +48,15 @@ const END = "<!--/ork-->";
 function parseChangelog(text) {
   const lines = text.split("\n");
   // A release header: ## [8.84.5](compare-url) (2026-07-22)
-  const header = /^## \[(\d+\.\d+\.\d+)\]\((.*?)\) \((\d{4}-\d{2}-\d{2})\)\s*$/;
+  //
+  // The version group accepts a prerelease and build metadata. It used to be a
+  // bare \d+\.\d+\.\d+, which meant a heading like "## [10.0.0-alpha.1](url)"
+  // failed to parse and the release was dropped from What's New entirely. The
+  // fallback below kept that from corrupting the PREVIOUS release's bullets,
+  // so nothing ever went red — the alpha was just silently absent from a file
+  // CI otherwise guarantees is current.
+  const header =
+    /^## \[(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)\]\((.*?)\) \((\d{4}-\d{2}-\d{2})\)\s*$/;
   const blocks = [];
   let cur = null;
   for (const line of lines) {

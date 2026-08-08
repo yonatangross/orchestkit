@@ -73,9 +73,14 @@ else
     exit 1
   fi
 
-  # Verify branch version is GREATER than main (not just different)
-  # Sort with -V (version sort) and check that main comes first
-  HIGHER=$(printf '%s\n%s\n' "$MAIN_VERSION" "$PR_VERSION" | sort -V | tail -1)
+  # Verify branch version is GREATER than main (not just different).
+  #
+  # This used `sort -V`, which is not semver: it ranks a prerelease ABOVE the
+  # release it precedes. During the v10 alpha train that reads 10.0.0-alpha.1 as
+  # newer than 10.0.0, so a push moving the version backwards would pass.
+  # shellcheck source=../../scripts/lib/semver.sh
+  . "$(git rev-parse --show-toplevel)/scripts/lib/semver.sh"
+  HIGHER=$(semver_max "$MAIN_VERSION" "$PR_VERSION")
   if [[ "$HIGHER" != "$PR_VERSION" ]]; then
     echo "FAILED"
     echo ""

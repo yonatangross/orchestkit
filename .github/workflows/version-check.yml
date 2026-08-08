@@ -119,8 +119,14 @@ jobs:
             echo "bumped=false" >> $GITHUB_OUTPUT
             echo "::error::Version not bumped! Current: $MAIN_VERSION"
           else
-            # Verify branch version is GREATER than main (not just different)
-            HIGHER=$(printf '%s\n%s\n' "$MAIN_VERSION" "$PR_VERSION" | sort -V | tail -1)
+            # Verify branch version is GREATER than main (not just different).
+            #
+            # semver_max, not `sort -V`. Semver puts a prerelease BELOW the
+            # release it precedes; `sort -V` puts it above. A bare sort would
+            # call 10.0.0-alpha.1 newer than 10.0.0 and wave through a PR that
+            # moves the version backwards.
+            . scripts/lib/semver.sh
+            HIGHER=$(semver_max "$MAIN_VERSION" "$PR_VERSION")
             if [[ "$HIGHER" != "$PR_VERSION" ]]; then
               echo "bumped=false" >> $GITHUB_OUTPUT
               echo "::error::Version $PR_VERSION is not greater than main ($MAIN_VERSION). Rebase on main and re-bump."
@@ -148,8 +154,15 @@ jobs:
         run: |
           PR_VERSION="${{ steps.pr_version.outputs.version }}"
 
-          # Check if CHANGELOG has entry for this version
-          if grep -q "^\## \[$PR_VERSION\]" CHANGELOG.md; then
+          # Check if CHANGELOG has entry for this version.
+          #
+          # The version is escaped first. Interpolated raw it is a PATTERN, not
+          # a string: the dots match any character, so 10.0.0 is satisfied by a
+          # heading for 10x0x0, and build metadata carries a '+' that changes
+          # the meaning of the atom before it.
+          . scripts/lib/semver.sh
+          PR_VERSION_RE="$(semver_regex_escape "$PR_VERSION")"
+          if grep -q "^## \[${PR_VERSION_RE}\]" CHANGELOG.md; then
             echo "matches=true" >> $GITHUB_OUTPUT
             echo "CHANGELOG.md has entry for version $PR_VERSION"
           else

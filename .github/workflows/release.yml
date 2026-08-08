@@ -64,10 +64,15 @@ jobs:
           CHANGELOG_FILE="CHANGELOG.md"
 
           # Extract section between ## [version] and next ## [
+          #
+          # `index($0, "[" ver "]")` is a LITERAL substring search. The previous
+          # `$0 ~ "\\[" ver "\\]"` built a regex out of the version, so its dots
+          # matched any character and a heading for 10x0x0 would satisfy a
+          # lookup for 10.0.0. A version is data, not a pattern.
           BODY=$(awk -v ver="$VERSION" '
             /^## \[/ {
               if (found) exit
-              if ($0 ~ "\\[" ver "\\]") { found=1; next }
+              if (index($0, "[" ver "]") > 0) { found=1; next }
             }
             found && /^---$/ { next }
             found { print }
@@ -168,7 +173,18 @@ jobs:
           docker buildx create --use
           # :latest only when this tag is the highest — re-running an old tag's
           # workflow (or a backport tag) must not move :latest backwards.
-          HIGHEST="$(git tag -l 'v*' | sed 's/^v//' | sort -V | tail -1)"
+          #
+          # semver_max folded over the tags, NOT `sort -V | tail -1`. This is
+          # the line that decides whether :latest moves. `sort -V` ranks a
+          # prerelease above the release it precedes, so the moment
+          # v10.0.0-alpha.1 exists it becomes "the highest tag" and :latest
+          # points at an alpha image for every puller. Semver says lower.
+          . scripts/lib/semver.sh
+          HIGHEST=""
+          while IFS= read -r t; do
+            [ -n "$t" ] || continue
+            if [ -z "$HIGHEST" ]; then HIGHEST="$t"; else HIGHEST="$(semver_max "$HIGHEST" "$t")"; fi
+          done < <(git tag -l 'v*' | sed 's/^v//')
           TAGS=(-t "$IMAGE:$VERSION")
           if [ "$VERSION" = "$HIGHEST" ]; then
             TAGS+=(-t "$IMAGE:latest")

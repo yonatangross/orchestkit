@@ -42,8 +42,15 @@ note() { echo "[cc-stale] $*"; }
 maybe_sleep() { [ "$DRY_RUN" = "1" ] || sleep "$SLEEP_BETWEEN"; }
 
 # semver strict-less-than: 0 (true) when $1 < $2, else 1.
+#
+# Delegates to the shared helper rather than calling `sort -V` here. The local
+# version ranked a prerelease ABOVE the release it precedes, so a CC build like
+# 2.1.226-rc.1 read as newer than 2.1.226 and an issue below the floor could be
+# judged current. Kept as a thin wrapper so existing call sites are untouched.
+# shellcheck source=lib/semver.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/semver.sh"
 ver_lt() {
-  [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -1)" = "$1" ]
+  semver_lt "$1" "$2"
 }
 
 if [ ! -s "$SUPPORT_FILE" ]; then

@@ -81,8 +81,19 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
           # Minor/major only on real releases; manual dispatch always proceeds.
-          PATCH="${VERSION##*.}"
-          if [ "$EVENT_NAME" = "release" ] && [ "$PATCH" != "0" ]; then
+          #
+          # PATCH is read off the CORE version. `${VERSION##*.}` takes the last
+          # dot-separated field of the whole string, which for 10.0.0-alpha.1 is
+          # "1" — the alpha ordinal, not the patch number. That happened to skip
+          # prereleases, but by accident: 10.0.0-beta.0 would have announced.
+          # Prereleases are now skipped because they are prereleases.
+          . scripts/lib/semver.sh
+          PATCH="$(semver_core "$VERSION")"
+          PATCH="${PATCH##*.}"
+          if [ "$EVENT_NAME" = "release" ] && semver_is_prerelease "$VERSION"; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$VERSION is a prerelease — not announcing."
+          elif [ "$EVENT_NAME" = "release" ] && [ "$PATCH" != "0" ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
