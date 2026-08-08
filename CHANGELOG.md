@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha...v10.0.0-alpha.1) (2026-08-08)
+
+
+### Bug Fixes
+
+* **hooks:** advisory context-gate on SubagentStart, arm sandbox ([#3345](https://github.com/yonatangross/orchestkit/issues/3345)) ([7658118](https://github.com/yonatangross/orchestkit/commit/76581187bd698060aec8a60777e198791e7b464b))
+
+
+### Miscellaneous
+
+* **build:** probe the command wrappers, verdict KEEP, add tripwire ([#3347](https://github.com/yonatangross/orchestkit/issues/3347)) ([6eff4eb](https://github.com/yonatangross/orchestkit/commit/6eff4ebe3314129077bce1ddeca13e3495c3ca6d)), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3314](https://github.com/yonatangross/orchestkit/issues/3314)
+
+
+### Code Refactoring
+
+* **hooks:** trim the bus halves nothing ever called ([#3351](https://github.com/yonatangross/orchestkit/issues/3351)) ([7bf5153](https://github.com/yonatangross/orchestkit/commit/7bf5153fde36058711f259f5eeb415d7a5df3e9e))
+
 ## [10.0.0-alpha](https://github.com/yonatangross/orchestkit/compare/v9.8.0...v10.0.0-alpha) (2026-08-08)
 
 
