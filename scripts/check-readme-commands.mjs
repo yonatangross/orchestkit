@@ -54,7 +54,21 @@ for (const rel of FILES) {
     continue;
   }
 
-  readFileSync(file, 'utf8').split('\n').forEach((text, i) => {
+  // Blank out the What's New block (line count preserved so reported line
+  // numbers stay true). It is GENERATED release history — the file's own
+  // header says generated docs are excluded, and this block is the one
+  // generated region inside a hand-written file. Release notes legitimately
+  // name commands that no longer exist: the first 10.0.0-alpha recompute put
+  // the glyph-rename bullet in the block, and this gate then demanded
+  // /ork:quickviz — a skill v10 deliberately deleted — block the release of
+  // the very version that deleted it.
+  const raw = readFileSync(file, 'utf8');
+  const scanned = raw.replace(
+    /<!--ork:whats-new-->[\s\S]*?<!--\/ork-->/,
+    (block) => block.replace(/[^\n]/g, ''),
+  );
+
+  scanned.split('\n').forEach((text, i) => {
     if (text.includes(IGNORE)) return;
     for (const [, name] of text.matchAll(CMD_RE)) {
       checked++;
