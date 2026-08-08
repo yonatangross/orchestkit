@@ -42,7 +42,7 @@
         {
           "type": "json",
           "path": ".claude-plugin/marketplace.json",
-          "jsonpath": "$.plugins[0].version"
+          "jsonpath": "$.plugins[1].version"
         },
         {
           "type": "json",

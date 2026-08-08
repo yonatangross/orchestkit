@@ -22,7 +22,28 @@
         "email": "yonaigross@gmail.com"
       },
       "category": "development",
-      "source": "./plugins/ork"
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/yonatangross/orchestkit.git",
+        "path": "plugins/ork",
+        "ref": "v9.8.0"
+      }
+    },
+    {
+      "name": "ork-alpha",
+      "version": "9.8.0",
+      "description": "Prerelease channel for OrchestKit. Tracks main, so it carries alpha and beta builds ahead of the stable ork plugin. Install only if you want unreleased changes.",
+      "author": {
+        "name": "Yonatan Gross",
+        "email": "yonaigross@gmail.com"
+      },
+      "category": "development",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/yonatangross/orchestkit.git",
+        "path": "plugins/ork",
+        "ref": "main"
+      }
     }
   ]
 }

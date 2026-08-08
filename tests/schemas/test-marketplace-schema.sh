@@ -153,14 +153,51 @@ for i in $(seq 0 $((plugin_count - 1))); do
         log_error "Plugin '$plugin_name' has invalid version: '$plugin_version'"
     fi
 
-    # Validate source field format
-    source=$(jq -r ".plugins[$i].source // \"\"" "$MARKETPLACE_FILE")
-    if [[ -n "$source" ]]; then
-        # Source should be a relative path starting with . or ./
+    # Validate source field format.
+    #
+    # `source` is either a relative-path STRING or an OBJECT naming a remote
+    # source. This used to assume the string form and warn on anything else,
+    # which would have fired on every entry once the alpha channel landed.
+    # The object form is what CC's own validator accepts; probed against the
+    # 2.1.226 binary with a typed test (a string passes, a number is rejected,
+    # an unknown key is silently ignored) rather than read off documentation:
+    #
+    #   github      repo (required) · ref · sha (40-hex, format-checked)
+    #   git-subdir  url (required) · path (required) · ref
+    source_type=$(jq -r ".plugins[$i].source | type" "$MARKETPLACE_FILE")
+    case "$source_type" in
+      string)
+        source=$(jq -r ".plugins[$i].source" "$MARKETPLACE_FILE")
         if [[ ! "$source" =~ ^\.(/|$) ]]; then
             log_warning "Plugin '$plugin_name' source '$source' should be relative path (e.g., './plugins/...')"
         fi
-    fi
+        ;;
+      object)
+        kind=$(jq -r ".plugins[$i].source.source // \"\"" "$MARKETPLACE_FILE")
+        case "$kind" in
+          github)
+            [[ -n "$(jq -r ".plugins[$i].source.repo // \"\"" "$MARKETPLACE_FILE")" ]] \
+              || log_error "Plugin '$plugin_name' github source is missing 'repo'"
+            ;;
+          git-subdir)
+            [[ -n "$(jq -r ".plugins[$i].source.url // \"\"" "$MARKETPLACE_FILE")" ]] \
+              || log_error "Plugin '$plugin_name' git-subdir source is missing 'url'"
+            [[ -n "$(jq -r ".plugins[$i].source.path // \"\"" "$MARKETPLACE_FILE")" ]] \
+              || log_error "Plugin '$plugin_name' git-subdir source is missing 'path'"
+            ;;
+          npm|url|archive)
+            : # remote forms CC accepts; no extra shape assertion here yet
+            ;;
+          *)
+            log_error "Plugin '$plugin_name' has unsupported source type '$kind' (expected github, git-subdir, npm, url, archive)"
+            ;;
+        esac
+        ;;
+      null) : ;;  # silent: absence is caught by the required-fields check above
+      *)
+        log_error "Plugin '$plugin_name' source must be a string or an object, got $source_type"
+        ;;
+    esac
 done
 
 # 7. E2E validation: Check that plugin source paths exist
@@ -168,8 +205,21 @@ echo ""
 echo "7. Validating plugin source paths exist..."
 for i in $(seq 0 $((plugin_count - 1))); do
     plugin_name=$(jq -r ".plugins[$i].name // \"plugin_$i\"" "$MARKETPLACE_FILE")
-    source=$(jq -r ".plugins[$i].source // \"\"" "$MARKETPLACE_FILE")
 
+    # Only a relative-path source resolves against this checkout. A remote
+    # source names a repo and a ref, so there is no local directory to stat;
+    # asserting one would fail every entry in the alpha-channel layout. The
+    # in-repo path those entries point at is covered by the git-subdir check
+    # below instead.
+    if [[ "$(jq -r ".plugins[$i].source | type" "$MARKETPLACE_FILE")" != "string" ]]; then
+        subpath=$(jq -r ".plugins[$i].source.path // \"\"" "$MARKETPLACE_FILE")
+        if [[ -n "$subpath" && ! -d "${ROOT_DIR}/${subpath}" ]]; then
+            log_error "Plugin '$plugin_name' git-subdir path '$subpath' does not exist in this repo"
+        fi
+        continue
+    fi
+
+    source=$(jq -r ".plugins[$i].source" "$MARKETPLACE_FILE")
     if [[ -n "$source" ]]; then
         # Resolve relative to ROOT_DIR
         full_path="${ROOT_DIR}/${source}"
