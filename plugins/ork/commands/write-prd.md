@@ -125,7 +125,7 @@ TaskUpdate(status="completed")
 After PRD is approved, decompose its acceptance criteria into a runnable goal, then implement:
 
 ```
-/ork:prd-to-goal PRD-{product-slug}.md   # → copy-pasteable `/goal until … abort-if …` line
+/ork:prd-to-goal PRD-{product-slug}.md   # → one copy-pasteable `/goal until …, or stop after N turns` line
 /ork:implement PRD-{product-slug}.md
 ```
 
@@ -134,7 +134,7 @@ After PRD is approved, decompose its acceptance criteria into a runnable goal, t
 ## Related Skills
 
 - `ork:user-research` — Build user understanding (personas, journey maps, interviews) before writing the PRD
-- `ork:prd-to-goal` — Reduce this PRD's acceptance criteria to a `/goal until … abort-if …` line
+- `ork:prd-to-goal` — Reduce this PRD's acceptance criteria to a single `/goal until …, or stop after N turns` line
 - `ork:implement` — Execute the implementation plan from the PRD
 - `ork:brainstorm` — Explore solution alternatives before committing to PRD scope
 - `ork:assess` — Rate PRD quality and completeness

@@ -1655,8 +1655,7 @@ The streak gate is what makes the quality-streak recipe converge. The `until`-cl
 ```
 # Stamp the loop start; honor met only for a ledger written AFTER it.
 LOOP_START="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-/goal until jq -e --arg t "$LOOP_START" '.met==true and .last_run_ts >= $t' .claude/chain/verify-streak.json
-/goal abort-if turns > 15 OR tokens > 150000 OR no_progress_for_4_turns
+/goal until jq -e --arg t "$LOOP_START" '.met==true and .last_run_ts >= $t' .claude/chain/verify-streak.json, or stop after 15 turns
 ```
 
 `no_progress_for_4_turns` is deliberately generous: a streak that keeps resetting *is* progress information (it's surfacing real flakiness), so give it room before aborting.

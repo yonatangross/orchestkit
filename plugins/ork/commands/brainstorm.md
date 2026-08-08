@@ -422,7 +422,7 @@ Set a completion condition with `/goal` (CC 2.1.139+, **2.1.143+ recommended for
 **Example completion condition for this skill:**
 
 ```
-/goal until design.options_count >= 2 AND user_chose_option
+/goal until design.options_count >= 2 AND user_chose_option, or stop after 8 turns
 ```
 
 Stops when: 2+ ranked design options presented and the user selects one (or after Phase 6 if running unattended via -p). Compatible with claude.ai Remote Control runs.

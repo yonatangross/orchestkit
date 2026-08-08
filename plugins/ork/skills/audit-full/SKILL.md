@@ -239,7 +239,7 @@ Set a completion condition with `/goal` (CC 2.1.139+) and this skill will keep w
 **Example completion condition for this skill:**
 
 ```
-/goal until findings.critical == 0 OR no_new_critical_for_3_turns
+/goal until findings.critical == 0 OR no_new_critical_for_3_turns, or stop after 30 turns
 ```
 
 Stops when: zero critical issues remain across 3 consecutive passes, or a structural anti-pattern budget is reached. Compatible with claude.ai Remote Control runs.

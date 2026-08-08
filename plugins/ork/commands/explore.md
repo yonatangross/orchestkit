@@ -298,7 +298,7 @@ Set a completion condition with `/goal` (CC 2.1.139+) and this skill will keep w
 **Example completion condition for this skill:**
 
 ```
-/goal until report.has_architecture_diagram AND patterns.detected_count >= 5
+/goal until report.has_architecture_diagram AND patterns.detected_count >= 5, or stop after 10 turns
 ```
 
 Stops when: codebase architecture diagram is generated and at least 5 design patterns have been classified. Compatible with claude.ai Remote Control runs.

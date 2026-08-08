@@ -1,6 +1,6 @@
 ---
 name: prd-to-goal
-description: "Decomposes a PRD, issue, or spec into a copy-pasteable `/goal until ... abort-if ...` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions."
+description: "Decomposes a PRD, issue, or spec into a copy-pasteable single `/goal until ..., or stop after N turns` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions."
 argument-hint: "[prd-text | issue#N | path/to/spec.md]"
 tags: [/goal, planning, prd, automation, cc-2.1.139]
 version: 0.1.0
@@ -61,21 +61,27 @@ Converts a PRD / issue / spec into a single copy-pasteable `/goal` line. The har
    - `curl -sf $URL` returns 2xx
 3. **Reject non-observable criteria.** Drop or rewrite criteria that depend on subjective judgement (`code is clean`, `design feels right`, `users are happy`). Either find a proxy (`lint exits 0`, `Lighthouse score > 90`, `NPS survey ID exists`) or surface the criterion back to the user as out of scope for `/goal`.
 4. **Compose the `until` clause.** AND-join the observable assertions in priority order — the cheapest, most likely-to-fail check first so the loop short-circuits early. Three to five assertions is the sweet spot; more than seven usually means the PRD is two PRDs.
-5. **Compose the `abort-if` clause.** Pick a turn cap, token cap, and no-progress detector. Sensible defaults:
-   - Turns: `15` for a single feature, `30` for a refactor, `5` for a bug fix.
-   - Tokens: `100000` (1 USD-ish on Sonnet) for a feature, `30000` for a bug fix.
-   - No-progress: `3` turns with no file changes and no new test passing.
+5. **Fold the budget INTO the same condition.** Claude Code accepts one goal per
+   session, replace-on-set, and the bound is written inside that single condition
+   (`…, or stop after 15 turns`). It is not a second command. Sensible turn caps:
+   - `15` for a single feature, `30` for a refactor, `5` for a bug fix.
+
+   > **Never emit a second `/goal` line.** A second line does not add a rail — it
+   > parses as a fresh condition, REPLACES the first, and leaves the session
+   > goaled on the budget alone with every acceptance assertion discarded. The
+   > `abort-if` form this skill used to emit was never Claude Code syntax at all:
+   > `grep -c -a -F 'abort-if'` against the 2.1.226 binary returns `0`, and it
+   > appears in none of the 357 archived changelogs. Verified 2026-08-08 (#3312).
 
 ## 4. Output template
 
-The skill emits exactly two lines, ready to paste:
+The skill emits exactly ONE line, ready to paste:
 
 ```
-/goal until <assertion_1> AND <assertion_2> AND <assertion_3>
-/goal abort-if turns > <N> OR tokens > <T> OR no_progress_for_<K>_turns
+/goal until <assertion_1> AND <assertion_2> AND <assertion_3>, or stop after <N> turns
 ```
 
-No commentary, no markdown wrapper — the user copies the block straight into Claude Code.
+No commentary, no markdown wrapper — the user copies the line straight into Claude Code.
 
 ### Optional: rubric emission (`.claude/rubric.json`)
 
@@ -114,8 +120,7 @@ Acceptance Criteria:
 Output:
 
 ```
-/goal until test -f tests/auth/test_login.py AND pnpm test -- tests/auth/test_login.py passes AND pnpm test -- tests/auth passes
-/goal abort-if turns > 5 OR tokens > 30000 OR no_progress_for_3_turns
+/goal until test -f tests/auth/test_login.py AND pnpm test -- tests/auth/test_login.py passes AND pnpm test -- tests/auth passes, or stop after 5 turns
 ```
 
 Rationale: file existence is the cheapest check; the targeted test is the regression gate; the broad auth suite catches collateral damage.
@@ -137,8 +142,7 @@ MUST:
 Output:
 
 ```
-/goal until grep -q "users/:id/avatar" src/routes/users.ts AND pnpm test -- tests/integration/users.avatar.spec.ts passes AND grep -q "/users/{id}/avatar" openapi.yaml AND pnpm lint passes
-/goal abort-if turns > 15 OR tokens > 100000 OR no_progress_for_3_turns
+/goal until grep -q "users/:id/avatar" src/routes/users.ts AND pnpm test -- tests/integration/users.avatar.spec.ts passes AND grep -q "/users/{id}/avatar" openapi.yaml AND pnpm lint passes, or stop after 15 turns
 ```
 
 Rationale: route `grep` catches a handler that was stubbed but never wired; the integration spec encodes both 200 and 404; OpenAPI grep enforces the docs MUST; lint guards against half-typed code shipping.
@@ -160,8 +164,7 @@ Definition of Done:
 Output:
 
 ```
-/goal until [ $(wc -l < src/auth.ts) -lt 200 ] AND test -f src/auth/strategies/oauth.ts AND test -f src/auth/strategies/jwt.ts AND test -f src/auth/strategies/password.ts AND pnpm test -- tests/auth passes AND pnpm lint passes
-/goal abort-if turns > 30 OR tokens > 150000 OR no_progress_for_3_turns
+/goal until [ $(wc -l < src/auth.ts) -lt 200 ] AND test -f src/auth/strategies/oauth.ts AND test -f src/auth/strategies/jwt.ts AND test -f src/auth/strategies/password.ts AND pnpm test -- tests/auth passes AND pnpm lint passes, or stop after 30 turns
 ```
 
 Rationale: the LOC bound is the convergent signal — without it, `/goal` can keep "improving" forever. File-existence checks pin the structural decomposition; tests + lint guard correctness. Higher budget because refactors run longer than bug fixes.
@@ -181,7 +184,7 @@ Where §3–5 *generate* a custom `/goal` line from a spec, the recipe library *
 | 🎫 Ticket → PR-ready | drive an issue to a CI-green PR | `/ork:fix-issue` → `/ork:create-pr` |
 | 🧼 Type/lint zero | clear a type/lint backlog without suppressions | fixer agent |
 
-Full recipes — the exact `/goal until … abort-if …` lines, convergent signal, and per-recipe guardrail: `references/recipe-library.md`. That file is the in-repo source intended for an `ork-loops` pack on skills.sh (not yet built; the channel Forward Future's Loop Library uses), so the loop *recipes* can travel while ork supplies the *machinery* each pass runs on.
+Full recipes — the exact single-line `/goal until …, or stop after N turns` lines, convergent signal, and per-recipe guardrail: `references/recipe-library.md`. That file is the in-repo source intended for an `ork-loops` pack on skills.sh (not yet built; the channel Forward Future's Loop Library uses), so the loop *recipes* can travel while ork supplies the *machinery* each pass runs on.
 
 ## 7. Anti-patterns
 
@@ -189,11 +192,11 @@ Full recipes — the exact `/goal until … abort-if …` lines, convergent sign
 |---|---|---|
 | `/goal until tests pass` | Which tests? Existing or new? On which command? The agent can pick whatever subset is already green and claim done. | `/goal until pnpm test -- tests/auth/test_login.py passes AND pnpm test -- tests/auth passes` |
 | `/goal until the code looks clean` | Not falsifiable. The agent cannot check "looks clean" — it will either declare victory immediately or never. | `/goal until pnpm lint passes AND [ $(wc -l < src/auth.ts) -lt 200 ]` |
-| `/goal until done` | Unbounded. There is no terminating condition; combined with a generous `abort-if turns > 50` this is how runs eat 500K tokens overnight. | Pick 3–5 observable assertions. If you cannot, the PRD is not ready — go to `/ork:write-prd`. |
+| `/goal until done` | Unbounded. There is no terminating condition; combined with a generous `, or stop after 50 turns` this is how runs eat 500K tokens overnight. | Pick 3–5 observable assertions. If you cannot, the PRD is not ready — go to `/ork:write-prd`. |
 
 ## 8. Post-timeout assertion grader
 
-If the `/goal` loop hits `abort-if` (turn/token cap or no-progress stall), do NOT retry the same line and do NOT let the looping agent critique its own assertions. Spawn a FRESH-context grader that audits the assertion set itself:
+If the `/goal` loop hits its turn bound, do NOT retry the same line and do NOT let the looping agent critique its own assertions. Spawn a FRESH-context grader that audits the assertion set itself:
 
 ```python
 # Bare-eval pattern — independent context window, zero shared state:

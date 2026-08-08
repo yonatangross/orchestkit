@@ -237,7 +237,7 @@ Set a completion condition with `/goal` (CC 2.1.139+) and this skill will keep w
 **Example completion condition for this skill:**
 
 ```
-/goal until services.running == 4
+/goal until services.running == 4, or stop after 5 turns
 ```
 
 Stops when: all 4 dev-loop services (portless + emulate + dev-server + agent-browser) report healthy on their respective ports/sockets. Compatible with claude.ai Remote Control runs.

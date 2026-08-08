@@ -1,15 +1,15 @@
 # Loop Recipe Library — pre-built `/goal` loops
 
-Pre-written, battle-tested `/goal until … abort-if …` recipes for the recurring autonomous loops. Where `prd-to-goal` *generates* a custom goal line from a spec, this library *ships* ready-made lines for jobs you run over and over.
+Pre-written, battle-tested single-line `/goal until …, or stop after N turns` recipes for the recurring autonomous loops. Where `prd-to-goal` *generates* a custom goal line from a spec, this library *ships* ready-made lines for jobs you run over and over.
 
-Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (the work each pass does). They follow the same rules as a generated line: AND-joined observable assertions in the `until`, a real `abort-if` budget, and a convergent signal so the loop terminates.
+Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (the work each pass does). They follow the same rules as a generated line: AND-joined observable assertions in the `until`, a real turn bound inside the same condition, and a convergent signal so the loop terminates.
 
 > **Distribution (planned):** this library is the in-repo source intended for an `ork-loops` pack on skills.sh — the same channel Forward Future's Loop Library uses (`npx skills add`). The pack itself is not built yet; today the recipes live here. Interop, not competition: we ship the loop *recipes*; ork supplies the *machinery* (rubric gates, 211 safety hooks, parallel agents) each pass runs on.
 
 ## How to use a recipe
 
 1. **Replace the `<TOKENS>`.** Recipes are templates — swap `<TEST_CMD>`, `<COVERAGE_CMD>`, etc. for your project's commands (e.g. `npm test`, `pnpm test`, `pytest`). The `<…>` tokens are the only things you edit.
-2. **Keep the `abort-if` budget.** It is the safety rail, not boilerplate. Tighten it; never delete it.
+2. **Keep the turn budget, inside the same condition.** It is the safety rail, not boilerplate — tighten it, never drop it. Write it as `…, or stop after <N> turns` within the one `/goal` line. Do NOT emit it as a second `/goal` command: Claude Code takes one goal per session with replace-on-set, so a second line replaces the first and discards every acceptance assertion. The `abort-if` form these recipes previously carried was never Claude Code syntax (`grep -c -a -F 'abort-if'` on the 2.1.226 binary returns `0`); it is corrected throughout, see #3312.
 3. **Name the worker.** Each recipe lists the ork skill that should run each pass — invoke it as the loop's worker (`/goal … then run /ork:cover each turn`).
 4. **Mind the guardrails.** Every recipe lists the one way the loop gets gamed and how the assertions prevent it.
 
@@ -34,8 +34,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 **Backs each pass:** `/ork:cover` · **Convergent signal:** coverage % climbs toward target; no-progress aborts the asymptote.
 
 ```
-/goal until <COVERAGE_CMD> reports >= 90 AND <TEST_CMD> passes
-/goal abort-if turns > 20 OR tokens > 200000 OR no_progress_for_3_turns
+/goal until <COVERAGE_CMD> reports >= 90 AND <TEST_CMD> passes, or stop after 20 turns
 ```
 
 **Guardrail:** coverage alone is gameable (assert-free tests bump the number). Keep the full suite green in the AND so tests stay meaningful. Pair with the **streak gate (#2540)** so a flaky green at 90% doesn't end the loop on a fluke.
@@ -46,8 +45,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 **Backs each pass:** `/ork:fix-issue` · **Convergent signal:** open actionable-error count shrinks toward 0.
 
 ```
-/goal until [ $(<ERROR_COUNT_CMD>) -eq 0 ] AND <TEST_CMD> passes
-/goal abort-if turns > 25 OR tokens > 250000 OR no_progress_for_3_turns
+/goal until [ $(<ERROR_COUNT_CMD>) -eq 0 ] AND <TEST_CMD> passes, or stop after 25 turns
 ```
 
 **Guardrail:** scope `<ERROR_COUNT_CMD>` to *actionable + reproducible* errors only — filter third-party noise, or the loop chases unfixable errors forever. Never point this at destructive remediation; `/goal` retries, and you don't want retries on data deletion.
@@ -58,8 +56,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 **Backs each pass:** `/ork:audit-full` (docs lens) or your docs checker · **Convergent signal:** drift checks → all pass.
 
 ```
-/goal until <DOCS_DRIFT_CMD> passes AND <LINK_CHECK_CMD> passes
-/goal abort-if turns > 15 OR tokens > 120000 OR no_progress_for_3_turns
+/goal until <DOCS_DRIFT_CMD> passes AND <LINK_CHECK_CMD> passes, or stop after 15 turns
 ```
 
 **Guardrail:** `<DOCS_DRIFT_CMD>` must be deterministic (e.g. "regenerated reference == committed reference"), never an LLM "are the docs good?" judgement — subjective checks never converge.
@@ -70,8 +67,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 **Backs each pass:** `/ork:performance` · **Convergent signal:** metric descends toward budget; the no-progress detector is essential (perf has diminishing returns).
 
 ```
-/goal until [ $(<LCP_MS_CMD>) -le 2000 ] AND <TEST_CMD> passes
-/goal abort-if turns > 12 OR tokens > 150000 OR no_progress_for_2_turns
+/goal until [ $(<LCP_MS_CMD>) -le 2000 ] AND <TEST_CMD> passes, or stop after 12 turns
 ```
 
 **Guardrail:** keep `no_progress_for_2_turns` tight — perf loops plateau, and you want to stop *at* the plateau, not grind tokens past it. Always AND the test suite so an "optimization" that breaks behavior can't satisfy the budget.
@@ -82,8 +78,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 **Backs each pass:** `/ork:dream` · **Convergent signal:** the dry-run reports nothing to prune (naturally terminating — each pass strictly reduces the stale set).
 
 ```
-/goal until <DREAM_DRYRUN_CMD> reports 0 stale AND 0 duplicate AND 0 contradiction
-/goal abort-if turns > 8 OR tokens > 60000 OR no_progress_for_2_turns
+/goal until <DREAM_DRYRUN_CMD> reports 0 stale AND 0 duplicate AND 0 contradiction, or stop after 8 turns
 ```
 
 **Guardrail:** run dream in **dry-run** inside the `until`-check; let the pass apply the changes. The safest loop here — it converges fast because the stale set only shrinks.
@@ -95,8 +90,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 
 ```
 rm -f .claude/chain/verify-streak.json   # reset: a stale met:true would exit the loop with 0 fresh runs
-/goal until jq -e '.met==true' .claude/chain/verify-streak.json   # run /ork:verify --streak=3 each turn
-/goal abort-if turns > 15 OR tokens > 150000 OR no_progress_for_4_turns
+/goal until jq -e '.met==true' .claude/chain/verify-streak.json   # run /ork:verify --streak=3 each turn, or stop after 15 turns
 ```
 
 **Worker:** `/ork:verify --streak=3` — the native streak gate (#2540, now shipped) re-runs the real suite each turn, increments on READY, and zeroes on any red.
@@ -108,8 +102,7 @@ rm -f .claude/chain/verify-streak.json   # reset: a stale met:true would exit th
 **Backs each pass:** `/ork:fix-issue` → `/ork:create-pr` · **Convergent signal:** PR exists, CI green, links the issue.
 
 ```
-/goal until gh pr list --head <BRANCH> --json number | jq -e 'length>0' AND gh pr checks <BRANCH> --json state | jq -e 'all(.state=="SUCCESS")'
-/goal abort-if turns > 20 OR tokens > 200000 OR no_progress_for_3_turns
+/goal until gh pr list --head <BRANCH> --json number | jq -e 'length>0' AND gh pr checks <BRANCH> --json state | jq -e 'all(.state=="SUCCESS")', or stop after 20 turns
 ```
 
 **Guardrail:** do **not** put "merged" in the `until`-clause — merging is a human gate (and ork never auto-closes issues; CI closes them on merge via `Closes #N`). Stop at reviewer-ready.
@@ -120,8 +113,7 @@ rm -f .claude/chain/verify-streak.json   # reset: a stale met:true would exit th
 **Backs each pass:** the relevant fixer agent · **Convergent signal:** error counts → 0.
 
 ```
-/goal until <TYPECHECK_CMD> passes AND <LINT_CMD> passes AND [ $(grep -rc "@ts-ignore\|eslint-disable" src | paste -sd+ - | bc) -le <SUPPRESS_BASELINE> ]
-/goal abort-if turns > 20 OR tokens > 200000 OR no_progress_for_3_turns
+/goal until <TYPECHECK_CMD> passes AND <LINT_CMD> passes AND [ $(grep -rc "@ts-ignore\|eslint-disable" src | paste -sd+ - | bc) -le <SUPPRESS_BASELINE> ], or stop after 20 turns
 ```
 
 **Guardrail:** the suppression-count clause is load-bearing. Without it the loop "wins" by silencing (`@ts-ignore`, `eslint-disable`) instead of fixing — set `<SUPPRESS_BASELINE>` to the current count so it can only go down.
@@ -135,6 +127,6 @@ A recipe is shippable when all four hold (same bar as a `prd-to-goal` line):
 - **Convergent** — there is a monotone signal (count → 0, metric → budget, % → target) that the loop drives in one direction. No monotone signal ⇒ no termination.
 - **Falsifiable** — every `until` assertion is a shell-checkable boolean, not a judgement.
 - **Guarded** — you can name the one way the loop gets gamed, and an assertion that blocks it.
-- **Budgeted** — `abort-if` caps turns, tokens, and no-progress. A recipe without a budget is a token fire.
+- **Budgeted** — the `, or stop after N turns` bound caps the run, and no-progress. A recipe without a budget is a token fire.
 
 If you can't satisfy all four, the job isn't a loop yet — decompose it with `/ork:prd-to-goal` first.
