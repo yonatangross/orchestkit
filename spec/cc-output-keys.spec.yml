@@ -1,0 +1,177 @@
+# Which hookSpecificOutput keys Claude Code actually reads, per event.
+#
+# SOURCE OF TRUTH. Derived from the shipped CC binary, not from documentation,
+# not from memory, and not from a type union. Regenerate with:
+#
+#   node scripts/derive-cc-output-keys.mjs            # rewrite this file
+#   node scripts/derive-cc-output-keys.mjs --check    # fail on drift
+#
+# WHY THIS FILE EXISTS
+#
+# The 2026-08-08 audit found one defect thirty-four times: OrchestKit writes to
+# CC contracts nobody verified against the binary. The guard that was supposed
+# to prevent exactly that (src/hooks/bin/output-guard.mjs) held two HAND-TYPED
+# Sets whose provenance comment read "derived from types.ts plus the #1234
+# audit" — i.e. from another hand-maintained artifact plus a memory.
+#
+# Those Sets were wrong. CC's own embedded documentation names Stop,
+# SubagentStop and PostToolBatch as additionalContext consumers; the guard
+# listed none of them, so it was silently DELETING valid output from six live
+# ork hooks. A guard that strips correct output is worse than no guard: it
+# fails in the direction nobody checks.
+#
+# Every entry below carries the binary string that justifies it. An entry
+# without evidence is not a contract, it is a guess.
+
+cc_version: "2.1.226"
+binary: "~/.local/share/claude/versions/2.1.226"
+derived_at: "2026-08-08"
+
+# Events where CC reads hookSpecificOutput at all. Emitting hookEventName on an
+# event outside this set is inert at best; CC's validator rejects the envelope
+# ("hookSpecificOutput is missing required field \"hookEventName\"") and drops
+# the decision silently.
+events_with_hook_specific_output:
+  - PreToolUse
+  - PostToolUse
+  - PostToolUseFailure
+  - PermissionRequest
+  - PermissionDenied
+  - UserPromptSubmit
+  - SubagentStart
+  - SubagentStop
+  - SessionStart
+  - PostCompact
+  - Stop
+  - PostToolBatch
+  - WorktreeCreate
+  - MessageDisplay
+  - Elicitation
+
+# Per-key contract. `events` is the closed set of events on which CC reads the
+# key. `evidence` quotes the binary verbatim.
+keys:
+  hookEventName:
+    required_on_every_hook_specific_output: true
+    evidence: |
+      "- `hookSpecificOutput` - Event-specific output (must include `hookEventName`):"
+      "hookSpecificOutput is missing required field \"hookEventName\""
+
+  additionalContext:
+    events:
+      - UserPromptSubmit
+      - PreToolUse
+      - PostToolUse
+      - PostToolUseFailure
+      - SessionStart
+      - PostCompact
+      - Stop
+      - SubagentStop
+      - PostToolBatch
+    evidence: |
+      "- `additionalContext` - Text injected into model context"
+      "Hook-specific output for the Stop event. additionalContext is non-error
+       feedback delivered to the model; the conversation continues so the model
+       can act on it."
+      "Hook-specific output for the SubagentStop event. additionalContext is
+       non-error feedback delivered to the subagent; the subagent continues so
+       it can act on it."
+      "Return additionalContext via hookSpecificOutput to inject context once
+       for the whole batch."   # PostToolBatch
+    note: |
+      Stop, SubagentStop and PostToolBatch were ABSENT from the hand-typed
+      guard. Six live ork hooks emit additionalContext on Stop/SubagentStop
+      (stop/task-completion-check, stop/stop-failure-handler,
+      stop/session-summary, subagent-stop/sync-subagent-stop-dispatcher,
+      subagent-stop/subagent-scope-auditor, subagent-stop/retry-handler) and
+      every one of them was being stripped before reaching CC.
+
+  permissionDecision:
+    events: [PreToolUse, PermissionRequest]
+    evidence: |
+      "- `decision` - \"block\" for PostToolUse/Stop/UserPromptSubmit hooks
+       (deprecated for PreToolUse, use hookSpecificOutput.permissionDecision
+       instead)"
+
+  permissionDecisionReason:
+    events: [PreToolUse, PermissionRequest]
+    evidence: |
+      Documented alongside permissionDecision in the PreToolUse field list.
+
+  retry:
+    events: [PermissionDenied]
+    evidence: |
+      "Return {\"hookSpecificOutput\":{\"hookEventName\":\"PermissionDenied\",
+       \"retry\":true}} to tell the model it may retry."
+
+  worktreePath:
+    events: [WorktreeCreate]
+    evidence: |
+      "WorktreeCreate hook failed: hook succeeded but returned no worktree path
+       (command: echo the path to stdout; http/callback: return
+       hookSpecificOutput.worktreePath)"
+    note: |
+      WorktreeCreate was absent from the guard's hookEventName allow-list, so
+      the guard would strip hookEventName from a WorktreeCreate response and
+      break the documented http/callback form.
+
+  watchPaths:
+    events: [PreToolUse, PostToolUse, SessionStart]
+    evidence: |
+      "Hook output can include hookSpecificOutput.watchPaths (array of absolute
+       paths) to register with the FileChanged watcher."
+      "Hook output can include hookSpecificOutput.watchPaths (array of absolute
+       paths) to dynamically update the watch list."
+    confidence: partial
+    note: |
+      The binary states the capability but does not enumerate which events
+      accept it. Listed conservatively. UNVERIFIED — do not treat the event
+      list as closed until a probe confirms it.
+
+  updatedInput:
+    events: [PreToolUse]
+    evidence: "Documented in the PreToolUse hookSpecificOutput field list."
+
+  updatedToolOutput:
+    events: [PostToolUse, PostToolUseFailure]
+    evidence: "Documented in the PostToolUse hookSpecificOutput field list."
+
+  updatedMCPToolOutput:
+    events: [PostToolUse]
+    evidence: "Documented alongside updatedToolOutput."
+
+  displayContent:
+    events: [MessageDisplay]
+    evidence: |
+      "Output JSON with hookSpecificOutput containing displayContent to replace
+       the delta on screen."
+
+  action:
+    events: [Elicitation]
+    evidence: |
+      "Output JSON with hookSpecificOutput containing action (accept/decline/
+       cancel) and optional content."
+
+# Top-level envelope keys, outside hookSpecificOutput. CC enumerates these in
+# one place, so they are not per-event.
+top_level_keys:
+  evidence: |
+    "{continue: 'boolean (optional)', suppressOutput: 'boolean (optional)',
+      stopReason: 'string (optional)', decision: '\"approve\" | \"block\"
+      (optional)', reason: 'string (optional)', systemMessage: 'string
+      (optional)', terminalSequence: 'string ...'}"
+  keys:
+    - continue
+    - suppressOutput
+    - stopReason
+    - decision
+    - reason
+    - systemMessage
+    - terminalSequence
+
+# Keys OrchestKit's types.ts declares that the binary does not document as
+# hookSpecificOutput fields. Not proof of absence — recorded so the next sweep
+# starts from a list instead of from scratch.
+unverified_ork_declared:
+  - updatedPermissions
+  - sessionTitle

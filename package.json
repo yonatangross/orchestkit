@@ -7,8 +7,8 @@
   ],
   "scripts": {
     "build": "bash scripts/build-plugins.sh && npm run --workspace=@orchestkit/hook-contract build --if-present",
-    "prebuild": "bash scripts/check-install.sh && echo '🔨 Building plugins from source...' && bash scripts/sync-shared-scripts.sh",
-    "postbuild": "echo '✅ Build complete! Plugins assembled in plugins/ directory'",
+    "prebuild": "bash scripts/check-install.sh && echo '\ud83d\udd28 Building plugins from source...' && bash scripts/sync-shared-scripts.sh",
+    "postbuild": "echo '\u2705 Build complete! Plugins assembled in plugins/ directory'",
     "test:packages": "npm run --workspace=@orchestkit/hook-contract test --if-present",
     "test:parity": "python3 scripts/parity-check.py",
     "generate:docs-data": "node scripts/generate-docs-data.js",
@@ -42,7 +42,8 @@
     "generate:http-hooks": "npx tsx src/hooks/src/cli/generate-http-hooks.ts",
     "typecheck": "cd src/hooks && npx tsc --noEmit",
     "verify:imports": "node scripts/verify-imports.js",
-    "prepare": "git config --local core.hooksPath bin/git-hooks 2>/dev/null || true"
+    "prepare": "git config --local core.hooksPath bin/git-hooks 2>/dev/null || true",
+    "verify:cc-keys": "node scripts/derive-cc-output-keys.mjs --check"
   },
   "repository": {
     "type": "git",

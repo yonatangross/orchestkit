@@ -395,7 +395,7 @@ describe('sanitizeOutput (dispatcher output guard)', () => {
     const result = sanitizeOutput(input, 'WorktreeCreate') as Record<string, unknown>;
     expect(result.hookSpecificOutput).toBeUndefined();
     expect(stderrSpy).toHaveBeenCalledWith(
-      expect.stringContaining('stripped hookEventName=UserPromptSubmit from WorktreeCreate')
+      expect.stringContaining('declared hookEventName=UserPromptSubmit on a WorktreeCreate event')
     );
   });
 
@@ -411,7 +411,7 @@ describe('sanitizeOutput (dispatcher output guard)', () => {
     const result = sanitizeOutput(input, 'WorktreeRemove') as Record<string, unknown>;
     expect(result.hookSpecificOutput).toBeUndefined();
     expect(stderrSpy).toHaveBeenCalledWith(
-      expect.stringContaining('stripped hookEventName=UserPromptSubmit from WorktreeRemove')
+      expect.stringContaining('declared hookEventName=UserPromptSubmit on a WorktreeRemove event')
     );
   });
 
@@ -597,7 +597,7 @@ describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
       expect(result.hookSpecificOutput, `${event} must have empty/dropped hookSpecificOutput`).toBeUndefined();
       expect(result.continue).toBe(true);
       expect(stderrSpy).toHaveBeenCalledWith(
-        expect.stringMatching(new RegExp(`stripped hookEventName=UserPromptSubmit from ${event}`)),
+        expect.stringMatching(new RegExp(`declared hookEventName=UserPromptSubmit on a ${event} event`)),
       );
     });
   }
