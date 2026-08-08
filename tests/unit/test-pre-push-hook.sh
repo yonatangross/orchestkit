@@ -197,6 +197,7 @@ test_bash32_compatibility() {
     fi
 
     # 5b: /bin/bash itself must be able to PARSE the hook. Keep the parse error.
+    # (see test_resolve_push_branch below for the #3290 refspec regression)
     local parse_err
     if parse_err=$(/bin/bash -n "$hook" 2>&1); then
         log_pass "/bin/bash -n parses the hook"
@@ -228,6 +229,67 @@ test_bash32_compatibility() {
     fi
 }
 
+# Test 6: the branch is resolved from the PUSHED refspec, not from HEAD (#3290)
+#
+# `git rev-parse --abbrev-ref HEAD` returns the literal string "HEAD" in a
+# detached worktree, so the conventional-commit prefix exemption never matched
+# and the version gate fired on branches that are exempt. Pushing a branch that
+# another worktree holds REQUIRES detached HEAD (git refuses one branch in two
+# worktrees), so the hook penalised the only safe way to do it.
+#
+# Sources just resolve_push_branch, the same isolation trick Test 1 uses for
+# run_with_timeout, so this never executes the real suite.
+test_resolve_push_branch() {
+    echo ""
+    echo "Test 6: branch resolves from the pushed refspec (#3290)"
+
+    local hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+    local fn
+    fn=$(sed -n '/^resolve_push_branch()/,/^}/p' "$hook")
+
+    if [[ -z "$fn" ]]; then
+        log_fail "resolve_push_branch() not found in the hook — the #3290 fix is gone"
+        return
+    fi
+    log_pass "resolve_push_branch() is present"
+
+    # A real refspec line, exactly what git writes on stdin.
+    local got
+    got=$(bash -c "$fn"$'\n''resolve_push_branch' <<<'refs/heads/x 1111111 refs/heads/fix/my-branch 2222222')
+    if [[ "$got" == "fix/my-branch" ]]; then
+        log_pass "refspec on stdin resolves to fix/my-branch"
+    else
+        log_fail "refspec resolved to '${got}', expected fix/my-branch"
+    fi
+
+    # The regression itself: detached HEAD + HEAD:<branch>. The local ref is a
+    # SHA (not a branch), which is what made the old code produce "HEAD".
+    got=$(bash -c "$fn"$'\n''resolve_push_branch' <<<'3333333 3333333 refs/heads/fix/detached-push 4444444')
+    if [[ "$got" == "fix/detached-push" ]]; then
+        log_pass "detached-HEAD push resolves to fix/detached-push, not HEAD"
+    else
+        log_fail "detached push resolved to '${got}', expected fix/detached-push"
+    fi
+
+    # A tag-only push must NOT be mistaken for a branch.
+    got=$(bash -c "$fn"$'\n''resolve_push_branch' <<<'refs/tags/v1 5555555 refs/tags/v1 6666666')
+    if [[ "$got" != "v1" ]]; then
+        log_pass "tag refspec does not resolve to a branch name (got '${got}')"
+    else
+        log_fail "tag refspec was treated as a branch"
+    fi
+
+    # Empty stdin must fall back to HEAD so a manual run behaves as before.
+    got=$(cd "$PROJECT_ROOT" && bash -c "$fn"$'\n''resolve_push_branch' </dev/null)
+    local head_branch
+    head_branch=$(cd "$PROJECT_ROOT" && git rev-parse --abbrev-ref HEAD)
+    if [[ "$got" == "$head_branch" ]]; then
+        log_pass "empty stdin falls back to HEAD (${got})"
+    else
+        log_fail "empty-stdin fallback gave '${got}', expected '${head_branch}'"
+    fi
+}
+
 # Main
 main() {
     echo "╔═══════════════════════════════════════════════════════════════╗"
@@ -239,6 +301,8 @@ main() {
     test_run_with_timeout_spaces
     test_skip_regex_parity
     test_bash32_compatibility
+    test_resolve_push_branch
+
 
     # Summary
     echo ""
