@@ -43,7 +43,8 @@
     "typecheck": "cd src/hooks && npx tsc --noEmit",
     "verify:imports": "node scripts/verify-imports.js",
     "prepare": "git config --local core.hooksPath bin/git-hooks 2>/dev/null || true",
-    "verify:cc-keys": "node scripts/derive-cc-output-keys.mjs --check"
+    "verify:cc-keys": "node scripts/derive-cc-output-keys.mjs --check",
+    "verify:cc-commands": "bash scripts/probe-command-discovery.sh"
   },
   "repository": {
     "type": "git",

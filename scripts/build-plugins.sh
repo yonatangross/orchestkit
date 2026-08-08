@@ -45,7 +45,18 @@ echo ""
 # https://github.com/anthropics/claude-code/issues/18949 (still OPEN as of CC 2.1.183).
 # (#20802 / #20935 / #25651 were all closed as DUPLICATES of #18949 — not fixes;
 #  ork #889 closed blocked-on-upstream.) Verified still required 2026-06-19.
-# TOKEN COST: duplicates each user-invocable skill into commands/ — 31 wrappers
+#
+# PROBED EMPIRICALLY at CC 2.1.226 on 2026-08-08 (#3314): two fixtures of the
+# built plugin installed into isolated CLAUDE_CONFIG_DIRs; the loader's own
+# debug counter read for each. WITH commands/: "Total plugin commands loaded:
+# 35". WITHOUT: 0 — user-invocable skills register as skills (105) but never
+# as commands. The wrappers are load-bearing; the issue label is accurate.
+# `npm run verify:cc-commands` (scripts/probe-command-discovery.sh) re-runs
+# that probe against the newest installed binary and EXITS 1 the day skills
+# start surfacing without wrappers, so the deletion happens the week it
+# becomes possible instead of years later.
+#
+# TOKEN COST: duplicates each user-invocable skill into commands/ — 35 wrappers
 # today (~2.8k wasted tokens/session, ~doubled from the original 17). See #2528.
 # Remove generate_command_from_skill + all commands/ generation when #18949 ships.
 generate_command_from_skill() {
