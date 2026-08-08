@@ -233,3 +233,8 @@ docs/site/.claude/memory/sessions/
 # exact sweep contaminated two commits on 2026-08-01 before this was added.
 **/.claude/HANDOFF.md
 **/.claude/memory/
+
+# Subagent scratch probes. Two were committed by accident on 2026-08-08
+# (__guards_main_tmp.ts, __probe_main_tmp.ts) — one of them would have poisoned
+# any `grep permission_mode src/`.
+**/__*_tmp.ts
