@@ -60,9 +60,14 @@ read_versions() { # read_versions <root> -> prints "key=value" lines
   echo "pyproject=$(grep -E '^version\s*=' "$r/pyproject.toml" | sed -E 's/.*"([^"]*)".*/\1/')"
   echo "manifest=$(jq -r '.version' "$r/manifests/ork.json")"
   echo "market-top=$(jq -r '.version' "$r/.claude-plugin/marketplace.json")"
-  echo "market-plugin=$(jq -r '.plugins[0].version' "$r/.claude-plugin/marketplace.json")"
+  # The tracking entry (ref==main), not plugins[0]: position 0 is the PINNED
+  # stable channel since #3340 and deliberately does not follow the release.
+  echo "market-plugin=$(jq -r '[.plugins[] | select(.source.ref? == "main")][0].version // .plugins[0].version' "$r/.claude-plugin/marketplace.json")"
   echo "release-please=$(jq -r '.["."]' "$r/.release-please-manifest.json")"
-  echo "CLAUDE=$(grep -E '^\- \*\*Current\*\*:' "$r/CLAUDE.md" | sed -E 's/.*Current\*\*: ([0-9]+\.[0-9]+\.[0-9]+).*/\1/' | head -1)"
+  # Prerelease-aware capture: a bare X.Y.Z reads 10.0.0-alpha as 10.0.0 and
+  # reports drift on a tree that is in fact consistent (same defect fixed in
+  # bin/validate-counts.sh on #3337).
+  echo "CLAUDE=$(grep -E '^\- \*\*Current\*\*:' "$r/CLAUDE.md" | sed -E 's/.*Current\*\*: ([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?).*/\1/' | head -1)"
 }
 
 echo "════════════════════════════════════════════════════════════════"
@@ -100,7 +105,18 @@ trap cleanup EXIT INT TERM
 # NOTE: this trap only removes a temp dir. Nothing in the repo needs restoring,
 # which is the entire point of the rewrite.
 
-git ls-files -z | tar --null -T - -cf - | tar -x -C "$SANDBOX"
+# Through a temp FILE, not `tar -cf - | tar -x`. In the piped form the
+# extractor exits the moment it has read a complete archive; the producer's
+# final write then takes EPIPE, prints "tar: Write error", and exits 1 — which
+# `set -euo pipefail` turns into a test failure even though every tracked file
+# landed in the sandbox (verified: 6503/6503). Whether the race fires depends
+# on archive size vs pipe-buffer alignment, so adding files to the repo can
+# flip it. Same pipefail/EPIPE family as the grep -q and here-string bugs
+# fixed on main today, wearing a tar costume.
+SANDBOX_TAR="$SANDBOX.tar"
+git ls-files -z | tar --null -T - -cf "$SANDBOX_TAR"
+tar -xf "$SANDBOX_TAR" -C "$SANDBOX"
+rm -f "$SANDBOX_TAR"
 pass "sandbox built from the working tree ($(find "$SANDBOX" -type f | wc -l | tr -d ' ') files)"
 echo ""
 

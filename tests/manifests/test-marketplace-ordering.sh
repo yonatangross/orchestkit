@@ -131,12 +131,19 @@ echo "────────────────────────�
 echo "  Check 3: Version consistency across marketplace entries"
 echo "───────────────────────────────────────────────────────────────"
 
-unique_versions=$(jq -r '.plugins[].version' "$MARKETPLACE_JSON" | sort -u | wc -l | tr -d ' ')
-if [[ "$unique_versions" -eq 1 ]]; then
-    version=$(jq -r '.plugins[0].version' "$MARKETPLACE_JSON")
-    log_pass "All plugins at version $version"
+# Uniform versions across entries stopped being the invariant with the channel
+# split (#3340): on a release branch the tracking entry (ref==main) carries the
+# new version while the pinned stable entry deliberately stays at its tag. The
+# old all-equal assertion only passed CI because the build's stamp was
+# corrupting the pinned entry to match. What actually must hold:
+#   - the tracking entry's version equals the top-level marketplace version
+#   - pinned entries agree with their pin (guarded by test-alpha-channel.sh)
+top_version=$(jq -r '.version' "$MARKETPLACE_JSON")
+tracking_version=$(jq -r '[.plugins[] | select(.source.ref? == "main")][0].version // .plugins[0].version' "$MARKETPLACE_JSON")
+if [[ "$tracking_version" == "$top_version" ]]; then
+    log_pass "Tracking entry matches marketplace version ($top_version)"
 else
-    log_fail "Plugins have inconsistent versions: $(jq -r '.plugins[] | "\(.name)=\(.version)"' "$MARKETPLACE_JSON" | tr '\n' ' ')"
+    log_fail "Tracking entry at $tracking_version but marketplace top-level says $top_version"
 fi
 
 # Summary

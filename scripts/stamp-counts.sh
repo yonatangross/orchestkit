@@ -271,7 +271,20 @@ sync_versions() {
   # .claude-plugin/marketplace.json — top-level .version AND .plugins[0].version
   local marketplace="$PROJECT_ROOT/.claude-plugin/marketplace.json"
   if [[ -f "$marketplace" ]]; then
-    jq --arg v "$version" '.version = $v | (.plugins[0].version) = $v' "$marketplace" > "${marketplace}.tmp" && mv "${marketplace}.tmp" "$marketplace"
+    # Stamp the top-level version and the TRACKING entry (source.ref == "main"),
+    # never a pinned channel. The old `.plugins[0].version = $v` stamped by
+    # position, and position 0 is the PINNED stable entry since the channel
+    # split (#3340): CI's fresh-build step ran this against the release branch
+    # and overwrote ork's 9.8.0 with 10.0.0-alpha in the checkout, breaking the
+    # version/pin agreement the channel test guards — the branch content on
+    # origin was correct the whole time. Falls back to plugins[0] for a
+    # single-entry layout with no tracking ref.
+    jq --arg v "$version" '
+      .version = $v
+      | (if any(.plugins[]; .source.ref? == "main")
+         then (.plugins[] | select(.source.ref? == "main") | .version) |= $v
+         else .plugins[0].version = $v
+         end)' "$marketplace" > "${marketplace}.tmp" && mv "${marketplace}.tmp" "$marketplace"
     synced=$((synced + 1))
   fi
 
