@@ -28,25 +28,24 @@
  * deep history. Rotation is best-effort: a failed rename leaves the
  * file in place and the next append succeeds normally.
  *
- * Cursor reads
- * ------------
- * `getTailCursor()` returns the current EOF byte offset as a string.
- * `readEventsSince(cursor)` re-opens the file, seeks past `cursor`, and
- * parses each subsequent line. Truncation / rotation between calls is
- * detected by comparing file size against cursor (`size < cursor` →
- * cursor invalid → return empty, caller can `getTailCursor()` again).
- *
- * The cursor is opaque to callers — encode/decode is owned by this
- * module. The current format is the decimal byte offset as a string.
+ * The bus half that never had a subscriber (#3328, 2026-08-08)
+ * ------------------------------------------------------------
+ * This module also shipped cursor reads — `getTailCursor()` returning an
+ * EOF byte offset and `readEventsSince(cursor)` streaming the delta in
+ * 64 KB chunks. The activation audit found ZERO production callers for
+ * either: eight hooks append, nothing ever read. The "broadcast bus"
+ * was a write-only log wearing a bus's documentation. Both readers were
+ * removed rather than kept aspirational; the one test that used
+ * `readEventsSince` as a fixture now uses
+ * __tests__/fixtures/bus-test-readers.ts. If a real subscriber appears,
+ * design its read API from its actual needs — the chunked-cursor code
+ * remains in git history but earned no seat in the build.
  */
 
 import {
   appendFileSync,
   existsSync,
   mkdirSync,
-  openSync,
-  readSync,
-  closeSync,
   renameSync,
   statSync,
   unlinkSync,
@@ -191,85 +190,6 @@ export function appendEvent(event: Event): void {
   // Opportunistic rotation check after a successful append. Cost is one
   // statSync per write, amortized into the same FS cache line.
   rotateIfNeeded();
-}
-
-/**
- * Return an opaque cursor pointing at the current EOF. Callers persist
- * this cursor and pass it back to `readEventsSince()` to read the
- * delta since their last read.
- */
-export function getTailCursor(): string {
-  const path = resolveLogPath();
-  try {
-    return String(statSync(path).size);
-  } catch {
-    return '0';
-  }
-}
-
-/**
- * Read events written since the given cursor. A null/undefined cursor
- * means "read everything." If the file shrunk below the cursor (rotated
- * or truncated), we return [] — the caller should refresh via
- * `getTailCursor()`.
- *
- * Buffer is read in 64 KB chunks; lines are reassembled across chunk
- * boundaries. Malformed lines are skipped silently.
- */
-export function readEventsSince(cursor: string | null): Event[] {
-  const path = resolveLogPath();
-  let size: number;
-  try {
-    size = statSync(path).size;
-  } catch {
-    return [];
-  }
-  const start = cursor == null ? 0 : Number(cursor);
-  if (!Number.isFinite(start) || start < 0) return [];
-  if (size < start) return []; // rotated or truncated
-  if (size === start) return [];
-
-  let fd: number;
-  try {
-    fd = openSync(path, 'r');
-  } catch {
-    return [];
-  }
-
-  const events: Event[] = [];
-  const CHUNK = 64 * 1024;
-  const buf = Buffer.alloc(CHUNK);
-  let pos = start;
-  let remainder = '';
-  try {
-    while (pos < size) {
-      const want = Math.min(CHUNK, size - pos);
-      const n = readSync(fd, buf, 0, want, pos);
-      if (n <= 0) break;
-      pos += n;
-      const text = remainder + buf.slice(0, n).toString('utf8');
-      const lines = text.split('\n');
-      remainder = lines.pop() ?? '';
-      for (const line of lines) {
-        if (!line) continue;
-        try {
-          events.push(JSON.parse(line) as Event);
-        } catch {
-          // malformed line — skip
-        }
-      }
-    }
-    if (remainder) {
-      try {
-        events.push(JSON.parse(remainder) as Event);
-      } catch {
-        // trailing fragment — skip
-      }
-    }
-  } finally {
-    try { closeSync(fd); } catch { /* ignore */ }
-  }
-  return events;
 }
 
 /** Test-only helpers. */
