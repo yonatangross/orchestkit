@@ -3954,7 +3954,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "2270e917dc20415a9af4bf44d2e0d78018631294fe401ab45b0fc0d6332b5371",
+    "sha256": "2d18017c5bcf784845c2ca85185a94558af518fec3d86a4f90482edeeed92ca8",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4058,7 +4058,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "security-patterns",
     "description": "Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.",
     "version": "2.0.0",
-    "sha256": "eb4b354d41179e4a083f206e0883e27f6762a9b65e89cc02b5d4b5b5efcbdef9",
+    "sha256": "3e60db5bd5e1a6a163e776f886d5eb47f4305f3fc5af03fa8bff74b9a9da0fa2",
     "author": "OrchestKit",
     "tags": [
       "security",
