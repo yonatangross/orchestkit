@@ -17,8 +17,6 @@ export const CC_VERSION = '2.1.226';
  * envelope ("missing required field hookEventName") and drops the decision.
  */
 export const EVENTS_WITH_HOOK_EVENT_NAME = new Set([
-  'Elicitation',
-  'MessageDisplay',
   'PermissionDenied',
   'PermissionRequest',
   'PostCompact',
@@ -31,7 +29,6 @@ export const EVENTS_WITH_HOOK_EVENT_NAME = new Set([
   'SubagentStart',
   'SubagentStop',
   'UserPromptSubmit',
-  'WorktreeCreate',
 ]);
 
 /**

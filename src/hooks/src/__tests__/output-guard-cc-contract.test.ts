@@ -100,13 +100,19 @@ describe('the guard still strips where CC does NOT read', () => {
   });
 });
 
-describe('WorktreeCreate keeps its documented envelope', () => {
-  // "WorktreeCreate hook failed: hook succeeded but returned no worktree path
-  //  (command: echo the path to stdout; http/callback: return
-  //  hookSpecificOutput.worktreePath)"
-  // The old allow-list omitted WorktreeCreate, so the guard stripped
-  // hookEventName and broke the documented http/callback form.
-  it('does not strip hookEventName on WorktreeCreate', () => {
+describe('WorktreeCreate is DEFERRED, not fixed', () => {
+  // CC documents hookSpecificOutput.worktreePath for WorktreeCreate's
+  // http/callback form, so the guard should not strip its hookEventName.
+  //
+  // Allow-listing it here is only safe alongside a mismatched-label rule, and
+  // that rule broke 9 security tests by turning "expected deny" into "got
+  // abstain" — lib/output.ts hardcodes hookEventName:'PreToolUse' in
+  // outputDeny/outputAsk/outputDefer, so a PermissionRequest hook legitimately
+  // emits a mismatched label. Both were reverted together.
+  //
+  // This test pins the CURRENT behaviour so the deferral is visible rather
+  // than forgotten. Flip it when the builders learn their firing event.
+  it('still strips hookEventName on WorktreeCreate (known gap)', () => {
     const result = {
       continue: true,
       hookSpecificOutput: {
@@ -117,7 +123,7 @@ describe('WorktreeCreate keeps its documented envelope', () => {
     const out = sanitizeOutput(result, 'WorktreeCreate') as {
       hookSpecificOutput?: { hookEventName?: string; worktreePath?: string };
     };
-    expect(out.hookSpecificOutput?.hookEventName).toBe('WorktreeCreate');
+    expect(out.hookSpecificOutput?.hookEventName).toBeUndefined();
     expect(out.hookSpecificOutput?.worktreePath).toBe('/tmp/wt');
   });
 });

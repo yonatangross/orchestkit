@@ -71,28 +71,24 @@ export function sanitizeOutput(result, firingEvent) {
   // Shallow-clone to avoid mutating the original hook return value.
   const sanitized = { ...result, hookSpecificOutput: { ...result.hookSpecificOutput } };
 
-  // --- Rule 0: A MISMATCHED hookEventName invalidates the whole envelope ---
+  // NOTE — a mismatched-hookEventName rule was tried here and REVERTED.
   //
-  // This is #1794 exactly: a WorktreeCreate response carrying
-  // hookEventName:'UserPromptSubmit' made CC misread stdout and create a
-  // literal-named directory from the additionalContext string. The label was
-  // wrong, so nothing beside it could be trusted either.
+  // The idea was sound: #1794 was a WorktreeCreate response carrying
+  // hookEventName:'UserPromptSubmit', and checking that mismatch directly is
+  // narrower than checking whether the event consumes hookSpecificOutput.
   //
-  // The rule this replaces keyed on "does the firing event consume
-  // hookSpecificOutput at all", which happened to catch #1794 because
-  // WorktreeCreate was not on the allow-list. Once WorktreeCreate joined it
-  // (CC reads worktreePath there) that coincidence broke and a mismatched
-  // label sailed through. Checking the mismatch directly is both narrower and
-  // strictly stronger: it holds no matter what the allow-list says.
+  // It broke 9 security tests, turning "expected deny" into "got abstain".
+  // The reason is in lib/output.ts: outputDeny/outputAsk/outputDefer HARDCODE
+  // hookEventName:'PreToolUse' regardless of which event the hook fires on, so
+  // a PermissionRequest hook legitimately emits a 'PreToolUse' label. Dropping
+  // the envelope on that mismatch deleted the permission decision itself —
+  // a guard turning a denial into an abstention, which is the single worst
+  // direction for this file to fail in.
+  //
+  // Fixing it properly means teaching the builders their firing event, which is
+  // a wider change than this one. Tracked separately; do not re-add the rule
+  // without that.
   const declared = sanitized.hookSpecificOutput.hookEventName;
-  if (declared !== undefined && declared !== firingEvent) {
-    process.stderr.write(
-      `[orchestkit] WARN: dropped hookSpecificOutput — it declared` +
-      ` hookEventName=${declared} on a ${firingEvent} event (see #1794)\n`
-    );
-    delete sanitized.hookSpecificOutput;
-    return sanitized;
-  }
 
   // --- Rule 1: Strip hookEventName on events that don't consume it ---
   if (declared !== undefined) {
