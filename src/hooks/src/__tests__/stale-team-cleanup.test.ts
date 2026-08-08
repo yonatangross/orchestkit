@@ -72,7 +72,11 @@ describe('isStaleTeam fails closed', () => {
     mkdirSync(nested, { recursive: true });
     writeFileSync(join(nested, 'state.json'), '{}');
     writeFileSync(join(p, 'config.json'), '{}');
-    backdate(p, 9); // stale-looking container, live contents
+    // Only the deep file stays recent; the container looks long idle. This is
+    // the whole point of the fix, so the fixture must not accidentally leave
+    // the root fresh.
+    backdate(join(p, 'config.json'), 9);
+    backdate(p, 9);
     expect(isStaleTeam('busy-nested', 4)).toBe(false);
   });
 
@@ -104,10 +108,20 @@ describe('isStaleTeam fails closed', () => {
 describe('teamStaleness reports WHY, not just whether', () => {
   it('names the reason and the path that supplied the mtime', () => {
     const p = team('busy');
-    const nested = join(p, 'tasks', 't1');
+    const tasks = join(p, 'tasks');
+    const nested = join(tasks, 't1');
     mkdirSync(nested, { recursive: true });
     const witness = join(nested, 'state.json');
     writeFileSync(witness, '{}');
+
+    // Backdate every ANCESTOR, not just the team root. Writing a file also
+    // stamps its parent directory at the same instant, and the walk keeps the
+    // first path on a tie — so on a filesystem with fine mtime granularity
+    // (ext4) the directory tied and won, while on APFS the file did. That is
+    // how this assertion passed on macOS and failed on Linux CI. Backdating
+    // the ancestors leaves exactly one newest path and removes the tie.
+    backdate(nested, 9);
+    backdate(tasks, 9);
     backdate(p, 9);
 
     const v = teamStaleness('busy', 4);
