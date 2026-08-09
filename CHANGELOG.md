@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.2](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.1...v10.0.0-alpha.2) (2026-08-09)
+
+
+### Features
+
+* **hooks:** deny credential-file reads at the Read tool ([#3360](https://github.com/yonatangross/orchestkit/issues/3360)) ([eed7bb0](https://github.com/yonatangross/orchestkit/commit/eed7bb0c2cc03eaa0631a5afacbf83acea3308df))
+
+
+### Bug Fixes
+
+* **agents:** scope peer messaging by lifecycle ([#3355](https://github.com/yonatangross/orchestkit/issues/3355)) ([24d5fb6](https://github.com/yonatangross/orchestkit/commit/24d5fb60f666e385f99298afca9c423be6332f60))
+* **security:** let the DYLD probe observe instead of aborting ([#3358](https://github.com/yonatangross/orchestkit/issues/3358)) ([57a6cfa](https://github.com/yonatangross/orchestkit/commit/57a6cfa11bdbdf0ae0ed5eba73259dd70b58ff1b))
+* **settings:** retire the plugin settings.json keys CC never reads ([#3357](https://github.com/yonatangross/orchestkit/issues/3357)) ([a93ccb7](https://github.com/yonatangross/orchestkit/commit/a93ccb7351c15fea824238fd8ae2d3abe9687618))
+
 ## [10.0.0-alpha.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha...v10.0.0-alpha.1) (2026-08-08)
 
 
