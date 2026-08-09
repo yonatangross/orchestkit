@@ -34,6 +34,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 MARKETPLACE="$ROOT_DIR/.claude-plugin/marketplace.json"
 RP_CONFIG="$ROOT_DIR/.release-please-config.json"
+BUMP_SCRIPT="$ROOT_DIR/scripts/bump-stable-pin.sh"
+RELEASE_WF="$ROOT_DIR/.github/workflows/release.yml"
 
 RED=$'\033[0;31m'; GREEN=$'\033[0;32m'; NC=$'\033[0m'
 PASS=0; FAIL=0
@@ -156,6 +158,103 @@ if [[ "$stable_idx" != "none" && "$alpha_idx" != "none" ]]; then
     else
         bad "'ork-alpha' ref is '$aref', expected 'main'"
     fi
+fi
+
+echo ""
+
+# ---------------------------------------------------------------------------
+# 5. Something PERFORMS the bump. A guard is not a writer.
+# ---------------------------------------------------------------------------
+# Section 2 fails when the pin and the version disagree, which catches a
+# half-bump AFTER it has been committed. It says nothing about whether anything
+# ever moves them, and until #3350 nothing did: on a GA release the pin sat at
+# the previous tag until a human noticed. The assertions below execute the
+# writer rather than describing it, so they go red if it stops working — not
+# only if someone hand-edits the file into disagreement.
+echo "▶ The stable pin has an automated writer"
+echo "──────────────────────────────────────"
+
+if [[ ! -x "$BUMP_SCRIPT" ]]; then
+    bad "scripts/bump-stable-pin.sh is missing or not executable — nothing moves the pin"
+else
+    ok "scripts/bump-stable-pin.sh is present and executable"
+
+    fixture_dir=$(mktemp -d)
+    trap 'rm -rf "$fixture_dir"' EXIT
+    fixture="$fixture_dir/marketplace.json"
+
+    # The real file, so the writer is exercised against the shape that actually
+    # ships rather than a hand-built stub that can drift away from it.
+    cp "$MARKETPLACE" "$fixture"
+
+    # --- GA: both fields move, together, on the PINNED entry ---
+    rc=0
+    "$BUMP_SCRIPT" 99.0.0 "$fixture" >/dev/null 2>&1 || rc=$?
+    if [[ "$rc" -ne 0 ]]; then
+        bad "GA bump exited $rc (expected 0) — the writer refused a plain GA version"
+    else
+        new_ref=$(jq -r '[.plugins[] | select(.source.ref != "main")] | .[0].source.ref' "$fixture")
+        new_ver=$(jq -r '[.plugins[] | select(.source.ref != "main")] | .[0].version' "$fixture")
+        if [[ "$new_ref" == "v99.0.0" && "$new_ver" == "99.0.0" ]]; then
+            ok "GA bump moves ref and version together (99.0.0 @ v99.0.0)"
+        else
+            bad "GA bump left them disagreeing: version='$new_ver' ref='$new_ref'"
+        fi
+
+        # The tracking channel is not the pinned one. Writing by array index is
+        # what #3340 was; a writer that hits both entries is the same bug with
+        # extra steps.
+        alpha_ref=$(jq -r '[.plugins[] | select(.name == "ork-alpha")] | .[0].source.ref // ""' "$fixture")
+        alpha_ver=$(jq -r '[.plugins[] | select(.name == "ork-alpha")] | .[0].version // ""' "$fixture")
+        real_alpha_ver=$(jq -r '[.plugins[] | select(.name == "ork-alpha")] | .[0].version // ""' "$MARKETPLACE")
+        if [[ "$alpha_ref" == "main" && "$alpha_ver" == "$real_alpha_ver" ]]; then
+            ok "GA bump leaves 'ork-alpha' untouched (still $alpha_ver @ main)"
+        else
+            bad "GA bump touched the tracking channel: version='$alpha_ver' ref='$alpha_ref'"
+        fi
+    fi
+
+    # --- Prerelease: refuses, and changes nothing ---
+    # This is the assertion the whole two-channel design rests on. A writer that
+    # fires on 10.0.0-alpha.7 would drag every stable installer onto the alpha,
+    # which is precisely what pinning exists to prevent.
+    cp "$MARKETPLACE" "$fixture"
+    before=$(shasum -a 256 < "$fixture")
+    rc=0
+    "$BUMP_SCRIPT" 99.0.0-alpha.1 "$fixture" >/dev/null 2>&1 || rc=$?
+    after=$(shasum -a 256 < "$fixture")
+    if [[ "$rc" -eq 3 && "$before" == "$after" ]]; then
+        ok "prerelease is a no-op (exit 3, file byte-identical)"
+    elif [[ "$before" == "$after" ]]; then
+        bad "prerelease bump exited $rc, expected 3 (file was left unchanged)"
+    else
+        bad "prerelease bump REWROTE the pinned entry — stable installs would follow the alpha"
+    fi
+
+    # --- Idempotence: re-running a tag's workflow must not re-commit ---
+    rc=0
+    "$BUMP_SCRIPT" 99.0.0 "$fixture" >/dev/null 2>&1 || rc=$?
+    if [[ "$rc" -ne 0 ]]; then
+        bad "idempotence setup: first bump exited $rc, expected 0"
+    fi
+    rc=0
+    "$BUMP_SCRIPT" 99.0.0 "$fixture" >/dev/null 2>&1 || rc=$?
+    if [[ "$rc" -eq 3 ]]; then
+        ok "re-running an already-applied bump is a no-op (exit 3)"
+    else
+        bad "second bump to the same version exited $rc, expected 3 (would open a duplicate PR)"
+    fi
+
+    rm -rf "$fixture_dir"
+    trap - EXIT
+fi
+
+# A writer nothing calls is dead code that still reads as coverage — the #959
+# class. Pin the call site, not just the file.
+if [[ -f "$RELEASE_WF" ]] && grep -q 'scripts/bump-stable-pin\.sh' "$RELEASE_WF"; then
+    ok "release.yml invokes scripts/bump-stable-pin.sh"
+else
+    bad "no tag-triggered workflow calls scripts/bump-stable-pin.sh — the writer is never reached"
 fi
 
 echo ""
