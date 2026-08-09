@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.4",
+    "date": "2026-08-09",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** stop teaching the sibling-worktree idiom ([#3363](https://github.com/yonatangross/orchestkit/issues/3363)) ([08fb023](https://github.com/yonatangross/orchestkit/commit/08fb023ef3ff8eb344ad683087dca823016f77f8))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.3",
     "date": "2026-08-09",
     "compareUrl": "",

@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.4](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.3...v10.0.0-alpha.4)** · 2026-08-09
+
+- **hooks:** stop teaching the sibling-worktree idiom (#3363)
+
 **[v10.0.0-alpha.3](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.2...v10.0.0-alpha.3)** · 2026-08-09
 
 - **cc-triage:** make the feature cap announce itself (#3361)
@@ -323,10 +327,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v9.6.1](https://github.com/yonatangross/orchestkit/compare/v9.6.0...v9.6.1)** · 2026-08-04
 
 - **deps:** clear the npm-audit wave via in-range transitive updates (#3272)
-
-**[v9.6.0](https://github.com/yonatangross/orchestkit/compare/v9.5.4...v9.6.0)** · 2026-08-03
-
-- **codex:** add native OrchestKit adapter (#3265)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
