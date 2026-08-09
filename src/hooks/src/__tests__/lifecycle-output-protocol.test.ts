@@ -103,81 +103,20 @@ beforeAll(async () => {
 });
 
 // ---------------------------------------------------------------------------
-// WorktreeCreate
+// WorktreeCreate / WorktreeRemove — REMOVED by #3315
+//
+// These two suites exercised worktree-lifecycle-logger, which was deleted when
+// ork stopped owning worktree provisioning. They carried the #1794 regression
+// (the logger stamped hookEventName:'UserPromptSubmit' on WorktreeRemove and CC
+// mkdir'd a literal-named directory).
+//
+// That regression is NOT left uncovered. #1794 had two independent fixes: the
+// call-site in the logger, and the dispatcher output guard. Only the call-site
+// went away with the logger. The guard is what actually stops a wrong
+// hookEventName reaching CC for ANY hook, and it keeps its own coverage in
+// `tests/integration/hooks/test-output-guard-dispatcher.sh` plus the remaining
+// suites in this file. Deleting a handler removed one specimen, not the control.
 // ---------------------------------------------------------------------------
-
-import { worktreeLifecycleLogger } from '../worktree/worktree-lifecycle-logger.js';
-
-describe('lifecycle output protocol — WorktreeCreate', () => {
-  let testCtx: ReturnType<typeof createTestContext>;
-  beforeEach(() => { testCtx = createTestContext(); vi.clearAllMocks(); stderrSpy.mockClear(); });
-
-  it('must not stamp hookEventName:UserPromptSubmit on WorktreeCreate (command-type)', () => {
-    const input: HookInput = {
-      hook_event: 'WorktreeCreate',
-      tool_name: '',
-      session_id: 'test-session-001',
-      tool_input: {},
-      name: 'feature-auth',
-      project_dir: '/test/project',
-    };
-    const result = worktreeLifecycleLogger(input, testCtx);
-    expect(result.continue).toBe(true);
-    assertNoWrongHookEventName(result, 'WorktreeCreate');
-    assertNoAdditionalContext(result, 'WorktreeCreate');
-  });
-
-  it('must not stamp hookEventName:UserPromptSubmit on WorktreeCreate (http-type)', () => {
-    const input: HookInput = {
-      hook_event: 'WorktreeCreate',
-      tool_name: '',
-      session_id: 'test-session-001',
-      tool_input: {},
-      name: 'feature-auth',
-      project_dir: '/test/project',
-      type: 'http',
-    };
-    const result = worktreeLifecycleLogger(input, testCtx);
-    expect(result.continue).toBe(true);
-    // http-type may set worktreePath — that's fine
-    assertNoWrongHookEventName(result, 'WorktreeCreate');
-    assertNoAdditionalContext(result, 'WorktreeCreate');
-  });
-});
-
-// ---------------------------------------------------------------------------
-// WorktreeRemove
-// ---------------------------------------------------------------------------
-
-describe('lifecycle output protocol — WorktreeRemove', () => {
-  let testCtx: ReturnType<typeof createTestContext>;
-  beforeEach(() => { testCtx = createTestContext(); vi.clearAllMocks(); stderrSpy.mockClear(); });
-
-  /**
-   * REGRESSION TEST FOR #1794
-   *
-   * Original bug: worktree-lifecycle-logger called outputPromptContext() for
-   * WorktreeRemove, stamping hookEventName:'UserPromptSubmit'. CC misread that
-   * string and mkdir'd a literal-named directory.
-   *
-   * This test FAILS if: (a) the call-site fix in worktree-lifecycle-logger.ts
-   * is reverted AND (b) the dispatcher guard is disabled. Both must hold.
-   */
-  it('must not stamp hookEventName:UserPromptSubmit on WorktreeRemove (#1794 regression)', () => {
-    const input: HookInput = {
-      hook_event: 'WorktreeRemove',
-      tool_name: '',
-      session_id: 'test-session-001',
-      tool_input: {},
-      worktree_path: '/Users/dev/.git/worktrees/feature-auth',
-      project_dir: '/test/project',
-    };
-    const result = worktreeLifecycleLogger(input, testCtx);
-    expect(result.continue).toBe(true);
-    assertNoWrongHookEventName(result, 'WorktreeRemove');
-    assertNoAdditionalContext(result, 'WorktreeRemove');
-  });
-});
 
 // ---------------------------------------------------------------------------
 // CwdChanged

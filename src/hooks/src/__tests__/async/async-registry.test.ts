@@ -170,7 +170,13 @@ describe('Async Hooks Registry', () => {
       //             the agentation UI-annotation integration was dropped entirely.
       // 106 -> 107: M170 #3126 — webhook-forwarder on the new PreToolUse[Workflow]
       //             matcher group (advisor itself is sync).
-      expect(asyncHooks.length, 'Should have exactly 107 async hooks').toBe(107);
+      // 107 -> 105: #3315 — ork stopped owning worktree provisioning. Dropped the
+      //             whole WorktreeCreate block (its webhook-forwarder was async)
+      //             and worktree/exit-finalizer from WorktreeRemove. CC's
+      //             hasWorktreeCreateHook() flips on ANY registered hook, so the
+      //             forwarder had to go too or CC would keep skipping its own
+      //             provisioning with nothing left to provision.
+      expect(asyncHooks.length, 'Should have exactly 105 async hooks').toBe(105);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

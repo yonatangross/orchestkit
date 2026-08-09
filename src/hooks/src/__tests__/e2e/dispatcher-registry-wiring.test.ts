@@ -363,7 +363,9 @@ describe('Dispatcher Registry Wiring E2E', () => {
       //             the agentation UI-annotation integration was dropped entirely.
       // 106 -> 107: M170 #3126 — webhook-forwarder on the new PreToolUse[Workflow]
       //             matcher group (advisor itself is sync).
-      expect(asyncHooks.length, 'Should have exactly 107 async hooks').toBe(107);
+      // 107 -> 105: #3315 — WorktreeCreate block removed entirely, plus
+      //             worktree/exit-finalizer from WorktreeRemove.
+      expect(asyncHooks.length, 'Should have exactly 105 async hooks').toBe(105);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -499,7 +501,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       //             the agentation UI-annotation integration was dropped entirely.
       // 106 -> 107: M170 #3126 — webhook-forwarder on the new PreToolUse[Workflow]
       //             matcher group (advisor itself is sync).
-      expect(asyncCount).toBe(107);
+      // 107 -> 105: #3315 — see the note on the async-hook count above.
+      expect(asyncCount).toBe(105);
     });
 
     it('should have hooks for all critical security operations', () => {

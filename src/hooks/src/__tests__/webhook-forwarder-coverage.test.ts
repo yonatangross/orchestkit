@@ -172,7 +172,11 @@ describe('Webhook Forwarder Coverage Validator', () => {
     // 27 -> 29: P3-A3 — UserPromptExpansion, PostToolBatch (MessageDisplay
     // reverted same-day: claude plugin validate rejects the key)
     // (observer-only; forwarding deferred via INTENTIONAL_EXCLUSIONS above).
-    expect(eventCount).toBe(29);
+    // 29 -> 28: #3315 — the WorktreeCreate event key was removed entirely.
+    // CC's hasWorktreeCreateHook() flips on ANY registered hook, so leaving the
+    // forwarder there would keep CC out of its own provisioning path with
+    // nothing left to provision. Forwarding on WorktreeRemove is unaffected.
+    expect(eventCount).toBe(28);
   });
 
   test('detects standalone webhook-forwarder entries', () => {

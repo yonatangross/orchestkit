@@ -49,8 +49,11 @@ import { taskCommitLinker } from '../task-completed/task-commit-linker.js';
 import { taskProgressTracker } from '../task-completed/task-progress-tracker.js';
 import { syncTaskCompletedDispatcher } from '../task-completed/sync-task-completed-dispatcher.js';
 
-// WorktreeCreate/WorktreeRemove hooks (CC 2.1.50)
-import { worktreeLifecycleLogger } from '../worktree/worktree-lifecycle-logger.js';
+// #3315 — ork no longer registers WorktreeCreate/WorktreeRemove. CC's
+// hasWorktreeCreateHook() flips on ANY registered WorktreeCreate hook and then
+// skips native provisioning entirely, which silently killed .worktreeinclude,
+// worktree.baseRef, settings.local.json propagation, core.hooksPath, PR
+// worktrees, worktree locking and branch cleanup. Native provisioning is back.
 
 // ConfigChange hooks (CC 2.1.50)
 import { settingsReload } from '../config-change/settings-reload.js';
@@ -98,11 +101,6 @@ import { analyticsLivenessCheck } from '../lifecycle/analytics-liveness-check.js
 import { sessionRegistrar } from '../lifecycle/session-registrar.js';
 // #1912 — M168 Phase 2: SQLite session registry finalizer (SessionEnd; lifecycle/ prefix per convention)
 import { sessionFinalizer } from '../lifecycle/session-finalizer.js';
-// #2335 — WorktreeCreate provisioner (owns `git worktree add` per current CC contract;
-// absorbs enter-registrar's children-bus init + worktree_links pending marker)
-import { worktreeProvisioner } from '../worktree/worktree-provisioner.js';
-// #1914 — M168 Phase 4: WorktreeRemove exit-finalizer (UPDATE worktree_links + clean children/)
-import { exitFinalizer } from '../worktree/exit-finalizer.js';
 
 // Elicitation hooks (CC 2.1.76)
 import { elicitationGuard } from '../elicitation/elicitation-guard.js';
@@ -168,11 +166,7 @@ export const hooks: Record<string, HookFn> = {
   'task-completed/task-commit-linker': taskCommitLinker,
   'task-completed/task-progress-tracker': taskProgressTracker,
 
-  // WorktreeCreate/WorktreeRemove hooks (CC 2.1.50)
-  'worktree/worktree-lifecycle-logger': worktreeLifecycleLogger,
-  // #2335 — owns worktree provisioning (children-bus + pending marker post-create)
-  'worktree/worktree-provisioner': worktreeProvisioner,
-  'worktree/exit-finalizer': exitFinalizer,
+  // #3315 — worktree hooks retired; CC provisions natively again.
 
   // ConfigChange hooks (CC 2.1.50)
   'config-change/settings-reload': settingsReload,

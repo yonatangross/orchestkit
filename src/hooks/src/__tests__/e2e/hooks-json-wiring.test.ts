@@ -90,38 +90,40 @@ describe('hooks.json wiring E2E', () => {
   // ===========================================================================
   // WorktreeCreate / WorktreeRemove wiring
   // ===========================================================================
-  describe('Worktree events (CC 2.1.78 --worktree fix)', () => {
-    it('WorktreeCreate is registered in hooks.json', () => {
-      expect(hooksConfig.hooks.WorktreeCreate).toBeDefined();
-      expect(hooksConfig.hooks.WorktreeCreate.length).toBeGreaterThan(0);
+  describe('Worktree events — ork does NOT own provisioning (#3315)', () => {
+    /**
+     * REGRESSION GUARD, inverted from the pre-#3315 assertions.
+     *
+     * CC's `hasWorktreeCreateHook()` returns true if ANY hook is registered on
+     * WorktreeCreate — plugin hooks included, with no filter on `async` and no
+     * check that the hook returns a path. When it returns true, CC skips its
+     * OWN provisioning branch entirely.
+     *
+     * ork used to register a provisioner there, which meant CC never ran the
+     * native path, and every feature ork did not reimplement died silently:
+     * .worktreeinclude, worktree.baseRef, settings.local.json propagation,
+     * core.hooksPath, PR worktrees, realpath containment, worktree locking and
+     * branch cleanup on removal. It also broke removal outright — CC only
+     * dispatches WorktreeRemove for hook-created worktrees, and refuses to when
+     * the directory is non-empty, so provisioned worktrees leaked.
+     *
+     * Registering ANYTHING here again reintroduces all of that. Even a
+     * telemetry-only async forwarder is enough to flip the gate, which is why
+     * this asserts the key is ABSENT rather than merely free of a provisioner.
+     */
+    it('WorktreeCreate has NO registered hooks, so CC provisions natively', () => {
+      expect(hooksConfig.hooks.WorktreeCreate).toBeUndefined();
     });
 
-    it('WorktreeRemove is registered in hooks.json', () => {
-      expect(hooksConfig.hooks.WorktreeRemove).toBeDefined();
-      expect(hooksConfig.hooks.WorktreeRemove.length).toBeGreaterThan(0);
-    });
+    it('WorktreeRemove carries no ork handler, only the universal forwarder', () => {
+      const removeCommands = (hooksConfig.hooks.WorktreeRemove ?? [])
+        .flatMap(g => g.hooks ?? [])
+        .map(h => commandPath(h))
+        .filter(Boolean);
 
-    it('WorktreeCreate provisions, WorktreeRemove observes (#2335)', () => {
-      const createHooks = hooksConfig.hooks.WorktreeCreate.flatMap(g => g.hooks ?? []);
-      const removeHooks = hooksConfig.hooks.WorktreeRemove.flatMap(g => g.hooks ?? []);
-
-      const createCommands = createHooks.map(h => commandPath(h)).filter(Boolean);
-      const removeCommands = removeHooks.map(h => commandPath(h)).filter(Boolean);
-
-      // Create side: the provisioner OWNS creation (CC consumes its stdout as
-      // the worktree path) and MUST be sync — an async hook's stdout is not
-      // collected on the path channel.
-      expect(createCommands.some(c => c!.includes('worktree-provisioner'))).toBe(true);
-      const provisionerHook = createHooks.find(h => commandPath(h)?.includes('worktree-provisioner'));
-      expect(provisionerHook?.async).not.toBe(true);
-      // The pre-#2335 observers must be GONE from the create side — empty
-      // stdout from an observer is a hard failure on the current contract.
-      expect(createCommands.some(c => c!.includes('worktree-lifecycle-logger'))).toBe(false);
-      expect(createCommands.some(c => c!.includes('enter-registrar'))).toBe(false);
-
-      // Remove side keeps the logger + exit-finalizer observers.
-      expect(removeCommands.some(c => c!.includes('worktree-lifecycle-logger'))).toBe(true);
-      expect(removeCommands.some(c => c!.includes('exit-finalizer'))).toBe(true);
+      expect(removeCommands.some(c => c!.includes('worktree-provisioner'))).toBe(false);
+      expect(removeCommands.some(c => c!.includes('worktree-lifecycle-logger'))).toBe(false);
+      expect(removeCommands.some(c => c!.includes('exit-finalizer'))).toBe(false);
     });
   });
 
@@ -147,10 +149,15 @@ describe('hooks.json wiring E2E', () => {
       expect(typeof stopBundle.hooks['stop/stop-failure-handler']).toBe('function');
     });
 
-    it('lifecycle bundle exports worktree-lifecycle-logger', { timeout: 30000 }, async () => {
+    it('lifecycle bundle exports NO worktree handlers (#3315)', { timeout: 30000 }, async () => {
       const lifecycleBundle = await import('../../entries/lifecycle.js');
-      expect(lifecycleBundle.hooks['worktree/worktree-lifecycle-logger']).toBeDefined();
-      expect(typeof lifecycleBundle.hooks['worktree/worktree-lifecycle-logger']).toBe('function');
+      // The entries map and hooks.json are a pair: a handler left here without a
+      // hooks.json entry is never invoked, and one in hooks.json without a
+      // handler dispatches to nothing (the #959 dead-hook class). Both sides of
+      // the worktree wiring were removed together, so assert both are gone.
+      expect(lifecycleBundle.hooks['worktree/worktree-provisioner']).toBeUndefined();
+      expect(lifecycleBundle.hooks['worktree/worktree-lifecycle-logger']).toBeUndefined();
+      expect(lifecycleBundle.hooks['worktree/exit-finalizer']).toBeUndefined();
     });
   });
 

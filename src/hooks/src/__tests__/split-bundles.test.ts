@@ -440,7 +440,13 @@ describe('Cross-Bundle Consistency', () => {
     // 201 -> 202: pretool/read/credential-read-guard — denies Read against
     //             credential files (~/.aws/credentials, .env, id_rsa, .npmrc
     //             and peers). New PreToolUse[Read] entry in entries/pretool.ts.
-    expect(totalHooks).toBe(202);
+    // 202 -> 199: #3315 — retired ork's worktree ownership. Removed
+    //             worktree/worktree-provisioner, worktree/exit-finalizer and
+    //             worktree/worktree-lifecycle-logger from the entries map. CC
+    //             provisions natively again, which restores .worktreeinclude,
+    //             worktree.baseRef, settings.local.json propagation,
+    //             core.hooksPath, PR worktrees, locking and branch cleanup.
+    expect(totalHooks).toBe(199);
   });
 });
 
