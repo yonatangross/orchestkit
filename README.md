@@ -276,6 +276,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.3](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.2...v10.0.0-alpha.3)** · 2026-08-09
+
+- **cc-triage:** make the feature cap announce itself (#3361)
+- **pre-push:** resolve the branch from the pushed refspec, not HEAD (#3299), closes [#3290](https://github.com/yonatangross/orchestkit/issues/3290)
+
 **[v10.0.0-alpha.2](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.1...v10.0.0-alpha.2)** · 2026-08-09
 
 - **hooks:** deny credential-file reads at the Read tool (#3360)
@@ -322,15 +327,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v9.6.0](https://github.com/yonatangross/orchestkit/compare/v9.5.4...v9.6.0)** · 2026-08-03
 
 - **codex:** add native OrchestKit adapter (#3265)
-
-**[v9.5.4](https://github.com/yonatangross/orchestkit/compare/v9.5.3...v9.5.4)** · 2026-08-03
-
-- **ci:** run the demos' 284 tests, stop chmod churn on .mjs (#3262)
-- **deps-dev:** bump jsdom from 29.1.1 to 30.0.1 in /orchestkit-demos (#3259)
-- **deps-dev:** bump the npm-minor-patch group across 1 directory with 3 updates (#3258)
-- **deps-dev:** bump the npm-minor-patch group in /src/hooks with 2 updates (#3254)
-- **deps:** bump the npm-minor-patch group in /src/mcp-server with 2 updates (#3255)
-- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

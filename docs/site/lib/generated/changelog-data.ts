@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.3",
+    "date": "2026-08-09",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**cc-triage:** make the feature cap announce itself ([#3361](https://github.com/yonatangross/orchestkit/issues/3361)) ([46f2fbc](https://github.com/yonatangross/orchestkit/commit/46f2fbc068ab8c798d92ada8d5a0439800350ed8))",
+          "**pre-push:** resolve the branch from the pushed refspec, not HEAD ([#3299](https://github.com/yonatangross/orchestkit/issues/3299)) ([1809519](https://github.com/yonatangross/orchestkit/commit/1809519ada5093829070ccf35c7eb02120d060c1)), closes [#3290](https://github.com/yonatangross/orchestkit/issues/3290)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.2",
     "date": "2026-08-09",
     "compareUrl": "",
