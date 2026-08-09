@@ -9,68 +9,62 @@
  * has continuity from the prior session without the user repeating themselves.
  *
  * No-op (silent success) when:
+ * - A fresh repo-local .claude/HANDOFF.md exists (#3329 — the repo-local loop
+ *   owns the injection; see below)
+ * - The per-session handoff claim was already taken (#3329)
  * - No handoff file exists for this project
- * - Handoff is >24h old (stale)
+ * - Handoff is >24h old (stale) or oversized
  * - File cannot be parsed
+ *
+ * #3329. This hook and prompt/handoff-injector.ts both opened their injected
+ * text with `[Previous Session Handoff]` and neither knew about the other, so
+ * a session with both stores populated got the marker twice. Two guards now
+ * make that impossible: this hook yields when a fresh repo-local handoff
+ * exists (SessionStart fires first, so without the yield the global store
+ * would always win and the repo-local handoff would never be read again), and
+ * both hooks take a single exclusive per-session claim before injecting.
  *
  * Hook: SessionStart
  */
 
-import { existsSync, readFileSync, statSync } from 'node:fs';
-import type { HookInput, HookResult , HookContext} from '../types.js';
+import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { outputSessionStartContext } from '../lib/output.js';
 import { hashProject } from '../lib/analytics.js';
-import { getHomeDir, joinPath } from '../lib/paths.js';
 import { NOOP_CTX } from '../lib/context.js';
+import {
+  HANDOFF_MARKER,
+  claimHandoffInjection,
+  hasFreshLocalHandoff,
+  readGlobalHandoff,
+} from '../lib/handoff-claim.js';
 
 const HOOK_NAME = 'session-handoff-injector';
-const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
-const MAX_FILE_SIZE = 4096; // 4KB guard against oversized handoffs
-
-function getHandoffPath(projectHash: string): string {
-  return joinPath(getHomeDir(), '.claude', 'analytics', 'handoffs', projectHash, 'latest.yaml');
-}
-
-function isStale(filePath: string): boolean {
-  try {
-    const mtime = statSync(filePath).mtimeMs;
-    return Date.now() - mtime > MAX_AGE_MS;
-  } catch {
-    return true;
-  }
-}
 
 export function sessionHandoffInjector(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   try {
-    const projectDir = input.project_dir || (ctx.projectDir);
-    const projectHash = hashProject(projectDir);
-    const handoffPath = getHandoffPath(projectHash);
+    const projectDir = input.project_dir || ctx.projectDir;
 
-    if (!existsSync(handoffPath)) {
-      ctx.log(HOOK_NAME, 'No handoff file found for this project');
+    // #3329: the repo-local loop is the surviving one. Yield to it.
+    if (hasFreshLocalHandoff(projectDir)) {
+      ctx.log(HOOK_NAME, 'Fresh .claude/HANDOFF.md present — yielding to the repo-local loop');
       return outputSilentSuccess();
     }
 
-    if (isStale(handoffPath)) {
-      ctx.log(HOOK_NAME, 'Handoff file is >24h old, skipping injection');
+    const handoff = readGlobalHandoff(projectDir);
+    if (handoff.body === null) {
+      ctx.log(HOOK_NAME, `No injectable global handoff: ${handoff.reason}`);
       return outputSilentSuccess();
     }
 
-    const fileSize = statSync(handoffPath).size;
-    if (fileSize > MAX_FILE_SIZE) {
-      ctx.log(HOOK_NAME, `Handoff file too large (${fileSize} bytes), skipping injection`);
+    // #3329: single injection per session, whichever loop gets here first.
+    if (!claimHandoffInjection(input.session_id, projectDir, HOOK_NAME)) {
+      ctx.log(HOOK_NAME, 'Handoff already injected this session — skipping');
       return outputSilentSuccess();
     }
 
-    const yaml = readFileSync(handoffPath, 'utf-8').trim();
-    if (!yaml) {
-      ctx.log(HOOK_NAME, 'Handoff file is empty');
-      return outputSilentSuccess();
-    }
-
-    const context = `[Previous Session Handoff]\n${yaml}\n[End Handoff]`;
-    ctx.log(HOOK_NAME, `Injecting handoff context for project ${projectHash}`);
+    const context = `${HANDOFF_MARKER}\n${handoff.body}\n[End Handoff]`;
+    ctx.log(HOOK_NAME, `Injecting handoff context for project ${hashProject(projectDir)}`);
 
     // CC >=2.1.150 rejects SessionStart hookSpecificOutput without hookEventName.
     // outputSessionStartContext stamps hookEventName:'SessionStart' and drops

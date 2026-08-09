@@ -14,66 +14,112 @@
  *
  * Behavior:
  * - Reads .claude/HANDOFF.md if it exists and is < 24h old
- * - Returns content via outputPromptContext()
- * - Renames to HANDOFF.md.consumed to prevent re-injection
+ * - #3329 FALLBACK: when no fresh .claude/HANDOFF.md exists, serves the GLOBAL
+ *   store instead (~/.claude/analytics/handoffs/<hash>/latest.yaml), the one
+ *   lifecycle/session-handoff-injector reads. This is the "re-home" #3329
+ *   requires before the global SessionStart hook and its SessionEnd generator
+ *   can be deleted: until this path is observed firing in the wild, deleting
+ *   them would silently drop continuity for every project that only has a
+ *   global handoff.
+ * - Takes the single per-session handoff claim before injecting, so the two
+ *   loops can coexist during the migration without emitting the marker twice
+ * - Renames HANDOFF.md to HANDOFF.md.consumed to prevent re-injection
+ *
+ * The fallback logs `source=global`, which is the measurement #3329 asks for:
+ * grep the hook log for it to decide whether the global pair still carries
+ * traffic before removing it.
  */
 
 import { existsSync, readFileSync, renameSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult , HookContext} from '../types.js';
+import type { HookInput, HookResult, HookContext } from '../types.js';
 import {
   outputSilentSuccess,
   outputPromptContext,
   estimateTokenCount,
 } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
+import {
+  HANDOFF_MARKER,
+  HANDOFF_MAX_AGE_MS,
+  claimHandoffInjection,
+  readGlobalHandoff,
+} from '../lib/handoff-claim.js';
 
 const HOOK_NAME = 'handoff-injector';
-
-/** Max age for HANDOFF.md to be considered valid (24 hours in ms) */
-const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 /** Max token budget for handoff injection */
 const MAX_TOKENS = 600;
 
-/**
- * Handoff injector — reads HANDOFF.md on first prompt and injects context
- */
-export function handoffInjector(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
-  const projectDir = input.project_dir || (ctx.projectDir);
-  const handoffPath = join(projectDir, '.claude', 'HANDOFF.md');
+/** Where the injected content came from — logged so the fallback is measurable. */
+type HandoffSource = 'local' | 'global';
 
-  // No handoff file — nothing to inject
+/**
+ * Read the repo-local .claude/HANDOFF.md, applying the age and length guards.
+ * Returns null (with the reason logged) when it is not injectable.
+ */
+function readLocalHandoff(
+  projectDir: string,
+  handoffPath: string,
+  ctx: HookContext,
+): string | null {
   if (!existsSync(handoffPath)) {
     ctx.log(HOOK_NAME, 'No HANDOFF.md found');
-    return outputSilentSuccess();
+    return null;
   }
 
-  // Check age — skip stale handoffs
   try {
-    const stats = statSync(handoffPath);
-    const ageMs = Date.now() - stats.mtimeMs;
-    if (ageMs > MAX_AGE_MS) {
+    const ageMs = Date.now() - statSync(handoffPath).mtimeMs;
+    if (ageMs > HANDOFF_MAX_AGE_MS) {
       ctx.log(HOOK_NAME, `HANDOFF.md is ${Math.round(ageMs / 3600000)}h old (> 24h), skipping`);
-      return outputSilentSuccess();
+      return null;
     }
   } catch {
     ctx.log(HOOK_NAME, 'Cannot stat HANDOFF.md, skipping');
-    return outputSilentSuccess();
+    return null;
   }
 
-  // Read handoff content
   let content: string;
   try {
     content = readFileSync(handoffPath, 'utf8').trim();
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     ctx.log(HOOK_NAME, `Cannot read HANDOFF.md: ${msg}`, 'warn');
-    return outputSilentSuccess();
+    return null;
   }
 
   if (!content || content.length < 20) {
     ctx.log(HOOK_NAME, 'HANDOFF.md is empty or too short');
+    return null;
+  }
+  return content;
+}
+
+/**
+ * Handoff injector — reads HANDOFF.md on first prompt and injects context,
+ * falling back to the global handoff store when there is no local one.
+ */
+export function handoffInjector(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = input.project_dir || ctx.projectDir;
+  const handoffPath = join(projectDir, '.claude', 'HANDOFF.md');
+
+  let source: HandoffSource = 'local';
+  let content = readLocalHandoff(projectDir, handoffPath, ctx);
+
+  // #3329 re-home: no usable repo-local handoff, so serve the global store.
+  if (content === null) {
+    const global = readGlobalHandoff(projectDir);
+    if (global.body === null) {
+      ctx.log(HOOK_NAME, `No injectable global handoff either: ${global.reason}`);
+      return outputSilentSuccess();
+    }
+    content = global.body;
+    source = 'global';
+  }
+
+  // #3329: single injection per session across BOTH loops.
+  if (!claimHandoffInjection(input.session_id, projectDir, HOOK_NAME)) {
+    ctx.log(HOOK_NAME, 'Handoff already injected this session — skipping');
     return outputSilentSuccess();
   }
 
@@ -86,20 +132,27 @@ export function handoffInjector(input: HookInput, ctx: HookContext = NOOP_CTX): 
     ctx.log(HOOK_NAME, `Truncated from ${tokens}t to ~${MAX_TOKENS}t`);
   }
 
-  // Consume the handoff file (rename so it's not re-injected)
-  try {
-    const consumedPath = join(projectDir, '.claude', 'HANDOFF.md.consumed');
-    renameSync(handoffPath, consumedPath);
-    ctx.log(HOOK_NAME, 'Renamed HANDOFF.md → HANDOFF.md.consumed');
-  } catch {
-    // Non-critical — the runOnce flag will prevent re-injection anyway
-    ctx.log(HOOK_NAME, 'Could not rename HANDOFF.md (runOnce flag will prevent re-run)', 'warn');
+  // Consume the local handoff file (rename so it's not re-injected).
+  // Only meaningful for the local source — the global store is rotated by its
+  // own SessionEnd generator and must not be mutated from the read side.
+  if (source === 'local') {
+    try {
+      const consumedPath = join(projectDir, '.claude', 'HANDOFF.md.consumed');
+      renameSync(handoffPath, consumedPath);
+      ctx.log(HOOK_NAME, 'Renamed HANDOFF.md → HANDOFF.md.consumed');
+    } catch {
+      // Non-critical — the runOnce flag will prevent re-injection anyway
+      ctx.log(HOOK_NAME, 'Could not rename HANDOFF.md (runOnce flag will prevent re-run)', 'warn');
+    }
   }
 
-  ctx.log(HOOK_NAME, `Injecting handoff context (${estimateTokenCount(content)}t)`);
+  ctx.log(
+    HOOK_NAME,
+    `Injecting handoff context source=${source} (${estimateTokenCount(content)}t)`,
+  );
 
   // Wrap with clear markers for Claude
-  const injection = `[Previous Session Handoff]\n${content}\n[End Handoff — Continue from where the previous session left off]`;
+  const injection = `${HANDOFF_MARKER}\n${content}\n[End Handoff — Continue from where the previous session left off]`;
 
   return outputPromptContext(injection);
 }
