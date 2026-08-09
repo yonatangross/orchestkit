@@ -17,6 +17,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.5",
+    "date": "2026-08-09",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**docs:** re-stamp the hook counts in the source, not the build output ([#3369](https://github.com/yonatangross/orchestkit/issues/3369)) ([2d12630](https://github.com/yonatangross/orchestkit/commit/2d1263055cb4bc4a65073ff71a543bb6e787473c))",
+          "**hooks:** stop owning worktree provisioning, CC does it better ([#3366](https://github.com/yonatangross/orchestkit/issues/3366)) ([6a26db0](https://github.com/yonatangross/orchestkit/commit/6a26db042c7df0febc92db7d56dd79fee35fa96e))",
+          "**security:** close the two actionable code-scanning alerts ([#3367](https://github.com/yonatangross/orchestkit/issues/3367)) ([4110c92](https://github.com/yonatangross/orchestkit/commit/4110c92ced6ab1d6ddcce1774a91bd8daa7ced77))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.4",
     "date": "2026-08-09",
     "compareUrl": "",
