@@ -51,8 +51,9 @@ import { writeHeaders } from '../pretool/input-mod/write-headers.js';
 // PreTool/Skill hooks (1)
 import { skillTracker } from '../pretool/skill/skill-tracker.js';
 
-// PreTool/Read hooks (1)
+// PreTool/Read hooks (2)
 import { tldrSummary } from '../pretool/read/tldr-summary.js';
+import { credentialReadGuard } from '../pretool/read/credential-read-guard.js';
 
 // PreTool/Ask hooks (1) — CC 2.1.85 headless AskUserQuestion
 import headlessResponder from '../pretool/ask/headless-responder.js';
@@ -129,8 +130,9 @@ export const hooks: Record<string, HookFn> = {
   // PreTool/Skill hooks (1)
   'pretool/skill/skill-tracker': skillTracker,
 
-  // PreTool/Read hooks (1)
+  // PreTool/Read hooks (2)
   'pretool/read/tldr-summary': tldrSummary,
+  'pretool/read/credential-read-guard': credentialReadGuard,
 
   // PreTool/Ask hooks (1) — CC 2.1.85 headless AskUserQuestion
   'pretool/ask/headless-responder': headlessResponder,
