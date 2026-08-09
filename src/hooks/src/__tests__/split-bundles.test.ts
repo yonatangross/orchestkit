@@ -437,7 +437,10 @@ describe('Cross-Bundle Consistency', () => {
     //             unreachable orphan, leaving the hook registered but
     //             undispatchable (#959 dead-hook class, caught by
     //             validate-registry.mjs as a NEW DEAD HOOK).
-    expect(totalHooks).toBe(201);
+    // 201 -> 202: pretool/read/credential-read-guard — denies Read against
+    //             credential files (~/.aws/credentials, .env, id_rsa, .npmrc
+    //             and peers). New PreToolUse[Read] entry in entries/pretool.ts.
+    expect(totalHooks).toBe(202);
   });
 });
 

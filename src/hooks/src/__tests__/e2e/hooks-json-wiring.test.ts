@@ -177,7 +177,7 @@ describe('hooks.json wiring E2E', () => {
   // hooks.json description accuracy
   // ===========================================================================
   describe('hooks.json description accuracy', () => {
-    it('description total matches 199', () => {
+    it('declared global count matches the actual wiring entries', () => {
       // 184 -> 186: M126 #1543 — posttool/secret-handler + (intermediate bumps)
       // 186 -> 187: M130 #1487 — lifecycle/cc-version-check
       // 187 -> 188: ASCII Design System — posttool/ascii-lint
@@ -267,7 +267,25 @@ describe('hooks.json wiring E2E', () => {
       //             the release-checklist skill, deleted as an unreachable
       //             orphan, which left the hook registered with nothing able
       //             to dispatch it (#959 dead-hook class). skill-scoped 22->21.
-      expect(hooksConfig.description).toContain('218 total');
+      //
+      // The changelog above stops here: the assertion is DERIVED as of the
+      // credential-read-guard branch. It used to be `toContain('N total')`, a
+      // frozen literal that had to be re-stamped on every hook addition —
+      // pure re-typing, because CI already re-derives the whole accounting
+      // string (scripts/validate-registry.mjs COUNT DRIFT, ci.yml:133) from
+      // hooks.json + agent/skill frontmatter. What that literal could NOT do
+      // is prove the description matches the file it describes. This does:
+      // recount the wiring entries the same way bin/count-hooks.sh does
+      // ("type": "command" + "type": "http") and hold the declared `global`
+      // number to it. Paired with the arithmetic test below, the total is
+      // pinned without a hand-maintained number.
+      const actualGlobal = Object.values(hooksConfig.hooks)
+        .flatMap(groups => groups.flatMap(g => g.hooks ?? []))
+        .filter(h => h.type === 'command' || h.type === 'http').length;
+
+      const declared = hooksConfig.description.match(/(\d+) global/);
+      expect(declared, 'hooks.json description lost its "N global" accounting').not.toBeNull();
+      expect(Number(declared?.[1]), 'hooks.json description is stale — re-stamp it with bin/validate-counts.sh').toBe(actualGlobal);
     });
 
     it('description counts add up (global + agent + skill = total)', () => {
