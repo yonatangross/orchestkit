@@ -140,6 +140,48 @@ describe('detectContentKind', () => {
 });
 
 describe('extractToolOutputText', () => {
+  // ---------------------------------------------------------------------------
+  // #3321 — every case below this block used tool_result / tool_output / output,
+  // which are the LEGACY aliases (see HookInput in types.ts). CC sends
+  // `tool_response`. Because nothing here exercised the real field, the
+  // extractor returned '' for every production payload, estimateTokens saw an
+  // empty string, and the cache-read accumulator that context-crossing-warn and
+  // pre-compact-task-done-prompt both read never incremented.
+  //
+  // Each of these fails against the pre-fix extractor.
+  // ---------------------------------------------------------------------------
+  describe('#3321: tool_response is the field CC actually sends', () => {
+    it('reads a string tool_response', () => {
+      expect(extractToolOutputText({ tool_response: 'hello' })).toBe('hello');
+    });
+
+    it('extracts content from a tool_response object', () => {
+      expect(
+        extractToolOutputText({ tool_response: { content: 'body', is_error: false } }),
+      ).toBe('body');
+    });
+
+    it('JSON-stringifies an arbitrary tool_response (e.g. Bash stdout/stderr)', () => {
+      expect(
+        extractToolOutputText({ tool_response: { stdout: 'out', stderr: '' } }),
+      ).toBe('{"stdout":"out","stderr":""}');
+    });
+
+    it('yields a NON-ZERO estimate for a realistic CC payload', () => {
+      // The actual regression: text in, 0 tokens out.
+      const text = 'lorem ipsum dolor sit amet '.repeat(40);
+      const extracted = extractToolOutputText({ tool_response: text });
+      expect(extracted).not.toBe('');
+      expect(estimateTokens(extracted)).toBeGreaterThan(0);
+    });
+
+    it('prefers tool_response over the legacy aliases when both are present', () => {
+      expect(
+        extractToolOutputText({ tool_response: 'current', tool_result: 'legacy' }),
+      ).toBe('current');
+    });
+  });
+
   it('prefers tool_result when it is a string', () => {
     expect(extractToolOutputText({ tool_result: 'hello' })).toBe('hello');
   });

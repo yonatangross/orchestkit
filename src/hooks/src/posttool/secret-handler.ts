@@ -53,7 +53,11 @@ export function secretHandler(input: HookInput, ctx: HookContext = NOOP_CTX): Ho
   const toolName = input.tool_name || '';
   if (!PROCESSED_TOOLS.has(toolName)) return outputSilentSuccess();
 
-  const rawOutput = input.tool_output ?? input.tool_result;
+  // `tool_response` is what CC sends; `tool_output` / `tool_result` are the
+  // legacy aliases (types.ts). Reading only the aliases meant outputStr came
+  // back empty on every real payload and line 58 returned silent success — a
+  // redaction control that scanned nothing. Same defect as #3321's estimator.
+  const rawOutput = input.tool_response ?? input.tool_output ?? input.tool_result;
   const outputStr = stringifyOutput(rawOutput);
   if (!outputStr || outputStr.length === 0) return outputSilentSuccess();
 

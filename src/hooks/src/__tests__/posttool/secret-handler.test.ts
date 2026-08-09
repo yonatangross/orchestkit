@@ -125,6 +125,48 @@ describe('secretHandler — positive seeds (critical patterns gate)', () => {
 describe('secretHandler — mode behavior', () => {
   const SECRET = 'ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789AB';
 
+  // ---------------------------------------------------------------------------
+  // #3321 — every other case in this file puts the payload in `tool_output`,
+  // the LEGACY alias. CC sends `tool_response`. Reading only the aliases meant
+  // outputStr was empty on real payloads and the handler returned silent success
+  // at the length check, so the redaction control scanned nothing in production
+  // while its whole suite stayed green. These fail against the pre-fix handler.
+  // ---------------------------------------------------------------------------
+  describe('#3321: scans tool_response, the field CC actually sends', () => {
+    it('AUDIT detects a secret arriving as tool_response', () => {
+      process.env.ORK_SECRET_HOOK = 'AUDIT';
+      const input = makeInput({ tool_output: undefined, tool_response: SECRET });
+
+      const result = secretHandler(input, testCtx);
+
+      expect(mockBufferWrite).toHaveBeenCalled();
+      const [, payload] = mockBufferWrite.mock.calls[0];
+      expect(payload).toContain('"pattern_name":"github-pat"');
+      expect(result.hookSpecificOutput).toBeUndefined();
+    });
+
+    it('REDACT rewrites a secret arriving as tool_response', () => {
+      process.env.ORK_SECRET_HOOK = 'REDACT';
+      const input = makeInput({ tool_output: undefined, tool_response: SECRET });
+
+      const result = secretHandler(input, testCtx);
+
+      // The pre-fix handler saw an empty string and returned silent success,
+      // so there was no hookSpecificOutput at all.
+      expect(result.hookSpecificOutput).toBeDefined();
+      expect(JSON.stringify(result.hookSpecificOutput)).not.toContain(SECRET);
+    });
+
+    it('prefers tool_response over the legacy alias when both are present', () => {
+      process.env.ORK_SECRET_HOOK = 'AUDIT';
+      const input = makeInput({ tool_output: 'nothing to see', tool_response: SECRET });
+
+      secretHandler(input, testCtx);
+
+      expect(mockBufferWrite).toHaveBeenCalled();
+    });
+  });
+
   it('OFF returns silentSuccess and does not log audit', () => {
     // Arrange
     process.env.ORK_SECRET_HOOK = 'OFF';

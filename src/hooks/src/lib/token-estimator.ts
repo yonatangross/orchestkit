@@ -124,27 +124,45 @@ export function detectContentKind(toolName: string | undefined, sample: string |
  * `input` object may carry. Keeps the caller one import lighter.
  */
 export function extractToolOutputText(input: {
+  /**
+   * What CC actually sends on PostToolUse. `tool_output` / `tool_result` are
+   * the legacy aliases (see the note on HookInput in types.ts), and reading
+   * ONLY those is why this returned '' for every real payload: the estimate
+   * came back 0, so the cache-read accumulator that every context-pressure
+   * heuristic reads never incremented (#3321). Same ordering as
+   * mcp-output-transform.ts, which already had this right.
+   */
+  tool_response?: unknown;
   tool_result?: string | { content?: string; is_error?: boolean } | unknown;
   tool_output?: unknown;
   output?: string;
 }): string {
-  const { tool_result, tool_output, output } = input;
-  if (typeof tool_result === 'string') return tool_result;
-  if (
-    tool_result &&
-    typeof tool_result === 'object' &&
-    'content' in tool_result &&
-    typeof (tool_result as { content?: unknown }).content === 'string'
-  ) {
-    return (tool_result as { content: string }).content;
-  }
-  if (typeof output === 'string') return output;
-  if (tool_output !== undefined) {
-    try {
-      return JSON.stringify(tool_output) ?? '';
-    } catch {
-      return '';
+  const { tool_response, tool_result, tool_output, output } = input;
+
+  // Preferred field first, then the legacy aliases, then the bare `output`.
+  for (const candidate of [tool_response, tool_result]) {
+    if (typeof candidate === 'string') return candidate;
+    if (
+      candidate &&
+      typeof candidate === 'object' &&
+      'content' in candidate &&
+      typeof (candidate as { content?: unknown }).content === 'string'
+    ) {
+      return (candidate as { content: string }).content;
     }
   }
+
+  if (typeof output === 'string') return output;
+
+  for (const candidate of [tool_response, tool_output]) {
+    if (candidate !== undefined) {
+      try {
+        return JSON.stringify(candidate) ?? '';
+      } catch {
+        return '';
+      }
+    }
+  }
+
   return '';
 }
