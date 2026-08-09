@@ -81,16 +81,25 @@ fi
 
 # "Pinned" means: has a source.ref, and that ref is not a moving branch. Same
 # definition tests/schemas/test-alpha-channel.sh uses to judge the stable entry.
-PINNED_FILTER='[.plugins[] | select((.source.ref // "") | (. != "" and . != "main" and . != "HEAD"))]'
+#
+# The filter is spelled out literally in the jq program rather than passed
+# through a shell variable. tests/security/test-jq-injection.sh rejects any
+# shell interpolation into a jq PROGRAM, and it is right to: the program is
+# code, so a variable there is the same shape as an eval. Selecting once into
+# PINNED_JSON keeps the filter defined in exactly one place without putting a
+# shell variable inside the program text.
+PINNED_JSON=$(jq -c '
+  [.plugins[] | select((.source.ref // "") | (. != "" and . != "main" and . != "HEAD"))]
+' "$MARKETPLACE")
 
-pinned_count=$(jq "$PINNED_FILTER | length" "$MARKETPLACE")
+pinned_count=$(printf '%s' "$PINNED_JSON" | jq 'length')
 if [[ "$pinned_count" != "1" ]]; then
     echo "bump-stable-pin: expected exactly 1 pinned entry, found $pinned_count — refusing to guess." >&2
     exit 1
 fi
 
-cur_ref=$(jq -r "$PINNED_FILTER | .[0].source.ref" "$MARKETPLACE")
-cur_ver=$(jq -r "$PINNED_FILTER | .[0].version // \"\"" "$MARKETPLACE")
+cur_ref=$(printf '%s' "$PINNED_JSON" | jq -r '.[0].source.ref')
+cur_ver=$(printf '%s' "$PINNED_JSON" | jq -r '.[0].version // ""')
 
 if [[ "$cur_ref" == "v$VERSION" && "$cur_ver" == "$VERSION" ]]; then
     echo "bump-stable-pin: pin is already at v$VERSION — nothing to do."
