@@ -1,7 +1,6 @@
 {
   "$schema": "https://claude.ai/schemas/plugin-settings.json",
   "respectGitignore": true,
-  "isolatePeerMachines": true,
   "env": {
     "ENABLE_TOOL_SEARCH": "auto:5",
     "ORCHESTKIT_PROTECTED_BRANCHES": "main,master",
