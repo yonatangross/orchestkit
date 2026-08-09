@@ -449,9 +449,25 @@ else
   log_fail "baseline is wrong before env testing even starts: got $CLEAN_DENY"
 fi
 
+# Every loader payload below points at a library that RESOLVES. That is
+# deliberate and must stay that way: DYLD_INSERT_LIBRARIES naming a missing
+# .dylib makes macOS dyld abort node with SIGABRT before node's first
+# instruction, so the probe measures dyld's error path instead of the guard's
+# invariance — and under `set -e` it took the whole suite down with it (the
+# 11 tests after this section never ran, while Linux CI stayed green because
+# the variable is inert there). /usr/lib/libSystem.B.dylib resolves from the
+# dyld shared cache, node actually starts, and the verdict becomes observable.
+# A real inserted library is also the realistic attack shape.
+#
+# A probe that could not observe must never read as a silent pass, so a
+# signal death is captured explicitly and graded as a FAILURE, not skipped.
 env_invariance() { # env_invariance <env assignment> <label>
-  local out got
-  out="$(raw_hook 'pretool/bash/dangerous-command-blocker' "$(bash_input 'rm -rf /')" "$1")"
+  local out got rc=0
+  out="$(raw_hook 'pretool/bash/dangerous-command-blocker' "$(bash_input 'rm -rf /')" "$1")" || rc=$?
+  if (( rc >= 128 )); then
+    log_fail "$2 — probe killed by signal $((rc - 128)); invariance NOT measured"
+    return 0
+  fi
   got="$(verdict_of "$out")"
   if [[ "$got" == "$CLEAN_DENY" ]]; then
     log_pass "$2 (-> $got, unchanged)"
@@ -462,7 +478,7 @@ env_invariance() { # env_invariance <env assignment> <label>
 
 env_invariance "LD_PRELOAD=$SANDBOX_OUTSIDE/evil.so"               'LD_PRELOAD set'
 env_invariance "LD_LIBRARY_PATH=$SANDBOX_OUTSIDE"                  'LD_LIBRARY_PATH set'
-env_invariance "DYLD_INSERT_LIBRARIES=$SANDBOX_OUTSIDE/evil.dylib" 'DYLD_INSERT_LIBRARIES set'
+env_invariance "DYLD_INSERT_LIBRARIES=/usr/lib/libSystem.B.dylib"  'DYLD_INSERT_LIBRARIES set'
 env_invariance "PATH=$SANDBOX_OUTSIDE:$PATH"                       'attacker dir prepended to PATH'
 env_invariance "IFS=/"                                             'IFS repointed to a path separator'
 
