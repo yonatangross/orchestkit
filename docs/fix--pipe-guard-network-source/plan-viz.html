@@ -170,7 +170,11 @@ const EXPLAIN = {
 let mode = "dontAsk";
 const never = new Set(HOOKS.filter(h=>h.never).map(h=>h.f));
 
-const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+// Escapes BOTH quote forms, not just the element-content set. This value is
+// interpolated into attributes (`class="chip ${esc(...)}"`, `data-f="${esc(...)}"`),
+// where escaping only & < > leaves a `"` free to close the attribute and start a
+// new one. CodeQL js/incomplete-html-attribute-sanitization flagged exactly that.
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 
 function behavior(h){
   if (h.p === "lib") return {cls:"mixed", txt:"funnel"};

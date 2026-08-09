@@ -35,7 +35,14 @@ jobs:
       # not before it.
       contents: read
     steps:
+      # persist-credentials: false — checkout defaults to leaving the GITHUB_TOKEN
+      # in .git/config, where any later step (or an artifact upload that sweeps the
+      # workspace) can read it. This job only reads the repo and writes a step
+      # summary, so it never needs the credential to survive the checkout.
+      # zizmor/artipacked.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6
         with:
