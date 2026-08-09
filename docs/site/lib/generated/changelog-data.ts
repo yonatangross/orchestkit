@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.6",
+    "date": "2026-08-09",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** --allow-file-access widened one rule and switched off eight ([#3370](https://github.com/yonatangross/orchestkit/issues/3370)) ([68b8f41](https://github.com/yonatangross/orchestkit/commit/68b8f41b99001717a25fb1d4b617b44f2f0cc7ba)), closes [#3320](https://github.com/yonatangross/orchestkit/issues/3320)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.5",
     "date": "2026-08-09",
     "compareUrl": "",

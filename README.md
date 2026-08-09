@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.6](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.5...v10.0.0-alpha.6)** · 2026-08-09
+
+- **hooks:** --allow-file-access widened one rule and switched off eight (#3370), closes [#3320](https://github.com/yonatangross/orchestkit/issues/3320)
+
 **[v10.0.0-alpha.5](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.4...v10.0.0-alpha.5)** · 2026-08-09
 
 - **docs:** re-stamp the hook counts in the source, not the build output (#3369)
@@ -321,14 +325,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **release:** let release-please own the lockfile version (#3293)
 - repair two reported bugs and make 26 blind security tests able to fail (#3288)
 - …and 5 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v9.7.0](https://github.com/yonatangross/orchestkit/compare/v9.6.1...v9.7.0)** · 2026-08-05
-
-- **visualize-plan:** make DASHBOARD a first-class archetype (#3275)
-- **hooks:** validate agent spawn targets against the real registry (#3280)
-- **security:** audit every tracked lockfile, not four of six (#3274)
-- **worktree:** fix a silent no-op and remove the dead worktree CLI (#3282)
-- **worktree:** share one node_modules across worktrees (#3281)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
