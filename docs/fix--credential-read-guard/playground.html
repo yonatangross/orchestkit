@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>~/.ssh was protected by nothing</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--ink:#e6edf3;--dim:#8b949e;--ok:#3fb950;--bad:#f85149;--warn:#d29922;--acc:#58a6ff;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:32px 20px}
+.wrap{max-width:940px;margin:0 auto}h1{font-size:22px;margin:0 0 4px}.sub{color:var(--dim);margin:0 0 26px;font-size:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:20px}
+h2{font-size:16px;margin:0 0 10px}code,pre{font-family:var(--mono);font-size:13px}
+pre{background:#0b0f14;border:1px solid var(--line);border-radius:6px;padding:12px;overflow-x:auto;margin:10px 0}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.dim{color:var(--dim)}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:10px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}th{color:var(--dim);font-weight:500}
+td.m{font-family:var(--mono)}
+.note{border-left:3px solid var(--warn);padding:10px 14px;background:rgba(210,153,34,.07);border-radius:0 6px 6px 0;font-size:13px;margin-top:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+button{background:#21262d;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 13px;cursor:pointer;font-size:13px;font-family:var(--mono)}
+button:hover{border-color:var(--acc)}button[aria-pressed="true"]{background:var(--acc);color:#0d1117;font-weight:600}
+.out{border-left:3px solid var(--line);padding:12px 14px;background:#0b0f14;border-radius:0 6px 6px 0;margin-top:12px}
+</style></head><body><div class="wrap"><h1>~/.ssh was protected by nothing</h1><p class="sub">Not protection removed. Protection that never existed.</p>
+<div class="card"><h2>Two independent reasons it was unguarded</h2>
+ <pre>settings rule   INERT    plugin settings.json is discarded at load
+pretool/read/*  ABSENT   only tldr-summary existed, and it abstains
+&rArr; probe {"tool_name":"Read","file_path":"~/.ssh/id_rsa"}
+   returned rc=0, NO permissionDecision, from every registered hook</pre></div>
+ <div class="card"><h2>The bypass found by attacking it</h2>
+ <p>The first implementation compared case-sensitively: it denied <code>~/.ssh/id_rsa</code> and <b>allowed</b> <code>~/.SSH/id_rsa</code>. On macOS APFS that is a live bypass &mdash; <code>[ -d ~/.SSH ]</code> is true and the uppercase path opens the same bytes.</p>
+ <table><tr><th>path</th><th>before fix</th><th>after</th></tr>
+ <tr><td class="m">~/.ssh/id_rsa</td><td class="ok">deny</td><td class="ok">deny</td></tr>
+ <tr><td class="m">/tmp/../Users/me/.ssh/id_rsa</td><td class="ok">deny</td><td class="ok">deny</td></tr>
+ <tr><td class="m">~//.ssh//id_rsa</td><td class="ok">deny</td><td class="ok">deny</td></tr>
+ <tr><td class="m">~/.SSH/id_rsa</td><td class="bad">ALLOW &#9664; bypass</td><td class="ok">deny</td></tr>
+ <tr><td class="m">README.md</td><td class="dim">allow</td><td class="dim">allow</td></tr>
+ <tr><td class="m">~/.sshconfig-notes.md</td><td class="dim">allow</td><td class="dim">allow</td></tr>
+ </table>
+ <div class="note">Exact comparison runs first so a genuinely case-sensitive filesystem keeps precise matching; the folded compare only ever <b>widens</b> the deny.</div></div>
+</div></body></html>
