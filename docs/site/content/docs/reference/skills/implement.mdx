@@ -1742,20 +1742,23 @@ See [Team Worktree Setup](team-worktree-setup.md) for detailed instructions.
 **Quick summary:**
 
 ```bash
-# Lead creates branches and worktrees
+# Lead creates branches and worktrees.
+# Worktrees live INSIDE the repo at .worktrees/<task>. A sibling path is outside the
+# session's project directory, so the teammate's cd is silently bounced back to the
+# primary tree and it commits there instead (platform#9870, #3319).
 git branch feat/{feature}/backend
 git branch feat/{feature}/frontend
 git branch feat/{feature}/tests
 
-git worktree add ../{project}-backend feat/{feature}/backend
-git worktree add ../{project}-frontend feat/{feature}/frontend
-git worktree add ../{project}-tests feat/{feature}/tests
+git worktree add .worktrees/backend  feat/{feature}/backend
+git worktree add .worktrees/frontend feat/{feature}/frontend
+git worktree add .worktrees/tests    feat/{feature}/tests
 
-# Assignment
-backend-architect  → ../{project}-backend/
-frontend-dev       → ../{project}-frontend/
-test-engineer      → ../{project}-tests/
-code-reviewer      → Main worktree (read-only, reviews all)
+# Assignment — each teammate runs pwd first to confirm the cd took
+backend-architect  → .worktrees/backend/
+frontend-dev       → .worktrees/frontend/
+test-engineer      → .worktrees/tests/
+code-reviewer      → Primary tree (read-only, reviews all)
 ```
 
 **When to skip worktrees:** Small features (&lt; 5 files), or when teammates work on non-overlapping directories.
@@ -1880,14 +1883,18 @@ In Agent Teams mode, teammates are already formed from Phase 4. They transition 
 Optionally set up per-teammate worktrees to prevent file conflicts:
 
 ```python
-# Lead sets up worktrees (for features with > 5 files)
-Bash("git worktree add ../{project}-backend feat/{feature}/backend")
-Bash("git worktree add ../{project}-frontend feat/{feature}/frontend")
-Bash("git worktree add ../{project}-tests feat/{feature}/tests")
+# Lead sets up worktrees (for features with > 5 files).
+# INSIDE the repo at .worktrees/<task> — a sibling ../{project}-backend is outside
+# the session's project directory, so the teammate's cd is silently bounced back to
+# the primary tree and it commits there instead (platform#9870, #3319).
+Bash("git worktree add .worktrees/backend  -b feat/{feature}/backend  origin/main")
+Bash("git worktree add .worktrees/frontend -b feat/{feature}/frontend origin/main")
+Bash("git worktree add .worktrees/tests    -b feat/{feature}/tests    origin/main")
 
 # Include worktree path in teammate messages
 SendMessage(to="backend-architect",
-    message="Work in ../{project}-backend/. Commit to feat/{feature}/backend.")
+    message="Work in .worktrees/backend/. Run pwd to confirm before editing. "
+            "Commit to feat/{feature}/backend.")
 ```
 
 See [Team Worktree Setup](team-worktree-setup.md) for complete worktree guide.
@@ -2722,25 +2729,33 @@ git branch feat/{feature}/tests
 
 The **lead** creates worktrees before spawning teammates:
 
+Worktrees go INSIDE the repo at `.worktrees/&lt;task&gt;`. A sibling path (`../\{project\}-backend`)
+sits outside the session's project directory, so the harness silently bounces any `cd` into it
+and the teammate ends up operating on the PRIMARY tree — platform#9870 (#3319).
+
 ```bash
 # Create worktrees — one per implementing teammate
-git worktree add ../{project}-backend feat/{feature}/backend
-git worktree add ../{project}-frontend feat/{feature}/frontend
-git worktree add ../{project}-tests feat/{feature}/tests
+git worktree add .worktrees/backend  -b feat/{feature}/backend  origin/main
+git worktree add .worktrees/frontend -b feat/{feature}/frontend origin/main
+git worktree add .worktrees/tests    -b feat/{feature}/tests    origin/main
 
-# Verify
+# Verify — both the registration AND that each branch is the one you asked for
 git worktree list
 ```
 
 **Directory layout after setup:**
 
+&lt;!-- ascii-lint-disable: balanced-corners --&gt;
 ```
-../
-├── {project}/              ← Main worktree (lead + code-reviewer)
-├── {project}-backend/      ← backend-architect works here
-├── {project}-frontend/     ← frontend-dev works here
-└── {project}-tests/        ← test-engineer works here
+{project}/                  ← Primary tree (lead + code-reviewer)
+└── .worktrees/
+    ├── backend/            ← backend-architect works here
+    ├── frontend/           ← frontend-dev works here
+    └── tests/              ← test-engineer works here
 ```
+
+`.worktrees/` is gitignored. Nesting inside the repo is what keeps each teammate's `cd` from
+being bounced back to the project root.
 
 ---
 
@@ -3103,37 +3118,46 @@ Isolate feature work in dedicated worktrees for clean development and easy rollb
 
 ## Setup Commands
 
-```bash
-# Create worktree with new branch
-git worktree add ../project-feature feature/feature-name
+Put the worktree INSIDE the repo, at `.worktrees/&lt;task&gt;`. Never at a sibling
+`../&lt;repo&gt;-&lt;task&gt;`: a sibling path sits outside the session's project directory, and the
+harness bounces any `cd` that leaves it. The command appears to succeed, then every later
+command runs in the PRIMARY tree. That is the failure behind platform#9870, where work was
+committed onto another agent's branch (#3319).
 
-# Create worktree from existing branch
-git worktree add ../project-feature existing-branch
+```bash
+# Create worktree with new branch — helper does the safety checks and prints the path
+WT=$(~/.claude/hooks/worktree-new.sh <task> feature/feature-name) && cd "$WT"
+
+# By hand, if you must — note the path is INSIDE the repo
+git worktree add .worktrees/<task> -b feature/feature-name origin/main
+
+# From an existing branch
+git worktree add .worktrees/<task> existing-branch
 
 # List all worktrees
 git worktree list
 
-# Navigate to worktree
-cd ../project-feature
+# Confirm the move actually took — the cd reset is silent
+pwd
 ```
 
 ## Workflow
 
 ```bash
 # 1. Create worktree
-git worktree add ../myapp-auth feature/user-auth
+WT=$(~/.claude/hooks/worktree-new.sh auth feature/user-auth) && cd "$WT"
+pwd   # must be the worktree, NOT the repo root
 
 # 2. Work in isolation
-cd ../myapp-auth
 # ... make changes, commit normally ...
 
-# 3. Merge back (from main worktree)
-cd ../myapp
+# 3. Merge back (from the primary tree)
+cd /path/to/myapp
 git checkout main
 git merge feature/user-auth
 
 # 4. Cleanup
-git worktree remove ../myapp-auth
+git worktree remove .worktrees/auth
 git branch -d feature/user-auth
 ```
 
@@ -3150,10 +3174,9 @@ git branch -d feature/user-auth
 git merge --squash feature/user-auth
 git commit -m "feat: Add user authentication"
 
-# Rebase then merge (linear)
-cd ../myapp-auth
-git rebase main
-cd ../myapp
+# Rebase then merge (linear).
+# Prefer `git -C <path>` over cd — it never depends on the cd sticking.
+git -C .worktrees/auth rebase main
 git merge feature/user-auth
 ```
 
@@ -3161,27 +3184,25 @@ git merge feature/user-auth
 
 ```bash
 # Check for uncommitted changes
-cd ../myapp-auth
-git status
+git -C .worktrees/auth status
 
 # If changes exist, either:
 # Option A: Commit them
-git add . && git commit -m "WIP: save progress"
+git -C .worktrees/auth add . && git -C .worktrees/auth commit -m "WIP: save progress"
 
 # Option B: Stash them
-git stash push -m "feature-auth-wip"
+git -C .worktrees/auth stash push -m "feature-auth-wip"
 
 # Option C: Discard (CAREFUL!)
-git checkout -- .
+git -C .worktrees/auth checkout -- .
 
-# Then remove worktree
-cd ../myapp
-git worktree remove ../myapp-auth
+# Then remove worktree (run from the primary tree)
+git worktree remove .worktrees/auth
 ```
 
 ## Best Practices
 
-1. **Naming:** Use `../project-featurename` pattern
+1. **Location:** Always `.worktrees/&lt;task&gt;` inside the repo, never a sibling `../project-task`
 2. **Short-lived:** Merge within 1-3 days
 3. **One feature per worktree:** Don't mix concerns
 4. **Regular sync:** Rebase from main frequently

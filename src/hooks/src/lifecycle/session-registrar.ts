@@ -243,8 +243,7 @@ function formatPeerWarning(
     '',
     'Concurrent sessions on one working tree thrash each other: branch flips mid-operation, node_modules rewrites, pre-push failures on stale state.',
     'Isolate this session in a git worktree before mutating working-tree state:',
-    `  git worktree add ../${repoName}-task -b ${branch}-2 origin/${branch}`,
-    `  cd ../${repoName}-task`,
+    `  WT=$(~/.claude/hooks/worktree-new.sh ${repoName}-task ${branch}-2) && cd "$WT"`,
   ].join('\n');
 }
 

@@ -35,25 +35,33 @@ git branch feat/{feature}/tests
 
 The **lead** creates worktrees before spawning teammates:
 
+Worktrees go INSIDE the repo at `.worktrees/<task>`. A sibling path (`../{project}-backend`)
+sits outside the session's project directory, so the harness silently bounces any `cd` into it
+and the teammate ends up operating on the PRIMARY tree — platform#9870 (#3319).
+
 ```bash
 # Create worktrees — one per implementing teammate
-git worktree add ../{project}-backend feat/{feature}/backend
-git worktree add ../{project}-frontend feat/{feature}/frontend
-git worktree add ../{project}-tests feat/{feature}/tests
+git worktree add .worktrees/backend  -b feat/{feature}/backend  origin/main
+git worktree add .worktrees/frontend -b feat/{feature}/frontend origin/main
+git worktree add .worktrees/tests    -b feat/{feature}/tests    origin/main
 
-# Verify
+# Verify — both the registration AND that each branch is the one you asked for
 git worktree list
 ```
 
 **Directory layout after setup:**
 
+<!-- ascii-lint-disable: balanced-corners -->
 ```
-../
-├── {project}/              ← Main worktree (lead + code-reviewer)
-├── {project}-backend/      ← backend-architect works here
-├── {project}-frontend/     ← frontend-dev works here
-└── {project}-tests/        ← test-engineer works here
+{project}/                  ← Primary tree (lead + code-reviewer)
+└── .worktrees/
+    ├── backend/            ← backend-architect works here
+    ├── frontend/           ← frontend-dev works here
+    └── tests/              ← test-engineer works here
 ```
+
+`.worktrees/` is gitignored. Nesting inside the repo is what keeps each teammate's `cd` from
+being bounced back to the project root.
 
 ---
 

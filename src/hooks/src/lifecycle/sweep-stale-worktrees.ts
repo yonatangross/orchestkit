@@ -10,6 +10,13 @@
  *   $ git worktree add ../<repo>-<task> -b feat/<task> origin/dev
  *   fatal: '../<repo>-<task>' already exists
  *
+ * NOTE (#3319): the sibling path above is DEPRECATED and is reproduced here only
+ * to describe the historical failure this sweeper cleans up after. Do not copy it.
+ * Worktrees now go INSIDE the repo at `.worktrees/<task>`, because a sibling sits
+ * outside the session's project directory and the harness silently bounces any
+ * `cd` into it. This hook remains useful as legacy cleanup for debris left by the
+ * old pattern.
+ *
  * Cause: a prior session's worktree-add was aborted mid-flight (truncation,
  * OOM, force-quit) leaving an empty (or near-empty) directory at the path
  * that's NOT registered in `git worktree list`. The next session can't

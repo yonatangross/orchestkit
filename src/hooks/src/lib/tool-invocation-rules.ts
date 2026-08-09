@@ -83,7 +83,14 @@ export const TOOL_INVOCATION_RULES: ToolInvocationRule[] = [
   // subagent worktree-isolation. Our support floor is now 2.1.220 (> 2.1.153),
   // so the bug no longer bites any supported version — keep the warning as a
   // guard for anyone still running the buggy 2.1.148–2.1.153 range below floor.
-  // The manual pre-create pattern is documented in /ork:cover and /ork:implement.
+  //
+  // #3319: the fallback this rule used to print was the SIBLING idiom
+  // (`git worktree add ../<repo>-<task>` then `cd ../<repo>-<task>`). A sibling
+  // path sits outside the session's project directory, so the harness bounces
+  // the `cd` back to the project root and every later command silently runs in
+  // the PRIMARY tree — the exact failure behind platform#9870, where work was
+  // committed onto another agent's branch. This rule reaches the MODEL before an
+  // Agent call, so it was teaching the failure mode at the worst moment.
   {
     id: 'agent-isolation-worktree',
     tool_name: 'Agent',
@@ -91,8 +98,8 @@ export const TOOL_INVOCATION_RULES: ToolInvocationRule[] = [
     severity: 'warn',
     message:
       "Agent(isolation:'worktree') was broken on CC ≤ 2.1.153 (flipped primary HEAD, raced node_modules) but is FIXED in CC 2.1.154+. " +
-      'On CC 2.1.154+ use it directly. On 2.1.148–2.1.153, use the manual pre-create pattern: ' +
-      '`git worktree add ../<repo>-<task> -b <branch> origin/main` BEFORE the Agent call, then prefix the prompt with `FIRST: cd <path>`.',
+      'On CC 2.1.154+ use it directly. If you ever need to pre-create one by hand, use the helper — ' +
+      '`WT=$(~/.claude/hooks/worktree-new.sh <task> <branch>) && cd "$WT"` — which places it INSIDE the repo at .worktrees/<task>.',
     see: 'docs/parallel-primitives.md + #1883 (fixed CC 2.1.154)',
   },
 ];

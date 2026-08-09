@@ -229,20 +229,23 @@ See [Team Worktree Setup](team-worktree-setup.md) for detailed instructions.
 **Quick summary:**
 
 ```bash
-# Lead creates branches and worktrees
+# Lead creates branches and worktrees.
+# Worktrees live INSIDE the repo at .worktrees/<task>. A sibling path is outside the
+# session's project directory, so the teammate's cd is silently bounced back to the
+# primary tree and it commits there instead (platform#9870, #3319).
 git branch feat/{feature}/backend
 git branch feat/{feature}/frontend
 git branch feat/{feature}/tests
 
-git worktree add ../{project}-backend feat/{feature}/backend
-git worktree add ../{project}-frontend feat/{feature}/frontend
-git worktree add ../{project}-tests feat/{feature}/tests
+git worktree add .worktrees/backend  feat/{feature}/backend
+git worktree add .worktrees/frontend feat/{feature}/frontend
+git worktree add .worktrees/tests    feat/{feature}/tests
 
-# Assignment
-backend-architect  → ../{project}-backend/
-frontend-dev       → ../{project}-frontend/
-test-engineer      → ../{project}-tests/
-code-reviewer      → Main worktree (read-only, reviews all)
+# Assignment — each teammate runs pwd first to confirm the cd took
+backend-architect  → .worktrees/backend/
+frontend-dev       → .worktrees/frontend/
+test-engineer      → .worktrees/tests/
+code-reviewer      → Primary tree (read-only, reviews all)
 ```
 
 **When to skip worktrees:** Small features (< 5 files), or when teammates work on non-overlapping directories.

@@ -47,14 +47,18 @@ In Agent Teams mode, teammates are already formed from Phase 4. They transition 
 Optionally set up per-teammate worktrees to prevent file conflicts:
 
 ```python
-# Lead sets up worktrees (for features with > 5 files)
-Bash("git worktree add ../{project}-backend feat/{feature}/backend")
-Bash("git worktree add ../{project}-frontend feat/{feature}/frontend")
-Bash("git worktree add ../{project}-tests feat/{feature}/tests")
+# Lead sets up worktrees (for features with > 5 files).
+# INSIDE the repo at .worktrees/<task> — a sibling ../{project}-backend is outside
+# the session's project directory, so the teammate's cd is silently bounced back to
+# the primary tree and it commits there instead (platform#9870, #3319).
+Bash("git worktree add .worktrees/backend  -b feat/{feature}/backend  origin/main")
+Bash("git worktree add .worktrees/frontend -b feat/{feature}/frontend origin/main")
+Bash("git worktree add .worktrees/tests    -b feat/{feature}/tests    origin/main")
 
 # Include worktree path in teammate messages
 SendMessage(to="backend-architect",
-    message="Work in ../{project}-backend/. Commit to feat/{feature}/backend.")
+    message="Work in .worktrees/backend/. Run pwd to confirm before editing. "
+            "Commit to feat/{feature}/backend.")
 ```
 
 See [Team Worktree Setup](team-worktree-setup.md) for complete worktree guide.

@@ -159,8 +159,19 @@ describe('lifecycle/session-registrar (#1912)', () => {
 
     const warning = __internals.formatPeerWarning(peers, '/repo/myproj', 'feature-x');
     expect(warning).toContain('myproj-task');
-    expect(warning).toContain('git worktree add');
     expect(warning).toContain('feature-x');
+
+    // #3319: the warning must recommend the helper, which places the worktree
+    // INSIDE the repo at .worktrees/<task>. It must NOT emit the sibling idiom.
+    expect(warning).toContain('worktree-new.sh');
+
+    // A sibling path sits outside the session's project directory, so the
+    // harness bounces the `cd` back to the project root and every later command
+    // silently runs in the PRIMARY tree — platform#9870. This assertion FAILS
+    // against the pre-#3319 implementation, which is the point: the old test
+    // asserted `git worktree add` and so could never have caught it.
+    expect(warning).not.toMatch(/cd \.\.\//);
+    expect(warning).not.toMatch(/git worktree add \.\.\//);
   });
 
   it('does NOT warn when this session is worktree-isolated', () => {
