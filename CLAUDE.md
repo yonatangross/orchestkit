@@ -81,6 +81,6 @@ Single plugin `ork`. User-invocable skills surface as `/ork:<skillname>`. Counts
 
 ## Version
 
-- **Current**: 10.0.0-alpha.6 · **Claude Code**: >= 2.1.220 <!-- x-release-please-version -->
+- **Current**: 10.0.0-alpha.7 · **Claude Code**: >= 2.1.220 <!-- x-release-please-version -->
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.
