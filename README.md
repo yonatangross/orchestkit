@@ -276,6 +276,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.2](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.1...v10.0.0-alpha.2)** · 2026-08-09
+
+- **hooks:** deny credential-file reads at the Read tool (#3360)
+- **agents:** scope peer messaging by lifecycle (#3355)
+- **security:** let the DYLD probe observe instead of aborting (#3358)
+- **settings:** retire the plugin settings.json keys CC never reads (#3357)
+
 **[v10.0.0-alpha.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha...v10.0.0-alpha.1)** · 2026-08-08
 
 - **hooks:** advisory context-gate on SubagentStart, arm sandbox (#3345)
@@ -324,12 +331,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps-dev:** bump the npm-minor-patch group in /src/hooks with 2 updates (#3254)
 - **deps:** bump the npm-minor-patch group in /src/mcp-server with 2 updates (#3255)
 - …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v9.5.3](https://github.com/yonatangross/orchestkit/compare/v9.5.2...v9.5.3)** · 2026-08-03
-
-- **deps-dev:** bump @types/node in the npm-minor-patch group (#3253)
-- **contributing:** add entry-point section and fork-CI expectation note (#3250)
-- fix nonexistent scripts/hooks path in SECURITY.md (#3248)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
