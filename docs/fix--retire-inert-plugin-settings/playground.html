@@ -1,0 +1,43 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>10 keys, 0 of them read</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--ink:#e6edf3;--dim:#8b949e;--ok:#3fb950;--bad:#f85149;--warn:#d29922;--acc:#58a6ff;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:32px 20px}
+.wrap{max-width:940px;margin:0 auto}h1{font-size:22px;margin:0 0 4px}.sub{color:var(--dim);margin:0 0 26px;font-size:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:20px}
+h2{font-size:16px;margin:0 0 10px}code,pre{font-family:var(--mono);font-size:13px}
+pre{background:#0b0f14;border:1px solid var(--line);border-radius:6px;padding:12px;overflow-x:auto;margin:10px 0}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.dim{color:var(--dim)}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:10px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}th{color:var(--dim);font-weight:500}
+td.m{font-family:var(--mono)}
+.note{border-left:3px solid var(--warn);padding:10px 14px;background:rgba(210,153,34,.07);border-radius:0 6px 6px 0;font-size:13px;margin-top:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+button{background:#21262d;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 13px;cursor:pointer;font-size:13px;font-family:var(--mono)}
+button:hover{border-color:var(--acc)}button[aria-pressed="true"]{background:var(--acc);color:#0d1117;font-weight:600}
+.out{border-left:3px solid var(--line);padding:12px 14px;background:#0b0f14;border-radius:0 6px 6px 0;margin-top:12px}
+</style></head><body><div class="wrap"><h1>10 keys, 0 of them read</h1><p class="sub">ork&rsquo;s plugin settings.json was discarded at load, every time, since v7.0.0.</p>
+<div class="card"><h2>The binary decides it, not the doc</h2>
+ <pre>Wmd = ["agent","subagentStatusLine"]
+$_y = fullSettingsSchema.pick(Wmd).strip()
+Jmd(e){ t=$_y().safeParse(e); r=t.data;
+        if (Object.keys(r).length===0) return;   &#9664; whole object discarded
+        return r }</pre>
+ <p><code>.strip()</code> drops unknown keys <b>silently</b> and safeParse still succeeds, so the plugin loads clean with no diagnostic. An empty pick discards everything. ork declared neither supported key.</p></div>
+ <div class="card"><h2>What was never loaded</h2><table>
+ <tr><th>key</th><th>size</th><th>status</th></tr>
+ <tr><td class="m">env</td><td>14 vars</td><td class="bad">inert</td></tr>
+ <tr><td class="m">permissions.deny</td><td>26 rules</td><td class="bad">inert &mdash; RETAINED</td></tr>
+ <tr><td class="m">permissions.allow</td><td>6 rules</td><td class="bad">inert</td></tr>
+ <tr><td class="m">sandbox</td><td>+19 domains</td><td class="bad">inert</td></tr>
+ <tr><td class="m">keybindings, plansDirectory,<br>respectGitignore, fileSuggestion, spinner&times;2</td><td>&mdash;</td><td class="bad">inert</td></tr>
+ </table>
+ <div class="note">The <code>permissions</code> block is <b>kept byte-exact</b>. Deleting an inert deny rule loses no enforcement, but it deletes the only written record that someone intended those paths denied. Inertness and coverage are independent arguments.</div></div>
+ <div class="card"><h2>Adopting some of these would have been HARMFUL</h2><table>
+ <tr><th>key</th><th>what it would actually do</th></tr>
+ <tr><td class="m">SUBPROCESS_ENV_SCRUB=1</td><td class="bad">forces permission mode to <code>default</code>, overriding --dangerously-skip-permissions and agent frontmatter</td></tr>
+ <tr><td class="m">ORCHESTKIT_LOG_LEVEL=warn</td><td class="bad">read before CLAUDE_DEBUG &rArr; kills /debug</td></tr>
+ <tr><td class="m">SCRIPT_CAPS="500"</td><td class="warn">malformed; CC wants an object &rArr; caps disabled</td></tr>
+ <tr><td class="m">STREAM_IDLE_TIMEOUT_MS</td><td class="warn">180000 is below CC&rsquo;s 300000 floor</td></tr>
+ </table><p class="dim">The inertness has been protecting the estate, not merely wasting it.</p></div>
+</div></body></html>
