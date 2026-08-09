@@ -1,0 +1,29 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>auto becomes the default next week</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--ink:#e6edf3;--dim:#8b949e;--ok:#3fb950;--bad:#f85149;--warn:#d29922;--acc:#58a6ff;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:32px 20px}
+.wrap{max-width:940px;margin:0 auto}h1{font-size:22px;margin:0 0 4px}.sub{color:var(--dim);margin:0 0 26px;font-size:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:20px}
+h2{font-size:16px;margin:0 0 10px}code,pre{font-family:var(--mono);font-size:13px}
+pre{background:#0b0f14;border:1px solid var(--line);border-radius:6px;padding:12px;overflow-x:auto;margin:10px 0}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.dim{color:var(--dim)}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:10px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}th{color:var(--dim);font-weight:500}
+td.m{font-family:var(--mono)}
+.note{border-left:3px solid var(--warn);padding:10px 14px;background:rgba(210,153,34,.07);border-radius:0 6px 6px 0;font-size:13px;margin-top:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+button{background:#21262d;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 13px;cursor:pointer;font-size:13px;font-family:var(--mono)}
+button:hover{border-color:var(--acc)}button[aria-pressed="true"]{background:var(--acc);color:#0d1117;font-weight:600}
+.out{border-left:3px solid var(--line);padding:12px 14px;background:#0b0f14;border-radius:0 6px 6px 0;margin-top:12px}
+</style></head><body><div class="wrap"><h1>auto becomes the default next week</h1><p class="sub">Zero security tests covered auto or dontAsk. Hooks branch on both.</p>
+<div class="card"><h2>The deadline</h2>
+ <p>Claude Code makes <code>auto</code> the default permission mode as of ~2026-08-14. Before this file, <b>zero</b> tests under tests/security exercised <code>auto</code> or <code>dontAsk</code> &mdash; while hooks branch on both at <code>guards.ts:339/349</code> and <code>architecture-change-detector.ts:120</code>.</p></div>
+ <div class="card"><h2>The envelope key is not guessed</h2>
+ <p>#3331 reports 103 unit tests passing against a helper dead in production, because fixtures were hand-written in camelCase exactly like the broken code &mdash; the suite <b>encoded</b> the bug. <code>guards.ts:326-329</code> reads <code>permission_mode</code> first and calls camelCase &ldquo;a speculative fallback&rdquo;. Both spellings are asserted anyway.</p></div>
+ <div class="card"><h2>Proven to discriminate</h2><pre>mutant 1  dangerous payload -&gt; benign      rc=1, 8 failures
+mutant 2  hook key -&gt; nonexistent          rc=1, 9 failures
+restored                                   rc=0, 17 passes
+runner    18 -&gt; 19 tests, glob-discovered</pre>
+ <div class="note">Section 0 asserts the hooks are actually <b>registered</b>. An unregistered key returns <code>{"continue":true}</code> with no decision, which reads as allow &mdash; without that guard this file would be the theater it exists to prevent.</div></div>
+</div></body></html>
