@@ -20,7 +20,6 @@ tools:
   - WebSearch
   - WebFetch
   - Agent(ork:data-pipeline-engineer)
-  - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList

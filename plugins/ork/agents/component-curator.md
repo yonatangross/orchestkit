@@ -16,7 +16,6 @@ tools:
   - Glob
   - Bash
   - WebFetch
-  - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList

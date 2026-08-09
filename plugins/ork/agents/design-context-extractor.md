@@ -18,6 +18,7 @@ tools:
   - Glob
   - WebFetch
   - SendMessage
+  - ListAgents
   - TaskCreate
   - TaskUpdate
   - TaskList
@@ -74,6 +75,7 @@ When running as a teammate:
 - Send extracted tokens to `design-system-architect` for integration into the project's token hierarchy.
 - Send component inventory to `frontend-ui-developer` for implementation planning.
 - Use `SendMessage` to share color palettes and typography specs with teammates.
+- Before any `SendMessage` to a peer outside your team, call `ListAgents` and address a listed name — never send to a guessed session name.
 
 ## MCP Tools
 - `stitch` — `get_screen`, `get_project`, `generate_screen_from_text` for AI-powered design extraction (official Google Stitch MCP)

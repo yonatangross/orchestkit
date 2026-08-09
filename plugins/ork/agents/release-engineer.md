@@ -18,7 +18,6 @@ tools:
   - Edit
   - Grep
   - Glob
-  - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList

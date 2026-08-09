@@ -16,7 +16,6 @@ tools:
   - Bash
   - Grep
   - Glob
-  - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList

@@ -19,6 +19,7 @@ tools:
   - WebSearch
   - WebFetch
   - SendMessage
+  - ListAgents
   - TaskCreate
   - TaskUpdate
   - TaskList
@@ -105,6 +106,7 @@ When running as a teammate in an Agent Teams session:
 - Write integration tests incrementally as API contracts arrive from `backend-architect` and `frontend-dev`.
 - Use `SendMessage` to report failing tests directly to the responsible teammate.
 - Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
+- Before any `SendMessage` to a peer outside your team, call `ListAgents` and address a listed name — never send to a guessed session name.
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - For testing framework documentation (pytest, vitest)

@@ -13,7 +13,6 @@ tools:
   - Read
   - Grep
   - Glob
-  - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList

@@ -20,6 +20,7 @@ tools:
   - WebSearch
   - WebFetch
   - SendMessage
+  - ListAgents
   - TaskCreate
   - TaskUpdate
   - TaskList
@@ -96,6 +97,7 @@ When running as a teammate in an Agent Teams session:
 - Use `SendMessage` to share component specs and state needs with `test-engineer` directly.
 - Message `code-reviewer` when components are ready for review.
 - Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
+- Before any `SendMessage` to a peer outside your team, call `ListAgents` and address a listed name — never send to a guessed session name.
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - React 19, TanStack Query, Zod, Tailwind CSS documentation

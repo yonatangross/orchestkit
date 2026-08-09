@@ -15,7 +15,6 @@ tools:
   - Glob
   - WebSearch
   - WebFetch
-  - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList

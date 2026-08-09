@@ -22,6 +22,7 @@ description: "Backend architect: REST/GraphQL APIs, database schemas, microservi
 - `Agent(ork:database-engineer)`
 - `Agent(ork:test-generator)`
 - `SendMessage`
+- `ListAgents`
 - `TaskCreate`
 - `TaskUpdate`
 - `TaskList`
@@ -77,6 +78,7 @@ When running as a teammate in an Agent Teams session:
 - Message the `code-reviewer` teammate when your implementation is ready for review.
 - Read `~/.claude/teams/\{team-name\}/config.json` to discover other teammates by name.
 - Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
+- Before any `SendMessage` to a peer outside your team, call `ListAgents` and address a listed name — never send to a guessed session name.
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for FastAPI, SQLAlchemy, Pydantic

@@ -20,7 +20,6 @@ tools:
   - Grep
   - WebFetch
   - WebSearch
-  - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList

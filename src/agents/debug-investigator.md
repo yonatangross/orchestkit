@@ -16,6 +16,7 @@ tools:
   - WebSearch
   - WebFetch
   - SendMessage
+  - ListAgents
   - TaskCreate
   - TaskUpdate
   - TaskList
@@ -358,3 +359,8 @@ The debug-investigator agent complements `/debug` by:
 Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+
+## Peer Messaging
+
+- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing — never a guessed name.
+- Within an Agent Teams run, discover teammates via the team config as instructed by the lead; team messaging needs no ListAgents.

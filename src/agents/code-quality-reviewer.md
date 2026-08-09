@@ -17,7 +17,6 @@ tools:
   - WebFetch
   - Agent(ork:test-generator)
   - Agent(ork:security-auditor)
-  - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList

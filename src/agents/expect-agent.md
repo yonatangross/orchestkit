@@ -14,6 +14,7 @@ tools:
   - Grep
   - Glob
   - SendMessage
+  - ListAgents
   - TaskCreate
   - TaskUpdate
   - TaskList
@@ -205,3 +206,8 @@ Error occurs
 - **Triggered by:** `/ork:expect` skill during Phase 5 (Execution)
 - **Hands off to:** Lead agent for Phase 6 (Report generation)
 - **Skill references:** expect, testing-e2e
+
+## Peer Messaging
+
+- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing — never a guessed name.
+- Within an Agent Teams run, discover teammates via the team config as instructed by the lead; team messaging needs no ListAgents.

@@ -19,6 +19,7 @@ tools:
   - WebFetch
   - AskUserQuestion
   - SendMessage
+  - ListAgents
   - TaskCreate
   - TaskUpdate
   - TaskList
@@ -77,6 +78,7 @@ When running as a teammate:
 - Send extracted design tokens to `design-system-architect` for integration
 - Send component-match results to `component-curator` to update the registry
 - Use `SendMessage` to coordinate with `design-context-extractor` if the bundle is missing token metadata
+- Before any `SendMessage` to a peer outside your team, call `ListAgents` and address a listed name — never send to a guessed session name.
 
 ## Handoff Bundle Schema (observed format)
 

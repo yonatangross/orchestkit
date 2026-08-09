@@ -18,6 +18,7 @@ tools:
   - Grep
   - Glob
   - SendMessage
+  - ListAgents
   - TaskCreate
   - TaskUpdate
   - TaskList
@@ -86,6 +87,7 @@ When running as a teammate in an Agent Teams session:
 - Request `accessibility` audits from accessibility-focused agents when establishing color contrast and focus indicator tokens.
 - Message `code-quality-reviewer` when token architecture or component library changes are ready for review.
 - Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
+- Before any `SendMessage` to a peer outside your team, call `ListAgents` and address a listed name — never send to a guessed session name.
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` — Tailwind CSS, Style Dictionary, W3C Design Tokens, Storybook documentation
