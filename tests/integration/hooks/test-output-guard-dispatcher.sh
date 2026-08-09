@@ -82,52 +82,42 @@ run_dispatcher() {
 }
 
 # ---------------------------------------------------------------------------
-# Test 1: WorktreeCreate command-type emits the BARE provisioned path (#2335)
+# Test 1: WorktreeCreate is unregistered — CC provisions natively (#3315)
 # ---------------------------------------------------------------------------
-echo "Test 1: WorktreeCreate command-type — bare path stdout (#2335 contract)"
-# Current CC contract: the hook OWNS provisioning and must echo the absolute
-# worktree path; empty stdout is a hard failure. The JSON envelope must still
-# never reach this channel. Hermetic tmp git repo so the real repo is untouched.
-WT_REPO=$(mktemp -d "${TMPDIR:-/tmp}/ork-og-wt.XXXXXX")
-WT_REPO=$(cd "$WT_REPO" && pwd)  # macOS TMPDIR has a trailing slash — normalize // so string compares match Node's join()
-git init --quiet "$WT_REPO"
-touch "$WT_REPO/README.md"
-git -C "$WT_REPO" -c user.email=t@t -c user.name=t add .
-git -C "$WT_REPO" -c user.email=t@t -c user.name=t commit --quiet -m init --no-gpg-sign
-INPUT="{\"hook_event\":\"WorktreeCreate\",\"tool_name\":\"\",\"session_id\":\"itest-001\",\"tool_input\":{},\"worktree_name\":\"feature-auth\",\"project_dir\":\"$WT_REPO\"}"
-OUT=$(run_dispatcher "worktree/worktree-provisioner" "$INPUT")
-if [[ "$OUT" == "$WT_REPO/.worktrees/feature-auth" ]]; then
-  printf "  %s command-type — bare provisioned path on stdout\n" "$(green PASS)"
-  PASS=$((PASS + 1))
-else
-  printf "  %s command-type — expected bare path, got: %s\n" "$(red FAIL)" "$OUT"
+echo "Test 1: WorktreeCreate — no registration (#3315, retires the #2335 contract)"
+# ork used to own provisioning and echo the absolute worktree path as bare
+# stdout. That is retired: CC's hasWorktreeCreateHook() flips on ANY registered
+# WorktreeCreate hook and then skips native provisioning entirely. The invariant
+# is now the absence of the registration.
+HOOKS_JSON="$REPO_ROOT/src/hooks/hooks.json"
+if jq -e '.hooks.WorktreeCreate' "$HOOKS_JSON" >/dev/null 2>>"$STDERR_LOG"; then
+  printf "  %s WorktreeCreate registered again — CC will skip native provisioning\n" "$(red FAIL)"
   FAIL=$((FAIL + 1))
-fi
-
-# Decline case: non-git project_dir → empty stdout (never the envelope).
-INPUT='{"hook_event":"WorktreeCreate","tool_name":"","session_id":"itest-001b","tool_input":{},"worktree_name":"nope","project_dir":"/tmp/og-not-a-repo"}'
-OUT=$(run_dispatcher "worktree/worktree-provisioner" "$INPUT")
-if [[ -z "$OUT" ]]; then
-  printf "  %s command-type decline — empty stdout (envelope never leaks)\n" "$(green PASS)"
-  PASS=$((PASS + 1))
 else
-  printf "  %s command-type decline — expected empty stdout, got: %s\n" "$(red FAIL)" "$OUT"
-  FAIL=$((FAIL + 1))
+  printf "  %s WorktreeCreate unregistered — CC provisions natively\n" "$(green PASS)"
+  PASS=$((PASS + 1))
 fi
 
 # ---------------------------------------------------------------------------
-# Test 2: WorktreeRemove (sibling symptom)
+# Test 2: WorktreeRemove — empty stdout (the surviving path-channel rule)
 # ---------------------------------------------------------------------------
 echo "Test 2: WorktreeRemove — empty stdout (sibling of #1996 path-channel)"
+# Dispatch the hook actually wired on WorktreeRemove in hooks.json. Naming a
+# hook that no longer exists would make this pass vacuously.
+WT_REMOVE_HOOK=$(jq -r '.hooks.WorktreeRemove[0].hooks[0].args[-1]' "$HOOKS_JSON" 2>>"$STDERR_LOG")
 INPUT='{"hook_event":"WorktreeRemove","tool_name":"","session_id":"itest-002","tool_input":{},"worktree_path":"/tmp/test-wt","project_dir":"/tmp/test-project"}'
-OUT=$(run_dispatcher "worktree/worktree-lifecycle-logger" "$INPUT")
-# WorktreeRemove is in the same path-channel family as WorktreeCreate — empty stdout.
-if [[ -z "$OUT" ]]; then
-  printf "  %s WorktreeRemove — empty stdout\n" "$(green PASS)"
-  PASS=$((PASS + 1))
-else
-  printf "  %s WorktreeRemove — expected empty stdout, got: %s\n" "$(red FAIL)" "$OUT"
+if [[ -z "$WT_REMOVE_HOOK" || "$WT_REMOVE_HOOK" == "null" ]]; then
+  printf "  %s WorktreeRemove — no registered hook to exercise\n" "$(red FAIL)"
   FAIL=$((FAIL + 1))
+else
+  OUT=$(run_dispatcher "$WT_REMOVE_HOOK" "$INPUT")
+  if [[ -z "$OUT" ]]; then
+    printf "  %s WorktreeRemove (%s) — empty stdout\n" "$(green PASS)" "$WT_REMOVE_HOOK"
+    PASS=$((PASS + 1))
+  else
+    printf "  %s WorktreeRemove — expected empty stdout, got: %s\n" "$(red FAIL)" "$OUT"
+    FAIL=$((FAIL + 1))
+  fi
 fi
 
 # ---------------------------------------------------------------------------
@@ -139,21 +129,21 @@ OUT=$(run_dispatcher "prompt/goal-tracker" "$INPUT")
 assert_field_equals "continue is true" "$OUT" ".continue" "true"
 
 # ---------------------------------------------------------------------------
-# Test 4: HTTP-type WorktreeCreate preserves worktreePath
+# Test 4: the envelope still never leaks hookEventName on a lifecycle event
 # ---------------------------------------------------------------------------
-echo "Test 4: HTTP-type WorktreeCreate — worktreePath must survive"
-INPUT="{\"hook_event\":\"WorktreeCreate\",\"tool_name\":\"\",\"session_id\":\"itest-004\",\"tool_input\":{},\"worktree_name\":\"feature-http\",\"type\":\"http\",\"project_dir\":\"$WT_REPO\"}"
-OUT=$(run_dispatcher "worktree/worktree-provisioner" "$INPUT")
-assert_field_equals "continue is true" "$OUT" ".continue" "true"
-WTPATH=$(echo "$OUT" | jq -r '.hookSpecificOutput.worktreePath // empty' 2>>"$STDERR_LOG")
-if [[ -n "$WTPATH" ]]; then
-  printf "  %s HTTP-type — worktreePath set: %s\n" "$(green PASS)" "$WTPATH"
+# The http-type WorktreeCreate case that used to live here died with the
+# provisioner (test 1 now asserts that absence). The half of it worth keeping is
+# the #1794 guard itself: a lifecycle event must not leak hookEventName. Exercise
+# it on SessionStart, a lifecycle event ork still registers.
+echo "Test 4: lifecycle event — hookEventName never leaks (#1794 guard)"
+INPUT='{"hook_event":"SessionStart","tool_name":"","session_id":"itest-004","tool_input":{},"project_dir":"/tmp/test-project"}'
+OUT=$(run_dispatcher "lifecycle/webhook-forwarder" "$INPUT")
+if [[ -z "$OUT" ]]; then
+  printf "  %s SessionStart forwarder — empty stdout (nothing to leak)\n" "$(green PASS)"
   PASS=$((PASS + 1))
 else
-  printf "  %s HTTP-type — worktreePath missing\n" "$(red FAIL)"
-  FAIL=$((FAIL + 1))
+  assert_no_field "no leaked hookEventName on lifecycle event" "$OUT" "hookEventName"
 fi
-assert_no_field "no leaked hookEventName even on http-type" "$OUT" "hookEventName"
 
 # ---------------------------------------------------------------------------
 # Test 5: Opt-out env var doesn't break the happy path
@@ -183,5 +173,3 @@ if [[ "$FAIL" -gt 0 ]]; then
 fi
 echo "  $(green "All output-guard dispatcher tests passed (#1794)")"
 exit 0
-
-rm -rf "$WT_REPO"

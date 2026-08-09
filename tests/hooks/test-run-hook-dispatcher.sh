@@ -328,65 +328,49 @@ fi
 
 # =============================================================================
 echo ""
-echo "7. WorktreeCreate path-channel (#2335, supersedes #1990)"
-echo "--------------------------------------------------------"
+echo "7. WorktreeCreate retired — CC provisions natively (#3315, retires #2335)"
+echo "--------------------------------------------------------------------------"
 
-# Current CC contract: a registered WorktreeCreate hook OWNS provisioning —
-# command-type hooks must create the worktree and echo its ABSOLUTE PATH as
-# bare stdout (empty stdout = hard failure / decline). The JSON envelope must
-# still never reach this channel. Provisioning happens in a hermetic tmp git
-# repo so the repo under test is never touched.
+# ork used to OWN provisioning: a command-type WorktreeCreate hook created the
+# worktree and echoed its absolute path as bare stdout (#2335). That contract is
+# gone. CC's hasWorktreeCreateHook() flips on ANY registered WorktreeCreate hook
+# and then skips native provisioning entirely, which silently killed
+# .worktreeinclude, worktree.baseRef, settings.local.json propagation,
+# core.hooksPath, PR worktrees, worktree locking and branch cleanup. So the
+# invariant now is the ABSENCE of the registration, plus the surviving rule that
+# ork never emits a JSON envelope on a worktree channel.
 
-WT_TMP_REPO=$(mktemp -d "${TMPDIR:-/tmp}/ork-wt-dispatcher.XXXXXX")
-WT_TMP_REPO=$(cd "$WT_TMP_REPO" && pwd)  # macOS TMPDIR has a trailing slash — normalize // so string compares match Node's join()
-git init --quiet "$WT_TMP_REPO"
-touch "$WT_TMP_REPO/README.md"
-git -C "$WT_TMP_REPO" -c user.email=t@t -c user.name=t add .
-git -C "$WT_TMP_REPO" -c user.email=t@t -c user.name=t commit --quiet -m init --no-gpg-sign
+HOOKS_JSON="$PROJECT_ROOT/plugins/ork/hooks/hooks.json"
 
-# 7a. command-type WorktreeCreate → provisioner emits the BARE worktree path.
-run_hook "worktree/worktree-provisioner" \
-  "{\"hook_event\":\"WorktreeCreate\",\"worktree_name\":\"feature-test\",\"type\":\"command\",\"project_dir\":\"$WT_TMP_REPO\"}" \
-  "CLAUDE_PROJECT_DIR=$WT_TMP_REPO"
-if [[ "$LAST_STDOUT" == "$WT_TMP_REPO/.worktrees/feature-test" ]]; then
-  pass "WorktreeCreate (command): bare provisioned path on stdout"
+# 7a. No WorktreeCreate registration at all — the #3315 invariant. One registered
+# hook here (async or not) is enough to disable CC's native provisioning.
+if jq -e '.hooks.WorktreeCreate' "$HOOKS_JSON" >/dev/null 2>&1; then
+  fail "WorktreeCreate is registered again — CC will skip native provisioning (#3315)"
 else
-  fail "WorktreeCreate command stdout not the bare path: '$LAST_STDOUT'"
+  pass "WorktreeCreate unregistered: CC provisions natively"
 fi
 
-# 7a2. command-type WorktreeCreate in a NON-git dir → provisioner declines
-# with EMPTY stdout (never the envelope).
-WT_TMP_NOGIT=$(mktemp -d "${TMPDIR:-/tmp}/ork-wt-nogit.XXXXXX")
-run_hook "worktree/worktree-provisioner" \
-  "{\"hook_event\":\"WorktreeCreate\",\"worktree_name\":\"nope\",\"type\":\"command\",\"project_dir\":\"$WT_TMP_NOGIT\"}" \
-  "CLAUDE_PROJECT_DIR=$WT_TMP_NOGIT"
-if [[ -z "$LAST_STDOUT" ]]; then
-  pass "WorktreeCreate (command, non-git): declines with empty stdout"
+# 7b. WorktreeRemove is the one worktree event ork still registers. Its hook must
+# emit EMPTY stdout — an envelope on this channel re-breaks the path channel
+# (#1990/#1996). Dispatch the hook actually wired in hooks.json, so this asserts
+# real behaviour instead of passing vacuously on an unknown hook name.
+WT_REMOVE_HOOK=$(jq -r '.hooks.WorktreeRemove[0].hooks[0].args[-1]' "$HOOKS_JSON")
+if [[ -z "$WT_REMOVE_HOOK" || "$WT_REMOVE_HOOK" == "null" ]]; then
+  fail "WorktreeRemove has no registered hook to exercise"
 else
-  fail "WorktreeCreate decline stdout not empty: '$LAST_STDOUT'"
+  run_hook "$WT_REMOVE_HOOK" \
+    "{\"hook_event\":\"WorktreeRemove\",\"worktree_path\":\"/tmp/wt-test\",\"project_dir\":\"$PROJECT_ROOT\"}" \
+    "CLAUDE_PROJECT_DIR=$PROJECT_ROOT"
+  if [[ -z "$LAST_STDOUT" ]]; then
+    pass "WorktreeRemove ($WT_REMOVE_HOOK): empty stdout"
+  else
+    fail "WorktreeRemove stdout not empty: '$LAST_STDOUT'"
+  fi
 fi
 
-# 7b. WorktreeRemove → still empty stdout (observer contributes no path).
-run_hook "worktree/worktree-lifecycle-logger" \
-  "{\"hook_event\":\"WorktreeRemove\",\"worktree_path\":\"/tmp/wt-test\",\"project_dir\":\"$PROJECT_ROOT\"}" \
-  "CLAUDE_PROJECT_DIR=$PROJECT_ROOT"
-if [[ -z "$LAST_STDOUT" ]]; then
-  pass "WorktreeRemove: empty stdout"
-else
-  fail "WorktreeRemove stdout not empty: '$LAST_STDOUT'"
-fi
-
-# 7c. http-type WorktreeCreate → worktreePath emitted inside the JSON envelope.
-run_hook "worktree/worktree-provisioner" \
-  "{\"hook_event\":\"WorktreeCreate\",\"worktree_name\":\"feature-http\",\"type\":\"http\",\"project_dir\":\"$WT_TMP_REPO\"}" \
-  "CLAUDE_PROJECT_DIR=$WT_TMP_REPO"
-if echo "$LAST_STDOUT" | grep -q "worktreePath"; then
-  pass "WorktreeCreate (http): worktreePath in envelope (http path-channel intact)"
-else
-  fail "WorktreeCreate http dropped worktreePath: '$LAST_STDOUT'"
-fi
-
-rm -rf "$WT_TMP_REPO" "$WT_TMP_NOGIT"
+# 7c. (retired with the provisioner) http-type WorktreeCreate carried worktreePath
+# inside the envelope. There is no WorktreeCreate hook to carry it any more; 7a is
+# the assertion that replaced it.
 
 # 7d. Regression guard — a normal event still emits the continue envelope.
 run_hook "pretool/bash/dangerous-command-blocker" \

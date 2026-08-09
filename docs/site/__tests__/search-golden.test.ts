@@ -28,8 +28,9 @@ const MUST_INCLUDE: Array<[query: string, urls: string[]]> = [
   // Exact-title floor: reference pages still surface despite low type weight.
   ["commit", ["/docs/skills/spotlights/commit", "/docs/reference/skills/commit"]],
   ["memory", ["/docs/reference/skills/memory", "/docs/skills/spotlights/memory"]],
-  // Prefix-title floor on a camel-cased hook name.
-  ["worktree", ["/docs/reference/hooks/worktree-create"]],
+  // Prefix-title floor on a camel-cased hook name. worktree-remove is the only
+  // worktree hook page left since #3315 retired ork's WorktreeCreate ownership.
+  ["worktree", ["/docs/reference/hooks/worktree-remove"]],
   // Concept pages beat the reference index page for a broad term.
   ["hooks", ["/docs/hooks/overview"]],
   // Natural-language query (stopwords stripped, write→create synonym).
