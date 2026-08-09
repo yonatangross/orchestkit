@@ -1,11 +1,11 @@
 ---
 title: Hooks Reference
-description: "Complete reference for all 149 global lifecycle hook entries across 28 event categories."
+description: "Complete reference for all 151 global lifecycle hook entries across 30 event categories."
 ---
 
 # Hooks Reference
 
-OrchestKit includes **149 global lifecycle hook entries** across **28 lifecycle event categories**, listed below by event. These are the *global* hooks that fire on Claude Code lifecycle events; agent- and skill-scoped hooks ship with their respective agents and skills, so the plugin's total hook count is higher than the number here.
+OrchestKit includes **151 global lifecycle hook entries** across **30 lifecycle event categories**, listed below by event. These are the *global* hooks that fire on Claude Code lifecycle events; agent- and skill-scoped hooks ship with their respective agents and skills, so the plugin's total hook count is higher than the number here.
 
 | Category | Hooks | Description |
 |----------|-------|-------------|
@@ -19,11 +19,13 @@ OrchestKit includes **149 global lifecycle hook entries** across **28 lifecycle 
 | [SessionStart](/docs/reference/hooks/session-start) | 20 | Hooks for `SessionStart` events |
 | [CwdChanged](/docs/reference/hooks/cwd-changed) | 2 | Hooks for `CwdChanged` events |
 | [FileChanged](/docs/reference/hooks/file-changed) | 2 | Hooks for `FileChanged` events |
+| [DirectoryAdded](/docs/reference/hooks/directory-added) | 1 | Hooks for `DirectoryAdded` events |
 | [SessionEnd](/docs/reference/hooks/session-end) | 7 | Hooks for `SessionEnd` events |
 | [Stop](/docs/reference/hooks/stop) | 12 | Hooks for `Stop` events |
 | [StopFailure](/docs/reference/hooks/stop-failure) | 2 | Hooks for `StopFailure` events |
 | [SubagentStart](/docs/reference/hooks/subagent-start) | 3 | Hooks for `SubagentStart` events |
 | [SubagentStop](/docs/reference/hooks/subagent-stop) | 7 | Hooks for `SubagentStop` events |
+| [MessageDisplay](/docs/reference/hooks/message-display) | 1 | Hooks for `MessageDisplay` events |
 | [Notification](/docs/reference/hooks/notification) | 3 | Hooks for `Notification` events |
 | [PreCompact](/docs/reference/hooks/pre-compact) | 4 | Hooks for `PreCompact` events |
 | [PostCompact](/docs/reference/hooks/post-compact) | 2 | Hooks for `PostCompact` events |

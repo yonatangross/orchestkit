@@ -138,7 +138,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code — 105 skills, 36 agents, 215 hooks working together."
+    "description": "The complete AI development toolkit for Claude Code — 105 skills, 36 agents, 217 hooks working together."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -222,7 +222,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/hooks/overview",
-    "title": "215 Hooks: What Fires When",
+    "title": "217 Hooks: What Fires When",
     "description": "TypeScript functions that intercept every Claude Code lifecycle event -- blocking dangerous commands, injecting context, and syncing memory, all invisibly."
   },
   {
@@ -496,6 +496,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Hooks triggered on CwdChanged events (2 hooks)."
   },
   {
+    "url": "/docs/reference/hooks/directory-added",
+    "title": "DirectoryAdded",
+    "description": "Hooks triggered on DirectoryAdded events (1 hooks)."
+  },
+  {
     "url": "/docs/reference/hooks/elicitation-result",
     "title": "ElicitationResult",
     "description": "Hooks triggered on ElicitationResult events (2 hooks)."
@@ -513,12 +518,17 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/hooks",
     "title": "Hooks Reference",
-    "description": "Complete reference for all 149 global lifecycle hook entries across 28 event categories."
+    "description": "Complete reference for all 151 global lifecycle hook entries across 30 event categories."
   },
   {
     "url": "/docs/reference/hooks/instructions-loaded",
     "title": "InstructionsLoaded",
     "description": "Hooks triggered on InstructionsLoaded events (2 hooks)."
+  },
+  {
+    "url": "/docs/reference/hooks/message-display",
+    "title": "MessageDisplay",
+    "description": "Hooks triggered on MessageDisplay events (1 hooks)."
   },
   {
     "url": "/docs/reference/hooks/notification",
@@ -673,7 +683,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference",
     "title": "Reference",
-    "description": "Complete reference for all 105 skills, 36 agents, and 215 hooks."
+    "description": "Complete reference for all 105 skills, 36 agents, and 217 hooks."
   },
   {
     "url": "/docs/reference/skills/accessibility",

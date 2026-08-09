@@ -42,9 +42,26 @@ const MAX_PATH_LEN = 256;
 /** Candidate keys for the added directory across plausible payload shapes. */
 const PATH_KEYS = ['directory', 'added_directory', 'new_directory', 'path', 'dir'] as const;
 
-/** Strip control characters and cap length. Never widens the string. */
+/**
+ * Strip control characters and cap length. Never widens the string.
+ *
+ * Done by code point rather than by regex on purpose. The regex form trips
+ * biome's noControlCharactersInRegex, and that rule is worth satisfying rather
+ * than suppressing: the pattern held LITERAL control bytes, which are invisible
+ * in review. That is exactly how a sanitizer silently stops covering a
+ * character someone believed it covered. The loop states the range in the open.
+ */
 function safePath(raw: string): string {
-  return raw.replace(/[\u0000-\u001f\u007f]/g, '').slice(0, MAX_PATH_LEN);
+  let out = '';
+  for (const ch of raw) {
+    if (out.length >= MAX_PATH_LEN) break;
+    const cp = ch.codePointAt(0) ?? 0;
+    // Drop C0 controls (0x00-0x1f) and DEL (0x7f).
+    if (cp > 0x1f && cp !== 0x7f) out += ch;
+  }
+  // The loop breaks at the cap, but a surrogate pair can carry it one unit
+  // past. Slice so the bound is exact rather than approximately right.
+  return out.slice(0, MAX_PATH_LEN);
 }
 
 /** First readable string under PATH_KEYS; '' when none is present. */

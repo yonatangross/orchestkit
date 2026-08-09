@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->215<!--/ork--> hooks (<!--ork:hooks-global-->149<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->217<!--/ork--> hooks (<!--ork:hooks-global-->151<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1346,7 +1346,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->215<!--/ork--> hooks (<!--ork:hooks-global-->149<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->217<!--/ork--> hooks (<!--ork:hooks-global-->151<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
@@ -1388,7 +1388,9 @@ The registry's change history used to accumulate inside the `description` field 
 
 (count unchanged, 2026-07-24): pretool/bash dangerous-command-blocker pipe-to-interpreter deny now REDIRECTS instead of dead-ending. permissionDecisionReason is fed back to the model on a PreToolUse deny, and CC keeps no memory of a denied command (no dedup, no backoff), so a bare "blocked, dangerous" reason made the model re-emit the same `curl <url> | python3` idiom every turn and every session, hitting the same wall forever. `pipesToShellInterpreter` now returns `'exec' | 'interpreter' | null`; the deny reason names the allowed shape per case (fetch to a file, then read it locally; local data into an interpreter stays allowed per #3096). Message text was unpinned by tests, so 2 redirect assertions were added.
 
-(216 -> 218: P3-A3 2026-07-15 — registered 2 never-listened CC 2.1.208 events as OBSERVER-ONLY telemetry hooks (never block, never modify): prompt/prompt-expansion-observer (UserPromptExpansion), posttool/tool-batch-observer (PostToolBatch); MessageDisplay observer was reverted same-day — `claude plugin validate` rejects hooks.MessageDisplay as an invalid key in plugin manifests (re-add when the plugin schema accepts it); all async t=5, matcher *, logHook size-capped metrics only — no content logged; webhook forwarding deliberately deferred on these 3 high-frequency events, see INTENTIONAL_EXCLUSIONS in webhook-forwarder-coverage.test.ts)
+(215 -> 217: #3327 2026-08-09 — registered the last 2 never-listened CC hook events as OBSERVER-ONLY telemetry hooks (never block, never modify): lifecycle/directory-added (DirectoryAdded, CC 2.1.219 — fires on /add-dir or SDK register_repo_root) and notification/message-display-observer (MessageDisplay, CC 2.1.152). Both async t=5, matcher *, logHook size-capped metrics only — no content or path body logged; webhook forwarding deferred, see INTENTIONAL_EXCLUSIONS in webhook-forwarder-coverage.test.ts. **CORRECTS the 2026-07-15 note below**: `claude plugin validate` on CC 2.1.226 ACCEPTS hooks.MessageDisplay and hooks.DirectoryAdded. Re-probed against a copy of the built plugin — the validator still reads hooks/hooks.json and still rejects unknown keys (a fabricated `TotallyBogusEventZZZ` key failed with `hooks.TotallyBogusEventZZZ: Invalid key in record`), so the check is live, not disabled; these two keys are simply in its schema now. #3327 did NOT re-run ork's rules materialization against the added directory as the issue proposed: the payload field carrying the path is unverified against the binary, and materializeAntipatternRules writes byte-identical content to every target, so a second copy costs context tokens rather than correcting anything.)
+
+(216 -> 218: P3-A3 2026-07-15 — registered 2 never-listened CC 2.1.208 events as OBSERVER-ONLY telemetry hooks (never block, never modify): prompt/prompt-expansion-observer (UserPromptExpansion), posttool/tool-batch-observer (PostToolBatch); MessageDisplay observer was reverted same-day — `claude plugin validate` rejected hooks.MessageDisplay as an invalid key in plugin manifests. **STALE as of CC 2.1.226 — see the #3327 entry above.** All async t=5, matcher *, logHook size-capped metrics only — no content logged; webhook forwarding deliberately deferred on these high-frequency events, see INTENTIONAL_EXCLUSIONS in webhook-forwarder-coverage.test.ts)
 
 (215 -> 216: #2475 InstructionsLoaded re-architecture — the real event is SINGLE-FILE {file_path, memory_type, load_reason}; per-file handlers (token-budget, smart-suggestions) stay on InstructionsLoaded with session-state accumulation + systemMessage-only output (output-guard strips additionalContext there); whole-set handlers (priority-map, content-dedup, rule-conflicts, drift-detection, debt-surfacer) moved to the NEW SessionStart instructions-loaded/session-rules-audit (async t=5), which reads CLAUDE.md + .claude/rules/*.md from disk where additionalContext IS honored)
 

@@ -17,13 +17,13 @@
       "exports": 68
     },
     "prompt": {
-      "size": 62987,
-      "sizeKB": "61.51",
+      "size": 64405,
+      "sizeKB": "62.90",
       "exports": 109
     },
     "lifecycle": {
-      "size": 137021,
-      "sizeKB": "133.81",
+      "size": 138419,
+      "sizeKB": "135.17",
       "exports": 68
     },
     "stop": {
@@ -37,8 +37,8 @@
       "exports": 85
     },
     "notification": {
-      "size": 11107,
-      "sizeKB": "10.85",
+      "size": 11473,
+      "sizeKB": "11.20",
       "exports": 4
     },
     "setup": {
@@ -57,8 +57,8 @@
       "exports": 70
     }
   },
-  "totalSize": 691611,
-  "totalSizeKB": "675.40",
-  "inputs": 107,
-  "avgBundleSizeKB": "61.40"
+  "totalSize": 694793,
+  "totalSizeKB": "678.51",
+  "inputs": 109,
+  "avgBundleSizeKB": "61.68"
 }
