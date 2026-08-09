@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.7",
+    "date": "2026-08-09",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** two hooks read the legacy alias, never the field CC sends ([#3372](https://github.com/yonatangross/orchestkit/issues/3372)) ([909997d](https://github.com/yonatangross/orchestkit/commit/909997d03e353bfb52df8257aaac35e49ba8e7ee))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.6",
     "date": "2026-08-09",
     "compareUrl": "",

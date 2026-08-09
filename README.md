@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.7](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.6...v10.0.0-alpha.7)** · 2026-08-09
+
+- **hooks:** two hooks read the legacy alias, never the field CC sends (#3372)
+
 **[v10.0.0-alpha.6](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.5...v10.0.0-alpha.6)** · 2026-08-09
 
 - **hooks:** --allow-file-access widened one rule and switched off eight (#3370), closes [#3320](https://github.com/yonatangross/orchestkit/issues/3320)
@@ -316,15 +320,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **build:** keep the version sync off pinned channel entries (#3344), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)
 - **counts:** read the release version off the tracking entry by name (#3341), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)
 - …and 7 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v9.8.0](https://github.com/yonatangross/orchestkit/compare/v9.7.0...v9.8.0)** · 2026-08-07
-
-- **dream:** STEP 9 cross-repo promotion candidates (#3296)
-- **hooks:** read the permission mode key CC actually sends (#3294)
-- **pre-push:** replace mapfile so the hook runs on macOS bash 3.2 (#3287)
-- **release:** let release-please own the lockfile version (#3293)
-- repair two reported bugs and make 26 blind security tests able to fail (#3288)
-- …and 5 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
