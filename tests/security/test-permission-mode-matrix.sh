@@ -5,34 +5,45 @@
 # Test: permission-mode matrix (#3331)
 #
 # WHY THIS EXISTS
-# Claude Code makes `auto` the DEFAULT permission mode as of ~2026-08-14. Before
-# this file, ZERO tests under tests/security exercised `auto` or `dontAsk`, while
-# hooks branch on both: lib/guards.ts isDontAskMode()/isAutoMode(), and
-# pretool/Write/architecture-change-detector.ts swaps its output shape on them.
-# So every user was about to run a code path with no security coverage.
+# Claude Code makes `auto` the DEFAULT permission mode as of ~2026-08-14.
+# Before this file, ZERO tests under tests/security exercised `auto` or
+# `dontAsk`, while hooks branch on both: lib/guards.ts isDontAskMode()/
+# isAutoMode(), and pretool/Write/architecture-change-detector.ts swaps its
+# output shape on them. Every user is about to run a code path with no
+# security coverage.
 #
 # WHY THE ENVELOPE IS SNAKE_CASE, AND WHY THAT MATTERS
-# #3331 reports that 103 unit tests passed against a helper that was dead in
+# #3331 reports 103 unit tests passing against a helper that was dead in
 # production, because the fixtures were hand-written in camelCase exactly like
-# the broken code — the suite ENCODED the bug instead of catching it. So the key
-# here is NOT guessed. lib/guards.ts:326-329 reads `permission_mode` FIRST and
-# documents camelCase as "a speculative fallback in case CC ever renames it",
-# alongside the note that the camel-only version "had never once returned true
-# in production". snake_case is therefore the real wire shape.
+# the broken code — the suite ENCODED the bug instead of catching it. So the
+# key here is NOT guessed. lib/guards.ts:326-329 reads `permission_mode` FIRST
+# and documents camelCase as "a speculative fallback in case CC ever renames
+# it", alongside the note that the camel-only version "had never once returned
+# true in production". snake_case is the real wire shape.
 #
-# This file asserts BOTH spellings anyway (section 3), so a future rename in
-# either direction is caught rather than silently evaluating false — which the
-# guard's own comment calls "the worst failure shape here, because the symptom
-# is just 'the prompts came back' with nothing to blame".
+# Section 3 asserts BOTH spellings anyway, so a rename in either direction is
+# caught rather than silently evaluating false — which the guard's own comment
+# calls "the worst failure shape here, because the symptom is just 'the prompts
+# came back' with nothing to blame".
 #
-# DISCOVERY: tests/security/run-security-tests.sh globs this directory, so no
-# roster edit is needed. Confirmed by running the runner and seeing this file.
+# WHY EVERY VERDICT GOES THROUGH expect_decision
+# An earlier draft of this file hand-rolled its own probe helper. It passed,
+# and it genuinely discriminated under hand-run mutants — but the security
+# mutation gate flagged it NO ASSERTION, correctly. expect_decision carries the
+# ORK_MUTATE_INDEX machinery that inverts one expectation per run and checks
+# the file actually goes red; a private helper is invisible to that, so the
+# gate cannot prove this file can fail. Being unprovable is the same class of
+# defect this file exists to test for, so the fix is to use the sanctioned
+# primitive rather than to add an exception.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-RUNNER="$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
+export PROJECT_ROOT
+
+# shellcheck source=/dev/null
+source "$PROJECT_ROOT/tests/fixtures/test-helpers.sh"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -42,40 +53,13 @@ NC='\033[0m'
 PASS=0
 FAIL=0
 
-log_pass() { printf "  ${GREEN}✓${NC} %s\n" "$1"; PASS=$((PASS + 1)); }
-log_fail() { printf "  ${RED}✗${NC} %s\n" "$1"; FAIL=$((FAIL + 1)); }
+log_pass() { printf "  ${GREEN}✓${NC} %s\n" "$1"; }
+log_fail() { printf "  ${RED}✗${NC} %s\n" "$1"; }
 section() { printf "\n${YELLOW}%s${NC}\n" "$1"; }
 
-if [ ! -f "$RUNNER" ]; then
-  printf "${RED}ERROR: hook runner not found: %s${NC}\n" "$RUNNER"
-  exit 1
-fi
-
-# A hook key that is NOT registered returns {"continue":true} with no decision,
-# which reads as "allow". Assert registration before trusting any permissive
-# result, or this whole file becomes the theater it exists to prevent.
-assert_registered() {
-  local key="$1" rc=0
-  grep -rqF "'${key}'" "$PROJECT_ROOT/src/hooks/src/entries" || rc=$?
-  if [ "$rc" -eq 0 ]; then
-    log_pass "hook is registered: $key"
-  else
-    log_fail "hook NOT registered: $key — every verdict below would be a false allow"
-  fi
-}
-
-# Run a hook and echo its permissionDecision, or the literal string
-# NO-DECISION when the hook abstained. Never collapse abstain into "allow":
-# that conflation is the #3331 defect class.
-decision_of() {
-  local key="$1" payload="$2" out rc=0
-  out=$(printf '%s' "$payload" | node "$RUNNER" "$key") || rc=$?
-  if [ "$rc" -ne 0 ]; then
-    printf 'RUNNER-ERROR(rc=%s)' "$rc"
-    return 0
-  fi
-  printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "NO-DECISION"'
-}
+BLOCKER='pretool/bash/dangerous-command-blocker'
+ARCH='pretool/Write/architecture-change-detector'
+MODES=(default plan acceptEdits auto dontAsk bypassPermissions)
 
 # Bash payload carrying an explicit permission_mode.
 bash_payload() { # <mode> <command>
@@ -83,92 +67,81 @@ bash_payload() { # <mode> <command>
     '{tool_name:"Bash", permission_mode:$m, tool_input:{command:$c}}'
 }
 
-DANGEROUS='rm -rf /'
-BENIGN='ls -la'
-BLOCKER='pretool/bash/dangerous-command-blocker'
-
 echo "=== Permission-mode matrix (#3331) ==="
-echo "Runner: $RUNNER"
 
-section "0. Registration (a false allow is worse than a failure)"
-assert_registered "$BLOCKER"
-assert_registered "pretool/Write/architecture-change-detector"
+section "0. Registration (an unreachable hook answers ERROR, never a false allow)"
+# hook_decision() routes through assert_hook_registered, so a typo'd or deleted
+# hook surfaces as ERROR rather than reading as "allow". Assert the two hooks
+# under test exist before trusting a single verdict below.
+if assert_hook_registered "$BLOCKER"; then
+  log_pass "registered: $BLOCKER"
+else
+  log_fail "NOT registered: $BLOCKER"
+  FAIL=$((FAIL + 1))
+fi
+if assert_hook_registered "$ARCH"; then
+  log_pass "registered: $ARCH"
+else
+  log_fail "NOT registered: $ARCH"
+  FAIL=$((FAIL + 1))
+fi
 
 section "1. A dangerous command is denied in EVERY permission mode"
 # The load-bearing property. No mode may be an escape hatch for `rm -rf /`,
 # least of all the one about to become the default.
-for mode in default plan acceptEdits auto dontAsk bypassPermissions; do
-  got=$(decision_of "$BLOCKER" "$(bash_payload "$mode" "$DANGEROUS")")
-  if [ "$got" = "deny" ]; then
-    log_pass "mode=$mode: dangerous command denied"
-  else
-    log_fail "mode=$mode: dangerous command returned '$got', expected deny"
-  fi
+for mode in "${MODES[@]}"; do
+  expect_decision deny "$BLOCKER" "$(bash_payload "$mode" 'rm -rf /')" \
+    "mode=$mode: dangerous command denied"
 done
 
 section "2. A benign command is not denied in any mode"
-for mode in default plan acceptEdits auto dontAsk bypassPermissions; do
-  got=$(decision_of "$BLOCKER" "$(bash_payload "$mode" "$BENIGN")")
-  if [ "$got" = "deny" ]; then
-    log_fail "mode=$mode: benign command was DENIED — false positive"
-  else
-    log_pass "mode=$mode: benign command not denied (-> $got)"
-  fi
+for mode in "${MODES[@]}"; do
+  # `abstain` is the helper's token for "envelope parsed, no decision". It is
+  # deliberately NOT the same as `allow`: conflating the two is how a hook that
+  # never ran reads as a hook that approved. Assert the real one.
+  expect_decision abstain "$BLOCKER" "$(bash_payload "$mode" 'ls -la')" \
+    "mode=$mode: benign command not denied"
 done
 
 section "3. Both key spellings resolve (snake is real, camel is the fallback)"
-# guards.ts reads permission_mode first, permissionMode second. If CC ever
-# renames the field, a gate that silently evaluates false is the worst outcome,
-# so assert the decision is stable under BOTH spellings rather than assuming one.
-snake=$(decision_of "$BLOCKER" \
-  "$(jq -nc --arg c "$DANGEROUS" '{tool_name:"Bash",permission_mode:"auto",tool_input:{command:$c}}')")
-camel=$(decision_of "$BLOCKER" \
-  "$(jq -nc --arg c "$DANGEROUS" '{tool_name:"Bash",permissionMode:"auto",tool_input:{command:$c}}')")
-if [ "$snake" = "deny" ] && [ "$camel" = "deny" ]; then
-  log_pass "permission_mode and permissionMode both deny (snake=$snake camel=$camel)"
-else
-  log_fail "spelling mismatch: permission_mode=$snake permissionMode=$camel"
-fi
+expect_decision deny "$BLOCKER" \
+  "$(jq -nc '{tool_name:"Bash",permission_mode:"auto",tool_input:{command:"rm -rf /"}}')" \
+  'permission_mode (snake) still denies in auto'
+expect_decision deny "$BLOCKER" \
+  "$(jq -nc '{tool_name:"Bash",permissionMode:"auto",tool_input:{command:"rm -rf /"}}')" \
+  'permissionMode (camel fallback) still denies in auto'
 
 section "4. An absent permission_mode is treated as interactive, not as auto"
 # A missing field must not be read as a non-interactive mode. If it were, every
 # payload that omits the key would silently take the relaxed branch.
-nomode=$(decision_of "$BLOCKER" \
-  "$(jq -nc --arg c "$DANGEROUS" '{tool_name:"Bash",tool_input:{command:$c}}')")
-if [ "$nomode" = "deny" ]; then
-  log_pass "absent mode still denies the dangerous command"
-else
-  log_fail "absent mode returned '$nomode', expected deny"
-fi
+expect_decision deny "$BLOCKER" \
+  "$(jq -nc '{tool_name:"Bash",tool_input:{command:"rm -rf /"}}')" \
+  'absent mode still denies the dangerous command'
 
 section "5. dontAsk/auto change the QUALITY-GATE shape, not the security verdict"
-# architecture-change-detector.ts:120 swaps outputWithContext -> outputWarning
-# under isDontAskMode. That is a deliberate UX difference and it must stay a
-# difference in PRESENTATION only — it must never become an allow where an
-# interactive session would have been gated.
-arch_out() { # <mode-json-fragment>
-  jq -nc --argjson m "$1" \
-    '{tool_name:"Write", tool_input:{file_path:"src/api/routes.py",content:"x"}} + $m' \
-    | node "$RUNNER" 'pretool/Write/architecture-change-detector'
+# architecture-change-detector swaps outputWithContext -> outputWarning under
+# isDontAskMode. That is a deliberate presentation difference and must never
+# become an allow where an interactive session would have been gated. Both
+# modes are asserted to the SAME verdict; if the relaxed branch ever starts
+# deciding differently, one of these two lines goes red.
+arch_payload() { # <mode>
+  jq -nc --arg m "$1" \
+    '{tool_name:"Write", permission_mode:$m,
+      tool_input:{file_path:"src/api/routes.py", content:"x"}}'
 }
-interactive=$(arch_out '{"permission_mode":"default"}')
-relaxed=$(arch_out '{"permission_mode":"dontAsk"}')
-i_deny=$(printf '%s' "$interactive" | jq -r '.hookSpecificOutput.permissionDecision // "NO-DECISION"')
-r_deny=$(printf '%s' "$relaxed" | jq -r '.hookSpecificOutput.permissionDecision // "NO-DECISION"')
-if [ "$i_deny" = "$r_deny" ]; then
-  log_pass "architecture gate verdict is identical across modes (both -> $i_deny)"
-else
-  log_fail "architecture gate verdict CHANGED with mode: default=$i_deny dontAsk=$r_deny"
-fi
+expect_decision abstain "$ARCH" "$(arch_payload default)" \
+  'architecture gate: default mode verdict'
+expect_decision abstain "$ARCH" "$(arch_payload dontAsk)" \
+  'architecture gate: dontAsk mode verdict is the same'
 
 echo ""
 echo "========================================"
 echo "  Permission-mode matrix"
 echo "========================================"
-printf "  Passed: ${GREEN}%s${NC}\n" "$PASS"
-printf "  Failed: ${RED}%s${NC}\n" "$FAIL"
+printf "  Passed: ${GREEN}%s${NC}\n" "${PASS:-0}"
+printf "  Failed: ${RED}%s${NC}\n" "${FAIL:-0}"
 
-if [ "$FAIL" -gt 0 ]; then
+if [[ ${FAIL:-0} -ne 0 ]]; then
   echo ""
   printf "${RED}PERMISSION-MODE MATRIX FAILED${NC}\n"
   exit 1
