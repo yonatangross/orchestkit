@@ -173,6 +173,79 @@ describe('agent-browser-safety', () => {
     expect(result.hookSpecificOutput?.additionalContext).toContain('file:// URL');
   });
 
+  // ---------------------------------------------------------------------------
+  // #3320 — --allow-file-access must widen ONE rule, never switch off the rest.
+  //
+  // It used to return early with permissionDecision:'allow' ahead of every other
+  // check, so the flag suppressed four DENY checks (blocklist, rate limit,
+  // robots.txt, network route) and four warning checks. The blocklist case is a
+  // true inversion: the identical URL is denied without the flag and approved
+  // with it. Each test below fails on the pre-fix hook.
+  // ---------------------------------------------------------------------------
+  describe('#3320: --allow-file-access does not bypass other checks', () => {
+    it('still denies a blocked URL when the flag is present', () => {
+      const withoutFlag = agentBrowserSafety(
+        createBashInput('agent-browser open http://169.254.169.254/latest/meta-data/'),
+        testCtx
+      );
+      const withFlag = agentBrowserSafety(
+        createBashInput(
+          'agent-browser --allow-file-access open http://169.254.169.254/latest/meta-data/'
+        ),
+        testCtx
+      );
+
+      // The flag must not change the verdict on a non-file:// URL.
+      expect(withoutFlag.continue).toBe(false);
+      expect(withFlag.continue).toBe(false);
+      expect(withFlag.stopReason).toContain('169.254.169.254');
+    });
+
+    it('does not emit permissionDecision:allow for a blocked URL under the flag', () => {
+      const result = agentBrowserSafety(
+        createBashInput('agent-browser --allow-file-access open http://metadata.google.internal/'),
+        testCtx
+      );
+      // The pre-fix bug was not merely a missing deny — it was an explicit approve.
+      expect(result.hookSpecificOutput?.permissionDecision).not.toBe('allow');
+    });
+
+    it('still surfaces the cdp-url warning when the flag is present', () => {
+      const result = agentBrowserSafety(
+        createBashInput('agent-browser --allow-file-access inspect'),
+        testCtx
+      );
+      expect(result.hookSpecificOutput?.additionalContext).toContain('DevTools');
+    });
+
+    it('still surfaces the clipboard warning when the flag is present', () => {
+      const result = agentBrowserSafety(
+        createBashInput('agent-browser --allow-file-access clipboard read'),
+        testCtx
+      );
+      expect(result.hookSpecificOutput?.additionalContext).toContain('clipboard');
+    });
+
+    it('keeps both warnings when two warning flags are combined', () => {
+      const result = agentBrowserSafety(
+        createBashInput('agent-browser --allow-file-access --user-agent "Bot/1.0" open https://example.com'),
+        testCtx
+      );
+      const context = result.hookSpecificOutput?.additionalContext ?? '';
+      expect(context).toContain('--allow-file-access');
+      expect(context).toContain('--user-agent');
+    });
+
+    it('still allows the legitimate file:// case the flag exists for', () => {
+      const result = agentBrowserSafety(
+        createBashInput('agent-browser --allow-file-access open "file:///tmp/report.html"'),
+        testCtx
+      );
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+    });
+  });
+
   it('blocks echoing AGENT_BROWSER_ENCRYPTION_KEY (v0.16)', () => {
     const input = createBashInput('echo $AGENT_BROWSER_ENCRYPTION_KEY');
     const result = agentBrowserSafety(input, testCtx);

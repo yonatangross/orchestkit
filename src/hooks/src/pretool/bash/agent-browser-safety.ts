@@ -472,17 +472,39 @@ Use the key only as an environment variable passed to agent-browser commands.`
     return outputSilentSuccess();
   }
 
-  // Check pre-1: --allow-file-access warning (v0.16)
-  // Must run before URL blocklist to avoid false deny on file:// URLs
-  if (/--allow-file-access/.test(command)) {
-    const context = `WARNING: --allow-file-access enables file:// URL access in agent-browser.
-This bypasses the file:// URL blocklist and allows reading local filesystem files.
-Only use this flag when explicitly required for local file testing.
-Never combine with untrusted URLs or user-supplied paths.`;
+  // Warnings are COLLECTED, never returned early (#3320).
+  //
+  // --allow-file-access used to `return outputAllowWithContext(...)` right here,
+  // ahead of every other check. That skipped Checks 1-9 — URL blocklist, rate
+  // limit, robots.txt, sensitive actions, network route, cdp-url, clipboard, HAR
+  // and user-agent — and, because outputAllowWithContext sets
+  // permissionDecision:'allow', it did not merely fail to deny: it turned a deny
+  // into an explicit auto-approval. Probed on 2026-08-09, same URL both ways:
+  //   agent-browser open http://169.254.169.254/latest/meta-data/       -> deny
+  //   agent-browser --allow-file-access open http://169.254.169.254/... -> allow
+  // The flag that exists to widen ONE rule was switching off all nine.
+  //
+  // Its stated reason ("must run before the URL blocklist to avoid a false deny
+  // on file:// URLs") did not hold either: isBlockedUrl() already short-circuits
+  // file:// on its own, so the false deny it guarded against cannot occur.
+  //
+  // A warning is now appended to the terminal result, so it still reaches the
+  // model on the allow path while every check above it keeps its verdict.
+  const warnings: string[] = [];
 
-    ctx.logPermission('allow', '--allow-file-access warning', input);
+  // Any allow path folds in whatever warnings were collected before it, so a
+  // later warning check cannot silently swallow an earlier one.
+  const allowWithCollectedWarnings = (context: string) =>
+    outputAllowWithContext([...warnings, context].join('\n\n'));
+
+  if (/--allow-file-access/.test(command)) {
+    warnings.push(`WARNING: --allow-file-access enables file:// URL access in agent-browser.
+This widens the file:// URL rule and allows reading local filesystem files.
+It does NOT relax any other safety check — blocked URLs, rate limits and
+sensitive actions are still enforced while it is set.
+Only use this flag when explicitly required for local file testing.
+Never combine with untrusted URLs or user-supplied paths.`);
     ctx.log('agent-browser-safety', '--allow-file-access flag detected');
-    return outputAllowWithContext(context);
   }
 
   // Extract URL from command
@@ -565,7 +587,7 @@ Rate limit remaining: ${rateCheck.remaining}/${RATE_LIMITS.requestsPerMinute} pe
 
       ctx.logPermission('allow', 'Sensitive action — native confirmation enabled', input);
       ctx.log('agent-browser-safety', 'Sensitive action: native confirmation');
-      return outputAllowWithContext(context);
+      return allowWithCollectedWarnings(context);
     }
 
     // Fallback: legacy warning-only mode
@@ -583,7 +605,7 @@ Proceed with caution. Verify target elements.`;
 
     ctx.logPermission('allow', 'Sensitive action warning', input);
     ctx.log('agent-browser-safety', 'Sensitive action detected');
-    return outputAllowWithContext(context);
+    return allowWithCollectedWarnings(context);
   }
 
   // Check 5: Network route validation (v0.13+)
@@ -613,7 +635,7 @@ Use 'agent-browser network unroute' to clean up after testing.`;
 
       ctx.logPermission('allow', 'Network mock warning', input);
       ctx.log('agent-browser-safety', 'Network mock detected');
-      return outputAllowWithContext(context);
+      return allowWithCollectedWarnings(context);
     }
   }
 
@@ -627,7 +649,7 @@ Never expose the CDP port beyond localhost.`;
 
     ctx.logPermission('allow', 'DevTools inspect warning', input);
     ctx.log('agent-browser-safety', 'inspect/cdp-url detected');
-    return outputAllowWithContext(context);
+    return allowWithCollectedWarnings(context);
   }
 
   // Check 7: clipboard read — host clipboard access (v0.19+)
@@ -638,7 +660,7 @@ Never log or transmit clipboard contents to external services.`;
 
     ctx.logPermission('allow', 'Clipboard read warning', input);
     ctx.log('agent-browser-safety', 'clipboard read detected');
-    return outputAllowWithContext(context);
+    return allowWithCollectedWarnings(context);
   }
 
   // Check 8: HAR capture stop — sensitive network data (v0.21+)
@@ -650,22 +672,26 @@ Clean up HAR files after use.`;
 
     ctx.logPermission('allow', 'HAR capture warning', input);
     ctx.log('agent-browser-safety', 'network har stop detected');
-    return outputAllowWithContext(context);
+    return allowWithCollectedWarnings(context);
   }
 
   // Check 9: --user-agent spoofing warning (v0.16)
+  // Collected rather than returned, for the same reason as --allow-file-access
+  // above, and so that both warnings survive when both flags are present.
   if (/--user-agent\s/.test(command)) {
-    const context = `WARNING: Custom --user-agent detected.
+    warnings.push(`WARNING: Custom --user-agent detected.
 Use --user-agent only to identify your automation tool (e.g., "MyBot/1.0").
 Do NOT spoof real browser user-agents to bypass bot detection — this violates ethical scraping rules.
-agent-browser identifies itself by default; only override when the target site requires a specific UA string.`;
-
-    ctx.logPermission('allow', '--user-agent spoofing warning', input);
+agent-browser identifies itself by default; only override when the target site requires a specific UA string.`);
     ctx.log('agent-browser-safety', '--user-agent flag detected');
-    return outputAllowWithContext(context);
   }
 
-  // Safe command
+  // Safe command — every check above returned a verdict or fell through.
+  if (warnings.length > 0) {
+    ctx.logPermission('allow', 'agent-browser command validated with warnings', input);
+    return outputAllowWithContext(warnings.join('\n\n'));
+  }
+
   ctx.logPermission('allow', 'agent-browser command validated', input);
   return outputSilentSuccess();
 }
