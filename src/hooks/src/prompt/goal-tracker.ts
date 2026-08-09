@@ -24,6 +24,8 @@ import { dirname, join } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess, outputBlock } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { readTurnCount } from '../lib/session-turn-counter.js';
+import { loadAccumStateOrNull } from '../lib/session-token-accum.js';
 
 const HOOK_NAME = 'prompt/goal-tracker';
 const HISTORY_REL = join('.claude', 'state', 'goal-history.jsonl');
@@ -116,12 +118,19 @@ export function goalTracker(
   }
 
   // Record start entry.
+  //
+  // #3317: started_turn / started_tokens are the BASELINES the Stop hook
+  // subtracts from to get what this run actually cost. Without them the Stop
+  // hook had to guess, and its guess (count `/goal` start lines) counted
+  // invocations, which the budget guard then summed into 1+2+...+N.
   try {
     appendHistory(projectDir, {
       session_id: sessionId,
       condition,
       started_at: new Date().toISOString(),
       started_token_estimate: estimateTokens(prompt),
+      started_turn: readTurnCount(sessionId),
+      started_tokens: loadAccumStateOrNull(projectDir, sessionId)?.estimatedTokens ?? 0,
       ended_at: null,
     });
     ctx.log(HOOK_NAME, `tracked /goal start: ${condition.slice(0, 60)}`);

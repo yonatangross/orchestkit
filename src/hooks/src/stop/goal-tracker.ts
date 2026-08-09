@@ -14,6 +14,12 @@
  *   - aborted:   no last_assistant_message AND low turn_count (Esc/Ctrl+F).
  *   - spun:     otherwise (high turn count + no natural stop signal).
  *
+ * #3317: `turn_count` and `ended_token_estimate` are PER-RUN DELTAS against
+ * baselines the prompt-side tracker captured at `/goal` start. They used to be
+ * "how many `/goal` starts have I seen" and "opening prompt + final message",
+ * neither of which measures a turn or a spend, so the budget guard summed
+ * invocation counts into 1+2+...+N and braked a healthy session at ~8 `/goal`s.
+ *
  * Async: telemetry write only — must not block Stop.
  */
 
@@ -22,6 +28,8 @@ import { dirname, join } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { readTurnCount, turnsSpanned } from '../lib/session-turn-counter.js';
+import { loadAccumStateOrNull } from '../lib/session-token-accum.js';
 
 const HOOK_NAME = 'stop/goal-tracker';
 const HISTORY_REL = join('.claude', 'state', 'goal-history.jsonl');
@@ -32,6 +40,10 @@ interface HistoryEntry {
   condition?: string;
   started_at?: string;
   started_token_estimate?: number;
+  /** Turn counter when the run opened — baseline for turns spanned (#3317). */
+  started_turn?: number;
+  /** Accumulator tokens when the run opened — baseline for spend (#3317). */
+  started_tokens?: number;
   ended_at?: string | null;
   ended_token_estimate?: number;
   turn_count?: number;
@@ -90,6 +102,36 @@ function estimateTokens(text: string): number {
   return Math.ceil((text || '').length / 3.5);
 }
 
+/**
+ * Token spend for THIS run (#3317).
+ *
+ * Prefers the session token accumulator — real per-tool-result accounting
+ * written by `posttool/context-crossing-warn` — and takes the delta against
+ * the baseline captured when the run opened, so repeated runs report what each
+ * one actually spent instead of re-reporting the opening prompt every time.
+ *
+ * `currentTokens` is null when the accumulator holds no data for the session
+ * (nothing recorded yet, or an older CC). In that case, and for legacy history
+ * rows written before this field existed, fall back to the original
+ * chars/3.5 estimate so the field is never empty.
+ */
+export function computeRunTokens(
+  open: HistoryEntry,
+  currentTokens: number | null,
+  finalMessageEstimate: number,
+): number {
+  const started = Number(open.started_tokens);
+  if (
+    currentTokens !== null &&
+    Number.isFinite(currentTokens) &&
+    Number.isFinite(started) &&
+    currentTokens > started
+  ) {
+    return Math.round(currentTokens - started);
+  }
+  return (open.started_token_estimate || 0) + finalMessageEstimate;
+}
+
 export function goalTrackerStop(
   input: HookInput,
   ctx: HookContext = NOOP_CTX,
@@ -119,26 +161,18 @@ export function goalTrackerStop(
     return outputSilentSuccess();
   }
 
-  // Heuristic turn count: number of starts for this session in history.
-  let turnCount = 0;
-  for (const line of raw.split(/\r?\n/)) {
-    if (!line.trim()) continue;
-    try {
-      const parsed = JSON.parse(line) as HistoryEntry;
-      if (parsed.session_id === sessionId && parsed.started_at && !parsed.ended_at) {
-        turnCount += 1;
-      }
-    } catch {
-      /* skip */
-    }
-  }
-  // Fall back to 1 if we somehow lost the count.
-  if (turnCount < 1) turnCount = 1;
+  // Real turns spanned by THIS run, measured against the per-session turn
+  // counter (#3317). Recording a per-run delta is what keeps the budget guard's
+  // sum honest: summing deltas across runs gives total turns spent under
+  // `/goal`, whereas the old invocation count summed to 1+2+...+N.
+  const turnCount = turnsSpanned(open.started_turn, readTurnCount(sessionId));
 
   const status = inferStatus(input, turnCount);
-  const endedTokenEstimate =
-    (open.started_token_estimate || 0) +
-    estimateTokens(input.last_assistant_message || '');
+  const endedTokenEstimate = computeRunTokens(
+    open,
+    loadAccumStateOrNull(projectDir, sessionId)?.estimatedTokens ?? null,
+    estimateTokens(input.last_assistant_message || ''),
+  );
 
   const endEntry: HistoryEntry = {
     session_id: sessionId,

@@ -132,6 +132,94 @@ describe('goalTrackerStop hook', () => {
     expect(lines.length).toBe(1);
   });
 
+  // ===========================================================================
+  // #3317 — turn_count must come from the real per-session turn counter, not
+  // from counting `/goal` START lines in goal-history.jsonl.
+  // ===========================================================================
+
+  describe('#3317 turn_count sources the real turn counter', () => {
+    let prevPluginData: string | undefined;
+
+    beforeEach(() => {
+      prevPluginData = process.env.CLAUDE_PLUGIN_DATA;
+      process.env.CLAUDE_PLUGIN_DATA = join(tmp, 'plugin-data');
+    });
+
+    afterEach(() => {
+      if (prevPluginData === undefined) delete process.env.CLAUDE_PLUGIN_DATA;
+      else process.env.CLAUDE_PLUGIN_DATA = prevPluginData;
+    });
+
+    /** Seed the counter prompt/cache-break-detector maintains for a session. */
+    function writeTurnCounter(sessionId: string, turnCount: number): void {
+      const dir = join(tmp, 'plugin-data', 'sessions', sessionId);
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(
+        join(dir, 'cache-break-state.json'),
+        JSON.stringify({ lastShapeHash: 'h', lastMarkers: [], turnCount }),
+      );
+    }
+
+    function lastClosing(): Record<string, unknown> {
+      const path = join(tmp, '.claude', 'state', 'goal-history.jsonl');
+      const lines = readFileSync(path, 'utf8').trim().split('\n');
+      return JSON.parse(lines[lines.length - 1]);
+    }
+
+    it('records the turns actually spanned by the run', () => {
+      writeHistory([
+        {
+          session_id: 'sess-T',
+          condition: 'c',
+          started_at: '2026-05-12T00:00:00Z',
+          started_token_estimate: 100,
+          started_turn: 3,
+          ended_at: null,
+        },
+      ]);
+      writeTurnCounter('sess-T', 9); // run spanned turns 3..9 inclusive = 7
+
+      goalTrackerStop(
+        {
+          tool_name: '',
+          session_id: 'sess-T',
+          tool_input: {},
+          last_assistant_message: 'done.',
+          stop_hook_active: false,
+        },
+        createTestContext({ projectDir: tmp, sessionId: 'sess-T' }),
+      );
+
+      expect(lastClosing().turn_count).toBe(7);
+    });
+
+    it('does not inflate turn_count with the number of prior /goal starts', () => {
+      // Four earlier `/goal` starts for this session, none carrying a
+      // started_turn baseline (legacy rows). The old code counted these lines
+      // and wrote turn_count: 4.
+      writeHistory([
+        { session_id: 'sess-L', condition: 'c1', started_at: 't1', ended_at: null },
+        { session_id: 'sess-L', condition: 'c2', started_at: 't2', ended_at: null },
+        { session_id: 'sess-L', condition: 'c3', started_at: 't3', ended_at: null },
+        { session_id: 'sess-L', condition: 'c4', started_at: 't4', ended_at: null },
+      ]);
+      writeTurnCounter('sess-L', 4);
+
+      goalTrackerStop(
+        {
+          tool_name: '',
+          session_id: 'sess-L',
+          tool_input: {},
+          last_assistant_message: 'done.',
+          stop_hook_active: false,
+        },
+        createTestContext({ projectDir: tmp, sessionId: 'sess-L' }),
+      );
+
+      expect(lastClosing().turn_count).toBe(1);
+    });
+  });
+
   it('infers aborted when no last_assistant_message and turn_count low', () => {
     writeHistory([
       {

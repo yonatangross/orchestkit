@@ -27,7 +27,7 @@ import { NOOP_CTX } from '../lib/context.js';
 import { writeWithRetry } from '../lib/session-registry.js';
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -35,17 +35,31 @@ const HOOK_NAME = 'lifecycle/session-registrar';
 const SECONDS_PER_DAY = 86_400;
 
 /**
- * Liveness window for peer-collision detection (#2242). A peer whose
- * last_heartbeat is older than this is treated as gone — long enough to
- * survive a slow tool loop, short enough to not warn about a stale row the
- * 24h sweep hasn't reaped yet.
+ * Fallback liveness window for peers with no recorded messaging socket (#2242).
+ * Only reached for rows written before #3318 or by a CC that exports no socket
+ * — for everything else the socket file is the liveness signal (see
+ * isPeerLive). Kept because such a peer still thrashes the working tree, so
+ * dropping it from the warning would trade a wrong pid for a missing warning.
  */
 const PEER_LIVENESS_WINDOW = 300;
+
+/**
+ * sessions.pid when no addressable Claude Code pid is available (#3318).
+ *
+ * Deliberately NOT process.pid. Hooks run as a short-lived `node run-hook.mjs`
+ * child that exits before anything reads the row, so recording it produced a
+ * pid that always looked plausible and was never reachable. 0 cannot be
+ * mistaken for a real process, and formatPeerWarning renders it as "unknown".
+ */
+const PID_UNKNOWN = 0;
 
 /** One concurrent session sharing this repo + branch + main working tree. */
 interface PeerRow {
   sid: string;
+  /** The peer's Claude Code pid, or PID_UNKNOWN when it recorded none. */
   pid: number;
+  /** The peer's CC messaging socket, or null when it is not reachable that way. */
+  messagingSocket: string | null;
 }
 
 /**
@@ -140,6 +154,30 @@ function getCcVersion(): string | null {
 }
 
 /**
+ * Resolve the pid of the Claude Code process that owns this hook (#3318).
+ *
+ * CC exports CLAUDE_PID and the hook child inherits it. There is deliberately
+ * no process.ppid fallback: whether the parent is CC or a shell it spawned
+ * depends on how CC invokes the hook, so ppid is another unverifiable guess of
+ * exactly the kind this function exists to remove. Unknown stays unknown.
+ */
+function getCcPid(): number {
+  const raw = process.env.CLAUDE_PID;
+  if (!raw) return PID_UNKNOWN;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : PID_UNKNOWN;
+}
+
+/**
+ * The peer-messaging socket CC exports for this session, verbatim (#3318).
+ * Stored as-is and never reconstructed from a pid — the path shape is CC's
+ * contract, not ours.
+ */
+function getMessagingSocket(): string | null {
+  return process.env.CLAUDE_CODE_MESSAGING_SOCKET || null;
+}
+
+/**
  * Sweep stale sessions + expired locks. Runs inside the hook's write
  * transaction. Pure SQL — no JS allocation per row.
  */
@@ -169,28 +207,57 @@ function register(
     now: number;
     cc_version: string | null;
     ork_version: string | null;
+    messaging_socket: string | null;
   },
 ): void {
   db.prepare(
     `INSERT INTO sessions (
        sid, pid, cwd, repo_hash, repo_path, worktree_path, branch,
-       status, started_at, last_heartbeat, cc_version, ork_version
+       status, started_at, last_heartbeat, cc_version, ork_version,
+       messaging_socket
      ) VALUES (
        @sid, @pid, @cwd, @repo_hash, @repo_path, @worktree_path, @branch,
-       'running', @now, @now, @cc_version, @ork_version
+       'running', @now, @now, @cc_version, @ork_version,
+       @messaging_socket
      )
      ON CONFLICT(sid) DO UPDATE SET
-       pid            = excluded.pid,
-       cwd            = excluded.cwd,
-       repo_hash      = excluded.repo_hash,
-       repo_path      = excluded.repo_path,
-       worktree_path  = excluded.worktree_path,
-       branch         = excluded.branch,
-       status         = 'running',
-       last_heartbeat = excluded.last_heartbeat,
-       cc_version     = excluded.cc_version,
-       ork_version    = excluded.ork_version`,
+       pid              = excluded.pid,
+       cwd              = excluded.cwd,
+       repo_hash        = excluded.repo_hash,
+       repo_path        = excluded.repo_path,
+       worktree_path    = excluded.worktree_path,
+       branch           = excluded.branch,
+       status           = 'running',
+       last_heartbeat   = excluded.last_heartbeat,
+       cc_version       = excluded.cc_version,
+       ork_version      = excluded.ork_version,
+       messaging_socket = excluded.messaging_socket`,
   ).run(row);
+}
+
+/**
+ * Is this peer row still a live session? (#3318)
+ *
+ * A recorded messaging socket is the authoritative signal: CC creates the
+ * socket file for the session's lifetime, so its presence answers "is that
+ * session still there" directly instead of inferring it from how recently the
+ * peer happened to run a tool. That matters because last_heartbeat only moves
+ * on PostToolUse — an alive-but-idle session (waiting on the operator) goes
+ * heartbeat-stale in 5 minutes and used to vanish from the warning.
+ *
+ * Rows with no socket keep the heartbeat window as the fallback bound.
+ *
+ * Known residue: a SIGKILLed CC leaves its socket file behind, so such a peer
+ * reads as live until the 24h status sweep reaps the row. That is a strictly
+ * smaller error than the status quo, where the identifier was wrong 100% of
+ * the time, and it is bounded by an existing mechanism.
+ */
+function isPeerLive(
+  row: { messaging_socket: string | null; last_heartbeat: number },
+  nowSec: number,
+): boolean {
+  if (row.messaging_socket) return existsSync(row.messaging_socket);
+  return row.last_heartbeat > nowSec - PEER_LIVENESS_WINDOW;
 }
 
 /**
@@ -212,19 +279,31 @@ function findPeers(
   },
 ): PeerRow[] {
   if (!args.branch || args.worktreePath !== null) return [];
+  // Liveness is decided per-row in isPeerLive, not by a SQL heartbeat bound:
+  // the socket test needs a filesystem stat, which SQL cannot do.
   const rows = db
     .prepare(
-      `SELECT sid, pid FROM sessions
+      `SELECT sid, pid, messaging_socket, last_heartbeat FROM sessions
        WHERE status = 'running' AND repo_hash = ? AND branch = ?
-         AND worktree_path IS NULL AND sid != ? AND last_heartbeat > ?`,
+         AND worktree_path IS NULL AND sid != ?`,
     )
-    .all(
-      args.repoHash,
-      args.branch,
-      args.sid,
-      args.nowSec - PEER_LIVENESS_WINDOW,
-    ) as Array<Record<string, unknown>>;
-  return rows.map(r => ({ sid: String(r.sid), pid: Number(r.pid) }));
+    .all(args.repoHash, args.branch, args.sid) as Array<Record<string, unknown>>;
+  return rows
+    .map(r => ({
+      sid: String(r.sid),
+      pid: Number(r.pid),
+      messaging_socket: r.messaging_socket == null ? null : String(r.messaging_socket),
+      last_heartbeat: Number(r.last_heartbeat),
+    }))
+    .filter(r => isPeerLive(r, args.nowSec))
+    .map(r => ({ sid: r.sid, pid: r.pid, messagingSocket: r.messaging_socket }));
+}
+
+/** Render one peer's identity — never a pid the operator cannot look up. */
+function describePeer(p: PeerRow): string {
+  const pid = p.pid > PID_UNKNOWN ? `pid ${p.pid}` : 'pid unknown';
+  const reach = p.messagingSocket ? '' : ', no messaging socket';
+  return `  - session ${p.sid.slice(0, 8)} (${pid}${reach})`;
 }
 
 /** Build the worktree-recommendation warning injected as SessionStart context. */
@@ -234,9 +313,7 @@ function formatPeerWarning(
   branch: string,
 ): string {
   const repoName = repoPath.split('/').filter(Boolean).pop() || 'repo';
-  const list = peers
-    .map(p => `  - session ${p.sid.slice(0, 8)} (pid ${p.pid})`)
-    .join('\n');
+  const list = peers.map(describePeer).join('\n');
   return [
     `WARNING: ${peers.length} other Claude Code session(s) running in this repo on branch '${branch}', sharing the same working tree:`,
     list,
@@ -269,7 +346,9 @@ export function sessionRegistrar(
       sweep(db, nowSec);
       register(db, {
         sid,
-        pid: process.pid,
+        // #3318: the CC process, NOT process.pid (the hook child, already gone).
+        pid: getCcPid(),
+        messaging_socket: getMessagingSocket(),
         cwd,
         repo_hash: repoHash,
         repo_path: repoPath,
@@ -299,6 +378,8 @@ export const __internals = {
   sweep,
   register,
   getRepoPath,
+  getCcPid,
+  isPeerLive,
   findPeers,
   formatPeerWarning,
 };

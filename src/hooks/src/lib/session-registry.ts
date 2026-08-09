@@ -59,9 +59,13 @@ function newDatabase(dbPath: string): DatabaseSync {
   }
 }
 
-/** Per-row types matching the schema in 001-initial.sql. */
+/** Per-row types matching the schema in 001-initial.sql (+ later migrations). */
 export interface SessionRow {
   sid: string;
+  /**
+   * The Claude Code process pid, or 0 when unknown (#3318, migration 004).
+   * NEVER the pid of the `node run-hook.mjs` child that wrote the row.
+   */
   pid: number;
   cwd: string;
   repo_hash: string;
@@ -75,6 +79,8 @@ export interface SessionRow {
   ended_at: number | null;
   cc_version: string | null;
   ork_version: string | null;
+  /** CLAUDE_CODE_MESSAGING_SOCKET verbatim; null = not reachable that way. */
+  messaging_socket: string | null;
 }
 
 export interface LockRow {

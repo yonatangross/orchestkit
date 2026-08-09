@@ -43,10 +43,19 @@ Agent(
 
 ## Hooks That Fire
 
-- `WorktreeCreate` → `worktree-lifecycle-logger` (logs creation)
-- `WorktreeRemove` → `worktree-lifecycle-logger` (logs cleanup)
 - `SubagentStart` → `unified-dispatcher` (logs agent spawn)
 - `SubagentStop` → `unified-dispatcher` (logs completion)
+- `WorktreeRemove` → `lifecycle/webhook-forwarder` (async telemetry only)
+
+**ork registers nothing on `WorktreeCreate`, deliberately (#3366).** CC treats
+that event as all-or-nothing: if *any* hook is registered on it, CC hands the
+whole of provisioning to the hook and its own native branch never runs. ork used
+to register `worktree/worktree-provisioner` there, which silently disabled
+`.worktreeinclude`, `worktree.baseRef`, `settings.local.json` propagation,
+PR-based worktrees and branch cleanup. Those hooks (`worktree-provisioner`,
+`exit-finalizer`, `worktree-lifecycle-logger`) are deleted; CC provisions
+worktrees natively again. Do not re-register anything on `WorktreeCreate` —
+`hooks-json-wiring.test.ts` asserts the event stays empty.
 
 ## Required Setting (CC ≥ 2.1.133)
 
@@ -61,6 +70,10 @@ CC 2.1.133 reintroduced a `worktree.baseRef` setting whose default `"fresh"` bra
 ```
 
 Add this to `.claude/settings.json` (project) or `~/.claude/settings.json` (user). Without it, agents spawned via `Agent(... isolation: "worktree")` start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, and tests will run against stale source.
+
+**This is operator-owned, and unset by default.** ork does not ship it and cannot: a plugin's bundled `settings.json` only supplies the `agent` and `subagentStatusLine` keys, so `worktree.baseRef` declared there would be inert. Any skill that claims ork sets it is wrong — check the two files above and, if the key is absent, the effective value is CC's default `"fresh"`. Nothing in `ork:doctor` flags a missing `baseRef` today, so this is a manual check.
+
+> **Only effective since #3366.** Before that, ork registered its own hook on `WorktreeCreate`, which replaced CC's native provisioning wholesale and made `worktree.baseRef` inert *even when the operator had set it correctly*. On any ork build carrying `worktree/worktree-provisioner`, setting `"head"` changed nothing. Since #3366 removed that hook, CC provisions natively and the setting takes effect as documented.
 
 ## Branch base (CC 2.1.128–2.1.132 default, CC 2.1.133+ with `baseRef: "head"`)
 

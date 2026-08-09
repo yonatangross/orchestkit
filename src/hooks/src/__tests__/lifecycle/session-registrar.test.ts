@@ -12,7 +12,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
@@ -36,12 +36,21 @@ describe('lifecycle/session-registrar (#1912)', () => {
   let workDir: string;
   let dbPath: string;
   let prevDbEnv: string | undefined;
+  let prevCcPid: string | undefined;
+  let prevSocket: string | undefined;
 
   beforeEach(() => {
     workDir = mkdtempSync(join(tmpdir(), 'ork-registrar-'));
     dbPath = join(workDir, 'sessions.db');
     prevDbEnv = process.env.ORK_SESSION_DB;
     process.env.ORK_SESSION_DB = dbPath;
+    // #3318: both are read from the ambient CC env. Snapshot + clear so a test
+    // machine that really is inside CC can't leak a live pid/socket into the
+    // assertions below.
+    prevCcPid = process.env.CLAUDE_PID;
+    prevSocket = process.env.CLAUDE_CODE_MESSAGING_SOCKET;
+    delete process.env.CLAUDE_PID;
+    delete process.env.CLAUDE_CODE_MESSAGING_SOCKET;
     __resetDbForTests();
   });
 
@@ -49,6 +58,10 @@ describe('lifecycle/session-registrar (#1912)', () => {
     __resetDbForTests();
     if (prevDbEnv === undefined) delete process.env.ORK_SESSION_DB;
     else process.env.ORK_SESSION_DB = prevDbEnv;
+    if (prevCcPid === undefined) delete process.env.CLAUDE_PID;
+    else process.env.CLAUDE_PID = prevCcPid;
+    if (prevSocket === undefined) delete process.env.CLAUDE_CODE_MESSAGING_SOCKET;
+    else process.env.CLAUDE_CODE_MESSAGING_SOCKET = prevSocket;
     rmSync(workDir, { recursive: true, force: true });
   });
 
@@ -59,12 +72,84 @@ describe('lifecycle/session-registrar (#1912)', () => {
 
     const db = new DatabaseSync(dbPath, { readOnly: true });
     const row = db
-      .prepare('SELECT sid, status, pid FROM sessions WHERE sid=?')
-      .get('s-fresh') as { sid: string; status: string; pid: number } | undefined;
+      .prepare('SELECT sid, status FROM sessions WHERE sid=?')
+      .get('s-fresh') as { sid: string; status: string } | undefined;
     db.close();
     expect(row?.sid).toBe('s-fresh');
     expect(row?.status).toBe('running');
-    expect(row?.pid).toBe(process.pid);
+  });
+
+  // --- Addressable identity (#3318) -----------------------------------------
+  //
+  // The old assertion here was `expect(row?.pid).toBe(process.pid)`, which
+  // encoded the defect: under CC, process.pid is the `node run-hook.mjs` CHILD,
+  // which has already exited by the time anyone reads the row. It is corrected
+  // (not weakened) below — a test that asserts the bug cannot catch the bug.
+
+  it('stores the Claude Code pid, NOT the ephemeral hook child pid', () => {
+    // A pid that is definitively not this test process — proves the registrar
+    // reads the CC-provided value instead of falling back to process.pid.
+    process.env.CLAUDE_PID = '424242';
+    sessionRegistrar(makeInput('s-pid', workDir), NOOP_CTX);
+
+    const db = new DatabaseSync(dbPath, { readOnly: true });
+    const row = db
+      .prepare('SELECT pid FROM sessions WHERE sid=?')
+      .get('s-pid') as { pid: number };
+    db.close();
+    expect(row.pid).toBe(424_242);
+    expect(row.pid).not.toBe(process.pid);
+  });
+
+  it('writes pid=0 (unknown) rather than the hook child pid when CLAUDE_PID is absent', () => {
+    // No CLAUDE_PID (cleared in beforeEach). There is no addressable pid, so
+    // the row must say so instead of recording a process that is already gone.
+    sessionRegistrar(makeInput('s-nopid', workDir), NOOP_CTX);
+
+    const db = new DatabaseSync(dbPath, { readOnly: true });
+    const row = db
+      .prepare('SELECT pid FROM sessions WHERE sid=?')
+      .get('s-nopid') as { pid: number };
+    db.close();
+    expect(row.pid).not.toBe(process.pid);
+    expect(row.pid).toBe(0);
+  });
+
+  it('ignores a non-numeric CLAUDE_PID instead of writing the hook child pid', () => {
+    process.env.CLAUDE_PID = 'not-a-pid';
+    sessionRegistrar(makeInput('s-badpid', workDir), NOOP_CTX);
+
+    const db = new DatabaseSync(dbPath, { readOnly: true });
+    const row = db
+      .prepare('SELECT pid FROM sessions WHERE sid=?')
+      .get('s-badpid') as { pid: number };
+    db.close();
+    expect(row.pid).toBe(0);
+    expect(row.pid).not.toBe(process.pid);
+  });
+
+  it('records the peer-messaging socket verbatim from the CC env', () => {
+    const sock = join(workDir, 'cc.sock');
+    process.env.CLAUDE_CODE_MESSAGING_SOCKET = sock;
+    sessionRegistrar(makeInput('s-sock', workDir), NOOP_CTX);
+
+    const db = new DatabaseSync(dbPath, { readOnly: true });
+    const row = db
+      .prepare('SELECT messaging_socket FROM sessions WHERE sid=?')
+      .get('s-sock') as { messaging_socket: string | null };
+    db.close();
+    expect(row.messaging_socket).toBe(sock);
+  });
+
+  it('records a NULL socket when CC exports none', () => {
+    sessionRegistrar(makeInput('s-nosock', workDir), NOOP_CTX);
+
+    const db = new DatabaseSync(dbPath, { readOnly: true });
+    const row = db
+      .prepare('SELECT messaging_socket FROM sessions WHERE sid=?')
+      .get('s-nosock') as { messaging_socket: string | null };
+    db.close();
+    expect(row.messaging_socket).toBeNull();
   });
 
   it('is idempotent — running twice updates rather than fails', () => {
@@ -116,20 +201,24 @@ describe('lifecycle/session-registrar (#1912)', () => {
     worktreePath?: string | null;
     heartbeatAgeSec?: number;
     status?: string;
+    pid?: number;
+    messagingSocket?: string | null;
   }): void {
     const db = openDb();
     const now = Math.floor(Date.now() / 1000);
     db.prepare(
-      `INSERT INTO sessions (sid, pid, cwd, repo_hash, repo_path, worktree_path, branch, started_at, last_heartbeat, status)
-       VALUES (?, 4242, '/x', ?, '/x', ?, ?, ?, ?, ?)`,
+      `INSERT INTO sessions (sid, pid, cwd, repo_hash, repo_path, worktree_path, branch, started_at, last_heartbeat, status, messaging_socket)
+       VALUES (?, ?, '/x', ?, '/x', ?, ?, ?, ?, ?, ?)`,
     ).run(
       opts.sid,
+      opts.pid ?? 4242,
       opts.repoHash,
       opts.worktreePath ?? null,
       opts.branch,
       now,
       now - (opts.heartbeatAgeSec ?? 0),
       opts.status ?? 'running',
+      opts.messagingSocket ?? null,
     );
     db.close();
     __resetDbForTests();
@@ -217,6 +306,96 @@ describe('lifecycle/session-registrar (#1912)', () => {
     });
     db.close();
     expect(peers).toEqual([]);
+  });
+
+  // --- Liveness is the socket, not a heartbeat guess (#3318) ----------------
+
+  it('treats a peer with a live socket as live even when its heartbeat is stale', () => {
+    // An idle-but-alive session stops writing PostToolUse heartbeats, so the
+    // 300s window alone reports it as gone. The socket file is the real signal.
+    const sock = join(workDir, 'peer-live.sock');
+    writeFileSync(sock, '');
+    const repoHash = repoHashFor(workDir);
+    seedPeer({
+      sid: 's-peer',
+      repoHash,
+      branch: 'feature-x',
+      heartbeatAgeSec: 3_600,
+      messagingSocket: sock,
+    });
+
+    const db = openDb();
+    const peers = __internals.findPeers(db, {
+      sid: 's-me',
+      repoHash,
+      branch: 'feature-x',
+      worktreePath: null,
+      nowSec: Math.floor(Date.now() / 1000),
+    });
+    db.close();
+    expect(peers.map(p => p.sid)).toEqual(['s-peer']);
+    expect(peers[0]?.messagingSocket).toBe(sock);
+  });
+
+  it('does NOT warn about a peer whose socket is gone, however fresh its heartbeat', () => {
+    const repoHash = repoHashFor(workDir);
+    seedPeer({
+      sid: 's-peer',
+      repoHash,
+      branch: 'feature-x',
+      heartbeatAgeSec: 0,
+      messagingSocket: join(workDir, 'never-created.sock'),
+    });
+
+    const db = openDb();
+    const peers = __internals.findPeers(db, {
+      sid: 's-me',
+      repoHash,
+      branch: 'feature-x',
+      worktreePath: null,
+      nowSec: Math.floor(Date.now() / 1000),
+    });
+    db.close();
+    expect(peers).toEqual([]);
+  });
+
+  it('falls back to the heartbeat window for a peer with no recorded socket', () => {
+    // Rows written by an older ork build (or a CC that exports no socket) still
+    // thrash the working tree, so they must still warn — bounded by heartbeat.
+    const repoHash = repoHashFor(workDir);
+    seedPeer({ sid: 's-peer', repoHash, branch: 'feature-x', messagingSocket: null });
+
+    const db = openDb();
+    const peers = __internals.findPeers(db, {
+      sid: 's-me',
+      repoHash,
+      branch: 'feature-x',
+      worktreePath: null,
+      nowSec: Math.floor(Date.now() / 1000),
+    });
+    db.close();
+    expect(peers.map(p => p.sid)).toEqual(['s-peer']);
+    expect(peers[0]?.messagingSocket).toBeNull();
+  });
+
+  it('prints a real pid, and says "unknown" rather than inventing one', () => {
+    const known = __internals.formatPeerWarning(
+      [{ sid: 's-known-1234', pid: 80_807, messagingSocket: '/tmp/cc-socks/80807.sock' }],
+      '/repo/myproj',
+      'feature-x',
+    );
+    expect(known).toContain('pid 80807');
+    expect(known).not.toContain('pid unknown');
+
+    const unknown = __internals.formatPeerWarning(
+      [{ sid: 's-unknown-99', pid: 0, messagingSocket: null }],
+      '/repo/myproj',
+      'feature-x',
+    );
+    // pid 0 is the "no addressable process" sentinel — it must never be
+    // rendered as if the operator could `ps -p 0` it.
+    expect(unknown).not.toMatch(/pid 0\b/);
+    expect(unknown).toContain('pid unknown');
   });
 
   it('does NOT warn when there is no branch', () => {

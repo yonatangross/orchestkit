@@ -4,7 +4,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { existsSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, readdirSync, utimesSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, readdirSync, utimesSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
@@ -491,6 +491,93 @@ describe('session-cleanup', () => {
 
     test('no headroom dir is a no-op (does not throw)', () => {
       expect(() => sessionCleanup(createHookInput())).not.toThrow();
+    });
+  });
+
+  // ===========================================================================
+  // CC-internal state is off-limits (#3330)
+  // ===========================================================================
+
+  describe('CC-internal sessions index (#3330)', () => {
+    let tmpHome: string;
+    let prevHome: string | undefined;
+
+    beforeEach(() => {
+      tmpHome = mkdtempSync(join(tmpdir(), 'cleanup-ccint-'));
+      prevHome = process.env.HOME;
+      // node:os homedir() reads HOME on POSIX, so this redirects the hook's
+      // view of ~/.claude/projects onto a throwaway tree.
+      process.env.HOME = tmpHome;
+    });
+
+    afterEach(() => {
+      if (prevHome === undefined) delete process.env.HOME; else process.env.HOME = prevHome;
+      try { rmSync(tmpHome, { recursive: true, force: true }); } catch { /* best-effort */ }
+    });
+
+    const ccProjectsDir = () => join(tmpHome, '.claude', 'projects');
+
+    /** Every file under root as path -> contents. */
+    function snapshotTree(root: string): Record<string, string> {
+      const files: Record<string, string> = {};
+      if (!existsSync(root)) return files;
+      const walk = (dir: string): void => {
+        for (const entry of readdirSync(dir, { withFileTypes: true })) {
+          const child = join(dir, entry.name);
+          if (entry.isDirectory()) walk(child);
+          else files[child] = readFileSync(child, 'utf-8');
+        }
+      };
+      walk(root);
+      return files;
+    }
+
+    /**
+     * Seed the CC-internal index at the exact path the deleted scrubber
+     * computed, holding the exact prompt shape it used to rewrite.
+     */
+    function seedSessionsIndex(): string {
+      const encodedPath = TEST_PROJECT_DIR.replace(/\//g, '-');
+      const dir = join(ccProjectsDir(), encodedPath);
+      mkdirSync(dir, { recursive: true });
+      const indexFile = join(dir, 'sessions-index.json');
+      writeFileSync(
+        indexFile,
+        JSON.stringify(
+          {
+            version: 1,
+            entries: [
+              {
+                sessionId: 'cc-internal-1',
+                firstPrompt:
+                  '<command-name>/ork:commit</command-name><command-args>ship it</command-args>',
+                summary: 'machine summary that must never replace the user prompt',
+              },
+            ],
+          },
+          null,
+          4
+        )
+      );
+      return indexFile;
+    }
+
+    test('leaves an existing sessions-index.json byte-identical', () => {
+      const indexFile = seedSessionsIndex();
+      const before = readFileSync(indexFile, 'utf-8');
+
+      sessionCleanup(createHookInput());
+
+      expect(readFileSync(indexFile, 'utf-8')).toBe(before);
+    });
+
+    test('writes nothing anywhere under ~/.claude/projects', () => {
+      seedSessionsIndex();
+      const before = snapshotTree(ccProjectsDir());
+
+      sessionCleanup(createHookInput());
+
+      expect(snapshotTree(ccProjectsDir())).toEqual(before);
     });
   });
 });

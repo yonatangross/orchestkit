@@ -65,10 +65,11 @@ describe('session-registry (#1912)', () => {
       expect(existsSync(dbPath)).toBe(true);
       expect(readPragma(db, 'journal_mode')).toBe('wal');
       expect(readPragma(db, 'foreign_keys')).toBe(1);
-      expect(readPragma(db, 'user_version')).toBe(3);
+      expect(readPragma(db, 'user_version')).toBe(4);
       // All five tables created (skill_invocation added by 002, #2010).
       // 003 adds the routing_edge VIEW — views are type='view', so the
-      // table list below is unchanged by it.
+      // table list below is unchanged by it. 004 (#3318) adds a COLUMN to
+      // sessions, so it leaves the table list unchanged too.
       const tables = db
         .prepare(
           "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name",

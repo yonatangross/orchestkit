@@ -17,18 +17,18 @@
       "exports": 68
     },
     "prompt": {
-      "size": 61557,
-      "sizeKB": "60.11",
+      "size": 62987,
+      "sizeKB": "61.51",
       "exports": 109
     },
     "lifecycle": {
-      "size": 137848,
-      "sizeKB": "134.62",
+      "size": 137021,
+      "sizeKB": "133.81",
       "exports": 68
     },
     "stop": {
-      "size": 36554,
-      "sizeKB": "35.70",
+      "size": 38153,
+      "sizeKB": "37.26",
       "exports": 52
     },
     "subagent": {
@@ -57,8 +57,8 @@
       "exports": 70
     }
   },
-  "totalSize": 689409,
-  "totalSizeKB": "673.25",
+  "totalSize": 691611,
+  "totalSizeKB": "675.40",
   "inputs": 107,
-  "avgBundleSizeKB": "61.20"
+  "avgBundleSizeKB": "61.40"
 }

@@ -23,7 +23,7 @@
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, fnv1aHash } from '../lib/common.js';
 // v7.30.0 (#1266): Removed appendAnalytics — cache break data goes via emit path
-import { getSessionStorageDir } from '../lib/paths.js';
+import { getTurnStateFilePath } from '../lib/session-turn-counter.js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { NOOP_CTX } from '../lib/context.js';
@@ -58,9 +58,6 @@ const SECTION_MARKERS = [
   'context-exhaustion',
   'pipeline-detector',
 ] as const;
-
-/** State file name within session storage */
-const STATE_FILE = 'cache-break-state.json';
 
 // =============================================================================
 // SHAPE EXTRACTION
@@ -98,7 +95,10 @@ interface CacheBreakState {
   lastShapeHash: string;
   /** Sorted marker list from the previous turn */
   lastMarkers: string[];
-  /** Turn counter within session */
+  /**
+   * Turn counter within session. This hook is the sole writer; readers go
+   * through lib/session-turn-counter.ts (#3317).
+   */
   turnCount: number;
 }
 
@@ -107,8 +107,7 @@ interface CacheBreakState {
  * Uses CLAUDE_PLUGIN_DATA-backed session storage for persistence.
  */
 function getStateFilePath(sessionId: string): string {
-  const sessionDir = join(getSessionStorageDir(), sessionId);
-  return join(sessionDir, STATE_FILE);
+  return getTurnStateFilePath(sessionId);
 }
 
 /**

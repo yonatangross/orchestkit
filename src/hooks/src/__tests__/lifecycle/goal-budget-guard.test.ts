@@ -11,6 +11,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { goalBudgetGuard, sumSessionUsage } from '../../lifecycle/goal-budget-guard.js';
+import { goalTracker } from '../../prompt/goal-tracker.js';
+import { goalTrackerStop } from '../../stop/goal-tracker.js';
+import { cacheBreakDetector } from '../../prompt/cache-break-detector.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -105,5 +108,101 @@ describe('goalBudgetGuard hook', () => {
     const result = goalBudgetGuard(input, ctx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
     expect(existsSync(join(tmp, BRAKE_REL))).toBe(false);
+  });
+});
+
+// =============================================================================
+// #3317 — the brake must trip on REAL turns, not on /goal invocation count
+//
+// Before the fix, stop/goal-tracker wrote turn_count = "number of /goal starts
+// seen so far", so the Nth close recorded N. sumSessionUsage then summed those
+// across closed entries, giving 1+2+...+N = N(N+1)/2. Eight one-turn /goal runs
+// therefore reported 36 turns and tripped a ceiling meant for 30 real turns.
+// =============================================================================
+
+describe('#3317 turn accounting across repeated /goal cycles', () => {
+  const SID = 'sess-3317';
+  let prevPluginData: string | undefined;
+
+  beforeEach(() => {
+    prevPluginData = process.env.CLAUDE_PLUGIN_DATA;
+    const pluginData = join(tmp, 'plugin-data');
+    mkdirSync(pluginData, { recursive: true });
+    process.env.CLAUDE_PLUGIN_DATA = pluginData;
+  });
+
+  afterEach(() => {
+    if (prevPluginData === undefined) delete process.env.CLAUDE_PLUGIN_DATA;
+    else process.env.CLAUDE_PLUGIN_DATA = prevPluginData;
+  });
+
+  function ctxFor(sessionId: string) {
+    return createTestContext({ projectDir: tmp, sessionId });
+  }
+
+  /**
+   * One UserPromptSubmit. Advances the REAL per-session turn counter the way
+   * production does (prompt/cache-break-detector owns it), then runs the
+   * /goal start tracker over the same prompt.
+   */
+  function submitPrompt(sessionId: string, prompt: string): void {
+    // cache-break-detector ignores prompts under 50 chars; pad to clear it.
+    const padded = `${prompt}\n${'conversational filler '.repeat(4)}`;
+    cacheBreakDetector(
+      { tool_name: 'UserPromptSubmit', session_id: sessionId, tool_input: {}, prompt: padded },
+      ctxFor(sessionId),
+    );
+    goalTracker(
+      { tool_name: 'UserPromptSubmit', session_id: sessionId, tool_input: {}, prompt },
+      ctxFor(sessionId),
+    );
+  }
+
+  /** A full `/goal` run spanning `turns` real conversational turns. */
+  function runGoalCycle(sessionId: string, turns: number): void {
+    submitPrompt(sessionId, '/goal ship the thing');
+    for (let i = 1; i < turns; i++) submitPrompt(sessionId, 'keep going');
+    goalTrackerStop(
+      {
+        tool_name: '',
+        session_id: sessionId,
+        tool_input: {},
+        last_assistant_message: 'done.',
+        stop_hook_active: false,
+      },
+      ctxFor(sessionId),
+    );
+  }
+
+  function historyRaw(): string {
+    return readFileSync(join(tmp, '.claude', 'state', 'goal-history.jsonl'), 'utf8');
+  }
+
+  it('sums to the real turn count, not the triangular 1+2+...+N', () => {
+    const N = 8;
+    for (let i = 0; i < N; i++) runGoalCycle(SID, 1);
+
+    const totals = sumSessionUsage(historyRaw(), SID);
+    expect(totals.turns).not.toBe((N * (N + 1)) / 2); // 36 — the bug
+    expect(totals.turns).toBe(N);
+  });
+
+  it('does not trip the 30-turn ceiling after 8 one-turn /goal runs', () => {
+    for (let i = 0; i < 8; i++) runGoalCycle(SID, 1);
+
+    goalBudgetGuard({ tool_name: '', session_id: SID, tool_input: {} }, ctxFor(SID));
+    expect(existsSync(join(tmp, BRAKE_REL))).toBe(false);
+  });
+
+  it('trips the ceiling once real turns actually reach it', () => {
+    process.env.ORK_GOAL_MAX_TURNS_PER_SESSION = '12';
+    // ONE /goal invocation that runs long: 12 real turns.
+    runGoalCycle(SID, 12);
+
+    expect(sumSessionUsage(historyRaw(), SID).turns).toBeGreaterThanOrEqual(12);
+
+    goalBudgetGuard({ tool_name: '', session_id: SID, tool_input: {} }, ctxFor(SID));
+    const brake = JSON.parse(readFileSync(join(tmp, BRAKE_REL), 'utf8'));
+    expect(brake.reason).toBe('turns_cap');
   });
 });

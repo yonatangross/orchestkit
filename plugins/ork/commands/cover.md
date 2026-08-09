@@ -237,9 +237,13 @@ Spawn test-generator agents per tier. Launch ALL in ONE message with `run_in_bac
 > completed in 2.1.203; ork's floor is >= 2.1.220, so every supported session
 > gets real isolation. Do not create worktrees by hand before spawning.
 >
-> The new branch's base comes from the `worktree.baseRef` setting (ork sets
-> `"head"` so unpushed local commits are visible to spawned agents), never from
-> a hardcoded branch name. Full pattern:
+> The new branch's base comes from the `worktree.baseRef` setting, never from a
+> hardcoded branch name. **ork does not set it** — a plugin cannot, and no ork
+> settings file carries it. Unless the operator put `"baseRef": "head"` in
+> `.claude/settings.json` or `~/.claude/settings.json`, CC's default `"fresh"`
+> applies: every tier agent branches from `origin/<default>`, unpushed local
+> commits are invisible to it, and `tsc` fails with "cannot find module" for
+> code you just wrote. Verify the setting before spawning. Full pattern:
 > `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/worktree-agent-pattern.md")`
 
 ```python
