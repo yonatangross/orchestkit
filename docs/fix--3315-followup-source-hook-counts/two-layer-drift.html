@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Two-layer drift — fixing the build output instead of the source</title>
+<style>
+  :root {
+    --pg-bg: hsl(20 14% 7%);
+    --pg-ink: hsl(28 20% 94%);
+    --pg-muted: hsl(28 10% 64%);
+    --pg-faint: hsl(28 8% 46%);
+    --pg-line: hsl(0 0% 100% / 0.10);
+    --pg-glass: hsl(0 0% 100% / 0.05);
+    --pg-glass-2: hsl(0 0% 100% / 0.08);
+    --pg-glass-edge: hsl(0 0% 100% / 0.18);
+    --pg-accent: hsl(160 68% 45%);
+    --pg-accent-deep: hsl(166 70% 30%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-shadow: 0 20px 60px -22px hsl(20 40% 2% / 0.7), 0 4px 12px -6px hsl(20 40% 2% / 0.5);
+    --pg-r-md: 16px; --pg-r-lg: 24px;
+    --pg-dur-fast: 200ms;
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+
+    --status-wrong: #f87171;
+    --status-right: #34d399;
+    --status-blind: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 24px 72px;
+    background:
+      radial-gradient(1100px 560px at 50% -10%, hsl(0 40% 18% / 0.30), transparent 60%),
+      var(--pg-bg);
+    color: var(--pg-ink); font-family: var(--pg-font); -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 940px; margin-inline: auto; }
+  .eyebrow { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--pg-warm); font-weight: 700; margin-block-end: 10px; }
+  h1 { margin: 0 0 10px; font-size: clamp(25px, 4vw, 35px); line-height: 1.14; letter-spacing: -0.02em; }
+  .sub { margin: 0 0 30px; color: var(--pg-muted); font-size: 15.5px; max-width: 70ch; line-height: 1.58; }
+  .panel { background: var(--pg-glass); border: 1px solid var(--pg-line); border-radius: var(--pg-r-lg); box-shadow: var(--pg-shadow); padding: 24px; margin-block-end: 20px; }
+  h2 { margin: 0 0 4px; font-size: 17px; letter-spacing: -0.01em; }
+  .hint { margin: 0 0 18px; color: var(--pg-faint); font-size: 13px; }
+  pre { margin: 0; padding: 16px 18px; overflow-x: auto; background: hsl(20 20% 4%); border: 1px solid var(--pg-line); border-radius: 12px; font-family: var(--pg-mono); font-size: 12.5px; line-height: 1.65; color: var(--pg-ink); }
+  .wrong { color: var(--status-wrong); }
+  .right { color: var(--status-right); }
+  .blind { color: var(--status-blind); }
+  p { font-size: 14.5px; line-height: 1.62; color: var(--pg-muted); margin: 0 0 13px; }
+  p:last-child { margin-block-end: 0; }
+  strong { color: var(--pg-ink); font-weight: 640; }
+  code { font-family: var(--pg-mono); font-size: 12.5px; }
+  ul { margin: 0; padding-inline-start: 20px; color: var(--pg-muted); font-size: 14.5px; line-height: 1.62; }
+  li { margin-block-end: 9px; }
+  .copybar { display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-radius: var(--pg-r-md); border: 1px solid var(--pg-glass-edge); background: var(--pg-glass-2); }
+  .copybar .label { flex: 1; font-size: 13px; color: var(--pg-muted); }
+  .copy { flex: none; cursor: pointer; font: inherit; font-weight: 650; font-size: 12.5px; color: hsl(160 40% 8%); border-radius: 11px; padding: 11px 16px; border: 1px solid transparent; background: linear-gradient(180deg, var(--pg-accent), var(--pg-accent-deep)); transition: transform var(--pg-dur-fast) var(--pg-ease); }
+  .copy:hover { transform: translateY(-1px); }
+  .copy.done { background: var(--pg-glass-2); color: var(--pg-ink); border-color: var(--pg-line); }
+  footer { margin-block-start: 26px; color: var(--pg-faint); font-size: 12.5px; line-height: 1.6; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+    .copy:hover { transform: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">follow-up to #3315 / #3366</div>
+  <h1>The fix was applied one layer too late</h1>
+  <p class="sub">
+    #3366 retired 4 hooks, so two prose counts in the docs went stale. They were
+    corrected in the <em>generated</em> pages rather than the sources those pages
+    are built from, which means every <code>npm run build</code> put the wrong
+    numbers back. Nothing went red, because the drift gate does not watch that
+    directory.
+  </p>
+
+  <section class="panel">
+    <h2>The two layers</h2>
+    <p class="hint">Ground truth: <code>bin/count-hooks.sh</code> → GLOBAL=149 TOTAL=215.</p>
+<pre>  SOURCE                                                  <span class="wrong">stale</span>
+  src/skills/doctor/references/hook-validation.md         <span class="wrong">152</span> global entries
+  src/skills/setup/references/readiness-scoring.md        <span class="wrong">218</span> hooks active
+      │
+      │   npm run build   (overwrites, every time)
+      ▼
+  GENERATED                                               <span class="right">correct, and discarded</span>
+  docs/site/content/docs/reference/skills/doctor.mdx      <span class="right">149</span> global entries
+  docs/site/content/docs/reference/skills/setup.mdx       <span class="right">215</span> hooks active</pre>
+  </section>
+
+  <section class="panel">
+    <h2>Why CI stayed green</h2>
+    <p class="hint">Two independent gates, and the file falls between them.</p>
+<pre>ci.yml:77   GENERATED=(plugins/  src/hooks/dist/  README.md  docs/site/lib/generated/)
+                                                        <span class="blind">docs/site/content/ is NOT here</span>
+
+test-docs-site-drift.mjs   TOTAL_CLAIM matches:  "OrchestKit's 219-hook system"
+                           does NOT match:       <span class="blind">"OrchestKit uses 152 global hook entries"</span>
+                                                 <span class="blind">"218 hooks active"</span></pre>
+    <p>
+      The build-drift gate would have caught a rewritten committed file, but only
+      inside four watched directories. The docs-site drift gate would have caught a
+      stale plugin-wide total, but its pattern requires the
+      <code>OrchestKit's N-hook</code> phrasing. Each gate is individually
+      reasonable; the overlap is where this lives.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>What this change does</h2>
+    <ul>
+      <li>Re-stamps both <strong>sources</strong> to 149 / 215, matching <code>count-hooks.sh</code>.</li>
+      <li>Rebuilds, so the generated pages keep the values they already had.</li>
+      <li>Makes <code>npm run build</code> <strong>idempotent</strong>: a second run leaves
+          <code>docs/site/content/</code> clean. That is the falsifiable part — before this
+          change a second build always produced a diff.</li>
+    </ul>
+    <p style="margin-block-start:13px;">
+      Deliberately <strong>not</strong> done here: widening the drift gate to cover
+      <code>docs/site/content/</code>, or loosening the <code>TOTAL_CLAIM</code> pattern.
+      Both are real gaps and both are pre-existing, but changing a required gate's scope
+      is its own decision with its own blast radius, not a rider on a two-line fix.
+    </p>
+  </section>
+
+  <section class="panel">
+    <div class="copybar">
+      <span class="label">Check whether a doc number lives in the source or the build output.</span>
+      <button class="copy" id="copyBtn" type="button">Copy prompt</button>
+    </div>
+  </section>
+
+  <footer>
+    Follow-up to #3315, landed via #3366. Sources re-stamped; build verified idempotent.
+  </footer>
+</div>
+
+<script>
+const PROMPT = [
+  "A number in our docs is stale. Before editing anything, work out WHICH LAYER owns it.",
+  "",
+  "1. Find every file containing the stale value, across the whole repo.",
+  "2. For each hit, decide: is this a SOURCE file or BUILD OUTPUT?",
+  "   In this repo: src/ is source, plugins/ and docs/site/content/ and",
+  "   docs/site/lib/generated/ are generated. When unsure, run the build and see",
+  "   which files the build rewrites - that is the definition, not the path name.",
+  "3. Edit ONLY the source. Then rebuild and confirm the generated copies updated.",
+  "4. Prove idempotence: run the build a SECOND time and confirm a clean git status.",
+  "   If the second run still produces a diff, you edited the wrong layer.",
+  "",
+  "Finally, say whether CI would have caught this. Check the build-drift gate's",
+  "watched-directory list and any docs-drift test's matching patterns, and report",
+  "honestly if the file falls outside both."
+].join("\n");
+
+document.getElementById("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText(PROMPT).then(() => {
+    const b = document.getElementById("copyBtn");
+    b.textContent = "Copied";
+    b.classList.add("done");
+    setTimeout(() => { b.textContent = "Copy prompt"; b.classList.remove("done"); }, 2000);
+  });
+});
+</script>
+</body>
+</html>
