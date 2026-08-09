@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.5](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.4...v10.0.0-alpha.5) (2026-08-09)
+
+
+### Bug Fixes
+
+* **docs:** re-stamp the hook counts in the source, not the build output ([#3369](https://github.com/yonatangross/orchestkit/issues/3369)) ([2d12630](https://github.com/yonatangross/orchestkit/commit/2d1263055cb4bc4a65073ff71a543bb6e787473c))
+* **hooks:** stop owning worktree provisioning, CC does it better ([#3366](https://github.com/yonatangross/orchestkit/issues/3366)) ([6a26db0](https://github.com/yonatangross/orchestkit/commit/6a26db042c7df0febc92db7d56dd79fee35fa96e))
+* **security:** close the two actionable code-scanning alerts ([#3367](https://github.com/yonatangross/orchestkit/issues/3367)) ([4110c92](https://github.com/yonatangross/orchestkit/commit/4110c92ced6ab1d6ddcce1774a91bd8daa7ced77))
+
 ## [10.0.0-alpha.4](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.3...v10.0.0-alpha.4) (2026-08-09)
 
 
