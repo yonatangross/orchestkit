@@ -39,7 +39,10 @@ export type HookEvent =
   | 'MessageDisplay'
   // P3-A3 (CC 2.1.208): observer-only events
   | 'UserPromptExpansion'
-  | 'PostToolBatch';
+  | 'PostToolBatch'
+  // #3327 (CC 2.1.219): fires after /add-dir or the SDK register_repo_root
+  // control request registers a new working directory mid-session
+  | 'DirectoryAdded';
 
 /**
  * Hook input envelope from Claude Code (sent via stdin as JSON)

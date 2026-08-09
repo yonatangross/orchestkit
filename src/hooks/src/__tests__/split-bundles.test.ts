@@ -446,7 +446,16 @@ describe('Cross-Bundle Consistency', () => {
     //             provisions natively again, which restores .worktreeinclude,
     //             worktree.baseRef, settings.local.json propagation,
     //             core.hooksPath, PR worktrees, locking and branch cleanup.
-    expect(totalHooks).toBe(199);
+    // 199 -> 201: #3327 — wired the 2 CC events ork never listened on, both
+    //             observer-only (never block, never modify):
+    //             lifecycle/directory-added (DirectoryAdded, CC 2.1.219) and
+    //             notification/message-display-observer (MessageDisplay, CC
+    //             2.1.152). The MessageDisplay observer is the one reverted on
+    //             2026-07-15 when `claude plugin validate` rejected the key;
+    //             re-probed on CC 2.1.226 and the validator now accepts it
+    //             (it still rejects genuinely unknown keys, so the check is
+    //             live, not disabled).
+    expect(totalHooks).toBe(201);
   });
 });
 

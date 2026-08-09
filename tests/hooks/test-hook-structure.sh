@@ -49,7 +49,11 @@ else
 fi
 
 # 3. All hook event types are valid Claude Code events
-VALID_EVENTS="PreToolUse PostToolUse PostToolUseFailure Notification PermissionRequest PermissionDenied UserPromptSubmit SessionStart SessionEnd PreCompact PostCompact Stop StopFailure SubagentStop SubagentStart TeammateIdle TaskCompleted TaskCreated Setup WorktreeCreate WorktreeRemove ConfigChange CwdChanged FileChanged InstructionsLoaded Elicitation ElicitationResult UserPromptExpansion PostToolBatch"
+# Keep in sync with the HookEvent union in src/hooks/src/types.ts. This list is
+# a hand-maintained literal, so it hard-fails the moment a new event key lands in
+# hooks.json; src/hooks/src/__tests__/e2e/cc-event-registration.test.ts asserts
+# the coupling so the drift is caught in vitest rather than here (#3327).
+VALID_EVENTS="PreToolUse PostToolUse PostToolUseFailure Notification PermissionRequest PermissionDenied UserPromptSubmit SessionStart SessionEnd PreCompact PostCompact Stop StopFailure SubagentStop SubagentStart TeammateIdle TaskCompleted TaskCreated Setup WorktreeCreate WorktreeRemove ConfigChange CwdChanged FileChanged InstructionsLoaded Elicitation ElicitationResult UserPromptExpansion PostToolBatch MessageDisplay DirectoryAdded"
 INVALID_EVENTS=$(python3 -c "
 import json
 valid = set('$VALID_EVENTS'.split())

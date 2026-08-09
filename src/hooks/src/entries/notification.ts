@@ -8,7 +8,10 @@
 // Notification hooks (3)
 import { desktopNotification } from '../notification/desktop.js';
 import { soundNotification } from '../notification/sound.js';
-// P3-A3: MessageDisplay observer (CC 2.1.208) — observer-only telemetry
+// #3327: MessageDisplay observer (CC 2.1.152) — observer-only telemetry.
+// Reverted on 2026-07-15 when `claude plugin validate` rejected the
+// hooks.MessageDisplay key; re-verified accepted on CC 2.1.226.
+import { messageDisplayObserver } from '../notification/message-display-observer.js';
 
 import type { HookFn } from '../types.js';
 
@@ -18,7 +21,8 @@ import type { HookFn } from '../types.js';
 export const hooks: Record<string, HookFn> = {
   'notification/desktop': desktopNotification,
   'notification/sound': soundNotification,
-  // P3-A3: MessageDisplay (CC 2.1.208) — never blocks, never modifies
+  // #3327: MessageDisplay (CC 2.1.152) — never blocks, never modifies
+  'notification/message-display-observer': messageDisplayObserver,
 };
 
 export function getHook(name: string): HookFn | undefined {

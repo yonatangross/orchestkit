@@ -17,6 +17,9 @@ import { patternSyncPush } from '../lifecycle/pattern-sync-push.js';
 import { sessionCleanup } from '../lifecycle/session-cleanup.js';
 import { cwdChanged } from '../lifecycle/cwd-changed.js';
 import { fileChanged } from '../lifecycle/file-changed.js';
+// #3327: DirectoryAdded (CC 2.1.219) — observer-only telemetry for /add-dir
+// and the SDK register_repo_root control request.
+import { directoryAdded } from '../lifecycle/directory-added.js';
 import { sessionEnvSetup } from '../lifecycle/session-env-setup.js';
 import { dependencyVersionCheck } from '../lifecycle/dependency-version-check.js';
 import { ccVersionCheck } from '../lifecycle/cc-version-check.js';
@@ -118,6 +121,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/session-cleanup': sessionCleanup,
   'lifecycle/cwd-changed': cwdChanged,
   'lifecycle/file-changed': fileChanged,
+  // #3327: DirectoryAdded (CC 2.1.219) — never blocks, never modifies
+  'lifecycle/directory-added': directoryAdded,
   'lifecycle/session-env-setup': sessionEnvSetup,
   'lifecycle/dependency-version-check': dependencyVersionCheck,
   'lifecycle/cc-version-check': ccVersionCheck,

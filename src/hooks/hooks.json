@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 149 global + 45 agent-scoped + 21 skill-scoped = 215 total hooks. Registry history lives in README.md (Registry changelog) - do not append changelog prose here, only re-stamp the counts.",
+  "description": "OrchestKit hooks - 151 global + 45 agent-scoped + 21 skill-scoped = 217 total hooks. Registry history lives in README.md (Registry changelog) - do not append changelog prose here, only re-stamp the counts.",
   "hooks": {
     "PreToolUse": [
       {
@@ -1038,6 +1038,23 @@
         ]
       }
     ],
+    "DirectoryAdded": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/directory-added"
+            ]
+          }
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "hooks": [
@@ -1370,6 +1387,23 @@
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
               "subagent-stop/unified-dispatcher"
+            ]
+          }
+        ]
+      }
+    ],
+    "MessageDisplay": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "notification/message-display-observer"
             ]
           }
         ]

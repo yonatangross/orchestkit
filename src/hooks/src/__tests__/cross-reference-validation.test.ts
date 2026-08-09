@@ -259,6 +259,9 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
       ElicitationResult: ['elicitation', 'lifecycle'],
       CwdChanged: ['lifecycle'],
       FileChanged: ['lifecycle'],
+      // #3327: the two CC events ork never listened on. Both observer-only.
+      DirectoryAdded: ['lifecycle'],
+      MessageDisplay: ['notification', 'lifecycle'],
     };
 
     for (const [eventType, entries] of Object.entries(hooksJson.hooks)) {

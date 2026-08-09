@@ -53,6 +53,12 @@ const INTENTIONAL_EXCLUSIONS = new Set<string>([
   // forwarders already summarize. Revisit once live payload shapes are known.
   'PostToolBatch',
   'UserPromptExpansion',
+  // #3327: same rationale, same shape. MessageDisplay is the highest-frequency
+  // event CC exposes (once per displayed assistant delta) and DirectoryAdded is
+  // rare enough that a dedicated forwarder buys nothing SessionEnd doesn't
+  // already summarize. Both handlers are size-capped logHook observers.
+  'MessageDisplay',
+  'DirectoryAdded',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -176,7 +182,10 @@ describe('Webhook Forwarder Coverage Validator', () => {
     // CC's hasWorktreeCreateHook() flips on ANY registered hook, so leaving the
     // forwarder there would keep CC out of its own provisioning path with
     // nothing left to provision. Forwarding on WorktreeRemove is unaffected.
-    expect(eventCount).toBe(28);
+    // 28 -> 30: #3327 — MessageDisplay + DirectoryAdded, the last two CC events
+    // ork never listened on. Both observer-only; forwarding deliberately
+    // deferred via INTENTIONAL_EXCLUSIONS above.
+    expect(eventCount).toBe(30);
   });
 
   test('detects standalone webhook-forwarder entries', () => {

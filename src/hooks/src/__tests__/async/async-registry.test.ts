@@ -176,7 +176,10 @@ describe('Async Hooks Registry', () => {
       //             hasWorktreeCreateHook() flips on ANY registered hook, so the
       //             forwarder had to go too or CC would keep skipping its own
       //             provisioning with nothing left to provision.
-      expect(asyncHooks.length, 'Should have exactly 105 async hooks').toBe(105);
+      // 105 -> 107: #3327 — lifecycle/directory-added (DirectoryAdded) and
+      //             notification/message-display-observer (MessageDisplay),
+      //             both async 5s observer-only hooks.
+      expect(asyncHooks.length, 'Should have exactly 107 async hooks').toBe(107);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
