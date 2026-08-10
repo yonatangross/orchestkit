@@ -2,26 +2,27 @@
 // Created: 2026-03-02
 
 /**
- * GitHub Label Enforcer Hook — #916
- * Blocks `gh issue create` and warns on `gh pr create` without --label flag.
+ * GitHub Label Enforcer Hook — #916, #3389
+ * Auto-appends --label to `gh issue create` and warns on `gh pr create`
+ * without --label. Skips commands that explicitly target another repo.
  *
  * Zero network calls, zero latency — pure flag parsing.
- * Phase 2 blocking check inside sync-bash-dispatcher.
+ * Phase 2 check inside sync-bash-dispatcher.
  */
 
 import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
-  outputDeny,
   outputAllowWithContext,
   outputPreToolAdvisory,
 } from '../../lib/common.js';
 import { isCompoundCommand } from '../../lib/normalize-command.js';
+import { hasExplicitRepoTarget, inferIssueLabel } from '../../lib/gh-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Check for --label flag in gh issue/pr create commands.
- * Blocks issue creation without labels; warns on PR creation.
+ * Auto-corrects issue creation without labels; warns on PR creation.
  */
 export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
@@ -41,7 +42,16 @@ export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): 
     return outputSilentSuccess();
   }
 
-  // Issue creation: BLOCK when denying is free, ADVISE when it would destroy work.
+  // Explicit --repo/-R/GH_REPO target: OUT OF SCOPE. Label taxonomies are
+  // repo-local; this hook cannot verify the target repo even has our labels,
+  // and appending one that does not exist turns a labelling nit into a hard
+  // gh failure. Filed as #3389 after a third-party issue was hard-denied.
+  if (hasExplicitRepoTarget(command)) {
+    ctx.log('gh-label-enforcer', 'Skipped: explicit repo target — label taxonomy is repo-local');
+    return outputSilentSuccess();
+  }
+
+  // Issue creation: AUTO-CORRECT when rewriting is safe, ADVISE when not.
   //
   // A PreToolUse deny aborts before execution, so refusing a COMPOUND command
   // throws away every earlier segment too. Reported as #3283: a blocked
@@ -52,14 +62,14 @@ export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): 
   // label is a policy nit, not a hazard, unlike the safety hooks that share
   // this dispatcher and correctly deny compound commands outright.
   if (isIssueCreate) {
-    const labels = `  --label bug        (defect or error)
+    if (isCompoundCommand(command)) {
+      // Appending --label to a compound string cannot target the right
+      // segment without a real parser, so this stays an advisory.
+      const advisory = `[gh-label-enforcer] This \`gh issue create\` has no --label. Add one when you re-run it:
+  --label bug        (defect or error)
   --label enhancement (new feature or improvement)
   --label chore      (maintenance task)
-  --label docs       (documentation)`;
-
-    if (isCompoundCommand(command)) {
-      const advisory = `[gh-label-enforcer] This \`gh issue create\` has no --label. Add one when you re-run it:
-${labels}
+  --label docs       (documentation)
 
 (Not blocking: this command chains other work, and denying it here would
 discard the earlier segments without running them.)`;
@@ -71,14 +81,22 @@ discard the earlier segments without running them.)`;
       return outputPreToolAdvisory(advisory);
     }
 
-    const msg = `Missing --label flag. Add a label to categorize this issue:
-${labels}
-
-Example: gh issue create --title "Fix auth" --label bug`;
-
-    ctx.logPermission('deny', 'Issue creation blocked: missing --label', input);
-    ctx.log('gh-label-enforcer', 'Blocked gh issue create without --label');
-    return outputDeny(msg);
+    // Simple command: rewrite it instead of denying it (#3389). This hook
+    // used to outputDeny here, which cost the whole turn over a nit the hook
+    // could fix itself. updatedInput (CC 2.1.25) appends an inferred label;
+    // the rewritten command still goes through the normal permission prompt —
+    // no permissionDecision is set, so nothing is granted implicitly.
+    const label = inferIssueLabel(command);
+    ctx.log('gh-label-enforcer', `Auto-appended --label ${label} to gh issue create`);
+    return {
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        updatedInput: { ...input.tool_input, command: `${command} --label ${label}` },
+        additionalContext: `[gh-label-enforcer] Auto-appended --label ${label} (inferred from the title). If that is the wrong category, fix it after creation: gh issue edit <n> --add-label <right-one> --remove-label ${label}.`,
+      },
+    };
   }
 
   // PR creation: WARN (advisory)

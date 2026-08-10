@@ -14,6 +14,7 @@ import {
   outputSilentSuccess,
   outputAllowWithContext,
 } from '../../lib/common.js';
+import { hasExplicitRepoTarget } from '../../lib/gh-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 /**
@@ -32,6 +33,14 @@ export function ghMilestoneEnforcer(input: HookInput, ctx: HookContext = NOOP_CT
   const hasMilestone = /--milestone\s+\S+|-m\s+\S+/.test(command);
 
   if (hasMilestone) {
+    return outputSilentSuccess();
+  }
+
+  // Explicit --repo/-R/GH_REPO target: OUT OF SCOPE. Milestones are
+  // repo-local; nudging about OUR sprint tracking on a foreign repo is
+  // noise. Filed as #3389 alongside the label-enforcer misfire.
+  if (hasExplicitRepoTarget(command)) {
+    ctx.log('gh-milestone-enforcer', 'Skipped: explicit repo target — milestones are repo-local');
     return outputSilentSuccess();
   }
 

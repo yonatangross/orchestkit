@@ -4,11 +4,12 @@
 /**
  * Unit tests for gh-label-enforcer hook
  *
- * Tests blocking behavior for `gh issue create` without --label,
- * advisory behavior for `gh pr create` without --label, and
- * silent pass-through for all other commands.
+ * Tests auto-correct behavior for `gh issue create` without --label,
+ * advisory behavior for `gh pr create` without --label, out-of-scope
+ * skip for explicit repo targets, and silent pass-through for all
+ * other commands.
  *
- * Issue #916
+ * Issues #916, #3389
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -102,62 +103,99 @@ describe('gh-label-enforcer', () => {
   });
 
   // -------------------------------------------------------------------------
-  // gh issue create — blocking behavior
+  // gh issue create — auto-correct behavior (#3389, replaced the old deny)
   // -------------------------------------------------------------------------
 
-  describe('gh issue create — without --label', () => {
-    it('blocks gh issue create with no label flag', () => {
+  describe('gh issue create — without --label (auto-correct)', () => {
+    it('auto-appends an inferred --label via updatedInput instead of denying', () => {
       const input = createBashInput('gh issue create --title "Fix auth bug"');
       const result = ghLabelEnforcer(input, testCtx);
 
-      expect(result.continue).toBe(false);
-      expect(outputDeny).toHaveBeenCalled();
+      expect(result.continue).toBe(true);
+      expect(outputDeny).not.toHaveBeenCalled();
+      expect(result.hookSpecificOutput?.updatedInput).toEqual({
+        command: 'gh issue create --title "Fix auth bug" --label bug',
+      });
     });
 
-    it('blocks gh issue create with --title but no --label', () => {
-      const input = createBashInput('gh issue create --title "My issue" --body "Details here"');
+    it('sets no permissionDecision — the rewrite must not grant or deny', () => {
+      // updatedInput rides through the normal permission prompt. Setting
+      // 'allow' here would skip the prompt as a side effect of a labelling
+      // nit — the same trap the compound advisory below documents.
+      const input = createBashInput('gh issue create --title "Fix auth bug"');
       const result = ghLabelEnforcer(input, testCtx);
 
-      expect(result.continue).toBe(false);
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
-    it('deny message lists example labels', () => {
-      const input = createBashInput('gh issue create --title "Test"');
-      ghLabelEnforcer(input, testCtx);
+    it('preserves sibling tool_input fields in updatedInput', () => {
+      const input = createBashInput('gh issue create --title "Fix crash"');
+      input.tool_input.description = 'File crash issue';
+      const result = ghLabelEnforcer(input, testCtx);
 
-      const denyCall = vi.mocked(outputDeny).mock.calls[0][0];
-      expect(denyCall).toContain('--label');
-      expect(denyCall).toContain('bug');
-      expect(denyCall).toContain('enhancement');
+      expect(result.hookSpecificOutput?.updatedInput?.description).toBe('File crash issue');
     });
 
-    it('deny message includes example command', () => {
-      const input = createBashInput('gh issue create --title "Test"');
-      ghLabelEnforcer(input, testCtx);
+    it.each([
+      ['gh issue create --title "Fix login crash"', 'bug'],
+      ['gh issue create --title "Update README typos"', 'docs'],
+      ['gh issue create --title "Add dark mode support"', 'enhancement'],
+      ['gh issue create --title "Weekly dependency sweep"', 'chore'],
+    ])('infers the label from the title: %s -> %s', (command, label) => {
+      const input = createBashInput(command);
+      const result = ghLabelEnforcer(input, testCtx);
 
-      const denyCall = vi.mocked(outputDeny).mock.calls[0][0];
-      expect(denyCall).toContain('Example:');
+      const rewritten = result.hookSpecificOutput?.updatedInput as { command: string } | undefined;
+      expect(rewritten?.command).toBe(`${command} --label ${label}`);
     });
 
-    it('calls logPermissionFeedback with deny', () => {
-      const input = createBashInput('gh issue create --title "Test"');
-      ghLabelEnforcer(input, testCtx);
+    it('explains the rewrite in additionalContext', () => {
+      const input = createBashInput('gh issue create --title "Fix auth bug"');
+      const result = ghLabelEnforcer(input, testCtx);
 
-      expect(testCtx.logPermission).toHaveBeenCalledWith(
-        'deny',
-        expect.stringContaining('missing --label'),
-        input,
-      );
+      expect(result.hookSpecificOutput?.additionalContext).toContain('Auto-appended --label bug');
     });
 
-    it('calls logHook for blocked command', () => {
-      const input = createBashInput('gh issue create --title "Test"');
+    it('logs the auto-correct', () => {
+      const input = createBashInput('gh issue create --title "Broken build"');
       ghLabelEnforcer(input, testCtx);
 
       expect(testCtx.log).toHaveBeenCalledWith(
         'gh-label-enforcer',
-        expect.stringContaining('Blocked'),
+        expect.stringContaining('Auto-appended'),
       );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Explicit repo target — out of scope (#3389)
+  // -------------------------------------------------------------------------
+
+  describe('explicit repo target — skipped entirely', () => {
+    it.each([
+      'gh issue create --repo herdrdev/herdr --title "Fix crash"',
+      'gh issue create -R other/repo --title "Fix crash"',
+      'gh issue create --repo=other/repo --title "Fix crash"',
+      'GH_REPO=other/repo gh issue create --title "Fix crash"',
+    ])('skips enforcement for: %s', (command) => {
+      // Label taxonomies are repo-local. This hook cannot verify a foreign
+      // repo has our labels, and appending one that does not exist turns a
+      // nit into a hard gh failure — the 2026-08-10 misfire that filed #3389.
+      const input = createBashInput(command);
+      const result = ghLabelEnforcer(input, testCtx);
+
+      expect(result.continue).toBe(true);
+      expect(outputSilentSuccess).toHaveBeenCalled();
+      expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+      expect(outputDeny).not.toHaveBeenCalled();
+    });
+
+    it('skips the PR advisory when --repo targets another repo', () => {
+      const input = createBashInput('gh pr create --repo other/repo --title "My PR"');
+      const result = ghLabelEnforcer(input, testCtx);
+
+      expect(result.continue).toBe(true);
+      expect(outputAllowWithContext).not.toHaveBeenCalled();
     });
   });
 
@@ -267,14 +305,17 @@ describe('gh-label-enforcer', () => {
       expect(result.hookSpecificOutput?.permissionDecision).not.toBe('allow');
     });
 
-    it('still BLOCKS a simple gh issue create with no --label', () => {
+    it('still auto-corrects a simple gh issue create with no --label', () => {
       // The compound carve-out above must not leak into the simple case, which
-      // is the one the policy actually exists to enforce. Nothing is destroyed
-      // by denying a single command, so it is still denied.
+      // is the one the policy actually exists to enforce. A simple command is
+      // enforced by rewriting it with an inferred label (#3389), not by
+      // denying it — the policy lands either way, without destroying the turn.
       const input = createBashInput('gh issue create --title "A"');
       const result = ghLabelEnforcer(input, testCtx);
 
-      expect(result.continue).toBe(false);
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.updatedInput).toBeDefined();
+      expect(outputDeny).not.toHaveBeenCalled();
     });
 
     it('does not falsely match "gh issue created" (past tense)', () => {

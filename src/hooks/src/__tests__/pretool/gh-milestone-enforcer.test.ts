@@ -189,4 +189,27 @@ describe('gh-milestone-enforcer', () => {
       expect(result.stopReason).toBeUndefined();
     });
   });
+
+  // -------------------------------------------------------------------------
+  // Explicit repo target — out of scope (#3389)
+  // -------------------------------------------------------------------------
+
+  describe('explicit repo target — skipped entirely', () => {
+    it.each([
+      'gh issue create --repo herdrdev/herdr --title "Fix crash"',
+      'gh issue create -R other/repo --title "Fix crash"',
+      'gh issue create --repo=other/repo --title "Fix crash"',
+      'GH_REPO=other/repo gh issue create --title "Fix crash"',
+    ])('emits no milestone advisory for: %s', (command) => {
+      // Milestones are repo-local; nudging about OUR sprint tracking on a
+      // foreign repo is noise — observed 2026-08-10 alongside the
+      // label-enforcer misfire that filed #3389.
+      const input = createBashInput(command);
+      const result = ghMilestoneEnforcer(input, testCtx);
+
+      expect(result.continue).toBe(true);
+      expect(outputSilentSuccess).toHaveBeenCalled();
+      expect(outputAllowWithContext).not.toHaveBeenCalled();
+    });
+  });
 });
