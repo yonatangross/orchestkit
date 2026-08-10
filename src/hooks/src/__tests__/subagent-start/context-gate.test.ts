@@ -100,6 +100,17 @@ describe('contextGate', () => {
     // Default: no state file, no spawn log
     (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
     (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue('{}');
+
+    // Pin cwd to a NON-worktree path (#3391). getEffectiveLimits() reads
+    // process.cwd() and raises the limits to {background:10, perResponse:12}
+    // for any path containing '/.worktrees/' or '.claude/worktrees/'. Left
+    // unmocked, the real cwd leaked in and every expectation below inverted
+    // depending on where the suite was run from: green in a plain checkout
+    // (and in CI), 6 failures when run from a git worktree, because 8 response
+    // spawns no longer exceed 12 and both over-limit checks fall through to
+    // the generic budget warning. The repo mandates worktrees for concurrent
+    // sessions, so the mandated workflow was the one that saw red.
+    vi.spyOn(process, 'cwd').mockReturnValue('/test/project');
   });
 
   afterEach(() => {
@@ -801,6 +812,60 @@ describe('contextGate', () => {
         (call: unknown[]) => typeof call[0] === 'string' && call[0].includes('agent-state.json')
       );
       expect(stateUpdate).toBeDefined();
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Worktree limit regime (#3391, #3310)
+  // -----------------------------------------------------------------------
+  //
+  // getEffectiveLimits() raises the caps inside a worktree because parallel
+  // agents are routine there. That branch had NO coverage, which is why the
+  // cwd leak above went unnoticed for so long: the suite exercised only the
+  // base regime and silently switched regimes based on where it was run.
+  // Both layouts are asserted — CC's own `.claude/worktrees/<name>` and the
+  // hand-rolled `<repo>/.worktrees/<task>` that global CLAUDE.md mandates.
+  // #3310 fixed a detector that matched NEITHER, so a regression here is a
+  // silent revert to base limits, not a visible error.
+
+  describe('raised limits inside a worktree', () => {
+    test.each([
+      ['hand-rolled layout', '/Users/me/repo/.worktrees/mytask'],
+      ['CC EnterWorktree layout', '/Users/me/repo/.claude/worktrees/mytask'],
+    ])('%s: 8 response spawns stay under the raised cap of 12', (_label, cwd) => {
+      vi.spyOn(process, 'cwd').mockReturnValue(cwd);
+      (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(generateSpawnEntries(8, 1000));
+
+      const result = contextGate(
+        createToolInput({
+          tool_input: { subagent_type: 'general-purpose', description: 'Parallel work' },
+        })
+      );
+
+      // 8 < 12, so the per-response advisory must NOT fire here even though
+      // the identical input DOES trip it in the base regime (asserted above).
+      expect(result.continue).toBe(true);
+      const text = JSON.stringify(result);
+      expect(text).not.toContain('Too many agents in one response');
+    });
+
+    test('a path that merely mentions worktrees does not raise the caps', () => {
+      // '.git/worktrees/' holds git metadata and is never a checkout a process
+      // can cwd into — the exact string the pre-#3310 detector matched. Keep it
+      // failing the check so that bug cannot come back.
+      vi.spyOn(process, 'cwd').mockReturnValue('/Users/me/repo/.git/worktrees/mytask');
+      (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(generateSpawnEntries(8, 1000));
+
+      const result = contextGate(
+        createToolInput({
+          tool_input: { subagent_type: 'general-purpose', description: 'Parallel work' },
+        })
+      );
+
+      // Base regime: 8 >= 8, so the advisory fires.
+      expect(JSON.stringify(result)).toContain('Too many agents in one response');
     });
   });
 });
