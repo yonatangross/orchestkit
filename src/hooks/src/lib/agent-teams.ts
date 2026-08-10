@@ -153,7 +153,16 @@ function newestMtimeMs(root: string, maxDepth = 3): { ms: number; path: string }
 export function liveSessionTokens(): { ok: boolean; tokens: Set<string> } {
   const tokens = new Set<string>();
   try {
-    if (!existsSync(DB_PATH)) return { ok: false, tokens };
+    // "No registry file" and "registry unreadable" are NOT the same question,
+    // and collapsing them made this hook inert everywhere the file is absent
+    // (CI, fresh installs) — the existing suite caught it, this machine could
+    // not, because it happens to have a registry.
+    //
+    // Absent: ork has never registered a session here, so there is nobody to
+    // vouch for. Report ok with an empty set and let the 24h window decide.
+    // Unreadable (below): the answer exists and we failed to get it, which is
+    // the only case that justifies refusing to delete anything.
+    if (!existsSync(DB_PATH)) return { ok: true, tokens };
     const db = openDb();
     try {
       const rows = db
