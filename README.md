@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.15](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.14...v10.0.0-alpha.15)** · 2026-08-10
+
+- **security:** scanners knew one worktree layout, not two (#3412)
+
 **[v10.0.0-alpha.14](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.13...v10.0.0-alpha.14)** · 2026-08-10
 
 - **agents:** correct 8 false "slash-only" comments (#3405)
@@ -314,10 +318,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** four values that looked like measurements and were not (#3375), closes [#3317](https://github.com/yonatangross/orchestkit/issues/3317) [#3318](https://github.com/yonatangross/orchestkit/issues/3318) [#3323](https://github.com/yonatangross/orchestkit/issues/3323) [#3330](https://github.com/yonatangross/orchestkit/issues/3330)
 - **hooks:** two events with no listener, one handoff with two (#3377)
 - **release:** automate the stable pin nobody was moving (#3374)
-
-**[v10.0.0-alpha.7](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.6...v10.0.0-alpha.7)** · 2026-08-09
-
-- **hooks:** two hooks read the legacy alias, never the field CC sends (#3372)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

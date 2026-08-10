@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.15",
+    "date": "2026-08-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**security:** scanners knew one worktree layout, not two ([#3412](https://github.com/yonatangross/orchestkit/issues/3412)) ([b187c3a](https://github.com/yonatangross/orchestkit/commit/b187c3a459f8575a2ba78bc90dca1f7de9d0fc67))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.14",
     "date": "2026-08-10",
     "compareUrl": "",
