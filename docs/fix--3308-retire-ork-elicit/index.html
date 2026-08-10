@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A whole MCP server for one question</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 28px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:28px 0 8px}
+.card{border:1px solid var(--edge);border-radius:14px;background:var(--glass);padding:16px 18px;margin-top:12px}
+.card h3{margin:0 0 6px;font-size:14.5px}.card p{margin:0 0 8px;font-size:13.5px;color:var(--muted)}
+.card p:last-child{margin-bottom:0}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+pre{background:hsl(232 30% 4% / .6);border:1px solid var(--edge);border-radius:12px;padding:12px;overflow-x:auto;font-size:12px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;line-height:1.55}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.faint{color:var(--faint)}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass);margin-top:10px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06)}tr:last-child td{border-bottom:none}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style></head><body><div class="wrap">
+<div class="eyebrow">EPIC C mechanism 11 &middot; #3308 &middot; 2026-08-10</div>
+<h1>A whole MCP server <span>to ask five questions.</span></h1>
+<p class="lede">OrchestKit shipped its own MCP server, holding a permanent tool slot in every
+session, to render a form. Claude Code has <code>AskUserQuestion</code> for exactly that — and both
+call sites <b>already had an AskUserQuestion path written as the fallback</b>. The re-home was done
+years before the retirement; only the pipe was left.</p>
+
+<h2>What the server actually was</h2>
+<pre>src/mcp-server/src/index.ts        21 lines
+  registerElicitTool(server)       ← the only registration
+src/mcp-server/src/tools/
+  ork-elicit.ts                   156 lines   the one live tool
+  docs.ts                          71 lines   <span class="bad">never registered — dead</span></pre>
+<p style="color:var(--muted);font-size:13.5px;margin-top:8px">One tool served, one tool dead, plus a
+<code>package.json</code>, a lockfile, an esbuild config, and 35 lines of build machinery in
+<code>build-plugins.sh</code> to bundle it.</p>
+
+<h2>The re-home already existed</h2>
+<div class="card"><h3>Both call sites branched on availability and fell back</h3>
+<pre>setup/references/configure-wizard.md
+  elicit_available = "mcp__ork-elicit__ork_elicit" in available_tools
+  if elicit_available:  ork_elicit(preset="project-config")
+  else:                 <span class="ok">5x AskUserQuestion  ← already written</span>
+
+release-sync/SKILL.md
+  elicit_available = ToolSearch(...).found
+  if elicit_available:  ork_elicit(preset="release-sync-targets")
+  else:                 <span class="ok">3x AskUserQuestion  ← already written</span></pre>
+<p>So this retirement is the easy shape: the opinion ("ask the user these things in a structured
+way") already had a working CC-native home, and the MCP server was a second mechanism sitting beside
+it. Deleting the branch leaves one path instead of two.</p></div>
+
+<h2>Why this one was picked first</h2>
+<table><thead><tr><th>test</th><th>result</th></tr></thead><tbody>
+<tr><td>Target exists in the installed binary</td><td class="ok">HIT — <code>AskUserQuestion</code> in 2.1.226</td></tr>
+<tr><td>Target observed firing</td><td class="ok">used repeatedly in this very session</td></tr>
+<tr><td>Retiring removes code</td><td class="ok">248 lines of server + 35 of build glue</td></tr>
+<tr><td>Frees a scarce resource</td><td class="ok">a permanent MCP tool slot, every session</td></tr>
+<tr><td>Shared generated output with other lanes</td><td class="ok">none</td></tr>
+</tbody></table>
+<p style="color:var(--muted);font-size:13.5px;margin-top:8px">Mechanism 10 (keybindings) taught the
+extra test: confirm the target can actually <i>receive</i> the opinion. There the action vocabulary
+was closed and no re-home was possible. Here the target is a tool I had already invoked, so
+"observe it firing" was satisfied before the work started.</p>
+
+<h2>Removed</h2>
+<pre>src/mcp-server/                          entire directory (server, tools, esbuild, lockfile)
+plugins/ork/mcp-server/server.mjs        build output
+scripts/build-plugins.sh                 35 lines of build + copy phases
+src/settings/ork.settings.json           permissions.allow  6 → 5
+src/skills/setup/SKILL.md                allowed-tools entry
+configure-wizard.md                      Step 0.5 probe + elicit branch → one path
+release-sync/SKILL.md                    elicit branch → one path
+mcp-version-matrix.md                    the ork-elicit row
+test-mcp-pinning-check.sh                fixture renamed (it was only test data)</pre>
+<p style="color:var(--muted);font-size:13.5px;margin-top:8px">The two build phases were each guarded
+on <code>[[ -d "$SRC_DIR/mcp-server" ]]</code>, so with the directory gone they would have skipped
+silently forever — dead machinery that still reads as "OrchestKit ships an MCP server". That is the
+EPIC A shape, so it went with the rest rather than being left for later.</p>
+
+<h2>Verification</h2>
+<pre>bash -n scripts/build-plugins.sh          <span class="ok">syntax OK</span>
+npm run build                             <span class="ok">exit 0</span>, plugins regenerated
+tests/skills/test-mcp-pinning-check.sh    <span class="ok">18 passed, 0 failed</span>
+npm run test:skills                       <span class="ok">every /ork: ref resolves; totals match src/</span>
+                                          105 skills, 36 agents, 217 hooks</pre>
+
+<p class="foot"><b>Ordering note for the remaining seven.</b> EPIC C says re-home, observe, then
+delete, and mechanisms 09, 12 and 13 have targets I verified in the binary today
+(<code>cache_*_input_tokens</code>, <code>Installing plugin dependencies</code>,
+<code>cleanupPeriodDays</code> + <code>unpushed commits</code>). Mechanisms 05, 06, 07 and 08 do not
+have verified targets yet and need a fitness probe first — not an existence grep, which is what
+keybindings would have passed. 08 stays last because retiring the worktree protocol rewrites the
+thing every parallel agent is currently running inside.</p>
+</div></body></html>

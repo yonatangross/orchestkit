@@ -3798,7 +3798,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "release-sync",
     "description": "Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging. Reads CHANGELOG, CLAUDE.md, and hook README, updates notebook sources, and ingests release digest. Optionally generates podcast from updated knowledge base. Use after tagging a new version to propagate release knowledge.",
     "version": "1.0.0",
-    "sha256": "8c59546ab3f14004061ef7cebc795f0f3225ac2e228d932f3655d9e918e0f7ed",
+    "sha256": "6bd3337f370ae6d65e71ac3d8c7f3285ba6e97d190827e6c2aba229d48510549",
     "author": "OrchestKit",
     "tags": [
       "release",
@@ -4133,7 +4133,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "setup",
     "description": "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.",
     "version": "2.0.0",
-    "sha256": "7da8ce58a0b9e6504efbd1ba8e35eec3b1459ccb011b705327bf55edb79d9932",
+    "sha256": "6991cbaf28d02a97201857f9b19aa22fa5f5ceb27a7d2b19b920abe5ac9226cd",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -4159,8 +4159,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskUpdate",
       "mcp__memory__search_nodes",
       "mcp__memory__create_entities",
-      "mcp__memory__create_relations",
-      "mcp__ork-elicit__ork_elicit"
+      "mcp__memory__create_relations"
     ],
     "skills": [
       "configure",

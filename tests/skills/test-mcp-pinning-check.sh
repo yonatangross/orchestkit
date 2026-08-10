@@ -121,7 +121,7 @@ echo "Test 5: local server (node ./server.mjs) is skipped"
 cat > "$TMP/local.json" <<'JSON'
 {
   "mcpServers": {
-    "ork-elicit": {"command": "node", "args": ["plugins/ork/mcp-server/server.mjs"]}
+    "local-example": {"command": "node", "args": ["plugins/ork/some-server/server.mjs"]}
   }
 }
 JSON

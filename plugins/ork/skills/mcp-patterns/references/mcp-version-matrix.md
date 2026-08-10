@@ -20,7 +20,6 @@ Tracks OrchestKit's integrated MCP servers against upstream latest. Sourced from
 | **tavily** | `tavily-mcp` | `@latest` | **0.2.19** | 2026-04-24 | 0.2.18 → 0.2.19 (patch) | chain-patterns fallback (tier-fallbacks.md) | Low direct usage |
 | **21st-dev-magic** | `@21st-dev/magic` | **`@0.1.0` (pinned)** | **0.1.0** | 2025-12-23 | unchanged | None in core (mentioned as option in `component-search`) | Pre-1.0, stale upstream — pinned 2026-04-26 to lock current state |
 | **fal** | `fal-ai-mcp` | `@latest` | **0.2.1** | 2026-03-07 | unchanged | None in core (available for multimodal skills) | Active upstream |
-| **ork-elicit** | local `plugins/ork/mcp-server/server.mjs` | n/a (local) | n/a | versioned with repo | n/a | All skills via elicitation | In-tree, no external pin |
 
 ## User-level MCPs (referenced but not in project `.mcp.json`)
 

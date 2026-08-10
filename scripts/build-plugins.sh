@@ -355,40 +355,12 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         fi
     fi
 
-    # Build MCP server if source exists
-    if [[ -d "$SRC_DIR/mcp-server" ]] && [[ -f "$SRC_DIR/mcp-server/package.json" ]]; then
-        pushd "$SRC_DIR/mcp-server" > /dev/null
-        # Reinstall when the lockfile changed since the last install — NOT just
-        # when node_modules is absent. The old `[[ ! -d node_modules ]]` guard
-        # skipped `npm ci` on a warm checkout after a dependency bump, so esbuild
-        # bundled STALE deps and the committed server.mjs drifted from a fresh CI
-        # build (CI always installs into a clean tree). That mismatch is #1796.
-        if command -v sha256sum > /dev/null 2>&1; then
-            lock_hash="$(sha256sum package-lock.json | cut -d' ' -f1)"
-        else
-            lock_hash="$(shasum -a 256 package-lock.json | cut -d' ' -f1)"
-        fi
-        stamp="node_modules/.ork-lockhash"
-        stamp_val=""
-        [[ -f "$stamp" ]] && stamp_val="$(cat "$stamp")"
-        if [[ ! -d "node_modules" ]] || [[ "$stamp_val" != "$lock_hash" ]]; then
-            # npm ci for deterministic installs (Scorecard #129). Errors surface
-            # (no stderr suppression) — a silent install failure here is exactly
-            # what let stale deps reach the bundle before #1796.
-            npm ci --ignore-scripts
-            printf '%s\n' "$lock_hash" > "$stamp"
-        fi
-        node esbuild.config.mjs
-        popd > /dev/null
-    fi
-
-    # Copy MCP server dist
-    if [[ -f "$SRC_DIR/mcp-server/dist/server.mjs" ]]; then
-        mkdir -p "$PLUGIN_DIR/mcp-server"
-        cp "$SRC_DIR/mcp-server/dist/server.mjs" "$PLUGIN_DIR/mcp-server/"
-        cp "$SRC_DIR/mcp-server/dist/server.mjs.map" "$PLUGIN_DIR/mcp-server/" 2>/dev/null || true
-        echo -e "    ${GREEN}Copied MCP server${NC}"
-    fi
+    # MCP server build + copy phases removed with the ork-elicit retirement
+    # (EPIC C mechanism 11). src/mcp-server existed solely to serve one tool,
+    # ork_elicit, which AskUserQuestion replaces natively; its only other tool
+    # (docs.ts) was never registered. Both phases were already guarded on the
+    # directory existing, so they would have skipped silently forever — dead
+    # build machinery that reads as "OrchestKit ships an MCP server".
 
     # Copy shared resources if they exist
     if [[ -d "$SRC_DIR/shared" ]]; then

@@ -5934,8 +5934,8 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "2b",
-            "label": "Choose Sync Targets via ork-elicit",
-            "does": "Replace the historical 3-question sequential ask with one form using the release-sync-targets ork-elicit preset (registered in src/mcp-server/src/presets/release-sync-targets.ts). Form fields: notebooklm, hq_kb, slack, notes.",
+            "label": "Choose Sync Targets",
+            "does": "Ask for the four target values: notebooklm, hq_kb, slack, notes.",
             "out": null,
             "tag": null
           },

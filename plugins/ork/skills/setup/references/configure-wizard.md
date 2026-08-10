@@ -28,52 +28,14 @@ current_env = existing_settings.get("env", {})
 
 Show the user what's already set so they aren't surprised by overwrites.
 
-## Step 0.5: Check elicitation availability
+## Steps 1-5: Configuration questions
 
-Check if the `mcp__ork-elicit__ork_elicit` tool is available in the current session. This determines whether to use the single-form elicitation path (steps 1-5 consolidated) or the legacy 5x AskUserQuestion fallback.
-
-```python
-# The tool is available if ork-elicit MCP server is registered in .mcp.json
-# and the CC version supports elicitation (>= 2.1.76).
-# Check by looking at available tools — if mcp__ork-elicit__ork_elicit is NOT
-# in the tool list, fall through to legacy.
-elicit_available = "mcp__ork-elicit__ork_elicit" in available_tools
-```
-
-## Steps 1-5: Elicitation Path (preferred)
-
-If `elicit_available` is true, consolidate steps 1-5 into a single form dialog:
-
-```python
-if elicit_available:
-    result = mcp__ork-elicit__ork_elicit(preset="project-config")
-    parsed = json.loads(result)
-
-    if parsed.get("action") == "accept":
-        # Use the mapped env vars directly
-        env_from_wizard = parsed["env_vars"]
-        # env_from_wizard contains:
-        #   ORCHESTKIT_PROTECTED_BRANCHES
-        #   ORCHESTKIT_COMMIT_SCOPE
-        #   ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST
-        #   ORCHESTKIT_PERF_SNAPSHOT_ENABLED
-        #   ORCHESTKIT_LOG_LEVEL
-    elif parsed.get("action") in ("decline", "cancel"):
-        # User declined — use current defaults, skip to step 6
-        env_from_wizard = {}
-    elif parsed.get("fallback"):
-        # Elicitation failed (e.g. CC version mismatch) — fall through to legacy
-        elicit_available = false
-    else:
-        # Error — fall through to legacy
-        elicit_available = false
-```
-
-If the elicitation result has `action: "accept"`, skip directly to Step 6 (webhooks).
-
-## Steps 1-5: Legacy Fallback (AskUserQuestion)
-
-If `elicit_available` is false (server not registered, CC < 2.1.76, or elicitation failed), use the existing 5-step AskUserQuestion flow:
+Ask these five with `AskUserQuestion`. This used to be the "legacy fallback"
+behind an `ork-elicit` MCP form that consolidated all five into one dialog;
+that server was retired (EPIC C mechanism 11) because `AskUserQuestion` is the
+CC-native surface for exactly this and holding a permanent MCP tool slot to
+restate it was the parallel mechanism. The availability probe and the
+elicit/legacy branch are gone with it — there is one path now.
 
 ### Step 1: Branch Strategy
 

@@ -22,13 +22,9 @@ const shared = {
   external: [],
 };
 
-await build({
-  ...shared,
-  entryPoints: ['./src/index.ts'],
-  outfile: './dist/server.mjs',
-  banner: { js: `// OrchestKit MCP Server — ork-elicit` },
-});
-
+// The ork-elicit entry point was retired (EPIC C mechanism 11) — AskUserQuestion
+// is CC's native surface for form elicitation. Only the docs server remains, and
+// it is the one published as a container image.
 await build({
   ...shared,
   entryPoints: ['./src/docs-server.ts'],
@@ -36,4 +32,4 @@ await build({
   banner: { js: `// OrchestKit MCP Server — orchestkit-docs` },
 });
 
-console.log('Built dist/server.mjs and dist/docs-server.mjs');
+console.log('Built dist/docs-server.mjs');

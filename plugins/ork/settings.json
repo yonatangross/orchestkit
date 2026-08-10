@@ -5,8 +5,7 @@
       "Glob",
       "Grep",
       "mcp__context7__*",
-      "mcp__memory__*",
-      "mcp__ork-elicit__ork_elicit"
+      "mcp__memory__*"
     ],
     "deny": [
       "Read(~/.aws/credentials)",

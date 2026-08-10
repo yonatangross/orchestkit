@@ -6,7 +6,7 @@
     }
   },
   "1124006": {
-    "reason": "GHSA-frvp-7c67-39w9, @hono/node-server <2.0.5 path traversal in serve-static on Windows via encoded backslash. Transitive via @modelcontextprotocol/sdk, whose newest release (1.29.0) still pins the vulnerable range, so there is no upstream fix; npm's only remedy is a breaking downgrade to sdk 1.24.3. Not reachable here: src/mcp-server/src/index.ts and docs-server.ts both use StdioServerTransport only, never an HTTP transport, so serve-static is never instantiated. Revisit when the MCP SDK bumps @hono/node-server.",
+    "reason": "GHSA-frvp-7c67-39w9, @hono/node-server <2.0.5 path traversal in serve-static on Windows via encoded backslash. Transitive via @modelcontextprotocol/sdk, whose newest release (1.29.0) still pins the vulnerable range, so there is no upstream fix; npm's only remedy is a breaking downgrade to sdk 1.24.3. Not reachable here: src/mcp-server/src/docs-server.ts uses StdioServerTransport only, never an HTTP transport, so serve-static is never instantiated. (index.ts was the ork-elicit entry point, retired in EPIC C mechanism 11; it also used stdio only.) Revisit when the MCP SDK bumps @hono/node-server.",
     "until": "2026-09-01"
   }
 }
