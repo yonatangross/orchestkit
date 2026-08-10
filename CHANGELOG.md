@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.15](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.14...v10.0.0-alpha.15) (2026-08-10)
+
+
+### Bug Fixes
+
+* **security:** scanners knew one worktree layout, not two ([#3412](https://github.com/yonatangross/orchestkit/issues/3412)) ([b187c3a](https://github.com/yonatangross/orchestkit/commit/b187c3a459f8575a2ba78bc90dca1f7de9d0fc67))
+
 ## [10.0.0-alpha.14](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.13...v10.0.0-alpha.14) (2026-08-10)
 
 
