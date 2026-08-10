@@ -17,6 +17,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.9",
+    "date": "2026-08-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** two guards that treated \"cannot observe\" as \"not there\" ([#3387](https://github.com/yonatangross/orchestkit/issues/3387)) ([cf6ae25](https://github.com/yonatangross/orchestkit/commit/cf6ae256554c22b1b22def8828160c9cb2e078da))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**deps-dev:** bump @biomejs/biome from 2.5.6 to 2.5.7 in /src/hooks in the npm-minor-patch group ([#3379](https://github.com/yonatangross/orchestkit/issues/3379)) ([386e8c8](https://github.com/yonatangross/orchestkit/commit/386e8c8660e6e195c229a0b9f5acf239991e0e19))",
+          "**deps-dev:** bump js-yaml in the npm-minor-patch group ([#3378](https://github.com/yonatangross/orchestkit/issues/3378)) ([a4ba323](https://github.com/yonatangross/orchestkit/commit/a4ba323723a30fed54a9d73d2dc07f2168c2f828))",
+          "**deps:** bump the npm-minor-patch group ([#3382](https://github.com/yonatangross/orchestkit/issues/3382)) ([2769e88](https://github.com/yonatangross/orchestkit/commit/2769e88a1cfb1d5a426e52b6d87d580b80310e8e))",
+          "**deps:** bump the remotion group in /orchestkit-demos with 21 updates ([#3381](https://github.com/yonatangross/orchestkit/issues/3381)) ([3176706](https://github.com/yonatangross/orchestkit/commit/3176706a110ef919fcf92f395715d3d894c46b44))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "bump the github-actions group with 6 updates ([#3383](https://github.com/yonatangross/orchestkit/issues/3383)) ([61802f2](https://github.com/yonatangross/orchestkit/commit/61802f248c1aa1f26167d2230b9a1c7c16bdd278))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.8",
     "date": "2026-08-10",
     "compareUrl": "",

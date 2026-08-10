@@ -276,6 +276,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.9](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.8...v10.0.0-alpha.9)** · 2026-08-10
+
+- **hooks:** two guards that treated "cannot observe" as "not there" (#3387)
+- **deps-dev:** bump @biomejs/biome from 2.5.6 to 2.5.7 in /src/hooks in the npm-minor-patch group (#3379)
+- **deps-dev:** bump js-yaml in the npm-minor-patch group (#3378)
+- **deps:** bump the npm-minor-patch group (#3382)
+- **deps:** bump the remotion group in /orchestkit-demos with 21 updates (#3381)
+- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-alpha.8](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.7...v10.0.0-alpha.8)** · 2026-08-10
 
 - **hooks:** four values that looked like measurements and were not (#3375), closes [#3317](https://github.com/yonatangross/orchestkit/issues/3317) [#3318](https://github.com/yonatangross/orchestkit/issues/3318) [#3323](https://github.com/yonatangross/orchestkit/issues/3323) [#3330](https://github.com/yonatangross/orchestkit/issues/3330)
@@ -311,12 +320,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **agents:** scope peer messaging by lifecycle (#3355)
 - **security:** let the DYLD probe observe instead of aborting (#3358)
 - **settings:** retire the plugin settings.json keys CC never reads (#3357)
-
-**[v10.0.0-alpha.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha...v10.0.0-alpha.1)** · 2026-08-08
-
-- **hooks:** advisory context-gate on SubagentStart, arm sandbox (#3345)
-- **build:** probe the command wrappers, verdict KEEP, add tripwire (#3347), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3314](https://github.com/yonatangross/orchestkit/issues/3314)
-- **hooks:** trim the bus halves nothing ever called (#3351)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
