@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.12",
+    "date": "2026-08-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**mcp:** retire the ork-elicit server for AskUserQuestion ([#3400](https://github.com/yonatangross/orchestkit/issues/3400)) ([e4e08de](https://github.com/yonatangross/orchestkit/commit/e4e08de04a312549c5c3ef4929e78a52c854dcfd))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.11",
     "date": "2026-08-10",
     "compareUrl": "",

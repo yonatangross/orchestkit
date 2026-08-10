@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.12](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.11...v10.0.0-alpha.12)** · 2026-08-10
+
+- **mcp:** retire the ork-elicit server for AskUserQuestion (#3400)
+
 **[v10.0.0-alpha.11](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.10...v10.0.0-alpha.11)** · 2026-08-10
 
 - **docs:** gate the README prose counts instead of correcting them (#3398)
@@ -314,10 +318,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **docs:** re-stamp the hook counts in the source, not the build output (#3369)
 - **hooks:** stop owning worktree provisioning, CC does it better (#3366)
 - **security:** close the two actionable code-scanning alerts (#3367)
-
-**[v10.0.0-alpha.4](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.3...v10.0.0-alpha.4)** · 2026-08-09
-
-- **hooks:** stop teaching the sibling-worktree idiom (#3363)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
