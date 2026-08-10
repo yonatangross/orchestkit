@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.14](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.13...v10.0.0-alpha.14) (2026-08-10)
+
+
+### Bug Fixes
+
+* **agents:** correct 8 false "slash-only" comments ([#3405](https://github.com/yonatangross/orchestkit/issues/3405)) ([b7f8bca](https://github.com/yonatangross/orchestkit/commit/b7f8bca75456bbcbb2511a0bf208f73c419d85d6))
+
+
+### CI/CD
+
+* arm the CC contract probe nothing was running ([#3407](https://github.com/yonatangross/orchestkit/issues/3407)) ([e0ac334](https://github.com/yonatangross/orchestkit/commit/e0ac3342f0e8ccba2d098976ae832d4dea4e2ee9))
+* tee probe diagnostics to stdout, not just the step summary ([#3408](https://github.com/yonatangross/orchestkit/issues/3408)) ([01d9636](https://github.com/yonatangross/orchestkit/commit/01d96363aa41a4483c07181e89914fac828fa7e1))
+
 ## [10.0.0-alpha.13](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.12...v10.0.0-alpha.13) (2026-08-10)
 
 
