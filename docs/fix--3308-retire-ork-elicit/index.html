@@ -29,15 +29,23 @@ session, to render a form. Claude Code has <code>AskUserQuestion</code> for exac
 call sites <b>already had an AskUserQuestion path written as the fallback</b>. The re-home was done
 years before the retirement; only the pipe was left.</p>
 
-<h2>What the server actually was</h2>
-<pre>src/mcp-server/src/index.ts        21 lines
-  registerElicitTool(server)       ← the only registration
-src/mcp-server/src/tools/
-  ork-elicit.ts                   156 lines   the one live tool
-  docs.ts                          71 lines   <span class="bad">never registered — dead</span></pre>
-<p style="color:var(--muted);font-size:13.5px;margin-top:8px">One tool served, one tool dead, plus a
-<code>package.json</code>, a lockfile, an esbuild config, and 35 lines of build machinery in
-<code>build-plugins.sh</code> to bundle it.</p>
+<h2>What the directory actually held — TWO servers</h2>
+<pre>src/mcp-server/src/
+  index.ts        registerElicitTool()   → dist/server.mjs        <span class="bad">RETIRED</span>
+  tools/ork-elicit.ts + presets/                                  <span class="bad">RETIRED</span>
+  docs-server.ts  registerDocsTools()    → dist/docs-server.mjs   <span class="ok">KEPT</span>
+  tools/docs.ts                                                   <span class="ok">KEPT</span></pre>
+<div class="card"><h3>Correction: my first pass deleted the whole directory</h3>
+<p>The first version of this PR removed all of <code>src/mcp-server</code> and asserted in its body
+that <code>tools/docs.ts</code> was "71 lines, never registered, dead." <b>It is registered</b> — by a
+second entry point, <code>docs-server.ts</code>, which is the stdio variant of the public Docs MCP
+server at <code>orchestkit.yonyon.ai/api/mcp</code>, shipped as a container image and used for Glama
+registry checks. <code>esbuild.config.mjs</code> has two <code>build()</code> blocks; I had read
+neither.</p>
+<p>CI caught it — <code>Docs MCP image builds</code> failed on
+<code>COPY src/mcp-server/src: not found</code>. I concluded a file was dead from a partial read,
+which is the exact defect class this milestone exists to remove, committed while writing a PR about
+removing it.</p></div>
 
 <h2>The re-home already existed</h2>
 <div class="card"><h3>Both call sites branched on availability and fell back</h3>
@@ -68,7 +76,10 @@ was closed and no re-home was possible. Here the target is a tool I had already 
 "observe it firing" was satisfied before the work started.</p>
 
 <h2>Removed</h2>
-<pre>src/mcp-server/                          entire directory (server, tools, esbuild, lockfile)
+<pre>src/mcp-server/src/index.ts              the ork-elicit entry point
+src/mcp-server/src/tools/ork-elicit.ts   the tool
+src/mcp-server/src/presets/              imported only by ork-elicit
+esbuild.config.mjs                       the server.mjs entry (docs entry kept)
 plugins/ork/mcp-server/server.mjs        build output
 scripts/build-plugins.sh                 35 lines of build + copy phases
 src/settings/ork.settings.json           permissions.allow  6 → 5
