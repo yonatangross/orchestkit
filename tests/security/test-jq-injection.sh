@@ -174,14 +174,60 @@ scan_files() {
   return 0
 }
 
+# worktree_prunes: `-not -path` args for every OTHER checkout of this repo.
+#
+# Two layouts exist and hardcoding one was the #3410 bug: this scan excluded
+# `.worktrees/*` (the layout global CLAUDE.md mandates) but not
+# `.claude/worktrees/*` (the layout CC creates natively since 2.1.121, and the
+# default since #3315 retired ork's own provisioning). The scanner walked into a
+# live CC worktree, found this repo's own sources a second time, and reported
+# 49 violations with ZERO hits in tracked source. Green in CI's clean clone, red
+# for any developer with a CC worktree open — a security suite that gates push
+# (bin/git-hooks/pre-push) teaching its operator to ignore it.
+#
+# Derived from `git worktree list`, not from literals, so a third layout cannot
+# repeat this. The two literals remain as a backstop for UNregistered debris: an
+# aborted `git worktree add` leaves a directory git does not list (the case
+# lifecycle/sweep-stale-worktrees exists to clean up), and that debris would
+# otherwise still be scanned.
+worktree_prunes() {
+  local me other
+  me="$(cd "$REPO_ROOT" && pwd -P)"
+  while IFS= read -r other; do
+    [ -n "$other" ] || continue
+    other="$(cd "$other" 2>/dev/null && pwd -P)" || continue
+    # Skip the tree being scanned, AND any checkout that CONTAINS it. The
+    # mandated layout nests worktrees inside the repo (<repo>/.worktrees/<task>),
+    # so the main checkout is an ANCESTOR of this one; pruning it would exclude
+    # the entire scan. Measured while writing this fix: that mistake took
+    # repo_targets to ZERO files and the suite still printed "3 passed", because
+    # a scan of nothing finds nothing. Hence also the vacuity guard below.
+    [ "$other" = "$me" ] && continue
+    case "$me" in "$other"/*) continue ;; esac
+    printf -- '-not\n-path\n%s/*\n' "$other"
+  # silent: best-effort — not a git repo yields nothing and the literals below carry it
+  done < <(git -C "$REPO_ROOT" worktree list --porcelain 2>/dev/null \
+           | awk '/^worktree /{print $2}')
+  # Backstop for UNregistered debris git will not list (aborted `worktree add`,
+  # the case lifecycle/sweep-stale-worktrees cleans up). Only emitted when the
+  # literal is not an ancestor of the scanned tree.
+  local lit
+  for lit in "$REPO_ROOT/.worktrees" "$REPO_ROOT/.claude/worktrees"; do
+    case "$me" in "$lit"/*) continue ;; esac
+    printf -- '-not\n-path\n%s/*\n' "$lit"
+  done
+}
+
 # repo_targets: every shell script the property applies to.
-#   .worktrees/  - sibling checkouts, not this tree's code
-#   node_modules - vendored
-#   plugins/     - GENERATED from src/ by npm run build; src/ is the real target
-#   this file    - necessarily contains example jq lines of both shapes
+#   other checkouts - see worktree_prunes above
+#   node_modules    - vendored
+#   plugins/        - GENERATED from src/ by npm run build; src/ is the real target
+#   this file       - necessarily contains example jq lines of both shapes
 repo_targets() {
+  local -a prunes=()
+  while IFS= read -r arg; do prunes+=("$arg"); done < <(worktree_prunes)
   find "$REPO_ROOT" -name '*.sh' -type f \
-    -not -path "$REPO_ROOT/.worktrees/*" \
+    "${prunes[@]}" \
     -not -path '*/node_modules/*' \
     -not -path "$REPO_ROOT/plugins/*" \
     -not -name 'test-jq-injection.sh' \
@@ -352,6 +398,22 @@ section "3. Repo-wide scan for interpolation into the jq program"
 # trips the bash 5.3 here-string PIPE_BUF deadlock.
 printf '%s\n' "$ALLOWLIST_RAW" \
   | sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' > "$TMPD/allow.keys"
+
+# VACUITY GUARD (#3410). A scan of zero files finds zero violations and prints
+# a clean pass. That is not hypothetical: the first version of worktree_prunes
+# pruned an ANCESTOR checkout of this tree, took repo_targets to 0, and this
+# section still reported success. The sibling test-json-island-breakout.sh has
+# the same assertion and it is the only reason that bug was caught, so this one
+# gets it too. The floor is deliberately loose — it only has to catch "the
+# target list collapsed", not track the real file count.
+scanned_count="$(repo_targets | wc -l | tr -d ' ')"
+if [ "${scanned_count:-0}" -lt 100 ]; then
+  log_fail "target list collapsed to ${scanned_count} shell scripts — the scan below would be vacuous, not clean (check worktree_prunes)"
+  FAIL=$((FAIL + 1))
+else
+  log_pass "target list is live (${scanned_count} shell scripts in scope)"
+  PASS=$((PASS + 1))
+fi
 
 repo_targets | scan_files > "$TMPD/findings.tsv"
 

@@ -71,16 +71,64 @@ section "1. No shipped playground contains a raw breakout sequence"
 # forever while guarding nothing. Measured at authoring time: 11 islands across
 # 926 HTML files, so the count assertion below is live, not decorative.
 SCAN=$(python3 - "$PROJECT_ROOT" <<'PY'
-import json, os, re, sys
+import json, os, re, subprocess, sys
 
 root = sys.argv[1]
 OPEN_RE = re.compile(r'<script[^>]*type=["\']application/json["\'][^>]*>', re.I)
 END_RE = re.compile(r'</script[\s/>]', re.I)
 
+# Other checkouts of this repo must not be walked, or their copies of these same
+# HTML files are counted and reported twice (#3410). Pruning by DIRECTORY NAME
+# was the bug: it removed `.worktrees` but not `.claude/worktrees`, whose leaf is
+# named `worktrees` — and that is the layout CC creates natively, the default
+# since #3315. Derive the roots from git so a third layout cannot repeat it, and
+# keep both literals as a backstop for UNregistered debris that git will not list.
+def other_checkouts(repo):
+    roots = set()
+    try:
+        out = subprocess.run(
+            ["git", "-C", repo, "worktree", "list", "--porcelain"],
+            capture_output=True, text=True, timeout=10,
+        ).stdout
+        paths = [l.split(" ", 1)[1].strip() for l in out.splitlines() if l.startswith("worktree ")]
+        # Skip the tree BEING SCANNED, not paths[0]: `git worktree list` puts the
+        # MAIN worktree first, which is a different tree whenever this test runs
+        # from inside a worktree. Pruning by paths[1:] made the scanned tree its
+        # own prune root, and the anti-vacuity assertion below caught it.
+        me = os.path.realpath(repo)
+        for pth in paths:
+            real = os.path.realpath(pth)
+            # Skip the tree being scanned, AND any checkout that CONTAINS it.
+            # The mandated layout nests worktrees inside the repo
+            # (<repo>/.worktrees/<task>), so the main checkout is an ANCESTOR of
+            # this one — prefix-matching against it would prune the entire scan
+            # and report a vacuous clean. Only disjoint or nested-below roots
+            # are genuinely "another checkout" from here.
+            if real != me and not me.startswith(real + os.sep):
+                roots.add(real)
+    except (OSError, subprocess.SubprocessError, IndexError):
+        pass                          # silent: best-effort — literals below carry it
+    for literal in (".worktrees", os.path.join(".claude", "worktrees")):
+        lit = os.path.realpath(os.path.join(repo, literal))
+        me_real = os.path.realpath(repo)
+        if lit != me_real and not me_real.startswith(lit + os.sep):
+            roots.add(lit)
+    return roots
+
+PRUNE_ROOTS = other_checkouts(root)
+
+def inside_other_checkout(path):
+    real = os.path.realpath(path)
+    return any(real == r or real.startswith(r + os.sep) for r in PRUNE_ROOTS)
+
 bad = []
 islands = 0
 for base, dirs, files in os.walk(root):
-    dirs[:] = [d for d in dirs if d not in {".git", "node_modules", ".worktrees"}]
+    dirs[:] = [
+        d for d in dirs
+        if d not in {".git", "node_modules"}
+        and not inside_other_checkout(os.path.join(base, d))
+    ]
     for name in files:
         if not name.endswith(".html"):
             continue
