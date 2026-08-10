@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.8](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.7...v10.0.0-alpha.8) (2026-08-10)
+
+
+### Bug Fixes
+
+* **hooks:** four values that looked like measurements and were not ([#3375](https://github.com/yonatangross/orchestkit/issues/3375)) ([6d477e5](https://github.com/yonatangross/orchestkit/commit/6d477e52f49d1e133a1af246f368df50a6f6b22d)), closes [#3317](https://github.com/yonatangross/orchestkit/issues/3317) [#3318](https://github.com/yonatangross/orchestkit/issues/3318) [#3323](https://github.com/yonatangross/orchestkit/issues/3323) [#3330](https://github.com/yonatangross/orchestkit/issues/3330)
+* **hooks:** two events with no listener, one handoff with two ([#3377](https://github.com/yonatangross/orchestkit/issues/3377)) ([b6dd6a8](https://github.com/yonatangross/orchestkit/commit/b6dd6a81c5cabdecd1a75cffef1cddfa1a911ba2))
+* **release:** automate the stable pin nobody was moving ([#3374](https://github.com/yonatangross/orchestkit/issues/3374)) ([fab8579](https://github.com/yonatangross/orchestkit/commit/fab8579d9a820da3ecb44fcc721952a780609378))
+
 ## [10.0.0-alpha.7](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.6...v10.0.0-alpha.7) (2026-08-09)
 
 
