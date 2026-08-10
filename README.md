@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.13](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.12...v10.0.0-alpha.13)** · 2026-08-10
+
+- **hooks:** stop logging an invented cache-break token cost (#3403)
+
 **[v10.0.0-alpha.12](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.11...v10.0.0-alpha.12)** · 2026-08-10
 
 - **mcp:** retire the ork-elicit server for AskUserQuestion (#3400)
@@ -312,12 +316,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.6](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.5...v10.0.0-alpha.6)** · 2026-08-09
 
 - **hooks:** --allow-file-access widened one rule and switched off eight (#3370), closes [#3320](https://github.com/yonatangross/orchestkit/issues/3320)
-
-**[v10.0.0-alpha.5](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.4...v10.0.0-alpha.5)** · 2026-08-09
-
-- **docs:** re-stamp the hook counts in the source, not the build output (#3369)
-- **hooks:** stop owning worktree provisioning, CC does it better (#3366)
-- **security:** close the two actionable code-scanning alerts (#3367)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

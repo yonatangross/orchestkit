@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.13",
+    "date": "2026-08-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** stop logging an invented cache-break token cost ([#3403](https://github.com/yonatangross/orchestkit/issues/3403)) ([4d6c8fa](https://github.com/yonatangross/orchestkit/commit/4d6c8fa23693acf8520199b77e2bbfa22764b73b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.12",
     "date": "2026-08-10",
     "compareUrl": "",
