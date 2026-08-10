@@ -276,7 +276,15 @@ export function detectSuspiciousShellFeatures(cmd: string): string[] {
       // (contains ':') since it's never brace expansion.
       const hasSpacedElements = inner.includes(', ');
       const hasJsonSyntax = inner.includes(':');
-      if (firstElement && !isLikelyExtension && !hasPathChars && !isPrecededByGlob && !hasSpacedElements && !hasJsonSyntax && /^[a-zA-Z]/.test(firstElement)) {
+      // A POSIX brace GROUP is not brace EXPANSION (#3384). Bash requires
+      // whitespace after `{` for a group and forbids it for expansion, so the
+      // space is an exact discriminator:
+      //   echo {a,b}    -> a b        expansion
+      //   echo { a,b }  -> { a,b }    group, no expansion
+      // `{ gh pr view --json a,b; }` was being refused as an attack because the
+      // comma in a --json field list cleared every other exemption.
+      const isBraceGroup = /^\{\s/.test(m);
+      if (firstElement && !isLikelyExtension && !hasPathChars && !isPrecededByGlob && !hasSpacedElements && !hasJsonSyntax && !isBraceGroup && /^[a-zA-Z]/.test(firstElement)) {
         findings.push(`brace expansion with command-like pattern: ${m}`);
       }
     }

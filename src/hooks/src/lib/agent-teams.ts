@@ -14,6 +14,7 @@
 
 import { existsSync, readFileSync, readdirSync, statSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
+import { DB_PATH, openDb } from './session-registry.js';
 
 /**
  * Check if CC Agent Teams is active.
@@ -135,6 +136,51 @@ function newestMtimeMs(root: string, maxDepth = 3): { ms: number; path: string }
  *  2. The age came from the team dir's own mtime, which does not move when a
  *     nested task file is written, so active teams read as idle.
  */
+/**
+ * Lowercased identifying tokens of every session that is provably still alive.
+ *
+ * `ok: false` means we could not read the registry at all. Callers must treat
+ * that as "ownership unknown" and refuse to delete — the whole point of #3385
+ * is that a cleanup pass which cannot see liveness has no business deleting
+ * anything. Returning an empty set on failure would silently restore the old
+ * behaviour, so the failure is reported rather than flattened.
+ *
+ * Liveness is the pid from migration 004 (#3318). Before that fix the column
+ * held the pid of the short-lived `node run-hook.mjs` child, which is always
+ * dead by the time anyone reads it — a liveness check against that value would
+ * have reported every session as gone.
+ */
+export function liveSessionTokens(): { ok: boolean; tokens: Set<string> } {
+  const tokens = new Set<string>();
+  try {
+    if (!existsSync(DB_PATH)) return { ok: false, tokens };
+    const db = openDb();
+    try {
+      const rows = db
+        .prepare('SELECT sid, pid FROM sessions WHERE ended_at IS NULL')
+        .all() as Array<{ sid: string; pid: number }>;
+      for (const r of rows) {
+        if (!r.sid || typeof r.pid !== 'number' || r.pid <= 0) continue;
+        try {
+          process.kill(r.pid, 0); // signal 0 = liveness probe, sends nothing
+        } catch {
+          continue; // dead or not ours
+        }
+        const sid = r.sid.toLowerCase();
+        tokens.add(sid);
+        // CC names team dirs after a short prefix of the session id, so match
+        // on that too. Only ever used to KEEP a directory.
+        if (sid.length >= 8) tokens.add(sid.slice(0, 8));
+      }
+    } finally {
+      try { db.close(); } catch { /* already closed */ }
+    }
+    return { ok: true, tokens };
+  } catch {
+    return { ok: false, tokens };
+  }
+}
+
 export interface StalenessVerdict {
   /** True only when abandonment was positively established. */
   stale: boolean;
@@ -144,7 +190,11 @@ export interface StalenessVerdict {
     | 'not-found'
     | 'unobservable'
     | 'recent-activity'
-    | 'past-window';
+    | 'past-window'
+    /** A session owning this team is still running. Never delete. */
+    | 'session-live'
+    /** The registry could not be read, so ownership is unknown. Never delete. */
+    | 'liveness-unknown';
   /** Age of the newest mtime in the tree, in ms. Absent when undecidable. */
   ageMs?: number;
   /** Which path supplied that mtime — the forensic breadcrumb. */
@@ -169,7 +219,25 @@ export function teamStaleness(
   const teamPath = join(homeDir, '.claude', 'teams', teamName);
   if (!existsSync(teamPath)) return { stale: false, reason: 'not-found' };
 
-  // Age gate FIRST, and it applies with or without a config. A team younger
+  // LIVENESS GATE, before any age reasoning (#3385).
+  //
+  // mtime is not liveness. A session open for hours that has not touched its
+  // team directory recently is idle, not abandoned, and deleting its team makes
+  // CC fail every later named-agent spawn with "team file not found". This
+  // struct's own doc says stale is "True only when abandonment was positively
+  // established"; an old mtime establishes nothing of the kind.
+  //
+  // The gate is deliberately one-directional: it can only ADD keeps. The
+  // team-name -> session mapping is CC's convention, not ours, so a wrong guess
+  // here must never be able to justify a delete. Unknown ownership keeps.
+  const live = liveSessionTokens();
+  if (!live.ok) return { stale: false, reason: 'liveness-unknown' };
+  const lower = teamName.toLowerCase();
+  for (const tok of live.tokens) {
+    if (lower.includes(tok)) return { stale: false, reason: 'session-live' };
+  }
+
+  // Age gate, and it applies with or without a config. A team younger
   // than the window is never stale — that is the window's entire purpose.
   let newest: { ms: number; path: string };
   try {

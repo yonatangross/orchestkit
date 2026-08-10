@@ -10,7 +10,17 @@ import { outputSilentSuccess } from '../lib/common.js';
 import { listAllTeams, teamStaleness, cleanupTeam } from '../lib/agent-teams.js';
 import { NOOP_CTX } from '../lib/context.js';
 
-const MAX_AGE_HOURS = 4;
+/**
+ * Backstop only — the liveness gate in teamStaleness() is the real guard (#3385).
+ *
+ * Was 4h, which is inside the length of an ordinary working session: a session
+ * open five hours that had not recently touched its team dir was deleted out
+ * from under itself, and CC then failed every named-agent spawn with "team file
+ * not found". The window now only decides teams that liveness could not vouch
+ * for at all (a session absent from the registry, e.g. a project without ork),
+ * so it is set past any plausible single session rather than at the median one.
+ */
+const MAX_AGE_HOURS = 24;
 const HOOK = 'stale-team-cleanup';
 
 const hours = (ms: number): string => (ms / 3600_000).toFixed(1);
