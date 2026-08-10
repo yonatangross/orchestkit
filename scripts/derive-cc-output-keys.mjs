@@ -30,9 +30,9 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join, dirname } from 'node:path';
+import { delimiter, join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -43,8 +43,36 @@ const EXIT_OK = 0;
 const EXIT_DRIFT = 1;
 const EXIT_CANNOT_OBSERVE = 2;
 
-/** Resolve the real binary, not the shim. `command -v claude` may be a wrapper. */
+/**
+ * Resolve the real binary, not the shim. TWO layouts ship it and only one of
+ * them was ever checked (#3409):
+ *
+ *   native installer   ~/.local/share/claude/versions/<x.y.z>
+ *   npm install -g     <prefix>/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe
+ *
+ * The npm layout is what a GitHub runner has, and there NONE of the
+ * ~/.local/share/claude paths exist at all. Measured on run 31402464119, where
+ * this gate printed `/home/runner/.local/share/claude/versions: ABSENT` and
+ * exited 2, so the nightly contract probe could never observe anything. The
+ * package's own `install.cjs` writes its payload to
+ * `join(__dirname, 'bin', 'claude.exe')` inside the package directory, delivered
+ * through per-platform optionalDependencies, and it is the SAME artifact: 2.1.226
+ * measures 279,661,952 bytes in both layouts.
+ *
+ * The shim risk the previous version of this comment named is real, and is
+ * handled by the CALLER rather than here: it requires a `hookSpecificOutput`
+ * literal in the extracted strings and reports CANNOT-OBSERVE when it is absent.
+ * A wrapper script therefore cannot produce a vacuous pass, which matters
+ * because the drift check is missing-only and an empty event set has an empty
+ * difference. Do not remove that check on the assumption this function only ever
+ * returns real binaries.
+ */
 function findBinary() {
+  return binaryFromVersionsDir() ?? binaryFromPath();
+}
+
+/** The native installer's layout: a versioned file per release. */
+function binaryFromVersionsDir() {
   const versions = join(homedir(), '.local/share/claude/versions');
   if (!existsSync(versions)) return null;
   const candidates = readdirSync(versions)
@@ -55,6 +83,48 @@ function findBinary() {
   if (candidates.length === 0) return null;
   const newest = join(versions, candidates[candidates.length - 1]);
   return statSync(newest).isFile() ? { path: newest, version: candidates[candidates.length - 1] } : null;
+}
+
+/**
+ * Walk PATH for `claude` and follow symlinks to whatever it really is.
+ *
+ * PATH is scanned directly rather than shelling out, because `command -v` is a
+ * shell builtin and not an executable, and `which` is not guaranteed present on
+ * a minimal image. Directories and unreadable entries are skipped rather than
+ * returned, so a `claude/` directory on PATH cannot masquerade as the binary.
+ */
+function binaryFromPath() {
+  for (const dir of (process.env.PATH || '').split(delimiter).filter(Boolean)) {
+    const candidate = join(dir, 'claude');
+    if (!existsSync(candidate)) continue;
+    try {
+      const real = realpathSync(candidate);
+      if (!statSync(real).isFile()) continue;
+      return { path: real, version: versionNear(real) ?? 'unknown' };
+    } catch {
+      continue; // broken symlink or permission denied: keep looking
+    }
+  }
+  return null;
+}
+
+/** Best-effort version for a resolved binary, by layout. */
+function versionNear(binPath) {
+  const native = binPath.match(/\/versions\/(\d+\.\d+\.\d+)$/);
+  if (native) return native[1];
+
+  // npm: <pkg>/bin/claude.exe sits two levels under <pkg>/package.json
+  const pkgJson = join(dirname(dirname(binPath)), 'package.json');
+  if (existsSync(pkgJson)) {
+    try {
+      const version = JSON.parse(readFileSync(pkgJson, 'utf8')).version;
+      if (typeof version === 'string' && version) return version;
+    } catch {
+      // fall through to unknown: a version we cannot read is not fatal here,
+      // the contract comes from the binary's strings, not from its version
+    }
+  }
+  return null;
 }
 
 /**
@@ -84,8 +154,10 @@ async function main() {
 
   const bin = findBinary();
   if (!bin) {
-    console.error('CANNOT OBSERVE: no CC binary under ~/.local/share/claude/versions');
-    console.error('  This script must run where CC is installed. CI does not install it;');
+    console.error('CANNOT OBSERVE: no CC binary found. Looked in both known layouts:');
+    console.error(`    native: ${join(homedir(), '.local/share/claude/versions')}/<x.y.z>`);
+    console.error('    npm:    `claude` on PATH, symlinks followed');
+    console.error('  This script must run where CC is installed. ci.yml does not install it;');
     console.error('  CI verifies the committed generated module instead.');
     process.exit(EXIT_CANNOT_OBSERVE);
   }
