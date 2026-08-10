@@ -266,4 +266,72 @@ describe('prompt/cache-break-detector', () => {
       expect(result.continue).toBe(true);
     });
   });
+
+  // -------------------------------------------------------------------------
+  // No invented token cost (#3308 mechanism 09)
+  // -------------------------------------------------------------------------
+  //
+  // This hook used to log `~Nt cost` computed as (added + removed) * 350 — its
+  // own comment called it a "rough heuristic". In the log it read as an
+  // observed value, and the API reports the real figure every turn
+  // (cache_creation_input_tokens / cache_read_input_tokens). #3386 made ctx.log
+  // reach disk, so the invented number had begun appearing in real logs.
+  //
+  // The EPIC C audit read this hook as a parallel mechanism to the API's cache
+  // accounting and proposed retiring it. It is not: the API measures totals,
+  // this attributes a break to ork's own injection markers. And retiring it
+  // would break something unrelated — see the turn-state test below.
+
+  describe('logs no fabricated token cost', () => {
+    // Reaching the shape-change branch needs BOTH: a prompt over the 50-char
+    // guard, and a previous state on disk to diff against. My first attempt at
+    // this test used 35-char prompts with existsSync mocked false, so the hook
+    // returned early, the log was empty, and `not.toMatch(/~\d+t cost/)` passed
+    // for the wrong reason. A vacuous pass is worse than no test — hence the
+    // positive control below, which fails if the branch stops being reached.
+    function armShapeChange() {
+      (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(
+        JSON.stringify({
+          lastShapeHash: 'deadbeef',
+          lastMarkers: ['<system-reminder>'],
+          turnCount: 4,
+        })
+      );
+    }
+
+    function loggedLines(): string {
+      const mocked = testCtx.log as unknown as ReturnType<typeof vi.fn>;
+      return mocked.mock.calls.map((c: unknown[]) => String(c[1])).join('\n');
+    }
+
+    const LONG_PROMPT =
+      '# CLAUDE.md\nProject instructions follow. ' +
+      'This prompt must exceed the fifty character guard to be examined at all.';
+
+    test('POSITIVE CONTROL: the shape-change branch is actually reached', () => {
+      armShapeChange();
+      cacheBreakDetector(createInput(LONG_PROMPT), testCtx);
+
+      const logged = loggedLines();
+      expect(logged).toMatch(/Cache break|Shape change/);
+    });
+
+    test('no logged line carries an invented token-cost figure', () => {
+      armShapeChange();
+      cacheBreakDetector(createInput(LONG_PROMPT), testCtx);
+
+      const logged = loggedLines();
+      expect(logged).not.toMatch(/~\d+t cost/);
+      expect(logged).not.toMatch(/\* 350|x 350/);
+    });
+
+    test('it still logs the measured marker delta', () => {
+      armShapeChange();
+      cacheBreakDetector(createInput(LONG_PROMPT), testCtx);
+
+      const logged = loggedLines();
+      expect(logged).toMatch(/markers/);
+    });
+  });
 });

@@ -13,8 +13,21 @@
  * Design:
  * - Hashes the set of active context injection keys (hook names, section markers)
  * - Compares to previous turn's shape hash (persisted via CLAUDE_ENV_FILE)
- * - On shape change, logs a cache-break signal to ~/.claude/analytics/cache-breaks.jsonl
- * - Never modifies Claude's behavior — analytics only
+ * - On shape change, logs the marker delta via ctx.log — NOTHING ELSE
+ * - Never modifies Claude's behavior
+ *
+ * NO ANALYTICS FILE IS WRITTEN. #1266 (v7.30.0) removed appendAnalytics and left
+ * comments asserting an emit() replacement that was never built — there is no
+ * emit call in this file, and nothing writes ~/.claude/analytics/cache-breaks.jsonl.
+ * That filename is still listed in telemetry-http-sink KNOWN_EVENT_FILES, an
+ * allowlist entry with no producer. Deciding whether to build the emit path or
+ * drop the claim entirely is tracked separately; until then this header states
+ * what the code does rather than what was intended.
+ *
+ * LOAD-BEARING SIDE EFFECT: this hook is the sole writer of the turn-state file
+ * (see lib/session-turn-counter.ts), which prompt/goal-tracker and
+ * stop/goal-tracker both read. Retiring the hook — as EPIC C's overlap column
+ * proposed — would silently break /goal turn counting.
  *
  * Performance: FNV-1a hash + string comparison, < 5ms budget.
  * Privacy: logs only hashed project ID, shape hash, and delta summary.
@@ -22,7 +35,7 @@
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, fnv1aHash } from '../lib/common.js';
-// v7.30.0 (#1266): Removed appendAnalytics — cache break data goes via emit path
+// v7.30.0 (#1266): removed appendAnalytics. No replacement emit path exists.
 import { getTurnStateFilePath } from '../lib/session-turn-counter.js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -219,12 +232,20 @@ export function cacheBreakDetector(input: HookInput, ctx: HookContext = NOOP_CTX
 
     ctx.log(HOOK_NAME, `Shape change detected at turn ${turnCount}: +${delta.added.length}/-${delta.removed.length} markers`);
 
-    // Estimate token cost of re-tokenization
-    // Rough heuristic: each marker indicates ~200-500 tokens of injected context
-    const estimatedTokenCost = (delta.added.length + delta.removed.length) * 350;
-
-    // Cache break data flows to yonatan-hq via emit() on UserPromptSubmit event
-    ctx.log(HOOK_NAME, `Cache break: +${delta.added.length}/-${delta.removed.length} markers, ~${estimatedTokenCost}t cost`);
+    // No token-cost figure is logged. This used to emit
+    //   (added + removed) * 350
+    // described in its own comment as a "rough heuristic", written into the log
+    // as `~Nt cost` where it read as an observed value. It was count x 350, and
+    // the API reports the real number (cache_creation_input_tokens /
+    // cache_read_input_tokens) every turn. #3386 landed earlier today and made
+    // ctx.log actually reach disk, so that invented figure had just started
+    // appearing in real logs. A guess shaped like a measurement is the defect
+    // this milestone exists to remove; the marker counts below are measured.
+    ctx.log(
+      HOOK_NAME,
+      `Cache break: +${delta.added.length}/-${delta.removed.length} markers ` +
+        `(attribution only — token cost comes from the API, not from here)`
+    );
   } catch (error) {
     // Never crash the hook chain
     ctx.log(HOOK_NAME, `Error: ${error}`, 'warn');

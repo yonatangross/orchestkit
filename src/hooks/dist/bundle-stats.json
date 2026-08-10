@@ -17,8 +17,8 @@
       "exports": 68
     },
     "prompt": {
-      "size": 64988,
-      "sizeKB": "63.46",
+      "size": 65002,
+      "sizeKB": "63.48",
       "exports": 109
     },
     "lifecycle": {
@@ -57,8 +57,8 @@
       "exports": 70
     }
   },
-  "totalSize": 699247,
-  "totalSizeKB": "682.86",
+  "totalSize": 699261,
+  "totalSizeKB": "682.87",
   "inputs": 109,
   "avgBundleSizeKB": "62.08"
 }
