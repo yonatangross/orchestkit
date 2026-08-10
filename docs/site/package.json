@@ -18,7 +18,7 @@
 		"@vercel/analytics": "^2.0.1",
 		"@vercel/speed-insights": "^2.0.0",
 		"@xyflow/react": "^12.11.2",
-		"@yonatan-hq/analytics": "^1.0.3",
+		"@yonatan-hq/analytics": "file:../stubs/analytics-stub",
 		"esbuild": "^0.28.1",
 		"fumadocs-core": "^16.14.1",
 		"fumadocs-mdx": "^15.2.2",

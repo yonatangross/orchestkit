@@ -58,14 +58,17 @@ export function staleTeamCleanup(_input: HookInput, ctx: HookContext = NOOP_CTX)
 
     // State the case for deletion BEFORE deleting, so a wrong delete leaves a
     // record even if the process dies mid-rmSync.
+    // 'warn' explicitly: the record of an irreversible delete must survive
+    // even under a user-tightened log level (#3386).
     ctx.log(
       HOOK,
       `DELETE "${name}": idle ${hours(v.ageMs ?? 0)}h (window ${MAX_AGE_HOURS}h), ` +
-        `newest=${v.newestPath ?? 'unknown'} -> removing ~/.claude/teams/${name} and ~/.claude/tasks/${name}`
+        `newest=${v.newestPath ?? 'unknown'} -> removing ~/.claude/teams/${name} and ~/.claude/tasks/${name}`,
+      'warn'
     );
 
     if (cleanupTeam(name)) cleaned++;
-    else ctx.log(HOOK, `FAILED to remove team "${name}" — directories may be partially deleted`);
+    else ctx.log(HOOK, `FAILED to remove team "${name}" — directories may be partially deleted`, 'warn');
   }
 
   ctx.log(

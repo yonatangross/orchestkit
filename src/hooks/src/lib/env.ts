@@ -153,7 +153,9 @@ export function isGitWorktree(projectDir?: string): boolean {
  * 3. ORK_DEBUG env var (set via CLAUDE_ENV_FILE by ConfigChange or failure-handler)
  * 4. Debug flag file (~/.claude/logs/ork/debug-mode.flag) — fallback for hooks
  *    on events that don't receive CLAUDE_ENV_FILE propagated vars
- * 5. Default: 'warn'
+ * 5. Default: 'info' — must admit logHook's default level ('info'). When this
+ *    defaulted to 'warn', every bare ctx.log() call in the tree was silently
+ *    dropped in production (#3386).
  */
 export function getLogLevel(): string {
   // Explicit override always wins
@@ -184,7 +186,7 @@ export function getLogLevel(): string {
     // Ignore — never crash on flag check
   }
 
-  return 'warn';
+  return 'info';
 }
 
 /**

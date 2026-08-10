@@ -51,7 +51,13 @@ function ensureDir(dir: string): void {
  * Log to hook log file with automatic rotation
  * Respects ORCHESTKIT_LOG_LEVEL (default: warn, skips debug logs in production)
  */
-export function logHook(hookName: string, message: string, level: 'debug' | 'info' | 'warn' | 'error' = 'debug'): void {
+// #3386: the default level and the default threshold MUST stay on the same
+// side of the gate. When this default was 'debug' and getLogLevel() defaulted
+// to 'warn', a bare ctx.log(name, msg) — 427 of 503 call sites — was
+// guaranteed-dropped in production, indistinguishable from the DI being
+// unwired. Bare calls are the record-keeping path; they default to 'info' and
+// the gate admits 'info' so they land. 'debug' is opt-in verbosity only.
+export function logHook(hookName: string, message: string, level: 'debug' | 'info' | 'warn' | 'error' = 'info'): void {
   // Skip if below log level threshold (big perf win - avoids I/O)
   if (!shouldLog(level)) {
     return;

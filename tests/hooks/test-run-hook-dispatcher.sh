@@ -442,6 +442,53 @@ rm -rf "$PROJECT_ROOT/.claude/memory/sessions/census-stdin-$$" \
        "$PROJECT_ROOT/.claude/memory/sessions/census-env-$$" 2>/dev/null || true  # silent: post-cleanup — test fixtures
 
 # =============================================================================
+echo ""
+echo "9. HookContext logging lands on disk (#3386)"
+echo "--------------------------------------------"
+# The DI wiring (buildContext -> hookFn(input, ctx)) was present since v7.30.0
+# yet every bare ctx.log() call was dropped: logHook defaulted to 'debug' while
+# getLogLevel() defaulted to 'warn'. A hook that "records every decision" wrote
+# nothing, indistinguishable from the DI being unwired. This test runs a real
+# destructive hook through the real dispatcher + built bundle at DEFAULT log
+# level and asserts the record physically lands. It MUST fail if either default
+# regresses to the dropped side of the gate.
+
+SANDBOX=$(mktemp -d)
+mkdir -p "$SANDBOX/home/.claude/teams/ghost-team-$$" "$SANDBOX/proj"
+echo '{}' > "$SANDBOX/home/.claude/teams/ghost-team-$$/config.json"
+# Backdate 48h so the 24h staleness window fires (BSD touch first, GNU fallback)
+# silent: best-effort — BSD `date -v` errors by design on GNU; the fallback runs
+OLD_TS=$(date -v-48H +%Y%m%d%H%M 2>/dev/null || date -d '48 hours ago' +%Y%m%d%H%M)
+touch -t "$OLD_TS" "$SANDBOX/home/.claude/teams/ghost-team-$$/config.json" \
+                   "$SANDBOX/home/.claude/teams/ghost-team-$$"
+
+# 9a. Default env (no ORCHESTKIT_LOG_LEVEL, no debug flags): DELETE record lands.
+HOME="$SANDBOX/home" run_hook "lifecycle/stale-team-cleanup" \
+  '{"hook_event_name":"SessionStart","source":"startup"}' \
+  "HOME=$SANDBOX/home" "CLAUDE_PROJECT_DIR=$SANDBOX/proj"
+HOOKS_LOG="$SANDBOX/proj/.claude/logs/hooks.log"
+if [[ ! -d "$SANDBOX/home/.claude/teams/ghost-team-$$" ]]; then
+  pass "stale team actually deleted (destructive action executed)"
+else
+  fail "stale team not deleted — fixture broken, log assertion below is vacuous"
+fi
+if [[ -f "$HOOKS_LOG" ]] && grep -q "DELETE \"ghost-team-$$\"" "$HOOKS_LOG"; then
+  pass "DELETE record landed on disk at default log level"
+else
+  # silent: best-effort — cat of a possibly-absent log inside the failure message
+  fail "DELETE record missing at default log level (#3386 regressed): $(cat "$HOOKS_LOG" 2>/dev/null || echo '<no hooks.log>')"
+fi
+
+# 9b. Bare ctx.log (summary line, no explicit level) also lands by default.
+if [[ -f "$HOOKS_LOG" ]] && grep -q "team(s) examined" "$HOOKS_LOG"; then
+  pass "bare ctx.log() summary line landed (info admitted by default gate)"
+else
+  fail "bare ctx.log() line dropped — logHook/getLogLevel defaults diverged again"
+fi
+
+rm -rf "$SANDBOX"
+
+# =============================================================================
 # Summary
 echo ""
 echo "================================="
