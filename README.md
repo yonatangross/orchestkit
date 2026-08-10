@@ -276,6 +276,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.16](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.15...v10.0.0-alpha.16)** · 2026-08-10
+
+- **ci:** contract probe looked in the one layout runners lack (#3417)
+- **hooks:** branch guard's third path never ran, in 1763 sessions (#3414)
+
 **[v10.0.0-alpha.15](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.14...v10.0.0-alpha.15)** · 2026-08-10
 
 - **security:** scanners knew one worktree layout, not two (#3412)
@@ -312,12 +317,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps:** bump the npm-minor-patch group (#3382)
 - **deps:** bump the remotion group in /orchestkit-demos with 21 updates (#3381)
 - …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-alpha.8](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.7...v10.0.0-alpha.8)** · 2026-08-10
-
-- **hooks:** four values that looked like measurements and were not (#3375), closes [#3317](https://github.com/yonatangross/orchestkit/issues/3317) [#3318](https://github.com/yonatangross/orchestkit/issues/3318) [#3323](https://github.com/yonatangross/orchestkit/issues/3323) [#3330](https://github.com/yonatangross/orchestkit/issues/3330)
-- **hooks:** two events with no listener, one handoff with two (#3377)
-- **release:** automate the stable pin nobody was moving (#3374)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

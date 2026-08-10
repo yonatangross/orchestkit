@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.16",
+    "date": "2026-08-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** contract probe looked in the one layout runners lack ([#3417](https://github.com/yonatangross/orchestkit/issues/3417)) ([b4ac670](https://github.com/yonatangross/orchestkit/commit/b4ac67023dfeb1ebafadbb6b9d97f9f6b371403d))",
+          "**hooks:** branch guard's third path never ran, in 1763 sessions ([#3414](https://github.com/yonatangross/orchestkit/issues/3414)) ([6cca3eb](https://github.com/yonatangross/orchestkit/commit/6cca3eb29802281eb64fafb70c1030a38f890f9c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.15",
     "date": "2026-08-10",
     "compareUrl": "",
