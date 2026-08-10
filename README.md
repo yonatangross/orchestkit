@@ -276,6 +276,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.10](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.9...v10.0.0-alpha.10)** · 2026-08-10
+
+- **docs:** retire the keybindings that never fired (#3395)
+- **hooks:** admit bare ctx.log() through the default level gate (#3386) (#3390)
+- **hooks:** scope gh enforcers to this repo (#3392)
+
 **[v10.0.0-alpha.9](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.8...v10.0.0-alpha.9)** · 2026-08-10
 
 - **hooks:** two guards that treated "cannot observe" as "not there" (#3387)
@@ -313,13 +319,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **cc-triage:** make the feature cap announce itself (#3361)
 - **pre-push:** resolve the branch from the pushed refspec, not HEAD (#3299), closes [#3290](https://github.com/yonatangross/orchestkit/issues/3290)
-
-**[v10.0.0-alpha.2](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.1...v10.0.0-alpha.2)** · 2026-08-09
-
-- **hooks:** deny credential-file reads at the Read tool (#3360)
-- **agents:** scope peer messaging by lifecycle (#3355)
-- **security:** let the DYLD probe observe instead of aborting (#3358)
-- **settings:** retire the plugin settings.json keys CC never reads (#3357)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
