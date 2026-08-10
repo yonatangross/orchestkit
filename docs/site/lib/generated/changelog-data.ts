@@ -17,6 +17,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.8",
+    "date": "2026-08-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** four values that looked like measurements and were not ([#3375](https://github.com/yonatangross/orchestkit/issues/3375)) ([6d477e5](https://github.com/yonatangross/orchestkit/commit/6d477e52f49d1e133a1af246f368df50a6f6b22d)), closes [#3317](https://github.com/yonatangross/orchestkit/issues/3317) [#3318](https://github.com/yonatangross/orchestkit/issues/3318) [#3323](https://github.com/yonatangross/orchestkit/issues/3323) [#3330](https://github.com/yonatangross/orchestkit/issues/3330)",
+          "**hooks:** two events with no listener, one handoff with two ([#3377](https://github.com/yonatangross/orchestkit/issues/3377)) ([b6dd6a8](https://github.com/yonatangross/orchestkit/commit/b6dd6a81c5cabdecd1a75cffef1cddfa1a911ba2))",
+          "**release:** automate the stable pin nobody was moving ([#3374](https://github.com/yonatangross/orchestkit/issues/3374)) ([fab8579](https://github.com/yonatangross/orchestkit/commit/fab8579d9a820da3ecb44fcc721952a780609378))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.7",
     "date": "2026-08-09",
     "compareUrl": "",
