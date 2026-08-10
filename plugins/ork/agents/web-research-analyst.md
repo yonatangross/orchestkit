@@ -469,7 +469,7 @@ agent-browser wait --fn "window.appReady"
 
 ## Domain Reference
 
-The `web-research-workflow` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/web-research-workflow/SKILL.md")`.
+The `web-research-workflow` skill is `user-invocable: false` AND `disable-model-invocation: true`, so it has no slash form and the model cannot auto-select it. **This `Read` is its only load path — do not remove it.** Load it when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/web-research-workflow/SKILL.md")`.
 
 ## Status Protocol
 

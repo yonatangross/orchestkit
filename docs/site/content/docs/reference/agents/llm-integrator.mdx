@@ -258,7 +258,7 @@ curl -X POST http://localhost:8500/api/v1/chat/stream \
 
 ## Domain Reference
 
-The `llm-integration` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/llm-integration/SKILL.md")`.
+The `llm-integration` skill is `user-invocable: false` AND `disable-model-invocation: true`, so it has no slash form and the model cannot auto-select it. **This `Read` is its only load path — do not remove it.** Load it when you need its rules and references: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/llm-integration/SKILL.md")`.
 
 ## Status Protocol
 

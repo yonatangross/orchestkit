@@ -203,7 +203,7 @@ Task: "Research the market for AI workflow builders"
 
 ## Domain Reference
 
-The `product-frameworks` skill is slash-only, so it cannot be preloaded. Load it explicitly when you need its rules and references: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/product-frameworks/SKILL.md")`.
+The `product-frameworks` skill is `user-invocable: false` AND `disable-model-invocation: true`, so it has no slash form and the model cannot auto-select it. **This `Read` is its only load path — do not remove it.** Load it when you need its rules and references: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/product-frameworks/SKILL.md")`.
 
 ## Status Protocol
 

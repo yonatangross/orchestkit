@@ -292,7 +292,9 @@ console.time('render'); // Use web-vitals library
 
 ## Domain Reference
 
-These skills are slash-only, so they cannot be preloaded. Load them explicitly when the
+Both skills are `user-invocable: false` AND `disable-model-invocation: true`, so neither
+has a slash form and the model cannot auto-select them. **These `Read` lines are their
+only load path — do not remove them.** Load them when the
 work needs them, RUM and dashboards for the first, bundle and build analysis for the second:
 
 - `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/monitoring-observability/SKILL.md")`
