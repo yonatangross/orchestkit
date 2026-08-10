@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.16](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.15...v10.0.0-alpha.16) (2026-08-10)
+
+
+### Bug Fixes
+
+* **ci:** contract probe looked in the one layout runners lack ([#3417](https://github.com/yonatangross/orchestkit/issues/3417)) ([b4ac670](https://github.com/yonatangross/orchestkit/commit/b4ac67023dfeb1ebafadbb6b9d97f9f6b371403d))
+* **hooks:** branch guard's third path never ran, in 1763 sessions ([#3414](https://github.com/yonatangross/orchestkit/issues/3414)) ([6cca3eb](https://github.com/yonatangross/orchestkit/commit/6cca3eb29802281eb64fafb70c1030a38f890f9c))
+
 ## [10.0.0-alpha.15](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.14...v10.0.0-alpha.15) (2026-08-10)
 
 
