@@ -178,10 +178,19 @@ export function locateGitSegment(command: string): LocatedGit | null {
  * Where will this git command actually run? Resolution order:
  *   1. `git -C <path>`           — explicit, highest trust
  *   2. leading `cd <path> &&`    — explicit in the same command
- *   3. session-state `shell_cwd` — the Bash tool's persistent cwd as
- *      recorded by the CwdChanged hook (file read — call lazily!)
+ *   3. session-state `shell_cwd`, the Bash tool's persistent cwd, as tracked
+ *      by posttool/bash/session-heartbeat-publisher (file read, so call lazily!)
  * Relative paths resolve against the project dir. Returns null when the
  * command gives no signal beyond the session project dir.
+ *
+ * Path 3 used to credit the CwdChanged hook, and was dead for as long as it
+ * said so: CC does not fire CwdChanged for a `cd` inside a Bash call, so across
+ * 1763 recorded sessions no state file ever gained a shell_cwd (#3411). Paths 1
+ * and 2 looked like redundancy when they were the entire mechanism, and a bare
+ * `git push` from a worktree was therefore judged against the project dir,
+ * denied as "committing to main" while nothing was on main. The tracker in
+ * lib/shell-cwd.ts is what makes this path real; do not re-point it at an event
+ * without first checking that a shell_cwd actually lands on disk.
  */
 export function resolveEffectiveDir(
   gitCommand: string,
@@ -282,8 +291,8 @@ function validateBranchProtection(
 
   // Worktree-awareness (#2363): the session project dir is on a protected
   // branch, but the command may execute elsewhere — `git -C <path>`, a
-  // leading `cd <path> &&`, or the shell's persistent cwd recorded by the
-  // CwdChanged hook. Judge by the branch where the command actually runs.
+  // leading `cd <path> &&`, or the shell's persistent cwd as tracked across
+  // commands (#3411). Judge by the branch where the command actually runs.
   // An unresolvable/unknown branch falls through to the protected verdict
   // (fail closed).
   const effectiveDir = resolveEffective();
@@ -311,7 +320,11 @@ Required workflow:
 1. git checkout -b issue/<number>-<description>
 2. git commit -m "feat(#<number>): Description"
 3. git push -u origin issue/<number>-<description>
-4. gh pr create --base dev`;
+4. gh pr create
+
+(No --base: this text said '--base dev', which is HQ's convention and wrong in
+this repo, where PRs target main. gh already defaults to the repo's own base
+branch, so naming one here can only ever be wrong somewhere. #3411)`;
 
     logPermissionFeedback('deny', `Blocked on protected branch: ${currentBranch}`);
     return outputDeny(errorMsg);

@@ -195,6 +195,16 @@ export function cwdChanged(input: HookInput, ctx: HookContext = NOOP_CTX): HookR
   // protection) can judge git commands by where they actually run —
   // the session project dir stays on main while the shell works in a
   // linked worktree. Best-effort: never blocks the hook.
+  //
+  // THIS WRITE IS CORRECT BUT ALMOST NEVER REACHED. Measured 2026-08-10 at CC
+  // 2.1.226: CC does not fire CwdChanged for a `cd` inside a Bash tool call, so
+  // across 1763 recorded sessions no state file ever gained a shell_cwd, and
+  // hooks.log held exactly one cwd-changed line (a synthetic probe). Fed a
+  // well-formed payload the handler writes correctly. The event simply does not
+  // arrive. git-validator's shell_cwd is supplied by
+  // posttool/bash/session-heartbeat-publisher instead (#3411). Keep this: it is
+  // right if CC ever broadens the event, and it costs one write when it fires.
+  // Do NOT treat it as the source of shell_cwd.
   const sessionId = input.session_id;
   const projectDir = input.project_dir || ctx.projectDir;
   if (sessionId && projectDir) {

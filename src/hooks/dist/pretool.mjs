@@ -49,7 +49,11 @@ Required workflow:
 1. git checkout -b issue/<number>-<description>
 2. git commit -m "feat(#<number>): Description"
 3. git push -u origin issue/<number>-<description>
-4. gh pr create --base dev`;return j("deny",`Blocked on protected branch: ${e}`),m(s)}return y(`On protected branch '${e}'. Create feature branch for changes.`)}function Aa(t){if(!/git\s+(checkout\s+-b|branch\s+)/.test(t))return null;let e=Ea(t);if(!e)return null;let n=yn(e);if(n){let o=`Branch naming: ${n}
+4. gh pr create
+
+(No --base: this text said '--base dev', which is HQ's convention and wrong in
+this repo, where PRs target main. gh already defaults to the repo's own base
+branch, so naming one here can only ever be wrong somewhere. #3411)`;return j("deny",`Blocked on protected branch: ${e}`),m(s)}return y(`On protected branch '${e}'. Create feature branch for changes.`)}function Aa(t){if(!/git\s+(checkout\s+-b|branch\s+)/.test(t))return null;let e=Ea(t);if(!e)return null;let n=yn(e);if(n){let o=`Branch naming: ${n}
 
 Recommended: issue/123-description, feature/xyz, fix/bug-name`;return j("allow",`Branch naming guidance: ${e}`),g(o)}return null}function Ha(t){if(!/^git\s+commit/.test(t))return null;if(/<<['"]?EOF/.test(t))return g(`Heredoc commit. Use: type(#issue): description
 Types: ${Ce.join(", ")}

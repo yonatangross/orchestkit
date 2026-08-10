@@ -17,15 +17,23 @@
  *   • git commit ...                → last_commit
  *   • git push ...                  → last_push
  *   • gh pr create | merge | ready  → last_pr
+ *   • a top-level `cd`              → shell_cwd  (#3411)
+ *
+ * shell_cwd rides along here rather than in its own hook because this handler
+ * already owns the state write, and because CC gives hooks no other way to know
+ * where the persistent Bash shell is. See lib/shell-cwd.ts.
  *
  * The publisher does NOT parse exit codes; CC's command output is the
  * source of truth. If the command failed, the output will lack the
  * structural markers and the heartbeat just bumps timestamp + status.
  */
 
+import { existsSync } from 'node:fs';
+
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess } from '../../lib/common.js';
 import { getProjectDir } from '../../lib/paths.js';
+import { extractPersistentCd, applyCwdEffect } from '../../lib/shell-cwd.js';
 import { NOOP_CTX } from '../../lib/context.js';
 import {
   type SessionState,
@@ -121,7 +129,12 @@ export function sessionHeartbeatPublisher(
   if (!command) return outputSilentSuccess();
 
   const kind = classifyCommand(command);
-  if (!kind) return outputSilentSuccess();
+  // The shell's cwd is tracked here because this hook already writes the state
+  // file, so tracking costs no extra I/O, and it still costs none at all for
+  // the common command, which neither cds nor touches git. See lib/shell-cwd.ts
+  // for why the command string is the only place this information exists.
+  const cwdEffect = extractPersistentCd(command);
+  if (!kind && cwdEffect.kind === 'unchanged') return outputSilentSuccess();
 
   const cwd = getProjectDir();
   if (!cwd) return outputSilentSuccess();
@@ -149,6 +162,24 @@ export function sessionHeartbeatPublisher(
   const existing = readSessionState(path);
 
   const update: Partial<SessionState> = {};
+
+  // shell_cwd is what lets git-validator judge a BARE `git commit`/`git push`
+  // by the branch it will really act on. Without it the guard falls back to the
+  // project dir, which is how a correct feature-branch push in a worktree gets
+  // denied as "committing to main" (#3411).
+  if (cwdEffect.kind !== 'unchanged') {
+    const moved = applyCwdEffect(existing?.shell_cwd ?? null, cwdEffect, cwd);
+    if (moved === null) {
+      // Unmodelable change, so drop the record rather than let a stale directory
+      // speak for the shell. The reader then fails closed, as it did before.
+      update.shell_cwd = null;
+    } else if (existsSync(moved)) {
+      update.shell_cwd = moved;
+    }
+    // A `cd` to a non-existent path FAILED, so the shell never moved (and the
+    // `&& git …` behind it never ran). Leaving shell_cwd untouched is correct.
+  }
+
   if (kind === 'commit') {
     const c = parseCommitFromOutput(output);
     if (c) update.last_commit = c;
@@ -163,7 +194,8 @@ export function sessionHeartbeatPublisher(
   const next = mergeSessionState(existing, update, repo, sessionId);
   const wrote = writeSessionStateAtomic(path, next);
   if (wrote) {
-    ctx.log(HOOK_NAME, `Published ${kind} heartbeat for ${repo}/${sessionId}`, 'debug');
+    const what = kind ?? `cwd=${update.shell_cwd ?? 'cleared'}`;
+    ctx.log(HOOK_NAME, `Published ${what} heartbeat for ${repo}/${sessionId}`, 'debug');
   } else {
     ctx.log(HOOK_NAME, `Failed to write heartbeat for ${repo}/${sessionId}`, 'warn');
   }
