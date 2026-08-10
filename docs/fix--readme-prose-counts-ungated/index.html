@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Four surfaces, four different numbers</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%);--warn:hsl(38 92% 62%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 28px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:28px 0 8px}
+.card{border:1px solid var(--edge);border-radius:14px;background:var(--glass);padding:16px 18px;margin-top:12px}
+.card h3{margin:0 0 6px;font-size:14.5px}.card p{margin:0 0 8px;font-size:13.5px;color:var(--muted)}
+.card p:last-child{margin-bottom:0}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+pre{background:hsl(232 30% 4% / .6);border:1px solid var(--edge);border-radius:12px;padding:12px;overflow-x:auto;font-size:12px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;line-height:1.55}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.faint{color:var(--faint)}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass);margin-top:10px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06)}tr:last-child td{border-bottom:none}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style></head><body><div class="wrap">
+<div class="eyebrow">issue #3397 &middot; alpha.10 &middot; 2026-08-10</div>
+<h1>Four surfaces. <span>Four different numbers.</span></h1>
+<p class="lede">Ground truth at <code>v10.0.0-alpha.10</code> is <b>105 skills, 36 agents, 217 hooks,
+30 lifecycle events</b>. Four places advertise those counts to the public and they do not agree with
+each other — the worst offender is the first thing anyone reads, and it is the one no CI check can
+ever see.</p>
+
+<h2>The disagreement</h2>
+<table><thead><tr><th>surface</th><th>claims</th><th>gated?</th></tr></thead><tbody>
+<tr><td>README markers (L6, L81-83)</td><td class="ok">105 / 36 / 217</td><td class="ok">yes — stamp-counts.sh</td></tr>
+<tr><td><code>marketplace.json</code></td><td class="ok">105 / 36 / 217</td><td class="ok">yes</td></tr>
+<tr><td>README <b>prose</b> (L135)</td><td class="bad">218 hooks, 29 events</td><td class="bad">no</td></tr>
+<tr><td>GitHub <b>About</b> blurb</td><td class="bad">114 / 37 / 212</td><td class="bad">impossible</td></tr>
+</tbody></table>
+
+<h2>Why the prose drifted</h2>
+<div class="card"><h3>The stamper has two strategies and this line fell between them</h3>
+<pre>README / CLAUDE.md   →  &lt;!--ork:KEY--&gt;VALUE&lt;!--/ork--&gt;   marker replacement
+docs/site *.mdx      →  explicit sed phrasings            (MDX renders comments literally)
+README prose L135    →  <span class="bad">bare number, neither path reaches it</span></pre>
+<p>So it was never stamped, and after enough merges it landed wrong in <b>both</b> directions at
+once: 218 against a real 217, and 29 against a real 30. An ungated claim does not drift in a
+consistent direction — it just stops being true.</p></div>
+
+<h2>Fix: gate the number, do not correct the digit</h2>
+<pre>- OrchestKit registers 218 hooks across 29
++ OrchestKit registers &lt;!--ork:hooks--&gt;217&lt;!--/ork--&gt; hooks across &lt;!--ork:events--&gt;30&lt;!--/ork--&gt;</pre>
+<p style="color:var(--muted);font-size:13.5px;margin-top:8px">Plus a new <code>ork:events</code>
+marker in <code>stamp-counts.sh</code>, computed from the distinct event keys in
+<code>hooks.json</code>. Correcting 218&rarr;217 would have been true for exactly as long as it took
+to add hook 218.</p>
+
+<h2>Control — it must actually re-stamp</h2>
+<pre>$ sed -i '' 's/217.*30/999 … 7/' README.md      # corrupt it on purpose
+  L135: registers &lt;!--ork:hooks--&gt;<span class="bad">999</span>&lt;!--/ork--&gt; hooks across &lt;!--ork:events--&gt;<span class="bad">7</span>&lt;!--/ork--&gt;
+
+$ bash scripts/stamp-counts.sh                   # exit 0
+  L135: registers &lt;!--ork:hooks--&gt;<span class="ok">217</span>&lt;!--/ork--&gt; hooks across &lt;!--ork:events--&gt;<span class="ok">30</span>&lt;!--/ork--&gt;</pre>
+<p class="faint" style="font-size:12.5px">Without this step the change is indistinguishable from
+hand-editing two digits, which is the thing that failed the first time.</p>
+
+<h2>The one that cannot be fixed by this PR</h2>
+<div class="card"><h3>GitHub's About blurb lives outside the repository</h3>
+<p>It reads <b>"114 skills, 37 agents, 212 hooks"</b> — wrong on all three, and drifted far enough
+that those numbers predate any recent release. It sits in repo settings, reachable only via
+<code>PATCH /repos/{owner}/{repo}</code>, so no file in the tree contains it and no CI job can
+compare it against <code>validate-counts.sh</code>.</p>
+<p>That makes it a permanent honesty gap rather than a bug with a fix: it needs a one-off update now,
+and it will drift again the next time the counts move. Worth saying plainly in the issue instead of
+closing it as done and letting the next person assume it is gated like the rest.</p></div>
+
+<p class="foot"><b>Why this belongs in milestone #164.</b> The milestone is about machinery that
+claims more than it does, and component counts are the most literal case: a visitor's first
+impression of the project is four numbers, three surfaces disagreeing, and the loudest one wrong by
+nine skills. Nothing was broken in the code. The claim was just never checkable — which is the same
+defect as a hook registered but never dispatched, a guard that cannot observe, or a test whose only
+failing assertion is "valid JSON".</p>
+</div></body></html>

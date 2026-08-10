@@ -36,6 +36,17 @@ HOOKS_SKILL=$SKILL
 # User-invocable skills count
 INVOCABLE=$(grep -rl '^user-invocable: true' "$PROJECT_ROOT/src/skills/" --include='SKILL.md' 2>/dev/null | wc -l | tr -d ' ')
 
+# Distinct lifecycle events registered in hooks.json. README prose claimed
+# "218 hooks across 29 lifecycle events" while the truth was 217 across 30 —
+# both numbers wrong, in opposite directions, because neither was wrapped in a
+# marker and the README path stamps markers only. Gate the number rather than
+# correct the digit, or it drifts again on the next event added.
+EVENTS=$(python3 -c "
+import json
+h = json.load(open('$PROJECT_ROOT/src/hooks/hooks.json'))['hooks']
+print(len(h) if isinstance(h, dict) else len({e.get('event') or e.get('hookEventName') for e in h if isinstance(e, dict)}))
+")
+
 # ── Marker replacement ──────────────────────────────────────────────────────
 
 # Replace <!--ork:KEY-->VALUE<!--/ork--> with updated VALUE
@@ -66,6 +77,7 @@ stamp_file() {
   stamp_marker "$file" "hooks-agent" "$HOOKS_AGENT"
   stamp_marker "$file" "hooks-skill" "$HOOKS_SKILL"
   stamp_marker "$file" "invocable" "$INVOCABLE"
+  stamp_marker "$file" "events" "$EVENTS"
 }
 
 # ── Files with markers ──────────────────────────────────────────────────────

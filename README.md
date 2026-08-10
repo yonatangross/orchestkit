@@ -132,7 +132,7 @@ OrchestKit is a quality-gate plugin, so its hooks are the product rather than an
 add-on. This section states plainly what they see, where it goes, and how to turn
 each piece off.
 
-**Scope: broad and intentional.** OrchestKit registers 218 hooks across 29
+**Scope: broad and intentional.** OrchestKit registers <!--ork:hooks-->217<!--/ork--> hooks across <!--ork:events-->30<!--/ork-->
 lifecycle events, including `SessionStart`, `UserPromptSubmit`, `PreToolUse`,
 `PostToolUse`, and `Stop`. They are **not** gated to a particular framework or
 project type, because the gates they enforce (secret-write blocking, protected-file
