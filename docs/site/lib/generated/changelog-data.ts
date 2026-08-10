@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.11",
+    "date": "2026-08-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**docs:** gate the README prose counts instead of correcting them ([#3398](https://github.com/yonatangross/orchestkit/issues/3398)) ([ae432ba](https://github.com/yonatangross/orchestkit/commit/ae432ba6a2dd7d14a9dfe4841852063785f00135))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.10",
     "date": "2026-08-10",
     "compareUrl": "",
