@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.10](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.9...v10.0.0-alpha.10) (2026-08-10)
+
+
+### Bug Fixes
+
+* **docs:** retire the keybindings that never fired ([#3395](https://github.com/yonatangross/orchestkit/issues/3395)) ([cd8d890](https://github.com/yonatangross/orchestkit/commit/cd8d890e0288fcc954ba1ec71462bf3e1202fd90))
+* **hooks:** admit bare ctx.log() through the default level gate ([#3386](https://github.com/yonatangross/orchestkit/issues/3386)) ([#3390](https://github.com/yonatangross/orchestkit/issues/3390)) ([e68b2de](https://github.com/yonatangross/orchestkit/commit/e68b2de1873b5ecca491d65383fb2e350b70684f))
+* **hooks:** scope gh enforcers to this repo ([#3392](https://github.com/yonatangross/orchestkit/issues/3392)) ([249abcc](https://github.com/yonatangross/orchestkit/commit/249abcce388796e6d06780b9a2165b10f328533d))
+
 ## [10.0.0-alpha.9](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.8...v10.0.0-alpha.9) (2026-08-10)
 
 
