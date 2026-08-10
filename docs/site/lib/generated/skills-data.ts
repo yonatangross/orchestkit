@@ -4131,9 +4131,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "setup": {
     "name": "setup",
-    "description": "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.",
+    "description": "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.",
     "version": "2.0.0",
-    "sha256": "3a92dfc7643fc8530b680a5b3142958c2181599ac0261dc4da13e3cd2af3b3b3",
+    "sha256": "7da8ce58a0b9e6504efbd1ba8e35eec3b1459ccb011b705327bf55edb79d9932",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -4175,7 +4175,6 @@ export const SKILLS: Record<string, SkillMeta> = {
         "claude-md-health.md",
         "configure-wizard.md",
         "integrations.md",
-        "keybindings.md",
         "presets.md",
         "readiness-scoring.md",
         "safety-check.md",

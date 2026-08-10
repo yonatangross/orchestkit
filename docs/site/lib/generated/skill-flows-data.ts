@@ -6423,13 +6423,6 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "does": "Prioritized improvements with runnable commands",
             "out": "—",
             "tag": null
-          },
-          {
-            "num": "8",
-            "label": "Keys",
-            "does": "Install recommended keyboard shortcuts",
-            "out": "Read, Bash, AskUserQuestion",
-            "tag": null
           }
         ]
       }

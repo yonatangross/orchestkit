@@ -521,7 +521,7 @@ Skills that produce artifacts users may want to monitor should include `/loop` s
 
 ### Plugin Settings
 
-OrchestKit ships `settings.json` per plugin (`src/settings/<plugin>.settings.json`). Skills can reference default permissions and keybindings defined there. The `chat:newline` keybinding (Shift+Enter) is available via settings.
+OrchestKit ships `settings.json` per plugin (`src/settings/<plugin>.settings.json`), but Claude Code reads only a narrow set of keys from a plugin settings file. Do not add `keybindings`, `statusLine` or `spinnerVerbs` there — #3357 removed those precisely because they were never read, and keybindings additionally cannot target a skill (Claude Code binds keys to a closed set of built-in actions only). Keybindings belong to the user, in `~/.claude/keybindings.json`.
 
 ## Writing Effective Instructions
 

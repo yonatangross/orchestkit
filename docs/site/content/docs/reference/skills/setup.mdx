@@ -1,6 +1,6 @@
 ---
 title: "Setup"
-description: "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes."
+description: "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
@@ -11,7 +11,7 @@ description: "Personalized 8-phase onboarding wizard that scans the codebase, de
 
 <ContextualSkillSidebar slug="setup" />
 
-> **Setup** Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.
+> **Setup** Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.
 
 
 # OrchestKit Setup Wizard
@@ -28,7 +28,7 @@ Personalized onboarding that scans your codebase, detects your stack, recommends
 ## Quick Start
 
 ```bash
-/ork:setup              # Full 8-phase wizard
+/ork:setup              # Full 7-phase wizard
 /ork:setup --rescan     # Re-scan after changes (skip safety phase)
 /ork:setup --score-only # Just show readiness score
 /ork:setup --plan-only  # Just show improvement plan
@@ -39,7 +39,7 @@ Personalized onboarding that scans your codebase, detects your stack, recommends
 
 ```python
 FLAG = "$ARGUMENTS[0]"  # First token: --rescan, --score-only, --plan-only, --channel
-# If no arguments, run full 8-phase wizard.
+# If no arguments, run full 7-phase wizard.
 # $ARGUMENTS is the full string (CC 2.1.59 indexed access)
 ```
 
@@ -71,7 +71,7 @@ TaskUpdate(taskId="2", status="in_progress")  # When starting
 TaskUpdate(taskId="2", status="completed")    # When done
 ```
 
-## The Nine Phases
+## The Phases
 
 | Phase | What | Tools Used | Output |
 |-------|------|-----------|--------|
@@ -83,7 +83,6 @@ TaskUpdate(taskId="2", status="completed")    # When done
 | 5. MCPs | Recommend MCPs based on stack and gaps | Read, Bash | MCP recommendations |
 | 6. Score | Compute readiness score (0-10, 6 dimensions) | All above data | Readiness score |
 | 7. Plan | Prioritized improvements with runnable commands | — | Action plan |
-| 8. Keys | Install recommended keyboard shortcuts | Read, Bash, AskUserQuestion | Keybindings |
 
 ---
 
@@ -163,12 +162,6 @@ Glob(pattern=".claude/rules/*.md")
 ```
 
 If CLAUDE.md > 200 lines and no `.claude/rules/` exist, recommend splitting. Show the output template from the reference doc.
-
-## Phase 8: Keybindings
-
-Load details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/keybindings.md")` for the full keybinding prompt, default shortcuts, and merge logic.
-
-Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). Merges with existing `~/.claude/keybindings.json` without overwriting user-defined bindings.
 
 ## Post-Setup
 
@@ -277,7 +270,6 @@ Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/setup/references/&lt;f
 | `safety-check.md` | Phase 3: Install scope and conflict detection |
 | `configure-wizard.md` | Phase 3.5: 6-step interactive project config |
 | `claude-md-health.md` | Phase 7b: CLAUDE.md modular structure analysis |
-| `keybindings.md` | Phase 8: Keyboard shortcut recommendations |
 | `telemetry-setup.md` | Phase 9: Webhook/telemetry configuration |
 | `integrations.md` | Phase 10: CC version settings |
 | `presets.md` | Preset definitions and skill/agent matrices |
@@ -623,7 +615,7 @@ if user_choice != "Skip":
 
 ---
 
-## References (10)
+## References (9)
 
 ### Claude Md Health
 
@@ -1112,51 +1104,6 @@ Present as toggles — only show settings relevant to detected CC version:
 ```python
 Bash(command="claude --version 2>/dev/null | head -1")
 ```
-
-
-### Keybindings
-
-# Phase 8: Keybindings
-
-Check for existing keybindings and offer to install recommended shortcuts:
-
-```python
-# Check existing keybindings
-Bash(command="cat ~/.claude/keybindings.json 2>/dev/null || echo '[]'")
-```
-
-Prompt the user:
-
-```python
-AskUserQuestion(questions=[{
-  "question": "Install recommended keybindings for top OrchestKit skills?",
-  "header": "Keyboard shortcuts",
-  "options": [
-    {"label": "Yes, install keybindings (Recommended)", "description": "Adds 5 shortcuts: commit, verify, implement, explore, review-pr"},
-    {"label": "Skip", "description": "No keyboard shortcuts"}
-  ],
-  "multiSelect": false
-}])
-```
-
-If **Yes**: write or merge into `~/.claude/keybindings.json`:
-
-```json
-[
-  {"key": "ctrl+shift+c", "command": "/ork:commit", "description": "Git commit with validation"},
-  {"key": "ctrl+shift+v", "command": "/ork:verify", "description": "Run verification suite"},
-  {"key": "ctrl+shift+i", "command": "/ork:implement", "description": "Implement feature"},
-  {"key": "ctrl+shift+e", "command": "/ork:explore", "description": "Deep codebase exploration"},
-  {"key": "ctrl+shift+r", "command": "/ork:review-pr", "description": "Review pull request"}
-]
-```
-
-If the file already exists, **merge** — read existing entries, add only keybindings whose `key` is not already bound, then write back. Never overwrite user-defined bindings.
-
-## CC built-in keys worth knowing (CC 2.1.129+)
-
-- **Ctrl+R** opens the reverse-search history picker. As of CC 2.1.129 it defaults to **all prompts across all projects** (matching pre-2.1.124 behavior). Press **Ctrl+S** while the picker is open to narrow to the current project / session. Avoid binding `Ctrl+R` or `Ctrl+S` in user keybindings — both are reserved.
-- **`/model` picker — `s` for session-only (CC 2.1.153+, BREAKING):** `/model` now saves your selection as the **default for new sessions** (matching the IDE); press **`s`** in the picker to scope the change to the current session only. The old `d` action was **renamed** — if your `keybindings.json` customized `modelPicker:setAsDefault`, rename it to **`modelPicker:thisSessionOnly`** or the binding silently stops working.
 
 
 ### Presets

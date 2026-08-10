@@ -1,5 +1,5 @@
 ---
-description: "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes."
+description: "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes."
 argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure]"
 disable-model-invocation: false
 context: fork
@@ -27,7 +27,7 @@ Personalized onboarding that scans your codebase, detects your stack, recommends
 ## Quick Start
 
 ```bash
-/ork:setup              # Full 8-phase wizard
+/ork:setup              # Full 7-phase wizard
 /ork:setup --rescan     # Re-scan after changes (skip safety phase)
 /ork:setup --score-only # Just show readiness score
 /ork:setup --plan-only  # Just show improvement plan
@@ -38,7 +38,7 @@ Personalized onboarding that scans your codebase, detects your stack, recommends
 
 ```python
 FLAG = "$ARGUMENTS[0]"  # First token: --rescan, --score-only, --plan-only, --channel
-# If no arguments, run full 8-phase wizard.
+# If no arguments, run full 7-phase wizard.
 # $ARGUMENTS is the full string (CC 2.1.59 indexed access)
 ```
 
@@ -70,7 +70,7 @@ TaskUpdate(taskId="2", status="in_progress")  # When starting
 TaskUpdate(taskId="2", status="completed")    # When done
 ```
 
-## The Nine Phases
+## The Phases
 
 | Phase | What | Tools Used | Output |
 |-------|------|-----------|--------|
@@ -82,7 +82,6 @@ TaskUpdate(taskId="2", status="completed")    # When done
 | 5. MCPs | Recommend MCPs based on stack and gaps | Read, Bash | MCP recommendations |
 | 6. Score | Compute readiness score (0-10, 6 dimensions) | All above data | Readiness score |
 | 7. Plan | Prioritized improvements with runnable commands | — | Action plan |
-| 8. Keys | Install recommended keyboard shortcuts | Read, Bash, AskUserQuestion | Keybindings |
 
 
 ## Phase 1: Scan
@@ -160,12 +159,6 @@ Glob(pattern=".claude/rules/*.md")
 ```
 
 If CLAUDE.md > 200 lines and no `.claude/rules/` exist, recommend splitting. Show the output template from the reference doc.
-
-## Phase 8: Keybindings
-
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/keybindings.md")` for the full keybinding prompt, default shortcuts, and merge logic.
-
-Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). Merges with existing `~/.claude/keybindings.json` without overwriting user-defined bindings.
 
 ## Post-Setup
 
@@ -274,7 +267,6 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/setup/references/<file>"
 | `safety-check.md` | Phase 3: Install scope and conflict detection |
 | `configure-wizard.md` | Phase 3.5: 6-step interactive project config |
 | `claude-md-health.md` | Phase 7b: CLAUDE.md modular structure analysis |
-| `keybindings.md` | Phase 8: Keyboard shortcut recommendations |
 | `telemetry-setup.md` | Phase 9: Webhook/telemetry configuration |
 | `integrations.md` | Phase 10: CC version settings |
 | `presets.md` | Preset definitions and skill/agent matrices |
