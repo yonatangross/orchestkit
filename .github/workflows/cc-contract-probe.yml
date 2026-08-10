@@ -99,6 +99,13 @@ jobs:
       # Unconditional, and printed BEFORE the check runs. If the check reports
       # CANNOT-OBSERVE, this listing is the only evidence of where the binary
       # actually went, and without it the next person repeats this experiment.
+      #
+      # `tee` to BOTH stdout and the summary, not just the summary. Measured on
+      # run 31400567250: the first version wrote only to $GITHUB_STEP_SUMMARY,
+      # which is invisible to `gh run view --log` AND absent from the check-run
+      # API's output.summary — so the probe failed exactly as designed and its
+      # diagnosis was unreadable from the CLI. A diagnostic that only renders in
+      # a browser is not a diagnostic for an agent.
       - name: Report where the binary landed
         run: |
           set -uo pipefail
@@ -115,7 +122,7 @@ jobs:
               fi
             done
             echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Derive the contract and compare to the committed snapshot
         run: |
@@ -145,5 +152,7 @@ jobs:
             echo '```'
             cat /tmp/contract.txt
             echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+            echo ''
+            echo "derive-cc-output-keys exit code: ${rc}"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
           exit "$rc"
