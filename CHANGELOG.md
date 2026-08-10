@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.12](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.11...v10.0.0-alpha.12) (2026-08-10)
+
+
+### Code Refactoring
+
+* **mcp:** retire the ork-elicit server for AskUserQuestion ([#3400](https://github.com/yonatangross/orchestkit/issues/3400)) ([e4e08de](https://github.com/yonatangross/orchestkit/commit/e4e08de04a312549c5c3ef4929e78a52c854dcfd))
+
 ## [10.0.0-alpha.11](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.10...v10.0.0-alpha.11) (2026-08-10)
 
 
