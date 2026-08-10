@@ -19,7 +19,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@lottiefiles/react-lottie-player": "^3.5.4",
-    "@react-three/drei": "^10.3.0",
+    "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.6.1",
     "@remotion/animated-emoji": "^4.0.502",
     "@remotion/animation-utils": "^4.0.502",
@@ -40,7 +40,7 @@
     "@remotion/three": "^4.0.502",
     "@remotion/transitions": "^4.0.502",
     "@remotion/zod-types": "^4.0.0",
-    "@rive-app/react-canvas": "^4.30.0",
+    "@rive-app/react-canvas": "^4.30.1",
     "dotenv": "^17.4.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@remotion/eslint-config-flat": "^4.0.502",
-    "@sanity/client": "^7.26.0",
+    "@sanity/client": "^7.26.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^26.1.2",
@@ -60,7 +60,7 @@
     "eslint": "^10.8.0",
     "jsdom": "^30.0.1",
     "prettier": "3.9.6",
-    "tsx": "^4.23.1",
+    "tsx": "^4.23.10",
     "typescript": "^6.0.3",
     "vitest": "^4.0.18"
   },
