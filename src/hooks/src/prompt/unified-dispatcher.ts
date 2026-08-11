@@ -15,7 +15,6 @@
  * - cache-break-detector (producesContext: false, Issue #1238)
  *
  * Every-turn context producers:
- * - context-exhaustion-warner (producesContext: true)
  * - pipeline-detector (producesContext: true)
  *
  * Removed (#960): skill-nudge-prompt — replaced by CC native skill matching
@@ -57,7 +56,6 @@ import {
 import { join } from 'node:path';
 
 // Import hook implementations — every-turn
-import { contextExhaustionWarner } from './context-exhaustion-warner.js';
 import { pipelineDetector } from './pipeline-detector.js';
 import { frustrationDetector } from './frustration-detector.js';
 import { cacheBreakDetector } from './cache-break-detector.js';
@@ -115,7 +113,6 @@ const HOOKS: PromptHookConfig[] = [
   { name: 'cache-break-detector', fn: cacheBreakDetector, producesContext: false },
 
   // --- Context producers (output merged into single additionalContext) ---
-  { name: 'context-exhaustion-warner', fn: contextExhaustionWarner, producesContext: true },
   { name: 'pipeline-detector', fn: pipelineDetector, producesContext: true },
   // M170/#3127: once-per-session executor-skill reminder on build-shaped prompts
   // (self-gated by a session flag file, so NOT runOnce — it must see every

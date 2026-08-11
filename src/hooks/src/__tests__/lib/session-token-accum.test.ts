@@ -19,9 +19,7 @@ import {
   loadAccumState,
   loadAccumStateOrNull,
   saveAccumState,
-  evaluateCacheHeat,
   isInImminentZone,
-  getCacheHotThreshold,
   getStateFile,
 } from '../../lib/session-token-accum.js';
 
@@ -108,74 +106,11 @@ describe('session-token-accum', () => {
     });
   });
 
-  describe('getCacheHotThreshold', () => {
-    it('defaults to 50000', () => {
-      expect(getCacheHotThreshold()).toBe(50_000);
-    });
-    it('honours ORK_CACHE_HOT_THRESHOLD', () => {
-      process.env.ORK_CACHE_HOT_THRESHOLD = '100000';
-      expect(getCacheHotThreshold()).toBe(100_000);
-    });
-    it('rejects invalid values', () => {
-      process.env.ORK_CACHE_HOT_THRESHOLD = 'foo';
-      expect(getCacheHotThreshold()).toBe(50_000);
-    });
-  });
-
-  describe('evaluateCacheHeat', () => {
-    const longAgo = new Date(Date.now() - 60 * 60_000).toISOString();
-    const recent = new Date().toISOString();
-
-    it('returns hot when cache reads exceed threshold and session is mature', () => {
-      const heat = evaluateCacheHeat({
-        estimatedTokens: 1,
-        cacheReadTokens: 80_000,
-        cacheCreationTokens: 10_000,
-        crossings: {},
-        firstSeenAt: longAgo,
-        updatedAt: recent,
-      });
-      expect(heat).toBe('hot');
-    });
-
-    it('returns neutral when session is short (< 30 min)', () => {
-      const start = new Date(Date.now() - 5 * 60_000).toISOString();
-      const heat = evaluateCacheHeat({
-        estimatedTokens: 1,
-        cacheReadTokens: 200_000,
-        cacheCreationTokens: 0,
-        crossings: {},
-        firstSeenAt: start,
-        updatedAt: recent,
-      });
-      expect(heat).toBe('neutral');
-    });
-
-    it('returns neutral when cache reads under threshold', () => {
-      const heat = evaluateCacheHeat({
-        estimatedTokens: 1,
-        cacheReadTokens: 1000,
-        cacheCreationTokens: 0,
-        crossings: {},
-        firstSeenAt: longAgo,
-        updatedAt: recent,
-      });
-      expect(heat).toBe('neutral');
-    });
-
-    it('forces neutral when ORK_NO_CACHE_AWARENESS=1', () => {
-      process.env.ORK_NO_CACHE_AWARENESS = '1';
-      const heat = evaluateCacheHeat({
-        estimatedTokens: 1,
-        cacheReadTokens: 1_000_000,
-        cacheCreationTokens: 0,
-        crossings: {},
-        firstSeenAt: longAgo,
-        updatedAt: recent,
-      });
-      expect(heat).toBe('neutral');
-    });
-  });
+  // The getCacheHotThreshold / evaluateCacheHeat suites were deleted with
+  // the machinery (#3321 claim 3): they hand-built AccumState fixtures with
+  // cacheReadTokens values no writer could produce, the same closed-loop
+  // pattern as the TeammateIdle duration tests removed in the payload-key
+  // fix. CC sends neither cache token field on SubagentStop.
 
   describe('isInImminentZone', () => {
     it('returns false for null state', () => {

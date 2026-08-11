@@ -99,37 +99,13 @@ export function saveAccumState(
   }
 }
 
-/** Cache hot threshold in cache-read tokens. Configurable via ORK_CACHE_HOT_THRESHOLD. */
-export function getCacheHotThreshold(): number {
-  const raw = process.env.ORK_CACHE_HOT_THRESHOLD;
-  if (!raw) return 50_000;
-  const parsed = parseInt(raw, 10);
-  if (!Number.isFinite(parsed) || parsed <= 0) return 50_000;
-  return parsed;
-}
-
-/**
- * Decide whether the current session has accumulated enough cache value that
- * the user should prefer /compact (which preserves cache continuity) over
- * /clear (which nukes cache entirely).
- *
- * Returns:
- *   'hot'     — cache reads exceed threshold; recommend /compact
- *   'neutral' — cache reads modest OR session very short; current wording
- *
- * Opt out: ORK_NO_CACHE_AWARENESS=1 forces 'neutral'.
- */
-export type CacheHeat = 'hot' | 'neutral';
-
-const SHORT_SESSION_MS = 30 * 60 * 1000;
-
-export function evaluateCacheHeat(state: AccumState): CacheHeat {
-  if (process.env.ORK_NO_CACHE_AWARENESS === '1') return 'neutral';
-  const ageMs =
-    new Date(state.updatedAt).getTime() - new Date(state.firstSeenAt).getTime();
-  if (Number.isFinite(ageMs) && ageMs < SHORT_SESSION_MS) return 'neutral';
-  return state.cacheReadTokens >= getCacheHotThreshold() ? 'hot' : 'neutral';
-}
+// evaluateCacheHeat and the CacheHeat type were DELETED (#3321 claim 3): their
+// input, cacheReadTokens, never had a live writer. CC's SubagentStop payload
+// builder (verified against the 2.1.227 binary) sends neither
+// cache_read_input_tokens nor cache_creation_input_tokens, so the sole
+// writer's zero-check early return was always taken, and 0 of 93 real state
+// files ever held a non-zero value. The two fields stay in AccumState so
+// existing state files keep parsing, but nothing reads or writes them.
 
 /**
  * Load state for a session. Returns null when no real accumulator data exists

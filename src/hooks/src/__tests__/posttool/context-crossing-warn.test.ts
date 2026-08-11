@@ -231,24 +231,11 @@ describe('contextCrossingWarn', () => {
   });
 
   describe('cache-aware messaging (#1479)', () => {
-    it('imminent message recommends /compact when cache is hot', () => {
-      vi.mocked(existsSync).mockReturnValue(true);
-      vi.mocked(readFileSync).mockReturnValue(
-        JSON.stringify({
-          estimatedTokens: 169_500,
-          cacheReadTokens: 80_000, // > default ORK_CACHE_HOT_THRESHOLD (50k)
-          cacheCreationTokens: 20_000,
-          crossings: { 'windDown:140000': true },
-          firstSeenAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // > 30 min ago
-          updatedAt: new Date(Date.now() - 60_000).toISOString(),
-        }),
-      );
-      const result = contextCrossingWarn(makeInput(), ctx);
-      const msg = result.hookSpecificOutput?.additionalContext;
-      expect(msg).toContain('warm cache');
-      expect(msg).toContain('Consider /compact');
-      expect(msg).toContain('80,000');
-    });
+    // The cache-warm test that lived here was a closed loop (#3321 claim
+    // 3): it hand-built accumState with cacheReadTokens no writer could
+    // produce (CC sends neither cache token field on SubagentStop), then
+    // asserted phrasing only that impossible input could trigger. The
+    // branch and machinery are deleted.
 
     it('imminent message stays neutral on short session (< 30 min)', () => {
       vi.mocked(existsSync).mockReturnValue(true);

@@ -178,7 +178,6 @@ describe('preCompactTaskDonePrompt', () => {
         quiescent: true,
         breakpointKeywords: true,
       });
-      expect(entry.cacheHeat).toBeDefined();
     });
 
     it('writes a nudge-outcome marker on fire (#1476)', () => {
@@ -197,19 +196,11 @@ describe('preCompactTaskDonePrompt', () => {
       expect(marker.resolved).toBe(false);
     });
 
-    it('uses cache-warm phrasing in stopReason when cache hot (#1479)', () => {
-      stubSignals({
-        changedFiles: 0,
-        commitSubject: 'merged main',
-        accumState: {
-          cacheReadTokens: 150_000, // > default 50k threshold
-        },
-      });
-      const result = preCompactTaskDonePrompt(makeInput(), ctx);
-      expect(result.stopReason).toContain('warm');
-      expect(result.stopReason).toContain('cache');
-      expect(result.stopReason).toContain('150,000');
-    });
+    // The cache-warm test that lived here was a closed loop (#3321 claim
+    // 3): it hand-built accumState with cacheReadTokens no writer could
+    // produce (CC sends neither cache token field on SubagentStop), then
+    // asserted phrasing only that impossible input could trigger. The
+    // branch and machinery are deleted.
   });
 
   describe('imminent-zone gate (#1480)', () => {

@@ -56,7 +56,6 @@ import { getContextWindowTokens } from '../lib/context-window.js';
 import {
   loadAccumState,
   saveAccumState,
-  evaluateCacheHeat,
   type AccumState,
 } from '../lib/session-token-accum.js';
 
@@ -158,7 +157,6 @@ function buildMessage(
 ): string {
   const used = state.estimatedTokens;
   const usedPct = pctOfWindow(used, zones.windowTokens);
-  const cacheHeat = evaluateCacheHeat(state);
 
   if (zone === 'windDown') {
     return (
@@ -167,15 +165,9 @@ function buildMessage(
     );
   }
 
-  // imminent zone
-  if (cacheHeat === 'hot' && !zones.rawOverride) {
-    const cacheReads = formatNumber(state.cacheReadTokens);
-    return (
-      `[context] Session crossed ~${usedPct}% of window (est. ${formatNumber(used)} tokens, ` +
-      `${cacheReads} cache-read accumulated). Consider /compact — keeps your warm cache. ` +
-      `/clear only if switching projects.`
-    );
-  }
+  // imminent zone. The cache-heat variant that lived here was dead code
+  // (#3321 claim 3): cacheReadTokens had no live writer, so the branch
+  // never fired. Deleted with the machinery.
   return (
     `[context] Session context crossed ~${formatNumber(zones.imminent)} tokens ` +
     `(est. ${formatNumber(used)}, ~${usedPct}% of window). ` +

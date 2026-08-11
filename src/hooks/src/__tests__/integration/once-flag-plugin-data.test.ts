@@ -38,9 +38,6 @@ vi.mock('../../prompt/handoff-injector.js', () => ({
   }),
 }));
 
-vi.mock('../../prompt/context-exhaustion-warner.js', () => ({
-  contextExhaustionWarner: () => ({ continue: true, suppressOutput: true }),
-}));
 
 vi.mock('../../prompt/pipeline-detector.js', () => ({
   pipelineDetector: () => ({ continue: true, suppressOutput: true }),

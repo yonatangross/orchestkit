@@ -27,7 +27,6 @@ import { NOOP_CTX } from '../lib/context.js';
 import {
   loadAccumStateOrNull,
   isInImminentZone,
-  evaluateCacheHeat,
   type AccumState,
 } from '../lib/session-token-accum.js';
 import { matchesBreakpoint } from '../lib/breakpoint-keywords.js';
@@ -45,7 +44,6 @@ interface TelemetryEntry {
   cooldown?: boolean;
   optOut?: boolean;
   belowImminentZone?: boolean;
-  cacheHeat?: 'hot' | 'neutral';
 }
 
 function readLastLines(path: string, n: number): string[] {
@@ -137,14 +135,10 @@ function appendTelemetry(path: string, entry: TelemetryEntry): void {
 }
 
 function buildStopReason(state: AccumState | null): string {
-  const heat = state ? evaluateCacheHeat(state) : 'neutral';
-  if (heat === 'hot' && state) {
-    return (
-      'Compact paused — task looks wrapped up. Your prompt cache is warm ' +
-      `(${state.cacheReadTokens.toLocaleString('en-US')} cache-read tokens accumulated). ` +
-      'Consider /compact to keep that warm cache, or /clear if switching projects.'
-    );
-  }
+  // The cache-heat branch that lived here was DEAD CODE (#3321 claim 3):
+  // its input, cacheReadTokens, had no live writer because CC's
+  // SubagentStop payload carries neither cache token field, so heat was
+  // structurally always 'neutral'. Deleted with the machinery.
   return (
     'Compact paused — task looks wrapped up. Type /clear for a fresh session ' +
     '(zero context cost) or /compact to keep history and continue.'
@@ -203,13 +197,11 @@ export function preCompactTaskDonePrompt(
   };
   const fire =
     Number(signals.gitQuiet) + Number(signals.quiescent) + Number(signals.breakpointKeywords) >= 2;
-  const cacheHeat = state ? evaluateCacheHeat(state) : 'neutral';
 
   appendTelemetry(telemetry, {
     timestamp: new Date(now).toISOString(),
     fired: fire,
     signals,
-    cacheHeat,
   });
 
   if (!fire) {
@@ -223,7 +215,7 @@ export function preCompactTaskDonePrompt(
   // #1476 — drop nudge marker for downstream resolvers
   writeMarker(projectDir, sessionId, new Date(now).toISOString());
 
-  ctx.log(HOOK_NAME, `blocking compact — task-done detected (cacheHeat=${cacheHeat})`);
+  ctx.log(HOOK_NAME, 'blocking compact — task-done detected');
 
   // BOTH reason and stopReason (#3321 claim 6): CC's PreCompact block message
   // is `json.reason || stderr`; stopReason is never consulted on this path.

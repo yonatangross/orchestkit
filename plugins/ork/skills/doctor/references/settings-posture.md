@@ -46,6 +46,19 @@ Findings 4 and 5 are *offers*, not defects. `ENABLE_TOOL_SEARCH` and
 `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE` are real, useful, and entirely
 optional. Report them at info level and never fail on them.
 
+A sixth offer, same posture (#3325, EPIC D): `autoCompactWindow` in user-scope
+settings. CC 2.1.219+ accepts an integer 100000..1000000 ("Auto-compact window
+size", verified in the 2.1.227 binary schema) that arms CC's NATIVE precomputed
+compaction at the chosen context size. This is the CC-native mechanism the old
+four-hook compaction layer approximated with home-grown token accounting, and
+the reason parts of that layer were deleted (#3321: the imminent-zone gate
+never fired in 2,246 recorded invocations because its counter measured a
+subset of context against a whole-window threshold). ork cannot ship it as a
+plugin default — a plugin settings.json is not a settings scope CC reads
+(binary-proven at 2.1.226, see the header of this file) — so the doctor
+OFFERS it and never sets it. Report at info level when absent; never fail on
+it.
+
 ## The check
 
 Read-only. Never prints an environment variable's **value** (presence is tested with

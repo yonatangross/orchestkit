@@ -257,28 +257,6 @@ function analyzeAndRecordTranscript(
 // -----------------------------------------------------------------------------
 
 /**
- * #1479 — accumulate cache_read / cache_creation token counts into the
- * per-session token accumulator so the pre-compact prompt and context-warn
- * hooks can adapt their messaging based on cache heat. Best-effort only.
- */
-function recordCacheTokens(input: HookInput, ctx: HookContext): void {
-  const cacheRead = input.cache_read_input_tokens ?? 0;
-  const cacheCreation = input.cache_creation_input_tokens ?? 0;
-  if (cacheRead === 0 && cacheCreation === 0) return;
-  try {
-    const projectDir = ctx.projectDir || getProjectDir();
-    const sessionId = ctx.sessionId || getSessionId();
-    const state = loadAccumState(projectDir, sessionId);
-    state.cacheReadTokens += cacheRead;
-    state.cacheCreationTokens += cacheCreation;
-    state.updatedAt = new Date().toISOString();
-    saveAccumState(projectDir, sessionId, state);
-  } catch {
-    // best-effort
-  }
-}
-
-/**
  * True when the stop payload names a transcript that is actually on disk.
  * A missing path and a path pointing at nothing are the same answer here.
  */
@@ -468,7 +446,6 @@ export async function unifiedSubagentStopDispatcher(input: HookInput, ctx: HookC
   trackAgentResult(input);
 
   // M119 #1479: roll up cache token usage into session accumulator
-  recordCacheTokens(input, ctx);
 
   // Run all hooks in parallel
   const results = await Promise.allSettled(
