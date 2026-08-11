@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.19](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.18...v10.0.0-alpha.19) (2026-08-11)
+
+
+### Bug Fixes
+
+* **agents:** drop two frontmatter keys CC provably ignores ([#3431](https://github.com/yonatangross/orchestkit/issues/3431)) ([9842537](https://github.com/yonatangross/orchestkit/commit/98425379c13a522ed87b15ead7601695ec70e343))
+
 ## [10.0.0-alpha.18](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.17...v10.0.0-alpha.18) (2026-08-11)
 
 
