@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit × Dynamic Workflows — Verified Adoption Plan (v10)</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --panel2: #1c2330; --border: #30363d;
+    --text: #e6edf3; --dim: #9aa4b2; --accent: #58a6ff; --green: #3fb950;
+    --red: #f85149; --yellow: #d29922; --purple: #bc8cff;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 28px 80px; }
+  header.top { padding: 28px 0 20px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+  header.top h1 { font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+  header.top .sub { color: var(--dim); margin-top: 6px; font-size: 14px; }
+  .chips { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .chip { background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 13px; }
+  .chip b { color: var(--accent); }
+  nav.toc { position: sticky; top: 0; background: rgba(13,17,23,.92); backdrop-filter: blur(6px); z-index: 5;
+    display: flex; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--border); margin-bottom: 28px; overflow-x: auto; }
+  nav.toc a { color: var(--dim); text-decoration: none; font-size: 13px; padding: 5px 11px; border-radius: 6px; white-space: nowrap; }
+  nav.toc a:hover { color: var(--text); background: var(--panel2); }
+  section { margin-bottom: 48px; }
+  section > h2 { font-size: 19px; margin-bottom: 6px; padding-top: 8px; }
+  section > .lead { color: var(--dim); margin-bottom: 18px; max-width: 900px; }
+  section > .lead b, td b { color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 10px 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--dim); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; background: var(--panel2); }
+  tr:last-child td { border-bottom: none; }
+  .path { font-family: var(--mono); font-size: 11.5px; color: var(--accent); }
+  .ok { color: var(--green); font-weight: 600; } .warn { color: var(--yellow); font-weight: 600; } .bad { color: var(--red); font-weight: 600; }
+  .nowrap { white-space: nowrap; }
+  a { color: var(--accent); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .panel h4 { font-size: 13px; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+  .panel .mmd { display: flex; justify-content: center; overflow-x: auto; min-height: 160px; }
+  .panel .mmd svg { max-width: 100%; height: auto; }
+  .difflist { font-family: var(--mono); font-size: 12px; line-height: 1.8; }
+  .difflist .minus { color: var(--red); } .difflist .plus { color: var(--green); }
+  .difflist .lbl { color: var(--dim); margin-top: 10px; }
+  .verdict { border-left: 3px solid var(--purple); background: var(--panel); border-radius: 0 10px 10px 0; padding: 16px 20px; margin: 14px 0; }
+  .copybar { position: fixed; bottom: 18px; right: 22px; z-index: 9; }
+  .copybar button { background: var(--accent); color: #06131f; border: none; border-radius: 8px; padding: 11px 18px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 4px 18px rgba(0,0,0,.5); }
+  .copybar button:hover { filter: brightness(1.1); }
+  .tag { display:inline-block; font-size: 10.5px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--dim); font-family: var(--mono); margin-left: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>🎯 OrchestKit × Dynamic Workflows — Verified Adoption Plan</h1>
+  <div class="sub">Cookbook 08 + last-30-days field research + official CC docs verification · mapped to milestone #164 v10.0.0 "Convergence &amp; Correctness" · 2026-08-11</div>
+  <div class="chips">
+    <span class="chip">📋 <b>9</b> plan items</span>
+    <span class="chip">✅ <b>7</b> verified vs official docs</span>
+    <span class="chip">🟡 <b>1</b> partial · 1 n/a</span>
+    <span class="chip">🏁 v10 #164: <b>20 open</b> / 71 closed</span>
+    <span class="chip">💰 total ≈ <b>4 days</b></span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#tldr">TLDR</a><a href="#plan">📋 The Plan</a><a href="#swarm">🕸️ Swarm diff</a><a href="#pipeline">🔬 Verification diff</a><a href="#delta">📊 Cookbook delta</a><a href="#field">🌐 Field notes</a><a href="#schemas">🧠 Schemas vs correctness</a>
+</nav>
+
+<section id="tldr">
+  <h2>TLDR</h2>
+  <div class="verdict">
+    <p><b>OrchestKit already knows most of what the cookbook teaches and exceeds it on adversarial verification.</b> The real wins are three: an <b>evidence-replay gate</b> aimed at the actual wrong-finding defect (schemas alone guarantee well-shaped wrongness), <b>CC 2.1.224 cross-session edges</b> (the honest core of the "graph engineering" trend, the rest is rebrand), and <b>shipping the 3 committed workflow templates via the official plugin <span class="path">workflows/</span> directory</b>, which ork does not use today. Everything maps into v10's two lanes: EPIC D adopt-CC-capabilities and the correctness mandate. Nothing here opens a new workstream.</p>
+  </div>
+</section>
+
+<section id="plan">
+  <h2>📋 The Plan — 9 items, ranked, verified, v10-mapped</h2>
+  <p class="lead">Every row was checked against a primary source: the <a href="https://code.claude.com/docs/en/workflows">official workflows doc</a>, the <a href="https://code.claude.com/docs/en/cross-session-messaging">cross-session messaging doc</a>, or the <a href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md">upstream CHANGELOG</a>.</p>
+  <table>
+    <tr><th>#</th><th>Item</th><th>Target</th><th>Verified</th><th>v10 fit</th><th>Cost</th></tr>
+    <tr><td>1 🥇</td><td><b>Evidence-replay gate on producer findings.</b> Every finding schema carries {file,line,quote} or {command,expected_output}; the orchestrator deterministically re-opens the line or re-runs the command BEFORE any verdict. Judgment-only findings route to the existing refutation quorum. Extends citation-verify (§3) from refuter verdicts to first-pass findings.</td><td class="path">shared/rules/ + verify, assess, review-pr</td><td class="ok">✅ field evidence<span class="tag">arXiv + SWE-bench</span></td><td>Correctness lane · sibling of #3418</td><td class="nowrap">~1 day</td></tr>
+    <tr><td>2 🕸️</td><td><b>Pattern 10: cross-session edges.</b> ListAgents + SendMessage between sessions/worktrees. Contract notes from the doc: text-only, loop-throttled, 50-unread cap, inbound can be held/refused via <span class="path">crossSessionInbound</span>, -p workers need <span class="path">accept</span> in --settings, bare mode binds no socket. Hard rule: NEVER an edge producer→refuter (blindness §9).</td><td class="path">chain-patterns/SKILL.md</td><td class="ok">✅ official doc<span class="tag">2.1.224</span></td><td><b>EPIC D #3309</b></td><td class="nowrap">~½ day</td></tr>
+    <tr><td>3 📦</td><td><b>Ship workflow templates via the plugin workflows/ dir</b> → <span class="path">/ork:audit-mapreduce</span>, <span class="path">/ork:skill-fitness</span>, <span class="path">/ork:heal-loop</span>. Official distribution, args supported, replaces the scriptPath ritual. Pre-check <span class="path">claude plugin validate</span> vs #3349.</td><td class="path">manifests/ork.json + 3 .mjs</td><td class="ok">✅ official doc<span class="tag">plugin workflows</span></td><td><b>EPIC D #3309</b> + #3313 reachability</td><td class="nowrap">~½ day</td></tr>
+    <tr><td>4 📨</td><td><b>swarm-migrate: push, don't poll.</b> Workers message the coordinator on CI state change; <span class="path">.swarm-state.json</span> stays the durable record (doc confirms delivery is NOT guaranteed: hold/refuse). Honors the no-gh-watch-polling rule.</td><td class="path">swarm-migrate/SKILL.md:126</td><td class="ok">✅ mechanism<span class="tag">held-msg nuance folded</span></td><td><b>EPIC C #3308</b> retire polling loop</td><td class="nowrap">~1 day</td></tr>
+    <tr><td>5 📖</td><td><b>Import the official 4-column "who holds the plan" table</b> (subagents / skills / agent teams / workflows) incl. the interruption row: workflow resume is same-session only; ork handoff files resume cross-session. Supersedes the cookbook's 3-column version.</td><td class="path">chain-patterns/references/dynamic-workflow-patterns.md</td><td class="ok">✅ official doc</td><td>docs correctness</td><td class="nowrap">15 lines</td></tr>
+    <tr><td>6 🔁</td><td><b>Pattern 8 refresh: dynamic /loop</b> (self-paced ScheduleWakeup, long fallback heartbeat, never short-interval polling of harness-tracked work).</td><td class="path">chain-patterns/SKILL.md:191</td><td class="warn">🟡 harness-known; verify vs /loop doc page when writing</td><td>EPIC D adjacent · M161</td><td class="nowrap">doc-only</td></tr>
+    <tr><td>7 5️⃣</td><td><b>Spawn-cap-removed note.</b> CHANGELOG 2.1.224 verbatim: "Removed the 200-subagent-per-session spawn cap". Ork's depth-3 budget + refuter cap §8 are now the only brake. Fold into <b>#3324</b>, no new issue.</td><td class="path">chain-patterns/SKILL.md:240</td><td class="ok">✅ CHANGELOG verbatim</td><td>comment on #3324</td><td class="nowrap">1 line</td></tr>
+    <tr><td>8 🎯</td><td><b>Conditional refuter spawn</b> in the mapreduce template: filter in plain JS, refute only confirmed/decision-bearing findings. Composes with the §8 spawn cap.</td><td class="path">audit-full/workflows/audit-full-mapreduce.mjs</td><td class="ok">✅ cookbook pattern</td><td>correctness + cost hygiene</td><td class="nowrap">small edit</td></tr>
+    <tr><td>⏸️</td><td><b>SKIP: wrapping implement / verify / swarm-migrate as workflows.</b> Officially reinforced: "No mid-run user input… For sign-off between stages, run each stage as its own workflow." Interactive gates, CI gates, and cross-session resume are load-bearing.</td><td class="path">—</td><td class="ok">✅ official doc</td><td>EPIC C spirit: no 10th mechanism</td><td class="nowrap">zero</td></tr>
+  </table>
+</section>
+
+<section id="swarm">
+  <h2>🕸️ Graph diff: swarm coordination topology (CC 2.1.224)</h2>
+  <p class="lead">The one real thing inside the "graph engineering" buzz: <b>context does not flow between nodes unless you design the edge.</b> Before: the coordinator pulls a shared ledger between waves. After: workers push text edges; the ledger stays as the durable record because inbound delivery can be held or refused.</p>
+  <div class="grid2">
+    <div class="panel"><h4>Before — poll the ledger</h4><div class="mmd" id="m-swarm-before"></div></div>
+    <div class="panel"><h4>After — message edges + durable ledger</h4><div class="mmd" id="m-swarm-after"></div></div>
+  </div>
+  <div class="panel" style="margin-top:16px">
+    <h4>The five diffs, in one place</h4>
+    <div class="difflist">
+      <div class="lbl">🥇 Pattern 10 — chain-patterns/SKILL.md</div>
+      <div class="minus">- Pattern 7: SendMessage resumes agents IN-SESSION only; sibling sessions coordinate via shared files + polling</div>
+      <div class="plus">+ Pattern 10: sessions discover peers via ListAgents and push text edges via SendMessage (CC 2.1.224)</div>
+      <div class="lbl">📨 swarm push — swarm-migrate/SKILL.md:126</div>
+      <div class="minus">- coordinator re-reads .swarm-state.json between waves (pull; latency = poll interval)</div>
+      <div class="plus">+ worker: SendMessage(to=coordinator, "repo X: CI green, PR #42 merged") — push; ledger unchanged</div>
+      <div class="lbl">🔁 dynamic /loop — chain-patterns/SKILL.md:191</div>
+      <div class="minus">- /loop 5m gh pr checks 42   (fixed interval, user picks cadence)</div>
+      <div class="plus">+ /loop gh pr checks 42      (self-paced: model schedules wakeups, 1200s+ fallback)</div>
+      <div class="lbl">🗺️ edge map — implement/SKILL.md:293</div>
+      <div class="minus">- | After Phase 1 | 01-discovery.json | Best practices, task breakdown |</div>
+      <div class="plus">+ | After Phase 1 | 01-discovery.json | Best practices, task breakdown | read by: Phase 2, 4 |</div>
+      <div class="lbl">5️⃣ cap note — chain-patterns/SKILL.md:240</div>
+      <div class="minus">- CC hard-caps spawns at 200/session (implicit backstop)</div>
+      <div class="plus">+ no upstream cap since 2.1.224 — ork budgets are the only brake; respect them</div>
+    </div>
+  </div>
+</section>
+
+<section id="pipeline">
+  <h2>🔬 Verification diff: how a confident, WRONG finding travels</h2>
+  <p class="lead"><b>Today (schema + quorum):</b> a well-shaped wrong verdict validates perfectly and reaches the quorum, where same-model refuters share blind spots — roughly the observed ~50% re-verification failure. <b>Ideal (evidence + replay):</b> checkable evidence is mechanically replayed before any verdict; only judgment-only findings carry residual risk, and those go to the quorum.</p>
+  <div class="grid2">
+    <div class="panel"><h4>Before — today on main 🟡</h4><div class="mmd" id="m-pipe-before"></div></div>
+    <div class="panel"><h4>After — with the replay gate 🟢</h4><div class="mmd" id="m-pipe-after"></div></div>
+  </div>
+  <p class="lead" style="margin-top:12px">⚠️ Caveat, straight from the field: SWE-bench Verified was deprecated in Feb 2026 because <b>59.4% of its hardest tasks had flawed tests that rejected correct solutions</b>. Replay is only as good as the cited evidence; a wrong test replayed faithfully is still wrong. Pair replay with the cross-model quorum lane (§11) on the evidence itself.</p>
+</section>
+
+<section id="delta">
+  <h2>📊 Cookbook vs OrchestKit delta</h2>
+  <table>
+    <tr><th>Dimension</th><th>Cookbook</th><th>OrchestKit</th><th>Winner</th></tr>
+    <tr><td class="nowrap"><b>Pattern taxonomy</b></td><td>1 pattern (fan-out + skeptic)</td><td>6 patterns + failure-mode selector<br><span class="path">chain-patterns/references/dynamic-workflow-patterns.md</span></td><td class="ok">🟢 ours</td></tr>
+    <tr><td class="nowrap"><b>Skeptic pass</b></td><td>1 refuter, no gates</td><td>Blindness contract, quorum, citation-verify, no-auto-flip<br><span class="path">shared/rules/adversarial-refutation.md</span></td><td class="ok">🟢 ours</td></tr>
+    <tr><td class="nowrap"><b>schema usage</b></td><td>explains it, toy example</td><td>shipped in 3 templates + "big schemas flake" scar<br><span class="path">audit-full-mapreduce.mjs:89</span></td><td class="ok">🟢 ours</td></tr>
+    <tr><td class="nowrap"><b>Parse safety / model tiers / quarantine</b></td><td>absent</td><td><span class="path">dynamic-workflow-patterns.md:16-52, 81-114, 139</span></td><td class="ok">🟢 ours</td></tr>
+    <tr><td class="nowrap"><b>State between stages</b></td><td>script variables (free, in-run)</td><td>handoff JSON survives session death; workflow resume is same-session only (official doc)<br><span class="path">implement/SKILL.md:289 · chain-patterns P2/P3</span></td><td class="warn">🟡 split</td></tr>
+    <tr><td class="nowrap"><b>Who-holds-the-plan table</b></td><td>3-column table</td><td>one-line "5-minute test" — and the OFFICIAL doc now has a richer 4-column version to import (plan item 5)</td><td class="bad">🔴 theirs</td></tr>
+    <tr><td class="nowrap"><b>Enforced verification</b></td><td>structural (code sequences it)</td><td>instruction the model must remember<br><span class="path">implement/SKILL.md:396</span></td><td class="bad">🔴 theirs</td></tr>
+    <tr><td class="nowrap"><b>Interactive / CI gates, ledgers</b></td><td>impossible in background workflows (official: no mid-run input)</td><td>deliberate + documented<br><span class="path">swarm-migrate/SKILL.md:44</span></td><td class="ok">🟢 ours</td></tr>
+  </table>
+</section>
+
+<section id="field">
+  <h2>🌐 Field notes — last 30 days (2026-07-12 → 2026-08-11)</h2>
+  <p class="lead">From the last30days run: 48 items across Reddit, HN, YouTube, GitHub (top voices r/ClaudeCode, r/ClaudeAI, r/ChatGPTCoding) plus web supplements.</p>
+  <table>
+    <tr><th>Finding</th><th>Source</th><th>Validates</th></tr>
+    <tr><td>Verification is becoming HARDER than producing solutions; passing tests are a weak proxy ("The Verification Horizon")</td><td class="nowrap"><a href="https://arxiv.org/pdf/2606.26300">arXiv</a></td><td>plan #1 + quorum</td></tr>
+    <tr><td>SWE-bench Verified deprecated Feb 2026: 59.4% of hardest tasks had flawed tests rejecting CORRECT solutions</td><td class="nowrap"><a href="https://www.techtimes.com/articles/322765/20260803/ai-coding-agents-proved-blind-their-own-errors-what-astra-must-fix-science.htm">TechTimes</a></td><td>replay caveat</td></tr>
+    <tr><td>Adversarial pairing (Codex ↔ Claude alternating maker/checker) caught DIFFERENT error classes; cross-model beats same-model redundancy</td><td class="nowrap"><a href="https://www.augmentcode.com/guides/adversarial-code-review">Augment Code</a></td><td>quorum §11 lane</td></tr>
+    <tr><td>"A $0.02 task becomes a $2.00 task after five or six hops"; agent teams ≈ 7x tokens. Fixes: Haiku sub-agents, scope bounding, token budgets</td><td class="nowrap"><a href="https://www.mindstudio.ai/blog/how-to-control-token-costs-claude-code-dynamic-workflows">MindStudio</a></td><td>plan #8 + model tiers</td></tr>
+    <tr><td>~10 agents with sharp descriptions delegate more reliably than 100 with fuzzy ones</td><td class="nowrap"><a href="https://dev.to/suraj_khaitan_f893c243958/i-built-100-claude-code-subagents-these-are-the-12-that-actually-earn-their-context-10nn">dev.to</a></td><td>catalog discipline</td></tr>
+    <tr><td>Prompt-level safety/verification instructions: near-zero returns on strong models (+0.4 / +0.3 / −0.3). Structure beats instructions</td><td class="nowrap"><a href="https://nerdleveltech.com/ai-agent-reliability-verification-loops-guardrails">Nerd Level Tech</a></td><td>the whole plan</td></tr>
+    <tr><td>"Graph engineering" went viral July 2026 as the sequel to loop engineering; ~80% rebrand of DAG + handoff discipline, benchmark stats borrowed from graph-RAG</td><td class="nowrap"><a href="https://theaioperator.io/p/what-is-graph-engineering-a-field">The AI Operator</a></td><td>skip the DSL, keep item 2</td></tr>
+  </table>
+</section>
+
+<section id="schemas">
+  <h2>🧠 The honest answer: schemas vs correctness</h2>
+  <div class="verdict">
+    <p><b>Schema enforcement does not fix the wrong-finding defect.</b> The retry loop fires on <i>shape</i> mismatch only; <span class="path">{verdict:"confirmed", quote:"…"}</span> with a misread quote validates perfectly. What schemas do buy: they kill parse-layer wrongness, and they force the agent to commit to <b>falsifiable evidence fields</b>. That second property is only worth something if something then checks the field — which is plan item #1. The conversion that matters: <b>"agent asserted X" → "X was mechanically reproduced or adversarially survived."</b></p>
+  </div>
+</section>
+
+<div class="copybar"><button id="copy">📋 Copy implementation prompt</button></div>
+</div>
+
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({ startOnLoad: false, theme: 'dark', themeVariables: { fontFamily: 'ui-monospace, Menlo, monospace', fontSize: '12.5px' } });
+
+const DEFS = {
+  'm-swarm-before': `flowchart TB
+  C["🧠 coordinator<br/>(polls between waves)"]
+  W1["🔨 worker A"]
+  W2["🔨 worker B"]
+  W3["🔨 worker C"]
+  LG[("📒 .swarm-state.json")]
+  C --> W1
+  C --> W2
+  C --> W3
+  W1 -->|write| LG
+  W2 -->|write| LG
+  W3 -->|write| LG
+  C -. "re-read (pull,<br/>poll latency)" .-> LG
+  classDef poll stroke:#d29922,color:#e6edf3,fill:#2b2313
+  class LG poll
+  classDef default fill:#1c2330,stroke:#30363d,color:#e6edf3`,
+  'm-swarm-after': `flowchart TB
+  C["🧠 coordinator<br/>(reacts to messages)"]
+  W1["🔨 worker A"]
+  W2["🔨 worker B"]
+  W3["🔨 worker C"]
+  LG[("📒 ledger = durable<br/>record only")]
+  C --> W1
+  C --> W2
+  C --> W3
+  W1 ==>|"CI green, PR merged"| C
+  W2 ==>|"NOVEL FAILURE, pausing"| C
+  W3 ==>|"skipped, no diff"| C
+  W1 -->|write| LG
+  W2 -->|write| LG
+  W3 -->|write| LG
+  classDef push stroke:#3fb950,color:#e6edf3,fill:#12261a
+  class C push
+  classDef default fill:#1c2330,stroke:#30363d,color:#e6edf3`,
+  'm-pipe-before': `flowchart TB
+  A["🤖 producer agent<br/>(wrong finding)"]
+  S{"📐 schema valid?"}
+  Q["⚖️ same-model quorum"]
+  OK["✅ accepted"]
+  V["📋 merge report<br/>🔴 wrong ~50% of the time"]
+  A --> S
+  S -. "retry on mismatch<br/>(shape only)" .-> A
+  S -->|well-shaped| Q
+  Q -->|"shared blind spots"| OK
+  OK --> V
+  classDef risk stroke:#d29922,color:#e6edf3,fill:#2b2313
+  class Q,V risk
+  classDef default fill:#1c2330,stroke:#30363d,color:#e6edf3`,
+  'm-pipe-after': `flowchart TB
+  A["🤖 producer agent<br/>(wrong finding)"]
+  S{"📐 schema valid?"}
+  E{"🧾 evidence type?"}
+  R1["🔁 re-open file:line<br/>string-match quote"]
+  R2["🔁 re-run command<br/>diff output"]
+  J["⚖️ quorum + §11<br/>cross-model lane"]
+  REJ["❌ rejected → producer"]
+  OK["✅ accepted VERIFIED"]
+  A --> S
+  S -. retry .-> A
+  S --> E
+  E -->|quote| R1
+  E -->|command| R2
+  E -->|judgment-only| J
+  R1 -->|mismatch| REJ
+  R2 -->|mismatch| REJ
+  R1 -->|match| OK
+  R2 -->|match| OK
+  J -->|survives| OK
+  J -->|killed| REJ
+  classDef good stroke:#3fb950,color:#e6edf3,fill:#12261a
+  class R1,R2,OK good
+  classDef default fill:#1c2330,stroke:#30363d,color:#e6edf3`
+};
+for (const [id, def] of Object.entries(DEFS)) {
+  try {
+    const { svg } = await mermaid.render('r' + id.replace(/-/g, ''), def);
+    document.getElementById(id).innerHTML = svg;
+  } catch (e) {
+    document.getElementById(id).innerHTML = '<pre style="color:#8b949e;font-size:11px">' + def.replace(/</g, '&lt;') + '</pre>';
+  }
+}
+
+const PROMPT = `In orchestkit, implement the verified Dynamic Workflows adoption plan (all items map to milestone #164 v10.0.0):
+1. Evidence-replay gate: new src/skills/shared/rules/evidence-replay.md; every producer-finding schema in verify/assess/review-pr carries {file,line,quote} or {command,expected_output}; orchestrator deterministically re-opens the cited line (string-match) or re-runs the command (output diff) BEFORE any verdict; judgment-only findings route to the refutation quorum.
+2. Pattern 10 in src/skills/chain-patterns/SKILL.md: cross-session edges via ListAgents + SendMessage (CC 2.1.224); document text-only payloads, loop throttling, 50-unread cap, crossSessionInbound accept/hold/refuse, -p workers need accept in --settings, bare mode binds no socket; forbid producer-to-refuter edges (blindness section 9).
+3. Ship the 3 committed workflow templates via the official plugin workflows/ directory (namespaced /ork:...): audit-full-mapreduce, skill-fitness, heal-loop; add the workflows manifest field; pre-check claude plugin validate against issue #3349.
+4. swarm-migrate push-don't-poll (SKILL.md:126): workers SendMessage the coordinator on CI state change; keep .swarm-state.json as the durable record since inbound delivery can be held/refused.
+5. Import the official 4-column who-holds-the-plan table (subagents/skills/agent teams/workflows) into dynamic-workflow-patterns.md, noting workflow resume is same-session only while ork handoff files resume cross-session.
+6. Refresh Pattern 8 (SKILL.md:191) for dynamic self-paced /loop; verify against the official /loop doc page while writing.
+7. Comment on issue #3324: CHANGELOG 2.1.224 removed the 200-subagent-per-session spawn cap; ork depth-3 + refuter-cap budgets are now the only brake; add one line to Pattern 9.
+8. In audit-full-mapreduce.mjs, filter findings in plain JS and spawn refuters only for confirmed/decision-bearing findings, composing with the section-8 spawn cap.
+Do NOT wrap implement/verify/swarm-migrate as Workflow scripts (official doc: no mid-run user input).`;
+document.getElementById('copy').onclick = async () => {
+  await navigator.clipboard.writeText(PROMPT);
+  const b = document.getElementById('copy'); b.textContent = '✅ Copied!'; setTimeout(() => b.textContent = '📋 Copy implementation prompt', 1400);
+};
+</script>
+</body>
+</html>
