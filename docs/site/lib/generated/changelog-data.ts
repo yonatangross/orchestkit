@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.19",
+    "date": "2026-08-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**agents:** drop two frontmatter keys CC provably ignores ([#3431](https://github.com/yonatangross/orchestkit/issues/3431)) ([9842537](https://github.com/yonatangross/orchestkit/commit/98425379c13a522ed87b15ead7601695ec70e343))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.18",
     "date": "2026-08-11",
     "compareUrl": "",

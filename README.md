@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.19](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.18...v10.0.0-alpha.19)** · 2026-08-11
+
+- **agents:** drop two frontmatter keys CC provably ignores (#3431)
+
 **[v10.0.0-alpha.18](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.17...v10.0.0-alpha.18)** · 2026-08-11
 
 - **hooks:** match the agent names CC actually sends, drop unread writes (#3428)
@@ -311,10 +315,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.12](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.11...v10.0.0-alpha.12)** · 2026-08-10
 
 - **mcp:** retire the ork-elicit server for AskUserQuestion (#3400)
-
-**[v10.0.0-alpha.11](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.10...v10.0.0-alpha.11)** · 2026-08-10
-
-- **docs:** gate the README prose counts instead of correcting them (#3398)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
