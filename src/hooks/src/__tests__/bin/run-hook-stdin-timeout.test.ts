@@ -58,7 +58,10 @@ describe('#3415 run-hook.mjs stdin timeout is observable', () => {
     expect(stderr).toMatch(WARNING);
     // the message has to be actionable, not just present
     expect(stderr).toMatch(/EMPTY payload/);
-    expect(stderr).toMatch(new RegExp(HOOK.replace(/\//g, '\\/')));
+    // toContain, not a hand-built RegExp: escaping only `/` is incomplete
+    // (CodeQL js/incomplete-sanitization) and unnecessary, since `/` needs no
+    // escape in the RegExp constructor. A substring check is what was meant.
+    expect(stderr).toContain(HOOK);
   }, 15000);
 
   it('stays SILENT when the payload arrives in time (no spurious warning)', async () => {
@@ -92,15 +95,27 @@ describe('#3415 run-hook.mjs stdin timeout is observable', () => {
           err += String(c);
         });
         child.stdout.resume();
-        child.stdin.write(oversized);
-        child.stdin.end();
+        // EPIPE here is the guard WORKING: run-hook.mjs calls
+        // process.stdin.destroy() the moment stdin passes the cap, so this
+        // parent is mid-write to a closed pipe. Swallowing it is correct;
+        // without this the test passes locally on pipe-buffer timing and
+        // throws EPIPE in CI, which is what it did on the first run.
+        child.stdin.on('error', (e: NodeJS.ErrnoException) => {
+          if (e.code !== 'EPIPE') throw e;
+        });
+        child.stdin.write(oversized, () => {
+          child.stdin.end();
+        });
         child.on('close', (c) => resolve({ stderr: err, code: c }));
       },
     );
 
     expect(stderr).not.toMatch(/ReferenceError/);
     expect(stderr).toMatch(/stdin truncated at/);
-    expect(stderr).toMatch(new RegExp(HOOK.replace(/\//g, '\\/')));
+    // toContain, not a hand-built RegExp: escaping only `/` is incomplete
+    // (CodeQL js/incomplete-sanitization) and unnecessary, since `/` needs no
+    // escape in the RegExp constructor. A substring check is what was meant.
+    expect(stderr).toContain(HOOK);
     expect(code).toBe(0);
   }, 20000);
 
