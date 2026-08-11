@@ -20,6 +20,8 @@ import {
 import { isProtectedBranch, validateBranchName, analyzeStagedChanges, getCurrentBranch } from '../../lib/git.js';
 import { NOOP_CTX } from '../../lib/context.js';
 import { getStateFilePath, readSessionState, repoSlugFromCwd } from '../../lib/session-state.js';
+import { listLinkedWorktrees } from '../../lib/worktree-scan.js';
+import { recordDenial } from '../../lib/denial-counter.js';
 
 // =============================================================================
 // CONSTANTS
@@ -263,6 +265,124 @@ export function extractPreCommitSwitchTarget(command: string): string | null {
 }
 
 // =============================================================================
+// DENIAL GUIDANCE (#3422)
+// =============================================================================
+
+/**
+ * Rewrite the command to run explicitly in `worktreePath`.
+ *
+ * Returns null when the command already carries its own `-C`: the caller was
+ * explicit about where git runs, so the branch we are blocking on really is
+ * the branch there. Suggesting a different `-C` would be overriding a stated
+ * intent, not fixing a resolution gap.
+ */
+export function buildWorktreeRewrite(gitCommand: string, worktreePath: string): string | null {
+  if (/^git\s+-C(\s|=)/.test(gitCommand)) return null;
+  const m = gitCommand.match(/^git\s+([\s\S]+)$/);
+  if (!m) return null;
+  return `git -C ${worktreePath} ${m[1].trim()}`;
+}
+
+/** Escalation banner for a command this session has already been denied for. */
+function repetitionBanner(count: number, projectDir: string): string {
+  const lead =
+    count === 2 ? 'SECOND IDENTICAL DENIAL' : `IDENTICAL DENIAL #${count}`;
+  return `${lead} — do not re-send this command. It has been denied ${count} times in this session, byte for byte, and re-sending the same bytes will be denied again.
+
+Change the command's SHAPE (see the rewrite below), or run a read-only diagnostic first:
+  git -C ${projectDir} branch --show-current`;
+}
+
+export interface DenialContext {
+  /** The git segment being blocked, starting at the `git` token. */
+  gitCommand: string;
+  /** Exact bytes of the tool call, for repetition keying. */
+  rawCommand: string;
+  /** Branch the guard judged, i.e. the one it is protecting. */
+  currentBranch: string;
+  /** Session project dir — the primary tree. */
+  projectDir: string;
+  /** Session id; empty disables repetition tracking. */
+  sessionId: string;
+  /** Directory the command was resolved to run in, when any was resolvable. */
+  effectiveDir: string | null;
+  /** Branch found at `effectiveDir`, when it was readable. */
+  effectiveBranch: string | null;
+}
+
+/**
+ * The full text of a protected-branch denial.
+ *
+ * Two enrichments over the bare block (#3422), both additive and both
+ * fail-open — any failure below degrades to the original workflow text:
+ *
+ *  (a) When the repo has linked worktrees on non-protected branches, the
+ *      mismatch is worktree-shaped: the guard resolves the effective
+ *      directory from the COMMAND STRING only, so a session whose shell is
+ *      already inside a worktree looks identical to one sitting on the trunk.
+ *      Telling that operator to "create a feature branch" is wrong advice —
+ *      they have one. We print the exact `git -C <abs path>` rewrite instead.
+ *
+ *  (b) When this exact command has been denied before, the repetition itself
+ *      is the finding and leads the message.
+ */
+export function buildProtectedBranchDenial(ctx: DenialContext): string {
+  const sections: string[] = [];
+
+  const count = recordDenial(ctx.rawCommand, repoSlugFromCwd(ctx.projectDir), ctx.sessionId);
+  if (count >= 2) {
+    sections.push(repetitionBanner(count, ctx.projectDir));
+  }
+
+  sections.push(`BLOCKED: Cannot commit or push directly to '${ctx.currentBranch}' branch.`);
+
+  // A resolved directory that produced no usable branch is its own diagnosis:
+  // the path in the command (or the recorded shell cwd) does not name a repo.
+  // `~` is the usual culprit — it is not expanded, so it absolutizes against
+  // the project dir into a path that does not exist.
+  if (ctx.effectiveDir && (!ctx.effectiveBranch || ctx.effectiveBranch === 'unknown')) {
+    sections.push(
+      `Note: the command resolved to '${ctx.effectiveDir}', but no git branch is readable there, so the guard fell back to the session dir. Absolute paths only — a leading '~' is not expanded.`,
+    );
+  }
+
+  // Enrichment only: a failure here must cost the rewrite, never the block.
+  let candidates: Array<{ path: string; branch: string }> = [];
+  try {
+    candidates = listLinkedWorktrees(ctx.projectDir).filter(
+      (w) => w.branch && !isProtectedBranch(w.branch),
+    );
+  } catch {
+    candidates = []; // silent: fail-open — fall back to the standard workflow text
+  }
+  const rewrite =
+    candidates.length > 0 ? buildWorktreeRewrite(ctx.gitCommand, candidates[0].path) : null;
+
+  if (rewrite) {
+    sections.push(`This guard reads the COMMAND STRING, not the shell's working directory — the hook runs in its own process, so a \`cd\` you ran earlier is invisible to it. If you are working in a linked worktree, name it per-command.
+
+Run this instead (copyable as-is):
+  ${rewrite}`);
+
+    const others = candidates.slice(1, 4);
+    if (others.length > 0) {
+      const lines = others.map((w) => `  ${w.path}  [${w.branch}]`).join('\n');
+      sections.push(`Other worktrees on feature branches:\n${lines}`);
+    }
+  } else {
+    // No --base: gh already defaults to the repo's own base branch, so naming
+    // one here can only ever be wrong somewhere (#3411).
+    sections.push(`Required workflow:
+1. git checkout -b issue/<number>-<description>
+2. git commit -m "feat(#<number>): Description"
+3. git push -u origin issue/<number>-<description>
+4. gh pr create`);
+  }
+
+  return sections.join('\n\n');
+}
+
+// =============================================================================
 // VALIDATION FUNCTIONS
 // =============================================================================
 
@@ -270,6 +390,7 @@ function validateBranchProtection(
   gitCommand: string,
   currentBranch: string,
   resolveEffective: () => string | null,
+  denial?: Omit<DenialContext, 'gitCommand' | 'currentBranch' | 'effectiveDir' | 'effectiveBranch'>,
 ): HookResult | null {
   if (!isProtectedBranch(currentBranch)) {
     return null;
@@ -296,8 +417,9 @@ function validateBranchProtection(
   // An unresolvable/unknown branch falls through to the protected verdict
   // (fail closed).
   const effectiveDir = resolveEffective();
+  let effectiveBranch: string | null = null;
   if (effectiveDir) {
-    const effectiveBranch = getCurrentBranch(effectiveDir);
+    effectiveBranch = getCurrentBranch(effectiveDir);
     if (
       effectiveBranch &&
       effectiveBranch !== 'unknown' &&
@@ -314,17 +436,15 @@ function validateBranchProtection(
   }
 
   if (/git\s+(commit|push)/.test(gitCommand)) {
-    const errorMsg = `BLOCKED: Cannot commit or push directly to '${currentBranch}' branch.
-
-Required workflow:
-1. git checkout -b issue/<number>-<description>
-2. git commit -m "feat(#<number>): Description"
-3. git push -u origin issue/<number>-<description>
-4. gh pr create
-
-(No --base: this text said '--base dev', which is HQ's convention and wrong in
-this repo, where PRs target main. gh already defaults to the repo's own base
-branch, so naming one here can only ever be wrong somewhere. #3411)`;
+    const errorMsg = buildProtectedBranchDenial({
+      gitCommand,
+      rawCommand: denial?.rawCommand ?? gitCommand,
+      currentBranch,
+      projectDir: denial?.projectDir ?? '',
+      sessionId: denial?.sessionId ?? '',
+      effectiveDir,
+      effectiveBranch,
+    });
 
     logPermissionFeedback('deny', `Blocked on protected branch: ${currentBranch}`);
     return outputDeny(errorMsg);
@@ -489,7 +609,14 @@ export function gitValidator(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
     resolveEffectiveDir(gitCommand, located.cdTarget, input, ctx);
 
   // 1. Branch protection (can block)
-  const protectionResult = validateBranchProtection(gitCommand, currentBranch, resolveEffective);
+  // The RAW command (not the git segment) keys the repetition counter: a
+  // re-send is byte-identical at the tool-call level, which is the level the
+  // operator actually retries at (#3422).
+  const protectionResult = validateBranchProtection(gitCommand, currentBranch, resolveEffective, {
+    rawCommand: input.tool_input.command || '',
+    projectDir: input.project_dir || ctx.projectDir || '',
+    sessionId: input.session_id || '',
+  });
   if (protectionResult?.continue === false) {
     return protectionResult;
   }
