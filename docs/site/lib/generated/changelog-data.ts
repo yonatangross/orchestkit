@@ -17,6 +17,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.17",
+    "date": "2026-08-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** adopt autoCompactWindow, delete what could not fire ([#3427](https://github.com/yonatangross/orchestkit/issues/3427)) ([448794e](https://github.com/yonatangross/orchestkit/commit/448794e8b035a6c698823f2d98ba1fc9ae29aa50))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** contract gate now names its own blind half on every run ([#3421](https://github.com/yonatangross/orchestkit/issues/3421)) ([5e933e6](https://github.com/yonatangross/orchestkit/commit/5e933e6c5b0f14e0cf1af5832163b92f75112935))",
+          "**hooks:** give guard denials a rewrite and a repetition signal ([#3423](https://github.com/yonatangross/orchestkit/issues/3423)) ([7b7f2fa](https://github.com/yonatangross/orchestkit/commit/7b7f2fa761e30ab2de70a9c08e15a9207d052b20))",
+          "**hooks:** read the payload keys CC actually sends ([#3425](https://github.com/yonatangross/orchestkit/issues/3425)) ([f51ad8e](https://github.com/yonatangross/orchestkit/commit/f51ad8e5f12bbe2deb149e480d6e56ec318fab6c))",
+          "**skills:** teach both reachability gates the 4th activation path ([#3426](https://github.com/yonatangross/orchestkit/issues/3426)) ([f8c256d](https://github.com/yonatangross/orchestkit/commit/f8c256d52ef08f62357548bf0f43f44bf21cd1e3))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc:** advance latest_known to 2.1.227, floor stays frozen ([#3419](https://github.com/yonatangross/orchestkit/issues/3419)) ([44e9d53](https://github.com/yonatangross/orchestkit/commit/44e9d53fb2bf06a228cf6026fedfb4dadd280769))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.16",
     "date": "2026-08-10",
     "compareUrl": "",

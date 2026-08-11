@@ -276,6 +276,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.17](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.16...v10.0.0-alpha.17)** · 2026-08-11
+
+- **hooks:** adopt autoCompactWindow, delete what could not fire (#3427)
+- **ci:** contract gate now names its own blind half on every run (#3421)
+- **hooks:** give guard denials a rewrite and a repetition signal (#3423)
+- **hooks:** read the payload keys CC actually sends (#3425)
+- **skills:** teach both reachability gates the 4th activation path (#3426)
+- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-alpha.16](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.15...v10.0.0-alpha.16)** · 2026-08-10
 
 - **ci:** contract probe looked in the one layout runners lack (#3417)
@@ -308,15 +317,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **docs:** retire the keybindings that never fired (#3395)
 - **hooks:** admit bare ctx.log() through the default level gate (#3386) (#3390)
 - **hooks:** scope gh enforcers to this repo (#3392)
-
-**[v10.0.0-alpha.9](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.8...v10.0.0-alpha.9)** · 2026-08-10
-
-- **hooks:** two guards that treated "cannot observe" as "not there" (#3387)
-- **deps-dev:** bump @biomejs/biome from 2.5.6 to 2.5.7 in /src/hooks in the npm-minor-patch group (#3379)
-- **deps-dev:** bump js-yaml in the npm-minor-patch group (#3378)
-- **deps:** bump the npm-minor-patch group (#3382)
-- **deps:** bump the remotion group in /orchestkit-demos with 21 updates (#3381)
-- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
