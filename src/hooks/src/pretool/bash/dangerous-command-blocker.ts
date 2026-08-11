@@ -445,7 +445,11 @@ export function hasNetworkSource(upstream: string): boolean {
 }
 
 /** Which interpreter shape a real pipe targets, or null when none. */
-export type PipeToInterpreterKind = 'exec' | 'interpreter';
+// `exec` and `exec-local` are the SAME decision (deny) and differ only in what
+// the reason says. Splitting them exists because the one reason string used to
+// assert a fetch that had not happened, and told the user to curl a URL they
+// never supplied (#3433).
+export type PipeToInterpreterKind = 'exec' | 'exec-local' | 'interpreter';
 
 export function pipesToShellInterpreter(cmd: string): PipeToInterpreterKind | null {
   let inSingle = false;
@@ -479,8 +483,11 @@ export function pipesToShellInterpreter(cmd: string): PipeToInterpreterKind | nu
     // match, then reduce it to the interpreter it will ACTUALLY run.
     const target = resolveInterpreterWord(cmd.slice(i + 1));
 
-    // stdin-as-script: always a deny, whatever the source.
-    if (SHELL_EXEC_RE.test(target)) return 'exec';
+    // stdin-as-script: always a deny, whatever the source. The source still
+    // decides which REASON we give, because telling someone to fetch to a file
+    // first is nonsense when nothing was fetched (#3433).
+    if (SHELL_EXEC_RE.test(target))
+      return hasNetworkSource(cmd.slice(0, i)) ? 'exec' : 'exec-local';
 
     // stdin-as-data: a deny only when the bytes came off-machine. Local data
     // into `python3 -c` is log parsing, not RCE (#3096).
@@ -508,6 +515,18 @@ const PIPE_TO_SHELL_DENY =
   '  1. curl -fsSL "<url>" -o /tmp/script.sh   (fetch to a file)\n' +
   '  2. less /tmp/script.sh                    (read what it does)\n' +
   '  3. bash /tmp/script.sh                    (run only after inspecting)';
+
+// Same deny, honest reason. A local source means the bytes ARE inspectable, so
+// claiming otherwise and prescribing a curl step burns a turn and teaches the
+// model the wrong lesson. Redirect to the shape the guard actually wants.
+const PIPE_TO_SHELL_LOCAL_DENY =
+  'Piping into a shell interpreter detected.\n\n' +
+  'A shell runs its stdin AS A SCRIPT, so this is blocked no matter where the bytes\n' +
+  'came from. No network source was involved here, so there is nothing to fetch.\n' +
+  'Give the script a path and run that instead:\n' +
+  '  1. write the body to a file    (heredoc, editor, or your build step)\n' +
+  '  2. bash /tmp/script.sh         (a real argv, not stdin)\n' +
+  'For local DATA rather than code, an interpreter is allowed: `cat f | python3 -c ...`.';
 
 const PIPE_TO_INTERPRETER_DENY =
   'Piping network output into a script interpreter detected.\n\n' +
@@ -623,7 +642,9 @@ export function dangerousCommandBlocker(input: HookInput, ctx: HookContext = NOO
   if (pipeKind) {
     ctx.log('dangerous-command-blocker', `BLOCKED: Piping to shell interpreter (${pipeKind})`);
     ctx.logPermission('deny', 'Piping to shell interpreter detected', input);
-    return outputDeny(pipeKind === 'exec' ? PIPE_TO_SHELL_DENY : PIPE_TO_INTERPRETER_DENY);
+    if (pipeKind === 'exec') return outputDeny(PIPE_TO_SHELL_DENY);
+    if (pipeKind === 'exec-local') return outputDeny(PIPE_TO_SHELL_LOCAL_DENY);
+    return outputDeny(PIPE_TO_INTERPRETER_DENY);
   }
 
   // --- DENY tier: `npm ci` against a SHARED node_modules ---
