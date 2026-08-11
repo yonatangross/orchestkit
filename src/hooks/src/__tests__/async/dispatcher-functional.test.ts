@@ -23,7 +23,7 @@ const mocks = vi.hoisted(() => {
   return {
     logHook: vi.fn(),
     // subagent-stop (2) — after #897 slimming
-    handoffPreparer: fn(), feedbackLoop: fn(),
+    feedbackLoop: fn(),
     // setup (1)
     dependencyVersionCheck: fn(),
     // subagent-stop analytics
@@ -40,7 +40,6 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 }));
 
 // subagent-stop hooks (2)
-vi.mock('../../subagent-stop/handoff-preparer.js', () => ({ handoffPreparer: mocks.handoffPreparer }));
 vi.mock('../../subagent-stop/feedback-loop.js', () => ({ feedbackLoop: mocks.feedbackLoop }));
 vi.mock('../../lib/session-tracker.js', () => ({ trackEvent: mocks.trackEvent }));
 vi.mock('../../lib/analytics.js', () => ({
@@ -82,7 +81,6 @@ function called(map: Record<string, ReturnType<typeof vi.fn>>): string[] {
 
 // Hook maps keyed by name
 const subagentStopMap: Record<string, ReturnType<typeof vi.fn>> = {
-  'handoff-preparer': mocks.handoffPreparer,
   'feedback-loop': mocks.feedbackLoop,
 };
 
@@ -113,7 +111,7 @@ describe('Dispatcher Functional Tests', () => {
     });
 
     it('isolates errors — other hook runs when one throws', async () => {
-      mocks.handoffPreparer.mockImplementationOnce(() => { throw new Error('network'); });
+      mocks.feedbackLoop.mockImplementationOnce(() => { throw new Error('network'); });
 
       await unifiedSubagentStopDispatcher(input(), testCtx);
 

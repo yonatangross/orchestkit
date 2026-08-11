@@ -367,41 +367,11 @@ describe('feedback-loop', () => {
   // ---------------------------------------------------------------------------
 
   describe('handoff context', () => {
-    test('creates handoff file for downstream agent', () => {
-      // Arrange
-      const input = createSubagentStopInput('backend-system-architect', 'API complete');
+    // The four handoff-context tests that lived here asserted
+    // createHandoffContext's output to .claude/context/handoffs, deleted in
+    // #3354 (ZERO readers, zero artifacts ever). writeDecision still records
+    // downstream_agents, and that assertion is unchanged.
 
-      // Act
-      feedbackLoop(input, testCtx);
-
-      // Assert
-      const calls = vi.mocked(writeFileSync).mock.calls;
-      const handoffCall = calls.find(([path]) =>
-        (path as string).includes('backend-system-architect_to_frontend-ui-developer')
-      );
-      expect(handoffCall).toBeDefined();
-    });
-
-    test('handoff file has correct structure', () => {
-      // Arrange
-      const input = createSubagentStopInput('test-generator', 'Tests complete');
-
-      // Act
-      feedbackLoop(input, testCtx);
-
-      // Assert
-      const calls = vi.mocked(writeFileSync).mock.calls;
-      const handoffCall = calls.find(([path]) =>
-        (path as string).includes('_to_')
-      );
-      const handoff = JSON.parse(handoffCall![1] as string);
-
-      expect(handoff.from_agent).toBe('test-generator');
-      expect(handoff.to_agent).toBe('security-auditor');
-      expect(handoff.status).toBe('pending');
-      expect(handoff.feedback_loop).toBe(true);
-      expect(handoff.session_id).toBe('test-session-fbl');
-    });
 
     test('does not create handoff for terminal agents', () => {
       // Arrange
@@ -486,28 +456,10 @@ describe('feedback-loop', () => {
       expect(logContent.decisions[0].task_id).toBe('task-789');
     });
 
-    test('includes task_id in handoff context when present', () => {
-      // Arrange
-      vi.mocked(getTaskByAgent).mockReturnValue({
-        taskId: 'task-abc',
-        agent: 'backend-system-architect',
-        confidence: 95,
-        createdAt: '2024-01-01T00:00:00Z',
-        status: 'in_progress',
-      });
-      const input = createSubagentStopInput('backend-system-architect', 'Done');
-
-      // Act
-      feedbackLoop(input, testCtx);
-
-      // Assert
-      const calls = vi.mocked(writeFileSync).mock.calls;
-      const handoffCall = calls.find(([path]) =>
-        (path as string).includes('_to_')
-      );
-      const handoff = JSON.parse(handoffCall![1] as string);
-      expect(handoff.task_id).toBe('task-abc');
-    });
+    // 'includes task_id in handoff context when present' was retired with
+    // createHandoffContext (#3354): it asserted task_id inside the
+    // .claude/context/handoffs JSON, a file with zero readers that was never
+    // produced. task_id coverage remains in the decision-log test above.
 
     test('handles missing task gracefully', () => {
       // Arrange
@@ -750,20 +702,6 @@ describe('feedback-loop', () => {
       expect(mkdirSync).toHaveBeenCalled();
     });
 
-    test('creates handoff directory if needed', () => {
-      // Arrange
-      const input = createSubagentStopInput('backend-system-architect', 'Output');
-
-      // Act
-      feedbackLoop(input, testCtx);
-
-      // Assert
-      const calls = vi.mocked(mkdirSync).mock.calls;
-      const handoffDirCall = calls.find(([path]) =>
-        (path as string).includes('handoffs')
-      );
-      expect(handoffDirCall).toBeDefined();
-    });
   });
 
   // ---------------------------------------------------------------------------

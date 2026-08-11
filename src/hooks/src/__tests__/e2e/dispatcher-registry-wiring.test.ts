@@ -119,7 +119,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // v7.30.0: SubagentStop dispatcher flattened — 2 individual async hooks (#1264)
       const subagentStopGroups = hooksConfig.hooks.SubagentStop || [];
       const subagentStopHooks = subagentStopGroups.flatMap(g => g.hooks);
-      const flattenedSubagentStopEntries = ['subagent-stop/handoff-preparer', 'subagent-stop/feedback-loop'];
+      const flattenedSubagentStopEntries = ['subagent-stop/feedback-loop'];
       for (const entry of flattenedSubagentStopEntries) {
         const hook = subagentStopHooks.find(h => commandPath(h).includes(entry));
         expect(hook, `SubagentStop should have flattened entry ${entry}`).toBeDefined();
@@ -367,7 +367,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       //             worktree/exit-finalizer from WorktreeRemove.
       // 105 -> 107: #3327 — lifecycle/directory-added (DirectoryAdded) and
       //             notification/message-display-observer (MessageDisplay).
-      expect(asyncHooks.length, 'Should have exactly 107 async hooks').toBe(107);
+      // 107 -> 106: #3354 removed subagent-stop/handoff-preparer (0-reader handoff writes)
+      expect(asyncHooks.length, 'Should have exactly 106 async hooks').toBe(106);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -415,10 +416,13 @@ describe('Dispatcher Registry Wiring E2E', () => {
 
       // v7.30.0: SubagentStop dispatcher flattened — 2 individual async hooks (#1264)
       const stopHooks = stopGroups.flatMap(g => g.hooks);
-      const handoffHook = stopHooks.find(h => commandPath(h).includes('subagent-stop/handoff-preparer'));
-      expect(handoffHook, 'SubagentStop should have handoff-preparer').toBeDefined();
-      expect(handoffHook?.async, 'SubagentStop handoff-preparer should have async: true').toBe(true);
-      expect(commandPath(handoffHook ?? {}), 'SubagentStop handoff-preparer should use run-hook.mjs').toContain('run-hook.mjs');
+      // handoff-preparer was removed in #3354 (0-reader handoff writes). The same
+      // invariants are asserted here against feedback-loop, the flattened entry
+      // that remains, so the registration shape stays pinned.
+      const handoffHook = stopHooks.find(h => commandPath(h).includes('subagent-stop/feedback-loop'));
+      expect(handoffHook, 'SubagentStop should have feedback-loop').toBeDefined();
+      expect(handoffHook?.async, 'SubagentStop feedback-loop should have async: true').toBe(true);
+      expect(commandPath(handoffHook ?? {}), 'SubagentStop feedback-loop should use run-hook.mjs').toContain('run-hook.mjs');
     });
 
     it('should have unified dispatcher in SubagentStart', () => {
@@ -506,7 +510,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 107 -> 105: #3315 — see the note on the async-hook count above.
       // 105 -> 107: #3327 — lifecycle/directory-added (DirectoryAdded) and
       //             notification/message-display-observer (MessageDisplay).
-      expect(asyncCount).toBe(107);
+      // 107 -> 106: #3354 removed subagent-stop/handoff-preparer (0-reader handoff writes)
+      expect(asyncCount).toBe(106);
     });
 
     it('should have hooks for all critical security operations', () => {

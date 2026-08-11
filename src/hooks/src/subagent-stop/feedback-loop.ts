@@ -22,6 +22,7 @@ import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 import { getTaskByAgent, updateTaskStatus, getActivePipeline } from '../lib/task-integration.js';
 import { PIPELINES } from '../lib/multi-agent-coordinator.js';
 import { isAgentTeamsActive } from '../lib/agent-teams.js';
+import { normalizeAgentName } from '../lib/agent-attribution-types.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
@@ -225,64 +226,10 @@ function writeDecision(
   }
 }
 
-interface HandoffContext {
-  from_agent: string;
-  to_agent: string;
-  timestamp: string;
-  decision_id: string;
-  summary: string;
-  session_id: string;
-  status: string;
-  feedback_loop: boolean;
-  task_id?: string;  // CC 2.1.16 integration
-}
-
-function createHandoffContext(
-  agentType: string,
-  downstreamAgents: string,
-  summary: string,
-  decisionId: string,
-  sessionId: string,
-  timestamp: string,
-  taskId?: string
-): void {
-  if (!downstreamAgents) {
-    return;
-  }
-
-  const handoffDir = `${getProjectDir()}/.claude/context/handoffs`;
-  try {
-    mkdirSync(handoffDir, { recursive: true });
-  } catch {
-    // Ignore
-  }
-
-  const agents = downstreamAgents.split(' ').filter(Boolean);
-  const dateStr = new Date().toISOString().replace(/[-:]/g, '').substring(0, 15);
-
-  for (const downstream of agents) {
-    const handoffFile = `${handoffDir}/${agentType}_to_${downstream}_${dateStr}.json`;
-
-    const handoff: HandoffContext = {
-      from_agent: agentType,
-      to_agent: downstream,
-      timestamp,
-      decision_id: decisionId,
-      summary,
-      session_id: sessionId,
-      status: 'pending',
-      feedback_loop: true,
-      task_id: taskId,
-    };
-
-    try {
-      atomicWriteSync(handoffFile, JSON.stringify(handoff, null, 2));
-      logFeedback(`Created handoff context: ${agentType} -> ${downstream}`);
-    } catch {
-      // Ignore
-    }
-  }
-}
+// createHandoffContext was DELETED (#3354): it wrote
+// .claude/context/handoffs/<from>_to_<to>_*.json, a path with ZERO readers.
+// downstreamAgents stays live below, feeding writeDecision and the
+// systemMessage.
 
 // -----------------------------------------------------------------------------
 // Hook Implementation
@@ -298,11 +245,15 @@ export function feedbackLoop(input: HookInput, _ctx: HookContext = NOOP_CTX): Ho
   const timestamp = new Date().toISOString();
 
   const toolInput = input.tool_input || {};
-  const agentType =
+  // normalizeAgentName strips the `ork:` plugin namespace CC prepends (#3354).
+  // The downstream-agent lookup below tests BARE names against PIPELINES and the
+  // fallback map, and CC sends prefixed ones, so every lookup missed.
+  const agentType = normalizeAgentName(
     (toolInput.subagent_type as string) ||
-    input.subagent_type ||
-    input.agent_type ||
-    'unknown';
+      input.subagent_type ||
+      input.agent_type ||
+      'unknown',
+  );
   const sessionId = input.session_id; // CC 2.1.9+ guarantees session_id
   const agentOutput = input.agent_output || input.output || '';
   const error = input.error || '';
@@ -349,9 +300,10 @@ export function feedbackLoop(input: HookInput, _ctx: HookContext = NOOP_CTX): Ho
   // Write to decision log (now includes task_id)
   writeDecision(decisionId, agentType, category, summary, downstreamAgents, status, timestamp, taskId);
 
-  // Create handoff context for downstream agents (now includes task_id)
+  // The createHandoffContext call that lived here is deleted (#3354). The
+  // routing decision itself is still recorded: writeDecision above persists
+  // downstream_agents, and the log line below is unchanged.
   if (downstreamAgents) {
-    createHandoffContext(agentType, downstreamAgents, summary, decisionId, sessionId, timestamp, taskId);
     logFeedback(`Routed findings to downstream agents: ${downstreamAgents}`);
   } else {
     logFeedback(`No downstream agents for ${agentType} (terminal agent)`);

@@ -138,7 +138,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code — 105 skills, 36 agents, 217 hooks working together."
+    "description": "The complete AI development toolkit for Claude Code — 105 skills, 36 agents, 216 hooks working together."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -222,7 +222,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/hooks/overview",
-    "title": "217 Hooks: What Fires When",
+    "title": "216 Hooks: What Fires When",
     "description": "TypeScript functions that intercept every Claude Code lifecycle event -- blocking dangerous commands, injecting context, and syncing memory, all invisibly."
   },
   {
@@ -518,7 +518,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/hooks",
     "title": "Hooks Reference",
-    "description": "Complete reference for all 151 global lifecycle hook entries across 30 event categories."
+    "description": "Complete reference for all 150 global lifecycle hook entries across 30 event categories."
   },
   {
     "url": "/docs/reference/hooks/instructions-loaded",
@@ -648,7 +648,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/hooks/subagent-stop",
     "title": "SubagentStop",
-    "description": "Hooks triggered on SubagentStop events (7 hooks)."
+    "description": "Hooks triggered on SubagentStop events (6 hooks)."
   },
   {
     "url": "/docs/reference/hooks/task-completed",
@@ -683,7 +683,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference",
     "title": "Reference",
-    "description": "Complete reference for all 105 skills, 36 agents, and 217 hooks."
+    "description": "Complete reference for all 105 skills, 36 agents, and 216 hooks."
   },
   {
     "url": "/docs/reference/skills/accessibility",

@@ -93,6 +93,7 @@ describe('Async Hooks Registry', () => {
       // 29 -> 30: #1260 — added telemetry-sync on SessionEnd
       // 30 -> 44: v7.29.0 — decoupled forwarder to standalone async on all matcher groups
       // 44 -> 52: v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
+      // 107 -> 106: #3354 removed subagent-stop/handoff-preparer (0-reader handoff writes)
       // 52 -> 60: v7.30.0: SessionStart+Notification+TeammateIdle+SubagentStop dispatchers flattened — +8 individual async hooks (#1264)
       // 60 -> 66: v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
       // 66 -> 68: v7.30.0: PostToolUse Agent matcher — agent-task-auto-register + webhook-forwarder
@@ -179,7 +180,7 @@ describe('Async Hooks Registry', () => {
       // 105 -> 107: #3327 — lifecycle/directory-added (DirectoryAdded) and
       //             notification/message-display-observer (MessageDisplay),
       //             both async 5s observer-only hooks.
-      expect(asyncHooks.length, 'Should have exactly 107 async hooks').toBe(107);
+      expect(asyncHooks.length, 'Should have exactly 106 async hooks').toBe(106);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
@@ -316,7 +317,6 @@ describe('Async Hooks Registry', () => {
       const flattenedAsyncEntries = [
         'lifecycle/pattern-sync-pull',
         'notification/desktop',
-        'subagent-stop/handoff-preparer',
         'teammate-idle/progress-reporter',
         'posttool/commit-nudge',
         'skill/redact-secrets',

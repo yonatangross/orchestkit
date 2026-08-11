@@ -21,11 +21,10 @@ import { issueContextInjector } from '../subagent-start/issue-context-injector.j
 import { agentViewTitler } from '../subagent-start/agent-view-titler.js';
 import { unifiedSubagentStartDispatcher } from '../subagent-start/unified-dispatcher.js';
 
-// SubagentStop hooks (9) — #1282 added subagent-scope-auditor
+// SubagentStop hooks (8) — #3354 removed handoff-preparer (0-reader writes)
 import { autoSpawnQuality } from '../subagent-stop/auto-spawn-quality.js';
 import { subagentScopeAuditor } from '../subagent-stop/subagent-scope-auditor.js';
 import { feedbackLoop } from '../subagent-stop/feedback-loop.js';
-import { handoffPreparer } from '../subagent-stop/handoff-preparer.js';
 import { multiClaudeVerifier } from '../subagent-stop/multi-claude-verifier.js';
 import { outputValidator } from '../subagent-stop/output-validator.js';
 import { subagentQualityGate } from '../subagent-stop/subagent-quality-gate.js';
@@ -47,10 +46,9 @@ export const hooks: Record<string, HookFn> = {
   'subagent-start/agent-view-titler': agentViewTitler,
   'subagent-start/unified-dispatcher': unifiedSubagentStartDispatcher,
 
-  // SubagentStop hooks (9)
+  // SubagentStop hooks (8)
   'subagent-stop/auto-spawn-quality': autoSpawnQuality,
   'subagent-stop/feedback-loop': feedbackLoop,
-  'subagent-stop/handoff-preparer': handoffPreparer,
   'subagent-stop/multi-claude-verifier': multiClaudeVerifier,
   'subagent-stop/output-validator': outputValidator,
   'subagent-stop/subagent-quality-gate': subagentQualityGate,

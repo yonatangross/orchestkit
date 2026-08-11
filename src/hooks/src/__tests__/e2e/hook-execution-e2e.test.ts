@@ -161,7 +161,7 @@ describe('SubagentStop Unified Dispatcher — registry', () => {
   it('registeredHookNames returns exactly the 2 expected hooks', () => {
     const names = subagentHookNames();
     // After #897 slimming: 2 hooks remain
-    const expected = ['handoff-preparer', 'feedback-loop'];
+    const expected = ['feedback-loop'];
     expect(names).toEqual(expected);
   });
 });

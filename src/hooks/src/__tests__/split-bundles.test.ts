@@ -455,7 +455,7 @@ describe('Cross-Bundle Consistency', () => {
     //             re-probed on CC 2.1.226 and the validator now accepts it
     //             (it still rejects genuinely unknown keys, so the check is
     //             live, not disabled).
-    expect(totalHooks).toBe(201);
+    expect(totalHooks).toBe(200);
   });
 });
 

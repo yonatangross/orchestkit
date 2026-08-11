@@ -30,7 +30,6 @@ import { appendLedgerEntry, resolveAgentContext } from '../lib/agent-attribution
 // subagent-quality analytics writes below are unaffected by that removal:
 // - context-publisher (local context file rarely read)
 // - agent-memory-store (HQ stores in cc_sessions.agents JSONB)
-import { handoffPreparer } from './handoff-preparer.js';
 import { feedbackLoop } from './feedback-loop.js';
 import { NOOP_CTX } from '../lib/context.js';
 
@@ -53,7 +52,6 @@ interface HookConfig {
  * Registry of all async SubagentStop hooks consolidated into dispatcher
  */
 const HOOKS: HookConfig[] = [
-  { name: 'handoff-preparer', fn: handoffPreparer },
   { name: 'feedback-loop', fn: feedbackLoop },
 ];
 

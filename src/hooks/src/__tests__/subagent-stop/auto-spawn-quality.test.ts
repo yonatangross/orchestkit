@@ -195,20 +195,10 @@ describe('auto-spawn-quality', () => {
       expect(queueContent.queue[0].target_agent).toBe('code-quality-reviewer');
     });
 
-    test('creates handoff suggestion file', () => {
-      // Arrange
-      const input = createSubagentStopInput('test-generator', 'Tests complete');
-
-      // Act
-      autoSpawnQuality(input, testCtx);
-
-      // Assert
-      const calls = vi.mocked(writeFileSync).mock.calls;
-      const handoffCall = calls.find(([path]) =>
-        (path as string).includes('auto_spawn_code-quality-reviewer')
-      );
-      expect(handoffCall).toBeDefined();
-    });
+    // The three handoff-suggestion tests that lived here asserted
+    // writeSpawnSuggestion's output to .claude/context/handoffs, deleted in
+    // #3354: that path had ZERO readers repo-wide and zero artifacts ever
+    // produced. queueSpawn and the systemMessage remain covered above.
 
     test('does not queue if test-generator had errors', () => {
       // Arrange
@@ -537,27 +527,6 @@ describe('auto-spawn-quality', () => {
       expect(request.status).toBe('queued');
     });
 
-    test('spawn suggestion has required fields', () => {
-      // Arrange
-      const input = createSubagentStopInput('test-generator', 'Done');
-
-      // Act
-      autoSpawnQuality(input, testCtx);
-
-      // Assert
-      const calls = vi.mocked(writeFileSync).mock.calls;
-      const handoffCall = calls.find(([path]) =>
-        (path as string).includes('auto_spawn_')
-      );
-      const suggestion = JSON.parse(handoffCall![1] as string);
-
-      expect(suggestion.type).toBe('auto_spawn_suggestion');
-      expect(suggestion.from_agent).toBe('test-generator');
-      expect(suggestion.to_agent).toBe('code-quality-reviewer');
-      expect(suggestion.priority).toBe('high');
-      expect(suggestion.auto_triggered).toBe(true);
-      expect(suggestion.status).toBe('suggested');
-    });
   });
 
   // ---------------------------------------------------------------------------
@@ -576,20 +545,6 @@ describe('auto-spawn-quality', () => {
       expect(mkdirSync).toHaveBeenCalled();
     });
 
-    test('creates handoff directory if needed', () => {
-      // Arrange
-      const input = createSubagentStopInput('test-generator', 'Output');
-
-      // Act
-      autoSpawnQuality(input, testCtx);
-
-      // Assert
-      const calls = vi.mocked(mkdirSync).mock.calls;
-      const handoffDirCall = calls.find(([path]) =>
-        (path as string).includes('handoffs')
-      );
-      expect(handoffDirCall).toBeDefined();
-    });
   });
 
   // ---------------------------------------------------------------------------

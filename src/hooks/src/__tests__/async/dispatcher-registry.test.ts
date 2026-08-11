@@ -19,7 +19,6 @@ describe('Dispatcher Registry Wiring', () => {
     it('contains exactly the expected hooks', () => {
       // After #897 slimming: 2 hooks (removed context-publisher, agent-memory-store)
       expect(subagentStopHooks()).toEqual([
-        'handoff-preparer',
         'feedback-loop',
       ]);
     });
@@ -38,7 +37,7 @@ describe('Dispatcher Registry Wiring', () => {
       const total = subagentStopHooks().length + setupHooks().length;
 
       // subagent-stop: 2, setup: 1
-      expect(total).toBe(3);
+      expect(total).toBe(2);
     });
   });
 });

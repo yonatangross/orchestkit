@@ -31,7 +31,6 @@ vi.mock('../../lib/agent-attribution.js', () => ({
   resolveAgentContext: vi.fn(() => ({ startMs: 0, counter: 0, commitBase: '', type: undefined })),
   appendLedgerEntry: vi.fn(),
 }));
-vi.mock('../../subagent-stop/handoff-preparer.js', () => ({ handoffPreparer: vi.fn(() => ({ continue: true })) }));
 vi.mock('../../subagent-stop/feedback-loop.js', () => ({ feedbackLoop: vi.fn(() => ({ continue: true })) }));
 
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';

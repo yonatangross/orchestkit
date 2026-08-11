@@ -284,10 +284,12 @@ describe.sequential('E2E: run-hook.mjs Pipeline', () => {
       expect(result.parsed!.continue).toBe(true);
     });
 
-    // v7.30.0: SubagentStop dispatcher flattened — handoff-preparer is now individual async hook (#1264)
+    // v7.30.0: SubagentStop dispatcher flattened (#1264). handoff-preparer was
+    // removed in #3354 (0-reader writes), so feedback-loop is the flattened
+    // async entry this asserts on.
     it('normalizes SubagentStop cwd and agent_type', async () => {
       // CC SubagentStop also sends cwd and agent_type at top level
-      const result = await runHook('subagent-stop/handoff-preparer', {
+      const result = await runHook('subagent-stop/feedback-loop', {
         session_id: 'test',
         cwd: '/Users/test/project',
         hook_event_name: 'SubagentStop',

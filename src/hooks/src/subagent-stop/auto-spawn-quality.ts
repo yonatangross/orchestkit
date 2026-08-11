@@ -16,6 +16,7 @@ import { atomicWriteSync } from '../lib/atomic-write.js';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { normalizeAgentName } from '../lib/agent-attribution-types.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -163,42 +164,10 @@ function queueSpawn(
   return spawnId;
 }
 
-function writeSpawnSuggestion(
-  agentType: string,
-  targetAgent: string,
-  triggerReason: string,
-  priority: string,
-  sessionId: string,
-  timestamp: string
-): void {
-  const handoffDir = `${getProjectDir()}/.claude/context/handoffs`;
-  try {
-    mkdirSync(handoffDir, { recursive: true });
-  } catch {
-    // Ignore
-  }
-
-  const suggestionFile = `${handoffDir}/auto_spawn_${targetAgent}_${new Date().toISOString().replace(/[-:T.]/g, '').substring(0, 15)}.json`;
-
-  const suggestion = {
-    type: 'auto_spawn_suggestion',
-    from_agent: agentType,
-    to_agent: targetAgent,
-    timestamp: timestamp,
-    trigger_reason: triggerReason,
-    priority: priority,
-    session_id: sessionId,
-    auto_triggered: true,
-    status: 'suggested',
-  };
-
-  try {
-    atomicWriteSync(suggestionFile, JSON.stringify(suggestion, null, 2));
-    logSpawn(`Created spawn suggestion: ${targetAgent} (reason: ${triggerReason})`);
-  } catch {
-    // Ignore
-  }
-}
+// writeSpawnSuggestion was DELETED (#3354). It wrote
+// .claude/context/handoffs/auto_spawn_*.json, a path with ZERO readers
+// anywhere in the repo and zero artifacts ever produced. queueSpawn (above)
+// plus the systemMessage below are this hook's real product.
 
 interface SpawnInfo {
   target: string;
@@ -269,11 +238,17 @@ export function autoSpawnQuality(input: HookInput, _ctx: HookContext = NOOP_CTX)
   const timestamp = new Date().toISOString();
 
   const toolInput = input.tool_input || {};
-  const agentType =
+  // normalizeAgentName strips the `ork:` plugin namespace CC prepends (#3354).
+  // Every matcher below tests BARE names, and CC has been sending prefixed ones:
+  // across 21,759 rows of agent-usage telemetry, bare names appear 1 time and
+  // `ork:`-prefixed 1,000 times. Without this, checkAutoSpawnConditions never
+  // matched, so queueSpawn and the systemMessage below had never once fired.
+  const agentType = normalizeAgentName(
     (toolInput.subagent_type as string) ||
-    input.subagent_type ||
-    input.agent_type ||
-    'unknown';
+      input.subagent_type ||
+      input.agent_type ||
+      'unknown',
+  );
   const sessionId = input.session_id; // CC 2.1.9+ guarantees session_id
   const agentOutput = input.agent_output || input.output || '';
   const error = input.error || '';
@@ -300,15 +275,6 @@ export function autoSpawnQuality(input: HookInput, _ctx: HookContext = NOOP_CTX)
       timestamp
     );
 
-    // Write spawn suggestion for orchestrator
-    writeSpawnSuggestion(
-      agentType,
-      spawnInfo.target,
-      spawnInfo.reason,
-      spawnInfo.priority,
-      sessionId,
-      timestamp
-    );
 
     // Log the action
     logSpawn(`=== AUTO-SPAWN QUALITY HOOK ===
