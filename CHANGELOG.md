@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.18](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.17...v10.0.0-alpha.18) (2026-08-11)
+
+
+### Bug Fixes
+
+* **hooks:** match the agent names CC actually sends, drop unread writes ([#3428](https://github.com/yonatangross/orchestkit/issues/3428)) ([61d0661](https://github.com/yonatangross/orchestkit/commit/61d0661d8429407724b830a79bb08980b4f03957))
+
 ## [10.0.0-alpha.17](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.16...v10.0.0-alpha.17) (2026-08-11)
 
 
