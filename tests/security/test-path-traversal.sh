@@ -93,7 +93,10 @@ section "4. Symlink bypass — the ME-001 defence (CWE-59)"
 # tested behaviour. A symlink pointing at a protected file must be denied on the
 # basis of its TARGET, not its innocuous-looking name.
 TMPD="$(mktemp -d)"
-trap 'rm -rf "$TMPD"' EXIT
+# Chain, do not replace: a bare `trap ... EXIT` OVERWRITES the helper's
+# `trap cleanup_test_env EXIT` (test-helpers.sh), so $TMPDIR/orchestkit-tests-$$
+# leaked on every run of this file.
+trap 'rm -rf "$TMPD"; cleanup_test_env' EXIT
 printf 'SECRET=1\n' > "$TMPD/.env"
 ln -s "$TMPD/.env" "$TMPD/harmless-name.txt"
 

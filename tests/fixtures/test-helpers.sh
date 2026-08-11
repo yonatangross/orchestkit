@@ -334,7 +334,27 @@ hook_decision() {
   # deny inline and allow through the function until this line changed.
   # The same idiom is still in run_hook() above (dead path, but same trap).
   local input="${2:-}"
-  [[ -n "$input" ]] || input='{}'
+  # An EMPTY payload is a broken harness, not a hook verdict. The old
+  # `|| input='{}'` substituted a valid-but-empty envelope, and `{}` is the one
+  # input guaranteed to sail through every guard below: it parses, so the
+  # unparseable-JSON check passes; it carries no file_path/command, so the hook
+  # returns outputSilentSuccess() with no permissionDecision; and that reads as
+  # `abstain`. A caller whose payload builder died therefore got a plausible
+  # verdict for a hook that never saw its input.
+  #
+  # This matters because callers build payloads in command substitution:
+  #   expect_write() { expect_decision "$1" "$GUARD" "$(write_input "$2")" "$3"; }
+  # If that inner `jq` dies transiently (fork EAGAIN under load, ENOMEM), `$()`
+  # yields "" and `set -e` does NOT fire, because the substitution is an
+  # ARGUMENT, not a command. The failure was invisible: a `deny` assertion
+  # reported a miss while every `abstain` assertion still passed, giving 13/14
+  # with no crash — indistinguishable from a real regression in one assertion.
+  # Same fail-permissive class as the `${2:-{}}` bug documented above.
+  if [[ -z "$input" ]]; then
+    echo "ERROR"
+    echo "hook '$hook_key' called with an EMPTY payload — the caller's payload builder failed; this hook measured nothing" >&2
+    return 0
+  fi
   local runner="${PROJECT_ROOT}/src/hooks/bin/run-hook.mjs"
   local out
 
@@ -360,9 +380,24 @@ hook_decision() {
     return 0
   fi
 
-  # silent: best-effort — hook stderr is debug noise; a real failure shows up as
-  # an empty/unparseable payload below and is reported as ERROR, not swallowed.
-  out=$(printf '%s' "$input" | node "$runner" "$hook_key" 2>/dev/null)
+  # Hook stderr is mostly debug noise, but NOT all of it, so capture rather than
+  # discard. run-hook.mjs has a 100 ms stdin watchdog that fires
+  # `runHook(normalizeInput({}))` and warns "stdin delivered 0 bytes ... this
+  # hook measured nothing". That case produces a VALID payload with no
+  # permissionDecision, i.e. `abstain` — so the "a real failure shows up as an
+  # empty/unparseable payload" assumption this line used to rest on is false for
+  # exactly the failure the warning exists to announce. Sending it to /dev/null
+  # discarded the only signal separating "measured nothing" from "measured and
+  # declined to decide".
+  local err_file
+  err_file=$(mktemp "${TMPDIR:-/tmp}/ork-hook-stderr.XXXXXX")
+  out=$(printf '%s' "$input" | node "$runner" "$hook_key" 2>"$err_file")
+  # mktemp guarantees the file exists, so grep needs no error redirect here —
+  # a redirect would re-introduce the very masking this change removes.
+  if grep -qiE 'measured nothing|0 bytes' "$err_file"; then
+    echo "hook '$hook_key' WARNING: $(tr '\n' ' ' <"$err_file")" >&2
+  fi
+  rm -f "$err_file"
 
   if [[ -z "$out" ]] || ! printf '%s' "$out" | jq -e . >/dev/null 2>&1; then
     echo "ERROR"

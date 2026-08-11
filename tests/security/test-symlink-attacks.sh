@@ -76,7 +76,10 @@ if ! assert_hook_registered "$GUARD"; then
 fi
 
 TMPD="$(mktemp -d)"
-trap 'rm -rf "$TMPD"' EXIT
+# Chain, do not replace: a bare `trap ... EXIT` OVERWRITES the helper's
+# `trap cleanup_test_env EXIT` (test-helpers.sh), leaking the per-process
+# temp dir on every run.
+trap 'rm -rf "$TMPD"; cleanup_test_env' EXIT
 
 mkdir -p "$TMPD/.husky"
 printf '#!/bin/sh\n' > "$TMPD/.husky/pre-commit"
