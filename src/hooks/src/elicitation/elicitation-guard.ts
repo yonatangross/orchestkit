@@ -51,9 +51,12 @@ export function elicitationGuard(input: HookInput, ctx: HookContext = NOOP_CTX):
   // non-existent `elicitation_mode === 'form'` and read `elicitation_schema` /
   // `mcp_server_name`, so against a real payload it never scanned and allowed
   // secret forms through — a born-dead security hole, see #1264 Phase 3.)
-  const server = input.server_name || 'unknown';
+  // The 2.1.227 binary sends {mcp_server_name, requested_schema, ...} (#3335
+  // A1). The #1264 names are kept as fallbacks only in case some floor version
+  // used them; no observed binary does.
+  const server = input.mcp_server_name || input.server_name || 'unknown';
 
-  const secretField = containsSecretField(input.form_schema);
+  const secretField = containsSecretField(input.requested_schema ?? input.form_schema);
   if (secretField) {
     ctx.log('elicitation-guard',
       `BLOCKED: elicitation from ${server} requests secret field "${secretField}"`,

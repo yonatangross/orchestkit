@@ -49,13 +49,17 @@ export async function stopFailureHandler(input: HookInput, ctx: HookContext = NO
     return outputSilentSuccess();
   }
 
-  // CC 2.1.78 may populate stop_failure_reason and api_status_code, but older
-  // versions or edge cases may not. Extract what we can from the input.
+  // The 2.1.227 StopFailure payload is {error, error_details,
+  // last_assistant_message} (#3335 A6). The 2.1.78 speculation
+  // (stop_failure_reason / api_status_code) never landed in any observed
+  // binary; those reads stay only as trailing fallbacks.
   const raw = input as unknown as Record<string, unknown>;
-  const failureReason = input.stop_failure_reason
+  const failureReason = input.error
+    || input.stop_failure_reason
     || (typeof raw.error_type === 'string' ? raw.error_type : undefined)
     || (typeof raw.reason === 'string' ? raw.reason : undefined)
     || 'unknown';
+  const errorDetails = input.error_details;
   const apiStatus = input.api_status_code
     || (typeof raw.status_code === 'number' ? raw.status_code : undefined);
 
@@ -64,7 +68,8 @@ export async function stopFailureHandler(input: HookInput, ctx: HookContext = NO
     const inputKeys = Object.keys(input).filter(k => !['hook_event_name', 'session_id', 'project_dir', 'stop_hook_active'].includes(k));
     ctx.log(HOOK_NAME, `StopFailure: reason=unknown (available keys: ${inputKeys.join(', ') || 'none'})`, 'warn');
   } else {
-    ctx.log(HOOK_NAME, `StopFailure: reason=${failureReason} status=${apiStatus ?? 'N/A'}`, 'warn');
+    const detail = errorDetails !== undefined ? ` details=${JSON.stringify(errorDetails).slice(0, 200)}` : '';
+    ctx.log(HOOK_NAME, `StopFailure: reason=${failureReason} status=${apiStatus ?? 'N/A'}${detail}`, 'warn');
   }
 
   // Track the failure event for analytics

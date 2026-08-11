@@ -16,6 +16,7 @@ import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getLogDir, getSessionId, getProjectDir } from '../lib/common.js';
+import { getSessionTempDir } from '../lib/paths.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { NOOP_CTX } from '../lib/context.js';
 
@@ -196,17 +197,26 @@ export function preCompactSaver(_input: HookInput, ctx: HookContext = NOOP_CTX):
     const localEntries = countLocalMemoryEntries();
     const decisions = getRecentDecisions();
 
-    // Read token budget state (from token-budget-tracker InstructionsLoaded hook)
+    // Read token budget state from the token-budget-tracker InstructionsLoaded
+    // hook. This read was DEAD from birth (#3321 claim 5): it looked for
+    // .claude/feedback/token-budget-state.json with an {estimatedUsed,
+    // estimatedRemaining} shape, and no writer has ever produced either the
+    // file or the shape. The real writer emits
+    // {tmpdir}/claude-session-<sid>/instruction-budget.json as
+    // {version, files: {path: bytes}, warned}, so derive from that.
     let tokenBudget: PreservedContext['tokenBudget'];
     try {
-      const budgetFile = join(ctx.projectDir, '.claude', 'feedback', 'token-budget-state.json');
+      const budgetFile = join(getSessionTempDir(_input.session_id || getSessionId() || ''), 'instruction-budget.json');
       if (existsSync(budgetFile)) {
-        const budget = JSON.parse(readFileSync(budgetFile, 'utf8'));
-        tokenBudget = {
-          estimatedUsed: budget.estimatedUsed,
-          estimatedRemaining: budget.estimatedRemaining,
-          effortLevel: budget.effortLevel || process.env.CLAUDE_EFFORT,
-        };
+        const budget = JSON.parse(readFileSync(budgetFile, 'utf8')) as { files?: Record<string, number> };
+        const totalBytes = Object.values(budget.files ?? {}).reduce((sum, b) => sum + b, 0);
+        if (totalBytes > 0) {
+          tokenBudget = {
+            estimatedUsed: Math.ceil(totalBytes / 4),
+            estimatedRemaining: undefined,
+            effortLevel: process.env.CLAUDE_EFFORT,
+          };
+        }
       }
     } catch {
       // Budget state unavailable — not critical

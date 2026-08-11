@@ -225,10 +225,15 @@ export function preCompactTaskDonePrompt(
 
   ctx.log(HOOK_NAME, `blocking compact — task-done detected (cacheHeat=${cacheHeat})`);
 
+  // BOTH reason and stopReason (#3321 claim 6): CC's PreCompact block message
+  // is `json.reason || stderr`; stopReason is never consulted on this path.
+  // Keep decision:'block' — continue:false alone does not block here.
+  const blockMessage = buildStopReason(state);
   return {
     continue: false,
     decision: 'block',
-    stopReason: buildStopReason(state),
+    reason: blockMessage,
+    stopReason: blockMessage,
   };
 }
 

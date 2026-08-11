@@ -118,11 +118,14 @@ export function postCompactRecovery(input: HookInput, hookCtx: HookContext = NOO
   const ctx = state.preservedContext;
   const parts: string[] = [];
 
-  // Prefer CC-provided fields (2.1.76) over file-based state for compaction metadata
+  // The 2.1.227 PostCompact payload is {trigger, compact_summary} (#3335 A5).
+  // compaction_count / context_size_after never arrived from any observed CC,
+  // so file-based state is the real source for the count, not the fallback.
   const compactionNum = input.compaction_count ?? state.compactionCount ?? '?';
   const contextAfter = input.context_size_after;
+  const trigger = input.trigger;
 
-  parts.push(`[POST-COMPACTION RECOVERY] Compaction #${compactionNum} completed.`);
+  parts.push(`[POST-COMPACTION RECOVERY] Compaction #${compactionNum}${trigger ? ` (${trigger})` : ''} completed.`);
 
   if (contextAfter) {
     parts.push(`Context size after compaction: ~${Math.round(contextAfter / 1000)}k tokens`);

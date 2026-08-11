@@ -126,12 +126,19 @@ export interface HookInput {
   /** Path to subagent's transcript file (SubagentStop, CC 2.1.69) */
   agent_transcript_path?: string;
 
-  // TeammateIdle specific fields (CC 2.1.33)
-  /** Teammate agent ID */
+  // TeammateIdle fields. The 2.1.227 binary builds this payload as
+  // {teammate_name, team_name} and NOTHING else (#3335 A3): the three legacy
+  // fields below never arrive on TeammateIdle, so readers must prefer
+  // teammate_name/team_name and treat the rest as absent.
+  /** Teammate agent name — the field CC actually sends (verified 2.1.227) */
+  teammate_name?: string;
+  /** Team name — the field CC actually sends (verified 2.1.227) */
+  team_name?: string;
+  /** Teammate agent ID (NOT sent on TeammateIdle; kept for other events) */
   teammate_id?: string;
-  /** Teammate agent type */
+  /** Teammate agent type (NOT sent on TeammateIdle) */
   teammate_type?: string;
-  /** How long the teammate has been idle (ms) */
+  /** Idle duration ms (NOT sent on TeammateIdle — CC provides no duration) */
   idle_duration_ms?: number;
 
   // TaskCompleted specific fields (CC 2.1.33)
@@ -156,10 +163,14 @@ export interface HookInput {
   /** The final assistant message text (Stop and SubagentStop, CC 2.1.47+) */
   last_assistant_message?: string;
 
-  // StopFailure specific fields (CC 2.1.78)
-  /** Error type that caused the failure (e.g., 'rate_limit', 'auth_failure', 'api_error') */
+  // StopFailure fields. The 2.1.227 binary builds this payload as
+  // {error, error_details, last_assistant_message} (#3335 A6). `error` is
+  // declared above in the SubagentStop block and shared here.
+  /** Structured error details accompanying `error` (verified 2.1.227) */
+  error_details?: unknown;
+  /** NOT sent by any observed CC version — the 2.1.78 speculation never landed */
   stop_failure_reason?: string;
-  /** HTTP status code from the API error, if applicable */
+  /** NOT sent by any observed CC version */
   api_status_code?: number;
 
   // Workspace/statusline fields (CC 2.1.47)
@@ -170,18 +181,37 @@ export interface HookInput {
   /** Suggested "always allow" options for the permission prompt */
   permission_suggestions?: Array<{ type: string; tool: string }>;
 
-  // PostCompact specific fields (CC 2.1.76)
-  /** Number of compactions in this session so far */
+  // PostCompact fields. The 2.1.227 binary builds this payload as
+  // {trigger, compact_summary} (#3335 A5). The two "2.1.76" fields below were
+  // never observed in any payload builder and readers must not depend on them.
+  /** What triggered the compaction ('auto' | 'manual', verified 2.1.227) */
+  trigger?: string;
+  /** Summary text produced by the compaction (verified 2.1.227) */
+  compact_summary?: string;
+  /** NOT sent by any observed CC version */
   compaction_count?: number;
-  /** Estimated context size after compaction (tokens) */
+  /** NOT sent by any observed CC version */
   context_size_after?: number;
 
-  // Elicitation event (CC documented payload). NOTE: there is no `elicitation_mode`
-  // / `elicitation_schema` / `mcp_server_name` — those were invented field names
-  // and made the elicitation hooks born-dead vs real CC payloads (#1264 Phase 3).
-  /** MCP server name that requested the elicitation */
+  // Elicitation event. HISTORY, because this block has now been wrong TWICE in
+  // opposite directions: the original hook read invented names, #1264 Phase 3
+  // "fixed" it onto server_name/form_schema and left a comment asserting
+  // mcp_server_name was the invented one. The 2.1.227 binary builds the payload
+  // as {mcp_server_name, message, mode, url, elicitation_id, requested_schema}
+  // (#3335 A1), so mcp_server_name/requested_schema are the REAL fields and
+  // server_name/form_schema are the invented ones. Do not "correct" this again
+  // without extracting the payload builder from the shipped binary.
+  /** MCP server name that requested the elicitation (verified 2.1.227) */
+  mcp_server_name?: string;
+  /** JSON Schema for the elicitation form fields (verified 2.1.227) */
+  requested_schema?: Record<string, unknown>;
+  /** Elicitation mode (verified 2.1.227) */
+  mode?: string;
+  /** Elicitation id (verified 2.1.227) */
+  elicitation_id?: string;
+  /** NOT sent — the #1264 invented name, kept only so old readers typecheck */
   server_name?: string;
-  /** JSON Schema for the elicitation form fields (top-level `properties`) */
+  /** NOT sent — the #1264 invented name */
   form_schema?: Record<string, unknown>;
 
   // ElicitationResult event: fires after the user responds.
@@ -194,7 +224,9 @@ export interface HookInput {
   // ConfigChange event (CC documented payload).
   /** Which settings layer changed */
   config_source?: 'user_settings' | 'project_settings' | 'local_settings' | 'policy_settings' | 'skills';
-  /** Path to the config file that changed */
+  /** NOT sent — ConfigChange delivers the path as `file_path` (verified
+   *  2.1.227: {hook_event_name:"ConfigChange", source, file_path}). Use the
+   *  shared `file_path` field declared in the FileChanged block. */
   config_file_path?: string;
   /** The changed fields (hooks, permissions, …) */
   changes?: Record<string, unknown>;
@@ -210,7 +242,9 @@ export interface HookInput {
   // WorktreeCreate/WorktreeRemove specific fields (CC 2.1.69, 2.1.84)
   /** Worktree slug identifier, e.g. 'feature-auth' or 'bold-oak-a3f2' (WorktreeCreate, legacy field) */
   name?: string;
-  /** Worktree slug identifier — current documented WorktreeCreate field name (#2335) */
+  /** NOT sent — WorktreeRemove delivers `worktree_path` (verified 2.1.227:
+   *  {hook_event_name:"WorktreeRemove", worktree_path}, declared below);
+   *  #2335's name never appeared in a payload builder. */
   worktree_name?: string;
   /** Branch to create/check out in the new worktree (WorktreeCreate, #2335) */
   branch?: string;
@@ -235,10 +269,17 @@ export interface HookInput {
   /** Cache read input tokens (CC 2.1.89 — SubagentStop) */
   cache_read_input_tokens?: number;
 
-  // FileChanged specific fields (CC 2.1.83)
-  /** Basename of the changed file (FileChanged — matched via hook `matcher` on basename) */
+  // FileChanged fields. The 2.1.227 binary builds this payload as
+  // {file_path, event} (#3335 A2); the two changed_* names below never existed
+  // in any payload builder and made the hook inert for every matcher.
+  /** Absolute path to the changed file — the field CC actually sends. Shared
+   *  name with the tool-input field; on FileChanged it is top-level. */
+  file_path?: string;
+  /** Change kind (verified 2.1.227) */
+  event?: string;
+  /** NOT sent by any observed CC version */
   changed_file?: string;
-  /** Absolute path to the changed file (FileChanged) */
+  /** NOT sent by any observed CC version */
   changed_file_path?: string;
 
   // Stop/SubagentStop authoritative state (CC 2.1.145)
@@ -338,6 +379,13 @@ export interface HookResult {
   hookSpecificOutput?: HookSpecificOutput;
   /** Decision for hooks that can block actions (CC 2.1.105: PreCompact block) */
   decision?: 'block' | 'approve';
+  /**
+   * User-facing message for a decision:'block'. On the PreCompact command-hook
+   * path the 2.1.227 binary builds the message as `json.reason || stderr` and
+   * never consults stopReason (#3321 claim 6), so a block without `reason`
+   * fires with an empty message. Set BOTH reason and stopReason on blocks.
+   */
+  reason?: string;
   /** Retry flag for PermissionDenied hooks (CC 2.1.89) */
   retry?: boolean;
   /**

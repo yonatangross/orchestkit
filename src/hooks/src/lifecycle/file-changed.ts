@@ -44,7 +44,10 @@ function describeChange(filePath: string, fileName: string): string | null {
 }
 
 export function fileChanged(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
-  const filePath = input.changed_file_path || '';
+  // The 2.1.227 binary sends {file_path, event} (#3335 A2). The changed_*
+  // names never existed in any payload builder, which made this hook inert
+  // for every matcher; they are kept as fallbacks only for safety.
+  const filePath = input.file_path || input.changed_file_path || '';
   const fileName = input.changed_file || basename(filePath);
 
   if (!filePath) {

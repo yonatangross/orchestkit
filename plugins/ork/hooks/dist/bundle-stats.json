@@ -22,13 +22,13 @@
       "exports": 109
     },
     "lifecycle": {
-      "size": 139017,
-      "sizeKB": "135.76",
+      "size": 139030,
+      "sizeKB": "135.77",
       "exports": 68
     },
     "stop": {
-      "size": 38152,
-      "sizeKB": "37.26",
+      "size": 38248,
+      "sizeKB": "37.35",
       "exports": 52
     },
     "subagent": {
@@ -57,8 +57,8 @@
       "exports": 70
     }
   },
-  "totalSize": 704061,
-  "totalSizeKB": "687.56",
+  "totalSize": 704170,
+  "totalSizeKB": "687.67",
   "inputs": 109,
-  "avgBundleSizeKB": "62.51"
+  "avgBundleSizeKB": "62.52"
 }

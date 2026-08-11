@@ -97,15 +97,36 @@ describe('progress-reporter', () => {
       // Act
       await progressReporter(input, testCtx);
 
-      // Assert
+      // Assert. idle_duration_ms is deliberately ABSENT: CC sends no duration
+      // on TeammateIdle (#3335 A3), and logging a fabricated 0 as if measured
+      // was the bug this hook was fixed for.
       expect(appendEventLog).toHaveBeenCalledWith(
         'teammate-activity.jsonl',
         expect.objectContaining({
           event: 'teammate_idle',
           teammate_id: 'agent-001',
           teammate_type: 'backend-engineer',
-          idle_duration_ms: 10000,
           session_id: 'session-abc',
+        }),
+      );
+      const logged = vi.mocked(appendEventLog).mock.calls[0][1] as Record<string, unknown>;
+      expect(logged).not.toHaveProperty('idle_duration_ms');
+    });
+
+    test('prefers teammate_name — the field CC actually sends on TeammateIdle', async () => {
+      const input = createIdleInput({
+        teammate_id: undefined,
+        teammate_name: 'verify-3321',
+        team_name: 'session-team',
+      } as Record<string, unknown>);
+
+      await progressReporter(input, testCtx);
+
+      expect(appendEventLog).toHaveBeenCalledWith(
+        'teammate-activity.jsonl',
+        expect.objectContaining({
+          teammate_id: 'verify-3321',
+          team_name: 'session-team',
         }),
       );
     });
@@ -202,113 +223,36 @@ describe('progress-reporter', () => {
       );
     });
 
-    test('defaults idle_duration_ms to 0 when not provided', async () => {
-      // Arrange
+    test('never fabricates idle_duration_ms — CC sends no duration on TeammateIdle', async () => {
+      // The old contract logged idle_duration_ms: 0 "as if measured" whenever
+      // the field was absent, which per #3335 A3 is ALWAYS (the 2.1.227
+      // TeammateIdle payload is {teammate_name, team_name} only). The field
+      // must now be absent from the log entry, not zero.
       const input = createIdleInput({ idle_duration_ms: undefined });
 
-      // Act
       await progressReporter(input, testCtx);
 
-      // Assert
-      expect(appendEventLog).toHaveBeenCalledWith(
-        'teammate-activity.jsonl',
-        expect.objectContaining({
-          idle_duration_ms: 0,
-        }),
-      );
+      const logged = vi.mocked(appendEventLog).mock.calls[0][1] as Record<string, unknown>;
+      expect(logged).not.toHaveProperty('idle_duration_ms');
     });
   });
 
-  describe('idle duration thresholds', () => {
-    test('does NOT surface context for idle < 30s', async () => {
-      // Arrange
-      const input = createIdleInput({ idle_duration_ms: 29999 });
-
-      // Act
-      const result = await progressReporter(input, testCtx);
-
-      // Assert
-      expect(result.hookSpecificOutput).toBeUndefined();
-    });
-
-    test('does NOT surface context for exactly 30s', async () => {
-      // Arrange
-      const input = createIdleInput({ idle_duration_ms: 30000 });
-
-      // Act
-      const result = await progressReporter(input, testCtx);
-
-      // Assert
-      expect(result.hookSpecificOutput).toBeUndefined();
-    });
-
-    test('surfaces context for idle > 30s', async () => {
-      // Arrange
+  describe('no idle-duration branch (#3335 A3)', () => {
+    test('never surfaces reassignment context — the >30s branch was structurally dead and is deleted', async () => {
+      // The old branch compared idle_duration_ms > 30000. CC never sends that
+      // field on TeammateIdle, so the read was always 0 and the branch never
+      // fired in production. It is deleted; even an input that carries the
+      // legacy field (which real CC cannot produce) must not trigger it.
       const input = createIdleInput({
         teammate_type: 'database-engineer',
         teammate_id: 'agent-db',
-        idle_duration_ms: 31000,
+        idle_duration_ms: 600000,
       });
 
-      // Act
       const result = await progressReporter(input, testCtx);
 
-      // Assert
-      expect(result.hookSpecificOutput).toBeDefined();
-      expect(result.hookSpecificOutput?.additionalContext).toContain(
-        'Consider reassigning pending work',
-      );
-    });
-
-    test('includes agent type in reassignment message', async () => {
-      // Arrange
-      const input = createIdleInput({
-        teammate_type: 'test-runner',
-        idle_duration_ms: 60000,
-      });
-
-      // Act
-      const result = await progressReporter(input, testCtx);
-
-      // Assert
-      expect(result.hookSpecificOutput?.additionalContext).toContain('test-runner');
-    });
-
-    test('includes teammate ID in reassignment message', async () => {
-      // Arrange
-      const input = createIdleInput({
-        teammate_id: 'agent-special-123',
-        idle_duration_ms: 45000,
-      });
-
-      // Act
-      const result = await progressReporter(input, testCtx);
-
-      // Assert
-      expect(result.hookSpecificOutput?.additionalContext).toContain('agent-special-123');
-    });
-
-    test('shows idle duration in seconds', async () => {
-      // Arrange
-      const input = createIdleInput({ idle_duration_ms: 90000 });
-
-      // Act
-      const result = await progressReporter(input, testCtx);
-
-      // Assert
-      expect(result.hookSpecificOutput?.additionalContext).toContain('90s');
-    });
-
-    test('handles very long idle durations', async () => {
-      // Arrange
-      const input = createIdleInput({ idle_duration_ms: 600000 }); // 10 minutes
-
-      // Act
-      const result = await progressReporter(input, testCtx);
-
-      // Assert
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.additionalContext).toContain('600s');
+      expect(result.hookSpecificOutput).toBeUndefined();
     });
   });
 

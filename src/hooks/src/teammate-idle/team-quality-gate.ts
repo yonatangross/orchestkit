@@ -81,7 +81,9 @@ export function teamQualityGate(input: HookInput, ctx: HookContext = NOOP_CTX): 
     return outputSilentSuccess();
   }
 
-  const teammateId = input.teammate_id || input.agent_id || 'unknown';
+  // teammate_name is what the 2.1.227 TeammateIdle payload actually carries
+  // (#3335 A4); the legacy fields never arrive on this event.
+  const teammateId = input.teammate_name || input.teammate_id || input.agent_id || 'unknown';
   const teammateType = input.teammate_type || input.subagent_type || 'unknown';
 
   // Primary signal: did the teammate produce meaningful output?

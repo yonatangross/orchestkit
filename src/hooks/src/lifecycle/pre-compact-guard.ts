@@ -67,10 +67,19 @@ export function preCompactGuard(_input: HookInput, ctx: HookContext = NOOP_CTX):
 
   ctx.log(HOOK_NAME, `Blocking compaction — ${active.length} active agents: ${agentList}`);
 
+  // BOTH reason and stopReason, deliberately (#3321 claim 6, verified against
+  // the 2.1.227 binary): on a decision:'block' command hook, CC builds the
+  // user-facing message from `json.reason || stderr` and NEVER consults
+  // stopReason on this path, so without reason the block fired with an empty
+  // message. Do NOT drop decision:'block' either: continue:false alone does
+  // not set blocked on the PreCompact path, so removing it would silently
+  // disable the block entirely.
+  const blockMessage = `Compaction blocked — ${active.length} background agent(s) still running (${agentList}). Wait for completion or set CLAUDE_CODE_ALLOW_COMPACT_DURING_AGENTS=1.`;
   return {
     continue: false,
     decision: 'block',
-    stopReason: `Compaction blocked — ${active.length} background agent(s) still running (${agentList}). Wait for completion or set CLAUDE_CODE_ALLOW_COMPACT_DURING_AGENTS=1.`,
+    reason: blockMessage,
+    stopReason: blockMessage,
   };
 }
 
