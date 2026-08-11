@@ -121,7 +121,7 @@ export function listLinkedWorktrees(dir: string): LinkedWorktree[] {
         activityMs: newestMtimeMs([join(privateDir, 'HEAD'), join(privateDir, 'index')]),
       });
     } catch {
-      continue; // silent: best-effort — skip an unreadable registration
+      // silent: best-effort — skip an unreadable registration, keep its siblings
     }
   }
 
