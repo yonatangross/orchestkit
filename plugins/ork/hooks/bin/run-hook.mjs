@@ -354,10 +354,31 @@ let stdinClosed = false;
  */
 const MAX_STDIN_BYTES = 512 * 1024;
 
-// Set up timeout - if no input received within 100ms, assume no input
+// Set up timeout - if no input received within 100ms, assume no input.
+//
+// This path runs the hook against {} and exits 0, which is indistinguishable
+// from a successful run that simply had nothing to do. That silence is the bug
+// in #3415: a producer merely SLOW to write its first byte (an interpreter
+// booting, a multi-stage pipeline) loses the race and the hook measures nothing
+// while reporting success. Both sibling degraded paths below already warn on
+// stderr; this one did not, so it was the only way to no-op invisibly.
+//
+// stdin being a TTY is the discriminator. A TTY means no payload was ever piped
+// in, which is legitimate for some events, so stay quiet. A pipe that delivered
+// zero bytes in 100ms means a payload was expected and did not arrive in time.
+// The timeout itself is NOT raised: it is a hang guard, and PreToolUse has a
+// sub-50ms budget, so a longer wait would trade a silent failure for a slow one.
 const timeout = setTimeout(() => {
   if (!stdinClosed) {
     stdinClosed = true;
+    if (!process.stdin.isTTY && inputBytes === 0) {
+      process.stderr.write(
+        `[orchestkit] WARNING: stdin delivered 0 bytes in 100ms for hook "${hookName}" - ` +
+          `running with an EMPTY payload, so this hook measured nothing. ` +
+          `A slow producer (interpreter startup, multi-stage pipe) loses this race; ` +
+          `write the payload to a file and redirect it instead of generating it inline (#3415).\n`,
+      );
+    }
     runHook(normalizeInput({}));
   }
 }, 100);
@@ -376,14 +397,18 @@ process.stdin.on('data', (chunk) => {
     stdinClosed = true;
     process.stdin.destroy();
     const truncKB = Math.round(inputBytes / 1024);
-    process.stderr.write(`[orchestkit] WARNING: stdin truncated at ${truncKB}KB (max ${MAX_STDIN_BYTES / 1024}KB) for hook "${name}" — large payload (image paste?)\n`);
+    // `${hookName}`, not `${name}`: there is no local `name` here, so the bare
+    // identifier was a ReferenceError in ESM and this warning THREW instead of
+    // printing. It sits outside the try/catch below, so the >512KB guard added
+    // for an image paste (#620) crashed the hook rather than degrading it (#3415).
+    process.stderr.write(`[orchestkit] WARNING: stdin truncated at ${truncKB}KB (max ${MAX_STDIN_BYTES / 1024}KB) for hook "${hookName}" - large payload (image paste?)\n`);
     try {
       // Try to parse what we have — likely incomplete JSON, so fall back to empty
       const parsedInput = input.trim() ? JSON.parse(input) : {};
       runHook(normalizeInput(parsedInput));
     } catch {
       // JSON incomplete due to truncation — run with empty input (hook will no-op)
-      process.stderr.write(`[orchestkit] WARNING: truncated JSON could not be parsed for hook "${name}" — running with empty input\n`);
+      process.stderr.write(`[orchestkit] WARNING: truncated JSON could not be parsed for hook "${hookName}" - running with empty input\n`);
       runHook(normalizeInput({}));
     }
   }
