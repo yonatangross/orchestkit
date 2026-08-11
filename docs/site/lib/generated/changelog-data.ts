@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.18",
+    "date": "2026-08-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** match the agent names CC actually sends, drop unread writes ([#3428](https://github.com/yonatangross/orchestkit/issues/3428)) ([61d0661](https://github.com/yonatangross/orchestkit/commit/61d0661d8429407724b830a79bb08980b4f03957))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.17",
     "date": "2026-08-11",
     "compareUrl": "",
