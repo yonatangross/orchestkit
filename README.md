@@ -276,6 +276,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.23](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.22...v10.0.0-alpha.23)** · 2026-08-11
+
+- **chain-patterns:** correct Pattern 8 /loop facts against official docs (#3442)
+- **hooks:** stop `git fetch` reading as a network source (#3441)
+
 **[v10.0.0-alpha.22](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.21...v10.0.0-alpha.22)** · 2026-08-11
 
 - **workflows:** adopt CC 2.1.224 capabilities and evidence-replay gate (#3439)
@@ -309,10 +314,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **ci:** contract probe looked in the one layout runners lack (#3417)
 - **hooks:** branch guard's third path never ran, in 1763 sessions (#3414)
-
-**[v10.0.0-alpha.15](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.14...v10.0.0-alpha.15)** · 2026-08-10
-
-- **security:** scanners knew one worktree layout, not two (#3412)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

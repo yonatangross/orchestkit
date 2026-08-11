@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.23",
+    "date": "2026-08-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**chain-patterns:** correct Pattern 8 /loop facts against official docs ([#3442](https://github.com/yonatangross/orchestkit/issues/3442)) ([c884823](https://github.com/yonatangross/orchestkit/commit/c8848238c475c31a346fa914fe15955f71b31851))",
+          "**hooks:** stop `git fetch` reading as a network source ([#3441](https://github.com/yonatangross/orchestkit/issues/3441)) ([268524b](https://github.com/yonatangross/orchestkit/commit/268524bdea74dcdbfe9279c08b7bb8dd82352323))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.22",
     "date": "2026-08-11",
     "compareUrl": "",
