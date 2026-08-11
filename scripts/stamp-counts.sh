@@ -222,6 +222,14 @@ apply_docs_mdx_patterns() {
   "${sed_in[@]}" "s/With [0-9]+ hooks,/With ${HOOKS} hooks,/g" "$file"
   "${sed_in[@]}" "s/All [0-9]+ hooks are written in TypeScript/All ${HOOKS} hooks are written in TypeScript/g" "$file"
   "${sed_in[@]}" "s/[0-9]+ hooks across [0-9]+ categories/${HOOKS} hooks across 12 categories/g" "$file"
+  # Bold form. The unbolded pattern above cannot reach it: the literal text is
+  # "hooks** across", so "hooks across" is never adjacent. Missing this let
+  # skills-agents-hooks.mdx:94 keep a stale total through a re-stamp (#3354).
+  "${sed_in[@]}" "s/\\*\\*[0-9]+ hooks\\*\\* across [0-9]+ categories/**${HOOKS} hooks** across 12 categories/g" "$file"
+  # Hyphenated attributive form, the same class of miss the drift gate's own
+  # comment records for "37-agent registry". "OrchestKit's N hooks" below cannot
+  # reach "OrchestKit's N-hook system".
+  "${sed_in[@]}" "s/OrchestKit's [0-9]+-hook system/OrchestKit's ${HOOKS}-hook system/g" "$file"
   "${sed_in[@]}" "s/[0-9]+ hooks active/${HOOKS} hooks active/g" "$file"
   "${sed_in[@]}" "s/[0-9]+ global hook entries/${HOOKS_GLOBAL} global hook entries/g" "$file"
   "${sed_in[@]}" "s/### Hooks \\([0-9]+\\) fire/### Hooks (${HOOKS}) fire/g" "$file"

@@ -120,6 +120,11 @@ const TOTAL_CLAIM = [
   // `full(?!-)` so "Full-stack" in a table cell does not read as "full reference".
   /\b(?:full(?!-)|complete(?!-)|entire|every)\b[^.]{0,40}?\ball\s+(\d{2,4})\s*(skills|agents|hooks)\b/i,
   /\bork:\s*(\d{2,4})\s*(skills|agents|hooks)/i,
+  // "**N hooks** across 12 categories" is a plugin-wide total, not a subset:
+  // the categories it spans are the whole taxonomy. It named no plugin, so none
+  // of the patterns above reached it, and it sat stale in the SAME file this
+  // gate's own header cites for the "183 hooks (actual 218)" miss (#3354).
+  /\*\*(\d{2,4})\s*(skills|agents|hooks)\*\*\s+across\s+\d+\s+categor/i,
 ];
 
 const REF = /\/?\bork:([a-z0-9][a-z0-9-]*)/g;
