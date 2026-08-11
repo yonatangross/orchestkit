@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.23](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.22...v10.0.0-alpha.23) (2026-08-11)
+
+
+### Bug Fixes
+
+* **chain-patterns:** correct Pattern 8 /loop facts against official docs ([#3442](https://github.com/yonatangross/orchestkit/issues/3442)) ([c884823](https://github.com/yonatangross/orchestkit/commit/c8848238c475c31a346fa914fe15955f71b31851))
+* **hooks:** stop `git fetch` reading as a network source ([#3441](https://github.com/yonatangross/orchestkit/issues/3441)) ([268524b](https://github.com/yonatangross/orchestkit/commit/268524bdea74dcdbfe9279c08b7bb8dd82352323))
+
 ## [10.0.0-alpha.22](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.21...v10.0.0-alpha.22) (2026-08-11)
 
 
