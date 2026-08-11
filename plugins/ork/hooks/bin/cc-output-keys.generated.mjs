@@ -1,12 +1,21 @@
-// GENERATED FILE — DO NOT EDIT BY HAND.
+// DERIVED FILE — edit spec/cc-output-keys.spec.yml, then mirror the change here.
 //
 // Source of truth: spec/cc-output-keys.spec.yml
-// Regenerate:     node scripts/derive-cc-output-keys.mjs
 // Drift gate:     node scripts/derive-cc-output-keys.mjs --check
 //
-// Hand-editing this file is the exact failure it exists to prevent. The Sets it
-// replaces were hand-typed, drifted from CC's real contract, and silently
-// stripped valid output from six live hooks for as long as they existed.
+// This header used to say "Regenerate: node scripts/derive-cc-output-keys.mjs",
+// which was FALSE: that script only ever READS this module (it imports it to
+// compare against the binary) and contains no write path. A maintainer
+// following the instruction got a printed report and an unchanged file, and
+// could reasonably believe the file had been re-derived from the binary when
+// nothing was rewritten (#3418). Until an emit path exists, the sync is manual:
+// spec first, this file second, in the same commit, and the --check gate
+// arbitrates against the shipped binary.
+//
+// Editing this file WITHOUT the spec is the exact failure it exists to prevent.
+// The Sets it replaces were hand-typed, drifted from CC's real contract, and
+// silently stripped valid output from six live hooks for as long as they
+// existed.
 
 /** CC version this contract was derived from. */
 export const CC_VERSION = '2.1.226';

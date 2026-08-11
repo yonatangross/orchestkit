@@ -220,6 +220,27 @@ async function main() {
     process.exit(EXIT_DRIFT);
   }
 
+  // The check above is missing-only, which makes it silent in the OTHER
+  // direction: an allow-list entry the binary does not corroborate passes
+  // without a trace. Measured 2026-08-11 (#3418): 9 asserted, 3 corroborated,
+  // 6 resting on a generic field-list line that names no event — and one of
+  // the six (PostCompact) has independent evidence of being wrong (#3321,
+  // additionalContext emitted and ignored). A bare OK over that is the same
+  // false-signal shape EPIC B was opened to fix, so the asymmetry is printed
+  // on every run. Deliberately ADVISORY: pruning uncorroborated entries on
+  // this evidence alone would repeat #3386 in the other direction — absence
+  // from the binary's PROSE is absence of documentation, not proof of absence
+  // of support. Settle each empirically before promoting this to a failure.
+  const uncorroborated = [...allowed].filter((e) => !binaryEvents.has(e)).sort();
+  console.log(
+    `\nallow-list: ${allowed.size} asserted / ${allowed.size - uncorroborated.length} corroborated by the binary / ${uncorroborated.length} unverified`,
+  );
+  if (uncorroborated.length > 0) {
+    console.log('WARN: no binary string names these events as additionalContext');
+    console.log('consumers; the missing-only check above cannot see them (#3418):');
+    for (const e of uncorroborated) console.log(`  ${e}`);
+  }
+
   console.log('\nOK: every event the binary names is present in the generated allow-list.');
   process.exit(EXIT_OK);
 }
