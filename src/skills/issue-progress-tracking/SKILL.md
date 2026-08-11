@@ -22,10 +22,14 @@ metadata:
 
 Ceremony guide for tracking GitHub issue progress via `gh` CLI. Ensures issues stay updated as work progresses from start to PR.
 
-## Quick Start
+## Invocation
 
-```bash
-/ork:issue-progress-tracking 123
+This skill is `user-invocable: false` and `disable-model-invocation: true`:
+there is no `/ork:` form and the model cannot auto-select it (#3313). An agent
+loads it explicitly by Reading this file's path:
+
+```text
+${CLAUDE_PLUGIN_ROOT}/skills/issue-progress-tracking/SKILL.md
 ```
 
 ---

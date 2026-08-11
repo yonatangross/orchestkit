@@ -663,9 +663,12 @@ jobs:
 
       - name: Run orphan tests
         env:
-          # unreachable-skills holds a 29-skill baseline tracked in #3215; advisory
-          # here so wiring the OTHER three orphan gates does not import that debt
-          # as a permanent red. Drop this env once #3215 lands.
+          # unreachable-skills holds a 21-skill baseline tracked in #3313 (was 29
+          # until the gates learned the agent-body Read() activation path);
+          # advisory here so wiring the OTHER three orphan gates does not import
+          # that debt as a permanent red. The detector exits 1 on ANY unreachable
+          # skill, so this env can only drop once the count reaches 0, which
+          # needs the 20-skill product decision in #3313.
           ORK_UNREACHABLE_SKILLS_ADVISORY: '1'
         run: bash scripts/ci/run-tests.sh tests/orphans --verbose
 

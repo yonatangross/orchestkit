@@ -2678,7 +2678,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "issue-progress-tracking",
     "description": "GitHub issue workflow ceremony using gh CLI — labels issues as in-progress, creates feature branches (issue/N-description), commits with issue references, posts progress comments, and links PRs with Closes #N. Keeps issues in sync with development work. Use when starting work on an issue, tracking progress, or completing work with a PR.",
     "version": "1.0.0",
-    "sha256": "8388f15f2d5e4af8259a1752160b790d7550a311551619f6952df98a858197d6",
+    "sha256": "2cc6361cfc7926c20e391080555af477edd194ea9e5f89042e578abdcb151f29",
     "author": "OrchestKit",
     "tags": [
       "git",

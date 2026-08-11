@@ -401,11 +401,22 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
         lines.append(f"{type_badge} {complexity_badge}")
         lines.append("")
 
-        # Invocation CTA (#1082)
+        # Invocation CTA (#1082). Three-way, not two (#3313): for a skill with
+        # disable-model-invocation: true the old "Auto-activated" claim was
+        # false on all 29 such pages at once \u2014 nothing auto-activates a skill
+        # the model is barred from selecting. parse_frontmatter coerces YAML
+        # booleans, so the .get returns a real bool.
         if user_invocable:
             lines.append('```bash title="Invoke"')
             lines.append(f"/ork:{slug}")
             lines.append("```")
+            lines.append("")
+        elif meta.get("disable-model-invocation", False):
+            lines.append(
+                "> **Not directly invocable** \u2014 no slash command and no "
+                "model auto-selection. An agent loads it explicitly via "
+                "`Read()`."
+            )
             lines.append("")
         else:
             lines.append(

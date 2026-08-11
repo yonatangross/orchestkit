@@ -222,16 +222,25 @@ function parseAgentGrants(fm) {
   return [...fm.matchAll(/\bAgent\(([^)]+)\)/g)].map((m) => m[1].trim().split(':').pop());
 }
 
+// The 4th activation path (#3313): an explicit body
+// Read("${CLAUDE_PLUGIN_ROOT}/skills/<x>/SKILL.md") in an agent. #3221
+// converted 7 load-bearing preload edges into exactly these lines, and
+// test-agent-read-path-truthful.mjs ratchets them (resolvable targets,
+// non-zero count). A skill reached ONLY this way is live, not unreachable.
+const READ_RE = /Read\("\$\{CLAUDE_PLUGIN_ROOT\}\/skills\/([a-z0-9-]+)\/SKILL\.md"\)/g;
+
 function loadAgents(dir) {
   const out = new Map();
   if (!existsSync(dir)) return out;
   for (const name of readdirSync(dir).sort()) {
     if (!name.endsWith('.md') || name === 'README.md') continue;
-    const fm = frontmatter(readFileSync(join(dir, name), 'utf8'));
+    const text = readFileSync(join(dir, name), 'utf8');
+    const fm = frontmatter(text);
     out.set(name.slice(0, -3), {
       file: `src/agents/${name}`,
       preloads: parseListField(fm, 'skills'),
       grants: parseAgentGrants(fm),
+      bodyReads: [...text.matchAll(READ_RE)].map((m) => m[1]),
     });
   }
   return out;
@@ -247,11 +256,19 @@ function loadAgents(dir) {
 // lines in the agent body, which is the mechanism that actually delivers the
 // skill's rules/ and references/ rather than just its table of contents.
 // Agent bodies are in no token budget, so the conversion cost nothing.
-const UNREACHABLE_BASELINE = 29;
+const UNREACHABLE_BASELINE = 21;
 const AGENT_DEAD_EDGE_BASELINE = 0;
 
 const skills = loadSkills(SKILLS_DIR);
 const agents = loadAgents(AGENTS_DIR);
+
+// Skills reached by the 4th path: any agent's explicit body Read(). Built
+// before the unreachable scan so the predicate can consult it (#3313 — this
+// is what dropped the baseline 29 -> 21: 8 skills are loaded this way).
+const readReached = new Set();
+for (const [, a] of agents) {
+  for (const target of a.bodyReads) readReached.add(target);
+}
 
 const unreachable = [];
 const deadEdges = [];
@@ -260,7 +277,7 @@ const missingTargets = [];
 const missingAgents = [];
 
 for (const [name, s] of skills) {
-  if (s.modelBlocked && s.userBlocked) unreachable.push(name);
+  if (s.modelBlocked && s.userBlocked && !readReached.has(name)) unreachable.push(name);
   for (const dep of s.preloads) {
     const target = skills.get(dep);
     if (!target) missingTargets.push({ from: s.file, to: dep });

@@ -81,7 +81,7 @@ const TRUTH = { skills: skills.size, agents: agents.size, hooks: hookTotal };
 // audit-full (5) — skills the docs present with a slash form they do not have.
 // Ratchet DOWN as those pages get reworded; never raise it to make a red run go
 // green. `ORK_DOCS_NONINVOCABLE_BASELINE` exists for a deliberate, reviewed bump.
-const NON_INVOCABLE_BASELINE = Number(process.env.ORK_DOCS_NONINVOCABLE_BASELINE ?? 66);
+const NON_INVOCABLE_BASELINE = Number(process.env.ORK_DOCS_NONINVOCABLE_BASELINE ?? 64);
 const invocable = new Set(
   [...skills].filter((s) =>
     /^user-invocable:\s*true/m.test(readFileSync(join(ROOT, 'src/skills', s, 'SKILL.md'), 'utf8')),

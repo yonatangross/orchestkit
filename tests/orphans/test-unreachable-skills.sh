@@ -150,6 +150,30 @@ fi
 
 echo "  Wiring sources: $agents_declaring agent file(s) declaring 'skills:', $wired_count distinct skill name(s) wired"
 
+# ---- 4TH ACTIVATION PATH (#3313) --------------------------------------------
+# An explicit body Read("${CLAUDE_PLUGIN_ROOT}/skills/<x>/SKILL.md") in an
+# agent is a live load path: #3221 converted 7 load-bearing preload edges into
+# exactly these lines and test-agent-read-path-truthful.mjs ratchets them.
+# Kept SEPARATE from wired.txt on purpose: wired_count feeds the parser
+# self-check floor above, and blending would make that floor measure a
+# different population. This extractor gets its own floor for the same
+# reason the script guards MIN_WIRED_NAMES: the gate argues from absence, so
+# an extractor that silently returns 0 would re-accuse the skills it exists
+# to exonerate. Live count at introduction: 8 names across 9 lines. A grep
+# miss cannot hide here: the floor below catches an empty extraction.
+grep -hoE 'Read\("\$\{CLAUDE_PLUGIN_ROOT\}/skills/[a-z0-9-]+/SKILL\.md"\)' "$AGENTS_DIR"/*.md \
+    | sed -E 's|.*/skills/([a-z0-9-]+)/SKILL\.md.*|\1|' | sort -u > "$TMP/readpath.txt" || true # silent: gating-relaxed
+readpath_count="$(grep -c . < "$TMP/readpath.txt" | tr -d ' ')"
+MIN_READ_PATH_NAMES=6
+if [[ "$readpath_count" -lt "$MIN_READ_PATH_NAMES" ]]; then
+    echo -e "${RED}${BOLD}ABORT: agent-body Read() extractor looks broken, refusing to accuse anything.${NC}"
+    echo "  distinct Read()-path skill names: $readpath_count (floor $MIN_READ_PATH_NAMES)"
+    echo "  If agents legitimately dropped below the floor, lower it WITH the change"
+    echo "  that removed the Read() lines, the way MIN_WIRED_NAMES was lowered in #3221."
+    exit 1
+fi
+echo "  Read()-path sources: $readpath_count distinct skill name(s) loaded via agent body Read()"
+
 dead=()
 unreachable=()
 candidates=0
@@ -174,9 +198,15 @@ for skill_md in "$SKILLS_DIR"/*/SKILL.md; do
 
     candidates=$((candidates + 1))
 
-    # Only remaining load path: named in an agent's or skill's skills: list.
+    # Load path 3: named in an agent's or skill's skills: list.
     if grep -qxF -- "$name" "$TMP/wired.txt"; then
         [[ -n "$VERBOSE" ]] && echo -e "  ${GREEN}[OK]${NC} $name (preloaded via a skills: frontmatter list)"
+        continue
+    fi
+
+    # Load path 4 (#3313): loaded by an explicit agent body Read().
+    if grep -qxF -- "$name" "$TMP/readpath.txt"; then
+        [[ -n "$VERBOSE" ]] && echo -e "  ${GREEN}[OK]${NC} $name (loaded via agent body Read())"
         continue
     fi
 

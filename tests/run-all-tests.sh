@@ -34,9 +34,10 @@
 #   - tests/fixtures is never globbed: test-helpers.sh is a sourced library
 #     whose standalone exit 0 would read as fake coverage.
 #   - tests/orphans runs with ORK_UNREACHABLE_SKILLS_ADVISORY=1: the ratchet
-#     (test-skill-reachability.mjs, baseline 29) is the enforcement gate; the
-#     detector exits 1 on ANY unreachable skill and would report a regression
-#     that did not happen. Same env CI uses (#3245).
+#     (test-skill-reachability.mjs, baseline 21 since the gates learned the
+#     agent-body Read() path, #3313) is the enforcement gate; the detector
+#     exits 1 on ANY unreachable skill and would report a regression that did
+#     not happen. Same env CI uses (#3245).
 #   - skill-efficiency-scorecard.sh is not test-*.sh, so the glob never sees
 #     it; it stays an explicit advisory extra (WARN, never fails the run).
 #   - ci/lint.sh is not test-*.sh either; explicit blocking call under --lint.
