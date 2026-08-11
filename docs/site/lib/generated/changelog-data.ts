@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.22",
+    "date": "2026-08-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**workflows:** adopt CC 2.1.224 capabilities and evidence-replay gate ([#3439](https://github.com/yonatangross/orchestkit/issues/3439)) ([106a03e](https://github.com/yonatangross/orchestkit/commit/106a03ef58c69f0424fb91d6b01415f26b91582c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.21",
     "date": "2026-08-11",
     "compareUrl": "",

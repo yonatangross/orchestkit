@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.22](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.21...v10.0.0-alpha.22)** · 2026-08-11
+
+- **workflows:** adopt CC 2.1.224 capabilities and evidence-replay gate (#3439)
+
 **[v10.0.0-alpha.21](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.20...v10.0.0-alpha.21)** · 2026-08-11
 
 - **hooks:** stop run-hook.mjs failing silently and crashing (#3436)
@@ -309,12 +313,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.15](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.14...v10.0.0-alpha.15)** · 2026-08-10
 
 - **security:** scanners knew one worktree layout, not two (#3412)
-
-**[v10.0.0-alpha.14](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.13...v10.0.0-alpha.14)** · 2026-08-10
-
-- **agents:** correct 8 false "slash-only" comments (#3405)
-- arm the CC contract probe nothing was running (#3407)
-- tee probe diagnostics to stdout, not just the step summary (#3408)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
