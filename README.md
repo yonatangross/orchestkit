@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.21](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.20...v10.0.0-alpha.21)** · 2026-08-11
+
+- **hooks:** stop run-hook.mjs failing silently and crashing (#3436)
+
 **[v10.0.0-alpha.20](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.19...v10.0.0-alpha.20)** · 2026-08-11
 
 - **hooks:** stop the pipe-to-shell deny from inventing a fetch (#3434)
@@ -311,10 +315,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **agents:** correct 8 false "slash-only" comments (#3405)
 - arm the CC contract probe nothing was running (#3407)
 - tee probe diagnostics to stdout, not just the step summary (#3408)
-
-**[v10.0.0-alpha.13](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.12...v10.0.0-alpha.13)** · 2026-08-10
-
-- **hooks:** stop logging an invented cache-break token cost (#3403)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

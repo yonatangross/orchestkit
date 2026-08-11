@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.21",
+    "date": "2026-08-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** stop run-hook.mjs failing silently and crashing ([#3436](https://github.com/yonatangross/orchestkit/issues/3436)) ([e5cc860](https://github.com/yonatangross/orchestkit/commit/e5cc8603087a185d888a732532fd964a6314c808))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.20",
     "date": "2026-08-11",
     "compareUrl": "",
