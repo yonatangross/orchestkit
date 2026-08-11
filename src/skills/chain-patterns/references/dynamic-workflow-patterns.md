@@ -163,7 +163,7 @@ That only works because the files end in `.js`.
 The plugin workflow scanner filters on `name.endsWith(".js")` and returns `null` for anything else
 with **no warning at all**. A `.mjs` file is dropped before its `meta` is ever parsed, so the
 workflow simply does not exist: `Workflow({name})` answers `not found`, and nothing anywhere says
-why. Verified against the CC 2.1.228 binary and reproduced live — renaming one shipped `.mjs` to
+why. Verified against the installed CC binary and reproduced live — renaming one shipped `.mjs` to
 `.js` and reloading made it resolve immediately.
 
 The sibling user/project loader treats the same mistake very differently: it counts

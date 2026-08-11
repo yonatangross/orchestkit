@@ -17,7 +17,7 @@ final verifying run) to prevent infinite loops. See "Iteration Budget" below for
 
 ## Iteration Budget
 
-Enforced by `workflows/heal-loop.mjs`, not by instruction. The ceiling is **3 diagnose runs
+Enforced by `workflows/heal-loop.js`, not by instruction. The ceiling is **3 diagnose runs
 and 2 repair passes**: the final iteration verifies the previous repair and does not start a
 new one, because there would be no run left to confirm it.
 

@@ -101,7 +101,7 @@ audit-full has **two execution tiers**. The estimate decides which:
 ```python
 # Derive shards from STEP 1 (top-level modules/dirs by size: src, apps/api, apps/web, packages/*).
 Workflow({
-  "scriptPath": "${CLAUDE_PLUGIN_ROOT}/skills/audit-full/workflows/audit-full-mapreduce.mjs",
+  "scriptPath": "${CLAUDE_PLUGIN_ROOT}/skills/audit-full/workflows/audit-full-mapreduce.js",
   "args": { "shards": ["<repo-relative dirs>"], "mode": "<full|security|architecture|dependencies>", "effort": "<high|xhigh>" }
 })
 ```
@@ -220,7 +220,7 @@ Full rule: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/rules/push-notific
 | CI/CD automated scanning | `security-scanning` skill |
 | Multi-agent graded verification | `/ork:verify` |
 | Exploring unfamiliar codebase | `/ork:explore` |
-| Codebase > 125K LOC (exceeds 1M) | **stay here** — STEP 1 routes to the map-reduce tier (`workflows/audit-full-mapreduce.mjs`); `/ork:verify` only if you want multi-agent *graded* verification instead of an audit |
+| Codebase > 125K LOC (exceeds 1M) | **stay here** — STEP 1 routes to the map-reduce tier (`workflows/audit-full-mapreduce.js`); `/ork:verify` only if you want multi-agent *graded* verification instead of an audit |
 
 ---
 
@@ -268,4 +268,4 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-full/references/<f
 | `assets/severity-matrix.md` | Finding classification criteria |
 | `checklists/audit-completion.md` | Pre-report verification |
 | `scripts/estimate-tokens.sh` | Automated LOC to token estimation |
-| `workflows/audit-full-mapreduce.mjs` | Scale tier — shard→audit→synthesize→refute for repos that exceed 1M context (run via the Workflow tool) |
+| `workflows/audit-full-mapreduce.js` | Scale tier — shard→audit→synthesize→refute for repos that exceed 1M context (run via the Workflow tool) |

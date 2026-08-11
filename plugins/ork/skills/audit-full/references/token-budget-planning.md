@@ -37,7 +37,7 @@ Always exclude from loading:
 ## If Codebase Exceeds Budget
 
 audit-full owns this case now — it does **not** punt. The map-reduce tier
-(`workflows/audit-full-mapreduce.mjs`, run via the Workflow tool) shards the repo,
+(`workflows/audit-full-mapreduce.js`, run via the Workflow tool) shards the repo,
 audits each shard in its own context, then recovers cross-shard edges in a synthesis
 pass. Prefer it over narrowing scope (which silently drops coverage).
 
@@ -53,7 +53,7 @@ AskUserQuestion(
     "question": "Codebase exceeds the single-context budget. How to proceed?",
     "header": "Too large",
     "options": [
-      {"label": "Map-reduce audit (full coverage)", "description": "Shard → per-shard audit → cross-shard synthesis → refute (workflows/audit-full-mapreduce.mjs)"},
+      {"label": "Map-reduce audit (full coverage)", "description": "Shard → per-shard audit → cross-shard synthesis → refute (workflows/audit-full-mapreduce.js)"},
       {"label": "Narrow scope", "description": "Audit specific directories only — drops coverage elsewhere"},
       {"label": "Priority loading", "description": "Entry points + critical paths only (triage)"}
     ],

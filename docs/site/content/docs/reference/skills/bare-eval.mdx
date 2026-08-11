@@ -165,10 +165,10 @@ Read("${CLAUDE_PLUGIN_ROOT}/skills/bare-eval/references/troubleshooting.md")
 
 ## Dynamic-workflow harness (template-in-skill)
 
-`workflows/skill-fitness.mjs` is a runnable dynamic-workflow template — the workflow-backed complement to the static conformance grader (`scripts/eval/conformance-check.mjs`). It fans out one **isolated-context** agent per skill to score fitness (freshness / router-clarity / structure) and synthesizes a ranked scorecard, catching qualitative drift a static grep can't (description/body count mismatches, duplicate headings, install-specific absolute paths, version drift). Run it with the Workflow tool:
+`workflows/skill-fitness.js` is a runnable dynamic-workflow template — the workflow-backed complement to the static conformance grader (`scripts/eval/conformance-check.mjs`). It fans out one **isolated-context** agent per skill to score fitness (freshness / router-clarity / structure) and synthesizes a ranked scorecard, catching qualitative drift a static grep can't (description/body count mismatches, duplicate headings, install-specific absolute paths, version drift). Run it with the Workflow tool:
 
 ```
-Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/bare-eval/workflows/skill-fitness.mjs",
+Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/bare-eval/workflows/skill-fitness.js",
            args: ["assess", "commit", "doctor"] })
 ```
 

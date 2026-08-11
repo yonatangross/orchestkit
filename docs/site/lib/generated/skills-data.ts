@@ -554,7 +554,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "audit-full",
     "description": "Single-pass codebase analysis leveraging a 1M-token context window for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews.",
     "version": "1.2.0",
-    "sha256": "0bae641f8a93ce5b71a4c4acdc9a46187db5bd25b31b6a99114fa4b7bc88e4e8",
+    "sha256": "80262df48be9a3dc6b857a2d679878f1493432b24b2118465c03b82d915524cd",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -655,7 +655,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "bare-eval",
     "description": "Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill evaluation, trigger testing, and LLM grading without plugin/hook interference. Use when running eval pipelines, grading skill outputs, benchmarking prompt quality, or testing trigger accuracy in isolation.",
     "version": "1.1.0",
-    "sha256": "14180ee2025e393a02386cfbbfc7c0ff0b4364e0a7d17cd1c38a9a2c3d48b34d",
+    "sha256": "22d47d26eb12a36da5812f7abb9a8a676ce08a018c10d237ec987260730c87d3",
     "author": "OrchestKit",
     "tags": [
       "eval",
@@ -1174,7 +1174,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "cover",
     "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new.",
     "version": "1.2.0",
-    "sha256": "d10ab299d6ae7306df0cbd397a919f46337f15b5815ed3b89e88f936b92cbd73",
+    "sha256": "af527b5654ed872e3b23a9bc36eea94bb923a74f06687bd75839c4f720149970",
     "author": "OrchestKit",
     "tags": [
       "testing",

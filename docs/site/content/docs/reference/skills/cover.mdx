@@ -65,7 +65,7 @@ Read `$CLAUDE_EFFORT` (CC 2.1.120+) first; explicit `--effort=` token wins as ov
 | **xhigh** (Opus 4.8, CC 2.1.111+) | Unit + Integration + E2E | 3 agents | 3 (the ceiling; xhigh adds agents, not heal passes) |
 
 Values are what you pass as `maxIterations` in Phase 5. The script clamps to `[2, 3]`
-(`heal-loop.mjs`), so anything outside that range is coerced, and the final iteration always
+(`heal-loop.js`), so anything outside that range is coerced, and the final iteration always
 verifies rather than repairing. There is no 4-iteration mode.
 
 > **Override:** Explicit `--tier=` flag or user selection overrides `/effort` downscaling.
@@ -310,14 +310,14 @@ Do NOT hand-roll the loop. Run the real executor:
 
 ```python
 Workflow(
-  scriptPath="${CLAUDE_PLUGIN_ROOT}/skills/cover/workflows/heal-loop.mjs",
+  scriptPath="${CLAUDE_PLUGIN_ROOT}/skills/cover/workflows/heal-loop.js",
   args={"testCommand": "<tier test command>", "tier": "unit", "testGlob": "tests/unit/",
         "maxIterations": 3}   # from the effort table above; omitted defaults to 3
 )
 # One invocation per tier that has failures.
 ```
 
-**The iteration bound is enforced by the script, not by instruction.** `heal-loop.mjs`
+**The iteration bound is enforced by the script, not by instruction.** `heal-loop.js`
 runs a real counted loop clamped to `[2, 3]`: each iteration spawns a diagnose agent that
 actually executes the test command and returns structured pass/fail plus the verbatim
 failure output, then a repair agent that receives *that failure text* and edits test files
@@ -460,7 +460,7 @@ Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/cover/references/&lt;f
 | `real-service-detection.md` | Docker-compose/testcontainers detection, service startup, teardown |
 | `heal-loop-strategy.md` | Failure classification, fix patterns, iteration budget |
 | `coverage-report-template.md` | Report format, delta calculation, gap analysis |
-| `workflows/heal-loop.mjs` | Phase 5 executor — script-enforced 3-iteration repair loop (run via the Workflow tool) |
+| `workflows/heal-loop.js` | Phase 5 executor — script-enforced 3-iteration repair loop (run via the Workflow tool) |
 
 ---
 
@@ -581,7 +581,7 @@ final verifying run) to prevent infinite loops. See "Iteration Budget" below for
 
 ## Iteration Budget
 
-Enforced by `workflows/heal-loop.mjs`, not by instruction. The ceiling is **3 diagnose runs
+Enforced by `workflows/heal-loop.js`, not by instruction. The ceiling is **3 diagnose runs
 and 2 repair passes**: the final iteration verifies the previous repair and does not start a
 new one, because there would be no run left to confirm it.
 
