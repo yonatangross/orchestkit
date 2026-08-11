@@ -55,9 +55,27 @@ run_test() {
     else
         local code=$?
         echo -e "  ${RED}FAIL${NC}: $name (exit $code)"
+        # Print the FAILING assertions first, then the tail for context.
+        # `tail -20` alone hid the cause of a real failure on 2026-08-11: the
+        # path-traversal log is 31 lines, so the window started at line 12 and
+        # cut off section 1 entirely — the section whose assertion had failed.
+        # The run reported a tally with no way to learn WHICH check went red,
+        # turning a one-line diagnosis into a multi-hour investigation.
+        #
+        # awk, not `grep ... || true`: grep exits 1 on zero matches, so the
+        # `|| true` needed to survive `set -e` would also swallow a genuine
+        # grep failure and yield an empty string either way. awk exits 0
+        # whether or not it matches, so there is no status to hide.
+        local marks
+        marks=$(awk '/✗|FAIL/{printf "  ✗ %d: %s\n", FNR, $0}' "$log")
+        if [[ -n "$marks" ]]; then
+            echo "  ---- failing assertions in $(basename "$script") ----"
+            printf '%s\n' "$marks"
+        fi
         echo "  ---- last 20 lines of $(basename "$script") ----"
         sed -e 's/^/  | /' "$log" | tail -20
         echo "  ---- end ----"
+        echo "  full log retained: $log"
         FAILED=$((FAILED + 1))
         FAILED_LOGS+=("$name|$log")
         return 1
