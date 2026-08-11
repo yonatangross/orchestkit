@@ -440,6 +440,8 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/rules/<file>")`:
 
 Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")` — the minimum 5-step gate that applies to ALL completion claims across all skills. This is non-negotiable: NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE.
 
+Producer findings must also satisfy the evidence-replay gate (machine-checkable `{file, line, quote}` or `{command, expected_output}`, replayed before entering any verdict or score): `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/evidence-replay.md")`.
+
 ### Anti-Sycophancy Protocol
 
 Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/anti-sycophancy.md")` — all verification agents report findings directly without performative agreement. "Should be fine" is not evidence. "Tests pass (exit 0, 47/47)" is.

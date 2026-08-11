@@ -316,6 +316,24 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         done < <(jq -r '.agents[]?' "$manifest")
     fi
 
+    # Copy workflow scripts into the plugin-root workflows/ directory.
+    # CC's plugin workflows contract (code.claude.com/docs/en/workflows): a
+    # plugin ships workflows/ at its root; each script exports `meta` with
+    # name+description and surfaces namespaced as /<plugin>:<meta.name>
+    # (e.g. /ork:audit-full-mapreduce). The manifest lists src-relative paths;
+    # the copies under skills/<name>/workflows/ remain the source of truth.
+    workflow_count=0
+    while IFS= read -r wf; do
+        if [[ -n "$wf" ]] && [[ -f "$SRC_DIR/$wf" ]]; then
+            mkdir -p "$PLUGIN_DIR/workflows"
+            cp "$SRC_DIR/$wf" "$PLUGIN_DIR/workflows/"
+            workflow_count=$((workflow_count + 1))
+        elif [[ -n "$wf" ]]; then
+            echo -e "${RED}  ERROR: manifest workflow not found: src/$wf${NC}"
+            exit 1
+        fi
+    done < <(jq -r '.workflows[]?' "$manifest")
+
     # Copy plugin settings.json (CC 2.1.49 managed defaults)
     SETTINGS_FILE="$SRC_DIR/settings/${PLUGIN_NAME}.settings.json"
     if [[ -f "$SETTINGS_FILE" ]]; then
@@ -377,6 +395,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         --arg desc "$PLUGIN_DESC" \
         --argjson has_skills "$([[ -d "$PLUGIN_DIR/skills" ]] && echo true || echo false)" \
         --argjson has_commands "$([[ -d "$PLUGIN_DIR/commands" ]] && echo true || echo false)" \
+        --argjson has_workflows "$([[ -d "$PLUGIN_DIR/workflows" ]] && echo true || echo false)" \
         '{
           name: $name,
           version: $version,
@@ -392,7 +411,8 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
           keywords: ["ai-development","langgraph","fastapi","react","typescript","python","multi-agent"]
         }
         + if $has_skills then {skills: "./skills/"} else {} end
-        + if $has_commands then {commands: "./commands/"} else {} end' \
+        + if $has_commands then {commands: "./commands/"} else {} end
+        + if $has_workflows then {workflows: "./workflows/"} else {} end' \
         > "$PLUGIN_DIR/.claude-plugin/plugin.json"
 
     TOTAL_SKILLS_COPIED=$((TOTAL_SKILLS_COPIED + skill_count))
@@ -400,7 +420,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     TOTAL_COMMANDS_GENERATED=$((TOTAL_COMMANDS_GENERATED + command_count))
     PLUGINS_BUILT=$((PLUGINS_BUILT + 1))
 
-    echo -e "${GREEN}  Built $PLUGIN_NAME ($CURRENT/$MANIFEST_COUNT) - $skill_count skills, $agent_count agents, $command_count commands${NC}"
+    echo -e "${GREEN}  Built $PLUGIN_NAME ($CURRENT/$MANIFEST_COUNT) - $skill_count skills, $agent_count agents, $command_count commands, $workflow_count workflows${NC}"
 done
 
 if [[ -x "$SCRIPT_DIR/build-codex-plugin.sh" ]]; then

@@ -108,6 +108,23 @@ abort_on_novel_failure: true
 
 Each worker is a `Agent` tool invocation (subagent type `git-operations-engineer` for plumbing or `backend-system-architect` for schema-flavored migrations). The coordinator (you, this skill) reads the ledger between waves and decides whether to release downstream waves or pause.
 
+### Push, do not poll (CC 2.1.224+)
+
+Workers report state changes (CI green, CI red, novel failure, skipped) by MESSAGING
+the coordinator via `SendMessage` instead of the coordinator re-reading the ledger
+between waves:
+
+- Workers spawned as Agent-tool subagents use in-session `SendMessage` (available
+  since CC 2.1.77).
+- Workers running as separate sessions or `claude -p` processes use cross-session
+  messaging (CC 2.1.224, see chain-patterns Pattern 10). A `-p` worker must run with
+  `crossSessionInbound: "accept"` in `--settings` to receive replies.
+
+CRITICAL: cross-session delivery is not guaranteed - inbound controls can hold or
+refuse a message. `.swarm-state.json` REMAINS the authoritative durable record, and
+every state change is still written there. Messages are the low-latency signal; the
+ledger is the truth.
+
 ## Phase 1 — Spec validation
 
 Load `<spec-file.yaml>`. Verify:

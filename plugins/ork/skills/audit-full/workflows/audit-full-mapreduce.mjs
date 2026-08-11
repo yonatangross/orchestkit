@@ -204,10 +204,16 @@ deterministic=true). Keep severities honest.`,
 );
 
 const merged = synthesis.findings;
-// Decision-bearing + refutable only: CRITICAL/HIGH that are NOT deterministic ground truth (engine §6).
-const refutable = merged.filter(
-	(f) =>
-		(f.severity === "CRITICAL" || f.severity === "HIGH") && !f.deterministic,
+// Plain-JS refutation gate, applied BEFORE any refuter spawns: only
+// decision-bearing findings (CRITICAL/HIGH) earn a refuter agent. Deterministic
+// ground truth stays refutation-exempt (engine §6); MEDIUM/LOW ship flagged
+// not-independently-refuted instead of consuming spawns.
+const decisionBearing = merged.filter(
+	(f) => f.severity === "CRITICAL" || f.severity === "HIGH",
+);
+const refutable = decisionBearing.filter((f) => !f.deterministic);
+log(
+	`Refutation gate: ${refutable.length}/${merged.length} finding(s) routed to refuters. Filtered from refutation: ${merged.length - decisionBearing.length} below the severity bar (ship flagged not-independently-refuted), ${decisionBearing.length - refutable.length} deterministic (exempt, engine §6).`,
 );
 
 phase("Refute");
@@ -219,6 +225,10 @@ const ranked = refutable.sort(
 );
 const toRefute = ranked.slice(0, REFUTER_CEILING);
 const overflow = ranked.slice(REFUTER_CEILING);
+// Membership set for the report: anything outside it (and not deterministic-exempt)
+// ships flagged not-independently-refuted, whether it was below the severity bar
+// or over the ceiling.
+const refuterSet = new Set(toRefute);
 if (overflow.length)
 	log(
 		`Refuter ceiling ${REFUTER_CEILING} hit — ${overflow.length} finding(s) shipped "not independently refuted; manual review required".`,
@@ -292,8 +302,13 @@ return {
     high: merged.filter((f) => f.severity === 'HIGH').length,
     refuted_flagged: killed.length,
     unrefuted_overflow: overflow.length,
+    not_independently_refuted: merged.length - decisionBearing.length + overflow.length,
   },
-  findings: merged,
+  findings: merged.map((f) =>
+    refuterSet.has(f) || f.deterministic
+      ? f
+      : { ...f, refutation: { outcome: 'not-independently-refuted' } },
+  ),
   refutation_ledger: confirmed.map((f) => ({ file: f.file, line: f.line, severity: f.severity, ...f.refutation })),
-  note: 'Refuted CRITICAL/HIGH are flagged, not auto-removed (engine §7). Deterministic CVE/build/test findings were refutation-exempt (§6).',
+  note: 'Refuted CRITICAL/HIGH are flagged, not auto-removed (engine §7). Deterministic CVE/build/test findings were refutation-exempt (§6). MEDIUM/LOW and ceiling-overflow findings were never refuted; they carry refutation.outcome=not-independently-refuted.',
 }

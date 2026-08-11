@@ -254,6 +254,7 @@ single refuters (advisory, no auto-swing); `xhigh` runs 3-refuter majority with 
 
 Load the protocol + assess bindings: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/assess/references/adversarial-refutation.md")`
 (which loads the shared engine `$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rules/adversarial-refutation.md`).
+Producer findings must first pass the evidence-replay gate before entering any score or verdict: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rules/evidence-replay.md")`.
 
 ### Cross-model refuter (optional, provenance-labeled, cost-gated)
 

@@ -67,6 +67,24 @@ throw at runtime — pass timestamps in via `args`.
 | **Tournament** | pairwise comparison beats absolute scoring | *gap* — `prioritization`/`competitive-analysis` use absolute scores |
 | **Loop-until-done** | spawn until a stop condition (K dry rounds) | `cover` (bounded heal); `ci-sentinel` could loop-until-dry |
 
+## Who holds the plan
+
+The official decision table (code.claude.com/docs/en/workflows), condensed:
+
+| | Subagents | Skills | Agent teams | Workflows |
+|---|---|---|---|---|
+| What it is | a worker Claude spawns | instructions Claude follows | a lead agent supervising peer sessions | a script the runtime executes |
+| Who decides what runs next | Claude turn by turn | Claude following the prompt | the lead agent turn by turn | the script |
+| Where intermediate results live | context window | context window | a shared task list | script variables |
+| What is repeatable | the worker definition | the instructions | the team definition | the orchestration itself |
+| Scale | a few delegated tasks per turn | same as subagents | a handful of long-running peers | dozens to hundreds of agents per run |
+| Interruption | restarts the turn | restarts the turn | teammates keep running | resumable in the same session |
+
+Two notes on top of the table:
+
+- **Workflow resume is same-session only.** Exiting Claude Code starts the workflow fresh. That is exactly why chain-patterns handoff files (P2/P3) remain the cross-session resume mechanism; workflows do not supersede them.
+- The one sentence worth keeping from the 2026 "graph engineering" discourse: **context does not flow between nodes unless you design the edge.** It is the same law behind the handoff-after-phase rule and the two-registry hook bug class (#959).
+
 ## Failure mode → pattern (the selection rule)
 
 Pick the pattern that **structurally prevents** the failure your task is hitting:

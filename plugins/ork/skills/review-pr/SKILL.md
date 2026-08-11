@@ -341,6 +341,7 @@ blocker, 2 for HIGH).
 
 Load the protocol + review-pr bindings: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/adversarial-refutation.md")`
 (which loads the shared engine `${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/adversarial-refutation.md`).
+Producer findings must first pass the evidence-replay gate before entering any verdict or report: `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/evidence-replay.md")`.
 
 ### Cross-model refuter (optional, provenance-labeled, cost-gated)
 

@@ -1489,6 +1489,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
+            "label": "Pattern 10: Cross-Session Messaging (CC 2.1…",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Rules",
             "does": "",
             "out": null,
