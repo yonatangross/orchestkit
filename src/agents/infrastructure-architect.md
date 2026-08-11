@@ -5,7 +5,6 @@ model: inherit
 category: devops
 maxTurns: 50
 effort: medium
-permissionMode: plan
 context: fork
 color: cyan
 memory: project

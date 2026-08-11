@@ -5,7 +5,6 @@ category: design
 model: opus
 maxTurns: 60
 effort: medium
-permissionMode: plan
 context: inherit
 color: cyan
 memory: project

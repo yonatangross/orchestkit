@@ -5,7 +5,6 @@ category: llm
 model: opus
 maxTurns: 60
 effort: high
-permissionMode: plan
 context: fork
 color: blue
 memory: project

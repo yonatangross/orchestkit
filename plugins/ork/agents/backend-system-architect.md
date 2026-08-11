@@ -5,7 +5,6 @@ model: inherit
 category: backend
 maxTurns: 50
 effort: medium
-permissionMode: plan
 context: fork
 color: yellow
 memory: project
@@ -13,7 +12,6 @@ isolation: worktree
 tools:
   - Read
   - Edit
-  - MultiEdit
   - Write
   - Bash
   - Grep

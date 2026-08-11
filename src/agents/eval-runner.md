@@ -27,7 +27,6 @@ tools:
   - ExitWorktree
 disallowedTools:
   - Edit
-  - MultiEdit
 skills:
   - testing-llm
   - testing-integration

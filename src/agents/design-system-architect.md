@@ -12,7 +12,6 @@ memory: project
 tools:
   - Read
   - Edit
-  - MultiEdit
   - Write
   - Bash
   - Grep
