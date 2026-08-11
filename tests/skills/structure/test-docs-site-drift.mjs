@@ -69,6 +69,26 @@ try {
   /* leave null — reported below rather than silently skipped */
 }
 
+// Plugin-shipped dynamic workflows are a THIRD component type that also answers
+// to /ork:<name>, namespaced `${plugin}:${meta.name}` by the CC workflow loader.
+// Ground truth is the manifest's workflows[] plus each script's own meta.name —
+// the filename and the invocable name are allowed to differ, so the name must be
+// read from the file, not inferred from the path. Without this set, documenting a
+// real, invocable workflow was reported as a DEAD reference (hit for real when
+// /ork:skill-fitness was first written down).
+const workflows = new Set();
+try {
+  const manifest = JSON.parse(readFileSync(join(ROOT, 'manifests/ork.json'), 'utf8'));
+  for (const rel of manifest.workflows ?? []) {
+    const p = join(ROOT, 'src', rel);
+    if (!existsSync(p)) continue;
+    const m = readFileSync(p, 'utf8').match(/name:\s*['"]([^'"]+)['"]/);
+    if (m) workflows.add(m[1]);
+  }
+} catch {
+  /* leave empty — a missing/!parseable manifest is caught by test:manifests */
+}
+
 const TRUTH = { skills: skills.size, agents: agents.size, hooks: hookTotal };
 
 // Skills a reader can actually type as /ork:<name>. A reference to a
@@ -155,6 +175,9 @@ for (const path of files) {
     while ((m = REF.exec(line)) !== null) {
       const name = m[1];
       if (PLACEHOLDER.has(name) || KNOWN_ABSENT.has(name)) continue;
+      // Workflows are always invocable by name once the loader registers them,
+      // so they short-circuit before the skill invocability check below.
+      if (workflows.has(name)) continue;
       if (skills.has(name) || agents.has(name)) {
         // Exists, but can the reader actually invoke it? Only count the
         // slash-command form; `ork:foo` in a prose list is a cross-reference,

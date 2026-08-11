@@ -61,7 +61,7 @@ throw at runtime — pass timestamps in via `args`.
 | Pattern | What it is | ork flow that uses it |
 |---------|-----------|------------------------|
 | **Classify-and-act** | a classifier routes work before doing it | `ci-debug` (10-pattern classifier), `errors` |
-| **Fan-out-synthesize** | split → parallel agent per piece → merge (barrier) | `explore`; `audit-full` **scale tier** (committed: `audit-full/workflows/audit-full-mapreduce.mjs`); the drift re-audit |
+| **Fan-out-synthesize** | split → parallel agent per piece → merge (barrier) | `explore`; `audit-full` **scale tier** (committed: `audit-full/workflows/audit-full-mapreduce.js`); the drift re-audit |
 | **Adversarial verification** | a separate, blind agent refutes each finding | `assess` Ph 2.5, `review-pr` Ph 4.5, `audit-full` STEP 3.5; `shared/rules/adversarial-refutation.md` |
 | **Generate-and-filter** | generate N ideas → filter by rubric/verify → dedup | `brainstorm` (divergent → keep/discard) |
 | **Tournament** | pairwise comparison beats absolute scoring | *gap* — `prioritization`/`competitive-analysis` use absolute scores |
@@ -128,7 +128,7 @@ specialist owner — and only then:
 | Cross-domain, mixed, or glue stages | omit — generic IS correct here |
 
 Use the namespaced registry name (`ork:x`) — bare names fail to resolve at dispatch (#2371).
-Committed example: `audit-full-mapreduce.mjs` routes its shard-audit and refute stages to
+Committed example: `audit-full-mapreduce.js` routes its shard-audit and refute stages to
 `ork:security-auditor` when `mode === "security"`, and stays generic for mixed modes.
 
 ## Use directly vs ship-as-template
@@ -149,10 +149,31 @@ parallel, structured, or adversarial classes above.
 
 | Template | Skill | Shape |
 |----------|-------|-------|
-| `workflows/skill-fitness.mjs` | `bare-eval` | fan-out one isolated agent per skill → ranked fitness scorecard |
-| `workflows/audit-full-mapreduce.mjs` | `audit-full` | shard → per-shard audit → cross-shard synthesis → adversarial refute (the scale tier for repos that exceed 1M context) |
+| `workflows/skill-fitness.js` | `bare-eval` | fan-out one isolated agent per skill → ranked fitness scorecard |
+| `workflows/audit-full-mapreduce.js` | `audit-full` | shard → per-shard audit → cross-shard synthesis → adversarial refute (the scale tier for repos that exceed 1M context) |
 
 Both are TEMPLATES — pass `args` (skills / shards) per run; don't treat them as fixed scripts.
+
+### Plugin-shipped workflows MUST be `.js` — `.mjs` is silently dropped
+
+ork ships these three through the plugin `workflows/` directory, so they also resolve by name as
+`/ork:skill-fitness`, `/ork:audit-full-mapreduce`, `/ork:heal-loop` (namespaced `${plugin}:${meta.name}`).
+That only works because the files end in `.js`.
+
+The plugin workflow scanner filters on `name.endsWith(".js")` and returns `null` for anything else
+with **no warning at all**. A `.mjs` file is dropped before its `meta` is ever parsed, so the
+workflow simply does not exist: `Workflow({name})` answers `not found`, and nothing anywhere says
+why. Verified against the CC 2.1.228 binary and reproduced live — renaming one shipped `.mjs` to
+`.js` and reloading made it resolve immediately.
+
+The sibling user/project loader treats the same mistake very differently: it counts
+`/\.(mjs|cjs|ts)$/` as `nearMissExt` and reports it in `workflow_discover` telemetry. So the
+extension is a known authoring trap upstream; the plugin path just doesn't tell you.
+
+Two consequences worth remembering:
+- Name a new plugin workflow `.js`, never `.mjs`, whatever your editor suggests.
+- Absence of an error is not evidence of loading. Confirm a plugin workflow registered by
+  calling it by name, not by seeing the file in `plugins/<name>/workflows/`.
 
 ## Untrusted input → quarantine
 
