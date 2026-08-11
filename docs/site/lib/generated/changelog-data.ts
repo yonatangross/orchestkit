@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.20",
+    "date": "2026-08-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** stop the pipe-to-shell deny from inventing a fetch ([#3434](https://github.com/yonatangross/orchestkit/issues/3434)) ([4ea34b4](https://github.com/yonatangross/orchestkit/commit/4ea34b4b1832c9c2b8a0236c69c8dda55b0d3b8b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.19",
     "date": "2026-08-11",
     "compareUrl": "",

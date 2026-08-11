@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.20](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.19...v10.0.0-alpha.20)** · 2026-08-11
+
+- **hooks:** stop the pipe-to-shell deny from inventing a fetch (#3434)
+
 **[v10.0.0-alpha.19](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.18...v10.0.0-alpha.19)** · 2026-08-11
 
 - **agents:** drop two frontmatter keys CC provably ignores (#3431)
@@ -311,10 +315,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.13](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.12...v10.0.0-alpha.13)** · 2026-08-10
 
 - **hooks:** stop logging an invented cache-break token cost (#3403)
-
-**[v10.0.0-alpha.12](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.11...v10.0.0-alpha.12)** · 2026-08-10
-
-- **mcp:** retire the ork-elicit server for AskUserQuestion (#3400)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
