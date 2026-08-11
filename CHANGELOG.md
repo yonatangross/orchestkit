@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.24](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.23...v10.0.0-alpha.24) (2026-08-11)
+
+
+### Bug Fixes
+
+* **security-tests:** fail loudly on a broken payload ([#3446](https://github.com/yonatangross/orchestkit/issues/3446)) ([0ca7660](https://github.com/yonatangross/orchestkit/commit/0ca76608605451089a91e08d8e4052b721c5c318))
+* **workflows:** rename plugin workflows to .js so they actually register ([#3445](https://github.com/yonatangross/orchestkit/issues/3445)) ([537e778](https://github.com/yonatangross/orchestkit/commit/537e778a0d8dc847853f3996caeceee915ca3733))
+
 ## [10.0.0-alpha.23](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.22...v10.0.0-alpha.23) (2026-08-11)
 
 
