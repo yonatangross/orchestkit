@@ -185,7 +185,7 @@ SendMessage(to="api-designer", message="Now implement the schema you designed")
 
 ## Pattern 8: /loop Skill Chaining (CC 2.1.71)
 
-`/loop` runs a prompt or skill on a recurring interval — session-scoped, dies on exit, 3-day auto-expiry. Unlike `CronCreate` (agent-initiated), `/loop` is user-invoked and can chain other skills.
+`/loop` runs a prompt or skill on a recurring interval — session-scoped, 7-day auto-expiry (the task fires one final time, then deletes itself), and unexpired tasks are restored on `claude --resume` / `--continue`. Unlike `CronCreate` (agent-initiated), `/loop` is user-invoked and can chain other skills.
 
 ```text
 # User types these — skills suggest them in "Next Steps"
@@ -197,7 +197,8 @@ SendMessage(to="api-designer", message="Now implement the schema you designed")
 
 **Key difference from CronCreate:**
 - `/loop` can invoke skills: `/loop 20m /ork:verify` (CronCreate can't)
-- Both use the same underlying scheduler (50-task limit, 3-day expiry)
+- CC 2.1.196+: a scheduled fire only runs skills Claude may invoke on its own; a skill with `disable-model-invocation: true` arrives as plain text and never executes, so verify the target skill is model-invocable before suggesting it in a loop
+- Both use the same underlying scheduler (50-task limit, 7-day expiry)
 - Skills use `CronCreate` for agent-initiated scheduling
 - Skills suggest `/loop` in "Next Steps" for user-initiated monitoring
 
