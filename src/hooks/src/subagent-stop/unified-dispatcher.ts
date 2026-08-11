@@ -20,11 +20,10 @@
 
 import { openSync, readSync, closeSync, fstatSync, existsSync } from 'node:fs';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, getProjectDir, getSessionId } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { trackEvent } from '../lib/session-tracker.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 import { appendLedgerEntry, resolveAgentContext } from '../lib/agent-attribution.js';
-import { loadAccumState, saveAccumState } from '../lib/session-token-accum.js';
 
 // Import individual hook implementations.
 // Removed in #897 (HQ owns these concerns) — the local agent-usage /

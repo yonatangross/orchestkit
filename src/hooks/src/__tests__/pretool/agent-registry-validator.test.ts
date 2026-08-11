@@ -51,6 +51,7 @@ describe('agent-registry', () => {
   });
 
   it('ignores documentation placeholders', () => {
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: the literal ${AGENT} IS the fixture — a documentation placeholder the classifier must skip
     for (const t of ['<agent-a>', 'ork:<name>', '${AGENT}']) {
       expect(classifySpawnTarget(t).kind).toBe('skip');
     }

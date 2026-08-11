@@ -27,7 +27,6 @@ import { NOOP_CTX } from '../lib/context.js';
 import {
   loadAccumStateOrNull,
   isInImminentZone,
-  type AccumState,
 } from '../lib/session-token-accum.js';
 import { matchesBreakpoint } from '../lib/breakpoint-keywords.js';
 import { writeMarker } from '../lib/nudge-outcome-state.js';
@@ -134,7 +133,7 @@ function appendTelemetry(path: string, entry: TelemetryEntry): void {
   }
 }
 
-function buildStopReason(state: AccumState | null): string {
+function buildStopReason(): string {
   // The cache-heat branch that lived here was DEAD CODE (#3321 claim 3):
   // its input, cacheReadTokens, had no live writer because CC's
   // SubagentStop payload carries neither cache token field, so heat was
@@ -220,7 +219,7 @@ export function preCompactTaskDonePrompt(
   // BOTH reason and stopReason (#3321 claim 6): CC's PreCompact block message
   // is `json.reason || stderr`; stopReason is never consulted on this path.
   // Keep decision:'block' — continue:false alone does not block here.
-  const blockMessage = buildStopReason(state);
+  const blockMessage = buildStopReason();
   return {
     continue: false,
     decision: 'block',
