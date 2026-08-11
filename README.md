@@ -276,6 +276,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.24](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.23...v10.0.0-alpha.24)** · 2026-08-11
+
+- **security-tests:** fail loudly on a broken payload (#3446)
+- **workflows:** rename plugin workflows to .js so they actually register (#3445)
+
 **[v10.0.0-alpha.23](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.22...v10.0.0-alpha.23)** · 2026-08-11
 
 - **chain-patterns:** correct Pattern 8 /loop facts against official docs (#3442)
@@ -309,11 +314,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** read the payload keys CC actually sends (#3425)
 - **skills:** teach both reachability gates the 4th activation path (#3426)
 - …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-alpha.16](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.15...v10.0.0-alpha.16)** · 2026-08-10
-
-- **ci:** contract probe looked in the one layout runners lack (#3417)
-- **hooks:** branch guard's third path never ran, in 1763 sessions (#3414)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
