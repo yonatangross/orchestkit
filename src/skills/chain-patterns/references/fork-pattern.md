@@ -95,27 +95,23 @@ Fork C: [cached prefix] + "Scope: check test coverage..." (~10% new)
 
 ## Context Stager Behavior
 
-The `subagent-context-stager` SubagentStart hook detects forks via `input.is_fork`:
-- **Fork = true**: Skip heavy context injection (CLAUDE.md rules, decisions, task list) — fork inherits parent context
-- **Fork = false**: Full context staging (standard Agent cold-start path)
-
-This prevents double-injection that wastes tokens and can confuse the model.
+There is no fork branch. This section used to say the SubagentStart stager
+detects forks via `input.is_fork` and skips heavy context injection for them.
+Neither half was true: no hook has ever read `is_fork`, and CC does not send
+it (#3321 claim 3). Every subagent gets the same staging path.
 
 ## Analytics
 
-Fork metrics are logged to `subagent-quality.jsonl`:
-```json
-{
-  "agent": "backend-system-architect",
-  "is_fork": true,
-  "cache_creation_tokens": 150000,
-  "cache_read_tokens": 148500,
-  "cache_hit_pct": 99.0,
-  "duration_ms": 12500
-}
-```
+`subagent-quality.jsonl` carries no fork or cache columns. It used to log
+`is_fork` and `cache_hit_pct`, computed from three SubagentStop payload fields
+CC never sends — verified against the 2.1.228 payload builder and measured
+across 11,020 real rows (`cache_hit_pct` present in 0, `is_fork:true` in 0).
+Both columns were removed in #3321 rather than left reporting a constant.
 
-Compare `cache_hit_pct` between fork and non-fork agents to measure savings.
+To measure fork cache savings you need a source that exists. Nothing in the
+hook payload provides one today; the per-turn `usage` block in the session
+transcript is the only place CC reports cache tokens (see
+`src/hooks/src/lib/transcript-context.ts` for the read pattern).
 
 ## Fallback Strategy
 

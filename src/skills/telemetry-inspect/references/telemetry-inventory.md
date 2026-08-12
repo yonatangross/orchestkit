@@ -23,7 +23,7 @@ Note: `appendAnalytics` writes its own filename set (`task-usage.jsonl`, `team-a
 |------|--------------|------------------|
 | `.claude/telemetry/image-responses.jsonl` | `posttool/context-crossing-warn` | `isValidImageResponseEntry` |
 | `.claude/telemetry/pre-compact-decisions.jsonl` | `lifecycle/pre-compact-task-done-prompt` | `isValidPreCompactDecisionEntry` |
-| `.claude/logs/decisions.jsonl` | **none — producer never built** (schema shipped in M121 `d5ea63562` without a writer; `lifecycle/pre-compact-saver`, `stop/handoff-writer`, `prompt/context-exhaustion-warner` are READERS that degrade gracefully on absence) | `isValidDecisionLogEntry` |
+| `.claude/logs/decisions.jsonl` | **none — producer never built** (schema shipped in M121 `d5ea63562` without a writer; `lifecycle/pre-compact-saver` and `stop/handoff-writer` are READERS that degrade gracefully on absence. A third reader, `prompt/context-exhaustion-warner`, was deleted in #3427 — its own data source had no writer either) | `isValidDecisionLogEntry` |
 | `.claude/logs/subagent-spawns.jsonl` | `pretool/task/spawn-intent-logger`, `subagent-start/subagent-validator` | `isValidSubagentSpawnEntry` |
 | `.claude/state/edit-history.jsonl` | `posttool/write/edit-history-tracker` | `isValidEditHistoryEntry` |
 | `.claude/state/ork-metrics-*.json` | `posttool/metrics-bridge` | `isValidOrkMetricsSnapshot` |

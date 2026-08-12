@@ -267,12 +267,23 @@ export interface HookInput {
   /** New working directory (CwdChanged) */
   new_cwd?: string;
 
-  // SubagentStart context (CC 2.1.89)
-  /** Whether this subagent was forked (cache-sharing) vs cold-started (CC 2.1.89) */
+  // Fork/cache fields — NONE of these are sent on any hook event (#3321 claim 3).
+  // #1227 declared them off the CC 2.1.89 changelog without probing a payload.
+  // Verified against the 2.1.228 binary: SubagentStart builds
+  // {...base, hook_event_name, agent_id, agent_type} and SubagentStop builds
+  // {...base, hook_event_name, stop_hook_active, agent_id,
+  //  agent_transcript_path, agent_type, last_assistant_message,
+  //  background_tasks, session_crons}; the shared base contributes
+  // {session_id, transcript_path, cwd, prompt_id, permission_mode, agent_id,
+  //  agent_type, effort}. `is_fork` exists in the binary only as a field on
+  // CC's internal tengu_agent_tool_selected telemetry event, never in a hook
+  // payload. Kept declared (not deleted) so the next reader finds the verdict
+  // instead of re-deriving it — same convention as worktree_name below.
+  /** NOT sent on any hook event — see the note above. */
   is_fork?: boolean;
-  /** Cache creation input tokens (CC 2.1.89 — SubagentStop) */
+  /** NOT sent on any hook event — see the note above. */
   cache_creation_input_tokens?: number;
-  /** Cache read input tokens (CC 2.1.89 — SubagentStop) */
+  /** NOT sent on any hook event — see the note above. */
   cache_read_input_tokens?: number;
 
   // FileChanged fields. The 2.1.227 binary builds this payload as

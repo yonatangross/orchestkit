@@ -4,17 +4,23 @@
 /**
  * Session-scoped token accumulator state.
  *
- * Single source of truth for per-session token + cache tracking, shared by:
+ * Per-session estimator telemetry:
  *   - posttool/context-crossing-warn (writes estimatedTokens per tool result)
- *   - subagent-stop/unified-dispatcher (writes cacheRead/Creation tokens per agent end)
- *   - lifecycle/pre-compact-task-done-prompt (reads to gate on imminent zone +
- *     adapt message based on cache heat)
+ *   - stop/goal-tracker + prompt/goal-tracker (read estimatedTokens as a
+ *     recorded figure, never as a gate)
  *
- * Both writers do read-modify-write through atomicWriteSync. The two writers
- * fire on different lifecycle events (PostToolUse vs SubagentStop) so concurrent
- * write races are rare; when they do happen, last-writer-wins on the overlapping
- * fields. Token counts are incremental so worst case is one missed update —
- * acceptable for telemetry-grade data feeding heuristic thresholds.
+ * `estimatedTokens` is a PARTIAL, ESTIMATED figure and nothing may gate on it
+ * as if it were session context (#3321 claim 2). Its writer sees only
+ * `Read|Grep|Glob|WebFetch|WebSearch` results and converts them with a
+ * characters-per-token heuristic, so it is neither the whole context nor a
+ * measurement of it. Anything comparing against the context window must use
+ * `lib/transcript-context.ts`, which reads CC's own reported usage.
+ *
+ * The second writer, subagent-stop/unified-dispatcher, was removed with the
+ * cache-heat machinery in #3427: CC's SubagentStop payload carries neither
+ * cache token field, so it never wrote anything. The single remaining writer
+ * does read-modify-write through atomicWriteSync; token counts are
+ * incremental so a lost update costs one tool result of telemetry.
  */
 
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
@@ -126,7 +132,7 @@ export function loadAccumStateOrNull(projectDir: string, sessionId: string): Acc
 
 const DEFAULT_IMMINENT_PCT = 0.85;
 
-function readImminentPct(): number {
+export function readImminentPct(): number {
   const raw = process.env.ORK_CTX_IMMINENT_PCT;
   if (!raw) return DEFAULT_IMMINENT_PCT;
   const parsed = parseFloat(raw);
@@ -134,12 +140,28 @@ function readImminentPct(): number {
   return parsed;
 }
 
+/** Absolute token count at which the imminent zone starts. */
+export function imminentThreshold(): number {
+  return Math.round(getContextWindowTokens() * readImminentPct());
+}
+
 /**
- * #1480 — true when the session has crossed the imminent zone threshold
- * (default 85% of `CLAUDE_MAX_CONTEXT`). Returns false for null/missing state.
+ * #1480, corrected by #3321 claim 2 — true when MEASURED context occupancy has
+ * crossed the imminent zone (default 85% of `CLAUDE_MAX_CONTEXT`).
+ *
+ * This used to take `AccumState` and compare `estimatedTokens` against the
+ * threshold. That comparison was a unit mismatch, not a mis-calibration: the
+ * accumulator's only writer is registered under matcher
+ * `Read|Grep|Glob|WebFetch|WebSearch`, so its numerator excluded Bash, Edit,
+ * Write, agent results, MCP and every conversation turn, while the threshold
+ * was a whole-window figure. The gate returned false on 2,246 of 2,246
+ * recorded PreCompact invocations. See lib/transcript-context.ts for the
+ * measured source that replaces it.
+ *
+ * Returns false when there is no measurement, so an unreadable transcript
+ * fails OPEN (compaction proceeds) rather than blocking on a guess.
  */
-export function isInImminentZone(state: AccumState | null): boolean {
-  if (!state) return false;
-  const threshold = Math.round(getContextWindowTokens() * readImminentPct());
-  return state.estimatedTokens >= threshold;
+export function isInImminentZone(measuredContextTokens: number | null): boolean {
+  if (measuredContextTokens === null || measuredContextTokens <= 0) return false;
+  return measuredContextTokens >= imminentThreshold();
 }

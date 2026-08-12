@@ -70,6 +70,25 @@ export interface PreCompactDecisionEntry {
   cooldown?: boolean;
   /** True when the check was skipped due to ORK_NO_PRECOMPACT_PROMPT=1 */
   optOut?: boolean;
+  /**
+   * True when measured context had not reached the imminent zone. The writer
+   * has emitted this since #1480 — it was missing from this interface until
+   * #3321, which is its own small instance of a schema that did not describe
+   * its writer.
+   */
+  belowImminentZone?: boolean;
+  /**
+   * True when `trigger` was 'auto'. Auto-compaction is never blocked (#3321
+   * claim 2, following the #3452 precedent), and the hook short-circuits
+   * before measuring anything, so no other optional field accompanies this.
+   */
+  autoTrigger?: boolean;
+  /**
+   * Measured context occupancy at decision time, from CC's reported usage
+   * (#3321 claim 2). `null` means the transcript yielded no usable reading —
+   * distinct from 0, which would be a measurement of an empty context.
+   */
+  measuredContextTokens?: number | null;
 }
 
 export const PRE_COMPACT_DECISION_REQUIRED_KEYS: ReadonlyArray<keyof PreCompactDecisionEntry> = [
@@ -97,6 +116,19 @@ export function isValidPreCompactDecisionEntry(raw: unknown): raw is PreCompactD
   }
   if (entry.cooldown !== undefined && typeof entry.cooldown !== 'boolean') return false;
   if (entry.optOut !== undefined && typeof entry.optOut !== 'boolean') return false;
+  if (entry.belowImminentZone !== undefined && typeof entry.belowImminentZone !== 'boolean') {
+    return false;
+  }
+  if (entry.autoTrigger !== undefined && typeof entry.autoTrigger !== 'boolean') return false;
+  // null is a meaningful value here ("no measurement"), so it is accepted
+  // alongside a number and only other types are rejected.
+  if (
+    entry.measuredContextTokens !== undefined &&
+    entry.measuredContextTokens !== null &&
+    typeof entry.measuredContextTokens !== 'number'
+  ) {
+    return false;
+  }
   return true;
 }
 
@@ -397,6 +429,10 @@ export const CANONICAL_PRE_COMPACT_DECISION_ENTRY: PreCompactDecisionEntry = {
     quiescent: true,
     breakpointKeywords: true,
   },
+  // Deliberately only the required keys. This constant is snapshot-locked as a
+  // downstream contract, so optional fields (cooldown, optOut,
+  // belowImminentZone, autoTrigger, measuredContextTokens) are exercised by the
+  // validator tests instead of being added here.
 };
 
 export const CANONICAL_DECISION_LOG_ENTRY: DecisionLogEntry = {

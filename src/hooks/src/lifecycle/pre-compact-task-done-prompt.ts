@@ -5,14 +5,26 @@
 /**
  * PreCompact Task-Done Prompt — Issue #1469 (extended by M119 dogfood cluster)
  *
- * Blocks compact when ALL of:
+ * Blocks MANUAL compact when ALL of:
+ *   - trigger is 'manual' — auto-compaction always passes through
  *   - Imminent zone reached (#1480, default ~85% of CLAUDE_MAX_CONTEXT)
  *   - >= 2 of 3 signals match: gitQuiet, quiescent, breakpoint commit subject
  *   - 30-min cooldown elapsed since last fire
  *   - Not opted out (ORK_NO_PRECOMPACT_PROMPT)
  *
- * On fire: stopReason adapts to cache heat (#1479) and a per-session
- * nudge-outcome marker is written (#1476) for downstream resolvers.
+ * Never block auto (#3452 precedent, applied here by #3321 claim 2)
+ * -----------------------------------------------------------------
+ * This hook took `_input` and never read it, so it could not tell CC's
+ * automatic compaction from an explicit /compact. That was harmless only
+ * because the imminent gate never passed. #3321 claim 2 fixes the gate, which
+ * ARMS the block — so the trigger check has to land in the same change.
+ * Vetoing auto-compaction strands the session: at the ceiling CC offers
+ * "/compact or /clear", so a veto leaves only /clear, discarding the state
+ * the nudge exists to protect. `pre-compact-guard` learned this the hard way
+ * in #3452; the same rule applies here.
+ *
+ * On fire a per-session nudge-outcome marker is written (#1476) for
+ * downstream resolvers.
  *
  * Source for breakpoint signal swapped from decisions.jsonl to git log -1
  * commit subject (#1477) — universal and tied to actual repo state.
@@ -24,10 +36,8 @@ import { join, dirname } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess, getProjectDir, getSessionId } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
-import {
-  loadAccumStateOrNull,
-  isInImminentZone,
-} from '../lib/session-token-accum.js';
+import { isInImminentZone, imminentThreshold } from '../lib/session-token-accum.js';
+import { readMeasuredContextTokens } from '../lib/transcript-context.js';
 import { matchesBreakpoint } from '../lib/breakpoint-keywords.js';
 import { writeMarker } from '../lib/nudge-outcome-state.js';
 
@@ -43,6 +53,10 @@ interface TelemetryEntry {
   cooldown?: boolean;
   optOut?: boolean;
   belowImminentZone?: boolean;
+  /** Set when the trigger was 'auto' — auto-compaction is never blocked. */
+  autoTrigger?: boolean;
+  /** Measured context tokens at decision time, null when unmeasurable. */
+  measuredContextTokens?: number | null;
 }
 
 function readLastLines(path: string, n: number): string[] {
@@ -145,7 +159,7 @@ function buildStopReason(): string {
 }
 
 export function preCompactTaskDonePrompt(
-  _input: HookInput,
+  input: HookInput,
   ctx: HookContext = NOOP_CTX,
 ): HookResult {
   const projectDir = ctx.projectDir || getProjectDir();
@@ -153,6 +167,18 @@ export function preCompactTaskDonePrompt(
   const telemetry = join(projectDir, '.claude', 'telemetry', 'pre-compact-decisions.jsonl');
   const now = Date.now();
   const noSignals = { gitQuiet: false, quiescent: false, breakpointKeywords: false };
+
+  // Auto-compaction is never blocked (#3452 precedent) — see the header note.
+  if (input.trigger === 'auto') {
+    appendTelemetry(telemetry, {
+      timestamp: new Date(now).toISOString(),
+      fired: false,
+      signals: noSignals,
+      autoTrigger: true,
+    });
+    ctx.log(HOOK_NAME, 'silent — auto-compaction is never blocked');
+    return outputSilentSuccess();
+  }
 
   if (process.env.ORK_NO_PRECOMPACT_PROMPT === '1') {
     appendTelemetry(telemetry, {
@@ -176,16 +202,23 @@ export function preCompactTaskDonePrompt(
     return outputSilentSuccess();
   }
 
-  // #1480 — gate on imminent zone before running the heuristic
-  const state = loadAccumStateOrNull(projectDir, sessionId);
-  if (!isInImminentZone(state)) {
+  // #1480 gate, re-based on MEASURED usage by #3321 claim 2. The estimator
+  // this used to read counted a subset of tool results against a whole-window
+  // bar; `transcript_path` carries CC's own reported usage for the same unit
+  // on both sides. No measurement means no gate decision — fail open.
+  const measured = readMeasuredContextTokens(input.transcript_path);
+  if (!isInImminentZone(measured)) {
     appendTelemetry(telemetry, {
       timestamp: new Date(now).toISOString(),
       fired: false,
       signals: noSignals,
       belowImminentZone: true,
+      measuredContextTokens: measured,
     });
-    ctx.log(HOOK_NAME, `silent — below imminent zone (est ${state?.estimatedTokens ?? 'unknown'})`);
+    ctx.log(
+      HOOK_NAME,
+      `silent — below imminent zone (measured ${measured ?? 'unknown'} / ${imminentThreshold()})`,
+    );
     return outputSilentSuccess();
   }
 
@@ -201,6 +234,7 @@ export function preCompactTaskDonePrompt(
     timestamp: new Date(now).toISOString(),
     fired: fire,
     signals,
+    measuredContextTokens: measured,
   });
 
   if (!fire) {

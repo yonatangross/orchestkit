@@ -20,15 +20,11 @@ import {
   loadAccumStateOrNull,
   saveAccumState,
   isInImminentZone,
+  imminentThreshold,
   getStateFile,
 } from '../../lib/session-token-accum.js';
 
-const ENV_KEYS = [
-  'CLAUDE_MAX_CONTEXT',
-  'ORK_CACHE_HOT_THRESHOLD',
-  'ORK_NO_CACHE_AWARENESS',
-  'ORK_CTX_IMMINENT_PCT',
-];
+const ENV_KEYS = ['CLAUDE_MAX_CONTEXT', 'ORK_CTX_IMMINENT_PCT'];
 function clearEnv() {
   for (const k of ENV_KEYS) delete process.env[k];
 }
@@ -112,52 +108,46 @@ describe('session-token-accum', () => {
   // pattern as the TeammateIdle duration tests removed in the payload-key
   // fix. CC sends neither cache token field on SubagentStop.
 
+  // isInImminentZone takes a MEASURED token count, not AccumState (#3321
+  // claim 2). It used to take the state and read `estimatedTokens`, which is
+  // a partial figure written only from Read|Grep|Glob|WebFetch|WebSearch
+  // results — comparing it against a percentage of the whole window was a
+  // unit mismatch, and the gate returned false on 2,246 of 2,246 recorded
+  // invocations. The measurement itself comes from lib/transcript-context.ts.
   describe('isInImminentZone', () => {
-    it('returns false for null state', () => {
+    it('returns false when there is no measurement', () => {
       expect(isInImminentZone(null)).toBe(false);
+    });
+
+    it('returns false for a zero or negative measurement', () => {
+      process.env.CLAUDE_MAX_CONTEXT = '200000';
+      expect(isInImminentZone(0)).toBe(false);
+      expect(isInImminentZone(-1)).toBe(false);
     });
 
     it('returns true at imminent threshold (85% of 200k = 170k)', () => {
       process.env.CLAUDE_MAX_CONTEXT = '200000';
-      expect(
-        isInImminentZone({
-          estimatedTokens: 170_000,
-          cacheReadTokens: 0,
-          cacheCreationTokens: 0,
-          crossings: {},
-          firstSeenAt: '',
-          updatedAt: '',
-        }),
-      ).toBe(true);
+      expect(isInImminentZone(170_000)).toBe(true);
     });
 
     it('returns false below threshold', () => {
       process.env.CLAUDE_MAX_CONTEXT = '200000';
-      expect(
-        isInImminentZone({
-          estimatedTokens: 100_000,
-          cacheReadTokens: 0,
-          cacheCreationTokens: 0,
-          crossings: {},
-          firstSeenAt: '',
-          updatedAt: '',
-        }),
-      ).toBe(false);
+      expect(isInImminentZone(169_999)).toBe(false);
     });
 
     it('honours ORK_CTX_IMMINENT_PCT', () => {
       process.env.CLAUDE_MAX_CONTEXT = '200000';
       process.env.ORK_CTX_IMMINENT_PCT = '0.50';
-      expect(
-        isInImminentZone({
-          estimatedTokens: 100_000,
-          cacheReadTokens: 0,
-          cacheCreationTokens: 0,
-          crossings: {},
-          firstSeenAt: '',
-          updatedAt: '',
-        }),
-      ).toBe(true);
+      expect(isInImminentZone(100_000)).toBe(true);
+    });
+  });
+
+  describe('imminentThreshold', () => {
+    it('is the window times the imminent percentage', () => {
+      process.env.CLAUDE_MAX_CONTEXT = '200000';
+      expect(imminentThreshold()).toBe(170_000);
+      process.env.ORK_CTX_IMMINENT_PCT = '0.90';
+      expect(imminentThreshold()).toBe(180_000);
     });
   });
 });

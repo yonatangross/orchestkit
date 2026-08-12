@@ -217,24 +217,26 @@ function analyzeAndRecordTranscript(
     const metrics = analyzeTranscript(transcriptPath);
     if (!metrics) return;
 
-    // Fork cache metrics (CC 2.1.89 — #1227)
-    // cache_creation_input_tokens: tokens written to cache (cold miss)
-    // cache_read_input_tokens: tokens served from cache (hit)
-    // cache_hit_pct = read / (creation + read) — standard Anthropic definition
-    const isFork = Boolean(input.is_fork);
-    const cacheCreationTokens = input.cache_creation_input_tokens ?? 0;
-    const cacheReadTokens = input.cache_read_input_tokens ?? 0;
-    const cacheTotalTokens = cacheCreationTokens + cacheReadTokens;
-    const cacheHitPct = cacheTotalTokens > 0
-      ? Math.round((cacheReadTokens / cacheTotalTokens) * 100)
-      : undefined;
+    // The `is_fork` / `cache_hit_pct` columns that lived here were DEAD READS
+    // (#3321 claim 3). #1227 assumed CC 2.1.89 delivered is_fork,
+    // cache_creation_input_tokens and cache_read_input_tokens on SubagentStop.
+    // It never did. The 2.1.228 payload builder is
+    //   {...base, hook_event_name:"SubagentStop", stop_hook_active, agent_id,
+    //    agent_transcript_path, agent_type, last_assistant_message,
+    //    background_tasks, session_crons}
+    // and the base adds only {session_id, transcript_path, cwd, prompt_id,
+    // permission_mode, agent_id, agent_type, effort}. `is_fork` appears
+    // nowhere in ANY hook payload — its one occurrence in the binary is a
+    // field on CC's internal `tengu_agent_tool_selected` telemetry event.
+    // Measured against 11,020 real rows: cache_hit_pct present in 0,
+    // is_fork:true in 0, is_fork:false in 11,020. Two columns that could only
+    // ever say one thing are worse than no columns — they read as measurement.
 
     appendAnalytics('subagent-quality.jsonl', {
       ts: new Date().toISOString(),
       pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
       agent: agentType,
       agent_name: agentName ?? null,
-      is_fork: isFork,
       tool_call_count: metrics.tool_call_count,
       tool_counts: metrics.tool_counts,
       unique_tools: metrics.unique_tools,
@@ -242,7 +244,6 @@ function analyzeAndRecordTranscript(
       completion_status: metrics.completion_status,
       duration_ms: durationMs,
       ...(metrics.token_usage ? { token_usage: metrics.token_usage } : {}),
-      ...(cacheHitPct !== undefined ? { cache_hit_pct: cacheHitPct } : {}),
     });
   } catch {
     // Analytics should never break the hook chain

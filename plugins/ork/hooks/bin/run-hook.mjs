@@ -242,8 +242,33 @@ if (!hookName) {
 // EMPTY for worktree hooks (CC then provisions at its default path) and the
 // normal envelope for every other hook.
 const IS_WORKTREE_PATH_HOOK = hookName.startsWith('worktree/');
+
+// #3321 — PreCompact has the same "stdout is not an envelope channel" problem,
+// and it is worse than the worktree case because it fails SILENTLY. CC's
+// PreCompact aggregator (2.1.228) collects every non-blocked hook's stdout:
+//
+//   a = results.filter(d => d.succeeded && !d.blocked && d.output.trim())
+//   return { newCustomInstructions: a.join('\n\n'), ... }
+//
+// and for a command hook `output` is literally `R.stdout` when the hook exits
+// 0. `newCustomInstructions` is then passed as `customInstructions` into the
+// compaction summary request — it reaches the summarizer model. So every ork
+// PreCompact hook printing {"continue":true,"suppressOutput":true} was
+// injecting that JSON into the prompt that writes the session summary, on
+// every compaction. `suppressOutput` does not help: it governs transcript
+// display, not this read.
+//
+// Empty stdout keeps the hook a clean no-op — CC records succeeded with an
+// empty output and contributes nothing to the instructions.
+//
+// Name-based here because the early-exit paths run before stdin is parsed.
+// It covers the three dedicated PreCompact hooks; lifecycle/webhook-forwarder
+// fires on both Pre- and PostCompact, so it is gated by EVENT in
+// emitHookResult() below, which is the precise check.
+const IS_PRECOMPACT_HOOK = hookName.startsWith('lifecycle/pre-compact');
+
 function silentExit() {
-  if (!IS_WORKTREE_PATH_HOOK) console.log(SILENT_OK);
+  if (!IS_WORKTREE_PATH_HOOK && !IS_PRECOMPACT_HOOK) console.log(SILENT_OK);
   process.exit(0);
 }
 
@@ -594,8 +619,18 @@ function validateInput(input, hookName) {
 const WORKTREE_PATH_EVENTS = new Set(['WorktreeCreate', 'WorktreeRemove']);
 
 /**
- * Write a hook result to stdout, honoring the WorktreeCreate/WorktreeRemove
- * path-channel contract. For those events with no `worktreePath`, emit nothing.
+ * Write a hook result to stdout, honoring the per-event stdout contracts.
+ *
+ * WorktreeCreate/WorktreeRemove: stdout IS the worktree path. No `worktreePath`
+ * in the result means emit nothing (the hook declines) — see #2336 above.
+ *
+ * PreCompact: stdout becomes the compaction summarizer's custom instructions
+ * (#3321) — see the IS_PRECOMPACT_HOOK note above. Only a BLOCK has anything
+ * to say here, and CC reads a block from `reason`, not from stdout text, while
+ * excluding blocked hooks from the instruction join. So the envelope is
+ * printed for a block (that is where `reason` travels) and suppressed for
+ * every non-blocking result, which would otherwise be joined verbatim into the
+ * summary prompt.
  */
 function emitHookResult(result, firingEvent, hookType) {
   if (WORKTREE_PATH_EVENTS.has(firingEvent)) {
@@ -607,6 +642,9 @@ function emitHookResult(result, firingEvent, hookType) {
       console.log(worktreePath); // bare path — the command-type contract
       return;
     }
+  }
+  if (firingEvent === 'PreCompact' && result?.decision !== 'block') {
+    return; // empty stdout — never feed the summarizer an envelope
   }
   console.log(JSON.stringify(sanitizeOutput(result, firingEvent)));
 }
@@ -620,7 +658,14 @@ async function runHook(parsedInput) {
   const overrides = loadOverrides(projectDir);
 
   if (isHookDisabled(hookName, overrides)) {
-    console.log(SILENT_OK);
+    // Through emitHookResult, not a bare SILENT_OK: a disabled PreCompact hook
+    // must stay silent on stdout too, or being disabled still contributes an
+    // envelope to the compaction instructions (#3321).
+    emitHookResult(
+      { continue: true, suppressOutput: true },
+      parsedInput.hook_event || '',
+      parsedInput.type,
+    );
     return;
   }
 

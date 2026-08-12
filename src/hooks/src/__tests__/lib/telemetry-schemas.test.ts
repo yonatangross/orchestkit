@@ -163,6 +163,49 @@ describe('PreCompactDecisionEntry shape lock', () => {
     expect(isValidPreCompactDecisionEntry(bad)).toBe(false);
   });
 
+  // #3321 claim 2 added three optional fields the writer had been emitting (or
+  // began emitting) without the schema describing them.
+  it('accepts belowImminentZone / autoTrigger / measuredContextTokens', () => {
+    const base = {
+      timestamp: '2026-08-12T10:00:00.000Z',
+      fired: false,
+      signals: { gitQuiet: false, quiescent: false, breakpointKeywords: false },
+    };
+    expect(
+      isValidPreCompactDecisionEntry({
+        ...base,
+        belowImminentZone: true,
+        measuredContextTokens: 304_235,
+      }),
+    ).toBe(true);
+    expect(isValidPreCompactDecisionEntry({ ...base, autoTrigger: true })).toBe(true);
+  });
+
+  it('accepts a null measurement — null means "no reading", not zero', () => {
+    expect(
+      isValidPreCompactDecisionEntry({
+        timestamp: '2026-08-12T10:00:00.000Z',
+        fired: false,
+        signals: { gitQuiet: false, quiescent: false, breakpointKeywords: false },
+        belowImminentZone: true,
+        measuredContextTokens: null,
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects wrong types on the #3321 fields', () => {
+    const base = {
+      timestamp: '2026-08-12T10:00:00.000Z',
+      fired: false,
+      signals: { gitQuiet: false, quiescent: false, breakpointKeywords: false },
+    };
+    expect(isValidPreCompactDecisionEntry({ ...base, belowImminentZone: 'yes' })).toBe(false);
+    expect(isValidPreCompactDecisionEntry({ ...base, autoTrigger: 1 })).toBe(false);
+    expect(isValidPreCompactDecisionEntry({ ...base, measuredContextTokens: '304235' })).toBe(
+      false,
+    );
+  });
+
   it('snapshot of canonical entry JSON (downstream contract lock)', () => {
     expect(JSON.stringify(CANONICAL_PRE_COMPACT_DECISION_ENTRY)).toBe(
       '{"timestamp":"2026-04-23T12:34:56.000Z","fired":true,"signals":{"gitQuiet":true,"quiescent":true,"breakpointKeywords":true}}',

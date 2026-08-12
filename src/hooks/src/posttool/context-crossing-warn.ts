@@ -20,10 +20,19 @@
  * (premature during healthy work). Anchoring at CC's auto-compact point (~85%)
  * keeps the nudge near the actual decision moment regardless of window size.
  *
- * **Cache-aware messaging (#1479)** — at 1M context, prompt cache value can
- * be substantial. /clear nukes cache; /compact preserves continuity. When the
- * session has accumulated >50k cache-read tokens, the message recommends
- * /compact instead of presenting both as equal siblings.
+ * **Measured, not estimated (#3321 claim 2)** — zone decisions read CC's own
+ * reported usage from `transcript_path`, not this hook's own running estimate.
+ * The estimate cannot answer the question the zones ask: this hook is
+ * registered under matcher `Read|Grep|Glob|WebFetch|WebSearch`, so its counter
+ * excludes Bash, Edit, Write, agent results, MCP and every conversation turn,
+ * while the thresholds are percentages of the WHOLE window. Comparing the two
+ * was a unit mismatch. `estimatedTokens` is still accumulated and saved, as
+ * estimator-accuracy telemetry (#1478) and as the goal-trackers' recorded
+ * figure — but nothing gates on it. See lib/transcript-context.ts.
+ *
+ * The cache-aware messaging variant (#1479) and its ORK_CACHE_HOT_THRESHOLD /
+ * ORK_NO_CACHE_AWARENESS knobs were deleted in #3427: their input had no live
+ * writer, because CC's SubagentStop payload carries neither cache token field.
  *
  * Config:
  *   ORK_NO_CTX_WARN=1                — fully disable
@@ -31,8 +40,6 @@
  *                                      threshold; suppresses wind-down zone
  *   ORK_CTX_WINDDOWN_PCT=0.70        — wind-down zone start (fraction of window)
  *   ORK_CTX_IMMINENT_PCT=0.85        — imminent zone start (fraction of window)
- *   ORK_CACHE_HOT_THRESHOLD=50000    — cache-read tokens that flip messaging
- *   ORK_NO_CACHE_AWARENESS=1         — force neutral messaging
  *   CLAUDE_MAX_CONTEXT=N             — active context window in tokens
  */
 
@@ -53,11 +60,8 @@ import {
   type ContentKind,
 } from '../lib/token-estimator.js';
 import { getContextWindowTokens } from '../lib/context-window.js';
-import {
-  loadAccumState,
-  saveAccumState,
-  type AccumState,
-} from '../lib/session-token-accum.js';
+import { loadAccumState, saveAccumState } from '../lib/session-token-accum.js';
+import { readMeasuredContextTokens } from '../lib/transcript-context.js';
 
 const HOOK_NAME = 'posttool/context-crossing-warn';
 
@@ -152,15 +156,14 @@ function pctOfWindow(tokens: number, windowTokens: number): number {
 
 function buildMessage(
   zone: 'windDown' | 'imminent',
-  state: AccumState,
+  used: number,
   zones: ZoneThresholds,
 ): string {
-  const used = state.estimatedTokens;
   const usedPct = pctOfWindow(used, zones.windowTokens);
 
   if (zone === 'windDown') {
     return (
-      `[context] Approaching compact zone — est. ${formatNumber(used)} tokens (~${usedPct}% of window). ` +
+      `[context] Approaching compact zone — ${formatNumber(used)} tokens (~${usedPct}% of window). ` +
       `Natural breakpoint soon? /clear for a fresh task, /compact to keep history.`
     );
   }
@@ -170,7 +173,7 @@ function buildMessage(
   // never fired. Deleted with the machinery.
   return (
     `[context] Session context crossed ~${formatNumber(zones.imminent)} tokens ` +
-    `(est. ${formatNumber(used)}, ~${usedPct}% of window). ` +
+    `(${formatNumber(used)}, ~${usedPct}% of window). ` +
     `/clear to start a fresh task with zero context cost, ` +
     `/compact to keep history and continue.`
   );
@@ -204,21 +207,24 @@ export function contextCrossingWarn(
       logImageEvent(projectDir, input.tool_name, sampleText.length);
     }
 
+    // Zone decisions read MEASURED occupancy (#3321 claim 2), never the
+    // running estimate above. `null` means CC reported nothing usable this
+    // turn — say nothing rather than guess.
+    const measured = readMeasuredContextTokens(input.transcript_path);
+
     // Decide which zone (if any) just crossed. Imminent wins over wind-down
     // when both cross in the same call (e.g. very large single tool result).
     let firedZone: 'windDown' | 'imminent' | null = null;
     let firedKey: string | null = null;
 
-    if (
-      state.estimatedTokens >= zones.imminent &&
-      state.crossings[zones.imminentKey] !== true
-    ) {
+    if (measured !== null && measured >= zones.imminent && state.crossings[zones.imminentKey] !== true) {
       firedZone = 'imminent';
       firedKey = zones.imminentKey;
     } else if (
+      measured !== null &&
       zones.windDown !== null &&
       zones.windDownKey !== null &&
-      state.estimatedTokens >= zones.windDown &&
+      measured >= zones.windDown &&
       state.crossings[zones.windDownKey] !== true
     ) {
       firedZone = 'windDown';
@@ -236,12 +242,13 @@ export function contextCrossingWarn(
 
     saveAccumState(projectDir, sessionId, state);
 
-    if (firedZone) {
-      const msg = buildMessage(firedZone, state, zones);
+    if (firedZone && measured !== null) {
+      const msg = buildMessage(firedZone, measured, zones);
       ctx.log(
         HOOK_NAME,
-        `${firedZone} fired at ${state.estimatedTokens} tokens ` +
-          `(threshold ${firedZone === 'imminent' ? zones.imminent : zones.windDown})`,
+        `${firedZone} fired at ${measured} measured tokens ` +
+          `(threshold ${firedZone === 'imminent' ? zones.imminent : zones.windDown}, ` +
+          `estimator said ${state.estimatedTokens})`,
       );
       return outputWithContext(msg);
     }

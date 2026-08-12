@@ -6,7 +6,10 @@
  * Unit tests for pre-compact-task-done-prompt hook.
  *
  * Heuristic fires when:
- *   - imminent zone reached (accumulator estimatedTokens ≥ 85% of window)
+ *   - trigger is 'manual' (auto-compaction is never blocked, #3452 precedent)
+ *   - AND imminent zone reached — MEASURED context >= 85% of window (#3321
+ *     claim 2; this used to read the estimator, whose units did not match the
+ *     threshold, and the gate never passed in 2,246 recorded invocations)
  *   - AND >= 2 of 3 signals match: gitQuiet, quiescent, breakpointKeywords
  *   - AND not opted out, AND outside 30-min cooldown
  *
@@ -30,6 +33,13 @@ vi.mock('node:child_process', () => ({
   execFileSync: vi.fn(() => ''),
 }));
 
+const { measuredMock } = vi.hoisted(() => ({
+  measuredMock: vi.fn<(p: string | undefined) => number | null>(),
+}));
+vi.mock('../../lib/transcript-context.js', () => ({
+  readMeasuredContextTokens: measuredMock,
+}));
+
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { preCompactTaskDonePrompt } from '../../lifecycle/pre-compact-task-done-prompt.js';
@@ -38,13 +48,20 @@ import { execFileSync } from 'node:child_process';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
-function makeInput(): HookInput {
-  return { tool_name: 'PreCompact', session_id: 'test', tool_input: {} };
+function makeInput(overrides: Partial<HookInput> = {}): HookInput {
+  return {
+    tool_name: 'PreCompact',
+    session_id: 'test',
+    trigger: 'manual',
+    transcript_path: '/test/project/.claude/transcript.jsonl',
+    tool_input: {},
+    ...overrides,
+  };
 }
 
 const PROJECT_DIR = '/test/project';
 const TEST_WINDOW = 200_000;
-// Imminent zone at 85% of 200k = 170k. State puts us above that.
+// Imminent zone at 85% of 200k = 170k. Default measurement sits above that.
 const ABOVE_IMMINENT = 175_000;
 
 interface StubOpts {
@@ -52,17 +69,11 @@ interface StubOpts {
   spawnLogLines?: string[];
   commitSubject?: string;
   telemetryLines?: string[];
-  /** When false, accumulator state is missing → imminent gate suppresses fire. */
-  imminent?: boolean;
-  /** Override accumulator state shape directly. */
-  accumState?: Partial<{
-    estimatedTokens: number;
-    cacheReadTokens: number;
-    cacheCreationTokens: number;
-    crossings: Record<string, boolean>;
-    firstSeenAt: string;
-    updatedAt: string;
-  }>;
+  /**
+   * Measured context tokens CC reported for the last turn. `null` models an
+   * unreadable/absent transcript — no measurement, so no gate decision.
+   */
+  measured?: number | null;
 }
 
 function stubSignals(opts: StubOpts): void {
@@ -79,22 +90,12 @@ function stubSignals(opts: StubOpts): void {
     return '';
   }) as unknown as typeof execFileSync);
 
-  const inImminent = opts.imminent ?? true;
-  const accumState = inImminent
-    ? {
-        estimatedTokens: ABOVE_IMMINENT,
-        cacheReadTokens: 0,
-        cacheCreationTokens: 0,
-        crossings: { 'imminent:170000': true },
-        firstSeenAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date(Date.now() - 60_000).toISOString(),
-        ...opts.accumState,
-      }
-    : null;
+  measuredMock.mockReturnValue(
+    opts.measured === undefined ? ABOVE_IMMINENT : opts.measured,
+  );
 
   vi.mocked(existsSync).mockImplementation(((path: unknown) => {
     const p = String(path);
-    if (p.includes('token-accum.json')) return accumState !== null;
     if (p.endsWith('subagent-spawns.jsonl')) return !!opts.spawnLogLines?.length;
     if (p.endsWith('pre-compact-decisions.jsonl')) return !!opts.telemetryLines?.length;
     return false;
@@ -102,14 +103,13 @@ function stubSignals(opts: StubOpts): void {
 
   vi.mocked(readFileSync).mockImplementation(((path: unknown) => {
     const p = String(path);
-    if (p.includes('token-accum.json') && accumState) return JSON.stringify(accumState);
     if (p.endsWith('subagent-spawns.jsonl')) return (opts.spawnLogLines ?? []).join('\n');
     if (p.endsWith('pre-compact-decisions.jsonl')) return (opts.telemetryLines ?? []).join('\n');
     return '';
   }) as unknown as typeof readFileSync);
 }
 
-const ENV_KEYS = ['ORK_NO_PRECOMPACT_PROMPT', 'CLAUDE_MAX_CONTEXT', 'ORK_CTX_IMMINENT_PCT', 'ORK_NO_CACHE_AWARENESS'];
+const ENV_KEYS = ['ORK_NO_PRECOMPACT_PROMPT', 'CLAUDE_MAX_CONTEXT', 'ORK_CTX_IMMINENT_PCT'];
 function clearEnv() {
   for (const k of ENV_KEYS) delete process.env[k];
 }
@@ -119,6 +119,8 @@ describe('preCompactTaskDonePrompt', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    measuredMock.mockReset();
+    measuredMock.mockReturnValue(ABOVE_IMMINENT);
     ctx = createTestContext({ projectDir: PROJECT_DIR });
     clearEnv();
     process.env.CLAUDE_MAX_CONTEXT = String(TEST_WINDOW);
@@ -203,19 +205,51 @@ describe('preCompactTaskDonePrompt', () => {
     // branch and machinery are deleted.
   });
 
-  describe('imminent-zone gate (#1480)', () => {
-    it('stays silent when accumulator state is missing', () => {
+  describe('auto-compaction is never blocked (#3452 precedent, #3321 claim 2)', () => {
+    it('passes through when trigger is auto, even with every fire signal', () => {
       stubSignals({
         changedFiles: 0,
         commitSubject: 'merged main',
         spawnLogLines: [],
-        imminent: false,
+      });
+      const result = preCompactTaskDonePrompt(makeInput({ trigger: 'auto' }), ctx);
+      expect(result.continue).toBe(true);
+      expect(result.decision).toBeUndefined();
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    it('records the auto passthrough in telemetry and reads nothing else', () => {
+      stubSignals({ changedFiles: 0, commitSubject: 'merged main' });
+      preCompactTaskDonePrompt(makeInput({ trigger: 'auto' }), ctx);
+      const body = JSON.parse(String(vi.mocked(appendFileSync).mock.calls[0][1]).trim());
+      expect(body.autoTrigger).toBe(true);
+      expect(body.fired).toBe(false);
+      // Short-circuits before any measurement or git work.
+      expect(measuredMock).not.toHaveBeenCalled();
+      expect(execFileSync).not.toHaveBeenCalled();
+    });
+
+    it('still blocks an explicit /compact under the same signals', () => {
+      stubSignals({ changedFiles: 0, commitSubject: 'merged main' });
+      const result = preCompactTaskDonePrompt(makeInput({ trigger: 'manual' }), ctx);
+      expect(result.decision).toBe('block');
+    });
+  });
+
+  describe('imminent-zone gate (#1480, measured by #3321 claim 2)', () => {
+    it('stays silent when there is no measurement (unreadable transcript)', () => {
+      stubSignals({
+        changedFiles: 0,
+        commitSubject: 'merged main',
+        spawnLogLines: [],
+        measured: null,
       });
       const result = preCompactTaskDonePrompt(makeInput(), ctx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       const body = JSON.parse(String(vi.mocked(appendFileSync).mock.calls[0][1]).trim());
       expect(body.belowImminentZone).toBe(true);
+      expect(body.measuredContextTokens).toBe(null);
       expect(body.fired).toBe(false);
     });
 
@@ -223,15 +257,28 @@ describe('preCompactTaskDonePrompt', () => {
       stubSignals({
         changedFiles: 0,
         commitSubject: 'merged main',
-        accumState: {
-          estimatedTokens: 80_000, // 40% of 200k window — below imminent
-        },
+        measured: 80_000, // 40% of the 200k window
       });
       const result = preCompactTaskDonePrompt(makeInput(), ctx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       const body = JSON.parse(String(vi.mocked(appendFileSync).mock.calls[0][1]).trim());
       expect(body.belowImminentZone).toBe(true);
+      expect(body.measuredContextTokens).toBe(80_000);
+    });
+
+    it('reads the measurement from the payload transcript_path', () => {
+      stubSignals({ changedFiles: 10, measured: 1 });
+      preCompactTaskDonePrompt(makeInput({ transcript_path: '/tmp/x.jsonl' }), ctx);
+      expect(measuredMock).toHaveBeenCalledWith('/tmp/x.jsonl');
+    });
+
+    it('records the measurement alongside a fire', () => {
+      stubSignals({ changedFiles: 0, commitSubject: 'merged main', measured: 190_000 });
+      const result = preCompactTaskDonePrompt(makeInput(), ctx);
+      expect(result.decision).toBe('block');
+      const body = JSON.parse(String(vi.mocked(appendFileSync).mock.calls[0][1]).trim());
+      expect(body.measuredContextTokens).toBe(190_000);
     });
   });
 
