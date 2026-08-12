@@ -60,7 +60,11 @@ export interface HookInput {
   tool_response?: unknown;
   /** Tool output (PostToolUse only) — legacy alias for tool_response */
   tool_output?: unknown;
-  /** Tool error message if any */
+  /** NOT sent by CC — the 2.1.228 binary builds PostToolUseFailure as
+   *  {tool_name, tool_input, tool_use_id, error, is_interrupt, duration_ms}
+   *  (verified from the shipped binary's decompiled payload builder, #3418).
+   *  `error` (declared below, shared with SubagentStop/StopFailure) is the
+   *  field CC actually sends. Kept only so old readers typecheck. */
   tool_error?: string;
   /** Tool exit code */
   exit_code?: number;
@@ -117,7 +121,9 @@ export interface HookInput {
   agent_output?: string;
   /** Output (alternative field name) */
   output?: string;
-  /** Error from subagent */
+  /** Error from subagent (SubagentStop/StopFailure) — also the real field
+   *  PostToolUseFailure sends for the tool's error message (verified 2.1.228,
+   *  #3418; `tool_error` above is never populated). */
   error?: string;
   /** Duration in milliseconds */
   duration_ms?: number;

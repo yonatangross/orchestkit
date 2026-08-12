@@ -40,13 +40,17 @@
 # WHY FAILURE IS LOUD, UNLIKE labs-version-probe.yml
 #
 # That probe deliberately never fails the nightly, because pin drift is
-# informational. Here BOTH non-zero exits are actionable and both fail the job:
+# informational. Here ALL THREE non-zero exits are actionable and all fail the job:
 #
 #   1  drift            the binary names an event our allow-list lacks, so hooks
 #                       are writing to a contract the binary contradicts
 #   2  CANNOT-OBSERVE   the binary was not found, so the gate saw nothing. A
 #                       contract gate that cannot observe must never look green;
 #                       that failure mode is the reason this workflow exists.
+#   3  unreviewed       the allow-list asserts an event neither the binary nor a
+#                       reviewed exception corroborates (#3418) — an unproven
+#                       contract assertion, the other drift direction the
+#                       missing-only check (exit 1) cannot see.
 #
 # OPEN QUESTION ON FIRST RUN
 #
@@ -145,6 +149,11 @@ jobs:
               echo 'CANNOT-OBSERVE — the binary was not found, so nothing was verified. Read the'
               echo 'binary-layout summary above and fix the install or the lookup path. A contract'
               echo 'gate that cannot observe must never look green.'
+            elif [ "$rc" -eq 3 ]; then
+              echo 'UNREVIEWED — the allow-list asserts an additionalContext event neither the'
+              echo 'binary nor a reviewed exception corroborates (#3418). Settle it by trace-and-'
+              echo 'observe evidence and add it to ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS, or'
+              echo 'remove the entry if it is not actually supported. See the output below.'
             else
               echo "Unexpected exit ${rc}."
             fi

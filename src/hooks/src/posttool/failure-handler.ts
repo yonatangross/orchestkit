@@ -97,8 +97,11 @@ function trackFailureAndMaybeEnableDebug(): void {
 }
 
 export function failureHandler(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
-  // Get error information from the input
-  const errorMessage = input.tool_error || '';
+  // Get error information from the input. CC sends this as `error`, not
+  // `tool_error` — the latter is never populated (verified against the
+  // shipped binary's payload builder, #3418), which made this handler
+  // silently no-op on every real tool failure.
+  const errorMessage = input.error || '';
   const toolName = input.tool_name || 'unknown';
   // CC 2.1.119: duration_ms is set server-side on PostToolUse + PostToolUseFailure
   // — accurate for streaming/async tools where local Date.now() would miss

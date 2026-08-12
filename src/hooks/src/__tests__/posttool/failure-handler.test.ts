@@ -56,7 +56,7 @@ describe('failureHandler', () => {
 
   it('suggests fix for file not found errors', () => {
     const result = failureHandler(makeInput({
-      tool_error: 'ENOENT: no such file or directory',
+      error: 'ENOENT: no such file or directory',
       exit_code: 1,
     }), testCtx);
     expect(result.continue).toBe(true);
@@ -65,7 +65,7 @@ describe('failureHandler', () => {
 
   it('suggests fix for permission denied errors', () => {
     const result = failureHandler(makeInput({
-      tool_error: 'EACCES: permission denied',
+      error: 'EACCES: permission denied',
       exit_code: 1,
     }), testCtx);
     expect(result.continue).toBe(true);
@@ -74,7 +74,7 @@ describe('failureHandler', () => {
 
   it('suggests fix for timeout errors', () => {
     const result = failureHandler(makeInput({
-      tool_error: 'Command timed out after 120000ms',
+      error: 'Command timed out after 120000ms',
       exit_code: 1,
     }), testCtx);
     expect(result.continue).toBe(true);
@@ -83,7 +83,7 @@ describe('failureHandler', () => {
 
   it('returns silent success for unknown error patterns', () => {
     const result = failureHandler(makeInput({
-      tool_error: 'some unknown error xyz',
+      error: 'some unknown error xyz',
       exit_code: 1,
     }), testCtx);
     expect(result.continue).toBe(true);
@@ -92,7 +92,7 @@ describe('failureHandler', () => {
 
   it('handles multiple matching patterns', () => {
     const result = failureHandler(makeInput({
-      tool_error: 'ENOENT: no such file or directory, syntax error in config',
+      error: 'ENOENT: no such file or directory, syntax error in config',
       exit_code: 1,
     }), testCtx);
     expect(result.continue).toBe(true);
@@ -109,7 +109,7 @@ describe('failureHandler — additional error patterns', () => {
 
   it('suggests fix for network errors (ECONNREFUSED)', () => {
     const result = failureHandler(makeInput({
-      tool_error: 'ECONNREFUSED: connection refused to localhost:5432',
+      error: 'ECONNREFUSED: connection refused to localhost:5432',
       exit_code: 1,
     }), testCtx);
     expect(result.continue).toBe(true);
@@ -118,7 +118,7 @@ describe('failureHandler — additional error patterns', () => {
 
   it('suggests fix for network errors (ETIMEDOUT)', () => {
     const result = failureHandler(makeInput({
-      tool_error: 'ETIMEDOUT: request timed out',
+      error: 'ETIMEDOUT: request timed out',
       exit_code: 1,
     }), testCtx);
     expect(result.continue).toBe(true);
@@ -127,7 +127,7 @@ describe('failureHandler — additional error patterns', () => {
 
   it('suggests fix for command not found', () => {
     const result = failureHandler(makeInput({
-      tool_error: 'npx: command not found',
+      error: 'npx: command not found',
       exit_code: 127,
     }), testCtx);
     expect(result.continue).toBe(true);
@@ -136,7 +136,7 @@ describe('failureHandler — additional error patterns', () => {
 
   it('suggests fix for out of memory errors (ENOMEM)', () => {
     const result = failureHandler(makeInput({
-      tool_error: 'ENOMEM: not enough memory',
+      error: 'ENOMEM: not enough memory',
       exit_code: 1,
     }), testCtx);
     expect(result.continue).toBe(true);
@@ -145,7 +145,7 @@ describe('failureHandler — additional error patterns', () => {
 
   it('suggests fix for out of memory errors (heap)', () => {
     const result = failureHandler(makeInput({
-      tool_error: 'JavaScript heap out of memory',
+      error: 'JavaScript heap out of memory',
       exit_code: 1,
     }), testCtx);
     expect(result.continue).toBe(true);
@@ -154,7 +154,7 @@ describe('failureHandler — additional error patterns', () => {
 
   it('suggests fix for merge conflicts', () => {
     const result = failureHandler(makeInput({
-      tool_error: 'CONFLICT (content): Merge conflict in src/index.ts',
+      error: 'CONFLICT (content): Merge conflict in src/index.ts',
       exit_code: 1,
     }), testCtx);
     expect(result.continue).toBe(true);
@@ -163,7 +163,7 @@ describe('failureHandler — additional error patterns', () => {
 
   it('suggests fix for resource lock errors', () => {
     const result = failureHandler(makeInput({
-      tool_error: 'ELOCK: file is locked by another process',
+      error: 'ELOCK: file is locked by another process',
       exit_code: 1,
     }), testCtx);
     expect(result.continue).toBe(true);
@@ -172,7 +172,7 @@ describe('failureHandler — additional error patterns', () => {
 
   it('suggests fix for type errors', () => {
     const result = failureHandler(makeInput({
-      tool_error: 'TypeError: Cannot read properties of undefined',
+      error: 'TypeError: Cannot read properties of undefined',
       exit_code: 1,
     }), testCtx);
     expect(result.continue).toBe(true);
@@ -182,15 +182,15 @@ describe('failureHandler — additional error patterns', () => {
   it('includes tool name in context header', () => {
     const result = failureHandler(makeInput({
       tool_name: 'Write',
-      tool_error: 'ENOENT: no such file or directory',
+      error: 'ENOENT: no such file or directory',
       exit_code: 1,
     }), testCtx);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Write');
   });
 
-  it('handles empty tool_error with non-zero exit code', () => {
+  it('handles empty error with non-zero exit code', () => {
     const result = failureHandler(makeInput({
-      tool_error: '',
+      error: '',
       exit_code: 1,
     }), testCtx);
     expect(result.continue).toBe(true);

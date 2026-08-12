@@ -21,6 +21,23 @@
  *   node scripts/derive-cc-output-keys.mjs --check   fail if the generated
  *                                                    module contradicts it
  *
+ * The --check gate is BIDIRECTIONAL (#3418). It used to be missing-only:
+ *
+ *   binaryEvents.filter(e => !allowed.has(e))
+ *
+ * which fails when the binary names an event the allow-list LACKS, but is
+ * structurally silent when the allow-list asserts an event the binary does
+ * not name — 6 of the 9 EVENTS_WITH_ADDITIONAL_CONTEXT entries were exactly
+ * that, uncorroborated in either direction, and one of them (PostCompact) had
+ * independent evidence of being wrong. The gate now also fails on THAT
+ * direction, with one escape hatch: an allow-list entry can be listed in
+ * ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS (cc-output-keys.generated.mjs) if it
+ * was settled by trace-and-observe evidence instead of binary prose — see
+ * that Set's doc comment and spec/cc-output-keys.spec.yml's
+ * additionalContext.reviewed_exceptions for the bar an exception must clear.
+ * An uncorroborated entry with no reviewed exception fails --check; this is
+ * deliberate, not a bug to route around by adding more exceptions.
+ *
  * WHERE IT RUNS
  *
  * Locally and on workflow_dispatch, NEVER in ci.yml — ci.yml does not install
@@ -42,6 +59,7 @@ const GENERATED = join(REPO, 'src/hooks/bin/cc-output-keys.generated.mjs');
 const EXIT_OK = 0;
 const EXIT_DRIFT = 1;
 const EXIT_CANNOT_OBSERVE = 2;
+const EXIT_UNREVIEWED = 3;
 
 /**
  * Resolve the real binary, not the shim. TWO layouts ship it and only one of
@@ -209,6 +227,14 @@ async function main() {
     process.exit(EXIT_CANNOT_OBSERVE);
   }
 
+  // Optional: absent on an older generated module is CANNOT-OBSERVE for the
+  // reviewed-exception check specifically, not a reason to skip it — treat
+  // missing as "no exceptions reviewed yet" rather than crashing.
+  const reviewedExceptions =
+    generated.ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS instanceof Set
+      ? generated.ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS
+      : new Set();
+
   const missing = [...binaryEvents].filter((e) => !allowed.has(e));
 
   if (missing.length > 0) {
@@ -220,28 +246,45 @@ async function main() {
     process.exit(EXIT_DRIFT);
   }
 
-  // The check above is missing-only, which makes it silent in the OTHER
-  // direction: an allow-list entry the binary does not corroborate passes
-  // without a trace. Measured 2026-08-11 (#3418): 9 asserted, 3 corroborated,
-  // 6 resting on a generic field-list line that names no event — and one of
-  // the six (PostCompact) has independent evidence of being wrong (#3321,
-  // additionalContext emitted and ignored). A bare OK over that is the same
-  // false-signal shape EPIC B was opened to fix, so the asymmetry is printed
-  // on every run. Deliberately ADVISORY: pruning uncorroborated entries on
-  // this evidence alone would repeat #3386 in the other direction — absence
-  // from the binary's PROSE is absence of documentation, not proof of absence
-  // of support. Settle each empirically before promoting this to a failure.
+  // BIDIRECTIONAL (#3418): the check above is missing-only, which was silent
+  // in the OTHER direction — an allow-list entry the binary does not
+  // corroborate used to pass without a trace. Measured 2026-08-11: 9 asserted,
+  // 3 corroborated, 6 resting on a generic field-list line that names no
+  // event, one of which (PostCompact) has independent evidence of being wrong
+  // (#3321, additionalContext emitted and ignored). Four of the six were then
+  // settled empirically by trace-and-observe (issue #3418 comment thread) and
+  // moved into ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS. An uncorroborated entry
+  // is now DRIFT unless it is in that reviewed set — pruning on binary-prose
+  // absence alone would repeat #3386 in the other direction, so the escape
+  // hatch requires the SAME evidence standard the missing-only check itself
+  // would apply, not a blanket exemption.
   const uncorroborated = [...allowed].filter((e) => !binaryEvents.has(e)).sort();
+  const reviewed = uncorroborated.filter((e) => reviewedExceptions.has(e));
+  const unreviewed = uncorroborated.filter((e) => !reviewedExceptions.has(e));
+
   console.log(
-    `\nallow-list: ${allowed.size} asserted / ${allowed.size - uncorroborated.length} corroborated by the binary / ${uncorroborated.length} unverified`,
+    `\nallow-list: ${allowed.size} asserted / ${allowed.size - uncorroborated.length} corroborated by the binary / ${reviewed.length} reviewed exception / ${unreviewed.length} unreviewed`,
   );
-  if (uncorroborated.length > 0) {
-    console.log('WARN: no binary string names these events as additionalContext');
-    console.log('consumers; the missing-only check above cannot see them (#3418):');
-    for (const e of uncorroborated) console.log(`  ${e}`);
+
+  if (reviewed.length > 0) {
+    console.log('\nCONFIRMED by trace-and-observe, not binary prose (reviewed exception,');
+    console.log('see spec/cc-output-keys.spec.yml additionalContext.reviewed_exceptions):');
+    for (const e of reviewed) console.log(`  ${e}`);
   }
 
-  console.log('\nOK: every event the binary names is present in the generated allow-list.');
+  if (unreviewed.length > 0) {
+    console.error('\nDRIFT: no binary string names these events as additionalContext');
+    console.error('consumers, and they carry no reviewed exception (#3418):');
+    for (const e of unreviewed) console.error(`  ${e}`);
+    console.error('\nEither settle the event by trace-and-observe evidence and add it to');
+    console.error('ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS (mirroring spec/cc-output-keys.spec.yml');
+    console.error('additionalContext.reviewed_exceptions with the evidence), or remove the');
+    console.error('entry from EVENTS_WITH_ADDITIONAL_CONTEXT if it is not actually supported.');
+    process.exit(EXIT_UNREVIEWED);
+  }
+
+  console.log('\nOK: every event the binary names is present in the generated allow-list,');
+  console.log('and every uncorroborated entry carries a reviewed exception.');
   process.exit(EXIT_OK);
 }
 

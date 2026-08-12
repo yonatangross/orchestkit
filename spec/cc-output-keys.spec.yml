@@ -85,6 +85,62 @@ keys:
       stop/session-summary, subagent-stop/sync-subagent-stop-dispatcher,
       subagent-stop/subagent-scope-auditor, subagent-stop/retry-handler) and
       every one of them was being stripped before reaching CC.
+    reviewed_exceptions:
+      # #3418: the missing-only drift check cannot see an allow-list entry the
+      # binary's prose does not name. That was silent for all 6 uncorroborated
+      # entries above. As of this gate becoming bidirectional, an entry in
+      # THIS list is exempt from the new failure; anything else uncorroborated
+      # now fails the gate (spec/cc-output-keys.spec.yml is not enough — mirror
+      # additions in src/hooks/bin/cc-output-keys.generated.mjs's
+      # ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS, in the same commit).
+      #
+      # Membership bar: NOT "plausible". Each entry below was settled by the
+      # same trace-and-observe method the issue proposed — emitting hook ->
+      # output builder -> hookSpecificOutput.additionalContext with a matching
+      # hookEventName -> observed arriving in the model's context — recorded
+      # in issue #3418's comment thread. Do not add an event here on the
+      # strength of documentation-prose absence alone; that is exactly the
+      # unproven-assertion shape this gate exists to catch.
+      - event: PreToolUse
+        evidence: |
+          Builder: outputAllowWithContext (lib/output.ts:304-311).
+          Emitting hook: pretool/bash/gh-milestone-enforcer.ts:49.
+          Observed: the "No --milestone set" hint arriving in a live session.
+        source: "issue #3418, comment 2026-08-11"
+      - event: UserPromptSubmit
+        evidence: |
+          Builder: outputPromptContext (lib/output.ts:195-196).
+          Emitting hooks: prompt/visual-style-nudge.ts, prompt/multi-step-task-nudge.ts.
+          Observed: the nudge lines arriving in a live session.
+        source: "issue #3418, comment 2026-08-11"
+      - event: SessionStart
+        evidence: |
+          Builder: outputWithContext (lib/output.ts:257-258).
+          Emitting hook: lifecycle/sync-session-dispatcher.ts.
+          Observed: the "CLAUDE_PLUGIN_ROOT=" line arriving in a live session.
+        source: "issue #3418, comment 2026-08-11"
+      - event: PostToolUse
+        evidence: |
+          Emitting hook: posttool/write/debt-marker-tracker.ts (a registered
+          PostToolUse Write|Edit hook). A file containing a real debt marker
+          was written outside the repo as an active experiment; the advisory
+          came back attached to that exact write ("[debt-marker-tracker]
+          Logged 1 deferred-debt marker(s) in ...").
+        source: "issue #3418, comment 2026-08-12"
+    # Deliberately NOT reviewed exceptions — still genuinely unverified:
+    #   PostCompact          registered, but #3321 has independent evidence
+    #                        CC ignores additionalContext on it (a live no-op,
+    #                        not theoretical: the #1794 guard doesn't strip it
+    #                        because it's in this allow-list, so the hook emits
+    #                        into a void).
+    #   PostToolUseFailure   failure-handler.ts read input.tool_error, a field
+    #                        CC never sends, so the event was unobservable
+    #                        regardless of whether CC supports it. #3418 fixed
+    #                        the field read (input.error); this event still
+    #                        needs its own trace-and-observe pass before it
+    #                        can move into reviewed_exceptions.
+    # Both fail the bidirectional gate until settled. Do not add either here
+    # to make the gate pass — that repeats the exact failure #3418 reported.
 
   permissionDecision:
     events: [PreToolUse, PermissionRequest]

@@ -12,8 +12,8 @@
       "exports": 86
     },
     "posttool": {
-      "size": 86924,
-      "sizeKB": "84.89",
+      "size": 86919,
+      "sizeKB": "84.88",
       "exports": 68
     },
     "prompt": {
@@ -57,8 +57,8 @@
       "exports": 70
     }
   },
-  "totalSize": 698948,
-  "totalSizeKB": "682.57",
+  "totalSize": 698943,
+  "totalSizeKB": "682.56",
   "inputs": 109,
   "avgBundleSizeKB": "62.05"
 }
