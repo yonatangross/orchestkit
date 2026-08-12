@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.28](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.27...v10.0.0-alpha.28) (2026-08-12)
+
+
+### Bug Fixes
+
+* **cc-adoption:** adopt MAX_SUBAGENT_SPAWN_DEPTH, fix depth 5/3 mismatch ([#3463](https://github.com/yonatangross/orchestkit/issues/3463)) ([84549cc](https://github.com/yonatangross/orchestkit/commit/84549cccfb40be024437d5b06343f3841a857516)), closes [#3324](https://github.com/yonatangross/orchestkit/issues/3324)
+
+
+### Miscellaneous
+
+* **marketplace:** retire engine field for --strict ([#3465](https://github.com/yonatangross/orchestkit/issues/3465)) ([1226a9e](https://github.com/yonatangross/orchestkit/commit/1226a9e0f6ad71e3d24c9cac8d8566a0d3cf19ee)), closes [#3349](https://github.com/yonatangross/orchestkit/issues/3349)
+
 ## [10.0.0-alpha.27](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.26...v10.0.0-alpha.27) (2026-08-12)
 
 
