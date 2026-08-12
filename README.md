@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.25](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.24...v10.0.0-alpha.25)** · 2026-08-12
+
+- **hooks:** make restrict-bash actually run, ungate the dispatcher (#3449), closes [#3430](https://github.com/yonatangross/orchestkit/issues/3430) [#3438](https://github.com/yonatangross/orchestkit/issues/3438)
+
 **[v10.0.0-alpha.24](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.23...v10.0.0-alpha.24)** · 2026-08-11
 
 - **security-tests:** fail loudly on a broken payload (#3446)
@@ -305,15 +309,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.18](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.17...v10.0.0-alpha.18)** · 2026-08-11
 
 - **hooks:** match the agent names CC actually sends, drop unread writes (#3428)
-
-**[v10.0.0-alpha.17](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.16...v10.0.0-alpha.17)** · 2026-08-11
-
-- **hooks:** adopt autoCompactWindow, delete what could not fire (#3427)
-- **ci:** contract gate now names its own blind half on every run (#3421)
-- **hooks:** give guard denials a rewrite and a repetition signal (#3423)
-- **hooks:** read the payload keys CC actually sends (#3425)
-- **skills:** teach both reachability gates the 4th activation path (#3426)
-- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
