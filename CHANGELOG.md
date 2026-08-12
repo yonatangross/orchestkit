@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.26](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.25...v10.0.0-alpha.26) (2026-08-12)
+
+
+### Bug Fixes
+
+* **hooks:** allow the safe `IFS= read` idiom ([#3454](https://github.com/yonatangross/orchestkit/issues/3454)) ([92d66af](https://github.com/yonatangross/orchestkit/commit/92d66aff0497d48ebb6bbb7cec43ae7596fb234c))
+* **hooks:** stop pre-compact-guard blocking auto-compaction ([#3452](https://github.com/yonatangross/orchestkit/issues/3452)) ([7648c82](https://github.com/yonatangross/orchestkit/commit/7648c8220b8e0cc052643a3bfaf5cd93516a0500))
+
 ## [10.0.0-alpha.25](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.24...v10.0.0-alpha.25) (2026-08-12)
 
 
