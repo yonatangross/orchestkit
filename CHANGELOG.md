@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.27](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.26...v10.0.0-alpha.27) (2026-08-12)
+
+
+### Bug Fixes
+
+* **hooks:** bidirectional contract gate, real PostToolUseFailure field ([#3457](https://github.com/yonatangross/orchestkit/issues/3457)) ([3b701ab](https://github.com/yonatangross/orchestkit/commit/3b701ab231974e59c759741dc58103c0ec161f89)), closes [#3418](https://github.com/yonatangross/orchestkit/issues/3418)
+* **hooks:** measure context, stop reading fields CC never sends ([#3459](https://github.com/yonatangross/orchestkit/issues/3459)) ([e968377](https://github.com/yonatangross/orchestkit/commit/e968377e19ae9c8e48846d04f37cac511dcbc9d0))
+* **hooks:** settle PostToolUseFailure/PostCompact exceptions ([#3458](https://github.com/yonatangross/orchestkit/issues/3458)) ([c1ec1aa](https://github.com/yonatangross/orchestkit/commit/c1ec1aaa5e74512d9b5a4d80b06e3b776296b809))
+
 ## [10.0.0-alpha.26](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.25...v10.0.0-alpha.26) (2026-08-12)
 
 
