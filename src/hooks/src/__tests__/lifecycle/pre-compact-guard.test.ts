@@ -16,8 +16,14 @@ import { existsSync, readFileSync } from 'node:fs';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
-function makeInput(): HookInput {
-  return { tool_name: 'PreCompact', session_id: 'test', tool_input: {} };
+function makeInput(overrides: Partial<HookInput> = {}): HookInput {
+  return { tool_name: 'PreCompact', session_id: 'test', tool_input: {}, ...overrides };
+}
+
+/** Spawn-log fixture: one agent, recent enough to look active to the fallback. */
+function recentSpawn(extra: Record<string, unknown> = {}): string {
+  const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+  return JSON.stringify({ timestamp: twoMinAgo, subagent_type: 'workflow-architect', ...extra });
 }
 
 let testCtx: ReturnType<typeof createTestContext>;
@@ -76,5 +82,61 @@ describe('preCompactGuard', () => {
     vi.mocked(readFileSync).mockReturnValue('not valid json');
     const result = preCompactGuard(makeInput(), testCtx);
     expect(result.continue).toBe(true);
+  });
+
+  // At the context ceiling CC offers only "/compact or /clear". Blocking the
+  // automatic compaction it runs there leaves /clear as the sole exit, which
+  // destroys the session state this guard exists to protect.
+  it('never blocks automatic compaction, even with active agents', () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(recentSpawn());
+    const result = preCompactGuard(makeInput({ trigger: 'auto' }), testCtx);
+    expect(result.continue).toBe(true);
+    expect(result.decision).toBeUndefined();
+  });
+
+  it('still blocks manual compaction with active agents', () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(recentSpawn());
+    const result = preCompactGuard(makeInput({ trigger: 'manual' }), testCtx);
+    expect(result.continue).toBe(false);
+    expect(result.decision).toBe('block');
+  });
+
+  // CC 2.1.145+ background_tasks is authoritative. An EMPTY list means nothing
+  // is running, regardless of what the intent-only spawn log recorded minutes
+  // ago — that log has no completion records at all.
+  it('allows when background_tasks is empty despite a recent spawn entry', () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(recentSpawn());
+    const result = preCompactGuard(makeInput({ background_tasks: [] }), testCtx);
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+
+  it('blocks from background_tasks when CC reports a live agent', () => {
+    vi.mocked(existsSync).mockReturnValue(false);
+    const result = preCompactGuard(
+      makeInput({ background_tasks: [{ agent_id: 'a1', subagent_type: 'test-generator' }] }),
+      testCtx
+    );
+    expect(result.continue).toBe(false);
+    expect(result.stopReason).toContain('test-generator');
+  });
+
+  // One agent is logged by both spawn-intent-logger (source 'pretool') and
+  // subagent-validator (source 'start'), and repeats across SendMessage
+  // resumes. Undeduped, a single agent is reported as several.
+  it('counts one agent once when the spawn log holds duplicate entries', () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(
+      [
+        recentSpawn({ agent_id: 'dup-1', source: 'pretool' }),
+        recentSpawn({ agent_id: 'dup-1', source: 'start' }),
+      ].join('\n')
+    );
+    const result = preCompactGuard(makeInput(), testCtx);
+    expect(result.continue).toBe(false);
+    expect(result.stopReason).toContain('1 background agent(s)');
   });
 });

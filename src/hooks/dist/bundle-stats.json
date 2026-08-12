@@ -22,8 +22,8 @@
       "exports": 109
     },
     "lifecycle": {
-      "size": 138344,
-      "sizeKB": "135.10",
+      "size": 138947,
+      "sizeKB": "135.69",
       "exports": 68
     },
     "stop": {
@@ -57,8 +57,8 @@
       "exports": 70
     }
   },
-  "totalSize": 697633,
-  "totalSizeKB": "681.28",
+  "totalSize": 698236,
+  "totalSizeKB": "681.87",
   "inputs": 109,
-  "avgBundleSizeKB": "61.93"
+  "avgBundleSizeKB": "61.99"
 }

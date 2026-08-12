@@ -4,15 +4,39 @@
 /**
  * PreCompact Guard — CC 2.1.105
  *
- * Blocks context compaction when active background agents are running.
- * Without this, compaction mid-chain can break long-running workflows
- * (brainstorm, implement, cover) that depend on session state.
+ * Blocks MANUAL context compaction when background agents are genuinely
+ * running. Without this, compacting mid-chain can break long-running
+ * workflows (brainstorm, implement, cover) that depend on session state.
  *
  * Policy:
- * - If >= 1 active background agent (spawned < 5 min ago) → block
- * - Else → allow
+ * - trigger === 'auto'      → always allow (see "Never block auto" below)
+ * - env override set        → allow
+ * - >= 1 LIVE agent         → block
+ * - else                    → allow
  *
- * Users can override via CLAUDE_CODE_ALLOW_COMPACT_DURING_AGENTS=1.
+ * Never block auto
+ * ----------------
+ * `trigger` is 'auto' when CC compacts on its own because the context window
+ * filled, and 'manual' for an explicit /compact (field verified against the
+ * 2.1.227 binary, see types.ts). Blocking the manual case is the point of
+ * this hook. Blocking the AUTO case strands the session: at the ceiling CC
+ * offers "/compact or /clear", so vetoing compaction leaves only /clear,
+ * which discards the very context the guard exists to protect. The env
+ * override is no escape either — hook processes inherit env fixed at CC
+ * launch, so a user reading the block message cannot act on it without
+ * restarting, which also loses the context. Auto therefore passes through
+ * unconditionally.
+ *
+ * Liveness, not recency
+ * ---------------------
+ * `subagent-spawns.jsonl` is a spawn-INTENT log: entries are written by
+ * subagent-validator (source 'start') and spawn-intent-logger (source
+ * 'pretool'), and NOTHING ever writes a completion record. Treating "spawned
+ * < 5 min ago" as "still running" therefore blocks on agents that finished
+ * seconds later. When CC ships `background_tasks` (2.1.145+) that list is
+ * authoritative and we use it alone. The spawn-log path survives only as a
+ * fallback for older CC, and is deduped by agent_id so one agent logged by
+ * both writers counts once.
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -48,15 +72,64 @@ function getActiveSpawns(): SpawnEntry[] {
   }
 }
 
-export function preCompactGuard(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+/**
+ * Collapse repeat entries for one agent to its newest record.
+ *
+ * The same agent is logged twice by design — once by spawn-intent-logger on
+ * PreToolUse and once by subagent-validator on SubagentStart — and observed
+ * logs also carry duplicate 'start' rows for a single agent_id across
+ * SendMessage resumes. Undeduped, `active.length` reports one agent as many
+ * and the block message names it repeatedly. Entries with no agent_id cannot
+ * be correlated, so each is kept as its own.
+ */
+function dedupeByAgent(entries: SpawnEntry[]): SpawnEntry[] {
+  const newestById = new Map<string, SpawnEntry>();
+  const anonymous: SpawnEntry[] = [];
+
+  for (const entry of entries) {
+    if (!entry.agent_id) {
+      anonymous.push(entry);
+      continue;
+    }
+    const seen = newestById.get(entry.agent_id);
+    if (!seen || new Date(entry.timestamp).getTime() > new Date(seen.timestamp).getTime()) {
+      newestById.set(entry.agent_id, entry);
+    }
+  }
+
+  return [...newestById.values(), ...anonymous];
+}
+
+export function preCompactGuard(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  // Auto-compaction is CC's own recovery at the context ceiling. Blocking it
+  // leaves /clear as the only exit and destroys the session state this hook
+  // exists to protect. Allow unconditionally, before any other check.
+  if (input.trigger === 'auto') {
+    ctx.log(HOOK_NAME, 'Auto-compaction — passing through without agent check');
+    return outputSilentSuccess();
+  }
+
   if (process.env.CLAUDE_CODE_ALLOW_COMPACT_DURING_AGENTS === '1') {
     return outputSilentSuccess();
   }
 
-  const now = Date.now();
-  const active = getActiveSpawns().filter(
-    s => s.timestamp && now - new Date(s.timestamp).getTime() < ACTIVE_WINDOW_MS
-  );
+  // CC 2.1.145+: background_tasks is the authoritative live-agent list. When
+  // present, trust it exclusively — including when it is EMPTY, which means
+  // nothing is running no matter what the spawn log recorded minutes ago.
+  const liveTasks = input.background_tasks;
+  let active: Array<{ agent_id?: string; subagent_type?: string }>;
+  let source: string;
+
+  if (Array.isArray(liveTasks)) {
+    active = liveTasks;
+    source = 'background_tasks';
+  } else {
+    const now = Date.now();
+    active = dedupeByAgent(getActiveSpawns()).filter(
+      s => s.timestamp && now - new Date(s.timestamp).getTime() < ACTIVE_WINDOW_MS
+    );
+    source = 'spawn-log fallback';
+  }
 
   if (active.length === 0) return outputSilentSuccess();
 
@@ -65,7 +138,7 @@ export function preCompactGuard(_input: HookInput, ctx: HookContext = NOOP_CTX):
     .slice(0, 3)
     .join(', ');
 
-  ctx.log(HOOK_NAME, `Blocking compaction — ${active.length} active agents: ${agentList}`);
+  ctx.log(HOOK_NAME, `Blocking compaction — ${active.length} active agents (${source}): ${agentList}`);
 
   // BOTH reason and stopReason, deliberately (#3321 claim 6, verified against
   // the 2.1.227 binary): on a decision:'block' command hook, CC builds the
@@ -74,7 +147,14 @@ export function preCompactGuard(_input: HookInput, ctx: HookContext = NOOP_CTX):
   // message. Do NOT drop decision:'block' either: continue:false alone does
   // not set blocked on the PreCompact path, so removing it would silently
   // disable the block entirely.
-  const blockMessage = `Compaction blocked — ${active.length} background agent(s) still running (${agentList}). Wait for completion or set CLAUDE_CODE_ALLOW_COMPACT_DURING_AGENTS=1.`;
+  //
+  // The env override is named as a NEXT-SESSION remedy on purpose: it is read
+  // from the hook process env, which is fixed at CC launch, so telling a user
+  // mid-session to "set" it sends them somewhere they cannot go.
+  const blockMessage =
+    `Compaction blocked — ${active.length} background agent(s) still running (${agentList}). ` +
+    `Wait for them to finish and retry. Automatic compaction at the context limit is never blocked. ` +
+    `To disable this guard for future sessions, set CLAUDE_CODE_ALLOW_COMPACT_DURING_AGENTS=1 in the environment or .claude/settings.json.`;
   return {
     continue: false,
     decision: 'block',
