@@ -158,6 +158,39 @@ describe('compound-command-validator', () => {
       expect(result.stopReason).toContain('IFS');
     });
 
+    // #3453: the DENY over-matched the safe idiom, and ork's own ork:dream
+    // STEP 8 shipped `while IFS= read -r p`, so the skill was un-runnable.
+    it('allows the empty IFS= assignment scoped to read (safe idiom)', () => {
+      const result = compoundCommandValidator(
+        createBashInput('cat f | while IFS= read -r p; do echo "$p"; done'),
+        testCtx,
+      );
+      expect(result.continue).toBe(true);
+    });
+
+    it('still blocks a non-empty IFS assignment before read', () => {
+      const result = compoundCommandValidator(createBashInput('IFS=, read -r a b'), testCtx);
+      expect(result.continue).toBe(false);
+      expect(result.stopReason).toContain('IFS');
+    });
+
+    it('still blocks ${IFS} substitution', () => {
+      const result = compoundCommandValidator(createBashInput('cat${IFS}/etc/passwd'), testCtx);
+      expect(result.continue).toBe(false);
+      expect(result.stopReason).toContain('IFS');
+    });
+
+    // The exemption must not widen into a bypass: one benign occurrence cannot
+    // launder a real IFS manipulation elsewhere in the same command.
+    it('still blocks when a real IFS manipulation is mixed with the safe idiom', () => {
+      const result = compoundCommandValidator(
+        createBashInput('IFS=, cmd && while IFS= read -r p; do :; done'),
+        testCtx,
+      );
+      expect(result.continue).toBe(false);
+      expect(result.stopReason).toContain('IFS');
+    });
+
     it('blocks brace expansion with command-like patterns', () => {
       const result = compoundCommandValidator(createBashInput('{cat,/etc/passwd}'), testCtx);
       expect(result.continue).toBe(false);

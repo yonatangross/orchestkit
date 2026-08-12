@@ -296,7 +296,21 @@ export function detectSuspiciousShellFeatures(cmd: string): string[] {
   }
 
   // 4. IFS manipulation: ${IFS} or IFS= assignment
-  if (/\$\{?IFS\}?/.test(unquoted) || /\bIFS=/.test(unquoted)) {
+  // An EMPTY assignment scoped to a single `read` is not manipulation (#3453).
+  // The DENY exists because redefining IFS re-tokenizes a command and hides it
+  // from the substring denylist. `IFS= read` cannot do that: the value is empty
+  // so it REMOVES splitting rather than redefining it, the assignment is a
+  // prefix scoped to one builtin (never exported), and `read` executes no
+  // command text for anything to hide behind. It is also the form shellcheck
+  // and POSIX style guides prescribe, and ork's own skills ship it.
+  //   IFS= read -r p    -> safe idiom, allowed
+  //   IFS=, read -r a b -> redefines splitting, still DENIED
+  //   IFS=$'\n' cmd     -> redefines splitting, still DENIED
+  // Strip the benign form FIRST and test the REMAINDER. Testing "does a benign
+  // form exist anywhere" would exempt the whole string, so `IFS=, cmd && IFS=
+  // read` would slip through -- an exemption that widens into a bypass.
+  const ifsProbe = unquoted.replace(/\bIFS=(?:''|"")?(?=\s+read\b)/g, '');
+  if (/\$\{?IFS\}?/.test(ifsProbe) || /\bIFS=/.test(ifsProbe)) {
     findings.push('IFS manipulation detected');
   }
 
