@@ -276,6 +276,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.27](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.26...v10.0.0-alpha.27)** · 2026-08-12
+
+- **hooks:** bidirectional contract gate, real PostToolUseFailure field (#3457), closes [#3418](https://github.com/yonatangross/orchestkit/issues/3418)
+- **hooks:** measure context, stop reading fields CC never sends (#3459)
+- **hooks:** settle PostToolUseFailure/PostCompact exceptions (#3458)
+
 **[v10.0.0-alpha.26](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.25...v10.0.0-alpha.26)** · 2026-08-12
 
 - **hooks:** allow the safe `IFS= read` idiom (#3454)
@@ -306,10 +312,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.20](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.19...v10.0.0-alpha.20)** · 2026-08-11
 
 - **hooks:** stop the pipe-to-shell deny from inventing a fetch (#3434)
-
-**[v10.0.0-alpha.19](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.18...v10.0.0-alpha.19)** · 2026-08-11
-
-- **agents:** drop two frontmatter keys CC provably ignores (#3431)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

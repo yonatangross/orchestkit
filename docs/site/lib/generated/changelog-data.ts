@@ -17,6 +17,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.27",
+    "date": "2026-08-12",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** bidirectional contract gate, real PostToolUseFailure field ([#3457](https://github.com/yonatangross/orchestkit/issues/3457)) ([3b701ab](https://github.com/yonatangross/orchestkit/commit/3b701ab231974e59c759741dc58103c0ec161f89)), closes [#3418](https://github.com/yonatangross/orchestkit/issues/3418)",
+          "**hooks:** measure context, stop reading fields CC never sends ([#3459](https://github.com/yonatangross/orchestkit/issues/3459)) ([e968377](https://github.com/yonatangross/orchestkit/commit/e968377e19ae9c8e48846d04f37cac511dcbc9d0))",
+          "**hooks:** settle PostToolUseFailure/PostCompact exceptions ([#3458](https://github.com/yonatangross/orchestkit/issues/3458)) ([c1ec1aa](https://github.com/yonatangross/orchestkit/commit/c1ec1aaa5e74512d9b5a4d80b06e3b776296b809))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.26",
     "date": "2026-08-12",
     "compareUrl": "",
