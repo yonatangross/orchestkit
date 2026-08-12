@@ -1870,6 +1870,21 @@ plugin default — a plugin settings.json is not a settings scope CC reads
 OFFERS it and never sets it. Report at info level when absent; never fail on
 it.
 
+A seventh offer (#3324): `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` pinned to `3`
+in the operator's own settings. CC 2.1.219 restored nested subagent spawning's
+own default from 1 to 3 (it had been disabled by default since 2.1.217),
+converging exactly with the depth-3 ceiling `chain-patterns/SKILL.md`
+Pattern 9 already recommends in prose. Pinning the var explicitly makes that
+convergence portable and mechanical — CC withholds the `Agent` tool once the
+pinned depth is hit, instead of the budget depending on the model reading
+Pattern 9's guidance (still the only enforcement while `parent_agent_id`
+stays unexposed at SubagentStart). It is an offer, not a gap: the CC default
+already matches ork's convention, so an absent pin degrades to "guidance
+only," not "unbounded." ork cannot ship the pin itself — a plugin
+settings.json is not a settings scope CC reads (binary-proven at 2.1.226, see
+the header of this file) — so the doctor OFFERS it and never sets it. Report
+at info level when absent; never fail on it.
+
 ## The check
 
 Read-only. Never prints an environment variable's **value** (presence is tested with
@@ -1916,9 +1931,10 @@ sandbox="$(first '.sandbox.enabled')"
 # A DECLARED empty array must still report 0, so only null may map to empty.
 denied_domains="$(first '.sandbox.network.deniedDomains | if . == null then empty else length end')"
 
-# 3-5. env keys: settings-declared vs merely live in this shell.
+# 3-6. env keys: settings-declared vs merely live in this shell.
 for v in CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS ENABLE_TOOL_SEARCH \
-         CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE; do
+         CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE \
+         CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH; do
   in_settings="no"; if [ -n "$(first ".env.$v")" ]; then in_settings="yes"; fi
   in_env="no";      if [ -n "${!v+x}" ];              then in_env="yes";      fi
   printf '%s settings=%s shell=%s\n' "$v" "$in_settings" "$in_env"
@@ -1947,8 +1963,9 @@ tool names (`mcp__hq-channels__whatsapp_send_image`, `…_send_audio`, `…_send
 |    on every other machine and for every other user of this repo.         |
 | ℹ️ TOOL_SEARCH      settings=no  shell=no   (optional tuning)            |
 | ℹ️ KEEP_MARKETPLACE settings=no  shell=no   (optional resilience)        |
+| ℹ️ SPAWN_DEPTH      settings=no  shell=no   (CC default already 3)       |
 +-------------------------------------------------------------------------+
-| Status: WARN (2 gaps, 1 non-portable, 2 offers)                          |
+| Status: WARN (2 gaps, 1 non-portable, 3 offers)                          |
 | Fix: ork:configure skill, section "Operator-Scope Settings", or paste    |
 |      the JSON from configure/references/cc-version-settings.md.          |
 +-------------------------------------------------------------------------+
@@ -1963,6 +1980,7 @@ tool names (`mcp__hq-channels__whatsapp_send_image`, `…_send_audio`, `…_send
 | ✅ AGENT_TEAMS      settings=yes (user scope), portable                  |
 | ℹ️ TOOL_SEARCH      settings=yes                                         |
 | ℹ️ KEEP_MARKETPLACE settings=no  (optional, declined)                    |
+| ℹ️ SPAWN_DEPTH      settings=yes (user scope, pinned to 3)               |
 +-------------------------------------------------------------------------+
 | Status: PASS                                                             |
 +-------------------------------------------------------------------------+
@@ -1974,7 +1992,7 @@ tool names (`mcp__hq-channels__whatsapp_send_image`, `…_send_audio`, `…_send
   layer demonstrably does not cover them.
 - Finding 3 is **warn** whenever `settings=no`, regardless of `shell`. A shell-only
   value is a machine-local accident, not configuration.
-- Findings 4 and 5 are **info**, always. Never fail a run on them.
+- Findings 4-6 are **info**, always. Never fail a run on them.
 - Every warn prints the exact JSON to paste and the scope to paste it into. Doctor
   diagnoses AND prescribes; it does not just list.
 
