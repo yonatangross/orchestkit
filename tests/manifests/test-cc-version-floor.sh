@@ -144,18 +144,20 @@ if [[ -d "$SKILLS_DIR" ]]; then
     fi
 fi
 
-# 5. .claude-plugin/marketplace.json :: engine field
+# 5. .claude-plugin/marketplace.json :: engine field must NOT exist
 #
-# This is the machine-readable install gate CC enforces before installing the
-# plugin. It was hand-maintained and covered by no test, so it drifted below the
-# governed floor twice. It is now a stamp target; this assertion is the gate.
+# `engine` used to be a hand-maintained, untested machine-readable install gate
+# in marketplace.json — it drifted below the governed floor twice before being
+# made a stamp target. #3349 retired it entirely: `claude plugin validate
+# --strict` flags it as an unknown field CC ignores at load time, so the
+# CC-version floor now lives solely in shared/cc-support.json. This assertion
+# guards against it silently creeping back in.
 MARKETPLACE_JSON="$PROJECT_ROOT/.claude-plugin/marketplace.json"
 if [[ -f "$MARKETPLACE_JSON" ]]; then
-    ENGINE_VAL=$(node -e "const e=JSON.parse(require('fs').readFileSync('$MARKETPLACE_JSON','utf8')).engine||'';console.log(e.replace(/^[^0-9]*/,''))")
-    if [[ "$ENGINE_VAL" == "$SOT" ]]; then
-        log_pass "marketplace.json engine floor = $ENGINE_VAL"
+    if node -e "process.exit('engine' in JSON.parse(require('fs').readFileSync('$MARKETPLACE_JSON','utf8')) ? 1 : 0)"; then
+        log_pass "marketplace.json has no engine field (retired #3349)"
     else
-        log_fail "marketplace.json engine floor" "got '$ENGINE_VAL', want '$SOT' (run: node scripts/stamp-cc-support.mjs)"
+        log_fail "marketplace.json engine field" "field must not exist — the CC-version floor lives in shared/cc-support.json only"
     fi
 fi
 

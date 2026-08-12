@@ -234,14 +234,6 @@ if [[ -f "$MARKETPLACE_JSON" ]]; then
             fail "Main ork plugin has incorrect source: $ORK_SOURCE (expected ./plugins/ork)"
         fi
     fi
-
-    # Check engine requirement
-    ENGINE=$(jq -r '.engine // empty' "$MARKETPLACE_JSON" 2>/dev/null)
-    if [[ -n "$ENGINE" ]]; then
-        pass "marketplace.json has engine requirement: $ENGINE"
-    else
-        warn "marketplace.json missing engine field (recommended: >=2.1.19)"
-    fi
 else
     fail "marketplace.json not found"
 fi

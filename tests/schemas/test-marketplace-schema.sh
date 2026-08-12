@@ -7,6 +7,14 @@
 # - Optional plugin fields: version, author
 # - ONLY allowed plugin fields: name, description, source, category, version, author
 # - ANY other field (deps, featured, engine, etc.) causes CC schema errors
+#
+# Root-level schema shape (unknown fields, required fields) is covered by
+# `claude plugin validate --strict` (adopted #3349) and NOT re-asserted here —
+# it already catches things this test didn't (e.g. it found `engine` itself).
+# What stays: checks CC's validator does NOT perform, per #3349 — unrecognized
+# fields WITHIN a plugins[] entry are silently ignored by `claude plugin
+# validate` (proven #3340), and local git-subdir path existence is never
+# checked by a schema validator operating on a remote source descriptor.
 
 set -euo pipefail
 
@@ -83,26 +91,15 @@ else
     log_success "Version '$version' is valid semver"
 fi
 
-# 4. Validate engine constraint format (if present)
+# 4. Check for invalid root fields
+#
+# `engine` is deliberately NOT in this allowlist: it is not a recognized CC
+# marketplace field (`claude plugin validate --strict` flags it as an unknown
+# field CC ignores at load time, #3349). The CC-version floor lives solely in
+# shared/cc-support.json now.
 echo ""
-echo "4. Validating engine constraint..."
-engine=$(jq -r '.engine // ""' "$MARKETPLACE_FILE")
-if [[ -n "$engine" ]]; then
-    # Valid formats: >=2.1.19, ^2.1.0, ~2.1.0, 2.1.19, >2.0.0, etc.
-    # Use grep for complex regex instead of bash [[ ]]
-    if ! echo "$engine" | grep -qE '^[>=<^~]*[0-9]+\.[0-9]+\.[0-9]+$'; then
-        log_error "Invalid engine constraint format: '$engine'"
-    else
-        log_success "Engine constraint '$engine' is valid"
-    fi
-else
-    log_warning "No engine constraint specified (recommended: >=2.1.19)"
-fi
-
-# 5. Check for invalid root fields
-echo ""
-echo "5. Checking for invalid root fields..."
-valid_root_fields='["$schema", "name", "version", "engine", "description", "owner", "metadata", "plugins"]'
+echo "4. Checking for invalid root fields..."
+valid_root_fields='["$schema", "name", "version", "description", "owner", "metadata", "plugins"]'
 invalid_root=$(jq -r --argjson valid "$valid_root_fields" 'keys - $valid | .[]' "$MARKETPLACE_FILE")
 if [[ -n "$invalid_root" ]]; then
     while IFS= read -r field; do
@@ -112,9 +109,9 @@ else
     log_success "No invalid root fields"
 fi
 
-# 6. Validate plugin entries
+# 5. Validate plugin entries
 echo ""
-echo "6. Validating plugin entries..."
+echo "5. Validating plugin entries..."
 
 # Required plugin fields (based on official CC marketplace)
 required_plugin_fields=("name" "description" "source" "category")
@@ -200,9 +197,9 @@ for i in $(seq 0 $((plugin_count - 1))); do
     esac
 done
 
-# 7. E2E validation: Check that plugin source paths exist
+# 6. E2E validation: Check that plugin source paths exist
 echo ""
-echo "7. Validating plugin source paths exist..."
+echo "6. Validating plugin source paths exist..."
 for i in $(seq 0 $((plugin_count - 1))); do
     plugin_name=$(jq -r ".plugins[$i].name // \"plugin_$i\"" "$MARKETPLACE_FILE")
 
@@ -234,7 +231,7 @@ for i in $(seq 0 $((plugin_count - 1))); do
     fi
 done
 
-# 8. Summary
+# 7. Summary
 echo ""
 echo "========================================"
 echo "  Validation Summary"

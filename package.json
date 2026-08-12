@@ -44,7 +44,8 @@
     "verify:imports": "node scripts/verify-imports.js",
     "prepare": "git config --local core.hooksPath bin/git-hooks 2>/dev/null || true",
     "verify:cc-keys": "node scripts/derive-cc-output-keys.mjs --check",
-    "verify:cc-commands": "bash scripts/probe-command-discovery.sh"
+    "verify:cc-commands": "bash scripts/probe-command-discovery.sh",
+    "verify:cc-plugin-validate": "claude plugin validate .claude-plugin/marketplace.json --strict"
   },
   "repository": {
     "type": "git",

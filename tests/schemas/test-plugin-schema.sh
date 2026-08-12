@@ -5,7 +5,9 @@
 # Based on official CC plugin format:
 # - Required fields: name, version, description
 # - Optional fields: author, homepage, repository, license, hooks, lspServers, keywords
-# - Invalid fields: engine (only allowed in marketplace.json root)
+# - Invalid fields: engine (not a recognized CC field anywhere — `claude plugin
+#   validate --strict` flags it as unknown on marketplace.json root too, #3349;
+#   the CC-version floor lives solely in shared/cc-support.json now)
 
 set -euo pipefail
 
@@ -74,7 +76,7 @@ validate_plugin() {
     fi
 
     # 4. Check for INVALID fields
-    # engine is NOT allowed in plugin.json (only in marketplace.json root)
+    # engine is not a valid field anywhere in CC's schema (#3349)
     if jq -e '.engine' "$plugin_file" >/dev/null 2>&1; then
         log_error "[$plugin_name] 'engine' field is not allowed in plugin.json"
         ((errors++)) || true
