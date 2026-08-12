@@ -64,7 +64,6 @@ keys:
       - PostToolUse
       - PostToolUseFailure
       - SessionStart
-      - PostCompact
       - Stop
       - SubagentStop
       - PostToolBatch
@@ -127,20 +126,51 @@ keys:
           came back attached to that exact write ("[debt-marker-tracker]
           Logged 1 deferred-debt marker(s) in ...").
         source: "issue #3418, comment 2026-08-12"
-    # Deliberately NOT reviewed exceptions — still genuinely unverified:
-    #   PostCompact          registered, but #3321 has independent evidence
-    #                        CC ignores additionalContext on it (a live no-op,
-    #                        not theoretical: the #1794 guard doesn't strip it
-    #                        because it's in this allow-list, so the hook emits
-    #                        into a void).
-    #   PostToolUseFailure   failure-handler.ts read input.tool_error, a field
-    #                        CC never sends, so the event was unobservable
-    #                        regardless of whether CC supports it. #3418 fixed
-    #                        the field read (input.error); this event still
-    #                        needs its own trace-and-observe pass before it
-    #                        can move into reviewed_exceptions.
-    # Both fail the bidirectional gate until settled. Do not add either here
-    # to make the gate pass — that repeats the exact failure #3418 reported.
+      - event: PostToolUseFailure
+        evidence: |
+          #3418 fixed failure-handler.ts's field read (input.tool_error, a
+          field CC never sends -> input.error), but left the event itself
+          unsettled: an unobservable hook proves nothing about CC support
+          either way. Settled here by a different trace method — a live
+          firing could not be forced (PostToolUseFailure requires a genuine
+          tool-execution exception or a user interrupt, per
+          README.md's `is_interrupt?` field; a Bash non-zero exit or an Edit
+          "string not found" tool_use_error are ordinary tool_result content
+          and do not dispatch it, confirmed by hook-timing.jsonl showing zero
+          posttool/failure-handler invocations across three deliberate
+          failure attempts in this probe) — so this traces the shipped
+          2.1.228 binary's executor code instead of a live session.
+          `strings -a claude-2.1.228 | grep -n hook_additional_context` shows
+          PostToolUseFailure's dedicated executor string block (anchored at
+          "PostToolUseFailure:" / "executePostToolUseFailureHooks") carries
+          `hook_additional_context` in the same structural position as
+          PostToolUse's own block — the event this repo already proved
+          delivers additionalContext (debt-marker-tracker, above). A negative
+          control confirms the marker is discriminating, not universal:
+          PermissionRequest's block (additionalContext NOT documented for it)
+          has no `hook_additional_context` token anywhere nearby.
+        source: "issue #3457 follow-up (this probe), 2026-08-12"
+    # Deliberately NOT an allow-list entry — settled UNSUPPORTED, not merely
+    # unreviewed:
+    #   PostCompact   #3321's original finding, confirmed by the same binary
+    #                 trace used for PostToolUseFailure above: every one of
+    #                 PostCompact's 9 string-block occurrences in the shipped
+    #                 2.1.228 binary contains only completion/failure messages
+    #                 and `compact_summary` — never `hook_additional_context`,
+    #                 unlike every other additionalContext-consuming event
+    #                 checked (PreToolUse, PostToolUse, PostToolUseFailure,
+    #                 UserPromptSubmit, SessionStart, Stop, SubagentStop,
+    #                 PostToolBatch all carry the marker in their own block).
+    #                 #3321's later "Correction 1" push-back argued PostCompact
+    #                 does reach the model, but its only cited evidence was
+    #                 this repo's own allow-list membership plus a guard unit
+    #                 test that asserts the GUARD doesn't strip the key — both
+    #                 downstream of the allow-list this gate exists to verify,
+    #                 not independent proof CC delivers it. Removed from
+    #                 additionalContext.events entirely (not merely left
+    #                 unreviewed) — lifecycle/post-compact-recovery.ts no
+    #                 longer builds hookSpecificOutput.additionalContext for
+    #                 it (issue #3457 follow-up, 2026-08-12).
 
   permissionDecision:
     events: [PreToolUse, PermissionRequest]

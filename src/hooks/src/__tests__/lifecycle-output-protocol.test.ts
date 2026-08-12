@@ -503,8 +503,8 @@ describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
   // proving the EVENTS_WITH_HOOK_EVENT_NAME / EVENTS_WITH_ADDITIONAL_CONTEXT
   // allow-lists match the documented contract.
   //
-  // Note: SessionStart and PostCompact are EXCLUDED here — they're allow-listed
-  // for additionalContext + hookEventName (#1234 audit, hq-ext session banner
+  // Note: SessionStart is EXCLUDED here — it's allow-listed for
+  // additionalContext + hookEventName (#1234 audit, hq-ext session banner
   // observed consuming it). See "SessionStart allow-listed" describe block below.
   //
   // Stop is EXCLUDED too, as of #3307. It used to sit in this list, so this
@@ -513,6 +513,14 @@ describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
   // non-error feedback delivered to the model", and the guard was deleting it
   // from three live stop hooks. Stop, SubagentStop and PostToolBatch are now
   // allow-listed, and output-guard-cc-contract.test.ts asserts they survive.
+  //
+  // PostCompact is NOT added here despite being removed from
+  // EVENTS_WITH_ADDITIONAL_CONTEXT (#3457 follow-up, 2026-08-12) — it stays in
+  // EVENTS_WITH_HOOK_EVENT_NAME (CC's docs table lists it as a recognized
+  // hookSpecificOutput event), so a matching hookEventName still survives the
+  // guard even though additionalContext no longer does. That is a different
+  // shape than this loop's "strip the whole envelope" assertion. See the
+  // dedicated PostCompact block below instead.
   const SANITIZE_EVENTS = [
     'WorktreeCreate',
     'WorktreeRemove',
@@ -548,13 +556,46 @@ describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
   }
 });
 
-describe('sanitizeOutput — SessionStart + PostCompact allow-listed (#1234 audit fix)', () => {
+describe('sanitizeOutput — PostCompact additionalContext removed, hookEventName kept (#3457 follow-up)', () => {
+  beforeEach(() => { stderrSpy.mockClear(); });
+
+  // PostCompact stays in EVENTS_WITH_HOOK_EVENT_NAME (still a recognized
+  // hookSpecificOutput event per CC's docs table) but was removed from
+  // EVENTS_WITH_ADDITIONAL_CONTEXT — traced against the shipped 2.1.228
+  // binary and found to lack the additionalContext executor marker every
+  // real consumer carries (see spec/cc-output-keys.spec.yml). So a matching
+  // hookEventName survives while additionalContext alone is stripped.
+  it('strips additionalContext but keeps a matching hookEventName', () => {
+    const input = {
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: {
+        hookEventName: 'PostCompact',
+        additionalContext: 'dead — CC never delivers this to the model',
+      },
+    };
+    const result = sanitizeOutput(input, 'PostCompact') as Record<string, unknown>;
+    const hso = result.hookSpecificOutput as Record<string, unknown>;
+    expect(hso.hookEventName).toBe('PostCompact');
+    expect(hso.additionalContext).toBeUndefined();
+    expect(stderrSpy).toHaveBeenCalledWith(
+      expect.stringMatching(/stripped additionalContext from PostCompact response/),
+    );
+  });
+});
+
+describe('sanitizeOutput — SessionStart allow-listed (#1234 audit fix)', () => {
   beforeEach(() => { stderrSpy.mockClear(); });
 
   // CC consumes additionalContext on SessionStart (proof: hq-ext's tier banner
   // injects via SessionStart and the model receives it). Earlier output-guard
   // was over-strict and would have silently dropped these.
-  for (const event of ['SessionStart', 'PostCompact'] as const) {
+  //
+  // PostCompact used to be tested here too. Removed 2026-08-12 (#3457
+  // follow-up): traced against the shipped 2.1.228 binary and found
+  // unsupported — see SANITIZE_EVENTS above and
+  // spec/cc-output-keys.spec.yml.
+  for (const event of ['SessionStart'] as const) {
     it(`preserves matching hookEventName + additionalContext on ${event}`, () => {
       const input = {
         continue: true,

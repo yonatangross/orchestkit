@@ -48,7 +48,6 @@ export const EVENTS_WITH_HOOK_EVENT_NAME = new Set([
  * block. Six ork hooks were emitting into the void because of it.
  */
 export const EVENTS_WITH_ADDITIONAL_CONTEXT = new Set([
-  'PostCompact',
   'PostToolBatch',
   'PostToolUse',
   'PostToolUseFailure',
@@ -74,17 +73,31 @@ export const EVENTS_WITH_ADDITIONAL_CONTEXT = new Set([
  * that is the exact unproven-assertion shape this gate exists to catch, and
  * a blanket "except everything uncorroborated" defeats the gate entirely.
  *
- * PostCompact and PostToolUseFailure are deliberately ABSENT: PostCompact has
- * independent evidence of being wrong (#3321), and PostToolUseFailure's own
- * emitting hook was reading a field CC never sends until #3418's failure-
- * handler.ts fix, so it was unobservable regardless of CC support. Both fail
- * --check until settled by the same method as the four below.
+ * PostToolUseFailure was settled 2026-08-12 (issue #3457 follow-up): a live
+ * firing could not be forced (it requires a genuine tool-execution exception
+ * or user interrupt, not an ordinary tool_use_error), so this was proven by
+ * tracing the shipped 2.1.228 binary's executor strings instead — the
+ * PostToolUseFailure code block carries `hook_additional_context` in the same
+ * position as PostToolUse's own block (already proven live, above), and a
+ * negative control (PermissionRequest, no additionalContext support) carries
+ * no such marker anywhere nearby. See spec/cc-output-keys.spec.yml for the
+ * full trace.
+ *
+ * PostCompact is deliberately ABSENT — not merely unreviewed, but REMOVED
+ * from EVENTS_WITH_ADDITIONAL_CONTEXT entirely. The same binary trace used to
+ * settle PostToolUseFailure above found `hook_additional_context` absent from
+ * every one of PostCompact's string-block occurrences, confirming #3321's
+ * original finding over its later "Correction 1" push-back (which cited only
+ * this repo's own allow-list and a guard unit test, not independent CC
+ * evidence). lifecycle/post-compact-recovery.ts no longer builds
+ * hookSpecificOutput.additionalContext for it.
  */
 export const ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS = new Set([
   'PreToolUse',
   'UserPromptSubmit',
   'SessionStart',
   'PostToolUse',
+  'PostToolUseFailure',
 ]);
 
 /**

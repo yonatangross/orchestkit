@@ -23,7 +23,6 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { postCompactRecovery } from '../../lifecycle/post-compact-recovery.js';
 import { existsSync, readFileSync, appendFileSync, unlinkSync } from 'node:fs';
-import { outputWithContext } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -40,6 +39,19 @@ function createInput(overrides: Partial<HookInput> = {}): HookInput {
 function mockStateFile(state: Record<string, unknown>): void {
   vi.mocked(existsSync).mockReturnValue(true);
   vi.mocked(readFileSync).mockReturnValue(JSON.stringify(state));
+}
+
+/**
+ * The recovered context is no longer sent to CC (PostCompact does not
+ * support additionalContext — see the hook's file header) — it is only
+ * logged at 'debug' level for anyone reading hooks.log. Pull that string
+ * back out of the ctx.log mock the same way tests used to read the
+ * outputWithContext call argument.
+ */
+function getLoggedContext(): string {
+  const call = vi.mocked(testCtx.log).mock.calls.find((c) => c[2] === 'debug');
+  if (!call) throw new Error('expected a debug-level ctx.log call carrying the recovered context');
+  return String(call[1]);
 }
 
 let testCtx: ReturnType<typeof createTestContext>;
@@ -66,15 +78,22 @@ describe('lifecycle/post-compact-recovery', () => {
   });
 
   describe('context recovery', () => {
-    test('includes compaction number in output', () => {
+    test('returns a silent result — PostCompact does not deliver additionalContext to CC', () => {
+      mockStateFile({
+        compactionCount: 2,
+        preservedContext: { branch: 'main' },
+      });
+      const result = postCompactRecovery(createInput(), testCtx);
+      expect(result).toEqual({ continue: true, suppressOutput: true });
+    });
+
+    test('includes compaction number in the logged context', () => {
       mockStateFile({
         compactionCount: 2,
         preservedContext: { branch: 'main' },
       });
       postCompactRecovery(createInput(), testCtx);
-      expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('Compaction #2'),
-      );
+      expect(getLoggedContext()).toContain('Compaction #2');
     });
 
     test('prefers CC-provided compaction_count over file state', () => {
@@ -83,19 +102,15 @@ describe('lifecycle/post-compact-recovery', () => {
         preservedContext: { branch: 'main' },
       });
       postCompactRecovery(createInput({ compaction_count: 5 }), testCtx);
-      expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('Compaction #5'),
-      );
+      expect(getLoggedContext()).toContain('Compaction #5');
     });
 
-    test('includes branch in output', () => {
+    test('includes branch in the logged context', () => {
       mockStateFile({
         preservedContext: { branch: 'feat/my-feature' },
       });
       postCompactRecovery(createInput(), testCtx);
-      expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('feat/my-feature'),
-      );
+      expect(getLoggedContext()).toContain('feat/my-feature');
     });
 
     test('includes recently edited files', () => {
@@ -103,9 +118,7 @@ describe('lifecycle/post-compact-recovery', () => {
         preservedContext: { activeFiles: ['src/index.ts', 'package.json'] },
       });
       postCompactRecovery(createInput(), testCtx);
-      expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('src/index.ts'),
-      );
+      expect(getLoggedContext()).toContain('src/index.ts');
     });
 
     test('truncates file list to 10', () => {
@@ -114,7 +127,7 @@ describe('lifecycle/post-compact-recovery', () => {
         preservedContext: { activeFiles: files },
       });
       postCompactRecovery(createInput(), testCtx);
-      const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
+      const ctx = getLoggedContext();
       expect(ctx).toContain('file0.ts');
       expect(ctx).toContain('file9.ts');
       expect(ctx).not.toContain('file10.ts');
@@ -125,9 +138,7 @@ describe('lifecycle/post-compact-recovery', () => {
         preservedContext: { activeTasks: ['Fix auth bug', 'Write tests'] },
       });
       postCompactRecovery(createInput(), testCtx);
-      expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('Fix auth bug'),
-      );
+      expect(getLoggedContext()).toContain('Fix auth bug');
     });
 
     test('includes recent decisions', () => {
@@ -135,9 +146,7 @@ describe('lifecycle/post-compact-recovery', () => {
         preservedContext: { decisionLog: ['Use Postgres over MongoDB'] },
       });
       postCompactRecovery(createInput(), testCtx);
-      expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('Use Postgres over MongoDB'),
-      );
+      expect(getLoggedContext()).toContain('Use Postgres over MongoDB');
     });
 
     test('includes compaction interval', () => {
@@ -146,9 +155,7 @@ describe('lifecycle/post-compact-recovery', () => {
         preservedContext: { branch: 'main' },
       });
       postCompactRecovery(createInput(), testCtx);
-      expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('5m'),
-      );
+      expect(getLoggedContext()).toContain('5m');
     });
 
     test('includes memory snapshot', () => {
@@ -158,9 +165,7 @@ describe('lifecycle/post-compact-recovery', () => {
         },
       });
       postCompactRecovery(createInput(), testCtx);
-      expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('42'),
-      );
+      expect(getLoggedContext()).toContain('42');
     });
   });
 
@@ -176,7 +181,7 @@ describe('lifecycle/post-compact-recovery', () => {
         },
       });
       postCompactRecovery(createInput(), testCtx);
-      const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
+      const ctx = getLoggedContext();
       expect(ctx).toContain('450');
       expect(ctx).toContain('550');
       expect(ctx).toContain('high');
@@ -194,7 +199,7 @@ describe('lifecycle/post-compact-recovery', () => {
         },
       });
       postCompactRecovery(createInput(), testCtx);
-      const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
+      const ctx = getLoggedContext();
       expect(ctx).not.toContain('Token budget');
     });
 
@@ -208,7 +213,7 @@ describe('lifecycle/post-compact-recovery', () => {
         },
       });
       postCompactRecovery(createInput(), testCtx);
-      const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
+      const ctx = getLoggedContext();
       expect(ctx).toContain('~0k used');
       expect(ctx).toContain('500');
     });
@@ -223,7 +228,7 @@ describe('lifecycle/post-compact-recovery', () => {
         },
       });
       postCompactRecovery(createInput(), testCtx);
-      const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
+      const ctx = getLoggedContext();
       expect(ctx).toContain('effort: default');
     });
   });
@@ -235,9 +240,7 @@ describe('lifecycle/post-compact-recovery', () => {
         preservedContext: { branch: 'main' },
       });
       postCompactRecovery(createInput({ compaction_count: 3 }), testCtx);
-      expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('consider wrapping up'),
-      );
+      expect(getLoggedContext()).toContain('consider wrapping up');
     });
 
     test('no warning below 3 compactions', () => {
@@ -246,7 +249,7 @@ describe('lifecycle/post-compact-recovery', () => {
         preservedContext: { branch: 'main' },
       });
       postCompactRecovery(createInput({ compaction_count: 2 }), testCtx);
-      const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
+      const ctx = getLoggedContext();
       expect(ctx).not.toContain('consider wrapping up');
     });
   });
@@ -257,9 +260,7 @@ describe('lifecycle/post-compact-recovery', () => {
         preservedContext: { branch: 'main' },
       });
       postCompactRecovery(createInput({ context_size_after: 150000 }), testCtx);
-      expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('150k tokens'),
-      );
+      expect(getLoggedContext()).toContain('150k tokens');
     });
   });
 

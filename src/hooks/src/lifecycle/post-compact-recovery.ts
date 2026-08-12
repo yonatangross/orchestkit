@@ -2,22 +2,27 @@
 // Created: 2026-03-14
 
 /**
- * PostCompact Recovery — Re-injects critical context after compaction
+ * PostCompact Recovery — logs the context carried across compaction
  * CC 2.1.76+: Fires after compaction completes.
  *
- * Reads the snapshot saved by pre-compact-saver.ts and injects:
+ * Does NOT re-inject context into the model: traced against the shipped
+ * 2.1.228 binary (issue #3457 follow-up, 2026-08-12), PostCompact's
+ * additionalContext is unsupported — CC's executor code for this event never
+ * carries the `hook_additional_context` marker every other additionalContext-
+ * consuming event does. Confirms #3321's original finding. Reads the snapshot
+ * saved by pre-compact-saver.ts and LOGS (not injects):
  * - Active branch and recently edited files
  * - In-progress task subjects
  * - Recent decisions
  * - Compaction frequency analytics
  *
- * Version: 1.0.0
+ * Version: 2.0.0
  */
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputWithContext, getLogDir, getProjectDir, getSessionId } from '../lib/common.js';
+import { outputSilentSuccess, getLogDir, getProjectDir, getSessionId } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import {
   readMarker,
@@ -181,6 +186,10 @@ export function postCompactRecovery(input: HookInput, hookCtx: HookContext = NOO
     `(${ctx.activeFiles?.length || 0} files, ${ctx.activeTasks?.length || 0} tasks, ` +
     `${ctx.decisionLog?.length || 0} decisions)`
   );
+  // additionalContext is unsupported on PostCompact (see file header) — log the
+  // full recovered text for anyone reading hooks.log, but do not build a
+  // hookSpecificOutput envelope CC will never deliver to the model.
+  hookCtx.log('post-compact-recovery', context, 'debug');
 
-  return outputWithContext(context);
+  return outputSilentSuccess();
 }

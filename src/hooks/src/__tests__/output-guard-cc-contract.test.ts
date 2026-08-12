@@ -67,7 +67,6 @@ describe('the guard preserves additionalContext where CC reads it', () => {
     'PostToolUse',
     'PostToolUseFailure',
     'SessionStart',
-    'PostCompact',
   ])('still preserves additionalContext on %s', (event) => {
     const out = sanitizeOutput(withContext(event), event) as {
       hookSpecificOutput?: { additionalContext?: string };
@@ -89,6 +88,18 @@ describe('the guard still strips where CC does NOT read', () => {
       expect(out.hookSpecificOutput?.additionalContext).toBeUndefined();
     }
   );
+
+  // Issue #3457 follow-up (2026-08-12): PostCompact was REMOVED from
+  // EVENTS_WITH_ADDITIONAL_CONTEXT, not merely left unreviewed — traced
+  // against the shipped 2.1.228 binary and found to lack the
+  // `hook_additional_context` executor marker every real additionalContext
+  // consumer carries (see spec/cc-output-keys.spec.yml). Confirms #3321.
+  it('strips additionalContext on PostCompact (settled unsupported, #3321/#3457)', () => {
+    const out = sanitizeOutput(withContext('PostCompact'), 'PostCompact') as {
+      hookSpecificOutput?: { additionalContext?: string };
+    };
+    expect(out.hookSpecificOutput?.additionalContext).toBeUndefined();
+  });
 
   it('drops hookSpecificOutput entirely once it is emptied', () => {
     const out = sanitizeOutput(withContext('CwdChanged'), 'CwdChanged') as {
