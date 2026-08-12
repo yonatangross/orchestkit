@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.26",
+    "date": "2026-08-12",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** allow the safe `IFS= read` idiom ([#3454](https://github.com/yonatangross/orchestkit/issues/3454)) ([92d66af](https://github.com/yonatangross/orchestkit/commit/92d66aff0497d48ebb6bbb7cec43ae7596fb234c))",
+          "**hooks:** stop pre-compact-guard blocking auto-compaction ([#3452](https://github.com/yonatangross/orchestkit/issues/3452)) ([7648c82](https://github.com/yonatangross/orchestkit/commit/7648c8220b8e0cc052643a3bfaf5cd93516a0500))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.25",
     "date": "2026-08-12",
     "compareUrl": "",
