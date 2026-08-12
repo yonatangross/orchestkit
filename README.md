@@ -276,6 +276,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.28](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.27...v10.0.0-alpha.28)** · 2026-08-12
+
+- **cc-adoption:** adopt MAX_SUBAGENT_SPAWN_DEPTH, fix depth 5/3 mismatch (#3463), closes [#3324](https://github.com/yonatangross/orchestkit/issues/3324)
+- **marketplace:** retire engine field for --strict (#3465), closes [#3349](https://github.com/yonatangross/orchestkit/issues/3349)
+
 **[v10.0.0-alpha.27](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.26...v10.0.0-alpha.27)** · 2026-08-12
 
 - **hooks:** bidirectional contract gate, real PostToolUseFailure field (#3457), closes [#3418](https://github.com/yonatangross/orchestkit/issues/3418)
@@ -308,10 +313,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.21](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.20...v10.0.0-alpha.21)** · 2026-08-11
 
 - **hooks:** stop run-hook.mjs failing silently and crashing (#3436)
-
-**[v10.0.0-alpha.20](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.19...v10.0.0-alpha.20)** · 2026-08-11
-
-- **hooks:** stop the pipe-to-shell deny from inventing a fetch (#3434)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

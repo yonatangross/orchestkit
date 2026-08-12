@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.28",
+    "date": "2026-08-12",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**cc-adoption:** adopt MAX_SUBAGENT_SPAWN_DEPTH, fix depth 5/3 mismatch ([#3463](https://github.com/yonatangross/orchestkit/issues/3463)) ([84549cc](https://github.com/yonatangross/orchestkit/commit/84549cccfb40be024437d5b06343f3841a857516)), closes [#3324](https://github.com/yonatangross/orchestkit/issues/3324)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**marketplace:** retire engine field for --strict ([#3465](https://github.com/yonatangross/orchestkit/issues/3465)) ([1226a9e](https://github.com/yonatangross/orchestkit/commit/1226a9e0f6ad71e3d24c9cac8d8566a0d3cf19ee)), closes [#3349](https://github.com/yonatangross/orchestkit/issues/3349)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.27",
     "date": "2026-08-12",
     "compareUrl": "",
