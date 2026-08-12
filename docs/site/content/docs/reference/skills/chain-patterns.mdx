@@ -217,7 +217,7 @@ SendMessage(to="api-designer", message="Now implement the schema you designed")
 
 ## Pattern 9: Nested Delegation (CC 2.1.172)
 
-Sub-agents can spawn their own sub-agents, up to 5 levels deep. Agents declaring `Agent(ork:xxx)` in their tools frontmatter (12 ork agents do) now execute those chains for real — e.g. `infrastructure-architect → ork:ci-cd-engineer → ork:deployment-manager` runs as a live 3-level chain.
+Sub-agents can spawn their own sub-agents, up to 3 levels deep by default (CC 2.1.219+; see the depth-budget note below for pinning it explicitly). Agents declaring `Agent(ork:xxx)` in their tools frontmatter (12 ork agents do) now execute those chains for real — e.g. `infrastructure-architect → ork:ci-cd-engineer → ork:deployment-manager` runs as a live 3-level chain.
 
 ```python
 # Parent agent's prompt can delegate a sub-problem to ITS declared specialist:
@@ -236,13 +236,13 @@ Agent(subagent_type="ork:backend-system-architect",
 **Flatten when** (parallel dispatch from the main loop):
 - Sub-tasks are independent — parallel fan-out is faster and cheaper than a serial chain
 - The main loop needs each raw result anyway (nesting hides intermediates)
-- You're tempted past depth 3 — each level multiplies latency and token cost; CC hard-caps at 5
+- You're tempted past depth 3 — each level multiplies latency and token cost; CC now defaults to a 3-level cap (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`, CC 2.1.219+)
 
-**Depth budget:** treat 3 as the practical ceiling. Depth telemetry is currently DORMANT: CC sends no `parent_agent_id` at SubagentStart (live-verified 2026-06-11), so `spawn_depth` is logged only when lineage is real and the validator's depth ≥ 4 warning cannot fire until upstream exposes agent context in hook payloads (anthropics/claude-code#16424). Until then the budget is enforced by THIS guidance, not by hooks — respect it.
+**Depth budget:** treat 3 as the practical ceiling. Depth telemetry is currently DORMANT: CC sends no `parent_agent_id` at SubagentStart (live-verified 2026-06-11), so `spawn_depth` is logged only when lineage is real and the validator's depth ≥ 4 warning cannot fire until upstream exposes agent context in hook payloads (anthropics/claude-code#16424). Until then the budget is enforced by THIS guidance, not by hooks — respect it (see the CC 2.1.219 note below for the mechanical backstop; doctor Check 16 offers the pin, `skills/doctor/references/settings-posture.md`).
 
 CC 2.1.224 removed the 200-subagent-per-session spawn cap (CHANGELOG verbatim: "Removed the 200-subagent-per-session spawn cap"), so ork budgets, the depth-3 ceiling and the refuter spawn cap, are now the only brake; respect them.
 
-> **CC 2.1.181 — foreground depth cap now enforced:** foreground subagents previously spawned unbounded nested chains; CC now rejects spawns past 5 levels deep, the same limit background subagents always had. This is CC's INTERNAL spawn-time rejection — distinct from ork's hook-based depth-≥4 warning above, which stays dormant (2.1.181 did not expose `parent_agent_id`). ork's ≤3 convention sits safely under the enforced 5-cap; the failure mode authors now hit is a hard depth-limit rejection, not silent unbounded growth.
+> **CC 2.1.181 — foreground depth cap now enforced:** foreground subagents previously spawned unbounded nested chains; CC now rejects spawns past a hard technical ceiling (5 levels, as shipped in 2.1.181), the same limit background subagents always had. This is CC's INTERNAL spawn-time rejection — distinct from ork's hook-based depth-≥4 warning above, which stays dormant (2.1.181 did not expose `parent_agent_id`). **CC 2.1.219 went further**, restoring nested spawning's own default to depth 3 (was 1 — 2.1.217 had briefly disabled nesting by default) — matching ork's ≤3 convention exactly rather than merely sitting under a looser ceiling. Pin `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=3` so CC rejects AT the intended budget, not just the older 5-level ceiling; the failure mode authors now hit is a hard depth-limit rejection, not silent unbounded growth.
 
 > **CC 2.1.203 — subagents less likely to re-delegate their whole task:** upstream tuned subagent behavior so an agent no longer hands its ENTIRE task to another subagent instead of doing the work itself. This reinforces the "each level synthesizes, never forwards" contract below — with accidental full-task handoff suppressed, the remaining depth pressure is the deliberate-nesting cost this budget already governs.
 
