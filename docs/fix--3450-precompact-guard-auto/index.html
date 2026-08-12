@@ -43,8 +43,8 @@
 <div class="chips">
   <span class="chip bad">observed live at <b>100%</b> context</span>
   <span class="chip">spawn log: <b>839</b> lines, <b>0</b> completion records</span>
-  <span class="chip ok">new control <b>4/4</b> fails on old code</span>
-  <span class="chip ok"><b>7558</b> hook tests</span>
+  <span class="chip ok"><b>6 of 8</b> new tests fail on old code</span>
+  <span class="chip ok"><b>7562</b> hook tests</span>
 </div>
 
 <section>
@@ -63,7 +63,7 @@ Wait for completion or set CLAUDE_CODE_ALLOW_COMPACT_DURING_AGENTS=1.</span></pr
   <table>
     <tr><th>#</th><th>Defect</th><th>Evidence</th></tr>
     <tr><td>1</td><td><b>Cannot tell auto from manual.</b> The handler signature was <code>(_input, ctx)</code>, so the payload was never read</td><td><code>trigger</code> (<code>'auto' | 'manual'</code>) has been typed and binary-verified in <span class="path">types.ts:187</span> since 2.1.227. The field was there all along.</td></tr>
-    <tr><td>2</td><td><b>The remedy is unreachable from where it prints.</b></td><td>The env var is read from the hook process env, inherited fixed at CC launch. Acting on that sentence needs a restart, which loses the same context.</td></tr>
+    <tr><td>2</td><td><b>The remedy is unreachable from where it prints.</b> Now fixed by repeat-to-confirm, below</td><td>The env var is read from the hook process env, inherited fixed at CC launch. Acting on that sentence needs a restart, which loses the same context.</td></tr>
     <tr><td>3</td><td><b>"Active" was recency, not liveness</b>, and undeduped</td><td>The spawn log has no completion records at all, so a finished agent blocks for the full 5 minutes. One agent is logged twice by design.</td></tr>
   </table>
 </section>
@@ -94,22 +94,37 @@ append {source:'stop'} ──▶ <span class="bad">watchdog reports completed ag
 </section>
 
 <section>
-  <h2>Control, run against the unfixed hook first</h2>
+  <h2>The escape hatch that actually works from inside</h2>
+  <p class="lead">Auto passing through does not help the case that started this: the operator typed <code>/compact</code> by hand, at the ceiling, and got stopped. Defect 2 said the printed remedy was unreachable. So the manual path now confirms by repetition.</p>
+  <pre>/compact          <span class="dim">──▶</span> <span class="bad">BLOCKED</span>
+  2 agents running (test-generator, cover).
+  <span class="warn">Run /compact again within 60s to compact anyway.</span>
+
+/compact (again)  <span class="dim">──▶</span> <span class="ok">ALLOWED</span>
+  marker consumed, proceeding with 2 agents live</pre>
+  <p class="lead">The marker is one session-keyed file, <span class="path">.claude/state/precompact-confirm-&lt;sessionId&gt;.json</span>, following the existing <code>nudge-outcome-state.ts</code> convention. Writes are best-effort by design: a failed write costs one extra <code>/compact</code>, it must never change the verdict or throw out of the hook. Auto deliberately does <b>not</b> consume the marker, since it never blocks and so never needs a confirm; a test pins that, or an auto pass could silently spend a confirm a manual attempt was holding.</p>
+</section>
+
+<section>
+  <h2>Control, run against the code each test replaces</h2>
   <pre>× never blocks automatic compaction, even with active agents
 × allows when background_tasks is empty despite a recent spawn entry
 × blocks from background_tasks when CC reports a live agent
 × counts one agent once when the spawn log holds duplicate entries
-  <span class="ok">Tests  4 failed | 6 passed  ← on old code, before the fix</span>
-  <span class="ok">Tests  10 passed           ← after</span></pre>
-  <p class="lead">The <b>6 passing</b> are the pre-existing suite, and they are why this survived: every one of them builds an input with no <code>trigger</code> and no <code>background_tasks</code>, so all five only ever exercised the fallback path. Behaviour under a real CC payload was never asserted.</p>
+× blocks the first manual compact and leaves a confirm marker
+× allows a repeat compact inside the confirm window
+
+  <span class="ok">6 of 8 new tests fail against the code they replace</span></pre>
+  <p class="lead">The other two confirm tests (re-block after the window expires, auto does not consume the marker) <b>pass vacuously</b> against the prior code, which blocked unconditionally and never unlinked. They are recorded as regression guards, not controls. Counting them as controls would be the exact green-test-beside-an-inert-control failure this repo keeps finding in its own work.</p>
+  <p class="lead">The pre-existing five passed before and still pass, and they are why this survived: every one builds an input with no <code>trigger</code> and no <code>background_tasks</code>, so all five only ever exercised the fallback path. Behaviour under a real CC payload was never asserted.</p>
 </section>
 
 <section>
   <h2>Verification</h2>
   <ul>
-    <li><b>7558</b> hook tests pass, 314 files · typecheck clean · build clean</li>
-    <li>New control <b>4/4 fails</b> on the unfixed hook, so it is a control and not a restatement</li>
-    <li>Manual <code>/compact</code> with a live agent <b>still blocks</b>, pinned by its own test</li>
+    <li><b>7562</b> hook tests pass, 314 files · typecheck clean · build clean</li>
+    <li><b>6 of 8</b> new tests fail against the code they replace; the other 2 are labelled regression guards, not controls</li>
+    <li>Manual <code>/compact</code> with a live agent <b>still blocks once</b>, and now has a confirm that works from inside the session</li>
   </ul>
   <div class="callout green">
     <b>One claim not made.</b> That <code>background_tasks</code> is delivered on the <i>PreCompact</i> payload is confirmed for Stop and SubagentStop, and assumed here. The code is written so it does not matter: if CC omits the field, <code>Array.isArray</code> is false and the hook uses the deduped timestamp fallback, which is strictly better than today. The auto-compaction fix, which is the one that unblocks a stuck session, does not depend on it at all.

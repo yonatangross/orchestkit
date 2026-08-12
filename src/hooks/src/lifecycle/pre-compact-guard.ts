@@ -2,7 +2,7 @@
 // Created: 2026-04-14
 
 /**
- * PreCompact Guard — CC 2.1.105
+ * PreCompact Guard (CC 2.1.105)
  *
  * Blocks MANUAL context compaction when background agents are genuinely
  * running. Without this, compacting mid-chain can break long-running
@@ -11,7 +11,7 @@
  * Policy:
  * - trigger === 'auto'      → always allow (see "Never block auto" below)
  * - env override set        → allow
- * - >= 1 LIVE agent         → block
+ * - >= 1 LIVE agent         → block ONCE, allow on a repeat within 60s
  * - else                    → allow
  *
  * Never block auto
@@ -22,7 +22,7 @@
  * this hook. Blocking the AUTO case strands the session: at the ceiling CC
  * offers "/compact or /clear", so vetoing compaction leaves only /clear,
  * which discards the very context the guard exists to protect. The env
- * override is no escape either — hook processes inherit env fixed at CC
+ * override is no escape either: hook processes inherit env fixed at CC
  * launch, so a user reading the block message cannot act on it without
  * restarting, which also loses the context. Auto therefore passes through
  * unconditionally.
@@ -39,13 +39,14 @@
  * both writers counts once.
  */
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from 'node:fs';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'pre-compact-guard';
 const ACTIVE_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+const CONFIRM_WINDOW_MS = 60 * 1000; // 1 minute to repeat /compact and mean it
 
 interface SpawnEntry {
   timestamp: string;
@@ -75,8 +76,8 @@ function getActiveSpawns(): SpawnEntry[] {
 /**
  * Collapse repeat entries for one agent to its newest record.
  *
- * The same agent is logged twice by design — once by spawn-intent-logger on
- * PreToolUse and once by subagent-validator on SubagentStart — and observed
+ * The same agent is logged twice by design (once by spawn-intent-logger on
+ * PreToolUse and once by subagent-validator on SubagentStart), and observed
  * logs also carry duplicate 'start' rows for a single agent_id across
  * SendMessage resumes. Undeduped, `active.length` reports one agent as many
  * and the block message names it repeatedly. Entries with no agent_id cannot
@@ -100,12 +101,56 @@ function dedupeByAgent(entries: SpawnEntry[]): SpawnEntry[] {
   return [...newestById.values(), ...anonymous];
 }
 
+/**
+ * Repeat-to-confirm marker, one file per session.
+ *
+ * Defect 2 of #3451 was that the block named a remedy the user could not
+ * reach: an env var read from a process env fixed at CC launch. A guard that
+ * cannot be overridden from inside the session it has stopped is not a guard,
+ * it is a dead end. The first manual /compact blocks and drops this marker;
+ * a second within CONFIRM_WINDOW_MS consumes it and proceeds. Follows the
+ * `.claude/state/<name>-<sessionId>.json` convention from nudge-outcome-state.
+ */
+function confirmMarkerPath(sessionId: string): string {
+  return `${getProjectDir()}/.claude/state/precompact-confirm-${sessionId}.json`;
+}
+
+/** Epoch ms of the pending block for this session, or null if none on disk. */
+function readPendingConfirm(sessionId: string): number | null {
+  const p = confirmMarkerPath(sessionId);
+  if (!existsSync(p)) return null;
+  try {
+    const parsed = JSON.parse(readFileSync(p, 'utf8')) as { blockedAt?: unknown };
+    return typeof parsed.blockedAt === 'number' ? parsed.blockedAt : null;
+  } catch {
+    return null;
+  }
+}
+
+function writePendingConfirm(sessionId: string, now: number): void {
+  try {
+    mkdirSync(`${getProjectDir()}/.claude/state`, { recursive: true });
+    writeFileSync(confirmMarkerPath(sessionId), JSON.stringify({ sessionId, blockedAt: now }));
+  } catch {
+    // Best-effort. A failed write costs the user a second /compact, it does
+    // not change the verdict, so it must never throw out of the hook.
+  }
+}
+
+function clearPendingConfirm(sessionId: string): void {
+  try {
+    unlinkSync(confirmMarkerPath(sessionId));
+  } catch {
+    // already gone
+  }
+}
+
 export function preCompactGuard(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Auto-compaction is CC's own recovery at the context ceiling. Blocking it
   // leaves /clear as the only exit and destroys the session state this hook
   // exists to protect. Allow unconditionally, before any other check.
   if (input.trigger === 'auto') {
-    ctx.log(HOOK_NAME, 'Auto-compaction — passing through without agent check');
+    ctx.log(HOOK_NAME, 'Auto-compaction, passing through without agent check');
     return outputSilentSuccess();
   }
 
@@ -114,7 +159,7 @@ export function preCompactGuard(input: HookInput, ctx: HookContext = NOOP_CTX): 
   }
 
   // CC 2.1.145+: background_tasks is the authoritative live-agent list. When
-  // present, trust it exclusively — including when it is EMPTY, which means
+  // present, trust it exclusively, including when it is EMPTY, which means
   // nothing is running no matter what the spawn log recorded minutes ago.
   const liveTasks = input.background_tasks;
   let active: Array<{ agent_id?: string; subagent_type?: string }>;
@@ -138,7 +183,20 @@ export function preCompactGuard(input: HookInput, ctx: HookContext = NOOP_CTX): 
     .slice(0, 3)
     .join(', ');
 
-  ctx.log(HOOK_NAME, `Blocking compaction — ${active.length} active agents (${source}): ${agentList}`);
+  // Repeat-to-confirm. An explicit second /compact is an unambiguous "yes, I
+  // know, do it anyway", and it is the only override that works from inside a
+  // session the guard has already stopped.
+  const sessionId = input.session_id || process.env.CLAUDE_SESSION_ID || 'unknown';
+  const now2 = Date.now();
+  const pendingAt = readPendingConfirm(sessionId);
+  if (pendingAt !== null && now2 - pendingAt < CONFIRM_WINDOW_MS) {
+    clearPendingConfirm(sessionId);
+    ctx.log(HOOK_NAME, `Compaction confirmed by repeat, proceeding with ${active.length} agent(s) live`);
+    return outputSilentSuccess();
+  }
+  writePendingConfirm(sessionId, now2);
+
+  ctx.log(HOOK_NAME, `Blocking compaction: ${active.length} active agents (${source}): ${agentList}`);
 
   // BOTH reason and stopReason, deliberately (#3321 claim 6, verified against
   // the 2.1.227 binary): on a decision:'block' command hook, CC builds the
@@ -148,12 +206,14 @@ export function preCompactGuard(input: HookInput, ctx: HookContext = NOOP_CTX): 
   // not set blocked on the PreCompact path, so removing it would silently
   // disable the block entirely.
   //
-  // The env override is named as a NEXT-SESSION remedy on purpose: it is read
-  // from the hook process env, which is fixed at CC launch, so telling a user
-  // mid-session to "set" it sends them somewhere they cannot go.
+  // The repeat instruction leads because it is the only remedy reachable from
+  // inside a stopped session. The env override trails as a NEXT-SESSION note
+  // on purpose: it is read from the hook process env, fixed at CC launch, so
+  // telling a user mid-session to "set" it sends them somewhere they cannot go.
   const blockMessage =
-    `Compaction blocked — ${active.length} background agent(s) still running (${agentList}). ` +
-    `Wait for them to finish and retry. Automatic compaction at the context limit is never blocked. ` +
+    `Compaction blocked: ${active.length} background agent(s) still running (${agentList}). ` +
+    `Run /compact again within 60s to compact anyway. ` +
+    `Automatic compaction at the context limit is never blocked. ` +
     `To disable this guard for future sessions, set CLAUDE_CODE_ALLOW_COMPACT_DURING_AGENTS=1 in the environment or .claude/settings.json.`;
   return {
     continue: false,
