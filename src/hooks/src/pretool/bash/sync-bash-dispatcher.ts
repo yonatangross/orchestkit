@@ -23,6 +23,7 @@ import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } 
 import { dangerousCommandBlocker } from './dangerous-command-blocker.js';
 import { compoundCommandValidator } from './compound-command-validator.js';
 import { networkEgressGuard } from './network-egress-guard.js';
+import { restrictBash } from '../../agent/restrict-bash.js';
 import { unifiedBashAdvisoryDispatcher } from './unified-advisory-dispatcher.js';
 
 // Phase 0: Headless deferral (merged from separate hooks.json group — #optimization)
@@ -67,6 +68,19 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   // Phase 1: Security
   { name: 'dangerous-command-blocker', fn: dangerousCommandBlocker },
   { name: 'compound-command-validator', fn: compoundCommandValidator },
+  // Agent-scoped allowlist (#3430). Ordering is load-bearing, in both directions:
+  //
+  //   AFTER dangerous-command-blocker / compound-command-validator, so the
+  //   universal hard blocks apply to every session regardless of agent.
+  //
+  //   BEFORE network-egress-guard, because the dispatcher short-circuits on the
+  //   FIRST non-silent result and egress-guard answers `ask` for exfil-shaped
+  //   commands. With the reverse order, a restricted agent running `nc -l 1234`
+  //   got `ask` — a prompt a human might approve — instead of the `deny` its
+  //   allowlist demands. Caught by case 4 of the positive control. For these 7
+  //   agents the allowlist is the strictest applicable control, so it decides
+  //   first; every other session pays one Set lookup and falls through.
+  { name: 'restrict-bash', fn: restrictBash },
   // Network egress: DENY remote-code-exec (bash <(curl)), ASK exfil/staged-run
   { name: 'network-egress-guard', fn: networkEgressGuard },
   // Phase 2: Git/GH enforcement (previously separate process spawns + new)

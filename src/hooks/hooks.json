@@ -4,7 +4,6 @@
     "PreToolUse": [
       {
         "matcher": "Bash",
-        "if": "Bash(git *) || Bash(npm *) || Bash(npx *) || Bash(node *) || Bash(rm *) || Bash(curl *) || Bash(chmod *) || Bash(docker *) || Bash(kubectl *) || Bash(terraform apply*) || Bash(alembic upgrade*) || Bash(gh pr merge*) || Bash(gh release create*)",
         "hooks": [
           {
             "type": "command",

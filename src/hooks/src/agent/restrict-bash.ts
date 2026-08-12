@@ -14,7 +14,54 @@
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputDeny } from '../lib/common.js';
 import { normalizeSingle } from '../lib/normalize-command.js';
+import { normalizeAgentName } from '../lib/agent-attribution-types.js';
 import { NOOP_CTX } from '../lib/context.js';
+
+// ---------------------------------------------------------------------------
+// Self-scoping (#3430)
+// ---------------------------------------------------------------------------
+
+/**
+ * The agents this allowlist governs. Their `tools:` lists grant Bash for
+ * read-only investigation (git log, gh pr view, grep, jq), so an allowlist is
+ * the right control — deleting the declaration would trade a broken control
+ * for no control.
+ *
+ * This is an allowlist of RESTRICTED AGENTS, deliberately not a test for
+ * "am I running inside a subagent". The distinction is the whole safety
+ * argument: an unrecognised or absent identity falls through to
+ * outputSilentSuccess(), which is exactly today's behaviour. A membership test
+ * would have to choose between restricting every session and restricting none
+ * when identity is missing, and both are worse than the status quo.
+ */
+const RESTRICTED_AGENTS = new Set<string>([
+  'code-quality-reviewer',
+  'ai-safety-auditor',
+  'debug-investigator',
+  'market-intelligence',
+  'product-strategist',
+  'system-design-reviewer',
+  'web-research-analyst',
+]);
+
+/**
+ * Identify the agent from the PAYLOAD, never from process.env.
+ *
+ * This hook now runs as a member of the globally-registered sync-bash-dispatcher,
+ * where `process.env.CLAUDE_AGENT_ID` has no guarantee of being populated. Reading
+ * it there would silently yield 'unknown' and make the control either restrict
+ * every session or none.
+ *
+ * normalizeAgentName is required, not cosmetic: CC sends `ork:`-prefixed names,
+ * and matching bare names against a prefixed value is the exact defect #3354
+ * fixed. Skipping it here would reproduce it.
+ */
+function restrictedAgentFor(input: HookInput): string | null {
+  const raw = input.agent_type ?? input.subagent_type ?? '';
+  if (!raw) return null;
+  const name = normalizeAgentName(raw);
+  return RESTRICTED_AGENTS.has(name) ? name : null;
+}
 
 // ---------------------------------------------------------------------------
 // Allowed command prefixes (read-only operations only)
@@ -43,7 +90,23 @@ const ALLOWED_PREFIXES: string[] = [
   'seq', 'printf', 'test', 'expr',
   // Misc read-only
   'pwd', 'date', 'echo', 'which', 'env', 'printenv',
-  'node -e', 'node --eval', 'python -c', 'python3 -c',
+  // REMOVED (#3430): 'node -e', 'node --eval', 'python -c', 'python3 -c'.
+  //
+  // These are arbitrary code execution, not read-only inspection.
+  // `python -c "import os; os.system(...)"` and
+  // `node -e "require('fs').writeFileSync(...)"` defeat the entire allowlist
+  // while sitting inside it, and this hook's own denial message promises the
+  // opposite: "This agent investigates and reports — it does not modify the
+  // system."
+  //
+  // They were harmless while the control was inert (zero registrations, zero
+  // timing entries across 193,606 rows). This change makes the control fire for
+  // the first time, so keeping them would ship a live bypass rather than
+  // inherit a dormant one. Removing them now costs nothing: no session has ever
+  // been evaluated against this list.
+  //
+  // If an agent genuinely needs a one-liner interpreter, add a narrowly scoped
+  // prefix for that use, never the bare `-c` / `-e` form.
 ];
 
 // ---------------------------------------------------------------------------
@@ -65,8 +128,15 @@ function hasCompoundOperators(cmd: string): boolean {
  * Allowlist-based: deny by default, only permit known safe commands.
  */
 export function restrictBash(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  // Guard at TOP — this runs on EVERY Bash call now that the dispatcher's
+  // if-gate is gone (#3438), so the common path (main thread, no agent_type)
+  // must cost one Set lookup and return. Everything below is subagent-only.
+  const agentId = restrictedAgentFor(input);
+  if (agentId === null) {
+    return outputSilentSuccess();
+  }
+
   const command = input.tool_input.command || '';
-  const agentId = process.env.CLAUDE_AGENT_ID || 'unknown';
 
   if (!command.trim()) {
     return outputSilentSuccess();
