@@ -262,7 +262,7 @@
       { "mark": "chg",  "node": "  LATEST_KNOWN_CC = '2.1.231'" },
       { "mark": "same", "node": "shared/cc-snapshots/" },
       { "mark": "add",  "node": "  + 2.1.231.md (new)" },
-      { "mark": "same", "node": "manual_override.expires: 2026-09-20 (UNCHANGED, 38d out)" }
+      { "mark": "chg",  "node": "manual_override.expires: 2026-11-20 (RENEWED from 2026-09-20)" }
     ]
   },
   "files": [
@@ -279,7 +279,7 @@
   ],
   "phases": [
     { "id": "P1", "title": "Bump latest_known 2.1.229 -> 2.1.231", "status": "done",
-      "deps": [], "detail": "shared/cc-support.json + shared/gh-issue-args.json. Floor/latest stay frozen at 2.1.220 by the 2026-06-20 manual_override (expires 2026-09-20)." },
+      "deps": [], "detail": "shared/cc-support.json + shared/gh-issue-args.json. Floor/latest stay frozen at 2.1.220 by the 2026-06-20 manual_override, whose expiry this PR renewed 2026-09-20 -> 2026-11-20 (deadline extension only; the floor itself was NOT renewed at head)." },
     { "id": "P2", "title": "Stamp LATEST_KNOWN_CC in cc-version-matrix.ts", "status": "done",
       "deps": ["P1"], "detail": "One-line string literal bump; the adoption-nudge threshold consumers read." },
     { "id": "P3", "title": "Record snapshot + gaps entry", "status": "done",
@@ -292,10 +292,10 @@
       "deps": ["P5"], "detail": "docs/chore--cc-adopt-2.1.231/plan-viz.html — satisfies the PR Playground gate before the branch opens a PR." }
   ],
   "risks": [
-    { "id": "R1", "title": "manual_override expires 2026-09-20 (~38 days out)", "severity": "warning",
-      "likelihood": 3, "impact": 3,
-      "premortem": "Nobody renews the floor pin before 2026-09-20; cc-support-window-bump.yml auto-resumes the 'latest + 3 previous minors' policy and silently moves the floor away from 2.1.220 without a deliberate owner decision, the same class of change that has required a manual renewal three times already (2026-06-20, 2026-07-10, 2026-07-25).",
-      "containment": "This entry is now the fourth dated bump against the SAME override; the renewal cadence (roughly every 2-3 weeks) means a fifth touch before 2026-09-20 is likely, but nothing currently reminds anyone except this recorded history." },
+    { "id": "R1", "title": "manual_override expiry — RESOLVED in this PR (renewed to 2026-11-20)", "severity": "good",
+      "likelihood": 1, "impact": 3,
+      "premortem": "As originally rendered, this risk was live: the override expired 2026-09-20, ~38 days out, and on lapse cc-support-window-bump.yml auto-resumes the 'latest + 3 previous minors' policy and silently moves the floor away from 2.1.220 with no deliberate owner decision — the same class of change that had already required manual renewal three times (2026-06-20, 2026-07-10, 2026-07-25).",
+      "containment": "Closed by the second commit on this branch: expiry renewed 2026-09-20 -> 2026-11-20 at the operator's explicit request. Deliberately a DEADLINE EXTENSION ONLY — latest/supported_floor/drop_after stay at 2.1.220/2.1.220/2.1.219 and were NOT renewed at head, because moving the floor to 2.1.231 would break every user on 2.1.220 through 2.1.229. Impact stays 3: the underlying exposure recurs on the new date, and still nothing surfaces it but this record." },
     { "id": "R2", "title": "2.1.229 -> 2.1.231 fix-then-regression-fix pair", "severity": "good",
       "likelihood": 1, "impact": 1,
       "premortem": "2.1.229 switched CC's OAuth redirect URI to 127.0.0.1, which broke pre-registered OAuth clients (e.g. Slack); 2.1.231 fixes that. Structurally irrelevant here: .mcp.json declares 8 stdio-only servers (grep -c '\"type\"' = 0, zero have a url field), so ork has no MCP OAuth client surface for either release to touch.",
@@ -308,10 +308,10 @@
       "alternatives": "Append a 2.1.231 changelog note anyway · split the file to make room first",
       "tradeoff": "The file is already 167 lines against the repo's 150-line rule-file max, and the distinction it would restate is already drawn correctly — adding text deepens an existing violation to document a client-side CC fix in a server-authoring rule. Logged in the triage doc instead of silently skipped." },
     { "id": "D2", "title": "latest_known-only bump, floor stays frozen",
-      "context": "The 2026-07-25 manual_override pins floor=latest=2.1.220 until 2026-09-20. 2.1.231 forces zero ork code change (1 bullet, 0 adoptions).",
-      "decision": "Advance latest_known 2.1.229 -> 2.1.231; leave floor/latest/drop_after untouched.",
+      "context": "The 2026-07-25 manual_override pins floor=latest=2.1.220; its expiry was 2026-09-20 when this plan was first rendered and is 2026-11-20 after the renewal commit on this branch. 2.1.231 forces zero ork code change (1 bullet, 0 adoptions).",
+      "decision": "Advance latest_known 2.1.229 -> 2.1.231; leave floor/latest/drop_after untouched. Separately, extend the override EXPIRY only.",
       "alternatives": "Renew the floor bump now at 2.1.231 · leave latest_known stale until the override naturally expires",
-      "tradeoff": "Keeps the override's original 2026-09-20 decision point intact — a floor renewal is a deliberate owner call, not something a no-op release should trigger — while still clearing the per-session adoption-lag nudge that latest_known drift causes." }
+      "tradeoff": "Moving the expiry is not the same as moving the floor, and only the former happened. A floor renewal at head would push every user from 2.1.220 to 2.1.231 and is a deliberate owner call, not something a no-op release should trigger — so the floor stayed put while the deadline moved and the per-session adoption-lag nudge from latest_known drift got cleared." }
   ],
   "impact": {
     "api": [
