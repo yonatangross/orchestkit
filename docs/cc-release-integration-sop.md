@@ -13,12 +13,33 @@ detect → extract → VERIFY → file → adopt → subtract
 
 | Stage | Mechanism (live authority) | What it does |
 |-------|----------------------------|--------------|
-| **detect** | `.github/workflows/claude-release-watch.yml` → `scripts/cc-release-watch.mjs` (daily cron) | Polls the upstream CHANGELOG, snapshots new versions into `shared/cc-snapshots/`, fires a staleness alarm when `latest_known` lags. |
+| **detect** | `.github/workflows/claude-release-watch.yml` → `scripts/cc-release-watch.mjs` (**manual `workflow_dispatch` only**) | Polls the upstream CHANGELOG, snapshots new versions into `shared/cc-snapshots/`, fires a staleness alarm when `latest_known` lags. |
 | **extract** | `scripts/cc-triage.mjs` (LLM, token-gated) | Turns changelog bullets into scored `CCFeature[]` in `shared/cc-adoption-gaps.json`. |
 | **VERIFY** | `applyRelevanceGate()` in `scripts/cc-triage.mjs` (token-free) | The precision/recall gate: downgrades end-user-only noise below the issue-filer floor (never drops — a drop is invisible) and recall-boosts sub-floor items that map to a predating skill. When triage is genuinely ambiguous, fall back to a **manual adversarial-refute pass** — precedents in `docs/audits/cc-adoption-2.1.186-triage-*.md` and `…-2.1.178-179-…`. |
 | **file** | `scripts/cc-file-adoption-issues.sh` | Files `cc-adoption` issues (gap_score ≥ `MIN_GAP_SCORE`, default 10) under the single rolling "CC adoption" milestone, deduped by body-marker. |
 | **adopt** | human / `/ork:implement` | Pick up an issue, implement, PR. |
 | **subtract** | `shared/rules/cc-native-first.md` ("adoption is subtraction") | Every release also asks *"what can we now DELETE?"* — prefer a native CC mechanism over an ork one. |
+
+### Detection is NOT automatic
+
+The `schedule:` trigger was deliberately removed from `claude-release-watch.yml` on
+2026-07-28: `cc-triage.mjs` makes real `claude -p` calls, which cost $0 in dollars on a
+Max plan but draw on the **shared weekly quota**, so an automatic run competes with the
+operator for their own capacity. The workflow header says so and says not to re-add it.
+
+The consequence is real and was measured on 2026-08-13: the last run was 2026-07-30,
+`shared/cc-snapshots/` and `cc-adoption-gaps.json` both stopped at 2.1.226, and three
+releases (2.1.227, 2.1.228, 2.1.229) went undetected, including the 2.1.228 fix for
+session cleanup deleting contents of a project's memory folder. **Nothing polls upstream
+on your behalf.** Fire it by hand when you want a sweep:
+
+```bash
+gh workflow run claude-release-watch.yml --ref main
+```
+
+If the LLM extraction is degraded (the `parse_failed` / empty-`features` pattern in
+`cc-adoption-gaps.json`), triage the changelog manually instead of waiting for it.
+Precedents live in `docs/audits/`.
 
 ## Source of truth
 
