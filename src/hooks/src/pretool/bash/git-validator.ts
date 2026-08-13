@@ -386,6 +386,48 @@ Run this instead (copyable as-is):
 // VALIDATION FUNCTIONS
 // =============================================================================
 
+/**
+ * Destination branch of every `git push` in the command (#3455).
+ *
+ * Returns null when ANY push does not name a destination, because a bare
+ * `git push` resolves through the upstream and its target is unknowable from
+ * the string alone. All-or-nothing on purpose: one unresolvable push must not
+ * be laundered by a sibling push that happens to name a feature branch.
+ *
+ *   git push -u origin feat/x        -> ['feat/x']
+ *   git push origin HEAD:main        -> ['main']       (still protected)
+ *   git push origin a:b --force      -> ['b']
+ *   git push                         -> null           (unknowable)
+ *   git push origin feat/x && git push -> null         (one unknowable)
+ */
+export function extractPushDestinations(command: string): string[] | null {
+  const pushes = [...command.matchAll(/\bgit\s+(?:-C\s+\S+\s+)?push\b/g)];
+  if (pushes.length === 0) return null;
+
+  const dests: string[] = [];
+  for (const m of pushes) {
+    // Read up to the next shell separator so a later command's words are
+    // never mistaken for this push's arguments.
+    const rest = command.slice(m.index + m[0].length).split(/[;&|]|\n/)[0];
+    const operands: string[] = [];
+    for (const tok of rest.trim().split(/\s+/).filter(Boolean)) {
+      if (tok.startsWith('-')) {
+        continue; // flags, incl. --force-with-lease=<ref> which is not a target
+      }
+      operands.push(tok);
+    }
+    // <remote> <refspec>. A lone operand is the remote, so the branch is
+    // implicit and therefore unknowable.
+    if (operands.length < 2) return null;
+    const refspec = operands[1];
+    const dst = refspec.includes(':') ? refspec.slice(refspec.lastIndexOf(':') + 1) : refspec;
+    const clean = dst.replace(/^\+/, '').replace(/^refs\/heads\//, '');
+    if (!clean) return null;
+    dests.push(clean);
+  }
+  return dests;
+}
+
 function validateBranchProtection(
   gitCommand: string,
   currentBranch: string,
@@ -407,6 +449,30 @@ function validateBranchProtection(
     );
     return outputAllowWithContext(
       `Command switches to branch '${switchTarget}' before commit/push — session dir is on '${currentBranch}', not blocking.`,
+    );
+  }
+
+  // Explicit-destination awareness (#3455): when every `git push` in the
+  // command NAMES its destination and none of those destinations is
+  // protected, the command cannot push to a protected branch no matter which
+  // directory it runs in. That verdict needs no cwd knowledge, which matters
+  // because cwd resolution is exactly what fails here: `shell_cwd` never
+  // lands on disk (#3411), so a worktree push without `git -C` is judged
+  // against the primary checkout and reads as "on main".
+  //
+  // Scope note: this deliberately also covers `git commit && git push origin
+  // <feature>`. Restricting it to push-only commands would have fixed neither
+  // real-world report on #3455. A commit in that chain lands on whatever
+  // branch is checked out and is local-only; the protected REMOTE ref is
+  // provably untouched, which is what "push directly to main" guards.
+  const pushTargets = extractPushDestinations(gitCommand);
+  if (pushTargets && pushTargets.length > 0 && !pushTargets.some(isProtectedBranch)) {
+    logPermissionFeedback(
+      'allow',
+      `Explicit-destination: push targets ${pushTargets.join(', ')} (session on '${currentBranch}')`,
+    );
+    return outputAllowWithContext(
+      `Every push in this command names a non-protected destination (${pushTargets.join(', ')}) — session dir is on '${currentBranch}', not blocking.`,
     );
   }
 
