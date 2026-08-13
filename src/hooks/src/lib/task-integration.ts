@@ -397,68 +397,11 @@ export function registerPipeline(pipeline: PipelineExecution): void {
 }
 
 /**
- * Update pipeline state
- */
-export function updatePipeline(
-  pipelineId: string,
-  updates: Partial<PipelineExecution>
-): void {
-  const registry = loadRegistry();
-
-  const pipeline = registry.pipelines.find(p => p.pipelineId === pipelineId);
-  if (pipeline) {
-    Object.assign(pipeline, updates);
-    saveRegistry(registry);
-    logHook('task-integration', `Updated pipeline ${pipelineId}`);
-  }
-}
-
-/**
  * Get active pipeline (if any)
  */
 export function getActivePipeline(): PipelineExecution | undefined {
   const registry = loadRegistry();
   return registry.pipelines.find(p => p.status === 'running');
-}
-
-/**
- * Mark pipeline step complete and check for next
- */
-export function completePipelineStep(pipelineId: string, step: number): number | null {
-  const registry = loadRegistry();
-
-  const pipeline = registry.pipelines.find(p => p.pipelineId === pipelineId);
-  if (!pipeline) return null;
-
-  if (!pipeline.completedSteps.includes(step)) {
-    pipeline.completedSteps.push(step);
-    pipeline.completedSteps.sort((a, b) => a - b);
-  }
-
-  // Find next unblocked step
-  const tasks = getPipelineTasks(pipelineId);
-  for (const task of tasks) {
-    const taskStep = task.pipelineStep;
-    if (taskStep === undefined) continue;
-    if (pipeline.completedSteps.includes(taskStep)) continue;
-    if (task.status !== 'pending') continue;
-
-    // Check if dependencies are met
-    // For now, assume sequential - previous steps must be complete
-    const prevStepsComplete = taskStep === 0 ||
-      pipeline.completedSteps.includes(taskStep - 1);
-
-    if (prevStepsComplete) {
-      pipeline.currentStep = taskStep;
-      saveRegistry(registry);
-      return taskStep;
-    }
-  }
-
-  // No more steps - pipeline complete
-  pipeline.status = 'completed';
-  saveRegistry(registry);
-  return null;
 }
 
 // -----------------------------------------------------------------------------

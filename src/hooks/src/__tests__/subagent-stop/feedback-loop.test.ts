@@ -51,20 +51,6 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 vi.mock('../../lib/task-integration.js', () => ({
   getTaskByAgent: vi.fn().mockReturnValue(null),
   updateTaskStatus: vi.fn(),
-  getActivePipeline: vi.fn().mockReturnValue(null),
-}));
-
-vi.mock('../../lib/multi-agent-coordinator.js', () => ({
-  PIPELINES: [
-    {
-      type: 'full-stack-feature',
-      steps: [
-        { agent: 'backend-system-architect', dependsOn: [] },
-        { agent: 'frontend-ui-developer', dependsOn: [0] },
-        { agent: 'test-generator', dependsOn: [0, 1] },
-      ],
-    },
-  ],
 }));
 
 vi.mock('../../lib/agent-teams.js', () => ({
@@ -77,7 +63,7 @@ vi.mock('../../lib/agent-teams.js', () => ({
 
 import { feedbackLoop } from '../../subagent-stop/feedback-loop.js';
 import { writeFileSync, mkdirSync, appendFileSync, existsSync, readFileSync } from 'node:fs';
-import { getTaskByAgent, updateTaskStatus, getActivePipeline } from '../../lib/task-integration.js';
+import { getTaskByAgent, updateTaskStatus } from '../../lib/task-integration.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
@@ -490,47 +476,6 @@ describe('feedback-loop', () => {
 
       // Assert
       expect(result.systemMessage).toContain('task-xyz');
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // Pipeline-aware routing
-  // ---------------------------------------------------------------------------
-
-  describe('pipeline-aware routing', () => {
-    test('uses pipeline routing when active pipeline exists', () => {
-      // Arrange
-      vi.mocked(getActivePipeline).mockReturnValue({
-        pipelineId: 'pipeline-001',
-        type: 'full-stack-feature',
-        startedAt: '2024-01-01T00:00:00Z',
-        taskIds: { 0: 'task-1', 1: 'task-2', 2: 'task-3' },
-        currentStep: 0,
-        completedSteps: [],
-        status: 'running',
-      });
-      const input = createSubagentStopInput('backend-system-architect', 'Done');
-
-      // Act
-      const result = feedbackLoop(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-      // Pipeline step 0 (backend-system-architect) should route to step 1 (frontend-ui-developer)
-      expect(result.systemMessage).toContain('frontend-ui-developer');
-    });
-
-    test('falls back to static mapping when no pipeline', () => {
-      // Arrange
-      vi.mocked(getActivePipeline).mockReturnValue(undefined);
-      const input = createSubagentStopInput('workflow-architect', 'Workflow done');
-
-      // Act
-      const result = feedbackLoop(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-      expect(result.systemMessage).toContain('llm-integrator');
     });
   });
 

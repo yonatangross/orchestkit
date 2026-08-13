@@ -44,9 +44,7 @@ import {
   getOrphanedTasks,
   getPipelineTasks,
   registerPipeline,
-  updatePipeline,
   getActivePipeline,
-  completePipelineStep,
   cleanupOldTasks,
 } from '../../lib/task-integration.js';
 
@@ -282,14 +280,6 @@ describe('pipeline operations', () => {
     expect(readReg().pipelines).toHaveLength(1);
   });
 
-  it('updatePipeline modifies fields', () => {
-    registerPipeline(makePipeline());
-    updatePipeline('pipe-1', { status: 'paused', currentStep: 3 });
-    const p = readReg().pipelines[0];
-    expect(p.status).toBe('paused');
-    expect(p.currentStep).toBe(3);
-  });
-
   it('getActivePipeline returns running pipeline', () => {
     registerPipeline(makePipeline());
     expect(getActivePipeline()?.pipelineId).toBe('pipe-1');
@@ -312,36 +302,6 @@ describe('getPipelineTasks', () => {
 
   it('returns empty array for unknown pipeline', () => {
     expect(getPipelineTasks('nonexistent')).toEqual([]);
-  });
-});
-
-describe('completePipelineStep', () => {
-  it('marks step complete and returns next step', () => {
-    registerPipeline(makePipeline());
-    registerTask('t0', 'backend-system-architect', 85, 'pipe-1', 0);
-    registerTask('t1', 'test-generator', 80, 'pipe-1', 1);
-    expect(completePipelineStep('pipe-1', 0)).toBe(1);
-  });
-
-  it('returns null and marks pipeline complete when done', () => {
-    registerPipeline(makePipeline());
-    registerTask('t0', 'backend-system-architect', 85, 'pipe-1', 0);
-    updateTaskStatus('t0', 'completed');
-    expect(completePipelineStep('pipe-1', 0)).toBeNull();
-    expect(readReg().pipelines[0].status).toBe('completed');
-  });
-
-  it('returns null for non-existent pipeline', () => {
-    expect(completePipelineStep('nonexistent', 0)).toBeNull();
-  });
-
-  it('does not duplicate completed steps', () => {
-    registerPipeline(makePipeline());
-    registerTask('t0', 'backend-system-architect', 85, 'pipe-1', 0);
-    registerTask('t1', 'test-generator', 80, 'pipe-1', 1);
-    completePipelineStep('pipe-1', 0);
-    completePipelineStep('pipe-1', 0);
-    expect(readReg().pipelines[0].completedSteps.filter((s: number) => s === 0)).toHaveLength(1);
   });
 });
 

@@ -455,7 +455,13 @@ describe('Cross-Bundle Consistency', () => {
     //             re-probed on CC 2.1.226 and the validator now accepts it
     //             (it still rejects genuinely unknown keys, so the check is
     //             live, not disabled).
-    expect(totalHooks).toBe(200);
+    // 200 -> 199: #3352 — deleted the dead custom-pipeline mechanism.
+    //             `prompt/pipeline-detector` (a legacy override-compat entry in
+    //             entries/prompt.ts, never in hooks.json) is gone: its
+    //             detection was starved by the Teams-yield gate on every call,
+    //             0 detections since 2026-01-23. lib/multi-agent-coordinator.ts
+    //             was deleted wholesale; it exported no bundle-registered hook.
+    expect(totalHooks).toBe(199);
   });
 });
 

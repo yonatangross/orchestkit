@@ -19,8 +19,7 @@ import { bufferWrite } from '../lib/analytics-buffer.js';
 import { dirname } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
-import { getTaskByAgent, updateTaskStatus, getActivePipeline } from '../lib/task-integration.js';
-import { PIPELINES } from '../lib/multi-agent-coordinator.js';
+import { getTaskByAgent, updateTaskStatus } from '../lib/task-integration.js';
 import { isAgentTeamsActive } from '../lib/agent-teams.js';
 import { normalizeAgentName } from '../lib/agent-attribution-types.js';
 import { NOOP_CTX } from '../lib/context.js';
@@ -58,29 +57,9 @@ function logFeedback(message: string): void {
 }
 
 /**
- * Get downstream agents from PIPELINES definitions or fallback mapping
+ * Get downstream agents from the static mapping
  */
 function getDownstreamAgents(agent: string): string {
-  // First, check if agent is part of an active pipeline
-  const activePipeline = getActivePipeline();
-  if (activePipeline) {
-    const pipelineDef = PIPELINES.find(p => p.type === activePipeline.type);
-    if (pipelineDef) {
-      // Find current step
-      const currentStepIdx = pipelineDef.steps.findIndex(s => s.agent === agent);
-      if (currentStepIdx >= 0) {
-        // Get next steps that depend on this one
-        const nextAgents = pipelineDef.steps
-          .filter((s, idx) => s.dependsOn.includes(currentStepIdx) && idx > currentStepIdx)
-          .map(s => s.agent);
-        if (nextAgents.length > 0) {
-          return nextAgents.join(' ');
-        }
-      }
-    }
-  }
-
-  // Fallback: static mapping for non-pipeline scenarios
   const mapping: Record<string, string> = {
     // Product thinking pipeline
     'market-intelligence': 'product-strategist',
@@ -274,7 +253,7 @@ export function feedbackLoop(input: HookInput, _ctx: HookContext = NOOP_CTX): Ho
   const task = getTaskByAgent(agentType);
   const taskId = task?.taskId;
 
-  // Determine downstream agents (use pipeline-aware routing)
+  // Determine downstream agents (static mapping)
   const downstreamAgents = getDownstreamAgents(agentType);
 
   // Get feedback category

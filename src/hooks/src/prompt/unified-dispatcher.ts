@@ -14,10 +14,10 @@
  * - frustration-detector (producesContext: false, Issue #1243)
  * - cache-break-detector (producesContext: false, Issue #1238)
  *
- * Every-turn context producers:
- * - pipeline-detector (producesContext: true)
- *
  * Removed (#960): skill-nudge-prompt — replaced by CC native skill matching
+ * Removed (#3352): pipeline-detector — CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+ * (ork's own doctor recommendation) yields before the trigger loop on every
+ * call; 0 detections since 2026-01-23
  * Migrated (#972): antipattern-warning → type:prompt hook in hooks.json (LLM classifies directly)
  *
  * Moved to SessionStart (correct lifecycle for static config):
@@ -56,7 +56,6 @@ import {
 import { join } from 'node:path';
 
 // Import hook implementations — every-turn
-import { pipelineDetector } from './pipeline-detector.js';
 import { frustrationDetector } from './frustration-detector.js';
 import { cacheBreakDetector } from './cache-break-detector.js';
 // antipattern-warning migrated to type:prompt hook in hooks.json (#972)
@@ -113,7 +112,6 @@ const HOOKS: PromptHookConfig[] = [
   { name: 'cache-break-detector', fn: cacheBreakDetector, producesContext: false },
 
   // --- Context producers (output merged into single additionalContext) ---
-  { name: 'pipeline-detector', fn: pipelineDetector, producesContext: true },
   // M170/#3127: once-per-session executor-skill reminder on build-shaped prompts
   // (self-gated by a session flag file, so NOT runOnce — it must see every
   // prompt until the first build-shaped one arrives).

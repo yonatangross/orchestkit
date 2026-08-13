@@ -39,10 +39,6 @@ vi.mock('../../prompt/handoff-injector.js', () => ({
 }));
 
 
-vi.mock('../../prompt/pipeline-detector.js', () => ({
-  pipelineDetector: () => ({ continue: true, suppressOutput: true }),
-}));
-
 import { unifiedPromptDispatcher } from '../../prompt/unified-dispatcher.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';

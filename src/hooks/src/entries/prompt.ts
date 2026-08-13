@@ -17,7 +17,6 @@ export * from '../lib/orchestration-types.js';
 export * from '../lib/orchestration-state.js';
 export * from '../lib/task-integration.js';
 export * from '../lib/retry-manager.js';
-export * from '../lib/multi-agent-coordinator.js';
 
 // --- Individual hooks still registered separately in hooks.json ---
 
@@ -27,7 +26,7 @@ import { profileInjector } from '../prompt/profile-injector.js';
 // --- Unified dispatcher (Issue #448) ---
 // Consolidates: context-injector, todo-enforcer,
 // communication-style-tracker, antipattern-detector, antipattern-warning,
-// memory-context, pipeline-detector
+// memory-context
 import { unifiedPromptDispatcher } from '../prompt/unified-dispatcher.js';
 
 // Handoff injector — restores context from previous session (runOnce in dispatcher)
@@ -47,7 +46,6 @@ import { worktreeAdvisoryConsumer } from '../prompt/worktree-advisory-consumer.j
 import { promptExpansionObserver } from '../prompt/prompt-expansion-observer.js';
 
 // --- Legacy hooks kept in bundle for backward compat (not in hooks.json) ---
-import { pipelineDetector } from '../prompt/pipeline-detector.js';
 import { thrashDetector } from '../prompt/thrash-detector.js';
 // communicationStyleTracker removed: replaced by type:prompt hook in hooks.json (#980)
 
@@ -74,7 +72,6 @@ export const hooks: Record<string, HookFn> = {
   // P3-A3: UserPromptExpansion (CC 2.1.208) — never blocks, never modifies
   'prompt/prompt-expansion-observer': promptExpansionObserver,
   // Legacy hooks (consolidated into unified-dispatcher, kept for override compat)
-  'prompt/pipeline-detector': pipelineDetector,
   'prompt/thrash-detector': thrashDetector,
 };
 
