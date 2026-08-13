@@ -4,19 +4,26 @@
 /**
  * Worktree Merge Verifier — PreToolUse/Bash hook
  *
- * Usage-Driven Hardening milestone close-out: when `git worktree remove`
- * runs against a worktree whose branch still has unmerged commits, warn
- * loudly. Removing a worktree doesn't delete its branch, but if the branch
- * also disappears before merge (or the user then deletes it manually),
- * uncommitted work becomes unrecoverable.
+ * When `git worktree remove` runs against a worktree whose branch still holds
+ * work that is NOT in the base branch, warn. Removing a worktree doesn't
+ * delete its branch, but if the branch also disappears before the work lands,
+ * it becomes hard to recover.
  *
- * Advisory only — does NOT block the removal. The hook surfaces the
- * unmerged-commit count and suggests a merge or push first.
+ * Advisory only — does NOT block the removal.
  *
  * Opt-out: `ORK_DISABLE_WORKTREE_VERIFIER=1`.
+ *
+ * SECURITY (#3365 follow-on): every git invocation here goes through `git()`,
+ * which uses execFileSync with an ARGUMENT ARRAY and no shell. Branch names
+ * reach this hook from `git worktree list --porcelain`, and git happily
+ * creates a branch named `evil;id` — check-ref-format rejects spaces, not
+ * shell metacharacters. Interpolating that into a shell string was a
+ * confirmed RCE, reproduced 2026-08-13:
+ *   execSync(`git rev-parse evil;id`) -> "evil" + the output of `id`
+ * Never reintroduce a template literal here.
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { basename } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, getField } from '../../lib/common.js';
@@ -29,18 +36,34 @@ const HOOK_NAME = 'pretool/bash/worktree-merge-verifier';
 const WORKTREE_REMOVE_RE =
   /(^|[&;|\s])git\s+worktree\s+remove(?:\s+-[fqv]+|\s+--force)*\s+(\S+)/;
 
-function gitRevParse(projectDir: string, ref: string): string | null {
+/**
+ * Run git with an argument ARRAY. No shell, so a branch name carrying `;`,
+ * backticks, `$(...)` or `|` is passed as one opaque argv entry.
+ * Returns null on any failure — this hook is advisory and must never throw.
+ */
+function git(
+  projectDir: string,
+  args: string[],
+  opts: { input?: string; timeout?: number } = {},
+): string | null {
   try {
-    const out = execSync(`git rev-parse --verify ${ref}^{commit}`, {
+    const out = execFileSync('git', args, {
       cwd: projectDir,
       encoding: 'utf8',
-      timeout: 3000,
-      stdio: ['pipe', 'pipe', 'ignore'],
-    }).trim();
-    return out || null;
+      timeout: opts.timeout ?? 3000,
+      maxBuffer: 32 * 1024 * 1024,
+      input: opts.input,
+      stdio: opts.input ? ['pipe', 'pipe', 'ignore'] : ['ignore', 'pipe', 'ignore'],
+    });
+    return typeof out === 'string' ? out : String(out ?? '');
   } catch {
     return null;
   }
+}
+
+function gitRevParse(projectDir: string, ref: string): string | null {
+  const out = git(projectDir, ['rev-parse', '--verify', `${ref}^{commit}`]);
+  return out ? out.trim() || null : null;
 }
 
 /**
@@ -49,72 +72,105 @@ function gitRevParse(projectDir: string, ref: string): string | null {
  * into the worktree itself (which may be about to disappear).
  */
 function resolveWorktreeBranch(projectDir: string, worktreePath: string): string | null {
-  try {
-    const out = execSync('git worktree list --porcelain', {
-      cwd: projectDir,
-      encoding: 'utf8',
-      timeout: 3000,
-    });
-    const blocks = out.split(/\n\n+/);
-    for (const block of blocks) {
-      const lines = block.split('\n').map(l => l.trim());
-      const pathLine = lines.find(l => l.startsWith('worktree '));
-      const branchLine = lines.find(l => l.startsWith('branch '));
-      if (!pathLine || !branchLine) continue;
-      // pathLine = "worktree /abs/path"
-      const registered = pathLine.replace(/^worktree\s+/, '');
-      // Accept both absolute and basename matches — users often pass a
-      // relative path the CLI resolves the same way git does.
-      const matches =
-        registered === worktreePath ||
-        basename(registered) === basename(worktreePath);
-      if (matches) return branchLine.replace(/^branch\s+/, '').replace(/^refs\/heads\//, '');
-    }
-  } catch {
-    // fall through
+  const out = git(projectDir, ['worktree', 'list', '--porcelain']);
+  if (!out) return null;
+  const blocks = out.split(/\n\n+/);
+  for (const block of blocks) {
+    const lines = block.split('\n').map(l => l.trim());
+    const pathLine = lines.find(l => l.startsWith('worktree '));
+    const branchLine = lines.find(l => l.startsWith('branch '));
+    if (!pathLine || !branchLine) continue;
+    const registered = pathLine.replace(/^worktree\s+/, '');
+    // Accept both absolute and basename matches — users often pass a
+    // relative path the CLI resolves the same way git does.
+    const matches =
+      registered === worktreePath || basename(registered) === basename(worktreePath);
+    if (matches) return branchLine.replace(/^branch\s+/, '').replace(/^refs\/heads\//, '');
   }
   return null;
 }
 
 /**
- * Count commits reachable from `branch` but NOT from `base` (e.g. main).
+ * Count commits reachable from `branch` but NOT from `base`.
  * Returns 0 on any error — advisory must not crash the tool.
  */
 function unmergedCommitCount(projectDir: string, branch: string, base: string): number {
-  try {
-    const out = execSync(`git rev-list --count ${base}..${branch}`, {
-      cwd: projectDir,
-      encoding: 'utf8',
-      timeout: 3000,
-      stdio: ['pipe', 'pipe', 'ignore'],
-    }).trim();
-    const n = parseInt(out, 10);
-    return Number.isFinite(n) && n >= 0 ? n : 0;
-  } catch {
-    return 0;
-  }
+  const out = git(projectDir, ['rev-list', '--count', `${base}..${branch}`]);
+  if (out === null) return 0;
+  const n = parseInt(out.trim(), 10);
+  return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
 /**
- * Check whether the branch's tip commit has been squash-merged into
- * `base`. `git cherry` reports `-` for commits whose patch-id is already
- * upstream — those are safe even if the raw commit hash isn't reachable.
+ * Per-commit patch-id check. `git cherry` reports `-` for commits whose
+ * patch-id is already upstream — true for cherry-picks and rebases.
+ *
+ * DOES NOT detect a squash merge of more than one commit (#3365). `git cherry`
+ * matches patch-ids ONE-TO-ONE, and squashing N commits produces a single
+ * commit whose COMBINED patch-id matches none of the N originals. Proven in a
+ * clean synthetic repo 2026-08-13: an N=1 squash reports `-` (so this function
+ * happens to work), an N=2 squash reports `+ +` even though `git show` proves
+ * both files' content is on base. That N=1 accident is why the gap survived
+ * from 2026-04-17 until now, in a repo that squash-merges every PR.
+ *
+ * Kept rather than replaced, because it still catches a case
+ * `contentAlreadyInBase` misses: a patch that landed and was then further
+ * modified on base. The two are UNIONED.
  */
 function allCommitsSquashMerged(projectDir: string, branch: string, base: string): boolean {
-  try {
-    const out = execSync(`git cherry ${base} ${branch}`, {
-      cwd: projectDir,
-      encoding: 'utf8',
-      timeout: 3000,
-      stdio: ['pipe', 'pipe', 'ignore'],
-    }).trim();
-    if (!out) return true; // no output → nothing new on branch
-    const lines = out.split('\n').filter(Boolean);
-    // `+ sha` means not upstream; `- sha` means patch already upstream
-    return lines.every(line => line.startsWith('-'));
-  } catch {
-    return false;
-  }
+  const out = git(projectDir, ['cherry', base, branch]);
+  if (out === null) return false;
+  const trimmed = out.trim();
+  if (!trimmed) return true; // no output → nothing new on branch
+  // `+ sha` means not upstream; `- sha` means patch already upstream
+  return trimmed.split('\n').filter(Boolean).every(line => line.startsWith('-'));
+}
+
+/**
+ * Squash-merge-aware containment check (#3365): is the branch's ENTIRE diff
+ * against the merge base already present in `base`?
+ *
+ * Takes the branch's cumulative diff and asks git whether it reverse-applies
+ * to the current tree. If it does, every line the branch introduced is already
+ * there — exactly the state a squash merge leaves, no matter how many commits
+ * were squashed.
+ *
+ * Chosen over comparing the trees of branch-touched files, which was measured
+ * on this repo the same day and over-warns: `dist/` bundles regenerate on
+ * every build, so base legitimately differs from the branch on files whose
+ * source change DID land.
+ *
+ * Returns false on any error — advisory must fail toward warning.
+ */
+function contentAlreadyInBase(projectDir: string, branch: string, base: string): boolean {
+  const mergeBase = git(projectDir, ['merge-base', base, branch]);
+  if (!mergeBase || !mergeBase.trim()) return false;
+
+  const patch = git(projectDir, ['diff', mergeBase.trim(), branch], { timeout: 5000 });
+  if (patch === null) return false;
+  if (!patch.trim()) return true; // branch introduces nothing
+
+  const applied = git(projectDir, ['apply', '--reverse', '--check', '-'], {
+    input: patch,
+    timeout: 5000,
+  });
+  return applied !== null; // reverse-applies cleanly → content already in base
+}
+
+/**
+ * Is the branch safely on the remote? Used only to correct the WARNING TEXT.
+ *
+ * The pre-#3365 message told the operator the commits were "unrecoverable" if
+ * the branch is deleted. For a pushed branch that is simply false, and false
+ * urgency is what teaches an operator to ignore the warning entirely — which
+ * is precisely when a genuine one would be missed.
+ */
+function branchIsPushed(projectDir: string, branch: string): boolean {
+  const local = git(projectDir, ['rev-parse', branch]);
+  const remote = git(projectDir, ['rev-parse', `origin/${branch}`]);
+  if (!local || !remote) return false;
+  const l = local.trim();
+  return Boolean(l) && l === remote.trim();
 }
 
 export function worktreeMergeVerifier(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
@@ -138,32 +194,43 @@ export function worktreeMergeVerifier(input: HookInput, ctx: HookContext = NOOP_
     return outputSilentSuccess();
   }
 
-  // Pick the comparison base. Prefer the branch the worktree was forked
-  // from; fall back to main or master.
   const baseCandidates = ['main', 'master', 'develop'];
   const base = baseCandidates.find(b => gitRevParse(projectDir, b)) || 'main';
 
   const unmerged = unmergedCommitCount(projectDir, branch, base);
   if (unmerged === 0) return outputSilentSuccess();
 
-  // Squash-merged PRs leave commits that are technically unmerged by sha
-  // but whose patches live in main — don't false-alarm on those.
+  // Ancestry alone is the WRONG predicate in a squash-merge repo (#3365):
+  // every landed PR leaves commits that are not ancestors of base. Suppress if
+  // EITHER containment check proves the work is already in base.
+  if (contentAlreadyInBase(projectDir, branch, base)) {
+    ctx.log(HOOK_NAME, `Branch ${branch}: full diff already in ${base} (squash-merged) — no warning`);
+    return outputSilentSuccess();
+  }
   if (allCommitsSquashMerged(projectDir, branch, base)) {
-    ctx.log(HOOK_NAME, `Branch ${branch} is squash-merged into ${base} — no warning`);
+    ctx.log(HOOK_NAME, `Branch ${branch}: every patch already upstream in ${base} — no warning`);
     return outputSilentSuccess();
   }
 
-  ctx.log(HOOK_NAME, `Warning: ${branch} has ${unmerged} unmerged commit(s) vs ${base}`);
+  const pushed = branchIsPushed(projectDir, branch);
+  ctx.log(
+    HOOK_NAME,
+    `Warning: ${branch} has ${unmerged} unmerged commit(s) vs ${base} (pushed=${pushed})`,
+  );
+
+  // Only claim "unrecoverable" when it is actually true.
+  const recoverability = pushed
+    ? `The branch IS pushed to \`origin/${branch}\`, so the work is recoverable from the remote even if the local branch goes away.`
+    : `The branch is NOT on \`origin\`, so deleting it after removing the worktree would leave no copy. Consider \`git push -u origin ${branch}\` first.`;
 
   return {
     continue: true,
     hookSpecificOutput: {
       additionalContext:
         `[worktree-merge-verifier] Worktree at \`${worktreePath}\` is on branch \`${branch}\` with ` +
-        `${unmerged} unmerged commit(s) vs \`${base}\`. Removing the worktree keeps the branch, but if ` +
-        `the branch is later deleted without a merge or push, those commits are unrecoverable. ` +
-        `Consider \`git push -u origin ${branch}\` or merging first. (Advisory — removal not blocked. ` +
-        `Opt out with ORK_DISABLE_WORKTREE_VERIFIER=1.)`,
+        `${unmerged} commit(s) not in \`${base}\`, and its diff is not already contained in \`${base}\`. ` +
+        `${recoverability} ` +
+        `(Advisory — removal not blocked. Opt out with ORK_DISABLE_WORKTREE_VERIFIER=1.)`,
     },
   };
 }
@@ -171,7 +238,10 @@ export function worktreeMergeVerifier(input: HookInput, ctx: HookContext = NOOP_
 // Testing exports
 export {
   WORKTREE_REMOVE_RE,
+  git,
   resolveWorktreeBranch,
   unmergedCommitCount,
   allCommitsSquashMerged,
+  contentAlreadyInBase,
+  branchIsPushed,
 };
