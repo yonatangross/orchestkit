@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  Retraction playground. Archetype: DASHBOARD (report).
+  Subject: two wrong agent-grant counts, how each was produced, and the CI gate
+  that already held the right answer the whole time.
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retraction · SendMessage grant counts · OrchestKit</title>
+<style>
+  :root{
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(226 14% 64%);
+    --pg-faint: hsl(226 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-ok: hsl(152 62% 58%);
+    --pg-risk: hsl(0 78% 66%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    font-size:15px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;padding:2.5rem 1.25rem 5rem;
+    background:
+      radial-gradient(1100px 620px at 12% -8%, hsl(0 70% 30% / .22), transparent 60%),
+      radial-gradient(900px 520px at 92% 4%, hsl(248 66% 32% / .22), transparent 62%),
+      var(--pg-bg);
+    color:var(--pg-ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    line-height:1.55;
+  }
+  .wrap{max-width:1000px;margin:0 auto}
+  h1{font-size:1.7rem;margin:0 0 .4rem;letter-spacing:-.02em}
+  .sub{color:var(--pg-muted);font-size:.95rem;margin:0 0 2rem}
+  h2{font-size:1.05rem;margin:2.5rem 0 .9rem}
+  .panel{background:var(--pg-glass);border:1px solid var(--pg-glass-edge);border-radius:14px;padding:1.2rem 1.35rem;backdrop-filter:blur(12px)}
+  .panel p{margin:0 0 .8rem;color:var(--pg-muted);font-size:.9rem}
+  .panel p:last-child{margin-bottom:0}
+  .panel strong{color:var(--pg-ink)}
+  code{background:hsl(0 0% 100% / .06);padding:.1em .4em;border-radius:4px;font-size:.88em;color:var(--pg-ink)}
+  table{width:100%;border-collapse:collapse;font-size:.87rem;margin-top:.4rem}
+  th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pg-faint);padding:.5rem .7rem;border-bottom:1px solid var(--pg-glass-edge)}
+  td{padding:.65rem .7rem;border-bottom:1px solid hsl(0 0% 100% / .07);vertical-align:top;color:var(--pg-muted)}
+  td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .bad{color:var(--pg-risk);font-weight:600}
+  .good{color:var(--pg-ok);font-weight:600}
+  pre{margin:.9rem 0 0;padding:.9rem 1rem;overflow-x:auto;background:hsl(232 30% 5% / .7);border:1px solid var(--pg-glass-edge);border-radius:10px;font-size:.8rem;color:var(--pg-muted);line-height:1.5}
+  pre b{color:var(--pg-risk);font-weight:600}
+  pre i{color:var(--pg-ok);font-style:normal}
+  footer{margin-top:3rem;color:var(--pg-faint);font-size:.8rem}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Retraction: two wrong agent-grant counts</h1>
+<p class="sub">One of them shipped to <code>main</code> in #3469 as a "correction" of the other. Both came from the same bad instrument.</p>
+
+<h2>The three numbers</h2>
+<div class="panel">
+<table>
+  <thead><tr><th>Claim</th><th class="n">SendMessage</th><th class="n">ListAgents</th><th class="n">send-only</th><th>Method</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="bad">2026-08-08, wrong</td>
+      <td class="n">34 of 36</td><td class="n">0</td><td class="n">34</td>
+      <td>file-content grep</td>
+    </tr>
+    <tr>
+      <td class="bad">2026-08-13, wrong, merged in #3469</td>
+      <td class="n">23 of 37</td><td class="n">19</td><td class="n">4</td>
+      <td><code>grep -rln</code> over <code>src/agents/</code></td>
+    </tr>
+    <tr>
+      <td class="good">measured, correct</td>
+      <td class="n">19 of 36</td><td class="n">19</td><td class="n">0</td>
+      <td>parse frontmatter <code>tools:</code></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2>What the bad instrument did</h2>
+<div class="panel">
+  <p><code>grep -rln SendMessage src/agents/</code> answers a different question than the one being asked. It returns every file where the string appears <em>anywhere</em>, which folds in two distinct errors at once:</p>
+<pre>  36  agent .md files
++  1  <b>README.md counted as an agent</b>            -> the "37"
+   4  <b>agents that only NAME SendMessage in prose</b> -> the "23" vs the real 19
+      code-quality-reviewer, component-curator,
+      eval-runner, security-auditor
+      (these grant <b>neither</b> tool)</pre>
+  <p>The four "send-only" agents in the #3469 claim were therefore not a partial grant. They were agents whose instructions <em>mention</em> peer messaging while granting no messaging tools at all. The gap that claim described has never existed.</p>
+</div>
+
+<h2>The part that stings</h2>
+<div class="panel">
+  <p>A CI gate already asserted the correct invariant, and had since <strong>2026-08-09</strong>, four days before the wrong claim shipped.</p>
+  <p><code>tests/agents/test-agent-messaging-scope.sh</code>, written for #3316, asserts that a non-background agent carrying <code>SendMessage</code> must also carry <code>ListAgents</code>. Its own header says it counts frontmatter matches inside the <code>---</code> fence only, <em>"so a prose mention of SendMessage never false-positives the tools check"</em>. It names the exact failure mode that produced both wrong numbers.</p>
+<pre>$ bash tests/agents/test-agent-messaging-scope.sh
+  Agents checked: 36
+  <i>Passed: 36</i>
+  Failed: 0</pre>
+  <p>So the repository already held the right answer in executable form. The wrong claim was not a gap in coverage; it was a grep asserted over a passing gate that nobody consulted.</p>
+</div>
+
+<h2>What this change does</h2>
+<div class="panel">
+  <p><strong>Corrects</strong> the 2.1.224 and 2.1.229 rows in <code>doctor/references/version-compatibility.md</code> and the 2026-08-13 paragraph in <code>shared/cc-support.json</code>, retracting both figures by name rather than quietly swapping the number.</p>
+  <p><strong>Points</strong> both rows at <code>test-agent-messaging-scope.sh</code> as the answer of record, so the next person runs the gate instead of re-deriving it with the same broken instrument.</p>
+  <p><strong>Adds no new test.</strong> The gate that would have caught this already exists and already passes. Writing a second one would imply the coverage was missing, and it was not.</p>
+</div>
+
+<footer>OrchestKit &middot; branch <code>fix/correct-sendmessage-grant-counts</code> &middot; follow-up to #3469</footer>
+
+</div>
+</body>
+</html>
