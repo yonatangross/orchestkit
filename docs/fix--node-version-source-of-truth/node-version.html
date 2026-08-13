@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Node default, deliberate compatibility lanes</title>
+<style>
+*{box-sizing:border-box}
+:root{color-scheme:dark;--bg:#0a1020;--panel:#121b31;--line:#2b3b5f;--text:#edf4ff;--muted:#9db0cf;--blue:#69a7ff;--green:#47d18c;--amber:#f2bf63;--code:#091326}
+body{margin:0;background:radial-gradient(circle at 50% -20%,#1d3664 0,var(--bg) 42%);color:var(--text);font:15px/1.55 system-ui,-apple-system,sans-serif}
+main{max-width:980px;margin:auto;padding:48px 24px 72px}
+header{margin-bottom:28px}
+.eyebrow{color:var(--blue);font:700 12px/1.2 ui-monospace,SFMono-Regular,monospace;letter-spacing:.12em;text-transform:uppercase}
+h1{max-width:760px;margin:10px 0 12px;font-size:clamp(32px,6vw,58px);line-height:1.02;letter-spacing:-.04em}
+.lede{max-width:720px;color:var(--muted);font-size:18px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:28px 0}
+.stat,.panel{background:color-mix(in srgb,var(--panel) 91%,transparent);border:1px solid var(--line);border-radius:16px}
+.stat{padding:18px}.stat strong{display:block;color:var(--green);font:700 30px/1 ui-monospace,SFMono-Regular,monospace}.stat span{color:var(--muted);font-size:13px}
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:10px;margin:30px 0}
+.node{min-height:112px;padding:17px;background:var(--panel);border:1px solid var(--line);border-radius:14px}.node b{display:block;margin-bottom:7px}.node code{color:var(--green)}
+.arrow{color:var(--blue);font-size:24px}
+code{font-family:ui-monospace,SFMono-Regular,monospace;background:var(--code);padding:2px 6px;border-radius:5px}
+.panel{padding:22px;margin-top:18px}.panel h2{margin:0 0 6px;font-size:20px}.panel>p{margin:0 0 18px;color:var(--muted)}
+.switcher{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+button{appearance:none;border:1px solid var(--line);border-radius:999px;padding:9px 14px;background:#0c162b;color:var(--muted);font:600 13px system-ui;cursor:pointer}
+button:hover{border-color:var(--blue);color:var(--text)}button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#071124}
+.lane{display:grid;grid-template-columns:150px 1fr auto;gap:14px;align-items:start;padding:15px 0;border-top:1px solid var(--line)}
+.lane:first-of-type{border-top:0}.lane h3{margin:0;font:700 14px/1.4 ui-monospace,SFMono-Regular,monospace}.lane p{margin:0;color:var(--muted)}
+.tag{white-space:nowrap;border:1px solid currentColor;border-radius:999px;padding:3px 8px;color:var(--amber);font:700 11px ui-monospace,SFMono-Regular,monospace}.lane[data-kind="default"] .tag{color:var(--green)}
+.gate{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gate article{padding:16px;border-radius:12px;background:var(--code)}.gate h3{margin:0 0 8px;font-size:14px}.gate p{margin:0;color:var(--muted)}
+.good{color:var(--green)}.bad{color:#ff8290;text-decoration:line-through}
+footer{margin-top:28px;color:var(--muted);font-size:13px}
+@media(max-width:720px){.stats{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}.lane{grid-template-columns:1fr}.gate{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:no-preference){.node,.stat{transition:transform .2s,border-color .2s}.node:hover,.stat:hover{transform:translateY(-2px);border-color:var(--blue)}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">PR #3473 | Node version unification</div>
+    <h1>One default runtime. Compatibility stays explicit.</h1>
+    <p class="lede">The repository now resolves its normal Node runtime from one root file, while package floors and compatibility matrices remain visible where they are intentionally tested.</p>
+  </header>
+
+  <section class="stats" aria-label="Change summary">
+    <div class="stat"><strong>31</strong><span>literal workflow and action pins before</span></div>
+    <div class="stat"><strong>26</strong><span>default-runtime literals collapsed</span></div>
+    <div class="stat"><strong>5</strong><span>Node 20 publishing pins deliberately retained</span></div>
+  </section>
+
+  <section class="flow" aria-label="Default Node resolution flow">
+    <div class="node"><b>Single source</b><code>.nvmrc</code><br><code>24.19.0</code></div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="node"><b>Setup</b>Direct workflows and the shared composite read <code>node-version-file</code>.</div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="node"><b>Runtime</b>CI logs report <code>node: v24.19.0</code>.</div>
+  </section>
+
+  <section class="panel">
+    <h2>Default versus deliberate exceptions</h2>
+    <p>Use the controls to isolate the centralized path from compatibility coverage.</p>
+    <div class="switcher" role="group" aria-label="Filter runtime lanes">
+      <button type="button" data-filter="all" aria-pressed="true">Show all</button>
+      <button type="button" data-filter="default" aria-pressed="false">Default runtime</button>
+      <button type="button" data-filter="compat" aria-pressed="false">Compatibility tests</button>
+    </div>
+    <div id="lanes" aria-live="polite">
+      <article class="lane" data-kind="default"><h3>.nvmrc</h3><p>Local tools, direct setup calls, and shared setup actions converge on Node 24.19.0.</p><span class="tag">default</span></article>
+      <article class="lane" data-kind="default"><h3>engines.node</h3><p>The repository root declares <code>&gt;=24 &lt;25</code>, matching its development and CI default.</p><span class="tag">default</span></article>
+      <article class="lane" data-kind="compat"><h3>hook-contract</h3><p>The published package declares <code>&gt;=20.0.0</code>. Five publishing jobs stay on Node 20 to validate that real consumer floor.</p><span class="tag">kept</span></article>
+      <article class="lane" data-kind="compat"><h3>unit matrix</h3><p>Node 20 and 22 remain explicit because the job is testing supported versions on purpose.</p><span class="tag">kept</span></article>
+      <article class="lane" data-kind="compat"><h3>hook TS matrix</h3><p>Node 22 stays explicit for the hook runtime floor and its <code>node:sqlite</code> requirement.</p><span class="tag">kept</span></article>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>The package-content gate</h2>
+    <p>The verification checks the artifact, not whether its current version can be published again.</p>
+    <div class="gate">
+      <article><h3 class="bad">npm <span>publish</span> --dry-run</h3><p>Contacts the registry and rejects version 0.1.2 because that version is already live.</p></article>
+      <article><h3 class="good">npm run publish:dry-run</h3><p>Runs <code>npm pack --dry-run</code>, validates tarball contents, and remains valid for unchanged package versions.</p></article>
+    </div>
+  </section>
+
+  <footer>Generated for the branch-scoped PR Playground gate. No package version is bumped and no compatibility lane is flattened.</footer>
+</main>
+<script>
+const buttons = [...document.querySelectorAll('[data-filter]')];
+const lanes = [...document.querySelectorAll('.lane')];
+buttons.forEach(button => button.addEventListener('click', () => {
+  const filter = button.dataset.filter;
+  buttons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+  lanes.forEach(lane => { lane.hidden = filter !== 'all' && lane.dataset.kind !== filter; });
+}));
+</script>
+</body>
+</html>

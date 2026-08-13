@@ -66,7 +66,7 @@ jobs:
 
       - name: Verify package contents (publish dry-run)
         working-directory: packages/hook-contract
-        run: npm publish --dry-run
+        run: npm run publish:dry-run
 
       - name: Verify entrypoints resolve
         working-directory: packages/hook-contract
