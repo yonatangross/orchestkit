@@ -124,6 +124,24 @@ Recorded so nobody reads these numbers as broader or more comparable than they a
 4. The extraction ran on a locally downloaded copy via `npm pack`; nothing was installed globally, so
    the operator's own CC install was never modified.
 
+## Override renewal (separate decision, same PR)
+
+Done at the operator's explicit request while this adoption was in flight, because the previous
+expiry sat 38 days out and nothing surfaced it except a buried field in `shared/cc-support.json`.
+
+`manual_override.expires` **2026-09-20 -> 2026-11-20**.
+
+This is a **deadline extension only**. `latest`, `supported_floor` and `drop_after` stay at
+2.1.220 / 2.1.220 / 2.1.219 and are deliberately NOT renewed at the current head. That is the
+material difference from the 2026-07-10 and 2026-07-25 entries, which renewed the strict pin AT head
+and moved the floor with it. Moving the floor to 2.1.231 would break every user on 2.1.220 through
+2.1.229, so it stays a separate, deliberate decision.
+
+What the extension buys: on lapse, `.github/workflows/cc-support-window-bump.yml` resumes the
+steady-state `policy` field (latest + 3 previous minors) and recomputes the floor with no human in
+the loop. The `policy` field is left untouched, as in every prior entry, so that resumption still
+works correctly whenever the override is finally allowed to expire.
+
 ## Files changed
 
 - `shared/cc-support.json` — `latest_known` 2.1.229 -> 2.1.231, `manual_override.reason` appended
