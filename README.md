@@ -276,6 +276,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.31](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.30...v10.0.0-alpha.31)** · 2026-08-13
+
+- **ci:** centralize Node version (#3473)
+- **hooks:** branch guard reads explicit push destinations (#3455) (#3475)
+- **hooks:** stop the debt tracker reporting its own docstring (#3478)
+- **cc:** adopt 2.1.231, renew override to 2026-11-20 (#3474)
+
 **[v10.0.0-alpha.30](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.29...v10.0.0-alpha.30)** · 2026-08-13
 
 - **cc:** retract two wrong agent-grant counts (#3472)
@@ -310,11 +317,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **security-tests:** fail loudly on a broken payload (#3446)
 - **workflows:** rename plugin workflows to .js so they actually register (#3445)
-
-**[v10.0.0-alpha.23](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.22...v10.0.0-alpha.23)** · 2026-08-11
-
-- **chain-patterns:** correct Pattern 8 /loop facts against official docs (#3442)
-- **hooks:** stop `git fetch` reading as a network source (#3441)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

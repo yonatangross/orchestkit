@@ -17,6 +17,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.31",
+    "date": "2026-08-13",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** centralize Node version ([#3473](https://github.com/yonatangross/orchestkit/issues/3473)) ([26baafa](https://github.com/yonatangross/orchestkit/commit/26baafaef440b97a5a492857de0f067a3f0c800f))",
+          "**hooks:** branch guard reads explicit push destinations ([#3455](https://github.com/yonatangross/orchestkit/issues/3455)) ([#3475](https://github.com/yonatangross/orchestkit/issues/3475)) ([6c9951d](https://github.com/yonatangross/orchestkit/commit/6c9951dff258bcfda20917b84deb9cc0fdaf7ee6))",
+          "**hooks:** stop the debt tracker reporting its own docstring ([#3478](https://github.com/yonatangross/orchestkit/issues/3478)) ([81a23b2](https://github.com/yonatangross/orchestkit/commit/81a23b2792acefd5f384a9806933b0996319c539))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc:** adopt 2.1.231, renew override to 2026-11-20 ([#3474](https://github.com/yonatangross/orchestkit/issues/3474)) ([a8bf560](https://github.com/yonatangross/orchestkit/commit/a8bf560ad9435e2cdbb5b5a6aa88e653ca7445c6))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.30",
     "date": "2026-08-13",
     "compareUrl": "",
