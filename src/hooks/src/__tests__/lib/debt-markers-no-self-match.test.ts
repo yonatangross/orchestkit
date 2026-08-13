@@ -73,6 +73,6 @@ describe('debt-marker machinery never self-matches', () => {
     // pass for the wrong reason. Pin that it still fires on a real marker.
     const token = ['ork', 'debt'].join('-');
     expect(DEBT_MARKER_RE.test(`// ${token}: in-memory cache, upgrade to redis, when multi-node`)).toBe(true);
-    expect(DEBT_MARKER_RE.test(' *   <leader> ' + token + ': placeholder form must NOT match')).toBe(false);
+    expect(DEBT_MARKER_RE.test(` *   <leader> ${token}: placeholder form must NOT match`)).toBe(false);
   });
 });
