@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.30](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.29...v10.0.0-alpha.30) (2026-08-13)
+
+
+### Bug Fixes
+
+* **cc:** retract two wrong agent-grant counts ([#3472](https://github.com/yonatangross/orchestkit/issues/3472)) ([64f6423](https://github.com/yonatangross/orchestkit/commit/64f64233bbcee334cb9ef3859f1f309b01b44458))
+* **hooks:** delete unreachable task-existence-gate Case 3 ([#3467](https://github.com/yonatangross/orchestkit/issues/3467)) ([#3471](https://github.com/yonatangross/orchestkit/issues/3471)) ([e1110e7](https://github.com/yonatangross/orchestkit/commit/e1110e79889583a89ab8b964b53a16cd48aca138))
+
+
+### Miscellaneous
+
+* **cc:** adopt 2.1.227 through 2.1.229, fix the dead detect stage ([#3469](https://github.com/yonatangross/orchestkit/issues/3469)) ([13214c9](https://github.com/yonatangross/orchestkit/commit/13214c9917a2d30f1c9cf12a595adb4a0aef28f7))
+
 ## [10.0.0-alpha.29](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.28...v10.0.0-alpha.29) (2026-08-13)
 
 
