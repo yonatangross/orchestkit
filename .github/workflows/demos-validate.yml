@@ -44,9 +44,6 @@ concurrency:
   group: demos-validate-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-env:
-  NODE_VERSION: '22'
-
 jobs:
   validate-renderer:
     name: Validate Renderer
@@ -105,7 +102,7 @@ jobs:
         if: steps.changed.outputs.run == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6  # zizmor: ignore[cache-poisoning] deps via npm ci, no cache restored
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: .nvmrc
 
       - name: Install demo dependencies
         if: steps.changed.outputs.run == 'true'

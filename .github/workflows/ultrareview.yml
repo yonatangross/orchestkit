@@ -41,7 +41,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
-          node-version: '22'
+          node-version-file: .nvmrc
 
       - name: Install Claude Code (>= 2.1.120 for ultrareview subcommand)
         # Do NOT use --ignore-scripts: postinstall bootstraps the native binary

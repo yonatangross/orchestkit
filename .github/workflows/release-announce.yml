@@ -42,9 +42,6 @@ concurrency:
 
 permissions: {}
 
-env:
-  NODE_VERSION: '22'
-
 jobs:
   announce:
     name: Draft release announcement
@@ -62,7 +59,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6  # zizmor: ignore[cache-poisoning] no deps installed, no cache restored
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: .nvmrc
 
       - name: Determine version + cadence
         id: meta

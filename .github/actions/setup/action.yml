@@ -3,9 +3,9 @@ description: 'Install dependencies, setup Node.js, build plugins, and configure 
 
 inputs:
   node-version:
-    description: 'Node.js version to install'
+    description: 'Node.js version to install. Leave empty to resolve from .nvmrc.'
     required: false
-    default: '22'
+    default: ''
   build-plugins:
     description: 'Whether to build plugins'
     required: false
@@ -52,6 +52,7 @@ runs:
       uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
       with:
         node-version: ${{ inputs.node-version }}
+        node-version-file: .nvmrc
 
     - name: Clean stale agent team directories
       shell: bash
@@ -71,9 +72,9 @@ runs:
           node_modules
           src/hooks/node_modules
           plugins/ork-core/hooks/node_modules
-        key: ${{ runner.os }}-node-${{ inputs.node-version }}-${{ hashFiles('**/package-lock.json', 'src/hooks/package-lock.json') }}
+        key: ${{ runner.os }}-node-${{ inputs.node-version || hashFiles('.nvmrc') }}-${{ hashFiles('**/package-lock.json', 'src/hooks/package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-node-${{ inputs.node-version }}-
+          ${{ runner.os }}-node-${{ inputs.node-version || hashFiles('.nvmrc') }}-
           ${{ runner.os }}-node-
 
     - name: Cache vitest
@@ -82,9 +83,9 @@ runs:
       with:
         path: |
           src/hooks/node_modules/.vitest
-        key: ${{ runner.os }}-vitest-${{ inputs.node-version }}-${{ hashFiles('src/hooks/package-lock.json') }}
+        key: ${{ runner.os }}-vitest-${{ inputs.node-version || hashFiles('.nvmrc') }}-${{ hashFiles('src/hooks/package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-vitest-${{ inputs.node-version }}-
+          ${{ runner.os }}-vitest-${{ inputs.node-version || hashFiles('.nvmrc') }}-
           ${{ runner.os }}-vitest-
 
     # Install hook deps BEFORE building: build-plugins.sh [1.5/10] only rebuilds

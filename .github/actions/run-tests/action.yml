@@ -9,9 +9,9 @@ inputs:
     description: 'Directory containing test scripts'
     required: true
   node-version:
-    description: 'Node.js version'
+    description: 'Node.js version. Leave empty to resolve from .nvmrc.'
     required: false
-    default: '22'
+    default: ''
   needs-plugins:
     description: 'Download built plugins artifact'
     required: false

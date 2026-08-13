@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: ${{ inputs.fail-fast }}
       matrix:
-        node-version: ${{ inputs.include-node-matrix && fromJSON('["20", "22"]') || fromJSON('["22"]') }}
+        node-version: ${{ inputs.include-node-matrix && fromJSON('["20", "22"]') || fromJSON('[""]') }}
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1

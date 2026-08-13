@@ -31,9 +31,6 @@ concurrency:
 
 permissions: {}
 
-env:
-  NODE_VERSION: '22'
-
 jobs:
   # ============================================================================
   # Job 1: Parse CHANGELOG → JSON props
@@ -57,7 +54,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6  # zizmor: ignore[cache-poisoning] deps via npm ci, no cache restored
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: .nvmrc
 
       - name: Determine version
         id: version
@@ -125,7 +122,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6  # zizmor: ignore[cache-poisoning] deps via npm ci, no cache restored
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: .nvmrc
 
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
