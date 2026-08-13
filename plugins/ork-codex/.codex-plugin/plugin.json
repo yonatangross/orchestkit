@@ -1,6 +1,6 @@
 {
   "name": "ork-codex",
-  "version": "10.0.0-alpha.28",
+  "version": "10.0.0-alpha.29",
   "description": "Portable OrchestKit workflows for Codex: brainstorm, explore, assess, verify, and review pull requests.",
   "author": {
     "name": "Yonatan Gross",
