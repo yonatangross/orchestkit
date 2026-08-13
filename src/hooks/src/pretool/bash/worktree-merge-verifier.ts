@@ -143,10 +143,10 @@ function allCommitsSquashMerged(projectDir: string, branch: string, base: string
  * Returns false on any error — advisory must fail toward warning.
  */
 function contentAlreadyInBase(projectDir: string, branch: string, base: string): boolean {
-  const mergeBase = git(projectDir, ['merge-base', base, branch]);
-  if (!mergeBase || !mergeBase.trim()) return false;
+  const mergeBase = git(projectDir, ['merge-base', base, branch])?.trim();
+  if (!mergeBase) return false;
 
-  const patch = git(projectDir, ['diff', mergeBase.trim(), branch], { timeout: 5000 });
+  const patch = git(projectDir, ['diff', mergeBase, branch], { timeout: 5000 });
   if (patch === null) return false;
   if (!patch.trim()) return true; // branch introduces nothing
 

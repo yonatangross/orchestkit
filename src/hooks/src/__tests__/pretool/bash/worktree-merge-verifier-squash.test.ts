@@ -109,7 +109,10 @@ describe('#3365 shell-injection safety', () => {
     // and executable under shell interpolation: ${IFS} supplies the space that
     // check-ref-format forbids literally, so `touch <marker>` really runs.
     const marker = join(repo, 'INJECTED');
-    const payloadBranch = 'pwn;touch${IFS}' + marker;
+    // Written as a template literal with an ESCAPED `\${`, not a plain string:
+    // biome's lint/suspicious/noTemplateCurlyInString fires on `${` inside a
+    // normal string, and this test's whole subject is a literal ${IFS} payload.
+    const payloadBranch = `pwn;touch\${IFS}${marker}`;
     run(['branch', payloadBranch]);
 
     // IMPORTANT: drive this through helpers that exist in BOTH the pre-fix and
