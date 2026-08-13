@@ -7,7 +7,14 @@
  * The capture half of the deferred-debt feature (counterpart to the YAGNI
  * gate). When an agent takes a deliberate shortcut it drops an inline marker:
  *
- *   // ork-debt: <choice>, upgrade to <path>, when <trigger>
+ *   <leader> ork-debt: <choice>, upgrade to <path>, when <trigger>
+ *
+ * `<leader>` is a placeholder, NOT a literal, and writing it that way is
+ * load-bearing: DEBT_MARKER_RE accepts a bare `*` as a comment leader and
+ * only whitespace between leader and token, so spelling this example with a
+ * real `//` made THIS docstring parse as a live debt marker. The surfacer
+ * then reported the tracker's own documentation as outstanding debt on every
+ * session start. See lib/debt-markers.ts, which already writes it this way.
  *
  * After any Write/Edit/MultiEdit on a code file, this hook scans the file as
  * written and, if it contains debt markers, emits a non-blocking advisory
