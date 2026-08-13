@@ -276,6 +276,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.30](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.29...v10.0.0-alpha.30)** · 2026-08-13
+
+- **cc:** retract two wrong agent-grant counts (#3472)
+- **hooks:** delete unreachable task-existence-gate Case 3 (#3467) (#3471)
+- **cc:** adopt 2.1.227 through 2.1.229, fix the dead detect stage (#3469)
+
 **[v10.0.0-alpha.29](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.28...v10.0.0-alpha.29)** · 2026-08-13
 
 - **hooks:** delete dead custom-pipeline mechanism (#3352) (#3466)
@@ -309,10 +315,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **chain-patterns:** correct Pattern 8 /loop facts against official docs (#3442)
 - **hooks:** stop `git fetch` reading as a network source (#3441)
-
-**[v10.0.0-alpha.22](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.21...v10.0.0-alpha.22)** · 2026-08-11
-
-- **workflows:** adopt CC 2.1.224 capabilities and evidence-replay gate (#3439)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
