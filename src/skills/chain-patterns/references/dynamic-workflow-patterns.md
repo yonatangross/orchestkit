@@ -51,6 +51,25 @@ throw at runtime — pass timestamps in via `args`.
 
 > **Fixed in CC 2.1.202.** Two long-standing traps here got fixed: (1) workflow scripts with unicode quote escapes (smart/curly quotes) are no longer corrupted *before* parsing, so a smart quote pasted into a prompt string no longer detonates the parse silently; and (2) parse errors now point at the offending line instead of always blaming TypeScript. Practically: the `(line:col)` is now trustworthy — read that exact line — and a genuine "TypeScript" mention in the error is now a real signal (trap #3 above), not the default scapegoat.
 
+## Fan-out cost and concurrency (CC >= 2.1.229)
+
+Two things a fan-out author has to know, both new in 2.1.229 and neither visible from
+the script:
+
+- **Same-prefix siblings are staggered so later ones hit the prompt cache.** In a
+  fan-out where every agent shares a long prompt prefix, siblings launched at the same
+  instant each re-paid that prefix. CC now staggers them so subsequent agents read the
+  cached prefix instead. This is free money for ork's widest fan-outs
+  (`audit-full/workflows/audit-full-mapreduce.js`, `skill-fitness`) and needs no script
+  change. `CLAUDE_CODE_WORKFLOW_PREFIX_STAGGER_MS=0` disables it.
+  Practical consequence: **put the shared context first and the per-item text last** in
+  a fan-out prompt, so there is a long common prefix for the stagger to exploit.
+- **Concurrency now respects the container's CPU limit.** Before 2.1.229, a workflow
+  running inside a CPU-limited container sized its concurrency from the *host* core
+  count, over-parallelizing in CI runners and Docker. On >= 2.1.229 the cgroup limit is
+  read instead, so a CI fan-out runs narrower (and slower in wall-clock) than the same
+  script did before. That is the correct behavior, not a regression.
+
 ## The 6 patterns → ork map
 
 > These six are **ork's own taxonomy** for naming multi-agent shapes — not a Claude Code

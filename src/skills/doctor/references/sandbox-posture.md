@@ -69,6 +69,23 @@ Run /sandbox to enable Claude Code's OS Bash-sandbox. Starter config for
   the nudge above includes it for exactly this reason.
 - **No detection API.** `settings.local.json` is the only signal; a session running
   sandboxed via CLI flag without the settings key reads here as "not configured".
+  **Partial exception since CC 2.1.229**: native `/doctor` flags ambiguous entries in
+  `sandbox.network` domain lists. That is one class of misconfiguration, not a
+  posture check, and it still cannot tell you whether the sandbox is actually on.
+
+## Domain-list spelling (CC >= 2.1.229)
+
+`sandbox.network` domain lists changed shape in 2.1.229. Two rules now apply:
+
+- **Bracket IPv6 literals**: `"[::1]:443"`, not `"::1:443"`. An unbracketed literal
+  is ambiguous about where the address ends and the port begins.
+- **Ambiguous spellings fail closed and are flagged by `/doctor`.** Before 2.1.229 an
+  ambiguous entry could fail *open*, silently widening the allowlist. Prefer bare
+  hostnames (`github.com`) and add a port only when you mean to scope to it.
+
+The starter config above is unaffected: 4 plain hostnames, no IPv6 literal, no port.
+Keep it that way, and keep the `denyRead` entries free of a trailing slash (a trailing
+slash silently voided the deny rule before CC 2.1.224).
 
 This pairs with the runtime network-egress guard (#2533): the guard blocks known
 exfil patterns at the policy layer; the sandbox adds a real OS boundary. Neither is

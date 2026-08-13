@@ -284,15 +284,33 @@ if [ -z "${GH_REPO:-}" ]; then
 fi
 
 MILESTONE_TITLE=$(jq -r '.milestone' "$ISSUE_ARGS_FILE")
-# When the milestone doesn't yet exist, the --jq filter returns empty
-# and gh exits 0; we then fall through to the create branch below,
-# which itself hard-fails on real errors. silent: best-effort
-MILESTONE_NUM=$(gh api "repos/${GH_REPO}/milestones" \
+# `state=all` + `--paginate` are BOTH load-bearing, do not trim them back.
+# Milestone titles are unique across open AND closed, but this probe used the
+# API defaults (state=open, per_page=30, single page). "CC adoption" is a
+# ROLLING milestone: once it was closed with its 304 issues, this lookup
+# returned empty, the create branch below POSTed a title that already existed,
+# and GitHub answered 422 already_exists. `gh api` prints only the top-level
+# message to stderr and the informative errors[] to stdout, which `$( )`
+# swallows, so the whole run died on one context-free line,
+# `gh: Validation Failed (HTTP 422)`. Measured on run 31672298470 (2026-08-13),
+# which lost the 2.1.227-229 snapshots it had already computed.
+# scripts/cc-consolidate-milestones.sh:57 carries the same latent bug.
+MILESTONE_NUM=$(gh api "repos/${GH_REPO}/milestones?state=all&per_page=100" --paginate \
   --jq ".[] | select(.title==\"$MILESTONE_TITLE\") | .number" || true)  # silent: best-effort
 if [ -z "$MILESTONE_NUM" ]; then
   MILESTONE_NUM=$(gh api -X POST "repos/${GH_REPO}/milestones" \
     -f title="$MILESTONE_TITLE" --jq .number)
   echo "Created milestone $MILESTONE_TITLE (#$MILESTONE_NUM)"
+else
+  # A rolling milestone that was closed still matches by title, but issues
+  # filed into a closed milestone are invisible in the normal milestone view.
+  # Reopen it rather than minting a duplicate title (which cannot exist).
+  # silent: best-effort
+  MILESTONE_STATE=$(gh api "repos/${GH_REPO}/milestones/${MILESTONE_NUM}" --jq .state || true)  # silent: best-effort
+  if [ "$MILESTONE_STATE" = "closed" ]; then
+    gh api -X PATCH "repos/${GH_REPO}/milestones/${MILESTONE_NUM}" -f state=open --silent
+    echo "Reopened rolling milestone $MILESTONE_TITLE (#$MILESTONE_NUM)"
+  fi
 fi
 
 # ── PRECISION lane (#2993): >= floor, evidence-gated ─────────────────────────

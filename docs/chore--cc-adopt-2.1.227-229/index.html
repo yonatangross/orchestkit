@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  CC 2.1.227-229 adoption triage. Archetype: DASHBOARD (report).
+  Persona: cool-glass. Tokens --pg-* in HSL. Motion 100/200ms.
+
+  Every row below is a real changelog bullet checked against a real ork surface.
+  A row claiming "no-op" carries the measurement that proves it, not an opinion.
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CC 2.1.227-229 adoption triage · OrchestKit</title>
+<style>
+  :root{
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(226 14% 64%);
+    --pg-faint: hsl(226 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-violet: hsl(268 78% 70%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-ok: hsl(152 62% 58%);
+    --pg-risk: hsl(0 78% 66%);
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    font-size: 15px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:2.5rem 1.25rem 5rem;
+    background:
+      radial-gradient(1100px 620px at 12% -8%, hsl(248 70% 30% / .30), transparent 60%),
+      radial-gradient(900px 520px at 92% 4%, hsl(268 66% 32% / .22), transparent 62%),
+      var(--pg-bg);
+    color:var(--pg-ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    line-height:1.55;
+  }
+  .wrap{max-width:1100px;margin:0 auto}
+  header{margin-bottom:2rem}
+  h1{font-size:1.75rem;margin:0 0 .4rem;letter-spacing:-.02em}
+  .sub{color:var(--pg-muted);font-size:.95rem;margin:0}
+  .sub code{color:var(--pg-ink);background:var(--pg-glass);padding:.1em .4em;border-radius:4px}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.85rem;margin:1.75rem 0}
+  .card{
+    background:var(--pg-glass);border:1px solid var(--pg-glass-edge);
+    border-radius:14px;padding:1rem 1.1rem;backdrop-filter:blur(12px);
+  }
+  .card .n{font-size:1.9rem;font-weight:650;letter-spacing:-.03em;line-height:1.1}
+  .card .l{font-size:.78rem;color:var(--pg-muted);text-transform:uppercase;letter-spacing:.07em;margin-top:.3rem}
+  .card .h{font-size:.8rem;color:var(--pg-faint);margin-top:.5rem}
+  .n.ok{color:var(--pg-ok)} .n.warm{color:var(--pg-warm)} .n.risk{color:var(--pg-risk)} .n.acc{color:var(--pg-accent)}
+
+  .filters{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.5rem 0 1rem}
+  button.f{
+    background:var(--pg-glass);color:var(--pg-muted);
+    border:1px solid var(--pg-glass-edge);border-radius:999px;
+    padding:.4rem .95rem;font-size:.85rem;cursor:pointer;
+    transition:background 100ms var(--pg-ease),color 100ms var(--pg-ease);
+    font-family:inherit;
+  }
+  button.f:hover{background:var(--pg-glass-2);color:var(--pg-ink)}
+  button.f[aria-pressed="true"]{background:var(--pg-accent);border-color:transparent;color:hsl(232 40% 10%);font-weight:600}
+  button.f:focus-visible{outline:2px solid var(--pg-accent);outline-offset:2px}
+
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  caption{text-align:left;color:var(--pg-faint);font-size:.8rem;padding-bottom:.6rem}
+  th{
+    text-align:left;font-weight:600;font-size:.75rem;text-transform:uppercase;
+    letter-spacing:.06em;color:var(--pg-faint);
+    padding:.5rem .7rem;border-bottom:1px solid var(--pg-glass-edge);
+  }
+  td{padding:.7rem;border-bottom:1px solid hsl(0 0% 100% / .07);vertical-align:top}
+  tr.hidden{display:none}
+  tbody tr{transition:background 100ms var(--pg-ease)}
+  tbody tr:hover{background:var(--pg-glass)}
+  td.v{color:var(--pg-muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+  td.what{font-weight:550}
+  td.ev{color:var(--pg-muted);font-size:.83rem}
+  td.ev code{color:var(--pg-ink);background:hsl(0 0% 100% / .06);padding:.08em .35em;border-radius:4px;font-size:.95em}
+
+  .tag{
+    display:inline-block;font-size:.7rem;font-weight:600;letter-spacing:.04em;
+    text-transform:uppercase;padding:.2rem .55rem;border-radius:999px;white-space:nowrap;
+  }
+  .tag.adopt{background:hsl(248 84% 68% / .18);color:var(--pg-accent)}
+  .tag.floor{background:hsl(0 78% 66% / .16);color:var(--pg-risk)}
+  .tag.noop{background:hsl(226 12% 60% / .15);color:var(--pg-muted)}
+  .tag.opp{background:hsl(38 95% 60% / .16);color:var(--pg-warm)}
+  .tag.fix{background:hsl(152 62% 58% / .16);color:var(--pg-ok)}
+
+  section{margin-top:3rem}
+  h2{font-size:1.1rem;margin:0 0 .9rem;letter-spacing:-.01em}
+  .panel{
+    background:var(--pg-glass);border:1px solid var(--pg-glass-edge);
+    border-radius:14px;padding:1.2rem 1.35rem;backdrop-filter:blur(12px);
+  }
+  .panel p{margin:0 0 .8rem;color:var(--pg-muted);font-size:.9rem}
+  .panel p:last-child{margin-bottom:0}
+  .panel strong{color:var(--pg-ink)}
+  .panel code{color:var(--pg-ink);background:hsl(0 0% 100% / .06);padding:.1em .4em;border-radius:4px;font-size:.88em}
+  pre{
+    margin:.9rem 0 0;padding:.9rem 1rem;overflow-x:auto;
+    background:hsl(232 30% 5% / .7);border:1px solid var(--pg-glass-edge);
+    border-radius:10px;font-size:.8rem;color:var(--pg-muted);line-height:1.5;
+  }
+  pre b{color:var(--pg-risk);font-weight:600}
+  pre i{color:var(--pg-ok);font-style:normal}
+  .empty{padding:1.5rem;text-align:center;color:var(--pg-faint);font-size:.9rem}
+  footer{margin-top:3rem;color:var(--pg-faint);font-size:.8rem}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>CC 2.1.227 &rarr; 2.1.229 adoption triage</h1>
+  <p class="sub">55 changelog bullets checked against real ork surfaces. <code>latest_known</code> 2.1.227 &rarr; 2.1.229; floor stays frozen at 2.1.220 (<code>manual_override</code> expires 2026-09-20).</p>
+</header>
+
+<div class="cards">
+  <div class="card"><div class="n acc" id="c-adopt">4</div><div class="l">Adoptions</div><div class="h">Doc layer, no forced code change</div></div>
+  <div class="card"><div class="n risk" id="c-floor">2</div><div class="l">Floor arguments</div><div class="h">Only running &gt;= 2.1.228 fixes these</div></div>
+  <div class="card"><div class="n" id="c-noop">5</div><div class="l">Verified no-ops</div><div class="h">Each carries its measurement</div></div>
+  <div class="card"><div class="n warm" id="c-opp">1</div><div class="l">Opportunity</div><div class="h">Recorded, not built</div></div>
+  <div class="card"><div class="n ok">14</div><div class="l">Days undetected</div><div class="h">Last watch run 2026-07-30</div></div>
+</div>
+
+<div class="filters" role="group" aria-label="Filter triage rows by verdict">
+  <button class="f" data-k="all" aria-pressed="true">All</button>
+  <button class="f" data-k="adopt" aria-pressed="false">Adopt</button>
+  <button class="f" data-k="floor" aria-pressed="false">Floor argument</button>
+  <button class="f" data-k="noop" aria-pressed="false">No-op</button>
+  <button class="f" data-k="opp" aria-pressed="false">Opportunity</button>
+  <button class="f" data-k="fix" aria-pressed="false">Pipeline fix</button>
+</div>
+
+<table>
+  <caption>Verdict column is the decision. Evidence column is what makes it checkable.</caption>
+  <thead>
+    <tr><th scope="col">Ver</th><th scope="col">Change</th><th scope="col">Verdict</th><th scope="col">ork surface / evidence</th></tr>
+  </thead>
+  <tbody id="rows">
+    <tr data-k="noop"><td class="v">2.1.227</td><td class="what">All 5 bullets</td><td><span class="tag noop">No-op</span></td><td class="ev">Closes the deliberate limit from the 2026-08-11 binary-diff triage, which covered the contract surface only. Feature-flag tier on expired token, <code>claude-code-action</code> <code>allowed_non_write_users</code>, <code>/tui</code> rewind, slash-menu rendering, event-loop stalls. No ork surface.</td></tr>
+
+    <tr data-k="floor"><td class="v">2.1.228</td><td class="what">Session cleanup deleted the project memory folder</td><td><span class="tag floor">Floor</span></td><td class="ev">Hits <code>~/.claude/projects/&lt;slug&gt;/memory/</code>, the operator memory store. <strong>No ork change makes this safe; only running &gt;= 2.1.228 does.</strong></td></tr>
+
+    <tr data-k="floor"><td class="v">2.1.228</td><td class="what">Plugin-cache cleanup deleted symlinked dev checkouts</td><td><span class="tag floor">Floor</span></td><td class="ev">A plugin whose only version is a symlinked dev checkout lost its cache. That is ork's own dev loop, where <code>CLAUDE_PLUGIN_ROOT</code> points into the cache.</td></tr>
+
+    <tr data-k="noop"><td class="v">2.1.228</td><td class="what">Write no longer needs a prior Read</td><td><span class="tag noop">No-op</span></td><td class="ev">Measured: <code>src/hooks/src/pretool/write/</code> holds <code>architecture-change-detector.ts</code> + <code>security-pattern-validator.ts</code>; neither gates on a prior read. No doc encodes the rule either.</td></tr>
+
+    <tr data-k="noop"><td class="v">2.1.228</td><td class="what">Marketplace entries merge as whole entries</td><td><span class="tag noop">No-op</span></td><td class="ev"><code>.claude-plugin/marketplace.json</code> declares no custom headers, so no tier bleed to inherit. A consumer redefining the ork entry in user settings is now safe.</td></tr>
+
+    <tr data-k="noop"><td class="v">2.1.228</td><td class="what">Synced-skill hardening (no <code>!</code> exec, no <code>@</code> expansion)</td><td><span class="tag noop">No-op</span></td><td class="ev">Applies to skills synced from claude.ai. ork skills ship inside the plugin bundle and are never synced.</td></tr>
+
+    <tr data-k="adopt"><td class="v">2.1.229</td><td class="what"><code>ListAgents</code> marks <code>offline</code> / <code>cloud</code></td><td><span class="tag adopt">Adopt</span></td><td class="ev">The liveness primitive #3316 was missing. <strong>Forced a correction</strong>: measured at HEAD 23 of 37 agents grant <code>SendMessage</code> and 19 grant <code>ListAgents</code>, not the "34 of 36 / 0" recorded 2026-08-08. 4 agents send without being able to check liveness: <code>code-quality-reviewer</code>, <code>component-curator</code>, <code>eval-runner</code>, <code>security-auditor</code>.</td></tr>
+
+    <tr data-k="adopt"><td class="v">2.1.229</td><td class="what">Sandbox domain lists fail closed; IPv6 bracketed</td><td><span class="tag adopt">Adopt</span></td><td class="ev">Starter config in <code>doctor/references/sandbox-posture.md</code> is unaffected (4 plain hostnames, no IPv6 literal, no port), but its "no detection API" limit was partly stale: <code>/doctor</code> now flags the ambiguous-spelling class. Strengthens #3322.</td></tr>
+
+    <tr data-k="adopt"><td class="v">2.1.229</td><td class="what"><code>CLAUDE_CODE_WORKFLOW_PREFIX_STAGGER_MS</code></td><td><span class="tag adopt">Adopt</span></td><td class="ev">Same-prefix siblings stagger so later ones read the cached prefix. Direct token win for <code>audit-full-mapreduce</code> and <code>skill-fitness</code>. <code>dynamic-workflow-patterns.md</code> carried zero concurrency or cost content before this.</td></tr>
+
+    <tr data-k="adopt"><td class="v">2.1.229</td><td class="what">Workflows honour container CPU limits</td><td><span class="tag adopt">Adopt</span></td><td class="ev">Concurrency was sized from the host core count, over-parallelizing in CI runners and Docker. CI fan-outs now run narrower, which is correct, not a regression.</td></tr>
+
+    <tr data-k="opp"><td class="v">2.1.229</td><td class="what">Marketplace <code>command</code> sources, <code>mode: "link"</code></td><td><span class="tag opp">Opportunity</span></td><td class="ev">Re-resolved each session, applied without a restart. <code>.claude-plugin/marketplace.json</code> ships two <code>git-subdir</code> entries; a <code>command</code> source would give contributors a local-build channel with no reinstall. Recorded, not built.</td></tr>
+
+    <tr data-k="noop"><td class="v">2.1.229</td><td class="what"><code>/commit-push-pr</code> stops auto-approving dangerous flags</td><td><span class="tag noop">No-op</span></td><td class="ev">Converges with ork's guards but subtracts nothing: ork's guards key off the Bash command string across every command, not one slash command.</td></tr>
+
+    <tr data-k="fix"><td class="v">pipeline</td><td class="what">Adoption issue filer died on a bare HTTP 422</td><td><span class="tag fix">Fixed here</span></td><td class="ev">Milestone lookup used the API defaults (<code>state=open</code>, one page of 30). "CC adoption" is milestone #154, <strong>closed</strong> with 304 issues, so the probe missed it and the script POSTed a title that already exists. Now queries <code>state=all&amp;per_page=100 --paginate</code> and reopens a closed rolling milestone.</td></tr>
+
+    <tr data-k="fix"><td class="v">pipeline</td><td class="what">SOP claimed a daily cron that does not exist</td><td><span class="tag fix">Fixed here</span></td><td class="ev">The <code>schedule:</code> trigger was removed 2026-07-28 under the weekly-quota policy. <code>docs/cc-release-integration-sop.md</code> still described a daily cron, so nobody knew detection had stopped.</td></tr>
+  </tbody>
+</table>
+<div class="empty hidden" id="empty">No rows match that filter.</div>
+
+<section>
+  <h2>Why three releases went undetected</h2>
+  <div class="panel">
+    <p>The detect stage has not been automatic since <strong>2026-07-28</strong>, when the <code>schedule:</code> trigger was deliberately removed from <code>claude-release-watch.yml</code>. <code>cc-triage.mjs</code> makes real <code>claude -p</code> calls, which cost nothing in dollars on a Max plan but draw on the <strong>shared weekly quota</strong>, competing with the operator for their own capacity. That trade is defensible. The silence about it was not.</p>
+    <p>The manual dispatch on 2026-08-13 then failed <em>after</em> extraction succeeded, so the snapshots it had already computed were discarded before the commit step:</p>
+    <pre>watch  LLM-assisted feature extraction   <i>cc-triage: gate RECALL-BOOST 2.1.229/listagents_offline_cloud_labels 5-&gt;10</i>
+watch  LLM-assisted feature extraction   <i>cc-triage: updated 68 version entries in shared/cc-adoption-gaps.json</i>
+watch  File adoption issues              <b>gh: Validation Failed (HTTP 422)</b>
+watch  File adoption issues              <b>##[error]Process completed with exit code 1</b></pre>
+    <p>One context-free line, because <code>gh api</code> prints the top-level message to stderr and the informative <code>errors[]</code> payload to stdout, where <code>$( )</code> swallows it. Snapshots for 2.1.227-229 were regenerated locally and committed in this PR.</p>
+  </div>
+</section>
+
+<section>
+  <h2>What this PR changes</h2>
+  <div class="panel">
+    <p><strong>Source of truth.</strong> <code>shared/cc-support.json</code> <code>latest_known</code> 2.1.227 &rarr; 2.1.229 with the full triage recorded in <code>manual_override.reason</code>; propagated by <code>scripts/stamp-cc-support.mjs</code> into <code>cc-version-matrix.ts</code>. Floor, latest, and <code>drop_after</code> are untouched.</p>
+    <p><strong>Docs.</strong> 12 new rows plus one corrected row in <code>doctor/references/version-compatibility.md</code>; a domain-list spelling section in <code>sandbox-posture.md</code>; a fan-out cost and concurrency section in <code>chain-patterns/references/dynamic-workflow-patterns.md</code>.</p>
+    <p><strong>Pipeline.</strong> <code>scripts/cc-file-adoption-issues.sh</code> milestone lookup fixed at root. <code>scripts/cc-consolidate-milestones.sh:57</code> carries the same latent bug and is <em>not</em> fixed here; it is called out in the code comment so the next person does not have to rediscover it.</p>
+  </div>
+</section>
+
+<footer>OrchestKit &middot; branch <code>chore/cc-adopt-2.1.227-229</code> &middot; triaged 2026-08-13 from the upstream CHANGELOG, not from a cached gap report.</footer>
+
+</div>
+<script>
+(function(){
+  var rows = Array.prototype.slice.call(document.querySelectorAll('#rows tr'));
+  var btns = Array.prototype.slice.call(document.querySelectorAll('button.f'));
+  var empty = document.getElementById('empty');
+
+  // Counters are derived from the rows, never hand-typed. A row added without
+  // updating a card would otherwise ship a number that contradicts the table.
+  var counts = {};
+  rows.forEach(function(r){ var k = r.dataset.k; counts[k] = (counts[k]||0) + 1; });
+  [['c-adopt','adopt'],['c-floor','floor'],['c-noop','noop'],['c-opp','opp']].forEach(function(p){
+    var el = document.getElementById(p[0]);
+    if (el) el.textContent = counts[p[1]] || 0;
+  });
+
+  function apply(k){
+    var shown = 0;
+    rows.forEach(function(r){
+      var hit = (k === 'all' || r.dataset.k === k);
+      r.classList.toggle('hidden', !hit);
+      if (hit) shown++;
+    });
+    empty.classList.toggle('hidden', shown > 0);
+    btns.forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.k === k)); });
+  }
+
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){ apply(b.dataset.k); });
+  });
+})();
+</script>
+</body>
+</html>
