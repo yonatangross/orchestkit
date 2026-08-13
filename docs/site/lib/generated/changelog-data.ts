@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.29",
+    "date": "2026-08-13",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** delete dead custom-pipeline mechanism ([#3352](https://github.com/yonatangross/orchestkit/issues/3352)) ([#3466](https://github.com/yonatangross/orchestkit/issues/3466)) ([72dfaca](https://github.com/yonatangross/orchestkit/commit/72dfacae2e153e2d65ac7f014be20e93c34170dc))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.28",
     "date": "2026-08-12",
     "compareUrl": "",

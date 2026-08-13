@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.29](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.28...v10.0.0-alpha.29)** · 2026-08-13
+
+- **hooks:** delete dead custom-pipeline mechanism (#3352) (#3466)
+
 **[v10.0.0-alpha.28](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.27...v10.0.0-alpha.28)** · 2026-08-12
 
 - **cc-adoption:** adopt MAX_SUBAGENT_SPAWN_DEPTH, fix depth 5/3 mismatch (#3463), closes [#3324](https://github.com/yonatangross/orchestkit/issues/3324)
@@ -309,10 +313,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.22](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.21...v10.0.0-alpha.22)** · 2026-08-11
 
 - **workflows:** adopt CC 2.1.224 capabilities and evidence-replay gate (#3439)
-
-**[v10.0.0-alpha.21](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.20...v10.0.0-alpha.21)** · 2026-08-11
-
-- **hooks:** stop run-hook.mjs failing silently and crashing (#3436)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
