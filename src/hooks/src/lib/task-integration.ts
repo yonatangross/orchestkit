@@ -375,36 +375,6 @@ export function getPipelineTasks(pipelineId: string): TaskEntry[] {
 }
 
 // -----------------------------------------------------------------------------
-// Pipeline Operations
-// -----------------------------------------------------------------------------
-
-/**
- * Register a pipeline execution
- */
-export function registerPipeline(pipeline: PipelineExecution): void {
-  const registry = loadRegistry();
-
-  // Check for duplicate
-  const existing = registry.pipelines.find(p => p.pipelineId === pipeline.pipelineId);
-  if (existing) {
-    logHook('task-integration', `Pipeline ${pipeline.pipelineId} already registered`);
-    return;
-  }
-
-  registry.pipelines.push(pipeline);
-  saveRegistry(registry);
-  logHook('task-integration', `Registered pipeline ${pipeline.pipelineId} (${pipeline.type})`);
-}
-
-/**
- * Get active pipeline (if any)
- */
-export function getActivePipeline(): PipelineExecution | undefined {
-  const registry = loadRegistry();
-  return registry.pipelines.find(p => p.status === 'running');
-}
-
-// -----------------------------------------------------------------------------
 // Cleanup
 // -----------------------------------------------------------------------------
 

@@ -4,7 +4,8 @@
 /**
  * Tests for Task Integration - CC 2.1.16 Task Management Bridge
  * Covers: instruction generation, formatting, registry CRUD,
- * pipeline operations, dependency tracking, and cleanup.
+ * dependency tracking, pipeline-tagged task lookups, and cleanup
+ * (including the registry.pipelines field, held pending #3353).
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -43,8 +44,6 @@ import {
   getTasksBlockedBy,
   getOrphanedTasks,
   getPipelineTasks,
-  registerPipeline,
-  getActivePipeline,
   cleanupOldTasks,
 } from '../../lib/task-integration.js';
 
@@ -70,6 +69,22 @@ function makePipeline(ov?: Partial<PipelineExecution>): PipelineExecution {
     pipelineId: 'pipe-1', type: 'sequential', startedAt: new Date().toISOString(),
     taskIds: {}, currentStep: 0, completedSteps: [], status: 'running', ...ov,
   } as PipelineExecution;
+}
+
+/**
+ * Seeds a pipeline directly into the registry file. registerPipeline/getActivePipeline
+ * were deleted in #3467 (zero production callers); registry.pipelines itself and
+ * cleanupOldTasks' pipeline-cleanup behavior stay pending #3353, so this writes the
+ * registry shape directly instead of going through the removed function.
+ */
+function seedPipeline(pipeline: PipelineExecution): void {
+  const file = regPath();
+  const reg = fs.existsSync(file)
+    ? JSON.parse(fs.readFileSync(file, 'utf-8'))
+    : { schemaVersion: '1.0.0', sessionId: 'test-session-123', tasks: [], pipelines: [], updatedAt: new Date().toISOString() };
+  reg.pipelines.push(pipeline);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(reg, null, 2));
 }
 
 // ===========================================================================
@@ -269,28 +284,6 @@ describe('getOrphanedTasks', () => {
   });
 });
 
-// ===========================================================================
-// Pipeline operations
-// ===========================================================================
-
-describe('pipeline operations', () => {
-  it('registerPipeline stores and deduplicates', () => {
-    registerPipeline(makePipeline());
-    registerPipeline(makePipeline());
-    expect(readReg().pipelines).toHaveLength(1);
-  });
-
-  it('getActivePipeline returns running pipeline', () => {
-    registerPipeline(makePipeline());
-    expect(getActivePipeline()?.pipelineId).toBe('pipe-1');
-  });
-
-  it('getActivePipeline returns undefined when none running', () => {
-    registerPipeline(makePipeline({ status: 'completed' }));
-    expect(getActivePipeline()).toBeUndefined();
-  });
-});
-
 describe('getPipelineTasks', () => {
   it('returns tasks sorted by pipeline step', () => {
     registerTask('t1', 'backend-system-architect', 85, 'pipe-1', 2);
@@ -335,8 +328,8 @@ describe('cleanupOldTasks', () => {
   });
 
   it('removes old completed pipelines but keeps running ones', () => {
-    registerPipeline(makePipeline({ pipelineId: 'p1', status: 'completed' }));
-    registerPipeline(makePipeline({ pipelineId: 'p2', status: 'running' }));
+    seedPipeline(makePipeline({ pipelineId: 'p1', status: 'completed' }));
+    seedPipeline(makePipeline({ pipelineId: 'p2', status: 'running' }));
     backdatePipeline(0, 48);
     backdatePipeline(1, 48);
     cleanupOldTasks(24 * 3600000);

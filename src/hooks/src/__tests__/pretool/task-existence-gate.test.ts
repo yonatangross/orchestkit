@@ -3,7 +3,7 @@
 
 /**
  * Unit tests for task-existence-gate hook
- * Tests task tracking enforcement before agent spawns
+ * Tests advisory task-tracking nudges before agent spawns
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -14,11 +14,9 @@ import { mockCommonBasic } from '../fixtures/mock-common.js';
 // Mocks — MUST be defined BEFORE imports
 // =============================================================================
 
-const mockGetActivePipeline = vi.fn();
 const mockGetTaskByAgent = vi.fn();
 
 vi.mock('../../lib/task-integration.js', () => ({
-  getActivePipeline: (...args: unknown[]) => mockGetActivePipeline(...args),
   getTaskByAgent: (...args: unknown[]) => mockGetTaskByAgent(...args),
 }));
 
@@ -27,7 +25,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 }));
 
 import { taskExistenceGate } from '../../pretool/task/task-existence-gate.js';
-import { outputSilentSuccess, outputWithContext, outputDeny } from '../../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
@@ -56,7 +54,6 @@ describe('task-existence-gate', () => {
   beforeEach(() => {
     testCtx = createTestContext({ sessionId: 'test-session' });
     vi.clearAllMocks();
-    mockGetActivePipeline.mockReturnValue(undefined);
     mockGetTaskByAgent.mockReturnValue(undefined);
   });
 
@@ -81,7 +78,7 @@ describe('task-existence-gate', () => {
       taskExistenceGate(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalled();
-      expect(outputDeny).not.toHaveBeenCalled();
+      expect(outputWithContext).not.toHaveBeenCalled();
     });
 
     test('background agents are exempt', () => {
@@ -102,25 +99,23 @@ describe('task-existence-gate', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // No pipeline active — advisory nudge
+  // No task registered — advisory nudge (never blocks)
   // ---------------------------------------------------------------------------
 
-  describe('no active pipeline', () => {
-    test('returns advisory context when no task and no pipeline', () => {
-      mockGetActivePipeline.mockReturnValue(undefined);
+  describe('no task registered', () => {
+    test('returns advisory context when no task found', () => {
       mockGetTaskByAgent.mockReturnValue(undefined);
       const input = createAgentInput('backend-system-architect');
 
-      taskExistenceGate(input, testCtx);
+      const result = taskExistenceGate(input, testCtx);
 
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('No task registered')
       );
-      expect(outputDeny).not.toHaveBeenCalled();
+      expect(result.continue).not.toBe(false);
     });
 
     test('advisory message includes agent name', () => {
-      mockGetActivePipeline.mockReturnValue(undefined);
       mockGetTaskByAgent.mockReturnValue(undefined);
       const input = createAgentInput('security-auditor');
 
@@ -131,8 +126,28 @@ describe('task-existence-gate', () => {
       );
     });
 
-    test('passes silently when task exists (no pipeline)', () => {
-      mockGetActivePipeline.mockReturnValue(undefined);
+    test('non-exempt ork agents still get the advisory nudge, never a block', () => {
+      mockGetTaskByAgent.mockReturnValue(undefined);
+
+      for (const agent of ['backend-system-architect', 'security-auditor', 'test-generator', 'code-quality-reviewer']) {
+        vi.clearAllMocks();
+        mockGetTaskByAgent.mockReturnValue(undefined);
+
+        const input = createAgentInput(agent);
+        const result = taskExistenceGate(input, testCtx);
+
+        expect(outputWithContext).toHaveBeenCalled();
+        expect(result.continue).not.toBe(false);
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Task exists — silent pass
+  // ---------------------------------------------------------------------------
+
+  describe('task exists', () => {
+    test('passes silently when task exists', () => {
       mockGetTaskByAgent.mockReturnValue({
         taskId: 'task-123',
         agent: 'backend-system-architect',
@@ -143,73 +158,7 @@ describe('task-existence-gate', () => {
       taskExistenceGate(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalled();
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // Active pipeline — blocking enforcement
-  // ---------------------------------------------------------------------------
-
-  describe('active pipeline enforcement', () => {
-    const mockPipeline = {
-      pipelineId: 'pipe-123',
-      type: 'full-stack-feature',
-      status: 'running',
-      startedAt: new Date().toISOString(),
-      currentStep: 0,
-      completedSteps: [],
-    };
-
-    test('BLOCKS agent spawn when pipeline active but no task registered', () => {
-      mockGetActivePipeline.mockReturnValue(mockPipeline);
-      mockGetTaskByAgent.mockReturnValue(undefined);
-      const input = createAgentInput('backend-system-architect');
-
-      const result = taskExistenceGate(input, testCtx);
-
-      expect(result.continue).toBe(false);
-      expect(outputDeny).toHaveBeenCalledWith(
-        expect.stringContaining('full-stack-feature')
-      );
-    });
-
-    test('block message includes agent name', () => {
-      mockGetActivePipeline.mockReturnValue(mockPipeline);
-      mockGetTaskByAgent.mockReturnValue(undefined);
-      const input = createAgentInput('test-generator');
-
-      taskExistenceGate(input, testCtx);
-
-      expect(outputDeny).toHaveBeenCalledWith(
-        expect.stringContaining('test-generator')
-      );
-    });
-
-    test('block message instructs to create task first', () => {
-      mockGetActivePipeline.mockReturnValue(mockPipeline);
-      mockGetTaskByAgent.mockReturnValue(undefined);
-      const input = createAgentInput('security-auditor');
-
-      taskExistenceGate(input, testCtx);
-
-      expect(outputDeny).toHaveBeenCalledWith(
-        expect.stringContaining('TaskCreate')
-      );
-    });
-
-    test('passes silently when pipeline active AND task exists', () => {
-      mockGetActivePipeline.mockReturnValue(mockPipeline);
-      mockGetTaskByAgent.mockReturnValue({
-        taskId: 'task-456',
-        agent: 'backend-system-architect',
-        status: 'in_progress',
-      });
-      const input = createAgentInput('backend-system-architect');
-
-      taskExistenceGate(input, testCtx);
-
-      expect(outputSilentSuccess).toHaveBeenCalled();
-      expect(outputDeny).not.toHaveBeenCalled();
+      expect(outputWithContext).not.toHaveBeenCalled();
     });
   });
 
@@ -243,36 +192,6 @@ describe('task-existence-gate', () => {
       const result = taskExistenceGate(input, testCtx);
 
       expect(result.continue).toBeDefined();
-    });
-
-    test('ork agents are NOT exempt', () => {
-      mockGetActivePipeline.mockReturnValue({
-        pipelineId: 'pipe-789',
-        type: 'security-audit',
-        status: 'running',
-        startedAt: new Date().toISOString(),
-        currentStep: 0,
-        completedSteps: [],
-      });
-      mockGetTaskByAgent.mockReturnValue(undefined);
-
-      for (const agent of ['backend-system-architect', 'security-auditor', 'test-generator', 'code-quality-reviewer']) {
-        vi.clearAllMocks();
-        mockGetActivePipeline.mockReturnValue({
-          pipelineId: 'pipe-789',
-          type: 'security-audit',
-          status: 'running',
-          startedAt: new Date().toISOString(),
-          currentStep: 0,
-          completedSteps: [],
-        });
-        mockGetTaskByAgent.mockReturnValue(undefined);
-
-        const input = createAgentInput(agent);
-        const result = taskExistenceGate(input, testCtx);
-
-        expect(result.continue).toBe(false);
-      }
     });
   });
 });

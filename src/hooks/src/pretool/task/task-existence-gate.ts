@@ -4,20 +4,16 @@
 /**
  * Task Existence Gate — PreToolUse[Agent] Hook
  *
- * Validates that a task exists in the orchestration registry before
- * allowing agent spawns during active pipelines. Advisory (context injection)
- * when no pipeline is active; blocking when a pipeline is running but
- * the agent has no registered task.
+ * Advisory nudge (context injection) when an agent is spawned without a
+ * registered task. Never blocks — this closes the gap where skills say
+ * "MANDATORY: use TaskCreate" but nothing at runtime enforced it.
  *
- * This closes the gap where skills say "MANDATORY: use TaskCreate" but
- * nothing at runtime enforced it.
- *
- * CC 2.1.9 Compliant: Uses outputWithContext / outputDeny
+ * CC 2.1.9 Compliant: Uses outputWithContext
  */
 
 import type { HookInput, HookResult , HookContext} from '../../types.js';
-import { outputSilentSuccess, outputWithContext, outputDeny } from '../../lib/common.js';
-import { getActivePipeline, getTaskByAgent } from '../../lib/task-integration.js';
+import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
+import { getTaskByAgent } from '../../lib/task-integration.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'task-existence-gate';
@@ -65,9 +61,8 @@ function isExempt(input: HookInput): boolean {
  * Task existence gate.
  *
  * Behavior:
- * - No active pipeline → advisory nudge if no task found (non-blocking)
- * - Active pipeline + task found → silent pass
- * - Active pipeline + no task found → BLOCK with instruction to create task first
+ * - Task found → silent pass
+ * - No task found → advisory nudge (non-blocking)
  * - Exempt agents → always pass silently
  */
 export function taskExistenceGate(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
@@ -79,29 +74,18 @@ export function taskExistenceGate(input: HookInput, ctx: HookContext = NOOP_CTX)
     return outputSilentSuccess();
   }
 
-  const activePipeline = getActivePipeline();
   const existingTask = getTaskByAgent(subagentType);
 
-  // Case 1: Task exists — all good
+  // Task exists — all good
   if (existingTask) {
     ctx.log(HOOK_NAME, `Task found for ${subagentType}: ${existingTask.taskId}`);
     return outputSilentSuccess();
   }
 
-  // Case 2: No active pipeline — advisory nudge (don't block ad-hoc work)
-  if (!activePipeline) {
-    ctx.log(HOOK_NAME, `No pipeline active, advisory nudge for ${subagentType}`);
-    return outputWithContext(
-      `[Task Tracking] No task registered for agent "${subagentType}". ` +
-      `Consider using TaskCreate before spawning agents to enable progress tracking and pipeline coordination.`
-    );
-  }
-
-  // Case 3: Active pipeline but no task — BLOCK
-  ctx.log(HOOK_NAME, `BLOCKED: ${subagentType} has no task in pipeline ${activePipeline.pipelineId}`);
-  return outputDeny(
-    `Pipeline "${activePipeline.type}" is active but no task is registered for agent "${subagentType}". ` +
-    `Create a task with TaskCreate before spawning this agent. ` +
-    `Pipeline steps require task tracking for coordination and progress visibility.`
+  // No task found — advisory nudge (don't block ad-hoc work)
+  ctx.log(HOOK_NAME, `No task registered, advisory nudge for ${subagentType}`);
+  return outputWithContext(
+    `[Task Tracking] No task registered for agent "${subagentType}". ` +
+    `Consider using TaskCreate before spawning agents to enable progress tracking.`
   );
 }
