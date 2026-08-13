@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  LIVING PLAN template (LPP v2.1) — a plan playground that tracks its own execution.
+  Persona: cool-glass (§1). Tokens per §2 (--pg-*, HSL). Glass per §5. Motion per §6
+  (signature moment = panel cross-fade; everything else 100/200ms).
+
+  Contract (the part that makes it "living"):
+  • ONE plan = ONE file. Sessions UPDATE the STATE block below in place; never fork a
+    second file for the same plan slug. Git history is the timeline.
+  • The visual layer renders FROM state. A dumb updater that only mutates the JSON is
+    legal and sufficient; every tab, ring, and bar re-paints on reload.
+  • Every item carries `evidence`: the command/check that PROVES done. Marking an item
+    done without evidence is a contract violation, not a style choice.
+  • `changelog` is append-only. Merges never drop items; removed work moves to
+    status "dropped" with a reason. Rejected planning-time ideas live in `discards`.
+
+  Depth guide (thin instances are the failure mode): per-item before/after, detail with
+  the NUMBERS that justified it, risk + failure + containment, evidence, owner;
+  plan-level scored dims with target, discards with reasons, research with sources.
+
+  Reuse: copy this file, replace STATE, keep the engine. Run the §10 self-audit before
+  shipping. Archetype family: DASHBOARD (living).
+
+  SECTION CANON v1 (part of the contract, all LPP surfaces use these labels in this order;
+  renderers may OMIT a section but never rename or reorder):
+    Execution waves · Progress matrix · Scores · Risk map · Discards · Research · Updates
+  This applies to the file renderer below, platform-native renders, and confirm-gate views.
+  Drift between surfaces was the first real-world failure of LPP v1 adoption; the canon
+  exists so a plan reads identically wherever it is rendered.
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Living Plan</title>
+<style>
+  :root{
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(226 14% 64%);
+    --pg-faint: hsl(226 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-accent-deep: hsl(248 70% 54%);
+    --pg-violet: hsl(268 78% 70%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-ok: hsl(152 62% 58%);
+    --pg-risk: hsl(0 78% 66%);
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    font-size: 15px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background: var(--pg-bg);
+    color: var(--pg-ink);
+    font-family:-apple-system,'SF Pro Text',Inter,sans-serif;
+    line-height:1.55; padding:48px 24px 96px;
+    background-image:
+      radial-gradient(60% 42% at 12% 0%,   hsl(248 84% 68% / .16), transparent 62%),
+      radial-gradient(48% 36% at 88% 8%,   hsl(268 78% 70% / .12), transparent 60%),
+      radial-gradient(52% 40% at 50% 100%, hsl(240 80% 62% / .10), transparent 64%);
+    background-attachment: fixed;
+  }
+  .wrap{max-inline-size:1120px;margin-inline:auto}
+
+  /* type roles (§4) */
+  h1{font-size:1.85rem;font-weight:700;letter-spacing:-.3px}
+  h2{font-size:1.1rem;font-weight:650;letter-spacing:-.2px;margin-block:32px 14px;
+     color:var(--pg-ink);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .sub{color:var(--pg-muted);margin-block:8px 28px;font-size:.92rem}
+  .mono,.num,td.num,.kpi b{font-variant-numeric:tabular-nums}
+
+  /* glass (§5): fill + 1px edge + blur + top-left inset light + two-part shadow */
+  .glass{
+    background:var(--pg-glass);
+    border:1px solid var(--pg-glass-edge);
+    border-radius:24px;
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / .12),
+      0 20px 60px -22px hsl(232 40% 3% / .7),
+      0 4px 12px -6px hsl(232 40% 3% / .5);
+  }
+
+  /* hero */
+  .hero{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;
+        padding:24px;margin-block-end:24px}
+  .ring-wrap{position:relative;inline-size:132px;block-size:132px}
+  .ring-wrap svg{transform:rotate(-90deg)}
+  .ring-c{fill:none;stroke:hsl(0 0% 100% / .08);stroke-width:10}
+  .ring-p{fill:none;stroke:url(#pg-grad);stroke-width:10;stroke-linecap:round;
+          transition:stroke-dashoffset 500ms var(--pg-ease)}
+  .ring-txt{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+  .ring-txt b{font-size:1.5rem;font-weight:700}
+  .ring-txt span{font-size:.68rem;color:var(--pg-muted);text-transform:uppercase;letter-spacing:.06em}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .kpi{background:var(--pg-glass);border:1px solid hsl(0 0% 100% / .10);
+       border-radius:16px;padding:12px 16px}
+  .kpi b{display:block;font-size:1.25rem;font-weight:700}
+  .kpi span{color:var(--pg-faint);font-size:.75rem}
+  .kpi .up{color:var(--pg-ok)} .kpi .mid{color:var(--pg-warm)} .kpi .acc{color:var(--pg-accent)}
+
+  /* wave progress strip */
+  .wavestrip{display:grid;gap:10px;padding:20px 24px;margin-block-end:24px}
+  .wrow{display:grid;grid-template-columns:130px 1fr 76px;gap:16px;align-items:center;font-size:.85rem}
+  .wrow .wl{color:var(--pg-muted);font-weight:600}
+  .wbar{block-size:10px;border-radius:5px;background:hsl(0 0% 100% / .07);overflow:hidden}
+  .wbar i{display:block;block-size:100%;border-radius:5px;
+          background:linear-gradient(90deg,var(--pg-accent-deep),var(--pg-accent),var(--pg-violet));
+          transition:inline-size 500ms var(--pg-ease)}
+  .wrow .wn{text-align:end;color:var(--pg-faint)}
+  .wrow.done .wl{color:var(--pg-ok)} .wrow.done .wbar i{background:var(--pg-ok)}
+
+  /* tabs (secondary tier) */
+  .tabs{display:flex;gap:8px;margin-block:24px 18px;flex-wrap:wrap}
+  .tab{background:var(--pg-glass);border:1px solid hsl(0 0% 100% / .12);color:var(--pg-muted);
+       padding:8px 18px;border-radius:999px;cursor:pointer;font-size:.88rem;
+       transition:color 100ms var(--pg-ease),background 100ms var(--pg-ease)}
+  .tab:hover{color:var(--pg-ink)}
+  .tab.active{background:linear-gradient(135deg,var(--pg-accent-deep),var(--pg-accent));
+              color:hsl(232 30% 8%);border-color:transparent;font-weight:650}
+
+  /* panels: the one signature moment = 300ms cross-fade + rise (§6) */
+  .panel{display:none}
+  .panel.active{display:block;animation:pg-in 300ms var(--pg-ease)}
+  @keyframes pg-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--pg-glass);border:1px solid var(--pg-glass-edge);border-radius:16px;
+        backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+        box-shadow:inset 0 1px 0 hsl(0 0% 100% / .10), 0 4px 12px -6px hsl(232 40% 3% / .5);
+        padding:18px 22px;margin-block-end:14px;
+        transition:border-color 200ms var(--pg-ease)}
+  .card:hover{border-color:hsl(248 84% 68% / .5)}
+  .card h3{font-size:1rem;font-weight:650;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-block-end:4px}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-block:8px;align-items:center}
+  .chip{font-size:.72rem;padding:2px 10px;border-radius:999px;border:1px solid hsl(0 0% 100% / .14);color:var(--pg-faint);white-space:nowrap}
+  .impact{display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--pg-muted)}
+  .impact .ib{inline-size:72px;block-size:6px;border-radius:3px;background:hsl(0 0% 100% / .08);overflow:hidden}
+  .impact .ib i{display:block;block-size:100%;background:linear-gradient(90deg,var(--pg-accent),var(--pg-violet))}
+
+  /* status system: hue carries the role */
+  .st{font-size:.72rem;padding:2px 12px;border-radius:999px;font-weight:600}
+  .st-planned{color:var(--pg-faint);border:1px solid hsl(0 0% 100% / .16);background:hsl(0 0% 100% / .03)}
+  .st-in_progress{color:hsl(38 95% 68%);border:1px solid hsl(38 95% 60% / .45);background:hsl(38 95% 60% / .10)}
+  .st-done{color:var(--pg-ok);border:1px solid hsl(152 62% 58% / .45);background:hsl(152 62% 58% / .10)}
+  .st-dropped{color:var(--pg-risk);border:1px solid hsl(0 78% 66% / .4);background:hsl(0 78% 66% / .08);text-decoration:line-through}
+
+  table{inline-size:100%;border-collapse:collapse;font-size:.85rem}
+  th,td{text-align:start;padding:8px 12px;border-block-end:1px solid hsl(0 0% 100% / .08);vertical-align:top}
+  th{color:var(--pg-faint);font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em}
+  .note{border-inline-start:3px solid var(--pg-warm);padding:10px 16px;background:var(--pg-glass);
+        border-radius:0 12px 12px 0;margin-block:14px;font-size:.88rem;color:var(--pg-muted)}
+  .src{font-size:.8rem;color:var(--pg-muted)}
+  .faint{color:var(--pg-faint)}
+  .strike{color:var(--pg-faint);text-decoration:line-through}
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-block-start:8px;font-size:.82rem}
+  .ba>div{background:hsl(0 0% 100% / .04);border:1px solid hsl(0 0% 100% / .09);border-radius:12px;padding:10px 14px}
+  .ba b{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pg-faint);margin-block-end:3px}
+  .ba .aft b{color:var(--pg-ok)}
+  details summary{cursor:pointer;color:var(--pg-faint);font-size:.82rem;margin-block-start:8px}
+  .score-row{display:grid;grid-template-columns:170px 1fr 46px;gap:12px;align-items:center;margin-block:6px;font-size:.85rem}
+  .score-row .bar{block-size:8px;border-radius:4px;background:hsl(0 0% 100% / .07);overflow:hidden}
+  .score-row .bar i{display:block;block-size:100%;border-radius:4px;
+    background:linear-gradient(90deg,var(--pg-accent-deep),var(--pg-accent))}
+  .score-row .v{text-align:end;color:var(--pg-muted)}
+  .wavehead{font-size:.78rem;color:var(--pg-faint);font-weight:400}
+  a{color:var(--pg-accent)}
+  @media(max-width:760px){.ba{grid-template-columns:1fr}.hero{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="lpp-title">Living Plan</h1>
+  <p class="sub" id="lpp-sub"></p>
+
+  <div class="hero glass">
+    <div class="ring-wrap">
+      <svg width="132" height="132" viewBox="0 0 132 132" aria-hidden="true">
+        <defs>
+          <linearGradient id="pg-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="hsl(248 70% 54%)"/>
+            <stop offset="100%" stop-color="hsl(268 78% 70%)"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-c" cx="66" cy="66" r="56"/>
+        <circle class="ring-p" id="lpp-ring" cx="66" cy="66" r="56"/>
+      </svg>
+      <div class="ring-txt"><b id="lpp-pct">0%</b><span>complete</span></div>
+    </div>
+    <div class="kpis" id="lpp-kpis"></div>
+  </div>
+
+  <div class="wavestrip glass" id="lpp-wavestrip"></div>
+
+  <div class="tabs" id="lpp-tabs"></div>
+  <div id="lpp-panels"></div>
+</div>
+
+<!-- ═══════════ STATE — the only block sessions edit. Append, flip statuses, never fork. ═══════════ -->
+<!-- SECURITY INVARIANT — write every "<" in the values below as \u003c
+     `type="application/json"` means nothing to the HTML tokenizer: a literal
+     `</script` anywhere in this block ENDS the element at parse time, and the rest
+     of the state is then parsed as live markup. That happens before JSON.parse and
+     before esc()/stCls()/riskColor()/safeUrl() exist, so no renderer-side guard can
+     defend it — a plan title of `x</script><img src=x onerror=...>` simply executes.
+     JSON.stringify does NOT escape `<`, so the writer must. \u003c is valid JSON
+     and parses back to a plain `<`. Enforced by tests/security/test-json-island-breakout.sh. -->
+<script type="application/json" id="lpp-state">
+{
+  "lpp": 2,
+  "slug": "cc-adoption-2.1.215-218",
+  "title": "CC 2.1.215-218 adoption + orchestration-model correction",
+  "created": "2026-07-23",
+  "updated": "2026-07-23T00:00:00Z",
+  "score": {
+    "dims": { "runtime-correctness": 4.5, "guardrails": 5.0, "cost-efficiency": 3.5 },
+    "composite": 4.3, "target": 8.0
+  },
+  "waves": [
+    { "id": "W0", "title": "Runtime correctness at CC 2.1.218", "status": "planned" },
+    { "id": "W1", "title": "Guardrails that would have caught these", "status": "planned" },
+    { "id": "W2", "title": "Orchestration-model correction", "status": "planned" },
+    { "id": "W3", "title": "Hygiene and token reclaim", "status": "planned" }
+  ],
+  "items": [
+    {
+      "id": "W0.1", "wave": "W0", "title": "Declare background: on the 39 model-invocable fork skills",
+      "impact": 9.0, "effort": "2h", "risk": "med", "status": "planned",
+      "before": "78 of 114 skills carry frontmatter context: fork; ZERO declare background:. CC 2.1.218 changed fork skills to run in the background by default.",
+      "after": "Every fork skill states background: true or false explicitly. Interactive skills (assess, cover, expect, explore, fix-issue, review-pr, verify, design-ship) pin background: false.",
+      "detail": "Verbatim 2.1.218 changelog: 'Changed skills with context: fork to run in the background by default; opt out per skill with background: false'. Split verified by frontmatter parse, not grep: 39 fork skills are disable-model-invocation:true (slash-only, observed running inline this session) and 39 are still model-invocable. The 39 model-invocable ones are the true risk set. Runtime symptom is NOT yet empirically observed on the slash path, so this is a confirmed config gap with an unconfirmed runtime symptom.",
+      "failure": "Blanket-setting background:false on all 78 defeats the point of fork for genuine report-producers.",
+      "containment": "Decide per skill on whether its result is read by a human in-turn. Start with the 39-item model-invocable set.",
+      "evidence": "for f in src/skills/*/SKILL.md; do awk 'frontmatter has context:fork AND lacks background:' ; done | wc -l  ==  0",
+      "owner": "agent"
+    },
+    {
+      "id": "W0.2", "wave": "W0", "title": "Fix stop/security-scan-aggregator: p95 50s against a declared 10s timeout",
+      "impact": 9.0, "effort": "3h", "risk": "med", "status": "planned",
+      "before": "765 calls, mean 19,149ms, p95 50,122ms, max 159,640ms, 14,649s total = 87% of ALL hook wall time. hooks.json declares timeout: 10 (seconds).",
+      "after": "Either the handler finishes inside its declared budget, or the budget is raised to the real distribution and the work moves off the Stop path.",
+      "detail": "Measured from 202,229 parsed records in ~/.claude/analytics/hook-timing.jsonl (207MB), 0 parse failures. Independently reproduced; matches the sweep agent's sample within rounding. This is a 5x-16x overrun of the hook's own declared timeout, on the Stop event, so it is paid at the end of every session.",
+      "failure": "Raising the timeout without reducing work just legitimises a 50-second stall.",
+      "containment": "Profile which scanner dominates before touching the budget; the aggregator fans out to several.",
+      "evidence": "python3 scratchpad/verify_hooks.py shows p95 under the declared timeout for stop/security-scan-aggregator",
+      "owner": "agent"
+    },
+    {
+      "id": "W0.3", "wave": "W0", "title": "Reconcile 13 Agent(ork:*) grants with nested-spawn now OFF by default",
+      "impact": 8.0, "effort": "2h", "risk": "med", "status": "planned",
+      "before": "CC 2.1.217: 'Changed subagents to no longer spawn nested subagents by default; set CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH to allow deeper nesting.' ork has 13 Agent(ork:*) grants across 11 agents and ZERO references to that env var anywhere in src/ or manifests/.",
+      "after": "Either the skills that rely on nested delegation set the depth env var and own the cost, or the grants and the prose that assumes nesting are removed in favour of a flat lead-driven fan-out.",
+      "detail": "chain-patterns Pattern 9 documents nested delegation up to 3 levels. That capability is now off unless explicitly enabled, so the grants are inert and the documented pattern silently degrades to a no-op.",
+      "failure": "Enabling deep nesting globally reintroduces unbounded fan-out that 2.1.217 capped for a reason (default concurrent-subagent cap is now 20).",
+      "containment": "ork already caps its own fan-out at 6-12, below the new ceiling; prefer flat fan-out over raising depth.",
+      "evidence": "grep -rn CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH src/ returns a deliberate setting, or the Agent(ork:*) grants are gone",
+      "owner": "agent"
+    },
+    {
+      "id": "W0.4", "wave": "W0", "title": "Fix two deny rules that can never match",
+      "impact": 7.0, "effort": "30min", "risk": "low", "status": "planned",
+      "before": "src/settings/ork.settings.json:40-41 deny Bash(find:*-delete*) and Bash(find:*-fprint*). CC matches the literal command string, and no real invocation begins with 'find:'. So 'find . -name *.tmp -delete' is NOT blocked.",
+      "after": "Rules match real command shapes, or are removed so the security posture is honest about what it does not cover.",
+      "detail": "Two more at lines 50-51 are exact-literal-only and near-unmatchable: Bash(> /dev/sd*) depends on redirect position, and the fork-bomb literal misses on any whitespace variant. These are silent no-ops presenting as protection.",
+      "failure": "Rewriting them too broadly starts denying legitimate find invocations.",
+      "containment": "These are deny rules on a posture layer, not a containment boundary; ork documents that distinction already.",
+      "evidence": "a test asserts the deny rule matches a realistic 'find . -delete' command string",
+      "owner": "human"
+    },
+    {
+      "id": "W0.5", "wave": "W0", "title": "Fix the /ork:feedback instruction users cannot follow",
+      "impact": 6.0, "effort": "15min", "risk": "low", "status": "planned",
+      "before": "src/hooks/src/lifecycle/analytics-consent-check.ts:109 and :124 tell users to run '/ork:feedback opt-in'. The feedback skill is user-invocable: false AND disable-model-invocation: true, so that command does not exist.",
+      "after": "Either the skill becomes user-invocable, or the hook text names a real path.",
+      "detail": "This is user-facing: the consent prompt is shipped, shown, and the remedy it names is unreachable.",
+      "failure": "Flipping user-invocable adds to the per-session token ratchet that PR 3056 was reverted over.",
+      "containment": "Changing the hook string costs zero tokens; prefer that unless the skill is genuinely wanted as a command.",
+      "evidence": "the string in analytics-consent-check.ts names a command that resolves, verified by /ork:help listing it",
+      "owner": "human"
+    },
+    {
+      "id": "W0.6", "wave": "W0", "title": "Advance latest_known 2.1.214 to 2.1.218 with a triage doc",
+      "impact": 6.0, "effort": "1h", "risk": "low", "status": "planned",
+      "before": "shared/cc-support.json latest_known is 2.1.214; the CC actually running is 2.1.218. Four releases untriaged, and the strict floor pin at 2.1.206 expires 2026-09-20.",
+      "after": "latest_known advanced to 2.1.218 with a per-range triage doc under docs/audits/, matching the established pattern.",
+      "detail": "Real adoptions in range: 2.1.218 fork-background default (W0.1), 2.1.217 nested-spawn default off and the 20-subagent concurrency cap (W0.3). Cleared as no-ops: agent names with ':' (all 36 ork agents use bare names), user_config exposure (zero), path-scoped permission rules (none).",
+      "failure": "Advancing latest_known without the triage doc breaks the audit trail every prior bump maintained.",
+      "containment": "The floor stays pinned at 2.1.206; only latest_known moves.",
+      "evidence": "docs/audits/cc-adoption-2.1.215-218-triage-2026-07-23.md exists and shared/cc-support.json reads 2.1.218",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.1", "wave": "W1", "title": "Add a tool-name allowlist validator",
+      "impact": 8.5, "effort": "2h", "risk": "low", "status": "planned",
+      "before": "tests/agents/ has 15 validators and none checks a declared tool name against a known vocabulary. This is why MultiEdit survived: it is granted in 5 agents and codified as real in tool-categories.ts:49, test-agent-model-tool-correlation.sh:75, and static-analysis.sh:201.",
+      "after": "One validator fails CI on any tools: entry not in a maintained vocabulary, so the next hard-removal is caught the day it lands.",
+      "detail": "Highest-leverage item in the plan: it converts a recurring class into a one-time fix. Every other dead-tool finding here is a symptom of its absence.",
+      "failure": "A hand-maintained vocabulary drifts and starts failing on newly-added real tools.",
+      "containment": "Source the vocabulary from a single file that the CC-adoption sweep already updates each release.",
+      "evidence": "npm run test:agents fails when a bogus tool name is added to any agent frontmatter",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.2", "wave": "W1", "title": "Guard agent-frontmatter hook IDs the way SKILL.md IDs are guarded",
+      "impact": 7.5, "effort": "1.5h", "risk": "low", "status": "planned",
+      "before": "skill-frontmatter-hooks-invariant.test.ts scans SKILL.md only, and only IDs prefixed 'skill/'. tests/agents/test-hook-paths.sh:70-72 verifies run-hook.mjs exists and is executable, never that the id argument resolves to a registered handler. 13 agent-side hook IDs are unguarded.",
+      "after": "One invariant test covers all three dispatch surfaces: hooks.json, agent frontmatter, skill frontmatter.",
+      "detail": "The registry is 217 entries across three surfaces (150 + 45 + 22), not just hooks.json. An xref checking only hooks.json against the entries map produces 91 false positives, which is what the sweep agent hit and corrected.",
+      "failure": "A three-surface xref is easy to write in a way that re-introduces those 91 false positives.",
+      "containment": "scratchpad/final_xref.py already implements the correct three-surface join; port it.",
+      "evidence": "the invariant test fails when an agent declares a hook id with no registered handler",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.3", "wave": "W1", "title": "Enforce the 500-line SKILL.md limit in CI",
+      "impact": 5.0, "effort": "30min", "risk": "low", "status": "planned",
+      "before": "The rule is honour-system. Three skills drifted past it: implement 517, cover 509, brainstorm 504.",
+      "after": "A test fails past 500 lines.",
+      "detail": "All three offenders are also top-5 stale-CC-prose offenders, so W3.1 alone puts each back under the limit. Sequence W3.1 first, then turn the gate on.",
+      "failure": "Turning the gate on before W3.1 lands blocks CI on three known files.",
+      "containment": "Land W3.1 first; this item depends on it.",
+      "evidence": "npm run test:skills fails when a SKILL.md exceeds 500 lines",
+      "owner": "agent"
+    },
+    {
+      "id": "W2.1", "wave": "W2", "title": "Effort-tier the five most expensive skills",
+      "impact": 8.0, "effort": "4h", "risk": "med", "status": "planned",
+      "before": "Only 4 of 114 skills read CLAUDE_EFFORT (assess, cover, explore, help). The five heaviest, implement 517L, review-pr 486L, verify 469L, brainstorm 504L, fix-issue 479L, have zero effort scaling and always run full multi-agent cost.",
+      "after": "Each reads CLAUDE_EFFORT and scales AGENT COUNT, not prose: low runs 1-2 agents, high runs the full panel.",
+      "detail": "cover already implements this correctly; copy its pattern rather than inventing a second one. The dial exists in CC and ork is not turning it.",
+      "failure": "Scaling the prose instead of the fan-out saves nothing; the cost is in the agents.",
+      "containment": "Gate on agent count only; leave the phase structure identical across tiers.",
+      "evidence": "grep -l CLAUDE_EFFORT across the five skills returns all five, and each gates a spawn count",
+      "owner": "agent"
+    },
+    {
+      "id": "W2.2", "wave": "W2", "title": "Give background+Write+worktree agents a merge contract",
+      "impact": 8.0, "effort": "3h", "risk": "high", "status": "planned",
+      "before": "7 agents are background: true AND hold Write/Edit AND isolation: worktree: accessibility-specialist, data-pipeline-engineer, eval-runner, frontend-performance-engineer, monitoring-engineer, python-performance-engineer, release-engineer.",
+      "after": "No agent both mutates and runs backgrounded in an isolated worktree unless the spawning skill explicitly merges the branch back.",
+      "detail": "This is precisely the stranding failure mode already written down in .claude/rules/usage-analytics-hardening.md: ExitWorktree(action=keep) preserves the branch but does not merge it. release-engineer is the sharpest case, cutting a release into a worktree the operator never sees.",
+      "failure": "Dropping background: from all 7 serialises work that legitimately runs in parallel.",
+      "containment": "Prefer adding the merge step in the spawning skill over removing background from the agent.",
+      "evidence": "a test asserts no agent has background:true AND write-capable tools AND isolation:worktree without a documented merge-back",
+      "owner": "human"
+    },
+    {
+      "id": "W2.3", "wave": "W2", "title": "Wire the two refuter agents that prose already promises",
+      "impact": 5.5, "effort": "1h", "risk": "low", "status": "planned",
+      "before": "review-pr/references/adversarial-refutation.md:16 names accessibility-specialist and frontend-performance-engineer as refuters, but neither has a concrete subagent_type spawn anywhere.",
+      "after": "Both are spawned from review-pr's refutation lane, matching the documented behaviour.",
+      "detail": "Deliberately scoped to 2 of the 16 never-spawned agents. The other 14 are judged on demand, not on utilisation.",
+      "failure": "Treating this as the start of a wire-everything campaign.",
+      "containment": "Two agents only; the discard list records why the rest are out.",
+      "evidence": "grep subagent_type in review-pr returns concrete spawns for both agents",
+      "owner": "agent"
+    },
+    {
+      "id": "W3.1", "wave": "W3", "title": "Strip 433 below-floor CC version mentions from skill bodies",
+      "impact": 7.0, "effort": "4h", "risk": "low", "status": "planned",
+      "before": "433 mentions of CC versions below the 2.1.206 floor across 63 of 114 SKILL.md files; 1,566 including references/. Worst: setup 31, implement 29, configure 29, brainstorm 27, help 21.",
+      "after": "Every 'CC 2.1.NNN+' gate below 206 is deleted and its guidance stated unconditionally.",
+      "detail": "Every such gate is unconditionally true at the floor, so the conditional prose is pure token cost, concentrated in the largest and most frequently loaded skills. This also drags implement, cover and brainstorm back under the 500-line limit, unblocking W1.3.",
+      "failure": "A blind regex strip removes version notes that are still load-bearing above the floor.",
+      "containment": "Only touch mentions strictly below 2.1.206; leave everything at or above the floor alone.",
+      "evidence": "the below-floor counter script reports 0 mentions under 2.1.206 in SKILL.md bodies",
+      "owner": "agent"
+    },
+    {
+      "id": "W3.2", "wave": "W3", "title": "Remove the dead MultiEdit tool from 5 agents and 3 infra files",
+      "impact": 6.0, "effort": "45min", "risk": "low", "status": "planned",
+      "before": "MultiEdit is granted in tools: by backend-system-architect:16, design-system-architect:15, eval-runner:31, frontend-ui-developer:15, python-performance-engineer:15, and treated as real in tool-categories.ts:49, test-agent-model-tool-correlation.sh:75, static-analysis.sh:201. It is in neither the live nor the deferred tool surface.",
+      "after": "MultiEdit is gone from grants and from infra; Edit with replace_all is the replacement.",
+      "detail": "The 7 appearances under disallowedTools are harmless (denying a nonexistent tool is a no-op) but should go with the same pass. Do this AFTER W1.1 so the new validator proves the removal is complete.",
+      "failure": "Removing it from tool-categories.ts without checking the hook logic that reads file_edit categories.",
+      "containment": "W1.1's validator is the completeness check.",
+      "evidence": "grep -rn MultiEdit src/ returns nothing outside changelog history",
+      "owner": "agent"
+    },
+    {
+      "id": "W3.3", "wave": "W3", "title": "Deduplicate lifecycle/webhook-forwarder, registered 38 times",
+      "impact": 4.5, "effort": "1h", "risk": "low", "status": "planned",
+      "before": "webhook-forwarder appears 38 times in hooks.json, once per matcher group across 29 events, all dispatching the identical handler. 20,705 fires, 511s total.",
+      "after": "One registration per event that genuinely needs it, or a single wildcard registration.",
+      "detail": "Second-highest call count in the timing data. Not a correctness bug; a maintenance and cost item.",
+      "failure": "Collapsing to a wildcard changes which events the forwarder actually observes.",
+      "containment": "Compare the fired-event distribution before and after.",
+      "evidence": "hooks.json contains fewer webhook-forwarder entries and the fired-event set is unchanged",
+      "owner": "agent"
+    },
+    {
+      "id": "W3.4", "wave": "W3", "title": "Clear doc drift and the one genuinely dead skill",
+      "impact": 3.5, "effort": "1h", "risk": "low", "status": "planned",
+      "before": "src/hooks/README.md:32 claims CwdChanged and FileChanged are deliberately unhooked; both are wired today. entries/notification.ts:11,22 carry dangling MessageDisplay comments. src/skills/upgrade-assessment/SKILL.md (168 lines) has no invocation path at all. cc-prompt-cache-guide.md:50 documents a hook id, skill/standards-loader, that does not exist.",
+      "after": "README matches reality, dangling comments removed, upgrade-assessment either wired or deleted, the stale hook id corrected to skill/implement-standards-loader.",
+      "detail": "MessageDisplay is worth a re-check rather than a deletion: the observer was built and reverted same-day because claude plugin validate rejects hooks.MessageDisplay as an invalid manifest key. That is a CC-side schema bug, not an ork decision.",
+      "failure": "Deleting upgrade-assessment if it is actually referenced from generated docs.",
+      "containment": "Its only inbound references are a generated mdx and an eval fixture list, neither an invocation path.",
+      "evidence": "README claims match hooks.json, and upgrade-assessment is either deleted or reachable",
+      "owner": "human"
+    }
+  ],
+  "discards": [
+    { "title": "Set background: false on all 78 fork skills", "reason": "39 are disable-model-invocation:true and were observed running inline this session. Blanket-setting defeats fork for genuine report-producers. Scoped to the 39 model-invocable ones." },
+    { "title": "Fix review-pr and explore having zero agent spawns", "reason": "REFUTED on verification. The sweep stopped at references/ and missed rules/. review-pr has 21 subagent_type hits, explore has 22. Not a gap." },
+    { "title": "Wire all 16 never-spawned agents into hot skills", "reason": "Utilisation theatre. Dormancy is only a defect if the work exists and goes to a worse agent. Kept only the 2 that prose already promises as refuters." },
+    { "title": "Fix agent names containing ':' for CC 2.1.218", "reason": "Zero exposure. All 36 ork agents use bare names like backend-system-architect." },
+    { "title": "Fix the 'Spawn all four in ONE message' instruction in security-auditor", "reason": "Downgraded on reading lines 85-92: the four are npm audit, pip-audit and a secrets grep, i.e. parallel Bash calls, not agent spawns." },
+    { "title": "Remove the 142 declared-but-unreferenced agent skills", "reason": "Real token cost per spawn but no correctness impact; deferred below the runtime-correctness and guardrail waves." }
+  ],
+  "research": [
+    { "title": "2.1.218 changes fork-skill scheduling", "note": "Verbatim: 'Changed skills with context: fork to run in the background by default; opt out per skill with background: false'. Re-fetched independently after the first agent's summary proved incomplete.", "source": "https://code.claude.com/docs/en/changelog" },
+    { "title": "2.1.217 turns nested subagent spawning off by default", "note": "'Changed subagents to no longer spawn nested subagents by default; set CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH to allow deeper nesting.' Also adds a 20-subagent concurrency cap. The first triage agent compressed this release to 'multiple internal bug fixes' and missed both.", "source": "https://code.claude.com/docs/en/changelog" },
+    { "title": "Hook timing is measured, not estimated", "note": "202,229 records parsed from a 207MB hook-timing.jsonl with 0 parse failures. stop/security-scan-aggregator is 87% of all hook wall time at p95 50,122ms against a declared 10s timeout.", "source": "" },
+    { "title": "The hook registry has three dispatch surfaces", "note": "150 hooks.json + 45 agent frontmatter + 22 skill frontmatter = 217. An xref checking only hooks.json against the entries map yields 91 false positives. Dead-dispatch came back genuinely clean in both directions once joined correctly.", "source": "" },
+    { "title": "Counts corrected three times during the sweep", "note": "114 skills (not 116), 36 real agents (not 37; README.md is not an agent), 9 skills lacking allowed-tools (not 11). bin/validate-counts.sh passes and manifests agree.", "source": "" }
+  ],
+  "changelog": [
+    { "at": "2026-07-23", "note": "v1 authored from a 4-agent sweep of agents, skills, hooks and the 2.1.215-218 changelog. Every decision-bearing claim re-verified locally before entering the plan; 2 findings refuted and moved to discards." }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  "use strict";
+  const st = JSON.parse(document.getElementById('lpp-state').textContent);
+  const L = {planned:'planned', in_progress:'in progress', done:'done', dropped:'dropped'};
+  const RK = {low:'var(--pg-ok)', med:'var(--pg-warm)', medium:'var(--pg-warm)', high:'var(--pg-risk)'};
+  // escape for BOTH text and attribute contexts (research source goes into an href="…")
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  // href scheme allowlist: a state file is self-authored, but javascript:/data: must never render
+  const safeUrl = u => /^(https?|mailto):/i.test(String(u||'')) ? String(u) : '';
+  // status drives a CSS class: whitelist it, never interpolate raw state into an attribute
+  // Return the value from a clean table, never the argument itself. Returning `s`
+  // (even guarded) keeps the tainted parameter on the return path all the way to
+  // innerHTML — that is the actual flow CodeQL's js/xss-through-dom reports, and no
+  // hasOwnProperty guard clears it because CodeQL does not model guards as sanitizers.
+  const CLS = {planned:'planned', in_progress:'in_progress', done:'done', dropped:'dropped'};
+  const stCls = s => Object.prototype.hasOwnProperty.call(CLS, s) ? CLS[s] : 'planned';
+  // risk drives an inline style: same rule. A bare RK[r] would reach the prototype
+  // chain (RK['constructor'] returns a function that stringifies into the attribute),
+  // and it is the one tainted->markup path that never passed through esc().
+  const riskColor = r => Object.prototype.hasOwnProperty.call(RK, r) ? RK[r] : 'var(--pg-faint)';
+  const stChip = i => '<span class="st st-'+stCls(i.status)+'">'+esc(L[i.status]||i.status)+'</span>';
+
+  document.getElementById('lpp-title').textContent = st.title;
+  document.title = st.title;
+  document.getElementById('lpp-sub').textContent =
+    st.slug+' · created '+st.created+' · state updated '+String(st.updated).slice(0,16).replace('T',' ');
+
+  const items = st.items;
+  const active = items.filter(i=>i.status!=='dropped');
+  const doneN = active.filter(i=>i.status==='done').length;
+  const ipN = active.filter(i=>i.status==='in_progress').length;
+  const pct = active.length ? Math.round(100*doneN/active.length) : 0;
+
+  // progress ring
+  const CIRC = 2*Math.PI*56;
+  const ring = document.getElementById('lpp-ring');
+  ring.setAttribute('stroke-dasharray', CIRC.toFixed(1));
+  ring.setAttribute('stroke-dashoffset', (CIRC*(1-pct/100)).toFixed(1));
+  document.getElementById('lpp-pct').textContent = pct+'%';
+
+  document.getElementById('lpp-kpis').innerHTML = [
+    {c:'acc', v:st.score.composite+' → '+st.score.target, l:'score, now → target'},
+    {c:'up',  v:doneN+'/'+active.length, l:'items proven done'},
+    {c:'mid', v:ipN, l:'in progress now'},
+    {c:'up',  v:(st.discards||[]).length, l:'ideas deliberately discarded'}
+  ].map(k=>'<div class="kpi"><b class="'+k.c+'">'+esc(k.v)+'</b><span>'+esc(k.l)+'</span></div>').join('');
+
+  // wave progress strip
+  document.getElementById('lpp-wavestrip').innerHTML = st.waves.map(w=>{
+    const wi = items.filter(i=>i.wave===w.id && i.status!=='dropped');
+    const wd = wi.filter(i=>i.status==='done').length;
+    const wp = wi.length ? Math.round(100*wd/wi.length) : 0;
+    return '<div class="wrow'+(wp===100?' done':'')+'">'+
+      '<span class="wl">'+esc(w.id)+' · '+esc(w.title)+'</span>'+
+      '<div class="wbar"><i style="inline-size:'+wp+'%"></i></div>'+
+      '<span class="wn num">'+wd+'/'+wi.length+(wp===100?' ✓':'')+'</span></div>';
+  }).join('');
+
+  // panels
+  const impactBar = i => i.impact!=null
+    ? '<span class="impact">impact <span class="ib"><i style="inline-size:'+(Number(i.impact)*10)+'%"></i></span> <b class="num">'+Number(i.impact)+'</b></span>' : '';
+
+  const waveHtml = st.waves.map(w=>{
+    const wi=items.filter(i=>i.wave===w.id);
+    const wd=wi.filter(i=>i.status==='done').length;
+    return '<h2>'+esc(w.id)+' · '+esc(w.title)+' <span class="wavehead num">'+wd+'/'+wi.length+' done</span></h2>'+
+      wi.map(i=>{
+        let h='<div class="card"><h3><span class="num faint">'+esc(i.id)+'</span> '+esc(i.title)+stChip(i)+'</h3>';
+        h+='<div class="meta">'+impactBar(i)+
+          (i.effort?'<span class="chip">'+esc(i.effort)+'</span>':'')+
+          (i.risk?'<span class="chip" style="color:'+riskColor(i.risk)+';border-color:currentColor">risk: '+esc(i.risk)+'</span>':'')+
+          (i.owner?'<span class="chip">'+esc(i.owner)+'</span>':'')+'</div>';
+        if(i.detail) h+='<p class="src">'+esc(i.detail)+'</p>';
+        if(i.before||i.after) h+='<div class="ba"><div><b>Before</b>'+esc(i.before||'')+'</div><div class="aft"><b>After (promised)</b>'+esc(i.after||'')+'</div></div>';
+        if(i.evidence) h+='<p class="src" style="margin-block-start:8px"><b style="color:var(--pg-ok)">done when:</b> '+esc(i.evidence)+'</p>';
+        if(i.failure||i.containment) h+='<details><summary>risk detail</summary><p class="src"><b>failure:</b> '+esc(i.failure||'?')+'<br><b>containment:</b> '+esc(i.containment||'?')+'</p></details>';
+        return h+'</div>';
+      }).join('');
+  }).join('');
+
+  const waveIds = st.waves.map(w=>w.id);
+  const matrixHtml = '<h2>Progress matrix</h2><div class="card" style="overflow-x:auto"><table>'+
+    '<tr><th>id</th><th>item</th><th>before</th><th>now</th>'+waveIds.map(w=>'<th>after '+esc(w)+'</th>').join('')+'</tr>'+
+    items.map(i=>{
+      const now = i.status==='done' ? '<span style="color:var(--pg-ok)">✓ '+esc((i.after||'done').slice(0,60))+'</span>'
+        : i.status==='in_progress' ? '<span style="color:var(--pg-warm)">◐ in progress</span>'
+        : i.status==='dropped' ? '<span class="strike">dropped</span>'
+        : '<span class="faint">○ '+esc((i.before||'planned').slice(0,50))+'</span>';
+      const cells = waveIds.map(w=> w!==i.wave ? '<td class="faint">·</td>'
+        : '<td class="src">'+(i.status==='done'?'<span style="color:var(--pg-ok)">landed</span>':esc((i.after||'').slice(0,60)))+'</td>').join('');
+      return '<tr><td class="num faint">'+esc(i.id)+'</td><td>'+esc(i.title)+'</td><td class="src">'+esc((i.before||'').slice(0,60))+'</td><td>'+now+'</td>'+cells+'</tr>';
+    }).join('')+'</table></div>'+
+    '<div class="note">"Now" is computed from item statuses, never hand-written. A completed wave collapses into the Now column with a ✓.</div>';
+
+  const dims=st.score.dims||{};
+  const scoreHtml = '<h2>Plan scoring</h2><div class="card">'+
+    Object.entries(dims).map(([k,v])=>'<div class="score-row"><span class="faint">'+esc(k)+'</span><div class="bar"><i style="inline-size:'+(Number(v)*10)+'%"></i></div><span class="v num">'+Number(v).toFixed(1)+'</span></div>').join('')+
+    '<div class="score-row" style="border-block-start:1px solid hsl(0 0% 100% / .1);padding-block-start:10px;margin-block-start:10px"><b>Composite → target</b><div class="bar"><i style="inline-size:'+(Number(st.score.composite)*10)+'%;background:var(--pg-ok)"></i></div><span class="v num"><b>'+Number(st.score.composite)+'</b></span></div></div>';
+
+  const riskHtml = '<h2>Risk heat map</h2><div class="card"><table>'+
+    '<tr><th>item</th><th>risk</th><th>failure mode</th><th>containment</th></tr>'+
+    items.filter(i=>i.failure||i.containment||['high','med','medium'].includes(i.risk)).map(i=>
+      '<tr><td class="num faint">'+esc(i.id)+'</td><td style="color:'+riskColor(i.risk)+'">'+esc(i.risk||'?')+'</td><td class="src">'+esc(i.failure||'')+'</td><td class="src">'+esc(i.containment||'')+'</td></tr>'
+    ).join('')+'</table></div>';
+
+  const discardsHtml = '<h2>Discarded (with reasons)</h2><div class="card"><table>'+
+    '<tr><th>idea</th><th>why discarded</th></tr>'+
+    (st.discards||[]).map(d=>'<tr><td class="strike">'+esc(d.title)+'</td><td class="src">'+esc(d.reason)+'</td></tr>').join('')+
+    '</table></div><div class="note">A plan that remembers what it rejected does not re-litigate it next session.</div>';
+
+  const researchHtml = '<h2>Research that shaped the plan</h2>'+
+    (st.research||[]).map(r=>'<div class="card"><h3>'+esc(r.title)+'</h3><p class="src">'+esc(r.note)+
+      (safeUrl(r.source)?' · <a href="'+esc(safeUrl(r.source))+'">source</a>':'')+'</p></div>').join('');
+
+  const updatesHtml = '<h2>Updates (append-only)</h2><div class="card"><table>'+
+    '<tr><th>when</th><th>note</th></tr>'+
+    (st.changelog||[]).slice().reverse().map(e=>'<tr><td class="num faint">'+esc(e.at)+'</td><td>'+esc(e.note)+'</td></tr>').join('')+
+    '</table></div>'+
+    '<div class="note">This is a LIVING artifact (lpp v'+Number(st.lpp)+'). Sessions mutate the state block in this same file; never fork a second file for slug "'+esc(st.slug)+'".</div>';
+
+  const panels=[
+    {id:'waves',label:'Execution waves',html:waveHtml},
+    {id:'matrix',label:'Progress matrix',html:matrixHtml},
+    {id:'scores',label:'Scores',html:scoreHtml},
+    {id:'risk',label:'Risk map',html:riskHtml},
+    {id:'discards',label:'Discards',html:discardsHtml}
+  ];
+  if((st.research||[]).length) panels.push({id:'research',label:'Research',html:researchHtml});
+  panels.push({id:'updates',label:'Updates',html:updatesHtml});
+
+  document.getElementById('lpp-tabs').innerHTML =
+    panels.map((p,i)=>'<button class="tab'+(i===0?' active':'')+'" data-t="'+p.id+'">'+p.label+'</button>').join('');
+  document.getElementById('lpp-panels').innerHTML =
+    panels.map((p,i)=>'<div class="panel'+(i===0?' active':'')+'" id="p-'+p.id+'">'+p.html+'</div>').join('');
+
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('p-'+t.dataset.t).classList.add('active');
+  }));
+})();
+</script>
+</body>
+</html>

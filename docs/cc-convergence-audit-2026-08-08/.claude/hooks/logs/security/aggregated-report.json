@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-08-08T06:57:04.852Z",
+  "summary": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0
+  },
+  "scans_completed": [
+    "secrets"
+  ]
+}

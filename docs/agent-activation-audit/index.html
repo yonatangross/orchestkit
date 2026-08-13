@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Agent Activation Audit · 30 days (2026-06-20 → 07-19)</title>
+<style>
+:root {
+  --pg-bg: hsl(232 26% 7%);
+  --pg-ink: hsl(220 18% 93%);
+  --pg-muted: hsl(220 14% 64%);
+  --pg-faint: hsl(220 12% 46%);
+  --pg-glass: hsl(0 0% 100% / .05);
+  --pg-glass-2: hsl(0 0% 100% / .08);
+  --pg-glass-edge: hsl(0 0% 100% / .18);
+  --pg-accent: hsl(248 84% 68%);
+  --pg-accent-deep: hsl(248 70% 52%);
+  --pg-teal: hsl(190 70% 55%);
+  --pg-danger: hsl(2 75% 62%);
+  --pg-ok: hsl(152 55% 52%);
+  --r-sm: 9px; --r-md: 16px; --r-lg: 24px;
+  --ease: cubic-bezier(.2,.8,.25,1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--pg-bg);
+  background-image:
+    radial-gradient(60rem 40rem at 15% -10%, hsl(248 60% 30% / .28), transparent 60%),
+    radial-gradient(50rem 36rem at 95% 15%, hsl(230 65% 28% / .22), transparent 60%);
+  background-attachment: fixed;
+  color: var(--pg-ink);
+  font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  min-height: 100vh;
+  padding: 48px 24px 96px;
+}
+.wrap { max-width: 1080px; margin-inline: auto; }
+header h1 { font-size: 28px; font-weight: 700; letter-spacing: -.3px; }
+header .sub { color: var(--pg-muted); margin-block-start: 8px; font-size: 15px; }
+mono, .mono, code { font-family: "SF Mono", ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+.statrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-block: 24px; }
+.stat {
+  background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-radius: var(--r-md); padding: 16px;
+  box-shadow: 0 20px 60px -22px hsl(232 40% 3% / .7), 0 4px 12px -6px hsl(232 40% 3% / .5),
+              inset 0 1px 0 hsl(0 0% 100% / .12);
+}
+.stat .k { font-size: 12px; color: var(--pg-faint); text-transform: uppercase; letter-spacing: .6px; }
+.stat .v { font-size: 30px; font-weight: 700; margin-block-start: 4px; font-variant-numeric: tabular-nums; }
+.stat .v small { font-size: 14px; color: var(--pg-muted); font-weight: 400; }
+.stat.warn .v { color: var(--pg-danger); }
+.stat.good .v { color: var(--pg-ok); }
+
+nav.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-block: 24px 16px; }
+nav.tabs button {
+  background: var(--pg-glass); color: var(--pg-muted); border: 1px solid transparent;
+  border-radius: var(--r-sm); padding: 8px 14px; font-size: 14px; cursor: pointer;
+  transition: background 100ms var(--ease), color 100ms var(--ease);
+}
+nav.tabs button:hover { background: var(--pg-glass-2); }
+nav.tabs button[aria-selected="true"] { background: var(--pg-accent-deep); color: var(--pg-ink); font-weight: 600; }
+nav.tabs button:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+
+section.panel {
+  background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-radius: var(--r-lg); padding: 24px;
+  box-shadow: 0 20px 60px -22px hsl(232 40% 3% / .7), 0 4px 12px -6px hsl(232 40% 3% / .5),
+              inset 0 1px 0 hsl(0 0% 100% / .12);
+}
+section.panel[hidden] { display: none; }
+.panel h2 { font-size: 18px; font-weight: 600; letter-spacing: -.2px; margin-block-end: 4px; }
+.panel .desc { color: var(--pg-muted); font-size: 14px; margin-block-end: 16px; }
+
+.controls { display: flex; gap: 8px; margin-block-end: 16px; flex-wrap: wrap; }
+.controls button {
+  background: transparent; border: 1px solid var(--pg-glass-edge); color: var(--pg-muted);
+  border-radius: var(--r-sm); padding: 5px 11px; font-size: 12px; cursor: pointer;
+  transition: color 100ms var(--ease);
+}
+.controls button[aria-pressed="true"] { color: var(--pg-ink); border-color: var(--pg-accent); }
+.controls button:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+
+.barrow { display: grid; grid-template-columns: 220px 1fr 52px; gap: 12px; align-items: center; padding-block: 4px; }
+.barrow .name { font-size: 13px; color: var(--pg-ink); font-family: ui-monospace, Menlo, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barrow.dormant .name { color: var(--pg-faint); }
+.barrow .track { background: hsl(0 0% 100% / .04); border-radius: 4px; height: 18px; overflow: hidden; }
+.barrow .fill { height: 100%; background: linear-gradient(90deg, var(--pg-accent-deep), var(--pg-accent)); border-radius: 4px; width: 0; transition: width 300ms var(--ease); }
+.barrow.dormant .fill { background: var(--pg-danger); opacity: .55; min-width: 3px; }
+.barrow .n { font-size: 13px; color: var(--pg-muted); text-align: end; font-variant-numeric: tabular-nums; font-family: ui-monospace, Menlo, monospace; }
+
+.attr-stack { display: flex; height: 40px; border-radius: var(--r-sm); overflow: hidden; margin-block-end: 16px; }
+.attr-stack div { transition: opacity 100ms var(--ease); }
+.attr-stack div:hover { opacity: .85; }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; }
+.legend .li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--pg-muted); }
+.legend .sw { inline-size: 12px; block-size: 12px; border-radius: 3px; flex: none; }
+.legend .li b { color: var(--pg-ink); font-variant-numeric: tabular-nums; }
+
+.timeline { display: flex; align-items: flex-end; gap: 2px; height: 130px; margin-block: 16px 6px; }
+.timeline .day { flex: 1; background: var(--pg-accent-deep); border-radius: 2px 2px 0 0; min-height: 2px; position: relative; }
+.timeline .day.dead { background: var(--pg-danger); }
+.timeline .day:hover::after {
+  content: attr(data-tip); position: absolute; inset-block-end: 100%; inset-inline-start: 50%;
+  transform: translateX(-50%); background: hsl(232 30% 12%); border: 1px solid var(--pg-glass-edge);
+  padding: 4px 8px; border-radius: 6px; font-size: 11px; white-space: nowrap; color: var(--pg-ink); z-index: 2;
+  font-family: ui-monospace, Menlo, monospace;
+}
+.axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--pg-faint); font-family: ui-monospace, Menlo, monospace; }
+
+.finding { border-inline-start: 3px solid var(--pg-accent); padding: 12px 16px; margin-block-end: 12px; background: hsl(0 0% 100% / .03); border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+.finding.red { border-color: var(--pg-danger); }
+.finding.green { border-color: var(--pg-ok); }
+.finding h3 { font-size: 14px; font-weight: 600; margin-block-end: 4px; }
+.finding p { font-size: 13px; color: var(--pg-muted); line-height: 1.5; }
+
+.copybar { display: flex; gap: 12px; align-items: center; margin-block-start: 24px; background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--r-md); padding: 12px 16px; }
+.copybar code { flex: 1; font-size: 12px; color: var(--pg-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.copybar button { background: var(--pg-accent-deep); color: var(--pg-ink); border: none; border-radius: var(--r-sm); padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; flex: none; }
+.copybar button:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: start; color: var(--pg-faint); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; padding: 8px; border-block-end: 1px solid var(--pg-glass-edge); }
+td { padding: 8px; color: var(--pg-muted); border-block-end: 1px solid hsl(0 0% 100% / .05); font-variant-numeric: tabular-nums; }
+td:first-child { color: var(--pg-ink); font-family: ui-monospace, Menlo, monospace; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>🤖 Agent Activation Audit</h1>
+  <p class="sub">OrchestKit · 30 days (2026-06-20 → 2026-07-19) · ground truth: <span class="mono">agent-usage.jsonl</span> (11,128 events) + <span class="mono">skill-usage.jsonl</span> + 11,444 session transcripts</p>
+</header>
+
+<div class="statrow">
+  <div class="stat"><div class="k">Roster</div><div class="v">36 <small>agents</small></div></div>
+  <div class="stat good"><div class="k">Activated 30d</div><div class="v">25 <small>(69%)</small></div></div>
+  <div class="stat warn"><div class="k">Dormant 30d</div><div class="v">11 <small>(31%)</small></div></div>
+  <div class="stat"><div class="k">ork:* spawns</div><div class="v">319</div></div>
+  <div class="stat warn"><div class="k">Unattributed spawns</div><div class="v">39%</div></div>
+</div>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-t="t-roster">Roster vs Activation</button>
+  <button role="tab" aria-selected="false" data-t="t-attr">Spawn Attribution</button>
+  <button role="tab" aria-selected="false" data-t="t-outage">Telemetry Outage</button>
+  <button role="tab" aria-selected="false" data-t="t-skills">Skills post-revival</button>
+  <button role="tab" aria-selected="false" data-t="t-findings">Findings</button>
+</nav>
+
+<section class="panel" id="t-roster">
+  <h2>36-agent roster · spawns in the last 30 days</h2>
+  <p class="desc">All Agent() spawns with <span class="mono">subagent_type=ork:*</span>. Dormant agents (0 spawns) shown in red. Agents fire via skill wiring, not description prose — dormancy tracks the wiring skill's usage, not agent quality.</p>
+  <div class="controls">
+    <button aria-pressed="true" data-f="all">All 36</button>
+    <button aria-pressed="false" data-f="active">Activated 25</button>
+    <button aria-pressed="false" data-f="dormant">Dormant 11</button>
+  </div>
+  <div id="bars"></div>
+</section>
+
+<section class="panel" id="t-attr" hidden>
+  <h2>Spawn attribution · 9,422 Agent() events</h2>
+  <p class="desc">Where every spawn went. Over <em>attributable deliberate</em> spawns (excluding unknown + workflow-subagent), typed specialists take ~33%.</p>
+  <div class="attr-stack" id="stack"></div>
+  <div class="legend" id="legend"></div>
+  <p class="desc" style="margin-block-start:16px">⚠️ 39% <span class="mono">unknown</span> is the biggest measurement problem: fix attribution before optimizing the specialist split.</p>
+</section>
+
+<section class="panel" id="t-outage" hidden>
+  <h2>Telemetry writer outage · skill-usage.jsonl</h2>
+  <p class="desc">Entries per day. The writer was <b style="color:var(--pg-danger)">dead 2026-03-07 → 2026-07-13</b> (four months, one stray entry on 06-21) while agent-usage.jsonl logged 245–1,132 events/day. It revived on 07-14. Every skill-adoption number from that window is an undercount.</p>
+  <div class="timeline" id="tl"></div>
+  <div class="axis"><span>03-02</span><span>gap: 03-07 → 07-13 (compressed)</span><span>07-19</span></div>
+  <table style="margin-block-start:24px">
+    <thead><tr><th>Signal</th><th>Value</th><th>Reading</th></tr></thead>
+    <tbody>
+      <tr><td>skill-usage 03-02..03-06</td><td>66 entries</td><td>writer alive</td></tr>
+      <tr><td>skill-usage 03-07..07-13</td><td>1 entry</td><td>🔴 dead (silent)</td></tr>
+      <tr><td>skill-usage 07-14..07-19</td><td>228 entries</td><td>revived, ~38/day</td></tr>
+      <tr><td>agent-usage same window</td><td>250–480/day</td><td>control: pipeline itself alive</td></tr>
+      <tr><td>agent-usage 07-03..07-04</td><td>40, then 2</td><td>🟡 secondary dip, unexplained</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="panel" id="t-skills" hidden>
+  <h2>Skill invocations since revival (07-14 → 07-19, ledger)</h2>
+  <p class="desc">Only 6 days of trustworthy ledger data exist. Transcript scan (30d truth): /hq-ext:auto 272 · /ork:assess 106 · /ork:auto 28.</p>
+  <div id="skillbars"></div>
+</section>
+
+<section class="panel" id="t-findings" hidden>
+  <h2>Findings &amp; ranked next steps</h2>
+  <div class="finding green">
+    <h3>🟢 Routing is healthier than it feels</h3>
+    <p>hq-ext:auto is the habitual front door (272 uses/30d); ork:auto is its dev-verb delegate (28). 69% of the agent roster fired. Specialists take ~33% of deliberate attributable spawns.</p>
+  </div>
+  <div class="finding red">
+    <h3>🔴 1. Dead telemetry writer, four months, silent</h3>
+    <p>skill-usage.jsonl wrote 1 entry between 03-07 and 07-13. Same failure class as the #959 dead-hook-dispatch regression. Needs a liveness guard: alert when skill-usage goes quiet while agent-usage stays hot.</p>
+  </div>
+  <div class="finding red">
+    <h3>🔴 2. 39% of spawns unattributed</h3>
+    <p>3,672 of 9,422 Agent() events have agent="unknown". Any activation ratio computed on this data has a ±39% blind spot. Fix the attribution field before pruning dormant agents.</p>
+  </div>
+  <div class="finding">
+    <h3>🟡 3. Dormant 11 map to unused wiring skills</h3>
+    <p>demo-producer, design-context-extractor, claude-design-orchestrator, genui-architect, component-curator (design pipeline unused); deployment-manager, git-operations-engineer, python-performance-engineer, event-driven-architect, security-layer-auditor, ai-safety-auditor. Consistent with the prior audit-activation verdict: agents fire via skill wiring. Prune or re-wire deliberately, not from this data alone (see finding 2).</p>
+  </div>
+  <div class="finding">
+    <h3>🟡 4. create-pr / commit adoption gap</h3>
+    <p>Suggestion hook fired 1,889× for /ork:create-pr vs 7 adoptions (upper bound — many fire inside subagents where bare shell is intentional).</p>
+  </div>
+</section>
+
+<div class="copybar">
+  <code id="prompt">Add a dead-writer liveness guard for skill-usage.jsonl: alert when it logs nothing for 48h while agent-usage.jsonl stays active, and fix the 39% unknown agent attribution in agent-usage telemetry.</code>
+  <button id="copy" aria-label="Copy next-step prompt">Copy prompt</button>
+</div>
+</div>
+
+<script>
+const AGENTS = [
+  ["frontend-ui-developer",84],["web-research-analyst",46],["code-quality-reviewer",38],
+  ["backend-system-architect",27],["debug-investigator",20],["test-generator",17],
+  ["ci-cd-engineer",12],["security-auditor",9],["product-strategist",9],["multimodal-specialist",9],
+  ["llm-integrator",8],["market-intelligence",7],["expect-agent",4],["design-system-architect",4],
+  ["database-engineer",4],["workflow-architect",3],["frontend-performance-engineer",3],
+  ["eval-runner",3],["accessibility-specialist",3],["system-design-reviewer",2],
+  ["monitoring-engineer",2],["infrastructure-architect",2],["release-engineer",1],
+  ["emulate-engineer",1],["data-pipeline-engineer",1],
+  ["ai-safety-auditor",0],["claude-design-orchestrator",0],["component-curator",0],
+  ["demo-producer",0],["deployment-manager",0],["design-context-extractor",0],
+  ["event-driven-architect",0],["genui-architect",0],["git-operations-engineer",0],
+  ["python-performance-engineer",0],["security-layer-auditor",0]
+];
+const ATTR = [
+  ["unknown",3672,"hsl(220 10% 38%)"],["workflow-subagent",2600,"hsl(248 40% 45%)"],
+  ["general-purpose",1030,"hsl(248 60% 58%)"],["Explore",531,"hsl(248 84% 68%)"],
+  ["named ad-hoc",796,"hsl(220 14% 55%)"],["ork:* specialists",319,"hsl(190 70% 55%)"],
+  ["hq-ext:* specialists",310,"hsl(190 55% 42%)"],["other typed",164,"hsl(220 12% 30%)"]
+];
+const SKILLS = [
+  ["ork:brainstorm",36],["hq-ext:auto",30],["ork:audit-activation",21],["verify-done",15],
+  ["ork:assess",15],["agent-browser",13],["ork:visualize-plan",12],["hq-ext:browser-login",11],
+  ["playground:playground",10],["ork:create-pr",7],["ork:commit",7],["ork:auto",3]
+];
+// per-day: 03-02..03-06 alive, compressed dead gap, 06-21 stray, 07-14..19 revived
+const TL = [
+  ["03-02",15,0],["03-03",12,0],["03-04",10,0],["03-05",15,0],["03-06",14,0],
+  ["03-07…06-20",0,1],["06-21",1,1],["06-22…07-13",0,1],
+  ["07-14",40,0],["07-15",55,0],["07-16",35,0],["07-17",34,0],["07-18",38,0],["07-19",26,0]
+];
+
+const bars = document.getElementById("bars");
+const MAX = 84;
+function renderBars(filter) {
+  bars.innerHTML = "";
+  AGENTS.filter(([,n]) => filter==="all" || (filter==="active" ? n>0 : n===0)).forEach(([name,n]) => {
+    const row = document.createElement("div");
+    row.className = "barrow" + (n===0 ? " dormant" : "");
+    row.innerHTML = `<span class="name">ork:${name}</span><div class="track"><div class="fill"></div></div><span class="n">${n===0?"—":n}</span>`;
+    bars.appendChild(row);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      row.querySelector(".fill").style.width = n===0 ? "3px" : (n/MAX*100)+"%";
+    }));
+  });
+}
+renderBars("all");
+document.querySelectorAll(".controls button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".controls button").forEach(x => x.setAttribute("aria-pressed","false"));
+  b.setAttribute("aria-pressed","true"); renderBars(b.dataset.f);
+}));
+
+const total = ATTR.reduce((s,[,n])=>s+n,0);
+const stack = document.getElementById("stack"), legend = document.getElementById("legend");
+ATTR.forEach(([name,n,c]) => {
+  const seg = document.createElement("div");
+  seg.style.cssText = `background:${c};flex:${n}`;
+  seg.title = `${name}: ${n.toLocaleString()} (${(n/total*100).toFixed(1)}%)`;
+  stack.appendChild(seg);
+  const li = document.createElement("div");
+  li.className = "li";
+  li.innerHTML = `<span class="sw" style="background:${c}"></span>${name} <b>${n.toLocaleString()}</b> · ${(n/total*100).toFixed(1)}%`;
+  legend.appendChild(li);
+});
+
+const tl = document.getElementById("tl");
+TL.forEach(([d,n,dead]) => {
+  const day = document.createElement("div");
+  day.className = "day" + (dead ? " dead" : "");
+  day.style.height = Math.max(2, n/55*100) + "%";
+  if (dead) day.style.flex = "3";
+  day.setAttribute("data-tip", `${d}: ${n} ${dead?"(writer dead)":""}`);
+  tl.appendChild(day);
+});
+
+const sb = document.getElementById("skillbars"), SMAX = 36;
+SKILLS.forEach(([name,n]) => {
+  const row = document.createElement("div");
+  row.className = "barrow";
+  row.innerHTML = `<span class="name">${name}</span><div class="track"><div class="fill" style="background:linear-gradient(90deg,hsl(190 55% 42%),var(--pg-teal))"></div></div><span class="n">${n}</span>`;
+  sb.appendChild(row);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    row.querySelector(".fill").style.width = (n/SMAX*100)+"%";
+  }));
+});
+
+document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll('nav.tabs button').forEach(x => x.setAttribute("aria-selected","false"));
+  b.setAttribute("aria-selected","true");
+  document.querySelectorAll("section.panel").forEach(p => p.hidden = p.id !== b.dataset.t);
+}));
+
+document.getElementById("copy").addEventListener("click", async (e) => {
+  await navigator.clipboard.writeText(document.getElementById("prompt").textContent);
+  const btn = e.currentTarget; const old = btn.textContent;
+  btn.textContent = "✓ Copied"; setTimeout(() => btn.textContent = old, 1500);
+});
+</script>
+</body>
+</html>

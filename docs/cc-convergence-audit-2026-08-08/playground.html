@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit x Claude Code — Convergence Audit, 2026-08-08</title>
+<!--
+  DASHBOARD archetype (playground-visual-standard §0): a verdict/adoption view.
+  Started from plan-dashboard.template.html; tokens, glass, motion budget and the
+  reduced-motion gate are carried over verbatim.
+  DELIBERATE DEVIATION: the operator asked for tabs. Tabs are the top-level nav;
+  every panel still uses anchored <details> sections, so keyboard + deep links work.
+  State lives in the JSON island below and renders via textContent/createElement.
+-->
+<style>
+  :root{
+    /* ---- CHROME (§2): HSL only ---- */
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(226 14% 64%);
+    --pg-faint: hsl(226 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-accent-deep: hsl(248 70% 54%);
+    --pg-violet: hsl(268 78% 70%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-ok: hsl(152 62% 58%);
+    --pg-risk: hsl(0 78% 66%);
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+
+    /* ---- DATA MARKS: /dataviz validated palette, DARK column ---- */
+    --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70;
+    --series-4:#c98500; --series-5:#d55181;
+    --status-good:#0ca30c; --status-warning:#fab219;
+    --status-serious:#ec835a; --status-critical:#d03b3b;
+    --mark-muted:#898781; --mark-grid:#2c2c2a; --mark-base:#383835;
+
+    font-size:15px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--pg-bg); color:var(--pg-ink);
+    font-family:-apple-system,'SF Pro Text',Inter,sans-serif;
+    line-height:1.55; padding-block:0 96px; padding-inline:24px;
+    background-image:
+      radial-gradient(60% 42% at 12% 0%,   hsl(248 84% 68% / .16), transparent 62%),
+      radial-gradient(48% 36% at 88% 8%,   hsl(268 78% 70% / .12), transparent 60%),
+      radial-gradient(52% 40% at 50% 100%, hsl(240 80% 62% / .10), transparent 64%);
+    background-attachment:fixed;
+  }
+  .wrap{max-inline-size:1180px;margin-inline:auto}
+  h1{font-size:1.75rem;font-weight:700;letter-spacing:-.3px}
+  h2{font-size:1.05rem;font-weight:650;letter-spacing:-.2px}
+  h3{font-size:.92rem;font-weight:650;color:var(--pg-muted);margin-block:16px 8px}
+  p{color:var(--pg-muted);font-size:.9rem}
+  .mono,.num,code{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums}
+  code{font-size:.82em;background:var(--pg-glass-2);padding:1px 6px;border-radius:6px;color:var(--pg-ink)}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  .glass{
+    background:var(--pg-glass); border:1px solid var(--pg-glass-edge); border-radius:24px;
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / .12),
+      0 20px 60px -22px hsl(232 40% 3% / .7), 0 4px 12px -6px hsl(232 40% 3% / .5);
+  }
+
+  /* ---- TIER 1 ---- */
+  .tier1{position:sticky;inset-block-start:0;z-index:20;padding:20px 24px;margin-block:24px 16px;border-radius:24px}
+  .tier1 .top{display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+  .tier1 .issue{color:var(--pg-accent);font-weight:600;font-size:.9rem}
+  .facts{display:flex;gap:8px;flex-wrap:wrap;margin-block-start:12px}
+  .fact{background:var(--pg-glass-2);border:1px solid hsl(0 0% 100% / .10);border-radius:999px;
+        padding:5px 14px;font-size:.8rem;color:var(--pg-muted)}
+  .fact b{color:var(--pg-ink);font-weight:650}
+  .fact.risk-high b{color:var(--pg-risk)} .fact.risk-medium b{color:var(--pg-warm)}
+  .fact.risk-low b{color:var(--pg-ok)}
+  .branchline{margin-block-start:10px;color:var(--pg-faint);font-size:.8rem}
+
+  /* ---- TABS ---- */
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-block-start:14px}
+  .tabs button{
+    font:inherit;font-size:.8rem;color:var(--pg-faint);background:none;border:1px solid transparent;
+    padding:6px 13px;border-radius:999px;cursor:pointer;
+    transition:color 100ms var(--pg-ease),background 100ms var(--pg-ease),border-color 100ms var(--pg-ease);
+  }
+  .tabs button:hover{color:var(--pg-ink);background:var(--pg-glass-2)}
+  .tabs button[aria-selected="true"]{color:var(--pg-ink);background:var(--pg-glass-2);border-color:var(--pg-glass-edge)}
+  .tabs button:focus-visible{outline:2px solid var(--pg-accent);outline-offset:3px}
+  .tabs .cnt{color:var(--pg-faint);margin-inline-start:6px;font-size:.72rem}
+  .panel[hidden]{display:none}
+  .panel{animation:fade 300ms var(--pg-ease)}
+  @keyframes fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+  /* ---- sections ---- */
+  details.sec{margin-block-end:16px;padding:0 24px;border-radius:24px;scroll-margin-block-start:170px}
+  details.sec>summary{list-style:none;cursor:pointer;padding-block:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  details.sec>summary::-webkit-details-marker{display:none}
+  details.sec>summary::before{content:'\25B8';color:var(--pg-accent);font-size:.9rem;
+    transition:transform 200ms var(--pg-ease);display:inline-block}
+  details.sec[open]>summary::before{transform:rotate(90deg)}
+  details.sec>summary:focus-visible{outline:2px solid var(--pg-accent);outline-offset:4px;border-radius:12px}
+  .secno{color:var(--pg-faint);font-size:.8rem}
+  .seccount{margin-inline-start:auto;color:var(--pg-faint);font-size:.78rem}
+  .secbody{padding-block-end:24px}
+  .empty{color:var(--pg-faint);font-size:.86rem;font-style:italic}
+
+  /* ---- stat tiles ---- */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin-block:16px}
+  .tile{background:var(--pg-glass-2);border:1px solid hsl(0 0% 100% / .10);border-radius:16px;padding:14px 16px}
+  .tile .k{font-size:.72rem;color:var(--pg-faint);text-transform:uppercase;letter-spacing:.5px}
+  .tile .v{font-size:1.7rem;font-weight:700;margin-block-start:4px;font-variant-numeric:tabular-nums}
+  .tile .s{font-size:.76rem;color:var(--pg-muted);margin-block-start:2px}
+
+  /* ---- bar meters + table twin ---- */
+  .chartbox{margin-block:12px}
+  .twinbar{display:flex;gap:8px;align-items:center;margin-block-end:8px}
+  .twinbar button{font:inherit;font-size:.74rem;color:var(--pg-faint);background:var(--pg-glass-2);
+    border:1px solid hsl(0 0% 100% / .10);border-radius:999px;padding:3px 11px;cursor:pointer;
+    transition:color 100ms var(--pg-ease)}
+  .twinbar button:hover{color:var(--pg-ink)}
+  .twinbar button:focus-visible{outline:2px solid var(--pg-accent);outline-offset:3px}
+  .bar{display:grid;grid-template-columns:190px 1fr 54px;gap:10px;align-items:center;margin-block-end:7px;font-size:.82rem}
+  .bar .lab{color:var(--pg-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar .track{background:hsl(0 0% 100% / .06);border-radius:999px;height:15px;overflow:hidden}
+  .bar .fill{height:100%;border-radius:999px}
+  .bar .val{text-align:right;color:var(--pg-ink);font-family:ui-monospace,Menlo,monospace;font-size:.8rem}
+
+  table{width:100%;border-collapse:collapse;font-size:.82rem;margin-block:8px}
+  th,td{text-align:left;padding:7px 10px;border-block-end:1px solid hsl(0 0% 100% / .07);vertical-align:top}
+  th{color:var(--pg-faint);font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.4px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tbody tr:hover{background:hsl(0 0% 100% / .03)}
+
+  /* ---- item cards ---- */
+  .item{background:var(--pg-glass-2);border:1px solid hsl(0 0% 100% / .10);border-radius:16px;
+        padding:16px 18px;margin-block-end:12px}
+  .item .hd{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-block-end:8px}
+  .item .ttl{font-weight:650;font-size:.95rem}
+  .item .body{font-size:.86rem;color:var(--pg-muted)}
+  .item .body b{color:var(--pg-ink);font-weight:600}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin-block-start:10px;font-size:.8rem}
+  .kv dt{color:var(--pg-faint);white-space:nowrap}
+  .kv dd{color:var(--pg-muted);font-family:ui-monospace,Menlo,monospace;font-size:.78rem;word-break:break-word}
+  .fix{margin-block-start:10px;padding:10px 12px;border-radius:12px;
+       background:hsl(152 62% 58% / .07);border:1px solid hsl(152 62% 58% / .22);
+       font-size:.83rem;color:var(--pg-muted)}
+  .fix b{color:var(--pg-ok)}
+
+  .pill{font-size:.68rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+        padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .p-critical{background:hsl(0 70% 50% / .18);color:hsl(0 80% 74%);border:1px solid hsl(0 70% 50% / .35)}
+  .p-high{background:hsl(20 80% 52% / .16);color:hsl(24 88% 70%);border:1px solid hsl(20 80% 52% / .32)}
+  .p-medium{background:hsl(38 90% 55% / .14);color:hsl(40 92% 68%);border:1px solid hsl(38 90% 55% / .30)}
+  .p-low{background:hsl(226 14% 64% / .12);color:var(--pg-muted);border:1px solid hsl(0 0% 100% / .12)}
+  .p-override{background:hsl(0 70% 50% / .18);color:hsl(0 80% 74%);border:1px solid hsl(0 70% 50% / .35)}
+  .p-retire{background:hsl(20 80% 52% / .16);color:hsl(24 88% 70%);border:1px solid hsl(20 80% 52% / .32)}
+  .p-extend{background:hsl(214 70% 55% / .16);color:hsl(210 85% 74%);border:1px solid hsl(214 70% 55% / .32)}
+  .p-adopt{background:hsl(268 70% 62% / .16);color:hsl(268 80% 78%);border:1px solid hsl(268 70% 62% / .32)}
+  .p-keep{background:hsl(152 62% 45% / .15);color:hsl(152 66% 70%);border:1px solid hsl(152 62% 45% / .30)}
+  .p-verified{background:hsl(152 62% 45% / .15);color:hsl(152 66% 70%);border:1px solid hsl(152 62% 45% / .30)}
+  .p-pending{background:hsl(226 14% 64% / .12);color:var(--pg-muted);border:1px solid hsl(0 0% 100% / .12)}
+
+  .callout{border-radius:16px;padding:16px 18px;margin-block:14px;font-size:.88rem;color:var(--pg-muted)}
+  .callout b{color:var(--pg-ink)}
+  .c-bad{background:hsl(0 70% 50% / .07);border:1px solid hsl(0 70% 50% / .24)}
+  .c-note{background:var(--pg-glass-2);border:1px solid hsl(0 0% 100% / .10)}
+  .c-ok{background:hsl(152 62% 58% / .07);border:1px solid hsl(152 62% 58% / .22)}
+
+  pre.ascii{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.76rem;line-height:1.5;
+    color:var(--pg-muted);background:hsl(0 0% 0% / .22);border:1px solid hsl(0 0% 100% / .08);
+    border-radius:12px;padding:14px 16px;overflow-x:auto;margin-block:12px}
+
+  /* ---- before/after flow diagrams (self-contained, no external renderer) ---- */
+  .dgram{margin-block-end:18px}
+  .dgram .lane{padding:14px 16px;border-radius:16px;margin-block-end:10px;
+    border:1px solid hsl(0 0% 100% / .10);background:hsl(0 0% 0% / .16)}
+  .dgram .lane.before{border-color:hsl(0 70% 50% / .28);background:hsl(0 70% 50% / .05)}
+  .dgram .lane.after{border-color:hsl(152 62% 45% / .28);background:hsl(152 62% 45% / .05)}
+  .lane .tag{font-size:.68rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+    margin-block-end:10px;display:block}
+  .lane.before .tag{color:hsl(0 80% 74%)} .lane.after .tag{color:hsl(152 66% 70%)}
+  .lane .cap{font-size:.8rem;color:var(--pg-faint);margin-block-start:9px}
+  .flow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-block-end:6px}
+  .nd{padding:6px 12px;border-radius:10px;font-size:.78rem;white-space:nowrap;
+    background:var(--pg-glass-2);border:1px solid hsl(0 0% 100% / .12);color:var(--pg-ink)}
+  .nd.bad{background:hsl(0 70% 50% / .14);border-color:hsl(0 70% 50% / .34);color:hsl(0 80% 78%)}
+  .nd.good{background:hsl(152 62% 45% / .14);border-color:hsl(152 62% 45% / .34);color:hsl(152 66% 74%)}
+  .nd.dead{color:var(--pg-faint);text-decoration:line-through;opacity:.7;border-style:dashed}
+  .nd.cc{background:hsl(248 84% 68% / .14);border-color:hsl(248 84% 68% / .34);color:hsl(248 90% 84%)}
+  .arw{color:var(--pg-accent);font-family:ui-monospace,Menlo,monospace;font-size:.85rem}
+  .arw.x{color:hsl(0 80% 70%)}
+  .mmd{margin-block-start:8px}
+  .mmd summary{cursor:pointer;font-size:.76rem;color:var(--pg-faint);padding-block:5px;list-style:none}
+  .mmd summary::-webkit-details-marker{display:none}
+  .mmd summary::before{content:'\25B8 ';color:var(--pg-accent)}
+  .mmd[open] summary::before{content:'\25BE '}
+  .mmd summary:focus-visible{outline:2px solid var(--pg-accent);outline-offset:3px;border-radius:8px}
+  .mmd .mrow{display:flex;gap:8px;align-items:flex-start}
+  .mmd pre{flex:1}
+  .mmd button{font:inherit;font-size:.72rem;color:var(--pg-faint);background:var(--pg-glass-2);
+    border:1px solid hsl(0 0% 100% / .10);border-radius:999px;padding:3px 11px;cursor:pointer;
+    white-space:nowrap;margin-block-start:12px}
+  .mmd button:hover{color:var(--pg-ink)}
+  .mmd button:focus-visible{outline:2px solid var(--pg-accent);outline-offset:3px}
+
+  /* ---- copy-prompt bar (tertiary) ---- */
+  .copybar{display:flex;gap:10px;align-items:center;margin-block:24px 0;padding:14px 18px;
+    border-radius:16px;background:var(--pg-glass-2);border:1px solid hsl(0 0% 100% / .10)}
+  .copybar p{flex:1;font-size:.82rem;color:var(--pg-faint)}
+  .copybar button{font:inherit;font-size:.8rem;font-weight:600;color:var(--pg-ink);
+    background:var(--pg-accent-deep);border:none;border-radius:999px;padding:8px 18px;cursor:pointer;
+    transition:filter 100ms var(--pg-ease)}
+  .copybar button:hover{filter:brightness(1.14)}
+  .copybar button:focus-visible{outline:2px solid var(--pg-accent);outline-offset:3px}
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+  @media (max-width:720px){ .bar{grid-template-columns:130px 1fr 46px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="tier1 glass">
+    <div class="top">
+      <h1>OrchestKit &times; Claude Code — Convergence Audit</h1>
+      <span class="issue mono" id="hd-run"></span>
+    </div>
+    <div class="facts" id="hd-facts"></div>
+    <p class="branchline mono" id="hd-branch"></p>
+    <div class="tabs" role="tablist" aria-label="Audit sections" id="tablist"></div>
+  </header>
+
+  <p class="sr" id="live" aria-live="polite"></p>
+  <main id="panels"></main>
+
+  <div class="copybar">
+    <p id="copyhint"></p>
+    <button id="copybtn" type="button">Copy fix prompt</button>
+  </div>
+</div>
+
+<script type="application/json" id="plan-state">
+{
+  "meta": {
+    "run": "3 workflows / 29 agents",
+    "date": "2026-08-08",
+    "binary": "2.1.226",
+    "orkFloor": "2.1.220",
+    "orkLatestKnown": "2.1.222",
+    "branch": "fix/claude-skill-dir-placeholder",
+    "evidence": "every load-bearing claim run against the 279,661,952-byte binary at ~/.local/share/claude/versions/2.1.226, not inferred",
+    "pending": "wf_11e32d40-1cc (verification ledger: coordination substrate, Aug-14 permission collision, telemetry, cross-repo, hq-ext inventory) was still running when this file was written"
+  },
+  "facts": [
+    {"k":"Confirmed bugs","v":"15","risk":"high"},
+    {"k":"Override violations","v":"4","risk":"high"},
+    {"k":"Invention rows","v":"36","risk":"medium"},
+    {"k":"Unused CC capabilities","v":"39","risk":"medium"},
+    {"k":"Deadline","v":"Aug 14","risk":"high"},
+    {"k":"Verified","v":"2 of 3 audits","risk":"medium"}
+  ],
+  "verdict": {
+    "grade": "C-",
+    "headline": "The engineering is careful in the small and undisciplined in the large.",
+    "good": [
+      "Hook architecture is genuinely well factored: 152 entries across 29 events, a dispatcher pattern, typed inputs, per-event performance budgets, and a documented dual-registration contract (hooks.json + entries map) that names its own historical failure mode.",
+      "The verification culture is real and it works. The adversarial-refutation rule, the anti-sycophancy rule and the evidence gate are why this audit could correct itself twice mid-run instead of shipping two wrong claims.",
+      "Security instincts are sound where they were applied. network-egress-guard states its own limits honestly in its header rather than overselling itself.",
+      "The knowledge-graph memory, the playground visual standard, the cross-model refuter and the version-compatibility matrix are all things Claude Code has no mechanism for. They are the real moat and they should stay."
+    ],
+    "bad": [
+      "A pattern of writing the mechanism instead of reading the manual. 39 documented CC capabilities are unused; 14 of them are HIGH value; and the estate independently rebuilt at least nine of them.",
+      "A pattern of authoring a control and never arming it. The sandbox policy is fully written and switched off. The subagent depth budget is prose. The goal brake counts the wrong number. Three separate safety systems that look present and are inert.",
+      "A pattern of asserting instead of measuring. Four retirement arguments cite token costs; none was measured, and `claude plugin details ork` reports the number directly in seconds.",
+      "A syntax was invented for a CC command, hardened into policy across 8 recipes, and shipped with copy-paste instructions, without one grep against the binary that would have refuted it."
+    ]
+  },
+  "bugs": [
+    {
+      "id":"B1","sev":"critical","title":"/goal abort-if — a syntax no version of Claude Code has ever supported",
+      "files":["src/skills/prd-to-goal/SKILL.md:73-78","src/skills/prd-to-goal/references/recipe-library.md:12 + recipes at 38,50,62,74,86,99,112,124","src/skills/chain-patterns/references/assertion-grader.md","src/skills/verify/references/streak-gate.md"],
+      "evidence":"grep -c -a -F 'abort-if' against the 2.1.226 binary returns 0. Same string returns 0 across all 357 files in shared/cc-snapshots and 27 across ork skills.",
+      "why":"Claude Code documents ONE goal per session, replace-on-set, with the bound written inside the single condition. The second line ork emits does not add a safety rail. It parses as a fresh condition, REPLACES line 1, and leaves the session goaled on an unsatisfiable budget string with the user's actual acceptance criteria discarded. SKILL.md:78 instructs the user to paste it straight into Claude Code, and recipe-library.md:12 hardens the error into policy: 'Keep the abort-if budget. It is the safety rail, not boilerplate. Tighten it; never delete it.'",
+      "fix":"Fold the budget into the one condition (', or stop after 15 turns'). Strip the clause from all four files. Verify: grep -rc 'abort-if' src/skills returns 0 against today's 27.",
+      "engineering":"This is the single clearest instance of the estate's core failure mode. Inventing a syntax is forgivable. Hardening it into policy across 8 recipes, shipping it with copy-paste instructions, and never once running the grep that refutes it is not."
+    },
+    {
+      "id":"B2","sev":"critical","title":"A complete sandbox policy, authored in CC's own schema, never switched on",
+      "files":["src/settings/ork.settings.json:77-125","~/.claude/settings.json (no sandbox key at all)"],
+      "evidence":"The sandbox block's keys are ['failIfUnavailable','autoAllowBashIfSandboxed','filesystem','network','credentials']. 'enabled' in sandbox is FALSE. No other scope sets it. Meanwhile ~/.claude/settings.json carries skipDangerousModePermissionPrompt:true and skipAutoPermissionPrompt:true, and permissions.deny holds 21 rules of which 0 are Read(...) path rules.",
+      "why":"20 denied exfiltration domains and 5 credential-file denies are declared and inert. Nothing blocks a read of ~/.ssh/id_rsa. The substitute is a regex guard whose own header at network-egress-guard.ts:26-29 states 'this is prevention, not containment. A regex/string guard is bypassable (interpreter indirection, $IFS, char-by-char)... only a real boundary closes it' — and the 2026-08-06 session already found /bin/bash, env bash and sudo -u root bash walking past it.",
+      "fix":"Add 'enabled': true to the sandbox block AND to ~/.claude/settings.json (manifests/ork.json has no settings key, and plugins-reference says only agent and subagentStatusLine are read from a plugin settings.json, so the plugin copy may be inert for a second reason). Add Read(//Users/yonatangross/.ssh/**) plus the other 4 credential paths to permissions.deny. Confirm with claude --debug that the seatbelt profile loads BEFORE relaxing any regex guard.",
+      "engineering":"Authoring CC's mechanism, leaving it off, and running a self-declared-bypassable substitute in its place is closer to DIVERGE than EXTEND. On a machine that has already disabled both permission prompts, this is the highest-consequence inert control in the estate."
+    },
+    {
+      "id":"B3","sev":"high","title":"The goal brake trips on fiction",
+      "files":["src/hooks/src/stop/goal-tracker.ts:122-134","src/hooks/src/lifecycle/goal-budget-guard.ts:32"],
+      "evidence":"turnCount is computed by counting history lines where started_at && !ended_at. That counts /goal invocations, not turns. The token figure beside it is Math.ceil(text.length / 3.5).",
+      "why":"The 30-turn ceiling therefore cannot trip on turns. Both inputs to the brake are wrong, so a runaway session is not stopped by the thing built to stop it.",
+      "fix":"Source turn count from the actual turn counter and token spend from the API's reported usage rather than a character-length heuristic. Then assert the brake fires with a test that drives it past the ceiling.",
+      "engineering":"A safety mechanism whose measurement is wrong is worse than no mechanism, because it produces the belief that a limit exists."
+    },
+    {
+      "id":"B4","sev":"high","title":"The session registry has never been able to address anything",
+      "files":["src/hooks/src/lifecycle/session-registrar.ts:273","session-registrar.ts:217","session-registrar.ts:43"],
+      "evidence":"Line 273 writes pid: process.pid — the ephemeral node run-hook.mjs pid, not the claude process pid. Line 217 selects sid, pid. Line 43 sets PEER_LIVENESS_WINDOW = 300 as a heartbeat guess.",
+      "why":"No row in the registry has ever held an addressable identity, so formatPeerWarning has been printing dead pids at the operator since it shipped.",
+      "fix":"Add a messaging_socket TEXT column, store process.env.CLAUDE_CODE_MESSAGING_SOCKET verbatim at SessionStart rather than re-deriving from a pid, widen the SELECT to carry repo/branch/socket, and replace the 300s window with a socket-file-exists test.",
+      "engineering":"The registry was built to answer 'who else is here'. It has been answering with a number that identifies a process that exited milliseconds after the hook ran."
+    },
+    {
+      "id":"B5","sev":"high","title":"A shipped hook recommends the exact worktree idiom the repo documents as broken",
+      "files":["src/hooks/src/lifecycle/session-registrar.ts:246-247"],
+      "evidence":"The remediation body emits: git worktree add ../${repoName}-task -b ${branch}-2 origin/${branch} then cd ../${repoName}-task.",
+      "why":"A SIBLING path. The operator's own CLAUDE.md documents (verified 2026-08-06) that the cd silently bounces back to the project root so every later command runs in the primary tree. This is the exact idiom behind platform#9870, where work was committed and pushed onto another agent's branch.",
+      "fix":"Replace with WT=$(~/.claude/hooks/worktree-new.sh (task) (branch)) && cd \"$WT\", which lands under (repo)/.worktrees/ and carries the refuse-existing-path, refuse-existing-branch and assert-branch-materialised guards.",
+      "engineering":"The hook fires at the precise moment a session learns a peer exists, and it teaches the failure mode. The fix is one line and it has been wrong the whole time."
+    },
+    {
+      "id":"B6","sev":"high","title":"The spawn-cap escape valve has never fired",
+      "files":["src/hooks/src/subagent-start/context-gate.ts:36","context-gate.ts:28-29,204,214"],
+      "evidence":"The escape valve tests for '.claude/worktrees/' and '/.git/worktrees/'. The operator's own mandated layout is (repo)/.worktrees/(task), which matches neither substring.",
+      "why":"The gate denies the 7th background spawn and the 9th spawn per response, and the raise to 10/12 that was supposed to apply inside a worktree has therefore never applied. Meanwhile CC's own workflow runtime caps at 16 concurrent / 1000 per run, so the hook is vetoing CC's orchestrator with a number nobody chose.",
+      "fix":"Fix the substring test, then downgrade outputDeny to outputWarning at lines 204 and 214 so CC's own caps govern.",
+      "engineering":"Two independent defects compounding: a wrong string match, and a hard deny where an advisory belonged."
+    },
+    {
+      "id":"B7","sev":"high","title":"34 of 37 agents can message any session; none can discover one",
+      "files":["src/agents/*.md (34 files)","src/agents/backend-system-architect.md:96","plugins/ork/agents/ (mirrored, shipped)"],
+      "evidence":"34 of 37 agents grant SendMessage. 0 grant ListAgents. All 15 background:true agents grant SendMessage. 10 instruct a direct peer send in prose, e.g. 'Use SendMessage to share API contracts ... directly, don't wait for the lead to relay.' Already mirrored into plugins/.",
+      "why":"SendMessage is one tool for subagents, teammates and peer sessions alike. A background agent that can guess a live peer name (dev and platform-88 are both live and guessable) can interrupt a foreground session the operator never authorised. There is no roster tool to scope it, no rule governing it, and no rate limit.",
+      "fix":"Split the grant by lifecycle: foreground agents keep SendMessage and gain ListAgents; background agents lose it unless they are a named agent-team teammate. Must be tools-plus-prose, not a tool-list edit alone.",
+      "engineering":"The send surface was never designed. It accumulated, one agent frontmatter at a time, and shipped."
+    },
+    {
+      "id":"B8","sev":"high","title":"worktree-provisioner silently deletes two CC capabilities estate-wide",
+      "files":["src/hooks/src/worktree/worktree-provisioner.ts:210","src/hooks/hooks.json:1623","src/hooks/src/entries/lifecycle.ts:174"],
+      "evidence":"Line 210 hardcodes (projectDir)/.worktrees/(name). By owning WorktreeCreate, the hook takes over provisioning entirely.",
+      "why":"CC's native worktree provisioning processes .worktreeinclude (copying gitignored config such as .env into every new worktree) and resolves worktree.baseRef. A registered WorktreeCreate hook that provisions itself removes both for the whole estate, and neither loss produces an error.",
+      "fix":"Return join(projectDir, '.claude', 'worktrees', name), resolve the base from worktree.baseRef, and copy .worktreeinclude-matched files. That one change also restores two HIGH gaps and makes sweep-stale-worktrees deletable rather than an rm -rf race.",
+      "engineering":"Taking ownership of a lifecycle event without reimplementing what the default did is the quiet way to delete a feature."
+    },
+    {
+      "id":"B9","sev":"medium","title":"Every user-invocable skill is registered twice",
+      "files":["scripts/build-plugins.sh (generate_command_from_skill)","plugins/ork/commands/ (35 files)","tests/plugins/test-command-frontmatter-passthrough.sh"],
+      "evidence":"claude plugin details ork reports Skills (140) against 105 actual SKILL.md files, with 35 doubled names.",
+      "why":"Plugin skills/ already surface as /name slash commands. The generated commands/*.md wrappers duplicate every user-invocable skill, and the wrapper frontmatter drifts from the source, which has already broken argument-hint (#3146), disable-model-invocation, and background (#3239).",
+      "fix":"Disable the generate_command_from_skill phase, rebuild, reload, and type /ork: to confirm the menu still resolves. If it does, delete the phase, the commands key in plugin.json, the 35 files and the passthrough test.",
+      "engineering":"A build step that exists to work around a platform gap that closed, and a passthrough test that exists to police the drift the build step causes."
+    },
+    {
+      "id":"B10","sev":"medium","title":"A handoff pipe with three writers and no readers",
+      "files":["src/hooks/src/subagent-stop/handoff-preparer.ts:102","src/hooks/src/subagent-stop/feedback-loop.ts:253","src/hooks/src/subagent-stop/auto-spawn-quality.ts:174"],
+      "evidence":".claude/context/handoffs has exactly 3 writers and 0 readers in src/. Newest artifact estate-wide is dated 2026-02-18.",
+      "why":"Parent-to-child handoff was always CC's mechanism, carried by the subagent spawn prompt. The file bus never had a consumer.",
+      "fix":"Delete handoff-preparer.ts, its hooks.json entry, its two lines in entries/subagent.ts, its 214-line test, writeDownstreamHandoff() and writeSpawnSuggestion(). Re-stamp the hook count 152 to 149 and add a Registry changelog entry.",
+      "engineering":"Nearly six months of writes into a directory nothing reads, and no test caught it because the tests assert the write, not the read."
+    },
+    {
+      "id":"B11","sev":"medium","title":"Two loops inject the same handoff block",
+      "files":["src/hooks/src/lifecycle/session-handoff-injector.ts:72","src/hooks/src/prompt/handoff-injector.ts:102"],
+      "evidence":"Both emit a block labelled [Previous Session Handoff] — one replaying SessionEnd YAML at SessionStart, the other replaying Stop markdown at first prompt.",
+      "why":"The estate diverged from itself. The SessionStart copy also injects blind before the user has stated intent, and re-injects the same YAML on every start within 24 hours.",
+      "fix":"Teach prompt/handoff-injector.ts to fall back to the global store when .claude/HANDOFF.md is absent, SHIP, MEASURE the fallback firing, and only then delete the SessionStart injector and stop/handoff-writer.ts.",
+      "engineering":"Two teams of one built the same thing twice, six weeks apart, in the same repo."
+    },
+    {
+      "id":"B12","sev":"medium","title":"session-cleanup rewrites a CC-internal file",
+      "files":["src/hooks/src/lifecycle/session-cleanup.ts:217-247"],
+      "evidence":"sanitizeSessionsIndex reads, rewrites and writes back entries inside CC's sessions-index.json.",
+      "why":"The sessions doc explicitly calls that file internal and version-unstable, and CC already does the job three ways over: generated session titles, /rename, claude -n, and the picker's own display precedence.",
+      "fix":"Delete sanitizeSessionsIndex in favour of the hookSpecificOutput.sessionTitle path ork already emits.",
+      "engineering":"Writing into another program's internal state file is the definition of override."
+    },
+    {
+      "id":"B13","sev":"low","title":"The depth budget is documented as 5 and enforced by a sentence",
+      "files":["src/skills/chain-patterns/SKILL.md:219,238,240,242","src/agents/README.md:5"],
+      "evidence":"chain-patterns/SKILL.md:240 concedes 'the budget is enforced by THIS guidance, not by hooks'. The number is stated as 5 in four places while the intended budget is 3. CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH has 0 hits estate-wide.",
+      "why":"CC enforces depth mechanically by withholding the Agent tool at the limit. The estate wrote prose instead, and the prose has the wrong number.",
+      "fix":"Set CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH in the env block and correct the number in all four places.",
+      "engineering":"A limit enforced by a sentence is not a limit."
+    },
+    {
+      "id":"B14","sev":"low","title":"cron-guard's first branch is unreachable in the state it describes",
+      "files":["src/hooks/src/pretool/cron-guard.ts:25-27","cron-guard.ts:47"],
+      "evidence":"The first branch re-checks CLAUDE_CODE_DISABLE_CRON=1 — CC's own scheduler kill switch, which if set means the surface the guard protects is already off.",
+      "why":"Dead code that reads as a control.",
+      "fix":"Delete the branch, or invert it to warn when the kill switch is NOT set.",
+      "engineering":"Small, but it is the same shape as B3 and B6: a control that cannot fire."
+    },
+    {
+      "id":"B15","sev":"low","title":"A shipped doc tells the next session to build another file bus",
+      "files":["docs/parallel-primitives.md:25"],
+      "evidence":"The third column reads 'No comms'. False at 2.1.226, where cross-session messaging is live and the socket is bound.",
+      "why":"This is the document a future session reads before deciding how sessions should coordinate, and it currently answers 'they cannot'.",
+      "fix":"Rewrite the column. One line.",
+      "engineering":"Doc rot that actively causes the next divergence."
+    }
+  ],
+  "overrides": [
+    {"n":1,"what":"cmux-claude-wrapper intercepts the claude entrypoint for every session on this machine","ours":"/var/folders/.../cmux-cli-shims/*/claude (third-party, not estate-authored)","cc":"the claude binary at ~/.local/share/claude/versions/2.1.226","note":"Not ours, but the largest interception in the environment, and it is the mechanical cause of an evidence failure that corrupted three of six audit buckets: command -v claude resolves to a 1500-byte bash shim, so three agents concluded CC could not be inspected. One grep -a against the real 279 MB binary then settled 15 recorded UNKNOWNs in under a minute."},
+    {"n":2,"what":"worktree-provisioner hardcodes the path and, by owning WorktreeCreate, deletes .worktreeinclude and worktree.baseRef estate-wide","ours":"src/hooks/src/worktree/worktree-provisioner.ts:210","cc":"native worktrees under .claude/worktrees/(name) with .worktreeinclude copying and fresh/head base resolution","note":"The hook's existence is forced — a registered WorktreeCreate hook must provision, and empty stdout is a hard failure. Its CHOICES are the violation, and the fix is a one-line return plus a copy loop."},
+    {"n":3,"what":"context-gate denies the 7th background spawn and the 9th spawn per response","ours":"src/hooks/src/subagent-start/context-gate.ts:28-29,204,214","cc":"workflow runtime caps (16 concurrent / 1000 per run) plus the workflowSizeGuideline advisory","note":"A workflow authored under CC's default medium guideline aims for up to 15 agents while ork's hook blocks at 6/8. Three independent parallelism caps now exist: context-gate 6/8, CC 16/1000, and swarm-migrate max_parallel 4."},
+    {"n":4,"what":"session-cleanup reads, rewrites and writes back entries inside CC's sessions-index.json","ours":"src/hooks/src/lifecycle/session-cleanup.ts:217-247","cc":"CC's generated session title, /rename, claude -n, and the picker's own display precedence","note":"A file the sessions doc explicitly calls internal and version-unstable, rewritten to do a job CC already does three ways over."}
+  ],
+  "postures": [
+    {"k":"OVERRIDE-VIOLATION","n":4,"color":"var(--status-critical)","meaning":"intercepting CC's mechanism to substitute ours"},
+    {"k":"RETIRE","n":9,"color":"var(--series-2)","meaning":"we built a parallel mechanism CC now owns — re-home the opinion FIRST, then delete our pipe"},
+    {"k":"EXTEND","n":15,"color":"var(--series-1)","meaning":"keep the opinion, ride the CC primitive"},
+    {"k":"ADOPT","n":2,"color":"var(--series-5)","meaning":"CC shipped a surface we have no opinion on yet"},
+    {"k":"KEEP","n":6,"color":"var(--series-3)","meaning":"CC has NO mechanism at all — the real moat"}
+  ],
+  "retire": [
+    {"n":5,"ours":"/goal abort-if second line, 27 occurrences, 8 shipped recipes","cc":"/goal (condition), one per session, bound inside the condition","overlap":"FULL"},
+    {"n":6,"ours":"generate_command_from_skill emits 35 commands/*.md wrappers plus a PASSTHROUGH_KEYS list and a passthrough test","cc":"plugin skills/ already surface as /name slash commands","overlap":"FULL"},
+    {"n":7,"ours":"per-agent frontmatter hooks: (33 agents), mcpServers: (36), permissionMode: (5), registering 44 PreToolUse guards","cc":"plugin-level hooks.json with SubagentStart/PreToolUse matchers","overlap":"FULL"},
+    {"n":8,"ours":"hand-rolled worktree protocol: mandated .worktrees/(task), worktree-new.sh with 3 guards, the pwd-confirms-the-cd ritual","cc":"claude --worktree/-w, EnterWorktree/ExitWorktree, .claude/worktrees/, native cwd switching, git-identity refusal check","overlap":"FULL"},
+    {"n":9,"ours":"cache-break-detector: 13 hardcoded markers, FNV-1a hash diff, cost = (added+removed) * 350","cc":"cache_creation_input_tokens / cache_read_input_tokens reported by the API every turn","overlap":"FULL"},
+    {"n":10,"ours":"keybindings array in plugin settings, 8 chord-to-skill bindings, bespoke test, advertised on the docs site","cc":"~/.claude/keybindings.json (contexts + namespace:action, hot-reloaded, schema-validated)","overlap":"FULL"},
+    {"n":11,"ours":"ork-elicit MCP server for structured form elicitation, holding a permanent tool slot","cc":"AskUserQuestion","overlap":"FULL"},
+    {"n":12,"ours":"build-plugins Phase 5 dependency validation, plus a comment forbidding deps in marketplace.json","cc":"dependencies array in plugin.json with semver, auto-install, range intersection and typed errors","overlap":"PARTIAL"},
+    {"n":13,"ours":"sweep-stale-worktrees: rm -rf of sibling (repo)-* and .worktrees/ orphans on a 1-hour age predicate, without taking git worktree lock","cc":"native periodic sweep gated on cleanupPeriodDays, skipping worktrees with changed files or unpushed commits, holding git worktree lock","overlap":"PARTIAL"}
+  ],
+  "gapsTop": [
+    {"cap":"sandbox.enabled","page":"sandboxing.md","unlocks":"turns the already-written 20-domain / 5-credential policy from inert JSON into OS-enforced containment","why":"policy authored, key omitted"},
+    {"cap":"Agent SDK","page":"35 SDK pages","unlocks":"session lifecycle, structured output, timeouts, token budgets and auth-failure detection for the 28 headless claude -p call sites that hand-roll all of it","why":"unaware — 0 of 4 package.json declare it"},
+    {"cap":"Advisor tool","page":"advisor.md","unlocks":"stronger second opinion at approach-commit, recurring-error and declaring-done, with no spawn and no depth cost. 22 hits in the binary","why":"unaware — 1 version-matrix row only"},
+    {"cap":"Channels","page":"channels.md","unlocks":"push a red required check into the session already on that branch, retiring the 60-min-stale poll and its 2 budget guards. 23 hits in the binary","why":"unaware — 0 wiring"},
+    {"cap":"Output styles","page":"output-styles.md","unlocks":"system-prompt-level house format with built-in adherence reminders, replacing the hand-rolled nudge counter. 45 hits","why":"unaware — the estate documents keep-coding-instructions and never uses it"},
+    {"cap":"CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH","page":"sub-agents.md","unlocks":"mechanical enforcement of the depth-3 budget currently enforced by a sentence","why":"unaware — 0 hits estate-wide"},
+    {"cap":"workflowSizeGuideline","page":"workflows.md","unlocks":"persistent agent-count advice fed to the model at authoring time, replacing prose budgets in prompts. 19 hits","why":"unaware (ork); deliberate no-op (hq-ext)"},
+    {"cap":"security-guidance extension points","page":"security-guidance.md","unlocks":"makes ork's existing patterns fire deterministically at zero model cost inside a plugin already enabled and running","why":"unaware — plugin enabled, extension points never written"},
+    {"cap":".worktreeinclude","page":"worktrees.md","unlocks":".env and gitignored config copied into every new worktree. 11 hits","why":"unaware AND structurally blocked by ork's own WorktreeCreate hook"},
+    {"cap":"autoCompactWindow","page":"context-window.md","unlocks":"compaction at a chosen fill level instead of the model limit — the root the 4-hook compaction layer works around. 32 hits","why":"unaware"},
+    {"cap":"anthropics/claude-code-action","page":"GitHub Integration","unlocks":"auth, rate control and output parsing for the 4 of 45 workflows that hand-roll claude -p with a hoisted OAuth token","why":"deliberate-partial — 1 workflow adopted"},
+    {"cap":"dependencies array + {plugin}--v{version} tags","page":"plugin-dependencies.md","unlocks":"auto-install and hard dependency-unsatisfied instead of hq-ext's 5 green-by-skipping guards. git tag --list 'ork--v*' returns 0","why":"deliberate-but-wrong — a build comment codifies a belief the docs contradict"},
+    {"cap":"subagentStatusLine","page":"statusline.md","unlocks":"per-agent model, effort and context-window percent in the agent panel; the only presentation key a plugin settings.json may legally ship. 13 hits","why":"deliberate (hq-ext); unaware (ork)"},
+    {"cap":"Desktop scheduled tasks","page":"desktop-scheduled-tasks.md","unlocks":"permission mode, worktree toggle, missed-run catch-up and run history for night-watch. Desktop confirmed present; ~/.claude/scheduled-tasks/ does not exist","why":"unaware — reachability now proven"}
+  ],
+  "messaging": {
+    "live": true,
+    "socket": "/tmp/cc-socks/85777.sock",
+    "reach": {"sockets": 5, "processes": 11},
+    "unset": ["crossSessionInbound","isolatePeerMachines","dialogExpiry","sandbox.network.allowUnixSockets","CLAUDE_CODE_MESSAGING_SOCKET in any of 152 hook entries"],
+    "notes": [
+      "Cross-session messaging is LIVE in this estate right now and nothing is configured on it.",
+      "5 of 11 live claude processes bind a socket. 6 sessions are unreachable and nobody knew. An earlier sample gave 3 of 11.",
+      "CLAUDE_CODE_MESSAGING_SOCKET is exported to every hook BEFORE any hook runs, including SessionStart. ork wires 152 hook entries and none touch it.",
+      "Containers are cut off by design: sessions find each other via files on disk, and CLAUDE.md mandates docker-compose for the platform repo.",
+      "On macOS, own-child verification succeeds only while the posting process is still running, so a fire-and-forget async hook that exits immediately gets HELD rather than delivered. 107 of ork's 152 entries are async."
+    ]
+  },
+  "corrections": [
+    {"claimed":"ci-sentinel uses --bare, so its sessions bind no socket","actual":"ci-sentinel/SKILL.md:107 records 'Why no --bare (2026-05-18)'. It DROPPED --bare over an ANTHROPIC_API_KEY failure. It binds a socket and appears in the roster today; it is simply deaf. Only implement, bare-eval and ci-debug are still bare."},
+    {"claimed":"the docs say ListAgents shows each session's working directory","actual":"the live ListAgents payload returns name, short-id, kind, status and age. NO cwd. The docs statement describes the /list-agents command surface, not the tool payload the model receives. This reshaped the whole address design: the NAME is the only channel through which location crosses the discovery boundary."},
+    {"claimed":"teammate-idle hooks are probably dead since CC removed TeamCreate/TeamDelete","actual":"REFUTED before it was stated. Agent Teams is actively maintained through 2.1.222 — memory-leak fix, Bedrock/Vertex env propagation, idle-notification dedup. The 4 wired TeammateIdle entries sit on a live event."}
+  ],
+  "refactors": [
+    {"n":1,"eff":"S","gate":"none","title":"Delete the abort-if clause, fold the budget into the one /goal condition","files":"prd-to-goal/SKILL.md:73 + recipe-library.md (line 12 policy + 8 recipes) + assertion-grader.md + streak-gate.md","verify":"grep -rc 'abort-if' src/skills returns 0"},
+    {"n":2,"eff":"S","gate":"Aug 14","title":"Turn the sandbox on, add the 5 missing Read(...) credential denies","files":"src/settings/ork.settings.json:77 AND ~/.claude/settings.json","verify":"claude --debug shows the seatbelt profile loading"},
+    {"n":3,"eff":"S","gate":"none","title":"Fix the sibling-worktree remediation the peer warning ships","files":"session-registrar.ts:246-247","verify":"the emitted command lands under (repo)/.worktrees/"},
+    {"n":4,"eff":"M","gate":"agent-teams audit","title":"Scope the SendMessage grant: foreground keeps it and gains ListAgents, background loses it","files":"src/agents/*.md (34 files), tools-plus-prose","verify":"a background agent can no longer address a peer name"},
+    {"n":5,"eff":"S","gate":"none","title":"One-line worktree-provisioner fix that also restores .worktreeinclude and worktree.baseRef","files":"worktree-provisioner.ts:210","verify":"a new worktree receives .worktreeinclude-matched files"},
+    {"n":6,"eff":"S","gate":"none","title":"Downgrade context-gate from deny to warn and fix the worktree substring test","files":"context-gate.ts:36,204,214","verify":"a 10-agent workflow runs without a hook denial"},
+    {"n":7,"eff":"M","gate":"menu probe","title":"Retire the 35 generated commands/ wrappers","files":"scripts/build-plugins.sh, plugins/ork/commands/, test-command-frontmatter-passthrough.sh","verify":"claude plugin details ork reports Skills (105), not (140)"},
+    {"n":8,"eff":"S","gate":"none","title":"Fix the goal brake's turn count and token estimate","files":"stop/goal-tracker.ts:122-134, goal-budget-guard.ts:32","verify":"a test drives the session past the ceiling and the brake fires"},
+    {"n":9,"eff":"S","gate":"none","title":"Set CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH, workflowSizeGuideline, autoCompactWindow; correct the depth number 5 to 3","files":"~/.claude/settings.json env block; chain-patterns/SKILL.md:219,238,242; agents/README.md:5","verify":"grep for the depth number returns 3 in all four places"},
+    {"n":10,"eff":"M","gate":"none","title":"Delete the zero-reader handoff pipe and re-stamp the hook count 152 to 149","files":"handoff-preparer.ts + entry + test, writeDownstreamHandoff(), writeSpawnSuggestion()","verify":"bin/validate-counts.sh green with a Registry changelog entry"},
+    {"n":11,"eff":"S","gate":"none","title":"Kill the registry's dead pid: store the messaging socket verbatim instead","files":"session-registrar.ts:273,217,43 + migration 004","verify":"messaging_socket IS NULL becomes the reachable/unreachable predicate"},
+    {"n":12,"eff":"S","gate":"none","title":"Rewrite docs/parallel-primitives.md:25 — 'No comms' is false at 2.1.226","files":"docs/parallel-primitives.md:25","verify":"the column names cross-session messaging"}
+  ],
+  "unsettled": [
+    {"q":"Are agent-teams.ts and multi-agent-coordinator.ts a thin wrapper over CC-native Agent Teams, or a parallel bus?","check":"the third audit, wf_11e32d40-1cc, still running. Blocks the swarm-migrate retirement entirely and gates refactor 4."},
+    {"q":"Does the / menu resolve /ork:doctor without the commands/ wrappers?","check":"disable the phase in build-plugins.sh, npm run build, reload, type /ork:"},
+    {"q":"Is a plugin's shipped settings.json a settings scope at all?","check":"manifests/ork.json has no settings key. Set a distinctive spinnerVerbs value, rebuild, reload, observe the spinner. Decides whether the sandbox block, 21 Bash denies and 6 allows are inert for a SECOND reason."},
+    {"q":"Does context-gate's outputDeny block workflow-runtime agents, or only in-session Agent-tool spawns?","check":"run a workflow with more than 8 agents with the hook enabled. Sizes override 3."},
+    {"q":"What unit is dialogExpiry?","check":"docs say 'default 5 minutes' and never state the unit. Set 600, force a hold, time the drop."},
+    {"q":"Can a background agent actually address a non-teammate peer session?","check":"one spawn: from a background agent holding SendMessage, address a live peer name and record delivered/refused/unknown. Highest-value probe in the set — it sizes B7."},
+    {"q":"Why do 6 of 11 live claude processes bind no socket?","check":"resolve each pid's binary version and start time via lsof/ps, cross-tabulate against socket presence."},
+    {"q":"Is context: a supported agent frontmatter key?","check":"33 of 37 agents carry context: fork, which is absent from CC's 16-field table and passed through by build-plugins.sh:86. This is the ONLY instance found of the reverse question, which no bucket asked."}
+  ],
+  "diagrams": [
+    {
+      "id":"permmode","title":"Auto-mode detection — the fix exists on main and this branch never rebased",
+      "before":{"caption":"guards.ts:315,324 compare a camelCase key. CC 2.1.226 serialises the envelope key as permission_mode, snake_case only — 0 camelCase occurrences in the envelope literal or the zod schema. 103 tests pass because the test inputs are camelCase too.","rows":[
+        ["CC 2.1.226 envelope","->","!permission_mode (snake)","->","~isAutoMode() expects permissionMode","-x","!always false"],
+        ["103 unit tests","->","~camelCase fixtures","->","!all green on a dead helper"]
+      ]},
+      "after":{"caption":"origin/main already carries the snake-first permissionMode() reader. This branch is 7 ahead / 10 behind and has not rebased. The fix is a rebase, not a patch.","rows":[
+        ["CC 2.1.226 envelope","->","+permission_mode","->","+permissionMode() snake-first","->","+guard fires"]
+      ]},
+      "mermaid":"flowchart LR\n  subgraph BEFORE[\"BEFORE — dead at HEAD\"]\n    A1[\"CC 2.1.226 envelope\"] --> A2[\"permission_mode (snake_case)\"]\n    A2 -.no match.-> A3[\"isAutoMode() reads permissionMode\"]\n    A3 --> A4[\"always false\"]\n    A5[\"103 unit tests\"] --> A6[\"camelCase fixtures\"] --> A7[\"all green\"]\n  end\n  subgraph AFTER[\"AFTER — already on origin/main\"]\n    B1[\"CC 2.1.226 envelope\"] --> B2[\"permission_mode\"] --> B3[\"permissionMode() snake-first\"] --> B4[\"guard fires\"]\n  end"
+    },
+    {
+      "id":"teams","title":"Agent teams — ork deletes Claude Code's own state",
+      "before":{"caption":"agent-teams.ts owns zero state of its own. It reads AND rmSync's CC's ~/.claude/teams and ~/.claude/tasks. A SessionStart hook rm -rf's the CC task store on a 4-hour directory-mtime predicate, and the no-config branch also returns stale=true. 375 task dirs and 6 team configs exist right now.","rows":[
+        ["SessionStart hook","->","!4h dir-mtime predicate","->","!rm -rf ~/.claude/tasks","-x","~375 task dirs"],
+        ["no config found","->","!returns stale = true","->","!deletes anyway"]
+      ]},
+      "after":{"caption":"Read CC's team and task store; never delete it. Liveness is a socket-exists or roster test, never a directory mtime. A missing config means unknown, not stale.","rows":[
+        ["SessionStart hook","->","+read only","->","+ListAgents / socket exists","->","+CC owns its store"]
+      ]},
+      "mermaid":"flowchart LR\n  subgraph BEFORE[\"BEFORE\"]\n    A1[\"ork SessionStart hook\"] --> A2{\"dir mtime older than 4h?\"}\n    A2 -->|yes| A3[\"rmSync ~/.claude/tasks\"]\n    A2 -->|no config| A3\n    A3 --> A4[\"375 CC task dirs at risk\"]\n  end\n  subgraph AFTER[\"AFTER\"]\n    B1[\"ork SessionStart hook\"] --> B2[\"read only\"]\n    B2 --> B3[\"liveness via ListAgents / socket\"]\n    B3 --> B4[\"CC owns its own store\"]\n  end"
+    },
+    {
+      "id":"pipeline","title":"Six subsystems dead behind one unconditional null",
+      "before":{"caption":"detectPipeline() returns null unconditionally, and six subsystems sit behind it. Alongside: event-log.ts is described as a broadcast bus with 1 writer and 0 subscribers, holding 2.9 MB live plus 10 MB rotated; children-bus.ts has 4 of 6 exports with zero production callers; and of the registry tables, locks, settings_overrides and worktree_links have had 0 rows ever.","rows":[
+        ["detectPipeline()","->","!returns null unconditionally","-x","~6 subsystems"],
+        ["event-log.ts","->","~1 writer","-x","~0 subscribers (12.9 MB)"],
+        ["registry tables","->","~locks / settings_overrides / worktree_links","-x","!0 rows ever"]
+      ]},
+      "after":{"caption":"Delete what has never run. Keep only sessions (2,983 rows) and the peer-collision path that actually fires.","rows":[
+        ["registry","->","+sessions table only","->","+peer collision detection"]
+      ]},
+      "mermaid":"flowchart TB\n  subgraph BEFORE[\"BEFORE — inert\"]\n    A1[\"detectPipeline()\"] -->|returns null, always| A2[\"6 subsystems never run\"]\n    A3[\"event-log.ts broadcast bus\"] --> A4[\"1 writer, 0 subscribers, 12.9 MB\"]\n    A5[\"children-bus.ts\"] --> A6[\"4 of 6 exports: no callers\"]\n    A7[\"locks / settings_overrides / worktree_links\"] --> A8[\"0 rows ever\"]\n  end\n  subgraph AFTER[\"AFTER — what is real\"]\n    B1[\"sessions table, 2983 rows\"] --> B2[\"peer-collision detection\"]\n  end"
+    },
+    {
+      "id":"telemetry","title":"Six telemetry transports, three POSTing the same path",
+      "before":{"caption":"cc-event-post.sh ships RAW, unmodified CC hook JSON to api.yonyon.ai on SessionStart and UserPromptSubmit. cc-hooks-ingest.sh reparses the transcript, HMAC-signs it, and runs SYNCHRONOUSLY on Stop and SubagentStop. hq-telemetry-forward.sh is an orphan with 0 config references. CC's own OTEL is live but configured in ~/.zshrc:205-210, not settings.json.","rows":[
+        ["Stop / SubagentStop","->","!cc-hooks-ingest.sh (synchronous)","->","api.yonyon.ai"],
+        ["SessionStart / UserPromptSubmit","->","!cc-event-post.sh (raw JSON)","->","api.yonyon.ai"],
+        ["hq-telemetry-forward.sh","-x","~orphan, 0 references"],
+        ["CC native OTEL","->","~configured in .zshrc, not settings.json"]
+      ]},
+      "after":{"caption":"One transport. What OTEL already emits stops being re-forwarded. Closing the duplication needs a server-side /v1/metrics receiver, not a single env-var flip — the refuter corrected that.","rows":[
+        ["CC native OTEL","->","+/v1/metrics receiver","->","+one transport"]
+      ]},
+      "mermaid":"flowchart LR\n  subgraph BEFORE[\"BEFORE — 6 transports\"]\n    A1[\"Stop / SubagentStop\"] --> A2[\"cc-hooks-ingest.sh SYNCHRONOUS\"] --> A9[\"api.yonyon.ai\"]\n    A3[\"SessionStart / UserPromptSubmit\"] --> A4[\"cc-event-post.sh raw JSON\"] --> A9\n    A5[\"hq-telemetry-forward.sh\"] -.orphan.-> A6[\"0 config references\"]\n    A7[\"CC native OTEL\"] --> A8[\"configured in .zshrc\"]\n  end\n  subgraph AFTER[\"AFTER — one transport\"]\n    B1[\"CC native OTEL\"] --> B2[\"server-side /v1/metrics receiver\"] --> B3[\"one path\"]\n  end"
+    },
+    {
+      "id":"xsession","title":"Cross-session coordination — files versus the live socket",
+      "before":{"caption":"The estate routes session-to-session information through files. .claude/context/handoffs has 3 writers and 0 readers, newest artifact 2026-02-18. ListAgents has 0 references in any layer. SendMessage is granted to 34 agents and every documented use is intra-session.","rows":[
+        ["Session A","->","!HANDOFF file","-x","~0 readers"],
+        ["34 agents","->","~SendMessage granted","-x","!0 ListAgents grants"]
+      ]},
+      "after":{"caption":"The socket is bound and live right now. Foreground agents gain ListAgents; background agents lose the ungoverned send. The across-time handoff bus stays, because CC has no mechanism for it.","rows":[
+        ["Session A","->","+SendMessage","->","+ListAgents roster","->","+Session B, mid-task"],
+        ["session ends","->","+handoff bus (across TIME)","->","+next session"]
+      ]},
+      "mermaid":"flowchart LR\n  subgraph BEFORE[\"BEFORE\"]\n    A1[\"Session A\"] --> A2[\"HANDOFF file\"]\n    A2 -.0 readers.-> A3[\"Session B never sees it\"]\n    A4[\"34 agents hold SendMessage\"] -.0 grants.-> A5[\"ListAgents\"]\n  end\n  subgraph AFTER[\"AFTER\"]\n    B1[\"Session A\"] --> B2[\"ListAgents roster\"] --> B3[\"SendMessage\"] --> B4[\"Session B, mid-task\"]\n    B5[\"session ends\"] --> B6[\"handoff bus, across TIME only\"] --> B7[\"next session\"]\n  end"
+    },
+    {
+      "id":"goal","title":"The /goal template that discards your acceptance criteria",
+      "before":{"caption":"CC allows one goal per session, replace-on-set. The second line ork emits parses as a fresh condition and replaces the first, so the acceptance criteria are discarded and the session is left goaled on an unsatisfiable budget string. abort-if returns 0 hits in the binary and 0 across 357 changelogs.","rows":[
+        ["line 1: /goal until (criteria)","->","+goal set"],
+        ["line 2: /goal abort-if (budget)","->","!REPLACES line 1","-x","~criteria discarded"]
+      ]},
+      "after":{"caption":"One line. The bound lives inside the single condition, which is what the docs describe.","rows":[
+        ["/goal until (criteria), or stop after 15 turns","->","+one goal, both halves intact"]
+      ]},
+      "mermaid":"flowchart TB\n  subgraph BEFORE[\"BEFORE — the shipped template\"]\n    A1[\"line 1: /goal until (acceptance criteria)\"] --> A2[\"goal set\"]\n    A3[\"line 2: /goal abort-if (budget)\"] --> A4[\"parses as a NEW condition\"]\n    A4 --> A5[\"REPLACES line 1\"]\n    A5 --> A6[\"acceptance criteria discarded\"]\n  end\n  subgraph AFTER[\"AFTER\"]\n    B1[\"/goal until (criteria), or stop after 15 turns\"] --> B2[\"one goal, both halves intact\"]\n  end"
+    }
+  ],
+  "limits": [
+    "Costing was never done on a common denominator. Four retirement arguments cite token costs; none was measured. claude plugin details ork reports the per-session cost directly in seconds and was not run for this.",
+    "The reverse question was never asked. All six buckets asked what CC has that the estate does not use. None asked what the estate still uses that CC changed or dropped. One instance surfaced by accident (context: fork on 33 of 37 agents). A deprecation-direction sweep is a seventh bucket and has not been run.",
+    "One of five design lenses failed to return structured output, so the cross-session config section rests on 4 designs and 2 judges, not 5.",
+    "The third audit was still running when this file was written. Coordination substrate, the Aug-14 permission collision, telemetry-versus-OTEL, cross-repo orchestration and the hq-ext inventory are NOT represented here."
+  ]
+}
+</script>
+
+<script>
+(function(){
+  'use strict';
+  var S = JSON.parse(document.getElementById('plan-state').textContent);
+  var live = document.getElementById('live');
+  function el(tag, cls, txt){ var n=document.createElement(tag); if(cls)n.className=cls; if(txt!=null)n.textContent=txt; return n; }
+  function add(p,c){ p.appendChild(c); return c; }
+
+  /* ---------- tier 1 ---------- */
+  document.getElementById('hd-run').textContent = S.meta.run + '  ·  ' + S.meta.date;
+  var hf = document.getElementById('hd-facts');
+  S.facts.forEach(function(f){
+    var d = add(hf, el('div','fact risk-'+f.risk));
+    d.appendChild(document.createTextNode(f.k+' '));
+    d.appendChild(el('b',null,f.v));
+  });
+  document.getElementById('hd-branch').textContent =
+    'binary ' + S.meta.binary + '  ·  ork floor ' + S.meta.orkFloor +
+    '  ·  ork latest_known ' + S.meta.orkLatestKnown + '  ·  ' + S.meta.branch;
+
+  /* ---------- helpers ---------- */
+  function section(host, no, title, count, open){
+    var d = add(host, el('details','sec glass'));
+    d.id = 's-' + no;
+    if(open) d.open = true;
+    var sm = add(d, el('summary'));
+    add(sm, el('span','secno', no));
+    add(sm, el('h2',null,title));
+    if(count!=null) add(sm, el('span','seccount', count));
+    return add(d, el('div','secbody'));
+  }
+  function tiles(host, arr){
+    var g = add(host, el('div','tiles'));
+    arr.forEach(function(t){
+      var c = add(g, el('div','tile'));
+      add(c, el('div','k', t.k));
+      var v = add(c, el('div','v', t.v));
+      if(t.color) v.style.color = t.color;
+      if(t.s) add(c, el('div','s', t.s));
+    });
+  }
+  /* chart + mandatory table twin */
+  function barsWithTwin(host, rows, maxOverride, unit, twinCols){
+    var box = add(host, el('div','chartbox'));
+    var bar = add(box, el('div','twinbar'));
+    var btn = add(bar, el('button', null, 'Show table'));
+    btn.type='button';
+    var chart = add(box, el('div'));
+    var table = add(box, el('div'));
+    table.hidden = true;
+    var max = maxOverride || rows.reduce(function(m,r){ return Math.max(m, r.n); }, 0) || 1;
+    rows.forEach(function(r){
+      var b = add(chart, el('div','bar'));
+      add(b, el('div','lab', r.k));
+      var t = add(b, el('div','track'));
+      var f = add(t, el('div','fill'));
+      f.style.width = Math.max(2, Math.round(r.n/max*100)) + '%';
+      f.style.background = r.color || 'var(--series-1)';
+      add(b, el('div','val', String(r.n) + (unit||'')));
+    });
+    var tb = add(table, el('table'));
+    var thead = add(tb, el('thead')); var htr = add(thead, el('tr'));
+    (twinCols || ['Item','Count']).forEach(function(c,i){
+      var th = add(htr, el('th', i>0?'num':null, c));
+    });
+    var tbody = add(tb, el('tbody'));
+    rows.forEach(function(r){
+      var tr = add(tbody, el('tr'));
+      add(tr, el('td', null, r.k));
+      add(tr, el('td','num', String(r.n)));
+      if((twinCols||[]).length > 2) add(tr, el('td', null, r.meaning || ''));
+    });
+    if((twinCols||[]).length > 2){
+      var th3 = add(htr, el('th', null, ''));
+    }
+    btn.addEventListener('click', function(){
+      var showTable = table.hidden;
+      table.hidden = !showTable; chart.hidden = showTable;
+      btn.textContent = showTable ? 'Show chart' : 'Show table';
+      live.textContent = showTable ? 'Showing data table' : 'Showing chart';
+    });
+  }
+  function bullets(host, arr){
+    var ul = add(host, el('ul'));
+    ul.style.margin = '8px 0 0 18px';
+    arr.forEach(function(t){
+      var li = add(ul, el('li', null, t));
+      li.style.color = 'var(--pg-muted)'; li.style.fontSize = '.87rem'; li.style.marginBottom = '8px';
+    });
+  }
+
+  /* ---------- tab definitions ---------- */
+  var TABS = [
+    {id:'verdict',  label:'Verdict',    count:S.verdict.grade,             build:tabVerdict},
+    {id:'bugs',     label:'Bugs',       count:S.bugs.length,               build:tabBugs},
+    {id:'overrides',label:'Overrides',  count:S.overrides.length,          build:tabOverrides},
+    {id:'ledger',   label:'Inventions', count:36,                          build:tabLedger},
+    {id:'gaps',     label:'Unused CC',  count:39,                          build:tabGaps},
+    {id:'msg',      label:'Cross-session', count:null,                     build:tabMsg},
+    {id:'diagrams', label:'Before / After', count:S.diagrams.length,       build:tabDiagrams},
+    {id:'fix',      label:'Refactors',  count:S.refactors.length,          build:tabFix},
+    {id:'honesty',  label:'Unsettled',  count:S.unsettled.length,          build:tabHonesty}
+  ];
+
+  function tabVerdict(host){
+    var b = section(host,'[0]','The verdict', null, true);
+    tiles(b, [
+      {k:'Grade', v:S.verdict.grade, color:'var(--status-serious)', s:'objective, not kind'},
+      {k:'Confirmed bugs', v:'15', color:'var(--status-critical)', s:'2 critical, 6 high'},
+      {k:'Override violations', v:'4', color:'var(--status-critical)', s:'banned by the rule'},
+      {k:'Unused CC capability', v:'39', color:'var(--status-warning)', s:'14 rated HIGH'},
+      {k:'Inert safety controls', v:'3', color:'var(--status-critical)', s:'sandbox, depth, goal brake'},
+      {k:'Audits complete', v:'2 / 3', color:'var(--status-warning)', s:'third still running'}
+    ]);
+    var c = add(b, el('div','callout c-bad'));
+    add(c, el('b', null, S.verdict.headline));
+    var g = section(host,'[0.1]','What is genuinely good', S.verdict.good.length);
+    var ok = add(g, el('div','callout c-ok'));
+    ok.appendChild(el('b',null,'This is not a bad codebase. It is a codebase with a specific, repeating blind spot.'));
+    bullets(g, S.verdict.good);
+    var bd = section(host,'[0.2]','What is bad engineering, named', S.verdict.bad.length, true);
+    bullets(bd, S.verdict.bad);
+    var p = section(host,'[0.3]','The pattern under all of it', null);
+    var pre = add(p, el('pre','ascii'));
+    pre.textContent =
+      'THE SHAPE OF EVERY FINDING\n' +
+      '\n' +
+      '  a need appears\n' +
+      '       |\n' +
+      '       +--> did anyone check whether CC already does this?\n' +
+      '       |         |\n' +
+      '       |         +-- NO  (39 times) --> build it ourselves\n' +
+      '       |                                     |\n' +
+      '       |                                     +--> it works\n' +
+      '       |                                     +--> it drifts\n' +
+      '       |                                     +--> CC ships the real one\n' +
+      '       |                                     +--> ours is now a liability\n' +
+      '       |\n' +
+      '       +--> did anyone verify the control actually fires?\n' +
+      '                 |\n' +
+      '                 +-- NO (3 times) --> sandbox authored, never enabled\n' +
+      '                                      depth budget enforced by a sentence\n' +
+      '                                      goal brake counting the wrong number\n' +
+      '\n' +
+      'The cost is not the individual bug. It is that the estate cannot tell\n' +
+      'a control that fires from a control that looks like it fires.';
+    var corr = section(host,'[0.4]','Where this audit corrected itself', S.corrections.length);
+    add(corr, el('p', null, 'Included on purpose. A record that hides where its own process was wrong is not the honest artifact.'));
+    S.corrections.forEach(function(c){
+      var it = add(corr, el('div','item'));
+      var hd = add(it, el('div','hd'));
+      add(hd, el('span','pill p-medium','corrected'));
+      add(hd, el('span','ttl', c.claimed));
+      add(it, el('div','body', c.actual));
+    });
+  }
+
+  function tabBugs(host){
+    var counts = {critical:0, high:0, medium:0, low:0};
+    S.bugs.forEach(function(b){ counts[b.sev]++; });
+    var b0 = section(host,'[1]','Severity distribution', S.bugs.length + ' confirmed', true);
+    barsWithTwin(b0, [
+      {k:'critical', n:counts.critical, color:'var(--status-critical)'},
+      {k:'high',     n:counts.high,     color:'var(--status-serious)'},
+      {k:'medium',   n:counts.medium,   color:'var(--status-warning)'},
+      {k:'low',      n:counts.low,      color:'var(--mark-muted)'}
+    ], null, '', ['Severity','Count']);
+    add(b0, el('p', null, 'Every bug below carries a file:line and the command or read that proves it. None is inferred from a filename.'));
+
+    var b1 = section(host,'[1.1]','Every confirmed bug', S.bugs.length, true);
+    S.bugs.forEach(function(bug){
+      var it = add(b1, el('div','item'));
+      var hd = add(it, el('div','hd'));
+      add(hd, el('span','pill p-'+bug.sev, bug.sev));
+      add(hd, el('span','mono', bug.id));
+      add(hd, el('span','ttl', bug.title));
+      add(it, el('div','body', bug.why));
+      var dl = add(it, el('dl','kv'));
+      add(dl, el('dt', null, 'evidence'));
+      add(dl, el('dd', null, bug.evidence));
+      add(dl, el('dt', null, 'files'));
+      add(dl, el('dd', null, bug.files.join('  ·  ')));
+      var fx = add(it, el('div','fix'));
+      fx.appendChild(el('b',null,'Fix: '));
+      fx.appendChild(document.createTextNode(bug.fix));
+      var eng = add(it, el('div','callout c-bad'));
+      eng.style.marginBlock = '10px 0';
+      eng.appendChild(el('b',null,'Engineering call: '));
+      eng.appendChild(document.createTextNode(bug.engineering));
+    });
+  }
+
+  function tabOverrides(host){
+    var b = section(host,'[2]','The rule these break', null, true);
+    var c = add(b, el('div','callout c-note'));
+    c.appendChild(el('b',null,'The rule: '));
+    c.appendChild(document.createTextNode(
+      "CC's mechanism is the SUBSTRATE. Our need is a LAYER on it, expressed through CC's own extension points. EXTEND is the default. RETIRE means re-home the opinion FIRST, then delete our pipe. OVERRIDE (intercept CC's mechanism to substitute ours) and DIVERGE (build a second mechanism beside it) are banned."));
+    var b1 = section(host,'[2.1]','The four violations', S.overrides.length, true);
+    S.overrides.forEach(function(o){
+      var it = add(b1, el('div','item'));
+      var hd = add(it, el('div','hd'));
+      add(hd, el('span','pill p-override','override'));
+      add(hd, el('span','mono','#'+o.n));
+      add(hd, el('span','ttl', o.what));
+      var dl = add(it, el('dl','kv'));
+      add(dl, el('dt',null,'ours')); add(dl, el('dd',null,o.ours));
+      add(dl, el('dt',null,'CC has')); add(dl, el('dd',null,o.cc));
+      add(it, el('div','body', o.note));
+    });
+  }
+
+  function tabLedger(host){
+    var b = section(host,'[3]','36 inventions by posture', '36 rows', true);
+    barsWithTwin(b, S.postures.map(function(p){ return {k:p.k, n:p.n, color:p.color, meaning:p.meaning}; }),
+      null, '', ['Posture','Rows','Meaning']);
+    var lg = add(b, el('div'));
+    S.postures.forEach(function(p){
+      var d = add(lg, el('div','body'));
+      d.style.marginBottom = '6px';
+      var s = add(d, el('span','pill p-'+p.k.toLowerCase().replace('-violation',''), p.k));
+      d.appendChild(document.createTextNode('  ' + p.meaning));
+    });
+    var b1 = section(host,'[3.1]','RETIRE — nine parallel mechanisms CC already owns', S.retire.length, true);
+    add(b1, el('p', null, 'Order matters: re-home the opinion onto CC’s mechanism first, then delete our pipe. Deleting first loses the opinion.'));
+    var t = add(b1, el('table'));
+    var hr = add(add(t,el('thead')), el('tr'));
+    ['#','What we built','What CC already has','Overlap'].forEach(function(h){ add(hr, el('th', null, h)); });
+    var tb = add(t, el('tbody'));
+    S.retire.forEach(function(r){
+      var tr = add(tb, el('tr'));
+      add(tr, el('td','mono','#'+r.n));
+      add(tr, el('td', null, r.ours));
+      add(tr, el('td', null, r.cc));
+      var td = add(tr, el('td'));
+      add(td, el('span','pill '+(r.overlap==='FULL'?'p-critical':'p-medium'), r.overlap));
+    });
+    var b2 = section(host,'[3.2]','The 6 KEEP rows — the actual moat', 6);
+    bullets(b2, [
+      'ork:review-pr — 6-7 parallel review agents with a rubric, a cross-model refuter and an explicit cost-consent gate, deferring to claude ultrareview where that is better.',
+      'MCP knowledge-graph memory — typed entities, relations and traversal. CC auto memory is flat markdown with neither.',
+      'ascii-lint, code-comment-glyph-warn and validate-visual-style.py over PR titles and bodies. CC has no mechanism for linting PR text.',
+      'The cross-model refuter shelling to a non-Claude CLI for one quorum slot. The advisor tool is Claude-family only and structurally cannot decorrelate across model families.',
+      'version-compatibility.md, a 618-line feature-to-min-CC-version matrix. feature-availability.md is a provider/plan axis with no version column. Orthogonal, not duplicate.',
+      'Self-contained single-file HTML playgrounds as the repo-committed visual deliverable. Artifacts are claude.ai-hosted, not PR-reviewable, not repo-committed.'
+    ]);
+  }
+
+  function tabGaps(host){
+    var b = section(host,'[4]','39 documented CC capabilities, unused', '14 HIGH', true);
+    barsWithTwin(b, [
+      {k:'HIGH value',   n:14, color:'var(--status-critical)'},
+      {k:'MEDIUM value', n:19, color:'var(--status-warning)'},
+      {k:'LOW value',    n:6,  color:'var(--mark-muted)'}
+    ], null, '', ['Value','Count']);
+    add(b, el('p', null, 'A clearly-irrelevant tail (Bedrock, Vertex, Foundry, GitLab, Slack, enterprise admin, gateways, the 35-page SDK provider axis) was listed separately by the audit so it could not pad this ranking.'));
+    var b1 = section(host,'[4.1]','The 14 HIGH-value gaps', 14, true);
+    var t = add(b1, el('table'));
+    var hr = add(add(t,el('thead')), el('tr'));
+    ['Capability','Docs page','What it unlocks','Why unused'].forEach(function(h){ add(hr, el('th', null, h)); });
+    var tb = add(t, el('tbody'));
+    S.gapsTop.forEach(function(g){
+      var tr = add(tb, el('tr'));
+      var td = add(tr, el('td'));
+      add(td, el('code', null, g.cap));
+      add(tr, el('td','mono', g.page));
+      add(tr, el('td', null, g.unlocks));
+      add(tr, el('td', null, g.why));
+    });
+  }
+
+  function tabMsg(host){
+    var b = section(host,'[5]','Cross-session messaging is live and unconfigured', null, true);
+    tiles(b, [
+      {k:'Socket bound', v:'YES', color:'var(--status-good)', s:S.messaging.socket},
+      {k:'Reachable', v:S.messaging.reach.sockets+' / '+S.messaging.reach.processes, color:'var(--status-critical)', s:'45% of live claude processes'},
+      {k:'Settings set', v:'0 / 3', color:'var(--status-critical)', s:'inbound policy, isolation, expiry'},
+      {k:'Hooks using it', v:'0 / 152', color:'var(--status-critical)', s:'the socket extension point'}
+    ]);
+    bullets(b, S.messaging.notes);
+    var b1 = section(host,'[5.1]','Everything unset', S.messaging.unset.length);
+    var t = add(b1, el('table'));
+    var hr = add(add(t,el('thead')), el('tr'));
+    ['Surface','State'].forEach(function(h){ add(hr, el('th', null, h)); });
+    var tb = add(t, el('tbody'));
+    S.messaging.unset.forEach(function(u){
+      var tr = add(tb, el('tr'));
+      var td = add(tr, el('td')); add(td, el('code', null, u));
+      var td2 = add(tr, el('td'));
+      add(td2, el('span','pill p-critical','zero hits'));
+    });
+    var b2 = section(host,'[5.2]','Why this matters for this estate specifically', null);
+    var pre = add(b2, el('pre','ascii'));
+    pre.textContent =
+      'CLAUDE.md contains an entire worktree-isolation protocol -- worktree-new.sh,\n' +
+      'a "check the cwd of every claude pid" rule, and a documented failure list\n' +
+      '(branch flips mid-operation, git push exits 0 with nothing on origin,\n' +
+      'unfamiliar commits in the reflog, node_modules thrash).\n' +
+      '\n' +
+      'All of it exists because concurrent sessions were BLIND to each other.\n' +
+      '\n' +
+      'That blindness is what the self-initiated case removes:\n' +
+      '  "Claude can also message another session on its own, when a change it\n' +
+      '   just made affects what that session is working on."\n' +
+      '\n' +
+      'Worktrees solve a FILESYSTEM problem. Messaging solves an INFORMATION\n' +
+      'problem. Neither retires the other -- but only one of them is turned on.';
+  }
+
+  function tabFix(host){
+    var b = section(host,'[6]','Ordered refactor plan', S.refactors.length, true);
+    add(b, el('p', null, 'Effort S is under an hour. Every item names the file to open and the check that proves it landed. Nothing here has been applied — this is a proposal against your tree.'));
+    var t = add(b, el('table'));
+    var hr = add(add(t,el('thead')), el('tr'));
+    ['#','Eff','Refactor','Files','Verify','Gate'].forEach(function(h){ add(hr, el('th', null, h)); });
+    var tb = add(t, el('tbody'));
+    S.refactors.forEach(function(r){
+      var tr = add(tb, el('tr'));
+      add(tr, el('td','mono', String(r.n)));
+      var e = add(tr, el('td'));
+      add(e, el('span','pill '+(r.eff==='S'?'p-keep':'p-medium'), r.eff));
+      add(tr, el('td', null, r.title));
+      var f = add(tr, el('td')); add(f, el('code', null, r.files));
+      var v = add(tr, el('td')); add(v, el('code', null, r.verify));
+      var g = add(tr, el('td'));
+      add(g, el('span','pill '+(r.gate==='none'?'p-keep':'p-high'), r.gate));
+    });
+    var b2 = section(host,'[6.1]','What to do in the next hour', 3, true);
+    bullets(b2, [
+      'Refactor 1 (abort-if). Four files, one grep to verify. It is shipped, copy-paste-instructed, and it silently discards the user’s acceptance criteria.',
+      'Refactor 3 (sibling worktree path). One line. The hook currently teaches the exact idiom behind platform#9870 at the moment a session learns a peer exists.',
+      'Refactor 2 (sandbox enabled). One key in two files, then claude --debug to confirm the seatbelt profile loads. Do NOT relax any regex guard until it does.'
+    ]);
+  }
+
+  var ARROWS = {'->':'──▶', '-x':'──✕', '..>':'··▶'};
+  function flowRow(host, tokens){
+    var f = add(host, el('div','flow'));
+    tokens.forEach(function(t){
+      if(ARROWS[t]){
+        var a = add(f, el('span','arw' + (t==='-x'?' x':''), ARROWS[t]));
+        a.setAttribute('aria-hidden','true');
+        return;
+      }
+      var cls = 'nd', lab = t;
+      if(t.charAt(0)==='!'){ cls+=' bad';  lab=t.slice(1); }
+      else if(t.charAt(0)==='+'){ cls+=' good'; lab=t.slice(1); }
+      else if(t.charAt(0)==='~'){ cls+=' dead'; lab=t.slice(1); }
+      else if(t.indexOf('CC ')===0){ cls+=' cc'; }
+      add(f, el('div',cls,lab));
+    });
+  }
+  function lane(host, kind, data){
+    var l = add(host, el('div','lane '+kind));
+    add(l, el('span','tag', kind==='before'?'Before':'After'));
+    data.rows.forEach(function(r){ flowRow(l, r); });
+    add(l, el('p','cap', data.caption));
+  }
+  function tabDiagrams(host){
+    var b = section(host,'[8]','Before and after, six mechanisms', S.diagrams.length, true);
+    add(b, el('p', null, 'Rendered natively so the file stays self-contained with zero external dependencies, per the house playground standard. Every diagram also ships its Mermaid source, which renders in GitHub, the docs site and Notion — expand and copy.'));
+    var legend = add(b, el('div','flow'));
+    ['!broken or harmful','~dead or unreachable','+fixed','plain'].forEach(function(t){
+      var cls='nd', lab=t;
+      if(t.charAt(0)==='!'){cls+=' bad';lab=t.slice(1);}
+      else if(t.charAt(0)==='~'){cls+=' dead';lab=t.slice(1);}
+      else if(t.charAt(0)==='+'){cls+=' good';lab=t.slice(1);}
+      add(legend, el('div',cls,lab));
+    });
+    S.diagrams.forEach(function(d){
+      var s = section(host, '[8.'+(S.diagrams.indexOf(d)+1)+']', d.title, null, true);
+      var wrap = add(s, el('div','dgram'));
+      lane(wrap,'before',d.before);
+      lane(wrap,'after',d.after);
+      var det = add(wrap, el('details','mmd'));
+      add(det, el('summary', null, 'Mermaid source'));
+      var row = add(det, el('div','mrow'));
+      var pre = add(row, el('pre','ascii'));
+      pre.textContent = d.mermaid;
+      var cp = add(row, el('button', null, 'Copy'));
+      cp.type='button';
+      cp.addEventListener('click', function(){
+        navigator.clipboard.writeText(d.mermaid).then(function(){
+          cp.textContent='✓';
+          live.textContent='Mermaid source copied for ' + d.title;
+          setTimeout(function(){ cp.textContent='Copy'; },1500);
+        });
+      });
+    });
+  }
+
+  function tabHonesty(host){
+    var b = section(host,'[7]','What this audit could not settle', S.unsettled.length, true);
+    add(b, el('p', null, 'Each carries the exact probe that settles it. None is a shrug.'));
+    S.unsettled.forEach(function(u){
+      var it = add(b, el('div','item'));
+      var hd = add(it, el('div','hd'));
+      add(hd, el('span','pill p-pending','open'));
+      add(hd, el('span','ttl', u.q));
+      add(it, el('div','body', u.check));
+    });
+    var b2 = section(host,'[7.1]','What this audit admits about itself', S.limits.length, true);
+    bullets(b2, S.limits);
+    var b3 = section(host,'[7.2]','Evidence standard', null);
+    var c = add(b3, el('div','callout c-note'));
+    c.appendChild(el('b', null, 'How every claim here was produced. '));
+    c.appendChild(document.createTextNode(S.meta.evidence + '. Each finding passed through an independent adversarial refuter instructed to default to REFUTED when the evidence offered was not reproducible, and specifically to hunt for evidence that was a docstring rather than executed behaviour, a grep matching a test fixture or type name, a hook called registered from hooks.json alone without checking the entries map, and any "the suite passes" with no pasted summary line.'));
+    var c2 = add(b3, el('div','callout c-bad'));
+    c2.appendChild(el('b', null, 'Still pending: '));
+    c2.appendChild(document.createTextNode(S.meta.pending + '.'));
+  }
+
+  /* ---------- build tabs ---------- */
+  var tablist = document.getElementById('tablist');
+  var panels = document.getElementById('panels');
+  var btns = [];
+  TABS.forEach(function(t, i){
+    var btn = add(tablist, el('button', null, t.label));
+    btn.type='button'; btn.id = 'tab-'+t.id; btn.setAttribute('role','tab');
+    btn.setAttribute('aria-controls','panel-'+t.id);
+    btn.setAttribute('aria-selected', i===0 ? 'true':'false');
+    btn.tabIndex = i===0 ? 0 : -1;
+    if(t.count!=null) add(btn, el('span','cnt', String(t.count)));
+    var p = add(panels, el('section','panel'));
+    p.id='panel-'+t.id; p.setAttribute('role','tabpanel');
+    p.setAttribute('aria-labelledby','tab-'+t.id);
+    p.hidden = i!==0;
+    t.build(p);
+    btns.push({btn:btn, panel:p, t:t});
+  });
+  function select(i){
+    btns.forEach(function(o, j){
+      var on = i===j;
+      o.btn.setAttribute('aria-selected', on?'true':'false');
+      o.btn.tabIndex = on?0:-1;
+      o.panel.hidden = !on;
+    });
+    btns[i].btn.focus();
+    live.textContent = btns[i].t.label + ' panel shown';
+    if(location.hash.slice(1) !== btns[i].t.id) history.replaceState(null,'','#'+btns[i].t.id);
+  }
+  btns.forEach(function(o, i){
+    o.btn.addEventListener('click', function(){ select(i); });
+    o.btn.addEventListener('keydown', function(e){
+      var n = null;
+      if(e.key==='ArrowRight') n = (i+1)%btns.length;
+      else if(e.key==='ArrowLeft') n = (i-1+btns.length)%btns.length;
+      else if(e.key==='Home') n = 0;
+      else if(e.key==='End') n = btns.length-1;
+      if(n!==null){ e.preventDefault(); select(n); }
+    });
+  });
+  var h = location.hash.slice(1);
+  if(h){ for(var i=0;i<TABS.length;i++){ if(TABS[i].id===h){ select(i); break; } } }
+
+  /* ---------- copy-prompt ---------- */
+  var PROMPT =
+    'Fix the three highest-severity findings from the 2026-08-08 CC convergence audit, in this order, each as its own commit on a feature branch:\n\n' +
+    '1. Delete the /goal abort-if clause. It is a syntax no Claude Code version has ever supported (0 hits in the 2.1.226 binary, 0 across 357 changelogs, 27 across ork skills), and because CC allows one goal per session with replace-on-set, the second line replaces the first and silently discards the user acceptance criteria. Fold the budget into the single condition. Files: src/skills/prd-to-goal/SKILL.md:73, its references/recipe-library.md (line 12 policy plus the 8 recipes), src/skills/chain-patterns/references/assertion-grader.md, src/skills/verify/references/streak-gate.md. Verify grep -rc "abort-if" src/skills returns 0.\n\n' +
+    '2. Fix src/hooks/src/lifecycle/session-registrar.ts:246-247, which ships a remediation command recommending a sibling worktree path. CLAUDE.md documents that the cd silently bounces back to the project root, which is the idiom behind platform#9870. Replace with the worktree-new.sh helper form.\n\n' +
+    '3. Turn on the sandbox. src/settings/ork.settings.json:77-125 declares a full policy with no "enabled" key, and ~/.claude/settings.json has no sandbox block at all while carrying skipDangerousModePermissionPrompt and skipAutoPermissionPrompt. Add "enabled": true in both, and add Read(...) denies for the 5 credential paths to permissions.deny, which today holds 21 rules and 0 Read rules. Confirm with claude --debug that the seatbelt profile loads before relaxing any regex guard.\n\n' +
+    'Run npm test and npm run typecheck. Do not claim done without pasting the suite summary lines.';
+  document.getElementById('copyhint').textContent =
+    'Copies a ready prompt for the three highest-severity fixes, with the evidence inline.';
+  var cb = document.getElementById('copybtn');
+  cb.addEventListener('click', function(){
+    navigator.clipboard.writeText(PROMPT).then(function(){
+      cb.textContent = '✓ Copied';
+      live.textContent = 'Fix prompt copied to clipboard';
+      setTimeout(function(){ cb.textContent = 'Copy fix prompt'; }, 1500);
+    });
+  });
+})();
+</script>
+</body>
+</html>

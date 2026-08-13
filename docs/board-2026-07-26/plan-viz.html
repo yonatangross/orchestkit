@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrchestKit Board · 2026-07-26 · decision router</title>
+<style>
+:root{
+  --pg-bg:hsl(232 26% 7%);
+  --pg-ink:hsl(220 18% 93%);
+  --pg-muted:hsl(220 14% 64%);
+  --pg-faint:hsl(220 12% 46%);
+  --pg-glass:hsl(0 0% 100% / .05);
+  --pg-glass-2:hsl(0 0% 100% / .08);
+  --pg-glass-edge:hsl(0 0% 100% / .18);
+  --pg-accent:hsl(248 84% 68%);
+  --pg-accent-deep:hsl(248 74% 52%);
+  --pg-warm:hsl(38 95% 60%);
+  --pg-danger:hsl(352 78% 62%);
+  --pg-ok:hsl(158 64% 52%);
+  --r-sm:9px; --r-md:16px; --r-lg:24px;
+  --sh-amb:0 20px 60px -22px hsl(248 60% 4% / .7);
+  --sh-tight:0 4px 12px -6px hsl(248 60% 4% / .5);
+  --ease:cubic-bezier(.2,.8,.25,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:
+    radial-gradient(60rem 40rem at 12% -8%, hsl(240 70% 40% / .30), transparent 60%),
+    radial-gradient(52rem 36rem at 92% 6%, hsl(264 68% 42% / .26), transparent 62%),
+    radial-gradient(46rem 34rem at 50% 108%, hsl(252 66% 38% / .22), transparent 60%),
+    var(--pg-bg);
+  background-attachment:fixed;
+  color:var(--pg-ink);
+  font-family:ui-sans-serif,-apple-system,"Segoe UI",Inter,system-ui,sans-serif;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin-inline:auto;padding:48px 24px 96px}
+
+/* ---------- header ---------- */
+header{margin-block-end:24px}
+.eyebrow{
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--pg-faint);font-weight:600;margin-block-end:8px;
+}
+h1{font-size:clamp(26px,3.6vw,40px);font-weight:700;letter-spacing:-.3px;line-height:1.15}
+h1 em{font-style:normal;color:var(--pg-accent)}
+.sub{color:var(--pg-muted);margin-block-start:12px;max-width:70ch;font-size:15px}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-block-start:16px}
+.pill{
+  font-size:12px;padding:4px 11px;border-radius:999px;
+  background:var(--pg-glass);border:1px solid var(--pg-glass-edge);
+  color:var(--pg-muted);
+}
+.pill b{color:var(--pg-ink);font-weight:600}
+
+/* ---------- glass ---------- */
+.glass{
+  background:var(--pg-glass);
+  border:1px solid var(--pg-glass-edge);
+  border-radius:var(--r-md);
+  box-shadow:var(--sh-amb),var(--sh-tight),inset 0 1px 0 hsl(0 0% 100% / .12);
+  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(16px);
+}
+
+/* ---------- board ---------- */
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-block-start:24px}
+@media(max-width:900px){.board{grid-template-columns:1fr}}
+.col{padding:16px;min-height:280px;transition:background 200ms var(--ease),border-color 200ms var(--ease)}
+.col.over{background:var(--pg-glass-2);border-color:hsl(248 84% 68% / .5)}
+.col-hd{display:flex;align-items:baseline;justify-content:space-between;margin-block-end:12px}
+.col-hd h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.col[data-b="now"]   .col-hd h2{color:var(--pg-accent)}
+.col[data-b="next"]  .col-hd h2{color:var(--pg-muted)}
+.col[data-b="later"] .col-hd h2{color:var(--pg-faint)}
+.count{font-size:12px;color:var(--pg-faint)}
+.drop{display:flex;flex-direction:column;gap:12px;min-height:200px}
+
+/* ---------- card ---------- */
+.card{
+  background:var(--pg-glass-2);
+  border:1px solid var(--pg-glass-edge);
+  border-radius:var(--r-md);
+  padding:14px;cursor:grab;touch-action:none;
+  box-shadow:var(--sh-tight);
+  transition:transform 200ms var(--ease),opacity 200ms var(--ease);
+}
+.card:focus-visible{outline:2px solid var(--pg-accent);outline-offset:3px}
+/* ghost is positioned with translate() — viewport pointer math, direction-agnostic (§8) */
+.card.ghost{position:fixed;inset-block-start:0;inset-inline-start:0;z-index:99;pointer-events:none;
+  opacity:.95;cursor:grabbing;box-shadow:var(--sh-amb),var(--sh-tight)}
+.card.src{opacity:.28}
+.card.settle{animation:settle 300ms var(--ease)}
+@keyframes settle{from{transform:scale(.96)}to{transform:scale(1)}}
+.c-top{display:flex;gap:10px;align-items:flex-start}
+.ico{font-size:19px;line-height:1.2}
+.c-ttl{font-weight:650;font-size:15px;letter-spacing:-.2px;flex:1}
+.c-why{color:var(--pg-muted);font-size:13px;margin-block-start:8px}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-block-start:10px}
+.badge{font-size:10.5px;font-weight:600;letter-spacing:.03em;padding:3px 8px;border-radius:var(--r-sm);
+  text-transform:uppercase}
+.badge.blocked{background:hsl(352 78% 62% / .16);color:var(--pg-danger)}
+.badge.risk{background:hsl(38 95% 60% / .16);color:var(--pg-warm)}
+.badge.ready{background:hsl(158 64% 52% / .15);color:var(--pg-ok)}
+.badge.plain{background:var(--pg-glass);color:var(--pg-faint)}
+
+/* meters */
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-block-start:12px}
+.m-lab{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--pg-faint);
+  display:flex;justify-content:space-between;margin-block-end:4px}
+.bar{height:4px;border-radius:999px;background:hsl(0 0% 100% / .08);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:var(--pg-accent)}
+.bar.eff i{background:var(--pg-faint)}
+.c-foot{display:flex;align-items:center;justify-content:space-between;margin-block-start:12px;
+  padding-block-start:10px;border-block-start:1px solid hsl(0 0% 100% / .08)}
+.score{font-size:12px;color:var(--pg-faint)}
+.score b{color:var(--pg-ink);font-size:14px;font-weight:700}
+.exec{
+  font:inherit;font-size:12px;font-weight:600;color:var(--pg-ink);
+  background:var(--pg-glass);border:1px solid var(--pg-glass-edge);
+  border-radius:var(--r-sm);padding:5px 11px;cursor:pointer;
+  transition:background 100ms var(--ease)}
+.exec:hover{background:hsl(248 84% 68% / .22)}
+
+/* ---------- panel ---------- */
+.scrim{position:fixed;inset:0;background:hsl(232 40% 3% / .72);z-index:100;display:none}
+.scrim.on{display:block}
+.panel{
+  position:fixed;inset-block:0;inset-inline-end:0;width:min(560px,100%);z-index:101;
+  background:hsl(232 24% 9%);border-inline-start:1px solid var(--pg-glass-edge);
+  padding:24px;overflow-y:auto;display:none;box-shadow:var(--sh-amb)}
+.panel.on{display:block}
+.p-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-block-end:8px}
+.p-hd h3{font-size:19px;letter-spacing:-.2px;line-height:1.25}
+.x{font:inherit;font-size:20px;line-height:1;color:var(--pg-faint);background:none;border:none;
+  cursor:pointer;padding:4px 8px;border-radius:var(--r-sm)}
+.x:hover{color:var(--pg-ink)}
+.p-why{color:var(--pg-muted);font-size:14px;margin-block-end:24px}
+.p-sec{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--pg-faint);
+  font-weight:700;margin-block:24px 12px}
+.strats{display:flex;flex-direction:column;gap:8px}
+.strat{
+  display:flex;gap:12px;align-items:center;width:100%;text-align:start;
+  padding:12px;border-radius:var(--r-sm);cursor:pointer;font:inherit;color:var(--pg-ink);
+  background:var(--pg-glass);border:1px solid transparent;
+  transition:border-color 100ms var(--ease),background 100ms var(--ease)}
+.strat:hover{background:var(--pg-glass-2)}
+.strat[aria-pressed="true"]{border-color:var(--pg-accent);background:hsl(248 84% 68% / .14)}
+.strat b{font-size:14px;font-weight:650;display:block}
+.strat span{font-size:12px;color:var(--pg-muted)}
+.strat .rel{margin-inline-start:auto;font-size:11px;color:var(--pg-faint);text-align:end;white-space:nowrap}
+.agents{display:flex;flex-wrap:wrap;gap:6px}
+.ag{font-size:11.5px;padding:5px 10px;border-radius:999px;cursor:pointer;font:inherit;
+  background:var(--pg-glass);border:1px solid var(--pg-glass-edge);color:var(--pg-muted);
+  transition:background 100ms var(--ease)}
+.ag[aria-pressed="true"]{background:hsl(248 84% 68% / .2);color:var(--pg-ink);
+  border-color:hsl(248 84% 68% / .55)}
+.copybar{display:flex;gap:8px;align-items:stretch;margin-block-start:12px}
+.copybar pre{
+  flex:1;background:hsl(232 30% 5%);border:1px solid var(--pg-glass-edge);border-radius:var(--r-sm);
+  padding:12px;font-size:12px;line-height:1.55;color:var(--pg-muted);white-space:pre-wrap;
+  word-break:break-word;max-height:190px;overflow:auto}
+.copybar button{
+  font:inherit;font-size:13px;font-weight:650;color:hsl(0 0% 100%);
+  background:var(--pg-accent-deep);border:1px solid var(--pg-accent);
+  border-radius:var(--r-sm);padding:0 16px;cursor:pointer;white-space:nowrap;
+  transition:background 100ms var(--ease)}
+.copybar button:hover{background:var(--pg-accent)}
+
+/* ---------- note ---------- */
+.note{margin-block-start:48px;padding:16px 20px}
+.note h3{font-size:14px;font-weight:700;margin-block-end:8px}
+.note p{color:var(--pg-muted);font-size:13.5px;max-width:88ch}
+.note code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;
+  background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px;color:var(--pg-ink)}
+.hint{margin-block-start:16px;font-size:12px;color:var(--pg-faint)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">OrchestKit · main @ d41ec1582 · v9.0.0</div>
+  <h1>Five items on the board. <em>One</em> of them changes the failure rate.</h1>
+  <p class="sub">Every number here was re-derived from live state on 2026-07-26, not carried over from
+  the handoff. Two of the handoff's own claims did not survive that check — they are marked below.
+  Drag to re-triage; open <b>Execute</b> on any card to route it to an ork strategy.</p>
+  <div class="meta">
+    <span class="pill">named agent spawns <b>9,117</b></span>
+    <span class="pill">generic routing <b>29.4%</b></span>
+    <span class="pill">dormant skills <b>18/34</b></span>
+    <span class="pill">dormant agents <b>6/36</b></span>
+    <span class="pill">phantom telemetry rows <b>35.2%</b></span>
+  </div>
+</header>
+
+<div class="board" id="board">
+  <section class="glass col" data-b="now">
+    <div class="col-hd"><h2>Now</h2><span class="count" data-c="now"></span></div>
+    <div class="drop" data-drop="now"></div>
+  </section>
+  <section class="glass col" data-b="next">
+    <div class="col-hd"><h2>Next</h2><span class="count" data-c="next"></span></div>
+    <div class="drop" data-drop="next"></div>
+  </section>
+  <section class="glass col" data-b="later">
+    <div class="col-hd"><h2>Later</h2><span class="count" data-c="later"></span></div>
+    <div class="drop" data-drop="later"></div>
+  </section>
+</div>
+
+<section class="glass note">
+  <h3>🩹 The bug class item 1 is about</h3>
+  <p>Three bugs shipped in one day shared one shape: <b>a value correct in layer A, silently dropped by
+  the transform into layer B, with every gate green because no gate read both sides.</b>
+  <code>LangfuseExporter</code> (docs → reality), <code>argument-hint</code> (skill → command),
+  <code>hook-timing</code> cap (appendAnalytics → dispatcher). Three point fixes shipped. The gate did not.</p>
+  <p class="hint">Corollary found today: <code>audit-skills</code> exists in <code>src/skills/</code> and builds into
+  <code>plugins/</code>, but emits no command — <code>user-invocable: false</code> + <code>disable-model-invocation: true</code>.
+  Intentional, not a drop. But it means the handoff's ranked step 3 names a command that cannot be run.</p>
+</section>
+
+<p class="hint">Keyboard: focus a card, then ← / → to move buckets, ↑ / ↓ to reorder. Esc closes the panel.</p>
+<div class="sr" aria-live="polite" id="live"></div>
+
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="p-ttl"></aside>
+
+<script>
+const CARDS = [
+  { id:'gate', ico:'🧬', ttl:'One gate spanning a build transform',
+    why:'Three bugs in one day, one shape. Point fixes shipped; no gate reads both sides of any transform. The only item that lowers the future failure rate.',
+    impact:5, effort:4, rec:'now',
+    badges:[['ready','3 worked examples'],['plain','design work']],
+    skill:'brainstorm',
+    agents:['ork:backend-system-architect','ork:ci-cd-engineer','ork:test-generator','ork:code-quality-reviewer'] },
+
+  { id:'pr3153', ico:'🚦', ttl:'Unblock PR #3153',
+    why:'Failing check is the missing directory, NOT the body. docs/fix--readme-whatsnew-and-rtl/ needs to exist with >=1 .html. Body already contains "playground". Also BEHIND — rebase, do not update-branch.',
+    impact:2, effort:1, rec:'now',
+    badges:[['ready','exact error in hand'],['plain','~10 min']],
+    skill:'fix-issue',
+    agents:['ork:git-operations-engineer'] },
+
+  { id:'routing', ico:'🧭', ttl:'Generic routing at 29.4%',
+    why:'1,483 general-purpose + 1,197 Explore of 9,117 named spawns. The split is measurable. Whether the split is WRONG is not: 4 constant telemetry fields mean no duration or outcome signal exists.',
+    impact:4, effort:3, rec:'next',
+    badges:[['risk','question is unanswerable as framed'],['plain','6 dormant agents']],
+    skill:'audit-activation',
+    agents:['ork:code-quality-reviewer'] },
+
+  { id:'dormant', ico:'🧊', ttl:'18 of 34 invocable skills never fired',
+    why:'/ork:audit-skills is NOT invocable, so the named tool for this job cannot run. Real structure: 5 dormant design skills + 3 dormant design agents are cold together — one keep/prune decision, not eight.',
+    impact:4, effort:4, rec:'next',
+    badges:[['blocked','audit-skills not invocable'],['risk','pruning trap']],
+    skill:'audit-activation',
+    agents:['ork:code-quality-reviewer','ork:product-strategist'] },
+
+  { id:'hygiene', ico:'🧹', ttl:'Worktree cleanup + /ork:dream',
+    why:'3 merged worktrees to remove; 3 FOREIGN stashes in currency-followups must survive. MEMORY.md is 179 lines against a 140 target, 175 files.',
+    impact:2, effort:1, rec:'later',
+    badges:[['ready','fully verified'],['risk','preserve foreign stashes']],
+    skill:'dream',
+    agents:['ork:git-operations-engineer'] },
+];
+
+const STRATS = [
+  ['single','Single skill','/ork:<skill> — fans out ork agents internally','85-95% · 1x'],
+  ['workflow','Workflow','pipeline or orchestrator-worker','80-90% · 1x'],
+  ['nested','Nested agents','lead agent -> sub-agents, depth-bounded','70-80% · 1.5x'],
+  ['teams','Agent Teams','implicit team + SendMessage mesh','60-70% · 3x'],
+  ['swarm','LLM council','parallel -> blind review -> chairman','50-65% · 3-4x'],
+];
+
+const ALL_AGENTS = ['ork:backend-system-architect','ork:ci-cd-engineer','ork:test-generator',
+  'ork:code-quality-reviewer','ork:git-operations-engineer','ork:debug-investigator',
+  'ork:product-strategist','ork:security-auditor','ork:frontend-ui-developer','ork:workflow-architect'];
+
+const state = new Map(CARDS.map(c => [c.id, {bucket:c.rec, strat:'single', agents:new Set(c.agents)}]));
+const live = document.getElementById('live');
+const say = m => { live.textContent = m; };
+const rice = c => ((c.impact * 2) / c.effort).toFixed(1);
+
+/* ---------- render ---------- */
+function render(focusId){
+  document.querySelectorAll('[data-drop]').forEach(d => d.innerHTML = '');
+  for (const c of CARDS){
+    const st = state.get(c.id);
+    const el = document.createElement('article');
+    el.className = 'card'; el.dataset.id = c.id;
+    el.tabIndex = 0;
+    el.setAttribute('role','button');
+    el.setAttribute('aria-roledescription','draggable card');
+    el.setAttribute('aria-label', c.ttl + ', bucket ' + st.bucket);
+    el.innerHTML =
+      '<div class="c-top"><span class="ico">' + c.ico + '</span><h3 class="c-ttl">' + c.ttl + '</h3></div>' +
+      '<p class="c-why">' + c.why + '</p>' +
+      '<div class="badges">' + c.badges.map(b => '<span class="badge ' + b[0] + '">' + b[1] + '</span>').join('') + '</div>' +
+      '<div class="meters">' +
+        '<div><div class="m-lab"><span>Impact</span><span class="mono">' + c.impact + '/5</span></div>' +
+        '<div class="bar"><i style="width:' + (c.impact*20) + '%"></i></div></div>' +
+        '<div><div class="m-lab"><span>Effort</span><span class="mono">' + c.effort + '/5</span></div>' +
+        '<div class="bar eff"><i style="width:' + (c.effort*20) + '%"></i></div></div>' +
+      '</div>' +
+      '<div class="c-foot"><span class="score">RICE <b class="mono">' + rice(c) + '</b></span>' +
+      '<button class="exec" data-exec="' + c.id + '">Execute &rsaquo;</button></div>';
+    document.querySelector('[data-drop="' + st.bucket + '"]').appendChild(el);
+  }
+  ['now','next','later'].forEach(b => {
+    document.querySelector('[data-c="' + b + '"]').textContent =
+      document.querySelectorAll('[data-drop="' + b + '"] .card').length;
+  });
+  if (focusId){
+    const f = document.querySelector('.card[data-id="' + focusId + '"]');
+    if (f){ f.focus(); f.classList.add('settle'); }
+  }
+}
+
+/* ---------- pointer drag ---------- */
+let drag = null;
+document.addEventListener('pointerdown', e => {
+  const card = e.target.closest('.card');
+  if (!card || e.target.closest('.exec')) return;
+  const r = card.getBoundingClientRect();
+  const ghost = card.cloneNode(true);
+  ghost.classList.add('ghost');
+  ghost.style.width = r.width + 'px';
+  ghost.style.transform = 'translate(' + r.left + 'px,' + r.top + 'px) rotate(-1.5deg)';
+  document.body.appendChild(ghost);
+  card.classList.add('src');
+  drag = { card, ghost, dx: e.clientX - r.left, dy: e.clientY - r.top };
+  card.setPointerCapture(e.pointerId);
+});
+document.addEventListener('pointermove', e => {
+  if (!drag) return;
+  drag.ghost.style.transform =
+    'translate(' + (e.clientX - drag.dx) + 'px,' + (e.clientY - drag.dy) + 'px) rotate(-1.5deg)';
+  drag.ghost.style.display = 'none';
+  const under = document.elementFromPoint(e.clientX, e.clientY);
+  drag.ghost.style.display = '';
+  document.querySelectorAll('.col').forEach(c => c.classList.remove('over'));
+  const col = under && under.closest('.col');
+  if (col) col.classList.add('over');
+});
+document.addEventListener('pointerup', e => {
+  if (!drag) return;
+  drag.ghost.style.display = 'none';
+  const under = document.elementFromPoint(e.clientX, e.clientY);
+  const col = under && under.closest('.col');
+  const id = drag.card.dataset.id;
+  drag.ghost.remove(); drag.card.classList.remove('src');
+  document.querySelectorAll('.col').forEach(c => c.classList.remove('over'));
+  drag = null;
+  if (col){
+    const b = col.dataset.b;
+    if (state.get(id).bucket !== b){
+      state.get(id).bucket = b;
+      say(CARDS.find(c => c.id === id).ttl + ' moved to ' + b);
+      render(id); return;
+    }
+  }
+  render(id);
+});
+
+/* ---------- keyboard ---------- */
+const ORDER = ['now','next','later'];
+document.addEventListener('keydown', e => {
+  const card = e.target.closest && e.target.closest('.card');
+  if (!card) return;
+  const id = card.dataset.id, st = state.get(id);
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){
+    e.preventDefault();
+    const dir = (e.key === 'ArrowRight') ? 1 : -1;
+    const i = Math.min(2, Math.max(0, ORDER.indexOf(st.bucket) + dir));
+    if (ORDER[i] !== st.bucket){
+      st.bucket = ORDER[i];
+      say(CARDS.find(c => c.id === id).ttl + ' moved to ' + st.bucket);
+      render(id);
+    }
+  }
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown'){
+    e.preventDefault();
+    const i = CARDS.findIndex(c => c.id === id);
+    const j = i + (e.key === 'ArrowDown' ? 1 : -1);
+    if (j >= 0 && j < CARDS.length){
+      CARDS.splice(j, 0, CARDS.splice(i,1)[0]);
+      say('reordered'); render(id);
+    }
+  }
+  if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openPanel(id); }
+});
+
+/* ---------- execute panel ---------- */
+const panel = document.getElementById('panel'), scrim = document.getElementById('scrim');
+let openId = null;
+
+function invocation(id){
+  const c = CARDS.find(x => x.id === id), st = state.get(id);
+  const ags = [...st.agents].join(', ');
+  const base = {
+    single:   'Run /ork:' + c.skill + ' for "' + c.ttl + '".',
+    workflow: 'Run a Workflow (pipeline) for "' + c.ttl + '"' + (ags ? ' with ' + ags : '') + '.',
+    nested:   'Run /ork:' + c.skill + ' for "' + c.ttl + '" as a lead agent delegating to ' + ags + '.',
+    teams:    'Run "' + c.ttl + '" as an Agent Team with ' + ags + ' coordinating via SendMessage.',
+    swarm:    'Run "' + c.ttl + '" as an LLM council: ' + ags + ' in parallel, then blind review, then a chairman synthesis.',
+  }[st.strat];
+  return base + ' Plan-only: show me the approach before executing anything.';
+}
+
+function openPanel(id){
+  openId = id;
+  const c = CARDS.find(x => x.id === id), st = state.get(id);
+  panel.innerHTML =
+    '<div class="p-hd"><h3 id="p-ttl">' + c.ico + ' ' + c.ttl + '</h3>' +
+    '<button class="x" id="p-x" aria-label="Close">&times;</button></div>' +
+    '<p class="p-why">' + c.why + '</p>' +
+    '<div class="p-sec">Strategy</div><div class="strats">' +
+      STRATS.map(s => '<button class="strat" data-s="' + s[0] + '" aria-pressed="' + (st.strat === s[0]) + '">' +
+        '<span><b>' + s[1] + '</b><span>' + s[2] + '</span></span>' +
+        '<span class="rel mono">' + s[3] + '</span></button>').join('') +
+    '</div>' +
+    '<div class="p-sec">Specialists</div><div class="agents">' +
+      ALL_AGENTS.map(a => '<button class="ag" data-a="' + a + '" aria-pressed="' + st.agents.has(a) + '">' + a + '</button>').join('') +
+    '</div>' +
+    '<div class="p-sec">Plan-only invocation</div>' +
+    '<div class="copybar"><pre id="inv"></pre><button id="cp">Copy</button></div>';
+  document.getElementById('inv').textContent = invocation(id);
+  panel.classList.add('on'); scrim.classList.add('on');
+  document.getElementById('p-x').focus();
+}
+function closePanel(){
+  panel.classList.remove('on'); scrim.classList.remove('on');
+  const f = openId && document.querySelector('.card[data-id="' + openId + '"]');
+  openId = null; if (f) f.focus();
+}
+
+document.addEventListener('click', e => {
+  const ex = e.target.closest('[data-exec]');
+  if (ex){ openPanel(ex.dataset.exec); return; }
+  if (e.target.id === 'p-x' || e.target === scrim){ closePanel(); return; }
+  const s = e.target.closest('.strat');
+  if (s && openId){
+    state.get(openId).strat = s.dataset.s;
+    panel.querySelectorAll('.strat').forEach(b => b.setAttribute('aria-pressed', b === s));
+    document.getElementById('inv').textContent = invocation(openId);
+    return;
+  }
+  const a = e.target.closest('.ag');
+  if (a && openId){
+    const set = state.get(openId).agents, k = a.dataset.a;
+    set.has(k) ? set.delete(k) : set.add(k);
+    a.setAttribute('aria-pressed', set.has(k));
+    document.getElementById('inv').textContent = invocation(openId);
+    return;
+  }
+  if (e.target.id === 'cp' && openId){
+    const btn = e.target;
+    navigator.clipboard.writeText(invocation(openId)).then(() => {
+      btn.textContent = '✓'; say('invocation copied');
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+    });
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && openId) closePanel(); });
+
+render();
+</script>
+</body>
+</html>

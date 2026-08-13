@@ -1,0 +1,1 @@
+2026-08-08T06:44:44.893Z | deny | Command not in allowlist for unknown: rm -rf / | tool=Bash | session=probe

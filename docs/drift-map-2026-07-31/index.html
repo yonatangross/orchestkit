@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מפת הדריפט של OrchestKit, 31 ביולי 2026</title>
+<style>
+  :root{
+    --pg-bg:            hsl(232 26% 7%);
+    --pg-ink:           hsl(220 18% 93%);
+    --pg-muted:         hsl(220 14% 64%);
+    --pg-faint:         hsl(220 12% 46%);
+    --pg-glass:         hsl(0 0% 100% / .05);
+    --pg-glass-2:       hsl(0 0% 100% / .08);
+    --pg-glass-edge:    hsl(0 0% 100% / .18);
+    --pg-accent:        hsl(248 84% 68%);
+    --pg-accent-deep:   hsl(248 74% 52%);
+    --pg-warm:          hsl(38 95% 60%);
+    --pg-danger:        hsl(354 78% 62%);
+    --pg-ok:            hsl(162 62% 52%);
+
+    --r-sm: 9px; --r-md: 16px; --r-lg: 24px;
+    --ease: cubic-bezier(.2,.8,.25,1);
+    --sh-ambient: 0 20px 60px -22px hsl(232 40% 2% / .7);
+    --sh-tight:   0 4px 12px -6px hsl(232 40% 2% / .5);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(58rem 40rem at 88% -8%, hsl(248 70% 26% / .42), transparent 62%),
+      radial-gradient(46rem 34rem at 4% 6%,  hsl(262 66% 24% / .34), transparent 60%),
+      radial-gradient(52rem 40rem at 50% 108%, hsl(238 62% 22% / .30), transparent 64%),
+      var(--pg-bg);
+    background-attachment: fixed;
+    color:var(--pg-ink);
+    font-family:"SF Hebrew","Assistant","Heebo",-apple-system,"Segoe UI",system-ui,sans-serif;
+    font-size:15px; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin-inline:auto;padding:48px 24px 96px}
+
+  /* ---------- header ---------- */
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:11.5px;font-weight:600;letter-spacing:.09em;
+    color:var(--pg-faint);text-transform:uppercase;
+    padding-block:6px;padding-inline:12px;
+    border:1px solid var(--pg-glass-edge);border-radius:999px;
+    background:var(--pg-glass);
+  }
+  .eyebrow b{color:var(--pg-accent);font-weight:700}
+  h1{
+    font-size:clamp(28px,4.4vw,46px);line-height:1.12;font-weight:700;
+    margin:16px 0 12px;letter-spacing:-.015em;max-width:20ch;
+  }
+  h1 span{color:var(--pg-accent)}
+  .lede{color:var(--pg-muted);max-width:62ch;font-size:16px;margin:0}
+  .lede b{color:var(--pg-ink);font-weight:600}
+
+  /* ---------- kpi ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin-block:48px 24px}
+  .kpi{
+    background:var(--pg-glass);border:1px solid var(--pg-glass-edge);
+    border-radius:var(--r-md);padding:16px;box-shadow:var(--sh-tight);
+  }
+  .kpi .n{font-size:34px;font-weight:700;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .kpi .k{font-size:12px;color:var(--pg-faint);margin-block-start:8px;font-weight:500}
+  .kpi.hot .n{color:var(--pg-danger)}
+  .kpi.warn .n{color:var(--pg-warm)}
+  .kpi.good .n{color:var(--pg-ok)}
+  .kpi.hot{position:relative;overflow:hidden}
+  .kpi.hot::after{
+    content:"";position:absolute;inset-block-start:0;inset-inline-start:0;
+    inline-size:100%;block-size:2px;background:var(--pg-danger);
+    transform-origin:inline-start;animation:sweep 2.6s var(--ease) infinite;
+  }
+  @keyframes sweep{0%{transform:scaleX(0);opacity:0}18%{opacity:1}60%{transform:scaleX(1);opacity:.9}100%{transform:scaleX(1);opacity:0}}
+
+  /* ---------- section ---------- */
+  section{margin-block-start:56px}
+  h2{
+    font-size:20px;font-weight:700;margin:0 0 6px;letter-spacing:-.01em;
+    display:flex;align-items:center;gap:10px;
+  }
+  h2 .idx{
+    font-size:11px;font-weight:700;color:var(--pg-accent);
+    background:hsl(248 84% 68% / .13);border:1px solid hsl(248 84% 68% / .3);
+    inline-size:24px;block-size:24px;border-radius:8px;
+    display:grid;place-items:center;flex:none;font-variant-numeric:tabular-nums;
+  }
+  .sub{color:var(--pg-faint);font-size:13.5px;margin:0 0 20px;max-width:70ch}
+
+  /* ---------- families ---------- */
+  .fams{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .fam{
+    border:1px solid var(--pg-glass-edge);border-radius:var(--r-md);
+    padding:20px;background:var(--pg-glass);box-shadow:var(--sh-tight);
+    position:relative;
+  }
+  .fam.b{border-color:hsl(354 78% 62% / .45);background:hsl(354 60% 40% / .07)}
+  .fam .tag{
+    font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--pg-faint);
+  }
+  .fam.b .tag{color:var(--pg-danger)}
+  .fam .cnt{font-size:40px;font-weight:700;line-height:1.05;margin-block:6px 2px;font-variant-numeric:tabular-nums}
+  .fam .of{font-size:12px;color:var(--pg-faint)}
+  .fam p{font-size:13px;color:var(--pg-muted);margin:12px 0 0}
+  .fam .sensor{
+    margin-block-start:14px;padding-block-start:12px;border-block-start:1px solid var(--pg-glass-edge);
+    font-size:12px;color:var(--pg-faint);
+  }
+  .fam .sensor b{color:var(--pg-ink);font-weight:600}
+
+  .bar{display:flex;block-size:14px;border-radius:999px;overflow:hidden;margin-block:20px 8px;border:1px solid var(--pg-glass-edge)}
+  .bar i{display:block;transition:filter .2s var(--ease)}
+  .bar i.a{background:var(--pg-ok)}
+  .bar i.b{background:var(--pg-danger)}
+  .bar i.c{background:hsl(220 12% 30%)}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--pg-faint)}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .legend s{inline-size:10px;block-size:10px;border-radius:3px;display:block}
+
+  /* ---------- table ---------- */
+  table{inline-size:100%;border-collapse:collapse;font-size:13.5px}
+  th{
+    text-align:start;font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--pg-faint);font-weight:600;padding:9px 12px;
+    border-block-end:1px solid var(--pg-glass-edge);
+  }
+  td{padding:11px 12px;border-block-end:1px solid hsl(0 0% 100% / .06);vertical-align:middle}
+  tr:last-child td{border-block-end:none}
+  tbody tr{transition:background .2s var(--ease)}
+  tbody tr:hover{background:var(--pg-glass)}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;font-variant-numeric:tabular-nums}
+  .pill{
+    display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;
+    padding-block:3px;padding-inline:8px;border-radius:999px;text-transform:uppercase;
+  }
+  .pill.maj{background:hsl(354 78% 62% / .16);color:hsl(354 88% 74%);border:1px solid hsl(354 78% 62% / .35)}
+  .pill.min{background:hsl(38 95% 60% / .14);color:hsl(38 96% 70%);border:1px solid hsl(38 95% 60% / .32)}
+  .pill.pat{background:hsl(248 84% 68% / .14);color:hsl(248 90% 80%);border:1px solid hsl(248 84% 68% / .32)}
+  .pill.skp{background:hsl(220 12% 40% / .2);color:var(--pg-muted);border:1px solid var(--pg-glass-edge)}
+  .card{
+    border:1px solid var(--pg-glass-edge);border-radius:var(--r-md);
+    background:var(--pg-glass);overflow:hidden;box-shadow:var(--sh-tight);
+  }
+  .card .hd{
+    padding:14px 16px;border-block-end:1px solid var(--pg-glass-edge);
+    display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;
+  }
+  .card .hd h3{margin:0;font-size:14.5px;font-weight:650}
+  .card .hd em{font-style:normal;font-size:12px;color:var(--pg-faint)}
+  .arrow{color:var(--pg-faint);padding-inline:4px}
+
+  /* ---------- gaps ---------- */
+  .gaps{display:grid;gap:12px}
+  .gap{
+    border:1px solid var(--pg-glass-edge);border-radius:var(--r-md);
+    background:var(--pg-glass);box-shadow:var(--sh-tight);
+    display:grid;grid-template-columns:auto 1fr;gap:0;
+    transition:border-color .2s var(--ease),transform .2s var(--ease);
+  }
+  .gap:hover{border-color:hsl(248 84% 68% / .5);transform:translateY(-1px)}
+  .gap .rank{
+    padding:20px 18px;display:grid;place-items:center;align-content:center;gap:4px;
+    border-inline-end:1px solid var(--pg-glass-edge);min-inline-size:82px;
+    background:hsl(0 0% 100% / .02);
+  }
+  .gap .rank b{font-size:26px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+  .gap .rank i{font-style:normal;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--pg-faint)}
+  .gap.p1 .rank b{color:var(--pg-danger)}
+  .gap.p2 .rank b{color:var(--pg-warm)}
+  .gap.p3 .rank b{color:var(--pg-accent)}
+  .gap .body{padding:18px 20px}
+  .gap h4{margin:0 0 7px;font-size:15px;font-weight:650;letter-spacing:-.005em}
+  .gap p{margin:0;font-size:13.5px;color:var(--pg-muted)}
+  .gap .fix{
+    margin-block-start:12px;padding-block-start:12px;
+    border-block-start:1px solid var(--pg-glass-edge);
+    font-size:13px;color:var(--pg-ink);
+  }
+  .gap .fix b{color:var(--pg-ok);font-weight:600;font-size:11px;letter-spacing:.06em;text-transform:uppercase;display:block;margin-block-end:4px}
+  .gap code{
+    font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;
+    background:hsl(0 0% 100% / .07);padding-block:1px;padding-inline:5px;border-radius:5px;
+    direction:ltr;display:inline-block;
+  }
+
+  /* ---------- prompt bar ---------- */
+  .promptbar{
+    margin-block-start:56px;border:1px solid hsl(248 84% 68% / .4);
+    border-radius:var(--r-lg);background:hsl(248 60% 40% / .1);
+    padding:20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;
+    box-shadow:var(--sh-ambient);
+  }
+  .promptbar .t{flex:1 1 340px;min-inline-size:0}
+  .promptbar .t b{display:block;font-size:14px;margin-block-end:4px}
+  .promptbar .t span{font-size:12.5px;color:var(--pg-muted)}
+  button{
+    font:inherit;font-weight:600;font-size:13.5px;cursor:pointer;
+    color:hsl(232 30% 10%);background:var(--pg-accent);
+    border:none;border-radius:var(--r-sm);padding-block:11px;padding-inline:20px;
+    transition:filter .2s var(--ease),transform .1s var(--ease);
+  }
+  button:hover{filter:brightness(1.1)}
+  button:active{transform:translateY(1px)}
+  button.ghost{background:transparent;color:var(--pg-ink);border:1px solid var(--pg-glass-edge)}
+  button:focus-visible{outline:2px solid var(--pg-accent);outline-offset:3px}
+  pre.prompt{
+    inline-size:100%;margin:16px 0 0;padding:16px;direction:ltr;text-align:start;
+    background:hsl(232 30% 4% / .6);border:1px solid var(--pg-glass-edge);
+    border-radius:var(--r-md);font-family:ui-monospace,"SF Mono",Menlo,monospace;
+    font-size:12px;line-height:1.7;color:var(--pg-muted);overflow-x:auto;white-space:pre-wrap;
+  }
+  .foot{margin-block-start:48px;font-size:12px;color:var(--pg-faint);line-height:1.9}
+  .foot code{font-family:ui-monospace,Menlo,monospace;direction:ltr;display:inline-block}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">מפת דריפט <b>OrchestKit</b> · 31.07.2026 · נמדד חי</div>
+    <h1>מה אנחנו <span>עוטפים</span>, ומי בכלל שומר על זה</h1>
+    <p class="lede">
+      107 סקילים. חלקם כותבים שיטת עבודה משלנו, חלקם עוטפים מוצר של מישהו אחר שממשיך להתקדם בלעדינו.
+      רק למשפחה הראשונה אין דריפט. כל המספרים כאן נמדדו מול npm ו PyPI בהרצה חיה היום, לא נשלפו מהזיכרון.
+      <b>הממצא המרכזי: הגלאי מכסה 27 סקילים, ועוד 30 סקילים עוטפים ספריות בלי שום גלאי.</b>
+    </p>
+  </header>
+
+  <div class="kpis">
+    <div class="kpi"><div class="n">107</div><div class="k">סקילים סך הכל</div></div>
+    <div class="kpi good"><div class="n">27</div><div class="k">עוטפים, עם גלאי</div></div>
+    <div class="kpi hot"><div class="n">30</div><div class="k">עוטפים, בלי גלאי</div></div>
+    <div class="kpi"><div class="n">48</div><div class="k">שיטה שלנו, אין דריפט</div></div>
+    <div class="kpi warn"><div class="n">21</div><div class="k">ממצאי דריפט היום</div></div>
+    <div class="kpi hot"><div class="n">4</div><div class="k">ימים מאז ריצת הגלאי</div></div>
+  </div>
+
+  <div class="bar" role="img" aria-label="פילוח: 27 עם גלאי, 30 בלי גלאי, 48 שיטה שלנו">
+    <i class="a" style="flex:27"></i><i class="b" style="flex:30"></i><i class="c" style="flex:48"></i>
+  </div>
+  <div class="legend">
+    <span><s style="background:var(--pg-ok)"></s> עוטפים ומנוטרים (27)</span>
+    <span><s style="background:var(--pg-danger)"></s> עוטפים ולא מנוטרים (30)</span>
+    <span><s style="background:hsl(220 12% 30%)"></s> נכתבו על ידינו (48)</span>
+  </div>
+
+  <!-- ============ 1 ============ -->
+  <section>
+    <h2><span class="idx">1</span> שתי משפחות, שני סוגי אחריות</h2>
+    <p class="sub">
+      ההפרדה שביקשת. היא לא סגנונית, היא קובעת מי מייצר לנו חוב: סקיל שעוטף מוצר חיצוני מתיישן לבד,
+      גם אם אף אחד לא נגע בו. סקיל שמתעד שיטה שלנו מתיישן רק כשאנחנו משנים דעה.
+    </p>
+    <div class="fams">
+      <div class="fam">
+        <div class="tag">משפחה א · עוטפים</div>
+        <div class="cnt">57</div>
+        <div class="of">מתוך 107 סקילים</div>
+        <p>
+          מלמדים מוצר של צד שלישי: LangGraph, Playwright, Storybook, Tavily, FastAPI, Langfuse וכן הלאה.
+          המקור האמיתי הוא רג׳יסטרי חיצוני, וגרסה חדשה שם הופכת את התוכן שלנו ללא נכון בלי שנעשה כלום.
+        </p>
+        <div class="sensor">
+          מהם <b>27 מצהירים גלאי</b> בפרונטמטר, ו <b>30 לא מצהירים כלום</b>.
+        </div>
+      </div>
+      <div class="fam b">
+        <div class="tag">הפער האמיתי</div>
+        <div class="cnt">30</div>
+        <div class="of">עוטפים בלי שום גלאי</div>
+        <p>
+          סקילים שמזכירים ספריות חיצוניות בצפיפות גבוהה, אבל בלי <code style="direction:ltr">targets:</code>
+          ובלי <code style="direction:ltr">upstream-version-tested:</code>.
+          מבחינת כל בדיקה שקיימת בריפו, הם לא עוטפים כלום.
+        </p>
+        <div class="sensor">
+          הצפופים ביותר: <b>agent-orchestration</b> (9 ספקים), <b>rag-retrieval</b> (11),
+          <b>devops-deployment</b> (17), <b>scope-appropriate-architecture</b> (19).
+        </div>
+      </div>
+      <div class="fam">
+        <div class="tag">משפחה ב · נכתבו על ידינו</div>
+        <div class="cnt">48</div>
+        <div class="of">מתוך 107 סקילים</div>
+        <p>
+          assess, verify, remember, quality-gates, architecture-patterns, brainstorm וכדומה.
+          מקודדים החלטה שלנו, לא מוצר של אחרים.
+        </p>
+        <div class="sensor">
+          אלה <b>לא צריכים</b> גלאי גרסאות. לנסות לנטר אותם זה רעש, וגייט רועש נהיה גייט מושתק.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section>
+    <h2><span class="idx">2</span> הדריפט היום, בשכבה שכן מנוטרת</h2>
+    <p class="sub">
+      הרצה חיה של <code style="direction:ltr">node scripts/check-labs-versions.mjs</code> ב 31.07.2026.
+      שתי בדיקות עם שתי משמעויות שונה: PIN הוא הגרסה שבאמת קראנו, וכל פער בו הוא דריפט.
+      FLOOR הוא מינימום נדרש, והוא לא שקר אלא רק מזדקן.
+    </p>
+
+    <div class="card" style="margin-block-end:14px">
+      <div class="hd"><h3>PIN, הגרסה שבאמת נבדקה</h3><em>5 מתוך 9 סטו</em></div>
+      <table>
+        <thead><tr><th>חבילה</th><th>נעוץ</th><th>עדכני</th><th>חומרה</th><th>סקיל</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">portless</td><td class="mono">0.15.4</td><td class="mono">0.15.5</td><td><span class="pill pat">patch</span></td><td class="mono">portless</td></tr>
+          <tr><td class="mono">agent-browser</td><td class="mono">0.33.0</td><td class="mono">0.33.1</td><td><span class="pill pat">patch</span></td><td class="mono">browser-tools</td></tr>
+          <tr><td class="mono">agent-browser</td><td class="mono">0.33.0</td><td class="mono">0.33.1</td><td><span class="pill pat">patch</span></td><td class="mono">expect</td></tr>
+          <tr><td class="mono">langgraph</td><td class="mono">1.2.9</td><td class="mono">1.2.10</td><td><span class="pill pat">patch</span></td><td class="mono">langgraph</td></tr>
+          <tr><td class="mono">langfuse</td><td class="mono">4.14.1</td><td class="mono">4.14.2</td><td><span class="pill pat">patch</span></td><td class="mono">monitoring-observability</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="hd"><h3>FLOOR, המינימום המוצהר</h3><em>16 מתוך 25 מפגרים אחרי אפסטרים</em></div>
+      <table>
+        <thead><tr><th>ספרייה</th><th>רצפה</th><th>עדכני</th><th>פער</th><th>סקיל</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">react-i18next</td><td class="mono">&gt;=13.0.0</td><td class="mono">17.0.11</td><td><span class="pill maj">major</span></td><td class="mono">i18n-date-patterns</td></tr>
+          <tr><td class="mono">mcp</td><td class="mono">&gt;=1.27.0</td><td class="mono">2.0.0</td><td><span class="pill maj">major</span></td><td class="mono">mcp-patterns</td></tr>
+          <tr><td class="mono">@pact-foundation/pact</td><td class="mono">&gt;=16.0.0</td><td class="mono">17.0.1</td><td><span class="pill maj">major</span></td><td class="mono">testing-integration</td></tr>
+          <tr><td class="mono">testcontainers</td><td class="mono">&gt;=11.0.0</td><td class="mono">12.0.4</td><td><span class="pill maj">major</span></td><td class="mono">testing-integration</td></tr>
+          <tr><td class="mono">fastapi</td><td class="mono">&gt;=0.100.0</td><td class="mono">0.141.1</td><td><span class="pill min">minor</span></td><td class="mono">python-backend</td></tr>
+          <tr><td class="mono">motion</td><td class="mono">&gt;=12.0.0</td><td class="mono">12.43.0</td><td><span class="pill min">minor</span></td><td class="mono">animation-motion-design</td></tr>
+          <tr><td class="mono">langfuse</td><td class="mono">&gt;=4.0.0</td><td class="mono">4.14.2</td><td><span class="pill min">minor</span></td><td class="mono">monitoring-observability</td></tr>
+          <tr><td class="mono">@playwright/test</td><td class="mono">&gt;=1.59.0</td><td class="mono">1.62.1</td><td><span class="pill min">minor</span></td><td class="mono">testing-e2e</td></tr>
+          <tr><td class="mono">storybook</td><td class="mono">&gt;=10.3.0</td><td class="mono">10.5.5</td><td><span class="pill min">minor</span></td><td class="mono">storybook-testing, storybook-mcp</td></tr>
+          <tr><td class="mono">style-dictionary</td><td class="mono">&gt;=5.3.0</td><td class="mono">5.5.0</td><td><span class="pill min">minor</span></td><td class="mono">design-system-tokens, figma</td></tr>
+          <tr><td class="mono">locust</td><td class="mono">&gt;=2.40.0</td><td class="mono">2.46.2</td><td><span class="pill min">minor</span></td><td class="mono">testing-perf</td></tr>
+          <tr><td class="mono">deepeval</td><td class="mono">&gt;=4.0.0</td><td class="mono">4.1.4</td><td><span class="pill min">minor</span></td><td class="mono">testing-llm</td></tr>
+          <tr><td class="mono">@modelcontextprotocol/sdk</td><td class="mono">&gt;=1.29.0</td><td class="mono">1.30.0</td><td><span class="pill min">minor</span></td><td class="mono">mcp-patterns</td></tr>
+          <tr><td class="mono">vite</td><td class="mono">&gt;=8.0.0</td><td class="mono">8.2.0</td><td><span class="pill min">minor</span></td><td class="mono">vite-advanced</td></tr>
+          <tr><td class="mono">k6</td><td class="mono">&gt;=1.0.0</td><td class="mono">לא ידוע</td><td><span class="pill skp">skip</span></td><td class="mono">testing-perf</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sub" style="margin-block-start:14px">
+      שורת ה k6 היא באג שקט: רצפה מוצהרת שהספרייה שלה חסרה ב LIBRARY_REGISTRY מדווחת SKIP,
+      וזה נקרא בעין כמו תקין. ראה פער מספר 5.
+    </p>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section>
+    <h2><span class="idx">3</span> הדריפט שאף גייט לא רואה</h2>
+    <p class="sub">
+      הטענות האלה כתובות בגוף הסקילים כפרוזה או כדוגמת קוד, בלי הצהרת <code style="direction:ltr">targets:</code>.
+      אימתי אותן היום מול PyPI. אף בדיקה בריפו לא נוגעת בהן, לא היום ולא בכל יום אחר.
+    </p>
+    <div class="card">
+      <div class="hd"><h3>נמדד חי מול PyPI, 31.07.2026</h3><em>שכבה ללא גלאי</em></div>
+      <table>
+        <thead><tr><th>הטענה בסקיל</th><th>איפה</th><th>בפועל היום</th><th>פער</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">openai&gt;=2.9.0</td><td class="mono">agent-orchestration</td><td class="mono">2.51.0</td><td><span class="pill maj">42 מינורים</span></td></tr>
+          <tr><td class="mono">CrewAI 1.8</td><td class="mono">agent-orchestration</td><td class="mono">1.15.9</td><td><span class="pill maj">7 מינורים</span></td></tr>
+          <tr><td class="mono">openai-agents&gt;=0.12.0</td><td class="mono">agent-orchestration</td><td class="mono">0.19.1</td><td><span class="pill maj">7 מינורים</span></td></tr>
+          <tr><td class="mono">AutoGen 0.4</td><td class="mono">agent-orchestration</td><td class="mono">0.7.5</td><td><span class="pill min">3 מינורים</span></td></tr>
+          <tr><td class="mono">DSPy 3.1.0</td><td class="mono">llm-integration</td><td class="mono">3.2.1</td><td><span class="pill min">מינור אחד</span></td></tr>
+          <tr><td class="mono">langchain-ollama&gt;=1.0.1</td><td class="mono">llm-integration</td><td class="mono">1.1.0</td><td><span class="pill skp">תקין</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sub" style="margin-block-start:14px">
+      וזה רק שני סקילים מתוך 30. ספקים נוספים שמופיעים בתוכן בלי שום ניטור:
+      <b>Tavily</b> (116 אזכורים ב web-research-workflow), Celery, Temporal, Kafka, Terraform, Kubernetes,
+      Pinecone, Qdrant, Weaviate, ChromaDB, LlamaIndex, 21st.dev, Stitch.
+    </p>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section>
+    <h2><span class="idx">4</span> מה לא מאוטמט, לפי סדר תשואה</h2>
+    <p class="sub">
+      זה הלב של השאלה. לא "איפה יש דריפט" אלא "איפה אין לנו בכלל עין". מדורג לפי כמה מהפער נסגר ביחס למאמץ.
+    </p>
+    <div class="gaps">
+
+      <div class="gap p1">
+        <div class="rank"><b>1</b><i>קריטי</i></div>
+        <div class="body">
+          <h4>30 סקילים עוטפים בלי אף גלאי</h4>
+          <p>
+            הגייט מכסה רק את מי שכבר טרח להצהיר. סקיל שמזכיר CrewAI, Tavily או Terraform ולא כתב
+            <code>targets:</code> הוא בלתי נראה לחלוטין לכל בדיקה שקיימת. זו לא תקלה בגלאי, זו תקלה בהיקף.
+          </p>
+          <div class="fix"><b>הפתרון</b>
+            הפונקציה <code>collectFloors()</code> כבר סורקת את כל הסקילים לבד, אז אין צורך ברישום ידני.
+            צריך רק גייט הפוך: סקיל שמזכיר חבילה שקיימת ב LIBRARY_REGISTRY מעל סף אזכורים ולא הצהיר
+            <code>targets:</code> נופל. ראצ׳ט עם בייסליין, כמו ארבעת הגייטים הדטרמיניסטיים הקיימים.
+          </div>
+        </div>
+      </div>
+
+      <div class="gap p1">
+        <div class="rank"><b>2</b><i>קריטי</i></div>
+        <div class="body">
+          <h4>הגלאי היחיד לשכבה המנוטרת לא רץ בכלל לבד</h4>
+          <p>
+            ל <code>labs-version-watch.yml</code> יש רק <code>workflow_dispatch</code>, בלי
+            <code>schedule</code>. הריצה האחרונה היתה ב 27.07, לפני ארבעה ימים.
+            כל 21 הממצאים בסעיף 2 ישבו שם בלי שאף אחד ידע. הסיבה למניעת התזמון היתה מדיניות מכסת ה LLM,
+            אבל <code>check-labs-versions.mjs</code> הוא בכלל 0 דולר: רק fetch לרג׳יסטרי, בלי שום קריאת מודל.
+          </p>
+          <div class="fix"><b>הפתרון</b>
+            לפצל את הג׳וב. גישוש הרשת רץ בתזמון לילי ומדווח ל step summary, ורק שלב פתיחת ה PR
+            נשאר ידני. מדיניות המכסה נשמרת במלואה, והעין נפקחת כל יום.
+          </div>
+        </div>
+      </div>
+
+      <div class="gap p2">
+        <div class="rank"><b>3</b><i>גבוה</i></div>
+        <div class="body">
+          <h4>טענות גרסה בפרוזה הן שטח מת מובנה</h4>
+          <p>
+            זה מתועד בריפו עצמו: סריקה לקסיקלית של <code>"Lib N.N"</code> נכתבה ואז נמחקה,
+            כי היא לא הצליחה להבחין בין "דורש לפחות X" לבין "פיצ׳ר Y נחת ב X". ההחלטה היתה נכונה.
+            התוצאה היא שהמחרוזת "CrewAI 1.8" שורדת לנצח.
+          </p>
+          <div class="fix"><b>הפתרון</b>
+            לא לתקן את הסורק. הכיוון הנכון הוא להפוך את הכיווניות: לא לסרוק פרוזה, אלא לדרוש
+            <code>targets:</code>. ברגע שלטענה יש בית מובנה, היא נבדקת דטרמיניסטית ואין צורך לנחש כוונה מטקסט.
+            זה בדיוק אותו תיקון של פער 1, וזו הסיבה ששניהם קודם.
+          </div>
+        </div>
+      </div>
+
+      <div class="gap p2">
+        <div class="rank"><b>4</b><i>גבוה</i></div>
+        <div class="body">
+          <h4>גלאי הסימבולים מאמת 456 מתוך 1,168 ייבואים</h4>
+          <p>
+            <code>import-symbol-watch</code> הוא הגייט הבריא ביותר כאן: רץ בקרון יומי, רץ גם היום, וירוק.
+            אבל הוא מדווח בעצמו מה הוא דילג עליו: 189 חבילות לא ממופות, 189 ייבואי subpath,
+            128 חבילות עם <code>export *</code>, ו 115 בלי הצהרות טיפוסים. LIBRARY_REGISTRY מחזיק 60 רשומות בסך הכל.
+          </p>
+          <div class="fix"><b>הפתרון</b>
+            התשואה הגבוהה ביותר היא הוספת החבילות הלא ממופות לרג׳יסטרי: 189 אתרי ייבוא בעלות של
+            שורה אחת לחבילה. שים לב שהגלאי כבר מדווח את הפער בעצמו, וזו התנהגות נכונה שכדאי לשמר.
+          </div>
+        </div>
+      </div>
+
+      <div class="gap p3">
+        <div class="rank"><b>5</b><i>בינוני</i></div>
+        <div class="body">
+          <h4>רצפה מוצהרת בלי רשומת רג׳יסטרי נכשלת בשקט</h4>
+          <p>
+            <code>k6</code> מוצהר כ <code>&gt;=1.0.0</code> ב testing-perf, אין לו רשומה,
+            והפלט הוא <code>SKIP</code>. שורת SKIP באמצע רשימת ok נקראת כמו הצלחה, וזה בדיוק
+            סוג הכשל השקט שהופך גייט לתיאטרון.
+          </p>
+          <div class="fix"><b>הפתרון</b>
+            תיקון של שורה אחת: רצפה מוצהרת שהספרייה שלה לא נפתרת היא שגיאת תצורה, לא דילוג.
+            להפיל את הבדיקה במקום לדווח SKIP.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section>
+    <h2><span class="idx">5</span> מה כן עובד, ולמה לא לגעת בו</h2>
+    <p class="sub">התמונה לא כולה אדומה, וכדאי לדעת מה לשמר לפני שמשנים.</p>
+    <div class="card">
+      <table>
+        <thead><tr><th>מנגנון</th><th>תזמון</th><th>מצב היום</th><th>הערה</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">import-symbol-watch</td><td>קרון יומי 06:00</td><td><span class="pill pat">רץ, ירוק</span></td><td>מדווח את הדילוגים שלו במקום להסתיר אותם</td></tr>
+          <tr><td class="mono">memory-staleness</td><td>קרון לילי 04:00</td><td><span class="pill pat">רץ</span></td><td>מכסה ציר אחר לגמרי, התיישנות זיכרון</td></tr>
+          <tr><td class="mono">model-recency ratchet</td><td>בכל PR</td><td><span class="pill pat">עובר, השתפר</span></td><td>11 מתוך 16 בפרוזה, 23 מתוך 24 קבצים</td></tr>
+          <tr><td class="mono">targets-floor-agreement</td><td>בכל PR</td><td><span class="pill pat">0 התנגשויות</span></td><td>גייט קשיח, תופס שתי רצפות סותרות לאותה ספרייה</td></tr>
+          <tr><td class="mono">claude-release-watch</td><td>ידני</td><td><span class="pill min">רץ ב 30.07</span></td><td>ידני אבל בפועל מופעל, בניגוד ל labs-version-watch</td></tr>
+          <tr><td class="mono">track-only tier</td><td>עם הגלאי</td><td><span class="pill min">2 עדכונים</span></td><td>wterm 0.2.1 עלה ל 0.3.1, החלטה ולא משימה</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="promptbar">
+    <div class="t">
+      <b>להפוך את זה לעבודה</b>
+      <span>הפרומפט מקודד את שני הפערים הראשונים, שהם אותו תיקון משני כיוונים.</span>
+    </div>
+    <button id="copy">העתק פרומפט</button>
+    <button class="ghost" id="toggle">הצג</button>
+    <pre class="prompt" id="p" hidden>Close the two structural drift gaps in OrchestKit.
+
+GAP 1 (scope): 30 skills wrap third-party products with no sensor at all.
+  collectFloors() in scripts/check-labs-versions.mjs already auto-discovers
+  every skill, so no manual registry is needed. Add an INVERSE gate:
+  a SKILL.md referencing a LIBRARY_REGISTRY package above a reference
+  threshold, with no `targets:` entry, fails. Ship it as a ratchet with a
+  committed baseline (same contract as test-targets-floor-agreement.mjs)
+  so pre-existing findings do not redden every PR.
+  Verified-stale examples that must be caught: agent-orchestration claims
+  "CrewAI 1.8" (live 1.15.9), "AutoGen 0.4" (0.7.5), "openai>=2.9.0"
+  (2.51.0); llm-integration claims "DSPy 3.1.0" (3.2.1).
+
+GAP 2 (cadence): .github/workflows/labs-version-watch.yml is
+  workflow_dispatch-only, last run 2026-07-27. check-labs-versions.mjs makes
+  ZERO LLM calls (registry fetch only), so the no-schedule quota policy does
+  not apply to the probe. Split the job: nightly `schedule` for the network
+  probe writing to the step summary; keep the PR-authoring step manual.
+  Do not add a schedule to any job that calls `claude -p`.
+
+GAP 5 (one-liner, bundle it): a declared floor whose library is absent from
+  LIBRARY_REGISTRY currently prints SKIP and reads as ok (k6 in testing-perf).
+  Make an unresolvable declared floor a hard failure.
+
+Verify by running: node scripts/check-labs-versions.mjs
+Do not touch the 48 authored skills. They have no upstream and need no sensor.</pre>
+  </div>
+
+  <p class="foot">
+    כל המספרים נמדדו בהרצה חיה ב 31.07.2026 מול npm ו PyPI.
+    מקורות: <code>node scripts/check-labs-versions.mjs</code>,
+    <code>node scripts/check-import-symbols.mjs</code>,
+    <code>bash tests/skills/structure/test-model-recency.sh</code>,
+    <code>gh run list</code> לתאריכי הריצה, וסריקת פרונטמטר על <code>src/skills/*/SKILL.md</code>.
+    סיווג שלוש השכבות נגזר מנוכחות <code>targets:</code> או <code>upstream-version-tested:</code>,
+    ומצפיפות אזכורי ספקים בגבולות מילה.
+  </p>
+
+</div>
+<script>
+  const p = document.getElementById('p');
+  const t = document.getElementById('toggle');
+  t.addEventListener('click', () => {
+    p.hidden = !p.hidden;
+    t.textContent = p.hidden ? 'הצג' : 'הסתר';
+  });
+  document.getElementById('copy').addEventListener('click', async (e) => {
+    try {
+      await navigator.clipboard.writeText(p.textContent);
+      const b = e.currentTarget, o = b.textContent;
+      b.textContent = 'הועתק';
+      setTimeout(() => { b.textContent = o; }, 1600);
+    } catch { p.hidden = false; t.textContent = 'הסתר'; }
+  });
+</script>
+</body>
+</html>

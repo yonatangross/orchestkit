@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  LIVING PLAN template (LPP v2.1) — a plan playground that tracks its own execution.
+  Persona: cool-glass (§1). Tokens per §2 (--pg-*, HSL). Glass per §5. Motion per §6
+  (signature moment = panel cross-fade; everything else 100/200ms).
+
+  Contract (the part that makes it "living"):
+  • ONE plan = ONE file. Sessions UPDATE the STATE block below in place; never fork a
+    second file for the same plan slug. Git history is the timeline.
+  • The visual layer renders FROM state. A dumb updater that only mutates the JSON is
+    legal and sufficient; every tab, ring, and bar re-paints on reload.
+  • Every item carries `evidence`: the command/check that PROVES done. Marking an item
+    done without evidence is a contract violation, not a style choice.
+  • `changelog` is append-only. Merges never drop items; removed work moves to
+    status "dropped" with a reason. Rejected planning-time ideas live in `discards`.
+
+  Depth guide (thin instances are the failure mode): per-item before/after, detail with
+  the NUMBERS that justified it, risk + failure + containment, evidence, owner;
+  plan-level scored dims with target, discards with reasons, research with sources.
+
+  Reuse: copy this file, replace STATE, keep the engine. Run the §10 self-audit before
+  shipping. Archetype family: DASHBOARD (living).
+
+  SECTION CANON v1 (part of the contract, all LPP surfaces use these labels in this order;
+  renderers may OMIT a section but never rename or reorder):
+    Execution waves · Progress matrix · Scores · Risk map · Discards · Research · Updates
+  This applies to the file renderer below, platform-native renders, and confirm-gate views.
+  Drift between surfaces was the first real-world failure of LPP v1 adoption; the canon
+  exists so a plan reads identically wherever it is rendered.
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Living Plan</title>
+<style>
+  :root{
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(226 14% 64%);
+    --pg-faint: hsl(226 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-accent-deep: hsl(248 70% 54%);
+    --pg-violet: hsl(268 78% 70%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-ok: hsl(152 62% 58%);
+    --pg-risk: hsl(0 78% 66%);
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    font-size: 15px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background: var(--pg-bg);
+    color: var(--pg-ink);
+    font-family:-apple-system,'SF Pro Text',Inter,sans-serif;
+    line-height:1.55; padding:48px 24px 96px;
+    background-image:
+      radial-gradient(60% 42% at 12% 0%,   hsl(248 84% 68% / .16), transparent 62%),
+      radial-gradient(48% 36% at 88% 8%,   hsl(268 78% 70% / .12), transparent 60%),
+      radial-gradient(52% 40% at 50% 100%, hsl(240 80% 62% / .10), transparent 64%);
+    background-attachment: fixed;
+  }
+  .wrap{max-inline-size:1120px;margin-inline:auto}
+
+  /* type roles (§4) */
+  h1{font-size:1.85rem;font-weight:700;letter-spacing:-.3px}
+  h2{font-size:1.1rem;font-weight:650;letter-spacing:-.2px;margin-block:32px 14px;
+     color:var(--pg-ink);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .sub{color:var(--pg-muted);margin-block:8px 28px;font-size:.92rem}
+  .mono,.num,td.num,.kpi b{font-variant-numeric:tabular-nums}
+
+  /* glass (§5): fill + 1px edge + blur + top-left inset light + two-part shadow */
+  .glass{
+    background:var(--pg-glass);
+    border:1px solid var(--pg-glass-edge);
+    border-radius:24px;
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / .12),
+      0 20px 60px -22px hsl(232 40% 3% / .7),
+      0 4px 12px -6px hsl(232 40% 3% / .5);
+  }
+
+  /* hero */
+  .hero{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;
+        padding:24px;margin-block-end:24px}
+  .ring-wrap{position:relative;inline-size:132px;block-size:132px}
+  .ring-wrap svg{transform:rotate(-90deg)}
+  .ring-c{fill:none;stroke:hsl(0 0% 100% / .08);stroke-width:10}
+  .ring-p{fill:none;stroke:url(#pg-grad);stroke-width:10;stroke-linecap:round;
+          transition:stroke-dashoffset 500ms var(--pg-ease)}
+  .ring-txt{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+  .ring-txt b{font-size:1.5rem;font-weight:700}
+  .ring-txt span{font-size:.68rem;color:var(--pg-muted);text-transform:uppercase;letter-spacing:.06em}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .kpi{background:var(--pg-glass);border:1px solid hsl(0 0% 100% / .10);
+       border-radius:16px;padding:12px 16px}
+  .kpi b{display:block;font-size:1.25rem;font-weight:700}
+  .kpi span{color:var(--pg-faint);font-size:.75rem}
+  .kpi .up{color:var(--pg-ok)} .kpi .mid{color:var(--pg-warm)} .kpi .acc{color:var(--pg-accent)}
+
+  /* wave progress strip */
+  .wavestrip{display:grid;gap:10px;padding:20px 24px;margin-block-end:24px}
+  .wrow{display:grid;grid-template-columns:130px 1fr 76px;gap:16px;align-items:center;font-size:.85rem}
+  .wrow .wl{color:var(--pg-muted);font-weight:600}
+  .wbar{block-size:10px;border-radius:5px;background:hsl(0 0% 100% / .07);overflow:hidden}
+  .wbar i{display:block;block-size:100%;border-radius:5px;
+          background:linear-gradient(90deg,var(--pg-accent-deep),var(--pg-accent),var(--pg-violet));
+          transition:inline-size 500ms var(--pg-ease)}
+  .wrow .wn{text-align:end;color:var(--pg-faint)}
+  .wrow.done .wl{color:var(--pg-ok)} .wrow.done .wbar i{background:var(--pg-ok)}
+
+  /* tabs (secondary tier) */
+  .tabs{display:flex;gap:8px;margin-block:24px 18px;flex-wrap:wrap}
+  .tab{background:var(--pg-glass);border:1px solid hsl(0 0% 100% / .12);color:var(--pg-muted);
+       padding:8px 18px;border-radius:999px;cursor:pointer;font-size:.88rem;
+       transition:color 100ms var(--pg-ease),background 100ms var(--pg-ease)}
+  .tab:hover{color:var(--pg-ink)}
+  .tab.active{background:linear-gradient(135deg,var(--pg-accent-deep),var(--pg-accent));
+              color:hsl(232 30% 8%);border-color:transparent;font-weight:650}
+
+  /* panels: the one signature moment = 300ms cross-fade + rise (§6) */
+  .panel{display:none}
+  .panel.active{display:block;animation:pg-in 300ms var(--pg-ease)}
+  @keyframes pg-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--pg-glass);border:1px solid var(--pg-glass-edge);border-radius:16px;
+        backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+        box-shadow:inset 0 1px 0 hsl(0 0% 100% / .10), 0 4px 12px -6px hsl(232 40% 3% / .5);
+        padding:18px 22px;margin-block-end:14px;
+        transition:border-color 200ms var(--pg-ease)}
+  .card:hover{border-color:hsl(248 84% 68% / .5)}
+  .card h3{font-size:1rem;font-weight:650;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-block-end:4px}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-block:8px;align-items:center}
+  .chip{font-size:.72rem;padding:2px 10px;border-radius:999px;border:1px solid hsl(0 0% 100% / .14);color:var(--pg-faint);white-space:nowrap}
+  .impact{display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--pg-muted)}
+  .impact .ib{inline-size:72px;block-size:6px;border-radius:3px;background:hsl(0 0% 100% / .08);overflow:hidden}
+  .impact .ib i{display:block;block-size:100%;background:linear-gradient(90deg,var(--pg-accent),var(--pg-violet))}
+
+  /* status system: hue carries the role */
+  .st{font-size:.72rem;padding:2px 12px;border-radius:999px;font-weight:600}
+  .st-planned{color:var(--pg-faint);border:1px solid hsl(0 0% 100% / .16);background:hsl(0 0% 100% / .03)}
+  .st-in_progress{color:hsl(38 95% 68%);border:1px solid hsl(38 95% 60% / .45);background:hsl(38 95% 60% / .10)}
+  .st-done{color:var(--pg-ok);border:1px solid hsl(152 62% 58% / .45);background:hsl(152 62% 58% / .10)}
+  .st-dropped{color:var(--pg-risk);border:1px solid hsl(0 78% 66% / .4);background:hsl(0 78% 66% / .08);text-decoration:line-through}
+
+  table{inline-size:100%;border-collapse:collapse;font-size:.85rem}
+  th,td{text-align:start;padding:8px 12px;border-block-end:1px solid hsl(0 0% 100% / .08);vertical-align:top}
+  th{color:var(--pg-faint);font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em}
+  .note{border-inline-start:3px solid var(--pg-warm);padding:10px 16px;background:var(--pg-glass);
+        border-radius:0 12px 12px 0;margin-block:14px;font-size:.88rem;color:var(--pg-muted)}
+  .src{font-size:.8rem;color:var(--pg-muted)}
+  .faint{color:var(--pg-faint)}
+  .strike{color:var(--pg-faint);text-decoration:line-through}
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-block-start:8px;font-size:.82rem}
+  .ba>div{background:hsl(0 0% 100% / .04);border:1px solid hsl(0 0% 100% / .09);border-radius:12px;padding:10px 14px}
+  .ba b{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pg-faint);margin-block-end:3px}
+  .ba .aft b{color:var(--pg-ok)}
+  details summary{cursor:pointer;color:var(--pg-faint);font-size:.82rem;margin-block-start:8px}
+  .score-row{display:grid;grid-template-columns:170px 1fr 46px;gap:12px;align-items:center;margin-block:6px;font-size:.85rem}
+  .score-row .bar{block-size:8px;border-radius:4px;background:hsl(0 0% 100% / .07);overflow:hidden}
+  .score-row .bar i{display:block;block-size:100%;border-radius:4px;
+    background:linear-gradient(90deg,var(--pg-accent-deep),var(--pg-accent))}
+  .score-row .v{text-align:end;color:var(--pg-muted)}
+  .wavehead{font-size:.78rem;color:var(--pg-faint);font-weight:400}
+  a{color:var(--pg-accent)}
+  @media(max-width:760px){.ba{grid-template-columns:1fr}.hero{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="lpp-title">Living Plan</h1>
+  <p class="sub" id="lpp-sub"></p>
+
+  <div class="hero glass">
+    <div class="ring-wrap">
+      <svg width="132" height="132" viewBox="0 0 132 132" aria-hidden="true">
+        <defs>
+          <linearGradient id="pg-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="hsl(248 70% 54%)"/>
+            <stop offset="100%" stop-color="hsl(268 78% 70%)"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-c" cx="66" cy="66" r="56"/>
+        <circle class="ring-p" id="lpp-ring" cx="66" cy="66" r="56"/>
+      </svg>
+      <div class="ring-txt"><b id="lpp-pct">0%</b><span>complete</span></div>
+    </div>
+    <div class="kpis" id="lpp-kpis"></div>
+  </div>
+
+  <div class="wavestrip glass" id="lpp-wavestrip"></div>
+
+  <div class="tabs" id="lpp-tabs"></div>
+  <div id="lpp-panels"></div>
+</div>
+
+<!-- ═══════════ STATE — the only block sessions edit. Append, flip statuses, never fork. ═══════════ -->
+<!-- SECURITY INVARIANT — write every "<" in the values below as \u003c
+     `type="application/json"` means nothing to the HTML tokenizer: a literal
+     `</script` anywhere in this block ENDS the element at parse time, and the rest
+     of the state is then parsed as live markup. That happens before JSON.parse and
+     before esc()/stCls()/riskColor()/safeUrl() exist, so no renderer-side guard can
+     defend it — a plan title of `x</script><img src=x onerror=...>` simply executes.
+     JSON.stringify does NOT escape `<`, so the writer must. \u003c is valid JSON
+     and parses back to a plain `<`. Enforced by tests/security/test-json-island-breakout.sh. -->
+<script type="application/json" id="lpp-state">
+{
+  "lpp": 2,
+  "slug": "post-triage-execution",
+  "title": "Post-triage execution — 2026-07-22/23",
+  "created": "2026-07-22",
+  "updated": "2026-07-23T02:50:00Z",
+  "score": {
+    "dims": {
+      "requested_items_closed": 0.75,
+      "findings_filed": 1,
+      "residual_risk_closed": 0.25
+    },
+    "composite": 7.5,
+    "target": 10
+  },
+  "waves": [
+    {
+      "id": "W0",
+      "title": "triage + adversarial verification",
+      "status": "done"
+    },
+    {
+      "id": "W1",
+      "title": "cleanup (destructive, verified first)",
+      "status": "done"
+    },
+    {
+      "id": "W2",
+      "title": "hardening PRs",
+      "status": "in_progress"
+    },
+    {
+      "id": "W3",
+      "title": "incidental findings filed",
+      "status": "done"
+    },
+    {
+      "id": "W4",
+      "title": "open decisions — needs the operator",
+      "status": "planned"
+    }
+  ],
+  "items": [
+    {
+      "id": "W0.1",
+      "wave": "W0",
+      "title": "Audit real state, classify the triage failures",
+      "impact": 7,
+      "effort": "45min",
+      "risk": "low",
+      "status": "done",
+      "before": "Handoff claimed 'all PRs merged, nothing in flight'; triage read as 'flaky, 2 of 3 runs'.",
+      "after": "Three distinct failure classes named with run IDs; handoff claim refuted against live state.",
+      "detail": "The branch looked 17 commits ahead of main, which was squash-ancestry illusion, not stranded work. The triage workflow was not flaky: 401 outside-contributor, dead generation, and a GitHub 503 are three unrelated causes.",
+      "failure": "Trusting the handoff, or calling one cause where there were three.",
+      "containment": "Every claim re-derived from gh run logs at HEAD, never from memory.",
+      "evidence": "cat .claude/TRIAGE-2026-07-22.md",
+      "owner": "agent"
+    },
+    {
+      "id": "W0.2",
+      "wave": "W0",
+      "title": "Adversarially verify every branch before deleting",
+      "impact": 9,
+      "effort": "40min",
+      "risk": "med",
+      "status": "done",
+      "before": "47 local branches, git cherry flagging unique patches on branches whose PRs were MERGED.",
+      "after": "Tree-hash identity proved lossless squash on every control; 0 branches held unlanded work.",
+      "detail": "16 subagents across two workflow runs, each told to REFUTE 'safe to delete' and warned that 'the file exists in main' is a weak check. 5 failed to emit structured output; those were redone deterministically by hand. Tree hash, not line count, was the decisive test.",
+      "failure": "Deleting a branch whose content the squash actually dropped.",
+      "containment": "Restore record written BEFORE any deletion; all agents hard-constrained to read-only git.",
+      "evidence": "wc -l .claude/branch-restore-2026-07-23.txt   # 50 lines, branch -> sha",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.1",
+      "wave": "W1",
+      "title": "Merge release PR #3084 to 8.84.4",
+      "impact": 5,
+      "effort": "2min",
+      "risk": "low",
+      "status": "done",
+      "before": "8.84.3 released; #3084 open with 25/25 required checks green.",
+      "after": "v8.84.4 published and tagged Latest.",
+      "detail": "All required checks passed; only skipped entries were the Dependabot automerge and the two review workflows.",
+      "failure": "Merging a release with a red required check.",
+      "containment": "Checked the non-passing list explicitly before merging.",
+      "evidence": "gh release list --limit 1   # expect v8.84.4 Latest",
+      "owner": "agent"
+    },
+    {
+      "id": "W1.2",
+      "wave": "W1",
+      "title": "Delete 45 branches, remove 5 finished worktrees",
+      "impact": 6,
+      "effort": "10min",
+      "risk": "med",
+      "status": "done",
+      "before": "47 local branches, 6 worktrees, stale refs inviting a false 'stranded work' scare each session.",
+      "after": "4 branches, 1 worktree, 0 failures. playgrounds-archive preserved.",
+      "detail": "My own earlier framing was 'prune all 47 and clean the untracked docs dirs'. That was wrong twice: playgrounds-archive holds 418 archived PR-playground dirs, and .worktrees/scroll-world-redesign was a live registered worktree. Both were found by looking, not by assuming.",
+      "failure": "Destroying the 418-dir archive branch or a worktree with uncommitted work.",
+      "containment": "Explicit keep-list guard in the delete loop; all 5 worktrees verified clean (0 modified, 0 untracked, 0 unpushed) before removal.",
+      "evidence": "git branch --list | wc -l   # expect 4, incl. playgrounds-archive",
+      "owner": "agent"
+    },
+    {
+      "id": "W2.1",
+      "wave": "W2",
+      "title": "PR #3085 — scope Claude workflow tools, gate triage on author",
+      "impact": 8,
+      "effort": "1h",
+      "risk": "low",
+      "status": "done",
+      "before": "claude-triage and claude-review ran a model with issues:write and NO --allowedTools.",
+      "after": "MERGED as 2835d075a. Tool scoping live on both Claude workflows.",
+      "detail": "claude-health.yml already had the --allowedTools convention, so these two were the outliers. The prompt line 'do NOT add labels automatically' is advisory text injected content can override; the allowlist is what enforces it.",
+      "failure": "Over-restricting tools and breaking triage, or removing a permission that is load-bearing.",
+      "containment": "actionlint clean; both files parsed to confirm the folded claude_args resolve to one line.",
+      "evidence": "gh pr view 3085 --json state -q .state   # expect MERGED",
+      "owner": "operator"
+    },
+    {
+      "id": "W2.2",
+      "wave": "W2",
+      "title": "PR #3087 — fix audit-gate id reporting, allowlist hono",
+      "impact": 7,
+      "effort": "40min",
+      "risk": "low",
+      "status": "done",
+      "before": "is_allowlisted() clobbered the caller's $id via bash dynamic scoping; failures named '_schema'.",
+      "after": "MERGED as cd19fee12 (needed a rebase; it went BEHIND when #3085 landed first).",
+      "detail": "Anyone acting on the old message would have allowlisted the allowlist's own documentation key. The hono path is unreachable here: both mcp-server entrypoints use StdioServerTransport, never an HTTP transport, so serve-static is never instantiated.",
+      "failure": "Allowlisting a reachable vulnerability, or letting the entry become permanent.",
+      "containment": "Expiry date forces revisit; unreachability argued from the actual transport constructors.",
+      "evidence": "bash tests/security/test-npm-audit.sh   # mcp-server allowlisted, real ids printed",
+      "owner": "operator"
+    },
+    {
+      "id": "W3.1",
+      "wave": "W3",
+      "title": "#3086 — release-video broken for 27 consecutive releases",
+      "impact": 8,
+      "effort": "20min",
+      "risk": "low",
+      "status": "done",
+      "before": "Unknown. 27 releases shipped with no demo video and nothing surfaced it.",
+      "after": "Root-caused to a floating ^4.0.494 caret range; break point pinned to 2026-07-13/14.",
+      "detail": "13 consecutive successes through v8.70.1, then 27 consecutive failures from v8.70.2. An upstream Remotion release inside the caret range removed Config.setExperimentalClientSideRenderingEnabled, so it broke with no commit to this repo.",
+      "failure": "Reading it as flaky rather than a clean regression with a findable break point.",
+      "containment": "Lifetime run record checked (73 success / 27 failure) to confirm the failures are a consecutive tail.",
+      "evidence": "gh issue view 3086 --json state -q .state",
+      "owner": "operator"
+    },
+    {
+      "id": "W3.2",
+      "wave": "W3",
+      "title": "#3088 — audit gate skips 2 of 4 trees, hiding 5 high advisories",
+      "impact": 10,
+      "effort": "30min",
+      "risk": "high",
+      "status": "done",
+      "before": "Gate reported green in CI while claiming to block on moderate+ across four package.json paths.",
+      "after": "Documented: missing node_modules returns 0 (pass), and CI installs only root + src/hooks.",
+      "detail": "The largest finding of the session, and entirely incidental. Chasing why local test:security failed while CI passed exposed that docs/site and src/mcp-server are silently skipped. docs/site carries 5 HIGH sharp/libvips advisories the gate has never reported. Dependabot sees them; the gate is blind.",
+      "failure": "Filing it as the moderate hono advisory and missing the 5 highs behind it.",
+      "containment": "Ran npm audit against all four trees directly rather than trusting the gate's own verdict.",
+      "evidence": "cd docs/site && npm audit --audit-level=high   # expect 5 high, sharp",
+      "owner": "operator"
+    },
+    {
+      "id": "W3.3",
+      "wave": "W3",
+      "title": "Video backlog evidence, per issue, nothing closed",
+      "impact": 5,
+      "effort": "25min",
+      "risk": "low",
+      "status": "done",
+      "before": "8 issues, 5 months cold, no verdict.",
+      "after": "Per-issue verdict with cited repo paths; delivered for review, nothing closed unilaterally.",
+      "detail": "6 close-obsolete, #1077 keep, #1078 blocked on it, #404 misfiled (an accessibility backlog, not video). Notably #732's premise is factually false: it claims release-video.yml was never implemented, but it existed 13 days before that issue was filed.",
+      "failure": "Closing issues on an agent's say-so without the operator seeing the evidence.",
+      "containment": "Operator explicitly asked to see evidence first; nothing was closed.",
+      "evidence": "cat .claude/VIDEO-BACKLOG-EVIDENCE.md",
+      "owner": "operator"
+    },
+    {
+      "id": "W4.1",
+      "wave": "W4",
+      "title": "Merge #3085 (triggers a release-please patch bump)",
+      "impact": 6,
+      "effort": "2min",
+      "risk": "low",
+      "status": "done",
+      "before": "state=CLEAN, mergeable, waiting on the operator.",
+      "after": "Both merged. #3085 direct, #3087 via auto-merge after a rebase.",
+      "detail": "Held deliberately: fix(ci) triggers a release-please bump, which is outward-facing, so it is not mine to merge on standing approval.",
+      "failure": "Auto-merging and cutting an unintended release.",
+      "containment": "Operator gate.",
+      "evidence": "gh pr view 3085 --json state -q .state   # expect MERGED",
+      "owner": "operator"
+    },
+    {
+      "id": "W4.2",
+      "wave": "W4",
+      "title": "Video milestone close-out — CANCELLED, the premise was wrong",
+      "impact": 4,
+      "effort": "15min",
+      "risk": "high",
+      "status": "dropped",
+      "before": "8 issues open, evidence delivered, no decision.",
+      "after": "No close-out PR. An adversarial gate returned keep-open on 6 of 6, backed by maintainer comments the first pass never read.",
+      "detail": "REVERSED. A product-strategist pass said close-obsolete for all six (#730 #731 #732 #733 #734 #735). A second, adversarial pass with the burden of proof on CLOSING returned still_live=true / keep-open for all six, and the evidence was not opinion: the repo OWNER commented on #730/#731/#732 on 2026-03-11 'Deferred ... Keeping issue open for future reference', and again on #731/#732 on 2026-07-14 'Re-scope (verified @ HEAD). Premise drifted' — making the first agent's exact argument and choosing to RE-SCOPE rather than close. The #732 'premise is factually false' finding that was reported as a discovery was the maintainer's own 2026-07-14 comment. Root cause of the bad first verdict: it read issue bodies and repo state but never the comment threads, so it could not see that the maintainer had already adjudicated. #733 is also the declared blocker for #734 and #735, both open.",
+      "failure": "Closing six issues against an explicit, twice-stated, 8-day-old maintainer decision to keep them open.",
+      "containment": "The adversarial gate. It is the only reason nothing was closed.",
+      "evidence": "gh issue view 731 --json comments   # owner 2026-07-14 re-scope, not close",
+      "owner": "operator"
+    },
+    {
+      "id": "W4.3",
+      "wave": "W4",
+      "title": "Resolve sharp, then re-enable the full audit gate",
+      "impact": 10,
+      "effort": "1h",
+      "risk": "low",
+      "status": "in_progress",
+      "before": "5 HIGH advisories invisible to CI; gate passes by not running.",
+      "after": "PR #3090: sharp pinned ^0.35.3, CI installs all 4 trees, missing node_modules now hard-fails when CI is set. Gate verified 4/4 locally. Auto-merge armed.",
+      "detail": "VERIFIED end to end, not inferred: sharp resolves 0.35.3, loads with libvips 8.18.3, both avif and webp encode (the formats next.config declares), docs/site npm audit reports 0 vulnerabilities (was 5 high), docs/site npm run build exits 0 with a full route table and static prerender, and tests/security/test-npm-audit.sh reports 4 of 4 trees passed with every tree genuinely audited. The override sits in docs/site's EXISTING overrides block (hono, ip-address, postcss), so it is a one-line addition in an established pattern.",
+      "failure": "Enabling the gate before fixing sharp and hard-blocking every merge.",
+      "containment": "Sequenced in #3088; needs a build verification pass, which is why it was not bundled into #3087.",
+      "evidence": "gh pr view 3090 --json state -q .state   # expect MERGED",
+      "owner": "operator"
+    },
+    {
+      "id": "W4.4",
+      "wave": "W4",
+      "title": "Compact MEMORY.md under 140 lines",
+      "impact": 2,
+      "effort": "20min",
+      "risk": "low",
+      "status": "planned",
+      "before": "170 lines against a 200-line read limit.",
+      "after": "Under 140, one line per entry, stale handoffs merged or dropped.",
+      "detail": "Flagged by the memory hook after this session added the id-token entry. Pure housekeeping.",
+      "failure": "Dropping an entry that is still load-bearing.",
+      "containment": "Index only; the underlying memory files are scanned regardless of indexing.",
+      "evidence": "wc -l ~/.claude/projects/*orchestkit/memory/MEMORY.md   # expect < 140",
+      "owner": "agent"
+    }
+  ],
+  "discards": [
+    {
+      "title": "Remove id-token: write from both Claude workflows",
+      "reason": "REFUTED, and it would have broken production. Two independent security subagents called it dead capability and a naive grep for aws/gcp/npm-provenance consumers appeared to confirm it. Run logs show claude-code-action uses OIDC to mint the GitHub App token: 'Exchanging OIDC token for app token' -> 'Using GITHUB_TOKEN from OIDC'. The oauth secret only covers the Anthropic API."
+    },
+    {
+      "title": "Rotate CLAUDE_CODE_OAUTH_TOKEN to fix the dead generations",
+      "reason": "REFUTED. My own earlier recommendation. The same token authenticates and bills successfully 11 hours later with no rotation event, so it was never invalid. Evidence points to the shared Max-plan weekly cap instead."
+    },
+    {
+      "title": "Prune all 47 branches and clean the untracked docs dirs",
+      "reason": "REFUTED. My own earlier framing. playgrounds-archive holds 418 archived PR-playground dirs and .worktrees/scroll-world-redesign was a live registered worktree. Found by inspecting, not assuming."
+    },
+    {
+      "title": "Treat the triage failures as flaky and rerun",
+      "reason": "REFUTED. Three distinct causes with different fixes: a by-design 401 for outside contributors, a dead generation at the gateway, and a GitHub 503."
+    },
+    {
+      "title": "Bundle the sharp override into PR #3087",
+      "reason": "Deliberately deferred, not refuted. It is a dependency change needing a docs/site build verification, and mixing it into an allowlist fix would make both harder to review."
+    },
+    {
+      "title": "Close 6 Video Gallery issues as obsolete",
+      "reason": "REFUTED by a 6-agent adversarial gate. The maintainer had already deferred them (2026-03-11, 'Keeping issue open for future reference') and re-scoped two of them 8 days ago (2026-07-14) using the very argument the first agent presented as new. Descoping a program is the maintainer's call; an agent inferring it from a homepage redesign is not evidence. Reading issue bodies without reading issue COMMENTS is the specific failure mode."
+    }
+  ],
+  "research": [
+    {
+      "title": "id-token: write is load-bearing for claude-code-action",
+      "note": "OIDC mints the GitHub App token; the oauth secret only authenticates the Anthropic API. Grep the RUN LOG for 'OIDC token', not the workflow for known OIDC consumers.",
+      "source": "https://github.com/yonatangross/orchestkit/pull/3085"
+    },
+    {
+      "title": "Squash-merge breaks patch-id; tree hash is decisive",
+      "note": "git cherry flags every commit of a squash-merged branch as absent. Comparing the squash commit's tree SHA against the branch tip's proved lossless merges on all 4 controls.",
+      "source": "https://github.com/yonatangross/orchestkit/pull/3019"
+    },
+    {
+      "title": "The audit gate passes by not running",
+      "note": "A missing node_modules returns 0. CI installs only root and src/hooks, so 2 of 4 trees are skipped and 5 HIGH advisories have never been reported.",
+      "source": "https://github.com/yonatangross/orchestkit/issues/3088"
+    },
+    {
+      "title": "The triage 401 is a designed control, not luck",
+      "note": "claude-code-action's OIDC-to-app-token exchange refuses actors without write access BEFORE the model runs, so the prompt-injection path was never reached for the outside contributor.",
+      "source": "https://github.com/yonatangross/orchestkit/actions/runs/29918243404"
+    },
+    {
+      "title": "release-video regressed on a floating caret range",
+      "note": "13 successes through v8.70.1, then 27 failures from v8.70.2, with no commit to this repo. ^4.0.494 let an upstream Remotion release remove the config API.",
+      "source": "https://github.com/yonatangross/orchestkit/issues/3086"
+    },
+    {
+      "title": "sharp ^0.35.3 override clears all 5 high advisories",
+      "note": "Verified by --package-lock-only probe: baseline {high:5} -> 'found 0 vulnerabilities'. docs/site already maintains an overrides block (hono, ip-address, postcss), so the pattern is established. Unverified: a real docs/site build, since ^0.35.3 crosses next 16.2.10's declared optional range of ^0.34.5.",
+      "source": "https://github.com/yonatangross/orchestkit/issues/3088"
+    },
+    {
+      "title": "Issue triage must read comments, not just bodies + repo state",
+      "note": "The first video verdict was wrong on all 6 because it never read the threads. Owner comments on #730/#731/#732 explicitly said keep-open, twice, most recently 8 days before the triage. An agent that reads only the body will keep rediscovering premise drift the maintainer already adjudicated.",
+      "source": "https://github.com/yonatangross/orchestkit/issues/731"
+    }
+  ],
+  "changelog": [
+    {
+      "at": "2026-07-22",
+      "note": "Session opened on 'where we stand'. Handoff claim of 'nothing in flight' refuted; 3 triage failure classes separated."
+    },
+    {
+      "at": "2026-07-23",
+      "note": "W1 cleanup executed (45 branches, 5 worktrees, 0 failures). #3085 and #3087 opened. #3086 and #3088 filed. 5 conclusions discarded, 3 of them my own."
+    },
+    {
+      "at": "2026-07-23",
+      "note": "Both PRs reached CLEAN. W4.3 drilled: sharp ^0.35.3 override resolves and zeroes the audit; docs/site build still unverified."
+    },
+    {
+      "at": "2026-07-23",
+      "note": "#3085 and #3087 MERGED. W4.3 verified and shipped as #3090 (auto-merge armed). W4.2 CANCELLED: adversarial gate returned keep-open 6/6 against maintainer comments the first pass never read."
+    }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  "use strict";
+  const st = JSON.parse(document.getElementById('lpp-state').textContent);
+  const L = {planned:'planned', in_progress:'in progress', done:'done', dropped:'dropped'};
+  const RK = {low:'var(--pg-ok)', med:'var(--pg-warm)', medium:'var(--pg-warm)', high:'var(--pg-risk)'};
+  // escape for BOTH text and attribute contexts (research source goes into an href="…")
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  // href scheme allowlist: a state file is self-authored, but javascript:/data: must never render
+  const safeUrl = u => /^(https?|mailto):/i.test(String(u||'')) ? String(u) : '';
+  // status drives a CSS class: whitelist it, never interpolate raw state into an attribute
+  // Return the value from a clean table, never the argument itself. Returning `s`
+  // (even guarded) keeps the tainted parameter on the return path all the way to
+  // innerHTML — that is the actual flow CodeQL's js/xss-through-dom reports, and no
+  // hasOwnProperty guard clears it because CodeQL does not model guards as sanitizers.
+  const CLS = {planned:'planned', in_progress:'in_progress', done:'done', dropped:'dropped'};
+  const stCls = s => Object.prototype.hasOwnProperty.call(CLS, s) ? CLS[s] : 'planned';
+  // risk drives an inline style: same rule. A bare RK[r] would reach the prototype
+  // chain (RK['constructor'] returns a function that stringifies into the attribute),
+  // and it is the one tainted->markup path that never passed through esc().
+  const riskColor = r => Object.prototype.hasOwnProperty.call(RK, r) ? RK[r] : 'var(--pg-faint)';
+  const stChip = i => '<span class="st st-'+stCls(i.status)+'">'+esc(L[i.status]||i.status)+'</span>';
+
+  document.getElementById('lpp-title').textContent = st.title;
+  document.title = st.title;
+  document.getElementById('lpp-sub').textContent =
+    st.slug+' · created '+st.created+' · state updated '+String(st.updated).slice(0,16).replace('T',' ');
+
+  const items = st.items;
+  const active = items.filter(i=>i.status!=='dropped');
+  const doneN = active.filter(i=>i.status==='done').length;
+  const ipN = active.filter(i=>i.status==='in_progress').length;
+  const pct = active.length ? Math.round(100*doneN/active.length) : 0;
+
+  // progress ring
+  const CIRC = 2*Math.PI*56;
+  const ring = document.getElementById('lpp-ring');
+  ring.setAttribute('stroke-dasharray', CIRC.toFixed(1));
+  ring.setAttribute('stroke-dashoffset', (CIRC*(1-pct/100)).toFixed(1));
+  document.getElementById('lpp-pct').textContent = pct+'%';
+
+  document.getElementById('lpp-kpis').innerHTML = [
+    {c:'acc', v:st.score.composite+' → '+st.score.target, l:'score, now → target'},
+    {c:'up',  v:doneN+'/'+active.length, l:'items proven done'},
+    {c:'mid', v:ipN, l:'in progress now'},
+    {c:'up',  v:(st.discards||[]).length, l:'ideas deliberately discarded'}
+  ].map(k=>'<div class="kpi"><b class="'+k.c+'">'+esc(k.v)+'</b><span>'+esc(k.l)+'</span></div>').join('');
+
+  // wave progress strip
+  document.getElementById('lpp-wavestrip').innerHTML = st.waves.map(w=>{
+    const wi = items.filter(i=>i.wave===w.id && i.status!=='dropped');
+    const wd = wi.filter(i=>i.status==='done').length;
+    const wp = wi.length ? Math.round(100*wd/wi.length) : 0;
+    return '<div class="wrow'+(wp===100?' done':'')+'">'+
+      '<span class="wl">'+esc(w.id)+' · '+esc(w.title)+'</span>'+
+      '<div class="wbar"><i style="inline-size:'+wp+'%"></i></div>'+
+      '<span class="wn num">'+wd+'/'+wi.length+(wp===100?' ✓':'')+'</span></div>';
+  }).join('');
+
+  // panels
+  const impactBar = i => i.impact!=null
+    ? '<span class="impact">impact <span class="ib"><i style="inline-size:'+(Number(i.impact)*10)+'%"></i></span> <b class="num">'+Number(i.impact)+'</b></span>' : '';
+
+  const waveHtml = st.waves.map(w=>{
+    const wi=items.filter(i=>i.wave===w.id);
+    const wd=wi.filter(i=>i.status==='done').length;
+    return '<h2>'+esc(w.id)+' · '+esc(w.title)+' <span class="wavehead num">'+wd+'/'+wi.length+' done</span></h2>'+
+      wi.map(i=>{
+        let h='<div class="card"><h3><span class="num faint">'+esc(i.id)+'</span> '+esc(i.title)+stChip(i)+'</h3>';
+        h+='<div class="meta">'+impactBar(i)+
+          (i.effort?'<span class="chip">'+esc(i.effort)+'</span>':'')+
+          (i.risk?'<span class="chip" style="color:'+riskColor(i.risk)+';border-color:currentColor">risk: '+esc(i.risk)+'</span>':'')+
+          (i.owner?'<span class="chip">'+esc(i.owner)+'</span>':'')+'</div>';
+        if(i.detail) h+='<p class="src">'+esc(i.detail)+'</p>';
+        if(i.before||i.after) h+='<div class="ba"><div><b>Before</b>'+esc(i.before||'')+'</div><div class="aft"><b>After (promised)</b>'+esc(i.after||'')+'</div></div>';
+        if(i.evidence) h+='<p class="src" style="margin-block-start:8px"><b style="color:var(--pg-ok)">done when:</b> '+esc(i.evidence)+'</p>';
+        if(i.failure||i.containment) h+='<details><summary>risk detail</summary><p class="src"><b>failure:</b> '+esc(i.failure||'?')+'<br><b>containment:</b> '+esc(i.containment||'?')+'</p></details>';
+        return h+'</div>';
+      }).join('');
+  }).join('');
+
+  const waveIds = st.waves.map(w=>w.id);
+  const matrixHtml = '<h2>Progress matrix</h2><div class="card" style="overflow-x:auto"><table>'+
+    '<tr><th>id</th><th>item</th><th>before</th><th>now</th>'+waveIds.map(w=>'<th>after '+esc(w)+'</th>').join('')+'</tr>'+
+    items.map(i=>{
+      const now = i.status==='done' ? '<span style="color:var(--pg-ok)">✓ '+esc((i.after||'done').slice(0,60))+'</span>'
+        : i.status==='in_progress' ? '<span style="color:var(--pg-warm)">◐ in progress</span>'
+        : i.status==='dropped' ? '<span class="strike">dropped</span>'
+        : '<span class="faint">○ '+esc((i.before||'planned').slice(0,50))+'</span>';
+      const cells = waveIds.map(w=> w!==i.wave ? '<td class="faint">·</td>'
+        : '<td class="src">'+(i.status==='done'?'<span style="color:var(--pg-ok)">landed</span>':esc((i.after||'').slice(0,60)))+'</td>').join('');
+      return '<tr><td class="num faint">'+esc(i.id)+'</td><td>'+esc(i.title)+'</td><td class="src">'+esc((i.before||'').slice(0,60))+'</td><td>'+now+'</td>'+cells+'</tr>';
+    }).join('')+'</table></div>'+
+    '<div class="note">"Now" is computed from item statuses, never hand-written. A completed wave collapses into the Now column with a ✓.</div>';
+
+  const dims=st.score.dims||{};
+  const scoreHtml = '<h2>Plan scoring</h2><div class="card">'+
+    Object.entries(dims).map(([k,v])=>'<div class="score-row"><span class="faint">'+esc(k)+'</span><div class="bar"><i style="inline-size:'+(Number(v)*10)+'%"></i></div><span class="v num">'+Number(v).toFixed(1)+'</span></div>').join('')+
+    '<div class="score-row" style="border-block-start:1px solid hsl(0 0% 100% / .1);padding-block-start:10px;margin-block-start:10px"><b>Composite → target</b><div class="bar"><i style="inline-size:'+(Number(st.score.composite)*10)+'%;background:var(--pg-ok)"></i></div><span class="v num"><b>'+Number(st.score.composite)+'</b></span></div></div>';
+
+  const riskHtml = '<h2>Risk heat map</h2><div class="card"><table>'+
+    '<tr><th>item</th><th>risk</th><th>failure mode</th><th>containment</th></tr>'+
+    items.filter(i=>i.failure||i.containment||['high','med','medium'].includes(i.risk)).map(i=>
+      '<tr><td class="num faint">'+esc(i.id)+'</td><td style="color:'+riskColor(i.risk)+'">'+esc(i.risk||'?')+'</td><td class="src">'+esc(i.failure||'')+'</td><td class="src">'+esc(i.containment||'')+'</td></tr>'
+    ).join('')+'</table></div>';
+
+  const discardsHtml = '<h2>Discarded (with reasons)</h2><div class="card"><table>'+
+    '<tr><th>idea</th><th>why discarded</th></tr>'+
+    (st.discards||[]).map(d=>'<tr><td class="strike">'+esc(d.title)+'</td><td class="src">'+esc(d.reason)+'</td></tr>').join('')+
+    '</table></div><div class="note">A plan that remembers what it rejected does not re-litigate it next session.</div>';
+
+  const researchHtml = '<h2>Research that shaped the plan</h2>'+
+    (st.research||[]).map(r=>'<div class="card"><h3>'+esc(r.title)+'</h3><p class="src">'+esc(r.note)+
+      (safeUrl(r.source)?' · <a href="'+esc(safeUrl(r.source))+'">source</a>':'')+'</p></div>').join('');
+
+  const updatesHtml = '<h2>Updates (append-only)</h2><div class="card"><table>'+
+    '<tr><th>when</th><th>note</th></tr>'+
+    (st.changelog||[]).slice().reverse().map(e=>'<tr><td class="num faint">'+esc(e.at)+'</td><td>'+esc(e.note)+'</td></tr>').join('')+
+    '</table></div>'+
+    '<div class="note">This is a LIVING artifact (lpp v'+Number(st.lpp)+'). Sessions mutate the state block in this same file; never fork a second file for slug "'+esc(st.slug)+'".</div>';
+
+  const panels=[
+    {id:'waves',label:'Execution waves',html:waveHtml},
+    {id:'matrix',label:'Progress matrix',html:matrixHtml},
+    {id:'scores',label:'Scores',html:scoreHtml},
+    {id:'risk',label:'Risk map',html:riskHtml},
+    {id:'discards',label:'Discards',html:discardsHtml}
+  ];
+  if((st.research||[]).length) panels.push({id:'research',label:'Research',html:researchHtml});
+  panels.push({id:'updates',label:'Updates',html:updatesHtml});
+
+  document.getElementById('lpp-tabs').innerHTML =
+    panels.map((p,i)=>'<button class="tab'+(i===0?' active':'')+'" data-t="'+p.id+'">'+p.label+'</button>').join('');
+  document.getElementById('lpp-panels').innerHTML =
+    panels.map((p,i)=>'<div class="panel'+(i===0?' active':'')+'" id="p-'+p.id+'">'+p.html+'</div>').join('');
+
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('p-'+t.dataset.t).classList.add('active');
+  }));
+})();
+</script>
+</body>
+</html>
