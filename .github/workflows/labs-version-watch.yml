@@ -87,7 +87,7 @@ jobs:
             echo ''
             echo '## Interactive Playground'
             echo ''
-            echo '**[Open Playground](https://htmlpreview.github.io/?https://github.com/yonatangross/orchestkit/blob/main/docs/playgrounds/vercel-labs-integration.html)** — see how the four packages compose.'
+            echo '**[Open Playground](https://orchestkit.yonyon.ai/lab/vercel-labs-adoption-ideas.html)** — see how the four packages compose.'
             echo EOF
           } >> "$GITHUB_OUTPUT"
 

@@ -15,6 +15,19 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "release-rail",
+    "title": "Release Rail — Zeroed Counts and an Unnamed Identity",
+    "description": "Two defects found by composing a release payload locally instead of reading the code: every release video rendered \"0 skills, 0 hooks\", and the announce rail named no posting identity. Includes the evidence for leaving the prerelease gate closed.",
+    "tags": [
+      "audit",
+      "explainer"
+    ],
+    "date": "2026-08-14",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 14
+  },
+  {
     "slug": "yonyon-portfolio-adoption-options",
     "title": "Portfolio Bundle — Decision Board",
     "description": "The decision board that planned this very Lab: 18 brainstormed ideas scored and mocked up, with a prompt composer that emitted the implementation instruction.",

@@ -49,4 +49,17 @@ because GitHub keeps refs/pull/<N>/head.
 Get it with:  git rev-parse HEAD
 -->
 
-**[Open Playground](https://htmlpreview.github.io/?https://github.com/yonatangross/orchestkit/blob/COMMIT-SHA/docs/BRANCH-DIR/FILE.html)**
+**[Open Playground](https://github.com/yonatangross/orchestkit/blob/COMMIT-SHA/docs/BRANCH-DIR/FILE.html)**
+
+<!--
+First-party link only. Do NOT wrap it in htmlpreview.github.io or any other
+render proxy: that serves our HTML from an origin we do not control, with none
+of this site's CSP applied. The blob link shows source rather than a rendered
+page, which is the accepted trade-off for not handing a third party our content.
+
+If the playground is worth keeping, publish it properly instead: add an entry to
+docs/site/lab-manifest.json and run docs/site/scripts/generate-lab-data.mjs. It
+then serves from our own origin under the /lab CSP and is listed at
+/docs/showcase/lab, which is the only rendered, first-party, permanent option.
+-->
+

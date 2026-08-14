@@ -303,8 +303,16 @@ Add a "Live Preview" section to the PR body:
 ```markdown
 ## Live Preview
 
-**[Open Interactive Playground](https://htmlpreview.github.io/?https://github.com/{OWNER}/{REPO}/blob/{HEAD_SHA}/docs/{BRANCH_DIR}/playground.html)**
+**[Open Interactive Playground](https://github.com/{OWNER}/{REPO}/blob/{HEAD_SHA}/docs/{BRANCH_DIR}/playground.html)**
 ```
+
+> **First-party link only.** Do not wrap the URL in `htmlpreview.github.io` or any
+> other render proxy. A proxy serves the repo's HTML from an origin the project does
+> not control, with none of its CSP applied. The plain blob link shows source rather
+> than a rendered page; that is the accepted trade-off for not handing a third party
+> the content. To get a *rendered* first-party page, publish the playground to the
+> Lab instead (`docs/site/lab-manifest.json` + `docs/site/scripts/generate-lab-data.mjs`),
+> which serves it under the site's own `/lab` CSP.
 
 > **Pin the SHA, never the branch.** GitHub deletes the head branch on merge, so a
 > `blob/\{BRANCH\}/` URL returns 404 the moment the PR lands. That silently broke the
