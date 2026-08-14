@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->216<!--/ork--> hooks (<!--ork:hooks-global-->150<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->171<!--/ork--> hooks (<!--ork:hooks-global-->150<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1346,7 +1346,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->216<!--/ork--> hooks (<!--ork:hooks-global-->150<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->171<!--/ork--> hooks (<!--ork:hooks-global-->150<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
@@ -1355,6 +1355,12 @@ See the async hooks section above for detailed async hook patterns.
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
 
 The registry's change history used to accumulate inside the `description` field of `hooks.json`, which made the count unreadable and the JSON diff-hostile. The field now carries only the stamped count line; history continues here.
+
+(216 → 171, 2026-08-14): removed the `hooks:` block from all 33 agent frontmatters (#3461, EPIC A). CC's plugin-agent loader walks a fixed key array `[permissionMode, hooks, mcpServers]` and warns-and-ignores each one it finds set — verified by byte-offset read of the 2.1.227 binary at offset 91099675, identical on 2.1.226. So every `hooks:` declaration ork shipped was inert, which is why `agent/restrict-bash` had never executed once across 193,606 hook-timing rows despite reading like a Bash allowlist. **Nothing was orphaned:** all 14 referenced implementations stay live through `pretool/bash/sync-bash-dispatcher` and the `entries/` maps, which is the real wiring; the frontmatter block was a redundant second declaration on top of it. The count drop is honest rather than a loss of behavior — 45 of the advertised 216 were declarations CC never read. `hooks` was also dropped from both `KNOWN_AGENT_FIELDS` allowlists in `scripts/eval/static-analysis.sh`, so re-adding it to a plugin agent now warns instead of passing silently.
+
+Scope note, because this is easy to over-read: the key is inert **only for plugin agents**. Copied into a consumer's own `.claude/agents/`, `hooks:` works exactly as documented, which is what the agent-hooks skill and its eval describe. The fix was never "the feature is broken", it was "we were declaring it at the wrong level".
+
+Also fixed here: `bin/count-hooks.sh` could not survive a zero count. Its `grep -rch … | awk` pipeline ran under `set -euo pipefail`, so when the agent directory matched nothing grep exited 1, `pipefail` propagated it, and `set -e` killed the script before its final `echo` — leaving `TOTAL` unbound in every caller (`stamp-counts.sh` died with `TOTAL: unbound variable`). It now inspects grep's three-valued exit: 1 counts as 0, and anything ≥ 2 still fails loudly with grep's own stderr rather than silently reporting zero hooks.
 
 (count unchanged, 2026-08-13): deleted the dead custom-pipeline mechanism (#3352), an owner-decided DELETE after two independent re-verifications. `detectPipeline()` (`lib/multi-agent-coordinator.ts:227`) was reachable code but unreachable behavior: `isAgentTeamsActive()` yields to native CC Agent Teams whenever `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` — which ork's own doctor (`skills/doctor/references/settings-posture.md`) recommends setting — so the trigger loop never ran. Telemetry across every rotated 2026-08 log: 699 checks = 699 Teams-yields = 699 no-trigger results, 0 detections; the last successful detection was 2026-01-23. Deleted `lib/multi-agent-coordinator.ts` (412 lines), `prompt/pipeline-detector.ts` (139 lines) and its test (627 lines, 23 tests), plus the three zero-caller `task-integration.ts` functions `updatePipeline`, `completePipelineStep`, and `getPipelineByType` (the last actually lived in the deleted `multi-agent-coordinator.ts`). Edited `entries/prompt.ts` (dropped the re-export and the legacy override-compat registration), `prompt/unified-dispatcher.ts` (dropped the dispatcher registration — this was the only wiring; `pipeline-detector` was never a `hooks.json` entry, so `hooks.json` and the stamped hook count are unaffected), and `subagent-stop/feedback-loop.ts` (dropped the pipeline-aware routing branch in `getDownstreamAgents`, keeping the static mapping fallback — telemetry shows it was the only branch that ever executed, since `getActivePipeline()` can never return a running pipeline while the sole `registry.pipelines` writer sits behind the same starved trigger loop). `PipelineExecution` and the `registry.pipelines` field stay, deliberately: `registerPipeline`/`getActivePipeline` in `task-integration.ts` still read/write them for `task-existence-gate`, and #3353 owns the decision on whether `registry.pipelines` itself goes away. `PipelineType`/`PipelineStep`/`PipelineDefinition` (in `orchestration-types.ts`) are now unreferenced outside their own declarations but were left in place for the same reason. Confirmed second-order defect, filed separately: `task-existence-gate` Case 3 (`pretool/task/task-existence-gate.ts:101-107`) blocks on `getActivePipeline()` being truthy, which was already structurally unreachable before this change — CLAUDE.md's "blocks them in active pipelines" claim was already false.
 

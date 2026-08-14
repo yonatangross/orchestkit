@@ -32,10 +32,6 @@ skills:
   - memory
 mcpServers: [context7]
 critical_system_reminder: "Always check for N+1 queries, missing indexes, and migration reversibility."
-hooks:
-  PreToolUse:
-    - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/migration-safety-check"
 taskTypes:
   - build
   - optimize

@@ -23,12 +23,6 @@ skills:
   - security-patterns
   - remember
   - memory
-hooks:
-  PreToolUse:
-    - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
-    - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/security-command-audit"
 mcpServers: [tavily]
 background: true
 critical_system_reminder: "Test for prompt injection, jailbreak, and data exfiltration on every LLM integration point."

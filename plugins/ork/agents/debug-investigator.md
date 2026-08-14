@@ -27,12 +27,6 @@ skills:
   - remember
   - memory
 mcpServers: [memory]
-hooks:
-  PreToolUse:
-    - matcher: "Write|Edit"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/block-writes"
-    - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
 taskTypes:
   - debug
 keywords:

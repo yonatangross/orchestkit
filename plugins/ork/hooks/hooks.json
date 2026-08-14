@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 150 global + 45 agent-scoped + 21 skill-scoped = 216 total hooks. Registry history lives in README.md (Registry changelog) - do not append changelog prose here, only re-stamp the counts.",
+  "description": "OrchestKit hooks - 150 global + 0 agent-scoped + 21 skill-scoped = 171 total hooks. Agent-scoped is 0 by design since #3461: CC's plugin-agent loader ignores `hooks:` in frontmatter, so ork's own 45 declarations never fired and were removed. The key still works in a consumer's own .claude/agents/, which is what the agent-hooks skill documents. Registry history lives in README.md (Registry changelog) - do not append changelog prose here, only re-stamp the counts.",
   "hooks": {
     "PreToolUse": [
       {

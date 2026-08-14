@@ -27,15 +27,43 @@ GLOBAL_HTTP=$(grep -c '"type": "http"' "$PROJECT_ROOT/src/hooks/hooks.json" 2>/d
 GLOBAL_HTTP=${GLOBAL_HTTP:-0}
 GLOBAL=$(( GLOBAL_CMD + GLOBAL_HTTP ))
 
+# Count `command:.*run-hook` lines under a directory.
+#
+# grep's exit codes are three-valued: 0 found, 1 no-match, >=2 real error. Under
+# this script's `set -euo pipefail`, piping a no-match grep into awk propagated
+# the 1 and killed the script BEFORE the final echo, leaving TOTAL unbound in
+# every caller (stamp-counts.sh died with "TOTAL: unbound variable"). Zero
+# agent-scoped hooks is a legitimate state — #3461 removed all 45 of them — so
+# no-match must count as 0.
+#
+# A blanket `|| true` would also swallow rc>=2, turning a broken grep into a
+# silent zero and quietly shrinking the advertised hook count. So rc is inspected:
+# 1 yields 0, anything higher fails loudly with grep's own stderr.
+count_run_hook_lines() {
+  local dir="$1"; shift
+  local out rc errfile
+  errfile="$(mktemp)"
+  set +e
+  out="$(grep -rch 'command:.*run-hook' "$dir" "$@" 2>"$errfile")"
+  rc=$?
+  set -e
+  if [ "$rc" -ge 2 ]; then
+    echo "count-hooks: grep failed on $dir (exit $rc): $(cat "$errfile")" >&2
+    rm -f "$errfile"
+    return 1
+  fi
+  rm -f "$errfile"
+  printf '%s\n' "$out" | awk '{s+=$1} END{print s+0}'
+}
+
 # Agent-scoped hooks: command:.*run-hook in YAML frontmatter
-# Single grep across all files instead of per-file awk (96 forks → 2)
 # NOTE: Scans entire file, not just frontmatter. Safe because no agent/skill
 # markdown body contains 'command:.*run-hook' patterns. CI test-count-components.sh
 # will catch any drift if this assumption is violated.
-AGENT=$(grep -rch 'command:.*run-hook' "$PROJECT_ROOT/src/agents/" 2>/dev/null | awk '{s+=$1} END{print s+0}')
+AGENT=$(count_run_hook_lines "$PROJECT_ROOT/src/agents/")
 
 # Skill-scoped hooks: command:.*run-hook in YAML frontmatter (same assumption as above)
-SKILL=$(grep -rch 'command:.*run-hook' "$PROJECT_ROOT/src/skills/" --include='SKILL.md' 2>/dev/null | awk '{s+=$1} END{print s+0}')
+SKILL=$(count_run_hook_lines "$PROJECT_ROOT/src/skills/" --include='SKILL.md')
 
 TOTAL=$((GLOBAL + AGENT + SKILL))
 

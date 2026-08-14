@@ -24,10 +24,6 @@ skills:
   - remember
   - memory
 mcpServers: []
-hooks:
-  PostToolUse:
-    - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/security-command-audit"
 background: true
 critical_system_reminder: "Always verify OWASP Top 10 compliance and check for hardcoded secrets before approving any code."
 initialPrompt: "Check TaskList for pending security tasks. Run parallel scans: dependency audit, secrets detection, and OWASP pattern check."

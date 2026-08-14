@@ -28,10 +28,6 @@ skills:
   - design-system-tokens
   - remember
   - memory
-hooks:
-  PreToolUse:
-    - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [stitch, context7]
 required_mcp_servers: [stitch]
 taskTypes:

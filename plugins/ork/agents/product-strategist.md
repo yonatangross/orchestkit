@@ -28,10 +28,6 @@ skills:
   - github-operations
   - remember
   - memory
-hooks:
-  PreToolUse:
-    - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: [tavily]
 taskTypes:
   - plan

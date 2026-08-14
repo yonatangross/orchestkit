@@ -130,7 +130,12 @@ rm -rf "$TMPDIR_A"
 
 header "Section B: Agent Permission Audit"
 
-KNOWN_AGENT_FIELDS="name description model tools disallowedTools skills hooks context category color memory maxTurns mcpServers permissionMode"
+# `hooks` is deliberately absent: CC's plugin-agent loader ignores it (along with
+# permissionMode and mcpServers) and warns on load, so declaring it in a PLUGIN
+# agent is inert. The real wiring is sync-bash-dispatcher plus the entries map.
+# Dropping it here means re-adding `hooks:` to an agent now warns instead of
+# passing silently. See #3461.
+KNOWN_AGENT_FIELDS="name description model tools disallowedTools skills context category color memory maxTurns mcpServers permissionMode"
 
 PERM_FAILS=0
 PERM_DETAILS=""
@@ -347,7 +352,8 @@ fi
 header "Section D: Unknown Frontmatter Fields"
 
 KNOWN_SKILL_FIELDS=" name description version tags user-invocable complexity context hooks references scripts license compatibility agent author metadata allowed-tools argument-hint skills "
-KNOWN_AGENT_FIELDS_D=" name description model tools disallowedTools skills hooks context category color memory maxTurns mcpServers permissionMode "
+# `hooks` dropped here too — see the note on KNOWN_AGENT_FIELDS above (#3461).
+KNOWN_AGENT_FIELDS_D=" name description model tools disallowedTools skills context category color memory maxTurns mcpServers permissionMode "
 UNK_WARNS=0
 UNK_DETAILS=""
 

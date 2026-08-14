@@ -27,12 +27,6 @@ skills:
   - github-operations
   - remember
   - memory
-hooks:
-  PreToolUse:
-    - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/deployment-safety-check"
-    - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-validator"
 mcpServers: [context7]
 critical_system_reminder: "Verify rollback plan exists and is tested before proceeding with any production deployment."
 taskTypes:
