@@ -276,6 +276,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.32](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.31...v10.0.0-alpha.32)** · 2026-08-14
+
+- **deps:** bump nanoid to 3.3.18 for advisory 1139427 (#3481)
+- **hooks:** squash-aware worktree verifier, and close a shell injection (#3480)
+
 **[v10.0.0-alpha.31](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.30...v10.0.0-alpha.31)** · 2026-08-13
 
 - **ci:** centralize Node version (#3473)
@@ -312,11 +317,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.25](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.24...v10.0.0-alpha.25)** · 2026-08-12
 
 - **hooks:** make restrict-bash actually run, ungate the dispatcher (#3449), closes [#3430](https://github.com/yonatangross/orchestkit/issues/3430) [#3438](https://github.com/yonatangross/orchestkit/issues/3438)
-
-**[v10.0.0-alpha.24](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.23...v10.0.0-alpha.24)** · 2026-08-11
-
-- **security-tests:** fail loudly on a broken payload (#3446)
-- **workflows:** rename plugin workflows to .js so they actually register (#3445)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

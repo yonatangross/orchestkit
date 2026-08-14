@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.32",
+    "date": "2026-08-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**deps:** bump nanoid to 3.3.18 for advisory 1139427 ([#3481](https://github.com/yonatangross/orchestkit/issues/3481)) ([1fac660](https://github.com/yonatangross/orchestkit/commit/1fac66044c85d5ab755c7523400e762c4fb96a60))",
+          "**hooks:** squash-aware worktree verifier, and close a shell injection ([#3480](https://github.com/yonatangross/orchestkit/issues/3480)) ([3a9f776](https://github.com/yonatangross/orchestkit/commit/3a9f776fb87d97643b5dfa411949747fbb7e0df9))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.31",
     "date": "2026-08-13",
     "compareUrl": "",
