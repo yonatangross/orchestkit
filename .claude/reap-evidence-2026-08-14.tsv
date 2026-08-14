@@ -50,3 +50,25 @@ worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/node-vers
 worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/playground-durable[labs-sync]	31ba69131b34d24fe3525bdd896ebed94d457bf0	none	2026-07-25T20:06:31+03:00	none
 worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/reap-merged[chore/reap-merged-branches]	04ea99f64a0fb56b5f781fd1521a2ef46ac92e1b	none	2026-08-14T13:55:24+03:00	none
 worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/verify3263[chore/bump-dompurify-lockfile]	e0edf17d0d5bc523d1375cc0e139b5cbcd5306d8	none	2026-08-07T16:13:14+03:00	none
+# S8 remote cc-snapshot refs, captured 2026-08-14 before remote deletion.
+# Recovery: git push origin <oid>:refs/heads/<name>
+chore/cc-snapshot-26630839195	62f6c69842db7fbca08e1569f3a10c7dd0676acf	2082	2026-05-29T10:01:09Z	CLOSED
+chore/cc-snapshot-28993774382	0ea54e9a0e31e69d9edc522fdc611fbcb28ba05e	2812	2026-07-09T04:21:01Z	MERGED
+chore/cc-snapshot-29068859936	88a4643a472e229e82b20d089529595bd2316728	2825	2026-07-10T04:22:55Z	MERGED
+chore/cc-snapshot-29138971074	a26693f0900facb346bdc965a93ec8ccd1853ba2	2839	2026-07-11T04:03:54Z	MERGED
+chore/cc-snapshot-29179347172	f5fb8aaf26201b6b1d71d7ad7a81e2ace8959616	2848	2026-07-12T04:12:07Z	MERGED
+chore/cc-snapshot-29304874883	74756fee5a5c1e92fc0327fa659faf04058aa9ce	2867	2026-07-14T04:02:54Z	MERGED
+chore/cc-snapshot-29387923426	84fa6a15b48501fe73b94a5cc2fec9360eb5e49a	2907	2026-07-15T04:03:23Z	MERGED
+chore/cc-snapshot-29470343738	02d4029e8dccaab9112e7f85acf666fc57840ce0	2918	2026-07-16T04:04:13Z	MERGED
+chore/cc-snapshot-29506755710	ce2a513c677997f63b2fec3c3da3271801040eaf	2921	2026-07-16T14:31:16Z	MERGED
+chore/cc-snapshot-29510100233	1422c67e21627e550d4025b535ecaac315fd6b82	2929	2026-07-16T15:14:42Z	MERGED
+chore/cc-snapshot-29553798392	9712070280c2d671810710201e49fbee1978f771	2946	2026-07-17T04:04:43Z	MERGED
+chore/cc-snapshot-29629786889	ad56a123829a7789bb28f88ea3604c46824f99d5	2989	2026-07-18T04:03:06Z	MERGED
+chore/cc-snapshot-29672873608	025e89490a6db443adea9998ceac41bd1bc8e4ff	3004	2026-07-19T04:09:25Z	MERGED
+chore/cc-snapshot-29716476803	57916e700e56be80cde2cbe4161e1594fbebf8c9	3028	2026-07-20T04:16:58Z	MERGED
+chore/cc-snapshot-29800179137	ed282207e714c73da40d91e29b43e8c2951f4abb	3053	2026-07-21T04:04:00Z	MERGED
+chore/cc-snapshot-29890078654	233ebc4967a2e22b60bb42058a7500cbd4bbd1ac	3070	2026-07-22T04:08:07Z	MERGED
+chore/cc-snapshot-29978564461	61fb134f8285d445677f1d25959244c5b3d00b13	3094	2026-07-23T04:05:35Z	MERGED
+chore/cc-snapshot-30065755432	aa4e939cc02c4b27c4e86834738f314348097be2	3120	2026-07-24T04:03:10Z	MERGED
+chore/cc-snapshot-30143293796	a0e4c9cb79ce36171ffeb8429374710376b6022b	3140	2026-07-25T04:02:29Z	MERGED
+chore/cc-snapshot-30187392149	4da9b3a656c016b552f3eee7488a7c1bc47ae7fe	3155	2026-07-26T04:12:21Z	MERGED
