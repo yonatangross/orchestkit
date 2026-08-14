@@ -276,6 +276,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.33](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.32...v10.0.0-alpha.33)** · 2026-08-14
+
+- **mcp:** drop the last ork-elicit leftover from the esbuild header (#3485)
+
 **[v10.0.0-alpha.32](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.31...v10.0.0-alpha.32)** · 2026-08-14
 
 - **deps:** bump nanoid to 3.3.18 for advisory 1139427 (#3481)
@@ -313,10 +317,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **hooks:** allow the safe `IFS= read` idiom (#3454)
 - **hooks:** stop pre-compact-guard blocking auto-compaction (#3452)
-
-**[v10.0.0-alpha.25](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.24...v10.0.0-alpha.25)** · 2026-08-12
-
-- **hooks:** make restrict-bash actually run, ungate the dispatcher (#3449), closes [#3430](https://github.com/yonatangross/orchestkit/issues/3430) [#3438](https://github.com/yonatangross/orchestkit/issues/3438)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

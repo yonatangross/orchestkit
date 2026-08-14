@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.33",
+    "date": "2026-08-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**mcp:** drop the last ork-elicit leftover from the esbuild header ([#3485](https://github.com/yonatangross/orchestkit/issues/3485)) ([1189c60](https://github.com/yonatangross/orchestkit/commit/1189c605091ba590ce21ff447dd6a6e6dd274780))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.32",
     "date": "2026-08-14",
     "compareUrl": "",
