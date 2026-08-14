@@ -18,6 +18,42 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CHANGELOG_PATH = resolve(__dirname, "..", "CHANGELOG.md");
+const MANIFEST_PATH = resolve(__dirname, "..", "manifests", "ork.json");
+
+// ---------- Component counts ----------
+
+/**
+ * Current component counts, read from the ork manifest description — the same
+ * string `bin/validate-counts.sh` asserts against the filesystem, so if CI is
+ * green these numbers are correct by construction.
+ *
+ * Why not the changelog: statsBefore/statsAfter used to default to {0,0,0} and
+ * were only ever populated by a `Skill count: 197 → 199` regex that
+ * release-please changelogs never emit. Every release since has rendered
+ * "0 skills, 0 hooks" into the announce payload AND the release videos
+ * (release-video.yml feeds on this script). `agents` looked right only by
+ * accident, via a "most frequent N agents" scan of the whole changelog.
+ *
+ * Returns nulls (never zeros) if the manifest can't be read, so a caller can
+ * tell "unknown" from "genuinely zero".
+ */
+function readDeclaredCounts() {
+  try {
+    const { description = "" } = JSON.parse(readFileSync(MANIFEST_PATH, "utf8"));
+    const grab = (re) => {
+      const m = description.match(re);
+      return m ? parseInt(m[1], 10) : null;
+    };
+    return {
+      skills: grab(/(\d+)\s+skills/i),
+      agents: grab(/(\d+)\s+agents/i),
+      hooks: grab(/(\d+)\s+(?:TypeScript\s+)?hooks/i),
+    };
+  } catch (e) {
+    console.error(`[changelog-to-props] manifest counts unavailable: ${e.message}`);
+    return { skills: null, agents: null, hooks: null };
+  }
+}
 
 // ---------- Parse ----------
 
@@ -190,12 +226,18 @@ function buildProps(parsed) {
   const landscapeHighlights = parsed.highlights.slice(0, 5);
   const squareHighlights = parsed.highlights.slice(0, 3);
 
+  // Baseline is the CURRENT declared count, not zero. A release rarely states a
+  // delta, so before == after by default and the composition renders a true
+  // total instead of "0 skills". An explicit `skills: 105 → 107` in the
+  // changelog still wins below.
+  const counts = readDeclaredCounts();
+
   const landscape = {
     version: parsed.version,
     date: formatDate(parsed.date),
     highlights: landscapeHighlights,
-    statsBefore: { skills: 0, agents: 0, hooks: 0 },
-    statsAfter: { skills: 0, agents: 0, hooks: 0 },
+    statsBefore: { ...counts },
+    statsAfter: { ...counts },
     ctaCommand: "/plugin install ork@latest",
     accentColor: "#2A9D8F",
   };
@@ -230,25 +272,10 @@ function buildProps(parsed) {
   if (agentMatch) {
     landscape.statsBefore.agents = parseInt(agentMatch[1]);
     landscape.statsAfter.agents = parseInt(agentMatch[2]);
-  } else {
-    // Scan full changelog for "N agents" and take the most common large value
-    const fullText = parsed.fullContent;
-    const allAgentMentions = [...fullText.matchAll(/(\d+)\s+agents/g)];
-    if (allAgentMentions.length > 0) {
-      // Count frequency of each value, pick the most frequent (likely the total)
-      const freq = {};
-      for (const m of allAgentMentions) {
-        const n = parseInt(m[1]);
-        if (n >= 20) freq[n] = (freq[n] || 0) + 1; // Filter out small subsets
-      }
-      const entries = Object.entries(freq);
-      if (entries.length > 0) {
-        entries.sort((a, b) => b[1] - a[1]); // Most frequent first
-        const count = parseInt(entries[0][0]);
-        landscape.statsBefore.agents = count;
-        landscape.statsAfter.agents = count;
-      }
-    }
+    // The old `else` branch here scanned the WHOLE changelog for "N agents" and
+    // took the most frequent value >= 20. It is deleted, not ported: it guessed
+    // a current total from historical prose, and only looked right because the
+    // agent count has been stable. readDeclaredCounts() is the real source.
   }
 
   // Copy parsed stats to square
