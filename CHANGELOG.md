@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.33](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.32...v10.0.0-alpha.33) (2026-08-14)
+
+
+### Documentation
+
+* **mcp:** drop the last ork-elicit leftover from the esbuild header ([#3485](https://github.com/yonatangross/orchestkit/issues/3485)) ([1189c60](https://github.com/yonatangross/orchestkit/commit/1189c605091ba590ce21ff447dd6a6e6dd274780))
+
 ## [10.0.0-alpha.32](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.31...v10.0.0-alpha.32) (2026-08-14)
 
 
