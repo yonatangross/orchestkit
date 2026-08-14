@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.32](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.31...v10.0.0-alpha.32) (2026-08-14)
+
+
+### Bug Fixes
+
+* **deps:** bump nanoid to 3.3.18 for advisory 1139427 ([#3481](https://github.com/yonatangross/orchestkit/issues/3481)) ([1fac660](https://github.com/yonatangross/orchestkit/commit/1fac66044c85d5ab755c7523400e762c4fb96a60))
+* **hooks:** squash-aware worktree verifier, and close a shell injection ([#3480](https://github.com/yonatangross/orchestkit/issues/3480)) ([3a9f776](https://github.com/yonatangross/orchestkit/commit/3a9f776fb87d97643b5dfa411949747fbb7e0df9))
+
 ## [10.0.0-alpha.31](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.30...v10.0.0-alpha.31) (2026-08-13)
 
 
