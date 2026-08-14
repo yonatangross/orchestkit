@@ -461,7 +461,15 @@ describe('Cross-Bundle Consistency', () => {
     //             detection was starved by the Teams-yield gate on every call,
     //             0 detections since 2026-01-23. lib/multi-agent-coordinator.ts
     //             was deleted wholesale; it exported no bundle-registered hook.
-    expect(totalHooks).toBe(199);
+    // 199 -> 193: #3461 — deleted six hooks that were registered in the entries
+    //             maps but absent from hooks.json, so they were never invoked
+    //             (the #959 class). pretool/bash/{changelog-generator,
+    //             ci-simulation, conflict-predictor, pre-commit-simulation,
+    //             version-sync} and skill/merge-readiness-checker. Their only
+    //             apparent reachability was agent frontmatter, which CC ignores
+    //             for plugin agents, so validate-registry.mjs had been counting
+    //             an inert source as a dispatch path and masking them.
+    expect(totalHooks).toBe(193);
   });
 });
 
