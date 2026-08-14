@@ -2,8 +2,7 @@
 /**
  * esbuild configuration for OrchestKit MCP servers
  *
- * Bundles all dependencies into single ESM files for stdio transport:
- *  - dist/server.mjs       — ork-elicit (setup-wizard form elicitation)
+ * Bundles all dependencies into a single ESM file for stdio transport:
  *  - dist/docs-server.mjs  — orchestkit-docs (docs search + Markdown fetch)
  */
 
