@@ -113,6 +113,10 @@ jobs:
           # Growth channels only — LinkedIn is curated/hand-written (never auto).
           # Instagram joins once Meta Business Verification clears.
           ANNOUNCE_CHANNELS: twitter,devto,hashnode,substack,threads
+          # Draft under the project's automation account, never a maintainer's
+          # personal one. Inert until the platform adapter honours it — see
+          # announce-release.mjs.
+          ANNOUNCE_ACCOUNT: yonyon2ai
           HQ_API_URL: ${{ secrets.HQ_API_URL }}
           HQ_API_TOKEN: ${{ secrets.HQ_API_TOKEN }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}

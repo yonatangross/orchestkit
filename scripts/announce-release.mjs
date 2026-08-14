@@ -16,6 +16,9 @@
  *                     — LinkedIn is intentionally excluded: it is a curated,
  *                     hand-written channel, never auto-drafted. Instagram joins
  *                     once Meta Business Verification clears.
+ *   ANNOUNCE_ACCOUNT  which social identity should own these drafts
+ *                     (default "yonyon2ai" — the project's automation account).
+ *                     See the note below on why this field exists.
  *   HQ_API_URL        platform API base                       [enables live POST]
  *   HQ_API_TOKEN      platform API_STATIC_TOKEN               [enables live POST]
  *   DRY_RUN           "true" to compose without posting
@@ -38,6 +41,7 @@ const {
   RELEASE_NOTES = "",
   REPO = "yonatangross/orchestkit",
   ANNOUNCE_CHANNELS = "twitter,devto,hashnode,substack,threads",
+  ANNOUNCE_ACCOUNT = "yonyon2ai",
   HQ_API_URL,
   HQ_API_TOKEN,
   DRY_RUN = "false",
@@ -80,6 +84,17 @@ try {
   console.error(`[announce-release] changelog parse skipped: ${e.message}`);
 }
 
+// `account` names the social identity that should own these drafts.
+//
+// Without it, the receiving platform selects a posting identity from its own
+// default credentials, which is not necessarily the automation account. An
+// automated release rail must publish under a dedicated bot identity, never a
+// maintainer's personal one, so the choice is stated explicitly here rather
+// than inherited.
+//
+// This field is INERT until the platform adapter reads it; an unknown key is
+// ignored server-side. Shipping our half first means the contract is in place
+// and the intent is recorded, so the platform change is a one-sided edit.
 const payload = {
   repo: REPO,
   version: RELEASE_VERSION,
@@ -87,6 +102,7 @@ const payload = {
   notes_markdown: RELEASE_NOTES.slice(0, 20000),
   highlights,
   channels: ANNOUNCE_CHANNELS.split(",").map((s) => s.trim()).filter(Boolean),
+  account: ANNOUNCE_ACCOUNT,
   dry_run: dryRun,
 };
 
@@ -100,7 +116,7 @@ if (dryRun || !haveCreds) {
     );
   }
   console.log(JSON.stringify({ mode: "dry-run", payload }, null, 2));
-  summary(`### 📣 Release announce (dry-run)\nChannels: \`${payload.channels.join(", ")}\` · highlights: ${highlights.length}`);
+  summary(`### 📣 Release announce (dry-run)\nAccount: \`@${payload.account}\` · channels: \`${payload.channels.join(", ")}\` · highlights: ${highlights.length}`);
   summary(haveCreds ? "" : "> Set `HQ_API_URL` + `HQ_API_TOKEN` repo secrets to post for real.");
   process.exit(0);
 }

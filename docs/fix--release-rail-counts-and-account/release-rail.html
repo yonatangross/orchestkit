@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Release rail — component counts and the announce account</title>
+<style>
+:root{--bg:#fbfaf9;--panel:#fff;--ink:#1c1917;--mute:#78716c;--line:#e7e5e4;
+ --ok:#047857;--bad:#b91c1c;--warn:#b45309;--accent:#c2410c}
+@media(prefers-color-scheme:dark){:root{--bg:#0c0a09;--panel:#1c1917;--ink:#f5f5f4;--mute:#a8a29e;--line:#292524}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font:14px/1.6 ui-sans-serif,-apple-system,"SF Pro Text",Inter,system-ui,sans-serif}
+header{max-width:1000px;margin:0 auto;padding:28px 32px 0}
+h1{font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--mute);font-size:13px;margin:0 0 20px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);max-width:1000px;margin:0 auto;padding:0 32px;flex-wrap:wrap}
+.tab{padding:9px 15px;border:0;background:none;color:var(--mute);cursor:pointer;font:inherit;
+ font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+main{max-width:1000px;margin:0 auto;padding:24px 32px 64px}
+.panel[hidden]{display:none}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:18px}
+.card h2{font-size:15px;margin:0 0 4px;font-weight:600}
+.lede{color:var(--mute);font-size:12.5px;margin:0 0 16px}
+pre{font:12px/1.5 ui-monospace,SFMono-Regular,monospace;background:var(--bg);
+ border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;margin:0}
+code{font:12px ui-monospace,monospace;background:var(--line);padding:1px 5px;border-radius:4px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--mute);font-weight:500;font-size:11.5px;text-transform:uppercase;
+ letter-spacing:.04em;padding:0 10px 8px 0;border-bottom:1px solid var(--line)}
+td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;border-radius:99px;padding:1px 8px;font-size:11px;font-weight:600;color:#fff}
+.pill.ok{background:var(--ok)}.pill.no{background:var(--mute)}.pill.bad{background:var(--bad)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:24px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.tile .v.bad{color:var(--bad)}.tile .v.ok{color:var(--ok)}
+.tile .k{color:var(--mute);font-size:12px;margin-top:2px}
+.ctl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+button.t{border:1px solid var(--line);background:var(--panel);color:var(--ink);
+ border-radius:7px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer}
+button.t[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.warn{border:1px solid var(--warn);border-radius:9px;padding:12px 15px;margin-bottom:16px;font-size:12.5px}
+.warn b{color:var(--warn)}
+.good{border:1px solid var(--ok);border-radius:9px;padding:12px 15px;margin-bottom:16px;font-size:12.5px}
+.good b{color:var(--ok)}
+[hidden]{display:none !important}
+</style></head><body>
+<header>
+  <h1>Release rail: component counts, and which identity announces</h1>
+  <p class="sub">Playground for PR "fix(release): real component counts, and a machine account on announce" · 2026-08-14</p>
+</header>
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" aria-selected="true"  data-p="p1">The stats bug</button>
+  <button class="tab" role="tab" aria-selected="false" data-p="p2">The account field</button>
+  <button class="tab" role="tab" aria-selected="false" data-p="p3">Why the gate stays</button>
+</div>
+<main>
+
+<section class="panel" id="p1">
+  <div class="warn"><b>The defect.</b> <code>changelog-to-props.mjs</code> defaulted
+  <code>statsBefore</code>/<code>statsAfter</code> to <code>{0,0,0}</code> and only filled them from a
+  <code>Skill count: 197 → 199</code> regex that release-please changelogs never emit. That script also
+  feeds <code>release-video.yml</code>, so the zeros reached the rendered release videos, not just the
+  announce payload.</div>
+
+  <div class="card">
+    <h2>Toggle the fix</h2>
+    <p class="lede">Same input changelog, both code paths. These are the real values produced locally.</p>
+    <div class="ctl">
+      <button class="t" id="bBefore" aria-pressed="true">before (regex only)</button>
+      <button class="t" id="bAfter"  aria-pressed="false">after (manifest-derived)</button>
+    </div>
+
+    <div id="sBefore">
+      <div class="tiles">
+        <div class="tile"><div class="v bad">0</div><div class="k">skills — wrong</div></div>
+        <div class="tile"><div class="v ok">36</div><div class="k">agents — right by luck</div></div>
+        <div class="tile"><div class="v bad">0</div><div class="k">hooks — wrong</div></div>
+      </div>
+      <pre>statsBefore: {"skills":0,"agents":36,"hooks":0}
+statsAfter : {"skills":0,"agents":36,"hooks":0}</pre>
+    </div>
+
+    <div id="sAfter" hidden>
+      <div class="tiles">
+        <div class="tile"><div class="v ok">105</div><div class="k">skills</div></div>
+        <div class="tile"><div class="v ok">36</div><div class="k">agents</div></div>
+        <div class="tile"><div class="v ok">216</div><div class="k">hooks</div></div>
+      </div>
+      <pre>statsBefore: {"skills":105,"agents":36,"hooks":216}
+statsAfter : {"skills":105,"agents":36,"hooks":216}</pre>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Why the manifest, and not a filesystem walk</h2>
+    <p class="lede">Several sources were plausible. Only one is already CI-gated.</p>
+    <table>
+      <thead><tr><th style="width:210px">Source</th><th style="width:80px">Verdict</th><th>Reason</th></tr></thead>
+      <tbody>
+        <tr><td><code>manifests/ork.json</code> description</td>
+            <td><span class="pill ok">chosen</span></td>
+            <td class="lede" style="margin:0">Already asserted against the filesystem by
+                <code>bin/validate-counts.sh</code>, so a green CI makes it correct by construction.
+                One JSON read, no shell-out.</td></tr>
+        <tr><td>filesystem walk</td><td><span class="pill no">no</span></td>
+            <td class="lede" style="margin:0">Correct, but duplicates the counting rules (skip
+                <code>shared/</code>, exclude README/INDEX/CONTRIBUTING, hooks need
+                <code>bin/count-hooks.sh</code>). Two implementations drift.</td></tr>
+        <tr><td><code>shared-data.ts</code> TOTALS</td><td><span class="pill no">no</span></td>
+            <td class="lede" style="margin:0">Right numbers, but it is TypeScript and this is a plain
+                <code>.mjs</code> script. Reading it means regexing a generated TS file.</td></tr>
+        <tr><td>the changelog</td><td><span class="pill bad">no</span></td>
+            <td class="lede" style="margin:0">The original approach. Release-please never writes a
+                count delta, which is the entire bug.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>The fallback that was deleted, not ported</h2>
+    <p class="lede"><code>agents</code> looked correct the whole time. It was luck.</p>
+    <pre>// removed in this PR
+const allAgentMentions = [...fullText.matchAll(/(\d+)\s+agents/g)];
+// ...count frequency, take the most frequent value >= 20
+landscape.statsBefore.agents = count;   // guessed a CURRENT total
+landscape.statsAfter.agents  = count;   // from HISTORICAL prose</pre>
+    <p class="lede" style="margin:12px 0 0">It scanned the whole changelog and picked the most common
+    "N agents" mention. It returned 36, which is right, but only because the agent count has been
+    stable for months. One release that changed the count would have produced a stale number with no
+    signal that anything was wrong.</p>
+  </div>
+</section>
+
+<section class="panel" id="p2" hidden>
+  <div class="warn"><b>The risk.</b> The announce payload carried no account selector, so the
+  receiving platform fell back to its own default posting identity. An automated release rail must
+  publish under a dedicated bot account, never a maintainer's personal one.</div>
+
+  <div class="card">
+    <h2>Payload diff</h2>
+    <div class="ctl">
+      <button class="t" id="aBefore" aria-pressed="true">before</button>
+      <button class="t" id="aAfter"  aria-pressed="false">after</button>
+    </div>
+    <pre id="pBefore">{
+  "repo": "yonatangross/orchestkit",
+  "version": "10.0.0",
+  "release_url": "https://github.com/…",
+  "notes_markdown": "…",
+  "highlights": [],
+  "channels": ["twitter", "devto", "hashnode", "substack", "threads"],
+  "dry_run": false
+}</pre>
+    <pre id="pAfter" hidden>{
+  "repo": "yonatangross/orchestkit",
+  "version": "10.0.0",
+  "release_url": "https://github.com/…",
+  "notes_markdown": "…",
+  "highlights": [],
+  "channels": ["twitter", "devto", "hashnode", "substack", "threads"],
+  "account": "yonyon2ai",
+  "dry_run": false
+}</pre>
+    <p class="lede" style="margin:12px 0 0">The field is <b>inert</b> until the platform reads it — an
+    unknown key is ignored server-side. Shipping this half first records the intent and makes the
+    platform change a one-sided edit.</p>
+  </div>
+
+  <div class="card">
+    <h2>Why state it rather than inherit it</h2>
+    <table>
+      <thead><tr><th style="width:190px">Property</th><th>Rationale</th></tr></thead>
+      <tbody>
+        <tr><td>explicit, not inherited</td>
+            <td class="lede" style="margin:0">A default that lives in the receiver's credential
+                configuration is invisible from this repo. Naming the identity in the payload makes the
+                intent reviewable in the diff.</td></tr>
+        <tr><td>fail loud, not soft</td>
+            <td class="lede" style="margin:0">An unknown account value should be rejected rather than
+                silently falling back. A silent fallback on this particular field publishes under the
+                wrong identity.</td></tr>
+        <tr><td>overridable</td>
+            <td class="lede" style="margin:0"><code>ANNOUNCE_ACCOUNT</code> is an env var, so a
+                different caller can select a different identity without a code change.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel" id="p3" hidden>
+  <div class="good"><b>This PR changes nothing about the cadence gate.</b> The instinct on "why has
+  this never fired in 33 releases" is to open it. The evidence says do not.</div>
+
+  <div class="card">
+    <h2>What the latest prerelease would actually have announced</h2>
+    <p class="lede">Composed locally from the real release. This is the complete announceable content.</p>
+    <pre>highlights: 1
+  [changed] "mcp: drop the last ork-elicit leftover
+             from the esbuild header"
+
+notes_markdown: 381 chars of release-please output
+  compare links, commit SHAs, issue refs</pre>
+    <table style="margin-top:16px">
+      <thead><tr><th style="width:260px">Against the observed formula</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>one capability, pain-first</td><td><span class="pill bad">no</span>
+            <span class="lede" style="margin:0">a leftover removal, phrased as internal jargon</span></td></tr>
+        <tr><td>a number that reframes</td><td><span class="pill bad">no</span>
+            <span class="lede" style="margin:0">no number at all</span></td></tr>
+        <tr><td>means something to a reader</td><td><span class="pill bad">no</span>
+            <span class="lede" style="margin:0">"ork-elicit leftover" is meaningless outside this repo</span></td></tr>
+        <tr><td>worth 1 of 33 posts</td><td><span class="pill bad">no</span>
+            <span class="lede" style="margin:0">33 of these would train followers to ignore the feed</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>The gate, verbatim</h2>
+    <pre>if [ "$EVENT_NAME" = "release" ] &amp;&amp; semver_is_prerelease "$VERSION"; then
+  skip=true
+  echo "::notice::$VERSION is a prerelease — not announcing."</pre>
+    <p class="lede" style="margin:12px 0 0">33 alphas, 33 green runs, 0 drafts. The workflow reports
+    success because skipping <em>is</em> the correct outcome. <code>workflow_dispatch</code> bypasses
+    it, so a manual dry run still exercises the whole path. The first real announce is the v10.0.0
+    GA cut.</p>
+  </div>
+</section>
+
+</main>
+<script>
+// No innerHTML anywhere in this file. Every element above is static markup;
+// this script only flips `hidden` and aria state. That keeps the page free of
+// dynamic-HTML sinks entirely rather than sanitising them one by one.
+(function () {
+  var tabs = document.querySelectorAll('.tab');
+  var panels = document.querySelectorAll('.panel');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].addEventListener('click', function (ev) {
+      var target = ev.currentTarget.getAttribute('data-p');
+      for (var a = 0; a < tabs.length; a++) {
+        tabs[a].setAttribute('aria-selected', String(tabs[a] === ev.currentTarget));
+      }
+      for (var b = 0; b < panels.length; b++) {
+        panels[b].hidden = panels[b].id !== target;
+      }
+    });
+  }
+
+  function pair(btnA, btnB, viewA, viewB) {
+    function show(first) {
+      document.getElementById(viewA).hidden = !first;
+      document.getElementById(viewB).hidden = first;
+      document.getElementById(btnA).setAttribute('aria-pressed', String(first));
+      document.getElementById(btnB).setAttribute('aria-pressed', String(!first));
+    }
+    document.getElementById(btnA).addEventListener('click', function () { show(true); });
+    document.getElementById(btnB).addEventListener('click', function () { show(false); });
+  }
+
+  pair('bBefore', 'bAfter', 'sBefore', 'sAfter');
+  pair('aBefore', 'aAfter', 'pBefore', 'pAfter');
+})();
+</script></body></html>

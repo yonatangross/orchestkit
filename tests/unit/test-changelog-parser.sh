@@ -124,6 +124,81 @@ else
   pass "missing version produces non-zero exit"
 fi
 
+# ─── Test 4: component stats are real, never zero ─────────────────
+# Regression guard. statsBefore/statsAfter used to default to {0,0,0} and were
+# only filled by a "Skill count: 197 → 199" regex that release-please never
+# emits, so every release rendered "0 skills, 0 hooks" into both the announce
+# payload and the release videos (release-video.yml feeds on this script).
+# Counts now come from the ork manifest description, which bin/validate-counts.sh
+# already asserts against the filesystem.
+#
+# Process substitution, not here-strings: bash 5.3 deadlocks on here-strings
+# that pipe back a payload over PIPE_BUF (ork#3348). stderr is NOT swallowed —
+# a parser crash must fail loudly, not read as "counts are zero".
+#
+# `printf '%s\n'`, never `printf '%s'`: without the newline `read` hits EOF and
+# returns 1, which under `set -e` kills the suite mid-run and prints no summary.
+#
+# NOTE: this block runs while the fixture CHANGELOG is swapped in, so $LATEST is
+# a fixture version. That is deliberate — the counts must come from the manifest
+# regardless of what the changelog says, which is exactly the regression.
+LATEST=$(node -e '
+const fs=require("fs");
+const m=fs.readFileSync(process.argv[1],"utf8").match(/^## \[([0-9][^\]]*)\]/m);
+process.stdout.write(m?m[1]:"");
+' "$PROJECT_ROOT/CHANGELOG.md")
+
+DECLARED=$(node -e '
+const d=require(process.argv[1]).description||"";
+const g=(re)=>{const m=d.match(re);return m?m[1]:"0"};
+process.stdout.write([
+  g(/(\d+)\s+skills/i), g(/(\d+)\s+agents/i), g(/(\d+)\s+(?:TypeScript\s+)?hooks/i),
+].join(" "));
+' "$PROJECT_ROOT/manifests/ork.json")
+read -r DECL_SKILLS DECL_AGENTS DECL_HOOKS < <(printf '%s\n' "$DECLARED")
+
+for fmt in --landscape --square; do
+  props=$(node "$PARSER" "$LATEST" "$fmt")
+  stats=$(printf '%s' "$props" | node -e '
+let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+  const a=JSON.parse(s).statsAfter||{};
+  process.stdout.write([a.skills,a.agents,a.hooks].join(" "));
+});')
+  read -r GOT_SKILLS GOT_AGENTS GOT_HOOKS < <(printf '%s\n' "$stats")
+
+  if [[ -z "$GOT_SKILLS" || "$GOT_SKILLS" == "0" || "$GOT_HOOKS" == "0" ]]; then
+    fail "$fmt statsAfter zeroed: skills=$GOT_SKILLS hooks=$GOT_HOOKS"
+  else
+    pass "$fmt statsAfter counts are non-zero"
+  fi
+
+  if [[ "$GOT_SKILLS" == "$DECL_SKILLS" && "$GOT_AGENTS" == "$DECL_AGENTS" && "$GOT_HOOKS" == "$DECL_HOOKS" ]]; then
+    pass "$fmt statsAfter matches manifest ($DECL_SKILLS/$DECL_AGENTS/$DECL_HOOKS)"
+  else
+    fail "$fmt statsAfter $GOT_SKILLS/$GOT_AGENTS/$GOT_HOOKS != manifest $DECL_SKILLS/$DECL_AGENTS/$DECL_HOOKS"
+  fi
+done
+
+# ─── Test 5: announce payload carries the machine account ─────────
+# The payload had no account field, so the receiving platform fell back to its
+# own default posting identity. An automated release rail must publish under a
+# dedicated bot account, never a maintainer's personal one.
+ANNOUNCE="$PROJECT_ROOT/scripts/announce-release.mjs"
+# stderr is CAPTURED to a file, not discarded: the script legitimately warns
+# "creds unset" there in dry-run, but a real crash must stay readable.
+ANNOUNCE_ERR="$FIXTURE_DIR/announce.err"
+acct=$(RELEASE_VERSION="$LATEST" RELEASE_URL="https://example.invalid/r" \
+  DRY_RUN=true node "$ANNOUNCE" 2>"$ANNOUNCE_ERR" | node -e '
+let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+  process.stdout.write(String((JSON.parse(s).payload||{}).account||""));
+});')
+
+if [[ "$acct" == "yonyon2ai" ]]; then
+  pass "announce payload defaults to the automation account"
+else
+  fail "announce payload account is '$acct', expected 'yonyon2ai' (stderr: $(cat "$ANNOUNCE_ERR"))"
+fi
+
 echo ""
 echo "════════════════════════════════════════════════════════════════"
 echo "  Total: $((PASS + FAIL))  |  Passed: ${GREEN}${PASS}${NC}  |  Failed: ${RED}${FAIL}${NC}"
