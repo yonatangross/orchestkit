@@ -191,106 +191,12 @@ test_git_validator_ignores_git_status() {
 
 # gh-issue-creation-guide was removed as a dead hook in v7.29.0
 
-# ============================================================================
-# PRE-COMMIT SIMULATION TESTS
-# ============================================================================
-
-describe "Pre-Commit Simulation Hook (TypeScript)"
-
-test_precommit_simulation_exists() {
-    local hook="$HOOKS_SRC_DIR/pretool/bash/pre-commit-simulation.ts"
-    assert_file_exists "$hook"
-}
-
-test_precommit_simulation_validates_json_output() {
-    local hook_path="pretool/bash/pre-commit-simulation"
-
-    local input='{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat: test\""}}'
-    local output
-    output=$(run_ts_hook "$hook_path" "$input")
-
-    if [[ "$output" == *"SKIP"* ]]; then
-        skip "Hooks not built"
-    fi
-
-    if [[ -n "$output" ]]; then
-        assert_valid_json "$output"
-    fi
-}
-
-test_precommit_simulation_ignores_non_commit() {
-    local hook_path="pretool/bash/pre-commit-simulation"
-
-    local input='{"tool_name":"Bash","tool_input":{"command":"git status"}}'
-    local output
-    output=$(run_ts_hook "$hook_path" "$input")
-
-    if [[ "$output" == *"SKIP"* ]]; then
-        skip "Hooks not built"
-    fi
-
-    if [[ -n "$output" ]]; then
-        assert_valid_json "$output"
-        # Should silently pass (continue: true)
-        echo "$output" | jq -e '.continue == true' >/dev/null || pass "Ignores non-commit commands"
-    fi
-}
-
-# ============================================================================
-# CHANGELOG GENERATOR TESTS
-# ============================================================================
-
-describe "Changelog Generator Hook (TypeScript)"
-
-test_changelog_generator_exists() {
-    local hook="$HOOKS_SRC_DIR/pretool/bash/changelog-generator.ts"
-    assert_file_exists "$hook"
-}
-
-test_changelog_generator_validates_json_output() {
-    local hook_path="pretool/bash/changelog-generator"
-
-    local input='{"tool_name":"Bash","tool_input":{"command":"gh release create v1.0.0"}}'
-    local output
-    output=$(run_ts_hook "$hook_path" "$input")
-
-    if [[ "$output" == *"SKIP"* ]]; then
-        skip "Hooks not built"
-    fi
-
-    if [[ -n "$output" ]]; then
-        assert_valid_json "$output"
-    fi
-}
-
-test_changelog_generator_ignores_non_release() {
-    local hook_path="pretool/bash/changelog-generator"
-
-    local input='{"tool_name":"Bash","tool_input":{"command":"gh issue list"}}'
-    local output
-    output=$(run_ts_hook "$hook_path" "$input")
-
-    if [[ "$output" == *"SKIP"* ]]; then
-        skip "Hooks not built"
-    fi
-
-    if [[ -n "$output" ]]; then
-        assert_valid_json "$output"
-        # Should silently pass for non-release commands
-        echo "$output" | jq -e '.continue == true' >/dev/null || pass "Ignores non-release commands"
-    fi
-}
-
-test_changelog_generator_release_engineer_integration() {
-    local agent="$PROJECT_ROOT/src/agents/release-engineer.md"
-    assert_file_exists "$agent"
-
-    # Verify changelog-generator is in release-engineer hooks (without .sh extension)
-    grep -q "changelog-generator" "$agent" || fail "changelog-generator not wired to release-engineer"
-}
-
-# ============================================================================
-# SKILL STRUCTURE TESTS
+# pre-commit-simulation, changelog-generator and version-sync were removed as
+# dead hooks in #3461. They sat in the entries map with no hooks.json entry, so
+# they were never invoked (the #959 class). Their only apparent wiring was agent
+# frontmatter, which CC ignores for plugin agents — which is why the
+# "changelog-generator wired to release-engineer" assertion below was testing a
+# connection the runtime never read.
 # ============================================================================
 
 describe "Git Skills Structure"

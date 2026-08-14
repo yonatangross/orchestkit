@@ -15,7 +15,6 @@ import { coverageCheck } from '../skill/coverage-check.js';
 import { coverageThresholdGate } from '../skill/coverage-threshold-gate.js';
 import { crossInstanceTestValidator } from '../skill/cross-instance-test-validator.js';
 import { evidenceCollector } from '../skill/evidence-collector.js';
-import { mergeReadinessChecker } from '../skill/merge-readiness-checker.js';
 import { patternConsistencyEnforcer } from '../skill/pattern-consistency-enforcer.js';
 import { redactSecrets } from '../skill/redact-secrets.js';
 
@@ -35,7 +34,6 @@ export const hooks: Record<string, HookFn> = {
   'skill/coverage-threshold-gate': coverageThresholdGate,
   'skill/cross-instance-test-validator': crossInstanceTestValidator,
   'skill/evidence-collector': evidenceCollector,
-  'skill/merge-readiness-checker': mergeReadinessChecker,
   'skill/pattern-consistency-enforcer': patternConsistencyEnforcer,
   'skill/redact-secrets': redactSecrets,
   // once:true context loaders (CC 2.1.69)

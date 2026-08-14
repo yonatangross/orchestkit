@@ -18,15 +18,10 @@ import { gitValidator } from '../pretool/bash/git-validator.js';
 import { compoundCommandValidator } from '../pretool/bash/compound-command-validator.js';
 import { defaultTimeoutSetter } from '../pretool/bash/default-timeout-setter.js';
 import { errorPatternWarner } from '../pretool/bash/error-pattern-warner.js';
-import { conflictPredictor } from '../pretool/bash/conflict-predictor.js';
 import { affectedTestsFinder } from '../pretool/bash/affected-tests-finder.js';
 import { preCommitTestGate } from '../pretool/bash/pre-commit-test-gate.js';
 import { displayLint } from '../pretool/bash/display-lint.js';
 import { worktreeMergeVerifier } from '../pretool/bash/worktree-merge-verifier.js';
-import { ciSimulation } from '../pretool/bash/ci-simulation.js';
-import { preCommitSimulation } from '../pretool/bash/pre-commit-simulation.js';
-import { changelogGenerator } from '../pretool/bash/changelog-generator.js';
-import { versionSync } from '../pretool/bash/version-sync.js';
 import { agentBrowserSafety } from '../pretool/bash/agent-browser-safety.js';
 import { issueReferenceChecker } from '../pretool/bash/issue-reference-checker.js';
 import { ghLabelEnforcer } from '../pretool/bash/gh-label-enforcer.js';
@@ -97,15 +92,10 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/compound-command-validator': compoundCommandValidator,
   'pretool/bash/default-timeout-setter': defaultTimeoutSetter,
   'pretool/bash/error-pattern-warner': errorPatternWarner,
-  'pretool/bash/conflict-predictor': conflictPredictor,
   'pretool/bash/affected-tests-finder': affectedTestsFinder,
   'pretool/bash/pre-commit-test-gate': preCommitTestGate,
   'pretool/bash/display-lint': displayLint,
   'pretool/bash/worktree-merge-verifier': worktreeMergeVerifier,
-  'pretool/bash/ci-simulation': ciSimulation,
-  'pretool/bash/pre-commit-simulation': preCommitSimulation,
-  'pretool/bash/changelog-generator': changelogGenerator,
-  'pretool/bash/version-sync': versionSync,
   'pretool/bash/agent-browser-safety': agentBrowserSafety,
   'pretool/bash/issue-reference-checker': issueReferenceChecker,
   'pretool/bash/gh-label-enforcer': ghLabelEnforcer,
