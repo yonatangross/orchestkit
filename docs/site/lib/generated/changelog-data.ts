@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.34",
+    "date": "2026-08-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**docs:** publish release-rail to the Lab, drop the render proxy ([#3491](https://github.com/yonatangross/orchestkit/issues/3491)) ([04ea99f](https://github.com/yonatangross/orchestkit/commit/04ea99f64a0fb56b5f781fd1521a2ef46ac92e1b))",
+          "**release:** real component counts, and a named announce identity ([#3489](https://github.com/yonatangross/orchestkit/issues/3489)) ([7e9e1ed](https://github.com/yonatangross/orchestkit/commit/7e9e1ed455da133905943e4540a38f5b540db7f1))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.33",
     "date": "2026-08-14",
     "compareUrl": "",

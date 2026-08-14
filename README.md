@@ -276,6 +276,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.34](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.33...v10.0.0-alpha.34)** · 2026-08-14
+
+- **docs:** publish release-rail to the Lab, drop the render proxy (#3491)
+- **release:** real component counts, and a named announce identity (#3489)
+
 **[v10.0.0-alpha.33](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.32...v10.0.0-alpha.33)** · 2026-08-14
 
 - **mcp:** drop the last ork-elicit leftover from the esbuild header (#3485)
@@ -312,11 +317,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** bidirectional contract gate, real PostToolUseFailure field (#3457), closes [#3418](https://github.com/yonatangross/orchestkit/issues/3418)
 - **hooks:** measure context, stop reading fields CC never sends (#3459)
 - **hooks:** settle PostToolUseFailure/PostCompact exceptions (#3458)
-
-**[v10.0.0-alpha.26](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.25...v10.0.0-alpha.26)** · 2026-08-12
-
-- **hooks:** allow the safe `IFS= read` idiom (#3454)
-- **hooks:** stop pre-compact-guard blocking auto-compaction (#3452)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
