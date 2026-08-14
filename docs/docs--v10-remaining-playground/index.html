@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two playground namespaces — ephemeral vs durable</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#e6edf3;--dim:#8b949e;
+        --ok:#3fb950;--bad:#f85149;--accent:#58a6ff;--warn:#d29922}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);padding:32px 20px;
+       font:14px/1.6 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:920px;margin:0 auto}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{color:var(--dim);margin:0 0 24px;font-size:13px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:16px}
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin:0 0 12px;font-weight:600}
+  code,pre{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+  pre{background:#0d1117;border:1px solid var(--line);border-radius:6px;padding:12px;overflow-x:auto;font-size:12px;margin:0}
+  .cap{color:var(--dim);font-size:12px;margin-top:8px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  td.mono{font-family:ui-monospace,monospace;font-size:12px}
+  .bad{color:var(--bad)}.ok{color:var(--ok)}.warn{color:var(--warn)}
+  .note{border-left:3px solid var(--warn);padding-left:12px;color:var(--dim);font-size:13px}
+  .btn{display:inline-block;background:#0d1117;border:1px solid var(--line);border-radius:5px;
+       padding:6px 12px;margin:3px 6px 3px 0;cursor:pointer;font-size:12px;font-family:ui-monospace,monospace}
+  .btn:hover,.btn.on{border-color:var(--accent);color:var(--accent)}
+  .row{padding:5px 9px;border-radius:4px;font-family:ui-monospace,monospace;font-size:12px;margin:3px 0}
+  .row.gone{background:rgba(248,81,73,.10);color:var(--bad)}
+  .row.kept{background:rgba(63,185,80,.10);color:var(--ok)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Two playground namespaces</h1>
+  <p class="sub">One is swept by a cron. The other is protected by name. Putting a standing analysis in the first is how it disappears.</p>
+
+  <div class="panel">
+    <h2>The two homes</h2>
+    <div>
+      <span class="btn on" id="b-eph">ephemeral · docs/&lt;type&gt;--&lt;slug&gt;/</span>
+      <span class="btn" id="b-dur">durable · docs/playgrounds/</span>
+    </div>
+    <div id="out" style="margin-top:12px"></div>
+    <p class="cap" id="why"></p>
+  </div>
+
+  <div class="panel">
+    <h2>Why the naming is load-bearing</h2>
+    <pre>scripts/prune-playgrounds.sh
+
+  for d in docs/*--*/            &lt;- the `--` IS the selector
+  KEEP_SET="audits site playgrounds templates stubs …"
+  prunable if NO origin branch matches the slug</pre>
+    <p class="cap">A dir named <code>&lt;type&gt;--&lt;slug&gt;</code> with no matching branch on origin reads as "its PR merged and the branch was deleted." That is the whole prune predicate. Naming a standing document that way tells the sweeper it is garbage.</p>
+  </div>
+
+  <div class="panel">
+    <h2>What this PR moves</h2>
+    <table>
+      <tr><th></th><th>Path</th><th>Fate</th></tr>
+      <tr><td class="bad">from</td><td class="mono">docs/plan--v10-remaining/plan-viz.html</td><td class="bad">matches <code>*--*</code>, not in KEEP_SET, no origin branch → prunable</td></tr>
+      <tr><td class="ok">to</td><td class="mono">docs/playgrounds/v10-remaining-work-2026-08-14.html</td><td class="ok">no <code>--</code>, parent in KEEP_SET, never walked by the pruner</td></tr>
+    </table>
+    <p class="cap">Three independent reasons it is now safe, not one.</p>
+  </div>
+
+  <div class="panel">
+    <h2>The circularity, recorded honestly</h2>
+    <p class="note">This file exists only because the PR Playground gate is fail-closed and <code>docs/playgrounds/*.html</code> is not on its <code>INERT</code> list. So committing a <b>durable</b> playground requires authoring an <b>ephemeral</b> one, which the pruner will later delete. That is the gate working as written, not a bug being smuggled past — but it is worth knowing that "add a doc" and "add a doc plus a disposable doc about adding the doc" are currently the same operation.</p>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var EPH = [
+    ["gone","docs/fix--3455-push-refspec/index.html"],
+    ["gone","docs/chore--cc-adopt-2.1.231/plan-viz.html"],
+    ["gone","docs/docs--v10-remaining-playground/index.html   <- this very file"],
+    ["gone","… 251 dirs today; 418 dead dirs / ~11MB before the first sweep"]
+  ];
+  var DUR = [
+    ["kept","docs/playgrounds/superpowers-learnings.html"],
+    ["kept","docs/playgrounds/lib-currency-audit-2026-05-31.html"],
+    ["kept","docs/playgrounds/vercel-labs-integration.html"],
+    ["kept","docs/playgrounds/v10-remaining-work-2026-08-14.html   <- moved here"]
+  ];
+  var WHY = {
+    eph: "Created per PR by a mandatory gate. Swept to the orphan `playgrounds-archive` branch once the PR's branch is gone from origin. Correct for anything that only makes sense next to one diff.",
+    dur: "Protected by KEEP_SET and outside the pruner's `docs/*--*/` walk. Correct for a standing analysis that should still be readable in six months."
+  };
+  var out = document.getElementById("out"), why = document.getElementById("why");
+  var be = document.getElementById("b-eph"), bd = document.getElementById("b-dur");
+  function render(which){
+    be.classList.toggle("on", which === "eph");
+    bd.classList.toggle("on", which === "dur");
+    var rows = which === "eph" ? EPH : DUR;
+    out.innerHTML = "";
+    rows.forEach(function(r){
+      var d = document.createElement("div");
+      d.className = "row " + r[0];
+      d.textContent = r[1];
+      out.appendChild(d);
+    });
+    why.textContent = WHY[which];
+  }
+  be.addEventListener("click", function(){ render("eph"); });
+  bd.addEventListener("click", function(){ render("dur"); });
+  render("eph");
+})();
+</script>
+</body>
+</html>
