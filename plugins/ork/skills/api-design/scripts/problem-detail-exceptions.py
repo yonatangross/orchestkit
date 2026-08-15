@@ -10,6 +10,7 @@ Production-ready exception handling for FastAPI with:
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from enum import StrEnum
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -60,7 +61,7 @@ class ValidationProblem(ProblemDetail):
 # Problem Type Registry
 # ============================================================================
 
-class ProblemType:
+class ProblemType(StrEnum):
     """Registry of problem type URIs."""
 
     BASE = "https://api.example.com/problems"
