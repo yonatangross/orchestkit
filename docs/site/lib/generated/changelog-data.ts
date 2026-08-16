@@ -17,6 +17,38 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.35",
+    "date": "2026-08-16",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**api-design:** make ProblemType a StrEnum ([#3496](https://github.com/yonatangross/orchestkit/issues/3496)) ([ad1fbe9](https://github.com/yonatangross/orchestkit/commit/ad1fbe98dc4da637097675e5291027d60416b4a4))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**agents:** delete the inert hooks: block from 33 agent frontmatters ([#3494](https://github.com/yonatangross/orchestkit/issues/3494)) ([95700b2](https://github.com/yonatangross/orchestkit/commit/95700b250d18750c5eedf72f995cdf936e408ca3))",
+          "**git:** land the reap-lane branch recovery evidence ([#3497](https://github.com/yonatangross/orchestkit/issues/3497)) ([1a7123f](https://github.com/yonatangross/orchestkit/commit/1a7123f166afd148b3856d7839eb35130fe66155))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**contributing:** plugins/ is generated AND tracked ([#3498](https://github.com/yonatangross/orchestkit/issues/3498)) ([c9cf392](https://github.com/yonatangross/orchestkit/commit/c9cf3928631e2e09de0cf11ff83418ec0ff1dde0))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**playground:** exempt fork PRs from the playground gate ([#3508](https://github.com/yonatangross/orchestkit/issues/3508)) ([831ad2f](https://github.com/yonatangross/orchestkit/commit/831ad2f21122035306ac6570abb70eb3b20fa38d)), closes [#3502](https://github.com/yonatangross/orchestkit/issues/3502)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.34",
     "date": "2026-08-14",
     "compareUrl": "",

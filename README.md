@@ -276,6 +276,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.35](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.34...v10.0.0-alpha.35)** · 2026-08-16
+
+- **api-design:** make ProblemType a StrEnum (#3496)
+- **agents:** delete the inert hooks: block from 33 agent frontmatters (#3494)
+- **git:** land the reap-lane branch recovery evidence (#3497)
+- **contributing:** plugins/ is generated AND tracked (#3498)
+- **playground:** exempt fork PRs from the playground gate (#3508), closes [#3502](https://github.com/yonatangross/orchestkit/issues/3502)
+
 **[v10.0.0-alpha.34](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.33...v10.0.0-alpha.34)** · 2026-08-14
 
 - **docs:** publish release-rail to the Lab, drop the render proxy (#3491)
@@ -311,12 +319,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **cc-adoption:** adopt MAX_SUBAGENT_SPAWN_DEPTH, fix depth 5/3 mismatch (#3463), closes [#3324](https://github.com/yonatangross/orchestkit/issues/3324)
 - **marketplace:** retire engine field for --strict (#3465), closes [#3349](https://github.com/yonatangross/orchestkit/issues/3349)
-
-**[v10.0.0-alpha.27](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.26...v10.0.0-alpha.27)** · 2026-08-12
-
-- **hooks:** bidirectional contract gate, real PostToolUseFailure field (#3457), closes [#3418](https://github.com/yonatangross/orchestkit/issues/3418)
-- **hooks:** measure context, stop reading fields CC never sends (#3459)
-- **hooks:** settle PostToolUseFailure/PostCompact exceptions (#3458)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
