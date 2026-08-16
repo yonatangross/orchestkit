@@ -19,6 +19,15 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  # This agent declares `required_mcp_servers: [21st-dev-magic]` below, but
+  # granted none of its tools — so every "recommend a 21st.dev alternative"
+  # run fell through to WebFetch scraping. Read-only surface only; curating
+  # never publishes to or deletes from the registry.
+  # get_component is METERED (2/day on free tier) — search first, retrieve once.
+  - mcp__21st-dev-magic__search
+  - mcp__21st-dev-magic__search_picker
+  - mcp__21st-dev-magic__get_component
+  - mcp__21st-dev-magic__get_usage
 skills:
   - component-search
   - storybook-mcp-integration

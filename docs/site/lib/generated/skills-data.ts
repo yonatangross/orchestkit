@@ -1093,7 +1093,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "component-search",
     "description": "Search 21st.dev component registry for production-ready React components. Finds components by natural language description, filters by framework and style system, returns ranked results with install instructions. Use when looking for UI components, finding alternatives to existing components, or sourcing design system building blocks.",
     "version": "1.1.0",
-    "sha256": "b2f0509a3d9feede2738ddae0addafa59aec7baa2609c58690b2439428396dc5",
+    "sha256": "65a3d97b771b0b546eca76c9486747afee077dc8d92fc371d8131bde7524ab09",
     "author": "OrchestKit",
     "tags": [
       "components",
@@ -1116,6 +1116,12 @@ export const SKILLS: Record<string, SkillMeta> = {
       "AskUserQuestion",
       "TaskCreate",
       "TaskUpdate",
+      "mcp__21st-dev-magic__search_picker",
+      "mcp__21st-dev-magic__search",
+      "mcp__21st-dev-magic__get_component",
+      "mcp__21st-dev-magic__get_theme",
+      "mcp__21st-dev-magic__search_logo",
+      "mcp__21st-dev-magic__get_usage",
       "TaskList"
     ],
     "skills": [],
@@ -1633,7 +1639,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-to-code",
     "description": "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts a screenshot, a description, or a URL and produces production-ready React components, checking existing Storybook components before generating anything new. Use when implementing UI from a mockup or screenshot. To call the MCP tool surface on its own, with no design to convert, use storybook-mcp-integration.",
     "version": "1.0.1",
-    "sha256": "768190df611e8b396ad29e4108a1eabef59ad5c2e9cf3882582f985780129221",
+    "sha256": "618319fbe265fa06b810009c30bd1a02739f95bb312d3abea813995cad76e054",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
@@ -1660,7 +1666,12 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Agent",
       "TaskCreate",
       "TaskUpdate",
-      "TaskList"
+      "TaskList",
+      "mcp__21st-dev-magic__search",
+      "mcp__21st-dev-magic__search_picker",
+      "mcp__21st-dev-magic__get_component",
+      "mcp__21st-dev-magic__get_theme",
+      "mcp__21st-dev-magic__get_usage"
     ],
     "skills": [
       "design-system-tokens",

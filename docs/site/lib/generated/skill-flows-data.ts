@@ -1883,7 +1883,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "1",
             "label": "Search Registry",
-            "does": "If 21st-dev-magic MCP is available:",
+            "does": "",
             "out": null,
             "tag": null
           },
