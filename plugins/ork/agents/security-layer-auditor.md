@@ -21,6 +21,7 @@ skills:
   - security-patterns
   - remember
   - memory
+mcpServers: []
 background: true
 critical_system_reminder: "Verify all 8 security layers are addressed. Never skip a layer even if it seems redundant."
 initialPrompt: "Check TaskList for pending audit tasks. Identify the target feature and map its 8 defense-in-depth security layers."

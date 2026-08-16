@@ -9,6 +9,7 @@ maxTurns: 30
 effort: medium
 color: purple
 memory: project
+mcpServers: []
 tools:
   - Read
   - Write

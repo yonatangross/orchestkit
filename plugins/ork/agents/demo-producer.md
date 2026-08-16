@@ -29,6 +29,7 @@ skills:
   - demo-producer
   - remember
   - memory
+mcpServers: []
 taskTypes:
   - design
   - document

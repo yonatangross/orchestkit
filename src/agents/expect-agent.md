@@ -21,6 +21,7 @@ tools:
 skills:
   - expect
   - testing-e2e
+mcpServers: []
 keywords:
   - browser test
   - expect
