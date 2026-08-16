@@ -23,7 +23,9 @@ tools:
   # granted none of its tools — so every "recommend a 21st.dev alternative"
   # run fell through to WebFetch scraping. Read-only surface only; curating
   # never publishes to or deletes from the registry.
-  # get_component is METERED (2/day on free tier) — search first, retrieve once.
+  # search/search_picker/metadata are unmetered; get_component is the only metered
+  # tool (2/day on free, unlimited on paid — call get_usage, do not assume).
+  # Browse first regardless: the USER should pick, not the model.
   - mcp__21st-dev-magic__search
   - mcp__21st-dev-magic__search_picker
   - mcp__21st-dev-magic__get_component

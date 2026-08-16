@@ -23,7 +23,8 @@ tools:
   # Declares `mcpServers: [context7, 21st-dev-magic, storybook-mcp]` and tells
   # itself to "prefer registry components over generating from scratch" — but
   # granted none of the registry's tools, so it always generated from scratch.
-  # Read-only surface only. get_component is METERED (2/day on free tier).
+  # Read-only surface only. get_component is the only metered tool (2/day on free,
+  # unlimited on paid — call get_usage). Browse first so the USER picks.
   - mcp__21st-dev-magic__search
   - mcp__21st-dev-magic__search_picker
   - mcp__21st-dev-magic__get_component
