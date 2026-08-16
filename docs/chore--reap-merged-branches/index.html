@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Branch recovery browser - reap evidence 2026-08-14</title>
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --fg:#e6edf3;
+           --dim:#8b949e; --ok:#3fb950; --bad:#f85149; --accent:#58a6ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:2rem 1.25rem; background:var(--bg); color:var(--fg);
+          font:15px/1.6 ui-sans-serif,system-ui,-apple-system,sans-serif; }
+  main { max-width:1040px; margin:0 auto; }
+  h1 { font-size:1.5rem; margin:0 0 .25rem; }
+  .sub { color:var(--dim); margin:0 0 1.5rem; }
+  code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .stats { display:flex; gap:1rem; margin-bottom:1.25rem; flex-wrap:wrap; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:8px;
+           padding:.7rem 1rem; }
+  .stat b { display:block; font-size:1.35rem; }
+  .stat span { color:var(--dim); font-size:.8rem; text-transform:uppercase;
+                letter-spacing:.05em; }
+  input { width:100%; padding:.6rem .75rem; border-radius:6px; font-size:14px;
+           border:1px solid var(--line); background:#0b0f14; color:var(--fg);
+           font-family:ui-monospace,monospace; margin-bottom:1rem; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; color:var(--dim); font-weight:600; font-size:.75rem;
+        text-transform:uppercase; letter-spacing:.05em; padding:.5rem;
+        border-bottom:1px solid var(--line); }
+  td { padding:.5rem; border-bottom:1px solid var(--line);
+        font-family:ui-monospace,monospace; vertical-align:top; }
+  tr:hover td { background:var(--panel); }
+  .gone { color:var(--bad); } .live { color:var(--ok); }
+  .oid { color:var(--dim); }
+  button { font:inherit; font-size:11px; cursor:pointer; padding:.25rem .5rem;
+            border-radius:4px; border:1px solid var(--line);
+            background:var(--panel); color:var(--accent); }
+  footer { margin-top:2rem; color:var(--dim); font-size:.85rem;
+            border-top:1px solid var(--line); padding-top:1rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Branch recovery browser</h1>
+  <p class="sub">
+    Snapshot taken 2026-08-14 before lane L3 reaped merged refs. A deleted branch is
+    recoverable only from its exact OID, and per-worktree reflogs expire, so this file
+    is the rollback path. Every OID below was re-verified as still resolving in the
+    object database.
+  </p>
+
+  <div class="stats">
+    <div class="stat"><b class="gone">47</b><span>branches deleted</span></div>
+    <div class="stat"><b class="live">11</b><span>still present</span></div>
+    <div class="stat"><b>70</b><span>refs tracked</span></div>
+  </div>
+
+  <input id="q" placeholder="Filter by branch name, PR number, or OID" spellcheck="false">
+
+  <table>
+    <thead>
+      <tr><th>Ref</th><th>State</th><th>PR</th><th>Last commit</th><th>Restore</th></tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <footer>
+    Restore a branch with <code>git branch &lt;name&gt; &lt;oid&gt;</code>. Worktree rows
+    record the HEAD each linked worktree pointed at. Uncommitted working-tree edits are
+    NOT recoverable from an OID and are not represented here.
+  </footer>
+</main>
+
+<script>
+const ROWS = [
+{
+"name": "chore/bump-dompurify-lockfile",
+"oid": "e0edf17d0d5bc523d1375cc0e139b5cbcd5306d8",
+"pr": "none",
+"date": "2026-08-07",
+"state": "none",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-adoption-2.1.215-218",
+"oid": "07993e7518f73b7932d90d521d029b43f1e5e337",
+"pr": "none",
+"date": "2026-07-23",
+"state": "none",
+"kind": "branch",
+"alive": true
+},
+{
+"name": "chore/reap-merged-branches",
+"oid": "04ea99f64a0fb56b5f781fd1521a2ef46ac92e1b",
+"pr": "none",
+"date": "2026-08-14",
+"state": "none",
+"kind": "branch",
+"alive": true
+},
+{
+"name": "dep3379-local",
+"oid": "72b44f5240781203ddb179fc4716f3b6752009bf",
+"pr": "none",
+"date": "2026-08-10",
+"state": "none",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "dep3381-local",
+"oid": "40fb383e02561cdaa6424db9624aceebf97c5fbf",
+"pr": "none",
+"date": "2026-08-10",
+"state": "none",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "feat/3315-worktree-baseref-include",
+"oid": "a4ef85b781bd000c38ba8ce26d7586c16bd9aafe",
+"pr": "none",
+"date": "2026-08-13",
+"state": "none",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "feat/3325-autocompactwindow",
+"oid": "a9e721a9541d132b5c94324c9825038bf1182fa7",
+"pr": "3427",
+"date": "2026-08-11",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "feat/adopt-cross-session-messaging",
+"oid": "cdff9fcd2d30304848a612e7684f4fada76b3917",
+"pr": "none",
+"date": "2026-08-09",
+"state": "none",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/3308-cache-break-fake-cost",
+"oid": "057bf934a5d7a4f4bf12acdf855cafee8fed2e01",
+"pr": "3403",
+"date": "2026-08-10",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/3313-false-slash-only-comments",
+"oid": "95f1ecf92dfd474f628461346e3f46afec201a3a",
+"pr": "3405",
+"date": "2026-08-10",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/3317-goal-brake-real-turns",
+"oid": "bccfff90990bfedeef87e645fbfe0f084ceda57d",
+"pr": "none",
+"date": "2026-08-09",
+"state": "none",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/3348-pipebuf-lint",
+"oid": "be9b29bc333504580d80bf9cee5a52e757a914ee",
+"pr": "none",
+"date": "2026-08-11",
+"state": "none",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/3350-stable-pin-bump",
+"oid": "bccfff90990bfedeef87e645fbfe0f084ceda57d",
+"pr": "none",
+"date": "2026-08-09",
+"state": "none",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/3430-restrict-bash-dispatcher",
+"oid": "537e778a0d8dc847853f3996caeceee915ca3733",
+"pr": "none",
+"date": "2026-08-12",
+"state": "none",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/3430-restrict-bash-ungated",
+"oid": "7f8d60b37579310e31914dc6067e1cff4ac86c75",
+"pr": "3449",
+"date": "2026-08-12",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/3450-precompact-guard-auto",
+"oid": "cb8e0552263009cbc82f0710e8f23bf6eb1336c4",
+"pr": "3452",
+"date": "2026-08-12",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/3453-ifs-read-idiom",
+"oid": "4c68fec83ef74106103d11ab1e478a73f0f84e24",
+"pr": "3454",
+"date": "2026-08-12",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/3455-push-refspec",
+"oid": "b6769c0c6c81be7dcf4c8da02779fbbf4470cf21",
+"pr": "3475",
+"date": "2026-08-13",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/elicit-doc-leftovers",
+"oid": "ab427079e01fcbd83aea56f62a6416085b035e64",
+"pr": "3402",
+"date": "2026-08-10",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/elicit-header-leftover",
+"oid": "27cc01e4bfc767cc6df86a74fb20af66da944678",
+"pr": "3485",
+"date": "2026-08-14",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/git-validator-stale-message",
+"oid": "fe3ded0a214c5ef09d35bd131efa9e31d5b908bc",
+"pr": "none",
+"date": "2026-08-12",
+"state": "none",
+"kind": "branch",
+"alive": true
+},
+{
+"name": "fix/guard-denial-circuit-breaker",
+"oid": "d81a83e93e7af5dbef0591d3a16e47902c2e203a",
+"pr": "3423",
+"date": "2026-08-11",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/nanoid-advisory-1139427",
+"oid": "0563d010bf5c0a3137774dec9a9915e9d0888b5e",
+"pr": "3481",
+"date": "2026-08-13",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/network-source-false-positives",
+"oid": "ffe1bbbe48daa7834accfd1a94691cedbacafd5a",
+"pr": "3441",
+"date": "2026-08-11",
+"state": "MERGED",
+"kind": "branch",
+"alive": true
+},
+{
+"name": "fix/node-version-source-of-truth",
+"oid": "ece98fde86007bf4dbf05e3860fe4dd70351c4e5",
+"pr": "3473",
+"date": "2026-08-13",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/preflight-numeric-order",
+"oid": "94c88efd5d48af5214d66c3e444da35c1886f837",
+"pr": "none",
+"date": "2026-07-29",
+"state": "none",
+"kind": "branch",
+"alive": true
+},
+{
+"name": "fix/publish-release-rail-playground",
+"oid": "e0959664a8d348ece5ed98f170c0f635a2d9c494",
+"pr": "3491",
+"date": "2026-08-14",
+"state": "MERGED",
+"kind": "branch",
+"alive": true
+},
+{
+"name": "fix/release-rail-counts-and-account",
+"oid": "80e1d96bf653859753ecd91c3a26d2e392af1dac",
+"pr": "3489",
+"date": "2026-08-14",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "fix/security-tests-can-fail",
+"oid": "d45e560d01d2c3381952fde033c728f43bb66b44",
+"pr": "none",
+"date": "2026-08-05",
+"state": "none",
+"kind": "branch",
+"alive": true
+},
+{
+"name": "labs-sync",
+"oid": "31ba69131b34d24fe3525bdd896ebed94d457bf0",
+"pr": "none",
+"date": "2026-07-25",
+"state": "none",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "main",
+"oid": "874307f349fd80dd1973bae7b53727d30b0da136",
+"pr": "none",
+"date": "2026-08-14",
+"state": "none",
+"kind": "branch",
+"alive": true
+},
+{
+"name": "mainprobe",
+"oid": "919ff93d8e4683bf4fca994dd7e919cd24c3153d",
+"pr": "none",
+"date": "2026-08-03",
+"state": "none",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "playgrounds-archive",
+"oid": "100668f6ffa2f3b1d90f7e624ab7338cf05f2290",
+"pr": "none",
+"date": "2026-08-13",
+"state": "none",
+"kind": "branch",
+"alive": true
+},
+{
+"name": "pr-3254",
+"oid": "fff181cf8abd74225f41e73c657cbf78cbdad689",
+"pr": "none",
+"date": "2026-08-03",
+"state": "none",
+"kind": "branch",
+"alive": true
+},
+{
+"name": "release/v10",
+"oid": "7f923fdb393ebb4bea9e2083f5883032c38bbf9a",
+"pr": "none",
+"date": "2026-08-08",
+"state": "none",
+"kind": "branch",
+"alive": true
+},
+{
+"name": "worktree-agent-a33f997425ac3ec07",
+"oid": "bccfff90990bfedeef87e645fbfe0f084ceda57d",
+"pr": "none",
+"date": "2026-08-09",
+"state": "none",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "worktree-agent-a7ad4ec8f65765c4b",
+"oid": "44d17ced401128a8c37eaa9e3284bf4ea18a9aba",
+"pr": "none",
+"date": "2026-08-09",
+"state": "none",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "wt/refspec",
+"oid": "bdc5b42c81cf938cc39084394757b9b866da8ee7",
+"pr": "none",
+"date": "2026-08-09",
+"state": "none",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "worktree:/Users/yonatangross/coding/yonatangross/orchestkit[main]",
+"oid": "874307f349fd80dd1973bae7b53727d30b0da136",
+"pr": "none",
+"date": "2026-08-14",
+"state": "none",
+"kind": "worktree",
+"alive": false
+},
+{
+"name": "worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.claude/worktrees/agent-a7ad4ec8f65765c4b[worktree-agent-a7ad4ec8f65765c4b]",
+"oid": "44d17ced401128a8c37eaa9e3284bf4ea18a9aba",
+"pr": "none",
+"date": "2026-08-09",
+"state": "none",
+"kind": "worktree",
+"alive": false
+},
+{
+"name": "worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/agent-a5ff63718f566517e[feat/3315-worktree-baseref-include]",
+"oid": "a4ef85b781bd000c38ba8ce26d7586c16bd9aafe",
+"pr": "none",
+"date": "2026-08-13",
+"state": "none",
+"kind": "worktree",
+"alive": false
+},
+{
+"name": "worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/dep3379[dep3379-local]",
+"oid": "72b44f5240781203ddb179fc4716f3b6752009bf",
+"pr": "none",
+"date": "2026-08-10",
+"state": "none",
+"kind": "worktree",
+"alive": false
+},
+{
+"name": "worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/dep3381[dep3381-local]",
+"oid": "40fb383e02561cdaa6424db9624aceebf97c5fbf",
+"pr": "none",
+"date": "2026-08-10",
+"state": "none",
+"kind": "worktree",
+"alive": false
+},
+{
+"name": "worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/elicit-hdr[fix/elicit-header-leftover]",
+"oid": "27cc01e4bfc767cc6df86a74fb20af66da944678",
+"pr": "3485",
+"date": "2026-08-14",
+"state": "MERGED",
+"kind": "worktree",
+"alive": false
+},
+{
+"name": "worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/gitvalidator-msg[fix/git-validator-stale-message]",
+"oid": "fe3ded0a214c5ef09d35bd131efa9e31d5b908bc",
+"pr": "none",
+"date": "2026-08-12",
+"state": "none",
+"kind": "worktree",
+"alive": false
+},
+{
+"name": "worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/gitvalidator-refspec[fix/3455-push-refspec]",
+"oid": "b6769c0c6c81be7dcf4c8da02779fbbf4470cf21",
+"pr": "3475",
+"date": "2026-08-13",
+"state": "MERGED",
+"kind": "worktree",
+"alive": false
+},
+{
+"name": "worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/node-version-source[fix/node-version-source-of-truth]",
+"oid": "ece98fde86007bf4dbf05e3860fe4dd70351c4e5",
+"pr": "3473",
+"date": "2026-08-13",
+"state": "MERGED",
+"kind": "worktree",
+"alive": false
+},
+{
+"name": "worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/playground-durable[labs-sync]",
+"oid": "31ba69131b34d24fe3525bdd896ebed94d457bf0",
+"pr": "none",
+"date": "2026-07-25",
+"state": "none",
+"kind": "worktree",
+"alive": false
+},
+{
+"name": "worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/reap-merged[chore/reap-merged-branches]",
+"oid": "04ea99f64a0fb56b5f781fd1521a2ef46ac92e1b",
+"pr": "none",
+"date": "2026-08-14",
+"state": "none",
+"kind": "worktree",
+"alive": false
+},
+{
+"name": "worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/verify3263[chore/bump-dompurify-lockfile]",
+"oid": "e0edf17d0d5bc523d1375cc0e139b5cbcd5306d8",
+"pr": "none",
+"date": "2026-08-07",
+"state": "none",
+"kind": "worktree",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-26630839195",
+"oid": "62f6c69842db7fbca08e1569f3a10c7dd0676acf",
+"pr": "2082",
+"date": "2026-05-29",
+"state": "CLOSED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-28993774382",
+"oid": "0ea54e9a0e31e69d9edc522fdc611fbcb28ba05e",
+"pr": "2812",
+"date": "2026-07-09",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29068859936",
+"oid": "88a4643a472e229e82b20d089529595bd2316728",
+"pr": "2825",
+"date": "2026-07-10",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29138971074",
+"oid": "a26693f0900facb346bdc965a93ec8ccd1853ba2",
+"pr": "2839",
+"date": "2026-07-11",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29179347172",
+"oid": "f5fb8aaf26201b6b1d71d7ad7a81e2ace8959616",
+"pr": "2848",
+"date": "2026-07-12",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29304874883",
+"oid": "74756fee5a5c1e92fc0327fa659faf04058aa9ce",
+"pr": "2867",
+"date": "2026-07-14",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29387923426",
+"oid": "84fa6a15b48501fe73b94a5cc2fec9360eb5e49a",
+"pr": "2907",
+"date": "2026-07-15",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29470343738",
+"oid": "02d4029e8dccaab9112e7f85acf666fc57840ce0",
+"pr": "2918",
+"date": "2026-07-16",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29506755710",
+"oid": "ce2a513c677997f63b2fec3c3da3271801040eaf",
+"pr": "2921",
+"date": "2026-07-16",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29510100233",
+"oid": "1422c67e21627e550d4025b535ecaac315fd6b82",
+"pr": "2929",
+"date": "2026-07-16",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29553798392",
+"oid": "9712070280c2d671810710201e49fbee1978f771",
+"pr": "2946",
+"date": "2026-07-17",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29629786889",
+"oid": "ad56a123829a7789bb28f88ea3604c46824f99d5",
+"pr": "2989",
+"date": "2026-07-18",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29672873608",
+"oid": "025e89490a6db443adea9998ceac41bd1bc8e4ff",
+"pr": "3004",
+"date": "2026-07-19",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29716476803",
+"oid": "57916e700e56be80cde2cbe4161e1594fbebf8c9",
+"pr": "3028",
+"date": "2026-07-20",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29800179137",
+"oid": "ed282207e714c73da40d91e29b43e8c2951f4abb",
+"pr": "3053",
+"date": "2026-07-21",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29890078654",
+"oid": "233ebc4967a2e22b60bb42058a7500cbd4bbd1ac",
+"pr": "3070",
+"date": "2026-07-22",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-29978564461",
+"oid": "61fb134f8285d445677f1d25959244c5b3d00b13",
+"pr": "3094",
+"date": "2026-07-23",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-30065755432",
+"oid": "aa4e939cc02c4b27c4e86834738f314348097be2",
+"pr": "3120",
+"date": "2026-07-24",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-30143293796",
+"oid": "a0e4c9cb79ce36171ffeb8429374710376b6022b",
+"pr": "3140",
+"date": "2026-07-25",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+},
+{
+"name": "chore/cc-snapshot-30187392149",
+"oid": "4da9b3a656c016b552f3eee7488a7c1bc47ae7fe",
+"pr": "3155",
+"date": "2026-07-26",
+"state": "MERGED",
+"kind": "branch",
+"alive": false
+}
+];
+const tbody = document.getElementById("rows");
+const q = document.getElementById("q");
+
+// Row data comes from a committed TSV, but branch names are still text we did
+// not author, so escape before it reaches innerHTML.
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+}[c]));
+
+function copy(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const old = btn.textContent; btn.textContent = "copied";
+    setTimeout(() => (btn.textContent = old), 1200);
+  });
+}
+
+function render() {
+  const needle = q.value.trim().toLowerCase();
+  const shown = ROWS.filter(r =>
+    !needle || r.name.toLowerCase().includes(needle) ||
+    r.oid.includes(needle) || String(r.pr).includes(needle));
+
+  tbody.innerHTML = shown.map(r => {
+    const short = r.name.replace(/^worktree:.*\[(.*)\]$/, "$1");
+    const cmd = `git branch ${short} ${r.oid}`;
+    const state = r.kind === "worktree"
+      ? '<span class="oid">worktree</span>'
+      : (r.alive ? '<span class="live">present</span>'
+                 : '<span class="gone">deleted</span>');
+    return `<tr>
+      <td>${esc(r.name.replace(/^worktree:/, "wt "))}<br>
+          <span class="oid">${esc(r.oid.slice(0, 12))}</span></td>
+      <td>${state}</td>
+      <td>${r.pr === "none" ? '<span class="oid">-</span>'
+           : `#${esc(r.pr)} <span class="oid">${esc(r.state)}</span>`}</td>
+      <td class="oid">${esc(r.date)}</td>
+      <td><button onclick='copy(${esc(JSON.stringify(cmd))}, this)'>copy</button></td>
+    </tr>`;
+  }).join("");
+}
+
+q.oninput = render;
+render();
+</script>
+</body>
+</html>
