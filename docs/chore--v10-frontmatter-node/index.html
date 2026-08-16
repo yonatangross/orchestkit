@@ -206,17 +206,28 @@ $ MCP stdio: initialize + tools/list
   </div>
 
   <h2>Found while doing this, deliberately not fixed here</h2>
-  <div class="note">
-    <h4>The build re-stamps a hook count that another counter disagrees with</h4>
-    <p>Running <code>npm run build</code> rewrote a docs example from <code>171 hooks active</code> to
-    <code>215</code>. This branch touches no hooks, so that is pre-existing drift and it was reverted out of this
-    diff. But three numbers currently disagree:</p>
-    <pre>bin/validate-counts.sh    171   (and it passes)
-scripts/stamp-counts.sh   215   (rewrites docs on every build)
-raw hooks.json entries    150</pre>
-    <p style="margin:0">Both scripts claim to read <code>$TOTAL</code> from the same <code>count-hooks.sh</code>. The
-    consequence is that any PR running the build silently re-stamps 215 over the 171 that #3494 established as honest
-    arithmetic. Filed separately rather than smuggled into a frontmatter PR.</p>
+  <div class="ok">
+    <h4>RETRACTED: the "hook count drift" reported earlier in this PR does not exist</h4>
+    <p>An earlier revision of this page and the PR body claimed the build re-stamped
+    <code>171 hooks active</code> to <code>215</code>, and called it a defect that silently undoes #3494. <b>That was
+    wrong, and the mistake was mine.</b></p>
+    <p>What actually happened: the build was running in the background and <code>git diff</code> was read while
+    <code>setup.mdx</code> was mid-write. A partially-written file was reported as a finding. The counter is
+    deterministic and correct:</p>
+    <pre>$ bash bin/count-hooks.sh
+  GLOBAL=150 AGENT=0 SKILL=21 TOTAL=171
+
+$ bash scripts/stamp-counts.sh          # in isolation
+  Stamped counts: ... 171 hooks (150g + 0a + 21s)
+  files changed: 0
+
+$ bash scripts/build-plugins.sh         # full build, clean tree
+  [5/6] Found 171 hooks (150 global + 21 scoped)
+  files changed: 0                       <span style="color:#7ee787"># idempotent</span></pre>
+    <p style="margin:0">150 is simply the <code>GLOBAL</code> component, not a competing total. There is one source of
+    truth, both callers agree, and re-running the build is a no-op. Recorded here rather than quietly deleted, because
+    a milestone whose thesis is "tests that mirror the bug prove nothing" should not leave a retracted claim
+    unmarked.</p>
   </div>
   <div class="note">
     <h4>A timing assertion that fails on unmodified main</h4>
