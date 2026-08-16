@@ -203,6 +203,9 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_REF: ${{ github.head_ref }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          # Expression, not string interpolation of attacker-controlled text:
+          # this evaluates to the literal true/false before the shell sees it.
+          IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
         run: |
           set -uo pipefail
 
@@ -220,6 +223,28 @@ jobs:
           # Automated branches, kept as a cheap fast path.
           if [[ "$HEAD_REF" =~ ^(dependabot/|release-please|renovate/|chore/cc-snapshot-|ci/) ]]; then
             skip "Skipping playground check for automated branch ($HEAD_REF)"
+          fi
+
+          # Fork PRs. This gate exists to keep OUR feature work documented in
+          # the Lab, which presumes knowledge an outside contributor does not
+          # have and cannot get from CONTRIBUTING: the docs/<branch-slug>/
+          # naming rule, the no-third-party-render-proxy rule, and the
+          # lab-manifest publishing step. Being REQUIRED, it hard-blocked such
+          # PRs with no path forward.
+          #
+          # Hit twice for real. #3193 was a one-line docs diff, and the fix then
+          # was to widen INERT by path; that does not generalise, because the
+          # next case (#3495) was a two-line change to a Python example under
+          # src/skills/, a path that legitimately IS user-facing. The problem is
+          # not which files were touched, it is that we are taxing a stranger
+          # for an artifact only a maintainer knows how to produce.
+          #
+          # So: exempt cross-repository PRs and let the maintainer add the
+          # playground when landing the change. This cannot be used to dodge the
+          # gate on our own work, because a branch pushed to this repo is never
+          # cross-repository.
+          if [[ "$IS_FORK" == "true" ]]; then
+            skip "Skipping playground check for fork PR ($PR_AUTHOR); maintainer adds the playground at merge time"
           fi
 
           # Path-based inertness.
