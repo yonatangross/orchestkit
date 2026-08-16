@@ -5,7 +5,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>v10 gates: inert frontmatter + Dockerfile node major</title>
+<title>v10: Dockerfile node major shipped, frontmatter deletion reverted</title>
 <style>
   :root{
     --bg:#0b0f14; --panel:#131a24; --panel2:#0e141c; --line:#1f2b3a;
@@ -59,74 +59,45 @@
 <body>
 <div class="wrap">
 
-  <h1>Two v10 gates: inert agent frontmatter, and a container on the wrong Node</h1>
-  <div class="sub">Branch <code>chore/v10-frontmatter-node</code> &middot; closes part of #3461, closes #3477</div>
+  <h1>One v10 gate shipped, one attempted and reverted</h1>
+  <div class="sub">Branch <code>chore/v10-frontmatter-node</code> &middot; closes #3477 &middot; #3461 attempted, reverted, premise disproved</div>
 
   <div class="lead">
-    <p style="margin:0 0 10px">Both changes are small. What makes them milestone work is the evidence attached: this
-    milestone's merge bar is <b>a test that failed before the fix and passes after</b>, with the failing output
-    recorded. Use the toggles below to see the real captured output on each side.</p>
+    <p style="margin:0 0 10px">One fix ships here, with the evidence this milestone's merge bar asks for: a test
+    that <b>failed before it and passes after</b>. The other was attempted, broke a gate in CI, and was reverted;
+    that failure is kept on this page because it disproves a premise written in #3461 itself.</p>
     <p style="margin:0">The audit that created this milestone found 103 unit tests passing on a helper that was dead in
     production, because the fixtures mirrored the bug. So for #3477 the test is not the whole proof: the container
     was built and the server was actually run.</p>
   </div>
 
-  <h2>Gate 1 &middot; #3461 &mdash; seven declarations that expressed nothing</h2>
-  <div class="gate">
-    <h3>7 agents declared <code>mcpServers: []</code><span class="tag">no product decision attached</span></h3>
-    <p>Claude Code ignores three keys for agents shipped inside a plugin. The array was read out of the 2.1.226
-    binary and is identical on 2.1.227 and 2.1.231:</p>
-    <pre>["permissionMode", "hooks", "mcpServers"]
-"Plugin agent file ${e} sets ${V}, which is ignored for plugin agents.
- Use .claude/agents/ for this level of control."</pre>
-    <p>Twenty-nine agents declare real servers, and <code>tests/skills/test-mcp-pinning-check.sh</code> reads them, so
-    those need a gate decision first and are <b>left untouched</b>. Seven declared an <i>empty</i> list: they paid the
-    per-load warning while expressing no intent, and no test can depend on an empty declaration. Those are deletable
-    today. Residual ignored keys go 69 &rarr; 62.</p>
+  <h2>#3461 &middot; attempted, REVERTED, and the issue's premise is wrong</h2>
+  <div class="note">
+    <h4>The seven "free" deletions are load-bearing. CI proved it.</h4>
+    <p>#3461's own comment says the 7 empty <code>mcpServers: []</code> declarations are deletable today because
+    "no test can depend on an empty declaration", and this PR originally acted on that. <b>It is false.</b>
+    <code>tests/performance/test-mcp-overhead.sh</code> exists precisely to depend on it:</p>
+    <pre>#   1. Every agent .md file has an explicit mcpServers field
 
-    <div class="toggle" role="group" aria-label="test output">
-      <button class="red" aria-pressed="true" data-t="g1" data-p="before">Before</button>
-      <button class="green" aria-pressed="false" data-t="g1" data-p="after">After</button>
-    </div>
-    <div class="pane on" data-t="g1" data-p="before">
-<pre>$ bash tests/agents/test-agent-inert-frontmatter.sh
-
---- Rule 2: no empty 'mcpServers: []' ---
-  FAIL: demo-producer.md declares an empty 'mcpServers: []'
-  FAIL: emulate-engineer.md declares an empty 'mcpServers: []'
-  FAIL: expect-agent.md declares an empty 'mcpServers: []'
-  FAIL: genui-architect.md declares an empty 'mcpServers: []'
-  FAIL: security-auditor.md declares an empty 'mcpServers: []'
-  FAIL: security-layer-auditor.md declares an empty 'mcpServers: []'
-  FAIL: system-design-reviewer.md declares an empty 'mcpServers: []'
-
-  agents checked          : 37
-  empty 'mcpServers: []'  : 7 (must be 0)
-RESULT: FAIL</pre>
-      <p class="exit bad">exit 1</p>
-    </div>
-    <div class="pane" data-t="g1" data-p="after">
-<pre>$ bash tests/agents/test-agent-inert-frontmatter.sh
-
---- Rule 1: no 'hooks:' key ---
-  PASS: 0 agents declare 'hooks:'
---- Rule 2: no empty 'mcpServers: []' ---
-  PASS: 0 agents declare an empty 'mcpServers:'
-
-  agents checked          : 37
-  'hooks:' declarations   : 0 (must be 0)
-  empty 'mcpServers: []'  : 0 (must be 0)
-RESULT: PASS</pre>
-      <p class="exit good">exit 0</p>
-    </div>
-
-    <div class="note">
-      <h4>Why the test has a second rule that already passes</h4>
-      <p style="margin:0">Rule 1 asserts no agent declares <code>hooks:</code>. That is already 0, because #3494 deleted
-      all 33. It is in the test as a <b>regression lock</b>, not as a fix. Stating that plainly matters: a rule that
-      cannot currently fail is not evidence for this PR, and pretending otherwise is the exact habit this milestone
-      exists to break.</p>
-    </div>
+const emptyField = /^mcpServers:\s*\[\s*\]/m.test(fm);
+const hasField   = /^mcpServers:/m.test(fm);
+...
+echo "FAIL [${rest}]: missing mcpServers field"</pre>
+    <p>The test distinguishes <i>empty</i> from <i>absent</i> and requires the field either way. An explicit
+    <code>mcpServers: []</code> is not leftover cruft, it is a deliberate marker meaning "this agent was considered
+    for MCP and wants none". Deleting it makes an agent indistinguishable from one where somebody simply forgot.</p>
+    <pre>FAIL [demo-producer]: missing mcpServers field
+FAIL [emulate-engineer]: missing mcpServers field
+FAIL [expect-agent]: missing mcpServers field
+FAIL [genui-architect]: missing mcpServers field
+FAIL [security-auditor]: missing mcpServers field
+FAIL [security-layer-auditor]: missing mcpServers field
+FAIL [system-design-reviewer]: missing mcpServers field
+FAIL: MCP overhead regression detected.        <span style="color:#ff9d97">Performance Tests, CI</span></pre>
+    <p style="margin:0"><b>Reverted in this branch.</b> The consequence for #3461 is larger than one PR: there is no
+    "free" subset. All 36 declarations, empty ones included, are gated by that test, so the whole issue needs the
+    owner decision, not just the 29 with real content. Two local suites (agents, skills) were green while this was
+    broken, because the gate lives in <code>tests/performance/</code> which was not run locally.</p>
   </div>
 
   <h2>Gate 2 &middot; #3477 &mdash; the published image ran a Node nothing tested</h2>
