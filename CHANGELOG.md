@@ -5,6 +5,29 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.35](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.34...v10.0.0-alpha.35) (2026-08-16)
+
+
+### Bug Fixes
+
+* **api-design:** make ProblemType a StrEnum ([#3496](https://github.com/yonatangross/orchestkit/issues/3496)) ([ad1fbe9](https://github.com/yonatangross/orchestkit/commit/ad1fbe98dc4da637097675e5291027d60416b4a4))
+
+
+### Miscellaneous
+
+* **agents:** delete the inert hooks: block from 33 agent frontmatters ([#3494](https://github.com/yonatangross/orchestkit/issues/3494)) ([95700b2](https://github.com/yonatangross/orchestkit/commit/95700b250d18750c5eedf72f995cdf936e408ca3))
+* **git:** land the reap-lane branch recovery evidence ([#3497](https://github.com/yonatangross/orchestkit/issues/3497)) ([1a7123f](https://github.com/yonatangross/orchestkit/commit/1a7123f166afd148b3856d7839eb35130fe66155))
+
+
+### Documentation
+
+* **contributing:** plugins/ is generated AND tracked ([#3498](https://github.com/yonatangross/orchestkit/issues/3498)) ([c9cf392](https://github.com/yonatangross/orchestkit/commit/c9cf3928631e2e09de0cf11ff83418ec0ff1dde0))
+
+
+### CI/CD
+
+* **playground:** exempt fork PRs from the playground gate ([#3508](https://github.com/yonatangross/orchestkit/issues/3508)) ([831ad2f](https://github.com/yonatangross/orchestkit/commit/831ad2f21122035306ac6570abb70eb3b20fa38d)), closes [#3502](https://github.com/yonatangross/orchestkit/issues/3502)
+
 ## [10.0.0-alpha.34](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.33...v10.0.0-alpha.34) (2026-08-14)
 
 
