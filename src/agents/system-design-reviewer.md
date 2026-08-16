@@ -24,7 +24,6 @@ skills:
   - performance
   - remember
   - memory
-mcpServers: []
 background: true
 initialPrompt: "Check TaskList for pending review tasks. Read the implementation plan or PR under review against the 5-dimension framework."
 taskTypes:
