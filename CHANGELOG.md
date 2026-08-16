@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.34](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.33...v10.0.0-alpha.34) (2026-08-14)
+
+
+### Bug Fixes
+
+* **docs:** publish release-rail to the Lab, drop the render proxy ([#3491](https://github.com/yonatangross/orchestkit/issues/3491)) ([04ea99f](https://github.com/yonatangross/orchestkit/commit/04ea99f64a0fb56b5f781fd1521a2ef46ac92e1b))
+* **release:** real component counts, and a named announce identity ([#3489](https://github.com/yonatangross/orchestkit/issues/3489)) ([7e9e1ed](https://github.com/yonatangross/orchestkit/commit/7e9e1ed455da133905943e4540a38f5b540db7f1))
+
 ## [10.0.0-alpha.33](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.32...v10.0.0-alpha.33) (2026-08-14)
 
 
