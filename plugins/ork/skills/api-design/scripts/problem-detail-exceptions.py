@@ -9,7 +9,8 @@ Production-ready exception handling for FastAPI with:
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -20,6 +21,7 @@ from pydantic import BaseModel, Field
 # ============================================================================
 # Problem Detail Schema
 # ============================================================================
+
 
 class ProblemDetail(BaseModel):
     """RFC 9457 Problem Details response."""
@@ -39,7 +41,7 @@ class ProblemDetail(BaseModel):
         description="URI reference to the specific occurrence",
     )
     trace_id: str | None = None
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 class FieldError(BaseModel):
@@ -60,24 +62,35 @@ class ValidationProblem(ProblemDetail):
 # Problem Type Registry
 # ============================================================================
 
-class ProblemType:
-    """Registry of problem type URIs."""
 
-    BASE = "https://api.example.com/problems"
+# The namespace root for every problem type URI. Kept OUTSIDE ProblemType:
+# inside a StrEnum body it would become a member, so iterating the registry
+# would yield the bare base URI as if it were a problem type.
+PROBLEM_TYPE_BASE = "https://api.example.com/problems"
 
-    VALIDATION_ERROR = f"{BASE}/validation-error"
-    RESOURCE_NOT_FOUND = f"{BASE}/resource-not-found"
-    RESOURCE_CONFLICT = f"{BASE}/resource-conflict"
-    AUTHENTICATION_REQUIRED = f"{BASE}/authentication-required"
-    INSUFFICIENT_PERMISSIONS = f"{BASE}/insufficient-permissions"
-    RATE_LIMIT_EXCEEDED = f"{BASE}/rate-limit-exceeded"
-    INTERNAL_ERROR = f"{BASE}/internal-error"
-    SERVICE_UNAVAILABLE = f"{BASE}/service-unavailable"
+
+class ProblemType(StrEnum):
+    """Registry of problem type URIs.
+
+    A StrEnum, so members compare and serialize as their URI string while
+    still being a closed, iterable set: `list(ProblemType)` is exactly the
+    catalog of problem types this API can emit.
+    """
+
+    VALIDATION_ERROR = f"{PROBLEM_TYPE_BASE}/validation-error"
+    RESOURCE_NOT_FOUND = f"{PROBLEM_TYPE_BASE}/resource-not-found"
+    RESOURCE_CONFLICT = f"{PROBLEM_TYPE_BASE}/resource-conflict"
+    AUTHENTICATION_REQUIRED = f"{PROBLEM_TYPE_BASE}/authentication-required"
+    INSUFFICIENT_PERMISSIONS = f"{PROBLEM_TYPE_BASE}/insufficient-permissions"
+    RATE_LIMIT_EXCEEDED = f"{PROBLEM_TYPE_BASE}/rate-limit-exceeded"
+    INTERNAL_ERROR = f"{PROBLEM_TYPE_BASE}/internal-error"
+    SERVICE_UNAVAILABLE = f"{PROBLEM_TYPE_BASE}/service-unavailable"
 
 
 # ============================================================================
 # Base Exception
 # ============================================================================
+
 
 @dataclass
 class ProblemException(Exception):
@@ -96,7 +109,7 @@ class ProblemException(Exception):
             "type": self.problem_type,
             "title": self.title,
             "status": self.status_code,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         if self.detail:
@@ -131,6 +144,7 @@ class ProblemException(Exception):
 # ============================================================================
 # Specific Exceptions
 # ============================================================================
+
 
 class ResourceNotFoundError(ProblemException):
     """Resource was not found."""
@@ -176,9 +190,7 @@ class ValidationError(ProblemException):
         message: str,
     ) -> "ValidationError":
         """Create from a single field error."""
-        return cls(
-            errors=[{"field": field_name, "code": code, "message": message}]
-        )
+        return cls(errors=[{"field": field_name, "code": code, "message": message}])
 
 
 class ConflictError(ProblemException):
@@ -285,6 +297,7 @@ class ServiceUnavailableError(ProblemException):
 # Exception Handlers
 # ============================================================================
 
+
 def setup_exception_handlers(app: FastAPI) -> None:
     """Register all exception handlers on FastAPI app."""
 
@@ -310,11 +323,13 @@ def setup_exception_handlers(app: FastAPI) -> None:
             loc = error["loc"]
             field_path = ".".join(str(x) for x in loc[1:]) if len(loc) > 1 else str(loc[0])
 
-            errors.append({
-                "field": field_path,
-                "code": error["type"],
-                "message": error["msg"],
-            })
+            errors.append(
+                {
+                    "field": field_path,
+                    "code": error["type"],
+                    "message": error["msg"],
+                }
+            )
 
         trace_id = getattr(request.state, "request_id", None)
 
@@ -327,7 +342,7 @@ def setup_exception_handlers(app: FastAPI) -> None:
                 "detail": "Request validation failed",
                 "instance": request.url.path,
                 "trace_id": trace_id,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "errors": errors,
             },
             media_type="application/problem+json",
@@ -362,7 +377,7 @@ def setup_exception_handlers(app: FastAPI) -> None:
                 "detail": "An unexpected error occurred. Please try again later.",
                 "instance": request.url.path,
                 "trace_id": trace_id,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
             media_type="application/problem+json",
         )
