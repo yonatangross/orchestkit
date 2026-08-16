@@ -78,44 +78,51 @@ Glob("**/components.json")
 
 ## Step 1: Search Registry
 
-### The metering split — read this before calling anything
+### Browse first, and let the USER pick
 
-Verified against a live free-tier account (2026-08-16, `get_usage`):
-
-| Tool | Cost |
-|---|---|
-| `search`, `search_picker`, `search_logo`, `get_theme`, all list/metadata | **free, unmetered** |
-| `get_component` (the actual code) | **metered — 2 / DAY on free tier** |
-
-Search returns name, description, preview image, video, author, and the
-`installCommand` **for free**. Only fetching a component's source is metered.
-So a full exploration costs nothing, and the entire budget is the final pick.
+**The reason is choice, not cost.** Search returns a preview image, a video, the
+author and the `installCommand` — enough for a human to recognise the right
+component at a glance. The model cannot. Guessing which of eight "command palette"
+results the user meant is the failure mode this flow exists to prevent, and it
+stays a failure mode on every pricing tier.
 
 **If 21st-dev-magic MCP is available (the real path):**
 
 ```python
-# 1. BROWSE — free. Prefer search_picker: same params and results as search,
-#    but renders an inline picker so the USER chooses. Never burn a retrieval
-#    to find out what something looks like; the preview is already free.
+# 1. BROWSE. Prefer search_picker: same params and results as search, but it
+#    renders an inline picker so the USER chooses. Do not pre-filter to one
+#    result on their behalf — show the options.
 mcp__21st-dev-magic__search_picker(query="{QUERY}", type="component", limit=8)
 
-# 2. PICK — the user selects. Stop here and wait. Do not guess on their behalf.
+# 2. PICK — the user selects. Stop here and wait.
 
-# 3. RETRIEVE — metered. Exactly ONE call, for the ONE chosen component.
+# 3. RETRIEVE — the chosen component.
 mcp__21st-dev-magic__get_component(id=<demo id from the chosen result>)
 ```
 
-Rules that follow from the split:
-
-- **Never call `get_component` speculatively, in a loop, or "to compare".**
-  Two careless calls exhaust the day.
-- If the user only needs to know *whether* something exists, or wants the
-  install command, **stop after step 1** — that answer is already free.
-- Call `get_usage` first when a session may already have spent retrievals; it
-  reports `freeRetrievalsRemaining`.
-- `search` returns `installCommand` containing `?api_key=$API_KEY_21ST`. That
+- If the user only needs to know *whether* something exists, or wants the install
+  command, **stop after step 1** — search already answered it.
+- `search` returns an `installCommand` containing `?api_key=$API_KEY_21ST`. That
   is a **different env var** from the MCP's `TWENTY_FIRST_API_KEY`; if
   `npx shadcn add` fails auth, that variable is missing from the environment.
+
+### Tier — check it, do not assume it
+
+`get_component` is the only metered tool; `search`, `search_picker`, `search_logo`,
+`get_theme` and every list/metadata tool are unmetered on all tiers.
+
+**Call `get_usage` rather than assuming a cap.** It returns `tier` plus
+`freeRetrievalsRemaining` (both `null` when unlimited).
+
+| tier | `get_component` |
+|---|---|
+| `free` | **2 / day** — treat each retrieval as the day's budget: never speculative, never in a loop, never "to compare" |
+| `paid` | unlimited — comparing two candidates is fine; the picker step still applies |
+
+Written 2026-08-16 against a free account and corrected 2026-08-17 when the
+account went paid: the original text argued the flow from the 2/day cap, which
+made it read as obsolete the moment the cap lifted. The cap is a constraint;
+letting the user choose is the design.
 
 **If 21st-dev-magic is NOT available (fallback):**
 ```python

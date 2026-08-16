@@ -1093,7 +1093,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "component-search",
     "description": "Search 21st.dev component registry for production-ready React components. Finds components by natural language description, filters by framework and style system, returns ranked results with install instructions. Use when looking for UI components, finding alternatives to existing components, or sourcing design system building blocks.",
     "version": "1.1.0",
-    "sha256": "65a3d97b771b0b546eca76c9486747afee077dc8d92fc371d8131bde7524ab09",
+    "sha256": "c18613f5eca1f87efb7bb43d07c4611461c954a83e63f9044ff8a72746535a6a",
     "author": "OrchestKit",
     "tags": [
       "components",
@@ -1639,7 +1639,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-to-code",
     "description": "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts a screenshot, a description, or a URL and produces production-ready React components, checking existing Storybook components before generating anything new. Use when implementing UI from a mockup or screenshot. To call the MCP tool surface on its own, with no design to convert, use storybook-mcp-integration.",
     "version": "1.0.1",
-    "sha256": "618319fbe265fa06b810009c30bd1a02739f95bb312d3abea813995cad76e054",
+    "sha256": "518552936b4ade9b882bb997c5c16ea770f1d26d95d4b7652c8c68cf6deaba39",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",

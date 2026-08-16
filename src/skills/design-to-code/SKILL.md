@@ -31,7 +31,9 @@ allowed-tools:
   - TaskList
   # "Priority 2 — Search 21st.dev" (below) named the server but granted none of
   # its tools, so that whole branch was unreachable. Read-only surface only.
-  # get_component is METERED (2/day on free tier) — search first, retrieve once.
+  # search/search_picker/metadata are unmetered; get_component is the only metered
+  # tool (2/day on free, unlimited on paid — call get_usage, do not assume).
+  # Browse first regardless: the USER should pick, not the model.
   - mcp__21st-dev-magic__search
   - mcp__21st-dev-magic__search_picker
   - mcp__21st-dev-magic__get_component
