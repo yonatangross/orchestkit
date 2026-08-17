@@ -133,8 +133,10 @@ jobs:
             echo "The nightly upstream probe found drift as of \`$(date -u +%Y-%m-%dT%H:%MZ)\`."
             echo ''
             echo 'Dispatch **Upstream Version Watch** to open the bump PR. That half is'
-            echo 'manual-dispatch on purpose: it makes real `claude -p` calls, which draw on'
-            echo "the operator's shared weekly quota, so it must not fire on a cron."
+            echo 'manual-dispatch on purpose — see its own header for why it must never'
+            echo 'fire on a schedule. (Described by reference, not quoted: this file must'
+            echo 'stay free of the signature strings in tests/unit/test-no-llm-in-ci.sh,'
+            echo 'whose match is textual and file-scoped.)'
             echo ''
             echo '<details><summary>probe output</summary>'
             echo ''
