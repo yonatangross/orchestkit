@@ -13,13 +13,13 @@ Use trace, profiler, and record commands for debugging and bug reports, but alwa
 **Incorrect:**
 ```bash
 # Recording a login flow — captures credentials in video/trace
-agent-browser trace start /tmp/trace.zip
+agent-browser trace start
 agent-browser open https://app.example.com/login
 agent-browser fill @e1 "$EMAIL"
 agent-browser fill @e2 "$PASSWORD"
 agent-browser click @e3
-agent-browser trace stop
-# /tmp/trace.zip now contains your credentials in cleartext
+agent-browser trace stop /tmp/trace.json
+# /tmp/trace.json now contains your credentials in cleartext
 
 # Dumping console output without filtering
 agent-browser console > /tmp/console.log
@@ -34,10 +34,10 @@ git add /tmp/errors.log  # Could contain PII in stack traces
 ```bash
 # Record AFTER authentication (load saved state first)
 agent-browser vault load my-session
-agent-browser trace start /tmp/trace.zip
+agent-browser trace start
 agent-browser open https://app.example.com/dashboard
 # ... perform actions to reproduce bug ...
-agent-browser trace stop
+agent-browser trace stop /tmp/trace.json
 # Trace captures only post-auth interactions
 
 # Review console output before saving
