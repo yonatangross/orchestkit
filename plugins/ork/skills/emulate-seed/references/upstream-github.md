@@ -1,5 +1,5 @@
 <!-- SYNCED from vercel-labs/emulate (skills/github/SKILL.md) -->
-<!-- Hash: 635cb8ee698f5fe8b6fb4fafa9d5aaf0d9cd697c71fd980d1b56d34c328bda00 -->
+<!-- Hash: 1ef2cf7eadb47a76d3a5ff88d47572b73e0d27d51c4f57117575d310e41c7226 -->
 <!-- Re-sync: bash scripts/sync-vercel-skills.sh -->
 
 
@@ -26,13 +26,39 @@ const github = await createEmulator({ service: 'github', port: 4001 })
 // github.url === 'http://localhost:4001'
 ```
 
+For a programmatic GitHub App, omit `private_key` and read the generated RSA key from the instance:
+
+```typescript
+const github = await createEmulator({
+  service: 'github',
+  port: 4001,
+  seed: {
+    github: {
+      users: [{ login: 'octocat' }],
+      apps: [{
+        app_id: 12345,
+        slug: 'my-github-app',
+        name: 'My GitHub App',
+        installations: [{ installation_id: 100, account: 'octocat' }],
+      }],
+    },
+  },
+})
+
+const privateKey = github.generatedSecrets.find(
+  secret => secret.kind === 'github.app_private_key' && secret.id === '12345',
+)?.value
+```
+
+The key remains stable across `github.reset()`. Explicit keys are not included in `generatedSecrets`. CLI seed files still require `private_key`.
+
 ## Auth
 
 Pass tokens as `Authorization: Bearer <token>` or `Authorization: token <token>`.
 
 ```bash
 curl http://localhost:4001/user \
-  -H "Authorization: Bearer gho_test_token_admin"
+  -H "Authorization: Bearer test_token_admin"
 ```
 
 Public repo endpoints work without auth. Private repos and write operations require a valid token. When no token is provided, requests fall back to the first seeded user.
@@ -55,10 +81,17 @@ github:
         contents: read
         issues: write
       events: [push, pull_request]
+      webhook_url: http://localhost:8080/github/webhook
+      webhook_secret: my-webhook-secret
+      description: My CI/CD bot
       installations:
         - installation_id: 100
           account: my-org
           repository_selection: all
+          permissions:
+            contents: read
+          events: [push]
+          repositories: [my-org/org-repo]
 ```
 
 ## Pointing Your App at the Emulator
@@ -76,7 +109,7 @@ import { Octokit } from '@octokit/rest'
 
 const octokit = new Octokit({
   baseUrl: process.env.GITHUB_EMULATOR_URL ?? 'https://api.github.com',
-  auth: 'gho_test_token_admin',
+  auth: 'test_token_admin',
 })
 ```
 
@@ -112,7 +145,7 @@ GitHub({
 
 ```yaml
 tokens:
-  gho_test_token_admin:
+  test_token_admin:
     login: admin
     scopes: [repo, user, admin:org, admin:repo_hook]
 
@@ -124,17 +157,26 @@ github:
       bio: I am the Octocat
       company: GitHub
       location: San Francisco
+      blog: https://github.blog
+      twitter_username: github
+      site_admin: false
   orgs:
     - login: my-org
       name: My Organization
       description: A test organization
+      email: org@example.com
   repos:
     - owner: octocat
       name: hello-world
       description: My first repository
       language: JavaScript
       topics: [hello, world]
-      auto_init: true
+      default_branch: main
+      private: false
+    - owner: my-org
+      name: org-repo
+      description: An organization repository
+      language: TypeScript
   oauth_apps:
     - client_id: Iv1.abc123
       client_secret: secret_abc123
@@ -143,13 +185,15 @@ github:
         - http://localhost:3000/api/auth/callback/github
 ```
 
+Repos are auto-initialized with a commit, branch, and README unless `auto_init: false` is set.
+
 ## Pagination
 
 All list endpoints support `page` and `per_page` query params with `Link` headers:
 
 ```bash
 curl "http://localhost:4001/repos/octocat/hello-world/issues?page=1&per_page=10" \
-  -H "Authorization: Bearer gho_test_token_admin"
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ## API Endpoints
@@ -177,6 +221,12 @@ curl http://localhost:4001/users/octocat/repos
 curl http://localhost:4001/users/octocat/orgs
 curl http://localhost:4001/users/octocat/followers
 curl http://localhost:4001/users/octocat/following
+
+# User hovercard
+curl http://localhost:4001/users/octocat/hovercard
+
+# User emails
+curl http://localhost:4001/user/emails -H "Authorization: Bearer $TOKEN"
 ```
 
 ### Repositories
@@ -184,6 +234,9 @@ curl http://localhost:4001/users/octocat/following
 ```bash
 # Get repo
 curl http://localhost:4001/repos/octocat/hello-world
+
+# Get repo by numeric ID
+curl http://localhost:4001/repositories/1
 
 # Create user repo
 curl -X POST http://localhost:4001/user/repos \
@@ -210,6 +263,27 @@ curl -X DELETE http://localhost:4001/repos/octocat/hello-world \
 # Topics, languages, contributors, forks, collaborators, tags, transfer
 ```
 
+### Contents & Commit History
+
+```bash
+# Read a file or list a directory at a branch, tag, or commit
+curl "http://localhost:4001/repos/octocat/hello-world/contents/README.md?ref=main"
+
+# Download raw file content from the URL advertised by contents and commit responses
+curl http://localhost:4001/octocat/hello-world/raw/main/README.md
+
+# Create or update a file and commit the change
+curl -X PUT http://localhost:4001/repos/octocat/hello-world/contents/notes.txt \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Update notes", "content": "aGVsbG8K"}'
+
+# List commits, get a commit with file stats, or compare refs
+curl http://localhost:4001/repos/octocat/hello-world/commits
+curl http://localhost:4001/repos/octocat/hello-world/commits/main
+curl http://localhost:4001/repos/octocat/hello-world/compare/v1.0.0...main
+```
+
 ### Issues
 
 ```bash
@@ -222,16 +296,7 @@ curl -X POST http://localhost:4001/repos/octocat/hello-world/issues \
   -H "Content-Type: application/json" \
   -d '{"title": "Bug report", "body": "Details here", "labels": ["bug"]}'
 
-# Get issue
-curl http://localhost:4001/repos/octocat/hello-world/issues/1
-
-# Update issue
-curl -X PATCH http://localhost:4001/repos/octocat/hello-world/issues/1 \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"state": "closed"}'
-
-# Lock/unlock, timeline, events, assignees
+# Get / update / lock / unlock / timeline / events / assignees
 ```
 
 ### Pull Requests
@@ -245,15 +310,6 @@ curl -X POST http://localhost:4001/repos/octocat/hello-world/pulls \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"title": "Feature", "head": "feature-branch", "base": "main"}'
-
-# Get PR
-curl http://localhost:4001/repos/octocat/hello-world/pulls/1
-
-# Update PR
-curl -X PATCH http://localhost:4001/repos/octocat/hello-world/pulls/1 \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Updated title"}'
 
 # Merge PR (enforces branch protection)
 curl -X PUT http://localhost:4001/repos/octocat/hello-world/pulls/1/merge \
@@ -274,31 +330,35 @@ curl -X POST http://localhost:4001/repos/octocat/hello-world/issues/1/comments \
   -H "Content-Type: application/json" \
   -d '{"body": "Looks good!"}'
 
-# Review comments on PRs
+# Comment by ID (cross-resource)
+curl http://localhost:4001/repos/octocat/hello-world/issues/comments/1
+
+# PR review comments
 curl http://localhost:4001/repos/octocat/hello-world/pulls/1/comments
 
 # Commit comments
 curl http://localhost:4001/repos/octocat/hello-world/commits/abc123/comments
+
+# Repo-wide comment listings
+curl http://localhost:4001/repos/octocat/hello-world/issues/comments
+curl http://localhost:4001/repos/octocat/hello-world/pulls/comments
+curl http://localhost:4001/repos/octocat/hello-world/comments
 ```
 
 ### Reviews
 
 ```bash
-# List reviews
+# List / create / get / update / submit / dismiss reviews
 curl http://localhost:4001/repos/octocat/hello-world/pulls/1/reviews
-
-# Create review (with inline comments)
 curl -X POST http://localhost:4001/repos/octocat/hello-world/pulls/1/reviews \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"event": "APPROVE", "body": "LGTM"}'
-
-# Get, update, submit, dismiss reviews
 ```
 
 ### Labels & Milestones
 
-Full CRUD for labels and milestones. Add/remove labels from issues, replace all labels.
+Full CRUD for labels and milestones. Add/remove labels from issues, replace all labels. List labels for a milestone.
 
 ### Branches & Git Data
 
@@ -306,28 +366,92 @@ Full CRUD for labels and milestones. Add/remove labels from issues, replace all 
 # List branches
 curl http://localhost:4001/repos/octocat/hello-world/branches
 
-# Get branch
-curl http://localhost:4001/repos/octocat/hello-world/branches/main
-
 # Branch protection CRUD (status checks, PR reviews, enforce admins)
 curl -X PUT http://localhost:4001/repos/octocat/hello-world/branches/main/protection \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"required_status_checks": {"strict": true, "contexts": ["ci"]}}'
 
-# Refs, commits, trees (recursive), blobs, tags
+# Refs, commits, trees (recursive), blobs, tags, matching-refs
 ```
 
 ### Organizations & Teams
 
 ```bash
-# Get org
+# List all orgs / user's orgs / get org / update org
+curl http://localhost:4001/organizations
+curl http://localhost:4001/user/orgs -H "Authorization: Bearer $TOKEN"
 curl http://localhost:4001/orgs/my-org
+curl -X PATCH http://localhost:4001/orgs/my-org \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"description": "Updated org"}'
 
-# Org members, teams, repos
+# Org members: list, get, remove
 curl http://localhost:4001/orgs/my-org/members
+curl http://localhost:4001/orgs/my-org/members/octocat
+curl -X DELETE http://localhost:4001/orgs/my-org/members/octocat \
+  -H "Authorization: Bearer $TOKEN"
+
+# Org memberships: get, set (invite/update role)
+curl http://localhost:4001/orgs/my-org/memberships/octocat -H "Authorization: Bearer $TOKEN"
+curl -X PUT http://localhost:4001/orgs/my-org/memberships/octocat \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"role": "admin"}'
+
+# Teams: CRUD
 curl http://localhost:4001/orgs/my-org/teams
+curl -X POST http://localhost:4001/orgs/my-org/teams \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "engineering", "privacy": "closed"}'
+
+# Team members and memberships
+curl http://localhost:4001/orgs/my-org/teams/engineering/members
+curl -X PUT http://localhost:4001/orgs/my-org/teams/engineering/memberships/octocat \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"role": "maintainer"}'
+
+# Team repos: list, add, remove
+curl http://localhost:4001/orgs/my-org/teams/engineering/repos
+curl -X PUT http://localhost:4001/orgs/my-org/teams/engineering/repos/my-org/org-repo \
+  -H "Authorization: Bearer $TOKEN"
+
+# Legacy team endpoints by ID
+curl http://localhost:4001/teams/1
+curl http://localhost:4001/teams/1/members
 ```
+
+### GitHub Apps
+
+```bash
+# Get authenticated app (requires JWT auth)
+curl http://localhost:4001/app \
+  -H "Authorization: Bearer <jwt>"
+
+# List app installations
+curl http://localhost:4001/app/installations \
+  -H "Authorization: Bearer <jwt>"
+
+# Get installation
+curl http://localhost:4001/app/installations/100 \
+  -H "Authorization: Bearer <jwt>"
+
+# Create installation access token (mints ghs_... token)
+curl -X POST http://localhost:4001/app/installations/100/access_tokens \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"permissions": {"contents": "read"}}'
+
+# Find installation for repo / org / user
+curl http://localhost:4001/repos/my-org/org-repo/installation
+curl http://localhost:4001/orgs/my-org/installation
+curl http://localhost:4001/users/octocat/installation
+```
+
+App webhook delivery: when events occur, the emulator POSTs `event_callback` payloads to configured `webhook_url` with `X-GitHub-Event` and `X-Hub-Signature-256` headers.
 
 ### Releases
 
@@ -338,7 +462,15 @@ curl -X POST http://localhost:4001/repos/octocat/hello-world/releases \
   -H "Content-Type: application/json" \
   -d '{"tag_name": "v1.0.0", "name": "v1.0.0"}'
 
-# List, get, latest, by tag, assets, generate notes
+# List, get, latest, by tag, generate notes
+
+# Release assets: list, upload
+curl http://localhost:4001/repos/octocat/hello-world/releases/1/assets
+curl -X POST http://localhost:4001/repos/octocat/hello-world/releases/1/assets \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/octet-stream" \
+  -H "name: binary.zip" \
+  --data-binary @binary.zip
 ```
 
 ### Webhooks
@@ -385,14 +517,15 @@ curl -X POST http://localhost:4001/repos/octocat/hello-world/check-runs \
   -H "Content-Type: application/json" \
   -d '{"name": "CI", "head_sha": "abc123", "status": "completed", "conclusion": "success"}'
 
-# Check suites, annotations, rerequest, list by ref
+# Check suites: create, get, rerequest, preferences, list by ref
+# Check runs: list for suite, annotations
 # Automatic suite status rollup from check run results
 ```
 
 ### OAuth
 
 ```bash
-# Authorize (browser flow -- shows user picker)
+# Authorize (browser flow, shows user picker)
 # GET /login/oauth/authorize?client_id=...&redirect_uri=...&scope=...&state=...
 
 # Token exchange
@@ -403,6 +536,14 @@ curl -X POST http://localhost:4001/login/oauth/access_token \
 
 # User emails
 curl http://localhost:4001/user/emails -H "Authorization: Bearer $TOKEN"
+
+# OAuth app management (settings)
+curl http://localhost:4001/settings/applications -H "Authorization: Bearer $TOKEN"
+curl http://localhost:4001/settings/connections/applications/Iv1.abc123 -H "Authorization: Bearer $TOKEN"
+
+# Revoke OAuth app
+curl -X POST http://localhost:4001/settings/connections/applications/Iv1.abc123/revoke \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ### Misc
@@ -410,6 +551,8 @@ curl http://localhost:4001/user/emails -H "Authorization: Bearer $TOKEN"
 ```bash
 curl http://localhost:4001/rate_limit
 curl http://localhost:4001/meta
+curl http://localhost:4001/emojis
+curl http://localhost:4001/versions
 curl http://localhost:4001/octocat
 curl http://localhost:4001/zen
 ```
@@ -419,7 +562,7 @@ curl http://localhost:4001/zen
 ### Create Repo, Issue, and PR
 
 ```bash
-TOKEN="gho_test_token_admin"
+TOKEN="test_token_admin"
 BASE="http://localhost:4001"
 
 # Create repo
@@ -439,6 +582,22 @@ curl -X POST $BASE/repos/admin/my-project/pulls \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"title": "First PR", "head": "feature", "base": "main"}'
+```
+
+### GitHub App Installation Token Flow
+
+```bash
+# 1. Sign a JWT with { iss: "12345" } using the app's private key (RS256)
+# 2. Create an installation access token
+curl -X POST $BASE/app/installations/100/access_tokens \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"permissions": {"contents": "read", "issues": "write"}}'
+# Returns { "token": "ghs_...", ... }
+
+# 3. Use the installation token to call API endpoints
+curl $BASE/repos/my-org/org-repo \
+  -H "Authorization: Bearer ghs_..."
 ```
 
 ### OAuth Flow

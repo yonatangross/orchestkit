@@ -1,5 +1,5 @@
 <!-- SYNCED from vercel-labs/json-render (skills/react-email/SKILL.md) -->
-<!-- Hash: 8b376b37da07dd68944e72e0e322a272571f39271e5b08b6efd437db201470c9 -->
+<!-- Hash: c6acbfea4b58c07ad9da2169868157bb97016f3cc5f47ffc4502a95146f63713 -->
 <!-- Re-sync: bash scripts/sync-vercel-skills.sh -->
 
 
@@ -93,7 +93,7 @@ const html = await renderToHtml(spec, { registry });
 
 ## Visibility and State
 
-Supports `visible` conditions, `$state`, `$cond`, repeat (`repeat.statePath`), and the same expression syntax as `@json-render/react`. Use `state` in `RenderOptions` when rendering server-side so expressions resolve.
+Supports `visible` conditions, `$state`, `$cond`, repeat (`repeat.statePath`), nested repeat paths with `{ "$item": "field" }`, and the same expression syntax as `@json-render/react`. Use `state` in `RenderOptions` when rendering server-side so expressions resolve.
 
 ## Server-Safe Import
 

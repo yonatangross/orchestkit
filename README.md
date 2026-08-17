@@ -276,6 +276,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.36](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.35...v10.0.0-alpha.36)** · 2026-08-17
+
+- **21st-dev:** grant the MCP tools four surfaces already claimed to use (#3509)
+- **docker:** pin node 24 to match .nvmrc (#3510)
+- **deps-dev:** bump @types/node in the npm-minor-patch group (#3514)
+- **deps-dev:** bump the npm-minor-patch group across 1 directory with 2 updates (#3515)
+- **21st-dev:** argue the picker from choice, not from the 2/day cap (#3513)
+- …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-alpha.35](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.34...v10.0.0-alpha.35)** · 2026-08-16
 
 - **api-design:** make ProblemType a StrEnum (#3496)
@@ -314,11 +323,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.29](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.28...v10.0.0-alpha.29)** · 2026-08-13
 
 - **hooks:** delete dead custom-pipeline mechanism (#3352) (#3466)
-
-**[v10.0.0-alpha.28](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.27...v10.0.0-alpha.28)** · 2026-08-12
-
-- **cc-adoption:** adopt MAX_SUBAGENT_SPAWN_DEPTH, fix depth 5/3 mismatch (#3463), closes [#3324](https://github.com/yonatangross/orchestkit/issues/3324)
-- **marketplace:** retire engine field for --strict (#3465), closes [#3349](https://github.com/yonatangross/orchestkit/issues/3349)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
