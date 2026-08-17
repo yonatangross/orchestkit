@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.37",
+    "date": "2026-08-17",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**deps:** bump the remotion group across 1 directory with 21 updates ([#3518](https://github.com/yonatangross/orchestkit/issues/3518)) ([08c815c](https://github.com/yonatangross/orchestkit/commit/08c815c24b6c6963fb0aec38eb943e892862d337))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**probe:** route drift to one long-lived issue instead of a summary ([#3529](https://github.com/yonatangross/orchestkit/issues/3529)) ([39efdb4](https://github.com/yonatangross/orchestkit/commit/39efdb4a70cc1e87c8125eaf4f7383420f96db3b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.36",
     "date": "2026-08-17",
     "compareUrl": "",
