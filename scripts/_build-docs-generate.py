@@ -349,7 +349,7 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
     index_rows = []
     slugs = []
 
-    # Only count dirs that actually carry a SKILL.md — `src/skills/shared/` is a
+    # Only count dirs that actually carry a SKILL.md — `src/shared/` is a
     # shared-helpers dir with no SKILL.md and must not inflate the published count.
     skill_dirs = sorted(d for d in skills_dir.iterdir() if d.is_dir() and (d / "SKILL.md").exists())
     count = len(skill_dirs)

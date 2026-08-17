@@ -1151,7 +1151,7 @@ function generate() {
   // Step 2: Get all skill names
   console.log(`${CYAN}[2/6] Scanning skills directory...${NC}`);
   // Only count directories containing a SKILL.md file — this excludes rules-only
-  // shared dirs like `src/skills/shared/` (referenced by multiple skills but not
+  // shared dirs like `src/shared/` (referenced by multiple skills but not
   // a skill itself). Previously counted raw directories which over-counted by 1.
   const allSkillNames = fs.readdirSync(SKILLS_DIR)
     .filter(d => {

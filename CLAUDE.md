@@ -8,7 +8,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ## Tone
 
-No sugarcoat. Failed = failed; blocked = blocked. Rule: `src/skills/shared/rules/anti-sycophancy.md`.
+No sugarcoat. Failed = failed; blocked = blocked. Rule: `src/shared/rules/anti-sycophancy.md`.
 
 ## Visuals
 

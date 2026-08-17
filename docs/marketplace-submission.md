@@ -213,7 +213,7 @@ destinations, per-hook opt-outs, and the three opt-in network env vars.
 
 ### High, fixed on this branch
 
-**H3. `agents/shared/status-protocol.md` had no frontmatter.** It is a shared
+**H3. `shared/status-protocol.md` had no frontmatter.** It is a shared
 include, not an agent, but living in `agents/` made Claude Code register it as a
 bogus `ork:shared:status-protocol` agent, and `claude plugin validate` warned on
 it. The official repo runs `validate-frontmatter.ts` over `**/agents/*.md`.
@@ -283,7 +283,7 @@ a 61-line agent-routing index that the repo's own handoff notes already describe
 "advisory prose, not enforced." Converting it to a skill or deleting it is a
 product call, so it was left alone.
 
-**M4. `plugins/ork/skills/shared/` has no `SKILL.md`.** Holds shared assets, rules,
+**M4. `plugins/ork/shared/` has no `SKILL.md`.** Holds shared assets, rules,
 and a schema. The validator tolerates it; noted for completeness.
 
 **M5. `engine` in `.claude-plugin/marketplace.json` is an unrecognised field.**

@@ -589,7 +589,7 @@ batches long file lists and wc emits one total per batch, so `tail -1` silently 
 only the last: a 6k-file tree undercounted by 83%, which drags every downstream
 complexity score with it. `grep -c` is not a substitute, it exits 1 on empty input and
 aborts `set -euo pipefail` scripts.
-Upstream: `src/skills/shared/rules/shell-count-correctness.md`
+Upstream: `src/shared/rules/shell-count-correctness.md`
 
 ## Fail open on a quality gate by default, fail closed only for security and money
 
@@ -645,7 +645,7 @@ first-attempt pass rate, 3.4% escalation" as measured OrchestKit production data
 from a `quality_gate_node.py` under `backend/app/workflows/nodes/`. Asking git for either
 path across all refs returns nothing: neither has ever been tracked in this repository, so
 the numbers were unfalsifiable and the threshold tuning they justified rested on nothing.
-Upstream: `src/skills/shared/rules/verification-gate.md`
+Upstream: `src/shared/rules/verification-gate.md`
 
 
 ### Unified Scoring Framework
