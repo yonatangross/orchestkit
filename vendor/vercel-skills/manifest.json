@@ -1,30 +1,30 @@
 {
   "strategy": "option-e-enhanced",
   "description": "Upstream content as references inside existing skills (hash-deduped)",
-  "synced": "2026-03-31T13:52:32Z",
+  "synced": "2026-08-17T10:25:40Z",
   "stats": {
-    "synced": 0,
-    "unchanged": 37,
-    "skipped": 0,
+    "synced": 9,
+    "unchanged": 3,
+    "skipped": 4,
     "failed": 0,
-    "total": 37
+    "total": 16
   },
   "content_hashes": {
     "browser-tools/upstream-dogfood.md": "1cf732e6c7eb668ffac12c97add17459f8b633ffc1c40a111f54456a2a3d9afb",
     "browser-tools/upstream-electron.md": "805f619998c2a36bef6899dd9dee974fd227afa3f22d08601d8cff097579d331",
     "browser-tools/upstream-sandbox.md": "7e1b39b7ebb57b9e416722e740a6a21c461d114f1b58aecab40fa1f9e4498e71",
     "browser-tools/upstream-slack.md": "7e3dd7895efb597fa84807db66fe7d3fc6fcdf75b794d4ca4662a59a443e722c",
-    "browser-tools/upstream.md": "1010b1c5621165b23d3ba2735e1a276d5a047eb493aed3cfe577e51d320280d2",
-    "emulate-seed/upstream-github.md": "635cb8ee698f5fe8b6fb4fafa9d5aaf0d9cd697c71fd980d1b56d34c328bda00",
-    "emulate-seed/upstream-google.md": "030d521bf26fe630f0b2efb5447785e1b704ae8eb10eb46cec23a487dbbe9fd0",
-    "emulate-seed/upstream-vercel.md": "768ffadf22343415962e0be8d04606ae43e47944331a8e04bb1e683da0e642c3",
-    "emulate-seed/upstream.md": "4cbe1c29594d746595ad412fc40dd5e3be129d48b284ce95680a714bdf73a660",
+    "browser-tools/upstream.md": "a7f51582773b122b825aaf2f232e8fead1488a2a141f0916ba45873996d8f6aa",
+    "emulate-seed/upstream-github.md": "1ef2cf7eadb47a76d3a5ff88d47572b73e0d27d51c4f57117575d310e41c7226",
+    "emulate-seed/upstream-google.md": "fc3e31be019eb1ba9a4715976f2c34af9e755dd724c558d3df81b84e70f0a9fb",
+    "emulate-seed/upstream-vercel.md": "932a3b3fd95cd3eacb134aa421e01f3dbd8e5f0bff50dcbdf3bb1d38fee57bcf",
+    "emulate-seed/upstream.md": "f948aead4a7cb4ad0bd38af85cb1fdd256d1a8711b143fcc4bf9d7f21b7ac2b8",
     "mcp-visual-output/upstream-mcp.md": "fdc45b80ea851e518ba1ce37cbc6bdfff8627512caca55265f1f85b8639c662d",
-    "multi-surface-render/upstream-email.md": "8b376b37da07dd68944e72e0e322a272571f39271e5b08b6efd437db201470c9",
+    "multi-surface-render/upstream-email.md": "c6acbfea4b58c07ad9da2169868157bb97016f3cc5f47ffc4502a95146f63713",
     "multi-surface-render/upstream-image.md": "fc6469e1592a86d4d92058b81704023394ab8cbdd9f422d541ad3a752f2a0e42",
-    "multi-surface-render/upstream-pdf.md": "42d7d378733e0c1e6ff10ba788dc77c32b36b2f28841f1d6aa671e44ed9ad0be",
+    "multi-surface-render/upstream-pdf.md": "b791e1340395749f63796e736bc6a7e80cf338403ef763b6961a2c7d4ed863ae",
     "multi-surface-render/upstream-remotion.md": "59d63ac06729795f0981fe0cfadf6c1c34454be0329a34f2d36c9be2391fbbe9",
-    "portless/upstream-oauth.md": "bbdfd32c800dd69a68348ac868e355bda886b8cdb57b587acd7a70327ceb9fc4",
-    "portless/upstream.md": "542450881544362ac60a2dbbfe758207b29a9b4e98365702dcbaf9fcdb08f175"
+    "portless/upstream-oauth.md": "ea1ec2f9e933d0d258bf3493242244ea562c3428ba7f269e267650e96d28cf60",
+    "portless/upstream.md": "e2b0cf9ec19baa96004442d444552528d19ad45a368153efa837ea516867d443"
   }
 }
