@@ -51,6 +51,10 @@ const SCORE = {
 log(`skill-fitness: scoring ${SKILLS.length} skills via isolated-context fan-out (~50k tokens/skill)`)
 
 phase('Score')
+// Deliberately generic (no agentType): rubric-scoring skill docs is
+// cross-domain editorial review with no curated specialist owner. The
+// authoring default is to name a specialist per stage; this comment is the
+// documented exception path.
 const scored = await pipeline(
   SKILLS,
   (s) => agent(

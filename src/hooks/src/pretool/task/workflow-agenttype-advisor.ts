@@ -104,15 +104,24 @@ export function workflowAgentTypeAdvisor(
     );
   }
 
-  // At least one stage is typed and every typed value resolves — nothing to say.
-  if (script.includes('agentType')) return outputSilentSuccess();
+  // Every stage typed and every value resolves — the author is on the default
+  // path, nothing to say.
+  //
+  // This used to be `if (script.includes('agentType')) return silent` — one
+  // typed stage out of ten muted the nudge entirely. Under that rule (plus
+  // opt-in doc framing) the generic workflow-subagent bucket grew 394 -> 2,612
+  // spawns/30d (41% of ALL spawns; specialist share fell 44.2% -> 25.6%).
+  // Partial typing is now nudged with counts; only full coverage is silent.
+  const typedCount = extractAgentTypes(script).length;
+  if (typedCount >= agentCalls) return outputSilentSuccess();
 
+  const untyped = agentCalls - typedCount;
   const table = STAGE_MAP.map(([shape, agent]) => `  ${shape} -> ${agent}`).join('\n');
   return outputAllowWithContext(
-    `[${HOOK_NAME}] This script has ${agentCalls} agent() stage(s), none typed. ` +
-      `Untyped stages run the generic workflow subagent — the largest generic-spawn bucket (M170). ` +
-      `For stages with an OBVIOUS specialist owner, set opts.agentType:\n${table}\n` +
-      `Mixed/cross-domain/glue stages: omit agentType — generic IS correct there. ` +
+    `[${HOOK_NAME}] ${untyped} of ${agentCalls} agent() stage(s) in this script are untyped. ` +
+      `DEFAULT: every fan-out stage names a specialist via opts.agentType — untyped stages run the ` +
+      `generic workflow subagent, the single largest generic-spawn bucket (41% of all spawns, M170):\n${table}\n` +
+      `Leave a stage generic ONLY for genuinely cross-domain/glue work, and say so in a script comment. ` +
       `Use namespaced names (ork:x); bare names fail to resolve (#2371).`,
   );
 }
