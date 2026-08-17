@@ -1,5 +1,5 @@
 <!-- SYNCED from vercel-labs/json-render (skills/react-pdf/SKILL.md) -->
-<!-- Hash: 42d7d378733e0c1e6ff10ba788dc77c32b36b2f28841f1d6aa671e44ed9ad0be -->
+<!-- Hash: b791e1340395749f63796e736bc6a7e80cf338403ef763b6961a2c7d4ed863ae -->
 <!-- Re-sync: bash scripts/sync-vercel-skills.sh -->
 
 
@@ -125,6 +125,8 @@ const buffer = await renderToBuffer(spec, { registry });
 ## External Store (Controlled Mode)
 
 Pass a `StateStore` for full control over state:
+
+Nested lists can set `repeat.statePath` to `{ "$item": "field" }` inside an enclosing repeat.
 
 ```typescript
 import { createStateStore } from "@json-render/react-pdf";

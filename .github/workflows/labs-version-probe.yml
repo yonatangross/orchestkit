@@ -57,11 +57,22 @@ jobs:
       - name: Probe upstream registries
         run: |
           set -uo pipefail
-          node scripts/check-labs-versions.mjs > /tmp/drift.txt 2>&1 || true
+          # Capture the exit code. `|| true` used to discard it, and stderr is
+          # redirected INTO the file the grep reads, so a stack trace or a fetch
+          # timeout matched neither pattern and fell through to the else branch —
+          # printing "Every pin and declared floor is current" for a probe that
+          # never completed. Could-not-observe is its own outcome, never "clean".
+          node scripts/check-labs-versions.mjs > /tmp/drift.txt 2>&1
+          probe_rc=$?
           {
             echo '## Upstream version probe'
             echo ''
-            if grep -qE '^DRIFT|behind upstream' /tmp/drift.txt; then
+            if [ "$probe_rc" -ne 0 ]; then
+              echo "**Probe FAILED (exit $probe_rc). Drift state is UNKNOWN, not clean.**"
+              echo ''
+              echo 'Nothing was verified this run. Do not read this as "pins are current" —'
+              echo 'read the output below, fix the probe, and re-dispatch.'
+            elif grep -qE '^DRIFT|behind upstream' /tmp/drift.txt; then
               echo 'Drift detected. Dispatch **Upstream Version Watch** to open the bump PR.'
             else
               echo 'No drift. Every pin and declared floor is current.'
@@ -71,5 +82,11 @@ jobs:
             cat /tmp/drift.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          # Never fail the nightly run on drift: a red cron nobody can action is a red
+          # Never fail the nightly run on DRIFT: a red cron nobody can action is a red
           # cron people mute. The step summary is the deliverable.
+          # A FAILED PROBE is different — it means the check did not run, so it goes
+          # red. That is actionable (fix the probe) and cannot be confused with clean.
+          if [ "$probe_rc" -ne 0 ]; then
+            echo "::error::upstream version probe failed (exit $probe_rc) — drift state unknown"
+            exit "$probe_rc"
+          fi
