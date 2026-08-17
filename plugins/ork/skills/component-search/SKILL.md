@@ -24,6 +24,17 @@ allowed-tools:
   - AskUserQuestion
   - TaskCreate
   - TaskUpdate
+  # 21st-dev-magic MCP. Without these the skill CANNOT reach the server it is
+  # named after and silently degrades to the WebSearch/WebFetch scrape below.
+  # Read-only surface by design: the catalog-mutating tools (submit_component,
+  # edit_component, delete_*, bookmark writes) are deliberately NOT granted —
+  # a search skill has no business publishing to or deleting from the registry.
+  - mcp__21st-dev-magic__search_picker
+  - mcp__21st-dev-magic__search
+  - mcp__21st-dev-magic__get_component
+  - mcp__21st-dev-magic__get_theme
+  - mcp__21st-dev-magic__search_logo
+  - mcp__21st-dev-magic__get_usage
   - TaskList
 metadata:
   category: workflow-automation
@@ -101,16 +112,56 @@ Glob("**/components.json")
 
 ## Step 1: Search Registry
 
-**If 21st-dev-magic MCP is available:**
+### Browse first, and let the USER pick
+
+**The reason is choice, not cost.** Search returns a preview image, a video, the
+author and the `installCommand` — enough for a human to recognise the right
+component at a glance. The model cannot. Guessing which of eight "command palette"
+results the user meant is the failure mode this flow exists to prevent, and it
+stays a failure mode on every pricing tier.
+
+**If 21st-dev-magic MCP is available (the real path):**
+
 ```python
-# Use MCP tools to search the 21st.dev component registry
-# Pass the natural language query
-# The MCP handles semantic search and ranking
+# 1. BROWSE. Prefer search_picker: same params and results as search, but it
+#    renders an inline picker so the USER chooses. Do not pre-filter to one
+#    result on their behalf — show the options.
+mcp__21st-dev-magic__search_picker(query="{QUERY}", type="component", limit=8)
+
+# 2. PICK — the user selects. Stop here and wait.
+
+# 3. RETRIEVE — the chosen component.
+mcp__21st-dev-magic__get_component(id=<demo id from the chosen result>)
 ```
+
+- If the user only needs to know *whether* something exists, or wants the install
+  command, **stop after step 1** — search already answered it.
+- `search` returns an `installCommand` containing `?api_key=$API_KEY_21ST`. That
+  is a **different env var** from the MCP's `TWENTY_FIRST_API_KEY`; if
+  `npx shadcn add` fails auth, that variable is missing from the environment.
+
+### Tier — check it, do not assume it
+
+`get_component` is the only metered tool; `search`, `search_picker`, `search_logo`,
+`get_theme` and every list/metadata tool are unmetered on all tiers.
+
+**Call `get_usage` rather than assuming a cap.** It returns `tier` plus
+`freeRetrievalsRemaining` (both `null` when unlimited).
+
+| tier | `get_component` |
+|---|---|
+| `free` | **2 / day** — treat each retrieval as the day's budget: never speculative, never in a loop, never "to compare" |
+| `paid` | unlimited — comparing two candidates is fine; the picker step still applies |
+
+Written 2026-08-16 against a free account and corrected 2026-08-17 when the
+account went paid: the original text argued the flow from the 2/day cap, which
+made it read as obsolete the moment the cap lifted. The cap is a constraint;
+letting the user choose is the design.
 
 **If 21st-dev-magic is NOT available (fallback):**
 ```python
-# Fallback to web search
+# Genuine fallback ONLY — scraping returns no ids, no install commands, and
+# no structured metadata. If the MCP is configured, you should never be here.
 WebSearch("site:21st.dev {QUERY} React component")
 # Or browse the registry
 WebFetch("https://21st.dev", "Search for: {QUERY}")
