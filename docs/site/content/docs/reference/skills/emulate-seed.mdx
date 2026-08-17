@@ -1103,7 +1103,7 @@ Upstream: https://github.com/vercel-labs/emulate/tree/main/skills
 ### Upstream Github
 
 &lt;!-- SYNCED from vercel-labs/emulate (skills/github/SKILL.md) --&gt;
-&lt;!-- Hash: 635cb8ee698f5fe8b6fb4fafa9d5aaf0d9cd697c71fd980d1b56d34c328bda00 --&gt;
+&lt;!-- Hash: 1ef2cf7eadb47a76d3a5ff88d47572b73e0d27d51c4f57117575d310e41c7226 --&gt;
 &lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
@@ -1130,13 +1130,39 @@ const github = await createEmulator({ service: 'github', port: 4001 })
 // github.url === 'http://localhost:4001'
 ```
 
+For a programmatic GitHub App, omit `private_key` and read the generated RSA key from the instance:
+
+```typescript
+const github = await createEmulator({
+  service: 'github',
+  port: 4001,
+  seed: {
+    github: {
+      users: [{ login: 'octocat' }],
+      apps: [{
+        app_id: 12345,
+        slug: 'my-github-app',
+        name: 'My GitHub App',
+        installations: [{ installation_id: 100, account: 'octocat' }],
+      }],
+    },
+  },
+})
+
+const privateKey = github.generatedSecrets.find(
+  secret => secret.kind === 'github.app_private_key' && secret.id === '12345',
+)?.value
+```
+
+The key remains stable across `github.reset()`. Explicit keys are not included in `generatedSecrets`. CLI seed files still require `private_key`.
+
 ## Auth
 
 Pass tokens as `Authorization: Bearer &lt;token&gt;` or `Authorization: token &lt;token&gt;`.
 
 ```bash
 curl http://localhost:4001/user \
-  -H "Authorization: Bearer gho_test_token_admin"
+  -H "Authorization: Bearer test_token_admin"
 ```
 
 Public repo endpoints work without auth. Private repos and write operations require a valid token. When no token is provided, requests fall back to the first seeded user.
@@ -1159,10 +1185,17 @@ github:
         contents: read
         issues: write
       events: [push, pull_request]
+      webhook_url: http://localhost:8080/github/webhook
+      webhook_secret: my-webhook-secret
+      description: My CI/CD bot
       installations:
         - installation_id: 100
           account: my-org
           repository_selection: all
+          permissions:
+            contents: read
+          events: [push]
+          repositories: [my-org/org-repo]
 ```
 
 ## Pointing Your App at the Emulator
@@ -1180,7 +1213,7 @@ import { Octokit } from '@octokit/rest'
 
 const octokit = new Octokit({
   baseUrl: process.env.GITHUB_EMULATOR_URL ?? 'https://api.github.com',
-  auth: 'gho_test_token_admin',
+  auth: 'test_token_admin',
 })
 ```
 
@@ -1216,7 +1249,7 @@ GitHub({
 
 ```yaml
 tokens:
-  gho_test_token_admin:
+  test_token_admin:
     login: admin
     scopes: [repo, user, admin:org, admin:repo_hook]
 
@@ -1228,17 +1261,26 @@ github:
       bio: I am the Octocat
       company: GitHub
       location: San Francisco
+      blog: https://github.blog
+      twitter_username: github
+      site_admin: false
   orgs:
     - login: my-org
       name: My Organization
       description: A test organization
+      email: org@example.com
   repos:
     - owner: octocat
       name: hello-world
       description: My first repository
       language: JavaScript
       topics: [hello, world]
-      auto_init: true
+      default_branch: main
+      private: false
+    - owner: my-org
+      name: org-repo
+      description: An organization repository
+      language: TypeScript
   oauth_apps:
     - client_id: Iv1.abc123
       client_secret: secret_abc123
@@ -1247,13 +1289,15 @@ github:
         - http://localhost:3000/api/auth/callback/github
 ```
 
+Repos are auto-initialized with a commit, branch, and README unless `auto_init: false` is set.
+
 ## Pagination
 
 All list endpoints support `page` and `per_page` query params with `Link` headers:
 
 ```bash
 curl "http://localhost:4001/repos/octocat/hello-world/issues?page=1&per_page=10" \
-  -H "Authorization: Bearer gho_test_token_admin"
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ## API Endpoints
@@ -1281,6 +1325,12 @@ curl http://localhost:4001/users/octocat/repos
 curl http://localhost:4001/users/octocat/orgs
 curl http://localhost:4001/users/octocat/followers
 curl http://localhost:4001/users/octocat/following
+
+# User hovercard
+curl http://localhost:4001/users/octocat/hovercard
+
+# User emails
+curl http://localhost:4001/user/emails -H "Authorization: Bearer $TOKEN"
 ```
 
 ### Repositories
@@ -1288,6 +1338,9 @@ curl http://localhost:4001/users/octocat/following
 ```bash
 # Get repo
 curl http://localhost:4001/repos/octocat/hello-world
+
+# Get repo by numeric ID
+curl http://localhost:4001/repositories/1
 
 # Create user repo
 curl -X POST http://localhost:4001/user/repos \
@@ -1314,6 +1367,27 @@ curl -X DELETE http://localhost:4001/repos/octocat/hello-world \
 # Topics, languages, contributors, forks, collaborators, tags, transfer
 ```
 
+### Contents & Commit History
+
+```bash
+# Read a file or list a directory at a branch, tag, or commit
+curl "http://localhost:4001/repos/octocat/hello-world/contents/README.md?ref=main"
+
+# Download raw file content from the URL advertised by contents and commit responses
+curl http://localhost:4001/octocat/hello-world/raw/main/README.md
+
+# Create or update a file and commit the change
+curl -X PUT http://localhost:4001/repos/octocat/hello-world/contents/notes.txt \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Update notes", "content": "aGVsbG8K"}'
+
+# List commits, get a commit with file stats, or compare refs
+curl http://localhost:4001/repos/octocat/hello-world/commits
+curl http://localhost:4001/repos/octocat/hello-world/commits/main
+curl http://localhost:4001/repos/octocat/hello-world/compare/v1.0.0...main
+```
+
 ### Issues
 
 ```bash
@@ -1326,16 +1400,7 @@ curl -X POST http://localhost:4001/repos/octocat/hello-world/issues \
   -H "Content-Type: application/json" \
   -d '{"title": "Bug report", "body": "Details here", "labels": ["bug"]}'
 
-# Get issue
-curl http://localhost:4001/repos/octocat/hello-world/issues/1
-
-# Update issue
-curl -X PATCH http://localhost:4001/repos/octocat/hello-world/issues/1 \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"state": "closed"}'
-
-# Lock/unlock, timeline, events, assignees
+# Get / update / lock / unlock / timeline / events / assignees
 ```
 
 ### Pull Requests
@@ -1349,15 +1414,6 @@ curl -X POST http://localhost:4001/repos/octocat/hello-world/pulls \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"title": "Feature", "head": "feature-branch", "base": "main"}'
-
-# Get PR
-curl http://localhost:4001/repos/octocat/hello-world/pulls/1
-
-# Update PR
-curl -X PATCH http://localhost:4001/repos/octocat/hello-world/pulls/1 \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Updated title"}'
 
 # Merge PR (enforces branch protection)
 curl -X PUT http://localhost:4001/repos/octocat/hello-world/pulls/1/merge \
@@ -1378,31 +1434,35 @@ curl -X POST http://localhost:4001/repos/octocat/hello-world/issues/1/comments \
   -H "Content-Type: application/json" \
   -d '{"body": "Looks good!"}'
 
-# Review comments on PRs
+# Comment by ID (cross-resource)
+curl http://localhost:4001/repos/octocat/hello-world/issues/comments/1
+
+# PR review comments
 curl http://localhost:4001/repos/octocat/hello-world/pulls/1/comments
 
 # Commit comments
 curl http://localhost:4001/repos/octocat/hello-world/commits/abc123/comments
+
+# Repo-wide comment listings
+curl http://localhost:4001/repos/octocat/hello-world/issues/comments
+curl http://localhost:4001/repos/octocat/hello-world/pulls/comments
+curl http://localhost:4001/repos/octocat/hello-world/comments
 ```
 
 ### Reviews
 
 ```bash
-# List reviews
+# List / create / get / update / submit / dismiss reviews
 curl http://localhost:4001/repos/octocat/hello-world/pulls/1/reviews
-
-# Create review (with inline comments)
 curl -X POST http://localhost:4001/repos/octocat/hello-world/pulls/1/reviews \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"event": "APPROVE", "body": "LGTM"}'
-
-# Get, update, submit, dismiss reviews
 ```
 
 ### Labels & Milestones
 
-Full CRUD for labels and milestones. Add/remove labels from issues, replace all labels.
+Full CRUD for labels and milestones. Add/remove labels from issues, replace all labels. List labels for a milestone.
 
 ### Branches & Git Data
 
@@ -1410,28 +1470,92 @@ Full CRUD for labels and milestones. Add/remove labels from issues, replace all 
 # List branches
 curl http://localhost:4001/repos/octocat/hello-world/branches
 
-# Get branch
-curl http://localhost:4001/repos/octocat/hello-world/branches/main
-
 # Branch protection CRUD (status checks, PR reviews, enforce admins)
 curl -X PUT http://localhost:4001/repos/octocat/hello-world/branches/main/protection \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"required_status_checks": {"strict": true, "contexts": ["ci"]}}'
 
-# Refs, commits, trees (recursive), blobs, tags
+# Refs, commits, trees (recursive), blobs, tags, matching-refs
 ```
 
 ### Organizations & Teams
 
 ```bash
-# Get org
+# List all orgs / user's orgs / get org / update org
+curl http://localhost:4001/organizations
+curl http://localhost:4001/user/orgs -H "Authorization: Bearer $TOKEN"
 curl http://localhost:4001/orgs/my-org
+curl -X PATCH http://localhost:4001/orgs/my-org \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"description": "Updated org"}'
 
-# Org members, teams, repos
+# Org members: list, get, remove
 curl http://localhost:4001/orgs/my-org/members
+curl http://localhost:4001/orgs/my-org/members/octocat
+curl -X DELETE http://localhost:4001/orgs/my-org/members/octocat \
+  -H "Authorization: Bearer $TOKEN"
+
+# Org memberships: get, set (invite/update role)
+curl http://localhost:4001/orgs/my-org/memberships/octocat -H "Authorization: Bearer $TOKEN"
+curl -X PUT http://localhost:4001/orgs/my-org/memberships/octocat \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"role": "admin"}'
+
+# Teams: CRUD
 curl http://localhost:4001/orgs/my-org/teams
+curl -X POST http://localhost:4001/orgs/my-org/teams \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "engineering", "privacy": "closed"}'
+
+# Team members and memberships
+curl http://localhost:4001/orgs/my-org/teams/engineering/members
+curl -X PUT http://localhost:4001/orgs/my-org/teams/engineering/memberships/octocat \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"role": "maintainer"}'
+
+# Team repos: list, add, remove
+curl http://localhost:4001/orgs/my-org/teams/engineering/repos
+curl -X PUT http://localhost:4001/orgs/my-org/teams/engineering/repos/my-org/org-repo \
+  -H "Authorization: Bearer $TOKEN"
+
+# Legacy team endpoints by ID
+curl http://localhost:4001/teams/1
+curl http://localhost:4001/teams/1/members
 ```
+
+### GitHub Apps
+
+```bash
+# Get authenticated app (requires JWT auth)
+curl http://localhost:4001/app \
+  -H "Authorization: Bearer <jwt>"
+
+# List app installations
+curl http://localhost:4001/app/installations \
+  -H "Authorization: Bearer <jwt>"
+
+# Get installation
+curl http://localhost:4001/app/installations/100 \
+  -H "Authorization: Bearer <jwt>"
+
+# Create installation access token (mints ghs_... token)
+curl -X POST http://localhost:4001/app/installations/100/access_tokens \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"permissions": {"contents": "read"}}'
+
+# Find installation for repo / org / user
+curl http://localhost:4001/repos/my-org/org-repo/installation
+curl http://localhost:4001/orgs/my-org/installation
+curl http://localhost:4001/users/octocat/installation
+```
+
+App webhook delivery: when events occur, the emulator POSTs `event_callback` payloads to configured `webhook_url` with `X-GitHub-Event` and `X-Hub-Signature-256` headers.
 
 ### Releases
 
@@ -1442,7 +1566,15 @@ curl -X POST http://localhost:4001/repos/octocat/hello-world/releases \
   -H "Content-Type: application/json" \
   -d '{"tag_name": "v1.0.0", "name": "v1.0.0"}'
 
-# List, get, latest, by tag, assets, generate notes
+# List, get, latest, by tag, generate notes
+
+# Release assets: list, upload
+curl http://localhost:4001/repos/octocat/hello-world/releases/1/assets
+curl -X POST http://localhost:4001/repos/octocat/hello-world/releases/1/assets \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/octet-stream" \
+  -H "name: binary.zip" \
+  --data-binary @binary.zip
 ```
 
 ### Webhooks
@@ -1489,14 +1621,15 @@ curl -X POST http://localhost:4001/repos/octocat/hello-world/check-runs \
   -H "Content-Type: application/json" \
   -d '{"name": "CI", "head_sha": "abc123", "status": "completed", "conclusion": "success"}'
 
-# Check suites, annotations, rerequest, list by ref
+# Check suites: create, get, rerequest, preferences, list by ref
+# Check runs: list for suite, annotations
 # Automatic suite status rollup from check run results
 ```
 
 ### OAuth
 
 ```bash
-# Authorize (browser flow -- shows user picker)
+# Authorize (browser flow, shows user picker)
 # GET /login/oauth/authorize?client_id=...&redirect_uri=...&scope=...&state=...
 
 # Token exchange
@@ -1507,6 +1640,14 @@ curl -X POST http://localhost:4001/login/oauth/access_token \
 
 # User emails
 curl http://localhost:4001/user/emails -H "Authorization: Bearer $TOKEN"
+
+# OAuth app management (settings)
+curl http://localhost:4001/settings/applications -H "Authorization: Bearer $TOKEN"
+curl http://localhost:4001/settings/connections/applications/Iv1.abc123 -H "Authorization: Bearer $TOKEN"
+
+# Revoke OAuth app
+curl -X POST http://localhost:4001/settings/connections/applications/Iv1.abc123/revoke \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ### Misc
@@ -1514,6 +1655,8 @@ curl http://localhost:4001/user/emails -H "Authorization: Bearer $TOKEN"
 ```bash
 curl http://localhost:4001/rate_limit
 curl http://localhost:4001/meta
+curl http://localhost:4001/emojis
+curl http://localhost:4001/versions
 curl http://localhost:4001/octocat
 curl http://localhost:4001/zen
 ```
@@ -1523,7 +1666,7 @@ curl http://localhost:4001/zen
 ### Create Repo, Issue, and PR
 
 ```bash
-TOKEN="gho_test_token_admin"
+TOKEN="test_token_admin"
 BASE="http://localhost:4001"
 
 # Create repo
@@ -1545,6 +1688,22 @@ curl -X POST $BASE/repos/admin/my-project/pulls \
   -d '{"title": "First PR", "head": "feature", "base": "main"}'
 ```
 
+### GitHub App Installation Token Flow
+
+```bash
+# 1. Sign a JWT with { iss: "12345" } using the app's private key (RS256)
+# 2. Create an installation access token
+curl -X POST $BASE/app/installations/100/access_tokens \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"permissions": {"contents": "read", "issues": "write"}}'
+# Returns { "token": "ghs_...", ... }
+
+# 3. Use the installation token to call API endpoints
+curl $BASE/repos/my-org/org-repo \
+  -H "Authorization: Bearer ghs_..."
+```
+
 ### OAuth Flow
 
 1. Redirect user to `$GITHUB_EMULATOR_URL/login/oauth/authorize?client_id=...&redirect_uri=...&scope=user+repo&state=...`
@@ -1557,13 +1716,13 @@ curl -X POST $BASE/repos/admin/my-project/pulls \
 ### Upstream Google
 
 &lt;!-- SYNCED from vercel-labs/emulate (skills/google/SKILL.md) --&gt;
-&lt;!-- Hash: 030d521bf26fe630f0b2efb5447785e1b704ae8eb10eb46cec23a487dbbe9fd0 --&gt;
+&lt;!-- Hash: fc3e31be019eb1ba9a4715976f2c34af9e755dd724c558d3df81b84e70f0a9fb --&gt;
 &lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
-# Google OAuth 2.0 / OIDC Emulator
+# Google OAuth 2.0 / OIDC + Gmail, Calendar & Drive Emulator
 
-OAuth 2.0 and OpenID Connect emulation with authorization code flow, PKCE support, ID tokens, and OIDC discovery.
+OAuth 2.0 and OpenID Connect emulation with authorization code flow, PKCE support, ID tokens, OIDC discovery, refresh tokens, plus Gmail, Google Calendar, and Google Drive REST API surfaces.
 
 ## Start
 
@@ -1601,6 +1760,9 @@ GOOGLE_EMULATOR_URL=http://localhost:4002
 | `https://www.googleapis.com/oauth2/v2/userinfo` | `$GOOGLE_EMULATOR_URL/oauth2/v2/userinfo` |
 | `https://accounts.google.com/.well-known/openid-configuration` | `$GOOGLE_EMULATOR_URL/.well-known/openid-configuration` |
 | `https://www.googleapis.com/oauth2/v3/certs` | `$GOOGLE_EMULATOR_URL/oauth2/v3/certs` |
+| `https://gmail.googleapis.com/gmail/v1/...` | `$GOOGLE_EMULATOR_URL/gmail/v1/...` |
+| `https://www.googleapis.com/calendar/v3/...` | `$GOOGLE_EMULATOR_URL/calendar/v3/...` |
+| `https://www.googleapis.com/drive/v3/...` | `$GOOGLE_EMULATOR_URL/drive/v3/...` |
 
 ### google-auth-library (Node.js)
 
@@ -1615,12 +1777,6 @@ const client = new OAuth2Client({
   redirectUri: 'http://localhost:3000/api/auth/callback/google',
 })
 
-// Override the endpoints
-const authorizeUrl = client.generateAuthUrl({
-  access_type: 'offline',
-  scope: ['openid', 'email', 'profile'],
-})
-// Replace the host in authorizeUrl with GOOGLE_URL, or construct manually:
 const emulatorAuthorizeUrl = `${GOOGLE_URL}/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=...&scope=openid+email+profile&response_type=code&state=...`
 ```
 
@@ -1676,40 +1832,81 @@ google:
       locale: en
     - email: dev@example.com
       name: Developer
+    - email: admin@acme.com
+      name: Admin
+      hd: acme.com
   oauth_clients:
     - client_id: my-client-id.apps.googleusercontent.com
       client_secret: GOCSPX-secret
       name: My App
       redirect_uris:
         - http://localhost:3000/api/auth/callback/google
+  labels:
+    - id: Label_ops
+      user_email: testuser@gmail.com
+      name: Ops/Review
+      color_background: "#DDEEFF"
+      color_text: "#111111"
+  messages:
+    - id: msg_welcome
+      user_email: testuser@gmail.com
+      thread_id: thr_welcome
+      from: "welcome@example.com"
+      to: testuser@gmail.com
+      subject: Welcome to the Gmail emulator
+      body_text: You can now test Gmail flows locally.
+      label_ids: [INBOX, UNREAD, CATEGORY_UPDATES]
+      date: "2025-01-04T10:00:00.000Z"
+  calendars:
+    - id: primary
+      user_email: testuser@gmail.com
+      summary: testuser@gmail.com
+      primary: true
+      selected: true
+      time_zone: UTC
+  calendar_events:
+    - id: evt_kickoff
+      user_email: testuser@gmail.com
+      calendar_id: primary
+      summary: Project Kickoff
+      start_date_time: "2025-01-10T09:00:00.000Z"
+      end_date_time: "2025-01-10T09:30:00.000Z"
+      attendees:
+        - email: testuser@gmail.com
+          display_name: Test User
+      conference_entry_points:
+        - entry_point_type: video
+          uri: https://meet.google.com/example
+          label: Google Meet
+      hangout_link: https://meet.google.com/example
+  drive_items:
+    - id: drv_docs
+      user_email: testuser@gmail.com
+      name: Docs
+      mime_type: application/vnd.google-apps.folder
+      parent_ids: [root]
+    - id: drv_readme
+      user_email: testuser@gmail.com
+      name: README.md
+      mime_type: text/markdown
+      parent_ids: [drv_docs]
+      data: "# Hello World"
 ```
 
 When no OAuth clients are configured, the emulator accepts any `client_id`. With clients configured, strict validation is enforced for `client_id`, `client_secret`, and `redirect_uri`.
 
-## API Endpoints
+### Hosted domain (hd) claim
+
+Google Workspace accounts include an `hd` claim in ID tokens and userinfo responses identifying the user's hosted domain. The emulator derives this automatically from the user's email domain. Consumer domains (`gmail.com`, `googlemail.com`) omit the claim, matching real Google behavior.
+
+To override the derived value, set `hd` on a seeded user. To suppress the claim entirely, set `hd` to an empty string.
+
+## OAuth / OIDC Endpoints
 
 ### OIDC Discovery
 
 ```bash
 curl http://localhost:4002/.well-known/openid-configuration
-```
-
-Returns the standard OIDC discovery document with all endpoints pointing to the emulator:
-
-```json
-{
-  "issuer": "http://localhost:4002",
-  "authorization_endpoint": "http://localhost:4002/o/oauth2/v2/auth",
-  "token_endpoint": "http://localhost:4002/oauth2/token",
-  "userinfo_endpoint": "http://localhost:4002/oauth2/v2/userinfo",
-  "revocation_endpoint": "http://localhost:4002/oauth2/revoke",
-  "jwks_uri": "http://localhost:4002/oauth2/v3/certs",
-  "response_types_supported": ["code"],
-  "subject_types_supported": ["public"],
-  "id_token_signing_alg_values_supported": ["HS256"],
-  "scopes_supported": ["openid", "email", "profile"],
-  "code_challenge_methods_supported": ["plain", "S256"]
-}
 ```
 
 ### JWKS
@@ -1723,7 +1920,7 @@ Returns `\{ "keys": [] \}`. ID tokens are signed with HS256 using an internal se
 ### Authorization
 
 ```bash
-# Browser flow -- redirects to a user picker page
+# Browser flow: redirects to a user picker page
 curl -v "http://localhost:4002/o/oauth2/v2/auth?\
 client_id=my-client-id.apps.googleusercontent.com&\
 redirect_uri=http://localhost:3000/api/auth/callback/google&\
@@ -1733,19 +1930,7 @@ state=random-state&\
 nonce=random-nonce"
 ```
 
-Query parameters:
-
-| Param | Description |
-|-------|-------------|
-| `client_id` | OAuth client ID |
-| `redirect_uri` | Callback URL |
-| `scope` | Space-separated scopes (`openid email profile`) |
-| `state` | Opaque state for CSRF protection |
-| `nonce` | Nonce for ID token (optional) |
-| `code_challenge` | PKCE challenge (optional) |
-| `code_challenge_method` | `plain` or `S256` (optional) |
-
-The emulator renders an HTML page where you select a seeded user. After selection, it redirects to `redirect_uri` with `?code=...&state=...`.
+Supports `code_challenge` and `code_challenge_method` for PKCE.
 
 ### Token Exchange
 
@@ -1759,11 +1944,12 @@ redirect_uri=http://localhost:3000/api/auth/callback/google&\
 grant_type=authorization_code"
 ```
 
-Returns:
+Also accepts `application/json` body. Returns:
 
 ```json
 {
   "access_token": "google_...",
+  "refresh_token": "google_refresh_...",
   "id_token": "<jwt>",
   "token_type": "Bearer",
   "expires_in": 3600,
@@ -1771,30 +1957,24 @@ Returns:
 }
 ```
 
-The `id_token` is a JWT (HS256) containing `sub`, `email`, `email_verified`, `name`, `given_name`, `family_name`, `picture`, `locale`, and optional `nonce`.
+### Refresh Token
 
-For PKCE, include `code_verifier` in the token request.
+```bash
+curl -X POST http://localhost:4002/oauth2/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "refresh_token=google_refresh_...&\
+client_id=my-client-id.apps.googleusercontent.com&\
+client_secret=GOCSPX-secret&\
+grant_type=refresh_token"
+```
+
+Returns a new `access_token` (no new `refresh_token` or `id_token` on refresh).
 
 ### User Info
 
 ```bash
 curl http://localhost:4002/oauth2/v2/userinfo \
   -H "Authorization: Bearer google_..."
-```
-
-Returns:
-
-```json
-{
-  "sub": "user-uid",
-  "email": "testuser@gmail.com",
-  "email_verified": true,
-  "name": "Test User",
-  "given_name": "Test",
-  "family_name": "User",
-  "picture": "https://lh3.googleusercontent.com/a/default-user",
-  "locale": "en"
-}
 ```
 
 ### Token Revocation
@@ -1805,7 +1985,276 @@ curl -X POST http://localhost:4002/oauth2/revoke \
   -d "token=google_..."
 ```
 
-Returns `200 OK`. The token is removed from the emulator's token map.
+## Gmail API
+
+All Gmail endpoints are under `/gmail/v1/users/:userId/...` where `:userId` is `me` or the authenticated user's email.
+
+### Messages
+
+```bash
+# List messages (filter by labels, search query)
+curl "http://localhost:4002/gmail/v1/users/me/messages?labelIds=INBOX&q=from:welcome&maxResults=10" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Get message (format: full, metadata, minimal, raw)
+curl "http://localhost:4002/gmail/v1/users/me/messages/msg_welcome?format=full" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Send message
+curl -X POST http://localhost:4002/gmail/v1/users/me/messages/send \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"to": "someone@example.com", "subject": "Hello", "body_text": "Hi there"}'
+
+# Insert message (bypass send)
+curl -X POST http://localhost:4002/gmail/v1/users/me/messages \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"to": "test@example.com", "from": "me@example.com", "subject": "Test", "body_text": "Body", "labelIds": ["INBOX"]}'
+
+# Import message
+curl -X POST http://localhost:4002/gmail/v1/users/me/messages/import \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"to": "test@example.com", "from": "external@example.com", "subject": "Imported", "body_text": "Content"}'
+
+# Modify labels on a message
+curl -X POST http://localhost:4002/gmail/v1/users/me/messages/msg_welcome/modify \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"addLabelIds": ["STARRED"], "removeLabelIds": ["UNREAD"]}'
+
+# Trash / untrash
+curl -X POST http://localhost:4002/gmail/v1/users/me/messages/msg_welcome/trash \
+  -H "Authorization: Bearer $TOKEN"
+curl -X POST http://localhost:4002/gmail/v1/users/me/messages/msg_welcome/untrash \
+  -H "Authorization: Bearer $TOKEN"
+
+# Delete permanently
+curl -X DELETE http://localhost:4002/gmail/v1/users/me/messages/msg_welcome \
+  -H "Authorization: Bearer $TOKEN"
+
+# Batch modify
+curl -X POST http://localhost:4002/gmail/v1/users/me/messages/batchModify \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"ids": ["msg_welcome", "msg_build"], "addLabelIds": ["STARRED"]}'
+
+# Batch delete
+curl -X POST http://localhost:4002/gmail/v1/users/me/messages/batchDelete \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"ids": ["msg_welcome"]}'
+
+# Get attachment
+curl http://localhost:4002/gmail/v1/users/me/messages/msg_id/attachments/att_id \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Upload variants also available at `/upload/gmail/v1/users/:userId/messages`, `.../messages/send`, `.../messages/import`.
+
+### Drafts
+
+```bash
+# List drafts
+curl http://localhost:4002/gmail/v1/users/me/drafts \
+  -H "Authorization: Bearer $TOKEN"
+
+# Create draft
+curl -X POST http://localhost:4002/gmail/v1/users/me/drafts \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"message": {"to": "someone@example.com", "subject": "Draft subject", "body_text": "Draft body"}}'
+
+# Get draft (format: full, metadata, minimal, raw)
+curl "http://localhost:4002/gmail/v1/users/me/drafts/draft_id?format=full" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Update draft
+curl -X PUT http://localhost:4002/gmail/v1/users/me/drafts/draft_id \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"message": {"subject": "Updated subject", "body_text": "Updated body"}}'
+
+# Send draft
+curl -X POST http://localhost:4002/gmail/v1/users/me/drafts/send \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"id": "draft_id"}'
+
+# Delete draft
+curl -X DELETE http://localhost:4002/gmail/v1/users/me/drafts/draft_id \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Threads
+
+```bash
+# List threads (filter by labels, search query)
+curl "http://localhost:4002/gmail/v1/users/me/threads?labelIds=INBOX&maxResults=20" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Get thread (all messages in thread)
+curl "http://localhost:4002/gmail/v1/users/me/threads/thr_welcome?format=full" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Modify labels on all messages in thread
+curl -X POST http://localhost:4002/gmail/v1/users/me/threads/thr_welcome/modify \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"addLabelIds": ["STARRED"], "removeLabelIds": ["UNREAD"]}'
+
+# Trash / untrash / delete thread
+curl -X POST http://localhost:4002/gmail/v1/users/me/threads/thr_welcome/trash \
+  -H "Authorization: Bearer $TOKEN"
+curl -X DELETE http://localhost:4002/gmail/v1/users/me/threads/thr_welcome \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Labels
+
+```bash
+# List labels
+curl http://localhost:4002/gmail/v1/users/me/labels \
+  -H "Authorization: Bearer $TOKEN"
+
+# Get label
+curl http://localhost:4002/gmail/v1/users/me/labels/INBOX \
+  -H "Authorization: Bearer $TOKEN"
+
+# Create label
+curl -X POST http://localhost:4002/gmail/v1/users/me/labels \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "My Label", "color": {"backgroundColor": "#DDEEFF", "textColor": "#111111"}}'
+
+# Update label (PUT replaces, PATCH merges)
+curl -X PATCH http://localhost:4002/gmail/v1/users/me/labels/Label_ops \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Ops/Reviewed"}'
+
+# Delete label (user labels only)
+curl -X DELETE http://localhost:4002/gmail/v1/users/me/labels/Label_ops \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### History & Watch
+
+```bash
+# List history changes since a given historyId
+curl "http://localhost:4002/gmail/v1/users/me/history?startHistoryId=1&historyTypes=messageAdded&maxResults=100" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Set up push notification watch (stub)
+curl -X POST http://localhost:4002/gmail/v1/users/me/watch \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"topicName": "projects/my-project/topics/gmail", "labelIds": ["INBOX"]}'
+
+# Stop watch
+curl -X POST http://localhost:4002/gmail/v1/users/me/stop \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Settings
+
+```bash
+# List filters
+curl http://localhost:4002/gmail/v1/users/me/settings/filters \
+  -H "Authorization: Bearer $TOKEN"
+
+# Create filter (auto-label incoming messages matching criteria)
+curl -X POST http://localhost:4002/gmail/v1/users/me/settings/filters \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"criteria": {"from": "alerts@example.com"}, "action": {"addLabelIds": ["Label_ops"]}}'
+
+# Delete filter
+curl -X DELETE http://localhost:4002/gmail/v1/users/me/settings/filters/filter_id \
+  -H "Authorization: Bearer $TOKEN"
+
+# List forwarding addresses
+curl http://localhost:4002/gmail/v1/users/me/settings/forwardingAddresses \
+  -H "Authorization: Bearer $TOKEN"
+
+# List send-as aliases
+curl http://localhost:4002/gmail/v1/users/me/settings/sendAs \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## Google Calendar API
+
+### Calendar List
+
+```bash
+curl http://localhost:4002/calendar/v3/users/me/calendarList \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Events
+
+```bash
+# List events (filter by time range, search, order)
+curl "http://localhost:4002/calendar/v3/calendars/primary/events?\
+timeMin=2025-01-01T00:00:00Z&timeMax=2025-12-31T23:59:59Z&maxResults=50&orderBy=startTime" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Create event
+curl -X POST http://localhost:4002/calendar/v3/calendars/primary/events \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"summary": "Team Meeting", "start": {"dateTime": "2025-01-10T14:00:00Z"}, "end": {"dateTime": "2025-01-10T15:00:00Z"}, "attendees": [{"email": "dev@example.com"}]}'
+
+# Delete event
+curl -X DELETE http://localhost:4002/calendar/v3/calendars/primary/events/evt_kickoff \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### FreeBusy
+
+```bash
+curl -X POST http://localhost:4002/calendar/v3/freeBusy \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"timeMin": "2025-01-10T00:00:00Z", "timeMax": "2025-01-10T23:59:59Z", "items": [{"id": "primary"}]}'
+```
+
+## Google Drive API
+
+### Files
+
+```bash
+# List files (with query filter, pagination, ordering)
+curl "http://localhost:4002/drive/v3/files?q='root'+in+parents&pageSize=20" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Create file (JSON metadata)
+curl -X POST http://localhost:4002/drive/v3/files \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "notes.txt", "mimeType": "text/plain", "parents": ["root"]}'
+
+# Create file with content (multipart/related upload)
+curl -X POST http://localhost:4002/upload/drive/v3/files \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: multipart/related; boundary=boundary" \
+  --data-binary $'--boundary\r\nContent-Type: application/json\r\n\r\n{"name":"data.csv","mimeType":"text/csv"}\r\n--boundary\r\nContent-Type: text/csv\r\n\r\na,b,c\n1,2,3\r\n--boundary--'
+
+# Get file metadata
+curl http://localhost:4002/drive/v3/files/drv_readme \
+  -H "Authorization: Bearer $TOKEN"
+
+# Download file content
+curl "http://localhost:4002/drive/v3/files/drv_readme?alt=media" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Update file (PATCH or PUT; move parents with query params)
+curl -X PATCH "http://localhost:4002/drive/v3/files/drv_readme?addParents=folder_id&removeParents=root" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "README-updated.md"}'
+```
 
 ## Common Patterns
 
@@ -1817,7 +2266,7 @@ CLIENT_ID="my-client-id.apps.googleusercontent.com"
 CLIENT_SECRET="GOCSPX-secret"
 REDIRECT_URI="http://localhost:3000/api/auth/callback/google"
 
-# 1. Open in browser -- user picks a seeded account
+# 1. Open in browser (user picks a seeded account)
 #    $GOOGLE_URL/o/oauth2/v2/auth?client_id=$CLIENT_ID&redirect_uri=$REDIRECT_URI&scope=openid+email+profile&response_type=code&state=abc
 
 # 2. After user selection, emulator redirects to:
@@ -1833,25 +2282,7 @@ curl $GOOGLE_URL/oauth2/v2/userinfo \
   -H "Authorization: Bearer <access_token>"
 ```
 
-### PKCE Flow
-
-```bash
-# Generate code_verifier and code_challenge
-CODE_VERIFIER=$(openssl rand -base64 32 | tr -d '=+/' | cut -c1-43)
-CODE_CHALLENGE=$(echo -n $CODE_VERIFIER | openssl dgst -sha256 -binary | base64 | tr -d '=' | tr '+/' '-_')
-
-# 1. Authorize with challenge
-# $GOOGLE_URL/o/oauth2/v2/auth?...&code_challenge=$CODE_CHALLENGE&code_challenge_method=S256
-
-# 2. Token exchange with verifier
-curl -X POST $GOOGLE_URL/oauth2/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "code=<code>&client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&redirect_uri=$REDIRECT_URI&grant_type=authorization_code&code_verifier=$CODE_VERIFIER"
-```
-
 ### OIDC Discovery-Based Setup
-
-Libraries that support OIDC discovery (like `openid-client`) can auto-configure from the discovery document:
 
 ```typescript
 import { Issuer } from 'openid-client'
@@ -1867,11 +2298,28 @@ const client = new googleIssuer.Client({
 })
 ```
 
+### Send a Gmail Message and Check the Thread
+
+```bash
+TOKEN="test_token_admin"
+BASE="http://localhost:4002"
+
+# Send a message
+curl -X POST $BASE/gmail/v1/users/me/messages/send \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"to": "someone@example.com", "subject": "Test", "body_text": "Hello"}'
+
+# List threads in INBOX
+curl "$BASE/gmail/v1/users/me/threads?labelIds=INBOX" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
 
 ### Upstream Vercel
 
 &lt;!-- SYNCED from vercel-labs/emulate (skills/vercel/SKILL.md) --&gt;
-&lt;!-- Hash: 768ffadf22343415962e0be8d04606ae43e47944331a8e04bb1e683da0e642c3 --&gt;
+&lt;!-- Hash: 932a3b3fd95cd3eacb134aa421e01f3dbd8e5f0bff50dcbdf3bb1d38fee57bcf --&gt;
 &lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
@@ -1904,10 +2352,10 @@ Pass tokens as `Authorization: Bearer &lt;token&gt;`. All endpoints accept `team
 
 ```bash
 curl http://localhost:4000/v2/user \
-  -H "Authorization: Bearer gho_test_token_admin"
+  -H "Authorization: Bearer test_token_admin"
 ```
 
-When no token is provided, requests fall back to the first seeded user.
+Team-scoped requests resolve the account from the `teamId` or `slug` query parameter. User-scoped requests resolve the account from the authenticated user.
 
 ## Pointing Your App at the Emulator
 
@@ -1968,7 +2416,7 @@ const res = await fetch(`${VERCEL_API}/v10/projects`, {
 
 ```yaml
 tokens:
-  gho_test_token_admin:
+  test_token_admin:
     login: admin
     scopes: []
 
@@ -1980,10 +2428,20 @@ vercel:
   teams:
     - slug: my-team
       name: My Team
+      description: Engineering team
   projects:
     - name: my-app
       team: my-team
       framework: nextjs
+      buildCommand: next build
+      outputDirectory: .next
+      rootDirectory: null
+      nodeVersion: "20.x"
+      envVars:
+        - key: DATABASE_URL
+          value: postgres://localhost/mydb
+          type: encrypted
+          target: [production, preview]
   integrations:
     - client_id: oac_abc123
       client_secret: secret_abc123
@@ -2006,6 +2464,9 @@ curl "http://localhost:4000/v10/projects?limit=10" \
 ### User & Teams
 
 ```bash
+# Registration check
+curl http://localhost:4000/registration
+
 # Authenticated user
 curl http://localhost:4000/v2/user -H "Authorization: Bearer $TOKEN"
 
@@ -2013,7 +2474,7 @@ curl http://localhost:4000/v2/user -H "Authorization: Bearer $TOKEN"
 curl -X PATCH http://localhost:4000/v2/user \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"name": "New Name"}'
+  -d '{"name": "New Name", "email": "new@example.com"}'
 
 # List teams (cursor paginated)
 curl http://localhost:4000/v2/teams -H "Authorization: Bearer $TOKEN"
@@ -2027,24 +2488,32 @@ curl -X POST http://localhost:4000/v2/teams \
   -H "Content-Type: application/json" \
   -d '{"slug": "new-team", "name": "New Team"}'
 
-# Update team
+# Update team (name, slug, description)
 curl -X PATCH http://localhost:4000/v2/teams/my-team \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"name": "Updated Team"}'
+  -d '{"name": "Updated Team", "description": "New description"}'
 
-# List members, add member
+# List members
 curl http://localhost:4000/v2/teams/my-team/members -H "Authorization: Bearer $TOKEN"
+
+# Add member (by uid or email, with role)
+curl -X POST "http://localhost:4000/v2/teams/team_id/members" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "dev@example.com", "role": "MEMBER"}'
 ```
+
+Roles: `OWNER`, `MEMBER`, `DEVELOPER`, `VIEWER`.
 
 ### Projects
 
 ```bash
-# Create project (with optional env vars and git integration)
+# Create project (with optional env vars, git, and build config)
 curl -X POST http://localhost:4000/v11/projects \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"name": "my-app", "framework": "nextjs"}'
+  -d '{"name": "my-app", "framework": "nextjs", "buildCommand": "next build", "outputDirectory": ".next", "nodeVersion": "20.x", "environmentVariables": [{"key": "API_KEY", "value": "secret", "type": "encrypted", "target": ["production"]}]}'
 
 # List projects (search, cursor pagination)
 curl "http://localhost:4000/v10/projects?search=my-app" \
@@ -2054,13 +2523,16 @@ curl "http://localhost:4000/v10/projects?search=my-app" \
 curl http://localhost:4000/v9/projects/my-app \
   -H "Authorization: Bearer $TOKEN"
 
-# Update project
+# Update project (framework, buildCommand, devCommand, installCommand,
+#   outputDirectory, rootDirectory, nodeVersion, serverlessFunctionRegion,
+#   publicSource, autoAssignCustomDomains, gitForkProtection,
+#   commandForIgnoringBuildStep)
 curl -X PATCH http://localhost:4000/v9/projects/my-app \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"framework": "remix"}'
 
-# Delete project (cascades deployments, domains, env vars)
+# Delete project (cascades deployments, domains, env vars, protection bypasses)
 curl -X DELETE http://localhost:4000/v9/projects/my-app \
   -H "Authorization: Bearer $TOKEN"
 
@@ -2068,11 +2540,23 @@ curl -X DELETE http://localhost:4000/v9/projects/my-app \
 curl http://localhost:4000/v1/projects/my-app/promote/aliases \
   -H "Authorization: Bearer $TOKEN"
 
-# Protection bypass
+# Protection bypass: generate, revoke, regenerate
 curl -X PATCH http://localhost:4000/v1/projects/my-app/protection-bypass \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"revoke": false}'
+  -d '{"generate": {"note": "CI preview", "scope": "deployment"}}'
+
+# Revoke protection bypass secrets
+curl -X PATCH http://localhost:4000/v1/projects/my-app/protection-bypass \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"revoke": ["secret_to_revoke"]}'
+
+# Regenerate protection bypass secrets
+curl -X PATCH http://localhost:4000/v1/projects/my-app/protection-bypass \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"regenerate": ["old_secret"]}'
 ```
 
 ### Deployments
@@ -2082,17 +2566,19 @@ curl -X PATCH http://localhost:4000/v1/projects/my-app/protection-bypass \
 curl -X POST http://localhost:4000/v13/deployments \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"name": "my-app", "target": "production"}'
+  -d '{"name": "my-app", "target": "production", "meta": {"commit": "abc123"}, "regions": ["iad1"], "gitSource": {"type": "github", "ref": "main", "sha": "abc123", "repoId": "123", "org": "my-org", "repo": "my-app", "message": "Deploy", "authorName": "dev", "commitAuthorName": "dev"}}'
+
+# Targets: "production", "preview", "staging"
 
 # Get deployment (by ID or URL)
 curl http://localhost:4000/v13/deployments/dpl_abc123 \
   -H "Authorization: Bearer $TOKEN"
 
-# List deployments (filter by project, target, state)
-curl "http://localhost:4000/v6/deployments?projectId=my-app&target=production" \
+# List deployments (filter by projectId, app, target, state; cursor paginated)
+curl "http://localhost:4000/v6/deployments?projectId=my-app&target=production&limit=10" \
   -H "Authorization: Bearer $TOKEN"
 
-# Delete deployment (cascades)
+# Delete deployment
 curl -X DELETE http://localhost:4000/v13/deployments/dpl_abc123 \
   -H "Authorization: Bearer $TOKEN"
 
@@ -2104,8 +2590,8 @@ curl -X PATCH http://localhost:4000/v12/deployments/dpl_abc123/cancel \
 curl http://localhost:4000/v2/deployments/dpl_abc123/aliases \
   -H "Authorization: Bearer $TOKEN"
 
-# Get build events/logs
-curl http://localhost:4000/v3/deployments/dpl_abc123/events \
+# Get build events/logs (supports direction, limit)
+curl "http://localhost:4000/v3/deployments/dpl_abc123/events?direction=forward&limit=50" \
   -H "Authorization: Bearer $TOKEN"
 
 # List deployment files
@@ -2123,13 +2609,15 @@ curl -X POST http://localhost:4000/v2/files \
 ### Domains
 
 ```bash
-# Add domain (with verification challenge)
+# Add domain (with optional redirect, gitBranch, customEnvironmentId)
 curl -X POST http://localhost:4000/v10/projects/my-app/domains \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"name": "example.com"}'
+  -d '{"name": "example.com", "redirect": null, "redirectStatusCode": null, "gitBranch": null}'
 
-# List domains
+# *.vercel.app domains are auto-verified
+
+# List domains (cursor paginated)
 curl http://localhost:4000/v9/projects/my-app/domains \
   -H "Authorization: Bearer $TOKEN"
 
@@ -2142,18 +2630,20 @@ curl -X POST http://localhost:4000/v9/projects/my-app/domains/example.com/verify
   -H "Authorization: Bearer $TOKEN"
 ```
 
+Redirect status codes: `301`, `302`, `307`, `308`.
+
 ### Environment Variables
 
 ```bash
-# List env vars (with decrypt option)
+# List env vars (with decrypt option; filter by gitBranch, customEnvironmentId)
 curl "http://localhost:4000/v10/projects/my-app/env?decrypt=true" \
   -H "Authorization: Bearer $TOKEN"
 
 # Create env vars (single, batch, or upsert)
-curl -X POST http://localhost:4000/v10/projects/my-app/env \
+curl -X POST "http://localhost:4000/v10/projects/my-app/env?upsert=true" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"key": "API_KEY", "value": "secret123", "type": "encrypted", "target": ["production", "preview"]}'
+  -d '{"key": "API_KEY", "value": "secret123", "type": "encrypted", "target": ["production", "preview"], "comment": "API key for service"}'
 
 # Get env var
 curl http://localhost:4000/v10/projects/my-app/env/env_abc123 \
@@ -2170,26 +2660,94 @@ curl -X DELETE http://localhost:4000/v9/projects/my-app/env/env_abc123 \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-### OAuth / Integrations
+Env var types: `system`, `encrypted`, `plain`, `secret`, `sensitive`.
+
+### Blob
+
+Implements the Vercel Blob API used by the `@vercel/blob` SDK (`put`, `head`, `list`, `del`). Point the SDK at the emulator with two environment variables:
 
 ```bash
-# Authorize (browser flow -- shows user picker)
-# GET /oauth/authorize?client_id=...&redirect_uri=...&scope=...&state=...
-
-# Token exchange (supports PKCE)
-curl -X POST http://localhost:4000/login/oauth/token \
-  -H "Content-Type: application/json" \
-  -d '{"client_id": "oac_abc123", "client_secret": "secret_abc123", "code": "<code>", "redirect_uri": "http://localhost:3000/api/auth/callback/vercel"}'
-
-# User info (returns sub, email, name, preferred_username, picture)
-curl http://localhost:4000/login/oauth/userinfo \
-  -H "Authorization: Bearer $TOKEN"
+VERCEL_BLOB_API_URL=http://localhost:4000/api/blob
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_mystore_secret
 ```
+
+Any token of the form `vercel_blob_rw_&lt;storeId&gt;_&lt;secret&gt;` is accepted; the store id is parsed from the token.
+
+```typescript
+import { put, head, list, del } from '@vercel/blob'
+
+const blob = await put('avatars/user.png', data, { access: 'public' })
+// blob.url serves the bytes from the emulator
+await head(blob.url)
+await list({ prefix: 'avatars/' })
+await del(blob.url)
+```
+
+Direct HTTP:
+
+```bash
+BLOB_TOKEN="vercel_blob_rw_mystore_secret"
+
+# Upload (honors x-add-random-suffix, x-allow-overwrite, x-content-type,
+#   x-cache-control-max-age, x-if-match headers)
+curl -X PUT "http://localhost:4000/api/blob?pathname=docs/readme.txt" \
+  -H "Authorization: Bearer $BLOB_TOKEN" \
+  --data-binary @readme.txt
+
+# Metadata (head)
+curl "http://localhost:4000/api/blob?url=docs/readme.txt" \
+  -H "Authorization: Bearer $BLOB_TOKEN"
+
+# List (prefix, limit, cursor, mode=folded)
+curl "http://localhost:4000/api/blob?prefix=docs/" \
+  -H "Authorization: Bearer $BLOB_TOKEN"
+
+# Delete
+curl -X POST http://localhost:4000/api/blob/delete \
+  -H "Authorization: Bearer $BLOB_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"urls": ["docs/readme.txt"]}'
+
+# Serve content (public, no auth; ?download=1 forces attachment)
+curl http://localhost:4000/blob/mystore/docs/readme.txt
+```
+
+Multipart uploads and client (browser) uploads are not supported yet.
 
 ### API Keys
 
 ```bash
-# Manage API keys for programmatic access
+# Create API key (optional teamId scope)
+curl -X POST "http://localhost:4000/v1/api-keys?teamId=team_abc123" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "CI Deploy Key"}'
+
+# List API keys (optional teamId filter)
+curl "http://localhost:4000/v1/api-keys?teamId=team_abc123" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Delete API key
+curl -X DELETE http://localhost:4000/v1/api-keys/ak_abc123 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Created API keys are automatically registered in the token map and can be used as Bearer tokens for all endpoints.
+
+### OAuth / Integrations
+
+```bash
+# Authorize (browser flow, shows user picker)
+# GET /oauth/authorize?client_id=...&redirect_uri=...&scope=...&state=...
+
+# Token exchange (supports PKCE; accepts JSON or form-urlencoded)
+curl -X POST http://localhost:4000/login/oauth/token \
+  -H "Content-Type: application/json" \
+  -d '{"client_id": "oac_abc123", "client_secret": "secret_abc123", "code": "<code>", "redirect_uri": "http://localhost:3000/api/auth/callback/vercel"}'
+
+# User info (returns sub, email, email_verified, name, preferred_username, picture)
+curl http://localhost:4000/login/oauth/userinfo \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Common Patterns
@@ -2197,7 +2755,7 @@ curl http://localhost:4000/login/oauth/userinfo \
 ### Create Project and Deploy
 
 ```bash
-TOKEN="gho_test_token_admin"
+TOKEN="test_token_admin"
 BASE="http://localhost:4000"
 
 # Create project
@@ -2227,7 +2785,7 @@ curl -X POST $BASE/v13/deployments \
 4. Exchange code for token via `POST /login/oauth/token`
 5. Fetch user info via `GET /login/oauth/userinfo`
 
-PKCE is supported -- pass `code_challenge` and `code_challenge_method` on authorize, then `code_verifier` on token exchange.
+PKCE is supported. Pass `code_challenge` and `code_challenge_method` on authorize, then `code_verifier` on token exchange.
 
 ### Team-Scoped Requests
 
@@ -2245,13 +2803,13 @@ curl "http://localhost:4000/v10/projects?slug=my-team" \
 ### Upstream
 
 &lt;!-- SYNCED from vercel-labs/emulate (skills/emulate/SKILL.md) --&gt;
-&lt;!-- Hash: 4cbe1c29594d746595ad412fc40dd5e3be129d48b284ce95680a714bdf73a660 --&gt;
+&lt;!-- Hash: f948aead4a7cb4ad0bd38af85cb1fdd256d1a8711b143fcc4bf9d7f21b7ac2b8 --&gt;
 &lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
 # Service Emulation with emulate
 
-Local drop-in replacement services for CI and no-network sandboxes. Fully stateful, production-fidelity API emulation -- not mocks.
+Local drop-in replacement services for CI and no-network sandboxes. Fully stateful, production-fidelity API emulation, not mocks.
 
 ## Quick Start
 
@@ -2261,35 +2819,46 @@ npx emulate
 
 All services start with sensible defaults:
 
-| Service | Default Port |
-|---------|-------------|
-| Vercel  | 4000        |
-| GitHub  | 4001        |
-| Google  | 4002        |
+| Service   | Default Port |
+|-----------|-------------|
+| Vercel    | 4000        |
+| GitHub    | 4001        |
+| Google    | 4002        |
+| Slack     | 4003        |
+| Apple     | 4004        |
+| Microsoft | 4005        |
+| Okta      | 4006        |
+| AWS       | 4007        |
+| Resend    | 4008        |
+| Stripe    | 4009        |
+| MongoDB Atlas | 4010   |
+| Clerk     | 4011        |
+| Linear    | 4012        |
+| Twilio    | 4013        |
 
 ## CLI
 
 ```bash
 # Start all services (zero-config)
-emulate
+npx emulate
 
 # Start specific services
-emulate --service vercel,github
+npx emulate --service vercel,github
 
 # Custom base port (auto-increments per service)
-emulate --port 3000
+npx emulate --port 3000
 
 # Use a seed config file
-emulate --seed config.yaml
+npx emulate --seed config.yaml
 
 # Generate a starter config
-emulate init
+npx emulate init
 
 # Generate config for a specific service
-emulate init --service vercel
+npx emulate init --service vercel
 
 # List available services
-emulate list
+npx emulate list
 ```
 
 ### Options
@@ -2299,8 +2868,12 @@ emulate list
 | `-p, --port` | `4000` | Base port (auto-increments per service) |
 | `-s, --service` | all | Comma-separated services to enable |
 | `--seed` | auto-detect | Path to seed config (YAML or JSON) |
+| `--base-url` | none | Override advertised base URL (supports `\{service\}` template) |
+| `--portless` | off | Serve over HTTPS via portless (auto-registers aliases) |
 
 The port can also be set via `EMULATE_PORT` or `PORT` environment variables.
+
+The advertised base URL (used in OAuth redirects, webhook URLs, etc.) can be overridden via `--base-url`, the `EMULATE_BASE_URL` env var (supports `\{service\}` template), or per-service `baseUrl` in the seed config. When running under portless, the `PORTLESS_URL` env var is also detected automatically.
 
 ## Programmatic API
 
@@ -2327,9 +2900,10 @@ await vercel.close()
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `service` | *(required)* | `'github'`, `'vercel'`, or `'google'` |
+| `service` | *(required)* | `'vercel'`, `'github'`, `'google'`, `'slack'`, `'apple'`, `'microsoft'`, `'okta'`, `'aws'`, `'resend'`, `'stripe'`, `'mongoatlas'`, `'clerk'`, `'linear'`, or `'twilio'` |
 | `port` | `4000` | Port for the HTTP server |
 | `seed` | none | Inline seed data (same shape as YAML config) |
+| `baseUrl` | none | Override advertised base URL. Per-service `baseUrl` in seed config takes highest priority, then this option, then `EMULATE_BASE_URL` env var (supports `\{service\}`), then `PORTLESS_URL` (supports `\{service\}`, automatically set by the `portless` CLI wrapper), then `http://localhost:&lt;port&gt;`. |
 
 ### Instance Methods
 
@@ -2352,8 +2926,8 @@ beforeAll(async () => {
     createEmulator({ service: 'github', port: 4001 }),
     createEmulator({ service: 'vercel', port: 4002 }),
   ])
-  process.env.GITHUB_URL = github.url
-  process.env.VERCEL_URL = vercel.url
+  process.env.GITHUB_EMULATOR_URL = github.url
+  process.env.VERCEL_EMULATOR_URL = vercel.url
 })
 
 afterEach(() => { github.reset(); vercel.reset() })
@@ -2369,7 +2943,7 @@ Configuration is optional. The CLI auto-detects config files in this order:
 3. `service-emulator.config.yaml` / `.yml`
 4. `service-emulator.config.json`
 
-Or pass `--seed &lt;file&gt;` explicitly. Run `emulate init` to generate a starter file.
+Or pass `--seed &lt;file&gt;` explicitly. Run `npx emulate init` to generate a starter file.
 
 ### Config Structure
 
@@ -2427,25 +3001,189 @@ google:
       client_secret: GOCSPX-secret
       redirect_uris:
         - http://localhost:3000/api/auth/callback/google
+
+slack:
+  team:
+    name: My Workspace
+    domain: my-workspace
+  users:
+    - name: developer
+      real_name: Developer
+      email: dev@example.com
+  channels:
+    - name: general
+      topic: General discussion
+  bots:
+    - name: my-bot
+  oauth_apps:
+    - client_id: "12345.67890"
+      client_secret: example_client_secret
+      name: My Slack App
+      redirect_uris:
+        - http://localhost:3000/api/auth/callback/slack
+
+linear:
+  organization:
+    name: Acme
+    url_key: acme
+  users:
+    - email: admin@example.com
+      name: Admin User
+      admin: true
+    - email: dev@example.com
+      name: Developer
+  teams:
+    - key: ENG
+      name: Engineering
+  issues:
+    - team: ENG
+      title: Fix local checkout test
+      state: Todo
+      assignee: dev@example.com
+  oauth_apps:
+    - client_id: lin_example_client_id
+      client_secret: example_client_secret
+      name: My Linear App
+      redirect_uris:
+        - http://localhost:3000/api/auth/callback/linear
+      scopes: [read, write, issues:create, comments:create]
+  tokens:
+    - token: lin_test_admin
+      user: admin@example.com
+      scopes: [read, write, issues:create, comments:create, admin]
+
+apple:
+  users:
+    - email: testuser@icloud.com
+      name: Test User
+  oauth_clients:
+    - client_id: com.example.app
+      team_id: TEAM001
+      name: My Apple App
+      redirect_uris:
+        - http://localhost:3000/api/auth/callback/apple
+
+microsoft:
+  users:
+    - email: testuser@outlook.com
+      name: Test User
+  oauth_clients:
+    - client_id: example-client-id
+      client_secret: example-client-secret
+      name: My Microsoft App
+      redirect_uris:
+        - http://localhost:3000/api/auth/callback/microsoft-entra-id
+
+aws:
+  region: us-east-1
+  s3:
+    buckets:
+      - name: my-app-bucket
+  sqs:
+    queues:
+      - name: my-app-events
+  iam:
+    users:
+      - user_name: developer
+        create_access_key: true
+    roles:
+      - role_name: lambda-execution-role
 ```
 
 ### Auth
 
-Tokens map to users. Pass them as `Authorization: Bearer &lt;token&gt;` or `Authorization: token &lt;token&gt;`. When no tokens are configured, a default `gho_test_token_admin` is created for the `admin` user.
+Tokens map to users. Pass them as `Authorization: Bearer &lt;token&gt;` or `Authorization: token &lt;token&gt;`. When no tokens are configured, a default `test_token_admin` is created for the `admin` user.
 
-Each service also has a fallback user -- if no token is provided, requests authenticate as the first seeded user.
+Each service also has a fallback user. If no token is provided, requests authenticate as the first seeded user.
+
+## HTTPS with portless
+
+[portless](https://github.com/vercel-labs/portless) gives emulators trusted HTTPS URLs with auto-generated certs. Use the `--portless` flag to auto-register each service as a portless alias:
+
+```bash
+npx emulate start --portless
+# github  https://github.emulate.localhost
+# google  https://google.emulate.localhost
+# ...
+```
+
+This requires the portless proxy to be running (`portless proxy start`). If portless is not installed, emulate will prompt to install it.
+
+The `--portless` flag overwrites any existing portless aliases matching `*.emulate`. Aliases are removed automatically when emulate shuts down.
+
+For a single service behind portless:
+
+```bash
+portless github.emulate emulate start --service github
+```
+
+For a custom base URL without portless (any reverse proxy):
+
+```bash
+npx emulate start --base-url "https://{service}.myproxy.test"
+# or
+EMULATE_BASE_URL="https://{service}.myproxy.test" npx emulate start
+```
+
+The `PORTLESS_URL` env var is automatically set by the `portless` CLI wrapper when running a command through it (e.g. `portless github.emulate emulate start`), typically to a value like `https://\{service\}.emulate.localhost`. It supports `\{service\}` interpolation, just like `--base-url` and `EMULATE_BASE_URL`. When no explicit `baseUrl` is provided, it is used as a fallback.
+
+Per-service overrides in the seed config (these take highest priority over all other base URL sources):
+
+```yaml
+github:
+  baseUrl: https://github.emulate.localhost
+google:
+  baseUrl: https://google.emulate.localhost
+```
 
 ## Pointing Your App at the Emulator
 
 Set environment variables to override real service URLs:
 
 ```bash
-GITHUB_EMULATOR_URL=http://localhost:4001
 VERCEL_EMULATOR_URL=http://localhost:4000
+GITHUB_EMULATOR_URL=http://localhost:4001
 GOOGLE_EMULATOR_URL=http://localhost:4002
+SLACK_EMULATOR_URL=http://localhost:4003
+APPLE_EMULATOR_URL=http://localhost:4004
+MICROSOFT_EMULATOR_URL=http://localhost:4005
+AWS_EMULATOR_URL=http://localhost:4007
+LINEAR_EMULATOR_URL=http://localhost:4012
 ```
 
 Then use these in your app to construct API and OAuth URLs. See each service's skill for SDK-specific override instructions.
+
+## Framework Integration (Embedded Mode)
+
+The `@emulators/adapter-next` package embeds emulators directly into a Next.js app on the same origin. See the **next** skill (`skills/next/SKILL.md`) for full setup, Auth.js configuration, persistence, and font tracing details.
+
+The `@emulators/adapter-nuxt` package embeds emulators directly into a Nuxt app on the same origin. See the **nuxt** skill (`skills/nuxt/SKILL.md`) for the server route, Nuxt config, OAuth configuration, and persistence setup.
+
+## Persistence
+
+By default, all emulator state is in-memory. For persistence across process restarts and serverless cold starts, use a `PersistenceAdapter`.
+
+### Built-in file persistence
+
+```typescript
+import { filePersistence } from '@emulators/core'
+
+// CLI or local dev: persists to a JSON file
+const adapter = filePersistence('.emulate/state.json')
+```
+
+### Custom adapters
+
+```typescript
+import type { PersistenceAdapter } from '@emulators/core'
+
+const kvAdapter: PersistenceAdapter = {
+  async load() { return await kv.get('emulate-state') },
+  async save(data) { await kv.set('emulate-state', data) },
+}
+```
+
+State is loaded on cold start and saved after every mutating request (POST, PUT, PATCH, DELETE). Saves are serialized to prevent race conditions.
 
 ## Architecture
 
@@ -2453,11 +3191,19 @@ Then use these in your app to construct API and OAuth URLs. See each service's s
 packages/
   emulate/           # CLI entry point + programmatic API
   @emulators/
-    core/            # HTTP server (Hono), Store, plugin interface, middleware
+    core/            # HTTP server, Store, plugin interface, middleware
+    adapter-next/    # Next.js App Router integration
+    adapter-nuxt/    # Nuxt server route integration
     vercel/          # Vercel API service plugin
     github/          # GitHub API service plugin
     google/          # Google OAuth 2.0 / OIDC plugin
+    slack/           # Slack Web API, OAuth, incoming webhooks plugin
+    linear/          # Linear GraphQL API, OAuth, webhooks plugin
+    twilio/          # Twilio Messaging, Verify, Voice, webhooks plugin
+    apple/           # Sign in with Apple / OIDC plugin
+    microsoft/       # Microsoft Entra ID OAuth 2.0 / OIDC plugin
+    aws/             # AWS S3, SQS, IAM, STS plugin
 ```
 
-The core provides a generic `Store` with typed `Collection&lt;T&gt;` instances supporting CRUD, indexing, filtering, and pagination. Each service plugin registers routes on the shared Hono app and uses the store for state.
+The core provides a generic `Store` with typed `Collection&lt;T&gt;` instances supporting CRUD, indexing, filtering, and pagination. Each service plugin registers routes with the shared internal app and uses the store for state.
 

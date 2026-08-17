@@ -914,7 +914,7 @@ Upstream: https://react-pdf.org/fonts
 ### Upstream Email
 
 &lt;!-- SYNCED from vercel-labs/json-render (skills/react-email/SKILL.md) --&gt;
-&lt;!-- Hash: 8b376b37da07dd68944e72e0e322a272571f39271e5b08b6efd437db201470c9 --&gt;
+&lt;!-- Hash: c6acbfea4b58c07ad9da2169868157bb97016f3cc5f47ffc4502a95146f63713 --&gt;
 &lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
@@ -1008,7 +1008,7 @@ const html = await renderToHtml(spec, { registry });
 
 ## Visibility and State
 
-Supports `visible` conditions, `$state`, `$cond`, repeat (`repeat.statePath`), and the same expression syntax as `@json-render/react`. Use `state` in `RenderOptions` when rendering server-side so expressions resolve.
+Supports `visible` conditions, `$state`, `$cond`, repeat (`repeat.statePath`), nested repeat paths with `\{ "$item": "field" \}`, and the same expression syntax as `@json-render/react`. Use `state` in `RenderOptions` when rendering server-side so expressions resolve.
 
 ## Server-Safe Import
 
@@ -1191,7 +1191,7 @@ const catalog = defineCatalog(schema, {
 ### Upstream Pdf
 
 &lt;!-- SYNCED from vercel-labs/json-render (skills/react-pdf/SKILL.md) --&gt;
-&lt;!-- Hash: 42d7d378733e0c1e6ff10ba788dc77c32b36b2f28841f1d6aa671e44ed9ad0be --&gt;
+&lt;!-- Hash: b791e1340395749f63796e736bc6a7e80cf338403ef763b6961a2c7d4ed863ae --&gt;
 &lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
@@ -1317,6 +1317,8 @@ const buffer = await renderToBuffer(spec, { registry });
 ## External Store (Controlled Mode)
 
 Pass a `StateStore` for full control over state:
+
+Nested lists can set `repeat.statePath` to `\{ "$item": "field" \}` inside an enclosing repeat.
 
 ```typescript
 import { createStateStore } from "@json-render/react-pdf";

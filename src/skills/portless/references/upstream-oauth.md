@@ -1,5 +1,5 @@
 <!-- SYNCED from vercel-labs/portless (skills/oauth/SKILL.md) -->
-<!-- Hash: bbdfd32c800dd69a68348ac868e355bda886b8cdb57b587acd7a70327ceb9fc4 -->
+<!-- Hash: ea1ec2f9e933d0d258bf3493242244ea562c3428ba7f269e267650e96d28cf60 -->
 <!-- Re-sync: bash scripts/sync-vercel-skills.sh -->
 
 
@@ -9,7 +9,7 @@ OAuth providers validate redirect URIs against domain rules. `.localhost` subdom
 
 ## The Problem
 
-When portless uses the default `.localhost` TLD, OAuth providers reject redirect URIs like `https://myapp.localhost/callback`:
+When portless uses the default `.localhost` TLD, OAuth providers reject redirect URIs like `http://myapp.localhost:1355/callback`:
 
 | Provider  | `localhost` | `.localhost` subdomains | Reason                         |
 | --------- | ----------- | ----------------------- | ------------------------------ |
@@ -26,7 +26,7 @@ Google and Apple are the strictest. Microsoft and GitHub are more lenient with l
 Use a valid TLD so the redirect URI passes provider validation:
 
 ```bash
-sudo portless proxy start --https -p 443 --tld dev
+portless proxy start --tld dev
 portless myapp next dev
 # -> https://myapp.dev
 ```
@@ -35,15 +35,15 @@ Any TLD in the Public Suffix List works: `.dev`, `.app`, `.com`, `.io`, etc.
 
 ### Use a domain you own
 
-Bare TLDs like `.dev` mean `myapp.dev` could collide with a real domain. Use a subdomain of a domain you control:
+Bare TLDs like `.dev` mean `myapp.dev` could collide with a real domain. Use a multi-segment TLD under a domain you control, so the app name stays clean and the domain structure lives in the TLD:
 
 ```bash
-sudo portless proxy start --https -p 443 --tld dev
-portless myapp.local.yourcompany next dev
+portless proxy start --tld local.yourcompany.dev
+portless myapp next dev
 # -> https://myapp.local.yourcompany.dev
 ```
 
-This ensures no outbound traffic reaches something you don't own. For teams, set a wildcard DNS record (`*.local.yourcompany.dev -> 127.0.0.1`) so every developer gets resolution without `/etc/hosts`.
+This ensures no outbound traffic reaches something you don't own. For teams, set a wildcard DNS record (`*.local.yourcompany.dev -> 127.0.0.1`) so every developer gets resolution without `/etc/hosts`, and every developer shares the same redirect URIs in the provider console.
 
 ## Provider Setup
 
@@ -137,13 +137,13 @@ The redirect URI sent during the OAuth flow doesn't match what's registered with
 
 ### Provider requires HTTPS
 
-`.dev` and `.app` TLDs are HSTS-preloaded -- browsers force HTTPS. Start the proxy with `--https`:
+`.dev` and `.app` TLDs are HSTS-preloaded, so browsers force HTTPS. Start the proxy:
 
 ```bash
-sudo portless proxy start --https -p 443 --tld dev
+portless proxy start --tld dev
 ```
 
-Port 443 avoids needing a port number in URLs. Run `sudo portless trust` to add the local CA to your system trust store and eliminate browser warnings.
+Portless defaults to HTTPS on port 443 (auto-elevates with sudo). Run `portless trust` to add the local CA to your system trust store and eliminate browser warnings.
 
 ### Apple rejects the domain
 
