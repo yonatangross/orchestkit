@@ -5,6 +5,32 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.36](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.35...v10.0.0-alpha.36) (2026-08-17)
+
+
+### Bug Fixes
+
+* **21st-dev:** grant the MCP tools four surfaces already claimed to use ([#3509](https://github.com/yonatangross/orchestkit/issues/3509)) ([c198ee6](https://github.com/yonatangross/orchestkit/commit/c198ee68239080ae78cff6f083ce5e1b921cbb44))
+* **docker:** pin node 24 to match .nvmrc ([#3510](https://github.com/yonatangross/orchestkit/issues/3510)) ([93e84bf](https://github.com/yonatangross/orchestkit/commit/93e84bfca89637a981c00775c46946d4baae264c))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/node in the npm-minor-patch group ([#3514](https://github.com/yonatangross/orchestkit/issues/3514)) ([79c03ec](https://github.com/yonatangross/orchestkit/commit/79c03ec3701f0935c143298ed599f786721cc64b))
+* **deps-dev:** bump the npm-minor-patch group across 1 directory with 2 updates ([#3515](https://github.com/yonatangross/orchestkit/issues/3515)) ([52f9908](https://github.com/yonatangross/orchestkit/commit/52f9908595fd0030e9662601b5d78a4925c78893))
+
+
+### Documentation
+
+* **21st-dev:** argue the picker from choice, not from the 2/day cap ([#3513](https://github.com/yonatangross/orchestkit/issues/3513)) ([57150dc](https://github.com/yonatangross/orchestkit/commit/57150dc43cca633a2769c25b637c39ca4b71cd89))
+* **skills:** re-sync upstream refs; portless defaults to 443 ([#3525](https://github.com/yonatangross/orchestkit/issues/3525)) ([45895c7](https://github.com/yonatangross/orchestkit/commit/45895c71627ef237036e578595ba78bef62ff227))
+
+
+### CI/CD
+
+* bump the github-actions group across 1 directory with 5 updates ([#3521](https://github.com/yonatangross/orchestkit/issues/3521)) ([2878a31](https://github.com/yonatangross/orchestkit/commit/2878a319673d6c4533be1fa148adc947716a7b65))
+* **probe:** a failed probe is UNKNOWN, not "every pin is current" ([#3527](https://github.com/yonatangross/orchestkit/issues/3527)) ([a335d3f](https://github.com/yonatangross/orchestkit/commit/a335d3f0dfc16f44a3b369c4e5826bc242c455be))
+
 ## [10.0.0-alpha.35](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.34...v10.0.0-alpha.35) (2026-08-16)
 
 
