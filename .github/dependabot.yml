@@ -156,3 +156,15 @@ updates:
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 5
+
+  # The root Dockerfile is a published artifact: release.yml builds and pushes it
+  # multi-arch. Its FROM lines are digest-pinned for Scorecard, and the comment
+  # there claimed a bot maintained the pin while no docker ecosystem existed, so
+  # the pin was frozen at node:22 while .nvmrc moved to 24 (#3477).
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(docker)"
+    open-pull-requests-limit: 3
