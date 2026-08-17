@@ -1,11 +1,11 @@
 <!-- SYNCED from vercel-labs/emulate (skills/emulate/SKILL.md) -->
-<!-- Hash: 4cbe1c29594d746595ad412fc40dd5e3be129d48b284ce95680a714bdf73a660 -->
+<!-- Hash: f948aead4a7cb4ad0bd38af85cb1fdd256d1a8711b143fcc4bf9d7f21b7ac2b8 -->
 <!-- Re-sync: bash scripts/sync-vercel-skills.sh -->
 
 
 # Service Emulation with emulate
 
-Local drop-in replacement services for CI and no-network sandboxes. Fully stateful, production-fidelity API emulation -- not mocks.
+Local drop-in replacement services for CI and no-network sandboxes. Fully stateful, production-fidelity API emulation, not mocks.
 
 ## Quick Start
 
@@ -15,35 +15,46 @@ npx emulate
 
 All services start with sensible defaults:
 
-| Service | Default Port |
-|---------|-------------|
-| Vercel  | 4000        |
-| GitHub  | 4001        |
-| Google  | 4002        |
+| Service   | Default Port |
+|-----------|-------------|
+| Vercel    | 4000        |
+| GitHub    | 4001        |
+| Google    | 4002        |
+| Slack     | 4003        |
+| Apple     | 4004        |
+| Microsoft | 4005        |
+| Okta      | 4006        |
+| AWS       | 4007        |
+| Resend    | 4008        |
+| Stripe    | 4009        |
+| MongoDB Atlas | 4010   |
+| Clerk     | 4011        |
+| Linear    | 4012        |
+| Twilio    | 4013        |
 
 ## CLI
 
 ```bash
 # Start all services (zero-config)
-emulate
+npx emulate
 
 # Start specific services
-emulate --service vercel,github
+npx emulate --service vercel,github
 
 # Custom base port (auto-increments per service)
-emulate --port 3000
+npx emulate --port 3000
 
 # Use a seed config file
-emulate --seed config.yaml
+npx emulate --seed config.yaml
 
 # Generate a starter config
-emulate init
+npx emulate init
 
 # Generate config for a specific service
-emulate init --service vercel
+npx emulate init --service vercel
 
 # List available services
-emulate list
+npx emulate list
 ```
 
 ### Options
@@ -53,8 +64,12 @@ emulate list
 | `-p, --port` | `4000` | Base port (auto-increments per service) |
 | `-s, --service` | all | Comma-separated services to enable |
 | `--seed` | auto-detect | Path to seed config (YAML or JSON) |
+| `--base-url` | none | Override advertised base URL (supports `{service}` template) |
+| `--portless` | off | Serve over HTTPS via portless (auto-registers aliases) |
 
 The port can also be set via `EMULATE_PORT` or `PORT` environment variables.
+
+The advertised base URL (used in OAuth redirects, webhook URLs, etc.) can be overridden via `--base-url`, the `EMULATE_BASE_URL` env var (supports `{service}` template), or per-service `baseUrl` in the seed config. When running under portless, the `PORTLESS_URL` env var is also detected automatically.
 
 ## Programmatic API
 
@@ -81,9 +96,10 @@ await vercel.close()
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `service` | *(required)* | `'github'`, `'vercel'`, or `'google'` |
+| `service` | *(required)* | `'vercel'`, `'github'`, `'google'`, `'slack'`, `'apple'`, `'microsoft'`, `'okta'`, `'aws'`, `'resend'`, `'stripe'`, `'mongoatlas'`, `'clerk'`, `'linear'`, or `'twilio'` |
 | `port` | `4000` | Port for the HTTP server |
 | `seed` | none | Inline seed data (same shape as YAML config) |
+| `baseUrl` | none | Override advertised base URL. Per-service `baseUrl` in seed config takes highest priority, then this option, then `EMULATE_BASE_URL` env var (supports `{service}`), then `PORTLESS_URL` (supports `{service}`, automatically set by the `portless` CLI wrapper), then `http://localhost:<port>`. |
 
 ### Instance Methods
 
@@ -106,8 +122,8 @@ beforeAll(async () => {
     createEmulator({ service: 'github', port: 4001 }),
     createEmulator({ service: 'vercel', port: 4002 }),
   ])
-  process.env.GITHUB_URL = github.url
-  process.env.VERCEL_URL = vercel.url
+  process.env.GITHUB_EMULATOR_URL = github.url
+  process.env.VERCEL_EMULATOR_URL = vercel.url
 })
 
 afterEach(() => { github.reset(); vercel.reset() })
@@ -123,7 +139,7 @@ Configuration is optional. The CLI auto-detects config files in this order:
 3. `service-emulator.config.yaml` / `.yml`
 4. `service-emulator.config.json`
 
-Or pass `--seed <file>` explicitly. Run `emulate init` to generate a starter file.
+Or pass `--seed <file>` explicitly. Run `npx emulate init` to generate a starter file.
 
 ### Config Structure
 
@@ -181,25 +197,189 @@ google:
       client_secret: GOCSPX-secret
       redirect_uris:
         - http://localhost:3000/api/auth/callback/google
+
+slack:
+  team:
+    name: My Workspace
+    domain: my-workspace
+  users:
+    - name: developer
+      real_name: Developer
+      email: dev@example.com
+  channels:
+    - name: general
+      topic: General discussion
+  bots:
+    - name: my-bot
+  oauth_apps:
+    - client_id: "12345.67890"
+      client_secret: example_client_secret
+      name: My Slack App
+      redirect_uris:
+        - http://localhost:3000/api/auth/callback/slack
+
+linear:
+  organization:
+    name: Acme
+    url_key: acme
+  users:
+    - email: admin@example.com
+      name: Admin User
+      admin: true
+    - email: dev@example.com
+      name: Developer
+  teams:
+    - key: ENG
+      name: Engineering
+  issues:
+    - team: ENG
+      title: Fix local checkout test
+      state: Todo
+      assignee: dev@example.com
+  oauth_apps:
+    - client_id: lin_example_client_id
+      client_secret: example_client_secret
+      name: My Linear App
+      redirect_uris:
+        - http://localhost:3000/api/auth/callback/linear
+      scopes: [read, write, issues:create, comments:create]
+  tokens:
+    - token: lin_test_admin
+      user: admin@example.com
+      scopes: [read, write, issues:create, comments:create, admin]
+
+apple:
+  users:
+    - email: testuser@icloud.com
+      name: Test User
+  oauth_clients:
+    - client_id: com.example.app
+      team_id: TEAM001
+      name: My Apple App
+      redirect_uris:
+        - http://localhost:3000/api/auth/callback/apple
+
+microsoft:
+  users:
+    - email: testuser@outlook.com
+      name: Test User
+  oauth_clients:
+    - client_id: example-client-id
+      client_secret: example-client-secret
+      name: My Microsoft App
+      redirect_uris:
+        - http://localhost:3000/api/auth/callback/microsoft-entra-id
+
+aws:
+  region: us-east-1
+  s3:
+    buckets:
+      - name: my-app-bucket
+  sqs:
+    queues:
+      - name: my-app-events
+  iam:
+    users:
+      - user_name: developer
+        create_access_key: true
+    roles:
+      - role_name: lambda-execution-role
 ```
 
 ### Auth
 
-Tokens map to users. Pass them as `Authorization: Bearer <token>` or `Authorization: token <token>`. When no tokens are configured, a default `gho_test_token_admin` is created for the `admin` user.
+Tokens map to users. Pass them as `Authorization: Bearer <token>` or `Authorization: token <token>`. When no tokens are configured, a default `test_token_admin` is created for the `admin` user.
 
-Each service also has a fallback user -- if no token is provided, requests authenticate as the first seeded user.
+Each service also has a fallback user. If no token is provided, requests authenticate as the first seeded user.
+
+## HTTPS with portless
+
+[portless](https://github.com/vercel-labs/portless) gives emulators trusted HTTPS URLs with auto-generated certs. Use the `--portless` flag to auto-register each service as a portless alias:
+
+```bash
+npx emulate start --portless
+# github  https://github.emulate.localhost
+# google  https://google.emulate.localhost
+# ...
+```
+
+This requires the portless proxy to be running (`portless proxy start`). If portless is not installed, emulate will prompt to install it.
+
+The `--portless` flag overwrites any existing portless aliases matching `*.emulate`. Aliases are removed automatically when emulate shuts down.
+
+For a single service behind portless:
+
+```bash
+portless github.emulate emulate start --service github
+```
+
+For a custom base URL without portless (any reverse proxy):
+
+```bash
+npx emulate start --base-url "https://{service}.myproxy.test"
+# or
+EMULATE_BASE_URL="https://{service}.myproxy.test" npx emulate start
+```
+
+The `PORTLESS_URL` env var is automatically set by the `portless` CLI wrapper when running a command through it (e.g. `portless github.emulate emulate start`), typically to a value like `https://{service}.emulate.localhost`. It supports `{service}` interpolation, just like `--base-url` and `EMULATE_BASE_URL`. When no explicit `baseUrl` is provided, it is used as a fallback.
+
+Per-service overrides in the seed config (these take highest priority over all other base URL sources):
+
+```yaml
+github:
+  baseUrl: https://github.emulate.localhost
+google:
+  baseUrl: https://google.emulate.localhost
+```
 
 ## Pointing Your App at the Emulator
 
 Set environment variables to override real service URLs:
 
 ```bash
-GITHUB_EMULATOR_URL=http://localhost:4001
 VERCEL_EMULATOR_URL=http://localhost:4000
+GITHUB_EMULATOR_URL=http://localhost:4001
 GOOGLE_EMULATOR_URL=http://localhost:4002
+SLACK_EMULATOR_URL=http://localhost:4003
+APPLE_EMULATOR_URL=http://localhost:4004
+MICROSOFT_EMULATOR_URL=http://localhost:4005
+AWS_EMULATOR_URL=http://localhost:4007
+LINEAR_EMULATOR_URL=http://localhost:4012
 ```
 
 Then use these in your app to construct API and OAuth URLs. See each service's skill for SDK-specific override instructions.
+
+## Framework Integration (Embedded Mode)
+
+The `@emulators/adapter-next` package embeds emulators directly into a Next.js app on the same origin. See the **next** skill (`skills/next/SKILL.md`) for full setup, Auth.js configuration, persistence, and font tracing details.
+
+The `@emulators/adapter-nuxt` package embeds emulators directly into a Nuxt app on the same origin. See the **nuxt** skill (`skills/nuxt/SKILL.md`) for the server route, Nuxt config, OAuth configuration, and persistence setup.
+
+## Persistence
+
+By default, all emulator state is in-memory. For persistence across process restarts and serverless cold starts, use a `PersistenceAdapter`.
+
+### Built-in file persistence
+
+```typescript
+import { filePersistence } from '@emulators/core'
+
+// CLI or local dev: persists to a JSON file
+const adapter = filePersistence('.emulate/state.json')
+```
+
+### Custom adapters
+
+```typescript
+import type { PersistenceAdapter } from '@emulators/core'
+
+const kvAdapter: PersistenceAdapter = {
+  async load() { return await kv.get('emulate-state') },
+  async save(data) { await kv.set('emulate-state', data) },
+}
+```
+
+State is loaded on cold start and saved after every mutating request (POST, PUT, PATCH, DELETE). Saves are serialized to prevent race conditions.
 
 ## Architecture
 
@@ -207,10 +387,18 @@ Then use these in your app to construct API and OAuth URLs. See each service's s
 packages/
   emulate/           # CLI entry point + programmatic API
   @emulators/
-    core/            # HTTP server (Hono), Store, plugin interface, middleware
+    core/            # HTTP server, Store, plugin interface, middleware
+    adapter-next/    # Next.js App Router integration
+    adapter-nuxt/    # Nuxt server route integration
     vercel/          # Vercel API service plugin
     github/          # GitHub API service plugin
     google/          # Google OAuth 2.0 / OIDC plugin
+    slack/           # Slack Web API, OAuth, incoming webhooks plugin
+    linear/          # Linear GraphQL API, OAuth, webhooks plugin
+    twilio/          # Twilio Messaging, Verify, Voice, webhooks plugin
+    apple/           # Sign in with Apple / OIDC plugin
+    microsoft/       # Microsoft Entra ID OAuth 2.0 / OIDC plugin
+    aws/             # AWS S3, SQS, IAM, STS plugin
 ```
 
-The core provides a generic `Store` with typed `Collection<T>` instances supporting CRUD, indexing, filtering, and pagination. Each service plugin registers routes on the shared Hono app and uses the store for state.
+The core provides a generic `Store` with typed `Collection<T>` instances supporting CRUD, indexing, filtering, and pagination. Each service plugin registers routes with the shared internal app and uses the store for state.
