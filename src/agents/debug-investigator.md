@@ -20,6 +20,12 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  # mcpServers: [memory] below is metadata, not a grant (#3461). Read-only
+  # trio only: a debug run may read the knowledge graph, never mutate it,
+  # so create_*/add_*/delete_* stay excluded.
+  - mcp__memory__search_nodes
+  - mcp__memory__read_graph
+  - mcp__memory__open_nodes
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - fix-issue
