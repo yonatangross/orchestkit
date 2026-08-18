@@ -24,6 +24,8 @@ description: "Test specialist: coverage gap analysis, unit/integration test gene
 - `TaskUpdate`
 - `TaskList`
 - `ExitWorktree`
+- `mcp__context7__resolve-library-id`
+- `mcp__context7__query-docs`
 
 ## Skills Used
 
@@ -171,12 +173,14 @@ agent-browser cookies set "sessionId" "abc123" --url "https://app.test" --httpOn
 
 ```bash
 # Capture trace for failing E2E test reproduction
-agent-browser trace start /tmp/test-trace.zip
+# (trace start takes no path — the path goes on trace stop; output is a
+# Chrome DevTools trace, JSON not zip)
+agent-browser trace start
 agent-browser open https://app.test/checkout
 agent-browser fill @e1 "test@example.com"
 agent-browser click @e2
 agent-browser wait --text "Error"
-agent-browser trace stop
+agent-browser trace stop /tmp/test-trace.json
 # Share trace file for debugging — review for sensitive data first
 
 # Capture console errors during test run
@@ -188,9 +192,10 @@ agent-browser errors                        # Capture page errors for assertions
 
 ```bash
 # More stable than @ref numbers across test runs
-agent-browser find "Add to Cart"            # Find by visible text
-agent-browser find --role button "Submit"   # Find by role + text
-agent-browser find --placeholder "Email"    # Find by placeholder
+# Grammar: find <locator> <value> [action] [text] — action defaults to click
+agent-browser find text "Add to Cart"                  # Find by visible text
+agent-browser find role button click --name "Submit"   # Find by role + accessible name
+agent-browser find placeholder "Email" fill "a@b.co"   # Find by placeholder, then fill
 
 # Highlight for visual debugging
 agent-browser highlight @e1

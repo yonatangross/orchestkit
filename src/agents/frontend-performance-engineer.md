@@ -20,6 +20,11 @@ tools:
   - TaskUpdate
   - TaskList
   - ExitWorktree
+  # mcpServers: [context7] below is metadata, not a grant (#3461): without
+  # these entries the agent cannot call context7 and silently degrades to
+  # WebSearch. Read-only surface; resolve the library ID first, then query.
+  - mcp__context7__resolve-library-id
+  - mcp__context7__query-docs
 skills:
   - performance
   - remember

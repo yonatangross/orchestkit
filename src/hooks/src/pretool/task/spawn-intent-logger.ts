@@ -96,11 +96,16 @@ export function spawnIntentLogger(input: HookInput, ctx: HookContext = NOOP_CTX)
     ...(suggestion ? { spawn_suggestion: suggestion } : {}),
   };
 
-  try {
-    const trackingLog = join(getProjectDir(), '.claude', 'logs', 'subagent-spawns.jsonl');
-    bufferWrite(trackingLog, `${JSON.stringify(entry)}\n`);
-  } catch {
-    // Best-effort telemetry — never interfere with the dispatch.
+  // ORK_TELEMETRY_DISABLE=1 is set by test harnesses that run this hook
+  // against the real repo (tests/agents/*.sh): without it, fixture spawns
+  // contaminate the live spawn log and inflate every agent's apparent usage.
+  if (process.env.ORK_TELEMETRY_DISABLE !== '1') {
+    try {
+      const trackingLog = join(getProjectDir(), '.claude', 'logs', 'subagent-spawns.jsonl');
+      bufferWrite(trackingLog, `${JSON.stringify(entry)}\n`);
+    } catch {
+      // Best-effort telemetry — never interfere with the dispatch.
+    }
   }
 
   ctx.log(HOOK_NAME, `Spawn intent: ${subagentType} — ${entry.description.slice(0, 60)}`);

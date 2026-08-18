@@ -14,6 +14,11 @@ SKILLS_DIR="$REPO_ROOT/src/skills"
 HOOK_RUNNER="$REPO_ROOT/src/hooks/bin/run-hook.mjs"
 HOOK_HANDLER="subagent-start/subagent-validator"
 
+# Fixture spawns must never land in the real spawn log (.claude/logs/
+# subagent-spawns.jsonl). Before this guard, every run of this script wrote
+# one "test-123" row per agent into live telemetry (1,000+ accumulated).
+export ORK_TELEMETRY_DISABLE=1
+
 # Function to run the TypeScript hook
 run_hook() {
   local input="$1"

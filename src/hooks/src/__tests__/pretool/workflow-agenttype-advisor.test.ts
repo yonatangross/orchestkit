@@ -72,14 +72,31 @@ describe('workflowAgentTypeAdvisor', () => {
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     const ctx = contextOf(result);
-    expect(ctx).toContain('2 agent() stage(s), none typed');
+    expect(ctx).toContain('2 of 2 agent() stage(s)');
+    expect(ctx).toContain('DEFAULT: every fan-out stage names a specialist');
     expect(ctx).toContain('ork:security-auditor');
     expect(ctx).toContain('ork:test-generator');
-    expect(ctx).toContain('omit agentType');
   });
 
-  test('stays silent when at least one stage is typed', () => {
+  // Partial typing no longer mutes the nudge. Under the old one-typed-stage-
+  // mutes rule the generic bucket grew 394 -> 2,612 spawns/30d (41% of all
+  // spawns); the advisory must keep counting until every stage is typed.
+  test('nudges with counts when only some stages are typed', () => {
     const result = workflowAgentTypeAdvisor(makeInput({ script: TYPED_SCRIPT }));
+    expect(result.continue).toBe(true);
+    const ctx = contextOf(result);
+    expect(ctx).toContain('1 of 2 agent() stage(s)');
+    expect(ctx).toContain('DEFAULT: every fan-out stage names a specialist');
+  });
+
+  test('stays silent when every stage is typed', () => {
+    const script = `
+export const meta = { name: 'x', description: 'y' }
+const a = await agent('review the diff', { agentType: 'ork:code-quality-reviewer' })
+const b = await agent('verify finding', { agentType: 'ork:security-auditor' })
+return { a, b }
+`;
+    const result = workflowAgentTypeAdvisor(makeInput({ script }));
     expect(result.continue).toBe(true);
     expect(contextOf(result)).toBe('');
   });

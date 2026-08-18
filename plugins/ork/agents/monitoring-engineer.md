@@ -25,6 +25,14 @@ tools:
   - TaskList
   - TaskStop
   - ExitWorktree
+  # mcpServers: [tavily] below is metadata, not a grant (#3461): without
+  # these entries the agent cannot call tavily and silently degrades to
+  # WebSearch. Read-only research surface only.
+  - mcp__tavily__tavily_search
+  - mcp__tavily__tavily_extract
+  - mcp__tavily__tavily_crawl
+  - mcp__tavily__tavily_map
+  - mcp__tavily__tavily_research
 skills:
   - telemetry-inspect
   - performance

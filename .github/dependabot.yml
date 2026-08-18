@@ -167,4 +167,15 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "chore(docker)"
+    # Majors are held, not re-offered weekly. The Dockerfile is a release
+    # artifact release.yml pushes multi-arch, and tests/ci/test-dockerfile-node-version.sh
+    # requires FROM node:<major> to equal .nvmrc. So a lone FROM bump can never
+    # merge: adopting a new Node major means moving .nvmrc, root engines, the CI
+    # matrix and the digest together, which is a decision, not a bot PR.
+    # Measured: #3524 (24 -> 26) opened 3 minutes after the ecosystem was added
+    # in #3477 and was blocked by that test. Patch/minor digest bumps, the reason
+    # the ecosystem exists at all, still flow.
+    ignore:
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 3

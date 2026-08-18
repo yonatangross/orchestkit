@@ -131,24 +131,38 @@ refuters → `haiku`, the synthesis → `opus`. Don't over-optimize — a wrong-
 that misses a structural dependency costs more than the tokens it saved (the version-matrix
 verdict needed a careful read, not a cheap grep).
 
-## Per-agent types (`agentType`)
+## Per-agent types (`agentType`) — the DEFAULT, not an option
 
-Same logic for WHO runs the stage. Telemetry across 424 spawns showed workflow fan-outs were
-the single biggest generic bucket (148 spawns, all default workflow subagent) while curated
-specialists sat unused. In `agent()`, set `opts.agentType` when a stage has an OBVIOUS
-specialist owner — and only then:
+Same logic for WHO runs the stage, but with the polarity flipped: **every `agent()` stage
+names a specialist via `opts.agentType` by default.** A stage stays generic only when the
+work is genuinely cross-domain/glue — and then the script carries a one-line comment saying
+why, so the omission reads as a decision rather than a default.
+
+The measurement that forced the flip: under the old "set it when the owner is OBVIOUS"
+framing, the generic workflow-subagent bucket grew **394 → 2,612 spawns/30d (6.6×, 41% of
+ALL spawns)** and specialist share of the addressable set fell **44.2% → 25.6%**
+(2026-06-23 baseline → 2026-08-17). Descriptions are not the lever (an A/B scored 18/18
+both ways, Δ0) — the authoring default is.
 
 | Stage shape | agentType |
 |-------------|-----------|
 | Security findings: produce or adversarially verify | `ork:security-auditor` |
-| Test generation / coverage-gap passes | `ork:test-generator` |
+| Test generation / coverage / repair passes | `ork:test-generator` |
 | Code-review dimensions over a diff | `ork:code-quality-reviewer` |
 | Web/competitive research fan-out | `ork:web-research-analyst` |
-| Cross-domain, mixed, or glue stages | omit — generic IS correct here |
+| Backend/API/schema design | `ork:backend-system-architect` |
+| Frontend component work | `ork:frontend-ui-developer` |
+| Genuinely cross-domain, mixed, or glue stages | omit — with a comment saying why |
 
 Use the namespaced registry name (`ork:x`) — bare names fail to resolve at dispatch (#2371).
-Committed example: `audit-full-mapreduce.js` routes its shard-audit and refute stages to
-`ork:security-auditor` when `mode === "security"`, and stays generic for mixed modes.
+The `workflow-agenttype-advisor` hook nudges any inline script whose stages are not fully
+typed (partial typing no longer mutes it), and flags typed names that do not resolve.
+
+Committed examples: `audit-full-mapreduce.js` routes shard-audit and refute stages to
+`ork:security-auditor` / `ork:system-design-reviewer` by mode and stays generic only for
+mixed "full" mode; `heal-loop.js` runs both its test-run and repair stages as
+`ork:test-generator`; `skill-fitness.js` stays generic deliberately (rubric scoring of
+skill docs has no curated owner) and says so in a comment.
 
 ## Use directly vs ship-as-template
 

@@ -772,7 +772,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "browser-tools",
     "description": "Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.",
     "version": "5.0.0",
-    "sha256": "525607a86f3f58d6e801f22e1034c9d690f332e585c36ffe7234b6eadbe83156",
+    "sha256": "03dbfbaa3eea6d27024f3b60b5da066a99d3fe9b6a5a03550d5d22a8099893a7",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -2092,7 +2092,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.",
     "version": "1.1.0",
-    "sha256": "bdfe779523e8dceb362893bc2d195a0189bdc51142f32888b13b0006d1c43ac5",
+    "sha256": "5ad54d15816dee132510ccef970401f1f2016fea3723dc90681b814a01cc39e3",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2271,7 +2271,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.6.0",
-    "sha256": "6604105f3d27692448a8feb780201ac41f9679de86aeb87843e5d584673adc82",
+    "sha256": "0f553f71950d7c3be65d1b00a36e3176fff96d29975109ae81364c2829c48563",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2302,7 +2302,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "CronDelete",
       "PushNotification",
       "mcp__memory__search_nodes",
-      "mcp__context7__get_library_docs"
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs"
     ],
     "skills": [
       "explore",
@@ -2556,7 +2557,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "d13d4fd4429e4f03aa1d902af02e8d1890ac4a2a3e3b5cd9171606db31792d1c",
+    "sha256": "804997a645aee2a2f38760a49a0bd6fb82ae2f9f1d7fb95b4f33e2654afbf939",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -2589,7 +2590,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "CronDelete",
       "Monitor",
       "PushNotification",
-      "mcp__context7__query_docs",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
       "mcp__memory__search_nodes"
     ],
     "skills": [

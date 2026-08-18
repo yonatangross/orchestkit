@@ -45,6 +45,13 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
+      # Needed to route drift to a surface someone reads (#3526). The step summary
+      # was the only output and nothing ever read it: `grep -rl labs-version-probe`
+      # matched only these workflows. Drift was detected nightly and reported
+      # nowhere, which is how the portless reference sat five minor versions stale
+      # through three green runs (2026-08-15/16/17) and then cost a session real
+      # time. Same open-or-update-one-issue pattern as skill-claims-audit.yml.
+      issues: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3
         with:
@@ -55,13 +62,36 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Probe upstream registries
+        id: probe
         run: |
           set -uo pipefail
-          node scripts/check-labs-versions.mjs > /tmp/drift.txt 2>&1 || true
+          # Capture the exit code. `|| true` used to discard it, and stderr is
+          # redirected INTO the file the grep reads, so a stack trace or a fetch
+          # timeout matched neither pattern and fell through to the else branch —
+          # printing "Every pin and declared floor is current" for a probe that
+          # never completed. Could-not-observe is its own outcome, never "clean".
+          node scripts/check-labs-versions.mjs > /tmp/drift.txt 2>&1
+          probe_rc=$?
+
+          # Publish the verdict for the routing step. Three states, and "unknown"
+          # must never collapse into "clean" here either.
+          if [ "$probe_rc" -ne 0 ]; then
+            echo "drift=unknown" >> "$GITHUB_OUTPUT"
+          elif grep -qE '^DRIFT|behind upstream' /tmp/drift.txt; then
+            echo "drift=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "drift=false" >> "$GITHUB_OUTPUT"
+          fi
+
           {
             echo '## Upstream version probe'
             echo ''
-            if grep -qE '^DRIFT|behind upstream' /tmp/drift.txt; then
+            if [ "$probe_rc" -ne 0 ]; then
+              echo "**Probe FAILED (exit $probe_rc). Drift state is UNKNOWN, not clean.**"
+              echo ''
+              echo 'Nothing was verified this run. Do not read this as "pins are current" —'
+              echo 'read the output below, fix the probe, and re-dispatch.'
+            elif grep -qE '^DRIFT|behind upstream' /tmp/drift.txt; then
               echo 'Drift detected. Dispatch **Upstream Version Watch** to open the bump PR.'
             else
               echo 'No drift. Every pin and declared floor is current.'
@@ -71,5 +101,77 @@ jobs:
             cat /tmp/drift.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          # Never fail the nightly run on drift: a red cron nobody can action is a red
+          # Never fail the nightly run on DRIFT: a red cron nobody can action is a red
           # cron people mute. The step summary is the deliverable.
+          # A FAILED PROBE is different — it means the check did not run, so it goes
+          # red. That is actionable (fix the probe) and cannot be confused with clean.
+          if [ "$probe_rc" -ne 0 ]; then
+            echo "::error::upstream version probe failed (exit $probe_rc) — drift state unknown"
+            exit "$probe_rc"
+          fi
+
+      # ---------------------------------------------------------------------
+      # Route drift to a surface someone reads (#3526).
+      #
+      # ONE long-lived issue, updated in place: a notification on state change,
+      # not one per night. Deliberately NOT a red cron (see above) and NOT a new
+      # issue per run — both get muted, which is the failure this is fixing.
+      #
+      # Body is passed as --body-file, never interpolated into the command. The
+      # probe's output is registry-derived (package names, version strings), so
+      # inlining it would put third-party text on a shell command line.
+      # ---------------------------------------------------------------------
+      - name: Route drift to the tracking issue
+        if: steps.probe.outputs.drift == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: "upstream pins have drifted (labs-version-probe)"
+        run: |
+          set -uo pipefail
+          BODY=/tmp/issue-body.md
+          {
+            echo "The nightly upstream probe found drift as of \`$(date -u +%Y-%m-%dT%H:%MZ)\`."
+            echo ''
+            echo 'Dispatch **Upstream Version Watch** to open the bump PR. That half is'
+            echo 'manual-dispatch on purpose — see its own header for why it must never'
+            echo 'fire on a schedule. (Described by reference, not quoted: this file must'
+            echo 'stay free of the signature strings in tests/unit/test-no-llm-in-ci.sh,'
+            echo 'whose match is textual and file-scoped.)'
+            echo ''
+            echo '<details><summary>probe output</summary>'
+            echo ''
+            echo '```'
+            cat /tmp/drift.txt
+            echo '```'
+            echo ''
+            echo '</details>'
+          } > "$BODY"
+
+          EXISTING=$(gh issue list --state open --search "in:title labs-version-probe" \
+                       --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body-file "$BODY"
+            echo "updated existing issue #$EXISTING"
+          else
+            gh issue create --title "$TITLE" --label chore --body-file "$BODY"
+            echo "opened a new tracking issue"
+          fi
+
+      - name: Note the all-clear on the tracking issue
+        if: steps.probe.outputs.drift == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -uo pipefail
+          # Only speaks when an issue is already open — a clean run with no open
+          # issue has nothing to say, and saying it nightly is the noise this avoids.
+          # Repo convention: issues close via PR merge, never `gh issue close`.
+          EXISTING=$(gh issue list --state open --search "in:title labs-version-probe" \
+                       --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" \
+              --body "Probe is clean as of $(date -u +%Y-%m-%dT%H:%MZ) — every pin and declared floor is current. Safe to close via the next PR."
+            echo "commented all-clear on #$EXISTING"
+          else
+            echo "clean, and no open tracking issue — nothing to say"
+          fi

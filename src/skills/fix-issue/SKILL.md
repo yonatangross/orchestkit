@@ -11,7 +11,7 @@ version: 2.6.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging, rca, prevention]
 user-invocable: true
-allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Agent, TaskCreate, TaskUpdate, TaskStop, Grep, Glob, ToolSearch, ExitWorktree, CronCreate, CronDelete, PushNotification, mcp__memory__search_nodes, mcp__context7__get_library_docs]
+allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Agent, TaskCreate, TaskUpdate, TaskStop, Grep, Glob, ToolSearch, ExitWorktree, CronCreate, CronDelete, PushNotification, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
 skills: [explore, verify, memory, remember, chain-patterns]
 complexity: medium
 persuasion-type: guidance

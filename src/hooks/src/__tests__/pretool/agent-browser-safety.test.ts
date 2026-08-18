@@ -302,4 +302,114 @@ describe('agent-browser-safety', () => {
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
   });
+
+  // Every URL-accepting form must go through the blocklist, not just
+  // navigate/goto/open. Verified against agent-browser 0.34.0 --help:
+  // read [url], vitals [url], a11y [url], pushstate <url>, diff url <u1> <u2>,
+  // record start <path> [url], and the --url flag (auth save/login, cookies set).
+  describe('URL blocklist covers every URL-accepting command form (0.34.0)', () => {
+    const SSRF = 'http://169.254.169.254/latest/meta-data/';
+
+    it('blocks SSRF URL via read', () => {
+      const result = agentBrowserSafety(createBashInput(`agent-browser read "${SSRF}"`), testCtx);
+      expect(result.continue).toBe(false);
+      expect(result.stopReason).toContain('blocked');
+    });
+
+    it('blocks SSRF URL via vitals', () => {
+      const result = agentBrowserSafety(createBashInput(`agent-browser vitals "${SSRF}"`), testCtx);
+      expect(result.continue).toBe(false);
+    });
+
+    it('blocks SSRF URL via a11y', () => {
+      const result = agentBrowserSafety(createBashInput(`agent-browser a11y "${SSRF}" --json`), testCtx);
+      expect(result.continue).toBe(false);
+    });
+
+    it('blocks SSRF URL via pushstate', () => {
+      const result = agentBrowserSafety(createBashInput(`agent-browser pushstate "${SSRF}"`), testCtx);
+      expect(result.continue).toBe(false);
+    });
+
+    it('blocks SSRF URL as first arg of diff url', () => {
+      const result = agentBrowserSafety(
+        createBashInput(`agent-browser diff url "${SSRF}" "https://example.com"`),
+        testCtx,
+      );
+      expect(result.continue).toBe(false);
+    });
+
+    it('blocks SSRF URL as second arg of diff url', () => {
+      const result = agentBrowserSafety(
+        createBashInput(`agent-browser diff url "https://example.com" "${SSRF}"`),
+        testCtx,
+      );
+      expect(result.continue).toBe(false);
+    });
+
+    it('blocks SSRF URL as the record start target', () => {
+      const result = agentBrowserSafety(
+        createBashInput(`agent-browser record start /tmp/session.webm "${SSRF}"`),
+        testCtx,
+      );
+      expect(result.continue).toBe(false);
+    });
+
+    it('blocks SSRF URL passed via --url (auth save)', () => {
+      const result = agentBrowserSafety(
+        createBashInput(`agent-browser auth save internal --url "${SSRF}" --username x --password-stdin`),
+        testCtx,
+      );
+      expect(result.continue).toBe(false);
+    });
+
+    it('blocks internal-domain URL via read (blocklist, not just SSRF IPs)', () => {
+      const result = agentBrowserSafety(
+        createBashInput('agent-browser read "https://internal.corp.example/wiki"'),
+        testCtx,
+      );
+      expect(result.continue).toBe(false);
+    });
+
+    it('still allows read of a safe URL', () => {
+      const result = agentBrowserSafety(createBashInput('agent-browser read "https://example.com/docs"'), testCtx);
+      expect(result.continue).toBe(true);
+    });
+
+    it('still allows read with no URL (current page)', () => {
+      const result = agentBrowserSafety(createBashInput('agent-browser read'), testCtx);
+      expect(result.continue).toBe(true);
+    });
+
+    it('still allows a11y with flags only (current page)', () => {
+      const result = agentBrowserSafety(createBashInput('agent-browser a11y --tags wcag2a --json'), testCtx);
+      expect(result.continue).toBe(true);
+    });
+  });
+
+  describe('connect exposes a CDP attack surface (0.34.0)', () => {
+    it('warns on connect to a CDP port', () => {
+      const result = agentBrowserSafety(createBashInput('agent-browser connect 9222'), testCtx);
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.additionalContext).toContain('CDP');
+    });
+
+    it('warns on connect to a CDP websocket URL', () => {
+      const result = agentBrowserSafety(
+        createBashInput('agent-browser connect ws://127.0.0.1:9222/devtools/browser/abc'),
+        testCtx,
+      );
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.additionalContext).toContain('CDP');
+    });
+
+    it('does not fire the connect warning for --auto-connect', () => {
+      const result = agentBrowserSafety(
+        createBashInput('agent-browser --auto-connect state save ./auth.json'),
+        testCtx,
+      );
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
+    });
+  });
 });

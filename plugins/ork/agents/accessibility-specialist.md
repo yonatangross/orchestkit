@@ -22,6 +22,11 @@ tools:
   - TaskUpdate
   - TaskList
   - ExitWorktree
+  # mcpServers: [context7] below is metadata, not a grant (#3461): without
+  # these entries the agent cannot call context7 and silently degrades to
+  # WebSearch. Read-only surface; resolve the library ID first, then query.
+  - mcp__context7__resolve-library-id
+  - mcp__context7__query-docs
 skills:
   - testing-e2e
   - remember
@@ -97,9 +102,10 @@ agent-browser storage local set "high_contrast" "true"  # Test contrast mode
 ### Semantic Locators for A11y Audits
 ```bash
 # Find elements by ARIA roles — verify correct role assignment
-agent-browser find --role button "Submit"        # Verify button role
-agent-browser find --role navigation "Main Nav"  # Verify nav landmark
-agent-browser find --role heading "Page Title"   # Verify heading structure
+# Grammar: find <locator> <value> [action] — --name filters by accessible name
+agent-browser find role button text --name "Submit"        # Verify button role
+agent-browser find role navigation text --name "Main Nav"  # Verify nav landmark
+agent-browser find role heading text --name "Page Title"   # Verify heading structure
 
 # Highlight elements for visual a11y review
 agent-browser highlight @e1                      # Mark element under review
