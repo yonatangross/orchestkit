@@ -228,6 +228,40 @@ plugins/ork-codex/scripts/install-codex-roles.sh ~/.codex/agents
 It installs `ork_explorer`, `ork_implementer`, `ork_reviewer`, and
 `ork_verifier`; restart Codex before spawning them.
 
+#### Documentation lookup (context7)
+
+The plugin ships a [context7](https://context7.com) MCP server in its own
+manifest (`mcpServers` in `.codex-plugin/plugin.json`, defined in `mcp.json`),
+so installing the plugin registers it. Confirm with `codex mcp get context7`.
+It is scoped to the only two tools context7 exposes, `resolve-library-id` and
+`query-docs`, and it uses the hosted HTTP transport rather than an `npx` stdio
+child, so it costs no extra process per Codex session.
+
+Export a key before starting Codex. The plugin references the variable name
+and never stores the value, so no token is written to `~/.codex/config.toml`:
+
+```bash
+export CONTEXT7_API_KEY_CODEX="<your-context7-api-key>"
+```
+
+Put that in your shell profile so every Codex session inherits it. Get the
+key from your own context7 account and keep the value out of the repository.
+If you store it in a secret manager, substitute your own vault and item names
+(with the 1Password CLI the reference is `op://<vault>/<item>/credential`), and
+cache the resolved value instead of re-reading the vault in every shell: each
+raw read is a separate unlock prompt.
+
+Two behaviors worth knowing:
+
+- A server you already define yourself under `[mcp_servers.context7]` in
+  `~/.codex/config.toml` **wins**, and the plugin's definition is ignored
+  entirely (including its tool scoping). That is intentional: your own
+  configuration is never overridden. Remove your entry if you want the
+  plugin's.
+- Without a valid key the server still connects and still lists its tools.
+  Only a real call fails, with `Invalid API key`. A successful connection is
+  therefore not proof of authentication.
+
 ---
 
 ## FAQ

@@ -7,6 +7,6 @@ description: Assess a code change, design, architecture, workflow, or competing 
 
 State the decision, scope, and criteria before scoring. Choose criteria appropriate to the task—normally correctness, maintainability, security, operability, testability, cost, and reversibility—and omit criteria that have no bearing on the decision.
 
-Collect evidence from the code, repository guidance, tests, or authoritative documentation. Separate facts, assumptions, and unknowns. Do not invent numeric precision: use a score only when it makes the comparison clearer, and attach the evidence and confidence to it.
+Collect evidence from the code, repository guidance, tests, or authoritative documentation. For a third-party library, framework, or service, the authoritative source is the context7 MCP server: call `resolve-library-id`, then `query-docs`. Separate facts, assumptions, and unknowns. Do not invent numeric precision: use a score only when it makes the comparison clearer, and attach the evidence and confidence to it.
 
 For high-impact choices, ask an independent read-only `ork_reviewer` or built-in reviewer to challenge the leading conclusion. End with a recommendation, conditions for approval, and concrete follow-up actions. Do not edit the target.
