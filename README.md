@@ -276,6 +276,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.38](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.37...v10.0.0-alpha.38)** · 2026-08-18
+
+- **workflows:** default fan-out stages to specialist agentType (#3535)
+- **agents:** grant the MCP tools 27 agents declare (#3532)
+- **hooks:** close agent-browser URL-coverage hole in safety hook (#3531)
+- **hooks:** reclaim the plugin cache the hook never touched (#3523)
+- **hooks:** stop test fixtures contaminating live spawn telemetry (#3533)
+- …and 6 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-alpha.37](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.36...v10.0.0-alpha.37)** · 2026-08-17
 
 - **deps:** bump the remotion group across 1 directory with 21 updates (#3518)
@@ -318,12 +327,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** branch guard reads explicit push destinations (#3455) (#3475)
 - **hooks:** stop the debt tracker reporting its own docstring (#3478)
 - **cc:** adopt 2.1.231, renew override to 2026-11-20 (#3474)
-
-**[v10.0.0-alpha.30](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.29...v10.0.0-alpha.30)** · 2026-08-13
-
-- **cc:** retract two wrong agent-grant counts (#3472)
-- **hooks:** delete unreachable task-existence-gate Case 3 (#3467) (#3471)
-- **cc:** adopt 2.1.227 through 2.1.229, fix the dead detect stage (#3469)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
