@@ -113,12 +113,35 @@ All available in a single `/plugin install ork`. Skills load on-demand. Hooks wo
 
 | Server | Purpose | Required? |
 |--------|---------|-----------|
-| Context7 | Up-to-date library docs | Recommended |
+| Context7 | Up-to-date library docs | **Prerequisite** (22 of 36 agents grant its tools) |
 | Memory | Knowledge graph persistence | Recommended |
 | Sequential Thinking | Structured reasoning for subagents | Recommended |
 | Tavily | Web search and extraction | Optional |
 
 Set `"alwaysLoad": true` on the first three in your `.mcp.json`. It skips the per-skill tool probe and shaves ~150ms off cold starts.
+
+**Context7 is a prerequisite, and ork does not ship it.** 22 agents grant
+`mcp__context7__*` in their frontmatter, but `.mcp.json` is user-owned and project-scoped,
+so the grant refers to a server you add. Skip it and those agents answer from training
+data with no error raised. The recommended entry is the hosted HTTP server, which costs
+no local process:
+
+```json
+"context7": {
+  "type": "http",
+  "url": "https://mcp.context7.com/mcp"
+}
+```
+
+Free tier: 1,000 requests, public repos, no account. Context7 Pro ($10 per seat per
+month) raises that to 5,000 per seat and parses private repos; add
+`"headers": { "Authorization": "Bearer ${CONTEXT7_API_KEY}" }` and export the `ctx7sk-`
+key. Add the header only once the variable is exported: with it unset the unexpanded
+literal is sent as the token and every query fails, and it does **not** fall back to the
+anonymous free tier, so the keyless entry above is strictly better than a header with no
+key behind it. The legacy stdio transport (`npx -y @upstash/context7-mcp@4.0.2`) is the fallback
+when the hosted endpoint is unreachable, but it spawns one child process per Claude Code
+session, so the fan-out scales with how many sessions you keep open.
 
 ### Customizing skills
 
@@ -310,6 +333,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.40](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.39...v10.0.0-alpha.40)** · 2026-08-18
+
+- **agents:** grant context7 deliberately, per agent (#3547)
+- **ci:** bound and skip system dep installs (#3550), closes [#3545](https://github.com/yonatangross/orchestkit/issues/3545)
+- **tests:** read the MCP gate's server list from a tracked manifest (#3546)
+- **configure:** add staged operator-scope settings (#3553)
+- **mcp:** document context7 as a prerequisite, Pro tier, hosted transport (#3548)
+
 **[v10.0.0-alpha.39](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.38...v10.0.0-alpha.39)** · 2026-08-18
 
 - **plugin:** move shared fragments out of component trees (#3543)
@@ -354,11 +385,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.33](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.32...v10.0.0-alpha.33)** · 2026-08-14
 
 - **mcp:** drop the last ork-elicit leftover from the esbuild header (#3485)
-
-**[v10.0.0-alpha.32](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.31...v10.0.0-alpha.32)** · 2026-08-14
-
-- **deps:** bump nanoid to 3.3.18 for advisory 1139427 (#3481)
-- **hooks:** squash-aware worktree verifier, and close a shell injection (#3480)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

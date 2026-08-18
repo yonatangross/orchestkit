@@ -25,7 +25,7 @@ Maps detected technologies to recommended OrchestKit skills.
 
 | MCP | When to Recommend | Install Effort |
 |-----|-------------------|---------------|
-| **Context7** | Always — eliminates doc hallucination | Zero (cloud, free) |
+| **Context7** | Always. It is a prerequisite, not a nice-to-have: 22 of 36 agents grant `mcp__context7__*` and silently fall back to training data without it | Zero on the free tier (hosted HTTP, no key). A `ctx7sk-` key is needed only for Pro |
 | **Memory** | Always — knowledge graph persistence | Low (local npx) |
 | **Sequential Thinking** | If using Sonnet/Haiku subagents | Low (local npx) |
 | **Tavily** | If web-research-workflow relevant | Medium (needs API key, free tier) |

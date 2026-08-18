@@ -156,7 +156,7 @@ tool names (`mcp__hq-channels__whatsapp_send_image`, `…_send_audio`, `…_send
 +-------------------------------------------------------------------------+
 | Status: WARN (2 gaps, 1 non-portable, 3 offers)                          |
 | Fix: ork:configure skill, section "Operator-Scope Settings", or paste    |
-|      the JSON from configure/references/cc-version-settings.md.          |
+|      configure/references/operator-scope-settings.md (stage 1 first).    |
 +-------------------------------------------------------------------------+
 ```
 
