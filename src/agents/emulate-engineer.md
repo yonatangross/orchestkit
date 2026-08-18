@@ -9,7 +9,7 @@ maxTurns: 30
 effort: medium
 color: green
 memory: project
-mcpServers: []
+mcpServers: [context7]
 tools:
   - Read
   - Write
@@ -17,6 +17,11 @@ tools:
   - Bash
   - Grep
   - Glob
+  # mcpServers: [context7] below is metadata, not a grant (#3461): without
+  # these entries the agent cannot call context7 and silently degrades to
+  # WebSearch. Read-only surface; resolve the library ID first, then query.
+  - mcp__context7__resolve-library-id
+  - mcp__context7__query-docs
 skills:
   - emulate-seed
   - dev

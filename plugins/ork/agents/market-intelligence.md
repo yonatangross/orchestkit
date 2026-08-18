@@ -55,7 +55,6 @@ Tavily access check, in order: (1) the `tvly` CLI on PATH (auth persists in `~/.
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__memory__*` - Persist market intelligence across sessions
-- `mcp__context7__*` - Industry frameworks and methodologies
 
 
 ## Concrete Objectives
