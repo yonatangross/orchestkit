@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.40](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.39...v10.0.0-alpha.40) (2026-08-18)
+
+
+### Features
+
+* **agents:** grant context7 deliberately, per agent ([#3547](https://github.com/yonatangross/orchestkit/issues/3547)) ([e065b28](https://github.com/yonatangross/orchestkit/commit/e065b288260f6d4c353587af98ef0211afa1adcb))
+
+
+### Bug Fixes
+
+* **ci:** bound and skip system dep installs ([#3550](https://github.com/yonatangross/orchestkit/issues/3550)) ([4c4c25c](https://github.com/yonatangross/orchestkit/commit/4c4c25cb128e7f7ac066b1f1f39514f99fa8635c)), closes [#3545](https://github.com/yonatangross/orchestkit/issues/3545)
+* **tests:** read the MCP gate's server list from a tracked manifest ([#3546](https://github.com/yonatangross/orchestkit/issues/3546)) ([36bf3c1](https://github.com/yonatangross/orchestkit/commit/36bf3c191e86b9d89509e070567de2084eb5b193))
+
+
+### Documentation
+
+* **configure:** add staged operator-scope settings ([#3553](https://github.com/yonatangross/orchestkit/issues/3553)) ([11cde42](https://github.com/yonatangross/orchestkit/commit/11cde42b4f906eaa0a95d941ee3aad2f900ebfa6))
+* **mcp:** document context7 as a prerequisite, Pro tier, hosted transport ([#3548](https://github.com/yonatangross/orchestkit/issues/3548)) ([f7a1b1a](https://github.com/yonatangross/orchestkit/commit/f7a1b1a4b2079d8c2f5ea70d66c5777c9193d872))
+
 ## [10.0.0-alpha.39](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.38...v10.0.0-alpha.39) (2026-08-18)
 
 

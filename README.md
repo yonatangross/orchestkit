@@ -299,6 +299,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.40](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.39...v10.0.0-alpha.40)** · 2026-08-18
+
+- **agents:** grant context7 deliberately, per agent (#3547)
+- **ci:** bound and skip system dep installs (#3550), closes [#3545](https://github.com/yonatangross/orchestkit/issues/3545)
+- **tests:** read the MCP gate's server list from a tracked manifest (#3546)
+- **configure:** add staged operator-scope settings (#3553)
+- **mcp:** document context7 as a prerequisite, Pro tier, hosted transport (#3548)
+
 **[v10.0.0-alpha.39](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.38...v10.0.0-alpha.39)** · 2026-08-18
 
 - **plugin:** move shared fragments out of component trees (#3543)
@@ -343,11 +351,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.33](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.32...v10.0.0-alpha.33)** · 2026-08-14
 
 - **mcp:** drop the last ork-elicit leftover from the esbuild header (#3485)
-
-**[v10.0.0-alpha.32](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.31...v10.0.0-alpha.32)** · 2026-08-14
-
-- **deps:** bump nanoid to 3.3.18 for advisory 1139427 (#3481)
-- **hooks:** squash-aware worktree verifier, and close a shell injection (#3480)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
