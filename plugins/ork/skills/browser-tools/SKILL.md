@@ -14,7 +14,7 @@ persuasion-type: discipline
 metadata:
   category: mcp-enhancement
   upstream-skill: agent-browser
-  upstream-version-tested: "0.33.1"
+  upstream-version-tested: "0.34.0"
 allowed-tools:
   - Read
   - Glob
@@ -67,7 +67,9 @@ agent-browser open "https://myapp.localhost"
 agent-browser open "http://localhost:3000"  # which app is this?
 ```
 
-## New in 2026-04 to 2026-07 (agent-browser 0.23 to 0.33.1)
+## New in 2026-04 to 2026-08 (agent-browser 0.23 to 0.34.0)
+
+**0.34.0:** `pushstate <url>` (SPA client-side nav that triggers RSC fetch on Next.js), `removeinitscript <id>`, `--enable react-devtools` with `react tree|inspect|renders|suspense`, `profiler start|stop`, `plugin add|list|show|run`, `confirm <id>`/`deny <id>` for gated actions, `--pin-tab`/`--no-pin-tab`, `--webgpu`, and the MCP `--tools <profiles>` surface.
 
 **Accessibility audits (0.33.0):**
 - **`agent-browser a11y [url]`** — axe-core accessibility audit as a CLI command and a matching MCP tool. Filter by WCAG tag, scope to a selector, and get iframe-aware text or JSON results. The audit engine is embedded, so it runs offline and is CSP-safe (no third-party script injection into the page under test).

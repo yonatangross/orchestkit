@@ -150,19 +150,22 @@ agent-browser storage local clear            # Reset to defaults
 ### Recording for Bug Reports
 ```bash
 # Capture trace for component bug reproduction
-agent-browser trace start /tmp/component-trace.zip
+# (trace start takes no path — the path goes on trace stop; output is a
+# Chrome DevTools trace, JSON not zip)
+agent-browser trace start
 agent-browser open http://localhost:3000/component
 agent-browser click @e1
 agent-browser wait --text "Error"
-agent-browser trace stop
-# Open trace in Playwright Trace Viewer for debugging
+agent-browser trace stop /tmp/component-trace.json
+# Open trace in Chrome DevTools Performance panel for debugging
 ```
 
 ### Semantic Locators & Highlight
 ```bash
 # Find components by visible text (stable across re-renders)
-agent-browser find "Save Changes"            # Find by text
-agent-browser find --role button "Delete"    # Find by role + text
+# Grammar: find <locator> <value> [action] [text] — action defaults to click
+agent-browser find text "Save Changes"                 # Find by text
+agent-browser find role button click --name "Delete"   # Find by role + accessible name
 agent-browser highlight @e1                  # Visually verify element
 agent-browser highlight --clear
 ```

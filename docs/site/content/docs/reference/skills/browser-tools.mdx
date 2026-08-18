@@ -56,7 +56,9 @@ agent-browser open "https://myapp.localhost"
 agent-browser open "http://localhost:3000"  # which app is this?
 ```
 
-## New in 2026-04 to 2026-07 (agent-browser 0.23 to 0.33.1)
+## New in 2026-04 to 2026-08 (agent-browser 0.23 to 0.34.0)
+
+**0.34.0:** `pushstate &lt;url&gt;` (SPA client-side nav that triggers RSC fetch on Next.js), `removeinitscript &lt;id&gt;`, `--enable react-devtools` with `react tree|inspect|renders|suspense`, `profiler start|stop`, `plugin add|list|show|run`, `confirm &lt;id&gt;`/`deny &lt;id&gt;` for gated actions, `--pin-tab`/`--no-pin-tab`, `--webgpu`, and the MCP `--tools &lt;profiles&gt;` surface.
 
 **Accessibility audits (0.33.0):**
 - **`agent-browser a11y [url]`** — axe-core accessibility audit as a CLI command and a matching MCP tool. Filter by WCAG tag, scope to a selector, and get iframe-aware text or JSON results. The audit engine is embedded, so it runs offline and is CSP-safe (no third-party script injection into the page under test).
@@ -395,13 +397,13 @@ Use trace, profiler, and record commands for debugging and bug reports, but alwa
 **Incorrect:**
 ```bash
 # Recording a login flow — captures credentials in video/trace
-agent-browser trace start /tmp/trace.zip
+agent-browser trace start
 agent-browser open https://app.example.com/login
 agent-browser fill @e1 "$EMAIL"
 agent-browser fill @e2 "$PASSWORD"
 agent-browser click @e3
-agent-browser trace stop
-# /tmp/trace.zip now contains your credentials in cleartext
+agent-browser trace stop /tmp/trace.json
+# /tmp/trace.json now contains your credentials in cleartext
 
 # Dumping console output without filtering
 agent-browser console > /tmp/console.log
@@ -416,10 +418,10 @@ git add /tmp/errors.log  # Could contain PII in stack traces
 ```bash
 # Record AFTER authentication (load saved state first)
 agent-browser vault load my-session
-agent-browser trace start /tmp/trace.zip
+agent-browser trace start
 agent-browser open https://app.example.com/dashboard
 # ... perform actions to reproduce bug ...
-agent-browser trace stop
+agent-browser trace stop /tmp/trace.json
 # Trace captures only post-auth interactions
 
 # Review console output before saving
