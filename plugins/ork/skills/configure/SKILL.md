@@ -247,6 +247,27 @@ Save to: `~/.claude/plugins/orchestkit/config.json`
 }
 ```
 
+## Operator-Scope Settings
+
+Some controls cannot ship in the plugin at all. A plugin's bundled `settings.json` supplies only `agent` and `subagentStatusLine`; everything else is silently stripped, so `sandbox`, `permissions.deny` and friends are real only in the operator's own `~/.claude/settings.json`. ork once declared a full `sandbox` block anyway (deleted in a93ccb735, #3357). It was inert for its whole life.
+
+`ork:doctor` Check 16 detects the absence. The paste-ready JSON lives here:
+
+```bash
+Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/operator-scope-settings.md")
+```
+
+That reference stages the rollout per #3424 rather than handing over one all-or-nothing block:
+
+| Stage | Contents | Adopt when |
+|-------|----------|------------|
+| **1 LOOSE** | `sandbox.enabled`, the 19-host exfil denylist, credential file and env denies, `excludedCommands` carve-outs for `op` / `docker` / `ssh`, no network allowlist | first, on a working machine |
+| **2 STRICT** | adds `network.allowedDomains` with `strictAllowlist: true` | only after stage 1 has held for several days |
+
+**Start with stage 1.** Stage 2 denies every unlisted host with no prompt and will break `api.github.com`, localhost dev URLs, and telemetry ingest first. The reference spells out the expected breakage order and the per-line rollback.
+
+This skill never writes an operator settings file. Enabling the sandbox is the operator's decision, and the rollback is deleting one key.
+
 ## VSCode: Remote Control (CC 2.1.79+)
 
 VSCode users can run `/remote-control` to bridge their terminal session to `claude.ai/code`. This lets you continue the same session from a browser or phone — useful for monitoring long-running configurations or agent tasks away from your desk.
@@ -261,4 +282,5 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/<fi
 | `references/presets.md` | Preset definitions |
 | `references/mcp-config.md` | MCP configuration |
 | `references/http-hooks.md` | CC 2.1.63+ observability hooks (Langfuse, Datadog, custom endpoints) |
+| `references/operator-scope-settings.md` | Staged `sandbox` + `permissions.deny` JSON for `~/.claude/settings.json` (#3424) |
 | `references/cc-version-settings.md` | CC 2.1.7, 2.1.20, 2.1.23, 2.1.79 version-specific settings |

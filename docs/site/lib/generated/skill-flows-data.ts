@@ -1906,59 +1906,24 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
     ]
   },
   "configure": {
-    "tier": "headings",
+    "tier": "table",
     "lanes": [
       {
         "id": "core",
-        "label": "Steps",
+        "label": "Phases",
         "nodes": [
           {
             "num": "1",
-            "label": "Choose Preset",
-            "does": "Use AskUserQuestion:",
-            "out": null,
+            "label": "LOOSE",
+            "does": "sandbox.enabled, the 19-host exfil denylist, credential file and env denies, excludedCommands carve-outs for op / docker / ssh, no network allowlist",
+            "out": "first, on a working machine",
             "tag": null
           },
           {
             "num": "2",
-            "label": "Customize Skill Categories",
-            "does": "Categories available:",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "3",
-            "label": "Customize Agents",
-            "does": "Product Agents (2):",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "4",
-            "label": "Configure Hooks",
-            "does": "Safety Hooks (Always On):",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "5",
-            "label": "Configure MCPs",
-            "does": "All 4 MCPs ship enabled by default. Tavily requires an API key.",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "10",
-            "label": "Webhook & Telemetry Configuration",
-            "does": "Configure dual-channel telemetry for streaming session data to HQ or your own API.",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "11",
-            "label": "Preview & Save",
-            "does": "",
-            "out": null,
+            "label": "STRICT",
+            "does": "adds network.allowedDomains with strictAllowlist: true",
+            "out": "only after stage 1 has held for several days",
             "tag": null
           }
         ]
