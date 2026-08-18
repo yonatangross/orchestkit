@@ -273,8 +273,8 @@ composite. **Effort gate:** `low`/`medium` skip this phase entirely; `high` runs
 single refuters (advisory, no auto-swing); `xhigh` runs 3-refuter majority with auto-revise.
 
 Load the protocol + assess bindings: `Read("${CLAUDE_PLUGIN_ROOT}/skills/assess/references/adversarial-refutation.md")`
-(which loads the shared engine `${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/adversarial-refutation.md`).
-Producer findings must first pass the evidence-replay gate before entering any score or verdict: `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/evidence-replay.md")`.
+(which loads the shared engine `${CLAUDE_PLUGIN_ROOT}/shared/rules/adversarial-refutation.md`).
+Producer findings must first pass the evidence-replay gate before entering any score or verdict: `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/evidence-replay.md")`.
 
 ### Cross-model refuter (optional, provenance-labeled, cost-gated)
 
@@ -381,7 +381,7 @@ After the composite and grade are final (post-refutation, Phase 2.5), ALWAYS wri
 }
 ```
 
-Verdict rules — thresholds come from `${CLAUDE_PLUGIN_ROOT}/skills/assess/rubric.json` (schema: `${CLAUDE_PLUGIN_ROOT}/skills/shared/rubric.schema.json`):
+Verdict rules — thresholds come from `${CLAUDE_PLUGIN_ROOT}/skills/assess/rubric.json` (schema: `${CLAUDE_PLUGIN_ROOT}/shared/rubric.schema.json`):
 
 - `verdict = "fail"` when `composite < min_pass` (5.5) **OR** any dimension scores below its `min_blocker`. Otherwise `"pass"`.
 - Every dimension below its `min_blocker` gets a `blockers[]` entry — dimension, score, one evidence-backed reason. `blockers` is `[]` on pass.

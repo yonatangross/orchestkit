@@ -10,7 +10,7 @@
 #   agents : src/agents/*.md            vs  tests/evals/agents/*.eval.yaml
 #
 # Enumeration mirrors scripts/eval/static-analysis.sh (SKILL.md presence for
-# skills, top-level *.md for agents), so src/skills/shared/ and src/agents/shared/
+# skills, top-level *.md for agents), so src/shared/ and src/agents/shared/
 # are naturally excluded (no SKILL.md / not top-level) and never counted.
 #
 # Usage:

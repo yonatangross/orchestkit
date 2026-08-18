@@ -225,8 +225,8 @@ fi
 # ---------------------------------------------------------------------------
 section "4. The invariant is documented where writers will see it"
 # ---------------------------------------------------------------------------
-TEMPLATE="$PROJECT_ROOT/src/skills/shared/assets/playground-exemplars/living-plan.template.html"
-STANDARD="$PROJECT_ROOT/src/skills/shared/rules/playground-visual-standard.md"
+TEMPLATE="$PROJECT_ROOT/src/shared/assets/playground-exemplars/living-plan.template.html"
+STANDARD="$PROJECT_ROOT/src/shared/rules/playground-visual-standard.md"
 if [ -f "$TEMPLATE" ] && grep -q 'u003c' "$TEMPLATE"; then
   log_pass "exemplar template states the \\u003c invariant"
 else

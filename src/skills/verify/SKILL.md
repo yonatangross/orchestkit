@@ -295,7 +295,7 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scorin
 
 ### Dimension-Level Blockers (ork-rubric/1.0)
 
-Composite is necessary but not sufficient — a strong composite can average away a critical dimension. In Phase 4 (Nuanced Grading), read per-dimension thresholds from `${CLAUDE_PLUGIN_ROOT}/skills/verify/rubric.json` (schema: `${CLAUDE_PLUGIN_ROOT}/skills/shared/rubric.schema.json`): security `min_blocker` 4.0, compliance `min_pass` 6.0.
+Composite is necessary but not sufficient — a strong composite can average away a critical dimension. In Phase 4 (Nuanced Grading), read per-dimension thresholds from `${CLAUDE_PLUGIN_ROOT}/skills/verify/rubric.json` (schema: `${CLAUDE_PLUGIN_ROOT}/shared/rubric.schema.json`): security `min_blocker` 4.0, compliance `min_pass` 6.0.
 
 - **ANY dimension below its `min_blocker` → verdict is BLOCKED regardless of composite.** Report it explicitly: `Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 4.0)`.
 - A dimension below its `min_pass` (but at/above `min_blocker`) caps the verdict at IMPROVEMENTS RECOMMENDED — it cannot grade READY FOR MERGE.
@@ -438,17 +438,17 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/rules/<file>")`:
 
 ### Verification Gate (Cross-Cutting)
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")` — the minimum 5-step gate that applies to ALL completion claims across all skills. This is non-negotiable: NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/verification-gate.md")` — the minimum 5-step gate that applies to ALL completion claims across all skills. This is non-negotiable: NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE.
 
-Producer findings must also satisfy the evidence-replay gate (machine-checkable `{file, line, quote}` or `{command, expected_output}`, replayed before entering any verdict or score): `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/evidence-replay.md")`.
+Producer findings must also satisfy the evidence-replay gate (machine-checkable `{file, line, quote}` or `{command, expected_output}`, replayed before entering any verdict or score): `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/evidence-replay.md")`.
 
 ### Anti-Sycophancy Protocol
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/anti-sycophancy.md")` — all verification agents report findings directly without performative agreement. "Should be fine" is not evidence. "Tests pass (exit 0, 47/47)" is.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/anti-sycophancy.md")` — all verification agents report findings directly without performative agreement. "Should be fine" is not evidence. "Tests pass (exit 0, 47/47)" is.
 
 ### Agent Status Protocol
 
-All verification agents MUST report using the standardized protocol: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`. Never report DONE if concerns exist. Never silently produce work you're unsure about.
+All verification agents MUST report using the standardized protocol: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`. Never report DONE if concerns exist. Never silently produce work you're unsure about.
 
 ---
 

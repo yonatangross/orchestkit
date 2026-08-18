@@ -2,7 +2,7 @@
 
 Thin adapter. Loads the shared engine, then binds it to review-pr's finding + verdict model.
 
-**Load the engine first:** `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/adversarial-refutation.md")`
+**Load the engine first:** `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/adversarial-refutation.md")`
 — the blindness contract, independent-score-first, citation-verify, quorum, cross-file
 UPHELD-default, deterministic-exemption, no-auto-flip, spawn-ceiling, ledger schema, and
 isolated-spawn rules. This file only supplies what's review-pr-specific.

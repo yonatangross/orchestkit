@@ -11,7 +11,7 @@ A single green is not proof. Flaky suites, race conditions, and order-dependent 
 /ork:verify --streak=3                          # continues an existing streak for the same scope
 ```
 
-`--streak=N` (N ≥ 2). When absent, verify behaves exactly as before (single pass/fail). The target may also come from the verify rubric's `streak_target` slot (`src/skills/verify/rubric.json`, an integer ≥ 2 validated by `src/skills/shared/rubric.schema.json` — a configured value is schema-checked, not silently ignored); the explicit flag always wins.
+`--streak=N` (N ≥ 2). When absent, verify behaves exactly as before (single pass/fail). The target may also come from the verify rubric's `streak_target` slot (`src/skills/verify/rubric.json`, an integer ≥ 2 validated by `src/shared/rubric.schema.json` — a configured value is schema-checked, not silently ignored); the explicit flag always wins.
 
 Parse it alongside the other flags in Argument Resolution:
 

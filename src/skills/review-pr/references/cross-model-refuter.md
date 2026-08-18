@@ -1,6 +1,6 @@
 # Cross-Model Adversarial Refuter (provenance + cost gate)
 
-Operational doc for the optional **cross-model** lane of the adversarial-refutation engine, used by `review-pr` (Phase 4.5) and `assess` (Phase 2.5). Loads on top of the engine (`${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/adversarial-refutation.md`) and the skill's bindings adapter — this file only adds the alternate-model wiring.
+Operational doc for the optional **cross-model** lane of the adversarial-refutation engine, used by `review-pr` (Phase 4.5) and `assess` (Phase 2.5). Loads on top of the engine (`${CLAUDE_PLUGIN_ROOT}/shared/rules/adversarial-refutation.md`) and the skill's bindings adapter — this file only adds the alternate-model wiring.
 
 > Pseudocode below is **illustrative prompt-doc**, not a real API — function names (`build_neutral_claim()`, `run()`, etc.) name the steps Claude performs, not symbols to import.
 

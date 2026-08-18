@@ -310,6 +310,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.39](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.38...v10.0.0-alpha.39)** · 2026-08-18
+
+- **plugin:** move shared fragments out of component trees (#3543)
+- **deps-dev:** bump js-yaml (#3538)
+
 **[v10.0.0-alpha.38](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.37...v10.0.0-alpha.38)** · 2026-08-18
 
 - **workflows:** default fan-out stages to specialist agentType (#3535)
@@ -354,13 +359,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **deps:** bump nanoid to 3.3.18 for advisory 1139427 (#3481)
 - **hooks:** squash-aware worktree verifier, and close a shell injection (#3480)
-
-**[v10.0.0-alpha.31](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.30...v10.0.0-alpha.31)** · 2026-08-13
-
-- **ci:** centralize Node version (#3473)
-- **hooks:** branch guard reads explicit push destinations (#3455) (#3475)
-- **hooks:** stop the debt tracker reporting its own docstring (#3478)
-- **cc:** adopt 2.1.231, renew override to 2026-11-20 (#3474)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
