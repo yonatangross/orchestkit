@@ -117,7 +117,13 @@ interface RateLimitStore {
 }
 
 /**
- * Get rate limit storage file path
+ * Get rate limit storage file path.
+ *
+ * SCOPE: when CLAUDE_PLUGIN_ROOT is set (every plugin install), getLogDir()
+ * resolves to ~/.claude/logs/ork — one rate-limits.json for the whole machine.
+ * Parallel sessions and worktrees therefore SHARE a single per-domain budget;
+ * a burst from one worktree can rate-limit another. Known trade-off: a shared
+ * budget is the conservative choice for politeness toward the target domain.
  */
 function getRateLimitFile(): string {
   const logDir = getLogDir();
@@ -412,11 +418,41 @@ function isAllowedByRobots(url: string): { allowed: boolean; reason?: string } {
 // =============================================================================
 
 /**
- * Extract URL from agent-browser command
+ * Extract every URL an agent-browser command would fetch.
+ *
+ * Verified against agent-browser 0.34.0 --help. URL-accepting forms:
+ *   open|navigate|goto <url>       read [url]        vitals [url]
+ *   a11y [url]                     pushstate <url>   diff url <u1> <u2>
+ *   record start <path> [url]      --url <u>         (auth save/login, cookies set)
+ * `network route <url>` is validated separately (Check 5); `connect <port|url>`
+ * is a CDP endpoint, not a page fetch — it gets its own warning (Check 6).
+ *
+ * Only matching navigate|goto|open here was the hole that let read/a11y/vitals/
+ * diff bypass the blocklist, rate limiter and robots checks entirely.
  */
-function extractUrl(command: string): string | null {
-  const urlMatch = command.match(/(?:navigate|goto|open)\s+["']?([^"'\s]+)["']?/i);
-  return urlMatch ? urlMatch[1] : null;
+function extractUrls(command: string): string[] {
+  const urls: string[] = [];
+  const push = (token: string | undefined) => {
+    // Skip flags (`read --json`) and empty captures — a flag is never a URL.
+    if (token && !token.startsWith('-')) urls.push(token);
+  };
+
+  const single = command.match(/\b(?:navigate|goto|open|read|vitals|a11y|pushstate)\s+["']?([^"'\s]+)/i);
+  if (single) push(single[1]);
+
+  const diff = command.match(/\bdiff\s+url\s+["']?([^"'\s]+)["']?\s+["']?([^"'\s]+)/i);
+  if (diff) {
+    push(diff[1]);
+    push(diff[2]);
+  }
+
+  const record = command.match(/\brecord\s+start\s+\S+\s+["']?([^"'\s]+)/i);
+  if (record) push(record[1]);
+
+  const urlFlag = command.match(/--url[\s=]+["']?([^"'\s]+)/i);
+  if (urlFlag) push(urlFlag[1]);
+
+  return urls;
 }
 
 /**
@@ -507,27 +543,31 @@ Never combine with untrusted URLs or user-supplied paths.`);
     ctx.log('agent-browser-safety', '--allow-file-access flag detected');
   }
 
-  // Extract URL from command
-  const url = extractUrl(command);
+  // Extract every URL the command would fetch (read/a11y/vitals/diff/record/
+  // --url included — not just navigate/goto/open, which was the bypass hole).
+  const urls = extractUrls(command);
+  const url = urls.length > 0 ? urls[0] : null;
 
-  // Check 1: URL blocklist
-  if (url && isBlockedUrl(url)) {
-    ctx.logPermission('deny', `Blocked URL: ${url}`, input);
-    ctx.log('agent-browser-safety', `BLOCKED: ${url}`);
+  // Check 1: URL blocklist — every extracted URL must pass
+  for (const candidate of urls) {
+    if (isBlockedUrl(candidate)) {
+      ctx.logPermission('deny', `Blocked URL: ${candidate}`, input);
+      ctx.log('agent-browser-safety', `BLOCKED: ${candidate}`);
 
-    return outputDeny(
-      `agent-browser blocked: URL matches blocked pattern.
+      return outputDeny(
+        `agent-browser blocked: URL matches blocked pattern.
 
-URL: ${url}
+URL: ${candidate}
 
 Blocked patterns include internal, localhost admin, and file:// URLs.
 If this is intentional, use direct browser access instead.`
-    );
+      );
+    }
   }
 
-  // Check 2: Rate limiting (for navigation commands)
-  if (url) {
-    const domain = extractDomain(url);
+  // Check 2: Rate limiting — every fetched domain counts against the budget
+  for (const candidate of urls) {
+    const domain = extractDomain(candidate);
     if (domain) {
       const rateCheck = checkRateLimit(domain);
       if (!rateCheck.allowed) {
@@ -548,17 +588,17 @@ Wait a moment before retrying, or use --session <name> for isolated sessions.`
     }
   }
 
-  // Check 3: robots.txt enforcement
-  if (url) {
-    const robotsCheck = isAllowedByRobots(url);
+  // Check 3: robots.txt enforcement — every fetched URL
+  for (const candidate of urls) {
+    const robotsCheck = isAllowedByRobots(candidate);
     if (!robotsCheck.allowed) {
       ctx.logPermission('deny', robotsCheck.reason || 'Blocked by robots.txt', input);
-      ctx.log('agent-browser-safety', `ROBOTS BLOCKED: ${url}`);
+      ctx.log('agent-browser-safety', `ROBOTS BLOCKED: ${candidate}`);
 
       return outputDeny(
         `agent-browser blocked by robots.txt.
 
-URL: ${url}
+URL: ${candidate}
 ${robotsCheck.reason}
 
 The website's robots.txt disallows automated access to this path.
@@ -639,11 +679,17 @@ Use 'agent-browser network unroute' to clean up after testing.`;
     }
   }
 
-  // Check 6: inspect / get cdp-url — new attack surface (v0.18+)
-  if (/\b(inspect|get\s+cdp-url)\b/.test(command)) {
-    const context = `WARNING: DevTools inspection detected.
+  // Check 6: inspect / get cdp-url / connect — CDP attack surface (v0.18+, 0.34)
+  // `connect <port|url>` attaches the CLI to an arbitrary CDP endpoint; it is not
+  // a page fetch, so the URL blocklist does not apply (and would break legitimate
+  // local `connect ws://127.0.0.1:9222` flows) — warn instead. The (?:^|\s) guard
+  // keeps `--auto-connect` from tripping this.
+  if (/\b(inspect|get\s+cdp-url)\b/.test(command) || /(?:^|\s)connect\s/.test(command)) {
+    const context = `WARNING: DevTools/CDP access detected.
 'inspect' opens a local proxy forwarding the Chrome DevTools frontend to the CDP WebSocket.
 'get cdp-url' exposes the CDP URL for external debugger attachment.
+'connect <port|url>' attaches agent-browser to an arbitrary CDP endpoint, adopting
+that browser's auth state — only connect to endpoints you started yourself.
 These commands create a local network attack surface — avoid in shared/CI environments.
 Never expose the CDP port beyond localhost.`;
 
