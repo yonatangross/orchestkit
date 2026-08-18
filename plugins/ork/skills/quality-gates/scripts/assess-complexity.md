@@ -33,7 +33,7 @@ one pass) run `scripts/analyze-codebase.sh "$ARGUMENTS"` instead.
 > Line counts use `-exec awk 'END{print NR}'` rather than `xargs wc -l | tail -1`:
 > xargs batches long file lists and `wc` emits one total per batch, so `tail -1`
 > silently drops all but the last (measured 83% undercount on a 6k-file tree).
-> See `src/skills/shared/rules/shell-count-correctness.md` and
+> See `src/shared/rules/shell-count-correctness.md` and
 > `references/ork-delta.md`.
 
 ## Output

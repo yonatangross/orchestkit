@@ -6,7 +6,7 @@
 #
 # Grading skills (verify, assess, review-pr) ship machine-readable rubrics as
 # src/skills/<skill>/rubric.json conforming to the shared contract in
-# src/skills/shared/rubric.schema.json. This lint keeps every rubric file
+# src/shared/rubric.schema.json. This lint keeps every rubric file
 # structurally valid so CI, dashboards, and the memory graph can rely on it:
 #   - valid JSON, rubric == "ork-rubric/1.0", non-empty dimensions[]
 #   - every weight in [0,1]; weights sum to 1.0 (+/- 0.001)
@@ -19,7 +19,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-SCHEMA_FILE="$REPO_ROOT/src/skills/shared/rubric.schema.json"
+SCHEMA_FILE="$REPO_ROOT/src/shared/rubric.schema.json"
 
 FAILED=0
 CHECKED=0
@@ -149,7 +149,7 @@ if [[ $CHECKED -eq 0 ]]; then
 fi
 
 if [[ $FAILED -eq 1 ]]; then
-  echo "FAIL: rubric contract violations found — fix the rubric.json files above (schema: src/skills/shared/rubric.schema.json)"
+  echo "FAIL: rubric contract violations found — fix the rubric.json files above (schema: src/shared/rubric.schema.json)"
   exit 1
 fi
 

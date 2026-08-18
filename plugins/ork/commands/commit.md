@@ -190,7 +190,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ## Verification Gate
 
-Before committing, apply the 5-step gate: `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")`. Run tests fresh. Read the output. Only commit if tests pass. "Should be fine" is not evidence.
+Before committing, apply the 5-step gate: `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/verification-gate.md")`. Run tests fresh. Read the output. Only commit if tests pass. "Should be fine" is not evidence.
 
 ## Quality Bar
 

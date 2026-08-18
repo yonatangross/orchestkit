@@ -29,7 +29,7 @@ const floor = JSON.parse(
   readFileSync(path.join(ROOT, 'shared/cc-support.json'), 'utf8'),
 ).supported_floor;
 
-// Skills = dirs containing a SKILL.md (src/skills/shared/ is not a skill)
+// Skills = dirs containing a SKILL.md (src/shared/ is not a skill)
 const skills = readdirSync(path.join(ROOT, 'src/skills'), { withFileTypes: true })
   .filter((d) => d.isDirectory())
   .filter((d) => existsSync(path.join(ROOT, 'src/skills', d.name, 'SKILL.md')))

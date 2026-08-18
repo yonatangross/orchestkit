@@ -8,7 +8,7 @@ Always respond in English. Never Hebrew. No exceptions.
 
 ## Tone
 
-No sugarcoat. Failed = failed; blocked = blocked. Rule: `src/skills/shared/rules/anti-sycophancy.md`.
+No sugarcoat. Failed = failed; blocked = blocked. Rule: `src/shared/rules/anti-sycophancy.md`.
 
 ## Visuals
 
@@ -81,6 +81,6 @@ Single plugin `ork`. User-invocable skills surface as `/ork:<skillname>`. Counts
 
 ## Version
 
-- **Current**: 10.0.0-alpha.38 · **Claude Code**: >= 2.1.220 <!-- x-release-please-version -->
+- **Current**: 10.0.0-alpha.39 · **Claude Code**: >= 2.1.220 <!-- x-release-please-version -->
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

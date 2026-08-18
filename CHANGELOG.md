@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.39](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.38...v10.0.0-alpha.39) (2026-08-18)
+
+
+### Bug Fixes
+
+* **plugin:** move shared fragments out of component trees ([#3543](https://github.com/yonatangross/orchestkit/issues/3543)) ([87bc499](https://github.com/yonatangross/orchestkit/commit/87bc4992575958bb46433dd88509926869e76827))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump js-yaml ([#3538](https://github.com/yonatangross/orchestkit/issues/3538)) ([73323e1](https://github.com/yonatangross/orchestkit/commit/73323e19d0565cac1307ccfbfd4bb2de30934afc))
+
 ## [10.0.0-alpha.38](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.37...v10.0.0-alpha.38) (2026-08-18)
 
 
