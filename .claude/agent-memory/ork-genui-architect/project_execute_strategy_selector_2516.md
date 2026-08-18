@@ -11,7 +11,7 @@ Per-card EXECUTE selector for the #2516 cool-glass decision board (single-file H
 
 **Why:** A new tab hides the act-on-it affordance; #2516's thesis is "let you act on the decision, not just read it" — keep read→decide→act in one flow.
 
-**How to apply:** Slot under existing tokens from `src/skills/shared/assets/playground-exemplars/decision-board.template.html` (`--pg-glass`, `--pg-accent`, `--pg-r-md`, 4-tier motion budget, roving-tabindex keyboard idiom, aria-live announce, RTL via logical props).
+**How to apply:** Slot under existing tokens from `src/shared/assets/playground-exemplars/decision-board.template.html` (`--pg-glass`, `--pg-accent`, `--pg-r-md`, 4-tier motion budget, roving-tabindex keyboard idiom, aria-live announce, RTL via logical props).
 
 **The control (3 parts):**
 1. 5-row radio-card list (`role=radiogroup`) — closed `z.enum` of the 5 primitives; each row shows reliability band + cost multiplier + constraint badge. Replaces a bare dropdown so the 2026 tradeoff is inline, not memorized.

@@ -24,7 +24,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 const EXEMPLARS = resolve(
   process.cwd(),
   "..",
-  "src/skills/shared/assets/playground-exemplars",
+  "src/shared/assets/playground-exemplars",
 );
 
 /** Text a sighted user actually sees, EXCLUDING any <title> tooltip child. */
