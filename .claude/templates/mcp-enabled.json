@@ -2,12 +2,9 @@
   "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schemas/mcp.schema.json",
   "mcpServers": {
     "context7": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp@latest"
-      ],
-      "description": "Up-to-date documentation for frameworks and libraries",
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "description": "Up-to-date documentation for frameworks and libraries. PREREQUISITE: 22 of 36 ork agents grant mcp__context7__* and fall back to training data without it. Hosted HTTP is preferred over npx stdio, which spawns one child process per Claude Code session. Free tier (1000 requests, public repos) needs no key. For Context7 Pro, export CONTEXT7_API_KEY=ctx7sk-... and add: \"headers\": { \"Authorization\": \"Bearer ${CONTEXT7_API_KEY}\" }. Add the header ONLY once that variable is exported: an unexpanded literal connects, lists both tools, and then fails every query. It does NOT fall back to anonymous, so keyless hosted (this entry, no headers block) beats a header with no exported key.",
       "auto": "75"
     },
     "sequential-thinking": {

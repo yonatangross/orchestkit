@@ -2,6 +2,20 @@
 
 Operational procedure for re-running the MCP version audit documented in `mcp-version-matrix.md`.
 
+## Transport check (run this before the version check)
+
+Version drift is the second question. The first is whether the server should be on npx at
+all. For every entry using `command: npx`, check whether upstream publishes a hosted HTTP
+endpoint; if it does, prefer it:
+
+```json
+"context7": { "type": "http", "url": "https://mcp.context7.com/mcp" }
+```
+
+stdio spawns **one child process per Claude Code session**, so its cost scales with how
+many sessions the machine keeps open, not with how many projects are configured. Keep
+stdio only where the hosted endpoint is unreachable (proxy, air gap) or does not exist.
+
 ## When to run
 
 - **Calendar trigger:** every 90 days from the last audit's "Last audited" header
@@ -52,15 +66,23 @@ Trigger a consumer-side review (read every `mcp__<name>__*` call site) when any 
 
 ## Escape hatch: pin a specific version
 
-To freeze a server at a known-good version, edit `.mcp.json`:
+Pinning applies to the **npx stdio** transport only. A hosted HTTP entry
+(`{"type": "http", "url": "..."}`) carries no npm package and therefore nothing to pin;
+upstream versions it server-side. If you need a frozen version, you are choosing stdio.
+
+To freeze a stdio server at a known-good version, edit `.mcp.json`:
 
 ```diff
  "context7": {
    "command": "npx",
 -  "args": ["-y", "@upstash/context7-mcp@latest"]
-+  "args": ["-y", "@upstash/context7-mcp@2.1.8"]
++  "args": ["-y", "@upstash/context7-mcp@4.0.2"]
  }
 ```
+
+`4.0.2` is npm latest as of 2026-08-11. Note that 2.x, 3.x, and 4.x expose the identical
+two tools (`resolve-library-id`, `query-docs`), so a context7 major bump is not a
+consumer-side breaking event; pin for reproducibility, not for API safety.
 
 Document the pin reason in `mcp-version-matrix.md` under the affected row. Remove the pin once the reason is resolved (e.g., upstream ships a fix, your consumer code adapts to the new API).
 

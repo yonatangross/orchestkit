@@ -3,21 +3,76 @@ title: MCP Servers
 description: External tool integrations that give agents web search, component registries, design extraction, and more.
 ---
 
-MCP (Model Context Protocol) servers extend what OrchestKit agents can do by connecting them to external tools and services. They're **optional** — every skill and agent works without them, but MCPs add capabilities that can't be replicated with built-in tools alone.
+MCP (Model Context Protocol) servers extend what OrchestKit agents can do by connecting them to external tools and services. Most are **optional**, and every skill and agent still runs without them, but MCPs add capabilities that can't be replicated with built-in tools alone. One of them, **context7**, is a prerequisite rather than an extra.
+
+## Prerequisite: context7
+
+22 of OrchestKit's 36 agents grant `mcp__context7__*` in their frontmatter, and the
+plugin ships **no server definition for it**. `plugins/ork/settings.json` carries a
+`permissions` block only, the plugin manifest declares no MCP servers, and `.mcp.json`
+is gitignored in the OrchestKit repo, so it is not part of the plugin payload either.
+
+A grant authorizes a server. It does not provide one.
+
+**What happens if you skip this.** Those 22 agents still spawn and still answer. They
+answer from training data, because the grant points at a server that is not in your
+session. No error is raised, no tool call fails, and `/ork:implement` looks like it
+worked. Stale API advice is the only symptom.
+
+Add context7 once, project-scoped in `.mcp.json` or user-scoped in `~/.claude.json`,
+before trusting any of them:
+
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    }
+  }
+}
+```
+
+Then run `/ork:doctor`; it prints `MCP: context7 ✓` once the server is live. API-key
+and transport options are in [context7 (library docs)](#context7-library-docs) below.
+
+### Why ork does not ship a server definition
+
+Deliberate, and it stays that way:
+
+1. **`.mcp.json` is user-owned.** It is project-scoped, gitignored here, and holds
+   entries for servers that have nothing to do with ork. A plugin that writes it is
+   editing a file it does not own, in every project it is installed in.
+2. **A key cannot be shipped.** The Pro entry carries an `Authorization` header sourced
+   from `${CONTEXT7_API_KEY}`. A shipped default would either omit the key (silently
+   downgrading Pro subscribers to the free tier) or reference an environment variable
+   most users have never set, which produces the unexpanded-literal failure described
+   under [context7 (library docs)](#context7-library-docs).
+3. **stdio would multiply.** The legacy transport spawns one child process per Claude
+   Code session. Shipping it plugin-wide multiplies that by every project ork is
+   installed in.
+
+`/ork:setup` recommends context7 and prints the entry for you to paste. `/ork:doctor`
+tells you whether it took.
 
 ## Available MCPs
 
 OrchestKit supports 10 MCP servers across three tiers:
 
-### Bundled (zero config)
+### Core (no API key required)
 
-These ship in `.mcp.json` and work immediately — no API keys, no setup.
+You add these to `.mcp.json` yourself; none of them needs an API key to start returning
+results. They are not shipped by the plugin.
 
 | MCP | Purpose | Tools |
 |-----|---------|-------|
 | **context7** | Up-to-date library docs (React, Next.js, Tailwind, etc.) | 2 |
 | **memory** | Knowledge graph — persist decisions across sessions | 8 |
 | **sequential-thinking** | Structured reasoning for Sonnet/Haiku subagents | 1 |
+
+context7's two tools are `mcp__context7__resolve-library-id` and
+`mcp__context7__query-docs`. That pair is the entire surface on every published
+version, 2.x through 4.x; any other spelling grants nothing and fails silently.
 
 ### API Key Required
 
@@ -75,11 +130,15 @@ OrchestKit scopes MCP access per agent to keep context windows lean.
 | component-curator | storybook-mcp | Component inventory, story coverage audit |
 | debug-investigator | memory | Recall past debugging decisions |
 
-### context7 Library Docs (18 agents)
+### context7 Library Docs (19 agents)
 
 These agents use **context7** for up-to-date library documentation:
 
-backend-system-architect, database-engineer, test-generator, workflow-architect, infrastructure-architect, event-driven-architect, data-pipeline-engineer, python-performance-engineer, llm-integrator, ci-cd-engineer, eval-runner, release-engineer, deployment-manager, git-operations-engineer, frontend-performance-engineer, accessibility-specialist, multimodal-specialist, code-quality-reviewer
+backend-system-architect, database-engineer, test-generator, workflow-architect, infrastructure-architect, event-driven-architect, data-pipeline-engineer, python-performance-engineer, llm-integrator, ci-cd-engineer, eval-runner, release-engineer, deployment-manager, git-operations-engineer, frontend-performance-engineer, accessibility-specialist, multimodal-specialist, code-quality-reviewer, claude-design-orchestrator
+
+With the three multi-MCP agents above (frontend-ui-developer, design-system-architect,
+design-context-extractor) that is **22 of 36 agents** whose behaviour changes when
+context7 is absent.
 
 ### No MCP Access
 
@@ -89,9 +148,93 @@ security-auditor, security-layer-auditor, system-design-reviewer, genui-architec
 
 ## Setup Instructions
 
-### Bundled MCPs (zero config)
+### memory and sequential-thinking (no key, no account)
 
-**context7**, **memory**, and **sequential-thinking** work immediately — no API keys, no setup. They're defined in `.mcp.json` and start automatically.
+Both are npx-launched stdio servers with nothing to configure beyond the entry itself.
+Copy `.claude/templates/mcp-enabled.json` from the OrchestKit repo for the exact shape.
+
+### context7 (library docs)
+
+Two transports. Prefer the hosted one.
+
+**Hosted HTTP (recommended).** No local process, one shared endpoint:
+
+```json
+"context7": {
+  "type": "http",
+  "url": "https://mcp.context7.com/mcp"
+}
+```
+
+That entry is the whole free tier. It needs no account and no key.
+
+**Pro key.** Add the header only once the variable is actually exported:
+
+```json
+"context7": {
+  "type": "http",
+  "url": "https://mcp.context7.com/mcp",
+  "headers": { "Authorization": "Bearer ${CONTEXT7_API_KEY}" }
+}
+```
+
+```bash
+export CONTEXT7_API_KEY="ctx7sk-your-key-here"
+```
+
+Keys start with `ctx7sk-`. Keep them in your shell profile or a secret manager and
+reference the variable; never paste a literal key into `.mcp.json`, which is a file
+people share and diff.
+
+**stdio (fallback).** For a proxied or air-gapped network where the hosted endpoint is
+unreachable:
+
+```json
+"context7": {
+  "command": "npx",
+  "args": ["-y", "@upstash/context7-mcp@4.0.2", "--api-key", "${CONTEXT7_API_KEY}"]
+}
+```
+
+Drop the `--api-key` pair to run keyless. **stdio costs one child process per Claude
+Code session**, because the client spawns the server: ten concurrent sessions means ten
+`npx` children resolving and running the package. That fan-out, not style, is why hosted
+HTTP is the recommended transport.
+
+#### Free vs Pro
+
+| | Free | Pro ($10 per seat per month) |
+|---|---|---|
+| Requests | 1,000 | 5,000 per seat, then $10 per additional 1,000 |
+| Repositories | Public only | Public plus private repo parsing |
+| Key | None needed | `ctx7sk-...` from [context7.com](https://context7.com) |
+
+Both tiers expose the same two tools. Pro raises quota and unlocks private repositories;
+it does not add a tool, and neither does moving from 2.x to 4.x.
+
+#### A connected context7 proves nothing about your key
+
+`tools/list` returns HTTP 200 for every auth state: no header, a garbage bearer, an
+unexpanded `${CONTEXT7_API_KEY}` literal, or a valid key. So "context7 connected" and a
+green tool count are not evidence that a Pro key is in use. Only an actual query
+discriminates. With a bad or unexpanded key it comes back with:
+
+```text
+Invalid API key. Please check your API key. API keys should start with 'ctx7sk' prefix.
+```
+
+The practical rule: do not add the `Authorization` header until the variable is
+exported. A header that expands to the literal string `${CONTEXT7_API_KEY}` connects,
+lists two tools, and fails every query, which reads like a context7 outage rather than
+your own config.
+
+<Callout type="warn">
+**Hosted plus bearer does not fall back to anonymous.** If `CONTEXT7_API_KEY` is unset,
+the unexpanded literal is transmitted as the bearer token and **every** query fails. It
+does not quietly downgrade to the free tier. The keyless entry above, with no `headers`
+block, is a fully working free tier. So the header is a hard dependency on the export:
+ship `"headers"` and `export CONTEXT7_API_KEY` together, or ship neither.
+</Callout>
 
 ### Tavily (web research)
 
@@ -199,7 +342,7 @@ Every skill works without MCPs — they just lose specific capabilities:
 
 | Without | Fallback |
 |---------|----------|
-| context7 | `/ork:implement` works but won't fetch latest library docs |
+| context7 | The 22 agents that grant it answer from training data instead of current docs. Nothing errors, so stale API advice is the only symptom. |
 | tavily | Web research uses `WebFetch` (summarized) then `agent-browser` (headless) |
 | memory | Decisions persist via local `.jsonl` files and CC Native memory |
 | storybook-mcp | Component discovery falls back to `Glob` + `Grep` + 21st.dev search |

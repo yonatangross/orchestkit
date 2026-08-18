@@ -7,7 +7,7 @@ Commands work without them - MCPs just add extra capabilities.
 
 | MCP | Purpose | Storage | Enhances |
 |-----|---------|---------|----------|
-| **context7** | Up-to-date library docs | Cloud (Upstash) | /ork:implement, /ork:verify, /ork:review-pr |
+| **context7** | Up-to-date library docs. **Prerequisite**: 22 of 36 agents grant its tools | Cloud (hosted HTTP, Upstash) | /ork:implement, /ork:verify, /ork:review-pr |
 | **sequential-thinking** | Structured reasoning | None | Sonnet/Haiku subagents needing multi-step reasoning |
 | **memory** | Knowledge graph | Local file | Decisions, patterns, entities |
 | **tavily** | Web search, extract, crawl | Cloud (Tavily) | /ork:explore, /ork:implement, web-research agents |
@@ -37,7 +37,23 @@ All MCPs are optional — OrchestKit works without any. Enable what fits your wo
 
 ## Default State
 
-OrchestKit ships **all 4 MCPs enabled** in `.mcp.json`. Tavily requires an API key (`TAVILY_API_KEY` via 1Password) — it connects but tools fail without the key.
+OrchestKit ships **no `.mcp.json` at all**. That file is user-owned and project-scoped
+(it is gitignored in the OrchestKit repo), so every server below is one you add. The
+plugin's own `settings.json` carries a `permissions` block only, and the plugin manifest
+declares no MCP servers.
+
+`.claude/templates/mcp-enabled.json` and `.claude/templates/mcp-disabled.json` are the
+reference shapes to copy from.
+
+Two servers connect but fail per call without a usable key:
+
+- **tavily** needs `TAVILY_API_KEY` (via 1Password). It connects, then every tool call fails.
+- **context7** is keyless on the free tier. It also connects with a *bad* key, or with a
+  `${CONTEXT7_API_KEY}` that never expanded, and only fails at call time. A connected
+  context7 is therefore never evidence that a Pro key is in use.
+
+**context7 is the one prerequisite here.** 22 of 36 agents grant `mcp__context7__*`; with
+no server behind the grant they answer from training data and nothing errors.
 
 ## Two-Layer MCP Control (CC 2.1.49)
 
@@ -110,8 +126,8 @@ Edit `.mcp.json` and set `"disabled": true` or `false` for each MCP:
   "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schemas/mcp.schema.json",
   "mcpServers": {
     "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
       "disabled": false
     },
     "sequential-thinking": {
@@ -140,6 +156,95 @@ Edit `.mcp.json` and set `"disabled": true` or `false` for each MCP:
 ```
 
 To disable a specific MCP, set `"disabled": true` in `.mcp.json`. Ensure `settings.local.json` does NOT have `enableAllProjectMcpServers: true` (which would override the disabled flag).
+
+## Context7 MCP
+
+The one MCP that is a prerequisite rather than an enhancement: 22 of 36 agents grant
+`mcp__context7__*`, and the plugin ships no server definition for it.
+
+### Tools
+
+Exactly two, on every published version (2.x through 4.x):
+
+| Tool | Purpose |
+|------|---------|
+| `mcp__context7__resolve-library-id` | Map a package name to a Context7 library id |
+| `mcp__context7__query-docs` | Fetch scoped documentation for a resolved library |
+
+Any other spelling grants nothing and fails silently, so do not invent one. A version
+bump does not change this pair.
+
+### Transport
+
+**Hosted HTTP (recommended).** No local process:
+
+```json
+"context7": {
+  "type": "http",
+  "url": "https://mcp.context7.com/mcp"
+}
+```
+
+**stdio (fallback)** for proxied or air-gapped networks. It costs **one child process per
+Claude Code session**, because the client spawns the server; on a machine running ten
+concurrent sessions that is ten `npx` children per project:
+
+```json
+"context7": {
+  "command": "npx",
+  "args": ["-y", "@upstash/context7-mcp@4.0.2", "--api-key", "${CONTEXT7_API_KEY}"]
+}
+```
+
+npm latest is `4.0.2` (published 2026-08-11). Drop the `--api-key` pair to run keyless.
+
+### Free vs Pro
+
+| | Free | Pro ($10 per seat per month) |
+|---|---|---|
+| Requests | 1,000 | 5,000 per seat, then $10 per additional 1,000 |
+| Repositories | Public only | Public plus private repo parsing |
+| Key | None needed | `ctx7sk-...` |
+
+Pro raises quota and unlocks private repositories. It does not add a tool.
+
+### Supplying a key
+
+Hosted transport takes a bearer header; stdio takes `--api-key`. Both should reference the
+environment variable, never a literal:
+
+```json
+"context7": {
+  "type": "http",
+  "url": "https://mcp.context7.com/mcp",
+  "headers": { "Authorization": "Bearer ${CONTEXT7_API_KEY}" }
+}
+```
+
+```bash
+export CONTEXT7_API_KEY="ctx7sk-..."
+```
+
+### Verifying the key is actually in use
+
+`tools/list` returns HTTP 200 for **every** auth state: no header, a garbage bearer, an
+unexpanded `${CONTEXT7_API_KEY}` literal, or a valid key. A connection check and a green
+tool count therefore prove nothing about authentication. Only a real query discriminates.
+With a bad or unexpanded key it comes back with:
+
+```text
+Invalid API key. Please check your API key. API keys should start with 'ctx7sk' prefix.
+```
+
+Rule: do not add the `Authorization` header until the variable is exported. A header that
+expands to the literal `${CONTEXT7_API_KEY}` connects, lists two tools, and fails every
+query, which reads like an upstream outage instead of a local config error.
+
+There is no anonymous fallback. An unset `CONTEXT7_API_KEY` does not make the hosted server
+treat the session as free tier; the unexpanded literal is sent as the bearer token and
+**every** `tools/call` fails. Keyless hosted, meaning the entry with no `headers` block at
+all, is a working free tier. Hosted plus bearer is therefore a hard dependency on the
+export, so the header and the `export` line ship together or neither ships.
 
 ## Tavily MCP
 
