@@ -728,6 +728,32 @@ describe('subagentValidator', () => {
   // -----------------------------------------------------------------------
 
   describe('spawn logging', () => {
+    // Regression for the telemetry-contamination fix: shell tests run this
+    // hook (compiled) with CLAUDE_PROJECT_DIR pointed at the real repo, which
+    // wrote 1,000+ fixture rows into the live subagent-spawns.jsonl and made
+    // five effectively-dead agents read as healthy. Test harnesses set
+    // ORK_TELEMETRY_DISABLE=1; the writer must honor it.
+    test('does not persist a spawn row when ORK_TELEMETRY_DISABLE=1', () => {
+      process.env.ORK_TELEMETRY_DISABLE = '1';
+      try {
+        const input = createToolInput({
+          tool_input: {
+            subagent_type: 'test-generator',
+            description: 'Test',
+          },
+        });
+
+        subagentValidator(input);
+
+        const call = (appendFileSync as ReturnType<typeof vi.fn>).mock.calls.find(
+          (c: unknown[]) => typeof c[0] === 'string' && c[0].includes('subagent-spawns.jsonl')
+        );
+        expect(call).toBeUndefined();
+      } finally {
+        delete process.env.ORK_TELEMETRY_DISABLE;
+      }
+    });
+
     test('appends entry to tracking JSONL file', () => {
       // Arrange
       const input = createToolInput({

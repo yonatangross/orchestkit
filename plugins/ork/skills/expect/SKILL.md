@@ -1,7 +1,7 @@
 ---
 name: expect
 license: MIT
-compatibility: "Claude Code 2.1.220+. Requires agent-browser >= 0.25.0 (Rust-native, no Playwright)."
+compatibility: "Claude Code 2.1.220+. Requires agent-browser >= 0.31.1 (Rust-native, no Playwright; 0.27.1 documented broken on prod pages)."
 description: "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components."
 argument-hint: "[-m <instruction>] [--target unstaged|branch|commit] [--flow <slug>] [-y]"
 context: fork
@@ -21,7 +21,7 @@ metadata:
   category: testing
   milestone: M99
   upstream-package: agent-browser
-  upstream-version-tested: "0.33.1"
+  upstream-version-tested: "0.34.0"
 triggers:
   keywords: [expect, "test my changes", "browser test", "diff test", "test what I changed", "test the UI", "visual regression", "check my changes"]
   examples:
@@ -97,8 +97,10 @@ ToolSearch(query="select:mcp__memory__search_nodes")
 Bash("command -v agent-browser || npx agent-browser --version")
 # If missing: "Install agent-browser: npm i -g agent-browser"
 
-# Load agent-browser's own self-serving skill/workflow docs (required since 0.25.x)
-Bash("agent-browser skills get agent-browser")
+# Load agent-browser's version-matched workflow guide (ships with the CLI).
+# NOT `skills get agent-browser` — that resolves but returns only the thin
+# top-level router; `core --full` is the actual 2,800+ line command reference.
+Bash("agent-browser skills get core --full")
 ```
 
 
@@ -238,13 +240,13 @@ Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/expect/references/test-plan.md")`
 
 ### agent-browser Quick Primer
 
-> Floor is `>= 0.25.0`; current tested release is **0.33.1** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. 0.33.0 adds `agent-browser a11y [url]`, an embedded axe-core audit (WCAG tag filtering, selector scoping, iframe-aware text/JSON output) available as both a CLI command and an MCP tool. The commands documented below are unchanged from 0.32.x through 0.33.1.
+> Floor is `>= 0.31.1` (0.27.1 is documented broken on prod pages); current tested release is **0.34.0** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. 0.33.0 adds `agent-browser a11y [url]`, an embedded axe-core audit (WCAG tag filtering, selector scoping, iframe-aware text/JSON output) available as both a CLI command and an MCP tool. 0.34.0 adds `pushstate <url>` (SPA client-side nav), `removeinitscript`, `--enable react-devtools` + `react suspense`, `profiler start|stop`, `plugin add|run`, `confirm`/`deny` for gated actions, `--pin-tab`/`--no-pin-tab`, `--webgpu`, and an MCP `--tools <profiles>` surface.
 
 
 | Area | Command | Notes |
 |------|---------|-------|
 | Snapshot | `agent-browser snapshot -i` | ARIA tree w/ `@eN` refs. `-C`/`--cursor` was removed in 0.22 |
-| Semantic locator | `agent-browser find --role button "Continue"` | Stable alternative to `@eN` refs |
+| Semantic locator | `agent-browser find role button click --name "Continue"` | Grammar: `find <locator> <value> [action]`; stable alternative to `@eN` refs |
 | Interaction | `fill @e1 "..."`, `click @e2`, `press Enter`, `drag @e1 @e2`, `upload @e1 file.pdf` | All take ARIA refs |
 | Waits | `wait --load networkidle`, `wait --text "Success"`, `wait --fn "window.ready"` | Event-driven, never sleep-based |
 | Network | `network route "*analytics*" --abort`, `network route "https://api/*" --body '{...}'` | Intercept + stub |

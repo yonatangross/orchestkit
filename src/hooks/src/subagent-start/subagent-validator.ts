@@ -274,6 +274,12 @@ function logSpawn(
   agentId?: string,
   parentAgentId?: string,
 ): number | null {
+  // ORK_TELEMETRY_DISABLE=1 is set by test harnesses that run this hook
+  // against the real repo (tests/agents/*.sh). Without it, fixture spawns
+  // (session_id "test-123", one per agent per run) contaminated the live
+  // spawn log: five effectively-dead agents read as healthy 13-14 spawns.
+  if (process.env.ORK_TELEMETRY_DISABLE === '1') return null;
+
   const trackingLog = getTrackingLog();
   const dir = dirname(trackingLog);
 

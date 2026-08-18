@@ -121,9 +121,9 @@ Use `agent-browser` to navigate and screenshot each route:
 # 1. Navigate
 agent-browser navigate http://localhost:{port}{route_path}
 # 2. Wait for content
-agent-browser wait-for-network-idle
-# 3. Capture
-agent-browser screenshot --full-page --path verification-output/{timestamp}/screenshots/{idx}-{slug}.png
+agent-browser wait --load networkidle
+# 3. Capture (path is positional; --full = full page, not just viewport)
+agent-browser screenshot --full verification-output/{timestamp}/screenshots/{idx}-{slug}.png
 ```
 
 ### Auth-Protected Routes
@@ -136,7 +136,7 @@ agent-browser navigate http://localhost:{port}/login
 agent-browser fill "#email" "test@example.com"
 agent-browser fill "#password" "test123"
 agent-browser click "button[type=submit]"
-agent-browser wait-for-navigation
+agent-browser wait --load networkidle
 # Then screenshot protected routes
 ```
 

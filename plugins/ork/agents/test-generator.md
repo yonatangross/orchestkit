@@ -24,6 +24,11 @@ tools:
   - TaskUpdate
   - TaskList
   - ExitWorktree
+  # mcpServers: [context7] below is metadata, not a grant (#3461): without
+  # these entries the agent cannot call context7 and silently degrades to
+  # WebSearch. Read-only surface; resolve the library ID first, then query.
+  - mcp__context7__resolve-library-id
+  - mcp__context7__query-docs
 skills:
   - testing-unit
   - testing-e2e
@@ -184,12 +189,14 @@ agent-browser cookies set "sessionId" "abc123" --url "https://app.test" --httpOn
 
 ```bash
 # Capture trace for failing E2E test reproduction
-agent-browser trace start /tmp/test-trace.zip
+# (trace start takes no path — the path goes on trace stop; output is a
+# Chrome DevTools trace, JSON not zip)
+agent-browser trace start
 agent-browser open https://app.test/checkout
 agent-browser fill @e1 "test@example.com"
 agent-browser click @e2
 agent-browser wait --text "Error"
-agent-browser trace stop
+agent-browser trace stop /tmp/test-trace.json
 # Share trace file for debugging — review for sensitive data first
 
 # Capture console errors during test run
@@ -201,9 +208,10 @@ agent-browser errors                        # Capture page errors for assertions
 
 ```bash
 # More stable than @ref numbers across test runs
-agent-browser find "Add to Cart"            # Find by visible text
-agent-browser find --role button "Submit"   # Find by role + text
-agent-browser find --placeholder "Email"    # Find by placeholder
+# Grammar: find <locator> <value> [action] [text] — action defaults to click
+agent-browser find text "Add to Cart"                  # Find by visible text
+agent-browser find role button click --name "Submit"   # Find by role + accessible name
+agent-browser find placeholder "Email" fill "a@b.co"   # Find by placeholder, then fill
 
 # Highlight for visual debugging
 agent-browser highlight @e1

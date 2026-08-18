@@ -7,7 +7,7 @@ context: fork
 user-invocable: true
 name: implement
 background: false
-allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, ToolSearch, WebFetch, EnterWorktree, ExitWorktree, CronCreate, CronDelete, Monitor, PushNotification, mcp__context7__query_docs, mcp__memory__search_nodes]
+allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, ToolSearch, WebFetch, EnterWorktree, ExitWorktree, CronCreate, CronDelete, Monitor, PushNotification, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/implement/SKILL.md
