@@ -5,6 +5,35 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.38](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.37...v10.0.0-alpha.38) (2026-08-18)
+
+
+### Features
+
+* **workflows:** default fan-out stages to specialist agentType ([#3535](https://github.com/yonatangross/orchestkit/issues/3535)) ([22e35c4](https://github.com/yonatangross/orchestkit/commit/22e35c4e9691aefc5c9c1e3e2c977e345fec6038))
+
+
+### Bug Fixes
+
+* **agents:** grant the MCP tools 27 agents declare ([#3532](https://github.com/yonatangross/orchestkit/issues/3532)) ([16330df](https://github.com/yonatangross/orchestkit/commit/16330dfba43f39412a9c1fc2d104c302657ae98a))
+* **hooks:** close agent-browser URL-coverage hole in safety hook ([#3531](https://github.com/yonatangross/orchestkit/issues/3531)) ([f69f3ea](https://github.com/yonatangross/orchestkit/commit/f69f3ea31c3971408459ef491e5ef26e8615ce1a))
+* **hooks:** reclaim the plugin cache the hook never touched ([#3523](https://github.com/yonatangross/orchestkit/issues/3523)) ([129c286](https://github.com/yonatangross/orchestkit/commit/129c286a122b60d2b47eff99be8ed125a0d3f2d9))
+* **hooks:** stop test fixtures contaminating live spawn telemetry ([#3533](https://github.com/yonatangross/orchestkit/issues/3533)) ([e6b847a](https://github.com/yonatangross/orchestkit/commit/e6b847ac2650ab1392a991703761c2f5dafde1e4))
+
+
+### Miscellaneous
+
+* **dependabot:** hold docker majors, keep digest bumps flowing ([#3528](https://github.com/yonatangross/orchestkit/issues/3528)) ([5b59b2b](https://github.com/yonatangross/orchestkit/commit/5b59b2b0c1f8e92d17997126dd276154c22c671d))
+* **deps-dev:** bump @sanity/client in /orchestkit-demos ([#3520](https://github.com/yonatangross/orchestkit/issues/3520)) ([a710f0a](https://github.com/yonatangross/orchestkit/commit/a710f0a94e47d1a2e2822f58a85aac90f042335a))
+* **deps-dev:** bump the npm-minor-patch group across 1 directory with 3 updates ([#3516](https://github.com/yonatangross/orchestkit/issues/3516)) ([e0140dd](https://github.com/yonatangross/orchestkit/commit/e0140dd1dc7babb8e3b42feedb0f2acc0c628cb5))
+* **deps:** bump the npm-minor-patch group across 1 directory with 4 updates ([#3519](https://github.com/yonatangross/orchestkit/issues/3519)) ([5a87e53](https://github.com/yonatangross/orchestkit/commit/5a87e535e9d6f5fec3f8224265f4b9098519c8bc))
+* **deps:** bump the remotion group across 1 directory with 21 updates ([#3540](https://github.com/yonatangross/orchestkit/issues/3540)) ([b143785](https://github.com/yonatangross/orchestkit/commit/b143785ef6b071b55bbdd9886bd02ae1ba417854))
+
+
+### Documentation
+
+* **skills:** correct agent-browser command forms against live 0.34.0 ([#3534](https://github.com/yonatangross/orchestkit/issues/3534)) ([4bf6449](https://github.com/yonatangross/orchestkit/commit/4bf64496721f340379681cebc174314bc8d91e1d))
+
 ## [10.0.0-alpha.37](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.36...v10.0.0-alpha.37) (2026-08-17)
 
 
