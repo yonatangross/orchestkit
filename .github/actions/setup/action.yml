@@ -30,23 +30,14 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Install system dependencies (Linux)
-      if: runner.os == 'Linux'
+    # jq and rsync are preinstalled on the hosted runner images, so the normal
+    # path here does not touch a package manager at all. When an install is
+    # genuinely needed the helper bounds it with `timeout` and names the cause
+    # on failure. `timeout-minutes:` cannot be used on a composite-action step,
+    # it is silently ignored (actions/runner#1979). See issue #3545.
+    - name: Install system dependencies
       shell: bash
-      run: sudo apt-get update && sudo apt-get install -y jq rsync
-
-    - name: Install system dependencies (macOS)
-      if: runner.os == 'macOS'
-      shell: bash
-      run: brew install jq rsync
-
-    - name: Install system dependencies (Windows)
-      if: runner.os == 'Windows'
-      shell: bash
-      run: |
-        choco install jq rsync -y
-        # Verify tools are available
-        rsync --version || echo "WARNING: rsync not found, some operations may fail"
+      run: bash .github/scripts/ensure-system-deps.sh jq rsync
 
     - name: Setup Node.js
       uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6

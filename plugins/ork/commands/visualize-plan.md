@@ -248,7 +248,7 @@ Render the selected sections into the `FORMATS` chosen in STEP 0.5. **ASCII alwa
 | Playground | Classify the archetype (below), then hand the plan brief to the `playground` skill → write `docs/<branch-dir>/plan-viz.html`, link it |
 | Infographic | Run the `notebooklm` `studio_create(artifact_type=infographic\|slides)` flow — **fire-and-notify**, poll `studio_status`, never await |
 | All | ASCII inline now + the rest linked as they finish |
-| Charts (marks *within* Playground / Infographic) | For sections with quantitative marks — **[3] Risk, [5] Impact, [6] Blast Radius** — pick the form via `/dataviz` (`choosing-a-form`) and the palette via its 6-check formula, then run `validate_palette.js`. On validator FAIL **or** `/dataviz` absent, fall back to the ASCII-card layout. Chrome stays ork tokens (§2 of `playground-visual-standard.md`); only the data marks come from the validated palette. See `${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/chart-encoding-standard.md`. |
+| Charts (marks *within* Playground / Infographic) | For sections with quantitative marks — **[3] Risk, [5] Impact, [6] Blast Radius** — pick the form via `/dataviz` (`choosing-a-form`) and the palette via its 6-check formula, then run `validate_palette.js`. On validator FAIL **or** `/dataviz` absent, fall back to the ASCII-card layout. Chrome stays ork tokens (§2 of `playground-visual-standard.md`); only the data marks come from the validated palette. See `${CLAUDE_PLUGIN_ROOT}/shared/rules/chart-encoding-standard.md`. |
 
 `<branch-dir>` = branch with `/` → `--` (same path the PR Playground gate checks). The filename is
 **always `plan-viz.html`** — not `index.html`, not a topic name. One name is what makes slug lookup
@@ -256,12 +256,12 @@ and the artifact gallery work at all.
 
 > **Playground archetype:** a plan visualization is usually a **DASHBOARD** — and as of 2026-08 that
 > is a first-class archetype with a template, not a free pass. **Copy
-> `skills/shared/assets/playground-exemplars/plan-dashboard.template.html` and swap the `plan-state`
+> `shared/assets/playground-exemplars/plan-dashboard.template.html` and swap the `plan-state`
 > island**; do not free-hand the CSS. It ships the §2 tokens, a sticky tier-1 header, `<details>`
 > sections `[0]`–`[5]`, a table twin per chart, the copy-prompt bar, and the reduced-motion gate.
 > If the plan instead demonstrates a *user-facing flow* or a *prioritization/decision*, route to the
 > **user-story-player** or **decision-board** archetype. Apply the §0 routing rule in
-> `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/playground-visual-standard.md")` and run its §10
+> `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/playground-visual-standard.md")` and run its §10
 > self-audit — including the DASHBOARD rows — before declaring done.
 >
 > **Backlog to dispatch?** If the plan is a backlog the user must prioritize **and route to execution**,

@@ -5,7 +5,7 @@
 # =============================================================================
 # Playground Visual Standard Conformance
 # =============================================================================
-# src/skills/shared/rules/playground-visual-standard.md §9/§10 were honor-system:
+# src/shared/rules/playground-visual-standard.md §9/§10 were honor-system:
 # a checklist the model was asked to self-run, with nothing verifying it did.
 # Adoption was accordingly bad. Measured 2026-08-04 over the 191 artifacts that
 # existed before this gate landed: --pg- tokens 39%, reduced-motion gate 29%,
@@ -16,7 +16,7 @@
 # judge taste; it checks the rules that are literally greppable.
 #
 # Scope, deliberately split:
-#   EXEMPLARS (src/skills/shared/assets/playground-exemplars/*.html) -> BLOCKING.
+#   EXEMPLARS (src/shared/assets/playground-exemplars/*.html) -> BLOCKING.
 #       These are the templates everything else is copied from. If the gold
 #       standard drifts, every artifact generated from it drifts too.
 #   ARTIFACTS (docs/**/*.html) -> ADVISORY, reported by count.
@@ -51,7 +51,7 @@ RED=$'\033[0;31m'; GREEN=$'\033[0;32m'; YELLOW=$'\033[1;33m'
 BLUE=$'\033[0;34m'; BOLD=$'\033[1m'; NC=$'\033[0m'
 
 ENFORCE="${PLAYGROUND_STANDARD_ENFORCE:-0}"
-EXEMPLAR_DIR="src/skills/shared/assets/playground-exemplars"
+EXEMPLAR_DIR="src/shared/assets/playground-exemplars"
 
 echo "=========================================="
 echo "  Playground Visual Standard Conformance"
