@@ -1143,7 +1143,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "configure",
     "description": "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings.",
     "version": "1.0.1",
-    "sha256": "02941224141c20cc64589139dcc5d0cef734d771c495f08e9239f0f109d12698",
+    "sha256": "dac28959857393c72c4cd0300f559caeb9fdd9462c3c3e236a04663fff8ffee6",
     "author": "OrchestKit",
     "tags": [
       "configuration",
@@ -1168,6 +1168,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "cc-version-settings.md",
         "http-hooks.md",
         "mcp-config.md",
+        "operator-scope-settings.md",
         "presets.md"
       ]
     },
@@ -1852,7 +1853,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.2.0",
-    "sha256": "eb88defb2cfedbd2f346b1db3773cd24fac77d141936d640e97e5e781d1eac95",
+    "sha256": "09755165b37394d4bc867de9dc8d8912cab82b4c16e1ad8802011cb5c312dc96",
     "author": "OrchestKit",
     "tags": [
       "health-check",

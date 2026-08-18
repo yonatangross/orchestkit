@@ -28,6 +28,15 @@
  * only a real boundary (CC `/sandbox` network-allowlist, or a container) closes
  * it. Pairs with the doctor sandbox-nudge (#2534). See milestone #160.
  *
+ * SUCCESSOR, and why this file is still here: CC's own
+ * `sandbox.network.deniedDomains` is the containment-shaped replacement, and the
+ * paste-ready staged config for it lives in
+ * `src/skills/configure/references/operator-scope-settings.md` (#3322, rollout
+ * #3424). Do NOT delete this guard on the strength of that document existing.
+ * The retirement is gated on OBSERVING the sandbox actually block an egress
+ * attempt on a real machine; until then this bypassable guard is the only thing
+ * in the lane, and removing it trades weak protection for none.
+ *
  * Issue: #2533. CC 2.1.7 compliant (JSON with continue field via output builders).
  */
 
