@@ -25,9 +25,10 @@
 #       do not exist, and a grant of a nonexistent tool is a silent no-op.
 #
 # .mcp.json is untracked (runtime file), so the configured-server list and
-# the per-server tool rosters are pinned here. Verified against a live
-# session's loaded tool list, 2026-08-17. If a server is added to .mcp.json
-# or a server's tool surface changes, update the rosters below.
+# the configured-server list and the per-server tool rosters are read from
+# tests/agents/mcp-servers.manifest.json, which IS tracked. When .mcp.json is
+# present the gate also diffs the two and fails on drift, so the manifest
+# cannot silently go stale the way the previous hardcoded literal did.
 #
 # Overridable for differential testing:
 #   AGENTS_DIR=<dir> SKILLS_DIR=<dir> bash tests/agents/test-mcp-declared-vs-granted.sh
@@ -46,20 +47,116 @@ NC='\033[0m'
 
 FAIL=0
 
-# Servers configured in .mcp.json (verified 2026-08-17). stitch and
-# storybook-mcp are deliberately absent: not configured.
-CONFIGURED_SERVERS="context7 sequential-thinking memory tavily 21st-dev-magic fal hq-knowledge"
+# Source of truth: the tracked manifest, NOT .mcp.json.
+#
+# .mcp.json is a per-machine runtime file and is gitignored, so it does not
+# exist in CI. The previous version of this gate coped by hand-copying a
+# snapshot of it into a shell literal, which cannot detect its own staleness:
+# that literal silently went stale on 2026-08-18 when context7 moved from npx
+# stdio to hosted HTTP. The manifest is tracked, reviewed, and updated in the
+# same PR that changes .mcp.json, and when .mcp.json IS present we diff the two
+# and fail on drift.
+MANIFEST="${MANIFEST:-$SCRIPT_DIR/mcp-servers.manifest.json}"
 
-# Real tool rosters per server, verified against a live loaded tool list.
-# Only servers whose roster we have verified are name-checked in (b).
+if [ ! -f "$MANIFEST" ]; then
+  echo -e "${RED}ERROR${NC}: manifest not found at $MANIFEST" >&2
+  echo "  This gate reads its expected server list from that file. Refusing to" >&2
+  echo "  run against an assumed default, which would pass vacuously." >&2
+  exit 1
+fi
+
+# Parse once, loudly. A malformed manifest is a hard failure, never a silent
+# fall-through to an empty server list (which would make every check a no-op).
+if ! CONFIGURED_SERVERS="$(node -e '
+  const fs = require("fs");
+  let m;
+  try { m = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); }
+  catch (e) { console.error("manifest is not valid JSON: " + e.message); process.exit(1); }
+  if (!m.configured || typeof m.configured !== "object") {
+    console.error("manifest has no \"configured\" object"); process.exit(1);
+  }
+  const names = Object.keys(m.configured);
+  if (names.length === 0) { console.error("manifest lists zero configured servers"); process.exit(1); }
+  process.stdout.write(names.join(" "));
+' "$MANIFEST" 2>&1)"; then
+  echo -e "${RED}ERROR${NC}: $CONFIGURED_SERVERS" >&2
+  exit 1
+fi
+
+# Report the source so a reader can never mistake a fallback for a real read.
+echo "manifest: $MANIFEST"
+echo "manifest servers: $CONFIGURED_SERVERS"
+
+# ---------------------------------------------------------------------------
+# (0) drift: when .mcp.json IS present, it must agree with the manifest
+# ---------------------------------------------------------------------------
+MCP_JSON="${MCP_JSON:-$REPO_ROOT/.mcp.json}"
+if [ -f "$MCP_JSON" ]; then
+  echo "=== (0) manifest vs .mcp.json drift ==="
+  echo "source: .mcp.json present, diffing against manifest"
+  if ! drift="$(node -e '
+    const fs = require("fs");
+    let man, live;
+    try { man = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); }
+    catch (e) { console.error("manifest unreadable: " + e.message); process.exit(2); }
+    try { live = JSON.parse(fs.readFileSync(process.argv[2], "utf8")); }
+    catch (e) { console.error(".mcp.json unreadable: " + e.message); process.exit(2); }
+    const liveServers = Object.keys(live.mcpServers || {}).sort();
+    const manServers  = Object.keys(man.configured || {}).sort();
+    const onlyLive = liveServers.filter(s => !manServers.includes(s));
+    const onlyMan  = manServers.filter(s => !liveServers.includes(s));
+    const out = [];
+    for (const s of onlyLive) out.push("  in .mcp.json but NOT in manifest: " + s);
+    for (const s of onlyMan)  out.push("  in manifest but NOT in .mcp.json: " + s);
+    // transport drift is the failure that actually bit us on 2026-08-18
+    for (const s of manServers) {
+      if (!liveServers.includes(s)) continue;
+      const declared = man.configured[s].transport;
+      const entry = live.mcpServers[s] || {};
+      const actual = entry.type === "http" ? "http" : (entry.command ? "stdio" : "unknown");
+      if (declared && actual !== "unknown" && declared !== actual) {
+        out.push("  transport drift for " + s + ": manifest says " + declared + ", .mcp.json is " + actual);
+      }
+    }
+    process.stdout.write(out.join("\n"));
+  ' "$MANIFEST" "$MCP_JSON" 2>&1)"; then
+    echo -e "${RED}ERROR${NC}: drift check could not run: $drift" >&2
+    exit 1
+  fi
+  if [ -n "$drift" ]; then
+    echo -e "${RED}FAIL${NC}: manifest and .mcp.json disagree" >&2
+    printf '%s\n' "$drift" >&2
+    echo "  Update tests/agents/mcp-servers.manifest.json in the same PR that changed .mcp.json." >&2
+    FAIL=1
+  else
+    echo -e "${GREEN}OK${NC}: manifest agrees with .mcp.json"
+  fi
+else
+  echo "=== (0) manifest vs .mcp.json drift ==="
+  echo "source: manifest only (.mcp.json absent, expected in CI); drift check SKIPPED"
+fi
+
+# Real tool rosters, read from the manifest. A server whose roster is null has
+# never been verified against a live tools/list; it is skipped in (b) rather
+# than checked against an invented roster.
 canonical_tools() {
-  case "$1" in
-    context7) echo "resolve-library-id query-docs" ;;
-    memory)   echo "search_nodes read_graph open_nodes create_entities create_relations add_observations delete_entities delete_observations delete_relations" ;;
-    tavily)   echo "tavily_search tavily_extract tavily_crawl tavily_map tavily_research" ;;
-    *)        echo "" ;;
-  esac
+  node -e '
+    const fs = require("fs");
+    const m = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+    const s = m.configured[process.argv[2]];
+    if (!s || !Array.isArray(s.tools)) { process.stdout.write(""); process.exit(0); }
+    process.stdout.write(s.tools.join(" "));
+  ' "$MANIFEST" "$1"
 }
+
+# Servers that have a verified roster, so (b) has something to check them against.
+SERVERS_WITH_ROSTER="$(node -e '
+  const fs = require("fs");
+  const m = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  process.stdout.write(
+    Object.keys(m.configured).filter(k => Array.isArray(m.configured[k].tools)).join(" ")
+  );
+' "$MANIFEST")"
 
 # ---------------------------------------------------------------------------
 # (a) declared-but-not-granted, per agent
@@ -114,7 +211,7 @@ done
 # (b) every mcp__<server>__<tool> token must name a real tool
 # ---------------------------------------------------------------------------
 echo "=== (b) tool-name spellings vs real server rosters ==="
-for srv in context7 memory tavily; do
+for srv in $SERVERS_WITH_ROSTER; do
   roster="$(canonical_tools "$srv")"
 
   set +e

@@ -1,0 +1,76 @@
+{
+  "schema": "ork-mcp-server-manifest/1.0",
+  "description": "Tracked expectation of the MCP servers this repo configures, and of the tool names each one really exposes. Read by tests/agents/test-mcp-declared-vs-granted.sh. This file, NOT .mcp.json, is what the gate asserts against, so the gate behaves identically in CI (where .mcp.json is absent) and locally. When .mcp.json IS present the gate diffs it against this file and fails on drift, which is the staleness check a hand-copied literal could never perform. Update this file deliberately, in the same PR that changes .mcp.json.",
+  "lastVerified": "2026-08-18",
+  "verifiedBy": "Repo-root .mcp.json read directly, plus an authenticated tools/list against the hosted context7 server and this session's loaded memory tool list.",
+  "limits": "Tool rosters cannot be re-verified from CI: that needs a live authenticated tools/call against each server. Rosters below are human attested, each with its own toolsVerifiedOn and toolsVerifiedBy. A roster of null means nobody has verified that server's tool names, and the gate skips name checking for it rather than inventing a roster.",
+  "configured": {
+    "context7": {
+      "transport": "http",
+      "tools": ["resolve-library-id", "query-docs"],
+      "toolsVerifiedOn": "2026-08-18",
+      "toolsVerifiedBy": "Authenticated tools/list against https://mcp.context7.com/mcp.",
+      "note": "These two names are the entire surface. Spellings seen in this repo's history that grant NOTHING: resolve, get_library_docs, getLibraryDocs, query_docs, resolve_library_id. Package versions 3.0.0 and 4.0.2 expose the identical two names, so a version bump changes no grant. Auth caveat: tools/list returns HTTP 200 for any auth state (no header, garbage bearer, unexpanded literal, real key), so a successful connection never proves the key is in use. Only tools/call discriminates: a bad key answers with text starting 'Invalid API key'. The key is referenced as ${CONTEXT7_API_KEY} and never written into a tracked file."
+    },
+    "sequential-thinking": {
+      "transport": "stdio",
+      "tools": null,
+      "toolsVerifiedOn": null,
+      "toolsVerifiedBy": null,
+      "note": "Roster never verified against a live tools/list, so tool-name checking is skipped for this server. No agent or skill in this repo grants a mcp__sequential-thinking__ tool that depends on it being checked."
+    },
+    "memory": {
+      "transport": "stdio",
+      "tools": [
+        "search_nodes",
+        "read_graph",
+        "open_nodes",
+        "create_entities",
+        "create_relations",
+        "add_observations",
+        "delete_entities",
+        "delete_observations",
+        "delete_relations"
+      ],
+      "toolsVerifiedOn": "2026-08-18",
+      "toolsVerifiedBy": "Loaded tool list of a live session running @modelcontextprotocol/server-memory. Nine names, exact match with the roster this gate carried since 2026-08-17.",
+      "note": "add_node is not a real tool. It appeared in this repo's history and granted nothing."
+    },
+    "tavily": {
+      "transport": "stdio",
+      "tools": ["tavily_search", "tavily_extract", "tavily_crawl", "tavily_map", "tavily_research"],
+      "toolsVerifiedOn": "2026-08-17",
+      "toolsVerifiedBy": "Carried over unchanged from the roster hand verified against a live loaded tool list on 2026-08-17. NOT re-verified on 2026-08-18: no tavily server was loaded in that session.",
+      "note": "Oldest attestation in this file. Re-verify against a live tools/list when convenient."
+    },
+    "21st-dev-magic": {
+      "transport": "stdio",
+      "tools": null,
+      "toolsVerifiedOn": null,
+      "toolsVerifiedBy": null,
+      "note": "Roster never verified for the pinned @21st-dev/magic build this repo configures. A roster read from some other deployment of the same product would be a guess, so it stays null and name checking is skipped."
+    },
+    "fal": {
+      "transport": "stdio",
+      "tools": null,
+      "toolsVerifiedOn": null,
+      "toolsVerifiedBy": null,
+      "note": "Roster never verified against a live tools/list."
+    },
+    "hq-knowledge": {
+      "transport": "stdio",
+      "tools": null,
+      "toolsVerifiedOn": null,
+      "toolsVerifiedBy": null,
+      "note": "Roster never verified for the yg-mcp-knowledge build this repo configures."
+    }
+  },
+  "unconfigured": {
+    "stitch": {
+      "reason": "Google Stitch is documented in src/skills/configure/references/mcp-config.md as a user scope add (claude mcp add stitch ... -s user), so it lives in an operator's own config and never in this repo's project .mcp.json. Agents may declare it; granting mcp__stitch__ tools here would achieve nothing. Configure or drop is a separate decision."
+    },
+    "storybook-mcp": {
+      "reason": "Per project Storybook dev server at http://localhost:6006/mcp, provided by @storybook/addon-mcp in the CONSUMER project. It exists only while that project runs Storybook, so it is intentionally absent from this repo's .mcp.json."
+    }
+  }
+}
