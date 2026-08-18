@@ -27,10 +27,10 @@
     "node": ">=22.5.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.7",
-    "@types/node": "^26.1.2",
+    "@biomejs/biome": "^2.5.8",
+    "@types/node": "^26.2.0",
     "@vitest/coverage-v8": "^4.1.10",
-    "esbuild": "^0.28.0",
+    "esbuild": "^0.28.2",
     "fast-check": "^4.9.0",
     "typescript": "^7.0.2",
     "vitest": "^4.0.18"

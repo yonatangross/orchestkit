@@ -351,10 +351,12 @@ anti_pattern = {
 **Memory integration:**
 ```bash
 # Store a successful pattern
-mcp__memory__add_node(
-    name="cursor-pagination-success",
-    type="best_practice",
-    content="Cursor-based pagination works well for large datasets (3 projects)"
+mcp__memory__create_entities(
+    entities=[{
+      name: "cursor-pagination-success",
+      entityType: "best_practice",
+      observations: ["Cursor-based pagination works well for large datasets (3 projects)"]
+    }]
 )
 
 # Query patterns before making architecture decisions
