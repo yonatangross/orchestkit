@@ -167,10 +167,13 @@ let iterationsUsed = 0;
 for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
 	iterationsUsed = iteration;
 
+	// Run + failure classification is test-domain work — same specialist as the
+	// repair stage below (agentType default: name the owner, don't fall generic).
 	const run = await agent(runPrompt, {
 		label: `run:${TIER}#${iteration}`,
 		phase: "Heal",
 		schema: RUN_RESULT,
+		agentType: "ork:test-generator",
 	});
 
 	if (!run) {
