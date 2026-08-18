@@ -19,6 +19,7 @@ Setup recommends and configures a cloud MCP server (e.g., Context7) but the user
 mcp_config = Read(".mcp.json") or {"mcpServers": {}}
 
 # No verification -- assumes network access
+# Also picks the stdio transport, which spawns one child process PER SESSION
 mcp_config["mcpServers"]["context7"] = {
     "command": "npx",
     "args": ["-y", "@upstash/context7-mcp@latest"]
@@ -32,7 +33,18 @@ Write(file_path=".mcp.json", content=json.dumps(mcp_config, indent=2))
 # Phase 5: Verify MCP availability before adding
 mcp_config = Read(".mcp.json") or {"mcpServers": {}}
 
-# For npx-based servers: check npm registry reachability
+# Prefer the HOSTED transport where upstream publishes one. It has no npm
+# dependency and no per-session child process. context7 is the canonical case:
+#   {"type": "http", "url": "https://mcp.context7.com/mcp"}
+# Reachability for a hosted server is an HTTPS probe, not `npm ping`.
+def hosted_reachable(url):
+    # curl prints 000 only when no HTTP response arrived at all: DNS failure,
+    # refused connection, timeout, proxy block. Any real status code (200, 401,
+    # 404) means the endpoint answered, so the transport itself works.
+    code = Bash(command=f"curl -sS -o /dev/null -w '%{{http_code}}' -m 10 {url}; echo")
+    return code.strip() != "000"
+
+# For npx-based (stdio) servers: check npm registry reachability
 npm_check = Bash(command="npm ping --registry https://registry.npmjs.org 2>&1; echo $?")
 npm_available = npm_check.strip().endswith("0")
 
@@ -41,7 +53,25 @@ local_check = Bash(command="which uvx 2>/dev/null && echo 'available' || echo 'm
 
 recommendations = []
 for server in recommended_mcps:
-    if server["type"] == "npx" and not npm_available:
+    if server["type"] == "http" and not hosted_reachable(server["url"]):
+        # The hosted endpoint never answered. npx stdio is the only sanctioned
+        # fallback, and only when npm itself is reachable. Anything else is
+        # "skipped", never "ready".
+        if server.get("stdio_fallback") and npm_available:
+            recommendations.append({
+                "server": server["name"],
+                "status": "ready",
+                "transport": "stdio",
+                "reason": f"hosted {server['url']} unreachable, falling back to npx stdio "
+                          f"(costs one child process per Claude Code session)"
+            })
+        else:
+            recommendations.append({
+                "server": server["name"],
+                "status": "skipped",
+                "reason": f"hosted {server['url']} unreachable and no npx stdio fallback declared"
+            })
+    elif server["type"] == "npx" and not npm_available:
         recommendations.append({
             "server": server["name"],
             "status": "skipped",
@@ -68,9 +98,45 @@ AskUserQuestion(questions=[{
 ```
 
 **Key rules:**
+- Prefer a hosted HTTP transport when upstream publishes one; fall back to npx stdio only
+  when the hosted endpoint is unreachable. stdio costs one child process per Claude Code
+  session, so the cost scales with how many sessions the user keeps open
+- The HTTPS probe must be READ by the decision, not merely run. A hosted server whose
+  endpoint failed the probe is `ready` only when a declared npx stdio fallback is usable;
+  otherwise it is `skipped`. An unused probe result is the same bug as no probe at all
 - Run `npm ping` before configuring any npx-based MCP server
 - Check for required local binaries (uvx, docker) before configuring local MCP servers
 - Mark unreachable servers as "skipped" with a clear reason, not as errors
 - Never write an MCP server entry to `.mcp.json` that is known to be unreachable
 - Include remediation steps (proxy config, install commands) for skipped servers
 - Re-check MCP availability on `--rescan` runs
+
+## Reachability is not authentication
+
+A server that connects is not a server that is authenticated. context7 answers
+`tools/list` with HTTP 200 for every auth state: no header, a garbage bearer, an
+unexpanded `${CONTEXT7_API_KEY}` literal, or a valid key. Reporting "context7 ready"
+from a connection check says nothing about whether the user's key works.
+
+Two consequences for Phase 5:
+
+- Never write an `Authorization` header that references an environment variable the user
+  has not exported. The literal `${CONTEXT7_API_KEY}` reaches the server, connects, lists
+  two tools, and then fails every query with
+  `Invalid API key. Please check your API key. API keys should start with 'ctx7sk' prefix.`
+  Omitting the header entirely gives a working free tier instead.
+- Hosted plus bearer is therefore a HARD dependency on the variable being exported, not an
+  optimisation. An unset variable does NOT degrade to anonymous: the unexpanded literal is
+  transmitted as the token and every `tools/call` fails. Keyless hosted, meaning no
+  `headers` block at all, is a fully working free tier. So writing the header on a machine
+  where the key is not exported is strictly worse than writing no header, and Phase 5 must
+  add it only after confirming the export.
+- If a key must be confirmed, confirm it with a real tool call, never with a connection
+  or tool-list check.
+
+## context7 is a prerequisite, not a recommendation
+
+22 of the 36 agents grant `mcp__context7__*` in their frontmatter, and OrchestKit ships no
+server definition for it (`.mcp.json` is user-owned and gitignored in the plugin repo).
+Present context7 as required rather than optional, and state the consequence of declining:
+those 22 agents keep working and answer from training data, with no error raised.

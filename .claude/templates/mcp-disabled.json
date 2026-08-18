@@ -2,12 +2,9 @@
   "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schemas/mcp.schema.json",
   "mcpServers": {
     "context7": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp@latest"
-      ],
-      "description": "Up-to-date documentation for frameworks and libraries",
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "description": "Up-to-date documentation for frameworks and libraries. Disabling this degrades 22 of 36 ork agents to training-data answers with no error raised.",
       "disabled": true
     },
     "sequential-thinking": {

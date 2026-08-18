@@ -58,6 +58,48 @@ Status: Healthy
 Most issues are fixed by ensuring Node.js >= 18 is installed and restarting Claude Code. If problems persist, run `/ork:doctor --verbose` for detailed diagnostics.
 </Callout>
 
+## Required: context7 MCP
+
+OrchestKit installs cleanly without it and `/ork:doctor` reports Healthy either way.
+But 22 of the 36 agents grant `mcp__context7__*` in their frontmatter, and the plugin
+ships no server definition for it: `.mcp.json` is user-owned and project-scoped, so the
+grant refers to a server you supply. Without it, those agents answer from training data
+instead of current library docs, with no error to tell you so.
+
+Add it once, project-scoped in `.mcp.json` or user-scoped in `~/.claude.json`:
+
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    }
+  }
+}
+```
+
+That hosted HTTP entry is the whole free tier: 1,000 requests, public repositories, no
+account. A Context7 Pro subscription ($10 per seat per month) raises it to 5,000
+requests per seat and adds private repo parsing. To use a Pro key, add
+`"headers": { "Authorization": "Bearer ${CONTEXT7_API_KEY}" }` to the entry and export
+`CONTEXT7_API_KEY` (keys start with `ctx7sk-`).
+
+<Callout type="warn">
+A connected context7 is not proof that your key is in use. The server answers
+`tools/list` with HTTP 200 for every auth state, including an unset variable that
+arrives as the literal `${CONTEXT7_API_KEY}`. Only a real query discriminates: a bad key
+returns `Invalid API key. Please check your API key. API keys should start with 'ctx7sk' prefix.`
+Do not add the header until the variable is actually exported: with the variable unset,
+the literal is sent as the token and **every** query fails. It does not fall back to the
+anonymous free tier. The keyless entry above does work as the free tier, so the header
+plus the `export` line ship together or neither ships.
+</Callout>
+
+The stdio transport (`npx -y @upstash/context7-mcp`) still works and is the fallback for
+proxied or air-gapped networks, but it spawns one child process per Claude Code session.
+Details are in the [MCP Servers guide](/docs/foundations/mcp-servers#prerequisite-context7).
+
 ## Optional: Web Research (Tavily)
 
 OrchestKit works out of the box with all 3 memory tiers (Graph, Local, CC Native). For enhanced web research, enable the Tavily MCP:
