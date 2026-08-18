@@ -136,7 +136,10 @@ no local process:
 Free tier: 1,000 requests, public repos, no account. Context7 Pro ($10 per seat per
 month) raises that to 5,000 per seat and parses private repos; add
 `"headers": { "Authorization": "Bearer ${CONTEXT7_API_KEY}" }` and export the `ctx7sk-`
-key. The legacy stdio transport (`npx -y @upstash/context7-mcp@4.0.2`) is the fallback
+key. Add the header only once the variable is exported: with it unset the unexpanded
+literal is sent as the token and every query fails, and it does **not** fall back to the
+anonymous free tier, so the keyless entry above is strictly better than a header with no
+key behind it. The legacy stdio transport (`npx -y @upstash/context7-mcp@4.0.2`) is the fallback
 when the hosted endpoint is unreachable, but it spawns one child process per Claude Code
 session, so the fan-out scales with how many sessions you keep open.
 

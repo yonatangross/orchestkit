@@ -1853,6 +1853,12 @@ Rule: do not add the `Authorization` header until the variable is exported. A he
 expands to the literal `$\{CONTEXT7_API_KEY\}` connects, lists two tools, and fails every
 query, which reads like an upstream outage instead of a local config error.
 
+There is no anonymous fallback. An unset `CONTEXT7_API_KEY` does not make the hosted server
+treat the session as free tier; the unexpanded literal is sent as the bearer token and
+**every** `tools/call` fails. Keyless hosted, meaning the entry with no `headers` block at
+all, is a working free tier. Hosted plus bearer is therefore a hard dependency on the
+export, so the header and the `export` line ship together or neither ships.
+
 ## Tavily MCP
 
 When `TAVILY_API_KEY` is set and the Tavily MCP is enabled, agents gain access to production-grade web research tools.

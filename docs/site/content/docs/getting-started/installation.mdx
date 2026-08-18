@@ -90,7 +90,10 @@ A connected context7 is not proof that your key is in use. The server answers
 `tools/list` with HTTP 200 for every auth state, including an unset variable that
 arrives as the literal `${CONTEXT7_API_KEY}`. Only a real query discriminates: a bad key
 returns `Invalid API key. Please check your API key. API keys should start with 'ctx7sk' prefix.`
-Do not add the header until the variable is actually exported.
+Do not add the header until the variable is actually exported: with the variable unset,
+the literal is sent as the token and **every** query fails. It does not fall back to the
+anonymous free tier. The keyless entry above does work as the free tier, so the header
+plus the `export` line ship together or neither ships.
 </Callout>
 
 The stdio transport (`npx -y @upstash/context7-mcp`) still works and is the fallback for

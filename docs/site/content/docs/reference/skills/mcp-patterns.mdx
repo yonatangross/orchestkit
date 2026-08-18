@@ -2044,6 +2044,11 @@ unexpanded `$\{CONTEXT7_API_KEY\}` literal, valid key), so a connection check ca
 confirm a key. Only `tools/call` discriminates: a bad key returns
 `Invalid API key. Please check your API key. API keys should start with 'ctx7sk' prefix.`
 
+**No anonymous fallback.** Hosted plus bearer is a hard dependency on `CONTEXT7_API_KEY`
+being exported. With it unset, the unexpanded literal is transmitted as the token and every
+`tools/call` fails; the server does not fall back to the free tier. Keyless hosted (no
+`headers` block) is a working free tier, so an unexported key is worse than no header.
+
 ## Risk Tier (unchanged)
 
 | Tier | Criteria | Servers |

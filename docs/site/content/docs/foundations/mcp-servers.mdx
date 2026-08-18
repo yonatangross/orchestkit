@@ -228,6 +228,14 @@ exported. A header that expands to the literal string `${CONTEXT7_API_KEY}` conn
 lists two tools, and fails every query, which reads like a context7 outage rather than
 your own config.
 
+<Callout type="warn">
+**Hosted plus bearer does not fall back to anonymous.** If `CONTEXT7_API_KEY` is unset,
+the unexpanded literal is transmitted as the bearer token and **every** query fails. It
+does not quietly downgrade to the free tier. The keyless entry above, with no `headers`
+block, is a fully working free tier. So the header is a hard dependency on the export:
+ship `"headers"` and `export CONTEXT7_API_KEY` together, or ship neither.
+</Callout>
+
 ### Tavily (web research)
 
 ```bash
