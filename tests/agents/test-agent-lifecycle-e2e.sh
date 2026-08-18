@@ -18,6 +18,10 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # Export for hooks
 export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
 
+# Fixture spawns must never land in the real spawn log (.claude/logs/
+# subagent-spawns.jsonl) — they inflate every agent's apparent usage.
+export ORK_TELEMETRY_DISABLE=1
+
 # Test counters
 TESTS_RUN=0
 TESTS_PASSED=0
