@@ -131,7 +131,7 @@ bash scripts/eval/eval-coverage.sh --check
 ```
 
 Enumeration mirrors `static-analysis.sh`: skills are `src/skills/*/SKILL.md`
-(so `src/skills/shared/` is excluded), agents are top-level `src/agents/*.md`
+(so `src/shared/` is excluded), agents are top-level `src/agents/*.md`
 carrying YAML frontmatter (so `src/agents/README.md` and `src/agents/shared/`
 are excluded). `coverage.json` also records `orphan_specs` (a spec whose
 component no longer exists) as a distinct category for drift visibility.

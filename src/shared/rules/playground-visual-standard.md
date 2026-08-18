@@ -24,7 +24,7 @@ decision by dragging. This standard makes that quality reproducible. Every rule 
 falsifiable value — a rule without a measurable threshold is not shippable.
 
 Reference exemplars (read the one matching your archetype before building):
-`${CLAUDE_PLUGIN_ROOT}/skills/shared/assets/playground-exemplars/`
+`${CLAUDE_PLUGIN_ROOT}/shared/assets/playground-exemplars/`
 - `homeos-arieh.html` — canonical gold standard (user-story player, RTL Hebrew). Study the bar.
 - `user-story-player.template.html` — generalized player scaffold (device mockup + transport + flow).
 - `decision-board.template.html` — drag-and-drop prioritization toolkit (the decision archetype).

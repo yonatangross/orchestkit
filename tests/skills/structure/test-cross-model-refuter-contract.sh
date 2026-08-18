@@ -23,7 +23,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 SCHEMA="$REPO_ROOT/src/skills/review-pr/references/cross-model-output.schema.json"
 STUB="$REPO_ROOT/tests/fixtures/cross-model-refuter/stub-alt-model.sh"
 DOC="$REPO_ROOT/src/skills/review-pr/references/cross-model-refuter.md"
-ENGINE="$REPO_ROOT/src/skills/shared/rules/adversarial-refutation.md"
+ENGINE="$REPO_ROOT/src/shared/rules/adversarial-refutation.md"
 ERR="$(mktemp)"
 trap 'rm -f "$ERR"' EXIT
 

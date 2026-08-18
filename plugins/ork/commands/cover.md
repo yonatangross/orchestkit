@@ -420,11 +420,11 @@ Standard chain: `implement → cover → verify → commit`. Use `addBlockedBy` 
 
 ### Verification Gate
 
-Before claiming coverage is complete, apply: `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")`. Run the coverage report fresh. "Should pass" is not evidence.
+Before claiming coverage is complete, apply: `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/verification-gate.md")`. Run the coverage report fresh. "Should pass" is not evidence.
 
 ### Agent Status Protocol
 
-All test-generator agents report using: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`. BLOCKED if tests can't be written due to missing interfaces. NEEDS_CONTEXT if test expectations are unclear.
+All test-generator agents report using: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`. BLOCKED if tests can't be written due to missing interfaces. NEEDS_CONTEXT if test expectations are unclear.
 
 ## Quality Bar
 

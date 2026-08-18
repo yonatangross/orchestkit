@@ -251,11 +251,11 @@ Generate an interactive HTML playground visualizing the PR's changes. CI validat
 > **Requires** the `playground` plugin (external): `/plugin marketplace add anthropics/claude-plugins-official && /plugin install playground`
 
 **First classify the archetype** — a feature PR must not ship as a flat dashboard.
-`Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/playground-visual-standard.md")` and apply its §0 routing rule:
+`Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/playground-visual-standard.md")` and apply its §0 routing rule:
 
 - **Visual PR** (adds/changes a user-facing feature, flow, or a prioritization/decision surface) →
   **USER-STORY PLAYER** or **DECISION BOARD**. Build to the standard: adapt the matching exemplar at
-  `${CLAUDE_PLUGIN_ROOT}/skills/shared/assets/playground-exemplars/` (`user-story-player.template.html`
+  `${CLAUDE_PLUGIN_ROOT}/shared/assets/playground-exemplars/` (`user-story-player.template.html`
   or `decision-board.template.html`), and bring full design firepower (the `frontend-design` skill /
   the `ork:frontend-ui-developer` agent). When delegating to `playground:playground`, brief it with the
   **archetype + persona + tokens** — never hand it a pre-built HTML blob.
@@ -369,7 +369,7 @@ Write(".claude/chain/pr-created.json", JSON.stringify({
 
 ## Verification Gate
 
-Before claiming PR is ready, apply: `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")`. All tests must pass with fresh evidence. All CI checks green. No "should be fine."
+Before claiming PR is ready, apply: `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/verification-gate.md")`. All tests must pass with fresh evidence. All CI checks green. No "should be fine."
 
 ## Quality Bar
 

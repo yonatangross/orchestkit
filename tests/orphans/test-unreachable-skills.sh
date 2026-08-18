@@ -182,7 +182,7 @@ total=0
 for skill_md in "$SKILLS_DIR"/*/SKILL.md; do
     [[ -f "$skill_md" ]] || continue
     name="$(basename "$(dirname "$skill_md")")"
-    # src/skills/shared/ holds rules+assets and src/skills/CONTRIBUTING-SKILLS.md
+    # src/shared/ holds rules+assets and src/skills/CONTRIBUTING-SKILLS.md
     # is a doc; neither has a SKILL.md, but guard explicitly anyway.
     [[ "$name" == "shared" ]] && continue
     total=$((total + 1))
