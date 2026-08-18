@@ -26,13 +26,18 @@ tools:
   - mcp__memory__search_nodes
   - mcp__memory__read_graph
   - mcp__memory__open_nodes
+  # mcpServers: [context7] below is metadata, not a grant (#3461): without
+  # these entries the agent cannot call context7 and silently degrades to
+  # WebSearch. Read-only surface; resolve the library ID first, then query.
+  - mcp__context7__resolve-library-id
+  - mcp__context7__query-docs
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - fix-issue
   - errors
   - remember
   - memory
-mcpServers: [memory]
+mcpServers: [memory, context7]
 taskTypes:
   - debug
 keywords:
