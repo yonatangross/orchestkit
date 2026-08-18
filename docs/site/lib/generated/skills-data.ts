@@ -2271,7 +2271,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.6.0",
-    "sha256": "248326d54a4404b2b8a70a55680c26518c36b48e1a0b98301ae0040587c18bbb",
+    "sha256": "660c9edfdab0e2af19e7c17d123b44b1a91ab0569144946c17ecb76f366271a9",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2302,7 +2302,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "CronDelete",
       "PushNotification",
       "mcp__memory__search_nodes",
-      "mcp__context7__get_library_docs"
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs"
     ],
     "skills": [
       "explore",
@@ -2556,7 +2557,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "c63111a360f318566dff62127864b627e7d7bde3dce19b2f85d07a642c31d9b7",
+    "sha256": "ace17fd4a4eaad914d2edcd3aea820620cf2dea97c7364d8ce95b2a5a95559b0",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -2589,7 +2590,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "CronDelete",
       "Monitor",
       "PushNotification",
-      "mcp__context7__query_docs",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
       "mcp__memory__search_nodes"
     ],
     "skills": [

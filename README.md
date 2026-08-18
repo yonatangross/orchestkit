@@ -276,6 +276,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.37](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.36...v10.0.0-alpha.37)** · 2026-08-17
+
+- **deps:** bump the remotion group across 1 directory with 21 updates (#3518)
+- **probe:** route drift to one long-lived issue instead of a summary (#3529)
+
 **[v10.0.0-alpha.36](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.35...v10.0.0-alpha.36)** · 2026-08-17
 
 - **21st-dev:** grant the MCP tools four surfaces already claimed to use (#3509)
@@ -319,10 +324,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **cc:** retract two wrong agent-grant counts (#3472)
 - **hooks:** delete unreachable task-existence-gate Case 3 (#3467) (#3471)
 - **cc:** adopt 2.1.227 through 2.1.229, fix the dead detect stage (#3469)
-
-**[v10.0.0-alpha.29](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.28...v10.0.0-alpha.29)** · 2026-08-13
-
-- **hooks:** delete dead custom-pipeline mechanism (#3352) (#3466)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

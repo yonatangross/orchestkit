@@ -180,4 +180,28 @@ describe('spawnIntentLogger', () => {
       expect(writtenEntry().subagent_type).toBe('Explore');
     });
   });
+
+  // Regression for the telemetry-contamination fix: test harnesses that run
+  // the compiled hook against the real repo set ORK_TELEMETRY_DISABLE=1, and
+  // the writer must not persist fixture rows into the live spawn log.
+  describe('ORK_TELEMETRY_DISABLE', () => {
+    test('does not persist a spawn row when set to 1', () => {
+      process.env.ORK_TELEMETRY_DISABLE = '1';
+      try {
+        spawnIntentLogger(makeInput({ subagent_type: 'Explore', description: 'Test' }));
+        const call = mockBufferWrite.mock.calls.find(
+          (c: unknown[]) => typeof c[0] === 'string' && c[0].includes('subagent-spawns.jsonl'),
+        );
+        expect(call).toBeUndefined();
+      } finally {
+        delete process.env.ORK_TELEMETRY_DISABLE;
+      }
+    });
+
+    test('persists normally when unset', () => {
+      delete process.env.ORK_TELEMETRY_DISABLE;
+      spawnIntentLogger(makeInput({ subagent_type: 'Explore', description: 'Test' }));
+      expect(loggedEntry().subagent_type).toBe('Explore');
+    });
+  });
 });

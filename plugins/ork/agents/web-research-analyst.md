@@ -22,6 +22,14 @@ tools:
   - TaskUpdate
   - TaskList
   - TaskStop
+  # mcpServers: [tavily] below is metadata, not a grant (#3461): without
+  # these entries the agent cannot call tavily and silently degrades to
+  # WebSearch. Read-only research surface only.
+  - mcp__tavily__tavily_search
+  - mcp__tavily__tavily_extract
+  - mcp__tavily__tavily_crawl
+  - mcp__tavily__tavily_map
+  - mcp__tavily__tavily_research
 skills:
   - browser-tools
   - remember
@@ -345,10 +353,12 @@ agent-browser eval "JSON.stringify(
 )"
 
 # 3. Store findings
-mcp__memory__add_node(
-  name="Competitor X Pricing Feb 2026",
-  type="competitive_intel",
-  content="..."
+mcp__memory__create_entities(
+  entities=[{
+    name: "Competitor X Pricing Feb 2026",
+    entityType: "competitive_intel",
+    observations: ["..."]
+  }]
 )
 ```
 
