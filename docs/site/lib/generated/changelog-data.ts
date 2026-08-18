@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.39",
+    "date": "2026-08-18",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**plugin:** move shared fragments out of component trees ([#3543](https://github.com/yonatangross/orchestkit/issues/3543)) ([87bc499](https://github.com/yonatangross/orchestkit/commit/87bc4992575958bb46433dd88509926869e76827))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**deps-dev:** bump js-yaml ([#3538](https://github.com/yonatangross/orchestkit/issues/3538)) ([73323e1](https://github.com/yonatangross/orchestkit/commit/73323e19d0565cac1307ccfbfd4bb2de30934afc))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.38",
     "date": "2026-08-18",
     "compareUrl": "",
