@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.37](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.36...v10.0.0-alpha.37) (2026-08-17)
+
+
+### Miscellaneous
+
+* **deps:** bump the remotion group across 1 directory with 21 updates ([#3518](https://github.com/yonatangross/orchestkit/issues/3518)) ([08c815c](https://github.com/yonatangross/orchestkit/commit/08c815c24b6c6963fb0aec38eb943e892862d337))
+
+
+### CI/CD
+
+* **probe:** route drift to one long-lived issue instead of a summary ([#3529](https://github.com/yonatangross/orchestkit/issues/3529)) ([39efdb4](https://github.com/yonatangross/orchestkit/commit/39efdb4a70cc1e87c8125eaf4f7383420f96db3b))
+
 ## [10.0.0-alpha.36](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.35...v10.0.0-alpha.36) (2026-08-17)
 
 
