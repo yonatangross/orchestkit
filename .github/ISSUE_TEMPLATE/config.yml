@@ -13,6 +13,10 @@ contact_links:
     about: >
       What good first issue and help wanted mean here, and what a small fix
       needs before it can land.
+  - name: Good first issues
+    url: https://github.com/yonatangross/orchestkit/labels/good%20first%20issue
+    about: >-
+      New here? These are scoped, self-contained, and reviewed quickly.
   - name: Security issue
     url: https://github.com/yonatangross/orchestkit/security/policy
     about: Please report vulnerabilities privately rather than as a public issue.
