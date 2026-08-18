@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#3531: agent-browser safety hook URL-coverage hole</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #e6edf3; --dim: #8b949e;
+    --red: #f85149; --green: #3fb950; --amber: #d29922; --blue: #58a6ff;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; padding: 2rem 1rem; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 1.45rem; margin-bottom: .25rem; }
+  h2 { font-size: 1.1rem; margin: 2rem 0 .75rem; border-bottom: 1px solid var(--border); padding-bottom: .35rem; }
+  .sub { color: var(--dim); margin-bottom: 1.5rem; }
+  .toggle { display: flex; gap: .5rem; margin: 1rem 0; }
+  .toggle button { background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: .45rem 1.1rem; border-radius: 6px; cursor: pointer; font-size: .9rem; }
+  .toggle button.on-before { border-color: var(--red); color: var(--red); font-weight: 600; }
+  .toggle button.on-after { border-color: var(--green); color: var(--green); font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--dim); font-weight: 600; }
+  .mono { font-family: var(--mono); font-size: .8rem; }
+  .pill { display: inline-block; padding: .05rem .5rem; border-radius: 999px; font-size: .74rem; font-family: var(--mono); white-space: nowrap; }
+  .pill.bypass { background: rgba(248,81,73,.15); color: var(--red); }
+  .pill.guarded { background: rgba(63,185,80,.15); color: var(--green); }
+  .pill.warn { background: rgba(210,153,34,.15); color: var(--amber); }
+  .pill.exempt { background: rgba(88,166,255,.12); color: var(--blue); }
+  pre { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; font-family: var(--mono); font-size: .78rem; margin: .75rem 0; }
+  .note { background: var(--panel); border-left: 3px solid var(--amber); border-radius: 0 8px 8px 0; padding: .75rem 1rem; margin: .75rem 0; font-size: .88rem; }
+  .flow { font-family: var(--mono); font-size: .8rem; white-space: pre; overflow-x: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin: .75rem 0; }
+  footer { color: var(--dim); font-size: .78rem; margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: .75rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>#3531 &middot; the safety hook only guarded 3 of 10 URL doors</h1>
+  <p class="sub"><span class="mono">extractUrl</span> in <span class="mono">agent-browser-safety.ts</span> matched only <span class="mono">navigate | goto | open</span>. Every other URL-accepting form of agent-browser 0.34.0 walked straight past the URL blocklist, the per-domain rate limiter, and robots.txt enforcement. All forms below verified against the live CLI's <span class="mono">--help</span>.</p>
+
+  <h2>What a URL passes through (after this fix, for every form)</h2>
+  <div class="flow">command string
+   |
+   v
+extractUrls()      <- was extractUrl(): singular, 3 verbs only
+   |
+   v
+[1] URL blocklist          per URL
+[2] per-domain rate limit  per URL   (rate-limits.json, machine-wide)
+[3] robots.txt enforcement per URL
+   |
+   v
+[6] CDP attack-surface warning   <- connect &lt;port|url&gt; now included</div>
+
+  <h2>Coverage by command form</h2>
+  <div class="toggle">
+    <button id="b-before" class="on-before" onclick="setMode('before')">before</button>
+    <button id="b-after" onclick="setMode('after')">after</button>
+  </div>
+  <table>
+    <thead><tr><th>form</th><th>URLs it carries</th><th>state</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <h2>The deliberate exemption</h2>
+  <div class="note"><span class="mono">connect &lt;port|url&gt;</span> gets the CDP attack-surface warning (check 6) but NOT the blocklist: it is a CDP attach, not a page fetch, and blocking it would break legitimate local <span class="mono">connect ws://127.0.0.1:9222</span> flows. A <span class="mono">(?:^|\s)</span> guard keeps <span class="mono">--auto-connect</span> from tripping it.</div>
+
+  <h2>Known limitation, scoped out</h2>
+  <pre>rate-limits.json lives under CLAUDE_PLUGIN_ROOT: ONE shared
+per-domain budget across all sessions and worktrees on the
+machine. Documented in this PR; fixing the shared budget is
+a separate, larger change.</pre>
+
+  <footer>PR playground for branch fix/agent-browser-url-coverage &middot; OrchestKit #3531 &middot; self-contained, no external resources</footer>
+</div>
+
+<script>
+  const FORMS = [
+    ["navigate <url>",                "1", true],
+    ["goto <url> / open <url>",       "1", true],
+    ["read <url>",                    "1", false],
+    ["a11y <url>",                    "1", false],
+    ["vitals <url>",                  "1", false],
+    ["pushstate <url>",               "1", false],
+    ["diff url <u1> <u2>",            "2 (both)", false],
+    ["record start <path> <url>",     "1", false],
+    ["--url <u> (auth save/login, cookies set)", "1", false],
+    ["connect <port|url>",            "1", "cdp"]
+  ];
+  let mode = "before";
+  function setMode(m) {
+    mode = m;
+    document.getElementById("b-before").className = m === "before" ? "on-before" : "";
+    document.getElementById("b-after").className = m === "after" ? "on-after" : "";
+    render();
+  }
+  function render() {
+    document.getElementById("tbody").innerHTML = FORMS.map(([form, n, covered]) => {
+      let pill;
+      if (covered === "cdp") {
+        pill = mode === "before"
+          ? '<span class="pill bypass">NO WARNING</span>'
+          : '<span class="pill warn">CDP WARNING</span> <span class="pill exempt">blocklist exempt, by design</span>';
+      } else if (covered) {
+        pill = '<span class="pill guarded">checks 1-3 run</span>';
+      } else {
+        pill = mode === "before"
+          ? '<span class="pill bypass">BYPASSES blocklist + rate limit + robots</span>'
+          : '<span class="pill guarded">checks 1-3 run</span>';
+      }
+      return "<tr><td class='mono'>" + form.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</td><td class='mono'>" + n + "</td><td>" + pill + "</td></tr>";
+    }).join("");
+  }
+  render();
+</script>
+</body>
+</html>
