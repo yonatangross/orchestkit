@@ -18,12 +18,17 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  # mcpServers: [context7] below is metadata, not a grant (#3461): without
+  # these entries the agent cannot call context7 and silently degrades to
+  # WebSearch. Read-only surface; resolve the library ID first, then query.
+  - mcp__context7__resolve-library-id
+  - mcp__context7__query-docs
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - security-patterns
   - remember
   - memory
-mcpServers: []
+mcpServers: [context7]
 background: true
 critical_system_reminder: "Always verify OWASP Top 10 compliance and check for hardcoded secrets before approving any code."
 initialPrompt: "Check TaskList for pending security tasks. Run parallel scans: dependency audit, secrets detection, and OWASP pattern check."

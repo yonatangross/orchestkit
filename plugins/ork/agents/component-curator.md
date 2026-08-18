@@ -30,13 +30,18 @@ tools:
   - mcp__21st-dev-magic__search_picker
   - mcp__21st-dev-magic__get_component
   - mcp__21st-dev-magic__get_usage
+  # mcpServers: [context7] below is metadata, not a grant (#3461): without
+  # these entries the agent cannot call context7 and silently degrades to
+  # WebSearch. Read-only surface; resolve the library ID first, then query.
+  - mcp__context7__resolve-library-id
+  - mcp__context7__query-docs
 skills:
   - component-search
   - storybook-mcp-integration
   - design-system-tokens
   - remember
   - memory
-mcpServers: [storybook-mcp]
+mcpServers: [storybook-mcp, context7]
 required_mcp_servers: [21st-dev-magic]
 taskTypes:
   - review
