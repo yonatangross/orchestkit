@@ -1125,6 +1125,12 @@ package + version specifier from `args` (handles both `npx -y pkg@x` and
 `sh -c "... npx -y pkg@x"` shapes). Local servers (e.g., `node ./server.mjs`)
 are skipped.
 
+Hosted HTTP entries (`\{"type": "http", "url": "..."\}`) carry no `args` and no npm
+package, so they classify as `&lt;unknown&gt;` and are skipped too. That is correct:
+version pinning is a property of the npx transport only, and upstream versions a
+hosted endpoint server-side. A context7 entry that stops appearing in this check
+after moving to `https://mcp.context7.com/mcp` has not regressed.
+
 For each enabled remote server:
 
 | Spec | Tier | Behavior |
