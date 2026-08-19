@@ -25,6 +25,43 @@ log_info() { echo -e "${GREEN}[CI-SETUP]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[CI-SETUP]${NC} $1"; }
 log_error() { echo -e "${RED}[CI-SETUP]${NC} $1"; }
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# ============================================================================
+# SYSTEM DEPENDENCIES
+# ============================================================================
+# Every package install routes through .github/scripts/ensure-system-deps.sh.
+# Never call a package manager directly from here.
+#
+# Why (#3557): this script's own `sudo apt-get update -qq` hung for a full job
+# cap on fork PR #3555 -- 15m16s on two jobs, 30m15s on a third, each equal to
+# that job's `timeout-minutes` to the second. The guard that used to sit around
+# it (`if ! sudo apt-get update -qq; then log_warn "continuing anyway"`) could
+# not help: it catches a non-zero EXIT, and a hang never exits.
+#
+# #3550 fixed this exact class, but scoped the sweep to `.github/` -- its commit
+# message states "no raw apt-get call remains in .github/" (4c4c25cb1), which
+# was true. bin/ sits outside that path, so this call site was never in scope
+# and kept the hang alive after the fix shipped. The helper skips the package
+# manager entirely when the tools are already present (jq ships on the hosted
+# runner image) and bounds the call with `timeout` when an install is genuinely
+# needed. tests/ci/test-no-unbounded-package-manager.sh gates the whole surface
+# so the next sweep cannot miss a directory again.
+# ============================================================================
+
+ensure_system_deps() {
+    local helper="$REPO_ROOT/.github/scripts/ensure-system-deps.sh"
+
+    if [[ ! -f "$helper" ]]; then
+        log_error "missing $helper"
+        log_error "refusing to fall back to an unbounded package-manager call (#3557)"
+        exit 1
+    fi
+
+    bash "$helper" "$@"
+}
+
 # ============================================================================
 # MAIN SETUP
 # ============================================================================
@@ -133,13 +170,8 @@ setup_linux() {
         fi
     done
 
-    # Update package lists (Ubuntu official repos only now)
-    log_info "Updating package lists..."
-    if ! sudo apt-get update -qq; then
-        log_warn "apt-get update had issues, continuing anyway..."
-    fi
-
-    # Install required dependencies
+    # Install required dependencies. ensure_system_deps skips apt entirely when
+    # the tools are already present, and bounds the call when they are not.
     log_info "Installing dependencies..."
     local packages=("jq")
 
@@ -147,7 +179,7 @@ setup_linux() {
         packages+=("shellcheck")
     fi
 
-    sudo apt-get install -y -qq "${packages[@]}"
+    ensure_system_deps "${packages[@]}"
 
     log_info "Linux setup complete"
 }
@@ -169,11 +201,13 @@ setup_macos() {
 
     # Install dependencies
     log_info "Installing dependencies via Homebrew..."
-    brew install jq
+    local packages=("jq")
 
     if [[ "$with_shellcheck" == "true" ]]; then
-        brew install shellcheck
+        packages+=("shellcheck")
     fi
+
+    ensure_system_deps "${packages[@]}"
 
     log_info "macOS setup complete"
 }
