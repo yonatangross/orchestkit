@@ -238,3 +238,6 @@ docs/site/.claude/memory/sessions/
 # (__guards_main_tmp.ts, __probe_main_tmp.ts) — one of them would have poisoned
 # any `grep permission_mode src/`.
 **/__*_tmp.ts
+
+# scratch fallback when the system temp dir is unwritable (see tests/run-all-tests.sh)
+tests/.tmp/

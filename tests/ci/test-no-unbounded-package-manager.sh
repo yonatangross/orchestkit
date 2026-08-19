@@ -75,7 +75,25 @@ fi
 # cannot fail is worth less than no gate, so this path stays dumb and explicit.
 echo ""
 echo "--- 3: no raw package-manager call outside the helper ---"
-HITS_FILE="$(mktemp)"
+# A test about a denied mktemp must not itself die on a denied mktemp. Bare
+# `mktemp` writes to the system temp dir; an explicit TEMPLATE is what makes
+# TMPDIR effective, because macOS mktemp with no template ignores TMPDIR and
+# goes to /var/folders regardless. Falls back beside this script so the suite
+# still runs in a sandboxed shell.
+scratch_file() {
+    local f
+    for base in "${TMPDIR:-/tmp}" /tmp "$SCRIPT_DIR/.tmp"; do
+        [ -n "$base" ] || continue
+        mkdir -p "$base" 2>/dev/null || continue
+        if f=$(mktemp "${base%/}/ork-hits.XXXXXX" 2>/dev/null) && [ -w "$f" ]; then
+            printf '%s' "$f"; return 0
+        fi
+    done
+    echo "FAIL: no writable scratch dir (TMPDIR, /tmp, $SCRIPT_DIR/.tmp)" >&2
+    return 1
+}
+
+HITS_FILE="$(scratch_file)"
 trap 'rm -f "$HITS_FILE"' EXIT
 
 {

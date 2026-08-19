@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A test runner that could not create a scratch file</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#e6edf3;--dim:#8b949e;
+        --ok:#3fb950;--bad:#f85149;--warn:#d29922;--accent:#58a6ff}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2rem 1.25rem;background:var(--bg);color:var(--fg);
+       font:15px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  main{max-width:58rem;margin:0 auto}
+  h1{font-size:1.3rem;margin:0 0 .35rem}
+  h2{font-size:1rem;margin:2rem 0 .75rem;color:var(--accent)}
+  p.lede{color:var(--dim);margin:0 0 1.5rem}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+         padding:1.25rem;margin-bottom:1.25rem}
+  fieldset{border:1px solid var(--line);border-radius:6px;padding:.7rem 1rem;margin:0 0 .5rem}
+  legend{color:var(--dim);font-size:.82rem;padding:0 .4rem}
+  fieldset label{display:inline-flex;align-items:center;gap:.4rem;margin:0 1.25rem .2rem 0}
+  .steps{list-style:none;margin:.5rem 0 0;padding:0}
+  .steps li{padding:.45rem .7rem;border-left:3px solid var(--line);margin-bottom:.35rem;background:#0b0f14}
+  .steps li.hot{border-left-color:var(--bad)}
+  .steps li.good{border-left-color:var(--ok)}
+  .steps li.dim{color:var(--dim)}
+  .v{margin-top:.9rem;padding:.75rem 1rem;border-radius:6px;background:#0b0f14;
+     border:1px solid var(--line);border-left-width:4px}
+  .v.ok{border-left-color:var(--ok)} .v.bad{border-left-color:var(--bad)}
+  .v strong{display:block} .v.ok strong{color:var(--ok)} .v.bad strong{color:var(--bad)}
+  .v p{margin:.3rem 0 0;font-size:.85rem;color:var(--dim)}
+  code{background:#21262d;padding:.1rem .35rem;border-radius:3px}
+  pre{margin:0;background:#0b0f14;padding:.7rem;border-radius:6px;border:1px solid var(--line);font-size:.84rem;overflow-x:auto}
+  .foot{color:var(--dim);font-size:.82rem;margin-top:2rem;border-top:1px solid var(--line);padding-top:1rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>A test runner that could not create a scratch file</h1>
+  <p class="lede">
+    One denied <code>mktemp</code> stopped every commit. Toggle the two
+    conditions to see where the failure lands.
+  </p>
+
+  <div class="panel">
+    <fieldset>
+      <legend>conditions</legend>
+      <label><input type="checkbox" id="deny" checked> system temp dir denies the write</label>
+      <label><input type="checkbox" id="fixed"> apply the fallback</label>
+    </fieldset>
+    <ul class="steps" id="steps"></ul>
+    <div class="v" id="verdict"><strong id="vT"></strong><p id="vP"></p></div>
+  </div>
+
+  <h2>Why TMPDIR is not the workaround</h2>
+  <div class="panel">
+<pre><code>$ TMPDIR=/unwritable mktemp
+/var/folders/7v/.../T/tmp.iGOVlVqii5   &lt;-- TMPDIR ignored
+
+$ TMPDIR=/unwritable mktemp "$TMPDIR/x.XXXXXX"
+mktemp: mkstemp failed: Operation not permitted   &lt;-- honoured</code></pre>
+    <p style="margin:.7rem 0 0;font-size:.85rem;color:var(--dim)">
+      macOS <code>mktemp</code> with no TEMPLATE ignores <code>TMPDIR</code>
+      entirely. That is why setting it looks like a fix and proves nothing, and
+      why the template is the actual repair rather than a style preference.
+    </p>
+  </div>
+
+  <h2>The part that is almost funny</h2>
+  <div class="panel">
+    <p style="margin:0;font-size:.88rem;color:var(--dim)">
+      Two of the tests this runner executes were written to catch a denied
+      <code>mktemp</code> silently zeroing a count. Both used a bare
+      <code>mktemp -d</code> themselves, so both died of the condition they
+      exist to detect. They pass in CI, whose temp dir works, and fail in
+      exactly the environment the bug lives in.
+    </p>
+  </div>
+
+  <div class="foot">
+    Order of preference: <code>TMPDIR</code>, then <code>/tmp</code>, then a
+    gitignored <code>tests/.tmp/</code> beside the runner. A named failure if all
+    three are unusable, never a silent one.
+  </div>
+</main>
+<script>
+(function(){
+  var deny=document.getElementById('deny'), fixed=document.getElementById('fixed'),
+      steps=document.getElementById('steps'), verdict=document.getElementById('verdict'),
+      vT=document.getElementById('vT'), vP=document.getElementById('vP');
+  function render(){
+    var d=deny.checked, f=fixed.checked, broken=(d&&!f), s=[];
+    s.push([f?'mktemp with an explicit template, TMPDIR honoured':'RESULTS_FILE=$(mktemp)  — bare, system temp only', d?(f?'good':'hot'):'dim']);
+    if(d&&f){
+      s.push(['TMPDIR denied, falls back to /tmp, then tests/.tmp/','good']);
+      s.push(['scratch file created, suite runs','good']);
+    } else if(d){
+      s.push(['mkstemp fails: Operation not permitted','hot']);
+      s.push(['set -e aborts the runner before any test','hot']);
+      s.push(['pre-commit reports "quick lint tests FAILED", zero output','hot']);
+    } else {
+      s.push(['scratch file created, suite runs','dim']);
+    }
+    steps.innerHTML='';
+    s.forEach(function(x){var li=document.createElement('li');li.textContent=x[0];li.className=x[1];steps.appendChild(li);});
+    verdict.className='v '+(broken?'bad':'ok');
+    vT.textContent = broken ? 'every commit blocked' : 'suite runs, 3 categories';
+    vP.textContent = broken
+      ? 'No test executed, so the failure says nothing about the code being committed. The obvious reading is "my change broke the tests", which is false.'
+      : 'The runner reaches the tests. A genuine failure now means what it says.';
+  }
+  deny.addEventListener('change',render); fixed.addEventListener('change',render); render();
+})();
+</script>
+</body>
+</html>
