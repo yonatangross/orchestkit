@@ -86,7 +86,36 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-RESULTS_FILE=$(mktemp)
+# ---------------------------------------------------------------------------
+# Scratch files, without depending on a writable system temp dir.
+#
+# A bare `mktemp` writes to the system temp dir and dies when that write is
+# denied. Under `set -e` that killed this runner on its first scratch file, so
+# nothing ran and the pre-commit hook reported "quick lint tests FAILED" with no
+# test having executed. Same class as #3564 (a denied mktemp silently zeroed a
+# subcount in count-hooks.sh); the blast radius here is larger, because this
+# script sits on the commit path and its failure blocks every commit.
+#
+# An explicit TEMPLATE is what makes TMPDIR effective: macOS `mktemp` called
+# with no template ignores TMPDIR entirely and goes to /var/folders regardless,
+# which is also why `TMPDIR=/somewhere bash run-all-tests.sh` looks like it
+# works and proves nothing.
+# ---------------------------------------------------------------------------
+scratch_file() {
+    local f
+    for dir in "${TMPDIR:-/tmp}" /tmp "$SCRIPT_DIR/.tmp"; do
+        [ -n "$dir" ] || continue
+        mkdir -p "$dir" 2>/dev/null || continue
+        if f=$(mktemp "${dir%/}/ork-tests.XXXXXX" 2>/dev/null) && [ -w "$f" ]; then
+            printf '%s' "$f"
+            return 0
+        fi
+    done
+    echo "run-all-tests: FAILED to create a scratch file in TMPDIR, /tmp or $SCRIPT_DIR/.tmp" >&2
+    return 1
+}
+
+RESULTS_FILE=$(scratch_file)
 TOTAL_PASSED=0
 TOTAL_FAILED=0
 # Advisory-warning ratchet (2026-08-01): sections print "Warnings: N" lines.
@@ -138,7 +167,7 @@ run_dir() {
 
     local exit_code=0
     local section_out
-    section_out=$(mktemp)
+    section_out=$(scratch_file)
     # tee so the operator sees everything AND the ratchet can count warnings.
     # `|| exit_code=$?` captures the engine's real exit (pipefail) without
     # tripping set -e; the code is recorded below, never swallowed.
@@ -180,7 +209,7 @@ run_script() {
 
     local exit_code=0
     local section_out
-    section_out=$(mktemp)
+    section_out=$(scratch_file)
     # Same capture contract as run_dir: recorded, never swallowed.
     bash "$script" 2>&1 | tee "$section_out" || exit_code=$?
     local section_warnings
