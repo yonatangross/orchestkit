@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.41](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.40...v10.0.0-alpha.41) (2026-08-19)
+
+
+### Features
+
+* **ork-codex:** ship context7 as a plugin-native MCP server ([#3549](https://github.com/yonatangross/orchestkit/issues/3549)) ([cf231c6](https://github.com/yonatangross/orchestkit/commit/cf231c64fad870e300cfe20c2d12948ef541fd1c))
+
 ## [10.0.0-alpha.40](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.39...v10.0.0-alpha.40) (2026-08-18)
 
 

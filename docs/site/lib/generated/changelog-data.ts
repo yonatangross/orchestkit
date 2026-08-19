@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.41",
+    "date": "2026-08-19",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**ork-codex:** ship context7 as a plugin-native MCP server ([#3549](https://github.com/yonatangross/orchestkit/issues/3549)) ([cf231c6](https://github.com/yonatangross/orchestkit/commit/cf231c64fad870e300cfe20c2d12948ef541fd1c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.40",
     "date": "2026-08-18",
     "compareUrl": "",
