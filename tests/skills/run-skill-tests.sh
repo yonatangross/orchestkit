@@ -116,7 +116,7 @@ DIM='\033[2m'
 NC='\033[0m'
 
 # Results tracking
-RESULTS_FILE=$(mktemp)
+RESULTS_FILE=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 TOTAL_TESTS=0
 TOTAL_PASSED=0
 TOTAL_FAILED=0
@@ -297,7 +297,7 @@ run_test_file() {
     fi
 
     local output_file
-    output_file=$(mktemp)
+    output_file=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     local start
     start=$(get_ms)
     local exit_code=0

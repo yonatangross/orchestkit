@@ -99,7 +99,7 @@ main() {
   # 1. append the dirs to the archive branch via an isolated worktree.
   git fetch origin "${ARCHIVE_BRANCH}" --quiet
   local wt name
-  wt="$(mktemp -d)"
+  wt="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
   git worktree add --quiet "${wt}" "origin/${ARCHIVE_BRANCH}"
   for name in ${list}; do
     mkdir -p "${wt}/docs"

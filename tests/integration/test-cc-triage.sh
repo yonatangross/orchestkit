@@ -34,7 +34,7 @@ GAPS_BACKUP=""
 SKILL_GAPS_BACKUP=""
 SKILL_GAPS_EXISTED=0
 [ -f shared/cc-skill-gaps.json ] && { SKILL_GAPS_BACKUP=$(cat shared/cc-skill-gaps.json); SKILL_GAPS_EXISTED=1; }
-SNAP_BACKUP_DIR=$(mktemp -d)
+SNAP_BACKUP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 [ -d shared/cc-snapshots ] && rsync -a shared/cc-snapshots/ "$SNAP_BACKUP_DIR/"
 
 restore() {

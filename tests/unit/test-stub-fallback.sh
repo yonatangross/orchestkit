@@ -147,7 +147,7 @@ echo ""
 echo "▶ Test 4: simulate docs.yml's \`npm pkg set ... file:../stubs/analytics-stub\`"
 echo "────────────────────────────────────────────────────────────────"
 
-SANDBOX=$(mktemp -d)
+SANDBOX=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap 'rm -rf "$SANDBOX"' EXIT
 
 # Make a skeletal package.json that references @yonatan-hq/analytics like

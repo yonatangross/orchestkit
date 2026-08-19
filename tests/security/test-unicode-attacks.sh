@@ -127,7 +127,7 @@ assert_absent() { # assert_absent <haystack> <needle> <label>
   fi
 }
 
-WORK_DIR="$(mktemp -d)"
+WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -rf "$WORK_DIR"' EXIT
 
 # ===========================================================================

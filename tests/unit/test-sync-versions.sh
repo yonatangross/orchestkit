@@ -99,7 +99,7 @@ fi
 echo ""
 
 # ─── Sandbox: a throwaway copy of the tracked working tree ──────────
-SANDBOX="$(mktemp -d)"
+SANDBOX="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 cleanup() { rm -rf "$SANDBOX"; }
 trap cleanup EXIT INT TERM
 # NOTE: this trap only removes a temp dir. Nothing in the repo needs restoring,

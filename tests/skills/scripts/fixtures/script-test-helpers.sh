@@ -138,7 +138,7 @@ check_arguments_in_markdown() {
     # Check for $ARGUMENTS outside of !command patterns
     # Remove !command patterns first, then check for $ARGUMENTS
     local temp_file
-    temp_file=$(mktemp)
+    temp_file=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     # Remove !`...` patterns
     sed 's/!`[^`]*`//g' "$file" > "$temp_file"
     # Check for $ARGUMENTS in remaining content
@@ -287,7 +287,7 @@ uses_arguments_in_task() {
     local file="$1"
     # Get content after removing !command patterns
     local temp_file
-    temp_file=$(mktemp)
+    temp_file=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     sed 's/!`[^`]*`//g' "$file" > "$temp_file"
     # Check for $ARGUMENTS in task section
     if awk '/Your Task|Task:|Instructions:/,/^##|^$/ {print}' "$temp_file" 2>/dev/null | grep -q '\$ARGUMENTS'; then

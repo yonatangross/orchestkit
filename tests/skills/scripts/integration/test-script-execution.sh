@@ -217,7 +217,7 @@ for skill_path in "${SAMPLE_SKILLS[@]}"; do
     skill_name=$(echo "$skill_path" | cut -d'/' -f1)
     
     # Simulate full invocation: execute commands, substitute arguments
-    temp_content=$(mktemp)
+    temp_content=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     
     # Read file and process
     while IFS= read -r line; do

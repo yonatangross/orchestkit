@@ -92,7 +92,7 @@ section "4. Symlink bypass — the ME-001 defence (CWE-59)"
 # in the suite exercised that claim, so it was documentation rather than a
 # tested behaviour. A symlink pointing at a protected file must be denied on the
 # basis of its TARGET, not its innocuous-looking name.
-TMPD="$(mktemp -d)"
+TMPD="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 # Chain, do not replace: a bare `trap ... EXIT` OVERWRITES the helper's
 # `trap cleanup_test_env EXIT` (test-helpers.sh), so $TMPDIR/orchestkit-tests-$$
 # leaked on every run of this file.

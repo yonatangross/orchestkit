@@ -179,7 +179,7 @@ if [[ ! -x "$BUMP_SCRIPT" ]]; then
 else
     ok "scripts/bump-stable-pin.sh is present and executable"
 
-    fixture_dir=$(mktemp -d)
+    fixture_dir=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
     trap 'rm -rf "$fixture_dir"' EXIT
     fixture="$fixture_dir/marketplace.json"
 

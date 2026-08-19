@@ -249,7 +249,7 @@ preflight_check_plugin_errors() {
     fi
 
     local tmp_out
-    tmp_out=$(mktemp)
+    tmp_out=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     CLEANUP_FILES+=("$tmp_out")
 
     # Minimal probe: ask Claude to emit its init event and stop immediately.

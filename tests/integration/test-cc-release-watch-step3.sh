@@ -42,7 +42,7 @@ echo "========================================================="
 cd "$PROJECT_ROOT"
 
 # ---- mock gh (PATH-shadow) ----------------------------------------------------
-MOCK_DIR=$(mktemp -d)
+MOCK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 MOCK_LOG="$MOCK_DIR/gh.log"
 export MOCK_LOG
 cat > "$MOCK_DIR/gh" <<'MOCK'
@@ -105,7 +105,7 @@ MOCK
 chmod +x "$MOCK_DIR/gh"
 export PATH="$MOCK_DIR:$PATH"
 
-WORK=$(mktemp -d)
+WORK=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 cleanup() { rm -rf "$MOCK_DIR" "$WORK"; }
 trap cleanup EXIT
 
@@ -367,7 +367,7 @@ dispo_of() {
 }
 
 # ---- Case 12 (#2993): above-floor + ZERO evidence → NOT filed, noop stamped ---
-EVDIR=$(mktemp -d)   # empty dir = no evidence anywhere
+EVDIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")   # empty dir = no evidence anywhere
 F=$(feat "chrome_scroll_polish" 20)
 GAPS=$(jq -nc --argjson f "$F" '[{version: "2.1.999", features: [$f]}]')
 run_gate "case12-noop" "$GAPS" "$EVDIR"
@@ -383,7 +383,7 @@ rm -rf "$EVDIR"
 # ---- Case 13 (#2992): sub-floor + evidence → filed via recall lane -----------
 # The changelog line carries a mixedCase identifier (SessionStart) that appears
 # in the evidence file — the STRONG-token hit that drives the recall lane.
-EVDIR=$(mktemp -d)
+EVDIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 echo "handles SessionStart source and fork materialization" > "$EVDIR/dispatcher.ts"
 F=$(jq -nc '{feature_slug: "session_fork_source", gap_score: 5, description: "SessionStart reports source fork", category: "new_field", reference_changelog_line: "Changed SessionStart hooks to report source fork", affected_skills: []}')
 GAPS=$(jq -nc --argjson f "$F" '[{version: "2.1.999", features: [$f]}]')
@@ -404,7 +404,7 @@ fi
 rm -rf "$EVDIR"
 
 # ---- Case 14 (#2992): sub-floor + NO evidence → unfiled-subfloor -------------
-EVDIR=$(mktemp -d)   # empty
+EVDIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")   # empty
 F=$(feat "chrome_tab_group" 5)
 GAPS=$(jq -nc --argjson f "$F" '[{version: "2.1.999", features: [$f]}]')
 run_gate "case14-unfiled" "$GAPS" "$EVDIR"
@@ -445,7 +445,7 @@ fi
 # ---- Case 16 (#2993): above-floor WITH evidence → still files (gate-on happy) -
 # The changelog line names a mixedCase identifier (SubagentStop) present in the
 # evidence file — the STRONG-token hit that lets the precision lane file.
-EVDIR=$(mktemp -d)
+EVDIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 echo "the dispatcher handles the SubagentStop hook" > "$EVDIR/dispatcher.ts"
 F=$(jq -nc '{feature_slug: "subagentstop_hook", gap_score: 15, description: "Added the SubagentStop hook", category: "new_event", reference_changelog_line: "Added the SubagentStop hook event", affected_skills: []}')
 GAPS=$(jq -nc --argjson f "$F" '[{version: "2.1.999", features: [$f]}]')

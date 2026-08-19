@@ -19,7 +19,7 @@ if [[ ! -x "$CHECK" ]]; then
     exit 1
 fi
 
-TMP="$(mktemp -d)"
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 
 PASS=0

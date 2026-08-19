@@ -73,7 +73,7 @@ for eval_file in "$EVALS_DIR"/*.eval.yaml; do
     $VERBOSE && echo -e "  \033[1m$sid\033[0m"
 
     # Extract prompts with yq once into temp file
-    tmpf=$(mktemp)
+    tmpf=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     yq -r '(.trigger_evals // [])[] | [.should_trigger, .prompt] | @tsv' "$eval_file" > "$tmpf" 2>/dev/null || true
 
     while IFS=$'\t' read -r should_trigger prompt; do

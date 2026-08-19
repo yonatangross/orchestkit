@@ -53,7 +53,7 @@ LIVE_PID=$$
 # to /.claude/... and the hook silently no-ops, which reads exactly like the
 # bug under test. That mistake cost a debugging cycle here, so it is spelled out.
 make_fixture() {
-    FIX="$(mktemp -d)"
+    FIX="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
     local ch="$FIX/.claude/plugins/cache/orchestkit/$1"; shift
     mkdir -p "$ch"
     for spec in "$@"; do

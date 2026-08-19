@@ -69,7 +69,7 @@ if [[ ! -d "$PLUGIN_SRC/commands" ]]; then
 fi
 EXPECTED_COMMANDS=$(ls "$PLUGIN_SRC/commands"/*.md | awk 'END{print NR}')
 
-WORK="$(mktemp -d)"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 cleanup() { rm -rf "$WORK"; }
 trap cleanup EXIT
 

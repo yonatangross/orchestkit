@@ -30,7 +30,7 @@ TEST_TEMP_DIR=""
 # =============================================================================
 
 setup() {
-    TEST_TEMP_DIR=$(mktemp -d)
+    TEST_TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
     echo "Test temp directory: $TEST_TEMP_DIR"
 }
 

@@ -19,7 +19,7 @@ source "$REPO_ROOT/tests/evals/scripts/lib/budget-governor.sh"
 
 STATE="$REPO_ROOT/tests/evals/results/.budget-state.json"
 BACKUP=""
-[[ -f "$STATE" ]] && { BACKUP="$(mktemp)"; cp "$STATE" "$BACKUP"; }
+[[ -f "$STATE" ]] && { BACKUP="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"; cp "$STATE" "$BACKUP"; }
 restore() {
   if [[ -n "$BACKUP" ]]; then cp "$BACKUP" "$STATE"; rm -f "$BACKUP"; else rm -f "$STATE"; fi
 }

@@ -84,7 +84,7 @@ PROSE_EXT_RE='\.(md|mdx|markdown|html?|txt)$'
 # lanes and merged back into the ledger in a single jq pass at the end. The
 # filing loops run in a `jq | while` subshell, so a file (not a var) is how the
 # records survive back to the parent shell.
-DISPO_FILE="$(mktemp)"
+DISPO_FILE="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -f "$DISPO_FILE"' EXIT
 
 # Portable sha256 of stdin → bare hex (Linux sha256sum, macOS shasum). Used for
@@ -410,7 +410,7 @@ done < <(jq -r '.[] | "\(.version) \((.features // []) | length) \(.features_ext
 # version + space + slug (neither field contains a space, so the key is unique).
 if [ -s "$DISPO_FILE" ]; then
   DISPO_JSON="$(jq -s '.' "$DISPO_FILE")"
-  TMP_DISPO="$(mktemp)"
+  TMP_DISPO="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
   jq --argjson dispo "$DISPO_JSON" '
     ($dispo | map({key: (.version + " " + .feature_slug), value: .disposition}) | from_entries) as $m
     | map(
@@ -441,7 +441,7 @@ fi
 # proves it. A legacy entry gets cap_saturated with no cap_dropped, which is the
 # honest encoding of "at the cap, cause unknown".
 TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-TMP_GAPS="$(mktemp)"
+TMP_GAPS="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
 jq --arg ts "$TS" --argjson cap "$FEATURE_CAP" \
   'map(
      (if ((.features // []) | length) == $cap then . + {cap_saturated: true} else . end)

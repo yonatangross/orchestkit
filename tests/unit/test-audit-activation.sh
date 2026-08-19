@@ -24,7 +24,7 @@ echo "════════════════════════�
 # Sandbox tree: a fake src/agents + .claude/logs so the script's path-join
 # resolves to controlled fixtures (it derives REPO_ROOT from its own location,
 # so we copy the script into a temp tree four levels deep to match).
-SBX="$(mktemp -d)"
+SBX="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 mkdir -p "$SBX/src/skills/audit-activation/scripts" "$SBX/src/agents" "$SBX/.claude/logs" "$SBX/src/skills/demo"
 cp "$AUDIT" "$SBX/src/skills/audit-activation/scripts/run-activation-audit.sh"
 for a in alpha-agent beta-agent gamma-agent; do printf 'name: %s\n' "$a" > "$SBX/src/agents/$a.md"; done

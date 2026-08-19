@@ -84,9 +84,9 @@ section()  { echo; echo "${YELLOW}$1${NC}"; }
 # comparing, so an unresolved sandbox root NEVER matches the resolved file path
 # and every containment assertion silently reads as "outside the project" —
 # a green run that graded nothing. Measured, not assumed.
-SANDBOX_PROJECT="$(cd "$(mktemp -d)" && pwd -P)"
-SANDBOX_OUTSIDE="$(cd "$(mktemp -d)" && pwd -P)"
-SANDBOX_TMP="$(cd "$(mktemp -d)" && pwd -P)"
+SANDBOX_PROJECT="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")" && pwd -P)"
+SANDBOX_OUTSIDE="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")" && pwd -P)"
+SANDBOX_TMP="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")" && pwd -P)"
 cleanup_all() {
   rm -rf "$SANDBOX_PROJECT" "$SANDBOX_OUTSIDE" "$SANDBOX_TMP"
   cleanup_test_env
@@ -256,7 +256,7 @@ run_instructions_loaded() { # run_instructions_loaded <tmpdir> <session_id>
 
 probe_session_id() { # probe_session_id <session_id> <expected-dirname> <label>
   local sid="$1" want="$2" label="$3" root got
-  root="$(cd "$(mktemp -d)" && pwd -P)"
+  root="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")" && pwd -P)"
   run_instructions_loaded "$root" "$sid"
 
   # Exactly one top-level entry, named as expected.
@@ -284,7 +284,7 @@ probe_session_id 'sess-abc123' \
 
 # The traversal payload is the one that could actually escape. Assert the
 # negative directly rather than inferring it from a directory listing.
-ESCAPE_ROOT="$(cd "$(mktemp -d)" && pwd -P)"
+ESCAPE_ROOT="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")" && pwd -P)"
 mkdir -p "$ESCAPE_ROOT/inner"
 run_instructions_loaded "$ESCAPE_ROOT/inner" '../../../../pwned'
 if [[ -e "$ESCAPE_ROOT/pwned" ]] || [[ -e "$ESCAPE_ROOT/claude-session-..." ]]; then

@@ -61,7 +61,7 @@ if [[ ! -d "$MANIFESTS_DIR" ]]; then
 fi
 
 # Temp file for skill->plugin mappings
-SKILL_MAP=$(mktemp)
+SKILL_MAP=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap "rm -f $SKILL_MAP" EXIT
 
 # Collect all skill->plugin mappings from manifests
