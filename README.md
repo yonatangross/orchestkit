@@ -333,6 +333,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.42](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.41...v10.0.0-alpha.42)** · 2026-08-19
+
+- **build:** stop a denied scratch file from zeroing the hook subcount (#3567), closes [#3564](https://github.com/yonatangross/orchestkit/issues/3564)
+- **ci:** bound the second apt-get, the one outside .github/ (#3561), closes [#3557](https://github.com/yonatangross/orchestkit/issues/3557)
+- **hooks:** scope the context7 cap to the session it is named after (#3568), closes [#3542](https://github.com/yonatangross/orchestkit/issues/3542)
+- **configure:** add good first issues link to issue template (#3555), closes [#3506](https://github.com/yonatangross/orchestkit/issues/3506)
+
 **[v10.0.0-alpha.41](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.40...v10.0.0-alpha.41)** · 2026-08-19
 
 - **ork-codex:** ship context7 as a plugin-native MCP server (#3549)
@@ -380,11 +387,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **git:** land the reap-lane branch recovery evidence (#3497)
 - **contributing:** plugins/ is generated AND tracked (#3498)
 - **playground:** exempt fork PRs from the playground gate (#3508), closes [#3502](https://github.com/yonatangross/orchestkit/issues/3502)
-
-**[v10.0.0-alpha.34](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.33...v10.0.0-alpha.34)** · 2026-08-14
-
-- **docs:** publish release-rail to the Lab, drop the render proxy (#3491)
-- **release:** real component counts, and a named announce identity (#3489)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

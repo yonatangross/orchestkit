@@ -17,6 +17,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.42",
+    "date": "2026-08-19",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**build:** stop a denied scratch file from zeroing the hook subcount ([#3567](https://github.com/yonatangross/orchestkit/issues/3567)) ([21b11c5](https://github.com/yonatangross/orchestkit/commit/21b11c5757e1afbe5eb8f7aee1a842ba3d4d85df)), closes [#3564](https://github.com/yonatangross/orchestkit/issues/3564)",
+          "**ci:** bound the second apt-get, the one outside .github/ ([#3561](https://github.com/yonatangross/orchestkit/issues/3561)) ([f2c7866](https://github.com/yonatangross/orchestkit/commit/f2c786606a9ece2c0199969152f855389e5c4217)), closes [#3557](https://github.com/yonatangross/orchestkit/issues/3557)",
+          "**hooks:** scope the context7 cap to the session it is named after ([#3568](https://github.com/yonatangross/orchestkit/issues/3568)) ([dd96b2c](https://github.com/yonatangross/orchestkit/commit/dd96b2c256bb0798aa3cca15fbfd7950d6ba64cd)), closes [#3542](https://github.com/yonatangross/orchestkit/issues/3542)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**configure:** add good first issues link to issue template ([#3555](https://github.com/yonatangross/orchestkit/issues/3555)) ([37fd4d4](https://github.com/yonatangross/orchestkit/commit/37fd4d416640c1a1ee1fbaed05b702e195de9d91)), closes [#3506](https://github.com/yonatangross/orchestkit/issues/3506)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.41",
     "date": "2026-08-19",
     "compareUrl": "",
