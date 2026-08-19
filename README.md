@@ -333,6 +333,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.41](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.40...v10.0.0-alpha.41)** · 2026-08-19
+
+- **ork-codex:** ship context7 as a plugin-native MCP server (#3549)
+
 **[v10.0.0-alpha.40](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.39...v10.0.0-alpha.40)** · 2026-08-18
 
 - **agents:** grant context7 deliberately, per agent (#3547)
@@ -381,10 +385,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **docs:** publish release-rail to the Lab, drop the render proxy (#3491)
 - **release:** real component counts, and a named announce identity (#3489)
-
-**[v10.0.0-alpha.33](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.32...v10.0.0-alpha.33)** · 2026-08-14
-
-- **mcp:** drop the last ork-elicit leftover from the esbuild header (#3485)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
