@@ -75,7 +75,7 @@ if ! assert_hook_registered "$GUARD"; then
   exit 1
 fi
 
-TMPD="$(mktemp -d)"
+TMPD="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 # Chain, do not replace: a bare `trap ... EXIT` OVERWRITES the helper's
 # `trap cleanup_test_env EXIT` (test-helpers.sh), leaking the per-process
 # temp dir on every run.

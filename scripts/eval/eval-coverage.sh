@@ -72,7 +72,7 @@ list_agent_specs() {
   done | sort -u
 }
 
-TMP_WORK="$(mktemp -d)"
+TMP_WORK="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -rf "$TMP_WORK"' EXIT
 
 # nlines: line count of a file (empty file -> 0). No pipe-to-grep so an empty

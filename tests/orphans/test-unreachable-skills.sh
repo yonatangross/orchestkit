@@ -67,7 +67,7 @@ ADVISORY="${ORK_UNREACHABLE_SKILLS_ADVISORY:-0}"
 VERBOSE=""
 for arg in "$@"; do [[ "$arg" == "--verbose" ]] && VERBOSE="1"; done
 
-TMP="$(mktemp -d)"
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 
 # Places an inbound reference can legitimately live. docs/ is deliberately out:

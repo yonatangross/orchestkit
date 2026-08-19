@@ -26,7 +26,7 @@ report_pass() { PASS=$((PASS+1)); echo "  PASS: $1"; }
 report_fail() { FAIL=$((FAIL+1)); echo "  FAIL: $1" >&2; }
 
 # ----- setup: copy the script into a temp project tree -----
-TMPDIR_FAKE="$(mktemp -d)"
+TMPDIR_FAKE="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -rf "$TMPDIR_FAKE"' EXIT
 mkdir -p "$TMPDIR_FAKE/scripts"
 cp "$SCRIPT_PATH" "$TMPDIR_FAKE/scripts/check-install.sh"

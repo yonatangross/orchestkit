@@ -34,7 +34,7 @@ fi
 # Negative case: introduce drift in a copy, --check must catch it; restore + verify
 CONSUMER="$PROJECT_ROOT/src/skills/explore/scripts/render-spec.mjs"
 if [[ -f "$CONSUMER" ]]; then
-  BACKUP="$(mktemp)"
+  BACKUP="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
   cp "$CONSUMER" "$BACKUP"
   trap 'cp "$BACKUP" "$CONSUMER"; rm -f "$BACKUP"' EXIT
   echo "// drift injected by test" >> "$CONSUMER"

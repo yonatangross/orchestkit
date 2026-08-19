@@ -40,7 +40,7 @@ count_calls() {
 echo "CC Stale Below-Floor — labeling sweep tests"
 echo "========================================================="
 
-MOCK_DIR=$(mktemp -d)
+MOCK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 MOCK_LOG="$MOCK_DIR/gh.log"
 export MOCK_LOG
 cat > "$MOCK_DIR/gh" <<'MOCK'
@@ -77,7 +77,7 @@ MOCK
 chmod +x "$MOCK_DIR/gh"
 export PATH="$MOCK_DIR:$PATH"
 
-WORK=$(mktemp -d)
+WORK=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 cleanup() { rm -rf "$MOCK_DIR" "$WORK"; }
 trap cleanup EXIT
 

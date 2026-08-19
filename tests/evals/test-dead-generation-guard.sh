@@ -36,7 +36,7 @@ log_pass() { echo "  ${GREEN}✓${NC} $1"; PASS=$((PASS + 1)); }
 log_fail() { echo "  ${RED}✗${NC} $1"; FAIL=$((FAIL + 1)); }
 section() { echo; echo "${YELLOW}$1${NC}"; }
 
-TMP=$(mktemp -d)
+TMP=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT
 
 echo "=========================================="

@@ -345,7 +345,7 @@ if [[ "${1:-}" == "--check" ]]; then
   STALE=0
   for file in "${MARKER_FILES[@]}"; do
     if [[ ! -f "$file" ]]; then continue; fi
-    TMP=$(mktemp)
+    TMP=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     cp "$file" "$TMP"
     stamp_file "$TMP"
     if ! diff -q "$file" "$TMP" >/dev/null 2>&1; then
@@ -358,7 +358,7 @@ if [[ "${1:-}" == "--check" ]]; then
   # Check marketplace.json
   MKT="$PROJECT_ROOT/.claude-plugin/marketplace.json"
   if [[ -f "$MKT" ]]; then
-    TMP=$(mktemp)
+    TMP=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     cp "$MKT" "$TMP"
     if [[ "$(uname)" == "Darwin" ]]; then
       sed -i '' -E "s/[0-9]+ skills, [0-9]+ agents, [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, ${HOOKS} hooks/g" "$TMP"
@@ -375,7 +375,7 @@ if [[ "${1:-}" == "--check" ]]; then
   # Check pyproject.toml description count tuple
   PYPROJECT="$PROJECT_ROOT/pyproject.toml"
   if [[ -f "$PYPROJECT" ]]; then
-    TMP=$(mktemp)
+    TMP=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     cp "$PYPROJECT" "$TMP"
     if [[ "$(uname)" == "Darwin" ]]; then
       sed -i '' -E "s/[0-9]+ skills, [0-9]+ agents, and [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, and ${HOOKS} hooks/g" "$TMP"
@@ -403,7 +403,7 @@ if [[ "${1:-}" == "--check" ]]; then
   # Check CLAUDE.md plain directory-structure count comment
   CLAUDE_MD_F="$PROJECT_ROOT/CLAUDE.md"
   if [[ -f "$CLAUDE_MD_F" ]]; then
-    TMP=$(mktemp)
+    TMP=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     cp "$CLAUDE_MD_F" "$TMP"
     if [[ "$(uname)" == "Darwin" ]]; then
       sed -i '' -E "s/# [0-9]+ skills \\(YAML/# ${SKILLS} skills (YAML/g" "$TMP"
@@ -421,7 +421,7 @@ if [[ "${1:-}" == "--check" ]]; then
   DOCS_DIR="$PROJECT_ROOT/docs/site/content"
   if [[ -d "$DOCS_DIR" ]]; then
     while IFS= read -r -d '' file; do
-      TMP=$(mktemp)
+      TMP=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
       cp "$file" "$TMP"
       apply_docs_mdx_patterns "$TMP"
       if ! diff -q "$file" "$TMP" >/dev/null 2>&1; then

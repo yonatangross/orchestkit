@@ -55,7 +55,7 @@ done
 
 # Negative cases
 echo "[invalid specs]"
-TMP="$(mktemp)"
+TMP="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap "rm -f $TMP" EXIT
 SCRIPT="$PROJECT_ROOT/src/skills/explore/scripts/render-spec.mjs"
 
@@ -117,7 +117,7 @@ check "renders StatusBadge error glyph" bash -c "node '$SCRIPT' '$TMP' | grep -q
 echo "[main flag handling]"
 check_fails "no path arg fails cleanly"            node "$SCRIPT"
 check_fails "non-existent file fails cleanly"      node "$SCRIPT" "/tmp/does-not-exist-$$.json" --check
-TMPNOJSON=$(mktemp); echo 'not json content' > "$TMPNOJSON"
+TMPNOJSON=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX"); echo 'not json content' > "$TMPNOJSON"
 check_fails "invalid JSON content fails cleanly"   node "$SCRIPT" "$TMPNOJSON" --check
 rm -f "$TMPNOJSON"
 

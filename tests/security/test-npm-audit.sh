@@ -119,7 +119,7 @@ audit_project() {
   echo "▶ $label ($dir)"
 
   local report errfile
-  errfile=$(mktemp)
+  errfile=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
   # npm audit exits 1 whenever findings exist, which is the normal case here, so
   # its exit code cannot distinguish "found CVEs" from "could not run". We decide
   # on the report instead. stderr is captured rather than discarded: an earlier

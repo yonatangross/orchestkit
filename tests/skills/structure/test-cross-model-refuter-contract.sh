@@ -24,7 +24,7 @@ SCHEMA="$REPO_ROOT/src/skills/review-pr/references/cross-model-output.schema.jso
 STUB="$REPO_ROOT/tests/fixtures/cross-model-refuter/stub-alt-model.sh"
 DOC="$REPO_ROOT/src/skills/review-pr/references/cross-model-refuter.md"
 ENGINE="$REPO_ROOT/src/shared/rules/adversarial-refutation.md"
-ERR="$(mktemp)"
+ERR="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -f "$ERR"' EXIT
 
 FAILED=0

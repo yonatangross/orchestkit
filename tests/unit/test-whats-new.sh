@@ -31,7 +31,7 @@ hash_of() { cksum "$1" | awk '{print $1"-"$2}'; }
 # Returns the root dir on stdout.
 make_root() {
   local dir
-  dir=$(mktemp -d)
+  dir=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
   printf '%s\n' "$1" > "$dir/CHANGELOG.md"
   cat > "$dir/README.md" <<'EOF'
 # Fixture
@@ -145,7 +145,7 @@ if run_gen "$ROOT" --check >/dev/null; then pass "--check passes on a fresh READ
 rm -rf "$ROOT"
 
 # ── 4. missing markers must ERROR, not silently pass ────────────────────────
-ROOT=$(mktemp -d)
+ROOT=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 printf '# Changelog\n\n## [8.84.7](https://x/c...d) (2026-07-23)\n\n* **x:** one ([#1](u))\n' > "$ROOT/CHANGELOG.md"
 printf '# No markers here\n' > "$ROOT/README.md"
 if run_gen "$ROOT" >/dev/null 2>&1; then

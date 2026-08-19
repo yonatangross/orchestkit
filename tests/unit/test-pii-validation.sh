@@ -22,7 +22,7 @@ YELLOW=$'\033[33m'
 RESET=$'\033[0m'
 
 # Create temporary test directory
-TEST_DIR=$(mktemp -d)
+TEST_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap "rm -rf $TEST_DIR" EXIT
 
 # Export test environment

@@ -63,7 +63,7 @@ if [[ ! -d "$MANIFESTS_DIR" ]]; then
 fi
 
 # Collect all skills referenced in manifests (explicit arrays + "all")
-CLAIMED_SKILLS=$(mktemp)
+CLAIMED_SKILLS=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 HAS_ALL_PLUGIN=false
 ALL_PLUGIN_NAME=""
 trap "rm -f $CLAIMED_SKILLS" EXIT

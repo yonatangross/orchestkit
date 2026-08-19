@@ -201,7 +201,7 @@ extract_output_text() {
 grade_assertions_batch() {
     local assertions_json="$1"
     local output_text="$2"
-    local tmpfile; tmpfile=$(mktemp)
+    local tmpfile; tmpfile=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     CLEANUP_FILES+=("$tmpfile")
 
     local grading_prompt
@@ -244,7 +244,7 @@ $output_text"
 grade_assertion() {
     local assertion_check="$1"
     local output_text="$2"
-    local tmpfile; tmpfile=$(mktemp)
+    local tmpfile; tmpfile=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     CLEANUP_FILES+=("$tmpfile")
 
     local grading_prompt
@@ -287,7 +287,7 @@ prepare_scaffold() {
         return 0
     fi
 
-    local scaffold_dir; scaffold_dir=$(mktemp -d)
+    local scaffold_dir; scaffold_dir=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
     CLEANUP_DIRS+=("$scaffold_dir")
 
     case "$scaffold_type" in
@@ -421,8 +421,8 @@ eval_agent() {
             output_text=$(extract_output_text "$saved_file")
         else
             # Run agent
-            local out_file; out_file=$(mktemp)
-            local err_file; err_file=$(mktemp)
+            local out_file; out_file=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
+            local err_file; err_file=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
             CLEANUP_FILES+=("$out_file" "$err_file")
 
             echo -e "${BLUE}||${NC}  ${CYAN}Running agent ${agent_id}...${NC}"

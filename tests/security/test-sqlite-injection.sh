@@ -93,7 +93,7 @@ if [[ ! -x "$RUNNER" ]]; then
   echo "${RED}✗ hook runner missing: $RUNNER${NC}"
   exit 1
 fi
-TMPD="$(mktemp -d)"
+TMPD="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -rf "$TMPD"' EXIT
 
 # The DB is read back through node:sqlite rather than the sqlite3 CLI. That is

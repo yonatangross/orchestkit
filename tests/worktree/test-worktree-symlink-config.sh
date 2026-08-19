@@ -131,7 +131,7 @@ fi
 echo ""
 echo "=== 5. --apply / --check round-trip ==="
 
-TMP_REPO=$(mktemp -d)
+TMP_REPO=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 cleanup() { rm -rf "$TMP_REPO"; }
 trap cleanup EXIT
 
@@ -202,7 +202,7 @@ if [ -x "$RECLAIM" ]; then
     fi
 
     # Behavioural check: point it at an empty list and require a LOUD failure.
-    STUB_DIR=$(mktemp -d)
+    STUB_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
     cp "$RECLAIM" "$STUB_DIR/worktree-reclaim.sh"
     printf '#!/bin/bash\nexit 0\n' > "$STUB_DIR/worktree-config.sh"
     chmod +x "$STUB_DIR"/*.sh

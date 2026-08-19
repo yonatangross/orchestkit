@@ -32,8 +32,8 @@ run_hook() {
   local env_args=()
   for arg in "$@"; do env_args+=("$arg"); done
 
-  local tmpout; tmpout=$(mktemp)
-  local tmperr; tmperr=$(mktemp)
+  local tmpout; tmpout=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
+  local tmperr; tmperr=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 
   local exit_code=0
   env "${env_args[@]}" node "$RUN_HOOK" "$hook_name" \
@@ -160,8 +160,8 @@ fi
 # 2c. No hook name → SILENT_OK
 LAST_STDOUT=""
 LAST_EXIT=999
-local_tmpout=$(mktemp)
-local_tmperr=$(mktemp)
+local_tmpout=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
+local_tmperr=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 node "$RUN_HOOK" < /dev/null >"$local_tmpout" 2>"$local_tmperr" || true
 LAST_STDOUT=$(cat "$local_tmpout")
 LAST_EXIT=$?
@@ -178,7 +178,7 @@ echo "3. Security Hook Override Protection"
 echo "------------------------------------"
 
 # 3a. Security hooks cannot be disabled via hook-overrides.json
-TEMP_PROJECT=$(mktemp -d)
+TEMP_PROJECT=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 mkdir -p "$TEMP_PROJECT/.claude"
 cat > "$TEMP_PROJECT/.claude/hook-overrides.json" << 'OVERRIDE_EOF'
 {
@@ -253,10 +253,10 @@ fi
 # 4d. Oversized stdin (>512KB) — produces truncation warning
 # Use a temp file to avoid shell ARG_MAX limits on large payloads
 if command -v python3 &>/dev/null; then
-  LARGE_FILE=$(mktemp)
+  LARGE_FILE=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
   python3 -c "import json; open('$LARGE_FILE','w').write(json.dumps({'tool_input':{'command':'echo hi'},'hook_event':'PreToolUse','padding':'x'*600000}))"
-  local_tmpout=$(mktemp)
-  local_tmperr=$(mktemp)
+  local_tmpout=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
+  local_tmperr=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
   local_exit=0
   env "CLAUDE_PROJECT_DIR=$PROJECT_ROOT" node "$RUN_HOOK" "pretool/bash/dangerous-command-blocker" \
     < "$LARGE_FILE" >"$local_tmpout" 2>"$local_tmperr" || local_exit=$?
@@ -453,7 +453,7 @@ echo "--------------------------------------------"
 # level and asserts the record physically lands. It MUST fail if either default
 # regresses to the dropped side of the gate.
 
-SANDBOX=$(mktemp -d)
+SANDBOX=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 mkdir -p "$SANDBOX/home/.claude/teams/ghost-team-$$" "$SANDBOX/proj"
 echo '{}' > "$SANDBOX/home/.claude/teams/ghost-team-$$/config.json"
 # Backdate 48h so the 24h staleness window fires (BSD touch first, GNU fallback)

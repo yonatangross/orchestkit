@@ -53,9 +53,9 @@ check "fixture passes --check" node "$SCRIPT" "$FIXTURE" --check
 echo
 
 # Generate and inspect output
-TMP=$(mktemp -d)
+TMP=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap "rm -rf $TMP" EXIT
-PROJ=$(mktemp -d)
+PROJ=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap "rm -rf $TMP $PROJ" EXIT
 
 echo "[generation]"

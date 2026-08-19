@@ -71,7 +71,7 @@ read_metric() {
   jq -r "$filter // empty" "$file"
 }
 
-TMP="$(mktemp -d)"
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 
 # Union of skill ids seen across trigger + quality result files.

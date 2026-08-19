@@ -43,7 +43,7 @@ ORIG_TROUBLESHOOTING=$(cat docs/site/content/docs/troubleshooting/index.mdx)
 # as 7 spuriously dirty files, and trailing-newline state is load-bearing here —
 # see tests/skills/test-skill-length.sh, which documents that `wc -l` under-counts
 # a file missing its final newline.
-COMPAT_BACKUP_DIR=$(mktemp -d)
+COMPAT_BACKUP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 for skill_md in src/skills/*/SKILL.md; do
     [ -f "$skill_md" ] || continue
     mkdir -p "$COMPAT_BACKUP_DIR/$(dirname "$skill_md")"
@@ -75,7 +75,7 @@ fi
 # adds one.
 # ---------------------------------------------------------------------------
 STAMPER_SRC="scripts/stamp-cc-support.mjs"
-BACKUP_DIR=$(mktemp -d)
+BACKUP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 
 # `while read` rather than `mapfile`: this script's shebang is /bin/bash, which
 # on macOS is bash 3.2 where mapfile does not exist. A mapfile version passes

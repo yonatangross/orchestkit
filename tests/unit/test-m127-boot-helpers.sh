@@ -37,7 +37,7 @@ fi
 source "${BOOT_SH}"
 
 # ── Fixture helpers ─────────────────────────────────────────────────────────
-TMP_BASE="$(mktemp -d)"
+TMP_BASE="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -rf "${TMP_BASE}"' EXIT
 
 new_fixture() {

@@ -57,7 +57,7 @@ fi
 #      so the guard works on every PR even without the private token.
 if [[ ! -d "$DOCS_SITE/node_modules/@mdx-js/mdx" ]]; then
   echo "  ${YELLOW}⚠${NC} @mdx-js/mdx not in docs/site/node_modules — installing"
-  INSTALL_LOG=$(mktemp)
+  INSTALL_LOG=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
   trap 'rm -f "$INSTALL_LOG"' EXIT
 
   set +e

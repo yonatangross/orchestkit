@@ -32,7 +32,7 @@ FAIL=0
 log_pass() { echo -e "  ${GREEN}✓${NC} $1"; PASS=$((PASS + 1)); }
 log_fail() { echo -e "  ${RED}✗${NC} $1"; FAIL=$((FAIL + 1)); }
 
-TMP="$(mktemp -d)"
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 
 echo "Quality Index Gate Self-Test (#2194)"

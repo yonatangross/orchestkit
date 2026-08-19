@@ -43,7 +43,7 @@ echo "CC Consolidate Milestones — sweep tests"
 echo "========================================================="
 
 # ---- mock gh (PATH-shadow) ----------------------------------------------------
-MOCK_DIR=$(mktemp -d)
+MOCK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 MOCK_LOG="$MOCK_DIR/gh.log"
 export MOCK_LOG
 cat > "$MOCK_DIR/gh" <<'MOCK'

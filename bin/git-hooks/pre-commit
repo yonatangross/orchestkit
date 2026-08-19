@@ -143,9 +143,12 @@ if [[ -n "$WORKFLOW_FILES" ]]; then
   echo -n "  Linting GitHub Actions workflows... "
   if command -v actionlint >/dev/null 2>&1; then
     # shellcheck disable=SC2086
-    if ! actionlint -shellcheck= $WORKFLOW_FILES >/tmp/actionlint-precommit.log 2>&1; then
+    # Not a hardcoded /tmp path: that write is denied in a sandboxed shell, and
+    # the failure surfaces as "actionlint FAILED" on a workflow that is clean.
+    ACTIONLINT_LOG="${TMPDIR:-/tmp}/actionlint-precommit.log"
+    if ! actionlint -shellcheck= $WORKFLOW_FILES >"$ACTIONLINT_LOG" 2>&1; then
       echo "FAILED"
-      head -20 /tmp/actionlint-precommit.log
+      head -20 "$ACTIONLINT_LOG"
       echo "    Run 'actionlint -shellcheck= .github/workflows/*.yml' for full output"
       ERRORS=$((ERRORS + 1))
     else

@@ -35,7 +35,7 @@ export CLAUDE_SESSION_ID="test-session-$(date +%s)"
 export CLAUDE_PLUGIN_ROOT="$PROJECT_ROOT/plugins/ork"
 
 # Temp directory for test outputs
-TEST_TMP=$(mktemp -d)
+TEST_TMP=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap "rm -rf $TEST_TMP" EXIT
 
 echo "=========================================="
