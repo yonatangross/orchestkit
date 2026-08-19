@@ -8,6 +8,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { HookInput } from '../../../types.js';
 
 // Helper to generate N lines of code content
@@ -41,6 +44,18 @@ function createEditInput(file_path: string): HookInput {
   };
 }
 
+// Over-limit is an ASK, not a DENY (#3552): `continue` stays true and the
+// decision rides in hookSpecificOutput, so asserting continue===false would
+// silently pass on a guard that had stopped guarding.
+function expectAsk(result: import('../../../types.js').HookResult): void {
+  expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+  expect(result.continue).toBe(true);
+}
+
+function askReason(result: import('../../../types.js').HookResult): string {
+  return result.hookSpecificOutput?.permissionDecisionReason ?? '';
+}
+
 // We need to re-import fileGuard for each env var test group
 // so the module-level parseInt picks up the changed env vars.
 
@@ -69,9 +84,9 @@ describe('file-guard size gate', () => {
     it('blocks long source file (400 lines .ts)', () => {
       const input = createWriteInput('/src/big.ts', generateLines(400));
       const result = fileGuard(input);
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('400/300');
-      expect(result.stopReason).toContain('source');
+      expectAsk(result);
+      expect(askReason(result)).toContain('400/300');
+      expect(askReason(result)).toContain('source');
     });
 
     it('allows long test file under test limit (400 lines .test.ts)', () => {
@@ -83,9 +98,9 @@ describe('file-guard size gate', () => {
     it('blocks over-limit test file (600 lines .test.ts)', () => {
       const input = createWriteInput('/src/app.test.ts', generateLines(600));
       const result = fileGuard(input);
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('600/500');
-      expect(result.stopReason).toContain('test');
+      expectAsk(result);
+      expect(askReason(result)).toContain('600/500');
+      expect(askReason(result)).toContain('test');
     });
 
     it('allows JSON file of any length', () => {
@@ -100,10 +115,11 @@ describe('file-guard size gate', () => {
       expect(result.continue).toBe(true);
     });
 
-    it('skips Edit operations (no full content)', () => {
+    it('passes an Edit whose target file does not exist (nothing to project)', () => {
       const input = createEditInput('/src/huge.ts');
       const result = fileGuard(input);
       expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     // Test file detection patterns
@@ -140,9 +156,9 @@ describe('file-guard size gate', () => {
         const padding = generateLines(400 - 25);
         const input = createWriteInput('/src/god.ts', `${exports}\n${padding}`);
         const result = fileGuard(input);
-        expect(result.continue).toBe(false);
-        expect(result.stopReason).toContain('god-file');
-        expect(result.stopReason).toContain('25 exports');
+        expectAsk(result);
+        expect(askReason(result)).toContain('god-file');
+        expect(askReason(result)).toContain('25 exports');
       });
 
       it('allows god file under line limit (bloat noted, not blocked)', () => {
@@ -160,17 +176,20 @@ describe('file-guard size gate', () => {
         const padding = generateLines(350);
         const input = createWriteInput('/src/mixed.ts', types + logic + padding);
         const result = fileGuard(input);
-        expect(result.continue).toBe(false);
-        expect(result.stopReason).toContain('mixed-concerns');
-        expect(result.stopReason).toContain('extract types');
+        expectAsk(result);
+        expect(askReason(result)).toContain('mixed-concerns');
+        expect(askReason(result)).toContain('extract types');
       });
 
-      it('shows concise block message with line count', () => {
+      it('shows a concise ask message with the count and the way out', () => {
         const input = createWriteInput('/src/big.ts', generateLines(400));
         const result = fileGuard(input);
-        expect(result.continue).toBe(false);
-        expect(result.stopReason).toContain('File too long');
-        expect(result.stopReason).toContain('Split into smaller modules');
+        expectAsk(result);
+        expect(askReason(result)).toContain('400/300');
+        expect(askReason(result)).toContain('big.ts');
+        // The message must offer BOTH exits, since the decision is the user's.
+        expect(askReason(result)).toContain('Approve to write anyway');
+        expect(askReason(result)).toContain('split into smaller modules');
       });
     });
 
@@ -181,7 +200,7 @@ describe('file-guard size gate', () => {
         it(`blocks oversized .${ext} file`, () => {
           const input = createWriteInput(`/src/big.${ext}`, generateLines(400));
           const result = fileGuard(input);
-          expect(result.continue).toBe(false);
+          expectAsk(result);
         });
       }
 
@@ -193,6 +212,114 @@ describe('file-guard size gate', () => {
           expect(result.continue).toBe(true);
         });
       }
+    });
+  });
+
+  // ── #3552: Edit coverage + grandfathering ─────────────────────────────────
+  describe('over-cap files on disk (#3552)', () => {
+    let fileGuard: (input: HookInput) => import('../../../types.js').HookResult;
+    let dir: string;
+
+    beforeEach(async () => {
+      delete process.env.ORCHESTKIT_MAX_FILE_LINES;
+      delete process.env.ORCHESTKIT_MAX_TEST_FILE_LINES;
+      vi.resetModules();
+      const mod = await import('../../../pretool/write-edit/file-guard.js');
+      fileGuard = mod.fileGuard;
+      dir = mkdtempSync(join(tmpdir(), 'file-guard-'));
+    });
+
+    afterEach(() => {
+      rmSync(dir, { recursive: true, force: true });
+      vi.restoreAllMocks();
+    });
+
+    /** Write a real file so the guard can read its current size. */
+    function seed(name: string, lines: number): string {
+      const p = join(dir, name);
+      writeFileSync(p, generateLines(lines), 'utf8');
+      return p;
+    }
+
+    it('does not stand in the way of SHRINKING an already-over-cap file', () => {
+      // 458 → 400 is still over the 300 cap, but it is an improvement. The old
+      // guard refused it on exactly the same terms as growing the file, which
+      // made it un-satisfiable by any Write.
+      const p = seed('big.ts', 458);
+      const result = fileGuard(createWriteInput(p, generateLines(400)));
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+    });
+
+    it('still asks when GROWING an already-over-cap file', () => {
+      const p = seed('big.ts', 458);
+      const result = fileGuard(createWriteInput(p, generateLines(600)));
+      expectAsk(result);
+      expect(askReason(result)).toContain('600/300');
+      expect(askReason(result)).toContain('currently 458');
+    });
+
+    it('treats a same-size rewrite of an over-cap file as an improvement', () => {
+      const p = seed('big.ts', 458);
+      const result = fileGuard(createWriteInput(p, generateLines(458)));
+      expect(result.continue).toBe(true);
+    });
+
+    it('asks on an Edit that pushes a file over the cap', () => {
+      // The hole that made the guard gate TOOL CHOICE rather than file size:
+      // this content was previously waved through purely for being an Edit.
+      const p = seed('grow.ts', 299);
+      const input: HookInput = {
+        tool_name: 'Edit',
+        session_id: 'test-session-123',
+        project_dir: '/test/project',
+        tool_input: {
+          file_path: p,
+          old_string: 'const x0 = 0;',
+          new_string: generateLines(20, 'const y'),
+        },
+      };
+      expectAsk(fileGuard(input));
+    });
+
+    it('passes an Edit that keeps the file under the cap', () => {
+      const p = seed('small.ts', 100);
+      const input: HookInput = {
+        tool_name: 'Edit',
+        session_id: 'test-session-123',
+        project_dir: '/test/project',
+        tool_input: { file_path: p, old_string: 'const x0 = 0;', new_string: 'const x0 = 1;' },
+      };
+      expect(fileGuard(input).continue).toBe(true);
+    });
+
+    it('passes an Edit whose old_string is absent (Edit errors upstream)', () => {
+      const p = seed('big.ts', 458);
+      const input: HookInput = {
+        tool_name: 'Edit',
+        session_id: 'test-session-123',
+        project_dir: '/test/project',
+        tool_input: { file_path: p, old_string: 'NOT PRESENT ANYWHERE', new_string: 'x' },
+      };
+      expect(fileGuard(input).continue).toBe(true);
+    });
+
+    it('asks on a NEW over-cap file, which has no current size to compare', () => {
+      const p = join(dir, 'fresh.ts');
+      const result = fileGuard(createWriteInput(p, generateLines(400)));
+      expectAsk(result);
+      expect(askReason(result)).not.toContain('currently');
+    });
+
+    it('names the env override that applies to the file type', () => {
+      const p = join(dir, 'fresh.ts');
+      expect(askReason(fileGuard(createWriteInput(p, generateLines(400))))).toContain(
+        'ORCHESTKIT_MAX_FILE_LINES'
+      );
+      const t = join(dir, 'fresh.test.ts');
+      expect(askReason(fileGuard(createWriteInput(t, generateLines(600))))).toContain(
+        'ORCHESTKIT_MAX_TEST_FILE_LINES'
+      );
     });
   });
 
@@ -222,8 +349,8 @@ describe('file-guard size gate', () => {
     it('blocks source file over raised limit', () => {
       const input = createWriteInput('/src/huge.ts', generateLines(700));
       const result = fileGuard(input);
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('700/600');
+      expectAsk(result);
+      expect(askReason(result)).toContain('700/600');
     });
 
     it('allows 700-line test file with raised test limit', () => {
@@ -235,8 +362,8 @@ describe('file-guard size gate', () => {
     it('blocks test file over raised test limit', () => {
       const input = createWriteInput('/src/app.test.ts', generateLines(900));
       const result = fileGuard(input);
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('900/800');
+      expectAsk(result);
+      expect(askReason(result)).toContain('900/800');
     });
   });
 });
