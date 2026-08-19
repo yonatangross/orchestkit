@@ -17,6 +17,67 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.42",
+    "date": "2026-08-19",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**build:** stop a denied scratch file from zeroing the hook subcount ([#3567](https://github.com/yonatangross/orchestkit/issues/3567)) ([21b11c5](https://github.com/yonatangross/orchestkit/commit/21b11c5757e1afbe5eb8f7aee1a842ba3d4d85df)), closes [#3564](https://github.com/yonatangross/orchestkit/issues/3564)",
+          "**ci:** bound the second apt-get, the one outside .github/ ([#3561](https://github.com/yonatangross/orchestkit/issues/3561)) ([f2c7866](https://github.com/yonatangross/orchestkit/commit/f2c786606a9ece2c0199969152f855389e5c4217)), closes [#3557](https://github.com/yonatangross/orchestkit/issues/3557)",
+          "**hooks:** scope the context7 cap to the session it is named after ([#3568](https://github.com/yonatangross/orchestkit/issues/3568)) ([dd96b2c](https://github.com/yonatangross/orchestkit/commit/dd96b2c256bb0798aa3cca15fbfd7950d6ba64cd)), closes [#3542](https://github.com/yonatangross/orchestkit/issues/3542)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**configure:** add good first issues link to issue template ([#3555](https://github.com/yonatangross/orchestkit/issues/3555)) ([37fd4d4](https://github.com/yonatangross/orchestkit/commit/37fd4d416640c1a1ee1fbaed05b702e195de9d91)), closes [#3506](https://github.com/yonatangross/orchestkit/issues/3506)"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-alpha.41",
+    "date": "2026-08-19",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**ork-codex:** ship context7 as a plugin-native MCP server ([#3549](https://github.com/yonatangross/orchestkit/issues/3549)) ([cf231c6](https://github.com/yonatangross/orchestkit/commit/cf231c64fad870e300cfe20c2d12948ef541fd1c))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-alpha.40",
+    "date": "2026-08-18",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**agents:** grant context7 deliberately, per agent ([#3547](https://github.com/yonatangross/orchestkit/issues/3547)) ([e065b28](https://github.com/yonatangross/orchestkit/commit/e065b288260f6d4c353587af98ef0211afa1adcb))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** bound and skip system dep installs ([#3550](https://github.com/yonatangross/orchestkit/issues/3550)) ([4c4c25c](https://github.com/yonatangross/orchestkit/commit/4c4c25cb128e7f7ac066b1f1f39514f99fa8635c)), closes [#3545](https://github.com/yonatangross/orchestkit/issues/3545)",
+          "**tests:** read the MCP gate's server list from a tracked manifest ([#3546](https://github.com/yonatangross/orchestkit/issues/3546)) ([36bf3c1](https://github.com/yonatangross/orchestkit/commit/36bf3c191e86b9d89509e070567de2084eb5b193))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**configure:** add staged operator-scope settings ([#3553](https://github.com/yonatangross/orchestkit/issues/3553)) ([11cde42](https://github.com/yonatangross/orchestkit/commit/11cde42b4f906eaa0a95d941ee3aad2f900ebfa6))",
+          "**mcp:** document context7 as a prerequisite, Pro tier, hosted transport ([#3548](https://github.com/yonatangross/orchestkit/issues/3548)) ([f7a1b1a](https://github.com/yonatangross/orchestkit/commit/f7a1b1a4b2079d8c2f5ea70d66c5777c9193d872))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.39",
     "date": "2026-08-18",
     "compareUrl": "",

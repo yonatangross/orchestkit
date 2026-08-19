@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#3564 — how a scratch file turned 171 hooks into 150</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#e6edf3;--dim:#8b949e;
+        --ok:#3fb950;--bad:#f85149;--warn:#d29922;--accent:#58a6ff}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2rem 1.25rem;background:var(--bg);color:var(--fg);
+       font:15px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  main{max-width:58rem;margin:0 auto}
+  h1{font-size:1.3rem;margin:0 0 .35rem}
+  h2{font-size:1rem;margin:2rem 0 .75rem;color:var(--accent)}
+  p.lede{color:var(--dim);margin:0 0 1.75rem}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+         padding:1.25rem;margin-bottom:1.25rem}
+  fieldset{border:1px solid var(--line);border-radius:6px;padding:.75rem 1rem;margin:0 0 1rem}
+  legend{color:var(--dim);font-size:.82rem;padding:0 .4rem}
+  fieldset label{display:inline-flex;align-items:center;gap:.4rem;margin:0 1.5rem .25rem 0}
+  .steps{list-style:none;margin:0;padding:0}
+  .steps li{padding:.5rem .75rem;border-left:3px solid var(--line);margin-bottom:.4rem;
+            background:#0b0f14;transition:border-color .15s,color .15s}
+  .steps li.hot{border-left-color:var(--bad)}
+  .steps li.good{border-left-color:var(--ok)}
+  .steps li.dim{color:var(--dim)}
+  .out{font-size:1.05rem;padding:.85rem 1rem;border-radius:6px;background:#0b0f14;
+       border:1px solid var(--line);margin-top:1rem}
+  .out .num{font-weight:700}
+  .bad .num{color:var(--bad)} .ok .num{color:var(--ok)}
+  .note{margin-top:.75rem;font-size:.88rem;color:var(--dim)}
+  table{border-collapse:collapse;width:100%;font-size:.88rem}
+  th,td{text-align:left;padding:.4rem .6rem;border-bottom:1px solid var(--line)}
+  th{color:var(--dim);font-weight:400}
+  code{background:#21262d;padding:.1rem .35rem;border-radius:3px}
+  pre{margin:0;overflow-x:auto;background:#0b0f14;padding:.75rem;border-radius:6px;
+      border:1px solid var(--line);font-size:.85rem}
+  .foot{color:var(--dim);font-size:.82rem;margin-top:2rem;border-top:1px solid var(--line);padding-top:1rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>How a scratch file turned 171 hooks into 150</h1>
+  <p class="lede">
+    <code>count-hooks.sh</code> redirected grep's stderr into a file from a bare
+    <code>mktemp</code>. Deny that one write and the count silently shrinks. Toggle
+    the two conditions to walk the chain.
+  </p>
+
+  <div class="panel">
+    <fieldset>
+      <legend>conditions</legend>
+      <label><input type="checkbox" id="deny"> temp dir denies the write (EPERM)</label>
+      <label><input type="checkbox" id="fixed"> apply the #3564 fix</label>
+    </fieldset>
+
+    <ul class="steps" id="steps"></ul>
+
+    <div class="out" id="out"></div>
+    <p class="note" id="note"></p>
+  </div>
+
+  <h2>Why rc=1 is the trap</h2>
+  <div class="panel">
+    <p style="margin:0 0 .6rem">
+      The function must treat "no match" as zero, because zero agent-scoped hooks
+      is a legitimate state since #3461 removed all 45 of them:
+    </p>
+<pre><code>if [ "$rc" -ge 2 ]; then   # real error, fail loudly
+    ...
+fi
+# rc of 0 or 1 falls through and counts</code></pre>
+    <p class="note" style="margin-top:.75rem">
+      A failed redirect also produces rc=1. So the one code path deliberately kept
+      quiet is the exact path a broken scratch file lands on. The guard was
+      correct; the thing it depended on was not guarded.
+    </p>
+  </div>
+
+  <h2>Verification note</h2>
+  <div class="panel">
+    <p style="margin:0 0 .6rem">The obvious repro reports success and hides the bug:</p>
+<pre><code>$ TMPDIR=/unwritable mktemp
+/var/folders/7v/.../T/tmp.iGOVlVqii5   <-- TMPDIR ignored</code></pre>
+    <p class="note" style="margin-top:.75rem">
+      macOS <code>mktemp</code> with no template ignores <code>TMPDIR</code>. Driving
+      this needs a real denial of <code>/var/folders</code> or a PATH shim, which is
+      what the regression test uses.
+    </p>
+  </div>
+
+  <h2>Measured</h2>
+  <div class="panel">
+    <table>
+      <thead><tr><th>script</th><th>mktemp</th><th>output</th></tr></thead>
+      <tbody>
+        <tr><td>origin/main</td><td>healthy</td><td>GLOBAL=150 AGENT=0 SKILL=21 TOTAL=171</td></tr>
+        <tr><td>origin/main</td><td>denied</td><td style="color:var(--bad)">GLOBAL=150 AGENT=0 SKILL=0 TOTAL=150</td></tr>
+        <tr><td>fixed</td><td>denied</td><td style="color:var(--ok)">GLOBAL=150 AGENT=0 SKILL=21 TOTAL=171</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="foot">
+    The scratch file only ever carried an error message. It now degrades to
+    "stderr not captured" instead of taking the count with it, and
+    <code>tests/ci/test-count-hooks-temp-failure.sh</code> asserts the counts are
+    identical with and without a writable temp dir. Issue #3564.
+  </div>
+</main>
+
+<script>
+(function(){
+  var deny=document.getElementById('deny'), fixed=document.getElementById('fixed'),
+      steps=document.getElementById('steps'), out=document.getElementById('out'),
+      note=document.getElementById('note');
+
+  function render(){
+    var d=deny.checked, f=fixed.checked, s=[], broken=(d && !f);
+
+    s.push([f?'mktemp with an explicit template, result checked for writability'
+             :'errfile="$(mktemp)"', d?(f?'good':'hot'):'dim']);
+
+    if(d && f){
+      s.push(['not writable, so the stderr capture is dropped and grep runs bare','good']);
+    } else if(d){
+      s.push(['EPERM: errfile is empty','hot']);
+      s.push(['grep ... 2>"" fails as a redirect, grep never runs','hot']);
+      s.push(['rc=1, which this function must read as "no match"','hot']);
+    } else {
+      s.push(['scratch file created, grep runs normally','dim']);
+    }
+    s.push([broken?'SKILL subcount returns 0':'SKILL subcount returns 21', broken?'hot':'good']);
+
+    steps.innerHTML='';
+    s.forEach(function(x){
+      var li=document.createElement('li'); li.textContent=x[0]; li.className=x[1];
+      steps.appendChild(li);
+    });
+
+    var total=broken?150:171;
+    out.className='out '+(broken?'bad':'ok');
+    out.innerHTML='GLOBAL=150 AGENT=0 SKILL=<span class="num">'+(broken?0:21)+
+                  '</span> TOTAL=<span class="num">'+total+'</span>';
+    note.textContent = broken
+      ? 'validate-counts reports "declared 171, actual 150" and pre-commit blocks every commit. '+
+        'The tempting repair is to edit the manifest down to 150, which would introduce the very '+
+        'drift the check exists to catch.'
+      : 'Matches the manifest. Commits proceed.';
+  }
+  deny.addEventListener('change',render);
+  fixed.addEventListener('change',render);
+  render();
+})();
+</script>
+</body>
+</html>

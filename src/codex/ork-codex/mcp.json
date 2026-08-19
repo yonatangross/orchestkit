@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "bearer_token_env_var": "CONTEXT7_API_KEY_CODEX",
+      "enabled_tools": ["resolve-library-id", "query-docs"]
+    }
+  }
+}

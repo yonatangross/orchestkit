@@ -251,6 +251,40 @@ plugins/ork-codex/scripts/install-codex-roles.sh ~/.codex/agents
 It installs `ork_explorer`, `ork_implementer`, `ork_reviewer`, and
 `ork_verifier`; restart Codex before spawning them.
 
+#### Documentation lookup (context7)
+
+The plugin ships a [context7](https://context7.com) MCP server in its own
+manifest (`mcpServers` in `.codex-plugin/plugin.json`, defined in `mcp.json`),
+so installing the plugin registers it. Confirm with `codex mcp get context7`.
+It is scoped to the only two tools context7 exposes, `resolve-library-id` and
+`query-docs`, and it uses the hosted HTTP transport rather than an `npx` stdio
+child, so it costs no extra process per Codex session.
+
+Export a key before starting Codex. The plugin references the variable name
+and never stores the value, so no token is written to `~/.codex/config.toml`:
+
+```bash
+export CONTEXT7_API_KEY_CODEX="<your-context7-api-key>"
+```
+
+Put that in your shell profile so every Codex session inherits it. Get the
+key from your own context7 account and keep the value out of the repository.
+If you store it in a secret manager, substitute your own vault and item names
+(with the 1Password CLI the reference is `op://<vault>/<item>/credential`), and
+cache the resolved value instead of re-reading the vault in every shell: each
+raw read is a separate unlock prompt.
+
+Two behaviors worth knowing:
+
+- A server you already define yourself under `[mcp_servers.context7]` in
+  `~/.codex/config.toml` **wins**, and the plugin's definition is ignored
+  entirely (including its tool scoping). That is intentional: your own
+  configuration is never overridden. Remove your entry if you want the
+  plugin's.
+- Without a valid key the server still connects and still lists its tools.
+  Only a real call fails, with `Invalid API key`. A successful connection is
+  therefore not proof of authentication.
+
 ---
 
 ## FAQ
@@ -299,6 +333,25 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.42](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.41...v10.0.0-alpha.42)** · 2026-08-19
+
+- **build:** stop a denied scratch file from zeroing the hook subcount (#3567), closes [#3564](https://github.com/yonatangross/orchestkit/issues/3564)
+- **ci:** bound the second apt-get, the one outside .github/ (#3561), closes [#3557](https://github.com/yonatangross/orchestkit/issues/3557)
+- **hooks:** scope the context7 cap to the session it is named after (#3568), closes [#3542](https://github.com/yonatangross/orchestkit/issues/3542)
+- **configure:** add good first issues link to issue template (#3555), closes [#3506](https://github.com/yonatangross/orchestkit/issues/3506)
+
+**[v10.0.0-alpha.41](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.40...v10.0.0-alpha.41)** · 2026-08-19
+
+- **ork-codex:** ship context7 as a plugin-native MCP server (#3549)
+
+**[v10.0.0-alpha.40](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.39...v10.0.0-alpha.40)** · 2026-08-18
+
+- **agents:** grant context7 deliberately, per agent (#3547)
+- **ci:** bound and skip system dep installs (#3550), closes [#3545](https://github.com/yonatangross/orchestkit/issues/3545)
+- **tests:** read the MCP gate's server list from a tracked manifest (#3546)
+- **configure:** add staged operator-scope settings (#3553)
+- **mcp:** document context7 as a prerequisite, Pro tier, hosted transport (#3548)
+
 **[v10.0.0-alpha.39](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.38...v10.0.0-alpha.39)** · 2026-08-18
 
 - **plugin:** move shared fragments out of component trees (#3543)
@@ -334,20 +387,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **git:** land the reap-lane branch recovery evidence (#3497)
 - **contributing:** plugins/ is generated AND tracked (#3498)
 - **playground:** exempt fork PRs from the playground gate (#3508), closes [#3502](https://github.com/yonatangross/orchestkit/issues/3502)
-
-**[v10.0.0-alpha.34](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.33...v10.0.0-alpha.34)** · 2026-08-14
-
-- **docs:** publish release-rail to the Lab, drop the render proxy (#3491)
-- **release:** real component counts, and a named announce identity (#3489)
-
-**[v10.0.0-alpha.33](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.32...v10.0.0-alpha.33)** · 2026-08-14
-
-- **mcp:** drop the last ork-elicit leftover from the esbuild header (#3485)
-
-**[v10.0.0-alpha.32](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.31...v10.0.0-alpha.32)** · 2026-08-14
-
-- **deps:** bump nanoid to 3.3.18 for advisory 1139427 (#3481)
-- **hooks:** squash-aware worktree verifier, and close a shell injection (#3480)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

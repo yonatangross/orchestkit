@@ -11,6 +11,7 @@
   "license": "MIT",
   "keywords": ["orchestration", "code-review", "verification", "planning"],
   "skills": "./skills/",
+  "mcpServers": "./mcp.json",
   "interface": {
     "displayName": "OrchestKit for Codex",
     "shortDescription": "Evidence-first orchestration workflows for Codex.",

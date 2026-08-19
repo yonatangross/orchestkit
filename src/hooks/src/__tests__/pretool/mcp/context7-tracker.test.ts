@@ -70,9 +70,28 @@ function makeInput(toolName: string, libraryId = 'react', query = 'hooks'): Hook
   };
 }
 
-function makeLogContent(count: number, library = 'react'): string {
+// NOTE: timestamps are deliberately placed well outside RATE_WINDOW_MS. The
+// per-minute limiter is checked after the session cap but counts lines from ALL
+// sessions, so recent fixture lines make it fire first and the session-cap
+// assertions below would be testing the wrong limiter.
+const FIXTURE_AGE_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+function makeLogContent(count: number, library = 'react', sessionId = 'test-session'): string {
   const lines: string[] = [];
-  const now = new Date();
+  const now = new Date(Date.now() - FIXTURE_AGE_MS);
+  for (let i = 0; i < count; i++) {
+    const ts = new Date(now.getTime() - (count - i) * 1000).toISOString();
+    lines.push(
+      `${ts} | session=${sessionId} | tool=mcp__context7__resolve | library=${library} | query_length=10`
+    );
+  }
+  return `${lines.join('\n')}\n`;
+}
+
+/** Pre-#3542 lines: no `session=` field at all. */
+function makeLegacyLogContent(count: number, library = 'react'): string {
+  const lines: string[] = [];
+  const now = new Date(Date.now() - FIXTURE_AGE_MS);
   for (let i = 0; i < count; i++) {
     const ts = new Date(now.getTime() - (count - i) * 1000).toISOString();
     lines.push(`${ts} | tool=mcp__context7__resolve | library=${library} | query_length=10`);
@@ -202,9 +221,9 @@ describe('context7-tracker', () => {
     it('includes library count and recent libraries in context', () => {
       // Arrange
       const lines = `${[
-        `${new Date().toISOString()} | tool=mcp__context7__resolve | library=react | query_length=10`,
-        `${new Date().toISOString()} | tool=mcp__context7__resolve | library=nextjs | query_length=10`,
-        `${new Date().toISOString()} | tool=mcp__context7__resolve | library=prisma | query_length=10`,
+        `${new Date().toISOString()} | session=test-session | tool=mcp__context7__resolve | library=react | query_length=10`,
+        `${new Date().toISOString()} | session=test-session | tool=mcp__context7__resolve | library=nextjs | query_length=10`,
+        `${new Date().toISOString()} | session=test-session | tool=mcp__context7__resolve | library=prisma | query_length=10`,
       ].join('\n')}\n`;
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(lines);
@@ -275,6 +294,81 @@ describe('context7-tracker', () => {
       // Assert
       expect(outputDeny).not.toHaveBeenCalled();
       expect(result.continue).toBe(true);
+    });
+
+    // -----------------------------------------------------------------
+    // #3542: the cap called itself a SESSION limit while counting every line
+    // the log had ever accumulated. The pair below is the whole point: the
+    // FIRST proves the cap still fires, the SECOND proves it fires for the
+    // right reason. Without the second, a green run cannot tell "correctly
+    // scoped" from "limiter accidentally disabled".
+    // -----------------------------------------------------------------
+    it('does NOT deny when 51 over-cap lines belong to OTHER sessions (#3542)', () => {
+      // Arrange — well past the cap, but none of it is this session's
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(makeLogContent(51, 'react', 'someone-elses-session'));
+      mockStatSync.mockReturnValue({ size: 6000 });
+
+      // Act
+      const result = context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
+
+      // Assert
+      expect(outputDeny).not.toHaveBeenCalled();
+      expect(result.continue).toBe(true);
+    });
+
+    it('DOES deny when 51 over-cap lines belong to THIS session (#3542)', () => {
+      // Arrange — identical volume, this session's id
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(makeLogContent(51, 'react', 'test-session'));
+      mockStatSync.mockReturnValue({ size: 6000 });
+
+      // Act
+      const result = context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
+
+      // Assert
+      expect(outputDeny).toHaveBeenCalledWith(expect.stringContaining('session limit'));
+      expect(result.continue).toBe(false);
+    });
+
+    it('does NOT deny on a pre-#3542 log with no session field', () => {
+      // The 36 stale lines that were 14 calls from a blackout look like this.
+      // They must go inert on landing, with no rotation and no manual rename.
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(makeLegacyLogContent(80));
+      mockStatSync.mockReturnValue({ size: 9000 });
+
+      const result = context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
+
+      expect(outputDeny).not.toHaveBeenCalled();
+      expect(result.continue).toBe(true);
+    });
+
+    it('honours ORK_CONTEXT7_MAX_QUERIES_PER_SESSION when raised', () => {
+      vi.stubEnv('ORK_CONTEXT7_MAX_QUERIES_PER_SESSION', '200');
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(makeLogContent(60, 'react', 'test-session'));
+      mockStatSync.mockReturnValue({ size: 7000 });
+
+      const result = context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
+
+      expect(outputDeny).not.toHaveBeenCalled();
+      expect(result.continue).toBe(true);
+      vi.unstubAllEnvs();
+    });
+
+    it('falls back to the default cap when the env override is not a positive integer', () => {
+      // A typo must not silently remove the limit.
+      vi.stubEnv('ORK_CONTEXT7_MAX_QUERIES_PER_SESSION', 'lots');
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(makeLogContent(51, 'react', 'test-session'));
+      mockStatSync.mockReturnValue({ size: 6000 });
+
+      const result = context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
+
+      expect(outputDeny).toHaveBeenCalledWith(expect.stringContaining('session limit'));
+      expect(result.continue).toBe(false);
+      vi.unstubAllEnvs();
     });
 
     it('logs permission feedback as deny when rate limited', () => {

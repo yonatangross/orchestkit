@@ -1,6 +1,6 @@
 {
   "name": "ork-codex",
-  "version": "10.0.0-alpha.39",
+  "version": "10.0.0-alpha.42",
   "description": "Portable OrchestKit workflows for Codex: brainstorm, explore, assess, verify, and review pull requests.",
   "author": {
     "name": "Yonatan Gross",
@@ -16,6 +16,7 @@
     "planning"
   ],
   "skills": "./skills/",
+  "mcpServers": "./mcp.json",
   "interface": {
     "displayName": "OrchestKit for Codex",
     "shortDescription": "Evidence-first orchestration workflows for Codex.",

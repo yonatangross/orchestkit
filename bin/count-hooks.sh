@@ -39,20 +39,56 @@ GLOBAL=$(( GLOBAL_CMD + GLOBAL_HTTP ))
 # A blanket `|| true` would also swallow rc>=2, turning a broken grep into a
 # silent zero and quietly shrinking the advertised hook count. So rc is inspected:
 # 1 yields 0, anything higher fails loudly with grep's own stderr.
+#
+# The scratch file that carries that stderr is a REPORTING convenience and must
+# never gate the count (#3564). It used to be a bare `mktemp`. When the system
+# temp dir denied the write (EPERM, e.g. under a sandbox), `errfile` came back
+# empty, `2>""` failed as a redirect, grep never ran, and rc came back 1, which
+# this function is required to read as "no match" -> 0. A real SKILL count of 21
+# silently became 0 and validate-counts reported "declared 171, actual 150"
+# against a tree with no drift at all. Editing the manifest to match that 150
+# would have introduced the very drift the check exists to catch.
+#
+# So: ask for the temp file, verify we can actually write it, and when we cannot,
+# drop the stderr capture and keep counting. Losing a quoted error message is a
+# cosmetic loss. Losing the count is a correctness one.
 count_run_hook_lines() {
   local dir="$1"; shift
   local out rc errfile
-  errfile="$(mktemp)"
+
+  errfile="$(mktemp "${TMPDIR:-/tmp}/count-hooks.XXXXXX" 2>/dev/null || true)"
+  if [ -n "$errfile" ] && [ ! -w "$errfile" ]; then
+    errfile=""
+  fi
+
   set +e
-  out="$(grep -rch 'command:.*run-hook' "$dir" "$@" 2>"$errfile")"
-  rc=$?
+  if [ -n "$errfile" ]; then
+    out="$(grep -rch 'command:.*run-hook' "$dir" "$@" 2>"$errfile")"
+    rc=$?
+  else
+    # No writable scratch file: let grep's stderr reach the terminal rather than
+    # redirecting it into a path that does not exist.
+    out="$(grep -rch 'command:.*run-hook' "$dir" "$@")"
+    rc=$?
+  fi
   set -e
+
   if [ "$rc" -ge 2 ]; then
-    echo "count-hooks: grep failed on $dir (exit $rc): $(cat "$errfile")" >&2
-    rm -f "$errfile"
+    local detail="(stderr not captured: no writable temp dir)"
+    if [ -n "$errfile" ]; then
+      detail="$(cat "$errfile")"
+    fi
+    echo "count-hooks: grep failed on $dir (exit $rc): $detail" >&2
+    if [ -n "$errfile" ]; then
+      rm -f "$errfile"
+    fi
     return 1
   fi
-  rm -f "$errfile"
+
+  if [ -n "$errfile" ]; then
+    rm -f "$errfile"
+  fi
+
   printf '%s\n' "$out" | awk '{s+=$1} END{print s+0}'
 }
 
