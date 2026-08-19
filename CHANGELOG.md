@@ -5,6 +5,22 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.43](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.42...v10.0.0-alpha.43) (2026-08-19)
+
+
+### Bug Fixes
+
+* **doctor:** report the credential guard that actually exists ([#3577](https://github.com/yonatangross/orchestkit/issues/3577)) ([5bf1a0b](https://github.com/yonatangross/orchestkit/commit/5bf1a0b5b9d9c10a45875f3d8fee28d5611ab6b2))
+* **hooks:** a file operand means stdin is data, not the script ([#3574](https://github.com/yonatangross/orchestkit/issues/3574)) ([a4da29f](https://github.com/yonatangross/orchestkit/commit/a4da29fa908e34aa4cedd15eb94f332427c1a0de)), closes [#3559](https://github.com/yonatangross/orchestkit/issues/3559)
+* **hooks:** size the projected file, not the tool that wrote it ([#3560](https://github.com/yonatangross/orchestkit/issues/3560)) ([c429c02](https://github.com/yonatangross/orchestkit/commit/c429c0233ef5f10c2a86252f3318d6a1a3ba20d7))
+* **tests:** give every mktemp a template so it honours TMPDIR ([#3579](https://github.com/yonatangross/orchestkit/issues/3579)) ([4fb82d5](https://github.com/yonatangross/orchestkit/commit/4fb82d5a3e87be7395fab3a7810f5824f38c2a57))
+
+
+### Documentation
+
+* **configure:** caveat when excludedCommands is inert ([#3573](https://github.com/yonatangross/orchestkit/issues/3573)) ([4d77e58](https://github.com/yonatangross/orchestkit/commit/4d77e580799c978f2f41e24471c360218d6b265a))
+* **glyph:** replace the UNLIMITED chat licence with a measured budget ([#3576](https://github.com/yonatangross/orchestkit/issues/3576)) ([2a4206b](https://github.com/yonatangross/orchestkit/commit/2a4206bcf1cc660eedd4b94c4193d0522663fc19))
+
 ## [10.0.0-alpha.42](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.41...v10.0.0-alpha.42) (2026-08-19)
 
 
