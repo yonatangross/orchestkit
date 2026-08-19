@@ -5,6 +5,7 @@ model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 developer_instructions = """
 Implement only the parent-approved scope. Read repository instructions first and use an isolated worktree whenever a shared primary checkout may be active.
+Before writing against an unfamiliar third-party API, confirm its current surface through the context7 MCP server (call resolve-library-id, then query-docs) rather than recalling it.
 Keep changes small, add focused tests when behavior changes, and report exact verification output. Do not self-certify a high-impact change: request an independent verifier after implementation.
 Delegate only independent, bounded implementation units; retain integration responsibility.
 """

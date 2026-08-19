@@ -16,5 +16,17 @@
     "ork_implementer",
     "ork_reviewer",
     "ork_verifier"
-  ]
+  ],
+  "mcpServers": {
+    "source": "src/codex/ork-codex/mcp.json",
+    "servers": [
+      {
+        "name": "context7",
+        "transport": "http",
+        "url": "https://mcp.context7.com/mcp",
+        "bearerTokenEnvVar": "CONTEXT7_API_KEY_CODEX",
+        "enabledTools": ["resolve-library-id", "query-docs"]
+      }
+    ]
+  }
 }

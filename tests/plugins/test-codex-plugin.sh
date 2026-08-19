@@ -37,10 +37,28 @@ for name in sys.argv[2:]:
         raise SystemExit(f"invalid role {name}: missing={sorted(missing)}")
 PY
 
+# context7 wiring. The two tool names below are the ONLY tools the context7
+# server exposes; any other spelling silently grants nothing, so pin them.
+jq -e '
+  (.mcpServers.context7.type == "http") and
+  (.mcpServers.context7.url == "https://mcp.context7.com/mcp") and
+  (.mcpServers.context7.bearer_token_env_var == "CONTEXT7_API_KEY_CODEX") and
+  (.mcpServers.context7.enabled_tools == ["resolve-library-id", "query-docs"]) and
+  ((.mcpServers | keys) == ["context7"])
+' "$PLUGIN_ROOT/mcp.json" >/dev/null || {
+  echo "FAIL: mcp.json context7 wiring is wrong"; exit 1;
+}
+
+# A literal key must never be committed. Real keys carry the ctx7sk prefix.
+if grep -q "ctx7sk" "$PLUGIN_ROOT/mcp.json"; then
+  echo "FAIL: mcp.json contains a literal context7 API key"; exit 1
+fi
+
 jq -e --arg version "$(jq -r '.version' "$PROJECT_ROOT/package.json")" '
   .name == "ork-codex" and
   .version == $version and
   .skills == "./skills/" and
+  .mcpServers == "./mcp.json" and
   (.description | type == "string" and length > 0) and
   (.author.name | type == "string" and length > 0) and
   (.interface.displayName | type == "string" and length > 0) and
@@ -58,4 +76,4 @@ jq -e '
 diff -qr "$SOURCE_ROOT" "$PLUGIN_ROOT" \
   --exclude='plugin.json' >/dev/null
 
-echo "PASS: Codex plugin contract (5 skills, 4 roles)"
+echo "PASS: Codex plugin contract (5 skills, 4 roles, context7 MCP server)"
