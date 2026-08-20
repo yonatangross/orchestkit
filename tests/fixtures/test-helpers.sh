@@ -551,6 +551,94 @@ expect_decision() {
   fi
 }
 
+# Assert a pure CLASSIFIER function's answer, on the SAME mutation chokepoint.
+#
+# expect_decision above covers every assertion whose observable is a live hook's
+# verdict. That is most of the security suite, but not all of it: a file can
+# carry real security logic with no hook in the loop — a classifier that decides
+# whether an observed errno / exit-code pair is a kernel denial, for instance.
+# That logic rots exactly as silently as a hook assertion, so it needs the same
+# proof, and STATIC_ONLY is the wrong answer for it (STATIC_ONLY means "there is
+# nothing here that could be wrong", which is false when a classifier is).
+#
+# The mutation counter ORK_MUTATE_SEEN is SHARED with expect_decision on
+# purpose: the gate's contract is "invert the FIRST expectation in the file",
+# and a per-helper counter would silently make index 1 mean two different
+# assertions in a file that used both.
+#
+# Usage: expect_classification <yes|no> <classifier-fn> <label> [args...]
+#   yes -> the function is expected to return 0 for these args
+#   no  -> the function is expected to return non-zero
+#
+# The function is CALLED here rather than handed a precomputed answer, so a
+# renamed or deleted classifier answers ERROR (never a pass), mirroring
+# hook_decision's ERROR contract for an unreachable hook. Any exit code other
+# than 0/1 is also ERROR: a classifier that dies on `set -e` or a syntax error
+# is not answering "no", it is not answering at all.
+#
+# Unlike expect_decision there is no direction filter. `allow` expectations are
+# filtered out there because they are benign warm-up controls; both directions
+# of a classifier are security-bearing (a false negative misses a real denial, a
+# false positive fabricates one), so both are counted.
+expect_classification() {
+  local want="$1" fn="$2" label="$3"
+  shift 3
+  local _mut_want="" got rc=0
+
+  if [[ -n "${ORK_MUTATE_INDEX:-}" ]]; then
+    ORK_MUTATE_SEEN=$((ORK_MUTATE_SEEN + 1))
+    if (( ORK_MUTATE_SEEN == ORK_MUTATE_INDEX )); then
+      case "$want" in
+        yes) _mut_want=no ;;
+        no) _mut_want=yes ;;
+      esac
+    fi
+  fi
+
+  if ! declare -F "$fn" >/dev/null; then
+    got=ERROR
+  else
+    "$fn" "$@" >/dev/null 2>&1 || rc=$?
+    case "$rc" in
+      0) got=yes ;;
+      1) got=no ;;
+      *) got=ERROR ;;
+    esac
+  fi
+
+  if [[ -n "$_mut_want" ]]; then
+    local verdict
+    if [[ "$got" == "ERROR" ]]; then
+      verdict=ERROR
+    elif [[ "$got" == "$_mut_want" ]]; then
+      verdict=BLIND
+    else
+      verdict=DETECTED
+    fi
+    printf 'ORK_MUTATION_RESULT index=%s verdict=%s hook=%s want=%s mutated=%s got=%s label=%s\n' \
+      "$ORK_MUTATE_INDEX" "$verdict" "classifier:$fn" "$want" "$_mut_want" "$got" "$label"
+    if [[ -n "${ORK_MUTATE_NOEXIT:-}" ]]; then
+      want="$_mut_want"
+    else
+      case "$verdict" in
+        DETECTED) exit 0 ;;
+        BLIND) exit 87 ;;
+        *) exit 88 ;;
+      esac
+    fi
+  fi
+
+  if [[ "$got" == "$want" ]]; then
+    PASS=$((${PASS:-0} + 1))
+    if declare -F log_pass >/dev/null; then log_pass "$label (-> $got)"
+    else echo "  PASS: $label (-> $got)"; fi
+  else
+    FAIL=$((${FAIL:-0} + 1))
+    if declare -F log_fail >/dev/null; then log_fail "$label - expected $want, got $got"
+    else echo "  FAIL: $label - expected $want, got $got" >&2; fi
+  fi
+}
+
 # Run hook and capture exit code
 # Usage: run_hook_capture "path/to/hook.sh" "$input"
 # Returns: Sets HOOK_OUTPUT and HOOK_EXIT_CODE
