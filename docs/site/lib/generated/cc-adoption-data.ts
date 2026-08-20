@@ -16,6 +16,46 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.231",
+    "features": []
+  },
+  {
+    "version": "2.1.227",
+    "features": []
+  },
+  {
+    "version": "2.1.228",
+    "features": []
+  },
+  {
+    "version": "2.1.229",
+    "features": []
+  },
+  {
+    "version": "2.1.223",
+    "features": []
+  },
+  {
+    "version": "2.1.224",
+    "features": []
+  },
+  {
+    "version": "2.1.225",
+    "features": []
+  },
+  {
+    "version": "2.1.226",
+    "features": []
+  },
+  {
+    "version": "2.1.221",
+    "features": []
+  },
+  {
+    "version": "2.1.222",
+    "features": []
+  },
+  {
     "version": "2.1.219",
     "features": []
   }
@@ -23,9 +63,9 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 
 export const CC_SUPPORT = {
   latest: "2.1.220",
-  latestKnown: "2.1.220",
+  latestKnown: "2.1.231",
   supportedFloor: "2.1.220",
   policy: "latest + 3 previous minors",
 } as const;
 
-export const GENERATED_AT = { commit: "b56a1fd08", date: "2026-07-26" } as const;
+export const GENERATED_AT = { commit: "49f42e117", date: "2026-08-20" } as const;

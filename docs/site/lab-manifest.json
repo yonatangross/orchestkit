@@ -2,6 +2,14 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "posttooluse-failure-event-name",
+      "source": "docs/fix--posttooluse-failure-event-name/index.html",
+      "title": "PostToolUseFailure: The Event Name a Shared Helper Stamped Wrong",
+      "description": "Three files, one hardcoded string: hooks.json registers failure-handler on PostToolUseFailure, but its context-bearing exits went through a helper that always stamped PostToolUse. Trace a tool failure through all four exits and watch CC accept or reject each one.",
+      "tags": ["hooks", "debugging", "explainer"],
+      "date": "2026-08-20"
+    },
+    {
       "slug": "cc-adoption-wave-210-212",
       "source": "docs/cc-adoption-wave-210-212/index.html",
       "title": "CC Adoption Wave — 2.1.210 → 2.1.212",
