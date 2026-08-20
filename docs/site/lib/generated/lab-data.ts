@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "epic-d-adoption-probe",
+    "title": "EPIC D, measured against tracked code",
+    "description": "Probes each of the five CC capabilities issue 3309 names against origin/main rather than a working tree, shows what this change adopts, and states why one is declined.",
+    "tags": [
+      "cc-adoption",
+      "worktree",
+      "explainer"
+    ],
+    "date": "2026-08-20",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 14
+  },
+  {
     "slug": "release-rail",
     "title": "Release Rail — Zeroed Counts and an Unnamed Identity",
     "description": "Two defects found by composing a release payload locally instead of reading the code: every release video rendered \"0 skills, 0 hooks\", and the announce rail named no posting identity. Includes the evidence for leaving the prerelease gate closed.",
