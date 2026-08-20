@@ -6,7 +6,12 @@
  * source playground HTML into docs/site/public/lab/<slug>.html, and emits:
  *   - lib/generated/lab-data.ts          (gallery entries)
  *   - lib/generated/cc-adoption-data.ts  (from shared/cc-adoption-gaps.json
- *                                         + shared/cc-support.json + git stamp)
+ *                                         + shared/cc-support.json)
+ *
+ * Output must be a PURE FUNCTION of tracked inputs. scripts/build-plugins.sh
+ * runs this during `npm run build`, and ci.yml diffs lib/generated/ afterwards,
+ * so anything that varies per run (HEAD sha, wall-clock date) would fail that
+ * gate on every PR rather than only on real drift. See SOURCE_DIGEST below.
  *
  * Convention (matches scripts/generate-docs-data.js): run locally, commit the
  * outputs. Sources under docs/*.html may be gitignored working artifacts —
@@ -18,7 +23,7 @@
  * a warning. Fails loudly only when BOTH are missing (truly pruned entry):
  * remove the entry or restore the file.
  */
-import { execSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -96,18 +101,16 @@ export const LAB_ENTRIES: LabEntry[] = ${JSON.stringify(entries, null, 2)};
 fs.writeFileSync(path.join(GEN, "lab-data.ts"), labTs);
 
 // ---------- cc-adoption board ----------
-const gaps = JSON.parse(fs.readFileSync(path.join(REPO, "shared", "cc-adoption-gaps.json"), "utf8"));
-const support = JSON.parse(fs.readFileSync(path.join(REPO, "shared", "cc-support.json"), "utf8"));
+const gapsRaw = fs.readFileSync(path.join(REPO, "shared", "cc-adoption-gaps.json"), "utf8");
+const supportRaw = fs.readFileSync(path.join(REPO, "shared", "cc-support.json"), "utf8");
+const gaps = JSON.parse(gapsRaw);
+const support = JSON.parse(supportRaw);
 
-let stamp = { commit: "unknown", date: new Date().toISOString().slice(0, 10) };
-try {
-  stamp = {
-    commit: execSync("git rev-parse --short HEAD", { cwd: REPO }).toString().trim(),
-    date: new Date().toISOString().slice(0, 10),
-  };
-} catch {
-  /* fine — stamp stays partial outside a git checkout */
-}
+// Provenance stamp over the SOURCE BYTES, deliberately not `git rev-parse HEAD`
+// plus today's date. This output is committed and CI re-runs the build then
+// diffs it, so a per-run stamp turns the drift gate into a false alarm on every
+// PR. A digest moves when, and only when, the two source files move.
+const sourceDigest = createHash("sha256").update(gapsRaw).update(supportRaw).digest("hex").slice(0, 12);
 
 const waves = gaps.map((w) => ({
   version: w.version,
@@ -145,11 +148,12 @@ export const CC_SUPPORT = {
   policy: "${esc(support.policy)}",
 } as const;
 
-export const GENERATED_AT = { commit: "${esc(stamp.commit)}", date: "${esc(stamp.date)}" } as const;
+/** sha256 (first 12 hex) of the two source files above, in that order. */
+export const SOURCE_DIGEST = "${sourceDigest}" as const;
 `;
 fs.writeFileSync(path.join(GEN, "cc-adoption-data.ts"), adoptionTs);
 
 console.log(
   `[generate-lab-data] ${entries.length} lab entries → public/lab/ + lab-data.ts · ` +
-    `${waves.length} adoption wave(s) → cc-adoption-data.ts (stamp ${stamp.commit})`,
+    `${waves.length} adoption wave(s) → cc-adoption-data.ts (source ${sourceDigest})`,
 );
