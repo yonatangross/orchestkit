@@ -113,7 +113,18 @@ for f in $(printf '%s\n' "${ALL_TESTS[@]}" | sort); do
   fi
 done
 
-RESULT_DIR="$(mktemp -d -t ork-mutate-XXXXXX)"
+# FAIL CLOSED on the scratch dir. `mktemp -d -t PREFIX` resolves to the darwin
+# per-user temp dir and IGNORES $TMPDIR, so under a sandbox that denies it the
+# mkdtemp fails, RESULT_DIR becomes the empty string, every worker writes to
+# /test-*.sh, the reduce loop reads nothing, and 0 proven / 0 non-provable
+# compares clean against the baseline and reports OK. A security gate that
+# measures nothing must never exit 0. Same family as #3564 / #3579.
+RESULT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ork-mutate-XXXXXX")" || RESULT_DIR=""
+if [[ -z "$RESULT_DIR" || ! -d "$RESULT_DIR" || ! -w "$RESULT_DIR" ]]; then
+  echo -e "${RED}Cannot create a writable scratch dir (TMPDIR=${TMPDIR:-unset})."
+  echo -e "Refusing to report success on a run that can measure nothing.${NC}"
+  exit 1
+fi
 trap 'rm -rf "$RESULT_DIR"' EXIT
 
 # ---------------------------------------------------------------------------
@@ -180,6 +191,16 @@ echo ""
 echo -e "${BOLD}Security Mutation Gate — can these tests fail?${NC}"
 echo "============================================================================"
 echo ""
+
+# FAIL CLOSED on accounting. Every candidate must have produced exactly one
+# result file. A missing file means that worker never reported, which is an
+# un-measured test, not a passing one.
+_WROTE=$(ls -1 "$RESULT_DIR" 2>/dev/null | awk 'NF{n++} END{print n+0}')
+if [[ "$_WROTE" -ne "${#CANDIDATES[@]}" ]]; then
+  echo -e "${RED}Accounting mismatch: ${#CANDIDATES[@]} candidates but $_WROTE result(s)."
+  echo -e "Refusing to report success on a partial measurement.${NC}"
+  exit 1
+fi
 
 DETECTED=0
 NOT_PROVABLE=()
