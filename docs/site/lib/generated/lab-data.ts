@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "cc-board-drift-gate",
+    "title": "A drift gate with nothing behind it",
+    "description": "Walk the build steps against the paths ci.yml diffs and watch two of seven generated outputs turn out to have no writer, then compare a per-run stamp with a source digest across two CI runs.",
+    "tags": [
+      "ci",
+      "build",
+      "explainer"
+    ],
+    "date": "2026-08-20",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 10
+  },
+  {
     "slug": "release-rail",
     "title": "Release Rail — Zeroed Counts and an Unnamed Identity",
     "description": "Two defects found by composing a release payload locally instead of reading the code: every release video rendered \"0 skills, 0 hooks\", and the announce rail named no posting identity. Includes the evidence for leaving the prerelease gate closed.",
