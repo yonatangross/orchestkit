@@ -67,6 +67,42 @@ function gitRevParse(projectDir: string, ref: string): string | null {
 }
 
 /**
+ * Resolve the base ref to compare a worktree branch against.
+ *
+ * Prefers `origin/<base>` over the local branch (#3569). In a worktree-heavy
+ * checkout nobody checks `main` out — work happens on branches and lands via
+ * squash merge on the remote — so the local ref drifts hundreds of commits
+ * behind and inflates the unmerged count for branches that are FULLY merged.
+ * Measured 2026-08-19: local main 47 behind here (45 false unmerged commits,
+ * 0 against origin) and 587 behind in hq-ext-plugin (731 false).
+ *
+ * A false "you will lose work" on a landed branch is worse than silence: it
+ * obstructs the cleanup this advisory exists to make safe, trains the reader
+ * to ignore it, and has already caused a session to retract a CORRECT
+ * conclusion. The stale base also defeats the squash-merge suppression
+ * (#3365), because those containment checks ask the same wrong ref.
+ *
+ * Deliberately does NOT fetch: this runs in PreToolUse and must stay fast.
+ * `origin/<base>` may itself lag when the user never fetches, but it is
+ * strictly closer to the truth than a branch that is never checked out, and it
+ * makes this consistent with `branchIsPushed`, which already uses
+ * `origin/<branch>`.
+ *
+ * Returns null when nothing resolves, so "could not measure" stays distinct
+ * from "measured zero" instead of guessing at the literal string 'main'.
+ */
+export function resolveBase(projectDir: string): string | null {
+  const candidates = ['main', 'master', 'develop'];
+  for (const b of candidates) {
+    if (gitRevParse(projectDir, `origin/${b}`)) return `origin/${b}`;
+  }
+  for (const b of candidates) {
+    if (gitRevParse(projectDir, b)) return b;
+  }
+  return null;
+}
+
+/**
  * Resolve the worktree path provided on the command line to its HEAD
  * branch. Uses `git worktree list --porcelain` so we don't need to shell
  * into the worktree itself (which may be about to disappear).
@@ -194,8 +230,12 @@ export function worktreeMergeVerifier(input: HookInput, ctx: HookContext = NOOP_
     return outputSilentSuccess();
   }
 
-  const baseCandidates = ['main', 'master', 'develop'];
-  const base = baseCandidates.find(b => gitRevParse(projectDir, b)) || 'main';
+  const base = resolveBase(projectDir);
+  if (!base) {
+    // No base ref resolves at all — we cannot measure containment, so say
+    // nothing rather than compare against a ref that may not exist.
+    return outputSilentSuccess();
+  }
 
   const unmerged = unmergedCommitCount(projectDir, branch, base);
   if (unmerged === 0) return outputSilentSuccess();
