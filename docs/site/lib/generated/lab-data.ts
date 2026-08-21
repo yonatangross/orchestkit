@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "mutation-gate-fail-closed-3583",
+    "title": "A security gate that measured nothing and said OK",
+    "description": "A denied mktemp emptied RESULT_DIR, so the security mutation gate scored 0 of 13 tests and still exited 0. Paired probe, the root cause at line 116, and two fail-closed guards.",
+    "tags": [
+      "security",
+      "ci",
+      "fail-open"
+    ],
+    "date": "2026-08-20",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
     "slug": "epic-d-adoption-probe",
     "title": "EPIC D, measured against tracked code",
     "description": "Probes each of the five CC capabilities issue 3309 names against origin/main rather than a working tree, shows what this change adopts, and states why one is declined.",
@@ -27,6 +41,48 @@ export const LAB_ENTRIES: LabEntry[] = [
     "featured": false,
     "caseStudy": null,
     "sizeKb": 14
+  },
+  {
+    "slug": "cc-board-drift-gate",
+    "title": "A drift gate with nothing behind it",
+    "description": "Walk the build steps against the paths ci.yml diffs and watch two of seven generated outputs turn out to have no writer, then compare a per-run stamp with a source digest across two CI runs.",
+    "tags": [
+      "ci",
+      "build",
+      "explainer"
+    ],
+    "date": "2026-08-20",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 10
+  },
+  {
+    "slug": "posttooluse-failure-event-name",
+    "title": "PostToolUseFailure: The Event Name a Shared Helper Stamped Wrong",
+    "description": "Three files, one hardcoded string: hooks.json registers failure-handler on PostToolUseFailure, but its context-bearing exits went through a helper that always stamped PostToolUse. Trace a tool failure through all four exits and watch CC accept or reject each one.",
+    "tags": [
+      "hooks",
+      "debugging",
+      "explainer"
+    ],
+    "date": "2026-08-20",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 15
+  },
+  {
+    "slug": "cc-triage-fenced-json",
+    "title": "Fenced JSON in cc-triage stdout",
+    "description": "Runs the old JSON.parse and the new string-aware balanced scan side by side over eight real shapes of model output, including the fenced array that froze CC adoption at 2.1.231.",
+    "tags": [
+      "cc-adoption",
+      "parser",
+      "explainer"
+    ],
+    "date": "2026-08-20",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 11
   },
   {
     "slug": "release-rail",

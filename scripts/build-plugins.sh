@@ -552,6 +552,24 @@ if [[ -f "$SCRIPT_DIR/gen-docs-search-index.js" ]]; then
     node "$SCRIPT_DIR/gen-docs-search-index.js" || echo -e "${YELLOW}  gen-docs-search-index.js failed${NC}"
 fi
 
+# Lab gallery + CC-adoption board data (docs/site/lib/generated/lab-data.ts and
+# cc-adoption-data.ts). ci.yml's "Check for uncommitted build changes" step
+# diffs docs/site/lib/generated/, but nothing in this build regenerated
+# cc-adoption-data.ts, so that gate was structurally blind to it and the
+# published board froze at an old "latest known upstream" while
+# shared/cc-support.json moved on. Deliberately NOT failure-swallowed: the
+# generator is a pure function of lab-manifest.json + shared/cc-*.json, so a
+# non-zero exit here is a real, actionable problem (a pruned lab source).
+LAB_DATA_GEN="$PROJECT_ROOT/docs/site/scripts/generate-lab-data.mjs"
+if [[ -f "$LAB_DATA_GEN" ]]; then
+    node "$LAB_DATA_GEN" || {
+        echo -e "${RED}  generate-lab-data.mjs failed${NC}"
+        exit 1
+    }
+else
+    echo -e "${YELLOW}  generate-lab-data.mjs not found, skipping${NC}"
+fi
+
 echo ""
 
 # ============================================================================

@@ -75,13 +75,16 @@ export function outputBlock(reason: string): HookResult {
  * For PostToolUse hooks (hookEventName optional)
  * #865: Empty/whitespace-only content is silently dropped to save tokens.
  */
-export function outputWithContext(ctx: string): HookResult {
+export function outputWithContext(
+  ctx: string,
+  hookEventName: 'PostToolUse' | 'PostToolUseFailure' = 'PostToolUse',
+): HookResult {
   if (!ctx?.trim()) return outputSilentSuccess();
   return {
     continue: true,
     suppressOutput: true,
     hookSpecificOutput: {
-      hookEventName: 'PostToolUse',
+      hookEventName,
       additionalContext: ctx,
     },
   };

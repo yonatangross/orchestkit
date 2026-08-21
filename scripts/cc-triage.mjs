@@ -223,6 +223,74 @@ let authFailureDetail = null;
 // no latency budget; give opus headroom for big releases.
 const CLAUDE_CALL_TIMEOUT_MS = 180_000;
 
+// Extract the first syntactically-complete JSON value from model stdout.
+//
+// buildPrompt() forbids markdown fences twice (`no prose, no markdown fences`
+// and `Output ONLY the raw JSON array`) and the model wraps the array in a
+// ```json fence anyway, often enough to have frozen CC adoption at 2.1.231
+// (run 31672298470). `JSON.parse(out)` threw on the leading backtick, the
+// retry re-rolled the BYTE-IDENTICAL prompt and reproduced the SAME wrapper,
+// so callClaude returned null and every capability-bearing version got
+// sentineled parse_failed. Both the inner retry (attempt 2) and the cross-run
+// `--retry-failed` retry re-enter this same parse, so tolerating the wrapper
+// here is what unsticks all three layers.
+//
+// We scan for a BALANCED value rather than regex-stripping a fence: one rule
+// then covers bare JSON, ```json fences, bare ``` fences, leading prose and
+// trailing chatter, instead of repairing only the exact shape seen once. The
+// scan is string-aware, so a `]` or `}` inside a JSON string value does not
+// terminate the span. A candidate that opens but does not parse (prose like
+// `the [first] item`) is skipped and scanning resumes at the next opener.
+//
+// Same tolerance parseIdentityOutput() already applies to `claude -p` stdout
+// in src/hooks/src/lib/session-identity.ts:294 ("Tolerates fences/prose around
+// the JSON"), extended to arrays and made string-aware. The repo knew about
+// this failure mode in one place; cc-triage never got the same treatment.
+//
+// Deliberately PRESERVED failures: a fenced `[]` still parses to `[]` and
+// still trips the M134 empty-array guard, a fenced OBJECT still fails the
+// `result is not array` check, and genuinely non-JSON output still throws and
+// still writes the parse_failed sentinel.
+//
+// Returns { found: false } or { found: true, value }.
+function extractJsonValue(text) {
+  for (let i = 0; i < text.length; i++) {
+    const open = text[i];
+    if (open !== '[' && open !== '{') continue;
+    const close = open === '[' ? ']' : '}';
+    let depth = 0;
+    let inStr = false;
+    let esc = false;
+    for (let j = i; j < text.length; j++) {
+      const ch = text[j];
+      if (esc) {
+        esc = false;
+        continue;
+      }
+      if (inStr && ch === '\\') {
+        esc = true;
+        continue;
+      }
+      if (ch === '"') {
+        inStr = !inStr;
+        continue;
+      }
+      if (inStr) continue;
+      if (ch === open) {
+        depth++;
+      } else if (ch === close && --depth === 0) {
+        try {
+          return { found: true, value: JSON.parse(text.slice(i, j + 1)) };
+        } catch {
+          // Balanced but not JSON (prose brackets). Resume at the next opener.
+          break;
+        }
+      }
+    }
+  }
+  return { found: false };
+}
+
 function callClaude(prompt) {
   // Single retry budget over THREE failure modes:
   //   (a) timeout (spawnSync's `timeout` field — also surfaces as `signal === 'SIGTERM'`)
@@ -315,7 +383,13 @@ function callClaude(prompt) {
         continue;
       }
       const out = (res.stdout || '').trim();
-      const parsed = JSON.parse(out);
+      const extracted = extractJsonValue(out);
+      if (!extracted.found) {
+        throw new Error(
+          `no JSON value in model output (first 120 chars: ${JSON.stringify(out.slice(0, 120))})`,
+        );
+      }
+      const parsed = extracted.value;
       if (!Array.isArray(parsed)) throw new Error('result is not array');
       if (parsed.length === 0) {
         lastReason = 'empty array result (model emitted [] for a non-empty changelog)';
