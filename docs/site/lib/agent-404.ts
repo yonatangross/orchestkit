@@ -36,6 +36,7 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	"/pricing.md",
 	"/llms.txt",
 	"/llms-full.txt",
+	"/rss.xml",
 	"/schema-map.xml",
 	"/robots.txt",
 	"/sitemap.xml",
