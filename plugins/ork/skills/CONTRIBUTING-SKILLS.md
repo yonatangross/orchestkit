@@ -4,6 +4,25 @@ Standards for authoring OrchestKit skills. Read this before creating or modifyin
 
 Based on [Anthropic Skill Authoring Best Practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices), [Vercel agent-skills](https://github.com/vercel-labs/agent-skills) (129K installs), and the [Agent Skills Open Standard](https://agentskills.io).
 
+## Publish Channels
+
+OrchestKit ships built skills through two independent channels:
+
+1. **CC plugin marketplace** — the only channel in production today. See
+   `docs/marketplace-submission.md` (supported platform is stated there as
+   **Claude Code only**; that positioning claim is unchanged by the second
+   channel below and flipping it is a separate operator decision).
+2. **Claude Platform Skills API** (`/v1/skills`) — `scripts/publish-skills.mjs`
+   packages the BUILT tree (`plugins/ork/skills/*/SKILL.md`, not `src/`) and
+   validates each skill against the API's `name`/`description` constraints
+   before composing an upload payload.
+
+Publishing is **manual and operator-gated**: the script defaults to dry-run
+(compose + validate, no network call) and a real upload requires both
+`--publish` and `ANTHROPIC_API_KEY` set explicitly. It is never run with
+`--publish` from CI or from any automated skill-authoring workflow — see the
+script's own header comment for the full constraint list and usage.
+
 ## Skill Directory Structure
 
 ```

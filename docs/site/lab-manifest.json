@@ -2,6 +2,14 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "skills-api-publish-rail",
+      "source": "docs/feat--3628-skills-api/index.html",
+      "title": "Skills API Publish Rail: which of 105 skills actually pass",
+      "description": "scripts/publish-skills.mjs packages OrchestKit's built skills for the Claude Platform Skills API. Run the same name/description validation the script runs, against real and synthetic skills, and see the exact dry-run payload it would compose.",
+      "tags": ["skills-api", "publish", "explainer"],
+      "date": "2026-08-21"
+    },
+    {
       "slug": "cc-triage-fenced-json",
       "source": "docs/fix--cc-watch-fence-parse/index.html",
       "title": "Fenced JSON in cc-triage stdout",

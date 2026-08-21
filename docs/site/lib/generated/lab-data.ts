@@ -85,6 +85,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 10
   },
   {
+    "slug": "skills-api-publish-rail",
+    "title": "Skills API Publish Rail: which of 105 skills actually pass",
+    "description": "scripts/publish-skills.mjs packages OrchestKit's built skills for the Claude Platform Skills API. Run the same name/description validation the script runs, against real and synthetic skills, and see the exact dry-run payload it would compose.",
+    "tags": [
+      "skills-api",
+      "publish",
+      "explainer"
+    ],
+    "date": "2026-08-21",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 14
+  },
+  {
     "slug": "mutation-gate-fail-closed-3583",
     "title": "A security gate that measured nothing and said OK",
     "description": "A denied mktemp emptied RESULT_DIR, so the security mutation gate scored 0 of 13 tests and still exited 0. Paired probe, the root cause at line 116, and two fail-closed guards.",
