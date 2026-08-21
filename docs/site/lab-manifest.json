@@ -10,6 +10,14 @@
       "date": "2026-08-20"
     },
     {
+      "slug": "posttooluse-failure-event-name",
+      "source": "docs/fix--posttooluse-failure-event-name/index.html",
+      "title": "PostToolUseFailure: The Event Name a Shared Helper Stamped Wrong",
+      "description": "Three files, one hardcoded string: hooks.json registers failure-handler on PostToolUseFailure, but its context-bearing exits went through a helper that always stamped PostToolUse. Trace a tool failure through all four exits and watch CC accept or reject each one.",
+      "tags": ["hooks", "debugging", "explainer"],
+      "date": "2026-08-20"
+    },
+    {
       "slug": "cc-adoption-wave-210-212",
       "source": "docs/cc-adoption-wave-210-212/index.html",
       "title": "CC Adoption Wave — 2.1.210 → 2.1.212",
@@ -102,6 +110,14 @@
       "description": "Two defects found by composing a release payload locally instead of reading the code: every release video rendered \"0 skills, 0 hooks\", and the announce rail named no posting identity. Includes the evidence for leaving the prerelease gate closed.",
       "tags": ["audit", "explainer"],
       "date": "2026-08-14"
+    },
+    {
+      "slug": "mutation-gate-fail-closed-3583",
+      "source": "docs/fix--3583-mutation-gate-fail-closed/index.html",
+      "title": "A security gate that measured nothing and said OK",
+      "description": "A denied mktemp emptied RESULT_DIR, so the security mutation gate scored 0 of 13 tests and still exited 0. Paired probe, the root cause at line 116, and two fail-closed guards.",
+      "tags": ["security", "ci", "fail-open"],
+      "date": "2026-08-20"
     }
   ]
 }
