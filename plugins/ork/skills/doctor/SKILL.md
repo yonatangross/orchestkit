@@ -86,7 +86,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes. Sub-check warns when HIGH-tier servers resolve to `@latest` in `.mcp.json` (closes #1462)
 13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
 14. **Effort/Model Compatibility** - Warns only when `xhigh` effort is configured AND the active model is provably unable to run it. Silent otherwise, because the fallback itself is silent
-15. **Sandbox Posture** - CC Bash-sandbox on/off in `settings.local.json`, with a `/sandbox` nudge
+15. **Sandbox Posture** - CC Bash-sandbox on/off in `settings.local.json`, with a `/sandbox` nudge; sub-check 15b queries the macOS unified log for recent sandbox deny events (fail-closed: a denied log query reports UNOBSERVABLE, never zero)
 16. **Operator Settings Posture** - Detects security controls that a plugin bundle **cannot** carry (credential-read deny rules, the `sandbox` block, `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`) and are therefore missing unless the operator wrote them into their own settings
 
 ## When to Use
@@ -163,7 +163,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | **12. MCP Status** | Enabled/disabled state, credential checks, **HIGH-tier `@latest` pinning warn** | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/mcp-status-checks.md` + `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/mcp-pinning-check.md` |
 | **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/rules/diagnostic-checks.md` |
 | **14. Effort/Model** | `xhigh` effort configured on a model that provably cannot run it (see below). Defaults to silence | inline |
-| **15. Sandbox Posture** | CC Bash-sandbox on/off + `/sandbox` nudge (opt-in, Bash-only; info-level) | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/sandbox-posture.md` |
+| **15. Sandbox Posture** | CC Bash-sandbox on/off + `/sandbox` nudge (opt-in, Bash-only; info-level). **15b**: bounded read-only query of the macOS unified log for recent `Sandbox` deny events via `scripts/check-sandbox-violations.sh` (warn-level; fail-closed when the log query itself is denied; explicit skip off macOS) | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/sandbox-posture.md` |
 | **16. Operator Settings Posture** | Controls a plugin bundle **cannot** carry, so they exist only if the operator wrote them: credential-read `permissions.deny` rules (defence in depth: `pretool/read/credential-read-guard` already covers the `Read` tool), the `sandbox` block incl. `network.deniedDomains` (the egress guard only `ask`s on the upload shape; a plain GET abstains), and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` (ork's own `agent-teams.ts` gates on it). Warn-level; prints the JSON to paste | load `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/settings-posture.md` |
 
 > **Why Check 16 exists at all:** `plugins-reference.md:858` says "Only the `agent` and `subagentStatusLine` keys are currently supported" in a plugin's bundled `settings.json`. Everything else ork used to declare there was inert, so the protection it looked like it shipped was never in force. Check 16 is the replacement: detect the gap in a scope CC really reads, then hand the operator the exact JSON. The `ork:configure` skill, section *Operator-Scope Settings*, carries the paste-ready blocks, staged loose-then-strict per #3424; the full JSON is in `${CLAUDE_PLUGIN_ROOT}/skills/configure/references/operator-scope-settings.md`.
@@ -262,5 +262,5 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/<file>
 | `references/report-format.md` | ASCII report templates and JSON CI output |
 | `references/version-compatibility.md` | CC version and channel validation |
 | `references/mcp-pinning-check.md` | HIGH-tier MCP `@latest` warning logic + tier source-of-truth |
-| `references/sandbox-posture.md` | CC Bash-sandbox on/off detection + `/sandbox` nudge (Check 15) |
+| `references/sandbox-posture.md` | CC Bash-sandbox on/off detection + `/sandbox` nudge (Check 15) + unified-log violation query (15b) |
 | `references/settings-posture.md` | Operator-scope security posture: what a plugin bundle cannot carry, and how to detect it missing (Check 16) |

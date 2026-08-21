@@ -118,6 +118,14 @@
       "description": "A denied mktemp emptied RESULT_DIR, so the security mutation gate scored 0 of 13 tests and still exited 0. Paired probe, the root cause at line 116, and two fail-closed guards.",
       "tags": ["security", "ci", "fail-open"],
       "date": "2026-08-20"
+    },
+    {
+      "slug": "doctor-sandbox-violation-log",
+      "source": "docs/feat--doctor-sandbox-violation-log/index.html",
+      "title": "Doctor Check 15b: Sandbox Violation Log",
+      "description": "Fail-closed doctor sub-check that reads the macOS unified log for Seatbelt deny events. All four outcomes exercised live, including the log CLI refusing sandboxed callers (exit 64), which reports UNOBSERVABLE instead of a fake zero.",
+      "tags": ["doctor", "security", "explainer"],
+      "date": "2026-08-21"
     }
   ]
 }

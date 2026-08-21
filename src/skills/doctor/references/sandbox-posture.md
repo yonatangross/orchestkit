@@ -90,3 +90,52 @@ slash silently voided the deny rule before CC 2.1.224).
 This pairs with the runtime network-egress guard (#2533): the guard blocks known
 exfil patterns at the policy layer; the sandbox adds a real OS boundary. Neither is
 a substitute for the other. See milestone #160.
+
+## Sub-check 15b: recent sandbox violations (macOS unified log)
+
+**Severity: warn on findings, warn on unobservable.** macOS keeps a system-wide
+sandbox violation log: every *reporting* Seatbelt denial lands in the unified log
+as a kernel message with sender `Sandbox`. anthropic-experimental/sandbox-runtime
+describes this as real-time notifications with detailed information about what
+was attempted and why it was blocked. Nothing in a CC session surfaces those
+rows, so this sub-check runs a bounded, read-only query and reports what it sees.
+
+**Script:** `${CLAUDE_PLUGIN_ROOT}/skills/doctor/scripts/check-sandbox-violations.sh`
+
+```bash
+# Bounded, read-only. Verified live 2026-08-21 on Darwin 25.5.0:
+/usr/bin/log show --last 15m --style compact --predicate 'sender == "Sandbox"'
+# Sample row it returns:
+#   kernel[0:...] (Sandbox) Sandbox: ecosystemd(2048) deny(1) file-read-data /Library/Preferences/com.apple.security.plist
+
+"${CLAUDE_PLUGIN_ROOT}/skills/doctor/scripts/check-sandbox-violations.sh" --window 15m
+"${CLAUDE_PLUGIN_ROOT}/skills/doctor/scripts/check-sandbox-violations.sh" --json
+"${CLAUDE_PLUGIN_ROOT}/skills/doctor/scripts/check-sandbox-violations.sh" --process 'bash|node|python|git'
+```
+
+Exit codes: `0` observed + clean, `1` observed + deny events found, `2`
+UNOBSERVABLE (fail closed, see below), `3` skipped (non-macOS), `4` usage error.
+
+### The check MUST fail closed
+
+The `log` CLI refuses to run from inside a sandbox. Measured 2026-08-21 from a
+CC sandboxed Bash call: exit 64, stderr `log: Cannot run while sandboxed`. When
+that happens the script reports **UNOBSERVABLE** and exits 2. It never converts
+"could not look" into "zero violations": a denied instrument is a finding, not a
+zero. Doctor reports the denial verbatim and prints the exact command to re-run
+from an unsandboxed shell.
+
+### Honest limits, state these in the output
+
+- **Reporting denials only.** Sandbox profiles can deny *without* reporting.
+  Measured 2026-08-21: a write denied by CC's own Bash sandbox
+  (`touch /etc/...` returned `Operation not permitted`) left **no** unified-log
+  row within the query window. Zero reported events is therefore not proof of
+  zero denials; the script's clean-path output says so explicitly.
+- **System-wide, not session-scoped.** The unified log mixes in platform daemons
+  (`ecosystemd`, `ecosystemanalyticsd`, mach-lookup noise). Those are normal
+  background traffic. Attribution to the session is best-effort: use
+  `--process 'bash|node|python|git'` to focus on rows naming session tooling.
+- **macOS only.** On Linux, sandbox denials surface via auditd/journald, which
+  this check does not read; it exits 3 with an explicit skip reason instead of
+  passing silently.
