@@ -241,3 +241,8 @@ docs/site/.claude/memory/sessions/
 
 # scratch fallback when the system temp dir is unwritable (see tests/run-all-tests.sh)
 tests/.tmp/
+
+# Build output for the publishable npm packages. Built on demand by
+# `npm run build --workspace=<pkg>` and by the release workflow; never committed
+# (unlike plugins/*/hooks/dist above, which marketplace installs need prebuilt).
+packages/*/dist/

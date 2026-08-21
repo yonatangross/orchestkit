@@ -30,10 +30,15 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	"/status",
 	"/terms",
 	"/yonyon",
+	"/api-policy",
 	// Top-level route files (markdown twins, feeds, sitemaps, OG image).
 	"/auth.md",
 	"/api-policy.md",
 	"/pricing.md",
+	// Markdown twins of the two name-queried pages (rewritten by middleware to
+	// app/api/page-md; listed so the allowlist reads as the full served surface).
+	"/developers.md",
+	"/yonyon.md",
 	"/llms.txt",
 	"/llms-full.txt",
 	"/rss.xml",
@@ -89,13 +94,23 @@ export function isServedPath(pathname: string): boolean {
 	}
 	// Static assets (anything with a file extension) — let Next serve or 404 them
 	// natively rather than synthesizing a JSON error for a missing image/font.
-	// EXCEPTION: .json is a data format agents probe (e.g. /product_feed.json, an
-	// Agentic-Commerce feed) — an unknown one should get a structured JSON 404,
-	// not an HTML page. Every .json we actually serve is in SERVED_EXACT above, so
-	// excluding it here only reroutes genuine 404s to the machine-readable answer.
-	if (/\.[a-z0-9]+$/i.test(pathname) && !pathname.endsWith(".json")) return true;
+	// EXCEPTIONS, in AGENT_DATA_EXTENSIONS below: extensions that are agent data
+	// formats rather than binary assets. An unknown one should get a structured,
+	// machine-readable 404, not an HTML page. Every such file we actually serve is
+	// in SERVED_EXACT / SERVED_PREFIXES above, so excluding them here only
+	// reroutes genuine 404s to the machine-readable answer.
+	const ext = pathname.match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase();
+	if (ext && !AGENT_DATA_EXTENSIONS.has(ext)) return true;
 	return false;
 }
+
+// File extensions that name an agent-readable data format. `.md` matters most:
+// the docs tell agents to "append .md to any page URL", so an agent following
+// that instruction onto a page without a Markdown twin used to receive the HTML
+// not-found page, the exact scrape-the-markup failure the JSON 404 exists to
+// prevent. public/ contains no .md/.txt files (only images, .html labs and one
+// .json), so nothing static is captured by this.
+const AGENT_DATA_EXTENSIONS: ReadonlySet<string> = new Set(["json", "md", "txt"]);
 
 // A request prefers a JSON error unless it is a browser explicitly asking for
 // HTML. `*/*` (curl, most SDKs) and JSON-typed Accepts both get JSON.
@@ -112,4 +127,18 @@ export function shouldJsonError(
 ): boolean {
 	if (method === "OPTIONS") return false; // never hijack a CORS preflight
 	return !isServedPath(pathname) && prefersJsonError(accept);
+}
+
+// A request prefers a Markdown error when it asked for Markdown by any of the
+// three routes the site documents: the Accept header, a `.md` suffix, or
+// ?mode=agent. Checked BEFORE prefersJsonError so an explicit `text/markdown`
+// wins over the JSON default.
+export function prefersMarkdownError(
+	pathname: string,
+	accept: string,
+	mode?: string | null,
+): boolean {
+	return (
+		accept.includes("text/markdown") || pathname.endsWith(".md") || mode === "agent"
+	);
 }

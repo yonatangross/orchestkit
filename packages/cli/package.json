@@ -1,0 +1,62 @@
+{
+  "name": "orchestkit",
+  "version": "0.1.0",
+  "description": "Official CLI for OrchestKit, install the Claude Code plugin, search and read the docs, and query the public docs API from your shell or a script.",
+  "homepage": "https://orchestkit.yonyon.ai/developers",
+  "type": "module",
+  "bin": {
+    "orchestkit": "./dist/cli.js",
+    "ork": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/chmod-bin.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist",
+    "publish:dry-run": "npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  },
+  "keywords": [
+    "claude-code",
+    "orchestkit",
+    "yonyon",
+    "cli",
+    "agent",
+    "mcp",
+    "skills"
+  ],
+  "author": "Yonatan Gross",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yonatangross/orchestkit.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/yonatangross/orchestkit/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

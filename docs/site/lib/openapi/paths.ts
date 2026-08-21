@@ -8,7 +8,7 @@
 // `$ref`'d 200 counts as "no response schema" and a `$ref`'d cursor param as
 // "no pagination". Schema-level $refs (#/components/schemas/*) are fine.
 
-import { RATE_LIMIT_HEADER_REFS } from "./components";
+import { DEPRECATION_HEADER_REFS, RATE_LIMIT_HEADER_REFS } from "./components";
 
 const PROBLEM_RESPONSE = {
 	description:
@@ -141,6 +141,8 @@ export const OPENAPI_PATHS = {
 							schema: { type: "string" },
 						},
 						...RATE_LIMIT_HEADER_REFS,
+						Deprecation: DEPRECATION_HEADER_REFS.Deprecation,
+						Sunset: DEPRECATION_HEADER_REFS.Sunset,
 					},
 					content: {
 						"application/json": {
@@ -237,7 +239,7 @@ export const OPENAPI_PATHS = {
 			responses: {
 				"200": {
 					description: "Per-path results, in request order.",
-					headers: { ...RATE_LIMIT_HEADER_REFS },
+					headers: { ...RATE_LIMIT_HEADER_REFS, ...DEPRECATION_HEADER_REFS },
 					content: {
 						"application/json": {
 							schema: { $ref: "#/components/schemas/BatchMarkdownResponse" },
@@ -293,7 +295,7 @@ export const OPENAPI_PATHS = {
 			responses: {
 				"200": {
 					description: "Job state; `completed` jobs carry the result inline.",
-					headers: { ...RATE_LIMIT_HEADER_REFS },
+					headers: { ...RATE_LIMIT_HEADER_REFS, ...DEPRECATION_HEADER_REFS },
 					content: {
 						"application/json": {
 							schema: {
