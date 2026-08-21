@@ -29,6 +29,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 5
   },
   {
+    "slug": "cc-board-drift-gate",
+    "title": "A drift gate with nothing behind it",
+    "description": "Walk the build steps against the paths ci.yml diffs and watch two of seven generated outputs turn out to have no writer, then compare a per-run stamp with a source digest across two CI runs.",
+    "tags": [
+      "ci",
+      "build",
+      "explainer"
+    ],
+    "date": "2026-08-20",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 10
+  },
+  {
     "slug": "posttooluse-failure-event-name",
     "title": "PostToolUseFailure: The Event Name a Shared Helper Stamped Wrong",
     "description": "Three files, one hardcoded string: hooks.json registers failure-handler on PostToolUseFailure, but its context-bearing exits went through a helper that always stamped PostToolUse. Trace a tool failure through all four exits and watch CC accept or reject each one.",
