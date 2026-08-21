@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "release-announce-flow",
+    "title": "A working printer with an empty queue",
+    "description": "The release-announce rail was armed for two months and never fired once: it skips every prerelease and the repo has shipped only alphas. Interactive today-vs-target release flow, the #1739 human gate, outward artifact mockups (an @yonyon2ai post, the 06:00 approval card, the new RSS entry), and the five operator decisions as live toggles.",
+    "tags": [
+      "release",
+      "automation",
+      "announce"
+    ],
+    "date": "2026-08-21",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 45
+  },
+  {
     "slug": "gh-api-helper",
     "title": "A GitHub API client for gh-broken shells",
     "description": "Why every Go TLS client fails in CC panes (the sandbox blocks com.apple.trustd.agent by default) and the dependency-free node helper that routes around it with gh auth token.",
