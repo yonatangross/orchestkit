@@ -1,0 +1,4 @@
+{
+  "watch_since": "2026-08-01",
+  "_comment": "platform-release-watch.mjs ignores release-note dates strictly before watch_since, so the first run does not snapshot the page's full history. Seeded 2026-08-01 to include the 2026-08-19 GA wave that motivated #3627. Advance manually if the backlog below the line is ever fully triaged."
+}
