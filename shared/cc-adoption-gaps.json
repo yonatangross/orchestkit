@@ -1,5 +1,71 @@
 [
   {
+    "version": "2.1.238",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "keybinding_flavor_setting",
+        "category": "feature",
+        "description": "New keybindingFlavor settings key (classic|readline) changes prompt editing-key semantics; operator-scope settings references should list it.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "doctor"
+        ],
+        "reference_changelog_line": "Added a `keybindingFlavor` setting: set it to \"readline\" to make Ctrl+W in the prompt delete back to the previous whitespace, as in Bash; the default (\"classic\") is unchanged",
+        "relevance": "docs"
+      },
+      {
+        "feature_slug": "marketplace_headers_helper",
+        "category": "feature",
+        "description": "headersHelper mints short-lived HTTP headers for url marketplaces and catalog/archive entries, with install-time confirmation and credential-env scrubbing for project-scope declarations; marketplace and MCP template docs should cover the trust and scrubbing rules.",
+        "gap_score": 35,
+        "affected_skills": [
+          "configure",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Plugin marketplaces: `headersHelper` on a url marketplace or a catalog entry runs a command that mints HTTP headers (e.g. a short-lived token) for catalog and same-origin archive fetches",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "mcp_json_headers_helper_trust_gate",
+        "category": "breaking",
+        "description": "MCP headersHelper in a project .mcp.json, and inline MCP servers in project or --add-dir agent files, now require the folder trust dialog and run without inherited credential env vars; affects the shipped mcp-enabled.json template guidance.",
+        "gap_score": 40,
+        "affected_skills": [
+          "configure",
+          "doctor",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "MCP `headersHelper` in a project `.mcp.json`, and inline MCP servers in project or `--add-dir` agent files, now require that folder's trust dialog",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "mcp_list_disabled_no_healthcheck",
+        "category": "feature",
+        "description": "claude mcp list/get now show disabled servers without connecting for a health check; doctor's MCP connectivity check must not read a Disabled row as a probe result.",
+        "gap_score": 25,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Changed `claude mcp list` and `claude mcp get` to show disabled servers as Disabled instead of connecting to them for a health check",
+        "relevance": "plugin"
+      },
+      {
+        "feature_slug": "self_hosted_runner_shutdown_and_proxy_auth",
+        "category": "feature",
+        "description": "self-hosted-runner gains --defer-shutdown-max-min and proxy-authorization command/file flags; relevant to the shared 4-box runner pool operations documentation.",
+        "gap_score": 15,
+        "affected_skills": [
+          "devops-deployment"
+        ],
+        "reference_changelog_line": "Added `claude self-hosted-runner --defer-shutdown-max-min <minutes>`",
+        "relevance": "docs"
+      }
+    ],
+    "raw_bullets_count": 39
+  },
+  {
     "version": "2.1.232",
     "parse_failed": false,
     "features": [
@@ -580,7 +646,7 @@
           "configure",
           "security-patterns"
         ],
-        "reference_changelog_line": "`/permissions` can now be opened while Claude is working — rule changes apply to the rest of the current turn",
+        "reference_changelog_line": "`/permissions` can now be opened while Claude is working \u2014 rule changes apply to the rest of the current turn",
         "relevance": "plugin",
         "disposition": "triaged-noop-no-evidence"
       },
@@ -863,7 +929,7 @@
           "chain-patterns",
           "task-dependency-patterns"
         ],
-        "reference_changelog_line": "Added `notify_when_idle` to cross-session `SendMessage`: ask another Claude Code session on this machine to send one notice when it next goes idle — opt-in, one-shot, no polling (macOS and Linux)",
+        "reference_changelog_line": "Added `notify_when_idle` to cross-session `SendMessage`: ask another Claude Code session on this machine to send one notice when it next goes idle \u2014 opt-in, one-shot, no polling (macOS and Linux)",
         "relevance": "plugin",
         "recall_boosted_from": 5
       }
@@ -1253,7 +1319,7 @@
         "affected_skills": [
           "security-patterns"
         ],
-        "reference_changelog_line": "Changed the feedback-survey transcript share: with your consent it now also uploads the last request's model settings — the system prompt (which includes your `CLAUDE.md` instructions), tool definitions, and model parameters. Secrets are redacted as before, and these fields are dropped first if the share is too large",
+        "reference_changelog_line": "Changed the feedback-survey transcript share: with your consent it now also uploads the last request's model settings \u2014 the system prompt (which includes your `CLAUDE.md` instructions), tool definitions, and model parameters. Secrets are redacted as before, and these fields are dropped first if the share is too large",
         "relevance": "plugin"
       },
       {
@@ -1571,7 +1637,7 @@
           "configure",
           "devops-deployment"
         ],
-        "reference_changelog_line": "Added `mode: \"mask\"` for sandbox credential files on Linux and WSL — sandboxed commands read a sentinel copy (the whole file, or just the spans captured by an `extract` regex) while the sandbox proxy substitutes the real value on egress; on macOS file masking falls back to `deny`",
+        "reference_changelog_line": "Added `mode: \"mask\"` for sandbox credential files on Linux and WSL \u2014 sandboxed commands read a sentinel copy (the whole file, or just the spans captured by an `extract` regex) while the sandbox proxy substitutes the real value on egress; on macOS file masking falls back to `deny`",
         "relevance": "plugin"
       },
       {

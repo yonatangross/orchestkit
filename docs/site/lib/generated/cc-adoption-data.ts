@@ -16,6 +16,60 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.238",
+    "features": [
+      {
+        "slug": "keybinding_flavor_setting",
+        "category": "feature",
+        "description": "New keybindingFlavor settings key (classic|readline) changes prompt editing-key semantics; operator-scope settings references should list it.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "marketplace_headers_helper",
+        "category": "feature",
+        "description": "headersHelper mints short-lived HTTP headers for url marketplaces and catalog/archive entries, with install-time confirmation and credential-env scrubbing for project-scope declarations; marketplace and MCP template docs should cover the trust and scrubbing rules.",
+        "gapScore": 35,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "mcp_json_headers_helper_trust_gate",
+        "category": "breaking",
+        "description": "MCP headersHelper in a project .mcp.json, and inline MCP servers in project or --add-dir agent files, now require the folder trust dialog and run without inherited credential env vars; affects the shipped mcp-enabled.json template guidance.",
+        "gapScore": 40,
+        "affectedSkills": [
+          "configure",
+          "doctor",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "mcp_list_disabled_no_healthcheck",
+        "category": "feature",
+        "description": "claude mcp list/get now show disabled servers without connecting for a health check; doctor's MCP connectivity check must not read a Disabled row as a probe result.",
+        "gapScore": 25,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "self_hosted_runner_shutdown_and_proxy_auth",
+        "category": "feature",
+        "description": "self-hosted-runner gains --defer-shutdown-max-min and proxy-authorization command/file flags; relevant to the shared 4-box runner pool operations documentation.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "devops-deployment"
+        ]
+      }
+    ]
+  },
+  {
     "version": "2.1.232",
     "features": [
       {
@@ -1302,10 +1356,10 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 
 export const CC_SUPPORT = {
   latest: "2.1.220",
-  latestKnown: "2.1.231",
+  latestKnown: "2.1.238",
   supportedFloor: "2.1.220",
   policy: "latest + 3 previous minors",
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "b64f644a142c" as const;
+export const SOURCE_DIGEST = "51fc365737a1" as const;
