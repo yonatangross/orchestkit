@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ADOPTION_WAVES, CC_SUPPORT, GENERATED_AT } from "@/lib/generated/cc-adoption-data";
+import { ADOPTION_WAVES, CC_SUPPORT, SOURCE_DIGEST } from "@/lib/generated/cc-adoption-data";
 
 const CATEGORY_LABEL: Record<string, string> = {
   breaking: "breaking",
@@ -133,9 +133,9 @@ export function CcAdoptionBoard() {
       })}
 
       <p className="text-xs" style={{ color: "var(--color-fd-muted-foreground)" }}>
-        Generated at commit <code>{GENERATED_AT.commit}</code> on {GENERATED_AT.date} from{" "}
-        <code>shared/cc-adoption-gaps.json</code> + <code>shared/cc-support.json</code>. Regenerates with every
-        docs deploy; the gaps file holds the wave currently in triage.
+        Generated from <code>shared/cc-adoption-gaps.json</code> + <code>shared/cc-support.json</code> (source
+        digest <code>{SOURCE_DIGEST}</code>) by <code>npm run build</code>, which CI re-runs and then fails on any
+        drift from those sources. The gaps file holds the wave currently in triage.
       </p>
     </div>
   );

@@ -1,0 +1,52 @@
+# Files Claude Code's NATIVE worktree provisioner copies into a new worktree.
+#
+# Semantics, read off the shipped 2.1.237 binary (not inferred):
+#   - read from `<repo-root>/.worktreeinclude`
+#   - lines are trimmed; blank lines and lines starting with `#` are dropped
+#   - the rest are gitignore-syntax patterns (CC feeds them to the `ignore`
+#     package), matched ONLY against the ignored-AND-untracked candidate set,
+#     i.e. `git ls-files --others --ignored --exclude-standard`
+#   - entries ending in `/` are treated as directories and expanded by a
+#     literal-prefix probe; everything else matches as a file
+#   - symlinks are SKIPPED ("Skipping symlink in .worktreeinclude"), as is any
+#     entry whose destination escapes the worktree via a committed symlink
+#
+# Tracked files arrive with the checkout, so listing one here does nothing.
+#
+# This file is only honoured because ork registers NOTHING on WorktreeCreate.
+# CC's hasWorktreeCreateHook() flips on ANY registered hook and then skips
+# native provisioning wholesale, which is what made .worktreeinclude inert
+# before #3366. hooks-json-wiring.test.ts asserts that event stays empty.
+
+# The project settings scope. It is gitignored here (.gitignore:157, deliberate
+# since 20d1f4faf, "user-local config"), so it does NOT arrive with the
+# checkout, and a worktree cut from a worktree loses it entirely.
+#
+# Measured in the worktree this file was written in: node_modules IS symlinked
+# while .claude/settings.json is ABSENT. CC read worktree.symlinkDirectories
+# from the PARENT project at creation time; this tree can no longer supply it
+# to a child, so a nested worktree falls back to the full two-install dance
+# (root + src/hooks). Carrying the file forward keeps symlinkDirectories, and
+# any worktree.baseRef / env keys the operator adds, effective at every depth.
+#
+# Degrades safely: on a fresh clone the file does not exist, the candidate set
+# does not contain it, and the entry is a no-op.
+.claude/settings.json
+
+# Deliberately NOT listed here:
+#
+#   node_modules/, docs/site/node_modules/, orchestkit-demos/node_modules/,
+#   src/hooks/node_modules/, src/mcp-server/node_modules/
+#     -> already handled by worktree.symlinkDirectories. In the primary tree
+#        they are real directories, so listing them would COPY several GB per
+#        worktree instead of symlinking; in a worktree they are already
+#        symlinks, which the provisioner skips outright. Copying them would
+#        also break the shared-tree assumption the "never npm ci here" rule
+#        exists to protect.
+#
+#   .claude/memory/
+#     -> session-local runtime state, gitignored precisely so it does not
+#        travel between checkouts.
+#
+#   .claude/settings.local.json
+#     -> CC already propagates settings.local.json into worktrees natively.

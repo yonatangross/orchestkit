@@ -1307,4 +1307,5 @@ export const CC_SUPPORT = {
   policy: "latest + 3 previous minors",
 } as const;
 
-export const GENERATED_AT = { commit: "58519b412", date: "2026-08-21" } as const;
+/** sha256 (first 12 hex) of the two source files above, in that order. */
+export const SOURCE_DIGEST = "b64f644a142c" as const;
