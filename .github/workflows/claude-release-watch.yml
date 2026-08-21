@@ -108,6 +108,75 @@ jobs:
             node scripts/cc-release-watch.mjs
           fi
 
+      # Step 1p (#3627) — sibling watcher for the Claude Platform release notes.
+      # cc-release-watch polls only the CC CLI CHANGELOG; the 2026-08-19 platform
+      # GA wave (Skills API, Files API, browser/computer toolsets) was invisible
+      # to it. continue-on-error so a platform.claude.com outage never blocks the
+      # CC lane; the failure is surfaced by the dedicated alarm step below, not
+      # swallowed.
+      - name: Snapshot Claude Platform release notes
+        id: platform_watch
+        continue-on-error: true  # justify: infrastructure-resilience https://github.com/yonatangross/orchestkit/issues/3627
+        run: node scripts/platform-release-watch.mjs
+
+      # Step 1p-alarm — a failed platform watch is could-not-observe, not
+      # nothing-new. One rolling dedup key so a persistent outage files exactly
+      # one issue, not one per cron tick.
+      - name: Platform watch failure alarm
+        if: ${{ steps.platform_watch.outcome == 'failure' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          KEY="platform-watch-failed"
+          EXISTING=$(gh issue list --label cc-adoption --state open \
+            --search "\"Key: \\\`$KEY\\\`\" in:body" \
+            --json number --jq 'length')
+          if [ "$EXISTING" -eq 0 ]; then
+            gh issue create \
+              --title "platform-watch: release-notes fetch/parse failed" \
+              --body "scripts/platform-release-watch.mjs exited non-zero, so the Claude Platform release notes were NOT observed this run (this is could-not-observe, not nothing-new). Key: \`$KEY\`. Check the 'Snapshot Claude Platform release notes' step logs in the failing run; a persistent zero-dated-headings failure means the page format changed and the parser in scripts/platform-release-watch.mjs needs updating. Issue: #3627." \
+              --label cc-adoption,automation
+            echo "Filed platform-watch failure issue."
+          else
+            echo "Platform-watch failure issue already open."
+          fi
+
+      # Step 1p-filer — new platform dates need a human triage pass (v1 has no
+      # LLM extraction lane for platform entries; see #3627). Dedup key is the
+      # newest date in the wave. Stamps issues_filed_at so the watcher prunes
+      # filed entries on the next nothing-new run (same contract as the CC lane).
+      - name: File platform triage issue
+        if: ${{ steps.platform_watch.outputs.platform_new == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_DATES: ${{ steps.platform_watch.outputs.platform_new_dates }}
+        run: |
+          set -euo pipefail
+          LATEST="${NEW_DATES##*,}"
+          KEY="platform+$LATEST"
+          EXISTING=$(gh issue list --label cc-adoption --state open \
+            --search "\"Key: \\\`$KEY\\\`\" in:body" \
+            --json number --jq 'length')
+          if [ "$EXISTING" -eq 0 ]; then
+            gh issue create \
+              --title "platform-watch: new Claude Platform release notes need triage ($NEW_DATES)" \
+              --body "The Claude Platform release notes published new dated entries: $NEW_DATES. Snapshots are in \`shared/platform-snapshots/\` (landing via this run's snapshot PR) and gap entries in \`shared/platform-adoption-gaps.json\`. Key: \`$KEY\`. Triage: read each snapshot and decide adopt / decline-and-document per capability, per the #3627 lanes. Issue: #3627." \
+              --label cc-adoption,automation
+            echo "Filed platform triage issue for $KEY."
+          else
+            echo "Platform triage issue already open for $KEY."
+          fi
+          node -e '
+            const fs = require("fs");
+            const p = "shared/platform-adoption-gaps.json";
+            if (!fs.existsSync(p)) process.exit(0);
+            const g = JSON.parse(fs.readFileSync(p, "utf8"));
+            const now = new Date().toISOString();
+            for (const e of g) if (!e.issues_filed_at) e.issues_filed_at = now;
+            fs.writeFileSync(p, JSON.stringify(g, null, 2) + "\n");
+          '
+
       # Step 2 — soft LLM dependency. If no token, skip extraction; the fallback
       # below still files something so the human triage step is visible.
       # Auth env is hoisted to job-level (see top of `watch:` job).
@@ -308,7 +377,7 @@ jobs:
         if: success()
         run: |
           set -euo pipefail
-          if [ -n "$(git status --porcelain shared/cc-snapshots/ shared/cc-adoption-gaps.json shared/gh-issue-args.json)" ]; then
+          if [ -n "$(git status --porcelain shared/cc-snapshots/ shared/cc-adoption-gaps.json shared/gh-issue-args.json shared/platform-snapshots/ shared/platform-adoption-gaps.json)" ]; then
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
@@ -364,6 +433,8 @@ jobs:
             shared/cc-snapshots/
             shared/cc-adoption-gaps.json
             shared/gh-issue-args.json
+            shared/platform-snapshots/
+            shared/platform-adoption-gaps.json
           commit-message: "chore(cc-watch): snapshot upstream CHANGELOG (${{ steps.read_args.outputs.latest }})"
           branch: chore/cc-snapshot-${{ github.run_id }}
           delete-branch: true
@@ -378,6 +449,9 @@ jobs:
             - `shared/cc-adoption-gaps.json` — gap report for triage
             - `shared/gh-issue-args.json` — milestone title used by the
               issue-filing step
+            - `shared/platform-snapshots/<date>.md` — new dated entries from
+              the Claude Platform release notes (#3627)
+            - `shared/platform-adoption-gaps.json` — platform gap report
 
             Safe to auto-merge once CI is green; this is data-only
             (no code changes).

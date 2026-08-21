@@ -72,6 +72,14 @@
       "date": "2026-06-17"
     },
     {
+      "slug": "epic-d-adoption-probe",
+      "source": "docs/feat--3309-adopt-cc-settings/index.html",
+      "title": "EPIC D, measured against tracked code",
+      "description": "Probes each of the five CC capabilities issue 3309 names against origin/main rather than a working tree, shows what this change adopts, and states why one is declined.",
+      "tags": ["cc-adoption", "worktree", "explainer"],
+      "date": "2026-08-20"
+    },
+    {
       "slug": "vercel-labs-adoption-ideas",
       "source": "docs/playgrounds/vercel-labs-2026-04-29-adoption-ideas.html",
       "title": "Vercel Labs — 8 Adoption Ideas",
@@ -128,11 +136,27 @@
       "date": "2026-08-20"
     },
     {
+      "slug": "platform-watcher-3627",
+      "source": "docs/feat--3627-platform-watch/index.html",
+      "title": "The watcher that could not see half the sky",
+      "description": "The 2026-08-19 Claude Platform GA wave was invisible to a pipeline that only reads the CC CLI changelog and was noticed via a tweet. Interactive replica of the new sibling watcher's parser: dated headings, watch_since cutoff, and the could-not-observe exit that never reads as nothing-new.",
+      "tags": ["ci", "watcher", "blind-spot"],
+      "date": "2026-08-21"
+    },
+    {
+      "slug": "doctor-sandbox-violation-log",
+      "source": "docs/feat--doctor-sandbox-violation-log/index.html",
+      "title": "Reading the macOS sandbox violation log, fail closed",
+      "description": "A doctor check that tails the unified log for Seatbelt denials and refuses to report success when the log itself is unreadable. Includes the measured limits: CC denies without logging, and log show cannot run sandboxed.",
+      "tags": ["doctor", "sandbox", "fail-closed"],
+      "date": "2026-08-21"
+    },
+    {
       "slug": "gh-api-helper",
       "source": "docs/feat--gh-api-helper/index.html",
-      "title": "gh-api.mjs: a GitHub client for shells where gh cannot do TLS",
-      "description": "Why gh fails with OSStatus -26276 inside CC shells (securityd Mach IPC denied, Go has no other verification path) while node's bundled CA succeeds through the same CONNECT tunnel, plus the proven launch-time NODE_USE_ENV_PROXY rule and the helper's usage.",
-      "tags": ["tooling", "explainer", "sandbox"],
+      "title": "A GitHub API client for gh-broken shells",
+      "description": "Why every Go TLS client fails in CC panes (the sandbox blocks com.apple.trustd.agent by default) and the dependency-free node helper that routes around it with gh auth token.",
+      "tags": ["tooling", "sandbox", "workaround"],
       "date": "2026-08-21"
     }
   ]

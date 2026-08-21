@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Watcher That Could Not See Half the Sky (#3627)</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #e6edf3;
+    --dim: #8b949e; --accent: #58a6ff; --ok: #3fb950; --bad: #f85149; --warn: #d29922;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px; background: var(--bg); color: var(--text);
+         font: 15px/1.55 -apple-system, "Segoe UI", sans-serif; max-width: 1100px; margin-inline: auto; }
+  h1 { font-size: 1.5em; } h2 { font-size: 1.15em; margin-top: 1.8em; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin: 14px 0; }
+  .story { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .story .card { margin: 0; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 0.78em; font-weight: 600; }
+  .tag.ok { background: #1a3d24; color: var(--ok); } .tag.bad { background: #442022; color: var(--bad); }
+  textarea { width: 100%; height: 230px; background: #0a0e14; color: var(--text); border: 1px solid var(--border);
+             border-radius: 6px; padding: 10px; font: 12.5px/1.5 ui-monospace, monospace; resize: vertical; }
+  label { color: var(--dim); font-size: 0.88em; margin-right: 6px; }
+  input[type=date] { background: #0a0e14; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; }
+  button { background: #21262d; color: var(--text); border: 1px solid var(--border); border-radius: 6px;
+           padding: 6px 14px; cursor: pointer; font-size: 0.9em; margin-right: 8px; }
+  button:hover { border-color: var(--accent); }
+  pre { background: #0a0e14; border: 1px solid var(--border); border-radius: 6px; padding: 12px;
+        overflow-x: auto; font-size: 12.5px; }
+  .exit { font-family: ui-monospace, monospace; font-weight: 700; }
+  .exit.e0 { color: var(--ok); } .exit.e1 { color: var(--bad); }
+  .entry { border-left: 3px solid var(--accent); padding: 6px 12px; margin: 8px 0; background: #0a0e14; border-radius: 0 6px 6px 0; }
+  .entry.skipped { border-left-color: var(--dim); opacity: 0.55; }
+  .entry .d { font-family: ui-monospace, monospace; font-weight: 700; }
+  .muted { color: var(--dim); } small { color: var(--dim); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9em; }
+  td, th { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
+  th { background: #0a0e14; }
+</style>
+</head>
+<body>
+
+<h1>The watcher that could not see half the sky</h1>
+<p>OrchestKit tracks Claude Code obsessively: a nightly cron, ~200 per-version snapshots, a stamped
+compatibility floor across 114 skills. On <strong>2026-08-19</strong> the Claude Platform shipped a GA wave
+(Skills API, Files API, browser and computer toolsets) and none of that machinery noticed,
+because every instrument reads exactly one feed: the CC CLI changelog. The wave was noticed via a tweet.
+<a href="https://github.com/yonatangross/orchestkit/issues/3627">#3627</a> closes the blind spot with a sibling
+watcher, <code>scripts/platform-release-watch.mjs</code>. This playground runs that watcher's actual parsing
+rules in your browser.</p>
+
+<div class="story">
+  <div class="card">
+    <span class="tag ok">WATCHED</span>
+    <h3 style="margin:8px 0 4px">anthropics/claude-code CHANGELOG.md</h3>
+    <p class="muted" style="margin:0">Semver headings, nightly snapshot, LLM triage, adoption issues, staleness alarms. The muscle that already existed.</p>
+  </div>
+  <div class="card">
+    <span class="tag bad">INVISIBLE UNTIL THIS PR</span>
+    <h3 style="margin:8px 0 4px">platform.claude.com release notes</h3>
+    <p class="muted" style="margin:0">Dated headings, served as markdown at the <code>.md</code> suffix. GA events, API deprecations, new toolsets. Zero instruments pointed here.</p>
+  </div>
+</div>
+
+<h2>Try the parser</h2>
+<p>This is the same logic the watcher runs: <code>### Month D, YYYY</code> headings open a dated section,
+any other <code>###</code> heading closes one without opening (so prose is never misattributed),
+<code>*</code> bullets normalize to <code>-</code>, and dates before <code>watch_since</code> are ignored so the
+first run does not swallow the page's whole history.</p>
+
+<div class="card">
+  <div style="margin-bottom:10px">
+    <label>watch_since</label><input type="date" id="since" value="2026-08-01">
+    <button id="btn-sample">Reset sample</button>
+    <button id="btn-garbage">Simulate a broken page</button>
+    <button id="btn-second">Simulate second run (snapshots exist)</button>
+  </div>
+  <textarea id="src" spellcheck="false"></textarea>
+</div>
+
+<div class="card">
+  <div>Watcher exit: <span id="exit" class="exit e0">0</span> <span id="exitwhy" class="muted"></span></div>
+  <div id="entries"></div>
+  <details><summary>shared/platform-adoption-gaps.json</summary><pre id="gaps"></pre></details>
+</div>
+
+<h2>Why the failure paths look like this</h2>
+<table>
+  <tr><th>Situation</th><th>Behavior</th><th>Rule it encodes</th></tr>
+  <tr><td>Page fetch fails, or parses to zero dated headings</td><td>exit 1 + a dedup'd alarm issue</td><td>Could-not-observe is never nothing-new. Silence from an instrument must not read as coverage; that is the exact failure #3627 exists to kill.</td></tr>
+  <tr><td>Nothing new since last run</td><td>exit 0, pending entries preserved</td><td>The nothing-new and could-not-observe states print differently in every path (the "same value both ways is not evidence" guard).</td></tr>
+  <tr><td>Entry filed as an issue</td><td>pruned on the next quiet run</td><td>issues_filed_at stamping keeps the gaps file bounded, mirroring the CC lane's straggler contract.</td></tr>
+  <tr><td>Platform outage during the cron</td><td>CC lane unaffected</td><td>The step is non-blocking in the workflow; one feed's outage never blinds the other.</td></tr>
+</table>
+
+<p><small>Snapshot presence on disk is the single source of truth for processed dates, the same decision
+cc-release-watch.mjs made after its permanently-invisible-version incident. Fixture-driven tests:
+<code>tests/integration/test-platform-watch.sh</code> (14 checks).</small></p>
+
+<script>
+const SAMPLE = `---
+title: Claude Platform release notes
+---
+
+The Claude Platform release notes list changes, newest first.
+
+<Tip>
+  For updates to Claude Code, see the complete CHANGELOG.md.
+</Tip>
+
+### August 19, 2026
+
+* The computer use tool is now generally available as \`computer_toolset_20260801\`.
+* We've launched the browser use tool (\`browser_toolset_20260801\`).
+* Both toolsets are available for Claude Fable 5, Mythos 5, Opus 5, Sonnet 5, Opus 4.8.
+
+### Not a date heading
+
+Prose that must not be attributed to any date.
+
+### August 7, 2026
+
+* Managed Agents sessions can now have hard spend caps (budget_reached stop reason).
+
+### July 2, 2026
+
+* An older entry that watch_since excludes on the first run.
+`;
+
+const MONTHS = { january:1, february:2, march:3, april:4, may:5, june:6,
+                 july:7, august:8, september:9, october:10, november:11, december:12 };
+const HEAD_RE = /^### +([A-Za-z]+) +(\d{1,2}), +(\d{4}) *$/;
+
+function parseEntries(md) {
+  const entries = []; let cur = null; let ignored = 0;
+  for (const line of md.split("\n")) {
+    if (line.startsWith("### ")) {
+      if (cur) { entries.push(finish(cur)); cur = null; }
+      const m = line.match(HEAD_RE);
+      const mm = m ? MONTHS[m[1].toLowerCase()] : null;
+      if (mm) cur = { date: `${m[3]}-${String(mm).padStart(2,"0")}-${String(m[2]).padStart(2,"0")}`, buf: [] };
+      else ignored++;
+      continue;
+    }
+    if (cur) cur.buf.push(line);
+  }
+  if (cur) entries.push(finish(cur));
+  return { entries, ignored };
+  function finish(c) {
+    const body = c.buf.join("\n").trim().replace(/^(\s*)\* /gm, "$1- ");
+    return { date: c.date, body, bullets: body.split("\n").filter(l => l.trim().startsWith("-")).length };
+  }
+}
+
+let secondRun = false;
+function render() {
+  const since = document.getElementById("since").value;
+  const { entries, ignored } = parseEntries(document.getElementById("src").value);
+  const exitEl = document.getElementById("exit"), whyEl = document.getElementById("exitwhy");
+  const list = document.getElementById("entries"), gapsEl = document.getElementById("gaps");
+  list.innerHTML = "";
+  if (entries.length === 0) {
+    exitEl.textContent = "1"; exitEl.className = "exit e1";
+    whyEl.textContent = "zero dated headings parsed; page format may have changed (could-not-observe, alarm issue files)";
+    gapsEl.textContent = "(not written; a broken page must never overwrite state)";
+    return;
+  }
+  exitEl.textContent = "0"; exitEl.className = "exit e0";
+  const inWindow = entries.filter(e => !since || e.date >= since);
+  const fresh = secondRun ? [] : inWindow;
+  whyEl.textContent = fresh.length
+    ? `${fresh.length} new date(s), ${entries.length - inWindow.length} below watch_since, ${ignored} non-date heading(s) ignored`
+    : `nothing new (snapshots already on disk gate re-processing); pending entries preserved`;
+  for (const e of entries) {
+    const skippedWhy = e.date < since ? "below watch_since" : (secondRun ? "already snapshotted" : null);
+    const div = document.createElement("div");
+    div.className = "entry" + (skippedWhy ? " skipped" : "");
+    div.innerHTML = `<span class="d">${e.date}</span> · ${e.bullets} bullet(s) ` +
+      (skippedWhy ? `<span class="muted">(${skippedWhy})</span>`
+                  : `→ <code>shared/platform-snapshots/${e.date}.md</code>`);
+    list.appendChild(div);
+  }
+  gapsEl.textContent = JSON.stringify(
+    fresh.map(e => ({ date: e.date, source: "platform", features: [], raw_bullets_count: e.bullets })), null, 2);
+}
+
+document.getElementById("src").value = SAMPLE;
+document.getElementById("src").addEventListener("input", () => { secondRun = false; render(); });
+document.getElementById("since").addEventListener("input", () => { secondRun = false; render(); });
+document.getElementById("btn-sample").onclick = () => { document.getElementById("src").value = SAMPLE; secondRun = false; render(); };
+document.getElementById("btn-garbage").onclick = () => { document.getElementById("src").value = "<html><body>maintenance page</body></html>"; secondRun = false; render(); };
+document.getElementById("btn-second").onclick = () => { secondRun = true; render(); };
+render();
+</script>
+</body>
+</html>
