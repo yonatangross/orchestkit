@@ -74,19 +74,33 @@ observe the fallback would answer the same whether or not the entry exists, so i
 const ALLOWLISTED = new Set(["auth.md","api-policy.md","pricing.md","llms.txt","llms-full.txt","rss.xml","schema-map.xml","robots.txt"]);
 const out = document.getElementById("out");
 const inp = document.getElementById("p");
+
+// Build output as nodes and put the user's text in with textContent. An
+// earlier draft concatenated inp.value straight into innerHTML, which CodeQL
+// correctly flagged as DOM text reinterpreted as HTML.
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+function show(...nodes) {
+  out.replaceChildren(...nodes);
+}
 function render() {
   const name = inp.value.trim().replace(/^\//, "");
-  if (!name) { out.innerHTML = '<span class="dim">Enter a route dir name.</span>'; return; }
-  const dotted = name.includes(".");
-  if (!dotted) {
-    out.innerHTML = '<span class="dim">Not a dotted dir, so the guard skips it. Only names containing a dot serve an exact path and need an entry.</span>';
+  if (!name) { show(el("span", "dim", "Enter a route dir name.")); return; }
+  if (!name.includes(".")) {
+    show(el("span", "dim", "Not a dotted dir, so the guard skips it. Only names containing a dot serve an exact path and need an entry."));
     return;
   }
   if (ALLOWLISTED.has(name)) {
-    out.innerHTML = '<span class="ok">PASS</span> <code>/' + name + '</code> is in SERVED_EXACT. Guard is satisfied and the 404 handler knows the path is real.';
+    show(el("span", "ok", "PASS"), document.createTextNode(" "), el("code", null, "/" + name),
+         document.createTextNode(" is in SERVED_EXACT. Guard is satisfied and the 404 handler knows the path is real."));
   } else {
-    out.innerHTML = '<span class="bad">FAIL</span> route dir not allowlisted: <code>/' + name + '</code>' +
-      '<br><span class="dim">Production would still serve it via the extension fallback, which is exactly why this test reads the directory instead.</span>';
+    show(el("span", "bad", "FAIL"), document.createTextNode(" route dir not allowlisted: "),
+         el("code", null, "/" + name), el("br"),
+         el("span", "dim", "Production would still serve it via the extension fallback, which is exactly why this test reads the directory instead."));
   }
 }
 document.querySelectorAll("button[data-v]").forEach(b => b.onclick = () => { inp.value = b.dataset.v; render(); });
