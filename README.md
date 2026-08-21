@@ -333,6 +333,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.44](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.43...v10.0.0-alpha.44)** · 2026-08-21
+
+- **cc-watch:** watch the Claude Platform release notes (#3627) (#3635)
+- **doctor:** read the macOS sandbox violation log, fail closed (#3631)
+- **scripts:** add gh-api.mjs, a GitHub API client for gh-broken shells (#3633)
+- **worktree:** adopt .worktreeinclude and pin baseRef plus spawn depth (#3582)
+- **cc-triage:** tolerate fenced JSON and resolve the umbrella with state=all (#3580)
+- …and 4 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-alpha.43](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.42...v10.0.0-alpha.43)** · 2026-08-19
 
 - **doctor:** report the credential guard that actually exists (#3577)
@@ -379,15 +388,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **deps:** bump the remotion group across 1 directory with 21 updates (#3518)
 - **probe:** route drift to one long-lived issue instead of a summary (#3529)
-
-**[v10.0.0-alpha.36](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.35...v10.0.0-alpha.36)** · 2026-08-17
-
-- **21st-dev:** grant the MCP tools four surfaces already claimed to use (#3509)
-- **docker:** pin node 24 to match .nvmrc (#3510)
-- **deps-dev:** bump @types/node in the npm-minor-patch group (#3514)
-- **deps-dev:** bump the npm-minor-patch group across 1 directory with 2 updates (#3515)
-- **21st-dev:** argue the picker from choice, not from the 2/day cap (#3513)
-- …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
