@@ -333,6 +333,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.45](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.44...v10.0.0-alpha.45)** · 2026-08-21
+
+- **announce:** label-gated alpha announcements plus RSS feed (#3638) (#3639)
+- **pricing:** Sonnet 5 is $2/$10, and retire retired model IDs (#3647)
+- **cc:** snapshot 2.1.238, hand-triage, advance latest_known (#3636)
+
 **[v10.0.0-alpha.44](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.43...v10.0.0-alpha.44)** · 2026-08-21
 
 - **cc-watch:** watch the Claude Platform release notes (#3627) (#3635)
@@ -383,11 +389,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** reclaim the plugin cache the hook never touched (#3523)
 - **hooks:** stop test fixtures contaminating live spawn telemetry (#3533)
 - …and 6 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-alpha.37](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.36...v10.0.0-alpha.37)** · 2026-08-17
-
-- **deps:** bump the remotion group across 1 directory with 21 updates (#3518)
-- **probe:** route drift to one long-lived issue instead of a summary (#3529)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
