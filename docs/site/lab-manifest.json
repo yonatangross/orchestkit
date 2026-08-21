@@ -72,6 +72,14 @@
       "date": "2026-06-17"
     },
     {
+      "slug": "epic-d-adoption-probe",
+      "source": "docs/feat--3309-adopt-cc-settings/index.html",
+      "title": "EPIC D, measured against tracked code",
+      "description": "Probes each of the five CC capabilities issue 3309 names against origin/main rather than a working tree, shows what this change adopts, and states why one is declined.",
+      "tags": ["cc-adoption", "worktree", "explainer"],
+      "date": "2026-08-20"
+    },
+    {
       "slug": "vercel-labs-adoption-ideas",
       "source": "docs/playgrounds/vercel-labs-2026-04-29-adoption-ideas.html",
       "title": "Vercel Labs — 8 Adoption Ideas",
