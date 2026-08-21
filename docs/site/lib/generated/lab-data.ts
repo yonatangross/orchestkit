@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "doctor-sandbox-violation-log",
+    "title": "Reading the macOS sandbox violation log, fail closed",
+    "description": "A doctor check that tails the unified log for Seatbelt denials and refuses to report success when the log itself is unreadable. Includes the measured limits: CC denies without logging, and log show cannot run sandboxed.",
+    "tags": [
+      "doctor",
+      "sandbox",
+      "fail-closed"
+    ],
+    "date": "2026-08-21",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 9
+  },
+  {
     "slug": "platform-watcher-3627",
     "title": "The watcher that could not see half the sky",
     "description": "The 2026-08-19 Claude Platform GA wave was invisible to a pipeline that only reads the CC CLI changelog and was noticed via a tweet. Interactive replica of the new sibling watcher's parser: dated headings, watch_since cutoff, and the could-not-observe exit that never reads as nothing-new.",
