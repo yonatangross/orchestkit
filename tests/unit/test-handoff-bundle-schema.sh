@@ -29,7 +29,7 @@ pass() { echo "  ${GREEN}✓${NC} $1"; PASS=$((PASS + 1)); }
 fail() { echo "  ${RED}✗${NC} $1"; FAIL=$((FAIL + 1)); }
 
 # ─── sandbox for all fixtures ────────────────────────────────────────
-SANDBOX=$(mktemp -d)
+SANDBOX=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap 'rm -rf "$SANDBOX"' EXIT
 
 # Helper: build a bundle from a directory, return path to .tar.gz

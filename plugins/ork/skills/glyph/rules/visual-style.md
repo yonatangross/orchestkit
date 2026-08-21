@@ -49,9 +49,34 @@ Do not use: 3D box characters, shaded blocks for decoration, ASCII-art logos, or
 
 ## Per-Surface Rules
 
-### ✅ Assistant chat output (UNLIMITED)
+### ✅ Assistant chat output (BUDGETED)
 
-Lean in. ASCII boxes, tables, diagrams, semantic emoji — all encouraged. This is the highest-leverage surface; cost is per-response, not per-repo.
+A budget, not a licence. This section used to read UNLIMITED and "lean in", which
+is an affirmative permission for a reply that is mostly diagram (#3558).
+
+Two rules:
+
+1. **Spend a line budget, not a block count.** Total visual lines across the
+   whole reply stay **≤ 12**, and must not exceed **40%** of the reply. Within
+   that, block count is free: two 5-line blocks are fine, four 10-line blocks are
+   not. Over budget means it is not a chat answer — write a playground or a file
+   and print the path.
+2. **The visual supports the answer, it is never the answer.** State the point in
+   prose first, in one or two sentences. If the reader has to parse a diagram to
+   find out what happened, the reply failed.
+
+**Why these numbers**, measured rather than asserted. From one 151-reply sample,
+28 of which carried a visual: block length p90 = 13 lines; visual share of reply
+p75 = 43%. The 12-line ceiling sits just under that p90 tail, so it cuts the real
+tail rather than typical use.
+
+A block-COUNT rule was tried first and bound almost nothing: 24 of those 28
+replies already used exactly one block, while the worst reply was 81% visual and
+would have passed it. Volume is the failure mode, not block count.
+
+Standing exception: a "where do we stand / what's next" status answer still gets
+a state summary plus ranked next steps. That is one visual, and it is still
+budgeted.
 
 ### ✅ SKILL.md files
 

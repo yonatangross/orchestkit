@@ -11,11 +11,13 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputDeny,
+  outputAsk,
   logHook,
 } from '../../lib/common.js';
-import { realpathSync } from 'node:fs';
+import { realpathSync, existsSync, readFileSync } from 'node:fs';
 import { resolve, isAbsolute, extname, basename } from 'node:path';
 import { NOOP_CTX } from '../../lib/context.js';
+import { isBypassMode } from '../../lib/guards.js';
 
 // ---------------------------------------------------------------------------
 // File size gate — configurable via env vars
@@ -88,33 +90,124 @@ function detectBloatPatterns(content: string): BloatSignal[] {
   return signals.filter(s => s.detected);
 }
 
-function checkFileSizeAndBloat(input: HookInput): HookResult | null {
-  if (input.tool_name !== 'Write') return null;
+/**
+ * Project the post-write body for this tool call.
+ *
+ * Returns null when projection is impossible, which this guard treats as
+ * pass-through: it must never block on its own failure.
+ *
+ * Edit inputs carry an old_string/new_string diff rather than the full body,
+ * so the projection reads the current file and applies the replacement. Sizing
+ * only `Write` was the #3552 bug: the identical body landed friction-free via
+ * Edit, so the guard gated TOOL CHOICE rather than file size, and an
+ * already-long file could be grown indefinitely one Edit at a time.
+ */
+function projectBody(input: HookInput): string | null {
+  const ti = input.tool_input as {
+    file_path?: string;
+    content?: string;
+    old_string?: string;
+    new_string?: string;
+    replace_all?: boolean;
+  };
+  if (!ti?.file_path) return null;
+
+  // Write: the new content IS the full body.
+  if (input.tool_name === 'Write' && typeof ti.content === 'string') {
+    return ti.content;
+  }
+
+  // Edit: read current body, apply the replacement, measure the result.
+  if (
+    input.tool_name === 'Edit' &&
+    typeof ti.old_string === 'string' &&
+    typeof ti.new_string === 'string'
+  ) {
+    if (!existsSync(ti.file_path)) return null; // Edit on a missing file fails upstream anyway
+    let body: string;
+    try {
+      body = readFileSync(ti.file_path, 'utf8');
+    } catch {
+      return null; // unreadable (permissions/race) — fail open, Edit itself will surface it
+    }
+    if (!body.includes(ti.old_string)) return null; // Edit will error upstream; nothing to project
+    return ti.replace_all
+      ? body.split(ti.old_string).join(ti.new_string)
+      : body.replace(ti.old_string, ti.new_string);
+  }
+
+  return null;
+}
+
+/** Lines currently on disk, or 0 when the file is new or unreadable. */
+function currentLineCount(filePath: string): number {
+  if (!existsSync(filePath)) return 0;
+  try {
+    return readFileSync(filePath, 'utf8').split('\n').length;
+  } catch {
+    return 0;
+  }
+}
+
+function checkFileSizeAndBloat(input: HookInput, ctx: HookContext): HookResult | null {
+  // Confirmation-only: nothing here denies, so it is skipped entirely under
+  // `--dangerously-skip-permissions`, matching context-file-budget-guard.
+  if (isBypassMode(input)) return null;
 
   const filePath = input.tool_input.file_path || '';
-  const content = input.tool_input.content || '';
-  if (!filePath || !content) return null;
+  if (!filePath) return null;
 
   const ext = extname(filePath).toLowerCase().replace('.', '');
   if (!CODE_EXTENSIONS.has(ext)) return null;
 
-  const lineCount = content.split('\n').length;
-  const limit = isTestFile(filePath) ? MAX_TEST_FILE_LINES : MAX_FILE_LINES;
-  const bloatSignals = detectBloatPatterns(content);
+  const projected = projectBody(input);
+  if (projected === null || projected === '') return null;
 
-  // Block if over line limit
+  const lineCount = projected.split('\n').length;
+  const limit = isTestFile(filePath) ? MAX_TEST_FILE_LINES : MAX_FILE_LINES;
+  const bloatSignals = detectBloatPatterns(projected);
+
   if (lineCount > limit) {
+    const current = currentLineCount(filePath);
+
+    // Never stand in the way of SHRINKING a file that is already over the cap.
+    // Comparing only against the fixed limit made the guard un-satisfiable on
+    // exactly the files it most wants smaller: a 458-line file could not be
+    // rewritten to 400 any more than to 600, so the only way to comply was to
+    // stop using Write (#3552).
+    if (current > limit && lineCount <= current) {
+      logHook(
+        'file-guard',
+        `Allowing ${filePath}: ${current} → ${lineCount} lines, still over ${limit} but improving`
+      );
+      return null;
+    }
+
     const fileType = isTestFile(filePath) ? 'test' : 'source';
     const bloatDetails = bloatSignals.length > 0
       ? `\n\nBloat patterns detected:\n${bloatSignals.map(s => `- ${s.name}: ${s.detail}`).join('\n')}`
       : '';
+    const currentNote = current > 0 ? `, currently ${current}` : '';
+    const envVar = isTestFile(filePath)
+      ? 'ORCHESTKIT_MAX_TEST_FILE_LINES'
+      : 'ORCHESTKIT_MAX_FILE_LINES';
 
-    return outputDeny(
-      `File too long: ${lineCount}/${limit} lines (${fileType}).${bloatDetails} Split into smaller modules.`
-    );
+    // ASK, not DENY. Crossing the limit can be a deliberate, informed choice,
+    // and a deny here repeats the #2947 display-lint mistake: blocking correct
+    // work and teaching users the escape hatch. Same call the sibling
+    // context-file-budget-guard already makes.
+    const reason =
+      `[file-guard] This ${input.tool_name} puts ${basename(filePath)} at ` +
+      `${lineCount}/${limit} lines (${fileType}${currentNote}).${bloatDetails} ` +
+      `Approve to write anyway, or split into smaller modules first. ` +
+      `(Override: ${envVar}=<n>)`;
+
+    logHook('file-guard', `ASK: ${filePath} projected ${lineCount} > limit ${limit}`);
+    ctx.logPermission?.('ask', reason, input);
+    return outputAsk(reason);
   }
 
-  // Under limit but has bloat signals — warn, don't block
+  // Under limit but has bloat signals — note it, never block.
   if (bloatSignals.length >= 2) {
     logHook('file-guard', `Bloat detected in ${filePath}: ${bloatSignals.map(s => s.name).join(', ')}`);
   }
@@ -223,8 +316,8 @@ If you need to modify this file, do it manually outside Claude Code.`
     );
   }
 
-  // Check file size and bloat patterns (Write only)
-  const sizeResult = checkFileSizeAndBloat(input);
+  // Check file size and bloat patterns (Write + Edit)
+  const sizeResult = checkFileSizeAndBloat(input, ctx);
   if (sizeResult) return sizeResult;
 
   // Warn on config files (but allow)

@@ -333,6 +333,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.43](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.42...v10.0.0-alpha.43)** · 2026-08-19
+
+- **doctor:** report the credential guard that actually exists (#3577)
+- **hooks:** a file operand means stdin is data, not the script (#3574), closes [#3559](https://github.com/yonatangross/orchestkit/issues/3559)
+- **hooks:** size the projected file, not the tool that wrote it (#3560)
+- **tests:** give every mktemp a template so it honours TMPDIR (#3579)
+- **configure:** caveat when excludedCommands is inert (#3573)
+- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-alpha.42](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.41...v10.0.0-alpha.42)** · 2026-08-19
 
 - **build:** stop a denied scratch file from zeroing the hook subcount (#3567), closes [#3564](https://github.com/yonatangross/orchestkit/issues/3564)
@@ -379,14 +388,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps-dev:** bump the npm-minor-patch group across 1 directory with 2 updates (#3515)
 - **21st-dev:** argue the picker from choice, not from the 2/day cap (#3513)
 - …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-alpha.35](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.34...v10.0.0-alpha.35)** · 2026-08-16
-
-- **api-design:** make ProblemType a StrEnum (#3496)
-- **agents:** delete the inert hooks: block from 33 agent frontmatters (#3494)
-- **git:** land the reap-lane branch recovery evidence (#3497)
-- **contributing:** plugins/ is generated AND tracked (#3498)
-- **playground:** exempt fork PRs from the playground gate (#3508), closes [#3502](https://github.com/yonatangross/orchestkit/issues/3502)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

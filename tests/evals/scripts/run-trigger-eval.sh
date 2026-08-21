@@ -188,7 +188,7 @@ run_prompt() {
     local skill_name="$2"
     local reps="$3"
     local triggered=0
-    local tmpfile; tmpfile=$(mktemp)
+    local tmpfile; tmpfile=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     CLEANUP_FILES+=("$tmpfile")
 
     local classification_prompt
@@ -328,7 +328,7 @@ eval_skill() {
 
     # --- Parallel prompt execution ---
     # Launch all prompts concurrently (up to MAX_PARALLEL), collect results via temp files.
-    local result_dir; result_dir=$(mktemp -d)
+    local result_dir; result_dir=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
     CLEANUP_DIRS+=("$result_dir")
     local pids=()
     local running=0

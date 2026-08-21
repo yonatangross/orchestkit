@@ -488,7 +488,7 @@ EOF
 
     # --- Step 6: RECORD — append one ledger line (BOTH outcomes), atomically --
     mkdir -p "$HP_EVALS_DIR"
-    HP_LEDGER_TMP="$(mktemp)"
+    HP_LEDGER_TMP="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
     CLEANUP_FILES+=("$HP_LEDGER_TMP")
     if [[ "$HP_HAVE_JQ" == "true" ]]; then
         jq -c -n \

@@ -41,7 +41,25 @@ if [ ! -x "$COUNTER" ] && [ ! -f "$COUNTER" ]; then
     exit 1
 fi
 
-SHIM_DIR="$(mktemp -d)"
+# A test about a denied mktemp must not itself die on a denied mktemp. Bare
+# `mktemp` writes to the system temp dir; an explicit TEMPLATE is what makes
+# TMPDIR effective, because macOS mktemp with no template ignores TMPDIR and
+# goes to /var/folders regardless. Falls back beside this script so the suite
+# still runs in a sandboxed shell.
+scratch_dir() {
+    local d
+    for base in "${TMPDIR:-/tmp}" /tmp "$SCRIPT_DIR/.tmp"; do
+        [ -n "$base" ] || continue
+        mkdir -p "$base" 2>/dev/null || continue
+        if d=$(mktemp -d "${base%/}/ork-test.XXXXXX" 2>/dev/null) && [ -w "$d" ]; then
+            printf '%s' "$d"; return 0
+        fi
+    done
+    echo "FAIL: no writable scratch dir (TMPDIR, /tmp, $SCRIPT_DIR/.tmp)" >&2
+    return 1
+}
+
+SHIM_DIR="$(scratch_dir)"
 trap 'rm -rf "$SHIM_DIR"' EXIT
 
 # --- 1. healthy baseline ----------------------------------------------------

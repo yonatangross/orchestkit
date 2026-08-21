@@ -160,7 +160,7 @@ run_test() {
 
     # Create isolated workspace (tracked for cleanup)
     local workspace
-    workspace="$(mktemp -d)"
+    workspace="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
     TEMP_WORKSPACES+=("$workspace")
     local output_dir="$workspace/output"
     mkdir -p "$output_dir"

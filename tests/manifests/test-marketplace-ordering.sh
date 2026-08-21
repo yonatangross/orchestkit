@@ -57,7 +57,7 @@ if [[ ! -f "$MARKETPLACE_JSON" ]]; then
 fi
 
 # Build position map: plugin_name -> index (0-based)
-POSITION_MAP=$(mktemp)
+POSITION_MAP=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap "rm -f $POSITION_MAP" EXIT
 
 jq -r '.plugins[].name' "$MARKETPLACE_JSON" | nl -ba -v0 | while read -r idx name; do

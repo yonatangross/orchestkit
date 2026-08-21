@@ -31,7 +31,7 @@ fail() { echo -e "  ${RED}✗${NC} $1"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
 info() { echo -e "  ${BLUE}ℹ${NC} $1"; }
 
 # Test-specific temp directory
-TEST_TEMP_DIR=$(mktemp -d)
+TEST_TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap 'rm -rf "$TEST_TEMP_DIR"' EXIT
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

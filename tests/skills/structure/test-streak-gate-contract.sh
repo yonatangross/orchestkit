@@ -22,7 +22,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 GATE_DOC="$REPO_ROOT/src/skills/verify/references/streak-gate.md"
 SCHEMA="$REPO_ROOT/src/shared/rubric.schema.json"
 VERIFY_RUBRIC="$REPO_ROOT/src/skills/verify/rubric.json"
-ERR="$(mktemp)"
+ERR="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -f "$ERR"' EXIT
 
 FAILED=0

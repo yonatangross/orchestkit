@@ -12,7 +12,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 PARSER="$PROJECT_ROOT/scripts/changelog-to-props.mjs"
-FIXTURE_DIR=$(mktemp -d)
+FIXTURE_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap 'rm -rf "$FIXTURE_DIR"' EXIT
 
 RED=$'\033[0;31m'
@@ -56,7 +56,7 @@ EOF
 
 # Run parser against the fixture by temporarily overlaying CHANGELOG.md
 ORIG_CHANGELOG="$PROJECT_ROOT/CHANGELOG.md"
-BACKUP=$(mktemp)
+BACKUP=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 cp "$ORIG_CHANGELOG" "$BACKUP"
 trap 'cp "$BACKUP" "$ORIG_CHANGELOG"; rm -f "$BACKUP"; rm -rf "$FIXTURE_DIR"' EXIT
 

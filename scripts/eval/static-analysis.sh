@@ -86,7 +86,7 @@ EXISTING_TESTS=(
   "Agent Frontmatter|$PROJECT_ROOT/tests/agents/test-agent-frontmatter.sh"
 )
 
-TMPDIR_A=$(mktemp -d)
+TMPDIR_A=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 for entry in "${EXISTING_TESTS[@]}"; do
   name="${entry%%|*}"
   script="${entry##*|}"

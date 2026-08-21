@@ -1853,7 +1853,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.2.0",
-    "sha256": "09755165b37394d4bc867de9dc8d8912cab82b4c16e1ad8802011cb5c312dc96",
+    "sha256": "133091cb70fdc34d9d09db82aa2ca9e4b6f6055ce27e3521ac8bb9efd6f627e9",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -2406,7 +2406,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "glyph",
     "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead.",
     "version": "2.0.0",
-    "sha256": "9f0ff2892daa0e68c9ef42df48859461579fa9990dfb53a61e881dd0c011d492",
+    "sha256": "144b5e1f884dced297b8c3cf9c6c6ccd5b5eaab3a01da3ffbd7eae475de75cc6",
     "author": "OrchestKit",
     "tags": [
       "ascii",

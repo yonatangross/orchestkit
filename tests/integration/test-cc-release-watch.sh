@@ -28,7 +28,7 @@ cd "$PROJECT_ROOT"
 
 # Save state we'll mutate during tests. Errors during backup are real (FS issue, perm denied)
 # and should fail the test rather than be hidden.
-SNAPSHOTS_BACKUP=$(mktemp -d)
+SNAPSHOTS_BACKUP=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 if [ -d shared/cc-snapshots ]; then
   # rsync rather than cp -r/. so we don't need shell-glob expansion of dotfiles.
   rsync -a shared/cc-snapshots/ "$SNAPSHOTS_BACKUP/"
@@ -452,7 +452,7 @@ mkdir -p shared/cc-snapshots
 LK=$(jq -r '.latest_known // .latest' shared/cc-support.json)
 STALE_FIXTURE=$(mktemp /tmp/cc-stale-fixture.XXXXXX)
 printf '# Changelog\n\n## 9.9.903\n\n- synthetic newest\n\n## 9.9.902\n\n- synthetic\n\n## 9.9.901\n\n- synthetic\n\n## %s\n\n- latest_known anchor\n' "$LK" > "$STALE_FIXTURE"
-GHOUT=$(mktemp)
+GHOUT=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 EXIT=0
 CC_RELEASE_WATCH_FIXTURE="$STALE_FIXTURE" GITHUB_OUTPUT="$GHOUT" \
   node scripts/cc-release-watch.mjs > /tmp/watch-stale.txt 2>&1 || EXIT=$?
@@ -478,7 +478,7 @@ mkdir -p shared/cc-snapshots
 LK=$(jq -r '.latest_known // .latest' shared/cc-support.json)
 STALE_FIXTURE=$(mktemp /tmp/cc-stale-fixture.XXXXXX)
 printf '# Changelog\n\n## 9.9.902\n\n- synthetic newest\n\n## 9.9.901\n\n- synthetic\n\n## %s\n\n- latest_known anchor\n' "$LK" > "$STALE_FIXTURE"
-GHOUT=$(mktemp)
+GHOUT=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 EXIT=0
 CC_RELEASE_WATCH_FIXTURE="$STALE_FIXTURE" GITHUB_OUTPUT="$GHOUT" \
   node scripts/cc-release-watch.mjs > /tmp/watch-stale2.txt 2>&1 || EXIT=$?
@@ -502,7 +502,7 @@ rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-arg
 mkdir -p shared/cc-snapshots
 STALE_FIXTURE=$(mktemp /tmp/cc-stale-fixture.XXXXXX)
 printf '# Changelog\n\n## 9.9.904\n\n- synthetic newest\n\n## 9.9.903\n\n- synthetic\n\n## 9.9.902\n\n- synthetic\n\n## 9.9.901\n\n- synthetic\n' > "$STALE_FIXTURE"
-GHOUT=$(mktemp)
+GHOUT=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 EXIT=0
 CC_RELEASE_WATCH_FIXTURE="$STALE_FIXTURE" GITHUB_OUTPUT="$GHOUT" \
   node scripts/cc-release-watch.mjs > /tmp/watch-stale3.txt 2>&1 || EXIT=$?
@@ -523,7 +523,7 @@ rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-arg
 mkdir -p shared/cc-snapshots
 GAP_FIXTURE=$(mktemp /tmp/cc-gap-fixture.XXXXXX)
 printf '# Changelog\n\n## 2.1.176\n\n- synthetic newest changelogged\n' > "$GAP_FIXTURE"
-GHOUT=$(mktemp)
+GHOUT=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 EXIT=0
 CC_RELEASE_WATCH_FIXTURE="$GAP_FIXTURE" CC_PUBLISHED_VERSION=2.1.177 GITHUB_OUTPUT="$GHOUT" \
   node scripts/cc-release-watch.mjs > /tmp/watch-gap.txt 2>&1 || EXIT=$?

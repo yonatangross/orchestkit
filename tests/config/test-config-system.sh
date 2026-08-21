@@ -220,7 +220,7 @@ echo ""
 echo "=== 7. Safety Hook Protection Tests ==="
 
 # Create a temp config with safety=false (should be ignored)
-TEMP_CONFIG=$(mktemp)
+TEMP_CONFIG=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 cat > "$TEMP_CONFIG" << 'EOF'
 {
   "version": "1.0.0",

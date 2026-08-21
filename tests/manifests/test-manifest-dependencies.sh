@@ -60,7 +60,7 @@ if [[ ! -d "$MANIFESTS_DIR" ]]; then
 fi
 
 # Collect all known plugin names
-KNOWN_PLUGINS=$(mktemp)
+KNOWN_PLUGINS=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap "rm -f $KNOWN_PLUGINS" EXIT
 for manifest in "$MANIFESTS_DIR"/*.json; do
     jq -r '.name' "$manifest" >> "$KNOWN_PLUGINS"

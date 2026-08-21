@@ -26,7 +26,7 @@ echo "  Auto-memory index budget check (ork:doctor Cat 4)"
 echo "════════════════════════════════════════════════════════════════"
 
 # ── Extract the verbatim snippet from the doc ───────────────────────────────
-SNIP="$(mktemp)"
+SNIP="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
 awk '/## Auto-Memory Index Budget/{f=1} f&&/```bash/{c=1;next} f&&/```/{if(c)exit} c' "$DOC" > "$SNIP"
 if ! grep -q 'ORK_MEM_INDEX' "$SNIP"; then
   fail "snippet missing ORK_MEM_INDEX override — not testable"
@@ -41,7 +41,7 @@ assert() { # name, output, expected-substring
 assert_empty() { if [ -z "$2" ]; then pass "$1"; else fail "$1 — got: $2"; fi; }
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
-T="$(mktemp -d)"
+T="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 printf -- '- [a](b.md) — short hook\n- [c](d.md) — another\n' > "$T/healthy.md"
 head -c 30000 /dev/zero | tr '\0' x > "$T/overbytes.md"                 # > 25 KB
 for _ in $(seq 1 250); do echo "- [a](b.md) — h"; done > "$T/overlines.md"  # > 200 lines, < 25 KB

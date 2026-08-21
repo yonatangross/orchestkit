@@ -311,7 +311,7 @@ else
 fi
 [[ $CORES -lt $MAX_JOBS ]] && MAX_JOBS=$CORES
 
-export _PREPUSH_FAIL_DIR=$(mktemp -d)
+export _PREPUSH_FAIL_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap 'rm -rf "$_PREPUSH_FAIL_DIR"' EXIT
 
 _run_test() {
@@ -453,7 +453,7 @@ echo "OK"
 # ===== Token overhead budget (blocking + warn tier) =====
 echo -n "  Checking token overhead budget... "
 
-TOKEN_LOG=$(mktemp)
+TOKEN_LOG=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap 'rm -f "$TOKEN_LOG"' EXIT
 
 if ! run_with_timeout 30 bash tests/performance/test-token-overhead.sh >"$TOKEN_LOG" 2>&1; then
@@ -485,7 +485,7 @@ fi
 HOOK_CHANGES=$(echo "$CHANGED_FILES" | grep -E '^src/hooks/' || true)
 if [[ -n "$HOOK_CHANGES" ]]; then
   echo -n "  Running hook vitest suite... "
-  HOOK_LOG="$(mktemp)"
+  HOOK_LOG="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
   trap 'rm -f "$HOOK_LOG"' EXIT
   if ! (cd src/hooks && npx vitest run --reporter=dot >"$HOOK_LOG" 2>&1); then
     echo "FAILED"

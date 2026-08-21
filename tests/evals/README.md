@@ -285,7 +285,7 @@ npm run eval:trigger -- --all
 |--------|------------|
 | Command Execution | Allowlist-based validation (no arbitrary `eval`) |
 | Binary Downloads | yq pinned to v4.40.5 with SHA256 checksum |
-| Workspace Isolation | Each test runs in `mktemp -d` with cleanup trap |
+| Workspace Isolation | Each test runs in `mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX"` with cleanup trap |
 | CI Isolation | Ephemeral GitHub Actions runners |
 | Timeouts | Configurable per-test (default 120s) |
 

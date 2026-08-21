@@ -84,7 +84,7 @@ simulate_skill_invocation() {
     local skill_file="$1"
     local arguments="${2:-}"
     local temp_output
-    temp_output=$(mktemp)
+    temp_output=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     
     # Step 1: Read skill file
     local skill_content

@@ -34,7 +34,7 @@ TEST_TEMP_DIR=""
 # =============================================================================
 
 setup() {
-    TEST_TEMP_DIR=$(mktemp -d)
+    TEST_TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
     export CLAUDE_PROJECT_DIR="$TEST_TEMP_DIR"
     mkdir -p "$TEST_TEMP_DIR/.claude/feedback"
     mkdir -p "$TEST_TEMP_DIR/.claude/scripts"

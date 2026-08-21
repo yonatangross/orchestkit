@@ -53,7 +53,7 @@ assert_output_contains() {
 }
 
 # Create temp directory for test files
-TEMP_DIR=$(mktemp -d)
+TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap "rm -rf '$TEMP_DIR'" EXIT
 
 # NOTE: the skill duplication-detector and merge-conflict prediction hooks were

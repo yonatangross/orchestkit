@@ -240,7 +240,7 @@ jobs:
             # `--effort` removed alongside --bare — it's a session config that
             # needs the full CC load to take effect and is duplicated by
             # --max-turns 4 for our use case.
-            tmpdir="$(mktemp -d)"
+            tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
             # #1862 Bugs A+B: claude -p reports auth/permission errors as JSON on
             # STDOUT (verdict.json), not stderr — so log BOTH on failure. Each cat
             # is `|| true`-guarded: under errexit a cat of an empty/missing file

@@ -224,7 +224,7 @@ for srv in $SERVERS_WITH_ROSTER; do
   fi
   [ "$rc" -eq 1 ] && continue  # no tokens for this server anywhere: nothing to check
 
-  hits_file="$(mktemp)"
+  hits_file="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
   printf '%s\n' "$hits" > "$hits_file"
   while IFS= read -r hit; do
     [ -z "$hit" ] && continue

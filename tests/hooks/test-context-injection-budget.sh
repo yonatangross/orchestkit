@@ -39,7 +39,7 @@ if [ ! -f "$HOOKS_DIST/prompt.mjs" ]; then
 fi
 
 # Create temp dir for test session flags (so once-per-session hooks fire)
-TEST_SESSION_DIR=$(mktemp -d)
+TEST_SESSION_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 TEST_SESSION_ID="test-budget-$(date +%s)"
 trap "rm -rf $TEST_SESSION_DIR" EXIT
 

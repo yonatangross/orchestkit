@@ -15,6 +15,8 @@
 #   2. two stray per-version milestones → moves their issues, closes both
 #   3. DRY_RUN=1 → zero actual mutations recorded
 #   4. umbrella missing → creates it (POST)
+#   5. umbrella CLOSED → reopened, never re-POSTed (the 422 already_exists bug)
+#   6. umbrella created mid-run → the new number reaches the issue PATCH clean
 
 set -euo pipefail
 
@@ -43,7 +45,7 @@ echo "CC Consolidate Milestones — sweep tests"
 echo "========================================================="
 
 # ---- mock gh (PATH-shadow) ----------------------------------------------------
-MOCK_DIR=$(mktemp -d)
+MOCK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 MOCK_LOG="$MOCK_DIR/gh.log"
 export MOCK_LOG
 cat > "$MOCK_DIR/gh" <<'MOCK'
@@ -51,6 +53,7 @@ cat > "$MOCK_DIR/gh" <<'MOCK'
 # Minimal gh mock for cc-consolidate-milestones.sh. Records every call as a
 # space-joined line to MOCK_LOG, returns deterministic stubs driven by env:
 #   MOCK_UMBRELLA_NUM   number returned for the umbrella resolve (empty → create)
+#   MOCK_UMBRELLA_STATE "open"|"closed" for the umbrella reopen probe (default open)
 #   MOCK_MILESTONES_TSV "<num>\t<title>" lines for the milestone-list call
 #   MOCK_ISSUES         space-separated issue numbers `issue list` returns
 set -euo pipefail
@@ -83,12 +86,20 @@ case "$1" in
     if [ "$METHOD" = "PATCH" ] && [[ "$URL" == *"/milestones/"* ]]; then
       exit 0
     fi
-    # GET single milestone → open_issues (always emptied in this mock).
+    # GET single milestone → .state for the umbrella reopen probe, otherwise
+    # open_issues (always emptied in this mock).
     if [[ "$URL" == *"/milestones/"* ]] && [[ "$URL" != *"?state="* ]]; then
-      echo "0"; exit 0
+      if [ "$JQF" = ".state" ]; then
+        echo "${MOCK_UMBRELLA_STATE:-open}"
+      else
+        echo "0"
+      fi
+      exit 0
     fi
-    # GET milestone list — resolve umbrella vs enumerate.
-    if [[ "$URL" == *"/milestones?state=open"* ]]; then
+    # GET milestone list: resolve umbrella (state=all) vs enumerate strays
+    # (state=open). Matching `state=` generically keeps the mock honest about
+    # both probes instead of pinning the umbrella one to the pre-fix value.
+    if [[ "$URL" == *"/milestones?state="* ]]; then
       if [[ "$JQF" == *"select(.title=="* ]]; then
         echo "${MOCK_UMBRELLA_NUM:-}"
       else
@@ -122,6 +133,7 @@ SCRIPT="$PROJECT_ROOT/scripts/cc-consolidate-milestones.sh"
 PATCH_ISSUE_RE='^api -X PATCH repos/[^ ]+/issues/'
 CLOSE_RE='^api -X PATCH repos/[^ ]+/milestones/[0-9]+ -f state=closed'
 POST_RE='^api -X POST repos/[^ ]+/milestones'
+REOPEN_RE='^api -X PATCH repos/[^ ]+/milestones/[0-9]+ -f state=open'
 
 # TSV with real tabs. Umbrella (#10) + two strays + a graduated M-bundle (#13).
 TWO_STRAYS=$(printf '10\tCC adoption\n11\tCC 2.1.140 adoption\n12\tCC 2.1.145 adoption\n13\tM146 — CC 2.1.143 hardening')
@@ -198,6 +210,53 @@ if [ "$EXIT" = "0" ] && [ "$(count_calls "$POST_RE")" = "1" ]; then
   log_pass "umbrella missing: created via POST"
 else
   log_fail "umbrella create" "expected 1 POST, got $(count_calls "$POST_RE") (see /tmp/consol-4.out)"
+fi
+
+# ============================================================================
+# Case 5: umbrella exists but is CLOSED → reopen it, never POST a duplicate.
+#
+# The umbrella is a ROLLING milestone. A `state=open` probe cannot see it once
+# closed, so the pre-fix script fell into the create branch and POSTed a title
+# that already exists. GitHub answers 422 already_exists and `gh api` reports
+# it as a context-free "Validation Failed", killing the whole step. Identical
+# to the bug already fixed in scripts/cc-file-adoption-issues.sh.
+# ============================================================================
+: > "$MOCK_LOG"
+EXIT=0
+MOCK_UMBRELLA_NUM=10 MOCK_UMBRELLA_STATE=closed MOCK_MILESTONES_TSV="$NO_STRAYS" \
+  MOCK_ISSUES="" SLEEP_BETWEEN=0 GH_REPO="acme/orchestkit" \
+  bash "$SCRIPT" >"$MOCK_DIR/consol-5.out" 2>&1 || EXIT=$?
+REOPENS=$(count_calls "$REOPEN_RE")
+POSTS=$(count_calls "$POST_RE")
+if [ "$EXIT" = "0" ] && [ "$REOPENS" = "1" ] && [ "$POSTS" = "0" ]; then
+  log_pass "closed umbrella: reopened once, zero duplicate-title POSTs"
+else
+  log_fail "closed umbrella reopen" "exit=$EXIT reopens=$REOPENS posts=$POSTS (expected 0/1/0)"
+fi
+
+# The resolve probe itself must ask for state=all, because a state=open probe is the
+# bug, and it would silently pass Case 5 if the mock ever loosened.
+if grep -qF "milestones?state=all" "$MOCK_LOG"; then
+  log_pass "closed umbrella: resolve probe queries state=all"
+else
+  log_fail "resolve probe state" "no 'milestones?state=all' call recorded"
+fi
+
+# ============================================================================
+# Case 6: umbrella created mid-run → the fresh number must reach the issue
+# PATCH uncorrupted. resolve_umbrella() is consumed with `$(...)`, so a note()
+# written to stdout lands INSIDE the captured milestone number.
+# ============================================================================
+: > "$MOCK_LOG"
+EXIT=0
+MOCK_UMBRELLA_NUM="" MOCK_MILESTONES_TSV="$TWO_STRAYS" MOCK_ISSUES="1001" \
+  SLEEP_BETWEEN=0 GH_REPO="acme/orchestkit" \
+  bash "$SCRIPT" >"$MOCK_DIR/consol-6.out" 2>&1 || EXIT=$?
+CLEAN_MOVES=$(count_calls '^api -X PATCH repos/[^ ]+/issues/[0-9]+ -F milestone=777$')
+if [ "$EXIT" = "0" ] && [ "$CLEAN_MOVES" = "2" ]; then
+  log_pass "created umbrella: number reaches the issue PATCH uncorrupted"
+else
+  log_fail "umbrella number purity" "expected 2 clean 'milestone=777' PATCHes, got $CLEAN_MOVES (exit=$EXIT)"
 fi
 
 echo "========================================================="

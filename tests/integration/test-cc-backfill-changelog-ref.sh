@@ -45,7 +45,7 @@ norm() { sed -E 's/^[[:space:]]*[-*+][[:space:]]+//; s/[[:space:]]+/ /g; s/^[[:s
 echo "CC Backfill Changelog-Ref — migration tests"
 echo "========================================================="
 
-MOCK_DIR=$(mktemp -d)
+MOCK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 MOCK_LOG="$MOCK_DIR/gh.log"
 export MOCK_LOG
 cat > "$MOCK_DIR/gh" <<'MOCK'

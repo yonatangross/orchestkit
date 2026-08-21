@@ -29,7 +29,7 @@ VALIDATOR="bin/validate-visual-style.py"
 WRAPPER="bin/check-pr-visual-style.sh"
 WORKFLOW=".github/workflows/visual-style-lint.yml"
 
-WORK="$(mktemp -d)"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 
 # UTF-8 byte sequences (octal) so the test file itself stays low-emoji.

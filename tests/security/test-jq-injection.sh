@@ -68,7 +68,7 @@ log_pass() { echo "  ${GREEN}✓${NC} $1"; }
 log_fail() { echo "  ${RED}✗${NC} $1"; }
 section()  { echo; echo "${YELLOW}$1${NC}"; }
 
-TMPD="$(mktemp -d)"
+TMPD="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -rf "$TMPD"' EXIT
 
 # ============================================================================

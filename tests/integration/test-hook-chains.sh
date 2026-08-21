@@ -29,7 +29,7 @@ export CLAUDE_PLUGIN_ROOT="$PROJECT_ROOT/src"
 export CLAUDE_SESSION_ID="integration-test-$(date +%s)"
 
 # Temp directory
-TEST_TMP=$(mktemp -d)
+TEST_TMP=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap "rm -rf $TEST_TMP" EXIT
 
 echo "=========================================="

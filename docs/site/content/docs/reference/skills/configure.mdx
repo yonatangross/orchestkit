@@ -2112,7 +2112,8 @@ stage even if you put it there. `deniedDomains` is the opposite case, documented
 Two stages, per the rollout recorded in #3424. **Start with stage 1.** It is designed
 to be adoptable on a working machine: no network allowlist, so nothing is denied for
 being unlisted, and the three workflows this machine's history shows as fragile
-(`op`, `docker`, `ssh`) run outside the sandbox entirely.
+(`op`, `docker`, `ssh`) run outside the sandbox entirely on an unforced machine. That
+last clause is load-bearing; see *When the carve-out does nothing* below.
 
 Stage 2 is the ratchet, and it is the one that breaks things. Do not paste it until
 stage 1 has run through real work for several days.
@@ -2228,6 +2229,47 @@ day yet. That is what stage 1 is for.
    independent of `strictAllowlist`.
 4. `op`, `docker` and `ssh` should behave exactly as they did before. If they do not,
    the carve-out is not taking effect and that is worth reporting before going further.
+
+## When the carve-out does nothing
+
+`excludedCommands` is not an unconditional escape hatch, and the condition is invisible
+from the settings file. Read from the sandbox decision function in the 2.1.235 binary:
+
+```js
+function N7(e){
+  if (dL() && $dt()) return true;                                  // forced sandbox
+  if (!ti.isSandboxingEnabled()) return false;
+  if (e.dangerouslyDisableSandbox && areUnsandboxedCommandsAllowed()) return false;
+  if (!JYe().unsandboxedCommandsDisabled && rsT(e.command)) return false;  // excludedCommands
+  return true;
+}
+```
+
+`rsT` is the `excludedCommands` matcher. `N7` returning true means the command gets
+sandboxed; the two branches above the matcher (sandboxing off, and an explicit
+disable) fix that polarity beyond doubt. So on a normal machine a match returns false
+and the command really does run unsandboxed, which is what stage 1 relies on.
+
+Two guards defeat it:
+
+- **A forced sandbox short-circuits first.** `dL() && $dt()` returns true *before*
+  `excludedCommands` is ever consulted. In that environment every command is wrapped
+  and the carve-out is dead config.
+- **`unsandboxedCommandsDisabled` skips the branch**, with the same result.
+
+This is not theoretical. Measured 2026-08-19 from inside Claude Code's own sandboxed
+Bash: `ssh` TCP connect returned EPERM, raw DNS was dead, and the docker daemon socket
+was denied, all while `excludedCommands` named those commands. The session running
+those probes was itself in a forced sandbox, so the carve-out could not apply.
+
+Two consequences worth holding at once:
+
+1. **The carve-out opens no exfil surface in a forced or managed environment.** If you
+   were worried that naming `op`, `docker` and `ssh` punches a hole in an enterprise
+   policy sandbox, it does not: that sandbox wins before the list is read.
+2. **Do not rely on it as an escape hatch in those environments either.** A tool that
+   needs real host access will still fail, and the settings file will look like it
+   should work. Debug that as a forced-sandbox condition, not as a typo in the list.
 
 ## Stage 2 STRICT
 

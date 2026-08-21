@@ -34,7 +34,7 @@ GAPS_BACKUP=""
 SKILL_GAPS_BACKUP=""
 SKILL_GAPS_EXISTED=0
 [ -f shared/cc-skill-gaps.json ] && { SKILL_GAPS_BACKUP=$(cat shared/cc-skill-gaps.json); SKILL_GAPS_EXISTED=1; }
-SNAP_BACKUP_DIR=$(mktemp -d)
+SNAP_BACKUP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 [ -d shared/cc-snapshots ] && rsync -a shared/cc-snapshots/ "$SNAP_BACKUP_DIR/"
 
 restore() {
@@ -1154,6 +1154,172 @@ if [ "$UNDER_EXTRACTED" = "2" ] && ! grep -q "FEATURE CAP dropped" /tmp/cc-triag
   log_pass "#2950 cap: under-cap run records 2 and does NOT claim truncation"
 else
   log_fail "#2950 under-cap" "features_extracted='$UNDER_EXTRACTED', unexpected cap line present"
+fi
+
+# ============================================================================
+# Test 22: fence-tolerant model-output parse.
+#
+# buildPrompt() forbids markdown fences TWICE and the model wrapped the array
+# in a ```json fence anyway, which froze CC adoption at 2.1.231 (run
+# 31672298470): JSON.parse(out) threw on the leading backtick, the retry
+# re-rolled the byte-identical prompt and reproduced the same wrapper, so
+# every capability-bearing version got sentineled parse_failed forever.
+#
+# Each positive case below FAILS against the pre-fix `JSON.parse(out)`
+# (features stays 0, parse_failed flips true). The negative cases assert the
+# tolerance did not swallow the failures the pipeline still wants.
+# ============================================================================
+
+# --- positive: ```json fence (the exact shape that froze adoption) ----------
+write_gaps
+FIXTURE=/tmp/cc-triage-fixture-fence-json.txt
+{
+  echo '```json'
+  cat /tmp/cc-triage-fixture-ok.txt
+  echo '```'
+} > "$FIXTURE"
+
+EXIT=0
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+
+FENCE_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
+FENCE_FAILED=$(jq -r '.[0].parse_failed' shared/cc-adoption-gaps.json)
+if [ "$EXIT" = "0" ] && [ "$FENCE_COUNT" = "2" ] && [ "$FENCE_FAILED" = "false" ]; then
+  log_pass "fence-parse: \`\`\`json fenced array extracts 2 features, no sentinel"
+else
+  log_fail "fence-parse \`\`\`json" "exit=$EXIT features=$FENCE_COUNT parse_failed=$FENCE_FAILED (expected 0/2/false)"
+fi
+
+# --- positive: bare ``` fence (no language tag) -----------------------------
+write_gaps
+FIXTURE=/tmp/cc-triage-fixture-fence-bare.txt
+{
+  echo '```'
+  cat /tmp/cc-triage-fixture-ok.txt
+  echo '```'
+} > "$FIXTURE"
+
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+
+BARE_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
+if [ "$BARE_COUNT" = "2" ]; then
+  log_pass "fence-parse: bare \`\`\` fence (no language tag) extracts 2 features"
+else
+  log_fail "fence-parse bare fence" "expected 2 features, got $BARE_COUNT"
+fi
+
+# --- positive: leading prose + fence + trailing chatter ---------------------
+write_gaps
+FIXTURE=/tmp/cc-triage-fixture-fence-prose.txt
+{
+  echo 'Sure! Here are the [notable] features I found:'
+  echo '```json'
+  cat /tmp/cc-triage-fixture-ok.txt
+  echo '```'
+  echo 'Hope that helps.'
+} > "$FIXTURE"
+
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+
+PROSE_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
+if [ "$PROSE_COUNT" = "2" ]; then
+  # Also proves the `[notable]` bracket in the prose does not hijack the scan:
+  # it balances but is not JSON, so scanning resumes at the next opener.
+  log_pass "fence-parse: leading prose + fence + trailer extracts 2 features"
+else
+  log_fail "fence-parse prose+fence" "expected 2 features, got $PROSE_COUNT"
+fi
+
+# --- positive: a `]` inside a JSON string must not truncate the span --------
+write_gaps
+FIXTURE=/tmp/cc-triage-fixture-fence-strbracket.txt
+cat > "$FIXTURE" <<'EOF'
+```json
+[
+  {"feature_slug": "bracket_in_string", "category": "new_command", "description": "handles a ] and a } inside the string", "gap_score": 5, "affected_skills": [], "reference_changelog_line": "claude project purge removes orphan project metadata"}
+]
+```
+EOF
+
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+
+STR_SLUG=$(jq -r '.[0].features[0].feature_slug // "absent"' shared/cc-adoption-gaps.json)
+if [ "$STR_SLUG" = "bracket_in_string" ]; then
+  log_pass "fence-parse: string-aware scan, ']' inside a string value does not end the span"
+else
+  log_fail "fence-parse string-awareness" "expected slug 'bracket_in_string', got '$STR_SLUG'"
+fi
+
+# --- retry path: fence tolerance holds on attempt 2, not just attempt 1 -----
+# A fenced `[]` parses on BOTH attempts and therefore trips the M134
+# empty-array guard twice. Pre-fix this logged 'parse error' instead, so the
+# reason recorded for the sentinel was wrong as well as the outcome.
+write_gaps
+FIXTURE=/tmp/cc-triage-fixture-fence-empty.txt
+printf '```json\n[]\n```\n' > "$FIXTURE"
+
+EXIT=0
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+
+EMPTY_FAILED=$(jq -r '.[0].parse_failed' shared/cc-adoption-gaps.json)
+# Assert BOTH attempt markers rather than a count: the "retry firing" line
+# embeds lastReason verbatim, so a bare occurrence count is 3, not 2.
+EMPTY_GUARD="empty array result (model emitted [] for a non-empty changelog)"
+if [ "$EMPTY_FAILED" = "true" ] \
+  && grep -qF "$EMPTY_GUARD (attempt 1/2)" /tmp/cc-triage-out.txt \
+  && grep -qF "$EMPTY_GUARD (attempt 2/2)" /tmp/cc-triage-out.txt; then
+  log_pass "fence-parse: fenced [] parses on BOTH attempts, still trips the M134 empty guard"
+else
+  log_fail "fence-parse retry path" "parse_failed=$EMPTY_FAILED, expected the empty-array guard on attempt 1/2 AND 2/2"
+fi
+
+if ! grep -q "parse error" /tmp/cc-triage-out.txt; then
+  log_pass "fence-parse: fenced [] is NOT misreported as a parse error"
+else
+  log_fail "fence-parse reason" "fenced [] still logged as 'parse error'"
+fi
+
+# --- negative: a fenced OBJECT still fails the array check ------------------
+write_gaps
+FIXTURE=/tmp/cc-triage-fixture-fence-object.txt
+printf '```json\n{"feature_slug": "not_an_array"}\n```\n' > "$FIXTURE"
+
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+
+OBJ_FAILED=$(jq -r '.[0].parse_failed' shared/cc-adoption-gaps.json)
+if [ "$OBJ_FAILED" = "true" ] && grep -qF "result is not array" /tmp/cc-triage-out.txt; then
+  log_pass "fence-parse: fenced OBJECT still fails 'result is not array' + sentinels"
+else
+  log_fail "fence-parse object negative" "parse_failed=$OBJ_FAILED, no 'result is not array' in output"
+fi
+
+# --- negative: output with no JSON value at all still sentinels -------------
+write_gaps
+FIXTURE=/tmp/cc-triage-fixture-fence-nojson.txt
+echo 'I could not find any notable features in that changelog.' > "$FIXTURE"
+
+EXIT=0
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+
+NOJSON_FAILED=$(jq -r '.[0].parse_failed' shared/cc-adoption-gaps.json)
+if [ "$EXIT" = "0" ] && [ "$NOJSON_FAILED" = "true" ] && grep -qF "no JSON value in model output" /tmp/cc-triage-out.txt; then
+  log_pass "fence-parse: prose-only output still sentinels with a named reason"
+else
+  log_fail "fence-parse no-JSON negative" "exit=$EXIT parse_failed=$NOJSON_FAILED (expected 0/true + named reason)"
 fi
 
 echo ""

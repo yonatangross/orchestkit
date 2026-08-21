@@ -41,10 +41,13 @@ Given a topic (or the conversation, when none is given):
 
 3. **Emit inline in the reply.** Never write a file unless the user asked for one. This is a chat answer, not an artifact.
 4. **Use the 12-emoji semantic set and box-drawing vocabulary** defined in `rules/visual-style.md` (shipped with this skill). Semantic, never decorative: an emoji must mean something (✅ pass, ❌ fail, ⚠️ risk, 🔴 blocked).
-5. **Lead with the answer.** The visual comes first; prose after it only if it adds something the diagram cannot carry.
-6. **Stay honest.** If a number is unknown, print `?` rather than inventing one. A confident-looking chart built on guesses is worse than prose.
+5. **Stay inside the budget: ≤ 12 visual lines, and ≤ 40% of the reply.** Block count within that is free — two 5-line blocks are fine, four 10-line blocks are not. This skill renders on request, it does not render without limit (#3558). Full derivation of the numbers is in `rules/visual-style.md`.
+6. **State the point in prose first**, in one or two sentences, then show the visual. The visual supports the answer; it is never the answer. If the reader has to parse a diagram to find out what happened, the reply failed.
+7. **Stay honest.** If a number is unknown, print `?` rather than inventing one. A confident-looking chart built on guesses is worse than prose.
 
 **When NOT to use this skill:** if the deliverable is a multi-section HTML playground, a persisted plan artifact, or anything needing file output, use `visualize-plan` instead. Glyph is the cheap inline path; visualize-plan is the full pipeline.
+
+**Over budget is the same signal.** If the honest rendering needs more than ~12 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file and print the path. The old escape hatch fired on artifact TYPE only, so a 40-line inline reply never tripped it.
 
 
 ## Box-Drawing Character Reference
