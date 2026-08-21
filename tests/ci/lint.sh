@@ -335,7 +335,19 @@ else
             model_bad=$((model_bad + 1))
         # here-string, not a pipe: `printf | grep -q` SIGPIPEs the producer
         # under `set -o pipefail` and flips this branch non-deterministically.
+        #
+        # RETIRED is checked BEFORE DEPRECATED: a retired model errors at the
+        # API, so a pin is a build break, not a nudge. Deprecated models still
+        # answer, so they stay a warning.
+        # pipebuf: bounded-small
+        elif grep -q "RETIRED" <<<"$allow_line"; then
+            # pipebuf: bounded-small
+            note=$(sed 's/.*#[[:space:]]*//' <<<"$allow_line")
+            fail "$where pins '$model_id' — $note. Retired models return an API error, so this pin breaks at runtime."
+            model_bad=$((model_bad + 1))
+        # pipebuf: bounded-small
         elif grep -q "DEPRECATED" <<<"$allow_line"; then
+            # pipebuf: bounded-small
             note=$(sed 's/.*#[[:space:]]*//' <<<"$allow_line")
             warn "$where pins '$model_id' — $note"
         fi
