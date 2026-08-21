@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gh-api.mjs: a GitHub client for shells where gh cannot do TLS</title>
+<meta name="description" content="Why the gh CLI fails with OSStatus -26276 inside Claude Code shells, why node's fetch works through the same egress tunnel, and the dependency-free helper that bridges the gap.">
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #e6edf3;
+    --dim: #8b949e; --accent: #58a6ff; --ok: #3fb950; --bad: #f85149; --warn: #d29922;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 16px/1.6 -apple-system, "Segoe UI", sans-serif; padding: 2rem 1rem 4rem; }
+  main { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.7rem; line-height: 1.3; margin-bottom: .5rem; }
+  h2 { font-size: 1.25rem; margin: 2.2rem 0 .8rem; color: var(--accent); }
+  p { margin: .7rem 0; color: var(--text); }
+  .sub { color: var(--dim); }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .88em; }
+  code { background: #21262d; padding: .1em .35em; border-radius: 4px; }
+  pre { background: #0a0d12; border: 1px solid var(--border); border-radius: 8px; padding: .9rem 1rem; overflow-x: auto; margin: .8rem 0; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .92em; }
+  th, td { border: 1px solid var(--border); padding: .5rem .7rem; text-align: left; }
+  th { background: #21262d; }
+  .ok { color: var(--ok); font-weight: 600; }
+  .bad { color: var(--bad); font-weight: 600; }
+  .warn { color: var(--warn); font-weight: 600; }
+  .flow { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: 1rem 0; }
+  .node { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: .5rem .9rem; font-size: .9em; }
+  .arrow { color: var(--dim); }
+  .tabs { display: flex; gap: .4rem; margin-top: 1rem; }
+  .tabs button { background: #21262d; color: var(--text); border: 1px solid var(--border); border-radius: 6px 6px 0 0; padding: .45rem .9rem; cursor: pointer; font-size: .9em; }
+  .tabs button.active { background: var(--panel); border-bottom-color: var(--panel); color: var(--accent); }
+  .tabpanel { display: none; }
+  .tabpanel.active { display: block; }
+  .footnote { color: var(--dim); font-size: .85em; margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>gh-api.mjs: a GitHub client for shells where <code>gh</code> cannot do TLS</h1>
+  <p class="sub">Measured 2026-08-20/21 across a full parent/subagent &times; sandboxed/flag-off matrix. All four cells fail identically for <code>gh</code>; node succeeds in all of them.</p>
+
+  <h2>The mechanism, corrected</h2>
+  <div class="panel">
+    <p>Claude Code's <code>srt</code> egress proxy is a <strong>plain CONNECT tunnel</strong>. There is no interception of the TLS stream, the upstream certificates are genuine, and there is nothing to install.</p>
+    <p><code>gh</code> fails because <span class="bad">OSStatus -26276</span> is a Security-framework <em>internal</em> error: the certificate verifier cannot <em>consult</em> the trust store at all, because the sandbox denies Mach IPC to <code>securityd</code>, and Go on darwin has no other certificate-verification path.</p>
+    <p><code>node</code> works because it ships <strong>its own CA bundle</strong> and never needs to talk to <code>securityd</code>.</p>
+  </div>
+
+  <div class="flow">
+    <span class="node">gh (Go)</span><span class="arrow">&rarr;</span>
+    <span class="node">Security.framework</span><span class="arrow">&rarr;</span>
+    <span class="node bad">Mach IPC to securityd: DENIED</span><span class="arrow">&rarr;</span>
+    <span class="node bad">OSStatus -26276</span>
+  </div>
+  <div class="flow">
+    <span class="node">node fetch</span><span class="arrow">&rarr;</span>
+    <span class="node">bundled CA store</span><span class="arrow">&rarr;</span>
+    <span class="node">CONNECT via srt tunnel</span><span class="arrow">&rarr;</span>
+    <span class="node ok">TLS to api.github.com: 200</span>
+  </div>
+
+  <h2>The launch-time proxy rule, proven empirically</h2>
+  <p>Node only honors <code>HTTPS_PROXY</code> when <code>NODE_USE_ENV_PROXY=1</code> is present <strong>at launch</strong>: undici wires its global dispatcher during bootstrap.</p>
+  <table>
+    <tr><th>Variant</th><th>Command shape</th><th>Result</th></tr>
+    <tr><td>In-script assignment</td><td><code>process.env.NODE_USE_ENV_PROXY='1'</code> then <code>fetch()</code></td><td class="bad">getaddrinfo ENOTFOUND (went direct, bypassed the tunnel)</td></tr>
+    <tr><td>No variable at all</td><td><code>node probe.mjs</code></td><td class="bad">getaddrinfo ENOTFOUND</td></tr>
+    <tr><td>Launch-time variable</td><td><code>NODE_USE_ENV_PROXY=1 node probe.mjs</code></td><td class="ok">HTTP 200</td></tr>
+  </table>
+  <p>The helper therefore <strong>re-execs itself once</strong> with <code>NODE_USE_ENV_PROXY=1</code> in the child environment when the variable is absent. That is the proven launch-time variant, packaged so callers never have to remember it.</p>
+
+  <h2>Usage</h2>
+  <div class="tabs">
+    <button class="active" data-tab="rest">REST</button>
+    <button data-tab="body">With body</button>
+    <button data-tab="gql">GraphQL</button>
+    <button data-tab="err">Error shape</button>
+  </div>
+  <div class="tabpanel active" id="tab-rest">
+<pre><code>$ node scripts/gh-api.mjs GET /rate_limit
+{"resources":{"core":{"limit":5000,"used":91,"remaining":4909,...
+
+$ node scripts/gh-api.mjs GET /repos/yonatangross/orchestkit
+{"id":...,"name":"orchestkit","full_name":"yonatangross/orchestkit",...</code></pre>
+  </div>
+  <div class="tabpanel" id="tab-body">
+<pre><code>$ node scripts/gh-api.mjs POST /repos/OWNER/REPO/pulls body.json
+# body.json is sent verbatim as the JSON request body</code></pre>
+  </div>
+  <div class="tabpanel" id="tab-gql">
+<pre><code>$ echo 'query { viewer { login } }' | node scripts/gh-api.mjs graphql
+{"data":{"viewer":{"login":"yonatangross"}}}</code></pre>
+  </div>
+  <div class="tabpanel" id="tab-err">
+<pre><code>$ node scripts/gh-api.mjs GET /repos/yonatangross/no-such-repo-xyz
+GhApiError: HTTP 404 for GET https://api.github.com/repos/yonatangross/no-such-repo-xyz: {"message":"Not Found",...}
+$ echo $?
+1</code></pre>
+    <p class="sub">Named error, status code, first 200 characters of the body. No stack trace.</p>
+  </div>
+
+  <h2>What the sandbox allowlist entry does, and does not do</h2>
+  <div class="panel">
+    <p><span class="ok">Does:</span> adding <code>api.github.com</code> to <code>sandbox.network.allowedDomains</code> in the project's <code>.claude/settings.json</code> lets <em>sandboxed</em> <code>curl</code> and <code>node</code> reach the GitHub API through the tunnel without a per-command override.</p>
+    <p><span class="warn">Does not:</span> it does <strong>not</strong> fix <code>gh</code> itself. The <code>securityd</code> Mach IPC denial is upstream of any hostname allowlist; <code>gh</code> fails the TLS handshake before the destination matters.</p>
+  </div>
+
+  <p class="footnote">OrchestKit playground &middot; branch <code>feat/gh-api-helper</code> &middot; 2026-08-21. Token handling: the helper reads <code>gh auth token</code> via <code>execFileSync</code> and never prints it.</p>
+</main>
+<script>
+  document.querySelectorAll('.tabs button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.tabs button').forEach(function (b) { b.classList.remove('active'); });
+      document.querySelectorAll('.tabpanel').forEach(function (p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

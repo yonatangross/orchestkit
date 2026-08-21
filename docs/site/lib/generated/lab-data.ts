@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "gh-api-helper",
+    "title": "A GitHub API client for gh-broken shells",
+    "description": "Why every Go TLS client fails in CC panes (the sandbox blocks com.apple.trustd.agent by default) and the dependency-free node helper that routes around it with gh auth token.",
+    "tags": [
+      "tooling",
+      "sandbox",
+      "workaround"
+    ],
+    "date": "2026-08-21",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "doctor-sandbox-violation-log",
     "title": "Reading the macOS sandbox violation log, fail closed",
     "description": "A doctor check that tails the unified log for Seatbelt denials and refuses to report success when the log itself is unreadable. Includes the measured limits: CC denies without logging, and log show cannot run sandboxed.",
