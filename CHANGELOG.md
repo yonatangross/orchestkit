@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.44](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.43...v10.0.0-alpha.44) (2026-08-21)
+
+
+### Features
+
+* **cc-watch:** watch the Claude Platform release notes ([#3627](https://github.com/yonatangross/orchestkit/issues/3627)) ([#3635](https://github.com/yonatangross/orchestkit/issues/3635)) ([d273c6f](https://github.com/yonatangross/orchestkit/commit/d273c6fb2ae43ae6584850e0bf14ec6ca58fac94))
+* **doctor:** read the macOS sandbox violation log, fail closed ([#3631](https://github.com/yonatangross/orchestkit/issues/3631)) ([3a6dd7b](https://github.com/yonatangross/orchestkit/commit/3a6dd7bdda5cc57a2ce3ff165974d8921612fefe))
+* **scripts:** add gh-api.mjs, a GitHub API client for gh-broken shells ([#3633](https://github.com/yonatangross/orchestkit/issues/3633)) ([1f3baa9](https://github.com/yonatangross/orchestkit/commit/1f3baa923e88d26a89c1b2f1ebf921a1db7c16d1))
+* **worktree:** adopt .worktreeinclude and pin baseRef plus spawn depth ([#3582](https://github.com/yonatangross/orchestkit/issues/3582)) ([db65336](https://github.com/yonatangross/orchestkit/commit/db653369ccef93e4bf914829306a02d1f1032c2f))
+
+
+### Bug Fixes
+
+* **cc-triage:** tolerate fenced JSON and resolve the umbrella with state=all ([#3580](https://github.com/yonatangross/orchestkit/issues/3580)) ([0a3d19a](https://github.com/yonatangross/orchestkit/commit/0a3d19ad08b111ca3ffbd646734d7b6b1448db93))
+* **docs-site:** regenerate the CC adoption board data in the build ([#3581](https://github.com/yonatangross/orchestkit/issues/3581)) ([ac27a86](https://github.com/yonatangross/orchestkit/commit/ac27a8661bf3c53024c5edcd75bc327dbcc96b74))
+* **hooks:** resolve verifier base against origin ([#3570](https://github.com/yonatangross/orchestkit/issues/3570)) ([6d3640a](https://github.com/yonatangross/orchestkit/commit/6d3640a237a38967c62bcb1ef8bd8693e63610eb)), closes [#3569](https://github.com/yonatangross/orchestkit/issues/3569)
+* **hooks:** stamp PostToolUseFailure on failure-handler context exits ([#3625](https://github.com/yonatangross/orchestkit/issues/3625)) ([e05d703](https://github.com/yonatangross/orchestkit/commit/e05d703c95d31531163a0971cd9cb69b948f2076))
+* **security:** make the mutation gate fail closed ([#3626](https://github.com/yonatangross/orchestkit/issues/3626)) ([803808c](https://github.com/yonatangross/orchestkit/commit/803808c92e114ca961e2ee4b0e73c9174840a24c)), closes [#3583](https://github.com/yonatangross/orchestkit/issues/3583)
+
 ## [10.0.0-alpha.43](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.42...v10.0.0-alpha.43) (2026-08-19)
 
 
