@@ -38,6 +38,14 @@
       "caseStudy": "/docs/showcase/lab/triage-board"
     },
     {
+      "slug": "cc-board-drift-gate",
+      "source": "docs/fix--3492-cc-board-drift/index.html",
+      "title": "A drift gate with nothing behind it",
+      "description": "Walk the build steps against the paths ci.yml diffs and watch two of seven generated outputs turn out to have no writer, then compare a per-run stamp with a source digest across two CI runs.",
+      "tags": ["ci", "build", "explainer"],
+      "date": "2026-08-20"
+    },
+    {
       "slug": "session-standing-board",
       "source": "docs/session-standing-board.html",
       "title": "Session Standing — Decision Board",
@@ -62,6 +70,14 @@
       "description": "State-of-practice explainer comparing coordinator/worker swarms, agent teams, and deterministic workflows, with when-to-use guidance per topology.",
       "tags": ["multi-agent", "explainer"],
       "date": "2026-06-17"
+    },
+    {
+      "slug": "epic-d-adoption-probe",
+      "source": "docs/feat--3309-adopt-cc-settings/index.html",
+      "title": "EPIC D, measured against tracked code",
+      "description": "Probes each of the five CC capabilities issue 3309 names against origin/main rather than a working tree, shows what this change adopts, and states why one is declined.",
+      "tags": ["cc-adoption", "worktree", "explainer"],
+      "date": "2026-08-20"
     },
     {
       "slug": "vercel-labs-adoption-ideas",
@@ -120,11 +136,19 @@
       "date": "2026-08-20"
     },
     {
+      "slug": "platform-watcher-3627",
+      "source": "docs/feat--3627-platform-watch/index.html",
+      "title": "The watcher that could not see half the sky",
+      "description": "The 2026-08-19 Claude Platform GA wave was invisible to a pipeline that only reads the CC CLI changelog and was noticed via a tweet. Interactive replica of the new sibling watcher's parser: dated headings, watch_since cutoff, and the could-not-observe exit that never reads as nothing-new.",
+      "tags": ["ci", "watcher", "blind-spot"],
+      "date": "2026-08-21"
+    },
+    {
       "slug": "doctor-sandbox-violation-log",
       "source": "docs/feat--doctor-sandbox-violation-log/index.html",
-      "title": "Doctor Check 15b: Sandbox Violation Log",
-      "description": "Fail-closed doctor sub-check that reads the macOS unified log for Seatbelt deny events. All four outcomes exercised live, including the log CLI refusing sandboxed callers (exit 64), which reports UNOBSERVABLE instead of a fake zero.",
-      "tags": ["doctor", "security", "explainer"],
+      "title": "Reading the macOS sandbox violation log, fail closed",
+      "description": "A doctor check that tails the unified log for Seatbelt denials and refuses to report success when the log itself is unreadable. Includes the measured limits: CC denies without logging, and log show cannot run sandboxed.",
+      "tags": ["doctor", "sandbox", "fail-closed"],
       "date": "2026-08-21"
     }
   ]

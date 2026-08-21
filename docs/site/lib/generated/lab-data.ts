@@ -16,17 +16,31 @@ export interface LabEntry {
 export const LAB_ENTRIES: LabEntry[] = [
   {
     "slug": "doctor-sandbox-violation-log",
-    "title": "Doctor Check 15b: Sandbox Violation Log",
-    "description": "Fail-closed doctor sub-check that reads the macOS unified log for Seatbelt deny events. All four outcomes exercised live, including the log CLI refusing sandboxed callers (exit 64), which reports UNOBSERVABLE instead of a fake zero.",
+    "title": "Reading the macOS sandbox violation log, fail closed",
+    "description": "A doctor check that tails the unified log for Seatbelt denials and refuses to report success when the log itself is unreadable. Includes the measured limits: CC denies without logging, and log show cannot run sandboxed.",
     "tags": [
       "doctor",
-      "security",
-      "explainer"
+      "sandbox",
+      "fail-closed"
     ],
     "date": "2026-08-21",
     "featured": false,
     "caseStudy": null,
     "sizeKb": 9
+  },
+  {
+    "slug": "platform-watcher-3627",
+    "title": "The watcher that could not see half the sky",
+    "description": "The 2026-08-19 Claude Platform GA wave was invisible to a pipeline that only reads the CC CLI changelog and was noticed via a tweet. Interactive replica of the new sibling watcher's parser: dated headings, watch_since cutoff, and the could-not-observe exit that never reads as nothing-new.",
+    "tags": [
+      "ci",
+      "watcher",
+      "blind-spot"
+    ],
+    "date": "2026-08-21",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 10
   },
   {
     "slug": "mutation-gate-fail-closed-3583",
@@ -41,6 +55,34 @@ export const LAB_ENTRIES: LabEntry[] = [
     "featured": false,
     "caseStudy": null,
     "sizeKb": 5
+  },
+  {
+    "slug": "epic-d-adoption-probe",
+    "title": "EPIC D, measured against tracked code",
+    "description": "Probes each of the five CC capabilities issue 3309 names against origin/main rather than a working tree, shows what this change adopts, and states why one is declined.",
+    "tags": [
+      "cc-adoption",
+      "worktree",
+      "explainer"
+    ],
+    "date": "2026-08-20",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 14
+  },
+  {
+    "slug": "cc-board-drift-gate",
+    "title": "A drift gate with nothing behind it",
+    "description": "Walk the build steps against the paths ci.yml diffs and watch two of seven generated outputs turn out to have no writer, then compare a per-run stamp with a source digest across two CI runs.",
+    "tags": [
+      "ci",
+      "build",
+      "explainer"
+    ],
+    "date": "2026-08-20",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 10
   },
   {
     "slug": "posttooluse-failure-event-name",
