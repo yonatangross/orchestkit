@@ -12,8 +12,10 @@
 # channel. Instagram joins ANNOUNCE_CHANNELS once Meta Business Verification
 # clears (needs instagram_content_publish).
 #
-# Cadence: minor/major (X.Y.0) releases only; patch bumps are skipped to keep
-# the review queue clean. workflow_dispatch overrides for any version.
+# Cadence: minor/major (X.Y.0) releases announce automatically; patch bumps and
+# prereleases are skipped to keep the review queue clean, UNLESS the release PR
+# carries the `announce` label (opt-in per release, decided at release-PR merge
+# time). workflow_dispatch overrides for any version.
 #
 # Secrets (operator-provisioned; inert until both are set):
 #   HQ_API_URL   - platform API base (e.g. https://<platform-api-host>)
@@ -47,6 +49,9 @@ jobs:
     name: Draft release announcement
     permissions:
       contents: read
+      # announce-label lookup: the meta step reads the release PR's labels via
+      # the commit-associated-PRs endpoint.
+      pull-requests: read
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -67,6 +72,8 @@ jobs:
           INPUT_VERSION: ${{ github.event.inputs.version }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           EVENT_NAME: ${{ github.event_name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
         run: |
           if [ -n "$INPUT_VERSION" ]; then
             VERSION="$INPUT_VERSION"
@@ -87,11 +94,43 @@ jobs:
           . scripts/lib/semver.sh
           PATCH="$(semver_core "$VERSION")"
           PATCH="${PATCH##*.}"
+
+          # Opt-in override: a release whose release PR carries the `announce`
+          # label announces regardless of the cadence band. Resolved from the
+          # tag commit's associated PRs (labels live on PRs; releases have
+          # none). Fails QUIET on lookup errors: for an announce gate the
+          # conservative failure mode is silence, not an accidental
+          # announcement — the warning line keeps the failure observable.
+          announce_label() {
+            SHA=$(git rev-list -n 1 "v$VERSION" 2>/dev/null || true)
+            if [ -z "$SHA" ]; then
+              echo "::warning::announce-label lookup: tag v$VERSION not found in history"
+              return 1
+            fi
+            if ! RESP=$(curl -sf -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/$REPO/commits/$SHA/pulls"); then
+              echo "::warning::announce-label lookup failed (API error) — treating as unlabeled"
+              return 1
+            fi
+            echo "$RESP" | jq -e '[.[].labels[].name] | index("announce") != null' > /dev/null
+          }
+
           if [ "$EVENT_NAME" = "release" ] && semver_is_prerelease "$VERSION"; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::$VERSION is a prerelease — not announcing."
+            if announce_label; then
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::$VERSION is a prerelease with the announce label — announcing."
+            else
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              echo "::notice::$VERSION is a prerelease — not announcing (label the release PR 'announce' to opt in)."
+            fi
           elif [ "$EVENT_NAME" = "release" ] && [ "$PATCH" != "0" ]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
+            if announce_label; then
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::$VERSION is a patch with the announce label — announcing."
+            else
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+            fi
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
