@@ -17,6 +17,31 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.45",
+    "date": "2026-08-21",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**announce:** label-gated alpha announcements plus RSS feed ([#3638](https://github.com/yonatangross/orchestkit/issues/3638)) ([#3639](https://github.com/yonatangross/orchestkit/issues/3639)) ([1e28cdf](https://github.com/yonatangross/orchestkit/commit/1e28cdf0024ba4b4ace940e5df1df1cb92f5aa13))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**pricing:** Sonnet 5 is $2/$10, and retire retired model IDs ([#3647](https://github.com/yonatangross/orchestkit/issues/3647)) ([d16f33a](https://github.com/yonatangross/orchestkit/commit/d16f33affa785bfe49b8eb74f379ab33af70ce3f))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc:** snapshot 2.1.238, hand-triage, advance latest_known ([#3636](https://github.com/yonatangross/orchestkit/issues/3636)) ([5a21e79](https://github.com/yonatangross/orchestkit/commit/5a21e79c49ef5894e00d5d910133b65c8e3123b6))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.44",
     "date": "2026-08-21",
     "compareUrl": "",
