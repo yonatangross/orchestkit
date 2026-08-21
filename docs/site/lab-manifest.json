@@ -14,7 +14,11 @@
       "source": "docs/fix--cc-watch-fence-parse/index.html",
       "title": "Fenced JSON in cc-triage stdout",
       "description": "Runs the old JSON.parse and the new string-aware balanced scan side by side over eight real shapes of model output, including the fenced array that froze CC adoption at 2.1.231.",
-      "tags": ["cc-adoption", "parser", "explainer"],
+      "tags": [
+        "cc-adoption",
+        "parser",
+        "explainer"
+      ],
       "date": "2026-08-20"
     },
     {
@@ -22,7 +26,11 @@
       "source": "docs/fix--posttooluse-failure-event-name/index.html",
       "title": "PostToolUseFailure: The Event Name a Shared Helper Stamped Wrong",
       "description": "Three files, one hardcoded string: hooks.json registers failure-handler on PostToolUseFailure, but its context-bearing exits went through a helper that always stamped PostToolUse. Trace a tool failure through all four exits and watch CC accept or reject each one.",
-      "tags": ["hooks", "debugging", "explainer"],
+      "tags": [
+        "hooks",
+        "debugging",
+        "explainer"
+      ],
       "date": "2026-08-20"
     },
     {
@@ -30,7 +38,11 @@
       "source": "docs/cc-adoption-wave-210-212/index.html",
       "title": "CC Adoption Wave — 2.1.210 → 2.1.212",
       "description": "37 auto-filed adoption issues across three Claude Code releases. Filter by version, category, and gap score, click cards to build a work batch, and copy a triage prompt.",
-      "tags": ["cc-adoption", "dashboard", "automation"],
+      "tags": [
+        "cc-adoption",
+        "dashboard",
+        "automation"
+      ],
       "date": "2026-07-17",
       "featured": true,
       "caseStudy": "/docs/showcase/lab/adoption-waves"
@@ -40,7 +52,11 @@
       "source": "docs/triage-playground.html",
       "title": "Issue Triage — 98 Open Issues",
       "description": "The whole open-issue backlog as one interactive board: drag to triage, milestone breakdowns, and a copy-out execution prompt for the chosen batch.",
-      "tags": ["triage", "decision-board", "github"],
+      "tags": [
+        "triage",
+        "decision-board",
+        "github"
+      ],
       "date": "2026-06-16",
       "featured": true,
       "caseStudy": "/docs/showcase/lab/triage-board"
@@ -50,7 +66,11 @@
       "source": "docs/fix--3492-cc-board-drift/index.html",
       "title": "A drift gate with nothing behind it",
       "description": "Walk the build steps against the paths ci.yml diffs and watch two of seven generated outputs turn out to have no writer, then compare a per-run stamp with a source digest across two CI runs.",
-      "tags": ["ci", "build", "explainer"],
+      "tags": [
+        "ci",
+        "build",
+        "explainer"
+      ],
       "date": "2026-08-20"
     },
     {
@@ -58,7 +78,11 @@
       "source": "docs/session-standing-board.html",
       "title": "Session Standing — Decision Board",
       "description": "Drag-to-triage standing board for session outcomes: mouse, touch, and keyboard reorder, live buckets, and a prioritization prompt composer.",
-      "tags": ["decision-board", "drag-and-drop", "a11y"],
+      "tags": [
+        "decision-board",
+        "drag-and-drop",
+        "a11y"
+      ],
       "date": "2026-06-18",
       "featured": true,
       "caseStudy": "/docs/showcase/lab/session-standing"
@@ -68,7 +92,11 @@
       "source": "docs/yonyon-portfolio-adoption-options/index.html",
       "title": "Portfolio Bundle — Decision Board",
       "description": "The decision board that planned this very Lab: 18 brainstormed ideas scored and mocked up, with a prompt composer that emitted the implementation instruction.",
-      "tags": ["decision-board", "meta", "brainstorm"],
+      "tags": [
+        "decision-board",
+        "meta",
+        "brainstorm"
+      ],
       "date": "2026-07-17"
     },
     {
@@ -76,7 +104,10 @@
       "source": "docs/swarm-coordination-2026.html",
       "title": "Multi-Agent Coordination — Swarm vs Agents vs Workflow",
       "description": "State-of-practice explainer comparing coordinator/worker swarms, agent teams, and deterministic workflows, with when-to-use guidance per topology.",
-      "tags": ["multi-agent", "explainer"],
+      "tags": [
+        "multi-agent",
+        "explainer"
+      ],
       "date": "2026-06-17"
     },
     {
@@ -84,7 +115,11 @@
       "source": "docs/feat--3309-adopt-cc-settings/index.html",
       "title": "EPIC D, measured against tracked code",
       "description": "Probes each of the five CC capabilities issue 3309 names against origin/main rather than a working tree, shows what this change adopts, and states why one is declined.",
-      "tags": ["cc-adoption", "worktree", "explainer"],
+      "tags": [
+        "cc-adoption",
+        "worktree",
+        "explainer"
+      ],
       "date": "2026-08-20"
     },
     {
@@ -92,7 +127,11 @@
       "source": "docs/playgrounds/vercel-labs-2026-04-29-adoption-ideas.html",
       "title": "Vercel Labs — 8 Adoption Ideas",
       "description": "Impact-vs-effort explorer for adopting emulate, portless, agent-browser, and json-render capabilities into OrchestKit.",
-      "tags": ["adoption", "explorer", "vercel-labs"],
+      "tags": [
+        "adoption",
+        "explorer",
+        "vercel-labs"
+      ],
       "date": "2026-04-29"
     },
     {
@@ -100,7 +139,11 @@
       "source": "docs/playgrounds/vercel-labs-integration.html",
       "title": "Vercel Labs Integration — Staged Plan",
       "description": "Stage-composable integration plan: pick a stage, see what changes, click idea cards for full detail. Each stage assumes the prior one shipped.",
-      "tags": ["plan", "explorer", "vercel-labs"],
+      "tags": [
+        "plan",
+        "explorer",
+        "vercel-labs"
+      ],
       "date": "2026-04-27"
     },
     {
@@ -108,7 +151,10 @@
       "source": "docs/playgrounds/m126-bundle-b-explainer.html",
       "title": "M126 Bundle B — ultrareview + Fork Subagents",
       "description": "Deep-dive explainer for the claude ultrareview subcommand and CLAUDE_CODE_FORK_SUBAGENT adoption bundle.",
-      "tags": ["explainer", "cc-adoption"],
+      "tags": [
+        "explainer",
+        "cc-adoption"
+      ],
       "date": "2026-04-28"
     },
     {
@@ -116,7 +162,10 @@
       "source": "docs/playgrounds/superpowers-learnings.html",
       "title": "OrchestKit × Superpowers — Gap Analysis",
       "description": "Side-by-side of OrchestKit today vs improvements recommended by the Superpowers plugin analysis.",
-      "tags": ["analysis", "competitive"],
+      "tags": [
+        "analysis",
+        "competitive"
+      ],
       "date": "2026-04-12"
     },
     {
@@ -124,7 +173,10 @@
       "source": "docs/playgrounds/lib-currency-audit-2026-05-31.html",
       "title": "Library-Currency Audit — 2026-05-31",
       "description": "Verifier-corrected audit of library freshness across the toolchain, with severity re-ranks shown transparently.",
-      "tags": ["audit", "dashboard"],
+      "tags": [
+        "audit",
+        "dashboard"
+      ],
       "date": "2026-05-31"
     },
     {
@@ -132,7 +184,10 @@
       "source": "docs/fix--release-rail-counts-and-account/release-rail.html",
       "title": "Release Rail — Zeroed Counts and an Unnamed Identity",
       "description": "Two defects found by composing a release payload locally instead of reading the code: every release video rendered \"0 skills, 0 hooks\", and the announce rail named no posting identity. Includes the evidence for leaving the prerelease gate closed.",
-      "tags": ["audit", "explainer"],
+      "tags": [
+        "audit",
+        "explainer"
+      ],
       "date": "2026-08-14"
     },
     {
@@ -140,7 +195,11 @@
       "source": "docs/fix--3583-mutation-gate-fail-closed/index.html",
       "title": "A security gate that measured nothing and said OK",
       "description": "A denied mktemp emptied RESULT_DIR, so the security mutation gate scored 0 of 13 tests and still exited 0. Paired probe, the root cause at line 116, and two fail-closed guards.",
-      "tags": ["security", "ci", "fail-open"],
+      "tags": [
+        "security",
+        "ci",
+        "fail-open"
+      ],
       "date": "2026-08-20"
     },
     {
@@ -148,7 +207,11 @@
       "source": "docs/feat--3627-platform-watch/index.html",
       "title": "The watcher that could not see half the sky",
       "description": "The 2026-08-19 Claude Platform GA wave was invisible to a pipeline that only reads the CC CLI changelog and was noticed via a tweet. Interactive replica of the new sibling watcher's parser: dated headings, watch_since cutoff, and the could-not-observe exit that never reads as nothing-new.",
-      "tags": ["ci", "watcher", "blind-spot"],
+      "tags": [
+        "ci",
+        "watcher",
+        "blind-spot"
+      ],
       "date": "2026-08-21"
     },
     {
@@ -156,7 +219,11 @@
       "source": "docs/feat--doctor-sandbox-violation-log/index.html",
       "title": "Reading the macOS sandbox violation log, fail closed",
       "description": "A doctor check that tails the unified log for Seatbelt denials and refuses to report success when the log itself is unreadable. Includes the measured limits: CC denies without logging, and log show cannot run sandboxed.",
-      "tags": ["doctor", "sandbox", "fail-closed"],
+      "tags": [
+        "doctor",
+        "sandbox",
+        "fail-closed"
+      ],
       "date": "2026-08-21"
     },
     {
@@ -164,7 +231,11 @@
       "source": "docs/feat--gh-api-helper/index.html",
       "title": "A GitHub API client for gh-broken shells",
       "description": "Why every Go TLS client fails in CC panes (the sandbox blocks com.apple.trustd.agent by default) and the dependency-free node helper that routes around it with gh auth token.",
-      "tags": ["tooling", "sandbox", "workaround"],
+      "tags": [
+        "tooling",
+        "sandbox",
+        "workaround"
+      ],
       "date": "2026-08-21"
     },
     {
@@ -172,7 +243,23 @@
       "source": "docs/feat--announce-lane/index.html",
       "title": "A working printer with an empty queue",
       "description": "The release-announce rail was armed for two months and never fired once: it skips every prerelease and the repo has shipped only alphas. Interactive today-vs-target release flow, the #1739 human gate, outward artifact mockups (an @yonyon2ai post, the 06:00 approval card, the new RSS entry), and the five operator decisions as live toggles.",
-      "tags": ["release", "automation", "announce"],
+      "tags": [
+        "release",
+        "automation",
+        "announce"
+      ],
+      "date": "2026-08-21"
+    },
+    {
+      "slug": "watcher-first-harvest",
+      "source": "docs/fix--sonnet5-pricing/index.html",
+      "title": "Two defects the watcher found on its first run",
+      "description": "The platform release-notes watcher's first live harvest caught a Sonnet 5 price that made every cost report read 50 percent high, and a model-ID gate that waved through a model the API had already retired. Interactive cost-delta slider and a pin checker showing the new RETIRED tier.",
+      "tags": [
+        "ci",
+        "pricing",
+        "watcher"
+      ],
       "date": "2026-08-21"
     }
   ]

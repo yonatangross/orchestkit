@@ -9,13 +9,13 @@ Authoritative source: `src/hooks/src/lib/models.vocab.json` (`pricing`). Keep in
 | Model | Input/MTok | Output/MTok | Cache Read/MTok | Cache Write/MTok |
 |-------|-----------|------------|----------------|-----------------|
 | claude-opus-4-8 | $5.00 | $25.00 | $0.50 | $6.25 |
-| claude-sonnet-5 | $3.00 | $15.00 | $0.30 | $3.75 |
+| claude-sonnet-5 | $2.00 | $10.00 | $0.20 | $2.50 |
 | claude-sonnet-4-6 | $3.00 | $15.00 | $0.30 | $3.75 |
 | claude-haiku-4-5 | $1.00 | $5.00 | $0.10 | $1.25 |
 
-> `claude-sonnet-5` has an intro rate of $2/$10 per MTok through 2026-08-31; the durable $3/$15 sticker is used here for stable cost projections.
+> `claude-sonnet-5` is $2/$10 per MTok. This was the launch rate and was scheduled to rise to $3/$15 on 2026-09-01, so this table carried the higher sticker on purpose. The 2026-08-10 platform release notes cancelled that increase and made $2/$10 standard, so the sticker was wrong from that date until it was corrected on 2026-08-21. Note that `claude-sonnet-4-6` stays at $3/$15; the two Sonnets no longer share a price.
 
-> **Expiry: 2026-08-31.** That intro rate ends on this date, and the table above is dated Jun 2026. If you are reading this on or after 2026-09-01, treat every figure here as unverified and re-check it against `src/hooks/src/lib/models.vocab.json` (`pricing`) before quoting a cost.
+> **Verify before quoting.** Prices here are a mirror of `src/hooks/src/lib/models.vocab.json` (`pricing`), which is authoritative. A dated expiry note used to guard this table, but it guarded the wrong risk: the rate changed by being made permanent, months before the expiry date it was watching. Re-check the vocab rather than trusting a future date to be the only way this can go stale.
 
 ## Cost Formula
 
