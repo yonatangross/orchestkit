@@ -61,7 +61,17 @@ const SKILLS_DIR = process.env.PUBLISH_SKILLS_DIR
 const NAME_MAX = 64;
 const NAME_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const DESC_MAX = 1024;
-const WHEN_PATTERN = /\bwhen\b/i;
+// The Skills API asks a description to say WHEN the skill applies. That is a
+// requirement about usage guidance, not about one English word: an earlier
+// `/\bwhen\b/` here failed `glyph` ("Use FOR a fast visual take on status...")
+// and `release-sync` ("Use AFTER tagging a new version...") even though both
+// state their trigger perfectly well. Fail-closed plus a literal token match
+// meant two correct skills could never publish, and the tempting repair was to
+// reword good descriptions to satisfy the regex. Match the guidance phrasings
+// the catalog actually uses instead. Still catches the real defect: a purely
+// descriptive blurb with no usage clause at all.
+const WHEN_PATTERN =
+  /\b(?:when|use (?:for|after|before|during|to|with|on|in)\b|triggers? on|invoke|reach for|apply(?:ing)? (?:this|it)\b)/i;
 
 // GA per the issue brief (2026-08-19); no anthropic-beta header. Confirm
 // against live docs.anthropic.com before the first real --publish, since

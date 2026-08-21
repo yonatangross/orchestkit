@@ -179,6 +179,27 @@ else
 fi
 
 # ============================================================================
+# Test 5b: usage guidance without the literal word "when" must PASS.
+# The first cut of the rule matched /\bwhen\b/ and failed two real catalog
+# skills that state their trigger as "Use for ..." (glyph) and "Use after ..."
+# (release-sync). Fail-closed plus a literal token match is a false positive
+# that blocks correct skills forever, so these phrasings are asserted here.
+# ============================================================================
+WHENALT_DIR="$WORK_DIR/when-alt"
+mkdir -p "$WHENALT_DIR"
+make_skill "$WHENALT_DIR" use-for-skill use-for-skill \
+  "Render an answer as ASCII art plus semantic emojis inline. Use for a fast visual take on status, comparisons, or trade-offs."
+make_skill "$WHENALT_DIR" use-after-skill use-after-skill \
+  "Syncs release content to the knowledge base. Use after tagging a new version to propagate release knowledge."
+
+run_publish "$WORK_DIR/run5b.txt" "$WHENALT_DIR"
+if [ "$EXIT" = "0" ] && ! grep -qF '[description-missing-when]' "$WORK_DIR/run5b.txt"; then
+  log_pass "Usage guidance without the word 'when' passes (Use for / Use after)"
+else
+  log_fail "when-alt phrasing" "expected exit 0 and no missing-when violation, got exit $EXIT"
+fi
+
+# ============================================================================
 # Test 6: empty enumeration guard — could-not-observe, never "nothing to publish"
 # ============================================================================
 EMPTY_DIR="$WORK_DIR/empty"
