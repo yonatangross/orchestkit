@@ -2,6 +2,14 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "cc-triage-fenced-json",
+      "source": "docs/fix--cc-watch-fence-parse/index.html",
+      "title": "Fenced JSON in cc-triage stdout",
+      "description": "Runs the old JSON.parse and the new string-aware balanced scan side by side over eight real shapes of model output, including the fenced array that froze CC adoption at 2.1.231.",
+      "tags": ["cc-adoption", "parser", "explainer"],
+      "date": "2026-08-20"
+    },
+    {
       "slug": "posttooluse-failure-event-name",
       "source": "docs/fix--posttooluse-failure-event-name/index.html",
       "title": "PostToolUseFailure: The Event Name a Shared Helper Stamped Wrong",
