@@ -138,7 +138,7 @@ export function failureHandler(input: HookInput, ctx: HookContext = NOOP_CTX): H
     if (durationMs !== undefined) {
       parts.push(`- Failed after ${durationMs}ms`);
     }
-    return outputWithContext(parts.join('\n'));
+    return outputWithContext(parts.join('\n'), 'PostToolUseFailure');
   }
 
   // Fallback: regex pattern matching for unstructured errors
@@ -160,5 +160,5 @@ export function failureHandler(input: HookInput, ctx: HookContext = NOOP_CTX): H
     ...suggestions.map(s => `- ${s}`),
   ].join('\n');
 
-  return outputWithContext(context);
+  return outputWithContext(context, 'PostToolUseFailure');
 }
