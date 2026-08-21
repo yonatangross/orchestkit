@@ -47,16 +47,41 @@ SWEEP_REGEX="${SWEEP_REGEX:-^CC 2\.1\.[0-9]+ adoption$}"
 DRY_RUN="${DRY_RUN:-0}"
 SLEEP_BETWEEN="${SLEEP_BETWEEN:-1}"
 
-note() { echo "[consolidate] $*"; }
+# Logs go to STDERR, not stdout: resolve_umbrella() below is consumed with
+# `$(...)`, so any note() written to stdout would be captured INTO the
+# milestone number and then interpolated into a `gh api` URL/field.
+note() { echo "[consolidate] $*" >&2; }
 maybe_sleep() { [ "$DRY_RUN" = "1" ] || sleep "$SLEEP_BETWEEN"; }
 
 # Resolve umbrella milestone number (create if missing). A missing title makes
 # jq emit nothing and gh exit 0 — that's the create path, not an error.
+#
+# `state=all` is load-bearing, do not trim it back to `state=open`. The umbrella
+# is a ROLLING milestone: once it is closed, a `state=open` probe returns empty,
+# the create branch below POSTs a title that already exists, and GitHub answers
+# 422 already_exists. `gh api` prints only the top-level message to stderr and
+# the informative errors[] to stdout (which `$( )` swallows), so the whole step
+# dies on one context-free `gh: Validation Failed (HTTP 422)` line. Measured on
+# run 31672298470 (2026-08-13) against the identical probe in
+# scripts/cc-file-adoption-issues.sh, which was fixed there and named this file
+# as carrying the same latent bug. This is that fix.
 resolve_umbrella() {
-  local n
-  n=$(gh api "repos/${GH_REPO}/milestones?state=open&per_page=100" --paginate \
+  local n state
+  n=$(gh api "repos/${GH_REPO}/milestones?state=all&per_page=100" --paginate \
         --jq ".[] | select(.title==\"${UMBRELLA_TITLE}\") | .number")
   if [ -n "$n" ]; then
+    # A closed rolling umbrella still matches by title, but issues moved into a
+    # closed milestone are invisible in the normal milestone view. Reopen it
+    # rather than minting a duplicate title (which GitHub forbids anyway).
+    state=$(gh api "repos/${GH_REPO}/milestones/${n}" --jq .state || true)  # silent: best-effort
+    if [ "$state" = "closed" ]; then
+      if [ "$DRY_RUN" = "1" ]; then
+        note "DRY_RUN: would reopen closed umbrella \"${UMBRELLA_TITLE}\" (#$n)"
+      else
+        gh api -X PATCH "repos/${GH_REPO}/milestones/${n}" -f state=open --silent
+        note "reopened rolling umbrella \"${UMBRELLA_TITLE}\" (#$n)"
+      fi
+    fi
     echo "$n"
     return
   fi

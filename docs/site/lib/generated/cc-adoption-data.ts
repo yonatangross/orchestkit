@@ -16,12 +16,701 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.232",
+    "features": [
+      {
+        "slug": "subagent_fork_default_background",
+        "category": "breaking",
+        "description": "Subagent forking defaults on; fork inherits conversation/cache and non-teammate spawns run in background.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns",
+          "task-dependency-patterns"
+        ]
+      },
+      {
+        "slug": "sendmessage_bare_name_delivery",
+        "category": "breaking",
+        "description": "SendMessage now delivers straight to a bare name matching one live session instead of requiring a ref.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "unique_interactive_session_names",
+        "category": "breaking",
+        "description": "Session names are now forced unique per machine, with a name-word-word variant assigned on collision.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "blocked_marketplaces_url_clone",
+        "category": "breaking",
+        "description": "A url-typed blockedMarketplaces entry now still blocks when the CLI classifies the URL as a git clone.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "gateway_desktop_overlay_schema",
+        "category": "breaking",
+        "description": "Gateway desktop: overlay accepts all Desktop settings, validated at boot; unknown or invalid keys fail boot.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "gateway_policy_group_validation",
+        "category": "breaking",
+        "description": "Empty policy match groups and malformed email_domain values now fail gateway boot instead of silently matching.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "powershell_default_params_bypass",
+        "category": "breaking",
+        "description": "Fixed PowerShell permission bypass via variable-writing params overwriting $PSDefaultParameterValues.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "nested_repo_trust_confirmation",
+        "category": "breaking",
+        "description": "Nested git repositories no longer inherit parent trust; each repo requires its own trust confirmation.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "github-operations"
+        ]
+      },
+      {
+        "slug": "remote_bridge_credential_leak",
+        "category": "breaking",
+        "description": "Fixed bridge-hosted Remote Control sessions inheriting a cloud session's transcript or credentials.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "plugin_install_refreshes_marketplace",
+        "category": "breaking",
+        "description": "/plugin install plugin@marketplace now refreshes the marketplace first so new plugins install directly.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "code_review_background_all_efforts",
+        "category": "breaking",
+        "description": "/code-review at high, xhigh, and max effort now runs in a background agent like the other levels.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "review-pr",
+          "code-review-playbook"
+        ]
+      },
+      {
+        "slug": "bash_input_redirect_permission",
+        "category": "breaking",
+        "description": "Bash input redirections (< file) are now permission-checked like argument spellings on all platforms.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "cowork_no_external_memory_imports",
+        "category": "breaking",
+        "description": "Cowork sessions no longer inline external @-imports from user-scope memory files.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "memory"
+        ]
+      },
+      {
+        "slug": "cross_session_socket_dir_hardening",
+        "category": "breaking",
+        "description": "Cross-session messaging socket dir on /tmp now refuses pre-planted symlinks or other users' directories.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "linux_sandbox_protected_path_fix",
+        "category": "breaking",
+        "description": "Hardened the Linux filesystem sandbox against a protected-path bypass.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "sandbox_ripgrep_scope_restricted",
+        "category": "breaking",
+        "description": "sandbox.ripgrep is honored only from user, managed, and --settings; project settings can no longer override it.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "at_mention_other_session",
+        "category": "new_command",
+        "description": "Typing @ in the prompt mentions another Claude session by name, routing through SendMessage.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "gitlab_token_redaction_glab_sandbox",
+        "category": "new_perm",
+        "description": "Adds GitLab token-family redaction and gives the glab CLI config store gh-level sandbox and credential protection.",
+        "gapScore": 12,
+        "affectedSkills": [
+          "security-patterns",
+          "github-operations"
+        ]
+      },
+      {
+        "slug": "managed_sandbox_binary_approval",
+        "category": "new_perm",
+        "description": "Managed settings dialog now requires approval for server-managed sandbox binary overrides.",
+        "gapScore": 12,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "config_dialog_expiry_inbound_msgs",
+        "category": "new_field",
+        "description": "New /config rows for Dialog expiry and cross-session inbound message accept/hold/refuse.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.233",
+    "features": [
+      {
+        "slug": "skill_arg_substitution_reexpansion",
+        "category": "breaking",
+        "description": "Skill/command argument values are no longer re-expanded as template markers, closing a template-injection vector.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "auto",
+          "help"
+        ]
+      },
+      {
+        "slug": "todo_task_tools_removed_new_models",
+        "category": "breaking",
+        "description": "TaskCreate/Get/Update/List and TodoWrite are gone on Opus 4.8/Sonnet 5/Fable 5/Mythos 5 unless an env var re-enables the",
+        "gapScore": 20,
+        "affectedSkills": [
+          "task-dependency-patterns",
+          "agent-orchestration",
+          "chain-patterns",
+          "implement",
+          "auto"
+        ]
+      },
+      {
+        "slug": "bash_permission_revert_input_redirect",
+        "category": "breaking",
+        "description": "The 2.1.232 Bash permission changes for input redirections and Cygwin symlinks were reverted pending a narrower version.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "worktree_gitlab_mr_url",
+        "category": "new_command",
+        "description": "The `--worktree` flag and `claude agents` view now accept GitLab merge request URLs, showing MRs as `!N`.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "github-operations",
+          "create-pr",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "plugin_validate_bare_claude_skills",
+        "category": "new_command",
+        "description": "`claude plugin validate` now checks a bare `.claude/skills` directory and reports unparseable SKILL.md frontmatter.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "doctor",
+          "configure"
+        ]
+      },
+      {
+        "slug": "gateway_forward_user_identity",
+        "category": "new_field",
+        "description": "Opt-in `forward_user_identity` apps gateway setting sends signed-in user identity headers for per-user spend attribution",
+        "gapScore": 10,
+        "affectedSkills": [
+          "llm-integration",
+          "monitoring-observability"
+        ]
+      },
+      {
+        "slug": "tool_memory_limit_cgroup",
+        "category": "new_field",
+        "description": "`CLAUDE_CODE_TOOL_MEMORY_LIMIT` enables opt-in memory cgroups for Bash tool commands on Linux.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "devops-deployment"
+        ]
+      },
+      {
+        "slug": "webfetch_cache_ttl_env",
+        "category": "new_field",
+        "description": "`CLAUDE_CODE_WEBFETCH_CACHE_TTL_MS` configures the WebFetch session URL cache TTL, default still 15 minutes.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "web-research-workflow",
+          "browser-tools",
+          "configure"
+        ]
+      },
+      {
+        "slug": "print_mode_unrecognized_model_stderr",
+        "category": "new_attr",
+        "description": "Print mode writes a `[claude-code:unrecognized_model]` stderr line for unknown model IDs, silenced via `modelOverrides`.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "bare-eval",
+          "ci-debug",
+          "errors"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.234",
+    "features": [
+      {
+        "slug": "nt_namespace_path_reject",
+        "category": "breaking",
+        "description": "Pre-approval file accesses now reject Windows NT-namespace paths, closing an NTLM credential-leak vector.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "subagent_permission_answer_persist",
+        "category": "breaking",
+        "description": "Session-scoped permission answers, including denies, now persist when answered from background subagent prompts.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "mcp_diagnostics_secret_redaction",
+        "category": "breaking",
+        "description": "MCP diagnostics no longer print resolved secrets; warnings show ${VAR} form and only the server origin.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "mcp-patterns",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "marketplace_scp_host_allowlist",
+        "category": "breaking",
+        "description": "strictKnownMarketplaces no longer accepts SCP-style git sources whose host differs from git's actual target.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "fullscreen_restart_preserves_perms",
+        "category": "breaking",
+        "description": "Accepting the fullscreen renderer prompt no longer restarts the session without its permission mode and tool rules.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "tui_restart_tool_rules",
+        "category": "breaking",
+        "description": "/tui now declines to restart instead of dropping launch --allowed-tools/--disallowed-tools restrictions.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "trust_prompt_repo_scope_warning",
+        "category": "breaking",
+        "description": "Trust prompts now show the repository-wide scope warning for directories first seen before the repo existed.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "permission_preview_trust_gate",
+        "category": "breaking",
+        "description": "Permission previews relay only to channel servers admitted by the inbound trust gate, honoring capability opt-out.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "mcp-patterns"
+        ]
+      },
+      {
+        "slug": "permission_preview_credential_mask",
+        "category": "breaking",
+        "description": "Credential masking can no longer hide commands, paths, or destinations from the approver on relayed previews.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "token_mask_shell_delimiters",
+        "category": "breaking",
+        "description": "Provider API tokens on permission previews now mask even when directly followed by shell delimiters.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "goal_clears_on_fatal_error",
+        "category": "breaking",
+        "description": "/goal now clears itself with a notice when a turn dies on an unrecoverable error instead of staying armed.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "prd-to-goal"
+        ]
+      },
+      {
+        "slug": "setup_token_rejects_extra_args",
+        "category": "breaking",
+        "description": "claude setup-token now rejects unexpected extra arguments instead of silently ignoring them.",
+        "gapScore": 20,
+        "affectedSkills": []
+      },
+      {
+        "slug": "teammate_model_setting_removed",
+        "category": "breaking",
+        "description": "Default teammate model setting removed; agent-team teammates inherit the leader's model unless the spawn names one.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "bg_task_notify_system_reminder",
+        "category": "breaking",
+        "description": "Between-turn background task notifications are now delivered to the model inside <system-reminder> tags.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "task-dependency-patterns"
+        ]
+      },
+      {
+        "slug": "add_dir_midturn",
+        "category": "new_command",
+        "description": "/add-dir and several config dialogs can now be opened while Claude is working in the fullscreen TUI.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "permissions_open_midturn",
+        "category": "new_perm",
+        "description": "/permissions can be opened mid-turn and rule changes apply to the remainder of the current turn.",
+        "gapScore": 12,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "project_dir_name_env",
+        "category": "new_field",
+        "description": "New CLAUDE_CODE_PROJECT_DIR_NAME env var sets a short name for the per-project transcript directory.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "analytics",
+          "telemetry-inspect"
+        ]
+      },
+      {
+        "slug": "selection_clear_keybinding",
+        "category": "new_attr",
+        "description": "New selection:clear keybinding action clears an in-app text selection, also working in the agents view.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "session_list_truncation_notice",
+        "category": "new_field",
+        "description": "SendMessage and ListAgents now report when the account session list was too long to check completely.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "goal_checkin_minutes_env",
+        "category": "new_field",
+        "description": "CLAUDE_CODE_GOAL_CHECKIN_MINUTES controls goal check-ins on background tasks waiting 30+ minutes; 0 opts out.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "prd-to-goal"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.235",
+    "features": [
+      {
+        "slug": "permission_comment_shift_tab_grant",
+        "category": "breaking",
+        "description": "Shift+Tab in the permission prompt comment field no longer approves the edit and grants session-wide edit permission.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "permission_dialog_grant_scope_match",
+        "category": "breaking",
+        "description": "Permission dialog text now matches the actual grant scope; \"don't ask again\" is withheld when contents aren't fully show",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "send_message_oversize_refusal",
+        "category": "breaking",
+        "description": "SendMessage now rejects oversized cross-session messages up front instead of silently dropping them.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "claude_rc_enterprise_gateway_check",
+        "category": "breaking",
+        "description": "The `claude rc` CLI command now enforces the same enterprise-gateway availability check as interactive startup.",
+        "gapScore": 20,
+        "affectedSkills": []
+      },
+      {
+        "slug": "spellcheck_setting",
+        "category": "new_field",
+        "description": "New optional `spellcheck` setting underlines misspelled prompt words using installed aspell, hunspell, or ispell.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.236",
+    "features": [
+      {
+        "slug": "managed_settings_approval_keypress",
+        "category": "breaking",
+        "description": "Managed-settings approval prompt no longer swallows the first keypress as an implicit approval at startup.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "auto_mode_monitor_allow_rules_set_aside",
+        "category": "breaking",
+        "description": "Auto mode suspends Monitor allow rules, so Monitor commands get the same review path as Bash commands.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "security-patterns",
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "auto_mode_classifier_parity_bedrock",
+        "category": "breaking",
+        "description": "Auto-mode classifier now uses Claude API defaults, including severity scoring, on Bedrock, Vertex, Foundry.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "security-patterns",
+          "devops-deployment"
+        ]
+      },
+      {
+        "slug": "auto_mode_git_status_untracked_check",
+        "category": "breaking",
+        "description": "Auto mode's git status check can no longer be spoofed clean by status.showUntrackedFiles=no.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "commit",
+          "configure"
+        ]
+      },
+      {
+        "slug": "goal_idle_auto_checkin",
+        "category": "breaking",
+        "description": "/goal sessions parked behind background work now self-check-in at 30m, then 1h and 2h, without user input.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "prd-to-goal",
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "sigterm_print_mode_no_denials",
+        "category": "breaking",
+        "description": "SIGTERM in print/SDK mode stops recording interrupted turns and synthetic tool denials; still exits 143.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "bare-eval",
+          "ci-sentinel",
+          "devops-deployment"
+        ]
+      },
+      {
+        "slug": "slash_command_typo_no_fuzzy_run",
+        "category": "breaking",
+        "description": "A mistyped or unavailable slash command is reported instead of fuzzy-matched; prefixes and aliases still run.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "help",
+          "auto",
+          "configure"
+        ]
+      },
+      {
+        "slug": "send_message_burst_refusal",
+        "category": "breaking",
+        "description": "SendMessage now rejects bursts up front once a target session's inbox capacity would be exceeded.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "sandbox_wildcard_read_deny_precedence",
+        "category": "new_perm",
+        "description": "macOS sandbox wildcard read-deny rules now outrank allowed read regions, cover directories, and survive renames.",
+        "gapScore": 12,
+        "affectedSkills": [
+          "security-patterns",
+          "configure",
+          "mcp-patterns"
+        ]
+      },
+      {
+        "slug": "anthropic_default_model_env",
+        "category": "new_field",
+        "description": "ANTHROPIC_DEFAULT_MODEL sets the starting model for new sessions while a /model pick still overrides it.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "bare-eval",
+          "setup"
+        ]
+      },
+      {
+        "slug": "send_message_notify_when_idle",
+        "category": "new_attr",
+        "description": "SendMessage gains notify_when_idle for a one-shot notice when a target local session next goes idle.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns",
+          "task-dependency-patterns"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.237",
+    "features": [
+      {
+        "slug": "concise_output_style",
+        "category": "new_field",
+        "description": "Built-in \"Concise\" output style that leads with results and skips preamble, selectable in /config.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "glyph",
+          "assess"
+        ]
+      }
+    ]
+  },
+  {
     "version": "2.1.231",
     "features": []
   },
   {
     "version": "2.1.227",
-    "features": []
+    "features": [
+      {
+        "slug": "action_allowed_non_write_users_bash",
+        "category": "breaking",
+        "description": "Bash execution restored under claude-code-action's allowed_non_write_users permission gate on GitHub runners",
+        "gapScore": 20,
+        "affectedSkills": [
+          "github-operations",
+          "ci-debug"
+        ]
+      }
+    ]
   },
   {
     "version": "2.1.228",
@@ -29,19 +718,391 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
   },
   {
     "version": "2.1.229",
-    "features": []
+    "features": [
+      {
+        "slug": "sandbox_ipv6_bracket_fail_closed",
+        "category": "breaking",
+        "description": "Sandbox network domain lists require bracketed IPv6 literals; ambiguous spellings now fail closed.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "commit_push_pr_dangerous_flags",
+        "category": "breaking",
+        "description": "/commit-push-pr no longer auto-approves git/gh commands carrying dangerous flags such as --force or --no-verify.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "commit",
+          "create-pr",
+          "github-operations"
+        ]
+      },
+      {
+        "slug": "remote_control_continue_flag",
+        "category": "new_command",
+        "description": "New `claude remote-control --continue` flag resumes the most recent Remote Control session.",
+        "gapScore": 15,
+        "affectedSkills": []
+      },
+      {
+        "slug": "server_supplied_hooks_self_hosted",
+        "category": "new_event",
+        "description": "Self-hosted runner sessions can receive server-supplied Claude Code hooks like managed environments.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "marketplace_command_source",
+        "category": "new_field",
+        "description": "Plugin marketplaces accept `command` sources re-resolved each session, with `mode: \"link\"` for in-place use.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "list_agents_offline_cloud_labels",
+        "category": "new_attr",
+        "description": "ListAgents now labels disconnected Remote Control sessions `offline` and your own sessions `cloud`.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "agent-orchestration",
+          "audit-activation"
+        ]
+      },
+      {
+        "slug": "workflow_prefix_stagger_ms",
+        "category": "new_field",
+        "description": "CLAUDE_CODE_WORKFLOW_PREFIX_STAGGER_MS controls staggering of same-prefix sibling agents for prefix cache reuse.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      }
+    ]
   },
   {
     "version": "2.1.223",
-    "features": []
+    "features": [
+      {
+        "slug": "subagent_model_restriction_warning",
+        "category": "breaking",
+        "description": "Warns when a restricted subagent model is requested and the parent model runs instead.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "bash_permission_bypass_fix",
+        "category": "breaking",
+        "description": "Crafted Bash commands can no longer hide parts of themselves from permission checks.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "permission_prompt_unicode_padding_fix",
+        "category": "breaking",
+        "description": "Tab or invisible-Unicode padding can no longer hide command text from the approval dialog.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "workflow_sandbox_dynamic_import_fix",
+        "category": "breaking",
+        "description": "Workflow scripts can no longer use dynamic import() to escape the workflow sandbox.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "agent_bypass_permissions_org_policy",
+        "category": "breaking",
+        "description": "Agent-definition bypassPermissions now respects the org bypass-permissions disable policy.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "agent-orchestration",
+          "configure"
+        ]
+      },
+      {
+        "slug": "managed_settings_env_merge",
+        "category": "breaking",
+        "description": "Server-delivered settings no longer disable local managed-settings/MDM env; admin env merges per key.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "disable_1m_context_all_models",
+        "category": "breaking",
+        "description": "CLAUDE_CODE_DISABLE_1M_CONTEXT now holds every native-1M Claude model to 200K, with a startup warning.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "audit-full",
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "unknown_model_window_enforcement",
+        "category": "breaking",
+        "description": "Auto-compact now caps unrecognized model IDs at the assumed window; opt out via a new env var.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "audit-full",
+          "llm-integration"
+        ]
+      },
+      {
+        "slug": "review_alias_code_review",
+        "category": "breaking",
+        "description": "/review is now an alias of /code-review, which takes a level and optional PR number.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "review-pr",
+          "code-review-playbook"
+        ]
+      },
+      {
+        "slug": "code_review_remembers_effort_level",
+        "category": "breaking",
+        "description": "/code-review with no effort level now reuses the level typed last instead of a fixed default.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "review-pr",
+          "code-review-playbook"
+        ]
+      },
+      {
+        "slug": "teleport_session_hint",
+        "category": "new_command",
+        "description": "Cloud sessions can be continued locally with claude --teleport <session id>.",
+        "gapScore": 15,
+        "affectedSkills": []
+      },
+      {
+        "slug": "marketplace_owner_wildcard",
+        "category": "new_field",
+        "description": "Marketplace allow/block managed settings accept owner/* wildcards for a whole GitHub org.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure"
+        ]
+      }
+    ]
   },
   {
     "version": "2.1.224",
-    "features": []
+    "features": [
+      {
+        "slug": "session_dir_cross_project_leak",
+        "category": "breaking",
+        "description": "Long project paths no longer resolve into another project's session directory across resume/rename/delete.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "telemetry-inspect",
+          "analytics"
+        ]
+      },
+      {
+        "slug": "sandbox_deny_trailing_slash_bypass",
+        "category": "breaking",
+        "description": "Sandbox filesystem deny entries with a trailing slash were silently bypassable on Linux and macOS.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "subagent_spawn_cap_removed",
+        "category": "breaking",
+        "description": "The 200-subagent-per-session spawn cap is gone; concurrency and depth limits still apply.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns",
+          "swarm-migrate"
+        ]
+      },
+      {
+        "slug": "managed_settings_approval_persist",
+        "category": "breaking",
+        "description": "Managed-settings approval prompt no longer reappears after re-login or org switch when settings are unchanged.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "survey_share_uploads_system_prompt",
+        "category": "breaking",
+        "description": "Feedback-survey transcript share now also uploads the system prompt (CLAUDE.md), tool definitions, and model params.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "bash_tool_description_output_note",
+        "category": "breaking",
+        "description": "Bash tool description now always states that command output is shown to the model, not reliably to the user.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "documentation-patterns"
+        ]
+      },
+      {
+        "slug": "self_hosted_runner_command",
+        "category": "new_command",
+        "description": "New `claude self-hosted-runner` command hosts web, mobile, and desktop sessions on your own machines.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "devops-deployment",
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "cross_session_send_message",
+        "category": "new_command",
+        "description": "Cross-session `SendMessage` plus `ListAgents` let sessions message each other across machines on macOS and Linux.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns",
+          "task-dependency-patterns"
+        ]
+      },
+      {
+        "slug": "sandbox_credential_masking_options",
+        "category": "new_perm",
+        "description": "Sandbox credential masking adds extract, JWT claim masking, and AWS SigV4 re-signing, gated on tlsTerminate.",
+        "gapScore": 12,
+        "affectedSkills": [
+          "security-patterns",
+          "configure",
+          "mcp-patterns"
+        ]
+      },
+      {
+        "slug": "archive_plugin_source",
+        "category": "new_field",
+        "description": "New `archive` plugin source installs plugins from an HTTPS zip with optional SHA-256 pinning.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "bedrock_region_prefix_env",
+        "category": "new_field",
+        "description": "`ANTHROPIC_BEDROCK_REGION_PREFIX` picks a cross-region inference profile instead of the AWS_REGION-derived one.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "llm-integration",
+          "configure"
+        ]
+      },
+      {
+        "slug": "cross_session_inbound_settings",
+        "category": "new_field",
+        "description": "New `crossSessionInbound` and `dialogExpiry` settings gate messages sent into bypassed-permission sessions.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "agent-orchestration"
+        ]
+      }
+    ]
   },
   {
     "version": "2.1.225",
-    "features": []
+    "features": [
+      {
+        "slug": "oauth_token_headless_persistence",
+        "category": "breaking",
+        "description": "A transient 401 no longer overwrites CLAUDE_CODE_OAUTH_TOKEN with a short-lived login token in headless runs.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "bare-eval",
+          "ci-sentinel",
+          "devops-deployment"
+        ]
+      },
+      {
+        "slug": "mcp_oauth_keychain_401_burst",
+        "category": "breaking",
+        "description": "MCP OAuth servers on macOS no longer emit 401 bursts as if unauthenticated after a keychain read timeout.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "mcp-patterns",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "auto_mode_permission_block_count",
+        "category": "breaking",
+        "description": "Auto mode no longer counts a safety-filter refusal of its own permission check toward the consecutive-block limit.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "security-patterns",
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "sendmessage_recipient_no_swap",
+        "category": "breaking",
+        "description": "A confirmed Remote Control SendMessage recipient is never swapped for a same-named session on this machine.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "claude_agents_workspace_trust",
+        "category": "new_perm",
+        "description": "`claude agents` now shows a workspace trust prompt for untrusted directories, matching `claude`.",
+        "gapScore": 12,
+        "affectedSkills": [
+          "configure",
+          "agent-orchestration",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "sendmessage_start_by_name",
+        "category": "new_attr",
+        "description": "SendMessage can open a conversation with a named Remote Control session, listed by ListAgents as `name [ref]`.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      }
+    ]
   },
   {
     "version": "2.1.226",
@@ -49,11 +1110,189 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
   },
   {
     "version": "2.1.221",
-    "features": []
+    "features": [
+      {
+        "slug": "plugin_validate_name_warnings",
+        "category": "breaking",
+        "description": "claude plugin validate now warns when a marketplace or plugin name would be rejected by Desktop sync",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "zsh_bracket_permission_bypass_fix",
+        "category": "breaking",
+        "description": "Bash permission-check bypass via zsh [[ ]] regex conditionals closed; such commands now prompt",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "auto_mode_permission_check_semantics",
+        "category": "breaking",
+        "description": "Auto-mode permission checks are cache-efficient for parallel tool calls and re-prompt on mode switch",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "background_session_git_reporting",
+        "category": "breaking",
+        "description": "Background sessions now commit, push, follow CLAUDE.md git rules, and report where the work lives",
+        "gapScore": 20,
+        "affectedSkills": [
+          "commit",
+          "create-pr",
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "plugin_install_catalog_refresh",
+        "category": "breaking",
+        "description": "/plugin install refreshes a stale marketplace catalog and retries before reporting a plugin not found",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "plugin_activate_without_reload",
+        "category": "breaking",
+        "description": "Plugins installed via /plugin activate immediately when safe instead of requiring /reload-plugins",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "fork_creates_own_worktree",
+        "category": "breaking",
+        "description": "Sessions forked with /fork now create their own worktree instead of sharing the original checkout",
+        "gapScore": 20,
+        "affectedSkills": [
+          "chain-patterns",
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "claude_api_prompt_audit_subcommand",
+        "category": "new_command",
+        "description": "New prompt-audit subcommand in the claude-api skill audits prompts and tool descriptions for stale patterns",
+        "gapScore": 15,
+        "affectedSkills": [
+          "llm-integration",
+          "testing-llm"
+        ]
+      },
+      {
+        "slug": "sandbox_credential_mask_mode",
+        "category": "new_perm",
+        "description": "Sandbox credential files support mode: \"mask\" on Linux/WSL with proxy substitution; macOS falls back to deny",
+        "gapScore": 12,
+        "affectedSkills": [
+          "security-patterns",
+          "configure",
+          "devops-deployment"
+        ]
+      },
+      {
+        "slug": "plugin_skills_root_path",
+        "category": "new_field",
+        "description": "Plugins may set \".\" as a skills path, and root SKILL.md validation errors now suggest the plugin root",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "status_session_kind",
+        "category": "new_attr",
+        "description": "/status reports session kind: interactive, or a background job that is attached or unattended",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor",
+          "agent-orchestration"
+        ]
+      }
+    ]
   },
   {
     "version": "2.1.222",
-    "features": []
+    "features": [
+      {
+        "slug": "worktree_isolation_bash_and_edits",
+        "category": "breaking",
+        "description": "Worktree isolation now covers file edits and Bash in every session type, blocking destructive git against main.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "chain-patterns",
+          "agent-orchestration",
+          "swarm-migrate"
+        ]
+      },
+      {
+        "slug": "pretooluse_autoallow_bg_task_bypass",
+        "category": "breaking",
+        "description": "PreToolUse auto-allow hooks no longer bypass tool restrictions in background agent tasks.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "sendmessage_permission_classifier",
+        "category": "breaking",
+        "description": "Auto mode now runs SendMessage payloads to other agent sessions through the permission classifier before dispatch.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "disable_model_invocation_refusal",
+        "category": "breaking",
+        "description": "Skills with disable-model-invocation now make Claude ask the user to run them instead of replicating the workflow.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "help",
+          "auto"
+        ]
+      },
+      {
+        "slug": "remote_control_autostart_user_scope",
+        "category": "breaking",
+        "description": "Repo-local settings.json can no longer enable Remote Control auto-start; only disable it or enable at user scope.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "setup",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "ultraplan_removed",
+        "category": "deprecation",
+        "description": "The ultraplan feature was removed from Claude Code.",
+        "gapScore": 8,
+        "affectedSkills": [
+          "brainstorm",
+          "visualize-plan"
+        ]
+      }
+    ]
   },
   {
     "version": "2.1.219",
@@ -69,4 +1308,4 @@ export const CC_SUPPORT = {
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "a3c4fbcc29e8" as const;
+export const SOURCE_DIGEST = "b64f644a142c" as const;
