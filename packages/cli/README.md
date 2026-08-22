@@ -3,10 +3,13 @@
 Official CLI for [OrchestKit](https://orchestkit.yonyon.ai), the free,
 MIT-licensed Claude Code plugin published by the Yonyon software studio.
 
-> **Status: not yet published to npm.** The source lives here and the binary
-> builds and passes its suite, but `npm publish` has not been run. Do not
-> document `npx orchestkit` on the website until the first release is live:
-> a published-looking install command that 404s is worse than none.
+```bash
+npx orchestkit --help     # no install
+npm i -g orchestkit       # or install it
+```
+
+Published on npm as [`orchestkit`](https://www.npmjs.com/package/orchestkit).
+Also aliased as `ork`.
 
 ## What it does
 
@@ -78,9 +81,13 @@ cases skip. Networked commands are spawned with a preloaded `fetch` stub
 1. `npm run build && npm test && npm run publish:dry-run`
 2. `npm publish --access public` (name `orchestkit` was unregistered as of
    2026-08-21; re-check before releasing)
-3. Only then: add the CLI to `DEVELOPER_RESOURCES` in
-   `docs/site/lib/developer-resources.ts` and to the package list in
-   `docs/site/app/llms.txt/route.ts`, so the site starts claiming it the day it
-   becomes true.
+3. The site claims this package in `docs/site/lib/developer-resources.ts` and
+   `docs/site/app/llms.txt/route.ts`. Keep those true: a docs link to a version
+   or a command that does not exist is worse than no link.
+
+**Check `npm publish --dry-run` output, not just `npm pack`.** They normalize
+differently. npm 11 deletes any `bin` value starting with `./`, and pack keeps
+the field while publish strips it, so a pack-based check cannot see it. See
+`tests/package-publish.test.ts`.
 
 MIT © Yonatan Gross
