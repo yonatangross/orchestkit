@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>orchestkit CLI, now claimable</title>
+<style>
+ :root{--bg:#0b0d10;--panel:#14181d;--line:#242b33;--fg:#e6edf3;--dim:#8b98a5;
+       --ok:#3fb950;--bad:#f85149;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+ main{max-width:820px;margin:0 auto;padding:32px 20px 80px}
+ h1{font-size:24px;margin:0 0 6px}
+ h2{font-size:17px;margin:30px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+ p.lead{color:var(--dim);margin:0 0 20px}
+ .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+ .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+ button{background:#0b0d10;color:var(--fg);border:1px solid var(--line);border-radius:7px;
+        padding:8px 12px;font:12.5px var(--mono);cursor:pointer}
+ button.sel{border-color:var(--ok);color:var(--ok)}
+ pre{margin:0;font:12.5px/1.55 var(--mono);white-space:pre-wrap;background:#0b0d10;
+     border:1px solid var(--line);border-radius:8px;padding:12px;min-height:120px}
+ table{border-collapse:collapse;width:100%;margin-top:8px;font-size:13.5px}
+ th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line)}
+ th{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+ td.m{font:12.5px var(--mono)} .ok{color:var(--ok)} .bad{color:var(--bad)}
+ code{font:12.5px var(--mono);background:#0b0d10;padding:1px 5px;border-radius:4px}
+ footer{margin-top:36px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+</style></head><body><main>
+ <h1>The CLI the site is now allowed to mention</h1>
+ <p class="lead">
+   <code>orchestkit@0.1.0</code> is live on npm with both binaries intact. The docs
+   claim it only now, because until the publish landed the claim would have been false.
+   Pick a command to see its real output.
+ </p>
+
+ <div class="panel">
+   <div class="row" id="tabs"></div>
+   <pre id="out"></pre>
+ </div>
+
+ <h2>Why the claim waited</h2>
+ <p>
+   The first publish attempt printed <code>bin[orchestkit] ... was invalid and
+   removed</code>. npm 11 deletes any <code>bin</code> value starting with
+   <code>./</code>, so the package would have installed cleanly and had no commands,
+   with <code>npm publish</code> exiting <code>0</code>. Had the docs been updated on
+   the same schedule as the code, the site would have advertised
+   <code>npx orchestkit</code> against a package where that command did not exist.
+ </p>
+ <table>
+   <tr><th>Claim</th><th>Verified by</th><th>Result</th></tr>
+   <tr><td class="m">bin survives publish</td><td>registry manifest, not local pack</td><td class="ok">both present</td></tr>
+   <tr><td class="m">npx orchestkit runs</td><td>clean install from registry</td><td class="ok">0.1.0</td></tr>
+   <tr><td class="m">npx ork runs</td><td>same install, alias bin</td><td class="ok">emits config</td></tr>
+   <tr><td class="m">zero dependencies</td><td>registry manifest</td><td class="ok">{}</td></tr>
+ </table>
+
+ <h2>The guard</h2>
+ <p>
+   <code>docs/site/__tests__/published-packages.test.ts</code> ties the site's claim to
+   <code>packages/cli/package.json</code>: the linked npm name must match, and every
+   <code>npx &lt;name&gt;</code> the site advertises must correspond to a bin the package
+   actually declares. Renaming a bin without updating the docs now fails the suite
+   instead of shipping a command that does not exist.
+ </p>
+
+ <footer>
+   Check 5 of the agent-readiness audit was the last red one. Verify with
+   <code>bash docs/site/scripts/verify-agent-readiness.sh</code>.
+ </footer>
+</main>
+<script>
+const CMDS = {
+  '--version': '0.1.0',
+  'install': `OrchestKit is a Claude Code plugin. Install it from inside Claude Code:
+
+  claude install orchestkit/ork
+
+Requires Claude Code. Docs: https://orchestkit.yonyon.ai/docs/getting-started/installation`,
+  'mcp stdio': `{
+  "mcpServers": {
+    "orchestkit": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "ghcr.io/yonatangross/orchestkit-docs-mcp"]
+    }
+  }
+}`,
+  'doctor': `orchestkit doctor
+
+  ok    node 26.7.0 (>= 20 required)
+  ok    API reachable at https://orchestkit.yonyon.ai (ok)
+  ok    rate limit 119/120, resets in 60s`,
+};
+let active = '--version';
+const tabs = document.getElementById('tabs'), out = document.getElementById('out');
+function render(){
+  tabs.innerHTML = Object.keys(CMDS).map(k =>
+    `<button data-k="${k}" class="${k===active?'sel':''}">npx orchestkit ${k}</button>`).join('');
+  tabs.querySelectorAll('button').forEach(b => b.onclick = () => { active = b.dataset.k; render(); });
+  out.textContent = '$ npx orchestkit ' + active + '\n\n' + CMDS[active];
+}
+render();
+</script></body></html>

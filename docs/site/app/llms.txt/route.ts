@@ -107,6 +107,7 @@ export function GET() {
 		"- [Pricing](/pricing.md)",
 		"- [Authentication](/auth.md)",
 		"- [API versioning, deprecation & sunset policy](/api-policy) · [as Markdown](/api-policy.md)",
+		"- [CLI: `npx orchestkit` on npm](https://www.npmjs.com/package/orchestkit) - install, search, ask, read, mcp, doctor. Zero deps, Node >= 20. Also aliased as `ork`.",
 		"- [Python package: orchestkit-hook-contract on PyPI](https://pypi.org/project/orchestkit-hook-contract/)",
 		"- [npm package: @orchestkit/hook-contract](https://www.npmjs.com/package/@orchestkit/hook-contract)",
 		"- [Docs MCP server image (stdio): ghcr.io/yonatangross/orchestkit-docs-mcp](https://github.com/yonatangross/orchestkit/pkgs/container/orchestkit-docs-mcp)",
