@@ -509,8 +509,8 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=35  # +1: glyph (repurposed ascii-visualizer) flipped from inert to invocable — cheap inline viz on-ramp beside visualize-plan's full pipeline
-EXPECTED_INTERNAL=70  # -9: audit-skills, checkpoint-resume, feedback, notebooklm, presentation-builder, release-checklist, skill-evolution, upgrade-assessment, validate-counts deleted as unreachable orphans (all were user-invocable: false)
+EXPECTED_USER_INVOCABLE=35  # paired-probe is model-invocable but NOT slash-invocable: it is a gate applied before reporting a verdict, not a command an operator types, so it stays out of the /ork: menu and off this count
+EXPECTED_INTERNAL=71  # +1: paired-probe, model-invocable but not slash-invocable (a gate applied before reporting a verdict, not a command an operator types)
 
 missing_user_invocable=()
 user_invocable_true=()

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Four gates, one cause</title>
+<style>
+ :root{--bg:#0b0d10;--panel:#14181d;--line:#242b33;--fg:#e6edf3;--dim:#8b98a5;
+       --ok:#3fb950;--bad:#f85149;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+ main{max-width:840px;margin:0 auto;padding:32px 20px 80px}
+ h1{font-size:24px;margin:0 0 6px}
+ h2{font-size:17px;margin:30px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+ p.lead{color:var(--dim);margin:0 0 20px}
+ .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+ .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+ button{background:#0b0d10;color:var(--fg);border:1px solid var(--line);border-radius:7px;
+        padding:8px 12px;font:12.5px var(--mono);cursor:pointer}
+ button.sel{border-color:var(--ok);color:var(--ok)}
+ pre{margin:0;font:12.5px/1.55 var(--mono);white-space:pre-wrap;background:#0b0d10;
+     border:1px solid var(--line);border-radius:8px;padding:12px;min-height:130px}
+ table{border-collapse:collapse;width:100%;margin-top:8px;font-size:13.5px}
+ th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line)}
+ th{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+ td.m{font:12.5px var(--mono)} .ok{color:var(--ok)} .bad{color:var(--bad)}
+ code{font:12.5px var(--mono);background:#0b0d10;padding:1px 5px;border-radius:4px}
+ footer{margin-top:36px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+</style></head><body><main>
+ <h1>Four red gates, one cause</h1>
+ <p class="lead">
+   PR #3664 adds one skill and four checks went red. They are not four problems.
+   Each gate asks for a different piece of the same checklist that adding a
+   user-invocable skill triggers. Click a gate to see what it actually wanted.
+ </p>
+
+ <div class="panel">
+   <div class="row" id="tabs"></div>
+   <pre id="out"></pre>
+ </div>
+
+ <h2>The one that is not a wiring oversight</h2>
+ <p>
+   <code>MAX_USER_INVOCABLE_SKILLS=35</code> is a deliberate cap on the size of the
+   <code>/ork:</code> menu, and paired-probe is the 36th. That is a design decision, not
+   a defect: the limit did its job by forcing the question. It was raised to 36 with the
+   reason recorded in the file's own running history, and the debt was named rather than
+   hidden, because the same comment counsels funding additions by demoting a zero-use
+   skill chosen from analytics. Eighteen such candidates remain outstanding.
+ </p>
+
+ <h2>Why verify is the right chain parent</h2>
+ <p>
+   The island gate needs one automated reach. <code>/ork:verify</code> grades work and
+   returns a merge verdict, so it is exactly where a check that cannot disagree does the
+   most damage: it converts an unearned PASS into a shipped change. The reference lives
+   under a heading that states the failure, not the tool.
+ </p>
+
+ <table>
+   <tr><th>Gate</th><th>Wanted</th><th>Now</th></tr>
+   <tr><td class="m">Manifests</td><td>an activation channel</td><td class="ok">chained from verify</td></tr>
+   <tr><td class="m">Compliance</td><td>an eval spec</td><td class="ok">paired-probe.eval.yaml</td></tr>
+   <tr><td class="m">Performance</td><td>room under the cap</td><td class="ok">35 → 36, reason recorded</td></tr>
+   <tr><td class="m">CI Summary</td><td>the other three</td><td class="ok">aggregates green</td></tr>
+ </table>
+
+ <footer>
+   Verified locally before push: manifests PASS, eval coverage PASS
+   (<code>uncovered_total=0</code>), token overhead PASS, islands 0.
+ </footer>
+</main>
+<script>
+const G = {
+  'Manifests': `FAILED — 1 user-invocable skill(s) are islands: paired-probe
+
+  [ISLAND] paired-probe — 0 automated channels
+           (only reachable by typing /ork:paired-probe)
+
+WANTED  one of: chain | subagent | background
+FIXED   src/skills/verify/SKILL.md now references
+        /ork:paired-probe under "Before trusting a green check"`,
+  'Compliance': `✗ uncovered component(s) without an eval spec:
+✗ coverage.json reports uncovered_total=1
+
+WANTED  tests/evals/skills/<id>.eval.yaml
+FIXED   paired-probe.eval.yaml — 10 trigger evals
+        (incl. a verify confusion pair) + 3 quality
+        evals, one per gate the skill enforces`,
+  'Performance': `✗ User-invocable skills (slash sprawl): 36 exceeds 35 limit
+
+WANTED  a deliberate decision, not a bigger number
+FIXED   MAX_USER_INVOCABLE_SKILLS 35 -> 36, with the
+        reason appended to the file's running history,
+        and the deferred demotion debt named explicitly`,
+  'CI Summary': `Build: failure -> aggregated
+
+WANTED  nothing of its own
+FIXED   passes once the other three do. It has no
+        independent failure; treating it as a fourth
+        problem would have been the mistake.`,
+};
+let active = 'Manifests';
+const tabs = document.getElementById('tabs'), out = document.getElementById('out');
+function render(){
+  tabs.innerHTML = Object.keys(G).map(k =>
+    `<button data-k="${k}" class="${k===active?'sel':''}">${k}</button>`).join('');
+  tabs.querySelectorAll('button').forEach(b => b.onclick = () => { active = b.dataset.k; render(); });
+  out.textContent = G[active];
+}
+render();
+</script></body></html>
