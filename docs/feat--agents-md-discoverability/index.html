@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AGENTS.md — where an agent edits OrchestKit</title>
+<style>
+  :root {
+    --pg-bg: hsl(232 26% 7%); --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(220 14% 64%); --pg-faint: hsl(220 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05); --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%); --pg-accent-deep: hsl(258 70% 52%);
+    --pg-keep: hsl(158 64% 52%); --pg-bad: hsl(2 72% 62%); --pg-warm: hsl(38 95% 60%);
+    --r-sm: 9px; --r-md: 16px; --r-lg: 24px;
+    --t-press: 100ms; --t-panel: 200ms; --t-step: 300ms;
+    --ease: cubic-bezier(.2,.8,.25,1);
+    --sh-ambient: 0 20px 60px -22px hsl(232 40% 2% / .7);
+    --sh-tight: 0 4px 12px -6px hsl(232 40% 2% / .5);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-block-size: 100vh; color: var(--pg-ink);
+    background:
+      radial-gradient(900px 600px at 12% -5%, hsl(248 84% 68% / .15), transparent 60%),
+      radial-gradient(820px 520px at 94% 6%, hsl(266 70% 60% / .12), transparent 62%),
+      var(--pg-bg);
+    background-attachment: fixed;
+    font: 15px/1.6 ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; padding: 48px 24px 96px;
+  }
+  .wrap { max-inline-size: 1000px; margin-inline: auto; }
+  .eyebrow { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--pg-faint); }
+  h1 { margin: 12px 0 8px; font-size: clamp(26px, 3.4vw, 40px); font-weight: 700; letter-spacing: -.3px; line-height: 1.1; }
+  .sub { margin: 0; color: var(--pg-muted); max-inline-size: 72ch; }
+  .glass {
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--r-lg);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--sh-ambient), var(--sh-tight), inset 0 1px 0 hsl(0 0% 100% / .14);
+  }
+  .stage { margin-block-start: 24px; padding: 24px; }
+  .stage-h { margin: 0 0 4px; font-size: 19px; font-weight: 700; letter-spacing: -.2px; }
+  .stage-p { margin: 0 0 20px; color: var(--pg-muted); max-inline-size: 76ch; }
+  .stage-p b { color: var(--pg-ink); font-weight: 600; }
+
+  .flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 14px; align-items: stretch; }
+  @media (max-width: 760px) { .flow { grid-template-columns: 1fr; } .arrow { display: none; } }
+  .node {
+    padding: 16px; border-radius: var(--r-md); min-inline-size: 0;
+    background: hsl(0 0% 100% / .03); border: 1px solid hsl(0 0% 100% / .1);
+    transition: all var(--t-panel) var(--ease);
+  }
+  .node .tag { font: 600 10.5px/1 ui-monospace, Menlo, monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--pg-faint); }
+  .node .path { margin-block: 8px 4px; font: 600 15px/1.2 ui-monospace, Menlo, monospace; overflow-wrap: anywhere; }
+  .node .note { font-size: 12.5px; color: var(--pg-muted); }
+  .node[data-edit="yes"] { border-color: hsl(158 64% 52% / .45); background: hsl(158 40% 24% / .14); }
+  .node[data-edit="yes"] .tag { color: var(--pg-keep); }
+  .node[data-edit="no"] { border-color: hsl(2 72% 62% / .4); background: hsl(2 50% 26% / .12); }
+  .node[data-edit="no"] .tag { color: var(--pg-bad); }
+  .node[data-active="1"] { box-shadow: 0 0 0 2px var(--pg-accent); }
+  .arrow { display: grid; place-items: center; color: var(--pg-faint); font-size: 22px; }
+  .cmd {
+    margin-block-start: 16px; padding: 12px 16px; border-radius: var(--r-md);
+    background: hsl(232 30% 4% / .55); border: 1px solid hsl(0 0% 100% / .08);
+    font: 400 13px/1.5 ui-monospace, Menlo, monospace; color: var(--pg-muted);
+  }
+  .cmd b { color: var(--pg-accent); font-weight: 600; }
+
+  .scen { margin-block-start: 24px; }
+  .scen-h { font: 600 12px/1 ui-monospace, Menlo, monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--pg-faint); margin-block-end: 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    padding: 8px 13px; border-radius: var(--r-sm); cursor: pointer;
+    font: 400 13px/1 inherit; color: var(--pg-ink);
+    background: hsl(0 0% 100% / .05); border: 1px solid hsl(0 0% 100% / .12);
+    transition: all var(--t-press) var(--ease);
+  }
+  .chip:hover { background: hsl(0 0% 100% / .1); }
+  .chip[aria-pressed="true"] { border-color: var(--pg-accent); background: hsl(248 60% 40% / .2); }
+  :focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+  .answer {
+    margin-block-start: 16px; padding: 14px 18px; border-radius: var(--r-md);
+    background: hsl(0 0% 100% / .04); border: 1px solid hsl(0 0% 100% / .1);
+    min-block-size: 52px; color: var(--pg-ink); font-size: 14px;
+  }
+  .answer .k { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .06em; text-transform: uppercase; color: var(--pg-faint); }
+  .answer .p { margin-block-start: 6px; font-family: ui-monospace, Menlo, monospace; color: var(--pg-keep); font-weight: 600; }
+  .prompt { margin-block-start: 24px; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--r-md); background: hsl(0 0% 100% / .04); border: 1px solid hsl(0 0% 100% / .09); }
+  .prompt code { flex: 1; min-inline-size: 0; font: 400 12.5px/1.5 ui-monospace, Menlo, monospace; color: var(--pg-muted); overflow-wrap: anywhere; }
+  button.copy { font: 600 13px/1 inherit; color: var(--pg-ink); background: hsl(0 0% 100% / .07); border: 1px solid hsl(0 0% 100% / .14); border-radius: var(--r-sm); padding: 9px 14px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">OrchestKit · feat/agents-md-discoverability</div>
+  <h1>AGENTS.md: where an agent edits OrchestKit</h1>
+  <p class="sub">
+    The repo is source-built: you edit <code>src/</code> and a build step assembles the
+    installable <code>plugins/</code> tree. Hand-editing <code>plugins/</code> is the single
+    most common way an agent's PR breaks. AGENTS.md encodes that. Pick a task below to see
+    where it lands.
+  </p>
+
+  <div class="glass stage">
+    <div class="stage-h">The build flow AGENTS.md documents</div>
+    <div class="stage-p">Green = edit here. Red = generated, never by hand.</div>
+    <div class="flow">
+      <div class="node" data-edit="yes" id="n-src">
+        <div class="tag">Edit</div>
+        <div class="path">src/</div>
+        <div class="note">skills, agents, hooks — the source of truth</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node" id="n-build">
+        <div class="tag">Build</div>
+        <div class="path">npm run build</div>
+        <div class="note">assembles plugins/ from src/</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node" data-edit="no" id="n-plugins">
+        <div class="tag">Generated</div>
+        <div class="path">plugins/</div>
+        <div class="note">stage its diff WITH src/ — never hand-edit</div>
+      </div>
+    </div>
+    <div class="cmd">
+      after any <b>src/</b> change → <b>npm run build</b> → stage <b>src/ + plugins/</b> together → <b>npm test</b> + <b>npm run test:security</b>
+    </div>
+
+    <div class="scen">
+      <div class="scen-h">I want to…</div>
+      <div class="chips" id="chips" role="group" aria-label="Tasks"></div>
+      <div class="answer" id="answer" aria-live="polite">
+        <div class="k">Pick a task</div>
+        <div class="p" id="answer-p">&nbsp;</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prompt">
+    <code id="p-text">Working in the OrchestKit repo: edit src/ never plugins/, run npm run build after any src/ change, register new hooks in both hooks.json and the entries map, and keep component counts in sync.</code>
+    <button class="copy" id="copy">Copy</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+  // Each task -> the real path an agent edits + the rebuild reminder. All from AGENTS.md.
+  const TASKS = [
+    { label: "add a skill", where: "src/skills/<name>/SKILL.md  + manifests/ork.json → npm run build", hi: ["n-src"] },
+    { label: "add an agent", where: "src/agents/<name>.md  + manifests/ork.json → npm run build", hi: ["n-src"] },
+    { label: "add a hook", where: "src/hooks/src/<cat>/<name>.ts  + BOTH hooks.json AND entries/<event>.ts", hi: ["n-src"] },
+    { label: "fix a generated file", where: "NO — edit the src/ that generates it, then npm run build", hi: ["n-plugins", "n-build"] },
+    { label: "change component counts", where: "manifests/ork.json + CLAUDE.md + hooks.json — keep all three in sync", hi: ["n-src"] },
+    { label: "ship a PR", where: "branch off main (feat/…), npm test + test:security green, Closes #N in body", hi: [] },
+  ];
+  const chipsEl = $("#chips");
+  TASKS.forEach((t, i) => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.type = "button"; b.setAttribute("aria-pressed", "false");
+    b.textContent = t.label;
+    b.addEventListener("click", () => pick(i));
+    chipsEl.appendChild(b);
+  });
+  const nodes = { "n-src": $("#n-src"), "n-build": $("#n-build"), "n-plugins": $("#n-plugins") };
+  function pick(i) {
+    [...chipsEl.children].forEach((c, k) => c.setAttribute("aria-pressed", k === i ? "true" : "false"));
+    Object.values(nodes).forEach((n) => n.setAttribute("data-active", "0"));
+    TASKS[i].hi.forEach((id) => nodes[id]?.setAttribute("data-active", "1"));
+    $("#answer").querySelector(".k").textContent = "I want to " + TASKS[i].label;
+    $("#answer-p").textContent = TASKS[i].where;
+  }
+  $("#copy").addEventListener("click", async (e) => {
+    const b = e.currentTarget;
+    try { await navigator.clipboard.writeText($("#p-text").textContent.trim()); } catch { return; }
+    const w = b.textContent; b.textContent = "✓"; setTimeout(() => { b.textContent = w; }, 1500);
+  });
+  pick(0);
+})();
+</script>
+</body>
+</html>

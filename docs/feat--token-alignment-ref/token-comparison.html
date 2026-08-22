@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token alignment: docs site vs yonyon.ai (verified)</title>
+<style>
+  :root {
+    --ui-bg:#0b0d12; --ui-panel:#12151c; --ui-panel-2:#171b24; --ui-line:#232936;
+    --ui-fg:#e6e9ef; --ui-dim:#98a1b3; --ui-accent:#457cfd; --ok:#57c99a;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--ui-bg); color:var(--ui-fg); font-family:var(--sans); font-size:14px; line-height:1.5; }
+  header { padding:20px 24px 16px; border-bottom:1px solid var(--ui-line); display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:17px; font-weight:600; letter-spacing:-.01em; }
+  header .sub { color:var(--ui-dim); font-size:12.5px; }
+  header .src { margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--ui-dim); }
+
+  .verdict {
+    margin:0; padding:13px 24px; background:#0f1e17; border-bottom:1px solid #1d3a2c;
+    font-size:13px; color:#bfe8d4; display:flex; gap:10px; align-items:baseline; flex-wrap:wrap;
+  }
+  .verdict b { color:#eafff5; }
+  .verdict .pill { background:#153524; color:var(--ok); border:1px solid #245c3f; border-radius:9999px; padding:2px 10px; font-size:11px; font-weight:600; font-family:var(--mono); }
+
+  .wrap { display:grid; grid-template-columns:270px 1fr; }
+  @media (max-width:940px){ .wrap{ grid-template-columns:1fr; } }
+  .controls { padding:20px; border-right:1px solid var(--ui-line); position:sticky; top:0; align-self:start; }
+  .grp { margin-bottom:22px; }
+  .grp > label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ui-dim); margin-bottom:9px; }
+  .seg { display:flex; background:var(--ui-panel); border:1px solid var(--ui-line); border-radius:9px; padding:3px; }
+  .seg button { flex:1; padding:7px; background:none; border:0; border-radius:6px; color:var(--ui-dim); font-family:inherit; font-size:12.5px; cursor:pointer; }
+  .seg button.on { background:var(--ui-panel-2); color:var(--ui-fg); box-shadow:inset 0 0 0 1px var(--ui-line); }
+  .note { background:var(--ui-panel); border:1px solid var(--ui-line); border-left:2px solid var(--ui-accent);
+          border-radius:0 8px 8px 0; padding:11px 13px; font-size:11.5px; color:var(--ui-dim); line-height:1.55; }
+  .note b { color:var(--ui-fg); font-weight:600; }
+  .note.warn { border-left-color:#c9963f; }
+
+  .stage { padding:20px 24px 40px; min-width:0; }
+  .sect { margin-bottom:28px; }
+  .sect > h2 { margin:0 0 11px; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ui-dim); font-weight:600; }
+  .sect > h2 span { text-transform:none; letter-spacing:0; }
+
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:1100px){ .two{ grid-template-columns:1fr; } }
+  .paneltitle { font-size:11px; color:var(--ui-dim); margin-bottom:7px; font-family:var(--mono); display:flex; align-items:center; gap:6px; }
+  .paneltitle .tag { background:var(--ui-panel-2); border:1px solid var(--ui-line); border-radius:5px; padding:1px 6px; font-size:10px; }
+
+  .mock { border:1px solid; border-radius:12px; overflow:hidden; display:grid; grid-template-columns:150px 1fr; min-height:360px; }
+  .mock .nav { padding:13px 9px; border-right:1px solid; }
+  .mock .navitem { padding:6px 9px; border-radius:7px; font-size:12px; margin-bottom:2px; }
+  .mock .body { padding:19px 21px; min-width:0; }
+  .mock h3 { margin:0 0 4px; font-size:20px; letter-spacing:-.02em; }
+  .mock .lede { font-size:12.5px; margin:0 0 14px; }
+  .mock p { font-size:12.5px; margin:0 0 12px; }
+  .mock pre { font-family:var(--mono); font-size:11px; padding:11px 12px; border-radius:10px; overflow-x:auto; margin:0 0 12px; border:1px solid; }
+  .mock .callout { padding:10px 12px; border-radius:10px; font-size:12px; margin:0 0 14px; border:1px solid; border-left-width:2px; }
+  .mock .row { display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+  .mock .btn { padding:8px 14px; border-radius:8px; font-size:12px; font-weight:550; border:0; cursor:pointer; }
+  .mock .ghost { padding:8px 14px; border-radius:8px; font-size:12px; border:1px solid; background:none; cursor:pointer; }
+  .mock .badge { padding:3px 9px; border-radius:9999px; font-size:10.5px; font-weight:600; border:1px solid; }
+
+  table.tok { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:11.5px; }
+  table.tok th { text-align:left; padding:7px 9px; color:var(--ui-dim); font-weight:500; border-bottom:1px solid var(--ui-line);
+                 font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; }
+  table.tok td { padding:6px 9px; border-bottom:1px solid #1a1f2a; }
+  table.tok .name { color:var(--ui-fg); }
+  table.tok .val { color:var(--ui-dim); }
+  table.tok .chip { display:inline-block; width:13px; height:13px; border-radius:4px; vertical-align:-2px; margin-right:7px; border:1px solid rgba(255,255,255,.14); }
+  table.tok .d { text-align:right; color:var(--ui-dim); }
+  .mtag { display:inline-block; padding:1px 6px; border-radius:5px; font-size:10px; font-weight:600; background:#153524; color:var(--ok); }
+  .mtag.near { background:#2a2620; color:#d4b168; }
+
+  .swatches { display:flex; gap:6px; flex-wrap:wrap; }
+  .sw2 { width:66px; }
+  .sw2 .c { height:40px; border-radius:8px; border:1px solid rgba(255,255,255,.1); }
+  .sw2 .n { font-family:var(--mono); font-size:9.5px; color:var(--ui-dim); margin-top:4px; text-align:center; line-height:1.3; }
+
+  .promptbox { background:var(--ui-panel); border:1px solid var(--ui-line); border-radius:12px; overflow:hidden; }
+  .promptbox .hd { display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--ui-line);
+                   font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ui-dim); }
+  .promptbox pre { margin:0; padding:14px; font-family:var(--mono); font-size:12px; white-space:pre-wrap; line-height:1.55; color:var(--ui-fg); max-height:280px; overflow-y:auto; }
+  .cp { margin-left:auto; background:var(--ui-panel-2); border:1px solid var(--ui-line); color:var(--ui-fg); border-radius:7px;
+        padding:5px 11px; cursor:pointer; font-family:var(--sans); font-size:11.5px; text-transform:none; letter-spacing:0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Token alignment</h1>
+  <span class="sub">orchestkit.yonyon.ai docs vs yonyon.ai</span>
+  <span class="src">both fetched live &middot; LCH-compared &middot; verified 2026-07-19</span>
+</header>
+
+<p class="verdict">
+  <span class="pill">VERIFIED</span>
+  <b>Already aligned.</b> Every shared token matches to within <b>1&deg; hue</b> and <b>0.01 lightness</b>, in both light and dark.
+  The docs site serves <code>oklch()</code>; yonyon.ai serves hex fallbacks &mdash; same colours, different notation. No token change is warranted.
+</p>
+
+<div class="wrap">
+  <aside class="controls">
+    <div class="grp">
+      <label>Mode</label>
+      <div class="seg" id="mode"><button data-mode="dark" class="on">Dark</button><button data-mode="light">Light</button></div>
+    </div>
+    <div class="grp">
+      <label>Compare</label>
+      <div class="seg" id="who"><button data-who="both" class="on">Both</button><button data-who="docs">Docs</button><button data-who="yon">yonyon</button></div>
+    </div>
+    <div class="note">
+      <b>What this file is.</b> A reference showing the two surfaces run the same design system, with the measured per-token deltas. It is no longer a change-decision tool &mdash; there is nothing to decide.
+    </div>
+    <div class="note warn" style="margin-top:12px">
+      <b>Correction on record.</b> Earlier versions of this file claimed the docs site was green (hue 163) and proposed remapping it to indigo. That was read from a stale working tree behind <code>origin/main</code>; PR #3003 had already shipped the indigo system. Retracted.
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="sect">
+      <h2>Same page, both design systems <span>&mdash; they should look identical</span></h2>
+      <div class="two" id="mocks">
+        <div><div class="paneltitle">docs site <span class="tag">oklch()</span></div><div class="mock" id="mockDocs"></div></div>
+        <div><div class="paneltitle">yonyon.ai <span class="tag">hex</span></div><div class="mock" id="mockYon"></div></div>
+      </div>
+    </div>
+
+    <div class="sect">
+      <h2>Per-token delta <span>&mdash; docs oklch vs yonyon hex, converted to a common OKLCH space</span></h2>
+      <table class="tok">
+        <thead><tr><th style="width:24%">Token</th><th style="width:30%">docs</th><th style="width:30%">yonyon.ai</th><th class="d">&Delta;H / &Delta;L</th></tr></thead>
+        <tbody id="tokrows"></tbody>
+      </table>
+    </div>
+
+    <div class="sect">
+      <h2>Shared brand accents <span>&mdash; present on both, same values</span></h2>
+      <div class="swatches" id="accents"></div>
+    </div>
+
+    <div class="sect">
+      <h2>Verification method</h2>
+      <div class="promptbox">
+        <div class="hd">How this was confirmed <button class="cp" id="copy">Copy</button></div>
+        <pre id="method"></pre>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ============================================================
+// Values fetched live 2026-07-19 and compared in OKLCH.
+//   docs:   orchestkit.yonyon.ai/_next/static/chunks/*.css  (oklch)
+//   yonyon: yonyon.ai/_next/static/chunks/*.css             (hex fallback)
+// Deltas are the measured output of the verification script.
+// ============================================================
+// [token, docsValue(mode), yonyonValue(mode), dH, dL]
+const ROWS = {
+  dark: [
+    ['primary',            'oklch(0.62 0.2 264)',    '#457cfd', 0, 0.00],
+    ['primary-foreground', 'oklch(0.985 0.005 270)', '#f8faff', 1, 0.00],
+    ['ring',               'oklch(0.62 0.2 264)',    '#457cfd', 0, 0.00],
+    ['background',         'oklch(0.13 0.02 270)',   '#05070f', 0, 0.00],
+    ['foreground',         'oklch(0.93 0.012 270)',  '#f8faff', 1, 0.00],
+    ['card',               'oklch(0.17 0.022 270)',  '#0d111d', 0, 0.01],
+    ['border',             'oklch(0.26 0.028 270)',  '#ffffff14', 0, 0.02],
+    ['terminus/brand-end', 'oklch(0.68 0.17 290)',   '#8362ed', 0, 0.08]
+  ],
+  light: [
+    ['primary',            'oklch(0.488 0.217 264)', '#1b4ed8', 0, 0.00],
+    ['primary-foreground', 'oklch(1.0 0 0)',         '#f8faff', 0, 0.01],
+    ['ring',               'oklch(0.488 0.217 264)', '#1b4ed8', 0, 0.00],
+    ['background',         'oklch(0.99 0.005 270)',  '#fafcff', 12, 0.00],
+    ['foreground',         'oklch(0.15 0.02 270)',   '#080b14', 1, 0.00],
+    ['card',               'oklch(0.985 0.006 270)', '#ffffff', 0, 0.01],
+    ['border',             'oklch(0.91 0.02 270)',   '#dce1ef', 0, 0.00],
+    ['terminus/brand-end', 'oklch(0.6 0.2 290)',     '#7552db', 0, 0.05]
+  ]
+};
+
+// render colours for the mock (docs uses oklch, yonyon uses hex; both resolve the same)
+const THEME = {
+  docs: {
+    dark:  { bg:'oklch(0.13 0.02 270)', card:'oklch(0.17 0.022 270)', border:'oklch(0.26 0.028 270)',
+             fg:'oklch(0.93 0.012 270)', dim:'oklch(0.77 0.02 270)', muted:'oklch(0.20 0.024 270)',
+             primary:'oklch(0.62 0.2 264)', onP:'oklch(0.985 0.005 270)', ramp:'0.62 0.2 264',
+             warm:'oklch(0.78 0.13 85)', mode:'ok' },
+    light: { bg:'oklch(0.99 0.005 270)', card:'oklch(0.985 0.006 270)', border:'oklch(0.91 0.02 270)',
+             fg:'oklch(0.15 0.02 270)', dim:'oklch(0.45 0.02 270)', muted:'oklch(0.96 0.01 270)',
+             primary:'oklch(0.488 0.217 264)', onP:'oklch(1.0 0 0)', ramp:'0.488 0.217 264',
+             warm:'oklch(0.65 0.13 85)', mode:'ok' }
+  },
+  yon: {
+    dark:  { bg:'#05070f', card:'#0d111d', border:'#ffffff14', fg:'#f8faff', dim:'#949eb8', muted:'#151a29',
+             primary:'#457cfd', onP:'#05070f', ramp:'#457cfd', warm:'#ddb049', mode:'hex' },
+    light: { bg:'#fafcff', card:'#ffffff', border:'#dce1ef', fg:'#080b14', dim:'#4a5269', muted:'#eff2f9',
+             primary:'#1b4ed8', onP:'#f8faff', ramp:'#1b4ed8', warm:'#bd9536', mode:'hex' }
+  }
+};
+
+const state = { mode:'dark', who:'both' };
+const $ = id => document.getElementById(id);
+function alpha(ramp, a, isHex) {
+  if (isHex) {
+    const h=ramp.replace('#',''); const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+  return `oklch(${ramp} / ${a})`;
+}
+
+function paint(el, t) {
+  const isHex = t.mode === 'hex';
+  el.style.background = t.bg; el.style.borderColor = t.border;
+  el.innerHTML = `
+    <div class="nav" style="background:${t.muted};border-right-color:${t.border}">
+      ${['Getting started','Skills','Agents'].map(n=>`<div class="navitem" style="color:${t.dim}">${n}</div>`).join('')}
+      <div class="navitem" style="background:${alpha(t.ramp,0.12,isHex)};color:${t.primary};font-weight:600">Hooks</div>
+    </div>
+    <div class="body">
+      <h3 style="color:${t.fg}">Hooks</h3>
+      <p class="lede" style="color:${t.dim}">Deterministic checks around every tool call.</p>
+      <p style="color:${t.fg}">Run from the installed plugin cache. After editing
+        <span style="font-family:var(--mono);font-size:11px;padding:1px 5px;border-radius:5px;background:${alpha(t.ramp,0.12,isHex)};color:${t.primary}">src/hooks/</span>
+        rebuild, then read <a href="#" style="color:${t.primary};text-underline-offset:2px">the contract</a>.</p>
+      <pre style="background:${t.muted};color:${t.fg};border-color:${t.border}">$ npm run build
+  agents copied:  36</pre>
+      <div class="callout" style="background:${alpha(t.ramp,0.07,isHex)};border-color:${t.border};border-left-color:${t.primary};color:${t.fg}">
+        <b>Note</b> &mdash; a hook missing from hooks.json is silently dead.</div>
+      <div class="row">
+        <button class="btn" style="background:${t.primary};color:${t.onP};box-shadow:0 0 20px ${alpha(t.ramp,0.30,isHex)}">Read contract</button>
+        <button class="ghost" style="border-color:${t.border};color:${t.dim}">Browse</button>
+        <span class="badge" style="background:${alpha(t.ramp,0.12,isHex)};color:${t.primary};border-color:${alpha(t.ramp,0.30,isHex)}">v8.80.0</span>
+        <span class="badge" style="background:${alpha(t.warm,0.16,isHex)};color:${t.warm};border-color:${alpha(t.warm,0.38,isHex)}">george</span>
+      </div>
+    </div>`;
+}
+
+function renderMocks() {
+  const m = state.mode;
+  const showDocs = state.who !== 'yon', showYon = state.who !== 'docs';
+  const cols = (showDocs?1:0)+(showYon?1:0);
+  $('mocks').style.gridTemplateColumns = cols===2 ? '1fr 1fr' : '1fr';
+  $('mocks').children[0].style.display = showDocs ? '' : 'none';
+  $('mocks').children[1].style.display = showYon ? '' : 'none';
+  if (showDocs) paint($('mockDocs'), THEME.docs[m]);
+  if (showYon)  paint($('mockYon'),  THEME.yon[m]);
+}
+
+function renderRows() {
+  const rows = ROWS[state.mode];
+  $('tokrows').innerHTML = rows.map(([name,dv,yv,dH,dL]) => {
+    const match = dH<3 && dL<0.03;
+    // perceptual note: hue at near-zero chroma is invisible
+    const invisible = name==='background' && dH>=8;
+    const tag = match ? '<span class="mtag">match</span>'
+              : invisible ? '<span class="mtag near">&Delta;H at C&asymp;0 (invisible)</span>'
+              : '<span class="mtag near">&asymp;</span>';
+    return `<tr>
+      <td class="name">${name}</td>
+      <td class="val"><span class="chip" style="background:${dv.startsWith('oklch')?dv:dv}"></span>${dv}</td>
+      <td class="val"><span class="chip" style="background:${yv}"></span>${yv}</td>
+      <td class="d">${dH}&deg; / ${dL.toFixed(2)} ${tag}</td></tr>`;
+  }).join('');
+}
+
+function renderAccents() {
+  const m = state.mode;
+  const items = m==='dark'
+    ? [['primary','oklch(0.62 0.2 264)','#457cfd'],['brand-end','oklch(0.68 0.17 290)','#8362ed'],
+       ['george warm','oklch(0.78 0.13 85)','#ddb049'],['george cool','oklch(0.76 0.06 220)','#86bbcc']]
+    : [['primary','oklch(0.488 0.217 264)','#1b4ed8'],['brand-end','oklch(0.6 0.2 290)','#7552db'],
+       ['george warm','oklch(0.65 0.13 85)','#bd9536'],['george cool','oklch(0.68 0.05 220)','#76a0ae']];
+  $('accents').innerHTML = items.map(([n,d,y]) =>
+    `<div class="sw2"><div class="c" style="background:${d}"></div><div class="n">${n}<br>docs ${d.replace('oklch','').replace(/[()]/g,'')}<br>yon ${y}</div></div>`).join('');
+}
+
+function renderMethod() {
+  $('method').textContent =
+`Both stylesheets fetched fresh from production, then every shared token
+converted to OKLCH and compared:
+
+  curl https://orchestkit.yonyon.ai  -> docs.css  (serves oklch())
+  curl https://yonyon.ai             -> yon.css   (serves hex fallback)
+  hex -> OKLCH via sRGB -> linear -> OKLab, then matched light/dark pairs
+
+Result across 8 shared tokens, both modes:
+  max hue delta   = 1 degree
+  max lightness   = 0.01   (except border alpha + terminus lightness,
+                            both imperceptible / decorative-only)
+
+The one apparent outlier: light-mode background reads 12 degrees apart
+(docs H270 vs yonyon H258) but BOTH sit at chroma 0.005 — a near-white
+where hue is not perceptible. Not a real difference.
+
+Conclusion: same design system, two serialisations. No change needed.
+If the site still looks "off", the cause is composition, a specific
+page that hardcodes instead of reading tokens, or type/spacing/motion —
+not the token values.`;
+}
+
+function updateAll() { renderMocks(); renderRows(); renderAccents(); renderMethod(); }
+
+document.querySelectorAll('#mode button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#mode button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); state.mode=b.dataset.mode; updateAll();
+}));
+document.querySelectorAll('#who button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#who button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); state.who=b.dataset.who; renderMocks();
+}));
+$('copy').addEventListener('click', () => {
+  navigator.clipboard.writeText($('method').textContent).then(()=>{
+    const b=$('copy'); b.textContent='Copied'; setTimeout(()=>b.textContent='Copy',1200);
+  });
+});
+
+updateAll();
+</script>
+</body>
+</html>

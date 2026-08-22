@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quality Index Gate · #2194</title>
+<style>
+  :root{
+    --pg-bg:hsl(232 26% 7%);
+    --pg-ink:hsl(220 18% 93%);
+    --pg-muted:hsl(220 12% 64%);
+    --pg-faint:hsl(220 10% 46%);
+    --pg-glass:hsl(0 0% 100% / .05);
+    --pg-glass-edge:hsl(0 0% 100% / .18);
+    --pg-accent:hsl(248 84% 68%);
+    --c-ok:hsl(152 52% 50%);
+    --c-regress:hsl(2 68% 58%);
+    --c-drop:hsl(280 60% 66%);
+    --c-warm:hsl(38 95% 60%);
+    --r-sm:9px; --r-md:16px; --r-lg:24px;
+    --sh-amb:0 20px 60px -22px hsl(232 40% 2% / .7);
+    --sh-tight:0 4px 12px -6px hsl(232 40% 2% / .5);
+    --ease:cubic-bezier(.2,.8,.25,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(900px 600px at 12% 4%, hsl(248 70% 40% / .20), transparent 60%),
+      radial-gradient(760px 520px at 88% 96%, hsl(268 62% 42% / .16), transparent 62%),
+      var(--pg-bg);
+    background-attachment:fixed;color:var(--pg-ink);
+    font:400 15px/1.6 ui-sans-serif,-apple-system,"Segoe UI",Inter,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;padding:48px 24px 96px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums}
+  header{margin-block-end:24px}
+  .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--pg-faint);font-weight:600;margin-block-end:12px}
+  h1{font-size:30px;font-weight:700;letter-spacing:-.3px;line-height:1.15}
+  h1 .sub{color:var(--pg-muted);font-weight:400}
+  .lede{color:var(--pg-muted);margin-block-start:12px;max-width:74ch}
+  .glass{
+    background:var(--pg-glass);border:1px solid var(--pg-glass-edge);border-radius:var(--r-lg);
+    box-shadow:var(--sh-amb),var(--sh-tight),inset 0 1px 0 hsl(0 0% 100% / .12);
+    -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  }
+  .verdict{padding:22px 24px;margin-block:22px;display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+  .verdict-tag{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:8px 16px;border-radius:999px}
+  .verdict-tag.pass{background:hsl(152 52% 50% / .18);color:var(--c-ok)}
+  .verdict-tag.fail{background:hsl(2 68% 58% / .18);color:var(--c-regress)}
+  .verdict p{color:var(--pg-muted);font-size:14px;flex:1;min-inline-size:260px}
+  .verdict strong{color:var(--pg-ink)}
+  .controls{padding:18px 22px;margin-block-end:18px;display:flex;gap:28px;flex-wrap:wrap;align-items:center}
+  .ctl{display:flex;flex-direction:column;gap:6px;min-inline-size:220px;flex:1}
+  .ctl label{font-size:12px;color:var(--pg-muted);display:flex;justify-content:space-between}
+  .ctl label b{color:var(--pg-ink)}
+  input[type=range]{inline-size:100%;accent-color:var(--pg-accent)}
+  .grid{padding:8px 8px 12px}
+  .row{display:grid;grid-template-columns:150px 1fr 84px 84px 118px;gap:14px;align-items:center;padding:12px 14px;border-block-end:1px solid hsl(0 0% 100% / .05)}
+  .row:last-child{border-block-end:none}
+  .row.head{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--pg-faint);font-weight:600}
+  .nm{font-weight:600;display:flex;align-items:center;gap:9px}
+  .track{position:relative;block-size:10px;border-radius:999px;background:hsl(0 0% 100% / .06);overflow:hidden}
+  .track > .base{position:absolute;inset-block:0;inset-inline-start:0;background:hsl(0 0% 100% / .18)}
+  .track > .cur{position:absolute;inset-block:0;inset-inline-start:0;border-radius:999px;transition:inline-size 160ms var(--ease),background 160ms var(--ease)}
+  .badge{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 8px;border-radius:999px;text-align:center}
+  .badge.ok{background:hsl(152 52% 50% / .16);color:var(--c-ok)}
+  .badge.regress{background:hsl(2 68% 58% / .16);color:var(--c-regress)}
+  .badge.drop{background:hsl(280 60% 66% / .16);color:var(--c-drop)}
+  .rowctl{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+  .rowctl input[type=range]{inline-size:80px}
+  .rowctl button{background:transparent;border:1px solid var(--pg-glass-edge);color:var(--pg-muted);border-radius:var(--r-sm);font:inherit;font-size:11px;padding:3px 8px;cursor:pointer}
+  .rowctl button[aria-pressed=true]{background:hsl(280 60% 66% / .2);color:var(--c-drop);border-color:transparent}
+  .cmd{margin-block-start:20px;padding:16px 18px}
+  .cmd h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--pg-muted);margin-block-end:10px}
+  .cmd pre{background:hsl(0 0% 0% / .35);border:1px solid var(--pg-glass-edge);border-radius:var(--r-sm);padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.7}
+  .cmd .c{color:var(--pg-faint)}
+  footer{margin-block-start:26px;color:var(--pg-faint);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">OrchestKit · Eval v2 · #2194</div>
+    <h1>Quality Index Gate <span class="sub">/ when does a regression trip CI?</span></h1>
+    <p class="lede">Each component has a committed <strong>baseline</strong> score. The gate re-aggregates
+    the current results and fails when a component's score drops by more than the <strong>threshold</strong>,
+    or disappears entirely. Drag a component's current score down, or drop it, and watch the gate flip.
+    This mirrors <span class="mono">check-eval-regression.sh</span> exactly (default threshold 0.05).</p>
+  </header>
+
+  <div class="verdict glass">
+    <span class="verdict-tag pass" id="verdict-tag">PASSED</span>
+    <p id="verdict-text">No component regressed beyond the threshold.</p>
+  </div>
+
+  <div class="controls glass">
+    <div class="ctl">
+      <label>Regression threshold <b class="mono" id="thr-val">0.05</b></label>
+      <input type="range" id="threshold" min="0" max="0.30" step="0.01" value="0.05">
+    </div>
+    <div class="ctl">
+      <label>Global drift (drops every current score) <b class="mono" id="drift-val">0.00</b></label>
+      <input type="range" id="drift" min="0" max="0.40" step="0.01" value="0">
+    </div>
+  </div>
+
+  <div class="glass grid" id="grid"></div>
+
+  <div class="cmd glass">
+    <h2>The gate this models</h2>
+    <pre class="mono"><span class="c"># aggregate current results into results/quality-index.json</span>
+bash scripts/eval/aggregate-quality-index.sh
+<span class="c"># fail (exit 1) if any baseline component drops &gt; threshold or disappears</span>
+EVAL_REGRESSION_THRESHOLD=0.05 bash tests/evals/scripts/check-eval-regression.sh
+<span class="c"># accept an intentional change</span>
+bash tests/evals/scripts/check-eval-regression.sh --update-baseline</pre>
+  </div>
+
+  <footer>Illustrative scores. The committed baseline currently measures 0 components (results/ is gitignored) — the real gate is a loud no-op until a paid eval run seeds it.</footer>
+</div>
+
+<script>
+const COMPONENTS = [
+  {name:'commit', base:0.95},
+  {name:'assess', base:0.80},
+  {name:'explore', base:0.88},
+  {name:'implement', base:0.72},
+  {name:'review-pr', base:0.83},
+];
+const state = COMPONENTS.map(c => ({...c, cur:c.base, dropped:false}));
+const grid = document.getElementById('grid');
+const thrEl = document.getElementById('threshold');
+const driftEl = document.getElementById('drift');
+
+function clamp(x){ return Math.max(0, Math.min(1, x)); }
+
+function verdictFor(s, thr){
+  if (s.dropped) return 'drop';
+  const eff = clamp(s.cur);
+  if (s.base - eff > thr + 1e-9) return 'regress';
+  return 'ok';
+}
+
+function render(){
+  const thr = parseFloat(thrEl.value);
+  const drift = parseFloat(driftEl.value);
+  document.getElementById('thr-val').textContent = thr.toFixed(2);
+  document.getElementById('drift-val').textContent = drift.toFixed(2);
+
+  let fails = 0;
+  grid.innerHTML = '<div class="row head"><div>component</div><div>baseline vs current</div><div>base</div><div>current</div><div>verdict</div></div>';
+  state.forEach((s, i) => {
+    const eff = s.dropped ? 0 : clamp(s.cur - drift);
+    const v = s.dropped ? 'drop' : (s.base - eff > thr + 1e-9 ? 'regress' : 'ok');
+    if (v !== 'ok') fails++;
+    const color = v === 'ok' ? 'var(--c-ok)' : (v === 'regress' ? 'var(--c-regress)' : 'var(--c-drop)');
+    const curLabel = s.dropped ? '—' : eff.toFixed(2);
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML =
+      '<div class="nm">' + s.name + '</div>'
+      + '<div class="track"><div class="base" style="inline-size:' + (s.base*100) + '%"></div>'
+      + '<div class="cur" style="inline-size:' + (eff*100) + '%;background:' + color + '"></div></div>'
+      + '<div class="mono">' + s.base.toFixed(2) + '</div>'
+      + '<div class="mono">' + curLabel + '</div>'
+      + '<div class="rowctl">'
+      + '<input type="range" min="0" max="1" step="0.01" value="' + s.cur + '" data-i="' + i + '" ' + (s.dropped?'disabled':'') + '>'
+      + '<button data-drop="' + i + '" aria-pressed="' + s.dropped + '">drop</button>'
+      + '<span class="badge ' + v + '">' + v + '</span>'
+      + '</div>';
+    grid.appendChild(row);
+  });
+
+  const tag = document.getElementById('verdict-tag');
+  const txt = document.getElementById('verdict-text');
+  if (fails > 0){
+    tag.className = 'verdict-tag fail'; tag.textContent = 'FAILED';
+    txt.innerHTML = '<strong>' + fails + '</strong> component(s) regressed or disappeared beyond threshold <strong>' + thr.toFixed(2) + '</strong>. <span class="mono">check-eval-regression.sh</span> exits 1.';
+  } else {
+    tag.className = 'verdict-tag pass'; tag.textContent = 'PASSED';
+    txt.innerHTML = 'No component dropped more than <strong>' + thr.toFixed(2) + '</strong>. Gate exits 0.';
+  }
+}
+
+grid.addEventListener('input', e => {
+  const i = e.target.dataset.i;
+  if (i !== undefined){ state[i].cur = parseFloat(e.target.value); render(); }
+});
+grid.addEventListener('click', e => {
+  const d = e.target.dataset.drop;
+  if (d !== undefined){ state[d].dropped = !state[d].dropped; render(); }
+});
+thrEl.addEventListener('input', render);
+driftEl.addEventListener('input', render);
+render();
+</script>
+</body>
+</html>

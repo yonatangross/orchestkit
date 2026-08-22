@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prune Playground Graveyard — OrchestKit</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2430;--border:#30363d;--fg:#e6edf3;--muted:#8b949e;
+        --accent:#58a6ff;--red:#f85149;--green:#3fb950;--yellow:#d4b13a;--violet:#a371f7;
+        --mono:'SFMono-Regular',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  html[data-theme="light"]{--bg:#f6f8fa;--panel:#fff;--panel2:#eef1f5;--border:#d0d7de;--fg:#1f2328;--muted:#57606a;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.55}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 70px}
+  header.top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:24px}
+  h1{font-size:23px;margin:0;letter-spacing:-.4px}
+  h1 .sub{display:block;color:var(--muted);font-weight:400;font-size:14px;margin-top:4px}
+  .theme-btn{background:var(--panel);border:1px solid var(--border);color:var(--fg);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px}
+  .stats{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 18px;min-width:120px}
+  .stat .n{font-size:30px;font-weight:700;line-height:1;letter-spacing:-1px}
+  .stat .l{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-top:6px}
+  .flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:10px;margin:6px 0 26px}
+  @media(max-width:720px){.flow{grid-template-columns:1fr}.flow .arw{display:none}}
+  .node{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+  .node.src{border-left:4px solid var(--red)} .node.arch{border-left:4px solid var(--violet)} .node.dst{border-left:4px solid var(--green)}
+  .node h3{margin:0 0 6px;font-size:14px} .node p{margin:0;font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .arw{font-size:22px;color:var(--accent);text-align:center}
+  .callout{background:linear-gradient(90deg,rgba(163,113,247,.12),transparent);border:1px solid var(--border);border-left:3px solid var(--violet);border-radius:10px;padding:13px 17px;margin-bottom:22px;font-size:13.5px}
+  h2{font-size:15px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:26px 0 12px}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:720px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+  .card.keep{border-left:4px solid var(--green)} .card.prune{border-left:4px solid var(--red)}
+  .card h3{margin:0 0 8px;font-size:13px;font-family:var(--mono)}
+  .card ul{margin:0;padding-left:18px;font-size:12.5px;color:var(--muted)} .card li{margin:3px 0}
+  .card .tag{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+  .gate{background:#000;border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-top:14px}
+  .gate h3{margin:0 0 8px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  pre{margin:0;font-family:var(--mono);font-size:12px;line-height:1.65;color:#c9d1d9;white-space:pre-wrap}
+  pre .c{color:#6a737d} pre .g{color:var(--green)} pre .r{color:var(--red)}
+  footer{color:var(--muted);font-size:12px;margin-top:32px;border-top:1px solid var(--border);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>🚚 Prune the playground graveyard
+      <span class="sub">One-time archival + recurrence fix · chore/prune-playground-graveyard</span></h1>
+    <button class="theme-btn" onclick="var h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark'">☀︎ / ☾</button>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="n" style="color:var(--red)">418</div><div class="l">dirs pruned</div></div>
+    <div class="stat"><div class="n" style="color:var(--red)">436</div><div class="l">files removed</div></div>
+    <div class="stat"><div class="n" style="color:var(--yellow)">~11 MB</div><div class="l">off main</div></div>
+    <div class="stat"><div class="n" style="color:var(--green)">1</div><div class="l">dir kept (skill-ref)</div></div>
+    <div class="stat"><div class="n" style="color:var(--accent)">0</div><div class="l">content lost</div></div>
+  </div>
+
+  <div class="flow">
+    <div class="node src"><h3>main (before)</h3><p>docs/&lt;branch&gt;--&lt;slug&gt;/<br>419 dirs · 4 months</p></div>
+    <div class="arw">→</div>
+    <div class="node arch"><h3>playgrounds-archive</h3><p>orphan branch<br>436 files preserved</p></div>
+    <div class="arw">→</div>
+    <div class="node dst"><h3>main (after)</h3><p>+ recurrence-fix<br>workflow &amp; script</p></div>
+  </div>
+
+  <div class="callout">
+    <b>Root cause:</b> the PR-Playground CI gate <i>mandates</i> a committed <code>docs/&lt;branch&gt;/*.html</code> per PR.
+    Those dirs merge to main and nothing ever prunes them — <b>~100 dead dirs/month</b> since March. Not deployed
+    (docs/site references them 0 times). Content is dual-preserved: the <code>playgrounds-archive</code> orphan branch
+    <i>and</i> git history.
+  </div>
+
+  <h2>What's pruned vs kept</h2>
+  <div class="cards">
+    <div class="card prune">
+      <h3>🔴 Pruned → archive (418) <span class="tag">git-verified</span></h3>
+      <ul>
+        <li>417 doc/asset-only <code>&lt;type&gt;--&lt;slug&gt;</code> dirs</li>
+        <li><code>feat--session-identity-color</code> (0 external refs)</li>
+        <li>every dir's branch is merged + deleted from origin</li>
+      </ul>
+    </div>
+    <div class="card keep">
+      <h3>🟢 Kept on main <span class="tag">has dependents</span></h3>
+      <ul>
+        <li><code>feat--activation-audit</code> — audit-activation skill documents its <code>.mjs</code> path</li>
+        <li>8 real docs dirs: audits, site, playgrounds, templates, stubs, readme-hero-banner, codescan-zizmor-remediation, release-window-786</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Recurrence fix — stops it regrowing</h2>
+  <div class="gate">
+    <h3>scripts/prune-playgrounds.sh + prune-playgrounds.yml</h3>
+    <pre><span class="c"># manual dispatch only · dry-run by default · never auto-fires</span>
+scan   → list dirs whose branch is <span class="g">gone from origin</span> AND &gt; N days old
+apply  → copy to <span class="g">playgrounds-archive</span> · git rm from main · open removal <b>PR</b>
+
+<span class="c"># hard invariants</span>
+- only touches docs/<span class="r">&lt;type&gt;--&lt;slug&gt;</span>/ dirs
+- KEEP set hard-excluded (the 9 dirs above)
+- cross-branch mutation is <b>operator-gated</b> (can't pre-validate in CI)</pre>
+  </div>
+
+  <footer>
+    Evidence: <code>git ls-tree origin/main</code>, <code>git ls-remote</code>, <code>git grep</code>. shellcheck + actionlint clean.
+    Archive branch: <code>origin/playgrounds-archive</code>. This file: <code>docs/chore--prune-playground-graveyard/plan-viz.html</code>.
+  </footer>
+</div>
+</body>
+</html>

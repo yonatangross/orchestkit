@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Untrack Build Artifacts — OrchestKit</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2430;--border:#30363d;--fg:#e6edf3;--muted:#8b949e;
+        --accent:#58a6ff;--red:#f85149;--green:#3fb950;--yellow:#d4b13a;--violet:#a371f7;
+        --mono:'SFMono-Regular',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  html[data-theme="light"]{--bg:#f6f8fa;--panel:#fff;--panel2:#eef1f5;--border:#d0d7de;--fg:#1f2328;--muted:#57606a;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.55}
+  .wrap{max-width:1060px;margin:0 auto;padding:28px 20px 70px}
+  header.top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:24px}
+  h1{font-size:22px;margin:0;letter-spacing:-.4px}
+  h1 .sub{display:block;color:var(--muted);font-weight:400;font-size:14px;margin-top:4px}
+  .theme-btn{background:var(--panel);border:1px solid var(--border);color:var(--fg);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px}
+  .stats{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:22px}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 18px;min-width:130px}
+  .stat .n{font-size:28px;font-weight:700;line-height:1;letter-spacing:-1px}
+  .stat .l{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-top:6px}
+  h2{font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:24px 0 12px}
+  .cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:800px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:15px 16px}
+  .card.a{border-left:4px solid var(--red)} .card.b{border-left:4px solid var(--yellow)} .card.c{border-left:4px solid var(--violet)}
+  .card h3{margin:0 0 8px;font-size:13px;font-family:var(--mono)}
+  .card .big{font-size:22px;font-weight:700;margin:2px 0 8px}
+  .card p{margin:0;font-size:12px;color:var(--muted)}
+  .note{background:linear-gradient(90deg,rgba(63,185,80,.10),transparent);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:10px;padding:13px 16px;margin:18px 0 0;font-size:13px}
+  .note b{color:var(--green)}
+  pre{margin:8px 0 0;font-family:var(--mono);font-size:11.5px;line-height:1.65;color:#c9d1d9;background:#000;border:1px solid var(--border);border-radius:8px;padding:13px;white-space:pre-wrap}
+  pre .c{color:#6a737d} pre .g{color:var(--green)} pre .y{color:var(--yellow)} pre .r{color:var(--red)}
+  footer{color:var(--muted);font-size:12px;margin-top:30px;border-top:1px solid var(--border);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>🗑️ Untrack build artifacts + local state
+      <span class="sub">the heavier bloat the root-tidy sweeps walked past · chore/untrack-build-artifacts</span></h1>
+    <button class="theme-btn" onclick="var h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark'">☀︎ / ☾</button>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="n" style="color:var(--red)">7.5 MB</div><div class="l">source maps untracked</div></div>
+    <div class="stat"><div class="n" style="color:var(--red)">1.8 MB</div><div class="l">off every install</div></div>
+    <div class="stat"><div class="n" style="color:var(--yellow)">28</div><div class="l">files removed from git</div></div>
+    <div class="stat"><div class="n" style="color:var(--green)">0</div><div class="l">runtime bundles touched</div></div>
+  </div>
+
+  <div class="cards">
+    <div class="card a">
+      <h3>13× *.mjs.map</h3>
+      <div class="big">7.5 MB</div>
+      <p>Debug-only esbuild output. 12 in <code>src/hooks/dist/</code> (already excluded from the plugin by the build rsync); 1 in <code>plugins/ork/mcp-server/</code> that shipped in <b>every install</b> for zero runtime value.</p>
+    </div>
+    <div class="card b">
+      <h3>.vercel/</h3>
+      <div class="big">2 files</div>
+      <p><code>project.json</code> = local CLI linking state (projectId/orgId). The Vercel CLI normally auto-gitignores this — it's machine state, not repo content.</p>
+    </div>
+    <div class="card c">
+      <h3>playgrounds/ (top-level)</h3>
+      <div class="big">13 files</div>
+      <p>Dead legacy dir (pre-<code>docs/&lt;branch&gt;/</code> convention), 0 refs, frozen since 2026-03. Preserved on the <code>playgrounds-archive</code> branch.</p>
+    </div>
+  </div>
+
+  <h2>Why the CI drift gate stays green</h2>
+  <pre><span class="c"># the gate (ci.yml:64) diffs plugins/ + src/hooks/dist after a fresh build</span>
+git diff --quiet plugins/ src/hooks/dist/
+
+<span class="c"># maps are now gitignored (*.mjs.map). the build regenerates them on disk,</span>
+<span class="c"># but git diff RESPECTS gitignore → regenerated maps are invisible → <span class="g">gate passes</span></span>
+build rsync already used <span class="g">--exclude='*.map'</span>  → hooks maps never shipped anyway
+runtime <span class="g">server.mjs</span> bundle  → <b>untouched, still tracked</b>  (only its .map removed)</pre>
+
+  <div class="note">
+    <b>Honest note:</b> like the logo, this shrinks the <b>repo working tree + the shipped plugin</b>,
+    not deep clone size — the blobs stay in history (only a rejected public-history rewrite changes that).
+    But the 1.8MB map <i>was</i> shipping in every marketplace install; that stops now.
+  </div>
+
+  <h2>Verification</h2>
+  <pre>build-plugins.sh   → assembles plugin, maps stay <span class="g">untracked</span>, no re-add
+server.mjs         → <span class="g">still tracked</span> (bundle intact)
+git status         → 28 D + 1 M(.gitignore), <span class="g">nothing stray</span>
+pre-commit gate    → JSON + counts + lint <span class="g">PASS</span></pre>
+
+  <footer>
+    Follows #2840 / #2841 / #2844 (all merged). Archive: <code>playgrounds-archive</code>.
+    Files: <code>.gitignore</code>, 13× <code>*.mjs.map</code>, <code>.vercel/</code>, top-level <code>playgrounds/</code>.
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eval Coverage Walker · #2192</title>
+<style>
+  :root{
+    --pg-bg:hsl(232 26% 7%);
+    --pg-ink:hsl(220 18% 93%);
+    --pg-muted:hsl(220 12% 64%);
+    --pg-faint:hsl(220 10% 46%);
+    --pg-glass:hsl(0 0% 100% / .05);
+    --pg-glass-2:hsl(0 0% 100% / .08);
+    --pg-glass-edge:hsl(0 0% 100% / .18);
+    --pg-accent:hsl(248 84% 68%);
+    --pg-accent-deep:hsl(248 70% 52%);
+    --c-covered:hsl(152 52% 50%);
+    --c-uncovered:hsl(24 82% 58%);
+    --c-orphan:hsl(280 60% 66%);
+    --r-sm:9px; --r-md:16px; --r-lg:24px;
+    --sh-amb:0 20px 60px -22px hsl(232 40% 2% / .7);
+    --sh-tight:0 4px 12px -6px hsl(232 40% 2% / .5);
+    --ease:cubic-bezier(.2,.8,.25,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(900px 600px at 12% 4%, hsl(248 70% 40% / .20), transparent 60%),
+      radial-gradient(760px 520px at 88% 96%, hsl(268 62% 42% / .16), transparent 62%),
+      var(--pg-bg);
+    background-attachment:fixed;
+    color:var(--pg-ink);
+    font:400 15px/1.6 ui-sans-serif,-apple-system,"Segoe UI",Inter,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:48px 24px 96px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums}
+  header{margin-block-end:28px}
+  .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--pg-faint);font-weight:600;margin-block-end:12px}
+  h1{font-size:30px;font-weight:700;letter-spacing:-.3px;line-height:1.15}
+  h1 .sub{color:var(--pg-muted);font-weight:400}
+  .lede{color:var(--pg-muted);margin-block-start:12px;max-width:74ch}
+  .glass{
+    background:var(--pg-glass);
+    border:1px solid var(--pg-glass-edge);
+    border-radius:var(--r-lg);
+    box-shadow:var(--sh-amb),var(--sh-tight),inset 0 1px 0 hsl(0 0% 100% / .12);
+    -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  }
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-block:24px}
+  .tile{padding:18px 20px}
+  .tile .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--pg-faint);font-weight:600}
+  .tile .v{font-size:30px;font-weight:700;letter-spacing:-1px;margin-block-start:6px}
+  .tile .d{font-size:12px;color:var(--pg-muted);margin-block-start:2px}
+  .bar{block-size:8px;border-radius:999px;background:hsl(0 0% 100% / .07);overflow:hidden;margin-block-start:12px}
+  .bar > i{display:block;block-size:100%;border-radius:999px;background:var(--c-covered);transition:inline-size 350ms var(--ease)}
+  .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:16px 18px;margin-block-end:16px}
+  .seg{display:inline-flex;background:hsl(0 0% 100% / .05);border:1px solid var(--pg-glass-edge);border-radius:999px;overflow:hidden}
+  .seg button{
+    background:transparent;border:0;color:var(--pg-muted);font:inherit;font-size:13px;
+    padding:7px 14px;cursor:pointer;transition:background 160ms var(--ease),color 160ms var(--ease);
+  }
+  .seg button[aria-pressed="true"]{background:var(--pg-accent);color:hsl(232 40% 8%);font-weight:600}
+  .grow{flex:1;min-inline-size:160px}
+  input[type=search]{
+    inline-size:100%;background:hsl(0 0% 100% / .05);border:1px solid var(--pg-glass-edge);
+    border-radius:999px;color:var(--pg-ink);font:inherit;font-size:13px;padding:8px 14px;
+  }
+  input[type=search]::placeholder{color:var(--pg-faint)}
+  .switch{display:inline-flex;gap:8px;align-items:center;font-size:13px;color:var(--pg-muted)}
+  .switch input{accent-color:var(--pg-accent);inline-size:16px;block-size:16px}
+  .grid{padding:8px}
+  .row{
+    display:grid;grid-template-columns:1fr 108px 84px;gap:12px;align-items:center;
+    padding:9px 14px;border-block-end:1px solid hsl(0 0% 100% / .05);font-size:14px;
+  }
+  .row:last-child{border-block-end:none}
+  .row .nm{font-weight:500;display:flex;gap:9px;align-items:center;min-inline-size:0}
+  .row .nm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .kind{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--pg-faint);font-weight:600}
+  .badge{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 10px;border-radius:999px;text-align:center;justify-self:start}
+  .badge.covered{background:hsl(152 52% 50% / .16);color:var(--c-covered)}
+  .badge.uncovered{background:hsl(24 82% 58% / .16);color:var(--c-uncovered)}
+  .badge.orphan{background:hsl(280 60% 66% / .16);color:var(--c-orphan)}
+  .dot{inline-size:8px;block-size:8px;border-radius:50%;flex:none}
+  .dot.covered{background:var(--c-covered)}
+  .dot.uncovered{background:var(--c-uncovered)}
+  .dot.orphan{background:var(--c-orphan)}
+  .count{font-size:12px;color:var(--pg-faint);text-align:end}
+  .cmd{margin-block-start:22px;padding:16px 18px}
+  .cmd h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--pg-muted);margin-block-end:10px}
+  .cmd pre{background:hsl(0 0% 0% / .35);border:1px solid var(--pg-glass-edge);border-radius:var(--r-sm);padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.7;color:var(--pg-ink)}
+  .cmd .c{color:var(--pg-faint)}
+  footer{margin-block-start:28px;color:var(--pg-faint);font-size:12px;text-align:center}
+  .empty{padding:28px;text-align:center;color:var(--pg-faint);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">OrchestKit · Eval v2 · #2192</div>
+    <h1>Eval Coverage Walker <span class="sub">/ every skill and agent, checked for a spec</span></h1>
+    <p class="lede">The walker enumerates every shipped component and diffs it against the committed eval
+    specs. Toggle <strong>Before fill</strong> to see the gap this PR found, then <strong>After fill</strong>
+    to see it closed by starter specs. Orphan specs (a spec whose component no longer exists) are surfaced
+    as their own category so drift stays visible.</p>
+  </header>
+
+  <div class="tiles">
+    <div class="tile glass">
+      <div class="k">Skills</div>
+      <div class="v mono"><span id="sk-cov">89</span>/114</div>
+      <div class="d" id="sk-d">25 uncovered</div>
+      <div class="bar"><i id="sk-bar" style="inline-size:78%"></i></div>
+    </div>
+    <div class="tile glass">
+      <div class="k">Agents</div>
+      <div class="v mono"><span id="ag-cov">31</span>/37</div>
+      <div class="d" id="ag-d">6 uncovered</div>
+      <div class="bar"><i id="ag-bar" style="inline-size:84%"></i></div>
+    </div>
+    <div class="tile glass">
+      <div class="k">Orphan specs</div>
+      <div class="v mono">5</div>
+      <div class="d">spec, no component</div>
+      <div class="bar"><i style="inline-size:100%;background:var(--c-orphan)"></i></div>
+    </div>
+    <div class="tile glass">
+      <div class="k">Overall</div>
+      <div class="v mono"><span id="ov-pct">79%</span></div>
+      <div class="d" id="ov-d">120 / 151 covered</div>
+      <div class="bar"><i id="ov-bar" style="inline-size:79%"></i></div>
+    </div>
+  </div>
+
+  <div class="controls glass">
+    <label class="switch"><input type="checkbox" id="fill"> <span>After <span class="mono">--fill</span></span></label>
+    <div class="seg" role="group" aria-label="status filter">
+      <button data-f="all" aria-pressed="true">All</button>
+      <button data-f="covered" aria-pressed="false">Covered</button>
+      <button data-f="uncovered" aria-pressed="false">Uncovered</button>
+      <button data-f="orphan" aria-pressed="false">Orphan</button>
+    </div>
+    <div class="grow"><input type="search" id="q" placeholder="Filter by name..."></div>
+  </div>
+
+  <div class="glass grid">
+    <div class="count" id="count" style="padding:8px 14px 4px"></div>
+    <div id="rows"></div>
+    <div class="empty" id="empty" hidden>No components match.</div>
+  </div>
+
+  <div class="cmd glass">
+    <h2>Invocation</h2>
+    <pre class="mono"><span class="c"># report + write tests/evals/results/coverage.json (gitignored)</span>
+bash scripts/eval/eval-coverage.sh
+<span class="c"># generate a starter spec for every uncovered component</span>
+bash scripts/eval/eval-coverage.sh --fill
+<span class="c"># ratchet: exit non-zero if any component is uncovered (CI gate)</span>
+bash scripts/eval/eval-coverage.sh --check</pre>
+  </div>
+
+  <footer>Data captured at HEAD of feat/2192-eval-coverage-walker · 114 skills, 37 agents, 5 orphan specs</footer>
+</div>
+
+<script>
+const DATA = /*DATA*/{"skills":[{"name":"accessibility","status":"covered"},{"name":"agent-orchestration","status":"covered"},{"name":"ai-ui-generation","status":"covered"},{"name":"analytics","status":"covered"},{"name":"animation-motion-design","status":"covered"},{"name":"api-design","status":"covered"},{"name":"architecture-decision-record","status":"covered"},{"name":"architecture-patterns","status":"covered"},{"name":"ascii-visualizer","status":"covered"},{"name":"assess","status":"covered"},{"name":"async-jobs","status":"covered"},{"name":"audit-activation","status":"covered"},{"name":"audit-full","status":"covered"},{"name":"audit-skills","status":"covered"},{"name":"auto","status":"uncovered"},{"name":"bare-eval","status":"uncovered"},{"name":"brainstorm","status":"covered"},{"name":"browser-tools","status":"covered"},{"name":"business-case","status":"covered"},{"name":"chain-patterns","status":"covered"},{"name":"checkpoint-resume","status":"covered"},{"name":"ci-debug","status":"uncovered"},{"name":"ci-sentinel","status":"uncovered"},{"name":"code-review-playbook","status":"uncovered"},{"name":"commit","status":"covered"},{"name":"competitive-analysis","status":"covered"},{"name":"component-search","status":"uncovered"},{"name":"configure","status":"covered"},{"name":"cover","status":"covered"},{"name":"create-pr","status":"covered"},{"name":"database-patterns","status":"covered"},{"name":"demo-producer","status":"covered"},{"name":"design-context-extract","status":"uncovered"},{"name":"design-import","status":"uncovered"},{"name":"design-ship","status":"uncovered"},{"name":"design-stylecards","status":"uncovered"},{"name":"design-system-tokens","status":"covered"},{"name":"design-to-code","status":"uncovered"},{"name":"dev","status":"uncovered"},{"name":"devops-deployment","status":"covered"},{"name":"distributed-systems","status":"covered"},{"name":"doctor","status":"covered"},{"name":"documentation-patterns","status":"covered"},{"name":"domain-driven-design","status":"covered"},{"name":"dream","status":"covered"},{"name":"emulate-seed","status":"uncovered"},{"name":"errors","status":"covered"},{"name":"expect","status":"uncovered"},{"name":"explore","status":"covered"},{"name":"feedback","status":"covered"},{"name":"figma-design-handoff","status":"covered"},{"name":"fix-issue","status":"covered"},{"name":"github-operations","status":"covered"},{"name":"golden-dataset","status":"covered"},{"name":"help","status":"covered"},{"name":"i18n-date-patterns","status":"covered"},{"name":"implement","status":"covered"},{"name":"interaction-patterns","status":"covered"},{"name":"issue-progress-tracking","status":"covered"},{"name":"json-render-catalog","status":"uncovered"},{"name":"langgraph","status":"covered"},{"name":"llm-integration","status":"covered"},{"name":"market-sizing","status":"covered"},{"name":"mcp-patterns","status":"covered"},{"name":"mcp-visual-output","status":"uncovered"},{"name":"memory-fabric","status":"covered"},{"name":"memory","status":"covered"},{"name":"monitoring-observability","status":"covered"},{"name":"multi-surface-render","status":"uncovered"},{"name":"multimodal-llm","status":"covered"},{"name":"notebooklm","status":"uncovered"},{"name":"okr-design","status":"covered"},{"name":"performance","status":"covered"},{"name":"portless","status":"uncovered"},{"name":"prd-to-goal","status":"uncovered"},{"name":"presentation-builder","status":"covered"},{"name":"prioritization","status":"covered"},{"name":"product-analytics","status":"covered"},{"name":"product-frameworks","status":"covered"},{"name":"python-backend","status":"covered"},{"name":"quality-gates","status":"covered"},{"name":"rag-retrieval","status":"covered"},{"name":"react-server-components-framework","status":"covered"},{"name":"release-checklist","status":"covered"},{"name":"release-management","status":"covered"},{"name":"release-sync","status":"uncovered"},{"name":"remember","status":"covered"},{"name":"responsive-patterns","status":"covered"},{"name":"review-pr","status":"covered"},{"name":"scope-appropriate-architecture","status":"covered"},{"name":"security-patterns","status":"covered"},{"name":"setup","status":"covered"},{"name":"skill-evolution","status":"covered"},{"name":"storybook-mcp-integration","status":"covered"},{"name":"storybook-testing","status":"covered"},{"name":"swarm-migrate","status":"uncovered"},{"name":"task-dependency-patterns","status":"covered"},{"name":"telemetry-inspect","status":"uncovered"},{"name":"testing-e2e","status":"covered"},{"name":"testing-integration","status":"covered"},{"name":"testing-llm","status":"covered"},{"name":"testing-patterns","status":"uncovered"},{"name":"testing-perf","status":"covered"},{"name":"testing-unit","status":"covered"},{"name":"ui-components","status":"covered"},{"name":"upgrade-assessment","status":"covered"},{"name":"user-research","status":"covered"},{"name":"validate-counts","status":"covered"},{"name":"verify","status":"covered"},{"name":"visualize-plan","status":"covered"},{"name":"vite-advanced","status":"covered"},{"name":"web-research-workflow","status":"uncovered"},{"name":"write-prd","status":"covered"},{"name":"zustand-patterns","status":"covered"}],"agents":[{"name":"accessibility-specialist","status":"covered"},{"name":"ai-safety-auditor","status":"covered"},{"name":"backend-system-architect","status":"covered"},{"name":"ci-cd-engineer","status":"covered"},{"name":"claude-design-orchestrator","status":"uncovered"},{"name":"code-quality-reviewer","status":"covered"},{"name":"component-curator","status":"uncovered"},{"name":"data-pipeline-engineer","status":"covered"},{"name":"database-engineer","status":"covered"},{"name":"debug-investigator","status":"covered"},{"name":"demo-producer","status":"covered"},{"name":"deployment-manager","status":"covered"},{"name":"design-context-extractor","status":"uncovered"},{"name":"design-system-architect","status":"covered"},{"name":"emulate-engineer","status":"uncovered"},{"name":"eval-runner","status":"covered"},{"name":"event-driven-architect","status":"covered"},{"name":"expect-agent","status":"uncovered"},{"name":"frontend-performance-engineer","status":"covered"},{"name":"frontend-ui-developer","status":"covered"},{"name":"genui-architect","status":"uncovered"},{"name":"git-operations-engineer","status":"covered"},{"name":"infrastructure-architect","status":"covered"},{"name":"llm-integrator","status":"covered"},{"name":"market-intelligence","status":"covered"},{"name":"monitoring-engineer","status":"covered"},{"name":"multimodal-specialist","status":"covered"},{"name":"product-strategist","status":"covered"},{"name":"python-performance-engineer","status":"covered"},{"name":"release-engineer","status":"covered"},{"name":"security-auditor","status":"covered"},{"name":"security-layer-auditor","status":"covered"},{"name":"system-design-reviewer","status":"covered"},{"name":"test-generator","status":"covered"},{"name":"ui-feedback","status":"covered"},{"name":"web-research-analyst","status":"covered"},{"name":"workflow-architect","status":"covered"}],"orphans":[{"name":"agent-hooks-main-thread","kind":"skill"},{"name":"create-pr-rate-limit","kind":"skill"},{"name":"doctor-reload-plugins-auto-deps","kind":"skill"},{"name":"github-operations-rate-limit","kind":"skill"},{"name":"review-pr-rate-limit","kind":"skill"}]}/*ENDDATA*/;
+const rowsEl = document.getElementById('rows');
+const emptyEl = document.getElementById('empty');
+const countEl = document.getElementById('count');
+const qEl = document.getElementById('q');
+const fillEl = document.getElementById('fill');
+let filter = 'all';
+
+function components(afterFill){
+  const out = [];
+  for (const s of DATA.skills) out.push({name:s.name, kind:'skill', status: afterFill && s.status==='uncovered' ? 'covered' : s.status});
+  for (const a of DATA.agents) out.push({name:a.name, kind:'agent', status: afterFill && a.status==='uncovered' ? 'covered' : a.status});
+  for (const o of DATA.orphans) out.push({name:o.name, kind:o.kind, status:'orphan'});
+  return out;
+}
+
+function stats(afterFill){
+  const skCov = DATA.skills.filter(s => afterFill || s.status==='covered').length;
+  const agCov = DATA.agents.filter(a => afterFill || a.status==='covered').length;
+  const skT = DATA.skills.length, agT = DATA.agents.length;
+  document.getElementById('sk-cov').textContent = skCov;
+  document.getElementById('ag-cov').textContent = agCov;
+  document.getElementById('sk-d').textContent = (skT-skCov) + ' uncovered';
+  document.getElementById('ag-d').textContent = (agT-agCov) + ' uncovered';
+  document.getElementById('sk-bar').style.inlineSize = Math.round(skCov/skT*100)+'%';
+  document.getElementById('ag-bar').style.inlineSize = Math.round(agCov/agT*100)+'%';
+  const ovCov = skCov+agCov, ovT = skT+agT, pct = Math.round(ovCov/ovT*100);
+  document.getElementById('ov-pct').textContent = pct+'%';
+  document.getElementById('ov-d').textContent = ovCov+' / '+ovT+' covered';
+  document.getElementById('ov-bar').style.inlineSize = pct+'%';
+}
+
+function render(){
+  const afterFill = fillEl.checked;
+  stats(afterFill);
+  const q = qEl.value.trim().toLowerCase();
+  let items = components(afterFill);
+  if (filter !== 'all') items = items.filter(i => i.status === filter);
+  if (q) items = items.filter(i => i.name.toLowerCase().includes(q));
+  items.sort((a,b) => a.name.localeCompare(b.name));
+  countEl.textContent = items.length + ' shown';
+  rowsEl.innerHTML = items.map(i =>
+    '<div class="row">'
+    + '<div class="nm"><i class="dot '+i.status+'"></i><span>'+i.name+'</span></div>'
+    + '<div class="badge '+i.status+'">'+i.status+'</div>'
+    + '<div class="kind">'+i.kind+'</div>'
+    + '</div>'
+  ).join('');
+  emptyEl.hidden = items.length !== 0;
+}
+
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+  filter = b.dataset.f;
+  document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', String(x===b)));
+  render();
+}));
+qEl.addEventListener('input', render);
+fillEl.addEventListener('change', render);
+render();
+</script>
+</body>
+</html>

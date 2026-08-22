@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ork:dream — the prune-safety pipeline (#3057)</title>
+<style>
+  :root {
+    --pg-bg: hsl(232 26% 7%); --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(220 14% 64%); --pg-faint: hsl(220 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05); --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%); --pg-accent-deep: hsl(258 70% 52%);
+    --pg-keep: hsl(158 64% 52%); --pg-bad: hsl(2 72% 62%); --pg-warm: hsl(38 95% 60%);
+    --r-sm: 9px; --r-md: 16px; --r-lg: 24px;
+    --t-press: 100ms; --t-panel: 200ms; --t-step: 300ms;
+    --ease: cubic-bezier(.2,.8,.25,1);
+    --sh-ambient: 0 20px 60px -22px hsl(232 40% 2% / .7);
+    --sh-tight: 0 4px 12px -6px hsl(232 40% 2% / .5);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-block-size: 100vh; color: var(--pg-ink);
+    background:
+      radial-gradient(900px 600px at 12% -5%, hsl(248 84% 68% / .15), transparent 60%),
+      radial-gradient(820px 520px at 94% 6%, hsl(266 70% 60% / .12), transparent 62%),
+      var(--pg-bg);
+    background-attachment: fixed;
+    font: 15px/1.6 ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; padding: 48px 24px 96px;
+  }
+  .wrap { max-inline-size: 1080px; margin-inline: auto; }
+  .eyebrow { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--pg-faint); }
+  h1 { margin: 12px 0 8px; font-size: clamp(26px, 3.4vw, 40px); font-weight: 700; letter-spacing: -.3px; line-height: 1.1; }
+  .sub { margin: 0; color: var(--pg-muted); max-inline-size: 72ch; }
+  .glass {
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--r-lg);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--sh-ambient), var(--sh-tight), inset 0 1px 0 hsl(0 0% 100% / .14);
+  }
+  .stage { margin-block-start: 24px; padding: 24px; }
+  .stage-h { margin: 0 0 4px; font-size: 19px; font-weight: 700; letter-spacing: -.2px; }
+  .stage-p { margin: 0 0 20px; color: var(--pg-muted); max-inline-size: 76ch; }
+  .stage-p b { color: var(--pg-ink); font-weight: 600; }
+
+  /* pipeline: a memory file falls through gates */
+  .pipe { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; align-items: start; }
+  @media (max-width: 760px) { .pipe { grid-template-columns: 1fr; } }
+  .files { display: grid; gap: 6px; min-inline-size: 0; }
+  .file {
+    padding: 8px 11px; border-radius: var(--r-sm); font: 400 11px/1.35 ui-monospace, Menlo, monospace;
+    background: hsl(0 0% 100% / .04); border: 1px solid hsl(0 0% 100% / .09);
+    cursor: pointer; transition: all var(--t-press) var(--ease);
+    overflow-wrap: anywhere; word-break: break-word;
+  }
+  .file:hover { background: hsl(0 0% 100% / .08); }
+  .file[aria-selected="true"] { border-color: var(--pg-accent); background: hsl(248 60% 40% / .18); }
+  .file .t { color: var(--pg-faint); font-size: 10px; margin-block-start: 3px; }
+  .gates { display: grid; gap: 10px; min-inline-size: 0; }
+  .gate {
+    display: grid; grid-template-columns: 26px 1fr auto; gap: 12px; align-items: center;
+    padding: 12px 16px; border-radius: var(--r-md);
+    background: hsl(0 0% 100% / .03); border: 1px solid hsl(0 0% 100% / .08);
+    transition: all var(--t-panel) var(--ease);
+  }
+  .gate .n {
+    inline-size: 26px; block-size: 26px; border-radius: 50%; display: grid; place-items: center;
+    font: 600 12px/1 ui-monospace, Menlo, monospace; color: var(--pg-faint);
+    border: 1px solid hsl(0 0% 100% / .16);
+  }
+  .gate .body { min-inline-size: 0; }
+  .gate .g-name { font-weight: 600; font-size: 13.5px; }
+  .gate .g-desc { color: var(--pg-faint); font-size: 12px; }
+  .gate .verdict { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .04em; text-transform: uppercase; opacity: 0; transition: opacity var(--t-panel); }
+  .gate[data-hit="pass"]  { border-color: hsl(158 64% 52% / .4); background: hsl(158 40% 24% / .16); }
+  .gate[data-hit="pass"] .n { border-color: var(--pg-keep); color: var(--pg-keep); }
+  .gate[data-hit="pass"] .verdict { opacity: 1; color: var(--pg-keep); }
+  .gate[data-hit="fall"] { border-color: hsl(0 0% 100% / .1); }
+  .gate[data-hit="fall"] .n { border-color: var(--pg-faint); }
+  .gate[data-hit="fall"] .verdict { opacity: 1; color: var(--pg-faint); }
+  .gate[data-hit="delete"] { border-color: hsl(2 72% 62% / .45); background: hsl(2 50% 26% / .18); }
+  .gate[data-hit="delete"] .n { border-color: var(--pg-bad); color: var(--pg-bad); }
+  .gate[data-hit="delete"] .verdict { opacity: 1; color: var(--pg-bad); }
+  .outcome {
+    margin-block-start: 14px; padding: 14px 18px; border-radius: var(--r-md);
+    font: 600 14px/1.4 ui-sans-serif, system-ui, sans-serif; display: flex; align-items: center; gap: 10px;
+  }
+  .outcome[data-k="keep"]   { background: hsl(158 40% 24% / .2); border: 1px solid hsl(158 64% 52% / .4); color: hsl(158 64% 72%); }
+  .outcome[data-k="delete"] { background: hsl(2 50% 26% / .2); border: 1px solid hsl(2 72% 62% / .45); color: hsl(2 72% 76%); }
+  .transport { margin-block-start: 24px; display: flex; align-items: center; gap: 8px; padding: 12px; border-radius: var(--r-md); background: var(--pg-glass); border: 1px solid hsl(0 0% 100% / .1); }
+  button { font: 600 13px/1 inherit; color: var(--pg-ink); background: hsl(0 0% 100% / .07); border: 1px solid hsl(0 0% 100% / .14); border-radius: var(--r-sm); padding: 9px 14px; cursor: pointer; transition: background var(--t-press), transform var(--t-press); }
+  button:hover:not(:disabled) { background: hsl(0 0% 100% / .12); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button.primary { background: var(--pg-accent-deep); border-color: hsl(248 84% 68% / .5); }
+  :focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+  .count { margin-inline-start: auto; font: 400 12px/1 ui-monospace, Menlo, monospace; color: var(--pg-faint); }
+  .metrics { margin-block-start: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .metric { padding: 12px 16px; border-radius: var(--r-md); background: hsl(0 0% 100% / .04); border: 1px solid hsl(0 0% 100% / .09); }
+  .metric .k { font: 400 11px/1.4 ui-monospace, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--pg-faint); }
+  .metric .v { margin-block-start: 6px; font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.2px; }
+  .prompt { margin-block-start: 24px; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--r-md); background: hsl(0 0% 100% / .04); border: 1px solid hsl(0 0% 100% / .09); }
+  .prompt code { flex: 1; min-inline-size: 0; font: 400 12.5px/1.5 ui-monospace, Menlo, monospace; color: var(--pg-muted); overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">OrchestKit · fix/dream-staleness-scope · #3057</div>
+  <h1>ork:dream stopped deleting live memories</h1>
+  <p class="sub">
+    The old staleness check ran <code>Glob(ref)</code> against the working repo, so any memory
+    citing a path outside it scored as fully stale and got auto-deleted. On a real 151-file corpus
+    that was <b>11 false positives</b>, including one written the same day. Pick a memory and watch
+    it fall through the new gates.
+  </p>
+
+  <div class="glass stage">
+    <div class="pipe">
+      <div>
+        <div class="stage-h" style="font-size:13px;margin-bottom:10px;color:var(--pg-faint);text-transform:uppercase;letter-spacing:.1em;">A real memory</div>
+        <div class="files" id="files" role="listbox" aria-label="Memory files"></div>
+      </div>
+      <div>
+        <div class="stage-h">Prune-safety pipeline</div>
+        <div class="stage-p">Each gate below can only <b>keep</b>. A file is deleted only if it reaches the bottom untouched.</div>
+        <div class="gates" id="gates"></div>
+        <div class="outcome" id="outcome" data-k="keep"><span id="outcome-txt"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="transport">
+    <button id="prev" aria-label="Previous memory">&lsaquo; Prev</button>
+    <button id="play" class="primary" aria-label="Replay">&#9654; Replay</button>
+    <button id="next" aria-label="Next memory">Next &rsaquo;</button>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="k">Old false positives</div><div class="v">11</div></div>
+    <div class="metric"><div class="k">New auto-deletes</div><div class="v">0<small style="color:var(--pg-faint);font-weight:400;font-size:12px;"> / 151</small></div></div>
+    <div class="metric"><div class="k">Index size</div><div class="v">22.5 &rarr; 16.2<small style="color:var(--pg-faint);font-weight:400;font-size:12px;"> KB</small></div></div>
+    <div class="metric"><div class="k">Entries kept</div><div class="v">151<small style="color:var(--pg-faint);font-weight:400;font-size:12px;"> / 151</small></div></div>
+  </div>
+
+  <div class="prompt">
+    <code id="p-text">Review fix/dream-staleness-scope for #3057: check the ref-scope classifier, the four STEP 2d prune guards, and the bytes-not-lines index rule.</code>
+    <button id="copy">Copy</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+
+  // Real files + their real classification under the fixed logic (verified by script).
+  const MEM = [
+    { name: "feedback_evals_trigger_1password_prompts.md", t: "type: feedback · written today",
+      gate: 1, why: "feedback: value is the lesson, not its file refs" },
+    { name: "reference_cmux_scroll_blank_research.md", t: "type: reference · refs a ~/ path",
+      gate: 0, why: "zero verifiable refs -> EVERGREEN" },
+    { name: "user_mx_master4_cmux_setup.md", t: "type: user · refs ~/.config/cmux",
+      gate: 1, why: "type:user is never auto-pruned" },
+    { name: "feedback_git_validator_worktree_false_positive.md", t: "type: feedback · cited .ts:line moved",
+      gate: 1, why: "feedback: ref-extraction is lossy, keeps the lesson" },
+    { name: "project_stale_experiment_scratch.md", t: "type: project · all repo refs deleted, 40d old",
+      gate: -1, why: "no guard applies -> the ONLY class that can auto-delete" },
+  ];
+
+  // gate order matters: EVERGREEN (0) short-circuits before the 2d guards (1..4)
+  const GATES = [
+    { n: "0", name: "Ref-scope classify", desc: "external / ~ / URL refs are UNVERIFIABLE; zero verifiable -> EVERGREEN" },
+    { n: "1", name: "type:user", desc: "preferences never auto-prune" },
+    { n: "2", name: "type:feedback / reference", desc: "value is the lesson, refs are illustrations" },
+    { n: "3", name: "modified < 14d", desc: "recent memories describe the present" },
+    { n: "4", name: "do-not / never directive", desc: "a prohibition outlives the code it warns about" },
+  ];
+
+  const filesEl = $("#files"), gatesEl = $("#gates");
+  MEM.forEach((m, i) => {
+    const d = document.createElement("div");
+    d.className = "file"; d.setAttribute("role", "option"); d.tabIndex = 0;
+    d.innerHTML = `${m.name.replace(/\.md$/, "")}<div class="t">${m.t}</div>`;
+    d.addEventListener("click", () => show(i));
+    d.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(i); } });
+    filesEl.appendChild(d);
+  });
+  GATES.forEach((g) => {
+    const d = document.createElement("div");
+    d.className = "gate"; d.dataset.hit = "";
+    d.innerHTML = `<div class="n">${g.n}</div><div class="body"><div class="g-name">${g.name}</div><div class="g-desc">${g.desc}</div></div><div class="verdict"></div>`;
+    gatesEl.appendChild(d);
+  });
+  const gateEls = [...gatesEl.children];
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let cur = 0, timers = [];
+  const clear = () => { timers.forEach(clearTimeout); timers = []; };
+  const later = (fn, ms) => timers.push(setTimeout(fn, reduced ? 0 : ms));
+
+  function show(i) {
+    clear();
+    cur = (i + MEM.length) % MEM.length;
+    const m = MEM[cur];
+    [...filesEl.children].forEach((f, k) => f.setAttribute("aria-selected", k === cur ? "true" : "false"));
+    $("#count").textContent = `Memory ${cur + 1} of ${MEM.length}`;
+    gateEls.forEach((g) => { g.dataset.hit = ""; g.querySelector(".verdict").textContent = ""; });
+    const out = $("#outcome"), txt = $("#outcome-txt");
+    out.style.opacity = "0";
+
+    const stopAt = m.gate; // 0..4 = caught by that gate; -1 = falls through all
+    gateEls.forEach((g, k) => {
+      later(() => {
+        if (stopAt === -1) {
+          g.dataset.hit = "fall"; g.querySelector(".verdict").textContent = "fall through";
+          if (k === gateEls.length - 1) {
+            later(() => { out.dataset.k = "delete"; txt.textContent = "AUTO-DELETE — reached the bottom untouched (a genuinely stale project memory)"; out.style.opacity = "1"; }, 260);
+          }
+        } else if (k < stopAt) {
+          g.dataset.hit = "fall"; g.querySelector(".verdict").textContent = "n/a";
+        } else if (k === stopAt) {
+          g.dataset.hit = "pass"; g.querySelector(".verdict").textContent = "KEEP";
+          later(() => { out.dataset.k = "keep"; txt.textContent = "KEPT — " + m.why; out.style.opacity = "1"; }, 260);
+        }
+      }, k * 260);
+    });
+  }
+
+  $("#prev").addEventListener("click", () => show(cur - 1));
+  $("#next").addEventListener("click", () => show(cur + 1));
+  $("#play").addEventListener("click", () => show(cur));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") $("#prev").click();
+    if (e.key === "ArrowRight") $("#next").click();
+  });
+  $("#copy").addEventListener("click", async (e) => {
+    const b = e.currentTarget;
+    try { await navigator.clipboard.writeText($("#p-text").textContent.trim()); } catch { return; }
+    const w = b.textContent; b.textContent = "✓"; setTimeout(() => { b.textContent = w; }, 1500);
+  });
+
+  show(0);
+})();
+</script>
+</body>
+</html>

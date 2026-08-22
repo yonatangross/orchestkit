@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ARD catalog — how an agent discovers OrchestKit</title>
+<style>
+  :root {
+    --pg-bg: hsl(232 26% 7%); --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(220 14% 64%); --pg-faint: hsl(220 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05); --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%); --pg-accent-deep: hsl(258 70% 52%);
+    --pg-keep: hsl(158 64% 52%); --pg-warm: hsl(38 95% 60%);
+    --r-sm: 9px; --r-md: 16px; --r-lg: 24px;
+    --t-press: 100ms; --t-panel: 200ms; --t-step: 300ms;
+    --ease: cubic-bezier(.2,.8,.25,1);
+    --sh-ambient: 0 20px 60px -22px hsl(232 40% 2% / .7);
+    --sh-tight: 0 4px 12px -6px hsl(232 40% 2% / .5);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-block-size: 100vh; color: var(--pg-ink);
+    background:
+      radial-gradient(900px 600px at 12% -5%, hsl(248 84% 68% / .15), transparent 60%),
+      radial-gradient(820px 520px at 94% 6%, hsl(266 70% 60% / .12), transparent 62%),
+      var(--pg-bg);
+    background-attachment: fixed;
+    font: 15px/1.6 ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; padding: 48px 24px 96px;
+  }
+  .wrap { max-inline-size: 1000px; margin-inline: auto; }
+  .eyebrow { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--pg-faint); }
+  h1 { margin: 12px 0 8px; font-size: clamp(26px, 3.4vw, 40px); font-weight: 700; letter-spacing: -.3px; line-height: 1.1; }
+  .sub { margin: 0; color: var(--pg-muted); max-inline-size: 74ch; }
+  .sub code { font-family: ui-monospace, Menlo, monospace; color: var(--pg-ink); }
+  .glass {
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--r-lg);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--sh-ambient), var(--sh-tight), inset 0 1px 0 hsl(0 0% 100% / .14);
+  }
+  .stage { margin-block-start: 24px; padding: 24px; }
+  .stage-h { margin: 0 0 4px; font-size: 19px; font-weight: 700; letter-spacing: -.2px; }
+  .stage-p { margin: 0 0 20px; color: var(--pg-muted); }
+  .stage-p code { font-family: ui-monospace, Menlo, monospace; color: var(--pg-ink); }
+
+  .grid { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 24px; align-items: start; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .entries { display: grid; gap: 8px; min-inline-size: 0; }
+  .entry {
+    padding: 12px 14px; border-radius: var(--r-md); cursor: pointer; text-align: start;
+    background: hsl(0 0% 100% / .04); border: 1px solid hsl(0 0% 100% / .1);
+    color: var(--pg-ink); font: inherit; transition: all var(--t-press) var(--ease);
+    overflow-wrap: anywhere;
+  }
+  .entry:hover { background: hsl(0 0% 100% / .08); }
+  .entry[aria-selected="true"] { border-color: var(--pg-accent); background: hsl(248 60% 40% / .18); }
+  .entry .name { font-weight: 600; font-size: 14px; }
+  .entry .urn { margin-block-start: 3px; font: 400 10.5px/1.3 ui-monospace, Menlo, monospace; color: var(--pg-faint); }
+  .detail { min-inline-size: 0; }
+  .detail .k { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--pg-faint); }
+  .detail .big { margin: 6px 0 4px; font-size: 18px; font-weight: 700; letter-spacing: -.2px; }
+  .row { display: grid; grid-template-columns: 100px 1fr; gap: 10px; padding: 8px 0; border-block-end: 1px solid hsl(0 0% 100% / .07); align-items: baseline; }
+  .row:last-child { border-block-end: 0; }
+  .row .rk { font: 400 11px/1.4 ui-monospace, Menlo, monospace; letter-spacing: .06em; text-transform: uppercase; color: var(--pg-faint); }
+  .row .rv { font: 400 13px/1.5 ui-monospace, Menlo, monospace; color: var(--pg-ink); overflow-wrap: anywhere; }
+  .row .rv.desc { font-family: ui-sans-serif, system-ui, sans-serif; color: var(--pg-muted); }
+  .resolve { margin-block-start: 14px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 13px; border-radius: var(--r-sm); background: hsl(158 40% 24% / .16); border: 1px solid hsl(158 64% 52% / .4); color: var(--pg-keep); font: 600 12px/1 ui-monospace, Menlo, monospace; }
+  .tags { margin-block-start: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { padding: 4px 9px; border-radius: 6px; font: 400 11px/1 ui-monospace, Menlo, monospace; color: hsl(220 14% 74%); background: hsl(0 0% 100% / .06); border: 1px solid hsl(0 0% 100% / .1); }
+  :focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+  .prompt { margin-block-start: 24px; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--r-md); background: hsl(0 0% 100% / .04); border: 1px solid hsl(0 0% 100% / .09); }
+  .prompt code { flex: 1; min-inline-size: 0; font: 400 12.5px/1.5 ui-monospace, Menlo, monospace; color: var(--pg-muted); overflow-wrap: anywhere; }
+  button.copy { font: 600 13px/1 inherit; color: var(--pg-ink); background: hsl(0 0% 100% / .07); border: 1px solid hsl(0 0% 100% / .14); border-radius: var(--r-sm); padding: 9px 14px; cursor: pointer; }
+  .note { margin-block-start: 20px; color: var(--pg-faint); font-size: 13px; max-inline-size: 80ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">OrchestKit · feat/orank-ard-catalog</div>
+  <h1>How an agent discovers OrchestKit</h1>
+  <p class="sub">
+    An AI client fetches <code>/.well-known/ai-catalog.json</code> once and enumerates every
+    agentic resource before invoking any of them. Each entry carries a domain-anchored URN, a
+    media type, and a resolvable URL. Pick an entry to inspect it — every URL below returns
+    <code>200</code> on production. Nothing here is fabricated.
+  </p>
+
+  <div class="glass stage">
+    <div class="stage-h">The ARD catalog · 5 entries</div>
+    <div class="stage-p">host <code>did:web:orchestkit.yonyon.ai</code> · specVersion <code>1.0</code></div>
+    <div class="grid">
+      <div class="entries" id="entries" role="listbox" aria-label="Catalog entries"></div>
+      <div class="detail" id="detail" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="prompt">
+    <code id="p-text">Fetch https://orchestkit.yonyon.ai/.well-known/ai-catalog.json and enumerate the agentic resources, then connect to the MCP server it lists to search the OrchestKit docs.</code>
+    <button class="copy" id="copy">Copy</button>
+  </div>
+
+  <p class="note">
+    ARD (Agentic Resource Discovery) is a nascent, ora.ai-promoted format; adoption is still
+    thin. This catalog is truthful either way — every entry points at a resource the site
+    already serves (MCP server, skills index, A2A card, OpenAPI, RFC 9727 catalog), and the
+    allowlist that fronts it is kept in sync with the route table by a test.
+  </p>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+  const D = "https://orchestkit.yonyon.ai";
+  // Mirrors the real /.well-known/ai-catalog.json entries.
+  const ENTRIES = [
+    { id: "urn:air:orchestkit.yonyon.ai:mcp:docs", name: "OrchestKit Docs MCP server",
+      type: "application/mcp-server-card+json", url: D + "/.well-known/mcp/server-card.json",
+      desc: "Read-only MCP tools: search the docs, fetch pages as Markdown. Streamable HTTP or stdio.",
+      tags: ["mcp", "documentation", "search", "read-only"] },
+    { id: "urn:air:orchestkit.yonyon.ai:skills:index", name: "Agent skills index",
+      type: "application/json", url: D + "/.well-known/agent-skills/index.json",
+      desc: "Index of published skills in the agentskills.io shape — enumerate capabilities by name.",
+      tags: ["skills", "discovery", "index"] },
+    { id: "urn:air:orchestkit.yonyon.ai:agent-card:a2a", name: "A2A agent card",
+      type: "application/json", url: D + "/.well-known/agent-card.json",
+      desc: "Agent-to-Agent card describing OrchestKit's agent-facing surface.",
+      tags: ["a2a", "agent-card", "discovery"] },
+    { id: "urn:air:orchestkit.yonyon.ai:api:openapi", name: "Documentation search API",
+      type: "application/json", url: D + "/openapi.json",
+      desc: "OpenAPI 3.1 for the unauthenticated read-only search + NLWeb query API.",
+      tags: ["openapi", "api", "search", "read-only"] },
+    { id: "urn:air:orchestkit.yonyon.ai:api-catalog:rfc9727", name: "API catalog (RFC 9727)",
+      type: "application/linkset+json", url: D + "/.well-known/api-catalog",
+      desc: "RFC 9727 linkset of every discoverable API surface with its relations.",
+      tags: ["api-catalog", "rfc9727", "linkset"] },
+  ];
+  const listEl = $("#entries");
+  ENTRIES.forEach((e, i) => {
+    const b = document.createElement("button");
+    b.className = "entry"; b.setAttribute("role", "option"); b.type = "button";
+    b.innerHTML = `<div class="name">${e.name}</div><div class="urn">${e.id}</div>`;
+    b.addEventListener("click", () => pick(i));
+    listEl.appendChild(b);
+  });
+  function pick(i) {
+    [...listEl.children].forEach((c, k) => c.setAttribute("aria-selected", k === i ? "true" : "false"));
+    const e = ENTRIES[i];
+    $("#detail").innerHTML =
+      `<div class="k">Selected resource</div>
+       <div class="big">${e.name}</div>
+       <div class="row"><div class="rk">URN</div><div class="rv">${e.id}</div></div>
+       <div class="row"><div class="rk">Media type</div><div class="rv">${e.type}</div></div>
+       <div class="row"><div class="rk">URL</div><div class="rv">${e.url}</div></div>
+       <div class="row"><div class="rk">What</div><div class="rv desc">${e.desc}</div></div>
+       <div class="resolve">✓ resolves 200 on production</div>
+       <div class="tags">${e.tags.map((t) => `<span class="tag">${t}</span>`).join("")}</div>`;
+  }
+  $("#copy").addEventListener("click", async (ev) => {
+    const b = ev.currentTarget;
+    try { await navigator.clipboard.writeText($("#p-text").textContent.trim()); } catch { return; }
+    const w = b.textContent; b.textContent = "✓"; setTimeout(() => { b.textContent = w; }, 1500);
+  });
+  pick(0);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Factory Ride: scrub, load and framing fixes</title>
+<style>
+  /* ── §2 tokens · cool-glass persona · HSL only ─────────────────────── */
+  :root {
+    --pg-bg:         hsl(232 26% 7%);
+    --pg-ink:        hsl(220 18% 93%);
+    --pg-muted:      hsl(220 14% 64%);
+    --pg-faint:      hsl(220 12% 46%);
+    --pg-glass:      hsl(0 0% 100% / .05);
+    --pg-glass-2:    hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent:     hsl(248 84% 68%);
+    --pg-accent-deep:hsl(258 70% 52%);
+    --pg-warm:       hsl(38 95% 60%);
+    --pg-bad:        hsl(2 72% 62%);
+
+    --r-sm: 9px; --r-md: 16px; --r-lg: 24px;
+    --t-press: 100ms; --t-panel: 200ms; --t-step: 300ms; --t-enter: 500ms;
+    --ease: cubic-bezier(.2,.8,.25,1);
+
+    --sh-ambient: 0 20px 60px -22px hsl(232 40% 2% / .7);
+    --sh-tight:   0 4px 12px -6px hsl(232 40% 2% / .5);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-block-size: 100vh;
+    background:
+      radial-gradient(900px 600px at 15% -5%,  hsl(248 84% 68% / .16), transparent 60%),
+      radial-gradient(800px 500px at 92% 8%,   hsl(266 70% 60% / .13), transparent 62%),
+      radial-gradient(700px 700px at 50% 108%, hsl(238 74% 60% / .10), transparent 60%),
+      var(--pg-bg);
+    background-attachment: fixed;
+    color: var(--pg-ink);
+    font: 15px/1.6 ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 48px 24px 96px;
+  }
+
+  .wrap { max-inline-size: 1080px; margin-inline: auto; }
+
+  /* ── header ─────────────────────────────────────────────────────────── */
+  header { margin-block-end: 24px; }
+  .eyebrow {
+    font: 600 11px/1 ui-monospace, "SF Mono", Menlo, monospace;
+    letter-spacing: .14em; text-transform: uppercase;
+    color: var(--pg-faint);
+  }
+  h1 {
+    margin: 12px 0 8px;
+    font-size: clamp(26px, 3.4vw, 40px);
+    font-weight: 700; letter-spacing: -.3px; line-height: 1.1;
+  }
+  .sub { margin: 0; color: var(--pg-muted); max-inline-size: 68ch; }
+  .meta {
+    margin-block-start: 12px; display: flex; flex-wrap: wrap; gap: 8px;
+    font: 400 12px/1 ui-monospace, "SF Mono", Menlo, monospace;
+    color: var(--pg-faint);
+  }
+  .meta span {
+    border: 1px solid var(--pg-glass-edge); border-radius: var(--r-sm);
+    padding: 6px 10px; background: var(--pg-glass);
+  }
+
+  /* ── §5 glass ───────────────────────────────────────────────────────── */
+  .glass {
+    background: var(--pg-glass);
+    border: 1px solid var(--pg-glass-edge);
+    border-radius: var(--r-lg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--sh-ambient), var(--sh-tight), inset 0 1px 0 hsl(0 0% 100% / .14);
+  }
+
+  /* ── PRIMARY: the stage (§3 tier 1) ─────────────────────────────────── */
+  .stage { padding: 24px; min-block-size: 430px; position: relative; overflow: hidden; }
+  .step { display: none; animation: rise var(--t-step) var(--ease) both; }
+  .step[data-on="1"] { display: block; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .step-h {
+    margin: 0 0 4px; font-size: 20px; font-weight: 700; letter-spacing: -.2px;
+  }
+  .step-p { margin: 0 0 24px; color: var(--pg-muted); max-inline-size: 74ch; }
+  .step-p b { color: var(--pg-ink); font-weight: 600; }
+
+  /* ── loader demo ────────────────────────────────────────────────────── */
+  .lanes { display: grid; gap: 16px; }
+  .lane-h {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    font: 600 12px/1 ui-monospace, "SF Mono", Menlo, monospace;
+    letter-spacing: .06em; text-transform: uppercase;
+    margin-block-end: 8px;
+  }
+  .lane-h .tag { color: var(--pg-faint); }
+  .lane-h .val { font-size: 13px; font-variant-numeric: tabular-nums; }
+  .bad  { color: var(--pg-bad); }
+  .good { color: var(--pg-accent); }
+
+  .grid {
+    display: grid; grid-template-columns: repeat(34, 1fr); gap: 3px;
+    padding: 12px; border-radius: var(--r-md);
+    background: hsl(232 30% 4% / .55); border: 1px solid hsl(0 0% 100% / .07);
+  }
+  .cell {
+    aspect-ratio: 1; border-radius: 2px;
+    background: hsl(220 14% 30% / .5);
+    transition: background var(--t-press) var(--ease);
+  }
+  .cell[data-s="q"] { background: hsl(248 40% 45% / .55); }
+  .cell[data-s="f"] { background: var(--pg-accent); }
+  .cell[data-s="d"] { background: hsl(248 30% 78%); }
+
+  /* ── scrub demo ─────────────────────────────────────────────────────── */
+  .track {
+    position: relative; block-size: 46px; border-radius: var(--r-md);
+    background: hsl(232 30% 4% / .55); border: 1px solid hsl(0 0% 100% / .07);
+    overflow: hidden;
+  }
+  .ticks { position: absolute; inset: 0; display: flex; }
+  .ticks i { flex: 1; border-inline-end: 1px solid hsl(0 0% 100% / .05); }
+  .head {
+    position: absolute; inset-block: 6px; inline-size: 4px; border-radius: 2px;
+    background: var(--pg-accent); inset-inline-start: 0;
+    box-shadow: 0 0 0 1px hsl(232 30% 4% / .6);
+  }
+  .head.raw { background: var(--pg-bad); }
+
+  /* ── framing demo ───────────────────────────────────────────────────── */
+  .frames { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 720px) { .frames { grid-template-columns: 1fr; } }
+  .phone {
+    position: relative; margin-inline: auto;
+    inline-size: 190px; aspect-ratio: 390 / 844;
+    border-radius: 40px; overflow: hidden;
+    border: 2px solid hsl(0 0% 100% / .16);
+    background: hsl(232 30% 5%);
+    box-shadow: var(--sh-ambient);
+  }
+  /* Schematic of the SOURCE FRAME inside the phone viewport. This is a
+     geometry diagram, deliberately not a screenshot: the point is where the
+     1280x716 frame lands relative to the 390x844 viewport. */
+  .srcframe {
+    position: absolute; inset-inline-start: 50%; transform: translateX(-50%);
+    background:
+      linear-gradient(hsl(232 28% 12%) 0 42%, hsl(248 26% 22%) 42% 100%);
+    transition: all var(--t-step) var(--ease);
+  }
+  .srcframe::after {
+    content: ""; position: absolute; inset-block-start: 42%; inset-inline: 0; block-size: 58%;
+    background:
+      repeating-linear-gradient(90deg, hsl(248 40% 46% / .55) 0 3px, transparent 3px 11px),
+      linear-gradient(hsl(248 30% 30%), hsl(238 34% 18%));
+  }
+  .deadband {
+    position: absolute; inset-inline: 0; inset-block-start: 0;
+    background: repeating-linear-gradient(45deg, hsl(2 72% 62% / .16) 0 6px, transparent 6px 12px);
+    border-block-end: 1px dashed hsl(2 72% 62% / .55);
+    transition: block-size var(--t-step) var(--ease);
+  }
+  .cap {
+    margin-block-start: 12px; text-align: center;
+    font: 400 12px/1.5 ui-monospace, "SF Mono", Menlo, monospace;
+    color: var(--pg-faint);
+  }
+  .cap b { display: block; color: var(--pg-ink); font-weight: 600; margin-block-end: 4px; }
+
+  /* ── SECONDARY: transport (§3 tier 2) ───────────────────────────────── */
+  .transport {
+    margin-block-start: 16px; display: flex; align-items: center; gap: 8px;
+    padding: 12px; border-radius: var(--r-md);
+    background: var(--pg-glass); border: 1px solid hsl(0 0% 100% / .1);
+  }
+  button {
+    font: 600 13px/1 inherit; color: var(--pg-ink);
+    background: hsl(0 0% 100% / .07); border: 1px solid hsl(0 0% 100% / .14);
+    border-radius: var(--r-sm); padding: 9px 14px; cursor: pointer;
+    transition: background var(--t-press) var(--ease), transform var(--t-press) var(--ease);
+  }
+  button:hover:not(:disabled) { background: hsl(0 0% 100% / .12); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: .35; cursor: default; }
+  button.primary {
+    background: var(--pg-accent-deep); border-color: hsl(248 84% 68% / .5);
+  }
+  button.primary:hover:not(:disabled) { background: var(--pg-accent); }
+  :focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+  .count {
+    margin-inline-start: auto;
+    font: 400 12px/1 ui-monospace, "SF Mono", Menlo, monospace;
+    color: var(--pg-faint); font-variant-numeric: tabular-nums;
+  }
+
+  /* ── TERTIARY: metrics + prompt (§3 tier 3) ─────────────────────────── */
+  .metrics {
+    margin-block-start: 24px; display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;
+  }
+  .metric {
+    padding: 12px 16px; border-radius: var(--r-md);
+    background: hsl(0 0% 100% / .04); border: 1px solid hsl(0 0% 100% / .09);
+  }
+  .metric .k {
+    font: 400 11px/1.4 ui-monospace, "SF Mono", Menlo, monospace;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--pg-faint);
+  }
+  .metric .v {
+    margin-block-start: 6px; font-size: 17px; font-weight: 600;
+    font-variant-numeric: tabular-nums; letter-spacing: -.2px;
+  }
+  .metric .v small { font-size: 12px; font-weight: 400; color: var(--pg-faint); }
+
+  .prompt {
+    margin-block-start: 24px; display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-radius: var(--r-md);
+    background: hsl(0 0% 100% / .04); border: 1px solid hsl(0 0% 100% / .09);
+  }
+  .prompt code {
+    flex: 1; min-inline-size: 0;
+    font: 400 12.5px/1.5 ui-monospace, "SF Mono", Menlo, monospace;
+    color: var(--pg-muted); overflow-wrap: anywhere;
+  }
+  .note {
+    margin-block-start: 24px; color: var(--pg-faint); font-size: 13px;
+    max-inline-size: 80ch;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">OrchestKit · docs-site · feat/docs-site-ride-perf</div>
+    <h1>The factory ride: why it read as a static image</h1>
+    <p class="sub">
+      The scroll-world hero looked frozen and scrolled badly. Four causes, each
+      measured rather than guessed. Step through them below.
+    </p>
+    <div class="meta">
+      <span>101 frames</span>
+      <span>1280&times;716 master</span>
+      <span>360vh track</span>
+      <span>zero animation deps</span>
+    </div>
+  </header>
+
+  <section class="glass stage" aria-live="polite">
+
+    <!-- 1 ─────────────────────────────────────────────────────────────── -->
+    <article class="step" data-on="1" data-i="0">
+      <h2 class="step-h">1. Every frame was requested at once</h2>
+      <p class="step-p">
+        Crossing 1% of the track fired <b>all 101 images simultaneously</b>. They
+        arrived in request order, not in the order the scrub needed, so the canvas
+        sat on a stale frame while bytes for the far end of the flight were still
+        in flight. Each cell is one frame.
+      </p>
+      <div class="lanes">
+        <div>
+          <div class="lane-h"><span class="tag">Before</span><span class="val bad" id="v-before">0 in flight</span></div>
+          <div class="grid" id="g-before"></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 2 ─────────────────────────────────────────────────────────────── -->
+    <article class="step" data-i="1">
+      <h2 class="step-h">2. Bounded, and aimed at the playhead</h2>
+      <p class="step-p">
+        Now at most <b>6 requests are in flight</b>, and the next one dispatched is
+        always the queued frame <b>nearest the current position</b>. A fast scroll
+        re-targets the network instead of waiting out a 101-deep queue.
+      </p>
+      <div class="lanes">
+        <div>
+          <div class="lane-h"><span class="tag">After</span><span class="val good" id="v-after">0 in flight</span></div>
+          <div class="grid" id="g-after"></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 3 ─────────────────────────────────────────────────────────────── -->
+    <article class="step" data-i="2">
+      <h2 class="step-h">3. Scroll offset drove the frame index directly</h2>
+      <p class="step-p">
+        With no easing, one trackpad tick jumped several frames at once. Rendered
+        progress now <b>eases toward</b> the scroll target, so playback smoothness
+        is decoupled from input granularity. Both heads below receive the identical
+        stepped input.
+      </p>
+      <div class="lanes">
+        <div>
+          <div class="lane-h"><span class="tag">Before · raw</span><span class="val bad">discrete jumps</span></div>
+          <div class="track"><div class="ticks" id="t1"></div><div class="head raw" id="h-raw"></div></div>
+        </div>
+        <div>
+          <div class="lane-h"><span class="tag">After · eased</span><span class="val good">continuous</span></div>
+          <div class="track"><div class="ticks" id="t2"></div><div class="head" id="h-eased"></div></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 4 ─────────────────────────────────────────────────────────────── -->
+    <article class="step" data-i="3">
+      <h2 class="step-h">4. Portrait had no overscan to pan within</h2>
+      <p class="step-p">
+        Cover-fitting a 1280&times;716 frame into a 390&times;844 phone matches the
+        height <b>exactly</b>, so the overflow is horizontal and there is no vertical
+        slack. The source's empty upper third landed on screen as dead space. The fix
+        scales <b>past</b> cover to manufacture overscan, then anchors into it.
+        Geometry diagram, not a screenshot.
+      </p>
+      <div class="frames">
+        <div>
+          <div class="phone"><div class="srcframe" id="sf-before"></div><div class="deadband" id="db-before"></div></div>
+          <div class="cap"><b>Before</b>cover-fit · slackY = 0 · ~35% dead</div>
+        </div>
+        <div>
+          <div class="phone"><div class="srcframe" id="sf-after"></div><div class="deadband" id="db-after"></div></div>
+          <div class="cap"><b>After</b>fill 1.45 · anchor 0.72 · ~8% dead</div>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+  <div class="transport">
+    <button id="prev" aria-label="Previous step">&lsaquo; Prev</button>
+    <button id="play" class="primary" aria-label="Play this step">&#9654; Replay</button>
+    <button id="next" aria-label="Next step">Next &rsaquo;</button>
+    <span class="count" id="count">Step 1 of 4</span>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="k">Peak in flight</div><div class="v">101 &rarr; 6</div></div>
+    <div class="metric"><div class="k">Median frame</div><div class="v">8.4<small> ms</small></div></div>
+    <div class="metric"><div class="k">p95 frame</div><div class="v">16.7<small> ms</small></div></div>
+    <div class="metric"><div class="k">Over 32ms</div><div class="v">1<small> / 323</small></div></div>
+    <div class="metric"><div class="k">Frame pixels</div><div class="v">+31<small> % area</small></div></div>
+    <div class="metric"><div class="k">Payload</div><div class="v">8.6 &rarr; 7.6<small> MB</small></div></div>
+  </div>
+
+  <div class="prompt">
+    <code id="p-text">Review the factory-ride changes on feat/docs-site-ride-perf: check the bounded frame loader, the eased playback, and the portrait fill anchor.</code>
+    <button id="copy">Copy</button>
+  </div>
+
+  <p class="note">
+    Measurements come from a scripted Playwright drive against the dev server:
+    frame timings from rAF deltas during a real wheel scroll, concurrency from CDP
+    request events under a throttled connection. Reduced-motion still renders the
+    stacked fallback and fetches zero frames.
+  </p>
+
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const steps = [...document.querySelectorAll(".step")];
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let cur = 0, timers = [];
+
+  const clearTimers = () => { timers.forEach(clearInterval); timers.forEach(clearTimeout); timers = []; };
+  const every = (fn, ms) => { const t = setInterval(fn, ms); timers.push(t); return t; };
+  const after = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
+
+  /* grids */
+  const N = 101;
+  const buildGrid = (el) => {
+    el.textContent = "";
+    for (let i = 0; i < N; i++) {
+      const c = document.createElement("div");
+      c.className = "cell";
+      el.appendChild(c);
+    }
+    return [...el.children];
+  };
+  const gBefore = buildGrid($("g-before"));
+  const gAfter  = buildGrid($("g-after"));
+
+  const resetGrid = (cells) => cells.forEach((c) => c.removeAttribute("data-s"));
+
+  /* Step 1: all 101 fire at once, resolve slowly and out of order. */
+  function playBurst() {
+    resetGrid(gBefore);
+    const order = [...gBefore.keys()].sort(() => Math.random() - 0.5);
+    gBefore.forEach((c) => c.setAttribute("data-s", "f"));
+    $("v-before").textContent = "101 in flight";
+    let done = 0;
+    if (reduced) { gBefore.forEach((c) => c.setAttribute("data-s", "d")); $("v-before").textContent = "101 in flight"; return; }
+    every(() => {
+      for (let k = 0; k < 2 && done < N; k++) {
+        gBefore[order[done++]].setAttribute("data-s", "d");
+      }
+      $("v-before").textContent = (N - done) + " in flight";
+      if (done >= N) clearTimers();
+    }, 60);
+  }
+
+  /* Step 2: max 6 in flight, dispatched nearest the playhead. */
+  function playBounded() {
+    resetGrid(gAfter);
+    const queued = new Set([...gAfter.keys()]);
+    const flight = new Map();
+    let head = 0, ticks = 0;
+    if (reduced) { gAfter.forEach((c) => c.setAttribute("data-s", "d")); $("v-after").textContent = "6 in flight"; return; }
+    gAfter.forEach((c) => c.setAttribute("data-s", "q"));
+    every(() => {
+      ticks++;
+      head = Math.min(N - 1, Math.floor(ticks * 1.6));
+      /* retire */
+      for (const [i, t] of [...flight]) {
+        if (ticks - t >= 4) { flight.delete(i); gAfter[i].setAttribute("data-s", "d"); }
+      }
+      /* dispatch nearest the head */
+      while (flight.size < 6 && queued.size) {
+        let best = null, bd = Infinity;
+        for (const i of queued) { const d = Math.abs(i - head); if (d < bd) { bd = d; best = i; } }
+        queued.delete(best); flight.set(best, ticks);
+        gAfter[best].setAttribute("data-s", "f");
+      }
+      $("v-after").textContent = flight.size + " in flight";
+      if (!queued.size && !flight.size) { $("v-after").textContent = "0 in flight"; clearTimers(); }
+    }, 70);
+  }
+
+  /* Step 3: identical stepped input, raw vs eased. */
+  const mkTicks = (el) => { el.textContent = ""; for (let i = 0; i < 24; i++) el.appendChild(document.createElement("i")); };
+  mkTicks($("t1")); mkTicks($("t2"));
+
+  function playScrub() {
+    let target = 0, eased = 0, step = 0;
+    const raw = $("h-raw"), sm = $("h-eased");
+    const put = (el, p) => { el.style.insetInlineStart = "calc(" + (p * 100).toFixed(2) + "% - 2px)"; };
+    put(raw, 0); put(sm, 0);
+    if (reduced) { put(raw, 1); put(sm, 1); return; }
+    /* stepped input: a chunky jump every 260ms, like a trackpad tick */
+    every(() => {
+      step++;
+      target = Math.min(1, step / 12);
+      put(raw, target);                    /* raw snaps */
+      if (step > 13) clearTimers();
+    }, 260);
+    /* eased chase at rAF cadence */
+    const loop = () => {
+      eased += (target - eased) * 0.16;
+      put(sm, eased);
+      if (document.querySelector('.step[data-on="1"]')?.dataset.i === "2") requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+
+  /* Step 4: geometry. Before = cover-fit exactly (no slack). After = scaled past cover. */
+  function playFraming() {
+    /* Phone viewport 390x844, source frame 1280x716. At fill 1 the cover fit
+       matches height exactly, so blockSize is 100% and the overflow is purely
+       horizontal — which is the whole point of this step. Width is expressed
+       as a % of the phone WIDTH, so it has to carry the viewport aspect:
+         width% = height% * (844/390) * (1280/716) = height% * 3.87 */
+    const W_PER_H = (844 / 390) * (1280 / 716);
+    const set = (sf, db, fill, anchor, dead) => {
+      const h = 100 * fill;
+      sf.style.blockSize = h + "%";
+      sf.style.inlineSize = (h * W_PER_H) + "%";
+      sf.style.insetBlockStart = (-(h - 100) * anchor) + "%";
+      db.style.blockSize = dead + "%";
+    };
+    /* collapse to 0 then animate to final, so the step reads as a change */
+    set($("sf-before"), $("db-before"), 1, 0, 0);
+    set($("sf-after"),  $("db-after"),  1, 0, 0);
+    after(() => {
+      set($("sf-before"), $("db-before"), 1.00, 0.00, 35);
+      set($("sf-after"),  $("db-after"),  1.45, 0.72, 8);
+    }, reduced ? 0 : 120);
+  }
+
+  const players = [playBurst, playBounded, playScrub, playFraming];
+
+  function show(i) {
+    clearTimers();
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    steps.forEach((s, k) => s.setAttribute("data-on", k === cur ? "1" : "0"));
+    $("count").textContent = "Step " + (cur + 1) + " of " + steps.length;
+    $("prev").disabled = cur === 0;
+    $("next").disabled = cur === steps.length - 1;
+    players[cur]();
+  }
+
+  $("prev").addEventListener("click", () => show(cur - 1));
+  $("next").addEventListener("click", () => show(cur + 1));
+  $("play").addEventListener("click", () => show(cur));
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") { $("prev").click(); }
+    if (e.key === "ArrowRight") { $("next").click(); }
+  });
+
+  $("copy").addEventListener("click", async (e) => {
+    const b = e.currentTarget;
+    try { await navigator.clipboard.writeText($("p-text").textContent.trim()); } catch { return; }
+    const was = b.textContent; b.textContent = "✓";
+    setTimeout(() => { b.textContent = was; }, 1500);
+  });
+
+  show(0);
+})();
+</script>
+</body>
+</html>

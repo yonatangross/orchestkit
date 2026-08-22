@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scroll-World Mockups, Transit Spine vs Genesis Flight vs Session Replay</title>
+<style>
+  :root{
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(222 14% 64%);
+    --pg-faint: hsl(224 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-2: hsl(0 0% 100% / .08);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-accent-deep: hsl(248 70% 54%);
+    --pg-teal: hsl(226 80% 62%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-danger: hsl(2 78% 62%);
+    --pg-ok: hsl(152 52% 52%);
+    --r-sm: 9px; --r-md: 16px; --r-lg: 24px;
+    --ease: cubic-bezier(.2,.8,.25,1);
+    --sh-ambient: 0 20px 60px -22px hsl(232 40% 3% / .7);
+    --sh-tight: 0 4px 12px -6px hsl(232 40% 3% / .5);
+    --mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:auto}
+  body{
+    background:
+      radial-gradient(900px 600px at 12% -10%, hsl(248 60% 24% / .35), transparent 60%),
+      radial-gradient(800px 700px at 95% 8%, hsl(226 62% 22% / .30), transparent 55%),
+      radial-gradient(700px 600px at 50% 110%, hsl(255 55% 18% / .28), transparent 60%),
+      var(--pg-bg);
+    background-attachment: fixed;
+    color:var(--pg-ink);
+    font-family: ui-sans-serif, -apple-system, "Inter", "Segoe UI", sans-serif;
+    letter-spacing:.01em;
+  }
+  ::selection{background:hsl(248 84% 68% / .35)}
+
+  /* ── Fixed chrome ─────────────────────────────────────── */
+  .topbar{
+    position:fixed; inset:16px 16px auto 16px; z-index:60;
+    display:flex; align-items:center; gap:12px;
+    padding:12px 16px; border-radius:var(--r-md);
+    background:var(--pg-glass-2); border:1px solid var(--pg-glass-edge);
+    backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3);
+    box-shadow: var(--sh-ambient), var(--sh-tight);
+  }
+  .brand{font-weight:700; letter-spacing:-.2px; font-size:14px; white-space:nowrap}
+  .brand em{font-style:normal; color:var(--pg-accent)}
+  .tabs{display:flex; gap:4px; margin-left:auto; flex-wrap:wrap}
+  .tab{
+    appearance:none; border:1px solid transparent; cursor:pointer;
+    background:transparent; color:var(--pg-muted);
+    font:inherit; font-size:12.5px; font-weight:600;
+    padding:8px 12px; border-radius:var(--r-sm);
+    transition: background 200ms var(--ease), color 200ms var(--ease);
+  }
+  .tab:hover{color:var(--pg-ink); background:var(--pg-glass)}
+  .tab.active{color:var(--pg-ink); background:hsl(248 84% 68% / .16); border-color:hsl(248 84% 68% / .35)}
+  .tab .n{font-family:var(--mono); font-size:10.5px; color:var(--pg-faint); margin-right:6px}
+  .tab.active .n{color:var(--pg-accent)}
+
+  .progress{
+    position:fixed; left:0; top:0; height:2px; width:100%; z-index:70;
+    background:hsl(0 0% 100% / .06);
+  }
+  .progress i{display:block; height:100%; width:0%; background:linear-gradient(90deg, var(--pg-accent), var(--pg-teal))}
+
+  .scrollcue{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:55;
+    font-family:var(--mono); font-size:11px; color:var(--pg-faint);
+    display:flex; align-items:center; gap:8px;
+    padding:8px 14px; border-radius:999px;
+    background:var(--pg-glass); border:1px solid var(--pg-glass-edge);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    transition: opacity 300ms var(--ease);
+    pointer-events:none;
+  }
+  .scrollcue .dot{width:6px;height:6px;border-radius:50%;background:var(--pg-accent);animation:pulse 1.6s var(--ease) infinite}
+  @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+  body.scrolled .scrollcue{opacity:0}
+
+  .demo{display:none}
+  .demo.active{display:block}
+
+  /* Shared stage pattern: tall track + sticky viewport */
+  .track{position:relative}
+  .stage{position:sticky; top:0; height:100vh; overflow:hidden}
+
+  .kicker{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--pg-accent)}
+  .h-display{font-size:clamp(34px,6vw,64px); font-weight:700; letter-spacing:-.3px; line-height:1.04}
+  .lede{color:var(--pg-muted); font-size:clamp(15px,1.6vw,18px); line-height:1.6; max-width:56ch}
+  .mono{font-family:var(--mono)}
+
+  .card{
+    background:var(--pg-glass); border:1px solid var(--pg-glass-edge);
+    border-radius:var(--r-md);
+    backdrop-filter: blur(16px) saturate(1.25); -webkit-backdrop-filter: blur(16px) saturate(1.25);
+    box-shadow: var(--sh-ambient), var(--sh-tight);
+  }
+
+  /* ════════ INTRO / CHOOSER ═══════════════════════════════ */
+  #intro .wrap{min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:120px 24px 96px; max-width:1100px; margin:0 auto; gap:48px}
+  .opt-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px}
+  .opt{
+    padding:24px; border-radius:var(--r-md); cursor:pointer;
+    background:var(--pg-glass); border:1px solid var(--pg-glass-edge);
+    transition: transform 200ms var(--ease), background 200ms var(--ease), border-color 200ms var(--ease);
+  }
+  .opt:hover{transform:translateY(-3px); background:var(--pg-glass-2); border-color:hsl(248 84% 68% / .45)}
+  .opt .num{font-family:var(--mono); font-size:11px; color:var(--pg-faint)}
+  .opt h3{font-size:18px; letter-spacing:-.2px; margin:8px 0 8px}
+  .opt p{font-size:13.5px; color:var(--pg-muted); line-height:1.55}
+  .opt .score{margin-top:16px; font-family:var(--mono); font-size:11px; color:var(--pg-faint)}
+  .opt .score b{color:var(--pg-accent); font-weight:600}
+  .opt.rec{border-color:hsl(248 84% 68% / .5); background:linear-gradient(180deg, hsl(248 84% 68% / .10), var(--pg-glass))}
+  .opt .badge{display:inline-block; font-size:10px; font-family:var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--pg-warm); border:1px solid hsl(38 95% 60% / .4); border-radius:999px; padding:3px 8px; margin-left:8px}
+
+  /* ════════ DEMO 1 · TRANSIT AUTHORITY ════════════════════ */
+  #d1 .track{height:640vh}
+  #d1 .stage{display:grid; place-items:center}
+  .metro-wrap{position:relative; width:min(1080px,94vw); height:min(78vh,720px)}
+  .metro-svg{width:100%; height:100%}
+  .metro-svg .rail{fill:none; stroke-width:6; stroke-linecap:round}
+  .metro-svg .rail.ghost{stroke:hsl(0 0% 100% / .07)}
+  .metro-svg .station{fill:var(--pg-bg); stroke:hsl(0 0% 100% / .55); stroke-width:3}
+  .metro-svg .station.lit{stroke:var(--pg-accent); filter:drop-shadow(0 0 6px hsl(248 84% 68% / .8))}
+  .metro-svg text{font-family:var(--mono); font-size:11px; fill:var(--pg-faint); letter-spacing:.06em}
+  .metro-svg text.lit{fill:var(--pg-ink)}
+  .train{filter:drop-shadow(0 0 8px hsl(248 84% 68% / .9))}
+  .train-bad{filter:drop-shadow(0 0 8px hsl(2 78% 62% / .9))}
+
+  .station-card{
+    position:absolute; width:min(320px,86vw); padding:20px 24px;
+    opacity:0; transform:translateY(14px);
+    transition:opacity 300ms var(--ease), transform 300ms var(--ease);
+    pointer-events:none;
+  }
+  .station-card.on{opacity:1; transform:none; pointer-events:auto}
+  .station-card .kicker{font-size:10px}
+  .station-card h4{font-size:19px; letter-spacing:-.2px; margin:6px 0 6px}
+  .station-card p{font-size:13px; color:var(--pg-muted); line-height:1.55}
+  .station-card .cta{display:inline-block; margin-top:12px; font-size:12px; font-weight:600; color:var(--pg-accent); text-decoration:none; font-family:var(--mono)}
+
+  .departures{
+    position:absolute; right:0; top:0; width:min(300px,80vw); padding:16px 18px;
+    font-family:var(--mono); font-size:11.5px;
+    opacity:0; transition:opacity 300ms var(--ease);
+  }
+  .departures.on{opacity:1}
+  .departures h5{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--pg-warm); margin-bottom:10px; font-weight:600}
+  .departures .row{display:flex; justify-content:space-between; padding:4px 0; color:var(--pg-muted); border-bottom:1px dashed hsl(0 0% 100% / .07)}
+  .departures .row b{color:var(--pg-ink); font-weight:500}
+  .departures .row .ok{color:var(--pg-ok)} .departures .row .due{color:var(--pg-warm)}
+
+  /* ════════ DEMO 2 · GENESIS FLIGHT ═══════════════════════ */
+  #d2 .track{height:700vh}
+  .scene{position:absolute; inset:0; display:grid; place-items:center; opacity:0}
+  .scene .art{position:relative; width:min(860px,92vw); aspect-ratio:16/9; border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--sh-ambient)}
+  .iso{position:absolute; inset:0; display:grid; place-items:center; transform-style:preserve-3d; perspective:1200px}
+  .iso .floor{
+    width:64%; aspect-ratio:1; transform:rotateX(58deg) rotateZ(45deg);
+    display:grid; grid-template-columns:repeat(6,1fr); grid-template-rows:repeat(6,1fr); gap:6px;
+  }
+  .iso .cell{border-radius:6px; background:hsl(0 0% 100% / .05); border:1px solid hsl(0 0% 100% / .08)}
+  .iso .cell.hi{background:hsl(248 84% 68% / .32); border-color:hsl(248 84% 68% / .55); box-shadow:0 0 18px hsl(248 84% 68% / .35)}
+  .iso .cell.warm{background:hsl(38 95% 60% / .25); border-color:hsl(38 95% 60% / .5)}
+  .iso .cell.tall{transform:translateZ(26px)}
+  .scene .grain{position:absolute; inset:0; background:
+    repeating-linear-gradient(0deg, hsl(0 0% 100% / .015) 0 1px, transparent 1px 3px)}
+  .scene .caption{
+    position:absolute; left:24px; bottom:24px; right:24px;
+    display:flex; align-items:flex-end; justify-content:space-between; gap:24px;
+  }
+  .scene .caption .t h4{font-size:22px; letter-spacing:-.2px}
+  .scene .caption .t p{font-size:13px; color:var(--pg-muted); margin-top:4px; max-width:44ch}
+  .scene .frame-hud{font-family:var(--mono); font-size:10.5px; color:var(--pg-faint); text-align:right; white-space:nowrap}
+  .scene .frame-hud b{color:var(--pg-accent); font-weight:600}
+  .filmstrip{
+    position:absolute; left:50%; transform:translateX(-50%); bottom:18px; z-index:5;
+    display:flex; gap:5px; padding:8px 12px; border-radius:999px;
+  }
+  .filmstrip i{width:22px; height:4px; border-radius:2px; background:hsl(0 0% 100% / .12)}
+  .filmstrip i.done{background:var(--pg-accent)}
+  #d2 .stage{isolation:isolate; display:grid; place-items:center}
+  .d2-note{position:absolute; top:96px; left:50%; transform:translateX(-50%); font-family:var(--mono); font-size:10.5px; color:var(--pg-faint); letter-spacing:.08em; text-transform:uppercase; white-space:nowrap}
+  .real-scene{position:relative; width:min(1000px,92vw)}
+  .real-scene canvas{display:block; width:100%; height:auto; border-radius:var(--r-lg); box-shadow:var(--sh-ambient), 0 0 80px hsl(248 84% 68% / .12); border:1px solid var(--pg-glass-edge)}
+  .load-hud{position:absolute; inset:0; display:grid; place-items:center; font-family:var(--mono); font-size:12px; color:var(--pg-muted); background:hsl(232 26% 7% / .6); border-radius:var(--r-lg); transition:opacity 300ms var(--ease); pointer-events:none}
+  .load-hud b{color:var(--pg-accent); margin-left:8px}
+  .caption-real{position:absolute; left:20px; right:20px; bottom:20px; display:flex; align-items:flex-end; justify-content:space-between; gap:24px; padding:16px 20px}
+  .caption-real h4{font-size:20px; letter-spacing:-.2px}
+  .caption-real p{font-size:12.5px; color:var(--pg-muted); margin-top:4px; max-width:46ch; line-height:1.5}
+  .caption-real .frame-hud{font-family:var(--mono); font-size:10.5px; color:var(--pg-faint); text-align:right; white-space:nowrap}
+  .caption-real .frame-hud b{color:var(--pg-accent); font-weight:600}
+
+  /* ════════ DEMO 3 · SESSION REPLAY ═══════════════════════ */
+  #d3 .track{height:640vh}
+  .replay{position:relative; width:min(1040px,94vw); height:min(76vh,700px)}
+  .timebar{
+    position:absolute; left:0; right:0; top:0; padding:14px 18px;
+    display:flex; align-items:center; gap:16px; font-family:var(--mono); font-size:11.5px;
+  }
+  .timebar .clock{font-size:20px; font-weight:600; color:var(--pg-ink); font-variant-numeric:tabular-nums; letter-spacing:0}
+  .timebar .lbl{color:var(--pg-faint); font-size:10px; letter-spacing:.12em; text-transform:uppercase}
+  .timebar .rail{flex:1; height:3px; border-radius:2px; background:hsl(0 0% 100% / .08); position:relative}
+  .timebar .rail i{position:absolute; left:0; top:0; bottom:0; border-radius:2px; background:linear-gradient(90deg,var(--pg-accent),var(--pg-teal))}
+  .evstage{position:absolute; inset:72px 0 0 0}
+  .lane{position:absolute; left:0; right:0; height:1px; background:hsl(0 0% 100% / .05)}
+  .lane .lname{position:absolute; left:18px; top:-18px; font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--pg-faint)}
+  .ev{
+    position:absolute; padding:8px 12px; border-radius:var(--r-sm);
+    font-family:var(--mono); font-size:11px; white-space:nowrap;
+    background:var(--pg-glass-2); border:1px solid var(--pg-glass-edge);
+    opacity:0; transform:translateY(10px) scale(.96);
+    transition:opacity 300ms var(--ease), transform 300ms var(--ease);
+  }
+  .ev.on{opacity:1; transform:none}
+  .ev .ms{color:var(--pg-faint); margin-left:8px}
+  .ev.hook{border-color:hsl(226 80% 62% / .5)} .ev.hook .tag{color:var(--pg-teal)}
+  .ev.agent{border-color:hsl(248 84% 68% / .5)} .ev.agent .tag{color:var(--pg-accent)}
+  .ev.mem{border-color:hsl(38 95% 60% / .5)} .ev.mem .tag{color:var(--pg-warm)}
+  .ev.gate{border-color:hsl(152 52% 52% / .5)} .ev.gate .tag{color:var(--pg-ok)}
+  .spark{position:absolute; width:8px; height:8px; border-radius:50%; background:var(--pg-accent); box-shadow:0 0 12px var(--pg-accent); opacity:0; transition:opacity 200ms var(--ease)}
+  .spark.on{opacity:1}
+  .replay .foot{position:absolute; bottom:0; left:0; right:0; padding:12px 18px; font-family:var(--mono); font-size:10.5px; color:var(--pg-faint); display:flex; justify-content:space-between}
+  .replay .foot b{color:var(--pg-muted); font-weight:500}
+
+  /* ════════ VERDICT SECTIONS ══════════════════════════════ */
+  .verdict{max-width:900px; margin:0 auto; padding:96px 24px 128px; display:flex; flex-direction:column; gap:24px}
+  .verdict h3{font-size:24px; letter-spacing:-.2px}
+  .verdict .cols{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px}
+  .verdict .col{padding:20px}
+  .verdict .col h5{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; margin-bottom:10px}
+  .verdict .col.plus h5{color:var(--pg-ok)} .verdict .col.minus h5{color:var(--pg-danger)} .verdict .col.ship h5{color:var(--pg-warm)}
+  .verdict .col ul{list-style:none; display:flex; flex-direction:column; gap:8px}
+  .verdict .col li{font-size:13px; color:var(--pg-muted); line-height:1.5; padding-left:14px; position:relative}
+  .verdict .col li::before{content:"·"; position:absolute; left:0; color:var(--pg-faint)}
+
+  .copybar{
+    max-width:900px; margin:0 auto 96px; padding:16px 20px; display:flex; gap:16px; align-items:center;
+    opacity:.85;
+  }
+  .copybar code{font-family:var(--mono); font-size:12px; color:var(--pg-muted); flex:1; overflow-x:auto; white-space:nowrap}
+  .copybar button{
+    appearance:none; cursor:pointer; font:inherit; font-family:var(--mono); font-size:11px; font-weight:600;
+    color:var(--pg-ink); background:hsl(248 84% 68% / .18); border:1px solid hsl(248 84% 68% / .4);
+    padding:8px 14px; border-radius:var(--r-sm);
+    transition:background 200ms var(--ease);
+  }
+  .copybar button:hover{background:hsl(248 84% 68% / .3)}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition-duration:0ms !important; animation:none !important}
+  }
+</style>
+</head>
+<body>
+
+<div class="progress"><i id="pbar"></i></div>
+
+<nav class="topbar">
+  <div class="brand">🌍 <em>OrchestKit</em> scroll-world mockups</div>
+  <div class="tabs">
+    <button class="tab active" data-view="intro"><span class="n">◇</span>Overview</button>
+    <button class="tab" data-view="d1"><span class="n">01</span>Transit Spine</button>
+    <button class="tab" data-view="d2"><span class="n">02</span>Genesis Flight</button>
+    <button class="tab" data-view="d3"><span class="n">03</span>Session Replay</button>
+  </div>
+</nav>
+
+<div class="scrollcue"><span class="dot"></span> scroll to ride</div>
+
+<!-- ═══════════ INTRO ═══════════ -->
+<section id="intro" class="demo active">
+  <div class="wrap">
+    <div>
+      <div class="kicker">Brainstorm · 15 ideas → 3 finalists · 2026-07-18</div>
+      <h1 class="h-display" style="margin-top:16px">Three ways to turn the docs<br>into a world you scroll through.</h1>
+      <p class="lede" style="margin-top:20px">Each mockup below is <b>operable</b>, pick one and scroll. They sketch the mechanism and narrative with placeholder art; in production, Higgsfield-generated dioramas and real manifest data replace the geometry. Judge the <i>feel of the ride</i>, not the pixels.</p>
+    </div>
+    <div class="opt-grid">
+      <div class="opt rec" data-goto="d1">
+        <div class="num">OPTION 01 <span class="badge">Recommended</span></div>
+        <h3>🚇 Transit Authority spine</h3>
+        <p>A metro map of one Claude session. Scroll draws the lines; stations = lifecycle stages; a red "blocked" train gets diverted at Hook Interchange. Signage renders real skill/agent names from the manifest, so the art can never lie.</p>
+        <div class="score">composite <b>8.0</b> · payload ~0.3MB · self-maintaining</div>
+      </div>
+      <div class="opt" data-goto="d2">
+        <div class="num">OPTION 02</div>
+        <h3>🎬 Genesis Flight <span class="badge">Real generated scene</span></h3>
+        <p>The literal scroll-world port, and this tab now scrubs a REAL scene: a Higgsfield-generated Foundry diorama flown by a Kling 3.0 camera, 101 extracted frames bound to your scroll. Production = six of these, seam-connected.</p>
+        <div class="score">composite <b>6.5</b> · wow <b>9</b> · this scene: 7.2MB / 101 frames</div>
+      </div>
+      <div class="opt" data-goto="d3">
+        <div class="num">OPTION 03</div>
+        <h3>📼 Session Replay World</h3>
+        <p>Scroll scrubs a <i>real recorded session</i>, hooks light up at their true latencies, agents fork with their real names. The journey is an honest execution trace, not a metaphor.</p>
+        <div class="score">composite <b>7.1</b> · data already exists · Lab-native</div>
+      </div>
+    </div>
+    <p class="lede" style="font-size:13px; color:var(--pg-faint)">Option 1 composes: it can absorb a Genesis-style hero scene at the top and a Replay station mid-journey. Use the tabs or click a card.</p>
+  </div>
+</section>
+
+<!-- ═══════════ DEMO 1 · TRANSIT ═══════════ -->
+<section id="d1" class="demo">
+  <div class="track" data-len="640">
+    <div class="stage">
+      <div class="metro-wrap">
+        <svg class="metro-svg" viewBox="0 0 1080 720" fill="none" aria-hidden="true">
+          <!-- ghost rails -->
+          <path class="rail ghost" d="M80,600 L340,600 L480,460 L480,300"/>
+          <path class="rail ghost" d="M480,300 L480,220 L560,140 L860,140"/>
+          <path class="rail ghost" d="M480,360 L620,360 L700,280 L860,280"/>
+          <path class="rail ghost" d="M480,420 L640,420 L720,500 L860,500"/>
+          <path class="rail ghost" d="M860,140 L940,220 L940,420 L860,500"/>
+          <path class="rail ghost" d="M340,600 L520,600 L560,640 L720,640"/>
+          <!-- lit rails (drawn by scroll) -->
+          <path id="r-main"  class="rail" stroke="hsl(248 84% 68%)" d="M80,600 L340,600 L480,460 L480,300"/>
+          <path id="r-skill" class="rail" stroke="hsl(226 80% 62%)" d="M480,300 L480,220 L560,140 L860,140"/>
+          <path id="r-agent" class="rail" stroke="hsl(266 70% 66%)" d="M480,360 L620,360 L700,280 L860,280"/>
+          <path id="r-agent2" class="rail" stroke="hsl(266 70% 66%)" d="M480,420 L640,420 L720,500 L860,500"/>
+          <path id="r-merge" class="rail" stroke="hsl(152 52% 52%)" d="M860,140 L940,220 L940,420 L860,500"/>
+          <path id="r-block" class="rail" stroke="hsl(2 78% 62%)"  d="M340,600 L520,600 L560,640 L720,640"/>
+          <!-- stations -->
+          <circle class="station" data-st="0" cx="80"  cy="600" r="9"/>
+          <circle class="station" data-st="1" cx="340" cy="600" r="9"/>
+          <circle class="station" data-st="2" cx="480" cy="300" r="11"/>
+          <circle class="station" data-st="3" cx="860" cy="140" r="9"/>
+          <circle class="station" data-st="4" cx="860" cy="280" r="9"/>
+          <circle class="station" data-st="5" cx="940" cy="420" r="11"/>
+          <circle class="station" data-st="6" cx="720" cy="640" r="7"/>
+          <text data-st="0" x="64" y="636">PROMPT ST.</text>
+          <text data-st="1" x="280" y="580">HOOK INTERCHANGE</text>
+          <text data-st="2" x="360" y="292">ROUTER TERMINAL</text>
+          <text data-st="3" x="820" y="120">SKILL LINE</text>
+          <text data-st="4" x="880" y="272">AGENT EXPRESS</text>
+          <text data-st="5" x="880" y="456">VERIFY JCT.</text>
+          <text data-st="6" x="700" y="676" fill="hsl(2 78% 62%)">SIDING · BLOCKED</text>
+          <!-- trains -->
+          <circle id="train" class="train" r="7" fill="hsl(248 84% 68%)"/>
+          <circle id="trainBad" class="train-bad" r="6" fill="hsl(2 78% 62%)" opacity="0"/>
+        </svg>
+
+        <div class="station-card card" data-card="0" style="left:24px; top:8%">
+          <div class="kicker">Origin · SessionStart</div>
+          <h4>A prompt boards the train</h4>
+          <p>Your message taps in at the turnstile. SessionStart hooks stamp the ticket: memory index reconciled, plugin context loaded.</p>
+          <a class="cta">→ /docs/getting-started</a>
+        </div>
+        <div class="station-card card" data-card="1" style="left:24px; top:34%">
+          <div class="kicker">~90 hooks · PreToolUse</div>
+          <h4>Hook Interchange</h4>
+          <p>Every train is inspected at the switches. Watch the red one, a dangerous command, get diverted to the siding before it ever reaches the network.</p>
+          <a class="cta">→ /docs/reference/hooks</a>
+        </div>
+        <div class="station-card card" data-card="2" style="left:24px; top:60%">
+          <div class="kicker">114 lines · 37 crews</div>
+          <h4>Skill lines &amp; Agent express</h4>
+          <p>The router splits your journey across named lines. Parallel agent tracks fan out through worktree tunnels and re-merge without collisions.</p>
+          <a class="cta">→ /docs/reference/skills</a>
+        </div>
+        <div class="station-card card" data-card="3" style="left:24px; top:60%">
+          <div class="kicker">Quality gates</div>
+          <h4>Verify Junction → Merged</h4>
+          <p>Final signal checks: tests, security, types. The train is dispatched and the departures board flips to MERGED.</p>
+          <a class="cta">→ npx claude plugin add ork</a>
+        </div>
+
+        <div class="departures card" data-dep>
+          <h5>Departures, real manifest data</h5>
+          <div class="row"><b>/ork:brainstorm</b><span class="ok">boarding</span></div>
+          <div class="row"><b>/ork:implement</b><span class="due">on time</span></div>
+          <div class="row"><b>/ork:verify</b><span class="due">on time</span></div>
+          <div class="row"><b>@security-auditor</b><span class="ok">crewed</span></div>
+          <div class="row"><b>@test-generator</b><span class="ok">crewed</span></div>
+          <div class="row"><b>git-validator</b><span class="due">gate 7</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="verdict">
+    <h3>🚇 What actually ships</h3>
+    <div class="cols">
+      <div class="col card plus"><h5>Why it wins</h5><ul>
+        <li>Zero scroll-JS in production, CSS <code class="mono">animation-timeline</code>, compositor-only</li>
+        <li>Signage &amp; departure boards render from <code class="mono">generated-data</code>: art can never lie about counts</li>
+        <li>View Transitions morph station glyphs into /docs headers, home and docs feel continuous</li>
+        <li>Degrades by construction: Firefox / reduced-motion / no-JS get the finished readable map</li>
+      </ul></div>
+      <div class="col card minus"><h5>Honest risks</h5><ul>
+        <li>Spectacle ceiling, needs the diorama station arrivals + hero scene to feel BIG</li>
+        <li><code class="mono">animation-timeline</code> gaps mean a minority sees the static map</li>
+        <li>Metaphor is load-bearing: every station keeps its literal docs label</li>
+      </ul></div>
+      <div class="col card ship"><h5>Ship slices</h5><ul>
+        <li>S1: map spine, pure SVG/CSS, mergeable alone</li>
+        <li>S2: Higgsfield 2.5D station dioramas (lazy, poster-first)</li>
+        <li>S3: Genesis-style hero flight landing into Origin</li>
+        <li>S4: Session Replay chapter at Central Records</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ DEMO 2 · GENESIS ═══════════ -->
+<section id="d2" class="demo">
+  <div class="track" data-len="700">
+    <div class="stage">
+      <div class="d2-note">real generated scene · gpt image 2 still → kling 3.0 camera flight → 101 frames · scroll scrubs the flight</div>
+      <div class="real-scene">
+        <canvas id="flightCanvas" width="1120" height="630" aria-hidden="true"></canvas>
+        <div class="load-hud" id="loadHud">loading frames<b id="loadPct">0%</b></div>
+        <div class="caption-real card">
+          <div class="t"><h4 id="capTitle">🏭 The Intake Gate</h4><p id="capText">A session arrives as a crate at the checkpoint. The camera lifts off along the glowing conveyor.</p></div>
+          <div class="frame-hud">ONE GENERATED SCENE<br>frame <b id="frameNo">001</b>/101 · scroll = camera</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="verdict">
+    <h3>🎬 What actually ships</h3>
+    <div class="cols">
+      <div class="col card plus"><h5>Why it tempts</h5><ul>
+        <li>The truest scroll-world port, wow 9, one-take camera flight</li>
+        <li>You already own the whole pipeline: Higgsfield MCP + Seedance + FFmpeg</li>
+        <li>Style-bible prompts versioned as JSON, new scene = a manifest PR</li>
+        <li>Frame-sequence (not video.currentTime) keeps e2e deterministic</li>
+      </ul></div>
+      <div class="col card minus"><h5>Honest risks</h5><ul>
+        <li>5–15MB media even in AVIF, landing-only, poster-first, island-gated</li>
+        <li>Every rebrand or scene change = full regen of art + video + frames</li>
+        <li>Never bake counts/text into art, counts live in DOM overlays</li>
+        <li>Perf verdict: acceptable ONLY as marketing surface, zero docs coupling</li>
+      </ul></div>
+      <div class="col card ship"><h5>Ship slices</h5><ul>
+        <li>S1: one hero scene (~100 frames) behind poster LCP</li>
+        <li>S2: remaining 5 scenes + seam crossfades, byte-ceiling test in CI</li>
+        <li>S3: 9:16 mobile re-render, connection-aware gating</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ DEMO 3 · REPLAY ═══════════ -->
+<section id="d3" class="demo">
+  <div class="track" data-len="640">
+    <div class="stage" style="display:grid;place-items:center">
+      <div class="replay">
+        <div class="timebar card">
+          <span class="lbl">Session<br>replay</span>
+          <span class="clock" id="clock">00:00.000</span>
+          <div class="rail"><i id="trail"></i></div>
+          <span class="lbl" style="text-align:right">scroll =<br>wall clock</span>
+        </div>
+        <div class="evstage" id="evstage">
+          <div class="lane" style="top:12%"><span class="lname">prompt</span></div>
+          <div class="lane" style="top:32%"><span class="lname">hooks</span></div>
+          <div class="lane" style="top:54%"><span class="lname">agents</span></div>
+          <div class="lane" style="top:78%"><span class="lname">memory</span></div>
+        </div>
+        <div class="foot">
+          <span>source: <b>hook-timing.jsonl</b> + subagent payloads · anonymized · curated</span>
+          <span>events shown at <b>true recorded latencies</b></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="verdict">
+    <h3>📼 What actually ships</h3>
+    <div class="cols">
+      <div class="col card plus"><h5>Why it's the wildcard</h5><ul>
+        <li>Nobody else can ship this, the world IS a real execution trace</li>
+        <li>Data is free: 186k hook timings already recorded in telemetry</li>
+        <li>Deeply on-brand for the exact audience (CC power users)</li>
+        <li>Deterministic timeline JSON = the most testable option</li>
+      </ul></div>
+      <div class="col card minus"><h5>Honest risks</h5><ul>
+        <li>Raw traces are noise, lands only with hard curation of ONE great session</li>
+        <li>Needs anonymization pass + snapshot test before publish</li>
+        <li>Event layer can look under-designed next to generated art, needs the backdrop</li>
+      </ul></div>
+      <div class="col card ship"><h5>Ship slices</h5><ul>
+        <li>S1: build step compiling a curated session → timeline JSON</li>
+        <li>S2: scrub stage over a Higgsfield backdrop (landing chapter)</li>
+        <li>S3: Lab entry, load different recorded sessions</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<div class="copybar card">
+  <code id="prompt-code">Implement Option 1 (Transit Authority spine) per the scroll-world brainstorm design doc: S1 map spine first as its own PR.</code>
+  <button id="copybtn">copy prompt</button>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var views = ["intro","d1","d2","d3"];
+  var current = "intro";
+  var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function $(s,c){return (c||document).querySelector(s)}
+  function $$(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s))}
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+  function seg(p, a, b){return clamp((p-a)/(b-a), 0, 1)}
+
+  // ── view switching ─────────────────────────────────────
+  function show(view){
+    current = view;
+    $$(".demo").forEach(function(d){d.classList.toggle("active", d.id===view)});
+    $$(".tab").forEach(function(t){t.classList.toggle("active", t.dataset.view===view)});
+    window.scrollTo(0,0);
+    document.body.classList.remove("scrolled");
+    onScroll();
+  }
+  $$(".tab").forEach(function(t){t.addEventListener("click", function(){show(t.dataset.view)})});
+  $$("[data-goto]").forEach(function(o){o.addEventListener("click", function(){show(o.dataset.goto)})});
+
+  // ── rail drawing setup (demo 1) ────────────────────────
+  var rails = {};
+  ["r-main","r-skill","r-agent","r-agent2","r-merge","r-block"].forEach(function(id){
+    var el = document.getElementById(id);
+    var L = el.getTotalLength();
+    el.style.strokeDasharray = L;
+    el.style.strokeDashoffset = L;
+    rails[id] = {el:el, len:L};
+  });
+  function draw(id, t){
+    var r = rails[id];
+    r.el.style.strokeDashoffset = r.len * (1 - clamp(t,0,1));
+  }
+  function along(id, t, node){
+    var r = rails[id];
+    var pt = r.el.getPointAtLength(r.len * clamp(t,0,1));
+    node.setAttribute("cx", pt.x); node.setAttribute("cy", pt.y);
+  }
+  var train = document.getElementById("train");
+  var trainBad = document.getElementById("trainBad");
+
+  function metro(p){
+    // p 0..1 across the whole track
+    draw("r-main",  seg(p, .02, .22));
+    draw("r-block", seg(p, .24, .34));
+    draw("r-skill", seg(p, .40, .55));
+    draw("r-agent", seg(p, .44, .58));
+    draw("r-agent2",seg(p, .46, .60));
+    draw("r-merge", seg(p, .68, .84));
+
+    // good train rides main, then skill line, then merge line
+    if (p < .40){ along("r-main", seg(p,.02,.22), train) }
+    else if (p < .68){ along("r-skill", seg(p,.40,.55), train) }
+    else { along("r-merge", seg(p,.68,.84), train) }
+
+    // bad train appears at interchange, gets diverted to siding
+    var bt = seg(p,.24,.34);
+    trainBad.setAttribute("opacity", (p>.23 && p<.42) ? 1 : 0);
+    if (bt>0) along("r-block", bt, trainBad);
+
+    // stations light as the journey reaches them
+    var lit = [ .05, .22, .42, .56, .60, .85, .34 ];
+    $$("[data-st]").forEach(function(n){
+      var i = +n.dataset.st;
+      n.classList.toggle("lit", p >= lit[i]);
+    });
+
+    // narrative cards
+    var cards = [ [ .02,.20 ], [ .21,.40 ], [ .41,.66 ], [ .70,.95 ] ];
+    $$("[data-card]").forEach(function(c){
+      var w = cards[+c.dataset.card];
+      c.classList.toggle("on", p >= w[0] && p <= w[1]);
+    });
+    $("[data-dep]").classList.toggle("on", p > .50);
+  }
+
+  // ── genesis real frame-scrub setup (demo 2) ────────────
+  var FRAMES = 101, imgs = new Array(FRAMES), framesLoaded = 0, lastG = 0;
+  var fCanvas = document.getElementById("flightCanvas");
+  var fCtx = fCanvas.getContext("2d");
+  var loadHud = document.getElementById("loadHud");
+  var loadPct = document.getElementById("loadPct");
+  var frameNo = document.getElementById("frameNo");
+  var capTitle = document.getElementById("capTitle");
+  var capText = document.getElementById("capText");
+  var CAPTIONS = [
+    [0.00, "🏭 The Intake Gate", "A session arrives as a crate at the checkpoint. The camera lifts off along the glowing conveyor."],
+    [0.30, "🔬 The Inspection Line", "Hook scanners inspect every crate in flight, the quality gates a change must pass."],
+    [0.60, "🤖 The Agent Bay", "Robot arms work the benches in parallel, specialist agents assembling the change."],
+    [0.85, "📦 The Shipping Dock", "Push-in on the sealed, glowing crate: verified, stamped, MERGED."]
+  ];
+  for (var fi = 1; fi <= FRAMES; fi++) (function(fi){
+    var im = new Image();
+    im.onload = function(){
+      framesLoaded++;
+      loadPct.textContent = Math.round(framesLoaded/FRAMES*100)+"%";
+      if (framesLoaded === FRAMES){ loadHud.style.opacity = 0; genesis(lastG); }
+    };
+    im.src = "../../docs/site/public/world/frames/f_" + String(fi).padStart(3,"0") + ".jpg";
+    imgs[fi-1] = im;
+  })(fi);
+  function genesis(p){
+    lastG = p;
+    var idx = clamp(Math.floor(p * FRAMES), 0, FRAMES-1);
+    var im = imgs[idx];
+    if (im && im.complete && im.naturalWidth) fCtx.drawImage(im, 0, 0, fCanvas.width, fCanvas.height);
+    frameNo.textContent = String(idx+1).padStart(3,"0");
+    var cap = CAPTIONS[0];
+    for (var ci = 0; ci < CAPTIONS.length; ci++) if (p >= CAPTIONS[ci][0]) cap = CAPTIONS[ci];
+    if (capTitle.textContent !== cap[1]){ capTitle.textContent = cap[1]; capText.textContent = cap[2]; }
+  }
+
+  // ── session replay setup (demo 3) ──────────────────────
+  var EVENTS = [
+    {t:0,     lane:12, x:6,  cls:"gate",  txt:"UserPromptSubmit", ms:""},
+    {t:120,   lane:32, x:12, cls:"hook",  txt:"memory-index", ms:"12ms"},
+    {t:180,   lane:32, x:22, cls:"hook",  txt:"display-lint", ms:"3ms"},
+    {t:900,   lane:12, x:30, cls:"gate",  txt:"Skill(brainstorm)", ms:""},
+    {t:4200,  lane:32, x:40, cls:"hook",  txt:"git-validator", ms:"38ms"},
+    {t:41000, lane:54, x:34, cls:"agent", txt:"@system-designer ⑂", ms:""},
+    {t:41300, lane:54, x:52, cls:"agent", txt:"@frontend-thinker ⑂", ms:""},
+    {t:41600, lane:66, x:44, cls:"agent", txt:"@perf-thinker ⑂", ms:""},
+    {t:118000,lane:54, x:68, cls:"agent", txt:"results ×5 merged", ms:""},
+    {t:126000,lane:78, x:58, cls:"mem",   txt:"memory.write(decision)", ms:""},
+    {t:132000,lane:32, x:72, cls:"hook",  txt:"PostToolUse ✓", ms:"6ms"},
+    {t:140000,lane:12, x:82, cls:"gate",  txt:"design presented ✓", ms:""}
+  ];
+  var TOTAL = 145000;
+  var stage = document.getElementById("evstage");
+  EVENTS.forEach(function(e){
+    var d = document.createElement("div");
+    d.className = "ev "+e.cls;
+    d.innerHTML = "<span class='tag'>"+e.txt+"</span>"+(e.ms?"<span class='ms'>"+e.ms+"</span>":"");
+    d.style.top = e.lane+"%"; d.style.left = e.x+"%";
+    d.dataset.t = e.t;
+    stage.appendChild(d);
+    var s = document.createElement("div");
+    s.className = "spark"; s.style.top = "calc("+e.lane+"% - 14px)"; s.style.left = "calc("+e.x+"% + 8px)";
+    s.dataset.t = e.t;
+    stage.appendChild(s);
+  });
+  var clock = document.getElementById("clock");
+  var trail = document.getElementById("trail");
+  function fmt(ms){
+    var m = Math.floor(ms/60000), s = Math.floor(ms%60000/1000), x = Math.floor(ms%1000);
+    return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")+"."+String(x).padStart(3,"0");
+  }
+  function replay(p){
+    var t = p*TOTAL;
+    clock.textContent = fmt(t);
+    trail.style.width = (p*100)+"%";
+    $$(".ev,.spark",stage).forEach(function(n){
+      n.classList.toggle("on", t >= +n.dataset.t);
+    });
+  }
+
+  // ── master scroll loop ─────────────────────────────────
+  var pbar = document.getElementById("pbar");
+  var ticking = false;
+  function onScroll(){
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(function(){
+      ticking = false;
+      var d = $("#"+current);
+      var doc = document.documentElement;
+      var max = doc.scrollHeight - innerHeight;
+      var p = max>0 ? clamp(scrollY/max,0,1) : 0;
+      pbar.style.width = (p*100)+"%";
+      if (scrollY > 40) document.body.classList.add("scrolled");
+      if (current==="intro") return;
+      var track = $(".track", d);
+      var r = track.getBoundingClientRect();
+      var span = r.height - innerHeight;
+      var tp = span>0 ? clamp(-r.top/span, 0, 1) : 0;
+      if (current==="d1") metro(tp);
+      else if (current==="d2") genesis(tp);
+      else if (current==="d3") replay(tp);
+    });
+  }
+  addEventListener("scroll", onScroll, {passive:true});
+  addEventListener("resize", onScroll);
+
+  // reduced motion: jump every demo to its finished state
+  if (reduced){ metro(1); genesis(1); replay(1); }
+  else { metro(0); genesis(0); replay(0); }
+
+  // copy bar
+  document.getElementById("copybtn").addEventListener("click", function(){
+    navigator.clipboard.writeText(document.getElementById("prompt-code").textContent).then(function(){
+      var b = document.getElementById("copybtn"); b.textContent = "copied ✓";
+      setTimeout(function(){b.textContent="copy prompt"},1200);
+    });
+  });
+})();
+</script>
+</body>
+</html>

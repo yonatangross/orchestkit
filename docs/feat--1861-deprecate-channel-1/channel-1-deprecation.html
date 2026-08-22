@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>#1861 — Deprecate channel 1 (the double-POST)</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root{
+    --bg:#0d1117;--panel:#161b22;--panel2:#1c2230;--line:#30363d;
+    --ink:#e6edf3;--dim:#9da7b3;--faint:#6e7681;
+    --ok:#3fb950;--warn:#d29922;--bad:#f85149;--accent:#58a6ff;--accent2:#bc8cff;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{padding:26px 32px 18px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#11161d,#0d1117)}
+  h1{margin:0 0 6px;font-size:22px;letter-spacing:-.2px}
+  h1 .tag{font:600 12px var(--mono);color:var(--accent2);border:1px solid var(--line);
+    border-radius:6px;padding:2px 7px;margin-left:8px;vertical-align:middle}
+  .sub{color:var(--dim);font-size:13.5px}
+  .wrap{max-width:1100px;margin:0 auto;padding:24px 32px 80px}
+  .verdict{display:flex;gap:14px;margin:22px 0 8px;
+    background:linear-gradient(90deg,rgba(210,153,34,.12),rgba(210,153,34,.02));
+    border:1px solid rgba(210,153,34,.4);border-left:4px solid var(--warn);
+    border-radius:10px;padding:16px 18px}
+  .verdict .em{font-size:24px;line-height:1}
+  .verdict b{color:#f0c674}
+  section{margin:34px 0 10px}
+  h2{font-size:16px;margin:0 0 14px;display:flex;align-items:center;gap:9px}
+  h2 .n{font:700 12px var(--mono);color:var(--bg);background:var(--accent);border-radius:5px;padding:2px 7px}
+  .seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);
+    border-radius:9px;padding:3px;gap:3px;margin-bottom:14px}
+  .seg button{background:transparent;border:0;color:var(--dim);cursor:pointer;
+    font:600 13px/1 inherit;padding:8px 14px;border-radius:7px;transition:.15s}
+  .seg button.on{background:var(--bad);color:#210606}
+  .seg button.on.ok{background:var(--ok);color:#04140a}
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .cap{font-size:13px;color:var(--dim);margin-bottom:8px}
+  .mmd{display:none}.mmd.show{display:block}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:860px){.grid2{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:16px}
+  .card h3{margin:0 0 8px;font-size:14.5px;display:flex;gap:7px;align-items:center}
+  .card .axis{font:600 11px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.5px}
+  .row{display:flex;gap:8px;margin:7px 0;font-size:13px}
+  .row .k{color:var(--faint);min-width:64px;font:600 11px var(--mono)}
+  .bad-c{border-color:rgba(248,81,73,.4)}
+  .ok-c{border-color:rgba(63,185,80,.4)}
+  pre{background:#0a0e14;border:1px solid var(--line);border-radius:9px;padding:13px 15px;
+    overflow:auto;font:12.5px/1.5 var(--mono);color:#c9d1d9;margin:8px 0}
+  .cm{color:var(--faint)}.del{color:var(--bad)}.ins{color:var(--ok)}.warn{color:var(--warn)}
+  .stat{display:flex;gap:18px;flex-wrap:wrap;margin:14px 0}
+  .stat div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;flex:1;min-width:150px}
+  .stat .big{font:700 22px var(--mono);color:var(--bad)}
+  .stat .big.ok{color:var(--ok)}
+  .stat .lbl{font-size:12px;color:var(--dim);margin-top:2px}
+  .footnote{color:var(--faint);font-size:12px;margin-top:26px;border-top:1px solid var(--line);padding-top:14px}
+  code{font:12.5px var(--mono);background:#0a0e14;border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+</style>
+</head>
+<body>
+<header>
+  <h1>#1861 — Deprecate channel 1 <span class="tag">M141 · last item</span></h1>
+  <div class="sub">Every hook event is currently POSTed <b>twice</b>. This retires the duplicate sender.</div>
+</header>
+<div class="wrap">
+
+  <div class="verdict">
+    <div class="em">⚠️</div>
+    <div>OrchestKit ships <b>two</b> emitters that POST to the <b>same</b> downstream endpoint.
+    Both fire in parallel, so every event is delivered <b>twice</b>. That already cost a
+    <b>61% rate-limit reject rate</b> (2026-05-13) and forced a per-session bucketing workaround
+    server-side whose only job is absorbing the duplication. Channel 4 is now canonical — channel 1 has no reason to exist.</div>
+  </div>
+
+  <div class="stat">
+    <div><div class="big">2×</div><div class="lbl">every event, both channels</div></div>
+    <div><div class="big">61%</div><div class="lbl">platform rate-limit rejects (2026-05-13)</div></div>
+    <div><div class="big">19</div><div class="lbl">per-event POSTs from settings.local.json</div></div>
+    <div><div class="big ok">1×</div><div class="lbl">after: batched, signed, retried</div></div>
+  </div>
+
+  <section>
+    <h2><span class="n">1</span> The flow</h2>
+    <div class="seg" id="seg">
+      <button data-f="now" class="on">🔴 TODAY · double-POST</button>
+      <button data-f="after" class="ok">🟢 AFTER · channel 4 only</button>
+    </div>
+    <div class="stage">
+      <div class="cap" id="cap">Both channels fire in parallel to the same endpoint — the server absorbs the duplication.</div>
+      <div class="mmd show" id="f-now"></div>
+      <div class="mmd" id="f-after"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">2</span> Channel comparison</h2>
+    <div class="grid2">
+      <div class="card bad-c">
+        <div class="axis">Channel 1 — deprecated</div>
+        <h3>📮 native HTTP hooks</h3>
+        <div class="row"><span class="k">source</span><span><code>settings.local.json</code> (19 per-event entries)</span></div>
+        <div class="row"><span class="k">auth</span><span>Bearer (<code>$ORCHESTKIT_HOOK_TOKEN</code>)</span></div>
+        <div class="row"><span class="k">batching</span><span>❌ none — one POST per event</span></div>
+        <div class="row"><span class="k">retry</span><span>❌ none</span></div>
+        <div class="row"><span class="k">dedupe</span><span>❌ none</span></div>
+        <div class="row"><span class="k">breaker</span><span>❌ none</span></div>
+      </div>
+      <div class="card ok-c">
+        <div class="axis">Channel 4 — canonical</div>
+        <h3>🔐 HMAC http-sink</h3>
+        <div class="row"><span class="k">source</span><span><code>http-sink</code> class in the hook bundle</span></div>
+        <div class="row"><span class="k">auth</span><span>HMAC <code>t=&lt;unix&gt;,v1=&lt;hex&gt;</code> — replay-safe</span></div>
+        <div class="row"><span class="k">batching</span><span>✅ batched</span></div>
+        <div class="row"><span class="k">retry</span><span>✅ exponential backoff + jitter</span></div>
+        <div class="row"><span class="k">dedupe</span><span>✅ server-side by event id</span></div>
+        <div class="row"><span class="k">breaker</span><span>✅ circuit breaker + HALF_OPEN probe</span></div>
+      </div>
+    </div>
+    <p class="sub" style="margin-top:12px">Channel 4 became canonical when <b>M141</b> landed: the contract is published
+    (<code>@orchestkit/hook-contract</code> + <code>orchestkit-hook-contract</code> on PyPI), the platform consumer
+    verifies its HMAC end-to-end (<code>Yonatan-HQ/platform#8206</code>), and <code>openapi/sink.yaml</code> describes the ingest endpoint.</p>
+  </section>
+
+  <section>
+    <h2><span class="n">3</span> What ships in THIS PR (and what doesn't)</h2>
+    <div class="grid2">
+      <div class="card ok-c">
+        <h3>✅ Now — non-breaking</h3>
+        <div class="row"><span class="k">warn</span><span>every <code>generate:http-hooks</code> run prints a deprecation notice to <b>stderr</b></span></div>
+        <div class="row"><span class="k">docs</span><span><code>configure/references/http-hooks.md</code> — channel 1 marked deprecated, migration path</span></div>
+        <div class="row"><span class="k">safe</span><span>generator <b>still works</b>; stdout stays valid JSON so <code>&gt; settings.json</code> keeps piping</span></div>
+      </div>
+      <div class="card">
+        <h3>⛔ Not yet — needs a major</h3>
+        <div class="row"><span class="k">v9.x</span><span>flag-day: <code>generate:http-hooks</code> becomes a <b>no-op</b></span></div>
+        <div class="row"><span class="k">why</span><span>breaking change — a fresh install must stop getting the 19-entry fan-out</span></div>
+        <div class="row"><span class="k">then</span><span>platform can drop the per-session bucketing workaround</span></div>
+      </div>
+    </div>
+<pre><span class="cm"># the warning (stderr — stdout stays pipeable)</span>
+<span class="warn">  ⚠️  DEPRECATED: generate:http-hooks is channel 1 and is being retired.
+
+     Channel 4 (the HMAC-signed http-sink) is now canonical: batched,
+     retried, circuit-broken, and verified end-to-end against the
+     published hook contract (M141).
+
+     Running BOTH channels double-POSTs every hook event to the same
+     endpoint — that already cost a 61% rate-limit reject rate.
+
+     Migrate: src/skills/configure/references/http-hooks.md
+     This generator becomes a no-op in v9.x — track #1861.</span>
+
+<span class="cm"># verified: stdout is still clean JSON</span>
+$ npm run generate:http-hooks -- https://x.com/hooks 2&gt;/dev/null | python3 -m json.tool
+<span class="ins">✅ valid JSON — redirection to settings.json still works</span></pre>
+  </section>
+
+  <div class="footnote">
+    Closes #1861 (the deprecation half). The v9.x flag-day no-op is tracked on the same issue and is intentionally
+    <b>not</b> in this PR — it is a breaking change. This is the final open item in milestone <b>M141</b>.
+  </div>
+</div>
+
+<script>
+const graphs={
+ now:`flowchart LR
+    CC["Claude Code session"]
+    CC-->|"channel 1<br/>settings.local.json"| C1["19x per-event POST<br/>Bearer · no retry · no batch"]
+    CC-->|"channel 4<br/>http-sink"| C4["batched POST<br/>HMAC t=,v1= · retry · breaker"]
+    C1==>|"POST #1"| EP["/hooks/ingest"]
+    C4==>|"POST #2 (same event!)"| EP
+    EP-->RL{"rate limiter<br/>61% REJECTS"}
+    RL-->|"forced workaround"| WA["per-session bucketing<br/>X-CC-Session-Id"]
+    RL-->DB["sinks: langfuse / pgvector / prom"]
+    classDef bad fill:#2a0f0f,stroke:#f85149,color:#ffd7d3
+    classDef warn fill:#2a2410,stroke:#d29922,color:#e6edf3
+    class C1,RL,WA bad
+    class EP warn`,
+ after:`flowchart LR
+    CC["Claude Code session"]
+    CC-->|"channel 4 only"| C4["batched POST<br/>HMAC t=,v1= · retry · breaker"]
+    C1["channel 1<br/>generate:http-hooks"]-.->|"⚠️ warns now<br/>🚫 no-op in v9.x"| X["(retired)"]
+    C4==>|"POST x1"| EP["/hooks/ingest"]
+    EP-->V["dual-accept HMAC verify<br/>platform#8206"]
+    V-->G{{"parity gate<br/>contract enforced"}}
+    V-->DB["sinks: langfuse / pgvector / prom"]
+    EP-.->|"workaround can be dropped"| WA["per-session bucketing"]
+    classDef good fill:#132a17,stroke:#3fb950,color:#e6edf3
+    classDef gone fill:#1c2230,stroke:#6e7681,color:#6e7681
+    class C4,EP,V,DB good
+    class C1,X,WA gone`
+};
+mermaid.initialize({startOnLoad:false,theme:'dark',securityLevel:'loose',
+  themeVariables:{fontSize:'13px',fontFamily:'ui-monospace,monospace'}});
+async function render(id,def){const {svg}=await mermaid.render(id+'-svg',def);document.getElementById(id).innerHTML=svg;}
+const caps={
+ now:'Both channels fire in parallel to the same endpoint — the server absorbs the duplication.',
+ after:'Channel 4 only. One signed, batched, retried POST per event — and the server-side workaround loses its reason to exist.'
+};
+(async()=>{
+  await render('f-now',graphs.now);
+  await render('f-after',graphs.after);
+  document.getElementById('f-after').classList.remove('show');
+})();
+document.querySelectorAll('#seg button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('#seg button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    const f=b.dataset.f;
+    ['now','after'].forEach(k=>document.getElementById('f-'+k).classList.toggle('show',k===f));
+    document.getElementById('cap').textContent=caps[f];
+  };
+});
+</script>
+</body>
+</html>
