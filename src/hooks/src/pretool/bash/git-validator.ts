@@ -20,6 +20,7 @@ import {
 import { isProtectedBranch, validateBranchName, analyzeStagedChanges, getCurrentBranch } from '../../lib/git.js';
 import { NOOP_CTX } from '../../lib/context.js';
 import { getStateFilePath, readSessionState, repoSlugFromCwd } from '../../lib/session-state.js';
+import { getProjectDir } from '../../lib/paths.js';
 import { listLinkedWorktrees } from '../../lib/worktree-scan.js';
 import { recordDenial } from '../../lib/denial-counter.js';
 
@@ -194,6 +195,32 @@ export function locateGitSegment(command: string): LocatedGit | null {
  * lib/shell-cwd.ts is what makes this path real; do not re-point it at an event
  * without first checking that a shell_cwd actually lands on disk.
  */
+/**
+ * The branch of the directory this SESSION is actually in.
+ *
+ * `ctx.branch` is `getCachedBranch(getProjectDir())` (lib/context.ts:23), and
+ * `getProjectDir()` reads the environment, which names the PRIMARY checkout.
+ * CC, meanwhile, sends `project_dir` for where the session really lives. For a
+ * session inside a linked worktree those disagree, and the guard paired the
+ * worktree DIRECTORY with the TRUNK's branch: probed 2026-08-12 against the
+ * built alpha.24 bundle, a payload with `project_dir` set to a worktree on
+ * `fix/3450-precompact-guard-auto` was denied with "Cannot commit or push
+ * directly to 'main' branch". Nothing was on main. The worktree-awareness added
+ * in #2363 and the shell_cwd path in #3411 both sit DOWNSTREAM of this, so they
+ * were compensating for a branch read from the wrong directory.
+ *
+ * Fail closed: an unreadable or 'unknown' branch at the session dir keeps
+ * `ctx.branch`, so a broken payload can never launder a protected-branch push.
+ */
+export function resolveSessionBranch(input: HookInput, ctx: HookContext): string {
+  const sessionDir = input.project_dir || '';
+  if (!sessionDir || sessionDir === ctx.projectDir) return ctx.branch;
+
+  const branch = getCurrentBranch(sessionDir);
+  if (!branch || branch === 'unknown') return ctx.branch;
+  return branch;
+}
+
 export function resolveEffectiveDir(
   gitCommand: string,
   cdTarget: string | null,
@@ -212,9 +239,22 @@ export function resolveEffectiveDir(
   // Session-state shell_cwd — one small JSON read, ONLY reached on the
   // would-block/advisory path (project dir on a protected branch), so the
   // common feature-branch hot path stays I/O-free per the perf budget.
+  //
+  // The slug MUST come from getProjectDir(), not from projectDir above. The
+  // writer (posttool/bash/session-heartbeat-publisher:139) keys the file by
+  // `repoSlugFromCwd(getProjectDir())`, and repoSlugFromCwd is just basename().
+  // Reading it back under `input.project_dir` looked equivalent and is not: CC
+  // sends the WORKTREE as project_dir for a session living in one, so the
+  // reader looked for `<state>/precompact-guard/<sid>.json` while the writer
+  // had written `<state>/orchestkit/<sid>.json`. Both existed on disk, which is
+  // how this was found. Net effect: path 3 returned null for every worktree
+  // session, i.e. it was dead in precisely the case #3411 built it for, and the
+  // guard fell back to the trunk verdict. Key by the writer's dir; judge by the
+  // session's dir. They are different questions.
   const sessionId = input.session_id;
-  if (sessionId && projectDir) {
-    const statePath = getStateFilePath(repoSlugFromCwd(projectDir), sessionId);
+  const stateSlugDir = getProjectDir() || projectDir;
+  if (sessionId && stateSlugDir) {
+    const statePath = getStateFilePath(repoSlugFromCwd(stateSlugDir), sessionId);
     const state = readSessionState(statePath);
     if (state?.shell_cwd && state.shell_cwd !== projectDir) {
       return state.shell_cwd;
@@ -359,7 +399,18 @@ export function buildProtectedBranchDenial(ctx: DenialContext): string {
     candidates.length > 0 ? buildWorktreeRewrite(ctx.gitCommand, candidates[0].path) : null;
 
   if (rewrite) {
-    sections.push(`This guard reads the COMMAND STRING, not the shell's working directory — the hook runs in its own process, so a \`cd\` you ran earlier is invisible to it. If you are working in a linked worktree, name it per-command.
+    // Two different situations used to share one sentence, and that sentence
+    // ("this guard reads the COMMAND STRING, not the shell's working
+    // directory") stopped being true when #3411 added shell_cwd tracking. It
+    // told the operator the mechanism did not exist while the real problem was
+    // that its value had lapsed, which is unfalsifiable from the message and
+    // cost a long debugging detour on 2026-08-12. Say which case this is.
+    const diagnosis =
+      ctx.effectiveDir === null
+        ? `The guard could not tell where your shell is, so it judged the session dir. It resolves this from \`git -C <path>\`, a leading \`cd <path> &&\`, or the shell cwd it tracks across commands. That last one is CLEARED (never guessed) by any \`cd\` it cannot read statically: \`cd "$VAR"\`, a bare \`cd\`, \`pushd\`/\`popd\`. If you moved with \`cd "$WT"\`, that is why.`
+        : `Your shell is in '${ctx.effectiveDir}', which is on '${ctx.effectiveBranch}'. That is a protected branch too, so naming the directory will not help.`;
+
+    sections.push(`${diagnosis}
 
 Run this instead (copyable as-is):
   ${rewrite}`);
@@ -665,7 +716,7 @@ export function gitValidator(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
   }
   const gitCommand = command.slice(located.offset);
 
-  const currentBranch = ctx.branch;
+  const currentBranch = resolveSessionBranch(input, ctx);
 
   ctx.log('git-validator', `Validating: ${gitCommand.slice(0, 50)}...`);
 

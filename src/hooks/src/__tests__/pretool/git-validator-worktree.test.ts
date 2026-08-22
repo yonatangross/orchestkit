@@ -45,6 +45,17 @@ vi.mock('../../lib/git-head.js', () => ({
   readBranchOr: vi.fn(),
 }));
 
+// The session-state slug comes from getProjectDir(), because that is what the
+// WRITER (posttool/bash/session-heartbeat-publisher) keys by. Un-mocked, this
+// returned the real CLAUDE_PROJECT_DIR and the fixtures below were written to a
+// slug production would never read, which is the half-contract this file was
+// already criticised for in the #3411 changelog entry. Pinning it makes writer
+// and reader agree on one directory, as they must in production.
+vi.mock('../../lib/paths.js', async importOriginal => ({
+  ...(await importOriginal<typeof import('../../lib/paths.js')>()),
+  getProjectDir: () => '/test/project',
+}));
+
 import { execFileSync } from 'node:child_process';
 import { readBranchOr } from '../../lib/git-head.js';
 import { _resetBranchCacheForTesting } from '../../lib/git.js';
@@ -231,6 +242,24 @@ describe('resolveEffectiveDir', () => {
     expect(dir).toBe(WORKTREE_DIR);
   });
 
+  // The writer keys state by getProjectDir() (the PRIMARY checkout); CC sends
+  // the WORKTREE as project_dir for a session living in one. Reading it back
+  // under project_dir looked equivalent and split the key in two, so path 3
+  // returned null for every worktree session: dead in the case it was built
+  // for. Both files were found on disk, under `orchestkit/` and
+  // `precompact-guard/`, on 2026-08-12.
+  it('finds shell_cwd even when project_dir is a worktree, not the primary dir', () => {
+    const OTHER_WORKTREE = '/test/project/.worktrees/agent-second';
+    writeShellCwdState(OTHER_WORKTREE);
+    const dir = resolveEffectiveDir(
+      'git commit -m "x"',
+      null,
+      createBashInput('irrelevant', { project_dir: WORKTREE_DIR }),
+      mainCtx(),
+    );
+    expect(dir).toBe(OTHER_WORKTREE);
+  });
+
   it('ignores shell_cwd equal to the project dir', () => {
     writeShellCwdState(PROJECT_DIR);
     const dir = resolveEffectiveDir(
@@ -271,6 +300,54 @@ describe('gitValidator worktree-awareness (#2363)', () => {
     const ctxText = JSON.stringify(result);
     expect(ctxText).toContain('fix/2360-ship-hook-bundles');
     expect(ctxText).not.toContain('BLOCKED');
+  });
+
+  // The root defect under #2363 and #3411 both: ctx.branch is always
+  // getCachedBranch(getProjectDir()), i.e. the PRIMARY checkout, while CC sends
+  // the session's real directory as project_dir. With no cd, no -C and no
+  // shell_cwd, a session sitting IN a feature-branch worktree was judged
+  // against the trunk. Probed live 2026-08-12 against the built alpha.24
+  // bundle: project_dir on 'fix/3450-precompact-guard-auto', denied as "Cannot
+  // commit or push directly to 'main' branch".
+  it('judges the branch of the dir CC says the session is in, with no other signal', () => {
+    mockBranches({ [WORKTREE_DIR]: 'fix/3450-precompact-guard-auto' });
+
+    const result = gitValidator(
+      createBashInput('git push -q', { project_dir: WORKTREE_DIR }),
+      mainCtx(),
+    );
+
+    expect(result.continue).toBe(true);
+    expect(JSON.stringify(result)).not.toContain('BLOCKED');
+  });
+
+  // Fail closed: an unreadable branch at the session dir must NOT launder a
+  // push, or a malformed payload becomes a bypass.
+  it('keeps the protected verdict when the session dir has no readable branch', () => {
+    mockBranches({});
+
+    const result = gitValidator(
+      createBashInput('git push -q', { project_dir: '/test/not-a-repo' }),
+      mainCtx(),
+    );
+
+    expect(result.continue).toBe(false);
+    expect(JSON.stringify(result)).toContain('BLOCKED');
+  });
+
+  // 'master', not 'dev': the default protected set is ['main','master'] and
+  // this suite deletes ORCHESTKIT_PROTECTED_BRANCHES, so 'dev' would pass here
+  // for the wrong reason and assert nothing.
+  it('still blocks when the session dir is itself on a protected branch', () => {
+    mockBranches({ [WORKTREE_DIR]: 'master' });
+
+    const result = gitValidator(
+      createBashInput('git push -q', { project_dir: WORKTREE_DIR }),
+      mainCtx(),
+    );
+
+    expect(result.continue).toBe(false);
+    expect(JSON.stringify(result)).toContain('BLOCKED');
   });
 
   it('still blocks when the worktree itself is on a protected branch', () => {
