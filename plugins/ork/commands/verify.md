@@ -453,7 +453,8 @@ Done means all of these hold:
 
 A check that prints the same thing whether or not the fault is present has
 measured nothing, yet it still returns an answer and that answer reads as
-evidence. Run `/ork:paired-probe` on any check whose PASS decides the verdict,
+evidence. The `paired-probe` skill exists for this and is model-invocable: it applies
+to any check whose PASS decides the verdict,
 especially a sweep that reported zero findings or a gate that passed
 unexpectedly. It refuses the verdict rather than the check.
 
