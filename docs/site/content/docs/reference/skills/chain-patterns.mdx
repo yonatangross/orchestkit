@@ -298,6 +298,8 @@ SendMessage(to="ci-watcher", message="PR #42: all required checks green, safe to
 
 **Design guidance:**
 - Use cross-session edges to PUSH state changes (a finding, a CI verdict, a decision) to the session that needs it, instead of that session polling files.
+- **To learn when a peer FINISHES, subscribe, do not push and do not poll (CC 2.1.236).** `SendMessage(to=..., notify_when_idle=True)` delivers exactly one notice when that session next goes idle or exits. Omit `message` for a pure subscription that costs the peer nothing, or include one to deliver and subscribe in the same call. It is one-shot and opt-in, main-conversation only, and same-machine only. This is strictly better than the two alternatives it replaces: asking the peer to remember to report back (it may not, and a forgotten push is silent), or sending "are you done?" messages (which burns the peer's context to answer). Never poll `ListAgents` in a loop for this.
+- A peer's report is a claim, not evidence. When the notice arrives, re-derive the state yourself rather than restating what the peer said; a peer reading stale state will hand you stale conclusions in good faith.
 - Keep a durable file record for anything that must survive a held or refused delivery.
 
 ## Rules
