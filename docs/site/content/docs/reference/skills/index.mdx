@@ -1,6 +1,6 @@
 ---
 title: Skills Reference
-description: "Complete reference for all 105 OrchestKit skills."
+description: "Complete reference for all 106 OrchestKit skills."
 ---
 
 import { SkillAtlas } from '@/components/world/skill-atlas';
@@ -9,7 +9,7 @@ import { SkillAtlas } from '@/components/world/skill-atlas';
 
 # Skills Reference
 
-OrchestKit includes **105 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
+OrchestKit includes **106 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
@@ -81,6 +81,7 @@ OrchestKit includes **105 skills** — reusable knowledge modules that provide p
 | [Multi Surface Render](/docs/reference/skills/multi-surface-render) | Reference | medium | Multi-surface rendering with json-render — one JSON spec produces React web, Next.js, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for several platforms or creating PDF reports, email templates, demo videos, or social images from one component spec. |
 | [Multimodal Llm](/docs/reference/skills/multimodal-llm) | Reference | high | Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines. |
 | [Okr Design](/docs/reference/skills/okr-design) | Reference | medium | OKR trees, KPI dashboards, North Star Metric, leading/lagging indicators, and experiment design. Use when setting team goals, defining success metrics, building measurement frameworks, or designing A/B experiment guardrails. |
+| [Paired Probe](/docs/reference/skills/paired-probe) | Reference | low | Refuse a verdict a probe did not earn. Runs a check where the fault IS present and where it is NOT, and blocks the answer when both arms print the same thing, because a check that cannot disagree with you has measured nothing. Also catches the zero-sample sweep that reads as "clean" and the swallowed error that reads as success. Use before reporting any status, audit, sweep, or "nothing found" result, and whenever a check surprises you by passing. |
 | [Performance](/docs/reference/skills/performance) | Reference | high | Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, LLM inference, and sustainability UX. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, deploying LLMs efficiently, or reducing digital carbon footprint. |
 | [Portless](/docs/reference/skills/portless) | Reference | low | Named HTTPS .localhost URLs with portless (v0.15.x). Eliminates port collisions, gives agents stable URLs, adds branch-named subdomains for git worktrees, LAN mode (--lan), and Tailscale sharing. Use when setting up a local dev environment or testing from phones and tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration. |
 | [Prd To Goal](/docs/reference/skills/prd-to-goal) | Command | low | Decomposes a PRD, issue, or spec into a copy-pasteable single `/goal until ..., or stop after N turns` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions. |
