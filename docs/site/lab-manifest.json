@@ -261,6 +261,14 @@
         "watcher"
       ],
       "date": "2026-08-21"
+    },
+    {
+      "slug": "conductor-session-2026-08-20",
+      "source": "docs/docs--conductor-session-playground-revive/index.html",
+      "title": "Conductor Session, 2026-08-20",
+      "description": "A read-only conductor session in three views: Claude Code adoption unfrozen across six versions by fixing one JSON.parse, five pull requests with zero real red plus a worktree map that would not prune, and the four self-corrections and four instrument defects that produced every number here.",
+      "tags": ["audit", "explainer", "cc-adoption"],
+      "date": "2026-08-20"
     }
   ]
 }
