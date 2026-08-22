@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.48",
+    "date": "2026-08-22",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**cc-watch:** the adoption board can no longer lose history ([#3662](https://github.com/yonatangross/orchestkit/issues/3662)) ([787ad7a](https://github.com/yonatangross/orchestkit/commit/787ad7a39a4fbb9315b2f723cbed58ae893ed47d))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**sandbox:** pattern excludedCommands + allowUnixSockets ([#3659](https://github.com/yonatangross/orchestkit/issues/3659)) ([deda673](https://github.com/yonatangross/orchestkit/commit/deda6730278696b59537b106f43d0c2f5aa63bae))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.47",
     "date": "2026-08-22",
     "compareUrl": "",
