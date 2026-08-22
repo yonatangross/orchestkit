@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.47](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.46...v10.0.0-alpha.47) (2026-08-22)
+
+
+### Features
+
+* **docs-site:** claim the CLI now that it is actually published ([#3658](https://github.com/yonatangross/orchestkit/issues/3658)) ([f0713f4](https://github.com/yonatangross/orchestkit/commit/f0713f47d6291adc5448daa790a7b78aa7c046f1))
+
+
+### Bug Fixes
+
+* **ci:** playground gate blocked the playground prune ([#3661](https://github.com/yonatangross/orchestkit/issues/3661)) ([ed99c87](https://github.com/yonatangross/orchestkit/commit/ed99c87b71879190828cbe64fcf872a1c9707b80))
+* **cli:** npm strips a bin value that starts with ./ ([#3656](https://github.com/yonatangross/orchestkit/issues/3656)) ([028ea3d](https://github.com/yonatangross/orchestkit/commit/028ea3d5fb9e5e7e458155b117495ecbbdf49a9e))
+
 ## [10.0.0-alpha.46](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.45...v10.0.0-alpha.46) (2026-08-22)
 
 
