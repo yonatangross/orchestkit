@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The pipefail SIGPIPE trap</title>
+<style>
+  :root{--bg:#0b0d10;--panel:#14181d;--line:#242b33;--fg:#e6edf3;--dim:#8b98a5;
+        --ok:#3fb950;--bad:#f85149;--accent:#58a6ff;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  main{max-width:860px;margin:0 auto;padding:32px 20px 80px}
+  h1{font-size:25px;margin:0 0 6px}
+  h2{font-size:17px;margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+  p.lead{color:var(--dim);margin:0 0 22px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+  label{display:block;font-size:13px;color:var(--dim);margin-bottom:6px}
+  input[type=range]{width:100%}
+  .readout{font:13px var(--mono);color:var(--dim);margin-top:6px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  @media(max-width:700px){.cols{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:9px;padding:13px;background:#0b0d10}
+  .card h3{margin:0 0 8px;font:12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+  pre{margin:0;font:12.5px/1.5 var(--mono);white-space:pre-wrap}
+  .verdict{margin-top:10px;font:13px var(--mono);font-weight:700}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  code{font:12.5px var(--mono);background:#0b0d10;padding:1px 5px;border-radius:4px}
+  table{border-collapse:collapse;width:100%;margin-top:10px;font-size:13.5px}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--dim);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+  footer{margin-top:40px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<main>
+  <h1>The <code>pipefail</code> SIGPIPE trap</h1>
+  <p class="lead">
+    A verification probe reported a check as failing because the response was large,
+    not because the content was missing. Drag the slider to see the verdict flip on
+    body size alone, with the pattern present the entire time.
+  </p>
+
+  <div class="panel">
+    <label for="size">Response size returned by curl</label>
+    <input type="range" id="size" min="1" max="60" value="2">
+    <div class="readout" id="readout"></div>
+
+    <div class="cols">
+      <div class="card">
+        <h3>Before: piped</h3>
+        <pre>curl -s "$ORIGIN$1" | grep -qi -- "$2"</pre>
+        <div class="verdict" id="v-before"></div>
+        <pre class="readout" id="why-before"></pre>
+      </div>
+      <div class="card">
+        <h3>After: captured first</h3>
+        <pre>body=$(curl -s "$ORIGIN$1")
+printf '%s' "$body" | grep -qi -- "$2"</pre>
+        <div class="verdict" id="v-after"></div>
+        <pre class="readout" id="why-after"></pre>
+      </div>
+    </div>
+  </div>
+
+  <h2>Why it happens</h2>
+  <table>
+    <tr><th>Step</th><th>What actually occurs</th></tr>
+    <tr><td><code>grep -q</code></td><td>Matches, and exits <strong>immediately</strong>. It does not drain the pipe.</td></tr>
+    <tr><td><code>curl</code></td><td>Still writing. The read end is gone, so it takes SIGPIPE and exits <strong>141</strong>.</td></tr>
+    <tr><td><code>set -o pipefail</code></td><td>Reports the pipeline's status as the <strong>last non-zero</strong> one, so 141 wins over grep's 0.</td></tr>
+    <tr><td><code>if</code></td><td>Sees failure. The probe prints FAIL for a pattern that was present.</td></tr>
+  </table>
+
+  <h2>Why it stayed hidden</h2>
+  <p>
+    Every small response passed, because curl finished writing before grep exited. The
+    bug only appeared on <code>/openapi.json</code> at 42 kB, which made it look like a
+    property of that one endpoint. The obvious next hypothesis was CDN propagation lag
+    after a fresh deploy, and re-running later would eventually have "confirmed" it as
+    soon as anything unrelated changed.
+  </p>
+  <p>
+    What settled it was running the identical grep by hand and watching it match. Same
+    origin, same bytes, same pattern, different verdict. That leaves the pipeline, not
+    the payload.
+  </p>
+
+  <footer>
+    Fix: capture the body into a variable, so the grep is the only thing whose exit
+    status can fail the check. Shipped in
+    <code>docs/site/scripts/verify-agent-readiness.sh</code>, the post-deploy gate for
+    the agent-readiness contracts.
+  </footer>
+</main>
+
+<script>
+// The pattern is present at EVERY size. Only the pipeline shape changes the verdict.
+const KB_BEFORE_GREP_EXITS = 8; // curl's buffer: below this it finishes before grep exits
+const el = id => document.getElementById(id);
+
+function render() {
+  const kb = Number(el('size').value);
+  el('readout').textContent =
+    `${kb} kB body, pattern "components/headers/Sunset" present: yes`;
+
+  const curlKilled = kb > KB_BEFORE_GREP_EXITS;
+  const beforeOk = !curlKilled;
+
+  el('v-before').textContent = beforeOk ? 'exit 0  -> ok' : 'exit 141 -> FAIL';
+  el('v-before').className = 'verdict ' + (beforeOk ? 'ok' : 'bad');
+  el('why-before').textContent = beforeOk
+    ? 'curl finished writing before grep exited,\nso nothing took SIGPIPE.'
+    : 'grep matched and exited early.\ncurl took SIGPIPE (141).\npipefail surfaced 141.';
+
+  el('v-after').textContent = 'exit 0  -> ok';
+  el('v-after').className = 'verdict ok';
+  el('why-after').textContent =
+    'curl ran to completion into a variable.\ngrep is the only exit status left.';
+}
+
+el('size').addEventListener('input', render);
+render();
+</script>
+</body>
+</html>
