@@ -43,9 +43,19 @@ export function GET() {
 						title: "A2A agent card",
 					},
 					{
+						href: `${d}/api-policy`,
+						type: "text/html",
+						title: "API versioning, deprecation & sunset policy",
+					},
+					{
 						href: `${d}/api-policy.md`,
 						type: "text/markdown",
-						title: "API versioning, deprecation & sunset policy",
+						title: "API versioning, deprecation & sunset policy (Markdown)",
+					},
+					{
+						href: `${d}/developers.md`,
+						type: "text/markdown",
+						title: "Developer resource index (Markdown)",
 					},
 					{
 						href: `${d}/.well-known/oauth-protected-resource`,

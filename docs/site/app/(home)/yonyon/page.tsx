@@ -10,6 +10,7 @@ import {
 	yonyonOrganizationNode,
 } from "@/components/structured-data";
 import { COUNTS, SITE, YONYON } from "@/lib/constants";
+import { YONYON_FAQS } from "@/lib/yonyon-faqs";
 
 export const metadata: Metadata = {
 	title: "Yonyon — the studio behind OrchestKit",
@@ -18,25 +19,6 @@ export const metadata: Metadata = {
 	alternates: { canonical: `${SITE.domain}/yonyon` },
 };
 
-// Disambiguation-first FAQ. The first entry directly answers the name-collision
-// query an agent or search engine forms from the apex domain "yonyon"; the rest
-// route a "yonyon"-keyed visitor straight to OrchestKit's named dev resources.
-const YONYON_FAQS = [
-	{
-		question: "Is Yonyon (OrchestKit) related to the musician of the same name?",
-		answer:
-			"No. On this site, Yonyon is an independent software studio — the publisher of OrchestKit, a free, open-source plugin for Claude Code. It is not affiliated with, and should not be confused with, the DJ/music producer who also uses the name Yonyon.",
-	},
-	{
-		question: "What does Yonyon make?",
-		answer: `Yonyon builds developer tooling for AI-assisted engineering. Its flagship product is OrchestKit — ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks for Claude Code, MIT-licensed and free.`,
-	},
-	{
-		question: "Where are Yonyon's developer resources?",
-		answer:
-			"All of OrchestKit's developer resources live under orchestkit.yonyon.ai: the docs, a read-only OpenAPI spec at /api/openapi, an MCP server at /api/mcp, a natural-language /ask endpoint, llms.txt and llms-full.txt, and well-known agent/API discovery files. Source is on GitHub at github.com/yonatangross/orchestkit.",
-	},
-];
 
 export default function YonyonPage() {
 	return (

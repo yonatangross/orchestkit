@@ -7,9 +7,20 @@
 // emit well-formed RFC 8594 headers when an endpoint is eventually retired.
 // Nothing is deprecated today — this only asserts the policy + mechanism exist.
 
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { SERVED_EXACT } from "@/lib/agent-404";
+import {
+	API_POLICY_TITLE,
+	SUNSET_NOTICE_MONTHS,
+	apiPolicyMarkdown,
+	apiPolicySections,
+} from "@/lib/api-policy";
+import { OPENAPI_COMPONENTS } from "@/lib/openapi/components";
 import { buildOpenApiSpec } from "@/lib/openapi/spec";
 import { deprecationHeaders } from "@/lib/problem";
+import { STATIC_PAGES } from "@/lib/static-pages";
 
 describe("OpenAPI info.description declares versioning + deprecation policy", () => {
 	const description = buildOpenApiSpec().info.description;
@@ -45,5 +56,113 @@ describe("deprecationHeaders helper (RFC 8594)", () => {
 		expect(headers.Link).toBe(
 			'<https://orchestkit.yonyon.ai/api-policy.md>; rel="deprecation"; type="text/html"',
 		);
+	});
+});
+
+// The audit reported "no deprecation or sunset policy detected" while the policy
+// HAD shipped, at /api-policy.md, linked from llms.txt and advertised on every
+// response as `Link: </api-policy.md>; rel="deprecation"`. What a crawler could
+// not see was an HTML representation in the sitemap, and what a spec parser
+// could not see was `Sunset` as a declared response header rather than prose in
+// info.description. These pin both, plus the single-source guarantee that keeps
+// the HTML page and the Markdown twin from stating different guarantees.
+
+describe("the policy is discoverable as HTML, not only as Markdown", () => {
+	it("/api-policy is a real page in the sitemap and the served allowlist", () => {
+		expect(STATIC_PAGES).toContain("/api-policy");
+		expect(SERVED_EXACT.has("/api-policy")).toBe(true);
+		expect(SERVED_EXACT.has("/api-policy.md")).toBe(true);
+	});
+
+	it("the HTML page renders from lib/api-policy, not a second copy of the text", () => {
+		const src = readFileSync(
+			resolve(__dirname, "../app/(home)/api-policy/page.tsx"),
+			"utf8",
+		);
+		expect(src).toContain("apiPolicySections");
+		expect(src).toContain("@/lib/api-policy");
+	});
+
+	it("the Markdown route renders from the same source", () => {
+		const src = readFileSync(
+			resolve(__dirname, "../app/api-policy.md/route.ts"),
+			"utf8",
+		);
+		expect(src).toContain("apiPolicyMarkdown");
+	});
+
+	it("the api-catalog lists both representations", () => {
+		const src = readFileSync(
+			resolve(__dirname, "../app/api/well-known/api-catalog/route.ts"),
+			"utf8",
+		);
+		expect(src).toContain("${d}/api-policy`");
+		expect(src).toContain("${d}/api-policy.md`");
+	});
+});
+
+describe("policy content", () => {
+	const markdown = apiPolicyMarkdown();
+
+	it("states versioning, deprecation, sunset and rate limits", () => {
+		const headings = apiPolicySections().map((s) => s.heading);
+		expect(headings).toContain("Versioning");
+		expect(headings).toContain("Deprecation");
+		expect(headings).toContain("Sunset guarantees");
+		expect(headings).toContain("Rate limits");
+	});
+
+	it("commits to a concrete notice period, not a vague promise", () => {
+		expect(SUNSET_NOTICE_MONTHS).toBeGreaterThanOrEqual(6);
+		expect(markdown).toContain(`at least ${SUNSET_NOTICE_MONTHS} months`);
+	});
+
+	it("renders as Markdown with the title as an H1 and every bullet present", () => {
+		expect(markdown.startsWith(`# ${API_POLICY_TITLE}`)).toBe(true);
+		for (const section of apiPolicySections()) {
+			expect(markdown).toContain(`## ${section.heading}`);
+			for (const bullet of section.bullets ?? []) {
+				expect(markdown).toContain(`- ${bullet}`);
+			}
+		}
+	});
+});
+
+describe("OpenAPI declares the headers, not just the prose", () => {
+	const spec = buildOpenApiSpec();
+
+	it("components.headers defines Deprecation, Sunset and Link", () => {
+		for (const name of ["Deprecation", "Sunset", "Link"]) {
+			const header = (OPENAPI_COMPONENTS.headers as Record<string, unknown>)[name];
+			expect(header, `components.headers.${name} missing`).toBeDefined();
+			expect(JSON.stringify(header)).toContain("description");
+		}
+	});
+
+	it("Deprecation and Sunset are typed as HTTP dates, per RFC 8594", () => {
+		const headers = OPENAPI_COMPONENTS.headers as Record<
+			string,
+			{ schema?: { format?: string } }
+		>;
+		expect(headers.Deprecation?.schema?.format).toBe("http-date");
+		expect(headers.Sunset?.schema?.format).toBe("http-date");
+	});
+
+	it("responses reference them, so a parser finds them per-operation", () => {
+		const serialized = JSON.stringify(spec);
+		expect(serialized).toContain("#/components/headers/Sunset");
+		expect(serialized).toContain("#/components/headers/Deprecation");
+	});
+
+	it("the search 200 keeps its pagination Link (not overwritten by the policy Link)", () => {
+		const searchGet = (
+			spec.paths as Record<string, { get?: { responses?: Record<string, { headers?: Record<string, unknown> }> } }>
+		)["/api/search"]?.get;
+		const link = searchGet?.responses?.["200"]?.headers?.Link;
+		expect(JSON.stringify(link)).toContain("next");
+	});
+
+	it("info.description points at the HTML policy page", () => {
+		expect(spec.info.description).toContain("/api-policy ");
 	});
 });

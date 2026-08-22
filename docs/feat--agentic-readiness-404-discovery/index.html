@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent-readiness playground</title>
+<style>
+  :root{--bg:#0b0d10;--panel:#14181d;--line:#242b33;--fg:#e6edf3;--dim:#8b98a5;
+        --ok:#3fb950;--bad:#f85149;--warn:#d29922;--accent:#58a6ff;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  main{max-width:960px;margin:0 auto;padding:32px 20px 80px}
+  h1{font-size:26px;margin:0 0 6px}
+  h2{font-size:18px;margin:36px 0 10px;padding-top:20px;border-top:1px solid var(--line)}
+  p.lead{color:var(--dim);margin:0 0 24px}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--panel);
+       border:1px solid var(--line);border-radius:10px;padding:12px}
+  input[type=text]{flex:1;min-width:260px;background:#0b0d10;border:1px solid var(--line);
+       color:var(--fg);border-radius:7px;padding:9px 11px;font:13px var(--mono)}
+  button{background:var(--accent);color:#06121f;border:0;border-radius:7px;padding:9px 16px;
+       font-weight:640;font-size:13px;cursor:pointer}
+  button.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+  button:disabled{opacity:.5;cursor:progress}
+  .check{border:1px solid var(--line);border-radius:10px;margin:10px 0;overflow:hidden;background:var(--panel)}
+  .check>summary{cursor:pointer;padding:12px 14px;display:flex;gap:10px;align-items:baseline;font-weight:600}
+  .check>summary::-webkit-details-marker{display:none}
+  .verdict{font:12px/1 var(--mono);padding:3px 7px;border-radius:5px;font-weight:700}
+  .v-ok{background:rgba(63,185,80,.15);color:var(--ok)}
+  .v-bad{background:rgba(248,81,73,.15);color:var(--bad)}
+  .v-idle{background:rgba(139,152,165,.15);color:var(--dim)}
+  .body{padding:0 14px 14px}
+  .why{color:var(--dim);font-size:13.5px;margin:2px 0 12px}
+  pre{background:#0b0d10;border:1px solid var(--line);border-radius:8px;padding:11px 13px;
+      overflow:auto;font:12.5px/1.55 var(--mono);margin:8px 0}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:720px){.cols{grid-template-columns:1fr}}
+  .tag{font:11px/1 var(--mono);color:var(--dim);text-transform:uppercase;letter-spacing:.07em}
+  .before .tag{color:var(--bad)} .after .tag{color:var(--ok)}
+  ul.res{list-style:none;padding:0;margin:6px 0 0}
+  ul.res li{font:12.5px/1.7 var(--mono);display:flex;gap:8px}
+  .dot{width:1.2em}
+  footer{margin-top:44px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+  code{font:12.5px var(--mono);background:#0b0d10;padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Agent-readiness playground</h1>
+  <p class="lead">
+    Five checks an Is Agentic audit scored below full credit. Each panel shows the
+    response an agent actually received before the change and what it receives now.
+    The prober runs the same checks live against any origin, so you can point it at a
+    preview deployment and watch the verdicts flip.
+  </p>
+
+  <div class="bar">
+    <input type="text" id="origin" value="https://orchestkit.yonyon.ai" spellcheck="false">
+    <button id="run">Probe this origin</button>
+    <button class="ghost" id="reset">Reset</button>
+  </div>
+  <p class="why" id="status">
+    Production is still pre-fix, so probing it should fail most checks. That is the point:
+    a probe that cannot go red is not a gate.
+  </p>
+
+  <h2>1. Agent-friendly 404s</h2>
+  <details class="check" id="c1" open>
+    <summary><span class="verdict v-idle" data-v>idle</span> A 404 must say where to look next</summary>
+    <div class="body">
+      <p class="why">
+        The status was already correct. What was missing was recovery: a bare problem
+        object names the failure but not the next hop. Worse, an unknown <code>.md</code>
+        path matched the "has a file extension" branch and fell through to the HTML
+        not-found page, so an agent following this site's own documented "append .md"
+        convention received markup.
+      </p>
+      <div class="cols">
+        <div class="before"><span class="tag">before</span><pre>$ curl -sI /developers.md
+HTTP/2 404
+content-type: text/html; charset=utf-8
+
+&lt;!DOCTYPE html&gt;&lt;html&gt;... 404 page ...</pre></div>
+        <div class="after"><span class="tag">after</span><pre>$ curl -s -H 'Accept: text/markdown' /nope
+HTTP/2 404
+content-type: text/markdown; charset=utf-8
+
+# 404: Not found
+## Where to look next
+- [llms.txt](/llms.txt): ...
+- [Sitemap](/sitemap.xml): ...</pre></div>
+      </div>
+      <ul class="res" data-res></ul>
+    </div>
+  </details>
+
+  <h2>2. Developer resource discoverability</h2>
+  <details class="check" id="c2">
+    <summary><span class="verdict v-idle" data-v>idle</span> Named resources need a machine-readable twin</summary>
+    <div class="body">
+      <p class="why">
+        The pages were served and in the sitemap; the audit still found nothing for
+        "yonyon developer resources". The gap was that <code>/developers.md</code> did not
+        exist. Twins now render from the same data as the HTML pages, so the two views
+        cannot drift.
+      </p>
+      <ul class="res" data-res></ul>
+    </div>
+  </details>
+
+  <h2>3. Rate-limit headers</h2>
+  <details class="check" id="c3">
+    <summary><span class="verdict v-idle" data-v>idle</span> Every API response should carry a quota</summary>
+    <div class="body">
+      <p class="why">
+        Only four self-limiting routes emitted them. The surfaces a scanner probes first
+        are <code>revalidate = false</code> handlers that run at build time, so no header
+        computed inside them can be per-request. Middleware meters them instead.
+        A second, quieter half: CORS was open but the headers were not in
+        <code>Access-Control-Expose-Headers</code>, so a browser-based agent read
+        <code>null</code> from every one of them while curl saw them fine. If this panel
+        goes green in your browser, that half works too.
+      </p>
+      <ul class="res" data-res></ul>
+    </div>
+  </details>
+
+  <h2>4. Versioning and deprecation policy</h2>
+  <details class="check" id="c4">
+    <summary><span class="verdict v-idle" data-v>idle</span> The policy must be findable and typed</summary>
+    <div class="body">
+      <p class="why">
+        The policy existed at <code>/api-policy.md</code>, but Markdown-only is invisible to
+        a crawler walking HTML and the sitemap, and <code>Sunset</code> appeared as prose in
+        <code>info.description</code> rather than as a declared response header.
+      </p>
+      <ul class="res" data-res></ul>
+    </div>
+  </details>
+
+  <h2>5. CLI tool</h2>
+  <details class="check" id="c5">
+    <summary><span class="verdict v-idle" data-v>idle</span> Published, or it does not count</summary>
+    <div class="body">
+      <p class="why">
+        <code>packages/cli</code> builds a real <code>orchestkit</code> binary with 25 tests, but it
+        is unpublished, so this check stays red on purpose. The site deliberately does not
+        mention it yet: a published-looking install command that 404s is worse than none.
+      </p>
+      <pre>$ orchestkit doctor
+  ok    node 26.7.0 (&gt;= 20 required)
+  ok    API reachable at https://orchestkit.yonyon.ai (ok)
+  ok    rate limit 118/120, resets in 60s</pre>
+      <ul class="res" data-res></ul>
+    </div>
+  </details>
+
+  <footer>
+    The same checks run headless as
+    <code>bash docs/site/scripts/verify-agent-readiness.sh &lt;origin&gt;</code>, which is the
+    post-deploy gate. This page is the browser twin, and it doubles as the proof that the
+    CORS expose-list works, because it can only read the quota headers if it does.
+  </footer>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const origin = () => $('#origin').value.trim().replace(/\/+$/, '');
+
+// Each probe returns {label, ok} so a red result is as legible as a green one.
+async function get(path, accept) {
+  const res = await fetch(origin() + path, {headers: accept ? {Accept: accept} : {}});
+  return {res, text: await res.text()};
+}
+
+const CHECKS = {
+  c1: async () => [
+    await probe('unknown path returns a real 404, not a 200 shell',
+      async () => (await get('/some-path-that-does-not-exist')).res.status === 404),
+    await probe('the documented .md convention resolves',
+      async () => (await get('/developers.md')).res.status === 200),
+    await probe('markdown 404 carries a heading and recovery links',
+      async () => {
+        const {res, text} = await get('/some-path-that-does-not-exist', 'text/markdown');
+        return res.status === 404 && /# 404/.test(text) && /llms\.txt/.test(text) && /sitemap\.xml/.test(text);
+      }),
+    await probe('json 404 carries RFC 9457 links extension',
+      async () => {
+        const {text} = await get('/some-path-that-does-not-exist', 'application/json');
+        try { return Array.isArray(JSON.parse(text).links); } catch { return false; }
+      }),
+  ],
+  c2: async () => [
+    await probe('/developers.md is Markdown and names the studio',
+      async () => {
+        const {res, text} = await get('/developers.md');
+        return res.status === 200 && /# OrchestKit by Yonyon/.test(text);
+      }),
+    await probe('/yonyon.md resolves',
+      async () => (await get('/yonyon.md')).res.status === 200),
+    await probe('llms.txt advertises the twins',
+      async () => /\/developers\.md/.test((await get('/llms.txt')).text)),
+  ],
+  c3: async () => {
+    const paths = ['/api/health', '/openapi.json', '/llms.txt', '/.well-known/api-catalog', '/api/search?query=x'];
+    const out = [];
+    for (const p of paths) {
+      out.push(await probe('RateLimit-Limit readable on ' + p, async () => {
+        const {res} = await get(p, 'application/json');
+        return res.headers.get('ratelimit-limit') !== null;
+      }));
+    }
+    return out;
+  },
+  c4: async () => [
+    await probe('/api-policy is a real HTML page',
+      async () => (await get('/api-policy')).res.status === 200),
+    await probe('the policy states a sunset guarantee',
+      async () => /Sunset/i.test((await get('/api-policy')).text)),
+    await probe('OpenAPI declares the Sunset response header',
+      async () => /components\/headers\/Sunset/.test((await get('/openapi.json')).text)),
+  ],
+  c5: async () => [
+    await probe('orchestkit is published on npm', async () => {
+      try {
+        const r = await fetch('https://registry.npmjs.org/orchestkit');
+        return r.ok;
+      } catch { return false; }
+    }),
+  ],
+};
+
+async function probe(label, fn) {
+  try { return {label, ok: await fn()}; }
+  catch (e) { return {label, ok: false, note: e.message}; }
+}
+
+function render(id, results) {
+  const el = document.querySelector('#' + id);
+  const list = el.querySelector('[data-res]');
+  list.innerHTML = results.map(r =>
+    `<li><span class="dot" style="color:${r.ok ? 'var(--ok)' : 'var(--bad)'}">${r.ok ? '✓' : '✗'}</span>` +
+    `<span>${r.label}${r.note ? ' (' + r.note + ')' : ''}</span></li>`).join('');
+  const bad = results.filter(r => !r.ok).length;
+  const v = el.querySelector('[data-v]');
+  v.textContent = bad ? bad + ' failing' : 'all pass';
+  v.className = 'verdict ' + (bad ? 'v-bad' : 'v-ok');
+  if (bad) el.open = true;
+}
+
+$('#run').onclick = async () => {
+  const btn = $('#run');
+  btn.disabled = true;
+  $('#status').textContent = 'Probing ' + origin() + ' ...';
+  for (const id of Object.keys(CHECKS)) render(id, await CHECKS[id]());
+  const failing = [...document.querySelectorAll('[data-v]')].filter(v => v.classList.contains('v-bad')).length;
+  $('#status').textContent = failing
+    ? failing + ' of 5 checks still failing on ' + origin() + '.'
+    : 'All 5 checks pass on ' + origin() + '.';
+  btn.disabled = false;
+};
+
+$('#reset').onclick = () => {
+  document.querySelectorAll('[data-res]').forEach(l => l.innerHTML = '');
+  document.querySelectorAll('[data-v]').forEach(v => { v.textContent = 'idle'; v.className = 'verdict v-idle'; });
+  $('#status').textContent = 'Reset. Probe an origin to populate the verdicts.';
+};
+</script>
+</body>
+</html>

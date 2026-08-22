@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { GeorgeBuried } from "@/components/world/george";
+import { RECOVERY_LINKS } from "@/lib/not-found-body";
+
+// The two buttons below are the human path out. RECOVERY_LINKS is the same list
+// the Markdown and JSON 404 bodies use (lib/not-found-body.ts), rendered here
+// so the HTML representation points at the same places, and so a crawler that
+// only ever parses HTML still finds the sitemap and llms.txt from a dead link.
 
 export default function NotFound() {
   return (
@@ -23,6 +29,22 @@ export default function NotFound() {
           Documentation
         </Link>
       </div>
+      <nav aria-label="Where to look next" className="mt-10 max-w-xl">
+        <p className="text-sm text-fd-muted-foreground">Where to look next</p>
+        <ul className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm">
+          {RECOVERY_LINKS.map((l) => (
+            <li key={l.href}>
+              <Link
+                href={l.href}
+                title={l.desc}
+                className="text-fd-muted-foreground underline underline-offset-4 transition-colors hover:text-fd-foreground"
+              >
+                {l.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </main>
   );
 }

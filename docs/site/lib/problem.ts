@@ -16,17 +16,25 @@ export type Problem = {
 	instance?: string;
 };
 
+// RFC 9457 §3.2 permits extension members alongside the registered ones. We use
+// them to carry recovery hops (see lib/not-found-body.ts) so a client that hits
+// a dead end gets "where to look next" in the SAME response, without a second
+// request and without us inventing a non-standard error envelope.
+export type ProblemExtensions = Record<string, unknown>;
+
 export function problemResponse(
 	problem: Omit<Problem, "type"> & { type?: string },
 	extraHeaders: Record<string, string> = {},
+	extensions: ProblemExtensions = {},
 ): Response {
-	const body: Problem = {
+	const body: Problem & ProblemExtensions = {
 		// Default to the RFC's "no further info" URN when no specific type is given.
 		type: problem.type ?? "about:blank",
 		title: problem.title,
 		status: problem.status,
 		...(problem.detail ? { detail: problem.detail } : {}),
 		...(problem.instance ? { instance: problem.instance } : {}),
+		...extensions,
 	};
 
 	return new Response(JSON.stringify(body), {
