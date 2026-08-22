@@ -23,15 +23,22 @@
  * consent off), fewer than two watched files exist (nothing to compare), or
  * ALL files are stale (machine was simply idle — not a writer failure).
  *
+ * The watch list is DISCOVERED from the dir rather than hardcoded (#3665). The
+ * original three-name list happened to name three healthy writers, so this hook
+ * certified the pipeline green for four months while three siblings sat dead
+ * next to them. See discoverWriters below for the two exclusions and why each
+ * one is safe.
+ *
  * Opt-out: ORK_NO_ANALYTICS_LIVENESS_WARN=1.
  * Dir override (tests): ORK_ANALYTICS_DIR.
  *
- * Cost: one statSync per watched file (3), ~1ms. Async — non-blocking.
+ * Cost: one readdirSync plus one statSync per discovered writer (~11 today),
+ * a few ms. Async — non-blocking.
  *
  * Hook event: SessionStart
  */
 
-import { statSync } from 'node:fs';
+import { readdirSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
@@ -42,12 +49,70 @@ const HOOK_NAME = 'lifecycle/analytics-liveness-check';
 const OPT_OUT_ENV_VAR = 'ORK_NO_ANALYTICS_LIVENESS_WARN';
 const DIR_ENV_VAR = 'ORK_ANALYTICS_DIR';
 
-/** Writers that are expected to receive events whenever sessions run. */
-const WATCHED_WRITERS = [
-  'skill-usage.jsonl',
-  'agent-usage.jsonl',
-  'hook-timing.jsonl',
-] as const;
+/**
+ * Writers are DISCOVERED from the analytics dir, never hardcoded.
+ *
+ * The original list named three files (skill-usage, agent-usage, hook-timing)
+ * and all three were alive, so this guard reported a healthy pipeline for four
+ * months while cache-breaks.jsonl (139d), dx-signals.jsonl (138d) and
+ * session-start-perf.jsonl (136d) sat dead beside them (#3665). It was watching
+ * 3 of 11 writers, and the 8 it could not see included every one that died: a
+ * probe that structurally cannot observe the failure it exists to catch.
+ * Measured 2026-08-22.
+ *
+ * Discovery inverts the default. Every `*.jsonl` in the dir is watched unless
+ * it is excluded for a stated reason below, so a writer added later is covered
+ * without anyone remembering to extend a list.
+ */
+
+/**
+ * Rotated archives: `<name>.<YYYY-MM>.jsonl` and `<name>.<YYYY-MM>.<n>.jsonl`
+ * (see lib/analytics.ts rotateIfNeeded). An archive is frozen the moment it is
+ * created, so its mtime stops advancing BY DESIGN. Without this exclusion every
+ * archive becomes a permanent false positive once it ages past the threshold.
+ */
+const ARCHIVE_PATTERN = /\.\d{4}-\d{2}(\.\d+)?\.jsonl$/;
+
+/**
+ * Event-driven writers only produce rows when their triggering event occurs, so
+ * silence is legitimate and must never be flagged. secret-audit.jsonl writes
+ * only when a secret is actually handled; it held 40,591 rows and a 102-day-old
+ * mtime on a healthy machine, which is correct behaviour rather than a failure.
+ * Anything added here needs that same justification in one line.
+ */
+const EVENT_DRIVEN_WRITERS = new Set<string>(['secret-audit.jsonl']);
+
+/**
+ * Deliberately retired writers whose file still sits on disk. Empty today.
+ *
+ * This is the documented way to silence a writer that is supposed to be dead,
+ * and it exists so retiring one is a decision someone WRITES DOWN rather than a
+ * name quietly missing from a list. Forgetting to add an entry here costs a
+ * false positive (a banner naming a file you already retired); forgetting to
+ * add to the old allowlist cost four months of false negatives. Noise is the
+ * correct direction to fail for a guard against silent death.
+ */
+const RETIRED_WRITERS = new Set<string>([
+  // No code in this repo has ever written dx-signals.jsonl; the name appeared
+  // only in telemetry-http-sink's allowlist, which #3665 removed. The 138-day-old
+  // file on disk is a leftover, not a failing writer.
+  'dx-signals.jsonl',
+]);
+
+/** Discover continuously-expected writers: every *.jsonl minus the exclusions. */
+function discoverWriters(dir: string): string[] {
+  try {
+    return readdirSync(dir)
+      .filter((f) => f.endsWith('.jsonl'))
+      .filter((f) => !ARCHIVE_PATTERN.test(f))
+      .filter((f) => !EVENT_DRIVEN_WRITERS.has(f))
+      .filter((f) => !RETIRED_WRITERS.has(f))
+      .sort();
+  } catch {
+    // Dir absent (fresh install / consent off) — nothing to compare, stay silent.
+    return [];
+  }
+}
 
 /** A writer this old is considered dead — two full days without one event. */
 const STALE_MS = 48 * 60 * 60 * 1000;
@@ -68,10 +133,10 @@ function resolveAnalyticsDir(): string {
   return join(homedir(), '.claude', 'analytics');
 }
 
-/** Stat each watched writer; missing files are skipped, not flagged. */
+/** Stat each discovered writer; missing files are skipped, not flagged. */
 function measureWriterAges(dir: string, now: number): WriterAge[] {
   const ages: WriterAge[] = [];
-  for (const name of WATCHED_WRITERS) {
+  for (const name of discoverWriters(dir)) {
     try {
       const st = statSync(join(dir, name));
       if (st.isFile()) ages.push({ name, ageMs: now - st.mtimeMs });
@@ -130,7 +195,10 @@ export function analyticsLivenessCheck(
 export const _internals = {
   OPT_OUT_ENV_VAR,
   DIR_ENV_VAR,
-  WATCHED_WRITERS,
+  ARCHIVE_PATTERN,
+  EVENT_DRIVEN_WRITERS,
+  RETIRED_WRITERS,
+  discoverWriters,
   STALE_MS,
   FRESH_MS,
   resolveAnalyticsDir,

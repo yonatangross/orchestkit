@@ -136,7 +136,6 @@ describe('telemetry-http-sink', () => {
       ['hook-timing.jsonl', 'OrkHookTiming'],
       ['cache-breaks.jsonl', 'OrkCacheBreaks'],
       ['secret-audit.jsonl', 'OrkSecretAudit'],
-      ['dx-signals.jsonl', 'OrkDxSignals'],
       ['session-summary.jsonl', 'OrkSessionSummary'],
       ['session-start-perf.jsonl', 'OrkSessionStartPerf'],
       ['team-activity.jsonl', 'OrkTeamActivity'],
@@ -150,6 +149,13 @@ describe('telemetry-http-sink', () => {
       expect(fileToEventName('unknown.jsonl')).toBeNull();
       expect(fileToEventName('skill-usage.json')).toBeNull(); // wrong ext
       expect(fileToEventName('')).toBeNull();
+    });
+
+    it('no longer advertises dx-signals, which never had a producer (#3665)', () => {
+      // The allowlist claimed an event stream this repo has never written: a
+      // tree-wide search found the name only in the allowlist and this test.
+      // Keeping the entry meant the forwarder promised rows that could not come.
+      expect(fileToEventName('dx-signals.jsonl')).toBeNull();
     });
   });
 

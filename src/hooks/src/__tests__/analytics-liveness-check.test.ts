@@ -123,11 +123,16 @@ describe('lifecycle/analytics-liveness-check', () => {
   it('ignores non-watched jsonl files entirely', () => {
     seedWriter('skill-usage.jsonl', 1);
     seedWriter('agent-usage.jsonl', 2);
-    seedWriter('legacy-retired.jsonl', 400 * 24); // retired writer, not watched
+    // #3665 inverted this default. A dead file that nobody listed used to be
+    // INVISIBLE, which is exactly how cache-breaks/dx-signals/session-start-perf
+    // stayed unreported for four months. An unlisted stale writer now warns;
+    // silencing one is a written decision (RETIRED_WRITERS), not an omission.
+    seedWriter('legacy-retired.jsonl', 400 * 24);
 
     analyticsLivenessCheck(input(), NOOP_CTX);
 
-    expect(stderrSpy).not.toHaveBeenCalled();
+    expect(stderrSpy).toHaveBeenCalledOnce();
+    expect(String(stderrSpy.mock.calls[0]?.[0])).toContain('legacy-retired.jsonl');
   });
 
   it('findDeadWriters flags every stale writer when multiple die together', () => {
@@ -141,5 +146,74 @@ describe('lifecycle/analytics-liveness-check', () => {
       'hook-timing.jsonl',
       'skill-usage.jsonl',
     ]);
+  });
+
+  // ── #3665 regression: the guard was watching 3 of 11 writers ──────────────
+  //
+  // Each test below FAILS against the pre-#3665 hardcoded allowlist, which is
+  // what makes them controls rather than restatements of current behaviour.
+
+  it('catches a dead writer that no allowlist ever named (the real #3665 shape)', () => {
+    // Exactly the production state measured 2026-08-22: the three allowlisted
+    // writers alive, three unlisted ones months dead.
+    seedWriter('skill-usage.jsonl', 1);
+    seedWriter('agent-usage.jsonl', 1);
+    seedWriter('hook-timing.jsonl', 1);
+    seedWriter('cache-breaks.jsonl', 139 * 24);
+    seedWriter('session-start-perf.jsonl', 136 * 24);
+    // dx-signals.jsonl was the third dead file, but it is RETIRED rather than
+    // broken (no producer ever existed), so it must NOT appear in the banner.
+    seedWriter('dx-signals.jsonl', 138 * 24);
+
+    analyticsLivenessCheck(input(), NOOP_CTX);
+
+    expect(stderrSpy).toHaveBeenCalledOnce();
+    const msg = String(stderrSpy.mock.calls[0]?.[0]);
+    expect(msg).toContain('cache-breaks.jsonl');
+    expect(msg).toContain('session-start-perf.jsonl');
+    expect(msg).not.toContain('dx-signals.jsonl');
+  });
+
+  it('never flags a rotated archive, whose mtime is frozen by design', () => {
+    seedWriter('hook-timing.jsonl', 1);
+    seedWriter('skill-usage.jsonl', 2);
+    // Both rotation shapes from lib/analytics.ts: dated, and dated-with-index.
+    seedWriter('hook-timing.2026-01.jsonl', 200 * 24);
+    seedWriter('hook-timing.2026-01.2.jsonl', 200 * 24);
+
+    analyticsLivenessCheck(input(), NOOP_CTX);
+
+    expect(stderrSpy).not.toHaveBeenCalled();
+  });
+
+  it('never flags an event-driven writer, whose silence is legitimate', () => {
+    seedWriter('hook-timing.jsonl', 1);
+    seedWriter('skill-usage.jsonl', 2);
+    // secret-audit only writes when a secret is handled; 102 days quiet was
+    // correct behaviour on a healthy machine.
+    seedWriter('secret-audit.jsonl', 102 * 24);
+
+    analyticsLivenessCheck(input(), NOOP_CTX);
+
+    expect(stderrSpy).not.toHaveBeenCalled();
+  });
+
+  it('discoverWriters applies all three exclusions and nothing else', () => {
+    seedWriter('hook-timing.jsonl', 1);
+    seedWriter('hook-timing.2026-01.jsonl', 1);
+    seedWriter('secret-audit.jsonl', 1);
+    seedWriter('brand-new-writer.jsonl', 1);
+    writeFileSync(join(tmp, 'usage-playground.html'), '<html></html>');
+
+    // A writer nobody has heard of is watched by DEFAULT — that inversion is
+    // the fix. Non-jsonl files and archives stay out.
+    expect(_internals.discoverWriters(tmp)).toEqual([
+      'brand-new-writer.jsonl',
+      'hook-timing.jsonl',
+    ]);
+  });
+
+  it('returns no writers when the analytics dir is absent', () => {
+    expect(_internals.discoverWriters(join(tmp, 'does-not-exist'))).toEqual([]);
   });
 });
