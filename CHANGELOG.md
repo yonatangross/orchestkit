@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.48](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.47...v10.0.0-alpha.48) (2026-08-22)
+
+
+### Bug Fixes
+
+* **cc-watch:** the adoption board can no longer lose history ([#3662](https://github.com/yonatangross/orchestkit/issues/3662)) ([787ad7a](https://github.com/yonatangross/orchestkit/commit/787ad7a39a4fbb9315b2f723cbed58ae893ed47d))
+
+
+### Documentation
+
+* **sandbox:** pattern excludedCommands + allowUnixSockets ([#3659](https://github.com/yonatangross/orchestkit/issues/3659)) ([deda673](https://github.com/yonatangross/orchestkit/commit/deda6730278696b59537b106f43d0c2f5aa63bae))
+
 ## [10.0.0-alpha.47](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.46...v10.0.0-alpha.47) (2026-08-22)
 
 
