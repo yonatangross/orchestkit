@@ -36,12 +36,11 @@ function renderInline(text: string, keyPrefix: string) {
 	const parts: React.ReactNode[] = [];
 	const pattern = /(\[[^\]]+\]\([^)]+\))|(`[^`]+`)|(\*\*[^*]+\*\*)/g;
 	let last = 0;
-	let match: RegExpExecArray | null;
 	let i = 0;
-	// biome-ignore lint/suspicious/noAssignInExpressions: standard exec loop
-	while ((match = pattern.exec(text)) !== null) {
-		if (match.index > last) parts.push(text.slice(last, match.index));
+	for (const match of text.matchAll(pattern)) {
 		const token = match[0];
+		const at = match.index;
+		if (at > last) parts.push(text.slice(last, at));
 		const key = `${keyPrefix}-${i++}`;
 		if (token.startsWith("`")) {
 			parts.push(<code key={key}>{token.slice(1, -1)}</code>);
@@ -62,7 +61,7 @@ function renderInline(text: string, keyPrefix: string) {
 				),
 			);
 		}
-		last = match.index + token.length;
+		last = at + token.length;
 	}
 	if (last < text.length) parts.push(text.slice(last));
 	return parts;
@@ -94,7 +93,7 @@ export default function ApiPolicyPage() {
 				<section key={section.heading}>
 					<h2>{section.heading}</h2>
 					{section.intro?.map((p, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: static literal list
+						// Index key is safe: the list is a static literal, never reordered.
 						<p key={`${section.heading}-p${i}`}>
 							{renderInline(p, `${section.heading}-p${i}`)}
 						</p>
