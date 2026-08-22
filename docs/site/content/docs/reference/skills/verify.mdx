@@ -462,6 +462,14 @@ Done means all of these hold:
 - any dimension below its `min_blocker` is reported BLOCKED regardless of composite
 - READY FOR MERGE only when no load-bearing claim is still CLAIMED/UNCHECKED, no diff-added test is still UNREACHED (and under `--streak=N`, the full streak is met)
 
+## Before trusting a green check
+
+A check that prints the same thing whether or not the fault is present has
+measured nothing, yet it still returns an answer and that answer reads as
+evidence. Run `/ork:paired-probe` on any check whose PASS decides the verdict,
+especially a sweep that reported zero findings or a gate that passed
+unexpectedly. It refuses the verdict rather than the check.
+
 ## Related Skills
 
 - `ork:implement` - Full implementation with verification
