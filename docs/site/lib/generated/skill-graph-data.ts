@@ -687,9 +687,9 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "paired-probe",
     "label": "Paired Probe",
-    "type": "command",
+    "type": "reference",
     "complexity": "low",
-    "category": "workflow",
+    "category": "other",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0

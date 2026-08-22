@@ -3264,14 +3264,14 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "paired-probe",
     "description": "Refuse a verdict a probe did not earn. Runs a check where the fault IS present and where it is NOT, and blocks the answer when both arms print the same thing, because a check that cannot disagree with you has measured nothing. Also catches the zero-sample sweep that reads as \"clean\" and the swallowed error that reads as success. Use before reporting any status, audit, sweep, or \"nothing found\" result, and whenever a check surprises you by passing.",
     "version": "1.0.0",
-    "sha256": "7e4f1bf0e69bc0fe12cec59b206157405bf752874716fe7a950df3d4c73fea91",
+    "sha256": "d49c855d41f2b691005c9a626d0d278c9028054d53762a9d24658d1ccf2f6cdc",
     "author": "yonatangross",
     "tags": [
       "verification",
       "debugging",
       "quality-gates"
     ],
-    "userInvocable": true,
+    "userInvocable": false,
     "context": "fork",
     "allowedTools": [],
     "skills": [],

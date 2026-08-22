@@ -3,7 +3,7 @@ name: paired-probe
 description: Refuse a verdict a probe did not earn. Runs a check where the fault IS present and where it is NOT, and blocks the answer when both arms print the same thing, because a check that cannot disagree with you has measured nothing. Also catches the zero-sample sweep that reads as "clean" and the swallowed error that reads as success. Use before reporting any status, audit, sweep, or "nothing found" result, and whenever a check surprises you by passing.
 version: 1.0.0
 author: yonatangross
-user-invocable: true
+user-invocable: false
 disable-model-invocation: false
 complexity: low
 tags: [verification, debugging, quality-gates]
