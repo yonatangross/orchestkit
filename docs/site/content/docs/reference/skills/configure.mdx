@@ -2237,7 +2237,7 @@ the carve-out to be dead: **`excludedCommands` entries are patterns, and a bare 
 matches only the arg-less command.** The official troubleshooting docs' own example
 is `docker *`. A list of `["op", "docker", "ssh"]` exempts `docker` typed alone and
 nothing else — `docker ps`, `ssh -T git@github.com`, `op whoami` never match.
-Measured 2026-08-22 on CC 2.1.239: a bare-name list exempted zero real invocations
+Measured 2026-08-22 (live session): a bare-name list exempted zero real invocations
 for a year, hidden because `gh` in the same list *appeared* to work — for the
 unrelated reason that `enableWeakerNetworkIsolation` + trustd mach-lookups had
 fixed it inside the sandbox. When an allowlist looks dead, check the match syntax
