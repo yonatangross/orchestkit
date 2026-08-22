@@ -438,7 +438,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/agents/multimodal-specialist",
     "title": "Multimodal Specialist",
-    "description": "Vision, audio, video generation, and multimodal processing specialist who integrates Claude Opus 4.8, GPT-5, Gemini 2.5/3, Grok 4, Kling 3.0, Sora 2, Veo 3.1, and Runway Gen-4.5 for image analysis, transcription, AI video generation, multimodal RAG"
+    "description": "Vision, audio, image generation, video generation, and multimodal processing specialist who integrates Claude Opus 4.8, GPT-5, Gemini 2.5/3, Grok 4, GPT Image 2, Nano Banana Pro, Midjourney V8.1, FLUX.2 Pro, Kling 3.0, Sora 2, Veo 3.1, and Runway Gen-4.5 for image analysis, AI image generation, transcription, AI video generation, multimodal RAG"
   },
   {
     "url": "/docs/reference/agents/product-strategist",
