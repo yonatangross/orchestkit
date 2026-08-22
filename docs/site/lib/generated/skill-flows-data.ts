@@ -1938,16 +1938,16 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "label": "Pre-flight",
         "nodes": [
           {
-            "num": "STEP -0.5",
-            "label": "Effort-Aware Coverage Scaling",
-            "does": "Read $CLAUDE_EFFORT (CC 2.1.120+) first; explicit --effort= token wins as override. Default high when CC < 2.1.120 and no flag. Pattern matches assess + explore (#1540). Scale test generation depth:",
+            "num": "STEP -1",
+            "label": "MCP Probe + Resume Check",
+            "does": "",
             "out": null,
             "tag": null
           },
           {
-            "num": "STEP -1",
-            "label": "MCP Probe + Resume Check",
-            "does": "",
+            "num": "STEP -0.5",
+            "label": "Effort-Aware Coverage Scaling",
+            "does": "Read $CLAUDE_EFFORT (CC 2.1.120+) first; explicit --effort= token wins as override. Default high when CC < 2.1.120 and no flag. Pattern matches assess + explore (#1540). Scale test generation depth:",
             "out": null,
             "tag": null
           },
