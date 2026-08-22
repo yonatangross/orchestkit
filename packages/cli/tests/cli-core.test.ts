@@ -215,3 +215,31 @@ describe("networked commands", () => {
 		}
 	});
 });
+
+describe("base URL normalization", () => {
+	it("drops trailing slashes", () => {
+		expect(createClient({ baseUrl: "https://example.test/" }).baseUrl).toBe(
+			"https://example.test",
+		);
+		expect(createClient({ baseUrl: "https://example.test///" }).baseUrl).toBe(
+			"https://example.test",
+		);
+	});
+
+	it("leaves a clean URL alone and never empties a slash-only string wrongly", () => {
+		expect(createClient({ baseUrl: "https://example.test" }).baseUrl).toBe(
+			"https://example.test",
+		);
+		expect(createClient({ baseUrl: "///" }).baseUrl).toBe("");
+	});
+
+	it("is linear on a pathological run of slashes (js/polynomial-redos)", () => {
+		// The original `/\/+$/` was an anchored repetition over input reachable from
+		// --base-url and ORCHESTKIT_BASE_URL, which CodeQL flagged as high severity.
+		// 200k slashes would visibly stall a backtracking engine; the scan is linear.
+		const pathological = `https://example.test${"/".repeat(200_000)}`;
+		const started = performance.now();
+		expect(createClient({ baseUrl: pathological }).baseUrl).toBe("https://example.test");
+		expect(performance.now() - started).toBeLessThan(250);
+	});
+});

@@ -70,15 +70,26 @@ export type Client = {
 	timeoutMs: number;
 };
 
+/**
+ * Drop trailing slashes without a regex. `/\/+$/` looks harmless but is an
+ * anchored repetition over attacker-influenced input (the base URL comes from
+ * --base-url or ORCHESTKIT_BASE_URL), so a string of many slashes makes the
+ * engine backtrack quadratically. CodeQL flagged it as js/polynomial-redos on
+ * this exact line. A reverse scan is linear and obviously terminating.
+ */
+function stripTrailingSlashes(url: string): string {
+	let end = url.length;
+	while (end > 0 && url.charCodeAt(end - 1) === 47 /* "/" */) end -= 1;
+	return url.slice(0, end);
+}
+
 export function createClient(overrides: Partial<Client> = {}): Client {
 	return {
 		// ORCHESTKIT_BASE_URL lets the same CLI drive a preview deployment or a
 		// local `next dev`, which is what makes it usable in this repo's own CI.
-		baseUrl: (
-			overrides.baseUrl ??
-			process.env.ORCHESTKIT_BASE_URL ??
-			DEFAULT_BASE_URL
-		).replace(/\/+$/, ""),
+		baseUrl: stripTrailingSlashes(
+			overrides.baseUrl ?? process.env.ORCHESTKIT_BASE_URL ?? DEFAULT_BASE_URL,
+		),
 		timeoutMs: overrides.timeoutMs ?? 15_000,
 	};
 }
