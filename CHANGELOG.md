@@ -5,6 +5,24 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.49](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.48...v10.0.0-alpha.49) (2026-08-22)
+
+
+### Features
+
+* **skills:** add paired-probe, a gate on checks that cannot disagree ([#3664](https://github.com/yonatangross/orchestkit/issues/3664)) ([a2bfb67](https://github.com/yonatangross/orchestkit/commit/a2bfb67a52119e7b694baf2859bedbce3ba0b412))
+
+
+### Bug Fixes
+
+* **docs:** order arrowed flow lanes by step number, not file position ([#3671](https://github.com/yonatangross/orchestkit/issues/3671)) ([e892212](https://github.com/yonatangross/orchestkit/commit/e8922122658a6824c9ebb8123755b4db3524526a))
+* **hooks:** git-validator reads the branch from the dir CC says the session is in ([#3673](https://github.com/yonatangross/orchestkit/issues/3673)) ([43e9457](https://github.com/yonatangross/orchestkit/commit/43e94579f68e48c319cfc86dffa8a0b6a4cb5645))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.238) ([#3644](https://github.com/yonatangross/orchestkit/issues/3644)) ([dd02441](https://github.com/yonatangross/orchestkit/commit/dd02441988a7673efb9c0ee476e63091ad90e367))
+
 ## [10.0.0-alpha.48](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.47...v10.0.0-alpha.48) (2026-08-22)
 
 
