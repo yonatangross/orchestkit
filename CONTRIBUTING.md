@@ -85,7 +85,7 @@ OrchestKit uses a **build system** to assemble modular plugins from source files
 
 ```
 src/
-├── skills/               # <!--ork:skills-->105<!--/ork--> skills (flat SKILL.md structure, CC 2.1.59+)
+├── skills/               # <!--ork:skills-->106<!--/ork--> skills (flat SKILL.md structure, CC 2.1.59+)
 │   └── <skill-name>/
 │       ├── SKILL.md           # Required: Patterns and best practices
 │       ├── references/        # Optional: Specific implementations
@@ -96,7 +96,7 @@ src/
 └── hooks/                # <!--ork:hooks-->171<!--/ork--> TypeScript hooks in 11 split bundles
 
 manifests/                # Plugin definition
-└── ork.json              # Single plugin (<!--ork:skills-->105<!--/ork--> skills, <!--ork:agents-->36<!--/ork--> agents, <!--ork:hooks-->171<!--/ork--> hooks)
+└── ork.json              # Single plugin (<!--ork:skills-->106<!--/ork--> skills, <!--ork:agents-->36<!--/ork--> agents, <!--ork:hooks-->171<!--/ork--> hooks)
 ```
 
 ### Generated Files (Do Not Edit, But Do Commit)
