@@ -618,7 +618,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "294ca45e165f5478b5836584a9f08515145c94aeba112d99546914f1f7cebb73",
+    "sha256": "23582f9e713f7abd231a7f16680f5736d13ac06c38aa72b96776af32ec5167cc",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -3260,6 +3260,33 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "paired-probe": {
+    "name": "paired-probe",
+    "description": "Refuse a verdict a probe did not earn. Runs a check where the fault IS present and where it is NOT, and blocks the answer when both arms print the same thing, because a check that cannot disagree with you has measured nothing. Also catches the zero-sample sweep that reads as \"clean\" and the swallowed error that reads as success. Use before reporting any status, audit, sweep, or \"nothing found\" result, and whenever a check surprises you by passing.",
+    "version": "1.0.0",
+    "sha256": "6d675f4ea589a6bdae8c48be11d05d66aa42e6210208f67337d5a5571c01ca24",
+    "author": "yonatangross",
+    "tags": [
+      "verification",
+      "debugging",
+      "quality-gates"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {
+      "scripts": [
+        "paired-probe.sh"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "performance": {
     "name": "performance",
     "description": "Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, LLM inference, and sustainability UX. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, deploying LLMs efficiently, or reducing digital carbon footprint.",
@@ -4787,7 +4814,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written.",
     "version": "4.6.0",
-    "sha256": "b25a6567c8ae8ef4a3d4d19fb9ccfd0198d3bd0ac45871576f7bf9db681a36f2",
+    "sha256": "b939b072d7d732b47d23ddfc03b53f1f5720930c9aa320a0ee3e8a39c93fc946",
     "author": "OrchestKit",
     "tags": [
       "verification",
