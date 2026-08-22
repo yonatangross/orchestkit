@@ -99,6 +99,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 14
   },
   {
+    "slug": "conductor-session-2026-08-20",
+    "title": "Conductor Session, 2026-08-20",
+    "description": "A read-only conductor session in three views: Claude Code adoption unfrozen across six versions by fixing one JSON.parse, five pull requests with zero real red plus a worktree map that would not prune, and the four self-corrections and four instrument defects that produced every number here.",
+    "tags": [
+      "audit",
+      "explainer",
+      "cc-adoption"
+    ],
+    "date": "2026-08-20",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 94
+  },
+  {
     "slug": "mutation-gate-fail-closed-3583",
     "title": "A security gate that measured nothing and said OK",
     "description": "A denied mktemp emptied RESULT_DIR, so the security mutation gate scored 0 of 13 tests and still exited 0. Paired probe, the root cause at line 116, and two fail-closed guards.",

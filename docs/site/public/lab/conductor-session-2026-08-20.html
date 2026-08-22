@@ -1,0 +1,2112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conductor Session 2026-08-20, Playground</title>
+<meta name="description" content="Read-only conductor session on yonatangross/orchestkit, 2026-08-20: CC version adoption unfrozen, five pull requests with zero real red, a security gate found failing open, and the instrument defects that shaped every number here.">
+<style>
+  :root {
+    --sh-bg: #0d1117;
+    --sh-surface: #161b22;
+    --sh-surface2: #21262d;
+    --sh-border: #30363d;
+    --sh-text: #e6edf3;
+    --sh-dim: #9aa7b4;
+    --sh-blue: #58a6ff;
+    --sh-green: #3fb950;
+    --sh-yellow: #d29922;
+    --sh-red: #f85149;
+    --sh-purple: #bc8cff;
+    --sh-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+    color-scheme: dark light;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --sh-bg: #ffffff;
+      --sh-surface: #f6f8fa;
+      --sh-surface2: #eaeef2;
+      --sh-border: #c9d1d9;
+      --sh-text: #14181d;
+      --sh-dim: #4d5866;
+      --sh-blue: #0a56c2;
+      --sh-green: #1a7f37;
+      --sh-yellow: #7d4e00;
+      --sh-red: #b62324;
+      --sh-purple: #6639ba;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--sh-bg);
+    color: var(--sh-text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.55;
+  }
+  .shell { max-width: 1180px; margin: 0 auto; padding: 28px 18px 64px; }
+  .sh-kicker {
+    font-family: var(--sh-mono);
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--sh-dim);
+    margin: 0 0 8px;
+  }
+  .sh-title { font-size: 30px; line-height: 1.15; margin: 0 0 12px; font-weight: 660; }
+  .sh-summary { max-width: 84ch; margin: 0 0 20px; color: var(--sh-text); }
+  .sh-summary code, .shell code.sh-code {
+    font-family: var(--sh-mono);
+    font-size: .86em;
+    background: var(--sh-surface2);
+    border: 1px solid var(--sh-border);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+  .glance {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin: 0 0 26px;
+    padding: 0;
+    list-style: none;
+  }
+  .glance li {
+    background: var(--sh-surface);
+    border: 1px solid var(--sh-border);
+    border-radius: 9px;
+    padding: 10px 12px;
+  }
+  .glance .g-num {
+    display: block;
+    font-family: var(--sh-mono);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--sh-blue);
+  }
+  .glance li.g-good .g-num { color: var(--sh-green); }
+  .glance li.g-bad .g-num { color: var(--sh-red); }
+  .glance li.g-warn .g-num { color: var(--sh-yellow); }
+  .glance .g-lbl { font-size: 12px; color: var(--sh-dim); }
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    border-bottom: 1px solid var(--sh-border);
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+  .tabs button[role="tab"] {
+    font: inherit;
+    font-size: 14px;
+    background: var(--sh-surface);
+    color: var(--sh-dim);
+    border: 1px solid var(--sh-border);
+    border-radius: 8px 8px 0 0;
+    padding: 8px 14px;
+    cursor: pointer;
+  }
+  .tabs button[role="tab"]:hover { color: var(--sh-text); }
+  .tabs button[role="tab"][aria-selected="true"] {
+    color: var(--sh-text);
+    border-color: var(--sh-blue);
+    background: color-mix(in srgb, var(--sh-blue) 18%, transparent);
+  }
+  .tabs button[role="tab"]:focus-visible,
+  .shell a:focus-visible {
+    outline: 2px solid var(--sh-blue);
+    outline-offset: 2px;
+  }
+  .view[hidden] { display: none; }
+  .view:focus { outline: none; }
+  .sh-foot {
+    margin-top: 44px;
+    padding-top: 16px;
+    border-top: 1px solid var(--sh-border);
+    color: var(--sh-dim);
+    font-size: 13px;
+  }
+  .sh-foot a { color: var(--sh-blue); }
+  .noscript-note {
+    border: 1px solid var(--sh-yellow);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <p class="sh-kicker">Read-only conductor session, 2026-08-20, yonatangross/orchestkit</p>
+    <h1 class="sh-title">Conductor session: what moved, what was wrong, and how it was caught</h1>
+    <p class="sh-summary">
+      This is a read-only conductor session run on 2026-08-20 against yonatangross/orchestkit. Nothing here
+      is a plan or a proposal: every figure was verified during the session itself. Three views follow. The
+      first covers Claude Code version adoption, which had been frozen for three weeks by a single
+      <code class="sh-code">JSON.parse</code> call and was released across six versions in one watcher run.
+      The second covers five pull requests, all with zero real red, and a worktree map that fell from 13
+      directories to 8 while three phantom registrations refused to prune. The third is about method: four
+      confident claims that were overturned, four instruments that returned confident wrong answers, and two
+      gates that printed OK while measuring nothing.
+    </p>
+  </header>
+
+  <ul class="glance" aria-label="Session at a glance">
+    <li class="g-good"><span class="g-num">5 / 0</span><span class="g-lbl">pull requests, zero real red</span></li>
+    <li class="g-good"><span class="g-num">6</span><span class="g-lbl">CC versions recovered</span></li>
+    <li class="g-bad"><span class="g-num">1</span><span class="g-lbl">security gate failing open (#3583)</span></li>
+    <li class="g-warn"><span class="g-num">4</span><span class="g-lbl">instrument defects</span></li>
+    <li class="g-warn"><span class="g-num">4</span><span class="g-lbl">self-corrections</span></li>
+  </ul>
+
+  <noscript>
+    <p class="noscript-note">
+      JavaScript is off, so the tab switcher and the interactive charts are inert. All three views are shown
+      in sequence below, and every figure is present as text.
+    </p>
+  </noscript>
+
+  <div class="tabs" role="tablist" aria-label="Session views">
+    <button type="button" role="tab" id="tab-cc-adoption" aria-controls="view-cc-adoption" aria-selected="true" tabindex="0">CC adoption: frozen and unfrozen</button>
+    <button type="button" role="tab" id="tab-prs-worktrees" aria-controls="view-prs-worktrees" aria-selected="false" tabindex="-1">Pull requests and the worktree map</button>
+    <button type="button" role="tab" id="tab-corrections-instruments" aria-controls="view-corrections-instruments" aria-selected="false" tabindex="-1">What was measured wrong</button>
+  </div>
+
+<!-- ===================== VIEW: cc-adoption ===================== -->
+<section class="view" id="view-cc-adoption" role="tabpanel" aria-labelledby="tab-cc-adoption">
+  <header class="v-head">
+    <p class="v-kicker">Session 2026-08-20 · yonatangross/orchestkit</p>
+    <h2 class="v-title">CC adoption: frozen and unfrozen</h2>
+    <p class="v-lede">
+      One <code>JSON.parse</code> call held Claude Code version adoption still for three weeks. The
+      snapshot ceiling sat at <strong>2.1.231</strong> while the machine was already running
+      <strong>2.1.237</strong>. Fixing the parse released six versions in a single watcher run, and
+      back-filled six waves of features that had been sitting behind an empty array.
+    </p>
+  </header>
+
+  <div class="v-band">
+    <div class="band-col">
+      <p class="band-label">Before</p>
+      <p class="band-big">2.1.231</p>
+      <p class="band-sub">snapshot ceiling</p>
+    </div>
+    <div class="band-arrow" aria-hidden="true">&#8594;</div>
+    <div class="band-col">
+      <p class="band-label">After</p>
+      <p class="band-big">2.1.237</p>
+      <p class="band-sub">ceiling meets running</p>
+    </div>
+    <div class="band-col band-col-wide">
+      <p class="band-label">Gap closed</p>
+      <ul class="band-chips" aria-label="New snapshots created">
+        <li>2.1.232</li><li>2.1.233</li><li>2.1.234</li>
+        <li>2.1.235</li><li>2.1.236</li><li>2.1.237</li>
+      </ul>
+      <p class="band-sub">six new snapshots, floor stays 2.1.220</p>
+    </div>
+  </div>
+
+  <section class="v-sec" aria-labelledby="cca-ruler-h">
+    <h3 id="cca-ruler-h" class="v-h3">The ceiling, before and after</h3>
+    <p class="v-note">
+      Floor 2.1.220 is the supported minimum. Everything from 2.1.232 up was invisible to the board
+      until the parse was fixed. Hover or focus a tick for its state.
+    </p>
+    <div class="ruler-wrap" id="cca-ruler"></div>
+    <p class="ruler-read" id="cca-ruler-read" role="status" aria-live="polite">Select a version tick for detail.</p>
+  </section>
+
+  <section class="v-sec" aria-labelledby="cca-chart-h">
+    <h3 id="cca-chart-h" class="v-h3">Features per version, before vs after</h3>
+    <p class="v-note">
+      <strong>Every version read 0 before.</strong> That is the whole point: a wave showing
+      <code>features: []</code> was not an empty release, it was a release nobody had triaged. Once
+      triage actually ran, six of the eight filled in. Read this chart as proof of
+      <em>untriaged</em>, not proof of <em>empty</em>.
+    </p>
+
+    <div class="chart-tools">
+      <div class="seg" role="group" aria-label="Sort versions">
+        <button type="button" class="seg-btn is-on" data-sort="after" aria-pressed="true">Sort by features after</button>
+        <button type="button" class="seg-btn" data-sort="bullets" aria-pressed="false">Sort by bullets</button>
+        <button type="button" class="seg-btn" data-sort="version" aria-pressed="false">Sort by version</button>
+      </div>
+      <label class="chk">
+        <input type="checkbox" id="cca-showzero" checked>
+        <span>Show the two genuine zeroes</span>
+      </label>
+    </div>
+
+    <div class="chart-legend" aria-hidden="true">
+      <span class="lg"><i class="sw sw-before"></i>features before</span>
+      <span class="lg"><i class="sw sw-after"></i>features after</span>
+      <span class="lg"><i class="sw sw-zero"></i>genuine zero, not un-run</span>
+    </div>
+
+    <div class="chart-scroll">
+      <svg id="cca-chart" class="chart" viewBox="0 0 720 330" role="img"
+           aria-label="Grouped bar chart of features before and after per Claude Code version. Every version was zero before. After triage: 2.1.224 twelve, 2.1.223 twelve, 2.1.221 eleven, 2.1.229 seven, 2.1.225 six, 2.1.222 six, 2.1.226 zero because it is genuinely empty, 2.1.219 zero because its triage parse failed and it sits below the support floor."></svg>
+    </div>
+    <p class="chart-read" id="cca-chart-read" role="status" aria-live="polite">Hover or focus a bar group for detail.</p>
+  </section>
+
+  <section class="v-sec" aria-labelledby="cca-zero-h">
+    <h3 id="cca-zero-h" class="v-h3">Two kinds of zero</h3>
+    <div class="zero-grid">
+      <article class="zero-card zero-real">
+        <p class="zero-tag">Genuinely zero</p>
+        <ul class="zero-list">
+          <li><strong>2.1.226</strong> · 1 bullet · <span class="muted">genuinely empty</span></li>
+          <li><strong>2.1.219</strong> · 24 bullets · <span class="muted">parse_failed, below floor 2.1.220</span></li>
+        </ul>
+        <p class="zero-foot">These two stay at 0 after triage, for two different and real reasons. 2.1.219 is below the support floor, so it is out of scope, not overlooked.</p>
+      </article>
+      <article class="zero-card zero-fake">
+        <p class="zero-tag">Zero only because triage never ran</p>
+        <ul class="zero-list">
+          <li><strong>2.1.224</strong> 0 &#8594; 12</li>
+          <li><strong>2.1.223</strong> 0 &#8594; 12</li>
+          <li><strong>2.1.221</strong> 0 &#8594; 11</li>
+          <li><strong>2.1.229</strong> 0 &#8594; 7</li>
+          <li><strong>2.1.225</strong> 0 &#8594; 6</li>
+          <li><strong>2.1.222</strong> 0 &#8594; 6</li>
+        </ul>
+        <p class="zero-foot">Six waves. 54 features recovered from an array that a reader would have called empty.</p>
+      </article>
+    </div>
+    <details class="ev">
+      <summary>Evidence: the "untriaged waves" claim was wrong, and here is what refuted it</summary>
+      <div class="ev-body">
+        <p class="ev-claim">Claim: <em>cc-adoption-gaps.json waves are untriaged.</em> Verdict: <strong class="bad">WRONG</strong>.</p>
+        <p><code>features: []</code> is a placeholder written by <code>cc-release-watch.mjs:309</code> with the comment "filled in by triage". Proven by the watcher run back-filling 12/12/11/7/6/6 features once triage finally ran.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="v-sec" aria-labelledby="cca-cause-h">
+    <h3 id="cca-cause-h" class="v-h3">Root cause: one parse, three retry layers around it</h3>
+    <blockquote class="cause">
+      <p><code>scripts/cc-triage.mjs:318</code> called <code>JSON.parse</code> on model stdout. The model
+      wrapped its array in a json code fence, <code>JSON.parse</code> threw on the backtick, and the
+      retry re-rolled a BYTE-IDENTICAL prompt so it reproduced the same wrapper forever. Three retry
+      layers, none of which touched the parse.</p>
+      <cite>conductor-verified root cause, session 2026-08-20</cite>
+    </blockquote>
+    <ol class="layers" aria-label="Retry layers">
+      <li><span class="ly-n">1</span><span class="ly-t">retry</span><span class="ly-d">same prompt, byte for byte</span></li>
+      <li><span class="ly-n">2</span><span class="ly-t">retry</span><span class="ly-d">same prompt, byte for byte</span></li>
+      <li><span class="ly-n">3</span><span class="ly-t">retry</span><span class="ly-d">same prompt, byte for byte</span></li>
+      <li class="ly-target"><span class="ly-n">!</span><span class="ly-t">the parse</span><span class="ly-d">untouched by all three, so every retry re-entered it</span></li>
+    </ol>
+    <p class="v-note">A retry that does not change its input is not a retry, it is the same failure on a timer.</p>
+  </section>
+
+  <section class="v-sec" aria-labelledby="cca-run-h">
+    <h3 id="cca-run-h" class="v-h3">The watcher run that unfroze it</h3>
+    <dl class="run">
+      <div><dt>run id</dt><dd><code>32350918138</code></dd></div>
+      <div><dt>ref</dt><dd><code>fix/cc-watch-fence-parse</code></dd></div>
+      <div><dt>conclusion</dt><dd><span class="ok">success</span></dd></div>
+      <div><dt>started</dt><dd><code>2026-08-20T08:51:46Z</code></dd></div>
+    </dl>
+    <p class="warn">
+      <strong>The ref is the load-bearing detail.</strong> Dispatching <code>main</code> instead of
+      <code>fix/cc-watch-fence-parse</code> would have re-run the broken parser: same fence, same throw,
+      same three no-op retries, and the model quota spent on a run that could not have succeeded. The
+      fix has to be on the ref you dispatch, not merely written.
+    </p>
+    <p class="v-note">
+      Related: PR <strong>#3580</strong> on that branch shows head movement because the watcher
+      committed snapshot <code>58519b412</code> back to the branch.
+    </p>
+  </section>
+</section>
+<style data-view="cc-adoption">
+  #view-cc-adoption {
+    --cca-bg: #0d1117;
+    --cca-surface: #161b22;
+    --cca-surface2: #1c222b;
+    --cca-border: #30363d;
+    --cca-text: #e6edf3;
+    --cca-dim: #9aa7b4;
+    --cca-blue: #58a6ff;
+    --cca-green: #3fb950;
+    --cca-yellow: #d29922;
+    --cca-red: #f85149;
+    --cca-purple: #bc8cff;
+    --cca-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+    color: var(--cca-text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.55;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 8px 4px 48px;
+  }
+  @media (prefers-color-scheme: light) {
+    #view-cc-adoption {
+      --cca-bg: #ffffff;
+      --cca-surface: #f6f8fa;
+      --cca-surface2: #eef1f5;
+      --cca-border: #c9d1d9;
+      --cca-text: #14181d;
+      --cca-dim: #57606a;
+      --cca-blue: #0a56c2;
+      --cca-green: #1a7f37;
+      --cca-yellow: #8a6100;
+      --cca-red: #b62324;
+      --cca-purple: #7038c2;
+    }
+  }
+  #view-cc-adoption .v-kicker {
+    font-family: var(--cca-mono);
+    font-size: 12px;
+    color: var(--cca-dim);
+    letter-spacing: .04em;
+    margin: 0 0 6px;
+  }
+  #view-cc-adoption .v-title { font-size: 27px; line-height: 1.2; margin: 0 0 10px; font-weight: 650; }
+  #view-cc-adoption .v-lede { font-size: 15px; color: var(--cca-text); margin: 0; max-width: 78ch; }
+  #view-cc-adoption .v-lede strong { color: var(--cca-blue); }
+  #view-cc-adoption code {
+    font-family: var(--cca-mono);
+    font-size: .88em;
+    background: var(--cca-surface2);
+    border: 1px solid var(--cca-border);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+  #view-cc-adoption .v-sec { margin-top: 34px; }
+  #view-cc-adoption .v-h3 {
+    font-size: 17px;
+    margin: 0 0 6px;
+    font-weight: 640;
+    border-left: 3px solid var(--cca-blue);
+    padding-left: 10px;
+  }
+  #view-cc-adoption .v-note { font-size: 13.5px; color: var(--cca-dim); margin: 0 0 14px; max-width: 82ch; }
+  #view-cc-adoption .v-note strong, #view-cc-adoption .v-note em { color: var(--cca-text); }
+
+  #view-cc-adoption .v-band {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 18px;
+    margin-top: 22px;
+    padding: 16px 18px;
+    background: var(--cca-surface);
+    border: 1px solid var(--cca-border);
+    border-radius: 10px;
+  }
+  #view-cc-adoption .band-col { min-width: 120px; }
+  #view-cc-adoption .band-col-wide { flex: 1 1 260px; }
+  #view-cc-adoption .band-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--cca-dim); margin: 0 0 4px;
+  }
+  #view-cc-adoption .band-big {
+    font-family: var(--cca-mono); font-size: 26px; margin: 0; font-weight: 600;
+  }
+  #view-cc-adoption .band-col:first-child .band-big { color: var(--cca-red); }
+  #view-cc-adoption .band-col:nth-child(3) .band-big { color: var(--cca-green); }
+  #view-cc-adoption .band-sub { font-size: 12px; color: var(--cca-dim); margin: 2px 0 0; }
+  #view-cc-adoption .band-arrow { font-size: 22px; color: var(--cca-dim); }
+  #view-cc-adoption .band-chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+  #view-cc-adoption .band-chips li {
+    font-family: var(--cca-mono); font-size: 12px;
+    padding: 2px 8px; border-radius: 999px;
+    border: 1px solid var(--cca-green);
+    color: var(--cca-green);
+    background: color-mix(in srgb, var(--cca-green) 12%, transparent);
+  }
+
+  #view-cc-adoption .ruler-wrap {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    background: var(--cca-surface); border: 1px solid var(--cca-border);
+    border-radius: 8px; padding: 12px;
+  }
+  #view-cc-adoption .tick {
+    font-family: var(--cca-mono); font-size: 12px;
+    padding: 5px 8px; border-radius: 5px;
+    border: 1px solid var(--cca-border);
+    background: var(--cca-surface2);
+    color: var(--cca-dim);
+    cursor: default;
+  }
+  #view-cc-adoption button.tick { cursor: pointer; }
+  #view-cc-adoption .tick[data-state="floor"] { border-color: var(--cca-purple); color: var(--cca-purple); }
+  #view-cc-adoption .tick[data-state="had"] { border-color: var(--cca-border); color: var(--cca-text); }
+  #view-cc-adoption .tick[data-state="new"] {
+    border-color: var(--cca-green); color: var(--cca-green);
+    background: color-mix(in srgb, var(--cca-green) 14%, transparent);
+  }
+  #view-cc-adoption .tick[data-state="ceiling"] { border-color: var(--cca-yellow); color: var(--cca-yellow); }
+  #view-cc-adoption .tick[data-state="below"] { opacity: .55; text-decoration: line-through; }
+  #view-cc-adoption .tick:hover, #view-cc-adoption .tick:focus-visible { background: color-mix(in srgb, var(--cca-blue) 18%, transparent); }
+  #view-cc-adoption .ruler-read {
+    font-size: 13px; color: var(--cca-dim); margin: 10px 0 0; min-height: 1.5em;
+    font-family: var(--cca-mono);
+  }
+
+  #view-cc-adoption .chart-tools {
+    display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 12px;
+  }
+  #view-cc-adoption .seg { display: flex; border: 1px solid var(--cca-border); border-radius: 7px; overflow: hidden; }
+  #view-cc-adoption .seg-btn {
+    font: inherit; font-size: 12.5px;
+    background: var(--cca-surface); color: var(--cca-dim);
+    border: 0; border-right: 1px solid var(--cca-border);
+    padding: 6px 11px; cursor: pointer;
+  }
+  #view-cc-adoption .seg-btn:last-child { border-right: 0; }
+  #view-cc-adoption .seg-btn.is-on { background: color-mix(in srgb, var(--cca-blue) 22%, transparent); color: var(--cca-text); }
+  #view-cc-adoption .seg-btn:hover { color: var(--cca-text); }
+  #view-cc-adoption .chk { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--cca-dim); cursor: pointer; }
+  #view-cc-adoption .chart-legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--cca-dim); margin-bottom: 6px; }
+  #view-cc-adoption .lg { display: inline-flex; align-items: center; gap: 6px; }
+  #view-cc-adoption .sw { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  #view-cc-adoption .sw-before { background: transparent; border: 1px dashed var(--cca-dim); }
+  #view-cc-adoption .sw-after { background: var(--cca-blue); }
+  #view-cc-adoption .sw-zero { background: var(--cca-yellow); }
+  #view-cc-adoption .chart-scroll { overflow-x: auto; border: 1px solid var(--cca-border); border-radius: 8px; background: var(--cca-surface); }
+  #view-cc-adoption .chart { display: block; width: 100%; min-width: 620px; height: auto; }
+  #view-cc-adoption .chart text { font-family: var(--cca-mono); fill: var(--cca-dim); }
+  #view-cc-adoption .chart .ax { stroke: var(--cca-border); stroke-width: 1; }
+  #view-cc-adoption .chart .grid { stroke: var(--cca-border); stroke-width: 1; stroke-dasharray: 2 4; opacity: .7; }
+  #view-cc-adoption .chart .b-after { fill: var(--cca-blue); }
+  #view-cc-adoption .chart .b-after.is-zero { fill: var(--cca-yellow); }
+  #view-cc-adoption .chart .b-before { fill: none; stroke: var(--cca-dim); stroke-width: 1; stroke-dasharray: 3 3; }
+  #view-cc-adoption .chart .b-val { fill: var(--cca-text); font-size: 11px; }
+  #view-cc-adoption .chart .b-lab { font-size: 11px; }
+  #view-cc-adoption .chart .grp { cursor: pointer; }
+  #view-cc-adoption .chart .grp .hit { fill: transparent; }
+  #view-cc-adoption .chart .grp:hover .hit,
+  #view-cc-adoption .chart .grp:focus-visible .hit { fill: color-mix(in srgb, var(--cca-blue) 13%, transparent); }
+  #view-cc-adoption .chart .grp:focus-visible { outline: none; }
+  #view-cc-adoption .chart .grp:focus-visible .hit { stroke: var(--cca-blue); stroke-width: 1.5; }
+  #view-cc-adoption .chart-read {
+    font-family: var(--cca-mono); font-size: 12.5px; color: var(--cca-dim);
+    margin: 10px 0 0; min-height: 3em;
+  }
+  #view-cc-adoption .chart-read strong { color: var(--cca-text); }
+
+  #view-cc-adoption .zero-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  #view-cc-adoption .zero-card { background: var(--cca-surface); border: 1px solid var(--cca-border); border-radius: 9px; padding: 14px 16px; }
+  #view-cc-adoption .zero-real { border-left: 3px solid var(--cca-yellow); }
+  #view-cc-adoption .zero-fake { border-left: 3px solid var(--cca-green); }
+  #view-cc-adoption .zero-tag { font-size: 11px; text-transform: uppercase; letter-spacing: .09em; margin: 0 0 8px; color: var(--cca-dim); }
+  #view-cc-adoption .zero-real .zero-tag { color: var(--cca-yellow); }
+  #view-cc-adoption .zero-fake .zero-tag { color: var(--cca-green); }
+  #view-cc-adoption .zero-list { list-style: none; margin: 0 0 10px; padding: 0; font-family: var(--cca-mono); font-size: 13px; }
+  #view-cc-adoption .zero-list li { padding: 3px 0; border-bottom: 1px solid var(--cca-border); }
+  #view-cc-adoption .zero-list li:last-child { border-bottom: 0; }
+  #view-cc-adoption .muted { color: var(--cca-dim); }
+  #view-cc-adoption .zero-foot { font-size: 12.5px; color: var(--cca-dim); margin: 0; }
+
+  #view-cc-adoption .ev { margin-top: 14px; border: 1px solid var(--cca-border); border-radius: 8px; background: var(--cca-surface); }
+  #view-cc-adoption .ev summary { cursor: pointer; padding: 10px 14px; font-size: 13px; color: var(--cca-blue); }
+  #view-cc-adoption .ev summary:focus-visible { outline: 2px solid var(--cca-blue); outline-offset: -2px; }
+  #view-cc-adoption .ev-body { padding: 0 14px 14px; font-size: 13.5px; color: var(--cca-dim); }
+  #view-cc-adoption .ev-claim { margin: 0 0 8px; color: var(--cca-text); }
+  #view-cc-adoption .bad { color: var(--cca-red); }
+
+  #view-cc-adoption .cause {
+    margin: 0 0 14px; padding: 14px 16px;
+    background: var(--cca-surface); border: 1px solid var(--cca-border);
+    border-left: 3px solid var(--cca-red); border-radius: 0 8px 8px 0;
+  }
+  #view-cc-adoption .cause p { margin: 0 0 8px; font-size: 14px; }
+  #view-cc-adoption .cause cite { font-size: 11.5px; color: var(--cca-dim); font-style: normal; }
+  #view-cc-adoption .layers { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
+  #view-cc-adoption .layers li {
+    display: grid; grid-template-columns: 28px 90px 1fr; gap: 10px; align-items: center;
+    background: var(--cca-surface2); border: 1px solid var(--cca-border);
+    border-radius: 7px; padding: 7px 10px; font-size: 13px;
+  }
+  #view-cc-adoption .ly-n {
+    font-family: var(--cca-mono); text-align: center;
+    border-radius: 5px; background: var(--cca-surface); color: var(--cca-dim);
+    border: 1px solid var(--cca-border); font-size: 12px; padding: 1px 0;
+  }
+  #view-cc-adoption .ly-t { font-family: var(--cca-mono); color: var(--cca-dim); font-size: 12px; }
+  #view-cc-adoption .ly-target { border-color: var(--cca-red); }
+  #view-cc-adoption .ly-target .ly-n { color: var(--cca-red); border-color: var(--cca-red); }
+  #view-cc-adoption .ly-target .ly-t { color: var(--cca-red); }
+
+  #view-cc-adoption .run {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px; margin: 0 0 14px;
+  }
+  #view-cc-adoption .run > div {
+    background: var(--cca-surface); border: 1px solid var(--cca-border);
+    border-radius: 8px; padding: 10px 12px;
+  }
+  #view-cc-adoption .run dt { font-size: 11px; text-transform: uppercase; letter-spacing: .09em; color: var(--cca-dim); }
+  #view-cc-adoption .run dd { margin: 5px 0 0; font-size: 14px; }
+  #view-cc-adoption .ok { color: var(--cca-green); font-family: var(--cca-mono); }
+  #view-cc-adoption .warn {
+    font-size: 13.5px; margin: 0 0 10px; padding: 12px 14px;
+    border: 1px solid var(--cca-yellow); border-radius: 8px;
+    background: color-mix(in srgb, var(--cca-yellow) 10%, transparent);
+    color: var(--cca-text);
+  }
+  #view-cc-adoption :focus-visible { outline: 2px solid var(--cca-blue); outline-offset: 2px; border-radius: 4px; }
+  @media (prefers-reduced-motion: no-preference) {
+    #view-cc-adoption .chart rect, #view-cc-adoption .tick { transition: fill .15s ease, background-color .15s ease; }
+  }
+</style>
+<script data-view="cc-adoption">
+  (function () {
+    var root = document.getElementById('view-cc-adoption');
+    if (!root) return;
+
+    var DATA = [
+      { v: '2.1.224', before: 0, after: 12, bullets: 31, note: null },
+      { v: '2.1.223', before: 0, after: 12, bullets: 19, note: null },
+      { v: '2.1.221', before: 0, after: 11, bullets: 39, note: null },
+      { v: '2.1.229', before: 0, after: 7,  bullets: 32, note: null },
+      { v: '2.1.225', before: 0, after: 6,  bullets: 14, note: null },
+      { v: '2.1.222', before: 0, after: 6,  bullets: 21, note: null },
+      { v: '2.1.226', before: 0, after: 0,  bullets: 1,  note: 'genuinely empty' },
+      { v: '2.1.219', before: 0, after: 0,  bullets: 24, note: 'parse_failed, below floor' }
+    ];
+    var NEW_SNAPS = ['2.1.232','2.1.233','2.1.234','2.1.235','2.1.236','2.1.237'];
+    var FLOOR = '2.1.220', CEIL_BEFORE = '2.1.231', RUNNING = '2.1.237';
+
+    /* ---------- ruler ---------- */
+    var rulerWrap = root.querySelector('#cca-ruler');
+    var rulerRead = root.querySelector('#cca-ruler-read');
+    var byVersion = {};
+    DATA.forEach(function (d) { byVersion[d.v] = d; });
+
+    var versions = [];
+    for (var n = 219; n <= 237; n++) versions.push('2.1.' + n);
+
+    function tickState(v) {
+      if (v === RUNNING) return 'new';
+      if (NEW_SNAPS.indexOf(v) !== -1) return 'new';
+      if (v === CEIL_BEFORE) return 'ceiling';
+      if (v === FLOOR) return 'floor';
+      if (v < FLOOR) return 'below';
+      return 'had';
+    }
+    function tickStory(v) {
+      var d = byVersion[v];
+      var parts = [];
+      var s = tickState(v);
+      if (s === 'new') parts.push(v + ': NEW snapshot, created by run 32350918138');
+      else if (s === 'ceiling') parts.push(v + ': the old ceiling. Board stopped here for three weeks');
+      else if (s === 'floor') parts.push(v + ': the support floor');
+      else if (s === 'below') parts.push(v + ': below the floor ' + FLOOR + ', out of support scope');
+      else parts.push(v + ': snapshot already existed');
+      if (v === RUNNING) parts.push('also the version actually running');
+      if (d) {
+        parts.push('features ' + d.before + ' -> ' + d.after + ', ' + d.bullets + ' bullets');
+        if (d.note) parts.push(d.note);
+      }
+      return parts.join(' | ');
+    }
+
+    versions.forEach(function (v) {
+      var story = tickStory(v);
+      var el;
+      if (byVersion[v] || tickState(v) !== 'had') {
+        el = document.createElement('button');
+        el.type = 'button';
+        el.setAttribute('aria-label', story);
+      } else {
+        el = document.createElement('span');
+      }
+      el.className = 'tick';
+      el.setAttribute('data-state', tickState(v));
+      el.textContent = v.replace('2.1.', '');
+      el.title = story;
+      if (el.tagName === 'BUTTON') {
+        var show = function () { rulerRead.textContent = story; };
+        el.addEventListener('mouseenter', show);
+        el.addEventListener('focus', show);
+        el.addEventListener('click', show);
+      }
+      rulerWrap.appendChild(el);
+    });
+
+    /* ---------- grouped bar chart ---------- */
+    var svg = root.querySelector('#cca-chart');
+    var read = root.querySelector('#cca-chart-read');
+    var NS = 'http://www.w3.org/2000/svg';
+    var W = 720, H = 330, PAD_L = 52, PAD_R = 18, PAD_T = 18, PAD_B = 62;
+    var PLOT_W = W - PAD_L - PAD_R, PLOT_H = H - PAD_T - PAD_B;
+    var MAX = 12;
+    var sortMode = 'after';
+    var showZero = true;
+
+    function el(name, attrs, text) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) if (Object.prototype.hasOwnProperty.call(attrs, k)) e.setAttribute(k, attrs[k]);
+      if (text != null) e.textContent = text;
+      return e;
+    }
+    function rows() {
+      var r = DATA.slice();
+      if (!showZero) r = r.filter(function (d) { return d.after > 0; });
+      if (sortMode === 'after') r.sort(function (a, b) { return b.after - a.after || b.bullets - a.bullets; });
+      else if (sortMode === 'bullets') r.sort(function (a, b) { return b.bullets - a.bullets; });
+      else r.sort(function (a, b) { return a.v < b.v ? -1 : 1; });
+      return r;
+    }
+    function describe(d) {
+      if (d.after > 0) {
+        return 'FILLED  ' + d.v + '  features ' + d.before + ' -> ' + d.after + ' , ' + d.bullets + ' bullets. '
+             + 'Read 0 before only because triage had never run on this wave.';
+      }
+      return 'TRUE ZERO  ' + d.v + '  features ' + d.before + ' -> ' + d.after + ' , ' + d.bullets + ' bullets. '
+           + d.note + '. This zero survives triage, it is not an un-run wave.';
+    }
+
+    function draw() {
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      var r = rows();
+      var band = PLOT_W / r.length;
+
+      for (var t = 0; t <= MAX; t += 3) {
+        var y = PAD_T + PLOT_H - (t / MAX) * PLOT_H;
+        svg.appendChild(el('line', { x1: PAD_L, x2: W - PAD_R, y1: y, y2: y, "class": t === 0 ? 'ax' : 'grid' }));
+        svg.appendChild(el('text', { x: PAD_L - 8, y: y + 4, 'text-anchor': 'end', 'font-size': 11 }, String(t)));
+      }
+      svg.appendChild(el('text', { x: PAD_L - 8, y: PAD_T - 4, 'text-anchor': 'end', 'font-size': 10 }, 'feats'));
+
+      r.forEach(function (d, i) {
+        var x0 = PAD_L + i * band;
+        var g = el('g', { "class": 'grp', tabindex: '0', role: 'listitem' });
+        g.setAttribute('aria-label', describe(d));
+        g.appendChild(el('rect', { "class": 'hit', x: x0 + 2, y: PAD_T, width: band - 4, height: PLOT_H + 26, rx: 5 }));
+
+        var bw = Math.min(26, (band - 20) / 2);
+        var xb = x0 + band / 2 - bw - 3;
+        var xa = x0 + band / 2 + 3;
+        var baseY = PAD_T + PLOT_H;
+
+        /* before = 0 for every version: draw a flat dashed marker on the axis */
+        svg.appendChild(el('line', {
+          "class": 'b-before', x1: xb, x2: xb + bw, y1: baseY, y2: baseY
+        }));
+        g.appendChild(el('text', { x: xb + bw / 2, y: baseY + 13, 'text-anchor': 'middle', 'font-size': 10 }, '0'));
+
+        var hA = (d.after / MAX) * PLOT_H;
+        if (d.after > 0) {
+          g.appendChild(el('rect', { "class": 'b-after', x: xa, y: baseY - hA, width: bw, height: hA, rx: 2 }));
+          g.appendChild(el('text', { "class": 'b-val', x: xa + bw / 2, y: baseY - hA - 5, 'text-anchor': 'middle' }, String(d.after)));
+        } else {
+          g.appendChild(el('rect', { "class": 'b-after is-zero', x: xa, y: baseY - 3, width: bw, height: 3, rx: 1 }));
+          g.appendChild(el('text', { "class": 'b-val', x: xa + bw / 2, y: baseY - 8, 'text-anchor': 'middle', fill: 'currentColor' }, '0'));
+        }
+
+        g.appendChild(el('text', { "class": 'b-lab', x: x0 + band / 2, y: baseY + 30, 'text-anchor': 'middle' }, d.v.replace('2.1.', '.')));
+        g.appendChild(el('text', { "class": 'b-lab', x: x0 + band / 2, y: baseY + 44, 'text-anchor': 'middle', 'font-size': 10 }, d.bullets + 'b'));
+
+        function show() { read.innerHTML = ''; read.appendChild(document.createTextNode(describe(d))); }
+        g.addEventListener('mouseenter', show);
+        g.addEventListener('focus', show);
+        g.addEventListener('click', show);
+        svg.appendChild(g);
+      });
+
+      svg.appendChild(el('text', { x: W - PAD_R, y: H - 8, 'text-anchor': 'end', 'font-size': 10 },
+        'dashed baseline = featuresBefore (0 for all 8). "b" = bullet count.'));
+    }
+
+    root.querySelectorAll('.seg-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        sortMode = btn.getAttribute('data-sort');
+        root.querySelectorAll('.seg-btn').forEach(function (b) {
+          var on = b === btn;
+          b.classList.toggle('is-on', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        draw();
+      });
+    });
+    var chk = root.querySelector('#cca-showzero');
+    chk.addEventListener('change', function () { showZero = chk.checked; draw(); });
+
+    draw();
+  })();
+</script>
+
+<!-- ===================== VIEW: prs-worktrees ===================== -->
+<section class="view" id="view-prs-worktrees" role="tabpanel" aria-labelledby="tab-prs-worktrees">
+  <header class="vhead">
+    <h2>Pull requests and the worktree map</h2>
+    <p class="lede">
+      Five PRs, zero real red. The only NOT-PASS anywhere in the set is
+      <code>Enable auto-merge for Dependabot = skipped</code>, which is the correct outcome on a
+      non-Dependabot PR. Separately, 13 worktree directories were reduced to 8, three phantom
+      registrations resisted pruning with EPERM, and one worktree must never be reaped.
+    </p>
+    <p class="src">Session 2026-08-20 on yonatangross/orchestkit. main at start <code>4fb82d5a3</code>, origin/main now <code>5092fff91</code>.</p>
+  </header>
+
+  <div class="panels">
+
+    <!-- PANEL A -->
+    <section class="panel" aria-labelledby="pa-h">
+      <div class="panel-top">
+        <h3 id="pa-h">Panel A. Pull requests, before and after</h3>
+        <div class="controls" role="group" aria-label="Pull request table controls">
+          <button type="button" class="btn" data-sort="n" aria-pressed="true">Sort by number</button>
+          <button type="button" class="btn" data-sort="delta" aria-pressed="false">Sort by check delta</button>
+          <button type="button" class="btn" id="pa-expand" aria-pressed="false">Expand all evidence</button>
+        </div>
+      </div>
+
+      <div class="realred" role="status">
+        <span class="rr-num">realRed = 0</span>
+        <span class="rr-txt">on all five PRs. Verified per PR, not aggregated from a single run.</span>
+      </div>
+
+      <table class="pr-table">
+        <caption class="sr-only">Pull request state before and after, with check-run counts</caption>
+        <thead>
+          <tr>
+            <th scope="col">PR</th>
+            <th scope="col">Branch</th>
+            <th scope="col">Before</th>
+            <th scope="col">After</th>
+            <th scope="col" class="num">Checks</th>
+            <th scope="col" class="num">realRed</th>
+            <th scope="col"><span class="sr-only">Evidence</span></th>
+          </tr>
+        </thead>
+        <tbody id="pa-body"></tbody>
+      </table>
+
+      <div class="slope-wrap">
+        <h4>Check runs, before to after</h4>
+        <svg id="pa-slope" viewBox="0 0 460 230" role="img" aria-labelledby="pa-slope-t pa-slope-d">
+          <title id="pa-slope-t">Slope chart of check-run counts before and after per pull request</title>
+          <desc id="pa-slope-d">3570 rises from 1 to 44. 3571 falls from 43 to 40. 3581 and 3582 rise from 0 to 42. 3580 stays at 0 because CI is still re-running.</desc>
+        </svg>
+        <p class="src">Counts are check-runs on the head commit, not distinct workflows.</p>
+      </div>
+
+      <div class="notpass">
+        <h4>The only NOT-PASS in the set</h4>
+        <p>
+          <code>Enable auto-merge for Dependabot</code> reports <strong>skipped</strong>. Skipped is
+          the correct result on a non-Dependabot PR: the step is conditioned on the Dependabot
+          author and none of these five PRs has it. No other check is anything but a pass across
+          all 168 recorded check-runs in the after column.
+        </p>
+      </div>
+    </section>
+
+    <!-- PANEL B -->
+    <section class="panel" aria-labelledby="pb-h">
+      <div class="panel-top">
+        <h3 id="pb-h">Panel B. Worktrees, 13 directories to 8</h3>
+      </div>
+
+      <div class="wt-metrics">
+        <div class="metric"><span class="mv">13 &rarr; 8</span><span class="ml">directories on disk</span></div>
+        <div class="metric"><span class="mv">11 &rarr; 15</span><span class="ml">registered in git</span></div>
+        <div class="metric"><span class="mv">5</span><span class="ml">orphans deleted</span></div>
+        <div class="metric warn"><span class="mv">3</span><span class="ml">still prunable, EPERM blocked</span></div>
+      </div>
+
+      <p class="note">
+        Directories fell while registrations rose. Those move independently: deleting an orphan
+        directory does not remove its registration, and new work registered more worktrees than
+        the cleanup removed.
+      </p>
+
+      <div class="wt-grid">
+        <div class="wt-col">
+          <h4>Deleted orphans (5)</h4>
+          <ul class="chips" id="pb-orphans"></ul>
+          <p class="src">Each had no <code>.git</code> file. See the instrument note below on why that matters.</p>
+        </div>
+        <div class="wt-col">
+          <h4>Still prunable (3)</h4>
+          <p class="prune">
+            <code>git worktree prune</code> fails with EPERM on all three stale registrations, from a
+            subagent and from the main session with the sandbox disabled. Synthetic stale
+            registrations in the same directory prune cleanly in the same invocation.
+          </p>
+          <p class="worse"><strong>Worse:</strong> it exits rc=0 while deleting nothing. A caller checking only the exit code records a successful prune.</p>
+        </div>
+      </div>
+
+      <div class="never-reap" role="note">
+        <h4>Never reap: <code>.worktrees/3322-sandbox-block</code></h4>
+        <p>
+          It holds a gitignored <code>settings.local.json</code> (1886 B) that
+          <code>git status</code> reports as <strong>clean</strong>. A reaper that gates deletion on
+          clean status would destroy it and report success. Clean status is not the same question as
+          "nothing here matters".
+        </p>
+      </div>
+
+      <details class="instr">
+        <summary>Instrument defects that shaped these numbers</summary>
+        <dl>
+          <dt><code>git -C</code> inside a non-worktree walks UP</dt>
+          <dd>5 directories had no <code>.git</code>, so <code>git -C</code> reported the PARENT repo state as theirs: branch main, 467 ignored paths. All of it was the main tree.</dd>
+          <dt>Credential helper stderr poisoned a SHA variable</dt>
+          <dd><code>git ls-remote</code> writes "failed to store" to stderr. Folding it in with <code>2&gt;&amp;1</code> made all 11 branches look present on origin when only 4 were.</dd>
+          <dt>gh is dead, but not for the reason it looks</dt>
+          <dd>A local MITM proxy intercepts everything (curl reports remote_ip 127.0.0.1). gh is Go, honours the proxy, then must verify its cert via macOS trustd which is blocked. Node has its own CA bundle: <code>NODE_USE_ENV_PROXY=1 node</code> works. <code>gh auth status</code> calling the token invalid is downstream of the same break.</dd>
+          <dt><code>ork:debug-investigator</code> cannot use pipes</dt>
+          <dd>Refused on its first command: compound commands not permitted for read-only agents. It produced nothing and cost a whole recon lane.</dd>
+        </dl>
+      </details>
+    </section>
+  </div>
+
+  <!-- GATE -->
+  <section class="gate" aria-labelledby="gate-h">
+    <h3 id="gate-h">The PR Playground gate</h3>
+    <p class="gate-lede">
+      Required on every non-exempt PR. Two steps, and one trap that is the single most reusable
+      operational fact of the session.
+    </p>
+
+    <ol class="gate-steps">
+      <li>
+        <span class="step-n">1</span>
+        <div>
+          <strong>Directory step.</strong> Requires <code>docs/&lt;head_ref with / as --&gt;</code>
+          to exist with at least one <code>.html</code> file, in the merge ref.
+          <span class="ev">ci.yml:292</span>
+        </div>
+      </li>
+      <li>
+        <span class="step-n">2</span>
+        <div>
+          <strong>Body step.</strong> Greps the PR <em>body</em>, case-insensitively, for the
+          substring <code>playground</code>.
+          <span class="ev">ci.yml:318</span>
+        </div>
+      </li>
+    </ol>
+
+    <div class="trap">
+      <h4>The trap: a body edit does NOT re-trigger CI</h4>
+      <p>
+        <code>ci.yml</code> declares <code>on: pull_request</code> with no <code>types:</code>, so it
+        defaults to <code>opened</code>, <code>synchronize</code>, <code>reopened</code>. Editing the
+        body is none of those. The gate keeps reporting its last result on the old body, so the PR
+        stays red after you fixed it.
+      </p>
+      <p class="fix"><strong>Always follow a body edit with an explicit re-run.</strong> Clearing this gate by editing a body without one leaves the failure in place while looking like you addressed it.</p>
+      <button type="button" class="btn" id="gate-toggle" aria-expanded="false" aria-controls="gate-tl">Show the trigger timeline</button>
+      <div id="gate-tl" hidden>
+        <svg viewBox="0 0 460 108" role="img" aria-labelledby="tl-t tl-d" class="tl-svg">
+          <title id="tl-t">Which pull request events re-run CI</title>
+          <desc id="tl-d">opened, synchronize and reopened re-run CI. edited does not, so the stale result stands until an explicit re-run.</desc>
+          <g font-size="10">
+            <line x1="20" y1="54" x2="440" y2="54" class="tl-axis"></line>
+            <g class="tl-ok"><circle cx="60" cy="54" r="6"></circle><text x="60" y="38" text-anchor="middle">opened</text><text x="60" y="74" text-anchor="middle">runs</text></g>
+            <g class="tl-ok"><circle cx="160" cy="54" r="6"></circle><text x="160" y="38" text-anchor="middle">synchronize</text><text x="160" y="74" text-anchor="middle">runs</text></g>
+            <g class="tl-ok"><circle cx="260" cy="54" r="6"></circle><text x="260" y="38" text-anchor="middle">reopened</text><text x="260" y="74" text-anchor="middle">runs</text></g>
+            <g class="tl-no"><circle cx="370" cy="54" r="6"></circle><text x="370" y="38" text-anchor="middle">edited (body)</text><text x="370" y="74" text-anchor="middle">does NOT run</text></g>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="exempt">
+      <h4>Exemptions</h4>
+      <ul>
+        <li>bot authors</li>
+        <li>branch prefixes <code>dependabot/</code>, <code>release-please</code>, <code>renovate/</code>, <code>chore/cc-snapshot-</code>, <code>ci/</code></li>
+        <li>fork PRs</li>
+        <li>an all-inert diff, per <span class="ev">ci.yml:262</span></li>
+      </ul>
+      <p class="src">
+        This is why "PRs would be fine to open normally" was WRONG: PR Playground is a required body
+        grep, and three fresh PRs would have landed instantly red.
+      </p>
+    </div>
+  </section>
+</section>
+
+<style data-view="prs-worktrees">
+  #view-prs-worktrees {
+    --v-bg: #0d1117;
+    --v-surface: #161b22;
+    --v-surface2: #21262d;
+    --v-border: #30363d;
+    --v-text: #e6edf3;
+    --v-dim: #8b949e;
+    --v-blue: #58a6ff;
+    --v-green: #3fb950;
+    --v-yellow: #d29922;
+    --v-red: #f85149;
+    --v-purple: #bc8cff;
+    color: var(--v-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.55;
+    padding: 4px 2px 32px;
+  }
+  @media (prefers-color-scheme: light) {
+    #view-prs-worktrees {
+      --v-bg: #ffffff;
+      --v-surface: #f6f8fa;
+      --v-surface2: #eaeef2;
+      --v-border: #d0d7de;
+      --v-text: #1f2328;
+      --v-dim: #57606a;
+      --v-blue: #0757ba;
+      --v-green: #1a7f37;
+      --v-yellow: #7d4e00;
+      --v-red: #cf222e;
+      --v-purple: #6639ba;
+    }
+  }
+  #view-prs-worktrees code {
+    font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+    font-size: 0.86em;
+    background: var(--v-surface2);
+    border: 1px solid var(--v-border);
+    border-radius: 4px;
+    padding: 0 4px;
+  }
+  #view-prs-worktrees .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  #view-prs-worktrees h2 { font-size: 1.35rem; margin: 0 0 6px; }
+  #view-prs-worktrees h3 { font-size: 1.02rem; margin: 0; }
+  #view-prs-worktrees h4 { font-size: 0.9rem; margin: 0 0 6px; color: var(--v-text); }
+  #view-prs-worktrees .lede { margin: 0 0 6px; max-width: 78ch; }
+  #view-prs-worktrees .src { color: var(--v-dim); font-size: 0.8rem; margin: 4px 0 0; }
+  #view-prs-worktrees .note { color: var(--v-dim); font-size: 0.85rem; margin: 10px 0 0; max-width: 74ch; }
+  #view-prs-worktrees .ev {
+    color: var(--v-purple); font-size: 0.78rem;
+    font-family: "SF Mono", "Fira Code", monospace; margin-left: 6px;
+  }
+
+  #view-prs-worktrees .panels { display: grid; gap: 16px; margin-top: 18px; }
+  @media (min-width: 1080px) {
+    #view-prs-worktrees .panels { grid-template-columns: 1.15fr 1fr; }
+  }
+  #view-prs-worktrees .panel,
+  #view-prs-worktrees .gate {
+    background: var(--v-surface);
+    border: 1px solid var(--v-border);
+    border-radius: 10px;
+    padding: 14px 16px 16px;
+  }
+  #view-prs-worktrees .gate { margin-top: 16px; }
+  #view-prs-worktrees .panel-top {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    align-items: center; justify-content: space-between; margin-bottom: 10px;
+  }
+  #view-prs-worktrees .controls { display: flex; flex-wrap: wrap; gap: 6px; }
+  #view-prs-worktrees .btn {
+    font: inherit; font-size: 0.78rem;
+    background: var(--v-surface2); color: var(--v-text);
+    border: 1px solid var(--v-border); border-radius: 6px;
+    padding: 4px 9px; cursor: pointer;
+  }
+  #view-prs-worktrees .btn:hover { border-color: var(--v-blue); }
+  #view-prs-worktrees .btn:focus-visible { outline: 2px solid var(--v-blue); outline-offset: 2px; }
+  #view-prs-worktrees .btn[aria-pressed="true"] { border-color: var(--v-blue); color: var(--v-blue); }
+
+  #view-prs-worktrees .realred {
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    background: color-mix(in srgb, var(--v-green) 12%, transparent);
+    border: 1px solid var(--v-green); border-radius: 8px;
+    padding: 8px 12px; margin-bottom: 12px;
+  }
+  #view-prs-worktrees .rr-num { color: var(--v-green); font-weight: 700; font-size: 1.05rem; }
+  #view-prs-worktrees .rr-txt { font-size: 0.85rem; color: var(--v-dim); }
+
+  #view-prs-worktrees .pr-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  #view-prs-worktrees .pr-table th {
+    text-align: left; color: var(--v-dim); font-weight: 600;
+    border-bottom: 1px solid var(--v-border); padding: 6px 6px;
+  }
+  #view-prs-worktrees .pr-table td { padding: 7px 6px; border-bottom: 1px solid var(--v-border); vertical-align: top; }
+  #view-prs-worktrees .pr-table .num { text-align: right; }
+  #view-prs-worktrees .pr-table tr.hl td { background: color-mix(in srgb, var(--v-blue) 10%, transparent); }
+  #view-prs-worktrees .pr-n { color: var(--v-blue); font-weight: 700; }
+  #view-prs-worktrees .branch {
+    font-family: "SF Mono", "Fira Code", monospace; font-size: 0.76rem; color: var(--v-dim);
+    word-break: break-all;
+  }
+  #view-prs-worktrees .st-before { color: var(--v-red); }
+  #view-prs-worktrees .st-none { color: var(--v-dim); }
+  #view-prs-worktrees .st-after { color: var(--v-green); }
+  #view-prs-worktrees .st-after.pending { color: var(--v-yellow); }
+  #view-prs-worktrees .chk { font-family: "SF Mono", "Fira Code", monospace; }
+  #view-prs-worktrees .chk .up { color: var(--v-green); }
+  #view-prs-worktrees .chk .down { color: var(--v-yellow); }
+  #view-prs-worktrees .zero { color: var(--v-green); font-weight: 700; }
+  #view-prs-worktrees .ev-btn {
+    font: inherit; font-size: 0.75rem; background: none; color: var(--v-blue);
+    border: 1px solid var(--v-border); border-radius: 5px; padding: 2px 7px; cursor: pointer;
+  }
+  #view-prs-worktrees .ev-btn:focus-visible { outline: 2px solid var(--v-blue); outline-offset: 2px; }
+  #view-prs-worktrees tr.ev-row td {
+    background: var(--v-surface2); color: var(--v-dim);
+    font-size: 0.82rem; padding: 9px 12px;
+  }
+  #view-prs-worktrees tr.ev-row[hidden] { display: none; }
+
+  #view-prs-worktrees .slope-wrap { margin-top: 16px; }
+  #view-prs-worktrees #pa-slope { width: 100%; height: auto; max-width: 520px; }
+  #view-prs-worktrees .ax { stroke: var(--v-border); stroke-width: 1; }
+  #view-prs-worktrees .axl { fill: var(--v-dim); font-size: 9px; }
+  #view-prs-worktrees .sl { stroke-width: 2; fill: none; opacity: 0.75; }
+  #view-prs-worktrees .sl-dot { r: 3.2; }
+  #view-prs-worktrees .sl-lab { font-size: 9px; }
+  #view-prs-worktrees g.slope-g.hl .sl { stroke-width: 3.4; opacity: 1; }
+
+  #view-prs-worktrees .notpass {
+    margin-top: 14px; border: 1px dashed var(--v-yellow); border-radius: 8px;
+    padding: 10px 12px; background: color-mix(in srgb, var(--v-yellow) 8%, transparent);
+    font-size: 0.85rem;
+  }
+
+  #view-prs-worktrees .wt-metrics {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+    gap: 8px; margin-bottom: 10px;
+  }
+  #view-prs-worktrees .metric {
+    background: var(--v-surface2); border: 1px solid var(--v-border);
+    border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column;
+  }
+  #view-prs-worktrees .metric.warn { border-color: var(--v-yellow); }
+  #view-prs-worktrees .mv { font-size: 1.05rem; font-weight: 700; color: var(--v-blue); font-family: "SF Mono", "Fira Code", monospace; }
+  #view-prs-worktrees .metric.warn .mv { color: var(--v-yellow); }
+  #view-prs-worktrees .ml { font-size: 0.76rem; color: var(--v-dim); }
+
+  #view-prs-worktrees .wt-grid { display: grid; gap: 14px; margin-top: 12px; }
+  @media (min-width: 640px) { #view-prs-worktrees .wt-grid { grid-template-columns: 1fr 1.15fr; } }
+  #view-prs-worktrees .chips { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  #view-prs-worktrees .chips li {
+    font-family: "SF Mono", "Fira Code", monospace; font-size: 0.76rem;
+    background: var(--v-surface2); border: 1px solid var(--v-border);
+    border-radius: 999px; padding: 3px 9px; color: var(--v-dim);
+    text-decoration: line-through;
+  }
+  #view-prs-worktrees .prune, #view-prs-worktrees .worse { font-size: 0.83rem; margin: 0 0 6px; }
+  #view-prs-worktrees .worse { color: var(--v-yellow); }
+
+  #view-prs-worktrees .never-reap {
+    margin-top: 14px; border: 1px solid var(--v-red); border-radius: 8px;
+    padding: 10px 12px; background: color-mix(in srgb, var(--v-red) 10%, transparent);
+  }
+  #view-prs-worktrees .never-reap h4 { color: var(--v-red); }
+  #view-prs-worktrees .never-reap p { font-size: 0.85rem; margin: 0; }
+
+  #view-prs-worktrees .instr { margin-top: 14px; font-size: 0.84rem; }
+  #view-prs-worktrees .instr summary { cursor: pointer; color: var(--v-blue); }
+  #view-prs-worktrees .instr summary:focus-visible { outline: 2px solid var(--v-blue); outline-offset: 2px; }
+  #view-prs-worktrees .instr dt { font-weight: 600; margin-top: 9px; }
+  #view-prs-worktrees .instr dd { margin: 2px 0 0; color: var(--v-dim); }
+
+  #view-prs-worktrees .gate-lede { max-width: 80ch; margin: 6px 0 12px; }
+  #view-prs-worktrees .gate-steps { list-style: none; padding: 0; margin: 0 0 14px; display: grid; gap: 8px; }
+  #view-prs-worktrees .gate-steps li { display: flex; gap: 10px; align-items: flex-start; font-size: 0.88rem; }
+  #view-prs-worktrees .step-n {
+    flex: none; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--v-surface2); border: 1px solid var(--v-border);
+    display: grid; place-items: center; font-size: 0.76rem; color: var(--v-blue);
+  }
+  #view-prs-worktrees .trap {
+    border: 1px solid var(--v-red); border-left-width: 4px; border-radius: 8px;
+    padding: 11px 13px; background: color-mix(in srgb, var(--v-red) 9%, transparent);
+  }
+  #view-prs-worktrees .trap h4 { color: var(--v-red); }
+  #view-prs-worktrees .trap p { font-size: 0.87rem; margin: 0 0 8px; max-width: 82ch; }
+  #view-prs-worktrees .trap .fix { color: var(--v-text); }
+  #view-prs-worktrees .tl-svg { width: 100%; max-width: 520px; height: auto; margin-top: 10px; }
+  #view-prs-worktrees .tl-axis { stroke: var(--v-border); }
+  #view-prs-worktrees .tl-ok circle { fill: var(--v-green); }
+  #view-prs-worktrees .tl-ok text { fill: var(--v-green); }
+  #view-prs-worktrees .tl-no circle { fill: var(--v-red); }
+  #view-prs-worktrees .tl-no text { fill: var(--v-red); }
+  #view-prs-worktrees .exempt { margin-top: 14px; font-size: 0.85rem; }
+  #view-prs-worktrees .exempt ul { margin: 0 0 6px; padding-left: 18px; color: var(--v-dim); }
+
+  #view-prs-worktrees .sl,
+  #view-prs-worktrees .btn,
+  #view-prs-worktrees .ev-btn { transition: all 140ms ease; }
+  @media (prefers-reduced-motion: reduce) {
+    #view-prs-worktrees * { transition: none !important; animation: none !important; }
+  }
+</style>
+<script data-view="prs-worktrees">
+(function () {
+  var root = document.getElementById('view-prs-worktrees');
+  if (!root) return;
+
+  var PRS = [
+    { n: 3570, branch: 'fix/worktree-verifier-stale-base', before: 'DIRTY / CONFLICTING', after: 'CLEAN',
+      cb: 1, ca: 44, realRed: 0, hl: true,
+      note: 'All 4 conflicts were generated dist output. Rebase + rebuild, never hand-merge. CI had never run on it.' },
+    { n: 3571, branch: 'fix/3322-sandbox-paste-block', before: 'BEHIND, 3 failures', after: 'BEHIND, 0 real red',
+      cb: 43, ca: 40, realRed: 0, hl: true,
+      note: 'Security Tests failure was REAL and self-inflicted; probe made falsifiable instead of raising the baseline.' },
+    { n: 3580, branch: 'fix/cc-watch-fence-parse', before: 'did not exist', after: 'open, CI re-running',
+      cb: 0, ca: 0, realRed: 0, hl: false, pending: true,
+      note: 'Head moved because the watcher committed snapshot 58519b412 back to the branch.' },
+    { n: 3581, branch: 'fix/3492-cc-board-drift', before: 'did not exist', after: 'CLEAN',
+      cb: 0, ca: 42, realRed: 0, hl: false,
+      note: 'Board said 2.1.220 while cc-support.json said 2.1.231. ci.yml:77 diffed generated/ but the build never regenerated it, so the gate was structurally blind.' },
+    { n: 3582, branch: 'feat/3309-adopt-cc-settings', before: 'did not exist', after: 'CLEAN',
+      cb: 0, ca: 42, realRed: 0, hl: false,
+      note: 'EPIC D measured 0 of 5 adopted; two had been closed on markdown alone.' }
+  ];
+
+  var ORPHANS = ['announce-rail', 'basecheck', 'dynwf-adoption', 'fixbrief', 'wfjs'];
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  /* ---------- Panel A table ---------- */
+  var body = root.querySelector('#pa-body');
+
+  function render(list) {
+    var html = '';
+    list.forEach(function (p) {
+      var d = p.ca - p.cb;
+      var dCls = d > 0 ? 'up' : (d < 0 ? 'down' : '');
+      var dTxt = p.ca === 0 && p.cb === 0 ? 'pending' : (p.cb + ' → ' + p.ca);
+      html += '<tr class="' + (p.hl ? 'hl' : '') + '">' +
+        '<td><span class="pr-n">#' + p.n + '</span></td>' +
+        '<td><span class="branch">' + esc(p.branch) + '</span></td>' +
+        '<td><span class="' + (p.before === 'did not exist' ? 'st-none' : 'st-before') + '">' + esc(p.before) + '</span></td>' +
+        '<td><span class="st-after' + (p.pending ? ' pending' : '') + '">' + esc(p.after) + '</span></td>' +
+        '<td class="num chk"><span class="' + dCls + '">' + dTxt + '</span></td>' +
+        '<td class="num"><span class="zero">0</span></td>' +
+        '<td><button type="button" class="ev-btn" data-ev="' + p.n + '" aria-expanded="false" aria-controls="ev-' + p.n + '">why</button></td>' +
+        '</tr>' +
+        '<tr class="ev-row" id="ev-' + p.n + '" hidden><td colspan="7">' + esc(p.note) + '</td></tr>';
+    });
+    body.innerHTML = html;
+  }
+  render(PRS);
+
+  body.addEventListener('click', function (e) {
+    var b = e.target.closest('.ev-btn');
+    if (!b) return;
+    var row = root.querySelector('#ev-' + b.getAttribute('data-ev'));
+    var open = row.hasAttribute('hidden');
+    if (open) { row.removeAttribute('hidden'); } else { row.setAttribute('hidden', ''); }
+    b.setAttribute('aria-expanded', String(open));
+  });
+
+  var sortBtns = root.querySelectorAll('[data-sort]');
+  sortBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      sortBtns.forEach(function (o) { o.setAttribute('aria-pressed', String(o === btn)); });
+      var key = btn.getAttribute('data-sort');
+      var list = PRS.slice();
+      if (key === 'delta') {
+        list.sort(function (a, b2) { return (b2.ca - b2.cb) - (a.ca - a.cb); });
+      } else {
+        list.sort(function (a, b2) { return a.n - b2.n; });
+      }
+      render(list);
+      expandAll.setAttribute('aria-pressed', 'false');
+      expandAll.textContent = 'Expand all evidence';
+    });
+  });
+
+  var expandAll = root.querySelector('#pa-expand');
+  expandAll.addEventListener('click', function () {
+    var open = expandAll.getAttribute('aria-pressed') !== 'true';
+    expandAll.setAttribute('aria-pressed', String(open));
+    expandAll.textContent = open ? 'Collapse all evidence' : 'Expand all evidence';
+    root.querySelectorAll('.ev-row').forEach(function (r) {
+      if (open) { r.removeAttribute('hidden'); } else { r.setAttribute('hidden', ''); }
+    });
+    root.querySelectorAll('.ev-btn').forEach(function (b) { b.setAttribute('aria-expanded', String(open)); });
+  });
+
+  /* ---------- Slope chart ---------- */
+  var svg = root.querySelector('#pa-slope');
+  var NS = 'http://www.w3.org/2000/svg';
+  var X0 = 96, X1 = 330, TOP = 26, BOT = 196, MAX = 44;
+  function y(v) { return BOT - (v / MAX) * (BOT - TOP); }
+  function el(name, attrs, text) {
+    var n = document.createElementNS(NS, name);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  var COLORS = { 3570: 'var(--v-green)', 3571: 'var(--v-yellow)', 3580: 'var(--v-dim)', 3581: 'var(--v-blue)', 3582: 'var(--v-purple)' };
+
+  svg.appendChild(el('line', { x1: X0, y1: TOP - 8, x2: X0, y2: BOT + 8, class: 'ax' }));
+  svg.appendChild(el('line', { x1: X1, y1: TOP - 8, x2: X1, y2: BOT + 8, class: 'ax' }));
+  svg.appendChild(el('text', { x: X0, y: BOT + 24, 'text-anchor': 'middle', class: 'axl' }, 'before'));
+  svg.appendChild(el('text', { x: X1, y: BOT + 24, 'text-anchor': 'middle', class: 'axl' }, 'after'));
+  [0, 22, 44].forEach(function (t) {
+    svg.appendChild(el('text', { x: X0 - 10, y: y(t) + 3, 'text-anchor': 'end', class: 'axl' }, String(t)));
+  });
+
+  // nudge overlapping labels for the two 0 -> 42 pairs
+  var offs = { 3581: -5, 3582: 5, 3580: 0, 3570: 0, 3571: 0 };
+  PRS.forEach(function (p) {
+    var c = COLORS[p.n];
+    var g = el('g', { class: 'slope-g' + (p.hl ? ' hl' : ''), 'data-pr': p.n });
+    var y0 = y(p.cb) + offs[p.n], y1 = y(p.ca) + offs[p.n];
+    g.appendChild(el('line', { x1: X0, y1: y0, x2: X1, y2: y1, class: 'sl', stroke: c }));
+    g.appendChild(el('circle', { cx: X0, cy: y0, class: 'sl-dot', r: 3.2, fill: c }));
+    g.appendChild(el('circle', { cx: X1, cy: y1, class: 'sl-dot', r: 3.2, fill: c }));
+    g.appendChild(el('text', { x: X0 - 26, y: y0 + 3, 'text-anchor': 'end', class: 'sl-lab', fill: c }, '#' + p.n));
+    g.appendChild(el('text', { x: X1 + 8, y: y1 + 3, class: 'sl-lab', fill: c }, p.ca === 0 && p.cb === 0 ? '0 (re-running)' : String(p.ca)));
+    g.appendChild(el('title', {}, '#' + p.n + ' ' + p.branch + ': check-runs ' + p.cb + ' → ' + p.ca + ', realRed 0'));
+    svg.appendChild(g);
+  });
+
+  /* ---------- Panel B chips ---------- */
+  var ul = root.querySelector('#pb-orphans');
+  ul.innerHTML = ORPHANS.map(function (o) { return '<li>' + esc(o) + '</li>'; }).join('');
+
+  /* ---------- Gate timeline toggle ---------- */
+  var gt = root.querySelector('#gate-toggle');
+  var tl = root.querySelector('#gate-tl');
+  gt.addEventListener('click', function () {
+    var open = tl.hasAttribute('hidden');
+    if (open) { tl.removeAttribute('hidden'); } else { tl.setAttribute('hidden', ''); }
+    gt.setAttribute('aria-expanded', String(open));
+    gt.textContent = open ? 'Hide the trigger timeline' : 'Show the trigger timeline';
+  });
+})();
+</script>
+
+<!-- ===================== VIEW: corrections-instruments ===================== -->
+<section class="view" id="view-corrections-instruments" role="tabpanel" aria-labelledby="tab-corrections-instruments">
+  <header class="ci-head">
+    <h2>What was measured wrong, and how it was caught</h2>
+    <p class="ci-lede">
+      Four confident claims were overturned, four instruments returned confident wrong answers, and two
+      gates printed OK while measuring nothing. This panel is about method. The single recurring failure is
+      trusting an instrument's zero without asking what that instrument can structurally observe.
+    </p>
+    <div class="ci-counters" role="list">
+      <div class="ci-counter" role="listitem"><span class="ci-num">4</span><span class="ci-lbl">claims overturned</span></div>
+      <div class="ci-counter" role="listitem"><span class="ci-num">4</span><span class="ci-lbl">instrument defects</span></div>
+      <div class="ci-counter" role="listitem"><span class="ci-num">2</span><span class="ci-lbl">gates fail-open</span></div>
+      <div class="ci-counter ci-counter-bad" role="listitem"><span class="ci-num">0 / 5</span><span class="ci-lbl">EPIC D adopted</span></div>
+    </div>
+  </header>
+
+  <!-- ============ 1. CORRECTIONS ============ -->
+  <section class="ci-block" aria-labelledby="ci-h-corr">
+    <h3 id="ci-h-corr"><span class="ci-idx">1</span> Corrections: stated, then overturned</h3>
+    <p class="ci-note">Not softened. The value is that each one was caught by evidence, not avoided by caution.</p>
+
+    <ul class="ci-corr-list">
+      <li class="ci-corr" data-verdict="WRONG">
+        <button type="button" class="ci-corr-btn" aria-expanded="false" aria-controls="ci-corr-p1">
+          <span class="ci-badge ci-b-wrong">WRONG</span>
+          <span class="ci-claim">"cc-adoption-gaps.json waves are untriaged"</span>
+          <span class="ci-chev" aria-hidden="true">+</span>
+        </button>
+        <div class="ci-corr-panel" id="ci-corr-p1" hidden>
+          <p><code>features: []</code> is a placeholder written by <code>cc-release-watch.mjs:309</code> with the
+          comment "filled in by triage". Proven by the watcher run back-filling 12/12/11/7/6/6 features once
+          triage finally ran.</p>
+          <p class="ci-ev">Evidence: cc-release-watch.mjs:309, watcher run 32350918138</p>
+        </div>
+      </li>
+
+      <li class="ci-corr" data-verdict="HALF WRONG">
+        <button type="button" class="ci-corr-btn" aria-expanded="false" aria-controls="ci-corr-p2">
+          <span class="ci-badge ci-b-half">HALF WRONG</span>
+          <span class="ci-claim">"no CI gate covers the generated board data"</span>
+          <span class="ci-chev" aria-hidden="true">+</span>
+        </button>
+        <div class="ci-corr-panel" id="ci-corr-p2" hidden>
+          <p><code>ci.yml:77</code> DOES diff <code>docs/site/lib/generated/</code>. Nothing in
+          <code>npm run build</code> regenerated <code>cc-adoption-data.ts</code>, so the gate was blind, not absent.</p>
+          <p class="ci-ev">Evidence: ci.yml:77</p>
+        </div>
+      </li>
+
+      <li class="ci-corr" data-verdict="FALSE PROOF">
+        <button type="button" class="ci-corr-btn" aria-expanded="false" aria-controls="ci-corr-p3">
+          <span class="ci-badge ci-b-false">FALSE PROOF</span>
+          <span class="ci-claim">"the 2.1.231 triage doc proves .mcp.json is all stdio"</span>
+          <span class="ci-chev" aria-hidden="true">+</span>
+        </button>
+        <div class="ci-corr-panel" id="ci-corr-p3" hidden>
+          <p><code>.mcp.json</code> is gitignored and untracked. The tracked template declares
+          <code>context7</code> as <code>type: http</code> with a <code>url</code>.</p>
+          <p class="ci-ev">Evidence: tracked .mcp.json template, context7 entry</p>
+        </div>
+      </li>
+
+      <li class="ci-corr" data-verdict="WRONG">
+        <button type="button" class="ci-corr-btn" aria-expanded="false" aria-controls="ci-corr-p4">
+          <span class="ci-badge ci-b-wrong">WRONG</span>
+          <span class="ci-claim">"PRs would be fine to open normally"</span>
+          <span class="ci-chev" aria-hidden="true">+</span>
+        </button>
+        <div class="ci-corr-panel" id="ci-corr-p4" hidden>
+          <p>PR Playground is a REQUIRED body grep. Three fresh PRs would have landed instantly red.</p>
+          <p class="ci-ev">Evidence: ci.yml:292 (docs dir with &gt;=1 .html in merge ref), ci.yml:318 (case-insensitive body grep for "playground")</p>
+          <p class="ci-trap"><strong>Trap:</strong> <code>ci.yml</code> declares <code>on: pull_request</code> with no
+          <code>types:</code>, so it defaults to opened/synchronize/reopened. A body edit does not re-trigger CI.
+          Clearing this gate by editing a body always needs an explicit re-run afterwards.</p>
+          <p class="ci-ev">Exempt: bot authors, branch prefixes dependabot/ release-please renovate/ chore/cc-snapshot- ci/, fork PRs, or an all-inert diff per ci.yml:262</p>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ============ 2. INSTRUMENT DEFECTS ============ -->
+  <section class="ci-block" aria-labelledby="ci-h-inst">
+    <h3 id="ci-h-inst"><span class="ci-idx">2</span> Instrument defects: confident wrong answers</h3>
+
+    <div class="ci-inst-grid">
+      <article class="ci-inst ci-inst-wide">
+        <h4>gh is dead, but not for the reason it looks</h4>
+        <p>A local MITM proxy intercepts everything (<code>curl</code> reports <code>remote_ip 127.0.0.1</code>).
+        <code>gh</code> is Go, honours the proxy, then must verify its cert via macOS <code>trustd</code>, which is
+        blocked. Node ships its own CA bundle, so <code>NODE_USE_ENV_PROXY=1 node</code> works.
+        <code>gh auth status</code> calling the token invalid is downstream of the same break.</p>
+        <p class="ci-note">Three symptoms that look unrelated, one cause. The table makes the shared root visible.</p>
+        <div class="ci-table-wrap">
+          <table class="ci-table">
+            <caption class="ci-sr">Comparison of curl, gh and node by proxy awareness, CA store and resulting symptom</caption>
+            <thead>
+              <tr><th scope="col">Client</th><th scope="col">Proxy aware</th><th scope="col">CA store</th><th scope="col">Symptom</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>curl</code></td>
+                <td class="ci-yes">yes</td>
+                <td>system (macOS)</td>
+                <td>reports <code>remote_ip 127.0.0.1</code>, which is what exposed the MITM proxy</td>
+              </tr>
+              <tr class="ci-row-bad">
+                <td><code>gh</code> (Go)</td>
+                <td class="ci-yes">yes</td>
+                <td>system, verified via <code>trustd</code> (blocked)</td>
+                <td>appears dead; <code>gh auth status</code> reports the token invalid, which is downstream, not the cause</td>
+              </tr>
+              <tr class="ci-row-good">
+                <td><code>node</code></td>
+                <td>opt-in via <code>NODE_USE_ENV_PROXY=1</code></td>
+                <td>own bundled CA</td>
+                <td>works; the usable path while <code>gh</code> is broken</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="ci-inst">
+        <h4>Credential helper stderr poisoned a SHA variable</h4>
+        <p><code>git ls-remote</code> writes "failed to store" to stderr. Folding it in with <code>2&gt;&amp;1</code>
+        made all 11 branches look present on origin when only 4 were.</p>
+        <p class="ci-ev">4 of 11 actually on origin</p>
+      </article>
+
+      <article class="ci-inst">
+        <h4><code>git -C</code> inside a non-worktree walks UP</h4>
+        <p>5 directories had no <code>.git</code>, so <code>git -C</code> reported the PARENT repo state as theirs:
+        branch <code>main</code>, 467 ignored paths. All of it was the main tree.</p>
+        <p class="ci-ev">5 directories, 467 ignored paths, all belonging to the parent</p>
+      </article>
+
+      <article class="ci-inst">
+        <h4><code>ork:debug-investigator</code> cannot use pipes</h4>
+        <p>Refused on its first command: compound commands not permitted for read-only agents. It produced nothing
+        and cost a whole recon lane.</p>
+        <p class="ci-ev">0 output, 1 recon lane lost</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ 3. FAIL-OPEN ============ -->
+  <section class="ci-block" aria-labelledby="ci-h-fo">
+    <h3 id="ci-h-fo"><span class="ci-idx">3</span> Fail-open: gates that reported success while measuring nothing</h3>
+
+    <div class="ci-fo-head">
+      <h4><code>mutation-gate.sh</code> <a class="ci-issue" href="https://github.com/yonatangross/orchestkit/issues/3583">issue #3583</a></h4>
+      <button type="button" id="ci-fo-toggle" class="ci-toggle" aria-pressed="false">
+        Show the paired probe side by side
+      </button>
+    </div>
+    <p class="ci-note">Same command. Same tree. The only difference is the sandbox. Both exit 0. Both print OK.</p>
+
+    <div class="ci-probe" data-revealed="false">
+      <div class="ci-probe-col ci-probe-vacuous">
+        <div class="ci-probe-title">
+          <span class="ci-probe-env">sandboxed</span>
+          <span class="ci-probe-tag ci-probe-tag-bad">vacuous green</span>
+        </div>
+        <dl class="ci-probe-stats">
+          <div><dt>candidates</dt><dd>13</dd></div>
+          <div><dt>proven can fail</dt><dd class="ci-zero">0</dd></div>
+          <div><dt>not provable</dt><dd>0</dd></div>
+        </dl>
+        <div class="ci-bar" role="img" aria-label="0 of 13 candidates proven able to fail">
+          <svg viewBox="0 0 200 22" width="100%" height="22" preserveAspectRatio="none" focusable="false" aria-hidden="true">
+            <rect x="0" y="4" width="200" height="14" rx="3" class="ci-bar-track"></rect>
+            <rect x="0" y="4" width="0" height="14" rx="3" class="ci-bar-fill ci-bar-fill-bad"></rect>
+          </svg>
+          <span class="ci-bar-cap">0 / 13 proven</span>
+        </div>
+        <p class="ci-probe-exit"><code>exit 0</code> <span class="ci-verdict ci-verdict-ok">OK</span></p>
+      </div>
+
+      <div class="ci-probe-col ci-probe-real">
+        <div class="ci-probe-title">
+          <span class="ci-probe-env">unsandboxed</span>
+          <span class="ci-probe-tag ci-probe-tag-good">real measurement</span>
+        </div>
+        <dl class="ci-probe-stats">
+          <div><dt>candidates</dt><dd>13</dd></div>
+          <div><dt>proven can fail</dt><dd class="ci-eleven">11</dd></div>
+          <div><dt>not provable</dt><dd>2</dd></div>
+        </dl>
+        <div class="ci-bar" role="img" aria-label="11 of 13 candidates proven able to fail, 2 not provable">
+          <svg viewBox="0 0 200 22" width="100%" height="22" preserveAspectRatio="none" focusable="false" aria-hidden="true">
+            <rect x="0" y="4" width="200" height="14" rx="3" class="ci-bar-track"></rect>
+            <rect x="0" y="4" width="169.2" height="14" rx="3" class="ci-bar-fill ci-bar-fill-good"></rect>
+            <rect x="169.2" y="4" width="30.8" height="14" class="ci-bar-fill-partial"></rect>
+          </svg>
+          <span class="ci-bar-cap">11 / 13 proven, 2 not provable</span>
+        </div>
+        <p class="ci-probe-exit"><code>exit 0</code> <span class="ci-verdict ci-verdict-ok">OK</span></p>
+      </div>
+    </div>
+
+    <p class="ci-same">Identical exit code. Identical verdict string. One of these measured nothing.</p>
+
+    <div class="ci-cause">
+      <p><strong>Cause.</strong> <code>mktemp -d -t</code> at <code>mutation-gate.sh:116</code> is denied,
+      <code>RESULT_DIR</code> becomes empty, workers write to <code>/test-*.sh</code>, and reduce reads nothing.</p>
+    </div>
+
+    <div class="ci-harm" role="note">
+      <p class="ci-harm-label">And it emits advice</p>
+      <blockquote class="ci-harm-quote">Lower MUTATION_BASELINE to 0 to lock the gain in.</blockquote>
+      <p>Following that would zero a security ratchet on a measurement that never happened.</p>
+    </div>
+
+    <div class="ci-fo-second">
+      <h4><code>git worktree prune</code></h4>
+      <p>Fails with EPERM on all 3 stale registrations, from a subagent AND from the main session with the sandbox
+      disabled. Synthetic stale registrations in the same directory prune cleanly in the same invocation.</p>
+      <p class="ci-harm-inline">Exits <code>rc=0</code> while deleting nothing. A caller checking only the exit code
+      records a successful prune.</p>
+    </div>
+
+    <p class="ci-lesson">
+      Shared lesson: a green exit code is not evidence that a check ran. Ask what an instrument can structurally
+      observe before trusting its zero.
+    </p>
+  </section>
+
+  <!-- ============ 4. EPIC D ============ -->
+  <section class="ci-block" aria-labelledby="ci-h-epic">
+    <h3 id="ci-h-epic"><span class="ci-idx">4</span> EPIC D: 0 adopted of 5</h3>
+    <p class="ci-note">A prior triage doc claimed 3 of 5 done. That counted documentation prose as adoption.</p>
+
+    <div class="ci-epic">
+      <svg class="ci-epic-svg" viewBox="0 0 260 44" width="100%" height="44" role="img"
+           aria-label="EPIC D adoption: 0 adopted, 1 partial, 2 doc only, 2 absent, out of 5 items">
+        <rect x="0" y="8" width="260" height="20" rx="4" class="ci-epic-track"></rect>
+        <rect x="0" y="8" width="52" height="20" class="ci-seg ci-seg-partial"></rect>
+        <rect x="52" y="8" width="104" height="20" class="ci-seg ci-seg-doc"></rect>
+        <rect x="156" y="8" width="104" height="20" class="ci-seg ci-seg-absent"></rect>
+        <line x1="52" y1="8" x2="52" y2="28" class="ci-epic-div"></line>
+        <line x1="156" y1="8" x2="156" y2="28" class="ci-epic-div"></line>
+      </svg>
+      <ul class="ci-legend">
+        <li><span class="ci-key ci-key-adopted"></span>adopted <b>0</b></li>
+        <li><span class="ci-key ci-key-partial"></span>partial <b>1</b></li>
+        <li><span class="ci-key ci-key-doc"></span>doc only <b>2</b></li>
+        <li><span class="ci-key ci-key-absent"></span>absent <b>2</b></li>
+      </ul>
+    </div>
+    <p class="ci-ev">Measured on <code>feat/3309-adopt-cc-settings</code> (PR #3582): EPIC D measured 0 of 5 adopted; two had been closed on markdown alone.</p>
+  </section>
+</section>
+<style data-view="corrections-instruments">
+  #view-corrections-instruments {
+    --ci-bg: #0d1117;
+    --ci-surface: #161b22;
+    --ci-surface2: #1c2230;
+    --ci-border: #30363d;
+    --ci-text: #e6edf3;
+    --ci-dim: #9aa7b4;
+    --ci-red: #f85149;
+    --ci-green: #3fb950;
+    --ci-yellow: #d29922;
+    --ci-blue: #58a6ff;
+    --ci-purple: #bc8cff;
+    --ci-orange: #e3b341;
+    color: var(--ci-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.55;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 3rem;
+  }
+  @media (prefers-color-scheme: light) {
+    #view-corrections-instruments {
+      --ci-bg: #ffffff;
+      --ci-surface: #f6f8fa;
+      --ci-surface2: #eef1f5;
+      --ci-border: #c6cdd5;
+      --ci-text: #10151b;
+      --ci-dim: #4d5866;
+      --ci-red: #b1231c;
+      --ci-green: #1a6f2c;
+      --ci-yellow: #79560a;
+      --ci-blue: #0a4fa0;
+      --ci-purple: #6b3fbf;
+      --ci-orange: #7a5a05;
+    }
+  }
+  #view-corrections-instruments code {
+    font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+    font-size: 0.86em;
+    background: var(--ci-surface2);
+    border: 1px solid var(--ci-border);
+    border-radius: 4px;
+    padding: 0.05em 0.32em;
+    word-break: break-word;
+  }
+  #view-corrections-instruments h2 {
+    font-size: 1.5rem;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.01em;
+  }
+  #view-corrections-instruments h3 {
+    font-size: 1.08rem;
+    margin: 0 0 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+  #view-corrections-instruments h4 {
+    font-size: 0.95rem;
+    margin: 0 0 0.4rem;
+  }
+  #view-corrections-instruments .ci-idx {
+    display: inline-grid;
+    place-items: center;
+    width: 1.55rem;
+    height: 1.55rem;
+    border-radius: 50%;
+    background: var(--ci-surface2);
+    border: 1px solid var(--ci-border);
+    color: var(--ci-blue);
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex: none;
+  }
+  #view-corrections-instruments .ci-lede {
+    color: var(--ci-dim);
+    max-width: 74ch;
+    margin: 0 0 1rem;
+  }
+  #view-corrections-instruments .ci-note {
+    color: var(--ci-dim);
+    font-size: 0.9rem;
+    margin: 0 0 0.85rem;
+  }
+  #view-corrections-instruments .ci-ev {
+    font-size: 0.82rem;
+    color: var(--ci-dim);
+    font-family: "SF Mono", "Fira Code", monospace;
+    margin: 0.5rem 0 0;
+  }
+  #view-corrections-instruments .ci-sr {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  #view-corrections-instruments .ci-counters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+  }
+  #view-corrections-instruments .ci-counter {
+    background: var(--ci-surface);
+    border: 1px solid var(--ci-border);
+    border-radius: 8px;
+    padding: 0.55rem 0.85rem;
+    min-width: 8.5rem;
+  }
+  #view-corrections-instruments .ci-counter-bad { border-color: var(--ci-red); }
+  #view-corrections-instruments .ci-num {
+    display: block;
+    font-size: 1.35rem;
+    font-weight: 700;
+    font-family: "SF Mono", "Fira Code", monospace;
+  }
+  #view-corrections-instruments .ci-counter-bad .ci-num { color: var(--ci-red); }
+  #view-corrections-instruments .ci-lbl {
+    font-size: 0.76rem;
+    color: var(--ci-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  #view-corrections-instruments .ci-block {
+    margin: 0 0 2.25rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--ci-border);
+  }
+
+  /* corrections */
+  #view-corrections-instruments .ci-corr-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+  #view-corrections-instruments .ci-corr {
+    background: var(--ci-surface);
+    border: 1px solid var(--ci-border);
+    border-left: 3px solid var(--ci-red);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  #view-corrections-instruments .ci-corr[data-verdict="HALF WRONG"] { border-left-color: var(--ci-yellow); }
+  #view-corrections-instruments .ci-corr[data-verdict="FALSE PROOF"] { border-left-color: var(--ci-purple); }
+  #view-corrections-instruments .ci-corr-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    padding: 0.7rem 0.85rem;
+    cursor: pointer;
+  }
+  #view-corrections-instruments .ci-corr-btn:hover { background: var(--ci-surface2); }
+  #view-corrections-instruments .ci-corr-btn:focus-visible {
+    outline: 2px solid var(--ci-blue);
+    outline-offset: -2px;
+  }
+  #view-corrections-instruments .ci-badge {
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0.15rem 0.42rem;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+    flex: none;
+    white-space: nowrap;
+  }
+  #view-corrections-instruments .ci-b-wrong { color: var(--ci-red); }
+  #view-corrections-instruments .ci-b-half { color: var(--ci-yellow); }
+  #view-corrections-instruments .ci-b-false { color: var(--ci-purple); }
+  #view-corrections-instruments .ci-claim { flex: 1; }
+  #view-corrections-instruments .ci-chev {
+    font-family: "SF Mono", monospace;
+    color: var(--ci-dim);
+    flex: none;
+  }
+  #view-corrections-instruments .ci-corr-btn[aria-expanded="true"] .ci-chev { color: var(--ci-blue); }
+  #view-corrections-instruments .ci-corr-panel {
+    padding: 0.1rem 0.9rem 0.85rem 2.1rem;
+    border-top: 1px solid var(--ci-border);
+    font-size: 0.92rem;
+  }
+  #view-corrections-instruments .ci-corr-panel p { margin: 0.6rem 0 0; }
+  #view-corrections-instruments .ci-trap {
+    background: var(--ci-surface2);
+    border: 1px solid var(--ci-border);
+    border-left: 3px solid var(--ci-orange);
+    border-radius: 4px;
+    padding: 0.55rem 0.7rem;
+  }
+
+  /* instruments */
+  #view-corrections-instruments .ci-inst-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+    gap: 0.7rem;
+  }
+  #view-corrections-instruments .ci-inst {
+    background: var(--ci-surface);
+    border: 1px solid var(--ci-border);
+    border-radius: 6px;
+    padding: 0.85rem 0.95rem;
+    font-size: 0.9rem;
+  }
+  #view-corrections-instruments .ci-inst p { margin: 0.4rem 0 0; }
+  #view-corrections-instruments .ci-inst-wide { grid-column: 1 / -1; }
+  #view-corrections-instruments .ci-table-wrap { overflow-x: auto; margin-top: 0.7rem; }
+  #view-corrections-instruments .ci-table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 38rem;
+    font-size: 0.85rem;
+  }
+  #view-corrections-instruments .ci-table th,
+  #view-corrections-instruments .ci-table td {
+    border: 1px solid var(--ci-border);
+    padding: 0.45rem 0.6rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  #view-corrections-instruments .ci-table thead th {
+    background: var(--ci-surface2);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ci-dim);
+  }
+  #view-corrections-instruments .ci-row-bad td:first-child { border-left: 3px solid var(--ci-red); }
+  #view-corrections-instruments .ci-row-good td:first-child { border-left: 3px solid var(--ci-green); }
+  #view-corrections-instruments .ci-yes { color: var(--ci-orange); }
+
+  /* fail-open */
+  #view-corrections-instruments .ci-fo-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+  #view-corrections-instruments .ci-issue {
+    color: var(--ci-blue);
+    font-size: 0.82rem;
+    font-family: "SF Mono", monospace;
+  }
+  #view-corrections-instruments .ci-toggle {
+    background: var(--ci-surface2);
+    border: 1px solid var(--ci-border);
+    color: var(--ci-text);
+    border-radius: 6px;
+    padding: 0.4rem 0.75rem;
+    font: inherit;
+    font-size: 0.84rem;
+    cursor: pointer;
+  }
+  #view-corrections-instruments .ci-toggle:hover { border-color: var(--ci-blue); }
+  #view-corrections-instruments .ci-toggle:focus-visible {
+    outline: 2px solid var(--ci-blue);
+    outline-offset: 2px;
+  }
+  #view-corrections-instruments .ci-toggle[aria-pressed="true"] { border-color: var(--ci-blue); color: var(--ci-blue); }
+
+  #view-corrections-instruments .ci-probe {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    gap: 0.7rem;
+    margin: 0.3rem 0 0.5rem;
+  }
+  #view-corrections-instruments .ci-probe-col {
+    background: var(--ci-surface);
+    border: 1px solid var(--ci-border);
+    border-radius: 6px;
+    padding: 0.85rem 0.95rem;
+  }
+  #view-corrections-instruments .ci-probe-vacuous {
+    border-color: var(--ci-red);
+    box-shadow: inset 0 0 0 1px var(--ci-red);
+    background:
+      repeating-linear-gradient(
+        135deg,
+        transparent 0 10px,
+        rgba(248, 81, 73, 0.09) 10px 20px
+      ),
+      var(--ci-surface);
+  }
+  #view-corrections-instruments .ci-probe-real { border-color: var(--ci-green); }
+  #view-corrections-instruments .ci-probe-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+  #view-corrections-instruments .ci-probe-env {
+    font-family: "SF Mono", monospace;
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+  #view-corrections-instruments .ci-probe-tag {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.14rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  #view-corrections-instruments .ci-probe-tag-bad { color: var(--ci-red); }
+  #view-corrections-instruments .ci-probe-tag-good { color: var(--ci-green); }
+  #view-corrections-instruments .ci-probe-stats {
+    margin: 0 0 0.55rem;
+    display: grid;
+    gap: 0.15rem;
+    font-size: 0.86rem;
+  }
+  #view-corrections-instruments .ci-probe-stats > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px dotted var(--ci-border);
+    padding-bottom: 0.15rem;
+  }
+  #view-corrections-instruments .ci-probe-stats dt { color: var(--ci-dim); }
+  #view-corrections-instruments .ci-probe-stats dd {
+    margin: 0;
+    font-family: "SF Mono", monospace;
+    font-weight: 700;
+  }
+  #view-corrections-instruments .ci-zero { color: var(--ci-red); font-size: 1.05rem; }
+  #view-corrections-instruments .ci-eleven { color: var(--ci-green); font-size: 1.05rem; }
+  #view-corrections-instruments .ci-bar-track { fill: var(--ci-surface2); stroke: var(--ci-border); stroke-width: 1; }
+  #view-corrections-instruments .ci-bar-fill-bad { fill: var(--ci-red); }
+  #view-corrections-instruments .ci-bar-fill-good { fill: var(--ci-green); }
+  #view-corrections-instruments .ci-bar-fill-partial { fill: var(--ci-yellow); opacity: 0.55; }
+  #view-corrections-instruments .ci-bar-cap {
+    display: block;
+    font-size: 0.76rem;
+    color: var(--ci-dim);
+    font-family: "SF Mono", monospace;
+  }
+  #view-corrections-instruments .ci-probe-exit {
+    margin: 0.55rem 0 0;
+    font-family: "SF Mono", monospace;
+    font-size: 0.86rem;
+  }
+  #view-corrections-instruments .ci-verdict {
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid var(--ci-green);
+    color: var(--ci-green);
+    font-weight: 700;
+    margin-left: 0.4rem;
+  }
+  #view-corrections-instruments .ci-probe[data-revealed="true"] .ci-probe-vacuous .ci-verdict {
+    border-color: var(--ci-red);
+    color: var(--ci-red);
+  }
+  #view-corrections-instruments .ci-same {
+    background: var(--ci-surface2);
+    border: 1px solid var(--ci-red);
+    border-radius: 6px;
+    padding: 0.55rem 0.75rem;
+    margin: 0 0 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  #view-corrections-instruments .ci-cause p { margin: 0 0 0.85rem; font-size: 0.92rem; }
+  #view-corrections-instruments .ci-harm {
+    background: var(--ci-surface);
+    border: 1px solid var(--ci-red);
+    border-left: 4px solid var(--ci-red);
+    border-radius: 6px;
+    padding: 0.75rem 0.9rem;
+    margin-bottom: 1.1rem;
+  }
+  #view-corrections-instruments .ci-harm-label {
+    margin: 0;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ci-red);
+    font-weight: 700;
+  }
+  #view-corrections-instruments .ci-harm-quote {
+    margin: 0.45rem 0;
+    padding: 0.45rem 0.7rem;
+    border-left: 3px solid var(--ci-orange);
+    background: var(--ci-surface2);
+    font-family: "SF Mono", monospace;
+    font-size: 0.87rem;
+  }
+  #view-corrections-instruments .ci-harm p:last-child { margin: 0; font-size: 0.9rem; }
+  #view-corrections-instruments .ci-fo-second {
+    background: var(--ci-surface);
+    border: 1px solid var(--ci-border);
+    border-left: 3px solid var(--ci-yellow);
+    border-radius: 6px;
+    padding: 0.8rem 0.95rem;
+    font-size: 0.9rem;
+  }
+  #view-corrections-instruments .ci-fo-second p { margin: 0.4rem 0 0; }
+  #view-corrections-instruments .ci-harm-inline { color: var(--ci-red); font-weight: 600; }
+  #view-corrections-instruments .ci-lesson {
+    margin: 1.1rem 0 0;
+    padding: 0.75rem 0.9rem;
+    background: var(--ci-surface2);
+    border: 1px solid var(--ci-blue);
+    border-radius: 6px;
+    font-size: 0.96rem;
+  }
+
+  /* epic d */
+  #view-corrections-instruments .ci-epic {
+    background: var(--ci-surface);
+    border: 1px solid var(--ci-border);
+    border-radius: 6px;
+    padding: 0.85rem 0.95rem;
+  }
+  #view-corrections-instruments .ci-epic-track { fill: var(--ci-surface2); stroke: var(--ci-border); stroke-width: 1; }
+  #view-corrections-instruments .ci-epic-div { stroke: var(--ci-bg); stroke-width: 2; }
+  #view-corrections-instruments .ci-seg-partial { fill: var(--ci-yellow); }
+  #view-corrections-instruments .ci-seg-doc { fill: var(--ci-purple); opacity: 0.75; }
+  #view-corrections-instruments .ci-seg-absent { fill: var(--ci-border); }
+  #view-corrections-instruments .ci-legend {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    font-size: 0.83rem;
+    color: var(--ci-dim);
+  }
+  #view-corrections-instruments .ci-legend b { color: var(--ci-text); font-family: "SF Mono", monospace; }
+  #view-corrections-instruments .ci-key {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 2px;
+    margin-right: 0.3rem;
+    vertical-align: -1px;
+    border: 1px solid var(--ci-border);
+  }
+  #view-corrections-instruments .ci-key-adopted { background: var(--ci-green); opacity: 0.25; }
+  #view-corrections-instruments .ci-key-partial { background: var(--ci-yellow); }
+  #view-corrections-instruments .ci-key-doc { background: var(--ci-purple); }
+  #view-corrections-instruments .ci-key-absent { background: var(--ci-border); }
+
+  #view-corrections-instruments .ci-corr-panel,
+  #view-corrections-instruments .ci-probe-vacuous,
+  #view-corrections-instruments .ci-toggle {
+    transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #view-corrections-instruments * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+</style>
+<script data-view="corrections-instruments">
+  (function () {
+    var root = document.getElementById('view-corrections-instruments');
+    if (!root) return;
+
+    // Expandable evidence rows for the corrections list.
+    var buttons = root.querySelectorAll('.ci-corr-btn');
+    Array.prototype.forEach.call(buttons, function (btn) {
+      btn.addEventListener('click', function () {
+        var open = btn.getAttribute('aria-expanded') === 'true';
+        var panel = document.getElementById(btn.getAttribute('aria-controls'));
+        btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+        var chev = btn.querySelector('.ci-chev');
+        if (chev) chev.textContent = open ? '+' : '-';
+        if (panel) panel.hidden = open;
+      });
+    });
+
+    // Side-by-side probe reveal: makes the identical OK verdicts explicit.
+    var toggle = document.getElementById('ci-fo-toggle');
+    var probe = root.querySelector('.ci-probe');
+    if (toggle && probe) {
+      toggle.addEventListener('click', function () {
+        var on = toggle.getAttribute('aria-pressed') === 'true';
+        toggle.setAttribute('aria-pressed', on ? 'false' : 'true');
+        probe.setAttribute('data-revealed', on ? 'false' : 'true');
+        toggle.textContent = on
+          ? 'Show the paired probe side by side'
+          : 'Highlight the vacuous OK';
+      });
+    }
+  })();
+</script>
+
+  <footer class="sh-foot">
+    <p>
+      The full write-up for this session is <code class="sh-code">docs/conductor-ledger.md</code> (671 lines).
+      Every figure on this page came from that session and was verified there. Views are deep-linkable:
+      append <code class="sh-code">#cc-adoption</code>, <code class="sh-code">#prs-worktrees</code>, or
+      <code class="sh-code">#corrections-instruments</code> to the URL.
+    </p>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var tablist = document.querySelector('[role="tablist"]');
+    if (!tablist) return;
+    var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+    var panels = tabs.map(function (t) { return document.getElementById(t.getAttribute('aria-controls')); });
+
+    function keyOf(tab) { return tab.id.replace(/^tab-/, ''); }
+
+    function select(tab, focus) {
+      tabs.forEach(function (t, i) {
+        var on = t === tab;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.tabIndex = on ? 0 : -1;
+        var p = panels[i];
+        if (!p) return;
+        if (on) {
+          p.removeAttribute('hidden');
+          p.setAttribute('tabindex', '0');
+        } else {
+          p.setAttribute('hidden', '');
+          p.removeAttribute('tabindex');
+        }
+      });
+      if (focus) tab.focus();
+      var key = keyOf(tab);
+      if (location.hash.slice(1) !== key) {
+        history.replaceState(null, '', '#' + key);
+      }
+    }
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () { select(tab, false); });
+      tab.addEventListener('keydown', function (e) {
+        var i = tabs.indexOf(tab), next = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = tabs[(i + 1) % tabs.length];
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = tabs[(i - 1 + tabs.length) % tabs.length];
+        else if (e.key === 'Home') next = tabs[0];
+        else if (e.key === 'End') next = tabs[tabs.length - 1];
+        if (next) { e.preventDefault(); select(next, true); }
+      });
+    });
+
+    function fromHash() {
+      var key = location.hash.slice(1);
+      var match = tabs.filter(function (t) { return keyOf(t) === key; })[0];
+      select(match || tabs[0], false);
+    }
+    window.addEventListener('hashchange', fromHash);
+    fromHash();
+  })();
+</script>
+</body>
+</html>

@@ -132,6 +132,35 @@ describe("derived SKILL_FLOWS data", () => {
     }
   });
 
+  // An ordered lane renders with arrows, which asserts an execution sequence.
+  // Heading-derived lanes must therefore be ordered by the STEP NUMBER, not by
+  // where the heading happens to sit in the file. cover/SKILL.md declares
+  // Step -0.5 above Step -1, so file order rendered "-0.5 → -1 → 0" and the
+  // arrows claimed an order the numbering contradicts.
+  it("orders every arrowed lane by its step number, not by file position", () => {
+    const offenders: string[] = [];
+    for (const [slug, flow] of entries) {
+      if (flow.tier === "sections") continue; // unordered by design, no arrows
+      for (const lane of flow.lanes) {
+        const nums = lane.nodes.map((n) => {
+          const m = /-?[0-9]+(?:\.[0-9]+)?/.exec(n.num ?? "");
+          return m ? Number.parseFloat(m[0]) : null;
+        });
+        if (nums.length < 2 || nums.some((v) => v === null)) continue;
+        const sorted = [...(nums as number[])].sort((a, b) => a - b);
+        if (String(nums) !== String(sorted)) {
+          offenders.push(`${slug}:${lane.id} ${lane.nodes.map((n) => n.num).join(">")}`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it("puts cover's pre-flight in numeric order", () => {
+    const pre = SKILL_FLOWS["cover"]?.lanes.find((l) => l.id === "pre");
+    expect(pre?.nodes.map((n) => n.num)).toEqual(["STEP -1", "STEP -0.5", "STEP 0"]);
+  });
+
   it("parses assess's real phase table, not its handoff table", () => {
     const assess = SKILL_FLOWS["assess"];
     expect(assess?.tier).toBe("table");
