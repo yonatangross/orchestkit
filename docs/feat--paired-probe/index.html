@@ -61,7 +61,7 @@ exits <code>3</code> for it rather than reusing pass or fail.</p>
 
 <h2>Using it</h2>
 <pre>scripts/paired-probe.sh --name "retired model pin fails the gate" \
-  --present "printf 'model: claude-opus-4-1\n' &gt; wf.yml &amp;&amp; bash tests/ci/lint.sh" \
+  --present "printf 'model: claude-opus-4\n' &gt; wf.yml &amp;&amp; bash tests/ci/lint.sh" \
   --absent  "rm -f wf.yml &amp;&amp; bash tests/ci/lint.sh"
 
 scripts/paired-probe.sh --name "worktrees examined" \

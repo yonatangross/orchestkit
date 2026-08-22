@@ -45,7 +45,7 @@ Could-not-observe is a **third outcome**, never folded into either verdict.
 ```bash
 # Differential: stage the fault, then remove it. Both arms must differ.
 scripts/paired-probe.sh --name "retired model pin fails the gate" \
-  --present "printf 'model: claude-opus-4-1\n' > wf.yml && bash tests/ci/lint.sh" \
+  --present "printf 'model: claude-opus-4\n' > wf.yml && bash tests/ci/lint.sh" \
   --absent  "rm -f wf.yml && bash tests/ci/lint.sh"
 
 # Single-shot, when the fault cannot be staged (a live sweep):
