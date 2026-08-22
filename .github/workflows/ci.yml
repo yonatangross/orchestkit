@@ -264,7 +264,14 @@ jobs:
           # alternation, so a bare `\.github/` would only match a file literally
           # named ".github/" and every real workflow path would fall through to
           # "playground required".
-          INERT='^(README\.md|CHANGELOG\.md|CONTRIBUTING\.md|SECURITY\.md|CODE_OF_CONDUCT\.md|LICENSE|\.github/.*|vercel\.json|[^/]*\.toml)$'
+          # `docs/<type>--<slug>/` is the Lab itself. A diff confined to those
+          # dirs is Lab maintenance, not feature work that needs documenting,
+          # and requiring a playground for it is circular: the periodic prune
+          # (scripts/prune-playgrounds.sh) deletes 77 playground dirs and was
+          # then blocked for not adding a 78th, which would immediately become
+          # the next cycle's prune fodder. Feature PRs are unaffected because
+          # they also touch src/, docs/site/ or tests/, which are not inert.
+          INERT='^(README\.md|CHANGELOG\.md|CONTRIBUTING\.md|SECURITY\.md|CODE_OF_CONDUCT\.md|LICENSE|\.github/.*|vercel\.json|[^/]*\.toml|docs/[^/]*--[^/]*/.*)$'
 
           FILES=$(gh pr diff "$PR_NUMBER" --name-only 2>/dev/null || true)
           if [ -z "$FILES" ]; then

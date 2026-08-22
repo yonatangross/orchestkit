@@ -48,6 +48,12 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 		href: "/ask?query=what+is+orchestkit",
 	},
 	{
+		title: "CLI (npm)",
+		desc: "orchestkit, the official CLI: install, search, ask, read, mcp, doctor. Zero deps, Node >= 20. Run it with npx orchestkit or npx ork.",
+		href: "https://www.npmjs.com/package/orchestkit",
+		external: true,
+	},
+	{
 		title: "Python package (PyPI)",
 		desc: "orchestkit-hook-contract — typed hook I/O contract for building OrchestKit-compatible tooling in Python.",
 		href: "https://pypi.org/project/orchestkit-hook-contract/",
