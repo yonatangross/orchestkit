@@ -618,7 +618,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "294ca45e165f5478b5836584a9f08515145c94aeba112d99546914f1f7cebb73",
+    "sha256": "23582f9e713f7abd231a7f16680f5736d13ac06c38aa72b96776af32ec5167cc",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -3253,6 +3253,33 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "okr-workshop-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "paired-probe": {
+    "name": "paired-probe",
+    "description": "Refuse a verdict a probe did not earn. Runs a check where the fault IS present and where it is NOT, and blocks the answer when both arms print the same thing, because a check that cannot disagree with you has measured nothing. Also catches the zero-sample sweep that reads as \"clean\" and the swallowed error that reads as success. Use before reporting any status, audit, sweep, or \"nothing found\" result, and whenever a check surprises you by passing.",
+    "version": "1.0.0",
+    "sha256": "7e4f1bf0e69bc0fe12cec59b206157405bf752874716fe7a950df3d4c73fea91",
+    "author": "yonatangross",
+    "tags": [
+      "verification",
+      "debugging",
+      "quality-gates"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {
+      "scripts": [
+        "paired-probe.sh"
       ]
     },
     "plugins": [

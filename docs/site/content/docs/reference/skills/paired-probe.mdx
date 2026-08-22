@@ -1,0 +1,88 @@
+---
+title: "Paired Probe"
+description: "Refuse a verdict a probe did not earn. Runs a check where the fault IS present and where it is NOT, and blocks the answer when both arms print the same thing, because a check that cannot disagree with you has measured nothing. Also catches the zero-sample sweep that reads as \"clean\" and the swallowed error that reads as success. Use before reporting any status, audit, sweep, or \"nothing found\" result, and whenever a check surprises you by passing."
+---
+
+<span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
+
+```bash title="Invoke"
+/ork:paired-probe
+```
+
+<ContextualSkillSidebar slug="paired-probe" />
+
+> **Paired Probe** Refuse a verdict a probe did not earn. Runs a check where the fault IS present and where it is NOT, and blocks the answer when both arms print the same thing, because a check that cannot disagree with you has measured nothing. Also catches the zero-sample sweep that reads as "clean" and the swallowed error that reads as success.
+
+
+# paired-probe
+
+**A check that prints the same thing whether or not the fault is present has
+measured nothing.** It still returns an answer, that answer looks like evidence,
+and it gets acted on. This skill makes the blindness fail loudly instead.
+
+## When to reach for it
+
+Before reporting any of these, because all of them are verdicts:
+
+- "nothing found", "all clean", "no failures", "safe to delete"
+- a sweep, audit, or status roll-up over N items
+- a security or CI gate that just went green
+- any check that passed when you expected it to fail
+
+And immediately whenever a result *surprises* you by passing. Surprise is the
+cheapest available signal that the instrument, not the world, is what changed.
+
+## The three gates
+
+| Gate | Question | Failure it catches |
+|---|---|---|
+| **Differential** | What does this print when the fault is ABSENT? | A probe that answers identically either way |
+| **Non-empty** | How many items did it actually examine? | A sweep that measured zero and reported clean |
+| **Exit-aware** | Did the probe itself run? | A swallowed error printing success |
+
+Could-not-observe is a **third outcome**, never folded into either verdict.
+
+## Usage
+
+```bash
+# Differential: stage the fault, then remove it. Both arms must differ.
+scripts/paired-probe.sh --name "retired model pin fails the gate" \
+  --present "printf 'model: claude-opus-4-1\n' > wf.yml && bash tests/ci/lint.sh" \
+  --absent  "rm -f wf.yml && bash tests/ci/lint.sh"
+
+# Single-shot, when the fault cannot be staged (a live sweep):
+scripts/paired-probe.sh --name "worktrees examined" \
+  --measure "git worktree list --porcelain | awk '/^worktree /{print \$2}'" \
+  --min-count 1
+```
+
+Exit codes: `0` discriminates or met the count, `1` **BLIND**, `2` usage,
+`3` could-not-observe.
+
+## Why this exists
+
+Four probes from a single session, 2026-08-21, each confidently wrong and none
+failing loudly. Three were caught by other people rather than by the check:
+
+| The probe | What it asked | Why it lied |
+|---|---|---|
+| "is this branch pushed?" | the local ref cache | unfetched and never-pushed print identically |
+| "is the branch on origin?" | the remote branch list | a squash-merge DELETES the head branch, so landed work reads as lost |
+| "does this worktree hold unique work?" | `diff main HEAD` | symmetric, so a stale tree flags `main` against itself |
+| "any worktree at risk?" | a loop over a blocked temp file | the write failed, `\|\| true` swallowed it, the loop read zero items and printed "safe to prune" |
+
+Every one dies at gate 1 or 2 in seconds.
+
+## The rule that generalises
+
+Ask what the instrument **structurally cannot observe** before trusting its
+silence. A tool reports on the channel it queried, not on reality: the local
+cache instead of the remote, the whole file instead of the frontmatter, the
+proxy instead of the origin. When the answer is a zero or an empty set, that is
+exactly when to check the channel, because zero is what a broken instrument
+returns too.
+
+## Related Skills
+
+- `ork:verify` grades finished work; this grades the *check itself*.
+- `ork:quality-gates` for escalation once a real defect is confirmed.
