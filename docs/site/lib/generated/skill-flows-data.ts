@@ -1915,7 +1915,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "1",
             "label": "LOOSE",
-            "does": "sandbox.enabled, the 19-host exfil denylist, credential file and env denies, excludedCommands carve-outs for op / docker / ssh, no network allowlist",
+            "does": "sandbox.enabled, the 19-host exfil denylist, credential file and env denies, excludedCommands carve-outs for op / docker / ssh * (wildcard form — bare names match only the arg-less command), no network allowlist",
             "out": "first, on a working machine",
             "tag": null
           },

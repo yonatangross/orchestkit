@@ -12,26 +12,36 @@ isolation is the harness's job, not a plugin's. So most users never turn it on
 and don't know it exists. This check makes the posture visible.
 
 There is **no runtime API** for a hook to read sandbox state, so the only signal
-is `settings.local.json`. Treat a missing `sandbox.enabled` key as "off / unknown".
+is the settings files. Treat a missing `sandbox.enabled` key as "off / unknown".
+
+**Read all four scopes.** The real-world config usually lives in
+`~/.claude/settings.json` (user settings proper), not `settings.local.json` —
+a check that reads only the local files reports "off / unknown" against a machine
+where the sandbox is on (measured 2026-08-22: live config in user settings.json,
+Check 15 blind to it).
 
 ## The check
 
-Resolve `sandbox.enabled` across both scopes (project overrides user), and note
-whether the two highest-value hardening keys are set:
+Resolve `sandbox.enabled` across the scopes (project overrides user; within a
+scope, `settings.local.json` overrides `settings.json`), and note whether the two
+highest-value hardening keys are set:
 
 ```bash
-proj=".claude/settings.local.json"
-user="$HOME/.claude/settings.local.json"
 read_key() { [ -f "$1" ] && jq -r "$2 // empty" "$1" 2>/dev/null; }
+# precedence: project local > project > user local > user
+resolve() {
+  local v
+  for f in ".claude/settings.local.json" ".claude/settings.json" \
+           "$HOME/.claude/settings.local.json" "$HOME/.claude/settings.json"; do
+    v="$(read_key "$f" "$1")"; [ -n "$v" ] && { echo "$v"; return; }
+  done
+}
+proj=".claude/settings.local.json"
+user="$HOME/.claude/settings.json"
 
-enabled="$(read_key "$proj" '.sandbox.enabled')"
-[ -z "$enabled" ] && enabled="$(read_key "$user" '.sandbox.enabled')"
-
-deny_read="$(read_key "$proj" '.sandbox.filesystem.denyRead | length')"
-[ -z "$deny_read" ] && deny_read="$(read_key "$user" '.sandbox.filesystem.denyRead | length')"
-
-net_allow="$(read_key "$proj" '.sandbox.network.allowedDomains | length')"
-[ -z "$net_allow" ] && net_allow="$(read_key "$user" '.sandbox.network.allowedDomains | length')"
+enabled="$(resolve '.sandbox.enabled')"
+deny_read="$(resolve '.sandbox.filesystem.denyRead | length')"
+net_allow="$(resolve '.sandbox.network.allowedDomains | length')"
 
 case "$enabled" in
   true)  echo "✅ sandbox: ON   (denyRead entries: ${deny_read:-0}, network allowlist: ${net_allow:-0})" ;;
