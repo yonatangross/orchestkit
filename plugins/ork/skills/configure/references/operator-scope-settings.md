@@ -66,7 +66,7 @@ Merge this into `~/.claude/settings.json` at the top level.
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
-    "excludedCommands": ["op", "docker", "ssh"],
+    "excludedCommands": ["op *", "docker *", "ssh *"],
     "network": {
       "strictAllowlist": false,
       "deniedDomains": [
@@ -149,6 +149,41 @@ day yet. That is what stage 1 is for.
    independent of `strictAllowlist`.
 4. `op`, `docker` and `ssh` should behave exactly as they did before. If they do not,
    the carve-out is not taking effect and that is worth reporting before going further.
+
+### Entries are patterns, not names (2026-08-22)
+
+Before any of the forced-sandbox analysis below applies, there is a plainer way for
+the carve-out to be dead: **`excludedCommands` entries are patterns, and a bare name
+matches only the arg-less command.** The official troubleshooting docs' own example
+is `docker *`. A list of `["op", "docker", "ssh"]` exempts `docker` typed alone and
+nothing else — `docker ps`, `ssh -T git@github.com`, `op whoami` never match.
+Measured 2026-08-22 on CC 2.1.239: a bare-name list exempted zero real invocations
+for a year, hidden because `gh` in the same list *appeared* to work — for the
+unrelated reason that `enableWeakerNetworkIsolation` + trustd mach-lookups had
+fixed it inside the sandbox. When an allowlist looks dead, check the match syntax
+before the mechanism. The stage-1 JSON above uses the wildcard form.
+
+### Three keys this reference previously missed (2026-08-22, verified live)
+
+- **`sandbox.network.allowUnixSockets`** (macOS): the ONLY knob that permits
+  connect() to a unix socket. `filesystem.allowWrite` on the socket's directory does
+  not do it — measured EPERM both ways against `docker.sock` and a custom daemon
+  socket. Because this is network-layer, it keeps working even in a forced sandbox
+  where `excludedCommands` is dead config — making it the load-bearing fix for
+  socket-backed CLIs on machines that force sandboxing.
+- **`sandbox.enableWeakerNetworkIsolation`**: documented fix for Go-based CLIs
+  (`gh`, `gcloud`, `terraform`) failing TLS with `x509 OSStatus -26276` under
+  Seatbelt. Trade-off: narrow exfil vector through trustd.
+- **`sandbox.network.allowMachLookup`**: pair `["com.apple.trustd*",
+  "com.apple.SecurityServer"]` with the above. Do NOT add mDNS/dnssd names hoping to
+  fix DNS — sandbox networking is proxy-based: proxy-aware tools (curl, gh,
+  git-https) resolve at the proxy, and `getaddrinfo` inside the sandbox has no DNS
+  path at all. That is why ssh dies with "could not resolve hostname" while curl
+  returns 200. The documented remedy for proxy-incompatible tools is exclusion
+  (`ssh *`), which a forced sandbox ignores — there, ssh is simply unavailable.
+
+Also verified: `filesystem` arrays hot-reload per command (documented and measured);
+network keys are not documented as hot-reloading — verify empirically per change.
 
 ## When the carve-out does nothing
 
