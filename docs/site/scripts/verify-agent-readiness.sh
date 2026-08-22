@@ -34,8 +34,17 @@ check_header() { # path header label [accept]
   fi
 }
 
+# NOTE: the body is captured into a variable BEFORE grepping, deliberately.
+# The obvious `curl ... | grep -q` is wrong under `set -o pipefail`: grep -q
+# exits on the first match, curl then dies of SIGPIPE with status 141, and
+# pipefail reports the whole pipeline as failed. The result is a probe that
+# passes on small bodies and reports a false FAIL on large ones purely because
+# curl was still streaming. It cost a live investigation on /openapi.json
+# (42 kB), where the pattern was demonstrably present.
 check_body() { # path grep_pattern label [accept]
-  if curl -s ${4:+-H "Accept: $4"} "$ORIGIN$1" | grep -qi -- "$2"; then
+  local body
+  body=$(curl -s ${4:+-H "Accept: $4"} "$ORIGIN$1")
+  if printf '%s' "$body" | grep -qi -- "$2"; then
     pass "$3"
   else
     fail "$3: '$2' not found in $1"
