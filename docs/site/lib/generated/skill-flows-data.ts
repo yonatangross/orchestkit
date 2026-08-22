@@ -5062,6 +5062,52 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
       }
     ]
   },
+  "paired-probe": {
+    "tier": "sections",
+    "lanes": [
+      {
+        "id": "map",
+        "label": "What it covers",
+        "nodes": [
+          {
+            "num": "",
+            "label": "When to reach for it",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "The three gates",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Usage",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Why this exists",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "The rule that generalises",
+            "does": "",
+            "out": null,
+            "tag": null
+          }
+        ]
+      }
+    ]
+  },
   "performance": {
     "tier": "sections",
     "lanes": [

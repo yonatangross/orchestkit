@@ -138,7 +138,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code — 105 skills, 36 agents, 171 hooks working together."
+    "description": "The complete AI development toolkit for Claude Code — 106 skills, 36 agents, 171 hooks working together."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -683,7 +683,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference",
     "title": "Reference",
-    "description": "Complete reference for all 105 skills, 36 agents, and 171 hooks."
+    "description": "Complete reference for all 106 skills, 36 agents, and 171 hooks."
   },
   {
     "url": "/docs/reference/skills/accessibility",
@@ -958,7 +958,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills",
     "title": "Skills Reference",
-    "description": "Complete reference for all 105 OrchestKit skills."
+    "description": "Complete reference for all 106 OrchestKit skills."
   },
   {
     "url": "/docs/reference/skills/interaction-patterns",
@@ -1029,6 +1029,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference/skills/okr-design",
     "title": "Okr Design",
     "description": "OKR trees, KPI dashboards, North Star Metric, leading/lagging indicators, and experiment design. Use when setting team goals, defining success metrics, building measurement frameworks, or designing A/B experiment guardrails."
+  },
+  {
+    "url": "/docs/reference/skills/paired-probe",
+    "title": "Paired Probe",
+    "description": "Refuse a verdict a probe did not earn. Runs a check where the fault IS present and where it is NOT, and blocks the answer when both arms print the same thing, because a check that cannot disagree with you has measured nothing. Also catches the zero-sample sweep that reads as \\\"clean\\\" and the swallowed error that reads as success. Use before reporting any status, audit, sweep, or \\\"nothing found\\\" result, and whenever a check surprises you by passing."
   },
   {
     "url": "/docs/reference/skills/performance",
@@ -1293,7 +1298,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/dependency-graph",
     "title": "Skill Dependency Graph",
-    "description": "Interactive visualization of how OrchestKit's 105 skills connect through dependency relationships."
+    "description": "Interactive visualization of how OrchestKit's 106 skills connect through dependency relationships."
   },
   {
     "url": "/docs/skills",
@@ -1308,7 +1313,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/reference-skills",
     "title": "Reference Skills",
-    "description": "The 70 user-invocable:false skills auto-injected into agent context — the knowledge library behind OrchestKit agents."
+    "description": "The 71 user-invocable:false skills auto-injected into agent context — the knowledge library behind OrchestKit agents."
   },
   {
     "url": "/docs/skills/skill-composition",
