@@ -5,8 +5,8 @@
   "homepage": "https://orchestkit.yonyon.ai/developers",
   "type": "module",
   "bin": {
-    "orchestkit": "./dist/cli.js",
-    "ork": "./dist/cli.js"
+    "orchestkit": "dist/cli.js",
+    "ork": "dist/cli.js"
   },
   "exports": {
     ".": {
