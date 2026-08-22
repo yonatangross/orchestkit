@@ -333,6 +333,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.48](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.47...v10.0.0-alpha.48)** · 2026-08-22
+
+- **cc-watch:** the adoption board can no longer lose history (#3662)
+- **sandbox:** pattern excludedCommands + allowUnixSockets (#3659)
+
 **[v10.0.0-alpha.47](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.46...v10.0.0-alpha.47)** · 2026-08-22
 
 - **docs-site:** claim the CLI now that it is actually published (#3658)
@@ -378,14 +383,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.41](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.40...v10.0.0-alpha.41)** · 2026-08-19
 
 - **ork-codex:** ship context7 as a plugin-native MCP server (#3549)
-
-**[v10.0.0-alpha.40](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.39...v10.0.0-alpha.40)** · 2026-08-18
-
-- **agents:** grant context7 deliberately, per agent (#3547)
-- **ci:** bound and skip system dep installs (#3550), closes [#3545](https://github.com/yonatangross/orchestkit/issues/3545)
-- **tests:** read the MCP gate's server list from a tracked manifest (#3546)
-- **configure:** add staged operator-scope settings (#3553)
-- **mcp:** document context7 as a prerequisite, Pro tier, hosted transport (#3548)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
