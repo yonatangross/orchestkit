@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.46",
+    "date": "2026-08-22",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**docs-site:** close four agent-readiness gaps, add a CLI ([#3654](https://github.com/yonatangross/orchestkit/issues/3654)) ([8ac263e](https://github.com/yonatangross/orchestkit/commit/8ac263e06f7ffade0520d8c32d0409b00acbf4c0))",
+          "**skills:** Skills API publish rail ([#3628](https://github.com/yonatangross/orchestkit/issues/3628)) ([#3649](https://github.com/yonatangross/orchestkit/issues/3649)) ([bfb83a8](https://github.com/yonatangross/orchestkit/commit/bfb83a895ee57195670f039cfb2a67b0ca1a6d9a))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.45",
     "date": "2026-08-21",
     "compareUrl": "",

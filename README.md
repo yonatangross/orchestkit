@@ -333,6 +333,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.46](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.45...v10.0.0-alpha.46)** · 2026-08-22
+
+- **docs-site:** close four agent-readiness gaps, add a CLI (#3654)
+- **skills:** Skills API publish rail (#3628) (#3649)
+
 **[v10.0.0-alpha.45](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.44...v10.0.0-alpha.45)** · 2026-08-21
 
 - **announce:** label-gated alpha announcements plus RSS feed (#3638) (#3639)
@@ -380,15 +385,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **plugin:** move shared fragments out of component trees (#3543)
 - **deps-dev:** bump js-yaml (#3538)
-
-**[v10.0.0-alpha.38](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.37...v10.0.0-alpha.38)** · 2026-08-18
-
-- **workflows:** default fan-out stages to specialist agentType (#3535)
-- **agents:** grant the MCP tools 27 agents declare (#3532)
-- **hooks:** close agent-browser URL-coverage hole in safety hook (#3531)
-- **hooks:** reclaim the plugin cache the hook never touched (#3523)
-- **hooks:** stop test fixtures contaminating live spawn telemetry (#3533)
-- …and 6 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
