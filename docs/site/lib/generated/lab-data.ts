@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "watcher-first-harvest",
+    "title": "Two defects the watcher found on its first run",
+    "description": "The platform release-notes watcher's first live harvest caught a Sonnet 5 price that made every cost report read 50 percent high, and a model-ID gate that waved through a model the API had already retired. Interactive cost-delta slider and a pin checker showing the new RETIRED tier.",
+    "tags": [
+      "ci",
+      "pricing",
+      "watcher"
+    ],
+    "date": "2026-08-21",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 9
+  },
+  {
     "slug": "release-announce-flow",
     "title": "A working printer with an empty queue",
     "description": "The release-announce rail was armed for two months and never fired once: it skips every prerelease and the repo has shipped only alphas. Interactive today-vs-target release flow, the #1739 human gate, outward artifact mockups (an @yonyon2ai post, the 06:00 approval card, the new RSS entry), and the five operator decisions as live toggles.",
@@ -69,6 +83,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "featured": false,
     "caseStudy": null,
     "sizeKb": 10
+  },
+  {
+    "slug": "skills-api-publish-rail",
+    "title": "Skills API Publish Rail: which of 105 skills actually pass",
+    "description": "scripts/publish-skills.mjs packages OrchestKit's built skills for the Claude Platform Skills API. Run the same name/description validation the script runs, against real and synthetic skills, and see the exact dry-run payload it would compose.",
+    "tags": [
+      "skills-api",
+      "publish",
+      "explainer"
+    ],
+    "date": "2026-08-21",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 14
   },
   {
     "slug": "mutation-gate-fail-closed-3583",

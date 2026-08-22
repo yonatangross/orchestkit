@@ -17,6 +17,65 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.47",
+    "date": "2026-08-22",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**docs-site:** claim the CLI now that it is actually published ([#3658](https://github.com/yonatangross/orchestkit/issues/3658)) ([f0713f4](https://github.com/yonatangross/orchestkit/commit/f0713f47d6291adc5448daa790a7b78aa7c046f1))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** playground gate blocked the playground prune ([#3661](https://github.com/yonatangross/orchestkit/issues/3661)) ([ed99c87](https://github.com/yonatangross/orchestkit/commit/ed99c87b71879190828cbe64fcf872a1c9707b80))",
+          "**cli:** npm strips a bin value that starts with ./ ([#3656](https://github.com/yonatangross/orchestkit/issues/3656)) ([028ea3d](https://github.com/yonatangross/orchestkit/commit/028ea3d5fb9e5e7e458155b117495ecbbdf49a9e))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-alpha.46",
+    "date": "2026-08-22",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**docs-site:** close four agent-readiness gaps, add a CLI ([#3654](https://github.com/yonatangross/orchestkit/issues/3654)) ([8ac263e](https://github.com/yonatangross/orchestkit/commit/8ac263e06f7ffade0520d8c32d0409b00acbf4c0))",
+          "**skills:** Skills API publish rail ([#3628](https://github.com/yonatangross/orchestkit/issues/3628)) ([#3649](https://github.com/yonatangross/orchestkit/issues/3649)) ([bfb83a8](https://github.com/yonatangross/orchestkit/commit/bfb83a895ee57195670f039cfb2a67b0ca1a6d9a))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-alpha.45",
+    "date": "2026-08-21",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**announce:** label-gated alpha announcements plus RSS feed ([#3638](https://github.com/yonatangross/orchestkit/issues/3638)) ([#3639](https://github.com/yonatangross/orchestkit/issues/3639)) ([1e28cdf](https://github.com/yonatangross/orchestkit/commit/1e28cdf0024ba4b4ace940e5df1df1cb92f5aa13))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**pricing:** Sonnet 5 is $2/$10, and retire retired model IDs ([#3647](https://github.com/yonatangross/orchestkit/issues/3647)) ([d16f33a](https://github.com/yonatangross/orchestkit/commit/d16f33affa785bfe49b8eb74f379ab33af70ce3f))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc:** snapshot 2.1.238, hand-triage, advance latest_known ([#3636](https://github.com/yonatangross/orchestkit/issues/3636)) ([5a21e79](https://github.com/yonatangross/orchestkit/commit/5a21e79c49ef5894e00d5d910133b65c8e3123b6))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.44",
     "date": "2026-08-21",
     "compareUrl": "",

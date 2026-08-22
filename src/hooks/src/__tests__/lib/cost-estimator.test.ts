@@ -101,12 +101,21 @@ describe('cost-estimator vocab canaries (#2338)', () => {
       sonnet: 3.0,
       haiku: 1.0,
     };
+    // A family tier is the default expectation, not a law: Anthropic can price
+    // one member off its family line. claude-sonnet-5 is $2/$10 while
+    // claude-sonnet-4-6 stays $3/$15 (2026-08-10 release notes made the launch
+    // rate permanent instead of raising it). Listing the exception explicitly
+    // keeps this canary strict: every fullId must still match a number someone
+    // wrote down on purpose, so an unpriced model taking the fallback is still
+    // caught. Do not relax the family tier to absorb a divergence.
+    const OFF_TIER: Record<string, number> = {
+      'claude-sonnet-5': 2.0,
+    };
     for (const id of modelsVocab.fullIds) {
       const family = Object.keys(TIER).find(f => id.includes(f));
       expect(family, `${id} matches no known family; add it to TIER`).toBeDefined();
-      expect(getPricing(id).input_per_mtok, `${id} priced off-tier`).toBe(
-        TIER[family as string],
-      );
+      const expected = OFF_TIER[id] ?? TIER[family as string];
+      expect(getPricing(id).input_per_mtok, `${id} priced off-tier`).toBe(expected);
     }
   });
 
@@ -114,8 +123,15 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     // This is the behavior that hid the missing fable entry. Pinned so any
     // future change (e.g. throw / log) is a conscious decision, and so the
     // fallback can never again be confused with a real pricing entry.
+    //
+    // getPricing() falls back to config.models['claude-sonnet-5'], so this pin
+    // MOVES whenever the current sonnet is repriced; it went $3/$15 -> $2/$10
+    // on 2026-08-21. That is the documented intent ("default to sonnet
+    // pricing"), not drift. Worth knowing the consequence: a model missing from
+    // the table now undercounts against a cheaper baseline, so the canary above
+    // is what keeps a real model from ever landing here.
     const p = getPricing('zz-totally-unknown-model-9');
-    expect(p.input_per_mtok).toBe(3.0);
-    expect(p.output_per_mtok).toBe(15.0);
+    expect(p.input_per_mtok).toBe(2.0);
+    expect(p.output_per_mtok).toBe(10.0);
   });
 });

@@ -1,15 +1,15 @@
 {
   "name": "orchestkit",
-  "version": "10.0.0-alpha.44",
+  "version": "10.0.0-alpha.47",
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "build": "bash scripts/build-plugins.sh && npm run --workspace=@orchestkit/hook-contract build --if-present",
+    "build": "bash scripts/build-plugins.sh && npm run --workspace=@orchestkit/hook-contract build --if-present && npm run --workspace=orchestkit build --if-present",
     "prebuild": "bash scripts/check-install.sh && echo '🔨 Building plugins from source...' && bash scripts/sync-shared-scripts.sh",
     "postbuild": "echo '✅ Build complete! Plugins assembled in plugins/ directory'",
-    "test:packages": "npm run --workspace=@orchestkit/hook-contract test --if-present",
+    "test:packages": "npm run --workspace=@orchestkit/hook-contract test --if-present && npm run --workspace=orchestkit test --if-present",
     "test:parity": "python3 scripts/parity-check.py",
     "generate:docs-data": "node scripts/generate-docs-data.js",
     "test": "bash tests/run-all-tests.sh",
@@ -45,7 +45,8 @@
     "prepare": "git config --local core.hooksPath bin/git-hooks 2>/dev/null || true",
     "verify:cc-keys": "node scripts/derive-cc-output-keys.mjs --check",
     "verify:cc-commands": "bash scripts/probe-command-discovery.sh",
-    "verify:cc-plugin-validate": "claude plugin validate .claude-plugin/marketplace.json --strict"
+    "verify:cc-plugin-validate": "claude plugin validate .claude-plugin/marketplace.json --strict",
+    "publish:skills": "node scripts/publish-skills.mjs"
   },
   "repository": {
     "type": "git",

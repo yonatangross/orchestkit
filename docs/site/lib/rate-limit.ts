@@ -60,3 +60,53 @@ export function rateLimitHeaders(result: RateLimitResult): Record<string, string
 		"X-RateLimit-Reset": String(result.resetSeconds),
 	};
 }
+
+// Routes that call checkRateLimit() themselves inside their handler. Middleware
+// must NOT also count these, or every request would be counted twice and the
+// effective ceiling would silently halve. Middleware covers everything else,
+// which is what makes the RateLimit-* headers observable on the prerendered
+// agent surfaces (/openapi.json, /llms.txt, /.well-known/*, /api/health), where
+// a `revalidate = false` handler runs at build time and can never emit a
+// per-request header.
+//
+// Kept honest by __tests__/rate-limit-coverage.test.ts, which greps app/ for
+// checkRateLimit callers and fails if this list drifts from the source tree.
+export const SELF_LIMITED_ROUTES: readonly string[] = [
+	"/api/ask",
+	"/api/jobs",
+	"/api/md/batch",
+	"/api/search",
+];
+
+// Paths middleware must never rate-limit or decorate: our own first-party
+// analytics sink and the PostHog same-origin proxy (both are browser traffic,
+// not API traffic), and Next's build assets.
+const UNMETERED_PREFIXES: readonly string[] = [
+	"/_next",
+	"/ingest",
+	"/api/analytics",
+];
+
+/**
+ * Normalize a request path to the route that owns its rate-limit counter, so
+ * the versioned alias and the bare path share one window: `/api/v1/search` and
+ * `/api/search` are the same endpoint, and `/ask` rewrites to `/api/ask`.
+ */
+export function canonicalRoute(pathname: string): string {
+	if (pathname === "/ask") return "/api/ask";
+	if (pathname === "/mcp") return "/api/mcp";
+	if (pathname.startsWith("/api/v1/")) return `/api/${pathname.slice("/api/v1/".length)}`;
+	return pathname;
+}
+
+/** Whether middleware owns the rate-limit counter + headers for this path. */
+export function middlewareShouldMeter(pathname: string): boolean {
+	for (const prefix of UNMETERED_PREFIXES) {
+		if (pathname === prefix || pathname.startsWith(`${prefix}/`)) return false;
+	}
+	const route = canonicalRoute(pathname);
+	for (const self of SELF_LIMITED_ROUTES) {
+		if (route === self || route.startsWith(`${self}/`)) return false;
+	}
+	return true;
+}

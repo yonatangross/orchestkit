@@ -225,7 +225,7 @@ export function techArticleNode(args: {
 
 export type Faq = { question: string; answer: string };
 
-export function faqPageNode(faqs: Faq[]): JsonLdNode {
+export function faqPageNode(faqs: readonly Faq[]): JsonLdNode {
 	return {
 		"@type": "FAQPage",
 		mainEntity: faqs.map((f) => ({

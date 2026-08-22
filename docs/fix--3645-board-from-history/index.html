@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A history built from a to-do list</title>
+<style>
+ :root{--bg:#0b0d10;--panel:#14181d;--line:#242b33;--fg:#e6edf3;--dim:#8b98a5;
+       --ok:#3fb950;--bad:#f85149;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+ main{max-width:840px;margin:0 auto;padding:32px 20px 80px}
+ h1{font-size:24px;margin:0 0 6px}
+ h2{font-size:17px;margin:30px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+ p.lead{color:var(--dim);margin:0 0 20px}
+ .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+ .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+ button{background:#0b0d10;color:var(--fg);border:1px solid var(--line);border-radius:7px;
+        padding:8px 12px;font:12.5px var(--mono);cursor:pointer}
+ button.sel{border-color:var(--ok);color:var(--ok)}
+ .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+ @media(max-width:720px){.cols{grid-template-columns:1fr}}
+ .card{border:1px solid var(--line);border-radius:9px;padding:12px;background:#0b0d10}
+ .card h3{margin:0 0 8px;font:11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+ .bars{font:12px/1.35 var(--mono)}
+ .verdict{margin-top:10px;font:13px var(--mono);font-weight:700}
+ .ok{color:var(--ok)} .bad{color:var(--bad)}
+ table{border-collapse:collapse;width:100%;margin-top:8px;font-size:13.5px}
+ th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line)}
+ th{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+ td.m{font:12.5px var(--mono)}
+ code{font:12.5px var(--mono);background:#0b0d10;padding:1px 5px;border-radius:4px}
+ footer{margin-top:36px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+</style></head><body><main>
+ <h1>A published history built from a to-do list</h1>
+ <p class="lead">
+   The CC-adoption board is public history. It was generated from a work queue that a
+   nightly job deliberately empties. Drag through the nights to watch the history
+   follow the queue down, then switch to the merge and watch it hold.
+ </p>
+
+ <div class="panel">
+   <div class="row" id="tabs"></div>
+   <div class="cols">
+     <div class="card"><h3>the queue (pruned nightly)</h3><div class="bars" id="q"></div></div>
+     <div class="card"><h3>the published board</h3><div class="bars" id="b"></div></div>
+   </div>
+   <div class="verdict" id="v"></div>
+ </div>
+
+ <h2>Measured, not assumed</h2>
+ <table>
+   <tr><th>Source</th><th>Entries on 2026-08-21</th></tr>
+   <tr><td class="m">shared/cc-adoption-gaps.json on main</td><td class="m">18</td></tr>
+   <tr><td class="m">same file at the nightly PR head</td><td class="m bad">2</td></tr>
+   <tr><td class="m">shared/cc-snapshots/ (append-only)</td><td class="m ok">372 files</td></tr>
+ </table>
+ <p>
+   Regenerating at that head would have published a 2-wave board and dropped 16 waves.
+   It also left the nightly PR permanently red, because the drift gate rebuilds and
+   diffs, which is what blocked #3644.
+ </p>
+
+ <h2>Why not read the append-only side directly</h2>
+ <p>
+   That was the issue's first suggestion and it is not implementable here.
+   <code>shared/cc-snapshots/*.md</code> is raw CHANGELOG markdown with no
+   <code>gap_score</code> and no <code>affected_skills</code>; those come from the
+   analysis step that writes the queue. So the board keeps the queue as its input and
+   merges instead of replacing, which reaches the same guarantee: a version can be
+   added or corrected, never dropped.
+ </p>
+
+ <h2>The bug inside the fix</h2>
+ <p>
+   The first version of the merge read the published board with
+   <code>indexOf("[")</code>, which matched the bracket in the type annotation
+   <code>AdoptionWave[]</code> rather than the array. A <code>catch</code> swallowed
+   the parse error and returned "no published waves", so it silently did the exact
+   destructive thing it was written to prevent while printing a plausible
+   <code>0 carried forward</code>. The fallback is now loud: anything but a genuinely
+   absent file throws rather than republishing a truncated board.
+ </p>
+
+ <footer>
+   Invariant under test in <code>cc-adoption-board-merge.test.ts</code>: merging can add
+   a version and can update a version, but can never drop one.
+ </footer>
+</main>
+<script>
+const NIGHTS = [
+  {n:'night 0', q:18, old:18, neu:18},
+  {n:'night 1', q:9,  old:9,  neu:18},
+  {n:'night 2', q:2,  old:2,  neu:18},
+  {n:'night 3', q:1,  old:1,  neu:19},
+];
+let i = 0;
+const bar = (v,max,ch) => {
+  const w = Math.max(1, Math.round((v/max)*26));
+  return `${String(v).padStart(3)}  ${ch.repeat(w)}`;
+};
+let merged = true;
+function render(){
+  const t = document.getElementById('tabs');
+  t.innerHTML = NIGHTS.map((x,k)=>`<button data-k="${k}" class="${k===i?'sel':''}">${x.n}</button>`).join('')
+    + `<button id="mode" style="margin-left:12px">${merged?'merge (new)':'replace (old)'}</button>`;
+  t.querySelectorAll('button[data-k]').forEach(b=>b.onclick=()=>{i=+b.dataset.k;render();});
+  document.getElementById('mode').onclick=()=>{merged=!merged;render();};
+
+  const cur = NIGHTS[i];
+  const shown = merged ? cur.neu : cur.old;
+  document.getElementById('q').textContent = bar(cur.q, 19, '▇');
+  document.getElementById('b').textContent = bar(shown, 19, '▇');
+  const lost = 18 - shown;
+  const v = document.getElementById('v');
+  if (merged) {
+    v.textContent = shown >= 18 ? 'history intact  ✅' : 'history intact  ✅';
+    v.className = 'verdict ok';
+  } else {
+    v.textContent = lost > 0 ? `${lost} wave(s) of history deleted  ❌` : 'history intact';
+    v.className = 'verdict ' + (lost > 0 ? 'bad' : 'ok');
+  }
+}
+render();
+</script></body></html>

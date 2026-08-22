@@ -5,6 +5,18 @@
 // app/api/openapi/route.ts. Kept beside `paths.ts` so spec and implementation
 // stay reviewable together.
 
+// RFC 8594 deprecation signalling, declared as real response headers rather than
+// only as prose in info.description. A scanner looking for a deprecation policy
+// reads components/headers and the per-response `headers` map; prose in a
+// description is not machine-detectable, which is why the audit reported "no
+// deprecation or sunset policy detected" while the policy existed. Nothing is
+// deprecated today, these declare the mechanism and the contract.
+export const DEPRECATION_HEADER_REFS = {
+	Deprecation: { $ref: "#/components/headers/Deprecation" },
+	Sunset: { $ref: "#/components/headers/Sunset" },
+	Link: { $ref: "#/components/headers/Link" },
+} as const;
+
 export const RATE_LIMIT_HEADER_REFS = {
 	"RateLimit-Limit": { $ref: "#/components/headers/RateLimit-Limit" },
 	"RateLimit-Remaining": { $ref: "#/components/headers/RateLimit-Remaining" },
@@ -55,6 +67,26 @@ export const OPENAPI_COMPONENTS = {
 		"RateLimit-Policy": {
 			description: 'Quota policy, e.g. "120;w=60" (120 requests per 60-second window).',
 			schema: { type: "string" },
+		},
+		Deprecation: {
+			description:
+				"RFC 8594. Present only once an endpoint has been deprecated; an IMF-fixdate stating when the deprecation was announced. Absent on every endpoint today. See /api-policy.",
+			required: false,
+			schema: { type: "string", format: "http-date" },
+			example: "Thu, 01 Jan 2026 00:00:00 GMT",
+		},
+		Sunset: {
+			description:
+				"RFC 8594. Present only on a deprecated endpoint; an IMF-fixdate after which it may stop responding, guaranteed to be at least 6 months after the Deprecation date. After sunset the endpoint returns 410 Gone with an RFC 9457 body linking the replacement. See /api-policy.",
+			required: false,
+			schema: { type: "string", format: "http-date" },
+			example: "Wed, 01 Jul 2026 00:00:00 GMT",
+		},
+		Link: {
+			description:
+				'RFC 8288. Always advertises the versioning/deprecation policy as `</api-policy.md>; rel="deprecation"`; a deprecated endpoint additionally links its migration notes with the same relation.',
+			schema: { type: "string" },
+			example: '</api-policy.md>; rel="deprecation"',
 		},
 	},
 	schemas: {
@@ -201,6 +233,7 @@ export const OPENAPI_COMPONENTS = {
 					schema: { type: "string" },
 				},
 				...RATE_LIMIT_HEADER_REFS,
+				...DEPRECATION_HEADER_REFS,
 			},
 			content: {
 				"application/json": {
@@ -216,7 +249,11 @@ export const OPENAPI_COMPONENTS = {
 		},
 		Problem: {
 			description:
-				"Error using the RFC 9457 Problem Details shape, served as application/json.",
+				"Error using the RFC 9457 Problem Details shape, served as application/json. A 404 body additionally carries `links` and `markdown` extension members (RFC 9457 §3.2) naming where to look next.",
+			headers: {
+				...RATE_LIMIT_HEADER_REFS,
+				...DEPRECATION_HEADER_REFS,
+			},
 			content: {
 				"application/json": {
 					schema: { $ref: "#/components/schemas/Problem" },
@@ -232,6 +269,7 @@ export const OPENAPI_COMPONENTS = {
 					schema: { type: "integer" },
 				},
 				...RATE_LIMIT_HEADER_REFS,
+				...DEPRECATION_HEADER_REFS,
 			},
 			content: {
 				"application/json": {

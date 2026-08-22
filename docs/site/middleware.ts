@@ -2,7 +2,11 @@
 // Created: 2026-06-05
 
 import { type NextRequest, NextResponse } from "next/server";
-import { prefersJsonError, shouldJsonError } from "@/lib/agent-404";
+import {
+	prefersJsonError,
+	prefersMarkdownError,
+	shouldJsonError,
+} from "@/lib/agent-404";
 import {
 	acceptFamily,
 	classifyAgentSurface,
@@ -10,7 +14,15 @@ import {
 } from "@/lib/agent-surface";
 import { reportServerEvent } from "@/lib/analytics-server";
 import { SITE } from "@/lib/constants";
+import { notFoundExtensions, notFoundMarkdown } from "@/lib/not-found-body";
 import { problemResponse } from "@/lib/problem";
+import { hasMarkdownTwin } from "@/lib/page-markdown";
+import {
+	checkRateLimit,
+	canonicalRoute,
+	middlewareShouldMeter,
+	rateLimitHeaders,
+} from "@/lib/rate-limit";
 
 // Agent content negotiation → the Markdown route (app/api/md). An agent can get
 // raw Markdown three ways, all mapped here:
@@ -26,7 +38,24 @@ function mdTarget(pathname: string): string | null {
 	if (clean.startsWith("/docs/")) {
 		return `/api/md/${clean.slice("/docs/".length)}`;
 	}
+	// Named non-/docs pages with a Markdown twin (/developers.md, /yonyon.md).
+	// The docs tell agents to append `.md` to a page URL; before this, doing that
+	// outside /docs returned the HTML not-found page, which is what made the
+	// "yonyon developer resources" query come back with nothing usable.
+	const slug = clean.slice(1);
+	if (hasMarkdownTwin(slug)) return `/api/page-md/${slug}`;
 	return null;
+}
+
+// Whether a path is part of the API/agent surface that the rate-limit contract
+// covers. HTML page views are deliberately excluded: metering them would let
+// ordinary browsing (RSC prefetches, a fast reader) trip an abuse brake meant
+// for API clients, and RateLimit headers on a marketing page are noise.
+function isMeteredSurface(pathname: string): boolean {
+	return (
+		(pathname.startsWith("/api/") || classifyAgentSurface(pathname) !== null) &&
+		middlewareShouldMeter(pathname)
+	);
 }
 
 export function middleware(req: NextRequest) {
@@ -38,6 +67,36 @@ export function middleware(req: NextRequest) {
 		ua_family: uaFamily(req.headers.get("user-agent")),
 		method: req.method,
 	};
+
+	// 0) Rate-limit accounting for the whole API/agent surface.
+	//
+	// This has to happen in middleware, not in the handlers: the agent surfaces a
+	// scanner actually probes first, /openapi.json, /llms.txt, /api/health, the
+	// eight /.well-known/* cards, are `revalidate = false` handlers that execute
+	// at BUILD time and are then served from the CDN, so a header computed inside
+	// them would be frozen at one build-time value or absent entirely. That is why
+	// the audit found the limits "documented in the OpenAPI spec, but not observed
+	// on a live response": /api/search did emit them, every prerendered surface
+	// did not. Middleware runs per request, so it can.
+	//
+	// Routes that meter themselves are skipped (see SELF_LIMITED_ROUTES), double
+	// counting would silently halve the published ceiling.
+	const metered = isMeteredSurface(pathname);
+	const limit = metered ? checkRateLimit(req, canonicalRoute(pathname)) : null;
+	const limitHeaders = limit ? rateLimitHeaders(limit) : {};
+
+	if (limit?.limited) {
+		return problemResponse(
+			{
+				type: `${SITE.domain}/api-policy`,
+				title: "Too Many Requests",
+				status: 429,
+				detail: `Rate limit exceeded for ${pathname}. Retry after ${limit.resetSeconds}s; see ${SITE.domain}/api-policy for the published limits.`,
+				instance: pathname,
+			},
+			{ ...limitHeaders, "Retry-After": String(limit.resetSeconds) },
+		);
+	}
 
 	// 1) Markdown content negotiation → the Markdown route (only / and /docs/*).
 	const wantsMarkdown =
@@ -64,7 +123,11 @@ export function middleware(req: NextRequest) {
 						? "dot-md-suffix"
 						: "mode-agent-param",
 			});
-			return NextResponse.rewrite(url);
+			const rewritten = NextResponse.rewrite(url);
+			for (const [k, v] of Object.entries(limitHeaders)) {
+				rewritten.headers.set(k, v);
+			}
+			return rewritten;
 		}
 	}
 
@@ -79,13 +142,32 @@ export function middleware(req: NextRequest) {
 			...audience,
 			branch: "middleware-json-404",
 		});
-		return problemResponse({
-			type: `${SITE.domain}/docs/reference`,
-			title: "Resource not found",
-			status: 404,
-			detail: `No resource at ${pathname}. Browse /docs, or see the API catalog at /.well-known/api-catalog.`,
-			instance: pathname,
-		});
+		// An agent that asked for Markdown gets Markdown, even for the failure.
+		// A bare 404 status is only half the contract: the other half is telling
+		// the client where to look next, in the media type it asked for. Both
+		// representations are built from lib/not-found-body.ts, so the JSON and
+		// Markdown answers list the same recovery hops.
+		if (prefersMarkdownError(pathname, accept, searchParams.get("mode"))) {
+			return new Response(notFoundMarkdown(pathname, SITE.domain), {
+				status: 404,
+				headers: {
+					"Content-Type": "text/markdown; charset=utf-8",
+					"Cache-Control": "public, max-age=0, must-revalidate",
+					...limitHeaders,
+				},
+			});
+		}
+		return problemResponse(
+			{
+				type: `${SITE.domain}/docs/reference`,
+				title: "Resource not found",
+				status: 404,
+				detail: `No resource at ${pathname}. Browse /docs, or see the API catalog at /.well-known/api-catalog. Send \`Accept: text/markdown\` for this guidance as Markdown.`,
+				instance: pathname,
+			},
+			limitHeaders,
+			notFoundExtensions(SITE.domain),
+		);
 	}
 
 	// 3) Agent-surface reach. This is the ONLY place the eight prerendered
@@ -111,7 +193,11 @@ export function middleware(req: NextRequest) {
 		});
 	}
 
-	return NextResponse.next();
+	const res = NextResponse.next();
+	for (const [k, v] of Object.entries(limitHeaders)) {
+		res.headers.set(k, v);
+	}
+	return res;
 }
 
 export const config = {
