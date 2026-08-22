@@ -28,7 +28,7 @@ fi
 
 # Tee stderr (dispatcher WARN lines + jq errors on missing paths) to a tmp log
 # we can inspect on test failure rather than silencing it on the line.
-STDERR_LOG="$(mktemp -t hook-dispatch-stderr.XXXXXX.log)"
+STDERR_LOG="$(mktemp "${TMPDIR:-/tmp}/hook-dispatch-stderr.XXXXXX")"
 trap 'rm -f "$STDERR_LOG"' EXIT
 
 PASS=0

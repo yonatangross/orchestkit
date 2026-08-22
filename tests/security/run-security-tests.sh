@@ -45,7 +45,7 @@ run_test() {
     # reported a bare "FAIL: <name>" and you had to re-run each script by hand
     # to learn anything. On failure we now echo the tail of the real output.
     local log
-    log="$(mktemp -t ork-sec-XXXXXX)"
+    log="$(mktemp "${TMPDIR:-/tmp}/ork-sec-XXXXXX")"
 
     if bash "$script" > "$log" 2>&1; then
         echo -e "  ${GREEN}PASS${NC}: $name"
