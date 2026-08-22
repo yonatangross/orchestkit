@@ -403,6 +403,20 @@ jobs:
           fi
           echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
 
+      # Regenerate the board IN THE SAME COMMIT as the snapshot.
+      #
+      # Without this the snapshot PR arrives pre-drifted and permanently red: it
+      # changes shared/cc-adoption-gaps.json but not the generated board, so the
+      # Build check regenerates, sees a difference, and fails. Adding
+      # docs/site/lib/generated/ to add-paths below is inert on its own, because
+      # nothing in this job ever wrote to it (#3645).
+      #
+      # The generator merges rather than replaces (see generate-lab-data.mjs), so
+      # a pruned queue can only ADD waves here, never drop published ones.
+      - name: Regenerate the CC-adoption board
+        if: success() && steps.changes.outputs.has_changes == 'true'
+        run: node docs/site/scripts/generate-lab-data.mjs
+
       # Mint a Release Bot App installation token so the snapshot PR is opened
       # by the App identity (not github-actions[bot]). PRs from
       # github-actions[bot] do NOT trigger required CI checks, so auto-merge
@@ -435,6 +449,7 @@ jobs:
             shared/gh-issue-args.json
             shared/platform-snapshots/
             shared/platform-adoption-gaps.json
+            docs/site/lib/generated/
           commit-message: "chore(cc-watch): snapshot upstream CHANGELOG (${{ steps.read_args.outputs.latest }})"
           branch: chore/cc-snapshot-${{ github.run_id }}
           delete-branch: true

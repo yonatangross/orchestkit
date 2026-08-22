@@ -261,7 +261,7 @@ That reference stages the rollout per #3424 rather than handing over one all-or-
 
 | Stage | Contents | Adopt when |
 |-------|----------|------------|
-| **1 LOOSE** | `sandbox.enabled`, the 19-host exfil denylist, credential file and env denies, `excludedCommands` carve-outs for `op` / `docker` / `ssh`, no network allowlist | first, on a working machine |
+| **1 LOOSE** | `sandbox.enabled`, the 19-host exfil denylist, credential file and env denies, `excludedCommands` carve-outs for `op *` / `docker *` / `ssh *` (wildcard form — bare names match only the arg-less command), no network allowlist | first, on a working machine |
 | **2 STRICT** | adds `network.allowedDomains` with `strictAllowlist: true` | only after stage 1 has held for several days |
 
 **Start with stage 1.** Stage 2 denies every unlisted host with no prompt and will break `api.github.com`, localhost dev URLs, and telemetry ingest first. The reference spells out the expected breakage order and the per-line rollback.
