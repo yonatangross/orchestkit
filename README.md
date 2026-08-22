@@ -333,6 +333,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.47](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.46...v10.0.0-alpha.47)** · 2026-08-22
+
+- **docs-site:** claim the CLI now that it is actually published (#3658)
+- **ci:** playground gate blocked the playground prune (#3661)
+- **cli:** npm strips a bin value that starts with ./ (#3656)
+
 **[v10.0.0-alpha.46](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.45...v10.0.0-alpha.46)** · 2026-08-22
 
 - **docs-site:** close four agent-readiness gaps, add a CLI (#3654)
@@ -380,11 +386,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **tests:** read the MCP gate's server list from a tracked manifest (#3546)
 - **configure:** add staged operator-scope settings (#3553)
 - **mcp:** document context7 as a prerequisite, Pro tier, hosted transport (#3548)
-
-**[v10.0.0-alpha.39](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.38...v10.0.0-alpha.39)** · 2026-08-18
-
-- **plugin:** move shared fragments out of component trees (#3543)
-- **deps-dev:** bump js-yaml (#3538)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
