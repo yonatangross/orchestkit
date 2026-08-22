@@ -172,6 +172,31 @@ const config = {
 					key: "Access-Control-Allow-Headers",
 					value: "Content-Type, Accept",
 				},
+				{
+					// Without this, the CORS allowance above is only half a grant. A
+					// cross-origin reader can see the BODY but only the six CORS-safelisted
+					// response headers, so a browser-based agent fetching /api/search gets
+					// `null` from every RateLimit-* lookup and cannot pace itself, while
+					// curl sees them fine. Same request, different visibility, no error
+					// either way. Everything listed here is a public pacing or policy
+					// signal already sent to every client.
+					key: "Access-Control-Expose-Headers",
+					value: [
+						"RateLimit-Policy",
+						"RateLimit-Limit",
+						"RateLimit-Remaining",
+						"RateLimit-Reset",
+						"X-RateLimit-Limit",
+						"X-RateLimit-Remaining",
+						"X-RateLimit-Reset",
+						"Retry-After",
+						"Link",
+						"Deprecation",
+						"Sunset",
+						"X-Total-Count",
+						"X-Next-Cursor",
+					].join(", "),
+				},
 				// RFC 8288 Link headers — advertise agent-discovery resources so agents
 				// can find the API catalog and machine-readable docs from any response.
 				{

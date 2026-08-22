@@ -174,3 +174,41 @@ describe("rateLimitHeaders", () => {
 		expect(checkRateLimit(req("8.8.8.8"), route).limited).toBe(false);
 	});
 });
+
+// A header that is sent but not exposed is invisible to exactly the client class
+// this site advertises support for. next.config.mjs already sets
+// `Access-Control-Allow-Origin: *` with the comment "so cross-origin (incl.
+// browser-based) AI agents can actually read /ask, /api/mcp, ...", but CORS only
+// reveals six safelisted response headers to a cross-origin reader. Without an
+// explicit expose list, a browser agent gets `null` from every RateLimit-*
+// lookup while curl sees them, with no error on either side.
+describe("rate-limit headers are readable cross-origin", () => {
+	const config = readFileSync(resolve(__dirname, "../next.config.mjs"), "utf8");
+	const exposed =
+		config.match(/Access-Control-Expose-Headers[\s\S]{0,900}?\.join\(", "\)/)?.[0] ?? "";
+
+	it("declares an Access-Control-Expose-Headers list at all", () => {
+		expect(exposed, "no Access-Control-Expose-Headers block found").not.toBe("");
+	});
+
+	it("exposes every header rateLimitHeaders() emits", () => {
+		const emitted = Object.keys(
+			rateLimitHeaders({ limited: false, remaining: 1, resetSeconds: 60 }),
+		);
+		for (const name of emitted) {
+			expect(exposed, `RateLimit header not exposed to CORS: ${name}`).toContain(
+				`"${name}"`,
+			);
+		}
+	});
+
+	it("exposes Retry-After, so a 429 is actionable in a browser", () => {
+		expect(exposed).toContain('"Retry-After"');
+	});
+
+	it("exposes the policy-signalling headers too", () => {
+		for (const name of ["Link", "Deprecation", "Sunset"]) {
+			expect(exposed, `policy header not exposed: ${name}`).toContain(`"${name}"`);
+		}
+	});
+});
