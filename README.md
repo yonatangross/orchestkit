@@ -333,6 +333,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.49](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.48...v10.0.0-alpha.49)** · 2026-08-22
+
+- **skills:** add paired-probe, a gate on checks that cannot disagree (#3664)
+- **docs:** order arrowed flow lanes by step number, not file position (#3671)
+- **hooks:** git-validator reads the branch from the dir CC says the session is in (#3673)
+- **cc-watch:** snapshot upstream CHANGELOG (2.1.238) (#3644)
+
 **[v10.0.0-alpha.48](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.47...v10.0.0-alpha.48)** · 2026-08-22
 
 - **cc-watch:** the adoption board can no longer lose history (#3662)
@@ -379,10 +386,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** bound the second apt-get, the one outside .github/ (#3561), closes [#3557](https://github.com/yonatangross/orchestkit/issues/3557)
 - **hooks:** scope the context7 cap to the session it is named after (#3568), closes [#3542](https://github.com/yonatangross/orchestkit/issues/3542)
 - **configure:** add good first issues link to issue template (#3555), closes [#3506](https://github.com/yonatangross/orchestkit/issues/3506)
-
-**[v10.0.0-alpha.41](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.40...v10.0.0-alpha.41)** · 2026-08-19
-
-- **ork-codex:** ship context7 as a plugin-native MCP server (#3549)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
