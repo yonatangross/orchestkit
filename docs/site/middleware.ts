@@ -32,6 +32,11 @@ import {
 //   2. a `.md` suffix on the URL        (e.g. /docs/foundations/overview.md)
 //   3. ?mode=agent                      (explicit machine-readable view)
 // Browsers (Accept: text/html, no suffix, no flag) keep getting HTML.
+// Pages served as Markdown by a dedicated route rather than by app/api/page-md.
+// Keys are the BARE paths; the twin is the same path plus `.md`, which is the
+// Next route directory name (app/pricing.md/route.ts).
+const STANDALONE_MD_PAGES = new Set(["/pricing", "/api-policy"]);
+
 function mdTarget(pathname: string): string | null {
 	if (pathname === "/" || pathname === "/index.md") return "/api/md";
 	// Strip a trailing `.md` so /docs/x.md and /docs/x resolve identically.
@@ -46,6 +51,23 @@ function mdTarget(pathname: string): string | null {
 	// "yonyon developer resources" query come back with nothing usable.
 	const slug = clean.slice(1);
 	if (hasMarkdownTwin(slug)) return `/api/page-md/${slug}`;
+
+	// Pages whose Markdown twin is its OWN route rather than a page-md render:
+	// app/pricing.md/route.ts and app/api-policy.md/route.ts. Both already
+	// returned 200 with frontmatter and llms.txt already advertised them, but
+	// mdTarget() did not know them, so the BARE URL answered a crawler with HTML
+	// while the .md URL answered with Markdown. Measured on production.
+	//
+	// Deliberately NOT added to MARKDOWN_TWIN_SLUGS: that list drives
+	// app/api/page-md, which renders from lib data (developer-resources,
+	// yonyon-faqs). These two have hand-authored routes, so pointing at the
+	// existing route is the truthful mapping and keeps one source per page.
+	//
+	// Only the bare path is rewritten. `/pricing.md` already hits its route
+	// directly, and rewriting a path to itself would loop.
+	if (!pathname.endsWith(".md") && STANDALONE_MD_PAGES.has(clean)) {
+		return `${clean}.md`;
+	}
 	return null;
 }
 
@@ -58,14 +80,6 @@ function isMeteredSurface(pathname: string): boolean {
 		(pathname.startsWith("/api/") || classifyAgentSurface(pathname) !== null) &&
 		middlewareShouldMeter(pathname)
 	);
-}
-
-// Whether this path can answer with EITHER HTML or Markdown, which is exactly
-// the set of URLs whose responses must Vary on Accept and User-Agent. Derived
-// from mdTarget() rather than listed again, so a new twin cannot be added
-// without its cache key following along.
-function servesTwoRepresentations(pathname: string): boolean {
-	return mdTarget(pathname) !== null;
 }
 
 export function middleware(req: NextRequest) {
@@ -228,19 +242,27 @@ export function middleware(req: NextRequest) {
 	for (const [k, v] of Object.entries(limitHeaders)) {
 		res.headers.set(k, v);
 	}
-	// The HTML half of the content negotiation above. next.config.mjs declares
-	// this same Vary, but MEASURED on production it does not survive here: Next
-	// appends its own RSC tokens to `vary` (base-server.js setVaryHeader) and the
-	// configured value is absent from the result, even though every other header
-	// from that config block is present. Setting it on the response middleware
-	// actually returns is the layer that holds.
+	// NO Vary is set here, deliberately, and the reason is measured rather than
+	// assumed. #3688 set MARKDOWN_VARY on this response believing middleware was
+	// "the layer that holds". It is not. Next overwrites `vary` on any
+	// app-rendered response (base-server.js setVaryHeader), so the value never
+	// reached a client. The decisive probe was /llms.txt: middleware's
+	// `ratelimit-*` headers arrive while middleware's `Vary` does not, so it is
+	// not that middleware headers are dropped, it is `Vary` specifically.
+	// Confirmed from the other side by /favicon.svg and /robots.txt, which are
+	// not app-rendered and DO carry the configured value.
 	//
-	// Scoped to paths that genuinely serve two bodies. A URL with one
-	// representation gains nothing from varying on User-Agent and would only
-	// fragment its cache entries per crawler.
-	if (servesTwoRepresentations(pathname)) {
-		res.headers.set("Vary", MARKDOWN_VARY);
-	}
+	// The only layer that works is a handler constructing its own Response, and
+	// both Markdown handlers already do (app/api/md and app/api/page-md set
+	// MARKDOWN_VARY on `new Response(...)`). That is the direction that matters:
+	// the Markdown entry is the one a shared cache must not hand to a browser,
+	// and it is correctly keyed.
+	//
+	// Residual, stated honestly rather than papered over: the HTML entry carries
+	// only Next's RSC tokens, so a cache may serve stored HTML to a crawler.
+	// That degrades the bot-Markdown feature; it does not leak Markdown to
+	// readers. Re-adding an inert line here would not change it, and would read
+	// as protection that is not there.
 	return res;
 }
 

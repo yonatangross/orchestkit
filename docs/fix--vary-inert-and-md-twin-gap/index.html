@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Inert Vary and the missing markdown twins</title>
+<style>body{font:15px/1.6 system-ui;max-width:52rem;margin:3rem auto;padding:0 1rem;color:#111}
+code{background:#f4f4f5;padding:.1rem .3rem;border-radius:3px}
+table{border-collapse:collapse;margin:1rem 0}td,th{border:1px solid #ddd;padding:.4rem .7rem;text-align:left}
+.bad{color:#b00}.good{color:#070}</style></head><body>
+<h1>Two fixes, both found by probing production</h1>
+
+<h2>1. The Vary header shipped in #3688 was inert</h2>
+<p>#3688 set <code>Vary</code> in middleware believing that was "the layer that holds".
+It is not. Next overwrites <code>vary</code> on any app-rendered response
+(<code>base-server.js setVaryHeader</code>), so the value never reached a client.</p>
+<table>
+<tr><th>probe</th><th>middleware ratelimit-*</th><th>middleware Vary</th></tr>
+<tr><td><code>/llms.txt</code></td><td class="good">arrives</td><td class="bad">absent</td></tr>
+<tr><td><code>/favicon.svg</code> (not app-rendered)</td><td>-</td><td class="good">arrives</td></tr>
+</table>
+<p>So it is not that middleware headers are dropped. It is <code>Vary</code> specifically.
+The layer that works is a handler building its own <code>Response</code>, and both
+Markdown handlers already do. That is the direction that matters: the Markdown entry is
+the one a cache must never hand to a browser, and it is correctly keyed.</p>
+<p><strong>Residual, stated not hidden:</strong> the HTML entry carries only Next's RSC
+tokens, so a cache may serve stored HTML to a crawler. That degrades the bot-Markdown
+feature; it does not leak Markdown to readers.</p>
+
+<h2>2. Two advertised twins answered HTML on the bare URL</h2>
+<p><code>/pricing.md</code> and <code>/api-policy.md</code> returned 200 with frontmatter and
+llms.txt advertised them, but <code>mdTarget()</code> did not know them, so a crawler asking
+for <code>/pricing</code> got HTML.</p>
+
+<h2>3. The test was the same bug, one layer along</h2>
+<p>#3688 replaced a config-grep with a response assertion, then asserted on
+<em>middleware's own return value</em> rather than the client's response. Green in unit-land,
+absent on the wire. A response assertion is only worth as much as the response you assert on.</p>
+</body></html>

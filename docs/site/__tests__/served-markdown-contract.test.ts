@@ -150,11 +150,28 @@ describe("Vary is carried by the response, not just declared in config", () => {
 		["/docs/foundations/overview", "docs page"],
 		["/developers", "named twin"],
 		["/yonyon", "named twin"],
-	])("%s carries Vary on the BROWSER (HTML) response", (path) => {
-		// The half that production was missing entirely: a browser response with
-		// no User-Agent in Vary lets a cache reuse it for a crawler.
+	])("%s does NOT get Vary from middleware on the HTML response", (path) => {
+		// This asserted the OPPOSITE until it was measured against production.
+		//
+		// The original test set and read `Vary` on middleware's own return value,
+		// which passes in unit-land and is meaningless in production: Next
+		// overwrites `vary` on any app-rendered response (base-server.js
+		// setVaryHeader), so the header this object carries never reaches a
+		// client. Green here, absent on the wire.
+		//
+		// That is the same defect the whole file was written to kill, moved one
+		// layer along. A response assertion is only worth as much as the response
+		// you assert on. The middleware object is NOT the client's response.
+		//
+		// Decisive probe: /llms.txt returns middleware's `ratelimit-*` headers but
+		// not middleware's `Vary`, so it is not that middleware headers are
+		// dropped, it is `Vary` specifically. /favicon.svg and /robots.txt are not
+		// app-rendered and DO carry the configured value.
+		//
+		// So the inert `set` is gone and this pins its absence, to stop anyone
+		// restoring it to make a unit test agree with a belief production refutes.
 		const res = middleware(req(path, BROWSER));
-		expect(res?.headers.get("Vary")).toBe(MARKDOWN_VARY);
+		expect(res?.headers.get("Vary")).toBeNull();
 	});
 
 	it.each([
@@ -175,13 +192,24 @@ describe("Vary is carried by the response, not just declared in config", () => {
 		expect(res?.headers.get("Vary")).toBeNull();
 	});
 
-	it("both representations of one URL agree on the cache key", () => {
-		// The actual defect was ASYMMETRY: one side named User-Agent and the other
-		// did not, so which body a cache served depended on which it stored first.
-		for (const path of ["/", "/docs/foundations/overview", "/developers"]) {
-			const html = middleware(req(path, BROWSER))?.headers.get("Vary");
-			const md = middleware(req(path, BOT))?.headers.get("Vary");
-			expect(html, `browser Vary on ${path}`).toBe(md);
+	it("the Markdown side is keyed, and the asymmetry is stated not hidden", async () => {
+		// This replaces a parity assertion (html Vary === md Vary) that could only
+		// be satisfied by the inert middleware `set`. Demanding symmetry at a layer
+		// that cannot deliver it is what kept the dead code alive.
+		//
+		// What is actually true, and is the protection that matters: the MARKDOWN
+		// response is the one a shared cache must never hand to a browser, and it
+		// IS keyed on User-Agent, by its own handler.
+		for (const slug of MARKDOWN_TWIN_SLUGS) {
+			expect((await twin(slug)).headers.get("Vary")).toBe(MARKDOWN_VARY);
 		}
+
+		// The residual, pinned rather than papered over: the HTML entry carries
+		// only Next's RSC tokens, so a cache may serve stored HTML to a crawler.
+		// That degrades the bot-Markdown feature; it does not leak Markdown to
+		// readers. If a future Next release stops overwriting `vary`, or the HTML
+		// path starts emitting it another way, this expectation flips and someone
+		// should reassess rather than delete it.
+		expect(middleware(req("/", BROWSER))?.headers.get("Vary")).toBeNull();
 	});
 });
