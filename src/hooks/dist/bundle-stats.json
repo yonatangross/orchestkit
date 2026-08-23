@@ -7,23 +7,23 @@
       "exports": 70
     },
     "pretool": {
-      "size": 150351,
-      "sizeKB": "146.83",
+      "size": 150332,
+      "sizeKB": "146.81",
       "exports": 86
     },
     "posttool": {
-      "size": 87875,
-      "sizeKB": "85.82",
+      "size": 87856,
+      "sizeKB": "85.80",
       "exports": 68
     },
     "prompt": {
-      "size": 53319,
-      "sizeKB": "52.07",
+      "size": 57259,
+      "sizeKB": "55.92",
       "exports": 99
     },
     "lifecycle": {
-      "size": 140310,
-      "sizeKB": "137.02",
+      "size": 140712,
+      "sizeKB": "137.41",
       "exports": 68
     },
     "stop": {
@@ -32,8 +32,8 @@
       "exports": 52
     },
     "subagent": {
-      "size": 71204,
-      "sizeKB": "69.54",
+      "size": 71185,
+      "sizeKB": "69.52",
       "exports": 85
     },
     "notification": {
@@ -57,8 +57,8 @@
       "exports": 70
     }
   },
-  "totalSize": 682855,
-  "totalSizeKB": "666.85",
+  "totalSize": 687140,
+  "totalSizeKB": "671.04",
   "inputs": 110,
-  "avgBundleSizeKB": "60.62"
+  "avgBundleSizeKB": "61.00"
 }

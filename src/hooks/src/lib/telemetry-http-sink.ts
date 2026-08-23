@@ -90,7 +90,12 @@ const KNOWN_EVENT_FILES = new Set([
   'hook-timing.jsonl',
   'cache-breaks.jsonl',
   'secret-audit.jsonl',
-  'dx-signals.jsonl',
+  // 'dx-signals.jsonl' REMOVED (#3665). No code in this repo has ever written
+  // it: a tree-wide search found the name only here, in this allowlist, and in
+  // this file's own test. It is an allowlist entry with no producer, so the
+  // forwarder advertised an event stream that could never arrive. The stale
+  // 138-day-old file on disk is listed in analytics-liveness-check's
+  // RETIRED_WRITERS so the guard does not report it forever.
   'session-summary.jsonl',
   'session-start-perf.jsonl',
   'team-activity.jsonl',
