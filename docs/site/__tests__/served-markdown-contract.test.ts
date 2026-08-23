@@ -213,3 +213,29 @@ describe("Vary is carried by the response, not just declared in config", () => {
 		expect(middleware(req("/", BROWSER))?.headers.get("Vary")).toBeNull();
 	});
 });
+
+// Routing guards for the STANDALONE_MD_PAGES branch #3690 shipped. The first
+// one matters most: /pricing.md IS the rewrite target, so an unguarded branch
+// would rewrite that URL onto itself and shadow the real handler.
+describe("standalone Markdown twin routing", () => {
+	it("the .md URLs themselves are never rewritten onto themselves", () => {
+		// /pricing.md IS the target. Rewriting it to itself would shadow the real
+		// handler, and the existing recovery suite pins that it stays untouched.
+		for (const p of ["/pricing.md", "/api-policy.md", "/auth.md"]) {
+			expect(middleware(req(p, BOT))?.headers.get("x-middleware-rewrite"))
+				.toBeNull();
+		}
+	});
+
+	it("a browser still gets HTML on those same pages", () => {
+		for (const p of ["/pricing", "/api-policy"]) {
+			expect(middleware(req(p, BROWSER))?.headers.get("x-middleware-rewrite"))
+				.toBeNull();
+		}
+	});
+
+	it("a page with no twin is still not routed anywhere", () => {
+		expect(middleware(req("/compare", BOT))?.headers.get("x-middleware-rewrite"))
+			.toBeNull();
+	});
+});
