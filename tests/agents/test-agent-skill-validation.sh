@@ -235,6 +235,23 @@ test_all_real_agents_valid() {
 }
 
 # Test 6: Performance test - validation should complete quickly
+#
+# GATES IN CI ONLY, deliberately (#3666). This measures WALL CLOCK across five
+# `node` spawns, so it measures the machine as much as the code. Measured
+# 2026-08-22 on one commit, same tree, same day:
+#
+#   GitHub Actions runner .............   42ms avg   PASS
+#   workstation, 8 concurrent sessions   2003ms avg  FAIL
+#
+# A 48x spread with identical code means a local FAIL carries no information
+# about this repo, and it trains the reader to ignore a red suite. The budget is
+# enforced where the number is stable and reported where it is not. That is the
+# opposite of the usual failure (a check that reports green everywhere); here
+# the honest move is to state which environment the claim covers.
+#
+# If this ever needs to gate locally, it has to stop timing wall clock and start
+# counting work (files validated, syscalls, node startups) — not get a bigger
+# budget, which would only move the flake threshold.
 test_validation_performance() {
   echo -n "Test 6: Skill validation completes in <200ms... "
 
@@ -256,10 +273,18 @@ test_validation_performance() {
   if [[ $avg_ms -lt 200 ]]; then
     echo "PASS (${avg_ms}ms avg)"
     return 0
-  else
-    echo "FAIL (${avg_ms}ms avg, expected <200ms)"
-    return 1
   fi
+
+  # Over budget. Whether that is a verdict depends on where we are running.
+  if [[ -z "${CI:-}" ]]; then
+    # Local: report the number, do not fail. See the header for the 48x spread
+    # that makes a local wall-clock verdict meaningless.
+    echo "REPORT-ONLY (${avg_ms}ms avg; budget 200ms enforced in CI, not locally)"
+    return 0
+  fi
+
+  echo "FAIL (${avg_ms}ms avg, expected <200ms)"
+  return 1
 }
 
 # Run all tests
