@@ -1,10 +1,25 @@
 import { SITE } from "@/lib/constants";
-import { withFrontmatter } from "@/lib/md-frontmatter";
 
-// The document's own summary, rendered as both the blockquote below and the
-// frontmatter `description`. There is no HTML twin at /auth to borrow a
-// metadata.description from: this file IS the resource, which is why its
-// canonical URL below is its own.
+// The document's own summary, rendered as the blockquote below.
+//
+// It is NOT wrapped in YAML frontmatter, and that is deliberate. The auth.md
+// spec (workos.com/auth-md/docs/auth-md) prescribes the document's opening:
+// "A well-formed auth.md is organized as a numbered walkthrough an agent
+// follows top to bottom. Here is what each section should cover: Title and
+// intro - A one-line title (# auth.md) followed by a short preamble." The
+// walkthrough's first section IS the title, so a header block above it puts
+// non-walkthrough content ahead of the document's own first step.
+//
+// The same section closes with "Keep the file conservative in length and high
+// in signal. Anything an agent doesn't need to register or operate against
+// your API belongs in your main documentation, not in auth.md." A frontmatter
+// title/description/canonical is exactly that: the spec enumerates what a
+// consumer extracts (headings, the Discovery section, fenced code blocks, and
+// the PRM as authoritative) and no metadata key is in that list.
+//
+// The other six served Markdown surfaces DO carry frontmatter and should keep
+// it. This is the one document whose own specification constrains its opening.
+// #3691.
 const AUTH_LEAD =
 	"The OrchestKit documentation and search API are public and read-only. No authentication, API key, or account is required. Agents call the endpoints directly.";
 
@@ -115,16 +130,7 @@ export function GET() {
 		"",
 	].join("\n");
 
-	const md = withFrontmatter(
-		{
-			title: `Authenticating with the ${SITE.name} API`,
-			description: AUTH_LEAD,
-			canonical: `${d}/auth.md`,
-		},
-		body,
-	);
-
-	return new Response(md, {
+	return new Response(body, {
 		headers: {
 			"Content-Type": "text/markdown; charset=utf-8",
 			"Cache-Control": "public, max-age=3600",

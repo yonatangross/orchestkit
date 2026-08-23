@@ -42,7 +42,6 @@ vi.mock("next/font/google", () => ({
 
 import { GET as getAiCatalog } from "@/app/api/well-known/ai-catalog/route";
 import { GET as getApiPolicyMd } from "@/app/api-policy.md/route";
-import { GET as getAuthMd } from "@/app/auth.md/route";
 import { GET as getPricingMd } from "@/app/pricing.md/route";
 import { metadata as rootMetadata } from "@/app/layout";
 import { isAiBotFamily, uaFamily } from "@/lib/agent-surface";
@@ -183,9 +182,11 @@ describe("frontmatter rendering", () => {
 });
 
 describe("standalone Markdown routes open with frontmatter", () => {
+	// auth.md is deliberately absent: its own spec prescribes the document open
+	// with `# auth.md` as the first section of a top-to-bottom walkthrough, so it
+	// carries no frontmatter. Pinned in served-markdown-contract.test.ts. #3691.
 	it.each([
 		["pricing.md", getPricingMd, `${ORIGIN}/pricing`],
-		["auth.md", getAuthMd, `${ORIGIN}/auth.md`],
 		["api-policy.md", getApiPolicyMd, `${ORIGIN}/api-policy`],
 	] as const)("%s names title, description and canonical", async (
 		_name,
@@ -199,7 +200,7 @@ describe("standalone Markdown routes open with frontmatter", () => {
 	});
 
 	it("the frontmatter title matches the document's own H1", async () => {
-		for (const get of [getPricingMd, getAuthMd, getApiPolicyMd]) {
+		for (const get of [getPricingMd, getApiPolicyMd]) {
 			const md = await get().text();
 			const fm = parseFrontmatter(md);
 			const h1 = md.split("\n").find((l) => l.startsWith("# "))?.slice(2);
@@ -210,7 +211,7 @@ describe("standalone Markdown routes open with frontmatter", () => {
 	it("the frontmatter description matches the document's own lead", async () => {
 		// The blockquote and the frontmatter render from one constant, so a copy
 		// edit to either cannot leave the two representations disagreeing.
-		for (const get of [getPricingMd, getAuthMd, getApiPolicyMd]) {
+		for (const get of [getPricingMd, getApiPolicyMd]) {
 			const md = await get().text();
 			const fm = parseFrontmatter(md);
 			const lead = md.split("\n").find((l) => l.startsWith("> "))?.slice(2);
@@ -219,7 +220,7 @@ describe("standalone Markdown routes open with frontmatter", () => {
 	});
 
 	it("the headers contract is unchanged by the frontmatter", async () => {
-		for (const get of [getPricingMd, getAuthMd, getApiPolicyMd]) {
+		for (const get of [getPricingMd, getApiPolicyMd]) {
 			const res = get();
 			expect(res.status).toBe(200);
 			expect(res.headers.get("Content-Type")).toBe(
