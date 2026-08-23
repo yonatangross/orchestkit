@@ -10,6 +10,7 @@ import {
 import {
 	acceptFamily,
 	classifyAgentSurface,
+	isAiBotFamily,
 	uaFamily,
 } from "@/lib/agent-surface";
 import { reportServerEvent } from "@/lib/analytics-server";
@@ -99,10 +100,25 @@ export function middleware(req: NextRequest) {
 	}
 
 	// 1) Markdown content negotiation → the Markdown route (only / and /docs/*).
+	//
+	// The fourth trigger is the User-Agent. GPTBot, ClaudeBot, PerplexityBot and
+	// the rest send `Accept: */*` or `text/html` and none of them know the `.md`
+	// convention, so all three explicit triggers above miss every one of them:
+	// the surface built for LLM readers was reachable only by clients that
+	// already knew it existed. uaFamily() has classified these UAs since the
+	// telemetry work; this is the first time the classification decides anything.
+	//
+	// This makes one URL serve two bodies keyed on User-Agent, so
+	// `Vary: Accept, Accept-Encoding, User-Agent` in next.config.mjs (and in the
+	// Markdown handlers' own headers) is load-bearing, not decoration. Without
+	// the User-Agent token a shared cache is free to hand a browser the copy it
+	// stored for GPTBot, which is a worse bug than never serving bots Markdown.
+	const isAiBot = isAiBotFamily(audience.ua_family);
 	const wantsMarkdown =
 		accept.includes("text/markdown") ||
 		pathname.endsWith(".md") ||
-		searchParams.get("mode") === "agent";
+		searchParams.get("mode") === "agent" ||
+		isAiBot;
 
 	if (wantsMarkdown) {
 		const target = mdTarget(pathname);
@@ -121,7 +137,9 @@ export function middleware(req: NextRequest) {
 					? "accept-header"
 					: pathname.endsWith(".md")
 						? "dot-md-suffix"
-						: "mode-agent-param",
+						: searchParams.get("mode") === "agent"
+							? "mode-agent-param"
+							: "bot-ua",
 			});
 			const rewritten = NextResponse.rewrite(url);
 			for (const [k, v] of Object.entries(limitHeaders)) {
