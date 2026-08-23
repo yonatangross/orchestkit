@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.52](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.51...v10.0.0-alpha.52) (2026-08-23)
+
+
+### Miscellaneous
+
+* **git:** untrack committed session state, close the anchoring gap ([#3692](https://github.com/yonatangross/orchestkit/issues/3692)) ([5e31893](https://github.com/yonatangross/orchestkit/commit/5e31893a0848cd32d4a30ae5c01adcfaac2000cd))
+
 ## [10.0.0-alpha.51](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.50...v10.0.0-alpha.51) (2026-08-23)
 
 
