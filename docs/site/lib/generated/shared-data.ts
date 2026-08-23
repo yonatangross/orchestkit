@@ -252,7 +252,7 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "multimodal-specialist",
-    "description": "Vision, audio, video generation, and multimodal processing specialist who integrates Claude Opus 4.8, GPT-5, Gemini 2.5/3, Grok 4, Kling 3.0, Sora 2, Veo 3.1, and Runway Gen-4.5 for image analysis, transcription, AI video generation, multimodal RAG.",
+    "description": "Vision, audio, image and video generation, and multimodal processing specialist. Integrates Claude Opus 4.8, GPT-5, Gemini 2.5/3, GPT Image 2, Nano Banana Pro, Kling 3.0, Sora 2 and Veo 3.1 for analysis, generation, transcription and multimodal RAG.",
     "plugins": [
       "ork"
     ],
