@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.51",
+    "date": "2026-08-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**build:** ship a conforming Agent Plugins 1.0.0 manifest ([#3685](https://github.com/yonatangross/orchestkit/issues/3685)) ([c334a8b](https://github.com/yonatangross/orchestkit/commit/c334a8b89bed2d99317ea59303044e990af32a9c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.50",
     "date": "2026-08-23",
     "compareUrl": "",

@@ -333,6 +333,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.51](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.50...v10.0.0-alpha.51)** · 2026-08-23
+
+- **build:** ship a conforming Agent Plugins 1.0.0 manifest (#3685)
+
 **[v10.0.0-alpha.50](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.49...v10.0.0-alpha.50)** · 2026-08-23
 
 - **agents:** multimodal-specialist documented every modality but one (#3680)
@@ -378,15 +382,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **worktree:** adopt .worktreeinclude and pin baseRef plus spawn depth (#3582)
 - **cc-triage:** tolerate fenced JSON and resolve the umbrella with state=all (#3580)
 - …and 4 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-alpha.43](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.42...v10.0.0-alpha.43)** · 2026-08-19
-
-- **doctor:** report the credential guard that actually exists (#3577)
-- **hooks:** a file operand means stdin is data, not the script (#3574), closes [#3559](https://github.com/yonatangross/orchestkit/issues/3559)
-- **hooks:** size the projected file, not the tool that wrote it (#3560)
-- **tests:** give every mktemp a template so it honours TMPDIR (#3579)
-- **configure:** caveat when excludedCommands is inert (#3573)
-- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
