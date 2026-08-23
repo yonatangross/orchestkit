@@ -5,11 +5,13 @@ import {
 	StructuredData,
 	softwareApplicationNode,
 } from "@/components/structured-data";
-import { COUNTS, SITE } from "@/lib/constants";
+import { COUNTS, PAGE_SUMMARY, SITE } from "@/lib/constants";
 
 export const metadata: Metadata = {
 	title: "Pricing",
-	description: `${SITE.name} is free and open source under the MIT license. No paid tiers, no usage limits, no account required.`,
+	// Shared with /pricing.md's frontmatter so the HTML head and the Markdown
+	// twin cannot describe this page differently.
+	description: PAGE_SUMMARY.pricing,
 	alternates: { canonical: `${SITE.domain}/pricing` },
 };
 

@@ -183,7 +183,15 @@ export async function generateMetadata(props: {
   const page = source.getPage(params.slug);
   if (!page) notFound();
 
-  const url = `${SITE.domain}/docs/${params.slug?.join("/") ?? ""}`;
+  const slugPath = params.slug?.join("/") ?? "";
+  const url = `${SITE.domain}/docs/${slugPath}`;
+  // The Markdown twin of THIS page. Every /docs/* path has one: mdTarget() in
+  // middleware.ts rewrites `/docs/<slug>.md` to /api/md/<slug>, and the docs
+  // index (`/docs`, empty slug) to /api/md. Built from slugPath rather than
+  // `url` so the index does not produce a "/docs/.md" with an empty segment.
+  const markdownUrl = slugPath
+    ? `${SITE.domain}/docs/${slugPath}.md`
+    : `${SITE.domain}/docs.md`;
 
   return {
     title: page.data.title,
@@ -201,6 +209,9 @@ export async function generateMetadata(props: {
       title: page.data.title,
       description: page.data.description,
     },
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      types: { "text/markdown": markdownUrl },
+    },
   };
 }
