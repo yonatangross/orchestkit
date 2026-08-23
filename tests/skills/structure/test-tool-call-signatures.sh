@@ -22,8 +22,10 @@
 #     won't flag an illustrative `PushNotification(message=...)`. Only WRONG
 #     names are errors.
 #
-# Registry (params per live CC schema, 2026-06-03):
-#   SendMessage      → {to, message, summary}      (legacy: recipient, content, type)
+# Registry (params per live CC schema, 2026-08-22):
+#   SendMessage      → {to, message, summary, notify_when_idle}  (legacy: recipient, content, type)
+#                      notify_when_idle added by CC 2.1.236 (#3601): one-shot
+#                      subscription for "tell me when that peer goes idle".
 #   PushNotification → {message, status}           (legacy: title, body)
 #   TaskCreate       → {subject, description, activeForm, metadata}  (NOT addBlockedBy — that is TaskUpdate)
 #   TaskUpdate       → {taskId, status, subject, description, activeForm, owner, metadata, addBlocks, addBlockedBy}
@@ -60,7 +62,7 @@ verbose = os.environ.get("VERBOSE", "") in ("--verbose", "-v")
 # names that drifted in (mapped to the correct form for the hint).
 TOOLS = {
     "SendMessage": {
-        "allowed": {"to", "message", "summary"},
+        "allowed": {"to", "message", "summary", "notify_when_idle"},
         "legacy": {
             "recipient": "to", "content": "message", "type": "message (nest type inside the message object)",
             "recipients": "to",
