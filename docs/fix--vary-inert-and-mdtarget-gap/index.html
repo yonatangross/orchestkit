@@ -200,8 +200,11 @@ vary: rsc, next-router-state-tree, next-router-prefetch, ...</pre>
   </section>
 
   <p class="foot">
-    Measured against live prod and repo <code>224130ff1</code>. Nothing here has
-    been changed in code yet; this page is the evidence, not the fix.
+    Measured against live prod and repo <code>224130ff1</code> before any of it
+    was fixed. Findings 1 and 3 landed in #3690 (the inert HTML-side Vary
+    removed, /pricing and /api-policy routed); finding 2 needed no code. This
+    page is kept as the evidence that motivated them, so the measurements stay
+    with the reasoning rather than being rewritten to match the outcome.
   </p>
 </main>
 
