@@ -314,6 +314,8 @@ for contradiction in contradiction_pairs:
     Bash(command=f"rm '{older['path']}'")
 
 # 4. Rebuild MEMORY.md index from surviving files
+# NOTE: `rm` above is unrecoverable (memory files are not in git). Prefer the
+# trash-dir move + one-generation index rotation in references/safe-deletes.md.
 ```
 
 ### Rebuild MEMORY.md
@@ -342,7 +344,8 @@ Rules for the rebuilt index:
   retention one.
 
 ```python
-# Write the rebuilt MEMORY.md
+# Write the rebuilt MEMORY.md. Copy to .MEMORY.md.prev FIRST: this one write
+# replaces every memory's pointer, so a bad index degrades sessions silently.
 Write(path="<memory_dir>/MEMORY.md", content=rebuilt_index)
 ```
 
