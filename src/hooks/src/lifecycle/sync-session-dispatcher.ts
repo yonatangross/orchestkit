@@ -21,7 +21,10 @@
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, extractContext } from '../lib/common.js';
-// v7.30.0 (#1266): Removed appendAnalytics for session-start-perf — data already in emit path
+// v7.30.0 (#1266): Removed appendAnalytics for session-start-perf — "data already
+// in emit path". #3665 restored it: that rationale was measured false (see
+// recordSessionStartPerf below).
+import { appendAnalytics, hashProject } from '../lib/analytics.js';
 
 // Import consolidated hook implementations
 import { analyticsConsentCheck } from './analytics-consent-check.js';
@@ -56,6 +59,30 @@ const SYNC_HOOKS: SyncHookConfig[] = [
  * Consolidated sync SessionStart dispatcher.
  * Runs all sync hooks sequentially and merges their systemMessage outputs.
  */
+/**
+ * Record SessionStart wall-clock into session-start-perf.jsonl.
+ *
+ * #1266 (v7.30.0) deleted this write with the note "data already in emit path"
+ * (the comment it left is preserved above the imports). Measured 2026-08-22
+ * that was not so: emit() fans out to sinks that write ~/.claude/ork-telemetry/,
+ * never ~/.claude/analytics/, and this dispatcher calls emit() nowhere. The file
+ * went 136 days without a row while this hook ran at every SessionStart, and the
+ * liveness guard could not see it because its watch list named three other files
+ * (#3665 fixes both halves).
+ *
+ * Called at BOTH return paths rather than once at the top, so the recorded
+ * duration is the real elapsed time rather than zero.
+ */
+function recordSessionStartPerf(startMs: number, source: string | undefined, messageCount: number): void {
+  appendAnalytics('session-start-perf.jsonl', {
+    ts: new Date().toISOString(),
+    pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
+    duration_ms: Date.now() - startMs,
+    source: source ?? 'unknown',
+    messages: messageCount,
+  });
+}
+
 export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const startMs = Date.now();
 
@@ -130,6 +157,7 @@ export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_
 
   if (messages.length === 0 && !pluginRootContext) {
     ctx.log(HOOK_NAME, `All sync hooks silent (${Date.now() - startMs}ms)`);
+    recordSessionStartPerf(startMs, source, 0);
     return outputSilentSuccess();
   }
 
@@ -141,5 +169,6 @@ export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_
   if (pluginRootContext) {
     result.hookSpecificOutput = { hookEventName: 'SessionStart', additionalContext: pluginRootContext };
   }
+  recordSessionStartPerf(startMs, source, messages.length);
   return result;
 }

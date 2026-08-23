@@ -30,7 +30,7 @@
 |release-engineer:{release-engineer.md}|Handles,Release
 |# LLM & AI
 |llm-integrator:{llm-integrator.md}|LLM
-|multimodal-specialist:{multimodal-specialist.md}|AI,Claude,Gemini,Grok,Kling,Opus,RAG,Runway,Sora,Veo
+|multimodal-specialist:{multimodal-specialist.md}|Banana,Claude,GPT,Gemini,Image,Integrates,Kling,Nano,Opus,Pro
 |workflow-architect:{workflow-architect.md}|RAG
 |# Testing & Quality
 |code-quality-reviewer:{code-quality-reviewer.md}|Code
