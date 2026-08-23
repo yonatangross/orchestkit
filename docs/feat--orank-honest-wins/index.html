@@ -5,7 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Five honest agent-readiness fixes</title>
+<title>Six honest agent-readiness fixes</title>
 <style>
   :root {
     --bg: #0f1117; --panel: #181b24; --sunk: #10131b; --border: #2a2f3d;
@@ -55,7 +55,7 @@
 </head>
 <body>
 <main>
-  <h1>Five honest agent-readiness fixes</h1>
+  <h1>Six honest agent-readiness fixes</h1>
   <p class="sub">
     <code>feat/orank-honest-wins</code> on orchestkit.yonyon.ai. Each change had to be
     true on its own terms, independent of any score. Where advertising something
@@ -227,13 +227,59 @@ entries[4] ✓</pre>
     </p>
   </section>
 
+  <!-- ================================================== B5 -->
+  <section>
+    <h2>Agent Plugins manifest <span class="tag">B5</span></h2>
+    <p class="lede">
+      The tempting move was to add <code>$schema</code> to the manifest Claude
+      Code already reads. Measured against the canonical schema, that would have
+      been a false claim. The two specs want the file in two different places,
+      so ork now ships both and neither compromises.
+    </p>
+    <table>
+      <thead><tr><th>File</th><th>Read by</th><th>Extra keys vs agent-plugins.org</th><th>Valid</th></tr></thead>
+      <tbody>
+        <tr><td><code>.claude-plugin/plugin.json</code></td><td>Claude Code</td><td><code>skills</code>, <code>commands</code>, <code>workflows</code></td><td><span class="pill no">would fail</span></td></tr>
+        <tr><td><code>plugin.json</code> (plugin root)</td><td>agent-plugins.org 1.0.0</td><td>none</td><td><span class="pill yes">valid</span></td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:.85rem;color:var(--dim);margin-top:.8rem">
+      The canonical schema is <code>additionalProperties: false</code> over ten
+      permitted keys. Spec 4.1 and 5.1 place the Agent Plugins manifest at
+      <code>plugin.json</code> in the plugin root; Claude Code reads
+      <code>.claude-plugin/plugin.json</code>. Two paths, two correct files.
+    </p>
+    <div class="flip" style="margin-top:1rem">
+      <div class="old">
+        <div class="label">Rejected: one file</div>
+        <pre>$schema  ✓ added
+skills       (forbidden)
+commands     (forbidden)
+workflows    (forbidden)
+=&gt; names a schema it fails</pre>
+      </div>
+      <div class="new">
+        <div class="label">Shipped: two files</div>
+        <pre>plugin.json
+  $schema, name, version,
+  description, author,
+  homepage, repository,
+  license, keywords
+=&gt; 0 violations</pre>
+      </div>
+    </div>
+    <p style="font-size:.85rem;color:var(--dim);margin-top:.8rem">
+      Also measured and rejected: moving the three keys under
+      <code>extensions</code> makes Claude Code warn
+      <em>"Unknown field 'extensions'. Claude Code ignores it at load time"</em>,
+      trading a false claim for inert data.
+    </p>
+  </section>
+
   <!-- ================================================== not done -->
   <section>
     <h2>Deliberately not done</h2>
     <ul>
-      <li><strong>B5, the agent-plugins.org manifest.</strong> Held back by the
-        operator: it rebuilds <code>plugins/</code> and would collide with a
-        concurrent lane.</li>
       <li><strong>Markdown alternates on the 13 marketing pages.</strong>
         <code>mdTarget()</code> does not map them, so the link would point at a
         URL that answers with HTML. Worse than no link.</li>
@@ -247,9 +293,9 @@ entries[4] ✓</pre>
   </section>
 
   <p class="foot">
-    43 test files / 536 tests green in <code>docs/site</code>. 36 of them are new
-    and pin these five contracts. Typecheck adds no new errors (two pre-existing
-    ones are unchanged).
+    43 test files / 536 tests green in <code>docs/site</code>, 36 of them new.
+    B5 adds a mutation-tested manifest guard (7 injected defects, 7 caught).
+    Typecheck adds no new errors; the two pre-existing ones are unchanged.
   </p>
 </main>
 
