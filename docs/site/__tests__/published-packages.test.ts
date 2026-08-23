@@ -56,7 +56,19 @@ describe("the site's CLI claim matches the package that ships", () => {
 		}
 	});
 
-	it("llms.txt names the same package", () => {
-		expect(llmsTxt).toContain(`npmjs.com/package/${cliPkg.name}`);
+	it("llms.txt names the same package, on the host bots can reach", () => {
+		// llms.txt is read by non-browser clients only, and www.npmjs.com answers
+		// those with a Cloudflare 403 challenge page, so the link there was
+		// unfollowable by every reader of this file. registry.npmjs.org returns
+		// the package document (200) to the same clients. The assertion still
+		// pins the exact shipping package name, only the host changed.
+		expect(llmsTxt).toContain(`https://registry.npmjs.org/${cliPkg.name}`);
+		// Checked against LINK TARGETS, not the raw file: the comment explaining
+		// this change names www.npmjs.com, and a substring check over source would
+		// fail on the explanation instead of on a real link.
+		const targets = [...llmsTxt.matchAll(/\]\((https?:\/\/[^)]+)\)/g)].map(
+			(m) => m[1],
+		);
+		expect(targets.filter((t) => t.includes("www.npmjs.com"))).toEqual([]);
 	});
 });

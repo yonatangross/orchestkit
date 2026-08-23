@@ -107,9 +107,18 @@ export function GET() {
 		"- [Pricing](/pricing.md)",
 		"- [Authentication](/auth.md)",
 		"- [API versioning, deprecation & sunset policy](/api-policy) · [as Markdown](/api-policy.md)",
-		"- [CLI: `npx orchestkit` on npm](https://www.npmjs.com/package/orchestkit) - install, search, ask, read, mcp, doctor. Zero deps, Node >= 20. Also aliased as `ork`.",
+		// registry.npmjs.org, not www.npmjs.com: the www host is behind a
+		// Cloudflare bot challenge and answers any non-browser client with a 403
+		// "Just a moment..." interstitial (measured 2026-08-23 with a ClaudeBot
+		// UA: 403 on both www URLs, 200 on both registry URLs). Every reader of
+		// this file is by definition a non-browser client, so the link it was
+		// given could never be followed. The registry is also the better answer
+		// for an agent: it returns the package document as JSON (versions, dist
+		// tags, bin entries) instead of a rendered marketing page. Same package,
+		// same name, reachable URL.
+		"- [CLI: `npx orchestkit` on npm](https://registry.npmjs.org/orchestkit) - install, search, ask, read, mcp, doctor. Zero deps, Node >= 20. Also aliased as `ork`.",
 		"- [Python package: orchestkit-hook-contract on PyPI](https://pypi.org/project/orchestkit-hook-contract/)",
-		"- [npm package: @orchestkit/hook-contract](https://www.npmjs.com/package/@orchestkit/hook-contract)",
+		"- [npm package: @orchestkit/hook-contract](https://registry.npmjs.org/@orchestkit/hook-contract)",
 		"- [Docs MCP server image (stdio): ghcr.io/yonatangross/orchestkit-docs-mcp](https://github.com/yonatangross/orchestkit/pkgs/container/orchestkit-docs-mcp)",
 		"",
 	];
