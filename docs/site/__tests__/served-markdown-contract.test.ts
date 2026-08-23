@@ -119,10 +119,35 @@ describe("every served Markdown surface opens with a frontmatter block", () => {
 		},
 	);
 
-	it("the three standalone routes still open with a block too", async () => {
-		for (const get of [getPricingMd, getAuthMd, getApiPolicyMd]) {
+	it("pricing.md and api-policy.md open with a block", async () => {
+		for (const get of [getPricingMd, getApiPolicyMd]) {
 			expect((await get().text()).startsWith("---\n")).toBe(true);
 		}
+	});
+
+	it("auth.md must NOT carry frontmatter, and opens with its own H1", async () => {
+		// The one exception, and it is a spec requirement rather than a
+		// preference. workos.com/auth-md/docs/auth-md prescribes the opening:
+		// "A well-formed auth.md is organized as a numbered walkthrough an agent
+		// follows top to bottom ... Title and intro - A one-line title
+		// (# auth.md) followed by a short preamble." The walkthrough's FIRST
+		// section is the title, so a header block above it puts non-walkthrough
+		// content ahead of the document's own first step. The same section adds
+		// "Anything an agent doesn't need to register or operate against your API
+		// belongs in your main documentation, not in auth.md", and the spec's
+		// enumerated extraction targets (headings, the Discovery section, fenced
+		// code blocks, the PRM) contain no metadata key.
+		//
+		// This assertion exists to BITE when someone re-adds the block, which is
+		// exactly what happened once already: adding frontmatter here flipped the
+		// `auth.md exists` check from pass to a 2-point fail, because that check
+		// parses from the first byte and wants a leading heading. #3691.
+		const body = await getAuthMd().text();
+		expect(
+			body.startsWith("---"),
+			`auth.md must not carry frontmatter; body starts: ${JSON.stringify(body.slice(0, 60))}`,
+		).toBe(false);
+		expect(body.split("\n")[0]).toMatch(/^# /);
 	});
 });
 

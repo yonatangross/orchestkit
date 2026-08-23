@@ -242,9 +242,10 @@ docs/site/.claude/memory/sessions/
 # so these two are inert for existing files and only stop new ones.
 #
 # Deliberately NOT extended to orchestration/, coordination/ or agent-memory/.
-# 28 real test fixtures are tracked under src/hooks/.claude/orchestration/ (a
+# 18 real test fixtures are tracked under src/hooks/.claude/orchestration/ (a
 # path line 128 already ignores, so they are tracked-despite-ignored since
-# 2026-01), and project-scope .claude/agent-memory/ is tracked on purpose
+# 2026-01; 31 files are tracked under src/hooks/.claude/ across all kinds), and
+# project-scope .claude/agent-memory/ is tracked on purpose
 # (M170/#3130). A blanket **/ rule over those kinds would silently swallow a
 # legitimately-added fixture or agent-memory file, which is a worse failure
 # than the one being fixed because it is invisible at `git add` time.
