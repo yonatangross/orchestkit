@@ -21,8 +21,12 @@
 // re-execs itself once with NODE_USE_ENV_PROXY=1 in the child environment
 // when the variable is absent, which is the proven launch-time variant.
 //
-// Auth: token comes from `gh auth token` (keychain-free read; it still works
-// even though gh's TLS path is broken). The token is never printed.
+// Auth: GH_TOKEN, then GITHUB_TOKEN, then `gh auth token` as a fallback. The
+// env vars are the credential-store-free path; `gh auth token` is NOT, despite
+// what this comment used to claim (#3653). On macOS it may consult the login
+// keychain, which is the same securityd dependency that breaks gh's TLS path
+// above, so the fallback can fail for a reason that has nothing to do with
+// being logged out. The token is never printed.
 //
 // Usage:
 //   node scripts/gh-api.mjs <method> <path> [json-body-file]
@@ -38,9 +42,16 @@
 
 import { execFileSync, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
-if (process.env.NODE_USE_ENV_PROXY !== '1') {
+// True only when this file is the process entry point. Both the proxy re-exec
+// below and main() at the bottom are gated on it: each calls process.exit(), so
+// an unguarded import would kill the IMPORTING process (#3653).
+const isEntryPoint =
+  process.argv[1] !== undefined &&
+  pathToFileURL(process.argv[1]).href === import.meta.url;
+
+if (isEntryPoint && process.env.NODE_USE_ENV_PROXY !== '1') {
   const child = spawnSync(
     process.execPath,
     [fileURLToPath(import.meta.url), ...process.argv.slice(2)],
@@ -67,10 +78,25 @@ function usage() {
 }
 
 function token() {
+  // Environment FIRST, in gh's own precedence order. This is the only branch
+  // that is genuinely credential-store-free, and it is the one that works when
+  // the sandbox denies Mach IPC to securityd (#3653): the transport fix below
+  // is useless if acquiring the token itself has to go through `gh`.
+  for (const name of ['GH_TOKEN', 'GITHUB_TOKEN']) {
+    const value = process.env[name];
+    if (value && value.trim()) return value.trim();
+  }
+  // Fall back to the CLI. On macOS this MAY consult the login keychain, which
+  // is the same securityd dependency that breaks gh's TLS path, so it can fail
+  // for a reason unrelated to being logged out.
   try {
     return execFileSync('gh', ['auth', 'token'], { encoding: 'utf8' }).trim();
-  } catch {
-    throw new GhApiError('could not read a token from `gh auth token`');
+  } catch (err) {
+    throw new GhApiError(
+      'no usable token. Set GH_TOKEN or GITHUB_TOKEN (preferred: no credential ' +
+        'store involved), or run `gh auth login`. Falling back to `gh auth token` ' +
+        `failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
   }
 }
 
@@ -123,11 +149,21 @@ async function main() {
   process.stdout.write(text + '\n');
 }
 
-main().catch((err) => {
-  if (err instanceof GhApiError) {
-    process.stderr.write(`${err.name}: ${err.message}\n`);
-  } else {
-    process.stderr.write(`${err.name ?? 'Error'}: ${err.message ?? String(err)}\n`);
-  }
-  process.exit(1);
-});
+// Exported so other scripts can import the helper instead of re-implementing
+// the proxy re-exec and the token precedence, and so the token path is unit
+// testable at all. Before #3653 this file ran main() on import, which made it
+// both un-importable and un-testable, and it had zero call sites as a result.
+export { token, request, GhApiError };
+
+// isEntryPoint is computed once near the imports, because the proxy re-exec
+// needs the same answer before any of this runs.
+if (isEntryPoint) {
+  main().catch((err) => {
+    if (err instanceof GhApiError) {
+      process.stderr.write(`${err.name}: ${err.message}\n`);
+    } else {
+      process.stderr.write(`${err.name ?? 'Error'}: ${err.message ?? String(err)}\n`);
+    }
+    process.exit(1);
+  });
+}

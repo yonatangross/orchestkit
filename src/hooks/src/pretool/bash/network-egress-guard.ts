@@ -42,7 +42,7 @@
 
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, outputDeny, outputAsk } from '../../lib/common.js';
-import { normalizeSingle } from '../../lib/normalize-command.js';
+import { normalizeSingle, blankQuotedHeredocBodies } from '../../lib/normalize-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 import { isBypassMode } from '../../lib/guards.js';
 
@@ -235,7 +235,15 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   // flagged. `command` (quote-STRIPPED, not quote-aware) is kept only for host
   // extraction (extractUrlHosts/firstRemoteHost) on the two ASK checks that
   // genuinely need to see a quoted URL to resolve its allowlist status.
-  const denyScan = normalizeSingle(egressDenyScanView(raw));
+  // #3632: blank QUOTED heredoc bodies BEFORE the quote view. A `<<'SH'` body is
+  // inert payload being written to a file, exactly like a single-quoted string,
+  // so a `curl -o` on one body line is not an operator of THIS command. This
+  // matters here specifically because normalizeSingle collapses newlines, so an
+  // unblanked body lets STAGED_RUN_RE's `[^\n]*?` spans run the whole command
+  // and pair a body-local curl with an unrelated later `bash <file>`.
+  // Same precedent dangerous-command-blocker applies to its pipe-to-shell check
+  // (#3098). UNQUOTED heredocs are shell-expanded, so they are left untouched.
+  const denyScan = normalizeSingle(egressDenyScanView(blankQuotedHeredocBodies(raw)));
 
   // --- DENY tier ---
   for (const { re, label } of DENY_REGEX) {

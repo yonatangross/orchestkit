@@ -47,7 +47,47 @@ greptol() {
 # Live label set, one per line. If the API call fails, LABELS is empty and we
 # refuse to pass rather than vacuously approve — the exact bug this gate exists
 # to prevent.
-mapfile -t LABELS < <(gh api "repos/${REPO}/labels" --paginate --jq '.[].name' | sort -u)
+#
+# `gh api` is the fast path: it handles pagination and jq natively. But `gh`
+# dies outright in some sandboxes (its TLS path needs Mach IPC to securityd,
+# OSStatus -26276), and that failure is indistinguishable here from a token
+# scope problem — both just yield an empty LABELS and a refusal. scripts/
+# gh-api.mjs exists precisely for that case: plain fetch, no gh binary, token
+# from GH_TOKEN/GITHUB_TOKEN. Try it before giving up (#3653).
+list_labels() {
+  local out rc
+  out="$(gh api "repos/${REPO}/labels" --paginate --jq '.[].name' 2>/dev/null)"
+  rc=$?
+  if [[ "$rc" -eq 0 && -n "$out" ]]; then
+    printf '%s\n' "$out"
+    return 0
+  fi
+  echo "note: \`gh api\` failed (rc=$rc); retrying via scripts/gh-api.mjs" >&2
+  # One page of 100. A repo with more than 100 labels would truncate here, so
+  # say so rather than silently under-reporting: an under-reported label set
+  # makes this gate fail closed (a real label looks missing), never pass
+  # vacuously, which is the safe direction for a fallback.
+  local here
+  here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  out="$(node "$here/gh-api.mjs" GET "/repos/${REPO}/labels?per_page=100" 2>/dev/null)"
+  rc=$?
+  if [[ "$rc" -ne 0 || -z "$out" ]]; then
+    return 1
+  fi
+  printf '%s' "$out" | node -e '
+    let s = "";
+    process.stdin.on("data", (d) => (s += d));
+    process.stdin.on("end", () => {
+      const rows = JSON.parse(s);
+      if (rows.length === 100) {
+        process.stderr.write("warning: label list hit the 100-item page limit; may be truncated\n");
+      }
+      process.stdout.write(rows.map((r) => r.name).join("\n") + "\n");
+    });
+  '
+}
+
+mapfile -t LABELS < <(list_labels | sort -u)
 if [[ ${#LABELS[@]} -eq 0 ]]; then
   echo "::error::Could not list labels for ${REPO} (token scope?). Refusing to pass vacuously."
   exit 1
