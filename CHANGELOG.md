@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.50](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.49...v10.0.0-alpha.50) (2026-08-23)
+
+
+### Features
+
+* **agents:** multimodal-specialist documented every modality but one ([#3680](https://github.com/yonatangross/orchestkit/issues/3680)) ([46ec55b](https://github.com/yonatangross/orchestkit/commit/46ec55be1f87683c861b655e0bf822126af74c8d))
+
+
+### Bug Fixes
+
+* **hooks:** a quoted heredoc body is payload, not an operator ([#3676](https://github.com/yonatangross/orchestkit/issues/3676)) ([a9bbdeb](https://github.com/yonatangross/orchestkit/commit/a9bbdeb5ff4d85dda564d2c424f3998891ddc160))
+* **hooks:** the analytics liveness guard was watching 3 of 11 writers ([#3678](https://github.com/yonatangross/orchestkit/issues/3678)) ([f6180dd](https://github.com/yonatangross/orchestkit/commit/f6180dd75cefd5911f8f28a3650b9a3f5f8f1152)), closes [#3665](https://github.com/yonatangross/orchestkit/issues/3665)
+* **scripts:** gh-api took its token through the transport it replaces ([#3679](https://github.com/yonatangross/orchestkit/issues/3679)) ([8708b96](https://github.com/yonatangross/orchestkit/commit/8708b96900840c0ce0a1f1deb61cca21734c91f3)), closes [#3653](https://github.com/yonatangross/orchestkit/issues/3653)
+
+
+### Documentation
+
+* **skills:** correct four skill docs that drifted past the code ([#3677](https://github.com/yonatangross/orchestkit/issues/3677)) ([0376978](https://github.com/yonatangross/orchestkit/commit/037697827a9e7cc060d85bdd59f9f4f9cb903a9a)), closes [#3601](https://github.com/yonatangross/orchestkit/issues/3601) [#3587](https://github.com/yonatangross/orchestkit/issues/3587) [#3512](https://github.com/yonatangross/orchestkit/issues/3512) [#3178](https://github.com/yonatangross/orchestkit/issues/3178)
+
 ## [10.0.0-alpha.49](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.48...v10.0.0-alpha.49) (2026-08-22)
 
 
