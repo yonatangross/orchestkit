@@ -56,7 +56,23 @@ describe("the site's CLI claim matches the package that ships", () => {
 		}
 	});
 
-	it("llms.txt names the same package", () => {
-		expect(llmsTxt).toContain(`npmjs.com/package/${cliPkg.name}`);
+	it("llms.txt names the same package, on the host bots can reach", () => {
+		// llms.txt is read by non-browser clients only, and www.npmjs.com answers
+		// those with a Cloudflare 403 challenge page, so the link there was
+		// unfollowable by every reader of this file. registry.npmjs.org returns
+		// the package document (200) to the same clients. The assertion still
+		// pins the exact shipping package name, only the host changed.
+		expect(llmsTxt).toContain(`https://registry.npmjs.org/${cliPkg.name}`);
+		// Checked against the parsed HOST of each link target, not against the raw
+		// file. Two reasons, and the second is why this is not a substring test:
+		// the comment explaining this change names www.npmjs.com, so a substring
+		// check over source would fail on the explanation instead of on a real
+		// link; and a substring check over a URL matches the host anywhere in the
+		// string, so `https://evil.test/?u=www.npmjs.com` would read as a hit.
+		const hosts = [...llmsTxt.matchAll(/\]\((https?:\/\/[^)\s]+)\)/g)].map(
+			(m) => new URL(m[1]).hostname,
+		);
+		expect(hosts.filter((h) => h === "www.npmjs.com")).toEqual([]);
+		expect(hosts).toContain("registry.npmjs.org");
 	});
 });

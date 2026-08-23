@@ -1,4 +1,12 @@
 import { SITE } from "@/lib/constants";
+import { withFrontmatter } from "@/lib/md-frontmatter";
+
+// The document's own summary, rendered as both the blockquote below and the
+// frontmatter `description`. There is no HTML twin at /auth to borrow a
+// metadata.description from: this file IS the resource, which is why its
+// canonical URL below is its own.
+const AUTH_LEAD =
+	"The OrchestKit documentation and search API are public and read-only. No authentication, API key, or account is required. Agents call the endpoints directly.";
 
 // /auth.md — agent-facing authentication walkthrough (WorkOS auth.md shape:
 // Discover / Pick a method / Use the credential / Errors). OrchestKit's public
@@ -12,7 +20,7 @@ export function GET() {
 	const body = [
 		`# Authenticating with the ${SITE.name} API`,
 		"",
-		"> The OrchestKit documentation and search API are public and read-only. No authentication, API key, or account is required. Agents call the endpoints directly.",
+		`> ${AUTH_LEAD}`,
 		"",
 		"## Discover",
 		"",
@@ -107,7 +115,16 @@ export function GET() {
 		"",
 	].join("\n");
 
-	return new Response(body, {
+	const md = withFrontmatter(
+		{
+			title: `Authenticating with the ${SITE.name} API`,
+			description: AUTH_LEAD,
+			canonical: `${d}/auth.md`,
+		},
+		body,
+	);
+
+	return new Response(md, {
 		headers: {
 			"Content-Type": "text/markdown; charset=utf-8",
 			"Cache-Control": "public, max-age=3600",

@@ -11,15 +11,47 @@ import { SITE } from "@/lib/constants";
 // Every entry below points at a resource this site already serves; the
 // catalog is a discovery index over them, not a new surface. Host identity is
 // a did:web anchored to the domain and resolvable at /.well-known/did.json. The
-// API is unauthenticated and read-only, so the host trustManifest advertises a
+// API is unauthenticated and read-only, so the trustManifest advertises a
 // verifiable identity + provenance but no credential/attestation envelope —
 // there is nothing to sign for and no compliance program to assert.
+//
+// The manifest hangs off the HOST and off EVERY ENTRY. A consumer reading this
+// catalog evaluates a resource, not a publisher: it decides whether to invoke
+// the MCP server or load the OpenAPI spec, so the identity and provenance of
+// that resource have to travel with the entry it is deciding about. A
+// host-level envelope alone leaves every entry unattributed, which is how a
+// scanner reading `hasTrustManifest` per entry sees five unsigned rows under a
+// signed header. Every entry is served by this same origin and published from
+// the same repository, so the same envelope is the truthful answer for each.
 export const revalidate = false;
 
 // did:web derives from the host: https://orchestkit.yonyon.ai -> did:web:orchestkit.yonyon.ai
 const HOST_ID = `did:web:${SITE.domain.replace(/^https?:\/\//, "")}`;
 // URN authority segment (the bare host) for urn:air:<host>:<type>:<name>.
 const URN_HOST = SITE.domain.replace(/^https?:\/\//, "");
+
+// The one trust envelope this publisher can honestly back, shared by the host
+// and by every entry.
+//
+// It carries exactly two claims, both verifiable without asking us:
+//   - identity: the did:web resolvable at /.well-known/did.json, whose
+//     verification key is the same one in the RFC 9421 key directory.
+//   - provenance: the resource is generated from and published from the public
+//     source repository, which anyone can read.
+//
+// Omitted on purpose, because there is nothing to honestly assert: `signature`
+// (this origin runs no request-signing bot), `attestations` (no SOC2/HIPAA or
+// other compliance program), `trustSchema` (no external governance).
+const TRUST_MANIFEST = {
+	identity: HOST_ID,
+	identityType: "did",
+	provenance: [
+		{
+			relation: "publishedFrom",
+			sourceId: "https://github.com/yonatangross/orchestkit",
+		},
+	],
+} as const;
 
 export function GET() {
 	const d = SITE.domain;
@@ -29,25 +61,9 @@ export function GET() {
 			displayName: SITE.name,
 			identifier: HOST_ID,
 			documentationUrl: `${d}/llms.txt`,
-			// ARD trustManifest — the zero-trust identity envelope for the catalog.
-			// Only `identity` is required; we advertise the fields we can back:
-			//   - identity: the did:web resolvable at /.well-known/did.json, whose
-			//     verification key is the same one in the RFC 9421 key directory.
-			//   - provenance: the catalog is generated from and published from the
-			//     public source repository.
-			// Omitted on purpose (nothing to honestly assert): `signature` (this
-			// origin runs no request-signing bot), `attestations` (no SOC2/HIPAA or
-			// other compliance program), `trustSchema` (no external governance).
-			trustManifest: {
-				identity: HOST_ID,
-				identityType: "did",
-				provenance: [
-					{
-						relation: "publishedFrom",
-						sourceId: "https://github.com/yonatangross/orchestkit",
-					},
-				],
-			},
+			// ARD trustManifest for the catalog host. See TRUST_MANIFEST above for
+			// what it claims and what it deliberately leaves out.
+			trustManifest: TRUST_MANIFEST,
 		},
 		entries: [
 			{
@@ -57,6 +73,7 @@ export function GET() {
 				url: `${d}/.well-known/mcp/server-card.json`,
 				description:
 					"Model Context Protocol server over the OrchestKit documentation. Read-only tools: search the docs and fetch pages as Markdown. Streamable HTTP at /api/mcp, or stdio via the OCI image.",
+				trustManifest: TRUST_MANIFEST,
 				tags: ["mcp", "documentation", "search", "read-only"],
 			},
 			{
@@ -66,6 +83,7 @@ export function GET() {
 				url: `${d}/.well-known/agent-skills/index.json`,
 				description:
 					"Index of the skills OrchestKit publishes, in the agentskills.io index shape, so an agent can enumerate available capabilities by name.",
+				trustManifest: TRUST_MANIFEST,
 				tags: ["skills", "discovery", "index"],
 			},
 			{
@@ -75,6 +93,7 @@ export function GET() {
 				url: `${d}/.well-known/agent-card.json`,
 				description:
 					"Agent-to-Agent (A2A) card describing OrchestKit's agent-facing surface and how to reach it.",
+				trustManifest: TRUST_MANIFEST,
 				tags: ["a2a", "agent-card", "discovery"],
 			},
 			{
@@ -84,6 +103,7 @@ export function GET() {
 				url: `${d}/openapi.json`,
 				description:
 					"OpenAPI 3.1 description of the unauthenticated, read-only documentation search + NLWeb query API. Load it to discover the callable surface for function-calling.",
+				trustManifest: TRUST_MANIFEST,
 				tags: ["openapi", "api", "search", "read-only"],
 			},
 			{
@@ -93,6 +113,7 @@ export function GET() {
 				url: `${d}/.well-known/api-catalog`,
 				description:
 					"RFC 9727 linkset enumerating every discoverable API surface with its service-desc, service-doc, and status relations.",
+				trustManifest: TRUST_MANIFEST,
 				tags: ["api-catalog", "rfc9727", "linkset"],
 			},
 		],
