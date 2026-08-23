@@ -148,3 +148,41 @@ export function uaFamily(userAgent: string | null | undefined): string {
 	}
 	return "other";
 }
+
+// The subset of UA_FAMILIES that is an LLM crawler or assistant fetcher: a
+// client whose whole reason for fetching a page is to read its prose. These get
+// Markdown from middleware.ts without having to send `Accept: text/markdown`,
+// because none of them do.
+//
+// Three groups are deliberately OUT:
+//   - Classic search crawlers (googlebot, bingbot, applebot, amazonbot). They
+//     index the HTML, and swapping it for Markdown would remove this site from
+//     the results it currently earns. "AI bot" is not a synonym for "crawler".
+//   - Generic HTTP clients (curl, python, node, go, java, ruby, postman). A
+//     human debugging with curl, a CI health check and an agent are the same
+//     string; those callers still get Markdown the explicit way, by asking.
+//   - browser-ua / other / none, which is every real browser.
+const AI_BOT_UA_FAMILIES: ReadonlySet<string> = new Set([
+	"gptbot",
+	"oai-searchbot",
+	"chatgpt-user",
+	"claudebot",
+	"claude-user",
+	"claude-web",
+	"anthropic",
+	"perplexity",
+	"google-extended",
+	"meta-externalagent",
+	"bytespider",
+	"ccbot",
+]);
+
+/**
+ * Whether a bounded family from `uaFamily()` is a known AI crawler/fetcher.
+ *
+ * Takes the FAMILY, not the raw header, so the serving decision and the
+ * analytics property can never disagree about what a request was.
+ */
+export function isAiBotFamily(family: string): boolean {
+	return AI_BOT_UA_FAMILIES.has(family);
+}

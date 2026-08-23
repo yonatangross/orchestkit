@@ -21,6 +21,18 @@ export const COUNTS = {
   commands: TOTALS.commands,
 } as const;
 
+// One-sentence summaries shared by an HTML page and its Markdown twin. Each is
+// already that page's `metadata.description`; hoisting it here is what lets the
+// Markdown frontmatter carry the SAME description the HTML head publishes
+// instead of a second sentence that can drift away from it.
+export const PAGE_SUMMARY = {
+  // Root layout `metadata.description`. The homepage sets no page-level
+  // override, so this is the description of "/" itself.
+  site: `${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks for Claude Code. Stop explaining your stack. Start shipping.`,
+  // app/(home)/pricing `metadata.description`, and the lead of /pricing.md.
+  pricing: `${SITE.name} is free and open source under the MIT license. No paid tiers, no usage limits, no account required.`,
+} as const;
+
 // Identity + entity-linking values for JSON-LD structured data.
 // Only verifiable URLs are listed in `sameAs` — sameAs is the single
 // highest-leverage property for AI entity disambiguation, so it must never

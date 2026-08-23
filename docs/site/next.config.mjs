@@ -210,9 +210,13 @@ const config = {
 						'</api-policy.md>; rel="deprecation"',
 					].join(", "),
 				},
-				// Vary on Accept: the same URL serves HTML or Markdown depending on the
-				// Accept header (see middleware.ts), so caches must key on it.
-				{ key: "Vary", value: "Accept, Accept-Encoding" },
+				// Vary on Accept AND User-Agent: the same URL serves HTML or Markdown
+				// depending on BOTH (see middleware.ts, which rewrites on
+				// `Accept: text/markdown` and, since the bot-UA branch, on a known AI
+				// crawler's User-Agent). A shared cache that keys only on Accept would
+				// store GPTBot's Markdown under the browser's cache key and serve raw
+				// Markdown to readers, so the User-Agent token is load-bearing.
+				{ key: "Vary", value: "Accept, Accept-Encoding, User-Agent" },
 				{ key: "X-Frame-Options", value: "DENY" },
 				{ key: "X-Content-Type-Options", value: "nosniff" },
 				{ key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

@@ -1,4 +1,5 @@
-import { COUNTS, SITE } from "@/lib/constants";
+import { COUNTS, PAGE_SUMMARY, SITE } from "@/lib/constants";
+import { withFrontmatter } from "@/lib/md-frontmatter";
 
 // /pricing.md — machine-readable pricing so agents can compare costs without
 // scraping the HTML pricing page.
@@ -8,7 +9,7 @@ export function GET() {
 	const body = [
 		`# ${SITE.name} Pricing`,
 		"",
-		"> OrchestKit is free and open source under the MIT license. No paid tiers, no usage limits, no account required.",
+		`> ${PAGE_SUMMARY.pricing}`,
 		"",
 		"## Plans",
 		"",
@@ -26,7 +27,18 @@ export function GET() {
 		"",
 	].join("\n");
 
-	return new Response(body, {
+	// canonical points at /pricing, not at this URL: the two are representations
+	// of one resource, and /pricing is the one the HTML page declares canonical.
+	const md = withFrontmatter(
+		{
+			title: `${SITE.name} Pricing`,
+			description: PAGE_SUMMARY.pricing,
+			canonical: `${SITE.domain}/pricing`,
+		},
+		body,
+	);
+
+	return new Response(md, {
 		headers: {
 			"Content-Type": "text/markdown; charset=utf-8",
 			"Cache-Control": "public, max-age=3600",
