@@ -1,4 +1,5 @@
 import { hasMarkdownTwin, pageMarkdown } from "@/lib/page-markdown";
+import { MARKDOWN_VARY } from "@/lib/md-frontmatter";
 import { problemResponse } from "@/lib/problem";
 import { SITE } from "@/lib/constants";
 import { notFoundExtensions } from "@/lib/not-found-body";
@@ -38,6 +39,13 @@ export async function GET(
 		headers: {
 			"Content-Type": "text/markdown; charset=utf-8",
 			"Cache-Control": "public, max-age=3600",
+			// This handler answers /developers and /yonyon for an AI crawler while a
+			// browser on the SAME URL gets HTML, so the response must say so. It set
+			// no Vary at all until now: measured on production, /developers returned
+			// Markdown under `Vary: rsc, next-router-...`, which lets a shared cache
+			// store this body and later hand it to a reader. That is the dangerous
+			// direction of the bug, and it is the one this line closes.
+			Vary: MARKDOWN_VARY,
 		},
 	});
 }
