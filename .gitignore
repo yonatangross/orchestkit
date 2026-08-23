@@ -234,6 +234,23 @@ docs/site/.claude/memory/sessions/
 **/.claude/HANDOFF.md
 **/.claude/memory/
 
+# Same anchoring class as the two rules above, found 2026-08-23 after four
+# session-event files reached main (one 103 KB, inside a feat PR). A pattern
+# containing a slash is anchored to THIS directory, so `.claude/state/` above
+# only ever matched at the repo root while every nested copy stayed visible to
+# `git add -A`. Nothing is tracked under a nested state/ or telemetry/ today,
+# so these two are inert for existing files and only stop new ones.
+#
+# Deliberately NOT extended to orchestration/, coordination/ or agent-memory/.
+# 28 real test fixtures are tracked under src/hooks/.claude/orchestration/ (a
+# path line 128 already ignores, so they are tracked-despite-ignored since
+# 2026-01), and project-scope .claude/agent-memory/ is tracked on purpose
+# (M170/#3130). A blanket **/ rule over those kinds would silently swallow a
+# legitimately-added fixture or agent-memory file, which is a worse failure
+# than the one being fixed because it is invisible at `git add` time.
+**/.claude/state/
+**/.claude/telemetry/
+
 # Subagent scratch probes. Two were committed by accident on 2026-08-08
 # (__guards_main_tmp.ts, __probe_main_tmp.ts) — one of them would have poisoned
 # any `grep permission_mode src/`.
