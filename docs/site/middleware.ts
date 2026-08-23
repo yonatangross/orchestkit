@@ -15,6 +15,7 @@ import {
 } from "@/lib/agent-surface";
 import { reportServerEvent } from "@/lib/analytics-server";
 import { SITE } from "@/lib/constants";
+import { MARKDOWN_VARY } from "@/lib/md-frontmatter";
 import { notFoundExtensions, notFoundMarkdown } from "@/lib/not-found-body";
 import { problemResponse } from "@/lib/problem";
 import { hasMarkdownTwin } from "@/lib/page-markdown";
@@ -57,6 +58,14 @@ function isMeteredSurface(pathname: string): boolean {
 		(pathname.startsWith("/api/") || classifyAgentSurface(pathname) !== null) &&
 		middlewareShouldMeter(pathname)
 	);
+}
+
+// Whether this path can answer with EITHER HTML or Markdown, which is exactly
+// the set of URLs whose responses must Vary on Accept and User-Agent. Derived
+// from mdTarget() rather than listed again, so a new twin cannot be added
+// without its cache key following along.
+function servesTwoRepresentations(pathname: string): boolean {
+	return mdTarget(pathname) !== null;
 }
 
 export function middleware(req: NextRequest) {
@@ -145,6 +154,10 @@ export function middleware(req: NextRequest) {
 			for (const [k, v] of Object.entries(limitHeaders)) {
 				rewritten.headers.set(k, v);
 			}
+			// Belt and braces with the handlers' own Vary: this is the branch that
+			// produced a Markdown body, and the entry a cache is most dangerous
+			// storing without a User-Agent key.
+			rewritten.headers.set("Vary", MARKDOWN_VARY);
 			return rewritten;
 		}
 	}
@@ -214,6 +227,19 @@ export function middleware(req: NextRequest) {
 	const res = NextResponse.next();
 	for (const [k, v] of Object.entries(limitHeaders)) {
 		res.headers.set(k, v);
+	}
+	// The HTML half of the content negotiation above. next.config.mjs declares
+	// this same Vary, but MEASURED on production it does not survive here: Next
+	// appends its own RSC tokens to `vary` (base-server.js setVaryHeader) and the
+	// configured value is absent from the result, even though every other header
+	// from that config block is present. Setting it on the response middleware
+	// actually returns is the layer that holds.
+	//
+	// Scoped to paths that genuinely serve two bodies. A URL with one
+	// representation gains nothing from varying on User-Agent and would only
+	// fragment its cache entries per crawler.
+	if (servesTwoRepresentations(pathname)) {
+		res.headers.set("Vary", MARKDOWN_VARY);
 	}
 	return res;
 }
