@@ -854,7 +854,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "chain-patterns",
     "description": "Chain patterns for multi-phase pipelines: MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building or debugging a pipeline skill.",
     "version": "1.0.0",
-    "sha256": "42ca1ddec06f731afe8ead945909b93ad6186da303a05fb55fa72de0d4a8fbdf",
+    "sha256": "e607fcf81947d92856a7d6edf615f3b89d0e4e04bd04c9e997f64e536df88df6",
     "author": "OrchestKit",
     "tags": [
       "pipeline",
@@ -1853,7 +1853,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.2.0",
-    "sha256": "c2cc6050ee8f1fa520741243fd3185a4160475a8a02575225444643c5402dcb3",
+    "sha256": "443fd525e0c7d3a4c371bfb794ff56cee02214d39e3311449e3cd57f8b3e8e6b",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -1984,7 +1984,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "dream",
     "description": "Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory).",
     "version": "1.0.0",
-    "sha256": "11c3524fbf7d28486353f175fb5a936b7f6169468776df841875649adc1be17c",
+    "sha256": "673c02d16d5326aa163a5800084df8ad8400b83232070a8676f2ae1f1ef342ea",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -2004,7 +2004,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [],
     "agent": null,
     "complexity": "medium",
-    "structure": {},
+    "structure": {
+      "references": [
+        "safe-deletes.md"
+      ]
+    },
     "plugins": [
       "ork"
     ],
@@ -3997,7 +4001,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "d585ceb71cd3194b8c570c6349f353ae28f6592029f2177e9e542fc8ec5b419d",
+    "sha256": "fb269ca08bf130a52551b7035d0390913087bf520594d4d05d6f4be3960f5a03",
     "author": "OrchestKit",
     "tags": [
       "code-review",

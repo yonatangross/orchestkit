@@ -16,13 +16,20 @@
  * - On shape change, logs the marker delta via ctx.log — NOTHING ELSE
  * - Never modifies Claude's behavior
  *
- * NO ANALYTICS FILE IS WRITTEN. #1266 (v7.30.0) removed appendAnalytics and left
- * comments asserting an emit() replacement that was never built — there is no
- * emit call in this file, and nothing writes ~/.claude/analytics/cache-breaks.jsonl.
- * That filename is still listed in telemetry-http-sink KNOWN_EVENT_FILES, an
- * allowlist entry with no producer. Deciding whether to build the emit path or
- * drop the claim entirely is tracked separately; until then this header states
- * what the code does rather than what was intended.
+ * WRITES cache-breaks.jsonl on every shape change (restored in #3665).
+ * #1266 (v7.30.0) had removed appendAnalytics on the stated rationale that the
+ * data was "already in the emit path". Measured 2026-08-22, it was not: this
+ * file contains no emit() call, and emit() fans out to sinks writing
+ * ~/.claude/ork-telemetry/ rather than ~/.claude/analytics/. The file sat 139
+ * days stale while this hook ran every turn and discarded the numbers, and the
+ * liveness guard could not see it because its watch list named three other
+ * files. Both halves are fixed in #3665.
+ *
+ * DISPATCH: this hook has no entry in hooks.json or the entries map BY DESIGN.
+ * It is fanned out by prompt/unified-dispatcher (see its HOOKS table), which is
+ * itself registered in both surfaces. Counting direct references and concluding
+ * "registered nowhere, so it never fires" is wrong, and re-registering it
+ * directly would double-fire it and double-count turns.
  *
  * LOAD-BEARING SIDE EFFECT: this hook is the sole writer of the turn-state file
  * (see lib/session-turn-counter.ts), which prompt/goal-tracker and
@@ -35,7 +42,9 @@
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, fnv1aHash } from '../lib/common.js';
-// v7.30.0 (#1266): removed appendAnalytics. No replacement emit path exists.
+// #3665: appendAnalytics restored. v7.30.0 (#1266) removed it citing an emit
+// path that was never built for this hook; see the call site for the evidence.
+import { appendAnalytics, hashProject } from '../lib/analytics.js';
 import { getTurnStateFilePath } from '../lib/session-turn-counter.js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -246,6 +255,27 @@ export function cacheBreakDetector(input: HookInput, ctx: HookContext = NOOP_CTX
       `Cache break: +${delta.added.length}/-${delta.removed.length} markers ` +
         `(attribution only — token cost comes from the API, not from here)`
     );
+
+    // Persist the measured delta. #1266 removed this call on the rationale that
+    // the data was "already in the emit path"; measured 2026-08-22, it was not.
+    // There is no emit() call in this file, and emit() fans out to sinks that
+    // write ~/.claude/ork-telemetry/, not ~/.claude/analytics/. The result was
+    // 139 days of cache-breaks.jsonl silence while this hook ran every turn and
+    // computed the numbers below, then dropped them (#3665). appendAnalytics is
+    // the codebase's own source of truth ("Local JSONL above is the source of
+    // truth" — lib/analytics.ts) and it dual-writes to the platform sink.
+    appendAnalytics('cache-breaks.jsonl', {
+      ts: new Date().toISOString(),
+      // `pid` + hashProject matches every sibling writer (skill-usage,
+      // agent-usage), so these rows join with theirs instead of needing a
+      // second convention.
+      pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
+      turn: turnCount,
+      prev_shape_hash: prevState.lastShapeHash,
+      shape_hash: currentHash,
+      markers_added: delta.added.length,
+      markers_removed: delta.removed.length,
+    });
   } catch (error) {
     // Never crash the hook chain
     ctx.log(HOOK_NAME, `Error: ${error}`, 'warn');
