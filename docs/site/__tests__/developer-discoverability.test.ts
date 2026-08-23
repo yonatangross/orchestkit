@@ -61,10 +61,22 @@ describe("/developers.md", () => {
 
 	it("names both the product and the studio in the H1", () => {
 		// This is the whole point: a name-keyed query ("yonyon developer
-		// resources") has to match something in the first line of the document.
-		const h1 = md.split("\n")[0] as string;
+		// resources") has to match something at the head of the document.
+		// Read as the H1 LINE rather than line 0: the document now opens with a
+		// frontmatter block, so line 0 is `---`. The requirement was always about
+		// the heading, and anchoring it to a line index quietly made it about
+		// the file's first byte instead.
+		const h1 = md.split("\n").find((l) => l.startsWith("# ")) as string;
 		expect(h1).toContain("OrchestKit");
 		expect(h1).toContain("Yonyon");
+	});
+
+	it("carries the same brand names in its frontmatter title", () => {
+		// The header block is what a Markdown consumer reads as the document
+		// title, so the name-keyed query has to match there too.
+		const title = md.split("\n").find((l) => l.startsWith("title: ")) as string;
+		expect(title).toContain("OrchestKit");
+		expect(title).toContain("Yonyon");
 	});
 
 	it("lists every resource the HTML page lists, from the same source", () => {
@@ -90,7 +102,11 @@ describe("/yonyon.md", () => {
 	const md = pageMarkdown("yonyon");
 
 	it("leads with the brand disambiguation, not the product pitch", () => {
-		expect(md.split("\n")[0]).toContain("Yonyon");
+		// H1 line, not line 0 — the document opens with a frontmatter block now.
+		expect(md.split("\n").find((l) => l.startsWith("# "))).toContain("Yonyon");
+		expect(md.split("\n").find((l) => l.startsWith("title: "))).toContain(
+			"Yonyon",
+		);
 		expect(md).toMatch(/not the musician/i);
 	});
 

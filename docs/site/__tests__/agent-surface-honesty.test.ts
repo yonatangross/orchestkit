@@ -47,7 +47,11 @@ import { GET as getPricingMd } from "@/app/pricing.md/route";
 import { metadata as rootMetadata } from "@/app/layout";
 import { isAiBotFamily, uaFamily } from "@/lib/agent-surface";
 import { SITE } from "@/lib/constants";
-import { frontmatterBlock, withFrontmatter } from "@/lib/md-frontmatter";
+import {
+	frontmatterBlock,
+	MARKDOWN_VARY,
+	withFrontmatter,
+} from "@/lib/md-frontmatter";
 import { middleware } from "@/middleware";
 
 const ORIGIN = SITE.domain;
@@ -294,10 +298,20 @@ describe("AI-bot User-Agents get Markdown", () => {
 		expect(isAiBotFamily(uaFamily("Mozilla/5.0 Chrome/140"))).toBe(false);
 	});
 
-	it("Vary names User-Agent everywhere the UA can change the body", () => {
-		// THE cache-poisoning guard. With the bot-UA branch live and User-Agent
-		// missing from Vary, a shared cache is free to serve a browser the
-		// Markdown it stored for GPTBot.
+	it("next.config still declares Vary (necessary, and NOT sufficient)", () => {
+		// This assertion used to be the whole cache-poisoning guard, and it was
+		// GREEN while production served HTML under `Vary: rsc, next-router-...`
+		// with the configured value nowhere in the response. Measured 2026-08-23:
+		// every other header from the same config block was present, so the block
+		// applies; Next appends its own RSC tokens to `vary`
+		// (base-server.js setVaryHeader) and the configured value does not
+		// survive on framework-rendered routes.
+		//
+		// Kept, because the config is still the baseline for responses nothing
+		// else decorates. Renamed and narrowed, because reading it as proof that
+		// callers receive the header is precisely the mistake that shipped.
+		// The response-level proof lives in served-markdown-contract.test.ts and
+		// asserts headers on real Response objects.
 		const config = readFileSync(
 			resolve(__dirname, "../next.config.mjs"),
 			"utf8",
@@ -306,13 +320,13 @@ describe("AI-bot User-Agents get Markdown", () => {
 		expect(vary, "no Vary header in next.config.mjs").not.toBeNull();
 		expect(vary?.[1]).toContain("User-Agent");
 		expect(vary?.[1]).toContain("Accept");
+	});
 
-		const mdRoute = readFileSync(
-			resolve(__dirname, "../app/api/md/[[...slug]]/route.ts"),
-			"utf8",
-		);
-		const routeVary = mdRoute.match(/Vary:\s*"([^"]+)"/);
-		expect(routeVary?.[1]).toContain("User-Agent");
+	it("the value handlers send is one shared constant, not per-file literals", () => {
+		// Two handlers and the middleware all have to agree on the cache key; the
+		// bug was one surface disagreeing (page-md sent no Vary at all).
+		expect(MARKDOWN_VARY).toContain("Accept");
+		expect(MARKDOWN_VARY).toContain("User-Agent");
 	});
 });
 

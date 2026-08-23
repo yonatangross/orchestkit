@@ -3,7 +3,7 @@
 
 import { COUNTS, PAGE_SUMMARY, SITE } from "@/lib/constants";
 import { readDocBody } from "@/lib/docs-content";
-import { withFrontmatter } from "@/lib/md-frontmatter";
+import { MARKDOWN_VARY, withFrontmatter } from "@/lib/md-frontmatter";
 import { source } from "@/lib/source";
 
 // Markdown-for-Agents target. middleware.ts rewrites requests carrying
@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
 const MD_HEADERS = {
 	"Content-Type": "text/markdown; charset=utf-8",
 	"Cache-Control": "public, max-age=3600",
-	Vary: "Accept, Accept-Encoding, User-Agent",
+	Vary: MARKDOWN_VARY,
 } as const;
 
 function homepageMarkdown(): string {

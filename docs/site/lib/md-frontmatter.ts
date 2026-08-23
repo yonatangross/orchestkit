@@ -49,3 +49,19 @@ export function withFrontmatter(
 ): string {
 	return `${frontmatterBlock(fm)}\n${body}`;
 }
+
+// The Vary a response must carry when the SAME URL can answer with either HTML
+// or Markdown. Two inputs decide which body a caller gets, so a shared cache has
+// to key on both: `Accept` (content negotiation) and `User-Agent` (the AI-crawler
+// branch in middleware.ts).
+//
+// It lives here, next to the other shared Markdown-surface constants, because it
+// has to be identical on every response that can serve two representations, and
+// it was previously spelled out per handler. `next.config.mjs` also declares it,
+// but MEASURED on production 2026-08-23 that declaration does not survive on
+// framework-rendered routes: Next calls `res.appendHeader('vary', ...)` with its
+// own RSC tokens (base-server.js setVaryHeader) and the configured value is not
+// in the result, while every other header from the same config block IS present.
+// So the config is necessary but not sufficient, and the value has to be set on
+// the response itself.
+export const MARKDOWN_VARY = "Accept, Accept-Encoding, User-Agent";
