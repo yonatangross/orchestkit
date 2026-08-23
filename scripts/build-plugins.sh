@@ -18,6 +18,12 @@ SRC_DIR="$PROJECT_ROOT/src"
 MANIFESTS_DIR="$PROJECT_ROOT/manifests"
 PLUGINS_DIR="$PROJECT_ROOT/plugins"
 
+# Canonical identifier for the Agent Plugins 1.0.0 manifest schema. The value is
+# fixed by the spec ("its value MUST be the canonical identifier"), so it is a
+# constant, not a configurable. Clients MUST NOT fetch the schema while loading
+# a plugin; it is a version selector, and this string is the version we target.
+AGENT_PLUGINS_SCHEMA="https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -414,6 +420,38 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         + if $has_commands then {commands: "./commands/"} else {} end
         + if $has_workflows then {workflows: "./workflows/"} else {} end' \
         > "$PLUGIN_DIR/.claude-plugin/plugin.json"
+
+    # Generate the Agent Plugins manifest at the PLUGIN ROOT.
+    #
+    # This is a second, separate file, not an edit to the Claude Code one.
+    # agent-plugins.org 1.0.0 puts its manifest at `plugin.json` in the plugin
+    # root (spec 4.1 and 5.1: "A plugin MUST include a manifest at plugin.json
+    # in the plugin root"), while Claude Code reads
+    # `.claude-plugin/plugin.json`. Different paths, so both can be exactly
+    # right at once and neither has to compromise for the other.
+    #
+    # It could NOT have been the same file. The canonical schema at
+    # https://agent-plugins.org/schemas/1.0.0/plugin.schema.json is
+    # `additionalProperties: false` over ten permitted keys, and the Claude
+    # Code manifest above carries three more (skills, commands, workflows).
+    # Putting $schema on that file would have named a schema it fails.
+    #
+    # Derived from the file just written, with an ALLOWLIST rather than a
+    # `del(...)` of the three known extras. A denylist fails open: the next
+    # field added to the Claude Code manifest would leak in here and silently
+    # break conformance. An allowlist means a new field is simply absent until
+    # someone decides it belongs, which is the same fail-closed shape the
+    # playground CI gate uses.
+    jq --arg schema "$AGENT_PLUGINS_SCHEMA" \
+        '{"$schema": $schema}
+         + with_entries(
+             select(.key as $k
+                    | ["name","version","description","author",
+                       "homepage","repository","license","keywords"]
+                    | index($k))
+           )' \
+        "$PLUGIN_DIR/.claude-plugin/plugin.json" \
+        > "$PLUGIN_DIR/plugin.json"
 
     TOTAL_SKILLS_COPIED=$((TOTAL_SKILLS_COPIED + skill_count))
     TOTAL_AGENTS_COPIED=$((TOTAL_AGENTS_COPIED + agent_count))
