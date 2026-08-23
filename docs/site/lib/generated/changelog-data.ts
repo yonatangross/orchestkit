@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.52",
+    "date": "2026-08-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**git:** untrack committed session state, close the anchoring gap ([#3692](https://github.com/yonatangross/orchestkit/issues/3692)) ([5e31893](https://github.com/yonatangross/orchestkit/commit/5e31893a0848cd32d4a30ae5c01adcfaac2000cd))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.51",
     "date": "2026-08-23",
     "compareUrl": "",

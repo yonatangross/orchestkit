@@ -333,6 +333,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.52](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.51...v10.0.0-alpha.52)** · 2026-08-23
+
+- **git:** untrack committed session state, close the anchoring gap (#3692)
+
 **[v10.0.0-alpha.51](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.50...v10.0.0-alpha.51)** · 2026-08-23
 
 - **build:** ship a conforming Agent Plugins 1.0.0 manifest (#3685)
@@ -373,15 +377,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **announce:** label-gated alpha announcements plus RSS feed (#3638) (#3639)
 - **pricing:** Sonnet 5 is $2/$10, and retire retired model IDs (#3647)
 - **cc:** snapshot 2.1.238, hand-triage, advance latest_known (#3636)
-
-**[v10.0.0-alpha.44](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.43...v10.0.0-alpha.44)** · 2026-08-21
-
-- **cc-watch:** watch the Claude Platform release notes (#3627) (#3635)
-- **doctor:** read the macOS sandbox violation log, fail closed (#3631)
-- **scripts:** add gh-api.mjs, a GitHub API client for gh-broken shells (#3633)
-- **worktree:** adopt .worktreeinclude and pin baseRef plus spawn depth (#3582)
-- **cc-triage:** tolerate fenced JSON and resolve the umbrella with state=all (#3580)
-- …and 4 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
