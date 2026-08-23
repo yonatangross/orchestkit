@@ -333,6 +333,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.50](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.49...v10.0.0-alpha.50)** · 2026-08-23
+
+- **agents:** multimodal-specialist documented every modality but one (#3680)
+- **hooks:** a quoted heredoc body is payload, not an operator (#3676)
+- **hooks:** the analytics liveness guard was watching 3 of 11 writers (#3678), closes [#3665](https://github.com/yonatangross/orchestkit/issues/3665)
+- **scripts:** gh-api took its token through the transport it replaces (#3679), closes [#3653](https://github.com/yonatangross/orchestkit/issues/3653)
+- **skills:** correct four skill docs that drifted past the code (#3677), closes [#3601](https://github.com/yonatangross/orchestkit/issues/3601) [#3587](https://github.com/yonatangross/orchestkit/issues/3587) [#3512](https://github.com/yonatangross/orchestkit/issues/3512) [#3178](https://github.com/yonatangross/orchestkit/issues/3178)
+
 **[v10.0.0-alpha.49](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.48...v10.0.0-alpha.49)** · 2026-08-22
 
 - **skills:** add paired-probe, a gate on checks that cannot disagree (#3664)
@@ -379,13 +387,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **tests:** give every mktemp a template so it honours TMPDIR (#3579)
 - **configure:** caveat when excludedCommands is inert (#3573)
 - …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-alpha.42](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.41...v10.0.0-alpha.42)** · 2026-08-19
-
-- **build:** stop a denied scratch file from zeroing the hook subcount (#3567), closes [#3564](https://github.com/yonatangross/orchestkit/issues/3564)
-- **ci:** bound the second apt-get, the one outside .github/ (#3561), closes [#3557](https://github.com/yonatangross/orchestkit/issues/3557)
-- **hooks:** scope the context7 cap to the session it is named after (#3568), closes [#3542](https://github.com/yonatangross/orchestkit/issues/3542)
-- **configure:** add good first issues link to issue template (#3555), closes [#3506](https://github.com/yonatangross/orchestkit/issues/3506)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
