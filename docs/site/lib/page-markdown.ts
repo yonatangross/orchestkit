@@ -13,6 +13,7 @@
 // lib/yonyon-faqs.ts) so the two representations cannot drift.
 
 import { COUNTS, SITE } from "@/lib/constants";
+import { withFrontmatter } from "@/lib/md-frontmatter";
 import { DEVELOPER_RESOURCES } from "@/lib/developer-resources";
 import { YONYON_FAQS } from "@/lib/yonyon-faqs";
 
@@ -28,11 +29,14 @@ function absolute(href: string): string {
 	return href.startsWith("http") ? href : `${SITE.domain}${href}`;
 }
 
+const DEVELOPERS_TITLE = `${SITE.name} by Yonyon: developer resources`;
+const DEVELOPERS_LEAD = `Every developer-facing surface of ${SITE.name}, the free MIT-licensed Claude Code plugin published by the Yonyon software studio. All public, all free, no account required.`;
+
 function developersMarkdown(): string {
 	return [
-		`# ${SITE.name} by Yonyon: developer resources`,
+		`# ${DEVELOPERS_TITLE}`,
 		"",
-		`> Every developer-facing surface of ${SITE.name}, the free MIT-licensed Claude Code plugin published by the Yonyon software studio. All public, all free, no account required.`,
+		`> ${DEVELOPERS_LEAD}`,
 		"",
 		"## Resources",
 		"",
@@ -53,11 +57,14 @@ function developersMarkdown(): string {
 	].join("\n");
 }
 
+const YONYON_TITLE = "Yonyon: the software studio behind OrchestKit";
+const YONYON_LEAD = `Yonyon is an independent software studio building developer tooling for AI-assisted engineering. It publishes ${SITE.name}, a free, open-source plugin for Claude Code. It is not the musician of the same name.`;
+
 function yonyonMarkdown(): string {
 	return [
-		"# Yonyon: the software studio behind OrchestKit",
+		`# ${YONYON_TITLE}`,
 		"",
-		`> Yonyon is an independent software studio building developer tooling for AI-assisted engineering. It publishes ${SITE.name}, a free, open-source plugin for Claude Code. It is not the musician of the same name.`,
+		`> ${YONYON_LEAD}`,
 		"",
 		"## The product",
 		"",
@@ -82,6 +89,32 @@ const RENDERERS: Record<MarkdownTwinSlug, () => string> = {
 	yonyon: yonyonMarkdown,
 };
 
+// Frontmatter for each twin, alongside its renderer so a new slug cannot be
+// added with a body but no header block. `canonical` names the HTML page these
+// documents are the Markdown representation OF, not their own `.md` URL: the
+// two are one resource, and /developers is the one the HTML page declares
+// canonical. Title and lead are the SAME constants the body renders, so the
+// header and the prose cannot drift apart.
+const FRONTMATTER: Record<
+	MarkdownTwinSlug,
+	{ title: string; description: string; canonical: string }
+> = {
+	developers: {
+		title: DEVELOPERS_TITLE,
+		description: DEVELOPERS_LEAD,
+		canonical: `${SITE.domain}/developers`,
+	},
+	yonyon: {
+		title: YONYON_TITLE,
+		description: YONYON_LEAD,
+		canonical: `${SITE.domain}/yonyon`,
+	},
+};
+
 export function pageMarkdown(slug: MarkdownTwinSlug): string {
-	return RENDERERS[slug]();
+	// Wrapped HERE rather than in the route handler, because this is the single
+	// choke point every twin passes through. The two surfaces that shipped
+	// without a header block were exactly the ones whose rendering path bypassed
+	// the route-level wrapping the other five got.
+	return withFrontmatter(FRONTMATTER[slug], RENDERERS[slug]());
 }
