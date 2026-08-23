@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.51](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.50...v10.0.0-alpha.51) (2026-08-23)
+
+
+### Features
+
+* **build:** ship a conforming Agent Plugins 1.0.0 manifest ([#3685](https://github.com/yonatangross/orchestkit/issues/3685)) ([c334a8b](https://github.com/yonatangross/orchestkit/commit/c334a8b89bed2d99317ea59303044e990af32a9c))
+
 ## [10.0.0-alpha.50](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.49...v10.0.0-alpha.50) (2026-08-23)
 
 
