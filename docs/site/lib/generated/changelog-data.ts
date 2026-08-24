@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.54",
+    "date": "2026-08-24",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**deps:** bump the npm-minor-patch group across 1 directory with 4 updates ([#3701](https://github.com/yonatangross/orchestkit/issues/3701)) ([ae43fbd](https://github.com/yonatangross/orchestkit/commit/ae43fbd8f2db1a2a0323d97db686c7e796906489))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.53",
     "date": "2026-08-24",
     "compareUrl": "",
