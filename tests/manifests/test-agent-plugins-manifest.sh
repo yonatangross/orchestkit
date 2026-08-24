@@ -143,6 +143,20 @@ if (( PLUGIN_COUNT == 0 )); then
   fail "no plugins found under plugins/ (expected at least one)"
 fi
 
+# 5. #3675: the repo-root plugin.json is a byte-identical mirror of the primary
+#    plugin's manifest. Scanners crawling public GitHub look at the repository
+#    root, so the mirror is what they find; byte identity (not "also conforms")
+#    is the property, because a twin that conforms on its own can still drift.
+ROOT_MIRROR="$REPO_ROOT/plugin.json"
+ORK_MANIFEST="$PLUGINS_DIR/ork/plugin.json"
+if [[ -f "$ORK_MANIFEST" ]]; then
+  if [[ ! -f "$ROOT_MIRROR" ]]; then
+    fail "repo-root plugin.json is missing (re-run npm run build; #3675)"
+  elif ! cmp -s "$ORK_MANIFEST" "$ROOT_MIRROR"; then
+    fail "repo-root plugin.json differs from plugins/ork/plugin.json (re-run npm run build; #3675)"
+  fi
+fi
+
 if (( FAILURES > 0 )); then
   echo ""
   echo "$FAILURES failure(s) across $PLUGIN_COUNT plugin(s)"

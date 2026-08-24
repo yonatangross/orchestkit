@@ -453,6 +453,16 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         "$PLUGIN_DIR/.claude-plugin/plugin.json" \
         > "$PLUGIN_DIR/plugin.json"
 
+    # #3675: mirror the primary plugin's Agent Plugins manifest to the REPO
+    # root as well. Ecosystem scanners that crawl public GitHub look for
+    # `plugin.json` at the repository root, not inside plugins/<name>/, so the
+    # plugin-root file alone is invisible to them. Kept a byte-identical copy
+    # (tests/manifests/test-agent-plugins-manifest.sh asserts it) rather than a
+    # hand-edited twin, so it can never drift from the manifest it mirrors.
+    if [[ "$PLUGIN_NAME" == "ork" ]]; then
+        cp "$PLUGIN_DIR/plugin.json" "$PROJECT_ROOT/plugin.json"
+    fi
+
     TOTAL_SKILLS_COPIED=$((TOTAL_SKILLS_COPIED + skill_count))
     TOTAL_AGENTS_COPIED=$((TOTAL_AGENTS_COPIED + agent_count))
     TOTAL_COMMANDS_GENERATED=$((TOTAL_COMMANDS_GENERATED + command_count))
