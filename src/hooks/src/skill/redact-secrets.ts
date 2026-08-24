@@ -13,6 +13,7 @@ import { NOOP_CTX } from '../lib/context.js';
 const API_KEY_PATTERNS = [
   /sk-[a-zA-Z0-9]{20,}/, // OpenAI
   /ghp_[a-zA-Z0-9]{36}/, // GitHub PAT
+  /gl(?:pat|ptt|dt|rt|oas|agent|imt|soat|cbt|ft|ffct)-[a-zA-Z0-9_-]{20,}/, // GitLab tokens (#3589)
   /AKIA[A-Z0-9]{16}/, // AWS Access Key
   /xox[baprs]-[a-zA-Z0-9-]+/, // Slack tokens
   /tvly-[a-zA-Z0-9-]{10,}/, // Tavily API key

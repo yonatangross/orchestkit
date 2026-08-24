@@ -157,6 +157,9 @@ describe('redact-secrets', () => {
   describe('GitHub PAT detection', () => {
     test.each([
       ['ghp_1234567890abcdefghijklmnopqrstuvwxyz'], // Standard GitHub PAT
+      ['glpat-1234567890abcdefghijklmnop'], // GitLab personal access token (#3589)
+      ['glrt-abcdefghijklmnopqrstuvwxyz1234'], // GitLab runner token
+      ['GITLAB_TOKEN=gldt-1234567890abcdefghijklmnop'], // GitLab deploy token in env form
       ['ghp_ABCDEFGHIJ1234567890abcdefghijklmnop'], // Mixed case
       ['GITHUB_TOKEN=ghp_1234567890abcdefghijklmnopqrstuvwxyz'],
       ['export GH_TOKEN="ghp_1234567890abcdefghijklmnopqrstuvwxyz"'],

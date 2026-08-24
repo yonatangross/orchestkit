@@ -659,6 +659,19 @@ describe('redactSecrets', () => {
   });
 
   describe('detects AWS access keys', () => {
+    test('warns on GitLab glpat- token (#3589)', () => {
+      const input = createHookInput({
+        tool_result: 'glpat-aB1cD2eF3gH4iJ5kL6mN7oP',
+      } as Partial<HookInput>);
+      const result = redactSecrets(input);
+      expectSilentSuccess(result);
+      expect(stderrSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Potential API key detected')
+      );
+    });
+  });
+
+  describe('detects AWS access keys', () => {
     test('warns on AKIA prefixed key', () => {
       const input = createHookInput({
         tool_result: 'aws_key=AKIAIOSFODNN7EXAMPLE',

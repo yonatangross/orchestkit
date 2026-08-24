@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>#3589 GitLab token redaction tester</title>
+<style>
+:root{--bg:#0f1420;--panel:#171e2e;--line:#2a3450;--ink:#e6ebf5;--muted:#8b96ad;--old:#e0655a;--new:#4dc98a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 ui-sans-serif,system-ui,sans-serif;padding:32px 20px 60px}
+.wrap{max-width:900px;margin:0 auto}h1{font-size:24px;margin:0 0 6px}.sub{color:var(--muted);margin:0 0 18px;max-width:78ch}
+textarea{width:100%;min-height:90px;background:#0b101c;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;font:13px ui-monospace,monospace}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}.panel h2{margin:0 0 8px;font-size:14px;color:var(--muted)}
+pre{white-space:pre-wrap;word-break:break-all;font:13px ui-monospace,monospace;margin:0;background:#0b101c;border-radius:8px;padding:10px;min-height:60px}
+.leak{color:var(--old);font-weight:600}.ok{color:var(--new);font-weight:600}
+.ex{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}button{background:#0b101c;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:5px 11px;cursor:pointer;font-size:12px}
+.verdict{margin-top:12px;font-size:14px}
+</style></head><body><div class="wrap">
+<h1>#3589: would this line leak a GitLab token?</h1>
+<p class="sub">ork ships three secret-redaction layers. Before this fix all three knew GitHub, Slack, AWS, OpenAI and Anthropic prefixes and none knew GitLab's <code>gl&lt;kind&gt;-</code> family, even though ork drives <code>glab</code> for merge-request flows. Type or pick a line and compare the two pattern sets. The regexes are the shipped ones, copied verbatim from <code>secret-handler/patterns.ts</code>. Samples are synthetic; the GitHub one is deliberately too short to be a real token shape.</p>
+<textarea id="in">glab auth login --token glpat-aB1cD2eF3gH4iJ5kL6mN7oP8qR
+export GITHUB_TOKEN=ghp_short (too short for the real pattern)</textarea>
+<div class="ex">
+<button data-x="runner: glrt-aB1cD2eF3gH4iJ5kL6mN7oP8qR9s">runner token</button>
+<button data-x="deploy: gldt-aB1cD2eF3gH4iJ5kL6mN7oP8qR">deploy token</button>
+<button data-x="short: glpat-tooshort123">too short (no match, by design)</button>
+<button data-slack="1">slack (already covered)</button>
+</div>
+<div class="grid">
+<div class="panel"><h2>before (5 families)</h2><pre id="before"></pre></div>
+<div class="panel"><h2>after #3589 (6 families)</h2><pre id="after"></pre></div>
+</div>
+<div class="verdict" id="verdict"></div>
+</div>
+<script>
+'use strict';
+const BASE = [
+  /\b(?:gh[oprsu]_[A-Za-z0-9]{36,255}|github_pat_[A-Za-z0-9_]{82})\b/g,
+  /\bsk-ant-[A-Za-z0-9_-]{32,128}\b/g,
+  /\bsk-proj-[A-Za-z0-9_-]{40,200}\b/g,
+  /\bsk-(?!ant-|proj-)[A-Za-z0-9]{48}\b/g,
+  /\b(?:AKIA|ASIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ABIA|ACCA)[A-Z0-9]{16}\b/g,
+  /\b(?:xox[abeprs]-[A-Za-z0-9-]{20,100}|xapp-\d-[A-Z0-9]+-\d+-[a-f0-9]{64})\b/g,
+];
+const GL = /\bgl(?:pat|ptt|dt|rt|oas|agent|imt|soat|cbt|ft|ffct)-[A-Za-z0-9_-]{20,100}\b/g;
+const esc = s => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function run(text, pats) {
+  let out = esc(text);
+  for (const p of pats) out = out.replace(new RegExp(p.source, 'g'), '<span class="ok">[REDACTED]</span>');
+  return out.replace(new RegExp(GL.source, 'g'), m => '<span class="leak">' + m + '</span>');
+}
+const $ = id => document.getElementById(id);
+function render() {
+  const t = $('in').value;
+  $('before').innerHTML = run(t, BASE);
+  $('after').innerHTML = run(t, BASE.concat([GL]));
+  const leaks = (t.match(new RegExp(GL.source, 'g')) || []).length;
+  $('verdict').textContent = leaks ? leaks + ' GitLab token(s) in this text: leaked before, redacted after.' : 'No GitLab token in this text; both sides behave the same.';
+}
+$('in').addEventListener('input', render);
+document.querySelectorAll('button[data-x]').forEach(b => b.onclick = () => { $('in').value += '\n' + b.dataset.x; render(); });
+// Built at runtime so no secret-shaped literal sits in the file (GitHub push protection flags a static one).
+document.querySelectorAll('button[data-slack]').forEach(b => b.onclick = () => { $('in').value += '\nci: ' + ['xoxb', '1234567890', 'abcdefghijklmnop'].join('-'); render(); });
+render();
+</script></body></html>

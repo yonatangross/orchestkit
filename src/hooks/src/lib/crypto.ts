@@ -23,6 +23,7 @@ const SECRET_VALUE_PATTERNS = [
   /sk-ant-[a-zA-Z0-9-]{20,}/,                  // Anthropic API keys (sk-ant-api03-...)
   /sk-[a-zA-Z0-9]{20,}/,                       // OpenAI API keys (sk-...)
   /ghp_[a-zA-Z0-9]{36,}/,                      // GitHub PATs
+  /gl(?:pat|ptt|dt|rt|oas|agent|imt|soat|cbt|ft|ffct)-[a-zA-Z0-9_-]{20,}/, // GitLab tokens (#3589)
   /gho_[a-zA-Z0-9]{36,}/,                      // GitHub OAuth tokens
   /github_pat_[a-zA-Z0-9_]{60,}/,              // GitHub fine-grained PATs
   /xoxb-[a-zA-Z0-9-]{20,}/,                    // Slack bot tokens
