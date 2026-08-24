@@ -27,6 +27,7 @@ import {
   readdirSync,
   statSync,
   unlinkSync,
+  type Dirent,
 } from 'node:fs';
 import { execFile, execFileSync } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -280,7 +281,7 @@ async function runBandit(projectDir: string, resultsDir: string): Promise<number
 /** Shallow check (depth 2) for any .py file, replacing the old `find | head` shell-out. */
 function hasPythonFiles(projectDir: string, depth = 2): boolean {
   function walk(dir: string, remaining: number): boolean {
-    let entries;
+    let entries: Dirent[];
     try {
       entries = readdirSync(dir, { withFileTypes: true });
     } catch {
@@ -322,7 +323,7 @@ async function runSecretScan(projectDir: string, resultsDir: string): Promise<nu
       truncated = true;
       return;
     }
-    let entries;
+    let entries: Dirent[];
     try {
       entries = readdirSync(dir, { withFileTypes: true });
     } catch {
