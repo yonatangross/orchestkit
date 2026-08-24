@@ -367,7 +367,7 @@ Agent(subagent_type="ork:test-generator", name="testability-assessor",
 
 **Key advantage:** Agents riff on each other's ideas and play devil's advocate in real-time, rather than generating ideas in isolation.
 
-**Fork pattern (CC 2.1.89 — #1227):** All brainstorm agents are fork-eligible: prompts are <500 words, no custom model, no worktree. CC shares the parent's cached API prefix across forks, reducing cost by ~60%. Do NOT add `model=` to agent calls. See `chain-patterns/references/fork-pattern.md`.
+**Fork pattern (CC 2.1.89 #1227; explicit since CC 2.1.232):** All brainstorm agents are fork-eligible: prompts are <500 words, no custom model, no worktree. CC shares the parent's cached API prefix across forks, reducing cost by ~60%. Do NOT add `model=` to agent calls. Since CC 2.1.232 forking is on by default and `subagent_type: "fork"` selects it explicitly, so the eligibility conditions matter only for ordinary `Agent()` calls. See `chain-patterns/references/fork-pattern.md`.
 
 > **Nested delegation (CC 2.1.172+):** Teammates MAY be instructed to delegate a bounded sub-question to their declared sub-agents (e.g. backend-thinker → database-engineer to sanity-check a schema idea) instead of guessing inline. Keep chains ≤ 3 levels deep; divergent ideation itself stays flat — the parallel teammates above ARE the fan-out for independent ideas. See chain-patterns Pattern 9 (CC 2.1.172+).
 

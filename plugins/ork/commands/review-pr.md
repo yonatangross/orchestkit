@@ -430,11 +430,11 @@ Done means all of these hold:
 - `ork:create-pr`: Create PRs for review
 - `slack-integration`: Team notifications for review events
 
-### vs. the built-in `/review` and `/code-review` (CC 2.1.202+)
+### vs. the built-in `/review` and `/code-review` (CC 2.1.223+)
 
-CC 2.1.202 reverted `/review` to a **fast single-pass** review — a quick "are there bugs in this diff?" gate. The built-in **multi-agent** review now lives at `/code-review <level> <pr#>`. Use `/review` for a fast single-pass review, or `/code-review <level> <pr#>` when you want CC's own multi-agent sweep at a chosen effort level. Since CC 2.1.232, `/code-review` runs as a **background subagent at every effort level**: the review no longer fills your conversation, results arrive when it completes, and slash commands stacked after it keep it as their review target, so don't wait inline for its output the way older docs assumed. 2.1.218 backgrounded review forks only (#3092); 2.1.232 is what generalized it to user-typed invocations too.
+As of CC 2.1.223, `/review` is an **alias of `/code-review`**: there is one built-in review command, and depth comes from the level argument (`/code-review <level> <pr#>`; with no level it reuses the level you typed last; `ultra` runs the deep multi-agent cloud review). The earlier CC 2.1.202 split between a fast single-pass `/review` and a multi-agent `/code-review` no longer exists. Since CC 2.1.232, `/code-review` runs as a **background subagent at every effort level**: the review no longer fills your conversation, results arrive when it completes, and slash commands stacked after it keep it as their review target, so don't wait inline for its output the way older docs assumed. 2.1.218 backgrounded review forks only (#3092); 2.1.232 is what generalized it to user-typed invocations too.
 
-Reach for `/ork:review-pr` instead when you want the **full OrchestKit audit** — parallel code-quality, security, testing, architecture, and performance passes with memory-KG project context, domain-aware agent selection, adversarial refutation, and a synthesized approve / request-changes verdict written back to the knowledge graph. They are complementary: built-in `/review` is the quick correctness gate, built-in `/code-review <level> <pr#>` is CC's multi-agent pass, and `/ork:review-pr` is the thorough project-aware pre-merge audit.
+Reach for `/ork:review-pr` instead when you want the **full OrchestKit audit**: parallel code-quality, security, testing, architecture, and performance passes with memory-KG project context, domain-aware agent selection, adversarial refutation, and a synthesized approve / request-changes verdict written back to the knowledge graph. They are complementary: quick pass at a chosen depth is the built-in `/code-review <level> <pr#>` (or its alias `/review`); the high-stakes project-aware audit is `/ork:review-pr`.
 
 ## References
 
