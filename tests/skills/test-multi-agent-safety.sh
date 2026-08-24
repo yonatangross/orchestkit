@@ -169,7 +169,9 @@ for agent_file in "$AGENTS_DIR"/*.md; do
 done
 
 # CC built-in agent types (not defined in src/agents/)
-CC_BUILTIN_AGENTS=("Explore" "general-purpose" "Bash" "Plan" "statusline-setup")
+# "fork" is a first-class subagent_type since CC 2.1.232 (a subagent that inherits
+# the full conversation and prompt cache); it is a CC value, not an ork agent file.
+CC_BUILTIN_AGENTS=("Explore" "general-purpose" "Bash" "Plan" "statusline-setup" "fork")
 for builtin in "${CC_BUILTIN_AGENTS[@]}"; do
     KNOWN_AGENTS["$builtin"]=1
 done
