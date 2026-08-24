@@ -1,15 +1,52 @@
 /**
  * Security Scan Aggregator - Stop Hook
- * CC 2.1.3 Compliant - Uses 10-minute hook timeout
  *
- * Runs multiple security tools in parallel and aggregates results.
+ * Issue #3705: the previous #905 "parallel + timeout" implementation was inert.
+ * All five scans were synchronous (execFileSync), runWithTimeout invoked them
+ * inside the Promise executor (so Promise.all received already-settled promises
+ * and the scans ran strictly sequentially), and the 45s timers could never fire
+ * against a blocked event loop. Worst case was ~660s of sequential work on every
+ * Stop, with no lock, so N concurrent sessions each ran a full scan.
+ *
+ * This version:
+ * - gates on a clean working tree (no changed files -> no scan)
+ * - takes a machine-wide lockfile so concurrent sessions produce ONE scan
+ * - runs the external tools genuinely async (execFile) with real kill-on-timeout
+ *   enforced by child_process itself, not a racing timer
+ * - never fetches over the network: semgrep runs only against a local config
+ *   (never `--config auto`, which downloads a rule registry per run)
+ * - bounds the secret scan by file count and yields to the event loop while
+ *   walking, so child timeouts stay enforceable
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
-import { execFileSync, execSync } from 'node:child_process';
-import type { HookInput, HookResult , HookContext} from '../types.js';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  readdirSync,
+  statSync,
+  unlinkSync,
+  type Dirent,
+} from 'node:fs';
+import { execFile, execFileSync } from 'node:child_process';
+import { promisify } from 'node:util';
+import { tmpdir } from 'node:os';
+import type { HookInput, HookResult, HookContext } from '../types.js';
 import { logHook, outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
+
+const execFileAsync = promisify(execFile);
+
+// Per-scan wall-clock bound, enforced by child_process (SIGTERM on expiry).
+const SCAN_TIMEOUT_MS = 45_000;
+// A lock older than this is presumed abandoned (crashed session) and stolen.
+const LOCK_STALE_MS = 15 * 60_000;
+// Secret-scan bound: stop walking after this many files.
+const SECRET_SCAN_MAX_FILES = 5_000;
+const EXEC_MAX_BUFFER = 10 * 1024 * 1024;
+
+const LOCK_PATH = `${tmpdir()}/ork-security-scan.lock`;
 
 interface SecurityResults {
   npmAudit: { critical: number; high: number } | null;
@@ -20,9 +57,86 @@ interface SecurityResults {
 }
 
 /**
+ * True when the working tree has uncommitted or untracked changes (or when the
+ * question cannot be answered, e.g. not a git repo) — the cases worth scanning.
+ */
+function hasUncommittedChanges(projectDir: string): boolean {
+  try {
+    const status = execFileSync('git', ['status', '--porcelain'], {
+      cwd: projectDir,
+      encoding: 'utf8',
+      timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      windowsHide: true,
+    });
+    return status.trim().length > 0;
+  } catch {
+    // Not a git repo (or git unavailable): no gate signal, so scan.
+    return true;
+  }
+}
+
+function isPidAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Machine-wide lock: one scan across all concurrent sessions.
+ * Returns true when this process holds the lock.
+ */
+function acquireLock(): boolean {
+  try {
+    writeFileSync(LOCK_PATH, String(process.pid), { flag: 'wx' });
+    return true;
+  } catch {
+    try {
+      const holderPid = Number.parseInt(readFileSync(LOCK_PATH, 'utf8'), 10);
+      const age = Date.now() - statSync(LOCK_PATH).mtimeMs;
+      const abandoned =
+        age > LOCK_STALE_MS || !Number.isInteger(holderPid) || holderPid <= 0 || !isPidAlive(holderPid);
+      if (abandoned) {
+        unlinkSync(LOCK_PATH);
+        writeFileSync(LOCK_PATH, String(process.pid), { flag: 'wx' });
+        return true;
+      }
+    } catch {
+      // Lost the race to another session, or the lock vanished mid-check.
+    }
+    return false;
+  }
+}
+
+function releaseLock(): void {
+  try {
+    if (readFileSync(LOCK_PATH, 'utf8') === String(process.pid)) {
+      unlinkSync(LOCK_PATH);
+    }
+  } catch {
+    // Already gone, or stolen after staleness — nothing to release.
+  }
+}
+
+function toolInstalled(tool: string): boolean {
+  try {
+    execFileSync('which', [tool], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Run npm audit
  */
-function runNpmAudit(projectDir: string, resultsDir: string): { critical: number; high: number } | null {
+async function runNpmAudit(
+  projectDir: string,
+  resultsDir: string
+): Promise<{ critical: number; high: number } | null> {
   if (
     !existsSync(`${projectDir}/package.json`) ||
     (!existsSync(`${projectDir}/package-lock.json`) &&
@@ -34,18 +148,20 @@ function runNpmAudit(projectDir: string, resultsDir: string): { critical: number
 
   logHook('security-scan', 'Running npm audit...');
   try {
-    execFileSync('npm', ['audit', '--json'], {
+    await execFileAsync('npm', ['audit', '--json'], {
       cwd: projectDir,
       encoding: 'utf8',
-      timeout: 120000,
-      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
+      timeout: SCAN_TIMEOUT_MS,
+      maxBuffer: EXEC_MAX_BUFFER,
+      windowsHide: true,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // npm audit returns non-zero on vulnerabilities, capture output
-    if (error.stdout) {
-      writeFileSync(`${resultsDir}/npm-audit.json`, error.stdout);
+    const stdout = (error as { stdout?: string }).stdout;
+    if (stdout) {
+      writeFileSync(`${resultsDir}/npm-audit.json`, stdout);
       try {
-        const result = JSON.parse(error.stdout);
+        const result = JSON.parse(stdout);
         return {
           critical: result.metadata?.vulnerabilities?.critical || 0,
           high: result.metadata?.vulnerabilities?.high || 0,
@@ -53,6 +169,10 @@ function runNpmAudit(projectDir: string, resultsDir: string): { critical: number
       } catch {
         // Ignore parse errors
       }
+    }
+    if ((error as { killed?: boolean }).killed) {
+      logHook('security-scan', `npm audit timed out after ${SCAN_TIMEOUT_MS}ms`);
+      return null;
     }
   }
   logHook('security-scan', 'npm audit complete');
@@ -62,28 +182,26 @@ function runNpmAudit(projectDir: string, resultsDir: string): { critical: number
 /**
  * Run pip-audit
  */
-function runPipAudit(projectDir: string, resultsDir: string): number | null {
+async function runPipAudit(projectDir: string, resultsDir: string): Promise<number | null> {
   if (!existsSync(`${projectDir}/requirements.txt`) && !existsSync(`${projectDir}/pyproject.toml`)) {
     return null;
   }
-
-  try {
-    execFileSync('which', ['pip-audit'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
-  } catch {
+  if (!toolInstalled('pip-audit')) {
     logHook('security-scan', 'pip-audit not installed, skipping');
     return null;
   }
 
   logHook('security-scan', 'Running pip-audit...');
   try {
-    const result = execFileSync('pip-audit', ['--format', 'json'], {
+    const { stdout } = await execFileAsync('pip-audit', ['--format', 'json'], {
       cwd: projectDir,
       encoding: 'utf8',
-      timeout: 120000,
-      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
+      timeout: SCAN_TIMEOUT_MS,
+      maxBuffer: EXEC_MAX_BUFFER,
+      windowsHide: true,
     });
-    writeFileSync(`${resultsDir}/pip-audit.json`, result);
-    const parsed = JSON.parse(result);
+    writeFileSync(`${resultsDir}/pip-audit.json`, stdout);
+    const parsed = JSON.parse(stdout);
     logHook('security-scan', 'pip-audit complete');
     return Array.isArray(parsed) ? parsed.length : 0;
   } catch {
@@ -92,27 +210,38 @@ function runPipAudit(projectDir: string, resultsDir: string): number | null {
 }
 
 /**
- * Run semgrep
+ * Run semgrep — local config only. `--config auto` is banned on a Stop path:
+ * it fetches a rule registry over the network on every run (#3705).
  */
-function runSemgrep(projectDir: string, resultsDir: string): number | null {
-  try {
-    execFileSync('which', ['semgrep'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
-  } catch {
+async function runSemgrep(projectDir: string, resultsDir: string): Promise<number | null> {
+  const localConfigs = ['.semgrep.yml', '.semgrep.yaml', 'semgrep.yml', '.semgrep'];
+  const config = localConfigs.find((c) => existsSync(`${projectDir}/${c}`));
+  if (!config) {
+    return null;
+  }
+  if (!toolInstalled('semgrep')) {
     logHook('security-scan', 'semgrep not installed, skipping');
     return null;
   }
 
-  logHook('security-scan', 'Running semgrep...');
+  logHook('security-scan', `Running semgrep (local config: ${config})...`);
   try {
-    const result = execFileSync('semgrep', ['--config', 'auto', '--json', '--quiet'], {
-      cwd: projectDir,
-      encoding: 'utf8',
-      timeout: 300000,
-      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
-    });
-    writeFileSync(`${resultsDir}/semgrep.json`, result);
-    const parsed = JSON.parse(result);
-    const highSeverity = (parsed.results || []).filter((r: any) => r.extra?.severity === 'ERROR').length;
+    const { stdout } = await execFileAsync(
+      'semgrep',
+      ['--config', config, '--json', '--quiet', '--metrics=off'],
+      {
+        cwd: projectDir,
+        encoding: 'utf8',
+        timeout: SCAN_TIMEOUT_MS,
+        maxBuffer: EXEC_MAX_BUFFER,
+        windowsHide: true,
+      }
+    );
+    writeFileSync(`${resultsDir}/semgrep.json`, stdout);
+    const parsed = JSON.parse(stdout);
+    const highSeverity = (parsed.results || []).filter(
+      (r: { extra?: { severity?: string } }) => r.extra?.severity === 'ERROR'
+    ).length;
     logHook('security-scan', 'semgrep complete');
     return highSeverity;
   } catch {
@@ -123,37 +252,23 @@ function runSemgrep(projectDir: string, resultsDir: string): number | null {
 /**
  * Run bandit
  */
-function runBandit(projectDir: string, resultsDir: string): number | null {
-  // Check for Python files
-  try {
-    // shell required: pipe (find | head)
-    const hasPython = execSync('find . -name "*.py" -maxdepth 2 | head -1', {
-      cwd: projectDir,
-      encoding: 'utf8',
-      timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
-    }).trim();
-    if (!hasPython && !existsSync(`${projectDir}/backend`)) {
-      return null;
-    }
-  } catch {
+async function runBandit(projectDir: string, resultsDir: string): Promise<number | null> {
+  if (!hasPythonFiles(projectDir) && !existsSync(`${projectDir}/backend`)) {
     return null;
   }
-
-  try {
-    execFileSync('which', ['bandit'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
-  } catch {
+  if (!toolInstalled('bandit')) {
     logHook('security-scan', 'bandit not installed, skipping');
     return null;
   }
 
   logHook('security-scan', 'Running bandit...');
   try {
-    execFileSync('bandit', ['-r', '.', '-f', 'json', '-o', `${resultsDir}/bandit.json`], {
+    await execFileAsync('bandit', ['-r', '.', '-f', 'json', '-o', `${resultsDir}/bandit.json`], {
       cwd: projectDir,
       encoding: 'utf8',
-      timeout: 120000,
-      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
+      timeout: SCAN_TIMEOUT_MS,
+      maxBuffer: EXEC_MAX_BUFFER,
+      windowsHide: true,
     });
     logHook('security-scan', 'bandit complete');
     return 0;
@@ -163,60 +278,102 @@ function runBandit(projectDir: string, resultsDir: string): number | null {
   }
 }
 
+/** Shallow check (depth 2) for any .py file, replacing the old `find | head` shell-out. */
+function hasPythonFiles(projectDir: string, depth = 2): boolean {
+  function walk(dir: string, remaining: number): boolean {
+    let entries: Dirent[];
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return false;
+    }
+    for (const entry of entries) {
+      if (entry.isFile() && entry.name.endsWith('.py')) return true;
+      if (
+        remaining > 0 &&
+        entry.isDirectory() &&
+        !['node_modules', '.git', 'dist', 'build'].includes(entry.name)
+      ) {
+        if (walk(`${dir}/${entry.name}`, remaining - 1)) return true;
+      }
+    }
+    return false;
+  }
+  return walk(projectDir, depth - 1);
+}
+
 /**
- * Run secret detection
+ * Run secret detection — bounded (SECRET_SCAN_MAX_FILES) and yielding to the
+ * event loop between directories so child-process timeouts stay enforceable.
  */
-function runSecretScan(projectDir: string, resultsDir: string): number {
+async function runSecretScan(projectDir: string, resultsDir: string): Promise<number> {
   logHook('security-scan', 'Running secret detection...');
 
   const secretPatterns = /(api[_-]?key|secret[_-]?key|password|token)\s*[=:]\s*["'][^"']{8,}/i;
   let secretsFound = 0;
+  let filesScanned = 0;
+  let truncated = false;
   const findings: Array<{ file: string; type: string }> = [];
 
   const extensions = ['.py', '.js', '.ts', '.env'];
+  const yieldToLoop = () => new Promise<void>((resolve) => setImmediate(resolve));
 
-  function scanDir(dir: string): void {
+  async function scanDir(dir: string): Promise<void> {
+    if (filesScanned >= SECRET_SCAN_MAX_FILES) {
+      truncated = true;
+      return;
+    }
+    let entries: Dirent[];
     try {
-      const entries = readdirSync(dir, { withFileTypes: true });
-      for (const entry of entries) {
-        const fullPath = `${dir}/${entry.name}`;
-
-        // Skip node_modules and .git
-        if (entry.isDirectory()) {
-          if (!['node_modules', '.git', 'dist', 'build'].includes(entry.name)) {
-            scanDir(fullPath);
-          }
-          continue;
-        }
-
-        // Check file extension
-        if (!extensions.some((ext) => entry.name.endsWith(ext))) {
-          continue;
-        }
-
-        try {
-          const content = readFileSync(fullPath, 'utf-8');
-          if (secretPatterns.test(content)) {
-            findings.push({ file: fullPath, type: 'potential_secret' });
-            secretsFound++;
-          }
-        } catch {
-          // Ignore read errors
-        }
-      }
+      entries = readdirSync(dir, { withFileTypes: true });
     } catch {
-      // Ignore directory errors
+      return;
+    }
+    await yieldToLoop();
+    for (const entry of entries) {
+      if (filesScanned >= SECRET_SCAN_MAX_FILES) {
+        truncated = true;
+        return;
+      }
+      const fullPath = `${dir}/${entry.name}`;
+
+      // Skip node_modules and .git
+      if (entry.isDirectory()) {
+        if (!['node_modules', '.git', 'dist', 'build'].includes(entry.name)) {
+          await scanDir(fullPath);
+        }
+        continue;
+      }
+
+      // Check file extension
+      if (!extensions.some((ext) => entry.name.endsWith(ext))) {
+        continue;
+      }
+
+      filesScanned++;
+      try {
+        const content = readFileSync(fullPath, 'utf-8');
+        if (secretPatterns.test(content)) {
+          findings.push({ file: fullPath, type: 'potential_secret' });
+          secretsFound++;
+        }
+      } catch {
+        // Ignore read errors
+      }
     }
   }
 
-  scanDir(projectDir);
+  await scanDir(projectDir);
 
   writeFileSync(
     `${resultsDir}/secrets.json`,
-    JSON.stringify({ findings, count: secretsFound }, null, 2)
+    JSON.stringify({ findings, count: secretsFound, files_scanned: filesScanned, truncated }, null, 2)
   );
 
-  logHook('security-scan', `Secret detection complete: ${secretsFound} potential issues`);
+  logHook(
+    'security-scan',
+    `Secret detection complete: ${secretsFound} potential issues (${filesScanned} files${truncated ? ', truncated at cap' : ''})`
+  );
   return secretsFound;
 }
 
@@ -265,99 +422,52 @@ function aggregateResults(resultsDir: string, results: SecurityResults): void {
 }
 
 /**
- * Wrap a synchronous scan function in a Promise with a per-scan timeout.
- * If the scan exceeds the timeout, it resolves with the fallback value rather
- * than throwing, so the aggregator can report partial results.
- *
- * Issue #905: 4 sequential scans (660s total) exceeded the 60s dispatcher timeout.
+ * Security scan aggregator hook (#3705).
+ * Gated (clean tree = no scan), locked (one scan per machine), genuinely
+ * parallel (async execFile with real kill-on-timeout), network-free.
  */
-function runWithTimeout<T>(
-  scanFn: () => T,
-  fallback: T,
-  timeoutMs: number,
-  scanName: string
-): Promise<T> {
-  return new Promise<T>((resolve) => {
-    const timer = setTimeout(() => {
-      logHook('security-scan', `${scanName} timed out after ${timeoutMs}ms — using fallback`);
-      resolve(fallback);
-    }, timeoutMs);
+export async function securityScanAggregator(
+  input: HookInput,
+  ctx: HookContext = NOOP_CTX
+): Promise<HookResult> {
+  const projectDir = input.project_dir || ctx.projectDir;
 
-    try {
-      const result = scanFn();
-      clearTimeout(timer);
-      resolve(result);
-    } catch (err) {
-      clearTimeout(timer);
-      logHook('security-scan', `${scanName} threw an error: ${err}`);
-      resolve(fallback);
-    }
-  });
-}
+  if (!hasUncommittedChanges(projectDir)) {
+    ctx.log('security-scan', 'Working tree clean — skipping scan (#3705)');
+    return outputSilentSuccess();
+  }
 
-// Issue #905: Per-scan timeout chosen so all 4 fit within the 60s dispatcher window.
-// 45 000 ms each leaves ~15 s headroom for aggregation and overhead.
-const SCAN_TIMEOUT_MS = 45_000;
+  if (!acquireLock()) {
+    ctx.log('security-scan', 'Another scan holds the machine-wide lock — skipping (#3705)');
+    return outputSilentSuccess();
+  }
 
-/**
- * Security scan aggregator hook
- * Issue #905: previously ran 4 scans sequentially (660s total), exceeding the 60s
- * dispatcher timeout. Fixed by running all 4 in parallel via Promise.all, each
- * guarded by a 45s per-scan timeout. Partial results are reported gracefully.
- */
-export async function securityScanAggregator(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
-  ctx.log('security-scan', '=== Security Scan Started (parallel mode) ===');
-
-  const projectDir = input.project_dir || (ctx.projectDir);
+  ctx.log('security-scan', '=== Security Scan Started ===');
   const resultsDir = `${projectDir}/.claude/hooks/logs/security`;
 
-  mkdirSync(resultsDir, { recursive: true });
+  try {
+    mkdirSync(resultsDir, { recursive: true });
 
-  // Issue #905: Run all 4 scans in parallel. Each is wrapped with an individual
-  // 45s timeout so the combined wall-clock time stays within the 60s dispatcher limit.
-  const [npmAudit, pipAudit, semgrep, bandit, secrets] = await Promise.all([
-    runWithTimeout(
-      () => runNpmAudit(projectDir, resultsDir),
-      null,
-      SCAN_TIMEOUT_MS,
-      'npm-audit'
-    ),
-    runWithTimeout(
-      () => runPipAudit(projectDir, resultsDir),
-      null,
-      SCAN_TIMEOUT_MS,
-      'pip-audit'
-    ),
-    runWithTimeout(
-      () => runSemgrep(projectDir, resultsDir),
-      null,
-      SCAN_TIMEOUT_MS,
-      'semgrep'
-    ),
-    runWithTimeout(
-      () => runBandit(projectDir, resultsDir),
-      null,
-      SCAN_TIMEOUT_MS,
-      'bandit'
-    ),
-    runWithTimeout(
-      () => runSecretScan(projectDir, resultsDir),
-      0,
-      SCAN_TIMEOUT_MS,
-      'secret-scan'
-    ),
-  ]);
+    const [npmAudit, pipAudit, semgrep, bandit, secrets] = await Promise.all([
+      runNpmAudit(projectDir, resultsDir),
+      runPipAudit(projectDir, resultsDir),
+      runSemgrep(projectDir, resultsDir),
+      runBandit(projectDir, resultsDir),
+      runSecretScan(projectDir, resultsDir),
+    ]);
 
-  const results: SecurityResults = {
-    npmAudit,
-    pipAudit,
-    semgrep,
-    bandit,
-    secrets,
-  };
+    const results: SecurityResults = {
+      npmAudit,
+      pipAudit,
+      semgrep,
+      bandit,
+      secrets,
+    };
 
-  // Aggregate whatever results completed before the timeouts
-  aggregateResults(resultsDir, results);
+    aggregateResults(resultsDir, results);
+  } finally {
+    releaseLock();
+  }
 
   return outputSilentSuccess();
 }
