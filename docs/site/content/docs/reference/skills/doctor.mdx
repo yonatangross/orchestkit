@@ -643,7 +643,7 @@ Valid CC tools:
 - WebFetch, WebSearch
 - NotebookEdit
 - AskUserQuestion
-- TaskCreate, TaskUpdate, TaskGet, TaskList
+- TaskCreate, TaskUpdate, TaskGet, TaskList (since CC 2.1.233 these are **removed for the newest models** unless the operator sets `CLAUDE_CODE_ENABLE_TODO_TOOLS=1`; plugin settings cannot set it, so an agent granting them may run without them)
 
 ## Quick Validation
 
@@ -2696,6 +2696,8 @@ skill is no longer marked `experimental:` in its frontmatter.
 | `CLAUDE_CODE_WORKFLOW_PREFIX_STAGGER_MS` | 2.1.229 | Workflow fan-outs stagger same-prefix sibling agents so later siblings read the **cached prompt prefix** instead of re-paying it; set to `0` to disable. A direct token win for ork's fan-out skills (`audit-full-mapreduce`, `skill-fitness`), documented in `chain-patterns/references/dynamic-workflow-patterns.md`, which carried no concurrency or cost content before this | Every sibling in a fan-out re-paid the shared prefix |
 | workflows honour container CPU limits | 2.1.229 | Dynamic workflows inside CPU-limited containers used the **host machine's** core count instead of the container's limit, over-parallelizing ork workflows in CI runners and Docker | Workflow concurrency ignored the cgroup CPU limit |
 | marketplace `command` sources | 2.1.229 | A local command (for example an IDE) prints the plugin directory; it is **re-resolved each session and applied without a restart**, and `mode: "link"` uses it in place. ork ships two `git-subdir` entries today; a `command` source would give contributors a local-build channel with no reinstall. **Opportunity, not a defect** | Local plugin development required a reinstall per build |
+| subagent fork on by default, `subagent_type: "fork"` first-class | 2.1.232 | Forking is on by default and fork is an explicit `subagent_type` whose subagent inherits the full conversation and prompt cache. The 2.1.212 and 2.1.221 rows above say ork's `Agent()`-based fork pattern is unaffected by `/fork` changes; this is the first release where the pattern docs needed a note (`chain-patterns/references/fork-pattern.md`, `brainstorm/SKILL.md`). Hooks match the bare `Agent` tool name and `agent-registry-validator` leaves an unknown bare word alone, so no false prompt on a fork spawn | Fork docs described implicit detection as the only route |
+| Task tools removed for newest models | 2.1.233 | `TaskCreate`/`TaskUpdate`/`TaskGet`/`TaskList` are removed for the newest models unless `CLAUDE_CODE_ENABLE_TODO_TOOLS=1`. The flag is honoured only from user or managed settings, so ork cannot ship it; 34 of 37 ork agents grant the tools in frontmatter and the `TaskCreated` hook event stays registered, all of which is inert until the operator sets the flag. Documented in `agents-validation.md` and `task-dependency-patterns/SKILL.md` | Agents granted Task tools that were silently absent |
 | `/commit-push-pr` stops auto-approving dangerous flags | 2.1.229 | git/gh commands carrying `--force`, `--amend`, `--no-verify` and similar are no longer auto-approved by that command. **Converges with ork's guards but does not replace them**: ork's guards key off the Bash command string across every command, not one slash command, so nothing is subtracted here | A dangerous flag rode along on an auto-approved commit flow |
 
 ## Prompt Caching Recommendation

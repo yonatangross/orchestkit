@@ -2,6 +2,8 @@
 
 CC 2.1.89 automatically forks subagents that meet certain criteria, sharing the parent's cached API prefix. This eliminates cold-start re-tokenization and reduces API cost by 30-50% for multi-agent skills.
 
+> **CC 2.1.232 update:** subagent forking is now **on by default**, and fork is a first-class value, `Agent(subagent_type: "fork", ...)`, whose subagent inherits the full conversation and prompt cache. The implicit-detection table below describes the 2.1.89-era heuristic, which still applies to ordinary `Agent()` calls; it is no longer the only route, and an explicit `subagent_type: "fork"` does not depend on it.
+
 ## When CC Forks Automatically
 
 CC routes `Agent()` calls to fork (cache-sharing) mode when ALL conditions are met:
@@ -13,7 +15,7 @@ CC routes `Agent()` calls to fork (cache-sharing) mode when ALL conditions are m
 | **Short prompt** | Prompt body < 500 words (only the divergent part) |
 | **Same tool schema** | Agent uses same tools as parent (no `exact-tools` override) |
 
-If ANY condition fails, CC falls back to standard cold-start `Agent()`.
+If ANY condition fails, an ordinary `Agent()` call falls back to standard cold-start. Since CC 2.1.232 an explicit `subagent_type: "fork"` forks regardless of this table.
 
 ## Fork-Friendly Prompt Template
 
@@ -124,4 +126,4 @@ Agent(subagent_type="Explore", prompt="Scope: ...", run_in_background=True)
 # ↑ If CC can't fork: standard cold-start (works, just more expensive)
 ```
 
-No code change needed for fallback — CC handles routing automatically. The prompt pattern works in both modes.
+No code change is needed for fallback on ordinary `Agent()` calls: CC routes them by the table above. Since CC 2.1.232, `subagent_type: "fork"` is the explicit route and forks without that detection. The prompt pattern works in every mode.

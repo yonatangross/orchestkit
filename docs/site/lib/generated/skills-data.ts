@@ -687,7 +687,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "f06fbb59b7c9fdd8466ec250bef75c82be59deea1386580eb8d6f77fc5280af6",
+    "sha256": "a8ed5ac342e7b503ec27de042d14702687a1547c063946ebd2490ab42a49f5a4",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -4001,7 +4001,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "fb269ca08bf130a52551b7035d0390913087bf520594d4d05d6f4be3960f5a03",
+    "sha256": "ba2d1f232e1a818c336693346664dd59a5672a924e46012e4171a9921a33aedf",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4105,7 +4105,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "security-patterns",
     "description": "Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.",
     "version": "2.0.0",
-    "sha256": "3e60db5bd5e1a6a163e776f886d5eb47f4305f3fc5af03fa8bff74b9a9da0fa2",
+    "sha256": "101e6b43808641fe443af0d08e372ff87d4b2ef716a7e964b5905dd8dd1390df",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -4365,7 +4365,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "task-dependency-patterns",
     "description": "Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status.",
     "version": "1.0.0",
-    "sha256": "a28112eb149d8fb9736f7aaa50b892277d10046d1d6e54d2b2c20d126464eeb0",
+    "sha256": "49f6271308dfa98807d202b6fbe78d489c2259dfa1e5c7e1b6c31d3247a86cab",
     "author": "OrchestKit",
     "tags": [
       "task-management",
