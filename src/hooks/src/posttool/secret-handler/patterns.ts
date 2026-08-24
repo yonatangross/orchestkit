@@ -27,6 +27,11 @@ export const BOUNDED_PATTERNS: readonly BoundedPattern[] = [
   // GitHub tokens — classic short-prefix and 2022+ fine-grained PAT format.
   // Audit (#1543): adding github_pat_ closes a documented FN.
   { name: 'github-pat', re: /\b(?:gh[oprsu]_[A-Za-z0-9]{36,255}|github_pat_[A-Za-z0-9_]{82})\b/g },
+  // GitLab tokens (#3589): personal/project/group access, deploy, runner, OAuth,
+  // pipeline-trigger, agent, incoming-mail, SCIM, CI-job, feed and feature-flag
+  // families all share the gl<kind>- prefix. CC 2.1.232 redacts these in its own
+  // sandbox for glab; ork's three redaction layers stopped at GitHub/Slack/AWS.
+  { name: 'gitlab-token', re: /\bgl(?:pat|ptt|dt|rt|oas|agent|imt|soat|cbt|ft|ffct)-[A-Za-z0-9_-]{20,100}\b/g },
   // Anthropic API keys (sk-ant-* prefix; 32-128 char tail)
   { name: 'anthropic-key', re: /\bsk-ant-[A-Za-z0-9_-]{32,128}\b/g },
   // OpenAI project keys (sk-proj-*) — modern keys contain _ and - in tail.

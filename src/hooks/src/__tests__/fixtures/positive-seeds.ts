@@ -10,6 +10,13 @@
  * conform to each pattern's regex shape so the detector should flag them.
  */
 export const POSITIVE_SEEDS: Readonly<Record<string, string[]>> = {
+  // BOUNDED — gitlab-token (#3589)
+  'gitlab-token': [
+    'glpat-aB1cD2eF3gH4iJ5kL6mN7oP8qR',
+    'glab auth login --token glpat-aB1cD2eF3gH4iJ5kL6mN7oP8qR',
+    'runner: glrt-aB1cD2eF3gH4iJ5kL6mN7oP8qR9s',
+    'export GITLAB_TOKEN=gldt-aB1cD2eF3gH4iJ5kL6mN7oP8qR',
+  ],
   // BOUNDED — github-pat
   'github-pat': [
     'ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789AB',
