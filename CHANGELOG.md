@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.53](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.52...v10.0.0-alpha.53) (2026-08-24)
+
+
+### Bug Fixes
+
+* **docs-site:** auth.md carries no frontmatter, on spec grounds ([#3694](https://github.com/yonatangross/orchestkit/issues/3694)) ([a9cf3f1](https://github.com/yonatangross/orchestkit/commit/a9cf3f1c0a9e9ae8c317d76b8654cbbc96ddf1d3))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the npm-minor-patch group in /src/hooks with 3 updates ([#3698](https://github.com/yonatangross/orchestkit/issues/3698)) ([c9373dd](https://github.com/yonatangross/orchestkit/commit/c9373dd42acba7d6d418b4bd1d17bdf2e2e714b6))
+* **deps-dev:** bump vitest in the npm-minor-patch group ([#3697](https://github.com/yonatangross/orchestkit/issues/3697)) ([74085a0](https://github.com/yonatangross/orchestkit/commit/74085a02d4584ec8ef6ec246142b569f844d1b66))
+* **deps:** bump the remotion group ([#3700](https://github.com/yonatangross/orchestkit/issues/3700)) ([f0f4e3a](https://github.com/yonatangross/orchestkit/commit/f0f4e3adde5cf12338b4e393c530bb7d71c9f55f))
+
+
+### CI/CD
+
+* bump the github-actions group with 5 updates ([#3702](https://github.com/yonatangross/orchestkit/issues/3702)) ([5d27ff2](https://github.com/yonatangross/orchestkit/commit/5d27ff22deedcd7432987a13955e6dbc64b96878))
+
 ## [10.0.0-alpha.52](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.51...v10.0.0-alpha.52) (2026-08-23)
 
 

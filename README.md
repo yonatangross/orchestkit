@@ -333,6 +333,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.53](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.52...v10.0.0-alpha.53)** · 2026-08-24
+
+- **docs-site:** auth.md carries no frontmatter, on spec grounds (#3694)
+- **deps-dev:** bump the npm-minor-patch group in /src/hooks with 3 updates (#3698)
+- **deps-dev:** bump vitest in the npm-minor-patch group (#3697)
+- **deps:** bump the remotion group (#3700)
+- bump the github-actions group with 5 updates (#3702)
+
 **[v10.0.0-alpha.52](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.51...v10.0.0-alpha.52)** · 2026-08-23
 
 - **git:** untrack committed session state, close the anchoring gap (#3692)
@@ -371,12 +379,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **docs-site:** close four agent-readiness gaps, add a CLI (#3654)
 - **skills:** Skills API publish rail (#3628) (#3649)
-
-**[v10.0.0-alpha.45](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.44...v10.0.0-alpha.45)** · 2026-08-21
-
-- **announce:** label-gated alpha announcements plus RSS feed (#3638) (#3639)
-- **pricing:** Sonnet 5 is $2/$10, and retire retired model IDs (#3647)
-- **cc:** snapshot 2.1.238, hand-triage, advance latest_known (#3636)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
