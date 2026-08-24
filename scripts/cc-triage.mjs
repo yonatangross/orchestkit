@@ -974,11 +974,23 @@ function main() {
   // triage ran-but-failed. Surfacing the sentinel here lets Step 4 still file
   // a manual-triage issue so the stuck version stays visible.
   if (process.env.GITHUB_OUTPUT) {
-    const stuck = gaps.filter((e) => e?.parse_failed === true);
+    // #3720: a `below_floor` entry can carry `parse_failed: true` forever, because
+    // reconcileDeterministic() skips it by POLICY (no LLM below the floor) and
+    // nothing ever clears it. Counting it here kept the signal permanently true,
+    // so Step 4 filed a "manual triage needed" issue on every run and listed
+    // every ledger version, including ones that extracted cleanly (measured
+    // 2026-08-24: #3621, #3643, #3717 were all false alarms). Only in-window
+    // failures are extraction failures; the versions are emitted alongside so
+    // the fallback names exactly those and nothing else.
+    const stuck = gaps.filter((e) => e?.parse_failed === true && e?.below_floor !== true);
+    const belowFloorStuck = gaps.filter((e) => e?.parse_failed === true && e?.below_floor === true).length;
     try {
       if (stuck.length > 0) {
-        appendFileSync(process.env.GITHUB_OUTPUT, 'parse_failed=true\n');
-        console.log(`cc-triage: ${stuck.length} parse_failed entries — emitted parse_failed=true for Step 4 fallback`);
+        const versions = stuck.map((e) => e.version).join(', ');
+        appendFileSync(process.env.GITHUB_OUTPUT, `parse_failed=true\nparse_failed_versions=${versions}\n`);
+        console.log(`cc-triage: ${stuck.length} parse_failed entries (${versions}) — emitted parse_failed=true for Step 4 fallback`);
+      } else if (belowFloorStuck > 0) {
+        console.log(`cc-triage: ${belowFloorStuck} parse_failed entries are below_floor (policy skips, not failures) — NOT emitting parse_failed for Step 4`);
       }
       // Distinct signal: an auth failure means "rotate the token", not "manual
       // triage". The workflow gates a loud token-rotation issue on this and
