@@ -17,6 +17,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.56",
+    "date": "2026-08-24",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** debt-surfacer reads a HEAD-keyed ledger ([#3710](https://github.com/yonatangross/orchestkit/issues/3710)) ([f075001](https://github.com/yonatangross/orchestkit/commit/f075001bbc882ad6de3e129e8e13d68cf6410fcc)), closes [#3708](https://github.com/yonatangross/orchestkit/issues/3708)",
+          "**hooks:** redact GitLab tokens in all three redaction layers ([#3722](https://github.com/yonatangross/orchestkit/issues/3722)) ([18f3aa6](https://github.com/yonatangross/orchestkit/commit/18f3aa6f6e538b1e600f4cb3d779290d986473cd)), closes [#3589](https://github.com/yonatangross/orchestkit/issues/3589)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** advance latest_known to 2.1.241 with triage doc ([#3723](https://github.com/yonatangross/orchestkit/issues/3723)) ([104b538](https://github.com/yonatangross/orchestkit/commit/104b538944f417adc51e3e3c2c4e5fe9587c02a7))",
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.241) ([#3719](https://github.com/yonatangross/orchestkit/issues/3719)) ([f2c8662](https://github.com/yonatangross/orchestkit/commit/f2c8662fc7f061eb2b8fda476fa566e2e06be6a4))",
+          "**orank:** repo-root plugin.json mirror and fuller pricing.md ([#3712](https://github.com/yonatangross/orchestkit/issues/3712)) ([849b055](https://github.com/yonatangross/orchestkit/commit/849b0550f7d5070ceb1285f606cb4e2209aa955a)), closes [#3675](https://github.com/yonatangross/orchestkit/issues/3675)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-adoption:** fix four skill docs describing pre-change CC behaviour ([#3721](https://github.com/yonatangross/orchestkit/issues/3721)) ([6b85ca8](https://github.com/yonatangross/orchestkit/commit/6b85ca80cc149f90c60d42398ea3dbdb9859fb28))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.55",
     "date": "2026-08-24",
     "compareUrl": "",
