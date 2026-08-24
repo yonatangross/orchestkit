@@ -333,6 +333,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.56](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.55...v10.0.0-alpha.56)** · 2026-08-24
+
+- **hooks:** debt-surfacer reads a HEAD-keyed ledger (#3710), closes [#3708](https://github.com/yonatangross/orchestkit/issues/3708)
+- **hooks:** redact GitLab tokens in all three redaction layers (#3722), closes [#3589](https://github.com/yonatangross/orchestkit/issues/3589)
+- **cc-watch:** advance latest_known to 2.1.241 with triage doc (#3723)
+- **cc-watch:** snapshot upstream CHANGELOG (2.1.241) (#3719)
+- **orank:** repo-root plugin.json mirror and fuller pricing.md (#3712), closes [#3675](https://github.com/yonatangross/orchestkit/issues/3675)
+- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-alpha.55](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.54...v10.0.0-alpha.55)** · 2026-08-24
 
 - **hooks:** rewrite inert security-scan-aggregator (#3709)
@@ -372,11 +381,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **docs:** order arrowed flow lanes by step number, not file position (#3671)
 - **hooks:** git-validator reads the branch from the dir CC says the session is in (#3673)
 - **cc-watch:** snapshot upstream CHANGELOG (2.1.238) (#3644)
-
-**[v10.0.0-alpha.48](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.47...v10.0.0-alpha.48)** · 2026-08-22
-
-- **cc-watch:** the adoption board can no longer lose history (#3662)
-- **sandbox:** pattern excludedCommands + allowUnixSockets (#3659)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
