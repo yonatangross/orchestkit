@@ -333,6 +333,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.54](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.53...v10.0.0-alpha.54)** · 2026-08-24
+
+- **deps:** bump the npm-minor-patch group across 1 directory with 4 updates (#3701)
+
 **[v10.0.0-alpha.53](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.52...v10.0.0-alpha.53)** · 2026-08-24
 
 - **docs-site:** auth.md carries no frontmatter, on spec grounds (#3694)
@@ -374,11 +378,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **docs-site:** claim the CLI now that it is actually published (#3658)
 - **ci:** playground gate blocked the playground prune (#3661)
 - **cli:** npm strips a bin value that starts with ./ (#3656)
-
-**[v10.0.0-alpha.46](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.45...v10.0.0-alpha.46)** · 2026-08-22
-
-- **docs-site:** close four agent-readiness gaps, add a CLI (#3654)
-- **skills:** Skills API publish rail (#3628) (#3649)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
