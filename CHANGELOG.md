@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.55](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.54...v10.0.0-alpha.55) (2026-08-24)
+
+
+### Bug Fixes
+
+* **hooks:** rewrite inert security-scan-aggregator ([#3709](https://github.com/yonatangross/orchestkit/issues/3709)) ([592cc6b](https://github.com/yonatangross/orchestkit/commit/592cc6bfb2b4b549cf53ae8be3101d4e80a5b0ae))
+
+
+### Miscellaneous
+
+* **docs:** track two untracked ledgers ([#3706](https://github.com/yonatangross/orchestkit/issues/3706)) ([2565717](https://github.com/yonatangross/orchestkit/commit/256571749acfce8ebf0b23e992811eeac2c25514))
+
 ## [10.0.0-alpha.54](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.53...v10.0.0-alpha.54) (2026-08-24)
 
 
