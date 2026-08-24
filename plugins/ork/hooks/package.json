@@ -27,9 +27,9 @@
     "node": ">=22.5.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.8",
+    "@biomejs/biome": "^2.5.9",
     "@types/node": "^26.2.0",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.11",
     "esbuild": "^0.28.2",
     "fast-check": "^4.9.0",
     "typescript": "^7.0.2",
