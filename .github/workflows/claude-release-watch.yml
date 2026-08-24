@@ -258,6 +258,9 @@ jobs:
         if: ${{ (steps.triage.outcome == 'skipped' || steps.triage.outputs.parse_failed == 'true') && steps.triage.outputs.auth_failed != 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Step output read via env, never pasted into the script body (same
+          # convention as NEW_DATES and STALE_* below): bash then sees data, not code.
+          PF_VERSIONS: ${{ steps.triage.outputs.parse_failed_versions }}
         run: |
           set -euo pipefail
           GAPS=shared/cc-adoption-gaps.json
@@ -275,7 +278,7 @@ jobs:
             # #3720: name only the versions that actually failed extraction. The
             # triage step emits them; when it was skipped (no token) every
             # in-window entry that is not below_floor is the honest list.
-            VERSIONS="${{ steps.triage.outputs.parse_failed_versions }}"
+            VERSIONS="${PF_VERSIONS:-}"
             if [ -z "$VERSIONS" ]; then
               VERSIONS=$(jq -r '[.[] | select(.below_floor != true) | .version] | join(", ")' "$GAPS")
             fi
