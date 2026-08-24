@@ -333,6 +333,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.55](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.54...v10.0.0-alpha.55)** · 2026-08-24
+
+- **hooks:** rewrite inert security-scan-aggregator (#3709)
+- **docs:** track two untracked ledgers (#3706)
+
 **[v10.0.0-alpha.54](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.53...v10.0.0-alpha.54)** · 2026-08-24
 
 - **deps:** bump the npm-minor-patch group across 1 directory with 4 updates (#3701)
@@ -372,12 +377,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **cc-watch:** the adoption board can no longer lose history (#3662)
 - **sandbox:** pattern excludedCommands + allowUnixSockets (#3659)
-
-**[v10.0.0-alpha.47](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.46...v10.0.0-alpha.47)** · 2026-08-22
-
-- **docs-site:** claim the CLI now that it is actually published (#3658)
-- **ci:** playground gate blocked the playground prune (#3661)
-- **cli:** npm strips a bin value that starts with ./ (#3656)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
