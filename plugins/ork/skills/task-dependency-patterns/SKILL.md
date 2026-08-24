@@ -31,6 +31,8 @@ tool-coverage: illustrative
 ## Overview
 
 Claude Code 2.1.16 introduces a native Task Management System with four tools:
+> **CC 2.1.233 caveat:** the Task tools are removed for the newest models unless `CLAUDE_CODE_ENABLE_TODO_TOOLS=1` is set in user or managed settings (or the shell). ork cannot ship that flag (CC reads only `permissions` from plugin settings), so treat every Task-tool call in this skill as conditional on the operator's environment.
+
 - **TaskCreate**: Create new tasks with subject, description, and activeForm
 - **TaskUpdate**: Update status (pending → in_progress → completed), set dependencies
 - **TaskGet**: Retrieve full task details including blockers

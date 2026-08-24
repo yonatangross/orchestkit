@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CC adoption docs sweep: stale claims vs current CC</title>
+<style>
+:root{--bg:#0f1420;--panel:#171e2e;--line:#2a3450;--ink:#e6ebf5;--muted:#8b96ad;--old:#e0655a;--new:#4dc98a;--info:#6ea8fe}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 ui-sans-serif,-apple-system,system-ui,sans-serif;padding:32px 20px 60px}
+.wrap{max-width:1000px;margin:0 auto}h1{font-size:25px;margin:0 0 6px}.sub{color:var(--muted);margin:0 0 20px;max-width:80ch}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}button{background:#0b101c;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13px}button.on{border-color:var(--info);color:var(--info)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}.card h2{margin:0 0 6px;font-size:15px}.meta{font-size:12px;color:var(--muted);margin-bottom:8px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:720px){.pair{grid-template-columns:1fr}}
+.q{border-radius:8px;padding:10px 12px;font-size:13px;background:#0b101c;border-left:3px solid var(--old)}.q.new{border-left-color:var(--new)}.q b{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+code{font-size:12px;color:#c9d4ea}.count{color:var(--muted);font-size:13px;margin-left:6px}
+</style></head><body><div class="wrap">
+<h1>Four docs said what CC used to do</h1>
+<p class="sub">The CC-adoption sweep (2026-08-24) verified 45 auto-filed issues against the repo. 41 were no-ops closed with proof. These four were doc-only: a shipped skill document still described pre-change Claude Code behaviour. Filter by CC version to see each stale claim beside its replacement.</p>
+<div class="filters" id="f"></div>
+<div id="cards"></div>
+</div>
+<script>
+const ITEMS=[
+{v:'2.1.221',issue:3615,file:'src/skills/security-patterns/SKILL.md',old:'"Deny-only and merged across scopes"; "Plugins ship a baseline in src/settings/ork.settings.json"; masking attributed wholly to CC 2.1.224.',new:'mode is deny or, since 2.1.221, mask (file masking on Linux/WSL, falls back to deny on macOS). ork ships NO sandbox.credentials baseline: CC reads only permissions from plugin settings, and the block was retired in #3357. The 2.1.224 options (extract, decode:jwt, awsPairs/sigv4) keep their tlsTerminate and user-scope constraints.',why:'Three claims, two stale by CC version and one stale by our own #3357.'},
+{v:'2.1.223',issue:3607,file:'src/skills/review-pr/SKILL.md (routing summary near Related Skills)',old:'"CC 2.1.202 reverted /review to a fast single-pass review ... built-in /review is the quick correctness gate, /code-review is the multi-agent pass."',new:'/review is an alias of /code-review since 2.1.223; depth is the level argument, no level reuses the last one, ultra is the deep cloud review. Quick pass at a chosen depth is /code-review <level>; the high-stakes project-aware audit is /ork:review-pr.',why:'The same file already said this at line 111; the routing summary 350 lines later contradicted it.'},
+{v:'2.1.232',issue:3584,file:'src/skills/chain-patterns/references/fork-pattern.md, brainstorm/SKILL.md, doctor/references/version-compatibility.md',old:'"CC routes Agent() calls to fork mode when ALL conditions are met ... If ANY condition fails, CC falls back to cold-start ... No code change needed, CC handles routing automatically."',new:'Forking is on by default and subagent_type:"fork" is first-class; the 4-condition table describes the 2.1.89 heuristic for ordinary Agent() calls, no longer the only route. brainstorm moves in lockstep; version-compatibility gains the 2.1.232 row its 2.1.212/2.1.221 rows implicitly promised.',why:'The refute pass found brainstorm restating the stale model verbatim; fixing one file would have created a contradiction.'},
+{v:'2.1.233',issue:3591,file:'doctor/references/agents-validation.md, task-dependency-patterns/SKILL.md, version-compatibility.md',old:'Task tools listed as always-available built-ins; 34 of 37 agents grant them; no mention that newest models drop them.',new:'TaskCreate/TaskUpdate/TaskGet/TaskList are removed for the newest models unless CLAUDE_CODE_ENABLE_TODO_TOOLS=1 in user or managed settings. ork cannot ship the flag, so every Task-tool call is conditional on the operator environment.',why:'First triaged as "real: add env to plugin settings"; refuted because CC ignores plugin-settings env, so the honest fix is a documented caveat.'},
+];
+const $=s=>document.querySelector(s);let cur='all';
+function render(){$('#f').innerHTML=['all',...new Set(ITEMS.map(i=>i.v))].map(v=>`<button class="${cur===v?'on':''}" data-v="${v}">${v==='all'?'all versions':'CC '+v}<span class="count">${v==='all'?ITEMS.length:ITEMS.filter(i=>i.v===v).length}</span></button>`).join('');
+document.querySelectorAll('#f button').forEach(b=>b.onclick=()=>{cur=b.dataset.v;render();});
+$('#cards').innerHTML=ITEMS.filter(i=>cur==='all'||i.v===cur).map(i=>`<div class="card"><h2>CC ${i.v} &middot; <a href="https://github.com/yonatangross/orchestkit/issues/${i.issue}" style="color:var(--info)">#${i.issue}</a></h2><div class="meta">${i.file}</div><div class="pair"><div class="q"><b>doc said</b>${i.old}</div><div class="q new"><b>doc now says</b>${i.new}</div></div><div class="meta" style="margin-top:8px">${i.why}</div></div>`).join('');}
+render();
+</script></body></html>

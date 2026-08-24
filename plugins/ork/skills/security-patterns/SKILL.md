@@ -139,7 +139,7 @@ Wildcards supported (`*.example.com`, `evil.com/*/malicious/*`). Plugins ship a 
 
 ### `sandbox.credentials` (CC 2.1.187+)
 
-Blocks sandboxed Bash from reading credential **files** and secret **env vars** — defense-in-depth beside `sandbox.filesystem.denyRead`. Deny-only and merged across scopes (any scope can add, none can remove); older CC ignores the key. Settings example:
+Blocks sandboxed Bash from reading credential **files** and secret **env vars**, defense-in-depth beside `sandbox.filesystem.denyRead`. Merged across scopes (any scope can add, none can remove); older CC ignores the key. `mode` is `deny` or, since CC 2.1.221, `mask`. Settings example:
 
 ```json
 "sandbox": {
@@ -150,9 +150,9 @@ Blocks sandboxed Bash from reading credential **files** and secret **env vars** 
 }
 ```
 
-Plugins ship a baseline in `src/settings/ork.settings.json` (denies `~/.aws/credentials`, `~/.ssh`, `~/.gnupg`, `~/.netrc`, `~/.npmrc` plus the token env vars that can hijack git-push auth). Pair with `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` to scrub all subprocess credentials regardless of sandboxing.
+ork ships **no** `sandbox.credentials` baseline: CC reads only the `permissions` key from a plugin's settings file, so the block that used to live in `src/settings/ork.settings.json` was retired in #3357 as inert. Set it in your user or managed settings (deny `~/.aws/credentials`, `~/.ssh`, `~/.gnupg`, `~/.netrc`, `~/.npmrc` plus the token env vars that can hijack git-push auth). Pair with `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` to scrub all subprocess credentials regardless of sandboxing.
 
-**Masking instead of denial (CC 2.1.224+).** Beyond `mode: deny`, credentials can be masked so the command still runs against a redacted value: `extract` plus `onExtractNoMatch` pulls a secret out of a structured env value, `decode: "jwt"` with `maskClaims` masks named JWT claims, and `awsPairs`/`sigv4` re-signs AWS SigV4 requests after masking. Two constraints decide whether these are usable at all:
+**Masking instead of denial.** Since CC 2.1.221, a credential **file** entry can take `mode: "mask"` on Linux and WSL: the sandboxed command reads a sentinel copy (the whole file, or only the spans an `extract` regex captures) and the sandbox proxy substitutes the real value on egress. On macOS file masking falls back to `deny`, so on a Mac it buys nothing over `mode: deny`. The richer options arrived in CC 2.1.224: beyond `mode: deny`, credentials can be masked so the command still runs against a redacted value: `extract` plus `onExtractNoMatch` pulls a secret out of a structured env value, `decode: "jwt"` with `maskClaims` masks named JWT claims, and `awsPairs`/`sigv4` re-signs AWS SigV4 requests after masking. Two constraints decide whether these are usable at all:
 
 - They require `sandbox.network.tlsTerminate`, so they only apply to traffic CC terminates.
 - They are honored **only** from user settings, managed settings, or `--settings`. A value shipped by a plugin or set in project `.claude/settings.json` is ignored, so ork cannot ship these as a baseline the way it ships the deny list. Document them for operators; do not add them to `src/settings/ork.settings.json` expecting them to take effect.

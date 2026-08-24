@@ -64,7 +64,7 @@ Valid CC tools:
 - WebFetch, WebSearch
 - NotebookEdit
 - AskUserQuestion
-- TaskCreate, TaskUpdate, TaskGet, TaskList
+- TaskCreate, TaskUpdate, TaskGet, TaskList (since CC 2.1.233 these are **removed for the newest models** unless the operator sets `CLAUDE_CODE_ENABLE_TODO_TOOLS=1`; plugin settings cannot set it, so an agent granting them may run without them)
 
 ## Quick Validation
 
