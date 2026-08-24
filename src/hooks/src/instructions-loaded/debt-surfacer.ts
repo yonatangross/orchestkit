@@ -4,88 +4,42 @@
 /**
  * Handler 7: Deferred-Debt Surfacer
  *
- * The surface half of the deferred-debt feature. Greps the project for
- * deferred-debt markers and injects a compact ledger summary into context at
- * session start — so the deliberate shortcuts you took (and the conditions
- * that should make you revisit them) are in front of you with zero manual
- * trigger. Counterpart to the YAGNI gate, which PREVENTS over-engineering;
- * this RECORDS the deliberate under-engineering.
+ * The surface half of the deferred-debt feature. Injects a compact ledger
+ * summary into context at session start, so the deliberate shortcuts you took
+ * (and the conditions that should make you revisit them) are in front of you
+ * with zero manual trigger. Counterpart to the YAGNI gate, which PREVENTS
+ * over-engineering; this RECORDS the deliberate under-engineering.
+ *
+ * #3708: this handler is a READER, not a scanner. It costs one `git rev-parse`
+ * and one file read per session (lib/debt-ledger.ts owns the cache, its HEAD
+ * key, and the single-flight rebuild). It used to grep the whole project on
+ * every session start, a cost that multiplies by session count and lands all
+ * at once after a reboot.
  *
  * Read-only. Returns null (silent) when there is nothing to surface.
  * Opt out with ORK_DISABLE_DEBT_SURFACER=1.
  */
 
-import { execSync } from 'node:child_process';
-import { relative } from 'node:path';
 import { logHook } from '../lib/common.js';
 import { getProjectDir } from '../lib/paths.js';
-import { assertSafeShellArg } from '../lib/sanitize-shell.js';
-import { parseDebtComment, formatDebtMarker, DEBT_TOKEN, DEBT_SCAN_EXTENSIONS } from '../lib/debt-markers.js';
+import { formatDebtMarker } from '../lib/debt-markers.js';
+import { loadOrBuildLedger } from '../lib/debt-ledger.js';
 import type { LoadedFile } from './types.js';
 
 const HOOK_NAME = 'instructions-loaded/debt-surfacer';
 
 // Markers listed in the summary (cap to avoid context bloat).
 const MAX_LIST = 5;
-// Total grep hits scanned (backstop for huge repos).
-const SCAN_CAP = 50;
-
-// Derived from the shared DEBT_SCAN_EXTENSIONS so the surfacer's scan set can
-// never drift from the capture hook's (previously it omitted kts/hpp/bash/zsh/sql).
-const INCLUDES = DEBT_SCAN_EXTENSIONS.map(ext => `--include='*.${ext}'`).join(' ');
-
-const EXCLUDE_DIRS = ['node_modules', 'dist', '.git', '.worktrees', 'build', 'vendor', '__tests__']
-  .map(d => `--exclude-dir=${d}`)
-  .join(' ');
-
-interface LedgerEntry {
-  file: string;
-  line: number;
-  choice: string;
-  upgrade?: string;
-  trigger?: string;
-}
-
-function grepMarkers(projectDir: string): LedgerEntry[] {
-  let out: string;
-  try {
-    const safeDir = assertSafeShellArg(projectDir, 'project dir');
-    const safePat = assertSafeShellArg(`${DEBT_TOKEN}:`, 'debt pattern');
-    // shell required: ripgrep/grep with include/exclude filtering
-    const cmd =
-      `grep -rnE ${INCLUDES} ${EXCLUDE_DIRS} -- '${safePat}' '${safeDir}' 2>/dev/null ` +
-      `| head -${SCAN_CAP + 1}`;
-    out = execSync(cmd, { encoding: 'utf8', timeout: 5000 }).trim();
-  } catch {
-    return []; // silent: best-effort
-  }
-  if (!out) return [];
-
-  const entries: LedgerEntry[] = [];
-  for (const raw of out.split('\n').filter(Boolean)) {
-    const m = raw.match(/^(.+?):(\d+):(.*)$/);
-    if (!m) continue;
-    const parsed = parseDebtComment(m[3]);
-    if (!parsed) continue;
-    entries.push({
-      file: relative(projectDir, m[1]) || m[1],
-      line: parseInt(m[2], 10),
-      choice: parsed.choice,
-      upgrade: parsed.upgrade,
-      trigger: parsed.trigger,
-    });
-  }
-  return entries;
-}
 
 export function debtSurfacer(_files: LoadedFile[], _contents: Map<string, string>): string | null {
   if (process.env.ORK_DISABLE_DEBT_SURFACER === '1') return null;
 
   const projectDir = getProjectDir();
-  const entries = grepMarkers(projectDir);
-  if (entries.length === 0) return null;
+  const { ledger, source } = loadOrBuildLedger(projectDir);
+  if (!ledger || ledger.entries.length === 0) return null;
+  const entries = ledger.entries;
 
-  logHook(HOOK_NAME, `${entries.length} deferred-debt marker(s) surfaced`);
+  logHook(HOOK_NAME, `${entries.length} deferred-debt marker(s) surfaced (ledger: ${source})`);
 
   const fileCount = new Set(entries.map(e => e.file)).size;
   const shown = entries.slice(0, MAX_LIST).map(e => {
@@ -102,4 +56,4 @@ export function debtSurfacer(_files: LoadedFile[], _contents: Map<string, string
 }
 
 // Testing exports
-export { grepMarkers, MAX_LIST };
+export { MAX_LIST };

@@ -107,6 +107,19 @@ export function getAnalyticsStorageDir(): string {
 }
 
 /**
+ * Get the cache directory for derived, regenerable artifacts (e.g. the
+ * deferred-debt ledger, #3708). Same persistence rule as session storage:
+ * CLAUDE_PLUGIN_DATA when present, else project-local .claude/memory/cache.
+ */
+export function getCacheDir(): string {
+  const pluginData = getPluginDataDir();
+  if (pluginData) {
+    return path.join(pluginData, 'cache');
+  }
+  return path.join(getProjectDir(), '.claude', 'memory', 'cache');
+}
+
+/**
  * Get the log directory path (cross-platform)
  * Uses path.join() for correct separators on all platforms
  */

@@ -31,6 +31,7 @@ import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, getField } from '../../lib/common.js';
 import { NOOP_CTX } from '../../lib/context.js';
 import { scanTextForDebt, formatDebtMarker, DEBT_SCAN_EXTENSIONS } from '../../lib/debt-markers.js';
+import { updateLedgerForFile } from '../../lib/debt-ledger.js';
 
 const HOOK_NAME = 'posttool/write/debt-marker-tracker';
 
@@ -61,6 +62,12 @@ export function debtMarkerTracker(input: HookInput, ctx: HookContext = NOOP_CTX)
   } catch {
     return outputSilentSuccess(); // silent: best-effort
   }
+
+  // #3708: keep the session-start ledger current for THIS file only (O(1)),
+  // so the surfacer never has to rescan the tree mid-session. Also runs when
+  // the file now carries zero markers, which is how a resolved debt leaves the
+  // ledger before the next HEAD-keyed rebuild.
+  updateLedgerForFile(ctx.projectDir, abs, text);
 
   const markers = scanTextForDebt(text);
   if (markers.length === 0) return outputSilentSuccess();
