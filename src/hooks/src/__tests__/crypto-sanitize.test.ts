@@ -83,6 +83,14 @@ describe('Crypto Utilities', () => {
       expect(result?.command).not.toContain('ghp_1234567890abcdefghijklmnopqrstuvwxyz1234');
     });
 
+    it('redacts GitLab tokens in commands (#3589)', () => {
+      const result = sanitizePayload({
+        command: 'glab auth login --token glpat-aB1cD2eF3gH4iJ5kL6mN7oP8qR',
+      });
+      expect(result?.command).not.toContain('glpat-aB1cD2eF3gH4iJ5kL6mN7oP8qR');
+      expect(result?.command).toContain('[REDACTED]');
+    });
+
     it('redacts Bearer tokens', () => {
       const result = sanitizePayload({
         command: 'curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.abc"',

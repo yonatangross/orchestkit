@@ -70,7 +70,7 @@ describe('secretHandler — negative corpus (anti-FP)', () => {
 // 2. Positive seeds — bounded patterns redact, critical patterns gate
 // ---------------------------------------------------------------------------
 describe('secretHandler — positive seeds (bounded patterns redact)', () => {
-  const BOUNDED = ['github-pat', 'anthropic-key', 'openai-key', 'aws-access-key-id', 'slack-token'];
+  const BOUNDED = ['github-pat', 'gitlab-token', 'anthropic-key', 'openai-key', 'aws-access-key-id', 'slack-token'];
 
   for (const patternName of BOUNDED) {
     const seeds = POSITIVE_SEEDS[patternName] ?? [];
