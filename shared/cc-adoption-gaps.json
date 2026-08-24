@@ -1,74 +1,200 @@
 [
   {
-    "version": "2.1.238",
+    "version": "2.1.239",
     "parse_failed": false,
     "features": [
       {
-        "feature_slug": "keybinding_flavor_setting",
-        "category": "feature",
-        "description": "New keybindingFlavor settings key (classic|readline) changes prompt editing-key semantics; operator-scope settings references should list it.",
+        "feature_slug": "cloud_session_plan_mode_retained",
+        "category": "breaking",
+        "description": "Cloud sessions no longer drop out of plan mode after an idle worker restart, preserving the safety mode.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration"
+        ],
+        "reference_changelog_line": "Fixed cloud sessions (Claude Code on the web, desktop and mobile apps) resuming out of plan mode after an idle worker restart",
+        "relevance": "plugin",
+        "disposition": "triaged-noop-no-evidence"
+      },
+      {
+        "feature_slug": "resume_cross_directory_leak_fix",
+        "category": "breaking",
+        "description": "Resume no longer loads sessions from a different directory whose path differs only by `_`, `-`, or `.`.",
+        "gap_score": 20,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed `claude -c`/resume picking up sessions from a different directory whose path differed only by characters like `_`, `-`, or `.`",
+        "relevance": "plugin",
+        "disposition": "triaged-noop-no-evidence"
+      },
+      {
+        "feature_slug": "focus_click_permission_prompt_fix",
+        "category": "breaking",
+        "description": "Clicking the terminal to regain focus no longer answers a pending permission prompt in fullscreen mode.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed fullscreen mode answering a permission prompt or pressing a button when you clicked the terminal window only to bring it back into focus",
+        "relevance": "plugin",
+        "disposition": "triaged-noop-no-evidence"
+      },
+      {
+        "feature_slug": "linux_sandbox_worktree_config_fix",
+        "category": "breaking",
+        "description": "Linux sandbox no longer makes a nonexistent `.git/config.worktree` unreadable, unbreaking sandboxed git.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed the Linux sandbox making a nonexistent `.git/config.worktree` unreadable, which broke every sandboxed git command in repos with `extensions.worktreeConfig` set",
+        "relevance": "plugin",
+        "disposition": "triaged-noop-no-evidence"
+      },
+      {
+        "feature_slug": "claudemd_excludes_symlink_fix",
+        "category": "breaking",
+        "description": "`claudeMdExcludes` now excludes symlinked `.claude/rules` files matched by directory or symlink name.",
         "gap_score": 20,
         "affected_skills": [
           "configure",
           "doctor"
         ],
-        "reference_changelog_line": "Added a `keybindingFlavor` setting: set it to \"readline\" to make Ctrl+W in the prompt delete back to the previous whitespace, as in Bash; the default (\"classic\") is unchanged",
-        "relevance": "docs",
-        "disposition": "triaged-noop-no-evidence"
-      },
-      {
-        "feature_slug": "marketplace_headers_helper",
-        "category": "feature",
-        "description": "headersHelper mints short-lived HTTP headers for url marketplaces and catalog/archive entries, with install-time confirmation and credential-env scrubbing for project-scope declarations; marketplace and MCP template docs should cover the trust and scrubbing rules.",
-        "gap_score": 35,
-        "affected_skills": [
-          "configure",
-          "security-patterns"
-        ],
-        "reference_changelog_line": "Plugin marketplaces: `headersHelper` on a url marketplace or a catalog entry runs a command that mints HTTP headers (e.g. a short-lived token) for catalog and same-origin archive fetches",
+        "reference_changelog_line": "Fixed `claudeMdExcludes` not excluding a symlinked `.claude/rules` file when the pattern names the rules directory or the symlink rather than its target",
         "relevance": "plugin",
         "disposition": "triaged-noop-no-evidence"
       },
       {
-        "feature_slug": "mcp_json_headers_helper_trust_gate",
+        "feature_slug": "masked_input_credential_leak_fix",
         "category": "breaking",
-        "description": "MCP headersHelper in a project .mcp.json, and inline MCP servers in project or --add-dir agent files, now require the folder trust dialog and run without inherited credential env vars; affects the shipped mcp-enabled.json template guidance.",
-        "gap_score": 40,
+        "description": "Masked password-style inputs can no longer be yanked elsewhere with Ctrl+Y or saved into prompt history.",
+        "gap_score": 20,
         "affected_skills": [
-          "configure",
-          "doctor",
           "security-patterns"
         ],
-        "reference_changelog_line": "MCP `headersHelper` in a project `.mcp.json`, and inline MCP servers in project or `--add-dir` agent files, now require that folder's trust dialog",
+        "reference_changelog_line": "Fixed masked (password-style) inputs such as the login code field letting their text be pasted back with Ctrl+Y elsewhere or saved to prompt history when cleared with double Esc",
+        "relevance": "plugin",
+        "disposition": "triaged-noop-no-evidence"
+      },
+      {
+        "feature_slug": "org_policy_reject_no_resend",
+        "category": "breaking",
+        "description": "A request rejected by an organization policy check is no longer re-sent before the rejection surfaces.",
+        "gap_score": 20,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed a request rejected by an organization policy check being re-sent before the rejection was shown",
+        "relevance": "plugin",
+        "disposition": "triaged-noop-no-evidence"
+      },
+      {
+        "feature_slug": "compaction_skill_args_not_rerun",
+        "category": "breaking",
+        "description": "Post-compaction reminder no longer re-runs a skill's original arguments as a fresh user request.",
+        "gap_score": 20,
+        "affected_skills": [
+          "auto"
+        ],
+        "reference_changelog_line": "Improved the reminder shown after compaction so a skill's original arguments are not re-run as a new request",
+        "relevance": "plugin",
+        "disposition": "triaged-noop-no-evidence"
+      },
+      {
+        "feature_slug": "hook_keepalive_no_idle_reap",
+        "category": "breaking",
+        "description": "Remote sessions send keep-alives during long SessionStart or Setup hooks so the container is not idle-reaped.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "doctor"
+        ],
+        "reference_changelog_line": "Remote sessions keep sending keep-alives while a long `SessionStart` or `Setup` hook runs, so the container is not idle-reaped mid-hook",
         "relevance": "plugin"
       },
       {
-        "feature_slug": "mcp_list_disabled_no_healthcheck",
-        "category": "feature",
-        "description": "claude mcp list/get now show disabled servers without connecting for a health check; doctor's MCP connectivity check must not read a Disabled row as a probe result.",
-        "gap_score": 25,
+        "feature_slug": "claude_api_upgrade_command",
+        "category": "new_command",
+        "description": "New `/claude-api upgrade` migrates Python projects from anthropic 0.x to 1.x, including timeout API changes.",
+        "gap_score": 15,
         "affected_skills": [
-          "doctor"
+          "llm-integration",
+          "python-backend"
         ],
-        "reference_changelog_line": "Changed `claude mcp list` and `claude mcp get` to show disabled servers as Disabled instead of connecting to them for a health check",
+        "reference_changelog_line": "Added `/claude-api upgrade` to migrate Python projects from `anthropic` 0.x to 1.x, and updated the skill's Python reference for 1.x (timeouts use `anthropic.Timeout`, not `httpx.Timeout`)",
         "relevance": "plugin",
         "disposition": "triaged-noop-no-evidence"
       },
       {
-        "feature_slug": "self_hosted_runner_shutdown_and_proxy_auth",
-        "category": "feature",
-        "description": "self-hosted-runner gains --defer-shutdown-max-min and proxy-authorization command/file flags; relevant to the shared 4-box runner pool operations documentation.",
+        "feature_slug": "plugin_synced_suffix_cli",
+        "category": "new_command",
+        "description": "Plugins synced from claude.ai use a `name@synced` suffix addressable via `claude plugin enable/disable`.",
         "gap_score": 15,
         "affected_skills": [
-          "devops-deployment"
+          "configure",
+          "doctor"
         ],
-        "reference_changelog_line": "Added `claude self-hosted-runner --defer-shutdown-max-min <minutes>`",
-        "relevance": "docs",
+        "reference_changelog_line": "Cloud sessions: plugins synced from claude.ai now show as `name@synced`, work with `claude plugin enable/disable <name>@synced`, and never override a same-named plugin you installed",
+        "relevance": "plugin",
+        "disposition": "triaged-noop-no-evidence"
+      },
+      {
+        "feature_slug": "web_tool_egress_via_proxy",
+        "category": "new_perm",
+        "description": "On the web, Bash and tool requests to non-API anthropic.com hosts route through the session's network proxy.",
+        "gap_score": 12,
+        "affected_skills": [
+          "browser-tools",
+          "web-research-workflow",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Claude Code on the web: requests from Bash and other tools to non-API anthropic.com hosts (e.g. www, docs) now go through the session's network proxy, so your environment's allowed domains apply",
+        "relevance": "plugin",
+        "disposition": "triaged-noop-no-evidence"
+      },
+      {
+        "feature_slug": "listagents_self_name_field",
+        "category": "new_field",
+        "description": "`ListAgents` now reports the session's own peer-addressable name, and SendMessage to self says so.",
+        "gap_score": 10,
+        "affected_skills": [
+          "agent-orchestration",
+          "task-dependency-patterns"
+        ],
+        "reference_changelog_line": "`ListAgents` now tells a session its own name (the one peers use to message it), and `SendMessage` to your own name says so instead of \"no agent named …\"",
+        "relevance": "plugin",
+        "recall_boosted_from": 5
+      },
+      {
+        "feature_slug": "listagents_includes_teammates",
+        "category": "new_attr",
+        "description": "`ListAgents` and `/list-agents` now include live teammates alongside subagents and other sessions.",
+        "gap_score": 10,
+        "affected_skills": [
+          "agent-orchestration"
+        ],
+        "reference_changelog_line": "`ListAgents` and `/list-agents` now list your live teammates (previously only subagents and other sessions appeared, so a reachable teammate looked absent)",
+        "relevance": "plugin",
+        "recall_boosted_from": 5,
         "disposition": "triaged-noop-no-evidence"
       }
     ],
-    "raw_bullets_count": 39,
-    "issues_filed_at": "2026-08-21T10:29:32Z"
+    "raw_bullets_count": 59,
+    "features_extracted": 14,
+    "issues_filed_at": "2026-08-24T17:18:03Z"
+  },
+  {
+    "version": "2.1.240",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "featureless": true,
+    "issues_filed_at": "2026-08-24T17:18:03Z"
+  },
+  {
+    "version": "2.1.241",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "featureless": true,
+    "issues_filed_at": "2026-08-24T17:18:03Z"
   },
   {
     "version": "2.1.219",

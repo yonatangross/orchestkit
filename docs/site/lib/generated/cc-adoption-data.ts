@@ -16,6 +16,149 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.241",
+    "features": []
+  },
+  {
+    "version": "2.1.240",
+    "features": []
+  },
+  {
+    "version": "2.1.239",
+    "features": [
+      {
+        "slug": "cloud_session_plan_mode_retained",
+        "category": "breaking",
+        "description": "Cloud sessions no longer drop out of plan mode after an idle worker restart, preserving the safety mode.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "resume_cross_directory_leak_fix",
+        "category": "breaking",
+        "description": "Resume no longer loads sessions from a different directory whose path differs only by `_`, `-`, or `.`.",
+        "gapScore": 20,
+        "affectedSkills": []
+      },
+      {
+        "slug": "focus_click_permission_prompt_fix",
+        "category": "breaking",
+        "description": "Clicking the terminal to regain focus no longer answers a pending permission prompt in fullscreen mode.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "linux_sandbox_worktree_config_fix",
+        "category": "breaking",
+        "description": "Linux sandbox no longer makes a nonexistent `.git/config.worktree` unreadable, unbreaking sandboxed git.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "claudemd_excludes_symlink_fix",
+        "category": "breaking",
+        "description": "`claudeMdExcludes` now excludes symlinked `.claude/rules` files matched by directory or symlink name.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "masked_input_credential_leak_fix",
+        "category": "breaking",
+        "description": "Masked password-style inputs can no longer be yanked elsewhere with Ctrl+Y or saved into prompt history.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "org_policy_reject_no_resend",
+        "category": "breaking",
+        "description": "A request rejected by an organization policy check is no longer re-sent before the rejection surfaces.",
+        "gapScore": 20,
+        "affectedSkills": []
+      },
+      {
+        "slug": "compaction_skill_args_not_rerun",
+        "category": "breaking",
+        "description": "Post-compaction reminder no longer re-runs a skill's original arguments as a fresh user request.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "auto"
+        ]
+      },
+      {
+        "slug": "hook_keepalive_no_idle_reap",
+        "category": "breaking",
+        "description": "Remote sessions send keep-alives during long SessionStart or Setup hooks so the container is not idle-reaped.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "claude_api_upgrade_command",
+        "category": "new_command",
+        "description": "New `/claude-api upgrade` migrates Python projects from anthropic 0.x to 1.x, including timeout API changes.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "llm-integration",
+          "python-backend"
+        ]
+      },
+      {
+        "slug": "plugin_synced_suffix_cli",
+        "category": "new_command",
+        "description": "Plugins synced from claude.ai use a `name@synced` suffix addressable via `claude plugin enable/disable`.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "web_tool_egress_via_proxy",
+        "category": "new_perm",
+        "description": "On the web, Bash and tool requests to non-API anthropic.com hosts route through the session's network proxy.",
+        "gapScore": 12,
+        "affectedSkills": [
+          "browser-tools",
+          "web-research-workflow",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "listagents_self_name_field",
+        "category": "new_field",
+        "description": "`ListAgents` now reports the session's own peer-addressable name, and SendMessage to self says so.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "agent-orchestration",
+          "task-dependency-patterns"
+        ]
+      },
+      {
+        "slug": "listagents_includes_teammates",
+        "category": "new_attr",
+        "description": "`ListAgents` and `/list-agents` now include live teammates alongside subagents and other sessions.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "agent-orchestration"
+        ]
+      }
+    ]
+  },
+  {
     "version": "2.1.238",
     "features": [
       {
@@ -1362,4 +1505,4 @@ export const CC_SUPPORT = {
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "d59051369548" as const;
+export const SOURCE_DIGEST = "2e038ecb84d1" as const;
