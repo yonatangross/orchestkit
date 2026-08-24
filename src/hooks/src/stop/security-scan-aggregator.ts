@@ -19,22 +19,14 @@
  *   walking, so child timeouts stay enforceable
  */
 
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-  readdirSync,
-  statSync,
-  unlinkSync,
-  type Dirent,
-} from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, type Dirent } from 'node:fs';
 import { execFile, execFileSync } from 'node:child_process';
 import { promisify } from 'node:util';
 import { tmpdir } from 'node:os';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { logHook, outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { acquirePidLock, releasePidLock } from '../lib/pidlock.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -76,49 +68,13 @@ function hasUncommittedChanges(projectDir: string): boolean {
   }
 }
 
-function isPidAlive(pid: number): boolean {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Machine-wide lock: one scan across all concurrent sessions.
- * Returns true when this process holds the lock.
- */
+/** Machine-wide lock: one scan across all concurrent sessions (lib/pidlock). */
 function acquireLock(): boolean {
-  try {
-    writeFileSync(LOCK_PATH, String(process.pid), { flag: 'wx' });
-    return true;
-  } catch {
-    try {
-      const holderPid = Number.parseInt(readFileSync(LOCK_PATH, 'utf8'), 10);
-      const age = Date.now() - statSync(LOCK_PATH).mtimeMs;
-      const abandoned =
-        age > LOCK_STALE_MS || !Number.isInteger(holderPid) || holderPid <= 0 || !isPidAlive(holderPid);
-      if (abandoned) {
-        unlinkSync(LOCK_PATH);
-        writeFileSync(LOCK_PATH, String(process.pid), { flag: 'wx' });
-        return true;
-      }
-    } catch {
-      // Lost the race to another session, or the lock vanished mid-check.
-    }
-    return false;
-  }
+  return acquirePidLock(LOCK_PATH, LOCK_STALE_MS);
 }
 
 function releaseLock(): void {
-  try {
-    if (readFileSync(LOCK_PATH, 'utf8') === String(process.pid)) {
-      unlinkSync(LOCK_PATH);
-    }
-  } catch {
-    // Already gone, or stolen after staleness — nothing to release.
-  }
+  releasePidLock(LOCK_PATH);
 }
 
 function toolInstalled(tool: string): boolean {
