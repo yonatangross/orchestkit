@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.55",
+    "date": "2026-08-24",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** rewrite inert security-scan-aggregator ([#3709](https://github.com/yonatangross/orchestkit/issues/3709)) ([592cc6b](https://github.com/yonatangross/orchestkit/commit/592cc6bfb2b4b549cf53ae8be3101d4e80a5b0ae))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**docs:** track two untracked ledgers ([#3706](https://github.com/yonatangross/orchestkit/issues/3706)) ([2565717](https://github.com/yonatangross/orchestkit/commit/256571749acfce8ebf0b23e992811eeac2c25514))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.54",
     "date": "2026-08-24",
     "compareUrl": "",
