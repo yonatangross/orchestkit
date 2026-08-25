@@ -133,9 +133,11 @@ optimize_skill() {
     test_file=$(mktemp "${TMPDIR:-/tmp}/ork-opt-test-XXXXXX.yaml")
     CLEANUP_FILES+=("$train_file" "$test_file")
 
-    # Split using yq
-    yq -y "{id: .id, trigger_evals: (([.trigger_evals[] | select(.should_trigger == true)][:$train_pos]) + ([.trigger_evals[] | select(.should_trigger == false)][:$train_neg]))}" "$eval_file" > "$train_file"
-    yq -y "{id: .id, trigger_evals: (([.trigger_evals[] | select(.should_trigger == true)][$train_pos:]) + ([.trigger_evals[] | select(.should_trigger == false)][$train_neg:]))}" "$eval_file" > "$test_file"
+    # Split via yq→jq→yq. The repo's yq is mikefarah/Go (no python-yq `-y` flag,
+    # no jq-style `[:N]` slicing), so convert to JSON, let jq do the slice+concat
+    # (the expression is already jq syntax), then back to YAML for the eval reader.
+    yq -o=json "$eval_file" | jq "{id: .id, trigger_evals: (([.trigger_evals[] | select(.should_trigger == true)][:$train_pos]) + ([.trigger_evals[] | select(.should_trigger == false)][:$train_neg]))}" | yq -p=json -o=yaml - > "$train_file"
+    yq -o=json "$eval_file" | jq "{id: .id, trigger_evals: (([.trigger_evals[] | select(.should_trigger == true)][$train_pos:]) + ([.trigger_evals[] | select(.should_trigger == false)][$train_neg:]))}" | yq -p=json -o=yaml - > "$test_file"
 
     # --- Baseline eval on train set ---
     local current_desc="$original_desc"
