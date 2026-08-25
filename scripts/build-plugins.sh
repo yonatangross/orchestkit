@@ -421,6 +421,15 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         + if $has_workflows then {workflows: "./workflows/"} else {} end' \
         > "$PLUGIN_DIR/.claude-plugin/plugin.json"
 
+    # Cursor host manifest: same skills/commands/agents, no Claude hooks.
+    # Cursor loads .cursor-plugin/plugin.json (or a root Agent Plugins plugin.json).
+    # Claude hooks use ${CLAUDE_PLUGIN_ROOT} and must not be registered here.
+    mkdir -p "$PLUGIN_DIR/.cursor-plugin"
+    jq --argjson has_agents "$([[ -d "$PLUGIN_DIR/agents" ]] && echo true || echo false)" \
+      'del(.workflows) + (if $has_agents then {agents: "./agents/"} else {} end)' \
+      "$PLUGIN_DIR/.claude-plugin/plugin.json" \
+      > "$PLUGIN_DIR/.cursor-plugin/plugin.json"
+
     # Generate the Agent Plugins manifest at the PLUGIN ROOT.
     #
     # This is a second, separate file, not an edit to the Claude Code one.
@@ -476,14 +485,6 @@ if [[ -x "$SCRIPT_DIR/build-codex-plugin.sh" ]]; then
     "$SCRIPT_DIR/build-codex-plugin.sh"
 else
     echo -e "${RED}  ERROR: build-codex-plugin.sh is missing or not executable${NC}"
-    exit 1
-fi
-
-if [[ -x "$SCRIPT_DIR/build-cursor-plugin.sh" ]]; then
-    echo -e "${BLUE}  Building Cursor adapter...${NC}"
-    "$SCRIPT_DIR/build-cursor-plugin.sh"
-else
-    echo -e "${RED}  ERROR: build-cursor-plugin.sh is missing or not executable${NC}"
     exit 1
 fi
 

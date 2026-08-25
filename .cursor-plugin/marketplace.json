@@ -5,9 +5,9 @@
   },
   "plugins": [
     {
-      "name": "ork-cursor",
-      "source": "./plugins/ork-cursor",
-      "description": "Thin OrchestKit workflows for Cursor: brainstorm, explore, assess, verify, and review-pr. Skills only. No Claude hooks and no plugin MCP servers."
+      "name": "ork",
+      "source": "./plugins/ork",
+      "description": "The full OrchestKit plugin for Cursor: the same skills, commands, and agents Claude Code gets. Claude hook scripts are not registered (they need CLAUDE_PLUGIN_ROOT). No plugin MCP servers."
     }
   ]
 }

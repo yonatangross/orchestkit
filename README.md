@@ -226,18 +226,18 @@ npx skills add yonatangross/orchestkit
 
 ### Cursor
 
-Cursor does not load the Claude plugin. Add this repository as a Cursor
-marketplace (Settings → the GitHub repo `yonatangross/orchestkit`), enable
-`ork-cursor`, then **open a new chat**. Reload Window does not pick up a newly
-enabled plugin catalog.
+Cursor loads [Agent Plugins](https://agent-plugins.org) and Cursor plugins.
+This repo already ships the Agent Plugins manifest at `plugins/ork/plugin.json`.
+Add the GitHub repo as a Cursor marketplace (Settings → `yonatangross/orchestkit`),
+enable **`ork`**, then **open a new chat**. That is the same plugin Claude Code
+installs, not a five-skill fork.
 
-The pack is the same five workflows Codex already ships (`ork-brainstorm`,
-`ork-explore`, `ork-assess`, `ork-verify`, `ork-review-pr`). It registers
-**no** Claude hooks and **no** plugin `mcpServers`. Fan-out uses Cursor's
-`Task` tool; Codex `ork_explorer` roles are not installed here.
+Claude hook scripts are not registered for Cursor: they depend on
+`${CLAUDE_PLUGIN_ROOT}` (orchestkit#293, closed). Cursor enforcement for HQ
+repos stays in the consuming project's `.cursor/hooks.json`.
 
 "Include third-party Plugins" can leak SKILL.md from `~/.claude/plugins`. That
-is not an install. Proof is the `ork-cursor` plugin id in the skills catalog.
+is not an install. Proof is the `ork` plugin id plus the full skill catalog.
 
 ### Codex
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>OrchestKit for Cursor — thin pack, not 171 hooks</title>
+  <title>OrchestKit for Cursor — the same plugin, Cursor manifest</title>
   <style>
     :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#e6edf3;--muted:#8b949e;--blue:#58a6ff;--green:#3fb950;--amber:#d29922;--red:#f85149;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,sans-serif;padding:28px}
@@ -21,7 +21,7 @@
 </head>
 <body><main>
   <h1>OrchestKit → Cursor</h1>
-  <p class="sub">A host-native adapter copied from the Codex thin pack, not from the Claude plugin. Cursor never resolves <code>${CLAUDE_PLUGIN_ROOT}</code> (orchestkit#293, closed), so this pack ships five SKILL.md workflows and refuses Claude's 171-hook registry.</p>
+  <p class="sub">Cursor loads Agent Plugins. This repo already has <code>plugins/ork/plugin.json</code>. The Cursor marketplace points at <code>ork</code>, the same plugin Claude Code installs. Claude hooks are omitted because they need <code>${CLAUDE_PLUGIN_ROOT}</code>.</p>
   <div class="grid" id="modes">
     <div class="card active" data-mode="install"><button><span class="tag">install</span><br>What actually loads</button></div>
     <div class="card" data-mode="skills"><button><span class="tag">5 skills</span><br>Same as ork-codex</button></div>
@@ -31,10 +31,10 @@
   <section>
     <div class="tag" id="label">install</div>
     <h2 id="title">Add the GitHub marketplace, enable ork-cursor, open a new chat</h2>
-    <p id="body">Cursor Settings → add yonatangross/orchestkit as a marketplace → enable <code>ork-cursor</code>. Reload Window does not pick up a newly enabled plugin catalog. Proof is the plugin id in the skills list, not a leaked Claude banner.</p>
-    <pre id="command">.cursor-plugin/marketplace.json → plugins/ork-cursor
-skills: brainstorm, explore, assess, verify, review-pr
-absent: mcpServers, hooks, commands, Codex roles</pre>
+    <p id="body">Cursor Settings → add yonatangross/orchestkit as a marketplace → enable <code>ork</code>. Reload Window does not pick up a newly enabled plugin catalog. Proof is the plugin id in the skills list, not a leaked Claude banner.</p>
+    <pre id="command">.cursor-plugin/marketplace.json → plugins/ork
+skills/commands/agents: the full ork tree
+absent: Claude hooks, plugin MCP servers</pre>
     <ul id="points">
       <li><span class="ok">✓</span> Skills only, same five workflows Codex already ships</li>
       <li><span class="no">✗</span> No 171 PreToolUse hooks</li>
@@ -48,7 +48,7 @@ absent: mcpServers, hooks, commands, Codex roles</pre>
       <tbody>
         <tr><td>Claude Code</td><td>ork</td><td>171</td><td>none (recommendations)</td></tr>
         <tr><td>Codex</td><td>ork-codex</td><td>none</td><td>context7 HTTP</td></tr>
-        <tr><td>Cursor</td><td>ork-cursor</td><td>none</td><td>none</td></tr>
+        <tr><td>Cursor</td><td>ork</td><td>not registered</td><td>none</td></tr>
       </tbody>
     </table>
   </section>
