@@ -469,7 +469,14 @@ describe('Cross-Bundle Consistency', () => {
     //             apparent reachability was agent frontmatter, which CC ignores
     //             for plugin agents, so validate-registry.mjs had been counting
     //             an inert source as a dispatch path and masking them.
-    expect(totalHooks).toBe(193);
+    // 193 -> 194: #3739 — added subagent-stop/empty-result-detector, which
+    //             flags a subagent that completed while delivering no final
+    //             assistant text. It is dispatched through
+    //             sync-subagent-stop-dispatcher, so hooks.json registrations
+    //             are unchanged and validate-counts.sh still reads 171; only
+    //             the entries-map handler count moves. Both numbers are correct
+    //             and they count different things.
+    expect(totalHooks).toBe(194);
   });
 });
 
