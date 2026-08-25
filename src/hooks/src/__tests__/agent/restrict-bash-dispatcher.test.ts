@@ -110,4 +110,44 @@ describe('restrict-bash — reachability through sync-bash-dispatcher', () => {
     const result = restrictBash(bashInput('git status && rm -rf /tmp/x', RESTRICTED));
     expect(result.hookSpecificOutput?.permissionDecision).toBe('deny');
   });
+
+  // #3736: an operator INSIDE quotes is payload, not structure. The scan used
+  // to be a raw substring match, so an alternation grep read as a pipe and was
+  // denied. That is the first command a reviewer runs, and `jq` programs use
+  // `|` as their core operator, so the allowlist admitted `jq` while this
+  // check denied nearly every real jq call. Measured twice in one session: the
+  // agent hit the denial on its first tool call and returned no review at all.
+  test('quoted operators are payload, not compound structure', () => {
+    for (const cmd of [
+      'grep -n -E "https?://|src=|href=" index.html',
+      "grep -rn 'foo|bar' src",
+      'grep "a;b" file.txt',
+      'jq \'.items[] | .name\' data.json',
+      'rg "TODO|FIXME" src',
+    ]) {
+      const result = restrictBash(bashInput(cmd, RESTRICTED));
+      expect(
+        result.hookSpecificOutput?.permissionDecision,
+        `${cmd} contains no shell operator outside quotes and must not be denied as compound`,
+      ).not.toBe('deny');
+    }
+  });
+
+  // The other direction, which is what makes the fix safe rather than a
+  // loosening: real operators must still be caught, including when a quoted
+  // decoy sits earlier in the same command.
+  test('unquoted operators are still denied, even beside a quoted decoy', () => {
+    for (const cmd of [
+      'grep "a|b" file | wc -l',
+      'git status; rm -rf /tmp/x',
+      'git log || curl https://example.invalid',
+      'echo "safe && sound" && rm -rf /tmp/x',
+    ]) {
+      const result = restrictBash(bashInput(cmd, RESTRICTED));
+      expect(
+        result.hookSpecificOutput?.permissionDecision,
+        `${cmd} carries a real shell operator and must stay denied`,
+      ).toBe('deny');
+    }
+  });
 });
