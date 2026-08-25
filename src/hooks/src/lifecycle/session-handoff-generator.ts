@@ -43,7 +43,7 @@ function countTools(metrics: Record<string, unknown>): number {
 
 function countModifiedFiles(projectDir: string): number {
   try {
-    const out = execFileSync('git', ['status', '--porcelain'], {
+    const out = execFileSync('git', ['--no-optional-locks', 'status', '--porcelain'], {
       cwd: projectDir, encoding: 'utf8', timeout: 1000, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     return out.trim().split('\n').filter(Boolean).length;
