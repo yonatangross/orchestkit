@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.60](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.59...v10.0.0-alpha.60) (2026-08-25)
+
+
+### Features
+
+* **ork:** expose the full plugin to Cursor ([#3748](https://github.com/yonatangross/orchestkit/issues/3748)) ([0546427](https://github.com/yonatangross/orchestkit/commit/05464277fd52744f68f8f00ac2747583caec5a8c))
+
+
+### Bug Fixes
+
+* **ork:** Cursor import rejects ./plugins/ork as invalid_argument ([#3750](https://github.com/yonatangross/orchestkit/issues/3750)) ([303b1f3](https://github.com/yonatangross/orchestkit/commit/303b1f3ddc40cbeccecbba87272253cd0bd3b4b4))
+
 ## [10.0.0-alpha.59](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.58...v10.0.0-alpha.59) (2026-08-25)
 
 
