@@ -1,12 +1,22 @@
 ---
 title: Installation
-description: Install OrchestKit in Claude Code — marketplace, CLI, or manual setup.
+description: Install OrchestKit in Claude Code, Cursor, or any agent via skills.sh.
 ---
 
 import { Card, Cards } from 'fumadocs-ui/components/card';
 import { Callout } from 'fumadocs-ui/components/callout';
 import { LazySetupWizard } from '@/components/lazy';
 import { Count, MinCC } from '@/components/count';
+
+## Choose a host
+
+| Host | What you get | Command |
+|---|---|---|
+| **Claude Code** (full plugin) | <Count k="skills" /> skills, <Count k="agents" /> agents, <Count k="hooks" /> hooks | `claude install orchestkit/ork` |
+| **Cursor** | Same `ork` plugin minus Claude hook scripts | Marketplace `yonatangross/orchestkit` → enable **ork** → new chat |
+| **skills.sh** | Skills only. Start with 12, not the whole catalog | see below |
+
+Coming from Superpowers (official Anthropic marketplace)? They are complementary — [OrchestKit vs Superpowers](/docs/getting-started/superpowers).
 
 ## From Claude Code Marketplace (Recommended)
 
@@ -15,6 +25,25 @@ claude install orchestkit/ork
 ```
 
 This installs all <Count k="skills" /> skills, <Count k="agents" /> agents, and <Count k="hooks" /> hooks.
+
+Slash-command equivalent:
+
+```bash
+/plugin marketplace add yonatangross/orchestkit
+/plugin install ork
+```
+
+## Cursor
+
+Add the GitHub repo as a Cursor marketplace (`yonatangross/orchestkit`), enable **ork**, then open a **new** chat. That is the same plugin Claude Code installs, not a five-skill fork. Claude hook scripts are not registered in Cursor (`CLAUDE_PLUGIN_ROOT`).
+
+## skills.sh starter (any agent)
+
+```bash
+npx skills add yonatangross/orchestkit -s doctor -s setup -s explore -s implement -s verify -s review-pr -s commit -s expect -s assess -s brainstorm -s create-pr -s remember
+```
+
+The implement workflow is [`implement`](https://www.skills.sh/yonatangross/orchestkit/implement). Codex's portable pack uses `$ork-implement` after `codex plugin add ork-codex@orchestkit-codex`. `npx skills add yonatangross/orchestkit` with no `-s` pulls every SKILL.md the indexer found — hundreds of files, not unique users.
 
 ## Interactive Setup
 
@@ -28,15 +57,15 @@ Run the health check after installing:
 /ork:doctor
 ```
 
-Expected output:
+A healthy report shows the **installed** plugin version (not a docs pin) and loaded counts matching <Count k="skills" /> skills, <Count k="agents" /> agents, and <Count k="hooks" /> hooks:
 
 ```
 OrchestKit Health Check
 =======================
-Plugin:     ork v8.63.2
-Skills:     113 loaded (32 commands, 81 reference)
-Agents:     36 registered
-Hooks:      171 active (150 global, 0 agent, 21 skill-scoped)
+Plugin:     ork <version from `claude plugins`>
+Skills:     loaded (commands + reference)
+Agents:     registered
+Hooks:      active (global / agent / skill-scoped)
 Memory:     Graph ✓  Local ✓  CC Native ✓
 MCP:        context7 ✓  memory ✓  tavily ○
 
@@ -61,7 +90,7 @@ Most issues are fixed by ensuring Node.js >= 18 is installed and restarting Clau
 ## Required: context7 MCP
 
 OrchestKit installs cleanly without it and `/ork:doctor` reports Healthy either way.
-But 22 of the 36 agents grant `mcp__context7__*` in their frontmatter, and the plugin
+But 22 of the <Count k="agents" /> agents grant `mcp__context7__*` in their frontmatter, and the plugin
 ships no server definition for it: `.mcp.json` is user-owned and project-scoped, so the
 grant refers to a server you supply. Without it, those agents answer from training data
 instead of current library docs, with no error to tell you so.

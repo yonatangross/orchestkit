@@ -11,7 +11,7 @@ for path in "$SOURCE_ROOT" "$PLUGIN_ROOT" "$MARKETPLACE"; do
   [[ -e "$path" ]] || { echo "FAIL: missing $path"; exit 1; }
 done
 
-expected_skills=(ork-brainstorm ork-explore ork-assess ork-verify ork-review-pr)
+expected_skills=(ork-brainstorm ork-explore ork-assess ork-verify ork-review-pr ork-implement)
 for skill in "${expected_skills[@]}"; do
   skill_file="$PLUGIN_ROOT/skills/$skill/SKILL.md"
   [[ -f "$skill_file" ]] || { echo "FAIL: missing $skill"; exit 1; }
@@ -76,4 +76,4 @@ jq -e '
 diff -qr "$SOURCE_ROOT" "$PLUGIN_ROOT" \
   --exclude='plugin.json' >/dev/null
 
-echo "PASS: Codex plugin contract (5 skills, 4 roles, context7 MCP server)"
+echo "PASS: Codex plugin contract (6 skills, 4 roles, context7 MCP server)"
