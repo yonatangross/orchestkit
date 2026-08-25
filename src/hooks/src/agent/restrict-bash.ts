@@ -130,6 +130,48 @@ const COMPOUND_OPERATORS = ['&&', '||', '|', ';'];
  * mixed command such as `grep "a|b" f | wc -l` still denies, because only the
  * first pipe was quoted.
  */
+/**
+ * Move `git`'s GLOBAL options out of the way so the allowlist can see the
+ * subcommand.
+ *
+ * ALLOWED_PREFIXES stores literal strings like `git diff`, and the match is a
+ * `startsWith`. Git accepts global options BEFORE the subcommand, so
+ * `git -C <dir> diff` does not start with `git diff` and fell off a list that
+ * admits `git diff` (#3732). That is not a niche form here: worktree sessions
+ * are the norm, `-C <dir>` is the documented way to address one without `cd`,
+ * and `cd` is itself a compound command a read-only agent may not run. The two
+ * rules together left such an agent no allowlisted way to query a repository
+ * it was not already inside.
+ *
+ * Only options that are safe to ignore for ALLOWLISTING are stripped: they
+ * change where or how git runs, never which subcommand runs. `-c <name=value>`
+ * and `--config-env` are deliberately NOT stripped, because they can set
+ * configuration that changes what a subcommand does.
+ */
+const GIT_GLOBAL_OPTS_WITH_VALUE = new Set(['-C', '--git-dir', '--work-tree', '--namespace']);
+const GIT_GLOBAL_OPTS_STANDALONE = new Set(['--no-pager', '--literal-pathspecs', '--bare']);
+
+function stripGlobalGitOptions(cmd: string): string {
+  const parts = cmd.split(/\s+/);
+  if (parts[0] !== 'git') return cmd;
+
+  const rest = parts.slice(1);
+  let i = 0;
+  while (i < rest.length) {
+    const tok = rest[i];
+    if (GIT_GLOBAL_OPTS_WITH_VALUE.has(tok)) {
+      i += 2; // skip the option AND its value
+    } else if (GIT_GLOBAL_OPTS_STANDALONE.has(tok)) {
+      i += 1;
+    } else if (tok.startsWith('--git-dir=') || tok.startsWith('--work-tree=') || tok.startsWith('--namespace=')) {
+      i += 1;
+    } else {
+      break; // first non-global token is the subcommand
+    }
+  }
+  return i === 0 ? cmd : ['git', ...rest.slice(i)].join(' ');
+}
+
 function hasCompoundOperators(cmd: string): boolean {
   const bare = blankQuotedContent(cmd);
   return COMPOUND_OPERATORS.some(op => bare.includes(op));
@@ -171,7 +213,7 @@ Agent '${agentId}' has restricted Bash access. Run commands individually.`
   }
 
   // Normalize for matching
-  const normalized = normalizeSingle(command).trim();
+  const normalized = stripGlobalGitOptions(normalizeSingle(command).trim());
   const normalizedLower = normalized.toLowerCase();
 
   // Check against allowlist
