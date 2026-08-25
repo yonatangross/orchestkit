@@ -163,12 +163,17 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started/installation",
     "title": "Installation",
-    "description": "Install OrchestKit in Claude Code — marketplace, CLI, or manual setup."
+    "description": "Install OrchestKit in Claude Code, Cursor, or any agent via skills.sh."
   },
   {
     "url": "/docs/getting-started/navigating",
     "title": "Find What You Need",
     "description": "Hub-and-spoke navigation — find the right skills and agents for your role and task."
+  },
+  {
+    "url": "/docs/getting-started/superpowers",
+    "title": "OrchestKit vs Superpowers",
+    "description": "Superpowers is Anthropic's official process plugin. OrchestKit is production patterns plus lifecycle hooks. Complementary, not a rival listing."
   },
   {
     "url": "/docs/guides/ask-fallback",
