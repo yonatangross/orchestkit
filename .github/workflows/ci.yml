@@ -72,9 +72,14 @@ jobs:
       # release-please bumping package.json without running npm install, which
       # `npm run build` does not regenerate, so gating it here would fail for a
       # reason this job cannot fix.
+      # plugin.json (repo root) joined the roster 2026-08-24: build-plugins.sh emits
+      # it as a byte mirror of plugins/ork/plugin.json (#3712), and it went stale on
+      # the very next release because neither this roster nor release-please
+      # extra-files knew the file existed. A generated file outside this list is
+      # a file CI rewrites and never diffs.
       - name: Check for uncommitted build changes
         run: |
-          GENERATED=(plugins/ src/hooks/dist/ README.md docs/site/lib/generated/)
+          GENERATED=(plugins/ src/hooks/dist/ README.md docs/site/lib/generated/ plugin.json)
           if ! git diff --quiet -- "${GENERATED[@]}"; then
             echo "::error::Build drift detected! Run 'npm run build' and commit the changes (${GENERATED[*]})."
             git diff --stat -- "${GENERATED[@]}"
