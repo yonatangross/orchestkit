@@ -238,7 +238,7 @@ fi
 # Step 4 fallback signal; an in-window parse_failed entry must, and the
 # emitted version list must name only the in-window one.
 # ============================================================================
-GHOUT=$(mktemp)
+GHOUT=$(mktemp "${TMPDIR:-/tmp}/cc-triage-ghout.XXXXXX")
 cat > shared/cc-adoption-gaps.json <<'EOF'
 [
   {"version": "2.1.001", "parse_failed": true, "features": [], "raw_bullets_count": 3, "below_floor": true}
