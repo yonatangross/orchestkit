@@ -333,6 +333,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.58](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.57...v10.0.0-alpha.58)** · 2026-08-25
+
+- **evals:** run the train/test split through jq, mikefarah yq has no -y (#3730)
+- **hooks:** guards must parse shell structure, not raw text (#3742)
+- **hooks:** read git status without taking the index lock (#3743)
+- **hooks:** restrict-bash must not read quoted pipes as shell operators (#3740)
+
 **[v10.0.0-alpha.57](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.56...v10.0.0-alpha.57)** · 2026-08-25
 
 - **cc-watch:** fallback stub ignores below-floor sentinels (#3724)
@@ -371,14 +378,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.51](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.50...v10.0.0-alpha.51)** · 2026-08-23
 
 - **build:** ship a conforming Agent Plugins 1.0.0 manifest (#3685)
-
-**[v10.0.0-alpha.50](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.49...v10.0.0-alpha.50)** · 2026-08-23
-
-- **agents:** multimodal-specialist documented every modality but one (#3680)
-- **hooks:** a quoted heredoc body is payload, not an operator (#3676)
-- **hooks:** the analytics liveness guard was watching 3 of 11 writers (#3678), closes [#3665](https://github.com/yonatangross/orchestkit/issues/3665)
-- **scripts:** gh-api took its token through the transport it replaces (#3679), closes [#3653](https://github.com/yonatangross/orchestkit/issues/3653)
-- **skills:** correct four skill docs that drifted past the code (#3677), closes [#3601](https://github.com/yonatangross/orchestkit/issues/3601) [#3587](https://github.com/yonatangross/orchestkit/issues/3587) [#3512](https://github.com/yonatangross/orchestkit/issues/3512) [#3178](https://github.com/yonatangross/orchestkit/issues/3178)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
