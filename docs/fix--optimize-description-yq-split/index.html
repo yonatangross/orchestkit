@@ -51,10 +51,10 @@ rc=1</pre>
     <div class="panel">
       <h3>After (this PR)</h3>
       <pre>$ yq -o=json explore.eval.yaml \
-  | jq "{id: .id, trigger_evals: (...[:4]...)}" \
+  | jq --argjson tp 4 --argjson tn 4 '{id: .id, trigger_evals: (...[:$tp]...)}' \
   | yq -p=json -o=yaml -
 <span class="ok">rc=0</span>   train=8 (4 true + 4 false)   test=7   overlap=0</pre>
-      <p><small>Same jq expression as before; only the YAML in/out hops changed.</small></p>
+      <p><small>Same jq expression; the counts are bound with <code>--argjson</code> so they reach jq as data, which is what <code>tests/security/test-jq-injection.sh</code> requires.</small></p>
     </div>
   </div>
 
@@ -138,8 +138,8 @@ false what time is it</textarea>
     const sel = (v) => `[.trigger_evals[] | select(.should_trigger == ${v})]`;
     $('jq').textContent =
 `# train_pos=${trainPos} train_neg=${trainNeg}
-yq -o=json "$eval_file" | jq '{id: .id, trigger_evals: ((${sel(true)}[:${trainPos}]) + (${sel(false)}[:${trainNeg}]))}' | yq -p=json -o=yaml - > "$train_file"
-yq -o=json "$eval_file" | jq '{id: .id, trigger_evals: ((${sel(true)}[${trainPos}:]) + (${sel(false)}[${trainNeg}:]))}' | yq -p=json -o=yaml - > "$test_file"`;
+yq -o=json "$eval_file" | jq --argjson tp ${trainPos} --argjson tn ${trainNeg} '{id: .id, trigger_evals: ((${sel(true)}[:$tp]) + (${sel(false)}[:$tn]))}' | yq -p=json -o=yaml - > "$train_file"
+yq -o=json "$eval_file" | jq --argjson tp ${trainPos} --argjson tn ${trainNeg} '{id: .id, trigger_evals: ((${sel(true)}[$tp:]) + (${sel(false)}[$tn:]))}' | yq -p=json -o=yaml - > "$test_file"`;
   }
   $('ratio').addEventListener('input', compute);
   $('run').addEventListener('click', compute);
