@@ -348,6 +348,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.60](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.59...v10.0.0-alpha.60)** · 2026-08-25
+
+- **ork:** expose the full plugin to Cursor (#3748)
+- **ork:** Cursor import rejects ./plugins/ork as invalid_argument (#3750)
+
 **[v10.0.0-alpha.59](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.58...v10.0.0-alpha.59)** · 2026-08-25
 
 - **ci:** playground gate must verify the page is viewable (#3745)
@@ -391,10 +396,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps-dev:** bump vitest in the npm-minor-patch group (#3697)
 - **deps:** bump the remotion group (#3700)
 - bump the github-actions group with 5 updates (#3702)
-
-**[v10.0.0-alpha.52](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.51...v10.0.0-alpha.52)** · 2026-08-23
-
-- **git:** untrack committed session state, close the anchoring gap (#3692)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

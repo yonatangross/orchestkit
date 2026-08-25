@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.60",
+    "date": "2026-08-25",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**ork:** expose the full plugin to Cursor ([#3748](https://github.com/yonatangross/orchestkit/issues/3748)) ([0546427](https://github.com/yonatangross/orchestkit/commit/05464277fd52744f68f8f00ac2747583caec5a8c))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**ork:** Cursor import rejects ./plugins/ork as invalid_argument ([#3750](https://github.com/yonatangross/orchestkit/issues/3750)) ([303b1f3](https://github.com/yonatangross/orchestkit/commit/303b1f3ddc40cbeccecbba87272253cd0bd3b4b4))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.59",
     "date": "2026-08-25",
     "compareUrl": "",
