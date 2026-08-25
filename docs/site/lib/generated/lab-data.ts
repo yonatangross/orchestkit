@@ -28,6 +28,19 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 8
   },
   {
+    "slug": "lab-publish-gate",
+    "title": "A playground nobody can open is a file, not a deliverable",
+    "description": "The playground gate accepted a bare repo path, because it only required the word 'playground' in the PR body and GitHub does not render repo HTML. Pick how a PR references its playground and see whether a reviewer can actually open it: bare path, blob link, raw link, render proxy, or published to the Lab.",
+    "tags": [
+      "ci",
+      "explainer"
+    ],
+    "date": "2026-08-25",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "empty-subagent-result",
     "title": "Silence is a failed delegation: 97 of 2,735 subagents finished without a word",
     "description": "A subagent can finish with status completed and emit no final message, so the parent reads silence as an empty finding rather than a failed delegation. Measured across every subagent transcript on one machine: 97 of 2,735 (3.5%) end with no assistant text, and 81 of those stop the instant a tool returns. Pick the block a transcript ends on and see the verdict plus the exact marker the parent now receives.",

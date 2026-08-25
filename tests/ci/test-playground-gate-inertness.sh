@@ -81,12 +81,19 @@ section "5. Fail-closed on unknown paths"
 check "some/brand/new/surface.ts"              yes "a path the list predates"
 check "docs/site/app/page.tsx"                 yes "docs-site app code is NOT inert"
 
-section "6. Both steps hang off ONE decision (no copy-paste drift)"
+section "6. Every gated step hangs off ONE decision (no copy-paste drift)"
+# 2 -> 3 (#3745): added "Check playground is published to the Lab", which
+# asserts each HTML file in the branch's playground dir is registered as a
+# `source` in docs/site/lab-manifest.json. The point of this assertion is not
+# the number: it is that every gated step consumes the SAME gate output rather
+# than re-deriving the inertness decision, so raising it in step with the
+# workflow is the intended maintenance, not a weakening.
+EXPECTED_GATED_STEPS=3
 GATE_REFS=$(count_matches "steps.gate.outputs.required == 'true'" "$WORKFLOW")
-if [ "$GATE_REFS" -eq 2 ]; then
-  log_pass "both gated steps consume the single gate output"
+if [ "$GATE_REFS" -eq "$EXPECTED_GATED_STEPS" ]; then
+  log_pass "all $EXPECTED_GATED_STEPS gated steps consume the single gate output"
 else
-  log_fail "expected 2 steps gated on steps.gate.outputs.required, found $GATE_REFS"
+  log_fail "expected $EXPECTED_GATED_STEPS steps gated on steps.gate.outputs.required, found $GATE_REFS"
 fi
 
 BOT_SKIPS=$(count_matches "Skip for bot PRs" "$WORKFLOW")

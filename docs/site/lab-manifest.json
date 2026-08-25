@@ -14,6 +14,17 @@
       "date": "2026-08-25"
     },
     {
+      "slug": "lab-publish-gate",
+      "source": "docs/feat--3745-playground-must-publish/index.html",
+      "title": "A playground nobody can open is a file, not a deliverable",
+      "description": "The playground gate accepted a bare repo path, because it only required the word 'playground' in the PR body and GitHub does not render repo HTML. Pick how a PR references its playground and see whether a reviewer can actually open it: bare path, blob link, raw link, render proxy, or published to the Lab.",
+      "tags": [
+        "ci",
+        "explainer"
+      ],
+      "date": "2026-08-25"
+    },
+    {
       "slug": "coderabbit-tone-limit",
       "source": "docs/chore--coderabbit-advisory-lane/index.html",
       "title": "A second reader, and the 250 characters that silently disable it",
