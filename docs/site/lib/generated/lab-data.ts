@@ -15,6 +15,19 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "coderabbit-tone-limit",
+    "title": "A second reader, and the 250 characters that silently disable it",
+    "description": "CodeRabbit's tone_instructions has a hard 250-character limit, and exceeding it makes CodeRabbit reject the entire config while still posting reviews on default settings, so nothing looks broken. Type into the counter and watch the threshold. Also shows why the counting one-liner inherited from platform reported 13 for a value that is really 221.",
+    "tags": [
+      "ci",
+      "explainer"
+    ],
+    "date": "2026-08-25",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "watcher-first-harvest",
     "title": "Two defects the watcher found on its first run",
     "description": "The platform release-notes watcher's first live harvest caught a Sonnet 5 price that made every cost report read 50 percent high, and a model-ID gate that waved through a model the API had already retired. Interactive cost-delta slider and a pin checker showing the new RETIRED tier.",
