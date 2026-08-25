@@ -334,6 +334,12 @@ for plugin_dir in "$PROJECT_ROOT/plugins"/*/; do
                 else
                     fail "$PLUGIN_NAME: invalid JSON in Codex plugin manifest"
                 fi
+            elif [[ -f "$plugin_dir/.cursor-plugin/plugin.json" ]]; then
+                if jq empty "$plugin_dir/.cursor-plugin/plugin.json" 2>/dev/null; then
+                    pass "$PLUGIN_NAME: valid Cursor plugin manifest"
+                else
+                    fail "$PLUGIN_NAME: invalid JSON in Cursor plugin manifest"
+                fi
             else
                 fail "$PLUGIN_NAME: missing host plugin manifest"
             fi

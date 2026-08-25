@@ -421,6 +421,15 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         + if $has_workflows then {workflows: "./workflows/"} else {} end' \
         > "$PLUGIN_DIR/.claude-plugin/plugin.json"
 
+    # Cursor host manifest: same skills/commands/agents, no Claude hooks.
+    # Cursor loads .cursor-plugin/plugin.json (or a root Agent Plugins plugin.json).
+    # Claude hooks use ${CLAUDE_PLUGIN_ROOT} and must not be registered here.
+    mkdir -p "$PLUGIN_DIR/.cursor-plugin"
+    jq --argjson has_agents "$([[ -d "$PLUGIN_DIR/agents" ]] && echo true || echo false)" \
+      'del(.workflows) + (if $has_agents then {agents: "./agents/"} else {} end)' \
+      "$PLUGIN_DIR/.claude-plugin/plugin.json" \
+      > "$PLUGIN_DIR/.cursor-plugin/plugin.json"
+
     # Generate the Agent Plugins manifest at the PLUGIN ROOT.
     #
     # This is a second, separate file, not an edit to the Claude Code one.
@@ -496,6 +505,14 @@ for plugin_dir in "$PLUGINS_DIR"/*; do
     if [[ -f "$plugin_dir/.codex-plugin/plugin.json" ]]; then
         if ! jq empty "$plugin_dir/.codex-plugin/plugin.json" 2>/dev/null; then
             echo -e "${RED}  $plugin_name: Invalid Codex plugin JSON${NC}"
+            VALIDATION_ERRORS=$((VALIDATION_ERRORS + 1))
+        fi
+        continue
+    fi
+
+    if [[ -f "$plugin_dir/.cursor-plugin/plugin.json" ]]; then
+        if ! jq empty "$plugin_dir/.cursor-plugin/plugin.json" 2>/dev/null; then
+            echo -e "${RED}  $plugin_name: Invalid Cursor plugin JSON${NC}"
             VALIDATION_ERRORS=$((VALIDATION_ERRORS + 1))
         fi
         continue

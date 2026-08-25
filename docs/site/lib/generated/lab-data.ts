@@ -55,6 +55,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 10
   },
   {
+    "slug": "ork-cursor-adapter",
+    "title": "OrchestKit for Cursor — the same plugin, not a five-skill fork",
+    "description": "Cursor loads Agent Plugins. The marketplace points at ork, the same plugin Claude Code installs. Claude hooks are omitted because they need CLAUDE_PLUGIN_ROOT. Click install, skills, Task, and the third-party-toggle leak to see what actually loads.",
+    "tags": [
+      "cursor",
+      "plugins",
+      "explainer"
+    ],
+    "date": "2026-08-25",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "watcher-first-harvest",
     "title": "Two defects the watcher found on its first run",
     "description": "The platform release-notes watcher's first live harvest caught a Sonnet 5 price that made every cost report read 50 percent high, and a model-ID gate that waved through a model the API had already retired. Interactive cost-delta slider and a pin checker showing the new RETIRED tier.",

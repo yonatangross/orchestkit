@@ -224,6 +224,21 @@ Not on Claude Code? Pull the skills into any agent (Cursor, Codex, OpenCode, …
 npx skills add yonatangross/orchestkit
 ```
 
+### Cursor
+
+Cursor loads [Agent Plugins](https://agent-plugins.org) and Cursor plugins.
+This repo already ships the Agent Plugins manifest at `plugins/ork/plugin.json`.
+Add the GitHub repo as a Cursor marketplace (Settings → `yonatangross/orchestkit`),
+enable **`ork`**, then **open a new chat**. That is the same plugin Claude Code
+installs, not a five-skill fork.
+
+Claude hook scripts are not registered for Cursor: they depend on
+`${CLAUDE_PLUGIN_ROOT}` (orchestkit#293, closed). Cursor enforcement for HQ
+repos stays in the consuming project's `.cursor/hooks.json`.
+
+"Include third-party Plugins" can leak SKILL.md from `~/.claude/plugins`. That
+is not an install. Proof is the `ork` plugin id plus the full skill catalog.
+
 ### Codex
 
 Codex uses its own plugin format, skill picker, and standalone role

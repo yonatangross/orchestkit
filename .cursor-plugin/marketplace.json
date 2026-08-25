@@ -1,0 +1,13 @@
+{
+  "name": "orchestkit",
+  "owner": {
+    "name": "Yonatan Gross"
+  },
+  "plugins": [
+    {
+      "name": "ork",
+      "source": "./plugins/ork",
+      "description": "The full OrchestKit plugin for Cursor: the same skills, commands, and agents Claude Code gets. Claude hook scripts are not registered (they need CLAUDE_PLUGIN_ROOT). No plugin MCP servers."
+    }
+  ]
+}
