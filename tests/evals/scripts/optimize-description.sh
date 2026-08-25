@@ -133,9 +133,17 @@ optimize_skill() {
     test_file=$(mktemp "${TMPDIR:-/tmp}/ork-opt-test-XXXXXX.yaml")
     CLEANUP_FILES+=("$train_file" "$test_file")
 
-    # Split using yq
-    yq -y "{id: .id, trigger_evals: (([.trigger_evals[] | select(.should_trigger == true)][:$train_pos]) + ([.trigger_evals[] | select(.should_trigger == false)][:$train_neg]))}" "$eval_file" > "$train_file"
-    yq -y "{id: .id, trigger_evals: (([.trigger_evals[] | select(.should_trigger == true)][$train_pos:]) + ([.trigger_evals[] | select(.should_trigger == false)][$train_neg:]))}" "$eval_file" > "$test_file"
+    # Split via yq, jq, yq. The repo's yq is mikefarah/Go (no python-yq `-y` flag,
+    # no jq-style `[:N]` slicing), so convert to JSON, let jq do the slice+concat
+    # (the expression is already jq syntax), then back to YAML for the eval reader.
+    # The split counts are bound with --argjson so they reach jq as DATA, never
+    # as program text (tests/security/test-jq-injection.sh scans for the latter).
+    yq -o=json "$eval_file" | jq --argjson tp "$train_pos" --argjson tn "$train_neg" \
+        '{id: .id, trigger_evals: (([.trigger_evals[] | select(.should_trigger == true)][:$tp]) + ([.trigger_evals[] | select(.should_trigger == false)][:$tn]))}' \
+        | yq -p=json -o=yaml - > "$train_file"
+    yq -o=json "$eval_file" | jq --argjson tp "$train_pos" --argjson tn "$train_neg" \
+        '{id: .id, trigger_evals: (([.trigger_evals[] | select(.should_trigger == true)][$tp:]) + ([.trigger_evals[] | select(.should_trigger == false)][$tn:]))}' \
+        | yq -p=json -o=yaml - > "$test_file"
 
     # --- Baseline eval on train set ---
     local current_desc="$original_desc"
