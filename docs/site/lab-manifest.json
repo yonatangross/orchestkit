@@ -25,6 +25,17 @@
       "date": "2026-08-25"
     },
     {
+      "slug": "coderabbit-tone-limit",
+      "source": "docs/chore--coderabbit-advisory-lane/index.html",
+      "title": "A second reader, and the 250 characters that silently disable it",
+      "description": "CodeRabbit's tone_instructions has a hard 250-character limit, and exceeding it makes CodeRabbit reject the entire config while still posting reviews on default settings, so nothing looks broken. Type into the counter and watch the threshold. Also shows why the counting one-liner inherited from platform reported 13 for a value that is really 221.",
+      "tags": [
+        "ci",
+        "explainer"
+      ],
+      "date": "2026-08-25"
+    },
+    {
       "slug": "skills-api-publish-rail",
       "source": "docs/feat--3628-skills-api/index.html",
       "title": "Skills API Publish Rail: which of 105 skills actually pass",
