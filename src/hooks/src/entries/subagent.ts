@@ -26,6 +26,7 @@ import { autoSpawnQuality } from '../subagent-stop/auto-spawn-quality.js';
 import { subagentScopeAuditor } from '../subagent-stop/subagent-scope-auditor.js';
 import { feedbackLoop } from '../subagent-stop/feedback-loop.js';
 import { multiClaudeVerifier } from '../subagent-stop/multi-claude-verifier.js';
+import { emptyResultDetector } from '../subagent-stop/empty-result-detector.js';
 import { outputValidator } from '../subagent-stop/output-validator.js';
 import { subagentQualityGate } from '../subagent-stop/subagent-quality-gate.js';
 import { retryHandler } from '../subagent-stop/retry-handler.js';
@@ -50,6 +51,7 @@ export const hooks: Record<string, HookFn> = {
   'subagent-stop/auto-spawn-quality': autoSpawnQuality,
   'subagent-stop/feedback-loop': feedbackLoop,
   'subagent-stop/multi-claude-verifier': multiClaudeVerifier,
+  'subagent-stop/empty-result-detector': emptyResultDetector,
   'subagent-stop/output-validator': outputValidator,
   'subagent-stop/subagent-quality-gate': subagentQualityGate,
   'subagent-stop/retry-handler': retryHandler,
