@@ -13,7 +13,7 @@
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputDeny } from '../lib/common.js';
-import { normalizeSingle } from '../lib/normalize-command.js';
+import { blankQuotedContent, normalizeSingle } from '../lib/normalize-command.js';
 import { normalizeAgentName } from '../lib/agent-attribution-types.js';
 import { NOOP_CTX } from '../lib/context.js';
 
@@ -115,8 +115,24 @@ const ALLOWED_PREFIXES: string[] = [
 
 const COMPOUND_OPERATORS = ['&&', '||', '|', ';'];
 
+/**
+ * Detect real shell operators, ignoring any that sit INSIDE quotes.
+ *
+ * A raw `cmd.includes(op)` scan cannot tell a pipe from a pipe character, and
+ * bash can: inside quotes there is no word splitting and no operator parsing,
+ * so `grep -E "a|b"` is one process, not two. Scanning raw text denied every
+ * alternation grep and every non-trivial `jq` program (whose core operator IS
+ * `|`), which are the first commands a read-only reviewer reaches for. The
+ * agent then had no allowlisted way to do its job (#3736).
+ *
+ * blankQuotedContent() replaces quoted regions with empty quotes, so operators
+ * that are payload disappear while operators that are structure remain. A
+ * mixed command such as `grep "a|b" f | wc -l` still denies, because only the
+ * first pipe was quoted.
+ */
 function hasCompoundOperators(cmd: string): boolean {
-  return COMPOUND_OPERATORS.some(op => cmd.includes(op));
+  const bare = blankQuotedContent(cmd);
+  return COMPOUND_OPERATORS.some(op => bare.includes(op));
 }
 
 // ---------------------------------------------------------------------------
