@@ -37,7 +37,7 @@ function transcript(blocks: Array<{ type: string; text?: string }>): string {
       message: { content: [b.type === 'text' ? { type: 'text', text: b.text ?? '' } : { type: b.type }] },
     }),
   );
-  writeFileSync(p, lines.join('\n') + '\n');
+  writeFileSync(p, `${lines.join('\n')}\n`);
   return p;
 }
 
