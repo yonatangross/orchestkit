@@ -17,6 +17,31 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.59",
+    "date": "2026-08-25",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**ci:** playground gate must verify the page is viewable ([#3745](https://github.com/yonatangross/orchestkit/issues/3745)) ([053f6e3](https://github.com/yonatangross/orchestkit/commit/053f6e345e2dcb7b92eb217ec6022da891cacf1a))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** make a subagent empty result loud instead of silent ([#3744](https://github.com/yonatangross/orchestkit/issues/3744)) ([5641a58](https://github.com/yonatangross/orchestkit/commit/5641a5891420ce5979c852fb2abc1a4dee3de742))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**ci:** add CodeRabbit as an advisory review lane ([#3746](https://github.com/yonatangross/orchestkit/issues/3746)) ([13d15ae](https://github.com/yonatangross/orchestkit/commit/13d15aeaaf0da265f0798c532ace4d1b5e1b08a2))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.58",
     "date": "2026-08-25",
     "compareUrl": "",

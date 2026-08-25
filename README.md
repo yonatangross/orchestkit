@@ -333,6 +333,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.59](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.58...v10.0.0-alpha.59)** · 2026-08-25
+
+- **ci:** playground gate must verify the page is viewable (#3745)
+- **hooks:** make a subagent empty result loud instead of silent (#3744)
+- **ci:** add CodeRabbit as an advisory review lane (#3746)
+
 **[v10.0.0-alpha.58](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.57...v10.0.0-alpha.58)** · 2026-08-25
 
 - **evals:** run the train/test split through jq, mikefarah yq has no -y (#3730)
@@ -374,10 +380,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.52](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.51...v10.0.0-alpha.52)** · 2026-08-23
 
 - **git:** untrack committed session state, close the anchoring gap (#3692)
-
-**[v10.0.0-alpha.51](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.50...v10.0.0-alpha.51)** · 2026-08-23
-
-- **build:** ship a conforming Agent Plugins 1.0.0 manifest (#3685)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

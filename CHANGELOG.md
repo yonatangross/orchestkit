@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.59](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.58...v10.0.0-alpha.59) (2026-08-25)
+
+
+### Features
+
+* **ci:** playground gate must verify the page is viewable ([#3745](https://github.com/yonatangross/orchestkit/issues/3745)) ([053f6e3](https://github.com/yonatangross/orchestkit/commit/053f6e345e2dcb7b92eb217ec6022da891cacf1a))
+
+
+### Bug Fixes
+
+* **hooks:** make a subagent empty result loud instead of silent ([#3744](https://github.com/yonatangross/orchestkit/issues/3744)) ([5641a58](https://github.com/yonatangross/orchestkit/commit/5641a5891420ce5979c852fb2abc1a4dee3de742))
+
+
+### Miscellaneous
+
+* **ci:** add CodeRabbit as an advisory review lane ([#3746](https://github.com/yonatangross/orchestkit/issues/3746)) ([13d15ae](https://github.com/yonatangross/orchestkit/commit/13d15aeaaf0da265f0798c532ace4d1b5e1b08a2))
+
 ## [10.0.0-alpha.58](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.57...v10.0.0-alpha.58) (2026-08-25)
 
 
