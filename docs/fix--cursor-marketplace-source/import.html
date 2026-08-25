@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cursor Import Marketplace rejects ./plugins/ork</title>
+  <style>
+    :root {
+      --pg-bg: hsl(232 26% 7%);
+      --pg-ink: hsl(220 18% 93%);
+      --pg-muted: hsl(220 10% 64%);
+      --pg-faint: hsl(220 8% 46%);
+      --pg-glass: hsl(0 0% 100% / .05);
+      --pg-glass-2: hsl(0 0% 100% / .08);
+      --pg-glass-edge: hsl(0 0% 100% / .18);
+      --pg-accent: hsl(248 84% 68%);
+      --pg-ok: hsl(152 55% 45%);
+      --pg-bad: hsl(8 78% 58%);
+      --pg-warn: hsl(38 95% 60%);
+      --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--pg-bg); color: var(--pg-ink); font: 16px/1.5 system-ui, sans-serif; }
+    main { max-width: 880px; margin: 0 auto; padding: 24px 16px 96px; }
+    h1 { margin: 0 0 8px; font-size: 24px; }
+    .sub { color: var(--pg-muted); max-width: 68ch; }
+    .opts { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 12px; }
+    .opts button {
+      background: var(--pg-glass); color: var(--pg-muted); border: 1px solid var(--pg-glass-edge);
+      border-radius: 8px; padding: 8px 16px; cursor: pointer; font: 13px var(--mono);
+    }
+    .opts button[aria-pressed="true"] { border-color: var(--pg-accent); color: var(--pg-accent); }
+    .panel { background: var(--pg-glass-2); border: 1px solid var(--pg-glass-edge); border-radius: 12px; padding: 16px; }
+    .verdict { font: 700 16px var(--mono); margin: 0 0 8px; }
+    .ok .verdict { color: var(--pg-ok); }
+    .bad .verdict { color: var(--pg-bad); }
+    .miss .verdict { color: var(--pg-warn); }
+    pre { margin: 12px 0 0; padding: 12px; background: hsl(232 26% 4%); border: 1px solid var(--pg-glass-edge); border-radius: 8px; overflow: auto; font: 12.5px/1.5 var(--mono); white-space: pre-wrap; }
+    table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 14px; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--pg-glass-edge); }
+    th { color: var(--pg-faint); font: 600 11px var(--mono); text-transform: uppercase; }
+    td kbd { font: 12px var(--mono); }
+    footer { color: var(--pg-faint); font-size: 13px; margin-top: 24px; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Why Import Marketplace says invalid_argument</h1>
+  <p class="sub">hq-ext imported because its Cursor marketplace source is the repo root. orchestkit listed the plugin as <code>./plugins/ork</code>. Cursor's importer wants a bare relative path, the same shape as official <code>cursor/plugins</code> (<code>third_party/gmail</code>, not <code>./third_party/gmail</code>).</p>
+  <p class="sub">Click a string Cursor actually saw. Searching the public catalog for the repo slug is a different failure.</p>
+  <div class="opts" id="opts" role="group" aria-label="What you typed"></div>
+  <div class="panel bad" id="panel">
+    <div class="verdict" id="verdict"></div>
+    <p id="why"></p>
+    <pre id="src"></pre>
+  </div>
+  <table>
+    <thead><tr><th>What you typed</th><th>Surface</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>yonatangross/orchestkit</kbd> in Search</td><td>public catalog</td><td>No matches</td></tr>
+      <tr><td><kbd>yonatangross/orchestkit</kbd> in Import</td><td>GitHub marketplace</td><td>invalid_argument until this PR</td></tr>
+      <tr><td><kbd>ork</kbd> after import</td><td>plugin id</td><td>the thing to enable</td></tr>
+    </tbody>
+  </table>
+  <footer>hq-ext in Installed is real. Reload Window does not change GitHub Import; this source string does.</footer>
+</main>
+<script>
+(function () {
+  var CASES = [
+    { id: "dot", label: "./plugins/ork", cls: "bad", verdict: "[invalid_argument] Error",
+      why: "What main shipped. Cursor Import Marketplace rejects the leading ./ on a nested plugin path.",
+      src: '{ "name": "ork", "source": "./plugins/ork" }' },
+    { id: "bare", label: "plugins/ork", cls: "ok", verdict: "Import lists ork",
+      why: "This PR. Bare relative path, same as cursor/plugins third_party/gmail. Enable the plugin id ork, not the word orchestkit.",
+      src: '{ "name": "ork", "source": "plugins/ork" }' },
+    { id: "root", label: "./ (hq-ext)", cls: "ok", verdict: "Import lists hq-ext",
+      why: "Repo-root source. That is why Yonatan-HQ/hq-ext-plugin imported while orchestkit did not.",
+      src: '{ "name": "hq-ext", "source": "./" }' },
+    { id: "search", label: "catalog search", cls: "miss", verdict: "No matches",
+      why: "The public Cursor catalog does not list this repo. Import Marketplace is a different door.",
+      src: "search: yonatangross/orchestkit" }
+  ];
+  var opts = document.getElementById("opts");
+  var panel = document.getElementById("panel");
+  var verdict = document.getElementById("verdict");
+  var why = document.getElementById("why");
+  var src = document.getElementById("src");
+  function show(c) {
+    panel.className = "panel " + c.cls;
+    verdict.textContent = c.verdict;
+    why.textContent = c.why;
+    src.textContent = c.src;
+    opts.querySelectorAll("button").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.dataset.id === c.id ? "true" : "false");
+    });
+  }
+  CASES.forEach(function (c) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.dataset.id = c.id;
+    b.textContent = c.label;
+    b.addEventListener("click", function () { show(c); });
+    opts.appendChild(b);
+  });
+  show(CASES[0]);
+})();
+</script>
+</body>
+</html>

@@ -69,6 +69,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 6
   },
   {
+    "slug": "cursor-marketplace-source",
+    "title": "Cursor Import Marketplace rejects ./plugins/ork",
+    "description": "hq-ext imported because its source is the repo root. orchestkit listed ./plugins/ork, which Cursor rejects as invalid_argument. Click the string Cursor saw and see the verdict. Enable the plugin id ork after import.",
+    "tags": [
+      "cursor",
+      "plugins",
+      "explainer"
+    ],
+    "date": "2026-08-25",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
     "slug": "watcher-first-harvest",
     "title": "Two defects the watcher found on its first run",
     "description": "The platform release-notes watcher's first live harvest caught a Sonnet 5 price that made every cost report read 50 percent high, and a model-ID gate that waved through a model the API had already retired. Interactive cost-delta slider and a pin checker showing the new RETIRED tier.",

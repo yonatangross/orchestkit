@@ -15,7 +15,9 @@ def test_marketplace_points_at_ork() -> None:
     assert data["name"] == "orchestkit"
     names = [p["name"] for p in data["plugins"]]
     assert names == ["ork"]
-    assert data["plugins"][0]["source"] == "./plugins/ork"
+    # Cursor Import Marketplace rejects "./plugins/ork" as invalid_argument.
+    # Official cursor/plugins uses bare relative paths (e.g. "third_party/gmail").
+    assert data["plugins"][0]["source"] == "plugins/ork"
 
 
 def test_cursor_manifest_is_the_full_plugin() -> None:
