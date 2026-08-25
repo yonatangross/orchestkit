@@ -2,9 +2,21 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "cursor-marketplace-source",
+      "source": "docs/fix--cursor-marketplace-source/import.html",
+      "title": "Cursor Import Marketplace rejects ./plugins/ork",
+      "description": "hq-ext imported because its source is the repo root. orchestkit listed ./plugins/ork, which Cursor rejects as invalid_argument. Click the string Cursor saw and see the verdict. Enable the plugin id ork after import.",
+      "tags": [
+        "cursor",
+        "plugins",
+        "explainer"
+      ],
+      "date": "2026-08-25"
+    },
+    {
       "slug": "ork-cursor-adapter",
       "source": "docs/feat--ork-cursor-adapter/adapter.html",
-      "title": "OrchestKit for Cursor — the same plugin, not a five-skill fork",
+      "title": "OrchestKit for Cursor \u2014 the same plugin, not a five-skill fork",
       "description": "Cursor loads Agent Plugins. The marketplace points at ork, the same plugin Claude Code installs. Claude hooks are omitted because they need CLAUDE_PLUGIN_ROOT. Click install, skills, Task, and the third-party-toggle leak to see what actually loads.",
       "tags": [
         "cursor",
