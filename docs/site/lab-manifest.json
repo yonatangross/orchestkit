@@ -2,11 +2,26 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "lab-publish-gate",
+      "source": "docs/feat--3745-playground-must-publish/index.html",
+      "title": "A playground nobody can open is a file, not a deliverable",
+      "description": "The playground gate accepted a bare repo path, because it only required the word 'playground' in the PR body and GitHub does not render repo HTML. Pick how a PR references its playground and see whether a reviewer can actually open it: bare path, blob link, raw link, render proxy, or published to the Lab.",
+      "tags": [
+        "ci",
+        "explainer"
+      ],
+      "date": "2026-08-25"
+    },
+    {
       "slug": "skills-api-publish-rail",
       "source": "docs/feat--3628-skills-api/index.html",
       "title": "Skills API Publish Rail: which of 105 skills actually pass",
       "description": "scripts/publish-skills.mjs packages OrchestKit's built skills for the Claude Platform Skills API. Run the same name/description validation the script runs, against real and synthetic skills, and see the exact dry-run payload it would compose.",
-      "tags": ["skills-api", "publish", "explainer"],
+      "tags": [
+        "skills-api",
+        "publish",
+        "explainer"
+      ],
       "date": "2026-08-21"
     },
     {
@@ -36,7 +51,7 @@
     {
       "slug": "cc-adoption-wave-210-212",
       "source": "docs/cc-adoption-wave-210-212/index.html",
-      "title": "CC Adoption Wave — 2.1.210 → 2.1.212",
+      "title": "CC Adoption Wave \u2014 2.1.210 \u2192 2.1.212",
       "description": "37 auto-filed adoption issues across three Claude Code releases. Filter by version, category, and gap score, click cards to build a work batch, and copy a triage prompt.",
       "tags": [
         "cc-adoption",
@@ -50,7 +65,7 @@
     {
       "slug": "triage-board",
       "source": "docs/triage-playground.html",
-      "title": "Issue Triage — 98 Open Issues",
+      "title": "Issue Triage \u2014 98 Open Issues",
       "description": "The whole open-issue backlog as one interactive board: drag to triage, milestone breakdowns, and a copy-out execution prompt for the chosen batch.",
       "tags": [
         "triage",
@@ -76,7 +91,7 @@
     {
       "slug": "session-standing-board",
       "source": "docs/session-standing-board.html",
-      "title": "Session Standing — Decision Board",
+      "title": "Session Standing \u2014 Decision Board",
       "description": "Drag-to-triage standing board for session outcomes: mouse, touch, and keyboard reorder, live buckets, and a prioritization prompt composer.",
       "tags": [
         "decision-board",
@@ -90,7 +105,7 @@
     {
       "slug": "yonyon-portfolio-adoption-options",
       "source": "docs/yonyon-portfolio-adoption-options/index.html",
-      "title": "Portfolio Bundle — Decision Board",
+      "title": "Portfolio Bundle \u2014 Decision Board",
       "description": "The decision board that planned this very Lab: 18 brainstormed ideas scored and mocked up, with a prompt composer that emitted the implementation instruction.",
       "tags": [
         "decision-board",
@@ -102,7 +117,7 @@
     {
       "slug": "swarm-coordination-2026",
       "source": "docs/swarm-coordination-2026.html",
-      "title": "Multi-Agent Coordination — Swarm vs Agents vs Workflow",
+      "title": "Multi-Agent Coordination \u2014 Swarm vs Agents vs Workflow",
       "description": "State-of-practice explainer comparing coordinator/worker swarms, agent teams, and deterministic workflows, with when-to-use guidance per topology.",
       "tags": [
         "multi-agent",
@@ -125,7 +140,7 @@
     {
       "slug": "vercel-labs-adoption-ideas",
       "source": "docs/playgrounds/vercel-labs-2026-04-29-adoption-ideas.html",
-      "title": "Vercel Labs — 8 Adoption Ideas",
+      "title": "Vercel Labs \u2014 8 Adoption Ideas",
       "description": "Impact-vs-effort explorer for adopting emulate, portless, agent-browser, and json-render capabilities into OrchestKit.",
       "tags": [
         "adoption",
@@ -137,7 +152,7 @@
     {
       "slug": "vercel-labs-integration",
       "source": "docs/playgrounds/vercel-labs-integration.html",
-      "title": "Vercel Labs Integration — Staged Plan",
+      "title": "Vercel Labs Integration \u2014 Staged Plan",
       "description": "Stage-composable integration plan: pick a stage, see what changes, click idea cards for full detail. Each stage assumes the prior one shipped.",
       "tags": [
         "plan",
@@ -149,7 +164,7 @@
     {
       "slug": "m126-bundle-b-explainer",
       "source": "docs/playgrounds/m126-bundle-b-explainer.html",
-      "title": "M126 Bundle B — ultrareview + Fork Subagents",
+      "title": "M126 Bundle B \u2014 ultrareview + Fork Subagents",
       "description": "Deep-dive explainer for the claude ultrareview subcommand and CLAUDE_CODE_FORK_SUBAGENT adoption bundle.",
       "tags": [
         "explainer",
@@ -160,7 +175,7 @@
     {
       "slug": "superpowers-learnings",
       "source": "docs/playgrounds/superpowers-learnings.html",
-      "title": "OrchestKit × Superpowers — Gap Analysis",
+      "title": "OrchestKit \u00d7 Superpowers \u2014 Gap Analysis",
       "description": "Side-by-side of OrchestKit today vs improvements recommended by the Superpowers plugin analysis.",
       "tags": [
         "analysis",
@@ -171,7 +186,7 @@
     {
       "slug": "lib-currency-audit",
       "source": "docs/playgrounds/lib-currency-audit-2026-05-31.html",
-      "title": "Library-Currency Audit — 2026-05-31",
+      "title": "Library-Currency Audit \u2014 2026-05-31",
       "description": "Verifier-corrected audit of library freshness across the toolchain, with severity re-ranks shown transparently.",
       "tags": [
         "audit",
@@ -182,7 +197,7 @@
     {
       "slug": "release-rail",
       "source": "docs/fix--release-rail-counts-and-account/release-rail.html",
-      "title": "Release Rail — Zeroed Counts and an Unnamed Identity",
+      "title": "Release Rail \u2014 Zeroed Counts and an Unnamed Identity",
       "description": "Two defects found by composing a release payload locally instead of reading the code: every release video rendered \"0 skills, 0 hooks\", and the announce rail named no posting identity. Includes the evidence for leaving the prerelease gate closed.",
       "tags": [
         "audit",
@@ -267,7 +282,11 @@
       "source": "docs/docs--conductor-session-playground-revive/index.html",
       "title": "Conductor Session, 2026-08-20",
       "description": "A read-only conductor session in three views: Claude Code adoption unfrozen across six versions by fixing one JSON.parse, five pull requests with zero real red plus a worktree map that would not prune, and the four self-corrections and four instrument defects that produced every number here.",
-      "tags": ["audit", "explainer", "cc-adoption"],
+      "tags": [
+        "audit",
+        "explainer",
+        "cc-adoption"
+      ],
       "date": "2026-08-20"
     }
   ]

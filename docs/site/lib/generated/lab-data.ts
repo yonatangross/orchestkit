@@ -15,6 +15,19 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "lab-publish-gate",
+    "title": "A playground nobody can open is a file, not a deliverable",
+    "description": "The playground gate accepted a bare repo path, because it only required the word 'playground' in the PR body and GitHub does not render repo HTML. Pick how a PR references its playground and see whether a reviewer can actually open it: bare path, blob link, raw link, render proxy, or published to the Lab.",
+    "tags": [
+      "ci",
+      "explainer"
+    ],
+    "date": "2026-08-25",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "watcher-first-harvest",
     "title": "Two defects the watcher found on its first run",
     "description": "The platform release-notes watcher's first live harvest caught a Sonnet 5 price that made every cost report read 50 percent high, and a model-ID gate that waved through a model the API had already retired. Interactive cost-delta slider and a pin checker showing the new RETIRED tier.",

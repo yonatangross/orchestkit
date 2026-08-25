@@ -327,6 +327,69 @@ jobs:
 
           echo "::notice::Found ${HTML_COUNT} playground file(s) in ${DOCS_DIR}/"
 
+      # A playground nobody can open is a file, not a deliverable. This step
+      # exists because the advice below USED to live only inside the failure
+      # text of the next step, which never fires once the body contains the
+      # word "playground" — so every PR satisfied the letter of the gate while
+      # shipping a bare path the reviewer could not click. GitHub does not
+      # render HTML from a repo, so a path, a blob link and a raw link are all
+      # unviewable; the manifest is the only route that puts the page on our
+      # own origin under the /lab CSP.
+      - name: Check playground is published to the Lab
+        if: steps.gate.outputs.required == 'true'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          set -uo pipefail
+          BRANCH_DIR=$(echo "$HEAD_REF" | sed 's|/|--|g')
+          DOCS_DIR="docs/${BRANCH_DIR}"
+          MANIFEST="docs/site/lab-manifest.json"
+
+          if [ ! -f "$MANIFEST" ]; then
+            echo "::error::${MANIFEST} is missing; cannot verify the playground is publishable."
+            exit 1
+          fi
+
+          # Every .html in the branch's playground dir must be registered as the
+          # `source` of a manifest entry. Comparing against the manifest rather
+          # than against public/lab keeps the check honest when the generator
+          # has not been run yet: an unregistered page cannot be generated.
+          # Dump every registered source to a file, then compare against the
+          # FILE. Keeping python to one line matters: an unindented heredoc
+          # inside a `run: |` block terminates the YAML block scalar, which
+          # breaks the whole workflow rather than this step.
+          SOURCES="${RUNNER_TEMP:-/tmp}/lab-sources.txt"
+          python3 -c "import json;print('\n'.join(e.get('source','') for e in json.load(open('${MANIFEST}')).get('entries',[])))" > "$SOURCES"
+          echo "::notice::$(awk 'NF{n++} END{print n+0}' "$SOURCES") entries registered in the Lab manifest"
+
+          UNREGISTERED=0
+          while IFS= read -r html; do
+            [ -n "$html" ] || continue
+            # grep against a FILE, never a pipe: `-q` early-exits and would
+            # SIGPIPE a producer, flipping the test under pipefail (#603).
+            if ! grep -Fxq "$html" "$SOURCES"; then
+              echo "::error::Playground not published: ${html}"
+              UNREGISTERED=$((UNREGISTERED+1))
+            fi
+          done < <(find "$DOCS_DIR" -name '*.html' | sort)
+
+          if [ "$UNREGISTERED" -gt 0 ]; then
+            echo "::error::${UNREGISTERED} playground file(s) are not registered in ${MANIFEST}."
+            echo "::error::A path in the PR body is not viewable: GitHub does not render"
+            echo "::error::repo HTML, and a branch blob link dies when the branch is deleted"
+            echo "::error::and again when prune-playgrounds archives the directory off main."
+            echo "::error::Fix, two steps:"
+            echo "::error::  1. add an entry to ${MANIFEST} with"
+            echo "::error::     \"source\": \"<the path above>\" plus slug/title/description/tags/date"
+            echo "::error::  2. run: node docs/site/scripts/generate-lab-data.mjs"
+            echo "::error::Then link it in the PR body as"
+            echo "::error::  https://orchestkit.yonyon.ai/lab/<slug>.html"
+            echo "::error::(the .html suffix is required; /lab/<slug> returns 404)"
+            exit 1
+          fi
+
+          echo "::notice::All playground files in ${DOCS_DIR}/ are registered in the Lab manifest"
+
       - name: Check playground link in PR body
         if: steps.gate.outputs.required == 'true'
         env:
@@ -334,7 +397,11 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           PR_BODY=$(gh pr view "$PR_NUMBER" --json body -q .body 2>/dev/null || echo "")
-          if ! echo "$PR_BODY" | grep -qi "playground"; then
+          # Here-string, NOT `echo ... | grep -q`: grep -q early-exits on the
+          # first match and SIGPIPEs the producer, which under `pipefail`
+          # propagates 141 and flips this `if` non-deterministically (#603).
+          # Same defect this repo already fixed in the gate step above.
+          if ! grep -qi "playground" <<< "$PR_BODY"; then
             echo "::error::PR body is missing a Playground section."
             echo "::error::Add an '## Interactive Playground' section naming the file."
             echo "::error::Link the repo path, e.g. docs/<branch-slug>/<name>.html"
