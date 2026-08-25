@@ -61,6 +61,11 @@
         },
         {
           "type": "json",
+          "path": "plugin.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
           "path": "server.json",
           "jsonpath": "$.version"
         },
