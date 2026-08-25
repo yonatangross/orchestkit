@@ -5,6 +5,16 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.58](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.57...v10.0.0-alpha.58) (2026-08-25)
+
+
+### Bug Fixes
+
+* **evals:** run the train/test split through jq, mikefarah yq has no -y ([#3730](https://github.com/yonatangross/orchestkit/issues/3730)) ([57cd01d](https://github.com/yonatangross/orchestkit/commit/57cd01df626f1d4a2405339bbb2ff7e385d6893d))
+* **hooks:** guards must parse shell structure, not raw text ([#3742](https://github.com/yonatangross/orchestkit/issues/3742)) ([d20cae0](https://github.com/yonatangross/orchestkit/commit/d20cae07aca5b4c308ed0d14f307391da1bc0a8b))
+* **hooks:** read git status without taking the index lock ([#3743](https://github.com/yonatangross/orchestkit/issues/3743)) ([17d4285](https://github.com/yonatangross/orchestkit/commit/17d42854d0a98d536002d44bf5a1a57a04ca6770))
+* **hooks:** restrict-bash must not read quoted pipes as shell operators ([#3740](https://github.com/yonatangross/orchestkit/issues/3740)) ([b7f425b](https://github.com/yonatangross/orchestkit/commit/b7f425b9cb341467e37dbcecb37019457940a6b9))
+
 ## [10.0.0-alpha.57](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.56...v10.0.0-alpha.57) (2026-08-25)
 
 
