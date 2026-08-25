@@ -14,6 +14,17 @@
       "date": "2026-08-25"
     },
     {
+      "slug": "lab-publish-gate",
+      "source": "docs/feat--3745-playground-must-publish/index.html",
+      "title": "A playground nobody can open is a file, not a deliverable",
+      "description": "The playground gate accepted a bare repo path, because it only required the word 'playground' in the PR body and GitHub does not render repo HTML. Pick how a PR references its playground and see whether a reviewer can actually open it: bare path, blob link, raw link, render proxy, or published to the Lab.",
+      "tags": [
+        "ci",
+        "explainer"
+      ],
+      "date": "2026-08-25"
+    },
+    {
       "slug": "skills-api-publish-rail",
       "source": "docs/feat--3628-skills-api/index.html",
       "title": "Skills API Publish Rail: which of 105 skills actually pass",
@@ -24,199 +35,6 @@
         "explainer"
       ],
       "date": "2026-08-21"
-    },
-    {
-      "slug": "cc-triage-fenced-json",
-      "source": "docs/fix--cc-watch-fence-parse/index.html",
-      "title": "Fenced JSON in cc-triage stdout",
-      "description": "Runs the old JSON.parse and the new string-aware balanced scan side by side over eight real shapes of model output, including the fenced array that froze CC adoption at 2.1.231.",
-      "tags": [
-        "cc-adoption",
-        "parser",
-        "explainer"
-      ],
-      "date": "2026-08-20"
-    },
-    {
-      "slug": "posttooluse-failure-event-name",
-      "source": "docs/fix--posttooluse-failure-event-name/index.html",
-      "title": "PostToolUseFailure: The Event Name a Shared Helper Stamped Wrong",
-      "description": "Three files, one hardcoded string: hooks.json registers failure-handler on PostToolUseFailure, but its context-bearing exits went through a helper that always stamped PostToolUse. Trace a tool failure through all four exits and watch CC accept or reject each one.",
-      "tags": [
-        "hooks",
-        "debugging",
-        "explainer"
-      ],
-      "date": "2026-08-20"
-    },
-    {
-      "slug": "cc-adoption-wave-210-212",
-      "source": "docs/cc-adoption-wave-210-212/index.html",
-      "title": "CC Adoption Wave \u2014 2.1.210 \u2192 2.1.212",
-      "description": "37 auto-filed adoption issues across three Claude Code releases. Filter by version, category, and gap score, click cards to build a work batch, and copy a triage prompt.",
-      "tags": [
-        "cc-adoption",
-        "dashboard",
-        "automation"
-      ],
-      "date": "2026-07-17",
-      "featured": true,
-      "caseStudy": "/docs/showcase/lab/adoption-waves"
-    },
-    {
-      "slug": "triage-board",
-      "source": "docs/triage-playground.html",
-      "title": "Issue Triage \u2014 98 Open Issues",
-      "description": "The whole open-issue backlog as one interactive board: drag to triage, milestone breakdowns, and a copy-out execution prompt for the chosen batch.",
-      "tags": [
-        "triage",
-        "decision-board",
-        "github"
-      ],
-      "date": "2026-06-16",
-      "featured": true,
-      "caseStudy": "/docs/showcase/lab/triage-board"
-    },
-    {
-      "slug": "cc-board-drift-gate",
-      "source": "docs/fix--3492-cc-board-drift/index.html",
-      "title": "A drift gate with nothing behind it",
-      "description": "Walk the build steps against the paths ci.yml diffs and watch two of seven generated outputs turn out to have no writer, then compare a per-run stamp with a source digest across two CI runs.",
-      "tags": [
-        "ci",
-        "build",
-        "explainer"
-      ],
-      "date": "2026-08-20"
-    },
-    {
-      "slug": "session-standing-board",
-      "source": "docs/session-standing-board.html",
-      "title": "Session Standing \u2014 Decision Board",
-      "description": "Drag-to-triage standing board for session outcomes: mouse, touch, and keyboard reorder, live buckets, and a prioritization prompt composer.",
-      "tags": [
-        "decision-board",
-        "drag-and-drop",
-        "a11y"
-      ],
-      "date": "2026-06-18",
-      "featured": true,
-      "caseStudy": "/docs/showcase/lab/session-standing"
-    },
-    {
-      "slug": "yonyon-portfolio-adoption-options",
-      "source": "docs/yonyon-portfolio-adoption-options/index.html",
-      "title": "Portfolio Bundle \u2014 Decision Board",
-      "description": "The decision board that planned this very Lab: 18 brainstormed ideas scored and mocked up, with a prompt composer that emitted the implementation instruction.",
-      "tags": [
-        "decision-board",
-        "meta",
-        "brainstorm"
-      ],
-      "date": "2026-07-17"
-    },
-    {
-      "slug": "swarm-coordination-2026",
-      "source": "docs/swarm-coordination-2026.html",
-      "title": "Multi-Agent Coordination \u2014 Swarm vs Agents vs Workflow",
-      "description": "State-of-practice explainer comparing coordinator/worker swarms, agent teams, and deterministic workflows, with when-to-use guidance per topology.",
-      "tags": [
-        "multi-agent",
-        "explainer"
-      ],
-      "date": "2026-06-17"
-    },
-    {
-      "slug": "epic-d-adoption-probe",
-      "source": "docs/feat--3309-adopt-cc-settings/index.html",
-      "title": "EPIC D, measured against tracked code",
-      "description": "Probes each of the five CC capabilities issue 3309 names against origin/main rather than a working tree, shows what this change adopts, and states why one is declined.",
-      "tags": [
-        "cc-adoption",
-        "worktree",
-        "explainer"
-      ],
-      "date": "2026-08-20"
-    },
-    {
-      "slug": "vercel-labs-adoption-ideas",
-      "source": "docs/playgrounds/vercel-labs-2026-04-29-adoption-ideas.html",
-      "title": "Vercel Labs \u2014 8 Adoption Ideas",
-      "description": "Impact-vs-effort explorer for adopting emulate, portless, agent-browser, and json-render capabilities into OrchestKit.",
-      "tags": [
-        "adoption",
-        "explorer",
-        "vercel-labs"
-      ],
-      "date": "2026-04-29"
-    },
-    {
-      "slug": "vercel-labs-integration",
-      "source": "docs/playgrounds/vercel-labs-integration.html",
-      "title": "Vercel Labs Integration \u2014 Staged Plan",
-      "description": "Stage-composable integration plan: pick a stage, see what changes, click idea cards for full detail. Each stage assumes the prior one shipped.",
-      "tags": [
-        "plan",
-        "explorer",
-        "vercel-labs"
-      ],
-      "date": "2026-04-27"
-    },
-    {
-      "slug": "m126-bundle-b-explainer",
-      "source": "docs/playgrounds/m126-bundle-b-explainer.html",
-      "title": "M126 Bundle B \u2014 ultrareview + Fork Subagents",
-      "description": "Deep-dive explainer for the claude ultrareview subcommand and CLAUDE_CODE_FORK_SUBAGENT adoption bundle.",
-      "tags": [
-        "explainer",
-        "cc-adoption"
-      ],
-      "date": "2026-04-28"
-    },
-    {
-      "slug": "superpowers-learnings",
-      "source": "docs/playgrounds/superpowers-learnings.html",
-      "title": "OrchestKit \u00d7 Superpowers \u2014 Gap Analysis",
-      "description": "Side-by-side of OrchestKit today vs improvements recommended by the Superpowers plugin analysis.",
-      "tags": [
-        "analysis",
-        "competitive"
-      ],
-      "date": "2026-04-12"
-    },
-    {
-      "slug": "lib-currency-audit",
-      "source": "docs/playgrounds/lib-currency-audit-2026-05-31.html",
-      "title": "Library-Currency Audit \u2014 2026-05-31",
-      "description": "Verifier-corrected audit of library freshness across the toolchain, with severity re-ranks shown transparently.",
-      "tags": [
-        "audit",
-        "dashboard"
-      ],
-      "date": "2026-05-31"
-    },
-    {
-      "slug": "release-rail",
-      "source": "docs/fix--release-rail-counts-and-account/release-rail.html",
-      "title": "Release Rail \u2014 Zeroed Counts and an Unnamed Identity",
-      "description": "Two defects found by composing a release payload locally instead of reading the code: every release video rendered \"0 skills, 0 hooks\", and the announce rail named no posting identity. Includes the evidence for leaving the prerelease gate closed.",
-      "tags": [
-        "audit",
-        "explainer"
-      ],
-      "date": "2026-08-14"
-    },
-    {
-      "slug": "mutation-gate-fail-closed-3583",
-      "source": "docs/fix--3583-mutation-gate-fail-closed/index.html",
-      "title": "A security gate that measured nothing and said OK",
-      "description": "A denied mktemp emptied RESULT_DIR, so the security mutation gate scored 0 of 13 tests and still exited 0. Paired probe, the root cause at line 116, and two fail-closed guards.",
-      "tags": [
-        "security",
-        "ci",
-        "fail-open"
-      ],
-      "date": "2026-08-20"
     },
     {
       "slug": "platform-watcher-3627",
@@ -279,6 +97,66 @@
       "date": "2026-08-21"
     },
     {
+      "slug": "cc-triage-fenced-json",
+      "source": "docs/fix--cc-watch-fence-parse/index.html",
+      "title": "Fenced JSON in cc-triage stdout",
+      "description": "Runs the old JSON.parse and the new string-aware balanced scan side by side over eight real shapes of model output, including the fenced array that froze CC adoption at 2.1.231.",
+      "tags": [
+        "cc-adoption",
+        "parser",
+        "explainer"
+      ],
+      "date": "2026-08-20"
+    },
+    {
+      "slug": "posttooluse-failure-event-name",
+      "source": "docs/fix--posttooluse-failure-event-name/index.html",
+      "title": "PostToolUseFailure: The Event Name a Shared Helper Stamped Wrong",
+      "description": "Three files, one hardcoded string: hooks.json registers failure-handler on PostToolUseFailure, but its context-bearing exits went through a helper that always stamped PostToolUse. Trace a tool failure through all four exits and watch CC accept or reject each one.",
+      "tags": [
+        "hooks",
+        "debugging",
+        "explainer"
+      ],
+      "date": "2026-08-20"
+    },
+    {
+      "slug": "cc-board-drift-gate",
+      "source": "docs/fix--3492-cc-board-drift/index.html",
+      "title": "A drift gate with nothing behind it",
+      "description": "Walk the build steps against the paths ci.yml diffs and watch two of seven generated outputs turn out to have no writer, then compare a per-run stamp with a source digest across two CI runs.",
+      "tags": [
+        "ci",
+        "build",
+        "explainer"
+      ],
+      "date": "2026-08-20"
+    },
+    {
+      "slug": "epic-d-adoption-probe",
+      "source": "docs/feat--3309-adopt-cc-settings/index.html",
+      "title": "EPIC D, measured against tracked code",
+      "description": "Probes each of the five CC capabilities issue 3309 names against origin/main rather than a working tree, shows what this change adopts, and states why one is declined.",
+      "tags": [
+        "cc-adoption",
+        "worktree",
+        "explainer"
+      ],
+      "date": "2026-08-20"
+    },
+    {
+      "slug": "mutation-gate-fail-closed-3583",
+      "source": "docs/fix--3583-mutation-gate-fail-closed/index.html",
+      "title": "A security gate that measured nothing and said OK",
+      "description": "A denied mktemp emptied RESULT_DIR, so the security mutation gate scored 0 of 13 tests and still exited 0. Paired probe, the root cause at line 116, and two fail-closed guards.",
+      "tags": [
+        "security",
+        "ci",
+        "fail-open"
+      ],
+      "date": "2026-08-20"
+    },
+    {
       "slug": "conductor-session-2026-08-20",
       "source": "docs/docs--conductor-session-playground-revive/index.html",
       "title": "Conductor Session, 2026-08-20",
@@ -289,6 +167,139 @@
         "cc-adoption"
       ],
       "date": "2026-08-20"
+    },
+    {
+      "slug": "release-rail",
+      "source": "docs/fix--release-rail-counts-and-account/release-rail.html",
+      "title": "Release Rail \u2014 Zeroed Counts and an Unnamed Identity",
+      "description": "Two defects found by composing a release payload locally instead of reading the code: every release video rendered \"0 skills, 0 hooks\", and the announce rail named no posting identity. Includes the evidence for leaving the prerelease gate closed.",
+      "tags": [
+        "audit",
+        "explainer"
+      ],
+      "date": "2026-08-14"
+    },
+    {
+      "slug": "cc-adoption-wave-210-212",
+      "source": "docs/cc-adoption-wave-210-212/index.html",
+      "title": "CC Adoption Wave \u2014 2.1.210 \u2192 2.1.212",
+      "description": "37 auto-filed adoption issues across three Claude Code releases. Filter by version, category, and gap score, click cards to build a work batch, and copy a triage prompt.",
+      "tags": [
+        "cc-adoption",
+        "dashboard",
+        "automation"
+      ],
+      "date": "2026-07-17",
+      "featured": true,
+      "caseStudy": "/docs/showcase/lab/adoption-waves"
+    },
+    {
+      "slug": "yonyon-portfolio-adoption-options",
+      "source": "docs/yonyon-portfolio-adoption-options/index.html",
+      "title": "Portfolio Bundle \u2014 Decision Board",
+      "description": "The decision board that planned this very Lab: 18 brainstormed ideas scored and mocked up, with a prompt composer that emitted the implementation instruction.",
+      "tags": [
+        "decision-board",
+        "meta",
+        "brainstorm"
+      ],
+      "date": "2026-07-17"
+    },
+    {
+      "slug": "session-standing-board",
+      "source": "docs/session-standing-board.html",
+      "title": "Session Standing \u2014 Decision Board",
+      "description": "Drag-to-triage standing board for session outcomes: mouse, touch, and keyboard reorder, live buckets, and a prioritization prompt composer.",
+      "tags": [
+        "decision-board",
+        "drag-and-drop",
+        "a11y"
+      ],
+      "date": "2026-06-18",
+      "featured": true,
+      "caseStudy": "/docs/showcase/lab/session-standing"
+    },
+    {
+      "slug": "swarm-coordination-2026",
+      "source": "docs/swarm-coordination-2026.html",
+      "title": "Multi-Agent Coordination \u2014 Swarm vs Agents vs Workflow",
+      "description": "State-of-practice explainer comparing coordinator/worker swarms, agent teams, and deterministic workflows, with when-to-use guidance per topology.",
+      "tags": [
+        "multi-agent",
+        "explainer"
+      ],
+      "date": "2026-06-17"
+    },
+    {
+      "slug": "triage-board",
+      "source": "docs/triage-playground.html",
+      "title": "Issue Triage \u2014 98 Open Issues",
+      "description": "The whole open-issue backlog as one interactive board: drag to triage, milestone breakdowns, and a copy-out execution prompt for the chosen batch.",
+      "tags": [
+        "triage",
+        "decision-board",
+        "github"
+      ],
+      "date": "2026-06-16",
+      "featured": true,
+      "caseStudy": "/docs/showcase/lab/triage-board"
+    },
+    {
+      "slug": "lib-currency-audit",
+      "source": "docs/playgrounds/lib-currency-audit-2026-05-31.html",
+      "title": "Library-Currency Audit \u2014 2026-05-31",
+      "description": "Verifier-corrected audit of library freshness across the toolchain, with severity re-ranks shown transparently.",
+      "tags": [
+        "audit",
+        "dashboard"
+      ],
+      "date": "2026-05-31"
+    },
+    {
+      "slug": "vercel-labs-adoption-ideas",
+      "source": "docs/playgrounds/vercel-labs-2026-04-29-adoption-ideas.html",
+      "title": "Vercel Labs \u2014 8 Adoption Ideas",
+      "description": "Impact-vs-effort explorer for adopting emulate, portless, agent-browser, and json-render capabilities into OrchestKit.",
+      "tags": [
+        "adoption",
+        "explorer",
+        "vercel-labs"
+      ],
+      "date": "2026-04-29"
+    },
+    {
+      "slug": "m126-bundle-b-explainer",
+      "source": "docs/playgrounds/m126-bundle-b-explainer.html",
+      "title": "M126 Bundle B \u2014 ultrareview + Fork Subagents",
+      "description": "Deep-dive explainer for the claude ultrareview subcommand and CLAUDE_CODE_FORK_SUBAGENT adoption bundle.",
+      "tags": [
+        "explainer",
+        "cc-adoption"
+      ],
+      "date": "2026-04-28"
+    },
+    {
+      "slug": "vercel-labs-integration",
+      "source": "docs/playgrounds/vercel-labs-integration.html",
+      "title": "Vercel Labs Integration \u2014 Staged Plan",
+      "description": "Stage-composable integration plan: pick a stage, see what changes, click idea cards for full detail. Each stage assumes the prior one shipped.",
+      "tags": [
+        "plan",
+        "explorer",
+        "vercel-labs"
+      ],
+      "date": "2026-04-27"
+    },
+    {
+      "slug": "superpowers-learnings",
+      "source": "docs/playgrounds/superpowers-learnings.html",
+      "title": "OrchestKit \u00d7 Superpowers \u2014 Gap Analysis",
+      "description": "Side-by-side of OrchestKit today vs improvements recommended by the Superpowers plugin analysis.",
+      "tags": [
+        "analysis",
+        "competitive"
+      ],
+      "date": "2026-04-12"
     }
   ]
 }
