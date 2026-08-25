@@ -54,7 +54,7 @@ interface SecurityResults {
  */
 function hasUncommittedChanges(projectDir: string): boolean {
   try {
-    const status = execFileSync('git', ['status', '--porcelain'], {
+    const status = execFileSync('git', ['--no-optional-locks', 'status', '--porcelain'], {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 5000,

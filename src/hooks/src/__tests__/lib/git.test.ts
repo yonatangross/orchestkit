@@ -92,9 +92,12 @@ describe('lib/git', () => {
 
       getDirtyFileCount('/my/project');
 
+      // `--no-optional-locks` is asserted, not merely tolerated: without it a
+      // status read takes .git/index.lock and breaks concurrent sessions
+      // (#3735).
       expect(execFileSync).toHaveBeenCalledWith(
         'git',
-        ['status', '--porcelain'],
+        ['--no-optional-locks', 'status', '--porcelain'],
         expect.objectContaining({
           cwd: '/my/project',
           timeout: 3000,
@@ -407,7 +410,7 @@ describe('lib/git', () => {
       expect(result).toBe('M src/lib/git.ts\n?? newfile.ts');
       expect(execFileSync).toHaveBeenCalledWith(
         'git',
-        ['status', '--short'],
+        ['--no-optional-locks', 'status', '--short'],
         expect.objectContaining({ cwd: '/test/project' }),
       );
     });

@@ -50,7 +50,7 @@ function findRelatedTests(projectDir: string, sourceFile: string): string[] {
  */
 function getChangedFiles(projectDir: string): string[] {
   try {
-    const result = execFileSync('git', ['status', '--short'], {
+    const result = execFileSync('git', ['--no-optional-locks', 'status', '--short'], {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 5000,

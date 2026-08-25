@@ -78,6 +78,11 @@ HOOK_SECURITY_*.txt
 .claude/HANDOFF.md
 .claude/context/quality_gate_review_evidence.json
 .claude/context/verification-queue/
+# Written by subagent-stop/auto-spawn-quality.ts. Session-scoped runtime state
+# (spawn ids, ISO timestamps, trigger agent names), so it is never committable,
+# but it was absent from this block and showed as untracked in every affected
+# worktree (#3734).
+.claude/context/spawn-queue.json
 
 # Coordination runtime files
 .claude/coordination/IMPLEMENTATION_REPORT.json

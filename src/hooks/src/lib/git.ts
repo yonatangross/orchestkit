@@ -130,12 +130,31 @@ export function isGitRepo(projectDir?: string): boolean {
 }
 
 /**
- * Get git status (short format)
+ * Get git status (short format).
+ *
+ * `--no-optional-locks` is NOT decoration. `git status` refreshes the index and
+ * writes it back, so it takes `.git/index.lock` exactly like a write does. A
+ * hook sampling status therefore collides with whatever the session is actually
+ * doing, and the loser sees:
+ *
+ *   fatal: Unable to create '.../index.lock': File exists.
+ *   Another git process seems to be running ... remove the file manually
+ *
+ * which names a stale lock and prescribes deleting it, while the real cause is
+ * contention that clears on its own. That advice is dangerous here: several
+ * worktrees and several concurrent sessions share one repository, so the lock
+ * may belong to a live operation. Measured 2026-08-25: four consecutive
+ * commands failed this way while the lock file was already gone by the time it
+ * could be inspected (#3735).
+ *
+ * The flag makes a read behave like a read. Use it on every status call added
+ * to hook code; a test in `__tests__/lib/git-no-optional-locks.test.ts` fails
+ * if a plain one reappears.
  */
 export function getGitStatus(projectDir?: string): string {
   const dir = projectDir || getProjectDir();
   try {
-    return execFileSync('git', ['status', '--short'], {
+    return execFileSync('git', ['--no-optional-locks', 'status', '--short'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 10000,
@@ -159,7 +178,7 @@ export function hasUncommittedChanges(projectDir?: string): boolean {
 export function getDirtyFileCount(projectDir?: string): number {
   const dir = projectDir || getProjectDir();
   try {
-    const output = execFileSync('git', ['status', '--porcelain'], {
+    const output = execFileSync('git', ['--no-optional-locks', 'status', '--porcelain'], {
       cwd: dir,
       encoding: 'utf8',
       timeout: 3000,

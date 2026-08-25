@@ -110,7 +110,7 @@ export async function stopFailureHandler(input: HookInput, ctx: HookContext = NO
     // Get modified files (best-effort, may fail if git is unavailable)
     let modifiedFiles: string[] = [];
     try {
-      const status = execFileSync('git', ['status', '--porcelain'], {
+      const status = execFileSync('git', ['--no-optional-locks', 'status', '--porcelain'], {
         cwd: projectDir,
         encoding: 'utf8',
         timeout: 3000,

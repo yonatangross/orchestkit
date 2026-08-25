@@ -109,7 +109,7 @@ export function pluginsDirtyNow(projectDir: string): boolean {
   try {
     const out = execFileSync(
       'git',
-      ['-C', projectDir, 'status', '--porcelain', '--', 'plugins/'],
+      ['--no-optional-locks', '-C', projectDir, 'status', '--porcelain', '--', 'plugins/'],
       { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
     );
     return out.trim().length > 0;
