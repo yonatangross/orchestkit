@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "oss-surface-hygiene",
+      "source": "docs/chore--oss-surface-hygiene/install-matrix.html",
+      "title": "One plugin. Four first commands.",
+      "description": "Claude Code, Cursor, skills.sh starter 12, and Codex $ork-implement used to disagree. Click a host to see the first command that actually works, and why ork-implement 404ed on skills.sh.",
+      "tags": [
+        "install",
+        "codex",
+        "explainer"
+      ],
+      "date": "2026-08-25"
+    },
+    {
       "slug": "cursor-marketplace-source",
       "source": "docs/fix--cursor-marketplace-source/import.html",
       "title": "Cursor Import Marketplace rejects ./plugins/ork",

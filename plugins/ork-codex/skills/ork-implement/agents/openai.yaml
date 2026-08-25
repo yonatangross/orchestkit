@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ork Implement"
+  short_description: "Make a scoped change and prove it."
+  default_prompt: "Use $ork-implement to implement $ARGUMENTS."

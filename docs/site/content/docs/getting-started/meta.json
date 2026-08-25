@@ -3,6 +3,7 @@
   "icon": "Rocket",
   "pages": [
     "installation",
+    "superpowers",
     "first-10-minutes",
     "navigating",
     "configuration"

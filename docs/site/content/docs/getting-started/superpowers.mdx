@@ -1,0 +1,38 @@
+---
+title: OrchestKit vs Superpowers
+description: Superpowers is Anthropic's official process plugin. OrchestKit is production patterns plus lifecycle hooks. Complementary, not a rival listing.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+<Callout type="info">
+Superpowers is on the official Anthropic marketplace. Do not treat OrchestKit as a replacement listing for it. Use both, or pick one, based on what you actually need.
+</Callout>
+
+## The split
+
+| | [Superpowers](https://github.com/obra/superpowers) | OrchestKit |
+|---|---|---|
+| Home | Official Anthropic marketplace | `yonatangross/orchestkit` |
+| Job | Process: how the agent works a task (TDD, planning, review loops) | Production patterns: FastAPI, React, RAG, security, CI, plus lifecycle hooks |
+| Shape | Small, official, workflow | Broad catalog + `/ork:doctor` + hooks that fire without being asked |
+
+If you want the agent to follow a disciplined process, start with Superpowers. If you want it to already know how you ship a FastAPI endpoint, a TanStack query, or a pgvector retriever — and to block a commit that skips tests — that is OrchestKit.
+
+## Install either, or both
+
+Claude Code:
+
+```bash
+claude install orchestkit/ork
+```
+
+Cursor: Settings → marketplaces → `yonatangross/orchestkit` → enable **ork** → new chat.
+
+A 12-skill starter (not the skills.sh firehose):
+
+```bash
+npx skills add yonatangross/orchestkit -s doctor -s setup -s explore -s implement -s verify -s review-pr -s commit -s expect -s assess -s brainstorm -s create-pr -s remember
+```
+
+Public write-up on yonyon.ai: [OrchestKit vs Superpowers](https://yonyon.ai/compare/orchestkit-superpowers).

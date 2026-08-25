@@ -40,20 +40,34 @@
 - [Community](#community)
 
 
-## Quick Start (Claude Code)
+## Quick Start
+
+Pick the host you actually use. Claude Code is the full plugin (skills + agents + hooks). Cursor gets the same `ork` plugin minus Claude hook scripts. skills.sh is skills only — start with the 12 below, not the whole catalog.
+
+### Claude Code
 
 ```bash
 /plugin marketplace add yonatangross/orchestkit
 /plugin install ork
 ```
 
-Then start your personalized onboarding:
+Then `/ork:setup`. The wizard scans the repo, recommends skills, and writes MCP config.
+
+CLI equivalent: `claude install orchestkit/ork`.
+
+### Cursor
+
+Settings → Plugins / marketplaces → add `yonatangross/orchestkit` → enable **ork** → **open a new chat**. Same plugin Claude Code installs, not a five-skill fork. See [Install → Cursor](#cursor).
+
+### skills.sh (Cursor, Codex, OpenCode, …)
+
+Starter 12 — doctor, setup, explore, implement, verify, review-pr, commit, expect, assess, brainstorm, create-pr, remember:
 
 ```bash
-/ork:setup
+npx skills add yonatangross/orchestkit -s doctor -s setup -s explore -s implement -s verify -s review-pr -s commit -s expect -s assess -s brainstorm -s create-pr -s remember
 ```
 
-The setup wizard scans your codebase, detects your tech stack, recommends skills for your needs, configures MCP servers, and creates a readiness score — all in one command.
+The skill named `implement` is the implement workflow (`/ork:implement` in Claude Code). There is no `ork-implement` on the Claude plugin; Codex uses `$ork-implement` after the Codex pack is installed. Full catalog: `npx skills add yonatangross/orchestkit` (hundreds of SKILL.md files — do not treat that as unique users).
 
 ---
 
@@ -218,11 +232,13 @@ anything.
 
 No tiering. No version confusion. Just one powerful plugin.
 
-Not on Claude Code? Pull the skills into any agent (Cursor, Codex, OpenCode, …) via [skills.sh](https://skills.sh):
+Not on Claude Code? Pull a **starter 12** into any agent (Cursor, Codex, OpenCode, …) via [skills.sh](https://www.skills.sh/yonatangross/orchestkit) — do not install the whole firehose on day one:
 
 ```bash
-npx skills add yonatangross/orchestkit
+npx skills add yonatangross/orchestkit -s doctor -s setup -s explore -s implement -s verify -s review-pr -s commit -s expect -s assess -s brainstorm -s create-pr -s remember
 ```
+
+All skills: `npx skills add yonatangross/orchestkit`. The implement skill is [`implement`](https://www.skills.sh/yonatangross/orchestkit/implement), not `ork-implement`.
 
 ### Cursor
 
@@ -251,8 +267,8 @@ codex plugin add ork-codex@orchestkit-codex
 ```
 
 Restart Codex after installation. Invoke a workflow explicitly with
-`$ork-brainstorm`, `$ork-explore`, `$ork-assess`, `$ork-verify`, or
-`$ork-review-pr`; their narrow descriptions also let Codex select the relevant
+`$ork-brainstorm`, `$ork-explore`, `$ork-implement`, `$ork-assess`, `$ork-verify`,
+or `$ork-review-pr`; their narrow descriptions also let Codex select the relevant
 workflow automatically.
 
 The plugin intentionally ships roles as templates because Codex loads custom
@@ -325,6 +341,12 @@ Run `/ork:doctor` to diagnose.
 Requires **≥2.1.220** (supported floor; Opus 5 as the default Opus, `xhigh` effort, dynamic workflows, `sandbox.network.strictAllowlist`, native binary, hardened `Bash(rm:*)`/`Bash(find:*)` rules). Check with `claude --version`.
 
 Raising this floor is a breaking change and ships as a major release. See [STABILITY.md](STABILITY.md) for the full contract, and `shared/cc-support.json` for the authoritative window.
+</details>
+
+<details>
+<summary><strong>Superpowers vs OrchestKit?</strong></summary>
+
+Complementary, not a rival listing. Superpowers (official Anthropic marketplace) is process — how the agent works a task. OrchestKit is production patterns plus lifecycle hooks. Honest split: [docs](https://orchestkit.yonyon.ai/docs/getting-started/superpowers) · [yonyon.ai](https://yonyon.ai/compare/orchestkit-superpowers).
 </details>
 
 ---
