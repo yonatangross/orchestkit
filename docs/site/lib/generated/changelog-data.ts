@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.57",
+    "date": "2026-08-25",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**cc-watch:** fallback stub ignores below-floor sentinels ([#3724](https://github.com/yonatangross/orchestkit/issues/3724)) ([3f5359f](https://github.com/yonatangross/orchestkit/commit/3f5359f7fbe0569f925be501a0c953cd35df52f4))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "register the repo-root plugin.json with the drift roster ([#3728](https://github.com/yonatangross/orchestkit/issues/3728)) ([2c7d758](https://github.com/yonatangross/orchestkit/commit/2c7d758ba2806574a2634bf63443b9e92501ac06))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.56",
     "date": "2026-08-24",
     "compareUrl": "",
