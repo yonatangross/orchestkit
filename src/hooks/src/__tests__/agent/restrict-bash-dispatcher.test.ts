@@ -133,6 +133,45 @@ describe('restrict-bash — reachability through sync-bash-dispatcher', () => {
     }
   });
 
+  // #3732: git accepts GLOBAL options before the subcommand, and the allowlist
+  // stores literal prefixes, so `git -C <dir> diff` did not start with
+  // `git diff` and fell off a list that admits it. In a worktree session that
+  // is the documented way to address a repository without `cd`, and `cd` is a
+  // compound command a read-only agent may not run, so the two rules together
+  // left no allowlisted way to query a repo the agent was not already inside.
+  test('global git options do not push an allowlisted subcommand off the list', () => {
+    for (const cmd of [
+      'git -C /tmp/wt diff origin/main...HEAD',
+      'git --no-pager log --oneline -5',
+      'git -C /tmp/wt status --short',
+      'git --git-dir=/tmp/wt/.git show HEAD',
+    ]) {
+      const result = restrictBash(bashInput(cmd, RESTRICTED));
+      expect(
+        result.hookSpecificOutput?.permissionDecision,
+        `${cmd} is an allowlisted subcommand behind a global option and must not be denied`,
+      ).not.toBe('deny');
+    }
+  });
+
+  // Stripping must not become a bypass: a NON-allowlisted subcommand stays
+  // denied behind the same options, and `-c <name=value>` is deliberately not
+  // stripped because it can change what the subcommand does.
+  test('global git options do not smuggle a non-allowlisted subcommand through', () => {
+    for (const cmd of [
+      'git -C /tmp/wt push origin main',
+      'git --no-pager reset --hard HEAD~1',
+      'git -C /tmp/wt clean -fdx',
+      'git -c core.pager=sh log',
+    ]) {
+      const result = restrictBash(bashInput(cmd, RESTRICTED));
+      expect(
+        result.hookSpecificOutput?.permissionDecision,
+        `${cmd} is not a read-only subcommand and must stay denied`,
+      ).toBe('deny');
+    }
+  });
+
   // The other direction, which is what makes the fix safe rather than a
   // loosening: real operators must still be caught, including when a quoted
   // decoy sits earlier in the same command.

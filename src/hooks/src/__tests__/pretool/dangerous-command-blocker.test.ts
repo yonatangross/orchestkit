@@ -1063,4 +1063,45 @@ describe('dangerous-command-blocker', () => {
       allows('make build || bash fallback.sh');
     });
   });
+
+  // ===========================================================================
+  // Substring tiers: a QUOTED heredoc body is payload, not command text (#3731)
+  //
+  // The pipe-to-interpreter tier above already blanks quoted heredoc bodies
+  // (#3098). The DENY and ASK SUBSTRING tiers did not, so writing a runbook,
+  // handoff, or issue that QUOTED a destructive command was hard-blocked, even
+  // though bash performs no expansion in a quoted heredoc and the command only
+  // ever wrote text to a file. The Write tool bypasses this hook entirely, so
+  // the guard never prevented the text existing; it only taught people to
+  // route around it.
+  // ===========================================================================
+  describe('substring tiers: quoted heredoc bodies are inert payload', () => {
+    const allows = (cmd: string) => {
+      const r = dangerousCommandBlocker(createBashInput(cmd));
+      expect(r.hookSpecificOutput?.permissionDecision).not.toBe('deny');
+    };
+    const denies = (cmd: string) => {
+      const r = dangerousCommandBlocker(createBashInput(cmd));
+      expect(r.hookSpecificOutput?.permissionDecision).toBe('deny');
+    };
+
+    it('allows documenting a destructive command inside a quoted heredoc', () => {
+      allows("cat > runbook.md <<'EOF'\nRecovery step, run by hand:\n  rm -rf ~/broken-cache\nEOF");
+    });
+
+    it('allows a quoted heredoc naming other deny-tier patterns', () => {
+      allows("cat >> report.md <<'DOC'\nNever run mkfs. on the wrong device.\nDOC");
+    });
+
+    // The safety half. An UNQUOTED heredoc still performs parameter and command
+    // substitution, so its body is live text and must stay scanned.
+    it('still denies the same body in an UNQUOTED heredoc', () => {
+      denies('cat > runbook.md <<EOF\nrm -rf ~\nEOF');
+    });
+
+    // And a real command outside the heredoc is unaffected by the blanking.
+    it('still denies a destructive command outside any heredoc', () => {
+      denies('rm -rf ~');
+    });
+  });
 });

