@@ -252,11 +252,15 @@ jobs:
       # (script exits 0 after writing the sentinel) → fallback never fired →
       # the version vanished silently. Now any stuck sentinel surfaces an issue
       # so the human triage step is visible. `outputs.parse_failed` is emitted
-      # by cc-triage.mjs when gaps contain any parse_failed entry.
+      # by cc-triage.mjs when gaps contain an IN-WINDOW parse_failed entry; a
+      # below_floor sentinel is a policy skip and never counts (#3720).
       - name: Fallback manual-triage issue
         if: ${{ (steps.triage.outcome == 'skipped' || steps.triage.outputs.parse_failed == 'true') && steps.triage.outputs.auth_failed != 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Step output read via env, never pasted into the script body (same
+          # convention as NEW_DATES and STALE_* below): bash then sees data, not code.
+          PF_VERSIONS: ${{ steps.triage.outputs.parse_failed_versions }}
         run: |
           set -euo pipefail
           GAPS=shared/cc-adoption-gaps.json
@@ -271,7 +275,17 @@ jobs:
             --search "\"Key: \\\`$KEY\\\`\" in:body" \
             --json number --jq 'length')
           if [ "$EXISTING" -eq 0 ]; then
-            VERSIONS=$(jq -r 'map(.version) | join(", ")' "$GAPS")
+            # #3720: name only the versions that actually failed extraction. The
+            # triage step emits them; when it was skipped (no token) every
+            # in-window entry that is not below_floor is the honest list.
+            VERSIONS="${PF_VERSIONS:-}"
+            if [ -z "$VERSIONS" ]; then
+              VERSIONS=$(jq -r '[.[] | select(.below_floor != true) | .version] | join(", ")' "$GAPS")
+            fi
+            if [ -z "$VERSIONS" ]; then
+              echo "Only below-floor entries in the ledger — nothing to triage manually."
+              exit 0
+            fi
             # Land the fallback in the rolling umbrella too. Without --milestone
             # it was milestone-less and escaped "CC adoption" (unlike the main
             # filer, which assigns it). Default when the watch step didn't emit

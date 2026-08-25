@@ -234,6 +234,40 @@ else
 fi
 
 # ============================================================================
+# Test 5b (#3720): a below_floor parse_failed sentinel must NOT trip the
+# Step 4 fallback signal; an in-window parse_failed entry must, and the
+# emitted version list must name only the in-window one.
+# ============================================================================
+GHOUT=$(mktemp "${TMPDIR:-/tmp}/cc-triage-ghout.XXXXXX")
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  {"version": "2.1.001", "parse_failed": true, "features": [], "raw_bullets_count": 3, "below_floor": true}
+]
+EOF
+unset CLAUDE_CODE_OAUTH_TOKEN || true
+: > "$GHOUT"
+GITHUB_OUTPUT="$GHOUT" node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || true
+if ! grep -q "parse_failed=true" "$GHOUT"; then
+  log_pass "#3720: below_floor sentinel alone does not emit parse_failed"
+else
+  log_fail "#3720 below_floor" "parse_failed=true emitted for a below-floor-only ledger"
+fi
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  {"version": "2.1.001", "parse_failed": true, "features": [], "raw_bullets_count": 3, "below_floor": true},
+  {"version": "2.1.999", "parse_failed": true, "features": [], "raw_bullets_count": 2}
+]
+EOF
+: > "$GHOUT"
+GITHUB_OUTPUT="$GHOUT" node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || true
+if grep -q "parse_failed=true" "$GHOUT" && grep -q "parse_failed_versions=2.1.999$" "$GHOUT"; then
+  log_pass "#3720: in-window parse_failed emits the signal naming only 2.1.999"
+else
+  log_fail "#3720 in-window" "GITHUB_OUTPUT was: $(tr '\n' ' ' < "$GHOUT")"
+fi
+rm -f "$GHOUT"
+
+# ============================================================================
 # Test 6: --retry-failed flag re-processes parse_failed entries
 # Recovery path for stuck sentinels (e.g. CC 2.1.126 double-dash bug).
 # ============================================================================
