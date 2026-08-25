@@ -22,6 +22,7 @@ import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, extractContext } from '../lib/common.js';
 
 // Import consolidated hook implementations
+import { emptyResultDetector } from './empty-result-detector.js';
 import { outputValidator } from './output-validator.js';
 import { autoSpawnQuality } from './auto-spawn-quality.js';
 import { multiClaudeVerifier } from './multi-claude-verifier.js';
@@ -42,6 +43,10 @@ interface SyncHookConfig {
  * Order matters — output-validator runs first to validate output before other hooks process it.
  */
 const SYNC_HOOKS: SyncHookConfig[] = [
+  // FIRST deliberately: it never blocks, and it must not be starved by a hook
+  // ahead of it that does (#3200). An empty-result signal that only fires when
+  // everything else passed is the signal you lose exactly when it matters.
+  { name: 'empty-result-detector', fn: emptyResultDetector },
   { name: 'output-validator', fn: outputValidator },
   { name: 'auto-spawn-quality', fn: autoSpawnQuality },
   { name: 'multi-claude-verifier', fn: multiClaudeVerifier },
