@@ -479,6 +479,14 @@ else
     exit 1
 fi
 
+if [[ -x "$SCRIPT_DIR/build-cursor-plugin.sh" ]]; then
+    echo -e "${BLUE}  Building Cursor adapter...${NC}"
+    "$SCRIPT_DIR/build-cursor-plugin.sh"
+else
+    echo -e "${RED}  ERROR: build-cursor-plugin.sh is missing or not executable${NC}"
+    exit 1
+fi
+
 echo ""
 
 # ============================================================================
@@ -496,6 +504,14 @@ for plugin_dir in "$PLUGINS_DIR"/*; do
     if [[ -f "$plugin_dir/.codex-plugin/plugin.json" ]]; then
         if ! jq empty "$plugin_dir/.codex-plugin/plugin.json" 2>/dev/null; then
             echo -e "${RED}  $plugin_name: Invalid Codex plugin JSON${NC}"
+            VALIDATION_ERRORS=$((VALIDATION_ERRORS + 1))
+        fi
+        continue
+    fi
+
+    if [[ -f "$plugin_dir/.cursor-plugin/plugin.json" ]]; then
+        if ! jq empty "$plugin_dir/.cursor-plugin/plugin.json" 2>/dev/null; then
+            echo -e "${RED}  $plugin_name: Invalid Cursor plugin JSON${NC}"
             VALIDATION_ERRORS=$((VALIDATION_ERRORS + 1))
         fi
         continue

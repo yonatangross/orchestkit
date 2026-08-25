@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "ork-cursor-adapter",
+      "source": "docs/feat--ork-cursor-adapter/adapter.html",
+      "title": "OrchestKit for Cursor — thin pack, not 171 hooks",
+      "description": "Cursor never resolves CLAUDE_PLUGIN_ROOT, so ork-cursor copies the Codex five-skill pack instead of the Claude plugin. Click install, skills, Task, and the third-party-toggle leak to see what actually loads.",
+      "tags": [
+        "cursor",
+        "plugins",
+        "explainer"
+      ],
+      "date": "2026-08-25"
+    },
+    {
       "slug": "empty-subagent-result",
       "source": "docs/fix--3739-empty-subagent-result/index.html",
       "title": "Silence is a failed delegation: 97 of 2,735 subagents finished without a word",

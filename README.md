@@ -224,6 +224,21 @@ Not on Claude Code? Pull the skills into any agent (Cursor, Codex, OpenCode, …
 npx skills add yonatangross/orchestkit
 ```
 
+### Cursor
+
+Cursor does not load the Claude plugin. Add this repository as a Cursor
+marketplace (Settings → the GitHub repo `yonatangross/orchestkit`), enable
+`ork-cursor`, then **open a new chat**. Reload Window does not pick up a newly
+enabled plugin catalog.
+
+The pack is the same five workflows Codex already ships (`ork-brainstorm`,
+`ork-explore`, `ork-assess`, `ork-verify`, `ork-review-pr`). It registers
+**no** Claude hooks and **no** plugin `mcpServers`. Fan-out uses Cursor's
+`Task` tool; Codex `ork_explorer` roles are not installed here.
+
+"Include third-party Plugins" can leak SKILL.md from `~/.claude/plugins`. That
+is not an install. Proof is the `ork-cursor` plugin id in the skills catalog.
+
 ### Codex
 
 Codex uses its own plugin format, skill picker, and standalone role

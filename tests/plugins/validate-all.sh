@@ -372,6 +372,17 @@ main() {
 
     for plugin_dir in "$PLUGINS_DIR"/ork-*; do
         if [[ -d "$plugin_dir" ]]; then
+            plugin_name=$(basename "$plugin_dir")
+            if [[ -f "$plugin_dir/.codex-plugin/plugin.json" || -f "$plugin_dir/.cursor-plugin/plugin.json" ]]; then
+                host_json="$plugin_dir/.codex-plugin/plugin.json"
+                if [[ ! -f "$host_json" ]]; then
+                    host_json="$plugin_dir/.cursor-plugin/plugin.json"
+                fi
+                log_pass "$plugin_name: host-native adapter (skip Claude marketplace structure)"
+                validate_plugin_json "$host_json"
+                validate_skills "$plugin_dir"
+                continue
+            fi
             validate_plugin_structure "$plugin_dir"
             validate_plugin_json "$plugin_dir/.claude-plugin/plugin.json"
             validate_skills "$plugin_dir"

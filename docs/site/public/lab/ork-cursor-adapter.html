@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OrchestKit for Cursor — thin pack, not 171 hooks</title>
+  <style>
+    :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#e6edf3;--muted:#8b949e;--blue:#58a6ff;--green:#3fb950;--amber:#d29922;--red:#f85149;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,sans-serif;padding:28px}
+    main{max-width:880px;margin:auto}h1{margin:0 0 6px}.sub{color:var(--muted);line-height:1.5}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin:24px 0}
+    .card,section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:15px}
+    .card button{width:100%;background:none;border:0;color:var(--text);text-align:left;cursor:pointer;font:inherit}
+    .card.active{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+    .tag{font:12px var(--mono);color:var(--blue)}.ok{color:var(--green)}.warn{color:var(--amber)}.no{color:var(--red)}
+    code,pre{font-family:var(--mono)}pre{white-space:pre-wrap;background:#010409;border:1px solid var(--line);border-radius:7px;padding:13px;line-height:1.5}
+    li{margin:.45rem 0}footer{color:var(--muted);font-size:13px;margin-top:18px}
+    table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+    th{color:var(--muted);font-size:11px;text-transform:uppercase}
+  </style>
+</head>
+<body><main>
+  <h1>OrchestKit → Cursor</h1>
+  <p class="sub">A host-native adapter copied from the Codex thin pack, not from the Claude plugin. Cursor never resolves <code>${CLAUDE_PLUGIN_ROOT}</code> (orchestkit#293, closed), so this pack ships five SKILL.md workflows and refuses Claude's 171-hook registry.</p>
+  <div class="grid" id="modes">
+    <div class="card active" data-mode="install"><button><span class="tag">install</span><br>What actually loads</button></div>
+    <div class="card" data-mode="skills"><button><span class="tag">5 skills</span><br>Same as ork-codex</button></div>
+    <div class="card" data-mode="task"><button><span class="tag">Task</span><br>Not ork_explorer</button></div>
+    <div class="card" data-mode="leak"><button><span class="tag">not an install</span><br>Third-party toggle</button></div>
+  </div>
+  <section>
+    <div class="tag" id="label">install</div>
+    <h2 id="title">Add the GitHub marketplace, enable ork-cursor, open a new chat</h2>
+    <p id="body">Cursor Settings → add yonatangross/orchestkit as a marketplace → enable <code>ork-cursor</code>. Reload Window does not pick up a newly enabled plugin catalog. Proof is the plugin id in the skills list, not a leaked Claude banner.</p>
+    <pre id="command">.cursor-plugin/marketplace.json → plugins/ork-cursor
+skills: brainstorm, explore, assess, verify, review-pr
+absent: mcpServers, hooks, commands, Codex roles</pre>
+    <ul id="points">
+      <li><span class="ok">✓</span> Skills only, same five workflows Codex already ships</li>
+      <li><span class="no">✗</span> No 171 PreToolUse hooks</li>
+      <li><span class="warn">→</span> context7 stays a user MCP if you already have it</li>
+    </ul>
+  </section>
+  <h2>Host matrix</h2>
+  <section>
+    <table>
+      <thead><tr><th>Host</th><th>Pack</th><th>Hooks</th><th>MCP in plugin</th></tr></thead>
+      <tbody>
+        <tr><td>Claude Code</td><td>ork</td><td>171</td><td>none (recommendations)</td></tr>
+        <tr><td>Codex</td><td>ork-codex</td><td>none</td><td>context7 HTTP</td></tr>
+        <tr><td>Cursor</td><td>ork-cursor</td><td>none</td><td>none</td></tr>
+      </tbody>
+    </table>
+  </section>
+  <footer>Click a card. After merge, install from this repo's Cursor marketplace; do not copy <code>.claude-plugin</code>.</footer>
+</main>
+<script>
+const data={
+  install:['install','Add the GitHub marketplace, enable ork-cursor, open a new chat','Cursor Settings → add yonatangross/orchestkit as a marketplace → enable ork-cursor. Reload Window does not pick up a newly enabled plugin catalog. Proof is the plugin id in the skills list, not a leaked Claude banner.','.cursor-plugin/marketplace.json → plugins/ork-cursor\nskills: brainstorm, explore, assess, verify, review-pr\nabsent: mcpServers, hooks, commands, Codex roles'],
+  skills:['5 skills','Same five workflows as ork-codex','brainstorm, explore, assess, verify, review-pr. Descriptions stay narrow so Cursor can auto-select. Bodies swap Codex ork_explorer / ork_reviewer roles for the Cursor Task tool.','$ork-explore  map the auth path\n$ork-review-pr  FINDINGS: n (blocking: m)'],
+  task:['Task','Fan-out uses Cursor Task, not Codex roles','Cursor has a Task tool. Explore/assess/verify/review-pr tell the model to spawn explore or generalPurpose subagents. Codex TOML roles are not installed here.','Task({ subagent_type: "explore", prompt: "…" })'],
+  leak:['not an install','Include third-party plugins is a leak','That toggle can surface SKILL.md from ~/.claude/plugins. It is not ork-cursor: no plugin id, no version pin, and Claude hooks still use ${CLAUDE_PLUGIN_ROOT}.','Pass: ork-cursor in the skills catalog\nFail: a leftover [ork] / Tier-A banner']
+};
+for (const card of document.querySelectorAll('.card')) card.onclick=()=>{
+  document.querySelector('.active').classList.remove('active');
+  card.classList.add('active');
+  const [label,title,body,command]=data[card.dataset.mode];
+  document.querySelector('#label').textContent=label;
+  document.querySelector('#title').textContent=title;
+  document.querySelector('#body').textContent=body;
+  document.querySelector('#command').textContent=command;
+};
+</script>
+</body>
+</html>
