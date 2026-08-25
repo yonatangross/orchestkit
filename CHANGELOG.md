@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.57](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.56...v10.0.0-alpha.57) (2026-08-25)
+
+
+### Bug Fixes
+
+* **cc-watch:** fallback stub ignores below-floor sentinels ([#3724](https://github.com/yonatangross/orchestkit/issues/3724)) ([3f5359f](https://github.com/yonatangross/orchestkit/commit/3f5359f7fbe0569f925be501a0c953cd35df52f4))
+
+
+### CI/CD
+
+* register the repo-root plugin.json with the drift roster ([#3728](https://github.com/yonatangross/orchestkit/issues/3728)) ([2c7d758](https://github.com/yonatangross/orchestkit/commit/2c7d758ba2806574a2634bf63443b9e92501ac06))
+
 ## [10.0.0-alpha.56](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.55...v10.0.0-alpha.56) (2026-08-24)
 
 

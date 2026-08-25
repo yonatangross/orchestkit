@@ -333,6 +333,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.57](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.56...v10.0.0-alpha.57)** · 2026-08-25
+
+- **cc-watch:** fallback stub ignores below-floor sentinels (#3724)
+- register the repo-root plugin.json with the drift roster (#3728)
+
 **[v10.0.0-alpha.56](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.55...v10.0.0-alpha.56)** · 2026-08-24
 
 - **hooks:** debt-surfacer reads a HEAD-keyed ledger (#3710), closes [#3708](https://github.com/yonatangross/orchestkit/issues/3708)
@@ -374,13 +379,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** the analytics liveness guard was watching 3 of 11 writers (#3678), closes [#3665](https://github.com/yonatangross/orchestkit/issues/3665)
 - **scripts:** gh-api took its token through the transport it replaces (#3679), closes [#3653](https://github.com/yonatangross/orchestkit/issues/3653)
 - **skills:** correct four skill docs that drifted past the code (#3677), closes [#3601](https://github.com/yonatangross/orchestkit/issues/3601) [#3587](https://github.com/yonatangross/orchestkit/issues/3587) [#3512](https://github.com/yonatangross/orchestkit/issues/3512) [#3178](https://github.com/yonatangross/orchestkit/issues/3178)
-
-**[v10.0.0-alpha.49](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.48...v10.0.0-alpha.49)** · 2026-08-22
-
-- **skills:** add paired-probe, a gate on checks that cannot disagree (#3664)
-- **docs:** order arrowed flow lanes by step number, not file position (#3671)
-- **hooks:** git-validator reads the branch from the dir CC says the session is in (#3673)
-- **cc-watch:** snapshot upstream CHANGELOG (2.1.238) (#3644)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
