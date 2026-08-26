@@ -370,6 +370,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.61](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.60...v10.0.0-alpha.61)** · 2026-08-25
+
+- **ork-codex:** ship ork-implement and one install matrix (#3753)
+
 **[v10.0.0-alpha.60](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.59...v10.0.0-alpha.60)** · 2026-08-25
 
 - **ork:** expose the full plugin to Cursor (#3748)
@@ -410,14 +414,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.54](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.53...v10.0.0-alpha.54)** · 2026-08-24
 
 - **deps:** bump the npm-minor-patch group across 1 directory with 4 updates (#3701)
-
-**[v10.0.0-alpha.53](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.52...v10.0.0-alpha.53)** · 2026-08-24
-
-- **docs-site:** auth.md carries no frontmatter, on spec grounds (#3694)
-- **deps-dev:** bump the npm-minor-patch group in /src/hooks with 3 updates (#3698)
-- **deps-dev:** bump vitest in the npm-minor-patch group (#3697)
-- **deps:** bump the remotion group (#3700)
-- bump the github-actions group with 5 updates (#3702)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

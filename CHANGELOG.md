@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.61](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.60...v10.0.0-alpha.61) (2026-08-25)
+
+
+### Features
+
+* **ork-codex:** ship ork-implement and one install matrix ([#3753](https://github.com/yonatangross/orchestkit/issues/3753)) ([dc3bfe8](https://github.com/yonatangross/orchestkit/commit/dc3bfe80565e68fb4674b5e2873d4ce96105e2da))
+
 ## [10.0.0-alpha.60](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.59...v10.0.0-alpha.60) (2026-08-25)
 
 

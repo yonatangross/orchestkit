@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.61",
+    "date": "2026-08-25",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**ork-codex:** ship ork-implement and one install matrix ([#3753](https://github.com/yonatangross/orchestkit/issues/3753)) ([dc3bfe8](https://github.com/yonatangross/orchestkit/commit/dc3bfe80565e68fb4674b5e2873d4ce96105e2da))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.60",
     "date": "2026-08-25",
     "compareUrl": "",
