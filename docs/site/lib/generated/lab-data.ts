@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "unreachable-valve",
+    "title": "A Verdict About the Query, Reported as a Verdict About the Repo",
+    "description": "Pick a CC feature and see which tokens the adoption filer actually searched for. When the changelog sentence carries no backticked identifier, the only token is one the extractor invented, which can never match. 30 of 61 features were suppressed that way.",
+    "tags": [
+      "analysis",
+      "ci",
+      "false-signals"
+    ],
+    "date": "2026-08-28",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "two-envelopes",
     "title": "Two Envelopes, One Hook",
     "description": "Turn on both stdin conditions and watch run-hook.mjs emit a second envelope, producing stdout that starts with a brace and fails to parse. Each condition alone was always fine, which is why three green tests sat on top of it.",

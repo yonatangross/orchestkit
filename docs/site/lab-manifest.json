@@ -407,6 +407,18 @@
         "false-signals"
       ],
       "date": "2026-08-28"
+    },
+    {
+      "slug": "unreachable-valve",
+      "source": "docs/fix--verdicts-say-what-they-checked/unreachable-valve.html",
+      "title": "A Verdict About the Query, Reported as a Verdict About the Repo",
+      "description": "Pick a CC feature and see which tokens the adoption filer actually searched for. When the changelog sentence carries no backticked identifier, the only token is one the extractor invented, which can never match. 30 of 61 features were suppressed that way.",
+      "tags": [
+        "analysis",
+        "ci",
+        "false-signals"
+      ],
+      "date": "2026-08-28"
     }
   ]
 }
