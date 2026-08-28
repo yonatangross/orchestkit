@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "sensor-honesty",
+    "title": "Three Sensors That Reported States They Never Observed",
+    "description": "Toggle the repo's world state and compare what each upgrade sensor claimed against what was actually true. A zero-check green PASS, a config gap wearing a network error, and a workflow promising a cron it no longer has.",
+    "tags": [
+      "analysis",
+      "ci",
+      "false-signals"
+    ],
+    "date": "2026-08-28",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 10
+  },
+  {
     "slug": "coderabbit-tone-limit",
     "title": "A second reader, and the 250 characters that silently disable it",
     "description": "CodeRabbit's tone_instructions has a hard 250-character limit, and exceeding it makes CodeRabbit reject the entire config while still posting reviews on default settings, so nothing looks broken. Type into the counter and watch the threshold. Also shows why the counting one-liner inherited from platform reported 13 for a value that is really 221.",
