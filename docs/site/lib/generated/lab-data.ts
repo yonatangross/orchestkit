@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "two-envelopes",
+    "title": "Two Envelopes, One Hook",
+    "description": "Turn on both stdin conditions and watch run-hook.mjs emit a second envelope, producing stdout that starts with a brace and fails to parse. Each condition alone was always fine, which is why three green tests sat on top of it.",
+    "tags": [
+      "analysis",
+      "hooks",
+      "false-signals"
+    ],
+    "date": "2026-08-28",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "blind-gate",
     "title": "The Typecheck That Could Not See Tests",
     "description": "Toggle what a branch contains and watch the documented local typecheck and CI disagree. Local passed because its config excluded every test file; CI failed on the same commit.",

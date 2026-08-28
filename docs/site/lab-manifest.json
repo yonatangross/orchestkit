@@ -395,6 +395,18 @@
         "false-signals"
       ],
       "date": "2026-08-28"
+    },
+    {
+      "slug": "two-envelopes",
+      "source": "docs/fix--stdin-double-envelope/two-envelopes.html",
+      "title": "Two Envelopes, One Hook",
+      "description": "Turn on both stdin conditions and watch run-hook.mjs emit a second envelope, producing stdout that starts with a brace and fails to parse. Each condition alone was always fine, which is why three green tests sat on top of it.",
+      "tags": [
+        "analysis",
+        "hooks",
+        "false-signals"
+      ],
+      "date": "2026-08-28"
     }
   ]
 }
