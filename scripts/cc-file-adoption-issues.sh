@@ -137,7 +137,38 @@ derive_tokens() {
     # (c) the slug (always punctuated; effectively never matches, but keeps a real
     # feature out of the `unknown` bucket).
     printf '%s\n' "$slug"
+    # Ork-surface vocabulary (#3777). derive_tokens keeps only punctuated or
+    # camelCase tokens, discarding plain lowercase words as noise — correct in
+    # general, since `hook` or `settings` would otherwise match half the tree.
+    # The cost is that a feature's searchability depends on whether the upstream
+    # sentence happens to contain a backticked identifier, which is prose style
+    # rather than relevance.
+    #
+    # Measured on the 2026-08-28 ledger: CC 2.1.248's "hooks silently treating a
+    # stdout {…} object that isn't valid JSON as plain text" carries no backticks
+    # and no camelCase, so its only token was the synthetic slug, which appears in
+    # no codebase (0 of 61 slugs match anywhere in src/ or manifests/). It was
+    # skipped as "no plugin-tree reference" against a repo shipping 150 registered
+    # hooks. Its sibling bullet in the SAME release was filed only because that
+    # sentence contains `PermissionRequest` in backticks.
+    #
+    # So a SMALL closed set of words naming things ork actually ships is admitted
+    # as searchable. Deliberately narrow: these are ork's own component surfaces,
+    # not general CC vocabulary. A line about scrollbars and cursor polish still
+    # yields nothing searchable and still evaluates miss (tests/integration/
+    # test-cc-release-watch-step3.sh anchor B, #2993), which is the behaviour that
+    # decision encoded and this change preserves.
+    printf '%s\n' "$desc $ref" \
+      | grep -oiE '\b(hook|skill|subagent|agent|plugin|marketplace|sandbox|worktree|mcp)s?\b' \
+      | tr '[:upper:]' '[:lower:]' \
+      | sed -E 's/s$//' \
+      | while IFS= read -r w; do [ -n "$w" ] && printf 'P\t%s\n' "$w"; done || true  # silent: known-noise
+    printf '%s\n' "$slug"
   } | while IFS= read -r tok; do
+      # Vocabulary lines arrive pre-classified; pass them through untouched.
+      case "$tok" in
+        P$'\t'*) printf '%s\n' "$tok"; continue ;;
+      esac
       [ -z "$tok" ] && continue
       [ "$(core_len "$tok")" -ge "$TOKEN_CORE_MIN" ] || continue
       case "$tok" in
