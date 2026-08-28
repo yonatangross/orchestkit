@@ -371,6 +371,18 @@
         "versioning"
       ],
       "date": "2026-08-28"
+    },
+    {
+      "slug": "silent-alarm",
+      "source": "docs/fix--dead-cc-version-nudge/silent-alarm.html",
+      "title": "The Alarm That Never Rang",
+      "description": "Follow the version-resolution chain of a SessionStart hook that read one env var Claude Code does not set, and returned silent success when it was missing. Includes the second bug it was hiding.",
+      "tags": [
+        "analysis",
+        "hooks",
+        "false-signals"
+      ],
+      "date": "2026-08-28"
     }
   ]
 }

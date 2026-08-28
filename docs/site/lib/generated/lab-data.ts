@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "silent-alarm",
+    "title": "The Alarm That Never Rang",
+    "description": "Follow the version-resolution chain of a SessionStart hook that read one env var Claude Code does not set, and returned silent success when it was missing. Includes the second bug it was hiding.",
+    "tags": [
+      "analysis",
+      "hooks",
+      "false-signals"
+    ],
+    "date": "2026-08-28",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "pin-provenance",
     "title": "What upstream-version-tested Actually Promises",
     "description": "Switch between leaving pins alone, bumping the pin only, and bumping pin plus body, and watch the drift linter move from meaningless-green to 6 failing to genuinely green. Includes the two content bugs reading the real changelogs turned up.",

@@ -25,6 +25,7 @@ import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess, outputSessionStartContext } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { writeWithRetry } from '../lib/session-registry.js';
+import { resolveRunningCC } from './cc-version-check.js';
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
@@ -148,9 +149,18 @@ function getOrkVersion(): string | null {
   }
 }
 
-/** Best-effort read of the Claude Code version from env. */
-function getCcVersion(): string | null {
-  return process.env.CLAUDE_CODE_VERSION || process.env.CC_VERSION || null;
+/**
+ * Best-effort read of the Claude Code version.
+ *
+ * Was env-only, and neither variable is set in the hook environment: this function
+ * returned null on every invocation, which is why sessions.db carried cc_version NULL
+ * in 3542 of 3542 rows. The env lookups are kept as the cheap first try inside
+ * resolveRunningCC, which then falls back to the session transcript and the install path.
+ */
+function getCcVersion(input: HookInput): string | null {
+  const fromEnv = process.env.CC_VERSION;
+  if (fromEnv) return fromEnv;
+  return resolveRunningCC(input)?.version ?? null;
 }
 
 /**
@@ -337,7 +347,7 @@ export function sessionRegistrar(
   const worktreePath = getWorktreePath(cwd, repoPath);
   const branch = getBranch(cwd);
   const nowSec = Math.floor(Date.now() / 1000);
-  const ccVersion = getCcVersion();
+  const ccVersion = getCcVersion(input);
   const orkVersion = getOrkVersion();
 
   let peers: PeerRow[] = [];
