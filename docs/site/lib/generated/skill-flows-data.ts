@@ -638,6 +638,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "STEP 0",
+            "label": "resolve a conversational reference first",
+            "does": "$ARGUMENTS is often not a path. For a bare pronoun or deictic (them, this, that,",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "STEP 0",
             "label": "Verify User Intent with AskUserQuestion",
             "does": "BEFORE creating tasks, clarify assessment dimensions:",
             "out": null,

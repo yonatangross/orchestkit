@@ -40,6 +40,28 @@ Comprehensive assessment skill for answering "is this good?" with structured eva
 
 ## Argument Resolution
 
+### Step 0: resolve a conversational reference first
+
+`$ARGUMENTS` is often not a path. For a bare pronoun or deictic (`them`, `this`, `that`,
+`these`, `they`, `same`, `the above`, `the last one`, `what we just did`) or an empty target
+after flags are stripped, the subject is in the conversation. Read back for the NEAREST
+concrete one (a file just discussed, a diff or PR just opened, a component just investigated)
+and announce the resolution in one line, so a wrong guess costs a correction rather than a
+turn: *"Reading 'them' as the 3 pretool guards we just probed; say otherwise and I'll switch."*
+
+**Refusing is the bug, not the safe option.** Asking "what does this refer to?" when the
+previous turn named the subject burns a round-trip re-deriving what is already on screen.
+Measured 2026-08-28: the operator sent `/ork:assess them throguhly` one message after "bug in
+orchestkit hooks", mid-investigation of `pretool/bash/dangerous-command-blocker`, and this
+skill replied that "them" had "no antecedent anywhere in this conversation". It had two.
+
+Ask only when the conversation is genuinely empty (a fresh session opening with a bare
+pronoun). Every other case: resolve and announce.
+
+> Not unique to this skill: `verify`, `cover`, `fix-issue`, `review-pr` and `implement` all
+> read `$ARGUMENTS` as a literal path or topic, and no skill mentions resolving a reference.
+> Tracked separately; this one fixes its own door.
+
 ```python
 TARGET = "$ARGUMENTS"  # Full argument string, e.g., "backend/app/services/auth.py"
 # $ARGUMENTS[0] is the first token (CC 2.1.59 indexed access)
@@ -197,14 +219,20 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 ## Phase 1: Target Understanding
 
-Identify what's being assessed and gather context:
+Identify what's being assessed and gather context. `TARGET` here is the value Step 0 already
+resolved, which is not necessarily what the user typed.
 
 ```python
 # PARALLEL - Gather context
-Read(file_path="$ARGUMENTS[0]")  # If file path
-Grep(pattern="$ARGUMENTS[0]", output_mode="files_with_matches")
-mcp__memory__search_nodes(query="$ARGUMENTS[0]")  # Past decisions
+Read(file_path=TARGET)                                   # only when TARGET is a path
+Grep(pattern=TARGET, output_mode="files_with_matches")   # topic or symbol
+mcp__memory__search_nodes(query=TARGET)                  # past decisions
 ```
+
+`Read` failing is NOT a reason to stop. A target resolved from the conversation is usually a
+subject rather than a filename ("the three pretool guards", "today's hook fixes"), so the Read
+misses and the Grep plus the conversation carry the context. Treat a failed Read as "this is a
+topic, not a path" and continue to Phase 1.5, which discovers the real file list anyway.
 
 
 ## Phase 1.5: Scope Discovery
