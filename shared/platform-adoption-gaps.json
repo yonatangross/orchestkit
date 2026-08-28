@@ -1,9 +1,16 @@
 [
   {
-    "date": "2026-08-20",
+    "date": "2026-08-26",
     "source": "platform",
     "features": [],
-    "raw_bullets_count": 1,
-    "issues_filed_at": "2026-08-24T17:16:08.854Z"
+    "raw_bullets_count": 3,
+    "issues_filed_at": "2026-08-28T18:16:17.658Z"
+  },
+  {
+    "date": "2026-08-27",
+    "source": "platform",
+    "features": [],
+    "raw_bullets_count": 2,
+    "issues_filed_at": "2026-08-28T18:16:17.658Z"
   }
 ]

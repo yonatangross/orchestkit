@@ -16,6 +16,660 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.250",
+    "features": []
+  },
+  {
+    "version": "2.1.248",
+    "features": [
+      {
+        "slug": "agents_ci_trust_prompt_bypass",
+        "category": "breaking",
+        "description": "claude agents no longer skips the workspace trust prompt when the CI environment variable is set.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "devops-deployment"
+        ]
+      },
+      {
+        "slug": "hook_invalid_answer_reported",
+        "category": "breaking",
+        "description": "Invalid PermissionRequest/PreToolUse hook answers now surface as a named hook schema error instead of hanging.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "hook_stdout_json_parse_error",
+        "category": "breaking",
+        "description": "Hook stdout that looks like JSON but fails to parse is now a hook error, not silently treated as plain text.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "mcp_connector_scope_display",
+        "category": "breaking",
+        "description": "Project .mcp.json claude.ai connector entries no longer display under the trusted claude.ai heading in /mcp.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "mcp-patterns"
+        ]
+      },
+      {
+        "slug": "mcp_headers_helper_auth_retry",
+        "category": "breaking",
+        "description": "MCP servers using headersHelper for Authorization now re-run the helper and retry on 401 instead of OAuth discovery.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "mcp-patterns"
+        ]
+      },
+      {
+        "slug": "ultrareview_credential_upload_fix",
+        "category": "breaking",
+        "description": "Cloud sessions no longer upload uncommitted prod.env, *.tfvars, or swap/temp/backup copies of credential files.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "review-pr",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "cross_session_inbound_validation",
+        "category": "breaking",
+        "description": "An invalid crossSessionInbound value now warns and holds messages, or is refused outright under managed settings.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "workflow_tool_prompt_slimmed",
+        "category": "breaking",
+        "description": "Workflow tool description shrank to ~1k tokens; script-writing reference moved to a bundled workflow-authoring skill.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "managed_settings_env_no_approval",
+        "category": "breaking",
+        "description": "Client timeout, MCP startup-mode, and stream-watchdog env vars no longer trigger the settings-approval prompt.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "loop_dynamic_mode_everywhere",
+        "category": "breaking",
+        "description": "/loop self-paced dynamic mode and the no-prompt autonomous default are now always available, including Bedrock/Vertex/Fo",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "cross_session_ns_trust_limited",
+        "category": "breaking",
+        "description": "In Linux user namespaces, root-equivalent trust for unmapped owners is limited to canonical system directories.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "subagent_sendmessage_reply_note",
+        "category": "breaking",
+        "description": "SendMessage from a subagent now reports that replies land in the parent session's conversation, not the subagent.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "self_hosted_runner_client_label",
+        "category": "new_command",
+        "description": "New claude self-hosted-runner --client-label flag overrides the label the runner registers with.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "devops-deployment"
+        ]
+      },
+      {
+        "slug": "usage_credits_command",
+        "category": "new_command",
+        "description": "New /usage-credits command lets Enterprise members request a higher usage limit from their admin.",
+        "gapScore": 15,
+        "affectedSkills": []
+      },
+      {
+        "slug": "cross_session_messaging_platforms",
+        "category": "new_command",
+        "description": "SendMessage/ListAgents cross-session messaging now works on Bedrock, Vertex, Foundry, and with telemetry disabled.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "restricted_mode_flag",
+        "category": "new_perm",
+        "description": "New --restricted / CLAUDE_CODE_RESTRICTED strips execution tools, confines file tools, and refuses bypassPermissions.",
+        "gapScore": 12,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "agent_frontmatter_cache_ttl",
+        "category": "new_attr",
+        "description": "Agent frontmatter accepts experimental.cacheTtl (5m or 1h) as a per-agent prompt cache TTL.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "server_settings_diagnostics",
+        "category": "new_field",
+        "description": "/doctor and /status now report server-managed settings load failures or why they were not fetched.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor",
+          "configure"
+        ]
+      },
+      {
+        "slug": "desktop_session_cleanup_period",
+        "category": "new_field",
+        "description": "New desktopSessionCleanupPeriodDays setting caps the transcript-cleanup exemption for desktop-written sessions.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.247",
+    "features": [
+      {
+        "slug": "sub_agent_model_404_fallback_chain",
+        "category": "breaking",
+        "description": "Sub-agents surviving a first-call model 404 by using the session fallback model chain, with richer error detail",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns",
+          "bare-eval",
+          "swarm-migrate"
+        ]
+      },
+      {
+        "slug": "hook_output_overflow_guard",
+        "category": "breaking",
+        "description": "Hook or background agent output of megabytes no longer overflows the conversation and wedges the session",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "sandbox_cleanup_settings_symlink",
+        "category": "breaking",
+        "description": "Bash sandbox cleanup no longer deletes a dotfile-managed ~/.claude/settings.json symlink repointed outside writable area",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "setup",
+          "security-patterns",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "agent_flag_compact_system_prompt",
+        "category": "breaking",
+        "description": "/compact and Summarize from here in --agent sessions now summarize under the conversation's own system prompt",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "hook_output_file_write_failure",
+        "category": "breaking",
+        "description": "Unbounded memory growth fixed when a hook or background task output file cannot be written; file notes lost output",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "telemetry-inspect"
+        ]
+      },
+      {
+        "slug": "marketplace_plugin_cache_reinstall",
+        "category": "breaking",
+        "description": "Version-less marketplace plugin live cache is no longer deleted and recreated on second-scope install",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "doctor",
+          "release-management"
+        ]
+      },
+      {
+        "slug": "marketplace_name_control_char_reject",
+        "category": "breaking",
+        "description": "Plugin marketplace rejects names with control or invisible characters and escapes marketplace-supplied output text",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "mcp_connect_failure_told_to_model",
+        "category": "breaking",
+        "description": "Claude is now told when a configured MCP server failed to connect on Bedrock, Vertex, Foundry, or telemetry-off sessions",
+        "gapScore": 20,
+        "affectedSkills": [
+          "mcp-patterns",
+          "chain-patterns",
+          "doctor",
+          "configure"
+        ]
+      },
+      {
+        "slug": "sonnet5_autocompact_1m_window",
+        "category": "breaking",
+        "description": "Sonnet 5 default auto-compact window raised to the full 1M context, compacting near 967K instead of 934K tokens",
+        "gapScore": 20,
+        "affectedSkills": [
+          "audit-full",
+          "agent-orchestration",
+          "claude-api"
+        ]
+      },
+      {
+        "slug": "markdown_hyperlink_target_plaintext",
+        "category": "breaking",
+        "description": "Rendered markdown links to network/automounter paths or with control/invisible characters now render as plain text",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "documentation-patterns"
+        ]
+      },
+      {
+        "slug": "analytics_off_from_startup",
+        "category": "breaking",
+        "description": "Analytics stays off from startup when managed settings force gateway login or a custom OAuth deployment is configured",
+        "gapScore": 20,
+        "affectedSkills": [
+          "analytics",
+          "telemetry-inspect",
+          "configure"
+        ]
+      },
+      {
+        "slug": "org_signin_exit_unreadable_settings",
+        "category": "breaking",
+        "description": "Organization sign-in enforcement exits at start when managed settings cannot be read, ignoring host or per-user settings",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "security-patterns",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "claude_api_cost_optimize_command",
+        "category": "new_command",
+        "description": "New /claude-api cost-optimize subcommand profiles Claude API spend and works through cost levers one change at a time",
+        "gapScore": 15,
+        "affectedSkills": [
+          "claude-api",
+          "llm-integration",
+          "business-case"
+        ]
+      },
+      {
+        "slug": "send_feedback_tool",
+        "category": "new_field",
+        "description": "New SendFeedback tool drafts feedback reports for /feedback, disabled via the feedbackDrafts setting",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "errors"
+        ]
+      },
+      {
+        "slug": "spinner_tips_override_fields",
+        "category": "new_field",
+        "description": "spinnerTipsOverride gains structured entries plus tipsFile and label so orgs can rotate their own tips",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "setup"
+        ]
+      },
+      {
+        "slug": "claude_api_skill_admin_api",
+        "category": "new_attr",
+        "description": "The /claude-api skill now covers Admin API surfaces including members, invites, workspaces, keys, WIF, and CMEK",
+        "gapScore": 10,
+        "affectedSkills": [
+          "claude-api",
+          "llm-integration",
+          "github-operations"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.246",
+    "features": [
+      {
+        "slug": "plan_mode_resume_permission_mode",
+        "category": "breaking",
+        "description": "Sessions ending in plan mode now resume in plan mode for -p --continue/--resume when no permission mode is set",
+        "gapScore": 20,
+        "affectedSkills": [
+          "bare-eval",
+          "configure",
+          "quality-gates"
+        ]
+      },
+      {
+        "slug": "notification_hook_sandbox_prompt",
+        "category": "breaking",
+        "description": "Notification hook now fires while the sandbox network-request permission prompt is pending",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "doctor",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "bash_malformed_command_approval",
+        "category": "breaking",
+        "description": "Bash permission checks now always require approval for malformed commands with a dangling && or || operator",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "strict_mcp_config_no_prompt",
+        "category": "breaking",
+        "description": "--strict-mcp-config sessions no longer prompt to approve .mcp.json servers they would never load",
+        "gapScore": 20,
+        "affectedSkills": [
+          "mcp-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "gateway_api_key_host_scoping",
+        "category": "breaking",
+        "description": "Telemetry requests no longer send the third-party gateway API key to Anthropic; credentials go only to their own host",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "monitoring-observability",
+          "telemetry-inspect"
+        ]
+      },
+      {
+        "slug": "mcp_requires_interaction_no_allow",
+        "category": "breaking",
+        "description": "MCP tools marked requiresUserInteraction no longer offer a don't-ask-again option that wrote an ignored allow rule",
+        "gapScore": 20,
+        "affectedSkills": [
+          "mcp-patterns",
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "cd_reloads_project_config",
+        "category": "breaking",
+        "description": "/cd now applies the new directory's settings, hooks, .mcp.json servers, skills, and agents immediately",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "chain-patterns",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "subagent_maxturns_partial_result",
+        "category": "breaking",
+        "description": "A subagent hitting maxTurns now returns output marked partial with a hint to continue via SendMessage",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns",
+          "swarm-migrate"
+        ]
+      },
+      {
+        "slug": "code_review_self_start_platforms",
+        "category": "breaking",
+        "description": "Claude can now start /code-review itself on Bedrock, Vertex AI, Foundry, and with telemetry disabled",
+        "gapScore": 20,
+        "affectedSkills": [
+          "review-pr",
+          "code-review-playbook"
+        ]
+      },
+      {
+        "slug": "goal_checkin_cap_three",
+        "category": "breaking",
+        "description": "/goal idle sessions now start at most three background-work check-ins per goal until the next user message",
+        "gapScore": 20,
+        "affectedSkills": [
+          "prd-to-goal",
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "install_update_defers_consent",
+        "category": "breaking",
+        "description": "claude install and claude update defer a pending managed-settings consent prompt to the next interactive session",
+        "gapScore": 20,
+        "affectedSkills": [
+          "setup",
+          "configure"
+        ]
+      },
+      {
+        "slug": "sandbox_respects_setting_sources",
+        "category": "breaking",
+        "description": "The command sandbox's filesystem configuration now respects --setting-sources",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "bash_wildcard_allow_rule_warning",
+        "category": "new_perm",
+        "description": "Startup warning for Bash allow rules with a wildcard before the subcommand, which also match inserted options",
+        "gapScore": 12,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "permissions_auto_mode_tab",
+        "category": "new_perm",
+        "description": "/permissions gains an Auto mode tab for viewing and editing auto mode classifier rules",
+        "gapScore": 12,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "otel_plugin_event_attrs",
+        "category": "new_attr",
+        "description": "OTel plugin events: plugin_id_hash reflects the real marketplace and enabled_via reports admin-install",
+        "gapScore": 10,
+        "affectedSkills": [
+          "monitoring-observability",
+          "telemetry-inspect"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.245",
+    "features": []
+  },
+  {
+    "version": "2.1.243",
+    "features": [
+      {
+        "slug": "workload_identity_token_reuse_ci",
+        "category": "breaking",
+        "description": "CI workload identity federation now shares the exchanged token across a job instead of re-exchanging it.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "devops-deployment",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "hook_if_command_substitution_match",
+        "category": "breaking",
+        "description": "Hook `if` conditions no longer over-match unrelated Bash commands containing command substitution.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "sandbox_network_violation_reporting",
+        "category": "breaking",
+        "description": "Sandbox network-violation details are now retained in Bash results even when the blocked command exits 0.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "browser-tools"
+        ]
+      },
+      {
+        "slug": "sandbox_bash_prompt_no_host_list",
+        "category": "breaking",
+        "description": "Sandboxed Bash prompt no longer lists allowed network hosts, so Claude attempts requests and prompts for approval.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "browser-tools",
+          "web-research-workflow"
+        ]
+      },
+      {
+        "slug": "model_effort_commands_run_immediately",
+        "category": "breaking",
+        "description": "/model, /fast, and /effort now execute immediately instead of queueing on Bedrock, Vertex, Foundry.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "inbox_socket_line_timeout",
+        "category": "breaking",
+        "description": "Cross-session messaging inbox socket now drops connections that send no complete line within 30 seconds.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "computer_use_finder_permission",
+        "category": "new_perm",
+        "description": "macOS computer use now requires granting Finder access to click the desktop, Dock, or Finder windows.",
+        "gapScore": 12,
+        "affectedSkills": [
+          "security-patterns",
+          "browser-tools",
+          "testing-e2e"
+        ]
+      },
+      {
+        "slug": "model_picker_setting",
+        "category": "new_field",
+        "description": "New `modelPicker` setting curates the /model list with ordered, labeled model ids.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "setup",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "prompt_cache_ttl_settings",
+        "category": "new_field",
+        "description": "New `promptCacheTtl` and `subagentPromptCacheTtl` settings control main vs subagent prompt cache lifetime.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "agent-orchestration",
+          "llm-integration"
+        ]
+      },
+      {
+        "slug": "model_pricing_managed_setting",
+        "category": "new_field",
+        "description": "New `modelPricing` managed setting applies contracted rates to /cost, status line, and telemetry.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "analytics",
+          "telemetry-inspect"
+        ]
+      },
+      {
+        "slug": "subagent_model_effort_in_tasks",
+        "category": "new_attr",
+        "description": "/tasks and agent detail dialogs now expose the model and effort level each subagent ran on.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "agent-orchestration",
+          "audit-activation",
+          "task-dependency-patterns"
+        ]
+      }
+    ]
+  },
+  {
     "version": "2.1.241",
     "features": []
   },
@@ -1505,4 +2159,4 @@ export const CC_SUPPORT = {
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "5eaab30d36c5" as const;
+export const SOURCE_DIGEST = "00cd53d7855a" as const;
