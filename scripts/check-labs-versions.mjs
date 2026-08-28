@@ -202,6 +202,16 @@ const trackingDrift = [];
 if (TRACK_ONLY.length > 0) {
   console.log('');
   for (const { pkg, pinned, note } of TRACK_ONLY) {
+    // Distinguish the two ways a lookup yields nothing. An unmapped package can never
+    // be fetched, so reporting it as a fetch failure sends the reader to the network
+    // when the fix is one line in LIBRARY_REGISTRY. Neither branch touches the exit
+    // code: the verdict below guarantees track-only never fails --check.
+    if (!resolveLibrary(pkg)) {
+      console.error(
+        `SKIP (track) ${pkg} — unmapped in LIBRARY_REGISTRY (scripts/lib/registry-resolve.mjs); add it to resolve this tier`,
+      );
+      continue;
+    }
     const latest = await fetchLatest(pkg);
     if (!latest) {
       console.error(`SKIP (track) ${pkg} — could not fetch`);

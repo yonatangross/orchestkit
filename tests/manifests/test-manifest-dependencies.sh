@@ -200,7 +200,18 @@ if [[ "$FAILED_CHECKS" -gt 0 ]]; then
     echo "  Dependencies must be in the JSON 'dependencies' field, not just description prose."
     echo "  See: https://github.com/yonatangross/orchestkit/issues/252"
     exit 1
+elif [[ "$TOTAL_CHECKS" -eq 0 ]]; then
+    # Zero assertions ran, so there is nothing to pass. Every manifest reached only the
+    # log_info branches: no "Depends on" prose, no "-advanced" plugin, no dependencies
+    # array anywhere. Printing PASSED here claimed a verified property the run never
+    # examined — the same shape as a green cron that writes nothing. Still exit 0, since
+    # a single-plugin repo declaring no dependencies is the correct state, not a failure.
+    echo -e "${YELLOW}SKIPPED${NC} — NOT APPLICABLE: no manifest declares dependencies, so 0 checks ran."
+    echo "  This is not a pass. Nothing was verified."
+    echo "  Expected while ork is a single plugin; this test arms itself when a manifest"
+    echo "  gains a 'dependencies' array or a second plugin is added."
+    exit 0
 else
-    echo -e "${GREEN}PASSED${NC} — All dependencies properly declared."
+    echo -e "${GREEN}PASSED${NC} — All $TOTAL_CHECKS dependency check(s) passed."
     exit 0
 fi
