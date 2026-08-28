@@ -136,15 +136,38 @@ derive_tokens() {
     printf '%s\n' "$desc_rest $ref_rest" | grep -oE '[A-Za-z][A-Za-z0-9]+' || true  # silent: known-noise
     # (c) the slug (always punctuated; effectively never matches, but keeps a real
     # feature out of the `unknown` bucket).
-    # The slug is SYNTHETIC: the extractor coins it, so it cannot appear in any
-    # codebase. Measured on the live ledger: 0 of 61 slugs match anywhere in src/
-    # or manifests/. It is still emitted (searching it is harmless and free) but
-    # tagged `S` so it cannot, on its own, make a feature look searchable.
-    printf 'S\t%s\n' "$slug"
+    printf '%s\n' "$slug"
+    # Ork-surface vocabulary (#3777). derive_tokens keeps only punctuated or
+    # camelCase tokens, discarding plain lowercase words as noise — correct in
+    # general, since `hook` or `settings` would otherwise match half the tree.
+    # The cost is that a feature's searchability depends on whether the upstream
+    # sentence happens to contain a backticked identifier, which is prose style
+    # rather than relevance.
+    #
+    # Measured on the 2026-08-28 ledger: CC 2.1.248's "hooks silently treating a
+    # stdout {…} object that isn't valid JSON as plain text" carries no backticks
+    # and no camelCase, so its only token was the synthetic slug, which appears in
+    # no codebase (0 of 61 slugs match anywhere in src/ or manifests/). It was
+    # skipped as "no plugin-tree reference" against a repo shipping 150 registered
+    # hooks. Its sibling bullet in the SAME release was filed only because that
+    # sentence contains `PermissionRequest` in backticks.
+    #
+    # So a SMALL closed set of words naming things ork actually ships is admitted
+    # as searchable. Deliberately narrow: these are ork's own component surfaces,
+    # not general CC vocabulary. A line about scrollbars and cursor polish still
+    # yields nothing searchable and still evaluates miss (tests/integration/
+    # test-cc-release-watch-step3.sh anchor B, #2993), which is the behaviour that
+    # decision encoded and this change preserves.
+    printf '%s\n' "$desc $ref" \
+      | grep -oiE '\b(hook|skill|subagent|agent|plugin|marketplace|sandbox|worktree|mcp)s?\b' \
+      | tr '[:upper:]' '[:lower:]' \
+      | sed -E 's/s$//' \
+      | while IFS= read -r w; do [ -n "$w" ] && printf 'P\t%s\n' "$w"; done || true  # silent: known-noise
+    printf '%s\n' "$slug"
   } | while IFS= read -r tok; do
-      # An already-classified synthetic line passes through untouched.
+      # Vocabulary lines arrive pre-classified; pass them through untouched.
       case "$tok" in
-        S$'\t'*) printf '%s\n' "$tok"; continue ;;
+        P$'\t'*) printf '%s\n' "$tok"; continue ;;
       esac
       [ -z "$tok" ] && continue
       [ "$(core_len "$tok")" -ge "$TOKEN_CORE_MIN" ] || continue
@@ -172,22 +195,6 @@ has_evidence() {
   [ -z "$roots" ] && { echo unknown; return; }
   classified=$(derive_tokens "$feat")
   [ -z "$classified" ] && { echo unknown; return; }
-  # `unknown` was unreachable before this check. It is the SOP's over-file-beats-
-  # false-drop valve for "no derivable tokens", but derive_tokens always appended
-  # the slug, and every slug is snake_case so it survived the punctuation filter.
-  # A feature whose changelog line carries no backticked or camelCase identifier
-  # therefore had exactly one token — one that by construction never matches — and
-  # was reported as `miss`, i.e. "no plugin-tree reference to this surface", which
-  # is a claim about the REPOSITORY rather than about the query.
-  #
-  # Real case (#3777): CC 2.1.248's "hooks silently treating a stdout {…} object
-  # that isn't valid JSON as plain text" was skipped as no-evidence against a repo
-  # shipping 150 registered hooks. Its sibling bullet in the same release WAS filed
-  # only because that sentence happened to contain `PermissionRequest` in backticks.
-  if ! grep -qv '^S'$'\t' <<< "$classified"; then
-    echo unknown
-    return
-  fi
   while IFS= read -r line; do
     [ -z "$line" ] && continue
     cls=${line%%$'\t'*}
