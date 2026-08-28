@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "blind-gate",
+    "title": "The Typecheck That Could Not See Tests",
+    "description": "Toggle what a branch contains and watch the documented local typecheck and CI disagree. Local passed because its config excluded every test file; CI failed on the same commit.",
+    "tags": [
+      "analysis",
+      "ci",
+      "false-signals"
+    ],
+    "date": "2026-08-28",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "silent-alarm",
     "title": "The Alarm That Never Rang",
     "description": "Follow the version-resolution chain of a SessionStart hook that read one env var Claude Code does not set, and returned silent success when it was missing. Includes the second bug it was hiding.",

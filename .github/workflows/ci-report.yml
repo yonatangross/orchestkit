@@ -112,7 +112,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           # TypeScript type-check
-          cd src/hooks && npx tsc --noEmit 2>&1 | tee ../../lint.log || true
+          cd src/hooks && npx tsc --noEmit -p tsconfig.test.json 2>&1 | tee ../../lint.log || true
           # Biome lint
           npx biome check src/ 2>&1 | tee -a ../../lint.log || true
           cd ../..
