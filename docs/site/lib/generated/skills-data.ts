@@ -403,7 +403,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches.",
     "version": "1.8.0",
-    "sha256": "a135a18c76fcd7e9888acbae2de2c4ea4209a836e474c8528d3fbcc59efbe0f9",
+    "sha256": "21468514059ba98a6054053ed9411182b33444dec5b4cd1ed142c51f08a55e31",
     "author": "OrchestKit",
     "tags": [
       "assessment",

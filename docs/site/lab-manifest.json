@@ -419,6 +419,18 @@
         "false-signals"
       ],
       "date": "2026-08-28"
+    },
+    {
+      "slug": "no-antecedent",
+      "source": "docs/fix--assess-resolves-references/no-antecedent.html",
+      "title": "Them Had Two Antecedents",
+      "description": "A skill that takes a target read its argument as a literal path, so a pronoun produced a failed read and a clarifying question. Pick a conversation and see what each version does with the same command, including the one case where asking is still right.",
+      "tags": [
+        "analysis",
+        "skills",
+        "false-signals"
+      ],
+      "date": "2026-08-28"
     }
   ]
 }
