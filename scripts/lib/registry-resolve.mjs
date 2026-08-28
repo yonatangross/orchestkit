@@ -113,6 +113,13 @@ export const LIBRARY_REGISTRY = {
   locust: 'pypi',
   mcp: 'pypi',
 
+  // Track-only tier (check-labs-versions.mjs TRACK_ONLY). Both resolve on PyPI; leaving them
+  // unmapped made fetchLatest return null, which the track-only loop reports as
+  // "could not fetch" — a config gap wearing a network failure's error message, printed
+  // nightly since the tier was added.
+  'langgraph-supervisor': 'pypi',
+  'langgraph-swarm': 'pypi',
+
   // Deliberately unmapped: `k6` ships as a Go binary from Grafana, not as a registry package.
   // Its npm entry is an unrelated stub, so mapping it would produce a confidently wrong answer —
   // worse than an honest SKIP.
