@@ -84,7 +84,7 @@ describe('cc-version-check', () => {
   it('resolves the version from the transcript when the env var is unset', () => {
     vi.mocked(existsSync).mockImplementation((p) => String(p).endsWith('.jsonl'));
     vi.mocked(openSync).mockReturnValue(7 as never);
-    vi.mocked(readSync).mockImplementation(((_fd, buf: Buffer) => {
+    vi.mocked(readSync).mockImplementation(((_fd: number, buf: Buffer) => {
       // A real record shape: version does not appear on the first line.
       const line = `{"type":"user","sessionId":"x"}\n{"type":"assistant","version":"${LATEST_KNOWN_CC}"}\n`;
       return buf.write(line, 0, 'utf8');
