@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "no-antecedent",
+    "title": "Them Had Two Antecedents",
+    "description": "A skill that takes a target read its argument as a literal path, so a pronoun produced a failed read and a clarifying question. Pick a conversation and see what each version does with the same command, including the one case where asking is still right.",
+    "tags": [
+      "analysis",
+      "skills",
+      "false-signals"
+    ],
+    "date": "2026-08-28",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "unreachable-valve",
     "title": "A Verdict About the Query, Reported as a Verdict About the Repo",
     "description": "Pick a CC feature and see which tokens the adoption filer actually searched for. When the changelog sentence carries no backticked identifier, the only token is one the extractor invented, which can never match. 30 of 61 features were suppressed that way.",
