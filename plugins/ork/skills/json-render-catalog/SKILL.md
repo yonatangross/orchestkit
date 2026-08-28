@@ -14,7 +14,7 @@ persuasion-type: reference
 metadata:
   category: frontend
   upstream-package: "@json-render/core"
-  upstream-version-tested: "0.19.0"
+  upstream-version-tested: "0.20.0"
   shadcn-component-count: 36
 ---
 
@@ -35,8 +35,10 @@ node "${CLAUDE_PLUGIN_ROOT}/skills/json-render-catalog/scripts/storybook-to-cata
 
 Storybook becomes the single source of truth — adding a story automatically expands the AI-allowed surface; removing one shrinks it. AI safety is enforced at import: callbacks, raw object props, and `z.any()` are dropped. Full mapping: `references/storybook-import.md`. Companion fixture for testing: `references/storybook-fixture.json`.
 
-## New in 2026-04 → 2026-05 (json-render 0.14 → 0.19)
+## New in 2026-04 → 2026-08 (json-render 0.14 → 0.20)
 
+- **Named slots (0.20)** — `UIElement` gains `slots?: Record<string, string[]>`, a catalog declares which it accepts via `slots: ["default", "header", "footer"]`, and a React registry component receives named content as `slots?.header` while `children` stays the default slot. Prefer this over encoding layout regions as separate sibling elements.
+- **Nested repeats and item-scoped visibility (0.20)** — `repeat.statePath` accepts an item-relative `{"$item": "employees"}` form (new `RepeatStatePath` type plus `resolveRepeatStatePath` / `resolveRepeatItemStatePath`), and a `repeat` combined with `visible: {"$item": "status", "eq": "todo"}` on the same element now filters items instead of erroring. `validateSpec` gains `invalid_visible`, `repeat_without_children`, `repeat_item_outside_scope` and `repeat_state_mismatch` issue codes.
 - **Custom directives API (0.19)** — `@json-render/core` now ships `defineDirective`, letting you declare new JSON shapes (e.g. `$format`, `$math`) that resolve to computed values at render time. Directives compose by nesting and resolve inside-out. All four renderers (React, Vue, Svelte, Solid) have built-in directive resolution. This is the safe escape hatch for computed values without widening the catalog to `z.any()`.
 - **`@json-render/directives` package (0.19)** — seven ready-made directives: `$format` (date / currency / number / percent via `Intl`), `$math` (add, subtract, multiply, divide, mod, min, max, round, floor, ceil, abs), `$concat`, `$count`, `$truncate`, `$pluralize`, `$join`. Plus `createI18nDirective` for `$t` translation keys with `{{param}}` interpolation, and `standardDirectives` for one-line registration. Register once, use in any spec — AI no longer needs string-mangling or duplicated literals.
 - **Devtools ecosystem (0.18)** — five new packages: `@json-render/devtools` core + framework adapters for React, Vue, Svelte, Solid. Inspector panel has six tabs (Spec, State, Actions, Stream, Catalog, Pick) with DOM element picking that maps back to spec keys. Tree-shakes to `null` in production. Companion Next.js demo app shipped with AI-chat + catalog integration. Action observer infrastructure exposed for adapters to mirror events into the panel.

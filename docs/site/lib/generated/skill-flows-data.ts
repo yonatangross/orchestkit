@@ -3159,7 +3159,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Services (0.9.0 — 14 emulators)",
+            "label": "Services (0.10.0 — 14 emulators)",
             "does": "",
             "out": null,
             "tag": null

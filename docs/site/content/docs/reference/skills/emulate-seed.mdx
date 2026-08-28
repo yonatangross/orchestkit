@@ -90,7 +90,7 @@ npx emulate --service github,stripe --seed ./emulate.config.yaml
 npx emulate init --service github
 ```
 
-## Services (0.9.0 — 14 emulators)
+## Services (0.10.0 — 14 emulators)
 
 > **New across releases:**
 > - **0.5.0** — added Clerk, MongoDB Atlas, Stripe, Resend, and Okta emulators; portless integration (embedded emulators without dedicated ports); Google OAuth `hd` claim support; Stripe Checkout + Resend magic link examples; AWS S3 emulator now matches the official SDK wire format.
@@ -99,8 +99,13 @@ npx emulate init --service github
 > - **0.7.0** — added Linear (13th provider): stateful orgs/teams/issues/cycles + webhooks.
 > - **0.8.0** — added Twilio (14th provider): accounts, phone numbers, messages, calls, conversations, messaging services, Verify flows, and simulator endpoints, with a Next.js SMS-verification example.
 > - **0.9.0** — added a Nuxt emulator adapter (alongside the Next.js adapter); provider count unchanged.
+> - **0.10.0** — stateful GitHub repository contents and commit history (`GET /repos/:owner/:repo/readme`, `GET`/`PUT`/`DELETE /repos/:owner/:repo/contents/:path` where writes produce real commits, `GET /repos/:owner/:repo/commits`, and `GET /repositories/:id` by numeric ID); a readonly `generatedSecrets` array on the Emulator object with a new exported `GeneratedSecret` type; GitHub App JWT verification now accepts PKCS#8 as well as PKCS#1 keys. Provider count unchanged.
 >
-> All backwards-compatible.
+> All backwards-compatible, with one behaviour change worth knowing: 0.10.0 switched
+> Stripe webhook deliveries to Stripe's own `Stripe-Signature` header format. Upstream
+> files it under bug fixes rather than breaking changes, but a test asserting the old
+> GitHub-style `sha256=` header on a Stripe delivery will now fail. See Webhook Delivery
+> below for both formats.
 
 | Service | Default Port | Coverage |
 |---------|-------------|----------|
@@ -228,6 +233,11 @@ const res = await fetch(`${github.url}/repos/org/repo/pulls`, {
 const prs = await fetch(`${github.url}/repos/org/repo/pulls`)
 // -> includes the PR we just created
 
+// Auto-generated credentials (0.10.0+): readonly GeneratedSecret[], each
+// { service, kind, id, label, value }. A GitHub App emulator, for example,
+// generates its own RSA key rather than making you supply one.
+github.generatedSecrets
+
 // Cleanup
 github.reset()       // Synchronous state wipe
 await github.close() // Shut down server
@@ -240,17 +250,32 @@ For multi-service setup, lifecycle hooks, and the Vitest/Jest wiring, see
 
 ## Webhook Delivery
 
-Emulate delivers real webhooks with HMAC-SHA256 signatures when state changes:
+Emulate delivers real webhooks with HMAC-SHA256 signatures when state changes. The
+signature FORMAT is per-provider, so one generic verifier does not cover every service.
+GitHub-format headers remain the default; Stripe has used its own format since 0.10.0.
 
 ```typescript
 import crypto from 'crypto'
 
+// GitHub format (the default for most services): sha256=<hmac over the raw body>
 function verifyWebhook(payload: string, signature: string, secret: string): boolean {
   const expected = 'sha256=' + crypto
     .createHmac('sha256', secret)
     .update(payload)
     .digest('hex')
   return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+}
+
+// Stripe format, as of emulate 0.10.0: Stripe-Signature: t=<timestamp>,v1=<hmac>,
+// where the HMAC covers `<timestamp>.<raw body>`, NOT the body alone. Verifying a
+// Stripe delivery with the GitHub helper above fails on both counts.
+function verifyStripeWebhook(rawBody: string, header: string, secret: string): boolean {
+  const parts = Object.fromEntries(header.split(',').map((kv) => kv.split('=')))
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(`${parts.t}.${rawBody}`)
+    .digest('hex')
+  return crypto.timingSafeEqual(Buffer.from(parts.v1), Buffer.from(expected))
 }
 ```
 

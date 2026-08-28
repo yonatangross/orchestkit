@@ -17,7 +17,7 @@ targets:
   # SDK version.
   - library: langfuse
     version: ">=4.0.0"
-upstream-version-tested: "4.14.2"
+upstream-version-tested: "4.15.1"
 metadata:
   category: document-asset-creation
 allowed-tools:

@@ -14,7 +14,7 @@ persuasion-type: discipline
 metadata:
   category: mcp-enhancement
   upstream-skill: agent-browser
-  upstream-version-tested: "0.34.0"
+  upstream-version-tested: "0.35.1"
 allowed-tools:
   - Read
   - Glob
@@ -67,9 +67,38 @@ agent-browser open "https://myapp.localhost"
 agent-browser open "http://localhost:3000"  # which app is this?
 ```
 
-## New in 2026-04 to 2026-08 (agent-browser 0.23 to 0.34.0)
+## New in 2026-04 to 2026-08 (agent-browser 0.23 to 0.35.1)
 
-**0.34.0:** `pushstate <url>` (SPA client-side nav that triggers RSC fetch on Next.js), `removeinitscript <id>`, `--enable react-devtools` with `react tree|inspect|renders|suspense`, `profiler start|stop`, `plugin add|list|show|run`, `confirm <id>`/`deny <id>` for gated actions, `--pin-tab`/`--no-pin-tab`, `--webgpu`, and the MCP `--tools <profiles>` surface.
+**0.35.1:** `diff snapshot` ref numbering resets per diff, refs are invalidated across
+navigations, and the previous refs survive a failed diff. The streaming `url` event
+narrowed to the active tab's main frame: it now emits for full-document, History API and
+fragment navigation, rebinds after an active-tab change, and ignores child-frame and
+background-tab navigation.
+
+**0.35.0:** `--ca-cert <path>` (also `AGENT_BROWSER_CA_CERT`, and `caCert` in config/MCP)
+imports a PEM bundle or DER certificate into an isolated NSS trust store, the targeted
+alternative to `--ignore-https-errors` behind an SSL-inspecting proxy: hostname, validity
+and unrelated-authority checks stay on. The CA persists across commands in a session and
+`--no-ca-cert` clears it. Linux-only, needs `certutil`, and is rejected with `--profile`,
+`--cdp`, `--auto-connect`, providers, Lightpanda or `--ignore-https-errors`. Also adds the
+bundled `protected-vercel-deployments` skill for reaching SSO-protected Vercel deployments
+via short-lived Trusted Sources OIDC tokens instead of a static bypass secret.
+
+**0.34.0:** persistent session-to-tab binding for shared Chrome sessions. Named
+`--cdp`/`--auto-connect` sessions remember their CDP target across daemon restarts, CDP
+target ids work as tab refs, and `--pin-tab` makes the binding strict so an externally
+closed tab returns a stable `tab_gone` error instead of silently retargeting. JSON output
+gains `data.targetId` and optional `data.lastUrl`. Also fixes parallel sessions hijacking
+each other's tabs.
+
+> Corrected 2026-08-28. This section previously credited 0.34.0 with `pushstate`,
+> `removeinitscript`, `--enable react-devtools`, `profiler`, `plugin add|list|show|run`,
+> `confirm`/`deny`, `--webgpu` and the MCP `--tools` surface. Checked against the upstream
+> CHANGELOG, `pushstate` and `--init-script` landed in 0.27.0, the plugin system and the
+> MCP `--tools <profiles>` surface in 0.28.0, and `--webgpu` in 0.31.2; `removeinitscript`
+> and `confirm`/`deny` appear nowhere in it. Only `--pin-tab`/`--no-pin-tab` was actually
+> 0.34.0. The rest of this file already dated `pushstate` to v0.27 in two other places,
+> so the file contradicted itself.
 
 **Accessibility audits (0.33.0):**
 - **`agent-browser a11y [url]`** — axe-core accessibility audit as a CLI command and a matching MCP tool. Filter by WCAG tag, scope to a selector, and get iframe-aware text or JSON results. The audit engine is embedded, so it runs offline and is CSP-safe (no third-party script injection into the page under test).

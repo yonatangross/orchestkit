@@ -121,7 +121,7 @@ registerJsonRenderTool(server, {
 registerJsonRenderResource(server, { resourceUri, html: bundledHtml })
 ```
 
-`registerJsonRenderResource()` was added in 0.15 to separate **tool registration** from **UI resource serving** — useful when the host caches the bundled HTML (clients: Claude, ChatGPT, Cursor, VS Code Copilot, Goose, Postman). Transports: stdio **and** Streamable HTTP (Express) both supported. This skill is verified against `@json-render/mcp` **0.19.0**.
+`registerJsonRenderResource()` was added in 0.15 to separate **tool registration** from **UI resource serving** — useful when the host caches the bundled HTML (clients: Claude, ChatGPT, Cursor, VS Code Copilot, Goose, Postman). Transports: stdio **and** Streamable HTTP (Express) both supported. This skill is verified against `@json-render/mcp` **0.20.0**, which shipped zero code change: every published file is byte-identical to 0.19.0 apart from the version and its pinned `@json-render/core` dependency. New capability in that release therefore belongs to core and react, not to this package. What reaches an MCP-rendered iframe indirectly is named slots and nested repeats, plus a fix so named `onSuccess`/`onError` chained actions actually receive their configured `params`.
 
 ## Client-Side Iframe App
 

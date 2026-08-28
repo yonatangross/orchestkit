@@ -359,6 +359,18 @@
         "false-signals"
       ],
       "date": "2026-08-28"
+    },
+    {
+      "slug": "pin-provenance",
+      "source": "docs/chore--pin-bump-with-bodies/pin-provenance.html",
+      "title": "What upstream-version-tested Actually Promises",
+      "description": "Switch between leaving pins alone, bumping the pin only, and bumping pin plus body, and watch the drift linter move from meaningless-green to 6 failing to genuinely green. Includes the two content bugs reading the real changelogs turned up.",
+      "tags": [
+        "analysis",
+        "ci",
+        "versioning"
+      ],
+      "date": "2026-08-28"
     }
   ]
 }
