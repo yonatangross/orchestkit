@@ -383,6 +383,18 @@
         "false-signals"
       ],
       "date": "2026-08-28"
+    },
+    {
+      "slug": "blind-gate",
+      "source": "docs/fix--typecheck-sees-tests/blind-gate.html",
+      "title": "The Typecheck That Could Not See Tests",
+      "description": "Toggle what a branch contains and watch the documented local typecheck and CI disagree. Local passed because its config excluded every test file; CI failed on the same commit.",
+      "tags": [
+        "analysis",
+        "ci",
+        "false-signals"
+      ],
+      "date": "2026-08-28"
     }
   ]
 }
