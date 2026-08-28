@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "pin-provenance",
+    "title": "What upstream-version-tested Actually Promises",
+    "description": "Switch between leaving pins alone, bumping the pin only, and bumping pin plus body, and watch the drift linter move from meaningless-green to 6 failing to genuinely green. Includes the two content bugs reading the real changelogs turned up.",
+    "tags": [
+      "analysis",
+      "ci",
+      "versioning"
+    ],
+    "date": "2026-08-28",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "sensor-honesty",
     "title": "Three Sensors That Reported States They Never Observed",
     "description": "Toggle the repo's world state and compare what each upgrade sensor claimed against what was actually true. A zero-check green PASS, a config gap wearing a network error, and a workflow promising a cron it no longer has.",
