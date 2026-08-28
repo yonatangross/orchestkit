@@ -51,9 +51,9 @@ button:hover{border-color:var(--muted)}button.on{border-color:var(--new);color:v
 
 <div class="panel">
   <h2>All 61 features, re-evaluated</h2>
-  <div class="file">30 were suppressed by a query that could not have matched</div>
+  <div class="file">22 more features now carry a searchable token naming a surface ork ships</div>
   <div class="bars" id="bars"></div>
-  <div class="why"><b>miss</b> means the tree really has no reference, and still suppresses. <b>unknown</b> means there was nothing searchable to look for, and per the SOP it does not suppress: over-file beats false-drop. That valve existed all along and was unreachable, because the slug is always appended and every slug is snake_case, so the "no derivable tokens" branch never fired.</div>
+  <div class="why">The filter that drops plain lowercase words is right in general: <b>hook</b> or <b>settings</b> alone would match half the tree. Its cost was that searchability tracked upstream PROSE STYLE rather than relevance. A small closed set of words naming things ork actually ships is now admitted. A line about scrollbars and cursor polish still yields nothing searchable and still evaluates miss, which is what <b>anchor B</b> in the step3 integration test requires (#2993).</div>
 </div>
 
 </div>
@@ -63,8 +63,8 @@ button:hover{border-color:var(--muted)}button.on{border-color:var(--new);color:v
 var F = [
   { slug:'hook_stdout_json_parse_error', pick:'the reported case (#3777)',
     line:"Fixed hooks silently treating a stdout {\u2026} object that isn't valid JSON as plain text; it's now reported as a hook error with the parse message",
-    real:[], before:'miss', after:'unknown',
-    note:'No backticks and no camelCase anywhere in that sentence, so the only token is the invented slug. Reported as "no plugin-tree reference to this surface" against a repo shipping 150 registered hooks.' },
+    real:[], before:'miss', after:'hit',
+    note:'No backticks and no camelCase anywhere in that sentence, so the only token was the invented slug. Reported as "no plugin-tree reference to this surface" against a repo shipping 150 registered hooks. The word <b>hooks</b> is now admitted as searchable, and it matches.' },
   { slug:'hook_invalid_answer_reported', pick:'its sibling, same release',
     line:'Fixed background sessions waiting silently when a `PermissionRequest` or `PreToolUse` hook prints an invalid answer',
     real:['PermissionRequest','PreToolUse'], before:'hit', after:'hit',
@@ -75,7 +75,7 @@ var F = [
     note:'Real searchable tokens, searched, genuinely absent from the tree. This is what a correct suppression looks like, and it still suppresses after the fix.' }
 ];
 
-var TOTALS = { before:{miss:49,unknown:0,hit:12}, after:{miss:19,unknown:30,hit:12} };
+var TOTALS = { before:{miss:49,hit:12}, after:{miss:27,hit:34} };
 var sel = 0;
 
 function render(){
@@ -104,7 +104,7 @@ function render(){
     ['before','after'].map(function(k){
       var t = TOTALS[k];
       return '<div style="margin:7px 0 3px;font-size:11.5px;color:var(--muted)">' + k + '</div>' +
-        ['miss','unknown','hit'].map(function(c){
+        ['miss','hit'].map(function(c){
           return '<div class="bar"><span class="n">' + c + '</span>' +
             '<div class="track"><div class="fill ' + c + '" style="width:' + (t[c]/61*100) + '%"></div></div>' +
             '<span class="n">' + t[c] + '</span></div>';
@@ -116,10 +116,10 @@ function render(){
 
 function card(label, disp, bad){
   var txt = disp === 'miss' ? 'miss  (suppressed, not filed)'
-          : disp === 'unknown' ? 'unknown  (surfaced, per the SOP)'
+          : disp === 'unknown' ? 'unknown'
           : 'hit  (filed)';
   var sub = disp === 'miss' ? 'rendered as "no plugin-tree reference to this surface"'
-          : disp === 'unknown' ? 'nothing searchable was found, so nothing is claimed'
+          : disp === 'unknown' ? 'nothing searchable was found'
           : 'a real token matched a real file';
   return '<div class="v ' + (bad ? 'bad' : 'ok') + '"><h4>' + esc(label) + '</h4>' +
     '<div class="d">' + esc(txt) + '</div><div class="t">' + esc(sub) + '</div></div>';
