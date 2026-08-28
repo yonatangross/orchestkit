@@ -23,6 +23,11 @@
 //     1.x, "12.9K", etc. — all four currently tracked packages are 0-major.
 //   - If the body's semver-max token is BELOW the pin -> FAIL (stale body).
 //   - No tokens / no pin -> skip (a body that makes no version claim isn't stale).
+//   - Pin outside 0.x -> NOT CHECKED, reported separately and never counted as a
+//     pass. The comparison is structurally impossible (see (d2) in the scan loop),
+//     and widening the token regex would produce confidently wrong FAILURES rather
+//     than coverage, because a bare version-shaped token cannot be attributed to a
+//     package: histogram buckets, score values and CC versions all match it.
 //
 // USAGE
 //   node tests/skills/structure/test-upstream-version-drift.mjs
@@ -178,6 +183,9 @@ const skillFiles = findSkillFiles(SKILLS_DIR);
 let passCount = 0;
 let failCount = 0;
 const failures = [];
+// Pins this linter is structurally unable to check (see (d2)). Reported
+// separately so they are never mistaken for verified passes.
+const unscannable = [];
 
 for (const file of skillFiles) {
   const skillName = basename(dirname(file));
@@ -209,6 +217,33 @@ for (const file of skillFiles) {
   const descMatch = frontmatter.match(/^\s*description:\s*(.+)$/m);
   const descValue = descMatch ? descMatch[1] : '';
   const scanText = `${descValue}\n${body}`;
+
+  // (d2) A pin outside the 0.x scheme cannot be checked AT ALL, and must not be
+  // counted as a pass. TOKEN_RE only produces tokens with major 0, and isStale
+  // compares `t.major === pin.major`, so for a pin of major >= 1 the comparable
+  // set is always empty, isStale returns false ("no comparable token -> no
+  // claim"), and the skill lands in passCount. The reasoning is right; the
+  // reported verdict is not. Measured on the 9 pinned skills: langgraph (1.2.11)
+  // and monitoring-observability (4.15.1) were both passing this way, and
+  // langfuse had just taken a MINOR bump with no body guard whatsoever.
+  //
+  // Widening TOKEN_RE to all majors is NOT the fix, and this is why: those two
+  // bodies contain version-SHAPED tokens that are not package versions at all.
+  // monitoring-observability carries `buckets=[0.01, 0.05, 0.1, 0.5, 1, 2, 5]`
+  // (histogram buckets), `value=0.85` (a score), and `CC 2.1.161` / `CC 2.1.169`
+  // (Claude Code versions), while mentioning no langfuse version anywhere. A
+  // widened scan would take the max of those, compare 2.1.169 against the 4.15.1
+  // pin, and report "body is stale, update the body to mention the pinned
+  // version" — a confidently wrong FAILURE, which is worse than the silent pass
+  // it replaced. Attributing a bare version token to a package needs proximity
+  // analysis, not a bigger regex; that is deliberately not attempted here.
+  if (pin.major !== 0) {
+    unscannable.push(
+      `${skillName}: pin ${pinStr} is major ${pin.major}` +
+        `${pkg === 'unknown' ? '' : ` (${pkg})`}, outside the 0.x scheme`,
+    );
+    continue;
+  }
 
   // (e) extract 0.x tokens.
   const tokens = tokensFrom(scanText);
@@ -246,14 +281,29 @@ if (failures.length > 0) {
   console.log('');
 }
 
+if (unscannable.length > 0) {
+  console.log('NOT CHECKED (pin is outside the 0.x scheme this linter can compare):');
+  console.log('────────────────────────────────────────────────────────────────────────────');
+  for (const line of unscannable) {
+    console.log(`  SKIP  ${line}`);
+  }
+  console.log('  These are NOT passes. Nothing about these bodies was verified.');
+  console.log('');
+}
+
 console.log('============================================================================');
-console.log(`  Passed: ${passCount}  Failed: ${failCount}`);
+console.log(`  Passed: ${passCount}  Failed: ${failCount}  Not checked: ${unscannable.length}`);
 console.log('============================================================================');
 
 if (failCount > 0) {
   console.log('FAILED: at least one skill body lags its upstream-version-tested pin');
   process.exit(1);
 } else {
-  console.log('SUCCESS: all pinned skill bodies are current with their upstream pin');
+  console.log(
+    unscannable.length > 0
+      ? `SUCCESS: all ${passCount} CHECKED skill bodies are current with their upstream pin ` +
+          `(${unscannable.length} not checked, see above)`
+      : 'SUCCESS: all pinned skill bodies are current with their upstream pin',
+  );
   process.exit(0);
 }

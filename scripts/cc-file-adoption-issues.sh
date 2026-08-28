@@ -136,8 +136,16 @@ derive_tokens() {
     printf '%s\n' "$desc_rest $ref_rest" | grep -oE '[A-Za-z][A-Za-z0-9]+' || true  # silent: known-noise
     # (c) the slug (always punctuated; effectively never matches, but keeps a real
     # feature out of the `unknown` bucket).
-    printf '%s\n' "$slug"
+    # The slug is SYNTHETIC: the extractor coins it, so it cannot appear in any
+    # codebase. Measured on the live ledger: 0 of 61 slugs match anywhere in src/
+    # or manifests/. It is still emitted (searching it is harmless and free) but
+    # tagged `S` so it cannot, on its own, make a feature look searchable.
+    printf 'S\t%s\n' "$slug"
   } | while IFS= read -r tok; do
+      # An already-classified synthetic line passes through untouched.
+      case "$tok" in
+        S$'\t'*) printf '%s\n' "$tok"; continue ;;
+      esac
       [ -z "$tok" ] && continue
       [ "$(core_len "$tok")" -ge "$TOKEN_CORE_MIN" ] || continue
       case "$tok" in
@@ -164,6 +172,22 @@ has_evidence() {
   [ -z "$roots" ] && { echo unknown; return; }
   classified=$(derive_tokens "$feat")
   [ -z "$classified" ] && { echo unknown; return; }
+  # `unknown` was unreachable before this check. It is the SOP's over-file-beats-
+  # false-drop valve for "no derivable tokens", but derive_tokens always appended
+  # the slug, and every slug is snake_case so it survived the punctuation filter.
+  # A feature whose changelog line carries no backticked or camelCase identifier
+  # therefore had exactly one token — one that by construction never matches — and
+  # was reported as `miss`, i.e. "no plugin-tree reference to this surface", which
+  # is a claim about the REPOSITORY rather than about the query.
+  #
+  # Real case (#3777): CC 2.1.248's "hooks silently treating a stdout {…} object
+  # that isn't valid JSON as plain text" was skipped as no-evidence against a repo
+  # shipping 150 registered hooks. Its sibling bullet in the same release WAS filed
+  # only because that sentence happened to contain `PermissionRequest` in backticks.
+  if ! grep -qv '^S'$'\t' <<< "$classified"; then
+    echo unknown
+    return
+  fi
   while IFS= read -r line; do
     [ -z "$line" ] && continue
     cls=${line%%$'\t'*}
