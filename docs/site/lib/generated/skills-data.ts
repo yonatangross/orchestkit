@@ -772,7 +772,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "browser-tools",
     "description": "Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.",
     "version": "5.0.0",
-    "sha256": "03dbfbaa3eea6d27024f3b60b5da066a99d3fe9b6a5a03550d5d22a8099893a7",
+    "sha256": "b6fd039bce71b4288a01199081bf88056565ac5c32de9cd4f8e2a4d4efa4ed33",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -2018,7 +2018,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "emulate-seed",
     "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs — full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
     "version": "1.3.0",
-    "sha256": "0a8f1766e0a3fc2a4498dd39096e3c62b19b71a2c5dfb492be1752261ec6a355",
+    "sha256": "55a1c1056b71e3c97be3db4fce92a50d53ad3917a5198d31217dedb32fb616ee",
     "author": "OrchestKit",
     "tags": [
       "emulate",
@@ -2098,7 +2098,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.",
     "version": "1.1.0",
-    "sha256": "5ad54d15816dee132510ccef970401f1f2016fea3723dc90681b814a01cc39e3",
+    "sha256": "a9dbfb82722e086405f0caa77ba37c5cc408b40e880b1be3dd491f8574f215c7",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2724,7 +2724,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "json-render-catalog",
     "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects.",
     "version": "1.3.0",
-    "sha256": "6bca5347bbbe7c366619433dcf48ee781767b50111003590ae1ea84d7aaf8a32",
+    "sha256": "f0cdd65ac087644fa7c94bbe0c001a17ef996fe5dd27e1f6922d71acf96aa6a8",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -2764,7 +2764,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "langgraph",
     "description": "LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error handlers, graceful drain), routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",
     "version": "2.3.0",
-    "sha256": "4065e51eadcf67d670510e601884c388ef06439b7be7d2abb9879db81ed67831",
+    "sha256": "611dd28c21c50c442c25cf49a0cbb6fbc79ae2042d04376a1e27ff438a6c9748",
     "author": "OrchestKit",
     "tags": [
       "langgraph",
@@ -2939,7 +2939,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "mcp-visual-output",
     "description": "Interactive MCP visual output via @json-render/mcp: upgrade plain JSON tool responses to dashboards rendered in sandboxed iframes inside MCP clients like Claude, Cursor, and ChatGPT. Use when a tool result would read better as a stat grid, data table, or status badge than as text. For the server itself (transport, auth, tool handlers, security) reach for ork:mcp-patterns.",
     "version": "1.1.0",
-    "sha256": "ba709c3d848a951d2d15588bfa265c04b56abe2067cb508b6ce28c45ed8dc9f0",
+    "sha256": "4f1b561e559af646537417d25941b909c7c6b97cbf1232cfeea64eb660e69579",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -3095,7 +3095,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "monitoring-observability",
     "description": "Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse v4 LLM tracing (as_type, score_current_span, should_export_span, LangfuseMedia), and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring.",
     "version": "3.0.0",
-    "sha256": "e905ae89f4442f9484cb90f64045b090b934d0d411ad97c853aba0e8a5d137ff",
+    "sha256": "e77046df8b15628fdcb6fedf92e530a6f9906d93ac350b78b0ddeb2fc9d47400",
     "author": "OrchestKit",
     "tags": [
       "monitoring",
@@ -3151,7 +3151,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multi-surface-render",
     "description": "Multi-surface rendering with json-render — one JSON spec produces React web, Next.js, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for several platforms or creating PDF reports, email templates, demo videos, or social images from one component spec.",
     "version": "1.1.0",
-    "sha256": "a9dbea2d62c54b8aa2ac644377356096e5d381f438e660fb07008297a12dd0eb",
+    "sha256": "d11ad2058ec03f64e90a9b84a7fbb054f6afe41869b18a05bf1584d3284d6510",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -3376,7 +3376,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "portless",
     "description": "Named HTTPS .localhost URLs with portless (v0.15.x). Eliminates port collisions, gives agents stable URLs, adds branch-named subdomains for git worktrees, LAN mode (--lan), and Tailscale sharing. Use when setting up a local dev environment or testing from phones and tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration.",
     "version": "1.2.0",
-    "sha256": "aa50aee1e8d37cc135d9105fa2f0568acbf396f3f63911ee754705fc1654d252",
+    "sha256": "aad56c23380e17e5f6ae5b5c410b4cd4f42972085481136bf0d9be9f43f74d7f",
     "author": "OrchestKit",
     "tags": [
       "dev-server",

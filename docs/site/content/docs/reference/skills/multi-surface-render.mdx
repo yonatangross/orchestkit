@@ -197,7 +197,15 @@ component tree.
 | 3D | `@json-render/react-three-fiber` | 3D scenes (19 components, verified 2026-07-31; roster lives upstream) | Three.js canvas |
 | Codegen | `@json-render/codegen` | Source code from specs | TypeScript/JSX |
 
-All `@json-render/*` renderers are verified against **0.19.0** (`@json-render/core`).
+All `@json-render/*` renderers are verified against **0.20.0** (`@json-render/core`).
+The 0.19.0 to 0.20.0 export surface went 84 to 87 symbols with zero removals, so every
+API documented here still resolves. 0.20.0 adds named slots (`slots?: Record<string,
+string[]>` on `UIElement`, with catalogs declaring `slots: ["default", "header", ...]`),
+nested repeats via an item-relative `repeat.statePath` of the form `\{"$item": "employees"\}`,
+and item-scoped visibility so a `repeat` plus `visible: \{"$item": ...\}` on the same element
+filters items instead of failing. One breaking change, which no rule in this skill uses:
+`ActionExecutionContext.executeAction` now takes an `ActionBinding` rather than a bare
+action name, which only affects hand-written custom renderer bridges.
 
 Load `rules/target-selection.md` for detailed selection criteria and trade-offs.
 
