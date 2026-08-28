@@ -10,7 +10,7 @@
   "scripts": {
     "build": "node esbuild.config.mjs",
     "build:watch": "node esbuild.config.mjs --watch",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
