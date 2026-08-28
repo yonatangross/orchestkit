@@ -162,13 +162,27 @@ function runCapturingStdout(
     });
     child.stderr.resume();
 
+    // The oversized cases make run-hook.mjs call process.stdin.destroy() while this
+    // side is still writing, so the write EPIPEs. Without a listener that becomes an
+    // unhandled 'error' on the stream, and vitest exits non-zero AFTER reporting every
+    // test as passed — which is what it did on CI while passing locally, because the
+    // race resolves differently on a slower machine. EPIPE here is the expected
+    // outcome of the very behaviour under test, not a failure.
+    child.stdin.on('error', () => {
+      /* EPIPE: the hook closed stdin at the 512KB cap, as designed */
+    });
+
     const big = JSON.stringify({
       ...JSON.parse(PAYLOAD),
       pad: 'x'.repeat(sizeKB * 1024),
     });
     const timer = setTimeout(() => {
-      child.stdin.write(big);
-      child.stdin.end();
+      try {
+        child.stdin.write(big);
+        child.stdin.end();
+      } catch {
+        /* stream already destroyed by the cap; the assertions read stdout regardless */
+      }
     }, delayMs);
 
     child.on('close', () => {
