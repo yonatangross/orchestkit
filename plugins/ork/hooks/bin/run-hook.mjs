@@ -414,6 +414,18 @@ let inputBytes = 0;
 
 process.stdin.on('data', (chunk) => {
   clearTimeout(timeout);
+  // The hook has already run — via the 100ms timeout, or via an earlier chunk that
+  // crossed MAX_STDIN_BYTES. Its envelope is on stdout, so running again appends a
+  // SECOND one and the combined stdout becomes `{...}\n{...}\n`: starts with `{`,
+  // does not parse. CC 2.1.248 promoted exactly that from silently-treated-as-text
+  // to a reported hook error, and the result is discarded either way.
+  //
+  // The `end` and `error` handlers below have always carried this guard. This one
+  // set `stdinClosed = true` without ever reading it, so the conjunction of #3415
+  // (a slow producer losing the 100ms race) and #620 (a >512KB image paste) fired
+  // the hook twice. Neither condition alone does, which is why the existing
+  // stdin-timeout test — which exercises them separately — stayed green.
+  if (stdinClosed) return;
   input += chunk;
   inputBytes += Buffer.byteLength(chunk);
   // Guard: if stdin exceeds max size (e.g. image base64 in prompt),

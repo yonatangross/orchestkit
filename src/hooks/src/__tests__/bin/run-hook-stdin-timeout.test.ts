@@ -126,3 +126,83 @@ describe('#3415 run-hook.mjs stdin timeout is observable', () => {
     expect(fast.code).toBe(0);
   }, 20000);
 });
+
+// ---------------------------------------------------------------------------
+// The conjunction of the two conditions above, which neither test covers.
+//
+// The `data` handler set `stdinClosed = true` without ever reading it, while its
+// `end` and `error` siblings both guarded on it. So when the 100ms timeout had
+// ALREADY run the hook (#3415, slow producer) and a >512KB payload then arrived
+// (#620, image paste), the truncation branch ran it a SECOND time and appended a
+// second envelope. Combined stdout became `{...}\n{...}\n` — starts with `{`,
+// fails JSON.parse.
+//
+// CC 2.1.248 promoted that from "silently treated as plain text" to a reported
+// hook error whose result is discarded, so the defect went from invisible to
+// operator-visible without changing here.
+//
+// These assert on STDOUT. The tests above all call `child.stdout.resume()` and
+// assert only on stderr and the exit code, which is why a stdout defect could
+// live behind three green tests: they were structurally unable to see it.
+// ---------------------------------------------------------------------------
+
+/** Spawn run-hook.mjs, write `sizeKB` after `delayMs`, and CAPTURE stdout. */
+function runCapturingStdout(
+  delayMs: number,
+  sizeKB: number,
+): Promise<{ stdout: string; envelopes: number; parses: boolean }> {
+  return new Promise((resolve) => {
+    const child = spawn('node', [RUN_HOOK, HOOK], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, CLAUDE_PROJECT_DIR: '/tmp' },
+    });
+    let stdout = '';
+    child.stdout.on('data', (c) => {
+      stdout += String(c);
+    });
+    child.stderr.resume();
+
+    const big = JSON.stringify({
+      ...JSON.parse(PAYLOAD),
+      pad: 'x'.repeat(sizeKB * 1024),
+    });
+    const timer = setTimeout(() => {
+      child.stdin.write(big);
+      child.stdin.end();
+    }, delayMs);
+
+    child.on('close', () => {
+      clearTimeout(timer);
+      let parses = true;
+      try {
+        JSON.parse(stdout.trim());
+      } catch {
+        parses = false;
+      }
+      resolve({ stdout, envelopes: (stdout.match(/\{"continue"/g) ?? []).length, parses });
+    });
+  });
+}
+
+describe('run-hook.mjs emits exactly one envelope on stdout', () => {
+  // The positive control: FAILS on the pre-fix code with envelopes=2 and parses=false.
+  it('does not double-emit when a >512KB payload lands AFTER the stdin timeout', async () => {
+    const { envelopes, parses, stdout } = await runCapturingStdout(400, 600);
+    expect(envelopes, `stdout was: ${JSON.stringify(stdout.slice(0, 200))}`).toBe(1);
+    expect(parses).toBe(true);
+  }, 15000);
+
+  // Negative controls: each condition ALONE was always fine, and must stay fine —
+  // that is how a fix like this goes wrong (over-guarding and emitting nothing).
+  it('still emits exactly one envelope for an oversized payload with no delay', async () => {
+    const { envelopes, parses } = await runCapturingStdout(0, 600);
+    expect(envelopes).toBe(1);
+    expect(parses).toBe(true);
+  }, 15000);
+
+  it('still emits exactly one envelope for a small payload after a delay', async () => {
+    const { envelopes, parses } = await runCapturingStdout(400, 1);
+    expect(envelopes).toBe(1);
+    expect(parses).toBe(true);
+  }, 15000);
+});
