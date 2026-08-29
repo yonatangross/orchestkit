@@ -77,8 +77,8 @@
   <div class="kpis">
     <div class="kpi good"><span class="n">2.1.251</span><span class="k">new support floor (PR in flight); unblocks the hook events</span></div>
     <div class="kpi good"><span class="n">4 / 19</span><span class="k">adoptions shipped today (PRs #3790 #3791 #3792 #3793)</span></div>
-    <div class="kpi warn"><span class="n">9</span><span class="k">code adoptions left across three waves</span></div>
-    <div class="kpi"><span class="n">6</span><span class="k">open issues that resolve to no-op or doc-only with proof</span></div>
+    <div class="kpi warn"><span class="n">8</span><span class="k">code adoptions left across three waves (<code>if:</code> measured out)</span></div>
+    <div class="kpi"><span class="n">7</span><span class="k">items that resolve to no-op or doc-only with proof</span></div>
     <div class="kpi warn"><span class="n">3</span><span class="k">design decisions that change wave 2</span></div>
   </div>
 
@@ -118,7 +118,7 @@
         <rect x="24" y="248" width="196" height="36" rx="8" fill="#eef4f0"/><text x="122" y="270" text-anchor="middle">PreModelSwitch gate</text>
         <rect x="230" y="248" width="196" height="36" rx="8" fill="#eef4f0"/><text x="328" y="270" text-anchor="middle">PostModelSwitch telemetry</text>
         <rect x="436" y="248" width="196" height="36" rx="8" fill="#eef4f0"/><text x="534" y="270" text-anchor="middle">SessionStart staleness</text>
-        <rect x="642" y="248" width="196" height="36" rx="8" fill="#fff4de"/><text x="740" y="270" text-anchor="middle">if: on 23 Bash guards</text>
+        <rect x="642" y="248" width="196" height="36" rx="8" fill="#f1f1ee"/><text x="740" y="270" text-anchor="middle" class="m">if: measured, n/a</text>
         <rect x="24" y="294" width="196" height="36" rx="8" fill="#fff4de"/><text x="122" y="316" text-anchor="middle">wildcard-rule lint</text>
         <rect x="230" y="294" width="196" height="36" rx="8" fill="#e3efff"/><text x="328" y="316" text-anchor="middle">type: prompt (2 guards)</text>
         <rect x="436" y="294" width="196" height="36" rx="8" fill="#e3efff"/><text x="534" y="316" text-anchor="middle">asyncRewake verifiers</text>
@@ -155,7 +155,7 @@
       <tr><td>Floor 2.1.251</td><td>contract</td><td><code>cc-support.json</code> floor=latest=latest_known, stamp sweep (113 files), six CI pins, fixture + integration test, matrix unit test</td><td>full vitest, every <code>test-cc-*.sh</code>, floor/ceiling tests; plugin validate on 2.1.251 in CI</td><td><span class="tag done">today</span></td></tr>
       <tr><td>PreModelSwitch / PostModelSwitch</td><td>hooks + analytics</td><td>consent gate mirrors the spawn gate under one env var; telemetry line per switch; guard allow-list extended</td><td>3-run E2E (Fable blocked, ORK_FABLE_OK allows, Opus untouched); 2.1.250 control shows why the floor moved</td><td><span class="tag done">#3792</span></td></tr>
       <tr><td>SessionStart staleness</td><td>hooks</td><td><code>lib/session-staleness.ts</code> readers; handoff injector skips warm recent resumes; perf log carries the fields</td><td>captured resume payload as fixture; unknown fields never read as recent</td><td><span class="tag done">#3792</span></td></tr>
-      <tr><td><code>if:</code> on the 23 PreToolUse Bash guards</td><td>hooks</td><td>each guard's command-shape test moves into the matcher (<code>Bash(git push*) || ...</code>), handler unchanged; node no longer spawns for non-matching commands</td><td>hook-timing.jsonl e2e p50/p95 before vs after over one real session; guard behavior tests unchanged</td><td><span class="tag w1">wave 1</span></td></tr>
+      <tr><td><code>if:</code> on the Bash guards</td><td>hooks</td><td>Measured out. PreToolUse Bash is one entry (<code>sync-bash-dispatcher</code>) running 15 sub-guards in-process, p50 6 ms / p95 68 ms over 661 calls; every sub-guard needs every command, so <code>if:</code> could only skip it by splitting it into more spawns. The two existing <code>if:</code> uses are the right shape.</td><td>hook-timing.jsonl, 7-day window, 2026-08-29</td><td><span class="tag noop">n/a</span></td></tr>
       <tr><td><code>experimental.cacheTtl: "1h"</code></td><td>agents</td><td>frontmatter on agents that run inside workflows or wait on CI (audit-full, eval-runner, ci-cd-engineer, code-quality-reviewer); decision 2 sets the scope</td><td><code>/cost</code> prompt-cache line on a fan-out run before vs after</td><td><span class="tag w1">wave 1</span></td></tr>
       <tr><td><code>--restricted</code> smoke lane (#3774)</td><td>contract</td><td>CI job runs <code>claude -p</code> with <code>--restricted --plugin-dir plugins/ork</code>; every hook that shells out must fail loudly, which is the assertion</td><td>the job is red until the failure list is enumerated and accepted</td><td><span class="tag w1">wave 1</span></td></tr>
       <tr><td>Permission-rule wildcard lint (2.1.246)</td><td>hooks</td><td>test over <code>src/settings/*.settings.json</code> rejecting <code>Bash(x * y)</code> shapes</td><td>lint green on current rules; positive control rule fails it</td><td><span class="tag w1">wave 1</span></td></tr>
@@ -186,9 +186,9 @@
         <text x="108" y="116" text-anchor="middle">glyph v3</text>
         <path d="M206 89 L226 89" stroke="#c9c8c3" stroke-width="3" marker-end="url(#a2)"/>
         <rect x="230" y="30" width="196" height="118" rx="12" fill="#fff4de" stroke="#eda100" stroke-width="2"/>
-        <text x="328" y="56" text-anchor="middle" class="b">wave 1 · six small PRs</text>
-        <text x="328" y="80" text-anchor="middle">if: guards · cacheTtl</text>
-        <text x="328" y="98" text-anchor="middle">restricted lane · rule lint</text>
+        <text x="328" y="56" text-anchor="middle" class="b">wave 1 · five small PRs</text>
+        <text x="328" y="80" text-anchor="middle">cacheTtl · rule lint</text>
+        <text x="328" y="98" text-anchor="middle">restricted lane</text>
         <text x="328" y="116" text-anchor="middle">partial results · pricing</text>
         <text x="328" y="136" text-anchor="middle" class="m">one measurement each</text>
         <path d="M426 89 L446 89" stroke="#c9c8c3" stroke-width="3" marker-end="url(#a2)"/>
@@ -202,13 +202,13 @@
         <text x="760" y="56" text-anchor="middle" class="b">wave 3 · loader</text>
         <text x="760" y="80" text-anchor="middle">sandbox.enabled</text>
         <text x="760" y="98" text-anchor="middle">dependencies</text>
-        <text x="760" y="116" text-anchor="middle">double-register · grants</text>
+        <text x="760" y="116" text-anchor="middle">double-register, grants</text>
         <text x="10" y="172" class="m">rule: a wave may assume only what the previous wave merged;</text>
         <text x="10" y="188" class="m">every PR carries a playground, a Lab entry and a measured before/after, not a claim</text>
       </svg>
     </div>
     <div class="so">
-      <div class="socard"><b>What it means</b><span>Six small PRs in wave 1 can run in parallel worktrees; waves 2 and 3 each depend on one decision below.</span></div>
+      <div class="socard"><b>What it means</b><span>Five small PRs in wave 1 can run in parallel worktrees; waves 2 and 3 each depend on one decision below.</span></div>
       <div class="socard nothing"><b>If we skip the order</b><span>A wave-2 prompt hook merged before the floor lands repeats today's failure: green tests, silent plugin.</span></div>
     </div>
   </section>
