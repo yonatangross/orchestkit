@@ -47,6 +47,9 @@ events_with_hook_specific_output:
   - WorktreeCreate
   - MessageDisplay
   - Elicitation
+  # CC 2.1.251 (#3789): PreModelSwitch reads permissionDecision like PreToolUse;
+  # payload measured 2026-08-29 with a stdin-dumping hook, see lib/session-staleness.ts
+  - PreModelSwitch
 
 # Per-key contract. `events` is the closed set of events on which CC reads the
 # key. `evidence` quotes the binary verbatim.
@@ -173,14 +176,14 @@ keys:
     #                 it (issue #3457 follow-up, 2026-08-12).
 
   permissionDecision:
-    events: [PreToolUse, PermissionRequest]
+    events: [PreToolUse, PermissionRequest, PreModelSwitch]
     evidence: |
       "- `decision` - \"block\" for PostToolUse/Stop/UserPromptSubmit hooks
        (deprecated for PreToolUse, use hookSpecificOutput.permissionDecision
        instead)"
 
   permissionDecisionReason:
-    events: [PreToolUse, PermissionRequest]
+    events: [PreToolUse, PermissionRequest, PreModelSwitch]
     evidence: |
       Documented alongside permissionDecision in the PreToolUse field list.
 

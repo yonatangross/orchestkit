@@ -18,7 +18,7 @@
 // existed.
 
 /** CC version this contract was derived from. */
-export const CC_VERSION = '2.1.226';
+export const CC_VERSION = '2.1.251';
 
 /**
  * Events on which CC reads hookSpecificOutput at all.
@@ -32,6 +32,12 @@ export const EVENTS_WITH_HOOK_EVENT_NAME = new Set([
   'PostToolBatch',
   'PostToolUse',
   'PostToolUseFailure',
+  // CC 2.1.251 (#3789): the binary's hook registry says PreModelSwitch reads
+  // "JSON permissionDecision allow/deny/ask as for PreToolUse". Verified by
+  // trace-and-observe on 2026-08-29: with the name absent here the guard
+  // stripped hookEventName, CC reported "missing required field" and the
+  // switch to Fable PROCEEDED; with it present the ask is honored.
+  'PreModelSwitch',
   'PreToolUse',
   'SessionStart',
   'Stop',
@@ -106,8 +112,8 @@ export const ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS = new Set([
  * permission. Track additions in the spec, never here.
  */
 export const KEY_EVENTS = new Map([
-  ['permissionDecision', new Set(['PreToolUse', 'PermissionRequest'])],
-  ['permissionDecisionReason', new Set(['PreToolUse', 'PermissionRequest'])],
+  ['permissionDecision', new Set(['PreToolUse', 'PermissionRequest', 'PreModelSwitch'])],
+  ['permissionDecisionReason', new Set(['PreToolUse', 'PermissionRequest', 'PreModelSwitch'])],
   ['retry', new Set(['PermissionDenied'])],
   ['worktreePath', new Set(['WorktreeCreate'])],
   ['updatedInput', new Set(['PreToolUse'])],

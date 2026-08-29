@@ -35,6 +35,8 @@ import { mcpHealthCheck } from './mcp-health-check.js';
 import { materializeAntipatternRules } from '../prompt/antipattern-warning.js';
 import { materializeProfileRules } from '../prompt/profile-injector.js';
 import { NOOP_CTX } from '../lib/context.js';
+// #3789 (CC 2.1.251): resume payloads carry staleness + re-cache cost
+import { readResumeStaleness } from '../lib/session-staleness.js';
 
 const HOOK_NAME = 'sync-session-dispatcher';
 
@@ -73,13 +75,27 @@ const SYNC_HOOKS: SyncHookConfig[] = [
  * Called at BOTH return paths rather than once at the top, so the recorded
  * duration is the real elapsed time rather than zero.
  */
-function recordSessionStartPerf(startMs: number, source: string | undefined, messageCount: number): void {
+function recordSessionStartPerf(startMs: number, source: string | undefined, messageCount: number, input?: HookInput): void {
+  // #3789 (CC 2.1.251): on source=resume CC reports how stale the session is and
+  // what re-warming its prompt cache would cost. Recorded verbatim so the
+  // "how much does a resume cost us" question becomes answerable from
+  // analytics instead of guessed; absent on startup/clear and on older CC.
+  const stale = input ? readResumeStaleness(input) : undefined;
   appendAnalytics('session-start-perf.jsonl', {
     ts: new Date().toISOString(),
     pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
     duration_ms: Date.now() - startMs,
     source: source ?? 'unknown',
     messages: messageCount,
+    ...(stale?.isResume
+      ? {
+          seconds_since_last_response: stale.secondsSinceLastResponse,
+          context_tokens: stale.contextTokens,
+          prompt_cache_likely_expired: stale.promptCacheLikelyExpired,
+          estimated_cache_write_usd: stale.estimatedCacheWriteUsd,
+          warm_recent_resume: stale.isWarmRecentResume,
+        }
+      : {}),
   });
 }
 
@@ -157,7 +173,7 @@ export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_
 
   if (messages.length === 0 && !pluginRootContext) {
     ctx.log(HOOK_NAME, `All sync hooks silent (${Date.now() - startMs}ms)`);
-    recordSessionStartPerf(startMs, source, 0);
+    recordSessionStartPerf(startMs, source, 0, input);
     return outputSilentSuccess();
   }
 
@@ -169,6 +185,6 @@ export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_
   if (pluginRootContext) {
     result.hookSpecificOutput = { hookEventName: 'SessionStart', additionalContext: pluginRootContext };
   }
-  recordSessionStartPerf(startMs, source, messages.length);
+  recordSessionStartPerf(startMs, source, messages.length, input);
   return result;
 }

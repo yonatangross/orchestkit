@@ -1,11 +1,11 @@
 ---
 title: Hooks Reference
-description: "Complete reference for all 150 global lifecycle hook entries across 30 event categories."
+description: "Complete reference for all 154 global lifecycle hook entries across 32 event categories."
 ---
 
 # Hooks Reference
 
-OrchestKit includes **150 global lifecycle hook entries** across **30 lifecycle event categories**, listed below by event. These are the *global* hooks that fire on Claude Code lifecycle events; agent- and skill-scoped hooks ship with their respective agents and skills, so the plugin's total hook count is higher than the number here.
+OrchestKit includes **154 global lifecycle hook entries** across **32 lifecycle event categories**, listed below by event. These are the *global* hooks that fire on Claude Code lifecycle events; agent- and skill-scoped hooks ship with their respective agents and skills, so the plugin's total hook count is higher than the number here.
 
 | Category | Hooks | Description |
 |----------|-------|-------------|
@@ -35,6 +35,8 @@ OrchestKit includes **150 global lifecycle hook entries** across **30 lifecycle 
 | [TaskCreated](/docs/reference/hooks/task-created) | 2 | Hooks for `TaskCreated` events |
 | [TaskCompleted](/docs/reference/hooks/task-completed) | 2 | Hooks for `TaskCompleted` events |
 | [WorktreeRemove](/docs/reference/hooks/worktree-remove) | 1 | Hooks for `WorktreeRemove` events |
+| [PreModelSwitch](/docs/reference/hooks/pre-model-switch) | 2 | Hooks for `PreModelSwitch` events |
+| [PostModelSwitch](/docs/reference/hooks/post-model-switch) | 2 | Hooks for `PostModelSwitch` events |
 | [InstructionsLoaded](/docs/reference/hooks/instructions-loaded) | 2 | Hooks for `InstructionsLoaded` events |
 | [ConfigChange](/docs/reference/hooks/config-change) | 2 | Hooks for `ConfigChange` events |
 | [PermissionDenied](/docs/reference/hooks/permission-denied) | 2 | Hooks for `PermissionDenied` events |

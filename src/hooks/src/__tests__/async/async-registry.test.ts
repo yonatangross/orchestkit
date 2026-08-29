@@ -180,7 +180,8 @@ describe('Async Hooks Registry', () => {
       // 105 -> 107: #3327 — lifecycle/directory-added (DirectoryAdded) and
       //             notification/message-display-observer (MessageDisplay),
       //             both async 5s observer-only hooks.
-      expect(asyncHooks.length, 'Should have exactly 106 async hooks').toBe(106);
+      // 106 -> 109: #3789 (CC 2.1.251) — async PostModelSwitch telemetry + webhook forwarders on both new events; the PreModelSwitch consent gate is sync
+      expect(asyncHooks.length, 'Should have exactly 109 async hooks').toBe(109);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
