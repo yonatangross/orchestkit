@@ -514,6 +514,18 @@
         "measurement"
       ],
       "date": "2026-08-29"
+    },
+    {
+      "slug": "agent-cache-ttl",
+      "source": "docs/feat--agents-cache-ttl-1h/index.html",
+      "title": "Five Agents, One Hour of Cache",
+      "description": "experimental.cacheTtl: 1h on the five long-running ork agents, measured on two real fan-out runs: the subagent cache writes moved from 254,554 tokens at 5m to 253,346 at 1h. Drag the idle gap to see when the write premium pays back.",
+      "tags": [
+        "measurement",
+        "agents",
+        "cost"
+      ],
+      "date": "2026-08-29"
     }
   ]
 }

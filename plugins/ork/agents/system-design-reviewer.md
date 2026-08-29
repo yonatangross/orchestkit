@@ -3,6 +3,12 @@ name: system-design-reviewer
 description: System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence criteria before code is written.
 category: design
 model: opus
+experimental:
+  # Per-agent prompt-cache TTL, used when no subagentPromptCacheTtl setting is
+  # configured. This agent idles past the default 5m window (workflow stage,
+  # CI wait, long review), so every resume after that paid a full cache write.
+  # Ignored while a subscription is in usage overage. CLAUDE.md owns the floor.
+  cacheTtl: 1h
 maxTurns: 60
 effort: medium
 context: inherit

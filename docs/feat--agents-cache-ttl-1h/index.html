@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Five agents, one hour of cache: experimental.cacheTtl measured</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0f1115;--fg:#e6e6e6;--mut:#9aa3ad;--a:#7bd88f;--b:#f2c14e;--line:#262b33}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:920px;margin:0 auto;padding:40px 20px}
+h1{font-size:26px;margin:0 0 6px}h2{font-size:18px;margin:32px 0 10px}
+p.lead{color:var(--mut);margin-top:0}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{border:1px solid var(--line);border-radius:10px;padding:16px}
+.card h3{margin:0 0 8px;font-size:15px}
+.bar{height:22px;border-radius:4px;background:var(--line);overflow:hidden;display:flex;margin:6px 0}
+.bar span{display:block;height:100%}
+.b5{background:var(--b)}.b1{background:var(--a)}
+.num{font-variant-numeric:tabular-nums;font-family:ui-monospace,Menlo,monospace}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+code{background:#1a1f27;padding:1px 5px;border-radius:4px;font-size:13px}
+.legend span{display:inline-block;width:12px;height:12px;border-radius:2px;margin:0 6px 0 14px;vertical-align:-1px}
+label{display:block;margin:10px 0 4px;color:var(--mut)}
+input[type=range]{width:100%}
+.note{color:var(--mut);font-size:13px}
+</style></head><body><main>
+<h1>Five agents, one hour of cache</h1>
+<p class="lead">CC 2.1.248 added <code>experimental.cacheTtl</code> to agent frontmatter. OrchestKit sets it to <code>1h</code> on the five agents that idle past the default five-minute window. The numbers below come from two real fan-out runs on 2.1.251, read from the subagent transcript's per-message <code>usage.cache_creation</code> field, not from a claim.</p>
+
+<h2>Measured: where the subagent's cache writes landed</h2>
+<div class="row">
+ <div class="card"><h3>Before (no frontmatter)</h3>
+  <div class="bar"><span class="b5" style="width:100%"></span></div>
+  <div class="num">ephemeral_5m: 254,554 &nbsp; ephemeral_1h: 0</div>
+  <p class="note">Subagent <code>ork:code-quality-reviewer</code>, 8 API turns, cache read 602,252. Run cost $6.62 (list price).</p></div>
+ <div class="card"><h3>After (<code>cacheTtl: 1h</code>)</h3>
+  <div class="bar"><span class="b1" style="width:100%"></span></div>
+  <div class="num">ephemeral_5m: 0 &nbsp; ephemeral_1h: 253,346</div>
+  <p class="note">Same prompt, same agent, 6 API turns, cache read 350,936. Run cost $7.08 (list price).</p></div>
+</div>
+<p class="legend"><span class="b5"></span>5-minute TTL writes <span class="b1"></span>1-hour TTL writes</p>
+<p>The main conversation was already on the 1h TTL in both runs (307,297 and 414,049 tokens), which is the session-level setting. The field moves only the subagent, which is exactly what it is for.</p>
+
+<h2>What it buys, and what it costs</h2>
+<p>A 1h cache write is priced at 2x the base input rate; a 5m write at 1.25x. Reads are 0.1x either way. The write premium is paid once per cache segment; the saving arrives on every resume after an idle gap longer than five minutes, where a 5m cache would have expired and the whole prompt would be rewritten. Drag the idle gap to see the break-even for one 250k-token subagent prompt.</p>
+<div class="card">
+ <label>Idle gap before the agent is resumed: <b id="gapv">12</b> min</label>
+ <input id="gap" type="range" min="0" max="60" value="12">
+ <label>Resumes over the agent's life: <b id="resv">2</b></label>
+ <input id="res" type="range" min="0" max="8" value="2">
+ <table><thead><tr><th>Setting</th><th>Initial write</th><th>Per resume</th><th>Total input cost units</th></tr></thead>
+ <tbody><tr><td>5m (default)</td><td class="num">312,500</td><td class="num" id="r5"></td><td class="num" id="t5"></td></tr>
+ <tr><td>1h</td><td class="num">500,000</td><td class="num" id="r1"></td><td class="num" id="t1"></td></tr></tbody></table>
+ <p class="note" id="verdict"></p>
+</div>
+<script>
+const P=250000;function f(n){return n.toLocaleString()}
+function upd(){const g=+gap.value,r=+res.value;gapv.textContent=g;resv.textContent=r;
+ const r5=g>5?P*1.25:P*0.1, r1=g>60?P*2:P*0.1;
+ const t5=P*1.25+r*r5, t1=P*2+r*r1;
+ document.getElementById('r5').textContent=f(r5);document.getElementById('r1').textContent=f(r1);
+ document.getElementById('t5').textContent=f(t5);document.getElementById('t1').textContent=f(t1);
+ verdict.textContent= t1<t5?`1h wins by ${f(t5-t1)} units: every resume after a ${g}-minute gap would have rewritten the whole prompt on 5m.`:(g<=5?'Within five minutes both TTLs hit; 1h only costs the write premium.':'No resumes, so the 1h premium is pure cost.');}
+gap.oninput=res.oninput=upd;upd();
+</script>
+
+<h2>Which agents, and why these</h2>
+<table><thead><tr><th>Agent</th><th>Why it idles past 5m</th></tr></thead><tbody>
+<tr><td><code>security-auditor</code></td><td>stage agent of the <code>audit-full</code> mapreduce workflow (security and dependencies modes)</td></tr>
+<tr><td><code>system-design-reviewer</code></td><td>stage agent of the same workflow (architecture mode)</td></tr>
+<tr><td><code>eval-runner</code></td><td>waits on eval datasets and grader runs</td></tr>
+<tr><td><code>ci-cd-engineer</code></td><td>waits on CI runs between turns</td></tr>
+<tr><td><code>code-quality-reviewer</code></td><td>long reviews, resumed by <code>SendMessage</code> after a maxTurns stop</td></tr>
+</tbody></table>
+<p class="note">Decision 2 of the adopt-all architecture page: four long-running agents was the recommended scope; the audit-full entry resolves to the two stage agents above. CC ignores <code>1h</code> while a subscription is in usage overage, and reads the field only from subagent files. The repo's frontmatter parser (<code>scripts/lib/parse-frontmatter.js</code>) previously read any nested mapping as an empty array; it now parses one level, with a unit test, so the docs site sees the field too.</p>
+</main></body></html>

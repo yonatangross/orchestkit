@@ -6,7 +6,10 @@
  *   - generate-indexes.js (passive agent/skill indexes)
  *
  * Handles: simple key/value, inline arrays [a, b], multi-line arrays (- item),
- * quoted strings, booleans, and multiline scalars (| / > / >- / |-).
+ * quoted strings, booleans, multiline scalars (| / > / >- / |-), and one level
+ * of nested mapping (`experimental:` followed by indented `cacheTtl: 1h`
+ * lines, the CC 2.1.248 agent-frontmatter shape). Before that case was added
+ * a nested mapping parsed as an empty array and every sub-key was dropped.
  */
 
 'use strict';
@@ -43,6 +46,9 @@ function parseYamlFrontmatter(content) {
   let inScalar = false; // Track multiline scalar (> / | / >- / |-)
 
   for (const line of frontmatterLines) {
+    // YAML comment lines carry no data at any indentation.
+    if (/^\s*#/.test(line)) continue;
+
     // If we're collecting a multiline scalar, check if this is a continuation
     if (inScalar && currentKey) {
       // Continuation lines are indented (start with whitespace)
@@ -58,6 +64,27 @@ function parseYamlFrontmatter(content) {
         // Non-indented line — scalar ended, fall through to normal parsing
         inScalar = false;
       }
+    }
+
+    // Check for a nested mapping line (`  subKey: value` under a bare `key:`).
+    // Only one level deep; deeper structures are not used in this repo.
+    const nested = line.match(/^\s+([a-zA-Z0-9_-]+):\s*(.*)$/);
+    if (nested && inArray && currentKey && !inScalar) {
+      const container = frontmatter[currentKey];
+      if (Array.isArray(container) && container.length > 0) {
+        // A `- item` array already started; an indented key here is not ours.
+        continue;
+      }
+      if (Array.isArray(container)) frontmatter[currentKey] = {};
+      let value = nested[2].trim();
+      if ((value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      if (value === 'true') value = true;
+      else if (value === 'false') value = false;
+      frontmatter[currentKey][nested[1]] = value;
+      continue;
     }
 
     // Check for array item
