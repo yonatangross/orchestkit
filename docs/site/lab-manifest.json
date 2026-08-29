@@ -538,6 +538,18 @@
         "messaging"
       ],
       "date": "2026-08-29"
+    },
+    {
+      "slug": "guard-that-guarded-the-guard",
+      "source": "docs/fix--stale-import-detector-shell-guard/index.html",
+      "title": "The Guard That Guarded the Guard",
+      "description": "stale-import-detector runs after every Write and never once found a stale import: its grep regex was rejected by the shell-argument guard on every call, the catch returned nothing, and the unit test mocked the shell. Type a pattern and watch the guard decide; then the fix and the test that would have failed on day one.",
+      "tags": [
+        "hooks",
+        "false-signals",
+        "fix"
+      ],
+      "date": "2026-08-29"
     }
   ]
 }
