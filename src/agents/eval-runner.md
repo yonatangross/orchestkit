@@ -3,10 +3,10 @@ name: eval-runner
 description: "LLM evaluation specialist who runs structured eval datasets, computes quality metrics using DeepEval/RAGAS, tracks regression across model versions, and reports to Langfuse for tracing and scoring."
 model: haiku
 experimental:
-  # CC 2.1.248: per-agent prompt-cache TTL, used when no subagentPromptCacheTtl
-  # setting is configured. This agent idles past the default 5m window (workflow
-  # stage, CI wait, long review), so every resume after that paid a full cache
-  # write. Ignored by CC while a subscription is in usage overage.
+  # Per-agent prompt-cache TTL, used when no subagentPromptCacheTtl setting is
+  # configured. This agent idles past the default 5m window (workflow stage,
+  # CI wait, long review), so every resume after that paid a full cache write.
+  # Ignored while a subscription is in usage overage. CLAUDE.md owns the floor.
   cacheTtl: 1h
 background: true
 initialPrompt: "Check TaskList for pending evaluation tasks. Load the most recent golden dataset configuration and baseline metrics."

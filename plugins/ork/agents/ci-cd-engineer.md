@@ -3,10 +3,10 @@ name: ci-cd-engineer
 description: "CI/CD specialist: GitHub Actions, GitLab CI pipelines, deployment automation, build optimization, caching, security scanning."
 model: inherit
 experimental:
-  # CC 2.1.248: per-agent prompt-cache TTL, used when no subagentPromptCacheTtl
-  # setting is configured. This agent idles past the default 5m window (workflow
-  # stage, CI wait, long review), so every resume after that paid a full cache
-  # write. Ignored by CC while a subscription is in usage overage.
+  # Per-agent prompt-cache TTL, used when no subagentPromptCacheTtl setting is
+  # configured. This agent idles past the default 5m window (workflow stage,
+  # CI wait, long review), so every resume after that paid a full cache write.
+  # Ignored while a subscription is in usage overage. CLAUDE.md owns the floor.
   cacheTtl: 1h
 category: devops
 maxTurns: 30
