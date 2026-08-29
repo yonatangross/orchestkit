@@ -42,6 +42,7 @@ Agent(
 - Do NOT set `model=` (breaks cache prefix sharing)
 - Do NOT set `isolation: "worktree"` (breaks fork mode)
 - End with `RESULT:` summary line for structured collection
+- `max_turns` is a budget, not a deadline: since CC 2.1.246 a fork that hits it returns a PARTIAL result (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"). Read the summary before trusting the deliverable, and continue the same agent with `SendMessage` rather than re-forking; the fork's context survives the stop
 
 ## What Forks Inherit
 

@@ -244,7 +244,7 @@ Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, ant
 
 ```python
 for agent_result in verification_results:
-    if "[PARTIAL RESULT]" in agent_result.output:
+    if "[PARTIAL RESULT]" in agent_result.output: A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
         # Extract whatever scores the agent produced before crashing
         partial_score = parse_score(agent_result.output)  # May be incomplete
         scores[agent_result.dimension] = {

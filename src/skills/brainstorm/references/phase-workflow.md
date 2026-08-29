@@ -84,7 +84,7 @@ Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=True
 Agent(subagent_type="ork:backend-system-architect", prompt="...", run_in_background=True)
 ```
 
-**Collecting results (CC 2.1.76):** When background agents complete, check for `[PARTIAL RESULT]` tag in the response. Partial results contain usable ideas but may be incomplete — include them in the idea pool but flag them for extra scrutiny in Phase 3.
+**Collecting results (CC 2.1.76):** When background agents complete, check for `[PARTIAL RESULT]` tag in the response. Partial results contain usable ideas but may be incomplete — include them in the idea pool but flag them for extra scrutiny in Phase 3. A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
 
 **Divergent mindset instruction for agents:**
 ```

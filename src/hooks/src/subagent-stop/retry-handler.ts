@@ -63,6 +63,20 @@ function getTriedAgents(): string[] {
 /**
  * Detect outcome from hook input
  */
+/**
+ * CC 2.1.246 (#3766): the turn-limit partial shape. Returns the limit as a
+ * string (e.g. "25") when the summary/output says the agent stopped at its
+ * N-turn limit, else null. Matched against the first 600 chars, the same
+ * window detectOutcome uses.
+ */
+export function detectTurnLimit(input: HookInput): string | null {
+  const raw = (input as unknown as Record<string, unknown>);
+  const text = String(raw.agent_output ?? raw.output ?? raw.summary ?? raw.result ?? '').slice(0, 600);
+  const m = /stopped at its (\d+)-turn limit/i.exec(text) || /reached (?:the |its )?(?:maximum|max) (?:number of )?turns?(?: \((\d+)\))?/i.exec(text);
+  if (!m) return null;
+  return m[1] ?? '?';
+}
+
 function detectOutcome(input: HookInput): { outcome: AgentOutcome; error?: string } {
   const error = input.error || input.tool_error;
   const exitCode = input.exit_code;
@@ -147,6 +161,20 @@ export function retryHandler(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
   // Partial results (CC 2.1.76): tag context but don't retry — agent was killed
   // mid-work and its partial output is already in the conversation context.
   if (outcome === 'partial') {
+    // CC 2.1.246 (#3766): an agent that stops at its maxTurns limit is now
+    // reported as partial too, with a summary shaped
+    //   "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"
+    // That agent is not dead: its context survives the stop, so the right move
+    // is to continue it by id, not to re-spawn it from zero.
+    const turnLimit = detectTurnLimit(input);
+    if (turnLimit) {
+      const who = input.agent_id ? `agent id \`${input.agent_id}\`` : 'the task id from the completion notice';
+      return outputWithContext(
+        `[PARTIAL RESULT] Agent \`${agentType}\` stopped at its ${turnLimit}-turn limit; its output is partial, not finished. ` +
+        `Continue it with SendMessage to ${who} ("continue from where you stopped") — its context survives the stop. ` +
+        `Do NOT re-spawn it from scratch; that pays the whole prompt again and loses its working state.`
+      );
+    }
     return outputWithContext(
       `[PARTIAL RESULT] Agent \`${agentType}\` returned partial results (likely killed or timed out). ` +
       `Verify completeness before proceeding — do NOT auto-spawn replacement agents on partial output.`

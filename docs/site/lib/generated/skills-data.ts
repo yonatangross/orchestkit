@@ -687,7 +687,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "6d05f71cfcaf40a47d465e808c8688f8d332f4a535a14fcf369b0172e4cc589b",
+    "sha256": "891e54d89e5bd53f0d2fe277c516c6305428b56745f02accb7295536120050a9",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -1181,7 +1181,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "cover",
     "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new.",
     "version": "1.2.0",
-    "sha256": "d2afc8320337bd3d9a9b32a064f255da7ea11e72ef00a3115298c9990e9a0272",
+    "sha256": "2d52b9ae671ccd43fdd1f46df610c88eb9750ce7a20eec6562d6c990be4130a0",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4005,7 +4005,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "6e26b0ca9e3129e120d25e39810bc1d094740c43f3828078645189590fa97773",
+    "sha256": "4fc895e38f2b09598a6535e861c9ca8d3383293ed9ef612ddcb05cc5e5a8fd58",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4822,7 +4822,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written.",
     "version": "4.6.0",
-    "sha256": "f264ebe46db84645614015d0c831913ee73ab248105ee76df774b62872dc5fad",
+    "sha256": "f9f81fe62a2a6254c4c8851ed95037290a1529b8c47a427f1fcc9ec923f165c1",
     "author": "OrchestKit",
     "tags": [
       "verification",
