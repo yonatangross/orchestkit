@@ -350,6 +350,50 @@ jobs:
           }
           echo "Plugin validation passed!"
 
+  # Job 6b: --restricted smoke lane (#3774, CC 2.1.248+)
+  # A real `claude -p --restricted` process loads the built plugin against a
+  # local stub of the Messages API: no model call, no token, no secret. The
+  # lane asserts the run answers, that the process really was restricted (no
+  # Bash/WebFetch offered), that the plugin's hooks fired, and that the set of
+  # hooks reporting ok:false equals tests/ci/restricted-smoke/expected-hook-
+  # failures.txt (empty on 2.1.251). Gated by Validation Summary below.
+  cc-restricted-smoke:
+    name: CC Restricted Smoke
+    permissions:
+      contents: read
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built plugins
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: built-plugins
+          path: plugins/
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          build-plugins: 'false'
+          run-ci-setup: 'false'
+
+      - name: Install Claude Code CLI
+        run: |
+          # Same pin and pattern as CC Plugin Validate: the support floor
+          # (2.1.251, shared/cc-support.json), --ignore-scripts, then install.cjs
+          # to fetch the native binary the skipped postinstall would have.
+          npm install -g @anthropic-ai/claude-code@2.1.251 --ignore-scripts
+          INSTALL_CJS="$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
+          [ -f "$INSTALL_CJS" ] && node "$INSTALL_CJS"
+          claude --version
+
+      - name: Run restricted smoke lane
+        run: bash tests/ci/restricted-smoke/run-restricted-smoke.sh ./plugins/ork
+
   # Job 7: Component Counts Validation
   counts-validation:
     name: Component Counts
@@ -515,7 +559,7 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [syntax-validation, schema-validation, hook-unit-tests, integration-tests, manifest-validation, cc-plugin-validate, counts-validation, skills-validation, skill-sync-validation]
+    needs: [syntax-validation, schema-validation, hook-unit-tests, integration-tests, manifest-validation, cc-plugin-validate, cc-restricted-smoke, counts-validation, skills-validation, skill-sync-validation]
     if: always()
     steps:
       - name: Check results
@@ -530,6 +574,7 @@ jobs:
           echo "Integration Tests:     ${{ needs.integration-tests.result }}"
           echo "Manifest Validation:   ${{ needs.manifest-validation.result }}"
           echo "CC Plugin Validate:    ${{ needs.cc-plugin-validate.result }} (advisory)"
+          echo "CC Restricted Smoke:   ${{ needs.cc-restricted-smoke.result }}"
           echo "Counts Validation:     ${{ needs.counts-validation.result }}"
           echo "Skills Validation:     ${{ needs.skills-validation.result }}"
           echo "Skill Sync Validation: ${{ needs.skill-sync-validation.result }}"
@@ -540,6 +585,7 @@ jobs:
              [[ "${{ needs.hook-unit-tests.result }}" != "success" ]] || \
              [[ "${{ needs.integration-tests.result }}" != "success" ]] || \
              [[ "${{ needs.manifest-validation.result }}" != "success" ]] || \
+             [[ "${{ needs.cc-restricted-smoke.result }}" != "success" ]] || \
              [[ "${{ needs.counts-validation.result }}" != "success" ]] || \
              [[ "${{ needs.skill-sync-validation.result }}" != "success" ]]; then
             echo "Some validations failed!"
