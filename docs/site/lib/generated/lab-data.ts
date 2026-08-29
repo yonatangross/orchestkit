@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "agent-cache-ttl",
+    "title": "Five Agents, One Hour of Cache",
+    "description": "experimental.cacheTtl: 1h on the five long-running ork agents, measured on two real fan-out runs: the subagent cache writes moved from 254,554 tokens at 5m to 253,346 at 1h. Drag the idle gap to see when the write premium pays back.",
+    "tags": [
+      "measurement",
+      "agents",
+      "cost"
+    ],
+    "date": "2026-08-29",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "restricted-still-fires",
     "title": "Restricted, and Still All 34 Hooks Fired",
     "description": "CC 2.1.248 --restricted removes Bash and WebFetch and ignores user settings. Which of ork's hooks break in that mode? Measured on 2.1.251: none. The CI lane drives a real claude -p --restricted against a local stub of the Messages API, at zero spend, and asserts the failing-hook set stays empty.",
