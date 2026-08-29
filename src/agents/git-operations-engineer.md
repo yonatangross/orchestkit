@@ -302,5 +302,5 @@ Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS*
 ## Peer Messaging
 
 - Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing — never a guessed name.
-- A reply to any message you send to another session is delivered to your PARENT session's conversation, not to you (CC 2.1.248); send and move on, never wait for an answer. Cross-session messaging works on Bedrock, Vertex and Foundry and with telemetry disabled (CC 2.1.248), so a provider or `DISABLE_TELEMETRY=1` is not a reason to fall back to polling files.
+- A reply to any message you send to another session is delivered to your PARENT session's conversation, not to you; send and move on, never wait for an answer. Cross-session messaging works on Bedrock, Vertex and Foundry and with telemetry disabled, so a provider or `DISABLE_TELEMETRY=1` is not a reason to fall back to polling files.
 - Within an Agent Teams run, discover teammates via the team config as instructed by the lead; team messaging needs no ListAgents.
