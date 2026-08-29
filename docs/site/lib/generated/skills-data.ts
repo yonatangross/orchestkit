@@ -2431,7 +2431,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [],
     "agent": null,
     "complexity": "low",
-    "structure": {},
+    "structure": {
+      "references": [
+        "page-route.md"
+      ]
+    },
     "plugins": [
       "ork"
     ],

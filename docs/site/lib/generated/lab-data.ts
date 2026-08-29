@@ -15,18 +15,18 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
-    "slug": "permission-rule-wildcard-lint",
-    "title": "A wildcard before the subcommand grants more than it reads",
-    "description": "CC 2.1.246 warns about Bash allow rules shaped Bash(git * main): the star also swallows options placed before the subcommand. This lint keeps that shape out of the rules ork ships, with a positive control so a broken regex cannot pass vacuously.",
+    "slug": "cc-adopt-all-architecture",
+    "title": "Adopt all: the CC integration layer OrchestKit is building toward",
+    "description": "Five layers, where every 2.1.243 to 2.1.251 capability lands, the three waves that get there, and why the contract layer (the support floor) has to move first: an unknown hook event key makes older Claude Code drop the whole hooks.json.",
     "tags": [
+      "architecture",
       "hooks",
-      "security",
       "cc-adoption"
     ],
     "date": "2026-08-29",
     "featured": false,
     "caseStudy": null,
-    "sizeKb": 5
+    "sizeKb": 28
   },
   {
     "slug": "glyph-v3-front-door",
