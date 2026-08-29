@@ -370,6 +370,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.62](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.61...v10.0.0-alpha.62)** · 2026-08-29
+
+- **agents:** experimental.cacheTtl 1h on five long-running agents (#3797)
+- **ci:** --restricted smoke lane against a stub Messages API (#3774) (#3799)
+- **glyph:** v3 two-dial front door (audience x surface) (#3793)
+- **hooks:** a maxTurns stop is a partial result, continue the agent (CC 2.1.246) (#3796)
+- **hooks:** asyncRewake on the three background verifiers (#3800)
+- …and 16 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-alpha.61](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.60...v10.0.0-alpha.61)** · 2026-08-25
 
 - **ork-codex:** ship ork-implement and one install matrix (#3753)
@@ -410,10 +419,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **hooks:** rewrite inert security-scan-aggregator (#3709)
 - **docs:** track two untracked ledgers (#3706)
-
-**[v10.0.0-alpha.54](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.53...v10.0.0-alpha.54)** · 2026-08-24
-
-- **deps:** bump the npm-minor-patch group across 1 directory with 4 updates (#3701)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

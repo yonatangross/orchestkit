@@ -5,6 +5,45 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.62](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.61...v10.0.0-alpha.62) (2026-08-29)
+
+
+### Features
+
+* **agents:** experimental.cacheTtl 1h on five long-running agents ([#3797](https://github.com/yonatangross/orchestkit/issues/3797)) ([c741b3b](https://github.com/yonatangross/orchestkit/commit/c741b3be177476185d64bb58a0bf7753e0788a93))
+* **ci:** --restricted smoke lane against a stub Messages API ([#3774](https://github.com/yonatangross/orchestkit/issues/3774)) ([#3799](https://github.com/yonatangross/orchestkit/issues/3799)) ([65d9812](https://github.com/yonatangross/orchestkit/commit/65d98120a43286850a5da564b2d2ad8939dcb19a))
+* **glyph:** v3 two-dial front door (audience x surface) ([#3793](https://github.com/yonatangross/orchestkit/issues/3793)) ([8bbc63d](https://github.com/yonatangross/orchestkit/commit/8bbc63d9f9efcaa0060ee988e117a3e21a22b662))
+* **hooks:** a maxTurns stop is a partial result, continue the agent (CC 2.1.246) ([#3796](https://github.com/yonatangross/orchestkit/issues/3796)) ([b2421d8](https://github.com/yonatangross/orchestkit/commit/b2421d8f7d591f91a1febf77d30f188a306b7434))
+* **hooks:** asyncRewake on the three background verifiers ([#3800](https://github.com/yonatangross/orchestkit/issues/3800)) ([6026443](https://github.com/yonatangross/orchestkit/commit/602644346d99dbe6e1bbdd83b32e415ccb03fa2e))
+* **hooks:** PreModelSwitch consent gate + PostModelSwitch telemetry (CC 2.1.251) ([#3792](https://github.com/yonatangross/orchestkit/issues/3792)) ([f9bf02f](https://github.com/yonatangross/orchestkit/commit/f9bf02f795269bc7b683f33c48798886db5adae9))
+* **hooks:** prompt-type hooks measured against the Bash guards ([#3802](https://github.com/yonatangross/orchestkit/issues/3802)) ([0e50084](https://github.com/yonatangross/orchestkit/commit/0e500844653fa1fae5b8804edfdb0fac1fa7b1b9))
+* **hooks:** verdict telemetry + probes; fix two guards they exposed ([#3805](https://github.com/yonatangross/orchestkit/issues/3805)) ([f55ee5f](https://github.com/yonatangross/orchestkit/commit/f55ee5f04d43830e3251fba7261b82f9a3bd21de))
+
+
+### Bug Fixes
+
+* **assess:** resolve a conversational reference instead of refusing ([#3781](https://github.com/yonatangross/orchestkit/issues/3781)) ([435a864](https://github.com/yonatangross/orchestkit/commit/435a864ce55d119bd4f02949b0496b577caaf4a8))
+* **cc-watch:** two gates reported verdicts they had not established ([#3779](https://github.com/yonatangross/orchestkit/issues/3779)) ([11663ad](https://github.com/yonatangross/orchestkit/commit/11663ada6fe69ecb9ba5722dac59549a43003081))
+* **ci:** make npm run typecheck actually see hook tests ([#3761](https://github.com/yonatangross/orchestkit/issues/3761)) ([a130ac5](https://github.com/yonatangross/orchestkit/commit/a130ac563eff75e871bb56517b8160ca969ef33b))
+* **hooks:** cc-version-check never ran, and never said so ([#3759](https://github.com/yonatangross/orchestkit/issues/3759)) ([b7eacd6](https://github.com/yonatangross/orchestkit/commit/b7eacd661cdfd69faaf0f280f704c000bc67481a))
+* **hooks:** stale-import-detector never ran its grep ([#3801](https://github.com/yonatangross/orchestkit/issues/3801)) ([#3803](https://github.com/yonatangross/orchestkit/issues/3803)) ([c50828b](https://github.com/yonatangross/orchestkit/commit/c50828bdd097e9bb1966bd0d4a011174d9d81d6b))
+* **hooks:** stdin data handler ran the hook a second time ([#3778](https://github.com/yonatangross/orchestkit/issues/3778)) ([190a2d7](https://github.com/yonatangross/orchestkit/commit/190a2d7cc31cd09146599a7fe9c5994fe6747144))
+* **skills:** bump upstream pins and correct what the bodies claim ([#3757](https://github.com/yonatangross/orchestkit/issues/3757)) ([520bf59](https://github.com/yonatangross/orchestkit/commit/520bf594726a414ebbb4b15b1032cf82a6e6b3b9))
+* **watch:** three sensors reported states they never observed ([#3755](https://github.com/yonatangross/orchestkit/issues/3755)) ([66499fb](https://github.com/yonatangross/orchestkit/commit/66499fb73da1ca0fe39a105dccded14d73b232bc))
+
+
+### Miscellaneous
+
+* **cc-support:** latest_known 2.1.241 -&gt; 2.1.251 + hooks README drift ([#3791](https://github.com/yonatangross/orchestkit/issues/3791)) ([cbfa694](https://github.com/yonatangross/orchestkit/commit/cbfa69462a3192b677fc1a62aa5b4251eccd414a))
+* **cc-support:** support floor 2.1.220 -&gt; 2.1.251 ([#3794](https://github.com/yonatangross/orchestkit/issues/3794)) ([2aed0b0](https://github.com/yonatangross/orchestkit/commit/2aed0b05824b50eff088b298ba6946f9151d06b7))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.250) ([#3776](https://github.com/yonatangross/orchestkit/issues/3776)) ([e371fca](https://github.com/yonatangross/orchestkit/commit/e371fcad966d93035296ffa778e266ea0c15e6b0))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.251) ([#3790](https://github.com/yonatangross/orchestkit/issues/3790)) ([c2650a7](https://github.com/yonatangross/orchestkit/commit/c2650a71a43421e4d9d4b5e06b6d9b58a913ec1e))
+
+
+### Documentation
+
+* **messaging:** cross-session reply and platform notes (CC 2.1.248) ([#3798](https://github.com/yonatangross/orchestkit/issues/3798)) ([b1a2d7b](https://github.com/yonatangross/orchestkit/commit/b1a2d7bdd70fcf18a54cc6f5f06b0228d2783b18))
+
 ## [10.0.0-alpha.61](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.60...v10.0.0-alpha.61) (2026-08-25)
 
 
