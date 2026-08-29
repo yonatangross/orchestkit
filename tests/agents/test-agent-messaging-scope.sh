@@ -22,6 +22,14 @@
 #       MUST also carry `ListAgents`. A foreground sender must be able to
 #       enumerate live peers so it addresses rather than guesses.
 #
+#   (c) An agent that carries `SendMessage` MUST state, in its body, that a
+#       reply to a cross-session message is delivered to the PARENT session
+#       (CC 2.1.248, #3772) and that cross-session messaging works on
+#       Bedrock/Vertex/Foundry and with telemetry off (CC 2.1.248, #3773).
+#       Without the first fact a subagent waits for an answer that can never
+#       reach it; without the second it falls back to file polling on the
+#       platforms where messaging now works.
+#
 #
 # Frontmatter matches are counted INSIDE the first ---...--- fence only, so a
 # prose mention of SendMessage never false-positives the tools check. The
@@ -113,6 +121,19 @@ for agent_file in "$AGENTS_DIR"/*.md; do
     agent_failed=1
   fi
 
+  # (c) the two CC 2.1.248 delivery facts, stated in the body (after the fence)
+  if [ "$has_send" -gt 0 ]; then
+    body_after_fence=$(awk '/^---$/ { fence++; next } fence >= 2 { print }' "$agent_file")
+    if ! grep -q "delivered to your PARENT session" <<< "$body_after_fence"; then
+      log_fail "$agent_name grants SendMessage but never states that replies land in the PARENT session (CC 2.1.248, #3772)"
+      agent_failed=1
+    fi
+    if ! grep -q "Bedrock, Vertex and Foundry and with telemetry disabled" <<< "$body_after_fence"; then
+      log_fail "$agent_name grants SendMessage but never states cross-session messaging works on Bedrock/Vertex/Foundry and with telemetry off (CC 2.1.248, #3773)"
+      agent_failed=1
+    fi
+  fi
+
   if [ "$agent_failed" -eq 0 ]; then
     log_pass "$agent_name messaging scope is coherent"
   fi
@@ -129,7 +150,8 @@ echo -e "Failed: ${RED}$FAIL_COUNT${NC}"
 if [ "$FAIL_COUNT" -gt 0 ]; then
   echo ""
   echo -e "${YELLOW}Fix: revoke SendMessage from every background:true agent (teams force-grant it);${NC}"
-  echo -e "${YELLOW}grant ListAgents alongside SendMessage on foreground agents.${NC}"
+  echo -e "${YELLOW}grant ListAgents alongside SendMessage on foreground agents;${NC}"
+  echo -e "${YELLOW}state the CC 2.1.248 parent-delivery and platform facts next to the ListAgents bullet.${NC}"
   echo -e "${RED}Agent messaging scope test FAILED${NC}"
   exit 1
 fi

@@ -687,7 +687,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "891e54d89e5bd53f0d2fe277c516c6305428b56745f02accb7295536120050a9",
+    "sha256": "5b2bffe2ccadc0c732de34b5dd0d3e3c4ec7a33ecb560d89387dd107b3995ee3",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -854,7 +854,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "chain-patterns",
     "description": "Chain patterns for multi-phase pipelines: MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building or debugging a pipeline skill.",
     "version": "1.0.0",
-    "sha256": "342f97672454e5a36b0791ca5209f21b4d08fc64fa9221a1d1adc4242a6d442d",
+    "sha256": "64d9b1d8f01eeed544d82dbc5439ce0b7755e18265c4a1f4e26cd8bdcba04468",
     "author": "OrchestKit",
     "tags": [
       "pipeline",
@@ -1181,7 +1181,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "cover",
     "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new.",
     "version": "1.2.0",
-    "sha256": "2d52b9ae671ccd43fdd1f46df610c88eb9750ce7a20eec6562d6c990be4130a0",
+    "sha256": "813b3c59f6f421ed4b1fb65fa1673bf96c052436e3c9d3ab81d95fea2397d77e",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2277,7 +2277,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.6.0",
-    "sha256": "206b5c364bdc1803af89c5cdde1644dd06be641a6fca17dd63fc39a7abfa2979",
+    "sha256": "64844c624f327e0ee6e17e9cfb34313b5f479b92b32389fccd7eefa97abadf13",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2567,7 +2567,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "9a694de96fa6aeb7bae418f4b64b4e144cf3ed703b0a8b9767393f833ec6b9bc",
+    "sha256": "fec7c2f506936030cd80f6e1203cfecf258cdb2ea7858231f2208c3071aba2c6",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -4005,7 +4005,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "4fc895e38f2b09598a6535e861c9ca8d3383293ed9ef612ddcb05cc5e5a8fd58",
+    "sha256": "6fe84ccbc9fc05b3ff70dbd6a98cccc7b727d978cf58bb573c23eec5658e3cd5",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4109,7 +4109,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "security-patterns",
     "description": "Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.",
     "version": "2.0.0",
-    "sha256": "239258837e4155f40bb706908113dc1d02044261fede825e2144074685a787cc",
+    "sha256": "2a5218be380ffc195a1037dfadd29b6b63abcebfa45db9f095a12b886a84c2e8",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -4324,7 +4324,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "swarm-migrate",
     "description": "Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work — that's /ork:implement.",
     "version": "0.1.0",
-    "sha256": "e9a71c4d11143bc34317ec714bdb596b3d5186c01bc70e57ad7f942b28e2e85a",
+    "sha256": "b2d4bee156222cd2754a8315b495e302f199b310437643d8eaeda395473f0d94",
     "author": "OrchestKit",
     "tags": [
       "migration",
@@ -4369,7 +4369,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "task-dependency-patterns",
     "description": "Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status.",
     "version": "1.0.0",
-    "sha256": "a4a75d9d34a4e4d13a5acba5fd24458154ea07e519fa146b4201aa3b423f2319",
+    "sha256": "9886d728aa1642da6a31f72bdea055c916e6ac648d1695982ed908b198d9d551",
     "author": "OrchestKit",
     "tags": [
       "task-management",
@@ -4822,7 +4822,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written.",
     "version": "4.6.0",
-    "sha256": "f9f81fe62a2a6254c4c8851ed95037290a1529b8c47a427f1fcc9ec923f165c1",
+    "sha256": "3dbc7ff68e285d58947e0fbf8dfa26423f6240271d41a60b67d36ed4e2e95573",
     "author": "OrchestKit",
     "tags": [
       "verification",

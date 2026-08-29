@@ -131,6 +131,8 @@ Workers report state changes (CI green, CI red, novel failure, skipped) by MESSA
 the coordinator via `SendMessage` instead of the coordinator re-reading the ledger
 between waves:
 
+> **Cross-session replies land in the parent (CC 2.1.248):** when a subagent sends `SendMessage` to another session, the reply is delivered to the parent session's conversation, never to the subagent; a subagent sends and moves on, the parent reads the answer. Cross-session `SendMessage` / `ListAgents` also work on Bedrock, Vertex and Foundry and with telemetry disabled (CC 2.1.248).
+
 - Workers spawned as Agent-tool subagents use in-session `SendMessage` (available
   since CC 2.1.77).
 - Workers running as separate sessions or `claude -p` processes use cross-session

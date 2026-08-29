@@ -80,6 +80,7 @@ When running as a teammate:
 - Send component-match results to `component-curator` to update the registry
 - Use `SendMessage` to coordinate with `design-context-extractor` if the bundle is missing token metadata
 - Before any `SendMessage` to a peer outside your team, call `ListAgents` and address a listed name — never send to a guessed session name.
+- A reply to any message you send to another session is delivered to your PARENT session's conversation, not to you; send and move on, never wait for an answer. Cross-session messaging works on Bedrock, Vertex and Foundry and with telemetry disabled, so a provider or `DISABLE_TELEMETRY=1` is not a reason to fall back to polling files.
 
 ## Handoff Bundle Schema (observed format)
 
