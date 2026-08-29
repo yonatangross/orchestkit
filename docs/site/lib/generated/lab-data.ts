@@ -43,6 +43,47 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 28
   },
   {
+    "slug": "permission-rule-wildcard-lint",
+    "title": "A wildcard before the subcommand grants more than it reads",
+    "description": "CC 2.1.246 warns about Bash allow rules shaped Bash(git * main): the star also swallows options placed before the subcommand. This lint keeps that shape out of the rules ork ships, with a positive control so a broken regex cannot pass vacuously.",
+    "tags": [
+      "hooks",
+      "security",
+      "cc-adoption"
+    ],
+    "date": "2026-08-29",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
+    "slug": "glyph-v3-front-door",
+    "title": "glyph v3: two dials, one front door",
+    "description": "Show me this used to mean choosing between four skills by hand. Audience times surface is a six-cell grid; glyph 3.0 resolves both dials, announces the pick in one line, then renders inline, asks with previews, or writes an explainer page.",
+    "tags": [
+      "skills",
+      "visualization"
+    ],
+    "date": "2026-08-29",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
+    "slug": "cc-latest-capitalize",
+    "title": "Claude Code 2.1.243 to 2.1.251: what shipped, where OrchestKit cashes in",
+    "description": "276 changelog lines across seven releases, 80 Claude Code bookmarks, and six places where the plugin turns them into leverage: hooks, cache, orchestration, hardening, the field, and three decisions with a copy-my-answers bar.",
+    "tags": [
+      "analysis",
+      "hooks",
+      "cc-adoption"
+    ],
+    "date": "2026-08-29",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 37
+  },
+  {
     "slug": "no-antecedent",
     "title": "Them Had Two Antecedents",
     "description": "A skill that takes a target read its argument as a literal path, so a pronoun produced a failed read and a clarifying question. Pick a conversation and see what each version does with the same command, including the one case where asking is still right.",

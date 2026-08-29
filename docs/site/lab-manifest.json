@@ -490,18 +490,6 @@
         "cc-adoption"
       ],
       "date": "2026-08-29"
-    },
-    {
-      "slug": "model-switch-consent",
-      "source": "docs/feat--3789-model-switch-hooks/index.html",
-      "title": "PreModelSwitch: the second door onto Fable, now guarded",
-      "description": "The payload as measured on CC 2.1.251, the three-run end-to-end table before and after one fix, and the defect unit tests could not see: a hook whose envelope the output guard strips is not a hook that blocks.",
-      "tags": [
-        "hooks",
-        "false-signals",
-        "cc-adoption"
-      ],
-      "date": "2026-08-29"
     }
   ]
 }
