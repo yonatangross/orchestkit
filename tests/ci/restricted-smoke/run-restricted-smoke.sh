@@ -14,7 +14,10 @@ EXPECTED="$HERE/expected-hook-failures.txt"
 [ -f "$PLUGIN_DIR/.claude-plugin/plugin.json" ] || { echo "FAIL: no plugin at $PLUGIN_DIR"; exit 2; }
 command -v "$CLAUDE_BIN" >/dev/null || { echo "FAIL: $CLAUDE_BIN not on PATH"; exit 2; }
 
-SCRATCH="$(mktemp -d -t restricted-smoke)"
+# Template form: honours TMPDIR and works on both GNU and BSD mktemp
+# (GNU rejects `-t restricted-smoke` with "too few X's", which is what the
+# first CI run of this lane died on).
+SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/restricted-smoke.XXXXXX")"
 cleanup() {
   [ -n "${STUB_PID:-}" ] && kill "$STUB_PID" 2>/dev/null || true
   [ "${SMOKE_KEEP:-0}" = "1" ] || rm -rf "$SCRATCH"
