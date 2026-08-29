@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "reply-lands-in-the-parent",
+    "title": "The Reply Lands in the Parent",
+    "description": "Two CC 2.1.248 cross-session messaging facts, now stated by all 19 agents and 10 skills that grant SendMessage: a subagent's cross-session reply is delivered to the parent session, and messaging works on Bedrock, Vertex, Foundry and with telemetry off. Pick who sends and watch where the answer goes.",
+    "tags": [
+      "docs",
+      "agents",
+      "messaging"
+    ],
+    "date": "2026-08-29",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
     "slug": "agent-cache-ttl",
     "title": "Five Agents, One Hour of Cache",
     "description": "experimental.cacheTtl: 1h on the five long-running ork agents, measured on two real fan-out runs: the subagent cache writes moved from 254,554 tokens at 5m to 253,346 at 1h. Drag the idle gap to see when the write premium pays back.",
