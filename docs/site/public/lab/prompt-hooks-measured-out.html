@@ -42,7 +42,7 @@ button.on{border-color:var(--a)}
 <p class="note">The hook budget rule is 50 ms end to end per PreToolUse hook; the dispatcher that runs both guards plus 13 others sits at 6 ms p50.</p></div>
 
 <h2>4. Verdict</h2>
-<p>Not registered. Same class as the <code>if:</code> matcher item: measured, then set aside with the harness kept (<code>scripts/measure/prompt-guard-corpus.mjs</code>, <code>prompt-guard-ab.mjs</code>, results under <code>scripts/measure/results/</code>) so the question can be re-asked when the corpus or the fast model changes.</p>
+<p>Not registered. Same class as the <code>if:</code> matcher item: measured, then set aside with the harness kept (<code>scripts/measure/prompt-guard-corpus.mjs</code>, <code>prompt-guard-ab.mjs</code>, results under <code>tests/fixtures/prompt-guard-ab/</code>) so the question can be re-asked when the corpus or the fast model changes.</p>
 <script>
 const P50=5444,P95=13811,C=0.0268;
 function u(){const n=+document.getElementById('n').value;nv.textContent=n;t50.textContent=(n*P50/60000).toFixed(1)+' min';t95.textContent=(n*P95/60000).toFixed(1)+' min';usd.textContent='$'+(n*C).toFixed(2)}
