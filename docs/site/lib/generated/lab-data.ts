@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "guard-that-guarded-the-guard",
+    "title": "The Guard That Guarded the Guard",
+    "description": "stale-import-detector runs after every Write and never once found a stale import: its grep regex was rejected by the shell-argument guard on every call, the catch returned nothing, and the unit test mocked the shell. Type a pattern and watch the guard decide; then the fix and the test that would have failed on day one.",
+    "tags": [
+      "hooks",
+      "false-signals",
+      "fix"
+    ],
+    "date": "2026-08-29",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
     "slug": "reply-lands-in-the-parent",
     "title": "The Reply Lands in the Parent",
     "description": "Two CC 2.1.248 cross-session messaging facts, now stated by all 19 agents and 10 skills that grant SendMessage: a subagent's cross-session reply is delivered to the parent session, and messaging works on Bedrock, Vertex, Foundry and with telemetry off. Pick who sends and watch where the answer goes.",
