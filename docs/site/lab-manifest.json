@@ -443,6 +443,17 @@
         "cc-adoption"
       ],
       "date": "2026-08-29"
+    },
+    {
+      "slug": "glyph-v3-front-door",
+      "source": "docs/feat--glyph-v3-front-door/index.html",
+      "title": "glyph v3: two dials, one front door",
+      "description": "Show me this used to mean choosing between four skills by hand. Audience times surface is a six-cell grid; glyph 3.0 resolves both dials, announces the pick in one line, then renders inline, asks with previews, or writes an explainer page.",
+      "tags": [
+        "skills",
+        "visualization"
+      ],
+      "date": "2026-08-29"
     }
   ]
 }

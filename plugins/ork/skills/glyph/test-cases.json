@@ -1,6 +1,6 @@
 {
   "skill": "glyph",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "testCases": [
     {
       "id": "basic-no-argument-render-current-state",
@@ -84,6 +84,68 @@
         "Keeps diagrams under 80 characters wide for terminal compatibility across environments",
         "Uses consistent alignment and spacing to ensure monospace rendering looks correct",
         "Applies directional arrow characters to show data flow and dependency relationships"
+      ]
+    },
+    {
+      "id": "dial-eli5-word-routes-novice-page",
+      "rule": "",
+      "query": "eli5 how our OAuth login actually works",
+      "expectedBehavior": [
+        "Announces the pick in exactly one line before anything else: → page · novice",
+        "Writes a self-contained explainer page (no network references) rather than an inline diagram",
+        "Uses an analogy before the mechanism and glosses every technical term on first use",
+        "Every beat ends with a 'What it means' card and an 'If we do nothing' card",
+        "Prints the absolute path and the served URL, and reports having looked at a screenshot before calling it done"
+      ]
+    },
+    {
+      "id": "dial-explain-to-named-reader",
+      "rule": "",
+      "query": "explain the deploy pipeline to the client",
+      "expectedBehavior": [
+        "Resolves audience to novice because the reader is not the operator",
+        "Keeps internal names (branch names, service names, check names) out of the visual labels",
+        "Stays inline (chat) when the honest rendering fits in 12 visual lines, otherwise escalates to a page and says so"
+      ]
+    },
+    {
+      "id": "dial-compare-stays-chat",
+      "rule": "",
+      "query": "compare Redis vs Postgres for the session store, visually",
+      "expectedBehavior": [
+        "Announces → chat · operator and renders a comparison table or side-by-side boxes inline",
+        "States a single recommendation in prose before the visual",
+        "Marks unknown numbers with ? instead of inventing them"
+      ]
+    },
+    {
+      "id": "dial-decision-page-carries-controls",
+      "rule": "",
+      "query": "/ork:glyph --page which of these three migration orders should we pick",
+      "expectedBehavior": [
+        "Emits one decision beat per fork with real radio controls and a consequence per option",
+        "Adds one sticky answer bar whose copy button stays disabled until every fork has a pick",
+        "Does not ship a page that only pictures the options"
+      ]
+    },
+    {
+      "id": "dial-ask-only-on-a-real-fork",
+      "rule": "",
+      "query": "show me the three ways we could shard the audit and I'll pick",
+      "expectedBehavior": [
+        "Announces → ask · operator and calls AskUserQuestion once with 2 to 4 options",
+        "Every option carries an ASCII+emoji preview so the options render side by side",
+        "Renders the chosen branch afterwards instead of re-asking"
+      ]
+    },
+    {
+      "id": "negative-delegate-missing-falls-through",
+      "rule": "",
+      "query": "make a decision page for the vendor choice",
+      "expectedBehavior": [
+        "Checks whether a decision-page skill is listed in the session before invoking it",
+        "Falls through to the explainer template with a decision beat when no delegate is installed, and says so in one clause",
+        "Never invents a skill invocation that is not available"
       ]
     }
   ]

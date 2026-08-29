@@ -2409,9 +2409,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "glyph": {
     "name": "glyph",
-    "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead.",
-    "version": "2.0.0",
-    "sha256": "144b5e1f884dced297b8c3cf9c6c6ccd5b5eaab3a01da3ffbd7eae475de75cc6",
+    "description": "One front door for visual answers. Infers the audience (operator or novice) and the surface (chat, ask, or page) from the request, announces the pick in one line, then renders ASCII plus semantic emojis inline, asks with side-by-side previews, or writes a self-contained explainer page. Use for status, comparisons, trade-offs, architecture, any 'show me X visually', 'explain X to someone', 'eli5 X', 'chart X', 'make an explainer', or a bare /glyph meaning render where we are now. For a persisted multi-artifact plan playground, use visualize-plan.",
+    "version": "3.0.0",
+    "sha256": "c6c7db8ca27f115ce9755b7f784f0507e0b7cb88d663a68816e77a7138273634",
     "author": "OrchestKit",
     "tags": [
       "ascii",
@@ -2419,6 +2419,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "visualization",
       "box-drawing",
       "terminal",
+      "explainer",
+      "eli5",
       "quick"
     ],
     "userInvocable": true,
@@ -2426,12 +2428,20 @@ export const SKILLS: Record<string, SkillMeta> = {
     "allowedTools": [
       "Read",
       "Grep",
-      "Glob"
+      "Glob",
+      "Write",
+      "Bash",
+      "Skill",
+      "AskUserQuestion"
     ],
     "skills": [],
     "agent": null,
     "complexity": "low",
-    "structure": {},
+    "structure": {
+      "references": [
+        "page-route.md"
+      ]
+    },
     "plugins": [
       "ork"
     ],

@@ -1,6 +1,6 @@
 ---
 title: "Glyph"
-description: "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead."
+description: "One front door for visual answers. Infers the audience (operator or novice) and the surface (chat, ask, or page) from the request, announces the pick in one line, then renders ASCII plus semantic emojis inline, asks with side-by-side previews, or writes a self-contained explainer page. Use for status, comparisons, trade-offs, architecture, any 'show me X visually', 'explain X to someone', 'eli5 X', 'chart X', 'make an explainer', or a bare /glyph meaning render where we are now. For a persisted multi-artifact plan playground, use visualize-plan."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
@@ -11,51 +11,96 @@ description: "Render an answer as ASCII art plus semantic emojis inline, right n
 
 <ContextualSkillSidebar slug="glyph" />
 
-> **Glyph** Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead.
+> **Glyph** One front door for visual answers. Infers the audience (operator or novice) and the surface (chat, ask, or page) from the request, announces the pick in one line, then renders ASCII plus semantic emojis inline, asks with side-by-side previews, or writes a self-contained explainer page.
 
 
 # Glyph
 
-Render the answer as ASCII art plus semantic emojis, inline, immediately. All output renders in a monospace terminal with no external tools.
+Render the answer as structure, not decoration. Every diagram element must communicate something; an emoji must mean something (✅ pass, ❌ fail, ⚠️ risk, 🔴 blocked).
 
-**Core principle:** Encode information into structure, not decoration. Every diagram element should communicate something meaningful.
+Four skills used to cover "show me this" and choosing between them was the friction. There are only **two dials**. Infer both, say which you picked, render.
+
+|              | **chat** (inline)      | **ask** (interactive)     | **page** (file)               |
+|--------------|------------------------|---------------------------|-------------------------------|
+| **operator** | dense ASCII            | trade-offs side by side   | playground / decision page    |
+| **novice**   | plain-word ASCII       | 3 framings, pick one      | explainer page                |
 
 ## Execution (run this, do not ask first)
 
-The whole point is speed, so there is no setup phase.
+1. **Resolve the dials** (overrides first, then inference, tables below).
+2. **Announce in exactly one line**, then a blank line: `→ page · novice`. Nothing else, no "I'll now…".
+3. **Render or delegate** per the routing table. Never call `AskUserQuestion` to pick a format, never `TaskCreate`, never spawn an `Agent` for a chat render. Asking first defeats the skill.
 
-**With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `/ork:glyph` on its own means "render where we are right now" — the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.
+**With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic. Bare `/ork:glyph` means "render where we are right now": the open work, the decision just reached, the state of the thing being discussed.
 
-Given a topic (or the conversation, when none is given):
+## Dial 1: audience
 
-1. **Render immediately.** Do NOT call `AskUserQuestion` to pick a format, do NOT call `TaskCreate`, do NOT spawn an `Agent`. Choose the form yourself from the topic shape and draw it. Asking first defeats the skill.
-2. **Pick the form from the shape of the data**, using the pattern library below:
+Default **operator**. Pick **novice** when any of these hold:
 
-   | Topic shape | Form |
-   |---|---|
-   | state / progress / health | status box + bar meters |
-   | A vs B, options, trade-offs | comparison table or side-by-side boxes |
-   | steps, pipeline, hand-offs | left-to-right flow with `──▶` |
-   | containment, layers, layout | nested boxes / tree |
-   | ranked list, scores, counts | table + bar meters |
-   | over time | sparkline or milestone track |
+- `--eli5` passed, or the word "eli5" / "explain like" appears
+- the ask names a reader who is not the operator ("explain to Nir", "for the client", "for onboarding", "so my mum gets it")
+- it asks what a thing *is* or how it *works* in general rather than what our instance is doing now ("how does OAuth work" = novice; "is our OAuth broken" = operator)
 
-3. **Emit inline in the reply.** Never write a file unless the user asked for one. This is a chat answer, not an artifact.
-4. **Use the 12-emoji semantic set and box-drawing vocabulary** defined in `rules/visual-style.md` (shipped with this skill). Semantic, never decorative: an emoji must mean something (✅ pass, ❌ fail, ⚠️ risk, 🔴 blocked).
-5. **Stay inside the budget: ≤ 12 visual lines, and ≤ 40% of the reply.** Block count within that is free — two 5-line blocks are fine, four 10-line blocks are not. This skill renders on request, it does not render without limit (#3558). Full derivation of the numbers is in `rules/visual-style.md`.
-6. **State the point in prose first**, in one or two sentences, then show the visual. The visual supports the answer; it is never the answer. If the reader has to parse a diagram to find out what happened, the reply failed.
-7. **Stay honest.** If a number is unknown, print `?` rather than inventing one. A confident-looking chart built on guesses is worse than prose.
+Novice means: no jargon without a one-clause gloss, no internal names (file paths, service names, branch names) unless defined on the spot, concrete analogies, fewer words per visual. It does **not** mean less accurate.
 
-**When NOT to use this skill:** if the deliverable is a multi-section HTML playground, a persisted plan artifact, or anything needing file output, use `visualize-plan` instead. Glyph is the cheap inline path; visualize-plan is the full pipeline.
+## Dial 2: surface
 
-**Over budget is the same signal.** If the honest rendering needs more than ~12 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file and print the path. The old escape hatch fired on artifact TYPE only, so a 40-line inline reply never tripped it.
+Default **chat**. Escalate only on a real trigger:
 
+| Pick     | When |
+|----------|------|
+| **chat** | The honest rendering fits in ≤ 12 visual lines and ≤ 40% of the reply. The common case. |
+| **ask**  | A genuine 2 to 4 way fork the operator must settle before the next step: which angle, which depth, which of N options to build. |
+| **page** | Over the 12-line budget when rendered honestly, **or** it must persist (client deliverable, onboarding doc, something to link later), **or** a file was explicitly asked for. |
 
-## Box-Drawing Character Reference
+**The `ask` guardrail.** `AskUserQuestion` blocks until answered and caps at 2 to 4 options with previews on single-select only. Use it only when the pick changes what happens next, never as a prettier way to print something you were going to print anyway.
 
-This block intentionally shows multiple sets together as a key. Authors
-should use ONE set per real diagram; the `single-set` lint rule enforces
-this on production diagrams.
+**Decision-return template.** When handing the operator a decision, in chat or on a page, return a ready-made structure, never free prose:
+
+```
+DECIDE: <one-line question>
+( ) option A  - <one-line consequence>
+( ) option B  - <one-line consequence>   <- recommended, because <one clause>
+after you pick:
+[ ] <step 1 that follows>
+[ ] <step 2 that follows>
+```
+
+Radio rows for the exclusive pick, checkbox rows for the follow-ups it unlocks, one consequence clause per option, recommendation marked inline, copy-paste-able plain text.
+
+## Routing
+
+| audience · surface | Do this |
+|---|---|
+| any · **chat** | Render inline with the engine below: the box-drawing vocabulary, the 12-emoji semantic set, the budget. For novice, keep the forms and drop the jargon. |
+| any · **ask** | `AskUserQuestion`, one question, 2 to 4 options, **each with an ASCII+emoji `preview`**. Previews render monospace side by side; that is what makes this surface worth having. The question is always asked of the operator, whatever the artifact's audience; the announce line prints `→ ask · operator`, then render the chosen branch at the artifact's audience. |
+| operator · **page**, shaped "compare N options across M dimensions, pick one" | If a decision-page skill is installed (`hq-ext:decision` or a repo-local equivalent), delegate to it. Otherwise write the explainer template with a `decision` beat per fork (below). |
+| operator · **page**, shaped "let me tune inputs and see it change" | If a `playground` skill is installed, delegate: it is a configurator (controls → live preview → copyable prompt). Only when there is genuinely something to configure. |
+| any · any, shaped "a genuine chart" (real numbers: series, distribution, ranking, dashboard) | If the `dataviz` skill is installed, load it first and follow its form heuristic and palette. Chat stays ASCII bars inside the budget; page charts are real HTML/SVG, never ASCII on a page. |
+| novice · **page** | The page route below. Check for a house kit first; only when the repo has none, use `templates/explainer.html` from this skill. |
+
+Delegation is a capability check, not an assumption: `Skill` names above are invoked only when the skill is listed in this session. A missing delegate falls through to this skill's own route and says so in one clause.
+
+## Chat engine
+
+**Pick the form from the shape of the data:**
+
+| Topic shape | Form |
+|---|---|
+| state / progress / health | status box + bar meters |
+| A vs B, options, trade-offs | comparison table or side-by-side boxes |
+| steps, pipeline, hand-offs | left-to-right flow with `──▶` |
+| containment, layers, layout | nested boxes / tree |
+| ranked list, scores, counts | table + bar meters |
+| over time | sparkline or milestone track |
+
+**Budget: ≤ 12 visual lines and ≤ 40% of the reply.** Block count within that is free; two 5-line blocks are fine, four 10-line blocks are not (#3558, derivation in `rules/visual-style.md`). Over budget is not a longer chat answer, it is the page trigger firing: switch surface and say so.
+
+**Prose first.** One or two sentences state the point, then the visual. The visual supports the answer; it is never the answer. **Unknown is `?`.** Never invent a number to make a chart look finished.
+
+### Box-drawing character reference
+
+This block intentionally shows multiple sets together as a key. Use ONE set per real diagram; the `single-set` lint rule enforces this on production diagrams.
 
 &lt;!-- ascii-lint-disable: single-set,single-arrow-style,density-min --&gt;
 ```
@@ -66,31 +111,22 @@ soft:      ╭─╮ │ ╰─╯
 portable:  +-+ | +-+  +-+ + + +
 Arrows:    → ← ↑ ↓ ─> <─ ──> <──
 Blocks:    █ ▓ ░ ▏▎▍▌▋▊▉
-Status:    ● ○ ✓ ✗ ⚠ ◆ ◇ ▶ ▷  ↑↓→ ▓▒░  (closed-set vocab — see rules)
+Status:    ● ○ ✓ ✗ ⚠ ◆ ◇ ▶ ▷  ↑↓→ ▓▒░  (closed-set vocab, see rules)
 ```
 
-### Set Conventions (D8: intent-driven naming)
-
-Tokens live in `tokens.json`. Names describe USE not APPEARANCE.
-
-| Set | Characters | Use For |
+| Set | Characters | Use for |
 |-----|-----------|---------|
-| `default` `─│` | Normal boxes and connectors | Most diagrams |
-| `emphasis` `━┃` | Headers, focus, draw the eye | Key components, outer frames |
-| `title` `═║` | Document titles | §0-style banners only |
-| `soft` `╭╮╰╯ ─│` | Status cards, ambient UI | Diff blocks |
-| `portable` `+-\|` | NO_COLOR / CI / bare TTY | Fallback |
+| `default` `─│` | normal boxes and connectors | most diagrams |
+| `emphasis` `━┃` | headers, focus | key components, outer frames |
+| `title` `═║` | document titles | banners only |
+| `soft` `╭╮╰╯ ─│` | status cards, ambient UI | diff blocks |
+| `portable` `+-\|` | NO_COLOR / CI / bare TTY | fallback |
 
-Rename codemod (D8): old `light/heavy/double/rounded/ascii-fallback` → new names above. Old names accepted with warning for one minor release.
+Tokens live in `tokens.json`; names describe USE not APPEARANCE (D8). The status glyph vocabulary is a closed set of 11 (`●○✓✗⚠◆◇▶▷ ↑↓→ ▓▒░`), single source of truth `rules/status-glyph-vocabulary.md`, add-a-glyph process in `CONTRIBUTING.md`.
 
-### Status Glyph Vocabulary
+### Diagram patterns
 
-Closed-set v1 of 11 semantic glyphs (`●○✓✗⚠◆◇▶▷ ↑↓→ ▓▒░`). Single source of truth — see `rules/status-glyph-vocabulary.md`. Add-a-glyph process in `CONTRIBUTING.md`.
-
-
-## Diagram Patterns
-
-### Architecture Diagrams
+Architecture:
 
 ```
 ┌──────────────┐      ┌──────────────┐
@@ -104,47 +140,32 @@ Closed-set v1 of 11 semantic glyphs (`●○✓✗⚠◆◇▶▷ ↑↓→ ▓�
                       └──────────────┘
 ```
 
-### File Trees with Annotations
+Annotated file tree:
 
 ```
 src/
 ├── api/
 │   ├── routes.py          [M] +45 -12    !! high-traffic path
 │   └── schemas.py         [M] +20 -5
-├── services/
-│   └── billing.py         [A] +180       ** new file
-└── tests/
-    └── test_billing.py    [A] +120       ** new file
+└── services/
+    └── billing.py         [A] +180       ** new file
 
 Legend: [A]dd [M]odify [D]elete  !! Risk  ** New
 ```
 
-### Progress Bars
+Progress and reversibility:
 
 ```
 [████████░░] 80% Complete
-+ Design    (2 days)
-+ Backend   (5 days)
-~ Frontend  (3 days)
-- Testing   (pending)
+Phase 1  [================]  FULLY REVERSIBLE    (add column)
+Phase 3  [============....]  PARTIALLY           (backfill)
+              --- POINT OF NO RETURN ---
+Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 ```
 
-### Swimlane / Timeline Diagrams
+Blast radius (concentric rings):
 
 ```
-Backend  ===[Schema]======[API]===========================[Deploy]====>
-                |            |                                ^
-                |            +------blocks------+             |
-                |                               |             |
-Frontend ------[Wait]--------[Components]=======[Integration]=+
-
-=== Active work   --- Blocked/waiting   | Dependency
-```
-
-### Blast Radius (Concentric Rings)
-
-```
-            Ring 3: Tests (8 files)
        +-------------------------------+
        |    Ring 2: Transitive (5)      |
        |   +------------------------+   |
@@ -156,59 +177,43 @@ Frontend ------[Wait]--------[Components]=======[Integration]=+
        +-------------------------------+
 ```
 
-### Comparison Tables
-
-```
-BEFORE                          AFTER
-┌────────────┐                  ┌────────────┐
-│  Monolith  │                  │  Service A │──┐
-│  (all-in-1)│                  └────────────┘  │  ┌──────────┐
-└────────────┘                  ┌────────────┐  ├─>│  Shared  │
-                                │  Service B │──┘  │  Queue   │
-                                └────────────┘     └──────────┘
-```
-
-### Reversibility Timeline
-
-```
-Phase 1  [================]  FULLY REVERSIBLE    (add column)
-Phase 2  [================]  FULLY REVERSIBLE    (new endpoint)
-Phase 3  [============....]  PARTIALLY           (backfill)
-              --- POINT OF NO RETURN ---
-Phase 4  [........????????]  IRREVERSIBLE        (drop column)
-```
-
-
-## Key Rules
+Swimlanes (`===` active, `---` blocked, `|` dependency) and before/after comparisons follow the same vocabulary; full examples in `rules/ascii-diagrams.md` and `rules/ascii-architecture.md`.
 
 | Rule | Description |
 |------|-------------|
-| Font | Always monospace — box-drawing requires fixed-width |
-| Weight | Standard for normal, Heavy for emphasis, Double for titles |
-| Arrows | `─>`, `──>`, or `│` with `v`/`^` for direction |
-| Alignment | Right-pad labels to match column widths |
-| Annotations | `!!` for risk, `**` for new, `[A/M/D]` for change type |
-| Width | Keep under 80 chars for terminal compatibility |
-| Nesting | Max 3 levels of box nesting before readability degrades |
+| Font | monospace only; box-drawing needs fixed width |
+| Arrows | `─>`, `──>`, or `│` with `v`/`^` |
+| Annotations | `!!` risk, `**` new, `[A/M/D]` change type |
+| Width | under 80 chars for terminal compatibility |
+| Nesting | max 3 levels before readability degrades |
 
+## Page route
 
-## When to Use Each Pattern
+The full contract (house kit, where a page lands, the quality bar, verification) is in `references/page-route.md`. The parts that are normative even when nothing else is read:
 
-| Pattern | Use Case |
-|---------|----------|
-| Layered boxes | System architecture, deployment topology |
-| Concentric rings | Blast radius, impact analysis |
-| Timeline bars | Reversibility, migration phases |
-| Swimlanes | Execution order, parallel work streams |
-| Annotated trees | File change manifests, directory structures |
-| Comparison tables | Cross-layer consistency, before/after |
-| Progress bars | Status tracking, completion metrics |
+1. **House kit first.** `ls docs/playgrounds/_kit/base.css` (or the repo's documented equivalent). If it exists, scaffold with the repo's own playground pipeline and write no new CSS. Only when the kit is absent does `templates/explainer.html` in this skill apply.
+2. **Where it lands.** With no kit: `docs/playgrounds/&lt;category&gt;/&lt;slug&gt;-explainer.html`, category from the topic (`dev` for how we build and ship, `infra` for machines and cost, `ops` for the business, `design`, `marketing`, `clients/&lt;slug&gt;/playgrounds/` for a named client). `ls -d` the root before writing; if it is missing, fall back to `docs/playgrounds/dev/` and say so.
+3. **Quality bar (novice page).** Draw the actual thing, not generic rectangles joined by arrows. Analogy before mechanism. Every beat ends in a consequence AND a do-nothing line (two side-by-side cards, ≤ 12 words each). ≤ 20 words per beat, 4 to 6 beats. Plain words inside the diagram too. No leftover `TITLE` / `DATE` markers. Self-contained: opens from `file://`, zero network references. Light theme for outside readers.
+4. **A decision page carries the controls.** If the topic is a decision or an action plan, every fork is a `decision` beat with real controls (radio pick, consequence column, follow-up checkboxes) and one sticky answer bar that keeps "copy my answers" disabled until every fork has a pick. A page that only pictures the options is a poster.
+5. **Not done until you have looked at it.** Serve it via portless (`https://&lt;name&gt;.localhost/...`, never a `:port`, never `file://` in someone's live browser), open it with agent-browser over CDP, take viewport screenshots at several scroll positions, and READ them. Numeric gates are blind to layout collisions; the last four glyph pages each shipped a defect only a screenshot caught. If no browser path works, hand the URL to a peer that has one and wait for the verdict.
+6. **RTL in SVG.** Under `dir=rtl`, SVG `&lt;text&gt;` has no bidi isolation. Hebrew goes in HTML captions, never SVG text; numbers that must stay in SVG use `text-anchor="middle" direction="ltr"`.
 
-## Related Skills
+Always print the absolute path AND the served URL on completion.
 
-- `brainstorm` — Design exploration where diagrams communicate ideas
-- `architecture-patterns` — System architecture that benefits from ASCII diagrams
-- `code-review-playbook` — Review comments with inline diagrams
+## Overrides
+
+`--chat` `--ask` `--page` force the surface. `--eli5` sets audience novice (and page, unless a surface flag is also given); the bare word "eli5" in the request behaves exactly as the flag. `--decide` forces the decision-page route. An explicit flag always beats inference, and the announce line still prints.
+
+## When NOT to use this skill
+
+A persisted multi-artifact plan with before/after architecture, risk heat map and execution order is `visualize-plan`. A PNG or any non-monospace, non-HTML deliverable is not this skill. Renaming a variable or running tests has no shape to render.
+
+## Related skills
+
+- `visualize-plan`: the full multi-artifact plan playground
+- `brainstorm`: design exploration where diagrams communicate ideas
+- `architecture-patterns`: system architecture that benefits from ASCII diagrams
+- `code-review-playbook`: review comments with inline diagrams
 
 
 ---
@@ -595,4 +600,79 @@ Any emoji-prefixed heading must keep the original text intact so `grep` still wo
 ## Echo-Chamber Mitigation
 
 Heavy emoji in OrchestKit's own SKILL.md files trains the model to emoji-bomb every response when those skills are loaded. The vocabulary cap is the mitigation: when Claude sees the same 12 glyphs used consistently with the same semantics across 100+ files, it learns "these glyphs = these meanings" rather than "emoji = always-on style." Drift from the vocabulary defeats the mitigation — reject PRs that add glyphs outside the list.
+
+
+
+---
+
+## References (1)
+
+### Page Route
+
+# Glyph page route: the full contract
+
+`SKILL.md` carries the six normative rules. This file carries the detail behind them, in the order the route runs.
+
+## 1. The house kit comes first
+
+Before writing a single line of HTML, check whether the repo already owns a playground pipeline. A repo that does will also have a CI gate on it, and an earlier version of this route hand-wrote three pages that all failed that gate.
+
+```bash
+ls docs/playgrounds/_kit/base.css 2>/dev/null && echo "HOUSE KIT: use it"
+```
+
+If a kit exists, the whole page route is the repo's own commands, typically a scaffold script that pre-wires the metadata comment the gate reads, a dated filename, and a link to the shared stylesheet; a verify script that must pass; and an index refresh. Then:
+
+- write NO new CSS: use the kit's classes (cards, meters, pills, flows, callouts);
+- keep any metadata comment the gate reads, with the category equal to the directory name;
+- follow the kit's theme (a dark house default is common) rather than arguing for light;
+- localized twins are siblings produced by the kit, never a separate design.
+
+Only when the kit is absent does `templates/explainer.html` in this skill apply. It is a self-contained baseline plus authoring rules, not a skeleton to fill in.
+
+## 2. Where a page lands (no kit)
+
+| Topic is about | Write to |
+|---|---|
+| how we build / ship / test | `docs/playgrounds/dev/&lt;slug&gt;-explainer.html` |
+| servers, CI, deploys, cost | `docs/playgrounds/infra/&lt;slug&gt;-explainer.html` |
+| a named client or prospect | `clients/&lt;clientSlug&gt;/playgrounds/&lt;slug&gt;-explainer.html` |
+| the business, money, billing | `docs/playgrounds/ops/&lt;slug&gt;-explainer.html` |
+| design, UI, brand | `docs/playgrounds/design/&lt;slug&gt;-explainer.html` |
+| marketing, content, social | `docs/playgrounds/marketing/&lt;slug&gt;-explainer.html` |
+
+Slug is kebab-case from the topic. If a topic straddles two rows (a CI pipeline is both "how we ship" and "servers"), prefer `dev` when the reader cares about the process and `infra` when they care about the machines.
+
+**Do not copy another skill's anchor table.** A table is not the territory: a root listed somewhere may not exist on disk. `ls -d` the root before writing; if it is missing, fall back to `docs/playgrounds/dev/` and say plainly that you re-routed.
+
+## 3. Quality bar for a novice page (normative)
+
+`test-cases.json` asserts against this list and `templates/explainer.html` points at it rather than restating it. Two copies drift, and they already did once.
+
+- **Draw the actual thing.** A queue looks like a queue, a backlog like a pile. A row of generic rectangles joined by arrows draws the shape of the idea instead of the idea and teaches nothing the sentence did not already say.
+- **Analogy before mechanism.** Say what it is like, then what it is.
+- **Every beat ends in a consequence AND a do-nothing line.** A picture of a gate with lamps is not an explanation until the reader knows what happens and what happens if nothing is done. Two side-by-side cards under the drawing, "What it means" and "If we do nothing" (the second styled as a warning), ≤ 12 words each, in the reader's terms.
+- **≤ 20 words per beat** (the two consequence lines are extra), 4 to 6 beats total. More than six means split the topic.
+- **One idea per beat**, and the visual carries it, not the caption.
+- **If the topic IS a decision, the page carries the controls.** One decision block per fork: radio group, consequence column beside each option, checkboxes for the follow-ups the pick unlocks. ONE sticky bottom answer bar collects every block into a fixed-width `key: value` summary the agent can parse, reports `N/M chosen`, and keeps "copy my answers" DISABLED until every block has a pick, so a half-answered page cannot be pasted back as if complete. Clipboard needs a select-and-Cmd+C fallback (`navigator.clipboard` is denied in some contexts). A page that only pictures the options is a poster; the decision still happens somewhere else, which defeats the page. Source the controls from a component library or house kit when one is reachable; the template's built-in block is the floor so every decision page looks the same, not the ceiling.
+- **Plain words inside the diagram too.** Visual labels are where insider language leaks most: check names, branch names and service names as chart labels are a FAIL for a novice page.
+- **No leftover template markers.** The baseline ships bare `TITLE` / `DATE`; none may survive into the emitted file.
+- **Light theme**, deliberately: this is usually read by someone outside the team.
+- **Self-contained**: opens from `file://`, zero network references. Inline SVG, not a CDN-loaded diagram library.
+- **No em-dash characters** in the emitted page; several house verify scripts grep for them.
+
+## 4. Not done until you have looked at it
+
+Operator feedback, three rounds in one evening across four pages ("how didn't you verify it yourself, as part of glyph"). These are normative for every page route.
+
+1. **Screenshot and read the pixels before claiming done.** Verify scripts, SVG counts and DOM probes are blind to layout and collision defects; a numeric gate that passes is not a render that looks right. Serve the page via portless (`portless alias &lt;name&gt; &lt;port&gt;` in front of a static server; URL `https://&lt;name&gt;.localhost/...`, never a `:port`), open it with `agent-browser --cdp &lt;port&gt; --no-pin-tab` (a pinned session dies with `tab_gone` after tab churn), take viewport screenshots at several scroll positions, and READ the images. Not computer-use. Never open `file://` in the operator's live browser window with a forced viewport: it lands as a squished window on their screen. If no browser path works from your session, hand the URL to a peer with one and wait for the measured verdict; do not report done on a page you have not seen.
+2. **Two CDP traps.** (a) `screenshot --full` over CDP can stitch a tile mosaic (hero repeated per tile, sticky bars stamped into each) rather than one page; take viewport shots at scroll positions instead. (b) with `--no-pin-tab`, a later `eval` or `screenshot` targets whatever tab is ACTIVE in that Chrome; after `open`, re-target explicitly or verify the page title in the result before trusting a capture. A PASS on the wrong page is the worst false positive of all.
+3. **RTL in SVG.** Under `dir=rtl`, SVG `&lt;text&gt;` runs RTL from its anchor with no bidi isolation: Hebrew phrases, punctuation AND digit groups flip or spill. Hebrew goes in HTML captions, never SVG text. Numbers that must stay in-SVG use `text-anchor="middle" direction="ltr"`. Single-word Hebrew labels survive only while they stay single words, center-anchored, with a warning comment beside them.
+4. **What "richer than prose" meant when it was accepted.** Semantic emoji in tab labels, headings, card titles and list leads; a KPI strip under the hero; a sticky tab bar with hash routing when the page has more than one view; several real diagrams per page. Hex colors only inside any diagram library's class definitions (hsl is a known bug in one of them). Never inline a multi-megabyte diagram bundle; it hung a renderer and read as "broken".
+5. **Kit markup gotchas seen in the wild.** A meter is `span.name / div.track > div.fill / span.val`; a `<span>&lt;i&gt;&lt;b&gt;` shape renders no bar. Keep `.val` strings short. A pill is a TAG, not a form control: radios, checkboxes and buttons need real control markup or the page reads as "ugly and broken".
+
+## 5. Reference pages that passed all rounds
+
+- `docs/playgrounds/dev/cc-latest-capitalize-2026-08-29.html` in OrchestKit: KPI strip, six beats with inline SVG, three decision beats, sticky answer bar; corrected twice from screenshots (label collision, clipped annotations) before it was called done.
+- The route was built on 2026-08-22 and rebuilt by hand the same night after the operator rejected a pictures-only version ("not explaining good enough"): the pictures read, the reader still did not know what to DO. That is why the consequence cards and the decision beat are mandatory, not decorative.
 
