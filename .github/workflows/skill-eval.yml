@@ -84,7 +84,7 @@ jobs:
         # (9-45% scores for content that scores 100% on a floor-compliant CLI).
         run: |
           set -euo pipefail
-          npm install -g @anthropic-ai/claude-code@2.1.220 --ignore-scripts
+          npm install -g @anthropic-ai/claude-code@2.1.251 --ignore-scripts
           node "$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
           claude --version
 

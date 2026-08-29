@@ -19,9 +19,9 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.220', () => {
+    test('is 2.1.251', () => {
       // 2026-07-25 owner decision: RENEW the strict pin at the current head —
-      // floor=latest=latest_known=2.1.220 (support only the newest CC),
+      // floor=latest=latest_known=2.1.251 (support only the newest CC; renewed at head 2026-08-29 for the PreModelSwitch adoption, #3792),
       // continuing the strict-floor precedent (2.1.183, then 2.1.206). Closes
       // the six-release adoption lag (#3069).
       // Stamped from shared/cc-support.json by scripts/stamp-cc-support.mjs.
@@ -30,7 +30,7 @@ describe('cc-version-matrix', () => {
       // Stamp-vs-SoT propagation is covered separately and dynamically by
       // tests/integration/test-cc-support-stamper.sh (which also enforces the
       // monotonic guard against lowering the floor).
-      expect(MIN_CC_VERSION).toBe('2.1.220');
+      expect(MIN_CC_VERSION).toBe('2.1.251');
     });
 
     test('is a valid semver-like string', () => {

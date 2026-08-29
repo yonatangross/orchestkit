@@ -1,6 +1,6 @@
 ---
 name: dev
-compatibility: "Claude Code 2.1.220+"
+compatibility: "Claude Code 2.1.251+"
 description: "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session, all keyed to the current git branch. Use when starting a feature branch, switching worktrees, or returning to a project after a break. Skips silently with install hints when prerequisite binaries are missing."
 argument-hint: "[start|stop|status] [--share|--funnel|--live H]"
 tags: [dev-loop, portless, emulate, agent-browser, vercel-labs, lab-stack, m125, m127]

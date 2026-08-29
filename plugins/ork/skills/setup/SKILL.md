@@ -1,7 +1,7 @@
 ---
 name: setup
 license: MIT
-compatibility: "Claude Code 2.1.220+."
+compatibility: "Claude Code 2.1.251+."
 description: "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes."
 argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure]"
 context: fork
