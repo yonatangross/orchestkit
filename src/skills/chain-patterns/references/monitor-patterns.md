@@ -37,6 +37,9 @@ Agent(subagent_type="ork:test-generator", run_in_background=true,
 # Watch its task-notification stream for partial progress (CC 2.1.98)
 Monitor(pid=agent_task_id)
 # → partial results arrive; if the agent crashes, salvageable output is visible
+# → since CC 2.1.246 a maxTurns stop is ALSO delivered as partial ("stopped at its
+#   N-turn limit ... continue it with SendMessage"): continue that agent by id,
+#   do not re-spawn it
 ```
 
 Applies to: `ork:implement`, `ork:cover`, any skill that spawns long-running background agents.
