@@ -118,6 +118,31 @@ name: test
 body' "description")
 [[ -n "$result" ]] && [[ "$result" == *"Literal block scalar"* ]] && pass "| literal scalar" || fail "Expected content, got '$result'"
 
+# Test 9: nested mapping (CC 2.1.248 agent frontmatter `experimental.cacheTtl`)
+echo "▶ Test 9: nested mapping"
+result=$(parse_field '---
+name: agent
+experimental:
+  # comment lines inside the block carry no data
+  cacheTtl: 1h
+tools:
+  - Read
+---
+body' "experimental")
+[[ "$result" == '{"cacheTtl":"1h"}' ]] && pass "Nested mapping parses as an object" || fail "Expected {\"cacheTtl\":\"1h\"}, got '$result'"
+
+# Test 10: nested mapping does not eat the next key
+echo "▶ Test 10: nested mapping stops at next key"
+result=$(parse_field '---
+experimental:
+  cacheTtl: 1h
+tools:
+  - Read
+  - Write
+---
+body' "tools")
+[[ "$result" == '["Read","Write"]' ]] && pass "Array after nested mapping intact" || fail "Expected [\"Read\",\"Write\"], got '$result'"
+
 # Test 9: > folded scalar (no dash)
 echo "▶ Test 9: > folded scalar"
 result=$(parse_field '---

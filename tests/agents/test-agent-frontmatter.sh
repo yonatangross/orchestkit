@@ -66,6 +66,20 @@ for agent_file in "$AGENTS_DIR"/*.md; do
     fi
   fi
 
+  # experimental.cacheTtl (CC 2.1.248): CC silently ignores any value other
+  # than 5m or 1h, so a typo would read as "adopted" while doing nothing.
+  ttl=$(node -e '
+    const { parseYamlFrontmatter } = require("'"$REPO_ROOT"'/scripts/lib/parse-frontmatter");
+    const fm = parseYamlFrontmatter(require("fs").readFileSync("'"$agent_file"'", "utf-8")).frontmatter;
+    const x = fm.experimental;
+    process.stdout.write(x && typeof x === "object" && !Array.isArray(x) && x.cacheTtl != null ? String(x.cacheTtl) : "");
+  ')
+  if [[ -n "$ttl" && "$ttl" != "5m" && "$ttl" != "1h" ]]; then
+    echo "FAIL: $agent_name experimental.cacheTtl must be 5m or 1h, got: $ttl"
+    agent_failed=1
+    FAILED=1
+  fi
+
   # Validate taxonomy fields using the project's own frontmatter parser
   taxonomy_result=$(node -e '
     const { parseYamlFrontmatter } = require("'"$REPO_ROOT"'/scripts/lib/parse-frontmatter");

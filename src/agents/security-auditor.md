@@ -3,6 +3,12 @@ name: security-auditor
 description: "Security auditor: vulnerability scanning, dependency audits, OWASP Top 10 compliance, secrets detection, remediation."
 category: security
 model: opus
+experimental:
+  # CC 2.1.248: per-agent prompt-cache TTL, used when no subagentPromptCacheTtl
+  # setting is configured. This agent idles past the default 5m window (workflow
+  # stage, CI wait, long review), so every resume after that paid a full cache
+  # write. Ignored by CC while a subscription is in usage overage.
+  cacheTtl: 1h
 maxTurns: 60
 effort: medium
 context: fork
