@@ -486,6 +486,22 @@ function validateBranchProtection(
   denial?: Omit<DenialContext, 'gitCommand' | 'currentBranch' | 'effectiveDir' | 'effectiveBranch'>,
 ): HookResult | null {
   if (!isProtectedBranch(currentBranch)) {
+    // Explicit protected destination from a non-protected branch. Found by
+    // the verdict-probe suite: `git push origin HEAD:main` from feat/x came
+    // back silent, because this early return judged only the branch the
+    // session is ON, while the comment on extractPushDestinations already
+    // said `HEAD:main -> ['main'] (still protected)`. A push whose refspec
+    // names main IS a direct push to main, whichever branch is checked out;
+    // the #3455 allow below only ever widened allows, it never denied.
+    const explicitTargets = extractPushDestinations(gitCommand);
+    const protectedTarget = explicitTargets?.find(isProtectedBranch);
+    if (protectedTarget) {
+      const reason =
+        `Cannot push to protected branch '${protectedTarget}': the command names it as the push destination ` +
+        `(session on '${currentBranch}'). Push to a feature branch and open a pull request instead.`;
+      logPermissionFeedback('deny', reason);
+      return outputDeny(reason);
+    }
     return null;
   }
 

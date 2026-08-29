@@ -53,34 +53,68 @@ const WRITE_EDIT_HOOKS: WriteEditHookConfig[] = [
 /**
  * Build the merged HookResult from collected context parts and optional updatedInput.
  */
+type Decision = { decision: 'deny' | 'ask'; reason: string; from: string };
+
+const DECISION_RANK: Record<Decision['decision'], number> = { deny: 2, ask: 1 };
+
+/**
+ * Attach the most severe sibling verdict to a merged envelope. Found by the
+ * verdict-probe suite (tests/hooks/verdict-probes): file-guard and
+ * context-file-budget-guard both answer `ask` (continue:true +
+ * permissionDecision), which is neither a block (short-circuited above) nor
+ * context, so the merge below dropped it on the floor and both guards had
+ * been inert in production since they moved from deny to ask (#2947). The
+ * bash and task dispatchers short-circuit on ask; this one keeps collecting
+ * so write-headers' updatedInput still lands, and carries the verdict along.
+ */
+function withDecision(result: HookResult, decision: Decision | undefined): HookResult {
+  if (!decision) return result;
+  return {
+    ...result,
+    hookSpecificOutput: {
+      ...(result.hookSpecificOutput ?? {}),
+      hookEventName: 'PreToolUse',
+      permissionDecision: decision.decision,
+      permissionDecisionReason: decision.reason,
+    },
+  };
+}
+
 function buildMergedResult(
   contextParts: string[],
   updatedInput: Record<string, unknown> | undefined,
+  decision?: Decision,
 ): HookResult {
   const mergedContext = contextParts.length > 0 ? contextParts.join('\n\n---\n\n') : null;
 
+  if (decision) {
+    logHook(HOOK_NAME, `${decision.from} answered ${decision.decision}; carried through the merge`);
+  }
+
   if (updatedInput && mergedContext) {
     logHook(HOOK_NAME, `Merged ${contextParts.length} context(s) + updatedInput`);
-    return {
+    return withDecision({
       continue: true,
       suppressOutput: true,
       hookSpecificOutput: { hookEventName: 'PreToolUse', updatedInput, additionalContext: mergedContext },
-    };
+    }, decision);
   }
 
   if (updatedInput) {
     logHook(HOOK_NAME, 'updatedInput only — no context');
-    return outputWithUpdatedInput(updatedInput);
+    return withDecision(outputWithUpdatedInput(updatedInput), decision);
   }
 
   if (mergedContext) {
     logHook(HOOK_NAME, `Merged ${contextParts.length} context(s)`);
-    return {
+    return withDecision({
       continue: true,
       suppressOutput: true,
       hookSpecificOutput: { additionalContext: mergedContext, hookEventName: 'PreToolUse' },
-    };
+    }, decision);
   }
+
+  if (decision) return withDecision({ continue: true, suppressOutput: true }, decision);
 
   logHook(HOOK_NAME, 'All hooks silent');
   return outputSilentSuccess();
@@ -102,6 +136,7 @@ function buildMergedResult(
 export function syncWriteEditDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const contextParts: string[] = [];
   let updatedInput: Record<string, unknown> | undefined;
+  let decision: Decision | undefined;
 
   for (const hook of WRITE_EDIT_HOOKS) {
     try {
@@ -110,6 +145,13 @@ export function syncWriteEditDispatcher(input: HookInput, ctx: HookContext = NOO
       if (!result.continue) {
         ctx.log(HOOK_NAME, `${hook.name} blocked — short-circuiting`);
         return result;
+      }
+
+      const pd = (result.hookSpecificOutput as { permissionDecision?: string; permissionDecisionReason?: string } | undefined)?.permissionDecision;
+      if (pd === 'deny' || pd === 'ask') {
+        const candidate: Decision = { decision: pd, reason: String(result.hookSpecificOutput?.permissionDecisionReason ?? ''), from: hook.name };
+        if (!decision || DECISION_RANK[candidate.decision] > DECISION_RANK[decision.decision]) decision = candidate;
+        ctx.log(HOOK_NAME, `${hook.name}: ${pd} collected`);
       }
 
       if (result.hookSpecificOutput?.updatedInput) {
@@ -128,5 +170,5 @@ export function syncWriteEditDispatcher(input: HookInput, ctx: HookContext = NOO
     }
   }
 
-  return buildMergedResult(contextParts, updatedInput);
+  return buildMergedResult(contextParts, updatedInput, decision);
 }
