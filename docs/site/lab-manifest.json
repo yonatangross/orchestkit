@@ -433,7 +433,6 @@
       "date": "2026-08-28"
     },
     {
-<<<<<<< HEAD
       "slug": "cc-latest-capitalize",
       "source": "docs/chore--cc-251-snapshot-and-watch/index.html",
       "title": "Claude Code 2.1.243 to 2.1.251: what shipped, where OrchestKit cashes in",
@@ -442,7 +441,10 @@
         "analysis",
         "hooks",
         "cc-adoption"
-=======
+      ],
+      "date": "2026-08-29"
+    },
+    {
       "slug": "glyph-v3-front-door",
       "source": "docs/feat--glyph-v3-front-door/index.html",
       "title": "glyph v3: two dials, one front door",
@@ -450,7 +452,6 @@
       "tags": [
         "skills",
         "visualization"
->>>>>>> 408eb732b (docs(lab): register the PR playground in the Lab manifest)
       ],
       "date": "2026-08-29"
     }
