@@ -26,7 +26,7 @@ export const LAB_ENTRIES: LabEntry[] = [
     "date": "2026-08-29",
     "featured": false,
     "caseStudy": null,
-    "sizeKb": 28
+    "sizeKb": 29
   },
   {
     "slug": "glyph-v3-front-door",
