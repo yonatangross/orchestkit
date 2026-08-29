@@ -1,7 +1,7 @@
 ---
 name: design-import
 license: MIT
-compatibility: "Claude Code 2.1.220+. Requires: claude-design-orchestrator agent. Optional: stitch, 21st-dev-magic, storybook-mcp MCP servers (used transitively via design-to-code)."
+compatibility: "Claude Code 2.1.251+. Requires: claude-design-orchestrator agent. Optional: stitch, 21st-dev-magic, storybook-mcp MCP servers (used transitively via design-to-code)."
 description: "Scaffolds React components from a Claude Design handoff bundle and stops at files on disk: no stories, no tests, no pull request. Use when handed a claude.ai/design URL or a local bundle file; when that same scaffold should carry on through test generation, browser verification and an opened PR, run /ork:design-ship instead."
 argument-hint: "<handoff-url | path-to-bundle.json>"
 tags: [claude-design, handoff, design-import, design-to-code, bundle, scaffold, frontend]

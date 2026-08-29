@@ -7,7 +7,7 @@ user-invocable: false
 disable-model-invocation: false
 complexity: low
 tags: [verification, debugging, quality-gates]
-compatibility: "Claude Code 2.1.220+."
+compatibility: "Claude Code 2.1.251+."
 ---
 
 # paired-probe

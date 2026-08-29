@@ -466,6 +466,18 @@
         "cc-adoption"
       ],
       "date": "2026-08-29"
+    },
+    {
+      "slug": "cc-adopt-all-architecture",
+      "source": "docs/chore--cc-floor-2.1.251/index.html",
+      "title": "Adopt all: the CC integration layer OrchestKit is building toward",
+      "description": "Five layers, where every 2.1.243 to 2.1.251 capability lands, the three waves that get there, and why the contract layer (the support floor) has to move first: an unknown hook event key makes older Claude Code drop the whole hooks.json.",
+      "tags": [
+        "architecture",
+        "hooks",
+        "cc-adoption"
+      ],
+      "date": "2026-08-29"
     }
   ]
 }

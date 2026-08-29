@@ -1,7 +1,7 @@
 ---
 name: cover
 license: MIT
-compatibility: "Claude Code 2.1.220+. Requires network access."
+compatibility: "Claude Code 2.1.251+. Requires network access."
 description: "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new."
 argument-hint: "[scope-or-feature]"
 context: fork

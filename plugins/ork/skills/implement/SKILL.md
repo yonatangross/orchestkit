@@ -1,7 +1,7 @@
 ---
 name: implement
 license: MIT
-compatibility: "Claude Code 2.1.220+. Requires memory MCP server, context7 MCP server, network access."
+compatibility: "Claude Code 2.1.251+. Requires memory MCP server, context7 MCP server, network access."
 description: "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code."
 argument-hint: "[feature-description]"
 context: fork
