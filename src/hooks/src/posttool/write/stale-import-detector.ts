@@ -26,8 +26,8 @@
  * suppression marker comment within IGNORE_WINDOW_LINES of the import.
  */
 
-import { existsSync, readFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, basename, relative, sep, resolve as resolvePath } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, outputNotify, outputBlock, getField } from '../../lib/common.js';
@@ -158,18 +158,32 @@ function findStaleReferences(
     pattern = `(from\\s+${safe}\\s+import|import\\s+${safe})`;
   }
 
+  // #3801: this used to build one shell string and pass the regex through
+  // assertSafeShellArg(), whose character class has no room for `(`, `|`,
+  // `\\` or `*`. The assertion threw on EVERY call, the catch below returned
+  // [], and the hook answered silent success for every Write while its unit
+  // test, which mocks the shell, stayed green. No shell: grep gets an
+  // argument vector, so the pattern is data and needs no quoting at all.
+  const safeDir = assertSafeShellArg(projectDir, 'project dir');
+  const includes =
+    lang === 'ts'
+      ? ['--include=*.ts', '--include=*.tsx', '--include=*.js', '--include=*.jsx']
+      : ['--include=*.py'];
+  const roots = [`${safeDir}/src`, `${safeDir}/tests`].filter(existsSync);
+  if (!roots.length) return [];
   try {
-    const safeDir = assertSafeShellArg(projectDir, 'project dir');
-    const safePattern = assertSafeShellArg(pattern, 'grep pattern');
-    // shell required: ripgrep/grep with regex and type filtering
-    const cmd =
-      lang === 'ts'
-        ? `grep -rnE --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' -- '${safePattern}' '${safeDir}/src' '${safeDir}/tests' 2>/dev/null | head -${MAX_REFS + 1}`
-        : `grep -rnE --include='*.py' -- '${safePattern}' '${safeDir}/src' '${safeDir}/tests' 2>/dev/null | head -${MAX_REFS + 1}`;
-    const out = execSync(cmd, { encoding: 'utf8', timeout: 5000 }).trim();
+    const out = execFileSync('grep', ['-rnE', ...includes, '--', pattern, ...roots], {
+      encoding: 'utf8',
+      timeout: 5000,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
     if (!out) return [];
     return out.split('\n').filter(Boolean).slice(0, MAX_REFS);
-  } catch {
+  } catch (err) {
+    // grep exits 1 for "no match", which is the normal empty answer; anything
+    // else (missing binary, timeout) is also an empty answer, but not silent.
+    const status = (err as { status?: number }).status;
+    if (status !== 1) process.stderr.write(`[${HOOK_NAME}] grep failed (status ${String(status)}); treating as no references\n`);
     return [];
   }
 }
@@ -193,26 +207,42 @@ function newFileTriggersSplit(filePath: string): boolean {
   return Boolean(stem);
 }
 
+/** realpath when the path exists, the given spelling otherwise (#3801). */
+function realOrSame(p: string): string {
+  try {
+    return realpathSync(p);
+  } catch {
+    return p;
+  }
+}
+
 export function staleImportDetector(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
   if (toolName !== 'Write' && toolName !== 'Edit' && toolName !== 'MultiEdit') {
     return outputSilentSuccess();
   }
 
-  const filePath = getField<string>(input, 'tool_input.file_path') || '';
-  if (!filePath || !CODE_EXT_RE.test(filePath)) {
+  const rawPath = getField<string>(input, 'tool_input.file_path') || '';
+  if (!rawPath || !CODE_EXT_RE.test(rawPath)) {
     return outputSilentSuccess();
   }
+  // #3801: CC hands hooks CLAUDE_PROJECT_DIR as a realpath (/private/var/...
+  // on macOS) while tool_input.file_path keeps the caller's spelling
+  // (/var/...). grep hits come back under the project dir, so the subtree
+  // comparison below saw two spellings of one directory and never matched.
+  // Resolve the written file the same way; a missing file keeps its spelling.
+  const filePath = realOrSame(rawPath);
+  const projectDir = realOrSame(ctx.projectDir);
 
   // Only interesting if a source file just landed (or was heavily edited)
   if (!newFileTriggersSplit(filePath)) {
     return outputSilentSuccess();
   }
 
-  const { lang, pathHint } = deriveModuleId(ctx.projectDir, filePath);
+  const { lang, pathHint } = deriveModuleId(projectDir, filePath);
   if (!lang || !pathHint) return outputSilentSuccess();
 
-  const refs = findStaleReferences(ctx.projectDir, lang, pathHint);
+  const refs = findStaleReferences(projectDir, lang, pathHint);
   if (refs.length < MIN_SIGNAL_REFS) return outputSilentSuccess();
 
   ctx.log(HOOK_NAME, `Found ${refs.length} import references to ${pathHint}`);
@@ -231,7 +261,7 @@ export function staleImportDetector(input: HookInput, ctx: HookContext = NOOP_CT
 
   const cond1 = parsed.length >= BLOCK_THRESHOLD_REFS;
   const cond2 = parsed.some(r => isSameSubtree(filePath, r.file));
-  const cond3 = !parsed.some(r => hasIgnoreMarker(ctx.projectDir, r));
+  const cond3 = !parsed.some(r => hasIgnoreMarker(projectDir, r));
 
   if (cond1 && cond2 && cond3) {
     const refsList = parsed

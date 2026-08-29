@@ -16,6 +16,9 @@ vi.mock('node:fs', () => ({
 const mockExecSync = vi.fn();
 vi.mock('node:child_process', () => ({
   execSync: (...args: unknown[]) => mockExecSync(...args),
+  // #3801: the hook now calls execFileSync (argument vector, no shell); the
+  // mocked return value is the same grep output either way.
+  execFileSync: (...args: unknown[]) => mockExecSync(...args),
 }));
 
 vi.mock('../../lib/common.js', () => mockCommonBasic({}));
