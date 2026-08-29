@@ -476,7 +476,8 @@ describe('Cross-Bundle Consistency', () => {
     //             are unchanged and validate-counts.sh still reads 171; only
     //             the entries-map handler count moves. Both numbers are correct
     //             and they count different things.
-    expect(totalHooks).toBe(194);
+    // 194 -> 196: #3789 (CC 2.1.251) — PreModelSwitch consent gate + PostModelSwitch telemetry (lifecycle/model-switch-consent, lifecycle/model-switch-telemetry)
+    expect(totalHooks).toBe(196);
   });
 });
 

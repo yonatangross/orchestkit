@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "model-switch-consent",
+    "title": "PreModelSwitch: the second door onto Fable, now guarded",
+    "description": "The payload as measured on CC 2.1.251, the three-run end-to-end table before and after one fix, and the defect unit tests could not see: a hook whose envelope the output guard strips is not a hook that blocks.",
+    "tags": [
+      "hooks",
+      "false-signals",
+      "cc-adoption"
+    ],
+    "date": "2026-08-29",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 9
+  },
+  {
     "slug": "partial-results-continue",
     "title": "A turn-limited agent is paused, not finished",
     "description": "Since CC 2.1.246 a subagent that hits maxTurns comes back marked partial with a hint to continue it. The retry handler now names the limit and the agent id and says continue with SendMessage, not re-spawn; six skill docs teach the same shape.",
@@ -40,7 +54,7 @@ export const LAB_ENTRIES: LabEntry[] = [
     "date": "2026-08-29",
     "featured": false,
     "caseStudy": null,
-    "sizeKb": 29
+    "sizeKb": 28
   },
   {
     "slug": "permission-rule-wildcard-lint",

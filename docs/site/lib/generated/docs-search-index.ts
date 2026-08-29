@@ -138,7 +138,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code — 106 skills, 36 agents, 171 hooks working together."
+    "description": "The complete AI development toolkit for Claude Code — 106 skills, 36 agents, 175 hooks working together."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -208,7 +208,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks/architecture",
     "title": "Hook Architecture",
-    "description": "How OrchestKit's 171-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
+    "description": "How OrchestKit's 175-hook system works: bundles, dispatchers, execution modes, and the stop pipeline."
   },
   {
     "url": "/docs/hooks",
@@ -227,7 +227,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/hooks/overview",
-    "title": "171 Hooks: What Fires When",
+    "title": "175 Hooks: What Fires When",
     "description": "TypeScript functions that intercept every Claude Code lifecycle event -- blocking dangerous commands, injecting context, and syncing memory, all invisibly."
   },
   {
@@ -523,7 +523,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/hooks",
     "title": "Hooks Reference",
-    "description": "Complete reference for all 150 global lifecycle hook entries across 30 event categories."
+    "description": "Complete reference for all 154 global lifecycle hook entries across 32 event categories."
   },
   {
     "url": "/docs/reference/hooks/instructions-loaded",
@@ -556,6 +556,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Hooks triggered on PostCompact events (2 hooks)."
   },
   {
+    "url": "/docs/reference/hooks/post-model-switch",
+    "title": "PostModelSwitch",
+    "description": "Hooks triggered on PostModelSwitch events (2 hooks)."
+  },
+  {
     "url": "/docs/reference/hooks/post-tool-batch",
     "title": "PostToolBatch",
     "description": "Hooks triggered on PostToolBatch events (1 hooks)."
@@ -574,6 +579,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference/hooks/pre-compact",
     "title": "PreCompact",
     "description": "Hooks triggered on PreCompact events (4 hooks)."
+  },
+  {
+    "url": "/docs/reference/hooks/pre-model-switch",
+    "title": "PreModelSwitch",
+    "description": "Hooks triggered on PreModelSwitch events (2 hooks)."
   },
   {
     "url": "/docs/reference/hooks/pre-tool-use",
@@ -688,7 +698,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference",
     "title": "Reference",
-    "description": "Complete reference for all 106 skills, 36 agents, and 171 hooks."
+    "description": "Complete reference for all 106 skills, 36 agents, and 175 hooks."
   },
   {
     "url": "/docs/reference/skills/accessibility",

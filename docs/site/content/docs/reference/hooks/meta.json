@@ -29,6 +29,8 @@
     "task-created",
     "task-completed",
     "worktree-remove",
+    "pre-model-switch",
+    "post-model-switch",
     "instructions-loaded",
     "config-change",
     "permission-denied",

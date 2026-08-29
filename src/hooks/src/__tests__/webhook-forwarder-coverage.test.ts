@@ -185,7 +185,8 @@ describe('Webhook Forwarder Coverage Validator', () => {
     // 28 -> 30: #3327 — MessageDisplay + DirectoryAdded, the last two CC events
     // ork never listened on. Both observer-only; forwarding deliberately
     // deferred via INTENTIONAL_EXCLUSIONS above.
-    expect(eventCount).toBe(30);
+    // 30 -> 32: #3789 (CC 2.1.251) — PreModelSwitch consent gate + PostModelSwitch telemetry (two new hooks.json event types, both forwarded)
+    expect(eventCount).toBe(32);
   });
 
   test('detects standalone webhook-forwarder entries', () => {

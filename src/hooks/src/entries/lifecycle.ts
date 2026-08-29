@@ -32,6 +32,9 @@ import { syncSessionDispatcher } from '../lifecycle/sync-session-dispatcher.js';
 import { syncSessionEndDispatcher } from '../lifecycle/sync-session-end-dispatcher.js';
 import { usageSummaryReporter } from '../lifecycle/usage-summary-reporter.js';
 import { webhookForwarder } from '../lifecycle/webhook-forwarder.js';
+// #3789 (CC 2.1.251): PreModelSwitch consent gate + PostModelSwitch telemetry
+import { modelSwitchConsent } from '../lifecycle/model-switch-consent.js';
+import { modelSwitchTelemetry } from '../lifecycle/model-switch-telemetry.js';
 import { sessionHandoffGenerator } from '../lifecycle/session-handoff-generator.js';
 import { sessionHandoffInjector } from '../lifecycle/session-handoff-injector.js';
 
@@ -135,6 +138,9 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/sync-session-end-dispatcher': syncSessionEndDispatcher,
   'lifecycle/usage-summary-reporter': usageSummaryReporter,
   'lifecycle/webhook-forwarder': webhookForwarder,
+  // #3789 (CC 2.1.251)
+  'lifecycle/model-switch-consent': modelSwitchConsent,
+  'lifecycle/model-switch-telemetry': modelSwitchTelemetry,
   'lifecycle/session-handoff-generator': sessionHandoffGenerator,
   'lifecycle/session-handoff-injector': sessionHandoffInjector,
   // M119 #1815 — pre-flight warning before CC's 40k auto-load cliff

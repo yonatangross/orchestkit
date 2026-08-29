@@ -1,6 +1,6 @@
 /**
  * TypeScript type definitions for Claude Code hooks
- * Reviewed through CC 2.1.206 (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.83 CwdChanged/FileChanged, 2.1.84 TaskCreated/WorktreeCreate HTTP, 2.1.88 PermissionDenied + auto permission mode, 2.1.89 defer permission, 2.1.94 sessionTitle on UserPromptSubmit, 2.1.152 MessageDisplay event, 2.1.163 Stop/SubagentStop may return additionalContext — ork opts out, see stop/unified-dispatcher.ts, 2.1.173 reloadSkills + sessionTitle on SessionStart, 2.1.177 continueOnBlock PostToolUse config).
+ * Reviewed through CC 2.1.251 for #3789 (PreModelSwitch/PostModelSwitch input + permissionDecision; SessionStart resume staleness fields; payloads measured, see lib/session-staleness.ts). Earlier: reviewed through CC 2.1.206 (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.83 CwdChanged/FileChanged, 2.1.84 TaskCreated/WorktreeCreate HTTP, 2.1.88 PermissionDenied + auto permission mode, 2.1.89 defer permission, 2.1.94 sessionTitle on UserPromptSubmit, 2.1.152 MessageDisplay event, 2.1.163 Stop/SubagentStop may return additionalContext — ork opts out, see stop/unified-dispatcher.ts, 2.1.173 reloadSkills + sessionTitle on SessionStart, 2.1.177 continueOnBlock PostToolUse config).
  * 2.1.184–2.1.206 reviewed via the per-range adoption triages (docs/audits/cc-adoption-*): no new hook input/output JSON field ork consumes — 2.1.203's worktree shell-command leak closure and 2.1.206's EnterWorktree external-path confirmation are behavioral, not contract fields; 2.1.204's SessionStart headless hook-event streaming changes delivery, not shape.
  * 2.1.171–2.1.183 added NO new hook output JSON field that ork consumes: 2.1.173 `reloadSkills` (SessionStart) is unused — ork installs no skills mid-session; 2.1.173 `sessionTitle` on SessionStart is the existing field on a new event (the hookEventName union already permits SessionStart); 2.1.177 `continueOnBlock` is a hooks.json registration flag, not an output field (used by goal-budget-guard/goal-tracker/check-plugins-drift); 2.1.177 Stop/SubagentStop additionalContext — ork still opts out (stop/unified-dispatcher.ts); 2.1.178 removed the TeamCreate/TeamDelete TOOLS (not hooks.json events) and added Tool(param:value) permission rules; 2.1.183 lets a teammate's background task outlive its turn (no hooks-contract change). So these types are unchanged.
  */
@@ -37,6 +37,9 @@ export type HookEvent =
   | 'CwdChanged'
   | 'FileChanged'
   | 'MessageDisplay'
+  // #3789 (CC 2.1.251): model-switch gate + telemetry; payload in lib/session-staleness.ts
+  | 'PreModelSwitch'
+  | 'PostModelSwitch'
   // P3-A3 (CC 2.1.208): observer-only events
   | 'UserPromptExpansion'
   | 'PostToolBatch'
@@ -354,8 +357,8 @@ export interface ToolInput {
  */
 export interface HookSpecificOutput {
   /** Hook event name for context */
-  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'PermissionDenied' | 'UserPromptSubmit' | 'SubagentStart' | 'SubagentStop' | 'SessionStart' | 'PostCompact';
-  /** Permission decision (PermissionRequest/PreToolUse hooks, CC 2.1.69: added 'ask', CC 2.1.89: added 'defer') */
+  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'PermissionDenied' | 'UserPromptSubmit' | 'SubagentStart' | 'SubagentStop' | 'SessionStart' | 'PostCompact' | 'PreModelSwitch';
+  /** Permission decision (PermissionRequest/PreToolUse hooks, CC 2.1.69: added 'ask', CC 2.1.89: added 'defer'; CC 2.1.251: PreModelSwitch answers allow/deny/ask the same way) */
   permissionDecision?: 'allow' | 'deny' | 'ask' | 'defer';
   /** Reason for permission decision */
   permissionDecisionReason?: string;

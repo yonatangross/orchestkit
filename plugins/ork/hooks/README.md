@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->171<!--/ork--> hooks (<!--ork:hooks-global-->150<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->175<!--/ork--> hooks (<!--ork:hooks-global-->154<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -182,8 +182,14 @@ Session and instance lifecycle management.
 - `TaskCreated` / `TaskCompleted` - Task lifecycle tracking (CC 2.1.84)
 - `TeammateIdle` - Teammate agent idle detection (CC 2.1.33)
 - `WorktreeCreate` / `WorktreeRemove` - Worktree lifecycle (CC 2.1.69)
+<<<<<<< HEAD
 - `CwdChanged` - Working directory changed (CC 2.1.83) — hooked: `lifecycle/cwd-changed` + webhook forwarder
 - `FileChanged` - File modified externally (CC 2.1.83) — hooked: `lifecycle/file-changed` + webhook forwarder (PostToolUse still covers tool writes)
+=======
+- `PreModelSwitch` / `PostModelSwitch` - Session model change, before (can allow/deny/ask) and after (CC 2.1.251, #3789) — hooked: `lifecycle/model-switch-consent`, `lifecycle/model-switch-telemetry`
+- `CwdChanged` - Working directory changed (CC 2.1.83) — **not hooked** (no use case yet)
+- `FileChanged` - File modified externally (CC 2.1.83) — **not hooked** (PostToolUse covers writes)
+>>>>>>> 4a129148b (feat(hooks): PreModelSwitch consent gate + PostModelSwitch telemetry)
 
 ### Notification Hooks (Notification)
 Handle notifications and alerts.
@@ -1278,9 +1284,16 @@ When adding new hooks, place them in the appropriate entry point for optimal bun
 | ConfigChange | (root hooks.json) | lifecycle.mjs |
 | TaskCreated/TaskCompleted | (root hooks.json) | lifecycle.mjs |
 | TeammateIdle | (root hooks.json) | lifecycle.mjs |
+<<<<<<< HEAD
 | WorktreeRemove | (root hooks.json) | lifecycle.mjs (webhook-forwarder only; WorktreeCreate is deliberately unregistered, #3315) |
 | CwdChanged | src/entries/lifecycle.ts | lifecycle.mjs (`lifecycle/cwd-changed`) |
 | FileChanged | src/entries/lifecycle.ts | lifecycle.mjs (`lifecycle/file-changed`) |
+=======
+| WorktreeCreate/Remove | (root hooks.json) | lifecycle.mjs |
+| PreModelSwitch/PostModelSwitch | (root hooks.json) | lifecycle.mjs (`lifecycle/model-switch-consent`, `lifecycle/model-switch-telemetry`) |
+| CwdChanged | *not hooked* | — |
+| FileChanged | *not hooked* | — |
+>>>>>>> 4a129148b (feat(hooks): PreModelSwitch consent gate + PostModelSwitch telemetry)
 | Skill-specific | src/entries/skill.ts | skill.mjs |
 | Agent-specific | src/entries/agent.ts | agent.mjs |
 
@@ -1346,7 +1359,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->171<!--/ork--> hooks (<!--ork:hooks-global-->150<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->175<!--/ork--> hooks (<!--ork:hooks-global-->154<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
@@ -1355,6 +1368,8 @@ See the async hooks section above for detailed async hook patterns.
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
 
 The registry's change history used to accumulate inside the `description` field of `hooks.json`, which made the count unreadable and the JSON diff-hostile. The field now carries only the stamped count line; history continues here.
+
+(count 171 -> 175, 2026-08-29): `PreModelSwitch` and `PostModelSwitch` adopted (#3789, CC 2.1.251). The standing rule "no Fable spend without consent" had one door guarded, `pretool/task/fable-spend-consent` on an agent SPAWN pin, and none on the other door, the session itself moving onto the premium tier via `/model`, the picker or the SDK's set_model. 2.1.251 added a hook at exactly that seam. `lifecycle/model-switch-consent` (PreModelSwitch, sync, 10s) answers `permissionDecision: ask` when `to_model` is Fable or Mythos and the session is not already on that tier, quoting CC's own `estimated_cache_write_usd` when non-zero; within-tier moves and `ORK_FABLE_OK=1` pass silently, and like the spawn gate it is deliberately NOT skipped under bypass mode (spend consent is not a permission). `lifecycle/model-switch-telemetry` (PostModelSwitch, async) appends one line per switch to `~/.claude/analytics/model-switch.jsonl` and never writes stdout context (exit-0 stdout on that event is shown to Claude). Both events also get the webhook forwarder, hence +4. The payload contract was MEASURED, not read from docs, which still do not list the events: a stdin-dumping hook on a real 2.1.251 `-p` session running `/model claude-opus-5` captured `from_model, to_model, requested_model, source ("command"), context_tokens, prompt_cache_warm, cache_ttl, estimated_cache_write_usd, pricing`, and the binary's hook registry describes output as "JSON permissionDecision allow/deny/ask as for PreToolUse; exit 2 blocks" with matcher on `to_model`. The same release put staleness on SessionStart resume payloads; measured fields are `seconds_since_last_response, context_tokens, prompt_cache_likely_expired, estimated_cache_write_usd, session_title` (NOT the `staleness_ms` the binary's string table suggests; that key is the device bridge's). `lib/session-staleness.ts` owns all readers; `sync-session-dispatcher` now records the resume fields in `session-start-perf.jsonl`, and `session-handoff-injector` skips a resume that came back within 30 minutes onto a cache CC reports warm (conversation intact, nothing to re-orient), still injecting on cold or long-idle resumes. Types, the three event allowlists (`tests/hooks/test-hook-structure.sh`, `tests/schemas/test-plugin-schema.sh`, `spec/cc-output-keys.spec.yml`) and `permissionDecision`'s event set were extended for the new event names, which they rejected before. One of those allowlists is load-bearing at runtime, and the end-to-end run is what proved it: with `PreModelSwitch` absent from `EVENTS_WITH_HOOK_EVENT_NAME` in `bin/cc-output-keys.generated.mjs`, `output-guard.mjs` stripped the hook's `hookEventName`, CC reported `Hook JSON output validation failed — hookSpecificOutput is missing required field`, and the switch to Fable PROCEEDED, i.e. the consent gate failed open while every unit test was green (58/58). Adding the event to the generated module (and to `KEY_EVENTS` for `permissionDecision`/`permissionDecisionReason`) turned the same `claude -p "/model claude-fable-5"` run into `Model switch to Fable 5 was blocked by a PreModelSwitch hook: …`, with `ORK_FABLE_OK=1` allowing it and a non-premium switch untouched. The lesson is the #3770 class seen from the other side: a hook whose envelope the guard strips is not a hook that blocks, and only a trace-and-observe run can tell the two apart.
 
 (count unchanged at 171, 2026-08-28, second entry): `bin/run-hook.mjs` could run a hook TWICE in one process, putting two envelopes on stdout. Three stdin handlers can start the hook; `end` (:442) and `error` (:459) both guard on `stdinClosed`, while the `data` handler's >512KB truncation branch (:421) SET that flag and never read it. So after the 100ms timeout had already run the hook against an empty payload (#3415, a slow producer losing the stdin race), a late oversized payload (#620, an image paste) ran it again, and stdout became `{"continue":true,"suppressOutput":true}` twice over: starts with `{`, fails `JSON.parse`. Measured across six stdin shapes; only the two that CONJOIN a post-timeout arrival with an over-cap payload double-emit, including the multi-chunk variant where a later chunk re-entered the branch after the threshold was already crossed. CC 2.1.248 is why this surfaced now: it changed hook stdout that looks like JSON but does not parse from silently-treated-as-plain-text into a reported hook error whose result is DISCARDED. The defect predates that release, and under the old behaviour the doubled envelope was handed downstream as plain text, which on UserPromptSubmit and SessionStart is the context channel, so it was being injected as prompt text rather than read as a result. Fix is the one-line sibling guard the other two handlers already had. The three existing tests in `run-hook-stdin-timeout.test.ts` could not have caught it on two independent counts: they call `child.stdout.resume()` and assert only on stderr and the exit code, and they exercise the two conditions separately rather than together. The new conjunction test asserts on stdout and is a verified positive control (guard removed: 1 failed / 6 passed; guard present: 7 passed), with two negative controls for the over-guarding failure mode.
 

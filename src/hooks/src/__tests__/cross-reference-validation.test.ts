@@ -252,6 +252,9 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
       Setup: ['setup', 'lifecycle'],
       WorktreeCreate: ['worktree', 'lifecycle'],
       WorktreeRemove: ['worktree', 'lifecycle'],
+      // #3789 (CC 2.1.251): both handlers live in the lifecycle bundle
+      PreModelSwitch: ['lifecycle'],
+      PostModelSwitch: ['lifecycle'],
       ConfigChange: ['config-change', 'lifecycle'],
       InstructionsLoaded: ['instructions-loaded', 'lifecycle'],
       PostCompact: ['lifecycle'],

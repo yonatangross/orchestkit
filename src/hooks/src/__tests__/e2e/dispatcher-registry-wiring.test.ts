@@ -368,7 +368,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 105 -> 107: #3327 — lifecycle/directory-added (DirectoryAdded) and
       //             notification/message-display-observer (MessageDisplay).
       // 107 -> 106: #3354 removed subagent-stop/handoff-preparer (0-reader handoff writes)
-      expect(asyncHooks.length, 'Should have exactly 106 async hooks').toBe(106);
+      // 106 -> 109: #3789 (CC 2.1.251) — async PostModelSwitch telemetry + webhook forwarders on both new events; the PreModelSwitch consent gate is sync
+      expect(asyncHooks.length, 'Should have exactly 109 async hooks').toBe(109);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -511,7 +512,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 105 -> 107: #3327 — lifecycle/directory-added (DirectoryAdded) and
       //             notification/message-display-observer (MessageDisplay).
       // 107 -> 106: #3354 removed subagent-stop/handoff-preparer (0-reader handoff writes)
-      expect(asyncCount).toBe(106);
+      // 106 -> 109: #3789 (CC 2.1.251) — async PostModelSwitch telemetry + webhook forwarders on both new events; the PreModelSwitch consent gate is sync
+      expect(asyncCount).toBe(109);
     });
 
     it('should have hooks for all critical security operations', () => {

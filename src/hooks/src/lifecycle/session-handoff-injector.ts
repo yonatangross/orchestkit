@@ -32,6 +32,7 @@ import { outputSilentSuccess } from '../lib/common.js';
 import { outputSessionStartContext } from '../lib/output.js';
 import { hashProject } from '../lib/analytics.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { readResumeStaleness } from '../lib/session-staleness.js';
 import {
   HANDOFF_MARKER,
   claimHandoffInjection,
@@ -44,6 +45,16 @@ const HOOK_NAME = 'session-handoff-injector';
 export function sessionHandoffInjector(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   try {
     const projectDir = input.project_dir || ctx.projectDir;
+
+    // #3789 (CC 2.1.251): a resume that came back within the idle window onto a
+    // cache CC still reports warm has its conversation intact; injecting the
+    // previous session's handoff there re-orients nobody and only adds tokens
+    // on top of a warm prefix. Cold or long-idle resumes still get it.
+    const stale = readResumeStaleness(input);
+    if (stale.isWarmRecentResume) {
+      ctx.log(HOOK_NAME, `Warm resume after ${stale.secondsSinceLastResponse}s with cache intact — skipping handoff injection`);
+      return outputSilentSuccess();
+    }
 
     // #3329: the repo-local loop is the surviving one. Yield to it.
     if (hasFreshLocalHandoff(projectDir)) {
