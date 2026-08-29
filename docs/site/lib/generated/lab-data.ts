@@ -29,6 +29,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 9
   },
   {
+    "slug": "partial-results-continue",
+    "title": "A turn-limited agent is paused, not finished",
+    "description": "Since CC 2.1.246 a subagent that hits maxTurns comes back marked partial with a hint to continue it. The retry handler now names the limit and the agent id and says continue with SendMessage, not re-spawn; six skill docs teach the same shape.",
+    "tags": [
+      "hooks",
+      "skills",
+      "cc-adoption"
+    ],
+    "date": "2026-08-29",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "cc-adopt-all-architecture",
     "title": "Adopt all: the CC integration layer OrchestKit is building toward",
     "description": "Five layers, where every 2.1.243 to 2.1.251 capability lands, the three waves that get there, and why the contract layer (the support floor) has to move first: an unknown hook event key makes older Claude Code drop the whole hooks.json.",
