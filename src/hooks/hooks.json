@@ -422,8 +422,10 @@
             "continueOnBlock": true,
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
-              "posttool/write/stale-import-detector"
-            ]
+              "posttool/write/stale-import-detector",
+              "--rewake"
+            ],
+            "asyncRewake": true
           },
           {
             "type": "command",
@@ -1208,8 +1210,10 @@
             "timeout": 10,
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
-              "skill/coverage-threshold-gate"
-            ]
+              "skill/coverage-threshold-gate",
+              "--rewake"
+            ],
+            "asyncRewake": true
           },
           {
             "type": "command",
@@ -1218,8 +1222,10 @@
             "timeout": 10,
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
-              "skill/cross-instance-test-validator"
-            ]
+              "skill/cross-instance-test-validator",
+              "--rewake"
+            ],
+            "asyncRewake": true
           },
           {
             "type": "command",

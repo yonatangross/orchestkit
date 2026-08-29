@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "verdict-after-the-turn",
+    "title": "The Verdict That Arrived After the Turn Ended",
+    "description": "An async hook cannot block and its output waits for a next turn. ork's three background verifiers now carry CC's asyncRewake, so a block verdict exits 2 and wakes Claude at once. Measured on 2.1.251 and 2.1.248 with a nonce through a loopback Messages API: delivered in the next request under asyncRewake, never under plain async.",
+    "tags": [
+      "hooks",
+      "measurement",
+      "false-signals"
+    ],
+    "date": "2026-08-29",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
     "slug": "guard-that-guarded-the-guard",
     "title": "The Guard That Guarded the Guard",
     "description": "stale-import-detector runs after every Write and never once found a stale import: its grep regex was rejected by the shell-argument guard on every call, the catch returned nothing, and the unit test mocked the shell. Type a pattern and watch the guard decide; then the fix and the test that would have failed on day one.",

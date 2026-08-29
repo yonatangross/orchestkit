@@ -550,6 +550,18 @@
         "fix"
       ],
       "date": "2026-08-29"
+    },
+    {
+      "slug": "verdict-after-the-turn",
+      "source": "docs/feat--async-rewake-verifiers/index.html",
+      "title": "The Verdict That Arrived After the Turn Ended",
+      "description": "An async hook cannot block and its output waits for a next turn. ork's three background verifiers now carry CC's asyncRewake, so a block verdict exits 2 and wakes Claude at once. Measured on 2.1.251 and 2.1.248 with a nonce through a loopback Messages API: delivered in the next request under asyncRewake, never under plain async.",
+      "tags": [
+        "hooks",
+        "measurement",
+        "false-signals"
+      ],
+      "date": "2026-08-29"
     }
   ]
 }
