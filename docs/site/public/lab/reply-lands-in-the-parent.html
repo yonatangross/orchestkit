@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>The reply lands in the parent: cross-session messaging after CC 2.1.248</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0f1115;--fg:#e6e6e6;--mut:#9aa3ad;--a:#7bd88f;--b:#f2c14e;--r:#e06c75;--line:#262b33}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:920px;margin:0 auto;padding:40px 20px}
+h1{font-size:26px;margin:0 0 6px}h2{font-size:18px;margin:32px 0 10px}
+p.lead{color:var(--mut);margin-top:0}
+.card{border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px 0}
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:10px;align-items:center;font-family:ui-monospace,Menlo,monospace;font-size:13px}
+.box{border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center}
+.box.hot{border-color:var(--a);box-shadow:0 0 0 1px var(--a) inset}
+.arrow{color:var(--mut)}
+button{background:#1a1f27;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer;margin-right:8px}
+button.on{border-color:var(--a)}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+.ok{color:var(--a)}.no{color:var(--r)}
+code{background:#1a1f27;padding:1px 5px;border-radius:4px;font-size:13px}
+.note{color:var(--mut);font-size:13px}
+</style></head><body><main>
+<h1>The reply lands in the parent</h1>
+<p class="lead">Two CC 2.1.248 changes to cross-session messaging that every ork agent and skill granting <code>SendMessage</code> now states in its own text (#3772, #3773). Pick who sends; watch where the answer goes.</p>
+
+<h2>1. Who sent it decides where the reply goes</h2>
+<div class="card">
+ <p><button id="bMain" class="on">main session sends</button><button id="bSub">a subagent sends</button></p>
+ <div class="flow">
+  <div class="box" id="s1">main session</div><div class="arrow">SendMessage &rarr;</div>
+  <div class="box">peer session</div><div class="arrow">&larr; reply</div>
+  <div class="box hot" id="s3">main session</div>
+ </div>
+ <p id="explain">The main session sent, so the peer's reply arrives in the main conversation. Nothing surprising.</p>
+</div>
+<p>Before 2.1.248 the tool result from a subagent's <code>SendMessage</code> said nothing about this, and a subagent could reasonably wait for an answer that could never reach it. The changelog entry is filed as <em>breaking</em> for exactly that reason: the rule did not change, the visibility of it did. ork's text now says it where the tool is granted: send and move on, the parent reads the answer.</p>
+
+<h2>2. Where it works</h2>
+<table><thead><tr><th>Setup</th><th>before 2.1.248</th><th>2.1.248 and later</th></tr></thead><tbody>
+<tr><td>Anthropic first party, telemetry on</td><td class="ok">works</td><td class="ok">works</td></tr>
+<tr><td>Amazon Bedrock</td><td class="no">no peers</td><td class="ok">works</td></tr>
+<tr><td>Google Vertex</td><td class="no">no peers</td><td class="ok">works</td></tr>
+<tr><td>Microsoft Foundry</td><td class="no">no peers</td><td class="ok">works</td></tr>
+<tr><td>telemetry disabled (<code>DISABLE_TELEMETRY=1</code>)</td><td class="no">no peers</td><td class="ok">works</td></tr>
+</tbody></table>
+<p class="note">Same machine, macOS and Linux, unchanged. "No peers" was silent: <code>ListAgents</code> returned an empty list and the caller fell back to polling files. That fallback is no longer justified by the provider or by telemetry being off.</p>
+
+<h2>3. Proof that every mention states it</h2>
+<div class="card">
+ <table><thead><tr><th>Surface</th><th>grants or mentions SendMessage</th><th>states both facts</th></tr></thead><tbody>
+ <tr><td><code>src/agents/*.md</code> (frontmatter grant)</td><td>19</td><td class="ok">19</td></tr>
+ <tr><td><code>src/skills/*/SKILL.md</code> (any mention)</td><td>10</td><td class="ok">10</td></tr>
+ </tbody></table>
+ <p class="note">Enforced from now on by <code>tests/agents/test-agent-messaging-scope.sh</code> rule (c) and <code>tests/skills/test-skill-sendmessage-reply-note.sh</code>; both rosters are derived by grep, so the 20th agent is covered the day it lands. Negative control: deleting one note makes each test fail.</p>
+</div>
+<script>
+const bm=document.getElementById('bMain'),bs=document.getElementById('bSub'),s1=document.getElementById('s1'),s3=document.getElementById('s3'),ex=document.getElementById('explain');
+function set(sub){bm.classList.toggle('on',!sub);bs.classList.toggle('on',sub);
+ s1.textContent=sub?'subagent (child of main)':'main session';
+ s3.textContent='main session';
+ ex.textContent=sub?'The subagent sent, but the reply is delivered to the PARENT session’s conversation, never to the subagent. The subagent must not wait; the parent reads the answer and, if needed, forwards it with SendMessage to the subagent’s task id.':'The main session sent, so the peer’s reply arrives in the main conversation. Nothing surprising.';}
+bm.onclick=()=>set(false);bs.onclick=()=>set(true);
+</script>
+</main></body></html>

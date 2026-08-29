@@ -526,6 +526,18 @@
         "cost"
       ],
       "date": "2026-08-29"
+    },
+    {
+      "slug": "reply-lands-in-the-parent",
+      "source": "docs/docs--3772-3773-cross-session-messaging/index.html",
+      "title": "The Reply Lands in the Parent",
+      "description": "Two CC 2.1.248 cross-session messaging facts, now stated by all 19 agents and 10 skills that grant SendMessage: a subagent's cross-session reply is delivered to the parent session, and messaging works on Bedrock, Vertex, Foundry and with telemetry off. Pick who sends and watch where the answer goes.",
+      "tags": [
+        "docs",
+        "agents",
+        "messaging"
+      ],
+      "date": "2026-08-29"
     }
   ]
 }

@@ -88,6 +88,7 @@ When running as a teammate in an Agent Teams session:
 - Message `code-quality-reviewer` when token architecture or component library changes are ready for review.
 - Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
 - Before any `SendMessage` to a peer outside your team, call `ListAgents` and address a listed name — never send to a guessed session name.
+- A reply to any message you send to another session is delivered to your PARENT session's conversation, not to you (CC 2.1.248); send and move on, never wait for an answer. Cross-session messaging works on Bedrock, Vertex and Foundry and with telemetry disabled (CC 2.1.248), so a provider or `DISABLE_TELEMETRY=1` is not a reason to fall back to polling files.
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` — Tailwind CSS, Style Dictionary, W3C Design Tokens, Storybook documentation
