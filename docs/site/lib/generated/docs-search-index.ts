@@ -938,7 +938,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/glyph",
     "title": "Glyph",
-    "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead."
+    "description": "One front door for visual answers. Infers the audience (operator or novice) and the surface (chat, ask, or page) from the request, announces the pick in one line, then renders ASCII plus semantic emojis inline, asks with side-by-side previews, or writes a self-contained explainer page. Use for status, comparisons, trade-offs, architecture, any 'show me X visually', 'explain X to <someone>', 'eli5 X', 'chart X', 'make an explainer', or a bare /glyph meaning render where we are now. For a persisted multi-artifact plan playground, use visualize-plan."
   },
   {
     "url": "/docs/reference/skills/golden-dataset",

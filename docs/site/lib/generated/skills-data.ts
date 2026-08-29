@@ -2411,7 +2411,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "glyph",
     "description": "One front door for visual answers. Infers the audience (operator or novice) and the surface (chat, ask, or page) from the request, announces the pick in one line, then renders ASCII plus semantic emojis inline, asks with side-by-side previews, or writes a self-contained explainer page. Use for status, comparisons, trade-offs, architecture, any 'show me X visually', 'explain X to <someone>', 'eli5 X', 'chart X', 'make an explainer', or a bare /glyph meaning render where we are now. For a persisted multi-artifact plan playground, use visualize-plan.",
     "version": "3.0.0",
-    "sha256": "189fc02f3826eef6cb5943e8a4e03fd0936820e79ffa97e62cae80051a5108d9",
+    "sha256": "e2b111f553f60385615628161cbe14da1da356781f4bd0dc730b71a8f98c10e4",
     "author": "OrchestKit",
     "tags": [
       "ascii",
