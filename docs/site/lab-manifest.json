@@ -502,6 +502,18 @@
         "cc-adoption"
       ],
       "date": "2026-08-29"
+    },
+    {
+      "slug": "restricted-still-fires",
+      "source": "docs/feat--3774-restricted-smoke-lane/index.html",
+      "title": "Restricted, and Still All 34 Hooks Fired",
+      "description": "CC 2.1.248 --restricted removes Bash and WebFetch and ignores user settings. Which of ork's hooks break in that mode? Measured on 2.1.251: none. The CI lane drives a real claude -p --restricted against a local stub of the Messages API, at zero spend, and asserts the failing-hook set stays empty.",
+      "tags": [
+        "ci",
+        "hooks",
+        "measurement"
+      ],
+      "date": "2026-08-29"
     }
   ]
 }

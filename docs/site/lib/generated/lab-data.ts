@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "restricted-still-fires",
+    "title": "Restricted, and Still All 34 Hooks Fired",
+    "description": "CC 2.1.248 --restricted removes Bash and WebFetch and ignores user settings. Which of ork's hooks break in that mode? Measured on 2.1.251: none. The CI lane drives a real claude -p --restricted against a local stub of the Messages API, at zero spend, and asserts the failing-hook set stays empty.",
+    "tags": [
+      "ci",
+      "hooks",
+      "measurement"
+    ],
+    "date": "2026-08-29",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "model-switch-consent",
     "title": "PreModelSwitch: the second door onto Fable, now guarded",
     "description": "The payload as measured on CC 2.1.251, the three-run end-to-end table before and after one fix, and the defect unit tests could not see: a hook whose envelope the output guard strips is not a hook that blocks.",
