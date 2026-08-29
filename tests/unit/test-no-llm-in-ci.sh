@@ -61,7 +61,13 @@ for wf in "$WF_DIR"/*.yml "$WF_DIR"/*.yaml; do
     scanned=$((scanned + 1))
     name=$(basename "$wf")
 
-    grep -qE "$LLM_SIGNATURE" "$wf" || continue
+    # Comment lines are prose, not invocations: a `# ... claude -p ...` note
+    # explaining a job consumes no quota. Strip them before matching so the
+    # gate keys on what the workflow RUNS. (First hit: plugin-validation.yml's
+    # restricted smoke lane, whose comment names the command its script runs
+    # against a loopback stub.) Positive control below proves the strip does
+    # not blind the gate to a real invocation.
+    grep -vE '^[[:space:]]*#' "$wf" | grep -qE "$LLM_SIGNATURE" || continue
     llm_workflows=$((llm_workflows + 1))
 
     # Parse the `on:` block with python so we read YAML semantics, not regex
@@ -97,6 +103,16 @@ PY
         echo "  ${GREEN}✓${NC} $name (LLM, manual only)"
     fi
 done
+
+# Positive control for the comment strip: an uncommented invocation must match.
+if ! printf '  # claude -p in a comment\n  run: claude -p "x"\n' | grep -vE '^[[:space:]]*#' | grep -qE "$LLM_SIGNATURE"; then
+    echo "${RED}FAIL:${NC} comment-strip positive control: an uncommented 'claude -p' no longer matches the signature"
+    exit 3
+fi
+if printf '  # claude -p only in a comment\n  run: echo ok\n' | grep -vE '^[[:space:]]*#' | grep -qE "$LLM_SIGNATURE"; then
+    echo "${RED}FAIL:${NC} comment-strip negative control: a comment-only mention still matches"
+    exit 3
+fi
 
 echo ""
 if [[ $llm_workflows -eq 0 ]]; then
