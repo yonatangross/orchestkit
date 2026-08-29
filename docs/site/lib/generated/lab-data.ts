@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "prompt-hooks-measured-out",
+    "title": "Five Seconds to Say What Six Milliseconds Already Knew",
+    "description": "Should the two Bash regex guards with recorded false positives become CC prompt-type hooks? A/B on the guards' own 165-case corpus: the fast model scores 129/142 and 22/23 where the regex scores 142 and 23, at 5.4 s p50 per Bash call versus 6 ms. Every disagreement listed, with the model's reason.",
+    "tags": [
+      "measurement",
+      "hooks",
+      "false-signals"
+    ],
+    "date": "2026-08-29",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 9
+  },
+  {
     "slug": "verdict-after-the-turn",
     "title": "The Verdict That Arrived After the Turn Ended",
     "description": "An async hook cannot block and its output waits for a next turn. ork's three background verifiers now carry CC's asyncRewake, so a block verdict exits 2 and wakes Claude at once. Measured on 2.1.251 and 2.1.248 with a nonce through a loopback Messages API: delivered in the next request under asyncRewake, never under plain async.",
