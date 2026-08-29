@@ -16,6 +16,187 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.251",
+    "features": [
+      {
+        "slug": "symlink_swap_after_permission_check",
+        "category": "breaking",
+        "description": "File tools no longer follow a symlink swapped in after the permission check, closing an out-of-scope read/write hole.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "plugin_command_path_traversal",
+        "category": "breaking",
+        "description": "Marketplace plugin commands pointing outside the plugin directory are now rejected as path traversal.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "settings_beta_tracing_blocked",
+        "category": "breaking",
+        "description": "Project settings can no longer enable raw API body logging or bypass a managed OTLP collector.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "monitoring-observability",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "workflow_scriptpath_read_check",
+        "category": "breaking",
+        "description": "Workflow tool no longer reads or quotes a scriptPath outside session-readable paths before permission checks run.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "grep_glob_symlink_deny_rules",
+        "category": "breaking",
+        "description": "Grep and Glob now apply Read(...) deny rules to files reached through symlinked search paths.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "disable_auto_mode_mid_session",
+        "category": "breaking",
+        "description": "Managed-settings disableAutoMode arriving mid-session now demotes a running auto-mode session to default mode.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "bash_arith_assign_auto_approve",
+        "category": "breaking",
+        "description": "Bash commands assigning arithmetic expressions to integer shell variables now prompt instead of auto-approving.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "chrome_actions_permission_checks",
+        "category": "breaking",
+        "description": "Claude in Chrome browser actions now always route through Claude Code permission checks, not the extension's prompts.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "browser-tools",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "subagent_model_env_precedence",
+        "category": "breaking",
+        "description": "CLAUDE_CODE_SUBAGENT_MODEL is now only a default; agent definition model: and per-spawn model take precedence.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "default_commit_trailer_non_claude",
+        "category": "breaking",
+        "description": "Default commit trailer becomes Co-Authored-By: Claude Code when the active model is not a recognized Claude model.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "commit"
+        ]
+      },
+      {
+        "slug": "sandbox_bash_output_file_hardening",
+        "category": "breaking",
+        "description": "Sandboxed Bash commands can no longer redirect or replace the files their output is captured in.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "devops-deployment"
+        ]
+      },
+      {
+        "slug": "project_env_config_dir_blocked",
+        "category": "breaking",
+        "description": "Project .claude/settings.json env can no longer set CLAUDE_CONFIG_DIR, CLAUDE_CODE_TMPDIR, or TMPDIR/TMP/TEMP.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "background_session_cli_subcommands",
+        "category": "new_command",
+        "description": "claude --help now documents attach, logs, stop, respawn, and rm for background sessions.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "sandbox_settings_require_approval",
+        "category": "new_perm",
+        "description": "Server-managed settings that weaken sandbox isolation, terminate TLS, or inject credentials now require approval.",
+        "gapScore": 12,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "custom_headers_require_approval",
+        "category": "new_perm",
+        "description": "ANTHROPIC_CUSTOM_HEADERS from managed or project settings now requires approval for credential or routing headers.",
+        "gapScore": 12,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "model_switch_hook_events",
+        "category": "new_event",
+        "description": "New PreModelSwitch and PostModelSwitch hook events can block, confirm, or annotate a model switch.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "rate_limits_spend_limit_field",
+        "category": "new_field",
+        "description": "New rate_limits.spend_limit status line field for gateway users with spend limits.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "prompt_cache_statusline_object",
+        "category": "new_field",
+        "description": "New prompt_cache object for status line scripts exposing hit ratio, misses, re-cached tokens, and warm/cold.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "analytics",
+          "telemetry-inspect"
+        ]
+      }
+    ]
+  },
+  {
     "version": "2.1.250",
     "features": []
   },
@@ -2159,4 +2340,4 @@ export const CC_SUPPORT = {
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "00cd53d7855a" as const;
+export const SOURCE_DIGEST = "3c0a880d8e62" as const;
