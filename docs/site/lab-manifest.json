@@ -454,6 +454,18 @@
         "visualization"
       ],
       "date": "2026-08-29"
+    },
+    {
+      "slug": "permission-rule-wildcard-lint",
+      "source": "docs/feat--permission-rule-wildcard-lint/index.html",
+      "title": "A wildcard before the subcommand grants more than it reads",
+      "description": "CC 2.1.246 warns about Bash allow rules shaped Bash(git * main): the star also swallows options placed before the subcommand. This lint keeps that shape out of the rules ork ships, with a positive control so a broken regex cannot pass vacuously.",
+      "tags": [
+        "hooks",
+        "security",
+        "cc-adoption"
+      ],
+      "date": "2026-08-29"
     }
   ]
 }
