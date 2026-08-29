@@ -78,6 +78,18 @@ trigger_evals:
   - prompt: "Generate a PNG diagram of our microservices architecture for the README"
     should_trigger: false
 
+  # --- v3 front door: audience and surface phrasing (2026-08-29) ------------
+  - prompt: "eli5 how our OAuth login actually works"
+    should_trigger: true
+  - prompt: "explain the deploy pipeline to the client, make it a page"
+    should_trigger: true
+  - prompt: "chart the hook timings from last week"
+    should_trigger: true
+  - prompt: "make an explainer page for the onboarding flow"
+    should_trigger: true
+  - prompt: "explain like I'm new here: what does the release watch do"
+    should_trigger: true
+
   # --- no shape to render --------------------------------------------------
   - prompt: "rename this variable to userCount"
     should_trigger: false

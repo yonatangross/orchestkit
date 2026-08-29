@@ -1,0 +1,228 @@
+<!doctype html>
+<!--
+  EXPLAINER BASELINE  ·  glyph, novice + page
+  ============================================
+  THIS IS NOT A SKELETON TO FILL IN. It is a typographic floor plus a set of rules.
+  The CSS below exists so you never have to think about type, spacing, or colour.
+  Everything visual is yours to invent for THIS topic.
+
+  The rule that matters most
+  --------------------------
+  DRAW THE ACTUAL THING. A queue looks like a queue. A pipeline looks like a pipe.
+  A backlog looks like a pile. If your visual is a row of generic rectangles with
+  arrows between them, you have described the SHAPE of the idea instead of the idea,
+  and the reader learns nothing they could not have got from the sentence.
+
+  Bad:  [ change ] -> [ holding ] -> [ release ]
+  Good: a drawn queue of people at one door, a full ferry leaving a dock, a dam with
+        water backed up behind it, thirty-five tiny boats vs one big one.
+
+  Build these from CSS shapes and inline SVG. You have border-radius, transforms,
+  gradients, clip-path, and full SVG. That is more than enough to draw a ferry.
+
+  The rest of the rules
+  ---------------------
+  DO NOT RESTATE THEM HERE. The normative list is "Quality bar for a novice page"
+  in ../references/page-route.md (section 3): word count per beat, beat count, jargon in visual labels, leftover
+  markers, light theme, self-containment. Read it there before you start.
+
+  This comment used to carry its own copy of that list, and within one edit the two
+  had already drifted apart in three places. One source of truth, and it is SKILL.md.
+  What stays here is the worked example above, because it is illustration, not spec.
+
+  Structure is free. The classes below are a floor, not a menu: add your own,
+  override anything, delete what you do not use. What you may NOT do is ship
+  generic boxes because they were already here.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TITLE</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#6b6b6b; --line:#e2e2e2; --bg:#fbfbf9;
+    --accent:#2f6f4e; --warn:#b45309; --stop:#b91c1c; --soft:#eef4f0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:17px/1.6 ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif;}
+  .wrap{max-width:820px;margin:0 auto;padding:64px 24px 96px}
+
+  /* type scale: use as-is, it is tuned */
+  h1{font-size:clamp(34px,6vw,54px);line-height:1.1;letter-spacing:-.02em;margin:0 0 16px}
+  .lede{font-size:clamp(19px,2.4vw,23px);color:var(--muted);margin:0;max-width:60ch}
+  .beat{margin:64px 0;padding-top:40px;border-top:1px solid var(--line)}
+  .beat:first-of-type{border-top:none}
+  .beat h2{font-size:clamp(23px,3vw,30px);letter-spacing:-.01em;margin:0 0 10px}
+  .beat p{margin:0;max-width:52ch;font-size:19px}
+  .n{display:inline-block;font:600 13px/1 ui-monospace,monospace;color:var(--accent);
+     letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px}
+
+  /* the stage your drawing sits on: invent what goes inside it */
+  .viz{margin:28px 0 0;padding:32px;background:#fff;border:1px solid var(--line);
+       border-radius:14px;display:flex;align-items:center;justify-content:center;
+       min-height:180px}
+  .viz svg{max-width:100%;height:auto}
+
+  /* one number, when a number IS the point */
+  .big{font:700 clamp(52px,11vw,104px)/1 ui-sans-serif,system-ui;
+       letter-spacing:-.03em;text-align:center}
+  .big small{display:block;font:500 17px/1.5 ui-sans-serif,system-ui;
+             color:var(--muted);margin-top:12px;letter-spacing:0}
+
+  /* consequence cards under every beat (quality bar): skimmable side by side */
+  .so{margin:14px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.so{grid-template-columns:1fr}}
+  .socard{padding:12px 14px;border-radius:10px;background:var(--soft);border:1px solid var(--line)}
+  .socard b{display:block;font-size:13px;color:var(--accent);margin-bottom:4px}
+  .socard span{font-size:15px;color:var(--ink)}
+  .socard.nothing{background:#fdf3e7;border-color:#f0c79a}
+  .socard.nothing b{color:var(--warn)}
+  /* sticky answer bar: one per page, collects every decision block */
+  .answerbar{position:sticky;bottom:0;margin-top:40px;padding:14px 18px;background:#fff;
+             border:1px solid var(--line);border-radius:14px 14px 0 0;
+             box-shadow:0 -6px 24px rgba(0,0,0,.06);display:grid;grid-template-columns:1fr auto;
+             gap:16px;align-items:center}
+  .answerbar .summary{margin:0;font:13px/1.6 ui-monospace,monospace;color:var(--ink);white-space:pre-wrap}
+  .answerbar .count{font:600 13px ui-monospace,monospace;color:var(--muted)}
+  .copy:disabled{opacity:.45;cursor:not-allowed}
+  /* decision beat: real controls, not pictures of options */
+  .opts{margin:22px 0 0;display:flex;flex-direction:column;gap:10px}
+  .opt{display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:start;
+       padding:14px 16px;background:#fff;border:1px solid var(--line);border-radius:12px;cursor:pointer}
+  .opt:has(input:checked){border-color:var(--accent);background:var(--soft)}
+  .opt input{margin-top:5px;accent-color:var(--accent)}
+  .opt b{display:block;font-size:17px}
+  .opt .cons{display:block;grid-column:2;color:var(--muted);font-size:15px;margin-top:2px}
+  .after{margin:22px 0 6px;font:600 13px/1 ui-monospace,monospace;color:var(--muted);
+         letter-spacing:.1em;text-transform:uppercase}
+  .todos{display:flex;flex-direction:column;gap:8px}
+  .todo{display:flex;gap:10px;align-items:center;font-size:16px;cursor:pointer}
+  .todo input{accent-color:var(--accent)}
+  .actions{display:flex;align-items:center;gap:12px}
+  .copy{font:600 15px ui-sans-serif,system-ui;color:#fff;background:var(--accent);border:0;
+        border-radius:10px;padding:10px 16px;cursor:pointer}
+  .copied{font-size:13px;color:var(--accent)}
+  .close{margin-top:72px;padding:32px;background:var(--soft);border-radius:14px}
+  .close h2{margin:0 0 10px;font-size:24px}
+  .close p{margin:0;max-width:56ch;font-size:19px}
+  footer{margin-top:56px;color:var(--muted);font-size:14px}
+  @media print{body{background:#fff} .viz{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>TITLE</h1>
+  <p class="lede">One sentence: what this is, in words the reader already owns.</p>
+
+  <section class="beat">
+    <span class="n">01 &middot; label the move, not the number</span>
+    <h2>A plain-language heading</h2>
+    <p>Under twenty words.</p>
+    <div class="viz">
+      <!-- DRAW THE ACTUAL THING HERE. Inline SVG or CSS shapes.
+           Not a row of rectangles. -->
+    </div>
+    <!-- REQUIRED per beat (quality bar in references/page-route.md): the picture alone is not an
+         explanation. Two side-by-side cards so a skimmer sees the cost without
+         reading; <= 12 words each, reader's words. -->
+    <div class="so">
+      <div class="socard"><b>What it means</b><span>the consequence, concretely.</span></div>
+      <div class="socard nothing"><b>If we do nothing</b><span>what it costs to leave it.</span></div>
+    </div>
+  </section>
+
+  <!-- repeat for 4-6 beats total -->
+
+  <!-- DECISION BEAT. Mandatory when the topic is a decision or an action plan
+       (SKILL.md routing table + references/page-route.md quality bar). Real controls, not pictures of options:
+       a radio group for the pick with a consequence column, checkboxes for the
+       follow-ups the pick unlocks, and a copy button that emits the DECIDE block
+       as plain text so the answer travels back to chat. If a component source is
+       reachable (ork:component-search / 21st-dev-magic / a house kit), source the
+       controls there; this block is the floor so every decision page looks the same.
+       Delete this whole section when the topic is not a decision. -->
+  <!-- One decision block per fork. data-key is the short key the agent parses
+       back (e.g. "gate", "desk"); the sticky bar below collects every block. -->
+  <section class="beat decision" data-key="keyA">
+    <span class="n">0N &middot; your call</span>
+    <h2>One-line question the reader must answer</h2>
+    <p>What the pick changes, in one sentence.</p>
+    <div class="opts">
+      <label class="opt"><input type="radio" name="keyA" value="Option A"> <b>Option A</b><span class="cons">consequence, one clause</span></label>
+      <label class="opt"><input type="radio" name="keyA" value="Option B"> <b>Option B</b><span class="cons">consequence, one clause &middot; <em>recommended, because &hellip;</em></span></label>
+    </div>
+    <p class="after">after you pick:</p>
+    <div class="todos">
+      <label class="todo"><input type="checkbox" value="step one that follows"> step one that follows</label>
+      <label class="todo"><input type="checkbox" value="step two that follows"> step two that follows</label>
+    </div>
+  </section>
+
+  <!-- STICKY ANSWER BAR. One per page, collects every .decision block. The copy
+       button stays DISABLED until every block has a pick (reports N/M chosen), so a
+       half-answered page cannot be pasted back as if complete. Emits a fixed-width
+       key: value block the agent can parse. Delete with the decision beats. -->
+  <div class="answerbar" data-answerbar>
+    <pre class="summary" aria-live="polite"></pre>
+    <div class="actions">
+      <span class="count"></span>
+      <button type="button" class="copy" data-copy-decision disabled>copy my answers</button>
+      <span class="copied" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <div class="close">
+    <h2>So what?</h2>
+    <p>Why the reader should care, in one sentence.</p>
+  </div>
+
+  <footer>DATE &middot; generated by /glyph</footer>
+</div>
+<script>
+/* Answer bar: collects every .decision block into one fixed-width key: value
+   summary, keeps Copy disabled until every block has a pick, and falls back to
+   select-and-Cmd+C when the clipboard API is denied. Plain text on purpose:
+   it is meant to be pasted back into chat and parsed by the agent. */
+(function(){
+  var bar = document.querySelector('[data-answerbar]'); if(!bar) return;
+  var blocks = Array.prototype.slice.call(document.querySelectorAll('.beat.decision'));
+  if(!blocks.length){ bar.style.display='none'; return; }
+  var sum = bar.querySelector('.summary'), btn = bar.querySelector('[data-copy-decision]'),
+      cnt = bar.querySelector('.count'), note = bar.querySelector('.copied');
+  var width = blocks.reduce(function(m,b){ return Math.max(m, (b.getAttribute('data-key')||'').length); }, 0);
+  function pad(s){ while(s.length < width) s += ' '; return s; }
+  function build(){
+    var lines = [], picked = 0;
+    blocks.forEach(function(b){
+      var key = b.getAttribute('data-key') || '?';
+      var r = b.querySelector('.opt input:checked');
+      if(r) picked++;
+      lines.push(pad(key) + ': ' + (r ? r.value : '(not chosen)'));
+      b.querySelectorAll('.todo input:checked').forEach(function(c){
+        lines.push(pad('') + '  [x] ' + c.value);
+      });
+    });
+    sum.textContent = lines.join('\n');
+    cnt.textContent = picked + '/' + blocks.length + ' chosen';
+    btn.disabled = picked < blocks.length;
+    return sum.textContent;
+  }
+  document.addEventListener('change', build); build();
+  btn.addEventListener('click', function(){
+    var t = build();
+    var done = function(){ note.textContent = 'copied'; setTimeout(function(){ note.textContent=''; }, 1400); };
+    var fallback = function(){
+      var range = document.createRange(); range.selectNodeContents(sum);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+      note.textContent = 'selected: press Cmd+C (or Ctrl+C)';
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, fallback);
+    else fallback();
+  });
+})();
+</script>
+</body>
+</html>

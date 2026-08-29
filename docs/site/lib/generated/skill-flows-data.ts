@@ -3723,28 +3723,49 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Box-Drawing Character Reference",
+            "label": "Dial 1: audience",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "Diagram Patterns",
+            "label": "Dial 2: surface",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "Key Rules",
+            "label": "Routing",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "When to Use Each Pattern",
+            "label": "Chat engine",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Page route",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Overrides",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "When NOT to use this skill",
             "does": "",
             "out": null,
             "tag": null
