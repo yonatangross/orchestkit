@@ -29,7 +29,7 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - CC 2.1.162 compliant: 478-entry version matrix (catalogued through 2.1.162 — workflow→ultracode rename 2.1.160, parallel-tool independent failure + mcp secret redaction 2.1.161, agents --json waitingFor + dedicated search tools + WebFetch preapproved-domain fix 2.1.162); 2.1.159 is infra-only. Floor 2.1.183 (deliberate owner decision 2026-06-20, renewing the 2026-06-10 strict bump: strict floor=latest=latest_known, support only the newest CC; override expires 2026-09-20).
 - CC 2.1.179 adoption: `latest_known` 2.1.176 → 2.1.179 (the version matrix is now 2 stamped constants — `MIN_CC_VERSION` + `LATEST_KNOWN_CC` — after the #2229 THIN; no more hand-maintained catalogue). 2.1.178 features adopted into docs (`Tool(param:value)` permission rules e.g. `Agent(model:opus)`, MCP `disallowedTools` now enforced in subagents, nested `.claude/skills` + closest-wins precedence, workflow keyword now explicit-phrase only). 2.1.177/2.1.179 are bugfix-only (no snapshots). Subtraction pass (`shared/rules/cc-native-first.md`): 0 ork code removable — `Tool(param:value)` is orthogonal to the model-cost-advisor + fable-spend-consent hooks. Floor was 2.1.170 at that point (override); bumped to 2.1.183 in the adoption below.
 - CC 2.1.183 adoption: floor 2.1.170 → 2.1.183 (strict pin renewed 2026-06-20). **2.1.178 hard-removed the `TeamCreate`/`TeamDelete` tools** — migrated 14 agents + 9 team-mode skills to the implicit-team model (`Agent(name=...)` + `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in settings); `team_name` is kept as ork's `team-size-gate`/`team-member-start` key (CC 2.1.178 accepts-but-ignores it). Bare `Task` tool → `Agent` in 15 skills' allowed-tools. No new ork-consumed hook output field landed 2.1.171–2.1.183: `continueOnBlock` (2.1.177) is a hooks.json flag already in use; `reloadSkills` (2.1.173) + `MessageDisplay` (2.1.152) stay unhooked (no use case); Stop/SubagentStop `additionalContext` opt-out unchanged. Subtraction pass: 0 ork hook code removable. Follow-up: re-verify `getTeamMembers()` (`~/.claude/teams/<name>/config.json`) is still populated under implicit teams.
-- Event coverage: CwdChanged + FileChanged deliberately unhooked (no use case)
+- Event coverage: CwdChanged + FileChanged were deliberately unhooked at the time; both are hooked now (`lifecycle/cwd-changed`, `lifecycle/file-changed`), see the registry table below
 
 ---
 
@@ -182,8 +182,8 @@ Session and instance lifecycle management.
 - `TaskCreated` / `TaskCompleted` - Task lifecycle tracking (CC 2.1.84)
 - `TeammateIdle` - Teammate agent idle detection (CC 2.1.33)
 - `WorktreeCreate` / `WorktreeRemove` - Worktree lifecycle (CC 2.1.69)
-- `CwdChanged` - Working directory changed (CC 2.1.83) — **not hooked** (no use case yet)
-- `FileChanged` - File modified externally (CC 2.1.83) — **not hooked** (PostToolUse covers writes)
+- `CwdChanged` - Working directory changed (CC 2.1.83) — hooked: `lifecycle/cwd-changed` + webhook forwarder
+- `FileChanged` - File modified externally (CC 2.1.83) — hooked: `lifecycle/file-changed` + webhook forwarder (PostToolUse still covers tool writes)
 
 ### Notification Hooks (Notification)
 Handle notifications and alerts.
@@ -1278,15 +1278,15 @@ When adding new hooks, place them in the appropriate entry point for optimal bun
 | ConfigChange | (root hooks.json) | lifecycle.mjs |
 | TaskCreated/TaskCompleted | (root hooks.json) | lifecycle.mjs |
 | TeammateIdle | (root hooks.json) | lifecycle.mjs |
-| WorktreeCreate/Remove | (root hooks.json) | lifecycle.mjs |
-| CwdChanged | *not hooked* | — |
-| FileChanged | *not hooked* | — |
+| WorktreeRemove | (root hooks.json) | lifecycle.mjs (webhook-forwarder only; WorktreeCreate is deliberately unregistered, #3315) |
+| CwdChanged | src/entries/lifecycle.ts | lifecycle.mjs (`lifecycle/cwd-changed`) |
+| FileChanged | src/entries/lifecycle.ts | lifecycle.mjs (`lifecycle/file-changed`) |
 | Skill-specific | src/entries/skill.ts | skill.mjs |
 | Agent-specific | src/entries/agent.ts | agent.mjs |
 
-**Deliberately unhoooked events (CC 2.1.83+):**
-- `CwdChanged` — fires on working directory change. OrchestKit does not currently need to react to cwd changes; session context is project-scoped via `project_dir`. Could be useful for multi-worktree context switching if needed in the future.
-- `FileChanged` — fires on file modifications (matched by basename). OrchestKit's PostToolUse hooks already track file writes. FileChanged is more useful for watching external file changes (e.g., `.env` modifications) but the overhead of per-file-change hooks is not justified yet.
+**Hooked since the 2.1.83 events landed (this table previously said "not hooked" for both; corrected 2026-08-29):**
+- `CwdChanged` — `lifecycle/cwd-changed` (two hooks.json entries: the handler plus the webhook forwarder). Reacts to `/cd` and worktree switches; CC 2.1.246 also reloads project hooks, skills and agents on `/cd`, so this is where a cwd-scoped context refresh belongs.
+- `FileChanged` — `lifecycle/file-changed` (two entries, as above). Observes external file modifications; PostToolUse still covers writes made by tools.
 
 ### Step 2: Register in Entry Point
 

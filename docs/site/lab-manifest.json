@@ -431,6 +431,18 @@
         "false-signals"
       ],
       "date": "2026-08-28"
+    },
+    {
+      "slug": "cc-latest-capitalize",
+      "source": "docs/chore--cc-251-snapshot-and-watch/index.html",
+      "title": "Claude Code 2.1.243 to 2.1.251: what shipped, where OrchestKit cashes in",
+      "description": "276 changelog lines across seven releases, 80 Claude Code bookmarks, and six places where the plugin turns them into leverage: hooks, cache, orchestration, hardening, the field, and three decisions with a copy-my-answers bar.",
+      "tags": [
+        "analysis",
+        "hooks",
+        "cc-adoption"
+      ],
+      "date": "2026-08-29"
     }
   ]
 }
