@@ -532,7 +532,27 @@ function isValidSessionId(sessionId) {
  * @param {{ t_bundle_ms: number, t_stdin_ms: number, t_exec_ms: number, _t3: bigint }} [timing] - Pipeline stage timings
  * @returns {void}
  */
-function trackHookTriggered(trackedHookName, success, durationMs, projectDir, timing, sessionIdFromInput) {
+/**
+ * Classify what a hook result DID, for hook-timing.jsonl (#3801 follow-up).
+ * `ok:true` there only ever meant "did not throw"; a hook that computes a
+ * verdict and never produces one looked identical to a working hook for
+ * months. The verdict field makes that visible: a decisive hook whose
+ * verdicts are all `silent` over a window is either healthy-and-unprovoked or
+ * dead, and the verdict-probe suite (tests/hooks/verdict-probes) decides which.
+ */
+function classifyVerdict(result) {
+  if (!result || typeof result !== 'object') return 'silent';
+  const hso = result.hookSpecificOutput;
+  const pd = hso && typeof hso === 'object' ? hso.permissionDecision : undefined;
+  if (pd === 'deny' || pd === 'ask' || pd === 'allow' || pd === 'defer') return pd;
+  if (result.continue === false) return 'block';
+  if (result.decision === 'block') return 'block';
+  if (hso && typeof hso === 'object' && (hso.additionalContext || hso.updatedInput)) return 'context';
+  if (result.systemMessage || result.additionalContext) return 'context';
+  return 'silent';
+}
+
+function trackHookTriggered(trackedHookName, success, durationMs, projectDir, timing, sessionIdFromInput, verdict = 'error') {
   try {
     // #census-blindspot: env-only lookup made this silently skip every hook on
     // the lifecycle events (SessionStart/Stop/SessionEnd), where CC passes
@@ -600,7 +620,7 @@ function trackHookTriggered(trackedHookName, success, durationMs, projectDir, ti
     const timingPath = join(analyticsDir, 'hook-timing.jsonl');
     rotateAnalyticsIfNeeded(timingPath);
     appendFile(timingPath,
-      JSON.stringify({ ts: new Date().toISOString(), hook: trackedHookName, duration_ms: durationMs, ok: success, pid, ...(team ? { team } : {}), ...stageTimings }) + '\n', (err) => {
+      JSON.stringify({ ts: new Date().toISOString(), hook: trackedHookName, duration_ms: durationMs, ok: success, verdict, pid, ...(team ? { team } : {}), ...stageTimings }) + '\n', (err) => {
       if (err) process.stderr.write(`[orchestkit] WARNING: failed to write hook timing to ${timingPath}: ${err.message}\n`);
     });
   } catch {
@@ -702,6 +722,7 @@ async function runHook(parsedInput) {
 
   const startTime = Date.now();
   let success = true;
+  let verdict = 'error';
 
   /** t2: after stdin parsed and input ready for execution */
   const t2 = process.hrtime.bigint();
@@ -714,6 +735,7 @@ async function runHook(parsedInput) {
     // hooks.buildContext is exported from the lifecycle bundle.
     const ctx = hooks.buildContext?.() ?? undefined;
     const result = await hookFn(parsedInput, ctx);
+    verdict = classifyVerdict(result);
     /** t3: after hook function executed */
     t3 = process.hrtime.bigint();
     const firingEvent = parsedInput.hook_event || '';
@@ -748,6 +770,6 @@ async function runHook(parsedInput) {
     // normalizeInput() already resolved session_id from the payload (falling
     // back to CLAUDE_SESSION_ID). Pass it through so lifecycle events, which
     // carry session_id only in stdin, are no longer invisible to the census.
-    trackHookTriggered(hookName, success, durationMs, projectDir, timing, parsedInput?.session_id);
+    trackHookTriggered(hookName, success, durationMs, projectDir, timing, parsedInput?.session_id, verdict);
   }
 }

@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "ok-true-is-not-a-verdict",
+    "title": "ok:true Is Not a Verdict",
+    "description": "Every ork hook wrote ok:true when it did not throw, which is how a verifier sat dead for months. Seventeen verdict probes now drive the decisive hooks through the real runner with trip and control fixtures. First run: three reds, two of them real defects fixed here (a dispatcher dropping ask verdicts, a git guard allowing HEAD:main from a feature branch), one known-dead hook tracked.",
+    "tags": [
+      "hooks",
+      "measurement",
+      "false-signals"
+    ],
+    "date": "2026-08-29",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "prompt-hooks-measured-out",
     "title": "Five Seconds to Say What Six Milliseconds Already Knew",
     "description": "Should the two Bash regex guards with recorded false positives become CC prompt-type hooks? A/B on the guards' own 165-case corpus: the fast model scores 129/142 and 22/23 where the regex scores 142 and 23, at 5.4 s p50 per Bash call versus 6 ms. Every disagreement listed, with the model's reason.",

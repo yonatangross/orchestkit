@@ -574,6 +574,18 @@
         "false-signals"
       ],
       "date": "2026-08-29"
+    },
+    {
+      "slug": "ok-true-is-not-a-verdict",
+      "source": "docs/feat--hook-verdict-probes/index.html",
+      "title": "ok:true Is Not a Verdict",
+      "description": "Every ork hook wrote ok:true when it did not throw, which is how a verifier sat dead for months. Seventeen verdict probes now drive the decisive hooks through the real runner with trip and control fixtures. First run: three reds, two of them real defects fixed here (a dispatcher dropping ask verdicts, a git guard allowing HEAD:main from a feature branch), one known-dead hook tracked.",
+      "tags": [
+        "hooks",
+        "measurement",
+        "false-signals"
+      ],
+      "date": "2026-08-29"
     }
   ]
 }

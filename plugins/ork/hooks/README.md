@@ -1207,6 +1207,24 @@ All hooks that inject `additionalContext` are classified by volatility. Volatile
 
 ---
 
+## Verdict probes: proving a hook does its job, not just that it runs
+
+`ok: true` in `~/.claude/analytics/hook-timing.jsonl` means the runner did not throw. It said nothing about what the hook decided, and #3801 showed the cost: `stale-import-detector` sat at `ok:true, 2 ms` for months while its grep was rejected before it ran. Two instruments close that gap (2026-08-29).
+
+**1. `verdict` in hook-timing.** `bin/run-hook.mjs` classifies every result (`deny` / `ask` / `allow` / `defer` from `permissionDecision`, `block` from `continue:false` or `decision:block`, `context` when only `additionalContext` / `updatedInput` / `systemMessage` came back, `silent` otherwise, `error` on throw) and writes it on the timing line. A decisive hook whose verdicts are all `silent` over a window is either healthy and unprovoked, or dead; the probes decide which.
+
+**2. `tests/hooks/verdict-probes/`.** `probes.json` lists one probe per decisive hook: the hooks.json entry production reaches (the dispatcher, where the guard lives inside one), a `trip` fixture that must produce the verdict, and a `control` fixture that must not, so a probe that cannot fail is itself caught. `run-probes.mjs` spawns the real built runner with the real payload shape; `test-hook-verdict-probes.sh` runs in the `tests/hooks` roster on every PR. `xfail: "#issue: reason"` marks a hook known not to fire; it is counted, and the day it fires the suite reports XPASS and fails until the marker is removed.
+
+First run, 17 probes: 13 passed, 1 known-dead, 3 red. The three reds were two real defects and one harness bug, which is the shape this suite is for:
+
+| finding | what the probe saw | fix |
+|---|---|---|
+| `sync-write-edit-dispatcher` dropped sibling `ask` verdicts (only `additionalContext` and `updatedInput` were merged), so `file-guard` and `context-file-budget-guard` had been inert since they moved from deny to ask | direct: `ask`; through the dispatcher: `updatedInput` only | the merge now carries the most severe `permissionDecision` (deny over ask) alongside context and updatedInput |
+| `git-validator` allowed `git push origin HEAD:main` from a feature branch: the early return judged only the session branch, while its own comment on `extractPushDestinations` says `HEAD:main -> ['main'] (still protected)` | `silent` with and without a git repo in cwd | an explicitly named protected destination denies from any branch; the #3455 allow (every destination non-protected) is unchanged |
+| `cross-instance-test-validator` is registered on `Stop` but reads `tool_input.file_path`, which a Stop payload never carries (#3804) | `silent` on a fixture with two untested exports | tracked as `xfail` until its event or its input is fixed |
+
+Adding a probe: copy an entry, point `hook` at the hooks.json entry (not the sub-guard), write a trip that satisfies every condition in the handler's own code, and a control one condition short. If the trip stays silent, run the sub-guard directly through `run-hook.mjs` with the same payload before blaming the wiring; a `{repeat, times}` value expands to bulk content in files and payload fields alike.
+
 ## Troubleshooting
 
 ### Debug Environment Variables (CC 2.1.111+)
@@ -1378,6 +1396,8 @@ See the async hooks section above for detailed async hook patterns.
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
 
 The registry's change history used to accumulate inside the `description` field of `hooks.json`, which made the count unreadable and the JSON diff-hostile. The field now carries only the stamped count line; history continues here.
+
+(count unchanged at 175, 2026-08-29, verdict probes): `bin/run-hook.mjs` records a `verdict` field on every hook-timing line (deny/ask/allow/defer/block/context/silent/error), and `tests/hooks/verdict-probes/` drives 17 decisive hooks through the real runner with trip and control fixtures, asserting the verdict. Day-one findings, both fixed here: `pretool/write-edit/sync-write-edit-dispatcher` merged only additionalContext and updatedInput, so a sibling's `ask` (file-guard, context-file-budget-guard) was discarded and both guards had been inert in production since #2947; `pretool/bash/git-validator` returned early on a non-protected session branch, so `git push origin HEAD:main` from a feature branch was allowed. One tracked as known-dead: `skill/cross-instance-test-validator` on Stop reads a tool_input a Stop payload never carries (#3804). See "Verdict probes" above.
 
 (count unchanged at 175, 2026-08-29): `asyncRewake` on the three async hooks that compute a block verdict (`posttool/write/stale-import-detector`, `skill/coverage-threshold-gate`, `skill/cross-instance-test-validator`), plus a `--rewake` flag on `bin/run-hook.mjs` that maps `continue: false` to exit 2 with the reason on stderr. Before, an async block was inert by CC design and its JSON waited for a next turn; now CC wakes Claude with the finding the moment the verifier finishes. Mechanism measured on 2.1.251 and 2.1.248 through a scripted loopback Messages API (nonce delivered in the next request under asyncRewake, never under plain async); the field's support cannot be read from `plugin validate`, which also passes a bogus field name. See "asyncRewake: a background verdict that interrupts" under Async Hooks.
 
