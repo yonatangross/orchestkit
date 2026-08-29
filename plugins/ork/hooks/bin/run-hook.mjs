@@ -225,6 +225,15 @@ function isHookDisabled(name, overrides) {
 }
 
 const hookName = process.argv[2];
+// `--rewake` (CC asyncRewake, measured on 2.1.248 and 2.1.251): an async hook's
+// block verdict is inert by design (the action already ran) and its JSON is
+// delivered on the next turn, if there is one. Under asyncRewake CC wakes
+// Claude the moment the process exits 2 and shows stderr as a system
+// reminder. So when this flag is set and the hook returns continue:false, the
+// runner repeats the stopReason on stderr and exits 2; every other outcome
+// exits 0 exactly as before. Only hooks.json entries that also carry
+// "asyncRewake": true pass the flag.
+const REWAKE = process.argv.includes('--rewake');
 
 // If no hook name provided, output silent success
 if (!hookName) {
@@ -709,6 +718,11 @@ async function runHook(parsedInput) {
     t3 = process.hrtime.bigint();
     const firingEvent = parsedInput.hook_event || '';
     emitHookResult(result, firingEvent, parsedInput.type);
+    if (REWAKE && result && result.continue === false) {
+      const reason = String(result.stopReason || 'blocked without a reason').trim();
+      process.stderr.write(`[${hookName}] ${reason}\n`);
+      process.exitCode = 2;
+    }
   } catch (err) {
     /** t3: captured even on error so timing is always recorded */
     t3 = process.hrtime.bigint();
