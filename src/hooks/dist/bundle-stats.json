@@ -32,8 +32,8 @@
       "exports": 52
     },
     "subagent": {
-      "size": 73480,
-      "sizeKB": "71.76",
+      "size": 74157,
+      "sizeKB": "72.42",
       "exports": 85
     },
     "notification": {
@@ -57,8 +57,8 @@
       "exports": 70
     }
   },
-  "totalSize": 699895,
-  "totalSizeKB": "683.49",
+  "totalSize": 700572,
+  "totalSizeKB": "684.15",
   "inputs": 115,
-  "avgBundleSizeKB": "62.14"
+  "avgBundleSizeKB": "62.20"
 }
