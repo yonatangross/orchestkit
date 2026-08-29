@@ -15,7 +15,7 @@ complexity: low
 persuasion-type: reference
 effort: low
 triggers:
-  keywords: [eli5, "explain like", "explain to", visually, ascii, "ascii emojis", chart, explainer, "explainer page", glyph]
+  keywords: [eli5, "explain like", "explain to", visually, ascii, "ascii emojis", chart, explainer, "explainer page", glyph, draw, "the options", "a page"]
   examples:
     - "status? vis in ascii emojies"
     - "eli5 how our OAuth flow works"
