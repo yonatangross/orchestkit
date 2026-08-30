@@ -30,7 +30,13 @@ const SECRET_PATTERNS = [
  * Check for potential secrets in command output
  */
 export function redactSecrets(input: HookInput, _ctx: HookContext = NOOP_CTX): HookResult {
-  const toolOutput = (input as any).tool_result || (input as any).output || '';
+  // `tool_response` is what CC sends on PostToolUse; `tool_result` / `output`
+  // are the legacy aliases (types.ts, same read order as
+  // posttool/secret-handler.ts). Reading only the aliases meant toolOutput
+  // came back empty on every real payload and this layer scanned nothing
+  // (#3725).
+  const toolOutput =
+    (input as any).tool_response || (input as any).tool_result || (input as any).output || '';
 
   if (!toolOutput) return outputSilentSuccess();
 

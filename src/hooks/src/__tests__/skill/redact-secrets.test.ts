@@ -476,6 +476,55 @@ describe('redact-secrets', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // PostToolUse payload field precedence (#3725)
+  // ---------------------------------------------------------------------------
+
+  describe('PostToolUse payload field precedence (#3725)', () => {
+    test('reads tool_response — the field CC actually sends on PostToolUse', () => {
+      // Arrange — CC sends `tool_response` on PostToolUse; the legacy aliases
+      // are absent on real payloads (same trap posttool/secret-handler.ts
+      // documented for its own reader). A production-shaped payload must trip
+      // the layer.
+      const input: HookInput = {
+        tool_name: 'Bash',
+        session_id: 'test-session-123',
+        project_dir: '/test/project',
+        tool_input: { command: 'gitlab-ci printenv' },
+        tool_response: 'GITLAB_TOKEN=glpat-1234567890abcdefghijklmnop',
+      } as any;
+
+      // Act
+      redactSecrets(input, testCtx);
+
+      // Assert
+      expect(stderrSpy).toHaveBeenCalledWith(
+        expect.stringContaining('API key detected')
+      );
+    });
+
+    test('prefers tool_response over tool_result when both are present', () => {
+      // Arrange — token only in tool_response, tool_result is clean. If the
+      // reader still preferred the legacy alias the token would be missed.
+      const input: HookInput = {
+        tool_name: 'Bash',
+        session_id: 'test-session-123',
+        project_dir: '/test/project',
+        tool_input: { command: 'gitlab-ci printenv' },
+        tool_result: 'clean output',
+        tool_response: 'GITLAB_TOKEN=glpat-1234567890abcdefghijklmnop',
+      } as any;
+
+      // Act
+      redactSecrets(input, testCtx);
+
+      // Assert
+      expect(stderrSpy).toHaveBeenCalledWith(
+        expect.stringContaining('API key detected')
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // Warning message format
   // ---------------------------------------------------------------------------
 
