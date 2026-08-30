@@ -83,6 +83,8 @@ function runCase(probe, variant) {
       hook_event_name: probe.event,
       ...(variant.payload || {}),
     }, real);
+    // HOME is unset on Windows; Node drops an undefined env value, and the runner's
+    // homedir() falls back to USERPROFILE, so telemetry still lands. Leave as-is.
     const env = { ...process.env, CLAUDE_PROJECT_DIR: real, CLAUDE_PLUGIN_ROOT: PLUGIN_ROOT, HOME: process.env.HOME };
     for (const k of Object.keys(variant.env || probe.env || {})) env[k] = (variant.env || probe.env)[k];
     for (const k of variant.unsetEnv || probe.unsetEnv || []) delete env[k];
@@ -92,7 +94,13 @@ function runCase(probe, variant) {
     const line = String(r.stdout || '').trim().split('\n').filter((l) => l.startsWith('{')).pop();
     let result = null;
     try { result = line ? JSON.parse(line) : null; } catch { result = null; }
-    return { verdict: r.status === null ? 'timeout' : classify(result), status: r.status, ms, reason: (result && (result.stopReason || result.hookSpecificOutput?.permissionDecisionReason || '')) || '', stderr: String(r.stderr || '').slice(0, 300) };
+    // #3817: a bundle that exists but cannot be imported exits non-zero with
+    // nothing on stdout and a named stderr line; report it as its own verdict
+    // rather than the ambiguous `silent` a missing envelope would classify as.
+    const stderrText = String(r.stderr || '');
+    let verdict = r.status === null ? 'timeout' : classify(result);
+    if (result === null && r.status !== null && r.status !== 0 && /exists but failed to load|bundle-error/.test(stderrText)) verdict = 'bundle-error';
+    return { verdict, status: r.status, ms, reason: (result && (result.stopReason || result.hookSpecificOutput?.permissionDecisionReason || '')) || '', stderr: String(r.stderr || '').slice(0, 300) };
   } finally {
     if (process.env.PROBES_KEEP !== '1') fs.rmSync(dir, { recursive: true, force: true });
   }

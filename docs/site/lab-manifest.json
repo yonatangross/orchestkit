@@ -658,6 +658,18 @@
         "false-signals"
       ],
       "date": "2026-08-30"
+    },
+    {
+      "slug": "every-hook-no-oped-on-windows",
+      "source": "docs/fix--3817-windows-bundle-url/index.html",
+      "title": "Every Hook No-oped on Windows, and the Smoke Test Was Green",
+      "description": "run-hook.mjs imported its dist bundle by bare absolute path, which win32 rejects, and the catch reported the throw as silent success with exit 0 and no telemetry. The Windows job asserted only the exit code, so a dead dispatcher and a live one were the same green. Fix: pathToFileURL, a named bundle-error outcome with exit 2 for security hooks, and a CI probe that asserts a deny verdict. Pick a bundle state and a hook and read what the runner does.",
+      "tags": [
+        "hooks",
+        "false-signals",
+        "measurement"
+      ],
+      "date": "2026-08-30"
     }
   ]
 }

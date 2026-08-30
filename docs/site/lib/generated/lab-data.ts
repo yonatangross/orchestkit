@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "every-hook-no-oped-on-windows",
+    "title": "Every Hook No-oped on Windows, and the Smoke Test Was Green",
+    "description": "run-hook.mjs imported its dist bundle by bare absolute path, which win32 rejects, and the catch reported the throw as silent success with exit 0 and no telemetry. The Windows job asserted only the exit code, so a dead dispatcher and a live one were the same green. Fix: pathToFileURL, a named bundle-error outcome with exit 2 for security hooks, and a CI probe that asserts a deny verdict. Pick a bundle state and a hook and read what the runner does.",
+    "tags": [
+      "hooks",
+      "false-signals",
+      "measurement"
+    ],
+    "date": "2026-08-30",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 9
+  },
+  {
     "slug": "a-sieve-that-was-not-in-the-flow",
     "title": "A Sieve That Was Not in the Flow",
     "description": "skill/redact-secrets read two legacy aliases and never tool_response, the field CC sends, so every pattern in that layer had matched nothing in production while 65 unit tests stayed green on the alias they fed it. An outside contributor fixed the read order and proved it with an integration test that fails against main's built bundle. Pick a payload field and see which reader catches the token, before and after.",
