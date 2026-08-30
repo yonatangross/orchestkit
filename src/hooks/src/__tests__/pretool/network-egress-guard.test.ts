@@ -30,6 +30,11 @@ function createBashInput(command: string): HookInput {
 }
 
 let testCtx: ReturnType<typeof createTestContext>;
+// #3322: the guard now reads the real settings scopes when no override is set,
+// and this machine may have the sandbox on. Pin the posture to unknown so
+// these cases test the guard's own tiers; network-egress-guard-sandbox.test.ts
+// covers the stand-down.
+process.env.ORK_SANDBOX_ENABLED = 'unknown';
 const decide = (cmd: string) => networkEgressGuard(createBashInput(cmd), testCtx);
 const denies = (cmd: string) =>
   expect(decide(cmd).hookSpecificOutput?.permissionDecision, `expected DENY: ${cmd}`).toBe('deny');
