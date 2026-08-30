@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "a-check-that-could-only-answer-for-itself",
+    "title": "A Check That Could Only Ever Answer for Itself",
+    "description": "Build Phase 5 validated a manifest's dependencies by looking for a sibling manifest file in this repo, so it could only confirm plugins this repo builds. CC now owns the field: passed through to plugin.json, installed transitively, refused when unsatisfied. Type a value and see what each layer says. Also found: the plugin.json schema gate had never validated the shipped plugin.",
+    "tags": [
+      "plugin",
+      "build",
+      "false-signals"
+    ],
+    "date": "2026-08-30",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 4
+  },
+  {
     "slug": "ok-true-is-not-a-verdict",
     "title": "ok:true Is Not a Verdict",
     "description": "Every ork hook wrote ok:true when it did not throw, which is how a verifier sat dead for months. Seventeen verdict probes now drive the decisive hooks through the real runner with trip and control fixtures. First run: three reds, two of them real defects fixed here (a dispatcher dropping ask verdicts, a git guard allowing HEAD:main from a feature branch), one known-dead hook tracked.",
