@@ -276,7 +276,10 @@ jobs:
           # then blocked for not adding a 78th, which would immediately become
           # the next cycle's prune fodder. Feature PRs are unaffected because
           # they also touch src/, docs/site/ or tests/, which are not inert.
-          INERT='^(README\.md|CHANGELOG\.md|CONTRIBUTING\.md|SECURITY\.md|CODE_OF_CONDUCT\.md|LICENSE|\.github/.*|vercel\.json|[^/]*\.toml|docs/[^/]*--[^/]*/.*)$'
+          # `docs/playgrounds/` holds session explainer pages (glyph output,
+          # not Lab entries): the same circularity, a page about a page. Hit
+          # on #3811, three explainers blocked for lacking a fourth.
+          INERT='^(README\.md|CHANGELOG\.md|CONTRIBUTING\.md|SECURITY\.md|CODE_OF_CONDUCT\.md|LICENSE|\.github/.*|vercel\.json|[^/]*\.toml|docs/[^/]*--[^/]*/.*|docs/playgrounds/.*)$'
 
           FILES=$(gh pr diff "$PR_NUMBER" --name-only 2>/dev/null || true)
           if [ -z "$FILES" ]; then
