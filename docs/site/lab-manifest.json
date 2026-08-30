@@ -646,6 +646,18 @@
         "measurement"
       ],
       "date": "2026-08-30"
+    },
+    {
+      "slug": "a-sieve-that-was-not-in-the-flow",
+      "source": "docs/docs--3725-redact-secrets-paperwork/index.html",
+      "title": "A Sieve That Was Not in the Flow",
+      "description": "skill/redact-secrets read two legacy aliases and never tool_response, the field CC sends, so every pattern in that layer had matched nothing in production while 65 unit tests stayed green on the alias they fed it. An outside contributor fixed the read order and proved it with an integration test that fails against main's built bundle. Pick a payload field and see which reader catches the token, before and after.",
+      "tags": [
+        "hooks",
+        "security",
+        "false-signals"
+      ],
+      "date": "2026-08-30"
     }
   ]
 }
