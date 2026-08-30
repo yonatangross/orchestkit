@@ -117,7 +117,7 @@ fail=0; checked=0; skipped=0; report=""
 unclassified=""
 
 for plugin_dir in "$ROOT"/plugins/*/; do
-  cmd_dir="$plugin_dir/commands"
+  cmd_dir="$plugin_dir/.cursor-plugin/commands"  # #3541: Cursor-only wrappers
   [[ -d "$cmd_dir" ]] || continue
   plugin="$(basename "$plugin_dir")"
 

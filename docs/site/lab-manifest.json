@@ -598,6 +598,18 @@
         "false-signals"
       ],
       "date": "2026-08-30"
+    },
+    {
+      "slug": "wrappers-that-stopped-doing-anything",
+      "source": "docs/fix--3541-skill-command-double-register/index.html",
+      "title": "Thirty-Five Wrappers That Stopped Doing Anything",
+      "description": "Claude Code once surfaced only command files as slash commands, so every invocable skill was mirrored into commands/. On 2.1.251 the skill expands natively with the wrappers removed, byte-identical request bodies in three fixtures, so the wrappers only double-registered every skill. They now live under .cursor-plugin/commands/ for the one host that reads them.",
+      "tags": [
+        "plugin",
+        "measurement",
+        "false-signals"
+      ],
+      "date": "2026-08-30"
     }
   ]
 }

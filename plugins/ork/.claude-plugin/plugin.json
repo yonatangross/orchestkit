@@ -20,6 +20,5 @@
     "multi-agent"
   ],
   "skills": "./skills/",
-  "commands": "./commands/",
   "workflows": "./workflows/"
 }

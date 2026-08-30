@@ -3,12 +3,18 @@
 // spend. Every POST /v1/messages gets a canned assistant turn ("ok") as an SSE
 // stream (or JSON when stream:false). Every request is appended to
 // STUB_LOG as one JSON line so the caller can assert what CC sent.
+//
+// STUB_GREP (optional, #3541): a regex tested against the request's message
+// text (user text, assistant text and tool_result text). The log line then
+// carries grep_hit / grep_count / grep_ctx, so a probe can ask "did the
+// expanded slash command reach the model" without spending a token.
 import http from 'node:http';
 import fs from 'node:fs';
 
 const PORT = Number(process.env.STUB_PORT || 0);
 const LOG = process.env.STUB_LOG || '/tmp/stub-anthropic-api.jsonl';
 const REPLY = process.env.STUB_REPLY || 'ok';
+const GREP = process.env.STUB_GREP ? new RegExp(process.env.STUB_GREP) : null;
 
 function sse(res, model) {
   const ev = (type, data) => res.write(`event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`);
@@ -20,6 +26,25 @@ function sse(res, model) {
   ev('message_delta', { delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: 1 } });
   ev('message_stop', {});
   res.end();
+}
+
+function messageText(messages) {
+  const texts = [];
+  for (const m of messages || []) {
+    const c = m.content;
+    if (typeof c === 'string') texts.push(c);
+    else if (Array.isArray(c)) {
+      for (const b of c) {
+        if (b.type === 'text') texts.push(b.text);
+        if (b.type === 'tool_result') {
+          const cc = b.content;
+          if (typeof cc === 'string') texts.push(cc);
+          else if (Array.isArray(cc)) for (const x of cc) if (x.type === 'text') texts.push(x.text);
+        }
+      }
+    }
+  }
+  return texts.join('\n');
 }
 
 const server = http.createServer((req, res) => {
@@ -38,6 +63,13 @@ const server = http.createServer((req, res) => {
       mentions_ork_skills: /ork:[a-z-]+/.test(sysText),
       messages: parsed && Array.isArray(parsed.messages) ? parsed.messages.length : undefined,
     };
+    if (GREP && parsed && Array.isArray(parsed.messages)) {
+      const all = messageText(parsed.messages);
+      const at = all.search(GREP);
+      line.grep_hit = at >= 0;
+      line.grep_count = (all.match(new RegExp(GREP.source, 'g')) || []).length;
+      line.grep_ctx = at >= 0 ? all.slice(Math.max(0, at - 120), at + 200) : undefined;
+    }
     fs.appendFileSync(LOG, JSON.stringify(line) + '\n');
     if (req.method === 'POST' && /\/v1\/messages(\?|$)/.test(req.url)) {
       if (parsed && parsed.stream === false) {
