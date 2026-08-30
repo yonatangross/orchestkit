@@ -20,6 +20,6 @@
     "multi-agent"
   ],
   "skills": "./skills/",
-  "commands": "./commands/",
-  "agents": "./agents/"
+  "agents": "./agents/",
+  "commands": "./.cursor-plugin/commands/"
 }

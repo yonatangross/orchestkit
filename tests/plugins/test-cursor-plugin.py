@@ -26,7 +26,11 @@ def test_cursor_manifest_is_the_full_plugin() -> None:
     assert cursor["name"] == "ork"
     assert cursor["version"] == claude["version"]
     assert cursor["skills"] == "./skills/"
-    assert cursor["commands"] == "./commands/"
+    # #3541: wrappers are a Cursor-only artifact now; CC surfaces skills natively.
+    assert cursor["commands"] == "./.cursor-plugin/commands/"
+    assert "commands" not in claude
+    assert not (PLUGIN / "commands").exists()
+    assert (PLUGIN / ".cursor-plugin" / "commands").is_dir()
     assert cursor["agents"] == "./agents/"
     assert "hooks" not in cursor
     assert "mcpServers" not in cursor

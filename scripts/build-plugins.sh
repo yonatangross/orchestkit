@@ -46,25 +46,31 @@ echo ""
 # ============================================================================
 # Function: Generate command file from user-invocable skill
 # ============================================================================
-# Workaround for CC bug: skills with `user-invocable: true` aren't discovered as
-# slash commands — CC only surfaces commands/*.md. Canonical upstream issue:
-# https://github.com/anthropics/claude-code/issues/18949 (still OPEN as of CC 2.1.183).
-# (#20802 / #20935 / #25651 were all closed as DUPLICATES of #18949 — not fixes;
-#  ork #889 closed blocked-on-upstream.) Verified still required 2026-06-19.
+# Command wrappers for the CURSOR host (#3541, 2026-08-29).
 #
-# PROBED EMPIRICALLY at CC 2.1.226 on 2026-08-08 (#3314): two fixtures of the
-# built plugin installed into isolated CLAUDE_CONFIG_DIRs; the loader's own
-# debug counter read for each. WITH commands/: "Total plugin commands loaded:
-# 35". WITHOUT: 0 — user-invocable skills register as skills (105) but never
-# as commands. The wrappers are load-bearing; the issue label is accurate.
-# `npm run verify:cc-commands` (scripts/probe-command-discovery.sh) re-runs
-# that probe against the newest installed binary and EXITS 1 the day skills
-# start surfacing without wrappers, so the deletion happens the week it
-# becomes possible instead of years later.
+# History: Claude Code once surfaced only commands/*.md as slash commands
+# (anthropics/claude-code#18949), so every user-invocable skill was mirrored
+# into commands/<name>.md. Probed at 2.1.226 (2026-08-08) and 2.1.234
+# (2026-08-18): without the wrappers the loader reported 0 commands, so they
+# were load-bearing then.
 #
-# TOKEN COST: duplicates each user-invocable skill into commands/ — 35 wrappers
-# today (~2.8k wasted tokens/session, ~doubled from the original 17). See #2528.
-# Remove generate_command_from_skill + all commands/ generation when #18949 ships.
+# Re-measured 2026-08-29 on 2.1.251 with the loopback Messages-API stub:
+# `claude -p "/ork:glyph hello"` produces `<command-name>/ork:glyph</command-name>`
+# in the first model request WITHOUT commands/, byte-identical to with it,
+# while the request bodies show no skill listing at all (0 mentions in the
+# system prompt or tool descriptions in either fixture). So the wrappers had
+# stopped doing anything for CC except registering each invocable skill
+# twice (`plugin details`: Skills (141) for 106 on disk, /ork:glyph three
+# times in the palette).
+#
+# Cursor's loader still reads its manifest's `commands` path, so the wrappers
+# are generated under .cursor-plugin/commands/ and referenced only from
+# .cursor-plugin/plugin.json. Nothing at the default commands/ path, so CC's
+# default scan finds nothing to double-register.
+#
+# `npm run verify:cc-commands` (scripts/probe-command-discovery.sh) is the
+# tripwire in the other direction: it re-runs the expansion probe against the
+# installed binary and exits 1 the day CC stops surfacing skills natively.
 generate_command_from_skill() {
     local skill_md="$1"
     local command_file="$2"
@@ -283,20 +289,23 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         find "$PLUGIN_DIR/skills" -type d -name evals -prune -exec rm -rf {} +
     fi
 
-    # Generate commands from user-invocable skills
-    # WORKAROUND: skills/ don't get the plugin namespace prefix in autocomplete.
-    # Duplicating as commands/ gives users "ork:skillname" but doubles their load:
-    # 31 user-invocable skills x 2 entries today (~2.8k wasted tokens/session). See #2528.
-    # Remove this block when the canonical upstream issue ships a fix:
-    # https://github.com/anthropics/claude-code/issues/18949 (OPEN; #20802/#20935/#25651
-    # were closed as duplicates of it, not fixes).
+    # Generate command wrappers from user-invocable skills, FOR THE CURSOR HOST ONLY.
+    # Claude Code surfaces user-invocable skills as /ork:<name> natively (measured
+    # 2026-08-29 on 2.1.251: `/ork:glyph hello` expands to <command-name> in the
+    # first model request with commands/ removed, identical to with it), so a CC
+    # commands/ dir only double-registered every invocable skill (#3541: 141
+    # skills listed, /ork:glyph three times in the palette). Cursor's loader
+    # still reads its manifest's `commands` path, so the wrappers live under
+    # .cursor-plugin/commands/ where CC's default commands/ scan never looks.
+    # scripts/probe-command-discovery.sh is the tripwire in the other direction:
+    # it fails the day CC stops surfacing skills natively.
     if [[ -d "$PLUGIN_DIR/skills" ]]; then
         for skill_md in "$PLUGIN_DIR/skills"/*/SKILL.md; do
             [[ ! -f "$skill_md" ]] && continue
             if grep -q "^user-invocable: *true" "$skill_md"; then
                 skill_name=$(dirname "$skill_md" | xargs basename)
-                mkdir -p "$PLUGIN_DIR/commands"
-                generate_command_from_skill "$skill_md" "$PLUGIN_DIR/commands/$skill_name.md" "$skill_name"
+                mkdir -p "$PLUGIN_DIR/.cursor-plugin/commands"
+                generate_command_from_skill "$skill_md" "$PLUGIN_DIR/.cursor-plugin/commands/$skill_name.md" "$skill_name"
                 command_count=$((command_count + 1))
             fi
         done
@@ -400,7 +409,6 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         --arg version "$PLUGIN_VERSION" \
         --arg desc "$PLUGIN_DESC" \
         --argjson has_skills "$([[ -d "$PLUGIN_DIR/skills" ]] && echo true || echo false)" \
-        --argjson has_commands "$([[ -d "$PLUGIN_DIR/commands" ]] && echo true || echo false)" \
         --argjson has_workflows "$([[ -d "$PLUGIN_DIR/workflows" ]] && echo true || echo false)" \
         --argjson deps "$(jq -c '.dependencies // null' "$manifest")" \
         '{
@@ -418,7 +426,6 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
           keywords: ["ai-development","langgraph","fastapi","react","typescript","python","multi-agent"]
         }
         + if $has_skills then {skills: "./skills/"} else {} end
-        + if $has_commands then {commands: "./commands/"} else {} end
         # #3326: CC owns `dependencies` (plugin names, or {name, version}); pass
         # it through verbatim. CC installs them transitively at enable time and
         # refuses to enable/disable when unsatisfied, which the retired Phase 5
@@ -432,7 +439,9 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     # Claude hooks use ${CLAUDE_PLUGIN_ROOT} and must not be registered here.
     mkdir -p "$PLUGIN_DIR/.cursor-plugin"
     jq --argjson has_agents "$([[ -d "$PLUGIN_DIR/agents" ]] && echo true || echo false)" \
-      'del(.workflows, .dependencies) + (if $has_agents then {agents: "./agents/"} else {} end)' \
+       --argjson has_commands "$([[ -d "$PLUGIN_DIR/.cursor-plugin/commands" ]] && echo true || echo false)" \
+      'del(.workflows, .dependencies) + (if $has_agents then {agents: "./agents/"} else {} end)
+                       + (if $has_commands then {commands: "./.cursor-plugin/commands/"} else {} end)' \
       "$PLUGIN_DIR/.claude-plugin/plugin.json" \
       > "$PLUGIN_DIR/.cursor-plugin/plugin.json"
 
