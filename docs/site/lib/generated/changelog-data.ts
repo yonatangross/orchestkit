@@ -17,6 +17,26 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.63",
+    "date": "2026-08-30",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**build:** plugin dependencies handed to CC, Phase 5 retired ([#3326](https://github.com/yonatangross/orchestkit/issues/3326)) ([#3809](https://github.com/yonatangross/orchestkit/issues/3809)) ([9a62f23](https://github.com/yonatangross/orchestkit/commit/9a62f232bed66080c34408575e55ddf3c849234a))",
+          "**hooks:** egress guard stands down behind an enforced sandbox ([#3322](https://github.com/yonatangross/orchestkit/issues/3322)) ([#3808](https://github.com/yonatangross/orchestkit/issues/3808)) ([4b5e4e8](https://github.com/yonatangross/orchestkit/commit/4b5e4e89e8b36e0cbe9599f2e3d26ad714707478))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**build:** stop shipping command wrappers to Claude Code ([#3541](https://github.com/yonatangross/orchestkit/issues/3541)) ([#3807](https://github.com/yonatangross/orchestkit/issues/3807)) ([f83d5a3](https://github.com/yonatangross/orchestkit/commit/f83d5a3bb2255bd0f84f53e7dc78ca2ef3e310c1))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.62",
     "date": "2026-08-29",
     "compareUrl": "",
