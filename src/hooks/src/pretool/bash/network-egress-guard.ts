@@ -45,6 +45,7 @@ import { outputSilentSuccess, outputDeny, outputAsk } from '../../lib/common.js'
 import { normalizeSingle, blankQuotedHeredocBodies } from '../../lib/normalize-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 import { isBypassMode } from '../../lib/guards.js';
+import { isSandboxNetworkEnforced } from '../../lib/sandbox-posture.js';
 
 const HOOK_NAME = 'network-egress-guard';
 
@@ -266,6 +267,20 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   // `--dangerously-skip-permissions`.
   if (isBypassMode(input)) {
     ctx.log(HOOK_NAME, 'ASK tier skipped: bypassPermissions mode');
+    return outputSilentSuccess();
+  }
+
+  // --- ASK tier gate: the OS sandbox enforces a network policy (#3322) ---
+  // Operator decision 2026-08-23: freeze this guard, lean on the sandbox. When
+  // the settings scopes carry sandbox.enabled with an allowlist or denylist
+  // (measured 2026-08-29: the OS refuses the connection, `CONNECT tunnel
+  // failed, response 403` + <sandbox_violations>), the exfil-shaped
+  // confirmations below are a weaker guesser in front of a real boundary.
+  // Only the ASK tier stands down; the DENY tier above judges executing
+  // fetched bytes, which no network policy sees. Unknown posture (managed
+  // settings, --settings, unreadable files) keeps the full guard.
+  if (isSandboxNetworkEnforced(input.project_dir || ctx.projectDir)) {
+    ctx.log(HOOK_NAME, 'ASK tier skipped: OS sandbox network policy is enforced');
     return outputSilentSuccess();
   }
 

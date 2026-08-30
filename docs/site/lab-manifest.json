@@ -610,6 +610,18 @@
         "false-signals"
       ],
       "date": "2026-08-30"
+    },
+    {
+      "slug": "connect-tunnel-failed-403",
+      "source": "docs/feat--3322-sandbox-posture/index.html",
+      "title": "CONNECT Tunnel Failed, Response 403",
+      "description": "The operator froze the regex egress guard and chose CC's OS sandbox. Its retirement gate was an observation: with sandbox.enabled and an allowlist, a curl to example.com is refused by the proxy and reported in a sandbox_violations block; with the sandbox off it reaches the host. The guard's ASK tier now stands down behind that boundary; DENY stays.",
+      "tags": [
+        "hooks",
+        "security",
+        "measurement"
+      ],
+      "date": "2026-08-30"
     }
   ]
 }
