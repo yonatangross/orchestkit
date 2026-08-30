@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "connect-tunnel-failed-403",
+    "title": "CONNECT Tunnel Failed, Response 403",
+    "description": "The operator froze the regex egress guard and chose CC's OS sandbox. Its retirement gate was an observation: with sandbox.enabled and an allowlist, a curl to example.com is refused by the proxy and reported in a sandbox_violations block; with the sandbox off it reaches the host. The guard's ASK tier now stands down behind that boundary; DENY stays.",
+    "tags": [
+      "hooks",
+      "security",
+      "measurement"
+    ],
+    "date": "2026-08-30",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
     "slug": "wrappers-that-stopped-doing-anything",
     "title": "Thirty-Five Wrappers That Stopped Doing Anything",
     "description": "Claude Code once surfaced only command files as slash commands, so every invocable skill was mirrored into commands/. On 2.1.251 the skill expands natively with the wrappers removed, byte-identical request bodies in three fixtures, so the wrappers only double-registered every skill. They now live under .cursor-plugin/commands/ for the one host that reads them.",
