@@ -622,6 +622,18 @@
         "measurement"
       ],
       "date": "2026-08-30"
+    },
+    {
+      "slug": "stop-hook-payload-it-never-got",
+      "source": "docs/fix--3804-cross-instance-stop-check/index.html",
+      "title": "The Stop Hook That Read a Payload It Never Got",
+      "description": "cross-instance-test-validator was registered on Stop but read tool_input.file_path, a field a Stop payload never carries, so it returned silent success on every invocation while every unit test stayed green. It now reads the stopping session's edit-history, validates each file from disk, reports once per session, and knows the mirrored __tests__ layout. Interactive verdict simulator plus the probe numbers before and after.",
+      "tags": [
+        "hooks",
+        "false-signals",
+        "measurement"
+      ],
+      "date": "2026-08-30"
     }
   ]
 }
